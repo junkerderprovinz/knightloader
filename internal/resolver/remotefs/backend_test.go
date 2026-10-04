@@ -89,7 +89,7 @@ func TestBackendDownloadsOverFTPAndLeavesNoPartFileBehind(t *testing.T) {
 	if len(got) != 4096 || strings.Trim(string(got), "A") != "" {
 		t.Errorf("the file holds %d bytes of %q, want 4096 of A", len(got), firstRune(got))
 	}
-	if _, err := os.Stat(filepath.Join(dir, "film.mkv"+partSuffix)); !os.IsNotExist(err) {
+	if left := partFiles(t, dir); len(left) > 0 {
 		t.Error("the part file survived a finished download")
 	}
 }
@@ -98,7 +98,7 @@ func TestBackendResumesFromThePartFileInsteadOfStartingAgain(t *testing.T) {
 	s := newFakeFTP(t, "alice", "secret", ftpTree())
 	dir := t.TempDir()
 	// Three bytes of "hello" left by a paused download.
-	part := filepath.Join(dir, "notes.txt"+partSuffix)
+	part := partPath(dir, "notes.txt", "t1")
 	if err := os.WriteFile(part, []byte("hel"), 0o644); err != nil {
 		t.Fatal(err)
 	}
@@ -227,7 +227,7 @@ func TestBackendHaltsQuietlyAndResumesInTheNewFolder(t *testing.T) {
 	b.RateLimit = limit.Load
 
 	b.Download("t1", LinkOf(s.target("/pub/big.bin")), nil, 1)
-	part := filepath.Join(first, "big.bin"+partSuffix)
+	part := partPath(first, "big.bin", "t1")
 	arriving(t, part)
 	if !b.Halt("t1") {
 		t.Fatal("Halt found no transfer running")
@@ -245,7 +245,7 @@ func TestBackendHaltsQuietlyAndResumesInTheNewFolder(t *testing.T) {
 		}
 	}
 	rec.mu.Unlock()
-	if err := os.Rename(part, filepath.Join(second, "big.bin"+partSuffix)); err != nil {
+	if err := os.Rename(part, partPath(second, "big.bin", "t1")); err != nil {
 		t.Fatalf("the part file could not be moved after the halt: %v", err)
 	}
 
@@ -366,7 +366,7 @@ func TestRemovingAFinishedDownloadSparesThePartFileOfAnotherOfTheSameName(t *tes
 
 	limit.Store(64 << 10)
 	b.Download("b", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
-	part := filepath.Join(dir, "film.mkv"+partSuffix)
+	part := partPath(dir, "film.mkv", "b")
 	arriving(t, part)
 	if !b.Halt("b") {
 		t.Fatal("Halt found no transfer running")
@@ -428,12 +428,12 @@ func TestADownloadOfTheSameNameLeavesAHaltedOnesPartFileAloneAfterItsFolderMoved
 	b.RateLimit = limit.Load
 
 	b.Download("a", LinkOf(s.target("/pub/film.mkv")), nil, 1)
-	part := filepath.Join(first, "film.mkv"+partSuffix)
+	part := partPath(first, "film.mkv", "a")
 	arriving(t, part)
 	if !b.Halt("a") {
 		t.Fatal("Halt found no transfer running")
 	}
-	if err := os.Rename(part, filepath.Join(second, "film.mkv"+partSuffix)); err != nil {
+	if err := os.Rename(part, partPath(second, "film.mkv", "a")); err != nil {
 		t.Fatal(err)
 	}
 	mu.Lock()
@@ -485,5 +485,61 @@ func TestDownloadsFinishingAtOnceUnderOneNameEachKeepTheirFile(t *testing.T) {
 				t.Fatalf("round %d: %s does not hold download %d", round, saved[i], i)
 			}
 		}
+	}
+}
+
+// partFiles lists the part files in dir.
+func partFiles(t *testing.T, dir string) []string {
+	t.Helper()
+	got, err := filepath.Glob(filepath.Join(dir, "*"+partSuffix))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return got
+}
+
+// A restart empties the backend, and the download of the same name that comes
+// back first must neither take the other one's bytes for its own nor start
+// again from nothing.
+func TestPausedDownloadsOfOneNameEachResumeFromTheirOwnPartFileAfterARestart(t *testing.T) {
+	tree := sameNameTree(1 << 20)
+	tree["/pub/film.mkv"] = fakeNode{data: bytes.Repeat([]byte("A"), 1<<20)}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	logins := Logins{s.host(): {Username: "alice", Password: "secret"}}
+	paths := map[string]string{"a": "/pub/film.mkv", "b": "/pub/other/film.mkv"}
+
+	before := NewBackend(logins, Dialer{}, newStubEngine(), dir, func(string, core.Update) {})
+	before.RateLimit = func() int64 { return 64 << 10 }
+	for _, id := range []string{"a", "b"} {
+		before.Download(id, LinkOf(s.target(paths[id])), nil, 1)
+		arriving(t, partPath(dir, "film.mkv", id))
+		if !before.Halt(id) {
+			t.Fatalf("Halt found no transfer of %s running", id)
+		}
+	}
+
+	rec := byTask{"a": newRecorder(), "b": newRecorder()}
+	after := NewBackend(logins, Dialer{}, newStubEngine(), dir, rec.update)
+	for _, id := range []string{"b", "a"} {
+		for len(s.restarts) > 0 {
+			<-s.restarts
+		}
+		after.Download(id, LinkOf(s.target(paths[id])), nil, 1)
+		want := tree[paths[id]].data
+		if u := rec[id].wait(t); u.Status != core.StatusDone || !holds(u.File, want) {
+			t.Errorf("download %s = %+v, want its own bytes in its file", id, u)
+		}
+		select {
+		case off := <-s.restarts:
+			if off < 256<<10 {
+				t.Errorf("download %s asked the server to restart at %d, before what its part file held", id, off)
+			}
+		case <-time.After(2 * time.Second):
+			t.Errorf("download %s did not resume from its part file", id)
+		}
+	}
+	if left := partFiles(t, dir); len(left) > 0 {
+		t.Errorf("part files left behind: %v", left)
 	}
 }

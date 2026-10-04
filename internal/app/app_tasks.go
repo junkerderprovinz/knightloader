@@ -1057,16 +1057,17 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
-	var part string
+	var usenetPart, remotePart string
 	if t != nil {
 		// The own Usenet servers' backend deletes a part file with or without
 		// deleteFiles, as long as it knows the task.
-		part = a.usenetPartLocked(t)
+		usenetPart = a.usenetPartLocked(t)
 	}
 	var work []string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
+		remotePart = a.partFileLocked(t)
 		work = t.WorkFiles
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
@@ -1091,8 +1092,13 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)
 		landed.drop()
-		if part != "" {
-			local.RemovePart(part)
+		if usenetPart != "" {
+			local.RemovePart(usenetPart)
+		}
+		if remotePart != "" {
+			if err := os.Remove(remotePart); err != nil && !os.IsNotExist(err) {
+				log.Printf("could not delete %s: %v%s", remotePart, err, taskTag(id))
+			}
 		}
 		ytdlp.Discard(id, work, a.usedByOther)
 		a.dropImported(t)

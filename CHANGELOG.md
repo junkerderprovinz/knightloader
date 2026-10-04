@@ -264,6 +264,15 @@ release's tag.
   their bytes, and when two finished at the same moment one could overwrite
   the other. Each download now has its own part file and deletes only the file
   it saved, and a moved one is deleted where it is now.
+- **Paused FTP and SFTP downloads resume only their own bytes after a
+  restart.** Two paused downloads with the same name, from two folders on one
+  server, could swap part files when KnightLoader restarted. Whichever started
+  again first carried on from the other's bytes and finished as a file holding
+  both, and the other started over. Each part file now has its download's id
+  in its name, so a download only ever picks up its own. Removing a paused one
+  with its files also deletes its part file after a restart. A part file left
+  by an older version is not picked up, and that download starts from the
+  beginning.
 
 ## [1.6.7] - 2026-10-04
 
