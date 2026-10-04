@@ -130,6 +130,7 @@ export const tr: Dict = {
   'share.added': '{name} üzerindeki toplayıcıya eklendi.',
   'share.addedCount': '{name} üzerindeki toplayıcıya {n} bağlantı eklendi.',
   'share.none': 'Hiçbir şey eklenmedi. Paylaştığında yeni bir bağlantı yoktu.',
+  'share.fileUnreadable': 'Hiçbir şey eklenmedi. Paylaştığın dosyada bağlantı yok ya da KnightLoader dosyayı okuyamadı.',
   'share.failed': 'Eklenemedi: {error}',
   'share.noConnection': 'Önce bir örneğe bağlan, sonra yeniden paylaş.',
   'share.retry': 'Tekrar dene',

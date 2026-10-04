@@ -130,6 +130,7 @@ export const eu: Dict = {
   'share.added': '{name}(e)ko biltzailera gehitu da.',
   'share.addedCount': '{n} esteka gehitu dira {name}(e)ko biltzailera.',
   'share.none': 'Ez da ezer gehitu. Partekatutakoak ez zuen esteka berririk.',
+  'share.fileUnreadable': 'Ez da ezer gehitu. Partekatutako fitxategiak ez du estekarik, edo KnightLoader-ek ezin izan du irakurri.',
   'share.failed': 'Ezin izan da gehitu: {error}',
   'share.noConnection': 'Konektatu instantzia bat lehenik, eta partekatu berriro.',
   'share.retry': 'Saiatu berriro',

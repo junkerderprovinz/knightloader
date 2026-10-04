@@ -130,6 +130,7 @@ export const it: Dict = {
   'share.added': 'Aggiunto al raccoglitore di {name}.',
   'share.addedCount': '{n} link aggiunti al raccoglitore di {name}.',
   'share.none': 'Non è stato aggiunto nulla. Ciò che hai condiviso non conteneva link nuovi.',
+  'share.fileUnreadable': 'Non è stato aggiunto nulla. Il file che hai condiviso non contiene link, oppure KnightLoader non è riuscito a leggerlo.',
   'share.failed': 'Impossibile aggiungere: {error}',
   'share.noConnection': 'Collega prima un’istanza, poi condividi di nuovo.',
   'share.retry': 'Riprova',

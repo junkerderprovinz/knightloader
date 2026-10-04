@@ -130,6 +130,7 @@ export const ro: Dict = {
   'share.added': 'Adăugat în colectorul de pe {name}.',
   'share.addedCount': 'Au fost adăugate {n} linkuri în colectorul de pe {name}.',
   'share.none': 'Nu s-a adăugat nimic. Ce ai partajat nu conținea niciun link nou.',
+  'share.fileUnreadable': 'Nu s-a adăugat nimic. Fișierul pe care l-ai partajat nu conține linkuri sau KnightLoader nu l-a putut citi.',
   'share.failed': 'Nu s-a putut adăuga: {error}',
   'share.noConnection': 'Conectează mai întâi o instanță, apoi partajează din nou.',
   'share.retry': 'Încearcă din nou',

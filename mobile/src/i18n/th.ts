@@ -130,6 +130,7 @@ export const th: Dict = {
   'share.added': 'เพิ่มไปยังตัวเก็บของ {name} แล้ว',
   'share.addedCount': 'เพิ่ม {n} ลิงก์ไปยังตัวเก็บของ {name} แล้ว',
   'share.none': 'ไม่มีอะไรถูกเพิ่ม สิ่งที่คุณแชร์ไม่มีลิงก์ใหม่',
+  'share.fileUnreadable': 'ไม่มีอะไรถูกเพิ่ม ไฟล์ที่คุณแชร์ไม่มีลิงก์ หรือ KnightLoader อ่านไฟล์ไม่ได้',
   'share.failed': 'เพิ่มไม่ได้: {error}',
   'share.noConnection': 'เชื่อมต่ออินสแตนซ์ก่อน แล้วแชร์อีกครั้ง',
   'share.retry': 'ลองอีกครั้ง',

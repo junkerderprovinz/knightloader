@@ -130,6 +130,7 @@ export const fa: Dict = {
   'share.added': 'به گردآورندهٔ {name} افزوده شد.',
   'share.addedCount': '{n} لینک به گردآورندهٔ {name} افزوده شد.',
   'share.none': 'چیزی افزوده نشد. در آنچه هم‌رسانی کردی لینک تازه‌ای نبود.',
+  'share.fileUnreadable': 'چیزی افزوده نشد. در فایلی که هم‌رسانی کردی لینکی نیست، یا KnightLoader نتوانست آن را بخواند.',
   'share.failed': 'افزودن ممکن نشد: {error}',
   'share.noConnection': 'اول یک نمونه را وصل کن، بعد دوباره هم‌رسانی کن.',
   'share.retry': 'دوباره امتحان کن',

@@ -130,6 +130,7 @@ export const ms: Dict = {
   'share.added': 'Ditambah ke pengumpul pada {name}.',
   'share.addedCount': '{n} pautan ditambah ke pengumpul pada {name}.',
   'share.none': 'Tiada apa-apa ditambah. Apa yang anda kongsi tidak mengandungi pautan baharu.',
+  'share.fileUnreadable': 'Tiada apa-apa ditambah. Fail yang anda kongsi tidak mengandungi pautan, atau KnightLoader tidak dapat membacanya.',
   'share.failed': 'Tidak dapat menambah ini: {error}',
   'share.noConnection': 'Sambungkan tika dahulu, kemudian kongsi semula.',
   'share.retry': 'Cuba lagi',

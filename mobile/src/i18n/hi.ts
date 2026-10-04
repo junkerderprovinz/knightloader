@@ -130,6 +130,7 @@ export const hi: Dict = {
   'share.added': '{name} के संग्राहक में जोड़ा गया।',
   'share.addedCount': '{name} के संग्राहक में {n} लिंक जोड़े गए।',
   'share.none': 'कुछ नहीं जोड़ा गया। साझा की गई सामग्री में कोई नया लिंक नहीं था।',
+  'share.fileUnreadable': 'कुछ नहीं जोड़ा गया। साझा की गई फ़ाइल में कोई लिंक नहीं है, या KnightLoader उसे पढ़ नहीं सका।',
   'share.failed': 'जोड़ा नहीं जा सका: {error}',
   'share.noConnection': 'पहले कोई इंस्टेंस कनेक्ट करें, फिर दोबारा साझा करें।',
   'share.retry': 'फिर से कोशिश करें',

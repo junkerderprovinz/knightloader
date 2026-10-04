@@ -2,6 +2,9 @@ const { withMainActivity } = require('expo/config-plugins');
 
 const CALL = 'fillShareExtras(intent)';
 
+// The same text as UNREADABLE_FILE in src/screens/ShareScreen.tsx.
+const UNREADABLE_FILE = 'knightloader:unreadable-shared-file';
+
 const IMPORTS = [
   'android.content.ContentResolver',
   'android.content.Intent',
@@ -26,19 +29,24 @@ const HELPERS = `
       intent.getCharSequenceExtra(Intent.EXTRA_SUBJECT)?.let { intent.putExtra(Intent.EXTRA_TITLE, it) }
     }
     if (intent.type?.startsWith("text/plain") == true && intent.getStringExtra(Intent.EXTRA_TEXT).isNullOrBlank()) {
-      sharedFileText(intent)?.let { intent.putExtra(Intent.EXTRA_TEXT, it) }
+      val uri = sharedUri(intent) ?: return
+      // Without text the library hands the app nothing at all, so a file that
+      // gives none is passed on as a marker the share screen explains.
+      intent.putExtra(Intent.EXTRA_TEXT, sharedFileText(uri)?.takeIf { it.isNotBlank() } ?: UNREADABLE_FILE)
     }
   }
 
-  // Only another app's content is read: a file path or one of this app's own
-  // providers would let any app have this one show its private files.
-  private fun sharedFileText(intent: Intent): String? {
-    val uri = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+  private fun sharedUri(intent: Intent): Uri? =
+    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
       intent.getParcelableExtra(Intent.EXTRA_STREAM, Uri::class.java)
     } else {
       @Suppress("DEPRECATION") intent.getParcelableExtra<Uri>(Intent.EXTRA_STREAM)
     }
-    if (uri?.scheme != ContentResolver.SCHEME_CONTENT) return null
+
+  // Only another app's content is read: a file path or one of this app's own
+  // providers would let any app have this one show its private files.
+  private fun sharedFileText(uri: Uri): String? {
+    if (uri.scheme != ContentResolver.SCHEME_CONTENT) return null
     @Suppress("DEPRECATION")
     val own = packageManager.getPackageInfo(packageName, PackageManager.GET_PROVIDERS).providers.orEmpty()
     if (own.any { uri.authority in it.authority.orEmpty().split(';') }) return null
@@ -66,6 +74,7 @@ const HELPERS = `
   // root, and an intent near 1 MB fails there.
   private companion object {
     const val SHARED_TEXT_LIMIT = 256 * 1024
+    const val UNREADABLE_FILE = "${UNREADABLE_FILE}"
   }
 `;
 

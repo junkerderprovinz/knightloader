@@ -130,6 +130,7 @@ export const ca: Dict = {
   'share.added': 'Afegit al col·lector de {name}.',
   'share.addedCount': "S'han afegit {n} enllaços al col·lector de {name}.",
   'share.none': "No s'ha afegit res. El que has compartit no tenia cap enllaç nou.",
+  'share.fileUnreadable': "No s'ha afegit res. El fitxer que has compartit no té cap enllaç o KnightLoader no l'ha pogut llegir.",
   'share.failed': "No s'ha pogut afegir: {error}",
   'share.noConnection': 'Connecta primer una instància i després torna a compartir.',
   'share.retry': 'Torna-ho a provar',
