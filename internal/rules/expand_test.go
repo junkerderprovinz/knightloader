@@ -4,6 +4,7 @@ import (
 	"strconv"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
 )
@@ -304,5 +305,29 @@ func TestCheckExpandsTheReason(t *testing.T) {
 	v := m.Check(testCandidate())
 	if v.Reason != "The.Show.S01E02.1080p.mkv is larger than the limit" {
 		t.Errorf("Reason = %q", v.Reason)
+	}
+}
+
+func TestALongFileNameKeepsItsExtensionAndWholeCharacters(t *testing.T) {
+	for _, long := range []string{
+		"xi6t24r" + strings.Repeat("報", 99) + ".pdf",
+		strings.Repeat("a", 300) + ".pdf",
+	} {
+		got := FileSegment(long)
+		if !utf8.ValidString(got) || !strings.HasSuffix(got, ".pdf") || len(got) > 120 || len(got) < 118 {
+			t.Errorf("FileSegment cut %d bytes to %q", len(long), got)
+		}
+	}
+}
+
+func TestARuleRenameTooLongKeepsItsExtension(t *testing.T) {
+	m, problems := Compile(Set{Rules: []Rule{
+		{Name: "rename", Action: Action{Filename: strings.Repeat("報", 99) + ".mkv"}},
+	}})
+	if len(problems) != 0 {
+		t.Fatalf("Compile: %v", problems)
+	}
+	if got := m.Apply(testCandidate()).Filename; !utf8.ValidString(got) || !strings.HasSuffix(got, ".mkv") {
+		t.Errorf("Filename = %q", got)
 	}
 }

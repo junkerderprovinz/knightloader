@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"time"
+	"unicode/utf8"
 )
 
 // Vars are the values a template can refer to.
@@ -31,6 +32,11 @@ const (
 // maxSegment caps an expanded value. Long package names are common (release
 // titles), and some filesystems reject a segment beyond 255 bytes.
 const maxSegment = 120
+
+// maxExt is the length, dot included, at which the tail after the last dot
+// stops counting as an extension. The download library draws the line there
+// too, so both keep the same tail of a long name.
+const maxExt = 20
 
 // Expand replaces every <jd:...> placeholder in the template.
 // Unknown placeholders are left untouched rather than blanked, so a typo is
@@ -152,8 +158,7 @@ func segment(value, fallback string) string {
 // in the same folder whether it got there through a template or through the
 // plain per-package subfolder option. The only intended difference is the empty
 // result, which lets the caller pick a fallback word per placeholder instead of
-// always saying "package". The length cap counts bytes, not runes, for the same
-// reason - it has to cut where app.go cuts.
+// always saying "package". Both cap the length with Cut.
 func sanitizeSegment(s string) string {
 	// Anything that cannot appear in one path segment on some platform becomes
 	// a dash; control characters become spaces.
@@ -167,11 +172,32 @@ func sanitizeSegment(s string) string {
 		}
 		return r
 	}, s)
-	out = strings.Trim(strings.TrimSpace(out), ". ")
-	if len(out) > maxSegment {
-		out = out[:maxSegment]
+	return Cut(strings.Trim(strings.TrimSpace(out), ". "))
+}
+
+// Cut shortens a sanitised value to maxSegment bytes without splitting a
+// character. Every place that builds a segment from a name cuts through it, so
+// one package name cannot land in two folders.
+func Cut(s string) string { return cutAt(s, maxSegment) }
+
+// CutName is Cut for a file name: the stem gives way and the extension stays,
+// the way the download library shortens the names it writes.
+func CutName(s string) string {
+	dot := strings.LastIndexByte(s, '.')
+	if len(s) <= maxSegment || dot <= 0 || len(s)-dot >= maxExt {
+		return Cut(s)
 	}
-	return out
+	return cutAt(s[:dot], maxSegment-(len(s)-dot)) + s[dot:]
+}
+
+func cutAt(s string, n int) string {
+	if len(s) <= n {
+		return s
+	}
+	for n > 0 && !utf8.RuneStart(s[n]) {
+		n--
+	}
+	return s[:n]
 }
 
 // javaLayouts maps SimpleDateFormat letter runs to Go reference-time layouts.
