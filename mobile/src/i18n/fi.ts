@@ -216,6 +216,7 @@ export const fi: Dict = {
   'settings.appsParleyportHint': 'ParleyPort on rele, joka yhdistää instanssisi myös eri verkkojen välillä, ja voit ylläpitää sitä itse. Anna sen osoite verkkokäyttöliittymässä kohdassa Asetukset, Pariliitos, niin kahdellatoista sanallasi yhdistetyt instanssit viestivät oman releesi kautta projektin releen sijaan. Napsautus kopioi komennon, joka käynnistää sen:',
   'settings.appsExtension': 'Selainlaajennus',
   'settings.appsExtensionHint': 'Laajennus lähettää linkin, valinnan tai avoimen sivun KnightLoaderiisi hiiren oikean painikkeen valikosta tai työkalurivin painikkeestaan. Chrome, Brave, Opera ja Vivaldi asentavat sen Chrome Web Storesta, Edge taas Edge Add-onsista.',
+  'settings.appsExtensionSub': 'Laajennus',
   'settings.appsSoon': 'Tulossa',
   'settings.privacyPolicy': 'Tietosuojaseloste',
   'settings.removeAllConnections': 'Poista kaikki yhteydet',

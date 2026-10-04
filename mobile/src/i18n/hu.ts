@@ -216,6 +216,7 @@ export const hu: Dict = {
   'settings.appsParleyportHint': 'A ParleyPort az a relay, amely különböző hálózatokon át is összeköti a példányaidat, és saját magad is futtathatod. Add meg a címét a webes felületen, a Beállítások, Párosítás oldalon, és a tizenkét szavaddal összekötött példányok a te relayeden keresztül beszélnek a projekté helyett. Egy kattintás kimásolja a parancsot, amely elindítja:',
   'settings.appsExtension': 'Böngészőbővítmény',
   'settings.appsExtensionHint': 'A bővítmény egy linket, egy kijelölést vagy a megnyitott oldalt küldi a KnightLoaderednek, a jobb gombos menüből vagy az eszköztáron lévő gombjával. A Chrome, a Brave, az Opera és a Vivaldi a Chrome Web Store-ból telepíti, az Edge az Edge Add-onsból.',
+  'settings.appsExtensionSub': 'Bővítmény',
   'settings.appsSoon': 'Hamarosan',
   'settings.privacyPolicy': 'Adatvédelmi irányelvek',
   'settings.removeAllConnections': 'Összes kapcsolat eltávolítása',

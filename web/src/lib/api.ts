@@ -1124,9 +1124,8 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
 }
 
 /**
- * hosterIconURL is a host's site icon, cached by the server. It is used as an
- * <img src> because a 404 is the normal answer for a host without a favicon,
- * and the component's onError turns that into a monogram.
+ * hosterIconURL is a host's site icon, cached by the server. A host without
+ * one answers 204, and one the server is still fetching answers 202.
  */
 export const hosterIconURL = (host: string, base = '/api'): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
@@ -4128,6 +4127,13 @@ function openSocket(h: StreamHandlers): LiveStream {
     send: (frame) => {
       if (ws.readyState === WebSocket.OPEN) ws.send(frame);
     },
-    close: () => ws.close(),
+    close: () => {
+      ws.onmessage = null;
+      ws.onclose = null;
+      // Closing a socket that is still connecting logs a browser warning, so
+      // a page that unmounts early lets the handshake finish first.
+      if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
+      else ws.close();
+    },
   };
 }

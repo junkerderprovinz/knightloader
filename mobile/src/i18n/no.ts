@@ -216,6 +216,7 @@ export const no: Dict = {
   'settings.appsParleyportHint': 'ParleyPort er relayet som kobler sammen instansene dine på tvers av nettverk, og du kan drifte det selv. Skriv inn adressen i nettgrensesnittet under Innstillinger, Paring, så snakker instansene med de tolv ordene dine via ditt relay i stedet for prosjektets. Et klikk kopierer kommandoen som starter det:',
   'settings.appsExtension': 'Nettleserutvidelse',
   'settings.appsExtensionHint': 'Utvidelsen sender en lenke, et utvalg eller den åpne siden til KnightLoaderen din, fra høyreklikkmenyen eller knappen sin på verktøylinjen. Chrome, Brave, Opera og Vivaldi installerer den fra Chrome Web Store, Edge fra Edge Add-ons.',
+  'settings.appsExtensionSub': 'Utvidelse',
   'settings.appsSoon': 'Snart',
   'settings.privacyPolicy': 'Personvernerklæring',
   'settings.removeAllConnections': 'Fjern alle tilkoblinger',
