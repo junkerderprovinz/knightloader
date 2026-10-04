@@ -1233,6 +1233,7 @@ const maxSkipped = 500
 // mirror asks the mirror set whether a link is already covered. It takes a.mu
 // on its own because the caller resolves the link before the binding check.
 func (a *App) mirror(e dedupe.Entry) dedupe.Match {
+	e.URL = dedupeURL(e.URL)
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return a.dupes.Check(e)
@@ -1283,8 +1284,8 @@ func (a *App) skipReason(m dedupe.Match) string {
 		}
 		if torrent.IsMagnet(m.Of.URL) {
 			// Known by the info hash alone, so the two links may differ in name
-			// and trackers.
-			return "a magnet with the same info hash is already in the list"
+			// and trackers, or one may be an uploaded .torrent.
+			return "a torrent with the same info hash is already in the list"
 		}
 		return "the same link is already in the list"
 	}
