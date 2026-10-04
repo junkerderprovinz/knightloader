@@ -160,6 +160,10 @@ release's tag.
   a magnet whose wait ran out. While one was left over, the client never became
   idle, so a new listening port did not take effect. Such a magnet now leaves
   the client.
+- **HTTP trackers were not told when KnightLoader shut down.** UDP trackers got
+  their stopped announce, but the one for HTTP trackers went through the
+  speed limiter's local proxy, which had already closed, and was lost. The
+  proxy now closes after the torrent client.
 - **The torrent client opened a piece completion database it never used.** It
   tried to create the file in its working folder, which in the container is
   not writable, so every start of the client logged a warning.
