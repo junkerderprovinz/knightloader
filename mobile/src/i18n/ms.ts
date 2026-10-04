@@ -114,6 +114,7 @@ export const ms: Dict = {
   'addDownload.errorServer': 'Pelayan: {message}',
   'addDownload.errorGeneric': 'Pautan tidak dapat dihantar.',
   'error.federationOff': 'Instans rakan dimatikan pada instans yang anda sambungkan, jadi ia tidak dapat mencapai instans lain.',
+  'error.addAgain': 'Sambungan ini disimpan oleh versi apl yang lebih lama dan tidak berfungsi lagi. Alih keluarnya dan sambung semula dengan dua belas perkataan itu.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 
@@ -219,6 +220,7 @@ export const ms: Dict = {
   'phrase.errChecksum': 'Semua dua belas perkataan itu wujud, tetapi ia tidak sepadan antara satu sama lain. Bandingkan dengan instans anda: satu tersilap taip, atau dua tertukar.',
   'phrase.errUnknownWord': 'Perkataan {position} ("{word}") tiada dalam senarai perkataan.',
   'phrase.errWordCount': 'Itu {count} perkataan. Ia perlukan tepat dua belas.',
+  'relay.errInsecureRelay': 'Kod ini menamakan geganti {address}. Apl hanya bersambung ke geganti dengan alamat wss://.',
   'phrase.wordCount': '{n} daripada 12 perkataan',
   'relay.instancesTitle': 'Pada geganti ini',
   'relay.noInstances': 'Tiada tika dalam kumpulan ini dalam talian sekarang. Semak frasa itu, dan pastikan sekurang-kurangnya satu tika sedang berjalan.',

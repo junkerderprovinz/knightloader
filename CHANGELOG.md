@@ -37,6 +37,22 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed
+
+- **The phone app follows an instance's own relay.** An instance set to its
+  own relay puts that relay's address in the QR code beside the twelve words,
+  on a line under them, and the app pairs there when it scans the code. The
+  app takes the address only if it starts with `wss://`. Typed words still pair
+  on the project relay, and on the project relay the code is the twelve words
+  alone, as before. An older app refuses a code that names a relay, because it
+  counts thirteen words.
+- **The phone app sends nothing unencrypted.** It no longer allows plain HTTP
+  at all. A connection saved by address before 1.5.0 that points at an
+  `http://` address says it has to be added again with the twelve words,
+  instead of failing with a network error.
+- **The README invites testers.** The warning not to install KnightLoader is
+  gone, and the README links to the bug report form instead.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

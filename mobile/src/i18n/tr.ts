@@ -114,6 +114,7 @@ export const tr: Dict = {
   'addDownload.errorServer': 'Sunucu: {message}',
   'addDownload.errorGeneric': 'Bağlantılar gönderilemedi.',
   'error.federationOff': 'Bağlı olduğun örnekte eş örnekler kapalı, bu yüzden o, diğerlerine ulaşamıyor.',
+  'error.addAgain': 'Bu bağlantı uygulamanın eski bir sürümü tarafından kaydedildi ve artık çalışmıyor. Kaldır ve on iki kelimeyle yeniden bağlan.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 
@@ -219,6 +220,7 @@ export const tr: Dict = {
   'phrase.errChecksum': 'On iki kelimenin tümü var, ama bir araya gelince uymuyorlar. Örneğinle karşılaştır: biri yanlış yazılmış ya da ikisi yer değiştirmiş.',
   'phrase.errUnknownWord': '{position}. kelime (“{word}”) kelime listesinde yok.',
   'phrase.errWordCount': 'Bu {count} kelime. Tam olarak on iki kelime gerekiyor.',
+  'relay.errInsecureRelay': 'Bu kod {address} rölesini belirtiyor. Uygulama yalnızca wss:// adresli bir röleye bağlanır.',
   'phrase.wordCount': '12 kelimeden {n}',
   'relay.instancesTitle': 'Bu rölede',
   'relay.noInstances': 'Şu anda bu gruptan hiçbir örnek çevrimiçi değil. İfadeyi ve en az bir örneğin çalıştığını kontrol et.',

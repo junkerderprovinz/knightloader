@@ -114,6 +114,7 @@ export const ro: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Nu s-au putut trimite linkurile.',
   'error.federationOff': 'Instanțele partenere sunt dezactivate pe instanța la care ești conectat, deci aceasta nu le poate accesa pe celelalte.',
+  'error.addAgain': 'Această conexiune a fost salvată de o versiune mai veche a aplicației și nu mai funcționează. Elimin-o și conectează-te din nou cu cele douăsprezece cuvinte.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 
@@ -219,6 +220,7 @@ export const ro: Dict = {
   'phrase.errChecksum': 'Toate cele douăsprezece cuvinte există, dar nu se potrivesc împreună. Compară-le cu instanța ta: unul este scris greșit, sau două sunt inversate.',
   'phrase.errUnknownWord': 'Cuvântul {position} („{word}”) nu se află pe lista de cuvinte.',
   'phrase.errWordCount': 'Acestea sunt {count} cuvinte. Este nevoie de exact douăsprezece.',
+  'relay.errInsecureRelay': 'Acest cod indică releul {address}. Aplicația se conectează doar la un releu cu o adresă wss://.',
   'phrase.wordCount': '{n} din 12 cuvinte',
   'relay.instancesTitle': 'Pe acest releu',
   'relay.noInstances': 'Nicio instanță din acest grup nu este online acum. Verifică fraza și dacă rulează cel puțin o instanță.',

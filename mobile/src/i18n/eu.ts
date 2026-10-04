@@ -114,6 +114,7 @@ export const eu: Dict = {
   'addDownload.errorServer': 'Zerbitzaria: {message}',
   'addDownload.errorGeneric': 'Ezin izan dira estekak bidali.',
   'error.federationOff': 'Konektatuta zauden instantzian kide diren instantziak itzalita daude, beraz ezin da besteetara iritsi.',
+  'error.addAgain': 'Aplikazioaren bertsio zahar batek gorde zuen konexio hau, eta jada ez dabil. Kendu eta konektatu berriro hamabi hitzekin.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 
@@ -219,6 +220,7 @@ export const eu: Dict = {
   'phrase.errChecksum': 'Hamabi hitzak existitzen dira, baina ez datoz bat elkarrekin. Konparatu zure instantziarekin: bat gaizki idatzita dago, edo bi trukatuta daude.',
   'phrase.errUnknownWord': '{position}. hitza («{word}») ez dago hitz zerrendan.',
   'phrase.errWordCount': 'Hori {count} hitz dira. Zehazki hamabi behar dira.',
+  'relay.errInsecureRelay': 'Kode honek {address} erlaia adierazten du. Aplikazioa wss:// helbidea duen erlai batera bakarrik konektatzen da.',
   'phrase.wordCount': '{n}/12 hitz',
   'relay.instancesTitle': 'Erlai honetan',
   'relay.noInstances': 'Une honetan talde honetako instantziarik ez dago linean. Egiaztatu esaldia eta gutxienez instantzia bat martxan dagoela.',

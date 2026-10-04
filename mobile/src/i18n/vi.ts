@@ -114,6 +114,7 @@ export const vi: Dict = {
   'addDownload.errorServer': 'Máy chủ: {message}',
   'addDownload.errorGeneric': 'Không thể gửi các liên kết.',
   'error.federationOff': '“Thực thể bạn” đang tắt trên phiên bản bạn đang kết nối, nên nó không liên lạc được với các phiên bản khác.',
+  'error.addAgain': 'Kết nối này được lưu bởi phiên bản ứng dụng cũ hơn và không còn hoạt động. Hãy xóa nó rồi kết nối lại bằng mười hai từ.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 
@@ -219,6 +220,7 @@ export const vi: Dict = {
   'phrase.errChecksum': 'Cả mười hai từ đều tồn tại, nhưng ghép lại không khớp. Hãy so sánh với phiên bản của bạn: một từ gõ sai, hoặc hai từ bị đổi chỗ.',
   'phrase.errUnknownWord': 'Từ {position} (“{word}”) không có trong danh sách từ.',
   'phrase.errWordCount': 'Đó là {count} từ. Cần đúng mười hai từ.',
+  'relay.errInsecureRelay': 'Mã này chỉ định relay {address}. Ứng dụng chỉ kết nối với relay có địa chỉ wss://.',
   'phrase.wordCount': '{n} trong 12 từ',
   'relay.instancesTitle': 'Trên relay này',
   'relay.noInstances': 'Hiện không có phiên bản nào của nhóm này trực tuyến. Kiểm tra cụm từ và xem có ít nhất một phiên bản đang chạy không.',

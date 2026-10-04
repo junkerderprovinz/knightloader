@@ -139,7 +139,7 @@ export interface RelayConnection {
    * Optional so a connection saved before this existed still parses. Such a
    * connection cannot talk to anything, since its frames are unsealed and every
    * instance ignores those, so it is treated as needing to be added again; see
-   * relayRequest in client.ts.
+   * needsAddingAgain.
    */
   relayFrameKey?: string;
   instanceId: string; // which sibling on that key this connection is for
@@ -150,6 +150,16 @@ export type ServerConnection = DirectConnection | RelayConnection;
 
 export function isRelayConnection(c: ServerConnection): c is RelayConnection {
   return c.kind === 'relay';
+}
+
+/**
+ * needsAddingAgain is true for a saved connection this build cannot use: a
+ * relay one from before frames were sealed, or a direct one to an http://
+ * address, which Android refuses since the app permits no cleartext traffic.
+ * Either is made again from the phrase.
+ */
+export function needsAddingAgain(c: ServerConnection): boolean {
+  return isRelayConnection(c) ? !c.relayFrameKey : /^http:/i.test(c.baseUrl);
 }
 
 // Mirrors internal/federation.Instance, a peer the connected server knows

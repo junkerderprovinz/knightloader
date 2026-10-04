@@ -114,6 +114,7 @@ export const sk: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Odkazy sa nepodarilo odoslať.',
   'error.federationOff': 'Na inštancii, ku ktorej si pripojený, sú spriatelené inštancie vypnuté, takže sa k ostatným nedostane.',
+  'error.addAgain': 'Toto pripojenie uložila staršia verzia aplikácie a už nefunguje. Odstráň ho a pripoj sa znova pomocou dvanástich slov.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',
 
@@ -219,6 +220,7 @@ export const sk: Dict = {
   'phrase.errChecksum': 'Všetkých dvanásť slov existuje, ale spolu nesedia. Porovnaj ich so svojou inštanciou: jedno je preklepnuté, alebo sú dve prehodené.',
   'phrase.errUnknownWord': 'Slovo {position} („{word}“) nie je na zozname slov.',
   'phrase.errWordCount': 'To je {count} slov. Potrebných je presne dvanásť.',
+  'relay.errInsecureRelay': 'Tento kód uvádza relé {address}. Aplikácia sa pripája len k relé s adresou wss://.',
   'phrase.wordCount': '{n} z 12 slov',
   'relay.instancesTitle': 'Na tomto relé',
   'relay.noInstances': 'Žiadna inštancia tejto skupiny teraz nie je online. Skontroluj frázu a či beží aspoň jedna inštancia.',

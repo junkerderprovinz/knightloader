@@ -114,6 +114,7 @@ export const es: Dict = {
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': 'No se pudieron enviar los enlaces.',
   'error.federationOff': 'Las instancias asociadas están desactivadas en la instancia a la que estás conectado, así que no puede llegar a las demás.',
+  'error.addAgain': 'Esta conexión la guardó una versión anterior de la app y ya no funciona. Elimínala y vuelve a conectar con las doce palabras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
 
@@ -219,6 +220,7 @@ export const es: Dict = {
   'phrase.errChecksum': 'Las doce palabras existen, pero no encajan juntas. Compáralas con tu instancia: una está mal escrita, o dos están intercambiadas.',
   'phrase.errUnknownWord': 'La palabra {position} («{word}») no está en la lista de palabras.',
   'phrase.errWordCount': 'Eso son {count} palabras. Se necesitan exactamente doce.',
+  'relay.errInsecureRelay': 'Este código indica el relé {address}. La app solo se conecta a un relé con una dirección wss://.',
   'phrase.wordCount': '{n} de 12 palabras',
   'relay.instancesTitle': 'En este relé',
   'relay.noInstances': 'Ahora mismo no hay ninguna instancia de este grupo en línea. Comprueba la frase y que al menos una instancia esté funcionando.',

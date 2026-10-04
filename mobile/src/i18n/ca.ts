@@ -114,6 +114,7 @@ export const ca: Dict = {
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': "No s'han pogut enviar els enllaços.",
   'error.federationOff': 'Les instàncies germanes estan desactivades a la instància a la qual estàs connectat, així que no pot arribar a les altres.',
+  'error.addAgain': 'Aquesta connexió la va desar una versió anterior de l’app i ja no funciona. Elimina-la i torna a connectar amb les dotze paraules.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 
@@ -219,6 +220,7 @@ export const ca: Dict = {
   'phrase.errChecksum': 'Existeixen les dotze paraules, però no encaixen juntes. Compara-les amb la teva instància: una està mal escrita, o dues estan intercanviades.',
   'phrase.errUnknownWord': 'La paraula {position} («{word}») no és a la llista de paraules.',
   'phrase.errWordCount': 'Això són {count} paraules. En calen exactament dotze.',
+  'relay.errInsecureRelay': 'Aquest codi indica el relé {address}. L’app només es connecta a un relé amb una adreça wss://.',
   'phrase.wordCount': '{n} de 12 paraules',
   'relay.instancesTitle': 'En aquest relé',
   'relay.noInstances': 'Ara mateix no hi ha cap instància d’aquest grup en línia. Comprova la frase i que almenys una instància estigui funcionant.',

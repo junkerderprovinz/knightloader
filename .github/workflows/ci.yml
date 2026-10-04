@@ -75,12 +75,14 @@ jobs:
               - 'extension/**'
               - 'web/src/lib/donate.ts'
               - '.github/workflows/ci.yml'
-            # check-relay-url.mjs reads its cases from internal/relay's tests,
-            # and check-failures.mjs the failure codes.
+            # check-relay-url.mjs and check-pairing-code.mjs read their cases
+            # from internal/relay's tests, and check-failures.mjs the failure
+            # codes.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
               - 'internal/relay/client_test.go'
+              - 'internal/relay/key_test.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The desktop module replaces the main one, so a change to either
@@ -504,6 +506,9 @@ jobs:
 
       - name: Relay addresses
         run: node check-relay-url.mjs
+
+      - name: Pairing codes
+        run: node check-pairing-code.mjs
 
       - name: Captcha answers
         run: node check-captcha.mjs
