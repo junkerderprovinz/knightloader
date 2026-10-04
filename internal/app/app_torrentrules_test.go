@@ -316,6 +316,51 @@ func TestARestoredTorrentIsPastTheBanItWasHeldForOnly(t *testing.T) {
 	})
 }
 
+func TestPastingATorrentHeldForItsTrackerAgainNamesTheBan(t *testing.T) {
+	a := newTorrentTestApp(t)
+	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
+	a.AddLinksFrom([]string{bannableMagnet}, "Show", OriginPaste)
+
+	if again := a.AddLinksFrom([]string{bannableMagnet}, "Show", OriginPaste); len(again) != 0 {
+		t.Fatalf("the second paste staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	if len(skipped) != 1 || skipped[0].Reason != "the banned trackers list has already rejected this torrent" {
+		t.Errorf("the skipped links are %+v, want the second paste explained by the ban", skipped)
+	}
+}
+
+// The filter passed a torrent held for its tracker, so restoring it does not
+// waive a filter rule added since.
+func TestATorrentRestoredFromTheBanStillMeetsTheFilterAtTheQueue(t *testing.T) {
+	a := newTorrentTestApp(t)
+	setTorrentSettings(t, a, func(tr *settings.Torrent) { tr.BannedTrackers = []string{"example.org"} })
+	magnet := strings.Replace(bannableMagnet, "dn=Show", "dn=sample", 1)
+	created := a.AddLinksFrom([]string{magnet}, "Show", OriginPaste)
+	if len(created) != 1 || created[0].SkipCode != skipBannedTracker {
+		t.Fatalf("created = %+v, want the magnet held for its tracker", created)
+	}
+	s := a.Settings.Get()
+	s.LinkFilter = rejectRule("sample files are not wanted here")
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+
+	restored := a.RestoreFiltered([]string{created[0].ID})
+	if len(restored) != 1 {
+		t.Fatalf("RestoreFiltered gave back %d tasks, want 1", len(restored))
+	}
+	a.StartTasks([]string{restored[0].ID})
+	waitFor(t, "the start refused by the filter rule", func() bool {
+		for _, tsk := range a.Tasks() {
+			if tsk.ID == restored[0].ID {
+				return tsk.Status == core.StatusError && strings.Contains(tsk.Error, "sample files are not wanted here")
+			}
+		}
+		return false
+	})
+}
+
 // The settings page saves as the address is typed, so a half-typed address
 // can still be fetching when the whole one is saved, which must then be
 // fetched as well.

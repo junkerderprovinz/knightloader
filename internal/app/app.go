@@ -313,6 +313,9 @@ type App struct {
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set
+	// downloaded is the download history as a mirror set (see
+	// app_downloaded.go). It has a lock of its own.
+	downloaded downloadedIndex
 	// picker chooses which configured connection carries a download. It is
 	// rebuilt on every settings save, which also settles the bans against the
 	// new rows (see proxycfg.NewPicker). Nil means this machine's own address.

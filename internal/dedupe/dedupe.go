@@ -7,11 +7,14 @@
 package dedupe
 
 import (
+	"encoding/base32"
+	"encoding/hex"
 	"net/url"
 	"regexp"
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Policy is the combination of signals that makes two different URLs count
@@ -236,14 +239,17 @@ func Normalize(name string) Name {
 }
 
 // comparableName reduces a name to its comparison form: no directory, lower
-// case, whitespace collapsed; "" when there is nothing to compare. Separators
-// are left alone, since folding '.' into ' ' would merge "v1.2" with "v1 2".
+// case, whitespace and control characters collapsed into one space, as a
+// saved file has a space where its link had a control character; "" when
+// there is nothing to compare. Separators are left alone, since folding '.'
+// into ' ' would merge "v1.2" with "v1 2".
 func comparableName(name string) string {
 	s := strings.TrimSpace(name)
 	if s == "" || strings.Contains(s, "://") {
 		return ""
 	}
-	return strings.Join(strings.Fields(strings.ToLower(baseName(s))), " ")
+	gap := func(r rune) bool { return r < 0x20 || r == 0x7f || unicode.IsSpace(r) }
+	return strings.Join(strings.FieldsFunc(strings.ToLower(baseName(s)), gap), " ")
 }
 
 // baseName drops any directory part, treating backslashes as separators too.
@@ -276,17 +282,34 @@ func normalizeURL(raw string) string {
 	if err != nil {
 		return raw
 	}
-	// Every field that tells magnets apart is case-insensitive, so folding
-	// the whole URI catches an upper-cased infohash without merging two
-	// torrents.
 	if u.Scheme == "magnet" {
-		return strings.ToLower(raw)
+		return magnetKey(u, raw)
 	}
 	u.Host = strings.ToLower(u.Host)
 	if p := u.Port(); (u.Scheme == "http" && p == "80") || (u.Scheme == "https" && p == "443") {
 		u.Host = strings.TrimSuffix(u.Host, ":"+p)
 	}
 	return u.String()
+}
+
+// magnetKey reduces a magnet to its info hash, since every site that lists a
+// torrent gives it a display name and trackers of its own. The hash is
+// case-insensitive and may be spelled in hex or base32. A magnet without a
+// v1 hash is folded whole, which catches its case at least.
+func magnetKey(u *url.URL, raw string) string {
+	for _, xt := range u.Query()["xt"] {
+		h, ok := strings.CutPrefix(strings.ToLower(xt), "urn:btih:")
+		if !ok {
+			continue
+		}
+		if len(h) == 32 {
+			if b, err := base32.StdEncoding.DecodeString(strings.ToUpper(h)); err == nil {
+				h = hex.EncodeToString(b)
+			}
+		}
+		return "magnet:?xt=urn:btih:" + h
+	}
+	return strings.ToLower(raw)
 }
 
 // signature is one bucket a record can be found in, with the signal a hit in
@@ -322,9 +345,14 @@ func newRecord(e Entry) record {
 // It is not safe for concurrent use; build it under the lock that protects
 // the task list.
 type Set struct {
-	policy  Policy
-	byURL   map[string]record
-	buckets map[string][]string // signature key -> normalised URLs
+	policy Policy
+	// byURL holds the records filed under each normalised URL, the latest
+	// last: one after Add, as many as were kept after Keep.
+	byURL   map[string][]*record
+	buckets map[string][]*record // signature key -> records
+	// sizeless counts the records a candidate could match once its size is
+	// known, by what the policy compares besides the size (see NeedsSize).
+	sizeless map[string]int
 }
 
 // New returns an empty set that merges mirrors according to p. An
@@ -334,16 +362,17 @@ func New(p Policy) *Set {
 		p = DefaultPolicy
 	}
 	return &Set{
-		policy:  p,
-		byURL:   make(map[string]record),
-		buckets: make(map[string][]string),
+		policy:   p,
+		byURL:    make(map[string][]*record),
+		buckets:  make(map[string][]*record),
+		sizeless: make(map[string]int),
 	}
 }
 
 // Policy is the policy this set was built with.
 func (s *Set) Policy() Policy { return s.policy }
 
-// Len is how many entries the set holds.
+// Len is how many URLs the set holds.
 func (s *Set) Len() int { return len(s.byURL) }
 
 // Add files an entry. Adding a URL the set already holds replaces the old
@@ -354,30 +383,77 @@ func (s *Set) Add(e Entry) {
 		return
 	}
 	s.remove(u)
+	s.file(u, e)
+}
+
+// Keep files an entry beside any the set holds for its URL, for a list such
+// as the download history, where one URL may have been saved under several
+// names. A Duplicate names the entry kept last.
+func (s *Set) Keep(e Entry) {
+	if u := normalizeURL(e.URL); u != "" {
+		s.file(u, e)
+	}
+}
+
+func (s *Set) file(u string, e Entry) {
 	r := newRecord(e)
 	r.sigs = s.signatures(r)
 	for _, sig := range r.sigs {
-		s.buckets[sig.key] = append(s.buckets[sig.key], u)
+		s.buckets[sig.key] = append(s.buckets[sig.key], &r)
 	}
-	s.byURL[u] = r
+	if k, ok := s.sizelessKey(r); ok && len(r.sigs) > 0 {
+		s.sizeless[k]++
+	}
+	s.byURL[u] = append(s.byURL[u], &r)
+}
+
+// sizelessKey is what the policy compares besides the size, which sizeless
+// counts records under. ok is false under a policy that compares no sizes,
+// and for a nameless record under filename-and-size.
+func (s *Set) sizelessKey(r record) (key string, ok bool) {
+	switch s.policy {
+	case PolicyFilenameAndSize:
+		key = r.name.key()
+		return key, key != ""
+	case PolicySizeOnly:
+		return "", true
+	}
+	return "", false
+}
+
+// NeedsSize reports whether only the candidate's unknown size keeps it from
+// matching: the policy compares sizes, and the set holds a file the candidate
+// could be, one of its name under filename-and-size and any under size-only.
+// A caller that can learn the size cheaply should, before it trusts a NotSeen
+// from Check.
+func (s *Set) NeedsSize(cand Entry) bool {
+	if cand.Size > 0 {
+		return false
+	}
+	k, ok := s.sizelessKey(newRecord(cand))
+	return ok && s.sizeless[k] > 0
 }
 
 // Remove forgets a URL.
 func (s *Set) Remove(rawURL string) { s.remove(normalizeURL(rawURL)) }
 
 func (s *Set) remove(u string) {
-	r, ok := s.byURL[u]
-	if !ok {
-		return
-	}
-	for _, sig := range r.sigs {
-		b := slices.DeleteFunc(s.buckets[sig.key], func(v string) bool { return v == u })
-		// Delete empty buckets so a long-lived set does not keep a key for
-		// every removed download.
-		if len(b) == 0 {
-			delete(s.buckets, sig.key)
-		} else {
-			s.buckets[sig.key] = b
+	for _, r := range s.byURL[u] {
+		for _, sig := range r.sigs {
+			b := slices.DeleteFunc(s.buckets[sig.key], func(v *record) bool { return v == r })
+			// Delete empty buckets so a long-lived set does not keep a key for
+			// every removed download.
+			if len(b) == 0 {
+				delete(s.buckets, sig.key)
+			} else {
+				s.buckets[sig.key] = b
+			}
+		}
+		if k, ok := s.sizelessKey(*r); ok && len(r.sigs) > 0 {
+			s.sizeless[k]--
+			if s.sizeless[k] <= 0 {
+				delete(s.sizeless, k)
+			}
 		}
 	}
 	delete(s.byURL, u)
@@ -390,16 +466,15 @@ func (s *Set) Check(cand Entry) Match {
 		return Match{}
 	}
 	// The exact URL is checked first, whatever the policy.
-	if r, ok := s.byURL[u]; ok {
-		return Match{Verdict: Duplicate, Of: r.entry, Signal: SignalURL}
+	if rs := s.byURL[u]; len(rs) > 0 {
+		return Match{Verdict: Duplicate, Of: rs[len(rs)-1].entry, Signal: SignalURL}
 	}
 	c := newRecord(cand)
 	for _, sig := range s.signatures(c) {
 		// Only entries sharing this signature are compared, so a query costs
 		// one small bucket rather than the whole list.
-		for _, other := range s.buckets[sig.key] {
-			r := s.byURL[other]
-			if couldBeSameFile(c, r) {
+		for _, r := range s.buckets[sig.key] {
+			if couldBeSameFile(c, *r) {
 				return Match{Verdict: Mirror, Of: r.entry, Signal: sig.signal}
 			}
 		}
