@@ -792,6 +792,48 @@ func TestAYtdlpDownloadRemovedWithFilesAfterARestartTakesWhatItWrote(t *testing.
 	}
 }
 
+// A subtitle row of several languages keeps every file it wrote across a
+// restart, and a removal with files takes all of them but the one another
+// row has as well.
+func TestASubtitleRowRemovedWithFilesTakesEveryLanguageItWrote(t *testing.T) {
+	data, dir := t.TempDir(), t.TempDir()
+	en := fileBytes(t, filepath.Join(dir, "A Video.en.srt"), 40)
+	de := fileBytes(t, filepath.Join(dir, "A Video.de.srt"), 50)
+	fr := fileBytes(t, filepath.Join(dir, "A Video.fr.srt"), 60)
+
+	a, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	for _, task := range []*core.Task{
+		{ID: "subs", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusRunning, Enabled: true, CreatedAt: time.Now()},
+		{ID: "other", URL: "https://media.example/w", Name: "A Video.en", Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusDone, Enabled: true, Size: 40, File: en, CreatedAt: time.Now()},
+	} {
+		a.tasks[task.ID] = task
+	}
+	a.mu.Unlock()
+	a.onUpdate("subs", core.Update{Status: core.StatusDone, Name: "A Video.fr", File: fr, Size: 60, Loaded: 60, OtherFiles: []string{en, de}})
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	b, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = b.Close() })
+	b.Remove("subs", true)
+	for _, f := range []string{de, fr} {
+		if fileExists(f) {
+			t.Errorf("%s survived the removal with files", filepath.Base(f))
+		}
+	}
+	if !fileExists(en) {
+		t.Error("removing the subtitle row deleted the file another row has")
+	}
+}
+
 // lockedLog collects the standard logger's lines for a test, which other
 // goroutines may log to at the same time.
 type lockedLog struct {
