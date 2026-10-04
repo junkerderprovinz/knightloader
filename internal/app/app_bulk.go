@@ -5,9 +5,12 @@ package app
 // the client does not have to refetch everything to find out.
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
+	"net/url"
+	"slices"
 	"sort"
 	"strings"
 	"time"
@@ -372,10 +375,11 @@ func joinClasses(in []CleanupClass) string {
 }
 
 // containerAdder is a backend that can open an encrypted link container. Only
-// the shipped headless JD can, because the encrypted formats need a key issued
-// to registered clients.
+// the shipped headless JD can open a DLC, whose key is issued to registered
+// clients, and it is also the fallback for an RSDF or CCF that will not decode
+// here.
 type containerAdder interface {
-	AddContainer(url, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddContainer(ctx context.Context, url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // containerCrawlLimit is how long the backend gets to open a container. A
@@ -394,6 +398,9 @@ var ErrNoContainerBackend = fmt.Errorf(
 var ErrJDOff = errors.New(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
 		"\"JDownloader backend\" is switched off on the Modules page")
+
+// errJDCouldNotOpen is a container neither KnightLoader nor JD can read.
+var errJDCouldNotOpen = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
 
 // ContainerBackendConfigured reports whether a JD backend that can open an
 // encrypted container is wired, switched on or not. It is asked before an
@@ -424,25 +431,44 @@ func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
 	}
 	// a.spawn, so Close waits for the store writes below.
 	a.spawn(func() {
-		links, err := adder.AddContainer(rawurl, pkg, containerCrawlLimit)
+		links, err := adder.AddContainer(a.ctx, rawurl, pkg, containerCrawlLimit)
+		// A container JD cannot read either comes back as the address it
+		// was fetched from, taken for a plain link. That address is single
+		// use and already spent.
+		links = slices.DeleteFunc(links, func(r resolver.Result) bool { return isHandover(r.DirectURL, rawurl) })
+		if err == nil && len(links) == 0 {
+			err = errJDCouldNotOpen
+		}
 		if err != nil {
-			log.Printf("container %s: %v", name, err)
+			log.Printf("container %q: %v", name, err)
 			a.recordSkippedReason(name, "container", err.Error())
 			return
 		}
 		// The ordinary path, so the filter, Packagizer and duplicate check
 		// apply, keeping the names and sizes JD's crawl found.
 		created := a.AddResolvedLinksFrom(links, pkg, OriginContainer)
-		log.Printf("container %s: %d links, %d staged", name, len(links), len(created))
+		log.Printf("container %q: %d links, %d staged", name, len(links), len(created))
 	})
 	return nil
+}
+
+// isHandover reports whether a link JD found is the address it fetched the
+// container from. JD lower-cases the host, and the single-use token is in the
+// path, so the path alone tells.
+func isHandover(link, handover string) bool {
+	u, err := url.Parse(link)
+	if err != nil {
+		return false
+	}
+	h, err := url.Parse(handover)
+	return err == nil && u.Path == h.Path
 }
 
 // cryptedV1Adder is a backend that accepts a Click'n'Load v1 ("addcrypted")
 // payload inline. The payload only ever exists as a form field, so there is no
 // URL to hand over; the shipped JD's Deprecated API takes the bytes directly.
 type cryptedV1Adder interface {
-	AddCryptedV1(data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddCryptedV1(ctx context.Context, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // CryptedV1BackendConfigured reports whether Click'n'Load's addcrypted can be
@@ -477,7 +503,7 @@ func (a *App) AddContainerCnL(data []byte, pkg string) error {
 		return ErrNoContainerBackend
 	}
 	a.spawn(func() {
-		links, err := adder.AddCryptedV1(data, pkg, containerCrawlLimit)
+		links, err := adder.AddCryptedV1(a.ctx, data, pkg, containerCrawlLimit)
 		if err != nil {
 			log.Printf("addcrypted (v1): %v", err)
 			a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())

@@ -49,6 +49,13 @@ release's tag.
   restored past the filter or a banned tracker is still checked against the
   history. Names are compared as the files were saved, so a mirror whose
   name holds a colon or a control character still counts.
+- **RSDF and CCF files open without JDownloader.** KnightLoader reads `.rsdf`
+  and `.ccf` (CCF 0.7 to 1.0, 3.0 and 5.0) itself, whether they are uploaded,
+  dropped on the page or left in the watched folder. Every program that reads
+  these formats has their keys built in, so nothing is borrowed. A file that
+  will not open here still goes to the JDownloader backend, and the log says
+  which of the two opened it. A `.dlc` goes to JDownloader as before, because
+  its key is only handed out to registered clients.
 
 ### Fixed
 

@@ -181,7 +181,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
 | Usenet | ⚠️ via debrid | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
 | Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
-| DLC, CCF, RSDF | ⚠️ via JD | ✅ | ⚠️ via JD | ❌ |
+| DLC, CCF, RSDF | ⚠️ DLC via JD | ✅ | ⚠️ via JD | ❌ |
 | Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
 | Browser extension | ✅ | ⚠️ outdated | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ | ✅ | ✅ | ❌ |
@@ -337,7 +337,8 @@ The manual lives at
 
 ## 5. Contributing and license
 
-[AGPL-3.0](LICENSE). Own code.
+[AGPL-3.0](LICENSE). Own code, except that the RSDF and CCF readers follow
+[JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins.
 
 The knight logo (`.github/assets/kl_app_logo.svg` and the other logo files in
 `.github/assets`) is my own drawing and is licensed under AGPL-3.0-only like the
