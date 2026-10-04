@@ -74,23 +74,26 @@ export function I18nProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const t = useCallback(
-    (key: TranslationKey, vars?: Record<string, string | number>) => {
-      let s: string = dict[key] ?? en[key];
-      // A text value is isolated so it keeps its own order in a right-to-left
-      // sentence; a number is not, since digits already stay together and an
-      // isolate would turn "{n}/{total}" into "5/1". The value goes in through
-      // a function, since a replacement string would read "$&" in a name as a
-      // pattern.
-      if (vars) {
-        for (const [k, v] of Object.entries(vars)) {
-          const text = typeof v === 'number' ? String(v) : isolate(v);
-          s = s.replaceAll(`{${k}}`, () => text);
-        }
-      }
-      return s;
-    },
+    (key: TranslationKey, vars?: Record<string, string | number>) => translate(dict, key, vars),
     [dict]
   );
 
   return <Ctx.Provider value={{ t, lang, setLanguage }}>{children}</Ctx.Provider>;
+}
+
+/** translate is t outside React, for the background watch, which has no provider. */
+export function translate(dict: Dict, key: TranslationKey, vars?: Record<string, string | number>): string {
+  let s: string = dict[key] ?? en[key];
+  // A text value is isolated so it keeps its own order in a right-to-left
+  // sentence; a number is not, since digits already stay together and an
+  // isolate would turn "{n}/{total}" into "5/1". The value goes in through
+  // a function, since a replacement string would read "$&" in a name as a
+  // pattern.
+  if (vars) {
+    for (const [k, v] of Object.entries(vars)) {
+      const text = typeof v === 'number' ? String(v) : isolate(v);
+      s = s.replaceAll(`{${k}}`, () => text);
+    }
+  }
+  return s;
 }

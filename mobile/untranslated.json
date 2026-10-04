@@ -21,7 +21,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "notify.channelCaptcha"
     ],
     "cs": [
       "addDownload.placeholder",
@@ -60,7 +61,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "notify.channelCaptcha"
     ],
     "et": [
       "addDownload.placeholder",
@@ -97,7 +99,9 @@
       "settings.aboutCrypto",
       "settings.aboutVersion",
       "settings.aboutGithub",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "notify.channelCaptcha",
+      "settings.notifications"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -106,7 +110,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "notify.channelCaptcha"
     ],
     "he": [
       "addDownload.placeholder",
@@ -219,7 +224,8 @@
       "task.mode.premium",
       "settings.aboutPaypal",
       "settings.aboutGithub",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "notify.channelCaptcha"
     ],
     "ro": [
       "downloads.queueActive",
