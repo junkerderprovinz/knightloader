@@ -1285,6 +1285,9 @@ export const fa: Dict = {
   'settings.captcha.moveDown': 'پایین',
   'settings.captcha.set': 'کلید تنظیم شده',
   'settings.captcha.notSet': 'کلیدی تنظیم نشده',
+  'settings.captcha.off': 'خاموش',
+  'settings.captcha.offHint':
+    'کلید تنظیم شده، اما این حساب در صفحهٔ حساب‌ها خاموش است، پس هیچ کپچایی نمی‌گیرد، حتی کپچای آزمایشی.',
   'settings.captcha.keys': 'کلیدها در حساب‌ها',
   'collector.options': 'گزینه‌ها',
   'collector.destination': 'پوشهٔ مقصد',
@@ -3034,10 +3037,28 @@ export const fa: Dict = {
   'captcha.solverStopped': 'هیچ حساب کپچایی نتوانست این کپچا را به دست بگیرد.',
   'captcha.solverUnsupported': '{solver} این نوع کپچا را حل نمی‌کند.',
   'captcha.solverRefused': '{solver} نپذیرفت: {reason}',
+  'captcha.testFor':
+    'یک کپچای آزمایشی از KnightLoader. هیچ دانلودی منتظرش نیست. پنج نویسه را بنویس تا ببینی پاسخت درست است یا نه.',
+  'captcha.testRight': 'درست است. در کپچای آزمایشی {want} نوشته شده بود.',
+  'captcha.testWrong': 'نادرست است. در کپچای آزمایشی {want} نوشته شده بود، نه {given}.',
+  'captcha.testSolverRight': '{solver} کپچای آزمایشی را حل کرد: {want}.',
+  'captcha.testSolverWrong': '{solver} کپچای آزمایشی را اشتباه حل کرد: {want} نوشته شده بود، نه {given}.',
   'settings.captcha.whenTitle': 'حساب‌های کپچا کی شروع می‌کنند',
   'settings.captcha.onlyUnwatched': 'فقط وقتی کسی نگاه نمی‌کند',
   'settings.captcha.wait': 'انتظار برای پاسخ (ثانیه)',
   'settings.captcha.waitHint': 'تا وقتی کسی نگاه می‌کند، حساب‌های کپچا چقدر صبر می‌کنند پیش از آنکه به هر حال کار را به دست بگیرند. هرگز بیشتر از نیمی از زمانی که برای کپچا مانده صبر نمی‌کنند، تا حساب کپچا هنوز فرصت پاسخ دادن داشته باشد. از 10 تا 600 ثانیه.',
+  'settings.captcha.testTitle': 'کپچای آزمایشی',
+  'settings.captcha.test': 'فرستادن کپچای آزمایشی',
+  'settings.captcha.testHint':
+    'کپچایی می‌فرستد که خود KnightLoader می‌کشد. این کپچا مثل کپچای یک میزبان در پنجرهٔ کپچا، در برنامهٔ گوشی و نزد مقصدهای رویداد تو ظاهر می‌شود، و وقتی پاسخ داده شد می‌بینی که پاسخ درست بود یا نه. هیچ دانلودی منتظرش نیست و به حساب‌های کپچای تو نمی‌رود.',
+  'settings.captcha.testSolvers': 'به حساب‌های کپچا هم بفرست',
+  'settings.captcha.testSolversHint':
+    'همان کپچای آزمایشی را به حساب‌های کپچای تو هم می‌فرستد، به ترتیب بالا، تا ببینی آن را پاسخ می‌دهند و درست حل می‌کنند یا نه. هزینه‌اش را مثل هر کپچای دیگری حساب می‌کنند. اگر «فقط وقتی کسی نگاه نمی‌کند» روشن باشد، اول منتظر تو می‌مانند: به زبانهٔ دیگری برو یا بگذار زمان انتظار تمام شود.',
+  'settings.captcha.testOff': 'کپچاها خاموش‌اند. برای فرستادن کپچای آزمایشی، ماژول کپچا را دوباره روشن کن.',
+  'settings.captcha.testJDOff':
+    'کپچاها از راه بک‌اند JDownloader می‌آیند و آن خاموش است. برای فرستادن کپچای آزمایشی، دوباره روشنش کن.',
+  'settings.captcha.testNoAccount':
+    'هیچ‌کدام از حساب‌های کپچای تو نمی‌تواند آن را بگیرد. یکی را در بالا روشن کن و در صفحهٔ حساب‌ها بررسی کن که کلید دارد و روشن است.',
   'captcha.solverStoppedTaken': '{solver} این کپچا را برداشت اما پاسخی نفرستاد.',
   'captcha.solverNotPassedOn': 'ممکن است {solver} به هر حال بابت آن هزینه بگیرد، پس KnightLoader آن را به حساب کپچای دیگری هم نمی‌فرستد. هنوز می‌توانی خودت پاسخ بدهی.',
   'captcha.solverNoAnswer': '{solver} آن را برداشت، اما پاسخی برنگشت.',

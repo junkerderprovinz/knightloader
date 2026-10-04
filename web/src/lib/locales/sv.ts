@@ -1285,6 +1285,9 @@ export const sv: Dict = {
   'settings.captcha.moveDown': 'Flytta ned',
   'settings.captcha.set': 'Nyckel angiven',
   'settings.captcha.notSet': 'Ingen nyckel angiven',
+  'settings.captcha.off': 'Avstängt',
+  'settings.captcha.offHint':
+    'Nyckeln är angiven, men kontot är avstängt på sidan Konton, så det får inga captchor, inte ens en testcaptcha.',
   'settings.captcha.keys': 'Nycklar under Konton',
   'collector.options': 'Alternativ',
   'collector.destination': 'Målmapp',
@@ -3045,10 +3048,28 @@ export const sv: Dict = {
   'captcha.solverStopped': 'Inget captcha-konto kunde ta den här captchan.',
   'captcha.solverUnsupported': '{solver} löser inte den här typen av captcha.',
   'captcha.solverRefused': '{solver} avböjde: {reason}',
+  'captcha.testFor':
+    'En test-captcha från KnightLoader. Ingen nedladdning väntar på den. Skriv de fem tecknen för att se om ditt svar är rätt.',
+  'captcha.testRight': 'Rätt. Test-captchan visade {want}.',
+  'captcha.testWrong': 'Fel. Test-captchan visade {want}, inte {given}.',
+  'captcha.testSolverRight': '{solver} löste test-captchan: {want}.',
+  'captcha.testSolverWrong': '{solver} svarade fel på test-captchan: den visade {want}, inte {given}.',
   'settings.captcha.whenTitle': 'När captcha-kontona startar',
   'settings.captcha.onlyUnwatched': 'Bara när ingen tittar',
   'settings.captcha.wait': 'Vänta på ett svar (sekunder)',
   'settings.captcha.waitHint': 'Hur länge captcha-kontona väntar medan någon tittar innan de tar över ändå. De väntar aldrig längre än halva tiden som captchan har kvar, så att ett captcha-konto fortfarande hinner besvara den. Från 10 till 600 sekunder.',
+  'settings.captcha.testTitle': 'Test-captcha',
+  'settings.captcha.test': 'Skicka en test-captcha',
+  'settings.captcha.testHint':
+    'Skickar en captcha som KnightLoader ritar själv. Den dyker upp i captcha-fönstret, i mobilappen och hos dina händelsemål precis som en från en hoster, och när den är besvarad ser du om svaret var rätt. Ingen nedladdning väntar på den, och den går inte till dina captcha-konton.',
+  'settings.captcha.testSolvers': 'Skicka den till captcha-kontona också',
+  'settings.captcha.testSolversHint':
+    'Skickar samma test-captcha till dina captcha-konton också, i ordningen ovan, så att du ser om de svarar och rätt. De tar betalt för den som för vilken captcha som helst. Med ”Bara när ingen tittar” påslaget väntar de först på dig: byt till en annan flik eller låt väntetiden gå ut.',
+  'settings.captcha.testOff': 'Captchor är avstängda. Slå på modulen Captcha igen för att skicka en test-captcha.',
+  'settings.captcha.testJDOff':
+    'Captchor kommer via JDownloader-backend, och den är avstängd. Slå på den igen för att skicka en test-captcha.',
+  'settings.captcha.testNoAccount':
+    'Inget av dina captcha-konton kan ta emot den. Slå på ett ovan och kontrollera på sidan Konton att det har en nyckel och är påslaget.',
   'captcha.solverStoppedTaken': '{solver} tog den här captchan men skickade inget svar.',
   'captcha.solverNotPassedOn': '{solver} kan ta betalt för den ändå, så KnightLoader skickar den inte också till ett annat captcha-konto. Du kan fortfarande besvara den själv.',
   'captcha.solverNoAnswer': '{solver} tog den, men inget svar kom tillbaka.',

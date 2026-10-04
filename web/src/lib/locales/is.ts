@@ -1285,6 +1285,9 @@ export const is: Dict = {
   'settings.captcha.moveDown': 'Færa niður',
   'settings.captcha.set': 'Lykill stilltur',
   'settings.captcha.notSet': 'Enginn lykill stilltur',
+  'settings.captcha.off': 'Slökkt',
+  'settings.captcha.offHint':
+    'Lykillinn er stilltur, en slökkt er á reikningnum á síðunni Reikningar, svo hann fær engar captcha-þrautir, ekki einu sinni prófunar-captcha.',
   'settings.captcha.keys': 'Lyklar í Reikningar',
   'collector.options': 'Valkostir',
   'collector.destination': 'Áfangamappa',
@@ -3041,10 +3044,28 @@ export const is: Dict = {
   'captcha.solverStopped': 'Enginn captcha-reikningur gat tekið þetta captcha.',
   'captcha.solverUnsupported': '{solver} leysir ekki þessa tegund af captcha.',
   'captcha.solverRefused': '{solver} hafnaði: {reason}',
+  'captcha.testFor':
+    'Prófunar-captcha frá KnightLoader. Ekkert niðurhal bíður eftir því. Skrifaðu stafina fimm til að sjá hvort svarið þitt er rétt.',
+  'captcha.testRight': 'Rétt. Í prófunar-captcha stóð {want}.',
+  'captcha.testWrong': 'Rangt. Í prófunar-captcha stóð {want}, ekki {given}.',
+  'captcha.testSolverRight': '{solver} leysti prófunar-captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} svaraði prófunar-captcha rangt: þar stóð {want}, ekki {given}.',
   'settings.captcha.whenTitle': 'Hvenær captcha-reikningarnir byrja',
   'settings.captcha.onlyUnwatched': 'Aðeins þegar enginn fylgist með',
   'settings.captcha.wait': 'Bíða eftir svari (sekúndur)',
   'settings.captcha.waitHint': 'Hversu lengi captcha-reikningarnir bíða á meðan einhver fylgist með, áður en þeir taka samt við. Þeir bíða aldrei lengur en helminginn af þeim tíma sem captcha á eftir, svo captcha-reikningur hafi enn tíma til að svara því. Frá 10 upp í 600 sekúndur.',
+  'settings.captcha.testTitle': 'Prófunar-captcha',
+  'settings.captcha.test': 'Senda prófunar-captcha',
+  'settings.captcha.testHint':
+    'Sendir captcha sem KnightLoader teiknar sjálft. Það birtist í captcha-glugganum, í símaforritinu og hjá atburðamóttakendum þínum eins og captcha frá hýsingaraðila, og þegar því hefur verið svarað sérðu hvort svarið var rétt. Ekkert niðurhal bíður eftir því og það fer ekki til captcha-reikninganna þinna.',
+  'settings.captcha.testSolvers': 'Senda líka til captcha-reikninganna',
+  'settings.captcha.testSolversHint':
+    'Sendir sama prófunar-captcha líka til captcha-reikninganna þinna, í röðinni hér að ofan, svo þú sjáir hvort þeir svara því og rétt. Þeir rukka fyrir það eins og hvert annað captcha. Þegar „Aðeins þegar enginn fylgist með“ er á bíða þeir fyrst eftir þér: farðu í annan flipa eða láttu biðtímann renna út.',
+  'settings.captcha.testOff': 'Slökkt er á captcha. Kveiktu aftur á Captcha-einingunni til að senda prófunar-captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha kemur í gegnum JDownloader-bakendann, og slökkt er á honum. Kveiktu aftur á honum til að senda prófunar-captcha.',
+  'settings.captcha.testNoAccount':
+    'Enginn af captcha-reikningunum þínum getur tekið við því. Kveiktu á einum hér fyrir ofan og athugaðu á síðunni Reikningar að hann sé með lykil og að kveikt sé á honum.',
   'captcha.solverStoppedTaken': '{solver} tók þetta captcha en sendi ekkert svar.',
   'captcha.solverNotPassedOn': '{solver} gæti samt rukkað fyrir það, svo KnightLoader sendir það ekki líka til annars captcha-reiknings. Þú getur samt svarað því sjálf(ur).',
   'captcha.solverNoAnswer': '{solver} tók það, en ekkert svar barst til baka.',

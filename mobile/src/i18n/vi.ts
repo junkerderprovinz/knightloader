@@ -90,6 +90,10 @@ export const vi: Dict = {
   'captcha.blockHoster': 'Cũng ngừng hỏi về {host} trong phiên này',
   'captcha.blockEverywhere': 'Cũng ngừng hỏi về mọi dịch vụ lưu trữ trong phiên này',
   'captcha.tooLate': 'Câu trả lời đó đến quá trễ.',
+  'captcha.testFor':
+    'Một captcha thử từ KnightLoader. Không có lượt tải nào chờ nó. Hãy gõ năm ký tự để xem câu trả lời của bạn có đúng không.',
+  'captcha.testRight': 'Đúng. Captcha thử ghi {want}.',
+  'captcha.testWrong': 'Sai. Captcha thử ghi {want}, không phải {given}.',
   'captcha.timedOut': 'Captcha cho {host} đã hết thời gian.',
   'captcha.resolvedElsewhere': 'Captcha cho {host} đã được giải ở nơi khác.',
   'captcha.relayRefused': 'Phiên bản này quá cũ để chuyển captcha sang ứng dụng. Hãy cập nhật KnightLoader ở đó.',

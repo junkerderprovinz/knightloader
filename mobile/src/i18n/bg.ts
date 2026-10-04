@@ -90,6 +90,10 @@ export const bg: Dict = {
   'captcha.blockHoster': 'Спри да питаш и за {host} тази сесия',
   'captcha.blockEverywhere': 'Спри да питаш и за който и да е хостър тази сесия',
   'captcha.tooLate': 'Този отговор пристигна твърде късно.',
+  'captcha.testFor':
+    'Тестова captcha от KnightLoader. Никое изтегляне не я чака. Въведи петте знака и ще видиш дали отговорът ти е верен.',
+  'captcha.testRight': 'Вярно. В тестовата captcha пишеше {want}.',
+  'captcha.testWrong': 'Грешно. В тестовата captcha пишеше {want}, а не {given}.',
   'captcha.timedOut': 'Captcha за {host} изтече.',
   'captcha.resolvedElsewhere': 'Captcha за {host} беше решена другаде.',
   'captcha.relayRefused': 'Тази инстанция е твърде стара, за да предава captcha на приложението. Обнови KnightLoader там.',

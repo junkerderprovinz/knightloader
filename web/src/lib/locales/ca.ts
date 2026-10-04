@@ -1285,6 +1285,9 @@ export const ca: Dict = {
   'settings.captcha.moveDown': 'Mou avall',
   'settings.captcha.set': 'Clau configurada',
   'settings.captcha.notSet': 'Sense clau configurada',
+  'settings.captcha.off': 'Desactivat',
+  'settings.captcha.offHint':
+    'La clau està configurada, però el compte està desactivat a la pàgina Comptes, així que no rep cap captcha, ni tan sols un de prova.',
   'settings.captcha.keys': 'Claus a Comptes',
   'collector.options': 'Opcions',
   'collector.destination': 'Carpeta de destinació',
@@ -3031,10 +3034,29 @@ export const ca: Dict = {
   'captcha.solverStopped': 'Cap compte de captcha no s’ha pogut fer càrrec d’aquest captcha.',
   'captcha.solverUnsupported': '{solver} no resol aquest tipus de captcha.',
   'captcha.solverRefused': '{solver} l’ha rebutjat: {reason}',
+  'captcha.testFor':
+    'Un captcha de prova de KnightLoader. Cap baixada no l’espera. Escriu els cinc caràcters per veure si la teva resposta és correcta.',
+  'captcha.testRight': 'Correcte. El captcha de prova deia {want}.',
+  'captcha.testWrong': 'Incorrecte. El captcha de prova deia {want}, no {given}.',
+  'captcha.testSolverRight': '{solver} ha resolt el captcha de prova: {want}.',
+  'captcha.testSolverWrong': '{solver} s’ha equivocat amb el captcha de prova: deia {want}, no {given}.',
   'settings.captcha.whenTitle': 'Quan comencen els comptes de captcha',
   'settings.captcha.onlyUnwatched': 'Només quan no mira ningú',
   'settings.captcha.wait': 'Espera una resposta (segons)',
   'settings.captcha.waitHint': 'Quanta estona esperen els comptes de captcha, mentre algú mira, abans de prendre el relleu igualment. Mai no esperen més de la meitat del temps que li queda al captcha, perquè un compte de captcha encara tingui temps de respondre’l. De 10 a 600 segons.',
+  'settings.captcha.testTitle': 'Captcha de prova',
+  'settings.captcha.test': 'Envia un captcha de prova',
+  'settings.captcha.testHint':
+    'Envia un captcha que dibuixa el mateix KnightLoader. Apareix a la finestra del captcha, a l’aplicació per al mòbil i a les teves destinacions d’esdeveniments com un d’un allotjador, i un cop respost veus si la resposta era correcta. Cap baixada no l’espera i no va als teus comptes de captcha.',
+  'settings.captcha.testSolvers': 'Envia’l també als comptes de captcha',
+  'settings.captcha.testSolversHint':
+    'Envia el mateix captcha de prova també als teus comptes de captcha, en l’ordre de dalt, perquè vegis si el responen i l’encerten. El cobren com qualsevol altre captcha. Amb «Només quan no mira ningú» activat, primer t’esperen a tu: canvia a una altra pestanya o deixa que s’acabi l’espera.',
+  'settings.captcha.testOff':
+    'Els captchas estan desactivats. Torna a activar el mòdul Captcha per enviar un captcha de prova.',
+  'settings.captcha.testJDOff':
+    'Els captchas arriben pel rerefons JDownloader, que està desactivat. Torna’l a activar per enviar un captcha de prova.',
+  'settings.captcha.testNoAccount':
+    'Cap dels teus comptes de captcha no el pot agafar. Activa’n un a dalt i comprova a la pàgina Comptes que té una clau i que està activat.',
   'captcha.solverStoppedTaken': '{solver} s’ha fet càrrec d’aquest captcha, però no ha enviat cap resposta.',
   'captcha.solverNotPassedOn': 'Pot ser que {solver} el cobri igualment, així que KnightLoader no l’envia també a un altre compte de captcha. Encara el pots respondre tu.',
   'captcha.solverNoAnswer': '{solver} se n’ha fet càrrec, però no ha arribat cap resposta.',

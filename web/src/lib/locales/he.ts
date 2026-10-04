@@ -1287,6 +1287,9 @@ export const he: Dict = {
   'settings.captcha.moveDown': 'הורד',
   'settings.captcha.set': 'המפתח הוגדר',
   'settings.captcha.notSet': 'לא הוגדר מפתח',
+  'settings.captcha.off': 'כבוי',
+  'settings.captcha.offHint':
+    'המפתח מוגדר, אבל החשבון כבוי בעמוד חשבונות, ולכן הוא לא מקבל קאפצ׳ות, אפילו לא קאפצ׳ת בדיקה.',
   'settings.captcha.keys': 'מפתחות בחשבונות',
   'collector.options': 'אפשרויות',
   'collector.destination': 'תיקיית יעד',
@@ -3063,10 +3066,28 @@ export const he: Dict = {
   'captcha.solverStopped': 'אף חשבון קאפצ׳ה לא הצליח לקחת את הקאפצ׳ה הזו.',
   'captcha.solverUnsupported': '{solver} לא פותר סוג כזה של קאפצ׳ה.',
   'captcha.solverRefused': '{solver} סירב: {reason}',
+  'captcha.testFor':
+    'קאפצ׳ה לבדיקה מ-KnightLoader. אף הורדה לא מחכה לה. הקלד את חמשת התווים כדי לראות אם התשובה שלך נכונה.',
+  'captcha.testRight': 'נכון. בקאפצ׳ה לבדיקה היה כתוב {want}.',
+  'captcha.testWrong': 'לא נכון. בקאפצ׳ה לבדיקה היה כתוב {want}, לא {given}.',
+  'captcha.testSolverRight': '{solver} פתר את הקאפצ׳ה לבדיקה: {want}.',
+  'captcha.testSolverWrong': '{solver} טעה בקאפצ׳ה לבדיקה: היה כתוב {want}, לא {given}.',
   'settings.captcha.whenTitle': 'מתי חשבונות הקאפצ׳ה מתחילים',
   'settings.captcha.onlyUnwatched': 'רק כשאף אחד לא צופה',
   'settings.captcha.wait': 'המתנה לתשובה (שניות)',
   'settings.captcha.waitHint': 'כמה זמן חשבונות הקאפצ׳ה מחכים, כל עוד מישהו צופה, לפני שהם מטפלים בה בכל זאת. הם לעולם לא מחכים יותר ממחצית הזמן שנותר לקאפצ׳ה, כדי שלחשבון הקאפצ׳ה עוד יהיה זמן לענות עליה. בין 10 ל-600 שניות.',
+  'settings.captcha.testTitle': 'קאפצ׳ה לבדיקה',
+  'settings.captcha.test': 'שליחת קאפצ׳ה לבדיקה',
+  'settings.captcha.testHint':
+    'שולח קאפצ׳ה ש-KnightLoader מצייר בעצמו. היא מופיעה בחלון הקאפצ׳ה, באפליקציית הטלפון וביעדי האירועים שלך כמו קאפצ׳ה של אתר אחסון, ואחרי שעונים עליה רואים אם התשובה נכונה. אף הורדה לא מחכה לה, והיא לא נשלחת לחשבונות הקאפצ׳ה שלך.',
+  'settings.captcha.testSolvers': 'לשלוח גם לחשבונות הקאפצ׳ה',
+  'settings.captcha.testSolversHint':
+    'שולח את אותה קאפצ׳ה לבדיקה גם לחשבונות הקאפצ׳ה שלך, לפי הסדר שלמעלה, כדי שתראה אם הם עונים עליה ומצליחים. הם גובים עליה תשלום כמו על כל קאפצ׳ה אחרת. כש"רק כשאף אחד לא צופה" פעיל, הם מחכים קודם לך: עבור ללשונית אחרת או חכה שזמן ההמתנה ייגמר.',
+  'settings.captcha.testOff': 'הקאפצ׳ות כבויות. הפעל שוב את מודול הקאפצ׳ה כדי לשלוח קאפצ׳ה לבדיקה.',
+  'settings.captcha.testJDOff':
+    'הקאפצ׳ות מגיעות דרך מנוע JDownloader, והוא כבוי. הפעל אותו שוב כדי לשלוח קאפצ׳ה לבדיקה.',
+  'settings.captcha.testNoAccount':
+    'אף אחד מחשבונות הקאפצ׳ה שלך לא יכול לקבל אותה. הפעל אחד מהם למעלה ובדוק בעמוד חשבונות שיש לו מפתח ושהוא מופעל.',
   'captcha.solverStoppedTaken': '{solver} לקח את הקאפצ׳ה הזו אבל לא שלח תשובה.',
   'captcha.solverNotPassedOn': '{solver} עשוי לחייב עליה בכל זאת, ולכן KnightLoader לא שולח אותה גם לחשבון קאפצ׳ה אחר. אתה עדיין יכול לענות עליה בעצמך.',
   'captcha.solverNoAnswer': '{solver} לקח אותה, אבל לא חזרה תשובה.',

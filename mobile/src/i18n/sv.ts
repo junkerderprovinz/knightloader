@@ -90,6 +90,10 @@ export const sv: Dict = {
   'captcha.blockHoster': 'Sluta även fråga om {host} den här sessionen',
   'captcha.blockEverywhere': 'Sluta även fråga om alla hostrar den här sessionen',
   'captcha.tooLate': 'Det svaret kom fram för sent.',
+  'captcha.testFor':
+    'En test-captcha från KnightLoader. Ingen nedladdning väntar på den. Skriv de fem tecknen för att se om ditt svar är rätt.',
+  'captcha.testRight': 'Rätt. Test-captchan visade {want}.',
+  'captcha.testWrong': 'Fel. Test-captchan visade {want}, inte {given}.',
   'captcha.timedOut': 'En captcha för {host} löpte ut.',
   'captcha.resolvedElsewhere': 'En captcha för {host} löstes någon annanstans.',
   'captcha.relayRefused': 'Den här instansen är för gammal för att skicka vidare captchor till appen. Uppdatera KnightLoader där.',

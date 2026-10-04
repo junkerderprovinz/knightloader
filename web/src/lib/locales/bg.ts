@@ -1285,6 +1285,9 @@ export const bg: Dict = {
   'settings.captcha.moveDown': 'Надолу',
   'settings.captcha.set': 'Ключът е зададен',
   'settings.captcha.notSet': 'Няма зададен ключ',
+  'settings.captcha.off': 'Изключен',
+  'settings.captcha.offHint':
+    'Ключът е зададен, но акаунтът е изключен на страницата „Акаунти“, затова не получава captcha, дори и тестова.',
   'settings.captcha.keys': 'Ключове в Акаунти',
   'collector.options': 'Опции',
   'collector.destination': 'Целева папка',
@@ -3045,10 +3048,28 @@ export const bg: Dict = {
   'captcha.solverStopped': 'Нито един captcha акаунт не можа да поеме тази captcha.',
   'captcha.solverUnsupported': '{solver} не решава този вид captcha.',
   'captcha.solverRefused': '{solver} отказа: {reason}',
+  'captcha.testFor':
+    'Тестова captcha от KnightLoader. Никое изтегляне не я чака. Въведи петте знака и ще видиш дали отговорът ти е верен.',
+  'captcha.testRight': 'Вярно. В тестовата captcha пишеше {want}.',
+  'captcha.testWrong': 'Грешно. В тестовата captcha пишеше {want}, а не {given}.',
+  'captcha.testSolverRight': '{solver} реши тестовата captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} сгреши тестовата captcha: пишеше {want}, а не {given}.',
   'settings.captcha.whenTitle': 'Кога започват captcha акаунтите',
   'settings.captcha.onlyUnwatched': 'Само когато никой не гледа',
   'settings.captcha.wait': 'Изчакване на отговор (секунди)',
   'settings.captcha.waitHint': 'Колко дълго чакат captcha акаунтите, докато някой гледа, преди все пак да поемат. Никога не чакат повече от половината време, което остава на captcha, за да може captcha акаунтът още да отговори навреме. От 10 до 600 секунди.',
+  'settings.captcha.testTitle': 'Тестова captcha',
+  'settings.captcha.test': 'Изпрати тестова captcha',
+  'settings.captcha.testHint':
+    'Изпраща captcha, която KnightLoader рисува сам. Тя се появява в прозореца за captcha, в приложението за телефон и при твоите цели за събития като captcha от хостър, а щом бъде отговорена, виждаш дали отговорът е верен. Никое изтегляне не я чака и тя не отива към твоите captcha акаунти.',
+  'settings.captcha.testSolvers': 'Изпрати и към captcha акаунтите',
+  'settings.captcha.testSolversHint':
+    'Изпраща същата тестова captcha и към твоите captcha акаунти, в реда отгоре, за да видиш дали я решават и дали вярно. Те я таксуват като всяка друга captcha. Ако „Само когато никой не гледа“ е включено, първо чакат теб: премини в друг раздел или остави времето за чакане да изтече.',
+  'settings.captcha.testOff': 'Captcha е изключена. Включи отново модула Captcha, за да изпратиш тестова captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha идват през бекенда JDownloader, а той е изключен. Включи го отново, за да изпратиш тестова captcha.',
+  'settings.captcha.testNoAccount':
+    'Никой от твоите captcha акаунти не може да я поеме. Включи един отгоре и провери на страницата „Акаунти“, че има ключ и е включен.',
   'captcha.solverStoppedTaken': '{solver} пое тази captcha, но не изпрати отговор.',
   'captcha.solverNotPassedOn': '{solver} може все пак да я таксува, затова KnightLoader не я изпраща и на друг captcha акаунт. Все още можеш да отговориш и сам.',
   'captcha.solverNoAnswer': '{solver} я пое, но не се върна отговор.',

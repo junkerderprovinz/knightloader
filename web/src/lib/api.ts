@@ -2578,6 +2578,8 @@ export interface CaptchaChallenge {
   /** What the paid solvers have done with it, absent until one is set to
    *  work on it. */
   solver?: CaptchaSolverReport;
+  /** A test captcha the instance drew itself, which no download waits on. */
+  test?: boolean;
 }
 
 /** captcha.SolverReport. */
@@ -2610,6 +2612,21 @@ export interface CaptchaResolution {
   taskId?: string;
   host: string;
   reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'switchedOff' | 'resolved';
+  /** How the answer to a test captcha compared, set when one was solved. */
+  test?: TestCaptchaResult;
+  /** Set for a test captcha however it ended, so a timeout leaves no
+   *  download stuck. */
+  testCaptcha?: boolean;
+}
+
+/** app.TestCaptchaResult: an answer to a test captcha beside the text drawn
+ *  in it. */
+export interface TestCaptchaResult {
+  correct: boolean;
+  want: string;
+  given: string;
+  /** The captcha account that answered, empty when a person did. */
+  solver?: string;
 }
 
 /**
@@ -2634,9 +2651,26 @@ export async function refreshCaptchas(): Promise<CaptchaChallenge[]> {
 /**
  * answerCaptcha submits text as id's solution. stillValid comes from JD and
  * says whether the answer arrived in time; trust it over any local countdown.
+ * test is set for a test captcha.
  */
-export async function answerCaptcha(id: string, text: string): Promise<{ stillValid: boolean }> {
-  return json<{ stillValid: boolean }>(await post(`/api/captcha/${encodeURIComponent(id)}/answer`, { text }));
+export async function answerCaptcha(
+  id: string,
+  text: string,
+): Promise<{ stillValid: boolean; test?: TestCaptchaResult }> {
+  return json<{ stillValid: boolean; test?: TestCaptchaResult }>(
+    await post(`/api/captcha/${encodeURIComponent(id)}/answer`, { text }),
+  );
+}
+
+/**
+ * createTestCaptcha puts up a test captcha, which arrives like a real one.
+ * With solvers it goes to the captcha accounts too, which bill it. A refusal
+ * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off
+ * on the Modules page, or 'noCaptchaAccount' when no captcha account could
+ * take it.
+ */
+export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {
+  return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers }));
 }
 
 /**

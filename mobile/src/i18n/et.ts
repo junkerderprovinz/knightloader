@@ -90,6 +90,10 @@ export const et: Dict = {
   'captcha.blockHoster': 'Selles seansis ka enam mitte küsida {host} kohta',
   'captcha.blockEverywhere': 'Selles seansis ka enam mitte küsida ühegi hosteri kohta',
   'captcha.tooLate': 'See vastus jõudis liiga hilja.',
+  'captcha.testFor':
+    'Proovi-captcha KnightLoaderilt. Ükski allalaadimine ei oota seda. Kirjuta need viis märki ja näed, kas su vastus on õige.',
+  'captcha.testRight': 'Õige. Proovi-captchas oli {want}.',
+  'captcha.testWrong': 'Vale. Proovi-captchas oli {want}, mitte {given}.',
   'captcha.timedOut': '{host} captcha aegus.',
   'captcha.resolvedElsewhere': '{host} captcha lahendati mujal.',
   'captcha.relayRefused': 'See eksemplar on liiga vana, et captchasid rakendusele edasi anda. Uuenda seal KnightLoaderit.',

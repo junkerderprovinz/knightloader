@@ -90,6 +90,10 @@ export const sk: Dict = {
   'captcha.blockHoster': 'Tiež prestať pýtať sa na {host} po zvyšok tejto relácie',
   'captcha.blockEverywhere': 'Tiež prestať pýtať sa na akéhokoľvek hostera po zvyšok tejto relácie',
   'captcha.tooLate': 'Táto odpoveď prišla príliš neskoro.',
+  'captcha.testFor':
+    'Skúšobná captcha od KnightLoadera. Nečaká na ňu žiadne sťahovanie. Napíš päť znakov a uvidíš, či je tvoja odpoveď správna.',
+  'captcha.testRight': 'Správne. V skúšobnej captche bolo {want}.',
+  'captcha.testWrong': 'Nesprávne. V skúšobnej captche bolo {want}, nie {given}.',
   'captcha.timedOut': 'Captcha pre {host} vypršala.',
   'captcha.resolvedElsewhere': 'Captcha pre {host} bola vyriešená inde.',
   'captcha.relayRefused': 'Táto inštancia je príliš stará na to, aby odovzdávala captchy aplikácii. Aktualizuj na nej KnightLoader.',

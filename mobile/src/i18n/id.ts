@@ -90,6 +90,10 @@ export const id: Dict = {
   'captcha.blockHoster': 'Berhenti juga menanyakan {host} untuk sesi ini',
   'captcha.blockEverywhere': 'Berhenti juga menanyakan hoster mana pun untuk sesi ini',
   'captcha.tooLate': 'Jawaban itu datang terlalu terlambat.',
+  'captcha.testFor':
+    'Captcha uji dari KnightLoader. Tidak ada unduhan yang menunggunya. Ketik kelima karakternya untuk melihat apakah jawabanmu benar.',
+  'captcha.testRight': 'Benar. Captcha uji itu bertuliskan {want}.',
+  'captcha.testWrong': 'Salah. Captcha uji itu bertuliskan {want}, bukan {given}.',
   'captcha.timedOut': 'Captcha untuk {host} kedaluwarsa.',
   'captcha.resolvedElsewhere': 'Captcha untuk {host} diselesaikan di tempat lain.',
   'captcha.relayRefused': 'Instans ini terlalu usang untuk meneruskan captcha ke aplikasi. Perbarui KnightLoader di sana.',

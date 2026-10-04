@@ -90,6 +90,10 @@ export const is: Dict = {
   'captcha.blockHoster': 'Hætta líka að spyrja um {host} þessa lotu',
   'captcha.blockEverywhere': 'Hætta líka að spyrja um alla hýsingaraðila þessa lotu',
   'captcha.tooLate': 'Þetta svar barst of seint.',
+  'captcha.testFor':
+    'Prófunar-captcha frá KnightLoader. Ekkert niðurhal bíður eftir því. Skrifaðu stafina fimm til að sjá hvort svarið þitt er rétt.',
+  'captcha.testRight': 'Rétt. Í prófunar-captcha stóð {want}.',
+  'captcha.testWrong': 'Rangt. Í prófunar-captcha stóð {want}, ekki {given}.',
   'captcha.timedOut': 'Captcha fyrir {host} rann út.',
   'captcha.resolvedElsewhere': 'Captcha fyrir {host} var leyst annars staðar.',
   'captcha.relayRefused': 'Þetta tilvik er of gamalt til að senda captcha áfram í forritið. Uppfærðu KnightLoader þar.',

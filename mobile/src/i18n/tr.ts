@@ -90,6 +90,10 @@ export const tr: Dict = {
   'captcha.blockHoster': 'Bu oturumda {host} için sormayı da durdur',
   'captcha.blockEverywhere': 'Bu oturumda hiçbir hoster için sormayı da durdur',
   'captcha.tooLate': 'O yanıt çok geç ulaştı.',
+  'captcha.testFor':
+    'KnightLoader’dan bir deneme captcha’sı. Hiçbir indirme onu beklemiyor. Yanıtının doğru olup olmadığını görmek için beş karakteri yaz.',
+  'captcha.testRight': 'Doğru. Deneme captcha’sında {want} yazıyordu.',
+  'captcha.testWrong': 'Yanlış. Deneme captcha’sında {given} değil {want} yazıyordu.',
   'captcha.timedOut': '{host} için bir captchanın süresi doldu.',
   'captcha.resolvedElsewhere': '{host} için bir captcha başka bir yerde çözüldü.',
   'captcha.relayRefused': 'Bu örnek captchaları uygulamaya iletmek için çok eski. Oradaki KnightLoader’ı güncelle.',

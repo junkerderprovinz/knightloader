@@ -1285,6 +1285,9 @@ export const lt: Dict = {
   'settings.captcha.moveDown': 'Žemyn',
   'settings.captcha.set': 'Raktas nustatytas',
   'settings.captcha.notSet': 'Raktas nenustatytas',
+  'settings.captcha.off': 'Išjungta',
+  'settings.captcha.offHint':
+    'Raktas nustatytas, bet paskyra išjungta puslapyje Paskyros, todėl ji negauna jokių captcha, net ir bandomosios.',
   'settings.captcha.keys': 'Raktai skiltyje Paskyros',
   'collector.options': 'Parinktys',
   'collector.destination': 'Paskirties aplankas',
@@ -3045,10 +3048,28 @@ export const lt: Dict = {
   'captcha.solverStopped': 'Nė viena captcha paskyra negalėjo perimti šios captcha.',
   'captcha.solverUnsupported': '{solver} tokios rūšies captcha nesprendžia.',
   'captcha.solverRefused': '{solver} atsisakė: {reason}',
+  'captcha.testFor':
+    'Bandomoji captcha iš KnightLoader. Jokio atsisiuntimo ji nestabdo. Įvesk penkis ženklus ir pamatysi, ar tavo atsakymas teisingas.',
+  'captcha.testRight': 'Teisingai. Bandomojoje captcha buvo {want}.',
+  'captcha.testWrong': 'Neteisingai. Bandomojoje captcha buvo {want}, ne {given}.',
+  'captcha.testSolverRight': '{solver} išsprendė bandomąją captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} suklydo bandomojoje captcha: buvo {want}, ne {given}.',
   'settings.captcha.whenTitle': 'Kada pradeda captcha paskyros',
   'settings.captcha.onlyUnwatched': 'Tik kai niekas nežiūri',
   'settings.captcha.wait': 'Laukti atsakymo (sekundėmis)',
   'settings.captcha.waitHint': 'Kiek captcha paskyros laukia, kol kas nors žiūri, prieš vis tiek perimdamos. Jos niekada nelaukia ilgiau nei pusę captcha likusio laiko, kad captcha paskyra dar spėtų į ją atsakyti. Nuo 10 iki 600 sekundžių.',
+  'settings.captcha.testTitle': 'Bandomoji captcha',
+  'settings.captcha.test': 'Siųsti bandomąją captcha',
+  'settings.captcha.testHint':
+    'Siunčia captcha, kurią KnightLoader nupiešia pats. Ji pasirodo captcha lange, telefono programėlėje ir pas tavo įvykių gavėjus kaip prieglobos captcha, o kai į ją atsakoma, matai, ar atsakymas buvo teisingas. Jokio atsisiuntimo ji nestabdo ir į tavo captcha paskyras nekeliauja.',
+  'settings.captcha.testSolvers': 'Siųsti ir captcha paskyroms',
+  'settings.captcha.testSolversHint':
+    'Siunčia tą pačią bandomąją captcha ir tavo captcha paskyroms, aukščiau nurodyta tvarka, kad matytum, ar jos atsako ir teisingai. Jos ima mokestį kaip už bet kurią kitą captcha. Kai įjungta „Tik kai niekas nežiūri“, jos pirmiausia laukia tavęs: pereik į kitą kortelę arba leisk laukimo laikui baigtis.',
+  'settings.captcha.testOff': 'Captcha išjungtos. Vėl įjunk modulį Captcha, kad galėtum siųsti bandomąją captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha ateina per JDownloader posistemę, o ji išjungta. Vėl ją įjunk, kad galėtum siųsti bandomąją captcha.',
+  'settings.captcha.testNoAccount':
+    'Nė viena tavo captcha paskyra negali jos priimti. Įjunk vieną aukščiau ir puslapyje Paskyros patikrink, ar ji turi raktą ir yra įjungta.',
   'captcha.solverStoppedTaken': '{solver} perėmė šią captcha, bet atsakymo neatsiuntė.',
   'captcha.solverNotPassedOn': '{solver} gali už ją vis tiek imti mokestį, todėl KnightLoader jos nesiunčia dar ir kitai captcha paskyrai. Vis tiek gali atsakyti pats.',
   'captcha.solverNoAnswer': '{solver} ją perėmė, bet atsakymas negrįžo.',

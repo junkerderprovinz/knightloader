@@ -1535,6 +1535,12 @@ export const en = {
   'captcha.solverGaveUp': '{solver} took it, then gave up: {reason}',
   'captcha.solverFailed': '{solver} could not be reached.',
   'captcha.solverRefused': '{solver} declined: {reason}',
+  'captcha.testFor':
+    'A test captcha from KnightLoader. No download waits on it. Type the five characters to see whether your answer is right.',
+  'captcha.testRight': 'Right. The test captcha said {want}.',
+  'captcha.testWrong': 'Wrong. The test captcha said {want}, not {given}.',
+  'captcha.testSolverRight': '{solver} solved the test captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} got the test captcha wrong: it said {want}, not {given}.',
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
@@ -1548,6 +1554,9 @@ export const en = {
   'settings.captcha.moveDown': 'Move down',
   'settings.captcha.set': 'Key set',
   'settings.captcha.notSet': 'No key set',
+  'settings.captcha.off': 'Switched off',
+  'settings.captcha.offHint':
+    'The key is set, but the account is switched off on the Accounts page, so it gets no captchas, not even a test captcha.',
   'settings.captcha.keys': 'Keys under Accounts',
   'settings.captcha.whenTitle': 'When captcha accounts start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
@@ -1556,6 +1565,18 @@ export const en = {
   'settings.captcha.wait': 'Wait for an answer (seconds)',
   'settings.captcha.waitHint':
     'How long the captcha accounts wait while someone is watching before they take over anyway. They never wait past half of the time the captcha has left, so a captcha account still has time to answer it. From 10 to 600 seconds.',
+  'settings.captcha.testTitle': 'Test captcha',
+  'settings.captcha.test': 'Send a test captcha',
+  'settings.captcha.testHint':
+    'Sends a captcha that KnightLoader draws itself. It shows up in the captcha window, in the phone app and at your event targets like one from a hoster, and once it is answered you see whether the answer was right. No download waits on it, and it does not go to your captcha accounts.',
+  'settings.captcha.testSolvers': 'Send one to the captcha accounts too',
+  'settings.captcha.testSolversHint':
+    'Sends the same test captcha to your captcha accounts as well, in the order above, so you can see whether they answer it and get it right. They charge for it like for any other captcha. With Only when nobody is watching on, they wait for you first: switch to another tab, or let the wait run out.',
+  'settings.captcha.testOff': 'Captchas are switched off. Switch the Captcha module back on to send a test captcha.',
+  'settings.captcha.testJDOff':
+    'Captchas come through the JDownloader backend, which is switched off. Switch it back on to send a test captcha.',
+  'settings.captcha.testNoAccount':
+    'None of your captcha accounts can take it. Switch one on above, then check on the Accounts page that it has a key and is switched on.',
 
   // AddLinksForm.tsx's per-batch options: the destination, its recent-use
   // history, and the archive and link passwords.

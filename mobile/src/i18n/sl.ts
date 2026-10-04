@@ -90,6 +90,10 @@ export const sl: Dict = {
   'captcha.blockHoster': 'Za to sejo tudi nehaj spraševati za {host}',
   'captcha.blockEverywhere': 'Za to sejo tudi nehaj spraševati za katerega koli gostitelja',
   'captcha.tooLate': 'Ta odgovor je prispel prepozno.',
+  'captcha.testFor':
+    'Preizkusna captcha od KnightLoaderja. Nanjo ne čaka noben prenos. Vpiši pet znakov in videl boš, ali je tvoj odgovor pravilen.',
+  'captcha.testRight': 'Pravilno. V preizkusni captchi je pisalo {want}.',
+  'captcha.testWrong': 'Napačno. V preizkusni captchi je pisalo {want}, ne {given}.',
   'captcha.timedOut': 'Captcha za {host} je potekla.',
   'captcha.resolvedElsewhere': 'Captcha za {host} je bila rešena drugje.',
   'captcha.relayRefused': 'Ta instanca je prestara, da bi captche posredovala aplikaciji. Tam posodobi KnightLoader.',

@@ -90,6 +90,10 @@ export const it: Dict = {
   'captcha.blockHoster': 'Smetti anche di chiedere per {host} in questa sessione',
   'captcha.blockEverywhere': 'Smetti anche di chiedere per qualsiasi hoster in questa sessione',
   'captcha.tooLate': 'Quella risposta è arrivata troppo tardi.',
+  'captcha.testFor':
+    'Un captcha di prova di KnightLoader. Nessun download lo aspetta. Scrivi i cinque caratteri per vedere se la tua risposta è giusta.',
+  'captcha.testRight': 'Giusto. Il captcha di prova diceva {want}.',
+  'captcha.testWrong': 'Sbagliato. Il captcha di prova diceva {want}, non {given}.',
   'captcha.timedOut': 'Un captcha per {host} è scaduto.',
   'captcha.resolvedElsewhere': 'Un captcha per {host} è stato risolto altrove.',
   'captcha.relayRefused': 'Questa istanza è troppo vecchia per passare i captcha all’app. Aggiorna KnightLoader lì.',

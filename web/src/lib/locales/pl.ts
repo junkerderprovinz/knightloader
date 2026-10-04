@@ -1277,6 +1277,9 @@ export const pl: Dict = {
   'settings.captcha.moveDown': 'W dół',
   'settings.captcha.set': 'Klucz ustawiony',
   'settings.captcha.notSet': 'Brak ustawionego klucza',
+  'settings.captcha.off': 'Wyłączone',
+  'settings.captcha.offHint':
+    'Klucz jest ustawiony, ale konto jest wyłączone na stronie Konta, więc nie dostaje żadnej captchy, nawet testowej.',
   'settings.captcha.keys': 'Klucze w Kontach',
   'collector.options': 'Opcje',
   'collector.destination': 'Miejsce docelowe',
@@ -3029,10 +3032,28 @@ export const pl: Dict = {
   'captcha.solverStopped': 'Żadne konto captcha nie mogło przejąć tej captchy.',
   'captcha.solverUnsupported': '{solver} nie rozwiązuje tego rodzaju captchy.',
   'captcha.solverRefused': '{solver} odmówił: {reason}',
+  'captcha.testFor':
+    'Captcha testowa od KnightLoadera. Nie czeka na nią żadne pobieranie. Wpisz pięć znaków, a zobaczysz, czy twoja odpowiedź jest dobra.',
+  'captcha.testRight': 'Dobrze. W captchy testowej było {want}.',
+  'captcha.testWrong': 'Źle. W captchy testowej było {want}, a nie {given}.',
+  'captcha.testSolverRight': '{solver} rozwiązał captchę testową: {want}.',
+  'captcha.testSolverWrong': '{solver} pomylił się w captchy testowej: było {want}, a nie {given}.',
   'settings.captcha.whenTitle': 'Kiedy startują konta captcha',
   'settings.captcha.onlyUnwatched': 'Tylko gdy nikt nie patrzy',
   'settings.captcha.wait': 'Czekaj na odpowiedź (sekundy)',
   'settings.captcha.waitHint': 'Jak długo konta captcha czekają, dopóki ktoś patrzy, zanim i tak przejmą. Nigdy nie czekają dłużej niż połowę czasu, jaki został captchy, żeby konto captcha zdążyło jeszcze odpowiedzieć. Od 10 do 600 sekund.',
+  'settings.captcha.testTitle': 'Captcha testowa',
+  'settings.captcha.test': 'Wyślij captchę testową',
+  'settings.captcha.testHint':
+    'Wysyła captchę, którą KnightLoader rysuje sam. Pojawia się w oknie captchy, w aplikacji na telefon i u twoich celów zdarzeń tak jak captcha od hostingu, a gdy ktoś odpowie, widzisz, czy odpowiedź była dobra. Nie czeka na nią żadne pobieranie i nie trafia do twoich kont captcha.',
+  'settings.captcha.testSolvers': 'Wyślij też do kont captcha',
+  'settings.captcha.testSolversHint':
+    'Wysyła tę samą captchę testową także do twoich kont captcha, w kolejności powyżej, żebyś zobaczył, czy na nią odpowiadają i czy trafnie. Liczą sobie za nią jak za każdą inną captchę. Gdy „Tylko gdy nikt nie patrzy” jest włączone, najpierw czekają na ciebie: przejdź do innej karty albo poczekaj, aż czas oczekiwania minie.',
+  'settings.captcha.testOff': 'Captche są wyłączone. Włącz z powrotem moduł Captcha, żeby wysłać captchę testową.',
+  'settings.captcha.testJDOff':
+    'Captche przychodzą przez backend JDownloader, a ten jest wyłączony. Włącz go z powrotem, żeby wysłać captchę testową.',
+  'settings.captcha.testNoAccount':
+    'Żadne z twoich kont captcha nie może jej przyjąć. Włącz jedno powyżej i sprawdź na stronie Konta, czy ma klucz i jest włączone.',
   'captcha.solverStoppedTaken': '{solver} przejął tę captchę, ale nie wysłał odpowiedzi.',
   'captcha.solverNotPassedOn': '{solver} może i tak za nią policzyć, więc KnightLoader nie wysyła jej dodatkowo do innego konta captcha. Nadal możesz odpowiedzieć sam.',
   'captcha.solverNoAnswer': '{solver} ją przejął, ale nie wróciła żadna odpowiedź.',

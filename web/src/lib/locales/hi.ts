@@ -1285,6 +1285,9 @@ export const hi: Dict = {
   'settings.captcha.moveDown': 'नीचे ले जाएँ',
   'settings.captcha.set': 'कुंजी सेट है',
   'settings.captcha.notSet': 'कोई कुंजी सेट नहीं है',
+  'settings.captcha.off': 'बंद',
+  'settings.captcha.offHint':
+    'कुंजी सेट है, लेकिन खाता खाते पेज पर बंद है, इसलिए उसे कोई कैप्चा नहीं मिलता, टेस्ट कैप्चा भी नहीं।',
   'settings.captcha.keys': 'खाते में कुंजियाँ',
   'collector.options': 'विकल्प',
   'collector.destination': 'गंतव्य फ़ोल्डर',
@@ -3045,10 +3048,28 @@ export const hi: Dict = {
   'captcha.solverStopped': 'कोई भी कैप्चा खाता यह कैप्चा नहीं ले सका।',
   'captcha.solverUnsupported': '{solver} इस तरह का कैप्चा हल नहीं करता।',
   'captcha.solverRefused': '{solver} ने मना कर दिया: {reason}',
+  'captcha.testFor':
+    'KnightLoader का एक टेस्ट कैप्चा। कोई डाउनलोड इसका इंतज़ार नहीं करता। पाँचों अक्षर लिखें और देखें कि आपका जवाब सही है या नहीं।',
+  'captcha.testRight': 'सही। टेस्ट कैप्चा में {want} लिखा था।',
+  'captcha.testWrong': 'गलत। टेस्ट कैप्चा में {want} लिखा था, {given} नहीं।',
+  'captcha.testSolverRight': '{solver} ने टेस्ट कैप्चा हल किया: {want}।',
+  'captcha.testSolverWrong': '{solver} ने टेस्ट कैप्चा गलत हल किया: उसमें {want} लिखा था, {given} नहीं।',
   'settings.captcha.whenTitle': 'कैप्चा खाते कब शुरू करते हैं',
   'settings.captcha.onlyUnwatched': 'सिर्फ़ तब जब कोई नहीं देख रहा',
   'settings.captcha.wait': 'जवाब का इंतज़ार (सेकंड)',
   'settings.captcha.waitHint': 'कोई देख रहा हो तो कैप्चा खाते कितनी देर इंतज़ार करें, उसके बाद वे फिर भी काम सँभाल लेते हैं। वे कैप्चा के बचे समय के आधे से ज़्यादा कभी इंतज़ार नहीं करते, ताकि कैप्चा खाते के पास जवाब देने का समय बचा रहे। 10 से 600 सेकंड।',
+  'settings.captcha.testTitle': 'टेस्ट कैप्चा',
+  'settings.captcha.test': 'टेस्ट कैप्चा भेजें',
+  'settings.captcha.testHint':
+    'ऐसा कैप्चा भेजता है जिसे KnightLoader खुद बनाता है। यह कैप्चा विंडो में, फ़ोन ऐप में और आपके घटना लक्ष्यों पर किसी होस्टर के कैप्चा की तरह दिखता है, और जवाब मिलते ही आप देखते हैं कि जवाब सही था या नहीं। कोई डाउनलोड इसका इंतज़ार नहीं करता, और यह आपके कैप्चा खातों को नहीं जाता।',
+  'settings.captcha.testSolvers': 'कैप्चा खातों को भी भेजें',
+  'settings.captcha.testSolversHint':
+    'वही टेस्ट कैप्चा आपके कैप्चा खातों को भी भेजता है, ऊपर दिए क्रम में, ताकि आप देख सकें कि वे जवाब देते हैं और सही देते हैं या नहीं। वे इसके पैसे किसी भी दूसरे कैप्चा की तरह लेते हैं। "सिर्फ़ तब जब कोई नहीं देख रहा" चालू हो तो वे पहले आपका इंतज़ार करते हैं: किसी दूसरे टैब पर जाएँ या इंतज़ार का समय खत्म होने दें।',
+  'settings.captcha.testOff': 'कैप्चा बंद हैं। टेस्ट कैप्चा भेजने के लिए कैप्चा मॉड्यूल फिर से चालू करें।',
+  'settings.captcha.testJDOff':
+    'कैप्चा JDownloader बैकएंड से आते हैं, और वह बंद है। टेस्ट कैप्चा भेजने के लिए उसे फिर से चालू करें।',
+  'settings.captcha.testNoAccount':
+    'आपका कोई भी कैप्चा खाता इसे नहीं ले सकता। ऊपर कोई एक चालू करें और खाते पेज पर देखें कि उसकी कुंजी सेट है और वह चालू है।',
   'captcha.solverStoppedTaken': '{solver} ने यह कैप्चा लिया लेकिन कोई जवाब नहीं भेजा।',
   'captcha.solverNotPassedOn': '{solver} इसके लिए फिर भी पैसे ले सकता है, इसलिए KnightLoader इसे किसी दूसरे कैप्चा खाते को भी नहीं भेजता। आप अब भी ख़ुद जवाब दे सकते हैं।',
   'captcha.solverNoAnswer': '{solver} ने इसे लिया, लेकिन कोई जवाब वापस नहीं आया।',

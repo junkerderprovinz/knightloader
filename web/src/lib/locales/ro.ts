@@ -1286,6 +1286,9 @@ export const ro: Dict = {
   'settings.captcha.moveDown': 'Mută mai jos',
   'settings.captcha.set': 'Cheie setată',
   'settings.captcha.notSet': 'Nicio cheie setată',
+  'settings.captcha.off': 'Oprit',
+  'settings.captcha.offHint':
+    'Cheia este setată, dar contul este oprit pe pagina Conturi, așa că nu primește niciun captcha, nici măcar unul de test.',
   'settings.captcha.keys': 'Chei în Conturi',
   'collector.options': 'Opțiuni',
   'collector.destination': 'Folder de destinație',
@@ -3052,10 +3055,28 @@ export const ro: Dict = {
   'captcha.solverStopped': 'Niciun cont de captcha nu a putut prelua această captcha.',
   'captcha.solverUnsupported': '{solver} nu rezolvă acest tip de captcha.',
   'captcha.solverRefused': '{solver} a refuzat: {reason}',
+  'captcha.testFor':
+    'O captcha de test de la KnightLoader. Nicio descărcare nu o așteaptă. Scrie cele cinci caractere ca să vezi dacă răspunsul tău e corect.',
+  'captcha.testRight': 'Corect. Captcha de test arăta {want}.',
+  'captcha.testWrong': 'Greșit. Captcha de test arăta {want}, nu {given}.',
+  'captcha.testSolverRight': '{solver} a rezolvat captcha de test: {want}.',
+  'captcha.testSolverWrong': '{solver} a greșit captcha de test: arăta {want}, nu {given}.',
   'settings.captcha.whenTitle': 'Când pornesc conturile de captcha',
   'settings.captcha.onlyUnwatched': 'Doar când nu se uită nimeni',
   'settings.captcha.wait': 'Așteaptă un răspuns (secunde)',
   'settings.captcha.waitHint': 'Cât așteaptă conturile de captcha, cât timp se uită cineva, înainte să preia oricum. Nu așteaptă niciodată mai mult de jumătate din timpul care a mai rămas pentru captcha, ca un cont de captcha să mai aibă timp să îi răspundă. Între 10 și 600 de secunde.',
+  'settings.captcha.testTitle': 'Captcha de test',
+  'settings.captcha.test': 'Trimite o captcha de test',
+  'settings.captcha.testHint':
+    'Trimite o captcha pe care KnightLoader o desenează singur. Apare în fereastra captcha, în aplicația de telefon și la destinațiile tale pentru evenimente ca una de la un hoster, iar după ce primește un răspuns vezi dacă răspunsul a fost corect. Nicio descărcare nu o așteaptă și nu ajunge la conturile tale de captcha.',
+  'settings.captcha.testSolvers': 'Trimite-o și la conturile de captcha',
+  'settings.captcha.testSolversHint':
+    'Trimite aceeași captcha de test și la conturile tale de captcha, în ordinea de mai sus, ca să vezi dacă îi răspund și corect. O taxează ca pe orice altă captcha. Cu „Doar când nu se uită nimeni” pornit, te așteaptă întâi pe tine: treci în altă filă sau lasă timpul de așteptare să treacă.',
+  'settings.captcha.testOff': 'Captcha sunt oprite. Pornește din nou modulul Captcha ca să trimiți o captcha de test.',
+  'settings.captcha.testJDOff':
+    'Captcha vin prin backendul JDownloader, care este oprit. Pornește-l din nou ca să trimiți o captcha de test.',
+  'settings.captcha.testNoAccount':
+    'Niciunul dintre conturile tale de captcha nu o poate prelua. Pornește unul mai sus și verifică pe pagina Conturi că are o cheie și este pornit.',
   'captcha.solverStoppedTaken': '{solver} a preluat această captcha, dar nu a trimis niciun răspuns.',
   'captcha.solverNotPassedOn': '{solver} s-ar putea să o taxeze oricum, de aceea KnightLoader nu o trimite și altui cont de captcha. Poți în continuare să îi răspunzi tu.',
   'captcha.solverNoAnswer': '{solver} a preluat-o, dar nu a venit niciun răspuns.',

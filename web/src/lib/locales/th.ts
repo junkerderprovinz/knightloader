@@ -1285,6 +1285,9 @@ export const th: Dict = {
   'settings.captcha.moveDown': 'เลื่อนลง',
   'settings.captcha.set': 'ตั้งคีย์แล้ว',
   'settings.captcha.notSet': 'ยังไม่ได้ตั้งคีย์',
+  'settings.captcha.off': 'ปิดอยู่',
+  'settings.captcha.offHint':
+    'ตั้งคีย์ไว้แล้ว แต่บัญชีนี้ปิดอยู่ที่หน้าบัญชี จึงไม่ได้รับแคปช่าใดเลย แม้แต่แคปช่าทดสอบ',
   'settings.captcha.keys': 'คีย์อยู่ที่บัญชี',
   'collector.options': 'ตัวเลือก',
   'collector.destination': 'โฟลเดอร์ปลายทาง',
@@ -3044,10 +3047,27 @@ export const th: Dict = {
   'captcha.solverStopped': 'ไม่มีบัญชีแคปช่าใดรับแคปช่านี้ได้',
   'captcha.solverUnsupported': '{solver} ไม่แก้แคปช่าประเภทนี้',
   'captcha.solverRefused': '{solver} ปฏิเสธ: {reason}',
+  'captcha.testFor':
+    'แคปช่าทดสอบจาก KnightLoader ไม่มีการดาวน์โหลดใดรอแคปช่านี้ พิมพ์ตัวอักษรทั้งห้าตัวเพื่อดูว่าคำตอบของคุณถูกหรือไม่',
+  'captcha.testRight': 'ถูกต้อง แคปช่าทดสอบเขียนว่า {want}',
+  'captcha.testWrong': 'ผิด แคปช่าทดสอบเขียนว่า {want} ไม่ใช่ {given}',
+  'captcha.testSolverRight': '{solver} แก้แคปช่าทดสอบได้: {want}',
+  'captcha.testSolverWrong': '{solver} ตอบแคปช่าทดสอบผิด: เขียนว่า {want} ไม่ใช่ {given}',
   'settings.captcha.whenTitle': 'บัญชีแคปช่าเริ่มเมื่อใด',
   'settings.captcha.onlyUnwatched': 'เฉพาะเมื่อไม่มีใครดูอยู่',
   'settings.captcha.wait': 'รอคำตอบ (วินาที)',
   'settings.captcha.waitHint': 'บัญชีแคปช่าจะรอนานเท่าใดขณะที่มีคนดูอยู่ ก่อนจะรับช่วงต่ออยู่ดี บัญชีแคปช่าจะไม่รอเกินครึ่งหนึ่งของเวลาที่แคปช่าเหลืออยู่ เพื่อให้บัญชีแคปช่ายังมีเวลาตอบทัน ตั้งได้ตั้งแต่ 10 ถึง 600 วินาที',
+  'settings.captcha.testTitle': 'แคปช่าทดสอบ',
+  'settings.captcha.test': 'ส่งแคปช่าทดสอบ',
+  'settings.captcha.testHint':
+    'ส่งแคปช่าที่ KnightLoader วาดขึ้นเอง แคปช่านี้จะขึ้นในหน้าต่างแคปช่า ในแอปมือถือ และที่ปลายทางเหตุการณ์ของคุณเหมือนแคปช่าจากโฮสต์ และเมื่อมีคนตอบแล้ว คุณจะเห็นว่าคำตอบถูกหรือไม่ ไม่มีการดาวน์โหลดใดรอแคปช่านี้ และจะไม่ส่งไปยังบัญชีแคปช่าของคุณ',
+  'settings.captcha.testSolvers': 'ส่งไปยังบัญชีแคปช่าด้วย',
+  'settings.captcha.testSolversHint':
+    'ส่งแคปช่าทดสอบเดียวกันไปยังบัญชีแคปช่าของคุณด้วย ตามลำดับด้านบน เพื่อให้คุณเห็นว่าบัญชีเหล่านั้นตอบได้และตอบถูกหรือไม่ บัญชีเหล่านั้นคิดเงินเหมือนแคปช่าอื่น ๆ ถ้าเปิด "เฉพาะเมื่อไม่มีใครดูอยู่" ไว้ บัญชีจะรอคุณก่อน ให้สลับไปแท็บอื่นหรือปล่อยให้เวลารอหมดไป',
+  'settings.captcha.testOff': 'แคปช่าถูกปิดอยู่ เปิดโมดูลแคปช่าอีกครั้งเพื่อส่งแคปช่าทดสอบ',
+  'settings.captcha.testJDOff': 'แคปช่ามาผ่านแบ็กเอนด์ JDownloader ซึ่งปิดอยู่ เปิดอีกครั้งเพื่อส่งแคปช่าทดสอบ',
+  'settings.captcha.testNoAccount':
+    'ไม่มีบัญชีแคปช่าใดของคุณรับได้ เปิดบัญชีหนึ่งด้านบน แล้วตรวจที่หน้าบัญชีว่ามีคีย์และเปิดอยู่',
   'captcha.solverStoppedTaken': '{solver} รับแคปช่านี้ไปแล้ว แต่ไม่ได้ส่งคำตอบมา',
   'captcha.solverNotPassedOn': '{solver} อาจคิดเงินค่าแคปช่านี้อยู่ดี KnightLoader จึงไม่ส่งต่อไปให้บัญชีแคปช่าอื่นอีก คุณยังตอบเองได้',
   'captcha.solverNoAnswer': '{solver} รับไปแล้ว แต่ไม่มีคำตอบกลับมา',

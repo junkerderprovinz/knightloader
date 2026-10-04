@@ -1285,6 +1285,9 @@ export const lv: Dict = {
   'settings.captcha.moveDown': 'Pārvietot lejup',
   'settings.captcha.set': 'Atslēga iestatīta',
   'settings.captcha.notSet': 'Atslēga nav iestatīta',
+  'settings.captcha.off': 'Izslēgts',
+  'settings.captcha.offHint':
+    'Atslēga ir iestatīta, bet konts lapā Konti ir izslēgts, tāpēc tas nesaņem nevienu captcha, pat ne testa captcha.',
   'settings.captcha.keys': 'Atslēgas sadaļā Konti',
   'collector.options': 'Opcijas',
   'collector.destination': 'Mērķa mape',
@@ -3035,10 +3038,28 @@ export const lv: Dict = {
   'captcha.solverStopped': 'Neviens captcha konts nevarēja pārņemt šo captcha.',
   'captcha.solverUnsupported': '{solver} nerisina šāda veida captcha.',
   'captcha.solverRefused': '{solver} atteicās: {reason}',
+  'captcha.testFor':
+    'Testa captcha no KnightLoader. Neviena lejupielāde to negaida. Ieraksti piecas rakstzīmes un redzēsi, vai tava atbilde ir pareiza.',
+  'captcha.testRight': 'Pareizi. Testa captcha bija {want}.',
+  'captcha.testWrong': 'Nepareizi. Testa captcha bija {want}, nevis {given}.',
+  'captcha.testSolverRight': '{solver} atrisināja testa captcha: {want}.',
+  'captcha.testSolverWrong': '{solver} kļūdījās testa captcha: tur bija {want}, nevis {given}.',
   'settings.captcha.whenTitle': 'Kad captcha konti sāk',
   'settings.captcha.onlyUnwatched': 'Tikai tad, kad neviens neskatās',
   'settings.captcha.wait': 'Gaidīt atbildi (sekundes)',
   'settings.captcha.waitHint': 'Cik ilgi captcha konti gaida, kamēr kāds skatās, pirms tomēr pārņem. Tie nekad negaida ilgāk par pusi no laika, kas captcha vēl atlicis, lai captcha konts paspētu uz to atbildēt. No 10 līdz 600 sekundēm.',
+  'settings.captcha.testTitle': 'Testa captcha',
+  'settings.captcha.test': 'Sūtīt testa captcha',
+  'settings.captcha.testHint':
+    'Sūta captcha, ko KnightLoader uzzīmē pats. Tā parādās captcha logā, tālruņa lietotnē un pie taviem notikumu mērķiem tāpat kā mitinātāja captcha, un, tiklīdz uz to atbildēts, tu redzi, vai atbilde bija pareiza. Neviena lejupielāde to negaida, un tā netiek sūtīta taviem captcha kontiem.',
+  'settings.captcha.testSolvers': 'Sūtīt arī captcha kontiem',
+  'settings.captcha.testSolversHint':
+    'Sūta to pašu testa captcha arī taviem captcha kontiem, augstāk norādītajā secībā, lai tu redzētu, vai tie atbild un pareizi. Tie par to iekasē maksu kā par jebkuru citu captcha. Ja „Tikai tad, kad neviens neskatās“ ir ieslēgts, tie vispirms gaida tevi: pārej uz citu cilni vai ļauj gaidīšanas laikam beigties.',
+  'settings.captcha.testOff': 'Captcha ir izslēgtas. Ieslēdz atkal moduli Captcha, lai sūtītu testa captcha.',
+  'settings.captcha.testJDOff':
+    'Captcha nāk caur JDownloader aizmuguri, un tā ir izslēgta. Ieslēdz to atkal, lai sūtītu testa captcha.',
+  'settings.captcha.testNoAccount':
+    'Neviens no taviem captcha kontiem to nevar pieņemt. Ieslēdz vienu augstāk un lapā Konti pārbaudi, vai tam ir atslēga un vai tas ir ieslēgts.',
   'captcha.solverStoppedTaken': '{solver} pārņēma šo captcha, bet atbildi nenosūtīja.',
   'captcha.solverNotPassedOn': '{solver} par to tik un tā var iekasēt maksu, tāpēc KnightLoader to nenosūta vēl citam captcha kontam. Tu joprojām vari uz to atbildēt pats.',
   'captcha.solverNoAnswer': '{solver} to pārņēma, bet atbilde neatnāca.',
