@@ -250,6 +250,8 @@ export const id: Dict = {
   'failure.unreachable.next': 'Periksa koneksi internet instans dan tautannya, lalu coba lagi.',
   'failure.timeout.line': 'Server berhenti menjawab.',
   'failure.timeout.next': 'Coba lagi. Kalau terus terjadi, mungkin hosternya kelebihan beban atau koneksinya tidak stabil.',
+  'failure.connectionClosed.line': 'Server menutup koneksi tanpa menjawab.',
+  'failure.connectionClosed.next': 'Coba lagi nanti. Kalau terus terjadi, server itu mungkin menolak program pengunduh, dan browser mungkin masih bisa mengambil berkasnya.',
   'failure.diskFull.line': 'Disk penuh.',
   'failure.diskFull.next': 'Kosongkan ruang di drive tujuan berkas, lalu coba lagi.',
   'failure.noPermission.line': 'KnightLoader tidak diizinkan mengakses {path}.',

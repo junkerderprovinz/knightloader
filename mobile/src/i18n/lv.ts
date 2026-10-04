@@ -250,6 +250,8 @@ export const lv: Dict = {
   'failure.unreachable.next': 'Pārbaudi instances interneta savienojumu un saiti, tad mēģini vēlreiz.',
   'failure.timeout.line': 'Serveris pārstāja atbildēt.',
   'failure.timeout.next': 'Mēģini vēlreiz. Ja tas atkārtojas, glabātājs varbūt ir pārslogots vai savienojums nestabils.',
+  'failure.connectionClosed.line': 'Serveris aizvēra savienojumu, neatbildot.',
+  'failure.connectionClosed.next': 'Mēģini vēlāk vēlreiz. Ja tas atkārtojas, serveris droši vien atraida lejupielādes programmas, bet pārlūks failu varbūt tomēr saņems.',
   'failure.diskFull.line': 'Disks ir pilns.',
   'failure.diskFull.next': 'Atbrīvo vietu diskā, uz kuru nonāk faili, tad mēģini vēlreiz.',
   'failure.noPermission.line': 'KnightLoader nedrīkst piekļūt {path}.',

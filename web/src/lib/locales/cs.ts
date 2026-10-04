@@ -3225,6 +3225,8 @@ export const cs: Dict = {
   'failure.unreachable.next': 'Zkontroluj připojení tohoto stroje k internetu a odkaz, pak to zkus znovu.',
   'failure.timeout.line': 'Server přestal odpovídat.',
   'failure.timeout.next': 'Zkus to znovu. Pokud se to opakuje, hoster je možná přetížený nebo je připojení nestabilní.',
+  'failure.connectionClosed.line': 'Server ukončil spojení bez odpovědi.',
+  'failure.connectionClosed.next': 'Zkus to později znovu. Pokud se to opakuje, server nejspíš odmítá programy na stahování a v prohlížeči se soubor možná stáhne.',
   'failure.diskFull.line': 'Disk je plný.',
   'failure.diskFull.next': 'Uvolni místo na disku, kam se soubory ukládají, pak to zkus znovu.',
   'failure.noPermission.line': 'KnightLoader nemá přístup k {path}.',

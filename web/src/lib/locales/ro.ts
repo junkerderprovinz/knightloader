@@ -3222,6 +3222,8 @@ export const ro: Dict = {
   'failure.unreachable.next': 'Verifică conexiunea la internet a acestui calculator și linkul, apoi încearcă din nou.',
   'failure.timeout.line': 'Serverul nu mai răspunde.',
   'failure.timeout.next': 'Încearcă din nou. Dacă se tot întâmplă, hosterul poate fi supraîncărcat sau conexiunea instabilă.',
+  'failure.connectionClosed.line': 'Serverul a închis conexiunea fără să răspundă.',
+  'failure.connectionClosed.next': 'Încearcă din nou mai târziu. Dacă se tot întâmplă, serverul probabil refuză programele de descărcare, iar un browser ar putea totuși să obțină fișierul.',
   'failure.diskFull.line': 'Discul este plin.',
   'failure.diskFull.next': 'Eliberează spațiu pe unitatea pe care ajung fișierele, apoi încearcă din nou.',
   'failure.noPermission.line': 'KnightLoader nu are voie să acceseze {path}.',

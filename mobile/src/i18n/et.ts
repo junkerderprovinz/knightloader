@@ -250,6 +250,8 @@ export const et: Dict = {
   'failure.unreachable.next': 'Kontrolli eksemplari internetiühendust ja linki ning proovi siis uuesti.',
   'failure.timeout.line': 'Server lakkas vastamast.',
   'failure.timeout.next': 'Proovi uuesti. Kui see kordub, võib hoster olla üle koormatud või ühendus ebastabiilne.',
+  'failure.connectionClosed.line': 'Server sulges ühenduse ilma vastamata.',
+  'failure.connectionClosed.next': 'Proovi hiljem uuesti. Kui see kordub, tõrjub server tõenäoliselt allalaadimisprogramme ja brauseriga võib fail siiski kätte tulla.',
   'failure.diskFull.line': 'Ketas on täis.',
   'failure.diskFull.next': 'Vabasta ruumi kettal, kuhu failid lähevad, ja proovi siis uuesti.',
   'failure.noPermission.line': 'KnightLoaderil pole juurdepääsu asukohale {path}.',

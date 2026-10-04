@@ -3199,6 +3199,8 @@ export const it: Dict = {
   'failure.unreachable.next': 'Controlla la connessione a internet di questa macchina e il link, poi riprova.',
   'failure.timeout.line': 'Il server ha smesso di rispondere.',
   'failure.timeout.next': 'Riprova. Se continua a succedere, l’hoster potrebbe essere sovraccarico o la connessione instabile.',
+  'failure.connectionClosed.line': 'Il server ha chiuso la connessione senza rispondere.',
+  'failure.connectionClosed.next': 'Riprova più tardi. Se continua a succedere, probabilmente il server respinge i programmi di download, e un browser potrebbe comunque scaricare il file.',
   'failure.diskFull.line': 'Il disco è pieno.',
   'failure.diskFull.next': 'Libera spazio sull’unità in cui finiscono i file, poi riprova.',
   'failure.noPermission.line': 'KnightLoader non ha il permesso di accedere a {path}.',
