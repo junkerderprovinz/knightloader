@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.7] - 2026-10-04
+
 ### Changed
 
 - **The phone app follows an instance's own relay.** An instance set to its
@@ -52,6 +54,9 @@ release's tag.
   instead of failing with a network error.
 - **The README invites testers.** The warning not to install KnightLoader is
   gone, and the README links to the bug report form instead.
+- **The README names the logo's licence.** The logo is licensed under AGPL-3.0-only
+  like the code, and the KnightLoader name and logo stay trademarks, so a fork
+  needs a name and logo of its own.
 
 ## [1.6.6] - 2026-10-02
 
