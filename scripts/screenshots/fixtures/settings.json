@@ -163,6 +163,7 @@
   "mirrorFailover": false,
   "collisionPolicy": "rename",
   "chunks": 0,
+  "multiSource": false,
   "hostRules": {},
   "categories": [
     {
