@@ -43,7 +43,7 @@ func TestDetect(t *testing.T) {
 	}
 }
 
-func TestEncryptedContainersAskForTheBackend(t *testing.T) {
+func TestContainersThatDoNotOpenHereAskForTheBackend(t *testing.T) {
 	for _, tt := range []struct {
 		file string
 		body string

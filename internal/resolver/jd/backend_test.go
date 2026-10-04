@@ -125,7 +125,7 @@ func TestAddCryptedV1SubmitsHarvestsAndCleansUp(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	links, err := b.AddCryptedV1([]byte("rsa-payload-stand-in"), "MyPackage", time.Second)
+	links, err := b.AddCryptedV1(context.Background(), []byte("rsa-payload-stand-in"), "MyPackage", time.Second)
 	if err != nil {
 		t.Fatal(err)
 	}
