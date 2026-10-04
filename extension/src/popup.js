@@ -406,13 +406,13 @@ const addLinksBtn = document.getElementById('addLinks');
 const pickFilesBtn = document.getElementById('pickFiles');
 const filesEl = document.getElementById('files');
 
-/** Every http(s)/ftp URL in a text, in order and without duplicates, split the
- *  way splitCnlLinks splits. */
+/** Every link in a text by the clipboard watch's rule, in order and without
+ *  duplicates, split the way splitCnlLinks splits. */
 function linksIn(text) {
   const seen = new Set();
   for (const raw of String(text).split(/[\r\n\s]+/)) {
     const s = raw.trim();
-    if (/^(https?|ftp):\/\//i.test(s)) seen.add(s);
+    if (CLIP_LINK_RULE.test(s)) seen.add(s);
   }
   return [...seen];
 }
