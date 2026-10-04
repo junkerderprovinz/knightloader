@@ -1009,9 +1009,11 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
+	var part string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
+		part = a.partFileLocked(t)
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
 	// record names the old path, which another download may have taken since.
@@ -1034,6 +1036,11 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart.
 		own.drop(id)
 		landed.drop()
+		if part != "" {
+			if err := os.Remove(part); err != nil && !os.IsNotExist(err) {
+				log.Printf("could not delete %s: %v%s", part, err, taskTag(id))
+			}
+		}
 		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).
