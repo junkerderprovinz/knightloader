@@ -117,7 +117,10 @@ var ErrJDImportReplaced = fmt.Errorf("only the %d newest previews are kept, and 
 
 // jdPlan is a preview with everything apply needs, the credentials included.
 type jdPlan struct {
-	created  time.Time
+	created time.Time
+	// seq orders the previews by when they were read; created can tie on a
+	// coarse clock.
+	seq      uint64
 	preview  JDImportPreview
 	accounts map[string]jdAccountPlan
 	rules    map[string]jdimport.MappedRule
@@ -150,6 +153,7 @@ var (
 	// jdReplaced holds when each pushed-out preview was read, until it would
 	// have expired anyway, so its token is refused for the right reason.
 	jdReplaced = map[*App]map[string]time.Time{}
+	jdReads    uint64
 )
 
 // ReadJDImport reads a JDownloader cfg folder and returns what it would bring.
@@ -192,7 +196,7 @@ func (a *App) ReadJDImport(fsys fs.FS) (JDImportPreview, error) {
 	for len(held) >= jdPendingMax {
 		var oldest string
 		for k, p := range held {
-			if oldest == "" || p.created.Before(held[oldest].created) {
+			if oldest == "" || p.seq < held[oldest].seq {
 				oldest = k
 			}
 		}
@@ -200,6 +204,8 @@ func (a *App) ReadJDImport(fsys fs.FS) (JDImportPreview, error) {
 		delete(held, oldest)
 	}
 	plan.created = now
+	jdReads++
+	plan.seq = jdReads
 	held[token] = plan
 	return plan.preview, nil
 }
