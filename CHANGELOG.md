@@ -96,9 +96,15 @@ release's tag.
   again first carried on from the other's bytes and finished as a file holding
   both, and the other started over. Each part file now has its download's id
   in its name, so a download only ever picks up its own. Removing a paused one
-  with its files also deletes its part file after a restart. A part file left
-  by an older version is not picked up, and that download starts from the
-  beginning.
+  with its files also deletes its part file after a restart. Removing one
+  without its files keeps its part file, so Undo carries on where the download
+  stopped instead of starting over. A part file left by an older version is not
+  picked up, and that download starts from the beginning.
+- **Removing a finished download with its files after a restart deletes the
+  file when the server sent no size.** Without a size, KnightLoader could not
+  tell after a restart that the file on disk was the one the download wrote, so
+  it left it there. It now compares the file with the number of bytes the
+  download finished with.
 
 ## [1.6.6] - 2026-10-02
 
