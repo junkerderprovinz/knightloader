@@ -1268,17 +1268,15 @@ func (a *App) pushSkipped(s SkippedLink) {
 // skipReason is the sentence shown next to a folded link, naming what the
 // match rests on.
 func (a *App) skipReason(m dedupe.Match) string {
+	// Rejected links sit apart from the collector's list, so say where the
+	// copy is.
+	code, held := a.heldLink(m.Of.ID)
 	if m.Verdict == dedupe.Duplicate {
-		// Rejected links sit apart from the collector's list, so say where the
-		// copy is.
-		if code, held := a.heldLink(m.Of.ID); held {
-			switch code {
-			case skipDownloaded:
-				return "the download history has already rejected this link"
-			case skipBannedTracker:
-				return "the banned trackers list has already rejected this torrent"
+		if held {
+			if code == skipBannedTracker {
+				return heldBy(code) + " has already rejected this torrent"
 			}
-			return "the link filter has already rejected this link"
+			return heldBy(code) + " has already rejected this link"
 		}
 		if torrent.IsMagnet(m.Of.URL) {
 			// Known by the info hash alone, so the two links may differ in name
@@ -1291,7 +1289,21 @@ func (a *App) skipReason(m dedupe.Match) string {
 	if name == "" {
 		name = m.Of.URL
 	}
+	if held {
+		return fmt.Sprintf("%s has already rejected this file as %q, matched on %s", heldBy(code), name, m.Signal)
+	}
 	return fmt.Sprintf("already in the list as %q, matched on %s", name, m.Signal)
+}
+
+// heldBy names the check that held a link back with the given code.
+func heldBy(code string) string {
+	switch code {
+	case skipDownloaded:
+		return "the download history"
+	case skipBannedTracker:
+		return "the banned trackers list"
+	}
+	return "the link filter"
 }
 
 // SkippedLinks reports the links that never became tasks, oldest first.
