@@ -2,7 +2,7 @@
   "expo": {
     "name": "KnightLoader",
     "slug": "knightloader-mobile",
-    "version": "1.6.8",
+    "version": "1.7.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
@@ -27,7 +27,7 @@
         "android.permission.WRITE_EXTERNAL_STORAGE",
         "android.permission.VIBRATE"
       ],
-      "versionCode": 10608
+      "versionCode": 10700
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -46,7 +46,15 @@
       "expo-localization",
       "./plugins/withReleaseSigning",
       "./plugins/withKeptAppDir",
-      "./plugins/withGradleMemory"
+      "./plugins/withGradleMemory",
+      "./plugins/withSharedText",
+      [
+        "expo-share-intent",
+        {
+          "androidIntentFilters": ["text/plain"],
+          "disableIOS": true
+        }
+      ]
     ]
   }
 }

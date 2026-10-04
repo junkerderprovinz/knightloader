@@ -25,6 +25,7 @@ require (
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
 	github.com/pkg/sftp v1.13.11
+	golang.org/x/image v0.46.0
 	golang.org/x/sys v0.48.0
 	golang.org/x/text v0.42.0
 )
@@ -171,7 +172,8 @@ require (
 )
 
 // The gopeed fork applies the torrent upload limit to running torrents, lets
-// DHT and PEX be switched off, and fixes a panic when the torrent client is
-// closed right after it was built:
+// DHT and PEX be switched off, fixes a panic when the torrent client is
+// closed right after it was built, and locks a task's connection list while
+// the task is saved:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
 replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261004092149-a73c7fa57383

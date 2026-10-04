@@ -4,6 +4,7 @@ import {
   type AuthState,
   type CaptchaAbortScope,
   type CaptchaChallenge,
+  type CaptchaTestResult,
   type DirectConnection,
   type ExtractJob,
   type Instance,
@@ -180,6 +181,18 @@ export async function addLinks(conn: ServerConnection, links: string[], base = '
   return request<Task[]>(conn, base, '/links', {
     method: 'POST',
     body: JSON.stringify({ links: links.join('\n') }),
+  });
+}
+
+// addSharedText stages what another app shared, as the web UI's quick-add page
+// does: the server picks the links out of the text, and a title the sharing
+// app sent names the package. The relay forwards /api/links but not the
+// container and torrent uploads, which is why the share sheet offers text
+// files and no others.
+export async function addSharedText(conn: ServerConnection, text: string, title?: string): Promise<Task[]> {
+  return request<Task[]>(conn, '/api', '/links', {
+    method: 'POST',
+    body: JSON.stringify({ links: text, package: title || undefined }),
   });
 }
 
@@ -548,8 +561,12 @@ export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaCh
 
 /** stillValid is JD's verdict on whether the answer arrived in time; trust it
  *  over the countdown on screen. */
-export async function answerCaptcha(conn: ServerConnection, id: string, text: string): Promise<{ stillValid: boolean }> {
-  return request<{ stillValid: boolean }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
+export async function answerCaptcha(
+  conn: ServerConnection,
+  id: string,
+  text: string,
+): Promise<{ stillValid: boolean; test?: CaptchaTestResult }> {
+  return request<{ stillValid: boolean; test?: CaptchaTestResult }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
     method: 'POST',
     body: JSON.stringify({ text }),
   });

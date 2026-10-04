@@ -26,6 +26,7 @@ const WORDS: Record<string, Words> = {
   unavailable: { line: 'failure.unavailable.line', next: 'failure.unavailable.next' },
   unreachable: { line: 'failure.unreachable.line', next: 'failure.unreachable.next' },
   timeout: { line: 'failure.timeout.line', next: 'failure.timeout.next' },
+  connectionClosed: { line: 'failure.connectionClosed.line', next: 'failure.connectionClosed.next' },
   diskFull: { line: 'failure.diskFull.line', next: 'failure.diskFull.next' },
   noPermission: { line: 'failure.noPermission.line', next: 'failure.noPermission.next' },
   localFile: { line: 'failure.localFile.line', next: 'failure.localFile.next' },

@@ -37,6 +37,7 @@ import { usePress } from '../theme/MotionContext';
 export default function DownloadsScreen({
   conn,
   peer,
+  initialTab = 'downloads',
   onAddPress,
   onSwitchConnection,
   onBackToOwn,
@@ -47,6 +48,8 @@ export default function DownloadsScreen({
 }: {
   conn: ServerConnection;
   peer?: Instance;
+  /** The collector after a share, so the links that came in are what shows. */
+  initialTab?: 'downloads' | 'collector';
   onAddPress: () => void;
   onSwitchConnection: () => void;
   onBackToOwn?: () => void;
@@ -80,7 +83,7 @@ export default function DownloadsScreen({
   // Which half of the instance is on screen. The two are one task list with one
   // status telling them apart, since "collected" means staged and not started,
   // so this is a filter over what already streams rather than a second request.
-  const [tab, setTab] = useState<'downloads' | 'collector'>('downloads');
+  const [tab, setTab] = useState<'downloads' | 'collector'>(initialTab);
   // Summed from the task list this screen already streams, so there is no
   // second request and no second truth about the same number.
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);

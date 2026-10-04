@@ -238,6 +238,18 @@ export interface CaptchaChallenge {
   expiresAt: string;
   /** What the paid solvers are doing with it, once they have started. */
   solver?: CaptchaSolverReport;
+  /** A test captcha the instance drew itself, which no download waits on. */
+  test?: boolean;
+}
+
+/** app.TestCaptchaResult: an answer to a test captcha beside the text drawn
+ *  in it. */
+export interface CaptchaTestResult {
+  correct: boolean;
+  want: string;
+  given: string;
+  /** The captcha account that answered, empty when a person did. */
+  solver?: string;
 }
 
 /** captcha.SolverReport: the paid solvers waiting for somebody watching,

@@ -1,11 +1,12 @@
 // Package container reads link-container files: a plain list of links, and
 // the encrypted DLC, CCF and RSDF formats.
 //
-// Only plain lists are decoded here. A .dlc can only be opened with a key a
-// service hands out to registered clients, so KnightLoader passes encrypted
-// containers to its bundled headless JDownloader, which has its own key,
-// rather than borrowing another client's. For an encrypted file this package
-// checks that it really is what its name claims and returns ErrNeedsBackend.
+// Plain lists, RSDF and CCF are decoded here, since the keys of the last two
+// are built into every program that reads them. A .dlc can only be opened
+// with a key a service hands out to registered clients, so KnightLoader passes
+// it to its bundled headless JDownloader, which has its own key, rather than
+// borrowing another client's. For a DLC, and for an RSDF or CCF that will not
+// decode here, this package returns ErrNeedsBackend.
 package container
 
 import (
@@ -31,10 +32,11 @@ const (
 	KindUnknown Kind = "unknown"
 )
 
-// ErrNeedsBackend means the container is well-formed but encrypted, and the
-// caller should hand the bytes to the JDownloader backend rather than report
-// a failure.
-var ErrNeedsBackend = errors.New("this container is encrypted and has to be opened by the JDownloader backend")
+// ErrNeedsBackend means the container is encrypted in a way this package
+// cannot open, and the caller should hand the bytes to the JDownloader backend
+// rather than report a failure. For an RSDF or CCF it wraps the reason the
+// local decoding failed.
+var ErrNeedsBackend = errors.New("this container has to be opened by the JDownloader backend")
 
 // ErrEmpty is a container with nothing usable in it, kept apart from a parse
 // failure because the fix is different.
@@ -56,8 +58,8 @@ func Detect(name string, data []byte) Kind {
 		ext = ""
 	}
 
-	// A link list is the only format served fully here and the most common
-	// one to arrive under a wrong extension.
+	// A link list is the format most often handed over under a wrong
+	// extension.
 	if looksLikeLinks(data) {
 		return KindText
 	}
@@ -67,10 +69,11 @@ func Detect(name string, data []byte) Kind {
 		// A .txt without links is still meant as a link list, so the answer
 		// becomes "no links in this file" rather than "unrecognised format".
 		return KindText
+	case ext == "rsdf" && isHexBlob(data):
+		// Ahead of the DLC test, which hex would pass as base64.
+		return KindRSDF
 	case isDLC(data):
 		return KindDLC
-	case ext == "rsdf" && isHexBlob(data):
-		return KindRSDF
 	case ext == "ccf":
 		// CCF has no signature worth trusting; its name is the only marker.
 		return KindCCF
@@ -82,9 +85,9 @@ func Detect(name string, data []byte) Kind {
 	return KindUnknown
 }
 
-// Links returns the links in a plain container. For an encrypted one it
-// returns ErrNeedsBackend, and for anything unrecognised an error naming the
-// file.
+// Links returns the links in a plain list, an RSDF or a CCF. For a DLC, or an
+// RSDF or CCF it cannot decode, it returns ErrNeedsBackend, and for anything
+// unrecognised an error naming the file.
 func Links(name string, data []byte) ([]string, error) {
 	if len(data) == 0 {
 		return nil, ErrEmpty
@@ -104,8 +107,21 @@ func Links(name string, data []byte) ([]string, error) {
 			return nil, err
 		}
 		return nil, ErrNeedsBackend
-	case KindCCF, KindRSDF:
-		return nil, ErrNeedsBackend
+	case KindRSDF:
+		links, err := DecodeRSDF(data)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrNeedsBackend, err)
+		}
+		return links, nil
+	case KindCCF:
+		links, err := DecodeCCF(data)
+		if errors.Is(err, ErrEmpty) {
+			return nil, err
+		}
+		if err != nil {
+			return nil, fmt.Errorf("%w: %w", ErrNeedsBackend, err)
+		}
+		return links, nil
 	default:
 		return nil, fmt.Errorf("%s is not a link list or a container we recognise", name)
 	}
@@ -175,9 +191,7 @@ func looksLikeLinks(data []byte) bool {
 	if len(head) > 8<<10 {
 		head = head[:8<<10]
 	}
-	s := strings.ToLower(string(head))
-	return strings.Contains(s, "http://") || strings.Contains(s, "https://") ||
-		strings.Contains(s, "magnet:?")
+	return linkscan.ContainsScheme(string(head))
 }
 
 // parseText pulls the links out of a text file with the scanner every other

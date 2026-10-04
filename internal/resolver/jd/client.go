@@ -375,6 +375,30 @@ func (c *Client) Collecting() (bool, error) {
 	return busy, nil
 }
 
+// CrawlJob reports whether JD is still crawling or checking the links of one
+// addLinks job. listed is false both before JD has taken the job up and once
+// it has let go of the finished job, a few seconds after the end.
+func (c *Client) CrawlJob(job int64) (busy, listed bool, err error) {
+	data, err := c.call("/linkgrabberv2/queryLinkCrawlerJobs", map[string]any{"jobIds": []int64{job}})
+	if err != nil {
+		return false, false, err
+	}
+	var jobs []struct {
+		JobID    int64 `json:"jobId"`
+		Crawling bool  `json:"crawling"`
+		Checking bool  `json:"checking"`
+	}
+	if err := json.Unmarshal(data, &jobs); err != nil {
+		return false, false, fmt.Errorf("jd /linkgrabberv2/queryLinkCrawlerJobs: %w", err)
+	}
+	for _, j := range jobs {
+		if j.JobID == job {
+			return j.Crawling || j.Checking, true, nil
+		}
+	}
+	return false, false, nil
+}
+
 // crawledLinkFields is the set of per-link facts every grabber query asks for.
 // A field left out comes back zeroed without an error.
 func crawledLinkFields() map[string]any {

@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -67,25 +68,37 @@ func (a *App) SetPackage(ids []string, pkg string) {
 	a.publishTasks(copies)
 }
 
-// sharingLinksLocked returns the tasks named by ids and every task that shares
-// a link with one of them, oldest first. The rows of one yt-dlp link are one
-// folder on disk, so they move together although staging hands back only the
-// first. Caller holds a.mu.
+// sharingLinksLocked returns the tasks named by ids and their variant
+// families, oldest first. The rows of one yt-dlp link are one folder on disk,
+// so they move together although staging hands back only the first. Caller
+// holds a.mu.
 func (a *App) sharingLinksLocked(ids []string) []*core.Task {
-	links := map[string]bool{}
+	type family struct {
+		url     string
+		created int64
+	}
+	named := map[family]bool{}
 	for _, id := range ids {
 		if t := a.tasks[id]; t != nil {
-			links[t.URL] = true
+			named[family{t.URL, t.CreatedAt.UnixNano()}] = true
 		}
 	}
 	var members []*core.Task
 	for _, t := range a.tasks {
-		if links[t.URL] {
+		if named[family{t.URL, t.CreatedAt.UnixNano()}] {
 			members = append(members, t)
 		}
 	}
 	sortByAge(members)
 	return members
+}
+
+// sameFamily reports whether two tasks are rows of one staged link: the
+// variant rows of a yt-dlp link share its URL and its staging time. The same
+// URL pasted again later is a link of its own, and its rows must not move a
+// copy an earlier batch already downloaded into another folder.
+func sameFamily(a, b *core.Task) bool {
+	return a.URL == b.URL && a.CreatedAt.Equal(b.CreatedAt)
 }
 
 // keepFoldersLocked pins members to the folder each downloads to, by writing
@@ -139,6 +152,11 @@ func (a *App) recordAvailability(id string, avail core.Availability, reason core
 		a.mu.Unlock()
 		return
 	}
+	// A finished download proved the link, whatever a late check says.
+	if t.Status == core.StatusDone {
+		a.mu.Unlock()
+		return
+	}
 	t.Online = avail
 	// A late probe must not overwrite why a settled task failed, such as a
 	// filter rule or a taken destination.
@@ -177,11 +195,11 @@ func (a *App) setTaskName(id, name string) {
 	t.Name = name
 	c := a.copyLocked(t)
 
-	// Variant siblings share this task's exact URL, and nothing else does. They
-	// take the same name and package so the family stays in one folder.
+	// Variant siblings take the same name and package so the family stays in
+	// one folder.
 	var siblings []taskCopy
 	for _, other := range a.tasks {
-		if other == t || other.URL != t.URL {
+		if other == t || !sameFamily(other, t) {
 			continue
 		}
 		if other.Name == other.URL {
@@ -229,9 +247,9 @@ func packageIsStillAGuess(t *core.Task) bool {
 	return guess != "" && t.Package == guess
 }
 
-// setPackageLocked files t in pkg, and with it every task sharing t's exact URL
-// (its variant siblings), and returns every task it touched for the caller to
-// save and broadcast.
+// setPackageLocked files t in pkg, and with it its variant siblings
+// (sameFamily), and returns every task it touched for the caller to save and
+// broadcast.
 //
 // The five rows of one video must share one package to be one folder on disk.
 // The siblings are created after a bucket is assembled, so they are in nobody's
@@ -241,7 +259,7 @@ func setPackageLocked(tasks map[string]*core.Task, t *core.Task, pkg string) []*
 	t.Package = pkg
 	out := []*core.Task{t}
 	for _, other := range tasks {
-		if other != t && other.URL == t.URL {
+		if other != t && sameFamily(other, t) {
 			other.Package = pkg
 			out = append(out, other)
 		}
@@ -275,10 +293,10 @@ func noSiblingHasARealNameYet(tasks map[string]*core.Task, t *core.Task) bool {
 		if other == t || other.Package != t.Package {
 			continue
 		}
-		// A row with t's exact URL is a variant sibling, not a member of a
-		// resolved batch. Once a probe has named the whole family, counting
-		// siblings would have every row veto every other's rename.
-		if other.URL == t.URL {
+		// A variant sibling is not a member of a resolved batch. Once a probe
+		// has named the whole family, counting siblings would have every row
+		// veto every other's rename.
+		if sameFamily(other, t) {
 			continue
 		}
 		if other.Name != other.URL {
@@ -444,6 +462,14 @@ func (a *App) analyze(id, rawurl string) {
 	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
 	resp, err := a.Probe.Do(req)
+	if err != nil && httpx.HungUp(err) {
+		// Some servers, Hetzner's speed-test mirrors among them, hang up on any
+		// HEAD and still answer a GET.
+		get := req.Clone(req.Context())
+		get.Method = http.MethodGet
+		get.Header.Set("Range", "bytes=0-0")
+		resp, err = a.Probe.Do(get)
+	}
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
 		// reached.
@@ -463,9 +489,55 @@ func (a *App) analyze(id, rawurl string) {
 		return
 	}
 	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
-	if resp.ContentLength > 0 {
-		a.onUpdate(id, core.Update{Size: resp.ContentLength})
+	size := resp.ContentLength
+	if resp.StatusCode == http.StatusPartialContent {
+		size = rangeTotal(resp.Header.Get("Content-Range"))
 	}
+	if size > 0 {
+		a.onUpdate(id, core.Update{Size: size})
+		a.holdIfDownloaded(id)
+	}
+}
+
+// rangeTotal is the size of the whole file a "bytes a-b/size" Content-Range
+// names, or 0 when it names none.
+func rangeTotal(contentRange string) int64 {
+	_, total, ok := strings.Cut(contentRange, "/")
+	if !ok {
+		return 0
+	}
+	n, _ := strconv.ParseInt(strings.TrimSpace(total), 10, 64)
+	return n
+}
+
+// holdIfDownloaded asks the history again about a collected link whose size
+// was unknown at staging, which a mirror policy that compares sizes needs,
+// and moves the link to the rejected links when the history has the file. A
+// link the user restored from the history's own hold is left alone.
+func (a *App) holdIfDownloaded(id string) {
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil || t.Skipped || (restoredLink(t) && t.SkipCode == skipDownloaded) || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	cand := candidateOf(t)
+	a.mu.Unlock()
+
+	v := a.downloadedVerdict(cand)
+	if !v.Rejected {
+		return
+	}
+	a.mu.Lock()
+	t = a.tasks[id]
+	if t == nil || t.Skipped || t.Status != core.StatusCollected {
+		a.mu.Unlock()
+		return
+	}
+	holdForHistoryLocked(t, v)
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
 }
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's title and
@@ -971,6 +1043,7 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	if err := os.Rename(from, to); err != nil {
 		return refuse(fmt.Errorf("not renamed: %w", err))
 	}
+	a.noteMovedLocked(t.ID)
 	t.Name = want
 	if t.File != "" {
 		t.File = to
@@ -996,10 +1069,18 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
+	var part string
+	var work []string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
+		part = a.partFileLocked(t)
+		work = t.WorkFiles
 	}
+	// A moved file is deleted where it is, by own and landed; the backend's
+	// record names the old path, which another download may have taken since.
+	backendFiles := deleteFiles && !a.movedFiles[id]
+	delete(a.movedFiles, id)
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
 	delete(a.tasks, id)
@@ -1012,11 +1093,17 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	a.dispatchLocked()
 	a.mu.Unlock()
 	if t != nil {
-		a.backendFor(t.Resolver).Remove(id, deleteFiles)
+		a.backendFor(t.Resolver).Remove(id, backendFiles)
 		// The engine only deletes files of transfers it still knows, and it
-		// forgets them all on a restart.
+		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)
 		landed.drop()
+		if part != "" {
+			if err := os.Remove(part); err != nil && !os.IsNotExist(err) {
+				log.Printf("could not delete %s: %v%s", part, err, taskTag(id))
+			}
+		}
+		ytdlp.Discard(id, work, a.usedByOther)
 		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).
@@ -1059,7 +1146,7 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 // linkEntry describes a task to the mirror set. An unresolved task's name is
 // still its URL, which the set reads as "not known yet".
 func linkEntry(t *core.Task) dedupe.Entry {
-	return dedupe.Entry{ID: t.ID, URL: t.URL, Name: t.Name, Size: t.Size}
+	return dedupe.Entry{ID: t.ID, URL: dedupeURL(t.URL), Name: t.Name, Size: t.Size}
 }
 
 // forgetLinkLocked takes a task's link out of the mirror set, but only while
@@ -1069,8 +1156,9 @@ func (a *App) forgetLinkLocked(t *core.Task) {
 	if t == nil || a.dupes == nil {
 		return
 	}
-	if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict == dedupe.Duplicate && m.Of.ID == t.ID {
-		a.dupes.Remove(t.URL)
+	u := dedupeURL(t.URL)
+	if m := a.dupes.Check(dedupe.Entry{URL: u}); m.Verdict == dedupe.Duplicate && m.Of.ID == t.ID {
+		a.dupes.Remove(u)
 	}
 }
 

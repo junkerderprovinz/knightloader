@@ -499,6 +499,9 @@ export interface Settings {
   /** Releases that parked sibling when the download it copies has finished
    *  failing. Does nothing without keepMirrors. */
   mirrorFailover: boolean;
+  /** Rejects a new link the download history already has: the same URL, or the
+   *  same file under mirrorPolicy. A restore adds it anyway. */
+  rejectDownloaded: boolean;
   /** How much the "already on the disk" pass trusts a file it did not see
    *  arrive: "checksum" | "record" | "size". */
   reclaimTrust: string;
@@ -703,9 +706,9 @@ export type ServiceKind = 'apiKey' | 'usernamePassword';
 
 /**
  * Which section of the accounts page a service belongs to (accounts.Group).
- * Accounts.tsx renders neither 'captchaSolver', which settings/Captcha.tsx
- * configures, nor 'remoteServer', whose logins are stored with the server's
- * hostname as the account id. Both are listed so the type matches the wire.
+ * A 'remoteServer' login is stored with the server's hostname as its account
+ * id. 'hoster' is listed so the type matches the wire, though that section is
+ * built from the hoster logins rather than the catalogue.
  */
 export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver' | 'remoteServer';
 
@@ -880,8 +883,8 @@ export interface SkippedLink {
   url: string;
   /**
    * "duplicate" or "mirror" for a link folded into one already in the list;
-   * "container", "playlist", "nzb" or "torrent" for one that failed before
-   * that. SkippedLink in internal/app lists what each means.
+   * "container", "playlist", "nzb", "torrent" or "password" for one that failed
+   * before that. SkippedLink in internal/app lists what each means.
    */
   kind: string;
   /** The sentence to show: what the match rests on, or why it failed. */
@@ -933,7 +936,8 @@ export interface ApiOptions {
   mediaHookMethods?: string[];
 }
 
-/** A container that was a plain link list: parsed here and staged like any paste. */
+/** A container the server opened itself, a link list, an RSDF or a CCF, with
+ *  its links staged like any paste. */
 export interface ContainerStaged {
   kind: string;
   links: number;
@@ -942,9 +946,10 @@ export interface ContainerStaged {
 }
 
 /**
- * An encrypted container. Its key is issued only to registered clients, so it
- * goes to the headless JDownloader backend. Nothing is staged yet when this
- * comes back; the links appear once JD has fetched it.
+ * A container the server could not open itself: a DLC, whose key is issued
+ * only to registered clients, or an RSDF or CCF that would not decode. It goes
+ * to the headless JDownloader backend. Nothing is staged yet when this comes
+ * back; the links appear once JD has fetched it.
  */
 export interface ContainerHandedOver {
   kind: string;
@@ -1428,10 +1433,10 @@ export async function fetchSkipped(): Promise<SkippedLink[]> {
 export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DELETE' });
 
 /**
- * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A plain link list
- * comes back staged in `created`; an encrypted container is handed to the JD
- * backend and an .nzb to a Usenet-capable account, and their links arrive
- * later over the websocket, which the caller has to say rather than report
+ * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A link list, RSDF or
+ * CCF comes back staged in `created`; a DLC is handed to the JD backend and
+ * an .nzb to a Usenet-capable account, and their links arrive later over the
+ * websocket, which the caller has to say rather than report
  * "0 links added". A failure throws the server's sentence, with a code when
  * nothing here can open the file.
  */
@@ -2573,6 +2578,8 @@ export interface CaptchaChallenge {
   /** What the paid solvers have done with it, absent until one is set to
    *  work on it. */
   solver?: CaptchaSolverReport;
+  /** A test captcha the instance drew itself, which no download waits on. */
+  test?: boolean;
 }
 
 /** captcha.SolverReport. */
@@ -2605,6 +2612,21 @@ export interface CaptchaResolution {
   taskId?: string;
   host: string;
   reason: 'solved' | 'expired' | 'aborted' | 'timedOut' | 'switchedOff' | 'resolved';
+  /** How the answer to a test captcha compared, set when one was solved. */
+  test?: TestCaptchaResult;
+  /** Set for a test captcha however it ended, so a timeout leaves no
+   *  download stuck. */
+  testCaptcha?: boolean;
+}
+
+/** app.TestCaptchaResult: an answer to a test captcha beside the text drawn
+ *  in it. */
+export interface TestCaptchaResult {
+  correct: boolean;
+  want: string;
+  given: string;
+  /** The captcha account that answered, empty when a person did. */
+  solver?: string;
 }
 
 /**
@@ -2629,9 +2651,26 @@ export async function refreshCaptchas(): Promise<CaptchaChallenge[]> {
 /**
  * answerCaptcha submits text as id's solution. stillValid comes from JD and
  * says whether the answer arrived in time; trust it over any local countdown.
+ * test is set for a test captcha.
  */
-export async function answerCaptcha(id: string, text: string): Promise<{ stillValid: boolean }> {
-  return json<{ stillValid: boolean }>(await post(`/api/captcha/${encodeURIComponent(id)}/answer`, { text }));
+export async function answerCaptcha(
+  id: string,
+  text: string,
+): Promise<{ stillValid: boolean; test?: TestCaptchaResult }> {
+  return json<{ stillValid: boolean; test?: TestCaptchaResult }>(
+    await post(`/api/captcha/${encodeURIComponent(id)}/answer`, { text }),
+  );
+}
+
+/**
+ * createTestCaptcha puts up a test captcha, which arrives like a real one.
+ * With solvers it goes to the captcha accounts too, which bill it. A refusal
+ * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off
+ * on the Modules page, or 'noCaptchaAccount' when no captcha account could
+ * take it.
+ */
+export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {
+  return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers }));
 }
 
 /**
@@ -3652,6 +3691,74 @@ export async function importSettings(
     body: JSON.stringify({ document, keys }),
   });
   return json<SettingsImportResult>(r);
+}
+
+/** Why a JDownloader item stays behind or changes on the way in. `code` keys
+ *  the sentence, `text` is the server's English. */
+export interface JDImportReason {
+  code: string;
+  params?: Record<string, string>;
+  text: string;
+}
+
+/** One thing a JDownloader import can write. Never carries a password. */
+export interface JDImportItem {
+  id: string;
+  group: 'accounts' | 'settings' | 'packagizer' | 'filter' | 'downloads';
+  kind: 'hoster' | 'debrid' | 'passwords' | 'folder' | 'rule' | 'exception' | 'package';
+  name: string;
+  /** The user name of an account, or the download folder stored here now. */
+  detail?: string;
+  /** The named account a debrid key goes to when the service already has one. */
+  slot?: string;
+  /** Links in a package, or archive passwords new here. */
+  count?: number;
+  /** Every archive password in JDownloader's list. */
+  total?: number;
+  off?: boolean;
+  replaces?: boolean;
+  same?: boolean;
+  blocked?: JDImportReason;
+  notes?: JDImportReason[];
+  /** What the preview starts with ticked. */
+  ticked: boolean;
+}
+
+/** What a JDownloader cfg folder would bring. The token applies it. */
+export interface JDImportPreview {
+  token: string;
+  items: JDImportItem[];
+  problems: JDImportReason[];
+  files: string[];
+}
+
+export interface JDImportReport {
+  imported: string[];
+  failed: { id: string; reason: JDImportReason }[];
+  /** Collector rows the download list became. */
+  links: number;
+  /** The link filter was switched to stop at its first match. */
+  filterStops: boolean;
+}
+
+/** readJDImportFile reads an uploaded zip of a JDownloader cfg folder. */
+export async function readJDImportFile(file: File): Promise<JDImportPreview> {
+  const body = new FormData();
+  body.append('file', file);
+  return json(await fetch('/api/jdimport/read', { method: 'POST', body }));
+}
+
+/** readJDImportPath reads a cfg folder, a JDownloader folder or a zip by its path on the server. */
+export async function readJDImportPath(path: string): Promise<JDImportPreview> {
+  return json(await post('/api/jdimport/read', { path }));
+}
+
+/** applyJDImport takes over the ticked items of a preview. A preview older
+ *  than half an hour is refused with the code "jdimport.expired", one that
+ *  newer reads pushed out with "jdimport.replaced", and one the server no
+ *  longer holds, after a restart for instance, with "jdimport.unknown". */
+export async function applyJDImport(token: string, ids: string[]): Promise<JDImportReport> {
+  return json(await post('/api/jdimport/apply', { token, ids }));
 }
 
 export async function fetchInstances(): Promise<Instance[]> {
