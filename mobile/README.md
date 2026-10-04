@@ -361,7 +361,8 @@ plain `icon.png`/`favicon.png` a square source is otherwise already correct
 for.
 
 The logo is the author's own drawing and falls under the repository's licence,
-AGPL-3.0-only, like the code.
+AGPL-3.0-only, like the code. The KnightLoader name and logo remain the author's
+trademarks, so a fork needs a name and logo of its own.
 
 ## Running it
 
