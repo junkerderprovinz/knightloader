@@ -125,6 +125,7 @@ export const fr: Dict = {
   'share.added': 'Ajouté au collecteur de {name}.',
   'share.addedCount': '{n} liens ajoutés au collecteur de {name}.',
   'share.none': 'Rien n’a été ajouté. Ce que tu as partagé ne contenait aucun nouveau lien.',
+  'share.fileUnreadable': 'Rien n’a été ajouté. Le fichier que tu as partagé ne contient aucun lien, ou KnightLoader n’a pas pu le lire.',
   'share.failed': 'Impossible d’ajouter ceci : {error}',
   'share.noConnection': 'Connecte d’abord une instance, puis partage à nouveau.',
   'share.retry': 'Réessayer',

@@ -125,6 +125,7 @@ export const lt: Dict = {
   'share.added': 'Pridėta į {name} rinktuvą.',
   'share.addedCount': 'Į {name} rinktuvą pridėta nuorodų: {n}.',
   'share.none': 'Nieko nepridėta. Tame, kuo pasidalijai, nebuvo naujos nuorodos.',
+  'share.fileUnreadable': 'Nieko nepridėta. Faile, kuriuo pasidalijai, nėra nuorodų arba KnightLoader nepavyko jo perskaityti.',
   'share.failed': 'Nepavyko pridėti: {error}',
   'share.noConnection': 'Pirmiausia prijunk egzempliorių, tada pasidalyk dar kartą.',
   'share.retry': 'Bandyti dar kartą',

@@ -125,6 +125,7 @@ export const bg: Dict = {
   'share.added': 'Добавено в събирача на {name}.',
   'share.addedCount': '{n} връзки са добавени в събирача на {name}.',
   'share.none': 'Нищо не е добавено. В споделеното нямаше нова връзка.',
+  'share.fileUnreadable': 'Нищо не е добавено. Във файла, който сподели, няма връзки или KnightLoader не успя да го прочете.',
   'share.failed': 'Не можа да се добави: {error}',
   'share.noConnection': 'Първо свържи инстанция, после сподели отново.',
   'share.retry': 'Опитай отново',

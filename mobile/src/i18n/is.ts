@@ -125,6 +125,7 @@ export const is: Dict = {
   'share.added': 'Bætt í safnarann á {name}.',
   'share.addedCount': '{n} tenglum bætt í safnarann á {name}.',
   'share.none': 'Engu var bætt við. Það sem þú deildir innihélt engan nýjan tengil.',
+  'share.fileUnreadable': 'Engu var bætt við. Í skránni sem þú deildir eru engir tenglar, eða KnightLoader gat ekki lesið hana.',
   'share.failed': 'Ekki tókst að bæta þessu við: {error}',
   'share.noConnection': 'Tengdu fyrst tilvik og deildu svo aftur.',
   'share.retry': 'Reyna aftur',

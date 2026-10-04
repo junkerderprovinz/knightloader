@@ -125,6 +125,7 @@ export const sv: Dict = {
   'share.added': 'Tillagt i insamlaren på {name}.',
   'share.addedCount': '{n} länkar tillagda i insamlaren på {name}.',
   'share.none': 'Inget lades till. Det du delade innehöll ingen ny länk.',
+  'share.fileUnreadable': 'Inget lades till. Filen du delade innehåller inga länkar, eller så kunde KnightLoader inte läsa den.',
   'share.failed': 'Kunde inte lägga till detta: {error}',
   'share.noConnection': 'Anslut en instans först och dela sedan igen.',
   'share.retry': 'Försök igen',

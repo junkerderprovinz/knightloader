@@ -125,6 +125,7 @@ export const gl: Dict = {
   'share.added': 'Engadido ao colector de {name}.',
   'share.addedCount': 'Engadíronse {n} ligazóns ao colector de {name}.',
   'share.none': 'Non se engadiu nada. O que compartiches non tiña ningunha ligazón nova.',
+  'share.fileUnreadable': 'Non se engadiu nada. O ficheiro que compartiches non ten ligazóns ou KnightLoader non puido lelo.',
   'share.failed': 'Non se puido engadir: {error}',
   'share.noConnection': 'Conecta primeiro unha instancia e logo volve compartir.',
   'share.retry': 'Tentar de novo',

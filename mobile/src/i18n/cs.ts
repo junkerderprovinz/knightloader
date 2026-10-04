@@ -125,6 +125,7 @@ export const cs: Dict = {
   'share.added': 'Přidáno do sběrače na {name}.',
   'share.addedCount': 'Do sběrače na {name} přidáno odkazů: {n}.',
   'share.none': 'Nic nebylo přidáno. Ve sdíleném nebyl žádný nový odkaz.',
+  'share.fileUnreadable': 'Nic nebylo přidáno. Sdílený soubor neobsahuje žádné odkazy, nebo ho KnightLoader nedokázal přečíst.',
   'share.failed': 'Nepodařilo se přidat: {error}',
   'share.noConnection': 'Nejdřív připoj instanci a pak sdílej znovu.',
   'share.retry': 'Zkusit znovu',

@@ -125,6 +125,7 @@ export const zh: Dict = {
   'share.added': '已添加到 {name} 的收集器。',
   'share.addedCount': '已向 {name} 的收集器添加 {n} 个链接。',
   'share.none': '没有添加任何内容。你分享的内容里没有新链接。',
+  'share.fileUnreadable': '没有添加任何内容。你分享的文件里没有链接，或者 KnightLoader 无法读取它。',
   'share.failed': '无法添加：{error}',
   'share.noConnection': '请先连接一个实例，然后再分享一次。',
   'share.retry': '重试',
