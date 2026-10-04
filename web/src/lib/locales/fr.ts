@@ -1325,6 +1325,10 @@ export const fr: Dict = {
   'intake.clipboardWatchHint': 'Chaque lien que tu copies où que ce soit va directement dans le collecteur, tant que cet onglet est ouvert et au premier plan. Ctrl+V dans KnightLoader marche toujours et n\'a besoin de rien de tout ça.',
   'intake.clipboardWatchUnavailable': 'Indisponible ici : le navigateur ne laisse une page lire le presse-papiers qu\'en HTTPS ou sur localhost. Ctrl+V dans KnightLoader marche quand même.',
   'intake.clipboardWatchDenied': 'Surveillance du presse-papiers désactivée : {reason}',
+  'intake.clipboardWatchHintDesktop': 'Chaque lien que tu copies où que ce soit va directement dans le collecteur, même quand KnightLoader est caché dans la zone de notification. Seuls les liens sont pris dans le presse-papiers. Ctrl+V dans KnightLoader marche toujours, sans tout ça.',
+  'intake.clipboardWatchTarget': 'Envoyer les liens copiés à',
+  'intake.clipboardWatchTargetHint': 'Cette instance, ou une autre de la page Instances, par exemple un NAS associé avec les douze mots. Seuls les liens sont envoyés, rien d\'autre du presse-papiers.',
+  'intake.clipboardWatchLimited': 'Sous Wayland, KnightLoader ne voit le presse-papiers que quand sa fenêtre est au premier plan. Avec wl-clipboard installé, il peut le surveiller en arrière-plan sur les bureaux qui le permettent, comme KDE ou Sway. GNOME ne le permet pas.',
 
   'collector.hosterPresetHint': 'Les variantes des liens de {host} que le collecteur affiche, et le format et la qualité avec lesquels démarrent les nouveaux liens. Une fois un lien vérifié, il passe à sa propre piste la plus proche. Un lien sans ce format vidéo reçoit sa meilleure vidéo jusqu’à cette qualité, et un lien sans ce format audio voit son audio converti.',
   'activity.crawl': 'Analyse des pages',

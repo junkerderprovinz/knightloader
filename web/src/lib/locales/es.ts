@@ -1325,6 +1325,10 @@ export const es: Dict = {
   'intake.clipboardWatchHint': 'Cada enlace que copies en cualquier sitio va directo al colector, mientras esta pestaña esté abierta y en primer plano. Ctrl+V dentro de KnightLoader funciona siempre y no necesita nada de esto.',
   'intake.clipboardWatchUnavailable': 'Aquí no está disponible: el navegador solo deja que una página lea el portapapeles por HTTPS o en localhost. Ctrl+V dentro de KnightLoader funciona igualmente.',
   'intake.clipboardWatchDenied': 'Vigilancia del portapapeles desactivada: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Cada enlace que copies en cualquier sitio va directo al colector, incluso con KnightLoader oculto en el área de notificación. Del portapapeles solo se toman los enlaces. Ctrl+V dentro de KnightLoader funciona siempre sin nada de esto.',
+  'intake.clipboardWatchTarget': 'Enviar los enlaces copiados a',
+  'intake.clipboardWatchTargetHint': 'Esta instancia u otra de la página Instancias, por ejemplo un NAS emparejado con las doce palabras. Solo se envían los enlaces, nada más del portapapeles.',
+  'intake.clipboardWatchLimited': 'En Wayland, KnightLoader solo ve el portapapeles mientras su ventana está en primer plano. Con wl-clipboard instalado puede vigilarlo en segundo plano en los escritorios que lo permiten, como KDE o Sway. GNOME no lo permite.',
 
   'collector.hosterPresetHint': 'Qué variantes de los enlaces de {host} muestra el colector, y con qué formato y calidad empiezan los enlaces nuevos. En cuanto se comprueba un enlace, pasa a la pista propia que más se acerque. Un enlace sin este formato de vídeo recibe su mejor vídeo hasta esta calidad, y a uno sin este formato de audio se le convierte el audio.',
   'activity.crawl': 'Analizando páginas',

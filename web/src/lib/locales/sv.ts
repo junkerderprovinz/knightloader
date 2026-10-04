@@ -1333,6 +1333,10 @@ export const sv: Dict = {
   'intake.clipboardWatchHint': 'Varje länk du kopierar någonstans går rakt in i samlaren, så länge den här fliken är öppen och i förgrunden. Ctrl+V inne i KnightLoader fungerar alltid och behöver inget av detta.',
   'intake.clipboardWatchUnavailable': 'Inte tillgängligt här: webbläsaren låter bara en sida läsa urklipp över HTTPS eller på localhost. Ctrl+V inne i KnightLoader fungerar ändå.',
   'intake.clipboardWatchDenied': 'Bevakning av urklipp avstängd: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Varje länk du kopierar någonstans går rakt in i samlaren, även när KnightLoader ligger dold i meddelandefältet. Bara länkarna tas från urklipp. Ctrl+V inne i KnightLoader fungerar alltid och behöver inget av detta.',
+  'intake.clipboardWatchTarget': 'Skicka kopierade länkar till',
+  'intake.clipboardWatchTargetHint': 'Den här instansen eller en annan under Instanser, till exempel en NAS som parats ihop med de tolv orden. Bara länkarna skickas, inget annat från urklipp.',
+  'intake.clipboardWatchLimited': 'Under Wayland ser KnightLoader urklipp bara medan fönstret ligger överst. Med wl-clipboard installerat kan det bevaka urklipp i bakgrunden på skrivbord som tillåter det, som KDE eller Sway. GNOME tillåter det inte.',
 
   'collector.hosterPresetHint': 'Vilka varianter av länkarna från {host} samlaren visar, och vilket format och vilken kvalitet nya länkar börjar med. När en länk är kontrollerad byter den till det egna spår som ligger närmast. En länk utan det här videoformatet får sin bästa video upp till den här kvaliteten, och en utan det här ljudformatet får sitt ljud konverterat.',
   'activity.crawl': 'Genomsökning av sidor',

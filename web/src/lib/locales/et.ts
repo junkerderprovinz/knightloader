@@ -1333,6 +1333,10 @@ export const et: Dict = {
   'intake.clipboardWatchHint': 'Iga link, mille kuskil kopeerid, läheb otse kogujasse, kuni see kaart on avatud ja esiplaanil. Ctrl+V KnightLoaderis toimib alati ega vaja seda.',
   'intake.clipboardWatchUnavailable': 'Siin pole saadaval: brauser lubab lehel lõikelauda lugeda vaid üle HTTPS-i või localhostis. Ctrl+V KnightLoaderis toimib niikuinii.',
   'intake.clipboardWatchDenied': 'Lõikelaua jälgimine lülitati välja: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Iga link, mille kuskil kopeerid, läheb otse kogujasse ka siis, kui KnightLoader on teavitusalas peidus. Lõikelaualt võetakse ainult lingid. Ctrl+V KnightLoaderis toimib alati ega vaja seda.',
+  'intake.clipboardWatchTarget': 'Kopeeritud linkide sihtkoht',
+  'intake.clipboardWatchTargetHint': 'See eksemplar või mõni teine lehelt Eksemplarid, näiteks kaheteistkümne sõnaga paaritatud NAS. Saadetakse ainult lingid, lõikelaualt mitte midagi muud.',
+  'intake.clipboardWatchLimited': 'Waylandis näeb KnightLoader lõikelauda ainult siis, kui tema aken on ees. Kui wl-clipboard on paigaldatud, saab ta seda taustal jälgida töölaudadel, mis seda lubavad, näiteks KDE või Sway. GNOME seda ei luba.',
 
   'collector.hosterPresetHint': 'Milliseid variante {host} linkidest koguja näitab ning millise vormingu ja kvaliteediga uued lingid alustavad. Kui link on kontrollitud, lülitub see oma rajale, mis on valikule kõige lähemal. Link, millel seda videovormingut pole, saab oma parima video kuni selle kvaliteedini, ja lingil, millel seda helivormingut pole, teisendatakse heli.',
   'activity.crawl': 'Lehtede läbivaatus',

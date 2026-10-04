@@ -1335,6 +1335,10 @@ export const no: Dict = {
   'intake.clipboardWatchHint': 'Hver link du kopierer et sted går rett i samleren, så lenge denne fanen er åpen og i forgrunnen. Ctrl+V inne i KnightLoader virker alltid og trenger ingenting av dette.',
   'intake.clipboardWatchUnavailable': 'Ikke tilgjengelig her: nettleseren lar en side lese utklippstavlen bare over HTTPS eller på localhost. Ctrl+V inne i KnightLoader virker uansett.',
   'intake.clipboardWatchDenied': 'Overvåking av utklippstavlen slått av: {reason}',
+  'intake.clipboardWatchHintDesktop': 'Hver link du kopierer et sted går rett i samleren, også når KnightLoader ligger skjult i varslingsområdet. Bare linkene hentes fra utklippstavlen. Ctrl+V inne i KnightLoader virker alltid og trenger ingenting av dette.',
+  'intake.clipboardWatchTarget': 'Send kopierte linker til',
+  'intake.clipboardWatchTargetHint': 'Denne instansen eller en annen under Instanser, for eksempel en NAS som er paret med de tolv ordene. Bare linkene sendes, ingenting annet fra utklippstavlen.',
+  'intake.clipboardWatchLimited': 'Under Wayland ser KnightLoader utklippstavlen bare mens vinduet ligger øverst. Med wl-clipboard installert kan det følge med i bakgrunnen på skrivebord som tillater det, som KDE eller Sway. GNOME tillater det ikke.',
 
   'collector.hosterPresetHint': 'Hvilke varianter av lenkene fra {host} samleren viser, og hvilket format og hvilken kvalitet nye lenker starter med. Når en lenke er sjekket, bytter den til sitt eget spor som kommer nærmest. En lenke uten dette videoformatet får sin beste video opp til denne kvaliteten, og en uten dette lydformatet får lyden konvertert.',
   'activity.crawl': 'Gjennomsøking av sider',
