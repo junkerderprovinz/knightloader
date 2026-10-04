@@ -24,9 +24,16 @@ class QuietSocket {
   close() {}
 }
 
+/** Rows are never scrolled into view, so no hoster icon is asked for. */
+class OffScreen {
+  observe() {}
+  disconnect() {}
+}
+
 beforeEach(() => {
   patched = [];
   vi.stubGlobal('WebSocket', QuietSocket);
+  vi.stubGlobal('IntersectionObserver', OffScreen);
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {

@@ -309,9 +309,10 @@ release's tag.
 ### Fixed
 
 - **Fewer failed icon loads in the browser console.** For a host that cannot
-  have a site icon, such as an IP address, a torrent or a task id, the web UI
-  shows the letter tile at once instead of asking the instance four times.
-  Leaving a page before its live connection is up no longer logs a WebSocket
+  have a site icon, such as an IP address, a local name like nas.local, a
+  torrent or a task id, the web UI shows the letter tile at once instead of
+  asking the instance four times. A host the instance found no icon for is
+  asked once and no longer shows up as a failed load. Leaving a page before its live connection is up no longer logs a WebSocket
   warning.
 
 ### Fixed
