@@ -4,6 +4,7 @@ import (
 	"strings"
 	"testing"
 	"time"
+	"unicode/utf8"
 )
 
 // stamp is single-digit in every field on purpose, so a missing zero pad or a
@@ -208,5 +209,12 @@ func TestSimpleDateMilliseconds(t *testing.T) {
 	later := Expand("<jd:simpledate:SSS>", Vars{Date: when.Add(time.Millisecond)})
 	if later == Expand("<jd:simpledate:SSS>", Vars{Date: when}) {
 		t.Error("SSS produced the same value for two different instants")
+	}
+}
+
+func TestALongValueIsCutBetweenCharacters(t *testing.T) {
+	got := Expand("<jd:packagename>", Vars{Package: "x" + strings.Repeat("報", 99)})
+	if !utf8.ValidString(got) || len(got) > maxSegment || len(got) < maxSegment-2 {
+		t.Errorf("cut to %d bytes, valid UTF-8 %v", len(got), utf8.ValidString(got))
 	}
 }
