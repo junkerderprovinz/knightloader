@@ -437,3 +437,67 @@ func TestARenameTooLongForAFileKeepsItsExtensionAndWholeCharacters(t *testing.T)
 		})
 	}
 }
+
+// The API and a dropped crawljob set the file name directly. Taken as it came,
+// a name past what the file system holds fails where a rename of the same
+// name would have been cut and succeeded.
+func TestAFileNameOptionTooLongForAFileIsCutLikeARename(t *testing.T) {
+	a, base := newQuietApp(t)
+	finishedTask(t, a, base, "doc", "doc.pdf")
+	long := "scan-" + strings.Repeat("報", 100) + ".pdf"
+	if err := a.SetTaskOptions([]string{"doc"}, TaskOptions{Filename: &long}); err != nil {
+		t.Fatal(err)
+	}
+	live := liveTask(a, "doc")
+	if live.Error != "" {
+		t.Fatalf("the row reads %q", live.Error)
+	}
+	if want := rules.FileSegment(long); live.Name != want {
+		t.Errorf("renamed to %q, want %q as the name option gives", live.Name, want)
+	}
+	if _, err := os.Stat(filepath.Join(base, live.Name)); err != nil {
+		t.Errorf("the file is not under the name on the row: %v", err)
+	}
+}
+
+// A refused rename puts its reason on the row. Once a later rename goes
+// through, that reason is about a name the file never took.
+func TestASuccessfulRenameClearsTheReasonAnEarlierOneFailed(t *testing.T) {
+	a, base := newQuietApp(t)
+	finishedTask(t, a, base, "doc", "doc.pdf")
+	if err := os.WriteFile(filepath.Join(base, "taken.pdf"), []byte("other"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	taken := "taken.pdf"
+	if err := a.SetTaskOptions([]string{"doc"}, TaskOptions{Name: &taken}); err == nil {
+		t.Fatal("renamed onto a file that was already there")
+	}
+	if liveTask(a, "doc").Error == "" {
+		t.Fatal("the refusal left no reason on the row, so this test would not see it cleared")
+	}
+
+	free := "free.pdf"
+	if err := a.SetTaskOptions([]string{"doc"}, TaskOptions{Name: &free}); err != nil {
+		t.Fatal(err)
+	}
+	if msg := liveTask(a, "doc").Error; msg != "" {
+		t.Errorf("the row still reads %q after the rename went through", msg)
+	}
+}
+
+// Only a rename's own failure is cleared: an archive that would not unpack
+// is still broken under its new name.
+func TestARenameKeepsAnUnpackingFailure(t *testing.T) {
+	a, base := newQuietApp(t)
+	finishedTask(t, a, base, "doc", "doc.rar")
+	failed := extractErrorPrefix + "bad block header"
+	editTask(a, "doc", func(x *core.Task) { x.SetError(failed, "", nil) })
+
+	free := "free.rar"
+	if err := a.SetTaskOptions([]string{"doc"}, TaskOptions{Name: &free}); err != nil {
+		t.Fatal(err)
+	}
+	if msg := liveTask(a, "doc").Error; msg != failed {
+		t.Errorf("the row reads %q, want the unpacking failure %q", msg, failed)
+	}
+}
