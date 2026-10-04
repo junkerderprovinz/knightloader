@@ -54,8 +54,19 @@ const maxBaseName = gopeed.MaxFilenameLength
 // It calls the download library's own function because the library rewrites
 // every name on its way to the fetcher; a reservation under any other name
 // would reserve nothing, and a copy of its platform-dependent rules would
-// drift.
-func SafeName(name string) string { return gopeed.SafeFilename(name) }
+// drift. Control characters become spaces first, as the library keeps them
+// and a NUL cannot be written at all; the library then leaves the result
+// alone.
+func SafeName(name string) string {
+	// Byte by byte, so a name in a legacy encoding keeps its other bytes.
+	clean := []byte(name)
+	for i, c := range clean {
+		if c < 0x20 || c == 0x7f {
+			clean[i] = ' '
+		}
+	}
+	return gopeed.SafeFilename(string(clean))
+}
 
 // Policies lists the policies in the order a settings dropdown should offer
 // them.
