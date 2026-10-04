@@ -6,6 +6,11 @@
     "links": ["https://host.example/one", "https://host.example/two", "magnet:?xt=urn:btih:abcdef", "ftp://files.example/three"]
   },
   {
+    "name": "links to an own server",
+    "text": "ftps://files.example/a sftp://files.example/b\nwebdav://dav.example/c WebDAVs://dav.example/d",
+    "links": ["ftps://files.example/a", "sftp://files.example/b", "webdav://dav.example/c", "WebDAVs://dav.example/d"]
+  },
+  {
     "name": "only the link out of a sentence",
     "text": "My password is hunter2, the file is at https://host.example/a and the code is 1234",
     "links": ["https://host.example/a"]

@@ -3,6 +3,7 @@
 // to, and an instance lists the whole group's, so switching a watch on can name
 // the devices already watching and offer to stop them.
 import { apiBase, json, ok } from './api';
+import { isDesktop } from './desktop';
 
 export type WatcherKind = 'web' | 'extension' | 'desktop';
 
@@ -45,6 +46,17 @@ export function watcherId(): string {
     memoryId ||= freshId();
     return memoryId;
   }
+}
+
+/**
+ * ownWatcherIds are the ids on the list that are this page's own watch: the
+ * browser's, and in the desktop app the one the Go side leases for it
+ * (clipWatcher in desktop/clipwatch.go).
+ */
+export async function ownWatcherIds(): Promise<string[]> {
+  if (!isDesktop()) return [watcherId()];
+  const { instanceId } = await json<{ instanceId?: string }>(await fetch('/api/settings'));
+  return [watcherId(), `desktop-${instanceId ?? ''}`];
 }
 
 function freshId(): string {
