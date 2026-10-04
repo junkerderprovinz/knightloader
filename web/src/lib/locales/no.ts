@@ -1056,6 +1056,9 @@ export const no: Dict = {
 
   'settings.chunks': 'Tilkoblinger per nedlasting (0 = automatisk)',
   'settings.chunksHint': 'Hvor mange tilkoblinger én nedlasting åpner når ingenting mer presist gjelder. En regel, eller en enkelt nedlasting, kan oppgi sitt eget tall og går foran dette. En vert som tåler færre, får likevel færre: en vertsgrense kan bare senke tallet, aldri heve det. Ved 0 avgjør appen. Mer enn en håndfull tilkoblinger gir ingenting hos en vert som begrenser per fil, og er en sikker måte å få en konto flagget på.',
+  'settings.multiSource': 'Bruk flere kilder for én fil',
+  'settings.multiSourceHint':
+    'Hvis en fil finnes flere steder, fordeles nedlastingen på alle: samme lenke låst opp av en annen debrid-konto, eller en reservekopi fra en annen filvert som listen tar vare på. Filens egen lenke og opptil tre til brukes. Hver kilde får antallet tilkoblinger som er satt over. Det hjelper når en tjeneste begrenser farten per lenke eller per tilkobling, og endrer ingenting når én kilde allerede fyller linjen din. Filer under 64 MiB kommer alltid fra én kilde. En kilde blir bare med hvis den oppgir samme størrelse og sender de samme bytene ved stikkprøvepunkter i filen; stopper én halvveis, tar de andre resten av dens del. Av som standard: hver ekstra opplåsing bruker trafikk på den kontoen, noen tjenester trekker hele filen allerede ved opplåsing, og vilkårene til noen tjenester forbyr nedlasting med to kontoer samtidig.',
   'task.chunks': 'Tilkoblinger (0 = den globale innstillingen)',
   'task.chunksHint': 'Hvor mange tilkoblinger nettopp denne nedlastingen åpner. Det går foran den globale innstillingen og enhver regel som satte den, men aldri foran verten: en vert som tåler færre, får likevel færre. Ved 0 faller unntaket bort og tallet avgjøres andre steder igjen.',
   'columns.connection': 'Tilkobling',

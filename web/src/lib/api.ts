@@ -366,6 +366,9 @@ export interface Settings {
   /** Connections one download opens when neither the task nor a rule named a
    *  number. 0 lets the server's own fallback decide. */
   chunks: number;
+  /** Spreads one file over further sources that serve the same bytes, each
+   *  with chunks connections. Off by default. */
+  multiSource: boolean;
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
   /**

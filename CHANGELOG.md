@@ -70,6 +70,16 @@ release's tag.
   direct connection to the instance, because a player app cannot go through
   the relay.
 
+- **One file from several sources.** With "Use several sources for one file"
+  on under Settings, Downloads, a file is split across up to three further
+  sources KnightLoader can get for it: the same link unlocked by a second debrid
+  account, and the spare copies the list keeps from other hosters. Each source
+  gets the connections set for one download, and when one stops part way the
+  others fetch its share. A source joins only if it reports the same size and
+  sends the same bytes at sample points in the file. It is off by default,
+  because it helps only when a service caps one link or one connection, and
+  every extra unlock uses that account's traffic.
+
 ## [1.7.0] - 2026-10-04
 
 ### Added

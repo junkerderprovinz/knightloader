@@ -1054,6 +1054,9 @@ export const sk: Dict = {
 
   'settings.chunks': 'Spojenia na jedno sťahovanie (0 = automaticky)',
   'settings.chunksHint': 'Koľkými spojeniami beží jedno sťahovanie, keď neplatí nič konkrétnejšie. Pravidlo alebo jedno konkrétne sťahovanie môže uviesť vlastné číslo a prebíja toto. Hoster, ktorý znesie menej, dostane aj tak menej: limit hostera môže číslo len znížiť, nikdy zvýšiť. Pri 0 rozhoduje aplikácia. Viac než hŕstka spojení u hostera s limitom na súbor neprinesie nič a je spoľahlivou cestou, ako si nechať označiť účet.',
+  'settings.multiSource': 'Použiť viac zdrojov pre jeden súbor',
+  'settings.multiSourceHint':
+    'Ak sa súbor dá získať z viacerých miest, rozdelí sa medzi všetky: ten istý odkaz odomknutý druhým debrid účtom alebo záložná kópia z iného hostingu, ktorú zoznam uchováva. Použije sa vlastný odkaz súboru a najviac tri ďalšie. Každý zdroj dostane počet spojení nastavený vyššie. Pomáha to, keď služba obmedzuje rýchlosť jedného odkazu alebo jedného spojenia, a nič to nemení, keď jeden zdroj už vyťaží vašu linku. Súbory pod 64 MiB idú vždy z jedného zdroja. Zdroj sa pridá len vtedy, keď hlási rovnakú veľkosť a v kontrolných bodoch súboru posiela rovnaké bajty; keď jeden v polovici skončí, ostatné dokončia jeho časť. Predvolene vypnuté: každé ďalšie odomknutie spotrebuje prenos daného účtu, niektoré služby účtujú celý súbor už pri odomknutí a podmienky niektorých služieb zakazujú sťahovať dvoma účtami naraz.',
   'task.chunks': 'Spojenia (0 = globálne nastavenie)',
   'task.chunksHint': 'Koľkými spojeniami beží toto jedno sťahovanie. Prebíja globálne nastavenie aj každé pravidlo, ktoré ho nastavilo, ale nikdy hostera: hoster, ktorý znesie menej, dostane aj tak menej. Pri 0 výnimka zaniká a číslo sa opäť rozhoduje inde.',
   'columns.connection': 'Spojenie',
