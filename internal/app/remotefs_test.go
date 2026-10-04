@@ -289,3 +289,25 @@ func TestSavingAnAccountKeepsTheBackendTheRemoteTransfersRunOn(t *testing.T) {
 		t.Error("saving an account replaced the backend the remote transfers run on")
 	}
 }
+
+// A server login names only the host, not whether it speaks FTP, SFTP or
+// WebDAV, so there is nothing to test it against before a download. Testing
+// it must say so and leave the account in service.
+func TestTestingAServerLoginLeavesTheAccountInService(t *testing.T) {
+	a := newCrawlApp(t, true)
+	const host = "ftp.example.org"
+	if err := a.SetAccountCredential(remotefs.ResolverID, host, accounts.Credential{
+		Username: "me", Password: "pw",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	st := a.TestAccount(remotefs.ResolverID, host)
+
+	if strings.Contains(st.Detail, "incomplete") {
+		t.Errorf("detail = %q, but the login is complete", st.Detail)
+	}
+	if !a.acctHealthTracker().Usable(remotefs.ResolverID, host) {
+		t.Error("testing the login benched the account")
+	}
+}
