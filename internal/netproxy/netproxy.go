@@ -30,6 +30,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
 )
 
@@ -185,6 +186,11 @@ func (s *Server) forward(w http.ResponseWriter, r *http.Request) {
 
 	resp, err := s.transport.RoundTrip(out)
 	if err != nil {
+		// A server that hung up is passed on as a hang-up, the way the tunnel
+		// passes it on, so the client can tell it from a proxy that failed.
+		if httpx.HungUp(err) {
+			panic(http.ErrAbortHandler)
+		}
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
