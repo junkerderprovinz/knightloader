@@ -267,3 +267,51 @@ it('saves an own server only under a name a host can have', async () => {
 
   expect(posted).toEqual([{ service: 'remotefs', account: 'fe80::1', username: 'knight', password: 'hunter2' }]);
 });
+
+it('lists the own Usenet servers in their own section and saves a switch without the stored password', async () => {
+  const posted: unknown[] = [];
+  const server = {
+    id: 'news.example.com',
+    host: 'news.example.com',
+    port: 563,
+    tls: true,
+    connections: 8,
+    level: 1,
+    retentionDays: 0,
+    optional: false,
+    enabled: true,
+    username: 'reader',
+    hasPassword: true,
+  };
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/usenet/servers' && init?.method === 'POST') {
+        posted.push(JSON.parse(String(init.body)));
+        return reply([{ ...server, enabled: false }]);
+      }
+      if (url === '/api/usenet/servers') return reply([server]);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <MemoryRouter>
+            <Accounts />
+          </MemoryRouter>
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  const table = host.querySelector('[aria-label="Usenet servers"]');
+  expect(table?.textContent).toContain('news.example.com · Level 1');
+  const toggle = table!.querySelector<HTMLButtonElement>('[role="switch"]');
+  await act(async () => toggle!.click());
+  expect(posted).toEqual([
+    expect.objectContaining({ id: 'news.example.com', enabled: false, username: 'reader', password: '********' }),
+  ]);
+  expect(posted[0]).not.toHaveProperty('hasPassword');
+});

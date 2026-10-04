@@ -18,6 +18,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // reviveOnBoot gives one stored task a state that is true after the restart
@@ -274,6 +275,11 @@ func (a *App) Reclaim() (ReclaimReport, error) {
 			claimed[p] = true
 		} else if t.Name != "" {
 			claimed[reclaim.PartPath(dir, t.Name, id)] = true
+		}
+		// The own Usenet servers write under the name in the link, which a
+		// paused row keeps through a rename.
+		if part := local.PartFile(dir, t.URL); part != "" {
+			claimed[part] = true
 		}
 		if a.active[id] || !reclaimable(t) {
 			continue

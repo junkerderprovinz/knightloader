@@ -29,6 +29,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // Tasks returns a snapshot sorted oldest-first.
@@ -614,7 +615,15 @@ type taskCopy struct {
 }
 
 // copyLocked copies t for publish. Caller holds a.mu.
+//
+// A task that has left the done state loses its finish time here, on the live
+// task, and not only in the store: the store keeps a stamp it is handed, so a
+// restarted download that finished again before the next sweep would keep the
+// time of its first finish.
 func (a *App) copyLocked(t *core.Task) taskCopy {
+	if t.Status != core.StatusDone {
+		t.FinishedAt = time.Time{}
+	}
 	a.revision++
 	return taskCopy{Task: *t, rev: a.revision}
 }
@@ -1069,12 +1078,17 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
-	var part string
+	var usenetPart, remotePart string
+	if t != nil {
+		// The own Usenet servers' backend deletes a part file with or without
+		// deleteFiles, as long as it knows the task.
+		usenetPart = a.usenetPartLocked(t)
+	}
 	var work []string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
-		part = a.partFileLocked(t)
+		remotePart = a.partFileLocked(t)
 		work = t.WorkFiles
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
@@ -1098,9 +1112,12 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)
 		landed.drop()
-		if part != "" {
-			if err := os.Remove(part); err != nil && !os.IsNotExist(err) {
-				log.Printf("could not delete %s: %v%s", part, err, taskTag(id))
+		if usenetPart != "" {
+			local.RemovePart(usenetPart)
+		}
+		if remotePart != "" {
+			if err := os.Remove(remotePart); err != nil && !os.IsNotExist(err) {
+				log.Printf("could not delete %s: %v%s", remotePart, err, taskTag(id))
 			}
 		}
 		ytdlp.Discard(id, work, a.usedByOther)

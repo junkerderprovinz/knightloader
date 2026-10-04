@@ -892,6 +892,9 @@ func (a *App) Close() error {
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()
+	// The own Usenet servers' files have no boot reconcile, so one that
+	// finishes during shutdown is saved as done here or downloaded again.
+	a.usenetStateFor().articles.Stop()
 	// The engine keeps its transfers in memory only, so seeding ends here,
 	// until the next start takes it up again.
 	a.endSeeding()
@@ -1073,6 +1076,9 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
 	a.applyModuleSwitches(applied)
+	// The Usenet servers and the priority card that ranks them against the
+	// debrid services are both in the document.
+	a.rewireUsenet()
 	// The torrent module may be back on.
 	a.resumeSeeding()
 	a.mu.Lock()

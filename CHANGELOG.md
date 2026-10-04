@@ -37,6 +37,22 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **Usenet from your own servers.** Add your provider's server under Accounts,
+  Usenet servers, with TLS, your login, the number of connections, a level, a
+  retention in days and whether it is optional, and test the login there.
+  An `.nzb` from Sonarr, Radarr, the upload button or the watched folder then
+  downloads straight from it: every file is a download of its own, its
+  articles come in over all connections and are written into place, and a
+  paused or interrupted download carries on with the articles it still lacks.
+  A main server and fill servers on higher levels are asked in turn for each
+  article. Your servers come before TorBox and Premiumize.me unless you move
+  them in the priority order, and a release with articles none of them has
+  goes on to your debrid account, or fails in Sonarr's history with the reason
+  when there is none. Damaged downloads are not repaired with par2 yet; the
+  recovery files are listed, switched off, and load only when needed.
+
 ## [1.7.0] - 2026-10-04
 
 ### Added
