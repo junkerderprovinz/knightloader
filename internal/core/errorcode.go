@@ -31,6 +31,9 @@ const (
 	CodeUnreachable ErrorCode = "unreachable"
 	// CodeTimeout is a host that stopped answering. ReasonNetwork.
 	CodeTimeout ErrorCode = "timeout"
+	// CodeConnectionClosed is a server that took the connection and closed it
+	// without answering. ReasonNetwork.
+	CodeConnectionClosed ErrorCode = "connectionClosed"
 	// CodeDiskFull is the destination out of space, while downloading
 	// (ReasonDiskFull) or while unpacking.
 	CodeDiskFull ErrorCode = "diskFull"

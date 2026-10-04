@@ -250,6 +250,8 @@ export const fa: Dict = {
   'failure.unreachable.next': 'اتصال اینترنت نمونه و پیوند را بررسی کنید، بعد دوباره امتحان کنید.',
   'failure.timeout.line': 'سرور دیگر پاسخ نمی‌دهد.',
   'failure.timeout.next': 'دوباره امتحان کنید. اگر باز هم پیش آمد، شاید میزبان زیر بار زیاد است یا اتصال ناپایدار است.',
+  'failure.connectionClosed.line': 'سرور بدون پاسخ اتصال را بست.',
+  'failure.connectionClosed.next': 'بعداً دوباره امتحان کن. اگر باز هم پیش آمد، احتمالاً سرور برنامه‌های دانلود را رد می‌کند و شاید مرورگر بتواند فایل را بگیرد.',
   'failure.diskFull.line': 'دیسک پر است.',
   'failure.diskFull.next': 'روی درایوی که فایل‌ها به آن می‌روند جا باز کنید، بعد دوباره امتحان کنید.',
   'failure.noPermission.line': 'KnightLoader اجازهٔ دسترسی به {path} را ندارد.',

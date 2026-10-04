@@ -250,6 +250,8 @@ export const hr: Dict = {
   'failure.unreachable.next': 'Provjeri internetsku vezu instance i poveznicu, pa pokušaj ponovno.',
   'failure.timeout.line': 'Poslužitelj je prestao odgovarati.',
   'failure.timeout.next': 'Pokušaj ponovno. Ako se to ponavlja, hoster je možda preopterećen ili je veza nestabilna.',
+  'failure.connectionClosed.line': 'Poslužitelj je zatvorio vezu bez odgovora.',
+  'failure.connectionClosed.next': 'Pokušaj ponovno kasnije. Ako se to ponavlja, poslužitelj vjerojatno odbija programe za preuzimanje, a preglednik bi datoteku ipak mogao dobiti.',
   'failure.diskFull.line': 'Disk je pun.',
   'failure.diskFull.next': 'Oslobodi prostor na disku na koji idu datoteke, pa pokušaj ponovno.',
   'failure.noPermission.line': 'KnightLoader nema dopuštenje za pristup {path}.',

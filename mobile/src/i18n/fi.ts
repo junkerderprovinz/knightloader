@@ -250,6 +250,8 @@ export const fi: Dict = {
   'failure.unreachable.next': 'Tarkista instanssin internetyhteys ja linkki ja yritä sitten uudelleen.',
   'failure.timeout.line': 'Palvelin lakkasi vastaamasta.',
   'failure.timeout.next': 'Yritä uudelleen. Jos tätä tapahtuu toistuvasti, hosteri voi olla ylikuormittunut tai yhteys epävakaa.',
+  'failure.connectionClosed.line': 'Palvelin sulki yhteyden vastaamatta.',
+  'failure.connectionClosed.next': 'Yritä myöhemmin uudelleen. Jos tätä tapahtuu toistuvasti, palvelin luultavasti torjuu latausohjelmat, ja selaimella tiedosto voi silti onnistua.',
   'failure.diskFull.line': 'Levy on täynnä.',
   'failure.diskFull.next': 'Vapauta tilaa asemalta, jolle tiedostot tallennetaan, ja yritä sitten uudelleen.',
   'failure.noPermission.line': 'KnightLoaderilla ei ole pääsyä kohteeseen {path}.',

@@ -3209,6 +3209,8 @@ export const eu: Dict = {
   'failure.unreachable.next': 'Egiaztatu makina honen Interneteko konexioa eta esteka, eta saiatu berriro.',
   'failure.timeout.line': 'Zerbitzariak erantzuteari utzi dio.',
   'failure.timeout.next': 'Saiatu berriro. Behin eta berriz gertatzen bada, baliteke ostalaria gainezka egotea edo konexioa ezegonkorra izatea.',
+  'failure.connectionClosed.line': 'Zerbitzariak konexioa itxi du erantzun gabe.',
+  'failure.connectionClosed.next': 'Saiatu berriro geroago. Behin eta berriz gertatzen bada, litekeena da zerbitzariak deskarga-programak baztertzea, eta nabigatzaile batek agian fitxategia lortuko du.',
   'failure.diskFull.line': 'Diskoa beteta dago.',
   'failure.diskFull.next': 'Egin lekua fitxategiak doazen unitatean, eta saiatu berriro.',
   'failure.noPermission.line': 'KnightLoader-ek ez du {path} atzitzeko baimenik.',

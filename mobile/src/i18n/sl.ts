@@ -250,6 +250,8 @@ export const sl: Dict = {
   'failure.unreachable.next': 'Preveri, ali ima instanca internet in ali je povezava pravilna, nato poskusi znova.',
   'failure.timeout.line': 'Strežnik je nehal odgovarjati.',
   'failure.timeout.next': 'Poskusi znova. Če se to ponavlja, je gostitelj morda preobremenjen ali povezava nestabilna.',
+  'failure.connectionClosed.line': 'Strežnik je zaprl povezavo brez odgovora.',
+  'failure.connectionClosed.next': 'Poskusi znova pozneje. Če se to ponavlja, strežnik verjetno zavrača programe za prenos, brskalnik pa bi datoteko morda vseeno dobil.',
   'failure.diskFull.line': 'Disk je poln.',
   'failure.diskFull.next': 'Sprosti prostor na pogonu, kamor gredo datoteke, nato poskusi znova.',
   'failure.noPermission.line': 'KnightLoader nima dovoljenja za dostop do {path}.',
