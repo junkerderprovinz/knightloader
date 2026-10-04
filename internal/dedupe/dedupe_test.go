@@ -381,6 +381,9 @@ func TestNormalize(t *testing.T) {
 	}{
 		{in: "Film.2024.mkv", base: "film.2024.mkv"},
 		{in: "  The   Big   File.bin  ", base: "the big file.bin"},
+		{in: "nul\x00here.bin", base: "nul here.bin"},
+		{in: "esc\x1bhere\x7f.bin", base: "esc here .bin"},
+		{in: "tab\there.bin", base: "tab here.bin"},
 		{in: "sub/dir/film.mkv", base: "film.mkv"},
 		{in: `sub\dir\film.mkv`, base: "film.mkv"},
 		{in: "Film.part01.rar", base: "film", volume: "rar-part1"},
