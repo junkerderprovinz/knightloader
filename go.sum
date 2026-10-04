@@ -149,6 +149,8 @@ github.com/dop251/goja v0.0.0-20260917113740-793a2a65c13b h1:UMDLDHFR1Chu3qnsPNC
 github.com/dop251/goja v0.0.0-20260917113740-793a2a65c13b/go.mod h1:u8yZRUavu+N4EnFFy6J5fVtjE7lEcZ2YyV2GcBXY9c8=
 github.com/dop251/goja v0.0.0-20261001174550-3ccc9c78af18 h1:fZCELqAdFB8vsy8M6bctFWjXB8GyInduM1VcdR5y2BM=
 github.com/dop251/goja v0.0.0-20261001174550-3ccc9c78af18/go.mod h1:GrCNKUrVplXZj0juFue0Cj2Xt/eL2Nuu2+y3UTanEo8=
+github.com/dop251/goja v0.0.0-20261004174310-e21e22eac913 h1:0haZHQSJqA4qFZvnKIRgekXrPo2sQ2oRvFemiNHhcp0=
+github.com/dop251/goja v0.0.0-20261004174310-e21e22eac913/go.mod h1:GrCNKUrVplXZj0juFue0Cj2Xt/eL2Nuu2+y3UTanEo8=
 github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc h1:MKYt39yZJi0Z9xEeRmDX2L4ocE0ETKcHKw6MVL3R+co=
 github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc/go.mod h1:VULptt4Q/fNzQUJlqY/GP3qHyU7ZH46mFkBZe0ZTokU=
 github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 h1:2tV76y6Q9BB+NEBasnqvs7e49aEBFI8ejC89PSnWH+4=
@@ -302,6 +304,8 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/junkerderprovinz/gopeed v0.0.0-20260927183203-8919f1eb41f2 h1:N4/y6F2DBpEtHpJi9ZYrlTlrEzzwzo7fOTLNV4YClG4=
 github.com/junkerderprovinz/gopeed v0.0.0-20260927183203-8919f1eb41f2/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
+github.com/junkerderprovinz/gopeed v0.0.0-20261004092149-a73c7fa57383 h1:qTQa3mxgfWEBtDMYQCn+sRjJFNnHHm8CYa9dVhQMQDc=
+github.com/junkerderprovinz/gopeed v0.0.0-20261004092149-a73c7fa57383/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
 github.com/kevinburke/ssh_config v1.2.0/go.mod h1:CT57kijsi8u/K/BOFA39wgDQJ9CxiF4nAY/ojJ6r6mM=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
