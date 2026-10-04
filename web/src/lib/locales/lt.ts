@@ -3215,6 +3215,8 @@ export const lt: Dict = {
   'failure.unreachable.next': 'Patikrink šio kompiuterio interneto ryšį ir nuorodą, tada bandyk dar kartą.',
   'failure.timeout.line': 'Serveris nustojo atsakinėti.',
   'failure.timeout.next': 'Bandyk dar kartą. Jei tai kartojasi, talpykla gal perkrauta arba ryšys nestabilus.',
+  'failure.connectionClosed.line': 'Serveris uždarė ryšį neatsakęs.',
+  'failure.connectionClosed.next': 'Bandyk vėliau. Jei tai kartojasi, serveris tikriausiai atmeta atsisiuntimo programas, o naršyklė failą gal vis tiek gaus.',
   'failure.diskFull.line': 'Diskas pilnas.',
   'failure.diskFull.next': 'Atlaisvink vietos diske, į kurį keliauja failai, tada bandyk dar kartą.',
   'failure.noPermission.line': 'KnightLoader neturi leidimo pasiekti {path}.',

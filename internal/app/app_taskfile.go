@@ -17,6 +17,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -79,7 +80,13 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 			return leftover{}
 		}
 	}
-	return leftover{path: t.File, size: t.Size}
+	size := t.Size
+	// A server that sent no length leaves Size unknown, and a finished
+	// download's byte count is then the length of its file.
+	if size == 0 && t.Status == core.StatusDone {
+		size = t.Loaded
+	}
+	return leftover{path: t.File, size: size}
 }
 
 // intact reports whether the file at the leftover's path is still the one its
@@ -151,6 +158,17 @@ func (l torrentLeftover) drop() {
 	engine.DeleteTorrentFiles(l.dir, l.root, paths)
 }
 
+// partFileLocked is the part file t's FTP or SFTP download writes until it
+// finishes, for deleting it when the backend does not know the task, as after
+// a restart. The task's id in its name makes it t's alone, and the link names
+// the rest, since a paused row can be renamed. Caller holds a.mu.
+func (a *App) partFileLocked(t *core.Task) string {
+	if t.Resolver != remotefs.ResolverID {
+		return ""
+	}
+	return remotefs.PartFile(a.dirFor(t), t.URL, t.ID)
+}
+
 // recordFileLocked notes where a backend is writing t's bytes, and says so in
 // the task's log when that is not under the task's own name: the library
 // steps around a file that is already there and rewrites characters a file
@@ -163,6 +181,15 @@ func (a *App) recordFileLocked(t *core.Task, file string) {
 	if t.Name != "" && t.Name != t.URL && filepath.Base(file) != t.Name {
 		log.Printf("this download is saved as %s rather than %s%s", file, t.Name, taskTag(t.ID))
 	}
+}
+
+// noteMovedLocked records that the app moved the finished file of task id off
+// the path its backend wrote it to (see App.movedFiles). Caller holds a.mu.
+func (a *App) noteMovedLocked(id string) {
+	if a.movedFiles == nil {
+		a.movedFiles = map[string]bool{}
+	}
+	a.movedFiles[id] = true
 }
 
 // setPathLocked is where a set of parts is opened from: its first part's name,

@@ -3233,6 +3233,8 @@ export const he: Dict = {
   'failure.unreachable.next': 'בדוק את חיבור האינטרנט של המחשב הזה ואת הקישור, ואז נסה שוב.',
   'failure.timeout.line': 'השרת הפסיק לענות.',
   'failure.timeout.next': 'נסה שוב. אם זה חוזר, ייתכן שהמארח עמוס או שהחיבור לא יציב.',
+  'failure.connectionClosed.line': 'השרת סגר את החיבור בלי לענות.',
+  'failure.connectionClosed.next': 'נסה שוב מאוחר יותר. אם זה חוזר, כנראה שהשרת דוחה תוכנות הורדה, ואולי דפדפן עדיין יצליח להוריד את הקובץ.',
   'failure.diskFull.line': 'הדיסק מלא.',
   'failure.diskFull.next': 'פנה מקום בכונן שהקבצים נשמרים בו, ואז נסה שוב.',
   'failure.noPermission.line': 'ל-KnightLoader אין הרשאה לגשת אל {path}.',

@@ -252,6 +252,8 @@ export const nl: Dict = {
   'failure.unreachable.next': 'Controleer de internetverbinding van de instantie en de link, en probeer het dan opnieuw.',
   'failure.timeout.line': 'De server antwoordt niet meer.',
   'failure.timeout.next': 'Probeer het opnieuw. Gebeurt het vaker, dan is de hoster misschien overbelast of de verbinding instabiel.',
+  'failure.connectionClosed.line': 'De server heeft de verbinding verbroken zonder te antwoorden.',
+  'failure.connectionClosed.next': 'Probeer het later opnieuw. Gebeurt het vaker, dan weigert de server waarschijnlijk downloadprogramma’s en lukt het misschien wel met een browser.',
   'failure.diskFull.line': 'De schijf is vol.',
   'failure.diskFull.next': 'Maak ruimte vrij op de schijf waar de bestanden naartoe gaan, en probeer het dan opnieuw.',
   'failure.noPermission.line': 'KnightLoader heeft geen toegang tot {path}.',

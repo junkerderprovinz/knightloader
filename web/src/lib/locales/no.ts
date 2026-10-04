@@ -3217,6 +3217,8 @@ export const no: Dict = {
   'failure.unreachable.next': 'Sjekk internettforbindelsen til denne maskinen og lenka, og prøv så igjen.',
   'failure.timeout.line': 'Serveren sluttet å svare.',
   'failure.timeout.next': 'Prøv igjen. Skjer det gang på gang, kan hosteren være overbelastet eller forbindelsen ustabil.',
+  'failure.connectionClosed.line': 'Serveren lukket forbindelsen uten å svare.',
+  'failure.connectionClosed.next': 'Prøv igjen senere. Skjer det gang på gang, avviser serveren trolig nedlastingsprogrammer, og en nettleser kan kanskje likevel hente filen.',
   'failure.diskFull.line': 'Disken er full.',
   'failure.diskFull.next': 'Frigjør plass på stasjonen filene havner på, og prøv så igjen.',
   'failure.noPermission.line': 'KnightLoader har ikke tilgang til {path}.',

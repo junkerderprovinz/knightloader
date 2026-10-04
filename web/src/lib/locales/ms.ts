@@ -3214,6 +3214,8 @@ export const ms: Dict = {
   'failure.unreachable.next': 'Semak sambungan internet mesin ini dan pautan itu, kemudian cuba lagi.',
   'failure.timeout.line': 'Pelayan berhenti menjawab.',
   'failure.timeout.next': 'Cuba lagi. Jika ia terus berlaku, hoster mungkin terlebih beban atau sambungan tidak stabil.',
+  'failure.connectionClosed.line': 'Pelayan menutup sambungan tanpa menjawab.',
+  'failure.connectionClosed.next': 'Cuba lagi nanti. Jika ia terus berlaku, pelayan itu mungkin menolak program muat turun, dan pelayar mungkin masih boleh mendapatkan fail itu.',
   'failure.diskFull.line': 'Cakera penuh.',
   'failure.diskFull.next': 'Kosongkan ruang pada pemacu tempat fail disimpan, kemudian cuba lagi.',
   'failure.noPermission.line': 'KnightLoader tidak dibenarkan mengakses {path}.',

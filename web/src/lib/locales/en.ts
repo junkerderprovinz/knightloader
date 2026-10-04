@@ -2809,6 +2809,8 @@ export const en = {
   'failure.unreachable.next': 'Check this machine\'s internet connection and the link, then try again.',
   'failure.timeout.line': 'The server stopped answering.',
   'failure.timeout.next': 'Try again. If it keeps happening, the host may be overloaded or the connection unstable.',
+  'failure.connectionClosed.line': 'The server closed the connection without answering.',
+  'failure.connectionClosed.next': 'Try again later. If it keeps happening, the server is probably turning download programs away, and a browser may still get the file.',
   'failure.diskFull.line': 'The disk is full.',
   'failure.diskFull.next': 'Free up space on the drive the files go to, then try again.',
   'failure.noPermission.line': 'KnightLoader is not allowed to access {path}.',
