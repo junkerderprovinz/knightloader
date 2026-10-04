@@ -80,7 +80,13 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 			return leftover{}
 		}
 	}
-	return leftover{path: t.File, size: t.Size}
+	size := t.Size
+	// A server that sent no length leaves Size unknown, and a finished
+	// download's byte count is then the length of its file.
+	if size == 0 && t.Status == core.StatusDone {
+		size = t.Loaded
+	}
+	return leftover{path: t.File, size: size}
 }
 
 // intact reports whether the file at the leftover's path is still the one its
