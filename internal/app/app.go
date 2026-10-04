@@ -457,7 +457,7 @@ func New(dataDir string) (*App, error) {
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
-	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.engineUpdate)
+	eng, err := engine.Open(filepath.Join(dataDir, "downloads"), filepath.Join(dataDir, "transfers"), a.engineUpdate)
 	if err != nil {
 		st.Close()
 		return nil, err
