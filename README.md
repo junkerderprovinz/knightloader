@@ -321,11 +321,12 @@ The manual lives at
 
 ## 5. Contributing and license
 
-[AGPL-3.0](LICENSE). Own code; the name and branding are reserved.
+[AGPL-3.0](LICENSE). Own code.
 
 The knight logo (`.github/assets/kl_app_logo.svg` and the other logo files in
-`.github/assets`) was drawn by the author for this project and is covered by
-the same licence, AGPL-3.0-only.
+`.github/assets`) is my own drawing and is licensed under AGPL-3.0-only like the
+code. The KnightLoader name and logo remain my trademarks, so a fork needs a
+name and logo of its own.
 
 Built on [Gopeed](https://github.com/GopeedLab/gopeed) (download engine),
 [yt-dlp](https://github.com/yt-dlp/yt-dlp) (media),
