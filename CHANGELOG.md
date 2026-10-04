@@ -50,7 +50,8 @@ release's tag.
 
 - **Add links in the Android app says why a send failed.** When the request
   never reached the instance, or a relay connection had to be added again, the
-  screen said only "Could not send the links." The reason follows it now.
+  screen said only "Could not send the links." The reason follows it now, with
+  "Server:" in front only when the server sent it.
 
 ## [1.6.6] - 2026-10-02
 
