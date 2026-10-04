@@ -68,6 +68,14 @@ release's tag.
   file with the row. The video and audio rows of a link share one .nfo, which
   goes when the second of them is removed. A subtitle row that wrote several
   languages still keeps its files.
+- **Subtitles are saved as .srt when the site only has WebVTT.** A subtitle
+  row showed .srt but kept the site's .vtt file when the site had no .srt, and
+  the log said the download was saved under another name. KnightLoader now
+  converts the subtitles to .srt.
+- **Stopped media downloads leave no zombie ffmpeg in the container.** Every
+  pause or removal of a yt-dlp download that ran ffmpeg left a zombie process
+  behind until the container restarted. The image now starts KnightLoader
+  under tini, which reaps them.
 
 ## [1.6.6] - 2026-10-02
 
