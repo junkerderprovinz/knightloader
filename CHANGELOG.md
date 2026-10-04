@@ -207,13 +207,17 @@ release's tag.
   Accounts page had nowhere to put one, so it could only be stored through the
   API. The Own servers card now takes the server's hostname with a username and
   password, and a link pasted into the hostname field is cut down to the
-  hostname.
+  hostname. The field doesn't take a name that can't be a hostname, such as
+  one with a space.
 - **A download paused before a restart carries on where it stopped.** After a
   restart, KnightLoader no longer knew how far a paused HTTP download had got,
   so resuming it deleted the file and fetched it again from the first byte. It
   now picks up from the bytes already on disk, as long as the server still
   sends the same file in parts. A server that can only send the whole file is
-  asked for all of it again, and the old file is deleted first.
+  asked for all of it again, and the old file is deleted first. This also works
+  for servers that hang up on a browser's user agent, Hetzner's speed-test
+  mirrors among them. If the server can't be reached or answers with an error
+  when you resume, the bytes stay on disk and the next try picks up from them.
 - **A server that hangs up on a browser's user agent no longer fails the
   download.** Some servers, Hetzner's speed-test mirrors among them, close the
   connection at once when a download program sends a browser's user agent,
