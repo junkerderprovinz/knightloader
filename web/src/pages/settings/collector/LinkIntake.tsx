@@ -5,7 +5,8 @@ import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
 import { isDesktop } from '../../../lib/desktop';
 import { useResource } from '../../../lib/useResource';
-import { useClipboardWatch, useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
+import { useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
+import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 import { SettingPathInput } from '../controls';
@@ -24,7 +25,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
-  const [watch, setWatch] = useClipboardWatch();
+  const { watch, flip, dialog } = useWatchSwitch();
   const [target, setTarget] = useClipboardWatchTarget();
   const { data: peers } = useResource(fetchInstances);
   const watchHint = isDesktop() ? t('intake.clipboardWatchHintDesktop') : t('intake.clipboardWatchHint');
@@ -64,7 +65,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             label={t('intake.clipboardWatch')}
             hint={watchHint}
             checked={watch}
-            onChange={setWatch}
+            onChange={flip}
           />
           {targets.length > 1 && (
             <Field label={t('intake.clipboardWatchTarget')} hint={t('intake.clipboardWatchTargetHint')}>
@@ -88,6 +89,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           </span>
         </div>
       )}
+      {dialog}
 
       <ToggleRow
         hue={2}

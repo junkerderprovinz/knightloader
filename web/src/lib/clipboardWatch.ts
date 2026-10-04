@@ -21,8 +21,8 @@ import { isDesktop } from './desktop';
 export const WATCH_SUPPORTED =
   typeof window !== 'undefined' && (isDesktop() || !!navigator.clipboard?.readText);
 
-/** The remembered-field names, shared by the settings card, the collector's
- *  own button and desktop/clipwatch.go, which reads them on the server. */
+/** The interface-state fields desktop/clipwatch.go reads: the switch, which
+ *  only the desktop app keeps there (see useClipboardWatch), and the target. */
 export const WATCH_FIELD = 'clipboardWatch';
 export const TARGET_FIELD = 'clipboardWatchTarget';
 
@@ -33,18 +33,22 @@ const POLL_MS = 1200;
  *  not focused" happens routinely between hasFocus() and the read. */
 const REFUSALS_BEFORE_GIVING_UP = 3;
 
-/** A word that starts with one of these and goes on is a link. Loose, since
- *  the server does the parsing, but it keeps every copied word from becoming
- *  a request. */
-const LINK_WORD = /^(?:https?:\/\/|magnet:\?|ftp:\/\/)./i;
+/** A link is one of these schemes and more, at the start of the text or after
+ *  white space: the web, magnets, and the own servers internal/resolver/remotefs
+ *  fetches from. Loose, since the server does the parsing, but it keeps every
+ *  copied word from becoming a request. The browser extension's watch uses the
+ *  same rule (extension/src/clipwatch.js), and extension/check-clipwatch.mjs
+ *  keeps the two alike. */
+const LOOKS_LIKE_A_LINK = /(^|\s)(https?:\/\/|magnet:\?|ftps?:\/\/|sftp:\/\/|webdavs?:\/\/)\S+/i;
 
 /**
- * clipboardLinks returns the words of a copied text that are links, which is
- * all the watch sends. clipboardWatch.cases.json holds desktop/clipwatch.go
- * to the same rule.
+ * clipboardLinks returns the links of a copied text, which is all the watch
+ * sends. clipboardWatch.cases.json holds desktop/clipwatch.go to the same
+ * rule.
  */
 export function clipboardLinks(text: string): string[] {
-  return text.split(/\s+/).filter((word) => LINK_WORD.test(word));
+  const every = new RegExp(LOOKS_LIKE_A_LINK.source, 'gi');
+  return Array.from(text.matchAll(every), (m) => m[0].trim());
 }
 
 export type WatchOutcome =
@@ -55,7 +59,9 @@ export type WatchOutcome =
   /** Only the desktop app on a Wayland session without wl-paste's watch
    *  reports it: the clipboard is visible there only while the window has
    *  focus. */
-  | { kind: 'limited' };
+  | { kind: 'limited' }
+  /** Only the desktop app reports it: another device switched its watch off. */
+  | { kind: 'stopped' };
 
 /**
  * startClipboardWatch polls the clipboard until the returned function is

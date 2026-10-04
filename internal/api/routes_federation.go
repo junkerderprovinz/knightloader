@@ -75,9 +75,9 @@ func registerFederation(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 	// Proxy task operations to a peer instance: only the task, link and queue
-	// routes and the read of the unpackings are forwarded, so a peer's
-	// settings/accounts stay local to that peer.
-	reg.Add(AnyMethod, forwardPattern, "forward a task, link or queue request, or a read of the unpackings, to a peer; nothing else is forwarded, "+
+	// routes, the read of the unpackings and a clipboard watcher's lease are
+	// forwarded, so a peer's settings/accounts stay local to that peer.
+	reg.Add(AnyMethod, forwardPattern, "forward a task, link or queue request, a read of the unpackings or a clipboard watcher's lease to a peer; nothing else is forwarded, "+
 		"and a token needs the right the forwarded call would need on this instance",
 		func(w http.ResponseWriter, r *http.Request) {
 			rest := r.PathValue("rest")
@@ -98,9 +98,10 @@ func registerFederation(reg *Registry, a *app.App) {
 			// stopping them on this box would act on the wrong machine.
 			// Settings and accounts stay where they are configured. The
 			// unpackings are read only, for the rows to show how far a
-			// peer's archives have got.
+			// peer's archives have got. A clipboard watcher's lease travels
+			// with its links, since it renews with the instance they go to.
 			readsJobs := rest == "extract" && r.Method == http.MethodGet
-			if !readsJobs && rest != "links" && rest != "tasks" && rest != "queue" &&
+			if !readsJobs && !clipLeaseCall(r.Method, rest) && rest != "links" && rest != "tasks" && rest != "queue" &&
 				!strings.HasPrefix(rest, "tasks/") && !strings.HasPrefix(rest, "queue/") {
 				http.Error(w, "route not proxied", http.StatusForbidden)
 				return
@@ -117,7 +118,13 @@ func registerFederation(reg *Registry, a *app.App) {
 					return
 				}
 			}
-			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, "/api/"+rest, body)
+			target := "/api/" + rest
+			// The query is not forwarded, but a closing tab's lease call
+			// needs it to keep a stop waiting for the tab's next renewal.
+			if clipLeaseCall(r.Method, rest) && r.URL.Query().Get("pause") != "" {
+				target += "?pause=1"
+			}
+			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, target, body)
 			if err != nil {
 				http.Error(w, err.Error(), code)
 				return

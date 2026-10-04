@@ -1,8 +1,10 @@
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { addLinks, uploadContainer } from '../lib/api';
 import { containerRefusal, isEditableTarget, message } from '../lib/intake';
+import { readUIState } from '../lib/uistate';
 import { useClipboardWatch, useClipboardWatchTarget } from '../lib/useClipboardWatch';
 import { startClipboardWatch, type WatchOutcome } from '../lib/clipboardWatch';
+import { startLease } from '../lib/clipboardWatchers';
 import { isDesktop, onClipboardOutcome } from '../lib/desktop';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
@@ -20,6 +22,16 @@ export function GlobalIntake() {
   const { t } = useT();
   const [watch, setWatch] = useClipboardWatch();
   const [target] = useClipboardWatchTarget();
+  // The target reads as this instance until the stored one arrives, and a
+  // watch started before that would lease here first and then move.
+  const [targetRead, setTargetRead] = useState(false);
+  useEffect(() => {
+    let live = true;
+    readUIState().then(() => live && setTargetRead(true));
+    return () => {
+      live = false;
+    };
+  }, []);
 
   useEffect(() => {
     async function stageText(text: string) {
@@ -91,13 +103,27 @@ export function GlobalIntake() {
     };
   }, [t, toast]);
 
+  // A ref, so the language arriving after the first render does not restart
+  // the watch, which would drop its lease and take it again.
+  const latest = useRef({ t, toast });
+  latest.current = { t, toast };
+
   // The clipboard watch lives here because this component stays mounted across
   // pages. A refused permission ends the watch instead of asking again. In the
-  // desktop app the watch runs in Go, and the page only shows what it did, so
-  // a link is not sent twice while the window has focus.
+  // desktop app the watch runs in Go, which also holds its lease, and the page
+  // only shows what it did, so a link is not sent twice while the window has
+  // focus. In a browser the lease keeps this tab on the group's list of
+  // watchers, held with the instance the links go to. Either way, another
+  // device switching the watch off there ends it here.
   useEffect(() => {
-    if (!watch) return;
+    if (!watch || !targetRead) return;
+    const stoppedElsewhere = () => {
+      const { t, toast } = latest.current;
+      setWatch(false);
+      toast(t('intake.clipboardWatchStoppedElsewhere'), 'info');
+    };
     const show = (o: WatchOutcome) => {
+      const { t, toast } = latest.current;
       switch (o.kind) {
         case 'staged':
           toast(t('collector.toastStaged', { n: o.n }), 'ok');
@@ -115,10 +141,19 @@ export function GlobalIntake() {
         case 'limited':
           toast(t('intake.clipboardWatchLimited'), 'info');
           break;
+        case 'stopped':
+          stoppedElsewhere();
+          break;
       }
     };
-    return isDesktop() ? onClipboardOutcome(show) : startClipboardWatch(target, show);
-  }, [watch, setWatch, target, t, toast]);
+    if (isDesktop()) return onClipboardOutcome(show);
+    const endLease = startLease(target, stoppedElsewhere);
+    const endWatch = startClipboardWatch(target, show);
+    return () => {
+      endWatch();
+      endLease();
+    };
+  }, [watch, setWatch, target, targetRead]);
 
   return null;
 }
