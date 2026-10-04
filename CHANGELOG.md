@@ -47,10 +47,13 @@ release's tag.
   Settings > Link collector > Copies of the same file. A magnet is recognised
   by its info hash, whatever name and trackers it carries, so it also matches
   the same torrent downloaded earlier from a .torrent file, and the other way
-  round. A link restored past the filter or a banned tracker is still checked
-  against the history, and a mirror of a link the history rejected says so
-  instead of claiming it is already in the list. Names are compared as the files were saved, so a mirror whose
-  name holds a colon or a control character still counts.
+  round. The list matches them the same way, so a magnet and an uploaded
+  .torrent of one torrent no longer both stay in the collector, whichever was
+  added first. A link restored past the filter or a banned tracker is still
+  checked against the history, and a mirror of a link the history rejected
+  says so instead of claiming it is already in the list. Names are compared as
+  the files were saved, so a mirror whose name holds a colon or a control
+  character still counts.
 
 ## [1.6.6] - 2026-10-02
 
