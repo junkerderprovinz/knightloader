@@ -199,94 +199,94 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 
 ## 2. Screenshots
 
-Each picture follows your system's light or dark setting. The downloads, hosts
-and accounts in them are made up.
+The downloads, hosts and accounts in these pictures are made up.
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-1-overview-dark.png">
-    <img src=".github/assets/screenshots/knightloader-1-overview-light.png" alt="Overview with the total speed, the latest downloads and three instances" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/desktop.png" alt="The desktop app showing the download list with running, failed and unpacked downloads" width="100%">
+  <br><em>The desktop app for Windows, macOS and Linux.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/container.png" alt="The web interface of the container in a browser, on the overview page" width="100%">
+  <br><em>The same interface from the container, in any browser on your network.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/android.png" alt="The Android app: adding links, all instances on one screen and connecting with the twelve words" width="100%">
+  <br><em>The Android app: a remote for every KnightLoader you run.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/extension.png" alt="The browser extension's popup over a film page, ready to send the page to an instance" width="100%">
+  <br><em>The browser extension sends the page you are on, a link or a Click'n'Load button to the instance you pick.</em>
+</p>
+
+<br>
+
+<p align="center">
+  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with the total speed, the latest downloads and three instances" width="90%">
   <br><em>Overview: one number that matters, and what is happening under it.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-2-downloads-dark.png">
-    <img src=".github/assets/screenshots/knightloader-2-downloads-light.png" alt="Download list grouped by package, with running downloads, a failed file and an unpacked archive" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-2-downloads.png" alt="Download list grouped by package, with running downloads, a failed file and an unpacked archive" width="90%">
   <br><em>Downloads, grouped by package, under the queue controls and the speed curve.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-3-quick-settings-dark.png">
-    <img src=".github/assets/screenshots/knightloader-3-quick-settings-light.png" alt="The quick settings open over the download list" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-3-quick-settings.png" alt="The quick settings open over the download list" width="90%">
   <br><em>Quick settings: the limits you change most often, one click from the download list.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-4-collector-dark.png">
-    <img src=".github/assets/screenshots/knightloader-4-collector-light.png" alt="The link collector with a YouTube video split into its variants" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-4-collector.png" alt="The link collector with a YouTube video split into its variants" width="90%">
   <br><em>The link collector: one YouTube link as video, audio, thumbnail, subtitles and description. Format and quality are picked on the row.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-5-appearance-dark.png">
-    <img src=".github/assets/screenshots/knightloader-5-appearance-light.png" alt="The Appearance page in Settings" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-5-appearance.png" alt="The Appearance page in Settings" width="90%">
   <br><em>Appearance: corners, labels, motion, colours and the theme.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-6-accounts-dark.png">
-    <img src=".github/assets/screenshots/knightloader-6-accounts-light.png" alt="Accounts with three debrid services, a hoster login and the priority order" width="90%">
-  </picture>
-  <br><em>Accounts: debrid services and hoster logins, and the order they are asked in.</em>
+  <img src=".github/assets/screenshots/knightloader-6-accounts.png" alt="Accounts with three debrid services, two Usenet servers and a hoster login" width="90%">
+  <br><em>Accounts: debrid services, your own Usenet servers and hoster logins.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-7-rules-dark.png">
-    <img src=".github/assets/screenshots/knightloader-7-rules-light.png" alt="Packagizer rules, the test box with a sample link and the categories" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-7-rules.png" alt="Packagizer rules, the test box with a sample link and the categories" width="90%">
   <br><em>Rules &amp; categories: rules sort links as they arrive, and the test box shows what they would do to one.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-8-app-dark.png">
-    <img src=".github/assets/screenshots/knightloader-8-app-light.png" alt="The Apps tab with the phone app, the desktop apps, the bookmarklet and the browser extensions" width="90%">
-  </picture>
-  <br><em>The Apps tab: the phone app, the desktop builds, the bookmarklet and the browser extension.</em>
+  <img src=".github/assets/screenshots/knightloader-8-app.png" alt="The Apps tab with the desktop apps, the phone app, the browser extensions and the bookmarklet" width="90%">
+  <br><em>The Apps tab: the desktop builds, the phone app, the browser extension and the bookmarklet.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset=".github/assets/screenshots/knightloader-9-instances-dark.png">
-    <img src=".github/assets/screenshots/knightloader-9-instances-light.png" alt="Instances: this one, one at home, one through the relay and one found on the network" width="90%">
-  </picture>
+  <img src=".github/assets/screenshots/knightloader-9-instances.png" alt="Instances: this one, one at home, one through the relay and one found on the network" width="90%">
   <br><em>Instances: your other KnightLoaders, at home or through the relay, and the ones found on your network.</em>
 </p>
 
