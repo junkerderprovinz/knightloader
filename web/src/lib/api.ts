@@ -1108,9 +1108,8 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
 }
 
 /**
- * hosterIconURL is a host's site icon, cached by the server. It is used as an
- * <img src> because a 404 is the normal answer for a host without a favicon,
- * and the component's onError turns that into a monogram.
+ * hosterIconURL is a host's site icon, cached by the server. A host without
+ * one answers 204, and one the server is still fetching answers 503.
  */
 export const hosterIconURL = (host: string, base = '/api'): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);

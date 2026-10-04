@@ -100,7 +100,7 @@ async function answer(route, missing) {
   const url = new URL(request.url());
   // No favicons: every host draws its monogram, and no hoster's mark ends up
   // in a picture.
-  if (url.pathname === '/api/hosters/icon') return route.fulfill({ status: 404 });
+  if (url.pathname === '/api/hosters/icon') return route.fulfill({ status: 204 });
   const body = fixture(url);
   if (body !== null) return route.fulfill({ contentType: 'application/json', body });
   // A save the page makes on its own succeeds without changing anything.
