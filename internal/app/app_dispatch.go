@@ -932,7 +932,7 @@ func (a *App) dispatchLocked() {
 		// What an earlier attempt of this task left. The library would find it
 		// under the task's name and write this attempt beside it as
 		// "name (1).ext", once per restart, so it goes before the backend
-		// starts.
+		// starts, unless the engine carries on writing it.
 		own := a.ownFileLocked(t)
 		// A torrent takes up the place its earlier attempt had, which is no
 		// collision for that torrent.
@@ -1002,7 +1002,9 @@ func (a *App) dispatchLocked() {
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)
-				own.drop(id)
+				if !a.Engine.Resumes(id, own.path) {
+					own.drop(id)
+				}
 				a.Engine.Start(job)
 			}()
 		} else {
@@ -1012,7 +1014,9 @@ func (a *App) dispatchLocked() {
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)
-				own.drop(id)
+				if !a.Engine.Resumes(id, own.path) {
+					own.drop(id)
+				}
 				be.Download(id, result.DirectURL, result.Headers, conns)
 			}()
 		}
