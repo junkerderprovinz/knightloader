@@ -221,7 +221,7 @@ jobs:
           for f in extension/src/*.js; do node --check "$f"; done
           for f in extension/check-*.mjs; do node "$f"; done
 
-      # Same lint and skip list as ci.yml, which explains the skipped code.
+      # Same lint and skip list as ci.yml, which explains the skipped findings.
       - name: web-ext lint
         run: |
           cd extension/src
@@ -230,7 +230,8 @@ jobs:
             let s = ""; process.stdin.on("data", c => s += c).on("end", () => {
               let r; try { r = JSON.parse(s); } catch { console.error("web-ext lint produced no JSON"); process.exit(1); }
               const skip = new Set(["BACKGROUND_SERVICE_WORKER_IGNORED"]);
-              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code));
+              const chromiumOnly = m => (m.code === "MANIFEST_PERMISSIONS" && /"offscreen"/.test(m.message)) || (m.code === "UNSUPPORTED_API" && /^offscreen\./.test(m.message));
+              const bad = [...(r.errors ?? []), ...(r.warnings ?? [])].filter(m => !skip.has(m.code) && !chromiumOnly(m));
               for (const m of bad) console.error(`${m.code}: ${m.message} (${m.file ?? "manifest.json"})`);
               if (bad.length) { console.error(`${bad.length} web-ext finding(s)`); process.exit(1); }
               console.log("web-ext lint clean");

@@ -120,6 +120,15 @@ release's tag.
   fetched as a plain file, never handed to yt-dlp, and saved under the
   browser's name.
 
+- **The browser extension watches the clipboard.** Switch it on in the
+  extension's options and every link you copy goes to your default instance
+  while the browser is open, with no KnightLoader tab needed. Only the links
+  leave the browser. When you switch a watch on, in the extension or in the
+  web interface, KnightLoader asks your group who else is watching, names that
+  device and offers to switch it off there or keep both. An instance turns
+  away a link it already has, so with both sending to the same instance
+  nothing is downloaded twice.
+
 ### Fixed
 
 - **Trackers stopped hearing from torrents once one was removed.** After any

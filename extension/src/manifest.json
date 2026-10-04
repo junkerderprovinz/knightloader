@@ -34,6 +34,7 @@
       "capture.js",
       "takeover.js",
       "media.js",
+      "clipwatch.js",
       "background.js"
     ]
   },
@@ -46,7 +47,9 @@
     "contextMenus",
     "storage",
     "scripting",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "alarms",
+    "offscreen"
   ],
   "optional_permissions": ["clipboardRead", "downloads", "cookies", "notifications", "webRequest"],
   "optional_host_permissions": [
