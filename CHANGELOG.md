@@ -39,6 +39,7 @@ release's tag.
 
 ### Fixed
 
+<<<<<<< HEAD
 - **Pausing or removing an FTP or SFTP download works after an account
   change.** Saving an account, switching one on or off, the host-list refresh
   and a yt-dlp update all rebuild the download backends, and the one for your
@@ -50,6 +51,14 @@ release's tag.
   Hetzner's speed-test mirrors close the connection on every HEAD request, so
   the collector listed their links without a size. The link check now asks
   such a server for the first byte instead.
+=======
+- **The login for your own server can be added on the Accounts page.** The
+  help said to add an account for an FTP, SFTP or WebDAV server, but the
+  Accounts page had nowhere to put one, so it could only be stored through the
+  API. The Own servers card now takes the server's hostname with a username and
+  password, and a link pasted into the hostname field is cut down to the
+  hostname.
+>>>>>>> origin/kl-own-server-ui
 - **A server that hangs up on a browser's user agent no longer fails the
   download.** Some servers, Hetzner's speed-test mirrors among them, close the
   connection at once when a download program sends a browser's user agent,
