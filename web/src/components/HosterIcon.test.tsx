@@ -2,7 +2,7 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { HosterIcon, RETRY_MS } from './HosterIcon';
+import { HosterIcon, mayHaveSiteIcon, RETRY_MS } from './HosterIcon';
 import { serviceMark } from '../lib/serviceMarks';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -79,4 +79,34 @@ it('stops asking once the retries are spent', () => {
   act(() => vi.advanceTimersByTime(60_000));
   expect(img()).toBeNull();
   expect(host.textContent).toBe('r');
+});
+
+it('asks only for dotted names that end in a top-level domain', () => {
+  for (const name of ['rapidgator.net', 'dl.free.fr', 'xn--80ak6aa92e.com', '1fichier.com']) {
+    expect(mayHaveSiteIcon(name), name).toBe(true);
+  }
+  for (const name of [
+    '',
+    'localhost',
+    'torrent-magnet',
+    'torrent-upload',
+    '3f9a0c41d2e8b7a6',
+    '127.0.0.1',
+    '127.0.0.81',
+    '8.8.8.8',
+    '[2001',
+    '.example.com',
+    'example.com.',
+    'my_host.lan',
+  ]) {
+    expect(mayHaveSiteIcon(name), name).toBe(false);
+  }
+});
+
+it('draws the monogram for hosts that cannot have an icon without asking the instance', () => {
+  for (const raw of ['torrent-magnet', '3f9a0c41d2e8b7a6', '127.0.0.1:8080', 'http://[::1]/a', '2001:db8::1']) {
+    act(() => root.render(<HosterIcon host={raw} />));
+    expect(img(), raw).toBeNull();
+  }
+  expect(host.textContent).toBe('2');
 });

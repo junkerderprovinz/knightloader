@@ -27,6 +27,22 @@ function hostOf(raw: string): string {
 }
 
 /**
+ * mayHaveSiteIcon reports whether a bare hostname is a dotted name the
+ * instance would look up. Task ids, buckets such as torrent-magnet and IP
+ * addresses never get an icon, and asking would only log a failed load per
+ * retry. A top-level domain always has a letter, which tells a name from an
+ * IPv4 address.
+ */
+export function mayHaveSiteIcon(host: string): boolean {
+  const labels = host.split('.');
+  return (
+    labels.length > 1 &&
+    labels.every((label) => /^[a-z0-9-]+$/.test(label)) &&
+    /[a-z]/.test(labels[labels.length - 1])
+  );
+}
+
+/**
  * HosterIcon draws a service's bundled mark, else the host's favicon, else a
  * monogram tile of the same size, so names line up either way.
  */
@@ -47,7 +63,7 @@ export function HosterIcon({ host, size = 18 }: { host: string; size?: number })
       />
     );
   }
-  if (!clean) return <Monogram host="" box={box} />;
+  if (!mayHaveSiteIcon(clean)) return <Monogram host={clean} box={box} />;
   // Keyed by host: React keeps the retry state per element, not per URL.
   return <SiteIcon key={clean} host={clean} box={box} />;
 }
