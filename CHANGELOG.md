@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-10-04
+
 ### Added
 
 - **The duplicate check knows the download history.** A link this instance
@@ -187,6 +189,15 @@ release's tag.
 - **Add links in the Android app says why a send failed.** When the request
   never reached the instance, or a relay connection had to be added again, the
   screen said only "Could not send the links." The reason follows it now.
+- **A control character in a link no longer ends up in a file name.** A tab,
+  escape or NUL from the link's path was written into the name as it was, and
+  a NUL made the download fail. Such characters become spaces now.
+
+### Changed
+
+- **The README shows each way to run KnightLoader in a picture of its own:**
+  the desktop app, the server in a browser, the Android app and the browser
+  extension, followed by the pages of the web interface.
 
 ## [1.6.8] - 2026-10-04
 
