@@ -117,10 +117,12 @@ async function cnlDecrypt(jk, crypted) {
 }
 
 /** splitCnlLinks mirrors splitLinks in internal/cnl: whitespace separates
- *  links, and anything that is not http(s) or ftp is dropped. */
+ *  links, and a word survives when the clipboard watch's rule (clipwatch.js)
+ *  takes it as a link and it is not a magnet. Any page may post here, and a
+ *  torrent would go on to share what it fetched. */
 function splitCnlLinks(text) {
   return String(text)
     .split(/[\r\n\s]+/)
     .map((s) => s.trim())
-    .filter((s) => /^(https?|ftp):\/\//i.test(s));
+    .filter((s) => CLIP_LINK_RULE.test(s) && !/^magnet:/i.test(s));
 }

@@ -16,8 +16,39 @@ package settings
 import (
 	"crypto/rand"
 	"encoding/hex"
+	"log"
+	"os"
+	"path/filepath"
 	"strings"
 )
+
+// instanceIDFile holds the id beside settings.json, which Load never writes,
+// so that an install that has not saved its settings yet keeps one id across
+// restarts. The id in settings.json, once there is one, wins.
+const instanceIDFile = "instance-id"
+
+// loadInstanceID fills in the kept id when settings.json has none, and mints
+// and keeps one when neither has it.
+func loadInstanceID(dir string, n Settings) Settings {
+	if strings.TrimSpace(n.InstanceID) != "" {
+		return n
+	}
+	path := filepath.Join(dir, instanceIDFile)
+	if b, err := os.ReadFile(path); err == nil {
+		n.InstanceID = strings.TrimSpace(string(b))
+	}
+	if n.InstanceID != "" {
+		return n
+	}
+	n.InstanceID = newInstanceID()
+	if n.InstanceID == "" {
+		return n
+	}
+	if err := writeFileAtomic(path, []byte(n.InstanceID+"\n")); err != nil {
+		log.Printf("settings: could not keep the instance id in %s, so the next start mints another: %v", path, err)
+	}
+	return n
+}
 
 // maxKnownDomains caps the remembered list so that a build behind a rotating
 // set of throwaway subdomains, dynamic-DNS churn or a half-finished proxy
