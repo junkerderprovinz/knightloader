@@ -39,6 +39,12 @@ release's tag.
 
 ### Fixed
 
+- **The login for your own server can be added on the Accounts page.** The
+  help said to add an account for an FTP, SFTP or WebDAV server, but the
+  Accounts page had nowhere to put one, so it could only be stored through the
+  API. The Own servers card now takes the server's hostname with a username and
+  password, and a link pasted into the hostname field is cut down to the
+  hostname.
 - **A server that hangs up on a browser's user agent no longer fails the
   download.** Some servers, Hetzner's speed-test mirrors among them, close the
   connection at once when a download program sends a browser's user agent,
