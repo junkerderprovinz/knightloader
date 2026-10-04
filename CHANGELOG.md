@@ -102,6 +102,24 @@ release's tag.
   for five minutes unless you set another interval. The manual has a new page
   on mounting it for Plex or Jellyfin on Unraid and with Docker.
 
+- The browser extension can take over downloads. Switched on in its options, a
+  download that fits your rules (file types, minimum size, sites to leave
+  alone) goes to your default instance with your cookies for that site, so
+  downloads behind a login work. Hold Alt, Shift or Ctrl while clicking to
+  keep one in the browser. If the hand-over fails, or the instance holds the
+  link back as already downloaded or filtered, the browser keeps it.
+
+- The browser extension can list the video and audio a page plays, HLS and
+  DASH playlists included, and send any of them from the popup, with the page
+  it played on.
+
+- `POST /api/links` takes `source` and, for a single link, the browser's
+  `Cookie`, `Referer` and `User-Agent` in `headers`. They stay in memory for
+  that download only, never reach a log, and go when it finishes. `file` and
+  `name` mark that link as a file the browser was downloading, so it is
+  fetched as a plain file, never handed to yt-dlp, and saved under the
+  browser's name.
+
 ### Fixed
 
 - **Trackers stopped hearing from torrents once one was removed.** After any
@@ -131,6 +149,12 @@ release's tag.
 - **The torrent client opened a piece completion database it never used.** It
   tried to create the file in its working folder, which in the container is
   not writable, so every start of the client logged a warning.
+
+- A file name from a dropped crawljob (`filename=`) or from
+  `POST /api/tasks/options` is shortened the same way as a rename. A name too
+  long for the disk used to leave the file under its old name with an error.
+  A rename that succeeds also clears the error an earlier failed rename left on
+  the download.
 
 ## [1.7.0] - 2026-10-04
 

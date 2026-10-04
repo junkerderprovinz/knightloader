@@ -50,6 +50,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -349,6 +350,19 @@ type App struct {
 	// chainFromLocked). A backend wired since is not among them. It is not
 	// stored: after a restart the backend that refused is asked once more.
 	fellBack map[string]map[string]bool
+	// browserHeaders holds the request headers a browser handed over with a
+	// download it gave up, by task id (see app_browserheaders.go). Memory only.
+	browserHeaders map[string]hostheaders.Set
+	// renamed holds the finished downloads a rename moved off the path their
+	// backend recorded, where another download's file may have landed since.
+	// Their backend is not left to delete files by that record (see
+	// removeTask). Memory only, since the engine forgets its downloads on a
+	// restart. Built on first use.
+	renamed map[string]bool
+	// preflights holds, by task id, the start whose header preflight runs off
+	// the lock, and preflightSeq numbers those starts (see resolveLocked).
+	preflights   map[string]uint64
+	preflightSeq uint64
 	// moving holds the tasks being taken off their old backend, by
 	// PinResolver or by a fallback down the chain (see handOnLocked).
 	// Dispatch leaves them where they are until that backend has let go, so
@@ -1009,10 +1023,7 @@ func sanitizeSegment(s string) string {
 	if out == "" {
 		return "package"
 	}
-	if len(out) > 120 {
-		out = out[:120]
-	}
-	return out
+	return pathvars.Cut(out)
 }
 
 // hostOf returns the scheduling host bucket for a URL.
@@ -1034,7 +1045,7 @@ type speedLimiter interface {
 // collector's HEAD probe (analyze). It is optional because other backends learn
 // the name from their progress stream once a download starts.
 type titleProber interface {
-	ProbeTitle(ctx context.Context, url string) (ytdlp.ProbeResult, error)
+	ProbeTitle(ctx context.Context, url string, sent map[string]string) (ytdlp.ProbeResult, error)
 }
 
 // ApplySettings persists new settings and applies what can change at runtime:

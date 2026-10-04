@@ -30,6 +30,10 @@
       "relay.js",
       "group.js",
       "cnl.js",
+      "i18n-capture.js",
+      "capture.js",
+      "takeover.js",
+      "media.js",
       "background.js"
     ]
   },
@@ -44,7 +48,7 @@
     "scripting",
     "declarativeNetRequest"
   ],
-  "optional_permissions": ["clipboardRead"],
+  "optional_permissions": ["clipboardRead", "downloads", "cookies", "notifications", "webRequest"],
   "optional_host_permissions": [
     "<all_urls>"
   ],

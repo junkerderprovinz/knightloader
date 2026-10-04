@@ -135,6 +135,17 @@ ruleset's enabled state does not survive an update. `check-background.mjs`
 holds the ruleset part: it follows the switch both ways and is written again on
 start and update.
 
+## Taking over downloads and finding media
+
+Two optional features, off until switched on in the options, each asking for
+its permissions at that moment: taking over browser downloads (`takeover.js`,
+with `bypass.js` for the key that keeps one in the browser) and listing the
+video and audio a page plays (`media.js`, `popup-media.js`). The rules and the
+permission sets are in `capture.js`, the texts in `i18n-capture.js`, and
+`check-capture.mjs` holds both to their promises: a download leaves the
+browser only once the instance has it, and the cookies sent are those for the
+download's own address. `docs/browser-tools.md` has the details.
+
 ## Why it no longer opens a window
 
 Every send used to open a small window at `<instance>/quickadd`, same-origin,

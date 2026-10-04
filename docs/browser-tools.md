@@ -161,6 +161,62 @@ This is the answer to the case a loopback port cannot serve: KnightLoader on a
 server, a browser on a laptop, and a CnL button on a website that only knows how
 to talk to `127.0.0.1:9666`.
 
+### Taking over downloads and finding media
+
+Both are off until switched on in the options, and each asks for its optional
+permissions at that moment (`capture.js`): taking over downloads wants
+`downloads`, `cookies`, `notifications` and the access to all websites,
+finding media wants `webRequest`, `cookies` and the same access. Switching one
+off hands back whatever neither of the others still uses, Click'n'Load
+included.
+
+**Taking over downloads** (`takeover.js`). Chromium names a download before it
+writes it (`downloads.onDeterminingFilename`), so the download is held at that
+step; Firefox has no such event, so its download is paused right after
+`downloads.onCreated`. The rules decide first: file types (empty means all), a
+minimum size (a size the browser does not know yet never passes one), sites to
+leave alone, and a key that, held while clicking, keeps the download in the
+browser. `bypass.js`, registered only while the feature is on, reports such a
+click. Downloads from loopback, private and `.local` addresses, from a private
+window, and from one of the group's own web addresses always stay in the
+browser.
+
+A matching download goes to the default instance as `POST /api/links` with
+`headers` (the browser's cookies for that address, the Referer, the user
+agent), `source`, and `file` with the name the browser gave it. That marks the
+link as a file, so the instance fetches it as one even when its address has
+no file extension, rather than handing it to yt-dlp as a page, and saves it
+under the browser's name. If a file of that name is already in the folder,
+your setting for that case applies (overwrite, skip or number it), as for any
+other download. Only after the instance answers with the created task is the
+browser's download cancelled and erased; any failure, including a link the
+instance already had or its filter held back, lets it carry on. A
+notification names the instance.
+
+**Finding media** (`media.js`, `popup-media.js`) watches responses with
+`webRequest.onResponseStarted` and keeps, per tab in `storage.session`, the HLS
+and DASH playlists and the files a player element loaded. Fragments (`.ts`,
+`.m4s`) and byte ranges a script fetches are left out. The popup lists them,
+and each send carries the page as `source` and Referer, plus the cookies for
+the stream's address; yt-dlp on the instance does the rest.
+
+**On the instance** the headers are checked and scoped by
+`app.BrowserHeaders`: only Cookie, Referer and User-Agent, only with a single
+link, no control characters, and bound to that link's origin through
+`hostheaders.Set`, which prints header names only. They live in memory beside
+the task, never in the task record or the store, and go when the download
+finishes or the task is removed; a restart drops them. A plain file goes
+through the header-profile preflight, which follows redirects itself and
+strips the headers on any hop off the origin. yt-dlp gets the cookies in a
+cookie file scoped to the host, and the Referer and user agent as
+`--add-header`. Such a link is staged as it is: no crawl and no playlist
+listing, which without the browser's session would only see a login page.
+
+Limits: a download the browser started with a POST cannot be fetched again by
+address; a one-time link the browser already used is spent; partitioned and
+first-party-isolated cookies are not read; and a stream whose address carries
+a short-lived token has to be sent while it is still valid.
+
 **Selection Rules** (pre-defining which instance a given file type goes to, the
 way MyJDownloader's extension can) is still not built. Choosing per send and
 setting a default are; a rule engine on top of that is real but niche, and

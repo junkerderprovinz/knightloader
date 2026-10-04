@@ -99,6 +99,19 @@ func TestNormalizeRefusesWhatCannotBeSent(t *testing.T) {
 	}
 }
 
+func TestNormalizeRefusesEveryControlCharacterButTheTab(t *testing.T) {
+	for _, c := range []string{"\x00", "\x0b", "\x1f", "\x7f"} {
+		set := Set{Origin: "https://box.lan", Headers: []Header{{Name: "Cookie", Value: "a=1" + c + "b=2"}}}
+		if _, err := Normalize(set); err == nil {
+			t.Errorf("a value with %q was accepted, which net/http then refuses to send", c)
+		}
+	}
+	set, err := Normalize(Set{Origin: "https://box.lan", Headers: []Header{{Name: "Cookie", Value: "a=1;\tb=2"}}})
+	if err != nil || len(set.Headers) != 1 {
+		t.Errorf("a tab in a value was refused: %v", err)
+	}
+}
+
 func TestNormalizeRefusesTooManyHeaders(t *testing.T) {
 	s := Set{Origin: "https://box.lan"}
 	for i := 0; i <= MaxHeaders; i++ {
