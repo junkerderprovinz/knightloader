@@ -96,17 +96,22 @@ type DialogState =
 /**
  * serverHost reduces what was typed into the hostname field to the bare host,
  * lower-cased and without port or path, since remotefs looks a link's login up
- * by url.Hostname. A pasted link is cut down the same way.
+ * by url.Hostname. A pasted link is cut down the same way. Anything else comes
+ * back empty: Chromium lets a space or a "!" through and percent-encodes it,
+ * and no link would ever carry that name.
  */
 function serverHost(raw: string): string {
   const text = raw.trim();
   if (!text) return '';
+  let host: string;
   try {
-    const url = new URL(text.includes('://') ? text : `ftp://${text}`);
-    return url.hostname.replace(/^\[|\]$/g, '').toLowerCase();
+    host = new URL(text.includes('://') ? text : `ftp://${text}`).hostname.toLowerCase();
   } catch {
     return '';
   }
+  const ipv6 = /^\[([0-9a-f:.]+)\]$/.exec(host);
+  if (ipv6) return ipv6[1];
+  return /^[a-z0-9.-]+$/.test(host) ? host : '';
 }
 
 export function Accounts() {
