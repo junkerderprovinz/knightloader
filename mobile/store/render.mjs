@@ -6,11 +6,15 @@
 // The captures are plain screenshots of the app in dark mode, 1080x1920, with
 // the status bar in demo mode. Name them after the SHOTS below.
 //
+// `node store/render.mjs readme` builds the README's call for Android testers
+// instead, .github/assets/screenshots/testers.png at 1920x640: two phones
+// beside a button-shaped call.
+//
 // Every page is rendered at twice the size and scaled down in a second page,
 // which keeps the text sharp through the phone's tilt.
 //
 // Deps (global): playwright-core with its Chromium installed.
-// Run from mobile/: `node store/render.mjs`
+// Run from mobile/: `node store/render.mjs [readme]`
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -23,8 +27,9 @@ const { chromium } = require(`${execSync('npm root -g').toString().trim()}/playw
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mobile = dirname(here);
+const root = dirname(mobile);
 // F-Droid reads the store texts only from fastlane/ at the repository root.
-const metadata = join(dirname(mobile), 'fastlane', 'metadata', 'android');
+const metadata = join(root, 'fastlane', 'metadata', 'android');
 
 const CAPTIONS = {
   'de-DE': {
@@ -74,7 +79,7 @@ async function cached(file, url) {
 const dataUrl = (buf, type) => `data:${type};base64,${buf.toString('base64')}`;
 const bree = dataUrl(await cached('BreeSerif-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf'), 'font/ttf');
 const lato = dataUrl(await cached('Lato-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'), 'font/ttf');
-const logo = dataUrl(readFileSync(join(mobile, '..', 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
+const logo = dataUrl(readFileSync(join(root, 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
 
 const STYLE = `
 @font-face { font-family: "Bree Serif"; src: url(${bree}); }
@@ -186,6 +191,31 @@ ${phone(front, { x: 758, y: 40, sw: 220 })}
 </body></html>`;
 }
 
+/** The README's call for Android testers, in English like the README. */
+function testersShot(back, front) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
+body { width: 1920px; height: 640px; }
+.copy { position: absolute; left: 96px; top: 0; bottom: 0; width: 1060px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+.head { display: flex; align-items: center; gap: 22px; }
+.head img { width: 64px; }
+.label { padding: 8px 18px; border-radius: 8px; background: #FCC419; color: #141414; font: 700 22px/1 Lato, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+h1 { font-size: 92px; line-height: 1.05; }
+.sub { font-size: 34px; line-height: 1.35; }
+.go { align-self: flex-start; margin-top: 8px; padding: 22px 40px; border-radius: 18px; background: #FCC419; color: #141414; font: 700 34px/1 Lato, sans-serif;
+  box-shadow: 0 0 0 6px rgba(252,196,25,.18), 0 18px 40px rgba(0,0,0,.5); }
+</style></head><body>
+${backdrop('40%', '58%', '-30%')}
+<div class="copy">
+  <div class="head"><img src="${logo}"><span class="label">Google Play closed test</span></div>
+  <h1>Android testers <em>wanted</em></h1>
+  <p class="sub">Keep KnightLoader installed for 14 days and help it go public.</p>
+  <span class="go">Become a tester &rarr;</span>
+</div>
+${phone(back, { x: 1290, y: 92, sw: 250 })}
+${phone(front, { x: 1530, y: 58, sw: 282 })}
+</body></html>`;
+}
+
 /** Renders `html` at twice `width` x `height` and writes it scaled down to `file`. */
 async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
@@ -201,8 +231,14 @@ async function render(browser, html, width, height, file) {
   await small.close();
 }
 
-const browser = await chromium.launch();
-try {
+async function readme(browser) {
+  const out = join(root, '.github', 'assets', 'screenshots');
+  const capture = (name) => dataUrl(readFileSync(join(here, 'captures', 'en-US', `${name}.png`)), 'image/png');
+  await render(browser, testersShot(capture('connections'), capture('downloads')), 1920, 640, join(out, 'testers.png'));
+  console.log('wrote .github/assets/screenshots/testers.png');
+}
+
+async function store(browser) {
   for (const [locale, text] of Object.entries(CAPTIONS)) {
     const capture = (name) => dataUrl(readFileSync(join(here, 'captures', locale, `${name}.png`)), 'image/png');
     const images = join(metadata, locale, 'images');
@@ -213,6 +249,11 @@ try {
     await render(browser, featureGraphic(capture('downloads'), capture('connections'), text.tagline), 1024, 500, join(images, 'featureGraphic.png'));
     console.log(`wrote ${locale}/images/featureGraphic.png`);
   }
+}
+
+const browser = await chromium.launch();
+try {
+  await (process.argv[2] === 'readme' ? readme : store)(browser);
 } finally {
   await browser.close();
 }

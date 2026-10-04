@@ -45,6 +45,19 @@ Hosters, debrid services, torrents, Usenet, videos and streams: one download man
 
 <br>
 
+<p align="center">
+  <a href="https://play.google.com/apps/testing/knightloader.halleluja.design"><img src=".github/assets/screenshots/testers.png" alt="Android testers wanted: join the Google Play closed test" width="100%"></a>
+</p>
+
+> [!IMPORTANT]
+> **Android testers wanted.** Google Play only lists an app from a new developer account after at least 12 testers have kept it installed for 14 days. If you have an Android phone:
+>
+> 1. Join the [tester group](https://groups.google.com/g/arrowloop-testers).
+> 2. Open the [test page](https://play.google.com/apps/testing/knightloader.halleluja.design) and tap **Become a tester**.
+> 3. Install KnightLoader from Google Play and keep it for 14 days. Using it for real helps most, and anything that goes wrong is welcome as an [issue](https://github.com/junkerderprovinz/knightloader/issues).
+
+<br>
+
 <!-- download-buttons: written by scripts/gen_download_buttons.py -->
 <p align="center">
   <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/download-buttons/buttons.svg#svgView(viewBox(0,0,841.9,245.3))" alt="In Unraid&#x27;s Community Applications soon" width="160" height="46.618">
