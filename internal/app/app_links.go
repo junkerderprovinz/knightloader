@@ -31,7 +31,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
-// The seven entrances a link can arrive by. They live here, beside the funnels
+// The eight entrances a link can arrive by. They live here, beside the funnels
 // that set them, rather than in core, which only owns the type.
 const (
 	// OriginPaste is the collector's paste box, which is also what a bare
@@ -53,6 +53,9 @@ const (
 	// was added outside this instance (app_debridimport.go). No caller can
 	// name it.
 	OriginAccount core.Origin = "account"
+	// OriginJDownloader is a link taken over from JDownloader's download list
+	// (app_jdimport.go). No caller can name it either.
+	OriginJDownloader core.Origin = "jdownloader"
 )
 
 // KnownOrigin parses an entrance a caller names and refuses anything else. A

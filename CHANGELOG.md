@@ -68,6 +68,17 @@ release's tag.
   names the package. You tap even with only one instance paired, so no other
   app can send links to your server on its own. Files are not offered, because
   the relay does not forward container and torrent uploads.
+- **Move over from JDownloader.** Settings, General has a card that reads a
+  JDownloader 2 cfg folder, uploaded as a zip or given as a path on the
+  server, and takes over the hoster and debrid accounts, the Packagizer and
+  link filter rules, the archive passwords, the download folder and the open
+  download list. A preview lists every item with a switch before anything is
+  written, and names what cannot come over and why: Real-Debrid and
+  Debrid-Link, for which JDownloader keeps no API key, rules that test
+  something KnightLoader rules cannot, finished links and links from a
+  protected container. The links wait in the collector and nothing starts.
+  JDownloader's folder is only read. See
+  [Moving over from JDownloader](docs/from-jdownloader.md).
 
 ### Fixed
 

@@ -285,6 +285,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The import preview's strings stay out: its dialog exists only once a
       // file is chosen.
     },
+    {
+      title: 'settings.jdimport.cardTitle',
+      hint: 'settings.jdimport.cardHint',
+      rows: [{ key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' }],
+      also: ['settings.jdimport.uploadLabel', 'settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
+      body: ['settings.jdimport.uploadText'],
+      // The preview's strings stay out: its dialog exists only once a folder is read.
+    },
     // Drawn by Help.tsx at the foot of this page.
     { title: 'settings.about.title', rows: [] },
   ],

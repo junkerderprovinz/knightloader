@@ -3693,6 +3693,74 @@ export async function importSettings(
   return json<SettingsImportResult>(r);
 }
 
+/** Why a JDownloader item stays behind or changes on the way in. `code` keys
+ *  the sentence, `text` is the server's English. */
+export interface JDImportReason {
+  code: string;
+  params?: Record<string, string>;
+  text: string;
+}
+
+/** One thing a JDownloader import can write. Never carries a password. */
+export interface JDImportItem {
+  id: string;
+  group: 'accounts' | 'settings' | 'packagizer' | 'filter' | 'downloads';
+  kind: 'hoster' | 'debrid' | 'passwords' | 'folder' | 'rule' | 'exception' | 'package';
+  name: string;
+  /** The user name of an account, or the download folder stored here now. */
+  detail?: string;
+  /** The named account a debrid key goes to when the service already has one. */
+  slot?: string;
+  /** Links in a package, or archive passwords new here. */
+  count?: number;
+  /** Every archive password in JDownloader's list. */
+  total?: number;
+  off?: boolean;
+  replaces?: boolean;
+  same?: boolean;
+  blocked?: JDImportReason;
+  notes?: JDImportReason[];
+  /** What the preview starts with ticked. */
+  ticked: boolean;
+}
+
+/** What a JDownloader cfg folder would bring. The token applies it. */
+export interface JDImportPreview {
+  token: string;
+  items: JDImportItem[];
+  problems: JDImportReason[];
+  files: string[];
+}
+
+export interface JDImportReport {
+  imported: string[];
+  failed: { id: string; reason: JDImportReason }[];
+  /** Collector rows the download list became. */
+  links: number;
+  /** The link filter was switched to stop at its first match. */
+  filterStops: boolean;
+}
+
+/** readJDImportFile reads an uploaded zip of a JDownloader cfg folder. */
+export async function readJDImportFile(file: File): Promise<JDImportPreview> {
+  const body = new FormData();
+  body.append('file', file);
+  return json(await fetch('/api/jdimport/read', { method: 'POST', body }));
+}
+
+/** readJDImportPath reads a cfg folder, a JDownloader folder or a zip by its path on the server. */
+export async function readJDImportPath(path: string): Promise<JDImportPreview> {
+  return json(await post('/api/jdimport/read', { path }));
+}
+
+/** applyJDImport takes over the ticked items of a preview. A preview older
+ *  than half an hour is refused with the code "jdimport.expired", one that
+ *  newer reads pushed out with "jdimport.replaced", and one the server no
+ *  longer holds, after a restart for instance, with "jdimport.unknown". */
+export async function applyJDImport(token: string, ids: string[]): Promise<JDImportReport> {
+  return json(await post('/api/jdimport/apply', { token, ids }));
+}
+
 export async function fetchInstances(): Promise<Instance[]> {
   return (await json<Instance[]>(await fetch('/api/instances'))) ?? [];
 }
