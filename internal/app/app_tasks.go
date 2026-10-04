@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/checksum"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -148,6 +149,11 @@ func (a *App) recordAvailability(id string, avail core.Availability, reason core
 	a.mu.Lock()
 	t := a.tasks[id]
 	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	// A finished download proved the link, whatever a late check says.
+	if t.Status == core.StatusDone {
 		a.mu.Unlock()
 		return
 	}
@@ -456,6 +462,14 @@ func (a *App) analyze(id, rawurl string) {
 	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
 	resp, err := a.Probe.Do(req)
+	if err != nil && httpx.HungUp(err) {
+		// Some servers, Hetzner's speed-test mirrors among them, hang up on any
+		// HEAD and still answer a GET.
+		get := req.Clone(req.Context())
+		get.Method = http.MethodGet
+		get.Header.Set("Range", "bytes=0-0")
+		resp, err = a.Probe.Do(get)
+	}
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
 		// reached.
@@ -475,9 +489,24 @@ func (a *App) analyze(id, rawurl string) {
 		return
 	}
 	a.setAvailability(id, core.AvailOnline, "", core.ReasonUnknown)
-	if resp.ContentLength > 0 {
-		a.onUpdate(id, core.Update{Size: resp.ContentLength})
+	size := resp.ContentLength
+	if resp.StatusCode == http.StatusPartialContent {
+		size = rangeTotal(resp.Header.Get("Content-Range"))
 	}
+	if size > 0 {
+		a.onUpdate(id, core.Update{Size: size})
+	}
+}
+
+// rangeTotal is the size of the whole file a "bytes a-b/size" Content-Range
+// names, or 0 when it names none.
+func rangeTotal(contentRange string) int64 {
+	_, total, ok := strings.Cut(contentRange, "/")
+	if !ok {
+		return 0
+	}
+	n, _ := strconv.ParseInt(strings.TrimSpace(total), 10, 64)
+	return n
 }
 
 // probeYtdlpTitle asks the yt-dlp backend for a collected task's title and

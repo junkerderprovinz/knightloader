@@ -3,7 +3,9 @@ package app
 import (
 	"context"
 	"errors"
+	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"testing"
@@ -318,4 +320,58 @@ func TestAProbedSizeIsSaved(t *testing.T) {
 		}
 	}
 	t.Fatal("the probed task was never saved")
+}
+
+// Hetzner's speed-test mirrors close the connection on every HEAD and answer
+// a ranged GET, so the size comes from the first byte instead.
+func TestALinkWhoseServerHangsUpOnAHeadGetsItsSizeFromTheFirstByte(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	a.Probe = probeFunc(func(req *http.Request) (*http.Response, error) {
+		if req.Method == http.MethodHead {
+			return nil, &url.Error{Op: "Head", URL: req.URL.String(), Err: io.EOF}
+		}
+		if req.Header.Get("Range") != "bytes=0-0" {
+			t.Errorf("the second request asked for range %q, want the first byte", req.Header.Get("Range"))
+		}
+		resp := probeAnswer(req, http.StatusPartialContent)
+		resp.ContentLength = 1
+		resp.Header.Set("Content-Range", "bytes 0-0/104857600")
+		return resp, nil
+	})
+	task := putTask(t, a, core.Task{
+		URL: "https://speed.example/100MB.bin", Name: "100MB.bin",
+		Status: core.StatusCollected, Enabled: true,
+	})
+
+	a.RecheckTasks([]string{task.ID})
+
+	live := snapshot(t, a, task.ID)
+	if live.Size != 104857600 {
+		t.Errorf("size = %d, want the 104857600 the range answer named", live.Size)
+	}
+	if live.Online != core.AvailOnline || live.Reason != core.ReasonUnknown {
+		t.Errorf("availability = %q, reason = %q; want online with no reason", live.Online, live.Reason)
+	}
+}
+
+// A link check can answer while the download already runs. Once the download
+// is done the file is the proof, and the check's reason does not stay on it.
+func TestAFinishedDownloadKeepsNoReasonFromALinkCheck(t *testing.T) {
+	a, _ := newRuleApp(t, func(*settings.Settings, string) {})
+	task := putTask(t, a, core.Task{
+		URL: "https://speed.example/100MB.bin", Name: "100MB.bin",
+		Status: core.StatusRunning, Enabled: true,
+	})
+
+	a.setAvailability(task.ID, core.AvailUncheckable, "", core.ReasonNetwork)
+	a.onUpdate(task.ID, core.Update{Status: core.StatusDone, Size: 10, Loaded: 10})
+	if live := snapshot(t, a, task.ID); live.Reason != core.ReasonUnknown {
+		t.Errorf("reason = %q on a finished download, want none", live.Reason)
+	}
+
+	a.setAvailability(task.ID, core.AvailUncheckable, "", core.ReasonNetwork)
+	live := snapshot(t, a, task.ID)
+	if live.Reason != core.ReasonUnknown || live.Online != core.AvailOnline {
+		t.Errorf("a late check left reason %q and availability %q on a finished download", live.Reason, live.Online)
+	}
 }
