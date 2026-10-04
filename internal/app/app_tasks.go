@@ -543,7 +543,15 @@ type taskCopy struct {
 }
 
 // copyLocked copies t for publish. Caller holds a.mu.
+//
+// A task that has left the done state loses its finish time here, on the live
+// task, and not only in the store: the store keeps a stamp it is handed, so a
+// restarted download that finished again before the next sweep would keep the
+// time of its first finish.
 func (a *App) copyLocked(t *core.Task) taskCopy {
+	if t.Status != core.StatusDone {
+		t.FinishedAt = time.Time{}
+	}
 	a.revision++
 	return taskCopy{Task: *t, rev: a.revision}
 }

@@ -479,6 +479,47 @@ func TestTheAppCatchesUpWithItsOwnFinishTimes(t *testing.T) {
 	}
 }
 
+// A restarted download that finishes again before the next sweep counts from
+// its new finish, or retention could drop a file right after it was fetched.
+func TestADownloadFinishedAgainCountsFromTheNewFinish(t *testing.T) {
+	a := newQueueApp(t)
+	a.SetHalted(true)
+	first := time.UnixMilli(time.Now().Add(-time.Hour).UnixMilli())
+	live := putTask(t, a, core.Task{
+		ID: "again", URL: "https://host.example/f.bin", Name: "f.bin",
+		Status: core.StatusDone, FinishedAt: first, Enabled: true,
+	})
+	c := *live
+	if err := a.Store.Save(&c); err != nil {
+		t.Fatal(err)
+	}
+
+	a.RestartTasks([]string{"again"})
+	if got := taskOf(t, a, "again"); got.Status != core.StatusQueued {
+		t.Fatalf("the restart left the task %q, want it queued", got.Status)
+	}
+	a.onUpdate("again", core.Update{Status: core.StatusDone})
+
+	times, err := a.Store.FinishTimes([]string{"again"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !times["again"].After(first) {
+		t.Errorf("the row says it finished at %v, the time of the first download", times["again"])
+	}
+	hist, err := a.Store.History(0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(hist) != 1 || !hist[0].FinishedAt.After(first) {
+		t.Errorf("the history holds %+v, want one entry finished after %v", hist, first)
+	}
+	a.reconcileFinishTimes()
+	if got := taskOf(t, a, "again"); !got.FinishedAt.After(first) {
+		t.Errorf("the app shows it finished at %v, the time of the first download", got.FinishedAt)
+	}
+}
+
 // A queue stopped at boot marks every waiting row with the halt as its reason.
 // At boot the halt and the queue arrive together, unlike in a running app.
 func TestAQueueStoppedByTheBootSaysSoOnEveryRow(t *testing.T) {
