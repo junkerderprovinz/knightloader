@@ -212,12 +212,15 @@ A seedbox, a NAS or your own Nextcloud is a source like any other. Paste
 `ftp://`, `ftps://`, `sftp://`, `webdav://` or `webdavs://` and the file is
 staged, named and sized before it starts.
 
-**Credentials live in Accounts, never in the link.** Add an account with the
-service *Own server (FTP, SFTP, WebDAV)* and give it the **hostname** as its
-account name, for example `seedbox.example.net`. That name is what a pasted link
-is looked up by, so a login stored under anything else is never found. A password
+**Credentials live in Accounts, never in the link.** Open **Add a server** on the
+**Own servers** card of the Accounts page and enter the server's **hostname**,
+for example `seedbox.example.net`, with the username and password. A pasted link
+is looked up by that name, so a login stored under anything else is never found.
+If you paste a whole link into the field, only the hostname is kept. A password
 written into a URL is refused rather than quietly stripped, because it would be
-saved to the task list in plain text.
+saved to the task list in plain text. KnightLoader logs in only when it
+downloads, so a wrong password shows up on that download and not when you save
+the login.
 
 A plain `https://` link is claimed as WebDAV only when an account exists for that
 exact host, so no ordinary download is ever taken over. Public FTP archives need

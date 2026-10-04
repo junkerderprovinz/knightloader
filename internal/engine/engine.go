@@ -54,6 +54,10 @@ type Engine struct {
 	jobs    map[string]Job
 	mends   map[string]*mend
 	layouts *layoutStore
+	// restored is the library id of every paused transfer handed back at
+	// boot, by KL task id, until a Start carries it on or a Remove drops it
+	// (see resume.go).
+	restored map[string]string
 	// seeds is every torrent started only to seed (Job.Seed), by KL task id,
 	// and targets the seeding targets they stop at (see seed.go).
 	seeds   map[string]*seedRun
@@ -130,7 +134,21 @@ var newDownloaderMu sync.Mutex
 // New boots an embedded Gopeed downloader that saves into dir and reports
 // per-task changes through onUpdate.
 func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
+	return Open(dir, "", onUpdate)
+}
+
+// Open is New with a folder to keep paused HTTP transfers in, which then carry
+// on after a restart instead of starting over (see resume.go).
+func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
 	layouts := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}}
+	restored := map[string]string{}
+	if stateDir != "" {
+		layouts.kept = newKeptTransfers(stateDir)
+		var err error
+		if restored, err = layouts.kept.load(layouts.Storage); err != nil {
+			return nil, err
+		}
+	}
 	cfg := (&download.DownloaderConfig{
 		RefreshInterval: 500, // ms between progress events
 		Storage:         layouts,
@@ -167,6 +185,7 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		jobs:         map[string]Job{},
 		mends:        map[string]*mend{},
 		layouts:      layouts,
+		restored:     restored,
 		roots:        map[string]torrentRoot{},
 		picks:        map[string]torrentPick{},
 		pendingPicks: map[string][]int{},
@@ -428,6 +447,9 @@ func (e *Engine) Start(j Job) {
 	go func() {
 		defer e.wg.Done()
 		defer e.startEnded(j.TaskID, s)
+		if e.takeUp(j, s) {
+			return
+		}
 		rr, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
@@ -498,9 +520,10 @@ func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error)
 
 func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error) {
 	req := &base.Request{
-		URL:   j.URL,
-		Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
-		Proxy: requestProxy(j.Route),
+		URL:    j.URL,
+		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+		Labels: map[string]string{taskLabel: j.TaskID},
+		Proxy:  requestProxy(j.Route),
 	}
 	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 	rr, err := e.d.Resolve(req, opts)
@@ -720,7 +743,8 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.markStart(taskID, func(s *start) { s.removed = true })
 	e.mu.Lock()
 	delete(e.parked, taskID)
-	gid := e.toGopeed[taskID]
+	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
+	delete(e.restored, taskID)
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
 	delete(e.torrents, taskID)
