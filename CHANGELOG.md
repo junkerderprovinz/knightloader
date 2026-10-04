@@ -39,6 +39,13 @@ release's tag.
 
 ### Fixed
 
+- **A server that hangs up on a browser's user agent no longer fails the
+  download.** Some servers, Hetzner's speed-test mirrors among them, close the
+  connection at once when a download program sends a browser's user agent,
+  and the download failed with a bare "EOF". KnightLoader now asks such a
+  server once more with its own user agent and keeps it for the rest of the
+  download. A server that closes the connection either way gets an error that
+  says so.
 - **FTP, SFTP and WebDAV links are found in what you paste.** The link
   scanner looked only for http, https and magnet links, and Click'n'Load took
   only http and https, so the paste box, uploaded link lists, the
