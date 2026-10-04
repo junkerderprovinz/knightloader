@@ -37,6 +37,16 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.6.8] - 2026-10-04
+
+### Changed
+
+- **The store description names the default relay and the captcha widgets.**
+  It says that the developer runs parleyport.halleluja.design, that the app
+  follows a ParleyPort relay of your own when you scan the QR code, and that
+  answering a captcha loads reCAPTCHA, hCaptcha or Cloudflare Turnstile in a
+  web view.
+
 ## [1.6.7] - 2026-10-04
 
 ### Changed
