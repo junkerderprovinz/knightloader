@@ -499,6 +499,11 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 		name = j.Name
 	}
 	if !j.placed() || res == nil {
+		// The library would write a control character from the link as it is.
+		if res != nil && res.Name == "" && name != collide.SafeName(name) {
+			name = collide.SafeName(name)
+			opts.Name = name
+		}
 		return name, nil
 	}
 	if res.Name != "" {
