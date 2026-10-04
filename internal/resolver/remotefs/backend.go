@@ -44,10 +44,8 @@ const copyBuffer = 256 << 10
 // https URLs and go to the engine (see Resolver.Resolve); FTP, FTPS and SFTP
 // are downloaded here as a single stream with resume.
 type Backend struct {
-	accounts Accounts
-	dialer   Dialer
-	eng      Downloader
-	dir      string
+	eng Downloader
+	dir string
 
 	onUpdate func(taskID string, u core.Update)
 
@@ -60,9 +58,12 @@ type Backend struct {
 	// running transfer, and it is the only limit these non-HTTP transfers see.
 	RateLimit func() int64
 
-	mu   sync.Mutex
-	runs map[string]*runState
-	link map[string]string
+	mu sync.Mutex
+	// accounts and dialer change with SetLogins while transfers run.
+	accounts Accounts
+	dialer   Dialer
+	runs     map[string]*runState
+	link     map[string]string
 	// part is the part file each task writes until its transfer finishes,
 	// and saved the file finish made of it. Remove with deleteFiles deletes
 	// these and nothing else: another download of the same name can have
@@ -83,6 +84,14 @@ func NewBackend(accounts Accounts, dialer Dialer, eng Downloader, dir string, on
 		saved:       map[string]string{},
 		engineTasks: map[string]bool{},
 	}
+}
+
+// SetLogins makes the transfers started from now on log in with accounts
+// through dialer. A transfer already going keeps the connection it has.
+func (b *Backend) SetLogins(accounts Accounts, dialer Dialer) {
+	b.mu.Lock()
+	b.accounts, b.dialer = accounts, dialer
+	b.mu.Unlock()
 }
 
 func (b *Backend) Download(taskID, link string, headers map[string]string, conns int) {
@@ -237,9 +246,12 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(err)
 		return
 	}
+	b.mu.Lock()
+	accounts, dialer := b.accounts, b.dialer
+	b.mu.Unlock()
 	login := Login{Username: t.User}
-	if b.accounts != nil {
-		if l, ok := b.accounts.Login(t.Host); ok {
+	if accounts != nil {
+		if l, ok := accounts.Login(t.Host); ok {
 			login = l
 		}
 	}
@@ -262,7 +274,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	b.part[taskID] = part
 	b.mu.Unlock()
 
-	fs, err := b.dialer.Dial(ctx, t, login)
+	fs, err := dialer.Dial(ctx, t, login)
 	if err != nil {
 		fail(err)
 		return
