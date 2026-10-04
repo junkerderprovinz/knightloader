@@ -230,63 +230,63 @@ The downloads, hosts and accounts in these pictures are made up.
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with the total speed, the latest downloads and three instances" width="90%">
+  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with the total speed, the latest downloads and three instances" width="100%">
   <br><em>Overview: one number that matters, and what is happening under it.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-2-downloads.png" alt="Download list grouped by package, with running downloads, a failed file and an unpacked archive" width="90%">
+  <img src=".github/assets/screenshots/knightloader-2-downloads.png" alt="Download list grouped by package, with running downloads, a failed file and an unpacked archive" width="100%">
   <br><em>Downloads, grouped by package, under the queue controls and the speed curve.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-3-quick-settings.png" alt="The quick settings open over the download list" width="90%">
+  <img src=".github/assets/screenshots/knightloader-3-quick-settings.png" alt="The quick settings open over the download list" width="100%">
   <br><em>Quick settings: the limits you change most often, one click from the download list.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-4-collector.png" alt="The link collector with a YouTube video split into its variants" width="90%">
+  <img src=".github/assets/screenshots/knightloader-4-collector.png" alt="The link collector with a YouTube video split into its variants" width="100%">
   <br><em>The link collector: one YouTube link as video, audio, thumbnail, subtitles and description. Format and quality are picked on the row.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-5-appearance.png" alt="The Appearance page in Settings" width="90%">
+  <img src=".github/assets/screenshots/knightloader-5-appearance.png" alt="The Appearance page in Settings" width="100%">
   <br><em>Appearance: corners, labels, motion, colours and the theme.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-6-accounts.png" alt="Accounts with three debrid services, two Usenet servers and a hoster login" width="90%">
+  <img src=".github/assets/screenshots/knightloader-6-accounts.png" alt="Accounts with four debrid services, two Usenet servers and a hoster login" width="100%">
   <br><em>Accounts: debrid services, your own Usenet servers and hoster logins.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-7-rules.png" alt="Packagizer rules, the test box with a sample link and the categories" width="90%">
+  <img src=".github/assets/screenshots/knightloader-7-rules.png" alt="Packagizer rules, the test box with a sample link and the categories" width="100%">
   <br><em>Rules &amp; categories: rules sort links as they arrive, and the test box shows what they would do to one.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-8-app.png" alt="The Apps tab with the desktop apps, the phone app, the browser extensions and the bookmarklet" width="90%">
+  <img src=".github/assets/screenshots/knightloader-8-app.png" alt="The Apps tab with the desktop apps, the phone app, the browser extensions and the bookmarklet" width="100%">
   <br><em>The Apps tab: the desktop builds, the phone app, the browser extension and the bookmarklet.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-9-instances.png" alt="Instances: this one, one at home, one through the relay and one found on the network" width="90%">
+  <img src=".github/assets/screenshots/knightloader-9-instances.png" alt="Instances: this one, one at home, one through the relay and one found on the network" width="100%">
   <br><em>Instances: your other KnightLoaders, at home or through the relay, and the ones found on your network.</em>
 </p>
 

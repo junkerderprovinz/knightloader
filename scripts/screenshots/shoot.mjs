@@ -117,12 +117,18 @@ const WIDE = [
   },
 ];
 
-// The detail pictures' window shows 1080x720 of a page laid out at 1440x960,
-// so the download list keeps all its columns. The wide ones show 1270 pixels
-// of a page 1440 wide.
-const DETAIL = { canvas: [1600, 940], view: [1440, 960], drawn: [1080, 720] };
-const WIDE_VIEW = [1440, 690];
-const WIDE_W = 1270;
+// Every picture has the same canvas and the window in the same place, so the
+// windows line up as the README scrolls. The window shows a page laid out
+// 1440 wide, which keeps every column of the download list, at 1270/1440 of
+// its size. The page pictures keep twice the pixels, to be read when opened.
+const CANVAS = [1920, 1000];
+const WINDOW = { x: 600, y: 96, w: 1270, h: 760 };
+const PAGE = [1440, Math.round((1440 * WINDOW.h) / WINDOW.w)];
+
+// Logos of the services the pictures show, keyed by host: from Dashboard Icons
+// where it has one, else the site's own icon. A made-up host such as
+// files.example has none and keeps its monogram.
+const icons = join(fixtures, 'icons');
 
 /**
  * fixture reads the answer to one request: fixtures/<path>.json for
@@ -143,12 +149,21 @@ function json(name) {
   return JSON.parse(readFileSync(join(fixtures, `${name}.json`), 'utf8'));
 }
 
+/** hosterIcon answers /api/hosters/icon with the logo of the host or of a domain above it. */
+function hosterIcon(route, host) {
+  for (let h = host; h.includes('.'); h = h.slice(h.indexOf('.') + 1)) {
+    for (const [ext, contentType] of [['svg', 'image/svg+xml'], ['png', 'image/png']]) {
+      const file = join(icons, `${h}.${ext}`);
+      if (existsSync(file)) return route.fulfill({ contentType, body: readFileSync(file) });
+    }
+  }
+  return route.fulfill({ status: 204 });
+}
+
 async function answer(route, missing) {
   const request = route.request();
   const url = new URL(request.url());
-  // No favicons: every host draws its monogram, and no hoster's mark ends up
-  // in a picture.
-  if (url.pathname === '/api/hosters/icon') return route.fulfill({ status: 204 });
+  if (url.pathname === '/api/hosters/icon') return hosterIcon(route, url.searchParams.get('host') ?? '');
   const body = fixture(url);
   if (body !== null) return route.fulfill({ contentType: 'application/json', body });
   // A save the page makes on its own succeeds without changing anything.
@@ -245,7 +260,9 @@ const SIBLING_API = {
 // BIP39's all-zero test vector: a valid phrase that opens no real group.
 const PHRASE = `${'abandon '.repeat(11)}about`;
 const FILM = { id: 1, title: 'Big Buck Bunny · Open Movies', url: 'https://openmovies.example/films/big-buck-bunny' };
-const FILM_VIEW = [1000, 620];
+// The film page is made for a narrow window, so it is laid out narrower than
+// PAGE and drawn larger, the popup with it.
+const FILM_VIEW = [1000, Math.round((1000 * WINDOW.h) / WINDOW.w)];
 
 function stubChrome({ local, manifest, tab }) {
   const area = (mem) => ({
@@ -363,7 +380,7 @@ body { position: relative; overflow: hidden; font-family: Lato, sans-serif; back
 .mark { transform: rotate(-10deg); opacity: .32;
   filter: grayscale(1) brightness(.36) contrast(1.2) drop-shadow(-2px -2px 0 rgba(255,255,255,.16)) drop-shadow(12px 18px 26px rgba(0,0,0,.85)); }
 .vignette { inset: 0; box-shadow: inset 0 0 200px rgba(0,0,0,.6); }
-.copy { position: absolute; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; }
+.copy { position: absolute; display: flex; flex-direction: column; }
 h1 { font-family: "Bree Serif", serif; font-weight: 400; color: #f4f4f4; text-wrap: balance; }
 h1 em { font-style: normal; color: #FCC419; }
 .sub { color: #9d9481; }
@@ -410,11 +427,12 @@ const NAV = `<div class="nav">
 const LOCK = `<svg viewBox="0 0 12 12" fill="currentColor"><rect x="2" y="5" width="8" height="6" rx="1.2"/><path d="M4 5V3.6a2 2 0 0 1 4 0V5" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>`;
 
 /**
- * A window `w` x `h` (its content) at (x, y): a browser with `url` in its
- * address bar, or the desktop app's own window when `url` is null. `scale`
- * draws the whole window larger or smaller.
+ * The window at WINDOW showing `content`: a browser with `url` in its address
+ * bar, or the desktop app's own window when `url` is null. `popup` hangs from
+ * the extension's button, drawn `popup.w` wide.
  */
-function windowed(content, { x, y, w, h, url, popup, scale = 1 }) {
+function windowed(content, { url, popup }) {
+  const { x, y, w, h } = WINDOW;
   const barH = 48;
   const bar =
     url === null
@@ -423,39 +441,25 @@ function windowed(content, { x, y, w, h, url, popup, scale = 1 }) {
           popup ? `<div class="ext"><img src="${logo}"></div>` : ''
         }<div class="more">&#8942;</div></div>`;
   const floating = popup ? `<div class="popup"><img src="${dataUrl(popup.png, 'image/png')}" width="${popup.w}"></div>` : '';
-  return `<div class="stage" style="left:${x}px;top:${y}px;width:${w}px;height:${h + barH}px;transform:scale(${scale});transform-origin:0 0">
+  return `<div class="stage" style="left:${x}px;top:${y}px;width:${w}px;height:${h + barH}px">
   <div class="floor"></div>
   <div class="win">${bar}<div class="view" style="height:${h}px"><img src="${dataUrl(content, 'image/png')}" width="${w}" height="${h}">${floating}</div></div>
 </div>`;
 }
 
-function detailShot(png, scene) {
-  const [W, H] = DETAIL.canvas;
-  const [w, h] = DETAIL.drawn;
+// The caption starts at the same height in every picture, as the window does,
+// and in mobile/store/render.mjs's Android picture.
+function picture(content, { caption, sub }, frame) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
-body { width: ${W}px; height: ${H}px; }
-.copy { left: 80px; width: 330px; gap: 26px; }
-.copy img { width: 72px; }
-h1 { font-size: 46px; line-height: 1.14; }
-.sub { font-size: 21px; line-height: 1.35; }
-</style></head><body>
-${backdrop('46%', '-9%', '-4%')}
-<div class="copy"><img src="${logo}"><h1>${scene.caption}</h1><p class="sub">${SUB}</p></div>
-${windowed(png, { x: 470, y: (H - h - 48) / 2, w, h, url: `http://${HOST}:${PORT}${scene.path}` })}
-</body></html>`;
-}
-
-function wideShot(content, { caption, sub }, place) {
-  return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
-body { width: 1920px; height: 1000px; }
-.copy { left: 84px; width: 470px; gap: 28px; }
+body { width: ${CANVAS[0]}px; height: ${CANVAS[1]}px; }
+.copy { left: 84px; top: 210px; width: 470px; gap: 28px; }
 .copy img { width: 92px; }
 h1 { font-size: 64px; line-height: 1.12; }
 .sub { font-size: 28px; line-height: 1.35; }
 </style></head><body>
 ${backdrop('50%', '-9%', '-6%')}
 <div class="copy"><img src="${logo}"><h1>${caption}</h1><p class="sub">${sub}</p></div>
-${windowed(content, place)}
+${windowed(content, frame)}
 </body></html>`;
 }
 
@@ -527,24 +531,22 @@ const files = [];
 try {
   const base = `http://${HOST}:${vite.httpServer.address().port}`;
   for (const scene of picked(SCENES)) {
-    const png = await webPage(browser, base, scene, DETAIL.view, missing);
-    files.push(await render(browser, detailShot(png, scene), DETAIL.canvas, join(out, `knightloader-${scene.n}-${scene.name}.png`)));
+    const png = await webPage(browser, base, scene, PAGE, missing);
+    const frame = { url: `http://${HOST}:${PORT}${scene.path}` };
+    files.push(await render(browser, picture(png, { caption: scene.caption, sub: SUB }, frame), CANVAS, join(out, `knightloader-${scene.n}-${scene.name}.png`)));
     console.log(relative(root, files.at(-1)));
   }
   for (const shot of picked(WIDE)) {
     const file = join(out, `${shot.name}.png`);
     if (shot.scene) {
       const scene = SCENES.find((s) => s.name === shot.scene);
-      const png = await webPage(browser, base, scene, WIDE_VIEW, missing);
-      const h = Math.round((WIDE_VIEW[1] * WIDE_W) / WIDE_VIEW[0]);
+      const png = await webPage(browser, base, scene, PAGE, missing);
       const url = shot.frame === 'app' ? null : `http://${HOST}:${PORT}${scene.path}`;
-      await render(browser, wideShot(png, shot, { x: 600, y: (1000 - h - 48) / 2, w: WIDE_W, h, url }), [1920, 1000], file, true);
+      await render(browser, picture(png, shot, { url }), CANVAS, file, true);
     } else {
       const { page, popup } = await extensionShots(browser);
-      const [w, h] = FILM_VIEW;
-      const scale = WIDE_W / w;
-      const place = { x: 600, y: (1000 - (h + 48) * scale) / 2, w, h, url: FILM.url, popup: { png: popup, w: 420 }, scale };
-      await render(browser, wideShot(page, shot, place), [1920, 1000], file, true);
+      const frame = { url: FILM.url, popup: { png: popup, w: (420 * WINDOW.w) / FILM_VIEW[0] } };
+      await render(browser, picture(page, shot, frame), CANVAS, file, true);
     }
     files.push(file);
     console.log(relative(root, file));

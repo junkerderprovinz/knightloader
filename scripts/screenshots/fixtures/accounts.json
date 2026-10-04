@@ -49,6 +49,29 @@
     "import": false
   },
   {
+    "id": "torbox",
+    "service": "torbox",
+    "account": "",
+    "label": "Torrents",
+    "enabled": true,
+    "configured": true,
+    "fromEnv": false,
+    "ok": true,
+    "detail": "credential accepted",
+    "hosts": 64,
+    "hostsFetchedAt": "2026-09-24T12:55:00Z",
+    "tier": "premium",
+    "traffic": {
+      "used": 0,
+      "limit": 0,
+      "unlimited": true
+    },
+    "expiry": "2027-05-30T10:00:00Z",
+    "trafficLeft": "∞",
+    "canImport": true,
+    "import": false
+  },
+  {
     "id": "premiumize",
     "service": "premiumize",
     "account": "",
