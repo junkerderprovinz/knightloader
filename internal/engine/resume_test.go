@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"encoding/json"
 	"net"
 	"net/http"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/GopeedLab/gopeed/pkg/download"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -232,5 +234,64 @@ func TestAProbeThatFailsForNowKeepsTheBytesForTheNextStart(t *testing.T) {
 				t.Errorf("the finished file (%d bytes) is not what the origin served (%d bytes)", len(got), len(o.data))
 			}
 		})
+	}
+}
+
+// The library saves a paused task on a goroutine of its own, which can land
+// after the task was removed. That save writes no record, or the removed
+// download would come back as a paused task on every boot.
+func TestAPauseSavedAfterItsDownloadWasRemovedLeavesNoRecord(t *testing.T) {
+	t.Parallel()
+	state := t.TempDir()
+	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}, kept: newKeptTransfers(state)}
+	if _, err := s.kept.load(s.Storage); err != nil {
+		t.Fatal(err)
+	}
+	var paused download.Task
+	if err := json.Unmarshal([]byte(`{"id":"g1","protocol":"http","status":"pause","meta":{
+		"req":{"url":"http://origin/big.bin","labels":{"knightloader.task":"t1"}},
+		"res":{"size":16,"range":true,"files":[{"name":"big.bin","size":16}]},
+		"opts":{"path":"/downloads"}}}`), &paused); err != nil {
+		t.Fatal(err)
+	}
+	saveTask := func() {
+		_ = s.Put(savedLayoutBucket, "g1", map[string]any{"connections": 4})
+		_ = s.Put(savedTaskBucket, "g1", &paused)
+	}
+	records := func() []string {
+		kept, _ := filepath.Glob(filepath.Join(state, "*.json"))
+		return kept
+	}
+
+	saveTask()
+	if len(records()) != 1 {
+		t.Fatal("the pause wrote no record")
+	}
+	_ = s.Delete(savedTaskBucket, "g1")
+	_ = s.Delete(savedLayoutBucket, "g1")
+	if kept := records(); len(kept) != 0 {
+		t.Fatalf("the remove left %v", kept)
+	}
+	saveTask()
+	if kept := records(); len(kept) != 0 {
+		t.Errorf("the late save of the removed download wrote %v", kept)
+	}
+}
+
+// A record whose task is no longer in the list is let go at boot, with the
+// file left where it is.
+func TestATransferOfATaskNoLongerListedIsDroppedAtBoot(t *testing.T) {
+	t.Parallel()
+	_, j, file, _, dir, state := pausedBeforeRestart(t, false)
+	e, _ := restarted(t, dir, state)
+	e.PruneRestored(func(string) bool { return false })
+	if e.Resumes(j.TaskID, file) || e.Holds(j.TaskID) {
+		t.Error("the engine still holds the transfer of a task that is gone")
+	}
+	if left, _ := os.ReadDir(state); len(left) != 0 {
+		t.Errorf("the state folder still holds %d entries", len(left))
+	}
+	if _, err := os.Stat(file); err != nil {
+		t.Errorf("the file went with the transfer (%v)", err)
 	}
 }
