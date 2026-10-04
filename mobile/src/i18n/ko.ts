@@ -125,6 +125,7 @@ export const ko: Dict = {
   'share.added': '{name}의 수집기에 추가했습니다.',
   'share.addedCount': '{name}의 수집기에 링크 {n}개를 추가했습니다.',
   'share.none': '추가된 것이 없습니다. 공유한 내용에 새 링크가 없었습니다.',
+  'share.fileUnreadable': '추가된 것이 없습니다. 공유한 파일에 링크가 없거나 KnightLoader가 파일을 읽지 못했습니다.',
   'share.failed': '추가하지 못했습니다: {error}',
   'share.noConnection': '먼저 인스턴스를 연결한 다음 다시 공유하세요.',
   'share.retry': '다시 시도',

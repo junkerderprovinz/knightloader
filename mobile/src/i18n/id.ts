@@ -125,6 +125,7 @@ export const id: Dict = {
   'share.added': 'Ditambahkan ke pengumpul di {name}.',
   'share.addedCount': '{n} tautan ditambahkan ke pengumpul di {name}.',
   'share.none': 'Tidak ada yang ditambahkan. Yang kamu bagikan tidak berisi tautan baru.',
+  'share.fileUnreadable': 'Tidak ada yang ditambahkan. File yang kamu bagikan tidak berisi tautan, atau KnightLoader tidak bisa membacanya.',
   'share.failed': 'Tidak dapat menambahkan ini: {error}',
   'share.noConnection': 'Hubungkan instans dulu, lalu bagikan lagi.',
   'share.retry': 'Coba lagi',

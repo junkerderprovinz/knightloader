@@ -125,6 +125,7 @@ export const hu: Dict = {
   'share.added': 'Hozzáadva a(z) {name} gyűjtőjéhez.',
   'share.addedCount': '{n} link hozzáadva a(z) {name} gyűjtőjéhez.',
   'share.none': 'Semmi sem került hozzáadásra. A megosztott tartalomban nem volt új link.',
+  'share.fileUnreadable': 'Semmi sem került hozzáadásra. A megosztott fájlban nincs link, vagy a KnightLoader nem tudta beolvasni.',
   'share.failed': 'Nem sikerült hozzáadni: {error}',
   'share.noConnection': 'Előbb csatlakoztass egy példányt, aztán oszd meg újra.',
   'share.retry': 'Újra',

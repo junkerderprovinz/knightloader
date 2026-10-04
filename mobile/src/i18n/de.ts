@@ -146,6 +146,7 @@ export const de: Dict = {
   'share.added': 'Zum Sammler auf {name} hinzugefügt.',
   'share.addedCount': '{n} Links zum Sammler auf {name} hinzugefügt.',
   'share.none': 'Es wurde nichts hinzugefügt. Was du geteilt hast, enthielt keinen neuen Link.',
+  'share.fileUnreadable': 'Es wurde nichts hinzugefügt. In der Datei, die du geteilt hast, steht kein Link, oder KnightLoader konnte sie nicht lesen.',
   'share.failed': 'Konnte nicht hinzugefügt werden: {error}',
   'share.noConnection': 'Verbinde zuerst eine Instanz und teile dann noch einmal.',
   'share.retry': 'Noch einmal',

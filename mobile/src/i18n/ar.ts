@@ -125,6 +125,7 @@ export const ar: Dict = {
   'share.added': 'أُضيف إلى المُجمِّع على {name}.',
   'share.addedCount': 'أُضيف {n} روابط إلى المُجمِّع على {name}.',
   'share.none': 'لم يُضَف شيء. ما شاركته لا يحتوي على رابط جديد.',
+  'share.fileUnreadable': 'لم يُضَف شيء. الملف الذي شاركته لا يحتوي على روابط، أو تعذّر على KnightLoader قراءته.',
   'share.failed': 'تعذّرت الإضافة: {error}',
   'share.noConnection': 'اربط نسخة أولًا، ثم شارك مرة أخرى.',
   'share.retry': 'حاول مرة أخرى',

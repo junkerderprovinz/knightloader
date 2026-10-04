@@ -125,6 +125,7 @@ export const ja: Dict = {
   'share.added': '{name} のコレクターに追加しました。',
   'share.addedCount': '{name} のコレクターに {n} 件のリンクを追加しました。',
   'share.none': '何も追加されませんでした。共有された内容に新しいリンクはありませんでした。',
+  'share.fileUnreadable': '何も追加されませんでした。共有されたファイルにリンクがないか、KnightLoader がファイルを読み取れませんでした。',
   'share.failed': '追加できませんでした: {error}',
   'share.noConnection': '先にインスタンスを接続してから、もう一度共有してください。',
   'share.retry': '再試行',

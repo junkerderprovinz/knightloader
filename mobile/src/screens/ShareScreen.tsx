@@ -14,7 +14,11 @@ import { Text } from '../components/Text';
 
 const MARK = require('../../assets/android-icon-foreground.png');
 
+/** What plugins/withSharedText.js passes on for a shared file that gave no text, empty or not readable. */
+export const UNREADABLE_FILE = 'knightloader:unreadable-shared-file';
+
 type Phase =
+  | { kind: 'unreadable' }
   | { kind: 'loading' }
   | { kind: 'unpaired' }
   | { kind: 'pick'; list: ServerConnection[] }
@@ -44,7 +48,8 @@ export default function ShareScreen({
 }) {
   const { t } = useT();
   const { c, corners } = useAppearance();
-  const [phase, setPhase] = useState<Phase>({ kind: 'loading' });
+  const unreadable = text === UNREADABLE_FILE;
+  const [phase, setPhase] = useState<Phase>({ kind: unreadable ? 'unreadable' : 'loading' });
 
   const send = useCallback(
     async (conn: ServerConnection) => {
@@ -60,8 +65,9 @@ export default function ShareScreen({
   );
 
   useEffect(() => {
+    if (unreadable) return;
     listConnections().then((list) => setPhase(list.length === 0 ? { kind: 'unpaired' } : { kind: 'pick', list }));
-  }, []);
+  }, [unreadable]);
 
   const result = (p: Extract<Phase, { kind: 'done' }>) => {
     if (p.count === 0) return t('share.none');
@@ -76,9 +82,22 @@ export default function ShareScreen({
         <InfoTip text={t('share.hint')} />
       </View>
 
-      <Text style={[styles.shared, { color: c.textMuted }]} numberOfLines={3}>
-        {text}
-      </Text>
+      {!unreadable && (
+        <Text style={[styles.shared, { color: c.textMuted }]} numberOfLines={3}>
+          {text}
+        </Text>
+      )}
+
+      {phase.kind === 'unreadable' && (
+        <>
+          <Arrive style={[styles.card, { backgroundColor: c.surface, ...corners.card }]}>
+            <Text style={[styles.message, { color: c.textMuted }]}>{t('share.fileUnreadable')}</Text>
+          </Arrive>
+          <View style={styles.actions}>
+            <GlimButton tone="quiet" grow label={t('share.close')} icon={(ink) => <Cross color={ink} />} onPress={onClose} />
+          </View>
+        </>
+      )}
 
       {phase.kind === 'loading' && <ActivityIndicator color={c.textMuted} />}
 

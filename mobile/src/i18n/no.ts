@@ -125,6 +125,7 @@ export const no: Dict = {
   'share.added': 'Lagt til i samleren på {name}.',
   'share.addedCount': '{n} lenker lagt til i samleren på {name}.',
   'share.none': 'Ingenting ble lagt til. Det du delte, hadde ingen ny lenke.',
+  'share.fileUnreadable': 'Ingenting ble lagt til. Filen du delte, har ingen lenker, eller KnightLoader kunne ikke lese den.',
   'share.failed': 'Kunne ikke legge til dette: {error}',
   'share.noConnection': 'Koble til en instans først, og del så på nytt.',
   'share.retry': 'Prøv igjen',

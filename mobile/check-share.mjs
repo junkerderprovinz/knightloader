@@ -16,6 +16,8 @@
 // before the library sees the intent, on a cold start and on a new intent. A
 // text file from a file manager comes as text/plain with no EXTRA_TEXT, which
 // the library would pass on empty, so the plugin puts the file's text there.
+// A file that gives no text, empty or not readable, gets a marker instead, and
+// the share screen says what happened rather than the app dropping it.
 // That part runs the plugin over the MainActivity.kt prebuild starts from.
 //
 // The check compiles both screens with the Babel that Expo already installs
@@ -145,10 +147,10 @@ function screen(file) {
     mod,
     mod.exports,
   );
-  return mod.exports.default;
+  return mod.exports;
 }
-const ShareScreen = screen('ShareScreen.tsx');
-const AddDownloadScreen = screen('AddDownloadScreen.tsx');
+const { default: ShareScreen, UNREADABLE_FILE } = screen('ShareScreen.tsx');
+const AddDownloadScreen = screen('AddDownloadScreen.tsx').default;
 
 /** Everything on screen: its words, and the controls that can be pressed. */
 function draw(node, out) {
@@ -240,6 +242,17 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
 }
 
 {
+  sendFails = null;
+  const s = await open([home], () => ShareScreen({ text: UNREADABLE_FILE, onOpen() {}, onConnect() {}, onClose() {} }));
+  const shown = await s.settle();
+  const said = shown.words.join(' ');
+  if (!said.includes(t('share.fileUnreadable'))) fail(`a shared file with no text in it says "${said}" instead of why nothing came of it`);
+  if (said.includes(UNREADABLE_FILE)) fail('a shared file with no text in it shows the marker the app passes it on with');
+  if (shown.presses.some((p) => p.type === 'CardButton')) fail('a shared file with no text in it still offers to send it to an instance');
+  if (!shown.presses.some((p) => p.label === en['share.close'])) fail('a shared file with no text in it leaves no way back');
+}
+
+{
   const add = async (fails) => {
     sendFails = fails;
     const s = await open([], () => AddDownloadScreen({ conn: home, onDone() {} }));
@@ -290,8 +303,11 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   }
   const fill = body('fillShareExtras');
   if (!/EXTRA_SUBJECT[^\n]*putExtra\(Intent\.EXTRA_TITLE/.test(fill)) fail('fillShareExtras does not put the subject in EXTRA_TITLE');
-  if (!/sharedFileText\(intent\)[^\n]*putExtra\(Intent\.EXTRA_TEXT/.test(fill)) {
+  if (!/putExtra\(Intent\.EXTRA_TEXT[^\n]*sharedFileText\(/.test(fill)) {
     fail('a text file shared as text/plain never reaches EXTRA_TEXT, so the app opens and drops it');
+  }
+  if (!/putExtra\(Intent\.EXTRA_TEXT[^\n]*\?: UNREADABLE_FILE/.test(fill) || !kt.includes(`UNREADABLE_FILE = "${UNREADABLE_FILE}"`)) {
+    fail('a shared file that gives no text reaches the library empty, so the app opens and drops it without a word');
   }
   const read = body('sharedFileText');
   if (!read.includes('SCHEME_CONTENT') || !read.includes('GET_PROVIDERS')) fail("sharedFileText reads file paths or this app's own providers for any app that asks");
@@ -308,5 +324,6 @@ if (problems.length) {
 }
 console.log(
   'ok: a share waits for a tap on an instance, also with one paired, a failed share keeps its reason, ' +
-    'a title sent as the subject names the package, and a shared text file arrives as its text',
+    'a title sent as the subject names the package, a shared text file arrives as its text, ' +
+    'and a shared file with no text says so',
 );
