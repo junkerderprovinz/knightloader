@@ -42,9 +42,11 @@ release's tag.
 - **The Android app takes shared links.** KnightLoader appears in Android's
   share sheet. A link or text shared from YouTube, a browser or any other app
   goes to the collector of the instance you tap, and the title the app sent
-  names the package. You tap even with only one instance paired, so no other
-  app can send links to your server on its own. Files are not offered, because
-  the relay does not forward container and torrent uploads.
+  names the package. A text file shared from a file manager is read for its
+  links, so a .txt with a list of links works too. You tap even with only one
+  instance paired, so no other app can send links to your server on its own.
+  Other files are not offered, because the relay does not forward container
+  and torrent uploads.
 
 ### Fixed
 
