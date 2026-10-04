@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 type Backend struct {
@@ -64,6 +65,11 @@ type Backend struct {
 	// InUse, when set, reports whether a task other than taskID still has
 	// path. Remove leaves such a file where it is.
 	InUse func(taskID, path string) bool
+
+	// Placing, when set, returns how a subtitle row's files are put in the
+	// task's folder: the collision policy of its category. Nil places them
+	// under collide.DefaultPolicy.
+	Placing func(taskID string) workdir.Options
 
 	mu   sync.Mutex
 	runs map[string]*runState
@@ -192,14 +198,22 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			dir = d
 		}
 	}
-	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
-		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
-	}
 	var opts Options
 	if b.Options != nil {
 		opts = b.Options(taskID)
 	}
 	opts = opts.Sanitize()
+	// yt-dlp overwrites a subtitle file of the same name whatever wrote it, so
+	// a subtitle row writes into a folder of its own and placeSubtitles puts
+	// the files in place under the collision policy.
+	out := dir
+	if opts.Variant == VariantSubtitle {
+		out = filepath.Join(dir, subtitleStagePrefix+taskID)
+		defer os.RemoveAll(out)
+	}
+	if err := os.MkdirAll(out, filemode.Dir); err != nil {
+		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
+	}
 	target := url
 	stream, unwrapped, err := unwrap(ctx, b.client(), url)
 	if err != nil {
@@ -212,7 +226,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		}
 		return u, true
 	}
-	args := buildArgs(dir, opts)
+	args := buildArgs(out, opts)
 	if unwrapped {
 		target = stream.url
 		args = append(args, stream.args()...)
@@ -389,7 +403,67 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			Unsupported: notMine(msg),
 		}, true
 	}
+	if opts.Variant == VariantSubtitle {
+		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
+	}
 	return b.finish(opts, final, subFiles, ""), true
+}
+
+// subtitleStagePrefix names the folder a subtitle row writes into before its
+// files are placed. The dot keeps it out of the way of media scanners.
+const subtitleStagePrefix = ".knightloader-subs-"
+
+// placeSubtitles moves the files a subtitle row wrote from stage to dir under
+// the task's collision policy and finishes the row on where final landed, with
+// the other languages as OtherFiles. A row whose every file was skipped
+// fails the way a skipped download does.
+func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final string, written []string, subFiles int) core.Update {
+	var mo workdir.Options
+	if b.Placing != nil {
+		mo = b.Placing(taskID)
+	}
+	var placed []string
+	landed, skipped := "", ""
+	for _, src := range written {
+		rel, err := filepath.Rel(stage, src)
+		if err != nil {
+			return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}
+		}
+		res, err := workdir.Move(context.Background(), src, filepath.Join(dir, filepath.Dir(rel)), mo)
+		if err != nil {
+			return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}
+		}
+		if res.Skipped {
+			if skipped == "" {
+				skipped = filepath.Join(dir, rel)
+			}
+			continue
+		}
+		placed = append(placed, res.Path)
+		if src == final {
+			landed = res.Path
+		}
+	}
+	if len(placed) == 0 && skipped != "" {
+		return core.Update{
+			Status: core.StatusError,
+			Err:    "not downloaded: " + skipped + " already exists",
+			Code:   core.CodeFileExists,
+			Params: map[string]string{"file": filepath.Base(skipped)},
+		}
+	}
+	if landed == "" && len(placed) > 0 {
+		landed = placed[len(placed)-1]
+	}
+	u := b.finish(o, landed, subFiles, "")
+	if u.Status == core.StatusDone {
+		for _, p := range placed {
+			if p != landed {
+				u.OtherFiles = append(u.OtherFiles, p)
+			}
+		}
+	}
+	return u
 }
 
 // liveStopGrace is how long a live recording gets after the interrupt to
@@ -418,8 +492,7 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		return u
 	}
 	if final == "" {
-		// A row that wrote nothing new, or several subtitle files, which no
-		// one path names.
+		// A row that wrote nothing new.
 		return u
 	}
 	// The progress lines counted one stream at a time, and the app deletes a
@@ -567,10 +640,9 @@ func wroteFile(line string) (string, bool) {
 
 // sidecarFile is the file a thumbnail, subtitle or description row produced:
 // the last one it wrote, which for a thumbnail is the converted copy. The
-// media rows announce theirs with Destination lines, and several subtitle
-// files have no one path to report.
+// media rows announce theirs with Destination lines.
 func sidecarFile(v Variant, written []string) string {
-	if v == VariantVideo || v == VariantAudio || len(written) == 0 || (v == VariantSubtitle && len(written) > 1) {
+	if v == VariantVideo || v == VariantAudio || len(written) == 0 {
 		return ""
 	}
 	return written[len(written)-1]

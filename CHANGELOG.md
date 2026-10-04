@@ -321,8 +321,9 @@ release's tag.
   behind, and a video or audio row left its .nfo. KnightLoader now records the
   file each of these rows wrote, names the row after that file and deletes the
   file with the row. The video and audio rows of a link share one .nfo, which
-  goes when the second of them is removed. A subtitle row that wrote several
-  languages still keeps its files.
+  goes when the second of them is removed. A subtitle row with several
+  languages records the file of each language and deletes all of them, except
+  a file another row still has.
 - **Add links in the Android app says why a send failed.** When the request
   never reached the instance, or a relay connection had to be added again, the
   screen said only "Could not send the links." The reason follows it now, with
@@ -383,7 +384,9 @@ release's tag.
 - **Subtitles are saved as .srt when the site only has WebVTT.** A subtitle
   row showed .srt but kept the site's .vtt file when the site had no .srt, and
   the log said the download was saved under another name. KnightLoader now
-  converts the subtitles to .srt.
+  converts the subtitles to .srt. A subtitle row also follows the collision
+  policy like any other download. It used to overwrite a .srt of the same name
+  from another download, and the skip setting never caught it.
 - **Stopped media downloads leave no zombie ffmpeg in the container.** Every
   pause or removal of a yt-dlp download that ran ffmpeg left a zombie process
   behind until the container restarted. The image now starts KnightLoader
