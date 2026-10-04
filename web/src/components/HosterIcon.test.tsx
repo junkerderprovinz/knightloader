@@ -116,7 +116,7 @@ it('takes a 204 as no icon and does not ask again', async () => {
 
 it('shows a monogram while the instance fetches the icon and asks again later', async () => {
   vi.useFakeTimers();
-  const fetch = answers(503, 200);
+  const fetch = answers(202, 200);
   act(() => root.render(<HosterIcon host="katfile.com" />));
   await settle();
   expect(img()).toBeNull();
@@ -129,7 +129,7 @@ it('shows a monogram while the instance fetches the icon and asks again later', 
 
 it('stops asking once the retries are spent', async () => {
   vi.useFakeTimers();
-  const fetch = answers(503);
+  const fetch = answers(202);
   act(() => root.render(<HosterIcon host="ddownload.com" />));
   await settle();
   for (const pause of RETRY_MS) await act(() => vi.advanceTimersByTimeAsync(pause));
@@ -137,6 +137,19 @@ it('stops asking once the retries are spent', async () => {
   expect(fetch).toHaveBeenCalledTimes(RETRY_MS.length + 1);
   expect(img()).toBeNull();
   expect(host.textContent).toBe('d');
+});
+
+it('asks again after the instance did not answer at all', async () => {
+  vi.useFakeTimers();
+  const fetch = answers(200);
+  fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
+  act(() => root.render(<HosterIcon host="mega.nz" />));
+  await settle();
+  expect(host.textContent).toBe('m');
+
+  await act(() => vi.advanceTimersByTimeAsync(RETRY_MS[0]));
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(img()?.getAttribute('src')).toBe('blob:icon');
 });
 
 it('asks only once the row is scrolled into view', async () => {

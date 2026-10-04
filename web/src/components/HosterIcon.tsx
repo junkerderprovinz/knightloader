@@ -4,7 +4,7 @@ import { serviceMark } from '../lib/serviceMarks';
 
 /**
  * RETRY_MS are the pauses before asking again while the instance is still
- * fetching an icon. It answers 503 at once and fetches in the background; a
+ * fetching an icon. It answers 202 at once and fetches in the background; a
  * host without an icon gets a 204 and is not asked again.
  */
 export const RETRY_MS = [3000, 10000, 30000];
@@ -93,11 +93,11 @@ function askForIcon(host: string): Promise<Icon> {
 async function fetchIcon(host: string): Promise<Icon> {
   try {
     const r = await fetch(hosterIconURL(host));
-    if (r.status === 503) return undefined;
+    if (r.status === 202) return undefined;
     const body = r.status === 200 ? await r.blob() : null;
     return body?.size ? URL.createObjectURL(body) : null;
   } catch {
-    // The instance did not answer; that is worth another try, like a 503.
+    // The instance did not answer; that is worth another try, like a 202.
     return undefined;
   }
 }
