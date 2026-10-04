@@ -216,6 +216,7 @@ export const fr: Dict = {
   'settings.appsParleyportHint': 'ParleyPort est le relais qui relie vos instances d’un réseau à l’autre, et vous pouvez le faire tourner vous-même. Saisissez son adresse dans l’interface web, dans Paramètres, Appairage : les instances qui partagent vos douze mots passent alors par votre relais au lieu de celui du projet. Un clic copie la commande qui le démarre :',
   'settings.appsExtension': 'Extension de navigateur',
   'settings.appsExtensionHint': 'L’extension envoie un lien, une sélection ou la page ouverte à votre KnightLoader, depuis le menu du clic droit ou son bouton dans la barre d’outils. Chrome, Brave, Opera et Vivaldi l’installent depuis le Chrome Web Store, Edge depuis Edge Add-ons.',
+  'settings.appsExtensionSub': 'Extension',
   'settings.appsSoon': 'Bientôt',
   'settings.privacyPolicy': 'Politique de confidentialité',
   'settings.removeAllConnections': 'Supprimer toutes les connexions',

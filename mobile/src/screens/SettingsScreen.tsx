@@ -29,18 +29,22 @@ import IconBadge, {
   AppleMark,
   Back,
   BitcoinLetter,
+  BraveMark,
   ChromeMark,
   CoffeeArt,
   DockerMark,
+  EdgeMark,
   FirefoxMark,
   Github,
   LinuxMark,
   MailMark,
+  OperaMark,
   ParleyPortMark,
   Paste,
   PayPal,
   Trash,
   UnraidMark,
+  VivaldiMark,
   WindowsMark,
   ZipMark,
 } from '../components/IconBadge';
@@ -63,9 +67,8 @@ const COFFEE_URL = 'https://buymeacoffee.com/junkerderprovinz';
 const PRIVACY_URL = `${REPO_URL}/blob/main/mobile/PRIVACY.md`;
 
 // The README's download links (scripts/download_buttons.py). A file under
-// /releases/latest/download/ is always the newest release's. The extension
-// links to its Chrome Web Store listing, which Brave, Opera and Vivaldi
-// install from too.
+// /releases/latest/download/ is always the newest release's. Brave, Opera and
+// Vivaldi install the extension from its Chrome Web Store listing.
 const RELEASE = `${REPO_URL}/releases/latest/download/knightloader-`;
 const APP_URLS = {
   windows: `${RELEASE}windows-amd64-installer.exe`,
@@ -73,7 +76,8 @@ const APP_URLS = {
   macos: `${RELEASE}macos-universal.zip`,
   linux: `${RELEASE}linux-amd64.zip`,
   linuxArm: `${RELEASE}linux-arm64.zip`,
-  extension: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
+  chromeWebStore: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
+  edgeAddons: 'https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl',
 };
 
 /** The source of this app's version where it is a release, the newest
@@ -747,8 +751,8 @@ export default function SettingsScreen({
           />
           <ReadmeButton
             brand="windows"
-            label="ARM64"
-            sub="Windows"
+            label="Windows"
+            sub="ARM64"
             mark={({ mark }) => <WindowsMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.windowsArm)}
           />
@@ -768,24 +772,53 @@ export default function SettingsScreen({
           />
           <ReadmeButton
             brand="linux"
-            label="ARM64"
-            sub="Linux"
+            label="Linux"
+            sub="ARM64"
             mark={({ mark }) => <LinuxMark color={mark} />}
             onPress={() => Linking.openURL(APP_URLS.linuxArm)}
           />
         </View>
       </NotchCard>
 
-      {/* The Chrome Web Store listing, as on the README. Firefox takes only an
+      {/* One button per browser, as on the README and the web's Apps page.
+          Brave, Opera and Vivaldi open Chrome's listing. Firefox takes only an
           add-on Mozilla has signed, which comes with its listing. */}
       <NotchCard title={t('settings.appsExtension')} hue={8} info={t('settings.appsExtensionHint')}>
         <View style={styles.readmeRow}>
           <ReadmeButton
             brand="chrome"
             label="Chrome"
-            sub="Edge, Brave"
+            sub={t('settings.appsExtensionSub')}
             mark={({ mark, lit }) => <ChromeMark lit={lit} color={mark} />}
-            onPress={() => Linking.openURL(APP_URLS.extension)}
+            onPress={() => Linking.openURL(APP_URLS.chromeWebStore)}
+          />
+          <ReadmeButton
+            brand="edge"
+            label="Edge"
+            sub={t('settings.appsExtensionSub')}
+            mark={({ mark, lit }) => <EdgeMark lit={lit} color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.edgeAddons)}
+          />
+          <ReadmeButton
+            brand="brave"
+            label="Brave"
+            sub={t('settings.appsExtensionSub')}
+            mark={({ mark, lit }) => <BraveMark lit={lit} color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.chromeWebStore)}
+          />
+          <ReadmeButton
+            brand="opera"
+            label="Opera"
+            sub={t('settings.appsExtensionSub')}
+            mark={({ mark, lit }) => <OperaMark lit={lit} color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.chromeWebStore)}
+          />
+          <ReadmeButton
+            brand="vivaldi"
+            label="Vivaldi"
+            sub={t('settings.appsExtensionSub')}
+            mark={({ mark, lit }) => <VivaldiMark lit={lit} color={mark} />}
+            onPress={() => Linking.openURL(APP_URLS.chromeWebStore)}
           />
           <ReadmeButton brand="firefox" label="Firefox" soon={t('settings.appsSoon')} mark={() => <FirefoxMark />} />
         </View>

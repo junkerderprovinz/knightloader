@@ -216,6 +216,7 @@ export const vi: Dict = {
   'settings.appsParleyportHint': 'ParleyPort là relay kết nối các phiên bản của bạn, kể cả khi chúng ở các mạng khác nhau, và bạn có thể tự chạy nó. Nhập địa chỉ của nó trong giao diện web, ở Cài đặt, Ghép nối, rồi các phiên bản dùng chung mười hai từ của bạn sẽ liên lạc qua relay của bạn thay vì relay của dự án. Một cú nhấp sẽ sao chép lệnh khởi động nó:',
   'settings.appsExtension': 'Tiện ích mở rộng trình duyệt',
   'settings.appsExtensionHint': 'Tiện ích gửi một liên kết, đoạn văn bản đã chọn hoặc trang đang mở đến KnightLoader của bạn, từ menu chuột phải hoặc nút của nó trên thanh công cụ. Chrome, Brave, Opera và Vivaldi cài đặt nó từ Chrome Web Store, còn Edge từ Edge Add-ons.',
+  'settings.appsExtensionSub': 'Tiện ích mở rộng',
   'settings.appsSoon': 'Sắp có',
   'settings.privacyPolicy': 'Chính sách quyền riêng tư',
   'settings.removeAllConnections': 'Xóa tất cả kết nối',

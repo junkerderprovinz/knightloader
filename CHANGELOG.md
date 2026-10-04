@@ -165,6 +165,14 @@ release's tag.
   A rename that succeeds also clears the error an earlier failed rename left on
   the download.
 
+- **Fewer failed icon loads in the browser console.** For a host that cannot
+  have a site icon, such as an IP address, a local name like nas.local, a
+  torrent or a task id, the web UI shows the letter tile at once instead of
+  asking the instance four times. A host the instance found no icon for is
+  asked once and no longer shows up as a failed load, and neither does an
+  icon the instance is still fetching. Leaving a page before its live
+  connection is up no longer logs a WebSocket warning.
+
 ## [1.7.0] - 2026-10-04
 
 ### Added

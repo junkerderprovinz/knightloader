@@ -216,6 +216,7 @@ export const hi: Dict = {
   'settings.appsParleyportHint': 'ParleyPort वह रिले है जो आपके इंस्टेंस को अलग-अलग नेटवर्क के पार भी जोड़ता है, और आप इसे खुद चला सकते हैं। वेब यूज़र इंटरफ़ेस में सेटिंग्स में पेयरिंग के अंतर्गत इसका पता डालें, फिर आपके बारह शब्दों वाले इंस्टेंस प्रोजेक्ट के रिले की जगह आपके रिले से बात करेंगे। एक क्लिक वह कमांड कॉपी कर देता है जो इसे शुरू करती है:',
   'settings.appsExtension': 'ब्राउज़र एक्सटेंशन',
   'settings.appsExtensionHint': 'एक्सटेंशन राइट-क्लिक मेनू या टूलबार पर अपने बटन से कोई लिंक, चुना हुआ टेक्स्ट या खुला पेज आपके KnightLoader को भेजता है। Chrome, Brave, Opera और Vivaldi इसे Chrome Web Store से इंस्टॉल करते हैं, Edge इसे Edge Add-ons से।',
+  'settings.appsExtensionSub': 'एक्सटेंशन',
   'settings.appsSoon': 'जल्द ही',
   'settings.privacyPolicy': 'गोपनीयता नीति',
   'settings.removeAllConnections': 'सभी कनेक्शन हटाएं',

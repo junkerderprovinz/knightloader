@@ -101,7 +101,8 @@
       "settings.aboutGithub",
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
-      "settings.notifications"
+      "settings.notifications",
+      "settings.appsExtensionSub"
     ],
     "gl": [
       "captcha.screenTitle",

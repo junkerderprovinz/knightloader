@@ -216,6 +216,7 @@ export const et: Dict = {
   'settings.appsParleyportHint': 'ParleyPort on edastaja, mis ühendab sinu eksemplarid ka eri võrkude vahel, ja sa saad seda ise käitada. Sisesta selle aadress veebiliideses jaotises Seaded, Sidumine, siis suhtlevad sinu kaheteistkümne sõnaga seotud eksemplarid projekti edastaja asemel sinu edastaja kaudu. Klõps kopeerib käsu, mis selle käivitab:',
   'settings.appsExtension': 'Brauserilaiendus',
   'settings.appsExtensionHint': 'Laiendus saadab lingi, valiku või avatud lehe sinu KnightLoaderisse, paremklõpsu menüüst või oma nupust tööriistaribal. Chrome, Brave, Opera ja Vivaldi paigaldavad selle Chrome Web Store’ist, Edge aga Edge Add-ons’ist.',
+  'settings.appsExtensionSub': 'Laiendus',
   'settings.appsSoon': 'Varsti',
   'settings.privacyPolicy': 'Privaatsuspoliitika',
   'settings.removeAllConnections': 'Eemalda kõik ühendused',

@@ -598,8 +598,8 @@ export function MailMark({ open, color }: { open: boolean; color: string }) {
 
 /* The Apps cards' marks, rendered from the ones the web interface's Apps page
  * draws: Windows, Apple, Docker and Unraid from Dashboard Icons, Tux and the browsers'
- * one-ink marks from Simple Icons (CC0), the ZIP from Font Awesome Free (CC BY
- * 4.0). */
+ * one-ink marks from Simple Icons (CC0, Vivaldi's CC BY 4.0), the ZIP from Font
+ * Awesome Free (CC BY 4.0). */
 
 export function WindowsMark({ color }: { color: string }) {
   return <Tinted source={require('../../assets/windows-mark.png')} color={color} style={styles.fill} />;
@@ -635,10 +635,31 @@ export function LinuxMark({ color }: { color: string }) {
 }
 
 /** Chrome in its own colours, and in one ink while pressed, where its
- *  gradients would flatten to a blot. */
+ *  gradients would flatten to a blot. The Chromium browsers after it work the
+ *  same way. */
 export function ChromeMark({ lit, color }: { lit: boolean; color: string }) {
   if (lit) return <Tinted source={require('../../assets/chrome-mark-lit.png')} color={color} style={styles.fill} />;
   return <Image source={require('../../assets/chrome-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
+export function EdgeMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/edge-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/edge-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
+export function BraveMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/brave-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/brave-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
+export function OperaMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/opera-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/opera-mark.png')} style={styles.fill} resizeMode="contain" />;
+}
+
+export function VivaldiMark({ lit, color }: { lit: boolean; color: string }) {
+  if (lit) return <Tinted source={require('../../assets/vivaldi-mark-lit.png')} color={color} style={styles.fill} />;
+  return <Image source={require('../../assets/vivaldi-mark.png')} style={styles.fill} resizeMode="contain" />;
 }
 
 /** ParleyPort in its own colours, and in one ink while pressed, where its
