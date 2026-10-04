@@ -8,8 +8,8 @@ per row, and the decision is recorded in the Verdict column as we go.
 
 | Status | Count | Meaning |
 |---|---|---|
-| have | 86 | present and working here |
-| partial | 238 | some of it exists, the table says which part is missing |
+| have | 87 | present and working here |
+| partial | 237 | some of it exists, the table says which part is missing |
 | missing | 604 | not built |
 
 Effort is judged for *this* architecture: S is under a day, M a day or two,
@@ -29,7 +29,7 @@ survey nobody re-added.
 2. [Downloads tab](#2-downloads-tab) - 104 features: 22 have, 32 partial, 50 missing
 3. [Toolbar, main menus and global controls](#3-toolbar-main-menus-and-global-controls) - 79 features: 14 have, 23 partial, 42 missing
 4. [Reconnect, proxies and network](#4-reconnect-proxies-and-network) - 102 features: 3 have, 5 partial, 94 missing
-5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 11 have, 30 partial, 93 missing
+5. [Settings (complete settings tree)](#5-settings-complete-settings-tree) - 134 features: 12 have, 29 partial, 93 missing
 6. [LinkGrabber tab](#6-linkgrabber-tab) - 106 features: 12 have, 37 partial, 57 missing
 7. [Accounts, hosters, premium handling](#7-accounts-hosters-premium-handling) - 87 features: 7 have, 27 partial, 53 missing
 8. [Automation, rules and scripting](#8-automation-rules-and-scripting) - 130 features: 4 have, 34 partial, 92 missing
@@ -439,7 +439,7 @@ Grounded in the mirror/jdownloader source: reconnect is a plugin registry (Recon
 
 JD2's settings sidebar is a flat list, not a tree, and its exact order is hardcoded in SettingsSidebarModel.fill(): General, Reconnect, Connection Manager, Account Manager, Basic Authentication, Plugins, Captchas, User Interface, Bubble Notify, My.JDownloader, Linkgrabber Filter, Packagizer, Archive Extractor, Tray, Advanced Settings, Extension Modules, then every enabled extension alphabetically. There is no "Downloads" or "Passwords" node: download options sit under General, and passwords are split across Account Manager, Basic Authentication, Extraction's password list, the tray/GUI password and My.JDownloader. Advanced Settings is not a panel of its own options but a generic raw editor over every @AboutConfig-annotated key in every ConfigInterface (core + plugins + extensions), which is why hundreds of real features have no GUI panel at all.
 
-134 features - 11 have, 30 partial, 93 missing.
+134 features - 12 have, 29 partial, 93 missing.
 
 | Feature | What it does | Where in JD | Weight | Status | Effort | Blocker | Verdict |
 |---|---|---|---|---|---|---|---|
@@ -492,7 +492,7 @@ JD2's settings sidebar is a flat list, not a tree, and its exact order is hardco
 | **Extract to the following folder / Extract to** | Checkbox plus folder chooser redirecting extraction away from the archive's own directory. | Settings > Archive Extractor > Extract destination folder | common | missing | S | The destination is always a sibling of the archive (internal/extract/extract.go:182 destDir); there is no redirect option. |  |
 | **Filter** | Tab holding the blocklist: links matching these rules are filtered out. | Settings > Linkgrabber Filter > Filter | common | missing | M | Depends on a rule engine that does not exist. |  |
 | **GeneralSettings.downloadspeedlimit / downloadspeedlimitenabled** | Global bandwidth cap in bytes/s, mirrored by the speed-limit control in the status bar. | Advanced Settings > GeneralSettings | common | have | S |  |  |
-| **GeneralSettings.dupemanagerenabled / maxdownloadlinkhistoryentries** | Remembers already-downloaded links so re-added duplicates can be recognised, bounded by a history size. | Advanced Settings > GeneralSettings | common | partial | S | Only links currently in flight are deduplicated; finished and errored tasks deliberately do not block a re-add, and there is no download history store or history-size cap. |  |
+| **GeneralSettings.dupemanagerenabled / maxdownloadlinkhistoryentries** | Remembers already-downloaded links so re-added duplicates can be recognised, bounded by a history size. | Advanced Settings > GeneralSettings | common | have | S | none. A link the download history already holds is rejected with the name and date of that download, and a restore adds it anyway (Settings > Link collector, "Reject links already downloaded"). "History entries" under Settings > Downloads caps the history. |  |
 | **GraphicalUserInterfaceSettings.lookandfeeltheme / customlookandfeelclass** | Chooses the Swing look-and-feel (FlatLaf light/dark, Java system, Synthetica), deliberately not surfaced in the User Interface panel. | Advanced Settings > GraphicalUserInterfaceSettings | common | have | S |  |  |
 | **Group single files in a 'various package'** | Collects loose single files that belong to no package into one catch-all package in the linkgrabber. | Settings > General > Linkgrabber | common | partial | S | A batch gets a derived name from its common stem or host, but loose files sharing nothing stay ungrouped: there is no catch-all "various" package and no toggle for it. |  |
 | **Host / Port / User / Pass / Native auth** | Per-proxy address, port and credentials, with an option to hand authentication to the OS layer. | Settings > Connection Manager > table columns | common | missing | S |  |  |
