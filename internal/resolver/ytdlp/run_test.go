@@ -817,6 +817,36 @@ func TestASubtitleRowUnderSkipLeavesASubtitleFileFromAnotherSource(t *testing.T)
 	folderHolds(t, filepath.Dir(theirs), "A Video.de.srt")
 }
 
+// The app keeps the last name an update gave, and the progress lines name the
+// .vtt in the staging folder, which never reaches the target folder.
+func TestASubtitleRowRefusedUnderSkipIsNamedAfterItsTargetFile(t *testing.T) {
+	t.Setenv(runHelperEnv, "vttsubs2:full")
+	dir := t.TempDir()
+	for _, lang := range []string{"en", "de"} {
+		if err := os.WriteFile(filepath.Join(dir, "A Video."+lang+".srt"), []byte("another source"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.Options = func(string) Options { return Options{Variant: VariantSubtitle, SubtitleLangs: "en,de"} }
+	b.Placing = func(string) workdir.Options { return workdir.Options{Policy: collide.Skip} }
+	b.run("task-1", "https://example.invalid/watch?v=x")
+
+	if got := rec.last(); got.Code != core.CodeFileExists {
+		t.Fatalf("last update = %+v, want an error with code %q", got, core.CodeFileExists)
+	}
+	name := ""
+	for _, u := range rec.all() {
+		if u.Name != "" {
+			name = u.Name
+		}
+	}
+	if name != "A Video.de" {
+		t.Errorf("the row is named %q, want %q as a placed row would be", name, "A Video.de")
+	}
+}
+
 func TestASubtitleRowUnderOverwriteReplacesTheFileOfTheSameName(t *testing.T) {
 	theirs, rec := runSubtitleBeside(t, collide.Overwrite)
 	if got := rec.last(); got.Status != core.StatusDone || got.File != theirs {

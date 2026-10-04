@@ -434,7 +434,7 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 			return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}
 		}
 		if res.Skipped {
-			if skipped == "" {
+			if skipped == "" || src == final {
 				skipped = filepath.Join(dir, rel)
 			}
 			continue
@@ -445,8 +445,11 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 		}
 	}
 	if len(placed) == 0 && skipped != "" {
+		// Named as finish names a placed row, or it keeps the staged .vtt
+		// name from the progress lines.
 		return core.Update{
 			Status: core.StatusError,
+			Name:   strings.TrimSuffix(filepath.Base(skipped), filepath.Ext(skipped)),
 			Err:    "not downloaded: " + skipped + " already exists",
 			Code:   core.CodeFileExists,
 			Params: map[string]string{"file": filepath.Base(skipped)},

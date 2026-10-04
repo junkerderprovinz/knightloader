@@ -1493,6 +1493,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// This failure's retry plan for this host (see settings.RetryFor).
 		plan := cfg.RetryFor(string(t.Reason), hostOf(t.URL))
 		switch {
+		case t.ErrorCode == core.CodeFileExists:
+			// The collision policy refused the file, as the dispatch skip
+			// does, and a retry would only ask it again or, after a switch
+			// to rename, place the file after all.
+			t.NextTry = time.Time{}
 		case plan.Never:
 			// Configured never to retry: GaveUp marks a decision rather than
 			// an exhausted counter.
