@@ -206,3 +206,71 @@ func TestRemovingAPausedRemoteDownloadWithFilesDeletesItsPartFileAfterARestart(t
 		t.Errorf("the other download of the same name lost its part file: %v", err)
 	}
 }
+
+// pausedRemoteTask is a paused FTP download in the download folder as a
+// restart finds it: the backend has never heard of it, and its part file holds
+// what it had fetched.
+func pausedRemoteTask(t *testing.T, a *App, id, name string) (part string) {
+	t.Helper()
+	link := "ftp://127.0.0.1:1/pub/film.mkv"
+	a.mu.Lock()
+	dir := a.defaultDir()
+	a.tasks[id] = &core.Task{
+		ID: id, URL: link, Name: name, Resolver: remotefs.ResolverID, Dir: dir,
+		Status: core.StatusPaused, Enabled: true, Size: 4096, Loaded: 1024,
+	}
+	a.mu.Unlock()
+	part = remotefs.PartFile(dir, link, id)
+	if err := os.WriteFile(part, make([]byte, 1024), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return part
+}
+
+func orphansOf(t *testing.T, a *App) []reclaim.Orphan {
+	t.Helper()
+	rep, err := a.Reclaim()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rep.Orphans
+}
+
+// A remove without files is the one an undo can take back, so the part file
+// stays for the row to resume from, and until then nothing claims it.
+func TestAPlainRemoveOfAPausedRemoteDownloadKeepsItsPartFileForAnUndo(t *testing.T) {
+	a := newCrawlApp(t, true)
+	part := pausedRemoteTask(t, a, "1", "film.mkv")
+
+	removed, token := a.RemoveTasksUndoable([]string{"1"}, false)
+	if len(removed) != 1 || token == "" {
+		t.Fatalf("removed %v with token %q, want the row and a way back", removed, token)
+	}
+	if _, err := os.Stat(part); err != nil {
+		t.Fatalf("a remove without files deleted the part file: %v", err)
+	}
+	if got := orphansOf(t, a); len(got) != 1 || got[0].Path != part {
+		t.Errorf("orphans = %+v, want the part file no row claims any more", got)
+	}
+
+	if back := a.UndoRemove(token); len(back) != 1 {
+		t.Fatalf("undo brought back %v", back)
+	}
+	if got := liveTask(a, "1"); got.Loaded != 1024 {
+		t.Errorf("loaded = %d after the undo, want the 1024 bytes in the part file", got.Loaded)
+	}
+	if got := orphansOf(t, a); len(got) != 0 {
+		t.Errorf("orphans = %+v after the undo, want none", got)
+	}
+}
+
+// The part file is named from the link, and a rename of the paused row leaves
+// it where it is.
+func TestTheRenamedRemoteDownloadsPartFileIsNotAnOrphan(t *testing.T) {
+	a := newCrawlApp(t, true)
+	pausedRemoteTask(t, a, "1", "renamed.mkv")
+
+	if got := orphansOf(t, a); len(got) != 0 {
+		t.Errorf("orphans = %+v, want the paused row's part file claimed", got)
+	}
+}

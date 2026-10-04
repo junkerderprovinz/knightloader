@@ -64,8 +64,9 @@ type Backend struct {
 	runs map[string]*runState
 	link map[string]string
 	// part is the part file each task writes until its transfer finishes,
-	// and saved the file finish made of it. Remove deletes these and nothing
-	// else: another download of the same name can have finished as dir/name.
+	// and saved the file finish made of it. Remove with deleteFiles deletes
+	// these and nothing else: another download of the same name can have
+	// finished as dir/name.
 	part  map[string]string
 	saved map[string]string
 	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
@@ -162,12 +163,16 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	delete(b.part, taskID)
 	delete(b.saved, taskID)
 	b.mu.Unlock()
-	// The part file always goes, or a later attempt at the same link would
-	// resume from it; the finished file only with deleteFiles.
+	// A plain remove keeps the part file, as the engine keeps its partials,
+	// so an undo resumes where the download stopped. Its name carries the
+	// task id, so no other download picks it up.
+	if !deleteFiles {
+		return
+	}
 	if part != "" {
 		_ = os.Remove(part)
 	}
-	if deleteFiles && saved != "" {
+	if saved != "" {
 		_ = os.Remove(saved)
 	}
 }
