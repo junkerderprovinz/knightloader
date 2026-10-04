@@ -14,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -498,5 +499,34 @@ func TestAMirrorIsRejectedWhenItsNameHoldsCharactersTheSavedFileDoesNot(t *testi
 				t.Errorf("a mirror %q of unknown size is answered without its size, want it to wait for the probe", raw)
 			}
 		})
+	}
+}
+
+// A torrent added as an uploaded .torrent and later met as a magnet, or the
+// other way round, is one download.
+func TestATorrentFromTheHistoryIsRejectedInItsOtherForm(t *testing.T) {
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	md, err := (torrent.Resolver{}).Describe(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	magnet := "magnet:?xt=urn:btih:" + strings.ToUpper(md.InfoHash) + "&dn=Other.Name"
+	// No mirror policy, so only the link itself can match.
+	noMirrors := func(s *settings.Settings) { s.MirrorPolicy = string(dedupe.PolicyOff) }
+
+	a := historyApp(t, noMirrors)
+	downloadedBefore(t, a, "old", uri, "Pack", 900)
+	if got := onlyTask(t, a.AddLinks([]string{magnet}, "")); !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Errorf("the magnet was staged (skipped=%v, code=%q), want it rejected as downloaded", got.Skipped, got.SkipCode)
+	}
+
+	a = historyApp(t, noMirrors)
+	downloadedBefore(t, a, "old", magnet, "Pack", 900)
+	got, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got == nil || !got.Skipped || got.SkipCode != skipDownloaded {
+		t.Error("the uploaded torrent was staged, want it rejected as downloaded")
 	}
 }
