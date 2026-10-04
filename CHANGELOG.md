@@ -55,6 +55,14 @@ release's tag.
   fetched as a plain file, never handed to yt-dlp, and saved under the
   browser's name.
 
+### Fixed
+
+- A file name from a dropped crawljob (`filename=`) or from
+  `POST /api/tasks/options` is shortened the same way as a rename. A name too
+  long for the disk used to leave the file under its old name with an error.
+  A rename that succeeds also clears the error an earlier failed rename left on
+  the download.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

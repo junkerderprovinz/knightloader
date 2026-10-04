@@ -713,8 +713,11 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	var newName string
 	if o.Filename != nil {
 		newName = strings.TrimSpace(*o.Filename)
-		if newName != "" && !usableFilename(newName) {
-			return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+		if newName != "" {
+			if !usableFilename(newName) {
+				return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+			}
+			newName = rules.FileSegment(newName)
 		}
 	}
 	var renameTo string
@@ -959,12 +962,12 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		return err
 	}
 	if !usableFilename(want) {
-		return refuse(fmt.Errorf("not renamed: %s is not a single file name", strconv.Quote(want)))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%s is not a single file name", strconv.Quote(want)))
 	}
 	if len(a.volumeSetLocked(t)) > 1 {
 		// extract.SetKey groups volumes by name, and a fixed rule name would
 		// give every part the same one and overwrite the set.
-		return refuse(refuseRename("volume", t.Name, "not renamed: %s is one part of a multi-volume archive", t.Name))
+		return refuse(refuseRename("volume", t.Name, renameErrorPrefix+"%s is one part of a multi-volume archive", t.Name))
 	}
 	from := t.File
 	if from == "" {
@@ -981,10 +984,10 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
 	if _, err := os.Stat(to); err == nil {
-		return refuse(refuseRename("exists", want, "not renamed: %s already exists", to))
+		return refuse(refuseRename("exists", want, renameErrorPrefix+"%s already exists", to))
 	}
 	if err := os.Rename(from, to); err != nil {
-		return refuse(fmt.Errorf("not renamed: %w", err))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%w", err))
 	}
 	if a.renamed == nil {
 		a.renamed = map[string]bool{}
@@ -994,8 +997,15 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	if t.File != "" {
 		t.File = to
 	}
+	if strings.HasPrefix(t.Error, renameErrorPrefix) {
+		t.SetError("", "", nil)
+	}
 	return nil
 }
+
+// renameErrorPrefix marks the reasons a rename puts on a task, so the next
+// rename that succeeds clears only its own.
+const renameErrorPrefix = "not renamed: "
 
 // Remove drops a task from the list. deleteFiles also erases what was
 // downloaded; it is never the default, as in JDownloader.
