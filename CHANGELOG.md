@@ -82,6 +82,109 @@ release's tag.
   JDownloader's folder is only read. See
   [Moving over from JDownloader](docs/from-jdownloader.md).
 
+- **MyDebrid.** KnightLoader talks to MyDebrid itself, with the username and
+  password of your MyDebrid account. It reads which hosters MyDebrid supports,
+  how many connections each one allows and which have used up their daily
+  allowance, and the Accounts page shows the plan and when it runs out.
+  MyDebrid does not take torrents.
+- **ParleyPort on the Apps page.** The "On a server" card offers
+  [ParleyPort](https://github.com/junkerderprovinz/parleyport), the relay you
+  can run yourself, next to Unraid, Docker and the source code, in the web
+  interface and in the phone app. A click copies the command that starts it.
+
+- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
+  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
+  `.torrent` files in place of the built-in torrent client. Rank it above
+  "Built-in torrent client" on the Accounts page and it takes them; the files
+  then come here over HTTP, one at a time. With "Send only cached torrents to
+  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
+  the torrent cached. A torrent the account already has is fetched from there
+  and never deleted. Linksnappy has no list of your downloads to read, so there
+  is no import from that account.
+  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
+
+- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
+
+### Changed
+
+- **The README shows each way to run KnightLoader in a picture of its own:**
+  the desktop app, the server in a browser, the Android app and the browser
+  extension, followed by the pages of the web interface.
+
+- **The store description names the default relay and the captcha widgets.**
+  It says that the developer runs parleyport.halleluja.design, that the app
+  follows a ParleyPort relay of your own when you scan the QR code, and that
+  answering a captcha loads reCAPTCHA, hCaptcha or Cloudflare Turnstile in a
+  web view.
+
+- **The phone app follows an instance's own relay.** An instance set to its
+  own relay puts that relay's address in the QR code beside the twelve words,
+  on a line under them, and the app pairs there when it scans the code. The
+  app takes the address only if it starts with `wss://`. Typed words still pair
+  on the project relay, and on the project relay the code is the twelve words
+  alone, as before. An older app refuses a code that names a relay, because it
+  counts thirteen words.
+- **The phone app sends nothing unencrypted.** It no longer allows plain HTTP
+  at all. A connection saved by address before 1.5.0 that points at an
+  `http://` address says it has to be added again with the twelve words,
+  instead of failing with a network error.
+- **The README invites testers.** The warning not to install KnightLoader is
+  gone, and the README links to the bug report form instead.
+- **The README names the logo's licence.** The logo is licensed under AGPL-3.0-only
+  like the code, and the KnightLoader name and logo stay trademarks, so a fork
+  needs a name and logo of its own.
+
+- **The Apps page follows the README's order.** The server or desktop app
+  comes first, then the phone app and the browser extension, with the
+  bookmarklet last, and the phone app's own list puts the server before the
+  desktop app.
+
+- **The relay is ParleyPort.** The project relay moved into its own project,
+  and instances, the phone app and the browser extension dial it at
+  `parleyport.halleluja.design`. The old address keeps answering for a while,
+  so installations that have not updated stay connected. The Own relay card
+  copies the command that starts ParleyPort, and the docs name it and its
+  `PARLEYPORT_DOMAIN` setting.
+
+- **KnightLoader talks to every debrid service itself.** The debrid card no
+  longer lists multihosters reached through JDownloader, and the hoster login
+  picker no longer offers them. LeechAll has no public API and its login asks
+  for a captcha, so KnightLoader has no client for it.
+- **Captcha solvers are called captcha accounts.** The Accounts page, the
+  captcha settings, the captcha window and the phone app use the one name in
+  every language, and the captcha card adds one with the same Add an account
+  button as the cards above it.
+
+- **An instance without a password answers only on names it knows**: IP
+  addresses, `localhost`, names without a dot, `.local`, `.lan`, `.home.arpa`
+  and `.internal` names, its host name and the domains under Known domains.
+  Anything else gets 421, so a web page cannot drive it through DNS rebinding.
+  A domain is learned after a sign-in, never from a plain read. A valid API
+  token passes on any name.
+- **Sessions:** changing or removing the password signs out every other
+  browser, and signing out revokes that cookie, also across a restart.
+- **Sign-in:** the attempt limit counts before it checks, so parallel guesses
+  meet it too. Showing the phrase and changing the password share that limit,
+  and passkey sign-ins can no longer push out a passkey being set up.
+- **Limits:** every JSON body has a ceiling (64 KiB on the routes open without
+  sign-in), and the instance and the relay drop connections that send no
+  header within 10 seconds or sit idle for a minute.
+- **A read-only token** no longer sees event target secrets, feed addresses or
+  the end-of-queue program.
+- **Relay and pairing:** a member's name, address and kind come only from a
+  seal that opens, member ids must be 40 hex characters, a relay this instance
+  serves admits its own phrase group, its handshake limit counts the caller a
+  local proxy names, and a direct call on the LAN is read and checked before it
+  takes a slot.
+- **Crawls and feeds** reach no address further inside the network than the
+  one entered; a feed's entries stay at the feed's own scope.
+- **Hoster and debrid passwords** are stripped from transport errors, so they
+  stay out of logs, task rows and the diagnostics bundle.
+- **`settings.json`, `accounts.json` and the key file** are written through a
+  temporary file. A file that cannot be read is kept as a dated copy instead
+  of being replaced, and the start report names an unreadable settings file.
+- **Single-stream archives** (gz, bz2, xz) unpack to a bounded size.
+
 ### Fixed
 
 - **A server that hangs up on a browser's user agent no longer fails the
@@ -193,54 +296,6 @@ release's tag.
   escape or NUL from the link's path was written into the name as it was, and
   a NUL made the download fail. Such characters become spaces now.
 
-### Changed
-
-- **The README shows each way to run KnightLoader in a picture of its own:**
-  the desktop app, the server in a browser, the Android app and the browser
-  extension, followed by the pages of the web interface.
-
-## [1.6.8] - 2026-10-04
-
-### Changed
-
-- **The store description names the default relay and the captcha widgets.**
-  It says that the developer runs parleyport.halleluja.design, that the app
-  follows a ParleyPort relay of your own when you scan the QR code, and that
-  answering a captcha loads reCAPTCHA, hCaptcha or Cloudflare Turnstile in a
-  web view.
-
-## [1.6.7] - 2026-10-04
-
-### Changed
-
-- **The phone app follows an instance's own relay.** An instance set to its
-  own relay puts that relay's address in the QR code beside the twelve words,
-  on a line under them, and the app pairs there when it scans the code. The
-  app takes the address only if it starts with `wss://`. Typed words still pair
-  on the project relay, and on the project relay the code is the twelve words
-  alone, as before. An older app refuses a code that names a relay, because it
-  counts thirteen words.
-- **The phone app sends nothing unencrypted.** It no longer allows plain HTTP
-  at all. A connection saved by address before 1.5.0 that points at an
-  `http://` address says it has to be added again with the twelve words,
-  instead of failing with a network error.
-- **The README invites testers.** The warning not to install KnightLoader is
-  gone, and the README links to the bug report form instead.
-- **The README names the logo's licence.** The logo is licensed under AGPL-3.0-only
-  like the code, and the KnightLoader name and logo stay trademarks, so a fork
-  needs a name and logo of its own.
-
-## [1.6.6] - 2026-10-02
-
-### Changed
-
-- **The Apps page follows the README's order.** The server or desktop app
-  comes first, then the phone app and the browser extension, with the
-  bookmarklet last, and the phone app's own list puts the server before the
-  desktop app.
-
-### Fixed
-
 - **Linksnappy fetches links under a hoster's other domains.** Linksnappy
   names some hosters by a domain their links rarely use, such as mega.co.nz
   for Mega and ddl.to for DDownload, and lists rg.to apart from Rapidgator.
@@ -250,40 +305,6 @@ release's tag.
   matches a hoster by all the domains KnightLoader knows for it. KnightLoader
   also logs in before it reads Linksnappy's list, as JDownloader does, and
   leaves out a hoster the account cannot download from.
-
-## [1.6.5] - 2026-10-02
-
-### Added
-
-- **MyDebrid.** KnightLoader talks to MyDebrid itself, with the username and
-  password of your MyDebrid account. It reads which hosters MyDebrid supports,
-  how many connections each one allows and which have used up their daily
-  allowance, and the Accounts page shows the plan and when it runs out.
-  MyDebrid does not take torrents.
-- **ParleyPort on the Apps page.** The "On a server" card offers
-  [ParleyPort](https://github.com/junkerderprovinz/parleyport), the relay you
-  can run yourself, next to Unraid, Docker and the source code, in the web
-  interface and in the phone app. A click copies the command that starts it.
-
-### Changed
-
-- **The relay is ParleyPort.** The project relay moved into its own project,
-  and instances, the phone app and the browser extension dial it at
-  `parleyport.halleluja.design`. The old address keeps answering for a while,
-  so installations that have not updated stay connected. The Own relay card
-  copies the command that starts ParleyPort, and the docs name it and its
-  `PARLEYPORT_DOMAIN` setting.
-
-- **KnightLoader talks to every debrid service itself.** The debrid card no
-  longer lists multihosters reached through JDownloader, and the hoster login
-  picker no longer offers them. LeechAll has no public API and its login asks
-  for a captcha, so KnightLoader has no client for it.
-- **Captcha solvers are called captcha accounts.** The Accounts page, the
-  captcha settings, the captcha window and the phone app use the one name in
-  every language, and the captcha card adds one with the same Add an account
-  button as the cards above it.
-
-### Fixed
 
 - **The captcha accounts show their services' logos.** The marks for 2Captcha,
   Anti-Captcha, CapMonster Cloud, CapSolver, 9kw.eu and DeathByCaptcha ship
@@ -296,55 +317,6 @@ release's tag.
   once and fetches the icon in the background, eight sites at a time, the page
   asks again a few seconds later, and a site without an icon is remembered
   across restarts. A hoster without an icon shows its first letter.
-
-## [1.6.4] - 2026-10-01
-
-### Added
-
-- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
-  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
-  `.torrent` files in place of the built-in torrent client. Rank it above
-  "Built-in torrent client" on the Accounts page and it takes them; the files
-  then come here over HTTP, one at a time. With "Send only cached torrents to
-  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
-  the torrent cached. A torrent the account already has is fetched from there
-  and never deleted. Linksnappy has no list of your downloads to read, so there
-  is no import from that account.
-  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
-
-### Changed
-
-- **An instance without a password answers only on names it knows**: IP
-  addresses, `localhost`, names without a dot, `.local`, `.lan`, `.home.arpa`
-  and `.internal` names, its host name and the domains under Known domains.
-  Anything else gets 421, so a web page cannot drive it through DNS rebinding.
-  A domain is learned after a sign-in, never from a plain read. A valid API
-  token passes on any name.
-- **Sessions:** changing or removing the password signs out every other
-  browser, and signing out revokes that cookie, also across a restart.
-- **Sign-in:** the attempt limit counts before it checks, so parallel guesses
-  meet it too. Showing the phrase and changing the password share that limit,
-  and passkey sign-ins can no longer push out a passkey being set up.
-- **Limits:** every JSON body has a ceiling (64 KiB on the routes open without
-  sign-in), and the instance and the relay drop connections that send no
-  header within 10 seconds or sit idle for a minute.
-- **A read-only token** no longer sees event target secrets, feed addresses or
-  the end-of-queue program.
-- **Relay and pairing:** a member's name, address and kind come only from a
-  seal that opens, member ids must be 40 hex characters, a relay this instance
-  serves admits its own phrase group, its handshake limit counts the caller a
-  local proxy names, and a direct call on the LAN is read and checked before it
-  takes a slot.
-- **Crawls and feeds** reach no address further inside the network than the
-  one entered; a feed's entries stay at the feed's own scope.
-- **Hoster and debrid passwords** are stripped from transport errors, so they
-  stay out of logs, task rows and the diagnostics bundle.
-- **`settings.json`, `accounts.json` and the key file** are written through a
-  temporary file. A file that cannot be read is kept as a dated copy instead
-  of being replaced, and the start report names an unreadable settings file.
-- **Single-stream archives** (gz, bz2, xz) unpack to a bounded size.
-
-### Fixed
 
 - Pausing or removing a task while its link resolves holds; the transfer no
   longer starts behind it. Pause and Resume leave finished and failed tasks
@@ -371,37 +343,17 @@ release's tag.
   an import, forgets a revealed phrase when the group changes, and puts the
   relay mode back after a failed save.
 
-## [1.6.3] - 2026-10-01
+- The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
 
 ### Changed (Android app)
 
 - Buy Me a Coffee opens in the browser instead of an in-app web view, as F-Droid reviewers ask for author and donation pages. `CoffeeDonate.tsx` and its intro text are gone, and `mobile/PRIVACY.md` describes the button with the other links.
 
-### Fixed
-
-- The committed `web/dist` carried version 1.6.0, so the Apps page linked the 1.6.0 APK in 1.6.1 and 1.6.2. The bundle is rebuilt with the version.
-
-## [1.6.2] - 2026-10-01
-
-### Changed (Android app)
-
 - The store listings call the app only KnightLoader, in every language.
 - The fastlane metadata moved from `mobile/fastlane/` to `fastlane/` at the repository root, the only place F-Droid reads it from. `mobile/store/render.mjs` writes its pictures there.
 
-## [1.6.1] - 2026-10-01
-
-### Added
-
-- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
-
-### Changed (Android app)
-
 - expo-camera is removed. With its barcode scanner switched off it still compiled against Google ML Kit and Play services, and F-Droid rejects an APK whose code names those classes. The scanner module declares the camera permission, the app asks through `PermissionsAndroid` and opens the app settings once Android stops asking. The release build fails when the APK names a `com.google.mlkit` or `com.google.android.gms` class, and `check-free-scanner.mjs` checks the lock file for expo-camera and ML Kit wrappers. `mobile/PRIVACY.md` describes the ZXing scanner, which sends nothing to anyone.
 - An announce on the relay names a sibling only through a seal that opens. Without a seal, or with one that does not open, the app lists it under its bare id and ignores the name, deployment and client flag in the clear, as the server and the extension do.
-
-### Fixed
-
-- The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
 
 ## [1.6.0] - 2026-10-01
 
