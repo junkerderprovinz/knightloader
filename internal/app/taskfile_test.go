@@ -942,3 +942,66 @@ func TestASidecarRowSavedUnderTheNameItShowsGetsNoNote(t *testing.T) {
 		t.Errorf("a row saved under another name than it shows was not logged:\n%s", logged)
 	}
 }
+
+// libraryBackend deletes a removed download's file where it wrote it, as the
+// download library does: by its own record, whatever the app moved since.
+type libraryBackend struct{ wrote map[string]string }
+
+func (libraryBackend) Download(string, string, map[string]string, int) {}
+func (libraryBackend) Pause(string)                                    {}
+func (libraryBackend) Resume(string)                                   {}
+func (b libraryBackend) Remove(id string, deleteFiles bool) {
+	if deleteFiles {
+		_ = os.Remove(b.wrote[id])
+	}
+}
+
+// renamedBesideAnother finishes download "renamed" as nocd and renames it to
+// Report.pdf, after which download "other" finishes under the freed name. It
+// returns the folder.
+func renamedBesideAnother(t *testing.T) (*App, string) {
+	t.Helper()
+	a, dir := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract, s.VerifyChecksums = false, false })
+	freed := filepath.Join(dir, "nocd")
+	a.bmu.Lock()
+	a.debrid["elsewhere"] = libraryBackend{wrote: map[string]string{"renamed": freed, "other": freed}}
+	a.bmu.Unlock()
+	a.Registry.Register(elsewhereResolver{})
+
+	fileBytes(t, freed, 4)
+	putTask(t, a, core.Task{ID: "renamed", URL: "https://elsewhere.example/nocd", Name: "nocd", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: 4, File: freed})
+	name := "Report.pdf"
+	if err := a.SetTaskOptions([]string{"renamed"}, TaskOptions{Name: &name}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(freed, []byte("the other download"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	putTask(t, a, core.Task{ID: "other", URL: "https://elsewhere.example/mirror/nocd", Name: "nocd", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: int64(len("the other download")), File: freed})
+	return a, dir
+}
+
+func TestRemovingARenamedDownloadWithItsFilesSparesTheFileNowAtItsOldName(t *testing.T) {
+	a, dir := renamedBesideAnother(t)
+
+	a.Remove("renamed", true)
+
+	if got, err := os.ReadFile(filepath.Join(dir, "nocd")); err != nil || string(got) != "the other download" {
+		t.Errorf("the other download's file reads %q, %v", got, err)
+	}
+	if fileExists(filepath.Join(dir, "Report.pdf")) {
+		t.Error("the removed download's own file is still there")
+	}
+}
+
+func TestRestartingARenamedDownloadSparesTheFileNowAtItsOldName(t *testing.T) {
+	a, dir := renamedBesideAnother(t)
+
+	a.RestartTasks([]string{"renamed"})
+
+	if got, err := os.ReadFile(filepath.Join(dir, "nocd")); err != nil || string(got) != "the other download" {
+		t.Errorf("the other download's file reads %q, %v", got, err)
+	}
+}

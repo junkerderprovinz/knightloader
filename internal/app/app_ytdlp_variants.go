@@ -459,7 +459,7 @@ func (a *App) probeOnce(tp titleProber, rawurl string) {
 	}()
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersForLink(rawurl))
 	if err != nil {
 		return
 	}

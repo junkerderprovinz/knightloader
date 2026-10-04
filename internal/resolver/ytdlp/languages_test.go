@@ -9,7 +9,7 @@ import (
 // The source has English only as automatic captions, not as a manual track.
 func TestProbeReadsTheLanguagesTheSourceActuallyOffers(t *testing.T) {
 	b := fakeYtdlpBackend(t, "languages")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -33,7 +33,7 @@ func TestProbeReadsTheLanguagesTheSourceActuallyOffers(t *testing.T) {
 
 func TestProbeReadsTheAnnouncedDuration(t *testing.T) {
 	b := fakeYtdlpBackend(t, "languages")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -44,7 +44,7 @@ func TestProbeReadsTheAnnouncedDuration(t *testing.T) {
 
 func TestAvailableAudioLangsPutsTheOriginalFirst(t *testing.T) {
 	b := fakeYtdlpBackend(t, "languages")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -95,7 +95,7 @@ func TestAudioLangSaysNothingWhenTheSourceHasNoOpinion(t *testing.T) {
 // Newer extractors set live_status, older ones only is_live.
 func TestProbeReadsIsLiveFromEitherField(t *testing.T) {
 	b := fakeYtdlpBackend(t, "live")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/live")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/live", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -106,7 +106,7 @@ func TestProbeReadsIsLiveFromEitherField(t *testing.T) {
 
 func TestProbeDoesNotCallAFinishedStreamLive(t *testing.T) {
 	b := fakeYtdlpBackend(t, "waslive")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/was")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/was", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -120,7 +120,7 @@ func TestProbeDoesNotCallAFinishedStreamLive(t *testing.T) {
 
 func TestProbeOfASourceWithNoLanguageDataStaysEmpty(t *testing.T) {
 	b := fakeYtdlpBackend(t, "title")
-	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v")
+	res, err := b.ProbeTitle(context.Background(), "https://example.invalid/v", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}

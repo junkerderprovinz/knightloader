@@ -67,7 +67,7 @@ func (fakeYtdlpBackend) Pause(string)                                    {}
 func (fakeYtdlpBackend) Resume(string)                                   {}
 func (fakeYtdlpBackend) Remove(string, bool)                             {}
 
-func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, url string) (ytdlp.ProbeResult, error) {
+func (f fakeYtdlpBackend) ProbeTitle(_ context.Context, url string, _ map[string]string) (ytdlp.ProbeResult, error) {
 	if n := f.probes.add(url); n > 1 {
 		// Logged rather than failed here: t.Fatal from a background goroutine
 		// is illegal, and whatever the second probe writes fails its own
@@ -95,7 +95,7 @@ func (blockingYtdlpBackend) Pause(string)                                    {}
 func (blockingYtdlpBackend) Resume(string)                                   {}
 func (blockingYtdlpBackend) Remove(string, bool)                             {}
 
-func (b blockingYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (ytdlp.ProbeResult, error) {
+func (b blockingYtdlpBackend) ProbeTitle(ctx context.Context, _ string, _ map[string]string) (ytdlp.ProbeResult, error) {
 	select {
 	case <-b.release:
 		return ytdlp.ProbeResult{Title: b.title}, nil

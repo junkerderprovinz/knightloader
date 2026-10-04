@@ -351,6 +351,9 @@ func (a *App) RecheckTasks(ids []string) {
 		// onto the task below; plain registry order would move a task back to
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
+		if t.BrowserFile {
+			res = a.fileResolverFor(t.URL, res)
+		}
 		if res == nil {
 			msg, code, params := a.unhandledError(t.URL, "no backend handles this link")
 			a.recordAvailability(t.ID, core.AvailOffline, core.ReasonUnsupported, msg, code, params)
@@ -374,7 +377,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// Most resolvers answer with the URL as a placeholder name (see the
 			// matching guard in stage), which must not replace a real name the task
 			// already picked up.
-			if result.Name != "" && result.Name != t.URL {
+			if result.Name != "" && result.Name != t.URL && !namedTakeover(live) {
 				live.Name = result.Name
 			}
 		}
@@ -462,14 +465,26 @@ func (a *App) analyze(id, rawurl string) {
 		return
 	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
-	resp, err := a.Probe.Do(req)
+	probe := a.Probe
+	// Without the browser's cookies a link behind a login would read as gone.
+	if set := a.browserHeaderSet(id); len(set.Headers) > 0 {
+		for name, value := range set.Attach(rawurl) {
+			req.Header.Set(name, value)
+		}
+		// The shared client strips only credentials on a redirect, while
+		// the Referer and the user agent are the browser's too.
+		if c, ok := probe.(*http.Client); ok {
+			probe = set.Client(c)
+		}
+	}
+	resp, err := probe.Do(req)
 	if err != nil && httpx.HungUp(err) {
 		// Some servers, Hetzner's speed-test mirrors among them, hang up on any
 		// HEAD and still answer a GET.
 		get := req.Clone(req.Context())
 		get.Method = http.MethodGet
 		get.Header.Set("Range", "bytes=0-0")
-		resp, err = a.Probe.Do(get)
+		resp, err = probe.Do(get)
 	}
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
@@ -556,7 +571,7 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersFor(id, rawurl))
 	if err != nil {
 		a.fileUnprobedMedia(id)
 		return
@@ -779,8 +794,11 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	var newName string
 	if o.Filename != nil {
 		newName = strings.TrimSpace(*o.Filename)
-		if newName != "" && !usableFilename(newName) {
-			return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+		if newName != "" {
+			if !usableFilename(newName) {
+				return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+			}
+			newName = rules.FileSegment(newName)
 		}
 	}
 	var renameTo string
@@ -1025,12 +1043,12 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		return err
 	}
 	if !usableFilename(want) {
-		return refuse(fmt.Errorf("not renamed: %s is not a single file name", strconv.Quote(want)))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%s is not a single file name", strconv.Quote(want)))
 	}
 	if len(a.volumeSetLocked(t)) > 1 {
 		// extract.SetKey groups volumes by name, and a fixed rule name would
 		// give every part the same one and overwrite the set.
-		return refuse(refuseRename("volume", t.Name, "not renamed: %s is one part of a multi-volume archive", t.Name))
+		return refuse(refuseRename("volume", t.Name, renameErrorPrefix+"%s is one part of a multi-volume archive", t.Name))
 	}
 	from := t.File
 	if from == "" {
@@ -1047,18 +1065,25 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
 	if _, err := os.Stat(to); err == nil {
-		return refuse(refuseRename("exists", want, "not renamed: %s already exists", to))
+		return refuse(refuseRename("exists", want, renameErrorPrefix+"%s already exists", to))
 	}
 	if err := os.Rename(from, to); err != nil {
-		return refuse(fmt.Errorf("not renamed: %w", err))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%w", err))
 	}
 	a.noteMovedLocked(t.ID)
 	t.Name = want
 	if t.File != "" {
 		t.File = to
 	}
+	if strings.HasPrefix(t.Error, renameErrorPrefix) {
+		t.SetError("", "", nil)
+	}
 	return nil
 }
+
+// renameErrorPrefix marks the reasons a rename puts on a task, so the next
+// rename that succeeds clears only its own.
+const renameErrorPrefix = "not renamed: "
 
 // Remove drops a task from the list. deleteFiles also erases what was
 // downloaded; it is never the default, as in JDownloader.
@@ -1101,6 +1126,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	delete(a.active, id)
 	delete(a.started, id)
 	delete(a.fellBack, id)
+	delete(a.browserHeaders, id)
 	delete(a.seedSaved, id)
 	a.tally.forget(id)
 	a.dequeueLocked(id)

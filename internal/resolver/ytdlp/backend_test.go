@@ -108,6 +108,18 @@ func TestMain(m *testing.M) {
 		}
 		fmt.Printf("{\"title\":%q,\"formats\":[{\"format_id\":%q,\"ext\":\"mp4\",\"protocol\":\"m3u8_native\",\"height\":1080}]}\n", title, os.Args[len(os.Args)-1])
 		os.Exit(0)
+	case "browser":
+		// Echoes the arguments and the cookie file as the title, since the
+		// file is gone once the probe returns.
+		title := strings.Join(os.Args[1:], " ")
+		for i := 1; i+1 < len(os.Args); i++ {
+			if os.Args[i] == "--cookies" {
+				jar, _ := os.ReadFile(os.Args[i+1])
+				title += "\n" + string(jar)
+			}
+		}
+		fmt.Printf("{\"title\":%q,\"formats\":[]}\n", title)
+		os.Exit(0)
 	case "badjson":
 		fmt.Println("not json at all")
 		os.Exit(0)
@@ -134,7 +146,7 @@ func fakeYtdlpBackend(t *testing.T, mode string) *Backend {
 
 func TestProbeTitleReturnsTheParsedTitleOnSuccess(t *testing.T) {
 	b := fakeYtdlpBackend(t, "title")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -150,7 +162,7 @@ func TestProbeTitleReturnsTheParsedTitleOnSuccess(t *testing.T) {
 // Video-only, audio-only and progressive tracks must stay distinguishable.
 func TestProbeTitleReturnsTheParsedFormats(t *testing.T) {
 	b := fakeYtdlpBackend(t, "formats")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=formats")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=formats", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -181,7 +193,7 @@ func TestProbeTitleReturnsTheParsedFormats(t *testing.T) {
 // for them; the bitrate over the runtime stands in, as yt-dlp's own estimate
 // does elsewhere.
 func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T) {
-	got, err := fakeYtdlpBackend(t, "youtube").ProbeTitle(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ")
+	got, err := fakeYtdlpBackend(t, "youtube").ProbeTitle(context.Background(), "https://youtube.com/watch?v=dQw4w9WgXcQ", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -208,7 +220,7 @@ func TestProbeTitleEstimatesASizeFromTheBitrateWhereNoneIsReported(t *testing.T)
 // Unparseable output must not pass as a source with no formats.
 func TestProbeTitleReturnsErrorOnUnparseableJSON(t *testing.T) {
 	b := fakeYtdlpBackend(t, "badjson")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x", nil)
 	if err == nil {
 		t.Fatalf("ProbeTitle returned no error for unparseable output (title = %q)", got.Title)
 	}
@@ -216,7 +228,7 @@ func TestProbeTitleReturnsErrorOnUnparseableJSON(t *testing.T) {
 
 func TestProbeTitleTakesTheFirstLineOfAMultiLineAnswer(t *testing.T) {
 	b := fakeYtdlpBackend(t, "playlist")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/playlist?list=x")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/playlist?list=x", nil)
 	if err != nil {
 		t.Fatalf("ProbeTitle: %v", err)
 	}
@@ -227,7 +239,7 @@ func TestProbeTitleTakesTheFirstLineOfAMultiLineAnswer(t *testing.T) {
 
 func TestProbeTitleReturnsErrorOnAFailingInvocation(t *testing.T) {
 	b := fakeYtdlpBackend(t, "fail")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=gone")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=gone", nil)
 	if err == nil {
 		t.Fatalf("ProbeTitle returned no error for a failing invocation (title = %q)", got.Title)
 	}
@@ -235,7 +247,7 @@ func TestProbeTitleReturnsErrorOnAFailingInvocation(t *testing.T) {
 
 func TestProbeTitleReturnsErrorOnEmptyOutput(t *testing.T) {
 	b := fakeYtdlpBackend(t, "empty")
-	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x")
+	got, err := b.ProbeTitle(context.Background(), "https://youtube.com/watch?v=x", nil)
 	if err == nil {
 		t.Fatalf("ProbeTitle returned no error for empty output (title = %q)", got.Title)
 	}
@@ -248,7 +260,7 @@ func TestProbeTitleTimesOutWithoutPanicking(t *testing.T) {
 	defer cancel()
 
 	start := time.Now()
-	got, err := b.ProbeTitle(ctx, "https://youtube.com/watch?v=slow")
+	got, err := b.ProbeTitle(ctx, "https://youtube.com/watch?v=slow", nil)
 	elapsed := time.Since(start)
 
 	if err == nil {
