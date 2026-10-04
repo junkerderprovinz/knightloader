@@ -150,3 +150,63 @@ it('lists a multihoster login kept for JDownloader with the hoster accounts, not
   expect(host.querySelector('[aria-label="Debrid accounts"]')).toBeNull();
   expect(host.textContent).not.toContain('through JDownloader');
 });
+
+it('adds the login for an own server under its hostname, cut from a pasted link', async () => {
+  const posted: unknown[] = [];
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/accounts/catalogue') {
+        return reply([
+          {
+            id: 'remotefs',
+            label: 'Own server (FTP, SFTP, WebDAV)',
+            kind: 'usernamePassword',
+            group: 'remoteServer',
+            whereUrl: 'https://junkerderprovinz.github.io/knightloader/getting-links-in/',
+          },
+        ]);
+      }
+      if (url === '/api/accounts' && init?.method === 'POST') {
+        posted.push(JSON.parse(String(init.body)));
+        return new Response(null, { status: 204 });
+      }
+      if (url === '/api/accounts') {
+        return reply([
+          { id: 'remotefs:nas.lan', service: 'remotefs', account: 'nas.lan', label: 'nas.lan', enabled: true, configured: true, fromEnv: false, ok: false, detail: '', hosts: 0, tier: 'unknown' },
+        ]);
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <MemoryRouter>
+            <Accounts />
+          </MemoryRouter>
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  expect(host.querySelector('[aria-label="Own servers"]')?.textContent).toContain('nas.lan');
+
+  const button = (text: string) =>
+    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === text)!;
+  const field = (caption: string) =>
+    [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
+  const type = (input: HTMLInputElement, text: string) => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+  };
+
+  await act(async () => button('Add a server').click());
+  type(field('Hostname'), 'ftp://Seedbox.Example.net:2121/files/');
+  type(field('Username'), 'knight');
+  type(field('Password'), 'hunter2');
+  await act(async () => button('Save').click());
+
+  expect(posted).toEqual([{ service: 'remotefs', account: 'seedbox.example.net', username: 'knight', password: 'hunter2' }]);
+});

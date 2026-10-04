@@ -23,6 +23,9 @@ import (
 type slowOrigin struct {
 	srv  *httptest.Server
 	data []byte
+	// whole has it send all of the file whatever was asked, as a server
+	// without ranges does.
+	whole atomic.Bool
 
 	mu     sync.Mutex
 	ranges []string
@@ -37,7 +40,8 @@ func newSlowOrigin(t *testing.T, size int) *slowOrigin {
 		o.ranges = append(o.ranges, r.Header.Get("Range"))
 		o.mu.Unlock()
 		lo, hi := 0, len(o.data)-1
-		if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok {
+		ranged := !o.whole.Load()
+		if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok && ranged {
 			from, to, _ := strings.Cut(rg, "-")
 			lo, _ = strconv.Atoi(from)
 			if to != "" {
@@ -45,9 +49,11 @@ func newSlowOrigin(t *testing.T, size int) *slowOrigin {
 			}
 			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", lo, hi, len(o.data)))
 		}
-		w.Header().Set("Accept-Ranges", "bytes")
+		if ranged {
+			w.Header().Set("Accept-Ranges", "bytes")
+		}
 		w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
-		if r.Header.Get("Range") != "" {
+		if r.Header.Get("Range") != "" && ranged {
 			w.WriteHeader(http.StatusPartialContent)
 		}
 		for off := lo; off <= hi; off += 32 << 10 {

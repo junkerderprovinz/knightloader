@@ -706,9 +706,9 @@ export type ServiceKind = 'apiKey' | 'usernamePassword';
 
 /**
  * Which section of the accounts page a service belongs to (accounts.Group).
- * Accounts.tsx renders neither 'captchaSolver', which settings/Captcha.tsx
- * configures, nor 'remoteServer', whose logins are stored with the server's
- * hostname as the account id. Both are listed so the type matches the wire.
+ * A 'remoteServer' login is stored with the server's hostname as its account
+ * id. 'hoster' is listed so the type matches the wire, though that section is
+ * built from the hoster logins rather than the catalogue.
  */
 export type ServiceGroup = 'debrid' | 'hoster' | 'captchaSolver' | 'remoteServer';
 

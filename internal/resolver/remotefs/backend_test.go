@@ -607,3 +607,96 @@ func TestRemovingWithFilesDeletesThePartFileOfAHaltedDownload(t *testing.T) {
 		t.Errorf("the part file is still there: %v", err)
 	}
 }
+
+// settled waits until no transfer of taskID is running any more.
+func settled(t *testing.T, b *Backend, taskID string) {
+	t.Helper()
+	deadline := time.Now().Add(15 * time.Second)
+	for {
+		b.mu.Lock()
+		_, running := b.runs[taskID]
+		b.mu.Unlock()
+		if !running {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the transfer kept running")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+// The app hands the backend new logins whenever an account is saved. A
+// transfer that was running then still has to stop on a pause and on a remove,
+// or the resume and the undo start a second one on the same part file.
+func TestATransferRunningWhileTheLoginsChangeStopsAndResumesOnce(t *testing.T) {
+	tree := ftpTree()
+	big := bytes.Repeat([]byte("C"), 1<<20)
+	tree["/pub/big.bin"] = fakeNode{data: big}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	var limit atomic.Int64
+	limit.Store(64 << 10)
+	rec := newRecorder()
+	logins := Logins{s.host(): {Username: "alice", Password: "secret"}}
+	b := NewBackend(logins, Dialer{}, newStubEngine(), dir, rec.update)
+	b.RateLimit = limit.Load
+	link := LinkOf(s.target("/pub/big.bin"))
+	part := partPath(dir, "big.bin", "t1")
+
+	b.Download("t1", link, nil, 1)
+	arriving(t, part)
+	b.SetLogins(logins, Dialer{})
+	b.Pause("t1")
+	settled(t, b, "t1")
+	paused, err := partSize(part)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	b.Resume("t1")
+	deadline := time.Now().Add(15 * time.Second)
+	for n, _ := partSize(part); n < paused+256<<10; n, _ = partSize(part) {
+		if time.Now().After(deadline) {
+			t.Fatal("the resumed transfer never got going")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+	b.SetLogins(logins, Dialer{})
+	b.Remove("t1", false)
+	settled(t, b, "t1")
+
+	for len(s.restarts) > 0 {
+		<-s.restarts
+	}
+	limit.Store(0)
+	b.Download("t1", link, nil, 1)
+	u := rec.wait(t)
+	if u.Status != core.StatusDone {
+		t.Fatalf("update = %+v, want a finished download", u)
+	}
+	if got, err := os.ReadFile(u.File); err != nil || !bytes.Equal(got, big) {
+		t.Fatalf("the finished file holds %d bytes, %v; want the %d served", len(got), err, len(big))
+	}
+	select {
+	case off := <-s.restarts:
+		if off <= paused {
+			t.Errorf("the undo asked the server to restart at %d, before what the part file held", off)
+		}
+	case <-time.After(2 * time.Second):
+		t.Error("the undo fetched the file again from the start")
+	}
+}
+
+func TestALoginSetWhileTheBackendRunsReachesTheNextTransfer(t *testing.T) {
+	s := newFakeFTP(t, "alice", "secret", ftpTree())
+	dir := t.TempDir()
+	rec := newRecorder()
+	b := NewBackend(Logins{}, Dialer{}, newStubEngine(), dir, rec.update)
+
+	b.SetLogins(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{})
+	b.Download("t1", LinkOf(s.target("/pub/notes.txt")), nil, 1)
+	if u := rec.wait(t); u.Status != core.StatusDone {
+		t.Fatalf("update = %+v, want the download done with the new login", u)
+	}
+}
