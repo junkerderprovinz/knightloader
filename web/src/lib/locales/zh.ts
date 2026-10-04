@@ -1364,6 +1364,7 @@ export const zh: Dict = {
   'columns.variant.auto': '自动',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': '播放',
   'file.open': '打开',
   'file.openNatively': '用默认应用打开',
   'file.revealInFolder': '在文件夹中显示',
@@ -2144,6 +2145,9 @@ export const zh: Dict = {
   'detail.play': '在这里播放',
   'detail.playHint': '直接从这个实例播放文件，不用再下载第二遍。你按下播放之前什么都不会去取，文件也留在原处。',
   'detail.playPartial': '这个下载还没完成。只能播放已经写到磁盘上的那一部分，往后跳是跳不过去的，有些文件在最后一个字节到位之前根本什么都播不出来。',
+  'detail.playLive': '这个下载还在进行。你播放的部分会先下载，所以现在就能开始。如果往前跳，播放会等到那部分到达。',
+  'detail.playStopped': '这个下载在完成前停止了。重新开始它，就能边下载边播放文件。',
+  'detail.playMending': '这个下载的一部分正在重新获取。等这部分到了就能播放。',
   'detail.playUnsupported': '这个浏览器播不了这个文件。请改用右键菜单打开或保存它。',
   'detail.playRemote': '只有这个实例上的文件能在这里播放。别的实例是把文件整段递过来的，中途不能跳，播放器拿它没办法。',
   'detail.playNotLocal': '这个下载是 JDownloader 取回来的，所以文件在那个进程的磁盘上，不在这一台上。',

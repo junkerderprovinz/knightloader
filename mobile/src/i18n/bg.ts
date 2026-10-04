@@ -177,6 +177,8 @@ export const bg: Dict = {
   'task.mode.free': 'Безплатно',
   'task.mode.premium': 'Премиум',
   'task.remote': 'Изтегля се при {service}',
+  'task.play': 'Пусни',
+  'task.playFailed': 'Плейърът не се отвори: {reason}',
   'task.enable': 'Включи тази връзка',
   'task.disable': 'Изключи тази връзка',
   'settings.aboutTitle': 'За KnightLoader',

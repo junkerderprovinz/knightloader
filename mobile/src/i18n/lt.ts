@@ -177,6 +177,8 @@ export const lt: Dict = {
   'task.mode.free': 'Nemokamai',
   'task.mode.premium': 'Premium',
   'task.remote': 'Parsiunčia {service}',
+  'task.play': 'Leisti',
+  'task.playFailed': 'Grotuvas neatsidarė: {reason}',
   'task.enable': 'Įjungti šią nuorodą',
   'task.disable': 'Išjungti šią nuorodą',
   'settings.aboutTitle': 'Apie KnightLoader',

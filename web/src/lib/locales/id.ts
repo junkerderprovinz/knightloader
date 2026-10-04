@@ -1365,6 +1365,7 @@ export const id: Dict = {
   'columns.variant.auto': 'Otomatis',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': 'Putar',
   'file.open': 'Buka',
   'file.openNatively': 'Buka dengan aplikasi default',
   'file.revealInFolder': 'Tampilkan di folder',
@@ -2149,6 +2150,9 @@ export const id: Dict = {
   'detail.play': 'Putar di sini',
   'detail.playHint': 'Memutar berkasnya langsung dari instans ini, tanpa mengunduhnya untuk kedua kalinya. Tidak ada yang diambil sebelum kamu menekan putar, dan berkasnya tetap di tempatnya.',
   'detail.playPartial': 'Unduhan ini belum selesai. Yang bisa diputar hanya bagian yang sudah ada di disk, melompat melewatinya tidak bisa, dan sebagian berkas sama sekali tidak memutar apa pun sebelum bita terakhirnya ada.',
+  'detail.playLive': 'Unduhan ini masih berjalan. Bagian yang kamu putar diambil lebih dulu, jadi kamu bisa mulai sekarang. Kalau kamu melompat ke depan, pemutaran menunggu sampai bagian itu tiba.',
+  'detail.playStopped': 'Unduhan ini berhenti sebelum selesai. Mulai lagi untuk memutar file sambil diunduh.',
+  'detail.playMending': 'Sebagian unduhan ini sedang diambil ulang. File bisa diputar setelah bagian itu tiba.',
   'detail.playUnsupported': 'Peramban ini tidak bisa memutar berkas ini. Buka atau simpan saja lewat menu klik kanan.',
   'detail.playRemote': 'Yang bisa diputar di sini hanya berkas di instans ini. Instans lain menyerahkan berkasnya sekaligus dan tanpa bisa dilompati, dan sebuah pemutar tidak bisa bekerja dengan itu.',
   'detail.playNotLocal': 'Unduhan ini diambil JDownloader, jadi berkasnya ada di disk proses itu dan bukan di disk ini.',

@@ -83,8 +83,6 @@ github.com/anacrolix/sync v0.6.0/go.mod h1:zigHZiBXkcjo9uNACGCpovT+wNKMbzjO1qN2+
 github.com/anacrolix/tagflag v0.0.0-20180109131632-2146c8d41bf0/go.mod h1:1m2U/K6ZT+JZG0+bdMK6qauP49QT4wE5pmhJXOKKCHw=
 github.com/anacrolix/tagflag v1.0.0/go.mod h1:1m2U/K6ZT+JZG0+bdMK6qauP49QT4wE5pmhJXOKKCHw=
 github.com/anacrolix/tagflag v1.1.0/go.mod h1:Scxs9CV10NQatSmbyjqmqmeQNwGzlNe0CMUMIxqHIG8=
-github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 h1:xGbSewNmSfdUmzFgBlMhzRa8rJFmusvoDmLlywLchSk=
-github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/anacrolix/upnp v0.1.4 h1:+2t2KA6QOhm/49zeNyeVwDu1ZYS9dB9wfxyVvh/wk7U=
 github.com/anacrolix/upnp v0.1.4/go.mod h1:Qyhbqo69gwNWvEk1xNTXsS5j7hMHef9hdr984+9fIic=
 github.com/anacrolix/utp v0.2.0 h1:65Cdmr6q9WSw2KsM+rtJFu7rqDzLl2bdysf4KlNPcFI=
@@ -302,8 +300,10 @@ github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/u
 github.com/jtolds/gls v4.2.1+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
-github.com/junkerderprovinz/gopeed v0.0.0-20261004092149-a73c7fa57383 h1:qTQa3mxgfWEBtDMYQCn+sRjJFNnHHm8CYa9dVhQMQDc=
-github.com/junkerderprovinz/gopeed v0.0.0-20261004092149-a73c7fa57383/go.mod h1:gJeWQy2b1VSHeTYEo2rJbRclYOp9DhXXhBC2PT7r5ko=
+github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3 h1:KK3N/dnW89B6UG3fDnSIqM4maxbq9j52IpvHX737yGU=
+github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0 h1:Lzcui7TNXMRmMBrR4I0WG1hXvgxgdBVe6rudS5KZxO4=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.4.0 h1:6xxtP5bZ2E4NF5tuQulISpTO2z8XbtH8cg1PWkxoFkQ=
 github.com/kevinburke/ssh_config v1.4.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=

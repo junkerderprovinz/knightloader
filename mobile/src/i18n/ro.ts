@@ -177,6 +177,8 @@ export const ro: Dict = {
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'task.remote': 'Se descarcă la {service}',
+  'task.play': 'Redă',
+  'task.playFailed': 'Playerul nu s-a deschis: {reason}',
   'task.enable': 'Activează acest link',
   'task.disable': 'Dezactivează acest link',
   'settings.aboutTitle': 'Despre KnightLoader',

@@ -1498,6 +1498,7 @@ export const de: Dict = {
   'columns.variant.kbps': '{kbps} kbit/s',
   'columns.variant.convertTo': 'Umwandeln in',
 
+  'file.play': 'Abspielen',
   'file.open': 'Öffnen',
   'file.openNatively': 'Mit Standardprogramm öffnen',
   'file.revealInFolder': 'Im Ordner anzeigen',
@@ -2334,6 +2335,9 @@ export const de: Dict = {
   'detail.play': 'Hier abspielen',
   'detail.playHint': 'Spielt die Datei direkt von dieser Instanz, ohne sie ein zweites Mal zu laden. Vor dem Druck auf Abspielen wird nichts geholt, und die Datei bleibt, wo sie ist.',
   'detail.playPartial': 'Dieser Download ist nicht fertig. Abspielen lässt sich nur der Teil, der schon auf der Platte liegt, darüber hinaus springen geht nicht, und manche Dateien spielen gar nichts, bevor das letzte Byte da ist.',
+  'detail.playLive': 'Dieser Download läuft noch. Was du abspielst, wird zuerst geholt, du kannst also gleich anfangen. Springst du nach vorn, wartet die Wiedergabe, bis dieser Teil da ist.',
+  'detail.playStopped': 'Dieser Download wurde angehalten, bevor er fertig war. Starte ihn wieder, dann kannst du die Datei schon beim Herunterladen abspielen.',
+  'detail.playMending': 'Ein Teil dieses Downloads wird gerade neu geholt. Abspielen geht, sobald dieser Teil da ist.',
   'detail.playUnsupported': 'Dieser Browser kann diese Datei nicht abspielen. Öffne oder speichere sie stattdessen über das Rechtsklickmenü.',
   'detail.playRemote': 'Abspielen geht nur bei Dateien auf dieser Instanz. Eine andere Instanz reicht ihre Dateien am Stück und ohne Springen durch, damit kommt ein Abspieler nicht zurecht.',
   'detail.playNotLocal': 'Diesen Download hat JDownloader geholt, die Datei liegt also auf der Platte dieses Prozesses und nicht auf dieser hier.',

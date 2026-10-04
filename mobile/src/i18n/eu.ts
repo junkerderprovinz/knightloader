@@ -177,6 +177,8 @@ export const eu: Dict = {
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
   'task.remote': '{service} zerbitzuan deskargatzen',
+  'task.play': 'Erreproduzitu',
+  'task.playFailed': 'Erreproduzitzailea ez da ireki: {reason}',
   'task.enable': 'Piztu esteka hau',
   'task.disable': 'Itzali esteka hau',
   'settings.aboutTitle': 'KnightLoader-i buruz',

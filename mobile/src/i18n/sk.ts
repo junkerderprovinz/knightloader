@@ -177,6 +177,8 @@ export const sk: Dict = {
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
   'task.remote': 'Sťahuje sa v službe {service}',
+  'task.play': 'Prehrať',
+  'task.playFailed': 'Prehrávač sa neotvoril: {reason}',
   'task.enable': 'Zapnúť tento odkaz',
   'task.disable': 'Vypnúť tento odkaz',
   'settings.aboutTitle': 'O KnightLoaderi',

@@ -177,6 +177,8 @@ export const is: Dict = {
   'task.mode.free': 'Ókeypis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Sækir hjá {service}',
+  'task.play': 'Spila',
+  'task.playFailed': 'Spilarinn opnaðist ekki: {reason}',
   'task.enable': 'Kveikja á þessum tengli',
   'task.disable': 'Slökkva á þessum tengli',
   'settings.aboutTitle': 'Um KnightLoader',

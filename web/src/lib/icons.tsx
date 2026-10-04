@@ -83,6 +83,15 @@ export const IconPlay = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** Play a file: the play mark on a disc, so it is not taken for the arrow
+ *  that starts or resumes a download. */
+export const IconPlayFile = (p: SVGProps<SVGSVGElement>) => (
+  <svg {...base(p)}>
+    <circle cx="10" cy="10" r="7.25" opacity=".3" />
+    <path d="M8.2 6.6v6.8a.7.7 0 0 0 1.07.6l5.3-3.4a.7.7 0 0 0 0-1.2l-5.3-3.4a.7.7 0 0 0-1.07.6Z" />
+  </svg>
+);
+
 export const IconStop = (p: SVGProps<SVGSVGElement>) => (
   <svg {...base(p)}>
     <rect x="4.5" y="4.5" width="11" height="11" rx="2" />

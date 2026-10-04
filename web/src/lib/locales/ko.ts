@@ -1365,6 +1365,7 @@ export const ko: Dict = {
   'columns.variant.auto': '자동',
 
   'columns.variant.kbps': '{kbps} kbit/s',
+  'file.play': '재생',
   'file.open': '열기',
   'file.openNatively': '기본 앱으로 열기',
   'file.revealInFolder': '폴더에서 표시',
@@ -2149,6 +2150,9 @@ export const ko: Dict = {
   'detail.play': '여기서 재생',
   'detail.playHint': '파일을 한 번 더 내려받지 않고 이 인스턴스에서 바로 재생합니다. 재생을 누르기 전에는 아무것도 가져오지 않으며, 파일은 있던 자리에 그대로 있습니다.',
   'detail.playPartial': '이 다운로드는 아직 끝나지 않았습니다. 디스크에 이미 있는 부분만 재생할 수 있고 그 너머로 건너뛸 수 없으며, 어떤 파일은 마지막 바이트가 도착하기 전까지 아무것도 재생하지 못합니다.',
+  'detail.playLive': '이 다운로드는 아직 진행 중입니다. 재생하는 부분을 먼저 받아 오므로 지금 바로 시작할 수 있습니다. 앞으로 건너뛰면 그 부분이 도착할 때까지 재생이 기다립니다.',
+  'detail.playStopped': '이 다운로드는 끝나기 전에 멈췄습니다. 다시 시작하면 다운로드하는 동안 파일을 재생할 수 있습니다.',
+  'detail.playMending': '이 다운로드의 일부를 다시 받아오는 중입니다. 그 부분이 도착하면 재생할 수 있습니다.',
   'detail.playUnsupported': '이 브라우저는 이 파일을 재생할 수 없습니다. 대신 우클릭 메뉴에서 열거나 저장하세요.',
   'detail.playRemote': '여기서는 이 인스턴스에 있는 파일만 재생됩니다. 다른 인스턴스는 파일을 통째로, 건너뛰기 없이 넘겨주는데, 재생기는 그것으로는 다룰 수 없습니다.',
   'detail.playNotLocal': '이 다운로드는 JDownloader가 가져왔으므로 파일은 그 프로세스의 디스크에 있고 여기 디스크에는 없습니다.',

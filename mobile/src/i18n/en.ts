@@ -278,6 +278,8 @@ export const en = {
     'Move or rename that folder, or change "If a file is already there" in the archive settings of the web UI, then unpack it again.',
   'failure.unknown.line': 'KnightLoader does not recognise this error.',
   'failure.unknown.next': 'Try again. If it keeps happening, report it together with what the backend said.',
+  'task.play': 'Play',
+  'task.playFailed': 'The player did not open: {reason}',
   'task.enable': 'Enable this link',
   'task.disable': 'Disable this link',
   'settings.aboutTitle': 'About KnightLoader',

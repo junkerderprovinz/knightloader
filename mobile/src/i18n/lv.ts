@@ -177,6 +177,8 @@ export const lv: Dict = {
   'task.mode.free': 'Bez maksas',
   'task.mode.premium': 'Premium',
   'task.remote': 'Ielādē pie {service}',
+  'task.play': 'Atskaņot',
+  'task.playFailed': 'Atskaņotājs neatvērās: {reason}',
   'task.enable': 'Ieslēgt šo saiti',
   'task.disable': 'Izslēgt šo saiti',
   'settings.aboutTitle': 'Par KnightLoader',

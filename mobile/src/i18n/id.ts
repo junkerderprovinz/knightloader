@@ -177,6 +177,8 @@ export const id: Dict = {
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'task.remote': 'Mengambil di {service}',
+  'task.play': 'Putar',
+  'task.playFailed': 'Pemutar tidak terbuka: {reason}',
   'task.enable': 'Aktifkan tautan ini',
   'task.disable': 'Nonaktifkan tautan ini',
   'settings.aboutTitle': 'Tentang KnightLoader',
