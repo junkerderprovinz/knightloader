@@ -69,9 +69,11 @@ release's tag.
 - **The Android app takes shared links.** KnightLoader appears in Android's
   share sheet. A link or text shared from YouTube, a browser or any other app
   goes to the collector of the instance you tap, and the title the app sent
-  names the package. You tap even with only one instance paired, so no other
-  app can send links to your server on its own. Files are not offered, because
-  the relay does not forward container and torrent uploads.
+  names the package. A text file shared from a file manager is read for its
+  links, so a .txt with a list of links works too. You tap even with only one
+  instance paired, so no other app can send links to your server on its own.
+  Other files are not offered, because the relay does not forward container
+  and torrent uploads.
 - **Move over from JDownloader.** Settings, General has a card that reads a
   JDownloader 2 cfg folder, uploaded as a zip or given as a path on the
   server, and takes over the hoster and debrid accounts, the Packagizer and
@@ -316,7 +318,8 @@ release's tag.
   languages still keeps its files.
 - **Add links in the Android app says why a send failed.** When the request
   never reached the instance, or a relay connection had to be added again, the
-  screen said only "Could not send the links." The reason follows it now.
+  screen said only "Could not send the links." The reason follows it now, with
+  "Server:" in front only when the server sent it.
 - **A control character in a link no longer ends up in a file name.** A tab,
   escape or NUL from the link's path was written into the name as it was, and
   a NUL made the download fail. Such characters become spaces now.

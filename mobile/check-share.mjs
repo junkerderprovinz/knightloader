@@ -7,12 +7,15 @@
 // A failed send keeps the reason it failed with: a relay connection saved
 // before frames were sealed says to add it again, and a sentence that only
 // says the links were not sent leaves nothing to do about it. The Add links
-// screen keeps the reason the same way.
+// screen keeps the reason the same way, and says "Server:" only when a server
+// answered.
 //
 // The sending app's title names the package. expo-share-intent reads it from
 // EXTRA_TITLE only, and browsers send it as EXTRA_SUBJECT, so
-// plugins/withSharedSubject.js copies the one into the other in MainActivity
-// before the library sees the intent, on a cold start and on a new intent.
+// plugins/withSharedText.js copies the one into the other in MainActivity
+// before the library sees the intent, on a cold start and on a new intent. A
+// text file from a file manager comes as text/plain with no EXTRA_TEXT, which
+// the library would pass on empty, so the plugin puts the file's text there.
 // That part runs the plugin over the MainActivity.kt prebuild starts from.
 //
 // The check compiles both screens with the Babel that Expo already installs
@@ -253,19 +256,24 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   if (!said.includes('Network request failed')) fail(`links that never reached the instance say "${said}" and drop the reason`);
   said = await add(new ApiError('link filter refused it', 400));
   if (!said.includes('link filter refused it')) fail(`refused links say "${said}" and drop the instance's own sentence`);
+  const local = 'this connection has to be added again with the phrase';
+  said = await add(new ApiError(local, 0, 'addAgain'));
+  if (!said.includes(t('addDownload.errorSend', { message: local }))) {
+    fail(`links the app refused before asking any server say "${said}", as if the server had answered`);
+  }
 }
 
 {
   const app = JSON.parse(readFileSync(join(here, 'app.json'), 'utf8'));
   const plugins = app.expo.plugins.map((p) => (Array.isArray(p) ? p[0] : p));
-  if (!plugins.includes('./plugins/withSharedSubject')) fail('app.json does not run withSharedSubject, so a title sent as EXTRA_SUBJECT is dropped');
-  const { addSubjectFallback } = require('./plugins/withSharedSubject.js');
+  if (!plugins.includes('./plugins/withSharedText')) fail('app.json does not run withSharedText, so a title sent as EXTRA_SUBJECT and a shared text file are dropped');
+  const { addShareFallbacks } = require('./plugins/withSharedText.js');
   const template = execFileSync(
     'tar',
     ['xzOf', join('node_modules', 'expo', 'template.tgz'), 'package/android/app/src/main/java/com/helloworld/MainActivity.kt'],
     { cwd: here, encoding: 'utf8' },
   );
-  const kt = addSubjectFallback(template);
+  const kt = addShareFallbacks(template);
   const body = (fn) => {
     const start = kt.indexOf(`fun ${fn}(`);
     return start < 0 ? '' : kt.slice(start, kt.indexOf('\n  }', start));
@@ -274,14 +282,23 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
     const b = body(fn);
     return b.includes(first) && b.indexOf(first) < b.indexOf(then);
   };
-  if (!before('onCreate', 'titleFromSubject(intent)', 'super.onCreate(')) {
-    fail('a share that starts the app reaches expo-share-intent before its subject is copied into the title');
+  if (!before('onCreate', 'fillShareExtras(intent)', 'super.onCreate(')) {
+    fail('a share that starts the app reaches expo-share-intent before its title and text are filled in');
   }
-  if (!before('onNewIntent', 'titleFromSubject(intent)', 'super.onNewIntent(')) {
-    fail('a share that reaches the running app gets to expo-share-intent before its subject is copied into the title');
+  if (!before('onNewIntent', 'fillShareExtras(intent)', 'super.onNewIntent(')) {
+    fail('a share that reaches the running app gets to expo-share-intent before its title and text are filled in');
   }
-  if (!/EXTRA_SUBJECT[^\n]*putExtra\(Intent\.EXTRA_TITLE/.test(body('titleFromSubject'))) fail('titleFromSubject does not put the subject in EXTRA_TITLE');
-  if (addSubjectFallback(kt) !== kt) fail('running prebuild twice adds the subject fallback twice');
+  const fill = body('fillShareExtras');
+  if (!/EXTRA_SUBJECT[^\n]*putExtra\(Intent\.EXTRA_TITLE/.test(fill)) fail('fillShareExtras does not put the subject in EXTRA_TITLE');
+  if (!/sharedFileText\(intent\)[^\n]*putExtra\(Intent\.EXTRA_TEXT/.test(fill)) {
+    fail('a text file shared as text/plain never reaches EXTRA_TEXT, so the app opens and drops it');
+  }
+  const read = body('sharedFileText');
+  if (!read.includes('SCHEME_CONTENT') || !read.includes('GET_PROVIDERS')) fail("sharedFileText reads file paths or this app's own providers for any app that asks");
+  for (const name of ['ContentResolver', 'PackageManager', 'Uri', 'IOException']) {
+    if (!new RegExp(`^import [\\w.]+\\.${name}$`, 'm').test(kt)) fail(`MainActivity.kt uses ${name} without importing it`);
+  }
+  if (addShareFallbacks(kt) !== kt) fail('running prebuild twice adds the share fallbacks twice');
 }
 
 if (problems.length) {
@@ -291,5 +308,5 @@ if (problems.length) {
 }
 console.log(
   'ok: a share waits for a tap on an instance, also with one paired, a failed share keeps its reason, ' +
-    'and a title sent as the subject names the package',
+    'a title sent as the subject names the package, and a shared text file arrives as its text',
 );
