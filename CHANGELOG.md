@@ -299,6 +299,14 @@ release's tag.
   like the code, and the KnightLoader name and logo stay trademarks, so a fork
   needs a name and logo of its own.
 
+### Fixed
+
+- **Fewer failed icon loads in the browser console.** For a host that cannot
+  have a site icon, such as an IP address, a torrent or a task id, the web UI
+  shows the letter tile at once instead of asking the instance four times.
+  Leaving a page before its live connection is up no longer logs a WebSocket
+  warning.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed

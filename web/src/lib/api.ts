@@ -4128,6 +4128,13 @@ function openSocket(h: StreamHandlers): LiveStream {
     send: (frame) => {
       if (ws.readyState === WebSocket.OPEN) ws.send(frame);
     },
-    close: () => ws.close(),
+    close: () => {
+      ws.onmessage = null;
+      ws.onclose = null;
+      // Closing a socket that is still connecting logs a browser warning, so
+      // a page that unmounts early lets the handshake finish first.
+      if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
+      else ws.close();
+    },
   };
 }
