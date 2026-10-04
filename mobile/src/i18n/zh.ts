@@ -114,6 +114,7 @@ export const zh: Dict = {
   'addDownload.errorServer': '服务器：{message}',
   'addDownload.errorGeneric': '无法发送链接。',
   'error.federationOff': '你连接的实例上关闭了“同伴实例”，所以它联系不到其他实例。',
+  'error.addAgain': '这个连接是旧版应用保存的，已无法使用。请删除它，再用十二个词重新连接。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',
 
@@ -219,6 +220,7 @@ export const zh: Dict = {
   'phrase.errChecksum': '十二个单词都存在，但合在一起对不上。跟你的实例比对一下：有一个打错了，或者有两个位置调换了。',
   'phrase.errUnknownWord': '第 {position} 个单词（“{word}”）不在单词表中。',
   'phrase.errWordCount': '这是 {count} 个单词，需要正好十二个。',
+  'relay.errInsecureRelay': '此代码指定的中继是 {address}。应用只连接 wss:// 地址的中继。',
   'phrase.wordCount': '{n}/12 个单词',
   'relay.instancesTitle': '此中继上的实例',
   'relay.noInstances': '这一组目前没有实例在线。请检查词语，并确认至少有一台实例正在运行。',

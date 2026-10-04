@@ -114,6 +114,7 @@ export const ar: Dict = {
   'addDownload.errorServer': 'الخادم: {message}',
   'addDownload.errorGeneric': 'تعذّر إرسال الروابط.',
   'error.federationOff': 'النسخ النظيرة مطفأة على النسخة التي أنت متصل بها، لذلك لا تستطيع الوصول إلى النسخ الأخرى.',
+  'error.addAgain': 'حُفظ هذا الاتصال بإصدار أقدم من التطبيق ولم يعد يعمل. أزِله واتصل من جديد بالكلمات الاثنتي عشرة.',
   'addDownload.cancel': 'إلغاء',
   'addDownload.button': 'إضافة',
 
@@ -219,6 +220,7 @@ export const ar: Dict = {
   'phrase.errChecksum': 'كل الكلمات الاثنتي عشرة موجودة، لكنها لا تتوافق معًا. قارنها بمثيلك: واحدة مكتوبة خطأً، أو اثنتان متبادلتان.',
   'phrase.errUnknownWord': 'الكلمة {position} («{word}») ليست في قائمة الكلمات.',
   'phrase.errWordCount': 'هذه {count} كلمة. يلزم بالضبط اثنتا عشرة كلمة.',
+  'relay.errInsecureRelay': 'يذكر هذا الرمز المُرحّل {address}. لا يتصل التطبيق إلا بمُرحّل على عنوان wss://.',
   'phrase.wordCount': '{n} من 12 كلمة',
   'relay.instancesTitle': 'على هذا المُرحّل',
   'relay.noInstances': 'لا توجد أي نسخة من هذه المجموعة متصلة الآن. تحقّق من العبارة ومن تشغيل نسخة واحدة على الأقل.',

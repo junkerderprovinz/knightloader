@@ -114,6 +114,7 @@ export const pl: Dict = {
   'addDownload.errorServer': 'Serwer: {message}',
   'addDownload.errorGeneric': 'Nie udało się wysłać linków.',
   'error.federationOff': 'Na instancji, z którą jesteś połączony, instancje partnerskie są wyłączone, więc nie może ona dotrzeć do pozostałych.',
+  'error.addAgain': 'To połączenie zapisała starsza wersja aplikacji i już nie działa. Usuń je i połącz się ponownie za pomocą dwunastu słów.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
 
@@ -219,6 +220,7 @@ export const pl: Dict = {
   'phrase.errChecksum': 'Wszystkie dwanaście słów istnieje, ale razem się nie zgadzają. Porównaj je ze swoją instancją: jedno jest źle wpisane albo dwa są zamienione miejscami.',
   'phrase.errUnknownWord': 'Słowo {position} („{word}”) nie znajduje się na liście słów.',
   'phrase.errWordCount': 'To jest {count} słów. Potrzeba dokładnie dwunastu.',
+  'relay.errInsecureRelay': 'Ten kod wskazuje przekaźnik {address}. Aplikacja łączy się tylko z przekaźnikiem pod adresem wss://.',
   'phrase.wordCount': '{n} z 12 słów',
   'relay.instancesTitle': 'Na tym przekaźniku',
   'relay.noInstances': 'Żadna instancja z tej grupy nie jest teraz online. Sprawdź frazę i to, czy działa przynajmniej jedna instancja.',

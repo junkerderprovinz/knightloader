@@ -114,6 +114,7 @@ export const pt: Dict = {
   'addDownload.errorServer': 'Servidor: {message}',
   'addDownload.errorGeneric': 'Não foi possível enviar os links.',
   'error.federationOff': 'As instâncias parceiras estão desligadas na instância a que estás ligado, por isso ela não consegue chegar às outras.',
+  'error.addAgain': 'Esta ligação foi guardada por uma versão anterior da app e já não funciona. Remove-a e volta a ligar com as doze palavras.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 
@@ -219,6 +220,7 @@ export const pt: Dict = {
   'phrase.errChecksum': 'Todas as doze palavras existem, mas não encaixam juntas. Compara-as com a tua instância: uma está mal escrita, ou duas estão trocadas.',
   'phrase.errUnknownWord': 'A palavra {position} («{word}») não consta da lista de palavras.',
   'phrase.errWordCount': 'Isso são {count} palavras. São precisas exatamente doze.',
+  'relay.errInsecureRelay': 'Este código indica o relay {address}. A app só se liga a um relay com um endereço wss://.',
   'phrase.wordCount': '{n} de 12 palavras',
   'relay.instancesTitle': 'Neste relay',
   'relay.noInstances': 'Neste momento não há nenhuma instância deste grupo online. Verifica a frase e se pelo menos uma instância está a correr.',

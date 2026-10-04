@@ -114,6 +114,7 @@ export const ko: Dict = {
   'addDownload.errorServer': '서버: {message}',
   'addDownload.errorGeneric': '링크를 전송하지 못했습니다.',
   'error.federationOff': '연결된 인스턴스에서 짝 인스턴스가 꺼져 있어서, 그 인스턴스가 다른 인스턴스에 닿지 못합니다.',
+  'error.addAgain': '이 연결은 이전 버전의 앱에서 저장되어 더 이상 작동하지 않습니다. 삭제한 뒤 12개 단어로 다시 연결하세요.',
   'addDownload.cancel': '취소',
   'addDownload.button': '추가',
 
@@ -219,6 +220,7 @@ export const ko: Dict = {
   'phrase.errChecksum': '12개의 단어는 모두 존재하지만, 서로 맞지 않습니다. 인스턴스와 비교해 보세요. 한 단어가 잘못 입력되었거나 두 단어의 순서가 바뀌었을 수 있습니다.',
   'phrase.errUnknownWord': '{position}번째 단어 “{word}”는 단어 목록에 없습니다.',
   'phrase.errWordCount': '{count}개의 단어입니다. 정확히 12개가 필요합니다.',
+  'relay.errInsecureRelay': '이 코드에 지정된 릴레이는 {address}입니다. 앱은 wss:// 주소의 릴레이에만 연결합니다.',
   'phrase.wordCount': '12개 중 {n}개',
   'relay.instancesTitle': '이 릴레이의 인스턴스',
   'relay.noInstances': '지금 이 그룹의 인스턴스가 하나도 온라인이 아닙니다. 문구와 인스턴스가 최소 하나 실행 중인지 확인하세요.',

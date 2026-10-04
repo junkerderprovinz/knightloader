@@ -114,6 +114,7 @@ export const fi: Dict = {
   'addDownload.errorServer': 'Palvelin: {message}',
   'addDownload.errorGeneric': 'Linkkien lähettäminen epäonnistui.',
   'error.federationOff': 'Rinnakkaisinstanssit on kytketty pois instanssissa, johon olet yhteydessä, joten se ei tavoita muita.',
+  'error.addAgain': 'Sovelluksen vanhempi versio tallensi tämän yhteyden, eikä se toimi enää. Poista se ja yhdistä uudelleen kahdellatoista sanalla.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 
@@ -219,6 +220,7 @@ export const fi: Dict = {
   'phrase.errChecksum': 'Kaikki kaksitoista sanaa löytyvät, mutta ne eivät sovi yhteen. Vertaa niitä instanssiisi: yksi on kirjoitettu väärin, tai kaksi on vaihtanut paikkaa.',
   'phrase.errUnknownWord': 'Sana {position} (”{word}”) ei ole sanalistalla.',
   'phrase.errWordCount': 'Sanoja on {count}. Niitä pitää olla tasan kaksitoista.',
+  'relay.errInsecureRelay': 'Tämä koodi nimeää releen {address}. Sovellus yhdistää vain releeseen, jonka osoite alkaa wss://.',
   'phrase.wordCount': '{n}/12 sanaa',
   'relay.instancesTitle': 'Tässä releessä',
   'relay.noInstances': 'Yksikään tämän ryhmän instanssi ei ole juuri nyt verkossa. Tarkista lause ja se, että ainakin yksi instanssi on käynnissä.',

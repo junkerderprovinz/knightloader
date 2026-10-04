@@ -27,6 +27,7 @@ export const de: Dict = {
   'phrase.errChecksum': 'Alle zwölf Wörter gibt es, aber zusammen passen sie nicht. Vergleich sie mit deiner Instanz: Eines ist vertippt, oder zwei sind vertauscht.',
   'phrase.errUnknownWord': 'Wort {position} („{word}“) steht nicht auf der Wortliste.',
   'phrase.errWordCount': 'Das sind {count} Wörter. Es müssen genau zwölf sein.',
+  'relay.errInsecureRelay': 'Dieser Code nennt das Relay {address}. Die App verbindet sich nur mit einem Relay unter einer wss://-Adresse.',
   'phrase.wordCount': '{n} von 12 Wörtern',
   'relay.instancesTitle': 'An diesem Relay',
   'relay.noInstances': 'Gerade ist keine Instanz dieser Gruppe online. Prüf die Phrase, und ob mindestens eine Instanz läuft.',
@@ -135,6 +136,7 @@ export const de: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Die Links konnten nicht gesendet werden.',
   'error.federationOff': 'Auf der verbundenen Instanz sind Partner-Instanzen ausgeschaltet, deshalb erreicht sie die anderen nicht.',
+  'error.addAgain': 'Diese Verbindung stammt aus einer älteren Version der App und funktioniert nicht mehr. Entfern sie und verbinde dich neu mit den zwölf Wörtern.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',
 

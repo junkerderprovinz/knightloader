@@ -114,6 +114,7 @@ export const it: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Impossibile inviare i link.',
   'error.federationOff': 'Le istanze collegate sono disattivate sull’istanza a cui sei collegato, quindi non può raggiungere le altre.',
+  'error.addAgain': 'Questa connessione è stata salvata da una versione precedente dell’app e non funziona più. Rimuovila e ricollegati con le dodici parole.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 
@@ -219,6 +220,7 @@ export const it: Dict = {
   'phrase.errChecksum': 'Tutte e dodici le parole esistono, ma non tornano insieme. Confrontale con la tua istanza: una è scritta male, oppure due sono scambiate.',
   'phrase.errUnknownWord': "La parola {position} («{word}») non è nell'elenco delle parole.",
   'phrase.errWordCount': 'Sono {count} parole. Ne servono esattamente dodici.',
+  'relay.errInsecureRelay': 'Questo codice indica il relay {address}. L’app si collega solo a un relay con un indirizzo wss://.',
   'phrase.wordCount': '{n} di 12 parole',
   'relay.instancesTitle': 'Su questo relay',
   'relay.noInstances': 'Al momento nessuna istanza di questo gruppo è online. Controlla la frase e che almeno un’istanza sia in funzione.',

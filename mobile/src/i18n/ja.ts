@@ -114,6 +114,7 @@ export const ja: Dict = {
   'addDownload.errorServer': 'サーバー: {message}',
   'addDownload.errorGeneric': 'リンクを送信できませんでした。',
   'error.federationOff': '接続先のインスタンスで「連携インスタンス」がオフになっているため、ほかのインスタンスに届きません。',
+  'error.addAgain': 'この接続は古いバージョンのアプリで保存されたもので、もう使えません。削除して、12個の単語でもう一度接続してください。',
   'addDownload.cancel': 'キャンセル',
   'addDownload.button': '追加',
 
@@ -219,6 +220,7 @@ export const ja: Dict = {
   'phrase.errChecksum': '12個の単語はすべて存在しますが、組み合わせが正しくありません。インスタンスと見比べてください。入力ミスがあるか、2つが入れ替わっています。',
   'phrase.errUnknownWord': '{position}番目の単語「{word}」は単語リストにありません。',
   'phrase.errWordCount': '{count}語あります。ちょうど12語必要です。',
+  'relay.errInsecureRelay': 'このコードはリレー {address} を指定しています。アプリは wss:// のアドレスのリレーにしか接続しません。',
   'phrase.wordCount': '12語中{n}語',
   'relay.instancesTitle': 'このリレー上のインスタンス',
   'relay.noInstances': 'このグループのインスタンスは現在どれもオンラインではありません。フレーズと、少なくとも1台が動いているかを確認してください。',

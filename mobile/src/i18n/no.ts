@@ -114,6 +114,7 @@ export const no: Dict = {
   'addDownload.errorServer': 'Server: {message}',
   'addDownload.errorGeneric': 'Kunne ikke sende lenkene.',
   'error.federationOff': 'Søsterinstanser er slått av på instansen du er koblet til, så den når ikke de andre.',
+  'error.addAgain': 'Denne tilkoblingen ble lagret av en eldre versjon av appen og virker ikke lenger. Fjern den og koble til på nytt med de tolv ordene.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 
@@ -219,6 +220,7 @@ export const no: Dict = {
   'phrase.errChecksum': 'Alle tolv ordene finnes, men de passer ikke sammen. Sammenlign dem med instansen din: ett er feilstavet, eller to er byttet om.',
   'phrase.errUnknownWord': 'Ord {position} («{word}») står ikke på ordlisten.',
   'phrase.errWordCount': 'Det er {count} ord. Det må være nøyaktig tolv.',
+  'relay.errInsecureRelay': 'Denne koden oppgir reléet {address}. Appen kobler seg bare til et relé på en wss://-adresse.',
   'phrase.wordCount': '{n} av 12 ord',
   'relay.instancesTitle': 'På dette reléet',
   'relay.noInstances': 'Ingen instans i denne gruppen er tilkoblet akkurat nå. Sjekk frasen, og at minst én instans kjører.',
