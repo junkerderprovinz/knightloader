@@ -153,6 +153,7 @@ export const en = {
   'share.added': 'Added to the collector on {name}.',
   'share.addedCount': 'Added {n} links to the collector on {name}.',
   'share.none': 'Nothing was added. What you shared had no new link in it.',
+  'share.fileUnreadable': 'Nothing was added. The file you shared has no links in it, or KnightLoader could not read it.',
   'share.failed': 'Could not add this: {error}',
   'share.noConnection': 'Connect an instance first, then share again.',
   'share.retry': 'Try again',

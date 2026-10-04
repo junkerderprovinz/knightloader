@@ -130,6 +130,7 @@ export const vi: Dict = {
   'share.added': 'Đã thêm vào bộ thu thập trên {name}.',
   'share.addedCount': 'Đã thêm {n} liên kết vào bộ thu thập trên {name}.',
   'share.none': 'Không có gì được thêm. Nội dung bạn chia sẻ không có liên kết mới.',
+  'share.fileUnreadable': 'Không có gì được thêm. Tệp bạn chia sẻ không có liên kết nào, hoặc KnightLoader không đọc được tệp.',
   'share.failed': 'Không thể thêm: {error}',
   'share.noConnection': 'Hãy kết nối một phiên bản trước, rồi chia sẻ lại.',
   'share.retry': 'Thử lại',

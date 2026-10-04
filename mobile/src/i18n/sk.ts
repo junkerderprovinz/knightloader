@@ -130,6 +130,7 @@ export const sk: Dict = {
   'share.added': 'Pridané do zberača na {name}.',
   'share.addedCount': 'Do zberača na {name} pridané odkazy: {n}.',
   'share.none': 'Nič sa nepridalo. V zdieľanom nebol žiadny nový odkaz.',
+  'share.fileUnreadable': 'Nič sa nepridalo. V zdieľanom súbore nie sú žiadne odkazy alebo ho KnightLoader nedokázal prečítať.',
   'share.failed': 'Nepodarilo sa pridať: {error}',
   'share.noConnection': 'Najprv pripoj inštanciu a potom zdieľaj znova.',
   'share.retry': 'Skúsiť znova',

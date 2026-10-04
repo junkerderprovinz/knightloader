@@ -130,6 +130,7 @@ export const sr: Dict = {
   'share.added': 'Додато у сакупљач на {name}.',
   'share.addedCount': 'У сакупљач на {name} додато веза: {n}.',
   'share.none': 'Ништа није додато. У подељеном није било нове везе.',
+  'share.fileUnreadable': 'Ништа није додато. У подељеној датотеци нема веза или је KnightLoader није могао прочитати.',
   'share.failed': 'Додавање није успело: {error}',
   'share.noConnection': 'Прво повежи инстанцу, па подели поново.',
   'share.retry': 'Покушај поново',

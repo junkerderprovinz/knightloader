@@ -130,6 +130,7 @@ export const lv: Dict = {
   'share.added': 'Pievienots {name} vācējam.',
   'share.addedCount': '{name} vācējam pievienotas saites: {n}.',
   'share.none': 'Nekas netika pievienots. Kopīgotajā nebija jaunas saites.',
+  'share.fileUnreadable': 'Nekas netika pievienots. Kopīgotajā failā nav saišu, vai KnightLoader to nevarēja nolasīt.',
   'share.failed': 'Neizdevās pievienot: {error}',
   'share.noConnection': 'Vispirms pievieno instanci, tad kopīgo vēlreiz.',
   'share.retry': 'Mēģināt vēlreiz',

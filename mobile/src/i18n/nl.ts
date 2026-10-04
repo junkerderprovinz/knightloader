@@ -130,6 +130,7 @@ export const nl: Dict = {
   'share.added': 'Toegevoegd aan de verzamelaar van {name}.',
   'share.addedCount': '{n} links toegevoegd aan de verzamelaar van {name}.',
   'share.none': 'Er is niets toegevoegd. Wat je deelde bevatte geen nieuwe link.',
+  'share.fileUnreadable': 'Er is niets toegevoegd. Het bestand dat je deelde bevat geen links, of KnightLoader kon het niet lezen.',
   'share.failed': 'Kon dit niet toevoegen: {error}',
   'share.noConnection': 'Verbind eerst een instantie en deel daarna opnieuw.',
   'share.retry': 'Opnieuw proberen',

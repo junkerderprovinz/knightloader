@@ -130,6 +130,7 @@ export const et: Dict = {
   'share.added': 'Lisatud eksemplari {name} kogujasse.',
   'share.addedCount': 'Eksemplari {name} kogujasse lisati {n} linki.',
   'share.none': 'Midagi ei lisatud. Jagatus polnud ühtegi uut linki.',
+  'share.fileUnreadable': 'Midagi ei lisatud. Jagatud failis pole linke või KnightLoader ei saanud seda lugeda.',
   'share.failed': 'Lisamine ebaõnnestus: {error}',
   'share.noConnection': 'Ühenda kõigepealt eksemplar ja jaga siis uuesti.',
   'share.retry': 'Proovi uuesti',

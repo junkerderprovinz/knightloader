@@ -130,6 +130,7 @@ export const fi: Dict = {
   'share.added': 'Lisätty instanssin {name} kerääjään.',
   'share.addedCount': '{n} linkkiä lisätty instanssin {name} kerääjään.',
   'share.none': 'Mitään ei lisätty. Jakamassasi ei ollut uusia linkkejä.',
+  'share.fileUnreadable': 'Mitään ei lisätty. Jakamassasi tiedostossa ei ole linkkejä, tai KnightLoader ei pystynyt lukemaan sitä.',
   'share.failed': 'Lisääminen epäonnistui: {error}',
   'share.noConnection': 'Yhdistä ensin instanssi ja jaa sitten uudelleen.',
   'share.retry': 'Yritä uudelleen',

@@ -130,6 +130,7 @@ export const he: Dict = {
   'share.added': 'נוסף לאספן ב-{name}.',
   'share.addedCount': '{n} קישורים נוספו לאספן ב-{name}.',
   'share.none': 'לא נוסף דבר. במה ששיתפת לא היה קישור חדש.',
+  'share.fileUnreadable': 'לא נוסף דבר. בקובץ ששיתפת אין קישורים, או ש-KnightLoader לא הצליח לקרוא אותו.',
   'share.failed': 'לא ניתן היה להוסיף: {error}',
   'share.noConnection': 'חבר קודם מופע, ואז שתף שוב.',
   'share.retry': 'נסה שוב',
