@@ -57,6 +57,15 @@ export function MirrorsCard({ hue }: { hue: number }) {
           hint={tx('settings.advanced.mirrorFailoverHint')}
         />
       )}
+
+      {/* Live under every policy, since the same URL always counts. */}
+      <ToggleRow
+        hue={2}
+        checked={cfg.rejectDownloaded ?? true}
+        onChange={(rejectDownloaded) => patch({ rejectDownloaded })}
+        label={tx('settings.advanced.rejectDownloaded')}
+        hint={tx('settings.advanced.rejectDownloadedHint')}
+      />
     </Card>
   );
 }

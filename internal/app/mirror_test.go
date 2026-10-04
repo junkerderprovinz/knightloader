@@ -449,3 +449,20 @@ func TestMirrorCanHelp(t *testing.T) {
 		}
 	}
 }
+
+// A magnet is known by its info hash, so a second one with other trackers is
+// refused, with a reason that names the hash.
+func TestAMagnetWithTheSameInfoHashIsRefusedAsTheSameTorrent(t *testing.T) {
+	a := newTorrentTestApp(t)
+	const magnet = "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
+	if created := a.AddLinks([]string{magnet + "&tr=udp%3A%2F%2Fone.example%3A6969"}, "Show"); len(created) != 1 {
+		t.Fatalf("the first magnet staged %d tasks, want 1", len(created))
+	}
+	if again := a.AddLinks([]string{magnet + "&tr=udp%3A%2F%2Ftwo.example%3A6969"}, "Show"); len(again) != 0 {
+		t.Fatalf("the second magnet staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	if len(skipped) != 1 || skipped[0].Reason != "a magnet with the same info hash is already in the list" {
+		t.Errorf("the skipped links are %+v, want the second magnet refused as the same torrent", skipped)
+	}
+}
