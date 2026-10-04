@@ -97,7 +97,13 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 			shared[filepath.Clean(s)] = true
 		}
 	}
-	l := leftover{path: t.File, size: t.Size}
+	size := t.Size
+	// A server that sent no length leaves Size unknown, and a finished
+	// download's byte count is then the length of its file.
+	if size == 0 && t.Status == core.StatusDone {
+		size = t.Loaded
+	}
+	l := leftover{path: t.File, size: size}
 	for _, s := range sidecarsOf(t) {
 		if !shared[filepath.Clean(s)] {
 			l.sidecars = append(l.sidecars, s)

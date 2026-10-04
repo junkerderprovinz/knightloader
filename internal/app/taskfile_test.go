@@ -894,3 +894,67 @@ func TestASidecarRowSavedUnderTheNameItShowsGetsNoNote(t *testing.T) {
 		t.Errorf("a row saved under another name than it shows was not logged:\n%s", logged)
 	}
 }
+
+// A server that sends no Content-Length leaves the size unknown. After a
+// restart the library has forgotten the transfer, and the bytes the download
+// finished with are what show the file is still its own.
+func TestRemovingWithFilesAfterARestartDeletesAFinishedDownloadOfUnknownSize(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
+	}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		for range 4 {
+			_, _ = w.Write(bytes.Repeat([]byte("chunk "), 1000))
+			w.(http.Flusher).Flush()
+		}
+	}))
+	t.Cleanup(srv.Close)
+	data, dir := t.TempDir(), t.TempDir()
+	before, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := settings.Defaults()
+	s.DownloadDir, s.Crawl, s.Extract, s.VerifyChecksums = dir, false, false, false
+	if _, err := before.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	queueTask(before, &core.Task{ID: "1", URL: srv.URL + "/stream.txt", Name: "stream.txt",
+		Status: core.StatusQueued, Enabled: true, CreatedAt: time.Now()})
+	waitFor(t, "the download", func() bool { return liveTask(before, "1").Status == core.StatusDone })
+	done := liveTask(before, "1")
+	if done.Size != 0 || done.File == "" || !fileExists(done.File) {
+		t.Fatalf("finished as size %d, file %q; want an unknown size and a file on disk", done.Size, done.File)
+	}
+	if err := before.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	after, err := newApp(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { after.Close() })
+	after.Remove("1", true)
+
+	if fileExists(done.File) {
+		t.Error("the finished file survived a removal with files")
+	}
+}
+
+func TestAFinishedDownloadOfUnknownSizeSparesAFileOfAnotherLengthAtItsPath(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	theirs := fileBytes(t, filepath.Join(dir, "stream.txt"), 100)
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/stream.txt", Name: "stream.txt", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Loaded: 2048, File: theirs,
+	}
+	a.mu.Unlock()
+
+	a.Remove("1", true)
+
+	if !fileExists(theirs) {
+		t.Error("a file that is not the length this download finished with was deleted")
+	}
+}

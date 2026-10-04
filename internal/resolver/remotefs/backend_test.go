@@ -543,3 +543,67 @@ func TestPausedDownloadsOfOneNameEachResumeFromTheirOwnPartFileAfterARestart(t *
 		t.Errorf("part files left behind: %v", left)
 	}
 }
+
+// A plain remove is what an undo can take back, and the row it brings back
+// resumes from its part file, as an engine download resumes from its partial.
+func TestAPlainRemoveKeepsThePartFileForTheDownloadToResumeFrom(t *testing.T) {
+	tree := sameNameTree(1 << 20)
+	tree["/pub/film.mkv"] = fakeNode{data: bytes.Repeat([]byte("A"), 1<<20)}
+	s := newFakeFTP(t, "alice", "secret", tree)
+	dir := t.TempDir()
+	var limit atomic.Int64
+	limit.Store(64 << 10)
+	rec := newRecorder()
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, rec.update)
+	b.RateLimit = limit.Load
+	link := LinkOf(s.target("/pub/film.mkv"))
+
+	b.Download("a", link, nil, 1)
+	part := partPath(dir, "film.mkv", "a")
+	arriving(t, part)
+	if !b.Halt("a") {
+		t.Fatal("Halt found no transfer running")
+	}
+
+	b.Remove("a", false)
+
+	if _, err := os.Stat(part); err != nil {
+		t.Fatalf("a remove without files deleted the part file: %v", err)
+	}
+	for len(s.restarts) > 0 {
+		<-s.restarts
+	}
+	limit.Store(0)
+	b.Download("a", link, nil, 1)
+	if u := rec.wait(t); u.Status != core.StatusDone || !holds(u.File, tree["/pub/film.mkv"].data) {
+		t.Fatalf("download = %+v, want it done with its own bytes", u)
+	}
+	select {
+	case off := <-s.restarts:
+		if off < 256<<10 {
+			t.Errorf("the download asked the server to restart at %d, before what its part file held", off)
+		}
+	case <-time.After(2 * time.Second):
+		t.Error("the download started again from nothing")
+	}
+}
+
+func TestRemovingWithFilesDeletesThePartFileOfAHaltedDownload(t *testing.T) {
+	s := newFakeFTP(t, "alice", "secret", sameNameTree(1<<20))
+	dir := t.TempDir()
+	b := NewBackend(Logins{s.host(): {Username: "alice", Password: "secret"}}, Dialer{}, newStubEngine(), dir, func(string, core.Update) {})
+	b.RateLimit = func() int64 { return 64 << 10 }
+
+	b.Download("a", LinkOf(s.target("/pub/other/film.mkv")), nil, 1)
+	part := partPath(dir, "film.mkv", "a")
+	arriving(t, part)
+	if !b.Halt("a") {
+		t.Fatal("Halt found no transfer running")
+	}
+
+	b.Remove("a", true)
+
+	if _, err := os.Stat(part); !os.IsNotExist(err) {
+		t.Errorf("the part file is still there: %v", err)
+	}
+}
