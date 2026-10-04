@@ -1010,10 +1010,12 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var own leftover
 	var landed torrentLeftover
 	var part string
+	var work []string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
 		part = a.partFileLocked(t)
+		work = t.WorkFiles
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
 	// record names the old path, which another download may have taken since.
@@ -1033,7 +1035,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	if t != nil {
 		a.backendFor(t.Resolver).Remove(id, backendFiles)
 		// The engine only deletes files of transfers it still knows, and it
-		// forgets them all on a restart.
+		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)
 		landed.drop()
 		if part != "" {
@@ -1041,6 +1043,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 				log.Printf("could not delete %s: %v%s", part, err, taskTag(id))
 			}
 		}
+		ytdlp.Discard(id, work, a.usedByOther)
 		a.dropImported(t)
 	}
 	// A copy published after this point finds the task gone (see publish).
