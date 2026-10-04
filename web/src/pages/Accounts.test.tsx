@@ -200,8 +200,9 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
   );
   expect(host.querySelector('[aria-label="Own servers"]')?.textContent).toContain('nas.lan');
 
+  // The last match, since the Usenet card above has an Add a server button too.
   const button = (text: string) =>
-    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === text)!;
+    [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
   const field = (caption: string) =>
     [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
   const type = (input: HTMLInputElement, text: string) => {
@@ -253,8 +254,9 @@ it('saves an own server only under a name a host can have', async () => {
       </I18nProvider>,
     ),
   );
+  // The last match, since the Usenet card above has an Add a server button too.
   const button = (text: string) =>
-    [...document.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.textContent === text)!;
+    [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
   const field = (caption: string) =>
     [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
   const type = (input: HTMLInputElement, text: string) => {
