@@ -268,7 +268,11 @@ func (a *App) Reclaim() (ReclaimReport, error) {
 		dir := a.dirFor(t)
 		dirs[dir] = true
 		// Every task's part file, so a running download's is not an orphan.
-		if t.Name != "" {
+		// An FTP or SFTP part is named from the link, which a rename leaves
+		// alone.
+		if p := a.partFileLocked(t); p != "" {
+			claimed[p] = true
+		} else if t.Name != "" {
 			claimed[reclaim.PartPath(dir, t.Name, id)] = true
 		}
 		if a.active[id] || !reclaimable(t) {
