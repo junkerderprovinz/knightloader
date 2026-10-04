@@ -1,1 +1,0 @@
-The app no longer contains expo-camera, whose code referred to Google's ML Kit even with its scanner switched off, so it can be built for F-Droid. It asks for the camera itself; after a second refusal, "Allow access" opens the app's settings.
