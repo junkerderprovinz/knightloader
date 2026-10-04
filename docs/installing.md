@@ -44,8 +44,8 @@ For a folder, KnightLoader has to know the path. There are two ways to tell it:
   itself; in nginx add `proxy_set_header X-Forwarded-Prefix /kl;`.
 
 If both are there, `KL_BASE_PATH` wins. The prefix has to be a plain path:
-letters, digits and `-._~` between the slashes. It cannot begin with `/api` or
-`/relay`, since the instance answers those without the prefix too.
+letters, digits and `-._~` between the slashes. It cannot begin with `/api`,
+`/relay` or `/dav`, since the instance answers those without the prefix too.
 
 nginx, passing the prefix on, with `KL_BASE_PATH=/kl`:
 

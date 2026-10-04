@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/debriddrive"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
@@ -129,6 +130,10 @@ type App struct {
 	// link's size and whether it still exists. It is a field so tests that
 	// stage links do not race a real DNS lookup.
 	Probe doer
+
+	// DebridDrive serves what is on the debrid accounts read-only over WebDAV
+	// (see app_debriddrive.go).
+	DebridDrive *debriddrive.Drive
 
 	// DataDir is the directory New was given. Backup and restore need the
 	// directory itself, since internal/backup stages a restore beside it.
@@ -456,6 +461,7 @@ func New(dataDir string) (*App, error) {
 	// client so a router holding connections open cannot starve a crawl.
 	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
+	a.DebridDrive = a.newDebridDrive()
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.claims.ytdlpOn = func() bool { return !a.resolverOff("ytdlp") }
 	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
