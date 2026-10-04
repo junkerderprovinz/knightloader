@@ -530,3 +530,18 @@ func TestATorrentFromTheHistoryIsRejectedInItsOtherForm(t *testing.T) {
 		t.Error("the uploaded torrent was staged, want it rejected as downloaded")
 	}
 }
+
+func TestAMirrorOfALinkTheHistoryRejectedNamesTheHistory(t *testing.T) {
+	a := historyApp(t, func(s *settings.Settings) { s.MirrorPolicy = string(dedupe.PolicyFilenameOnly) })
+	downloadedBefore(t, a, "old", "https://one.example/film.mkv", "film.mkv", 4096)
+	onlyTask(t, a.AddLinks([]string{"https://two.example/film.mkv"}, ""))
+
+	if again := a.AddLinks([]string{"https://three.example/film.mkv"}, ""); len(again) != 0 {
+		t.Fatalf("the mirror staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	want := `the download history has already rejected this file as "film.mkv", matched on name`
+	if len(skipped) != 1 || skipped[0].Reason != want {
+		t.Errorf("the skipped links are %+v, want the mirror explained by the history", skipped)
+	}
+}
