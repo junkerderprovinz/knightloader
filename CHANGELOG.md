@@ -39,6 +39,17 @@ release's tag.
 
 ### Fixed
 
+- **Pausing or removing an FTP or SFTP download works after an account
+  change.** Saving an account, switching one on or off, the host-list refresh
+  and a yt-dlp update all rebuild the download backends, and the one for your
+  own servers then forgot the transfers it was running. A pause or a removal
+  did not stop them, and a resume or an undo started a second transfer into
+  the same part file, which left a damaged file. A rebuild now keeps the
+  running transfers.
+- **Links to servers that hang up on a HEAD request show their size.**
+  Hetzner's speed-test mirrors close the connection on every HEAD request, so
+  the collector listed their links without a size. The link check now asks
+  such a server for the first byte instead.
 - **A server that hangs up on a browser's user agent no longer fails the
   download.** Some servers, Hetzner's speed-test mirrors among them, close the
   connection at once when a download program sends a browser's user agent,
