@@ -1,0 +1,1 @@
+Links lassen sich an die App teilen, die Einrichtung aus JDownloader übernehmen und RSDF- und CCF-Container ohne JDownloader öffnen. Dazu kommen viele Korrekturen beim Löschen von Downloads.
