@@ -643,6 +643,10 @@ type Task struct {
 	// which is what the interface needs to offer the row's files. Not
 	// persisted; the app works it out from TorrentFiles or the link.
 	TorrentFileCount int `json:"torrentFileCount,omitempty"`
+	// TorrentMedia is the kind of file Play opens in a torrent of several
+	// files, empty when it has none to open. It is set wherever TorrentFiles
+	// changes, and the interface offers Play for such a torrent only with it.
+	TorrentMedia string `json:"torrentMedia,omitempty"`
 	// MagnetFiles is every file of a magnet's torrent, by its path inside the
 	// torrent, as the swarm listed it. A .torrent keeps its list in its link,
 	// but after a restart nothing else knows a magnet's, and removing it with

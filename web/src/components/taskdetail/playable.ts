@@ -61,8 +61,24 @@ function canPlay(kind: 'audio' | 'video', type: string): boolean {
  * audio or video, and otherwise the kind and whether this browser can play it.
  * It takes the task's name alone, since the server ignores the display-only Ext.
  */
-export function playableAs(name: string): Playable | null {
+function playableAs(name: string): Playable | null {
   const entry = MEDIA[extensionOf(name)];
   if (!entry) return null;
   return { kind: entry.kind, type: entry.type, supported: canPlay(entry.kind, entry.type) };
+}
+
+/**
+ * playableTask is playableAs for a task. A torrent of several files is named
+ * after its folder, so the kind comes from torrentMedia and the type from the
+ * file route's answer, which names the file Play opens. Until that answer is
+ * there, the browser's verdict is left open.
+ */
+export function playableTask(
+  task: { name: string; torrentFileCount?: number; torrentMedia?: 'audio' | 'video' },
+  contentType = '',
+): Playable | null {
+  if ((task.torrentFileCount ?? 0) <= 1) return playableAs(task.name);
+  const kind = task.torrentMedia;
+  if (!kind) return null;
+  return { kind, type: contentType, supported: contentType === '' || canPlay(kind, contentType) };
 }

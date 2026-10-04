@@ -187,6 +187,9 @@ export interface Task {
    *  themselves come from fetchTorrentFiles, since a torrent can list
    *  thousands and the task goes out on every tick. */
   torrentFileCount?: number;
+  /** What Play opens in a torrent of several files: the largest selected
+   *  file that is audio or video. Absent when none of them is. */
+  torrentMedia?: 'audio' | 'video';
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
