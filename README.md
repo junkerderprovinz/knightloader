@@ -121,40 +121,17 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 
 ## Table of Contents
 
-1. [Overview](#1-overview)
-2. [Screenshots](#2-screenshots)
+1. [Screenshots](#1-screenshots)
+2. [What it does](#2-what-it-does)
 3. [How it compares](#3-how-it-compares)
-4. [Quick Start](#4-quick-start)
+4. [Getting started](#4-getting-started)
 5. [Documentation](#5-documentation)
-6. [Contributing and license](#6-contributing-and-license)
-7. [How AI is used here](#7-how-ai-is-used-here)
-8. [Support this project](#8-support-this-project)
+6. [How AI is used here](#6-how-ai-is-used-here)
+7. [Support this project](#7-support-this-project)
 
 <br>
 
-## 1. Overview
-
-KnightLoader is one Go process. The download engine, the REST and WebSocket API,
-the web UI and the Click'n'Load listener all live in the same binary, so there is
-no aria2 to supervise, no separate front end to keep in step, and nothing to
-install beside it.
-
-Hoster coverage comes from swappable **resolvers** rather than from a plugin
-ecosystem nobody can maintain: plain file links go straight to the embedded
-engine, supported hosters are unlocked through a debrid service you already pay
-for, magnets and `.torrent` files go to the BitTorrent client in the same
-engine or through a debrid service that takes them, media pages and stream
-playlists go to yt-dlp, and anything left over is delegated to a headless
-JDownloader kept at arm's length. Your accounts stay yours, stored
-encrypted on your own box.
-
-The Packagizer, extraction, reconnect, the twelve words and everything else are
-listed area by area under
-[What it does](https://junkerderprovinz.github.io/knightloader/features/).
-
-<br>
-
-## 2. Screenshots
+## 1. Screenshots
 
 The downloads, hosts and accounts in these pictures are made up.
 
@@ -249,6 +226,22 @@ The downloads, hosts and accounts in these pictures are made up.
 
 <br>
 
+## 2. What it does
+
+KnightLoader is one Go process. The download engine, the API, the web interface and the Click'n'Load listener live in the same binary, so there is nothing to install beside it.
+
+- **Hosters, torrents, Usenet and video.** Hoster links go through the debrid service you already pay for, torrents to the built-in client or a debrid service, `.nzb` files to TorBox or Premiumize.me, videos and streams to yt-dlp, and whatever is left to a headless JDownloader. [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/)
+- **A look before anything downloads.** The collector checks each link and shows which backend will take it, and Packagizer rules sort links into packages and folders as they arrive. A link nothing can fetch stays in the list, with the reason. [What it does](https://junkerderprovinz.github.io/knightloader/features/)
+- **Links from anywhere.** Paste them, click a site's Click'n'Load button, send them from the browser extension or the phone's share sheet, drop them in a watched folder, or let Sonarr and Radarr send them, since they see KnightLoader as qBittorrent or SABnzbd. [Bookmarklet, extension and share target](https://junkerderprovinz.github.io/knightloader/browser-tools/)
+- **When a download finishes.** Archives are unpacked and checksums checked, files land in folders built from templates, and a media library can be told to rescan. [Where files land](https://junkerderprovinz.github.io/knightloader/where-files-land/)
+- **Twelve words instead of a port forward.** Instances, the phone app and the browser extension find each other with a phrase, across networks, without an account or a domain. [Connecting instances and apps](https://junkerderprovinz.github.io/knightloader/connecting/)
+- **Wherever you need it.** A container for your server or Unraid, a desktop app for Windows, macOS and Linux, an Android app and a browser extension. [Installing](https://junkerderprovinz.github.io/knightloader/installing/)
+- **Coming from JDownloader?** KnightLoader takes over your accounts, rules, archive passwords and the open download list, with a preview first. [Moving over from JDownloader](https://junkerderprovinz.github.io/knightloader/from-jdownloader/)
+
+Reconnect, captcha accounts, programs on events and the rest are listed area by area under [What it does](https://junkerderprovinz.github.io/knightloader/features/).
+
+<br>
+
 ## 3. How it compares
 
 Every cell about another program comes from its own documentation, source code
@@ -289,10 +282,9 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 
 <br>
 
-## 4. Quick Start
+## 4. Getting started
 
-Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64
-and arm64:
+On a server, one container is enough. Every release tag publishes `ghcr.io/junkerderprovinz/knightloader` for amd64 and arm64:
 
 ```sh
 docker run -d --name knightloader \
@@ -304,15 +296,9 @@ docker run -d --name knightloader \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```
 
-On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over
-SMB can move and delete what KnightLoader downloads.
+On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over SMB can move and delete what KnightLoader downloads.
 
-Then open `http://<host>:8749`. The desktop apps, the Android app and the
-browser extension are covered under
-[Installing](https://junkerderprovinz.github.io/knightloader/installing/). On
-Windows the installer puts KnightLoader under Program Files for everyone on the
-computer, and a scheduled task running as the system account keeps it up to
-date, whether the app is open or not.
+Then open `http://<host>:8749`. The desktop apps, the Android app and the browser extension are the buttons above. Reverse proxies, updates and building it yourself are covered in the [installation guide](https://junkerderprovinz.github.io/knightloader/installing/).
 
 <br>
 
@@ -325,6 +311,7 @@ The manual lives at
 - [What it does](https://junkerderprovinz.github.io/knightloader/features/), area by area
 - [Configuration](https://junkerderprovinz.github.io/knightloader/configuration/): the environment variables
 - [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/): watched folders, container files, your own servers, header profiles
+- [Moving over from JDownloader](https://junkerderprovinz.github.io/knightloader/from-jdownloader/): accounts, rules, passwords and the open download list
 - [Click'n'Load](https://junkerderprovinz.github.io/knightloader/clicknload/) and the [browser extension](https://junkerderprovinz.github.io/knightloader/browser-tools/)
 - [Connecting instances and apps](https://junkerderprovinz.github.io/knightloader/connecting/) with the twelve words
 - [Where files land](https://junkerderprovinz.github.io/knightloader/where-files-land/): folder templates and library rescans
@@ -332,25 +319,7 @@ The manual lives at
 
 <br>
 
-## 6. Contributing and license
-
-[AGPL-3.0](LICENSE). Own code, except that the RSDF and CCF readers follow
-[JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins.
-
-The knight logo (`.github/assets/kl_app_logo.svg` and the other logo files in
-`.github/assets`) is my own drawing and is licensed under AGPL-3.0-only like the
-code. The KnightLoader name and logo remain my trademarks, so a fork needs a
-name and logo of its own.
-
-Built on [Gopeed](https://github.com/GopeedLab/gopeed) (download engine),
-[yt-dlp](https://github.com/yt-dlp/yt-dlp) (media),
-[JDownloader](https://jdownloader.org/) (hoster catch-all, via its local API),
-[Wails](https://github.com/wailsapp/wails) (desktop) and
-[React](https://react.dev) with [Tailwind](https://tailwindcss.com).
-
-<br>
-
-## 7. How AI is used here
+## 6. How AI is used here
 
 One knight builds this, and AI is one of the tools I work with, the same way I work with an editor or a compiler. It helps me write code and documentation and it checks my work, and that saves me a good many evenings. It does not make the decisions, though. I read and understand everything before it ships, and if something here breaks, that is on me and not on the tool.
 
@@ -358,7 +327,7 @@ You do not have to take my word for it. The code is open and every release note 
 
 <br>
 
-## 8. Support this project
+## 7. Support this project
 
 A one-knight job: I build it, keep it running, work through the issues and add what people ask for, until nothing is missing. It is free, with no accounts, no ads and no paid tier, and KnightLoader collects nothing about you. One caveat: the phone app's QR scanner comes from Google and sends Google usage diagnostics when it scans a code. Nothing readable ever leaves your own walls. Forged on evenings and weekends, with heart and stubbornness.
 
@@ -375,3 +344,5 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 <!-- /give-buttons -->
 
 Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues).
+
+The code and the knight logo are licensed under [AGPL-3.0](LICENSE). The RSDF and CCF readers follow [JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins. The KnightLoader name and logo stay my trademarks, so a fork needs a name and logo of its own.
