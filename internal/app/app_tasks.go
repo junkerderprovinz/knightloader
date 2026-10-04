@@ -1090,7 +1090,7 @@ func (a *App) put(t *core.Task) (dedupe.Match, bool) {
 // linkEntry describes a task to the mirror set. An unresolved task's name is
 // still its URL, which the set reads as "not known yet".
 func linkEntry(t *core.Task) dedupe.Entry {
-	return dedupe.Entry{ID: t.ID, URL: t.URL, Name: t.Name, Size: t.Size}
+	return dedupe.Entry{ID: t.ID, URL: dedupeURL(t.URL), Name: t.Name, Size: t.Size}
 }
 
 // forgetLinkLocked takes a task's link out of the mirror set, but only while
@@ -1100,8 +1100,9 @@ func (a *App) forgetLinkLocked(t *core.Task) {
 	if t == nil || a.dupes == nil {
 		return
 	}
-	if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict == dedupe.Duplicate && m.Of.ID == t.ID {
-		a.dupes.Remove(t.URL)
+	u := dedupeURL(t.URL)
+	if m := a.dupes.Check(dedupe.Entry{URL: u}); m.Verdict == dedupe.Duplicate && m.Of.ID == t.ID {
+		a.dupes.Remove(u)
 	}
 }
 

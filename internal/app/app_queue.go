@@ -416,7 +416,7 @@ func (a *App) UndoRemove(token string) []string {
 		a.tasks[t.ID] = &t
 		// Filed again, but never over a link pasted since the removal, or the
 		// mirror set would let a third copy past.
-		if m := a.dupes.Check(dedupe.Entry{URL: t.URL}); m.Verdict != dedupe.Duplicate {
+		if m := a.dupes.Check(dedupe.Entry{URL: dedupeURL(t.URL)}); m.Verdict != dedupe.Duplicate {
 			a.dupes.Add(linkEntry(&t))
 		}
 		if enqueue {
