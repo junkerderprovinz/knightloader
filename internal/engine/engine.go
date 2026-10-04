@@ -498,10 +498,7 @@ func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error)
 		return rr, opts, err
 	}
 	if !hasUserAgent(j.Headers) {
-		ours := *j
-		ours.Headers = make(map[string]string, len(j.Headers)+1)
-		maps.Copy(ours.Headers, j.Headers)
-		ours.Headers["User-Agent"] = httpx.UserAgent()
+		ours := asKnightLoader(*j)
 		rr, opts, err = e.resolveAs(ours)
 		if err == nil {
 			*j = ours
@@ -511,11 +508,16 @@ func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error)
 			return rr, opts, err
 		}
 	}
+	return nil, nil, hungUp(err)
+}
+
+// hungUp words the hang-up err as errHungUp rather than a bare EOF.
+func hungUp(err error) error {
 	var ue *url.Error
 	if errors.As(err, &ue) {
-		return nil, nil, &url.Error{Op: ue.Op, URL: ue.URL, Err: errHungUp}
+		return &url.Error{Op: ue.Op, URL: ue.URL, Err: errHungUp}
 	}
-	return nil, nil, errHungUp
+	return errHungUp
 }
 
 func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error) {
@@ -528,6 +530,15 @@ func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error
 	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 	rr, err := e.d.Resolve(req, opts)
 	return rr, opts, err
+}
+
+// asKnightLoader is j sending KnightLoader's agent, on a copy of its headers.
+func asKnightLoader(j Job) Job {
+	h := make(map[string]string, len(j.Headers)+1)
+	maps.Copy(h, j.Headers)
+	h["User-Agent"] = httpx.UserAgent()
+	j.Headers = h
+	return j
 }
 
 func hasUserAgent(h map[string]string) bool {

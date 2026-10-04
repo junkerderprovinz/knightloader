@@ -27,6 +27,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/download"
 	fhttp "github.com/GopeedLab/gopeed/pkg/protocol/http"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
 // taskLabel is the request label naming the task a library task belongs to,
@@ -301,10 +302,20 @@ func (e *Engine) Resumes(taskID, file string) bool {
 	return ok && filepath.Clean(held) == filepath.Clean(file)
 }
 
+// Holds reports whether the task has a transfer from before a restart that its
+// next Start carries on with. A retry then goes through Start again, rather
+// than through Remove, which deletes the bytes.
+func (e *Engine) Holds(taskID string) bool {
+	e.mu.Lock()
+	defer e.mu.Unlock()
+	return e.restored[taskID] != ""
+}
+
 // takeUp carries on with the transfer of j's task from before the restart, and
-// reports whether the start is over: carried on, or ended by a pause or a
-// removal meanwhile. Otherwise the old transfer is gone, with its file if that
-// was still the transfer's, and the start begins afresh.
+// reports whether the start is over: carried on, failed with the transfer kept
+// for the next start, or ended by a pause or a removal meanwhile. Otherwise the
+// old transfer is gone, with its file if that was still the transfer's, and the
+// start begins afresh.
 func (e *Engine) takeUp(j Job, s *start) bool {
 	e.mu.Lock()
 	gid := e.restored[j.TaskID]
@@ -315,8 +326,10 @@ func (e *Engine) takeUp(j Job, s *start) bool {
 	t := e.d.GetTask(gid)
 	file, ours := heldFile(t)
 	if ours && filepath.Clean(t.Meta.Opts.Path) == filepath.Clean(j.writeDir()) {
-		err := e.servesRest(j, t)
-		if err == nil {
+		err := e.servesRest(&j, t)
+		var other otherFile
+		switch {
+		case err == nil:
 			if !e.proceed(s, j) {
 				return true
 			}
@@ -327,6 +340,11 @@ func (e *Engine) takeUp(j Job, s *start) bool {
 			e.jobs[j.TaskID] = j
 			e.mu.Unlock()
 			e.carryOn(j, gid, t, file)
+			return true
+		case !errors.As(err, &other):
+			if e.proceed(s, j) {
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error(), File: file})
+			}
 			return true
 		}
 		log.Printf("%s starts over: %v (task %s)", file, err, j.TaskID)
@@ -359,10 +377,34 @@ func (e *Engine) carryOn(j Job, gid string, t *download.Task, file string) {
 	}
 }
 
-// servesRest asks j's link for the first byte of t's file, and returns why the
-// bytes on disk cannot be carried on with: the server does not send the file
-// in ranges, or it is not the file the transfer began with.
-func (e *Engine) servesRest(j Job, t *download.Task) error {
+// otherFile is an answer that settles that the bytes on disk are of no use:
+// the server sends the file only whole, or it is not the file the transfer
+// began with. Any other failure of the probe may pass, and leaves the bytes.
+type otherFile string
+
+func (o otherFile) Error() string { return string(o) }
+
+// servesRest checks that j's link still sends t's file in ranges, asking as
+// KnightLoader when the server hangs up on the agent j names, as resolve does.
+// j then keeps that agent for the transfer's own requests.
+func (e *Engine) servesRest(j *Job, t *download.Task) error {
+	err := e.probeRest(*j, t)
+	if err == nil || !httpx.HungUp(err) || hasUserAgent(j.Headers) {
+		return err
+	}
+	ours := asKnightLoader(*j)
+	err = e.probeRest(ours, t)
+	switch {
+	case err == nil:
+		*j = ours
+	case httpx.HungUp(err):
+		err = hungUp(err)
+	}
+	return err
+}
+
+// probeRest asks j's link for the first byte of t's file.
+func (e *Engine) probeRest(j Job, t *download.Task) error {
 	ctx, cancel := context.WithTimeout(e.ctx, mendIdle)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, j.URL, nil)
@@ -379,18 +421,24 @@ func (e *Engine) servesRest(j Job, t *download.Task) error {
 	}
 	resp.Body.Close()
 	size := t.Meta.Res.Size
-	if resp.StatusCode != http.StatusPartialContent {
+	switch resp.StatusCode {
+	case http.StatusPartialContent:
+	case http.StatusOK:
+		return otherFile("the server sends this file only from the start")
+	case http.StatusRequestedRangeNotSatisfiable:
+		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mib(size)))
+	default:
 		return fmt.Errorf("the server answered a request for part of the file with HTTP %d", resp.StatusCode)
 	}
 	if start, total, ok := contentRange(resp.Header.Get("Content-Range")); !ok || start != 0 || total != size {
-		return fmt.Errorf("the file on the server is not the %s this download began with", mib(size))
+		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mib(size)))
 	}
 	// Another link may come from another server with its own dates, as in
 	// fetch.
 	if j.URL == t.Meta.Req.URL {
 		if ct := t.Meta.Res.Files[0].Ctime; ct != nil && !ct.IsZero() {
 			if lm, err := http.ParseTime(resp.Header.Get("Last-Modified")); err == nil && !lm.Equal(*ct) {
-				return errors.New("the file on the server has changed since this download began")
+				return otherFile("the file on the server has changed since this download began")
 			}
 		}
 	}

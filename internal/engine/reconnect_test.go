@@ -26,9 +26,14 @@ type slowOrigin struct {
 	// whole has it send all of the file whatever was asked, as a server
 	// without ranges does.
 	whole atomic.Bool
+	// picky has it hang up on any agent but KnightLoader's, and status
+	// answers every request with that code instead of the file.
+	picky  atomic.Bool
+	status atomic.Int32
 
 	mu     sync.Mutex
 	ranges []string
+	agents []string
 }
 
 func newSlowOrigin(t *testing.T, size int) *slowOrigin {
@@ -38,7 +43,15 @@ func newSlowOrigin(t *testing.T, size int) *slowOrigin {
 	o.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		o.mu.Lock()
 		o.ranges = append(o.ranges, r.Header.Get("Range"))
+		o.agents = append(o.agents, r.UserAgent())
 		o.mu.Unlock()
+		if o.picky.Load() && !strings.HasPrefix(r.UserAgent(), "KnightLoader/") {
+			panic(http.ErrAbortHandler)
+		}
+		if code := o.status.Load(); code != 0 {
+			http.Error(w, http.StatusText(int(code)), int(code))
+			return
+		}
 		lo, hi := 0, len(o.data)-1
 		ranged := !o.whole.Load()
 		if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok && ranged {
