@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -246,6 +247,11 @@ type TorrentOverview struct {
 	Ratio float64 `json:"ratio"`
 	// Top is the torrents sending most right now, fastest first.
 	Top []TorrentUploader `json:"top"`
+	// Interface is the network interface the torrent settings tie torrents
+	// to, and InterfaceDown says it is missing or down, which holds every
+	// torrent of the built-in client until it is back.
+	Interface     string `json:"interface,omitempty"`
+	InterfaceDown bool   `json:"interfaceDown"`
 }
 
 // TorrentUploader is one torrent among the overview's busiest.
@@ -274,6 +280,10 @@ func (a *App) TorrentOverview() TorrentOverview {
 		out.Ratio = float64(out.Uploaded) / float64(out.Downloaded)
 	}
 	out.Any = out.Downloaded > 0 || out.Uploaded > 0
+	if tc.Interface != "" {
+		out.Interface = tc.Interface
+		out.InterfaceDown = !engine.InterfaceUp(tc.Interface)
+	}
 
 	a.mu.Lock()
 	for _, t := range a.tasks {

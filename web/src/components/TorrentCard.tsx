@@ -26,7 +26,8 @@ function Figure({ label, value, sub }: { label: string; value: string; sub?: str
 /**
  * TorrentCard is the overview's card for the built-in torrent client: how many
  * torrents leech and seed, both speeds, what came in and went out today and in
- * all, the ratio of the two and the three torrents sending most. Like the
+ * all, the ratio of the two and the three torrents sending most. While the
+ * network interface torrents are tied to is missing, it says so first. Like the
  * other cards it is left out while it has nothing to show, and while the
  * torrent module is off. A click on it opens the torrents under Downloads.
  */
@@ -59,6 +60,9 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
   return (
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('overview.torrents.hint')}>{t('overview.torrents.title')}</SectionTitle>
+      {data.interfaceDown && data.interface && (
+        <p className="text-sm text-statusWarn">{t('overview.torrents.interfaceDown', { name: data.interface })}</p>
+      )}
       <button
         type="button"
         onClick={() => navigate('/downloads?card=torrents')}

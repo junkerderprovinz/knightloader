@@ -284,9 +284,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
-	// How the tracker list named in the settings was fetched, which is part
-	// of the Torrents settings page.
-	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
+	// The interfaces to tie torrents to and how the tracker list named in the
+	// settings was fetched, both part of the Torrents settings page.
+	"GET /api/torrents/interfaces": apitoken.ScopeAdmin,
+	"GET /api/torrents/trackers":   apitoken.ScopeAdmin,
 
 	// The logins of the Usenet servers are credentials like the accounts'.
 	"GET /api/usenet/servers":         apitoken.ScopeAdmin,
