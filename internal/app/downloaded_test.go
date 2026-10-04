@@ -14,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -468,5 +469,34 @@ func TestTheHistoryKeepsEveryNameALinkWasSavedUnder(t *testing.T) {
 	got := onlyTask(t, a.AddLinks([]string{"https://one.example/film.mkv"}, ""))
 	if got.SkipParams["name"] != "film (2).mkv" {
 		t.Errorf("the link itself is rejected as %q, want its latest download", got.SkipParams["name"])
+	}
+}
+
+// The history has the name the file was saved under, where every control
+// character of the link's name became a space and a colon an underscore.
+func TestAMirrorIsRejectedWhenItsNameHoldsCharactersTheSavedFileDoesNot(t *testing.T) {
+	saved := map[string]string{
+		"nul\x00here.bin": "nul here.bin",
+		"esc\x1bhere.bin": "esc here.bin",
+		"del\x7fhere.bin": "del here.bin",
+		"tab\there.bin":   "tab here.bin",
+		"a:b.bin":         "a_b.bin",
+	}
+	for raw, name := range saved {
+		t.Run(name, func(t *testing.T) {
+			a := historyApp(t, nil)
+			downloadedBefore(t, a, "old", "https://one.example/"+url.PathEscape(name), name, 32)
+
+			got := onlyTask(t, a.AddResolvedLinksFrom([]resolver.Result{
+				{DirectURL: "https://two.example/f/abc", Name: raw, Size: 32},
+			}, "", OriginPaste))
+			if !got.Skipped || got.SkipCode != skipDownloaded {
+				t.Errorf("the mirror %q was staged (skipped=%v, code=%q), want it rejected as %q",
+					raw, got.Skipped, got.SkipCode, name)
+			}
+			if !a.historyNeedsSize(rules.Candidate{URL: "https://three.example/f/abc", Filename: raw}) {
+				t.Errorf("a mirror %q of unknown size is answered without its size, want it to wait for the probe", raw)
+			}
+		})
 	}
 }

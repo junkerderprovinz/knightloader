@@ -14,6 +14,7 @@ import (
 	"slices"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 // Policy is the combination of signals that makes two different URLs count
@@ -238,14 +239,17 @@ func Normalize(name string) Name {
 }
 
 // comparableName reduces a name to its comparison form: no directory, lower
-// case, whitespace collapsed; "" when there is nothing to compare. Separators
-// are left alone, since folding '.' into ' ' would merge "v1.2" with "v1 2".
+// case, whitespace and control characters collapsed into one space, as a
+// saved file has a space where its link had a control character; "" when
+// there is nothing to compare. Separators are left alone, since folding '.'
+// into ' ' would merge "v1.2" with "v1 2".
 func comparableName(name string) string {
 	s := strings.TrimSpace(name)
 	if s == "" || strings.Contains(s, "://") {
 		return ""
 	}
-	return strings.Join(strings.Fields(strings.ToLower(baseName(s))), " ")
+	gap := func(r rune) bool { return r < 0x20 || r == 0x7f || unicode.IsSpace(r) }
+	return strings.Join(strings.FieldsFunc(strings.ToLower(baseName(s)), gap), " ")
 }
 
 // baseName drops any directory part, treating backslashes as separators too.

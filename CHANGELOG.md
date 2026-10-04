@@ -66,7 +66,8 @@ release's tag.
   Settings > Link collector > Copies of the same file. A magnet is recognised
   by its info hash, whatever name and trackers it carries, and a link
   restored past the filter or a banned tracker is still checked against the
-  history.
+  history. Names are compared as the files were saved, so a mirror whose
+  name holds a colon or a control character still counts.
 - **A test captcha.** Settings, Captcha has a button that sends a captcha
   KnightLoader draws itself. It arrives in the captcha window, the phone app
   and at the event targets the way a hoster's captcha does, with the same

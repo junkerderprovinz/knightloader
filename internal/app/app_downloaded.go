@@ -11,6 +11,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 )
@@ -39,8 +40,7 @@ func (a *App) downloadedVerdict(cand rules.Candidate) rules.Verdict {
 	if !s.RejectDownloaded {
 		return rules.Verdict{}
 	}
-	m, at := a.downloaded.match(a, dedupe.ParsePolicy(s.MirrorPolicy),
-		dedupe.Entry{URL: cand.URL, Name: cand.Filename, Size: cand.Filesize})
+	m, at := a.downloaded.match(a, dedupe.ParsePolicy(s.MirrorPolicy), asSaved(cand))
 	if !m.Seen() {
 		return rules.Verdict{}
 	}
@@ -68,7 +68,13 @@ func (a *App) historyNeedsSize(cand rules.Candidate) bool {
 	d.mu.Lock()
 	defer d.mu.Unlock()
 	return d.fresh(a, dedupe.ParsePolicy(s.MirrorPolicy)) &&
-		d.set.NeedsSize(dedupe.Entry{URL: cand.URL, Name: cand.Filename, Size: cand.Filesize})
+		d.set.NeedsSize(asSaved(cand))
+}
+
+// asSaved is the candidate under the name its file would be saved as, which
+// is the name the history keeps.
+func asSaved(cand rules.Candidate) dedupe.Entry {
+	return dedupe.Entry{URL: cand.URL, Name: collide.SafeName(cand.Filename), Size: cand.Filesize}
 }
 
 // match looks a candidate up in the history and reports the entry it repeats
