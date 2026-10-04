@@ -52,6 +52,10 @@ type keptTransfers struct {
 	// restoring is the connection state of each transfer handed back at
 	// boot, until the library reads it.
 	restoring map[string]json.RawMessage
+	// removed holds the library id of every task the library deleted. Its
+	// pause saves the task on a goroutine of its own, which can land after
+	// the delete and would write the record again.
+	removed map[string]bool
 }
 
 // keptRecord is one paused transfer as it lies on disk.
@@ -67,6 +71,7 @@ func newKeptTransfers(dir string) *keptTransfers {
 		owner:     map[string]string{},
 		byTask:    map[string]string{},
 		restoring: map[string]json.RawMessage{},
+		removed:   map[string]bool{},
 	}
 }
 
@@ -111,7 +116,9 @@ func (k *keptTransfers) put(bucket, gid string, v any) {
 	switch bucket {
 	case savedLayoutBucket:
 		k.mu.Lock()
-		k.saves[gid] = v
+		if !k.removed[gid] {
+			k.saves[gid] = v
+		}
 		k.mu.Unlock()
 	case savedTaskBucket:
 		if t, ok := v.(*download.Task); ok {
@@ -132,7 +139,7 @@ func (k *keptTransfers) note(gid string, t *download.Task) {
 	}
 	k.mu.Lock()
 	defer k.mu.Unlock()
-	if k.closed {
+	if k.closed || k.removed[gid] {
 		return
 	}
 	if old := k.byTask[id]; old != "" && old != gid {
@@ -209,6 +216,7 @@ func (k *keptTransfers) delete(bucket, gid string) {
 		delete(k.restoring, gid)
 	case savedTaskBucket:
 		if !k.closed {
+			k.removed[gid] = true
 			k.dropLocked(gid)
 		}
 	}
@@ -309,6 +317,23 @@ func (e *Engine) Holds(taskID string) bool {
 	e.mu.Lock()
 	defer e.mu.Unlock()
 	return e.restored[taskID] != ""
+}
+
+// PruneRestored lets go of every transfer handed back at boot whose task known
+// does not report, leaving its file where it is.
+func (e *Engine) PruneRestored(known func(taskID string) bool) {
+	var gone []string
+	e.mu.Lock()
+	for id, gid := range e.restored {
+		if !known(id) {
+			gone = append(gone, gid)
+			delete(e.restored, id)
+		}
+	}
+	e.mu.Unlock()
+	if len(gone) > 0 {
+		_ = e.d.Delete(&download.TaskFilter{IDs: gone}, false)
+	}
 }
 
 // takeUp carries on with the transfer of j's task from before the restart, and

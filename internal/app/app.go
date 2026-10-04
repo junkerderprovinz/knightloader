@@ -608,6 +608,11 @@ func New(dataDir string) (*App, error) {
 			a.dupes.Add(linkEntry(t))
 		}
 	}
+	stored := make(map[string]bool, len(existing))
+	for _, t := range existing {
+		stored[t.ID] = true
+	}
+	a.Engine.PruneRestored(func(id string) bool { return stored[id] })
 	// Written back so the store and the retention sweep agree. Nothing is
 	// broadcast; no client can be connected yet.
 	for i := range revived {
