@@ -1273,8 +1273,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if sizeLearned {
 		t.Size = u.Size
 	}
-	// A fact about the disk, so a stale update still counts.
+	// Facts about the disk, so a stale update still counts.
 	a.recordFileLocked(t, u.File)
+	if u.WorkFile != "" && !slices.Contains(t.WorkFiles, u.WorkFile) {
+		t.WorkFiles = append(t.WorkFiles, u.WorkFile)
+	}
 	if u.MagnetFiles != nil {
 		t.MagnetFiles = u.MagnetFiles
 	}
@@ -1390,6 +1393,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.NextTry = time.Time{}
 		t.MaxTries = 0
 		t.StallRestarts = 0
+		// yt-dlp has cleared away what it merged, and the finished file is
+		// File.
+		t.WorkFiles = nil
 		// Renamed before anything below builds a path from t.Name.
 		_ = a.renameFinishedLocked(t)
 		if a.stopMark == id {
