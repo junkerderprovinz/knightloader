@@ -665,3 +665,25 @@ func TestOriginsThatRedirectToTheSamePageShareOneAllowance(t *testing.T) {
 		t.Errorf("%d image requests, want at most %d", n, iconMaxAttempts)
 	}
 }
+
+func TestALocalNetworkNameIsNeverFetched(t *testing.T) {
+	var calls atomic.Int32
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		calls.Add(1)
+		return pngBytes(32, 32), "image/png", nil
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	for _, host := range []string{"nas.local", "host.lan", "x.home.arpa", "a.example", "ci.test", "svc.internal", "box.localhost"} {
+		if _, _, err := a.HosterIcon(host); err == nil || errors.Is(err, ErrIconPending) {
+			t.Errorf("HosterIcon(%q) = %v, want an answer without a fetch", host, err)
+		}
+	}
+	if n := calls.Load(); n != 0 {
+		t.Errorf("local names started %d fetches, want none", n)
+	}
+	if _, _, err := a.HosterIcon("dl.example.com"); !errors.Is(err, ErrIconPending) {
+		t.Errorf("HosterIcon(dl.example.com) = %v, want a fetch for a public name", err)
+	}
+	<-a.fetchHosterIcon("dl.example.com")
+}
