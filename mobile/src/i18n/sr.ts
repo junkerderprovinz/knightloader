@@ -90,6 +90,10 @@ export const sr: Dict = {
   'captcha.blockHoster': 'Такође престани да питаш за {host} ову сесију',
   'captcha.blockEverywhere': 'Такође престани да питаш за било ког хостера ову сесију',
   'captcha.tooLate': 'Тај одговор је стигао прекасно.',
+  'captcha.testFor':
+    'Пробна captcha од KnightLoader-а. Ниједно преузимање је не чека. Укуцај пет знакова и видећеш да ли је твој одговор тачан.',
+  'captcha.testRight': 'Тачно. У пробној captcha је писало {want}.',
+  'captcha.testWrong': 'Нетачно. У пробној captcha је писало {want}, а не {given}.',
   'captcha.timedOut': 'Captcha за {host} је истекла.',
   'captcha.resolvedElsewhere': 'Captcha за {host} је решена негде другде.',
   'captcha.relayRefused': 'Ова инстанца је превише стара да би прослеђивала captcha апликацији. Тамо ажурирај KnightLoader.',

@@ -90,6 +90,10 @@ export const lt: Dict = {
   'captcha.blockHoster': 'Taip pat nebeklausti dėl {host} šią sesiją',
   'captcha.blockEverywhere': 'Taip pat nebeklausti dėl jokio hosterio šią sesiją',
   'captcha.tooLate': 'Tas atsakymas atėjo per vėlai.',
+  'captcha.testFor':
+    'Bandomoji captcha iš KnightLoader. Jokio atsisiuntimo ji nestabdo. Įvesk penkis ženklus ir pamatysi, ar tavo atsakymas teisingas.',
+  'captcha.testRight': 'Teisingai. Bandomojoje captcha buvo {want}.',
+  'captcha.testWrong': 'Neteisingai. Bandomojoje captcha buvo {want}, ne {given}.',
   'captcha.timedOut': '{host} captcha baigėsi laikas.',
   'captcha.resolvedElsewhere': '{host} captcha buvo išspręsta kitur.',
   'captcha.relayRefused': 'Šis egzempliorius per senas, kad perduotų captcha programai. Atnaujink ten KnightLoader.',

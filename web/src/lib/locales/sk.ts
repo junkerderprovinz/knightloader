@@ -1285,6 +1285,9 @@ export const sk: Dict = {
   'settings.captcha.moveDown': 'Nadol',
   'settings.captcha.set': 'Kľúč nastavený',
   'settings.captcha.notSet': 'Kľúč nie je nastavený',
+  'settings.captcha.off': 'Vypnutý',
+  'settings.captcha.offHint':
+    'Kľúč je nastavený, ale účet je na stránke Účty vypnutý, takže nedostane žiadnu captchu, ani testovaciu.',
   'settings.captcha.keys': 'Kľúče v Účtoch',
   'collector.options': 'Možnosti',
   'collector.destination': 'Cieľový priečinok',
@@ -3055,10 +3058,28 @@ export const sk: Dict = {
   'captcha.solverStopped': 'Žiadny účet captchy nemohol túto captchu prevziať.',
   'captcha.solverUnsupported': '{solver} tento druh captchy nerieši.',
   'captcha.solverRefused': '{solver} odmietol: {reason}',
+  'captcha.testFor':
+    'Skúšobná captcha od KnightLoadera. Nečaká na ňu žiadne sťahovanie. Napíš päť znakov a uvidíš, či je tvoja odpoveď správna.',
+  'captcha.testRight': 'Správne. V skúšobnej captche bolo {want}.',
+  'captcha.testWrong': 'Nesprávne. V skúšobnej captche bolo {want}, nie {given}.',
+  'captcha.testSolverRight': '{solver} vyriešil skúšobnú captchu: {want}.',
+  'captcha.testSolverWrong': '{solver} vyriešil skúšobnú captchu nesprávne: bolo tam {want}, nie {given}.',
   'settings.captcha.whenTitle': 'Kedy účty captchy začnú',
   'settings.captcha.onlyUnwatched': 'Len keď sa nikto nepozerá',
   'settings.captcha.wait': 'Čakať na odpoveď (sekundy)',
   'settings.captcha.waitHint': 'Ako dlho účty captchy čakajú, kým sa niekto pozerá, než to aj tak prevezmú. Nikdy nečakajú dlhšie než polovicu času, ktorý captche zostáva, aby ju účet captchy ešte stihol zodpovedať. Od 10 do 600 sekúnd.',
+  'settings.captcha.testTitle': 'Skúšobná captcha',
+  'settings.captcha.test': 'Poslať skúšobnú captchu',
+  'settings.captcha.testHint':
+    'Pošle captchu, ktorú KnightLoader nakreslí sám. Objaví sa v okne captchy, v aplikácii pre telefón a pri tvojich cieľoch udalostí rovnako ako captcha od hostingu, a keď ju niekto zodpovie, uvidíš, či bola odpoveď správna. Nečaká na ňu žiadne sťahovanie a nejde na tvoje účty captchy.',
+  'settings.captcha.testSolvers': 'Poslať ju aj na účty captchy',
+  'settings.captcha.testSolversHint':
+    'Pošle tú istú skúšobnú captchu aj na tvoje účty captchy, v poradí vyššie, aby si videl, či ju vyriešia a správne. Účtujú si ju ako každú inú captchu. Keď je zapnuté „Len keď sa nikto nepozerá“, čakajú najprv na teba: prepni na inú kartu alebo nechaj čakanie vypršať.',
+  'settings.captcha.testOff': 'Captchy sú vypnuté. Zapni znova modul Captcha, aby si mohol poslať skúšobnú captchu.',
+  'settings.captcha.testJDOff':
+    'Captchy prichádzajú cez backend JDownloader a ten je vypnutý. Zapni ho znova, aby si mohol poslať skúšobnú captchu.',
+  'settings.captcha.testNoAccount':
+    'Žiadny z tvojich účtov captchy ju nemôže prevziať. Zapni hore jeden a na stránke Účty skontroluj, že má kľúč a je zapnutý.',
   'captcha.solverStoppedTaken': '{solver} prevzal túto captchu, ale neposlal odpoveď.',
   'captcha.solverNotPassedOn': '{solver} si ju možno aj tak zaúčtuje, preto ju KnightLoader neposiela ešte ďalšiemu účtu captchy. Stále na ňu môžeš odpovedať sám.',
   'captcha.solverNoAnswer': '{solver} ju prevzal, ale žiadna odpoveď sa nevrátila.',

@@ -90,6 +90,10 @@ export const el: Dict = {
   'captcha.blockHoster': 'Να σταματήσει επίσης η ερώτηση για {host} σε αυτήν τη συνεδρία',
   'captcha.blockEverywhere': 'Να σταματήσει επίσης η ερώτηση για κάθε hoster σε αυτήν τη συνεδρία',
   'captcha.tooLate': 'Αυτή η απάντηση έφτασε πολύ αργά.',
+  'captcha.testFor':
+    'Ένα δοκιμαστικό captcha από το KnightLoader. Καμία λήψη δεν το περιμένει. Γράψε τους πέντε χαρακτήρες για να δεις αν η απάντησή σου είναι σωστή.',
+  'captcha.testRight': 'Σωστό. Το δοκιμαστικό captcha έγραφε {want}.',
+  'captcha.testWrong': 'Λάθος. Το δοκιμαστικό captcha έγραφε {want}, όχι {given}.',
   'captcha.timedOut': 'Το captcha για το {host} έληξε.',
   'captcha.resolvedElsewhere': 'Το captcha για το {host} λύθηκε αλλού.',
   'captcha.relayRefused': 'Αυτή η παρουσία είναι πολύ παλιά για να περνά captcha στην εφαρμογή. Ενημέρωσε εκεί το KnightLoader.',

@@ -90,6 +90,10 @@ export const ar: Dict = {
   'captcha.blockHoster': 'التوقف أيضًا عن السؤال بخصوص {host} لهذه الجلسة',
   'captcha.blockEverywhere': 'التوقف أيضًا عن السؤال بخصوص أي مضيف لهذه الجلسة',
   'captcha.tooLate': 'وصلت هذه الإجابة متأخرة جدًا.',
+  'captcha.testFor':
+    'كابتشا تجريبية من KnightLoader. لا ينتظرها أي تنزيل. اكتب الأحرف الخمسة لترى إن كانت إجابتك صحيحة.',
+  'captcha.testRight': 'صحيح. كانت الكابتشا التجريبية {want}.',
+  'captcha.testWrong': 'خطأ. كانت الكابتشا التجريبية {want} وليست {given}.',
   'captcha.timedOut': 'انتهت مهلة كابتشا {host}.',
   'captcha.resolvedElsewhere': 'تم حل كابتشا {host} في مكان آخر.',
   'captcha.relayRefused': 'هذه النسخة أقدم من أن تمرّر الكابتشا إلى التطبيق. حدّث KnightLoader هناك.',

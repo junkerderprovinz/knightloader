@@ -56,6 +56,12 @@ release's tag.
   will not open here still goes to the JDownloader backend, and the log says
   which of the two opened it. A `.dlc` goes to JDownloader as before, because
   its key is only handed out to registered clients.
+- **A test captcha.** Settings, Captcha has a button that sends a captcha
+  KnightLoader draws itself. It arrives in the captcha window, the phone app
+  and at the event targets the way a hoster's captcha does, with the same
+  countdown, and the answer comes back as right or wrong. A second button,
+  shown while a captcha account is enabled with a key, sends it to the captcha
+  accounts as well, which charge for it. The first button never does.
 
 ### Fixed
 

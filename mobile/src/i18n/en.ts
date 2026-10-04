@@ -113,6 +113,10 @@ export const en = {
   'captcha.blockHoster': 'Also stop asking for {host} this session',
   'captcha.blockEverywhere': 'Also stop asking for every host this session',
   'captcha.tooLate': 'That answer arrived too late.',
+  'captcha.testFor':
+    'A test captcha from KnightLoader. No download waits on it. Type the five characters to see whether your answer is right.',
+  'captcha.testRight': 'Right. The test captcha said {want}.',
+  'captcha.testWrong': 'Wrong. The test captcha said {want}, not {given}.',
   'captcha.timedOut': 'A captcha for {host} timed out.',
   'captcha.resolvedElsewhere': 'A captcha for {host} was resolved elsewhere.',
   'captcha.relayRefused': 'This instance is too old to pass captchas on to the app. Update KnightLoader there.',

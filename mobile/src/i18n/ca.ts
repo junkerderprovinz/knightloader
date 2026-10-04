@@ -90,6 +90,10 @@ export const ca: Dict = {
   'captcha.blockHoster': 'Deixa de preguntar també per {host} aquesta sessió',
   'captcha.blockEverywhere': 'Deixa de preguntar també per qualsevol allotjador aquesta sessió',
   'captcha.tooLate': 'Aquesta resposta ha arribat massa tard.',
+  'captcha.testFor':
+    'Un captcha de prova de KnightLoader. Cap baixada no l’espera. Escriu els cinc caràcters per veure si la teva resposta és correcta.',
+  'captcha.testRight': 'Correcte. El captcha de prova deia {want}.',
+  'captcha.testWrong': 'Incorrecte. El captcha de prova deia {want}, no {given}.',
   'captcha.timedOut': 'Un captcha per a {host} ha caducat.',
   'captcha.resolvedElsewhere': 'Un captcha per a {host} s’ha resolt en un altre lloc.',
   'captcha.relayRefused': 'Aquesta instància és massa antiga per passar captchas a l’aplicació. Actualitza-hi KnightLoader.',

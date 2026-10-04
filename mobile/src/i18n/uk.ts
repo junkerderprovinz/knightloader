@@ -90,6 +90,10 @@ export const uk: Dict = {
   'captcha.blockHoster': 'Також більше не питати про {host} цієї сесії',
   'captcha.blockEverywhere': 'Також більше не питати про жоден хостер цієї сесії',
   'captcha.tooLate': 'Ця відповідь надійшла надто пізно.',
+  'captcha.testFor':
+    'Тестова капча від KnightLoader. На неї не чекає жодне завантаження. Введіть п’ять символів, і ви побачите, чи правильна ваша відповідь.',
+  'captcha.testRight': 'Правильно. У тестовій капчі було {want}.',
+  'captcha.testWrong': 'Неправильно. У тестовій капчі було {want}, а не {given}.',
   'captcha.timedOut': 'Час капчі для {host} вийшов.',
   'captcha.resolvedElsewhere': 'Капчу для {host} було розв’язано деінде.',
   'captcha.relayRefused': 'Цей екземпляр надто старий, щоб передавати капчі в застосунок. Оновіть там KnightLoader.',

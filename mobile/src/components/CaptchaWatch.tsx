@@ -35,6 +35,8 @@ export interface CaptchaWatchState {
    *  after a failure this phone reported, so the paid solvers stop waiting
    *  for the phone or wait for it again (widgetReport). */
   reportWidget: (id: string, loaded: boolean) => void;
+  /** Puts up a banner of the caller's, such as a test captcha's result. */
+  announce: (notice: CaptchaNotice) => void;
 }
 
 const Ctx = createContext<CaptchaWatchState>({
@@ -45,6 +47,7 @@ const Ctx = createContext<CaptchaWatchState>({
   refresh: async () => {},
   settleHere: (_id, call) => call(),
   reportWidget: () => {},
+  announce: () => {},
 });
 
 export const useCaptchas = () => useContext(Ctx);
@@ -178,7 +181,7 @@ export function CaptchaWatch({
   );
 
   const value = useMemo(
-    () => ({ list, loaded, error, reload, refresh, settleHere, reportWidget }),
+    () => ({ list, loaded, error, reload, refresh, settleHere, reportWidget, announce: setNotice }),
     [list, loaded, error, reload, refresh, settleHere, reportWidget],
   );
 
@@ -209,6 +212,8 @@ const NOTICE_TEXT: Record<CaptchaNotice['kind'], TranslationKey> = {
   arrived: 'captcha.waiting',
   timedOut: 'captcha.timedOut',
   resolved: 'captcha.resolvedElsewhere',
+  testRight: 'captcha.testRight',
+  testWrong: 'captcha.testWrong',
 };
 
 /**
@@ -228,10 +233,22 @@ function Banner({
 }) {
   const { t } = useT();
   const { c, corners } = useAppearance();
-  const line = t(NOTICE_TEXT[notice.kind], { host: notice.challenge.host || '?' });
+  const line = t(NOTICE_TEXT[notice.kind], {
+    host: notice.challenge.host || '?',
+    want: notice.test?.want ?? '',
+    given: notice.test?.given ?? '',
+  });
   // Warn for a captcha that wants an answer, info for news about one, the
-  // families the web UI's toasts use for the same three.
-  const bar = notice.kind === 'arrived' ? c.statusWarnSolid : c.statusInfoSolid;
+  // families the web UI's toasts use for the same three, and ok or fail for
+  // a test captcha's result.
+  const bar =
+    notice.kind === 'arrived'
+      ? c.statusWarnSolid
+      : notice.kind === 'testRight'
+        ? c.statusOkSolid
+        : notice.kind === 'testWrong'
+          ? c.statusFailSolid
+          : c.statusInfoSolid;
   const { n } = useMotion();
   const v = useRef(new Animated.Value(n.toast === 0 ? 1 : 0)).current;
   const close = useRef(onClose);

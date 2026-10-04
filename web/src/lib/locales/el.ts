@@ -1285,6 +1285,9 @@ export const el: Dict = {
   'settings.captcha.moveDown': 'Μετακίνηση κάτω',
   'settings.captcha.set': 'Το κλειδί έχει οριστεί',
   'settings.captcha.notSet': 'Δεν έχει οριστεί κλειδί',
+  'settings.captcha.off': 'Απενεργοποιημένος',
+  'settings.captcha.offHint':
+    'Το κλειδί έχει οριστεί, αλλά ο λογαριασμός είναι απενεργοποιημένος στη σελίδα Λογαριασμοί, οπότε δεν λαμβάνει κανένα captcha, ούτε δοκιμαστικό.',
   'settings.captcha.keys': 'Κλειδιά στους Λογαριασμούς',
   'collector.options': 'Επιλογές',
   'collector.destination': 'Φάκελος προορισμού',
@@ -3044,10 +3047,29 @@ export const el: Dict = {
   'captcha.solverStopped': 'Κανένας λογαριασμός captcha δεν μπόρεσε να αναλάβει αυτό το captcha.',
   'captcha.solverUnsupported': 'Ο επιλυτής {solver} δεν λύνει αυτό το είδος captcha.',
   'captcha.solverRefused': 'Ο επιλυτής {solver} αρνήθηκε: {reason}',
+  'captcha.testFor':
+    'Ένα δοκιμαστικό captcha από το KnightLoader. Καμία λήψη δεν το περιμένει. Γράψε τους πέντε χαρακτήρες για να δεις αν η απάντησή σου είναι σωστή.',
+  'captcha.testRight': 'Σωστό. Το δοκιμαστικό captcha έγραφε {want}.',
+  'captcha.testWrong': 'Λάθος. Το δοκιμαστικό captcha έγραφε {want}, όχι {given}.',
+  'captcha.testSolverRight': 'Το {solver} έλυσε το δοκιμαστικό captcha: {want}.',
+  'captcha.testSolverWrong': 'Το {solver} έκανε λάθος στο δοκιμαστικό captcha: έγραφε {want}, όχι {given}.',
   'settings.captcha.whenTitle': 'Πότε ξεκινούν οι λογαριασμοί captcha',
   'settings.captcha.onlyUnwatched': 'Μόνο όταν δεν κοιτάζει κανείς',
   'settings.captcha.wait': 'Αναμονή απάντησης (δευτερόλεπτα)',
   'settings.captcha.waitHint': 'Πόση ώρα περιμένουν οι λογαριασμοί captcha, όσο κάποιος κοιτάζει, πριν αναλάβουν έτσι κι αλλιώς. Δεν περιμένουν ποτέ πάνω από τον μισό χρόνο που απομένει στο captcha, ώστε ένας λογαριασμός captcha να προλαβαίνει ακόμα να το απαντήσει. Από 10 έως 600 δευτερόλεπτα.',
+  'settings.captcha.testTitle': 'Δοκιμαστικό captcha',
+  'settings.captcha.test': 'Αποστολή δοκιμαστικού captcha',
+  'settings.captcha.testHint':
+    'Στέλνει ένα captcha που σχεδιάζει το ίδιο το KnightLoader. Εμφανίζεται στο παράθυρο captcha, στην εφαρμογή κινητού και στους προορισμούς συμβάντων σου όπως ένα από φιλοξενητή, και μόλις απαντηθεί βλέπεις αν η απάντηση ήταν σωστή. Καμία λήψη δεν το περιμένει και δεν πηγαίνει στους λογαριασμούς captcha σου.',
+  'settings.captcha.testSolvers': 'Αποστολή και στους λογαριασμούς captcha',
+  'settings.captcha.testSolversHint':
+    'Στέλνει το ίδιο δοκιμαστικό captcha και στους λογαριασμούς captcha σου, με τη σειρά από πάνω, ώστε να δεις αν το απαντούν και το βρίσκουν σωστά. Το χρεώνουν όπως κάθε άλλο captcha. Με το «Μόνο όταν δεν κοιτάζει κανείς» ενεργό, περιμένουν πρώτα εσένα: πήγαινε σε άλλη καρτέλα ή άφησε τον χρόνο αναμονής να λήξει.',
+  'settings.captcha.testOff':
+    'Τα captcha είναι απενεργοποιημένα. Ενεργοποίησε ξανά τη μονάδα Captcha για να στείλεις δοκιμαστικό captcha.',
+  'settings.captcha.testJDOff':
+    'Τα captcha έρχονται μέσω του backend του JDownloader, που είναι απενεργοποιημένο. Ενεργοποίησέ το ξανά για να στείλεις δοκιμαστικό captcha.',
+  'settings.captcha.testNoAccount':
+    'Κανένας από τους λογαριασμούς captcha σου δεν μπορεί να το αναλάβει. Ενεργοποίησε έναν παραπάνω και έλεγξε στη σελίδα Λογαριασμοί ότι έχει κλειδί και είναι ενεργός.',
   'captcha.solverStoppedTaken': 'Ο επιλυτής {solver} ανέλαβε αυτό το captcha, αλλά δεν έστειλε απάντηση.',
   'captcha.solverNotPassedOn': "{solver} μπορεί να το χρεώσει έτσι κι αλλιώς, γι' αυτό το KnightLoader δεν το στέλνει και σε άλλον λογαριασμό captcha. Μπορείς ακόμα να το απαντήσεις μόνος σου.",
   'captcha.solverNoAnswer': 'Ο επιλυτής {solver} το ανέλαβε, αλλά δεν ήρθε απάντηση.',

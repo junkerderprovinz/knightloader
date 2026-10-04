@@ -83,6 +83,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/captcha/{id}/unanswerable":       apitoken.ScopeRead,
 	"POST /api/captcha/{id}/unanswerable/phone":   apitoken.ScopeRead,
 	"DELETE /api/captcha/{id}/unanswerable/phone": apitoken.ScopeRead,
+	// A test captcha can go to the paid captcha accounts, which bill it.
+	"POST /api/captcha/test": apitoken.ScopeAdmin,
 
 	"GET /api/cleanup/{class}":             apitoken.ScopeRead,
 	"POST /api/cleanup/{class}":            apitoken.ScopeControl,

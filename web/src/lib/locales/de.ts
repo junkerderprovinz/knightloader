@@ -1382,6 +1382,12 @@ export const de: Dict = {
   'captcha.solverGaveUp': '{solver} hat es übernommen und dann aufgegeben: {reason}',
   'captcha.solverFailed': '{solver} war nicht erreichbar.',
   'captcha.solverRefused': '{solver} hat abgelehnt: {reason}',
+  'captcha.testFor':
+    'Ein Test-Captcha von KnightLoader. Kein Download wartet darauf. Tipp die fünf Zeichen ein, dann siehst du, ob deine Antwort stimmt.',
+  'captcha.testRight': 'Richtig. Im Test-Captcha stand {want}.',
+  'captcha.testWrong': 'Falsch. Im Test-Captcha stand {want}, nicht {given}.',
+  'captcha.testSolverRight': '{solver} hat das Test-Captcha gelöst: {want}.',
+  'captcha.testSolverWrong': '{solver} hat das Test-Captcha falsch gelöst: Da stand {want}, nicht {given}.',
 
   'settings.captcha.title': 'Captcha',
   'settings.captcha.orderTitle': 'Reihenfolge der Captcha-Konten',
@@ -1392,12 +1398,28 @@ export const de: Dict = {
   'settings.captcha.moveDown': 'Nach unten',
   'settings.captcha.set': 'Schlüssel gesetzt',
   'settings.captcha.notSet': 'Kein Schlüssel gesetzt',
+  'settings.captcha.off': 'Ausgeschaltet',
+  'settings.captcha.offHint':
+    'Der Schlüssel ist gesetzt, aber das Konto ist auf der Seite Konten ausgeschaltet. Es bekommt deshalb keine Captchas, auch kein Test-Captcha.',
   'settings.captcha.keys': 'Schlüssel unter Konten',
   'settings.captcha.whenTitle': 'Wann die Captcha-Konten starten',
   'settings.captcha.onlyUnwatched': 'Nur wenn niemand zuschaut',
   'settings.captcha.onlyUnwatchedHint': 'Aus: Die Captcha-Konten starten, sobald ein Captcha ankommt, gleichzeitig mit dem Captcha-Fenster. An: Solange jemand zuschaut, kommt zuerst das Captcha-Fenster, und die Captcha-Konten warten. Jemand schaut zu, solange ein Browser-Tab mit KnightLoader im Vordergrund oder das Fenster der Desktop-App auf dem Bildschirm ist, und solange die Handy-App diese Instanz im Vordergrund offen hat oder eine andere App ihre Captcha-Liste laufend abruft. Ein Tab im Hintergrund und ein Fenster, das minimiert oder im Infobereich ist, zählen nicht, und eine geschlossene Seite zählt nach ein paar Sekunden nicht mehr. Die Handy-App zählt nur für die Captchas, die sie beantworten kann. Bei einer Cloudflare-Turnstile-Aufgabe zählt nur die Handy-App, weil weder ein Browser-Tab noch die Desktop-App sie anzeigen kann. Schaut niemand mehr zu oder läuft die Zeit unten ohne Antwort ab, übernimmt das erste Captcha-Konto in der Reihenfolge.',
   'settings.captcha.wait': 'Auf eine Antwort warten (Sekunden)',
   'settings.captcha.waitHint': 'Wie lange die Captcha-Konten warten, solange jemand zuschaut, bevor sie trotzdem übernehmen. Sie warten nie länger als die Hälfte der Zeit, die dem Captcha noch bleibt, damit ein Captcha-Konto es noch rechtzeitig beantworten kann. 10 bis 600 Sekunden.',
+  'settings.captcha.testTitle': 'Test-Captcha',
+  'settings.captcha.test': 'Test-Captcha senden',
+  'settings.captcha.testHint':
+    'Schickt ein Captcha, das KnightLoader selbst zeichnet. Es taucht im Captcha-Fenster, in der Handy-App und bei deinen Ereigniszielen auf wie eins von einem Hoster, und sobald es beantwortet ist, siehst du, ob die Antwort stimmt. Kein Download wartet darauf, und es geht nicht an deine Captcha-Konten.',
+  'settings.captcha.testSolvers': 'Auch an die Captcha-Konten senden',
+  'settings.captcha.testSolversHint':
+    'Schickt dasselbe Test-Captcha auch an deine Captcha-Konten, in der Reihenfolge oben, damit du siehst, ob sie es beantworten und richtig lösen. Sie stellen es dir in Rechnung wie jedes andere Captcha. Ist „Nur wenn niemand zuschaut“ an, warten sie zuerst auf dich: Wechsle in einen anderen Tab oder lass die Wartezeit ablaufen.',
+  'settings.captcha.testOff':
+    'Captchas sind ausgeschaltet. Schalte das Modul Captcha wieder ein, um ein Test-Captcha zu senden.',
+  'settings.captcha.testJDOff':
+    'Captchas kommen über das JDownloader-Backend, und das ist ausgeschaltet. Schalte es wieder ein, um ein Test-Captcha zu senden.',
+  'settings.captcha.testNoAccount':
+    'Keins deiner Captcha-Konten kann es annehmen. Schalte oben eins ein und sieh auf der Seite Konten nach, ob es einen Schlüssel hat und eingeschaltet ist.',
   'collector.options': 'Optionen',
   'collector.destination': 'Zielordner',
   'collector.destinationRecent': 'Zuletzt verwendet',
