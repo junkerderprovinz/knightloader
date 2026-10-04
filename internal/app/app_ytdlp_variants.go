@@ -405,7 +405,7 @@ func applyProbeLocked(t *core.Task, p probeFacts, yt ytdlp.Options) bool {
 		// --convert-thumbnails jpg (backend.go).
 		setExt("jpg")
 	case ytdlp.VariantSubtitle:
-		// --sub-format srt (backend.go).
+		// --convert-subs srt (backend.go).
 		setExt("srt")
 	}
 	return changed
