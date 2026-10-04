@@ -48,7 +48,7 @@
       "./plugins/withReleaseSigning",
       "./plugins/withKeptAppDir",
       "./plugins/withGradleMemory",
-      "./plugins/withSharedSubject",
+      "./plugins/withSharedText",
       [
         "expo-share-intent",
         {
