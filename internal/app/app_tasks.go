@@ -16,7 +16,6 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -32,7 +31,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
-// Tasks returns a snapshot sorted oldest-first.
+// Tasks returns a snapshot sorted oldest-first. The rows of one yt-dlp link
+// share a creation time, and the order has to hold between two calls for the
+// background watch's tag to match.
 func (a *App) Tasks() []*core.Task {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -47,7 +48,7 @@ func (a *App) Tasks() []*core.Task {
 		}
 		out = append(out, &c)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.Before(out[j].CreatedAt) })
+	sortByAge(out)
 	return out
 }
 

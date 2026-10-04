@@ -19,6 +19,8 @@ func registerTasks(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.Tasks())
 		})
+	reg.Add(http.MethodGet, "/api/tasks/watch", "what a background watch compares between two looks: each task's state without its progress, or only the tag when ?tag= names the list as it still is",
+		serveTaskWatch(a.Tasks))
 	reg.Add(http.MethodPost, "/api/tasks/start", "move collected tasks into the download queue (no ids = all collected)",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
