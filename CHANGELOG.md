@@ -62,6 +62,12 @@ release's tag.
   countdown, and the answer comes back as right or wrong. A second button,
   shown while a captcha account is enabled with a key, sends it to the captcha
   accounts as well, which charge for it. The first button never does.
+- **The Android app takes shared links.** KnightLoader appears in Android's
+  share sheet. A link or text shared from YouTube, a browser or any other app
+  goes to the collector of the instance you tap, and the title the app sent
+  names the package. You tap even with only one instance paired, so no other
+  app can send links to your server on its own. Files are not offered, because
+  the relay does not forward container and torrent uploads.
 
 ### Fixed
 
@@ -167,6 +173,9 @@ release's tag.
   file with the row. The video and audio rows of a link share one .nfo, which
   goes when the second of them is removed. A subtitle row that wrote several
   languages still keeps its files.
+- **Add links in the Android app says why a send failed.** When the request
+  never reached the instance, or a relay connection had to be added again, the
+  screen said only "Could not send the links." The reason follows it now.
 
 ## [1.6.8] - 2026-10-04
 
