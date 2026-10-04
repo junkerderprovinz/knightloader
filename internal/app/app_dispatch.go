@@ -1386,6 +1386,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	var hitStopMark bool
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
+		// A link check that answered while the download ran can have left a
+		// reason the finished file disproves.
+		t.ClearFailure()
 		t.Retries = 0
 		t.NextTry = time.Time{}
 		t.MaxTries = 0
