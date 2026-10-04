@@ -65,8 +65,7 @@ type Backend struct {
 	link map[string]string
 	// part is the part file each task writes until its transfer finishes,
 	// and saved the file finish made of it. Remove deletes these and nothing
-	// else: another download of the same name can be writing dir/name.klpart
-	// or have finished as dir/name.
+	// else: another download of the same name can have finished as dir/name.
 	part  map[string]string
 	saved map[string]string
 	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
@@ -253,8 +252,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	// collide.SafeName gives the same name the engine would write and keeps a
 	// server-supplied "../../etc/passwd" inside the download directory.
 	name := collide.SafeName(Name(t))
+	part := partPath(dir, name, taskID)
 	b.mu.Lock()
-	part := b.partLocked(taskID, dir, name)
 	b.part[taskID] = part
 	b.mu.Unlock()
 
@@ -311,24 +310,22 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), File: final, Size: remote.Size, Loaded: remote.Size, Speed: 0})
 }
 
-// partLocked is the part file taskID writes in dir: the one it has been
-// writing, in whatever folder that went to, or else one whose name no other
-// task's part file has. Names are compared without their folder because a
-// package rename moves a paused task's part file away from the path on
-// record. Caller holds b.mu.
-func (b *Backend) partLocked(taskID, dir, name string) string {
-	if p := b.part[taskID]; p != "" {
-		return filepath.Join(dir, filepath.Base(p))
+// partPath is the part file taskID writes name into in dir, spelled as
+// reclaim.PartPath spells it. The id lets a resume after a restart, when the
+// backend remembers nothing, tell its own bytes from another download's of
+// the same name.
+func partPath(dir, name, taskID string) string {
+	return filepath.Join(dir, name+"."+taskID+partSuffix)
+}
+
+// PartFile is the part file the download taskID of link writes in dir until
+// it finishes, or "" for a link this backend hands to the engine.
+func PartFile(dir, link, taskID string) string {
+	t, err := Parse(link, true)
+	if err != nil || t.Kind == KindWebDAV {
+		return ""
 	}
-	taken := map[string]bool{}
-	for _, p := range b.part {
-		taken[filepath.Base(p)] = true
-	}
-	part := name + partSuffix
-	for n := 2; taken[part]; n++ {
-		part = collide.Counted(name, n) + partSuffix
-	}
-	return filepath.Join(dir, part)
+	return partPath(dir, collide.SafeName(Name(t)), taskID)
 }
 
 // partSize is how many bytes of this download are already on disk. A missing

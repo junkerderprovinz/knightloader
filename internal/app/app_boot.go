@@ -269,7 +269,7 @@ func (a *App) Reclaim() (ReclaimReport, error) {
 		dirs[dir] = true
 		// Every task's part file, so a running download's is not an orphan.
 		if t.Name != "" {
-			claimed[reclaim.PartPath(dir, t.Name)] = true
+			claimed[reclaim.PartPath(dir, t.Name, id)] = true
 		}
 		if a.active[id] || !reclaimable(t) {
 			continue

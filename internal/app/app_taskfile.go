@@ -17,6 +17,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -149,6 +150,17 @@ func (l torrentLeftover) drop() {
 		}
 	}
 	engine.DeleteTorrentFiles(l.dir, l.root, paths)
+}
+
+// partFileLocked is the part file t's FTP or SFTP download writes until it
+// finishes, for deleting it when the backend does not know the task, as after
+// a restart. The task's id in its name makes it t's alone, and the link names
+// the rest, since a paused row can be renamed. Caller holds a.mu.
+func (a *App) partFileLocked(t *core.Task) string {
+	if t.Resolver != remotefs.ResolverID {
+		return ""
+	}
+	return remotefs.PartFile(a.dirFor(t), t.URL, t.ID)
 }
 
 // recordFileLocked notes where a backend is writing t's bytes, and says so in

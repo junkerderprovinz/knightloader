@@ -10,6 +10,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -172,5 +173,36 @@ func TestRemoteServerLinkWithAPasswordInItIsKeptNowhere(t *testing.T) {
 	}
 	if strings.Contains(logged.String(), "hunter2") {
 		t.Errorf("the log holds the password:\n%s", logged.String())
+	}
+}
+
+// After a restart the backend knows nothing of a paused download, so removing
+// the row with its files has to find the part file from the task alone, and
+// only that task's: another download of the same name keeps its own.
+func TestRemovingAPausedRemoteDownloadWithFilesDeletesItsPartFileAfterARestart(t *testing.T) {
+	a := newCrawlApp(t, true)
+	dir := t.TempDir()
+	a.mu.Lock()
+	for id, link := range map[string]string{"1": "ftp://127.0.0.1:1/pub/film.mkv", "2": "ftp://127.0.0.1:1/pub/other/film.mkv"} {
+		a.tasks[id] = &core.Task{
+			ID: id, URL: link, Name: "film.mkv", Resolver: remotefs.ResolverID, Dir: dir,
+			Status: core.StatusPaused, Enabled: true, Size: 4096, Loaded: 1024,
+		}
+	}
+	a.mu.Unlock()
+	mine, theirs := reclaim.PartPath(dir, "film.mkv", "1"), reclaim.PartPath(dir, "film.mkv", "2")
+	for _, p := range []string{mine, theirs} {
+		if err := os.WriteFile(p, make([]byte, 1024), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	a.Remove("1", true)
+
+	if _, err := os.Stat(mine); !os.IsNotExist(err) {
+		t.Error("the removed download's part file is still there")
+	}
+	if _, err := os.Stat(theirs); err != nil {
+		t.Errorf("the other download of the same name lost its part file: %v", err)
 	}
 }

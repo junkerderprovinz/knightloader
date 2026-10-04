@@ -156,7 +156,7 @@ func TestAPartFileOutranksWhateverSitsAtTheFinalName(t *testing.T) {
 	dir := t.TempDir()
 	const body = "the real film!!!"
 	size := put(t, dir, "movie.mkv", body)
-	put(t, dir, "movie.mkv"+PartSuffix, "newer")
+	put(t, dir, "movie.mkv.x"+PartSuffix, "newer")
 
 	got := Options{Trust: TrustSize, Finished: alwaysFinished}.Scan(Request{
 		TaskID: "x", Dir: dir, Name: "movie.mkv", Size: size, ExpectedHash: sha256Of(body),
@@ -166,6 +166,19 @@ func TestAPartFileOutranksWhateverSitsAtTheFinalName(t *testing.T) {
 	}
 	if got.Bytes != 5 {
 		t.Errorf("bytes = %d, want the 5 in the part file", got.Bytes)
+	}
+}
+
+// Two downloads of one name share a folder when a remote folder holds the name
+// twice, and what one of them left is no beginning of the other.
+func TestAnotherDownloadsPartFileIsNotThisOnesBeginning(t *testing.T) {
+	dir := t.TempDir()
+	put(t, dir, "movie.mkv.other"+PartSuffix, "not mine")
+
+	got := Options{Trust: TrustSize, Finished: alwaysFinished}.Scan(
+		Request{TaskID: "x", Dir: dir, Name: "movie.mkv", Size: 16})
+	if got.Verdict != Absent {
+		t.Fatalf("verdict = %q, want absent: the part file is another download's (%s)", got.Verdict, got.Detail)
 	}
 }
 
@@ -312,11 +325,11 @@ func TestParseHashReadsBothFormsAndRefusesADisagreement(t *testing.T) {
 // not a sweep.
 func TestOrphansReportsWhatNoTaskClaimsAndTouchesNothing(t *testing.T) {
 	dir := t.TempDir()
-	put(t, dir, "abandoned.mkv"+PartSuffix, "left behind")
-	put(t, dir, "running.mkv"+PartSuffix, "still arriving")
+	put(t, dir, "abandoned.mkv.gone"+PartSuffix, "left behind")
+	put(t, dir, "running.mkv.live"+PartSuffix, "still arriving")
 	put(t, dir, "finished.mkv", "done")
 
-	claimed := map[string]bool{PartPath(dir, "running.mkv"): true}
+	claimed := map[string]bool{PartPath(dir, "running.mkv", "live"): true}
 	got, err := Orphans(dir, claimed)
 	if err != nil {
 		t.Fatal(err)
@@ -324,13 +337,13 @@ func TestOrphansReportsWhatNoTaskClaimsAndTouchesNothing(t *testing.T) {
 	if len(got) != 1 {
 		t.Fatalf("found %+v, want only the part file no task claims", got)
 	}
-	if got[0].Path != PartPath(dir, "abandoned.mkv") {
+	if got[0].Path != PartPath(dir, "abandoned.mkv", "gone") {
 		t.Errorf("path = %q, want the abandoned part file", got[0].Path)
 	}
 	if got[0].Bytes != 11 {
 		t.Errorf("bytes = %d, want 11", got[0].Bytes)
 	}
-	for _, name := range []string{"abandoned.mkv" + PartSuffix, "running.mkv" + PartSuffix, "finished.mkv"} {
+	for _, name := range []string{"abandoned.mkv.gone" + PartSuffix, "running.mkv.live" + PartSuffix, "finished.mkv"} {
 		if _, err := os.Stat(filepath.Join(dir, name)); err != nil {
 			t.Errorf("%s was removed by a pass that only reports: %v", name, err)
 		}
