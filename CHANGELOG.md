@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-05
+
 ### Added
 
 - **Usenet from your own servers.** Add your provider's server under Accounts,
@@ -128,6 +130,18 @@ release's tag.
   device and offers to switch it off there or keep both. An instance turns
   away a link it already has, so with both sending to the same instance
   nothing is downloaded twice.
+- **The desktop app watches the clipboard in the background.** The watch keeps
+  running while the window is hidden in the tray, sends only the links, and
+  can send to this instance or to a paired one such as a NAS. On Linux under
+  Wayland it needs wl-clipboard and a compositor with data-control. The
+  desktop app keeps its instance id across restarts, so it is listed once.
+- **Notifications from the Android app, also while it is closed.** A captcha
+  waiting for an answer, a finished download or package and a failed download
+  show up as notifications. With "Stay connected", on by default, a quiet
+  background service keeps watching every saved instance, also after a reboot
+  or an update of the app. It needs no Google services, so the same app works
+  on phones with and without them. Settings, Notifications has a switch per
+  kind.
 
 ### Fixed
 
@@ -163,7 +177,10 @@ release's tag.
   `POST /api/tasks/options` is shortened the same way as a rename. A name too
   long for the disk used to leave the file under its old name with an error.
   A rename that succeeds also clears the error an earlier failed rename left on
-  the download.
+  the download. A long name is cut between characters and keeps its
+  extension.
+- **A download restarted after it finished gets a new finish time,** so the
+  list, the history and the retention count from the second download.
 
 - **Fewer failed icon loads in the browser console.** For a host that cannot
   have a site icon, such as an IP address, a local name like nas.local, a

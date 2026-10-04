@@ -1,0 +1,1 @@
+Usenet from your own servers, playing a file while it downloads, one file from several sources and notifications even with the app closed.
