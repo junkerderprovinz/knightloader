@@ -1388,8 +1388,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.MaxTries = 0
 		t.StallRestarts = 0
 		// yt-dlp has cleared away what it merged, and the finished file is
-		// File.
-		t.WorkFiles = nil
+		// File. A subtitle row of several languages has more than one.
+		t.WorkFiles = u.OtherFiles
 		// Renamed before anything below builds a path from t.Name.
 		_ = a.renameFinishedLocked(t)
 		if a.stopMark == id {

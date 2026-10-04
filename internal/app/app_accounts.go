@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
@@ -31,6 +32,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 // rewireBackends rebuilds the resolver routing table and download backends
@@ -299,6 +301,16 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		// backend would ignore saved jars.
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
 		yb.InUse = a.usedByOther
+		yb.Placing = func(taskID string) workdir.Options {
+			a.mu.Lock()
+			var c *core.Task
+			if t := a.tasks[taskID]; t != nil {
+				x := *t
+				c = &x
+			}
+			a.mu.Unlock()
+			return moveOptions(c, a.Settings.Get())
+		}
 		a.ytdlpRuns = yb
 	}
 	a.ytdlpRuns.SetBinary(bin)

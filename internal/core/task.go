@@ -236,6 +236,9 @@ type Update struct {
 	// WorkFile is a file yt-dlp wrote on its way to the task's file (see
 	// Task.WorkFiles).
 	WorkFile string
+	// OtherFiles are what a finished row wrote besides File, the further
+	// languages of a subtitle row. They stay on the task as its WorkFiles.
+	OtherFiles []string
 	// TorrentFiles is every file of a torrent the built-in client has
 	// resolved, with the selection it runs with. It comes once, with the
 	// resolve, so a torrent whose files nobody chose by hand keeps the choice
@@ -484,7 +487,9 @@ type Task struct {
 	// the streams it merges, which carry their .part and .ytdl files under
 	// the same names, and the files it wrote beside them. yt-dlp names each
 	// one once, so after a restart this is all that says what a removal with
-	// files deletes. A finished download has none. Not sent to the interface.
+	// files deletes. A finished download has none, apart from the further
+	// languages of a subtitle row (see Update.OtherFiles). Not sent to the
+	// interface.
 	WorkFiles []string `json:"-"`
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
