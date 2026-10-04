@@ -198,8 +198,8 @@ func TestJDImportAppliesOnlyTheTickedItems(t *testing.T) {
 	if task.Status != core.StatusCollected {
 		t.Errorf("status = %s; an imported link must wait in the collector", task.Status)
 	}
-	if task.Package != "Films" {
-		t.Errorf("package = %q; the imported Packagizer rule should have named it", task.Package)
+	if task.Package != "Show S01" {
+		t.Errorf("package = %q, want the name it had in JDownloader", task.Package)
 	}
 	if task.Password != "pkg-pw" || task.Comment != "from the forum" {
 		t.Errorf("password %q, comment %q", task.Password, task.Comment)
@@ -306,6 +306,46 @@ func TestEveryArchivePasswordOfAPackageComesOver(t *testing.T) {
 	}
 	if got := strings.Join(a.Settings.Get().ArchivePasswords, ","); got != "first,second" {
 		t.Errorf("archive passwords = %q, want both of the package's", got)
+	}
+}
+
+func TestAJDPackageKeepsItsNameWhenAnImportedRuleRenamesPackages(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{
+		Packagizer: []map[string]any{jdimporttest.Rule("hd suffix", map[string]any{
+			"filetypeFilter": map[string]any{"enabled": true, "matchType": "IS", "customs": "mkv"},
+			"packageName":    "<jd:packagename>-hd",
+		})},
+		Packages: []jdimporttest.Package{
+			{Name: "show-hd", Links: []jdimporttest.Link{
+				{URL: "https://host.example/ep1.mkv", Name: "ep1.mkv", Enabled: true},
+			}},
+		},
+	})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var ids []string
+	for _, it := range p.Items {
+		ids = append(ids, it.ID)
+	}
+	rep, err := a.ApplyJDImport(p.Token, ids, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Failed) > 0 || rep.Links != 1 {
+		t.Fatalf("report = %+v, want the rule and one link", rep)
+	}
+	pasted := a.AddLinks([]string{"https://host.example/movie.mkv"}, "movie")
+	if len(pasted) != 1 || pasted[0].Package != "movie-hd" {
+		t.Fatalf("pasted = %+v, want the imported rule to rename a pasted package", pasted)
+	}
+	for _, x := range a.Tasks() {
+		if x.Origin == OriginJDownloader && x.Package != "show-hd" {
+			t.Errorf("package = %q, want the name it had in JDownloader", x.Package)
+		}
 	}
 }
 

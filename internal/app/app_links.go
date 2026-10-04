@@ -973,7 +973,10 @@ func (a *App) packagize(t *core.Task, cand rules.Candidate) {
 		return
 	}
 	e := pkg.Apply(cand)
-	if e.Package != "" {
+	// JD's own rules or the user already named a package from JDownloader, and
+	// the imported rules would rename it a second time.
+	keepsName := t.Origin == OriginJDownloader && t.Package != ""
+	if e.Package != "" && !keepsName {
 		t.Package = e.Package
 	}
 	if e.Dir != "" {
