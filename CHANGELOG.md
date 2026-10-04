@@ -90,6 +90,18 @@ release's tag.
   running torrents at once. Torrents a debrid service fetches are not
   affected. The default stays Any interface.
 
+- **Stream from your debrid accounts through rclone.** The new debrid drive
+  shows what is on your TorBox, Real-Debrid, AllDebrid, Premiumize.me and
+  Debrid-Link accounts as a read-only WebDAV share at `/dav/`, with a folder
+  per account and one per download. Mount it with rclone and Plex or Jellyfin
+  stream from the service without anything being downloaded first. A file is
+  unlocked only when something reads it, and every read asks for the part it
+  needs, so seeking works. The drive is off until you switch it on under
+  Settings, Accounts, which also shows the address and an rclone configuration
+  to copy, and it opens only to an API token that can read. Listings are kept
+  for five minutes unless you set another interval. The manual has a new page
+  on mounting it for Plex or Jellyfin on Unraid and with Docker.
+
 ### Fixed
 
 - **Trackers stopped hearing from torrents once one was removed.** After any

@@ -36,7 +36,7 @@ func knownHost(a *app.App, next http.Handler) http.Handler {
 			next.ServeHTTP(w, r)
 			return
 		}
-		if secret := bearerToken(r); secret != "" {
+		if secret := tokenSecret(r); secret != "" {
 			if _, ok := a.APITokens.Check(secret); ok {
 				next.ServeHTTP(w, r)
 				return

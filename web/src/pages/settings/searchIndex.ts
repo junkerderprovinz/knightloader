@@ -347,6 +347,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
+    {
+      title: 'settings.module.debriddrive',
+      rows: [
+        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
+        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
+        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
+      ],
+      also: ['common.copy', 'common.copied'],
+      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
+    },
     // The fields are in the window a server row opens, so they lead to the card.
     {
       title: 'accounts.usenet.title',

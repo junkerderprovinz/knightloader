@@ -380,6 +380,11 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 		}, downloadClientDetail(a, s, base)),
 		withDetail(Feature{
+			// On the Accounts page, beside the accounts it shows.
+			ID: "debriddrive", Verdict: VerdictShipped, Page: "accounts",
+			Switch: SwitchSetting, Enabled: s.DebridDrive.Enabled,
+		}, debridDriveDetail(a, s, base)),
+		withDetail(Feature{
 			ID: "metrics", Verdict: VerdictShipped, Page: "health",
 			Switch: SwitchSetting, Enabled: s.Metrics,
 		}, metricsDetail(a, s, base)),
@@ -468,7 +473,7 @@ func featurePages() []FeaturePage {
 		{ID: "look", Modules: []string{"updater"}},
 		{ID: "appearance"},
 		{ID: "modules"},
-		{ID: "accounts"},
+		{ID: "accounts", Modules: []string{"debriddrive"}},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -559,6 +564,12 @@ func setFeature(a *app.App, id string, on bool) error {
 		// The route re-reads the flag on every request, so clearing it closes
 		// the door on the next call.
 		key, value = "downloadClientApi", on
+	case "debriddrive":
+		// The route reads the flag on every request, like the download
+		// client's.
+		drive := cur.DebridDrive
+		drive.Enabled = on
+		key, value = "debridDrive", drive
 	case "metrics":
 		key, value = "metrics", on
 	case "keepawake":
@@ -849,6 +860,37 @@ func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 			"; in Sonarr or Radarr set URL Base to \"" + args["sabnzbdBase"] + "\" or \"" + args["qbittorrentBase"] +
 			"\", and the API key or the qBittorrent password to one of this instance's tokens",
 		code: "downloadclientReadyBoth", args: args,
+	}
+}
+
+// debridDriveDetail is the live line of the debrid drive's row. It warns when
+// no token can read, since every mount is then refused, and when no account
+// can list what is on it, since the drive is then empty.
+func debridDriveDetail(a *app.App, s settings.Settings, base string) line {
+	if !s.DebridDrive.Enabled {
+		return line{
+			text: "off; the address answers 404, the same as an endpoint that does not exist",
+			code: "debriddriveOff",
+		}
+	}
+	if !someTokenHolds(a.APITokens.List(), apitoken.ScopeRead) {
+		return line{
+			text: "no API token can read, so every mount is refused; create one on the Security page",
+			code: "debriddriveNoToken",
+		}
+	}
+	folders := a.DriveFolders()
+	if len(folders) == 0 {
+		return line{
+			text: "no account here can list its downloads, so the drive is empty; " +
+				"add a TorBox, Real-Debrid, AllDebrid, Premiumize.me or Debrid-Link account",
+			code: "debriddriveNoAccount",
+		}
+	}
+	args := map[string]string{"address": base + drivePrefix + "/", "accounts": strings.Join(folders, ", ")}
+	return line{
+		text: "serves " + args["accounts"] + " at " + args["address"],
+		code: "debriddriveReady", args: args,
 	}
 }
 

@@ -73,6 +73,7 @@ nav:
   - Bookmarklet, extension and share target: browser-tools.md
   - Connecting instances and apps: connecting.md
   - Where files land: where-files-land.md
+  - Debrid drive: debrid-drive.md
   - For developers:
       - Architecture: architecture.md
       - Building and testing: development.md
