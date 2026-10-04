@@ -90,6 +90,17 @@ func ytdlpHelper(mode string) {
 		sub := filepath.Join(dir, "A Video.de.srt")
 		_ = os.WriteFile(sub, []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
 		fmt.Println("[info] Writing video subtitles to: " + sub)
+	case "vttsubs":
+		// A source with WebVTT only, converted by --convert-subs, in the
+		// order and wording yt-dlp 2026.08.19 prints.
+		vtt := filepath.Join(dir, "A Video.de.vtt")
+		_ = os.WriteFile(vtt, []byte("WEBVTT\n\n00:00:01.000 --> 00:00:02.000\nHallo\n"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + vtt)
+		fmt.Println("[download] Destination: " + vtt)
+		fmt.Println("[SubtitlesConvertor] Converting subtitles")
+		_ = os.WriteFile(filepath.Join(dir, "A Video.de.srt"), []byte("1\n00:00:01,000 --> 00:00:02,000\nHallo\n"), 0o644)
+		_ = os.Remove(vtt)
+		fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
 	case "thumbnail":
 		// Fetched as webp, then converted to the jpg the row asked for.
 		webp := filepath.Join(dir, "A Video.webp")
@@ -702,6 +713,18 @@ func TestASidecarRowIsNamedAfterTheFileItWrote(t *testing.T) {
 				t.Errorf("last update = %+v, want Done named %q", got, tc.name)
 			}
 		})
+	}
+}
+
+// A source with WebVTT subtitles only, as many sites offer, still gives the
+// row the .srt it shows, and the row reports that file rather than the .vtt
+// the conversion deleted, so a removal with files finds it.
+func TestASubtitleRowFromAWebVTTSourceReportsTheSrtItWasConvertedTo(t *testing.T) {
+	dir, rec := runFake(t, "vttsubs:full", Options{Variant: VariantSubtitle, SubtitleLangs: "de"})
+	got := rec.last()
+	want := filepath.Join(dir, "A Video.de.srt")
+	if got.Status != core.StatusDone || got.File != want || got.Name != "A Video.de" {
+		t.Errorf("last update = %+v, want Done with File %q named %q", got, want, "A Video.de")
 	}
 }
 

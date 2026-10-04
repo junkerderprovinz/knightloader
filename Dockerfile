@@ -25,8 +25,9 @@ RUN [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image wi
 
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6
 # The JRE runs the private headless JDownloader that KL_PROVISION_JD starts by
-# default, which DLC and other container links need.
-RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless \
+# default, which DLC and other container links need. tini is PID 1 so the
+# ffmpeg left behind when a yt-dlp download is stopped gets reaped.
+RUN apk add --no-cache ca-certificates yt-dlp ffmpeg tzdata openjdk21-jre-headless tini \
     && adduser -D -u 1000 knight
 COPY --from=build /out/knightloader /usr/local/bin/knightloader
 
@@ -45,4 +46,5 @@ EXPOSE 8749
 USER knight
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD wget -qO- http://127.0.0.1:8749/api/health >/dev/null 2>&1 || exit 1
-ENTRYPOINT ["/usr/local/bin/knightloader"]
+# -s keeps the reaping when docker run --init puts its own init in front.
+ENTRYPOINT ["/sbin/tini", "-s", "--", "/usr/local/bin/knightloader"]
