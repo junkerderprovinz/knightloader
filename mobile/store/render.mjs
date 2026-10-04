@@ -6,9 +6,10 @@
 // The captures are plain screenshots of the app in dark mode, 1080x1920, with
 // the status bar in demo mode. Name them after the SHOTS below.
 //
-// `node store/render.mjs readme` builds the README's call for Android testers
-// instead, .github/assets/screenshots/testers.png at 1920x640: two phones
-// beside a button-shaped call.
+// `node store/render.mjs readme` builds the README's pictures instead, in
+// .github/assets/screenshots: the call for Android testers at 1920x640, two
+// phones beside a button-shaped call, and android.png at 1920x1000, three
+// phones in front of a wall of the services KnightLoader downloads through.
 //
 // Every page is rendered at twice the size and scaled down in a second page,
 // which keeps the text sharp through the phone's tilt.
@@ -65,6 +66,26 @@ const SHOTS = [
 // Height of the status bar in a capture, which the phone redraws with room
 // for its rounded corners.
 const STATUS_H = 63;
+
+// The wall behind the README's Android picture, row by row, best known first.
+// Every second row is shifted right, and the wall fades out to the right, so
+// the lesser names go last. A tile shows the monogram the web UI draws for a
+// host without an icon, so no service's mark ends up in the picture. `lit`
+// draws a tile in the accent, as under a finger.
+const WALL = [
+  [{ name: 'Real-Debrid', sub: 'Debrid', lit: true }, { name: 'AllDebrid' }, { name: 'TorBox' }, { name: 'Premiumize.me' }],
+  [{ name: 'BitTorrent', sub: 'Torrents' }, { name: 'Debrid-Link' }, { name: 'Offcloud', lit: true }, { name: 'Linksnappy' }],
+  [{ name: 'Usenet', sub: 'NZB files' }, { name: 'Video sites', sub: 'yt-dlp', lit: true }, { name: 'JDownloader', sub: 'Hoster plugins' }, { name: 'Deepbrid' }],
+  [{ name: "Click'n'Load" }, { name: 'MyDebrid' }, { name: 'Mega-Debrid' }, { name: 'BestDebrid' }],
+  [{ name: 'SFTP and FTP', sub: 'Your own server' }, { name: 'WebDAV' }, { name: '2Captcha', sub: 'Captchas' }, { name: 'Anti-Captcha' }],
+  [{ name: 'CocoLeech' }, { name: 'CoolDebrid', lit: true }, { name: 'NeoDebrid' }, { name: 'ProLeech' }],
+  [{ name: 'Direct links', sub: 'Any web server' }, { name: 'RPNet' }, { name: 'Zevera' }, { name: 'MultiUp' }],
+  [{ name: 'CapMonster' }, { name: 'CapSolver' }, { name: 'DeathByCaptcha' }, { name: '9kw.eu' }],
+  [{ name: 'Sonarr', sub: 'Download client' }, { name: 'Radarr', lit: true }, { name: 'DebridItalia' }, { name: 'FakirDebrid' }],
+  [{ name: 'RSS and Atom', sub: 'Feeds' }, { name: 'Watched folder' }, { name: 'Stream playlists', sub: 'HLS and DASH' }, { name: 'Magnet links' }],
+  [{ name: 'SOCKS5', sub: 'Proxies' }, { name: 'Reconnect', sub: 'Your router' }, { name: 'Captchas', sub: 'Solved by hand' }, { name: 'Checksums' }],
+  [{ name: 'Archives', sub: 'Unpacked for you' }, { name: 'Event scripts' }, { name: 'DLC containers' }, { name: 'Packagizer', sub: 'Link rules' }],
+];
 
 async function cached(file, url) {
   const path = join(tmpdir(), `KnightLoader-${file}`);
@@ -216,6 +237,53 @@ ${phone(front, { x: 1530, y: 58, sw: 282 })}
 </body></html>`;
 }
 
+const tile = ({ name, sub, lit }) =>
+  `<div class="tile${lit ? ' lit' : ''}"><i>${name.charAt(0)}</i><div class="name"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+
+// Each row of the wall with the row half the wall further on beside it, wide
+// enough for a landscape picture.
+const wallRows = () =>
+  WALL.map((row, i) => [...row, ...WALL[(i + WALL.length / 2) % WALL.length]])
+    .map((row) => `<div class="row">${row.map(tile).join('')}</div>`)
+    .join('');
+
+/**
+ * The README's Android picture, as wide as the desktop and container ones:
+ * three phones in front of the wall, dimmed so the phones stay the subject.
+ */
+function androidShot(left, middle, right, lift) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
+body { width: 1920px; height: 1000px; }
+.copy { position: absolute; left: 84px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+.copy img { width: 92px; }
+h1 { font-size: 64px; line-height: 1.12; }
+.sub { font-size: 28px; line-height: 1.35; }
+.wallstage { position: absolute; left: 560px; right: 0; top: 0; bottom: 0; perspective: 2400px; perspective-origin: 0 40%; opacity: .5;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 82%, transparent 100%); }
+.fade { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 86%, transparent 100%); }
+.plane { position: absolute; left: 20px; top: -20px; display: flex; flex-direction: column; gap: 23px;
+  transform-origin: 0 0; transform: rotateY(-16deg) rotateX(4deg) scale(.8); }
+.row { display: flex; gap: 23px; }
+.row:nth-child(even) { margin-left: 156px; }
+.tile { position: relative; flex: none; width: 288px; height: 84px; border-radius: 42px; background: #393939; color: #f4f4f4;
+  box-shadow: 0 2px 4px rgba(0,0,0,.3), 0 12px 26px rgba(0,0,0,.45); }
+.tile i { position: absolute; left: 34px; top: 19px; width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center;
+  background: #4a4a4a; color: #b8b8b8; font: 700 24px/1 Lato, sans-serif; font-style: normal; text-transform: uppercase; }
+.tile .name { position: absolute; left: 98px; right: 18px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; white-space: nowrap; overflow: hidden; }
+.tile b { font: 700 25px/1.2 Lato, sans-serif; }
+.tile small { font: 400 20px/1.4 Lato, sans-serif; opacity: .8; }
+.tile.lit { background: #FCC419; color: #141414; }
+.tile.lit i { background: rgba(0,0,0,.14); color: #141414; }
+</style></head><body>
+${backdrop('50%', '-9%', '-6%')}
+<div class="copy"><img src="${logo}"><h1>Every download in sight, <em>even from the couch</em></h1><p class="sub">KnightLoader for Android, with 20 debrid services, torrents, Usenet and video sites behind it</p></div>
+<div class="wallstage"><div class="fade"><div class="plane">${wallRows()}</div></div></div>
+${phone(left, { x: 640, y: 230, sw: 330 })}
+${phone(right, { x: 1490, y: 230, sw: 330 })}
+${phone(middle, { x: 1040, y: 150, sw: 380, lift })}
+</body></html>`;
+}
+
 /** Renders `html` at twice `width` x `height` and writes it scaled down to `file`. */
 async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
@@ -236,6 +304,9 @@ async function readme(browser) {
   const capture = (name) => dataUrl(readFileSync(join(here, 'captures', 'en-US', `${name}.png`)), 'image/png');
   await render(browser, testersShot(capture('connections'), capture('downloads')), 1920, 640, join(out, 'testers.png'));
   console.log('wrote .github/assets/screenshots/testers.png');
+  const lift = SHOTS.find((s) => s.name === 'connections').lift;
+  await render(browser, androidShot(capture('add'), capture('connections'), capture('connect'), lift), 1920, 1000, join(out, 'android.png'));
+  console.log('wrote .github/assets/screenshots/android.png');
 }
 
 async function store(browser) {
