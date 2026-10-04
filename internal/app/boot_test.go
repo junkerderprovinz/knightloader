@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
@@ -505,5 +506,47 @@ func TestAQueueStoppedByTheBootSaysSoOnEveryRow(t *testing.T) {
 		for _, id := range []string{"a", "b"} {
 			t.Errorf("task %s waits with reason %q behind a stopped queue, want %q", id, taskOf(t, a, id).Waiting, core.WaitingHalted)
 		}
+	}
+}
+
+// The engine pauses every transfer while it shuts down. That pause is the
+// shutdown's and not the user's, so the download comes back to the queue
+// rather than paused, where nothing would resume it.
+func TestADownloadRunningAtShutdownComesBackQueued(t *testing.T) {
+	dataDir := t.TempDir()
+	a, err := newApp(dataDir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	stub := &stubBackend{got: make(chan string, 1)}
+	a.bmu.Lock()
+	a.jd = stub
+	a.bmu.Unlock()
+	a.Registry.Register(jd.Resolver{})
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 1, MaxPerHost: 1, DownloadDir: t.TempDir()}); err != nil {
+		t.Fatal(err)
+	}
+	created := a.AddLinks([]string{"https://h.example/a"}, "")
+	if len(created) != 1 {
+		t.Fatalf("staged %d tasks", len(created))
+	}
+	id := created[0].ID
+	a.StartTasks([]string{id})
+	collect(t, stub.got, 1)
+
+	// Close flips closing first, and the engine's pause comes in while the
+	// store is still open.
+	a.closeMu.Lock()
+	a.closing = true
+	a.closeMu.Unlock()
+	a.onUpdate(id, core.Update{Status: core.StatusPaused})
+	if err := a.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	b := bootFixture{dataDir: dataDir}.boot(t)
+	if got := taskOf(t, b, id); got.Status != core.StatusQueued {
+		t.Errorf("status = %q, want queued", got.Status)
 	}
 }

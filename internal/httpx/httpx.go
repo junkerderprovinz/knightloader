@@ -16,10 +16,12 @@ package httpx
 import (
 	"errors"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
 	"net/url"
 	"strings"
+	"syscall"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -302,4 +304,18 @@ func StripURL(err error) error {
 		return ue.Err
 	}
 	return err
+}
+
+// wsaeConnReset is a reset as Windows reports it. Go's syscall.ECONNRESET is a
+// synthetic value there that no socket returns.
+const wsaeConnReset syscall.Errno = 10054
+
+// HungUp reports whether err is the far end closing the connection or
+// resetting it, rather than answering.
+func HungUp(err error) bool {
+	if errors.Is(err, io.EOF) || errors.Is(err, io.ErrUnexpectedEOF) || errors.Is(err, syscall.ECONNRESET) {
+		return true
+	}
+	var n syscall.Errno
+	return errors.As(err, &n) && n == wsaeConnReset
 }

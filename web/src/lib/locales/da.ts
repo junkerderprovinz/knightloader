@@ -3201,6 +3201,8 @@ export const da: Dict = {
   'failure.unreachable.next': 'Tjek denne maskines internetforbindelse og linket, og prøv så igen.',
   'failure.timeout.line': 'Serveren holdt op med at svare.',
   'failure.timeout.next': 'Prøv igen. Sker det igen og igen, er hosteren måske overbelastet eller forbindelsen ustabil.',
+  'failure.connectionClosed.line': 'Serveren lukkede forbindelsen uden at svare.',
+  'failure.connectionClosed.next': 'Prøv igen senere. Sker det igen og igen, afviser serveren nok downloadprogrammer, og en browser kan måske stadig hente filen.',
   'failure.diskFull.line': 'Disken er fuld.',
   'failure.diskFull.next': 'Frigør plads på det drev, filerne skal på, og prøv så igen.',
   'failure.noPermission.line': 'KnightLoader har ikke adgang til {path}.',

@@ -31,9 +31,10 @@ import (
 //
 // It is internal/resolver/remotefs's own partSuffix, spelled again here
 // because that constant is unexported and that package writes these files
-// while this one only reads them. The two have to stay equal: if remotefs
-// renames its scratch suffix, a part file stops being recognised here and is
-// reported as an orphan of a task that is running right now.
+// while this one only reads them. The two have to stay equal, and so do the
+// file names PartPath and remotefs build with it: if they drift, a part file
+// stops being recognised here and is reported as an orphan of a task that is
+// running right now.
 const PartSuffix = ".klpart"
 
 // Trust is how much this app is allowed to believe about a file it did not
@@ -227,9 +228,10 @@ func (o Options) Scan(r Request) Finding {
 	}
 	f := Finding{TaskID: r.TaskID, Path: path}
 
-	if n, ok := sizeOf(path + PartSuffix); ok && n > 0 {
+	part := PartPath(r.Dir, r.Name, r.TaskID)
+	if n, ok := sizeOf(part); ok && n > 0 {
 		f.Verdict, f.Bytes = Partial, n
-		f.Detail = fmt.Sprintf("%d bytes of this download are already in %s%s", n, r.Name, PartSuffix)
+		f.Detail = fmt.Sprintf("%d bytes of this download are already in %s", n, filepath.Base(part))
 		return f
 	}
 
@@ -447,11 +449,13 @@ func Orphans(dir string, claimed map[string]bool) ([]Orphan, error) {
 	return out, nil
 }
 
-// PartPath is where the part file for one download sits. It is exported so a
-// caller building the claimed set for Orphans spells it exactly the way
-// Orphans reads it, rather than joining the suffix on itself in a second
-// place.
-func PartPath(dir, name string) string { return filepath.Join(dir, name+PartSuffix) }
+// PartPath is where the part file for one download sits, named with the
+// task's id because two downloads of one name can share a folder. It is
+// exported so a caller building the claimed set for Orphans spells it exactly
+// the way Orphans reads it.
+func PartPath(dir, name, taskID string) string {
+	return filepath.Join(dir, name+"."+taskID+PartSuffix)
+}
 
 func sizeOf(path string) (int64, bool) {
 	fi, err := os.Stat(path)

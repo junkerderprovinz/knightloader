@@ -20,6 +20,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
@@ -110,9 +111,10 @@ type Job struct {
 	File *File
 }
 
-// schemeURL matches anything carrying a scheme. The intake stays permissive:
-// the resolvers know what they can take, this package does not, and dropping a
-// link the user handed over is the worse failure.
+// schemeURL matches anything carrying a scheme, for a crawljob's text= value.
+// That intake stays permissive: the resolvers know what they can take, this
+// package does not, and dropping a link the user handed over is the worse
+// failure.
 var schemeURL = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*://\S+$`)
 
 // Parse reads one intake file into the jobs it holds. These formats are
@@ -120,7 +122,7 @@ var schemeURL = regexp.MustCompile(`^[a-zA-Z][a-zA-Z0-9+.\-]*://\S+$`)
 //
 //	*.crawljob - JDownloader's key=value format, one entry per blank-line-
 //	             separated block
-//	*.txt      - one URL per line, always a single job
+//	*.txt      - a link list, always a single job
 //	*.magnet   - the same, holding magnet links
 //	*.torrent, *.dlc, *.ccf, *.rsdf, *.nzb - handed over whole as one job's
 //	             File
@@ -288,18 +290,16 @@ func parseCrawljob(r io.Reader) ([]Job, error) {
 	return jobs, err
 }
 
-// parseText reads a plain list, one URL per line, as a single job. The format
-// carries nothing but links, so everything else on the Job stays at the value
-// that means "the app's own settings decide".
+// parseText reads a plain list as a single job. The format carries nothing
+// but links, so everything else on the Job stays at the value that means "the
+// app's own settings decide".
+//
+// Each line goes through linkscan, as a paste does, so several links on one
+// line are all found and the prose around a link is left out of it.
 func parseText(r io.Reader) ([]Job, error) {
 	var job Job
 	err := scanLines(r, func(line string) {
-		// Split on whitespace rather than taking the whole line: a list pasted
-		// onto one line is the normal shape of a copied link block, and the
-		// crawljob parser already treats its value that way. Two parsers in one
-		// package disagreeing about what a list looks like is how a drop file
-		// ends up permanently "unusable" with nothing to explain it.
-		job.URLs = append(job.URLs, splitLinks(line)...)
+		job.URLs = append(job.URLs, linkscan.Extract(line)...)
 	})
 	return []Job{job}, err
 }
@@ -316,7 +316,7 @@ const bom = "\ufeff"
 //
 // A blank line is passed through rather than skipped, because for a crawljob it
 // is the boundary between two entries and only the caller knows whether that
-// matters. parseText throws them away, which is what "one URL per line" means.
+// matters. parseText finds no link in them.
 func scanLines(r io.Reader, fn func(string)) error {
 	first := true
 	sc := bufio.NewScanner(io.LimitReader(r, maxIntakeSize))

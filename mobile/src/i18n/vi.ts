@@ -252,6 +252,8 @@ export const vi: Dict = {
   'failure.unreachable.next': 'Kiểm tra kết nối internet của phiên bản và liên kết, rồi thử lại.',
   'failure.timeout.line': 'Máy chủ đã ngừng trả lời.',
   'failure.timeout.next': 'Thử lại. Nếu vẫn tiếp diễn, có thể hoster đang quá tải hoặc kết nối không ổn định.',
+  'failure.connectionClosed.line': 'Máy chủ đã đóng kết nối mà không trả lời.',
+  'failure.connectionClosed.next': 'Thử lại sau. Nếu vẫn tiếp diễn, có lẽ máy chủ đang từ chối các chương trình tải xuống, và trình duyệt có thể vẫn tải được tệp.',
   'failure.diskFull.line': 'Đĩa đã đầy.',
   'failure.diskFull.next': 'Giải phóng dung lượng trên ổ chứa các tệp, rồi thử lại.',
   'failure.noPermission.line': 'KnightLoader không được phép truy cập {path}.',

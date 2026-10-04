@@ -349,6 +349,13 @@ type App struct {
 	placing    map[string]int
 	handing    map[string]int
 	handed     *sync.Cond
+	// movedFiles holds the finished downloads whose file the app moved off the
+	// path their backend recorded: renamed, delivered, or moved with their
+	// package's folder. Another download may land on that path, so their
+	// backend does not delete files by that record (see removeTask). Memory
+	// only, since the backends forget the record on a restart. Built on first
+	// use.
+	movedFiles map[string]bool
 	// startNow holds the links "Start now" was pressed for, until their
 	// download ends or somebody pauses, resumes or removes them. They alone
 	// leave a stopped queue, as a forced start does in JDownloader. Forced

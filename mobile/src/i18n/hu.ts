@@ -252,6 +252,8 @@ export const hu: Dict = {
   'failure.unreachable.next': 'Ellenőrizd a példány internetkapcsolatát és a linket, aztán próbáld újra.',
   'failure.timeout.line': 'A szerver már nem válaszol.',
   'failure.timeout.next': 'Próbáld újra. Ha ez többször előfordul, a tárhely talán túlterhelt, vagy a kapcsolat instabil.',
+  'failure.connectionClosed.line': 'A szerver válasz nélkül bontotta a kapcsolatot.',
+  'failure.connectionClosed.next': 'Próbáld újra később. Ha ez többször előfordul, a szerver valószínűleg elutasítja a letöltőprogramokat, böngészővel viszont talán megkapod a fájlt.',
   'failure.diskFull.line': 'Megtelt a lemez.',
   'failure.diskFull.next': 'Szabadíts fel helyet azon a meghajtón, ahová a fájlok kerülnek, aztán próbáld újra.',
   'failure.noPermission.line': 'A KnightLoader nem férhet hozzá ehhez: {path}.',
