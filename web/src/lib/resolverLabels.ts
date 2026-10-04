@@ -19,6 +19,7 @@ const DESCRIBED: Record<string, TranslationKey> = {
   direct: 'resolver.direct',
   http: 'resolver.http',
   torrent: 'resolver.torrent',
+  nntp: 'resolver.nntp',
 };
 
 /** resolverLabel names a backend, or returns the id itself when it is unknown,

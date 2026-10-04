@@ -131,6 +131,9 @@ const (
 	WaitingForced Waiting = "forced"
 	// WaitingDisabled is the task's own switch being off.
 	WaitingDisabled Waiting = "disabled"
+	// WaitingSpare is a par2 recovery volume held back until a repair needs
+	// it (see app.HeldSpare).
+	WaitingSpare Waiting = "spare"
 	// WaitingCaptcha is a challenge waiting for a person.
 	WaitingCaptcha Waiting = "captcha"
 	// WaitingAccount is every backend that claims the link having a benched,

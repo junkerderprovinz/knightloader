@@ -92,7 +92,7 @@ const isNZB = (name: string) => name.toLowerCase().endsWith('.nzb');
 type Outcome =
   | { file: string; kind: 'container-staged'; links: number; created: number; pkg: string }
   | { file: string; kind: 'container-handed'; expiresIn: number; startedAt: number }
-  | { file: string; kind: 'nzb-sent'; service: string }
+  | { file: string; kind: 'nzb-sent'; service: string; own: boolean }
   | { file: string; kind: 'torrent-staged'; task: Task }
   | { file: string; kind: 'torrent-held'; task: Task }
   | { file: string; kind: 'torrent-duplicate' }
@@ -105,7 +105,11 @@ function Result({ o, landedAt, onExpire }: { o: Outcome; landedAt: number; onExp
     return <p className="text-xs text-statusFail">{t('container.failed', { file: o.file, reason: o.reason })}</p>;
   }
   if (o.kind === 'nzb-sent') {
-    return <p className="text-xs text-carbon-textSub">{t('container.usenet', { file: o.file, service: o.service })}</p>;
+    return (
+      <p className="text-xs text-carbon-textSub">
+        {o.own ? t('container.usenetOwn', { file: o.file }) : t('container.usenet', { file: o.file, service: o.service })}
+      </p>
+    );
   }
   if (o.kind === 'torrent-duplicate') {
     return <p className="text-xs text-carbon-textSub">{t('torrent.duplicate', { file: o.file })}</p>;
@@ -338,7 +342,7 @@ export const FileDrop = forwardRef<FileDropHandle, { pkg?: string; landedAt?: nu
         return { file: f.name, kind: 'container-handed', expiresIn: r.expiresIn, startedAt: Date.now() };
       }
       if (r.handedTo === 'usenet') {
-        return { file: f.name, kind: 'nzb-sent', service: r.service };
+        return { file: f.name, kind: 'nzb-sent', service: r.service, own: !!r.own };
       }
       // Read from the created tasks, since a Packagizer rule may have renamed it.
       const landed = new Set(r.created.map((c) => c.package).filter(Boolean));

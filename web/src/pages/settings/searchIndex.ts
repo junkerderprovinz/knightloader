@@ -346,6 +346,34 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
+    // The fields are in the window a server row opens, so they lead to the card.
+    {
+      title: 'accounts.usenet.title',
+      hint: 'accounts.usenet.hint',
+      rows: [],
+      also: [
+        'accounts.usenet.host',
+        'accounts.usenet.port',
+        'accounts.usenet.tls',
+        'accounts.usernameField',
+        'accounts.passwordField',
+        'accounts.usenet.connections',
+        'accounts.usenet.level',
+        'accounts.usenet.retention',
+        'accounts.usenet.optional',
+      ],
+      body: [
+        'accounts.usenet.emptyHint',
+        'accounts.usenet.hostHint',
+        'accounts.usenet.portHint',
+        'accounts.usenet.tlsHint',
+        'accounts.usenet.loginHint',
+        'accounts.usenet.connectionsHint',
+        'accounts.usenet.levelHint',
+        'accounts.usenet.retentionHint',
+        'accounts.usenet.optionalHint',
+      ],
+    },
   ],
 
   instances: [
