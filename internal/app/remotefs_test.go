@@ -274,3 +274,18 @@ func TestTheRenamedRemoteDownloadsPartFileIsNotAnOrphan(t *testing.T) {
 		t.Errorf("orphans = %+v, want the paused row's part file claimed", got)
 	}
 }
+
+// A new remote-server backend would know none of the running transfers, so a
+// pause would miss them and a resume would start a second one.
+func TestSavingAnAccountKeepsTheBackendTheRemoteTransfersRunOn(t *testing.T) {
+	a := newCrawlApp(t, true)
+	before := a.backendFor(remotefs.ResolverID)
+	if err := a.SetAccountCredential(remotefs.ResolverID, "ftp.example.org", accounts.Credential{
+		Username: "me", Password: "pw",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if after := a.backendFor(remotefs.ResolverID); after != before {
+		t.Error("saving an account replaced the backend the remote transfers run on")
+	}
+}

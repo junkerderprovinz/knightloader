@@ -155,12 +155,7 @@ func (a *App) rewireBackends() {
 	remoteDialer := remotefs.Dialer{KnownHostsFile: a.knownHostsPath()}
 	remoteLogins := a.remotefsLogins()
 	a.Registry.Register(remotefs.Resolver{Accounts: remoteLogins, Dialer: remoteDialer})
-	remoteBackend := remotefs.NewBackend(remoteLogins, remoteDialer, eng, a.dlDir, a.onUpdate)
-	remoteBackend.Dir = a.taskDir
-	// These bytes bypass the metering proxy, so the backend reads the limit in
-	// force itself.
-	remoteBackend.RateLimit = a.Throttle.Limit
-	newRemoteFS := backend(remoteBackend)
+	a.remotefsBackend(eng).SetLogins(remoteLogins, remoteDialer)
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -271,7 +266,6 @@ func (a *App) rewireBackends() {
 
 	a.bmu.Lock()
 	a.debrid, a.ytdlp, a.torbox, a.jd = newDebrid, newYtdlp, newTorbox, newJD
-	a.remotefs = newRemoteFS
 	a.bmu.Unlock()
 	a.rewireUsenet()
 
@@ -565,6 +559,23 @@ func (a *App) fetchTorboxHosterOnlyHosts(key string) map[string]bool {
 		log.Printf("TorBox hoster-only list unavailable (%v); keeping the last good list (%d hosts)", err, len(cache.Hosts()))
 	}
 	return cache.Hosts()
+}
+
+// remotefsBackend returns the app's one remote-server backend. A rewire swaps
+// only its logins, because a new backend would know none of the transfers the
+// old one runs.
+func (a *App) remotefsBackend(eng remotefs.Downloader) *remotefs.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.remotefs == nil {
+		b := remotefs.NewBackend(nil, remotefs.Dialer{}, eng, a.dlDir, a.onUpdate)
+		b.Dir = a.taskDir
+		// These bytes bypass the metering proxy, so the backend reads the
+		// limit in force itself.
+		b.RateLimit = a.Throttle.Limit
+		a.remotefs = b
+	}
+	return a.remotefs
 }
 
 // remotefsLogins returns the host-to-login snapshot for the remote-server

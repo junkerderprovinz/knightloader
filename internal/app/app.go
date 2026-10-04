@@ -49,6 +49,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -224,8 +225,9 @@ type App struct {
 	debrid map[string]backend
 	// remotefs fetches ftp, ftps and sftp links and hands WebDAV ones to the
 	// engine. It is never nil after rewireBackends, since an anonymous FTP
-	// archive needs no credential or binary.
-	remotefs backend
+	// archive needs no credential or binary, and a rewire keeps the same one
+	// so its running transfers stay within reach of Pause and Remove.
+	remotefs *remotefs.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
