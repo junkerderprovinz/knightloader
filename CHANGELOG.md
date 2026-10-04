@@ -47,7 +47,8 @@ release's tag.
   Settings > Link collector > Copies of the same file. A magnet is recognised
   by its info hash, whatever name and trackers it carries, and a link
   restored past the filter or a banned tracker is still checked against the
-  history.
+  history. Names are compared as the files were saved, so a mirror whose
+  name holds a colon or a control character still counts.
 
 ## [1.6.6] - 2026-10-02
 
