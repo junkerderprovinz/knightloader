@@ -875,6 +875,11 @@ func TestASubtitleRowRemovedWithFilesTakesEveryLanguageItWrote(t *testing.T) {
 		{ID: "other", URL: "https://media.example/w", Name: "A Video.en", Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusDone, Enabled: true, Size: 40, File: en, CreatedAt: time.Now()},
 	} {
 		a.tasks[task.ID] = task
+		// Only the subtitle row is saved by the update below, and the other
+		// row has to be in the store for the restart to know it.
+		if err := a.Store.Save(task); err != nil {
+			t.Fatal(err)
+		}
 	}
 	a.mu.Unlock()
 	a.onUpdate("subs", core.Update{Status: core.StatusDone, Name: "A Video.fr", File: fr, Size: 60, Loaded: 60, OtherFiles: []string{en, de}})

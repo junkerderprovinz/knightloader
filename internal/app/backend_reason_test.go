@@ -102,3 +102,29 @@ func TestAMirrorIsStillWorthTryingForTheBackendNamedCauses(t *testing.T) {
 		}
 	}
 }
+
+// A file the collision policy refused is settled like the dispatch skip, not
+// retried: under skip every retry asks the same question, and after a switch
+// to rename a retry places the file the user had refused.
+func TestAFileTheBackendRefusedUnderSkipIsNotRetried(t *testing.T) {
+	a := retryApp(t, func(*settings.Settings) {})
+	runningOn(a, "sub1", plainHost, simpleResolverID)
+
+	a.onUpdate("sub1", core.Update{
+		Status: core.StatusError,
+		Err:    "not downloaded: /data/A Video.de.srt already exists",
+		Code:   core.CodeFileExists,
+		Params: map[string]string{"file": "A Video.de.srt"},
+	})
+
+	got := liveTask(a, "sub1")
+	if got.Status != core.StatusError || got.ErrorCode != core.CodeFileExists {
+		t.Fatalf("status %q, code %q; want an error with code %q", got.Status, got.ErrorCode, core.CodeFileExists)
+	}
+	if !got.NextTry.IsZero() {
+		t.Errorf("an automatic retry is pending at %s", got.NextTry)
+	}
+	if got.Retries != 0 {
+		t.Errorf("Retries = %d, want the refusal not to count as an attempt", got.Retries)
+	}
+}
