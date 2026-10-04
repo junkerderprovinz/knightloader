@@ -4,6 +4,8 @@ package api
 // the ones that never became a task at all.
 
 import (
+	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"strings"
@@ -112,11 +114,25 @@ func registerLinks(reg *Registry, a *app.App) {
 			writeJSON(w, restored)
 		})
 
-	// Ids come from the query because not every client and proxy handles a
-	// DELETE body. Nothing on disk is touched; a held link never downloaded.
-	reg.Add(http.MethodDelete, "/api/collector/filtered", "delete links the filter rejected (?ids=a,b, or no ids for all of them)",
+	// The interface sends the ids in the query because not every proxy passes
+	// on a DELETE body. A client that sends them as the restore route takes
+	// them is still heard, since "no ids" empties the whole holding area.
+	// Nothing on disk is touched; a held link never downloaded.
+	reg.Add(http.MethodDelete, "/api/collector/filtered",
+		"delete links the filter rejected (?ids=a,b or a JSON body with ids; no ids for all of them)",
 		func(w http.ResponseWriter, r *http.Request) {
-			removed := a.ClearFiltered(idsFromQuery(r))
+			ids := idsFromQuery(r)
+			if ids == nil {
+				var body struct {
+					IDs []string `json:"ids"`
+				}
+				if err := decodeBody(r, &body); err != nil && !errors.Is(err, io.EOF) {
+					http.Error(w, "bad json", http.StatusBadRequest)
+					return
+				}
+				ids = body.IDs
+			}
+			removed := a.ClearFiltered(ids)
 			writeJSON(w, map[string]any{"removed": len(removed), "ids": removed})
 		})
 

@@ -44,10 +44,8 @@ const copyBuffer = 256 << 10
 // https URLs and go to the engine (see Resolver.Resolve); FTP, FTPS and SFTP
 // are downloaded here as a single stream with resume.
 type Backend struct {
-	accounts Accounts
-	dialer   Dialer
-	eng      Downloader
-	dir      string
+	eng Downloader
+	dir string
 
 	onUpdate func(taskID string, u core.Update)
 
@@ -60,10 +58,18 @@ type Backend struct {
 	// running transfer, and it is the only limit these non-HTTP transfers see.
 	RateLimit func() int64
 
-	mu   sync.Mutex
-	runs map[string]*runState
-	link map[string]string
-	part map[string]string
+	mu sync.Mutex
+	// accounts and dialer change with SetLogins while transfers run.
+	accounts Accounts
+	dialer   Dialer
+	runs     map[string]*runState
+	link     map[string]string
+	// part is the part file each task writes until its transfer finishes,
+	// and saved the file finish made of it. Remove with deleteFiles deletes
+	// these and nothing else: another download of the same name can have
+	// finished as dir/name.
+	part  map[string]string
+	saved map[string]string
 	// engineTasks are the tasks handed to the engine (WebDAV), so Pause,
 	// Resume and Remove reach whoever holds the transfer.
 	engineTasks map[string]bool
@@ -75,8 +81,17 @@ func NewBackend(accounts Accounts, dialer Dialer, eng Downloader, dir string, on
 		runs:        map[string]*runState{},
 		link:        map[string]string{},
 		part:        map[string]string{},
+		saved:       map[string]string{},
 		engineTasks: map[string]bool{},
 	}
+}
+
+// SetLogins makes the transfers started from now on log in with accounts
+// through dialer. A transfer already going keeps the connection it has.
+func (b *Backend) SetLogins(accounts Accounts, dialer Dialer) {
+	b.mu.Lock()
+	b.accounts, b.dialer = accounts, dialer
+	b.mu.Unlock()
 }
 
 func (b *Backend) Download(taskID, link string, headers map[string]string, conns int) {
@@ -152,17 +167,22 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	if r := b.runs[taskID]; r != nil {
 		r.cancel()
 	}
-	part := b.part[taskID]
+	part, saved := b.part[taskID], b.saved[taskID]
 	delete(b.link, taskID)
 	delete(b.part, taskID)
+	delete(b.saved, taskID)
 	b.mu.Unlock()
-	// The part file always goes, or a later attempt at the same link would
-	// resume from it; the finished file only with deleteFiles.
+	// A plain remove keeps the part file, as the engine keeps its partials,
+	// so an undo resumes where the download stopped. Its name carries the
+	// task id, so no other download picks it up.
+	if !deleteFiles {
+		return
+	}
 	if part != "" {
 		_ = os.Remove(part)
-		if deleteFiles {
-			_ = os.Remove(strings.TrimSuffix(part, partSuffix))
-		}
+	}
+	if saved != "" {
+		_ = os.Remove(saved)
 	}
 }
 
@@ -226,9 +246,12 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(err)
 		return
 	}
+	b.mu.Lock()
+	accounts, dialer := b.accounts, b.dialer
+	b.mu.Unlock()
 	login := Login{Username: t.User}
-	if b.accounts != nil {
-		if l, ok := b.accounts.Login(t.Host); ok {
+	if accounts != nil {
+		if l, ok := accounts.Login(t.Host); ok {
 			login = l
 		}
 	}
@@ -246,12 +269,12 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	// collide.SafeName gives the same name the engine would write and keeps a
 	// server-supplied "../../etc/passwd" inside the download directory.
 	name := collide.SafeName(Name(t))
-	part := filepath.Join(dir, name+partSuffix)
+	part := partPath(dir, name, taskID)
 	b.mu.Lock()
 	b.part[taskID] = part
 	b.mu.Unlock()
 
-	fs, err := b.dialer.Dial(ctx, t, login)
+	fs, err := dialer.Dial(ctx, t, login)
 	if err != nil {
 		fail(err)
 		return
@@ -297,7 +320,29 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(err)
 		return
 	}
-	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: remote.Size, Loaded: remote.Size, Speed: 0})
+	b.mu.Lock()
+	delete(b.part, taskID)
+	b.saved[taskID] = final
+	b.mu.Unlock()
+	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), File: final, Size: remote.Size, Loaded: remote.Size, Speed: 0})
+}
+
+// partPath is the part file taskID writes name into in dir, spelled as
+// reclaim.PartPath spells it. The id lets a resume after a restart, when the
+// backend remembers nothing, tell its own bytes from another download's of
+// the same name.
+func partPath(dir, name, taskID string) string {
+	return filepath.Join(dir, name+"."+taskID+partSuffix)
+}
+
+// PartFile is the part file the download taskID of link writes in dir until
+// it finishes, or "" for a link this backend hands to the engine.
+func PartFile(dir, link, taskID string) string {
+	t, err := Parse(link, true)
+	if err != nil || t.Kind == KindWebDAV {
+		return ""
+	}
+	return partPath(dir, collide.SafeName(Name(t)), taskID)
 }
 
 // partSize is how many bytes of this download are already on disk. A missing
@@ -417,16 +462,20 @@ func (b *Backend) limit() int64 {
 }
 
 // finish moves the completed part file onto its real name and reports the name
-// it ended up with. collide.Handover reserves the name, so two downloads
-// finishing at once cannot both pick "film (2).mkv". Delegated backends never
-// receive the configured collision policy (see app.HonoursCollisionPolicy),
-// and Rename neither destroys an existing file nor stalls the queue.
+// it ended up with. The part file replaces the placeholder collide.Reserve
+// created there, so the name is never free for another download finishing at
+// the same moment. Delegated backends never receive the configured collision
+// policy (see app.HonoursCollisionPolicy), and Rename neither destroys an
+// existing file nor stalls the queue.
 func (b *Backend) finish(part, target string) (string, error) {
-	res, err := collide.Handover(target, collide.Rename)
+	res, err := collide.Reserve(target, collide.Rename)
 	if err != nil {
 		return "", fmt.Errorf("remotefs: %w", err)
 	}
+	// Windows does not replace a file that is still open.
+	_ = res.File.Close()
 	if err := os.Rename(part, res.Path); err != nil {
+		_ = os.Remove(res.Path)
 		return "", fmt.Errorf("remotefs: %w", err)
 	}
 	return res.Path, nil

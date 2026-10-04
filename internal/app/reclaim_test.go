@@ -221,8 +221,8 @@ func TestAnOrphanPartFileIsReportedAndKept(t *testing.T) {
 		core.Task{ID: "live", URL: "https://host.example/movie.mkv", Name: "movie.mkv",
 			Dir: dl, Status: core.StatusQueued, Size: 1000, Enabled: true},
 	)
-	writeBody(t, dl, "movie.mkv"+reclaim.PartSuffix, "half")
-	writeBody(t, dl, "gone.mkv"+reclaim.PartSuffix, "abandoned")
+	writeBody(t, dl, "movie.mkv.live"+reclaim.PartSuffix, "half")
+	writeBody(t, dl, "gone.mkv.gone"+reclaim.PartSuffix, "abandoned")
 
 	a := f.boot(t)
 	rep, err := a.Reclaim()
@@ -233,10 +233,10 @@ func TestAnOrphanPartFileIsReportedAndKept(t *testing.T) {
 	if len(rep.Orphans) != 1 {
 		t.Fatalf("orphans = %+v, want only the part file no task claims", rep.Orphans)
 	}
-	if want := reclaim.PartPath(dl, "gone.mkv"); rep.Orphans[0].Path != want {
+	if want := reclaim.PartPath(dl, "gone.mkv", "gone"); rep.Orphans[0].Path != want {
 		t.Errorf("orphan = %q, want %q", rep.Orphans[0].Path, want)
 	}
-	for _, name := range []string{"movie.mkv" + reclaim.PartSuffix, "gone.mkv" + reclaim.PartSuffix} {
+	for _, name := range []string{"movie.mkv.live" + reclaim.PartSuffix, "gone.mkv.gone" + reclaim.PartSuffix} {
 		if _, err := os.Stat(filepath.Join(dl, name)); err != nil {
 			t.Errorf("%s was deleted by a pass that only reports: %v", name, err)
 		}

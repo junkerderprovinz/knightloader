@@ -365,6 +365,13 @@ func (a *App) relocate(p *renamePlan) error {
 	var copies []taskCopy
 	if err == nil {
 		copies = a.applyRenameLocked(p, reloc)
+		// The backend of a finished download hears of the move only when its
+		// transfer was stopped for it; any other still records the old folder.
+		for _, h := range held {
+			if t := a.tasks[h.id]; t != nil && t.Status == core.StatusDone && h.how == notHeld {
+				a.noteMovedLocked(h.id)
+			}
+		}
 	}
 	restarted, seeds := a.restartDroppedLocked(held)
 	copies = append(copies, restarted...)

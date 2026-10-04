@@ -4,6 +4,7 @@ package app
 // and an .nzb. Each goes where an upload of the same file would.
 
 import (
+	"context"
 	"errors"
 	"log"
 	"path/filepath"
@@ -13,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/container"
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
@@ -24,7 +26,7 @@ var errNothingInNZB = errors.New("this file is neither an .nzb nor a list of lin
 // containerFileAdder is a backend that opens a container whose bytes are at
 // hand rather than behind an address.
 type containerFileAdder interface {
-	AddContainerFile(ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
+	AddContainerFile(ctx context.Context, ext string, data []byte, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
 
 // checkWatchJob refuses a dropped file this instance cannot open before the
@@ -89,8 +91,12 @@ func (a *App) stageWatchFile(f *watch.File, pkg string) {
 		links, err := container.Links(f.Name, f.Data)
 		switch {
 		case err == nil:
+			if k := container.Detect(f.Name, f.Data); k == container.KindRSDF || k == container.KindCCF {
+				log.Printf("dropped container %q: opened here as %s, %d links", f.Name, k, len(links))
+			}
 			a.stageWatchJob(watch.Job{URLs: links, Package: pkg})
 		case errors.Is(err, container.ErrNeedsBackend):
+			log.Printf("dropped container %q: handing it to JDownloader: %v", f.Name, err)
 			a.openWatchContainer(f, pkg)
 		default:
 			a.watchFileFailed(f, "container", err)
@@ -114,16 +120,26 @@ func (a *App) openWatchContainer(f *watch.File, pkg string) {
 		return
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(f.Name)), ".")
-	links, err := adder.AddContainerFile(ext, f.Data, pkg, containerCrawlLimit)
+	links, err := adder.AddContainerFile(a.ctx, ext, f.Data, pkg, containerCrawlLimit)
+	if errors.Is(err, jd.ErrNoLinks) && container.Detect(f.Name, f.Data) != container.KindDLC {
+		// JD holds the same RSDF and CCF keys as this program, so a file
+		// that would not open here holds nothing JD could have dropped as a
+		// duplicate.
+		err = errJDCouldNotOpen
+	}
 	if err != nil {
-		a.watchFileFailed(f, "container", err)
+		// A shutdown leaves the file parked for the next start (see
+		// onWatchIntake), so it has not failed.
+		if a.ctx.Err() == nil {
+			a.watchFileFailed(f, "container", err)
+		}
 		return
 	}
 	created := a.AddResolvedLinksFrom(links, pkg, OriginWatch)
-	log.Printf("dropped container %s: %d links, %d staged", f.Name, len(links), len(created))
+	log.Printf("dropped container %q: %d links, %d staged", f.Name, len(links), len(created))
 }
 
 func (a *App) watchFileFailed(f *watch.File, kind string, err error) {
-	log.Printf("dropped file %s: %v", f.Name, err)
+	log.Printf("dropped file %q: %v", f.Name, err)
 	a.recordSkippedReason(f.Name, kind, err.Error())
 }

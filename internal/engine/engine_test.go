@@ -366,6 +366,42 @@ func TestADownloadThatSteppedAroundAFileReportsWhereItWrote(t *testing.T) {
 	}
 }
 
+// The library takes a link's file name unescaped, and on Linux it keeps
+// control characters; a NUL among them cannot be written at all.
+func TestALinkWithControlCharactersDownloadsUnderACleanName(t *testing.T) {
+	body := []byte("control characters")
+	for _, c := range []struct {
+		name string
+		job  func(dir string) Job
+	}{
+		{"into its folder", func(string) Job { return Job{Collision: collide.Rename} }},
+		{"through a working folder", func(dir string) Job {
+			return Job{Dir: t.TempDir(), WorkDir: dir, Collision: collide.Rename}
+		}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			dir := t.TempDir()
+			got := settle(t, dir, "nul%00and%09tab.bin", body, c.job(dir))
+			last := got[len(got)-1]
+			if last.Status != core.StatusDone {
+				t.Fatalf("the download ended as %q: %s", last.Status, last.Err)
+			}
+			want := filepath.Join(dir, "nul and tab.bin")
+			if last.File != want {
+				t.Fatalf("done reported the file %q, want %q", last.File, want)
+			}
+			for _, u := range got {
+				if u.Name != "" && u.Name != "nul and tab.bin" {
+					t.Errorf("the task was named %q", u.Name)
+				}
+			}
+			if b, err := os.ReadFile(want); err != nil || !bytes.Equal(b, body) {
+				t.Errorf("the file holds %q, %v; want the download", b, err)
+			}
+		})
+	}
+}
+
 // libraryTask is a finished plain HTTP task as the library describes it,
 // written to dir under name after the resource came back as resolved.
 func libraryTask(t *testing.T, dir, resolved, name string) *download.Task {

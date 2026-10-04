@@ -686,6 +686,39 @@ func TestReserveClaimsTheNameThatWillActuallyBeWritten(t *testing.T) {
 	}
 }
 
+func TestSafeNameTurnsControlCharactersIntoSpaces(t *testing.T) {
+	cases := map[string]string{
+		"nul\x00here.bin":       "nul here.bin",
+		"tab\there.bin":         "tab here.bin",
+		"esc\x1bhere\x7f.bin":   "esc here .bin",
+		"line\r\nbreak.bin":     "line  break.bin",
+		"Show.S01E02.1080p.mkv": "Show.S01E02.1080p.mkv",
+		// Latin-1, which is not UTF-8 and has to keep its bytes.
+		"caf\xe9.txt": "caf\xe9.txt",
+	}
+	for in, want := range cases {
+		got := SafeName(in)
+		if got != want {
+			t.Errorf("SafeName(%q) = %q, want %q", in, got, want)
+		}
+		if again := SafeName(got); again != got {
+			t.Errorf("SafeName(%q) = %q, so the writer would rename %q again", got, again, got)
+		}
+	}
+}
+
+func TestReserveWritesALinkWithANulInItsName(t *testing.T) {
+	dir := t.TempDir()
+	r, err := Reserve(filepath.Join(dir, "nul\x00here.bin"), Rename)
+	if err != nil {
+		t.Fatalf("reserve: %v", err)
+	}
+	defer r.File.Close()
+	if want := filepath.Join(dir, "nul here.bin"); r.Path != want {
+		t.Fatalf("reserved %q, want %q", r.Path, want)
+	}
+}
+
 func TestHandoverFolderCountsWithoutSplittingTheName(t *testing.T) {
 	dir := t.TempDir()
 	target := filepath.Join(dir, "Show.S01.1080p")

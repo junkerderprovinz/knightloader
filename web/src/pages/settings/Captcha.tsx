@@ -1,11 +1,21 @@
 import { useCallback, useEffect, useState } from 'react';
-import { type Account, type CatalogueService, fetchAccountCatalogue, fetchAccounts } from '../../lib/api';
-import { useT } from '../../lib/i18n';
 import {
+  type Account,
+  ApiError,
+  type CatalogueService,
+  createTestCaptcha,
+  fetchAccountCatalogue,
+  fetchAccounts,
+} from '../../lib/api';
+import { type TranslationKey, useT } from '../../lib/i18n';
+import { useToast } from '../../lib/toast';
+import {
+  Button,
   Card,
   ErrorCard,
   Field,
   IconBadge,
+  InfoBubble,
   LinkBadge,
   LoadingCard,
   NumberInput,
@@ -109,7 +119,7 @@ export function Captcha() {
               position={order.indexOf(svc.id)}
               count={order.length}
               last={i === rows.length - 1}
-              configured={accounts.some((a) => a.service === svc.id && a.account === '' && a.configured)}
+              state={keyState(svc.id, accounts)}
               onToggle={(on) => setEnabled(svc.id, on)}
               onMove={(by) => move(svc.id, by)}
             />
@@ -146,18 +156,105 @@ export function Captcha() {
           )}
         </Card>
       )}
+
+      <TestCaptchaCard hue={order.length > 0 ? 2 : 1} solvers={canTakeATest(order, accounts)} />
     </div>
   );
 }
 
-function SolverRow({
+/**
+ * canTakeATest reports whether one of the solvers in order would get a test
+ * captcha: it needs a key and must not be switched off on the Accounts page,
+ * as the instance's captchaSolvers decides.
+ */
+export function canTakeATest(order: string[], accounts: Account[]): boolean {
+  return order.some((id) => keyState(id, accounts) === 'set');
+}
+
+type KeyState = 'set' | 'off' | 'notSet';
+
+/**
+ * keyState says how the solver's account stands on the Accounts page. A key
+ * on a switched-off account counts as off, since the instance hands that
+ * account nothing.
+ */
+export function keyState(id: string, accounts: Account[]): KeyState {
+  const a = accounts.find((x) => x.service === id && x.account === '' && x.configured);
+  if (!a) return 'notSet';
+  return a.enabled ? 'set' : 'off';
+}
+
+const TEST_REFUSALS: Partial<Record<string, TranslationKey>> = {
+  captchaOff: 'settings.captcha.testOff',
+  captchaJDOff: 'settings.captcha.testJDOff',
+  noCaptchaAccount: 'settings.captcha.testNoAccount',
+};
+
+/** testRefusal is the text that says why a test captcha did not go up. */
+export function testRefusal(e: unknown): TranslationKey {
+  return (e instanceof ApiError && TEST_REFUSALS[e.code ?? '']) || 'captcha.networkError';
+}
+
+/**
+ * Puts up a test captcha, which arrives in the captcha window and the phone app
+ * like a real one; how the answer compared comes back as a toast from
+ * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
+ * to them only from the second button, which shows while one of them could
+ * take it.
+ */
+function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [busy, setBusy] = useState(false);
+
+  async function send(toSolvers: boolean) {
+    setBusy(true);
+    try {
+      await createTestCaptcha(toSolvers);
+    } catch (e) {
+      toast(t(testRefusal(e)), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <Card hue={hue} className="flex flex-col gap-4">
+      <SectionTitle>{t('settings.captcha.testTitle')}</SectionTitle>
+      <div className="flex flex-wrap gap-2">
+        <Button kind="secondary" hue={0} disabled={busy} hint={t('settings.captcha.testHint')} onClick={() => void send(false)}>
+          {t('settings.captcha.test')}
+        </Button>
+        {solvers && (
+          <Button
+            kind="secondary"
+            hue={1}
+            disabled={busy}
+            hint={t('settings.captcha.testSolversHint')}
+            onClick={() => void send(true)}
+          >
+            {t('settings.captcha.testSolvers')}
+          </Button>
+        )}
+      </div>
+    </Card>
+  );
+}
+
+const KEY_STATE = {
+  set: 'settings.captcha.set',
+  off: 'settings.captcha.off',
+  notSet: 'settings.captcha.notSet',
+} as const satisfies Record<KeyState, TranslationKey>;
+
+export function SolverRow({
   svc,
   hue,
   enabled,
   position,
   count,
   last,
-  configured,
+  state,
   onToggle,
   onMove,
 }: {
@@ -169,8 +266,7 @@ function SolverRow({
   position: number;
   count: number;
   last: boolean;
-  /** Whether the solver's key is set on the Accounts page. */
-  configured: boolean;
+  state: KeyState;
   onToggle: (on: boolean) => void;
   onMove: (by: number) => void;
 }) {
@@ -178,46 +274,52 @@ function SolverRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto_auto] items-center gap-3 py-2.5">
+      {/* Neither the name nor its link can be cut short, so where the card is
+          too narrow the key status and the actions wrap onto a line of their
+          own. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
           <span className="text-sm text-carbon-text">{svc.label}</span>
           {svc.whereUrl && <LinkBadge href={svc.whereUrl} title={t('accounts.whereToFind')} />}
         </div>
 
-        <span
-          className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${configured ? 'text-statusOk' : 'text-carbon-textMuted'}`}
-        >
-          <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${configured ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
-          {configured ? t('settings.captcha.set') : t('settings.captcha.notSet')}
-        </span>
+        <div className="ms-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
+          <span
+            className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
+          >
+            <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${state === 'set' ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
+            {t(KEY_STATE[state])}
+            {state === 'off' && <InfoBubble tip={t('settings.captcha.offHint')} />}
+          </span>
 
-        {/* `labelled` on every badge, so the actions follow the Beschriftung
-            setting like toolbar actions; the name column truncates instead. */}
-        <div className="flex shrink-0 items-center gap-0.5">
-          {enabled && (
-            <>
-              <IconBadge
-                labelled
-                icon={<IconArrowUp width={16} height={16} />}
-                hue={hue}
-                title={t('settings.captcha.moveUp')}
-                aria-label={t('settings.captcha.moveUp')}
-                disabled={position <= 0}
-                onClick={() => onMove(-1)}
-              />
-              <IconBadge
-                labelled
-                icon={<IconArrowDown width={16} height={16} />}
-                hue={hue}
-                title={t('settings.captcha.moveDown')}
-                aria-label={t('settings.captcha.moveDown')}
-                disabled={position < 0 || position >= count - 1}
-                onClick={() => onMove(1)}
-              />
-            </>
-          )}
+          {/* `labelled` on every badge, so the actions follow the Beschriftung
+              setting like toolbar actions. */}
+          <div className="flex flex-wrap items-center justify-end gap-0.5">
+            {enabled && (
+              <>
+                <IconBadge
+                  labelled
+                  icon={<IconArrowUp width={16} height={16} />}
+                  hue={hue}
+                  title={t('settings.captcha.moveUp')}
+                  aria-label={t('settings.captcha.moveUp')}
+                  disabled={position <= 0}
+                  onClick={() => onMove(-1)}
+                />
+                <IconBadge
+                  labelled
+                  icon={<IconArrowDown width={16} height={16} />}
+                  hue={hue}
+                  title={t('settings.captcha.moveDown')}
+                  aria-label={t('settings.captcha.moveDown')}
+                  disabled={position < 0 || position >= count - 1}
+                  onClick={() => onMove(1)}
+                />
+              </>
+            )}
+          </div>
         </div>
       </div>
     </li>

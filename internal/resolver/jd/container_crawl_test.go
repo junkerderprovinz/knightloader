@@ -3,6 +3,7 @@ package jd
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"net/http/httptest"
 	"sort"
@@ -67,6 +68,14 @@ type fakeJDGrabber struct {
 	removedLinks []int64
 	removedPkgs  []int64
 	unscoped     int // queryLinks calls with neither filter
+
+	// jobs scripts queryLinkCrawlerJobs, one entry per call with the last one
+	// repeated: "busy", "idle", or "" for a job JD does not list. Nil answers
+	// 404, as a JD without the query does.
+	jobs     []string
+	jobCalls int
+	// onJobCall runs under mu after every queryLinkCrawlerJobs call.
+	onJobCall func(f *fakeJDGrabber)
 }
 
 func (f *fakeJDGrabber) linksFor(match func(grabPkg) bool) []grabLink {
@@ -127,6 +136,28 @@ func (f *fakeJDGrabber) handler() http.Handler {
 				return
 			}
 			_, _ = w.Write([]byte(`{"data":false}`))
+
+		case "/linkgrabberv2/queryLinkCrawlerJobs":
+			f.mu.Lock()
+			defer f.mu.Unlock()
+			if f.jobs == nil {
+				http.NotFound(w, r)
+				return
+			}
+			state := f.jobs[min(f.jobCalls, len(f.jobs)-1)]
+			f.jobCalls++
+			if f.onJobCall != nil {
+				f.onJobCall(f)
+			}
+			// JD leaves a false flag out.
+			switch state {
+			case "busy":
+				_, _ = w.Write([]byte(`{"data":[{"jobId":` + itoa(f.jobID) + `,"crawlerId":2,"crawling":true}]}`))
+			case "idle":
+				_, _ = w.Write([]byte(`{"data":[{"jobId":` + itoa(f.jobID) + `,"crawlerId":2}]}`))
+			default:
+				_, _ = w.Write([]byte(`{"data":[]}`))
+			}
 
 		case "/linkgrabberv2/queryLinks":
 			var params []struct {
@@ -230,7 +261,7 @@ func TestAddContainerHarvestsPackagesJDNamedItself(t *testing.T) {
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
 	start := time.Now()
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatalf("AddContainer: %v (the container opened in JD; only finding it again failed)", err)
@@ -312,7 +343,7 @@ func TestAddContainerFallsBackToTheMarkerPackage(t *testing.T) {
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
 	start := time.Now()
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	elapsed := time.Since(start)
 	if err != nil {
 		t.Fatalf("AddContainer: %v", err)
@@ -361,7 +392,7 @@ func TestAddContainerRefusesAJobFilterThatIsNotOne(t *testing.T) {
 	defer func() { <-done }()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 3*time.Second)
 	if err != nil {
 		t.Fatalf("AddContainer: %v", err)
 	}
@@ -391,7 +422,7 @@ func TestAddContainerStillReportsAContainerThatNeverOpened(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	if _, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "MyPackage", 60*time.Millisecond); err == nil {
+	if _, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "MyPackage", 60*time.Millisecond); err == nil {
 		t.Error("AddContainer reported success for a container JD never opened")
 	}
 }
@@ -414,5 +445,72 @@ func TestCheckLinksSettlesWhileJDCollectsSomethingElse(t *testing.T) {
 	}
 	if len(got) != 1 || got[0] != core.AvailOnline {
 		t.Errorf("verdicts = %v, want the one online verdict", got)
+	}
+}
+
+func TestAContainerCrawlEndsWithItsContext(t *testing.T) {
+	fastPoll(t)
+
+	f := &fakeJDGrabber{t: t, jobID: 1}
+	srv := httptest.NewServer(f.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	ctx, cancel := context.WithCancel(context.Background())
+	time.AfterFunc(50*time.Millisecond, cancel)
+	start := time.Now()
+	_, err := b.AddContainerFile(ctx, "dlc", []byte("payload"), "MyPackage", time.Minute)
+	if !errors.Is(err, context.Canceled) {
+		t.Errorf("AddContainerFile = %v, want the context's end", err)
+	}
+	if elapsed := time.Since(start); elapsed > 5*time.Second {
+		t.Errorf("AddContainerFile returned %v after its context ended", elapsed)
+	}
+}
+
+func TestAContainerJDOpensNothingIsGivenUpOnOnceItsCrawlEnds(t *testing.T) {
+	fastPoll(t)
+
+	for name, jobs := range map[string][]string{
+		"job still listed":     {"idle"},
+		"job let go of by JD":  {"", "busy", "idle", ""},
+		"job crawled a moment": {"busy", "busy", "idle"},
+	} {
+		f := &fakeJDGrabber{t: t, jobID: 9, jobs: jobs}
+		srv := httptest.NewServer(f.handler())
+		b := NewBackend(srv.URL, func(string, core.Update) {})
+		start := time.Now()
+		_, err := b.AddContainerFile(context.Background(), "ccf", []byte("garbage"), "MyPackage", time.Minute)
+		srv.Close()
+		if !errors.Is(err, ErrNoLinks) {
+			t.Errorf("%s: AddContainerFile = %v, want ErrNoLinks", name, err)
+		}
+		if elapsed := time.Since(start); elapsed > 5*time.Second {
+			t.Errorf("%s: gave up after %v, long after JD had finished the crawl", name, elapsed)
+		}
+	}
+}
+
+func TestAContainerCrawlJDIsStillOnIsWaitedFor(t *testing.T) {
+	fastPoll(t)
+
+	f := &fakeJDGrabber{t: t, jobID: 9, jobs: []string{"", "", "", "", "", "busy"}}
+	f.onJobCall = func(f *fakeJDGrabber) {
+		if f.jobCalls == 12 {
+			f.packages = []grabPkg{{uuid: 41, name: f.marker, ours: true, links: []grabLink{
+				{UUID: 401, URL: "https://mirror-a.example/late.rar", Name: "late.rar", PackageUUID: 41},
+			}}}
+		}
+	}
+	srv := httptest.NewServer(f.handler())
+	defer srv.Close()
+
+	b := NewBackend(srv.URL, func(string, core.Update) {})
+	got, err := b.AddContainerFile(context.Background(), "dlc", []byte("payload"), "MyPackage", time.Minute)
+	if err != nil {
+		t.Fatalf("AddContainerFile: %v", err)
+	}
+	if len(got) != 1 || got[0].DirectURL != "https://mirror-a.example/late.rar" {
+		t.Errorf("harvested %+v, want the link the slow crawl found", got)
 	}
 }

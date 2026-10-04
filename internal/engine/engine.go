@@ -5,11 +5,14 @@ package engine
 import (
 	"cmp"
 	"context"
+	"errors"
 	"fmt"
 	"maps"
 	"net"
+	"net/url"
 	"path/filepath"
 	"reflect"
+	"strings"
 	"sync"
 	"time"
 
@@ -19,6 +22,7 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/util"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
@@ -50,6 +54,10 @@ type Engine struct {
 	jobs    map[string]Job
 	mends   map[string]*mend
 	layouts *layoutStore
+	// restored is the library id of every paused transfer handed back at
+	// boot, by KL task id, until a Start carries it on or a Remove drops it
+	// (see resume.go).
+	restored map[string]string
 	// seeds is every torrent started only to seed (Job.Seed), by KL task id,
 	// and targets the seeding targets they stop at (see seed.go).
 	seeds   map[string]*seedRun
@@ -126,7 +134,21 @@ var newDownloaderMu sync.Mutex
 // New boots an embedded Gopeed downloader that saves into dir and reports
 // per-task changes through onUpdate.
 func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
+	return Open(dir, "", onUpdate)
+}
+
+// Open is New with a folder to keep paused HTTP transfers in, which then carry
+// on after a restart instead of starting over (see resume.go).
+func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
 	layouts := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}}
+	restored := map[string]string{}
+	if stateDir != "" {
+		layouts.kept = newKeptTransfers(stateDir)
+		var err error
+		if restored, err = layouts.kept.load(layouts.Storage); err != nil {
+			return nil, err
+		}
+	}
 	cfg := (&download.DownloaderConfig{
 		RefreshInterval: 500, // ms between progress events
 		Storage:         layouts,
@@ -163,6 +185,7 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 		jobs:         map[string]Job{},
 		mends:        map[string]*mend{},
 		layouts:      layouts,
+		restored:     restored,
 		roots:        map[string]torrentRoot{},
 		picks:        map[string]torrentPick{},
 		pendingPicks: map[string][]int{},
@@ -424,13 +447,10 @@ func (e *Engine) Start(j Job) {
 	go func() {
 		defer e.wg.Done()
 		defer e.startEnded(j.TaskID, s)
-		req := &base.Request{
-			URL:   j.URL,
-			Extra: &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
-			Proxy: requestProxy(j.Route),
+		if e.takeUp(j, s) {
+			return
 		}
-		opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
-		rr, err := e.d.Resolve(req, opts)
+		rr, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -465,6 +485,71 @@ func (e *Engine) Start(j Job) {
 	}()
 }
 
+// errHungUp stands in for the bare EOF a server that hangs up leaves behind.
+var errHungUp = errors.New("the server closed the connection")
+
+// resolve asks the library about j's link. Some servers hang up at once on the
+// browser agent the library sends by default, so a link that hangs up is asked
+// once more as KnightLoader, and j keeps that agent for the task's later
+// requests. An agent the caller set is kept either way.
+func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error) {
+	rr, opts, err := e.resolveAs(*j)
+	if err == nil || !httpx.HungUp(err) {
+		return rr, opts, err
+	}
+	if !hasUserAgent(j.Headers) {
+		ours := asKnightLoader(*j)
+		rr, opts, err = e.resolveAs(ours)
+		if err == nil {
+			*j = ours
+			return rr, opts, nil
+		}
+		if !httpx.HungUp(err) {
+			return rr, opts, err
+		}
+	}
+	return nil, nil, hungUp(err)
+}
+
+// hungUp words the hang-up err as errHungUp rather than a bare EOF.
+func hungUp(err error) error {
+	var ue *url.Error
+	if errors.As(err, &ue) {
+		return &url.Error{Op: ue.Op, URL: ue.URL, Err: errHungUp}
+	}
+	return errHungUp
+}
+
+func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error) {
+	req := &base.Request{
+		URL:    j.URL,
+		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
+		Labels: map[string]string{taskLabel: j.TaskID},
+		Proxy:  requestProxy(j.Route),
+	}
+	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
+	rr, err := e.d.Resolve(req, opts)
+	return rr, opts, err
+}
+
+// asKnightLoader is j sending KnightLoader's agent, on a copy of its headers.
+func asKnightLoader(j Job) Job {
+	h := make(map[string]string, len(j.Headers)+1)
+	maps.Copy(h, j.Headers)
+	h["User-Agent"] = httpx.UserAgent()
+	j.Headers = h
+	return j
+}
+
+func hasUserAgent(h map[string]string) bool {
+	for k := range h {
+		if strings.EqualFold(k, "User-Agent") {
+			return true
+		}
+	}
+	return false
+}
+
 // place applies the collision policy to the resolved resource, writes the
 // chosen name into opts and returns the name to show. It runs here because
 // the resolve is the first moment the real name exists, and not at all for a
@@ -480,6 +565,11 @@ func place(j Job, res *base.Resource, opts *base.Options) (string, error) {
 		name = j.Name
 	}
 	if !j.placed() || res == nil {
+		// The library would write a control character from the link as it is.
+		if res != nil && res.Name == "" && name != collide.SafeName(name) {
+			name = collide.SafeName(name)
+			opts.Name = name
+		}
 		return name, nil
 	}
 	if res.Name != "" {
@@ -664,7 +754,8 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.markStart(taskID, func(s *start) { s.removed = true })
 	e.mu.Lock()
 	delete(e.parked, taskID)
-	gid := e.toGopeed[taskID]
+	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
+	delete(e.restored, taskID)
 	delete(e.toGopeed, taskID)
 	delete(e.toKL, gid)
 	delete(e.torrents, taskID)
