@@ -2,7 +2,9 @@ package app
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -66,5 +68,12 @@ func TestSanitizeSegment(t *testing.T) {
 		if got := sanitizeSegment(in); got != want {
 			t.Errorf("sanitizeSegment(%q) = %q, want %q", in, got, want)
 		}
+	}
+}
+
+func TestALongPackageFolderIsCutBetweenCharacters(t *testing.T) {
+	got := sanitizeSegment("x" + strings.Repeat("報", 99))
+	if !utf8.ValidString(got) || len(got) > 120 || len(got) < 117 {
+		t.Errorf("cut to %d bytes, valid UTF-8 %v", len(got), utf8.ValidString(got))
 	}
 }

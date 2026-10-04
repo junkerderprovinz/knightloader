@@ -480,7 +480,7 @@ func (m *Matcher) Apply(c Candidate) Effect {
 	if name.text != "" {
 		// Cut to one segment after expanding, so "../../x" cannot move the
 		// download out of its folder and the append counter is not disturbed.
-		e.Filename = segment(m.expand(name.text, string(FieldFilename), c, name.groups), "file")
+		e.Filename = FileSegment(m.expand(name.text, string(FieldFilename), c, name.groups))
 	}
 	if comment.text != "" {
 		e.Comment = m.expand(comment.text, "comment", c, comment.groups)

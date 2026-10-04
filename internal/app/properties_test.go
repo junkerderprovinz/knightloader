@@ -11,6 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"unicode/utf8"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -412,5 +413,27 @@ func TestRenameFindsAFileStillInTheWorkingFolder(t *testing.T) {
 	}
 	if live := liveTask(a, "1"); live.Name != want {
 		t.Errorf("the row reads %q, want %q", live.Name, want)
+	}
+}
+
+func TestARenameTooLongForAFileKeepsItsExtensionAndWholeCharacters(t *testing.T) {
+	for label, long := range map[string]string{
+		"CJK":   "xi6t24r" + strings.Repeat("報", 99) + ".pdf",
+		"ASCII": strings.Repeat("a", 300) + ".pdf",
+	} {
+		t.Run(label, func(t *testing.T) {
+			a, base := newQuietApp(t)
+			finishedTask(t, a, base, "doc", "doc.pdf")
+			if err := a.SetTaskOptions([]string{"doc"}, TaskOptions{Name: &long}); err != nil {
+				t.Fatal(err)
+			}
+			name := liveTask(a, "doc").Name
+			if !utf8.ValidString(name) || !strings.HasSuffix(name, ".pdf") || len(name) >= len(long) {
+				t.Errorf("renamed to %q", name)
+			}
+			if _, err := os.Stat(filepath.Join(base, name)); err != nil {
+				t.Errorf("the file is not under the name on the row: %v", err)
+			}
+		})
 	}
 }

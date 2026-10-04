@@ -1019,10 +1019,7 @@ func sanitizeSegment(s string) string {
 	if out == "" {
 		return "package"
 	}
-	if len(out) > 120 {
-		out = out[:120]
-	}
-	return out
+	return pathvars.Cut(out)
 }
 
 // hostOf returns the scheduling host bucket for a URL.
