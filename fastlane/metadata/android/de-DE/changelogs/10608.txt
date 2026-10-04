@@ -1,1 +1,0 @@
-Die Beschreibung nennt jetzt, wer das Standard-Relay betreibt und was beim Lösen eines Captchas geladen wird.

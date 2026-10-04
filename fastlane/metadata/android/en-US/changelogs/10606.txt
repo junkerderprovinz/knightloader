@@ -1,1 +1,0 @@
-Linksnappy now takes links under every domain of the hosters it supports.

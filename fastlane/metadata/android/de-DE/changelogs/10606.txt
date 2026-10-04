@@ -1,1 +1,0 @@
-Linksnappy holt jetzt auch Links, die unter einer anderen Domain eines unterstützten Hosters liegen.
