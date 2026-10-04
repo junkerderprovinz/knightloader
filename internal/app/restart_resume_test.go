@@ -2,10 +2,13 @@ package app
 
 import (
 	"bytes"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
 	"slices"
 	"strings"
+	"sync/atomic"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -77,6 +80,76 @@ func TestAPausedDownloadKeepsItsBytesAcrossARestart(t *testing.T) {
 		}
 	}
 	got, err := os.ReadFile(filepath.Join(dir, "big.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, o.data) {
+		t.Errorf("the finished file (%d bytes) is not what the origin served (%d bytes)", len(got), len(o.data))
+	}
+}
+
+// A paused download whose server fails for a while after the restart keeps its
+// bytes through the failure, and the retry carries on with them.
+func TestAPausedDownloadKeepsItsBytesThroughAServerErrorAfterARestart(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see TestAStalledDownloadIsReconnectedAndKeepsItsBytes")
+	}
+	t.Parallel()
+	const size = 16 << 20
+	o := newFlakyOrigin(t, size)
+	var down atomic.Bool
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if down.Load() {
+			http.Error(w, "bad gateway", http.StatusBadGateway)
+			return
+		}
+		o.serve(w, r)
+	}))
+	t.Cleanup(srv.Close)
+	dataDir, downloads, dir := t.TempDir(), t.TempDir(), t.TempDir()
+	file := filepath.Join(dir, "big.bin")
+	a := appIn(t, dataDir, downloads)
+	putTask(t, a, core.Task{
+		ID: "t1", URL: srv.URL + "/big.bin", Name: "big.bin", Dir: dir,
+		Status: core.StatusQueued, Enabled: true,
+	})
+	a.mu.Lock()
+	a.queue = append(a.queue, "t1")
+	a.dispatchLocked()
+	a.mu.Unlock()
+
+	waitFor(t, "the first MiB arriving", func() bool { return liveTask(a, "t1").Loaded >= 1<<20 })
+	a.Pause("t1")
+	waitFor(t, "the pause reaching the engine", func() bool {
+		kept, _ := filepath.Glob(filepath.Join(dataDir, "transfers", "*.json"))
+		return len(kept) == 1
+	})
+	_ = a.Close()
+	down.Store(true)
+
+	b := appIn(t, dataDir, downloads)
+	b.Resume("t1")
+	waitFor(t, "the resume failing", func() bool { return liveTask(b, "t1").Status == core.StatusError })
+	if fi, err := os.Stat(file); err != nil || fi.Size() != size {
+		t.Fatalf("the paused download's file is gone (%v)", err)
+	}
+
+	o.mu.Lock()
+	o.healed = true
+	o.mu.Unlock()
+	down.Store(false)
+	b.RestartTasks([]string{"t1"})
+	waitFor(t, "the download finishing", func() bool { return liveTask(b, "t1").Status == core.StatusDone })
+
+	o.mu.Lock()
+	asked := slices.Clone(o.afterHeal)
+	o.mu.Unlock()
+	for _, rg := range asked {
+		if rg == "" || strings.HasPrefix(rg, "bytes=0-") && rg != "bytes=0-0" {
+			t.Errorf("the retry asked for the file from the start (Range %q)", rg)
+		}
+	}
+	got, err := os.ReadFile(file)
 	if err != nil {
 		t.Fatal(err)
 	}
