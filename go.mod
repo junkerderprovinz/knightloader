@@ -178,7 +178,7 @@ require (
 // after it was built, spreads a ranged download over mirror URLs, and reads a
 // file of a running task:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003194948-3fe26149e54b
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
 // after a torrent is dropped or added again, and closing the client sends the
