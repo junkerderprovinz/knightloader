@@ -43,6 +43,14 @@ release's tag.
   still in development and bugs can happen, and asks everyone to test it and
   report what they find, with a link to the bug report form.
 
+### Fixed
+
+- **Fewer failed icon loads in the browser console.** For a host that cannot
+  have a site icon, such as an IP address, a torrent or a task id, the web UI
+  shows the letter tile at once instead of asking the instance four times.
+  Leaving a page before its live connection is up no longer logs a WebSocket
+  warning.
+
 ## [1.6.6] - 2026-10-02
 
 ### Changed
