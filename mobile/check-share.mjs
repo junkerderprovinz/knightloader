@@ -7,7 +7,8 @@
 // A failed send keeps the reason it failed with: a relay connection saved
 // before frames were sealed says to add it again, and a sentence that only
 // says the links were not sent leaves nothing to do about it. The Add links
-// screen keeps the reason the same way.
+// screen keeps the reason the same way, and says "Server:" only when a server
+// answered.
 //
 // The sending app's title names the package. expo-share-intent reads it from
 // EXTRA_TITLE only, and browsers send it as EXTRA_SUBJECT, so
@@ -253,6 +254,11 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   if (!said.includes('Network request failed')) fail(`links that never reached the instance say "${said}" and drop the reason`);
   said = await add(new ApiError('link filter refused it', 400));
   if (!said.includes('link filter refused it')) fail(`refused links say "${said}" and drop the instance's own sentence`);
+  const local = 'this connection has to be added again with the phrase';
+  said = await add(new ApiError(local, 0, 'addAgain'));
+  if (!said.includes(t('addDownload.errorSend', { message: local }))) {
+    fail(`links the app refused before asking any server say "${said}", as if the server had answered`);
+  }
 }
 
 {

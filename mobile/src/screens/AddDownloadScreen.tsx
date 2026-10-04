@@ -42,7 +42,9 @@ export default function AddDownloadScreen({
       onDone();
     } catch (err) {
       const message = errorText(t, err);
-      setError(t(err instanceof ApiError ? 'addDownload.errorServer' : 'addDownload.errorSend', { message }));
+      // An ApiError with no HTTP status is the app refusing before it asked.
+      const answered = err instanceof ApiError && err.status > 0;
+      setError(t(answered ? 'addDownload.errorServer' : 'addDownload.errorSend', { message }));
     } finally {
       setBusy(false);
     }
