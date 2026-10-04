@@ -67,25 +67,63 @@ const SHOTS = [
 // for its rounded corners.
 const STATUS_H = 63;
 
-// The wall behind the README's Android picture, row by row, best known first.
-// Every second row is shifted right, and the wall fades out to the right, so
-// the lesser names go last. A tile shows the monogram the web UI draws for a
-// host without an icon, so no service's mark ends up in the picture. `lit`
-// draws a tile in the accent, as under a finger.
+// The wall behind the README's Android picture: the services KnightLoader
+// downloads through, row by row, best known first. Every second row is shifted
+// right, and the wall fades out to the right, so the lesser names go last.
+// `icon` is a logo in scripts/screenshots/fixtures/icons, or with `mark` one
+// the web UI ships in web/src/assets/marks; `plate` sets a dark mark on white.
 const WALL = [
-  [{ name: 'Real-Debrid', sub: 'Debrid', lit: true }, { name: 'AllDebrid' }, { name: 'TorBox' }, { name: 'Premiumize.me' }],
-  [{ name: 'BitTorrent', sub: 'Torrents' }, { name: 'Debrid-Link' }, { name: 'Offcloud', lit: true }, { name: 'Linksnappy' }],
-  [{ name: 'Usenet', sub: 'NZB files' }, { name: 'Video sites', sub: 'yt-dlp', lit: true }, { name: 'JDownloader', sub: 'Hoster plugins' }, { name: 'Deepbrid' }],
-  [{ name: "Click'n'Load" }, { name: 'MyDebrid' }, { name: 'Mega-Debrid' }, { name: 'BestDebrid' }],
-  [{ name: 'SFTP and FTP', sub: 'Your own server' }, { name: 'WebDAV' }, { name: '2Captcha', sub: 'Captchas' }, { name: 'Anti-Captcha' }],
-  [{ name: 'CocoLeech' }, { name: 'CoolDebrid', lit: true }, { name: 'NeoDebrid' }, { name: 'ProLeech' }],
-  [{ name: 'Direct links', sub: 'Any web server' }, { name: 'RPNet' }, { name: 'Zevera' }, { name: 'MultiUp' }],
-  [{ name: 'CapMonster' }, { name: 'CapSolver' }, { name: 'DeathByCaptcha' }, { name: '9kw.eu' }],
-  [{ name: 'Sonarr', sub: 'Download client' }, { name: 'Radarr', lit: true }, { name: 'DebridItalia' }, { name: 'FakirDebrid' }],
-  [{ name: 'RSS and Atom', sub: 'Feeds' }, { name: 'Watched folder' }, { name: 'Stream playlists', sub: 'HLS and DASH' }, { name: 'Magnet links' }],
-  [{ name: 'SOCKS5', sub: 'Proxies' }, { name: 'Reconnect', sub: 'Your router' }, { name: 'Captchas', sub: 'Solved by hand' }, { name: 'Checksums' }],
-  [{ name: 'Archives', sub: 'Unpacked for you' }, { name: 'Event scripts' }, { name: 'DLC containers' }, { name: 'Packagizer', sub: 'Link rules' }],
+  [
+    { name: 'Real-Debrid', sub: 'Debrid', icon: 'real-debrid.com.svg' },
+    { name: 'AllDebrid', icon: 'alldebrid.com.png' },
+    { name: 'TorBox', icon: 'torbox.app.png' },
+    { name: 'Premiumize.me', icon: 'premiumize.me.svg' },
+  ],
+  [
+    { name: 'yt-dlp', sub: 'Video sites', icon: 'yt-dlp.svg' },
+    { name: 'Debrid-Link', icon: 'debrid-link.com.png' },
+    { name: 'Offcloud', icon: 'offcloud.com.png' },
+    { name: 'Linksnappy', icon: 'linksnappy.com.png' },
+  ],
+  [
+    { name: 'JDownloader', sub: 'Hoster plugins', icon: 'jdownloader.png' },
+    { name: 'Sonarr', sub: 'Download client', icon: 'sonarr.svg' },
+    { name: 'Radarr', icon: 'radarr.svg' },
+    { name: 'YouTube', icon: 'youtube.com.svg' },
+  ],
+  [
+    { name: '2Captcha', sub: 'Captchas', icon: '2captcha.svg', mark: true },
+    { name: 'CoolDebrid', icon: 'cooldebrid.com.png' },
+    { name: 'MyDebrid', icon: 'mydebrid.com.png' },
+    { name: 'Deepbrid', icon: 'deepbrid.com.png' },
+  ],
+  [
+    { name: 'WebDAV', sub: 'Your own server', icon: 'webdav.png' },
+    { name: 'ProLeech', icon: 'proleech.link.png' },
+    { name: 'Anti-Captcha', icon: 'anticaptcha.png', mark: true },
+    { name: 'Mega-Debrid', icon: 'mega-debrid.eu.png' },
+  ],
+  [
+    { name: 'CapMonster', icon: 'capmonster.svg', mark: true },
+    { name: 'DebridItalia', icon: 'debriditalia.com.png' },
+    { name: 'FakirDebrid', icon: 'fakirdebrid.net.png' },
+    { name: 'NeoDebrid', icon: 'neodebrid.com.png' },
+  ],
+  [
+    { name: 'CapSolver', icon: 'capsolver.png', mark: true, plate: true },
+    { name: 'MultiUp', icon: 'multiup.io.png' },
+    { name: 'BestDebrid', icon: 'bestdebrid.com.png' },
+    { name: 'CocoLeech', icon: 'cocoleech.com.png' },
+  ],
+  [
+    { name: 'DeathByCaptcha', icon: 'deathbycaptcha.png', mark: true },
+    { name: 'RPNet', icon: 'rpnet.biz.png' },
+    { name: 'Zevera', icon: 'zevera.com.png' },
+    { name: '9kw.eu', icon: '9kw.png', mark: true, plate: true },
+  ],
 ];
+const icons = join(root, 'scripts', 'screenshots', 'fixtures', 'icons');
+const marks = join(root, 'web', 'src', 'assets', 'marks');
 
 async function cached(file, url) {
   const path = join(tmpdir(), `KnightLoader-${file}`);
@@ -237,15 +275,21 @@ ${phone(front, { x: 1530, y: 58, sw: 282 })}
 </body></html>`;
 }
 
-const tile = ({ name, sub, lit }) =>
-  `<div class="tile${lit ? ' lit' : ''}"><i>${name.charAt(0)}</i><div class="name"><b>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+function tile({ name, sub, icon, mark, plate }) {
+  const type = icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+  const src = dataUrl(readFileSync(join(mark ? marks : icons, icon)), type);
+  return `<div class="tile"><img src="${src}"${plate ? ' class="plate"' : ''}><div class="name"><b data-fit>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+}
 
-// Each row of the wall with the row half the wall further on beside it, wide
-// enough for a landscape picture.
+// Twelve rows, each with the row half the wall further on beside it, wide
+// enough for a landscape picture. The last four repeat the first four two
+// tiles on, so a repeat does not stand right under the tile it repeats.
 const wallRows = () =>
-  WALL.map((row, i) => [...row, ...WALL[(i + WALL.length / 2) % WALL.length]])
-    .map((row) => `<div class="row">${row.map(tile).join('')}</div>`)
-    .join('');
+  Array.from({ length: 12 }, (_, r) => {
+    const row = [...WALL[r % WALL.length], ...WALL[(r + WALL.length / 2) % WALL.length]];
+    const turn = r < WALL.length ? 0 : 2;
+    return `<div class="row">${[...row.slice(turn), ...row.slice(0, turn)].map(tile).join('')}</div>`;
+  }).join('');
 
 /**
  * The README's Android picture, as wide as the desktop and container ones:
@@ -254,7 +298,7 @@ const wallRows = () =>
 function androidShot(left, middle, right, lift) {
   return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
 body { width: 1920px; height: 1000px; }
-.copy { position: absolute; left: 84px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; gap: 28px; }
+.copy { position: absolute; left: 84px; top: 210px; width: 470px; display: flex; flex-direction: column; gap: 28px; }
 .copy img { width: 92px; }
 h1 { font-size: 64px; line-height: 1.12; }
 .sub { font-size: 28px; line-height: 1.35; }
@@ -267,13 +311,11 @@ h1 { font-size: 64px; line-height: 1.12; }
 .row:nth-child(even) { margin-left: 156px; }
 .tile { position: relative; flex: none; width: 288px; height: 84px; border-radius: 42px; background: #393939; color: #f4f4f4;
   box-shadow: 0 2px 4px rgba(0,0,0,.3), 0 12px 26px rgba(0,0,0,.45); }
-.tile i { position: absolute; left: 34px; top: 19px; width: 46px; height: 46px; border-radius: 10px; display: grid; place-items: center;
-  background: #4a4a4a; color: #b8b8b8; font: 700 24px/1 Lato, sans-serif; font-style: normal; text-transform: uppercase; }
+.tile img { position: absolute; left: 34px; top: 19px; width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+.tile img.plate { background: #fff; padding: 4px; }
 .tile .name { position: absolute; left: 98px; right: 18px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; white-space: nowrap; overflow: hidden; }
 .tile b { font: 700 25px/1.2 Lato, sans-serif; }
 .tile small { font: 400 20px/1.4 Lato, sans-serif; opacity: .8; }
-.tile.lit { background: #FCC419; color: #141414; }
-.tile.lit i { background: rgba(0,0,0,.14); color: #141414; }
 </style></head><body>
 ${backdrop('50%', '-9%', '-6%')}
 <div class="copy"><img src="${logo}"><h1>Every download in sight, <em>even from the couch</em></h1><p class="sub">KnightLoader for Android, with 20 debrid services, torrents, Usenet and video sites behind it</p></div>
@@ -289,6 +331,14 @@ async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
+  // A name too long for its tile shrinks until it fits.
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll('[data-fit]')) {
+      const room = el.parentElement.clientWidth;
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > room && size > 10) el.style.fontSize = `${--size}px`;
+    }
+  });
   const big = await page.screenshot();
   await page.close();
 
