@@ -35,3 +35,17 @@ func TestAnSVGIconCannotRunScriptWhenOpenedDirectly(t *testing.T) {
 		t.Errorf("body = %q, want the icon unchanged", rec.Body.String())
 	}
 }
+
+// TestAHostWithoutAnIconAnswersWithoutAnErrorStatus: a browser logs every 4xx
+// image as a failed load, and most hosts in a list have no icon.
+func TestAHostWithoutAnIconAnswersWithoutAnErrorStatus(t *testing.T) {
+	srv, _ := testServer(t)
+	resp, err := http.Get(srv.URL + "/api/hosters/icon?host=nas.local")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Errorf("status = %d, want 204", resp.StatusCode)
+	}
+}

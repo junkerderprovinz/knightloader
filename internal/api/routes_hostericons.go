@@ -1,9 +1,10 @@
 package api
 
 // The site icon beside a hoster row (app_hostericons.go owns the fetching and
-// the cache). One route, GET only, and a 404 that the page is expected to
-// handle: a missing icon is the ordinary case, not an error worth a toast. A
-// 503 says the instance is still fetching it.
+// the cache). One route, GET only. A host without an icon gets a 204: it is
+// the ordinary case, and an error status would put a failed load in the
+// browser console for every such row. A 503 says the instance is still
+// fetching it.
 
 import (
 	"crypto/sha256"
@@ -31,7 +32,7 @@ func registerHosterIcons(reg *Registry, a *app.App) {
 				return
 			}
 			if err != nil {
-				http.NotFound(w, r)
+				w.WriteHeader(http.StatusNoContent)
 				return
 			}
 			serveHosterIcon(w, r, body, ct)
