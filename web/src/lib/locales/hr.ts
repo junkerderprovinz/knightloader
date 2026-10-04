@@ -1054,6 +1054,9 @@ export const hr: Dict = {
 
   'settings.chunks': 'Veze po preuzimanju (0 = automatski)',
   'settings.chunksHint': 'Koliko veza otvara jedno preuzimanje kad ne vrijedi ništa određenije. Pravilo ili pojedino preuzimanje može navesti vlastiti broj i nadjačava ovaj. Poslužitelj koji podnosi manje svejedno dobiva manje: ograničenje poslužitelja broj može samo spustiti, nikad podići. Uz 0 odlučuje aplikacija. Više od šačice veza kod poslužitelja koji ograničava po datoteci ne donosi ništa i pouzdan je način da račun bude označen.',
+  'settings.multiSource': 'Koristi više izvora za jednu datoteku',
+  'settings.multiSourceHint':
+    'Ako se datoteka može dobiti s više mjesta, dijeli se na sve izvore: isti link koji otključa drugi debrid račun ili rezervna kopija s drugog hostera koju popis čuva. Koristi se vlastiti link datoteke i najviše još tri. Svaki izvor dobiva broj veza postavljen iznad. Pomaže kad usluga ograničava brzinu jednog linka ili jedne veze, a ništa ne mijenja kad jedan izvor već puni tvoju liniju. Datoteke manje od 64 MiB uvijek dolaze iz jednog izvora. Izvor se pridružuje samo ako javlja istu veličinu i na probnim točkama u datoteci šalje iste bajtove; ako jedan stane na pola puta, ostali dovršavaju njegov dio. Zadano isključeno: svako dodatno otključavanje troši promet tog računa, neke usluge naplaćuju cijelu datoteku već pri otključavanju, a uvjeti nekih usluga zabranjuju preuzimanje s dva računa istodobno.',
   'task.chunks': 'Veze (0 = globalna postavka)',
   'task.chunksHint': 'Koliko veza otvara baš ovo preuzimanje. Nadjačava globalnu postavku i svako pravilo koje ju je postavilo, ali nikad poslužitelja: poslužitelj koji podnosi manje svejedno dobiva manje. Uz 0 iznimka nestaje i broj se opet odlučuje drugdje.',
   'columns.connection': 'Veza',

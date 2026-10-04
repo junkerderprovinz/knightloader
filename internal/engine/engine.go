@@ -393,6 +393,10 @@ type Job struct {
 	// mend.go). Nil asks URL again.
 	Relink func(ctx context.Context) (string, error)
 
+	// Sources asks for further links to the same file, for a transfer spread
+	// over several sources (see multisource.go). Nil fetches from URL alone.
+	Sources func(ctx context.Context) []string
+
 	// PassOnPlaylists is set for a link taken for a file by its look alone. A
 	// stream playlist arriving there fails the job as unsupported, so the app
 	// hands the link to the next backend. Only the first bytes tell, since a
@@ -450,7 +454,7 @@ func (e *Engine) Start(j Job) {
 		if e.takeUp(j, s) {
 			return
 		}
-		rr, opts, err := e.resolve(&j)
+		rr, req, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
@@ -469,6 +473,13 @@ func (e *Engine) Start(j Job) {
 			return
 		}
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		// Like the name, read by the library only once Create starts the
+		// transfer. Resolve has already filled in the connection count, and
+		// each source gets that many.
+		if mirrors := e.vetSources(j, rr.Res); len(mirrors) > 0 {
+			req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
+			opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
+		}
 		if !e.proceed(s, j) {
 			return
 		}
@@ -492,23 +503,23 @@ var errHungUp = errors.New("the server closed the connection")
 // browser agent the library sends by default, so a link that hangs up is asked
 // once more as KnightLoader, and j keeps that agent for the task's later
 // requests. An agent the caller set is kept either way.
-func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error) {
-	rr, opts, err := e.resolveAs(*j)
+func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+	rr, req, opts, err := e.resolveAs(*j)
 	if err == nil || !httpx.HungUp(err) {
-		return rr, opts, err
+		return rr, req, opts, err
 	}
 	if !hasUserAgent(j.Headers) {
 		ours := asKnightLoader(*j)
-		rr, opts, err = e.resolveAs(ours)
+		rr, req, opts, err = e.resolveAs(ours)
 		if err == nil {
 			*j = ours
-			return rr, opts, nil
+			return rr, req, opts, nil
 		}
 		if !httpx.HungUp(err) {
-			return rr, opts, err
+			return rr, req, opts, err
 		}
 	}
-	return nil, nil, hungUp(err)
+	return nil, nil, nil, hungUp(err)
 }
 
 // hungUp words the hang-up err as errHungUp rather than a bare EOF.
@@ -520,7 +531,9 @@ func hungUp(err error) error {
 	return errHungUp
 }
 
-func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error) {
+// resolveAs also returns the request and options, which the library keeps and
+// reads again when Create starts the transfer.
+func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
 	req := &base.Request{
 		URL:    j.URL,
 		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -529,7 +542,7 @@ func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error
 	}
 	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 	rr, err := e.d.Resolve(req, opts)
-	return rr, opts, err
+	return rr, req, opts, err
 }
 
 // asKnightLoader is j sending KnightLoader's agent, on a copy of its headers.

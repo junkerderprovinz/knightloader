@@ -1243,6 +1243,9 @@ export const en = {
   'settings.chunks': 'Connections per download (0 = automatic)',
   'settings.chunksHint':
     'How many connections one download opens when nothing more specific applies. A rule, or a single download, can name its own number and outranks this. A hoster that tolerates fewer still gets fewer: a host limit can only lower the count, never raise it. 0 leaves the decision to the app. Connections beyond a handful buy nothing on a hoster that limits per file, and are a reliable way to get an account flagged.',
+  'settings.multiSource': 'Use several sources for one file',
+  'settings.multiSourceHint':
+    'If a file can come from more than one place, it is split across all of them: the same link unlocked by a second debrid account, or a spare copy from another hoster that the list keeps. It uses the file\'s own link and up to three more. Each source gets the connections set above. This helps when a service caps the speed of one link or one connection, and changes nothing when one source already fills your line. Files under 64 MiB always come from one source. A source joins only if it reports the same size and sends the same bytes at sample points in the file, and if one stops part way, the others finish its share. Off by default: every extra unlock uses that account\'s traffic, some services count the whole file as soon as the link is unlocked, and some services\' terms forbid downloading with two accounts at once.',
   'task.chunks': 'Connections (0 = the global setting)',
   'task.chunksHint':
     'How many connections this one download opens. It outranks the global setting and any rule that set it, but never the hoster: a host that tolerates fewer still gets fewer. 0 takes the override off again and hands the count back.',
