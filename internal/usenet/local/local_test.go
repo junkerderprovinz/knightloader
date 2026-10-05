@@ -146,8 +146,9 @@ func TestDownloadAcrossLevelsAndTLS(t *testing.T) {
 	if !bytes.Equal(h.file("movie.mkv"), r.data) {
 		t.Fatal("the file on disk differs from the one posted")
 	}
-	for _, leftover := range []string{"movie.mkv.klpart", "movie.mkv.klpart" + mapSuffix} {
-		if _, err := os.Stat(filepath.Join(h.dir, leftover)); err == nil {
+	part := PartFile(h.dir, FileLink(h.job, 0, r.name), "task")
+	for _, leftover := range []string{part, part + mapSuffix} {
+		if _, err := os.Stat(leftover); err == nil {
 			t.Errorf("%s is left behind", leftover)
 		}
 	}
@@ -260,7 +261,7 @@ func TestPauseKeepsTheMapAndRemoveDeletesIt(t *testing.T) {
 		}
 	}
 	h.be.Halt("task")
-	part := filepath.Join(h.dir, "e.bin.klpart")
+	part := PartFile(h.dir, FileLink(h.job, 0, r.name), "task")
 	m := loadSegMap(part+mapSuffix, len(r.parts))
 	if m.count() == 0 || m.size != int64(len(r.data)) {
 		t.Fatalf("the map after a pause has %d articles and size %d", m.count(), m.size)
@@ -269,6 +270,122 @@ func TestPauseKeepsTheMapAndRemoveDeletesIt(t *testing.T) {
 	for _, p := range []string{part, part + mapSuffix} {
 		if _, err := os.Stat(p); err == nil {
 			t.Errorf("%s is left after Remove", p)
+		}
+	}
+}
+
+func TestAnUndoneRemoveCarriesOnFromTheBytesItHad(t *testing.T) {
+	r := newRelease("u.bin", 160_000, 4_000)
+	s := nntptest.New(t)
+	r.post(s)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	h := newHarness(t, nntp.NewClient([]nntp.Server{cfg}, slowCopy{}), r)
+	link := FileLink(h.job, 0, r.name)
+	h.be.Download("task", link, nil, 0)
+	for u := range h.updates {
+		if u.Loaded > 0 {
+			break
+		}
+	}
+	h.be.Remove("task", false)
+	had := loadSegMap(PartFile(h.dir, link, "task")+mapSuffix, len(r.parts))
+	if had.count() == 0 {
+		t.Fatal("the part file and its map are gone after a remove without files")
+	}
+
+	for len(h.updates) > 0 {
+		<-h.updates
+	}
+	// An undo hands the backend the same task again.
+	h.be.Download("task", link, nil, 0)
+	if u := <-h.updates; u.Loaded == 0 {
+		t.Errorf("the undone download starts at %+v, want the bytes it had", u)
+	}
+	for u := range h.updates {
+		if u.Status == core.StatusDone || u.Status == core.StatusError {
+			break
+		}
+	}
+	if !bytes.Equal(h.file(r.name), r.data) {
+		t.Fatal("the undone download's file differs from the one posted")
+	}
+	for i, done := range had.done {
+		if n := s.Bodies(r.ids[i]); done && n != 1 {
+			t.Errorf("article %d was on disk before the remove and was fetched %d times", i+1, n)
+		}
+	}
+}
+
+// twin is another release of r's file name and article count, with other
+// bytes under other message ids.
+func twin(r release) release {
+	o := release{name: r.name, data: make([]byte, len(r.data))}
+	for i, b := range r.data {
+		o.data[i] = ^b
+	}
+	for i, p := range r.parts {
+		p.Data = o.data[p.Begin : p.Begin+int64(len(p.Data))]
+		o.parts = append(o.parts, p)
+		o.ids = append(o.ids, "twin."+r.ids[i])
+	}
+	return o
+}
+
+func TestTwoReleasesOfOneNameInOneFolderEachKeepTheirOwnBytes(t *testing.T) {
+	first := newRelease("same.bin", 160_000, 4_000)
+	second := twin(first)
+	s := nntptest.New(t)
+	first.post(s)
+	second.post(s)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	client := nntp.NewClient([]nntp.Server{cfg}, slowCopy{})
+	h := newHarness(t, client, first)
+	job, err := h.svc.Submit(context.Background(), "twin", nzbOf(second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	type report struct {
+		id string
+		u  core.Update
+	}
+	reports := make(chan report, 1000)
+	be := NewBackend(h.svc, func() *nntp.Client { return client }, h.dir, func(id string, u core.Update) { reports <- report{id, u} })
+	settled := func(id string) core.Update {
+		t.Helper()
+		deadline := time.After(20 * time.Second)
+		for {
+			select {
+			case r := <-reports:
+				if r.id == id && (r.u.Status == core.StatusDone || r.u.Status == core.StatusError) {
+					return r.u
+				}
+			case <-deadline:
+				t.Fatalf("%s never settled", id)
+			}
+		}
+	}
+
+	be.Download("first", FileLink(h.job, 0, first.name), nil, 0)
+	for r := range reports {
+		if r.u.Loaded > 0 {
+			break
+		}
+	}
+	be.Halt("first")
+	be.Download("second", FileLink(job, 0, second.name), nil, 0)
+	two := settled("second")
+	be.Resume("first")
+	one := settled("first")
+
+	for _, c := range []struct {
+		u    core.Update
+		want []byte
+	}{{one, first.data}, {two, second.data}} {
+		got, err := os.ReadFile(c.u.File)
+		if c.u.Status != core.StatusDone || err != nil || !bytes.Equal(got, c.want) {
+			t.Errorf("%s ended %s and holds other bytes than its release (%v)", c.u.File, c.u.Status, err)
 		}
 	}
 }

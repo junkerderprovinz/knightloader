@@ -155,23 +155,12 @@ func (l torrentLeftover) drop() {
 
 // usenetPartLocked is the part file of a task from the own Usenet servers, for
 // deleting it with the task when their backend does not know the task, as
-// after a restart. A part file is named after the file, so one that another
-// task in the same folder would write too is left. Caller holds a.mu.
+// after a restart. Caller holds a.mu.
 func (a *App) usenetPartLocked(t *core.Task) string {
 	if !strings.HasPrefix(t.URL, local.ResolverID+"://") {
 		return ""
 	}
-	part := local.PartFile(a.dirFor(t), t.URL)
-	if part == "" {
-		return ""
-	}
-	for id, other := range a.tasks {
-		if id != t.ID && strings.HasPrefix(other.URL, local.ResolverID+"://") &&
-			samePath(local.PartFile(a.dirFor(other), other.URL), part) {
-			return ""
-		}
-	}
-	return part
+	return local.PartFile(a.dirFor(t), t.URL, t.ID)
 }
 
 // recordFileLocked notes where a backend is writing t's bytes, and says so in

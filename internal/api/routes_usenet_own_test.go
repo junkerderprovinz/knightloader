@@ -255,11 +255,15 @@ func TestDeletingAfterARestartTakesTheFilesAndTheirPartFiles(t *testing.T) {
 	done := taskNamed(t, a, "whole.bin", core.StatusDone)
 	failed := taskNamed(t, a, "broken.bin", core.StatusError)
 	a.Close()
+	part := filepath.Base(local.PartFile(downloads, failed.URL, failed.ID))
+	if _, err := os.Stat(filepath.Join(downloads, part)); err != nil {
+		t.Fatalf("the failed file left no %s to delete, so this test proves nothing", part)
+	}
 
 	b := open()
 	t.Cleanup(func() { b.Close() })
 	b.RemoveTasks([]string{done.ID, failed.ID}, true)
-	for _, name := range []string{"whole.bin", "broken.bin.klpart", "broken.bin.klpart.segments"} {
+	for _, name := range []string{"whole.bin", part, part + ".segments"} {
 		if _, err := os.Stat(filepath.Join(downloads, name)); err == nil {
 			t.Errorf("%s is still on disk", name)
 		}

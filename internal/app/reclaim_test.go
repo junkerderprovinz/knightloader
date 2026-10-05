@@ -328,7 +328,7 @@ func TestAPausedUsenetDownloadKeepsItsPartFileOutOfTheOrphans(t *testing.T) {
 		core.Task{ID: "nzb", URL: local.FileLink("0123456789abcdef", 0, "film.mkv"), Name: "Film renamed.mkv",
 			Dir: dl, Status: core.StatusPaused, Size: 1000},
 	)
-	writeBody(t, dl, "film.mkv"+reclaim.PartSuffix, "half")
+	writeBody(t, dl, "film.mkv.nzb"+reclaim.PartSuffix, "half")
 
 	rep, err := f.boot(t).Reclaim()
 	if err != nil {
