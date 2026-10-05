@@ -136,6 +136,41 @@ func TestClearingTakesIdsFromTheQuery(t *testing.T) {
 	}
 }
 
+// TestClearingHearsIdsSentInTheBody: the restore route beside it takes its ids
+// as a body, and a client that names them there means those links, not the
+// whole holding area.
+func TestClearingHearsIdsSentInTheBody(t *testing.T) {
+	t.Parallel()
+	srv, a, held := heldServer(t)
+	if len(a.AddLinks([]string{"https://host.example/sample-two.mkv"}, "Batch")) != 1 {
+		t.Fatal("the second link was not held")
+	}
+
+	code, raw := postJSON(t, http.MethodDelete, srv.URL+"/api/collector/filtered", map[string]any{"ids": []string{held.ID}})
+	if code != http.StatusOK {
+		t.Fatalf("clear answered %d: %s", code, raw)
+	}
+	left := a.FilteredLinks()
+	if len(left) != 1 || left[0].ID == held.ID {
+		t.Errorf("%d links left after clearing the one named in the body, want the other one", len(left))
+	}
+}
+
+// TestAnUnreadableClearIsRefused: a body the route cannot read is no reason
+// to delete every held link.
+func TestAnUnreadableClearIsRefused(t *testing.T) {
+	t.Parallel()
+	srv, a, _ := heldServer(t)
+
+	code, raw := postJSON(t, http.MethodDelete, srv.URL+"/api/collector/filtered", "not an object")
+	if code != http.StatusBadRequest {
+		t.Errorf("clear answered %d: %s, want 400", code, raw)
+	}
+	if n := len(a.FilteredLinks()); n != 1 {
+		t.Errorf("%d links held after a refused clear, want the one", n)
+	}
+}
+
 // TestIdsFromQuery is the difference between "these two" and "all of them". A
 // trailing comma is the ordinary way a client builds that string, and reading
 // it as one more id that matches nothing turns a two-link clear into a no-op,

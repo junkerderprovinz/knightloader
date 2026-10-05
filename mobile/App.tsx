@@ -1,9 +1,10 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
 import { NavigationContainer, useNavigationContainerRef } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { useShareIntent } from 'expo-share-intent';
 import {
   loadActiveConnection,
   loadDefaultConnection,
@@ -20,6 +21,7 @@ import AddDownloadScreen from './src/screens/AddDownloadScreen';
 import CaptchasScreen from './src/screens/CaptchasScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import LanguagePickerScreen from './src/screens/LanguagePickerScreen';
+import ShareScreen from './src/screens/ShareScreen';
 import { CaptchaWatch } from './src/components/CaptchaWatch';
 import { fetchAppearance, onRemovedFromGroup, setRainbowPalette } from './src/api/client';
 import { ConfirmDialog } from './src/components/ConfirmDialog';
@@ -33,11 +35,13 @@ import { HOUSE_FONTS, familyFor } from './src/theme/font';
 type RootStackParamList = {
   Connections: undefined;
   RelayConnect: undefined;
-  Downloads: { peer?: Instance } | undefined;
+  Downloads: { peer?: Instance; tab?: 'collector' } | undefined;
   AddDownload: { peer?: Instance } | undefined;
   Captchas: undefined;
   Settings: undefined;
   LanguagePicker: undefined;
+  // `at` tells two shares of the same text apart, so the second one is sent too.
+  Share: { text: string; title?: string; at: number };
 };
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -87,6 +91,20 @@ function Shell() {
   const { t } = useT();
   // Set when an instance has taken this phone out of its group.
   const [removed, setRemoved] = useState(false);
+  // The scheme only names the key the library clears a share under. Without
+  // it the library asks expo-linking for one, which throws in a release build
+  // of an app that registers none.
+  const { hasShareIntent, shareIntent, resetShareIntent } = useShareIntent({ scheme: 'knightloader' });
+
+  // A share can arrive before the saved connections are read or the navigator
+  // exists, so it waits for both.
+  useEffect(() => {
+    if (!hasShareIntent || loading || screen === undefined) return;
+    const text = shareIntent.text ?? shareIntent.webUrl;
+    const title = shareIntent.meta?.title;
+    resetShareIntent();
+    if (text) nav.navigate('Share', { text, title, at: Date.now() });
+  }, [hasShareIntent, shareIntent, loading, screen, nav, resetShareIntent]);
 
   useEffect(() => {
     onRemovedFromGroup(() => {
@@ -223,6 +241,7 @@ function Shell() {
                   <DownloadsScreen
                     conn={conn}
                     peer={route.params?.peer}
+                    initialTab={route.params?.tab}
                     onAddPress={() => navigation.navigate('AddDownload', { peer: route.params?.peer })}
                     onSwitchConnection={async () => {
                       await setActiveConnectionId(null);
@@ -270,6 +289,30 @@ function Shell() {
                   <AddDownloadScreen conn={conn} peer={route.params?.peer} onDone={() => navigation.goBack()} />
                 ) : null
               }
+            </Stack.Screen>
+
+            <Stack.Screen name="Share" options={{ presentation: 'modal' }}>
+              {({ navigation, route }) => (
+                <ShareScreen
+                  key={route.params.at}
+                  text={route.params.text}
+                  title={route.params.title}
+                  defaultId={standard?.id}
+                  onOpen={async (c) => {
+                    await setActiveConnectionId(c.id);
+                    setConn(c);
+                    // A fresh Downloads screen, so it opens on the collector
+                    // whichever instance was on screen before.
+                    navigation.reset({
+                      index: 1,
+                      routes: [{ name: 'Connections' }, { name: 'Downloads', params: { tab: 'collector' } }],
+                    });
+                  }}
+                  onConnect={() => navigation.navigate('RelayConnect')}
+                  // Back to the app the share came from.
+                  onClose={() => BackHandler.exitApp()}
+                />
+              )}
             </Stack.Screen>
 
             <Stack.Screen name="Captchas">

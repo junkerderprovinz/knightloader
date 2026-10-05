@@ -1,10 +1,13 @@
 package app
 
 import (
+	"strings"
 	"testing"
 
+	"github.com/anacrolix/torrent/metainfo"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -448,4 +451,67 @@ func TestMirrorCanHelp(t *testing.T) {
 			t.Errorf("%q leaves a usable spare copy parked", r)
 		}
 	}
+}
+
+// A magnet is known by its info hash, so a second one with other trackers is
+// refused, with a reason that names the hash.
+func TestAMagnetWithTheSameInfoHashIsRefusedAsTheSameTorrent(t *testing.T) {
+	a := newTorrentTestApp(t)
+	const magnet = "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
+	if created := a.AddLinks([]string{magnet + "&tr=udp%3A%2F%2Fone.example%3A6969"}, "Show"); len(created) != 1 {
+		t.Fatalf("the first magnet staged %d tasks, want 1", len(created))
+	}
+	if again := a.AddLinks([]string{magnet + "&tr=udp%3A%2F%2Ftwo.example%3A6969"}, "Show"); len(again) != 0 {
+		t.Fatalf("the second magnet staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	if len(skipped) != 1 || skipped[0].Reason != "a torrent with the same info hash is already in the list" {
+		t.Errorf("the skipped links are %+v, want the second magnet refused as the same torrent", skipped)
+	}
+}
+
+func TestAMagnetAndAnUploadedTorrentOfOneTorrentAreListedOnce(t *testing.T) {
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	md, err := (torrent.Resolver{}).Describe(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	magnet := "magnet:?xt=urn:btih:" + strings.ToUpper(md.InfoHash) + "&dn=Other.Name"
+
+	a := newTorrentTestApp(t)
+	onlyTask(t, a.AddLinks([]string{magnet}, ""))
+	got, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got != nil {
+		t.Errorf("the uploaded torrent after its magnet was staged as %q, want it folded away", got.Status)
+	}
+
+	a = newTorrentTestApp(t)
+	if _, err := a.AddTorrent(uri, nil, "", OriginWatch); err != nil {
+		t.Fatal(err)
+	}
+	if again := a.AddLinks([]string{magnet}, ""); len(again) != 0 {
+		t.Errorf("the magnet after its uploaded torrent staged %d tasks, want none", len(again))
+	}
+	skipped := a.SkippedLinks()
+	if len(skipped) != 1 || skipped[0].Reason != "a torrent with the same info hash is already in the list" {
+		t.Errorf("the skipped links are %+v, want the magnet refused as the same torrent", skipped)
+	}
+}
+
+func TestRemovingAnUploadedTorrentLetsItsMagnetIn(t *testing.T) {
+	uri := testTorrentURI(t, "Pack", []metainfo.FileInfo{{Length: 900, Path: []string{"one.mkv"}}})
+	md, err := (torrent.Resolver{}).Describe(uri)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a := newTorrentTestApp(t)
+	first, err := a.AddTorrent(uri, nil, "", OriginWatch)
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Remove(first.ID, false)
+	onlyTask(t, a.AddLinks([]string{"magnet:?xt=urn:btih:" + md.InfoHash}, ""))
 }

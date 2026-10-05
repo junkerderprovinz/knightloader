@@ -6,6 +6,7 @@ package app
 // and that harvested links are staged as OriginCnL.
 
 import (
+	"context"
 	"errors"
 	"testing"
 	"time"
@@ -27,10 +28,18 @@ func (s *stubCryptedV1Backend) Pause(string)                                    
 func (s *stubCryptedV1Backend) Resume(string)                                   {}
 func (s *stubCryptedV1Backend) Remove(string, bool)                             {}
 
-func (s *stubCryptedV1Backend) AddCryptedV1(data []byte, packageName string, _ time.Duration) ([]resolver.Result, error) {
+func (s *stubCryptedV1Backend) AddCryptedV1(_ context.Context, data []byte, packageName string, _ time.Duration) ([]resolver.Result, error) {
 	s.gotData, s.gotPkg = data, packageName
 	return s.links, s.err
 }
+
+// The app finds these by type assertion, so a changed signature would
+// otherwise switch containers off without a compile error.
+var (
+	_ containerAdder     = (*jd.Backend)(nil)
+	_ containerFileAdder = (*jd.Backend)(nil)
+	_ cryptedV1Adder     = (*jd.Backend)(nil)
+)
 
 // Without a JD backend the submission is refused, as HandContainerToJD refuses
 // an uploaded .dlc.

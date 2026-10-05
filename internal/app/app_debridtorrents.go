@@ -234,10 +234,10 @@ func applyServiceJobLocked(t *core.Task, j *core.ServiceJob) {
 	t.ServiceJob = &c
 }
 
-// carriesOnLocked reports whether a failed task goes back to the torrent its
-// debrid service still holds, keeping the job there and the files already
-// here: its backend holds one, and the route leads there again. Caller holds
-// a.mu.
+// carriesOnLocked reports whether a failed task goes back to what its backend
+// still holds of it, such as the torrent on a debrid service or the engine's
+// transfer from before a restart, keeping that and the files already here: its
+// backend holds one, and the route leads there again. Caller holds a.mu.
 func (a *App) carriesOnLocked(t *core.Task) bool {
 	h, ok := a.backendFor(t.Resolver).(interface{ Holds(string) bool })
 	if !ok || !h.Holds(t.ID) {

@@ -41,4 +41,5 @@ BUTTONS = {
     # come from the Firefox Add-ons listing. Its address goes here once the
     # listing is live.
     "firefox": None,
+    "parleyport": "https://github.com/junkerderprovinz/parleyport",
 }

@@ -4,6 +4,7 @@ import QRScanner from '../components/QRScanner';
 import { closeRelayClient, relayClientFor, type RelaySibling } from '../api/relayClient';
 import { DEFAULT_RELAY_URL, PhraseError, WORD_COUNT, frameKeyFromPhrase, keyFromPhrase } from '../api/seedphrase';
 import { checkPhrase, splitPhrase } from '../api/phraseWords';
+import { readPairingCode } from '../api/pairingCode';
 import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
 import { relayIdentity } from '../storage/relayIdentity';
@@ -108,8 +109,9 @@ export default function RelayConnectScreen({
   //
   // `entered` exists for the scan path. The caller has just set state this
   // render does not see yet, so it passes the scanned words in directly; the
-  // button path passes nothing and reads state.
-  const join = async (entered?: string) => {
+  // button path passes nothing and reads state. `relay` is the relay a scanned
+  // code names; typed words always pair on the project relay.
+  const join = async (entered?: string, relay = DEFAULT_RELAY_URL) => {
     const words = splitPhrase(entered ?? phrase).join(' ');
     setError(null);
     let key: string;
@@ -139,7 +141,7 @@ export default function RelayConnectScreen({
     setSearching(true);
     setSibs([]);
     const client = relayClientFor({
-      url: DEFAULT_RELAY_URL,
+      url: relay,
       key,
       frameKey,
       selfId: await relayIdentity(),
@@ -150,8 +152,8 @@ export default function RelayConnectScreen({
     // applied. See relayClientFor.
 
     unsubscribe.current = client.subscribe(() => setSibs(client.siblings()));
-    liveRef.current = { url: DEFAULT_RELAY_URL, key };
-    setLive({ url: DEFAULT_RELAY_URL, key, frameKey: toHex(frameKey) });
+    liveRef.current = { url: relay, key };
+    setLive({ url: relay, key, frameKey: toHex(frameKey) });
     setSibs(client.siblings());
     setTimeout(() => setSearching(false), SETTLE_MS);
   };
@@ -372,15 +374,21 @@ export default function RelayConnectScreen({
           pressed with. join() reads `phrase` from state, so the scanned value
           is put there first and passed explicitly, since React has not
           re-rendered and joining off the stale state would use whatever was
-          typed before the scan. */}
+          typed before the scan. The field gets the words alone, without the
+          relay line an instance on its own relay adds. */}
       <QRScanner
         visible={scanning}
         hint={t('relay.qrHintPhrase')}
         onScanned={(data) => {
           setScanning(false);
-          const scanned = data.trim();
-          setPhrase(scanned);
-          void join(scanned);
+          const code = readPairingCode(data);
+          setPhrase(code.words);
+          if ('refused' in code) {
+            setError(t('relay.errInsecureRelay', { address: code.refused }));
+            zittern();
+            return;
+          }
+          void join(code.words, code.relay);
         }}
         onClose={() => setScanning(false)}
       />

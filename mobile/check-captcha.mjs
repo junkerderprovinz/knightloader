@@ -102,6 +102,25 @@ expect('a new captcha before one that left', notice(cap.noticeFor([early], [late
   id: 'late',
 });
 
+// This phone's answer to a test captcha comes back right or wrong, and the
+// banner says which with the drawn text; a real captcha's answer has no result.
+const test = ch('test-1', '2026-01-01T00:03:00Z', { test: true });
+expect('a right answer to a test captcha', cap.testNotice(test, { correct: true, want: 'K7PQX', given: 'k7pqx' }), {
+  kind: 'testRight',
+  challenge: test,
+  test: { correct: true, want: 'K7PQX', given: 'k7pqx' },
+});
+expect('a wrong answer to a test captcha', notice(cap.testNotice(test, { correct: false, want: 'K7PQX', given: 'K7PQ' })), {
+  kind: 'testWrong',
+  id: 'test-1',
+});
+expect('an answer to a real captcha has no banner', cap.testNotice(early, undefined), null);
+
+// Stopping the questions for a hoster or everywhere would only skip a test
+// captcha, which has no hoster behind it.
+expect('a real captcha offers to stop asking', cap.offersToStopAsking(early), true);
+expect('a test captcha does not offer to stop asking', cap.offersToStopAsking(test), false);
+
 // JD's ClickedPoint for one point, MultiClickedPoint for several, in the
 // picture's own pixels whatever size the phone drew it at.
 expect('one point', JSON.parse(cap.clickAnswer([{ x: 0.5, y: 0.25 }], 300, 100)), { x: 150, y: 25 });
@@ -260,4 +279,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page is asked for by id, the web UI’s gets every field, and a window opens only for a vendor the page runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went');
+console.log('ok: captchas come nearest deadline first, a click answer is in JD’s shape and the picture’s pixels, the widget page is asked for by id, the web UI’s gets every field, and a window opens only for a vendor the page runs, only its own messages reach the app, the phone watches only for what it can answer and says when a widget will not load and when it does after all, the solver line explains itself only there, and the banner says what came and went and how a test captcha was answered');

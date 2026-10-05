@@ -1,8 +1,10 @@
 import {
   isRelayConnection,
+  needsAddingAgain,
   type AuthState,
   type CaptchaAbortScope,
   type CaptchaChallenge,
+  type CaptchaTestResult,
   type DirectConnection,
   type ExtractJob,
   type Instance,
@@ -49,6 +51,7 @@ function refusal(body: string, status: number): ApiError {
 // The refusals this app words itself. The rest show the server's sentence.
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
+  addAgain: 'error.addAgain',
 };
 
 /** errorText is what a failed call shows: translated where the code is known. */
@@ -69,6 +72,11 @@ export function errorText(t: (key: TranslationKey) => string, e: unknown): strin
 // connection reaches the same routes with the same code, federation prefix
 // included.
 export async function request<T>(conn: ServerConnection, base: string, path: string, init?: RequestInit): Promise<T> {
+  // Said plainly, at the one place that can tell, instead of a call that
+  // times out or a transport error that names nothing.
+  if (needsAddingAgain(conn)) {
+    throw new ApiError('this connection has to be added again with the phrase', 0, 'addAgain');
+  }
   const { status, body, statusText } = isRelayConnection(conn)
     ? await relayRequest(conn, base + path, init)
     : await httpRequest(conn, base + path, init);
@@ -111,14 +119,7 @@ export function onRemovedFromGroup(handler: () => void): void {
 // host. The token travels in the frame's own authorization field rather than a
 // header, because the frame is all there is - see relay.ProxyRequest.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  if (!isRelayConnection(conn)) throw new Error('relayRequest called with a direct connection');
-  // A connection saved before frames were sealed has no frame key, and there
-  // is nothing to fall back to: an unsealed frame is one every instance now
-  // ignores, so the call would time out with no reason given. Said plainly
-  // instead, once, at the only place that can tell.
-  if (!conn.relayFrameKey) {
-    throw new Error('relay: this connection predates encrypted frames - add it again with your phrase');
-  }
+  if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
   const client = relayClientFor({
     url: conn.relayUrl,
     key: conn.relayKey,
@@ -180,6 +181,18 @@ export async function addLinks(conn: ServerConnection, links: string[], base = '
   return request<Task[]>(conn, base, '/links', {
     method: 'POST',
     body: JSON.stringify({ links: links.join('\n') }),
+  });
+}
+
+// addSharedText stages what another app shared, as the web UI's quick-add page
+// does: the server picks the links out of the text, and a title the sharing
+// app sent names the package. The relay forwards /api/links but not the
+// container and torrent uploads, which is why the share sheet offers text
+// files and no others.
+export async function addSharedText(conn: ServerConnection, text: string, title?: string): Promise<Task[]> {
+  return request<Task[]>(conn, '/api', '/links', {
+    method: 'POST',
+    body: JSON.stringify({ links: text, package: title || undefined }),
   });
 }
 
@@ -339,7 +352,9 @@ export function liveTasks(
   onError?: (err: unknown) => void,
   onJobs?: (jobs: ExtractJob[]) => void
 ): LiveTasks {
-  const streamable = !isRelayConnection(conn) && base === '/api';
+  // A connection that has to be added again polls, so it fails with the
+  // reason each cycle rather than retrying a socket nothing will open.
+  const streamable = !isRelayConnection(conn) && base === '/api' && !needsAddingAgain(conn);
   return streamable
     ? subscribeTasks(conn, onSnapshot, onError, onJobs)
     : pollTasks(conn, base, onSnapshot, onError, onJobs);
@@ -546,8 +561,12 @@ export async function refreshCaptchas(conn: ServerConnection): Promise<CaptchaCh
 
 /** stillValid is JD's verdict on whether the answer arrived in time; trust it
  *  over the countdown on screen. */
-export async function answerCaptcha(conn: ServerConnection, id: string, text: string): Promise<{ stillValid: boolean }> {
-  return request<{ stillValid: boolean }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
+export async function answerCaptcha(
+  conn: ServerConnection,
+  id: string,
+  text: string,
+): Promise<{ stillValid: boolean; test?: CaptchaTestResult }> {
+  return request<{ stillValid: boolean; test?: CaptchaTestResult }>(conn, '/api', `/captcha/${encodeURIComponent(id)}/answer`, {
     method: 'POST',
     body: JSON.stringify({ text }),
   });

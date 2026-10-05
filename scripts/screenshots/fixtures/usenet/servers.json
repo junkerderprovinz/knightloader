@@ -1,0 +1,28 @@
+[
+  {
+    "id": "news.example",
+    "host": "news.example",
+    "port": 0,
+    "tls": true,
+    "connections": 30,
+    "level": 0,
+    "retentionDays": 0,
+    "optional": false,
+    "enabled": true,
+    "username": "knight",
+    "hasPassword": true
+  },
+  {
+    "id": "block.example",
+    "host": "block.example",
+    "port": 0,
+    "tls": true,
+    "connections": 10,
+    "level": 1,
+    "retentionDays": 3000,
+    "optional": true,
+    "enabled": true,
+    "username": "knight",
+    "hasPassword": true
+  }
+]

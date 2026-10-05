@@ -10,9 +10,12 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
@@ -21,9 +24,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 type Backend struct {
+	// bin is guarded by mu, since SetBinary changes it while runs start.
 	bin string
 	dir string
 
@@ -57,18 +62,34 @@ type Backend struct {
 	// Nil uses a client of the package's own.
 	Client *http.Client
 
+	// InUse, when set, reports whether a task other than taskID still has
+	// path. Remove leaves such a file where it is.
+	InUse func(taskID, path string) bool
+
+	// Placing, when set, returns how a subtitle row's files are put in the
+	// task's folder: the collision policy of its category. Nil places them
+	// under collide.DefaultPolicy.
+	Placing func(taskID string) workdir.Options
+
 	mu   sync.Mutex
 	runs map[string]*runState
 	url  map[string]string // for resume
+	// parts is every file a task's runs said they wrote, kept across a pause
+	// until the task finishes, so a removal with files finds what an
+	// unfinished download left (see Remove). Each one also goes to the task
+	// as Update.WorkFile, which is what is left of the list after a restart.
+	parts map[string][]string
 }
 
 // runState is one yt-dlp process of a task: cancel stops it, and ended is
-// closed once run has returned. live is set, under Backend.mu, once the
-// process reports a live stream it is recording.
+// closed once the process has exited and its files are settled. live is set,
+// under Backend.mu, once the process reports a live stream it is recording,
+// and discard once a removal with files stops it.
 type runState struct {
-	cancel context.CancelFunc
-	ended  chan struct{}
-	live   bool
+	cancel  context.CancelFunc
+	ended   chan struct{}
+	live    bool
+	discard bool
 }
 
 // concurrentFragments is how many fragments of one video yt-dlp fetches at
@@ -83,8 +104,9 @@ const (
 func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
 		bin: bin, dir: dir, onUpdate: onUpdate,
-		runs: map[string]*runState{},
-		url:  map[string]string{},
+		runs:  map[string]*runState{},
+		url:   map[string]string{},
+		parts: map[string][]string{},
 	}
 }
 
@@ -94,11 +116,25 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 // seconds covers a cold PyInstaller start; tests shorten it.
 var availableTimeout = 10 * time.Second
 
+// SetBinary makes the runs started from now on use bin. A run already going
+// keeps the binary it started with.
+func (b *Backend) SetBinary(bin string) {
+	b.mu.Lock()
+	b.bin = bin
+	b.mu.Unlock()
+}
+
+func (b *Backend) binary() string {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.bin
+}
+
 // Available reports whether the yt-dlp binary runs.
 func (b *Backend) Available() bool {
 	ctx, cancel := context.WithTimeout(context.Background(), availableTimeout)
 	defer cancel()
-	return nowindow.CommandContext(ctx, b.bin, "--version").Run() == nil
+	return nowindow.CommandContext(ctx, b.binary(), "--version").Run() == nil
 }
 
 func (b *Backend) Download(taskID, url string, _ map[string]string, _ int) {
@@ -130,47 +166,67 @@ func (b *Backend) run(taskID, url string) {
 	b.runAs(ctx, r, taskID, url)
 }
 
+// runAs sends the run's last update only after ended is closed: the app takes
+// a task off a backend that gave up on its link from inside that update, and a
+// Remove that waits for the run would otherwise wait for itself.
 func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
-	cancel := r.cancel
-	defer func() {
-		cancel()
-		b.mu.Lock()
-		if b.runs[taskID] == r {
-			delete(b.runs, taskID)
-		}
-		b.mu.Unlock()
-		close(r.ended)
-	}()
+	u, report := b.attempt(ctx, r, taskID, url)
+	r.cancel()
+	b.mu.Lock()
+	if b.runs[taskID] == r {
+		delete(b.runs, taskID)
+	}
+	if report && u.Status == core.StatusDone {
+		// A finished file belongs to the task, and the app deletes it by the
+		// path it recorded.
+		delete(b.parts, taskID)
+	}
+	b.mu.Unlock()
+	close(r.ended)
+	if report {
+		b.onUpdate(taskID, u)
+	}
+}
 
+// attempt runs yt-dlp once and returns the update it ended with, or false when
+// a Pause or Remove stopped it and there is nothing to report.
+func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) (core.Update, bool) {
+	cancel := r.cancel
 	dir := b.dir
 	if b.Dir != nil {
 		if d := b.Dir(taskID); d != "" {
 			dir = d
 		}
 	}
-	if err := os.MkdirAll(dir, filemode.Dir); err != nil {
-		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
-		return
-	}
 	var opts Options
 	if b.Options != nil {
 		opts = b.Options(taskID)
 	}
 	opts = opts.Sanitize()
+	// yt-dlp overwrites a subtitle file of the same name whatever wrote it, so
+	// a subtitle row writes into a folder of its own and placeSubtitles puts
+	// the files in place under the collision policy.
+	out := dir
+	if opts.Variant == VariantSubtitle {
+		out = filepath.Join(dir, subtitleStagePrefix+taskID)
+		defer os.RemoveAll(out)
+	}
+	if err := os.MkdirAll(out, filemode.Dir); err != nil {
+		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
+	}
 	target := url
 	stream, unwrapped, err := unwrap(ctx, b.client(), url)
 	if err != nil {
 		if ctx.Err() != nil {
-			return // cancelled by Pause/Remove
+			return core.Update{}, false // cancelled by Pause/Remove
 		}
 		u := core.Update{Status: core.StatusError, Err: err.Error()}
 		if errors.Is(err, errEmbedGone) {
 			u.Reason = core.ReasonGone
 		}
-		b.onUpdate(taskID, u)
-		return
+		return u, true
 	}
-	args := buildArgs(dir, opts)
+	args := buildArgs(out, opts)
 	if unwrapped {
 		target = stream.url
 		args = append(args, stream.args()...)
@@ -184,8 +240,7 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			if err != nil {
 				// Fatal rather than running anonymously a task that was set
 				// up to be logged in.
-				b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
-				return
+				return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
 			}
 			args = append(args, "--cookies", path)
 		}
@@ -202,37 +257,57 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			args = append(args, "--limit-rate", fmt.Sprint(per))
 		}
 	}
-	cmd := nowindow.CommandContext(ctx, b.bin, append(args, target)...)
+	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, target)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
+	// yt-dlp records and merges through ffmpeg, which shares its output.
+	// Killing yt-dlp alone would leave ffmpeg writing, and the output open
+	// until ffmpeg is done, which on a live stream is never.
+	tree, err := newProcessTree(cmd)
+	if err != nil {
+		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
+	}
+	defer tree.close()
+	cmd.Cancel = tree.kill
 	if opts.Live.Enabled {
 		// A killed yt-dlp leaves a live recording as an unplayable .part; on
 		// an interrupt it finishes the fragment and runs its post-processors.
 		// Windows has no os.Interrupt, so WaitDelay falls back to a kill there
-		// and for a yt-dlp that ignores the signal.
-		cmd.Cancel = func() error { return cmd.Process.Signal(os.Interrupt) }
+		// and for a yt-dlp that ignores the signal. A recording removed with
+		// its files has nothing worth finishing.
+		cmd.Cancel = func() error {
+			b.mu.Lock()
+			discard := r.discard
+			b.mu.Unlock()
+			if discard {
+				return tree.kill()
+			}
+			return cmd.Process.Signal(os.Interrupt)
+		}
 		cmd.WaitDelay = liveStopGrace
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: err.Error()})
-		return
+		return core.Update{Status: core.StatusError, Err: err.Error()}, true
 	}
 	var stderr bytes.Buffer
 	cmd.Stderr = &stderr
 	if err := cmd.Start(); err != nil {
 		if ctx.Err() != nil {
 			// Stopped before the process started, which is no failure.
-			return
+			return core.Update{}, false
 		}
-		b.onUpdate(taskID, core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()})
-		return
+		return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}, true
 	}
+	tree.started()
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning})
 
 	// What finish acts on: the file yt-dlp produced, the subtitle files it
-	// wrote, and whether a live limit ended the recording.
+	// wrote, and whether a live limit ended the recording. written is every
+	// file it wrote beside a download, or in place of one on the thumbnail,
+	// subtitle and description rows.
 	var (
 		final     string
+		written   []string
 		subFiles  int
 		guard     = newLiveGuard(opts.Live)
 		stoppedBy string
@@ -268,23 +343,45 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 		}
 		if name, ok := finishedFile(line); ok {
 			final = name
-			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name)})
+			b.remember(taskID, name)
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name), WorkFile: name})
 			continue
+		}
+		if path, ok := wroteFile(line); ok {
+			written = append(written, path)
+			b.remember(taskID, path)
+			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
 		}
 		if wroteSubtitle(line) {
 			subFiles++
+		}
+		if opts.Variant == VariantSubtitle {
+			if from, to, ok := convertedSubtitle(line); ok {
+				if final == from {
+					final = to
+				}
+				for i, w := range written {
+					if w == from {
+						written[i] = to
+					}
+				}
+				b.remember(taskID, to)
+				b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: to})
+			}
 		}
 	}
 	scanErr := sc.Err()
 	err = cmd.Wait()
 	if ctx.Err() != nil && stoppedBy == "" {
-		return // cancelled by Pause/Remove
+		return core.Update{}, false // cancelled by Pause/Remove
+	}
+	if final == "" {
+		final = sidecarFile(opts.Variant, written)
 	}
 	if stoppedBy != "" {
 		// A recording that hit its own limit is finished, with the reason on
 		// the task.
-		b.onUpdate(taskID, b.finish(opts, final, subFiles, stoppedBy))
-		return
+		return b.finish(opts, final, subFiles, stoppedBy), true
 	}
 	if err == nil && scanErr != nil {
 		err = scanErr
@@ -295,7 +392,7 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 		if msg == "" {
 			msg = err.Error()
 		}
-		b.onUpdate(taskID, core.Update{
+		return core.Update{
 			Status: core.StatusError,
 			Err:    "yt-dlp: " + msg,
 			// Diagnosed from the whole buffer, before errorLine cuts it
@@ -304,10 +401,72 @@ func (b *Backend) runAs(ctx context.Context, r *runState, taskID, url string) {
 			// No extractor for the link means another backend should try
 			// it, such as the plain HTTP fallback.
 			Unsupported: notMine(msg),
-		})
-		return
+		}, true
 	}
-	b.onUpdate(taskID, b.finish(opts, final, subFiles, ""))
+	if opts.Variant == VariantSubtitle {
+		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
+	}
+	return b.finish(opts, final, subFiles, ""), true
+}
+
+// subtitleStagePrefix names the folder a subtitle row writes into before its
+// files are placed. The dot keeps it out of the way of media scanners.
+const subtitleStagePrefix = ".knightloader-subs-"
+
+// placeSubtitles moves the files a subtitle row wrote from stage to dir under
+// the task's collision policy and finishes the row on where final landed, with
+// the other languages as OtherFiles. A row whose every file was skipped
+// fails the way a skipped download does.
+func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final string, written []string, subFiles int) core.Update {
+	var mo workdir.Options
+	if b.Placing != nil {
+		mo = b.Placing(taskID)
+	}
+	var placed []string
+	landed, skipped := "", ""
+	for _, src := range written {
+		rel, err := filepath.Rel(stage, src)
+		if err != nil {
+			return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}
+		}
+		res, err := workdir.Move(context.Background(), src, filepath.Join(dir, filepath.Dir(rel)), mo)
+		if err != nil {
+			return core.Update{Status: core.StatusError, Err: "yt-dlp: " + err.Error()}
+		}
+		if res.Skipped {
+			if skipped == "" || src == final {
+				skipped = filepath.Join(dir, rel)
+			}
+			continue
+		}
+		placed = append(placed, res.Path)
+		if src == final {
+			landed = res.Path
+		}
+	}
+	if len(placed) == 0 && skipped != "" {
+		// Named as finish names a placed row, or it keeps the staged .vtt
+		// name from the progress lines.
+		return core.Update{
+			Status: core.StatusError,
+			Name:   strings.TrimSuffix(filepath.Base(skipped), filepath.Ext(skipped)),
+			Err:    "not downloaded: " + skipped + " already exists",
+			Code:   core.CodeFileExists,
+			Params: map[string]string{"file": filepath.Base(skipped)},
+		}
+	}
+	if landed == "" && len(placed) > 0 {
+		landed = placed[len(placed)-1]
+	}
+	u := b.finish(o, landed, subFiles, "")
+	if u.Status == core.StatusDone {
+		for _, p := range placed {
+			if p != landed {
+				u.OtherFiles = append(u.OtherFiles, p)
+			}
+		}
+	}
+	return u
 }
 
 // liveStopGrace is how long a live recording gets after the interrupt to
@@ -336,8 +495,20 @@ func (b *Backend) finish(o Options, final string, subFiles int, stoppedBy string
 		return u
 	}
 	if final == "" {
-		// Normal for the thumbnail, subtitle and description rows, which
-		// yt-dlp announces differently.
+		// A row that wrote nothing new.
+		return u
+	}
+	// The progress lines counted one stream at a time, and the app deletes a
+	// task's file only at the path and size the task recorded.
+	if fi, err := os.Stat(final); err == nil && fi.Mode().IsRegular() {
+		u.File, u.Size, u.Loaded = final, fi.Size(), fi.Size()
+	}
+	if o.Variant != VariantVideo && o.Variant != VariantAudio {
+		// The row is named after its file, as the media rows are by their
+		// progress lines, and shows the extension of its kind next to the
+		// name (see core.Task.Ext). The NFO and the measurement describe
+		// media, and an info json beside a thumbnail is the video row's.
+		u.Name = strings.TrimSuffix(filepath.Base(final), filepath.Ext(final))
 		return u
 	}
 	info, haveInfo := infoDict{}, false
@@ -409,6 +580,16 @@ func nfoPath(final string) string {
 	return strings.TrimSuffix(final, filepath.Ext(final)) + ".nfo"
 }
 
+// Sidecars lists the files that describe a finished row's file and go when it
+// is deleted: the NFO beside a video or audio file. The thumbnail, subtitle
+// and description rows share the video's base name and have none.
+func Sidecars(v Variant, file string) []string {
+	if v != VariantVideo && v != VariantAudio {
+		return nil
+	}
+	return []string{nfoPath(file)}
+}
+
 // finishedFile picks the path of a produced file out of yt-dlp's stdout. The
 // caller keeps the last one, since the Merger and ExtractAudio lines follow
 // the per-stream Destination lines. --print is not used because it implies
@@ -430,6 +611,60 @@ func finishedFile(line string) (string, bool) {
 		}
 	}
 	return "", false
+}
+
+// wroteFile picks the path out of a line where yt-dlp says it wrote a file
+// beside the download (info json, thumbnail, subtitles, description) or
+// converted a thumbnail into a new one, which replaces the original.
+func wroteFile(line string) (string, bool) {
+	if i := strings.Index(line, "[info] Writing "); i >= 0 {
+		if _, path, ok := strings.Cut(line[i:], " to: "); ok {
+			if path = strings.TrimSpace(path); path != "" {
+				return path, true
+			}
+		}
+		return "", false
+	}
+	const converting = `Converting thumbnail "`
+	if i := strings.Index(line, converting); i >= 0 {
+		rest := line[i+len(converting):]
+		j := strings.LastIndex(rest, `" to `)
+		if j <= 0 {
+			return "", false
+		}
+		from, ext := rest[:j], strings.TrimSpace(rest[j+len(`" to `):])
+		if ext == "" {
+			return "", false
+		}
+		return strings.TrimSuffix(from, filepath.Ext(from)) + "." + ext, true
+	}
+	return "", false
+}
+
+// sidecarFile is the file a thumbnail, subtitle or description row produced:
+// the last one it wrote, which for a thumbnail is the converted copy. The
+// media rows announce theirs with Destination lines.
+func sidecarFile(v Variant, written []string) string {
+	if v == VariantVideo || v == VariantAudio || len(written) == 0 {
+		return ""
+	}
+	return written[len(written)-1]
+}
+
+// convertedSubtitle reads the line --convert-subs prints after writing the srt
+// copy of a subtitle file and deleting the original, the only line that names
+// the file.
+func convertedSubtitle(line string) (from, to string, ok bool) {
+	const prefix = "Deleting original file "
+	i := strings.Index(line, prefix)
+	if i < 0 {
+		return "", "", false
+	}
+	from, ok = strings.CutSuffix(strings.TrimSpace(line[i+len(prefix):]), " (pass -k to keep)")
+	if !ok || from == "" {
+		return "", "", false
+	}
+	return from, strings.TrimSuffix(from, filepath.Ext(from)) + ".srt", true
 }
 
 // wroteSubtitle recognises yt-dlp announcing a written subtitle file, the
@@ -512,7 +747,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string) (ProbeResult, erro
 		args = append(args, stream.args()...)
 		url = stream.url
 	}
-	cmd := nowindow.CommandContext(ctx, b.bin, append(args, url)...)
+	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
 	if err != nil {
@@ -687,8 +922,9 @@ func buildArgs(dir string, o Options) []string {
 			langs = DefaultSubtitleLangs
 		}
 		// srt instead of the site's default (usually vtt), so every player
-		// reads it and the extension is known.
-		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt")
+		// reads it and the extension is known. --sub-format is only a
+		// preference, so a source without srt is converted.
+		args = append(args, "--skip-download", "--write-subs", "--sub-langs", langs, "--sub-format", "srt", "--convert-subs", "srt")
 		if o.SubtitleAuto {
 			args = append(args, "--write-auto-subs")
 		}
@@ -882,13 +1118,84 @@ func (b *Backend) Halt(taskID string) bool {
 	return true
 }
 
-func (b *Backend) Remove(taskID string, _ bool) {
+// Remove stops the task's yt-dlp and forgets the task. With deleteFiles it
+// waits for the process to exit and deletes what the task's unfinished runs
+// wrote; the file of a finished download is the app's to delete, by the path
+// the task recorded. Without deleteFiles the list of those files is kept,
+// since an undo can bring the task back to be removed with its files.
+func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Lock()
-	if r := b.runs[taskID]; r != nil {
-		r.cancel()
+	r := b.runs[taskID]
+	if r != nil {
+		r.discard = deleteFiles
 	}
 	delete(b.url, taskID)
 	b.mu.Unlock()
+	if r != nil {
+		r.cancel()
+	}
+	if !deleteFiles {
+		return
+	}
+	if r != nil {
+		<-r.ended
+	}
+	b.mu.Lock()
+	parts := b.parts[taskID]
+	delete(b.parts, taskID)
+	b.mu.Unlock()
+	Discard(taskID, parts, b.InUse)
+}
+
+// remember notes a file a run of taskID wrote, for Remove.
+func (b *Backend) remember(taskID, path string) {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	if !slices.Contains(b.parts[taskID], path) {
+		b.parts[taskID] = append(b.parts[taskID], path)
+	}
+}
+
+// Discard deletes each file an unfinished download of taskID wrote together
+// with its .part, its .ytdl progress file, its fragments and the .temp copy a
+// post-processor writes beside it. A file inUse reports as another task's
+// stays, and so do its .part and the rest.
+func Discard(taskID string, paths []string, inUse func(taskID, path string) bool) {
+	for _, p := range paths {
+		if inUse != nil && inUse(taskID, p) {
+			continue
+		}
+		gone := append([]string{p, p + ".part", p + ".ytdl", tempPath(p)}, fragmentFiles(p)...)
+		for _, f := range gone {
+			if err := os.Remove(f); err != nil && !errors.Is(err, fs.ErrNotExist) {
+				log.Printf("could not delete %s: %v (task %s)", f, err, taskID)
+			}
+		}
+	}
+}
+
+// tempPath is the name yt-dlp's post-processors write to before replacing p.
+func tempPath(p string) string {
+	ext := filepath.Ext(p)
+	return strings.TrimSuffix(p, ext) + ".temp" + ext
+}
+
+// fragmentFiles lists the fragments yt-dlp keeps beside p's .part while it
+// fetches a DASH or HLS stream, named "<p>.part-Frag<n>".
+func fragmentFiles(p string) []string {
+	dir := filepath.Dir(p)
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		return nil
+	}
+	prefix := filepath.Base(p) + ".part-Frag"
+	var out []string
+	for _, e := range entries {
+		if strings.HasPrefix(e.Name(), prefix) {
+			out = append(out, filepath.Join(dir, e.Name()))
+		}
+	}
+	return out
 }
 
 // errMsgRunes is how many characters of the error line reach a task.

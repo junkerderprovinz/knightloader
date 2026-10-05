@@ -507,3 +507,30 @@ func TestPostReadsQueryParameters(t *testing.T) {
 		t.Errorf("passwords = %q, want [qpw]", pw)
 	}
 }
+
+// A submission can carry links to the user's own servers as well as web links,
+// in any letter case. A magnet is still left out: any page may post here.
+func TestFlashAddKeepsOwnServerLinks(t *testing.T) {
+	ts, rec := newTestServer(t)
+	want := []string{
+		"https://x.example/1",
+		"HTTP://x.example/2",
+		"ftp://files.example/3.iso",
+		"ftps://files.example/4.iso",
+		"sftp://box.example/5.mkv",
+		"webdav://nas.example/6.zip",
+		"webdavs://cloud.example/7.zip",
+	}
+	sent := strings.Join(want, "\n") + "\nmagnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567\nnot-a-link"
+	resp, err := ts.Client().PostForm(ts.URL+"/flash/add", url.Values{"urls": {sent}})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("status = %d, want 200", resp.StatusCode)
+	}
+	if got, _ := rec.snapshot(); strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Errorf("the adder got %q, want %q", got, want)
+	}
+}

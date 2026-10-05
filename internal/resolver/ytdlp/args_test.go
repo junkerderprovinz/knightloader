@@ -142,6 +142,11 @@ func TestBuildArgsVariantSubtitleAddsSkipDownloadWriteSubsAndDefaultLangs(t *tes
 	if got, ok := valueAfter(args, "--sub-format"); !ok || got != "srt" {
 		t.Errorf("--sub-format = %q (found=%v), want %q", got, ok, "srt")
 	}
+	// --sub-format falls back to what the source has, so only the
+	// conversion makes the srt a fact.
+	if got, ok := valueAfter(args, "--convert-subs"); !ok || got != "srt" {
+		t.Errorf("--convert-subs = %q (found=%v), want %q", got, ok, "srt")
+	}
 }
 
 func TestBuildArgsVariantSubtitleAutoAddsWriteAutoSubs(t *testing.T) {

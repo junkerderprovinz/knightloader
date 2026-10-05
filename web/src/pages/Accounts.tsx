@@ -1,10 +1,10 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first, hoster logins below them and the captcha solvers' keys
-// after that; the section follows the catalogue's Group field, and every card
-// draws an AccountTable. The Allow free downloads switch comes under them,
-// since whether a link may be fetched for free is a question of which accounts
-// there are.
+// accounts come first, then hoster logins, the logins for the user's own
+// servers and the captcha solvers' keys; the section follows the catalogue's
+// Group field, and every card draws an AccountTable. The Allow free downloads
+// switch comes under them, since whether a link may be fetched for free is a
+// question of which accounts there are.
 import {
   useCallback,
   useEffect,
@@ -65,6 +65,7 @@ import {
   IconClose,
   IconGrip,
   IconExternalLink,
+  IconInstances,
   IconPlus,
   IconRetry,
   IconTrash,
@@ -86,7 +87,32 @@ const FIELD_LABELS: Record<CredentialField, TranslationKey> = {
 /** The catalogue groups this page adds and edits accounts of itself. */
 type AccountGroup = 'debrid' | 'captchaSolver';
 
-type DialogState = { mode: 'new'; group: AccountGroup } | { mode: 'edit'; service: string; account: string };
+type DialogState =
+  | { mode: 'new'; group: AccountGroup }
+  | { mode: 'edit'; service: string; account: string }
+  // An own server's login, keyed by hostname; host is null for a new one.
+  | { mode: 'server'; service: CatalogueService; host: string | null };
+
+/**
+ * serverHost reduces what was typed into the hostname field to the bare host,
+ * lower-cased and without port or path, since remotefs looks a link's login up
+ * by url.Hostname. A pasted link is cut down the same way. Anything else comes
+ * back empty: Chromium lets a space or a "!" through and percent-encodes it,
+ * and no link would ever carry that name.
+ */
+function serverHost(raw: string): string {
+  const text = raw.trim();
+  if (!text) return '';
+  let host: string;
+  try {
+    host = new URL(text.includes('://') ? text : `ftp://${text}`).hostname.toLowerCase();
+  } catch {
+    return '';
+  }
+  const ipv6 = /^\[([0-9a-f:.]+)\]$/.exec(host);
+  if (ipv6) return ipv6[1];
+  return /^[a-z0-9.-]+$/.test(host) ? host : '';
+}
 
 export function Accounts() {
   const { t } = useT();
@@ -168,6 +194,11 @@ export function Accounts() {
   }
 
   function onEdit(a: Account) {
+    const svc = catalogue.find((s) => s.id === a.service);
+    if (svc?.group === 'remoteServer') {
+      setDialog({ mode: 'server', service: svc, host: a.account });
+      return;
+    }
     setDialog({ mode: 'edit', service: a.service, account: a.account });
   }
 
@@ -186,6 +217,8 @@ export function Accounts() {
   const debridRows = accounts.filter((a) => debridIds.has(a.service));
   const solverIds = new Set(catalogue.filter((s) => s.group === 'captchaSolver').map((s) => s.id));
   const solverRows = accounts.filter((a) => solverIds.has(a.service));
+  const serverService = catalogue.find((s) => s.group === 'remoteServer');
+  const serverRows = accounts.filter((a) => a.service === serverService?.id);
 
   const labelOf = (a: Account) => byId.get(a.service)?.label ?? a.service;
 
@@ -252,17 +285,54 @@ export function Accounts() {
         <HosterLoginSection data={hoster} />
       </Card>
 
+      {serverService && (
+        <Card hue={2} className="flex flex-col gap-3">
+          <SectionTitle hint={t('accounts.server.hint')}>{t('accounts.server.title')}</SectionTitle>
+          {serverRows.length > 0 ? (
+            <>
+              <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
+              <Button
+                kind="secondary"
+                hue={2}
+                icon={<IconPlus width={16} height={16} />}
+                className="self-start"
+                onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
+              >
+                {t('accounts.server.add')}
+              </Button>
+            </>
+          ) : (
+            <EmptyState
+              nested
+              icon={<IconInstances width={26} height={26} />}
+              title={t('accounts.server.empty')}
+              hint={t('accounts.server.emptyHint')}
+              action={
+                <Button
+                  kind="secondary"
+                  hue={2}
+                  icon={<IconPlus width={16} height={16} />}
+                  onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
+                >
+                  {t('accounts.server.add')}
+                </Button>
+              }
+            />
+          )}
+        </Card>
+      )}
+
       {/* A solver's key unlocks no link, so these rows have no import and
           nothing to renew; the order they are tried in stays on the captcha
           settings page, which reads the keys from here. */}
-      <Card hue={2} className="flex flex-col gap-3">
+      <Card hue={3} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
           <>
             <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
             <Button
               kind="secondary"
-              hue={2}
+              hue={3}
               icon={<IconPlus width={16} height={16} />}
               className="self-start"
               onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
@@ -279,7 +349,7 @@ export function Accounts() {
             action={
               <Button
                 kind="secondary"
-                hue={2}
+                hue={3}
                 icon={<IconPlus width={16} height={16} />}
                 onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
               >
@@ -290,7 +360,7 @@ export function Accounts() {
         )}
       </Card>
 
-      <FreeDownloadsCard hue={3} />
+      <FreeDownloadsCard hue={4} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -301,7 +371,15 @@ export function Accounts() {
 
       {/* The windows below belong to the card they were opened from, so they
           wear its colour. */}
-      {dialog && (
+      {dialog?.mode === 'server' && (
+        <ServerDialog
+          service={dialog.service}
+          host={dialog.host}
+          onClose={() => setDialog(null)}
+          onSaved={load}
+        />
+      )}
+      {dialog && dialog.mode !== 'server' && (
         <CredentialDialog
           mode={dialog.mode}
           group={
@@ -383,15 +461,19 @@ function AccountsTable({
       importColumn={importColumn}
       rows={rows.map((a): AccountRow => {
         const svc = catalogue.get(a.service);
+        // An own server's row is its hostname. KnightLoader has no way to check
+        // that login apart from a download, so the row has nothing to refresh.
+        const server = svc?.group === 'remoteServer';
         // A solver's key has no plan to renew; its row menu only checks it.
         const renewable = svc?.group !== 'captchaSolver';
         return {
           key: a.id,
-          // The service's icon, from the host of its "where do I get a key" link.
-          iconHost: svc?.whereUrl ?? '',
-          label: svc?.label ?? a.service,
+          // The service's icon, from the host of its "where do I get a key"
+          // link; an own server shows its own.
+          iconHost: server ? a.account : (svc?.whereUrl ?? ''),
+          label: server ? a.account : (svc?.label ?? a.service),
           enabled: a.enabled,
-          status: <AccountStatus account={a} busy={refreshing.has(a.id)} />,
+          status: server ? <ServerStatus /> : <AccountStatus account={a} busy={refreshing.has(a.id)} />,
           tier: a.tier,
           expiry: a.expiry,
           traffic: a.traffic,
@@ -400,33 +482,35 @@ function AccountsTable({
           onEdit: () => onEdit(a),
           // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),
-          menu: [
-            {
-              id: 'actions',
-              items: [
+          menu: server
+            ? undefined
+            : [
                 {
-                  id: 'refresh',
-                  label: t('accounts.refresh'),
-                  icon: <IconRetry width={16} height={16} />,
-                  onSelect: () => onRefresh(a),
+                  id: 'actions',
+                  items: [
+                    {
+                      id: 'refresh',
+                      label: t('accounts.refresh'),
+                      icon: <IconRetry width={16} height={16} />,
+                      onSelect: () => onRefresh(a),
+                    },
+                    ...(renewable
+                      ? [
+                          {
+                            id: 'renew',
+                            label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
+                            icon: <IconExternalLink width={16} height={16} />,
+                            // Only with an expiry and somewhere to renew.
+                            disabled: !a.expiry || !svc?.whereUrl,
+                            onSelect: () => {
+                              if (svc?.whereUrl) openExternal(svc.whereUrl);
+                            },
+                          },
+                        ]
+                      : []),
+                  ],
                 },
-                ...(renewable
-                  ? [
-                      {
-                        id: 'renew',
-                        label: a.expiry ? t('accounts.renew') : t('accounts.buyPremium'),
-                        icon: <IconExternalLink width={16} height={16} />,
-                        // Only with an expiry and somewhere to renew.
-                        disabled: !a.expiry || !svc?.whereUrl,
-                        onSelect: () => {
-                          if (svc?.whereUrl) openExternal(svc.whereUrl);
-                        },
-                      },
-                    ]
-                  : []),
               ],
-            },
-          ],
         };
       })}
     />
@@ -471,6 +555,103 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
       {t('accounts.failed')}
       <InfoBubble tip={account.detail} />
     </span>
+  );
+}
+
+/** ServerStatus is an own server's status: its login is only tried by a download. */
+function ServerStatus() {
+  const { t } = useT();
+  return (
+    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+      <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
+      {t('accounts.unchecked')}
+      <InfoBubble tip={t('accounts.server.uncheckedHint')} />
+    </span>
+  );
+}
+
+/**
+ * ServerDialog adds or changes the login for one of the user's own servers.
+ * The hostname is the account id, and it cannot change once stored: a login
+ * under another name is a different server.
+ */
+function ServerDialog({
+  service,
+  host,
+  onClose,
+  onSaved,
+}: {
+  service: CatalogueService;
+  host: string | null;
+  onClose: () => void;
+  onSaved: () => Promise<void>;
+}) {
+  const { t } = useT();
+  const { toast } = useToast();
+  const [hostInput, setHostInput] = useState('');
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
+  const [saving, setSaving] = useState(false);
+
+  const target = host ?? serverHost(hostInput);
+  const filled = target !== '' && username.trim() !== '' && password.trim() !== '';
+
+  // Saved without a check: checking would mean a login on the server, which
+  // only a download does.
+  async function save() {
+    setSaving(true);
+    try {
+      await saveAccountCredential(service.id, target, { username, password });
+      toast(t('accounts.saved'), 'ok');
+      await onSaved();
+      onClose();
+    } catch (e) {
+      toast(e instanceof Error ? e.message : String(e), 'fail');
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <Modal
+      title={host ? t('accounts.editCredentialTitle', { service: host }) : t('accounts.server.add')}
+      hue={2}
+      onClose={onClose}
+      footer={
+        <>
+          <span className="flex-1" />
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+          <Button onClick={() => void save()} disabled={saving || !filled}>
+            {saving ? t('accounts.saving') : t('accounts.save')}
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        {host === null && (
+          <Field label={t('accounts.server.hostField')} hint={t('accounts.server.hostHint')}>
+            <TextInput
+              autoComplete="off"
+              spellCheck={false}
+              value={hostInput}
+              onChange={(e) => setHostInput(e.target.value)}
+            />
+          </Field>
+        )}
+        <Field label={t('accounts.usernameField')}>
+          <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
+        </Field>
+        <Field label={t('accounts.passwordField')}>
+          <PasswordInput
+            autoComplete="new-password"
+            value={password}
+            onChange={setPassword}
+            showLabel={t('common.showPassword')}
+            hideLabel={t('common.hidePassword')}
+          />
+        </Field>
+      </div>
+    </Modal>
   );
 }
 
@@ -769,7 +950,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={4} className="flex flex-col gap-3">
+      <Card hue={5} className="flex flex-col gap-3">
         <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
@@ -782,7 +963,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={5} className="flex flex-col gap-3">
+      <Card hue={6} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.jdHint')}>
           {t('settings.module.jd')}
         </SectionTitle>

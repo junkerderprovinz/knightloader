@@ -19,6 +19,19 @@ import (
 // which is why KL_RELAY_DOMAIN takes a list (see cmd/knightloader-relay).
 const DefaultRelayURL = "wss://parleyport.halleluja.design/relay/connect"
 
+// PairingCode is the text of the QR code shown beside a phrase. The app pairs
+// against DefaultRelayURL, so an instance on a relay of its own names that
+// relay on a second line. On the project relay the code is the phrase alone,
+// which every build of the app reads; a build too old for the second line
+// counts thirteen words and refuses the code instead of pairing elsewhere.
+func PairingCode(phrase, relayURL string) string {
+	dial, err := connectURL(relayURL)
+	if err != nil || dial == DefaultRelayURL {
+		return phrase
+	}
+	return phrase + "\n" + dial
+}
+
 // SeedAccountService is the credential-store service the seed-phrase secret is
 // sealed under. It is separate from AccountService, which holds a hand-entered
 // relay key: this is the secret itself, and only DeriveKey of it reaches a relay.

@@ -1,6 +1,11 @@
 package linkscan
 
-import "testing"
+import (
+	"fmt"
+	"strings"
+	"testing"
+	"time"
+)
 
 func TestExtract(t *testing.T) {
 	tests := []struct {
@@ -229,5 +234,54 @@ func TestTrimTokenDoesNotBlowUpOnAPathologicalBracketRun(t *testing.T) {
 	got := trimToken(tok)
 	if got != "https://example.org/a()" {
 		t.Errorf("trimToken of a long unmatched run = %q, want the one balanced pair kept", got)
+	}
+}
+
+func TestExtractKeepsOwnServerLinks(t *testing.T) {
+	in := "ftp://files.example/a.zip\n" +
+		"Mirror: sftp://nas.lan:2222/share/b.mkv, or ftps://files.example/c.iso\n" +
+		"webdav://nas.lan/d.tar webdavs://cloud.example/remote.php/dav/e.7z"
+	want := []string{
+		"ftp://files.example/a.zip",
+		"sftp://nas.lan:2222/share/b.mkv",
+		"ftps://files.example/c.iso",
+		"webdav://nas.lan/d.tar",
+		"webdavs://cloud.example/remote.php/dav/e.7z",
+	}
+	got := Extract(in)
+	if len(got) != len(want) {
+		t.Fatalf("Extract = %v, want %v", got, want)
+	}
+	for i := range want {
+		if got[i] != want[i] {
+			t.Errorf("link %d = %q, want %q", i, got[i], want[i])
+		}
+	}
+}
+
+func TestAWrappedOwnServerLinkIsRejoined(t *testing.T) {
+	got := Extract("sftp://nas.lan/a/very/long/path/that/got/wrapped/\nby/the/mail/client.zip")
+	if len(got) != 1 || got[0] != "sftp://nas.lan/a/very/long/path/that/got/wrapped/by/the/mail/client.zip" {
+		t.Errorf("Extract = %v, want the two halves joined into one link", got)
+	}
+}
+
+func TestExtractStaysFastOnOneLongLine(t *testing.T) {
+	// A link list joined by spaces is one line of many short tokens. Searching
+	// the rest of the line again for every token would take minutes here.
+	const n = 20000
+	var b strings.Builder
+	for i := 0; i < n; i++ {
+		fmt.Fprintf(&b, "https://files.example/%d ", i)
+	}
+	done := make(chan []string, 1)
+	go func() { done <- Extract(b.String()) }()
+	select {
+	case got := <-done:
+		if len(got) != n {
+			t.Errorf("Extract found %d links, want %d", len(got), n)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatalf("Extract took more than 5 s on a line of %d links", n)
 	}
 }

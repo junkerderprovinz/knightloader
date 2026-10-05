@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
@@ -31,6 +32,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
 // rewireBackends rebuilds the resolver routing table and download backends
@@ -78,7 +80,7 @@ func (a *App) rewireBackends() {
 	// Whether yt-dlp runs is known before the debrid services are wired, since
 	// it decides which of their hosts they claim.
 	ytbin, ytsource, ytdetail := mediatools.ResolveYtdlp(a.DataDir)
-	yb := ytdlp.NewBackend(ytbin, a.dlDir, a.onUpdate)
+	yb := a.ytdlpBackend(ytbin)
 	ytdlpRunning := yb.Available()
 	// Streaming sites a debrid service also lists stay with yt-dlp while it
 	// runs, as for TorBox: a debrid unlock gives a YouTube link no variant rows
@@ -155,12 +157,7 @@ func (a *App) rewireBackends() {
 	remoteDialer := remotefs.Dialer{KnownHostsFile: a.knownHostsPath()}
 	remoteLogins := a.remotefsLogins()
 	a.Registry.Register(remotefs.Resolver{Accounts: remoteLogins, Dialer: remoteDialer})
-	remoteBackend := remotefs.NewBackend(remoteLogins, remoteDialer, eng, a.dlDir, a.onUpdate)
-	remoteBackend.Dir = a.taskDir
-	// These bytes bypass the metering proxy, so the backend reads the limit in
-	// force itself.
-	remoteBackend.RateLimit = a.Throttle.Limit
-	newRemoteFS := backend(remoteBackend)
+	a.remotefsBackend(eng).SetLogins(remoteLogins, remoteDialer)
 
 	// Stored header profiles. Registered here rather than in app.go because
 	// a.Accounts does not exist there yet. It builds its own client, which has
@@ -171,19 +168,6 @@ func (a *App) rewireBackends() {
 	// binary to use (see ResolveYtdlp).
 	var newYtdlp backend
 	if ytdlpRunning {
-		// yt-dlp meters itself, so it gets its share of the budget
-		// (app_budget.go), read live so schedule windows apply.
-		yb.RateLimit = a.budget.ytdlpLimit
-		yb.Dir = a.taskDir
-		// Read on every spawn so settings changes apply without a restart. The
-		// instance defaults are combined with the task's own Variant (see
-		// expandYtdlpVariants and variantOptions).
-		yb.Options = func(taskID string) ytdlp.Options {
-			return a.ytdlpOptionsForTask(taskID)
-		}
-		// Stored cookie jars, read on every spawn. Without this hook the
-		// backend would ignore saved jars.
-		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
 		newYtdlp = yb
 		a.Registry.Register(ytdlp.Resolver{ExcludeHosts: ytdlpExclude, Leave: a.claims.fileHoster})
 		// The source explains why this binary was chosen over the others.
@@ -271,7 +255,6 @@ func (a *App) rewireBackends() {
 
 	a.bmu.Lock()
 	a.debrid, a.ytdlp, a.torbox, a.jd = newDebrid, newYtdlp, newTorbox, newJD
-	a.remotefs = newRemoteFS
 	a.bmu.Unlock()
 	a.rewireUsenet()
 
@@ -289,6 +272,43 @@ func (a *App) rewireBackends() {
 	a.refreshPremiumHolds()
 	// An account switched off or removed stops being followed.
 	a.applyAccountImports()
+}
+
+// ytdlpBackend returns the app's one yt-dlp backend, set to start bin from
+// now on.
+func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.ytdlpRuns == nil {
+		yb := ytdlp.NewBackend(bin, a.dlDir, a.onUpdate)
+		// yt-dlp meters itself, so it gets its share of the budget
+		// (app_budget.go), read live so schedule windows apply.
+		yb.RateLimit = a.budget.ytdlpLimit
+		yb.Dir = a.taskDir
+		// Read on every spawn so settings changes apply without a restart. The
+		// instance defaults are combined with the task's own Variant (see
+		// expandYtdlpVariants and variantOptions).
+		yb.Options = func(taskID string) ytdlp.Options {
+			return a.ytdlpOptionsForTask(taskID)
+		}
+		// Stored cookie jars, read on every spawn. Without this hook the
+		// backend would ignore saved jars.
+		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.InUse = a.usedByOther
+		yb.Placing = func(taskID string) workdir.Options {
+			a.mu.Lock()
+			var c *core.Task
+			if t := a.tasks[taskID]; t != nil {
+				x := *t
+				c = &x
+			}
+			a.mu.Unlock()
+			return moveOptions(c, a.Settings.Get())
+		}
+		a.ytdlpRuns = yb
+	}
+	a.ytdlpRuns.SetBinary(bin)
+	return a.ytdlpRuns
 }
 
 // debridServices are the one-shot debrid services, in routing order. Every one
@@ -567,6 +587,23 @@ func (a *App) fetchTorboxHosterOnlyHosts(key string) map[string]bool {
 	return cache.Hosts()
 }
 
+// remotefsBackend returns the app's one remote-server backend. A rewire swaps
+// only its logins, because a new backend would know none of the transfers the
+// old one runs.
+func (a *App) remotefsBackend(eng remotefs.Downloader) *remotefs.Backend {
+	a.bmu.Lock()
+	defer a.bmu.Unlock()
+	if a.remotefs == nil {
+		b := remotefs.NewBackend(nil, remotefs.Dialer{}, eng, a.dlDir, a.onUpdate)
+		b.Dir = a.taskDir
+		// These bytes bypass the metering proxy, so the backend reads the
+		// limit in force itself.
+		b.RateLimit = a.Throttle.Limit
+		a.remotefs = b
+	}
+	return a.remotefs
+}
+
 // remotefsLogins returns the host-to-login snapshot for the remote-server
 // resolver and backend. Accounts of the "remotefs" service are keyed by host
 // name, lower-cased here since host names are case-insensitive. Disabled
@@ -771,15 +808,21 @@ func (a *App) accountLabel(service, account string) string {
 // SetAccountEnabled stores whether one account routes and rewires the backends
 // so it applies at once. It works for environment-supplied credentials too.
 func (a *App) SetAccountEnabled(service, account string, enabled bool) {
+	a.setAccountEnabledQuiet(service, account, enabled)
+	a.rewireBackends()
+}
+
+// setAccountEnabledQuiet stores the switch without rewiring, for a caller
+// that writes several accounts and rewires once at the end.
+func (a *App) setAccountEnabledQuiet(service, account string, enabled bool) {
 	acctMetaMu.Lock()
+	defer acctMetaMu.Unlock()
 	m := a.loadAcctMetaLocked()
 	key := metaKey(service, account)
 	meta := m[key]
 	meta.Enabled = enabled
 	m[key] = meta
 	a.saveAcctMetaLocked(m)
-	acctMetaMu.Unlock()
-	a.rewireBackends()
 }
 
 // SetAccountLabel stores one account's display label. It never rewires, so a
@@ -1205,10 +1248,18 @@ func (a *App) SetAccountCredential(service, account string, cred accounts.Creden
 	return nil
 }
 
+// errCheckedOnDownload answers a check of a login to the user's own server.
+// The account names the host but not whether it speaks FTP, SFTP or WebDAV,
+// so only a download from it can tell whether the login works.
+var errCheckedOnDownload = errors.New("accounts: a login to your own server is checked when a download from it starts")
+
 // checkCredential asks a service whether cred works, storing nothing. It backs
 // both VerifyCredential and TestAccount. A captcha solver is asked for its
 // balance, which costs nothing, and unlocks no hosts.
 func checkCredential(ctx context.Context, service string, cred accounts.Credential) (ok bool, hosts int, err error) {
+	if s, known := accounts.Lookup(service); known && s.Group == accounts.GroupRemoteServer {
+		return false, 0, errCheckedOnDownload
+	}
 	if s := captchaSolverFor(service, cred); s != nil {
 		if _, err := s.Balance(ctx); err != nil {
 			return false, 0, err
@@ -1300,6 +1351,10 @@ func (a *App) TestAccount(service, account string) AccountState {
 	ctx, cancel := context.WithTimeout(context.Background(), 15*time.Second)
 	defer cancel()
 	ok, hosts, err := checkCredential(ctx, service, cred)
+	if errors.Is(err, errCheckedOnDownload) {
+		st.Detail = err.Error()
+		return st
+	}
 	if err != nil {
 		st.Detail = err.Error()
 		a.reportAccountFailure(service, account, classify(failure{err: err, text: err.Error()}), err.Error())

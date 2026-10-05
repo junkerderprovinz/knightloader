@@ -28,6 +28,13 @@ func TestExtractClipboardLinksFindsLinkLines(t *testing.T) {
 	}
 }
 
+func TestExtractClipboardLinksFindsOwnServerLinks(t *testing.T) {
+	got := extractClipboardLinks("sftp://nas.lan/share/a.mkv\nWEBDAVS://cloud.example/b.zip")
+	if len(got) != 2 {
+		t.Fatalf("got %v, want both own-server links", got)
+	}
+}
+
 func TestExtractClipboardLinksIgnoresProse(t *testing.T) {
 	text := "I was reading an article at https://news.example/story and thought\n" +
 		"you might like it. See also https://news.example/related for more."

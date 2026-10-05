@@ -190,19 +190,23 @@ browser's network panel and check whether the `OPTIONS` request came back with
 
 ## Container files, and addcrypted (v1)
 
-A `.dlc`, `.ccf` or `.rsdf` is encrypted the same way addcrypted (v1) is: the
-key is issued to registered clients, and no open-source client generates or
-holds one on its own. Rather than borrow somebody else's application key and
-pretend to be their client, KnightLoader hands the bytes to the headless
-JDownloader backend it already ships as its catch-all resolver, which has its
-own key and does this legitimately (see `internal/container`'s package doc).
-Handing KnightLoader one of these files (`POST /api/containers`) takes this
-path; so does a site's addcrypted (v1) submission, by the identical route. The
-payload is handed to JD as inline content instead of a fetchable URL,
-because unlike an uploaded file it was never a file anywhere to fetch.
+A `.dlc` is encrypted the same way addcrypted (v1) is: the key is issued to
+registered clients, and no open-source client generates or holds one on its
+own. Rather than borrow somebody else's application key and pretend to be their
+client, KnightLoader hands the bytes to the headless JDownloader backend it
+already ships as its catch-all resolver, which has its own key and does this
+legitimately (see `internal/container`'s package doc). Handing KnightLoader a
+`.dlc` (`POST /api/containers`) takes this path; so does a site's addcrypted
+(v1) submission, by the identical route. The submission's payload is handed to
+JD as inline content instead of a fetchable URL, because unlike an uploaded
+file it was never a file anywhere to fetch.
 
-Without `KL_JD` configured, both are refused with an error that states that
-reason. See the main README's configuration table.
+A `.ccf` or `.rsdf` is different: every program that reads one has the key
+built in, so KnightLoader opens it itself and only hands it to JDownloader when
+that fails.
+
+Without `KL_JD` configured, a `.dlc` and an addcrypted submission are both
+refused with an error that states that reason. See the main README's configuration table.
 
 ## Ambient clipboard watching (bridge only)
 

@@ -4,10 +4,17 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { CaptchaChallenge, CaptchaSolverReport } from '../lib/api';
-import { I18nProvider } from '../lib/i18n';
-import { CaptchaModal, SolverStatus } from './CaptchaModal';
+import { I18nProvider, useT } from '../lib/i18n';
+import { CaptchaModal, SolverStatus, testResultText } from './CaptchaModal';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+/** Every bubble the window put up. */
+const toasts = vi.hoisted(() => [] as { message: string; tone: string; kind?: string }[]);
+vi.mock('../lib/toast', async (importOriginal) => {
+  const toast = (message: string, tone: string, kind?: string) => toasts.push({ message, tone, kind });
+  return { ...(await importOriginal<typeof import('../lib/toast')>()), useToast: () => ({ toast }) };
+});
 
 let root: Root;
 let host: HTMLDivElement;
@@ -210,5 +217,186 @@ describe('CaptchaModal', () => {
     );
     expect(document.querySelector('iframe')).not.toBeNull();
     expect(calls).toEqual(['POST /api/captcha/w1/unanswerable']);
+  });
+});
+
+describe('a test captcha', () => {
+  const test: CaptchaChallenge = {
+    id: 'test-1',
+    source: 'test',
+    host: 'KnightLoader',
+    kind: 'image',
+    payload: { dataUrl: 'data:image/png;base64,iVBORw0KGgo=' },
+    expiresAt: new Date(Date.now() + 180_000).toISOString(),
+    test: true,
+  };
+
+  const result = { correct: false, want: 'K7PQX', given: 'K7PQ' };
+
+  beforeEach(() => {
+    toasts.length = 0;
+    vi.stubGlobal('WebSocket', QuietSocket);
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        const body = init?.method === 'POST' && url.endsWith('/answer') ? { stillValid: true, test: result } : [test];
+        return new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }),
+    );
+  });
+
+  afterEach(() => vi.unstubAllGlobals());
+
+  async function open() {
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <CaptchaModal />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => {});
+  }
+
+  async function instanceSays(type: string, data: unknown) {
+    await act(async () => QuietSocket.last!.onmessage!({ data: JSON.stringify({ type, data }) }));
+  }
+
+  it('says whether the answer was right without waiting for the socket, and only once', async () => {
+    await open();
+    const input = document.querySelector<HTMLInputElement>('input')!;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'K7PQ');
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+    const go = [...document.querySelectorAll('button')].find((b) => b.textContent === 'Continue')!;
+    await act(async () => go.click());
+
+    const wrong = 'Wrong. The test captcha said K7PQX, not K7PQ.';
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+    const end = { id: test.id, host: test.host, reason: 'solved', test: result, testCaptcha: true };
+    await instanceSays('captchaResolved', end);
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+  });
+
+  /** Types the answer and sends it, with `respond` standing in for the
+   *  instance's reply to it. */
+  async function answerWith(respond: () => Promise<Response>) {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (init?.method === 'POST' && url.endsWith('/answer')) return respond();
+        return new Response(JSON.stringify([test]), { status: 200, headers: { 'Content-Type': 'application/json' } });
+      }),
+    );
+    const input = document.querySelector<HTMLInputElement>('input')!;
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, 'K7PQ');
+    act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
+    const go = [...document.querySelectorAll('button')].find((b) => b.textContent === 'Continue')!;
+    await act(async () => go.click());
+  }
+
+  const end = { id: test.id, host: test.host, reason: 'solved', test: result, testCaptcha: true };
+  const wrong = 'Wrong. The test captcha said K7PQX, not K7PQ.';
+  const lost = () => Promise.reject(new TypeError('Failed to fetch'));
+
+  it('shows the result the socket brought when the answer’s response is lost', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', end);
+      return lost();
+    });
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+  });
+
+  it('shows the result the socket brings after the answer’s response was lost', async () => {
+    await open();
+    await answerWith(lost);
+    await instanceSays('captchaResolved', end);
+    expect(toasts.map((t) => t.message)).toEqual(['Could not reach the server. Try again.', wrong]);
+  });
+
+  it('shows the result once when the socket brings it before the answer’s response', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', end);
+      return new Response(JSON.stringify({ stillValid: true, test: result }), { status: 200 });
+    });
+    expect(toasts.map((t) => t.message)).toEqual([wrong]);
+  });
+
+  it('shows the result of another answer that settled the test first', async () => {
+    await open();
+    await answerWith(async () => {
+      await instanceSays('captchaResolved', { ...end, test: { correct: false, want: 'K7PQX', given: 'OTHER' } });
+      return new Response(JSON.stringify({ stillValid: false }), { status: 200 });
+    });
+    expect(toasts.map((t) => t.message)).toEqual([
+      'That answer arrived too late.',
+      'Wrong. The test captcha said K7PQX, not OTHER.',
+    ]);
+  });
+
+  it('still says how a captcha account did when the socket brings it', async () => {
+    await open();
+    await instanceSays('captchaResolved', {
+      id: test.id,
+      host: test.host,
+      reason: 'solved',
+      test: { correct: true, want: 'K7PQX', given: 'K7PQX', solver: '2Captcha' },
+      testCaptcha: true,
+    });
+    expect(toasts.map((t) => t.message)).toEqual(['2Captcha solved the test captcha: K7PQX.']);
+  });
+
+  it('offers no way to stop asking, which a test captcha would only take as a skip', async () => {
+    await open();
+    expect(document.body.textContent).not.toContain('More options');
+  });
+
+  it('does not report a timed-out test captcha as a stuck download', async () => {
+    await open();
+    await instanceSays('captchaResolved', { id: test.id, host: test.host, reason: 'timedOut', testCaptcha: true });
+    expect(toasts).toHaveLength(1);
+    expect(toasts[0].kind).not.toBe('captcha-failed');
+  });
+
+  it('says it is a test no download waits on, not a hoster asking', async () => {
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <CaptchaModal />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => {});
+    const text = document.body.textContent ?? '';
+    expect(text).toContain('A test captcha from KnightLoader. No download waits on it.');
+    expect(text).not.toContain('is asking for a captcha');
+  });
+
+  it('says whether the answer was right, and which captcha account gave it', async () => {
+    let said: string[] = [];
+    function Read() {
+      const { t } = useT();
+      said = [
+        testResultText(t, { correct: true, want: 'K7PQX', given: 'k7pqx' }),
+        testResultText(t, { correct: false, want: 'K7PQX', given: 'K7PQ' }),
+        testResultText(t, { correct: true, want: 'K7PQX', given: 'K7PQX', solver: '2Captcha' }),
+        testResultText(t, { correct: false, want: 'K7PQX', given: 'X7PQK', solver: '2Captcha' }),
+      ];
+      return null;
+    }
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <Read />
+        </I18nProvider>,
+      ),
+    );
+    expect(said).toEqual([
+      'Right. The test captcha said K7PQX.',
+      'Wrong. The test captcha said K7PQX, not K7PQ.',
+      '2Captcha solved the test captcha: K7PQX.',
+      '2Captcha got the test captcha wrong: it said K7PQX, not X7PQK.',
+    ]);
   });
 });

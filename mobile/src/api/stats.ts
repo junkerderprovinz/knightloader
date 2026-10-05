@@ -39,7 +39,7 @@ interface RawCounters {
  * expired token and a relay that never answered are three different things and
  * a card that cannot show numbers should say which one stopped it.
  */
-export type StatsResult = { ok: true; stats: InstanceStats } | { ok: false; reason: string };
+export type StatsResult = { ok: true; stats: InstanceStats } | { ok: false; error: unknown };
 
 export async function fetchInstanceStats(conn: ServerConnection): Promise<StatsResult> {
   try {
@@ -58,7 +58,8 @@ export async function fetchInstanceStats(conn: ServerConnection): Promise<StatsR
       },
     };
   } catch (e) {
-    return { ok: false, reason: e instanceof Error ? e.message : String(e) };
+    // The error itself, so the card can word a refusal the app translates.
+    return { ok: false, error: e };
   }
 }
 
