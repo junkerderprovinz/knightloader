@@ -3,6 +3,7 @@ package app
 import (
 	"context"
 	"errors"
+	"os"
 	"path/filepath"
 	"slices"
 	"strings"
@@ -183,5 +184,40 @@ func TestARestartNamesTheFinishedFilesItCannotFetchAgain(t *testing.T) {
 	a.mu.Unlock()
 	if left := a.RestartTasksIn([]string{"ep"}, nil); !slices.Equal(left, []string{"show.mkv"}) {
 		t.Errorf("the restart reports %q as left alone, want the one file asked for", left)
+	}
+}
+
+func TestAnUndoneRemoveOfAUsenetFileFindsTheBytesItShows(t *testing.T) {
+	a := newCrawlApp(t, false)
+	a.mu.Lock()
+	row := &core.Task{
+		ID: "ep", URL: local.FileLink("0123456789abcdef", 0, "show.mkv"), Name: "show.mkv",
+		Resolver: local.ResolverID, Status: core.StatusPaused, Size: 9000, Loaded: 4000, Enabled: true,
+	}
+	a.tasks[row.ID] = row
+	part := a.usenetPartLocked(row)
+	a.mu.Unlock()
+	if err := os.WriteFile(part, make([]byte, 9000), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(part+".segments", []byte("klsegments 1 9000 9\n111100000"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+
+	_, token := a.RemoveTasksUndoable([]string{row.ID}, false)
+	if back := a.UndoRemove(token); !slices.Equal(back, []string{row.ID}) {
+		t.Fatalf("the undo brought back %v", back)
+	}
+	for _, p := range []string{part, part + ".segments"} {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("the row is back at %d bytes, but %s is gone", row.Loaded, filepath.Base(p))
+		}
+	}
+
+	a.RemoveTasks([]string{row.ID}, true)
+	for _, p := range []string{part, part + ".segments"} {
+		if _, err := os.Stat(p); err == nil {
+			t.Errorf("%s is left after a removal with files", filepath.Base(p))
+		}
 	}
 }

@@ -278,7 +278,7 @@ func (a *App) Reclaim() (ReclaimReport, error) {
 		}
 		// The own Usenet servers write under the name in the link, which a
 		// paused row keeps through a rename.
-		if part := local.PartFile(dir, t.URL); part != "" {
+		if part := local.PartFile(dir, t.URL, id); part != "" {
 			claimed[part] = true
 		}
 		if a.active[id] || !reclaimable(t) {
