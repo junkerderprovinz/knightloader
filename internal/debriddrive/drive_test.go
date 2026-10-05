@@ -488,6 +488,28 @@ func TestABrowserGetsADriveFileToSaveRatherThanAPageToRun(t *testing.T) {
 	}
 }
 
+func TestVideoAndAudioHaveOneTypeOnEverySystem(t *testing.T) {
+	f := newFixture(t)
+	if got := f.do(t, http.MethodHead, "/dav/TorBox/Some Movie/movie.mkv", nil).Header.Get("Content-Type"); got != "video/x-matroska" {
+		t.Errorf("HEAD answered movie.mkv with the type %q, want video/x-matroska", got)
+	}
+	for name, want := range map[string]string{
+		"Show.S01E01.mkv": "video/x-matroska",
+		"clip.avi":        "video/x-msvideo",
+		"clip.m4v":        "video/x-m4v",
+		"clip.ts":         "video/mp2t",
+		"clip.mov":        "video/quicktime",
+		"clip.wmv":        "video/x-ms-wmv",
+		"CLIP.MKV":        "video/x-matroska",
+		"track.flac":      "audio/flac",
+		"track.m4a":       "audio/mp4",
+	} {
+		if got, _ := (info{&node{name: name}}).ContentType(context.Background()); got != want {
+			t.Errorf("%s has the type %q, want %q", name, got, want)
+		}
+	}
+}
+
 func TestALinkIsUnlockedAgainWhenItRunsOut(t *testing.T) {
 	f := newFixture(t)
 	read := func() []byte {
