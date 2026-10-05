@@ -220,8 +220,37 @@ func (i info) Mode() fs.FileMode {
 	return 0o444
 }
 
+// mediaTypes answers the usual video and audio files before the system table
+// does. The Alpine image has none, Windows names some of them differently and
+// Debian takes .ts for a translation file.
+var mediaTypes = map[string]string{
+	".aac":  "audio/aac",
+	".avi":  "video/x-msvideo",
+	".flac": "audio/flac",
+	".m2ts": "video/mp2t",
+	".m4a":  "audio/mp4",
+	".m4v":  "video/x-m4v",
+	".mka":  "audio/x-matroska",
+	".mkv":  "video/x-matroska",
+	".mov":  "video/quicktime",
+	".mp3":  "audio/mpeg",
+	".mp4":  "video/mp4",
+	".mpeg": "video/mpeg",
+	".mpg":  "video/mpeg",
+	".ogg":  "audio/ogg",
+	".opus": "audio/ogg",
+	".ts":   "video/mp2t",
+	".wav":  "audio/wav",
+	".webm": "video/webm",
+	".wmv":  "video/x-ms-wmv",
+}
+
 func (i info) ContentType(context.Context) (string, error) {
-	t := mime.TypeByExtension(path.Ext(i.n.name))
+	ext := path.Ext(i.n.name)
+	t, ok := mediaTypes[strings.ToLower(ext)]
+	if !ok {
+		t = mime.TypeByExtension(ext)
+	}
 	kind, _, _ := strings.Cut(t, "/")
 	if (kind == "audio" || kind == "video" || kind == "image") && !strings.Contains(t, "xml") {
 		return t, nil

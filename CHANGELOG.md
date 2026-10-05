@@ -45,7 +45,9 @@ release's tag.
   per account and one per download. Mount it with rclone and Plex or Jellyfin
   stream from the service without anything being downloaded first. A file is
   unlocked only when something reads it, and every read asks for the part it
-  needs, so seeking works. The drive is off until you switch it on under
+  needs, so seeking works. MKV, AVI, MOV, TS and other common video and audio
+  files go out with their real content type, which some players go by. The
+  drive is off until you switch it on under
   Settings, Accounts, which also shows the address and an rclone configuration
   to copy, and it opens only to an API token that can read. Listings are kept
   for five minutes unless you set another interval. The manual has a new page
