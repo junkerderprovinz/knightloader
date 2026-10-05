@@ -93,6 +93,26 @@ const packageKey = (t: WatchTask): string => (t.package ? `p:${t.package}` : `t:
 // took on counts through that mirror.
 const counts = (t: WatchTask): boolean => t.enabled !== false && t.status !== 'collected' && !t.handedOver;
 
+// The copies of one file count as one file. It has settled once every copy
+// has, and it is done if any copy is.
+function tally(counted: WatchTask[]): { total: number; done: number; failed: number } {
+  const files = new Map<string, WatchTask[]>();
+  for (const t of counted) {
+    const key = t.mirrorOf || t.id;
+    const copies = files.get(key);
+    if (copies) copies.push(t);
+    else files.set(key, [t]);
+  }
+  let done = 0;
+  let failed = 0;
+  for (const copies of files.values()) {
+    if (!copies.every((t) => t.status === 'done' || stateOf(t) === 'error')) continue;
+    if (copies.some((t) => t.status === 'done')) done++;
+    else failed++;
+  }
+  return { total: files.size, done, failed };
+}
+
 /**
  * What changed between two looks at the same instance. The first look has no
  * `before` and finds nothing new: what is already finished or waiting there
@@ -127,16 +147,15 @@ export function compare(before: Look | null, tasks: WatchTask[], captchas: Captc
   const failed: PackageNews[] = [];
   for (const [key, group] of groups) {
     const counted = group.filter(counts);
-    const done = counted.filter((t) => t.status === 'done').length;
-    const errors = counted.filter((t) => stateOf(t) === 'error').length;
+    const { total, done, failed: errors } = tally(counted);
     const name = group[0].package || group[0].name;
-    const settled = counted.length > 0 && done + errors === counted.length;
+    const settled = total > 0 && done + errors === total;
     if (settled && done > 0 && counted.some((t) => turned(t, 'done') || turned(t, 'error'))) {
-      finished.push({ key, name, tasks: counted, total: counted.length, done, failed: errors });
+      finished.push({ key, name, tasks: counted, total, done, failed: errors });
     }
     const fresh = group.filter((t) => !t.handedOver && turned(t, 'error'));
     if (fresh.length > 0) {
-      failed.push({ key, name, tasks: fresh, total: counted.length, done, failed: fresh.length });
+      failed.push({ key, name, tasks: fresh, total, done, failed: fresh.length });
     }
   }
   return { arrived, finished, failed, changed };

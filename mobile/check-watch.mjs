@@ -136,16 +136,28 @@ const names = (list) => list.map((p) => p.name);
 // A mirror that takes over a failed download.
 {
   const p = (id, status, extra = {}) => task(id, status, { package: 'Film', ...extra });
-  const before = w.lookOf([p('a', 'done'), p('d', 'running'), p('m', 'collected', { enabled: false })], []);
-  const over = w.compare(before, [p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'queued')], []);
+  const m = (id, status, extra = {}) => p(id, status, { mirrorOf: 'd', ...extra });
+  const before = w.lookOf([p('a', 'done'), p('d', 'running'), m('m', 'collected', { enabled: false })], []);
+  const over = w.compare(before, [p('a', 'done'), p('d', 'error', { handedOver: true }), m('m', 'queued')], []);
   expect('a failure a mirror took on is no failed download', over.failed, []);
   expect('nor does it finish its package', over.finished, []);
-  const look = w.lookOf([p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'running')], []);
-  const done = w.compare(look, [p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'done')], []);
+  const look = w.lookOf([p('a', 'done'), p('d', 'error', { handedOver: true }), m('m', 'running')], []);
+  const done = w.compare(look, [p('a', 'done'), p('d', 'error', { handedOver: true }), m('m', 'done')], []);
   const f = done.finished[0];
   expect('the mirror finishing finishes the package without a failure', [f?.total, f?.done, f?.failed], [2, 2, 0]);
-  const lost = w.compare(look, [p('a', 'done'), p('d', 'error'), p('m', 'error')], []);
+  const lost = w.compare(look, [p('a', 'done'), p('d', 'error'), m('m', 'error')], []);
   expect('when the mirror fails too, its failure is the news', lost.failed.map((n) => n.tasks.map((t) => t.id)), [['m']]);
+  const l = lost.finished[0];
+  expect('and the package counts the file once', [l?.total, l?.done, l?.failed], [2, 1, 1]);
+
+  const chain = [p('a', 'done'), p('d', 'error', { handedOver: true }), m('m1', 'error', { handedOver: true })];
+  const last = w.compare(w.lookOf([...chain, m('m2', 'running')], []), [p('a', 'done'), p('d', 'error'), m('m1', 'error'), m('m2', 'error')], []);
+  const c = last.finished[0];
+  expect('when every copy fails, only the last failure is news', last.failed.map((n) => n.tasks.map((t) => t.id)), [['m2']]);
+  expect('and the package counts the file once', [c?.total, c?.done, c?.failed], [2, 1, 1]);
+
+  const both = w.compare(w.lookOf([p('a', 'done'), p('d', 'done'), m('m', 'running')], []), [p('a', 'done'), p('d', 'done'), m('m', 'done')], []);
+  expect('two copies that both finish are one file', [both.finished[0]?.total, both.finished[0]?.done], [2, 2]);
 }
 
 // The full list of an instance from before GET /api/tasks/watch.

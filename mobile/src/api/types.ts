@@ -95,6 +95,8 @@ export interface WatchTask {
   /** A failure whose file a kept mirror has taken on, so it is not the end of
    *  the file. */
   handedOver?: boolean;
+  /** The task every copy of this file is filed under, for a kept mirror. */
+  mirrorOf?: string;
   error?: string;
   errorCode?: string;
   errorParams?: Record<string, string>;
