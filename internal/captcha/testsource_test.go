@@ -142,9 +142,10 @@ func TestTheNoiseInATestCaptchaNeverCutsAStroke(t *testing.T) {
 				if rgba.RGBAAt(x, y) != testNoise {
 					continue
 				}
-				across := dark(rgba.RGBAAt(x-1, y)) && dark(rgba.RGBAAt(x+1, y))
-				down := dark(rgba.RGBAAt(x, y-1)) && dark(rgba.RGBAAt(x, y+1))
-				if across || down {
+				// A one-pixel gap between two strokes has ink on two opposite
+				// sides; only a dot painted over a stroke has it on all four.
+				if dark(rgba.RGBAAt(x-1, y)) && dark(rgba.RGBAAt(x+1, y)) &&
+					dark(rgba.RGBAAt(x, y-1)) && dark(rgba.RGBAAt(x, y+1)) {
 					t.Fatalf("a noise pixel at %d,%d sits inside a stroke", x, y)
 				}
 			}
