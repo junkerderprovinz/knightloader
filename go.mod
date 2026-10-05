@@ -8,7 +8,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20261004174310-e21e22eac913
+	github.com/dop251/goja v0.0.0-20261004200024-481fdb442bb4
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/klauspost/compress v1.20.1
 	github.com/nwaples/rardecode/v2 v2.4.1
@@ -43,7 +43,8 @@ require (
 	github.com/anacrolix/dht/v2 v2.23.1-0.20260525063928-ec3a9bd99456 // indirect
 	github.com/anacrolix/envpprof v1.5.0 // indirect
 	github.com/anacrolix/generics v0.2.0 // indirect
-	github.com/anacrolix/go-libutp v1.5.0 // indirect
+	github.com/anacrolix/go-libutp v1.5.2-0.20260908013213-836dd42cdde6 // indirect
+	github.com/anacrolix/go-utp v0.0.0-20260908033909-9f1664acf866 // indirect
 	github.com/anacrolix/log v0.17.1-0.20251118025802-918f1157b7bb // indirect
 	github.com/anacrolix/missinggo v1.3.0 // indirect
 	github.com/anacrolix/missinggo/perf v1.0.0 // indirect
@@ -186,4 +187,4 @@ replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0
 // stopped announces before it closes its tracker sockets, and a web seed
 // fetches a piece that a reader is waiting for before the rest of its slice.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20260927071845-d913b30f520e
