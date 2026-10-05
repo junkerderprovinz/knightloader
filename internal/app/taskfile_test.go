@@ -728,6 +728,57 @@ func TestAFinishedDownloadOfUnknownSizeSparesAFileOfAnotherLengthAtItsPath(t *te
 	}
 }
 
+// A download that finished with nothing in it, such as an empty yt-dlp
+// description, leaves an empty file, and that file goes with it.
+func TestRemovingWithFilesDeletesTheEmptyFileOfAnEmptyDownload(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	empty := fileBytes(t, filepath.Join(dir, "video.description"), 0)
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/video", Name: "video.description", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, File: empty,
+	}
+	a.mu.Unlock()
+
+	a.Remove("1", true)
+
+	if fileExists(empty) {
+		t.Error("the empty file of a download that finished empty survived a removal with files")
+	}
+}
+
+// Only a finished download owns an empty file, and never one another task
+// writes.
+func TestAnEmptyFileIsSparedUnlessItIsAFinishedDownloadsOwn(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	paused := fileBytes(t, filepath.Join(dir, "paused.bin"), 0)
+	shared := fileBytes(t, filepath.Join(dir, "shared.bin"), 0)
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/paused.bin", Name: "paused.bin", Resolver: "elsewhere",
+		Status: core.StatusPaused, Enabled: true, File: paused,
+	}
+	a.tasks["2"] = &core.Task{
+		ID: "2", URL: "https://elsewhere.example/shared.bin", Name: "shared.bin", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, File: shared,
+	}
+	a.tasks["3"] = &core.Task{
+		ID: "3", URL: "https://elsewhere.example/other", Name: "other", Resolver: "elsewhere",
+		Status: core.StatusRunning, Enabled: true, WorkFiles: []string{shared},
+	}
+	a.mu.Unlock()
+
+	a.Remove("1", true)
+	a.Remove("2", true)
+
+	if !fileExists(paused) {
+		t.Error("an empty file was taken for the download of a task that never finished")
+	}
+	if !fileExists(shared) {
+		t.Error("an empty file another task writes was deleted")
+	}
+}
+
 // The .nfo yt-dlp's video row writes beside its file describes that file and
 // goes with it. A thumbnail row of the same video shares the base name and
 // must not take the video's .nfo when it is removed.

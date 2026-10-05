@@ -31,6 +31,8 @@ type Engine struct {
 	d   *download.Downloader
 	dir string
 
+	unreachable func(rawURL string) error // see ExplainBadGateway
+
 	mu       sync.Mutex
 	toKL     map[string]string // gopeed task id -> KL task id
 	toGopeed map[string]string // KL task id -> gopeed task id
@@ -217,6 +219,30 @@ func (e *Engine) UseProxy(hostPort string) error {
 		cfg.Proxy = proxy
 		return true
 	})
+}
+
+// ExplainBadGateway lets the engine name why the loopback proxy answered a 502:
+// unreachable returns the failure to reach the server of a link, or nil.
+func (e *Engine) ExplainBadGateway(unreachable func(rawURL string) error) {
+	e.unreachable = unreachable
+}
+
+// failure is msg, or the reason the loopback proxy could not reach j's server
+// when msg is the 502 the proxy answered then.
+func (e *Engine) failure(j Job, msg string) string {
+	if e.unreachable == nil || j.Route.Proxied() || !badGateway(msg) {
+		return msg
+	}
+	if err := e.unreachable(j.URL); err != nil {
+		return err.Error()
+	}
+	return msg
+}
+
+// badGateway reports whether msg is a 502 in the words of the library
+// ("code:502"), probeRest ("HTTP 502") or a refused CONNECT ("Bad Gateway").
+func badGateway(msg string) bool {
+	return strings.Contains(msg, "code:502") || strings.Contains(msg, "HTTP 502") || strings.Contains(msg, "Bad Gateway")
 }
 
 // btProtocolConfig mirrors the bt config of the gopeed fork (see go.mod) with
@@ -463,7 +489,7 @@ func (e *Engine) Start(j Job) {
 		rr, req, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error())})
 			}
 			return
 		}
@@ -915,7 +941,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		// The app classifies the message, the same way for every backend.
 		msg := "download error"
 		if ev.Err != nil {
-			msg = ev.Err.Error()
+			msg = e.failure(job, ev.Err.Error())
 		}
 		// With the file, so a restart before the next attempt still knows
 		// which leftover is this task's.

@@ -26,6 +26,7 @@ import (
 	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"strings"
 	"sync"
 	"time"
@@ -45,6 +46,15 @@ import (
 // failed by then.
 const idleTimeout = 2 * time.Minute
 
+// unreachableFor is how long the proxy remembers that it could not reach a
+// server, for the client that got the 502 to ask why.
+const unreachableFor = time.Minute
+
+type dialFailure struct {
+	err error
+	at  time.Time
+}
+
 // Server is the loopback proxy.
 type Server struct {
 	ln   net.Listener
@@ -56,6 +66,7 @@ type Server struct {
 
 	mu     sync.Mutex
 	closed bool
+	failed map[string]dialFailure // by lower-case host:port
 }
 
 // Start brings the proxy up on a free loopback port.
@@ -69,9 +80,10 @@ func start(lim *throttle.Limiter, idle time.Duration) (*Server, error) {
 		return nil, err
 	}
 	s := &Server{
-		ln:   ln,
-		lim:  lim,
-		idle: idle,
+		ln:     ln,
+		lim:    lim,
+		idle:   idle,
+		failed: map[string]dialFailure{},
 		transport: &http.Transport{
 			Proxy:                 nil, // we are the proxy; never chain into ourselves
 			DialContext:           (&net.Dialer{Timeout: 30 * time.Second}).DialContext,
@@ -94,6 +106,40 @@ func (s *Server) Addr() string {
 		return ""
 	}
 	return s.ln.Addr().String()
+}
+
+// Unreachable returns why the proxy could not reach the server of rawURL, when
+// that happened within the last minute and nothing has reached it since. The
+// client only sees the 502 the proxy answered, which reads as the server's own.
+func (s *Server) Unreachable(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return nil
+	}
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	f, ok := s.failed[target(u.Host, u.Scheme)]
+	if !ok || time.Since(f.at) > unreachableFor {
+		return nil
+	}
+	return f.err
+}
+
+// noteDial records whether dialling hostPort failed with err.
+func (s *Server) noteDial(hostPort string, err error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	if err == nil {
+		delete(s.failed, hostPort)
+		return
+	}
+	now := time.Now()
+	for k, f := range s.failed {
+		if now.Sub(f.at) > unreachableFor {
+			delete(s.failed, k)
+		}
+	}
+	s.failed[hostPort] = dialFailure{err: err, at: now}
 }
 
 func (s *Server) Close() error {
@@ -121,7 +167,9 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 // is nothing to inspect and the bytes coming back are metered on their way
 // through.
 func (s *Server) tunnel(w http.ResponseWriter, r *http.Request) {
-	upstream, err := net.DialTimeout("tcp", hostPort(r.Host, "443"), 30*time.Second)
+	key := target(r.Host, "https")
+	upstream, err := net.DialTimeout("tcp", key, 30*time.Second)
+	s.noteDial(key, err)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
@@ -184,6 +232,7 @@ func (s *Server) forward(w http.ResponseWriter, r *http.Request) {
 	out.RequestURI = ""
 	stripHopByHop(out.Header)
 
+	key := target(out.URL.Host, out.URL.Scheme)
 	resp, err := s.transport.RoundTrip(out)
 	if err != nil {
 		// A server that hung up is passed on as a hang-up, the way the tunnel
@@ -191,9 +240,14 @@ func (s *Server) forward(w http.ResponseWriter, r *http.Request) {
 		if httpx.HungUp(err) {
 			panic(http.ErrAbortHandler)
 		}
+		var op *net.OpError
+		if errors.As(err, &op) && op.Op == "dial" {
+			s.noteDial(key, err)
+		}
 		http.Error(w, err.Error(), http.StatusBadGateway)
 		return
 	}
+	s.noteDial(key, nil)
 	defer resp.Body.Close()
 
 	h := w.Header()
@@ -224,6 +278,16 @@ func stripHopByHop(h http.Header) {
 	for _, k := range hopByHop {
 		h.Del(k)
 	}
+}
+
+// target is host with the port scheme defaults to when it names none, in the
+// form the proxy keys its dial failures by.
+func target(host, scheme string) string {
+	port := "80"
+	if scheme == "https" {
+		port = "443"
+	}
+	return strings.ToLower(hostPort(host, port))
 }
 
 // hostPort adds the default port when the CONNECT target omits it.
