@@ -3702,6 +3702,9 @@ export interface SettingsExportDoc {
   /** What the file claims about itself. Anyone can edit it, so both sides
    *  inspect the settings instead of trusting this. */
   secrets: 'included' | 'omitted';
+  /** How many archive passwords an export without secrets left behind.
+   *  Missing from older exports. */
+  archivePasswordsOmitted?: number;
   /** settings.json's top-level keys, raw. Untyped so that keys an older or
    *  newer build knows can still be listed. */
   settings: Record<string, unknown>;

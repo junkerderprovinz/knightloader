@@ -60,6 +60,10 @@ type PortableDoc struct {
 	// Secrets is SecretsIncluded or SecretsOmitted, so the interface can say
 	// which kind of file the reader is looking at before they import it.
 	Secrets string `json:"secrets"`
+	// ArchivePasswordsOmitted is how many archive passwords an export without
+	// secrets left behind. Older exports lack it, and then only an empty list
+	// and the Secrets claim are left to judge by.
+	ArchivePasswordsOmitted *int `json:"archivePasswordsOmitted,omitempty"`
 	// Settings is settings.json's own top-level keys, raw rather than a
 	// Settings value: a document written by an older build carries keys this
 	// build no longer has and misses keys it has gained, and decoding into the
@@ -203,8 +207,11 @@ func NeverPortable() []string {
 // app knows are secrets, and settings.transfer.withSecretsHint says the rest.
 func Portable(s Settings, includeSecrets bool, version, deployment string, now time.Time) (PortableDoc, error) {
 	secrets := SecretsIncluded
+	var archivesOmitted *int
 	if !includeSecrets {
 		s = s.Redacted()
+		n := len(s.ArchivePasswords)
+		archivesOmitted = &n
 		s.ArchivePasswords = nil
 		secrets = SecretsOmitted
 	}
@@ -219,12 +226,13 @@ func Portable(s Settings, includeSecrets bool, version, deployment string, now t
 		delete(fields, k)
 	}
 	return PortableDoc{
-		Kind:       PortableKind,
-		Version:    version,
-		Deployment: deployment,
-		CreatedAt:  now.UTC(),
-		Secrets:    secrets,
-		Settings:   fields,
+		Kind:                    PortableKind,
+		Version:                 version,
+		Deployment:              deployment,
+		CreatedAt:               now.UTC(),
+		Secrets:                 secrets,
+		ArchivePasswordsOmitted: archivesOmitted,
+		Settings:                fields,
 	}, nil
 }
 
@@ -317,12 +325,11 @@ const (
 //     empty password and comes back as ErrUnchanged, pointing the operator at
 //     their router rather than at an empty field.
 //
-// archivePasswords is judged the same way, with one difference: an empty list
-// cannot be told apart from a box that never had one. That is accepted, because
-// the consequence is the same either way, this box has no archive passwords,
-// and the sentence the interface builds from it stays true. Dropping the key
-// from the document when secrets are omitted would hide the row from the
-// preview and make the key impossible to take over on purpose.
+// An empty archivePasswords list cannot say whether the box that wrote it had
+// any, so the export counts the ones it left behind. An older export without
+// the count is taken as missing them unless it claims to include secrets.
+// Dropping the key from the document when secrets are omitted would hide the
+// row from the preview and make the key impossible to take over on purpose.
 func (d PortableDoc) Secretless() []string {
 	out := []string{}
 
@@ -361,7 +368,13 @@ func (d PortableDoc) Secretless() []string {
 	if raw, ok := d.Settings["archivePasswords"]; ok {
 		var list []string
 		if err := json.Unmarshal(raw, &list); err == nil && len(list) == 0 {
-			out = append(out, SecretlessArchivePasswords)
+			left := d.Secrets != SecretsIncluded
+			if d.ArchivePasswordsOmitted != nil {
+				left = *d.ArchivePasswordsOmitted > 0
+			}
+			if left {
+				out = append(out, SecretlessArchivePasswords)
+			}
 		}
 	}
 
