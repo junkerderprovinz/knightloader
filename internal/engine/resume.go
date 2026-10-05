@@ -368,7 +368,7 @@ func (e *Engine) takeUp(j Job, s *start) bool {
 			return true
 		case !errors.As(err, &other):
 			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error(), File: file})
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error()), File: file})
 			}
 			return true
 		}

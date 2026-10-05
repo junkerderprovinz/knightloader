@@ -555,6 +555,7 @@ func New(dataDir string) (*App, error) {
 		log.Printf("speed limiter not applied (%v); downloads run unthrottled", err)
 		_ = px.Close()
 	} else {
+		eng.ExplainBadGateway(px.Unreachable)
 		a.proxy = px
 	}
 
