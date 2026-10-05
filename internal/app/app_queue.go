@@ -239,7 +239,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 			delete(a.movedFiles, id)
 			t.Status = core.StatusQueued
 			t.ClearFailure()
-			t.Loaded = 0
+			if !carry {
+				t.Loaded = 0
+			}
 			t.Speed = 0
 			// The file is fetched again, and how its archive was last unpacked
 			// says nothing about the new one.
