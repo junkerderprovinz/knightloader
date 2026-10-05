@@ -179,6 +179,34 @@ func TestAJobWithHeadersAsksForNoFurtherSources(t *testing.T) {
 	}
 }
 
+// An agent is no login, and a link that answers only KnightLoader's is checked
+// with the agent its transfer sends.
+func TestALinkThatAnswersOnlyKnightLoaderStillGetsFurtherSources(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 4<<20)
+	own, other := newPickyOrigin(t, data), newMirrorSource(t, data)
+	e := vetEngine(t)
+	job := asKnightLoader(Job{TaskID: "t1", URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
+
+	if got := e.vetSources(job, ranged(len(data))); len(got) != 1 || got[0] != other.url() {
+		t.Fatalf("sources = %v, want the other link", got)
+	}
+}
+
+func TestAFileKeptToItsOwnLinkSaysWhyInTheLog(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 4<<20)
+	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
+	e := vetEngine(t)
+	logged := captureLog(t)
+
+	e.vetSources(Job{TaskID: "t1", URL: own.url(), Headers: map[string]string{"Authorization": "Basic x"}, Sources: offering(other.url())}, ranged(len(data)))
+
+	if out := logged.String(); !strings.Contains(out, "not spreading task t1") {
+		t.Fatalf("the log does not say why the file keeps to its own link:\n%s", out)
+	}
+}
+
 func TestASmallFileAsksForNoFurtherSources(t *testing.T) {
 	data := randomBytes(t, 1<<20)
 	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
@@ -224,6 +252,22 @@ func TestAFileComesFromBothSources(t *testing.T) {
 		t.Fatal("the file is not the one the sources have")
 	}
 	// Two of the further source's ranged requests are the check.
+	if other.ranged.Load() <= 2 {
+		t.Errorf("the further source answered %d ranged requests, want some beyond the check", other.ranged.Load())
+	}
+}
+
+// The agent a hung-up resolve settled on reaches the check of the sources.
+func TestAFileFromALinkThatAnswersOnlyKnightLoaderComesFromBothSources(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	own, other := newPickyOrigin(t, data), newMirrorSource(t, data)
+
+	last, got := runToEnd(t, Job{URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
+
+	if last.Status != core.StatusDone || !bytes.Equal(got, data) {
+		t.Fatalf("the download ended %q (%s) with %d bytes, want the file", last.Status, last.Err, len(got))
+	}
 	if other.ranged.Load() <= 2 {
 		t.Errorf("the further source answered %d ranged requests, want some beyond the check", other.ranged.Load())
 	}
