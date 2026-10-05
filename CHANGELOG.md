@@ -63,16 +63,17 @@ release's tag.
   phone hands it to a player app. KnightLoader then fetches that file in order
   from the point being played, with the beginning and the end first, since
   players look for a file's index there, while everything else downloads as
-  usual. For a torrent, the pieces just ahead of the player come first; a
-  direct download moves one of its connections to the part being played. The
-  player in a download's details can jump ahead now too. A jump waits until
+  usual. For a torrent, the pieces just ahead of the player come first, also
+  from a web seed; a direct download moves one of its connections to the part
+  being played. The player in a download's details can jump ahead now too. A jump waits until
   that part has arrived, for up to a minute and a half per read. Once playback
   stops or the file is complete, the download goes back to its usual order. In
   a torrent of several files, Play opens the largest video or song among the
   files it fetches, and a torrent without any gets no Play. A download that
   stopped halfway has to run again before it plays. On the phone this needs a
   direct connection to the instance, because a player app cannot go through
-  the relay.
+  the relay. Restarting KnightLoader no longer waits for a player that still
+  has a file open.
 
 - **One file from several sources.** With "Use several sources for one file"
   on under Settings, Downloads, a file is split across up to three further
@@ -227,6 +228,12 @@ release's tag.
   instance asks, and asks a little less often each time.
 - **A download paused before a restart carries on at once.** Started again
   after the restart, it waited about ten seconds before it fetched anything.
+- **A download that is running when KnightLoader restarts carries on where it
+  stopped.** Only a download paused before a restart kept its place. One still
+  running started again from the first byte, or from where it was last
+  paused. KnightLoader now pauses running downloads as it shuts down and,
+  after the restart, picks them up from the bytes on disk, as long as the
+  server still sends the file in parts.
 
 ## [1.7.0] - 2026-10-04
 

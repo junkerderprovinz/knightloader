@@ -12,7 +12,9 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -429,6 +431,52 @@ func TestARangeOfALateFileWaitsForItsBytes(t *testing.T) {
 	body, _ := io.ReadAll(resp.Body)
 	if resp.StatusCode != http.StatusPartialContent || string(body) != "abcde" {
 		t.Fatalf("range answered %d with %q, want 206 with abcde", resp.StatusCode, body)
+	}
+}
+
+// A player paused with the stream open stops reading, and the route's write
+// blocks. When the request ends, as every request does at shutdown, the write
+// gives up.
+func TestAWriteToAPausedPlayerGivesUpWhenTheRequestEnds(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "film.mp4", make([]byte, 64<<20))
+
+	requests, endRequests := context.WithCancel(context.Background())
+	defer endRequests()
+	returned := make(chan struct{})
+	h := Handler(a)
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer close(returned)
+		h.ServeHTTP(w, r)
+	}))
+	srv.Config.BaseContext = func(net.Listener) context.Context { return requests }
+	srv.Start()
+	t.Cleanup(srv.Close)
+
+	conn, err := net.Dial("tcp", srv.Listener.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	if _, err := fmt.Fprintf(conn, "GET /api/tasks/%s/file HTTP/1.1\r\nHost: kl\r\n\r\n", id); err != nil {
+		t.Fatal(err)
+	}
+	// Nothing is read, so the socket buffers fill and the write blocks.
+	select {
+	case <-returned:
+		t.Fatal("the route returned before the player read anything")
+	case <-time.After(300 * time.Millisecond):
+	}
+	endRequests()
+	select {
+	case <-returned:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the route still writes to a player that stopped reading after its request ended")
 	}
 }
 
