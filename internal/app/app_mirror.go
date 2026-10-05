@@ -89,6 +89,22 @@ func mirrorRoot(tasks map[string]*core.Task, id string) string {
 	return id
 }
 
+// MirrorRoots maps every kept copy to the task its group is filed under, so a
+// reader can count the copies of one file as one file.
+func MirrorRoots(tasks []*core.Task) map[string]string {
+	byID := make(map[string]*core.Task, len(tasks))
+	for _, t := range tasks {
+		byID[t.ID] = t
+	}
+	out := map[string]string{}
+	for _, t := range tasks {
+		if t.MirrorOf != "" {
+			out[t.ID] = mirrorRoot(byID, t.ID)
+		}
+	}
+	return out
+}
+
 // HandedOver returns the failed tasks whose file another copy has taken on: an
 // enabled mirror in the same group that is on its way or finished. Once every
 // such copy has failed too, nothing is left to carry the file and no failure
