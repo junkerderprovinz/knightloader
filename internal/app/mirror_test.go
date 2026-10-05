@@ -449,3 +449,37 @@ func TestMirrorCanHelp(t *testing.T) {
 		}
 	}
 }
+
+// A failure a copy has taken on is not the end of the file, until the last copy
+// fails too and there is nothing left that could still bring it.
+func TestAFailureACopyTookOnIsHandedOverUntilTheCopiesRunOut(t *testing.T) {
+	a := failoverApp(t, true)
+	first, second := mirrorPair(t, a)
+	third := a.AddLinks([]string{"https://three.example/film.rar"}, "Release")
+	if len(second) != 1 || len(third) != 1 {
+		t.Fatalf("staged %d and %d copies, want one each", len(second), len(third))
+	}
+	if got := HandedOver(a.Tasks()); len(got) != 0 {
+		t.Fatalf("handed over before anything failed: %v", got)
+	}
+	killTask(t, a, first[0].ID, true, "rapidgator: error code 7731")
+	hop1 := releasedMirror(t, a)
+	if hop1 == nil {
+		t.Fatal("the first failure released nothing")
+	}
+	if got := HandedOver(a.Tasks()); !got[first[0].ID] || len(got) != 1 {
+		t.Errorf("after the first handover: %v, want only the source %s", got, first[0].ID)
+	}
+	killTask(t, a, hop1.ID, true, "rapidgator: error code 7731")
+	hop2 := releasedMirror(t, a)
+	if hop2 == nil {
+		t.Fatal("the second failure released nothing")
+	}
+	if got := HandedOver(a.Tasks()); !got[first[0].ID] || !got[hop1.ID] || len(got) != 2 {
+		t.Errorf("after the second handover: %v, want the source and the first copy", got)
+	}
+	killTask(t, a, hop2.ID, true, "rapidgator: error code 7731")
+	if got := HandedOver(a.Tasks()); len(got) != 0 {
+		t.Errorf("with every copy failed: %v, want no failure hidden", got)
+	}
+}

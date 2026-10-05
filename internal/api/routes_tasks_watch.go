@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -31,6 +32,9 @@ type watchTask struct {
 	// still fetching onto its own servers.
 	Stalled bool `json:"stalled,omitempty"`
 	Remote  bool `json:"remote,omitempty"`
+	// HandedOver marks a failed task whose file a kept mirror has taken on
+	// (see app.HandedOver).
+	HandedOver bool `json:"handedOver,omitempty"`
 
 	Error        string            `json:"error,omitempty"`
 	ErrorCode    core.ErrorCode    `json:"errorCode,omitempty"`
@@ -42,16 +46,17 @@ type watchTask struct {
 	Resolver     string            `json:"resolver,omitempty"`
 }
 
-func watchTaskOf(t *core.Task) watchTask {
+func watchTaskOf(t *core.Task, handedOver bool) watchTask {
 	w := watchTask{
-		ID:       t.ID,
-		Status:   t.Status,
-		Name:     t.Name,
-		Package:  t.Package,
-		Enabled:  t.Enabled,
-		Retrying: t.Status == core.StatusError && !t.NextTry.IsZero(),
-		Stalled:  t.Status == core.StatusRunning && !t.StalledSince.IsZero(),
-		Remote:   t.Status == core.StatusRunning && t.Remote != nil,
+		ID:         t.ID,
+		Status:     t.Status,
+		Name:       t.Name,
+		Package:    t.Package,
+		Enabled:    t.Enabled,
+		Retrying:   t.Status == core.StatusError && !t.NextTry.IsZero(),
+		Stalled:    t.Status == core.StatusRunning && !t.StalledSince.IsZero(),
+		Remote:     t.Status == core.StatusRunning && t.Remote != nil,
+		HandedOver: handedOver,
 	}
 	if w.Name == "" {
 		w.Name = t.URL
@@ -84,9 +89,10 @@ func watchTag(tasks []watchTask) string {
 func serveTaskWatch(tasks func() []*core.Task) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		all := tasks()
+		handedOver := app.HandedOver(all)
 		list := watchList{Tasks: make([]watchTask, 0, len(all))}
 		for _, t := range all {
-			list.Tasks = append(list.Tasks, watchTaskOf(t))
+			list.Tasks = append(list.Tasks, watchTaskOf(t, handedOver[t.ID]))
 		}
 		list.Tag = watchTag(list.Tasks)
 		if r.URL.Query().Get("tag") == list.Tag {
