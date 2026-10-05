@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/url"
+	"strings"
 	"testing"
 	"time"
 
@@ -328,4 +329,70 @@ func getVia(t *testing.T, addr, target string, tlsCfg *tls.Config) (string, http
 		t.Fatal(err)
 	}
 	return string(b), resp.Header
+}
+
+// closedAddr is a loopback address nothing listens on.
+func closedAddr(t *testing.T) string {
+	t.Helper()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	addr := ln.Addr().String()
+	ln.Close()
+	return addr
+}
+
+// The client of a 502 can learn that the proxy never reached the server, for
+// plain HTTP and for a tunnel, until the server answers again.
+func TestTheProxyTellsWhyItCouldNotReachAServer(t *testing.T) {
+	px, err := Start(throttle.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer px.Close()
+	pu, err := url.Parse("http://" + px.Addr())
+	if err != nil {
+		t.Fatal(err)
+	}
+	c := &http.Client{Timeout: 20 * time.Second, Transport: &http.Transport{Proxy: http.ProxyURL(pu)}}
+
+	plain := "http://" + closedAddr(t) + "/f.bin"
+	resp, err := c.Get(plain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusBadGateway {
+		t.Fatalf("got %s, want 502", resp.Status)
+	}
+	var op *net.OpError
+	if err := px.Unreachable(plain); !errors.As(err, &op) || op.Op != "dial" {
+		t.Fatalf("Unreachable = %v, want the dial failure", err)
+	}
+
+	secure := "https://" + closedAddr(t) + "/f.bin"
+	if resp, err := c.Get(secure); err == nil {
+		resp.Body.Close()
+		t.Fatalf("got %s through a tunnel to a closed port", resp.Status)
+	}
+	if px.Unreachable(secure) == nil {
+		t.Fatal("Unreachable = nil after a tunnel could not be opened")
+	}
+
+	ln, err := net.Listen("tcp", strings.TrimSuffix(strings.TrimPrefix(plain, "http://"), "/f.bin"))
+	if err != nil {
+		t.Skipf("cannot listen on the closed port again: %v", err)
+	}
+	origin := &http.Server{Handler: http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {})}
+	go func() { _ = origin.Serve(ln) }()
+	defer origin.Close()
+	resp, err = c.Get(plain)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if err := px.Unreachable(plain); err != nil {
+		t.Fatalf("Unreachable = %v once the server answered again", err)
+	}
 }

@@ -134,3 +134,20 @@ func TestAccountRemoveClearsMetadata(t *testing.T) {
 		t.Fatalf("account_meta.json missing after SetAccountEnabled: %v", err)
 	}
 }
+
+// Labelling an account that has no metadata yet leaves it switched on.
+func TestLabellingAnAccountKeepsItEnabled(t *testing.T) {
+	a := newAccountsTestApp(t)
+	if err := a.Accounts.SetCredential("alldebrid", "", accounts.Credential{APIKey: "fake-key"}); err != nil {
+		t.Fatal(err)
+	}
+
+	a.SetAccountLabel("alldebrid", "", "Main")
+
+	if !a.accountEnabled("alldebrid", "") {
+		t.Fatal("account reads disabled after only its label was set")
+	}
+	if got := a.accountLabel("alldebrid", ""); got != "Main" {
+		t.Fatalf("label = %q, want %q", got, "Main")
+	}
+}
