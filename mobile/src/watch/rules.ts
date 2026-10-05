@@ -89,8 +89,9 @@ export interface News {
 const packageKey = (t: WatchTask): string => (t.package ? `p:${t.package}` : `t:${t.id}`);
 
 // A disabled link never starts and a collected one waits for somebody to say
-// go, so neither holds a package back from being finished.
-const counts = (t: WatchTask): boolean => t.enabled !== false && t.status !== 'collected';
+// go, so neither holds a package back from being finished. A failure a mirror
+// took on counts through that mirror.
+const counts = (t: WatchTask): boolean => t.enabled !== false && t.status !== 'collected' && !t.handedOver;
 
 /**
  * What changed between two looks at the same instance. The first look has no
@@ -133,7 +134,7 @@ export function compare(before: Look | null, tasks: WatchTask[], captchas: Captc
     if (settled && done > 0 && counted.some((t) => turned(t, 'done') || turned(t, 'error'))) {
       finished.push({ key, name, tasks: counted, total: counted.length, done, failed: errors });
     }
-    const fresh = group.filter((t) => turned(t, 'error'));
+    const fresh = group.filter((t) => !t.handedOver && turned(t, 'error'));
     if (fresh.length > 0) {
       failed.push({ key, name, tasks: fresh, total: counted.length, done, failed: fresh.length });
     }
