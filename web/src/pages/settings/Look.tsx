@@ -50,6 +50,7 @@ import { ModulesPageBadge } from './ModuleToggle';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
 import { SettingsTransfer } from './look/SettingsTransfer';
+import { JDImportCard } from './look/JDImport';
 
 /**
  * accentSlot returns which of the eight preset positions a colour belongs to:
@@ -753,8 +754,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <MutedDialogsCard hue={1} />}
       {general && <UpdateCard hue={2} />}
       {general && <SystemCards hue={3} />}
+      {general && <JDImportCard hue={5} />}
       {/* Last on the General tab, where a version and a contact are looked for. */}
-      {general && <About hue={5} />}
+      {general && <About hue={6} />}
     </div>
   );
 }

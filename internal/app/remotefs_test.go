@@ -1,12 +1,19 @@
 package app
 
 import (
+	"bytes"
+	"log"
+	"os"
 	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/reclaim"
+	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // The wiring tests for the remote-server resolver. The protocols themselves are
@@ -114,16 +121,193 @@ func TestRemoteServerAccountsAreReadPerHost(t *testing.T) {
 	}
 }
 
-func TestRemoteServerLinkWithAPasswordInItIsRefusedWithASentence(t *testing.T) {
-	// A password in a URL would be written to the task store in plain text and
-	// shown in the collector's URL column. The refusal reaches the row rather
-	// than only the log, or the link looks like a network failure.
-	a := newCrawlApp(t, true)
-	created := a.AddLinks([]string{"ftp://alice:hunter2@127.0.0.1:1/pub/x.iso"}, "")
-	if len(created) != 1 {
-		t.Fatalf("staged %d tasks, want the link itself with the reason on it", len(created))
+func TestRemoteServerLinkWithAPasswordInItIsKeptNowhere(t *testing.T) {
+	// A password in a URL would sit in the task list, the database and the log
+	// in plain text. The link is refused before any of them sees it, and the
+	// refusal is listed with the password masked, so the link does not just
+	// vanish.
+	const link = "ftp://alice:hunter2@127.0.0.1:1/pub/sample.iso"
+	var logged bytes.Buffer
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+
+	fromContainer := func(a *App) []*core.Task {
+		return a.AddResolvedLinksFrom([]resolver.Result{{DirectURL: link}}, "", OriginContainer)
 	}
-	if !strings.Contains(created[0].Error, "store it under Accounts") {
-		t.Errorf("error = %q, want it to point at the account store", created[0].Error)
+	for _, tc := range []struct {
+		name   string
+		filter bool
+		add    func(a *App) []*core.Task
+	}{
+		{"pasted", false, func(a *App) []*core.Task { return a.AddLinks([]string{link}, "") }},
+		{"from a container", false, fromContainer},
+		{"turned down by the link filter", true, fromContainer},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a, _ := newRuleApp(t, func(s *settings.Settings, _ string) {
+				if tc.filter {
+					s.LinkFilter = rejectRule("sample files are not wanted here")
+				}
+			})
+			if created := tc.add(a); len(created) != 0 {
+				t.Fatalf("staged %d tasks, want the link refused", len(created))
+			}
+			stored, err := a.Store.All()
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(stored) != 0 {
+				t.Errorf("the store holds %q, want nothing", stored[0].URL)
+			}
+			skipped := a.SkippedLinks()
+			if len(skipped) != 1 {
+				t.Fatalf("%d refusals listed, want the one", len(skipped))
+			}
+			if !strings.Contains(skipped[0].Reason, "store it under Accounts") {
+				t.Errorf("reason = %q, want it to point at the account store", skipped[0].Reason)
+			}
+			if strings.Contains(skipped[0].URL, "hunter2") {
+				t.Errorf("the refusal shows the password: %q", skipped[0].URL)
+			}
+		})
+	}
+	if strings.Contains(logged.String(), "hunter2") {
+		t.Errorf("the log holds the password:\n%s", logged.String())
+	}
+}
+
+// After a restart the backend knows nothing of a paused download, so removing
+// the row with its files has to find the part file from the task alone, and
+// only that task's: another download of the same name keeps its own.
+func TestRemovingAPausedRemoteDownloadWithFilesDeletesItsPartFileAfterARestart(t *testing.T) {
+	a := newCrawlApp(t, true)
+	dir := t.TempDir()
+	a.mu.Lock()
+	for id, link := range map[string]string{"1": "ftp://127.0.0.1:1/pub/film.mkv", "2": "ftp://127.0.0.1:1/pub/other/film.mkv"} {
+		a.tasks[id] = &core.Task{
+			ID: id, URL: link, Name: "film.mkv", Resolver: remotefs.ResolverID, Dir: dir,
+			Status: core.StatusPaused, Enabled: true, Size: 4096, Loaded: 1024,
+		}
+	}
+	a.mu.Unlock()
+	mine, theirs := reclaim.PartPath(dir, "film.mkv", "1"), reclaim.PartPath(dir, "film.mkv", "2")
+	for _, p := range []string{mine, theirs} {
+		if err := os.WriteFile(p, make([]byte, 1024), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	a.Remove("1", true)
+
+	if _, err := os.Stat(mine); !os.IsNotExist(err) {
+		t.Error("the removed download's part file is still there")
+	}
+	if _, err := os.Stat(theirs); err != nil {
+		t.Errorf("the other download of the same name lost its part file: %v", err)
+	}
+}
+
+// pausedRemoteTask is a paused FTP download in the download folder as a
+// restart finds it: the backend has never heard of it, and its part file holds
+// what it had fetched.
+func pausedRemoteTask(t *testing.T, a *App, id, name string) (part string) {
+	t.Helper()
+	link := "ftp://127.0.0.1:1/pub/film.mkv"
+	a.mu.Lock()
+	dir := a.defaultDir()
+	a.tasks[id] = &core.Task{
+		ID: id, URL: link, Name: name, Resolver: remotefs.ResolverID, Dir: dir,
+		Status: core.StatusPaused, Enabled: true, Size: 4096, Loaded: 1024,
+	}
+	a.mu.Unlock()
+	part = remotefs.PartFile(dir, link, id)
+	if err := os.WriteFile(part, make([]byte, 1024), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	return part
+}
+
+func orphansOf(t *testing.T, a *App) []reclaim.Orphan {
+	t.Helper()
+	rep, err := a.Reclaim()
+	if err != nil {
+		t.Fatal(err)
+	}
+	return rep.Orphans
+}
+
+// A remove without files is the one an undo can take back, so the part file
+// stays for the row to resume from, and until then nothing claims it.
+func TestAPlainRemoveOfAPausedRemoteDownloadKeepsItsPartFileForAnUndo(t *testing.T) {
+	a := newCrawlApp(t, true)
+	part := pausedRemoteTask(t, a, "1", "film.mkv")
+
+	removed, token := a.RemoveTasksUndoable([]string{"1"}, false)
+	if len(removed) != 1 || token == "" {
+		t.Fatalf("removed %v with token %q, want the row and a way back", removed, token)
+	}
+	if _, err := os.Stat(part); err != nil {
+		t.Fatalf("a remove without files deleted the part file: %v", err)
+	}
+	if got := orphansOf(t, a); len(got) != 1 || got[0].Path != part {
+		t.Errorf("orphans = %+v, want the part file no row claims any more", got)
+	}
+
+	if back := a.UndoRemove(token); len(back) != 1 {
+		t.Fatalf("undo brought back %v", back)
+	}
+	if got := liveTask(a, "1"); got.Loaded != 1024 {
+		t.Errorf("loaded = %d after the undo, want the 1024 bytes in the part file", got.Loaded)
+	}
+	if got := orphansOf(t, a); len(got) != 0 {
+		t.Errorf("orphans = %+v after the undo, want none", got)
+	}
+}
+
+// The part file is named from the link, and a rename of the paused row leaves
+// it where it is.
+func TestTheRenamedRemoteDownloadsPartFileIsNotAnOrphan(t *testing.T) {
+	a := newCrawlApp(t, true)
+	pausedRemoteTask(t, a, "1", "renamed.mkv")
+
+	if got := orphansOf(t, a); len(got) != 0 {
+		t.Errorf("orphans = %+v, want the paused row's part file claimed", got)
+	}
+}
+
+// A new remote-server backend would know none of the running transfers, so a
+// pause would miss them and a resume would start a second one.
+func TestSavingAnAccountKeepsTheBackendTheRemoteTransfersRunOn(t *testing.T) {
+	a := newCrawlApp(t, true)
+	before := a.backendFor(remotefs.ResolverID)
+	if err := a.SetAccountCredential(remotefs.ResolverID, "ftp.example.org", accounts.Credential{
+		Username: "me", Password: "pw",
+	}); err != nil {
+		t.Fatal(err)
+	}
+	if after := a.backendFor(remotefs.ResolverID); after != before {
+		t.Error("saving an account replaced the backend the remote transfers run on")
+	}
+}
+
+// A server login names only the host, not whether it speaks FTP, SFTP or
+// WebDAV, so there is nothing to test it against before a download. Testing
+// it must say so and leave the account in service.
+func TestTestingAServerLoginLeavesTheAccountInService(t *testing.T) {
+	a := newCrawlApp(t, true)
+	const host = "ftp.example.org"
+	if err := a.SetAccountCredential(remotefs.ResolverID, host, accounts.Credential{
+		Username: "me", Password: "pw",
+	}); err != nil {
+		t.Fatal(err)
+	}
+
+	st := a.TestAccount(remotefs.ResolverID, host)
+
+	if strings.Contains(st.Detail, "incomplete") {
+		t.Errorf("detail = %q, but the login is complete", st.Detail)
+	}
+	if !a.acctHealthTracker().Usable(remotefs.ResolverID, host) {
+		t.Error("testing the login benched the account")
 	}
 }

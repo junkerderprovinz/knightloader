@@ -1,8 +1,8 @@
 # Marks on the download buttons
 
 The path data `../gen_download_buttons.py` draws into the README's download
-buttons. `<name>.txt` is the `d` attribute of the mark's single path,
-`<name>.box.txt` the viewBox it was drawn in, which is what lets the generator
+buttons. `<name>.txt` holds the `d` attribute of each of the mark's paths, one
+per line, and `<name>.box.txt` the viewBox it was drawn in, which is what lets the generator
 scale marks of different widths to one optical size.
 
 ## Source and licence
@@ -22,6 +22,9 @@ Unraid, its `unraid.svg` with the gradient left out, since the button draws it
 in one ink. **Apache-2.0**, whose licence text is beside this file as
 `LICENSE-dashboard-icons.txt`. Copyright the Homarr Labs team and contributors.
 
+ParleyPort's mark is its own logo, from
+<https://github.com/junkerderprovinz/parleyport>, one path per shape.
+
 ## Trademarks
 
 Every platform mark here is a trademark of its owner. They are used the one way a
@@ -34,6 +37,5 @@ the source archive and the manual.
 ## Adding one
 
 Take the SVG, keep its `viewBox` verbatim in `<name>.box.txt`, and put the `d`
-attribute of its single path in `<name>.txt`. A mark needing more than one path
-needs a change to the generator's template as well, because these buttons draw
-their marks in one ink.
+attribute of each path on a line of its own in `<name>.txt`, a `rect` written as
+a path. The button draws every path in one ink, so the mark's colours are lost.

@@ -10,10 +10,11 @@ import { Tip } from './columns';
 import { IconRetry, IconTrash } from '../lib/icons';
 
 /**
- * FilteredLinks is the holding area for links a filter rule refused and
- * torrents that announce a banned tracker, kept out of the collector list so a
- * working filter does not look like junk. Restore puts a link back past what
- * held it. There is no accent, since a held link is not activity.
+ * FilteredLinks is the holding area for links a filter rule refused, torrents
+ * that announce a banned tracker and links the download history already has,
+ * kept out of the collector list so a working filter does not look like junk.
+ * Restore puts a link back past what held it. There is no accent, since a held
+ * link is not activity.
  *
  * `held` comes from the page's task stream; the component opens no socket.
  */
@@ -84,8 +85,8 @@ export function FilteredLinks({ held }: { held: Task[] }) {
           return (
             <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
               {/* The rule first, since it is what gets edited. */}
-              <Tip tip={ruleOf(h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
-                {ruleOf(h) || t('settings.torrents.bannedTrackers')}
+              <Tip tip={heldBy(t, h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
+                {heldBy(t, h)}
               </Tip>
               <Tip tip={reason} className="max-w-[30%] shrink-0 truncate text-carbon-textSub">
                 {reason}
@@ -114,12 +115,13 @@ export function FilteredLinks({ held }: { held: Task[] }) {
   );
 }
 
-// ruleOf names the rule that caught the link. The engine records one today,
-// but the field is a list. Every filter verdict names its rule, an unnamed one
-// by its position, so a hold that names none comes from the banned trackers on
-// the Torrents page, the one other thing that holds a link back.
-function ruleOf(h: Task): string {
-  return (h.matchedRules ?? []).join(', ');
+// heldBy names what caught the link: the download history, or the filter rule.
+// The engine records one rule today, but the field is a list. Every filter
+// verdict names its rule, an unnamed one by its position, so a hold that names
+// none comes from the banned trackers on the Torrents page.
+function heldBy(t: ReturnType<typeof useT>['t'], h: Task): string {
+  if (h.skipCode === 'downloaded') return t('collector.filtered.byHistory');
+  return (h.matchedRules ?? []).join(', ') || t('settings.torrents.bannedTrackers');
 }
 
 const restoreFiltered = (ids: string[]) =>

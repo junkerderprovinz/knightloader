@@ -1,0 +1,1 @@
+Die App sendet nichts mehr unverschlüsselt und koppelt sich beim Scannen des QR-Codes auch über das eigene Relay einer Instanz.

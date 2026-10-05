@@ -143,8 +143,8 @@ type NZB struct {
 // AddNZB queues an NZB for the first account that takes it. It fails with
 // usenet.ErrNoService when no account can take one.
 func (a *App) AddNZB(n NZB) (usenet.Job, error) {
-	name := strings.TrimSpace(n.Name)
-	pkg := strings.TrimSpace(n.Package)
+	name := oneLine(n.Name)
+	pkg := oneLine(n.Package)
 	if pkg == "" {
 		pkg = name
 	}
@@ -156,6 +156,18 @@ func (a *App) AddNZB(n NZB) (usenet.Job, error) {
 		Origin:   string(n.Origin),
 		Start:    n.Start,
 	}, n.Data)
+}
+
+// oneLine turns control characters into spaces. An .nzb's name comes from an
+// upload's filename*, which can decode to line breaks, and it ends up in the
+// log and the package.
+func oneLine(s string) string {
+	return strings.TrimSpace(strings.Map(func(r rune) rune {
+		if r < 32 || r == 127 {
+			return ' '
+		}
+		return r
+	}, s))
 }
 
 // UsenetJob returns one NZB as it stands.

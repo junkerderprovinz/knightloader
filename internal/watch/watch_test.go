@@ -243,6 +243,25 @@ func TestParseTextSkipsBlanksAndComments(t *testing.T) {
 	}
 }
 
+// If this fails, a link written into a sentence is fetched with the
+// punctuation around it, or not found at all, where the paste box takes it.
+func TestParseTextLeavesTheProseAroundALink(t *testing.T) {
+	const body = "mirror: sftp://files.example/pub/a.png.\n" +
+		"(https://example.com/b.zip)\n" +
+		"https://example.com/c, https://example.com/d\n"
+
+	job := only(t, mustParse(t, "links.txt", body))
+	want := []string{
+		"sftp://files.example/pub/a.png",
+		"https://example.com/b.zip",
+		"https://example.com/c",
+		"https://example.com/d",
+	}
+	if strings.Join(job.URLs, " ") != strings.Join(want, " ") {
+		t.Fatalf("URLs = %q, want %q", job.URLs, want)
+	}
+}
+
 // If this fails, junk in the drop folder is turned into empty downloads instead
 // of being reported as unusable.
 func TestParseRejectsUnusableFiles(t *testing.T) {

@@ -23,9 +23,17 @@ import (
 type slowOrigin struct {
 	srv  *httptest.Server
 	data []byte
+	// whole has it send all of the file whatever was asked, as a server
+	// without ranges does.
+	whole atomic.Bool
+	// picky has it hang up on any agent but KnightLoader's, and status
+	// answers every request with that code instead of the file.
+	picky  atomic.Bool
+	status atomic.Int32
 
 	mu     sync.Mutex
 	ranges []string
+	agents []string
 }
 
 func newSlowOrigin(t *testing.T, size int) *slowOrigin {
@@ -35,9 +43,18 @@ func newSlowOrigin(t *testing.T, size int) *slowOrigin {
 	o.srv = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		o.mu.Lock()
 		o.ranges = append(o.ranges, r.Header.Get("Range"))
+		o.agents = append(o.agents, r.UserAgent())
 		o.mu.Unlock()
+		if o.picky.Load() && !strings.HasPrefix(r.UserAgent(), "KnightLoader/") {
+			panic(http.ErrAbortHandler)
+		}
+		if code := o.status.Load(); code != 0 {
+			http.Error(w, http.StatusText(int(code)), int(code))
+			return
+		}
 		lo, hi := 0, len(o.data)-1
-		if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok {
+		ranged := !o.whole.Load()
+		if rg, ok := strings.CutPrefix(r.Header.Get("Range"), "bytes="); ok && ranged {
 			from, to, _ := strings.Cut(rg, "-")
 			lo, _ = strconv.Atoi(from)
 			if to != "" {
@@ -45,9 +62,11 @@ func newSlowOrigin(t *testing.T, size int) *slowOrigin {
 			}
 			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", lo, hi, len(o.data)))
 		}
-		w.Header().Set("Accept-Ranges", "bytes")
+		if ranged {
+			w.Header().Set("Accept-Ranges", "bytes")
+		}
 		w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
-		if r.Header.Get("Range") != "" {
+		if r.Header.Get("Range") != "" && ranged {
 			w.WriteHeader(http.StatusPartialContent)
 		}
 		for off := lo; off <= hi; off += 32 << 10 {

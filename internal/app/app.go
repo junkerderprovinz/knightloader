@@ -49,6 +49,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -213,6 +214,10 @@ type App struct {
 
 	jd    backend // headless-JD backend, nil unless KL_JD is set and reachable
 	ytdlp backend // yt-dlp media backend, nil unless the yt-dlp binary is present
+	// ytdlpRuns is the one yt-dlp backend, which ytdlp is while the binary
+	// runs. Every rewire keeps it, since the downloads it started are paused
+	// and removed through it.
+	ytdlpRuns *ytdlp.Backend
 	// torbox is the default TorBox account's backend, nil unless configured.
 	// Every TorBox account is also in debrid under its slot id, which
 	// backendFor reads first, so this only answers for a task recorded as the
@@ -224,8 +229,9 @@ type App struct {
 	debrid map[string]backend
 	// remotefs fetches ftp, ftps and sftp links and hands WebDAV ones to the
 	// engine. It is never nil after rewireBackends, since an anonymous FTP
-	// archive needs no credential or binary.
-	remotefs backend
+	// archive needs no credential or binary, and a rewire keeps the same one
+	// so its running transfers stay within reach of Pause and Remove.
+	remotefs *remotefs.Backend
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
@@ -309,6 +315,9 @@ type App struct {
 	// dupes answers "is this link already in the list". It is not safe for
 	// concurrent use, so every call to it happens under mu.
 	dupes *dedupe.Set
+	// downloaded is the download history as a mirror set (see
+	// app_downloaded.go). It has a lock of its own.
+	downloaded downloadedIndex
 	// picker chooses which configured connection carries a download. It is
 	// rebuilt on every settings save, which also settles the bans against the
 	// new rows (see proxycfg.NewPicker). Nil means this machine's own address.
@@ -349,6 +358,13 @@ type App struct {
 	placing    map[string]int
 	handing    map[string]int
 	handed     *sync.Cond
+	// movedFiles holds the finished downloads whose file the app moved off the
+	// path their backend recorded: renamed, delivered, or moved with their
+	// package's folder. Another download may land on that path, so their
+	// backend does not delete files by that record (see removeTask). Memory
+	// only, since the backends forget the record on a restart. Built on first
+	// use.
+	movedFiles map[string]bool
 	// startNow holds the links "Start now" was pressed for, until their
 	// download ends or somebody pauses, resumes or removes them. They alone
 	// leave a stopped queue, as a forced start does in JDownloader. Forced
@@ -448,7 +464,7 @@ func New(dataDir string) (*App, error) {
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
-	eng, err := engine.New(filepath.Join(dataDir, "downloads"), a.engineUpdate)
+	eng, err := engine.Open(filepath.Join(dataDir, "downloads"), filepath.Join(dataDir, "transfers"), a.engineUpdate)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -599,6 +615,11 @@ func New(dataDir string) (*App, error) {
 			a.dupes.Add(linkEntry(t))
 		}
 	}
+	stored := make(map[string]bool, len(existing))
+	for _, t := range existing {
+		stored[t.ID] = true
+	}
+	a.Engine.PruneRestored(func(id string) bool { return stored[id] })
 	// Written back so the store and the retention sweep agree. Nothing is
 	// broadcast; no client can be connected yet.
 	for i := range revived {

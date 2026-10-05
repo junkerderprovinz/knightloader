@@ -1009,8 +1009,8 @@ func TestAnAnswerInTheWindowBeatsASolverAtWork(t *testing.T) {
 	viewer := addViewer(t, a)
 	jd := answeringTo(a)
 	s := &fakeSolver{text: "token", during: func() {
-		if ok, err := a.AnswerCaptcha(context.Background(), "w1", "by hand"); !ok || err != nil {
-			t.Errorf("the answer in the window came back %v, %v, want still valid", ok, err)
+		if res, err := a.AnswerCaptcha(context.Background(), "w1", "by hand"); !res.StillValid || err != nil {
+			t.Errorf("the answer in the window came back %v, %v, want still valid", res.StillValid, err)
 		}
 	}}
 

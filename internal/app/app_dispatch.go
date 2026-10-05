@@ -932,7 +932,7 @@ func (a *App) dispatchLocked() {
 		// What an earlier attempt of this task left. The library would find it
 		// under the task's name and write this attempt beside it as
 		// "name (1).ext", once per restart, so it goes before the backend
-		// starts.
+		// starts, unless the engine carries on writing it.
 		own := a.ownFileLocked(t)
 		// A torrent takes up the place its earlier attempt had, which is no
 		// collision for that torrent.
@@ -1002,7 +1002,9 @@ func (a *App) dispatchLocked() {
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)
-				own.drop(id)
+				if !a.Engine.Resumes(id, own.path) {
+					own.drop(id)
+				}
 				a.Engine.Start(job)
 			}()
 		} else {
@@ -1012,7 +1014,9 @@ func (a *App) dispatchLocked() {
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)
-				own.drop(id)
+				if !a.Engine.Resumes(id, own.path) {
+					own.drop(id)
+				}
 				be.Download(id, result.DirectURL, result.Headers, conns)
 			}()
 		}
@@ -1258,17 +1262,26 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// The dispatcher decides what is running. A non-terminal update for a task
 	// that is not active is stale: JD's poller keeps reporting "running" for a
-	// moment after a pause. Done and error are facts about the file and always
-	// apply.
-	stale := u.Status != core.StatusDone && u.Status != core.StatusError && !a.active[id]
+	// moment after a pause. So is one that comes in while the app closes, when
+	// the engine pauses every transfer; saved, that pause would keep the task
+	// from coming back to the queue. Done and error are facts about the file
+	// and always apply.
+	a.closeMu.Lock()
+	closing := a.closing
+	a.closeMu.Unlock()
+	stale := u.Status != core.StatusDone && u.Status != core.StatusError && (!a.active[id] || closing)
 	if u.Name != "" {
 		t.Name = u.Name
 	}
-	if u.Size > 0 {
+	sizeLearned := u.Size > 0 && u.Size != t.Size
+	if sizeLearned {
 		t.Size = u.Size
 	}
-	// A fact about the disk, so a stale update still counts.
+	// Facts about the disk, so a stale update still counts.
 	a.recordFileLocked(t, u.File)
+	if u.WorkFile != "" && !slices.Contains(t.WorkFiles, u.WorkFile) {
+		t.WorkFiles = append(t.WorkFiles, u.WorkFile)
+	}
 	if u.MagnetFiles != nil {
 		t.MagnetFiles = u.MagnetFiles
 	}
@@ -1381,10 +1394,16 @@ func (a *App) onUpdate(id string, u core.Update) {
 	var hitStopMark bool
 	if u.Status == core.StatusDone {
 		t.Online = core.AvailOnline
+		// A link check that answered while the download ran can have left a
+		// reason the finished file disproves.
+		t.ClearFailure()
 		t.Retries = 0
 		t.NextTry = time.Time{}
 		t.MaxTries = 0
 		t.StallRestarts = 0
+		// yt-dlp has cleared away what it merged, and the finished file is
+		// File. A subtitle row of several languages has more than one.
+		t.WorkFiles = u.OtherFiles
 		// Renamed before anything below builds a path from t.Name.
 		_ = a.renameFinishedLocked(t)
 		if a.stopMark == id {
@@ -1475,6 +1494,11 @@ func (a *App) onUpdate(id string, u core.Update) {
 		// This failure's retry plan for this host (see settings.RetryFor).
 		plan := cfg.RetryFor(string(t.Reason), hostOf(t.URL))
 		switch {
+		case t.ErrorCode == core.CodeFileExists:
+			// The collision policy refused the file, as the dispatch skip
+			// does, and a retry would only ask it again or, after a switch
+			// to rename, place the file after all.
+			t.NextTry = time.Time{}
 		case plan.Never:
 			// Configured never to retry: GaveUp marks a decision rather than
 			// an exhausted counter.
@@ -1561,9 +1585,10 @@ func (a *App) onUpdate(id string, u core.Update) {
 	// An empty status is a torrent's periodic seeding poll. It is broadcast
 	// for the live peer counts but not saved, and must not fire task scripts
 	// on every poll. A debrid job is saved with or without one, and so are the
-	// start and end of seeding, a torrent's file list, and now and then its
-	// upload figures, which a crash would otherwise take with it.
-	if u.Status != "" || u.Job != nil || seedingEnded || seedingBegan || seedFigures || filesKnown {
+	// start and end of seeding, a torrent's file list, a new size (a collected
+	// link's HEAD probe sends nothing else), and now and then its upload
+	// figures, which a crash would otherwise take with it.
+	if u.Status != "" || u.Job != nil || seedingEnded || seedingBegan || seedFigures || filesKnown || sizeLearned {
 		a.publish(&c)
 	} else {
 		a.show(&c)

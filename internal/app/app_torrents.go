@@ -32,9 +32,9 @@ import (
 // the file rules choose when the torrent starts, by the category it is filed
 // in by then, the way a magnet's are.
 //
-// It returns the staged task, or the held task when the filter or a banned
-// tracker parked it (Task.Skipped), or nil when the mirror set folded it into
-// one already listed.
+// It returns the staged task, or the held task when the filter, a banned
+// tracker or the download history parked it (Task.Skipped), or nil when the
+// mirror set folded it into one already listed.
 // The error is ErrNoFileSelected for a file list with nothing ticked, which
 // the library would read as the whole torrent.
 func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origin core.Origin) (*core.Task, error) {
@@ -94,6 +94,9 @@ func (a *App) AddTorrent(uri string, files []core.TorrentFile, pkg string, origi
 	v := a.filter(cand)
 	if !v.Rejected {
 		v = trackerBan(t, a.Settings.Get().Torrent)
+	}
+	if !v.Rejected {
+		v = a.downloadedVerdict(cand)
 	}
 	if v.Rejected {
 		return a.hold(cand, v, intake{origin: origin}, now, files), nil

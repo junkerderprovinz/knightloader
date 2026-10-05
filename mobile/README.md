@@ -43,8 +43,11 @@ beside them. Every instance in the group then appears at once and is saved as
 a connection of its own, with no address and no token to look up. The overview
 is the list of those connections, and the app switches between them.
 
-A connection saved by address in an earlier build keeps working, but the app
-no longer makes one. Those builds took the server's address and an API token
+A connection saved by address in an earlier build keeps working if the address
+is `https://`, but the app no longer makes one. One saved with an `http://`
+address cannot work, because the app permits no cleartext traffic; its card
+says it has to be added again with the twelve words. Those builds took the
+server's address and an API token
 from the web UI's Access tab (`POST /api/tokens`, see
 `internal/api/routes_tokens.go`). The app only uses Read, Add and Control, so a
 Custom token with those three was enough. Such a connection sends its token as
@@ -60,10 +63,13 @@ address holds its token.
 The phone joins the group as a member rather than as a client of one instance,
 so it needs no network path to any of them. The words are decoded on the
 phone (`src/api/seedphrase.ts`), which derives the same group key the
-instances derive, and the app dials the same relay they dial. The relay's
-address is compiled in, which is what keeps a phrase to twelve words instead
-of a URL plus a key; a group on a self-hosted relay is the one case that still
-wants the address typed, and is not wired up here yet.
+instances derive, and the app dials the same relay they dial. The default
+relay's address is compiled in (`DEFAULT_RELAY_URL`), which is what keeps a
+phrase to twelve words instead of a URL plus a key. A group on a self-hosted
+relay reaches the app through the QR code: an instance on its own relay puts
+that relay's address on a second line under the words (`relay.PairingCode`),
+and `src/api/pairingCode.ts` reads it back and takes it only at a `wss://`
+address. Typed words always pair on the default relay.
 
 From there a relay connection behaves like one saved by address: the same
 screens, the same calls. `src/api/client.ts`'s `request()` is the only place
@@ -320,27 +326,20 @@ registers its push token.
   from there, never from `react-native`; `check-house-font.mjs` fails if one
   does not.
 
-## Why the app allows cleartext HTTP
+## No cleartext traffic
 
-`app.json` sets `expo-build-properties`' `android.usesCleartextTraffic: true`,
-and it has to. Android disables cleartext HTTP by default for any app whose
-`targetSdk` is 28 or higher (this one targets 36), and the ordinary
-KnightLoader install is a container on the LAN answering plain
-`http://192.168.x.x:8749`, and `cmd/knightloader/main.go` serves HTTP and
-terminates no TLS of its own. Without this flag a release build cannot reach
-the most common setup at all, and fails with a transport error that names
-nothing.
+Android refuses plain HTTP to an app whose `targetSdk` is 28 or higher (this
+one targets 36), and `app.json` leaves it at that. Everything the app opens
+goes to a relay over `wss://`: the default relay, or the one an instance's QR
+code names, which `src/api/pairingCode.ts` refuses unless it is `wss://`.
+Debug builds allow cleartext anyway, because Expo turns it on for the dev
+server, so only a release build shows what is blocked.
 
-It was missing until 2026-08-25 and the first release APKs shipped with it
-missing, so a plain-HTTP LAN address simply could not connect. Note that debug
-builds hide this: Expo adds the flag itself for the dev server, so the failure
-only ever appears in a release build.
-
-A per-domain `networkSecurityConfig` would be narrower, but Android matches it
-by domain and has no CIDR form, so there is no way to express "permit cleartext
-to private address ranges only". The choice is all or nothing, and for a tool
-whose whole job is talking to a self-hosted box on your own network, nothing is
-the wrong half. HTTPS is still used whenever the address is `https://`.
+The one thing left that would need HTTP is a connection saved by address in a
+build before 1.5.0, when the app still reached a LAN address such as
+`http://192.168.x.x:8749` directly. `needsAddingAgain` in `src/api/types.ts`
+marks such a connection, and `request()` refuses it with a sentence that asks
+for the twelve words rather than a transport error that names nothing.
 
 ## App icon
 
@@ -360,6 +359,10 @@ image is right, but Android's own masking still needs the extra padding on
 the exported foreground layer specifically, a different requirement than the
 plain `icon.png`/`favicon.png` a square source is otherwise already correct
 for.
+
+The logo is the author's own drawing and falls under the repository's licence,
+AGPL-3.0-only, like the code. The KnightLoader name and logo remain the author's
+trademarks, so a fork needs a name and logo of its own.
 
 ## Running it
 

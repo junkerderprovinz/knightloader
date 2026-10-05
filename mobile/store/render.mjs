@@ -6,11 +6,16 @@
 // The captures are plain screenshots of the app in dark mode, 1080x1920, with
 // the status bar in demo mode. Name them after the SHOTS below.
 //
+// `node store/render.mjs readme` builds the README's pictures instead, in
+// .github/assets/screenshots: the call for Android testers at 1920x640, two
+// phones beside a button-shaped call, and android.png at 1920x1000, three
+// phones in front of a wall of the services KnightLoader downloads through.
+//
 // Every page is rendered at twice the size and scaled down in a second page,
 // which keeps the text sharp through the phone's tilt.
 //
 // Deps (global): playwright-core with its Chromium installed.
-// Run from mobile/: `node store/render.mjs`
+// Run from mobile/: `node store/render.mjs [readme]`
 import { execSync } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
@@ -23,8 +28,9 @@ const { chromium } = require(`${execSync('npm root -g').toString().trim()}/playw
 
 const here = dirname(fileURLToPath(import.meta.url));
 const mobile = dirname(here);
+const root = dirname(mobile);
 // F-Droid reads the store texts only from fastlane/ at the repository root.
-const metadata = join(dirname(mobile), 'fastlane', 'metadata', 'android');
+const metadata = join(root, 'fastlane', 'metadata', 'android');
 
 const CAPTIONS = {
   'de-DE': {
@@ -61,6 +67,64 @@ const SHOTS = [
 // for its rounded corners.
 const STATUS_H = 63;
 
+// The wall behind the README's Android picture: the services KnightLoader
+// downloads through, row by row, best known first. Every second row is shifted
+// right, and the wall fades out to the right, so the lesser names go last.
+// `icon` is a logo in scripts/screenshots/fixtures/icons, or with `mark` one
+// the web UI ships in web/src/assets/marks; `plate` sets a dark mark on white.
+const WALL = [
+  [
+    { name: 'Real-Debrid', sub: 'Debrid', icon: 'real-debrid.com.svg' },
+    { name: 'AllDebrid', icon: 'alldebrid.com.png' },
+    { name: 'TorBox', icon: 'torbox.app.png' },
+    { name: 'Premiumize.me', icon: 'premiumize.me.svg' },
+  ],
+  [
+    { name: 'yt-dlp', sub: 'Video sites', icon: 'yt-dlp.svg' },
+    { name: 'Debrid-Link', icon: 'debrid-link.com.png' },
+    { name: 'Offcloud', icon: 'offcloud.com.png' },
+    { name: 'Linksnappy', icon: 'linksnappy.com.png' },
+  ],
+  [
+    { name: 'JDownloader', sub: 'Hoster plugins', icon: 'jdownloader.png' },
+    { name: 'Sonarr', sub: 'Download client', icon: 'sonarr.svg' },
+    { name: 'Radarr', icon: 'radarr.svg' },
+    { name: 'YouTube', icon: 'youtube.com.svg' },
+  ],
+  [
+    { name: '2Captcha', sub: 'Captchas', icon: '2captcha.svg', mark: true },
+    { name: 'CoolDebrid', icon: 'cooldebrid.com.png' },
+    { name: 'MyDebrid', icon: 'mydebrid.com.png' },
+    { name: 'Deepbrid', icon: 'deepbrid.com.png' },
+  ],
+  [
+    { name: 'WebDAV', sub: 'Your own server', icon: 'webdav.png' },
+    { name: 'ProLeech', icon: 'proleech.link.png' },
+    { name: 'Anti-Captcha', icon: 'anticaptcha.png', mark: true },
+    { name: 'Mega-Debrid', icon: 'mega-debrid.eu.png' },
+  ],
+  [
+    { name: 'CapMonster', icon: 'capmonster.svg', mark: true },
+    { name: 'DebridItalia', icon: 'debriditalia.com.png' },
+    { name: 'FakirDebrid', icon: 'fakirdebrid.net.png' },
+    { name: 'NeoDebrid', icon: 'neodebrid.com.png' },
+  ],
+  [
+    { name: 'CapSolver', icon: 'capsolver.png', mark: true, plate: true },
+    { name: 'MultiUp', icon: 'multiup.io.png' },
+    { name: 'BestDebrid', icon: 'bestdebrid.com.png' },
+    { name: 'CocoLeech', icon: 'cocoleech.com.png' },
+  ],
+  [
+    { name: 'DeathByCaptcha', icon: 'deathbycaptcha.png', mark: true },
+    { name: 'RPNet', icon: 'rpnet.biz.png' },
+    { name: 'Zevera', icon: 'zevera.com.png' },
+    { name: '9kw.eu', icon: '9kw.png', mark: true, plate: true },
+  ],
+];
+const icons = join(root, 'scripts', 'screenshots', 'fixtures', 'icons');
+const marks = join(root, 'web', 'src', 'assets', 'marks');
+
 async function cached(file, url) {
   const path = join(tmpdir(), `KnightLoader-${file}`);
   if (!existsSync(path)) {
@@ -74,7 +138,7 @@ async function cached(file, url) {
 const dataUrl = (buf, type) => `data:${type};base64,${buf.toString('base64')}`;
 const bree = dataUrl(await cached('BreeSerif-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/breeserif/BreeSerif-Regular.ttf'), 'font/ttf');
 const lato = dataUrl(await cached('Lato-Regular.ttf', 'https://github.com/google/fonts/raw/main/ofl/lato/Lato-Regular.ttf'), 'font/ttf');
-const logo = dataUrl(readFileSync(join(mobile, '..', 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
+const logo = dataUrl(readFileSync(join(root, 'docs', 'assets', 'logo.svg')), 'image/svg+xml');
 
 const STYLE = `
 @font-face { font-family: "Bree Serif"; src: url(${bree}); }
@@ -186,11 +250,95 @@ ${phone(front, { x: 758, y: 40, sw: 220 })}
 </body></html>`;
 }
 
+/** The README's call for Android testers, in English like the README. */
+function testersShot(back, front) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
+body { width: 1920px; height: 640px; }
+.copy { position: absolute; left: 96px; top: 0; bottom: 0; width: 1060px; display: flex; flex-direction: column; justify-content: center; gap: 26px; }
+.head { display: flex; align-items: center; gap: 22px; }
+.head img { width: 64px; }
+.label { padding: 8px 18px; border-radius: 8px; background: #FCC419; color: #141414; font: 700 22px/1 Lato, sans-serif; letter-spacing: .12em; text-transform: uppercase; }
+h1 { font-size: 92px; line-height: 1.05; }
+.sub { font-size: 34px; line-height: 1.35; }
+.go { align-self: flex-start; margin-top: 8px; padding: 22px 40px; border-radius: 18px; background: #FCC419; color: #141414; font: 700 34px/1 Lato, sans-serif;
+  box-shadow: 0 0 0 6px rgba(252,196,25,.18), 0 18px 40px rgba(0,0,0,.5); }
+</style></head><body>
+${backdrop('40%', '58%', '-30%')}
+<div class="copy">
+  <div class="head"><img src="${logo}"><span class="label">Google Play closed test</span></div>
+  <h1>Android testers <em>wanted</em></h1>
+  <p class="sub">Keep KnightLoader installed for 14 days and help it go public.</p>
+  <span class="go">Become a tester &rarr;</span>
+</div>
+${phone(back, { x: 1290, y: 92, sw: 250 })}
+${phone(front, { x: 1530, y: 58, sw: 282 })}
+</body></html>`;
+}
+
+function tile({ name, sub, icon, mark, plate }) {
+  const type = icon.endsWith('.svg') ? 'image/svg+xml' : 'image/png';
+  const src = dataUrl(readFileSync(join(mark ? marks : icons, icon)), type);
+  return `<div class="tile"><img src="${src}"${plate ? ' class="plate"' : ''}><div class="name"><b data-fit>${name}</b>${sub ? `<small>${sub}</small>` : ''}</div></div>`;
+}
+
+// Twelve rows, each with the row half the wall further on beside it, wide
+// enough for a landscape picture. The last four repeat the first four two
+// tiles on, so a repeat does not stand right under the tile it repeats.
+const wallRows = () =>
+  Array.from({ length: 12 }, (_, r) => {
+    const row = [...WALL[r % WALL.length], ...WALL[(r + WALL.length / 2) % WALL.length]];
+    const turn = r < WALL.length ? 0 : 2;
+    return `<div class="row">${[...row.slice(turn), ...row.slice(0, turn)].map(tile).join('')}</div>`;
+  }).join('');
+
+/**
+ * The README's Android picture, as wide as the desktop and container ones:
+ * three phones in front of the wall, dimmed so the phones stay the subject.
+ */
+function androidShot(left, middle, right, lift) {
+  return `<!doctype html><html><head><meta charset="utf-8"><style>${STYLE}
+body { width: 1920px; height: 1000px; }
+.copy { position: absolute; left: 84px; top: 210px; width: 470px; display: flex; flex-direction: column; gap: 28px; }
+.copy img { width: 92px; }
+h1 { font-size: 64px; line-height: 1.12; }
+.sub { font-size: 28px; line-height: 1.35; }
+.wallstage { position: absolute; left: 560px; right: 0; top: 0; bottom: 0; perspective: 2400px; perspective-origin: 0 40%; opacity: .5;
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 14%, #000 82%, transparent 100%); }
+.fade { position: absolute; inset: 0; -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 12%, #000 86%, transparent 100%); }
+.plane { position: absolute; left: 20px; top: -20px; display: flex; flex-direction: column; gap: 23px;
+  transform-origin: 0 0; transform: rotateY(-16deg) rotateX(4deg) scale(.8); }
+.row { display: flex; gap: 23px; }
+.row:nth-child(even) { margin-left: 156px; }
+.tile { position: relative; flex: none; width: 288px; height: 84px; border-radius: 42px; background: #393939; color: #f4f4f4;
+  box-shadow: 0 2px 4px rgba(0,0,0,.3), 0 12px 26px rgba(0,0,0,.45); }
+.tile img { position: absolute; left: 34px; top: 19px; width: 46px; height: 46px; object-fit: contain; border-radius: 8px; }
+.tile img.plate { background: #fff; padding: 4px; }
+.tile .name { position: absolute; left: 98px; right: 18px; top: 0; bottom: 0; display: flex; flex-direction: column; justify-content: center; white-space: nowrap; overflow: hidden; }
+.tile b { font: 700 25px/1.2 Lato, sans-serif; }
+.tile small { font: 400 20px/1.4 Lato, sans-serif; opacity: .8; }
+</style></head><body>
+${backdrop('50%', '-9%', '-6%')}
+<div class="copy"><img src="${logo}"><h1>Every download in sight, <em>even from the couch</em></h1><p class="sub">KnightLoader for Android, with 20 debrid services, torrents, Usenet and video sites behind it</p></div>
+<div class="wallstage"><div class="fade"><div class="plane">${wallRows()}</div></div></div>
+${phone(left, { x: 640, y: 230, sw: 330 })}
+${phone(right, { x: 1490, y: 230, sw: 330 })}
+${phone(middle, { x: 1040, y: 150, sw: 380, lift })}
+</body></html>`;
+}
+
 /** Renders `html` at twice `width` x `height` and writes it scaled down to `file`. */
 async function render(browser, html, width, height, file) {
   const page = await browser.newPage({ viewport: { width, height }, deviceScaleFactor: 2 });
   await page.setContent(html);
   await page.evaluate(() => document.fonts.ready);
+  // A name too long for its tile shrinks until it fits.
+  await page.evaluate(() => {
+    for (const el of document.querySelectorAll('[data-fit]')) {
+      const room = el.parentElement.clientWidth;
+      let size = parseFloat(getComputedStyle(el).fontSize);
+      while (el.scrollWidth > room && size > 10) el.style.fontSize = `${--size}px`;
+    }
+  });
   const big = await page.screenshot();
   await page.close();
 
@@ -201,8 +349,17 @@ async function render(browser, html, width, height, file) {
   await small.close();
 }
 
-const browser = await chromium.launch();
-try {
+async function readme(browser) {
+  const out = join(root, '.github', 'assets', 'screenshots');
+  const capture = (name) => dataUrl(readFileSync(join(here, 'captures', 'en-US', `${name}.png`)), 'image/png');
+  await render(browser, testersShot(capture('connections'), capture('downloads')), 1920, 640, join(out, 'testers.png'));
+  console.log('wrote .github/assets/screenshots/testers.png');
+  const lift = SHOTS.find((s) => s.name === 'connections').lift;
+  await render(browser, androidShot(capture('add'), capture('connections'), capture('connect'), lift), 1920, 1000, join(out, 'android.png'));
+  console.log('wrote .github/assets/screenshots/android.png');
+}
+
+async function store(browser) {
   for (const [locale, text] of Object.entries(CAPTIONS)) {
     const capture = (name) => dataUrl(readFileSync(join(here, 'captures', locale, `${name}.png`)), 'image/png');
     const images = join(metadata, locale, 'images');
@@ -213,6 +370,11 @@ try {
     await render(browser, featureGraphic(capture('downloads'), capture('connections'), text.tagline), 1024, 500, join(images, 'featureGraphic.png'));
     console.log(`wrote ${locale}/images/featureGraphic.png`);
   }
+}
+
+const browser = await chromium.launch();
+try {
+  await (process.argv[2] === 'readme' ? readme : store)(browser);
 } finally {
   await browser.close();
 }

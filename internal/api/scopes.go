@@ -83,6 +83,8 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/captcha/{id}/unanswerable":       apitoken.ScopeRead,
 	"POST /api/captcha/{id}/unanswerable/phone":   apitoken.ScopeRead,
 	"DELETE /api/captcha/{id}/unanswerable/phone": apitoken.ScopeRead,
+	// A test captcha can go to the paid captcha accounts, which bill it.
+	"POST /api/captcha/test": apitoken.ScopeAdmin,
 
 	"GET /api/cleanup/{class}":             apitoken.ScopeRead,
 	"POST /api/cleanup/{class}":            apitoken.ScopeControl,
@@ -155,6 +157,11 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/idle-action/cancel": apitoken.ScopeControl,
 	"POST /api/idle-action/check":  apitoken.ScopeAdmin,
 	"POST /api/idle-action/run":    apitoken.ScopeAdmin,
+
+	// A JDownloader import reads a folder on this machine and writes
+	// accounts, rules and settings.
+	"POST /api/jdimport/apply": apitoken.ScopeAdmin,
+	"POST /api/jdimport/read":  apitoken.ScopeAdmin,
 
 	// Listing the peers is what a client needs to show their downloads.
 	"GET /api/instances":           apitoken.ScopeRead,

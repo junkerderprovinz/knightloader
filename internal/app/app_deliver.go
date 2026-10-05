@@ -135,8 +135,12 @@ func (a *App) recordDelivery(id, src, moved string, err error) {
 		a.mu.Unlock()
 		return
 	}
+	left := err == nil && !samePath(moved, src)
+	if left {
+		a.noteMovedLocked(id)
+	}
 	named, _ := namedBeside(t)
-	followed := err == nil && (samePath(t.File, src) || samePath(named, src)) && !samePath(moved, src)
+	followed := left && (samePath(t.File, src) || samePath(named, src))
 	if followed {
 		t.File = moved
 	}
