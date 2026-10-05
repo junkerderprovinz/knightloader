@@ -10,6 +10,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/download"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -110,6 +111,20 @@ func TestADownloadStartsOverCleanlyWhenTheServerStoppedSendingParts(t *testing.T
 	}
 	if left, _ := filepath.Glob(filepath.Join(dir, "*")); len(left) != 1 {
 		t.Errorf("the folder holds %v; the old file should have made way", left)
+	}
+}
+
+// A download carried on after a restart asks for the rest at once.
+func TestADownloadCarriedOnAfterARestartAsksForTheRestAtOnce(t *testing.T) {
+	t.Parallel()
+	o, j, _, asked, dir, state := pausedBeforeRestart(t, false)
+	e, _ := restarted(t, dir, state)
+	began := time.Now()
+	e.Start(j)
+	// The first request after the restart is the probe.
+	waitUntil(t, "a request for the rest", func() bool { return o.requests() > asked+1 })
+	if took := time.Since(began); took > 3*time.Second {
+		t.Errorf("the rest was asked for %v after the start", took.Round(time.Millisecond))
 	}
 }
 
