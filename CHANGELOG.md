@@ -54,7 +54,17 @@ release's tag.
   files it fetches, and a torrent without any gets no Play. A download that
   stopped halfway has to run again before it plays. On the phone this needs a
   direct connection to the instance, because a player app cannot go through
-  the relay.
+  the relay. Restarting KnightLoader no longer waits for a player that still
+  has a file open.
+
+### Fixed
+
+- **A download that is running when KnightLoader restarts carries on where it
+  stopped.** Only a download paused before a restart kept its place. One still
+  running started again from the first byte, or from where it was last
+  paused. KnightLoader now pauses running downloads as it shuts down and,
+  after the restart, picks them up from the bytes on disk, as long as the
+  server still sends the file in parts.
 
 ## [1.7.0] - 2026-10-04
 

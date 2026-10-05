@@ -151,6 +151,11 @@ func serveTaskFile(w http.ResponseWriter, r *http.Request, a *app.App, id string
 	if of.Live {
 		content = waitingReader{ctx: r.Context(), f: of.File, wait: streamWait}
 	}
+	// A paused player stops reading and leaves the connection open, so a
+	// write can block until the player goes on. Once the request is over,
+	// which a shutdown also makes it, that write gives up.
+	rc := http.NewResponseController(w)
+	defer context.AfterFunc(r.Context(), func() { _ = rc.SetWriteDeadline(time.Now()) })()
 	http.ServeContent(w, r, "", time.Time{}, content)
 }
 
