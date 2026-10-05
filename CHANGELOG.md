@@ -45,9 +45,9 @@ release's tag.
   phone hands it to a player app. KnightLoader then fetches that file in order
   from the point being played, with the beginning and the end first, since
   players look for a file's index there, while everything else downloads as
-  usual. For a torrent, the pieces just ahead of the player come first; a
-  direct download moves one of its connections to the part being played. The
-  player in a download's details can jump ahead now too. A jump waits until
+  usual. For a torrent, the pieces just ahead of the player come first, also
+  from a web seed; a direct download moves one of its connections to the part
+  being played. The player in a download's details can jump ahead now too. A jump waits until
   that part has arrived, for up to a minute and a half per read. Once playback
   stops or the file is complete, the download goes back to its usual order. In
   a torrent of several files, Play opens the largest video or song among the
