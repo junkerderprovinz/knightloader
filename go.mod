@@ -182,7 +182,8 @@ require (
 replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
-// after a torrent is dropped or added again, and closing the client sends the
-// stopped announces before it closes its tracker sockets.
+// after a torrent is dropped or added again, closing the client sends the
+// stopped announces before it closes its tracker sockets, and a web seed
+// fetches a piece that a reader is waiting for before the rest of its slice.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720

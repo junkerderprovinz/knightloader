@@ -188,4 +188,4 @@ replace github.com/junkerderprovinz/knightloader => ../
 replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695
 
 // The same anacrolix/torrent fork as the server module.
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720

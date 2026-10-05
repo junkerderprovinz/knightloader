@@ -92,6 +92,9 @@ type Engine struct {
 	pollOnce  sync.Once
 	// closed is set under mu by Close before wg.Wait runs; see Start.
 	closed bool
+	// keeping holds a channel for each transfer Close pauses to keep for the
+	// next start, by gopeed id, closed once the library has saved that pause.
+	keeping map[string]chan struct{}
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
@@ -332,6 +335,7 @@ func (e *Engine) Close() error {
 		e.mu.Unlock()
 		e.stop()
 		close(e.done)
+		e.keepRunning()
 		waited := make(chan struct{})
 		go func() {
 			e.wg.Wait()
@@ -349,6 +353,53 @@ func (e *Engine) Close() error {
 // closeGrace is how long Close waits for its own goroutines before shutting
 // the download library down anyway.
 const closeGrace = 10 * time.Second
+
+// keepRunning pauses every HTTP transfer still running and waits, for up to
+// keepWait, until the library has saved each pause, which writes the record
+// the next start carries on from (see resume.go). The library's own Close
+// pauses them as well, but saves those pauses after its store has closed.
+func (e *Engine) keepRunning() {
+	if e.layouts.kept == nil {
+		return
+	}
+	var gids []string
+	e.mu.Lock()
+	for taskID, gid := range e.toGopeed {
+		if !e.torrents[taskID] {
+			gids = append(gids, gid)
+		}
+	}
+	e.mu.Unlock()
+	if len(gids) == 0 {
+		return
+	}
+	running := e.d.GetTasksByFilter(&download.TaskFilter{IDs: gids, Statuses: []base.Status{base.DownloadStatusRunning}})
+	if len(running) == 0 {
+		return
+	}
+	waits := make(map[string]chan struct{}, len(running))
+	ids := make([]string, 0, len(running))
+	for _, t := range running {
+		waits[t.ID] = make(chan struct{})
+		ids = append(ids, t.ID)
+	}
+	e.mu.Lock()
+	e.keeping = waits
+	e.mu.Unlock()
+	_ = e.d.Pause(&download.TaskFilter{IDs: ids})
+	timeout := time.After(keepWait)
+	for _, saved := range waits {
+		select {
+		case <-saved:
+		case <-timeout:
+			return
+		}
+	}
+}
+
+// keepWait bounds how long Close waits for the pauses of keepRunning. A
+// container is killed ten seconds after it is asked to stop.
+const keepWait = 3 * time.Second
 
 // Download starts url into the engine's own folder, with no collision policy.
 // It is what the app's backend interface asks of every backend; the app
@@ -872,6 +923,17 @@ func (e *Engine) onEvent(ev *download.Event) {
 	}
 	if h := e.holds[taskID]; h != nil && ok && ev.Key == download.EventKeyPause {
 		own = closeOnce(h.paused)
+	}
+	// A transfer Close keeps is still running as far as the app knows, so it
+	// is taken up again after the restart.
+	if saved := e.keeping[ev.Task.ID]; saved != nil {
+		switch ev.Key {
+		case download.EventKeyPause:
+			closeOnce(saved)
+			own = true
+		case download.EventKeyDone, download.EventKeyError:
+			closeOnce(saved)
+		}
 	}
 	file := e.files[ev.Task.ID]
 	job := e.jobs[taskID]
