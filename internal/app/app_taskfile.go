@@ -73,14 +73,17 @@ func namedBeside(t *core.Task) (string, bool) {
 type leftover struct {
 	path string
 	size int64
+	// empty is a download that finished with nothing in it, the one case
+	// where an empty file is the task's own rather than one never written.
+	empty bool
 	// sidecars describe the file and go with it (see ytdlp.Sidecars).
 	sidecars []string
 }
 
 // ownFileLocked returns t's recorded file as a leftover it may delete, or the
-// zero value when another task recorded the same path. A sidecar another
-// task's file has as well, such as the .nfo the video and the audio row of one
-// link share, stays for that task. Caller holds a.mu.
+// zero value when another task recorded or writes the same path. A sidecar
+// another task's file has as well, such as the .nfo the video and the audio
+// row of one link share, stays for that task. Caller holds a.mu.
 func (a *App) ownFileLocked(t *core.Task) leftover {
 	if t.File == "" {
 		return leftover{}
@@ -90,7 +93,7 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 		if id == t.ID {
 			continue
 		}
-		if samePath(other.File, t.File) {
+		if samePath(other.File, t.File) || slices.ContainsFunc(other.WorkFiles, func(p string) bool { return samePath(p, t.File) }) {
 			return leftover{}
 		}
 		for _, s := range sidecarsOf(other) {
@@ -103,7 +106,7 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 	if size == 0 && t.Status == core.StatusDone {
 		size = t.Loaded
 	}
-	l := leftover{path: t.File, size: size}
+	l := leftover{path: t.File, size: size, empty: size == 0 && t.Status == core.StatusDone}
 	for _, s := range sidecarsOf(t) {
 		if !shared[filepath.Clean(s)] {
 			l.sidecars = append(l.sidecars, s)
@@ -144,7 +147,7 @@ func (a *App) usedByOther(id, path string) bool {
 // task was writing.
 func (l leftover) intact() bool {
 	fi, err := os.Lstat(l.path)
-	return err == nil && fi.Mode().IsRegular() && l.size > 0 && fi.Size() == l.size
+	return err == nil && fi.Mode().IsRegular() && (l.size > 0 || l.empty) && fi.Size() == l.size
 }
 
 // at reports whether path is this leftover, still intact.
