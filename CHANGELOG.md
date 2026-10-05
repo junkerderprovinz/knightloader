@@ -49,30 +49,58 @@ release's tag.
   because it helps only when a service caps one link or one connection, and
   every extra unlock uses that account's traffic.
 
-## [1.6.6] - 2026-10-02
-
-### Changed
-
-- **The Apps page follows the README's order.** The server or desktop app
-  comes first, then the phone app and the browser extension, with the
-  bookmarklet last, and the phone app's own list puts the server before the
-  desktop app.
-
-### Fixed
-
-- **Linksnappy fetches links under a hoster's other domains.** Linksnappy
-  names some hosters by a domain their links rarely use, such as mega.co.nz
-  for Mega and ddl.to for DDownload, and lists rg.to apart from Rapidgator.
-  KnightLoader matched only the names on the list, so a mega.nz, k2s.cc or
-  rg.to link looked like one no debrid account covers, and with premium only
-  switched on it waited for a premium account. Every debrid service now
-  matches a hoster by all the domains KnightLoader knows for it. KnightLoader
-  also logs in before it reads Linksnappy's list, as JDownloader does, and
-  leaves out a hoster the account cannot download from.
-
-## [1.6.5] - 2026-10-02
+## [1.7.0] - 2026-10-04
 
 ### Added
+
+- **The duplicate check knows the download history.** A link this instance
+  has already downloaded, whether the same URL or the same file under the
+  mirror policy, goes to the rejected links with the name and date of that
+  download, so a feed or a second paste no longer fetches a file twice.
+  Restore adds it anyway. The check is on by default and has a switch under
+  Settings > Link collector > Copies of the same file. A magnet is recognised
+  by its info hash, whatever name and trackers it carries, so it also matches
+  the same torrent downloaded earlier from a .torrent file, and the other way
+  round. The list matches them the same way, so a magnet and an uploaded
+  .torrent of one torrent no longer both stay in the collector, whichever was
+  added first. A link restored past the filter or a banned tracker is still
+  checked against the history, and a mirror of a link the history rejected
+  says so instead of claiming it is already in the list. Names are compared as
+  the files were saved, so a mirror whose name holds a colon or a control
+  character still counts.
+- **RSDF and CCF files open without JDownloader.** KnightLoader reads `.rsdf`
+  and `.ccf` (CCF 0.7 to 1.0, 3.0 and 5.0) itself, whether they are uploaded,
+  dropped on the page or left in the watched folder. Every program that reads
+  these formats has their keys built in, so nothing is borrowed. A file that
+  will not open here still goes to the JDownloader backend, and the log says
+  which of the two opened it. A `.dlc` goes to JDownloader as before, because
+  its key is only handed out to registered clients.
+- **A test captcha.** Settings, Captcha has a button that sends a captcha
+  KnightLoader draws itself. It arrives in the captcha window, the phone app
+  and at the event targets the way a hoster's captcha does, with the same
+  countdown, and the answer comes back as right or wrong. A second button,
+  shown while a captcha account is enabled with a key, sends it to the captcha
+  accounts as well, which charge for it. The first button never does.
+- **The Android app takes shared links.** KnightLoader appears in Android's
+  share sheet. A link or text shared from YouTube, a browser or any other app
+  goes to the collector of the instance you tap, and the title the app sent
+  names the package. A text file shared from a file manager is read for its
+  links, so a .txt with a list of links works too. If the file is empty or
+  KnightLoader can't read it, the app says so. You tap even with only one
+  instance paired, so no other app can send links to your server on its own.
+  Other files are not offered, because the relay does not forward container
+  and torrent uploads.
+- **Move over from JDownloader.** Settings, General has a card that reads a
+  JDownloader 2 cfg folder, uploaded as a zip or given as a path on the
+  server, and takes over the hoster and debrid accounts, the Packagizer and
+  link filter rules, the archive passwords, the download folder and the open
+  download list. A preview lists every item with a switch before anything is
+  written, and names what cannot come over and why: Real-Debrid and
+  Debrid-Link, for which JDownloader keeps no API key, rules that test
+  something KnightLoader rules cannot, finished links and links from a
+  protected container. The links wait in the collector and nothing starts.
+  JDownloader's folder is only read. See
+  [Moving over from JDownloader](docs/from-jdownloader.md).
 
 - **MyDebrid.** KnightLoader talks to MyDebrid itself, with the username and
   password of your MyDebrid account. It reads which hosters MyDebrid supports,
@@ -84,7 +112,52 @@ release's tag.
   can run yourself, next to Unraid, Docker and the source code, in the web
   interface and in the phone app. A click copies the command that starts it.
 
+- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
+  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
+  `.torrent` files in place of the built-in torrent client. Rank it above
+  "Built-in torrent client" on the Accounts page and it takes them; the files
+  then come here over HTTP, one at a time. With "Send only cached torrents to
+  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
+  the torrent cached. A torrent the account already has is fetched from there
+  and never deleted. Linksnappy has no list of your downloads to read, so there
+  is no import from that account.
+  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
+
+- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
+
 ### Changed
+
+- **The README shows each way to run KnightLoader in a picture of its own:**
+  the desktop app, the server in a browser, the Android app and the browser
+  extension, followed by the pages of the web interface.
+
+- **The store description names the default relay and the captcha widgets.**
+  It says that the developer runs parleyport.halleluja.design, that the app
+  follows a ParleyPort relay of your own when you scan the QR code, and that
+  answering a captcha loads reCAPTCHA, hCaptcha or Cloudflare Turnstile in a
+  web view.
+
+- **The phone app follows an instance's own relay.** An instance set to its
+  own relay puts that relay's address in the QR code beside the twelve words,
+  on a line under them, and the app pairs there when it scans the code. The
+  app takes the address only if it starts with `wss://`. Typed words still pair
+  on the project relay, and on the project relay the code is the twelve words
+  alone, as before. An older app refuses a code that names a relay, because it
+  counts thirteen words.
+- **The phone app sends nothing unencrypted.** It no longer allows plain HTTP
+  at all. A connection saved by address before 1.5.0 that points at an
+  `http://` address says it has to be added again with the twelve words,
+  instead of failing with a network error.
+- **The README invites testers.** The warning not to install KnightLoader is
+  gone, and the README links to the bug report form instead.
+- **The README names the logo's licence.** The logo is licensed under AGPL-3.0-only
+  like the code, and the KnightLoader name and logo stay trademarks, so a fork
+  needs a name and logo of its own.
+
+- **The Apps page follows the README's order.** The server or desktop app
+  comes first, then the phone app and the browser extension, with the
+  bookmarklet last, and the phone app's own list puts the server before the
+  desktop app.
 
 - **The relay is ParleyPort.** The project relay moved into its own project,
   and instances, the phone app and the browser extension dial it at
@@ -101,37 +174,6 @@ release's tag.
   captcha settings, the captcha window and the phone app use the one name in
   every language, and the captcha card adds one with the same Add an account
   button as the cards above it.
-
-### Fixed
-
-- **The captcha accounts show their services' logos.** The marks for 2Captcha,
-  Anti-Captcha, CapMonster Cloud, CapSolver, 9kw.eu and DeathByCaptcha ship
-  with the page, because their sites give the instance no icon to fetch. 9kw.eu
-  and CapSolver sit on a light plate so they stay visible in the dark theme.
-- **Hoster icons no longer hold up the Accounts page.** An icon the instance
-  had not fetched yet kept its request open while the hoster's site answered,
-  for half a minute or longer when the site was down, and the browser queued
-  the page's other requests behind a few of those. The instance answers at
-  once and fetches the icon in the background, eight sites at a time, the page
-  asks again a few seconds later, and a site without an icon is remembered
-  across restarts. A hoster without an icon shows its first letter.
-
-## [1.6.4] - 2026-10-01
-
-### Added
-
-- **Torrents through Linksnappy.** Like TorBox, Real-Debrid, AllDebrid,
-  Premiumize.me and Debrid-Link, Linksnappy can fetch magnet links and
-  `.torrent` files in place of the built-in torrent client. Rank it above
-  "Built-in torrent client" on the Accounts page and it takes them; the files
-  then come here over HTTP, one at a time. With "Send only cached torrents to
-  the debrid service" on, KnightLoader asks Linksnappy directly whether it has
-  the torrent cached. A torrent the account already has is fetched from there
-  and never deleted. Linksnappy has no list of your downloads to read, so there
-  is no import from that account.
-  ([#61](https://github.com/junkerderprovinz/knightloader/issues/61))
-
-### Changed
 
 - **An instance without a password answers only on names it knows**: IP
   addresses, `localhost`, names without a dot, `.local`, `.lan`, `.home.arpa`
@@ -165,6 +207,166 @@ release's tag.
 
 ### Fixed
 
+- **Pausing or removing an FTP or SFTP download works after an account
+  change.** Saving an account, switching one on or off, the host-list refresh
+  and a yt-dlp update all rebuild the download backends, and the one for your
+  own servers then forgot the transfers it was running. A pause or a removal
+  did not stop them, and a resume or an undo started a second transfer into
+  the same part file, which left a damaged file. A rebuild now keeps the
+  running transfers.
+- **Links to servers that hang up on a HEAD request show their size.**
+  Hetzner's speed-test mirrors close the connection on every HEAD request, so
+  the collector listed their links without a size. The link check now asks
+  such a server for the first byte instead.
+- **The login for your own server can be added on the Accounts page.** The
+  help said to add an account for an FTP, SFTP or WebDAV server, but the
+  Accounts page had nowhere to put one, so it could only be stored through the
+  API. The Own servers card now takes the server's hostname with a username and
+  password, and a link pasted into the hostname field is cut down to the
+  hostname. The field doesn't take a name that can't be a hostname, such as
+  one with a space.
+- **A download paused before a restart carries on where it stopped.** After a
+  restart, KnightLoader no longer knew how far a paused HTTP download had got,
+  so resuming it deleted the file and fetched it again from the first byte. It
+  now picks up from the bytes already on disk, as long as the server still
+  sends the same file in parts. A server that can only send the whole file is
+  asked for all of it again, and the old file is deleted first. This also works
+  for servers that hang up on a browser's user agent, Hetzner's speed-test
+  mirrors among them. If the server can't be reached or answers with an error
+  when you resume, the bytes stay on disk and the next try picks up from them.
+- **A server that hangs up on a browser's user agent no longer fails the
+  download.** Some servers, Hetzner's speed-test mirrors among them, close the
+  connection at once when a download program sends a browser's user agent,
+  and the download failed with a bare "EOF". KnightLoader now asks such a
+  server once more with its own user agent and keeps it for the rest of the
+  download. A server that closes the connection either way gets an error that
+  says so.
+- **FTP, SFTP and WebDAV links are found in what you paste.** The link
+  scanner looked only for http, https and magnet links, and Click'n'Load took
+  only http and https, so the paste box, uploaded link lists, the
+  download-client endpoint and Click'n'Load dropped every ftp://, ftps://,
+  sftp://, webdav:// and webdavs:// link without saying so. These links now
+  reach the account for your own server.
+- **FTPS downloads work with vsftpd, ProFTPD and FileZilla Server.** These
+  servers accept a data connection only when it resumes the TLS session of the
+  login. KnightLoader opened a new one, so every ftps:// link to such a server
+  failed with "425 Cannot secure data connection".
+- **A password in a link to your own server is not saved.** A link like
+  sftp://name:password@host was refused only after it had been added, so the
+  password stayed in the task list, the database and the log in plain text.
+  The link is now turned away before anything keeps it, and the skipped links
+  show it with the password masked.
+- **A long line of links is read quickly.** Links pasted on one line with
+  spaces between them took time that grew with the square of the line's
+  length, close to a minute for 8,000 links. Such a line now takes a fraction
+  of a second.
+- **A link in a text file in a watched folder loses the punctuation around
+  it.** A `.txt` was split at spaces only, so a link at the end of a sentence
+  kept its full stop or comma and failed, and a link in brackets was not found
+  at all. Text files are now read the way the paste box reads them.
+- **A download running when KnightLoader stops comes back queued.** Shutting
+  down pauses every transfer, and now and then that pause was saved before the
+  database closed. The download then came back paused, and starting the queue
+  did not resume it.
+- **Adding a downloaded link again leaves the finished copy alone.** When you
+  added a link you had already downloaded and gave it no package name, the new
+  copy's name check moved the finished copy into the new package, although its
+  file stayed in the old folder. Moving the new copy by hand did the same. Only
+  the rows of one yt-dlp link move together now.
+- **A link's size survives a restart.** The collector showed the size a link
+  check found but did not save it, so after a restart the link read as 0 bytes
+  and mirrors could not be matched on their size.
+- **Removing or restarting a moved download leaves other files alone.** When
+  KnightLoader renamed a finished download, delivered it out of the working
+  folder or moved it with its package's renamed folder, the backend that
+  fetched it could still have it on record at the old place. Removing the
+  download with its files, or restarting it, then deleted whatever had landed
+  there since, which could be another download's file. KnightLoader now
+  deletes the moved file where it is and leaves the old place alone.
+- **Downloads from your own server delete only their own files.** An FTP or
+  SFTP download saved as "film (2).mkv" because "film.mkv" was already there
+  deleted "film.mkv" when you removed it with its files, and left its own file
+  behind. Removing or restarting one of them also deleted the part file of
+  another download of the same name that was still arriving. Two of them
+  running into one folder at once wrote into the same part file and mixed
+  their bytes, and when two finished at the same moment one could overwrite
+  the other. Each download now has its own part file and deletes only the file
+  it saved, and a moved one is deleted where it is now.
+- **Paused FTP and SFTP downloads resume only their own bytes after a
+  restart.** Two paused downloads with the same name, from two folders on one
+  server, could swap part files when KnightLoader restarted. Whichever started
+  again first carried on from the other's bytes and finished as a file holding
+  both, and the other started over. Each part file now has its download's id
+  in its name, so a download only ever picks up its own. Removing a paused one
+  with its files also deletes its part file after a restart. Removing one
+  without its files keeps its part file, so Undo carries on where the download
+  stopped instead of starting over. A part file left by an older version is not
+  picked up, and that download starts from the beginning.
+- **Removing a finished download with its files after a restart deletes the
+  file when the server sent no size.** Without a size, KnightLoader could not
+  tell after a restart that the file on disk was the one the download wrote, so
+  it left it there. It now compares the file with the number of bytes the
+  download finished with.
+- **Removing a video download with its files deletes the video.** yt-dlp
+  never told KnightLoader which file it wrote or how large the file was once
+  video and audio were merged, so a finished video stayed on disk when it was
+  removed with its files. KnightLoader now records the merged file and its
+  size, deletes it with the download, and shows the whole size on the row.
+- **Removing an unfinished media download with its files deletes what it
+  wrote.** A yt-dlp download that was still running or paused kept its .part
+  and .ytdl files, its fragments and its info file on disk after a removal
+  with files. KnightLoader now stops yt-dlp, waits for it to exit and deletes
+  them. This also works for a row brought back with Undo and then removed with
+  its files, and after KnightLoader restarts. A file that another download
+  wrote too, such as the info file the video and audio rows of one link share,
+  is left for that download. When yt-dlp records through ffmpeg, as it does for
+  a live stream, a pause or a removal now stops ffmpeg too. ffmpeg used to keep
+  recording on its own, after a removal with files into the deleted file, and
+  the removal waited until ffmpeg was done.
+- **Pausing or removing a media download works after an account change.**
+  Saving an account, switching JDownloader on or updating yt-dlp set up yt-dlp
+  again, and KnightLoader lost track of a download that was already running: a
+  pause or a removal did nothing, and the download finished without a row.
+  KnightLoader now keeps the same yt-dlp backend and only points it at the new
+  binary.
+- **Thumbnail, subtitle and description rows take their file with them.**
+  Removed with their files, these rows left the .jpg, .srt or .description
+  behind, and a video or audio row left its .nfo. KnightLoader now records the
+  file each of these rows wrote, names the row after that file and deletes the
+  file with the row. The video and audio rows of a link share one .nfo, which
+  goes when the second of them is removed. A subtitle row with several
+  languages records the file of each language and deletes all of them, except
+  a file another row still has.
+- **Add links in the Android app says why a send failed.** When the request
+  never reached the instance, or a relay connection had to be added again, the
+  screen said only "Could not send the links." The reason follows it now, with
+  "Server:" in front only when the server sent it.
+- **A control character in a link no longer ends up in a file name.** A tab,
+  escape or NUL from the link's path was written into the name as it was, and
+  a NUL made the download fail. Such characters become spaces now.
+
+- **Linksnappy fetches links under a hoster's other domains.** Linksnappy
+  names some hosters by a domain their links rarely use, such as mega.co.nz
+  for Mega and ddl.to for DDownload, and lists rg.to apart from Rapidgator.
+  KnightLoader matched only the names on the list, so a mega.nz, k2s.cc or
+  rg.to link looked like one no debrid account covers, and with premium only
+  switched on it waited for a premium account. Every debrid service now
+  matches a hoster by all the domains KnightLoader knows for it. KnightLoader
+  also logs in before it reads Linksnappy's list, as JDownloader does, and
+  leaves out a hoster the account cannot download from.
+
+- **The captcha accounts show their services' logos.** The marks for 2Captcha,
+  Anti-Captcha, CapMonster Cloud, CapSolver, 9kw.eu and DeathByCaptcha ship
+  with the page, because their sites give the instance no icon to fetch. 9kw.eu
+  and CapSolver sit on a light plate so they stay visible in the dark theme.
+- **Hoster icons no longer hold up the Accounts page.** An icon the instance
+  had not fetched yet kept its request open while the hoster's site answered,
+  for half a minute or longer when the site was down, and the browser queued
+  the page's other requests behind a few of those. The instance answers at
+  once and fetches the icon in the background, eight sites at a time, the page
+  asks again a few seconds later, and a site without an icon is remembered
+  across restarts. A hoster without an icon shows its first letter.
+
 - Pausing or removing a task while its link resolves holds; the transfer no
   longer starts behind it. Pause and Resume leave finished and failed tasks
   alone.
@@ -190,37 +392,28 @@ release's tag.
   an import, forgets a revealed phrase when the group changes, and puts the
   relay mode back after a failed save.
 
-## [1.6.3] - 2026-10-01
+- The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
+
+- **Subtitles are saved as .srt when the site only has WebVTT.** A subtitle
+  row showed .srt but kept the site's .vtt file when the site had no .srt, and
+  the log said the download was saved under another name. KnightLoader now
+  converts the subtitles to .srt. A subtitle row also follows the collision
+  policy like any other download. It used to overwrite a .srt of the same name
+  from another download, and the skip setting never caught it.
+- **Stopped media downloads leave no zombie ffmpeg in the container.** Every
+  pause or removal of a yt-dlp download that ran ffmpeg left a zombie process
+  behind until the container restarted. The image now starts KnightLoader
+  under tini, which reaps them.
 
 ### Changed (Android app)
 
 - Buy Me a Coffee opens in the browser instead of an in-app web view, as F-Droid reviewers ask for author and donation pages. `CoffeeDonate.tsx` and its intro text are gone, and `mobile/PRIVACY.md` describes the button with the other links.
 
-### Fixed
-
-- The committed `web/dist` carried version 1.6.0, so the Apps page linked the 1.6.0 APK in 1.6.1 and 1.6.2. The bundle is rebuilt with the version.
-
-## [1.6.2] - 2026-10-01
-
-### Changed (Android app)
-
 - The store listings call the app only KnightLoader, in every language.
 - The fastlane metadata moved from `mobile/fastlane/` to `fastlane/` at the repository root, the only place F-Droid reads it from. `mobile/store/render.mjs` writes its pictures there.
 
-## [1.6.1] - 2026-10-01
-
-### Added
-
-- Store pictures for Google Play and F-Droid: five dark screenshots of the app in a drawn phone under a caption, and a feature graphic, in German and English. `mobile/store/render.mjs` builds them from the captures in `mobile/store/captures`.
-
-### Changed (Android app)
-
 - expo-camera is removed. With its barcode scanner switched off it still compiled against Google ML Kit and Play services, and F-Droid rejects an APK whose code names those classes. The scanner module declares the camera permission, the app asks through `PermissionsAndroid` and opens the app settings once Android stops asking. The release build fails when the APK names a `com.google.mlkit` or `com.google.android.gms` class, and `check-free-scanner.mjs` checks the lock file for expo-camera and ML Kit wrappers. `mobile/PRIVACY.md` describes the ZXing scanner, which sends nothing to anyone.
 - An announce on the relay names a sibling only through a seal that opens. Without a seal, or with one that does not open, the app lists it under its bare id and ignores the name, deployment and client flag in the clear, as the server and the extension do.
-
-### Fixed
-
-- The Chrome Web Store upload signs its token request with the service account key (`.github/scripts/google-token.sh`) instead of asking the IAM Credentials API, which needed that API and a token creator role.
 
 ## [1.6.0] - 2026-10-01
 

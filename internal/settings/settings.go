@@ -452,6 +452,12 @@ type Settings struct {
 	// It does nothing without KeepMirrors: with mirrors dropped there is never
 	// a parked sibling to release.
 	MirrorFailover bool `json:"mirrorFailover"`
+	// RejectDownloaded checks a new link against the download history as well
+	// as the list, so a feed or a second paste does not fetch a file again. A
+	// link it catches goes to the rejected links, where a restore adds it
+	// anyway. On by default: the history is kept for exactly this kind of
+	// question, and nothing is lost when it answers wrongly.
+	RejectDownloaded bool `json:"rejectDownloaded"`
 
 	// CollisionPolicy is what happens when the destination file already exists.
 	CollisionPolicy string `json:"collisionPolicy"`
@@ -793,6 +799,7 @@ func Defaults() Settings {
 		ExtractCollision:   string(extract.DefaultCollision),
 		TrashRetentionDays: extract.DefaultTrashDays,
 		MirrorPolicy:       string(dedupe.DefaultPolicy),
+		RejectDownloaded:   true,
 		CollisionPolicy:    string(collide.DefaultPolicy),
 		Reconnect:          reconnect.Defaults(),
 		IdleAction:         idleaction.Defaults(),

@@ -8,7 +8,7 @@ require (
 	github.com/atotto/clipboard v0.1.4
 	github.com/bodgit/sevenzip v1.6.5
 	github.com/coder/websocket v1.8.15
-	github.com/dop251/goja v0.0.0-20261001174550-3ccc9c78af18
+	github.com/dop251/goja v0.0.0-20261004174310-e21e22eac913
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707
 	github.com/klauspost/compress v1.20.1
 	github.com/nwaples/rardecode/v2 v2.4.1
@@ -25,6 +25,7 @@ require (
 	github.com/go-webauthn/webauthn v0.18.2
 	github.com/jlaffaye/ftp v0.2.4
 	github.com/pkg/sftp v1.13.11
+	golang.org/x/image v0.46.0
 	golang.org/x/sys v0.48.0
 	golang.org/x/text v0.42.0
 )
@@ -171,7 +172,17 @@ require (
 )
 
 // The gopeed fork applies the torrent upload limit to running torrents, lets
-// DHT and PEX be switched off, and fixes a panic when the torrent client is
-// closed right after it was built:
+// DHT and PEX be switched off, ties BitTorrent traffic to one network
+// interface (pkg/netbind), lets a torrent's resolve be given up on
+// (ResolveContext), fixes a panic when the torrent client is closed right
+// after it was built, locks a task's connection list while the task is saved,
+// spreads a ranged download over mirror URLs, and reads a file of a running
+// task:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261003172926-a5a527ca0856
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3
+
+// The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
+// after a torrent is dropped or added again, and closing the client sends the
+// stopped announces before it closes its tracker sockets.
+// https://github.com/junkerderprovinz/torrent/tree/knightloader
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0

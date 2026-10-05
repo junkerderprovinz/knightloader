@@ -15,20 +15,20 @@
   <style>
     @keyframes pass {
       0%       { transform: translateX(-278.4px); }
-      7.44%   { transform: translateX(1120.3px); }
+      7.10%   { transform: translateX(1120.3px); }
       100%     { transform: translateX(1120.3px); }
     }
-    .band { animation: pass 14.286s linear 9.700s infinite backwards; }
+    .band { animation: pass 14.978s linear 9.700s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .band { animation: none; opacity: 0; }
     }
   </style>
   <path d="M38.2,0 H803.7 A38.2,38.2 0 0 1 841.9,38.2 V207.1 A38.2,38.2 0 0 1 803.7,245.3 H38.2 A38.2,38.2 0 0 1 0,207.1 V38.2 A38.2,38.2 0 0 1 38.2,0 Z" fill="#ef3939"/>
-  <g transform="translate(160.0 56.65) scale(5.5)" fill="#ffffff">
+  <g transform="translate(85.0 56.65) scale(5.5)" fill="#ffffff">
     <path d="M12 0C6.75 0 3.817 0 1.912 1.904.007 3.81 0 6.75 0 12s0 8.175 1.912 10.08C3.825 23.985 6.75 24 12 24c5.25 0 8.183 0 10.088-1.904C23.993 20.19 24 17.25 24 12s0-8.175-1.912-10.08C20.175.015 17.25 0 12 0zm-.168 3a9 9 0 016.49 2.648 9 9 0 010 12.704A9 9 0 1111.832 3zM7.568 7.496a1.433 1.433 0 00-.142.004A1.5 1.5 0 006.21 9.75l1.701 3c.93 1.582 1.839 3.202 2.791 4.822a1.417 1.417 0 001.41.75 1.5 1.5 0 001.223-.81l4.447-7.762A1.56 1.56 0 0018 8.768a1.5 1.5 0 10-2.828.914 2.513 2.513 0 01.256 1.119v.246a2.393 2.393 0 01-2.52 2.13 2.348 2.348 0 01-1.965-1.214c-.307-.51-.6-1.035-.9-1.553-.42-.72-.826-1.41-1.246-2.16a1.433 1.433 0 00-1.229-.754Z"/>
   </g>
-  <text x="332" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="82" font-weight="700" fill="#ffffff">Vivaldi</text>
-  <text x="334" y="186" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="64" font-weight="400" fill="#ffffff" fill-opacity="0.9">Extension</text>
+  <text x="300" y="108" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="82" font-weight="700" fill="#ffffff">Vivaldi</text>
+  <text x="302" y="186" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif" font-size="64" font-weight="400" fill="#ffffff" fill-opacity="0.9">Extension</text>
   <g clip-path="url(#edge)">
     <g class="band">
       <rect x="0" y="-60" width="173.6" height="365.3"

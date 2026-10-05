@@ -14,7 +14,7 @@ import (
 func putTask(t *testing.T, a *App, task core.Task) *core.Task {
 	t.Helper()
 	if task.CreatedAt.IsZero() {
-		task.CreatedAt = time.Now()
+		task.CreatedAt = a.stamps.next()
 	}
 	a.mu.Lock()
 	if task.ID == "" {

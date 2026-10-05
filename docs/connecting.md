@@ -119,8 +119,11 @@ The words *are* the credential. Whoever has them reaches every instance in the
 group, so keep that in mind before you read them out over the phone.
 
 The words carry a 128-bit secret and nothing else: no address, no name. The
-relay's address is compiled into the binary, which is what keeps this to
-twelve words instead of a URL plus a key.
+default relay is `parleyport.halleluja.design`, run by the project, and its
+address is compiled into every build, which is what keeps this to twelve words
+instead of a URL plus a key. An instance on a relay of its own puts that
+relay's address in the QR code beside the words, so the Android app finds the
+group there when it scans the code (see [The Android app](#the-android-app)).
 
 The list they are drawn from is BIP39's, the one hardware wallets use. That
 has nothing to do with cryptocurrency, and the UI never calls this a wallet
@@ -172,7 +175,8 @@ switched on, and takes its address, which every instance in the group needs;
 the same phrase then works against it, because the phrase carries the secret
 and not the address. An address starting with `ws://` or `http://` is allowed,
 for a relay on your own network, with a warning that the relay key then
-crosses the network unencrypted. **How does it work?** opens the route
+crosses the network unencrypted. The Android app does not follow such a relay:
+it only connects over `wss://`. **How does it work?** opens the route
 picture, what the relay sees next to what it never sees, and how the traffic
 is encrypted. The same fields are `relayMode`, `relayUrl` and `relayServe`
 under **Settings → Advanced**.
@@ -289,6 +293,13 @@ and cannot be explained.
   nothing extra here. The field reads a paste the way the web UI's does: twelve
   numbered slots fill as the words arrive, a word not on the list is named with
   its position, and **Connect** stays off until all twelve are known words.
+- **Which relay** comes from the QR code. Typed or pasted words pair on the
+  default relay. An instance set to its own relay adds that relay's address to
+  its QR code on a line under the words, and a phone that scans the code pairs
+  there. The app takes such an address only if it starts with `wss://`, and
+  says so when it does not. On the default relay the code holds the twelve
+  words alone, so every build of the app reads it; a build too old for the
+  second line refuses the longer code because it counts thirteen words.
 - **The phone has a card of its own** on the Instances page of every instance
   in the group: the device name Android reports, Connected or Not connected,
   and when it was last seen. It announces itself on the relay with that name
@@ -296,7 +307,10 @@ and cannot be explained.
   browser extension. A connected phone counts as somebody in the group, so an
   instance whose only partner is a phone shows Paired.
 - **A connection saved by address** in an earlier build of the app keeps
-  working, but the app no longer makes one. Those builds took the address
+  working if the address starts with `https://`, but the app no longer makes
+  one. One saved with an `http://` address does not, since the app permits no
+  cleartext traffic: its card says it has to be added again with the twelve
+  words. Those builds took the address
   typed in, scanned from the Access tab's QR or found with **Find on this
   network**, plus a token where the instance had a password.
 

@@ -233,6 +233,12 @@ type Update struct {
 	// MagnetFiles is a magnet's file list, which comes with File once the
 	// swarm has sent it (see Task.MagnetFiles).
 	MagnetFiles []string
+	// WorkFile is a file yt-dlp wrote on its way to the task's file (see
+	// Task.WorkFiles).
+	WorkFile string
+	// OtherFiles are what a finished row wrote besides File, the further
+	// languages of a subtitle row. They stay on the task as its WorkFiles.
+	OtherFiles []string
 	// TorrentFiles is every file of a torrent the built-in client has
 	// resolved, with the selection it runs with. It comes once, with the
 	// resolve, so a torrent whose files nobody chose by hand keeps the choice
@@ -438,7 +444,8 @@ type Task struct {
 	SkipReason string `json:"skipReason,omitempty"`
 	// SkipCode is SkipReason as a value, for an interface that words it in the
 	// reader's language, and SkipParams holds the values that wording needs.
-	// Empty for a reason somebody wrote. Neither is changed after it is set.
+	// Empty for a reason somebody wrote. Only a later hold replaces them, as
+	// when the history holds a link the user restored past the filter.
 	SkipCode   string            `json:"skipCode,omitempty"`
 	SkipParams map[string]string `json:"skipParams,omitempty"`
 	// Forced starts a task now, past the concurrency and per-host limits.
@@ -477,6 +484,14 @@ type Task struct {
 	// earlier attempt this task's own to delete, and where the file is when
 	// the engine could not use Name. Empty when nothing local was written.
 	File string `json:"file,omitempty"`
+	// WorkFiles are what yt-dlp wrote for a download that has not finished:
+	// the streams it merges, which carry their .part and .ytdl files under
+	// the same names, and the files it wrote beside them. yt-dlp names each
+	// one once, so after a restart this is all that says what a removal with
+	// files deletes. A finished download has none, apart from the further
+	// languages of a subtitle row (see Update.OtherFiles). Not sent to the
+	// interface.
+	WorkFiles []string `json:"-"`
 	// Variant is which form of the resource was picked, such as a yt-dlp
 	// format, so a re-run fetches the same one.
 	Variant string `json:"variant,omitempty"`

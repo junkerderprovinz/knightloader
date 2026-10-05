@@ -6,6 +6,8 @@ package bridge
 import (
 	"crypto/sha256"
 	"strings"
+
+	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 )
 
 // clipboardRingSize bounds how many forwarded clipboard hashes are
@@ -43,10 +45,10 @@ func (r *clipboardRing) remember(h [32]byte) {
 
 func clipboardHash(text string) [32]byte { return sha256.Sum256([]byte(text)) }
 
-// extractClipboardLinks returns the lines of text that are nothing but an
-// http(s) or magnet link. Prose that merely contains a link is ignored, since
-// nobody reviews what ambient watching queues and a page copied by accident
-// must not add every link on it.
+// extractClipboardLinks returns the lines of text that are nothing but a link
+// in a scheme linkscan knows. Prose that merely contains a link is ignored,
+// since nobody reviews what ambient watching queues and a page copied by
+// accident must not add every link on it.
 func extractClipboardLinks(text string) []string {
 	var out []string
 	for _, line := range strings.Split(strings.ReplaceAll(text, "\r\n", "\n"), "\n") {
@@ -54,9 +56,7 @@ func extractClipboardLinks(text string) []string {
 		if line == "" {
 			continue
 		}
-		lower := strings.ToLower(line)
-		isLink := strings.HasPrefix(lower, "http://") || strings.HasPrefix(lower, "https://") || strings.HasPrefix(lower, "magnet:?")
-		if isLink && !strings.ContainsAny(line, " \t") {
+		if linkscan.StartsWithScheme(line) && !strings.ContainsAny(line, " \t") {
 			out = append(out, line)
 		}
 	}

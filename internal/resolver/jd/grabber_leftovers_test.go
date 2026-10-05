@@ -1,6 +1,7 @@
 package jd
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -193,7 +194,7 @@ func TestAddContainerClearsItsOwnLeftoversBeforeOpening(t *testing.T) {
 	defer srv.Close()
 
 	b := NewBackend(srv.URL, func(string, core.Update) {})
-	got, err := b.AddContainer("http://kl.example/api/containers/relay/tok", "Troja", 2*time.Second)
+	got, err := b.AddContainer(context.Background(), "http://kl.example/api/containers/relay/tok", "Troja", 2*time.Second)
 	if err != nil {
 		t.Fatalf("AddContainer: %v (JD decrypted the container; its own leftovers ate every link)", err)
 	}

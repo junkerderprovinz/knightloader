@@ -272,6 +272,7 @@ const GROUPS: Record<string, TransferGroup> = {
   mirrorPolicy: 'queue',
   keepMirrors: 'queue',
   mirrorFailover: 'queue',
+  rejectDownloaded: 'queue',
   collisionPolicy: 'queue',
   collisionMaxAttempts: 'queue',
   verifyChecksums: 'queue',

@@ -92,6 +92,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.advanced.mirrorPolicy', hint: 'settings.advanced.mirrorPolicyHint' },
         { key: 'settings.advanced.keepMirrors', hint: 'settings.advanced.keepMirrorsHint' },
         { key: 'settings.advanced.mirrorFailover', hint: 'settings.advanced.mirrorFailoverHint' },
+        { key: 'settings.advanced.rejectDownloaded', hint: 'settings.advanced.rejectDownloadedHint' },
       ],
     },
     {
@@ -284,6 +285,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.transfer.archiveText', 'settings.transfer.settingsText'],
       // The import preview's strings stay out: its dialog exists only once a
       // file is chosen.
+    },
+    {
+      title: 'settings.jdimport.cardTitle',
+      hint: 'settings.jdimport.cardHint',
+      rows: [{ key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' }],
+      also: ['settings.jdimport.uploadLabel', 'settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
+      body: ['settings.jdimport.uploadText'],
+      // The preview's strings stay out: its dialog exists only once a folder is read.
     },
     // Drawn by Help.tsx at the foot of this page.
     { title: 'settings.about.title', rows: [] },
@@ -769,6 +778,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
+      ],
+    },
+    {
+      title: 'settings.captcha.testTitle',
+      rows: [
+        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
+        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
     },
   ],

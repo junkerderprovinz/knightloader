@@ -2,8 +2,9 @@
 // account, demanding something a human has to answer before a download can
 // continue.
 //
-// It owns the vocabulary (Challenge, Kind, AbortScope, Source) and one Source
-// backed by a headless JDownloader. It does not poll, render, store, or read
+// It owns the vocabulary (Challenge, Kind, AbortScope, Source), one Source
+// backed by a headless JDownloader, and TestSource, which draws captchas of its
+// own for trying the prompts and solvers out. It does not poll, store, or read
 // settings.
 package captcha
 
@@ -147,6 +148,9 @@ type Challenge struct {
 	// nil until one is set to work on it. The Source never fills it; Store
 	// keeps it across a Sync.
 	Solver *SolverReport `json:"solver,omitempty"`
+	// Test marks a captcha TestSource drew, which no download waits on, so a
+	// prompt can say what it is for.
+	Test bool `json:"test,omitempty"`
 }
 
 // The states a SolverReport can be in.

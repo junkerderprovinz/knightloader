@@ -153,6 +153,16 @@ func TestURLIsFoldedOnlyWhereItIsCaseInsensitive(t *testing.T) {
 			want: Duplicate, about: "an infohash is case-insensitive in both its spellings",
 		},
 		{
+			name: "magnet from another site", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=Film&tr=udp%3A%2F%2Fone.example%3A80",
+			cand: "magnet:?dn=film.2024&xt=urn:btih:0123456789ABCDEF0123456789ABCDEF01234567&tr=udp%3A%2F%2Ftwo.example%3A6969",
+			want: Duplicate, about: "the name and trackers are whatever the listing site chose; the info hash is the torrent",
+		},
+		{
+			name: "magnet in base32", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
+			cand: "magnet:?xt=urn:btih:AERUKZ4JVPG66AJDIVTYTK6N54ASGRLH",
+			want: Duplicate, about: "base32 is the other spelling of the same info hash",
+		},
+		{
 			name: "different magnet", have: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567",
 			cand: "magnet:?xt=urn:btih:fedcba9876543210fedcba9876543210fedcba98",
 			want: NotSeen, about: "a different infohash is a different torrent",
@@ -371,6 +381,9 @@ func TestNormalize(t *testing.T) {
 	}{
 		{in: "Film.2024.mkv", base: "film.2024.mkv"},
 		{in: "  The   Big   File.bin  ", base: "the big file.bin"},
+		{in: "nul\x00here.bin", base: "nul here.bin"},
+		{in: "esc\x1bhere\x7f.bin", base: "esc here .bin"},
+		{in: "tab\there.bin", base: "tab here.bin"},
 		{in: "sub/dir/film.mkv", base: "film.mkv"},
 		{in: `sub\dir\film.mkv`, base: "film.mkv"},
 		{in: "Film.part01.rar", base: "film", volume: "rar-part1"},
@@ -560,5 +573,72 @@ func BenchmarkCheck(b *testing.B) {
 		if s.Check(cand).Verdict != Mirror {
 			b.Fatal("the mirror was not found")
 		}
+	}
+}
+
+// Under filename-and-size a file of a known name waits on its size, and
+// nothing else does.
+func TestOnlyASizeTheSetCouldMatchIsNeeded(t *testing.T) {
+	have := Entry{ID: "1", URL: "https://one.example/film.mkv", Name: "film.mkv", Size: 4096}
+	s := seed(PolicyFilenameAndSize, have)
+	if !s.NeedsSize(Entry{URL: "https://two.example/x", Name: "Film.mkv"}) {
+		t.Error("a file of a name the set holds does not ask for its size")
+	}
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "other.mkv"}) {
+		t.Error("a file of a name the set does not hold asks for its size")
+	}
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv", Size: 10}) {
+		t.Error("a file whose size is known asks for it")
+	}
+	if seed(PolicyFilenameOnly, have).NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv"}) {
+		t.Error("filename-only asks for a size it never compares")
+	}
+	s.Remove(have.URL)
+	if s.NeedsSize(Entry{URL: "https://two.example/x", Name: "film.mkv"}) {
+		t.Error("a removed file still makes its name ask for a size")
+	}
+}
+
+// Under size-only any file of unknown size could be one the set holds.
+func TestSizeOnlyNeedsTheSizeOfEveryFile(t *testing.T) {
+	have := Entry{ID: "1", URL: "https://one.example/film.mkv", Name: "film.mkv", Size: 4096}
+	cand := Entry{URL: "https://two.example/x", Name: "renamed.bin"}
+	s := seed(PolicySizeOnly, have)
+	if !s.NeedsSize(cand) {
+		t.Error("a file of unknown size does not ask for it")
+	}
+	if seed(PolicySizeOnly).NeedsSize(cand) {
+		t.Error("an empty set asks for a size")
+	}
+	if seed(PolicySizeOnly, Entry{URL: "https://one.example/a", Name: "a.bin"}).NeedsSize(cand) {
+		t.Error("a set whose files have no size asks for one it can never match")
+	}
+	s.Remove(have.URL)
+	if s.NeedsSize(cand) {
+		t.Error("a removed file still asks for a size")
+	}
+}
+
+// Every name kept for one URL matches, and the URL itself names the entry
+// kept last.
+func TestEveryEntryKeptForOneURLMatches(t *testing.T) {
+	const u = "https://one.example/f"
+	s := New(PolicyFilenameAndSize)
+	s.Keep(Entry{ID: "1", URL: u, Name: "film.mkv", Size: 4096})
+	s.Keep(Entry{ID: "2", URL: u, Name: "film (2).mkv", Size: 4096})
+
+	for name, id := range map[string]string{"film.mkv": "1", "film (2).mkv": "2"} {
+		m := s.Check(Entry{URL: "https://two.example/f", Name: name, Size: 4096})
+		if m.Verdict != Mirror || m.Of.ID != id {
+			t.Errorf("a mirror named %q matched %+v, want entry %s", name, m, id)
+		}
+	}
+	if m := s.Check(Entry{URL: u}); m.Verdict != Duplicate || m.Of.ID != "2" {
+		t.Errorf("the URL matched %+v, want the entry kept last", m)
+	}
+	s.Remove(u)
+	if s.Len() != 0 || len(s.buckets) != 0 || len(s.sizeless) != 0 {
+		t.Errorf("after Remove the set holds %d URLs, %d buckets and %d sizeless keys, want none",
+			s.Len(), len(s.buckets), len(s.sizeless))
 	}
 }

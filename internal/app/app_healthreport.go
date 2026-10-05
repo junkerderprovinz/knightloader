@@ -556,9 +556,12 @@ func (a *App) captchaSubsystem() Subsystem {
 		row.State = StateUnused
 		return row
 	}
-	if len(a.CaptchaChallenges()) > 0 {
-		row.State, row.Remedy = StateDegraded, remedyCaptchaWaiting
-		return row
+	// A test captcha holds up no download.
+	for _, c := range a.CaptchaChallenges() {
+		if !c.Test {
+			row.State, row.Remedy = StateDegraded, remedyCaptchaWaiting
+			return row
+		}
 	}
 	row.State = StateOK
 	return row

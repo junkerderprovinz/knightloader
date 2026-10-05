@@ -126,3 +126,94 @@ func TestReadingTheCaptchaListCountsAsWatchingUnlessAskedNotTo(t *testing.T) {
 		t.Error("a read listing pictures did not count as watching for them")
 	}
 }
+
+// A test captcha is put up and answered over the same routes as a real one,
+// with no JDownloader backend, and the answer says whether it was right.
+func TestATestCaptchaIsAnsweredOverTheCaptchaRoutes(t *testing.T) {
+	t.Setenv("KL_JD", "")
+	a := testApp(t)
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	call := func(method, path, body string) *httptest.ResponseRecorder {
+		rec := httptest.NewRecorder()
+		mux.ServeHTTP(rec, httptest.NewRequest(method, path, strings.NewReader(body)))
+		return rec
+	}
+
+	rec := call(http.MethodPost, "/api/captcha/test", `{}`)
+	var c struct {
+		ID   string `json:"id"`
+		Test bool   `json:"test"`
+	}
+	if err := json.Unmarshal(rec.Body.Bytes(), &c); err != nil || rec.Code != http.StatusOK || !c.Test {
+		t.Fatalf("POST /api/captcha/test answered %d %q, want the test captcha", rec.Code, rec.Body.String())
+	}
+	if list := call(http.MethodGet, "/api/captcha?watch=0", "").Body.String(); !strings.Contains(list, c.ID) {
+		t.Errorf("the captcha list %s does not hold the test captcha", list)
+	}
+
+	rec = call(http.MethodPost, "/api/captcha/"+c.ID+"/answer", `{"text":"?????"}`)
+	var got app.CaptchaAnswer
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusOK {
+		t.Fatalf("the answer was refused: %d %q", rec.Code, rec.Body.String())
+	}
+	if !got.StillValid || got.Test == nil || got.Test.Correct || got.Test.Want == "" {
+		t.Errorf("the answer came back %+v, want a wrong answer and the right one beside it", got)
+	}
+}
+
+func TestATestCaptchaIsRefusedWhileCaptchasAreSwitchedOff(t *testing.T) {
+	a := testApp(t)
+	s := a.Settings.Get()
+	s.ModulesOff = []string{"captcha"}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	reg := newRegistry()
+	registerCaptcha(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+
+	rec := httptest.NewRecorder()
+	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/api/captcha/test", strings.NewReader(`{}`)))
+	var got struct{ Code string }
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != "captchaOff" {
+		t.Errorf("POST /api/captcha/test with captchas off answered %d %q, want 409 captchaOff", rec.Code, rec.Body.String())
+	}
+}
+
+func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
+	for _, tc := range []struct {
+		name     string
+		off      []string
+		order    []string
+		body     string
+		wantCode string
+	}{
+		{name: "JD off", off: []string{"jd"}, body: `{}`, wantCode: "captchaJDOff"},
+		{name: "JD and captchas off", off: []string{"jd", "captcha"}, body: `{}`, wantCode: "captchaJDOff"},
+		{name: "no captcha account with a key", order: []string{"2captcha"}, body: `{"solvers":true}`, wantCode: "noCaptchaAccount"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			a := testApp(t)
+			s := a.Settings.Get()
+			s.ModulesOff, s.CaptchaSolverOrder = tc.off, tc.order
+			if _, err := a.ApplySettings(s); err != nil {
+				t.Fatal(err)
+			}
+			reg := newRegistry()
+			registerCaptcha(reg, a)
+			mux := http.NewServeMux()
+			reg.attach(mux, http.NotFoundHandler())
+
+			rec := httptest.NewRecorder()
+			mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/api/captcha/test", strings.NewReader(tc.body)))
+			var got struct{ Code string }
+			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != tc.wantCode {
+				t.Errorf("POST /api/captcha/test answered %d %q, want 409 %s", rec.Code, rec.Body.String(), tc.wantCode)
+			}
+		})
+	}
+}
