@@ -51,10 +51,13 @@ type probe struct {
 
 // vetSources asks the job for further links to its file and returns the ones
 // that serve the same bytes as its own URL. It returns nil when the job has
-// none, the file is too small or not ranged, or the job carries headers,
-// which may hold a login meant only for its own URL.
+// none, or when its file keeps to its own URL (see keptToOwnLink).
 func (e *Engine) vetSources(j Job, res *base.Resource) []string {
-	if j.Sources == nil || res == nil || !res.Range || res.Name != "" || res.Size < multiSourceMin || len(j.Headers) > 0 {
+	if j.Sources == nil || res == nil {
+		return nil
+	}
+	if why := keptToOwnLink(j, res); why != "" {
+		log.Printf("not spreading task %s over more sources: %s", j.TaskID, why)
 		return nil
 	}
 	ctx, cancel := context.WithTimeout(e.ctx, sourcesWait)
@@ -67,7 +70,13 @@ func (e *Engine) vetSources(j Job, res *base.Resource) []string {
 	}
 	client := e.mendClient(j)
 	defer client.CloseIdleConnections()
+	// The library sends the job's agent to every source, so the check does.
 	ua := e.userAgent()
+	for k, v := range j.Headers {
+		if strings.EqualFold(k, "User-Agent") {
+			ua = v
+		}
+	}
 	offsets := sampleOffsets(res.Size)
 
 	own, err := probeSource(ctx, client, j.URL, ua, offsets)
@@ -103,6 +112,26 @@ func (e *Engine) vetSources(j Job, res *base.Resource) []string {
 		log.Printf("task %s: fetching from %d sources", j.TaskID, 1+len(keep))
 	}
 	return keep
+}
+
+// keptToOwnLink says why j's file comes from its own URL alone, or is empty
+// when further links may join. Headers other than the agent may hold a login
+// meant for the own URL only.
+func keptToOwnLink(j Job, res *base.Resource) string {
+	switch {
+	case res.Name != "":
+		return "it is more than one file"
+	case !res.Range:
+		return "its server does not send it in parts"
+	case res.Size < multiSourceMin:
+		return fmt.Sprintf("it is under %s", mib(multiSourceMin))
+	}
+	for k := range j.Headers {
+		if !strings.EqualFold(k, "User-Agent") {
+			return "its request carries headers meant for its own link"
+		}
+	}
+	return ""
 }
 
 // sampleOffsets are where the file is compared: the middle and the end, past
