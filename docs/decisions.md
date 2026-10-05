@@ -227,3 +227,55 @@ every container restart. That is the whole reason "the folder is there" and "thi
 instance can write in it" are two separate claims in the report rather than one:
 a row that said "ok" without saying which would be claiming a test it did not
 run.
+
+## The debrid drive: read-only first
+
+**Built:** a WebDAV share at `/dav/` that lists what is on the debrid accounts
+and streams a file from the service's download server, a range at a time.
+
+**Not built:** writing to it. No upload into a folder to add a torrent, no
+delete that removes a download on the service, no rename.
+
+A share that can be written to is a second way to change an account, beside
+the one the collector already guards. Deleting through a mount is easy to do by
+accident: a media server's "empty trash", a file manager's sync, a cleanup
+script pointed at the wrong folder. On a read-only share each of those is
+refused; on a writable one each deletes a download the service may have taken
+hours to fetch, with no undo. Read-only also keeps the credential small. The
+drive takes a token with the read right, the same one a dashboard gets, so the
+key sitting in `rclone.conf` on another machine cannot add, delete or change
+anything. Writing can come later as its own decision, with its own right and
+its own switch, once there is a reason that the website or the collector does
+not already cover.
+
+Two refusals belong to the same reasoning and must not be "tidied". A PROPFIND
+with `Depth: infinity` gets a 403 instead of a walk of every download on every
+account, which RFC 4918 allows and which would otherwise spend the account's
+rate limit on one request. And the login password is not accepted as a Basic
+password: it would end up in a config file on another machine and would get
+past the second factor, so only an API token opens the drive.
+
+## Usenet: pure Go, without the par2 binary
+
+**Built:** an NNTP client, a yEnc decoder and an `.nzb` reader of KnightLoader's
+own, and next a par2 check and repair in Go as well.
+
+**Not built:** downloading through a library that needs cgo, or repairing with
+the `par2` program.
+
+The release is one static binary built with `CGO_ENABLED=0`, for every
+platform the desktop app ships on, and the container has no package manager
+to install anything into. The fastest Go NNTP pool, javi11/nntppool, decodes
+yEnc through rapidyenc, which needs cgo, or Go 1.27 with an experiment switched
+on; the other NNTP libraries have no pool. A protocol of a handful of commands
+and an encoding of a page of rules cost less to own than that dependency.
+
+par2cmdline-turbo is the fastest repair there is, but it is a C++ program under
+the GPL that would have to ship for every platform and be kept current, the
+way yt-dlp is, for a step most downloads never need. The Go libraries either
+hold every block in memory (akalin/gopar, its issue 10) or are too young or
+carry no licence, so the repair is written here, streaming, with gopar's
+GF(2^16) arithmetic taken over with its notice. Until it is done a download
+with missing articles goes to a debrid account when there is one, and
+otherwise fails with the count, which is what the README's "no repair yet"
+says.

@@ -180,6 +180,39 @@ func TestSecretlessIsQuietWhenNothingIsMissing(t *testing.T) {
 	}
 }
 
+// An export of a box without archive passwords leaves none behind, so taking
+// it over is not reported as missing them.
+func TestAnExportWithoutArchivePasswordsDoesNotMissThem(t *testing.T) {
+	s := configured()
+	s.ArchivePasswords = nil
+	doc, err := Portable(s, false, "v1.2.3", "container", time.Now())
+	if err != nil {
+		t.Fatal(err)
+	}
+	raw, err := json.Marshal(doc)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var read PortableDoc
+	if err := json.Unmarshal(raw, &read); err != nil {
+		t.Fatal(err)
+	}
+	if got := read.Secretless(); slices.Contains(got, SecretlessArchivePasswords) {
+		t.Errorf("Secretless() = %v for a box that had no archive passwords", got)
+	}
+}
+
+// An export written before the count was kept says only whether it carries
+// secrets, and an empty list counts as missing only where it does not.
+func TestAnOlderExportIsJudgedByItsClaimAboutArchivePasswords(t *testing.T) {
+	for claim, want := range map[string]bool{SecretsOmitted: true, SecretsIncluded: false} {
+		doc := PortableDoc{Secrets: claim, Settings: map[string]json.RawMessage{"archivePasswords": json.RawMessage("null")}}
+		if got := slices.Contains(doc.Secretless(), SecretlessArchivePasswords); got != want {
+			t.Errorf("an older export claiming %q reports the archive passwords missing: %v, want %v", claim, got, want)
+		}
+	}
+}
+
 // A program row that travels without its command line is imported with no
 // program at all, which would otherwise pass for a complete import.
 func TestAnEventProgramExportedWithoutSecretsIsReportedIncomplete(t *testing.T) {

@@ -156,9 +156,10 @@ func (k *keptTransfers) note(gid string, t *download.Task) {
 	}
 }
 
-// writeLocked writes t with its last saved connection layout. The headers and
-// the proxy stay out of it: they can hold a login, and the start that carries
-// the transfer on sets them again. Caller holds k.mu.
+// writeLocked writes t with its last saved connection layout. The headers, the
+// proxy and the further sources stay out of it: they can hold a login, or work
+// for anybody who has them, and the start that carries the transfer on sets
+// the headers and the proxy again. Caller holds k.mu.
 func (k *keptTransfers) writeLocked(gid, id string, t *download.Task) error {
 	save, err := json.Marshal(k.saves[gid])
 	if err != nil {
@@ -167,6 +168,7 @@ func (k *keptTransfers) writeLocked(gid, id string, t *download.Task) error {
 	bare := *t
 	meta := *t.Meta
 	meta.Req = &base.Request{URL: t.Meta.Req.URL, Labels: t.Meta.Req.Labels}
+	meta.Opts = ownShare(t.Meta.Req, t.Meta.Opts)
 	bare.Meta = &meta
 	raw, err := json.Marshal(keptRecord{Task: &bare, Save: save})
 	if err != nil {
@@ -190,6 +192,25 @@ func (k *keptTransfers) writeLocked(gid, id string, t *download.Task) error {
 	k.owner[gid] = id
 	k.byTask[id] = gid
 	return nil
+}
+
+// ownShare is opts with the connections of req's own link alone. Start
+// multiplies the count by the sources, and a transfer carried on without them
+// would open all of those connections to its own link.
+func ownShare(req *base.Request, opts *base.Options) *base.Options {
+	rx, ok := req.Extra.(*fhttp.ReqExtra)
+	if !ok || len(rx.Mirrors) == 0 {
+		return opts
+	}
+	ox, ok := opts.Extra.(*fhttp.OptsExtra)
+	if !ok {
+		return opts
+	}
+	n := 1 + len(rx.Mirrors)
+	own, extra := *opts, *ox
+	extra.Connections = max(1, (ox.Connections+n-1)/n)
+	own.Extra = &extra
+	return &own
 }
 
 // dropLocked deletes the record of library task gid. Caller holds k.mu.
@@ -368,7 +389,7 @@ func (e *Engine) takeUp(j Job, s *start) bool {
 			return true
 		case !errors.As(err, &other):
 			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error(), File: file})
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error()), File: file})
 			}
 			return true
 		}

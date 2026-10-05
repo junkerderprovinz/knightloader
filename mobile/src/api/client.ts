@@ -12,6 +12,7 @@ import {
   type ServerConnection,
   type Task,
   type TorrentFileView,
+  type WatchList,
 } from './types';
 import { WATCHED, widgetPagePath, widgetPath } from './captcha';
 import { relayClientFor } from './relayClient';
@@ -170,8 +171,14 @@ export async function checkConnection(conn: ServerConnection): Promise<AuthState
   return request<AuthState>(conn, '/api', '/auth');
 }
 
-export async function fetchTasks(conn: ServerConnection, base = '/api'): Promise<Task[]> {
-  return request<Task[]>(conn, base, '/tasks');
+export async function fetchTasks(conn: ServerConnection, base = '/api', signal?: AbortSignal): Promise<Task[]> {
+  return request<Task[]>(conn, base, '/tasks', { signal });
+}
+
+/** The task list as the background watch compares it, or only the tag again
+ *  while the list is as it was under `tag`. */
+export async function fetchWatch(conn: ServerConnection, tag: string, signal?: AbortSignal): Promise<WatchList> {
+  return request<WatchList>(conn, '/api', `/tasks/watch${tag ? `?tag=${encodeURIComponent(tag)}` : ''}`, { signal });
 }
 
 // addLinks stages one batch of links exactly like the paste box on the web
@@ -216,6 +223,17 @@ export async function setSeeding(conn: ServerConnection, ids: string[], seed: bo
 // just their count, since a torrent can list thousands.
 export async function fetchTorrentFiles(conn: ServerConnection, id: string, base = '/api'): Promise<TorrentFileView[]> {
   return (await request<TorrentFileView[] | null>(conn, base, `/tasks/${encodeURIComponent(id)}/torrent-files`)) ?? [];
+}
+
+// playURL is a link to task id's file that a media player opens without the
+// token, for twelve hours. While the download runs, the instance fetches the
+// part being played first. Only a direct connection has an address a player
+// can reach.
+export async function playURL(conn: DirectConnection, id: string): Promise<string> {
+  const { path } = await request<{ path: string }>(conn, '/api', `/tasks/${encodeURIComponent(id)}/play`, {
+    method: 'POST',
+  });
+  return conn.baseUrl + path;
 }
 
 // selectTorrentFiles makes `paths` the files a torrent fetches. A running
@@ -552,6 +570,12 @@ function poll<T>(
 export async function fetchCaptchas(conn: ServerConnection): Promise<CaptchaChallenge[]> {
   const watch = WATCHED.join(',');
   return (await request<CaptchaChallenge[] | null>(conn, '/api', `/captcha?watch=${watch}`)) ?? [];
+}
+
+/** The same list read without watching, for the background watch: a phone in
+ *  somebody's pocket must not hold the paid solvers back. */
+export async function fetchCaptchasUnwatched(conn: ServerConnection, signal?: AbortSignal): Promise<CaptchaChallenge[]> {
+  return (await request<CaptchaChallenge[] | null>(conn, '/api', '/captcha?watch=0', { signal })) ?? [];
 }
 
 /** Has the instance ask JD now instead of at its next check. */

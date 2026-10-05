@@ -1,10 +1,10 @@
 // The accounts page: one row per configured service and account, as read from
 // internal/accounts/catalogue.go and internal/app/app_accounts.go. Debrid
-// accounts come first, then hoster logins, the logins for the user's own
-// servers and the captcha solvers' keys; the section follows the catalogue's
-// Group field, and every card draws an AccountTable. The Allow free downloads
-// switch comes under them, since whether a link may be fetched for free is a
-// question of which accounts there are.
+// accounts come first, the own Usenet servers below them, then hoster logins,
+// the logins for the user's own servers and the captcha solvers' keys; the
+// section follows the catalogue's Group field, and every card draws an
+// AccountTable. The Allow free downloads switch comes under them, since whether
+// a link may be fetched for free is a question of which accounts there are.
 import {
   useCallback,
   useEffect,
@@ -58,6 +58,7 @@ import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
+import { UsenetServersSection } from '../components/UsenetServersSection';
 import {
   IconAccounts,
   IconCaptcha,
@@ -125,6 +126,9 @@ export function Accounts() {
   const [confirming, setConfirming] = useState<Account | null>(null);
   const [refreshing, setRefreshing] = useState<ReadonlySet<string>>(new Set());
   const [loginHosts, setLoginHosts] = useState('');
+  // Bumped on every change to the Usenet servers, whose row on the priority
+  // card comes and goes with them.
+  const [usenetSaves, setUsenetSaves] = useState(0);
   const hoster = useHosterLogins(setLoginHosts);
 
   const load = useCallback(async () => {
@@ -279,6 +283,10 @@ export function Accounts() {
       </Card>
 
       <Card hue={1} className="flex flex-col gap-3">
+        <UsenetServersSection hue={1} onChanged={() => setUsenetSaves((n) => n + 1)} />
+      </Card>
+
+      <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
@@ -286,14 +294,14 @@ export function Accounts() {
       </Card>
 
       {serverService && (
-        <Card hue={2} className="flex flex-col gap-3">
+        <Card hue={3} className="flex flex-col gap-3">
           <SectionTitle hint={t('accounts.server.hint')}>{t('accounts.server.title')}</SectionTitle>
           {serverRows.length > 0 ? (
             <>
               <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
               <Button
                 kind="secondary"
-                hue={2}
+                hue={3}
                 icon={<IconPlus width={16} height={16} />}
                 className="self-start"
                 onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
@@ -310,7 +318,7 @@ export function Accounts() {
               action={
                 <Button
                   kind="secondary"
-                  hue={2}
+                  hue={3}
                   icon={<IconPlus width={16} height={16} />}
                   onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
                 >
@@ -325,14 +333,14 @@ export function Accounts() {
       {/* A solver's key unlocks no link, so these rows have no import and
           nothing to renew; the order they are tried in stays on the captcha
           settings page, which reads the keys from here. */}
-      <Card hue={3} className="flex flex-col gap-3">
+      <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
           <>
             <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
             <Button
               kind="secondary"
-              hue={3}
+              hue={4}
               icon={<IconPlus width={16} height={16} />}
               className="self-start"
               onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
@@ -349,7 +357,7 @@ export function Accounts() {
             action={
               <Button
                 kind="secondary"
-                hue={3}
+                hue={4}
                 icon={<IconPlus width={16} height={16} />}
                 onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
               >
@@ -360,13 +368,13 @@ export function Accounts() {
         )}
       </Card>
 
-      <FreeDownloadsCard hue={4} />
+      <FreeDownloadsCard hue={5} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
       <RoutingSection
         catalogue={catalogue}
-        signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}`}
+        signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
       />
 
       {/* The windows below belong to the card they were opened from, so they
@@ -615,7 +623,7 @@ function ServerDialog({
   return (
     <Modal
       title={host ? t('accounts.editCredentialTitle', { service: host }) : t('accounts.server.add')}
-      hue={2}
+      hue={3}
       onClose={onClose}
       footer={
         <>
@@ -923,6 +931,7 @@ const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   ytdlp: 'accounts.routing.tip.ytdlp',
   direct: 'accounts.routing.tip.direct',
   torrent: 'accounts.routing.tip.torrent',
+  nntp: 'accounts.routing.tip.nntp',
 };
 
 function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
@@ -950,7 +959,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={5} className="flex flex-col gap-3">
+      <Card hue={6} className="flex flex-col gap-3">
         <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
@@ -963,7 +972,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={6} className="flex flex-col gap-3">
+      <Card hue={7} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.routing.jdHint')}>
           {t('settings.module.jd')}
         </SectionTitle>

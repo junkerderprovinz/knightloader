@@ -30,9 +30,11 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/debriddrive"
 	"github.com/junkerderprovinz/knightloader/internal/dedupe"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
@@ -49,6 +51,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
@@ -121,6 +124,10 @@ type App struct {
 	// thing that lifts a hoster limit keyed to the one this box has.
 	Reconnector *reconnect.Reconnector
 
+	// ClipWatch is the clipboard watchers sending their links here, so a watch
+	// switched on anywhere in the group can name the others.
+	ClipWatch *clipwatch.Registry
+
 	// MediaHooks calls the address a category points at once a package filed
 	// there has finished and its files are in place (see app_mediahook.go).
 	MediaHooks *mediahook.Runner
@@ -129,6 +136,10 @@ type App struct {
 	// link's size and whether it still exists. It is a field so tests that
 	// stage links do not race a real DNS lookup.
 	Probe doer
+
+	// DebridDrive serves what is on the debrid accounts read-only over WebDAV
+	// (see app_debriddrive.go).
+	DebridDrive *debriddrive.Drive
 
 	// DataDir is the directory New was given. Backup and restore need the
 	// directory itself, since internal/backup stages a restore beside it.
@@ -344,6 +355,19 @@ type App struct {
 	// chainFromLocked). A backend wired since is not among them. It is not
 	// stored: after a restart the backend that refused is asked once more.
 	fellBack map[string]map[string]bool
+	// browserHeaders holds the request headers a browser handed over with a
+	// download it gave up, by task id (see app_browserheaders.go). Memory only.
+	browserHeaders map[string]hostheaders.Set
+	// renamed holds the finished downloads a rename moved off the path their
+	// backend recorded, where another download's file may have landed since.
+	// Their backend is not left to delete files by that record (see
+	// removeTask). Memory only, since the engine forgets its downloads on a
+	// restart. Built on first use.
+	renamed map[string]bool
+	// preflights holds, by task id, the start whose header preflight runs off
+	// the lock, and preflightSeq numbers those starts (see resolveLocked).
+	preflights   map[string]uint64
+	preflightSeq uint64
 	// moving holds the tasks being taken off their old backend, by
 	// PinResolver or by a fallback down the chain (see handOnLocked).
 	// Dispatch leaves them where they are until that backend has let go, so
@@ -436,6 +460,7 @@ func New(dataDir string) (*App, error) {
 		Registry:   resolver.NewRegistry(),
 		Settings:   cfg,
 		Federation: fed,
+		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
@@ -456,6 +481,7 @@ func New(dataDir string) (*App, error) {
 	// client so a router holding connections open cannot starve a crawl.
 	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
+	a.DebridDrive = a.newDebridDrive()
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.claims.ytdlpOn = func() bool { return !a.resolverOff("ytdlp") }
 	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
@@ -529,6 +555,7 @@ func New(dataDir string) (*App, error) {
 		log.Printf("speed limiter not applied (%v); downloads run unthrottled", err)
 		_ = px.Close()
 	} else {
+		eng.ExplainBadGateway(px.Unreachable)
 		a.proxy = px
 	}
 
@@ -886,18 +913,26 @@ func (a *App) Close() error {
 	// Pending media hook calls are dropped rather than flushed: their files
 	// were never moved into place.
 	a.stopMediaHooks()
-	if a.proxy != nil {
-		_ = a.proxy.Close()
-	}
 	// Before the engine and the store: a torrent on a debrid service has its
 	// files fetched by the one and its job noted in the other.
 	a.serviceRuns.stop()
+	// The own Usenet servers' files have no boot reconcile, so one that
+	// finishes during shutdown is saved as done here or downloaded again.
+	a.usenetStateFor().articles.Stop()
 	// The engine keeps its transfers in memory only, so seeding ends here,
 	// until the next start takes it up again.
 	a.endSeeding()
 	a.saveTorrentTally(true)
+	if a.ClipWatch != nil {
+		a.ClipWatch.Close(time.Now())
+	}
 	if a.Engine != nil {
 		a.Engine.Close()
+	}
+	// After the engine, whose closing torrent client still reaches HTTP
+	// trackers through it to announce stopped.
+	if a.proxy != nil {
+		_ = a.proxy.Close()
 	}
 	return a.Store.Close()
 }
@@ -998,10 +1033,7 @@ func sanitizeSegment(s string) string {
 	if out == "" {
 		return "package"
 	}
-	if len(out) > 120 {
-		out = out[:120]
-	}
-	return out
+	return pathvars.Cut(out)
 }
 
 // hostOf returns the scheduling host bucket for a URL.
@@ -1023,7 +1055,7 @@ type speedLimiter interface {
 // collector's HEAD probe (analyze). It is optional because other backends learn
 // the name from their progress stream once a download starts.
 type titleProber interface {
-	ProbeTitle(ctx context.Context, url string) (ytdlp.ProbeResult, error)
+	ProbeTitle(ctx context.Context, url string, sent map[string]string) (ytdlp.ProbeResult, error)
 }
 
 // ApplySettings persists new settings and applies what can change at runtime:
@@ -1073,6 +1105,9 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
 	a.applyModuleSwitches(applied)
+	// The Usenet servers and the priority card that ranks them against the
+	// debrid services are both in the document.
+	a.rewireUsenet()
 	// The torrent module may be back on.
 	a.resumeSeeding()
 	a.mu.Lock()
@@ -1181,6 +1216,7 @@ func torrentConfig(t settings.Torrent) engine.TorrentConfig {
 		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
 		DisableDHT:  !t.DHTEnabled,
 		DisablePEX:  !t.PEXEnabled,
+		Interface:   t.Interface,
 	}
 }
 

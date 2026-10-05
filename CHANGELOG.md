@@ -37,6 +37,209 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.0] - 2026-10-05
+
+### Added
+
+- **Usenet from your own servers.** Add your provider's server under Accounts,
+  Usenet servers, with TLS, your login, the number of connections, a level, a
+  retention in days and whether it is optional, and test the login there.
+  An `.nzb` from Sonarr, Radarr, the upload button or the watched folder then
+  downloads straight from it: every file is a download of its own, its
+  articles come in over all connections and are written into place, and a
+  paused or interrupted download carries on with the articles it still lacks.
+  So does one you remove without its files and then bring back with Undo, and
+  two releases with the same file name in one folder never mix their articles.
+  A main server and fill servers on higher levels are asked in turn for each
+  article. Your servers come before TorBox and Premiumize.me unless you move
+  them in the priority order, and a release with articles none of them has
+  goes on to your debrid account, or fails in Sonarr's history with the reason
+  when there is none. Damaged downloads are not repaired with par2 yet; the
+  recovery files are listed, switched off, and load only when needed.
+
+- **Play while downloading.** Play in the download list's right-click menu,
+  and a new Play button on a link in the phone app, open a video or song that
+  is still downloading. The browser plays it in a tab of its own, and the
+  phone hands it to a player app. KnightLoader then fetches that file in order
+  from the point being played, with the beginning and the end first, since
+  players look for a file's index there, while everything else downloads as
+  usual. For a torrent, the pieces just ahead of the player come first, also
+  from a web seed; a direct download moves one of its connections to the part
+  being played. The player in a download's details can jump ahead now too. A jump waits until
+  that part has arrived, for up to a minute and a half per read. Once playback
+  stops or the file is complete, the download goes back to its usual order. In
+  a torrent of several files, Play opens the largest video or song among the
+  files it fetches, and a torrent without any gets no Play. A download that
+  stopped halfway has to run again before it plays. On the phone this needs a
+  direct connection to the instance, because a player app cannot go through
+  the relay. Restarting KnightLoader no longer waits for a player that still
+  has a file open.
+
+- **One file from several sources.** With "Use several sources for one file"
+  on under Settings, Downloads, a file is split across up to three further
+  sources KnightLoader can get for it: the same link unlocked by a second debrid
+  account, and the spare copies the list keeps from other hosters. Each source
+  gets the connections set for one download, and when one stops part way the
+  others fetch its share. A source joins only if it reports the same size and
+  sends the same bytes at sample points in the file. It is off by default,
+  because it helps only when a service caps one link or one connection, and
+  every extra unlock uses that account's traffic. A download paused before a
+  restart carries on from its own link alone, with the connections set for one
+  download. A link that answers only KnightLoader's own agent gets further
+  sources too, and when a file stays with its own link, the log says why.
+
+- **Torrents can be tied to one network interface.** Settings, Torrents has a
+  Network interface field that lists the interfaces the system has, such as
+  `wg0` or `tun0` from a VPN. Peers, trackers and the DHT of the built-in
+  client then use only that interface, and while it is missing or down the
+  client sends and receives nothing, a kill switch like qBittorrent's. The
+  torrents wait without failing, the Overview's Torrents card says they are on
+  hold, and they carry on once the interface is back. A change applies to
+  running torrents at once. Torrents a debrid service fetches are not
+  affected. The default stays Any interface.
+
+- **Stream from your debrid accounts through rclone.** The new debrid drive
+  shows what is on your TorBox, Real-Debrid, AllDebrid, Premiumize.me and
+  Debrid-Link accounts as a read-only WebDAV share at `/dav/`, with a folder
+  per account and one per download. Mount it with rclone and Plex or Jellyfin
+  stream from the service without anything being downloaded first. A file is
+  unlocked only when something reads it, and every read asks for the part it
+  needs, so seeking works. MKV, AVI, MOV, TS and other common video and audio
+  files go out with their real content type, which some players go by. The
+  drive is off until you switch it on under
+  Settings, Accounts, which also shows the address and an rclone configuration
+  to copy, and it opens only to an API token that can read. Listings are kept
+  for five minutes unless you set another interval. The manual has a new page
+  on mounting it for Plex or Jellyfin on Unraid and with Docker.
+
+- The browser extension can take over downloads. Switched on in its options, a
+  download that fits your rules (file types, minimum size, sites to leave
+  alone) goes to your default instance with your cookies for that site, so
+  downloads behind a login work. Hold Alt, Shift or Ctrl while clicking to
+  keep one in the browser. If the hand-over fails, or the instance holds the
+  link back as already downloaded or filtered, the browser keeps it.
+
+- The browser extension can list the video and audio a page plays, HLS and
+  DASH playlists included, and send any of them from the popup, with the page
+  it played on.
+
+- `POST /api/links` takes `source` and, for a single link, the browser's
+  `Cookie`, `Referer` and `User-Agent` in `headers`. They stay in memory for
+  that download only, never reach a log, and go when it finishes. `file` and
+  `name` mark that link as a file the browser was downloading, so it is
+  fetched as a plain file, never handed to yt-dlp, and saved under the
+  browser's name.
+
+- **The browser extension watches the clipboard.** Switch it on in the
+  extension's options and every link you copy goes to your default instance
+  while the browser is open, with no KnightLoader tab needed. Only the links
+  leave the browser. When you switch a watch on, in the extension or in the
+  web interface, KnightLoader asks your group who else is watching, names that
+  device and offers to switch it off there or keep both. An instance turns
+  away a link it already has, so with both sending to the same instance
+  nothing is downloaded twice.
+- **The desktop app watches the clipboard in the background.** The watch keeps
+  running while the window is hidden in the tray, sends only the links, and
+  can send to this instance or to a paired one such as a NAS. On Linux under
+  Wayland it needs wl-clipboard and a compositor with data-control. The
+  desktop app keeps its instance id across restarts, so it is listed once.
+- **Notifications from the Android app, also while it is closed.** A captcha
+  waiting for an answer, a finished download or package and a failed download
+  show up as notifications. With "Stay connected", on by default, a quiet
+  background service keeps watching every saved instance, also after a reboot
+  or an update of the app. It needs no Google services, so the same app works
+  on phones with and without them. Settings, Notifications has a switch per
+  kind.
+
+### Fixed
+
+- **Trackers stopped hearing from torrents once one was removed.** After any
+  torrent left the built-in client, the trackers got no more regular announces
+  for the other torrents until a new one was added, so their peer lists went
+  stale. Private torrents rely on these announces. The fault was in the torrent
+  library and is fixed in KnightLoader's copy of it, which also tells the
+  trackers the torrents stopped and closes its tracker sockets when the client
+  shuts down.
+
+- **A torrent removed and added again quickly fell silent.** When a torrent
+  came back before its trackers had been told it stopped, through a restart or
+  an Undo, it sent them no more announces and got no peers from them. It now
+  announces as a new torrent.
+
+- **A magnet removed while it waited for its file list stayed in the torrent
+  client.** It kept announcing to its trackers and held its sockets, and so did
+  a magnet whose wait ran out. While one was left over, the client never became
+  idle, so a new listening port did not take effect. Such a magnet now leaves
+  the client.
+
+- **HTTP trackers were not told when KnightLoader shut down.** UDP trackers got
+  their stopped announce, but the one for HTTP trackers went through the
+  speed limiter's local proxy, which had already closed, and was lost. The
+  proxy now closes after the torrent client.
+
+- **The torrent client opened a piece completion database it never used.** It
+  tried to create the file in its working folder, which in the container is
+  not writable, so every start of the client logged a warning.
+
+- A file name from a dropped crawljob (`filename=`) or from
+  `POST /api/tasks/options` is shortened the same way as a rename. A name too
+  long for the disk used to leave the file under its old name with an error.
+  A rename that succeeds also clears the error an earlier failed rename left on
+  the download. A long name is cut between characters and keeps its
+  extension.
+- **A download restarted after it finished gets a new finish time,** so the
+  list, the history and the retention count from the second download.
+
+- **An unreachable server was reported as "HTTP 502".** When a plain HTTP
+  link pointed at a server that was down or did not exist, the error showed
+  the 502 that KnightLoader's own speed limiter answered with. It now shows
+  why the connection failed, for example that it was refused.
+
+- **After an automatic retry, a download showed 0 bytes loaded although its
+  bytes were still on disk.** The retry keeps those bytes, and the row now
+  keeps counting them.
+
+- **A settings import warned that archive passwords were missing on a box
+  that never had any.** An export without passwords now records how many
+  archive passwords it left out, and the import warns only when that number is
+  above zero. Exports from earlier versions still warn whenever they say they
+  left passwords out.
+
+- **Remove with files left empty files behind,** such as the empty
+  .description file yt-dlp writes for a video without a description. A
+  download that finished empty now takes its empty file with it.
+
+- **Remove with files could delete another download's file.** If you deleted
+  a finished file by hand and a download from another link then finished
+  under the same name, removing the first row with its files took the second
+  one's file. The file now stays as long as another row has it.
+
+- `POST /api/accounts/label` no longer switches off an account whose on/off
+  switch had never been touched.
+
+- **Fewer failed icon loads in the browser console.** For a host that cannot
+  have a site icon, such as an IP address, a local name like nas.local, a
+  torrent or a task id, the web UI shows the letter tile at once instead of
+  asking the instance four times. A host the instance found no icon for is
+  asked once and no longer shows up as a failed load, and neither does an
+  icon the instance is still fetching. Leaving a page before its live
+  connection is up no longer logs a WebSocket warning.
+- **Hoster icons also show up at the end of a long list.** On an instance that
+  has fetched few icons so far, the hoster list behind Add an account on the
+  Accounts page asks for a few hundred at once, and the instance works through
+  them eight at a time, which takes minutes. The page gave up on an icon after
+  about 40 seconds, and the hoster kept its first letter until the list was
+  opened again. It now keeps asking for up to ten minutes, waits as long as the
+  instance asks, and asks a little less often each time.
+- **A download paused before a restart carries on at once.** Started again
+  after the restart, it waited about ten seconds before it fetched anything.
+- **A download that is running when KnightLoader restarts carries on where it
+  stopped.** Only a download paused before a restart kept its place. One still
+  running started again from the first byte, or from where it was last
+  paused. KnightLoader now pauses running downloads as it shuts down and,
+  after the restart, picks them up from the bytes on disk, as long as the
+  server still sends the file in parts.
+
 ## [1.7.0] - 2026-10-04
 
 ### Added

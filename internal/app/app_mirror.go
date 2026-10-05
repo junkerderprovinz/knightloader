@@ -71,23 +71,72 @@ func mirrorCanHelp(r core.Reason) bool {
 	return true
 }
 
-// mirrorRootLocked returns the id every copy of one file is filed under: the
-// download the first sibling was staged against. Caller holds a.mu.
+// mirrorRoot returns the id every copy of one file is filed under: the download
+// the first sibling was staged against.
 //
 // It walks the chain because the mirror set may match a third copy against a
 // sibling rather than the original. The walk is bounded since MirrorOf is a
 // persisted column, and a cycle from a foreign store would otherwise hang the
 // dispatcher with a.mu held.
-func (a *App) mirrorRootLocked(t *core.Task) string {
-	id := t.ID
+func mirrorRoot(tasks map[string]*core.Task, id string) string {
 	for i := 0; i < 20; i++ {
-		cur := a.tasks[id]
+		cur := tasks[id]
 		if cur == nil || cur.MirrorOf == "" {
 			return id
 		}
 		id = cur.MirrorOf
 	}
 	return id
+}
+
+// MirrorRoots maps every kept copy to the task its group is filed under, so a
+// reader can count the copies of one file as one file.
+func MirrorRoots(tasks []*core.Task) map[string]string {
+	byID := make(map[string]*core.Task, len(tasks))
+	for _, t := range tasks {
+		byID[t.ID] = t
+	}
+	out := map[string]string{}
+	for _, t := range tasks {
+		if t.MirrorOf != "" {
+			out[t.ID] = mirrorRoot(byID, t.ID)
+		}
+	}
+	return out
+}
+
+// HandedOver returns the failed tasks whose file another copy has taken on: an
+// enabled mirror in the same group that is on its way or finished. Once every
+// such copy has failed too, nothing is left to carry the file and no failure
+// is handed over.
+func HandedOver(tasks []*core.Task) map[string]bool {
+	byID := make(map[string]*core.Task, len(tasks))
+	for _, t := range tasks {
+		byID[t.ID] = t
+	}
+	carriers := map[string][]string{}
+	for _, c := range tasks {
+		if c.MirrorOf == "" || !c.Enabled || c.Skipped || c.Status == core.StatusCollected {
+			continue
+		}
+		if c.Status == core.StatusError && c.NextTry.IsZero() {
+			continue
+		}
+		root := mirrorRoot(byID, c.ID)
+		carriers[root] = append(carriers[root], c.ID)
+	}
+	out := map[string]bool{}
+	for _, t := range tasks {
+		if t.Status != core.StatusError {
+			continue
+		}
+		for _, id := range carriers[mirrorRoot(byID, t.ID)] {
+			if id != t.ID {
+				out[t.ID] = true
+			}
+		}
+	}
+	return out
 }
 
 // parkedMirrorLocked picks the next copy of a dead task's file, or nil when the
@@ -98,7 +147,7 @@ func (a *App) mirrorRootLocked(t *core.Task) string {
 // Oldest first is paste order; the id breaks ties so the choice does not depend
 // on map order.
 func (a *App) parkedMirrorLocked(dead *core.Task) *core.Task {
-	root := a.mirrorRootLocked(dead)
+	root := mirrorRoot(a.tasks, dead.ID)
 	var best *core.Task
 	for id, c := range a.tasks {
 		if id == dead.ID || c.MirrorOf == "" || c.Enabled || c.Skipped {
@@ -107,7 +156,7 @@ func (a *App) parkedMirrorLocked(dead *core.Task) *core.Task {
 		if c.Status != core.StatusCollected && c.Status != core.StatusQueued {
 			continue
 		}
-		if a.mirrorRootLocked(c) != root {
+		if mirrorRoot(a.tasks, id) != root {
 			continue
 		}
 		switch {

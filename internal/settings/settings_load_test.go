@@ -3,6 +3,7 @@ package settings
 import (
 	"os"
 	"path/filepath"
+	"slices"
 	"testing"
 )
 
@@ -106,7 +107,8 @@ func TestAReadableFileReportsNothing(t *testing.T) {
 	}
 }
 
-// A save leaves the settings file and nothing else in the folder.
+// A save leaves the settings file and the kept instance id, and nothing else in
+// the folder.
 func TestASaveLeavesNoTemporaryFile(t *testing.T) {
 	dir := t.TempDir()
 	s, err := Load(dir)
@@ -122,11 +124,11 @@ func TestASaveLeavesNoTemporaryFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(entries) != 1 || entries[0].Name() != "settings.json" {
-		var names []string
-		for _, e := range entries {
-			names = append(names, e.Name())
-		}
-		t.Errorf("folder holds %v, want settings.json alone", names)
+	var names []string
+	for _, e := range entries {
+		names = append(names, e.Name())
+	}
+	if want := []string{instanceIDFile, "settings.json"}; !slices.Equal(names, want) {
+		t.Errorf("folder holds %v, want %v", names, want)
 	}
 }

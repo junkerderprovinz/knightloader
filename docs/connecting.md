@@ -354,7 +354,11 @@ and cannot be explained.
   app is in the background is announced when you come back to it, as long as
   Android has kept the app in memory. After Android has closed it, the card on
   the downloads still shows what is waiting, but no banner comes up. The app
-  sends no notification while it is closed. While it watches, the instance
+  also keeps its own connection in the background and posts a notification for
+  a new captcha, even when it is closed and after the phone restarts. With
+  **Stay connected** switched off in its **Notifications** settings, it does so
+  only while one of your instances is busy. The background connection does not count as watching.
+  While the app watches, the instance
   counts you as watching for the captchas the app can answer, which is every
   kind except a captcha service KnightLoader does not know. With **Only when
   nobody is watching** switched on on the Captcha settings page, the captcha
@@ -384,8 +388,9 @@ That replaces the whole previous shape and everything that hung off it:
   is the credential. No window opens, no session cookie is involved, and the
   `sameOrigin` guard is not worked around, because it is not on that path.
 
-The site access the extension asks for at install time is for Click'n'Load and
-for nothing else; see `docs/browser-tools.md`.
+The extension asks for no site access at install time. Click'n'Load, taking
+over downloads and finding media each ask for it when switched on; see
+`docs/browser-tools.md`.
 
 ## API tokens and their rights
 
@@ -432,6 +437,13 @@ Packagizer rule puts them.
 The phone app uses Read, Add and Control and never needs Admin. The Modules
 page warns when no token has the rights the Sonarr bridge or `/api/metrics`
 needs.
+
+The phone app's Play button asks for a play link with `POST
+/api/tasks/{id}/play`, which needs Read. A player app opens the link without a
+token, so the link itself is the key: it opens that one file and nothing
+else, for twelve hours or until the instance restarts, and anyone who has it
+can play the file in that time. For a torrent of several files that is the
+file Play picked, not the rest of the torrent.
 
 A call the token has no right to is answered with a 403 that names the missing
 right:

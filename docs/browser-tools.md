@@ -99,8 +99,9 @@ and the extension only hands links over.
 Permissions: `activeTab`, `contextMenus`, `storage` (the default instance,
 the language, the appearance and whether to follow an instance's, the
 Click'n'Load switch and countdown, whether the pin hint was shown, and in
-session storage a send waiting for the popup), `scripting` and
-`declarativeNetRequest`. The phrase is kept apart from these, in the
+session storage a send waiting for the popup), `scripting`,
+`declarativeNetRequest`, and `offscreen` and `alarms` for the clipboard watch
+below. The phrase is kept apart from these, in the
 extension's own IndexedDB, because the Click'n'Load content scripts can read
 `storage.local`. None of the permissions asks for access to any website at install. `activeTab` is what lets the popup read the current tab's
 address and title, and a right-click send the page title: both are a user's
@@ -108,9 +109,34 @@ click on the extension, which grants access to that one tab until it
 navigates. The relay is a WebSocket, which needs no host permission.
 
 Two permissions are optional and asked for only when they are needed:
-`clipboardRead` for the paste button next to the phrase, and `<all_urls>` in
+`clipboardRead` for the paste button next to the phrase and for the clipboard
+watch, and `<all_urls>` in
 `optional_host_permissions`, which `scripting` and `declarativeNetRequest`
 need for one feature only:
+
+### The clipboard watch
+
+Switched on in the options, the extension reads the clipboard about once a
+second and sends the links in a newly copied text to the default instance, the
+way the web interface's watch does from its own tab. Both use one link rule
+(`extension/check-clipwatch.mjs` keeps them alike), and only the links leave the
+browser. Chromium reads in an offscreen document, since a service worker has no
+document; Firefox reads in its background page and wakes it with an alarm after
+it unloads the page.
+
+Every watcher in a group, the desktop app's, a web interface tab's and the
+extension's, renews a three-minute lease with the instance it sends to
+(`PUT /api/clipboard-watchers/{id}`, `internal/clipwatch`). A page whose links go
+to a peer of the instance serving it renews there, through
+`/api/instances/{name}/clipboard-watchers/{id}`. Switching a watch on asks for
+the group's list (`GET /api/clipboard-watchers`, which asks every member and
+every instance added by address for its own), and when another device already
+watches, a window names it and offers to switch it off there
+(`POST /api/clipboard-watchers/{id}/stop`, sent to all of them at once) or keep
+both. A stopped watcher hears it on its next renewal, even if its instance
+restarted in between. Keeping both sends each link twice, and an instance turns
+away a link it already has. The web interface keeps its switch in the browser,
+so two browsers on one instance each have their own.
 
 ### Click'n'Load, in the browser
 
@@ -160,6 +186,62 @@ asks again.
 This is the answer to the case a loopback port cannot serve: KnightLoader on a
 server, a browser on a laptop, and a CnL button on a website that only knows how
 to talk to `127.0.0.1:9666`.
+
+### Taking over downloads and finding media
+
+Both are off until switched on in the options, and each asks for its optional
+permissions at that moment (`capture.js`): taking over downloads wants
+`downloads`, `cookies`, `notifications` and the access to all websites,
+finding media wants `webRequest`, `cookies` and the same access. Switching one
+off hands back whatever neither of the others still uses, Click'n'Load
+included.
+
+**Taking over downloads** (`takeover.js`). Chromium names a download before it
+writes it (`downloads.onDeterminingFilename`), so the download is held at that
+step; Firefox has no such event, so its download is paused right after
+`downloads.onCreated`. The rules decide first: file types (empty means all), a
+minimum size (a size the browser does not know yet never passes one), sites to
+leave alone, and a key that, held while clicking, keeps the download in the
+browser. `bypass.js`, registered only while the feature is on, reports such a
+click. Downloads from loopback, private and `.local` addresses, from a private
+window, and from one of the group's own web addresses always stay in the
+browser.
+
+A matching download goes to the default instance as `POST /api/links` with
+`headers` (the browser's cookies for that address, the Referer, the user
+agent), `source`, and `file` with the name the browser gave it. That marks the
+link as a file, so the instance fetches it as one even when its address has
+no file extension, rather than handing it to yt-dlp as a page, and saves it
+under the browser's name. If a file of that name is already in the folder,
+your setting for that case applies (overwrite, skip or number it), as for any
+other download. Only after the instance answers with the created task is the
+browser's download cancelled and erased; any failure, including a link the
+instance already had or its filter held back, lets it carry on. A
+notification names the instance.
+
+**Finding media** (`media.js`, `popup-media.js`) watches responses with
+`webRequest.onResponseStarted` and keeps, per tab in `storage.session`, the HLS
+and DASH playlists and the files a player element loaded. Fragments (`.ts`,
+`.m4s`) and byte ranges a script fetches are left out. The popup lists them,
+and each send carries the page as `source` and Referer, plus the cookies for
+the stream's address; yt-dlp on the instance does the rest.
+
+**On the instance** the headers are checked and scoped by
+`app.BrowserHeaders`: only Cookie, Referer and User-Agent, only with a single
+link, no control characters, and bound to that link's origin through
+`hostheaders.Set`, which prints header names only. They live in memory beside
+the task, never in the task record or the store, and go when the download
+finishes or the task is removed; a restart drops them. A plain file goes
+through the header-profile preflight, which follows redirects itself and
+strips the headers on any hop off the origin. yt-dlp gets the cookies in a
+cookie file scoped to the host, and the Referer and user agent as
+`--add-header`. Such a link is staged as it is: no crawl and no playlist
+listing, which without the browser's session would only see a login page.
+
+Limits: a download the browser started with a POST cannot be fetched again by
+address; a one-time link the browser already used is spent; partitioned and
+first-party-isolated cookies are not read; and a stream whose address carries
+a short-lived token has to be sent while it is still valid.
 
 **Selection Rules** (pre-defining which instance a given file type goes to, the
 way MyJDownloader's extension can) is still not built. Choosing per send and

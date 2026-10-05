@@ -31,6 +31,8 @@ type Engine struct {
 	d   *download.Downloader
 	dir string
 
+	unreachable func(rawURL string) error // see ExplainBadGateway
+
 	mu       sync.Mutex
 	toKL     map[string]string // gopeed task id -> KL task id
 	toGopeed map[string]string // KL task id -> gopeed task id
@@ -90,6 +92,9 @@ type Engine struct {
 	pollOnce  sync.Once
 	// closed is set under mu by Close before wg.Wait runs; see Start.
 	closed bool
+	// keeping holds a channel for each transfer Close pauses to keep for the
+	// next start, by gopeed id, closed once the library has saved that pause.
+	keeping map[string]chan struct{}
 
 	// metadataTimeout overrides how long a magnet may wait for its file list.
 	// Zero means defaultMetadataTimeout.
@@ -219,6 +224,30 @@ func (e *Engine) UseProxy(hostPort string) error {
 	})
 }
 
+// ExplainBadGateway lets the engine name why the loopback proxy answered a 502:
+// unreachable returns the failure to reach the server of a link, or nil.
+func (e *Engine) ExplainBadGateway(unreachable func(rawURL string) error) {
+	e.unreachable = unreachable
+}
+
+// failure is msg, or the reason the loopback proxy could not reach j's server
+// when msg is the 502 the proxy answered then.
+func (e *Engine) failure(j Job, msg string) string {
+	if e.unreachable == nil || j.Route.Proxied() || !badGateway(msg) {
+		return msg
+	}
+	if err := e.unreachable(j.URL); err != nil {
+		return err.Error()
+	}
+	return msg
+}
+
+// badGateway reports whether msg is a 502 in the words of the library
+// ("code:502"), probeRest ("HTTP 502") or a refused CONNECT ("Bad Gateway").
+func badGateway(msg string) bool {
+	return strings.Contains(msg, "code:502") || strings.Contains(msg, "HTTP 502") || strings.Contains(msg, "Bad Gateway")
+}
+
 // btProtocolConfig mirrors the bt config of the gopeed fork (see go.mod) with
 // identical json tags. ProtocolConfig["bt"] round-trips through JSON
 // (util.MapToStruct), so the mirror reads and writes it correctly.
@@ -231,10 +260,12 @@ type btProtocolConfig struct {
 	UploadLimit int64    `json:"uploadLimit"`
 	DisableDHT  bool     `json:"disableDht"`
 	DisablePEX  bool     `json:"disablePex"`
+	Interface   string   `json:"interface"`
 }
 
 // TorrentConfig is what the torrent client takes from the settings. The zero
-// value is any port, no seeding target, no upload limit, DHT and PEX on.
+// value is any port, no seeding target, no upload limit, DHT and PEX on, and
+// any network interface.
 type TorrentConfig struct {
 	Port        int
 	SeedRatio   float64
@@ -243,19 +274,22 @@ type TorrentConfig struct {
 	UploadLimit int64
 	DisableDHT  bool
 	DisablePEX  bool
+	// Interface is the network interface every torrent's traffic is tied to,
+	// empty for any. See TorrentNetwork.
+	Interface string
 }
 
 // SetTorrentConfig writes c into gopeed's bt protocol config; Trackers and
 // SeedKeep are passed through unchanged. Call it at boot and on every
 // settings save.
 //
-// The upload limit applies at once, to torrents already running too. The
-// seeding targets reach every torrent started afterwards, since gopeed reads
-// the config per task, and every torrent started only to seed, which the
-// engine stops itself (see seed.go). The port, DHT and PEX belong to the one
-// torrent client all torrents share: gopeed rebuilds it with the new values
-// when the save finds no torrent in the library, and otherwise once the last
-// one is gone.
+// The upload limit and the interface apply at once, to torrents already
+// running too. The seeding targets reach every torrent started afterwards,
+// since gopeed reads the config per task, and every torrent started only to
+// seed, which the engine stops itself (see seed.go). The port, DHT and PEX
+// belong to the one torrent client all torrents share: gopeed rebuilds it
+// with the new values when the save finds no torrent in the library, and
+// otherwise once the last one is gone.
 func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 	e.mu.Lock()
 	e.targets = seedTargets{ratio: c.SeedRatio, seconds: int64(c.SeedSeconds)}
@@ -273,6 +307,7 @@ func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 		next.UploadLimit = c.UploadLimit
 		next.DisableDHT = c.DisableDHT
 		next.DisablePEX = c.DisablePEX
+		next.Interface = c.Interface
 		if reflect.DeepEqual(next, bt) {
 			return false
 		}
@@ -290,9 +325,9 @@ func (e *Engine) SetTorrentConfig(c TorrentConfig) error {
 // is torn down. It is idempotent, since the app shuts down from more than one
 // place.
 //
-// The wait is capped at closeGrace. A resolve already inside the library
-// takes no context and cannot be interrupted; closing the library is what
-// releases it, and a shutdown that hung on one slow host would be worse.
+// The wait is capped at closeGrace. An HTTP resolve already inside the
+// library takes no context and cannot be interrupted; closing the library is
+// what releases it, and a shutdown that hung on one slow host would be worse.
 func (e *Engine) Close() error {
 	e.closeOnce.Do(func() {
 		e.mu.Lock()
@@ -300,6 +335,7 @@ func (e *Engine) Close() error {
 		e.mu.Unlock()
 		e.stop()
 		close(e.done)
+		e.keepRunning()
 		waited := make(chan struct{})
 		go func() {
 			e.wg.Wait()
@@ -317,6 +353,53 @@ func (e *Engine) Close() error {
 // closeGrace is how long Close waits for its own goroutines before shutting
 // the download library down anyway.
 const closeGrace = 10 * time.Second
+
+// keepRunning pauses every HTTP transfer still running and waits, for up to
+// keepWait, until the library has saved each pause, which writes the record
+// the next start carries on from (see resume.go). The library's own Close
+// pauses them as well, but saves those pauses after its store has closed.
+func (e *Engine) keepRunning() {
+	if e.layouts.kept == nil {
+		return
+	}
+	var gids []string
+	e.mu.Lock()
+	for taskID, gid := range e.toGopeed {
+		if !e.torrents[taskID] {
+			gids = append(gids, gid)
+		}
+	}
+	e.mu.Unlock()
+	if len(gids) == 0 {
+		return
+	}
+	running := e.d.GetTasksByFilter(&download.TaskFilter{IDs: gids, Statuses: []base.Status{base.DownloadStatusRunning}})
+	if len(running) == 0 {
+		return
+	}
+	waits := make(map[string]chan struct{}, len(running))
+	ids := make([]string, 0, len(running))
+	for _, t := range running {
+		waits[t.ID] = make(chan struct{})
+		ids = append(ids, t.ID)
+	}
+	e.mu.Lock()
+	e.keeping = waits
+	e.mu.Unlock()
+	_ = e.d.Pause(&download.TaskFilter{IDs: ids})
+	timeout := time.After(keepWait)
+	for _, saved := range waits {
+		select {
+		case <-saved:
+		case <-timeout:
+			return
+		}
+	}
+}
+
+// keepWait bounds how long Close waits for the pauses of keepRunning. A
+// container is killed ten seconds after it is asked to stop.
+const keepWait = 3 * time.Second
 
 // Download starts url into the engine's own folder, with no collision policy.
 // It is what the app's backend interface asks of every backend; the app
@@ -393,6 +476,10 @@ type Job struct {
 	// mend.go). Nil asks URL again.
 	Relink func(ctx context.Context) (string, error)
 
+	// Sources asks for further links to the same file, for a transfer spread
+	// over several sources (see multisource.go). Nil fetches from URL alone.
+	Sources func(ctx context.Context) []string
+
 	// PassOnPlaylists is set for a link taken for a file by its look alone. A
 	// stream playlist arriving there fails the job as unsupported, so the app
 	// hands the link to the next backend. Only the first bytes tell, since a
@@ -450,10 +537,10 @@ func (e *Engine) Start(j Job) {
 		if e.takeUp(j, s) {
 			return
 		}
-		rr, opts, err := e.resolve(&j)
+		rr, req, opts, err := e.resolve(&j)
 		if err != nil {
 			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: err.Error()})
+				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error())})
 			}
 			return
 		}
@@ -469,6 +556,13 @@ func (e *Engine) Start(j Job) {
 			return
 		}
 		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+		// Like the name, read by the library only once Create starts the
+		// transfer. Resolve has already filled in the connection count, and
+		// each source gets that many.
+		if mirrors := e.vetSources(j, rr.Res); len(mirrors) > 0 {
+			req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
+			opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
+		}
 		if !e.proceed(s, j) {
 			return
 		}
@@ -492,23 +586,23 @@ var errHungUp = errors.New("the server closed the connection")
 // browser agent the library sends by default, so a link that hangs up is asked
 // once more as KnightLoader, and j keeps that agent for the task's later
 // requests. An agent the caller set is kept either way.
-func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Options, error) {
-	rr, opts, err := e.resolveAs(*j)
+func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+	rr, req, opts, err := e.resolveAs(*j)
 	if err == nil || !httpx.HungUp(err) {
-		return rr, opts, err
+		return rr, req, opts, err
 	}
 	if !hasUserAgent(j.Headers) {
 		ours := asKnightLoader(*j)
-		rr, opts, err = e.resolveAs(ours)
+		rr, req, opts, err = e.resolveAs(ours)
 		if err == nil {
 			*j = ours
-			return rr, opts, nil
+			return rr, req, opts, nil
 		}
 		if !httpx.HungUp(err) {
-			return rr, opts, err
+			return rr, req, opts, err
 		}
 	}
-	return nil, nil, hungUp(err)
+	return nil, nil, nil, hungUp(err)
 }
 
 // hungUp words the hang-up err as errHungUp rather than a bare EOF.
@@ -520,7 +614,9 @@ func hungUp(err error) error {
 	return errHungUp
 }
 
-func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error) {
+// resolveAs also returns the request and options, which the library keeps and
+// reads again when Create starts the transfer.
+func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
 	req := &base.Request{
 		URL:    j.URL,
 		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -529,7 +625,7 @@ func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Options, error
 	}
 	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
 	rr, err := e.d.Resolve(req, opts)
-	return rr, opts, err
+	return rr, req, opts, err
 }
 
 // asKnightLoader is j sending KnightLoader's agent, on a copy of its headers.
@@ -751,7 +847,10 @@ func (e *Engine) Reconnect(taskID string) bool {
 // which a restart needs; tidying the list does not.
 func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.dropMend(taskID)
-	e.markStart(taskID, func(s *start) { s.removed = true })
+	e.markStart(taskID, func(s *start) {
+		s.removed = true
+		s.cancel()
+	})
 	e.mu.Lock()
 	delete(e.parked, taskID)
 	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
@@ -825,6 +924,17 @@ func (e *Engine) onEvent(ev *download.Event) {
 	if h := e.holds[taskID]; h != nil && ok && ev.Key == download.EventKeyPause {
 		own = closeOnce(h.paused)
 	}
+	// A transfer Close keeps is still running as far as the app knows, so it
+	// is taken up again after the restart.
+	if saved := e.keeping[ev.Task.ID]; saved != nil {
+		switch ev.Key {
+		case download.EventKeyPause:
+			closeOnce(saved)
+			own = true
+		case download.EventKeyDone, download.EventKeyError:
+			closeOnce(saved)
+		}
+	}
 	file := e.files[ev.Task.ID]
 	job := e.jobs[taskID]
 	_, seed := e.seeds[taskID]
@@ -893,7 +1003,7 @@ func (e *Engine) onEvent(ev *download.Event) {
 		// The app classifies the message, the same way for every backend.
 		msg := "download error"
 		if ev.Err != nil {
-			msg = ev.Err.Error()
+			msg = e.failure(job, ev.Err.Error())
 		}
 		// With the file, so a restart before the next attempt still knows
 		// which leftover is this task's.

@@ -461,6 +461,35 @@ func TestTheTrackerListRouteReportsTheListTheSettingsName(t *testing.T) {
 	}
 }
 
+func TestTheInterfacesRouteListsLoopbackAsUsable(t *testing.T) {
+	t.Parallel()
+	_, srv := torrentsServer(t)
+	resp, err := http.Get(srv.URL + "/api/torrents/interfaces")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	var got struct {
+		Interfaces []struct {
+			Name  string   `json:"name"`
+			Up    bool     `json:"up"`
+			Addrs []string `json:"addrs"`
+		} `json:"interfaces"`
+	}
+	if err := json.Unmarshal(mustRead(t, resp), &got); err != nil {
+		t.Fatal(err)
+	}
+	for _, ni := range got.Interfaces {
+		if slices.Contains(ni.Addrs, "127.0.0.1") {
+			if !ni.Up {
+				t.Errorf("%s holds 127.0.0.1 but is listed as unusable", ni.Name)
+			}
+			return
+		}
+	}
+	t.Fatalf("no interface lists 127.0.0.1: %+v", got.Interfaces)
+}
+
 // stagedTask is the task as the app holds it. The file selection is not sent
 // with a task, so the stage answer does not carry it.
 func stagedTask(t *testing.T, a *app.App, id string) core.Task {

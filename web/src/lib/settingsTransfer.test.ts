@@ -60,6 +60,17 @@ describe('the import preview', () => {
     expect(diffRows(doc, {}, schema).some((r) => r.key === 'navLabels')).toBe(false);
   });
 
+  it('marks archive passwords as missing only when the export left some behind', () => {
+    const doc = (extra: Record<string, unknown>) =>
+      ({ ...exported({ archivePasswords: null }), ...extra }) as unknown as SettingsExportDoc;
+    const marked = (extra: Record<string, unknown>) =>
+      diffRows(doc(extra), {}, schema).find((r) => r.key === 'archivePasswords')?.secretless;
+    expect(marked({ secrets: 'omitted', archivePasswordsOmitted: 0 })).toBe(false);
+    expect(marked({ secrets: 'omitted', archivePasswordsOmitted: 2 })).toBe(true);
+    expect(marked({ secrets: 'omitted' })).toBe(true);
+    expect(marked({ secrets: 'included' })).toBe(false);
+  });
+
   it('marks event programs whose command line stayed behind', () => {
     const program = (value: string) => ({ eventPrograms: [{ id: 'a1', command: { program: value } }] });
     expect(row(program('********'), {}, 'eventPrograms').secretless).toBe(true);

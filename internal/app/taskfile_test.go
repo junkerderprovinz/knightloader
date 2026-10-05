@@ -728,6 +728,57 @@ func TestAFinishedDownloadOfUnknownSizeSparesAFileOfAnotherLengthAtItsPath(t *te
 	}
 }
 
+// A download that finished with nothing in it, such as an empty yt-dlp
+// description, leaves an empty file, and that file goes with it.
+func TestRemovingWithFilesDeletesTheEmptyFileOfAnEmptyDownload(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	empty := fileBytes(t, filepath.Join(dir, "video.description"), 0)
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/video", Name: "video.description", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, File: empty,
+	}
+	a.mu.Unlock()
+
+	a.Remove("1", true)
+
+	if fileExists(empty) {
+		t.Error("the empty file of a download that finished empty survived a removal with files")
+	}
+}
+
+// Only a finished download owns an empty file, and never one another task
+// writes.
+func TestAnEmptyFileIsSparedUnlessItIsAFinishedDownloadsOwn(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	paused := fileBytes(t, filepath.Join(dir, "paused.bin"), 0)
+	shared := fileBytes(t, filepath.Join(dir, "shared.bin"), 0)
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/paused.bin", Name: "paused.bin", Resolver: "elsewhere",
+		Status: core.StatusPaused, Enabled: true, File: paused,
+	}
+	a.tasks["2"] = &core.Task{
+		ID: "2", URL: "https://elsewhere.example/shared.bin", Name: "shared.bin", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, File: shared,
+	}
+	a.tasks["3"] = &core.Task{
+		ID: "3", URL: "https://elsewhere.example/other", Name: "other", Resolver: "elsewhere",
+		Status: core.StatusRunning, Enabled: true, WorkFiles: []string{shared},
+	}
+	a.mu.Unlock()
+
+	a.Remove("1", true)
+	a.Remove("2", true)
+
+	if !fileExists(paused) {
+		t.Error("an empty file was taken for the download of a task that never finished")
+	}
+	if !fileExists(shared) {
+		t.Error("an empty file another task writes was deleted")
+	}
+}
+
 // The .nfo yt-dlp's video row writes beside its file describes that file and
 // goes with it. A thumbnail row of the same video shares the base name and
 // must not take the video's .nfo when it is removed.
@@ -940,5 +991,68 @@ func TestASidecarRowSavedUnderTheNameItShowsGetsNoNote(t *testing.T) {
 	}
 	if !strings.Contains(logged.String(), "(task other)") {
 		t.Errorf("a row saved under another name than it shows was not logged:\n%s", logged)
+	}
+}
+
+// libraryBackend deletes a removed download's file where it wrote it, as the
+// download library does: by its own record, whatever the app moved since.
+type libraryBackend struct{ wrote map[string]string }
+
+func (libraryBackend) Download(string, string, map[string]string, int) {}
+func (libraryBackend) Pause(string)                                    {}
+func (libraryBackend) Resume(string)                                   {}
+func (b libraryBackend) Remove(id string, deleteFiles bool) {
+	if deleteFiles {
+		_ = os.Remove(b.wrote[id])
+	}
+}
+
+// renamedBesideAnother finishes download "renamed" as nocd and renames it to
+// Report.pdf, after which download "other" finishes under the freed name. It
+// returns the folder.
+func renamedBesideAnother(t *testing.T) (*App, string) {
+	t.Helper()
+	a, dir := newRuleApp(t, func(s *settings.Settings, _ string) { s.Extract, s.VerifyChecksums = false, false })
+	freed := filepath.Join(dir, "nocd")
+	a.bmu.Lock()
+	a.debrid["elsewhere"] = libraryBackend{wrote: map[string]string{"renamed": freed, "other": freed}}
+	a.bmu.Unlock()
+	a.Registry.Register(elsewhereResolver{})
+
+	fileBytes(t, freed, 4)
+	putTask(t, a, core.Task{ID: "renamed", URL: "https://elsewhere.example/nocd", Name: "nocd", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: 4, File: freed})
+	name := "Report.pdf"
+	if err := a.SetTaskOptions([]string{"renamed"}, TaskOptions{Name: &name}); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(freed, []byte("the other download"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	putTask(t, a, core.Task{ID: "other", URL: "https://elsewhere.example/mirror/nocd", Name: "nocd", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: int64(len("the other download")), File: freed})
+	return a, dir
+}
+
+func TestRemovingARenamedDownloadWithItsFilesSparesTheFileNowAtItsOldName(t *testing.T) {
+	a, dir := renamedBesideAnother(t)
+
+	a.Remove("renamed", true)
+
+	if got, err := os.ReadFile(filepath.Join(dir, "nocd")); err != nil || string(got) != "the other download" {
+		t.Errorf("the other download's file reads %q, %v", got, err)
+	}
+	if fileExists(filepath.Join(dir, "Report.pdf")) {
+		t.Error("the removed download's own file is still there")
+	}
+}
+
+func TestRestartingARenamedDownloadSparesTheFileNowAtItsOldName(t *testing.T) {
+	a, dir := renamedBesideAnother(t)
+
+	a.RestartTasks([]string{"renamed"})
+
+	if got, err := os.ReadFile(filepath.Join(dir, "nocd")); err != nil || string(got) != "the other download" {
+		t.Errorf("the other download's file reads %q, %v", got, err)
 	}
 }

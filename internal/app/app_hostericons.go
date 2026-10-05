@@ -110,8 +110,8 @@ var fetchHostIcon = fetchFavicon
 // monogram.
 func (a *App) HosterIcon(host string) ([]byte, string, error) {
 	host = normaliseIconHost(host)
-	if host == "" {
-		return nil, "", errors.New("no host")
+	if host == "" || localName(host) {
+		return nil, "", errors.New("no public host")
 	}
 	b, ct, known := a.cachedHosterIcon(host)
 	if !known {
@@ -294,6 +294,21 @@ func normaliseIconHost(s string) string {
 		}
 	}
 	return s
+}
+
+// localTLDs are the top-level names that exist only inside a network or in
+// examples: the special-use names of RFC 2606, 6761, 6762, 7686, 8375 and 9476
+// and the ones home routers hand out. The dialer would refuse their addresses
+// anyway, so asking would only cache a miss. The page keeps the same list in
+// web/src/components/HosterIcon.tsx.
+var localTLDs = []string{
+	"alt", "arpa", "corp", "example", "home", "internal", "intranet", "invalid",
+	"lan", "local", "localdomain", "localhost", "onion", "private", "test",
+}
+
+// localName reports whether a normalised host ends in one of localTLDs.
+func localName(host string) bool {
+	return slices.Contains(localTLDs, host[strings.LastIndexByte(host, '.')+1:])
 }
 
 // iconPaths are the well-known icon locations, the usually larger

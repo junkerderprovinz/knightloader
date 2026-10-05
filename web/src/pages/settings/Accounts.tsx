@@ -5,6 +5,7 @@ import { Accounts } from '../Accounts';
 import { Card, SectionTitle, ToggleRow } from '../../components/ui';
 import { useT } from '../../lib/i18n';
 import { setHidden } from '../../lib/sidebarPrefs';
+import { DriveCard } from './accounts/DriveCard';
 import { useDraft } from './context';
 
 export function AccountsTab() {
@@ -27,6 +28,7 @@ export function AccountsTab() {
         />
       </Card>
       <Accounts />
+      <DriveCard hue={4} />
     </div>
   );
 }

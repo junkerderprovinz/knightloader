@@ -48,6 +48,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerFederation(reg, a)
 	registerRelay(reg, a)
 	registerConnect(reg, a)
+	registerClipWatch(reg, a)
 	registerDiscovery(reg, a)
 	registerFeatures(reg, a)
 	registerConnections(reg, a)
@@ -82,11 +83,14 @@ func registerAll(reg *Registry, a *app.App) {
 	registerEventTargets(reg, a)
 	registerEventPrograms(reg, a)
 	registerMediaHooks(reg, a)
+	registerDebridDrive(reg, a)
+	registerUsenetServers(reg, a)
 }
 
 // AnyMethod is the method of a route that forwards the request elsewhere and
-// passes the method along. A route that acts on this instance names its
-// method, so a GET can never be made to do a POST's job.
+// passes the method along, or of one that refuses every method its path has
+// no route for. A route that acts on this instance names its method, so a GET
+// can never be made to do a POST's job.
 const AnyMethod = ""
 
 // Route is one endpoint as registered: enough to attach it, and enough to

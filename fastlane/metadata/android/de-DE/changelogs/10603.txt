@@ -1,1 +1,0 @@
-Buy Me a Coffee öffnet sich im Browser, wie PayPal, statt in einem Fenster in der App.

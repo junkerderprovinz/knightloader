@@ -2,6 +2,7 @@ package engine
 
 import (
 	"bytes"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -146,5 +147,49 @@ func TestAnAgentTheCallerChoseIsNotSwappedForKnightLoaders(t *testing.T) {
 		if a != "HosterApp/2" {
 			t.Fatalf("a request went out as %q, want only the caller's agent", a)
 		}
+	}
+}
+
+// A link whose server cannot be reached fails as a connection that could not
+// be made, not as the 502 the loopback proxy answers for it.
+func TestAnUnreachableServerIsNotReportedAsA502(t *testing.T) {
+	px, err := netproxy.Start(throttle.New())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer px.Close()
+	ln, err := net.Listen("tcp", "127.0.0.1:0")
+	if err != nil {
+		t.Fatal(err)
+	}
+	link := "http://" + ln.Addr().String() + "/f.bin"
+	ln.Close()
+
+	settled := make(chan core.Update, 1)
+	e, err := New(t.TempDir(), func(_ string, u core.Update) {
+		if u.Status == core.StatusError {
+			select {
+			case settled <- u:
+			default:
+			}
+		}
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = e.Close() })
+	if err := e.UseProxy(px.Addr()); err != nil {
+		t.Fatal(err)
+	}
+	e.ExplainBadGateway(px.Unreachable)
+	e.Start(Job{TaskID: "t1", URL: link, Conns: 1})
+
+	select {
+	case u := <-settled:
+		if badGateway(u.Err) || !strings.Contains(u.Err, "dial tcp") {
+			t.Fatalf("failed with %q, want the dial failure", u.Err)
+		}
+	case <-time.After(30 * time.Second):
+		t.Fatal("the download never failed")
 	}
 }

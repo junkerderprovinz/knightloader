@@ -3,7 +3,7 @@
   "name": "KnightLoader",
   "short_name": "KnightLoader",
   "description": "Send a link, a selection, or the current page straight to your own KnightLoader instance.",
-  "version": "1.7.0",
+  "version": "1.8.0",
   "icons": {
     "16": "icons/icon16.png",
     "32": "icons/icon32.png",
@@ -30,6 +30,11 @@
       "relay.js",
       "group.js",
       "cnl.js",
+      "i18n-capture.js",
+      "capture.js",
+      "takeover.js",
+      "media.js",
+      "clipwatch.js",
       "background.js"
     ]
   },
@@ -42,9 +47,11 @@
     "contextMenus",
     "storage",
     "scripting",
-    "declarativeNetRequest"
+    "declarativeNetRequest",
+    "alarms",
+    "offscreen"
   ],
-  "optional_permissions": ["clipboardRead"],
+  "optional_permissions": ["clipboardRead", "downloads", "cookies", "notifications", "webRequest"],
   "optional_host_permissions": [
     "<all_urls>"
   ],

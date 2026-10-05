@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, BackHandler, StyleSheet, View } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { useFonts } from 'expo-font';
@@ -6,6 +6,7 @@ import { NavigationContainer, useNavigationContainerRef } from '@react-navigatio
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { useShareIntent } from 'expo-share-intent';
 import {
+  listConnections,
   loadActiveConnection,
   loadDefaultConnection,
   removeConnection,
@@ -25,12 +26,14 @@ import ShareScreen from './src/screens/ShareScreen';
 import { CaptchaWatch } from './src/components/CaptchaWatch';
 import { fetchAppearance, onRemovedFromGroup, setRainbowPalette } from './src/api/client';
 import { ConfirmDialog } from './src/components/ConfirmDialog';
-import { Scan } from './src/components/IconBadge';
+import { Gear, Scan } from './src/components/IconBadge';
 import { AppearanceProvider, useAppearance } from './src/theme/AppearanceContext';
 import { MotionProvider } from './src/theme/MotionContext';
 import { I18nProvider, useT } from './src/i18n/I18nContext';
 import { HouseFontReady } from './src/components/Text';
 import { HOUSE_FONTS, familyFor } from './src/theme/font';
+import { onBatteryAsk, useOpenRequests, useWatch } from './src/watch/watch';
+import { KnightWatch, type OpenRequest } from './modules/watch';
 
 type RootStackParamList = {
   Connections: undefined;
@@ -106,6 +109,34 @@ function Shell() {
     if (text) nav.navigate('Share', { text, title, at: Date.now() });
   }, [hasShareIntent, shareIntent, loading, screen, nav, resetShareIntent]);
 
+  // A tapped notification, held until the saved connection is read and the
+  // navigator is up, which on a cold start comes after the tap.
+  const [opening, setOpening] = useState<OpenRequest | null>(null);
+  const [navReady, setNavReady] = useState(false);
+  const connRef = useRef(conn);
+  connRef.current = conn;
+
+  useWatch(conn?.id ?? null);
+  useOpenRequests(setOpening);
+  const [askBattery, setAskBattery] = useState(false);
+  useEffect(() => onBatteryAsk(() => setAskBattery(true)), []);
+
+  useEffect(() => {
+    if (!opening || loading || !navReady) return;
+    setOpening(null);
+    void (async () => {
+      // The service's own notification names no instance and opens the one
+      // that is open already.
+      const target = opening.connection
+        ? (await listConnections()).find((c) => c.id === opening.connection)
+        : connRef.current;
+      if (!target) return;
+      setConn(target);
+      if (opening.open === 'captcha') nav.navigate('Captchas');
+      else nav.navigate('Downloads', {});
+    })();
+  }, [opening, loading, navReady, nav]);
+
   useEffect(() => {
     onRemovedFromGroup(() => {
       setConn(null);
@@ -171,6 +202,19 @@ function Shell() {
           nav.navigate('RelayConnect');
         }}
       />
+      <ConfirmDialog
+        visible={askBattery}
+        title={t('battery.askTitle')}
+        message={t('battery.askBody')}
+        cancelLabel={t('battery.askLater')}
+        confirmLabel={t('battery.askOpen')}
+        confirmIcon={(ink) => <Gear color={ink} />}
+        onCancel={() => setAskBattery(false)}
+        onConfirm={() => {
+          setAskBattery(false);
+          KnightWatch?.openBatterySettings();
+        }}
+      />
       <CaptchaWatch
         conn={conn}
         bannerHidden={screen === 'Captchas'}
@@ -178,7 +222,10 @@ function Shell() {
       >
         <NavigationContainer
           ref={nav}
-          onReady={() => setScreen(nav.getCurrentRoute()?.name)}
+          onReady={() => {
+            setScreen(nav.getCurrentRoute()?.name);
+            setNavReady(true);
+          }}
           onStateChange={() => setScreen(nav.getCurrentRoute()?.name)}
           theme={{
             dark,

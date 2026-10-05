@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // importPoll is how often an account's list is read. It is far inside every
@@ -238,6 +239,10 @@ func (a *App) claimImported(slot, job string) {
 // claimUsenetJob is claimImported for an .nzb the Usenet queue sent to an
 // account, which TorBox lists apart from its torrents.
 func (a *App) claimUsenetJob(slot, remote string) {
+	// The own servers have no account a download could be imported from.
+	if slot == local.ResolverID {
+		return
+	}
 	if service, _ := resolver.SplitSlot(slot); service == "torbox" {
 		remote = torbox.UsenetJob(remote)
 	}
