@@ -294,8 +294,8 @@ github.com/json-iterator/go v1.1.9/go.mod h1:KdQUCv79m/52Kvf8AW2vK1V8akMuk1QjK/u
 github.com/jtolds/gls v4.2.1+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfVYBRgL+9YlvaHOwJU=
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
-github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3 h1:KK3N/dnW89B6UG3fDnSIqM4maxbq9j52IpvHX737yGU=
-github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
+github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695 h1:eRcyUfeNzDtDQ894ZFIs3+4tA5EcBTEg03BQ1C4e/EM=
+github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0 h1:Lzcui7TNXMRmMBrR4I0WG1hXvgxgdBVe6rudS5KZxO4=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261003180733-174c1310bcc0/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.2.0 h1:x584FjTGwHzMwvHx18PXxbBVzfnxogHaAReU4gf13a4=
