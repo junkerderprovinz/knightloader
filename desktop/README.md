@@ -29,7 +29,7 @@ Locally, with the Wails 3 CLI at the version `go.mod` requires and a JDK-free
 Go toolchain, from the repository root:
 
 ```sh
-go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.27
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.28
 node scripts/desktop.mjs               # bundle for the current OS → build/bin/
 node scripts/desktop.mjs --installer   # on Windows, the NSIS installer as well
 ```

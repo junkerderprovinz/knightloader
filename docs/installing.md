@@ -217,7 +217,7 @@ release exists; pull the new image the way you deployed this one.
 ### Building it from source
 
 ```sh
-go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.27
+go install github.com/wailsapp/wails/v3/cmd/wails3@v3.0.0-beta.28
 node scripts/desktop.mjs
 ```
 
