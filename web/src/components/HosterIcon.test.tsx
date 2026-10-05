@@ -2,7 +2,13 @@
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
-import { HosterIcon, mayHaveSiteIcon, RETRY_MS } from './HosterIcon';
+import {
+  HosterIcon,
+  mayHaveSiteIcon,
+  RETRY_DEFAULT_MS,
+  RETRY_GIVE_UP_MS,
+  RETRY_MAX_PAUSE_MS,
+} from './HosterIcon';
 import { serviceMark } from '../lib/serviceMarks';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -10,6 +16,7 @@ import { serviceMark } from '../lib/serviceMarks';
 let root: Root;
 let host: HTMLDivElement;
 let inView: boolean;
+let retryAfter: string;
 const observers = new Set<() => void>();
 
 // Every row starts in view unless a test says otherwise; scrolled() brings the
@@ -30,6 +37,7 @@ class FakeIntersectionObserver {
 
 beforeEach(() => {
   inView = true;
+  retryAfter = '5';
   vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
   URL.createObjectURL = vi.fn(() => 'blob:icon');
   host = document.createElement('div');
@@ -47,17 +55,34 @@ afterEach(() => {
 
 const img = () => host.querySelector('img');
 
-/** answers stubs fetch with one status per request, the last one repeating. */
+/**
+ * answers stubs fetch with one status per request, the last one repeating. A
+ * 202 carries the instance's Retry-After unless a test sets retryAfter.
+ */
 function answers(...statuses: number[]) {
   const fetch = vi.fn(async () => {
     const status = statuses.length > 1 ? statuses.shift()! : statuses[0];
-    return { status, blob: async () => new Blob(status === 200 ? ['icon'] : []) } as Response;
+    return {
+      status,
+      headers: new Headers(status === 202 && retryAfter ? { 'Retry-After': retryAfter } : {}),
+      blob: async () => new Blob(status === 200 ? ['icon'] : []),
+    } as Response;
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;
 }
 
 const settle = () => act(() => vi.advanceTimersByTimeAsync(0));
+
+/**
+ * wait lets time pass a second per act, so React renders the ask a timer
+ * schedules before the next timer is due.
+ */
+async function wait(ms: number) {
+  for (let left = ms; left > 0; left -= 1000) {
+    await act(() => vi.advanceTimersByTimeAsync(Math.min(1000, left)));
+  }
+}
 
 it('draws a captcha service from its bundled mark without asking the instance', () => {
   act(() => root.render(<HosterIcon host="https://dash.capmonster.cloud/" />));
@@ -110,7 +135,7 @@ it('takes a 204 as no icon and does not ask again', async () => {
   expect(img()).toBeNull();
   expect(host.textContent).toBe('nn');
 
-  await act(() => vi.advanceTimersByTimeAsync(RETRY_MS.reduce((a, b) => a + b) + 1000));
+  await wait(RETRY_GIVE_UP_MS);
   expect(fetch).toHaveBeenCalledTimes(1);
 });
 
@@ -122,19 +147,50 @@ it('shows a monogram while the instance fetches the icon and asks again later', 
   expect(img()).toBeNull();
   expect(host.textContent).toBe('k');
 
-  await act(() => vi.advanceTimersByTimeAsync(RETRY_MS[0]));
+  await act(() => vi.advanceTimersByTimeAsync(5000));
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(img()?.getAttribute('src')).toBe('blob:icon');
 });
 
-it('stops asking once the retries are spent', async () => {
+it('waits as long as the instance asks before asking again', async () => {
+  vi.useFakeTimers();
+  retryAfter = '20';
+  const fetch = answers(202, 200);
+  act(() => root.render(<HosterIcon host="uploady.io" />));
+  await settle();
+
+  await act(() => vi.advanceTimersByTimeAsync(19_999));
+  expect(fetch).toHaveBeenCalledTimes(1);
+  await act(() => vi.advanceTimersByTimeAsync(1));
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(img()?.getAttribute('src')).toBe('blob:icon');
+});
+
+it('keeps asking while a long queue of icons drains on the instance', async () => {
+  vi.useFakeTimers();
+  const fetch = answers(...Array<number>(20).fill(202), 200);
+  act(() => root.render(<HosterIcon host="fikper.com" />));
+  await settle();
+  expect(host.textContent).toBe('f');
+
+  await wait(RETRY_GIVE_UP_MS);
+  expect(fetch).toHaveBeenCalledTimes(21);
+  expect(img()?.getAttribute('src')).toBe('blob:icon');
+});
+
+it('asks less often the longer an icon takes and gives up in the end', async () => {
   vi.useFakeTimers();
   const fetch = answers(202);
   act(() => root.render(<HosterIcon host="ddownload.com" />));
   await settle();
-  for (const pause of RETRY_MS) await act(() => vi.advanceTimersByTimeAsync(pause));
-  await act(() => vi.advanceTimersByTimeAsync(60_000));
-  expect(fetch).toHaveBeenCalledTimes(RETRY_MS.length + 1);
+
+  await wait(60_000);
+  expect(fetch.mock.calls.length).toBeLessThanOrEqual(7);
+  await wait(RETRY_GIVE_UP_MS);
+  const asked = fetch.mock.calls.length;
+  expect(asked).toBeLessThanOrEqual(RETRY_GIVE_UP_MS / RETRY_MAX_PAUSE_MS + 5);
+  await wait(RETRY_GIVE_UP_MS);
+  expect(fetch).toHaveBeenCalledTimes(asked);
   expect(img()).toBeNull();
   expect(host.textContent).toBe('d');
 });
@@ -147,7 +203,7 @@ it('asks again after the instance did not answer at all', async () => {
   await settle();
   expect(host.textContent).toBe('m');
 
-  await act(() => vi.advanceTimersByTimeAsync(RETRY_MS[0]));
+  await act(() => vi.advanceTimersByTimeAsync(RETRY_DEFAULT_MS));
   expect(fetch).toHaveBeenCalledTimes(2);
   expect(img()?.getAttribute('src')).toBe('blob:icon');
 });

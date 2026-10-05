@@ -3,11 +3,20 @@ import { hosterIconURL } from '../lib/api';
 import { serviceMark } from '../lib/serviceMarks';
 
 /**
- * RETRY_MS are the pauses before asking again while the instance is still
- * fetching an icon. It answers 202 at once and fetches in the background; a
- * host without an icon gets a 204 and is not asked again.
+ * While the instance is still fetching an icon it answers 202 with a
+ * Retry-After and fetches in the background, eight sites at a time, so a cold
+ * list of a few hundred hosters takes minutes to drain. A row asks again after
+ * the pause the instance names, growing to RETRY_MAX_PAUSE_MS, and gives up
+ * once it has waited RETRY_GIVE_UP_MS. A host without an icon gets a 204 and
+ * is not asked again.
  */
-export const RETRY_MS = [3000, 10000, 30000];
+export const RETRY_DEFAULT_MS = 5000;
+export const RETRY_MAX_PAUSE_MS = 30_000;
+export const RETRY_GIVE_UP_MS = 10 * 60_000;
+
+function retryPause(retryAfterMs: number, attempt: number): number {
+  return Math.max(retryAfterMs, Math.min(retryAfterMs * 1.5 ** attempt, RETRY_MAX_PAUSE_MS));
+}
 
 /**
  * hostOf reduces a host or full URL to a bare hostname, so the monogram does
@@ -66,10 +75,10 @@ export function mayHaveSiteIcon(host: string): boolean {
 }
 
 /**
- * An icon is an object URL, null for a host without one, or undefined while
- * the instance has no answer yet.
+ * An icon is an object URL, null for a host without one, or, while the
+ * instance has no answer yet, the milliseconds to wait before asking again.
  */
-type Icon = string | null | undefined;
+type Icon = string | null | number;
 
 const icons = new Map<string, Promise<Icon>>();
 
@@ -84,7 +93,7 @@ function askForIcon(host: string): Promise<Icon> {
     icon = fetchIcon(host);
     icons.set(host, icon);
     void icon.then((settled) => {
-      if (settled === undefined) icons.delete(host);
+      if (typeof settled === 'number') icons.delete(host);
     });
   }
   return icon;
@@ -93,12 +102,15 @@ function askForIcon(host: string): Promise<Icon> {
 async function fetchIcon(host: string): Promise<Icon> {
   try {
     const r = await fetch(hosterIconURL(host));
-    if (r.status === 202) return undefined;
+    if (r.status === 202) {
+      const seconds = Number(r.headers.get('Retry-After'));
+      return seconds > 0 ? seconds * 1000 : RETRY_DEFAULT_MS;
+    }
     const body = r.status === 200 ? await r.blob() : null;
     return body?.size ? URL.createObjectURL(body) : null;
   } catch {
     // The instance did not answer; that is worth another try, like a 202.
-    return undefined;
+    return RETRY_DEFAULT_MS;
   }
 }
 
@@ -139,6 +151,7 @@ function SiteIcon({ host, box }: { host: string; box: { width: number; height: n
   const [inView, setInView] = useState(false);
   const [attempt, setAttempt] = useState(0);
   const [src, setSrc] = useState<string | null>();
+  const waited = useRef(0);
 
   // Only rows scrolled into view ask, which a long hoster list needs.
   useEffect(() => {
@@ -157,10 +170,15 @@ function SiteIcon({ host, box }: { host: string; box: { width: number; height: n
     let timer = 0;
     void askForIcon(host).then((icon) => {
       if (!live) return;
-      setSrc(icon ?? null);
-      if (icon === undefined && attempt < RETRY_MS.length) {
-        timer = window.setTimeout(() => setAttempt((n) => n + 1), RETRY_MS[attempt]);
+      if (typeof icon !== 'number') {
+        setSrc(icon);
+        return;
       }
+      setSrc(null);
+      const pause = retryPause(icon, attempt);
+      if (waited.current + pause > RETRY_GIVE_UP_MS) return;
+      waited.current += pause;
+      timer = window.setTimeout(() => setAttempt((n) => n + 1), pause);
     });
     return () => {
       live = false;
