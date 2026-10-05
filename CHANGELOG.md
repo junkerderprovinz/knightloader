@@ -182,6 +182,28 @@ release's tag.
 - **A download restarted after it finished gets a new finish time,** so the
   list, the history and the retention count from the second download.
 
+- **An unreachable server was reported as "HTTP 502".** When a plain HTTP
+  link pointed at a server that was down or did not exist, the error showed
+  the 502 that KnightLoader's own speed limiter answered with. It now shows
+  why the connection failed, for example that it was refused.
+
+- **After an automatic retry, a download showed 0 bytes loaded although its
+  bytes were still on disk.** The retry keeps those bytes, and the row now
+  keeps counting them.
+
+- **A settings import warned that archive passwords were missing on a box
+  that never had any.** An export without passwords now records how many
+  archive passwords it left out, and the import warns only when that number is
+  above zero. Exports from earlier versions still warn whenever they say they
+  left passwords out.
+
+- **Remove with files left empty files behind,** such as the empty
+  .description file yt-dlp writes for a video without a description. A
+  download that finished empty now takes its empty file with it.
+
+- `POST /api/accounts/label` no longer switches off an account whose on/off
+  switch had never been touched.
+
 - **Fewer failed icon loads in the browser console.** For a host that cannot
   have a site icon, such as an IP address, a local name like nas.local, a
   torrent or a task id, the web UI shows the letter tile at once instead of
