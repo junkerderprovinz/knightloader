@@ -85,16 +85,13 @@ type leftover struct {
 // another task's file has as well, such as the .nfo the video and the audio
 // row of one link share, stays for that task. Caller holds a.mu.
 func (a *App) ownFileLocked(t *core.Task) leftover {
-	if t.File == "" {
+	if t.File == "" || a.usedByOtherLocked(t.ID, t.File) {
 		return leftover{}
 	}
 	shared := map[string]bool{}
 	for id, other := range a.tasks {
 		if id == t.ID {
 			continue
-		}
-		if samePath(other.File, t.File) || slices.ContainsFunc(other.WorkFiles, func(p string) bool { return samePath(p, t.File) }) {
-			return leftover{}
 		}
 		for _, s := range sidecarsOf(other) {
 			shared[filepath.Clean(s)] = true
@@ -134,6 +131,11 @@ func sidecarsOf(t *core.Task) []string {
 func (a *App) usedByOther(id, path string) bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	return a.usedByOtherLocked(id, path)
+}
+
+// usedByOtherLocked is usedByOther for a caller that holds a.mu.
+func (a *App) usedByOtherLocked(id, path string) bool {
 	same := func(p string) bool { return samePath(p, path) }
 	for other, t := range a.tasks {
 		if other != id && (same(t.File) || slices.ContainsFunc(t.WorkFiles, same)) {

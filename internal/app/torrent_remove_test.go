@@ -426,3 +426,51 @@ func TestATorrentThatStoppedSeedingIsRemovedWithItsFiles(t *testing.T) {
 		t.Errorf("the torrent's folder %s is still there (%v)", root, err)
 	}
 }
+
+// A torrent folder deleted by hand frees its name for the next torrent of
+// that name, and the row that wrote it first still records the folder. After
+// a restart, removing that row with its files leaves the newer torrent's
+// files, which it lists as well.
+func TestATorrentRemovedAfterARestartSparesTheFolderAnotherTorrentRecords(t *testing.T) {
+	t.Parallel()
+	downloads := t.TempDir()
+	folder := filepath.Join(downloads, "Show.S01")
+	episode := filepath.Join(folder, "Show.S01E01.mkv")
+	if err := os.MkdirAll(folder, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(episode, []byte("the newer torrent's episode"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+	a, err := newApp(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer a.Close()
+	s := a.Settings.Get()
+	s.DownloadDir = downloads
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	for _, hash := range []string{strings.Repeat("ab", 20), strings.Repeat("cd", 20)} {
+		a.tasks[hash] = &core.Task{
+			ID: hash, URL: "magnet:?xt=urn:btih:" + hash + "&dn=Show.S01", Name: "Show.S01", Resolver: "torrent",
+			InfoHash: hash, File: folder, MagnetFiles: []string{"Show.S01E01.mkv"},
+			Status: core.StatusDone, Enabled: true, CreatedAt: time.Now(),
+		}
+	}
+	a.mu.Unlock()
+
+	a.Remove(strings.Repeat("ab", 20), true)
+
+	if !fileExists(episode) {
+		t.Fatal("removing the first torrent with its files deleted the episode the second one records")
+	}
+
+	a.Remove(strings.Repeat("cd", 20), true)
+
+	if fileExists(episode) {
+		t.Error("the second torrent's own episode survived a removal with files")
+	}
+}
