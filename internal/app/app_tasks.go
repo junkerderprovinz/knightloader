@@ -1105,15 +1105,11 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var own leftover
 	var landed torrentLeftover
 	var usenetPart, remotePart string
-	if t != nil {
-		// The own Usenet servers' backend deletes a part file with or without
-		// deleteFiles, as long as it knows the task.
-		usenetPart = a.usenetPartLocked(t)
-	}
 	var work []string
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
+		usenetPart = a.usenetPartLocked(t)
 		remotePart = a.partFileLocked(t)
 		work = t.WorkFiles
 	}

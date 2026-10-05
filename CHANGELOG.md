@@ -48,6 +48,8 @@ release's tag.
   downloads straight from it: every file is a download of its own, its
   articles come in over all connections and are written into place, and a
   paused or interrupted download carries on with the articles it still lacks.
+  So does one you remove without its files and then bring back with Undo, and
+  two releases with the same file name in one folder never mix their articles.
   A main server and fill servers on higher levels are asked in turn for each
   article. Your servers come before TorBox and Premiumize.me unless you move
   them in the priority order, and a release with articles none of them has
