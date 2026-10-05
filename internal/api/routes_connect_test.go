@@ -364,6 +364,39 @@ func TestRevealNeedsThePasswordEvenWithASession(t *testing.T) {
 	}
 }
 
+// TestRevealedQRNamesTheInstancesOwnRelay checks the code the app scans: the
+// phrase alone on the project relay, the phrase and the relay on an own one.
+func TestRevealedQRNamesTheInstancesOwnRelay(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+	phrase := activate(t, token, srv.URL)
+
+	for _, c := range []struct {
+		mode, url, want string
+	}{
+		{settings.RelayModeProject, "https://relay.example.com", phrase},
+		{settings.RelayModeOwn, "https://relay.example.com", phrase + "\nwss://relay.example.com/relay/connect"},
+	} {
+		cfg := a.Settings.Get()
+		cfg.RelayMode, cfg.RelayURL = c.mode, c.url
+		if _, err := a.Settings.Set(cfg); err != nil {
+			t.Fatal(err)
+		}
+		code, out := call(t, token, http.MethodPost, srv.URL+"/api/connect/reveal", map[string]string{"password": pairingPassword})
+		if code != http.StatusOK {
+			t.Fatalf("reveal answered %d: %s", code, out)
+		}
+		var answer struct{ QR *QRMatrix }
+		if err := json.Unmarshal(out, &answer); err != nil {
+			t.Fatal(err)
+		}
+		want := renderQR(c.want)
+		if answer.QR == nil || answer.QR.Size != want.Size || strings.Join(answer.QR.Bits, "") != strings.Join(want.Bits, "") {
+			t.Errorf("in %s mode the QR code does not encode %q", c.mode, c.want)
+		}
+	}
+}
+
 func TestRevealWithNoPhraseIs404(t *testing.T) {
 	t.Parallel()
 	srv, _, token := pairingServer(t)

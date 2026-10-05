@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"strings"
 	"testing"
+	"unicode"
 )
 
 // If the relay key equalled the secret, the relay operator could reconstruct
@@ -28,6 +29,41 @@ func TestDeriveKeyIsDeterministic(t *testing.T) {
 		if again := DeriveKey(secret); again != first {
 			t.Fatalf("DeriveKey is not deterministic: %q then %q", first, again)
 		}
+	}
+}
+
+func TestPairingCode(t *testing.T) {
+	const phrase = "abandon ability able about above absent absorb abstract absurd abuse access accident"
+	tests := []struct {
+		name  string
+		relay string
+		want  string
+	}{
+		{"no relay of its own", "", phrase},
+		{"the project relay", DefaultRelayURL, phrase},
+		{"the project relay as typed", "https://parleyport.halleluja.design", phrase},
+		{"an address the instance cannot dial", "relay.example.com", phrase},
+		{"its own relay", "https://relay.example.com", phrase + "\nwss://relay.example.com/relay/connect"},
+		{"its own relay under a path", "https://example.com/kl", phrase + "\nwss://example.com/kl/relay/connect"},
+		{"a relay without TLS is named as it is dialled", "http://192.168.20.30:8760", phrase + "\nws://192.168.20.30:8760/relay/connect"},
+	}
+	for _, tc := range tests {
+		t.Run(tc.name, func(t *testing.T) {
+			if got := PairingCode(phrase, tc.relay); got != tc.want {
+				t.Fatalf("PairingCode(%q) = %q, want %q", tc.relay, got, tc.want)
+			}
+		})
+	}
+}
+
+// An app that reads the code as words alone has to refuse a code that names a
+// relay rather than pair on the project relay and find nobody there.
+func TestPairingCodeWithARelayIsNotAPhrase(t *testing.T) {
+	const phrase = "abandon ability able about above absent absorb abstract absurd abuse access accident"
+	code := PairingCode(phrase, "https://relay.example.com")
+	words := strings.FieldsFunc(code, func(r rune) bool { return r == ',' || r == ';' || unicode.IsSpace(r) })
+	if len(words) == 12 {
+		t.Fatalf("%q reads as twelve words", code)
 	}
 }
 

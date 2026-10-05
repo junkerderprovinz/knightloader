@@ -1,9 +1,10 @@
 package api
 
 // The connection phrase: generating one, showing it again, and joining a
-// group another instance already started. There is no account: the relay
-// address is compiled in (relay.DefaultRelayURL) and holding the secret is the
-// whole authorization.
+// group another instance already started. There is no account: the project
+// relay's address is compiled in (relay.DefaultRelayURL), an instance on its
+// own relay names that relay in the QR code beside the phrase, and holding the
+// secret is the whole authorization.
 //
 // The secret is stored and the phrase handed out; the relay only ever sees
 // relay.DeriveKey of the secret, so neither its operator nor its memory can
@@ -119,7 +120,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase), "info": connectInfo(a)})
+			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase), "info": connectInfo(a)})
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/join",
@@ -199,7 +200,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			}
 			// The QR comes along, since the phrase is usually needed again to
 			// set up a phone.
-			writeJSON(w, map[string]any{"phrase": phrase, "qr": renderQR(phrase)})
+			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase)})
 		})
 
 	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
@@ -283,6 +284,17 @@ func enterGroup(a *app.App, secret []byte) error {
 	// "own" from a typed address.
 	applyRelay(a)
 	return a.Federation.SetJoined(joined)
+}
+
+// phraseQR is the QR code for the app, naming the relay this instance dials
+// when that is its own (relay.PairingCode).
+func phraseQR(a *app.App, phrase string) *QRMatrix {
+	cfg := a.Settings.Get()
+	own := ""
+	if cfg.RelayModeOf() == settings.RelayModeOwn {
+		own = cfg.RelayURL
+	}
+	return renderQR(relay.PairingCode(phrase, own))
 }
 
 func connectInfo(a *app.App) ConnectInfo {

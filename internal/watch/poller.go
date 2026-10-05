@@ -6,6 +6,7 @@ package watch
 
 import (
 	"errors"
+	"fmt"
 	"io/fs"
 	"log"
 	"os"
@@ -135,6 +136,10 @@ func (p *poller) poll() {
 			continue
 		}
 		name := e.Name()
+		if strings.HasSuffix(name, openingSuffix) {
+			p.reopen(name)
+			continue
+		}
 		if !isIntakeName(name) {
 			continue
 		}
@@ -154,6 +159,12 @@ func (p *poller) poll() {
 			seen[name] = cur
 			continue
 		}
+		if _, busy := opening.Load(filepath.Join(p.dir, name) + openingSuffix); busy {
+			// A file of this name is still being opened, and parking this one
+			// would put it in that one's place. It waits for the next poll.
+			seen[name] = cur
+			continue
+		}
 		if prev.bad || cur.size > sizeCap(name) {
 			// Already known to be unusable at these exact bytes. Keep the
 			// verdict so we do not re-read it on every single poll, and leave
@@ -167,7 +178,7 @@ func (p *poller) poll() {
 			// cannot write is a permanent misconfiguration, and a drop file
 			// that is quietly ignored forever is indistinguishable from a
 			// watcher that is not running at all.
-			log.Printf("intake file %s was not taken: %v", name, err)
+			log.Printf("intake file %q was not taken: %v", name, err)
 			cur.bad = true
 			seen[name] = cur
 			continue
@@ -196,10 +207,80 @@ func isIntakeName(name string) bool {
 	}
 }
 
-// consume parses one file and retires it. The file is retired before the jobs
-// are handed over on purpose: if the sink panics or the process dies during the
+// openingSuffix marks a file handed over whole and not yet finished with.
+const openingSuffix = ".opening"
+
+// opening holds the paths parked under openingSuffix by this process, so a
+// poller built for the same folder while one is being opened leaves it be.
+var opening sync.Map
+
+// Done retires a file once the app has finished with it. Opening one can take
+// minutes, when JDownloader crawls a container, so until then it waits under
+// an ".opening" name, which a poll renames back if the process died first.
+func (f *File) Done() {
+	if f.held == "" {
+		return
+	}
+	var err error
+	if f.del {
+		err = os.Remove(f.held)
+	} else {
+		err = os.Rename(f.held, strings.TrimSuffix(f.held, openingSuffix)+".done")
+	}
+	if err != nil {
+		log.Printf("intake file %q was opened but not retired: %v", f.Name, err)
+	}
+	opening.Delete(f.held)
+}
+
+// reopen gives back a file a previous process parked and never finished, so it
+// is taken again. A file dropped under its name in the meantime keeps that
+// name, and the parked one moves beside it.
+func (p *poller) reopen(name string) {
+	held := filepath.Join(p.dir, name)
+	if _, ok := opening.Load(held); ok {
+		return
+	}
+	orig := strings.TrimSuffix(held, openingSuffix)
+	back := orig
+	if exists(orig) {
+		back = besideName(orig)
+	}
+	if err := os.Rename(held, back); err != nil {
+		log.Printf("intake file %q was left half opened and could not be put back: %v", name, err)
+		return
+	}
+	if back != orig {
+		log.Printf("intake file %q was left half opened and is taken again as %q, since a new file has its name",
+			filepath.Base(orig), filepath.Base(back))
+		return
+	}
+	log.Printf("intake file %q was left half opened and is taken again", filepath.Base(orig))
+}
+
+// besideName is the first free "name (n).ext" next to path, in the style
+// downloads are renamed in.
+func besideName(path string) string {
+	ext := filepath.Ext(path)
+	stem := strings.TrimSuffix(path, ext)
+	for n := 2; ; n++ {
+		cand := fmt.Sprintf("%s (%d)%s", stem, n, ext)
+		if !exists(cand) && !exists(cand+openingSuffix) {
+			return cand
+		}
+	}
+}
+
+func exists(path string) bool {
+	_, err := os.Lstat(path)
+	return err == nil
+}
+
+// consume parses one file and retires it. A link list is retired before its
+// jobs are handed over: if the sink panics or the process dies during the
 // handoff we would rather lose a single file than re-add the same links on every
-// poll from here to eternity.
+// poll from here to eternity. A file handed over whole is parked instead and
+// retired by File.Done, since it is not added in an instant.
 func (p *poller) consume(path string) error {
 	f, err := os.Open(path)
 	if err != nil {
@@ -220,7 +301,15 @@ func (p *poller) consume(path string) error {
 			}
 		}
 	}
-	if p.del {
+	if len(jobs) == 1 && jobs[0].File != nil {
+		held := path + openingSuffix
+		opening.Store(held, true)
+		if err := os.Rename(path, held); err != nil {
+			opening.Delete(held)
+			return err
+		}
+		jobs[0].File.held, jobs[0].File.del = held, p.del
+	} else if p.del {
 		if err := os.Remove(path); err != nil {
 			return err
 		}

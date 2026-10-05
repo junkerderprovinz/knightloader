@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { Image, StyleSheet, View } from 'react-native';
-import { setQueueHalted } from '../api/client';
+import { errorText, setQueueHalted } from '../api/client';
 import { listConnections, loadDefaultConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -133,10 +133,10 @@ export default function ConnectionsScreen({
     // leaves a button that refuses looking like a button that does nothing.
     setWhy(
       Object.fromEntries(
-        list.map((conn, i) => [conn.id, results[i].ok ? '' : (results[i] as { reason: string }).reason]),
+        list.map((conn, i) => [conn.id, results[i].ok ? '' : errorText(t, (results[i] as { error: unknown }).error)]),
       ),
     );
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     void load();
@@ -163,7 +163,7 @@ export default function ConnectionsScreen({
       const failed = results.filter((r) => r.status === 'rejected') as PromiseRejectedResult[];
       if (failed.length > 0) {
         const reason = failed[0].reason;
-        setQueueError(`${failed.length}/${list.length}: ${reason instanceof Error ? reason.message : String(reason)}`);
+        setQueueError(`${failed.length}/${list.length}: ${errorText(t, reason)}`);
       }
       await load();
     } catch (e) {

@@ -1,6 +1,6 @@
 # Privacy policy: KnightLoader Android app
 
-Last updated: 1 October 2026. Applies to version 1.6.1 and later, until this
+Last updated: 4 October 2026. Applies to version 1.6.1 and later, until this
 date changes.
 
 ## The short version
@@ -53,8 +53,10 @@ not part of any backup, so a restored copy cannot read them.
 
 ### To the relay
 
-The relay is `parleyport.halleluja.design`, on a server in Germany. Every connection to
-it carries:
+The relay is `parleyport.halleluja.design`, on a server in Germany. If your
+instances use a relay of their own and you scan their QR code, the app connects
+to that relay instead. Whoever runs your instances runs that relay, and what
+follows applies to it as well. Every connection to the relay carries:
 
 - A group key derived from your phrase with a one-way hash. It cannot be turned
   back into the words. Whoever presents this key joins your group, so it works like
@@ -82,8 +84,8 @@ These travel through the relay, and only your instances can read them:
   links and packages on or off, removing packages, and your answers to captchas.
 
 A connection saved by address in an older version of the app talks to that address
-directly, over HTTP or HTTPS as the address says, and sends its API token with each
-request.
+directly over HTTPS and sends its API token with each request. One saved with a
+plain HTTP address sends nothing; the app asks you to add it again with your phrase.
 
 ### When you scan a QR code
 

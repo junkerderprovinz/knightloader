@@ -1,0 +1,1 @@
+You can share links to the app, bring your JDownloader setup over and open RSDF and CCF containers without JDownloader. Removing downloads got many fixes.

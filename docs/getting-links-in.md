@@ -13,18 +13,23 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   onto a share and the box picks it up, with its package name, destination and
   archive password. A `.torrent`, a container and an `.nzb` are taken too, and
   go where an upload of the same file would. A file that has been taken is
-  renamed to `.done`. One this instance cannot open, such as an encrypted
-  container with no JDownloader backend, stays where it is, and the log says
+  renamed to `.done`. Until then a `.torrent`, a container or an `.nzb` carries
+  an `.opening` suffix, since JDownloader can take minutes to crawl a
+  container, and if the box restarts before it is done, the file is taken
+  again. One this instance cannot open, such as a `.dlc` with
+  no JDownloader backend, stays where it is, and the log says
   why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.
 - **A page**: paste one, and the files it links to are staged instead.
-- **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link list is
-  read on the spot. The encrypted formats cannot be opened by anyone offline,
-  because their key is issued to registered clients. They are handed to the
-  JDownloader backend, which has one. That backend is provisioned on first run
-  by default (`KL_PROVISION_JD`), so this normally works with nothing set. With
-  no backend at all, a container is recognised and refused, with the missing
-  backend named as the reason.
+- **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link
+  list, an RSDF and a CCF are read on the spot, since the keys for RSDF and CCF
+  are built into every program that reads them. A DLC cannot be opened by
+  anyone offline, because its key is issued to registered clients, so it is
+  handed to the JDownloader backend, which has one. An RSDF or CCF that will
+  not open here goes the same way. That backend is provisioned on first run by
+  default (`KL_PROVISION_JD`), so this normally works with nothing set. With no
+  backend at all, a DLC is recognised and refused, with the missing backend
+  named as the reason.
 - **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
 - **Your debrid account**: what you add on the service's own website can come
   in by itself. See below.
@@ -207,12 +212,15 @@ A seedbox, a NAS or your own Nextcloud is a source like any other. Paste
 `ftp://`, `ftps://`, `sftp://`, `webdav://` or `webdavs://` and the file is
 staged, named and sized before it starts.
 
-**Credentials live in Accounts, never in the link.** Add an account with the
-service *Own server (FTP, SFTP, WebDAV)* and give it the **hostname** as its
-account name, for example `seedbox.example.net`. That name is what a pasted link
-is looked up by, so a login stored under anything else is never found. A password
+**Credentials live in Accounts, never in the link.** Open **Add a server** on the
+**Own servers** card of the Accounts page and enter the server's **hostname**,
+for example `seedbox.example.net`, with the username and password. A pasted link
+is looked up by that name, so a login stored under anything else is never found.
+If you paste a whole link into the field, only the hostname is kept. A password
 written into a URL is refused rather than quietly stripped, because it would be
-saved to the task list in plain text.
+saved to the task list in plain text. KnightLoader logs in only when it
+downloads, so a wrong password shows up on that download and not when you save
+the login.
 
 A plain `https://` link is claimed as WebDAV only when an account exists for that
 exact host, so no ordinary download is ever taken over. Public FTP archives need
