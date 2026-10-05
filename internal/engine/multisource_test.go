@@ -304,6 +304,78 @@ func TestDeadSourcesLeaveTheOwnLinkItsConnectionCount(t *testing.T) {
 	}
 }
 
+// A paused download's record keeps none of its further sources, so after a
+// restart the transfer has only its own link, which must not take the
+// connections that were dealt out over all of them.
+func TestAfterARestartTheOwnLinkKeepsToTheJobsConnectionCount(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see startSlow")
+	}
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	const conns = 4
+	var (
+		counting atomic.Bool
+		mu       sync.Mutex
+		inFlight int
+		peak     int
+	)
+	own := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Range") != "" && counting.Load() {
+			mu.Lock()
+			inFlight++
+			peak = max(peak, inFlight)
+			mu.Unlock()
+			defer func() {
+				mu.Lock()
+				inFlight--
+				mu.Unlock()
+			}()
+		}
+		http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+	}))
+	t.Cleanup(own.Close)
+	var others []string
+	for range 2 {
+		m := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+		}))
+		t.Cleanup(m.Close)
+		others = append(others, m.URL+"/f.bin")
+	}
+	dir, state := t.TempDir(), t.TempDir()
+	j := Job{TaskID: "t1", URL: own.URL + "/f.bin", Dir: dir, Conns: conns, Sources: offering(others...)}
+	u := &updates{}
+	e, err := Open(dir, state, u.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.Start(j)
+	waitUntil(t, "the first megabyte", func() bool { return u.loaded() >= 1<<20 })
+	e.Pause(j.TaskID)
+	waitUntil(t, "the pause", func() bool { return u.last().Status == core.StatusPaused })
+	if err := e.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	counting.Store(true)
+	e, u = restarted(t, dir, state)
+	e.Start(j)
+	waitUntil(t, "the download settling", func() bool { _, ok := u.settled(); return ok })
+
+	if last, _ := u.settled(); last.Status != core.StatusDone {
+		t.Fatalf("the download ended %q: %s", last.Status, last.Err)
+	}
+	if got, _ := os.ReadFile(filepath.Join(dir, "f.bin")); !bytes.Equal(got, data) {
+		t.Fatal("the file is not the one the sources have")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if peak > conns {
+		t.Fatalf("after the restart the own link served %d ranges at once, want at most %d", peak, conns)
+	}
+}
+
 // pacedWriter slows a response down, so the requests to one source overlap,
 // and stops it once the client is gone.
 type pacedWriter struct {
