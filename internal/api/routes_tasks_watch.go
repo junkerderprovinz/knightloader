@@ -35,6 +35,9 @@ type watchTask struct {
 	// HandedOver marks a failed task whose file a kept mirror has taken on
 	// (see app.HandedOver).
 	HandedOver bool `json:"handedOver,omitempty"`
+	// MirrorOf is the task every copy of this file is filed under (see
+	// app.MirrorRoots), empty for a task that is no kept copy.
+	MirrorOf string `json:"mirrorOf,omitempty"`
 
 	Error        string            `json:"error,omitempty"`
 	ErrorCode    core.ErrorCode    `json:"errorCode,omitempty"`
@@ -46,7 +49,7 @@ type watchTask struct {
 	Resolver     string            `json:"resolver,omitempty"`
 }
 
-func watchTaskOf(t *core.Task, handedOver bool) watchTask {
+func watchTaskOf(t *core.Task, handedOver bool, mirrorOf string) watchTask {
 	w := watchTask{
 		ID:         t.ID,
 		Status:     t.Status,
@@ -57,6 +60,7 @@ func watchTaskOf(t *core.Task, handedOver bool) watchTask {
 		Stalled:    t.Status == core.StatusRunning && !t.StalledSince.IsZero(),
 		Remote:     t.Status == core.StatusRunning && t.Remote != nil,
 		HandedOver: handedOver,
+		MirrorOf:   mirrorOf,
 	}
 	if w.Name == "" {
 		w.Name = t.URL
@@ -90,9 +94,10 @@ func serveTaskWatch(tasks func() []*core.Task) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		all := tasks()
 		handedOver := app.HandedOver(all)
+		roots := app.MirrorRoots(all)
 		list := watchList{Tasks: make([]watchTask, 0, len(all))}
 		for _, t := range all {
-			list.Tasks = append(list.Tasks, watchTaskOf(t, handedOver[t.ID]))
+			list.Tasks = append(list.Tasks, watchTaskOf(t, handedOver[t.ID], roots[t.ID]))
 		}
 		list.Tag = watchTag(list.Tasks)
 		if r.URL.Query().Get("tag") == list.Tag {
