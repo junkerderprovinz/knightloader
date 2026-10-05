@@ -145,3 +145,22 @@ func TestThePhoneReachesTheWatchListWithAReadToken(t *testing.T) {
 		t.Errorf("scope = %q, want read", s)
 	}
 }
+
+func TestTheWatchListMarksAFailureAMirrorTookOn(t *testing.T) {
+	tasks := []*core.Task{
+		{ID: "orig", Name: "film.rar", Package: "Film", Status: core.StatusError, Enabled: true, Error: "gone"},
+		{ID: "copy", Name: "film.rar", Package: "Film", Status: core.StatusRunning, Enabled: true, MirrorOf: "orig"},
+		{ID: "lone", Name: "other.rar", Package: "Film", Status: core.StatusError, Enabled: true, Error: "gone"},
+	}
+	list, _ := lookAtWatch(t, watchMux(&tasks), "/api/tasks/watch", "")
+	got := map[string]watchTask{}
+	for _, w := range list.Tasks {
+		got[w.ID] = w
+	}
+	if !got["orig"].HandedOver {
+		t.Errorf("the failed source a mirror runs for = %+v, want it handed over", got["orig"])
+	}
+	if got["lone"].HandedOver || got["copy"].HandedOver {
+		t.Errorf("lone = %+v, copy = %+v, want neither handed over", got["lone"], got["copy"])
+	}
+}

@@ -110,7 +110,7 @@ func (a *App) unlockerLocked(t *core.Task, res resolver.Resolver) debrid.Service
 // parkedCopiesLocked is every parked copy of t's file, oldest first, as
 // parkedMirrorLocked picks them. Caller holds a.mu.
 func (a *App) parkedCopiesLocked(t *core.Task) []*core.Task {
-	root := a.mirrorRootLocked(t)
+	root := mirrorRoot(a.tasks, t.ID)
 	var out []*core.Task
 	for id, c := range a.tasks {
 		if id == t.ID || c.MirrorOf == "" || c.Enabled || c.Skipped {
@@ -119,7 +119,7 @@ func (a *App) parkedCopiesLocked(t *core.Task) []*core.Task {
 		if c.Status != core.StatusCollected && c.Status != core.StatusQueued {
 			continue
 		}
-		if a.mirrorRootLocked(c) == root {
+		if mirrorRoot(a.tasks, c.ID) == root {
 			out = append(out, c)
 		}
 	}

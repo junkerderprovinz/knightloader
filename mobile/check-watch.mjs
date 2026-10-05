@@ -133,6 +133,21 @@ const names = (list) => list.map((p) => p.name);
   expect('a retry that succeeds finishes the package', [after.finished[0]?.done, after.failed.length], [2, 0]);
 }
 
+// A mirror that takes over a failed download.
+{
+  const p = (id, status, extra = {}) => task(id, status, { package: 'Film', ...extra });
+  const before = w.lookOf([p('a', 'done'), p('d', 'running'), p('m', 'collected', { enabled: false })], []);
+  const over = w.compare(before, [p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'queued')], []);
+  expect('a failure a mirror took on is no failed download', over.failed, []);
+  expect('nor does it finish its package', over.finished, []);
+  const look = w.lookOf([p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'running')], []);
+  const done = w.compare(look, [p('a', 'done'), p('d', 'error', { handedOver: true }), p('m', 'done')], []);
+  const f = done.finished[0];
+  expect('the mirror finishing finishes the package without a failure', [f?.total, f?.done, f?.failed], [2, 2, 0]);
+  const lost = w.compare(look, [p('a', 'done'), p('d', 'error'), p('m', 'error')], []);
+  expect('when the mirror fails too, its failure is the news', lost.failed.map((n) => n.tasks.map((t) => t.id)), [['m']]);
+}
+
 // The full list of an instance from before GET /api/tasks/watch.
 {
   const zero = '0001-01-01T00:00:00Z';

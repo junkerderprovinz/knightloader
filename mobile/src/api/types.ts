@@ -92,6 +92,9 @@ export interface WatchTask {
    *  timeout, or a debrid service is still fetching it. */
   stalled?: boolean;
   remote?: boolean;
+  /** A failure whose file a kept mirror has taken on, so it is not the end of
+   *  the file. */
+  handedOver?: boolean;
   error?: string;
   errorCode?: string;
   errorParams?: Record<string, string>;
