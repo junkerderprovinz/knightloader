@@ -42,7 +42,6 @@ require (
 	github.com/anacrolix/sync v0.6.0 // indirect
 	github.com/anacrolix/torrent v1.61.1-0.20260823090931-70072f1a7460 // indirect
 	github.com/anacrolix/upnp v0.1.4 // indirect
-	github.com/anacrolix/utp v0.2.0 // indirect
 	github.com/andybalholm/brotli v1.2.2 // indirect
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/benbjohnson/immutable v0.4.3 // indirect
@@ -57,7 +56,7 @@ require (
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.8.1 // indirect
-	github.com/dop251/goja v0.0.0-20261004174310-e21e22eac913 // indirect
+	github.com/dop251/goja v0.0.0-20261004200024-481fdb442bb4 // indirect
 	github.com/dop251/goja_nodejs v0.0.0-20240728170619-29b559befffc // indirect
 	github.com/dsnet/compress v0.0.2-0.20230904184137-39efe44ab707 // indirect
 	github.com/dustin/go-humanize v1.0.1 // indirect
