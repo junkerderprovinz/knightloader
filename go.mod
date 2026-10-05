@@ -176,10 +176,10 @@ require (
 // interface (pkg/netbind), lets a torrent's resolve be given up on
 // (ResolveContext), fixes a panic when the torrent client is closed right
 // after it was built, locks a task's connection list while the task is saved,
-// spreads a ranged download over mirror URLs, and reads a file of a running
-// task:
+// spreads a ranged download over mirror URLs, reads a file of a running task,
+// and starts a download restored from a saved task without a ten second wait:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261004092210-2a3af0c458e3
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
 // after a torrent is dropped or added again, and closing the client sends the

@@ -179,6 +179,34 @@ func TestAJobWithHeadersAsksForNoFurtherSources(t *testing.T) {
 	}
 }
 
+// An agent is no login, and a link that answers only KnightLoader's is checked
+// with the agent its transfer sends.
+func TestALinkThatAnswersOnlyKnightLoaderStillGetsFurtherSources(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 4<<20)
+	own, other := newPickyOrigin(t, data), newMirrorSource(t, data)
+	e := vetEngine(t)
+	job := asKnightLoader(Job{TaskID: "t1", URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
+
+	if got := e.vetSources(job, ranged(len(data))); len(got) != 1 || got[0] != other.url() {
+		t.Fatalf("sources = %v, want the other link", got)
+	}
+}
+
+func TestAFileKeptToItsOwnLinkSaysWhyInTheLog(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 4<<20)
+	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
+	e := vetEngine(t)
+	logged := captureLog(t)
+
+	e.vetSources(Job{TaskID: "t1", URL: own.url(), Headers: map[string]string{"Authorization": "Basic x"}, Sources: offering(other.url())}, ranged(len(data)))
+
+	if out := logged.String(); !strings.Contains(out, "not spreading task t1") {
+		t.Fatalf("the log does not say why the file keeps to its own link:\n%s", out)
+	}
+}
+
 func TestASmallFileAsksForNoFurtherSources(t *testing.T) {
 	data := randomBytes(t, 1<<20)
 	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
@@ -224,6 +252,22 @@ func TestAFileComesFromBothSources(t *testing.T) {
 		t.Fatal("the file is not the one the sources have")
 	}
 	// Two of the further source's ranged requests are the check.
+	if other.ranged.Load() <= 2 {
+		t.Errorf("the further source answered %d ranged requests, want some beyond the check", other.ranged.Load())
+	}
+}
+
+// The agent a hung-up resolve settled on reaches the check of the sources.
+func TestAFileFromALinkThatAnswersOnlyKnightLoaderComesFromBothSources(t *testing.T) {
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	own, other := newPickyOrigin(t, data), newMirrorSource(t, data)
+
+	last, got := runToEnd(t, Job{URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
+
+	if last.Status != core.StatusDone || !bytes.Equal(got, data) {
+		t.Fatalf("the download ended %q (%s) with %d bytes, want the file", last.Status, last.Err, len(got))
+	}
 	if other.ranged.Load() <= 2 {
 		t.Errorf("the further source answered %d ranged requests, want some beyond the check", other.ranged.Load())
 	}
@@ -301,6 +345,78 @@ func TestDeadSourcesLeaveTheOwnLinkItsConnectionCount(t *testing.T) {
 	defer mu.Unlock()
 	if over > 200*time.Millisecond {
 		t.Fatalf("the own link served more than %d ranges at once for %v", conns, over)
+	}
+}
+
+// A paused download's record keeps none of its further sources, so after a
+// restart the transfer has only its own link, which must not take the
+// connections that were dealt out over all of them.
+func TestAfterARestartTheOwnLinkKeepsToTheJobsConnectionCount(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see startSlow")
+	}
+	smallMultiSource(t)
+	data := randomBytes(t, 16<<20)
+	const conns = 4
+	var (
+		counting atomic.Bool
+		mu       sync.Mutex
+		inFlight int
+		peak     int
+	)
+	own := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Header.Get("Range") != "" && counting.Load() {
+			mu.Lock()
+			inFlight++
+			peak = max(peak, inFlight)
+			mu.Unlock()
+			defer func() {
+				mu.Lock()
+				inFlight--
+				mu.Unlock()
+			}()
+		}
+		http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+	}))
+	t.Cleanup(own.Close)
+	var others []string
+	for range 2 {
+		m := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(data))
+		}))
+		t.Cleanup(m.Close)
+		others = append(others, m.URL+"/f.bin")
+	}
+	dir, state := t.TempDir(), t.TempDir()
+	j := Job{TaskID: "t1", URL: own.URL + "/f.bin", Dir: dir, Conns: conns, Sources: offering(others...)}
+	u := &updates{}
+	e, err := Open(dir, state, u.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.Start(j)
+	waitUntil(t, "the first megabyte", func() bool { return u.loaded() >= 1<<20 })
+	e.Pause(j.TaskID)
+	waitUntil(t, "the pause", func() bool { return u.last().Status == core.StatusPaused })
+	if err := e.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	counting.Store(true)
+	e, u = restarted(t, dir, state)
+	e.Start(j)
+	waitUntil(t, "the download settling", func() bool { _, ok := u.settled(); return ok })
+
+	if last, _ := u.settled(); last.Status != core.StatusDone {
+		t.Fatalf("the download ended %q: %s", last.Status, last.Err)
+	}
+	if got, _ := os.ReadFile(filepath.Join(dir, "f.bin")); !bytes.Equal(got, data) {
+		t.Fatal("the file is not the one the sources have")
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if peak > conns {
+		t.Fatalf("after the restart the own link served %d ranges at once, want at most %d", peak, conns)
 	}
 }
 

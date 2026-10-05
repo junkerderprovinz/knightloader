@@ -82,7 +82,10 @@ release's tag.
   others fetch its share. A source joins only if it reports the same size and
   sends the same bytes at sample points in the file. It is off by default,
   because it helps only when a service caps one link or one connection, and
-  every extra unlock uses that account's traffic.
+  every extra unlock uses that account's traffic. A download paused before a
+  restart carries on from its own link alone, with the connections set for one
+  download. A link that answers only KnightLoader's own agent gets further
+  sources too, and when a file stays with its own link, the log says why.
 
 - **Torrents can be tied to one network interface.** Settings, Torrents has a
   Network interface field that lists the interfaces the system has, such as
@@ -222,6 +225,8 @@ release's tag.
   about 40 seconds, and the hoster kept its first letter until the list was
   opened again. It now keeps asking for up to ten minutes, waits as long as the
   instance asks, and asks a little less often each time.
+- **A download paused before a restart carries on at once.** Started again
+  after the restart, it waited about ten seconds before it fetched anything.
 
 ## [1.7.0] - 2026-10-04
 
