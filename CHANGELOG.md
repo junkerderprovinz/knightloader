@@ -209,6 +209,11 @@ release's tag.
   .description file yt-dlp writes for a video without a description. A
   download that finished empty now takes its empty file with it.
 
+- **Remove with files could delete another download's file.** If you deleted
+  a finished file by hand and a download from another link then finished
+  under the same name, removing the first row with its files took the second
+  one's file. The file now stays as long as another row has it.
+
 - `POST /api/accounts/label` no longer switches off an account whose on/off
   switch had never been touched.
 

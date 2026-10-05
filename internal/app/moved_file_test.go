@@ -102,6 +102,33 @@ func otherOnTheOldPath(t *testing.T, move func(*testing.T) (*App, string, string
 	return a, from, to
 }
 
+// Two rows can record one path when the first one's file was deleted by hand
+// before the second finished there. The backend of the first still holds the
+// path, and only the last row that records it may have the backend delete it.
+func TestABackendDeletesARemovedDownloadsFileOnlyWhenNoOtherRowRecordsIt(t *testing.T) {
+	a, dir := newRuleApp(t, func(s *settings.Settings, _ string) { noUnpacking(s) })
+	path := filepath.Join(dir, "report.pdf")
+	withBackend(a, "elsewhere", recordKeeper{wrote: map[string]string{"first": path, "second": path}})
+	a.Registry.Register(elsewhereResolver{})
+	fileBytes(t, path, 8)
+	for id, size := range map[string]int64{"first": 4, "second": 8} {
+		putTask(t, a, core.Task{ID: id, URL: "https://elsewhere.example/" + id + "/report.pdf", Name: "report.pdf",
+			Resolver: "elsewhere", Status: core.StatusDone, Enabled: true, Size: size, File: path})
+	}
+
+	a.Remove("first", true)
+
+	if !fileExists(path) {
+		t.Fatal("removing the first row with its files deleted the file the second row records")
+	}
+
+	a.Remove("second", true)
+
+	if fileExists(path) {
+		t.Error("the second row's own file survived a removal with files")
+	}
+}
+
 func TestRemovingAMovedDownloadWithItsFilesSparesTheFileNowAtItsOldPath(t *testing.T) {
 	for _, m := range appMoves {
 		t.Run(m.name, func(t *testing.T) {
