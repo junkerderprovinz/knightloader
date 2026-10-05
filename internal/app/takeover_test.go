@@ -236,6 +236,40 @@ func TestRestartingOrRemovingATakeoverSparesAnotherTakeoverOfTheSameName(t *test
 	}
 }
 
+// A file deleted by hand frees its path for the next download of that name,
+// and the row that wrote it first still records it. The engine deletes by its
+// own record, so removing that row with its files must not reach the engine.
+func TestRemovingWithFilesSparesTheFileANewerDownloadWroteAtTheSamePath(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer")
+	}
+	a := takeoverApp(t, func(*settings.Settings) {})
+	first := downloadTakeover(t, a, fileServer(t, []byte("the first report"))+"/nocd", "report.pdf")
+	if first.Status != core.StatusDone {
+		t.Fatalf("the first download ended %s: %s", first.Status, first.Error)
+	}
+	if err := os.Remove(first.File); err != nil {
+		t.Fatal(err)
+	}
+	body := "the second, longer report"
+	second := downloadTakeover(t, a, fileServer(t, []byte(body))+"/nocd", "report.pdf")
+	if second.Status != core.StatusDone || second.File != first.File {
+		t.Fatalf("the second download ended %s at %q, want done at %q", second.Status, second.File, first.File)
+	}
+
+	a.Remove(first.ID, true)
+
+	if data, err := os.ReadFile(second.File); err != nil || string(data) != body {
+		t.Fatalf("removing the first download with its files left %q, %v", data, err)
+	}
+
+	a.Remove(second.ID, true)
+
+	if fileExists(second.File) {
+		t.Error("the second download's own file survived a removal with files")
+	}
+}
+
 func TestABrowsersFileNameIsStagedAsTheDiskTakesIt(t *testing.T) {
 	long := strings.Repeat("報", 99) + ".pdf"
 	for name, tc := range map[string]struct {

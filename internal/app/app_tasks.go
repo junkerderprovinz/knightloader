@@ -1106,16 +1106,22 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var landed torrentLeftover
 	var usenetPart, remotePart string
 	var work []string
+	var taken bool
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
-		landed = a.torrentLeftoverLocked(t)
 		usenetPart = a.usenetPartLocked(t)
 		remotePart = a.partFileLocked(t)
 		work = t.WorkFiles
+		// A file deleted by hand frees its path for the next download of the
+		// name, and the backend still deletes by the record it kept for t.
+		taken = a.usedByOtherLocked(id, t.File)
+		if !taken {
+			landed = a.torrentLeftoverLocked(t)
+		}
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
 	// record names the old path, which another download may have taken since.
-	backendFiles := deleteFiles && !a.movedFiles[id]
+	backendFiles := deleteFiles && !a.movedFiles[id] && !taken
 	delete(a.movedFiles, id)
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
