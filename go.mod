@@ -177,3 +177,10 @@ require (
 // task is saved, and reads a file of a running task:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
 replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005135156-05126b31f4a1
+
+// The anacrolix/torrent fork: trackers keep announcing after a torrent is
+// dropped or added again, closing the client sends the stopped announces
+// before it closes its tracker sockets, and a web seed fetches a piece that a
+// reader is waiting for before the rest of its slice.
+// https://github.com/junkerderprovinz/torrent/tree/knightloader
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720
