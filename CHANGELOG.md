@@ -215,6 +215,13 @@ release's tag.
   asked once and no longer shows up as a failed load, and neither does an
   icon the instance is still fetching. Leaving a page before its live
   connection is up no longer logs a WebSocket warning.
+- **Hoster icons also show up at the end of a long list.** On an instance that
+  has fetched few icons so far, the hoster list behind Add an account on the
+  Accounts page asks for a few hundred at once, and the instance works through
+  them eight at a time, which takes minutes. The page gave up on an icon after
+  about 40 seconds, and the hoster kept its first letter until the list was
+  opened again. It now keeps asking for up to ten minutes, waits as long as the
+  instance asks, and asks a little less often each time.
 
 ## [1.7.0] - 2026-10-04
 
