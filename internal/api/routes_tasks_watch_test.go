@@ -164,3 +164,25 @@ func TestTheWatchListMarksAFailureAMirrorTookOn(t *testing.T) {
 		t.Errorf("lone = %+v, copy = %+v, want neither handed over", got["lone"], got["copy"])
 	}
 }
+
+// A third copy may be staged against the second rather than the original, and
+// the phone still has to count all three as one file.
+func TestTheWatchListFilesEveryCopyUnderTheFirstDownload(t *testing.T) {
+	tasks := []*core.Task{
+		{ID: "orig", Name: "film.rar", Package: "Film", Status: core.StatusError, Enabled: true},
+		{ID: "copy", Name: "film.rar", Package: "Film", Status: core.StatusError, Enabled: true, MirrorOf: "orig"},
+		{ID: "third", Name: "film.rar", Package: "Film", Status: core.StatusError, Enabled: true, MirrorOf: "copy"},
+		{ID: "lone", Name: "other.rar", Package: "Film", Status: core.StatusDone, Enabled: true},
+	}
+	list, _ := lookAtWatch(t, watchMux(&tasks), "/api/tasks/watch", "")
+	got := map[string]string{}
+	for _, w := range list.Tasks {
+		got[w.ID] = w.MirrorOf
+	}
+	want := map[string]string{"orig": "", "copy": "orig", "third": "orig", "lone": ""}
+	for id, root := range want {
+		if got[id] != root {
+			t.Errorf("%s is filed under %q, want %q", id, got[id], root)
+		}
+	}
+}
