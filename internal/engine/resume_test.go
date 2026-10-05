@@ -87,6 +87,57 @@ func TestAPausedDownloadCarriesOnAfterARestart(t *testing.T) {
 	}
 }
 
+// A download still running when the engine shuts down carries on after the
+// restart as a paused one does, and the app is not told it was paused, so it
+// comes back as running.
+func TestADownloadRunningAtShutdownCarriesOnAfterARestart(t *testing.T) {
+	t.Parallel()
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see startSlow")
+	}
+	o := newSlowOrigin(t, 16<<20)
+	dir, state := t.TempDir(), t.TempDir()
+	j := Job{TaskID: "t1", URL: o.srv.URL + "/big.bin", Conns: 4}
+	u := &updates{}
+	e, err := Open(dir, state, u.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	e.Start(j)
+	waitUntil(t, "the first megabyte", func() bool { return u.loaded() >= 1<<20 })
+	file := u.last().File
+	if err := e.Close(); err != nil {
+		t.Fatal(err)
+	}
+	if u.loaded() >= int64(len(o.data)) {
+		t.Fatal("the download finished before the shutdown")
+	}
+	if got := u.last().Status; got == core.StatusPaused {
+		t.Error("the shutdown reported the download as paused")
+	}
+	asked := o.requests()
+
+	e, u = restarted(t, dir, state)
+	if !e.Resumes(j.TaskID, file) {
+		t.Fatal("the restarted engine does not carry on with the download that was running")
+	}
+	e.Start(j)
+	waitUntil(t, "the download finishing", func() bool { return u.last().Status == core.StatusDone })
+	o.mu.Lock()
+	later := slices.Clone(o.ranges[asked:])
+	o.mu.Unlock()
+	if whole := fromTheStart(later); len(whole) > 0 {
+		t.Errorf("after the restart the file was asked for from the start (Range %q)", whole)
+	}
+	got, err := os.ReadFile(file)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, o.data) {
+		t.Errorf("the finished file (%d bytes) is not what the origin served (%d bytes)", len(got), len(o.data))
+	}
+}
+
 // A server that sends only the whole file after the restart is asked
 // for all of it, and the file that comes out is that file rather than the new
 // bytes written over the old ones at the wrong place.

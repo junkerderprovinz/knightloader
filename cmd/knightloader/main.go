@@ -33,7 +33,10 @@ import (
 
 // shutdownGrace bounds how long a graceful stop waits for in-flight HTTP
 // requests, so a backup download running at that moment can still finish.
-const shutdownGrace = 10 * time.Second
+// Docker kills the process ten seconds after it asks it to stop, and a.Close,
+// which pauses the downloads and keeps them for the next start, has to fit in
+// what is left.
+const shutdownGrace = 5 * time.Second
 
 func main() {
 	// Bridge mode downloads nothing and keeps no data. It exists because every
@@ -235,13 +238,21 @@ func main() {
 // abandoned clients cannot pin a goroutine each. There is no ReadTimeout or
 // WriteTimeout, which would cut the live stream, a large upload and a file
 // being served.
+//
+// Every request's context ends when Shutdown begins. A player reading a file
+// that is still downloading waits on it for its bytes, and would otherwise
+// hold the shutdown for the whole grace.
 func newServer(h http.Handler) *http.Server {
-	return &http.Server{
+	base, stop := context.WithCancel(context.Background())
+	srv := &http.Server{
 		Handler:           h,
 		ReadHeaderTimeout: 10 * time.Second,
 		IdleTimeout:       time.Minute,
 		MaxHeaderBytes:    64 << 10,
+		BaseContext:       func(net.Listener) context.Context { return base },
 	}
+	srv.RegisterOnShutdown(stop)
+	return srv
 }
 
 // runResetTwoFactor turns the second login factor off and exits, leaving the
