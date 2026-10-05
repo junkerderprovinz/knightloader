@@ -153,18 +153,16 @@ func (m *Matcher) nextAppend(key string) string {
 	return "_" + strconv.Itoa(n+1)
 }
 
-// maxSegment and sanitizeSegment mirror their unexported counterparts in
-// internal/pathvars. They have to agree, because both expand into the same
-// download paths and a name cut at a different byte would split one package
-// into two folders. Sanitising keeps a value like "../../etc/passwd" from
-// adding path levels the template never spelled out.
-const maxSegment = 120
-
 // FileSegment cuts a value down to the one path segment a file name may be,
 // the same cut Apply gives Action.Filename, so a rename typed into the
 // interface and one written by a rule agree. A value that sanitises away
 // entirely becomes "file".
-func FileSegment(value string) string { return segment(value, "file") }
+func FileSegment(value string) string {
+	if out := pathvars.CutName(clean(value)); out != "" {
+		return out
+	}
+	return "file"
+}
 
 // segment is sanitizeSegment with a fallback word, so a placeholder whose value
 // sanitises away still contributes a named segment instead of an empty one.
@@ -175,7 +173,16 @@ func segment(value, fallback string) string {
 	return fallback
 }
 
-func sanitizeSegment(s string) string {
+// sanitizeSegment mirrors its unexported counterpart in internal/pathvars. They
+// have to agree, because both expand into the same download paths and a name
+// cut at a different byte would split one package into two folders. Sanitising
+// keeps a value like "../../etc/passwd" from adding path levels the template
+// never spelled out.
+func sanitizeSegment(s string) string { return pathvars.Cut(clean(s)) }
+
+// clean is sanitizeSegment without the length cap, which differs between a
+// file name and every other segment.
+func clean(s string) string {
 	const bad = `/\:*?"<>|`
 	out := strings.Map(func(r rune) rune {
 		if r < 32 {
@@ -186,9 +193,5 @@ func sanitizeSegment(s string) string {
 		}
 		return r
 	}, s)
-	out = strings.Trim(strings.TrimSpace(out), ". ")
-	if len(out) > maxSegment {
-		out = out[:maxSegment]
-	}
-	return out
+	return strings.Trim(strings.TrimSpace(out), ". ")
 }

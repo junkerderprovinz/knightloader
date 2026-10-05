@@ -1,0 +1,32 @@
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+  <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+  <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE" />
+  <uses-permission android:name="android.permission.WAKE_LOCK" />
+  <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
+  <application>
+    <!-- specialUse rather than dataSync: the service moves no files and has no
+         end of its own. It asks the person's self-hosted servers how their
+         downloads are doing, and no push service exists to tell it instead.
+         Android 15 caps dataSync at six hours a day and keeps boot receivers
+         from starting it. -->
+    <service
+      android:name=".WatchService"
+      android:exported="false"
+      android:foregroundServiceType="specialUse">
+      <property
+        android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+        android:value="Keeps a connection to the user's own self-hosted KnightLoader servers to notify about captchas that need an answer and downloads that finished or failed. The servers are reached directly or through a relay, with no push service in between. By default it runs all the time and looks once a minute while nothing is downloading; with the Stay connected setting off it runs only while a server is busy. The user switches either off in the app's settings." />
+    </service>
+
+    <receiver android:name=".WatchTick" android:exported="false" />
+
+    <receiver android:name=".WatchBoot" android:exported="true">
+      <intent-filter>
+        <action android:name="android.intent.action.BOOT_COMPLETED" />
+        <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+      </intent-filter>
+    </receiver>
+  </application>
+</manifest>

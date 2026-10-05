@@ -1008,6 +1008,7 @@ const waitingKey: Partial<Record<NonNullable<Task['waiting']>, TranslationKey>> 
   host: 'task.waiting.host',
   forced: 'task.waiting.forced',
   disabled: 'task.waiting.disabled',
+  spare: 'task.waiting.spare',
   captcha: 'task.waiting.captcha',
   account: 'task.waiting.account',
   halted: 'task.waiting.halted',
@@ -1068,7 +1069,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         // by default and several of these reasons are longer in German than the
         // space they get, so the ellipsis needs somewhere to lead.
         <Tip
-          tip={t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
+          tip={t(task.waiting === 'spare' ? 'task.waiting.spareHint' : (waitingKey[task.waiting] ?? 'task.waiting.slot'))}
           className="min-w-0 truncate text-[11px] text-carbon-textMuted"
         >
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}

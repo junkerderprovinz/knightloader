@@ -5,7 +5,12 @@ package app
 
 import (
 	"errors"
+	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -309,5 +314,63 @@ func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
 	}
 	if got := torrentConfig(settings.Torrent{DHTEnabled: true, PEXEnabled: true}); got != (engine.TorrentConfig{}) {
 		t.Errorf("an unlimited torrent client with DHT and PEX on reads %+v, want gopeed's own defaults", got)
+	}
+}
+
+// The engine reaches HTTP trackers through the loopback proxy, so closing the
+// app must leave the proxy up until the torrent client has said goodbye.
+func TestClosingTheAppSendsTheStoppedAnnounceToHTTPTrackers(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if testing.Short() {
+		t.Skip("this starts a torrent client, which opens a network-facing listener")
+	}
+	// The client sends no stopped for a torrent whose first announce is still
+	// out, so the first answer asks for another announce a second later, and
+	// that one shows the first has landed.
+	events := make(chan string, 64)
+	var announces atomic.Int32
+	tracker := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		interval := 1800
+		if announces.Add(1) == 1 {
+			interval = 1
+		}
+		fmt.Fprintf(w, "d8:intervali%de5:peers0:e", interval)
+		events <- r.URL.Query().Get("event")
+	}))
+	defer tracker.Close()
+
+	a, err := newApp(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	a.Engine.SetMetadataTimeout(time.Minute)
+	magnet := "magnet:?xt=urn:btih:89abcdef0123456789abcdef0123456789abcdef&tr=" + url.QueryEscape(tracker.URL+"/announce")
+	created := a.AddLinksFrom([]string{magnet}, "Goodbye", OriginPaste)
+	if len(created) != 1 {
+		a.Close()
+		t.Fatalf("AddLinksFrom staged %d tasks, want 1", len(created))
+	}
+	a.StartTasks([]string{created[0].ID})
+
+	for range 2 {
+		select {
+		case <-events:
+		case <-time.After(20 * time.Second):
+			a.Close()
+			t.Fatal("the tracker heard less than two announces from the running magnet")
+		}
+	}
+	a.Close()
+
+	deadline := time.After(2 * time.Second)
+	for {
+		select {
+		case ev := <-events:
+			if ev == "stopped" {
+				return
+			}
+		case <-deadline:
+			t.Fatal("the tracker got no stopped announce when the app closed")
+		}
 	}
 }

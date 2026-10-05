@@ -1,9 +1,9 @@
 package api
 
 // The site icon beside a hoster row (app_hostericons.go owns the fetching and
-// the cache). One route, GET only, and a 404 that the page is expected to
-// handle: a missing icon is the ordinary case, not an error worth a toast. A
-// 503 says the instance is still fetching it.
+// the cache). One route, GET only. Neither answer short of an icon is an error
+// status, because a browser logs each one as a failed load: a host without an
+// icon gets a 204, and one the instance is still fetching gets a 202.
 
 import (
 	"crypto/sha256"
@@ -20,22 +20,27 @@ const iconCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 
 func registerHosterIcons(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/hosters/icon", "one host's own site icon, fetched by this instance and cached on disk",
-		func(w http.ResponseWriter, r *http.Request) {
-			body, ct, err := a.HosterIcon(r.URL.Query().Get("host"))
-			if errors.Is(err, app.ErrIconPending) {
-				// The fetch goes on without this request; asking again soon
-				// finds the outcome cached.
-				w.Header().Set("Cache-Control", "no-store")
-				w.Header().Set("Retry-After", "5")
-				http.Error(w, "icon still being fetched", http.StatusServiceUnavailable)
-				return
-			}
-			if err != nil {
-				http.NotFound(w, r)
-				return
-			}
-			serveHosterIcon(w, r, body, ct)
-		})
+		hosterIconHandler(a.HosterIcon))
+}
+
+// hosterIconHandler answers from lookup, which is App.HosterIcon outside tests.
+func hosterIconHandler(lookup func(host string) ([]byte, string, error)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		body, ct, err := lookup(r.URL.Query().Get("host"))
+		if errors.Is(err, app.ErrIconPending) {
+			// The fetch goes on without this request; asking again soon
+			// finds the outcome cached.
+			w.Header().Set("Cache-Control", "no-store")
+			w.Header().Set("Retry-After", "5")
+			w.WriteHeader(http.StatusAccepted)
+			return
+		}
+		if err != nil {
+			w.WriteHeader(http.StatusNoContent)
+			return
+		}
+		serveHosterIcon(w, r, body, ct)
+	}
 }
 
 // serveHosterIcon writes an icon with the headers that bytes from somebody

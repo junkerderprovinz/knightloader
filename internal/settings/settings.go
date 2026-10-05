@@ -477,6 +477,14 @@ type Settings struct {
 	// task, and the dispatcher owns the fallback.
 	Chunks int `json:"chunks"`
 
+	// MultiSource spreads one file over the further sources KnightLoader can
+	// get for it: the same link unlocked by another debrid account, or a
+	// parked copy on another hoster (see app.App.sourcesLocked). It is off by
+	// default because an extra unlock spends that account's traffic, some
+	// services count the whole file at the unlock, and a service's terms may
+	// forbid using two accounts at once.
+	MultiSource bool `json:"multiSource"`
+
 	// HostRules is what one host may differ in: its own simultaneous-download
 	// ceiling, its own chunk count, its own retry backoff. Keyed by host
 	// pattern, see HostRuleFor for what matches.
@@ -521,6 +529,12 @@ type Settings struct {
 	// Empty, the default, is the feature switched off. No omitempty, see
 	// CrawlInclude.
 	MediaHooks []mediahook.Hook `json:"mediaHooks"`
+
+	// UsenetServers are the servers an .nzb is fetched from without a debrid
+	// service, see settings_usenet.go. The logins are sealed in accounts.Store.
+	// Empty, the default, leaves every .nzb to TorBox or Premiumize.me. No
+	// omitempty, see CrawlInclude.
+	UsenetServers []UsenetServer `json:"usenetServers"`
 
 	// Reconnect gets the box a new public address when a hoster's free-user limit
 	// is keyed to the one it has. Off by default: it runs a program or talks to
@@ -679,6 +693,10 @@ type Settings struct {
 	// dependency this build embeds actually enforces.
 	Torrent Torrent `json:"torrent"`
 
+	// DebridDrive serves what is on the debrid accounts read-only over WebDAV.
+	// See settings_debriddrive.go.
+	DebridDrive DebridDrive `json:"debridDrive"`
+
 	// InstanceID, InstanceName and KnownDomains are this instance's own
 	// identity. See settings_identity.go for the sanitize hook and the three
 	// fields' own doc comments.
@@ -805,9 +823,10 @@ func Defaults() Settings {
 		// Both empty tables are load-bearing: an empty host table means every
 		// host keeps the global numbers, an empty reason table means every
 		// failure keeps the one backoff.
-		HostRules: map[string]HostRule{},
-		Retry:     RetryPolicy{ByReason: map[string]RetryRule{}},
-		Torrent:   defaultTorrent(),
+		HostRules:   map[string]HostRule{},
+		Retry:       RetryPolicy{ByReason: map[string]RetryRule{}},
+		Torrent:     defaultTorrent(),
+		DebridDrive: defaultDebridDrive(),
 		// The list is trimmed after a month and the history is not, so keeping
 		// the list from growing forever costs nobody the record of what they
 		// downloaded.
@@ -870,6 +889,7 @@ func Load(dir string) (*Store, error) {
 		}
 		s.cur = migrate(b, s.cur)
 	}
+	s.cur = loadInstanceID(dir, s.cur)
 	s.cur = sanitize(s.cur)
 	return s, nil
 }
@@ -1134,6 +1154,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeHostRules(n)
 	n = sanitizeCategories(n)
 	n = sanitizeMediaHooks(n)
+	n = sanitizeUsenet(n)
 	n = sanitizePaths(n)
 	n = sanitizeStaging(n)
 	n = sanitizeArchives(n)
@@ -1154,6 +1175,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeCaptcha(n)
 	n = sanitizeConfirm(n)
 	n = sanitizeTorrent(n)
+	n = sanitizeDebridDrive(n)
 	n = sanitizeIdentity(n)
 	n = sanitizeRelay(n)
 	n.ModulesOff = cleanIDList(n.ModulesOff)

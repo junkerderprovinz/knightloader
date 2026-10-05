@@ -816,7 +816,7 @@ func (countingYtdlpBackend) Pause(string)                                    {}
 func (countingYtdlpBackend) Resume(string)                                   {}
 func (countingYtdlpBackend) Remove(string, bool)                             {}
 
-func (c countingYtdlpBackend) ProbeTitle(_ context.Context, url string) (ytdlp.ProbeResult, error) {
+func (c countingYtdlpBackend) ProbeTitle(_ context.Context, url string, _ map[string]string) (ytdlp.ProbeResult, error) {
 	c.mu.Lock()
 	*c.asked = append(*c.asked, url)
 	c.mu.Unlock()
@@ -959,7 +959,7 @@ func (*heldYtdlpBackend) Pause(string)                                    {}
 func (*heldYtdlpBackend) Resume(string)                                   {}
 func (*heldYtdlpBackend) Remove(string, bool)                             {}
 
-func (b *heldYtdlpBackend) ProbeTitle(ctx context.Context, _ string) (ytdlp.ProbeResult, error) {
+func (b *heldYtdlpBackend) ProbeTitle(ctx context.Context, _ string, _ map[string]string) (ytdlp.ProbeResult, error) {
 	b.mu.Lock()
 	b.probes++
 	b.mu.Unlock()

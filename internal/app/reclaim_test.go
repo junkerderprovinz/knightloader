@@ -11,6 +11,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // The body every test in this file uses, and a different body of exactly the
@@ -316,5 +317,24 @@ func TestAReclaimedDownloadReachesTheStoreAndTheHistory(t *testing.T) {
 	again := f.boot(t)
 	if got := taskOf(t, again, "already-here"); got.Status != core.StatusDone {
 		t.Errorf("after a restart status = %q, want done", got.Status)
+	}
+}
+
+// A download from the own Usenet servers writes its part file under the name
+// in its link, which a paused row keeps when the user renames it.
+func TestAPausedUsenetDownloadKeepsItsPartFileOutOfTheOrphans(t *testing.T) {
+	dl := t.TempDir()
+	f := newBootFixture(t, nil,
+		core.Task{ID: "nzb", URL: local.FileLink("0123456789abcdef", 0, "film.mkv"), Name: "Film renamed.mkv",
+			Dir: dl, Status: core.StatusPaused, Size: 1000},
+	)
+	writeBody(t, dl, "film.mkv.nzb"+reclaim.PartSuffix, "half")
+
+	rep, err := f.boot(t).Reclaim()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(rep.Orphans) != 0 {
+		t.Errorf("orphans = %+v, want none: the paused row resumes into that part file", rep.Orphans)
 	}
 }

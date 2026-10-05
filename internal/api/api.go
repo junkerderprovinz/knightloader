@@ -107,6 +107,20 @@ func bearerToken(r *http.Request) string {
 	return strings.TrimSpace(h[len(prefix):])
 }
 
+// tokenSecret is the API token a request carries as a Bearer token or as the
+// password of Basic authentication, whose user name is not read. Only the
+// debrid drive and the host check take the second form, for the WebDAV
+// clients that can send nothing else.
+func tokenSecret(r *http.Request) string {
+	if s := bearerToken(r); s != "" {
+		return s
+	}
+	if _, pass, ok := r.BasicAuth(); ok {
+		return strings.TrimSpace(pass)
+	}
+	return ""
+}
+
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     auth.CookieName,
@@ -165,6 +179,12 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 		// Setting the first password needs no session; there is nothing to
 		// protect yet and no way to get one.
 		if r.URL.Path == "/api/auth/password" && !a.Auth.Enabled() {
+			next.ServeHTTP(w, r)
+			return
+		}
+		// A media player opened from the phone app sends neither cookie nor
+		// token, only the link it was given.
+		if playTicketOpens(r) {
 			next.ServeHTTP(w, r)
 			return
 		}

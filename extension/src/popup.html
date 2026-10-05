@@ -164,6 +164,25 @@
          as in .sendRow. */
       .collectorRow { display: flex; gap: 8px; }
       .collectorRow button { flex: 1; min-width: 0; }
+      #media { margin-top: 16px; }
+      #mediaLabel { margin: 0 0 6px; }
+      #mediaList { display: flex; flex-direction: column; gap: 8px; }
+      /* Kind, name over host, and the send badge at the end. */
+      .mediaRow { display: flex; align-items: center; gap: 10px; }
+      .mediaKind {
+        flex-shrink: 0;
+        min-width: 44px;
+        padding: 2px 6px;
+        border-radius: var(--radius-pill);
+        background: var(--carbon-surface2);
+        color: var(--carbon-text-sub);
+        font-size: var(--text-caption);
+        text-align: center;
+      }
+      .mediaName { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+      .mediaName > span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+      .mediaHost { color: var(--carbon-text-muted); font-size: var(--text-caption); }
+      .mediaNone { margin: 0; color: var(--carbon-text-muted); font-size: var(--text-caption); }
       #cnlAccess { margin-bottom: 16px; }
       #cnlAccess button { margin-top: 10px; }
     </style>
@@ -214,6 +233,12 @@
         <button id="cancelCountdown" class="secondary" type="button" hidden></button>
         <button id="send" class="primary">Send this page</button>
       </div>
+      <!-- The video and audio this tab played, while finding media is on
+           (popup-media.js). -->
+      <div id="media" hidden>
+        <p id="mediaLabel" class="glim-eyebrow"></p>
+        <div id="mediaList"></div>
+      </div>
     </div>
 
     <!-- The link collector: paste or drop links, or pick files. -->
@@ -240,12 +265,16 @@
     <script src="discoLoop.js"></script>
     <script src="disco.js"></script>
     <script src="i18n.js"></script>
+    <script src="i18n-capture.js"></script>
     <script src="shared.js"></script>
+    <script src="capture.js"></script>
     <script src="wordlist.js"></script>
     <script src="phrase.js"></script>
     <script src="relay.js"></script>
     <script src="group.js"></script>
+    <script src="clipwatch.js"></script>
     <script src="tooltip.js"></script>
     <script src="popup.js"></script>
+    <script src="popup-media.js"></script>
   </body>
 </html>

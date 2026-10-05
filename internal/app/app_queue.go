@@ -197,7 +197,10 @@ func (a *App) RestartTasks(ids []string) { a.RestartTasksIn(ids, nil) }
 // An empty reason list means every cause. core.ReasonUnknown ("") is a valid
 // entry: unclassified failures are a group of their own. With both ids and
 // reasons, the two intersect, so picking a cause never widens a selection.
-func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
+//
+// It returns the names of the finished files among ids that it left alone
+// because they cannot be fetched again (see nzbGoneLocked).
+func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string) {
 	want := map[string]bool{}
 	for _, id := range ids {
 		want[id] = true
@@ -222,9 +225,13 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	}
 	var targets []reset
 	for id, t := range a.tasks {
-		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all)
+		gone := t.Status == core.StatusDone && !all && a.nzbGoneLocked(t)
+		restartable := t.Status == core.StatusError || (t.Status == core.StatusDone && !all && !gone)
 		if byReason && !wantReason[t.Reason] {
 			continue
+		}
+		if gone && want[id] {
+			left = append(left, t.Name)
 		}
 		if restartable && (all || want[id]) {
 			carry := t.Status == core.StatusError && a.carriesOnLocked(t)
@@ -232,7 +239,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 			delete(a.movedFiles, id)
 			t.Status = core.StatusQueued
 			t.ClearFailure()
-			t.Loaded = 0
+			if !carry {
+				t.Loaded = 0
+			}
 			t.Speed = 0
 			// The file is fetched again, and how its archive was last unpacked
 			// says nothing about the new one.
@@ -280,6 +289,8 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) {
 	copies := a.copiesLocked(live)
 	a.mu.Unlock()
 	a.publishTasks(copies)
+	slices.Sort(left)
+	return left
 }
 
 // UndoWindow is how long a removed selection can still be brought back. It is

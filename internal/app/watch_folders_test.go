@@ -3,8 +3,10 @@ package app
 import (
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
+	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
@@ -95,6 +97,24 @@ func TestAFileNameIsOnlyTakenFromASingleLinkJob(t *testing.T) {
 		if task.Filename == "the-one-name.bin" {
 			t.Fatalf("%s took the file name of a two-link job", task.URL)
 		}
+	}
+}
+
+// A crawljob's filename= goes the way a typed rename does, so a name past what
+// a file system holds is cut rather than left to fail when the download ends.
+func TestADroppedJobsLongFileNameIsCut(t *testing.T) {
+	a := newCrawlApp(t, false)
+	long := "scan-" + strings.Repeat("報", 100) + ".pdf"
+	a.stageWatchJob(watch.Job{
+		URLs:     []string{"https://host.example/scan.pdf"},
+		Filename: long,
+	})
+	tasks := a.Tasks()
+	if len(tasks) != 1 {
+		t.Fatalf("staged %d tasks, want 1", len(tasks))
+	}
+	if got, want := tasks[0].Filename, rules.FileSegment(long); got != want {
+		t.Errorf("Filename = %q (%d bytes), want %q", got, len(got), want)
 	}
 }
 

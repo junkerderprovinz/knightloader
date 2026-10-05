@@ -168,7 +168,7 @@ func registerContainers(reg *Registry, a *app.App) {
 	relay := newContainerRelay()
 	relay.onCount = a.SetContainerActivity
 
-	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list, RSDF or CCF is staged, a DLC goes to the JD backend, an .nzb to TorBox or Premiumize.me",
+	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list, RSDF or CCF is staged, a DLC goes to the JD backend, an .nzb to the own Usenet servers, TorBox or Premiumize.me",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The cap is on the request, not on the part: without it the multipart
 			// reader will happily buffer whatever is sent before the size of the file
@@ -299,6 +299,8 @@ func sendNZB(w http.ResponseWriter, a *app.App, name string, data []byte, pkg st
 		"kind":     "nzb",
 		"handedTo": "usenet",
 		"service":  service,
+		// The own servers stage the files at once, so the upload says so.
+		"own": service == a.OwnUsenetServers().Label(),
 	})
 }
 

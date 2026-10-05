@@ -134,15 +134,85 @@ that caught it, not past one added afterwards. It is refused rather than
 stripped of that tracker: the rest of the torrent would still announce the same
 info hash, and a private torrent without its tracker finds no peers.
 
+**Network interface** under Settings, Torrents ties the built-in torrent client
+to one interface, such as `wg0` or `tun0` from a VPN, the way qBittorrent's
+"Network interface" setting does. Peers, trackers and the DHT then use that
+interface only. Every socket is bound to its address, and on Linux, macOS and
+Windows to the interface itself as well, so the system cannot route it out
+another way. The list offers the interfaces the system has, with their
+addresses, and "Any interface", which is the default.
+
+KnightLoader looks at the interface every two seconds. While it is missing,
+down or has no address, the client sends and receives nothing: open
+connections are closed, no peer is dialled and no tracker is asked. The
+torrents keep their place and what they have, the Overview's Torrents card
+says they are on hold, and a magnet link that waits for its file list does not
+run out of time meanwhile. Once the interface is back, the peers each torrent
+knew are dialled again, and trackers and the DHT bring the rest within about a
+minute. A change applies to running torrents at once.
+
+With an interface set, trackers and web seeds skip any proxy, because a proxy
+would reach them outside the interface. A client that starts with an interface
+set also leaves out UPnP port mapping and WebRTC peers, which open connections
+of their own, and IPv4 or IPv6 if the interface has no address of that kind. If
+you turn the setting on or pick another interface while torrents run, these
+stay as they are until the client starts again. Host names of trackers and DHT
+nodes are still looked up through the system's resolver. On Linux before 5.7
+the container needs `CAP_NET_RAW` to tie a socket to the interface itself, and
+without it sockets are bound to the interface's address only. Torrents a debrid
+service fetches are not affected: they come over HTTP from the service.
+
 ## Usenet
 
-KnightLoader has no newsreader of its own. An `.nzb` goes to a debrid service
-that has one: your TorBox account first, or Premiumize.me when there is no
-TorBox account, TorBox turns the file down, or TorBox is not taking new ones
-for the moment. Add the account under Accounts; there is nothing else to set
-up. The service downloads the articles, repairs and unpacks them, and hands
-back ordinary files, which then download into the package's folder like any
-other link. A release that unpacks into folders keeps them, so a subtitle in
+An `.nzb` is fetched from your own Usenet servers, or by a debrid service that
+has Usenet access: TorBox or Premiumize.me. Which goes first is the order of
+their rows under Accounts, Priority order. Your own servers rank first until
+you move them.
+
+### Your own Usenet servers
+
+Add your provider's server under Accounts, Usenet servers: the address, the
+port, whether to use TLS, your username and password, and how many connections
+your plan allows. Test, in the form and in the row's menu, logs in and asks
+the server for an article, so a wrong password shows up before the first
+download. The
+password is stored encrypted on the instance and never shown again.
+
+Each file of the `.nzb` becomes a download of its own in the release's package
+straight away. Its articles are fetched over all connections at once and
+written into place, so the file grows from the middle as well as from the
+start, and a `.klpart` file with a `.segments` map beside it records which
+articles are already there. A paused or interrupted download, a restart
+included, asks only for the rest. The speed limit counts these downloads like
+any other.
+
+Servers on level 0 are asked first. When one says it does not have an article,
+the next server on the same level is asked, then the servers on level 1, and
+so on, which is how a block account fills the gaps of the main one. An article
+that arrives damaged is fetched again from the same server a few times before
+the next one is asked. A server marked optional is skipped while it cannot be
+reached; for any other server the article waits and is asked for again, since
+that server might have it. A server with a retention in days is not asked for
+older articles.
+
+When some articles are on none of your servers, the release goes to the next
+account in the priority order, TorBox or Premiumize.me, if you have one. Files
+your servers have already finished stay where they are and are not fetched
+again. The other downloads from your servers are removed, and the service
+fetches those files instead. Without such an account the file fails, and the error names
+how many articles are missing. Damaged downloads are not repaired with par2
+yet. The par2 recovery files of a release are listed but switched off, with a
+note that they load only when needed, and they do not count as unfinished.
+Once every file is here, archives are unpacked as usual.
+
+### Through TorBox or Premiumize.me
+
+Add the account under Accounts; there is nothing else to set up. TorBox goes
+before Premiumize.me unless you move them. The next account also takes over
+when TorBox turns the file down or is not taking new ones for the moment. The
+service downloads the articles, repairs and unpacks them, and hands back
+ordinary files, which then download into the package's folder like any other
+link. A release that unpacks into folders keeps them, so a subtitle in
 `Subs/` lands in `Subs/` inside the package's folder. An `.nzb` can come from
 the upload button, the watched folder, or Sonarr and Radarr, and may be up to
 64 MB, which covers a release of about 450 GB.
@@ -159,9 +229,9 @@ account that can take it, a real `.nzb` is refused, with that as the reason.
 A DDL indexer's "nzb" that is really a list of links is read for its links
 either way.
 
-While an `.nzb` waits for an account or is being fetched, the status strip
-counts it under Usenet. One the service gives up on is listed with the links
-that were not added, together with the service's reason.
+While an `.nzb` waits for an account or is being fetched by a service, the
+status strip counts it under Usenet. One the service gives up on is listed
+with the links that were not added, together with the service's reason.
 
 ## From your debrid account
 
@@ -313,8 +383,11 @@ again by itself.
 
 Add SABnzbd instead, with this instance's address, the URL Base `api/sabnzbd`
 and an API token as its API key. A real `.nzb` goes to Usenet as described
-above. While the service fetches an `.nzb`, Sonarr's queue shows it
-downloading at the service's own progress. Once the files are here it follows
+above. While your own servers or a service fetch an `.nzb`, Sonarr's queue
+shows it downloading. A release with articles none of your servers has, and
+no debrid account to take it, lands in Sonarr's history as failed with the
+reason, so Sonarr can block it and search for another. The par2 recovery
+files that stay switched off do not hold a release back. Once the files are here it follows
 them, and its history names the folder to import from. A download that fails
 with a retry still to come stays in the queue, so Sonarr does not give up on
 a release that is about to arrive.

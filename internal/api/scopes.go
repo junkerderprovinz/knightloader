@@ -94,6 +94,13 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/collector/skipped":        apitoken.ScopeControl,
 	"GET /api/collector/skipped":           apitoken.ScopeRead,
 
+	// A clipboard watcher only adds links; stopping another device's watch
+	// changes how work arrives.
+	"GET /api/clipboard-watchers":            apitoken.ScopeRead,
+	"PUT /api/clipboard-watchers/{id}":       apitoken.ScopeAdd,
+	"DELETE /api/clipboard-watchers/{id}":    apitoken.ScopeAdd,
+	"POST /api/clipboard-watchers/{id}/stop": apitoken.ScopeControl,
+
 	"DELETE /api/connect":              apitoken.ScopeAdmin,
 	"DELETE /api/connect/apps/{id}":    apitoken.ScopeAdmin,
 	"DELETE /api/connect/members/{id}": apitoken.ScopeAdmin,
@@ -270,9 +277,11 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/tasks/{id}":             apitoken.ScopeControl,
 	"GET /api/tasks/{id}/file":           apitoken.ScopeRead,
 	"POST /api/tasks/{id}/pause":         apitoken.ScopeControl,
+	"POST /api/tasks/{id}/play":          apitoken.ScopeRead,
 	"POST /api/tasks/{id}/resume":        apitoken.ScopeControl,
 	"GET /api/tasks/{id}/torrent-files":  apitoken.ScopeRead,
 	"POST /api/tasks/{id}/torrent-files": apitoken.ScopeControl,
+	"GET /api/tasks/watch":               apitoken.ScopeRead,
 
 	"GET /api/tokens":         apitoken.ScopeAdmin,
 	"POST /api/tokens":        apitoken.ScopeAdmin,
@@ -283,9 +292,16 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/torrents/parse":            apitoken.ScopeAdd,
 	"POST /api/torrents/portmap":          apitoken.ScopeAdmin,
 	"POST /api/torrents/qbittorrent/test": apitoken.ScopeAdmin,
-	// How the tracker list named in the settings was fetched, which is part
-	// of the Torrents settings page.
-	"GET /api/torrents/trackers": apitoken.ScopeAdmin,
+	// The interfaces to tie torrents to and how the tracker list named in the
+	// settings was fetched, both part of the Torrents settings page.
+	"GET /api/torrents/interfaces": apitoken.ScopeAdmin,
+	"GET /api/torrents/trackers":   apitoken.ScopeAdmin,
+
+	// The logins of the Usenet servers are credentials like the accounts'.
+	"GET /api/usenet/servers":         apitoken.ScopeAdmin,
+	"POST /api/usenet/servers":        apitoken.ScopeAdmin,
+	"DELETE /api/usenet/servers/{id}": apitoken.ScopeAdmin,
+	"POST /api/usenet/servers/test":   apitoken.ScopeAdmin,
 
 	// Layout only: the buckets the instance keeps for itself are refused
 	// whatever the scope (serverBuckets).

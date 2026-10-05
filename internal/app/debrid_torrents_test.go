@@ -227,6 +227,29 @@ func TestARetryOfADebridTorrentGoesBackToTheJobItHolds(t *testing.T) {
 	}
 }
 
+// The bytes a carried-on task holds stay on disk, so its row keeps counting
+// them rather than dropping to nothing until the backend reports again.
+func TestARetryThatCarriesOnKeepsWhatWasLoaded(t *testing.T) {
+	a, events := torrentOrderApp(t, []string{"realdebrid", "torrent"})
+	a.bmu.Lock()
+	a.debrid["realdebrid"] = &holdingSpy{routeSpy{name: "realdebrid", events: events}}
+	a.bmu.Unlock()
+	a.mu.Lock()
+	a.tasks["m1"] = &core.Task{
+		ID: "m1", URL: debridMagnet, Resolver: "realdebrid", Status: core.StatusError, Enabled: true,
+		InfoHash: "89abcdef0123456789abcdef0123456789abcdef", Loaded: 700,
+		ServiceJob: &core.ServiceJob{Slot: "realdebrid", ID: "RD1", Owned: true, Done: 1},
+	}
+	a.mu.Unlock()
+
+	a.RestartTasks([]string{"m1"})
+
+	settle(events)
+	if got := liveTask(a, "m1").Loaded; got != 700 {
+		t.Errorf("the task shows %d bytes loaded after the retry, want the 700 it carries on with", got)
+	}
+}
+
 // appBeforeRestart is openImportApp with the queue coming up stopped on the
 // next start, so nothing starts there before the account is wired again, and
 // the function that closes it.

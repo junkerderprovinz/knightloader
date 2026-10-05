@@ -115,6 +115,7 @@ const modules = {
     errorText: (_t, e) => (e instanceof Error ? e.message : String(e)),
   },
   '../storage/connections': { listConnections: async () => connections },
+  '../watch/watch': { startWatch: async () => {} },
   '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, corners: { card: {} } }) },
   '../theme/tokens': { TYPE: {} },
   '../i18n/I18nContext': { useT: () => ({ t }) },

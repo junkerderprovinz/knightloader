@@ -228,8 +228,14 @@ function secretlessKeys(doc: SettingsExportDoc): Set<string> {
     }
   }
 
+  // An empty list says nothing about the box that wrote it, so the export
+  // counts the passwords it left behind. An older file without the count is
+  // judged by its claim.
   const archives = s.archivePasswords;
-  if (Array.isArray(archives) && archives.length === 0) out.add('archivePasswords');
+  if (archives == null || (Array.isArray(archives) && archives.length === 0)) {
+    const left = doc.archivePasswordsOmitted ?? (doc.secrets === 'included' ? 0 : 1);
+    if (left > 0) out.add('archivePasswords');
+  }
 
   // A program row whose command line stayed behind arrives with no program.
   const programs = s.eventPrograms;
@@ -255,6 +261,7 @@ const GROUPS: Record<string, TransferGroup> = {
   maxPerHost: 'queue',
   speedLimit: 'queue',
   chunks: 'queue',
+  multiSource: 'queue',
   autoStart: 'queue',
   addAtTop: 'queue',
   onDupes: 'queue',

@@ -1,1 +1,0 @@
-KnightLoader spricht jetzt selbst mit MyDebrid, und die Kopplung läuft über das neue Relay ParleyPort.

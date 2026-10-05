@@ -162,7 +162,7 @@ export interface Task {
    * server updates whenever an account or the settings change. Callers fall
    * back for values a newer server may add.
    */
-  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
+  waiting?: 'slot' | 'host' | 'forced' | 'disabled' | 'spare' | 'captcha' | 'account' | 'halted' | 'disk' | 'volumeCap' | 'module' | 'premium';
   /**
    * When the bytes stopped, so the age of a stall is computed on every render.
    * Not persisted: it describes a connection this process holds open.
@@ -187,6 +187,9 @@ export interface Task {
    *  themselves come from fetchTorrentFiles, since a torrent can list
    *  thousands and the task goes out on every tick. */
   torrentFileCount?: number;
+  /** What Play opens in a torrent of several files: the largest selected
+   *  file that is audio or video. Absent when none of them is. */
+  torrentMedia?: 'audio' | 'video';
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
@@ -363,6 +366,9 @@ export interface Settings {
   /** Connections one download opens when neither the task nor a rule named a
    *  number. 0 lets the server's own fallback decide. */
   chunks: number;
+  /** Spreads one file over further sources that serve the same bytes, each
+   *  with chunks connections. Off by default. */
+  multiSource: boolean;
   speedLimit: number; // bytes/s, 0 = unlimited
   extract: boolean;
   /**
@@ -402,6 +408,9 @@ export interface Settings {
    * its own, so this can be one save behind GET /api/mediahooks.
    */
   mediaHooks: MediaHook[];
+  /** The own Usenet servers; the accounts page edits them through their own
+   *  routes. Null on a fresh install. */
+  usenetServers: UsenetServer[] | null;
   archivePasswords: string[];
 
   /** Where extractions go; empty means beside the archive. May be a pathvars
@@ -959,13 +968,15 @@ export interface ContainerHandedOver {
 }
 
 /**
- * An .nzb, sent to the TorBox or Premiumize account named in `service`.
- * Nothing is staged yet; its files appear once the service has fetched them.
+ * An .nzb, sent to the account named in `service`. With `own` that is the own
+ * Usenet servers, whose files appear at once; a debrid service's appear once
+ * it has fetched them.
  */
 export interface ContainerSentToUsenet {
   kind: 'nzb';
   handedTo: 'usenet';
   service: string;
+  own?: boolean;
 }
 
 export type ContainerResult = ContainerStaged | ContainerHandedOver | ContainerSentToUsenet;
@@ -1113,9 +1124,8 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
 }
 
 /**
- * hosterIconURL is a host's site icon, cached by the server. It is used as an
- * <img src> because a 404 is the normal answer for a host without a favicon,
- * and the component's onError turns that into a monogram.
+ * hosterIconURL is a host's site icon, cached by the server. A host without
+ * one answers 204, and one the server is still fetching answers 202.
  */
 export const hosterIconURL = (host: string, base = '/api'): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
@@ -1709,6 +1719,10 @@ export interface TorrentOverview {
   ratio: number;
   /** Go marshals an empty slice as null. */
   top: TorrentUploader[] | null;
+  /** The network interface the torrent settings tie torrents to, absent for any. */
+  interface?: string;
+  /** That interface is missing or down, so every torrent of the built-in client waits. */
+  interfaceDown?: boolean;
 }
 
 export async function fetchTorrentOverview(): Promise<TorrentOverview> {
@@ -2406,6 +2420,54 @@ export async function deleteMediaHook(id: string): Promise<void> {
  *  failed call still answers 200, so read `ok` on the result. */
 export async function testMediaHook(id: string): Promise<MediaHookResult> {
   return json<MediaHookResult>(await post(`/api/mediahooks/${encodeURIComponent(id)}/test`, {}));
+}
+
+/** UsenetServer is one own Usenet server as settings.UsenetServer stores it. */
+export interface UsenetServer {
+  /** Empty on a server not saved yet; the server names it after its host. */
+  id: string;
+  host: string;
+  /** 0 for the usual port: 563 with TLS, 119 without. */
+  port: number;
+  tls: boolean;
+  connections: number;
+  /** 0 is asked first; a higher level only for what the levels below lack. */
+  level: number;
+  /** 0 for no limit. */
+  retentionDays: number;
+  optional: boolean;
+  enabled: boolean;
+}
+
+/** A listed server with the part of its login that may be shown. */
+export interface UsenetServerRow extends UsenetServer {
+  username: string;
+  hasPassword: boolean;
+}
+
+/** One save or test. `password`: a new one replaces, REDACTED keeps. */
+export interface UsenetServerSave extends UsenetServer {
+  username: string;
+  password: string;
+}
+
+export async function fetchUsenetServers(): Promise<UsenetServerRow[]> {
+  return (await json<UsenetServerRow[]>(await fetch('/api/usenet/servers'))) ?? [];
+}
+
+/** saveUsenetServer stores or adds one server and answers the whole listing. */
+export async function saveUsenetServer(s: UsenetServerSave): Promise<UsenetServerRow[]> {
+  return json<UsenetServerRow[]>(await post('/api/usenet/servers', s));
+}
+
+export async function deleteUsenetServer(id: string): Promise<void> {
+  await ok(await fetch(`/api/usenet/servers/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+/** testUsenetServer logs in as the form has it. A refused login still answers
+ *  200, so read `ok`. */
+export async function testUsenetServer(s: UsenetServerSave): Promise<{ ok: boolean; detail: string }> {
+  return json<{ ok: boolean; detail: string }>(await post('/api/usenet/servers/test', s));
 }
 
 /**
@@ -3640,6 +3702,9 @@ export interface SettingsExportDoc {
   /** What the file claims about itself. Anyone can edit it, so both sides
    *  inspect the settings instead of trusting this. */
   secrets: 'included' | 'omitted';
+  /** How many archive passwords an export without secrets left behind.
+   *  Missing from older exports. */
+  archivePasswordsOmitted?: number;
   /** settings.json's top-level keys, raw. Untyped so that keys an older or
    *  newer build knows can still be listed. */
   settings: Record<string, unknown>;
@@ -4065,6 +4130,13 @@ function openSocket(h: StreamHandlers): LiveStream {
     send: (frame) => {
       if (ws.readyState === WebSocket.OPEN) ws.send(frame);
     },
-    close: () => ws.close(),
+    close: () => {
+      ws.onmessage = null;
+      ws.onclose = null;
+      // Closing a socket that is still connecting logs a browser warning, so
+      // a page that unmounts early lets the handshake finish first.
+      if (ws.readyState === WebSocket.CONNECTING) ws.onopen = () => ws.close();
+      else ws.close();
+    },
   };
 }

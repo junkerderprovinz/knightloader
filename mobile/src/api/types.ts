@@ -65,6 +65,54 @@ export interface Task {
   /** How many files a torrent has, once that is known. The files themselves
    *  are asked for when the row is opened (fetchTorrentFiles). */
   torrentFileCount?: number;
+  /** What Play opens in a torrent of several files: the largest selected
+   *  file that is audio or video. Absent when none of them is. */
+  torrentMedia?: 'audio' | 'video';
+  /** When an automatic retry is due, Go's zero time when none is. */
+  nextTry?: string;
+  /** When a running download last moved a byte, once it stood still too long. */
+  stalledSince?: string;
+}
+
+/**
+ * One task as the background watch reads it from GET /api/tasks/watch
+ * (internal/api/routes_tasks_watch.go): its state without its progress, and the
+ * failure fields only while it has failed.
+ */
+export interface WatchTask {
+  id: string;
+  status: TaskStatus;
+  /** The link while the task has no name yet. */
+  name: string;
+  package?: string;
+  enabled: boolean;
+  /** A failure with an automatic retry still to come. */
+  retrying?: boolean;
+  /** A running task that moves no bytes here: it stood still past the stall
+   *  timeout, or a debrid service is still fetching it. */
+  stalled?: boolean;
+  remote?: boolean;
+  /** A failure whose file a kept mirror has taken on, so it is not the end of
+   *  the file. */
+  handedOver?: boolean;
+  /** The task every copy of this file is filed under, for a kept mirror. */
+  mirrorOf?: string;
+  error?: string;
+  errorCode?: string;
+  errorParams?: Record<string, string>;
+  reason?: string;
+  rejectCode?: string;
+  rejectParams?: Record<string, string>;
+  dir?: string;
+  resolver?: string;
+}
+
+/** An answer of GET /api/tasks/watch. With `same` the list is as it was under
+ *  the tag the call sent, and `tasks` is left out. */
+export interface WatchList {
+  tag: string;
+  same?: boolean;
+  tasks?: WatchTask[];
 }
 
 /** One unpacking, the part of internal/app's ExtractJob the list reads. */

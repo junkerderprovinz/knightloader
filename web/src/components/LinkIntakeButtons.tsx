@@ -3,8 +3,9 @@ import { IconBrowser, IconClipboard } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
-import { useClipboardWatch } from '../lib/useClipboardWatch';
+import { useWatchSwitch } from './WatchElsewhere';
 import { WATCH_SUPPORTED } from '../lib/clipboardWatch';
+import { isDesktop } from '../lib/desktop';
 import { moduleDetail } from '../pages/settings/tx';
 
 /**
@@ -20,7 +21,7 @@ export function LinkIntakeButtons() {
   const { t } = useT();
   const { toast } = useToast();
   const { row, busy, set } = useCnl();
-  const [watch, setWatch] = useClipboardWatch();
+  const { watch, flip, dialog } = useWatchSwitch();
 
   const cnlSwitchable = !!row && row.verdict === 'shipped' && row.switch !== 'none';
 
@@ -55,12 +56,19 @@ export function LinkIntakeButtons() {
         kind={watch ? 'primary' : 'secondary'}
         className="px-2.5 text-xs"
         icon={<IconClipboard width={14} height={14} />}
-        hint={WATCH_SUPPORTED ? t('intake.clipboardWatchHint') : t('intake.clipboardWatchUnavailable')}
-        onClick={() => setWatch(!watch)}
+        hint={
+          !WATCH_SUPPORTED
+            ? t('intake.clipboardWatchUnavailable')
+            : isDesktop()
+              ? t('intake.clipboardWatchHintDesktop')
+              : t('intake.clipboardWatchHint')
+        }
+        onClick={() => flip(!watch)}
         disabled={!WATCH_SUPPORTED}
       >
         {t('intake.clipboardWatch')}
       </Button>
+      {dialog}
     </>
   );
 }

@@ -1,12 +1,21 @@
 package app
 
 import (
+	"context"
 	"errors"
+	"fmt"
+	"io"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"path/filepath"
+	"strconv"
+	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -249,5 +258,307 @@ func TestSafeTaskFileSymlinkEscapeIsRefused(t *testing.T) {
 
 	if _, err := a.SafeTaskFile(task.ID); !errors.Is(err, ErrTaskFileEscape) {
 		t.Errorf("err = %v, want ErrTaskFileEscape", err)
+	}
+}
+
+// torrentTask stages a finished torrent of three files in its own folder
+// under base, the way the engine leaves one.
+func torrentTask(t *testing.T, a *App, base string) *core.Task {
+	t.Helper()
+	root := filepath.Join(base, "Show")
+	writeTestFile(t, filepath.Join(root, "S01"), "e01.mkv", []byte("episode one"))
+	writeTestFile(t, filepath.Join(root, "S01"), "e02.mkv", []byte("episode two, longer"))
+	writeTestFile(t, root, "info.nfo", []byte("notes"))
+	return putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Show",
+		Status: core.StatusDone, File: root,
+		TorrentFiles: []core.TorrentFile{
+			{Path: "S01/e01.mkv", Size: 11, Selected: true},
+			{Path: "S01/e02.mkv", Size: 19, Selected: true},
+			{Path: "info.nfo", Size: 5, Selected: false},
+		},
+	})
+}
+
+func TestSafeTaskFileAtServesOneFileOfATorrent(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	got, err := a.SafeTaskFileAt(task.ID, 1)
+	if err != nil {
+		t.Fatalf("SafeTaskFileAt: %v", err)
+	}
+	if got.Name != "e02.mkv" || got.Size != int64(len("episode two, longer")) {
+		t.Errorf("got %s of %d bytes, want e02.mkv of the second episode's size", got.Name, got.Size)
+	}
+}
+
+func TestSafeTaskFileAtRefusesAFileTheTorrentDoesNotFetch(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	for _, index := range []int{2, 3} {
+		if _, err := a.SafeTaskFileAt(task.ID, index); !errors.Is(err, ErrTaskFileNoSuchFile) {
+			t.Errorf("file %d: err = %v, want ErrTaskFileNoSuchFile", index, err)
+		}
+	}
+}
+
+func TestSafeTaskFileAtRefusesATorrentPathOutOfItsFolder(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "elsewhere.mkv", []byte("not in the torrent"))
+	task := putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Show",
+		Status: core.StatusDone, File: filepath.Join(base, "Show"),
+		TorrentFiles: []core.TorrentFile{
+			{Path: "../elsewhere.mkv", Size: 18, Selected: true},
+			{Path: "e01.mkv", Size: 1, Selected: true},
+		},
+	})
+	if err := os.MkdirAll(filepath.Join(base, "Show"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.SafeTaskFileAt(task.ID, 0); !errors.Is(err, ErrTaskFileEscape) {
+		t.Errorf("err = %v, want ErrTaskFileEscape", err)
+	}
+}
+
+// Play on a torrent of several files means its largest selected video.
+func TestOpenTaskFilePicksTheLargestSelectedMediaFile(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	of, err := a.OpenTaskFile(task.ID, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	body, err := io.ReadAll(of.File)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if of.Name != "e02.mkv" || of.Index != 1 || string(body) != "episode two, longer" || of.Live {
+		t.Errorf("opened %s (file %d, live %v) with %q, want the second episode from disk", of.Name, of.Index, of.Live, body)
+	}
+}
+
+func TestOpenTaskFileOfATorrentWithoutMediaSaysSo(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	root := filepath.Join(base, "Album")
+	writeTestFile(t, root, "cover.jpg", []byte("art"))
+	writeTestFile(t, root, "notes.txt", []byte("notes"))
+	task := putTask(t, a, core.Task{
+		URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "Album",
+		Status: core.StatusDone, File: root,
+		TorrentFiles: []core.TorrentFile{
+			{Path: "cover.jpg", Size: 3, Selected: true},
+			{Path: "notes.txt", Size: 5, Selected: true},
+		},
+	})
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoMedia) {
+		t.Errorf("err = %v, want ErrTaskFileNoMedia", err)
+	}
+}
+
+// The engine sizes an HTTP download's file in full when it starts, so the
+// file of a paused one is as long as the finished one and has holes.
+func TestAPausedDownloadIsNotServedWithItsHoles(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", make([]byte, 64))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/disc.iso", Name: "disc.iso",
+		Status: core.StatusPaused, Size: 64, Loaded: 32,
+	})
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileIncomplete) {
+		t.Errorf("err = %v, want ErrTaskFileIncomplete", err)
+	}
+}
+
+// A download runs before the engine has handed it to the library, and the
+// file of an earlier attempt has holes. That is nothing to play yet, and no
+// part of it is being fetched again.
+func TestARunningDownloadNotYetHandedToTheLibraryHasNothingToPlay(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", make([]byte, 64))
+	for _, loaded := range []int64{0, 48} {
+		task := putTask(t, a, core.Task{
+			URL: "https://host.example/disc.iso", Name: "disc.iso",
+			Status: core.StatusRunning, Size: 64, Loaded: loaded,
+		})
+		if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoBytes) {
+			t.Errorf("%d bytes loaded: err = %v, want ErrTaskFileNoBytes", loaded, err)
+		}
+	}
+}
+
+// While a transfer the library finished short is being mended, the task runs
+// but the engine hands out no reader, and the file on disk has its full size.
+func TestADownloadBeingMendedPlaysOnceTheMissingPartIsBack(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 races inside itself in a real transfer")
+	}
+	data := make([]byte, 4<<20)
+	for i := range data {
+		data[i] = byte(i % 251)
+	}
+	// The link refuses the second half, as one that expired part way does,
+	// and the fresh link the mend gets never answers. The pace keeps the
+	// first connection busy until the second has been refused.
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.URL.Path != "/disc.iso" {
+			<-r.Context().Done()
+			return
+		}
+		lo, hi := 0, len(data)-1
+		rg, ranged := strings.CutPrefix(r.Header.Get("Range"), "bytes=")
+		if ranged {
+			if _, err := fmt.Sscanf(rg, "%d-%d", &lo, &hi); err != nil || lo >= len(data)/2 {
+				w.WriteHeader(http.StatusForbidden)
+				return
+			}
+			w.Header().Set("Content-Range", fmt.Sprintf("bytes %d-%d/%d", lo, hi, len(data)))
+		}
+		w.Header().Set("Accept-Ranges", "bytes")
+		w.Header().Set("Content-Length", strconv.Itoa(hi-lo+1))
+		if ranged {
+			w.WriteHeader(http.StatusPartialContent)
+		}
+		for off := lo; off <= hi; off += 32 << 10 {
+			if _, err := w.Write(data[off:min(off+32<<10, hi+1)]); err != nil {
+				return
+			}
+			w.(http.Flusher).Flush()
+			time.Sleep(5 * time.Millisecond)
+		}
+	}))
+	// Closed after the app, whose engine ends the request that never answers.
+	t.Cleanup(srv.Close)
+
+	a, base := newFilesTestApp(t)
+	task := putTask(t, a, core.Task{
+		URL: srv.URL + "/disc.iso", Name: "disc.iso", Status: core.StatusRunning, Size: int64(len(data)),
+	})
+	a.runningOn(task.Resolver).Start(engine.Job{
+		TaskID: task.ID, URL: task.URL, Conns: 2, Dir: base,
+		Relink: func(context.Context) (string, error) { return srv.URL + "/fresh/disc.iso", nil },
+	})
+	deadline := time.Now().Add(15 * time.Second)
+	for {
+		of, err := a.OpenTaskFile(task.ID, -1)
+		if err == nil {
+			of.File.Close()
+		}
+		if errors.Is(err, ErrTaskFileMending) {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("err = %v, want ErrTaskFileMending once the mend has begun", err)
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// A torrent whose name is taken in its folder lands in a folder made for it
+// there, and the folder under its name belongs to the other torrent.
+func TestATorrentInAFolderMadeForItPlaysItsOwnFile(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, filepath.Join(base, "Season"), "e02.mkv", []byte("the other torrent"))
+	root := filepath.Join(base, "Season.1", "Season")
+	files := []core.TorrentFile{
+		{Path: "e01.mkv", Size: 3, Selected: true},
+		{Path: "e02.mkv", Size: 17, Selected: true},
+	}
+	magnet := "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567"
+
+	paused := putTask(t, a, core.Task{URL: magnet, Name: "Season", Status: core.StatusPaused, File: root, TorrentFiles: files})
+	if err := os.MkdirAll(root, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	if of, err := a.OpenTaskFile(paused.ID, -1); err == nil {
+		of.File.Close()
+		t.Fatal("a torrent with nothing in its own folder opened a file")
+	}
+
+	writeTestFile(t, root, "e02.mkv", []byte("this torrent's own"))
+	done := putTask(t, a, core.Task{URL: magnet, Name: "Season", Status: core.StatusDone, File: root, TorrentFiles: files})
+	of, err := a.OpenTaskFile(done.ID, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	if body, _ := io.ReadAll(of.File); string(body) != "this torrent's own" {
+		t.Errorf("played %q, want the torrent's own e02.mkv", body)
+	}
+}
+
+// A link that never started has nothing to play, which is not the same as a
+// download that stopped halfway.
+func TestALinkThatNeverStartedHasNothingToPlay(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	cases := []core.Task{
+		{URL: "https://host.example/disc.iso", Name: "disc.iso", Status: core.StatusCollected, Size: 64},
+		{URL: "https://host.example/disc.iso", Name: "disc.iso", Status: core.StatusQueued, Size: 64},
+		{
+			URL: "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", Name: "film.mkv",
+			Status: core.StatusQueued, File: filepath.Join(base, "film.mkv"),
+			TorrentFiles: []core.TorrentFile{{Path: "film.mkv", Size: 64, Selected: true}},
+		},
+	}
+	for _, c := range cases {
+		task := putTask(t, a, c)
+		if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileNoBytes) {
+			t.Errorf("%s %s: err = %v, want ErrTaskFileNoBytes", c.Status, c.Name, err)
+		}
+	}
+}
+
+func TestAFinishedFileOfAStoppedDownloadIsServed(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	writeTestFile(t, base, "disc.iso", []byte("complete"))
+	task := putTask(t, a, core.Task{
+		URL: "https://host.example/disc.iso", Name: "disc.iso",
+		Status: core.StatusError, Size: 8, Loaded: 8,
+	})
+	of, err := a.OpenTaskFile(task.ID, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	of.File.Close()
+}
+
+// A paused torrent keeps an unfinished file under another name, which reads
+// as stopped, not as a download that never began.
+func TestAnUnfinishedFileOfAPausedTorrentIsReportedAsStopped(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	task := torrentTask(t, a, base)
+	if err := os.Rename(filepath.Join(base, "Show", "S01", "e02.mkv"), filepath.Join(base, "Show", "S01", "e02.mkv.part")); err != nil {
+		t.Fatal(err)
+	}
+	a.mu.Lock()
+	a.tasks[task.ID].Status = core.StatusPaused
+	a.tasks[task.ID].Loaded = 20
+	a.mu.Unlock()
+	if _, err := a.OpenTaskFile(task.ID, -1); !errors.Is(err, ErrTaskFileIncomplete) {
+		t.Errorf("err = %v, want ErrTaskFileIncomplete", err)
+	}
+	of, err := a.OpenTaskFile(task.ID, 0)
+	if err != nil {
+		t.Fatalf("the finished episode of the paused torrent: %v", err)
+	}
+	of.File.Close()
+}
+
+// A player still reading a finished file must not keep the rename and the
+// delivery that follow the download from moving it.
+func TestAFileBeingPlayedCanStillBeMoved(t *testing.T) {
+	a, base := newFilesTestApp(t)
+	id := putTask(t, a, core.Task{
+		URL: "https://host.example/film.mkv", Name: "film.mkv", Status: core.StatusDone,
+	}).ID
+	writeTestFile(t, base, "film.mkv", []byte("frames"))
+	of, err := a.OpenTaskFile(id, -1)
+	if err != nil {
+		t.Fatalf("OpenTaskFile: %v", err)
+	}
+	defer of.File.Close()
+	if err := os.Rename(filepath.Join(base, "film.mkv"), filepath.Join(base, "renamed.mkv")); err != nil {
+		t.Fatalf("rename while the file is open: %v", err)
 	}
 }

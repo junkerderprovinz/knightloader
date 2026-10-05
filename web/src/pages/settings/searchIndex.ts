@@ -58,6 +58,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.module.cnl', hint: 'settings.linkIntake.cnlHint' },
         { key: 'intake.clipboardWatch', hint: 'intake.clipboardWatchHint' },
+        { key: 'intake.clipboardWatchTarget', hint: 'intake.clipboardWatchTargetHint' },
         { key: 'settings.autoStart', hint: 'settings.autoStartHint' },
         { key: 'settings.module.watch', hint: 'settings.watchDirFilesHint' },
       ],
@@ -129,6 +130,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.maxConcurrent', hint: 'settings.maxConcurrentHint' },
         { key: 'settings.maxPerHost', hint: 'settings.maxPerHostHint' },
         { key: 'settings.chunks', hint: 'settings.chunksHint' },
+        { key: 'settings.multiSource', hint: 'settings.multiSourceHint' },
         { key: 'settings.globalSpeedLimit', hint: 'settings.speedHint' },
         { key: 'settings.maxRetries', hint: 'settings.maxRetriesHint' },
         { key: 'settings.resumeOnStart', hint: 'settings.resumeOnStartHint' },
@@ -345,6 +347,44 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
+    },
+    {
+      title: 'settings.module.debriddrive',
+      rows: [
+        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
+        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
+        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
+      ],
+      also: ['common.copy', 'common.copied'],
+      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
+    },
+    // The fields are in the window a server row opens, so they lead to the card.
+    {
+      title: 'accounts.usenet.title',
+      hint: 'accounts.usenet.hint',
+      rows: [],
+      also: [
+        'accounts.usenet.host',
+        'accounts.usenet.port',
+        'accounts.usenet.tls',
+        'accounts.usernameField',
+        'accounts.passwordField',
+        'accounts.usenet.connections',
+        'accounts.usenet.level',
+        'accounts.usenet.retention',
+        'accounts.usenet.optional',
+      ],
+      body: [
+        'accounts.usenet.emptyHint',
+        'accounts.usenet.hostHint',
+        'accounts.usenet.portHint',
+        'accounts.usenet.tlsHint',
+        'accounts.usenet.loginHint',
+        'accounts.usenet.connectionsHint',
+        'accounts.usenet.levelHint',
+        'accounts.usenet.retentionHint',
+        'accounts.usenet.optionalHint',
+      ],
     },
   ],
 
@@ -709,7 +749,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.torrents.portTitle',
-      rows: [{ key: 'settings.torrents.port', hint: 'settings.torrents.portHint' }],
+      rows: [
+        { key: 'settings.torrents.port', hint: 'settings.torrents.portHint' },
+        { key: 'settings.torrents.interface', hint: 'settings.torrents.interfaceHint' },
+      ],
       // The port's further paragraphs, and the (i) inside the mapping button.
       body: [
         'settings.torrents.clientApplyHint',

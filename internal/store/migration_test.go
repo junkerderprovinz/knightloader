@@ -273,6 +273,32 @@ func TestAFailuresCodeSurvivesARestart(t *testing.T) {
 	}
 }
 
+func TestALinkTakenOverFromTheBrowserIsStillOneAfterARestart(t *testing.T) {
+	dir := t.TempDir()
+	s, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	task := core.Task{ID: "taken", URL: "https://files.example/nocd", Name: "report.pdf", CreatedAt: time.Now(), BrowserFile: true}
+	if err := s.Save(&task); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(filepath.Join(dir, "tasks.db"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer again.Close()
+	all, err := again.All()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(all) != 1 || !all[0].BrowserFile {
+		t.Errorf("reloaded %+v, want the link still marked as the browser's file", all)
+	}
+}
+
 // Resumable is tri-state like auto_extract: "nobody has asked whether this
 // resumes" must not come back as "it does not", or the interface warns about
 // losing bytes that would be picked up where they stopped.

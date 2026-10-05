@@ -1,7 +1,12 @@
-import { Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, Field, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Dropdown } from '../../../components/Dropdown';
+import { fetchInstances } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
-import { useClipboardWatch } from '../../../lib/useClipboardWatch';
+import { isDesktop } from '../../../lib/desktop';
+import { useResource } from '../../../lib/useResource';
+import { useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
+import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 import { SettingPathInput } from '../controls';
@@ -10,15 +15,27 @@ import { SettingPathInput } from '../controls';
  * LinkIntakeCard holds the ways a link reaches the collector without being
  * typed. Click'n'Load and the watched folder are modules, switched through the
  * registry like their rows on the Modules page, so each is one switch in two
- * places. The clipboard watch runs in this tab only and is not offered where
- * the browser cannot read the clipboard, such as a plain-HTTP LAN address; the
- * row points at Ctrl+V instead.
+ * places. The clipboard watch runs in this tab, or in the desktop app also
+ * while its window is hidden, and is not offered where the browser cannot read
+ * the clipboard, such as a plain-HTTP LAN address; the row points at Ctrl+V
+ * instead. Where there are other instances, copied links can go to one of
+ * them.
  */
 export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
-  const [watch, setWatch] = useClipboardWatch();
+  const { watch, flip, dialog } = useWatchSwitch();
+  const [target, setTarget] = useClipboardWatchTarget();
+  const { data: peers } = useResource(fetchInstances);
+  const watchHint = isDesktop() ? t('intake.clipboardWatchHintDesktop') : t('intake.clipboardWatchHint');
+  // A target that has gone offline stays listed, so it can still be seen and
+  // changed.
+  const targets = [
+    { value: '', label: t('instances.thisInstance') },
+    ...(peers ?? []).map((p) => ({ value: p.name, label: p.displayName || p.name })),
+  ];
+  if (target && !targets.some((o) => o.value === target)) targets.push({ value: target, label: target });
 
   const cnl = features.modules.find((m) => m.id === 'cnl');
   const folderWatch = features.modules.find((m) => m.id === 'watch');
@@ -42,13 +59,25 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
       />
 
       {WATCH_SUPPORTED ? (
-        <ToggleRow
-          hue={1}
-          label={t('intake.clipboardWatch')}
-          hint={t('intake.clipboardWatchHint')}
-          checked={watch}
-          onChange={setWatch}
-        />
+        <>
+          <ToggleRow
+            hue={1}
+            label={t('intake.clipboardWatch')}
+            hint={watchHint}
+            checked={watch}
+            onChange={flip}
+          />
+          {targets.length > 1 && (
+            <Field label={t('intake.clipboardWatchTarget')} hint={t('intake.clipboardWatchTargetHint')}>
+              <Dropdown
+                label={t('intake.clipboardWatchTarget')}
+                value={target}
+                onChange={setTarget}
+                options={targets}
+              />
+            </Field>
+          )}
+        </>
       ) : (
         <div className="flex flex-col gap-1">
           <span className="flex items-center text-sm text-carbon-text">
@@ -60,6 +89,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           </span>
         </div>
       )}
+      {dialog}
 
       <ToggleRow
         hue={2}

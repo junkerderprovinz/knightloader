@@ -1,7 +1,11 @@
 package engine
 
 import (
+	"net/http"
+	"net/http/httptest"
+	"net/url"
 	"os"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -290,4 +294,66 @@ func TestCloseWaitsForTheTorrentGoroutinesItStarted(t *testing.T) {
 	}
 	// A second Close must not panic on an already-closed channel.
 	_ = e.Close()
+}
+
+// eventTracker is an HTTP tracker that keeps the events it is sent and asks
+// for an announce every second.
+type eventTracker struct {
+	url    string
+	mu     sync.Mutex
+	events []string
+}
+
+func newEventTracker(t *testing.T) *eventTracker {
+	tr := &eventTracker{}
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		tr.mu.Lock()
+		tr.events = append(tr.events, r.URL.Query().Get("event"))
+		tr.mu.Unlock()
+		w.Write([]byte("d8:intervali1e5:peers0:e"))
+	}))
+	t.Cleanup(srv.Close)
+	tr.url = srv.URL + "/announce"
+	return tr
+}
+
+func (tr *eventTracker) saw(event string) bool {
+	tr.mu.Lock()
+	defer tr.mu.Unlock()
+	return slices.Contains(tr.events, event)
+}
+
+// A magnet removed while it waits for its file list, or one whose wait runs
+// out, leaves the torrent client, which tells the tracker it stopped.
+func TestAMagnetGivenUpOnLeavesTheTorrentClient(t *testing.T) {
+	testenv.RequireWideListener(t)
+	if testing.Short() {
+		t.Skip("this starts a torrent client")
+	}
+	for _, c := range []struct {
+		name    string
+		hash    string
+		timeout time.Duration
+		remove  bool
+	}{
+		{"removed", strings.Repeat("21", 20), time.Hour, true},
+		{"timed out", strings.Repeat("31", 20), 2 * time.Second, false},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			tr := newEventTracker(t)
+			dir := t.TempDir()
+			e, err := New(dir, func(string, core.Update) {})
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Cleanup(func() { e.Close() })
+			e.SetMetadataTimeout(c.timeout)
+			e.DownloadTorrent("given-up", "magnet:?xt=urn:btih:"+c.hash+"&tr="+url.QueryEscape(tr.url), dir, nil)
+			waitUntil(t, "the magnet's started announce", func() bool { return tr.saw("started") })
+			if c.remove {
+				e.Remove("given-up", false)
+			}
+			waitUntil(t, "the magnet's stopped announce", func() bool { return tr.saw("stopped") })
+		})
+	}
 }

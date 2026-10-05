@@ -1,1 +1,0 @@
-The description now says who runs the default relay and what answering a captcha loads.

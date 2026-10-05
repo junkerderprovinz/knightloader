@@ -91,6 +91,7 @@ func TestParseBasePath(t *testing.T) {
 		"/api/kl",
 		"/relay",
 		"/relay/kl",
+		"/dav",
 	} {
 		if got, err := ParseBasePath(in); err == nil {
 			t.Errorf("ParseBasePath(%q) = %q, want it refused", in, got)

@@ -16,7 +16,6 @@ import (
 	"path"
 	"path/filepath"
 	"slices"
-	"sort"
 	"strconv"
 	"strings"
 	"time"
@@ -29,9 +28,12 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
-// Tasks returns a snapshot sorted oldest-first.
+// Tasks returns a snapshot sorted oldest-first. The rows of one yt-dlp link
+// share a creation time, and the order has to hold between two calls for the
+// background watch's tag to match.
 func (a *App) Tasks() []*core.Task {
 	a.mu.Lock()
 	defer a.mu.Unlock()
@@ -46,7 +48,7 @@ func (a *App) Tasks() []*core.Task {
 		}
 		out = append(out, &c)
 	}
-	sort.Slice(out, func(i, j int) bool { return out[i].CreatedAt.Before(out[j].CreatedAt) })
+	sortByAge(out)
 	return out
 }
 
@@ -350,6 +352,9 @@ func (a *App) RecheckTasks(ids []string) {
 		// onto the task below; plain registry order would move a task back to
 		// "direct" and undo jd.PriorityFor's boost.
 		res := a.stagingResolverFor(t.URL)
+		if t.BrowserFile {
+			res = a.fileResolverFor(t.URL, res)
+		}
 		if res == nil {
 			msg, code, params := a.unhandledError(t.URL, "no backend handles this link")
 			a.recordAvailability(t.ID, core.AvailOffline, core.ReasonUnsupported, msg, code, params)
@@ -373,7 +378,7 @@ func (a *App) RecheckTasks(ids []string) {
 			// Most resolvers answer with the URL as a placeholder name (see the
 			// matching guard in stage), which must not replace a real name the task
 			// already picked up.
-			if result.Name != "" && result.Name != t.URL {
+			if result.Name != "" && result.Name != t.URL && !namedTakeover(live) {
 				live.Name = result.Name
 			}
 		}
@@ -461,14 +466,26 @@ func (a *App) analyze(id, rawurl string) {
 		return
 	}
 	// a.Probe carries the shared client policy and can be replaced in tests.
-	resp, err := a.Probe.Do(req)
+	probe := a.Probe
+	// Without the browser's cookies a link behind a login would read as gone.
+	if set := a.browserHeaderSet(id); len(set.Headers) > 0 {
+		for name, value := range set.Attach(rawurl) {
+			req.Header.Set(name, value)
+		}
+		// The shared client strips only credentials on a redirect, while
+		// the Referer and the user agent are the browser's too.
+		if c, ok := probe.(*http.Client); ok {
+			probe = set.Client(c)
+		}
+	}
+	resp, err := probe.Do(req)
 	if err != nil && httpx.HungUp(err) {
 		// Some servers, Hetzner's speed-test mirrors among them, hang up on any
 		// HEAD and still answer a GET.
 		get := req.Clone(req.Context())
 		get.Method = http.MethodGet
 		get.Header.Set("Range", "bytes=0-0")
-		resp, err = a.Probe.Do(get)
+		resp, err = probe.Do(get)
 	}
 	if err != nil {
 		// A transport error says nothing about the file: the host was never
@@ -555,7 +572,7 @@ func (a *App) probeYtdlpTitle(id, rawurl string) {
 	}
 	ctx, cancel := context.WithTimeout(a.ctx, ytdlpProbeTimeout)
 	defer cancel()
-	res, err := tp.ProbeTitle(ctx, rawurl)
+	res, err := tp.ProbeTitle(ctx, rawurl, a.browserHeadersFor(id, rawurl))
 	if err != nil {
 		a.fileUnprobedMedia(id)
 		return
@@ -614,7 +631,15 @@ type taskCopy struct {
 }
 
 // copyLocked copies t for publish. Caller holds a.mu.
+//
+// A task that has left the done state loses its finish time here, on the live
+// task, and not only in the store: the store keeps a stamp it is handed, so a
+// restarted download that finished again before the next sweep would keep the
+// time of its first finish.
 func (a *App) copyLocked(t *core.Task) taskCopy {
+	if t.Status != core.StatusDone {
+		t.FinishedAt = time.Time{}
+	}
 	a.revision++
 	return taskCopy{Task: *t, rev: a.revision}
 }
@@ -770,8 +795,11 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	var newName string
 	if o.Filename != nil {
 		newName = strings.TrimSpace(*o.Filename)
-		if newName != "" && !usableFilename(newName) {
-			return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+		if newName != "" {
+			if !usableFilename(newName) {
+				return fmt.Errorf("%q is not a file name; it has to be a single path segment", newName)
+			}
+			newName = rules.FileSegment(newName)
 		}
 	}
 	var renameTo string
@@ -1016,12 +1044,12 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		return err
 	}
 	if !usableFilename(want) {
-		return refuse(fmt.Errorf("not renamed: %s is not a single file name", strconv.Quote(want)))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%s is not a single file name", strconv.Quote(want)))
 	}
 	if len(a.volumeSetLocked(t)) > 1 {
 		// extract.SetKey groups volumes by name, and a fixed rule name would
 		// give every part the same one and overwrite the set.
-		return refuse(refuseRename("volume", t.Name, "not renamed: %s is one part of a multi-volume archive", t.Name))
+		return refuse(refuseRename("volume", t.Name, renameErrorPrefix+"%s is one part of a multi-volume archive", t.Name))
 	}
 	from := t.File
 	if from == "" {
@@ -1038,18 +1066,25 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
 	if _, err := os.Stat(to); err == nil {
-		return refuse(refuseRename("exists", want, "not renamed: %s already exists", to))
+		return refuse(refuseRename("exists", want, renameErrorPrefix+"%s already exists", to))
 	}
 	if err := os.Rename(from, to); err != nil {
-		return refuse(fmt.Errorf("not renamed: %w", err))
+		return refuse(fmt.Errorf(renameErrorPrefix+"%w", err))
 	}
 	a.noteMovedLocked(t.ID)
 	t.Name = want
 	if t.File != "" {
 		t.File = to
 	}
+	if strings.HasPrefix(t.Error, renameErrorPrefix) {
+		t.SetError("", "", nil)
+	}
 	return nil
 }
+
+// renameErrorPrefix marks the reasons a rename puts on a task, so the next
+// rename that succeeds clears only its own.
+const renameErrorPrefix = "not renamed: "
 
 // Remove drops a task from the list. deleteFiles also erases what was
 // downloaded; it is never the default, as in JDownloader.
@@ -1069,17 +1104,24 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	collected = t != nil && t.Status == core.StatusCollected
 	var own leftover
 	var landed torrentLeftover
-	var part string
+	var usenetPart, remotePart string
 	var work []string
+	var taken bool
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
-		landed = a.torrentLeftoverLocked(t)
-		part = a.partFileLocked(t)
+		usenetPart = a.usenetPartLocked(t)
+		remotePart = a.partFileLocked(t)
 		work = t.WorkFiles
+		// A file deleted by hand frees its path for the next download of the
+		// name, and the backend still deletes by the record it kept for t.
+		taken = a.usedByOtherLocked(id, t.File)
+		if !taken {
+			landed = a.torrentLeftoverLocked(t)
+		}
 	}
 	// A moved file is deleted where it is, by own and landed; the backend's
 	// record names the old path, which another download may have taken since.
-	backendFiles := deleteFiles && !a.movedFiles[id]
+	backendFiles := deleteFiles && !a.movedFiles[id] && !taken
 	delete(a.movedFiles, id)
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)
@@ -1087,6 +1129,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	delete(a.active, id)
 	delete(a.started, id)
 	delete(a.fellBack, id)
+	delete(a.browserHeaders, id)
 	delete(a.seedSaved, id)
 	a.tally.forget(id)
 	a.dequeueLocked(id)
@@ -1098,9 +1141,12 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		// forgets them all on a restart. So does yt-dlp.
 		own.drop(id)
 		landed.drop()
-		if part != "" {
-			if err := os.Remove(part); err != nil && !os.IsNotExist(err) {
-				log.Printf("could not delete %s: %v%s", part, err, taskTag(id))
+		if usenetPart != "" {
+			local.RemovePart(usenetPart)
+		}
+		if remotePart != "" {
+			if err := os.Remove(remotePart); err != nil && !os.IsNotExist(err) {
+				log.Printf("could not delete %s: %v%s", remotePart, err, taskTag(id))
 			}
 		}
 		ytdlp.Discard(id, work, a.usedByOther)

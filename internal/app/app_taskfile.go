@@ -15,6 +15,7 @@ import (
 	"os"
 	"path/filepath"
 	"slices"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/core"
@@ -23,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // fileOfLocked is where t's file is: the path it recorded, or where its name
@@ -71,25 +73,25 @@ func namedBeside(t *core.Task) (string, bool) {
 type leftover struct {
 	path string
 	size int64
+	// empty is a download that finished with nothing in it, the one case
+	// where an empty file is the task's own rather than one never written.
+	empty bool
 	// sidecars describe the file and go with it (see ytdlp.Sidecars).
 	sidecars []string
 }
 
 // ownFileLocked returns t's recorded file as a leftover it may delete, or the
-// zero value when another task recorded the same path. A sidecar another
-// task's file has as well, such as the .nfo the video and the audio row of one
-// link share, stays for that task. Caller holds a.mu.
+// zero value when another task recorded or writes the same path. A sidecar
+// another task's file has as well, such as the .nfo the video and the audio
+// row of one link share, stays for that task. Caller holds a.mu.
 func (a *App) ownFileLocked(t *core.Task) leftover {
-	if t.File == "" {
+	if t.File == "" || a.usedByOtherLocked(t.ID, t.File) {
 		return leftover{}
 	}
 	shared := map[string]bool{}
 	for id, other := range a.tasks {
 		if id == t.ID {
 			continue
-		}
-		if samePath(other.File, t.File) {
-			return leftover{}
 		}
 		for _, s := range sidecarsOf(other) {
 			shared[filepath.Clean(s)] = true
@@ -101,7 +103,7 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 	if size == 0 && t.Status == core.StatusDone {
 		size = t.Loaded
 	}
-	l := leftover{path: t.File, size: size}
+	l := leftover{path: t.File, size: size, empty: size == 0 && t.Status == core.StatusDone}
 	for _, s := range sidecarsOf(t) {
 		if !shared[filepath.Clean(s)] {
 			l.sidecars = append(l.sidecars, s)
@@ -129,6 +131,11 @@ func sidecarsOf(t *core.Task) []string {
 func (a *App) usedByOther(id, path string) bool {
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	return a.usedByOtherLocked(id, path)
+}
+
+// usedByOtherLocked is usedByOther for a caller that holds a.mu.
+func (a *App) usedByOtherLocked(id, path string) bool {
 	same := func(p string) bool { return samePath(p, path) }
 	for other, t := range a.tasks {
 		if other != id && (same(t.File) || slices.ContainsFunc(t.WorkFiles, same)) {
@@ -142,7 +149,7 @@ func (a *App) usedByOther(id, path string) bool {
 // task was writing.
 func (l leftover) intact() bool {
 	fi, err := os.Lstat(l.path)
-	return err == nil && fi.Mode().IsRegular() && l.size > 0 && fi.Size() == l.size
+	return err == nil && fi.Mode().IsRegular() && (l.size > 0 || l.empty) && fi.Size() == l.size
 }
 
 // at reports whether path is this leftover, still intact.
@@ -211,6 +218,16 @@ func (l torrentLeftover) drop() {
 		}
 	}
 	engine.DeleteTorrentFiles(l.dir, l.root, paths)
+}
+
+// usenetPartLocked is the part file of a task from the own Usenet servers, for
+// deleting it with the task when their backend does not know the task, as
+// after a restart. Caller holds a.mu.
+func (a *App) usenetPartLocked(t *core.Task) string {
+	if !strings.HasPrefix(t.URL, local.ResolverID+"://") {
+		return ""
+	}
+	return local.PartFile(a.dirFor(t), t.URL, t.ID)
 }
 
 // partFileLocked is the part file t's FTP or SFTP download writes until it

@@ -33,6 +33,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
+	"github.com/junkerderprovinz/knightloader/internal/usenet/local"
 )
 
 // modeForLocked reports whether a task routed to resolverID goes out on an
@@ -780,9 +781,12 @@ func (a *App) dispatchLocked() {
 		// A captcha-blocked task is normally active, not queued; this guards
 		// against a requeue handing JD the same link twice.
 		if !t.Enabled || a.captchaWaitingLocked(id) {
-			if !t.Enabled {
+			switch {
+			case HeldSpare(t):
+				waiting[id] = core.WaitingSpare
+			case !t.Enabled:
 				waiting[id] = core.WaitingDisabled
-			} else {
+			default:
 				waiting[id] = core.WaitingCaptcha
 			}
 			rest = append(rest, id)
@@ -916,7 +920,7 @@ func (a *App) dispatchLocked() {
 		t.Mode = a.modeForLocked(t, t.Resolver)
 		// a.ctx, because a.mu is held: a hanging resolver must not keep the
 		// lock past shutdown.
-		result, err := res.Resolve(a.ctx, resolver.Request{URL: t.URL})
+		result, later, err := a.resolveLocked(res, t)
 		if err != nil {
 			t.Status = core.StatusError
 			// Classified from the error value, which is still available here.
@@ -1000,8 +1004,15 @@ func (a *App) dispatchLocked() {
 				own = leftover{}
 			}
 			a.beginHandoverLocked(id)
+			var seq uint64
+			if later != nil {
+				seq = a.beginPreflightLocked(id)
+			}
 			go func() {
 				defer a.endHandover(id)
+				if later != nil && !a.preflight(&job, later, seq) {
+					return
+				}
 				if !a.Engine.Resumes(id, own.path) {
 					own.drop(id)
 				}
@@ -1037,10 +1048,11 @@ func (a *App) dispatchLocked() {
 }
 
 // engineJobLocked is t's transfer as the engine takes it: written into t's
-// folder, or its working folder, under the collision policy of t's category.
+// folder, or its working folder, under the collision policy of t's category,
+// and under the name a browser gave the file rather than the server's.
 // Caller holds a.mu.
 func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, headers map[string]string, conns int) engine.Job {
-	return engine.Job{
+	job := engine.Job{
 		TaskID: t.ID, URL: url, Headers: headers, Conns: conns,
 		Dir: a.dirFor(t), WorkDir: a.stagedDirFor(t),
 		Collision: collide.ParsePolicy(cfg.CollisionFor(t.Category)), MaxCollisionAttempts: cfg.CollisionMaxAttempts,
@@ -1048,7 +1060,12 @@ func (a *App) engineJobLocked(t *core.Task, cfg settings.Settings, url string, h
 		// it is a file, and a playlist behind it goes on to yt-dlp.
 		PassOnPlaylists: t.Resolver == "direct" || t.Resolver == "http" || t.Resolver == hostheaders.ResolverID,
 		RefusePages:     t.Resolver == "http",
+		Sources:         a.sourcesLocked(t, cfg),
 	}
+	if namedTakeover(t) {
+		job.Name = t.Name
+	}
+	return job
 }
 
 // defaultConns is the connection count when neither task, rule nor settings
@@ -1197,6 +1214,8 @@ func (a *App) backendFor(resolverID string) backend {
 		return a.ytdlp
 	case resolverID == usenet.ResolverID:
 		return a.usenetStateFor().files
+	case resolverID == local.ResolverID:
+		return a.usenetStateFor().articles
 	default:
 		return a.Engine
 	}
@@ -1291,6 +1310,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if filesKnown {
 		t.TorrentFiles = u.TorrentFiles
 		t.TorrentFileCount = len(u.TorrentFiles)
+		t.TorrentMedia = core.TorrentMedia(u.TorrentFiles)
 	}
 	if u.Status != "" && !stale {
 		t.Status = u.Status
@@ -1400,6 +1420,8 @@ func (a *App) onUpdate(id string, u core.Update) {
 		t.NextTry = time.Time{}
 		t.MaxTries = 0
 		t.StallRestarts = 0
+		// A browser's cookies were lent for this download alone.
+		delete(a.browserHeaders, id)
 		// yt-dlp has cleared away what it merged, and the finished file is
 		// File. A subtitle row of several languages has more than one.
 		t.WorkFiles = u.OtherFiles

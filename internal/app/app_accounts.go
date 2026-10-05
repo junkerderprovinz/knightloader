@@ -294,6 +294,7 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		// Stored cookie jars, read on every spawn. Without this hook the
 		// backend would ignore saved jars.
 		yb.Cookies = ytdlp.NewCookieStore(a.Accounts).Text
+		yb.Headers = a.browserHeadersFor
 		yb.InUse = a.usedByOther
 		yb.Placing = func(taskID string) workdir.Options {
 			a.mu.Lock()
@@ -832,7 +833,10 @@ func (a *App) SetAccountLabel(service, account, label string) {
 	defer acctMetaMu.Unlock()
 	m := a.loadAcctMetaLocked()
 	key := metaKey(service, account)
-	meta := m[key]
+	meta, ok := m[key]
+	if !ok {
+		meta.Enabled = true
+	}
 	meta.Label = label
 	m[key] = meta
 	a.saveAcctMetaLocked(m)
