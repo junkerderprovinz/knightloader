@@ -833,7 +833,10 @@ func (a *App) SetAccountLabel(service, account, label string) {
 	defer acctMetaMu.Unlock()
 	m := a.loadAcctMetaLocked()
 	key := metaKey(service, account)
-	meta := m[key]
+	meta, ok := m[key]
+	if !ok {
+		meta.Enabled = true
+	}
 	meta.Label = label
 	m[key] = meta
 	a.saveAcctMetaLocked(m)
