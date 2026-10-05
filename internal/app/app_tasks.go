@@ -1006,14 +1006,10 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var own leftover
 	var landed torrentLeftover
 	var part string
-	if t != nil {
-		// The own Usenet servers' backend deletes a part file with or without
-		// deleteFiles, as long as it knows the task.
-		part = a.usenetPartLocked(t)
-	}
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		landed = a.torrentLeftoverLocked(t)
+		part = a.usenetPartLocked(t)
 	}
 	// Unfiled first, or the removed link would keep blocking its own re-add.
 	a.forgetLinkLocked(t)

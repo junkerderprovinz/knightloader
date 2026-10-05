@@ -116,11 +116,12 @@ func (b *Backend) Halt(taskID string) bool {
 	return true
 }
 
-// Remove stops the task and deletes its part file and map, with or without
-// deleteFiles, or a later attempt at the same link would take them up. The
-// finished file is left to the app, which has it from Update.File: its name
-// may be a counted one, and the name the link gives can be another task's.
-func (b *Backend) Remove(taskID string, _ bool) {
+// Remove stops the task and, with deleteFiles, deletes its part file and map.
+// Without, they stay as the engine keeps its partials, so an undo carries on
+// where the download stopped. The finished file is left to the app, which has
+// it from Update.File: its name may be a counted one, and the name the link
+// gives can be another task's.
+func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	b.mu.Lock()
 	r := b.runs[taskID]
 	part := b.part[taskID]
@@ -131,7 +132,7 @@ func (b *Backend) Remove(taskID string, _ bool) {
 		r.cancel()
 		<-r.ended
 	}
-	if part != "" {
+	if part != "" && deleteFiles {
 		RemovePart(part)
 	}
 }
@@ -151,14 +152,15 @@ func (b *Backend) Stop() {
 	}
 }
 
-// PartFile is where the file behind link is written in dir until it is whole,
-// or "" for a link that is not one of these.
-func PartFile(dir, link string) string {
+// PartFile is where the download taskID writes the file behind link in dir
+// until it is whole, or "" for a link that is not one of these. The id keeps
+// two releases that name the same file in one folder from sharing articles.
+func PartFile(dir, link, taskID string) string {
 	ref, err := parseLink(link)
 	if err != nil {
 		return ""
 	}
-	return filepath.Join(dir, collide.SafeName(ref.name)+reclaim.PartSuffix)
+	return filepath.Join(dir, collide.SafeName(ref.name)+"."+taskID+reclaim.PartSuffix)
 }
 
 // RemovePart deletes a part file and the segment map beside it.
@@ -227,7 +229,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		return
 	}
 	name := collide.SafeName(ref.name)
-	part := PartFile(dir, link)
+	part := PartFile(dir, link, taskID)
 	b.mu.Lock()
 	b.part[taskID] = part
 	b.mu.Unlock()
