@@ -51,10 +51,8 @@ github.com/anacrolix/envpprof v1.5.0/go.mod h1:OQPV3SNK6uVAlXL4slcZVXv+xLcE0ybWg
 github.com/anacrolix/generics v0.0.0-20230113004304-d6428d516633/go.mod h1:ff2rHB/joTV03aMSSn/AZNnaIpUw0h3njetGsaXcMy8=
 github.com/anacrolix/generics v0.2.0 h1:gPwGOs14irokFN9kUP1i1A0Bn0FPT7/hWWD3hHKSKNw=
 github.com/anacrolix/generics v0.2.0/go.mod h1:NGehhfeXJPBujPx0s6cstSj8B+TERsTY32Xckfx5ftc=
-github.com/anacrolix/go-libutp v1.5.2-0.20260908013213-836dd42cdde6 h1:eWpL7T6AXAC/Q5ttYsviaWIBEg4eBpB6LH/LCST8pBc=
-github.com/anacrolix/go-libutp v1.5.2-0.20260908013213-836dd42cdde6/go.mod h1:qJ59Ax77trj2F6OIydwSHtvMpPZSo/zZPPHosbIJQDk=
-github.com/anacrolix/go-utp v0.0.0-20260908033909-9f1664acf866 h1:JMYl7Xp9ZQwUFOzij7Ng+hrhbOymWY2B32p+IeZ8J3M=
-github.com/anacrolix/go-utp v0.0.0-20260908033909-9f1664acf866/go.mod h1:eCVeSbTCNP6qXMaRpjhCeiDd1Ao33c+qQuF+KtFQXzs=
+github.com/anacrolix/go-libutp v1.5.0 h1:s/aqt/KEg6jjfYspDP2YEbqLCIfSTXjMxRhGigcRAFM=
+github.com/anacrolix/go-libutp v1.5.0/go.mod h1:2XL3ViU/7+l/kB6poGICETXdEVRdTALyqQrKFBCkBc4=
 github.com/anacrolix/log v0.3.0/go.mod h1:lWvLTqzAnCWPJA08T2HCstZi0L1y2Wyvm3FJgwU9jwU=
 github.com/anacrolix/log v0.6.0/go.mod h1:lWvLTqzAnCWPJA08T2HCstZi0L1y2Wyvm3FJgwU9jwU=
 github.com/anacrolix/log v0.14.2/go.mod h1:1OmJESOtxQGNMlUO5rcv96Vpp9mfMqXXbe2RdinFLdY=
@@ -87,6 +85,8 @@ github.com/anacrolix/tagflag v1.0.0/go.mod h1:1m2U/K6ZT+JZG0+bdMK6qauP49QT4wE5pm
 github.com/anacrolix/tagflag v1.1.0/go.mod h1:Scxs9CV10NQatSmbyjqmqmeQNwGzlNe0CMUMIxqHIG8=
 github.com/anacrolix/upnp v0.1.4 h1:+2t2KA6QOhm/49zeNyeVwDu1ZYS9dB9wfxyVvh/wk7U=
 github.com/anacrolix/upnp v0.1.4/go.mod h1:Qyhbqo69gwNWvEk1xNTXsS5j7hMHef9hdr984+9fIic=
+github.com/anacrolix/utp v0.2.0 h1:65Cdmr6q9WSw2KsM+rtJFu7rqDzLl2bdysf4KlNPcFI=
+github.com/anacrolix/utp v0.2.0/go.mod h1:HGk4GYQw1O/3T1+yhqT/F6EcBd+AAwlo9dYErNy7mj8=
 github.com/andybalholm/brotli v1.2.2 h1:HzTuoo2ErYQqf5qvcJInB8uvqSVxRttzkFexPWtnceM=
 github.com/andybalholm/brotli v1.2.2/go.mod h1:rzTDkvFWvIrjDXZHkuS16NPggd91W3kUSvPlQ1pLaKY=
 github.com/anmitsu/go-shlex v0.0.0-20200514113438-38f4b401e2be h1:9AeTilPcZAjCFIImctFaOjnTIavg87rW78vTPkQqLI8=
@@ -302,8 +302,8 @@ github.com/jtolds/gls v4.20.0+incompatible/go.mod h1:QJZ7F/aHp+rZTRtaJ1ow/lLfFfV
 github.com/julienschmidt/httprouter v1.2.0/go.mod h1:SYymIcj16QtmaHHD7aYtjjsJG7VTCxuUUipMqKk8s4w=
 github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695 h1:eRcyUfeNzDtDQ894ZFIs3+4tA5EcBTEg03BQ1C4e/EM=
 github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
-github.com/junkerderprovinz/torrent v1.61.1-0.20260927071845-d913b30f520e h1:fS9WxxU9ioaTMMplVVj+9T6m2SohJDzSzkt/Q6vbSKY=
-github.com/junkerderprovinz/torrent v1.61.1-0.20260927071845-d913b30f520e/go.mod h1:pkyH7KHvJcqehMuraryq6Rs4U8KbZuLdLOfSHmNKvG0=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720 h1:ZsL9piE6kAXzkC2edljZs4zT1Vq1G0nNUfLNR7cwXoM=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.4.0 h1:6xxtP5bZ2E4NF5tuQulISpTO2z8XbtH8cg1PWkxoFkQ=
 github.com/kevinburke/ssh_config v1.4.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
