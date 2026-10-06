@@ -742,3 +742,67 @@ func TestTheIconCacheForgetsTheOldestHostPastItsBound(t *testing.T) {
 		t.Error("the newest host was forgotten")
 	}
 }
+
+// Each run starts with an empty memory, so the hosts an earlier run wrote are
+// never forgotten by rememberIconLocked and the disk needs a bound of its own.
+func TestIconFilesStayBoundedAcrossRestarts(t *testing.T) {
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		return nil, "", errors.New("no such host")
+	})
+	dir := t.TempDir()
+
+	for run := range 3 {
+		a := &App{DataDir: dir}
+		for i := range iconMaxKnown {
+			<-a.fetchHosterIcon(fmt.Sprintf("run-%d-host-%d.example.org", run, i))
+		}
+		files, err := os.ReadDir(a.iconDir())
+		if err != nil {
+			t.Fatal(err)
+		}
+		if len(files) > iconMaxKnown {
+			t.Fatalf("after run %d, %d files are kept on disk, the bound is %d", run, len(files), iconMaxKnown)
+		}
+	}
+	if _, found := readCachedIcon(filepath.Join(dir, "icons"), fmt.Sprintf("run-2-host-%d.example.org", iconMaxKnown-1)); !found {
+		t.Error("the newest host was forgotten")
+	}
+}
+
+func TestPruningTheIconFilesDropsExpiredOnesFirst(t *testing.T) {
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		return nil, "", errors.New("no such host")
+	})
+	a := &App{DataDir: t.TempDir()}
+	dir := a.iconDir()
+	if err := os.MkdirAll(dir, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	write := func(name string, age time.Duration) string {
+		t.Helper()
+		path := filepath.Join(dir, name)
+		if err := os.WriteFile(path, nil, 0o644); err != nil {
+			t.Fatal(err)
+		}
+		at := time.Now().Add(-age)
+		if err := os.Chtimes(path, at, at); err != nil {
+			t.Fatal(err)
+		}
+		return path
+	}
+	// The icon is older than the expired miss but still within its TTL.
+	icon := write(iconFileBase("old-icon.example.org")+".png", 10*24*time.Hour)
+	expired := write(iconFileBase("old-miss.example.org")+iconMissExt, iconMissTTL+time.Hour)
+	for i := range iconMaxKnown - 2 {
+		write(iconFileBase(fmt.Sprintf("host-%d.example.org", i))+iconMissExt, time.Minute)
+	}
+
+	<-a.fetchHosterIcon("new.example.org")
+
+	if _, err := os.Stat(expired); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the expired miss is still on disk: %v", err)
+	}
+	if _, err := os.Stat(icon); err != nil {
+		t.Errorf("the icon within its TTL was dropped before the expired miss: %v", err)
+	}
+}
