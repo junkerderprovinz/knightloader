@@ -274,8 +274,54 @@ par2cmdline-turbo is the fastest repair there is, but it is a C++ program under
 the GPL that would have to ship for every platform and be kept current, the
 way yt-dlp is, for a step most downloads never need. The Go libraries either
 hold every block in memory (akalin/gopar, its issue 10) or are too young or
-carry no licence, so the repair is written here, streaming, with gopar's
-GF(2^16) arithmetic taken over with its notice. Until it is done a download
-with missing articles goes to a debrid account when there is one, and
-otherwise fails with the count, which is what the README's "no repair yet"
-says.
+carry no licence, so the check and the repair are written here
+(`internal/par2`), from the PAR 2.0 specification.
+
+## Usenet: the par2 check trusts what it downloaded
+
+**Built:** a check of each release from the own servers once all its files are
+here. A file whose articles all arrived and matched their CRC is taken as
+whole when its size and the hash of its first 16 KiB match; every other file
+is read and checked slice by slice. A file under a random or a wrong name is
+recognised by that hash, or by the checksum of one of its slices, and renamed.
+The recovery volumes stay switched off until the check knows how many blocks
+it needs, and then only the volumes that cover them are fetched. A file with
+missing articles counts its missing bytes, and once the par2 index is here
+the release fails as soon as those bytes alone need more blocks than every
+volume holds.
+
+**Not built:** par2cmdline's search for blocks that have moved inside a file,
+and NZBGet's way of working out each block's CRC from the article CRCs.
+
+Every article is written at the offset its yEnc header gives, so a block can
+be missing but never moved: the search for shifted data that par2cmdline runs
+over a damaged file would read the whole file to find what is always where it
+belongs. Articles and par2 slices have different sizes, so NZBGet's quick check
+has to combine article CRCs across slice boundaries and still read the slices
+that straddle a gap. Trusting a download whose every article matched costs one
+16 KiB read per file instead. When that trust turns out wrong, the repaired
+file fails its MD5, and the check starts over and reads everything, so a wrong
+guess costs time and never a broken release. The early verdict counts only
+bytes that were certainly not written, rounded down to blocks, so it can fail
+a release late but never one a repair could have saved.
+
+## Usenet: the par2 repair streams, on a fixed budget
+
+**Built:** Reed-Solomon over GF(2^16) as PAR 2.0 defines it. The matrix of the
+recovery slices used is inverted once; then the files are read in stretches as
+wide as the memory budget allows, the intact slices are multiplied into the
+recovery slices, and the damaged slices come out and are written in place.
+Each file it wrote is checked against its MD5 before the release goes on. It
+works on half the processor cores and at most 256 MiB, which on a set with
+few damaged blocks is a single pass over the files.
+
+**Not built:** SIMD, a setting for the cores and the memory, and PAR 1 or PAR 3.
+
+par2cmdline-turbo gets its speed from hand-written vector code that Go would
+need assembly or cgo for, and a repair is rare enough that the plain table
+lookups, about 3 GB a second per core on a current desktop processor, are
+worth their simplicity. The
+check runs beside the downloads and whatever else the server does, so it takes
+half of the machine rather than all of it; the two numbers are constants until
+somebody has a box where they are wrong. Usenet posts come with PAR 2.0
+files, and PAR 3 is still a draft.

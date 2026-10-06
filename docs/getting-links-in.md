@@ -195,15 +195,36 @@ reached; for any other server the article waits and is asked for again, since
 that server might have it. A server with a retention in days is not asked for
 older articles.
 
-When some articles are on none of your servers, the release goes to the next
+When some articles are on none of your servers and the release comes with
+par2 files, the file is finished with gaps where those articles belong, and the
+par2 check below fills them in. Without par2 files the release goes to the next
 account in the priority order, TorBox or Premiumize.me, if you have one. Files
 your servers have already finished stay where they are and are not fetched
 again. The other downloads from your servers are removed, and the service
-fetches those files instead. Without such an account the file fails, and the error names
-how many articles are missing. Damaged downloads are not repaired with par2
-yet. The par2 recovery files of a release are listed but switched off, with a
-note that they load only when needed, and they do not count as unfinished.
-Once every file is here, archives are unpacked as usual.
+fetches those files instead. Without such an account the file fails, and the
+error names how many articles are missing.
+
+### Checking and repairing with par2
+
+Once every file of a release is here, KnightLoader checks it against its par2
+files. A file posted under a random or a wrong name is recognised by its
+content and renamed to the name the par2 set gives it. A file whose articles
+all arrived intact is not read again; the others are checked block by block.
+Until the release has passed, the list shows its files as Verifying or
+Repairing, Sonarr sees the same, and nothing of the release is unpacked or
+moved out of the working folder.
+
+The par2 recovery files of a release are listed but switched off, with a note
+that they load only when needed, and they do not count as unfinished. When the
+check finds damaged blocks, just enough of them are switched on and downloaded
+to rebuild those blocks, and the repair writes them back into the files. A
+repair uses half of the processor cores and at most 256 MB of memory at a
+time.
+
+When more blocks are damaged than all the recovery files of the release can
+rebuild, the release goes to the next account, or fails with both numbers in
+the error. Once the par2 index is here this shows while the files are still
+downloading, and the rest of the release is not fetched for nothing.
 
 ### Through TorBox or Premiumize.me
 
@@ -384,9 +405,10 @@ again by itself.
 Add SABnzbd instead, with this instance's address, the URL Base `api/sabnzbd`
 and an API token as its API key. A real `.nzb` goes to Usenet as described
 above. While your own servers or a service fetch an `.nzb`, Sonarr's queue
-shows it downloading. A release with articles none of your servers has, and
-no debrid account to take it, lands in Sonarr's history as failed with the
-reason, so Sonarr can block it and search for another. The par2 recovery
+shows it downloading, and verifying or repairing during the par2 check. A
+release your servers cannot complete or repair, with no debrid account to take
+it, lands in Sonarr's history as failed with the reason, so Sonarr can block
+it and search for another. The par2 recovery
 files that stay switched off do not hold a release back. Once the files are here it follows
 them, and its history names the folder to import from. A download that fails
 with a retry still to come stays in the queue, so Sonarr does not give up on
