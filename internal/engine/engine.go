@@ -537,7 +537,7 @@ func (e *Engine) Start(j Job) {
 		if e.takeUp(j, s) {
 			return
 		}
-		rr, req, opts, err := e.resolve(&j)
+		rr, req, opts, err := e.resolve(s.ctx, &j)
 		if err != nil {
 			if e.proceed(s, j) {
 				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error())})
@@ -559,7 +559,7 @@ func (e *Engine) Start(j Job) {
 		// Like the name, read by the library only once Create starts the
 		// transfer. Resolve has already filled in the connection count, and
 		// each source gets that many.
-		if mirrors := e.vetSources(j, rr.Res); len(mirrors) > 0 {
+		if mirrors := e.vetSources(s.ctx, j, rr.Res); len(mirrors) > 0 {
 			req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
 			opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
 		}
@@ -586,14 +586,14 @@ var errHungUp = errors.New("the server closed the connection")
 // browser agent the library sends by default, so a link that hangs up is asked
 // once more as KnightLoader, and j keeps that agent for the task's later
 // requests. An agent the caller set is kept either way.
-func (e *Engine) resolve(j *Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
-	rr, req, opts, err := e.resolveAs(*j)
+func (e *Engine) resolve(ctx context.Context, j *Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+	rr, req, opts, err := e.resolveAs(ctx, *j)
 	if err == nil || !httpx.HungUp(err) {
 		return rr, req, opts, err
 	}
 	if !hasUserAgent(j.Headers) {
 		ours := asKnightLoader(*j)
-		rr, req, opts, err = e.resolveAs(ours)
+		rr, req, opts, err = e.resolveAs(ctx, ours)
 		if err == nil {
 			*j = ours
 			return rr, req, opts, nil
@@ -615,8 +615,10 @@ func hungUp(err error) error {
 }
 
 // resolveAs also returns the request and options, which the library keeps and
-// reads again when Create starts the transfer.
-func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
+// reads again when Create starts the transfer. Once ctx ends, the library
+// closes a resolve that Create has not taken, which stops the copy of the file
+// it reads ahead into the temp folder.
+func (e *Engine) resolveAs(ctx context.Context, j Job) (*download.ResolveResult, *base.Request, *base.Options, error) {
 	req := &base.Request{
 		URL:    j.URL,
 		Extra:  &fhttp.ReqExtra{Method: "GET", Header: j.Headers},
@@ -624,7 +626,7 @@ func (e *Engine) resolveAs(j Job) (*download.ResolveResult, *base.Request, *base
 		Proxy:  requestProxy(j.Route),
 	}
 	opts := &base.Options{Path: j.writeDir(), Name: j.Name, Extra: &fhttp.OptsExtra{Connections: j.Conns}}
-	rr, err := e.d.Resolve(req, opts)
+	rr, err := e.d.ResolveContext(ctx, req, opts)
 	return rr, req, opts, err
 }
 

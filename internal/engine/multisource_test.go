@@ -98,7 +98,7 @@ func TestALinkToTheSameBytesIsTakenAsASource(t *testing.T) {
 	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
 	e := vetEngine(t)
 
-	got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data)))
+	got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data)))
 
 	if len(got) != 1 || got[0] != other.url() {
 		t.Fatalf("sources = %v, want the other link", got)
@@ -112,7 +112,7 @@ func TestALinkToAFileOfAnotherSizeIsRefused(t *testing.T) {
 	longer := newMirrorSource(t, append(append([]byte(nil), data...), 0))
 	e := vetEngine(t)
 
-	if got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(longer.url())}, ranged(len(data))); len(got) != 0 {
+	if got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(longer.url())}, ranged(len(data))); len(got) != 0 {
 		t.Fatalf("sources = %v, want none", got)
 	}
 }
@@ -125,7 +125,7 @@ func TestALinkOfTheSameSizeWithOtherBytesIsRefused(t *testing.T) {
 	own, other := newMirrorSource(t, data), newMirrorSource(t, randomBytes(t, len(data)))
 	e := vetEngine(t)
 
-	if got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data))); len(got) != 0 {
+	if got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data))); len(got) != 0 {
 		t.Fatalf("sources = %v, want none", got)
 	}
 }
@@ -140,7 +140,7 @@ func TestALinkThatCannotSendRangesIsRefused(t *testing.T) {
 	t.Cleanup(whole.Close)
 	e := vetEngine(t)
 
-	if got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(whole.URL + "/f.bin")}, ranged(len(data))); len(got) != 0 {
+	if got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(whole.URL + "/f.bin")}, ranged(len(data))); len(got) != 0 {
 		t.Fatalf("sources = %v, want none", got)
 	}
 }
@@ -159,7 +159,7 @@ func TestADifferentETagOnTheSameHostIsRefused(t *testing.T) {
 	}))
 	t.Cleanup(other.Close)
 
-	if got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(other.URL + "/f.bin")}, ranged(len(data))); len(got) != 0 {
+	if got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(other.URL + "/f.bin")}, ranged(len(data))); len(got) != 0 {
 		t.Fatalf("sources = %v, want none", got)
 	}
 }
@@ -174,7 +174,7 @@ func TestAJobWithHeadersAsksForNoFurtherSources(t *testing.T) {
 	job := Job{TaskID: "t1", URL: own.url(), Headers: map[string]string{"Authorization": "Basic x"},
 		Sources: func(context.Context) []string { asked = true; return []string{other.url()} }}
 
-	if got := e.vetSources(job, ranged(len(data))); len(got) != 0 || asked {
+	if got := e.vetSources(e.ctx, job, ranged(len(data))); len(got) != 0 || asked {
 		t.Fatalf("sources = %v, asked = %v; want none and no asking", got, asked)
 	}
 }
@@ -188,7 +188,7 @@ func TestALinkThatAnswersOnlyKnightLoaderStillGetsFurtherSources(t *testing.T) {
 	e := vetEngine(t)
 	job := asKnightLoader(Job{TaskID: "t1", URL: own.srv.URL + "/f.bin", Sources: offering(other.url())})
 
-	if got := e.vetSources(job, ranged(len(data))); len(got) != 1 || got[0] != other.url() {
+	if got := e.vetSources(e.ctx, job, ranged(len(data))); len(got) != 1 || got[0] != other.url() {
 		t.Fatalf("sources = %v, want the other link", got)
 	}
 }
@@ -200,7 +200,7 @@ func TestAFileKeptToItsOwnLinkSaysWhyInTheLog(t *testing.T) {
 	e := vetEngine(t)
 	logged := captureLog(t)
 
-	e.vetSources(Job{TaskID: "t1", URL: own.url(), Headers: map[string]string{"Authorization": "Basic x"}, Sources: offering(other.url())}, ranged(len(data)))
+	e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Headers: map[string]string{"Authorization": "Basic x"}, Sources: offering(other.url())}, ranged(len(data)))
 
 	if out := logged.String(); !strings.Contains(out, "not spreading task t1") {
 		t.Fatalf("the log does not say why the file keeps to its own link:\n%s", out)
@@ -212,7 +212,7 @@ func TestASmallFileAsksForNoFurtherSources(t *testing.T) {
 	own, other := newMirrorSource(t, data), newMirrorSource(t, data)
 	e := vetEngine(t)
 
-	if got := e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data))); len(got) != 0 {
+	if got := e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering(other.url())}, ranged(len(data))); len(got) != 0 {
 		t.Fatalf("sources = %v, want none below %d bytes", got, multiSourceMin)
 	}
 }
@@ -512,8 +512,8 @@ func TestAnUnreachableSourceIsLoggedWithoutItsLink(t *testing.T) {
 	e := vetEngine(t)
 	logged := captureLog(t)
 
-	e.vetSources(Job{TaskID: "t1", URL: own.url(), Sources: offering("http://127.0.0.1:1/dl/FURTHERSECRET/f.bin")}, ranged(len(data)))
-	e.vetSources(Job{TaskID: "t2", URL: "http://127.0.0.1:1/own/OWNSECRET/f.bin", Sources: offering(own.url())}, ranged(len(data)))
+	e.vetSources(e.ctx, Job{TaskID: "t1", URL: own.url(), Sources: offering("http://127.0.0.1:1/dl/FURTHERSECRET/f.bin")}, ranged(len(data)))
+	e.vetSources(e.ctx, Job{TaskID: "t2", URL: "http://127.0.0.1:1/own/OWNSECRET/f.bin", Sources: offering(own.url())}, ranged(len(data)))
 
 	out := logged.String()
 	if !strings.Contains(out, "not used as a further source") || !strings.Contains(out, "its own link failed the check") {
