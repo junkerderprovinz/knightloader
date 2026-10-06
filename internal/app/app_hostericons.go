@@ -217,6 +217,7 @@ func (a *App) storeHosterIcon(host string, body []byte, contentType string, fetc
 		}
 		return iconEntry{at: now, body: body, contentType: contentType}
 	}
+	defer pruneIconDir(dir)
 	if fetchErr != nil {
 		_ = os.WriteFile(base+iconMissExt, nil, 0o644)
 		return iconEntry{at: now, missing: true}
@@ -248,6 +249,46 @@ func (a *App) rememberIconLocked(host string, e iconEntry) {
 		_ = os.Remove(base + "." + ext)
 	}
 	_ = os.Remove(base + iconMissExt)
+}
+
+// pruneIconDir keeps at most iconMaxKnown files in dir, expired ones going
+// first and then the oldest. rememberIconLocked only knows the hosts of this
+// run, so without it every restart would add another iconMaxKnown files.
+func pruneIconDir(dir string) {
+	entries, err := os.ReadDir(dir)
+	if err != nil || len(entries) <= iconMaxKnown {
+		return
+	}
+	type iconFile struct {
+		path    string
+		at      time.Time
+		expired bool
+	}
+	files := make([]iconFile, 0, len(entries))
+	for _, de := range entries {
+		info, err := de.Info()
+		if err != nil || !info.Mode().IsRegular() {
+			continue
+		}
+		ttl := iconEntry{missing: filepath.Ext(de.Name()) == iconMissExt}.ttl()
+		files = append(files, iconFile{
+			path:    filepath.Join(dir, de.Name()),
+			at:      info.ModTime(),
+			expired: time.Since(info.ModTime()) >= ttl,
+		})
+	}
+	slices.SortFunc(files, func(x, y iconFile) int {
+		if x.expired != y.expired {
+			if x.expired {
+				return -1
+			}
+			return 1
+		}
+		return x.at.Compare(y.at)
+	})
+	for _, f := range files[:max(len(files)-iconMaxKnown, 0)] {
+		_ = os.Remove(f.path)
+	}
 }
 
 func (a *App) iconDir() string { return filepath.Join(a.DataDir, "icons") }
