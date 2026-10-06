@@ -53,7 +53,8 @@ func openDownload(part string, file nzb.File) (*download, error) {
 		}
 	}
 	if d.m.size > 0 && file.Bytes() > 0 {
-		d.bytes = d.bytes * d.m.size / file.Bytes()
+		// In float64, as the product of two sizes overflows int64 past 3 GB.
+		d.bytes = int64(float64(d.bytes) / float64(file.Bytes()) * float64(d.m.size))
 	}
 	return d, nil
 }

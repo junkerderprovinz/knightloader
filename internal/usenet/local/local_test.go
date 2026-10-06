@@ -16,6 +16,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/nntp"
 	"github.com/junkerderprovinz/knightloader/internal/nntp/nntptest"
+	"github.com/junkerderprovinz/knightloader/internal/nzb"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/yenc"
 )
@@ -256,6 +257,33 @@ func TestAnArticleNamingAFileFarLargerThanTheNZBIsDamaged(t *testing.T) {
 	}
 	if fi.Size() != int64(len(r.data)) {
 		t.Fatalf("the part file has %d bytes, want %d", fi.Size(), len(r.data))
+	}
+}
+
+func TestLoadedAfterARestartHoldsForATenGigabyteFile(t *testing.T) {
+	const size, n = int64(10_000_000_000), 5000
+	f := nzb.File{Name: "big.mkv"}
+	for i := range n {
+		f.Segments = append(f.Segments, nzb.Segment{Number: i + 1, Bytes: 2_050_000, ID: fmt.Sprintf("%d@test", i)})
+	}
+	part := filepath.Join(t.TempDir(), "big.mkv.task.klpart")
+	if err := os.WriteFile(part, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := segMap{size: size, done: make([]bool, n)}
+	for i := range n / 2 {
+		m.done[i] = true
+	}
+	if err := m.save(part + mapSuffix); err != nil {
+		t.Fatal(err)
+	}
+	d, err := openDownload(part, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.f.Close()
+	if got := d.loaded(); got != size/2 {
+		t.Fatalf("half of the file is on disk, and loaded says %d", got)
 	}
 }
 
