@@ -8,6 +8,7 @@ import (
 	"math/rand/v2"
 	"os"
 	"path/filepath"
+	"regexp"
 	"strings"
 	"sync"
 	"testing"
@@ -87,9 +88,14 @@ type harness struct {
 
 func newHarness(t *testing.T, client *nntp.Client, rs ...release) *harness {
 	t.Helper()
+	return harnessFor(t, client, nzbOf(rs...))
+}
+
+func harnessFor(t *testing.T, client *nntp.Client, nzbData []byte) *harness {
+	t.Helper()
 	h := &harness{t: t, dir: t.TempDir(), updates: make(chan core.Update, 1000)}
 	h.svc = NewService(filepath.Join(t.TempDir(), "jobs"))
-	job, err := h.svc.Submit(context.Background(), "test", nzbOf(rs...))
+	job, err := h.svc.Submit(context.Background(), "test", nzbData)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -264,24 +270,31 @@ func TestAnNZBThatLeavesOutArticlesFailsTheFile(t *testing.T) {
 
 func TestAnArticleNamingAFileFarLargerThanTheNZBIsDamaged(t *testing.T) {
 	r := newRelease("forged.bin", 8_000, 4_000)
-	s := nntptest.New(t)
-	forged := r.parts[0]
-	forged.FileSize = 1 << 60
-	s.AddPart(r.ids[0], forged)
-	r.post(s, 2)
-	cfg := serverFor(s, 0)
-	cfg.Connections = 1
-	h := newHarness(t, nntp.NewClient([]nntp.Server{cfg}, nil), r)
-	u := h.run(h.be, 0, r.name)
-	if u.Status != core.StatusError || !strings.Contains(u.Err, "1 of the 2 articles") {
-		t.Fatalf("got %+v", u)
-	}
-	fi, err := os.Stat(PartFile(h.dir, FileLink(h.job, 0, r.name), "task"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if fi.Size() != int64(len(r.data)) {
-		t.Fatalf("the part file has %d bytes, want %d", fi.Size(), len(r.data))
+	for name, nzbData := range map[string][]byte{
+		"with sizes":    nzbOf(r),
+		"without sizes": regexp.MustCompile(`bytes="\d+" `).ReplaceAll(nzbOf(r), nil),
+	} {
+		t.Run(name, func(t *testing.T) {
+			s := nntptest.New(t)
+			forged := r.parts[0]
+			forged.FileSize = 1 << 30
+			s.AddPart(r.ids[0], forged)
+			r.post(s, 2)
+			cfg := serverFor(s, 0)
+			cfg.Connections = 1
+			h := harnessFor(t, nntp.NewClient([]nntp.Server{cfg}, nil), nzbData)
+			u := h.run(h.be, 0, r.name)
+			if u.Status != core.StatusError || !strings.Contains(u.Err, "1 of the 2 articles") {
+				t.Fatalf("got %+v", u)
+			}
+			fi, err := os.Stat(PartFile(h.dir, FileLink(h.job, 0, r.name), "task"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if fi.Size() != int64(len(r.data)) {
+				t.Fatalf("the part file has %d bytes, want %d", fi.Size(), len(r.data))
+			}
+		})
 	}
 }
 
