@@ -537,33 +537,11 @@ func (e *Engine) Start(j Job) {
 		if e.takeUp(j, s) {
 			return
 		}
-		rr, req, opts, err := e.resolve(s.ctx, &j)
-		if err != nil {
-			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(j, err.Error())})
-			}
-			return
+		rr, again := e.resolveStart(&j, s)
+		for again {
+			rr, again = e.resolveStart(&j, s)
 		}
-		_, size := metaOf(rr.Res)
-		// Settled before Create, which starts the transfer.
-		name, err := place(j, rr.Res, opts)
-		if err != nil {
-			// Report the name with the failure, so the app can pre-empt the
-			// collision on a retry.
-			if e.proceed(s, j) {
-				e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
-			}
-			return
-		}
-		e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
-		// Like the name, read by the library only once Create starts the
-		// transfer. Resolve has already filled in the connection count, and
-		// each source gets that many.
-		if mirrors := e.vetSources(s.ctx, j, rr.Res); len(mirrors) > 0 {
-			req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
-			opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
-		}
-		if !e.proceed(s, j) {
+		if rr == nil {
 			return
 		}
 		gid, err := e.d.Create(rr.ID)
@@ -577,6 +555,45 @@ func (e *Engine) Start(j Job) {
 		e.jobs[j.TaskID] = j
 		e.mu.Unlock()
 	}()
+}
+
+// resolveStart resolves the link of start s and settles where the file lands.
+// It returns the resolve for Create, or nil when the start ends here, having
+// reported a failure unless it was paused or removed. again asks for another
+// call, after a pause closed the resolve and a Resume took the pause back.
+func (e *Engine) resolveStart(j *Job, s *start) (rr *download.ResolveResult, again bool) {
+	rr, req, opts, err := e.resolve(s.ctx, j)
+	if err != nil {
+		onward, again := e.resolved(s, *j)
+		if onward {
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Err: e.failure(*j, err.Error())})
+		}
+		return nil, again
+	}
+	_, size := metaOf(rr.Res)
+	// Settled before Create, which starts the transfer.
+	name, err := place(*j, rr.Res, opts)
+	if err != nil {
+		// Report the name with the failure, so the app can pre-empt the
+		// collision on a retry.
+		if e.proceed(s, *j) {
+			e.emit(j.TaskID, core.Update{Status: core.StatusError, Name: name, Err: err.Error()})
+		}
+		return nil, false
+	}
+	e.emit(j.TaskID, core.Update{Status: core.StatusRunning, Name: name, Size: size})
+	// Like the name, read by the library only once Create starts the
+	// transfer. Resolve has already filled in the connection count, and each
+	// source gets that many.
+	if mirrors := e.vetSources(s.ctx, *j, rr.Res); len(mirrors) > 0 {
+		req.Extra.(*fhttp.ReqExtra).Mirrors = mirrors
+		opts.Extra.(*fhttp.OptsExtra).Connections *= 1 + len(mirrors)
+	}
+	onward, again := e.resolved(s, *j)
+	if !onward {
+		return nil, again
+	}
+	return rr, false
 }
 
 // errHungUp stands in for the bare EOF a server that hangs up leaves behind.
@@ -735,7 +752,7 @@ func requestProxy(r proxycfg.Route) *base.RequestProxy {
 // while it runs: one that began after the look would pause the task first,
 // leave this pause nothing to do, and then resume it.
 func (e *Engine) Pause(taskID string) {
-	if e.pauseMend(taskID) || e.markStart(taskID, func(s *start) { s.paused = true }) {
+	if e.pauseMend(taskID) || e.markStart(taskID, (*start).pause) {
 		return
 	}
 	e.mu.Lock()

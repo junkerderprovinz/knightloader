@@ -79,7 +79,8 @@ release's tag.
   rule found the file already there, the server's first answer went on being
   copied into the system's temp folder until the whole file had arrived. That
   copy was never deleted, and each time it used the file's full traffic.
-  KnightLoader now stops the copy and deletes it.
+  KnightLoader now stops the copy and deletes it. A pause stops it straight
+  away instead of once the wait for further sources is over.
 
 - **On Windows, a paused live recording kept recording.** Pausing a live
   yt-dlp recording, renaming its package or removing it without its files
