@@ -5,6 +5,7 @@ export const cs: Dict = {
   'qr.cancel': 'Zrušit',
   'qr.cameraPermissionHint': 'Ke skenování QR kódu je potřeba přístup ke kameře.',
   'qr.grantAccess': 'Povolit přístup',
+  'qr.openSettings': 'Otevřít nastavení',
 
   'connections.addButton': '+ Připojení',
   'connections.empty': 'Zatím není uloženo žádné připojení.',

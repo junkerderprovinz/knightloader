@@ -5,6 +5,7 @@ export const hu: Dict = {
   'qr.cancel': 'Mégse',
   'qr.cameraPermissionHint': 'A QR-kód beolvasásához kamera-hozzáférés szükséges.',
   'qr.grantAccess': 'Hozzáférés engedélyezése',
+  'qr.openSettings': 'Beállítások megnyitása',
 
   'connections.addButton': '+ Kapcsolat',
   'connections.empty': 'Még nincs elmentett kapcsolat.',

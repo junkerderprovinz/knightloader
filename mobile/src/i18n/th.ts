@@ -5,6 +5,7 @@ export const th: Dict = {
   'qr.cancel': 'ยกเลิก',
   'qr.cameraPermissionHint': 'ต้องเข้าถึงกล้องเพื่อสแกนคิวอาร์โค้ด',
   'qr.grantAccess': 'อนุญาตการเข้าถึง',
+  'qr.openSettings': 'เปิดการตั้งค่า',
 
   'connections.addButton': '+ การเชื่อมต่อ',
   'connections.empty': 'ยังไม่มีการเชื่อมต่อที่บันทึกไว้',

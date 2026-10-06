@@ -5,6 +5,7 @@ export const hi: Dict = {
   'qr.cancel': 'रद्द करें',
   'qr.cameraPermissionHint': 'QR कोड स्कैन करने के लिए कैमरे की अनुमति चाहिए।',
   'qr.grantAccess': 'एक्सेस की अनुमति दें',
+  'qr.openSettings': 'सेटिंग्स खोलें',
 
   'connections.addButton': '+ कनेक्शन',
   'connections.empty': 'अभी तक कोई कनेक्शन सेव नहीं किया गया है।',

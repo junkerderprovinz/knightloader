@@ -63,15 +63,14 @@ export function NotificationsCard({ hue }: { hue: number }) {
   const flip = (kind: Kind, on: boolean) => {
     const next = { ...prefs, [kind]: on };
     setPrefs(next);
-    void saveNotifyPrefs(next);
+    void saveNotifyPrefs({ [kind]: on });
     if (!anyKind(next)) stopWatch();
     else if (on && !allowed) void allow();
   };
 
   const flipStay = (on: boolean) => {
-    const next = { ...prefs, stay: on };
-    setPrefs(next);
-    void saveNotifyPrefs(next).then(() => {
+    setPrefs({ ...prefs, stay: on });
+    void saveNotifyPrefs({ stay: on }).then(() => {
       // Off lets a running service end by itself once nothing runs.
       if (on) void startWatch();
       else KnightWatch?.autostart(false);
