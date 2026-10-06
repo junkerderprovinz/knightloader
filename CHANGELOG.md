@@ -37,6 +37,31 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A download paused or removed before it started kept downloading in the
+  background.** While a start waited for further sources, or when the "skip"
+  rule found the file already there, the server's first answer went on being
+  copied into the system's temp folder until the whole file had arrived. That
+  copy was never deleted, and each time it used the file's full traffic.
+  KnightLoader now stops the copy and deletes it.
+
+- **On Windows, a paused live recording kept recording.** Pausing a live
+  yt-dlp recording, renaming its package or removing it without its files
+  stopped yt-dlp after 30 seconds but left ffmpeg writing into the file, which
+  on a 24/7 stream never ends. A Resume then started a second recording into
+  the same file. ffmpeg now stops with yt-dlp.
+
+- **A paused download whose package was renamed started over after a
+  restart.** Its partial file was deleted and it downloaded again from the
+  first byte. It now carries on where it stopped, in the renamed folder.
+
+- **Several sources for one file could open more connections than a second
+  debrid account allows.** Every source gets as many connections as the
+  download's own link, so the service could refuse them or flag the account.
+  An account that allows fewer connections for the hoster is no longer asked
+  to unlock the file.
+
 ## [1.8.0] - 2026-10-05
 
 ### Added
