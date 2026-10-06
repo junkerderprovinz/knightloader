@@ -54,20 +54,26 @@ release's tag.
 - **Progress after a restart was wrong for large Usenet downloads.** A download
   above about 3 GB that carried on after a restart showed no progress, or
   progress that jumped, and a wrong time left.
+
 - **A download removed or paused just as it starts stays stopped.** Removing a
   selection, or removing or pausing a single download right as it started,
   could leave its transfer running. It then wrote the whole file with no row in
   the list, even when you had asked for the files to be deleted.
+
 - **Restarting a download no longer deletes another download's file.** If you
   deleted a finished file by hand and another download with the same name then
   landed at that path, restarting the first one deleted the second one's file.
+
 - **Undo after removing a download that is being unpacked keeps it finished.**
   It came back as waiting, its archive was deleted, and the download started
   over.
+
 - **A finished or failed download brought back with Undo no longer blocks its
   link.** Pasting the link again was silently skipped until the next restart.
+
 - **A failed download brought back with Undo gets the retry it shows.** If the
   retry fell due while the row was removed, it never came.
+
 - **A download paused or removed before it started kept downloading in the
   background.** While a start waited for further sources, or when the "skip"
   rule found the file already there, the server's first answer went on being
@@ -90,24 +96,11 @@ release's tag.
   download's own link, so the service could refuse them or flag the account.
   An account that allows fewer connections for the hoster is no longer asked
   to unlock the file.
+
 - **Restarting KnightLoader no longer waits for a player paused on the debrid
   drive.** A media server that stopped reading from an rclone mount of the
   drive held a restart up for five seconds.
 
-### Security
-
-- **Signing out ends every copy of the session cookie.** A copy taken before
-  the sign-out worked again once its last character was changed.
-- **Play links end with the token that asked for them.** Revoking a phone's
-  token, changing the password or signing out everywhere ends the play links
-  handed out before. They used to keep working for up to twelve hours.
-- **A body sent with an API token stops at 16 MiB** when it adds links or
-  changes downloads, the same ceiling as without a token. The instance used to
-  read all of it into memory first.
-- **A file asked for through the group is refused rather than read into
-  memory.** A group member, or a token on another instance, could make an
-  instance load a whole finished file into memory before it answered, and no
-  member can receive an answer that large anyway.
 - **The browser extension filled the Instances page with Browser cards.** Each
   time the extension talked to the group it counted as a new browser, so a
   browser in daily use left card after card behind, and once the list held 32
@@ -116,28 +109,25 @@ release's tag.
   extension now keeps one ID while it is in the group, and a browser you remove
   leaves the group. Cards left over from before can be removed by hand.
 
-### Security
-
-- **Another website could trick you into adding a link.** On an instance
-  without a password, a site that knew the instance's address could load the
-  page the bookmarklet opens, hidden behind a button of its own, so a click on
-  that button pressed Add. That page now refuses to load inside another
-  website.
 - **The JDownloader import ticked Packagizer rules whose folder exists only on
   JDownloader's machine.** A rule that sends downloads to a folder that cannot
   be used here, such as `/output/...` from a JDownloader container or a Linux
   path on Windows, arrives unticked with a note, the way JDownloader's own
   download folder already did.
+
 - **The JDownloader import report counted rejected links as waiting in the
   link collector.** Links that a filter rule or the download history rejected
   get a line of their own.
+
 - **The drop folder renamed files ending in `.opening` that it had not set
   aside itself.** Only a container it parked while opening it gets its name
   back.
+
 - **Feed entries and the files on a crawled page could point into the local
   network.** A link that leads further inside the network than the feed or
   page it came from, such as a LAN or cloud metadata address, is left out and
   named in the log.
+
 - **The Android app asked about battery optimisation or notifications a
   second time.** Flipping a switch on the Notifications card in Settings could
   undo the record that the app had already asked, so the one-time question
@@ -160,6 +150,30 @@ release's tag.
   a few seconds, pressing Connect searched the project relay instead and
   reported that nobody answered. Connect now uses the relay from the code
   until you type or paste other words.
+
+### Security
+
+- **Signing out ends every copy of the session cookie.** A copy taken before
+  the sign-out worked again once its last character was changed.
+
+- **Play links end with the token that asked for them.** Revoking a phone's
+  token, changing the password or signing out everywhere ends the play links
+  handed out before. They used to keep working for up to twelve hours.
+
+- **A body sent with an API token stops at 16 MiB** when it adds links or
+  changes downloads, the same ceiling as without a token. The instance used to
+  read all of it into memory first.
+
+- **A file asked for through the group is refused rather than read into
+  memory.** A group member, or a token on another instance, could make an
+  instance load a whole finished file into memory before it answered, and no
+  member can receive an answer that large anyway.
+
+- **Another website could trick you into adding a link.** On an instance
+  without a password, a site that knew the instance's address could load the
+  page the bookmarklet opens, hidden behind a button of its own, so a click on
+  that button pressed Add. That page now refuses to load inside another
+  website.
 
 ## [1.8.0] - 2026-10-05
 
