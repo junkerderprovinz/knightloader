@@ -222,6 +222,55 @@ func TestDownloadListsThatUnpackHugeStaySmallInMemory(t *testing.T) {
 	}
 }
 
+// An uploaded cfg zip compresses lists that store an 80 MiB entry down to a
+// few hundred KiB, and a list inside a zip cannot be read in place.
+func TestDownloadListsStoredLargeInAnUploadStaySmallInMemory(t *testing.T) {
+	var list bytes.Buffer
+	zw := zip.NewWriter(&list)
+	w, err := zw.CreateHeader(&zip.FileHeader{Name: "0", Method: zip.Store})
+	if err != nil {
+		t.Fatal(err)
+	}
+	zeros := make([]byte, 1<<20)
+	for range 80 {
+		w.Write(zeros)
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	var upload bytes.Buffer
+	uw := zip.NewWriter(&upload)
+	for _, name := range []string{"downloadList1.zip", "downloadList2.zip"} {
+		w, err := uw.CreateHeader(&zip.FileHeader{Name: `cfg\` + name, Method: zip.Deflate})
+		if err != nil {
+			t.Fatal(err)
+		}
+		w.Write(list.Bytes())
+	}
+	if err := uw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	list = bytes.Buffer{}
+	zr, err := zip.NewReader(bytes.NewReader(upload.Bytes()), int64(upload.Len()))
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	var before, after runtime.MemStats
+	runtime.ReadMemStats(&before)
+	cfg, err := jdimport.Read(jdimport.ZipFS(zr))
+	runtime.ReadMemStats(&after)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(cfg.Problems) != 1 || cfg.Problems[0].Params["file"] != "downloadList2.zip" {
+		t.Errorf("problems = %+v, want downloadList2.zip named", cfg.Problems)
+	}
+	if got := (after.TotalAlloc - before.TotalAlloc) >> 20; got > 48 {
+		t.Errorf("reading the lists allocated %d MiB, want at most 48", got)
+	}
+}
+
 func TestASingleLeftOutLinkIsCountedInTheSingular(t *testing.T) {
 	t.Parallel()
 	links := jdimport.PackageLinks(jdimport.Package{Links: []jdimport.Link{
