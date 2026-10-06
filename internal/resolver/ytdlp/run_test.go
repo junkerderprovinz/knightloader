@@ -984,6 +984,49 @@ func TestRemovingARecordingWithFilesEndsItsFFmpegAtOnce(t *testing.T) {
 	}
 }
 
+// A paused, halted or plainly removed recording ends its ffmpeg too, which
+// would otherwise go on writing into the .part that a Resume writes into
+// again or a package rename moves.
+func TestHaltingALiveRecordingEndsItsFFmpeg(t *testing.T) {
+	was := liveStopGrace
+	liveStopGrace = time.Second
+	t.Cleanup(func() { liveStopGrace = was })
+	t.Setenv(runHelperEnv, "recording:full")
+	dir := t.TempDir()
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.Options = func(string) Options { return Options{Live: Live{Enabled: true}} }
+	b.Download("task-1", "https://example.invalid/watch?v=x", nil, 0)
+	part := filepath.Join(dir, "A Video.mkv.part")
+	deadline := time.Now().Add(30 * time.Second)
+	for {
+		if _, err := os.Stat(part); err == nil && rec.last().Loaded > 0 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the recording never started")
+		}
+		time.Sleep(10 * time.Millisecond)
+	}
+
+	if !b.Halt("task-1") {
+		t.Fatal("Halt found no recording")
+	}
+	time.Sleep(200 * time.Millisecond)
+	before, err := os.Stat(part)
+	if err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(500 * time.Millisecond)
+	after, err := os.Stat(part)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if after.Size() != before.Size() {
+		t.Errorf("ffmpeg went on recording after Halt: the .part grew from %d to %d bytes", before.Size(), after.Size())
+	}
+}
+
 // A removal without files can be undone, and the row that comes back can then
 // be removed with its files.
 func TestRemovingWithFilesAfterAnUndoneRemovalStillTakesThePart(t *testing.T) {
