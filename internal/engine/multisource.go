@@ -51,8 +51,9 @@ type probe struct {
 
 // vetSources asks the job for further links to its file and returns the ones
 // that serve the same bytes as its own URL. It returns nil when the job has
-// none, or when its file keeps to its own URL (see keptToOwnLink).
-func (e *Engine) vetSources(j Job, res *base.Resource) []string {
+// none, or when its file keeps to its own URL (see keptToOwnLink). The asking
+// and the checks end with ctx.
+func (e *Engine) vetSources(ctx context.Context, j Job, res *base.Resource) []string {
 	if j.Sources == nil || res == nil {
 		return nil
 	}
@@ -60,7 +61,7 @@ func (e *Engine) vetSources(j Job, res *base.Resource) []string {
 		log.Printf("not spreading task %s over more sources: %s", j.TaskID, why)
 		return nil
 	}
-	ctx, cancel := context.WithTimeout(e.ctx, sourcesWait)
+	ctx, cancel := context.WithTimeout(ctx, sourcesWait)
 	defer cancel()
 	links := slices.DeleteFunc(j.Sources(ctx), func(u string) bool { return u == "" || u == j.URL })
 	slices.Sort(links)
