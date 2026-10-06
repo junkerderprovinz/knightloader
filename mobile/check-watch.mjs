@@ -260,7 +260,7 @@ s.native = {
   autostart: (on) => s.calls.push({ autostart: on }),
   batteryExempt: () => true,
   notify: (n) => s.calls.push({ notify: n.channel, text: n.text }),
-  cancel() {},
+  cancel: (id) => s.calls.push({ cancel: id }),
   enabled: () => true,
   takeOpen: () => null,
   addListener: () => ({ remove() {} }),
@@ -423,6 +423,31 @@ const lastNext = () => s.calls.filter((c) => c.next).at(-1);
   s.running = true;
   watch.stopWatch();
   expect('stopping the watch keeps a restart from starting it', s.calls, [{ autostart: false }, 'stop']);
+}
+
+// A captcha notice the watch stops looking after is taken down with it, since
+// nothing would take it down later.
+{
+  const shown = async () => {
+    fresh();
+    prefs({});
+    answer([task('a', 'queued')]);
+    await watch.watchTask();
+    s.captchas = [captcha('c1')];
+    await watch.watchTask();
+    expect('a captcha that arrives is announced', notices().map((c) => c.notify), ['captcha']);
+    return w.noticeId('captcha', s.conns[0].id);
+  };
+  const cancelled = () => s.calls.filter((c) => c.cancel).map((c) => c.cancel);
+
+  let id = await shown();
+  watch.stopWatch();
+  expect('switching every kind off takes the captcha notice down', cancelled(), [id]);
+
+  id = await shown();
+  s.conns = [];
+  await watch.watchTask();
+  expect('removing the connection takes its captcha notice down', cancelled(), [id]);
 }
 
 // Last, since a pass that never ends holds up every pass after it.
