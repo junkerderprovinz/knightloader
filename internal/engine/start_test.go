@@ -189,9 +189,9 @@ func newEndlessOrigin(t *testing.T) *endlessOrigin {
 	return o
 }
 
-// A start that ends before its task is created stops reading the answer to
-// its resolve, which the library would otherwise copy to the temp folder to
-// the end of the file.
+// A start that ends before its task is created, or is paused while it waits
+// to hear of further sources, stops reading the answer to its resolve, which
+// the library would otherwise copy to the temp folder to the end of the file.
 func TestAStartThatNeverCreatesItsTaskStopsFetchingTheFile(t *testing.T) {
 	for _, how := range []string{"pause", "remove", "skip"} {
 		t.Run(how, func(t *testing.T) {
@@ -209,6 +209,7 @@ func TestAStartThatNeverCreatesItsTaskStopsFetchingTheFile(t *testing.T) {
 			t.Cleanup(func() { _ = e.Close() })
 
 			asked, release := make(chan struct{}), make(chan struct{})
+			defer close(release)
 			j := Job{TaskID: "t1", URL: o.url, Conns: 1, Sources: func(ctx context.Context) []string {
 				close(asked)
 				select {
@@ -232,18 +233,78 @@ func TestAStartThatNeverCreatesItsTaskStopsFetchingTheFile(t *testing.T) {
 				<-asked
 				e.Remove("t1", true)
 			}
-			close(release)
-			startOver(t, e)
 
 			select {
 			case <-o.gone:
 			case <-time.After(10 * time.Second):
 				t.Fatal("the origin is still sending the file after the start ended")
 			}
+			startOver(t, e)
 			waitUntil(t, "the temp folder emptying", func() bool {
 				left, _ := os.ReadDir(tmp)
 				return len(left) == 0
 			})
 		})
+	}
+}
+
+// A start paused and resumed while it waits to hear of further sources
+// resolves its link again, since the pause closed the first resolve, and
+// downloads the file.
+func TestAStartPausedAndResumedWhileAskingForSourcesDownloads(t *testing.T) {
+	if raceEnabled {
+		t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see startSlow")
+	}
+	smallMultiSource(t)
+	body := bytes.Repeat([]byte("resumed "), 256<<10)
+	cut := make(chan struct{})
+	var cutOnce sync.Once
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeContent(pacedWriter{w, r}, r, "f.bin", time.Time{}, bytes.NewReader(body))
+		if r.Context().Err() != nil {
+			cutOnce.Do(func() { close(cut) })
+		}
+	}))
+	t.Cleanup(srv.Close)
+	u := &updates{}
+	dir := t.TempDir()
+	e, err := New(dir, u.add)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = e.Close() })
+
+	// An unlock that answers late whatever happens to the start.
+	asked, release := make(chan struct{}), make(chan struct{})
+	var askedOnce sync.Once
+	e.Start(Job{TaskID: "t1", URL: srv.URL + "/f.bin", Conns: 1, Sources: func(context.Context) []string {
+		askedOnce.Do(func() { close(asked) })
+		<-release
+		return nil
+	}})
+	<-asked
+	e.Pause("t1")
+	select {
+	case <-cut:
+	case <-time.After(10 * time.Second):
+		close(release)
+		t.Fatal("the pause left the resolve reading the file")
+	}
+	e.Resume("t1")
+	close(release)
+
+	waitUntil(t, "the resumed start ending", func() bool {
+		st := u.last().Status
+		return st == core.StatusDone || st == core.StatusError
+	})
+	if last := u.last(); last.Status != core.StatusDone {
+		t.Fatalf("the resumed start ended with %+v", last)
+	}
+	got, err := os.ReadFile(filepath.Join(dir, "f.bin"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(got, body) {
+		t.Errorf("the resumed download wrote %d bytes, want %d", len(got), len(body))
 	}
 }
