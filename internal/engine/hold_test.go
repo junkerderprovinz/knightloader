@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -111,5 +112,70 @@ func TestHoldLeavesWhatItCannotCarryOver(t *testing.T) {
 	e.mu.Unlock()
 	if e.Hold("t1") {
 		t.Error("a torrent was held, whose files the library keeps open in the old folder")
+	}
+}
+
+// A paused download whose folder moves carries on in the new folder after a
+// restart, whether it was moved before the restart or after one.
+func TestAPausedDownloadMovedToAnotherFolderCarriesOnAfterARestart(t *testing.T) {
+	for _, when := range []string{"before the restart", "after a restart"} {
+		t.Run(when, func(t *testing.T) {
+			if raceEnabled {
+				t.Skip("gopeed v1.9.3 has internal data races in every real HTTP transfer; see startSlow")
+			}
+			o := newSlowOrigin(t, 16<<20)
+			root, state := t.TempDir(), t.TempDir()
+			from, to := filepath.Join(root, "pkg"), filepath.Join(root, "renamed")
+			if err := os.MkdirAll(from, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			j := Job{TaskID: "t1", URL: o.srv.URL + "/big.bin", Conns: 4, Dir: from}
+			e, u := restarted(t, root, state)
+			e.Start(j)
+			waitUntil(t, "the first megabyte", func() bool { return u.loaded() >= 1<<20 })
+			e.Pause(j.TaskID)
+			waitUntil(t, "the pause", func() bool { return u.last().Status == core.StatusPaused })
+			file := u.last().File
+			if when == "after a restart" {
+				if err := e.Close(); err != nil {
+					t.Fatal(err)
+				}
+				e, _ = restarted(t, root, state)
+			}
+
+			if !e.Hold(j.TaskID) {
+				t.Fatal("the paused download was not held")
+			}
+			if err := os.Rename(from, to); err != nil {
+				t.Fatal(err)
+			}
+			e.Release(j.TaskID, moveInto(from, to), false)
+			if err := e.Close(); err != nil {
+				t.Fatal(err)
+			}
+			asked := o.requests()
+
+			e, u = restarted(t, root, state)
+			file = moveInto(from, to)(file)
+			if !e.Resumes(j.TaskID, file) {
+				t.Fatal("the restarted engine does not carry on with the moved file")
+			}
+			j.Dir = to
+			e.Start(j)
+			waitUntil(t, "the download finishing", func() bool { return u.last().Status == core.StatusDone })
+			o.mu.Lock()
+			later := slices.Clone(o.ranges[asked:])
+			o.mu.Unlock()
+			if whole := fromTheStart(later); len(whole) > 0 {
+				t.Errorf("after the restart the moved file was asked for from the start (Range %q)", whole)
+			}
+			got, err := os.ReadFile(file)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(got, o.data) {
+				t.Errorf("the finished file (%d bytes) is not what was served (%d bytes)", len(got), len(o.data))
+			}
+		})
 	}
 }
