@@ -182,7 +182,9 @@ func (g *Guard) expiry(token string) (int64, bool) {
 	}
 	payload, sig := token[:i], token[i+1:]
 	exp, _, _ := strings.Cut(payload, ".")
-	want, err := base64.RawURLEncoding.DecodeString(sig)
+	// The last character of the signature has spare bits, so a lenient decode
+	// would let other spellings of a revoked token past the revocation list.
+	want, err := base64.RawURLEncoding.Strict().DecodeString(sig)
 	if err != nil {
 		return 0, false
 	}
