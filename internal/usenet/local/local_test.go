@@ -16,6 +16,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/nntp"
 	"github.com/junkerderprovinz/knightloader/internal/nntp/nntptest"
+	"github.com/junkerderprovinz/knightloader/internal/nzb"
 	"github.com/junkerderprovinz/knightloader/internal/usenet"
 	"github.com/junkerderprovinz/knightloader/internal/yenc"
 )
@@ -62,7 +63,7 @@ func nzbOf(rs ...release) []byte {
 		fmt.Fprintf(&b, `<file poster="t" date="%d" subject="&quot;%s&quot; yEnc (1/%d)"><groups><group>alt.binaries.test</group></groups><segments>`,
 			time.Now().Unix(), r.name, len(r.parts))
 		for i, id := range r.ids {
-			fmt.Fprintf(&b, `<segment bytes="%d" number="%d">%s</segment>`, len(r.parts[i].Data)+100, i+1, id)
+			fmt.Fprintf(&b, `<segment bytes="%d" number="%d">%s</segment>`, len(r.parts[i].Data)+100, r.parts[i].Number, id)
 		}
 		b.WriteString(`</segments></file>`)
 	}
@@ -233,6 +234,81 @@ func TestIncompleteFileHandedOnIsNotFailed(t *testing.T) {
 		if u.Status == core.StatusError || u.Status == core.StatusDone {
 			t.Fatalf("a file handed to another account settled as %+v", u)
 		}
+	}
+}
+
+func TestAnNZBThatLeavesOutArticlesFailsTheFile(t *testing.T) {
+	for name, listed := range map[string][]int{"a gap": {1, 3}, "the end": {1, 2}} {
+		t.Run(name, func(t *testing.T) {
+			r := newRelease("gap.bin", 12_000, 4_000)
+			s := nntptest.New(t)
+			r.post(s)
+			short := release{name: r.name, data: r.data}
+			for _, n := range listed {
+				short.parts = append(short.parts, r.parts[n-1])
+				short.ids = append(short.ids, r.ids[n-1])
+			}
+			h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), short)
+			u := h.run(h.be, 0, r.name)
+			if u.Status != core.StatusError || u.Reason != core.ReasonGone || !strings.Contains(u.Err, "1 of the 3 articles") {
+				t.Fatalf("got %+v", u)
+			}
+			// After a restart every listed article is on disk, and the file
+			// still lacks one.
+			if u := h.run(h.backend(nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil)), 0, r.name); u.Status != core.StatusError {
+				t.Fatalf("after a restart got %+v", u)
+			}
+		})
+	}
+}
+
+func TestAnArticleNamingAFileFarLargerThanTheNZBIsDamaged(t *testing.T) {
+	r := newRelease("forged.bin", 8_000, 4_000)
+	s := nntptest.New(t)
+	forged := r.parts[0]
+	forged.FileSize = 1 << 60
+	s.AddPart(r.ids[0], forged)
+	r.post(s, 2)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	h := newHarness(t, nntp.NewClient([]nntp.Server{cfg}, nil), r)
+	u := h.run(h.be, 0, r.name)
+	if u.Status != core.StatusError || !strings.Contains(u.Err, "1 of the 2 articles") {
+		t.Fatalf("got %+v", u)
+	}
+	fi, err := os.Stat(PartFile(h.dir, FileLink(h.job, 0, r.name), "task"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Size() != int64(len(r.data)) {
+		t.Fatalf("the part file has %d bytes, want %d", fi.Size(), len(r.data))
+	}
+}
+
+func TestLoadedAfterARestartHoldsForATenGigabyteFile(t *testing.T) {
+	const size, n = int64(10_000_000_000), 5000
+	f := nzb.File{Name: "big.mkv"}
+	for i := range n {
+		f.Segments = append(f.Segments, nzb.Segment{Number: i + 1, Bytes: 2_050_000, ID: fmt.Sprintf("%d@test", i)})
+	}
+	part := filepath.Join(t.TempDir(), "big.mkv.task.klpart")
+	if err := os.WriteFile(part, nil, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := segMap{size: size, done: make([]bool, n)}
+	for i := range n / 2 {
+		m.done[i] = true
+	}
+	if err := m.save(part + mapSuffix); err != nil {
+		t.Fatal(err)
+	}
+	d, err := openDownload(part, f)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer d.f.Close()
+	if got := d.loaded(); got != size/2 {
+		t.Fatalf("half of the file is on disk, and loaded says %d", got)
 	}
 }
 
@@ -429,6 +505,17 @@ func TestServiceStatusHoldsRecoveryVolumes(t *testing.T) {
 	}
 	if _, err := svc.Submit(context.Background(), "x", []byte(`<nzb></nzb>`)); err == nil {
 		t.Fatal("an empty .nzb was taken")
+	}
+}
+
+func TestAMapWithoutTheArticleCountKeepsItsArticles(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "x.segments")
+	if err := os.WriteFile(path, []byte("klsegments 1 9000 3\n101"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := loadSegMap(path, 3)
+	if m.size != 9000 || m.count() != 2 || m.total != 0 {
+		t.Fatalf("got size %d, %d articles, total %d", m.size, m.count(), m.total)
 	}
 }
 
