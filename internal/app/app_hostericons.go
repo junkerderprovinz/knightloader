@@ -100,6 +100,15 @@ var ErrIconPending = errors.New("icon: still being fetched")
 // hundred hosters does not open a few hundred connections.
 var iconSlots = make(chan struct{}, 8)
 
+// iconMaxPending bounds the fetches waiting for a slot and iconMaxKnown the
+// hosts kept in memory and on disk. Any host name starts a fetch of its own,
+// so without them a client cycling through made-up names could queue work and
+// fill memory and the disk.
+const (
+	iconMaxPending = 64
+	iconMaxKnown   = 1024
+)
+
 // fetchHostIcon is fetchFavicon, a variable so tests can stand in for the
 // network.
 var fetchHostIcon = fetchFavicon
@@ -135,7 +144,7 @@ func (a *App) cachedHosterIcon(host string) (body []byte, contentType string, kn
 	e, found := a.icons[host]
 	if !found {
 		if e, found = readCachedIcon(a.iconDir(), host); found {
-			a.icons[host] = e
+			a.rememberIconLocked(host, e)
 		}
 	}
 	a.iconMu.Unlock()
@@ -158,11 +167,18 @@ func (a *App) cachedHosterIcon(host string) (body []byte, contentType string, kn
 }
 
 // fetchHosterIcon starts fetching host's icon unless that fetch is already
-// running, and returns a channel closed once the result is cached.
+// running, and returns a channel closed once the result is cached. With
+// iconMaxPending fetches queued it starts nothing and the channel is closed
+// already; the page asks again later.
 func (a *App) fetchHosterIcon(host string) <-chan struct{} {
 	a.iconMu.Lock()
 	defer a.iconMu.Unlock()
 	if done, ok := a.iconFetches[host]; ok {
+		return done
+	}
+	if len(a.iconFetches) >= iconMaxPending {
+		done := make(chan struct{})
+		close(done)
 		return done
 	}
 	if a.icons == nil {
@@ -180,7 +196,7 @@ func (a *App) fetchHosterIcon(host string) <-chan struct{} {
 		e := a.storeHosterIcon(host, body, ct, err)
 
 		a.iconMu.Lock()
-		a.icons[host] = e
+		a.rememberIconLocked(host, e)
 		delete(a.iconFetches, host)
 		a.iconMu.Unlock()
 		close(done)
@@ -211,6 +227,27 @@ func (a *App) storeHosterIcon(host string, body []byte, contentType string, fetc
 	}
 	_ = os.Remove(base + iconMissExt)
 	return iconEntry{at: now, path: path, contentType: contentType}
+}
+
+// rememberIconLocked keeps e for host. Past iconMaxKnown hosts it forgets the
+// one fetched longest ago, its files included. Called with iconMu held.
+func (a *App) rememberIconLocked(host string, e iconEntry) {
+	a.icons[host] = e
+	if len(a.icons) <= iconMaxKnown {
+		return
+	}
+	oldest := ""
+	for h, o := range a.icons {
+		if h != host && (oldest == "" || o.at.Before(a.icons[oldest].at)) {
+			oldest = h
+		}
+	}
+	delete(a.icons, oldest)
+	base := filepath.Join(a.iconDir(), iconFileBase(oldest))
+	for _, ext := range iconTypes {
+		_ = os.Remove(base + "." + ext)
+	}
+	_ = os.Remove(base + iconMissExt)
 }
 
 func (a *App) iconDir() string { return filepath.Join(a.DataDir, "icons") }

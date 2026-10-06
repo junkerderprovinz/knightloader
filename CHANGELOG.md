@@ -90,6 +90,24 @@ release's tag.
   download's own link, so the service could refuse them or flag the account.
   An account that allows fewer connections for the hoster is no longer asked
   to unlock the file.
+- **Restarting KnightLoader no longer waits for a player paused on the debrid
+  drive.** A media server that stopped reading from an rclone mount of the
+  drive held a restart up for five seconds.
+
+### Security
+
+- **Signing out ends every copy of the session cookie.** A copy taken before
+  the sign-out worked again once its last character was changed.
+- **Play links end with the token that asked for them.** Revoking a phone's
+  token, changing the password or signing out everywhere ends the play links
+  handed out before. They used to keep working for up to twelve hours.
+- **A body sent with an API token stops at 16 MiB** when it adds links or
+  changes downloads, the same ceiling as without a token. The instance used to
+  read all of it into memory first.
+- **A file asked for through the group is refused rather than read into
+  memory.** A group member, or a token on another instance, could make an
+  instance load a whole finished file into memory before it answered, and no
+  member can receive an answer that large anyway.
 
 ## [1.8.0] - 2026-10-05
 

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"hash/crc32"
+	"maps"
 	"net"
 	"net/http"
 	"net/http/httptest"
@@ -686,4 +687,58 @@ func TestALocalNetworkNameIsNeverFetched(t *testing.T) {
 		t.Errorf("HosterIcon(dl.example.com) = %v, want a fetch for a public name", err)
 	}
 	<-a.fetchHosterIcon("dl.example.com")
+}
+
+// Anybody who may read can ask for made-up host names, and every name is a
+// fetch of its own, so the queue of fetches waiting for a slot has a bound.
+func TestMadeUpHostsQueueABoundedNumberOfFetches(t *testing.T) {
+	release := make(chan struct{})
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		<-release
+		return nil, "", errors.New("no such host")
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	for i := range 20 * iconMaxPending {
+		_, _, _ = a.HosterIcon(fmt.Sprintf("made-up-%d.example.org", i))
+	}
+	a.iconMu.Lock()
+	pending := slices.Collect(maps.Values(a.iconFetches))
+	a.iconMu.Unlock()
+	close(release)
+	for _, done := range pending {
+		<-done
+	}
+	if len(pending) > iconMaxPending {
+		t.Errorf("%d fetches are queued, the bound is %d", len(pending), iconMaxPending)
+	}
+}
+
+// Each answer is kept in memory and on disk, so a stream of made-up names
+// must not grow either without end.
+func TestTheIconCacheForgetsTheOldestHostPastItsBound(t *testing.T) {
+	stubIconFetch(t, func(context.Context, string) ([]byte, string, error) {
+		return nil, "", errors.New("no such host")
+	})
+	a := &App{DataDir: t.TempDir()}
+
+	for i := range iconMaxKnown + 50 {
+		<-a.fetchHosterIcon(fmt.Sprintf("made-up-%d.example.org", i))
+	}
+	a.iconMu.Lock()
+	known := len(a.icons)
+	a.iconMu.Unlock()
+	if known > iconMaxKnown {
+		t.Errorf("%d hosts are kept in memory, the bound is %d", known, iconMaxKnown)
+	}
+	files, err := os.ReadDir(a.iconDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(files) > iconMaxKnown {
+		t.Errorf("%d files are kept on disk, the bound is %d", len(files), iconMaxKnown)
+	}
+	if _, _, known := a.cachedHosterIcon(fmt.Sprintf("made-up-%d.example.org", iconMaxKnown+49)); !known {
+		t.Error("the newest host was forgotten")
+	}
 }

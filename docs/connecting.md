@@ -441,8 +441,10 @@ needs.
 The phone app's Play button asks for a play link with `POST
 /api/tasks/{id}/play`, which needs Read. A player app opens the link without a
 token, so the link itself is the key: it opens that one file and nothing
-else, for twelve hours or until the instance restarts, and anyone who has it
-can play the file in that time. For a torrent of several files that is the
+else, for twelve hours, and anyone who has it can play the file in that time.
+The link stops working before that when the instance restarts, when the token
+that asked for it is revoked, and when you change the password or sign out
+everywhere. For a torrent of several files that is the
 file Play picked, not the rest of the torrent.
 
 A call the token has no right to is answered with a 403 that names the missing
