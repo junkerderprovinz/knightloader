@@ -26,6 +26,8 @@ profile. We back none of it up, and removing the extension removes all of it.
 - Your connection phrase: the twelve words your KnightLoader instances share.
   It is kept in the extension's own database, which the scripts the extension
   runs on websites for Click'n'Load cannot read.
+- A random ID for this browser in your group. The extension creates it the
+  first time it talks to the group and deletes it when the browser leaves.
 - Which of your instances is the default target.
 - Settings: interface language, whether Click'n'Load interception is on, the
   Click'n'Load countdown length, whether the clipboard watch is on and why it
@@ -90,6 +92,10 @@ that address's last failed attempt.
 
 These travel through the relay, and only your instances can read them:
 
+- With every connection and request, this browser's ID in your group (see
+  above), so your instances list the browser once and can turn it away after
+  you remove it there. Only your instances can read it, so the relay cannot use
+  it to link one connection to the next.
 - When you send something from a page: the link, image address, selected text or
   page address you chose, and the page title, which your instance uses as the
   package name.
