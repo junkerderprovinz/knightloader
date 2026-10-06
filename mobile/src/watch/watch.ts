@@ -280,7 +280,7 @@ async function mayNotify(prefs: NotifyPrefs): Promise<boolean> {
   if (!KnightWatch || Platform.OS !== 'android') return false;
   if (Platform.Version >= 33 && !(await PermissionsAndroid.check(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS))) {
     if (prefs.asked) return false;
-    await saveNotifyPrefs({ ...prefs, asked: true });
+    await saveNotifyPrefs({ asked: true });
     const answer = await PermissionsAndroid.request(PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS);
     if (answer !== PermissionsAndroid.RESULTS.GRANTED) return false;
   }
@@ -336,7 +336,7 @@ export async function startWatch(): Promise<void> {
 
   const now = await loadNotifyPrefs();
   if (now.stay && !now.batteryAsked && !KnightWatch.batteryExempt()) {
-    await saveNotifyPrefs({ ...now, batteryAsked: true });
+    await saveNotifyPrefs({ batteryAsked: true });
     batteryAsk?.();
   }
 }

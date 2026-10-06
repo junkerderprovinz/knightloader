@@ -11,6 +11,7 @@ import { registerHooks } from 'node:module';
 import { dirname, join } from 'node:path';
 import { mock } from 'node:test';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compile, mount } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const w = await import(pathToFileURL(join(here, 'src', 'watch', 'rules.ts')).href);
@@ -304,6 +305,7 @@ registerHooks({
   },
 });
 const watch = await import(pathToFileURL(join(here, 'src', 'watch', 'watch.ts')).href);
+const notifyPrefs = await import(pathToFileURL(join(here, 'src', 'watch', 'prefs.ts')).href);
 
 const settle = async () => {
   for (let i = 0; i < 20; i++) await new Promise((r) => setImmediate(r));
@@ -448,6 +450,57 @@ const lastNext = () => s.calls.filter((c) => c.next).at(-1);
   s.conns = [];
   await watch.watchTask();
   expect('removing the connection takes its captcha notice down', cancelled(), [id]);
+}
+
+// The settings card stores only the switch that was flipped, so it does not
+// put back what the watch stored meanwhile from the copy it read on opening.
+{
+  fresh();
+  prefs({ stay: false });
+  s.appState = 'active';
+  s.native.batteryExempt = () => false;
+  let offered = 0;
+  watch.onBatteryAsk(() => offered++);
+  const { NotificationsCard } = compile(join(here, 'src', 'components', 'NotificationsCard.tsx'), {
+    'react-native': {
+      AppState: { addEventListener: () => ({ remove() {} }) },
+      Linking: { openSettings() {} },
+      StyleSheet: { create: (styles) => styles },
+      View: 'View',
+    },
+    '@react-navigation/native': { useFocusEffect() {} },
+    '../../modules/watch': { KnightWatch: { ...s.native, vendor: () => null } },
+    '../i18n/I18nContext': { useT: () => ({ t: (key) => key }) },
+    '../theme/AppearanceContext': { useAppearance: () => ({ c: {} }) },
+    '../theme/tokens': { TYPE: {} },
+    '../watch/prefs': notifyPrefs,
+    '../watch/watch': watch,
+    './glim': { GlimButton: 'GlimButton', GlimRow: 'GlimRow', GlimToggle: 'GlimToggle', NotchCard: 'NotchCard' },
+    './IconBadge': { Check: 'Check', Gear: 'Gear' },
+    './Text': { Text: 'Text' },
+  });
+  const card = mount(() => NotificationsCard({ hue: 0 }));
+  const toggle = (label) =>
+    card.shown().elements.find((e) => e.type === 'GlimRow' && e.props.label === label)?.props.control.props;
+  const stored = async () => {
+    await settle();
+    return notifyPrefs.loadNotifyPrefs();
+  };
+  await card.settle();
+  toggle('settings.notifyStay')?.onChange(true);
+  await card.settle();
+  expect('staying connected offers battery optimisation once', offered, 1);
+  toggle('settings.notifyCaptcha')?.onChange(false);
+  await card.settle();
+  const after = await stored();
+  expect('a switch flipped afterwards keeps the offer made', [after.captcha, after.batteryAsked], [false, true]);
+
+  await notifyPrefs.saveNotifyPrefs({ asked: true });
+  toggle('settings.notifyFinished')?.onChange(false);
+  await card.settle();
+  expect('a switch flipped after the question keeps it asked', (await stored()).asked, true);
+  card.unmount();
+  s.native.batteryExempt = () => true;
 }
 
 // Last, since a pass that never ends holds up every pass after it.
