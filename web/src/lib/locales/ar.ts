@@ -2615,6 +2615,7 @@ export const ar: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'لا تفحص هذه القاعدة شيئًا، لذا ستطابق هنا كل رابط.',
   'settings.jdimport.reason.ruleNoAction': 'لا شيء مما تضبطه هذه القاعدة موجود في KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'لا يستطيع KnightLoader استخدام هذه القاعدة: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'لا يمكن استخدام مجلد التنزيل {folder} على هذا الجهاز، لذلك تبقى القاعدة غير محددة. يمكن تحديدها رغم ذلك وتغيير المجلد في القاعدة لاحقًا.',
   'settings.jdimport.reason.rulePlaceholder': 'يستخدم {field} الرمز {tag}، وهو غير موجود في KnightLoader، لذا يُترك هذا الجزء.',
   'settings.jdimport.reason.ruleRenameKept': 'يبقى اسم الملف الجديد في القاعدة ويظهر في اختبار القاعدة، لكن التنزيلات لا تستخدمه بعد.',
   'settings.jdimport.reason.ruleDropped': 'تُرك جانبًا، لأن قواعد KnightLoader لا تستطيع فعل هذا: {actions}',

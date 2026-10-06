@@ -2617,6 +2617,7 @@ export const fi: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Tämä sääntö ei tarkista mitään, joten täällä se osuisi jokaiseen linkkiin.',
   'settings.jdimport.reason.ruleNoAction': 'Mitään, mitä tämä sääntö asettaa, ei ole KnightLoaderissa.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ei voi käyttää tätä sääntöä: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Latauskansiota {folder} ei voi käyttää tällä koneella, joten sääntöä ei ole valittu. Sen voi silti valita ja vaihtaa kansion säännössä jälkikäteen.',
   'settings.jdimport.reason.rulePlaceholder': '{field} käyttää merkintää {tag}, jota KnightLoaderissa ei ole, joten se osa jätetään pois.',
   'settings.jdimport.reason.ruleRenameKept': 'Uusi tiedostonimi säilyy säännössä ja näkyy säännön testissä, mutta lataukset eivät vielä käytä sitä.',
   'settings.jdimport.reason.ruleDropped': 'Jätetty pois, koska KnightLoaderin säännöt eivät osaa tätä: {actions}',

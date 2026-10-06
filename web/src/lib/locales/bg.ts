@@ -2616,6 +2616,7 @@ export const bg: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Това правило не проверява нищо, затова тук би съвпаднало с всяка връзка.',
   'settings.jdimport.reason.ruleNoAction': 'Нищо, което това правило задава, не съществува в KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader не може да използва това правило: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Папката за изтегляния {folder} не може да се използва на тази машина, затова правилото остава неотметнато. Все пак може да се отметне, а папката да се смени в правилото след това.',
   'settings.jdimport.reason.rulePlaceholder': '{field} използва {tag}, което KnightLoader няма, затова тази част е пропусната.',
   'settings.jdimport.reason.ruleRenameKept': 'Новото име на файла остава в правилото и се показва в теста на правилото, но изтеглянията все още не го използват.',
   'settings.jdimport.reason.ruleDropped': 'Пропуснато, защото правилата на KnightLoader не могат да направят това: {actions}',

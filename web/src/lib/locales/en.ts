@@ -3175,6 +3175,7 @@ export const en = {
   'settings.jdimport.reason.ruleNoCondition': 'This rule tests nothing, so here it would match every link.',
   'settings.jdimport.reason.ruleNoAction': 'Nothing this rule sets exists in KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader cannot use this rule: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'The download folder {folder} cannot be used on this machine, so the rule is left unticked. You can tick it anyway and change the folder in the rule afterwards.',
   'settings.jdimport.reason.rulePlaceholder': 'The {field} uses {tag}, which KnightLoader does not have, so that part is left out.',
   'settings.jdimport.reason.ruleRenameKept': 'The new file name stays in the rule and shows in the rule test, but downloads do not use it yet.',
   'settings.jdimport.reason.ruleDropped': 'Left out, since KnightLoader rules cannot do this: {actions}',

@@ -473,6 +473,16 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 			} else {
 				p.rules[id] = m
 				item.Ticked = m.Enabled
+				// Like JDownloader's own download folder, a rule's folder is a path on the
+				// machine JDownloader ran on.
+				if dir := m.Rule.Action.DownloadDir; dir != "" && settings.Validate("the rule's download folder", dir) != nil {
+					item.Ticked = false
+					item.Notes = append(item.Notes, jdimport.Reason{
+						Code:   "ruleFolderElsewhere",
+						Params: map[string]string{"folder": dir},
+						Text:   fmt.Sprintf("The download folder %s cannot be used on this machine, so the rule is left unticked. You can tick it anyway and change the folder in the rule afterwards.", dir),
+					})
+				}
 			}
 		}
 		items = append(items, item)
