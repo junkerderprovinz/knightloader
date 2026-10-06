@@ -15,6 +15,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io/fs"
 	"log"
 	"maps"
 	"net/http"
@@ -174,6 +175,17 @@ func (k *keptTransfers) writeLocked(gid, id string, t *download.Task) error {
 	if err != nil {
 		return err
 	}
+	if err := k.storeLocked(gid, raw); err != nil {
+		return err
+	}
+	k.owner[gid] = id
+	k.byTask[id] = gid
+	return nil
+}
+
+// storeLocked replaces the record of library task gid with raw, in one rename
+// so a crash leaves the old record or the new one. Caller holds k.mu.
+func (k *keptTransfers) storeLocked(gid string, raw []byte) error {
 	f, err := os.CreateTemp(k.dir, gid+"-*.tmp")
 	if err != nil {
 		return err
@@ -187,11 +199,32 @@ func (k *keptTransfers) writeLocked(gid, id string, t *download.Task) error {
 	}
 	if err != nil {
 		_ = os.Remove(f.Name())
+	}
+	return err
+}
+
+// moved points the record of library task gid, if it has one, at path, the
+// folder its file was moved to. The library saves a paused task only when it
+// pauses, so the record would otherwise send the next boot to the old folder.
+func (k *keptTransfers) moved(gid, path string) error {
+	k.mu.Lock()
+	defer k.mu.Unlock()
+	raw, err := os.ReadFile(filepath.Join(k.dir, gid+".json"))
+	if errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err != nil {
 		return err
 	}
-	k.owner[gid] = id
-	k.byTask[id] = gid
-	return nil
+	var rec keptRecord
+	if err := json.Unmarshal(raw, &rec); err != nil {
+		return err
+	}
+	rec.Task.Meta.Opts.Path = path
+	if raw, err = json.Marshal(rec); err != nil {
+		return err
+	}
+	return k.storeLocked(gid, raw)
 }
 
 // ownShare is opts with the connections of req's own link alone. Start
