@@ -42,6 +42,11 @@ type usenetState struct {
 	// downloads their files.
 	own      *local.Service
 	articles *local.Backend
+	// checks holds the par2 check of each job the own servers took, by the
+	// job's id there, guarded by a.mu. checkSlot lets one check run at a
+	// time.
+	checks    map[string]*usenetCheck
+	checkSlot chan struct{}
 	// fixed is set once SetUsenetServices has put services in place, which
 	// rewireUsenet then leaves alone.
 	fixed bool
@@ -58,7 +63,7 @@ func (a *App) usenetStateFor() *usenetState {
 	defer usenetMu.Unlock()
 	st, ok := usenetReg[a]
 	if !ok {
-		st = &usenetState{}
+		st = &usenetState{checks: map[string]*usenetCheck{}, checkSlot: make(chan struct{}, 1)}
 		st.jobs = usenet.New(usenet.Options{
 			Dir:      filepath.Join(a.DataDir, "usenet"),
 			Stage:    a.stageUsenetFiles,
@@ -178,6 +183,7 @@ func (a *App) setUsenetServices(st *usenetState, services []usenet.Service) {
 // whole, since a finished job stages tasks.
 func (a *App) startUsenet() {
 	jobs := a.usenetStateFor().jobs
+	a.resumeUsenetChecks()
 	a.spawn(func() { jobs.Run(a.ctx) })
 	a.spawn(func() {
 		<-a.ctx.Done()
@@ -260,6 +266,13 @@ func (a *App) CancelUsenetJob(id string) []string {
 // file in a folder of the download keeps that folder under the package's, or
 // under the job's own folder when it has one.
 func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, error) {
+	if j.Service == local.ResolverID {
+		// Owed before the first file can finish.
+		a.usenetStateFor().jobs.SetCheck(j.ID, usenet.CheckPending)
+		a.mu.Lock()
+		delete(a.usenetStateFor().checks, j.Remote)
+		a.mu.Unlock()
+	}
 	kept := a.keptUsenetFiles(j.Kept)
 	links := make([]resolver.Result, 0, len(files))
 	dirOf := map[string]string{}
@@ -349,13 +362,14 @@ func (a *App) keptUsenetFiles(ids []string) map[string]string {
 	return out
 }
 
-// usenetDone picks the tasks among ids whose files are downloaded.
+// usenetDone picks the tasks among ids whose files are downloaded and not
+// known to be damaged.
 func (a *App) usenetDone(ids []string) []string {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	var out []string
 	for _, id := range ids {
-		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone {
+		if t := a.tasks[id]; t != nil && t.Status == core.StatusDone && !a.usenetDamagedLocked(t) {
 			out = append(out, id)
 		}
 	}
@@ -444,22 +458,55 @@ func HeldSpare(t *core.Task) bool {
 	return !t.Enabled && t.Status != core.StatusDone && strings.HasPrefix(t.URL, local.ResolverID+"://") && nzb.IsRecoveryVolume(t.Name)
 }
 
-// usenetIncomplete hands a job some of whose articles no own server has to the
-// next account, and removes the tasks it had become, files and all, but for
-// the finished ones: their files stay, and the next account's copies of them
-// are not staged. It reports false when no other account is left, and the
-// file then fails.
-func (a *App) usenetIncomplete(job string, missing int) bool {
+// usenetIncomplete decides about a file some of whose articles no own server
+// has. A release with par2 files keeps it, gaps and all, for the repair,
+// until the gaps are more than its recovery volumes can fill. Otherwise the
+// job goes to the next account, and the tasks it had become are removed,
+// files and all, but for the finished ones that are whole: their files stay,
+// and the next account's copies of them are not staged. With no other account
+// left the file fails, and so does the rest of a release beyond repair.
+func (a *App) usenetIncomplete(taskID, job string, missing int, lost int64) local.Verdict {
 	reason := fmt.Sprintf("%d articles are on none of your Usenet servers", missing)
 	if missing == 1 {
 		reason = "1 article is on none of your Usenet servers"
 	}
-	ids, ok := a.usenetStateFor().jobs.Fallback(local.ResolverID, job, reason)
-	if !ok {
-		return false
+	repairable := a.releaseHasPar2(job)
+	a.mu.Lock()
+	c := a.usenetCheckLocked(job)
+	keep := repairable && c != nil && c.outcome == usenet.CheckPending
+	if keep {
+		c.damaged[taskID] = true
+		if t := a.tasks[taskID]; t != nil && !strings.EqualFold(filepath.Ext(t.Name), ".par2") {
+			c.lost[taskID] = lost
+		}
 	}
+	a.mu.Unlock()
+	if keep {
+		why := a.usenetBeyondRepair(c)
+		if why == "" {
+			return local.Keep
+		}
+		reason = why
+	}
+	jobs := a.usenetStateFor().jobs
+	j, found := jobs.Lookup(local.ResolverID, job)
+	ids, ok := jobs.Fallback(local.ResolverID, job, reason)
+	if !ok {
+		if keep && found {
+			// Before the answer frees this download's slot for another file
+			// of a release that is lost anyway.
+			a.failUsenetJob(c, j, reason)
+		}
+		return local.Fail
+	}
+	a.mu.Lock()
+	delete(a.usenetStateFor().checks, job)
+	a.mu.Unlock()
 	// Apart from the caller, which is one of these tasks' downloads and
-	// returns once it has its answer.
-	a.spawn(func() { a.RemoveTasks(ids, true) })
-	return true
+	// returns once it has its answer. The files it keeps wait for no check.
+	a.spawn(func() {
+		a.RemoveTasks(ids, true)
+		a.releaseUsenetFiles(j.TaskIDs)
+	})
+	return local.HandedOn
 }

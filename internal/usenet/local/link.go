@@ -29,6 +29,16 @@ func LinkName(link string) string {
 	return ref.name
 }
 
+// LinkJob is the job a link's file belongs to, or "" for a link that is not
+// one of these.
+func LinkJob(link string) string {
+	ref, err := parseLink(link)
+	if err != nil {
+		return ""
+	}
+	return ref.job
+}
+
 type fileRef struct {
 	job   string
 	index int

@@ -82,7 +82,26 @@ type Job struct {
 	// Cleared is whether the service's copy is dealt with: deleted, or left
 	// there after the deletes kept failing.
 	Cleared bool `json:"cleared,omitempty"`
+	// Check is where the par2 check of a job the own servers fetched stands.
+	// The manager only carries it.
+	Check Check `json:"check,omitempty"`
 }
+
+// Check is where a job's par2 check stands.
+type Check string
+
+const (
+	// CheckNone is a job that owes no check: one a debrid service fetched,
+	// which repairs it there, or one staged before there was a check.
+	CheckNone Check = ""
+	// CheckPending is a check still to come or under way.
+	CheckPending Check = "pending"
+	// CheckPassed is a release that is whole, as it arrived or repaired, or
+	// that came without par2 files to check it by.
+	CheckPassed Check = "passed"
+	// CheckFailed is a release its par2 files cannot repair.
+	CheckFailed Check = "failed"
+)
 
 // ErrNoService is an NZB offered while no account can take one.
 var ErrNoService = errors.New("no Usenet server, TorBox or Premiumize.me account here can fetch an .nzb")
@@ -310,6 +329,35 @@ func (m *Manager) Get(id string) (Job, bool) {
 		return Job{}, false
 	}
 	return m.copyLocked(j), true
+}
+
+// Lookup returns the job the account in slot knows as remote, while that
+// account has it: being fetched there or staged from there.
+func (m *Manager) Lookup(slot, remote string) (Job, bool) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	for _, j := range m.jobs {
+		if j.Service == slot && j.Remote == remote && (j.State == StateFetching || j.State == StateStaged) {
+			return m.copyLocked(j), true
+		}
+	}
+	return Job{}, false
+}
+
+// Jobs returns a copy of every job.
+func (m *Manager) Jobs() []Job {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	out := make([]Job, 0, len(m.jobs))
+	for _, j := range m.jobs {
+		out = append(out, m.copyLocked(j))
+	}
+	return out
+}
+
+// SetCheck records how a job's par2 check ended.
+func (m *Manager) SetCheck(id string, c Check) {
+	m.update(id, func(j *Job) { j.Check = c })
 }
 
 // Cancel drops a job whose files are not tasks yet, and deletes it at the
@@ -811,7 +859,7 @@ func (m *Manager) Fallback(slot, remote, reason string) ([]string, bool) {
 	j.State, j.Refused, j.Reason = StateWaiting, trial.Refused, reason
 	j.Service, j.Label, j.Remote, j.Taken = "", "", "", time.Time{}
 	j.TaskIDs, j.Loaded, j.Speed, j.Ended, j.Cleared = nil, 0, 0, time.Time{}, false
-	j.Attempts, j.RetryAt = 0, time.Time{}
+	j.Attempts, j.RetryAt, j.Check = 0, time.Time{}, CheckNone
 	m.saveLocked()
 	m.mu.Unlock()
 	log.Printf("usenet: %s goes to the next account: %s", trial.Name, reason)

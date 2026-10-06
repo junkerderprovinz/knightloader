@@ -49,10 +49,11 @@ type Backend struct {
 	// Dir returns the destination for one task, the backend's own directory
 	// when nil or empty.
 	Dir func(taskID string) string
-	// Incomplete hears of a file some of whose articles no server has. It
-	// reports whether the job went to another account, in which case the
-	// task is not failed here: the app removes it with the rest of the job.
-	Incomplete func(job string, missing int) bool
+	// Incomplete hears of the file of taskID, some of whose articles no
+	// server has, and decides what becomes of it. lost is how many bytes of
+	// the file are not written, 0 when no article said how large it is. Nil
+	// fails the file.
+	Incomplete func(taskID, job string, missing int, lost int64) Verdict
 	// Wait is the first pause before an article is asked for again while a
 	// server is unreachable.
 	Wait time.Duration
@@ -61,14 +62,30 @@ type Backend struct {
 	runs    map[string]*runState
 	link    map[string]string
 	part    map[string]string
+	whole   map[string]bool
 	stopped bool
 }
+
+// Verdict is what becomes of a file some of whose articles no server has.
+type Verdict int
+
+const (
+	// Fail fails the file with the count of its missing articles.
+	Fail Verdict = iota
+	// HandedOn leaves the task alone: its job went to another account, and
+	// the app removes it with the rest of the job.
+	HandedOn
+	// Keep finishes the file with zeros where the articles are missing, for
+	// a par2 repair to fill in.
+	Keep
+)
 
 // NewBackend builds a backend. client is asked at the start of each file.
 func NewBackend(files Files, client func() *nntp.Client, dir string, onUpdate func(string, core.Update)) *Backend {
 	return &Backend{
 		files: files, client: client, dir: dir, onUpdate: onUpdate, Wait: defaultWait,
 		runs: map[string]*runState{}, link: map[string]string{}, part: map[string]string{},
+		whole: map[string]bool{},
 	}
 }
 
@@ -127,6 +144,7 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	part := b.part[taskID]
 	delete(b.link, taskID)
 	delete(b.part, taskID)
+	delete(b.whole, taskID)
 	b.mu.Unlock()
 	if r != nil {
 		r.cancel()
@@ -257,19 +275,26 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	case closeErr != nil:
 		fail(core.Update{Err: closeErr.Error()})
 		return
-	case missing > 0:
-		if b.Incomplete != nil && b.Incomplete(ref.job, missing) {
+	}
+	if missing > 0 {
+		verdict := Fail
+		if b.Incomplete != nil {
+			verdict = b.Incomplete(taskID, ref.job, missing, d.lost())
+		}
+		switch verdict {
+		case HandedOn:
+			return
+		case Fail:
+			verb := "are"
+			if missing == 1 {
+				verb = "is"
+			}
+			fail(core.Update{
+				Err:    fmt.Sprintf("%d of the %d articles of this file %s on none of your Usenet servers", missing, articles, verb),
+				Reason: core.ReasonGone,
+			})
 			return
 		}
-		verb := "are"
-		if missing == 1 {
-			verb = "is"
-		}
-		fail(core.Update{
-			Err:    fmt.Sprintf("%d of the %d articles of this file %s on none of your Usenet servers", missing, articles, verb),
-			Reason: core.ReasonGone,
-		})
-		return
 	}
 
 	final, err := d.finish(filepath.Join(dir, name))
@@ -277,7 +302,20 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 		fail(core.Update{Err: err.Error()})
 		return
 	}
+	b.mu.Lock()
+	b.whole[taskID] = missing == 0
+	b.mu.Unlock()
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: d.size(), Loaded: d.size(), File: final})
+}
+
+// Whole reports whether the file of taskID finished while this backend ran
+// with every article in place, each matching its CRC. Such a file needs no
+// reading to be known whole. A file finished before a restart is not known
+// either way.
+func (b *Backend) Whole(taskID string) bool {
+	b.mu.Lock()
+	defer b.mu.Unlock()
+	return b.whole[taskID]
 }
 
 // fetch downloads the articles the map lacks, on as many workers as the
