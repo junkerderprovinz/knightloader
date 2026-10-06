@@ -206,32 +206,37 @@ func TestAReleaseUnderItsCheckIsNotCompleteForSonarr(t *testing.T) {
 	}
 }
 
-func TestACheckARestartCutShortRunsAgain(t *testing.T) {
-	t.Parallel()
-	dataDir, downloads := t.TempDir(), t.TempDir()
-	r := newShowRelease(t, nil)
-	files := append([]posting{r.index, r.part1, r.part2}, r.volumes...)
-	const remote = "0123456789abcdef"
+// onDisk is one file of a job as a restart finds it: downloaded with data,
+// failed for good, or a recovery volume still held back.
+type onDisk struct {
+	p      posting
+	data   []byte
+	failed bool
+}
 
+// restartWith stores an own servers' job whose par2 check is still owed, with
+// a task for each file, and starts an app on it. data nil holds a file back.
+func restartWith(t *testing.T, downloads string, files []onDisk) *app.App {
+	t.Helper()
+	dataDir := t.TempDir()
+	const remote = "0123456789abcdef"
 	st, err := store.Open(filepath.Join(dataDir, "knightloader.db"))
 	if err != nil {
 		t.Fatal(err)
 	}
 	var ids []string
-	for i, p := range files {
+	var listed []posting
+	for i, f := range files {
 		task := &core.Task{
-			ID: fmt.Sprintf("t%d", i), URL: local.FileLink(remote, i, p.name), Name: p.name, Resolver: local.ResolverID,
-			Status: core.StatusDone, Enabled: true, Dir: downloads, CreatedAt: time.Now(), Size: int64(len(p.data)),
+			ID: fmt.Sprintf("t%d", i), URL: local.FileLink(remote, i, f.p.name), Name: f.p.name, Resolver: local.ResolverID,
+			Status: core.StatusDone, Enabled: true, Dir: downloads, CreatedAt: time.Now(), Size: int64(len(f.p.data)),
 		}
 		switch {
-		case p.name == "show.vol01+2.par2", i < 3:
-			task.File = filepath.Join(downloads, p.name)
-			data := bytes.Clone(p.data)
-			if p.name == r.part1.name {
-				// Two slices' worth the restart left unrepaired.
-				clear(data[50_000:58_000])
-			}
-			if err := os.WriteFile(task.File, data, 0o600); err != nil {
+		case f.failed:
+			task.Status, task.Error, task.Reason = core.StatusError, "a Usenet server could not be reached", core.ReasonNetwork
+		case f.data != nil:
+			task.File = filepath.Join(downloads, f.p.name)
+			if err := os.WriteFile(task.File, f.data, 0o600); err != nil {
 				t.Fatal(err)
 			}
 		default:
@@ -241,6 +246,7 @@ func TestACheckARestartCutShortRunsAgain(t *testing.T) {
 			t.Fatal(err)
 		}
 		ids = append(ids, task.ID)
+		listed = append(listed, f.p)
 	}
 	if err := st.Close(); err != nil {
 		t.Fatal(err)
@@ -249,7 +255,7 @@ func TestACheckARestartCutShortRunsAgain(t *testing.T) {
 	if err := os.MkdirAll(own, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(own, remote+".nzb"), nzbFor(files...), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(own, remote+".nzb"), nzbFor(listed...), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	jobs, _ := json.Marshal([]usenet.Job{{
@@ -259,7 +265,6 @@ func TestACheckARestartCutShortRunsAgain(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dataDir, "usenet", "jobs.json"), jobs, 0o600); err != nil {
 		t.Fatal(err)
 	}
-
 	a, err := app.New(dataDir)
 	if err != nil {
 		t.Fatal(err)
@@ -269,10 +274,53 @@ func TestACheckARestartCutShortRunsAgain(t *testing.T) {
 		j, ok := a.UsenetJob("job1")
 		return ok && j.Check == usenet.CheckPassed
 	})
+	return a
+}
+
+func TestACheckARestartCutShortRunsAgain(t *testing.T) {
+	t.Parallel()
+	downloads := t.TempDir()
+	r := newShowRelease(t, nil)
+	// Two slices' worth the restart left unrepaired.
+	part1 := bytes.Clone(r.part1.data)
+	clear(part1[50_000:58_000])
+	files := []onDisk{{p: r.index, data: r.index.data}, {p: r.part1, data: part1}, {p: r.part2, data: r.part2.data}}
+	for _, v := range r.volumes {
+		f := onDisk{p: v}
+		if v.name == "show.vol01+2.par2" {
+			f.data = v.data
+		}
+		files = append(files, f)
+	}
+	a := restartWith(t, downloads, files)
 	sameFile(t, filepath.Join(downloads, r.part1.name), r.part1.data)
 	for _, task := range a.Tasks() {
 		if task.Repair != nil {
 			t.Errorf("%s still shows %+v", task.Name, task.Repair)
+		}
+	}
+}
+
+func TestADownloadThatFailedButWasRebuiltCountsAsDone(t *testing.T) {
+	t.Parallel()
+	downloads := t.TempDir()
+	read := func(name string) posting {
+		b, err := os.ReadFile(filepath.Join("..", "par2", "testdata", "release", name))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return postingFrom(name, b)
+	}
+	index, movie, subs, tiny := read("release.par2"), read("movie.mkv"), read("subs.srt"), read("tiny.nfo")
+	volume := read("release.vol00+4.par2")
+	a := restartWith(t, downloads, []onDisk{
+		{p: index, data: index.data}, {p: movie, data: movie.data}, {p: subs, failed: true},
+		{p: tiny, data: tiny.data}, {p: volume, data: volume.data},
+	})
+	sameFile(t, filepath.Join(downloads, subs.name), subs.data)
+	for _, task := range a.Tasks() {
+		if task.Name == subs.name && (task.Status != core.StatusDone || task.Error != "") {
+			t.Fatalf("the rebuilt file's row is %s with %q, want it done", task.Status, task.Error)
 		}
 	}
 }
