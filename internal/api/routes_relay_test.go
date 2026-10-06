@@ -8,12 +8,15 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // Member ids in the shape instances mint them, the only one a member is
@@ -818,5 +821,27 @@ func TestASiblingCanTakeThisInstanceOutOfTheGroup(t *testing.T) {
 			t.Fatal("the instance kept its phrase after a sibling took it out of the group")
 		}
 		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+// A member asking for a finished file through the group would have the whole
+// file buffered here before a byte goes back, and no member reads an answer
+// that large anyway.
+func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
+	t.Parallel()
+	_, a := testServer(t)
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "film.mkv", []byte("frames"))
+	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*relayAnswerMax); err != nil {
+		t.Fatal(err)
+	}
+	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
+	if status == http.StatusOK || len(body) > relayAnswerMax {
+		t.Fatalf("a relayed %d MiB file answered %d with %d MiB, want a refusal within %d MiB",
+			2*relayAnswerMax>>20, status, len(body)>>20, relayAnswerMax>>20)
 	}
 }
