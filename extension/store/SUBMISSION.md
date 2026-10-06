@@ -497,7 +497,7 @@ run. What it reads:
 | --- | --- | --- |
 | Chrome Web Store | `CHROME_PUBLISHER_ID`, `CHROME_ITEM_ID` | `GOOGLE_SERVICE_ACCOUNT_JSON` |
 | Edge Add-ons | `EDGE_PRODUCT_ID`, `EDGE_CLIENT_ID` | `EDGE_API_KEY` |
-| Firefox Add-ons | | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET` |
+| Firefox Add-ons | | `AMO_JWT_ISSUER`, `AMO_JWT_SECRET`, `REVIEW_PHRASE`, `REVIEW_PASSWORD` |
 | Google Play (the app) | `PLAY_TRACK` (`internal`, `alpha`, `beta` or `production`) | `GOOGLE_SERVICE_ACCOUNT_JSON` |
 
 One Google Cloud service account serves both Google stores: its email is added
@@ -506,6 +506,11 @@ under Users and permissions, and its JSON key is the secret. The Chrome Web
 Store API has to be enabled in the service account's Cloud project. The Edge
 client ID and API key come from Partner Center, Microsoft Edge, Publish API;
 the key expires, and Partner Center shows when.
+
+`REVIEW_PHRASE` and `REVIEW_PASSWORD` are the review instance's phrase and web
+UI password. The Firefox job fills them into the AMO notes above and sends the
+notes with every version, since AMO keeps them per version; without them the
+job fails instead of submitting a version nobody can test.
 
 Google Play takes app bundles only. Each release attaches
 `knightloader-vX.Y.Z-android.aab`, signed with the same key as the APK, and
