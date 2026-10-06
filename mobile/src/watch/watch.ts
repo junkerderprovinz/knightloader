@@ -64,7 +64,14 @@ let passing: Promise<boolean> | null = null;
 // What finished while nobody looked happened before the next look, as it did
 // before the first one, rather than news to announce all at once.
 function forget(): void {
-  watched.clear();
+  for (const id of [...watched.keys()]) unwatch(id);
+}
+
+// A captcha notice goes with the instance it was about, since no later look
+// would take it down.
+function unwatch(id: string): void {
+  if (watched.get(id)?.captchaShown) KnightWatch?.cancel(noticeId('captcha', id));
+  watched.delete(id);
 }
 
 async function translator(): Promise<Translate> {
@@ -106,7 +113,7 @@ async function runPass(): Promise<boolean> {
   nameChannels(t);
 
   for (const id of watched.keys()) {
-    if (!conns.some((c) => c.id === id)) watched.delete(id);
+    if (!conns.some((c) => c.id === id)) unwatch(id);
   }
   const front = AppState.currentState === 'active';
   let changed = false;
