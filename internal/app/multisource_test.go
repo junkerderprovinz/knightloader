@@ -47,9 +47,12 @@ func multiSourceApp(t *testing.T, on bool) *App {
 }
 
 // sourcesOf is what the engine would be handed for t as its further links.
-func sourcesOf(a *App, t *core.Task) []string {
+func sourcesOf(a *App, t *core.Task) []string { return sourcesAt(a, t, defaultConns) }
+
+// sourcesAt is sourcesOf for a download of conns connections.
+func sourcesAt(a *App, t *core.Task, conns int) []string {
 	a.mu.Lock()
-	ask := a.sourcesLocked(t, a.Settings.Get())
+	ask := a.sourcesLocked(t, a.Settings.Get(), conns)
 	a.mu.Unlock()
 	if ask == nil {
 		return nil
@@ -70,6 +73,36 @@ func TestASecondAccountUnlocksTheSameLinkAsAFurtherSource(t *testing.T) {
 	}
 	if first.Load() != 0 {
 		t.Error("the account doing the transfer was asked to unlock again")
+	}
+}
+
+// cappedDebrid is a slotDebrid account that allows cap connections per file.
+type cappedDebrid struct {
+	slotDebrid
+	cap int
+}
+
+func (c cappedDebrid) HostLimit(string) int { return c.cap }
+
+// Every source gets as many connections as the task's own link, so an account
+// that allows fewer per file is not asked.
+func TestAnAccountAllowingFewerConnectionsIsNoFurtherSource(t *testing.T) {
+	a := multiSourceApp(t, true)
+	wireSlot(a, "", "https://cdn1.example/first")
+	capped := &atomic.Int32{}
+	a.Registry.Register(debrid.Resolver{ServiceID: "alldebrid", Account: "two", Prio: 90,
+		Hosts: map[string]bool{"hoster.example": true},
+		Svc:   cappedDebrid{slotDebrid{url: "https://cdn2.example/second", unlocks: capped}, 1}})
+	task := &core.Task{ID: "1", URL: "https://hoster.example/file/abc", Resolver: "alldebrid"}
+
+	if got := sourcesAt(a, task, 4); got != nil {
+		t.Fatalf("sources = %v, want none for a download of 4 connections", got)
+	}
+	if capped.Load() != 0 {
+		t.Error("the account allowing one connection was asked to unlock the link")
+	}
+	if got := sourcesAt(a, task, 1); !slices.Equal(got, []string{"https://cdn2.example/second"}) {
+		t.Fatalf("sources = %v, want the second account's link for a download of one connection", got)
 	}
 }
 
