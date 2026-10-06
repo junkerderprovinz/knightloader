@@ -47,6 +47,14 @@ release's tag.
   extension now keeps one ID while it is in the group, and a browser you remove
   leaves the group. Cards left over from before can be removed by hand.
 
+### Security
+
+- **Another website could trick you into adding a link.** On an instance
+  without a password, a site that knew the instance's address could load the
+  page the bookmarklet opens, hidden behind a button of its own, so a click on
+  that button pressed Add. That page now refuses to load inside another
+  website.
+
 ## [1.8.0] - 2026-10-05
 
 ### Added
