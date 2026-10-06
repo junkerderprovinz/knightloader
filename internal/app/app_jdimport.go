@@ -90,8 +90,10 @@ type JDImportFailure struct {
 type JDImportReport struct {
 	Imported []string          `json:"imported"`
 	Failed   []JDImportFailure `json:"failed"`
-	// Links is how many collector rows the download list became.
+	// Links is how many collector rows the download list became, and Held
+	// how many more went to the collector's rejected links.
 	Links int `json:"links"`
+	Held  int `json:"held"`
 	// FilterStops is set when the link filter was switched to stop at the
 	// first matching rule, which JDownloader's exceptions need.
 	FilterStops bool `json:"filterStops"`
@@ -471,6 +473,16 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 			} else {
 				p.rules[id] = m
 				item.Ticked = m.Enabled
+				// Like JDownloader's own download folder, a rule's folder is a path on the
+				// machine JDownloader ran on.
+				if dir := m.Rule.Action.DownloadDir; dir != "" && settings.Validate("the rule's download folder", dir) != nil {
+					item.Ticked = false
+					item.Notes = append(item.Notes, jdimport.Reason{
+						Code:   "ruleFolderElsewhere",
+						Params: map[string]string{"folder": dir},
+						Text:   fmt.Sprintf("The download folder %s cannot be used on this machine, so the rule is left unticked. You can tick it anyway and change the folder in the rule afterwards.", dir),
+					})
+				}
 			}
 		}
 		items = append(items, item)
@@ -581,7 +593,13 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 		if len(created) > 0 {
 			a.rememberPasswords(pkg.passwords)
 		}
-		rep.Links += len(created)
+		for _, t := range created {
+			if t.Skipped {
+				rep.Held++
+			} else {
+				rep.Links++
+			}
+		}
 		rep.Imported = append(rep.Imported, item.ID)
 	}
 	return rep, nil

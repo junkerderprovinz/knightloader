@@ -2607,6 +2607,7 @@ export const ko: Dict = {
   'settings.jdimport.reason.ruleNoCondition': '이 규칙은 아무것도 확인하지 않으므로, 여기서는 모든 링크에 일치하게 됩니다.',
   'settings.jdimport.reason.ruleNoAction': '이 규칙이 설정하는 내용은 KnightLoader에 없습니다.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader는 이 규칙을 쓸 수 없습니다: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': '이 컴퓨터에서는 저장 폴더 {folder}을(를) 쓸 수 없어서 이 규칙은 선택되지 않았습니다. 그래도 선택한 뒤 나중에 규칙에서 폴더를 바꿀 수 있습니다.',
   'settings.jdimport.reason.rulePlaceholder': '{field}이(가) {tag}를 쓰는데, KnightLoader에는 이것이 없어서 그 부분은 빠집니다.',
   'settings.jdimport.reason.ruleRenameKept': '새 파일 이름은 규칙 안에 남아 규칙 테스트에는 표시되지만, 다운로드에서는 아직 쓰이지 않습니다.',
   'settings.jdimport.reason.ruleDropped': 'KnightLoader 규칙은 이것을 할 수 없어 빠집니다: {actions}',

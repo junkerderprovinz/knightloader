@@ -2610,6 +2610,7 @@ export const eu: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Arau honek ez du ezer probatzen, beraz hemen esteka guztiekin bat etorriko litzateke.',
   'settings.jdimport.reason.ruleNoAction': 'Arau honek ezartzen duenetik ezer ez dago KnightLoaderren.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoaderrek ezin du arau hau erabili: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Ezin da {folder} deskargen karpeta makina honetan erabili, beraz araua markatu gabe geratzen da. Hala ere marka daiteke, eta karpeta arauan aldatu gero.',
   'settings.jdimport.reason.rulePlaceholder': '{field} eremuak {tag} erabiltzen du, KnightLoaderrek ez duena, beraz zati hori kanpoan geratzen da.',
   'settings.jdimport.reason.ruleRenameKept': 'Fitxategi-izen berria arauan geratzen da eta arau-probaren erakusten da, baina deskargek oraindik ez dute erabiltzen.',
   'settings.jdimport.reason.ruleDropped': 'Kanpoan utzita, KnightLoaderren arauek hau ezin dutelako egin: {actions}',

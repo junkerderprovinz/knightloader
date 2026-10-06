@@ -2615,6 +2615,7 @@ export const tr: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Bu kural hiçbir şey test etmiyor, bu yüzden burada her bağlantıyla eşleşirdi.',
   'settings.jdimport.reason.ruleNoAction': "Bu kuralın ayarladığı hiçbir şey KnightLoader'da yok.",
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader bu kuralı kullanamıyor: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'İndirme klasörü {folder} bu makinede kullanılamıyor, bu yüzden kural işaretsiz kalıyor. Yine de işaretlenebilir, klasör de sonradan kuralda değiştirilebilir.',
   'settings.jdimport.reason.rulePlaceholder': "{field}, KnightLoader'da olmayan {tag} kullanıyor, bu yüzden bu kısım atlanır.",
   'settings.jdimport.reason.ruleRenameKept': 'Yeni dosya adı kuralda kalır ve kural testinde görünür, ama indirmeler onu henüz kullanmaz.',
   'settings.jdimport.reason.ruleDropped': 'Atlandı, çünkü KnightLoader kuralları şunu yapamıyor: {actions}',

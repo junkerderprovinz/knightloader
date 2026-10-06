@@ -37,9 +37,13 @@ func listNumber(name string) int {
 	return n + 1
 }
 
-// maxListBytes caps what one download list may unpack to, so a crafted zip
-// cannot fill the memory.
-const maxListBytes = 512 << 20
+// maxListBytes caps what the download lists may unpack to together, so a
+// crafted zip cannot keep the import busy for minutes. maxEntryBytes is what
+// bounds the memory: an entry is one package or link, a kilobyte or two.
+const (
+	maxListBytes  = 512 << 20
+	maxEntryBytes = 4 << 20
+)
 
 // listEntry is a package ("07") or a link of one ("07_012").
 var listEntry = regexp.MustCompile(`^([0-9]+)(?:_([0-9]+))?$`)
@@ -76,8 +80,9 @@ func (c *Config) readDownloadList(fsys fs.FS, dir string) {
 	sort.Slice(names, func(i, j int) bool { return listNumber(names[i]) > listNumber(names[j]) })
 	// Only the newest failure is reported; an older list is a fallback.
 	reported := false
+	budget := int64(maxListBytes)
 	for _, name := range names {
-		pkgs, err := readList(fsys, path.Join(dir, name))
+		pkgs, err := readList(fsys, path.Join(dir, name), &budget)
 		if err == nil {
 			c.Packages = pkgs
 			c.Found = append(c.Found, name)
@@ -90,20 +95,13 @@ func (c *Config) readDownloadList(fsys fs.FS, dir string) {
 	}
 }
 
-func readList(fsys fs.FS, name string) ([]Package, error) {
+func readList(fsys fs.FS, name string, budget *int64) ([]Package, error) {
 	f, err := fsys.Open(name)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	data, err := io.ReadAll(io.LimitReader(f, maxListBytes+1))
-	if err != nil {
-		return nil, err
-	}
-	if len(data) > maxListBytes {
-		return nil, fmt.Errorf("it is larger than %d MiB", maxListBytes>>20)
-	}
-	zr, err := zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	zr, err := openZip(f)
 	if err != nil {
 		return nil, err
 	}
@@ -119,7 +117,6 @@ func readList(fsys fs.FS, name string) ([]Package, error) {
 		}
 		return byIndex[i]
 	}
-	budget := int64(maxListBytes)
 	for _, zf := range zr.File {
 		m := listEntry.FindStringSubmatch(zf.Name)
 		if m == nil {
@@ -129,14 +126,17 @@ func readList(fsys fs.FS, name string) ([]Package, error) {
 		if err != nil {
 			return nil, err
 		}
-		raw, err := io.ReadAll(io.LimitReader(rc, budget+1))
+		raw, err := io.ReadAll(io.LimitReader(rc, min(*budget, maxEntryBytes)+1))
 		rc.Close()
 		if err != nil {
 			return nil, err
 		}
-		budget -= int64(len(raw))
-		if budget < 0 {
-			return nil, fmt.Errorf("it unpacks to more than %d MiB", maxListBytes>>20)
+		if len(raw) > maxEntryBytes {
+			return nil, fmt.Errorf("%s unpacks to more than %d MiB", zf.Name, maxEntryBytes>>20)
+		}
+		*budget -= int64(len(raw))
+		if *budget < 0 {
+			return nil, fmt.Errorf("the download lists unpack to more than %d MiB", maxListBytes>>20)
 		}
 		pi, _ := strconv.Atoi(m[1])
 		if m[2] == "" {
@@ -188,6 +188,26 @@ func readList(fsys fs.FS, name string) ([]Package, error) {
 		out = append(out, p)
 	}
 	return out, nil
+}
+
+// openZip reads the zip in place when the file allows it, and copies it into
+// memory otherwise, as a file inside an uploaded zip must be.
+func openZip(f fs.File) (*zip.Reader, error) {
+	fi, err := f.Stat()
+	if err != nil {
+		return nil, err
+	}
+	if fi.Size() > maxListBytes {
+		return nil, fmt.Errorf("it is larger than %d MiB", maxListBytes>>20)
+	}
+	if ra, ok := f.(io.ReaderAt); ok {
+		return zip.NewReader(ra, fi.Size())
+	}
+	data, err := io.ReadAll(io.LimitReader(f, fi.Size()))
+	if err != nil {
+		return nil, err
+	}
+	return zip.NewReader(bytes.NewReader(data), int64(len(data)))
 }
 
 func toLink(l linkStorable) Link {

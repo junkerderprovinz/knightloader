@@ -2616,6 +2616,7 @@ export const ja: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'このルールは何も調べないため、ここではすべてのリンクに一致してしまいます。',
   'settings.jdimport.reason.ruleNoAction': 'このルールが設定する内容はKnightLoaderには存在しません。',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoaderはこのルールを使えません: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': '保存先フォルダー {folder} はこのマシンでは使えないため、このルールにはチェックが入っていません。チェックを入れて取り込み、あとでルールのフォルダーを変更することもできます。',
   'settings.jdimport.reason.rulePlaceholder': '{field}が{tag}を使っていますが、これはKnightLoaderにはないため、その部分は省かれます。',
   'settings.jdimport.reason.ruleRenameKept': '新しいファイル名はルールの中に残り、ルールのテストには表示されますが、ダウンロードではまだ使われません。',
   'settings.jdimport.reason.ruleDropped': 'KnightLoaderのルールではこれができないため省略: {actions}',

@@ -2623,6 +2623,7 @@ export const ro: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Această regulă nu verifică nimic, așa că aici s-ar potrivi cu orice link.',
   'settings.jdimport.reason.ruleNoAction': 'Nimic din ce stabilește această regulă nu există în KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader nu poate folosi această regulă: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Dosarul de descărcare {folder} nu poate fi folosit pe acest calculator, așa că regula rămâne nebifată. Poate fi totuși bifată, iar dosarul schimbat în regulă după aceea.',
   'settings.jdimport.reason.rulePlaceholder': '{field} folosește {tag}, pe care KnightLoader nu îl are, așa că acea parte este omisă.',
   'settings.jdimport.reason.ruleRenameKept': 'Noul nume de fișier rămâne în regulă și apare în testul regulii, dar descărcările nu îl folosesc încă.',
   'settings.jdimport.reason.ruleDropped': 'Omis, pentru că regulile KnightLoader nu pot face asta: {actions}',

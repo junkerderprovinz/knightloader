@@ -2606,6 +2606,7 @@ export const lv: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Šis noteikums nepārbauda neko, tāpēc šeit tas atbilstu katrai saitei.',
   'settings.jdimport.reason.ruleNoAction': 'To, ko iestata šis noteikums, KnightLoader nesatur.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader nevar izmantot šo noteikumu: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Lejupielāžu mapi {folder} šajā datorā nevar izmantot, tāpēc noteikums paliek neatzīmēts. To tomēr var atzīmēt un vēlāk mainīt mapi noteikumā.',
   'settings.jdimport.reason.rulePlaceholder': '{field} izmanto {tag}, kura KnightLoader nav, tāpēc šī daļa tiek izlaista.',
   'settings.jdimport.reason.ruleRenameKept': 'Jaunais faila nosaukums paliek noteikumā un redzams noteikuma testā, bet lejupielādes to vēl neizmanto.',
   'settings.jdimport.reason.ruleDropped': 'Izlaists, jo KnightLoader noteikumi to nevar: {actions}',

@@ -2615,6 +2615,7 @@ export const sl: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'To pravilo ne preverja ničesar, zato bi se tukaj ujemalo z vsako povezavo.',
   'settings.jdimport.reason.ruleNoAction': 'Nič od tega, kar to pravilo nastavi, v KnightLoader ne obstaja.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ne more uporabiti tega pravila: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Mape za prenose {folder} na tem računalniku ni mogoče uporabiti, zato pravilo ostane neoznačeno. Vseeno ga je mogoče označiti in mapo v pravilu pozneje spremeniti.',
   'settings.jdimport.reason.rulePlaceholder': '{field} uporablja {tag}, ki ga KnightLoader nima, zato je ta del izpuščen.',
   'settings.jdimport.reason.ruleRenameKept': 'Novo ime datoteke ostane v pravilu in se pokaže v preizkusu pravila, vendar ga prenosi še ne uporabljajo.',
   'settings.jdimport.reason.ruleDropped': 'Izpuščeno, ker pravila KnightLoader tega ne znajo: {actions}',

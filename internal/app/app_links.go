@@ -216,6 +216,7 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 	var buckets []*bucket
 	loose := &bucket{}
 	var probes sync.WaitGroup
+	scopes := map[string]httpx.Scope{}
 	for _, raw := range urls {
 		u := strings.TrimSpace(raw)
 		if u == "" || seen[u] {
@@ -224,6 +225,12 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		seen[u] = true
 		// Before the folder listing below, which would log the link whole.
 		if a.refusesPasswordLink(u) {
+			continue
+		}
+		// A feed chose this link, and the probe and the download that follow
+		// are not confined the way the crawl is.
+		if batch.Within != nil && hostScope(u, scopes) > *batch.Within {
+			log.Printf("%s is further inside the network than where it came from and is left out", u)
 			continue
 		}
 		// Filtered here as well as in stage, because the crawl below would
@@ -255,8 +262,11 @@ func (a *App) addLinksFrom(urls []string, pkg string, origin core.Origin, batch 
 		}
 		if len(crawled) > 0 {
 			b := &bucket{title: crawlTitle(crawled)}
+			// The files a page points at are probed and downloaded without
+			// the crawl's confinement, so they are held to the page's scope.
+			limit := hostScope(u, scopes)
 			for _, c := range crawled {
-				if c.URL == "" {
+				if c.URL == "" || hostScope(c.URL, scopes) > limit {
 					continue
 				}
 				// OriginCrawl whatever brought the page in, with the page on
@@ -527,6 +537,25 @@ func commonStem(names []string) string {
 		}
 	}
 	return strings.Trim(stem, ".-_ ")
+}
+
+// hostScope is how far inside the network raw's host sits, remembered per
+// host in seen. A link without a host, such as a magnet, reaches no address
+// of its own.
+func hostScope(raw string, seen map[string]httpx.Scope) httpx.Scope {
+	u, err := url.Parse(raw)
+	if err != nil || u.Hostname() == "" {
+		return httpx.ScopePublic
+	}
+	host := u.Hostname()
+	s, ok := seen[host]
+	if !ok {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		s = httpx.ScopeOfHost(ctx, host)
+		cancel()
+		seen[host] = s
+	}
+	return s
 }
 
 // crawl asks the page crawler what a link points at. It returns nothing when

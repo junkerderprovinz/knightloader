@@ -2604,6 +2604,7 @@ export const fr: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Cette règle ne vérifie rien, donc ici elle correspondrait à tous les liens.',
   'settings.jdimport.reason.ruleNoAction': 'Rien de ce que cette règle définit n’existe dans KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ne peut pas utiliser cette règle : {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Le dossier de téléchargement {folder} n’est pas utilisable sur cette machine, la règle reste donc décochée. Elle peut quand même être cochée, et le dossier modifié ensuite dans la règle.',
   'settings.jdimport.reason.rulePlaceholder': 'Le champ {field} utilise {tag}, que KnightLoader n’a pas, cette partie est donc laissée de côté.',
   'settings.jdimport.reason.ruleRenameKept': 'Le nouveau nom de fichier reste dans la règle et apparaît dans le test de la règle, mais les téléchargements ne l’utilisent pas encore.',
   'settings.jdimport.reason.ruleDropped': 'Laissé de côté, car les règles de KnightLoader ne savent pas faire ceci : {actions}',

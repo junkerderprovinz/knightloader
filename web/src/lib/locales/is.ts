@@ -2612,6 +2612,7 @@ export const is: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Þessi regla athugar ekkert, svo hér myndi hún passa við hvaða tengil sem er.',
   'settings.jdimport.reason.ruleNoAction': 'Ekkert af því sem þessi regla setur er til í KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader getur ekki notað þessa reglu: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Ekki er hægt að nota niðurhalsmöppuna {folder} á þessari vél, svo reglan er ekki valin. Það má samt velja hana og breyta möppunni í reglunni á eftir.',
   'settings.jdimport.reason.rulePlaceholder': '{field} notar {tag}, sem KnightLoader hefur ekki, svo sá hluti er skilinn eftir.',
   'settings.jdimport.reason.ruleRenameKept': 'Nýja skráarheitið helst í reglunni og birtist í prófun reglunnar, en niðurhal notar það ekki enn.',
   'settings.jdimport.reason.ruleDropped': 'Skilið eftir, því reglur KnightLoader geta ekki gert þetta: {actions}',
