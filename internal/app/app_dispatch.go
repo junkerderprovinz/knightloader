@@ -1579,6 +1579,12 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status == core.StatusDone || (t.Status == core.StatusError && retryIn == 0) {
 		delete(a.startNow, id)
 	}
+	// A file of a release from the own Usenet servers waits for the
+	// release's par2 check, which every finished file asks to look again.
+	checkUsenet := ""
+	if u.Status == core.StatusDone && a.noteUsenetDoneLocked(t) {
+		checkUsenet = local.LinkJob(t.URL)
+	}
 	// A finished download that completes an archive continues as an
 	// extraction (see extractionDueLocked).
 	var extractCopy *taskCopy
@@ -1625,6 +1631,9 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	if extractCopy != nil {
 		a.publish(extractCopy)
+	}
+	if checkUsenet != "" {
+		a.spawn(func() { a.checkUsenetJob(checkUsenet) })
 	}
 	if mirrorCopy != nil {
 		a.publish(mirrorCopy)

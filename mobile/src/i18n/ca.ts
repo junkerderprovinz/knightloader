@@ -146,6 +146,8 @@ export const ca: Dict = {
   'status.finished': 'finalitzat',
   'status.failed': 'fallit',
   'status.extracting': 'extraient',
+  'status.verifying': 'verificant',
+  'status.repairing': 'reparant',
   'status.seeding': 'fent seed',
   'status.disabled': 'desactivat',
 

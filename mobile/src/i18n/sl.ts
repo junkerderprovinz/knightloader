@@ -146,6 +146,8 @@ export const sl: Dict = {
   'status.finished': 'končano',
   'status.failed': 'spodletelo',
   'status.extracting': 'razširjanje',
+  'status.verifying': 'preverjanje',
+  'status.repairing': 'popravljanje',
   'status.seeding': 'seje',
   'status.disabled': 'izklopljeno',
 

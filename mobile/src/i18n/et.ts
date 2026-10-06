@@ -146,6 +146,8 @@ export const et: Dict = {
   'status.finished': 'lõpetatud',
   'status.failed': 'ebaõnnestus',
   'status.extracting': 'pakitakse lahti',
+  'status.verifying': 'kontrollitakse',
+  'status.repairing': 'parandatakse',
   'status.seeding': 'levitab',
   'status.disabled': 'välja lülitatud',
 

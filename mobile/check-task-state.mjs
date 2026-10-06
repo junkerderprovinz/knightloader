@@ -11,7 +11,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { rowWord, packageState, isParked, packageCard, splitByCard, unpackingByTask, unpackProgress, unpackPercent } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
+const { rowWord, packageState, isParked, packageCard, splitByCard, unpackingByTask, unpackProgress, unpackPercent, checkPercent } = await import(pathToFileURL(join(here, 'src', 'api', 'taskState.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -171,6 +171,20 @@ expect('an older server names only the first volume', unpackingOf('a1', 'extract
 });
 expect('the share done', unpackPercent({ unpacked: 400, size: 1000, failed: false }), 40);
 expect('no share without a size', unpackPercent({ unpacked: 400, size: 0, failed: false }), null);
+
+// A finished file of a release from the own Usenet servers whose par2 check
+// has not passed is not finished yet.
+const checked = (stage, more = {}) => task('done', { repair: { stage, ...more } });
+expect('a file waiting for the check', rowWord(checked('waiting')), 'verifying');
+expect('a file under the check', rowWord(checked('verifying', { progress: 0.4 })), 'verifying');
+expect('a release fetching recovery files', rowWord(checked('fetching')), 'repairing');
+expect('a release being rebuilt', rowWord(checked('repairing', { progress: 0.25 })), 'repairing');
+expect('a package under its check', packageState([task('done'), checked('verifying')]), { word: 'verifying', failed: 0 });
+expect('a package under its check stays in the download list', packageCard([task('done'), checked('waiting')]), 'downloads');
+expect('the check share while it reads', checkPercent(checked('verifying', { progress: 0.4 })), 40);
+expect('the check share while it rebuilds', checkPercent(checked('repairing', { progress: 0.256 })), 25);
+expect('no share while it waits', checkPercent(checked('waiting')), null);
+expect('no share once it has passed', checkPercent(task('done')), null);
 
 if (problems.length > 0) {
   console.error(problems.join('\n'));

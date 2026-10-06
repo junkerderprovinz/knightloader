@@ -125,3 +125,17 @@ it('draws the package header at its downloads while one still runs', () => {
   expect(got.value).toBe('50');
   expect(got.striped).toBe(false);
 });
+
+it('draws a finished file at its release par2 check while it reads or rebuilds, striped', () => {
+  const verifying = cell(row('a1', { repair: { stage: 'verifying', progress: 0.4 } }), ctx());
+  expect(verifying.value).toBe('40');
+  expect(verifying.striped).toBe(true);
+  const pkg = header([row('a1'), row('a2', { repair: { stage: 'repairing', progress: 0.6 } })], ctx());
+  expect(pkg.value).toBe('60');
+});
+
+it('draws a finished file as finished while its check waits for the other files', () => {
+  const got = cell(row('a1', { repair: { stage: 'waiting' } }), ctx());
+  expect(got.value).toBe('100');
+  expect(got.striped).toBe(false);
+});

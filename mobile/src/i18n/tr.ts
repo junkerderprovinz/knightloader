@@ -146,6 +146,8 @@ export const tr: Dict = {
   'status.finished': 'tamamlandı',
   'status.failed': 'başarısız',
   'status.extracting': 'çıkartılıyor',
+  'status.verifying': 'doğrulanıyor',
+  'status.repairing': 'onarılıyor',
   'status.seeding': 'seed ediliyor',
   'status.disabled': 'devre dışı',
 

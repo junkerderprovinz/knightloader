@@ -181,12 +181,12 @@ func TestMissingArticlesFailTheFileAndResumeLater(t *testing.T) {
 	r.post(s, 1, 2, 3, 4, 6, 7, 8, 9, 10)
 	h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), r)
 	var heard []int
-	h.be.Incomplete = func(job string, missing int) bool {
+	h.be.Incomplete = func(_, job string, missing int, _ int64) Verdict {
 		if job != h.job {
 			t.Errorf("heard of job %s", job)
 		}
 		heard = append(heard, missing)
-		return false
+		return Fail
 	}
 
 	u := h.run(h.be, 0, r.name)
@@ -223,9 +223,9 @@ func TestIncompleteFileHandedOnIsNotFailed(t *testing.T) {
 	r.post(s, 1)
 	h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), r)
 	handed := make(chan struct{})
-	h.be.Incomplete = func(string, int) bool {
+	h.be.Incomplete = func(string, string, int, int64) Verdict {
 		close(handed)
-		return true
+		return HandedOn
 	}
 	h.be.Download("task", FileLink(h.job, 0, r.name), nil, 0)
 	select {
@@ -240,6 +240,39 @@ func TestIncompleteFileHandedOnIsNotFailed(t *testing.T) {
 		if u.Status == core.StatusError || u.Status == core.StatusDone {
 			t.Fatalf("a file handed to another account settled as %+v", u)
 		}
+	}
+}
+
+func TestAKeptFileFinishesWithZerosWhereArticlesAreMissing(t *testing.T) {
+	r := newRelease("k.bin", 10_000, 2_000)
+	s := nntptest.New(t)
+	r.post(s, 1, 2, 4, 5)
+	h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), r)
+	var lost int64
+	h.be.Incomplete = func(_, _ string, _ int, l int64) Verdict {
+		lost = l
+		return Keep
+	}
+	if u := h.run(h.be, 0, r.name); u.Status != core.StatusDone {
+		t.Fatalf("got %+v", u)
+	}
+	if lost != 2_000 {
+		t.Errorf("heard %d bytes lost, want 2000", lost)
+	}
+	want := append([]byte(nil), r.data...)
+	clear(want[4_000:6_000])
+	if !bytes.Equal(h.file(r.name), want) {
+		t.Fatal("the kept file is not the posted one with a gap of zeros")
+	}
+	if h.be.Whole("task") {
+		t.Fatal("a file with a gap counts as whole")
+	}
+
+	whole := newRelease("w.bin", 4_000, 2_000)
+	whole.post(s)
+	h2 := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), whole)
+	if u := h2.run(h2.be, 0, whole.name); u.Status != core.StatusDone || !h2.be.Whole("task") {
+		t.Fatalf("got %+v, whole %v", u, h2.be.Whole("task"))
 	}
 }
 

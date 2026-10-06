@@ -146,6 +146,8 @@ export const hu: Dict = {
   'status.finished': 'befejezve',
   'status.failed': 'sikertelen',
   'status.extracting': 'kicsomagolás',
+  'status.verifying': 'ellenőrzés',
+  'status.repairing': 'javítás',
   'status.seeding': 'seedel',
   'status.disabled': 'kikapcsolva',
 

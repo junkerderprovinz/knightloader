@@ -146,6 +146,8 @@ export const el: Dict = {
   'status.finished': 'ολοκληρώθηκε',
   'status.failed': 'απέτυχε',
   'status.extracting': 'εξαγωγή',
+  'status.verifying': 'επαλήθευση',
+  'status.repairing': 'επισκευή',
   'status.seeding': 'κάνει seeding',
   'status.disabled': 'ανενεργό',
 

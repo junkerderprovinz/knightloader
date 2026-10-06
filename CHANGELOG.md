@@ -37,6 +37,22 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.2] - 2026-10-06
+
+### Added
+
+- **Usenet downloads from your own servers are checked and repaired with par2.**
+  Once every file of a release is here, KnightLoader checks it against its par2
+  files and rebuilds the blocks of missing articles, so a release with gaps no
+  longer has to go to a debrid account. A file posted under a random name gets
+  the name its par2 set gives it. Only as many recovery files are downloaded
+  as the repair needs, and a file whose download failed counts as done once
+  the repair has rebuilt it. Until the release has passed, its files show
+  Verifying or Repairing, in the list, the Android app and in Sonarr and
+  Radarr, and nothing of it is unpacked. A release with more damage than its
+  recovery files can rebuild goes to your next account or fails as soon as
+  that is certain, before the rest of it is downloaded.
+
 ## [1.8.1] - 2026-10-06
 
 ### Fixed

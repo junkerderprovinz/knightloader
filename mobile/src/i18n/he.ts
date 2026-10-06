@@ -146,6 +146,8 @@ export const he: Dict = {
   'status.finished': 'הושלם',
   'status.failed': 'נכשל',
   'status.extracting': 'מחלץ',
+  'status.verifying': 'מאמת',
+  'status.repairing': 'מתקן',
   'status.seeding': 'בהזרעה',
   'status.disabled': 'כבוי',
 

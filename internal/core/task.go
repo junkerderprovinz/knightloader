@@ -278,6 +278,31 @@ type RemoteFetch struct {
 	Seeds    int     `json:"seeds,omitempty"`
 }
 
+// RepairStage is where the par2 check of a release stands.
+type RepairStage string
+
+const (
+	// RepairWaiting is a check waiting for the release's other files, or for
+	// another release's check to end.
+	RepairWaiting   RepairStage = "waiting"
+	RepairVerifying RepairStage = "verifying"
+	// RepairFetching is a check waiting for the recovery files a repair needs,
+	// which are being downloaded.
+	RepairFetching  RepairStage = "fetching"
+	RepairRepairing RepairStage = "repairing"
+)
+
+// RepairProgress is one reading of a release's par2 check. Progress runs from
+// 0 to 1 within the stage. Damaged counts the blocks to rebuild once the
+// check has found them, and Recovery the recovery blocks at hand for it,
+// those being downloaded included.
+type RepairProgress struct {
+	Stage    RepairStage `json:"stage"`
+	Progress float64     `json:"progress,omitempty"`
+	Damaged  int         `json:"damaged,omitempty"`
+	Recovery int         `json:"recovery,omitempty"`
+}
+
 // ServiceJob is the job a debrid service holds for a task while the files come
 // here: a torrent it fetched, or a download imported from the account.
 type ServiceJob struct {
@@ -661,6 +686,11 @@ type Task struct {
 	// A service can take hours over a torrent it has not cached, and nothing
 	// arrives here meanwhile. Not persisted.
 	Remote *RemoteFetch `json:"remote,omitempty"`
+	// Repair is set on the files of a release from the own Usenet servers
+	// while its par2 check is not over, and nothing of the release is
+	// unpacked or moved meanwhile. Not persisted: the Usenet job keeps how the
+	// check ended, and a restart runs an unfinished one again.
+	Repair *RepairProgress `json:"repair,omitempty"`
 	// ServiceJob is the job a debrid service holds for this task. It is
 	// persisted, so a restart carries on with that job and the files already
 	// here rather than adding the torrent a second time.

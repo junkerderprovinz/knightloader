@@ -702,8 +702,8 @@ func (dc *downloadClient) stateLocked(grabs map[string]sabGrab) (live map[string
 // host, or collected with an error) is reported as failed, because it will
 // never start on its own and Sonarr should try another release; the task
 // itself is left alone. A failed task with a retry still to come is not, since
-// Sonarr would drop a release that is about to download. Extracting stays in
-// the queue, since the job is not finished.
+// Sonarr would drop a release that is about to download. Verifying, repairing
+// and extracting stay in the queue, since the job is not finished.
 func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[string]usenet.Job) (grabView, bool) {
 	v := grabView{grab: g, storage: g.Folder}
 	if strings.TrimSpace(v.grab.Category) == "" {
@@ -717,7 +717,7 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 		}
 		return dc.jobView(v, j), true
 	}
-	var seen, failed, done, running, extracting, paused int
+	var seen, failed, done, running, verifying, repairing, extracting, paused int
 	for _, id := range g.TaskIDs {
 		t := live[id]
 		if t == nil || app.HeldSpare(t) {
@@ -749,6 +749,13 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 			if v.failMsg == "" {
 				v.failMsg = t.Error
 			}
+		case t.Status == core.StatusDone && t.Repair != nil:
+			// Downloaded, but the release's par2 check is not over.
+			if t.Repair.Stage == core.RepairRepairing {
+				repairing++
+			} else {
+				verifying++
+			}
 		case t.Status == core.StatusDone:
 			done++
 		case t.Status == core.StatusRunning:
@@ -772,6 +779,10 @@ func (dc *downloadClient) view(g sabGrab, live map[string]*core.Task, jobs map[s
 		v.status, v.finished = "Completed", true
 	case running > 0:
 		v.status = "Downloading"
+	case repairing > 0:
+		v.status = "Repairing"
+	case verifying > 0:
+		v.status = "Verifying"
 	case extracting > 0:
 		v.status = "Extracting"
 	case paused > 0:
