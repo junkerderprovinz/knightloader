@@ -37,6 +37,31 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **The Android app asked about battery optimisation or notifications a
+  second time.** Flipping a switch on the Notifications card in Settings could
+  undo the record that the app had already asked, so the one-time question
+  came up again the next time the watch started.
+
+- **A "Captcha waiting" notification on Android stayed up after the app
+  stopped watching.** When you switched every notification off or removed the
+  connection it belonged to, the notification stayed in the shade, and tapping
+  it opened nothing. The app now removes it.
+
+- **The QR scanner in the Android app did not notice the camera being allowed
+  in Android's settings.** After you refused the camera twice, the button sent
+  you to settings, but coming back with the camera allowed still showed the
+  request until you closed and reopened the scanner. The scanner now opens
+  when you come back, and once Android has stopped asking, the button says
+  "Open settings".
+
+- **Connect after scanning a pairing code searched the wrong relay.** If the
+  code named the instance's own relay and the instance had not answered within
+  a few seconds, pressing Connect searched the project relay instead and
+  reported that nobody answered. Connect now uses the relay from the code
+  until you type or paste other words.
+
 ## [1.8.0] - 2026-10-05
 
 ### Added
