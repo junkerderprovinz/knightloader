@@ -27,11 +27,13 @@ import (
 	"io"
 	"net/http"
 	"path/filepath"
+	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
 
@@ -92,7 +94,7 @@ func registerFiles(reg *Registry, a *app.App) {
 			serveTaskFile(w, r, a, r.PathValue("id"))
 		})
 	reg.Add(http.MethodPost, "/api/tasks/{id}/play",
-		"a link to the task's file, or to the file of its torrent that plays, that a media player can open without the session or token, for twelve hours",
+		"a link to the task's file, or to the file of its torrent that plays, that a media player can open without the session or token, for twelve hours or until the token that asked for it is revoked or every session is signed out",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			// Opened once to learn which file plays and to refuse what will
@@ -107,7 +109,11 @@ func registerFiles(reg *Registry, a *app.App) {
 			if of.Index >= 0 {
 				file = strconv.Itoa(of.Index)
 			}
-			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, time.Now().Add(playTicketTTL))
+			by := ""
+			if tok, ok := tokenOf(r); ok {
+				by = tok.ID
+			}
+			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, by, a.Auth.Epoch(), time.Now().Add(playTicketTTL))
 			if file != "" {
 				path += "&file=" + file
 			}
@@ -184,19 +190,21 @@ var playKey = sync.OnceValue(func() []byte {
 	return key
 })
 
-// playTicket is the credential in a play link: when it runs out, and a MAC
-// over that, the task and the link's ?file, empty for the task's own file.
-func playTicket(id, file string, until time.Time) string {
+// playTicket is the credential in a play link: when it runs out, the API token
+// that asked for it (empty for a session), and a MAC over both, the task, the
+// link's ?file (empty for the task's own file) and the session epoch. A lost
+// phone's links then end with its token, or when every session is signed out.
+func playTicket(id, file, by string, epoch uint64, until time.Time) string {
 	exp := strconv.FormatInt(until.Unix(), 36)
 	mac := hmac.New(sha256.New, playKey())
-	mac.Write([]byte(id + "\x00" + file + "\x00" + exp))
-	return exp + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
+	mac.Write([]byte(id + "\x00" + file + "\x00" + by + "\x00" + strconv.FormatUint(epoch, 10) + "\x00" + exp))
+	return exp + "." + by + "." + base64.RawURLEncoding.EncodeToString(mac.Sum(nil))
 }
 
 // playTicketOpens reports whether r reads a task's file with a play link for
-// that task and that file that has not run out. It opens that route and
-// nothing else.
-func playTicketOpens(r *http.Request) bool {
+// that task and that file that has not run out, from a token that still
+// exists. It opens that route and nothing else.
+func playTicketOpens(a *app.App, r *http.Request) bool {
 	if r.Method != http.MethodGet && r.Method != http.MethodHead {
 		return false
 	}
@@ -210,7 +218,11 @@ func playTicketOpens(r *http.Request) bool {
 	}
 	q := r.URL.Query()
 	ticket := q.Get("ticket")
-	exp, _, ok := strings.Cut(ticket, ".")
+	exp, rest, ok := strings.Cut(ticket, ".")
+	if !ok {
+		return false
+	}
+	by, _, ok := strings.Cut(rest, ".")
 	if !ok {
 		return false
 	}
@@ -218,7 +230,10 @@ func playTicketOpens(r *http.Request) bool {
 	if err != nil || time.Now().Unix() > until {
 		return false
 	}
-	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), time.Unix(until, 0))))
+	if by != "" && !slices.ContainsFunc(a.APITokens.List(), func(t apitoken.Token) bool { return t.ID == by }) {
+		return false
+	}
+	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), by, a.Auth.Epoch(), time.Unix(until, 0))))
 }
 
 // inlineType is the Content-Type this route answers with and whether it goes
