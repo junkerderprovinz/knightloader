@@ -5,6 +5,7 @@ export const tr: Dict = {
   'qr.cancel': 'İptal',
   'qr.cameraPermissionHint': 'QR kodu taramak için kamera erişimi gerekir.',
   'qr.grantAccess': 'Erişime izin ver',
+  'qr.openSettings': 'Ayarları aç',
 
   'connections.addButton': '+ Bağlantı',
   'connections.empty': 'Henüz kaydedilmiş bir bağlantı yok.',

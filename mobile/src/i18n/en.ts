@@ -6,6 +6,7 @@ export const en = {
   'qr.cancel': 'Cancel',
   'qr.cameraPermissionHint': 'Camera access is needed to scan the QR code.',
   'qr.grantAccess': 'Allow access',
+  'qr.openSettings': 'Open settings',
 
   'connections.addButton': '+ Connection',
   'connections.empty': 'No connection saved yet.',

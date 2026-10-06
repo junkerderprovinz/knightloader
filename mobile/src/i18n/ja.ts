@@ -5,6 +5,7 @@ export const ja: Dict = {
   'qr.cancel': 'キャンセル',
   'qr.cameraPermissionHint': 'QRコードのスキャンにはカメラへのアクセスが必要です。',
   'qr.grantAccess': 'アクセスを許可',
+  'qr.openSettings': '設定を開く',
 
   'connections.addButton': '+ 接続',
   'connections.empty': 'まだ接続が保存されていません。',
