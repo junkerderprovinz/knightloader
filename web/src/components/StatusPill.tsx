@@ -1,5 +1,5 @@
 import type { ComponentType, SVGProps } from 'react';
-import type { ExtractJob, Task, TaskStatus } from '../lib/api';
+import type { ExtractJob, RepairProgress, Task, TaskStatus } from '../lib/api';
 import { fmtPct } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { resolverLabel } from '../lib/resolverLabels';
@@ -11,6 +11,8 @@ import {
   IconDownloads,
   IconKey,
   IconPause,
+  IconShield,
+  IconShieldCheck,
   IconUpload,
   IconWarning,
 } from '../lib/icons';
@@ -21,15 +23,21 @@ import {
  * doing something, and "Done" beside it reads as if it had stopped. A torrent
  * of the built-in client that is still downloading is leeching, the word a
  * torrent client uses for it; a torrent a debrid service fetches comes down
- * over HTTP and downloads like any link.
+ * over HTTP and downloads like any link. A file from the own Usenet servers
+ * is downloaded but not done while its release's par2 check runs: verifying,
+ * or repairing once the check has found damage, the recovery files it is
+ * waiting for included.
  */
-export type RowState = TaskStatus | 'seeding' | 'leeching';
+export type RowState = TaskStatus | 'seeding' | 'leeching' | 'verifying' | 'repairing';
 
-export function rowState(task: Pick<Task, 'status' | 'seeding' | 'resolver'>): RowState {
+export function rowState(task: Pick<Task, 'status' | 'seeding' | 'resolver' | 'repair'>): RowState {
+  if (task.status === 'done' && task.repair) return repairing(task.repair) ? 'repairing' : 'verifying';
   if (task.status === 'done' && task.seeding) return 'seeding';
   if (task.status === 'running' && task.resolver === 'torrent') return 'leeching';
   return task.status;
 }
+
+const repairing = (r: RepairProgress): boolean => r.stage === 'repairing' || r.stage === 'fetching';
 
 // Paused shares the neutral tone; the glyph and label tell it apart.
 type Tone = 'ok' | 'fail' | 'info' | 'neutral';
@@ -43,6 +51,8 @@ const statusTone: Record<RowState, { tone: Tone; key: TranslationKey }> = {
   leeching: { tone: 'info', key: 'status.leeching' },
   paused: { tone: 'neutral', key: 'status.paused' },
   extracting: { tone: 'info', key: 'status.extracting' },
+  verifying: { tone: 'info', key: 'status.verifying' },
+  repairing: { tone: 'info', key: 'status.repairing' },
   seeding: { tone: 'info', key: 'status.seeding' },
   done: { tone: 'ok', key: 'status.done' },
   error: { tone: 'fail', key: 'status.error' },
@@ -55,7 +65,7 @@ const toneText: Record<Tone, string> = {
   neutral: 'text-statusNeutral',
 };
 
-// Nine states share four tones, so the glyph is what tells them apart, and
+// Eleven states share four tones, so the glyph is what tells them apart, and
 // leeching shares downloading's, since it is a download.
 const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
@@ -64,6 +74,8 @@ const statusGlyph: Record<RowState, Glyph> = {
   leeching: IconDownloads,
   paused: IconPause,
   extracting: IconArchive,
+  verifying: IconShieldCheck,
+  repairing: IconShield,
   seeding: IconUpload,
   done: IconCheck,
   error: IconWarning,
@@ -141,6 +153,44 @@ export function UnpackPill({ state, percent }: { state: UnpackState; percent?: n
   const { t } = useT();
   const look = unpackLook[state];
   return <Pill tone={look.tone} glyph={look.glyph} label={unpackLabel(state, percent, t)} fits />;
+}
+
+/**
+ * repairLabel is the word a par2 check shows, with how far it has got while
+ * it reads or rebuilds. Waiting for the release's other files, or for the
+ * recovery files, there is nothing to measure.
+ */
+export function repairLabel(
+  r: RepairProgress,
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+): string {
+  const percent = r.progress === undefined ? undefined : fmtPct(Math.floor(r.progress * 100));
+  if (r.stage === 'verifying' && percent) return t('repair.verifyingAt', { percent });
+  if (r.stage === 'repairing' && percent) return t('repair.repairingAt', { percent });
+  return t(repairing(r) ? 'status.repairing' : 'status.verifying');
+}
+
+/** repairHint is the sentence behind repairLabel, for its bubble. */
+export function repairHint(
+  r: RepairProgress,
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+): string {
+  switch (r.stage) {
+    case 'verifying':
+      return t('repair.verifyingHint');
+    case 'fetching':
+      return t('repair.fetchingHint', { damaged: r.damaged ?? 0, recovery: r.recovery ?? 0 });
+    case 'repairing':
+      return t('repair.repairingHint', { damaged: r.damaged ?? 0 });
+  }
+  return t('repair.waitingHint');
+}
+
+/** RepairPill is StatusPill for a file whose release's par2 check runs. */
+export function RepairPill({ repair }: { repair: RepairProgress }) {
+  const { t } = useT();
+  const state = repairing(repair) ? 'repairing' : 'verifying';
+  return <Pill tone="info" glyph={statusGlyph[state]} label={repairLabel(repair, t)} fits />;
 }
 
 /**

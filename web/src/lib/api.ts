@@ -193,6 +193,10 @@ export interface Task {
   /** A debrid service's progress on a torrent it is still fetching for this
    *  task, before any of it comes here. Absent at every other time. */
   remote?: RemoteFetch;
+  /** Where the par2 check of the release this file belongs to stands, on a
+   *  finished file from the own Usenet servers until the release has passed
+   *  it. Absent at every other time. */
+  repair?: RepairProgress;
 
   // The swarm fields are absent for non-torrent tasks and never persisted,
   // because a peer count is only true for the second it was read.
@@ -222,6 +226,18 @@ export interface RemoteFetch {
   progress: number;
   speed?: number;
   seeds?: number;
+}
+
+/**
+ * core.RepairProgress. `stage` is an open string for the reason Reason is;
+ * progress runs from 0 to 1 within the stage, and damaged and recovery count
+ * par2 blocks once the check has found them.
+ */
+export interface RepairProgress {
+  stage: 'waiting' | 'verifying' | 'fetching' | 'repairing' | (string & {});
+  progress?: number;
+  damaged?: number;
+  recovery?: number;
 }
 
 /** One file inside a multi-file torrent. path is inside the torrent and

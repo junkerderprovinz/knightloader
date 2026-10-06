@@ -171,13 +171,14 @@ export interface QuickFilter {
 }
 
 export const QUICK_FILTERS: QuickFilter[] = [
-  // Extracting counts as running, since the download is not over yet. A torrent
-  // the built-in client downloads reads Leeching in its row (rowState), so it
-  // has that filter and not this one.
+  // Extracting counts as running, since the download is not over yet, and so
+  // do a par2 check's verifying and repairing. A torrent the built-in client
+  // downloads reads Leeching in its row (rowState), so it has that filter and
+  // not this one.
   {
     id: 'running',
     label: 'filter.running',
-    match: (t) => rowState(t) === 'running' || t.status === 'extracting',
+    match: (t) => ['running', 'verifying', 'repairing'].includes(rowState(t)) || t.status === 'extracting',
   },
   { id: 'leeching', label: 'filter.leeching', match: (t) => rowState(t) === 'leeching' },
   { id: 'queued', label: 'filter.queued', match: (t) => t.status === 'queued' },

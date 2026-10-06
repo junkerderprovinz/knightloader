@@ -43,9 +43,11 @@ import { FailureAdvice } from './FailureAdvice';
 import { HosterIcon } from './HosterIcon';
 import { ProgressBar } from './ProgressBar';
 import {
+  RepairPill,
   ResolverBadge,
   StatusPill,
   UnpackPill,
+  repairHint,
   rowState,
   unpackLabel,
   unpackState,
@@ -1039,7 +1041,15 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
   const shown = unpack && !seedingOutranks(state, unpack) ? unpack : null;
   return (
     <span className={STATUS_LINE}>
-      {shown ? <UnpackStatus unpack={shown} t={t} /> : <StatusPill status={state} />}
+      {task.status === 'done' && task.repair ? (
+        <Tip tip={repairHint(task.repair, t)} className={STATUS_LINE}>
+          <RepairPill repair={task.repair} />
+        </Tip>
+      ) : shown ? (
+        <UnpackStatus unpack={shown} t={t} />
+      ) : (
+        <StatusPill status={state} />
+      )}
       {/* What the backend is doing, when "running" is not the whole truth: JD
           can report "Captcha recognition (rapidgator.net)" on a package while
           this column says running with no bytes moving. Beside the status
@@ -1252,6 +1262,8 @@ export { hostOf } from '../lib/searchQuery';
 const STATUS_RANK: Record<RowState, number> = {
   running: 0,
   leeching: 0,
+  verifying: 1,
+  repairing: 1,
   extracting: 1,
   queued: 2,
   paused: 3,
@@ -1344,6 +1356,16 @@ function barOf(u: Unpacking | null): UnpackBar | null {
 
 /** unpackBar is a row's unpacking, on every part of the set being unpacked. */
 export const unpackBar = (task: Task, ctx: CellContext): UnpackBar | null => barOf(unpackingOf(task, ctx));
+
+/**
+ * repairBar is how far the par2 check of a finished row's release has got,
+ * which the bar shows in place of the download while it reads or rebuilds.
+ */
+export function repairBar(task: Task): UnpackBar | null {
+  const r = task.status === 'done' ? task.repair : undefined;
+  if (!r || r.progress === undefined || (r.stage !== 'verifying' && r.stage !== 'repairing')) return null;
+  return { unpacked: r.progress * 1000, size: 1000, failed: false };
+}
 
 /** packageUnpackBar is the unpacking that speaks for the package header. */
 export const packageUnpackBar = (items: Task[], ctx: CellContext): UnpackBar | null =>
@@ -1641,8 +1663,8 @@ export const COLUMNS: ColumnDef[] = [
           size={remote ? 1000 : task.size}
           done={task.status === 'done'}
           active={task.status !== 'error'}
-          live={task.status === 'running' || task.status === 'extracting'}
-          unpack={unpackBar(task, ctx) ?? undefined}
+          live={task.status === 'running' || task.status === 'extracting' || repairBar(task) !== null}
+          unpack={unpackBar(task, ctx) ?? repairBar(task) ?? undefined}
         />
       );
     },
@@ -1655,8 +1677,8 @@ export const COLUMNS: ColumnDef[] = [
           size={size}
           done={items.every((x) => x.status === 'done')}
           active={items.some((x) => x.status !== 'error')}
-          live={items.some((x) => x.status === 'running' || x.status === 'extracting')}
-          unpack={packageUnpackBar(items, ctx) ?? undefined}
+          live={items.some((x) => x.status === 'running' || x.status === 'extracting' || repairBar(x) !== null)}
+          unpack={packageUnpackBar(items, ctx) ?? items.map(repairBar).find((b) => b !== null) ?? undefined}
         />
       );
     },
