@@ -134,12 +134,14 @@ func (d *download) loaded() int64 {
 // save writes the map after the data it describes has reached the disk, so a
 // crash never leaves the map claiming an article the file lacks.
 func (d *download) save() {
-	if err := d.f.Sync(); err != nil {
-		return
-	}
+	// Taken before the sync, as an article written during it may not be on
+	// the disk yet.
 	d.mu.Lock()
 	snap := segMap{size: d.m.size, done: append([]bool(nil), d.m.done...)}
 	d.mu.Unlock()
+	if err := d.f.Sync(); err != nil {
+		return
+	}
 	_ = snap.save(d.mapPath)
 }
 
