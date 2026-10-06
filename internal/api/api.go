@@ -322,6 +322,13 @@ func spaHandler() http.Handler {
 				return
 			}
 		}
+		if strings.Trim(p, "/") == "quickadd" {
+			// On this page one press on Add queues whatever link the query
+			// string brought, so no other site may frame it and steer that
+			// press. The rest of the app stays open to dashboards that embed it.
+			w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+			w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		}
 		serveIndex(w, r, index)
 	})
 }
