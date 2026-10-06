@@ -2616,6 +2616,7 @@ export const uk: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Це правило нічого не перевіряє, тож тут воно підійшло б будь-якому посиланню.',
   'settings.jdimport.reason.ruleNoAction': 'Нічого з того, що задає це правило, не існує в KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader не може використати це правило: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Теку завантажень {folder} не можна використати на цій машині, тому правило не позначене. Його все одно можна позначити, а теку потім змінити в правилі.',
   'settings.jdimport.reason.rulePlaceholder': '{field} використовує {tag}, якого немає в KnightLoader, тож цю частину пропущено.',
   'settings.jdimport.reason.ruleRenameKept': 'Нова назва файлу залишається в правилі й показується в перевірці правила, але завантаження поки що її не використовують.',
   'settings.jdimport.reason.ruleDropped': 'Пропущено, оскільки правила KnightLoader не вміють цього: {actions}',

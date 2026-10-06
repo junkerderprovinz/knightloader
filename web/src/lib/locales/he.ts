@@ -2634,6 +2634,7 @@ export const he: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'הכלל הזה לא בודק כלום, אז כאן הוא היה מתאים לכל קישור.',
   'settings.jdimport.reason.ruleNoAction': 'שום דבר שהכלל הזה קובע לא קיים ב-KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader לא יכול להשתמש בכלל הזה: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'אי אפשר להשתמש בתיקיית ההורדות {folder} במחשב הזה, ולכן הכלל נשאר לא מסומן. אפשר לסמן אותו בכל זאת ולשנות את התיקייה בכלל אחר כך.',
   'settings.jdimport.reason.rulePlaceholder': '{field} משתמש ב-{tag}, שלא קיים ב-KnightLoader, אז החלק הזה הושמט.',
   'settings.jdimport.reason.ruleRenameKept': 'שם הקובץ החדש נשאר בכלל ומופיע בבדיקת הכלל, אבל ההורדות עוד לא משתמשות בו.',
   'settings.jdimport.reason.ruleDropped': 'הושמט, כי הכללים של KnightLoader לא יודעים לעשות את זה: {actions}',

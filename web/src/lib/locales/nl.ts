@@ -2599,6 +2599,7 @@ export const nl: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Deze regel test niets, dus hier zou hij op elke link passen.',
   'settings.jdimport.reason.ruleNoAction': 'Niets van wat deze regel instelt, bestaat in KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader kan deze regel niet gebruiken: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'De downloadmap {folder} is op deze machine niet te gebruiken, dus de regel staat niet aangevinkt. Hij kan toch aangevinkt worden, en de map kan daarna in de regel worden aangepast.',
   'settings.jdimport.reason.rulePlaceholder': '{field} gebruikt {tag}, dat KnightLoader niet heeft, dus dat deel wordt weggelaten.',
   'settings.jdimport.reason.ruleRenameKept': 'De nieuwe bestandsnaam blijft in de regel staan en is te zien in de regeltest, maar downloads gebruiken hem nog niet.',
   'settings.jdimport.reason.ruleDropped': 'Weggelaten, omdat regels van KnightLoader dit niet kunnen: {actions}',

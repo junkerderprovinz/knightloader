@@ -2626,6 +2626,7 @@ export const cs: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Toto pravidlo neprověřuje nic, takže by tady sedělo na každý odkaz.',
   'settings.jdimport.reason.ruleNoAction': 'Nic z toho, co toto pravidlo nastavuje, v KnightLoaderu neexistuje.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader nemůže toto pravidlo použít: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Složku pro stahování {folder} nelze na tomto počítači použít, proto pravidlo zůstává nezaškrtnuté. Přesto ho lze zaškrtnout a složku v pravidle potom změnit.',
   'settings.jdimport.reason.rulePlaceholder': '{field} používá {tag}, které KnightLoader nemá, takže tahle část je vynechaná.',
   'settings.jdimport.reason.ruleRenameKept': 'Nový název souboru zůstává v pravidle a zobrazuje se v testu pravidla, ale stahování ho zatím nepoužívají.',
   'settings.jdimport.reason.ruleDropped': 'Vynecháno, protože tohle pravidla KnightLoaderu neumí: {actions}',

@@ -2615,6 +2615,7 @@ export const hu: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Ez a szabály semmit nem vizsgál, így itt minden linkre illeszkedne.',
   'settings.jdimport.reason.ruleNoAction': 'Semmi, amit ez a szabály beállít, nem létezik a KnightLoaderben.',
   'settings.jdimport.reason.ruleInvalid': 'A KnightLoader nem tudja használni ezt a szabályt: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'A(z) {folder} letöltési mappa nem használható ezen a gépen, ezért a szabály nincs bejelölve. Ettől még bejelölhető, a mappát pedig utána lehet módosítani a szabályban.',
   'settings.jdimport.reason.rulePlaceholder': 'A(z) {field} ezt használja: {tag}, ami a KnightLoaderben nincs meg, ezért az a rész kimarad.',
   'settings.jdimport.reason.ruleRenameKept': 'Az új fájlnév megmarad a szabályban, és megjelenik a szabály tesztjénél, de a letöltések még nem használják.',
   'settings.jdimport.reason.ruleDropped': 'Kimaradt, mert a KnightLoader szabályai erre nem képesek: {actions}',

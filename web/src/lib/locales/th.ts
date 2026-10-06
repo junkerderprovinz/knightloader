@@ -2615,6 +2615,7 @@ export const th: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'กฎนี้ไม่ตรวจสอบอะไรเลย ดังนั้นที่นี่มันจะตรงกับทุกลิงก์',
   'settings.jdimport.reason.ruleNoAction': 'สิ่งที่กฎนี้กำหนดไม่มีอยู่ใน KnightLoader เลย',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ใช้กฎนี้ไม่ได้: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'ใช้โฟลเดอร์ดาวน์โหลด {folder} บนเครื่องนี้ไม่ได้ กฎนี้จึงไม่ได้ถูกเลือกไว้ แต่ยังเลือกได้ แล้วค่อยเปลี่ยนโฟลเดอร์ในกฎภายหลัง',
   'settings.jdimport.reason.rulePlaceholder': '{field} ใช้ {tag} ซึ่ง KnightLoader ไม่มี จึงตัดส่วนนี้ออก',
   'settings.jdimport.reason.ruleRenameKept': 'ชื่อไฟล์ใหม่ยังคงอยู่ในกฎและแสดงในการทดสอบกฎ แต่การดาวน์โหลดยังไม่ใช้ชื่อนี้',
   'settings.jdimport.reason.ruleDropped': 'ถูกตัดออก เนื่องจากกฎของ KnightLoader ทำสิ่งนี้ไม่ได้: {actions}',

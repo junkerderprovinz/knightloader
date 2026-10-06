@@ -2605,6 +2605,7 @@ export const pt: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Esta regra não verifica nada, por isso aqui corresponderia a todos os links.',
   'settings.jdimport.reason.ruleNoAction': 'Nada do que esta regra define existe no KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'O KnightLoader não pode usar esta regra: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'A pasta de transferências {folder} não pode ser usada nesta máquina, por isso a regra fica desmarcada. Ainda assim pode ser marcada e a pasta alterada na regra depois.',
   'settings.jdimport.reason.rulePlaceholder': 'O {field} usa {tag}, que o KnightLoader não tem, por isso essa parte fica de fora.',
   'settings.jdimport.reason.ruleRenameKept': 'O novo nome do ficheiro fica na regra e aparece no teste da regra, mas as transferências ainda não o usam.',
   'settings.jdimport.reason.ruleDropped': 'Deixado de fora, porque as regras do KnightLoader não conseguem isto: {actions}',

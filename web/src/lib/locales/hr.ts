@@ -2630,6 +2630,7 @@ export const hr: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Ovo pravilo ništa ne provjerava, pa bi ovdje odgovaralo svakoj poveznici.',
   'settings.jdimport.reason.ruleNoAction': 'Ništa od onoga što ovo pravilo postavlja ne postoji u KnightLoaderu.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ne može koristiti ovo pravilo: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Mapa za preuzimanja {folder} ne može se koristiti na ovom računalu, pa pravilo ostaje neoznačeno. Ipak se može označiti, a mapa u pravilu promijeniti poslije.',
   'settings.jdimport.reason.rulePlaceholder': '{field} koristi {tag}, kojeg KnightLoader nema, pa je taj dio izostavljen.',
   'settings.jdimport.reason.ruleRenameKept': 'Novi naziv datoteke ostaje u pravilu i prikazuje se u testu pravila, ali preuzimanja ga još ne koriste.',
   'settings.jdimport.reason.ruleDropped': 'Izostavljeno, jer pravila KnightLoadera to ne mogu: {actions}',

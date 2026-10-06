@@ -2602,6 +2602,7 @@ export const zh: Dict = {
   'settings.jdimport.reason.ruleNoCondition': '这条规则什么都不检测，所以在这里会匹配每一个链接。',
   'settings.jdimport.reason.ruleNoAction': '这条规则设置的内容，在 KnightLoader 里一项都不存在。',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader 无法使用这条规则：{error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': '下载文件夹 {folder} 在这台机器上无法使用，所以这条规则没有勾选。仍然可以勾选它，之后再在规则里更改文件夹。',
   'settings.jdimport.reason.rulePlaceholder': '{field}用到了 {tag}，这是 KnightLoader 没有的，所以这部分被省略了。',
   'settings.jdimport.reason.ruleRenameKept': '新的文件名会留在规则里，并在规则测试中显示，但下载目前还不会用到它。',
   'settings.jdimport.reason.ruleDropped': '被省略了，因为 KnightLoader 的规则做不到这些：{actions}',

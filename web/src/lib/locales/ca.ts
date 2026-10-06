@@ -2602,6 +2602,7 @@ export const ca: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Aquesta regla no comprova res, de manera que aquí coincidiria amb tots els enllaços.',
   'settings.jdimport.reason.ruleNoAction': 'Res del que estableix aquesta regla existeix a KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader no pot fer servir aquesta regla: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'La carpeta de baixades {folder} no es pot fer servir en aquest equip, així que la regla queda sense marcar. Igualment es pot marcar i canviar la carpeta a la regla després.',
   'settings.jdimport.reason.rulePlaceholder': 'El {field} fa servir {tag}, que KnightLoader no té, així que aquesta part es deixa fora.',
   'settings.jdimport.reason.ruleRenameKept': 'El nom de fitxer nou es queda a la regla i apareix a la prova de la regla, però les baixades encara no el fan servir.',
   'settings.jdimport.reason.ruleDropped': 'Deixat fora, perquè les regles de KnightLoader no poden fer això: {actions}',

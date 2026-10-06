@@ -2600,6 +2600,7 @@ export const pl: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Ta reguła niczego nie sprawdza, więc tutaj pasowałaby do każdego linku.',
   'settings.jdimport.reason.ruleNoAction': 'Nic z tego, co ustawia ta reguła, nie istnieje w KnightLoaderze.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader nie może użyć tej reguły: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Folderu pobierania {folder} nie da się użyć na tym komputerze, więc reguła nie jest zaznaczona. Mimo to można ją zaznaczyć i później zmienić folder w regule.',
   'settings.jdimport.reason.rulePlaceholder': '{field} używa {tag}, którego KnightLoader nie ma, więc ta część zostaje pominięta.',
   'settings.jdimport.reason.ruleRenameKept': 'Nowa nazwa pliku zostaje w regule i jest widoczna w teście reguły, ale pobieranie jeszcze jej nie wykorzystuje.',
   'settings.jdimport.reason.ruleDropped': 'Pominięte, ponieważ reguły KnightLoadera nie potrafią tego: {actions}',

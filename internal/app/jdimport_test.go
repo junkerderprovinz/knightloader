@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 	"time"
@@ -487,5 +488,38 @@ func TestAJDImportReportCountsRejectedLinksApart(t *testing.T) {
 	}
 	if rep.Links != 1 || rep.Held != 2 {
 		t.Errorf("report says %d links wait and %d were rejected, want 1 and 2", rep.Links, rep.Held)
+	}
+}
+
+func TestARuleWhoseFolderCannotBeUsedHereComesUnticked(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	here := t.TempDir()
+	// A file where the folder would start stands in for a path that only
+	// exists on the machine JDownloader ran on.
+	elsewhere := filepath.Join(here, "not-a-folder")
+	if err := os.WriteFile(elsewhere, nil, 0o644); err != nil {
+		t.Fatal(err)
+	}
+	rule := func(name, dir string) map[string]any {
+		return jdimporttest.Rule(name, map[string]any{
+			"filetypeFilter":      map[string]any{"enabled": true, "matchType": "IS", "customs": "mkv"},
+			"downloadDestination": dir,
+		})
+	}
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{Packagizer: []map[string]any{
+		rule("over there", filepath.Join(elsewhere, "Downloads", "<jd:packagename>")),
+		rule("right here", filepath.Join(here, "<jd:packagename>")),
+	}})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	there := itemByName(t, p, JDGroupPackagizer, "over there")
+	if there.Ticked || len(there.Notes) == 0 || there.Notes[len(there.Notes)-1].Code != "ruleFolderElsewhere" {
+		t.Errorf("rule with a foreign folder = %+v, want it unticked with a note", there)
+	}
+	if it := itemByName(t, p, JDGroupPackagizer, "right here"); !it.Ticked {
+		t.Errorf("rule with a folder here = %+v, want it ticked", it)
 	}
 }
