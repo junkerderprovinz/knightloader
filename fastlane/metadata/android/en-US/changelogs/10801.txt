@@ -1,0 +1,1 @@
+Fixes from a code review: a crash from a forged Usenet article, captcha notifications that stayed up, and the QR scanner after the camera was allowed in settings.

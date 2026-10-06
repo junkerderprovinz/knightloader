@@ -1,0 +1,1 @@
+Korrekturen aus einem Code-Review: ein Absturz durch einen gefälschten Usenet-Artikel, Captcha-Benachrichtigungen, die stehen blieben, und der QR-Scanner, nachdem die Kamera in den Einstellungen erlaubt wurde.

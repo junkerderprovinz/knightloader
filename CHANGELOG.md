@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.1] - 2026-10-06
+
 ### Fixed
 
 - **A forged Usenet article could crash KnightLoader.** An article whose yEnc
