@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { Linking, Modal, PermissionsAndroid, StyleSheet, View } from 'react-native';
+import { AppState, Linking, Modal, PermissionsAndroid, StyleSheet, View } from 'react-native';
 import { QrScannerView } from '../../modules/qr-scanner';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useMotion } from '../theme/MotionContext';
@@ -29,20 +29,27 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
   useEffect(() => {
     if (!visible) return;
     reported.current = false;
-    PermissionsAndroid.check(CAMERA).then(setGranted);
+    const look = () => void PermissionsAndroid.check(CAMERA).then(setGranted);
+    look();
+    // The camera may have been allowed in Android's settings meanwhile.
+    const sub = AppState.addEventListener('change', (s) => {
+      if (s === 'active') look();
+    });
+    return () => sub.remove();
   }, [visible]);
 
   // After a second refusal Android stops asking, so only its settings page can
   // grant the camera. The page opens on the tap after that refusal rather than
-  // with it, which would answer "Don't allow" with a settings screen.
-  const blocked = useRef(false);
+  // with it, which would answer "Don't allow" with a settings screen; the
+  // button says where it leads instead.
+  const [blocked, setBlocked] = useState(false);
   const requestPermission = async () => {
-    if (blocked.current) {
-      Linking.openSettings();
+    if (blocked) {
+      void Linking.openSettings();
       return;
     }
     const result = await PermissionsAndroid.request(CAMERA);
-    blocked.current = result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN;
+    setBlocked(result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN);
     setGranted(result === PermissionsAndroid.RESULTS.GRANTED);
   };
 
@@ -56,7 +63,7 @@ export default function QRScanner({ visible, onScanned, onClose, hint }: { visib
         ) : !granted ? (
           <View style={styles.center}>
             <Text style={[styles.hint, { color: c.text }]}>{t('qr.cameraPermissionHint')}</Text>
-            <GlimButton hue={0} label={t('qr.grantAccess')} onPress={requestPermission} />
+            <GlimButton hue={0} label={t(blocked ? 'qr.openSettings' : 'qr.grantAccess')} onPress={requestPermission} />
           </View>
         ) : (
           <>

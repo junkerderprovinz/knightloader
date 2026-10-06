@@ -5,6 +5,7 @@ export const da: Dict = {
   'qr.cancel': 'Annuller',
   'qr.cameraPermissionHint': 'Kameraadgang er nødvendig for at scanne QR-koden.',
   'qr.grantAccess': 'Tillad adgang',
+  'qr.openSettings': 'Åbn indstillinger',
 
   'connections.addButton': '+ Forbindelse',
   'connections.empty': 'Ingen forbindelse gemt endnu.',

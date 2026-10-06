@@ -5,6 +5,7 @@ export const el: Dict = {
   'qr.cancel': 'Ακύρωση',
   'qr.cameraPermissionHint': 'Απαιτείται πρόσβαση στην κάμερα για τη σάρωση του κωδικού QR.',
   'qr.grantAccess': 'Να επιτρέπεται η πρόσβαση',
+  'qr.openSettings': 'Άνοιγμα ρυθμίσεων',
 
   'connections.addButton': '+ Σύνδεση',
   'connections.empty': 'Δεν έχει αποθηκευτεί ακόμη καμία σύνδεση.',

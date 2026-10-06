@@ -5,6 +5,7 @@ export const is: Dict = {
   'qr.cancel': 'Hætta við',
   'qr.cameraPermissionHint': 'Aðgang að myndavél þarf til að skanna QR-kóðann.',
   'qr.grantAccess': 'Leyfa aðgang',
+  'qr.openSettings': 'Opna stillingar',
 
   'connections.addButton': '+ Tenging',
   'connections.empty': 'Engin tenging vistuð ennþá.',

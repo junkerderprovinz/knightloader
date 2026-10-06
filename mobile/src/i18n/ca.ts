@@ -5,6 +5,7 @@ export const ca: Dict = {
   'qr.cancel': 'Cancel·la',
   'qr.cameraPermissionHint': 'Cal accés a la càmera per escanejar el codi QR.',
   'qr.grantAccess': "Permet l'accés",
+  'qr.openSettings': 'Obre la configuració',
 
   'connections.addButton': '+ Connexió',
   'connections.empty': "Encara no s'ha desat cap connexió.",

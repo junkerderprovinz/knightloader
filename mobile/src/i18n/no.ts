@@ -5,6 +5,7 @@ export const no: Dict = {
   'qr.cancel': 'Avbryt',
   'qr.cameraPermissionHint': 'Kameratilgang trengs for å skanne QR-koden.',
   'qr.grantAccess': 'Tillat tilgang',
+  'qr.openSettings': 'Åpne innstillinger',
 
   'connections.addButton': '+ Tilkobling',
   'connections.empty': 'Ingen tilkobling lagret ennå.',
