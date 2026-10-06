@@ -312,7 +312,7 @@ const office = { id: 'office', name: 'Office', transport: 'relay' };
   }
   const read = body('sharedFileText');
   if (!read.includes('SCHEME_CONTENT') || !read.includes('GET_PROVIDERS')) fail("sharedFileText reads file paths or this app's own providers for any app that asks");
-  if (!/val authority = uri\.authority\?\.substringAfterLast\('@'\)[\s\S]*authority in it\.authority/.test(read)) {
+  if (!/val authority = uri\.authority\?\.substringAfterLast\('@'\)[\s\S]*(?<![\w.])authority in it\.authority/.test(read)) {
     fail("sharedFileText takes content://0@ followed by this app's own provider for another app's, though ContentResolver drops the 0@");
   }
   for (const name of ['ContentResolver', 'PackageManager', 'Uri', 'IOException']) {
