@@ -140,6 +140,17 @@ func (d *download) size() int64 {
 	return d.file.Bytes()
 }
 
+// lost is how many bytes of the file are not written, 0 while no article has
+// said how large it is.
+func (d *download) lost() int64 {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if d.m.size == 0 {
+		return 0
+	}
+	return max(0, d.m.size-d.bytes)
+}
+
 func (d *download) loaded() int64 {
 	d.mu.Lock()
 	defer d.mu.Unlock()

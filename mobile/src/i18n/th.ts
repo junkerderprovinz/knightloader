@@ -146,6 +146,8 @@ export const th: Dict = {
   'status.finished': 'เสร็จสิ้น',
   'status.failed': 'ล้มเหลว',
   'status.extracting': 'กำลังแตกไฟล์',
+  'status.verifying': 'กำลังตรวจสอบ',
+  'status.repairing': 'กำลังซ่อมแซม',
   'status.seeding': 'กำลังซีด',
   'status.disabled': 'ปิดใช้',
 

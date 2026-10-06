@@ -1138,6 +1138,13 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		a.awaitStartLocked(id)
 	}
 	a.mu.Unlock()
+	var usenetJob string
+	if t != nil {
+		usenetJob = local.LinkJob(t.URL)
+	}
+	if usenetJob != "" && deleteFiles {
+		a.haltUsenetCheck(usenetJob)
+	}
 	if t != nil {
 		a.backendFor(t.Resolver).Remove(id, backendFiles)
 		// The engine only deletes files of transfers it still knows, and it
@@ -1154,6 +1161,10 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 		}
 		ytdlp.Discard(id, work, a.usedByOther)
 		a.dropImported(t)
+	}
+	if usenetJob != "" {
+		// Without this download, what is left of the release may be ready for its check.
+		a.spawn(func() { a.checkUsenetJob(usenetJob) })
 	}
 	// A copy published after this point finds the task gone (see publish).
 	a.saveMu.Lock()

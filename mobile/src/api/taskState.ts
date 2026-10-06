@@ -14,6 +14,8 @@ export type StateWord =
   | 'leeching'
   | 'paused'
   | 'extracting'
+  | 'verifying'
+  | 'repairing'
   | 'seeding'
   | 'finished'
   | 'failed'
@@ -38,8 +40,17 @@ const seeds = (t: Task): boolean => t.status === 'done' && t.seeding === true;
 // A torrent a debrid service fetched comes down over HTTP and is not one.
 const isTorrent = (t: Task): boolean => t.resolver === 'torrent';
 
-// A status from a newer instance sorts with the settled ones.
-const rank = (t: Task): number => (seeds(t) ? RANK.seeding : (RANK[t.status] ?? RANK.error));
+// A finished file whose release is under its par2 check is not settled yet,
+// and ranks with an unpacking. A status from a newer instance sorts with the
+// settled ones.
+const rank = (t: Task): number => {
+  if (checking(t)) return RANK.extracting;
+  return seeds(t) ? RANK.seeding : (RANK[t.status] ?? RANK.error);
+};
+
+const checking = (t: Task): boolean => t.status === 'done' && !!t.repair;
+
+const repairing = (t: Task): boolean => t.repair?.stage === 'repairing' || t.repair?.stage === 'fetching';
 
 const unpackFailed = (t: Task): boolean => t.status === 'done' && (t.unpack === 'error' || t.unpack === 'password');
 
@@ -61,6 +72,9 @@ export function rowWord(t: Task): StateWord | null {
     case 'extracting':
       return t.status;
     case 'done':
+      // Downloaded, but the release's par2 check has not passed yet: verifying,
+      // or repairing once it found damage, its recovery files coming included.
+      if (checking(t)) return repairing(t) ? 'repairing' : 'verifying';
       // An archive that did not unpack is the thing to act on, seeding or not.
       if (unpackFailed(t)) return 'notUnpacked';
       return seeds(t) ? 'seeding' : 'finished';
@@ -130,7 +144,7 @@ export function packageCard(tasks: Task[]): ListCard {
   let done = 0;
   let torrent = false;
   for (const t of tasks) {
-    if (t.status === 'done' && !unpackFailed(t)) {
+    if (t.status === 'done' && !unpackFailed(t) && !checking(t)) {
       done++;
       if (isTorrent(t)) torrent = true;
       continue;
@@ -214,6 +228,17 @@ export function unpackProgress(t: Task, byTask: Map<string, ExtractJob>): Unpack
   if (job?.status === 'running') return { unpacked: job.unpacked ?? 0, size: job.size ?? 0, failed: false };
   if (job?.status === 'error' && job.size) return { unpacked: job.unpacked ?? 0, size: job.size, failed: true };
   return null;
+}
+
+/**
+ * checkPercent is how far the par2 check of a finished file's release has got
+ * while it reads or rebuilds, as the web's bar shows it (repairBar in
+ * web/src/components/columns.tsx), or null while it waits.
+ */
+export function checkPercent(t: Task): number | null {
+  const r = checking(t) ? t.repair : undefined;
+  if (!r || r.progress === undefined || (r.stage !== 'verifying' && r.stage !== 'repairing')) return null;
+  return Math.min(100, Math.floor(r.progress * 100));
 }
 
 /** unpackPercent is an unpacking's share done, or null when its size is unknown. */

@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import type { ExtractJob, Task, TorrentFileView } from '../api/types';
 import {
+  checkPercent,
   isParked,
   packageState,
   seedingOff,
@@ -378,6 +379,11 @@ export default function PackageList({
           state.word === 'extracting'
             ? pkg.tasks.map(unpackOf).find((u) => u && !u.failed && u.size > 0)
             : undefined;
+        // A par2 check covers the whole release, so any of its rows says how far.
+        const checked =
+          state.word === 'verifying' || state.word === 'repairing'
+            ? pkg.tasks.map(checkPercent).find((p) => p !== null)
+            : undefined;
         const seeds = onSeeding ? pkg.tasks.filter(seedingOn) : [];
         const stopped = onSeeding ? pkg.tasks.filter(seedingOff) : [];
         return (
@@ -416,6 +422,7 @@ export default function PackageList({
                   pkg.size > 0 ? fmtBytes(pkg.size) : null,
                   pkg.speed > 0 ? fmtSpeed(pkg.speed) : null,
                   unpacked ? `${unpackPercent(unpacked)}%` : null,
+                  checked !== undefined && checked !== null ? `${checked}%` : null,
                 ]
                   .filter(Boolean)
                   .join(' · ')}

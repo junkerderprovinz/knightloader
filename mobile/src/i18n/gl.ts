@@ -146,6 +146,8 @@ export const gl: Dict = {
   'status.finished': 'rematado',
   'status.failed': 'fallido',
   'status.extracting': 'extraendo',
+  'status.verifying': 'verificando',
+  'status.repairing': 'reparando',
   'status.seeding': 'facendo seed',
   'status.disabled': 'desactivado',
 

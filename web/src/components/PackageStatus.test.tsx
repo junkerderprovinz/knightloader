@@ -150,3 +150,22 @@ it('keeps a package of a seeding torrent and a dead link on seeding, with the fa
   expect(text).toContain(en['status.seeding']);
   expect(flagged(1)).not.toBeNull();
 });
+
+it('shows a finished file whose release is under its par2 check as verifying, with how far it got', () => {
+  const text = cell(row('a', { repair: { stage: 'verifying', progress: 0.4 } }));
+  expect(text).toContain(en['repair.verifyingAt'].replace('{percent}', '40%'));
+  expect(text).not.toContain(en['status.done']);
+  expect(cell(row('a', { repair: { stage: 'waiting' } }))).toContain(en['status.verifying']);
+});
+
+it('shows a release fetching recovery files or rebuilding blocks as repairing', () => {
+  expect(cell(row('a', { repair: { stage: 'fetching', damaged: 3, recovery: 4 } }))).toContain(en['status.repairing']);
+  const text = cell(row('a', { repair: { stage: 'repairing', progress: 0.25, damaged: 3 } }));
+  expect(text).toContain(en['repair.repairingAt'].replace('{percent}', '25%'));
+});
+
+it('keeps a package on verifying while one of its files waits for the check', () => {
+  const text = header([row('a'), row('b', { repair: { stage: 'waiting' } })]);
+  expect(text).toContain(en['status.verifying']);
+  expect(text).not.toContain(en['status.done']);
+});

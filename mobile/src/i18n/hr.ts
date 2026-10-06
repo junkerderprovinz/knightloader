@@ -146,6 +146,8 @@ export const hr: Dict = {
   'status.finished': 'završeno',
   'status.failed': 'neuspjelo',
   'status.extracting': 'raspakiravanje',
+  'status.verifying': 'provjera',
+  'status.repairing': 'popravak',
   'status.seeding': 'seeda',
   'status.disabled': 'isključeno',
 

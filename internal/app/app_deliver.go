@@ -98,8 +98,9 @@ func (a *App) deliverDownload(id string) {
 	t := a.tasks[id]
 	// StatusDone only: a task in StatusExtracting still needs its volumes
 	// together. A task whose folder a package rename is moving is delivered
-	// once the move is over.
-	if t == nil || t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL || a.relocating[id] {
+	// once the move is over, and a file of a release from the own Usenet
+	// servers once the release has passed its par2 check.
+	if t == nil || t.Status != core.StatusDone || !deliverable(t) || t.Name == "" || t.Name == t.URL || a.relocating[id] || a.usenetHeldLocked(t) {
 		a.mu.Unlock()
 		return
 	}

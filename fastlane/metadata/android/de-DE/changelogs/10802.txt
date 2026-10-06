@@ -1,0 +1,1 @@
+Usenet-Downloads von eigenen Servern werden mit par2 geprüft und repariert, die App zeigt dabei an, ob gerade geprüft oder repariert wird.

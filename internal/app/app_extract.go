@@ -250,7 +250,7 @@ func (a *App) extractionDueLocked(done *core.Task, cfg settings.Settings) (*core
 // them it starts nothing, since the job would open the old paths. Caller holds
 // a.mu.
 func (a *App) extractNowLocked(done *core.Task, cfg settings.Settings) *core.Task {
-	if done.Status != core.StatusDone || !filesAreLocal(done) || a.relocating[done.ID] {
+	if done.Status != core.StatusDone || !filesAreLocal(done) || a.relocating[done.ID] || a.usenetHeldLocked(done) {
 		return nil
 	}
 	target, path := a.extractionDueLocked(done, cfg)

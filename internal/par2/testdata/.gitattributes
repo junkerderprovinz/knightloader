@@ -1,0 +1,4 @@
+# Random bytes that git must not take for text and normalise.
+* binary
+make.sh text eol=lf
+.gitattributes text eol=lf
