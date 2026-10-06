@@ -146,6 +146,8 @@ export const fa: Dict = {
   'status.finished': 'تمام‌شده',
   'status.failed': 'ناموفق',
   'status.extracting': 'در حال استخراج',
+  'status.verifying': 'در حال بررسی',
+  'status.repairing': 'در حال تعمیر',
   'status.seeding': 'در حال سید',
   'status.disabled': 'خاموش',
 

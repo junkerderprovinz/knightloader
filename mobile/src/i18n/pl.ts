@@ -146,6 +146,8 @@ export const pl: Dict = {
   'status.finished': 'zakończono',
   'status.failed': 'niepowodzenie',
   'status.extracting': 'wypakowywanie',
+  'status.verifying': 'weryfikacja',
+  'status.repairing': 'naprawa',
   'status.seeding': 'seeduje',
   'status.disabled': 'wyłączono',
 

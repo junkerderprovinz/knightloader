@@ -146,6 +146,8 @@ export const ms: Dict = {
   'status.finished': 'selesai',
   'status.failed': 'gagal',
   'status.extracting': 'mengekstrak',
+  'status.verifying': 'mengesahkan',
+  'status.repairing': 'membaiki',
   'status.seeding': 'melakukan seed',
   'status.disabled': 'dimatikan',
 

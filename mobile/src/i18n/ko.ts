@@ -145,6 +145,8 @@ export const ko: Dict = {
   'status.finished': '완료',
   'status.failed': '실패',
   'status.extracting': '압축 해제 중',
+  'status.verifying': '검증 중',
+  'status.repairing': '복구 중',
   'status.seeding': '시드 중',
   'status.disabled': '꺼짐',
 

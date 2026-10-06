@@ -26,6 +26,10 @@ export interface Task {
   /** A debrid service's progress on a torrent it is still fetching onto its
    *  own servers, before any of it comes here. Progress runs from 0 to 1. */
   remote?: { progress: number; speed?: number; seeds?: number };
+  /** Where the par2 check of the release a finished file from the own Usenet
+   *  servers belongs to stands, until the release has passed it. Progress runs
+   *  from 0 to 1 within the stage. */
+  repair?: { stage: string; progress?: number; damaged?: number; recovery?: number };
   size: number;
   loaded: number;
   speed: number;

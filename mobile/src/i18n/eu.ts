@@ -146,6 +146,8 @@ export const eu: Dict = {
   'status.finished': 'amaituta',
   'status.failed': 'huts egin du',
   'status.extracting': 'erauzten',
+  'status.verifying': 'egiaztatzen',
+  'status.repairing': 'konpontzen',
   'status.seeding': 'seed egiten',
   'status.disabled': 'itzalita',
 

@@ -168,6 +168,8 @@ export const de: Dict = {
   'status.finished': 'fertig',
   'status.failed': 'fehlgeschlagen',
   'status.extracting': 'entpackt',
+  'status.verifying': 'prüft',
+  'status.repairing': 'repariert',
   'status.seeding': 'seedet',
   'status.collected': 'gesammelt',
   'status.notUnpacked': 'nicht entpackt',
