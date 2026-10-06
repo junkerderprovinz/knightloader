@@ -236,6 +236,15 @@ func (g *Guard) RevokeAll() error {
 	return g.flush()
 }
 
+// Epoch counts how often every session was ended at once, by a password change
+// or a sign-out everywhere. Credentials that should end with the sessions sign
+// it in.
+func (g *Guard) Epoch() uint64 {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.epoch
+}
+
 // endSessionsLocked moves the epoch on. The revocation list only ever named
 // sessions of the old epoch, so it goes with it. Called with mu held.
 func (g *Guard) endSessionsLocked() {
