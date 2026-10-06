@@ -9,6 +9,7 @@ import (
 	"io"
 	"mime"
 	"mime/multipart"
+	"net"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -659,5 +660,59 @@ func TestTheDriveIsReadOnly(t *testing.T) {
 	}
 	if lists, _, _ := f.svc.counts(); lists != 0 {
 		t.Errorf("a refused request read the account %d times", lists)
+	}
+}
+
+// A player paused with the stream open stops reading, and the drive's write
+// blocks. When the request ends, as every request does at shutdown, the write
+// gives up rather than hold the shutdown.
+func TestAWriteToAPausedPlayerGivesUpWhenTheRequestEnds(t *testing.T) {
+	film := make([]byte, 64<<20)
+	cdn := newCDN(t, map[string][]byte{"f1": film})
+	svc := &fakeService{
+		cdn:    cdn.URL,
+		listed: []debrid.Listed{{ID: "1", Name: "Film", Size: int64(len(film)), Added: added}},
+		jobs: map[string]debrid.TorrentJob{
+			"1": {Name: "Film", State: debrid.TorrentReady, Files: []debrid.TorrentFile{
+				{ID: "f1", Path: "Film/film.mkv", Size: int64(len(film)), Held: true},
+			}},
+		},
+	}
+	d := New(
+		func() []Account { return []Account{{Slot: "torbox", Name: "TorBox", Source: svc}} },
+		func() time.Duration { return 5 * time.Minute },
+		cdn.Client(),
+	)
+
+	requests, endRequests := context.WithCancel(context.Background())
+	defer endRequests()
+	returned := make(chan struct{})
+	srv := httptest.NewUnstartedServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		defer close(returned)
+		d.Serve(w, r, "/dav")
+	}))
+	srv.Config.BaseContext = func(net.Listener) context.Context { return requests }
+	srv.Start()
+	t.Cleanup(srv.Close)
+
+	conn, err := net.Dial("tcp", srv.Listener.Addr().String())
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer conn.Close()
+	if _, err := fmt.Fprint(conn, "GET /dav/TorBox/Film/film.mkv HTTP/1.1\r\nHost: kl\r\n\r\n"); err != nil {
+		t.Fatal(err)
+	}
+	// Nothing is read, so the socket buffers fill and the write blocks.
+	select {
+	case <-returned:
+		t.Fatal("the drive returned before the player read anything")
+	case <-time.After(300 * time.Millisecond):
+	}
+	endRequests()
+	select {
+	case <-returned:
+	case <-time.After(5 * time.Second):
+		t.Fatal("the drive still writes to a player that stopped reading after its request ended")
 	}
 }
