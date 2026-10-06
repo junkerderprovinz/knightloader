@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
@@ -127,9 +128,10 @@ func TestEveryJSONBodyHasACeiling(t *testing.T) {
 }
 
 // endlessLinks is a JSON body whose string value never ends, counting what the
-// server has taken of it.
+// server has taken of it. The transport can still be writing the body after
+// the response is in, so sent is read atomically.
 type endlessLinks struct {
-	sent    int64
+	sent    atomic.Int64
 	started bool
 }
 
@@ -142,7 +144,7 @@ func (e *endlessLinks) Read(p []byte) (int, error) {
 	for i := n; i < len(p); i++ {
 		p[i] = 'A'
 	}
-	e.sent += int64(len(p))
+	e.sent.Add(int64(len(p)))
 	return len(p), nil
 }
 
@@ -170,8 +172,8 @@ func TestABodySentWithATokenStopsAtTheCeiling(t *testing.T) {
 				t.Errorf("%s answered %d, want 413", route, resp.StatusCode)
 			}
 		}
-		if body.sent > 2*maxJSONBody {
-			t.Errorf("%s took %d MiB of the body, the ceiling is %d MiB", route, body.sent>>20, maxJSONBody>>20)
+		if sent := body.sent.Load(); sent > 2*maxJSONBody {
+			t.Errorf("%s took %d MiB of the body, the ceiling is %d MiB", route, sent>>20, maxJSONBody>>20)
 		}
 	}
 }
