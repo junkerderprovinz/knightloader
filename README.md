@@ -230,7 +230,7 @@ The downloads, hosts and accounts in these pictures are made up.
 
 KnightLoader is one Go process. The download engine, the API, the web interface and the Click'n'Load listener live in the same binary, so there is nothing to install beside it.
 
-- **Hosters, torrents, Usenet and video.** Hoster links go through the debrid service you already pay for, torrents to the built-in client or a debrid service, `.nzb` files to TorBox or Premiumize.me, videos and streams to yt-dlp, and whatever is left to a headless JDownloader. [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/)
+- **Hosters, torrents, Usenet and video.** Hoster links go through the debrid service you already pay for, torrents to the built-in client or a debrid service, `.nzb` files to your own Usenet servers, with par2 repair, or to TorBox or Premiumize.me, videos and streams to yt-dlp, and whatever is left to a headless JDownloader. [Getting links in](https://junkerderprovinz.github.io/knightloader/getting-links-in/)
 - **A look before anything downloads.** The collector checks each link and shows which backend will take it, and Packagizer rules sort links into packages and folders as they arrive. A link nothing can fetch stays in the list, with the reason. [What it does](https://junkerderprovinz.github.io/knightloader/features/)
 - **Links from anywhere.** Paste them, click a site's Click'n'Load button, send them from the browser extension or the phone's share sheet, drop them in a watched folder, or let Sonarr and Radarr send them, since they see KnightLoader as qBittorrent or SABnzbd. [Bookmarklet, extension and share target](https://junkerderprovinz.github.io/knightloader/browser-tools/)
 - **When a download finishes.** Archives are unpacked and checksums checked, files land in folders built from templates, and a media library can be told to rescan. [Where files land](https://junkerderprovinz.github.io/knightloader/where-files-land/)
@@ -264,7 +264,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Reconnect | ✅ | ✅ | ⚠️ script | ❌ |
 | Video sites | ✅ | ✅ | ⚠️ few | ❌ |
 | Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
-| Usenet | ⚠️ no repair yet | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
+| Usenet | ✅ | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
 | Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
 | DLC, CCF, RSDF | ⚠️ DLC via JD | ✅ | ⚠️ via JD | ❌ |
 | Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
