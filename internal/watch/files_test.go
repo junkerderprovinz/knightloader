@@ -119,6 +119,24 @@ func TestAFileLeftHalfOpenedByAnEarlierRunIsTakenAgain(t *testing.T) {
 	}
 }
 
+func TestAFileUnderTheOpeningSuffixThatWasNeverParkedKeepsItsName(t *testing.T) {
+	p, dir, rec := newPolled(t, false)
+	for _, name := range []string{"report.pdf", "links.txt"} {
+		write(t, filepath.Join(dir, name+openingSuffix), "not ours")
+	}
+
+	p.poll()
+	p.poll()
+	for _, name := range []string{"report.pdf", "links.txt"} {
+		if _, err := os.Stat(filepath.Join(dir, name+openingSuffix)); err != nil {
+			t.Errorf("%s was renamed although the watcher never parked it: %v", name+openingSuffix, err)
+		}
+	}
+	if n := rec.count(); n != 0 {
+		t.Errorf("handed over %d jobs, want none", n)
+	}
+}
+
 func TestAFileBeingOpenedIsNotTakenAgainByAnotherPoller(t *testing.T) {
 	p, dir, rec := newPolled(t, false)
 	write(t, filepath.Join(dir, "links.ccf"), "encrypted")
