@@ -5,6 +5,7 @@ export const fi: Dict = {
   'qr.cancel': 'Peruuta',
   'qr.cameraPermissionHint': 'QR-koodin skannaamiseen tarvitaan kameran käyttöoikeus.',
   'qr.grantAccess': 'Salli käyttöoikeus',
+  'qr.openSettings': 'Avaa asetukset',
 
   'connections.addButton': '+ Yhteys',
   'connections.empty': 'Yhtään yhteyttä ei ole vielä tallennettu.',

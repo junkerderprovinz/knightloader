@@ -5,6 +5,7 @@ export const nl: Dict = {
   'qr.cancel': 'Annuleren',
   'qr.cameraPermissionHint': 'Cameratoegang is nodig om de QR-code te scannen.',
   'qr.grantAccess': 'Toegang toestaan',
+  'qr.openSettings': 'Instellingen openen',
 
   'connections.addButton': '+ Verbinding',
   'connections.empty': 'Nog geen verbinding opgeslagen.',

@@ -5,6 +5,7 @@ export const sv: Dict = {
   'qr.cancel': 'Avbryt',
   'qr.cameraPermissionHint': 'Kameraåtkomst behövs för att skanna QR-koden.',
   'qr.grantAccess': 'Tillåt åtkomst',
+  'qr.openSettings': 'Öppna inställningar',
 
   'connections.addButton': '+ Anslutning',
   'connections.empty': 'Ingen anslutning sparad ännu.',

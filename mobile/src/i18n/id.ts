@@ -5,6 +5,7 @@ export const id: Dict = {
   'qr.cancel': 'Batal',
   'qr.cameraPermissionHint': 'Akses kamera diperlukan untuk memindai kode QR.',
   'qr.grantAccess': 'Izinkan akses',
+  'qr.openSettings': 'Buka pengaturan',
 
   'connections.addButton': '+ Koneksi',
   'connections.empty': 'Belum ada koneksi yang tersimpan.',

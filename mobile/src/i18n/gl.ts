@@ -5,6 +5,7 @@ export const gl: Dict = {
   'qr.cancel': 'Cancelar',
   'qr.cameraPermissionHint': 'Requírese acceso á cámara para escanear o código QR.',
   'qr.grantAccess': 'Permitir acceso',
+  'qr.openSettings': 'Abrir axustes',
 
   'connections.addButton': '+ Conexión',
   'connections.empty': 'Aínda non hai ningunha conexión gardada.',

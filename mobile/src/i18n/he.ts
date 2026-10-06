@@ -5,6 +5,7 @@ export const he: Dict = {
   'qr.cancel': 'ביטול',
   'qr.cameraPermissionHint': 'נדרשת גישה למצלמה כדי לסרוק את קוד ה-QR.',
   'qr.grantAccess': 'אפשרו גישה',
+  'qr.openSettings': 'פתיחת ההגדרות',
 
   'connections.addButton': '+ חיבור',
   'connections.empty': 'עדיין לא נשמר אף חיבור.',

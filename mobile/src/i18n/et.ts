@@ -5,6 +5,7 @@ export const et: Dict = {
   'qr.cancel': 'Tühista',
   'qr.cameraPermissionHint': 'QR-koodi skannimiseks on vaja kaamera juurdepääsu.',
   'qr.grantAccess': 'Luba juurdepääs',
+  'qr.openSettings': 'Ava seaded',
 
   'connections.addButton': '+ Ühendus',
   'connections.empty': 'Ühtegi ühendust pole veel salvestatud.',

@@ -5,6 +5,7 @@ export const bg: Dict = {
   'qr.cancel': 'Отказ',
   'qr.cameraPermissionHint': 'За сканиране на QR кода е необходим достъп до камерата.',
   'qr.grantAccess': 'Разреши достъп',
+  'qr.openSettings': 'Отваряне на настройките',
 
   'connections.addButton': '+ Връзка',
   'connections.empty': 'Все още няма запазена връзка.',

@@ -49,7 +49,9 @@ const HELPERS = `
     if (uri.scheme != ContentResolver.SCHEME_CONTENT) return null
     @Suppress("DEPRECATION")
     val own = packageManager.getPackageInfo(packageName, PackageManager.GET_PROVIDERS).providers.orEmpty()
-    if (own.any { uri.authority in it.authority.orEmpty().split(';') }) return null
+    // ContentResolver drops a user prefix such as "0@" before it finds the provider.
+    val authority = uri.authority?.substringAfterLast('@')
+    if (own.any { authority in it.authority.orEmpty().split(';') }) return null
     return try {
       contentResolver.openInputStream(uri)?.use { input ->
         val bytes = ByteArray(SHARED_TEXT_LIMIT + 1)

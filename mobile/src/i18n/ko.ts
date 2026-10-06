@@ -5,6 +5,7 @@ export const ko: Dict = {
   'qr.cancel': '취소',
   'qr.cameraPermissionHint': 'QR 코드를 스캔하려면 카메라 접근 권한이 필요합니다.',
   'qr.grantAccess': '접근 허용',
+  'qr.openSettings': '설정 열기',
 
   'connections.addButton': '+ 연결',
   'connections.empty': '아직 저장된 연결이 없습니다.',

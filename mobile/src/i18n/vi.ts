@@ -5,6 +5,7 @@ export const vi: Dict = {
   'qr.cancel': 'Hủy',
   'qr.cameraPermissionHint': 'Cần quyền truy cập máy ảnh để quét mã QR.',
   'qr.grantAccess': 'Cho phép truy cập',
+  'qr.openSettings': 'Mở cài đặt',
 
   'connections.addButton': '+ Kết nối',
   'connections.empty': 'Chưa có kết nối nào được lưu.',

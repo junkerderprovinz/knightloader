@@ -5,6 +5,7 @@ export const lt: Dict = {
   'qr.cancel': 'Atšaukti',
   'qr.cameraPermissionHint': 'Norint nuskaityti QR kodą, reikalinga prieiga prie kameros.',
   'qr.grantAccess': 'Leisti prieigą',
+  'qr.openSettings': 'Atidaryti nustatymus',
 
   'connections.addButton': '+ Ryšys',
   'connections.empty': 'Kol kas neišsaugotas nė vienas ryšys.',
