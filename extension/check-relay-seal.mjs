@@ -5,8 +5,9 @@
 // The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
 // run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
 // src/relay.js is loaded as is, so the shipped code is what gets checked. The
-// last two checks hold a session to the order the relay sent its frames in and
-// to taking a peer's identity only from a seal that opens.
+// last three checks hold a session to the order the relay sent its frames in,
+// to taking a peer's identity only from a seal that opens and to keeping the
+// browser's member id inside the seals.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -213,6 +214,46 @@ if (!bare) {
 } else if (bare.name !== '' || bare.deployment !== '') {
   failures.push(`an unsealed announce was listed with the identity it claims in plaintext: ${JSON.stringify(bare)}`);
 }
+
+// 8. The browser's lasting member id rides inside the seals: in the announce,
+//    so an instance lists the browser once, and as a call's `from`, so one that
+//    removed the browser can turn it away. The relay sees neither.
+const member = 'b'.repeat(40);
+let asked = null;
+FakeSocket.answer = (socket, frame) => {
+  if (frame.type !== 'proxy-request') return;
+  asked = frame.data;
+  vm.runInContext(
+    `((key, id) => relaySeal(key, relayResponseAAD(id), relayUtf8(JSON.stringify({ status: 200 }))))`,
+    ctx,
+  )(frameKey, frame.data.requestId).then((sealed) =>
+    socket.onmessage?.({ data: JSON.stringify({ type: 'proxy-response', data: { requestId: frame.data.requestId, sealed } }) }),
+  );
+};
+sent.length = 0;
+await vm.runInContext(`((opts) => relaySession(opts, ({ call }) => call('f'.repeat(40), 'GET', '/api/queue')))`, ctx)({
+  url: 'ws://relay.invalid/relay/connect',
+  key: 'a-key-long-enough-for-the-relay',
+  frameKey,
+  selfId: 'd'.repeat(40),
+  memberId: member,
+  selfName: 'Browser',
+});
+FakeSocket.answer = null;
+if (sent.some((raw) => raw.includes(member))) failures.push('the member id travels in the clear, where the relay can link sessions by it');
+const memberHello = JSON.parse(sent.find((raw) => JSON.parse(raw).type === 'hello')).data.announce;
+const announced = await vm.runInContext(
+  `((key, id, blob) => relayOpen(key, relayAnnounceAAD(id), blob).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+  ctx,
+)(frameKey, memberHello.instanceId, memberHello.sealed);
+if (announced?.member !== member) failures.push(`the hello's seal carries the member id ${JSON.stringify(announced?.member)}, want ${member}`);
+const askedCall = asked
+  ? await vm.runInContext(
+      `((key, a) => relayOpen(key, relayRequestAAD(a.requestId, a.target), a.sealed).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, asked)
+  : null;
+if (askedCall?.from !== member) failures.push(`a call goes out from ${JSON.stringify(askedCall?.from)}, want the member id, or a removed browser is never turned away`);
 
 if (failures.length) {
   console.error('The extension’s relay port fails its checks:\n');

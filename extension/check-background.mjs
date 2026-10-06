@@ -13,7 +13,8 @@
  *      it is written to the extension's IndexedDB, one found in storage.local
  *      moves there, and leaving the group deletes it. Every relay session
  *      joins under an id of its own, so two at once do not knock each other
- *      off, and only an extension page can pick a send's target.
+ *      off, while the group knows the browser by one member id until it
+ *      leaves. Only an extension page can pick a send's target.
  *   4. Click'n'Load runs only with the optional site access: wanted without it
  *      stays off, granting or withdrawing it switches the scripts, the grant
  *      and the stored switch arriving together register nothing twice, and an
@@ -37,11 +38,14 @@ function event() {
 /**
  * fakeIndexedDB holds object stores in memory and answers the part of the API
  * group.js uses: open with an upgrade, one store per transaction, get, put and
- * delete, with the transaction completing after its request.
+ * delete. Transactions run one after another, as two over the same store do in
+ * a browser, and one completes once its last request, including any made from
+ * an onsuccess, has run.
  */
 function fakeIndexedDB() {
   const stores = new Map();
   const later = (f) => setTimeout(f, 0);
+  let previous = Promise.resolve();
   const indexedDB = {
     open() {
       const req = {};
@@ -51,12 +55,25 @@ function fakeIndexedDB() {
           transaction: (name) => {
             const data = stores.get(name);
             const tx = {};
+            const start = previous;
+            let finish;
+            previous = new Promise((r) => (finish = r));
+            let pending = 0;
             const run = (fn) => {
               const r = {};
-              later(() => {
-                r.result = fn();
-                later(() => tx.oncomplete?.());
-              });
+              pending++;
+              start.then(() =>
+                later(() => {
+                  r.result = fn();
+                  r.onsuccess?.();
+                  if (--pending === 0) {
+                    later(() => {
+                      finish();
+                      tx.oncomplete?.();
+                    });
+                  }
+                }),
+              );
               return r;
             };
             tx.objectStore = () => ({
@@ -253,6 +270,28 @@ for (const stored of [false, undefined]) {
     if (!ids.every((id) => /^[0-9a-f]{40}$/.test(id))) fail(`a relay session joins under ${JSON.stringify(ids)}, want 40 hex characters`);
     if (ids[0] === ids[1]) fail('two relay sessions join under the same id, so the relay drops the first one');
 
+    // The group knows the browser by one member id, or every session leaves a
+    // card of its own and removing the browser never reaches it.
+    const members = await Promise.all([run('readMemberId')(), run('readMemberId')()]);
+    if (!/^[0-9a-f]{40}$/.test(members[0])) fail(`the browser's member id is ${JSON.stringify(members[0])}, want 40 hex characters`);
+    if (members[0] !== members[1]) fail('two sessions starting together get different member ids');
+    if ((await run('readMemberId')()) !== members[0]) fail('the member id changes from one session to the next');
+    if ('member' in store) fail('the member id is kept in storage.local, which every content script can read');
+    await run('forgetGroup')();
+    if ((await run('readMemberId')()) === members[0]) fail('a browser that left the group comes back under its old member id');
+
+    await run('writePhrase')(PHRASE);
+    const opened = [];
+    ctx.record = (o) => opened.push(o);
+    vm.runInContext('relaySession = (opts, work) => { record(opts); return work({ siblings: [], call: async () => null }); }', ctx);
+    await run('groupInstances')();
+    await run('groupInstances')();
+    if (opened.length !== 2 || !opened[0].memberId || opened[0].memberId !== opened[1].memberId) {
+      fail(`two sessions announce the member ids ${JSON.stringify(opened.map((o) => o.memberId))}, want one lasting id`);
+    } else if (opened[0].selfId === opened[0].memberId) {
+      fail('a session routes under the member id, so two at once knock each other off the relay');
+    }
+
     let answered = false;
     const message = { type: 'knightloader-send-to', target: 'a'.repeat(40), payload: { url: 'https://files.example/a' } };
     for (const f of chrome.runtime.onMessage.listeners) f(message, { url: 'https://evil.example/' }, () => { answered = true; });
@@ -323,4 +362,4 @@ if (problems.length) {
   for (const p of problems) console.error(`✗ ${p}`);
   process.exit(1);
 }
-console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id, Click\'n\'Load follows the site access');
+console.log('ok: background survives without context menus, the jdcheck ruleset follows the scripts and every update and start re-applies it, the phrase stays out of storage content scripts read, every session joins under its own id and one lasting member id, Click\'n\'Load follows the site access');

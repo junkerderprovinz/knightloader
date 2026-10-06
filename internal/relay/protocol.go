@@ -93,6 +93,10 @@ type Announce struct {
 	// page shows and opens: its first known domain, else its address on its
 	// network. Sealed, because a domain says whose instance it is.
 	Address string `json:"address,omitempty"`
+	// Member is the lasting id of a client that joins under a fresh InstanceID
+	// for every session, as the browser extension does, so the group can
+	// still recognise it and turn it away once removed.
+	Member string `json:"member,omitempty"`
 }
 
 // Identity is the part of an announce the relay server never reads: it routes
@@ -104,6 +108,7 @@ type Identity struct {
 	Deployment string `json:"deployment,omitempty"`
 	Client     bool   `json:"client,omitempty"`
 	Address    string `json:"address,omitempty"`
+	Member     string `json:"member,omitempty"`
 }
 
 // announceAAD binds an announce's seal to its instance id. Its label differs
@@ -147,6 +152,7 @@ func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 		Deployment: a.Deployment,
 		Client:     a.Client,
 		Address:    FitAddress(a.Address),
+		Member:     a.Member,
 	})
 	if err != nil {
 		return Announce{}, err
@@ -168,13 +174,17 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 	if err != nil {
 		return bare
 	}
-	return Announce{
+	out := Announce{
 		InstanceID: a.InstanceID,
 		Name:       ClipName(id.Name),
 		Deployment: ClipName(id.Deployment),
 		Client:     id.Client,
 		Address:    FitAddress(id.Address),
 	}
+	if id.Client && len(id.Member) <= maxClientIDBytes {
+		out.Member = id.Member
+	}
+	return out
 }
 
 // ValidInstanceID reports whether id has the shape every instance mints for
@@ -277,8 +287,9 @@ type ProxyCall struct {
 	// the receiver can refuse a frame it has run before or one that is old.
 	ID   string `json:"id"`
 	Sent int64  `json:"sent"`
-	// From is the phone app's relay id, so an instance can turn away a phone
-	// removed from the group. Instances leave it empty.
+	// From is the phone app's relay id, or the extension's Member id, so an
+	// instance can turn away a client removed from the group. Instances leave
+	// it empty.
 	From string `json:"from,omitempty"`
 }
 
