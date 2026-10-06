@@ -859,6 +859,16 @@ func (a *App) awaitHandoversLocked(ids []string) {
 	}
 }
 
+// awaitStartLocked waits until a start of id on its way to its backend has
+// reached it, since the backend cannot pause or remove a start it has not been
+// given. A start in its preflight is not waited for; preflight drops it once
+// the task is inactive. Caller holds a.mu, which the wait gives up in between.
+func (a *App) awaitStartLocked(id string) {
+	for a.handing[id] > 0 && a.preflights[id] == 0 {
+		a.handoverCondLocked().Wait()
+	}
+}
+
 // awaitRelocationLocked waits while id's folder is being moved, for a start
 // that decides its folder outside the dispatcher, such as a debrid service's
 // once it has unlocked the link. A start made inside a handover the rename is

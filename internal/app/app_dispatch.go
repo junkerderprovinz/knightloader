@@ -1160,6 +1160,7 @@ func (a *App) stop(id string, requeue bool) {
 		return
 	}
 	a.dispatchLocked()
+	a.awaitStartLocked(id)
 	a.mu.Unlock()
 	a.publish(&c)
 	a.backendFor(t.Resolver).Pause(id)

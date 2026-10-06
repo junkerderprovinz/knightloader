@@ -129,6 +129,24 @@ func TestABackendDeletesARemovedDownloadsFileOnlyWhenNoOtherRowRecordsIt(t *test
 	}
 }
 
+func TestRestartingADownloadSparesTheFileAnotherRowRecordsAtItsPath(t *testing.T) {
+	a, dir := newRuleApp(t, func(s *settings.Settings, _ string) { noUnpacking(s) })
+	path := filepath.Join(dir, "report.pdf")
+	withBackend(a, "elsewhere", recordKeeper{wrote: map[string]string{"first": path, "second": path}})
+	a.Registry.Register(elsewhereResolver{})
+	fileBytes(t, path, 8)
+	for id, size := range map[string]int64{"first": 4, "second": 8} {
+		putTask(t, a, core.Task{ID: id, URL: "https://elsewhere.example/" + id + "/report.pdf", Name: "report.pdf",
+			Resolver: "elsewhere", Status: core.StatusDone, Enabled: true, Size: size, File: path})
+	}
+
+	a.RestartTasks([]string{"first"})
+
+	if !fileExists(path) {
+		t.Fatal("restarting the first row deleted the file the second row records")
+	}
+}
+
 func TestRemovingAMovedDownloadWithItsFilesSparesTheFileNowAtItsOldPath(t *testing.T) {
 	for _, m := range appMoves {
 		t.Run(m.name, func(t *testing.T) {

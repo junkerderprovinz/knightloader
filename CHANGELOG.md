@@ -54,6 +54,20 @@ release's tag.
 - **Progress after a restart was wrong for large Usenet downloads.** A download
   above about 3 GB that carried on after a restart showed no progress, or
   progress that jumped, and a wrong time left.
+- **A download removed or paused just as it starts stays stopped.** Removing a
+  selection, or removing or pausing a single download right as it started,
+  could leave its transfer running. It then wrote the whole file with no row in
+  the list, even when you had asked for the files to be deleted.
+- **Restarting a download no longer deletes another download's file.** If you
+  deleted a finished file by hand and another download with the same name then
+  landed at that path, restarting the first one deleted the second one's file.
+- **Undo after removing a download that is being unpacked keeps it finished.**
+  It came back as waiting, its archive was deleted, and the download started
+  over.
+- **A finished or failed download brought back with Undo no longer blocks its
+  link.** Pasting the link again was silently skipped until the next restart.
+- **A failed download brought back with Undo gets the retry it shows.** If the
+  retry fell due while the row was removed, it never came.
 
 ## [1.8.0] - 2026-10-05
 

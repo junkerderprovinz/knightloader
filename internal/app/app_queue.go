@@ -222,6 +222,9 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 		// longer names the task's file (see App.movedFiles). The new attempt
 		// drops the moved file as its own leftover.
 		moved bool
+		// taken does the same for a path another row records, which a file
+		// deleted by hand freed for the next download of the name.
+		taken bool
 	}
 	var targets []reset
 	for id, t := range a.tasks {
@@ -235,7 +238,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 		}
 		if restartable && (all || want[id]) {
 			carry := t.Status == core.StatusError && a.carriesOnLocked(t)
-			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry, a.movedFiles[id]})
+			targets = append(targets, reset{id, a.backendFor(t.Resolver), carry, a.movedFiles[id], a.usedByOtherLocked(id, t.File)})
 			delete(a.movedFiles, id)
 			t.Status = core.StatusQueued
 			t.ClearFailure()
@@ -269,7 +272,7 @@ func (a *App) RestartTasksIn(ids []string, reasons []core.Reason) (left []string
 	// Clear any leftover backend state before re-queuing.
 	for _, r := range targets {
 		if !r.carry {
-			r.be.Remove(r.id, !r.moved)
+			r.be.Remove(r.id, !r.moved && !r.taken)
 		}
 	}
 
@@ -413,11 +416,20 @@ func (a *App) UndoRemove(token string) []string {
 		}
 		t := e.task
 		enqueue := e.queued
-		if t.Status == core.StatusRunning || t.Status == core.StatusExtracting {
+		switch {
+		case t.Status == core.StatusRunning:
 			// The backend was told to forget the task, so it comes back as
 			// waiting, as reviveOnBoot does after a restart.
 			t.Status = core.StatusQueued
 			enqueue = true
+		case t.Status == core.StatusExtracting && !a.unpackingLocked(t.ID):
+			// The download had finished, and fetching it again would delete
+			// the archive. An extraction still under way settles the row
+			// itself.
+			t.Status = core.StatusDone
+		case t.Status == core.StatusError && !t.NextTry.IsZero():
+			// The retry's timer may have fired while the row was gone.
+			a.retryAfter(t.ID, time.Until(t.NextTry), t.NextTry)
 		}
 		// Loaded is kept, as in reviveOnBoot: it describes a file, and a removal
 		// that kept the files left the partial on disk. Speed described a
@@ -431,8 +443,10 @@ func (a *App) UndoRemove(token string) []string {
 		}
 		a.tasks[t.ID] = &t
 		// Filed again, but never over a link pasted since the removal, or the
-		// mirror set would let a third copy past.
-		if m := a.dupes.Check(dedupe.Entry{URL: dedupeURL(t.URL)}); m.Verdict != dedupe.Duplicate {
+		// mirror set would let a third copy past. A settled row is not filed,
+		// as at boot.
+		settled := t.Status == core.StatusDone || t.Status == core.StatusError
+		if !settled && a.dupes.Check(dedupe.Entry{URL: dedupeURL(t.URL)}).Verdict != dedupe.Duplicate {
 			a.dupes.Add(linkEntry(&t))
 		}
 		if enqueue {
