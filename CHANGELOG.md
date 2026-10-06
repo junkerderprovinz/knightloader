@@ -43,8 +43,8 @@ release's tag.
   header named an absurd size made KnightLoader try to reserve that much memory
   and crash. When the `.nzb` listed no article sizes, the same header could
   also grow the download's file on disk to that size. A server that sent an
-  article without end could fill the memory the same way. All of these now
-  count as a damaged article, and the next server is asked for it.
+  article or a reply line without end could fill the memory the same way. All
+  of these now count as a damaged article, and the next server is asked for it.
 
 - **An `.nzb` that left out articles finished with a hole.** When an `.nzb`
   skipped some of a file's articles, the file was finished with zeros where

@@ -93,6 +93,8 @@ const (
 	// few MiB, and a server sending far more would otherwise fill the memory,
 	// once per connection.
 	MaxArticle = 16 << 20
+	// maxLine bounds a status line, which RFC 3977 keeps to 512 bytes.
+	maxLine = 4 << 10
 )
 
 // conn is one logged-in connection.
@@ -159,7 +161,7 @@ func dial(ctx context.Context, s Server) (*conn, error) {
 
 func (c *conn) greet(ctx context.Context, s Server) error {
 	defer c.watch(ctx)()
-	code, msg, err := c.tp.ReadCodeLine(0)
+	code, msg, err := c.readCodeLine()
 	if err != nil {
 		return err
 	}
@@ -203,7 +205,36 @@ func (c *conn) cmd(format string, args ...any) (int, string, error) {
 	if err := c.tp.PrintfLine(format, args...); err != nil {
 		return 0, "", err
 	}
-	return c.tp.ReadCodeLine(0)
+	return c.readCodeLine()
+}
+
+// readCodeLine reads a status line like textproto's ReadCodeLine, but stops at
+// maxLine bytes: a server that never ends the line would otherwise fill the
+// memory.
+func (c *conn) readCodeLine() (int, string, error) {
+	var line []byte
+	for {
+		l, more, err := c.tp.R.ReadLine()
+		if err != nil {
+			return 0, "", err
+		}
+		if len(line)+len(l) > maxLine {
+			return 0, "", textproto.ProtocolError(fmt.Sprintf("status line longer than %d bytes", maxLine))
+		}
+		line = append(line, l...)
+		if !more {
+			break
+		}
+	}
+	s := string(line)
+	if len(s) < 4 || s[3] != ' ' {
+		return 0, "", textproto.ProtocolError(fmt.Sprintf("short response: %q", s))
+	}
+	code, err := strconv.Atoi(s[:3])
+	if err != nil || code < 100 {
+		return 0, "", textproto.ProtocolError(fmt.Sprintf("invalid response code: %q", s))
+	}
+	return code, s[4:], nil
 }
 
 // Copier moves an article from the connection into memory. The app's speed
