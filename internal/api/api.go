@@ -322,7 +322,7 @@ func spaHandler() http.Handler {
 				return
 			}
 		}
-		if strings.Trim(p, "/") == "quickadd" {
+		if isQuickAdd(r) {
 			// On this page one press on Add queues whatever link the query
 			// string brought, so no other site may frame it and steer that
 			// press. The rest of the app stays open to dashboards that embed it.
@@ -331,6 +331,17 @@ func spaHandler() http.Handler {
 		}
 		serveIndex(w, r, index)
 	})
+}
+
+// isQuickAdd reports whether r asks for the QuickAdd page. React Router
+// matches the base path and the route without regard to case, and withBasePath
+// strips the base only when its letters match exactly.
+func isQuickAdd(r *http.Request) bool {
+	p := r.URL.Path
+	if base := requestBasePath(r); len(p) >= len(base) && strings.EqualFold(p[:len(base)], base) {
+		p = p[len(base):]
+	}
+	return strings.EqualFold(strings.Trim(p, "/"), "quickadd")
 }
 
 // serveIndex answers with the page every client-side route starts from. Its
