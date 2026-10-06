@@ -309,6 +309,11 @@ func (d *Drive) Serve(w http.ResponseWriter, r *http.Request, prefix string) {
 // of the file, and a server in trouble gets a 502 instead of a 200 with
 // nothing after it.
 func (d *Drive) get(h *webdav.Handler, w http.ResponseWriter, r *http.Request) {
+	// A paused player stops reading and leaves the connection open, so a
+	// write can block until the player goes on. Once the request is over,
+	// which a shutdown also makes it, that write gives up.
+	rc := http.NewResponseController(w)
+	defer context.AfterFunc(r.Context(), func() { _ = rc.SetWriteDeadline(time.Now()) })()
 	o := &outcome{}
 	held := &heldStatus{ResponseWriter: w, o: o}
 	h.ServeHTTP(held, r.WithContext(context.WithValue(r.Context(), outcomeKey{}, o)))
