@@ -236,6 +236,29 @@ func TestIncompleteFileHandedOnIsNotFailed(t *testing.T) {
 	}
 }
 
+func TestAnArticleNamingAFileFarLargerThanTheNZBIsDamaged(t *testing.T) {
+	r := newRelease("forged.bin", 8_000, 4_000)
+	s := nntptest.New(t)
+	forged := r.parts[0]
+	forged.FileSize = 1 << 60
+	s.AddPart(r.ids[0], forged)
+	r.post(s, 2)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	h := newHarness(t, nntp.NewClient([]nntp.Server{cfg}, nil), r)
+	u := h.run(h.be, 0, r.name)
+	if u.Status != core.StatusError || !strings.Contains(u.Err, "1 of the 2 articles") {
+		t.Fatalf("got %+v", u)
+	}
+	fi, err := os.Stat(PartFile(h.dir, FileLink(h.job, 0, r.name), "task"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if fi.Size() != int64(len(r.data)) {
+		t.Fatalf("the part file has %d bytes, want %d", fi.Size(), len(r.data))
+	}
+}
+
 func TestUnreachableServerFailsAsNetwork(t *testing.T) {
 	r := newRelease("d.bin", 4_000, 2_000)
 	s := nntptest.New(t)
