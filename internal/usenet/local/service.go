@@ -132,6 +132,15 @@ func (s *Service) Keeps(link string) bool {
 	return err == nil
 }
 
+// Files returns the files of a job, as its .nzb lists them.
+func (s *Service) Files(job string) ([]nzb.File, error) {
+	n, err := s.load(job)
+	if err != nil {
+		return nil, err
+	}
+	return n.Files, nil
+}
+
 // File returns one file of a job.
 func (s *Service) File(job string, index int) (nzb.File, error) {
 	n, err := s.load(job)
