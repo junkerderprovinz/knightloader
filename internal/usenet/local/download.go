@@ -87,9 +87,14 @@ func (d *download) pending() []int {
 // write puts article i at its offset. An article whose range does not fit the
 // file its header names is treated as damaged, and so is one naming a file
 // far larger than the .nzb lists, since that size becomes the part file's.
+// An .nzb without sizes still caps it at what its articles can hold.
 func (d *download) write(i int, p yenc.Part) error {
-	if listed := d.file.Bytes(); listed > 0 && p.FileSize > 2*listed {
-		return fmt.Errorf("%w: article %d names a file of %d bytes, the .nzb lists %d", nntp.ErrDamaged, i+1, p.FileSize, listed)
+	limit := 2 * d.file.Bytes()
+	if limit == 0 {
+		limit = int64(len(d.file.Segments)) * nntp.MaxArticle
+	}
+	if p.FileSize > limit {
+		return fmt.Errorf("%w: article %d names a file of %d bytes, the .nzb allows %d", nntp.ErrDamaged, i+1, p.FileSize, limit)
 	}
 	d.mu.Lock()
 	if d.m.size == 0 && p.FileSize > 0 {

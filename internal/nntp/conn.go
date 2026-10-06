@@ -89,10 +89,10 @@ const (
 	// answer. It bounds the silence rather than the whole article, which under
 	// a low speed limit can take minutes.
 	idleTimeout = 60 * time.Second
-	// maxArticle bounds one article's body in memory. Posted articles run to a
+	// MaxArticle bounds one article's body in memory. Posted articles run to a
 	// few MiB, and a server sending far more would otherwise fill the memory,
 	// once per connection.
-	maxArticle = 16 << 20
+	MaxArticle = 16 << 20
 )
 
 // conn is one logged-in connection.
@@ -230,12 +230,12 @@ func (c *conn) body(ctx context.Context, id string, cp Copier) ([]byte, error) {
 		return nil, err
 	}
 	var b bytes.Buffer
-	if _, err := cp.Copy(ctx, &b, io.LimitReader(c.tp.DotReader(), maxArticle+1)); err != nil {
+	if _, err := cp.Copy(ctx, &b, io.LimitReader(c.tp.DotReader(), MaxArticle+1)); err != nil {
 		return nil, err
 	}
 	// The rest stays unread, so the connection is closed with this error.
-	if b.Len() > maxArticle {
-		return nil, fmt.Errorf("%w: article %s is larger than %d MiB", yenc.ErrFormat, id, maxArticle>>20)
+	if b.Len() > MaxArticle {
+		return nil, fmt.Errorf("%w: article %s is larger than %d MiB", yenc.ErrFormat, id, MaxArticle>>20)
 	}
 	return b.Bytes(), nil
 }
