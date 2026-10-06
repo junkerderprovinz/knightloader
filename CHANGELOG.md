@@ -37,6 +37,24 @@ release's tag.
 
 ## [Unreleased]
 
+### Fixed
+
+- **A forged Usenet article could crash KnightLoader.** An article whose yEnc
+  header named an absurd size made KnightLoader try to reserve that much memory
+  and crash. A server that sent an article without end could fill the memory
+  the same way. Both now count as a damaged article, and the next server is
+  asked for it.
+
+- **An `.nzb` that left out articles finished with a hole.** When an `.nzb`
+  skipped some of a file's articles, the file was finished with zeros where
+  they belonged and reported as completed to Sonarr and Radarr. Those articles
+  now count as missing, so the release goes on to your next account or fails
+  with the reason.
+
+- **Progress after a restart was wrong for large Usenet downloads.** A download
+  above about 3 GB that carried on after a restart showed no progress, or
+  progress that jumped, and a wrong time left.
+
 ## [1.8.0] - 2026-10-05
 
 ### Added
