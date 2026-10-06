@@ -17,7 +17,10 @@ const mapSuffix = ".segments"
 type segMap struct {
 	// size is the file's size from its yEnc header, 0 until an article said.
 	size int64
-	done []bool
+	// total is the file's article count from its yEnc headers, which an .nzb
+	// may fall short of, 0 until an article said.
+	total int
+	done  []bool
 }
 
 const mapMagic = "klsegments 1"
@@ -32,13 +35,21 @@ func loadSegMap(path string, n int) *segMap {
 	}
 	head, body, ok := bytes.Cut(raw, []byte("\n"))
 	fields := strings.Fields(string(head))
-	if !ok || len(fields) != 4 || fields[0]+" "+fields[1] != mapMagic || len(body) != n {
+	// The article count, the fifth field, is missing from an older map.
+	if !ok || len(fields) < 4 || len(fields) > 5 || fields[0]+" "+fields[1] != mapMagic || len(body) != n {
 		return m
 	}
 	size, err1 := strconv.ParseInt(fields[2], 10, 64)
 	count, err2 := strconv.Atoi(fields[3])
 	if err1 != nil || err2 != nil || count != n || size < 0 {
 		return m
+	}
+	if len(fields) == 5 {
+		total, err := strconv.Atoi(fields[4])
+		if err != nil || total < 0 {
+			return m
+		}
+		m.total = total
 	}
 	m.size = size
 	for i, c := range body {
@@ -49,7 +60,7 @@ func loadSegMap(path string, n int) *segMap {
 
 func (m *segMap) save(path string) error {
 	var b bytes.Buffer
-	fmt.Fprintf(&b, "%s %d %d\n", mapMagic, m.size, len(m.done))
+	fmt.Fprintf(&b, "%s %d %d %d\n", mapMagic, m.size, len(m.done), m.total)
 	for _, d := range m.done {
 		if d {
 			b.WriteByte('1')

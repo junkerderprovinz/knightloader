@@ -53,7 +53,8 @@ func openDownload(part string, file nzb.File) (*download, error) {
 		}
 	}
 	if d.m.size > 0 && file.Bytes() > 0 {
-		d.bytes = d.bytes * d.m.size / file.Bytes()
+		// In float64, as the product of two sizes overflows int64 past 3 GB.
+		d.bytes = int64(float64(d.bytes) / float64(file.Bytes()) * float64(d.m.size))
 	}
 	return d, nil
 }
@@ -84,8 +85,12 @@ func (d *download) pending() []int {
 }
 
 // write puts article i at its offset. An article whose range does not fit the
-// file its header names is treated as damaged.
+// file its header names is treated as damaged, and so is one naming a file
+// far larger than the .nzb lists, since that size becomes the part file's.
 func (d *download) write(i int, p yenc.Part) error {
+	if listed := d.file.Bytes(); listed > 0 && p.FileSize > 2*listed {
+		return fmt.Errorf("%w: article %d names a file of %d bytes, the .nzb lists %d", nntp.ErrDamaged, i+1, p.FileSize, listed)
+	}
 	d.mu.Lock()
 	if d.m.size == 0 && p.FileSize > 0 {
 		if err := d.allocate(p.FileSize); err != nil {
@@ -104,9 +109,19 @@ func (d *download) write(i int, p yenc.Part) error {
 	}
 	d.mu.Lock()
 	d.m.done[i] = true
+	d.m.total = max(d.m.total, p.Total)
 	d.bytes += int64(len(p.Data))
 	d.mu.Unlock()
 	return nil
+}
+
+// articles is how many articles the file was posted in: the highest number
+// the .nzb lists or the yEnc headers count, whichever is more. An .nzb that
+// lists fewer leaves holes no fetch can fill.
+func (d *download) articles() int {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return max(d.file.Segments[len(d.file.Segments)-1].Number, d.m.total)
 }
 
 // size is the file's size once an article has named it, and the size of its
@@ -129,12 +144,14 @@ func (d *download) loaded() int64 {
 // save writes the map after the data it describes has reached the disk, so a
 // crash never leaves the map claiming an article the file lacks.
 func (d *download) save() {
+	// Taken before the sync, as an article written during it may not be on
+	// the disk yet.
+	d.mu.Lock()
+	snap := segMap{size: d.m.size, total: d.m.total, done: append([]bool(nil), d.m.done...)}
+	d.mu.Unlock()
 	if err := d.f.Sync(); err != nil {
 		return
 	}
-	d.mu.Lock()
-	snap := segMap{size: d.m.size, done: append([]bool(nil), d.m.done...)}
-	d.mu.Unlock()
 	_ = snap.save(d.mapPath)
 }
 

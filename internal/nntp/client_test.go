@@ -336,3 +336,14 @@ func TestFetchStopsWithTheContext(t *testing.T) {
 		t.Fatalf("got %v", err)
 	}
 }
+
+func TestAnArticleLargerThanAnyPostIsRefusedAsDamaged(t *testing.T) {
+	s := nntptest.New(t)
+	data := bytes.Repeat([]byte("knight"), 4<<20)
+	s.AddPart("huge@test", yenc.Part{Name: "huge.bin", FileSize: int64(len(data)), Number: 1, Total: 1, Data: data})
+	c := nntp.NewClient([]nntp.Server{serverOf(s, 0)}, nil)
+	defer c.Close()
+	if _, err := fetch(t, c, "huge@test"); !errors.Is(err, nntp.ErrDamaged) {
+		t.Fatalf("an article of 24 MiB is not read to its end, got %v", err)
+	}
+}
