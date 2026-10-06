@@ -10,7 +10,12 @@ func TestNoOtherSiteCanFrameQuickAdd(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	for _, path := range []string{"/quickadd?url=magnet%3A%3Fxt%3Durn%3Abtih%3Aabc", "/kl/quickadd", "/kl/quickadd/"} {
+	// The router matches the base path and the route in any letter case, so
+	// every spelling opens the same page.
+	for _, path := range []string{
+		"/quickadd?url=magnet%3A%3Fxt%3Durn%3Abtih%3Aabc", "/kl/quickadd", "/kl/quickadd/",
+		"/QuickAdd", "/kl/QuickAdd", "/kl/QUICKADD/", "/KL/QuickAdd", "/Kl/quickadd/",
+	} {
 		resp, _ := fetch(t, http.MethodGet, srv.URL+path, nil, nil)
 		if csp := resp.Header.Get("Content-Security-Policy"); resp.StatusCode != http.StatusOK || csp != "frame-ancestors 'self'" {
 			t.Errorf("GET %s = %d with Content-Security-Policy %q, want frame-ancestors 'self'", path, resp.StatusCode, csp)
