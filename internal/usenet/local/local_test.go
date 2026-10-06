@@ -63,7 +63,7 @@ func nzbOf(rs ...release) []byte {
 		fmt.Fprintf(&b, `<file poster="t" date="%d" subject="&quot;%s&quot; yEnc (1/%d)"><groups><group>alt.binaries.test</group></groups><segments>`,
 			time.Now().Unix(), r.name, len(r.parts))
 		for i, id := range r.ids {
-			fmt.Fprintf(&b, `<segment bytes="%d" number="%d">%s</segment>`, len(r.parts[i].Data)+100, i+1, id)
+			fmt.Fprintf(&b, `<segment bytes="%d" number="%d">%s</segment>`, len(r.parts[i].Data)+100, r.parts[i].Number, id)
 		}
 		b.WriteString(`</segments></file>`)
 	}
@@ -234,6 +234,31 @@ func TestIncompleteFileHandedOnIsNotFailed(t *testing.T) {
 		if u.Status == core.StatusError || u.Status == core.StatusDone {
 			t.Fatalf("a file handed to another account settled as %+v", u)
 		}
+	}
+}
+
+func TestAnNZBThatLeavesOutArticlesFailsTheFile(t *testing.T) {
+	for name, listed := range map[string][]int{"a gap": {1, 3}, "the end": {1, 2}} {
+		t.Run(name, func(t *testing.T) {
+			r := newRelease("gap.bin", 12_000, 4_000)
+			s := nntptest.New(t)
+			r.post(s)
+			short := release{name: r.name, data: r.data}
+			for _, n := range listed {
+				short.parts = append(short.parts, r.parts[n-1])
+				short.ids = append(short.ids, r.ids[n-1])
+			}
+			h := newHarness(t, nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil), short)
+			u := h.run(h.be, 0, r.name)
+			if u.Status != core.StatusError || u.Reason != core.ReasonGone || !strings.Contains(u.Err, "1 of the 3 articles") {
+				t.Fatalf("got %+v", u)
+			}
+			// After a restart every listed article is on disk, and the file
+			// still lacks one.
+			if u := h.run(h.backend(nntp.NewClient([]nntp.Server{serverFor(s, 0)}, nil)), 0, r.name); u.Status != core.StatusError {
+				t.Fatalf("after a restart got %+v", u)
+			}
+		})
 	}
 }
 
@@ -480,6 +505,17 @@ func TestServiceStatusHoldsRecoveryVolumes(t *testing.T) {
 	}
 	if _, err := svc.Submit(context.Background(), "x", []byte(`<nzb></nzb>`)); err == nil {
 		t.Fatal("an empty .nzb was taken")
+	}
+}
+
+func TestAMapWithoutTheArticleCountKeepsItsArticles(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "x.segments")
+	if err := os.WriteFile(path, []byte("klsegments 1 9000 3\n101"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	m := loadSegMap(path, 3)
+	if m.size != 9000 || m.count() != 2 || m.total != 0 {
+		t.Fatalf("got size %d, %d articles, total %d", m.size, m.count(), m.total)
 	}
 }
 
