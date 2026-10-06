@@ -146,6 +146,8 @@ export const vi: Dict = {
   'status.finished': 'đã hoàn tất',
   'status.failed': 'thất bại',
   'status.extracting': 'đang giải nén',
+  'status.verifying': 'đang kiểm tra',
+  'status.repairing': 'đang sửa',
   'status.seeding': 'đang seed',
   'status.disabled': 'đã tắt',
 

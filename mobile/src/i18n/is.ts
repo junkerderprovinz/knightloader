@@ -146,6 +146,8 @@ export const is: Dict = {
   'status.finished': 'lokið',
   'status.failed': 'mistókst',
   'status.extracting': 'afþjappar',
+  'status.verifying': 'sannreyni',
+  'status.repairing': 'geri við',
   'status.seeding': 'sáir',
   'status.disabled': 'slökkt',
 

@@ -145,6 +145,8 @@ export const ja: Dict = {
   'status.finished': '完了',
   'status.failed': '失敗',
   'status.extracting': '展開中',
+  'status.verifying': '検証中',
+  'status.repairing': '修復中',
   'status.seeding': 'シード中',
   'status.disabled': '無効',
 

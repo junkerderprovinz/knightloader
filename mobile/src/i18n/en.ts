@@ -169,6 +169,8 @@ export const en = {
   'status.finished': 'finished',
   'status.failed': 'failed',
   'status.extracting': 'extracting',
+  'status.verifying': 'verifying',
+  'status.repairing': 'repairing',
   'status.seeding': 'seeding',
   'status.collected': 'collected',
   'status.notUnpacked': 'not unpacked',

@@ -146,6 +146,8 @@ export const sk: Dict = {
   'status.finished': 'dokončené',
   'status.failed': 'zlyhalo',
   'status.extracting': 'rozbaľuje sa',
+  'status.verifying': 'overuje sa',
+  'status.repairing': 'opravuje sa',
   'status.seeding': 'seeduje',
   'status.disabled': 'vypnuté',
 

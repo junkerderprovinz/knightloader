@@ -146,6 +146,8 @@ export const hi: Dict = {
   'status.finished': 'पूर्ण',
   'status.failed': 'विफल',
   'status.extracting': 'निकाला जा रहा है',
+  'status.verifying': 'जाँच हो रही है',
+  'status.repairing': 'मरम्मत हो रही है',
   'status.seeding': 'सीड कर रहा',
   'status.disabled': 'बंद',
 

@@ -6,7 +6,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { NUM, TYPE, inkFor, type Palette } from '../theme/tokens';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
 import { explainFailure } from '../api/taskError';
-import { isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
+import { checkPercent, isParked, rowWord, unpackPercent, type StateWord, type UnpackProgress } from '../api/taskState';
 import { InfoTip } from './InfoTip';
 import IconBadge, { Power } from './IconBadge';
 import { Text } from './Text';
@@ -38,6 +38,8 @@ export const STATE_KEYS: Record<StateWord, TranslationKey> = {
   leeching: 'status.leeching',
   paused: 'status.paused',
   extracting: 'status.extracting',
+  verifying: 'status.verifying',
+  repairing: 'status.repairing',
   seeding: 'status.seeding',
   finished: 'status.finished',
   failed: 'status.failed',
@@ -143,6 +145,8 @@ export default function TaskRow({
       ? Math.min(100, Math.round((task.loaded / task.size) * 100))
       : null;
   const unpackPct = unpack ? unpackPercent(unpack) : null;
+  // A par2 check that reads or rebuilds draws on the bar unpacking uses.
+  const checkPct = unpack ? null : checkPercent(task);
   // The other parts of a set are done as far as the instance is concerned,
   // while their bar shows the unpacking. The word says so on each of them.
   const word = unpack && !unpack.failed ? 'extracting' : rowWord(task);
@@ -204,12 +208,12 @@ export default function TaskRow({
             />
           </View>
         )}
-        {unpack && (
+        {(unpack || checkPct !== null) && (
           <View style={[styles.progressTrack, { backgroundColor: c.surface2, ...corners.pill }]}>
             {/* Cut into segments where the web stripes it: the row's own colour
                 already means working, so the texture is what tells unpacking
                 from downloading. A size nobody knows fills the track. */}
-            <View style={[styles.progressFill, styles.segments, { width: `${unpackPct ?? 100}%` }]}>
+            <View style={[styles.progressFill, styles.segments, { width: `${checkPct ?? unpackPct ?? 100}%` }]}>
               {SEGMENTS.map((i) => (
                 <View
                   key={i}
@@ -218,7 +222,7 @@ export default function TaskRow({
                     {
                       backgroundColor: parked
                         ? c.statusNeutralSolid
-                        : unpack.failed
+                        : unpack?.failed
                           ? c.statusFailSolid
                           : rowAccent,
                     },
@@ -239,7 +243,8 @@ export default function TaskRow({
             <Text style={[styles.meta, { color: c.textMuted }]}>
               {remote ? `${pct}%` : fmtBytes(task.loaded)}
               {!remote && task.size > 0 ? ` / ${fmtBytes(task.size)}` : ''}
-              {!remote && pct !== null ? ` · ${pct}%` : ''}
+              {!remote && pct !== null && checkPct === null ? ` · ${pct}%` : ''}
+              {checkPct !== null ? ` · ${checkPct}%` : ''}
             </Text>
           )}
           {task.speed > 0 && <Text style={[styles.meta, { color: c.textMuted }]}>{fmtSpeed(task.speed)}</Text>}

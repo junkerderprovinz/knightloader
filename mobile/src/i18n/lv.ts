@@ -146,6 +146,8 @@ export const lv: Dict = {
   'status.finished': 'pabeigts',
   'status.failed': 'neizdevās',
   'status.extracting': 'atspiež',
+  'status.verifying': 'pārbauda',
+  'status.repairing': 'labo',
   'status.seeding': 'sēj',
   'status.disabled': 'izslēgts',
 
