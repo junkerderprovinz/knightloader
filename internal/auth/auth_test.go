@@ -68,6 +68,20 @@ func TestASignedOutSessionStaysSignedOutAfterARestart(t *testing.T) {
 	}
 }
 
+func TestASignedOutSessionStaysOutWhateverItsLastCharacter(t *testing.T) {
+	g, _ := locked(t)
+	tok := g.Issue()
+	if err := g.Revoke(tok); err != nil {
+		t.Fatal(err)
+	}
+	const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_"
+	for _, c := range alphabet {
+		if variant := tok[:len(tok)-1] + string(c); g.Valid(variant) {
+			t.Errorf("the signed-out session is accepted again as %q", variant)
+		}
+	}
+}
+
 func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
 	g, _ := locked(t)
 	a, b := g.Issue(), g.Issue()
