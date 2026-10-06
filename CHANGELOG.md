@@ -108,6 +108,21 @@ release's tag.
   memory.** A group member, or a token on another instance, could make an
   instance load a whole finished file into memory before it answered, and no
   member can receive an answer that large anyway.
+- **The browser extension filled the Instances page with Browser cards.** Each
+  time the extension talked to the group it counted as a new browser, so a
+  browser in daily use left card after card behind, and once the list held 32
+  the phones started dropping off it. Removing a browser card did not sign the
+  browser out either: it stayed in the group and could keep sending links. The
+  extension now keeps one ID while it is in the group, and a browser you remove
+  leaves the group. Cards left over from before can be removed by hand.
+
+### Security
+
+- **Another website could trick you into adding a link.** On an instance
+  without a password, a site that knew the instance's address could load the
+  page the bookmarklet opens, hidden behind a button of its own, so a click on
+  that button pressed Add. That page now refuses to load inside another
+  website.
 
 ## [1.8.0] - 2026-10-05
 

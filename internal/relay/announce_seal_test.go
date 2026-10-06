@@ -336,3 +336,51 @@ func TestAClientFlagSurvivesTheSeal(t *testing.T) {
 	}
 	t.Fatal("the instance never saw the phone at all")
 }
+
+func TestAClientsMemberIDTravelsInsideTheSeal(t *testing.T) {
+	member := strings.Repeat("b", 40)
+	wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Deployment: "extension", Client: true, Member: member})
+	if err != nil {
+		t.Fatalf("sealAnnounce: %v", err)
+	}
+	frame, err := Encode(TypeAnnounce, wire)
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+	if bytes.Contains(frame, []byte(member)) {
+		t.Errorf("the encoded announce carries the member id in the clear:\n%s", frame)
+	}
+	if got := openAnnounce(testFrameKey, wire).Member; got != member {
+		t.Fatalf("member arrived as %q, want %q", got, member)
+	}
+
+	// Only a client is known by a member id; an instance is addressed by the
+	// id it routes on.
+	wire, err = sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Deployment: "container", Member: member})
+	if err != nil {
+		t.Fatalf("sealAnnounce: %v", err)
+	}
+	if got := openAnnounce(testFrameKey, wire).Member; got != "" {
+		t.Fatalf("an instance arrived with member %q", got)
+	}
+}
+
+func TestTheLargestClientHelloFitsTheLimit(t *testing.T) {
+	wire, err := sealAnnounce(testFrameKey, Announce{
+		InstanceID: strings.Repeat("f", maxClientIDBytes),
+		Name:       strings.Repeat("<", MaxNameBytes),
+		Deployment: "extension",
+		Client:     true,
+		Member:     strings.Repeat("<", maxClientIDBytes),
+	})
+	if err != nil {
+		t.Fatalf("sealAnnounce: %v", err)
+	}
+	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire})
+	if err != nil {
+		t.Fatalf("encode: %v", err)
+	}
+	if len(frame) > helloLimit {
+		t.Fatalf("the largest client hello is %d bytes, over the %d the relay reads", len(frame), helloLimit)
+	}
+}
