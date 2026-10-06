@@ -218,8 +218,10 @@ The par2 recovery files of a release are listed but switched off, with a note
 that they load only when needed, and they do not count as unfinished. When the
 check finds damaged blocks, just enough of them are switched on and downloaded
 to rebuild those blocks, and the repair writes them back into the files. A
-repair uses half of the processor cores and at most 256 MB of memory at a
-time.
+file whose download failed, for example because a server stayed unreachable,
+is rebuilt too when the recovery files hold enough, and its row then counts as
+done. A repair uses half of the processor cores and at most 256 MB of memory
+at a time.
 
 When more blocks are damaged than all the recovery files of the release can
 rebuild, the release goes to the next account, or fails with both numbers in

@@ -9,6 +9,7 @@ package app
 // account like one with articles missing, or fails.
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"io"
@@ -62,6 +63,9 @@ type usenetCheck struct {
 	distrust bool
 	// shown is what the job's files show of the check.
 	shown *core.RepairProgress
+	// stop ends the check under way, and ended is closed once it has.
+	stop  context.CancelFunc
+	ended chan struct{}
 }
 
 // usenetCheckLocked returns the check of the job the own servers know as
@@ -158,12 +162,18 @@ func (a *App) checkUsenetJob(remote string) {
 		a.mu.Unlock()
 		return
 	}
-	c.running = true
+	ctx, stop := context.WithCancel(a.ctx)
+	ended := make(chan struct{})
+	c.running, c.stop, c.ended = true, stop, ended
 	a.mu.Unlock()
+	defer func() {
+		stop()
+		close(ended)
+	}()
 	for {
-		a.checkUsenetOnce(c)
+		a.checkUsenetOnce(ctx, c)
 		a.mu.Lock()
-		again := c.again && c.outcome == usenet.CheckPending
+		again := c.again && c.outcome == usenet.CheckPending && ctx.Err() == nil
 		c.again = false
 		if !again {
 			c.running = false
@@ -172,6 +182,22 @@ func (a *App) checkUsenetJob(remote string) {
 		}
 		a.mu.Unlock()
 	}
+}
+
+// haltUsenetCheck ends the check of the job the own servers know as remote and
+// returns once it has let go of the files, which Windows does not delete while
+// they are open.
+func (a *App) haltUsenetCheck(remote string) {
+	a.mu.Lock()
+	c := a.usenetStateFor().checks[remote]
+	if c == nil || !c.running {
+		a.mu.Unlock()
+		return
+	}
+	stop, ended := c.stop, c.ended
+	a.mu.Unlock()
+	stop()
+	<-ended
 }
 
 // checkFile is one finished file of a job as the check sees it.
@@ -187,7 +213,7 @@ type spareVolume struct {
 	blocks int
 }
 
-func (a *App) checkUsenetOnce(c *usenetCheck) {
+func (a *App) checkUsenetOnce(ctx context.Context, c *usenetCheck) {
 	st := a.usenetStateFor()
 	j, ok := st.jobs.Lookup(local.ResolverID, c.remote)
 	if !ok || j.State != usenet.StateStaged {
@@ -222,7 +248,7 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 	a.showRepair(c, j.TaskIDs, &core.RepairProgress{Stage: core.RepairWaiting})
 	select {
 	case st.checkSlot <- struct{}{}:
-	case <-a.ctx.Done():
+	case <-ctx.Done():
 		return
 	}
 	defer func() { <-st.checkSlot }()
@@ -244,7 +270,7 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 			a.failUsenetJob(c, j, "some articles of this release are missing, and it came without par2 files to repair it")
 			return
 		}
-		a.passUsenetCheck(c, j, "it came without par2 files")
+		a.passUsenetCheck(c, j, "it came without par2 files", nil)
 		return
 	}
 	set, err := par2.Load(pathsOf(index)...)
@@ -282,15 +308,15 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 	if rep == nil {
 		opts.Progress = a.repairMeter(c, j.TaskIDs, core.RepairVerifying, 0, 0)
 		a.showRepair(c, j.TaskIDs, &core.RepairProgress{Stage: core.RepairVerifying})
-		if rep, err = par2.Verify(a.ctx, set, paths, opts); err != nil {
-			if a.ctx.Err() == nil {
+		if rep, err = par2.Verify(ctx, set, paths, opts); err != nil {
+			if ctx.Err() == nil {
 				a.failUsenetJob(c, j, "the par2 check could not read the files: "+err.Error())
 			}
 			return
 		}
 	}
 	if rep.Whole(set) {
-		a.passUsenetCheck(c, j, "it is whole")
+		a.passUsenetCheck(c, j, "it is whole", setFiles(set, rep))
 		return
 	}
 
@@ -329,7 +355,7 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 
 	opts.Progress = a.repairMeter(c, j.TaskIDs, core.RepairRepairing, damaged, have)
 	a.showRepair(c, j.TaskIDs, &core.RepairProgress{Stage: core.RepairRepairing, Damaged: damaged, Recovery: have})
-	err = par2.Repair(a.ctx, set, rep, filepath.Dir(index[0].path), opts)
+	err = par2.Repair(ctx, set, rep, filepath.Dir(index[0].path), opts)
 	if errors.Is(err, par2.ErrMismatch) && len(trusted) > 0 {
 		// A file taken as whole from its download was not, so the check
 		// starts over and reads every file.
@@ -341,7 +367,7 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 		return
 	}
 	if err != nil {
-		if a.ctx.Err() != nil {
+		if ctx.Err() != nil {
 			return
 		}
 		var short *par2.NotEnoughError
@@ -353,7 +379,18 @@ func (a *App) checkUsenetOnce(c *usenetCheck) {
 		return
 	}
 	log.Printf("usenet: %s: %d damaged blocks repaired", j.Name, damaged)
-	a.passUsenetCheck(c, j, "it was repaired")
+	a.passUsenetCheck(c, j, "it was repaired", setFiles(set, rep))
+}
+
+// setFiles maps the name of each file of a checked set to where it is.
+func setFiles(set *par2.Set, rep *par2.Report) map[string]string {
+	out := map[string]string{}
+	for i, f := range set.Files {
+		if p := rep.Files[i].Path; p != "" {
+			out[collide.SafeName(f.BaseName())] = p
+		}
+	}
+	return out
 }
 
 func notRepairable(damaged, recovery int) string {
@@ -537,8 +574,10 @@ func (a *App) repairMeter(c *usenetCheck, ids []string, stage core.RepairStage, 
 }
 
 // passUsenetCheck records a release as whole and lets it go on: what is due
-// to be unpacked is, and the rest leaves the working folder.
-func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string) {
+// to be unpacked is, and the rest leaves the working folder. files maps the
+// names of the par2 set's files to where they are, so a download that failed
+// for good but whose file the repair rebuilt counts as done.
+func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string, files map[string]string) {
 	st := a.usenetStateFor()
 	st.jobs.SetCheck(j.ID, usenet.CheckPassed)
 	log.Printf("usenet: %s passed its par2 check: %s", j.Name, why)
@@ -547,7 +586,44 @@ func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string) {
 	c.report, c.paths, c.shown = nil, nil, nil
 	clear(c.damaged)
 	a.mu.Unlock()
+	a.adoptRebuilt(j.TaskIDs, files)
 	a.releaseUsenetFiles(j.TaskIDs)
+}
+
+// adoptRebuilt marks done the failed downloads among ids whose files the set
+// names and the repair rebuilt, and deletes what the failed attempt left.
+func (a *App) adoptRebuilt(ids []string, files map[string]string) {
+	var copies []taskCopy
+	var parts []string
+	a.mu.Lock()
+	for _, id := range ids {
+		t := a.tasks[id]
+		if t == nil || t.Status != core.StatusError || !t.NextTry.IsZero() {
+			continue
+		}
+		path, ok := files[collide.SafeName(local.LinkName(t.URL))]
+		if !ok {
+			path, ok = files[t.Name]
+		}
+		fi, err := os.Stat(path)
+		if !ok || err != nil {
+			continue
+		}
+		parts = append(parts, local.PartFile(a.dirFor(t), t.URL, t.ID))
+		log.Printf("usenet: %s failed to download, and its par2 set rebuilt it", t.Name)
+		t.Status = core.StatusDone
+		t.Name, t.File = filepath.Base(path), path
+		t.Size, t.Loaded = fi.Size(), fi.Size()
+		t.ClearFailure()
+		t.Retries, t.MaxTries, t.GaveUp = 0, 0, false
+		t.Online = core.AvailOnline
+		copies = append(copies, a.copyLocked(t))
+	}
+	a.mu.Unlock()
+	a.publishTasks(copies)
+	for _, p := range parts {
+		local.RemovePart(p)
+	}
 }
 
 // releaseUsenetFiles lets the files among ids go on once nothing holds them
