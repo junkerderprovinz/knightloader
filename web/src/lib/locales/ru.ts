@@ -2595,6 +2595,7 @@ export const ru: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Это правило ничего не проверяет, поэтому здесь оно подошло бы любой ссылке.',
   'settings.jdimport.reason.ruleNoAction': 'Ничего из того, что задаёт это правило, не существует в KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader не может использовать это правило: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Папку загрузок {folder} нельзя использовать на этой машине, поэтому правило не отмечено. Его всё равно можно отметить, а папку потом поменять в правиле.',
   'settings.jdimport.reason.rulePlaceholder': '{field} использует {tag}, которого нет в KnightLoader, поэтому эта часть опущена.',
   'settings.jdimport.reason.ruleRenameKept': 'Новое имя файла остаётся в правиле и отображается в проверке правила, но загрузки пока его не используют.',
   'settings.jdimport.reason.ruleDropped': 'Опущено, так как правила KnightLoader не умеют этого: {actions}',

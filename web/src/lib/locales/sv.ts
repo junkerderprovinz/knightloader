@@ -2616,6 +2616,7 @@ export const sv: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Den här regeln testar ingenting, så här skulle den matcha varje länk.',
   'settings.jdimport.reason.ruleNoAction': 'Inget av det den här regeln ställer in finns i KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader kan inte använda den här regeln: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Nedladdningsmappen {folder} kan inte användas på den här datorn, så regeln är inte markerad. Du kan markera den ändå och ändra mappen i regeln efteråt.',
   'settings.jdimport.reason.rulePlaceholder': '{field} använder {tag}, som KnightLoader inte har, så den delen utelämnas.',
   'settings.jdimport.reason.ruleRenameKept': 'Det nya filnamnet stannar kvar i regeln och visas i regeltestet, men nedladdningar använder det inte ännu.',
   'settings.jdimport.reason.ruleDropped': 'Utelämnat, eftersom KnightLoaders regler inte klarar det här: {actions}',

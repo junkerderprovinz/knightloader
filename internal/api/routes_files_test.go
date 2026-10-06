@@ -23,6 +23,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -281,10 +282,13 @@ func TestTaskFileStatusMapping(t *testing.T) {
 	}
 }
 
-// playLink asks the play route for a link to task id's file.
-func playLink(t *testing.T, srvURL, id string) string {
+// playLink asks the play route for a link to task id's file with the API
+// token secret.
+func playLink(t *testing.T, srvURL, id, secret string) string {
 	t.Helper()
-	resp, err := http.Post(srvURL+"/api/tasks/"+id+"/play", "application/json", nil)
+	req, _ := http.NewRequest(http.MethodPost, srvURL+"/api/tasks/"+id+"/play", nil)
+	req.Header.Set("Authorization", "Bearer "+secret)
+	resp, err := http.DefaultClient.Do(req)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -320,10 +324,14 @@ func TestAPlayLinkOpensItsFileOnALockedInstance(t *testing.T) {
 	}
 	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
 	other := putFile(t, a, base, "other.mkv", []byte("other frames"))
-	link := playLink(t, srv.URL, id)
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
+	_, phone, err := a.APITokens.CreateScoped("phone", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	link := playLink(t, srv.URL, id, phone)
 
 	resp, err := http.Get(srv.URL + link)
 	if err != nil {
@@ -365,9 +373,63 @@ func TestAnExpiredPlayLinkIsRefused(t *testing.T) {
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	ticket := playTicket(id, "", time.Now().Add(-time.Minute))
+	ticket := playTicket(id, "", "", a.Auth.Epoch(), time.Now().Add(-time.Minute))
 	if got := getStatus(t, srv.URL+"/api/tasks/"+id+"/file?ticket="+ticket); got != http.StatusUnauthorized {
 		t.Fatalf("an expired play link answered %d, want 401", got)
+	}
+}
+
+// Revoking a lost phone's token, signing out everywhere or changing the
+// password has to end the play links handed out before, not leave them open
+// for the rest of their twelve hours.
+func TestAPlayLinkEndsWithTheCredentialsThatMadeIt(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	token := func(name string) (string, string) {
+		tok, secret, err := a.APITokens.CreateScoped(name, []apitoken.Scope{apitoken.ScopeRead})
+		if err != nil {
+			t.Fatal(err)
+		}
+		return tok.ID, secret
+	}
+	opens := func(link string) bool { return getStatus(t, srv.URL+link) == http.StatusOK }
+
+	lostID, lost := token("lost phone")
+	_, kept := token("tablet")
+	lostLink, keptLink := playLink(t, srv.URL, id, lost), playLink(t, srv.URL, id, kept)
+	if err := a.APITokens.Revoke(lostID); err != nil {
+		t.Fatal(err)
+	}
+	if opens(lostLink) {
+		t.Error("a link from a revoked token still opens the file")
+	}
+	if !opens(keptLink) {
+		t.Fatal("revoking one token ended the link of another")
+	}
+
+	if err := a.Auth.RevokeAll(); err != nil {
+		t.Fatal(err)
+	}
+	if opens(keptLink) {
+		t.Error("a link from before signing out everywhere still opens the file")
+	}
+
+	_, again := token("tablet again")
+	link := playLink(t, srv.URL, id, again)
+	if err := a.Auth.SetPassword("a-good-password", "another-good-one"); err != nil {
+		t.Fatal(err)
+	}
+	if opens(link) {
+		t.Error("a link from before the password change still opens the file")
 	}
 }
 
@@ -508,10 +570,11 @@ func TestMediaKindsAreWhatTheRouteServesAsAudioOrVideo(t *testing.T) {
 // the link to one episode does not open the whole season.
 func TestAPlayLinkOpensOnlyTheFileItWasMadeFor(t *testing.T) {
 	t.Parallel()
-	ticket := playTicket("t1", "1", time.Now().Add(time.Hour))
+	a := testApp(t)
+	ticket := playTicket("t1", "1", "", a.Auth.Epoch(), time.Now().Add(time.Hour))
 	opens := func(query string) bool {
 		r := httptest.NewRequest(http.MethodGet, "/api/tasks/t1/file?ticket="+ticket+query, nil)
-		return playTicketOpens(r)
+		return playTicketOpens(a, r)
 	}
 	if !opens("&file=1") {
 		t.Fatal("the link does not open its own file")

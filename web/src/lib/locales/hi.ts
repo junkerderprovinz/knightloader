@@ -2616,6 +2616,7 @@ export const hi: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'यह नियम कुछ भी नहीं जाँचता, इसलिए यहाँ यह हर लिंक से मेल खाएगा।',
   'settings.jdimport.reason.ruleNoAction': 'यह नियम जो भी सेट करता है, वह KnightLoader में मौजूद नहीं है।',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader इस नियम का इस्तेमाल नहीं कर सकता: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'डाउनलोड फ़ोल्डर {folder} इस मशीन पर इस्तेमाल नहीं हो सकता, इसलिए नियम पर निशान नहीं लगा है। फिर भी इस पर निशान लगाया जा सकता है और बाद में नियम में फ़ोल्डर बदला जा सकता है।',
   'settings.jdimport.reason.rulePlaceholder': '{field} में {tag} इस्तेमाल होता है, जो KnightLoader में नहीं है, इसलिए वह हिस्सा छोड़ दिया गया है।',
   'settings.jdimport.reason.ruleRenameKept': 'नया फ़ाइल नाम नियम में बना रहता है और नियम की जाँच में दिखता है, लेकिन डाउनलोड अभी इसे इस्तेमाल नहीं करते।',
   'settings.jdimport.reason.ruleDropped': 'छोड़ दिया गया, क्योंकि KnightLoader के नियम यह नहीं कर सकते: {actions}',

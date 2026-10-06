@@ -138,9 +138,10 @@ function relaySealCall(frameKey, requestId, target, method, path, body, from) {
  * relaySession opens one socket, joins the group, calls `work` with
  * { siblings, call } and closes again, resolving with what `work` returns.
  * `siblings` leaves out clients such as phones and browsers, which cannot take
- * a download.
+ * a download. `selfId` routes this one session; `memberId`, when given, is
+ * what the group knows the browser by, and travels only inside the seals.
  */
-async function relaySession({ url, key, frameKey, selfId, selfName, onRemoved }, work) {
+async function relaySession({ url, key, frameKey, selfId, memberId, selfName, onRemoved }, work) {
   const socket = await new Promise((resolve, reject) => {
     let ws;
     try {
@@ -275,7 +276,9 @@ async function relaySession({ url, key, frameKey, selfId, selfName, onRemoved },
         sealed: await relaySeal(
           frameKey,
           relayAnnounceAAD(selfId),
-          relayUtf8(JSON.stringify({ name: selfName, deployment: 'extension', client: true })),
+          relayUtf8(
+            JSON.stringify({ name: selfName, deployment: 'extension', client: true, ...(memberId ? { member: memberId } : {}) }),
+          ),
         ),
       },
     });
@@ -318,7 +321,7 @@ async function relaySession({ url, key, frameKey, selfId, selfName, onRemoved },
         requestId,
         target,
         // The relay sees only the two routing fields, not what is asked.
-        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, selfId),
+        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, memberId || selfId),
       });
       const res = await answer;
       if (res.status === 410 && res.body === 'removed') await onRemoved?.();

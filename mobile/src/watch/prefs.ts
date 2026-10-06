@@ -37,8 +37,18 @@ export async function loadNotifyPrefs(): Promise<NotifyPrefs> {
   }
 }
 
-export async function saveNotifyPrefs(prefs: NotifyPrefs): Promise<void> {
-  await AsyncStorage.setItem(KEY, JSON.stringify(prefs));
+let saving: Promise<unknown> = Promise.resolve();
+
+/**
+ * saveNotifyPrefs stores `change` over what is stored, one save at a time, so
+ * a writer holding an older copy cannot put back a field another one set.
+ */
+export function saveNotifyPrefs(change: Partial<NotifyPrefs>): Promise<void> {
+  const saved = saving.then(async () => {
+    await AsyncStorage.setItem(KEY, JSON.stringify({ ...(await loadNotifyPrefs()), ...change }));
+  });
+  saving = saved.catch(() => {});
+  return saved;
 }
 
 export const anyKind = (p: NotifyPrefs): boolean => p.captcha || p.finished || p.failed;

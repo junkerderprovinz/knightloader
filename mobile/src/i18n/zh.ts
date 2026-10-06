@@ -5,6 +5,7 @@ export const zh: Dict = {
   'qr.cancel': '取消',
   'qr.cameraPermissionHint': '扫描二维码需要相机权限。',
   'qr.grantAccess': '允许访问',
+  'qr.openSettings': '打开设置',
 
   'connections.addButton': '+ 连接',
   'connections.empty': '尚未保存任何连接。',

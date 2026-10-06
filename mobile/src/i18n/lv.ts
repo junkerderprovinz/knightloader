@@ -5,6 +5,7 @@ export const lv: Dict = {
   'qr.cancel': 'Atcelt',
   'qr.cameraPermissionHint': 'Lai noskenētu QR kodu, nepieciešama piekļuve kamerai.',
   'qr.grantAccess': 'Atļaut piekļuvi',
+  'qr.openSettings': 'Atvērt iestatījumus',
 
   'connections.addButton': '+ Savienojums',
   'connections.empty': 'Vēl nav saglabāts neviens savienojums.',

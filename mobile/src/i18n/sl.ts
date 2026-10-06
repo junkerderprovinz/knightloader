@@ -5,6 +5,7 @@ export const sl: Dict = {
   'qr.cancel': 'Prekliči',
   'qr.cameraPermissionHint': 'Za skeniranje kode QR je potreben dostop do kamere.',
   'qr.grantAccess': 'Dovoli dostop',
+  'qr.openSettings': 'Odpri nastavitve',
 
   'connections.addButton': '+ Povezava',
   'connections.empty': 'Še ni shranjene povezave.',

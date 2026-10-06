@@ -92,7 +92,10 @@ func Decode(body []byte) (Part, error) {
 		}
 		end = -1
 	}
-	p.Data = decodeData(rest[:max(end, 0)], make([]byte, 0, wantLen))
+	// A forged header can name any size, so the encoded lines bound the
+	// buffer: they never decode to more bytes than they hold.
+	src := rest[:max(end, 0)]
+	p.Data = decodeData(src, make([]byte, 0, min(wantLen, int64(len(src)))))
 	trailer, _, _ := nextLine(rest[end+1:])
 	tail := params(trailer)
 

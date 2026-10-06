@@ -5,6 +5,7 @@ export const fa: Dict = {
   'qr.cancel': 'لغو',
   'qr.cameraPermissionHint': 'برای اسکن کد QR به دسترسی دوربین نیاز است.',
   'qr.grantAccess': 'اجازه دسترسی',
+  'qr.openSettings': 'باز کردن تنظیمات',
 
   'connections.addButton': '+ اتصال',
   'connections.empty': 'هنوز هیچ اتصالی ذخیره نشده است.',

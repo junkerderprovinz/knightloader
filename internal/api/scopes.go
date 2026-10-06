@@ -13,6 +13,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -436,7 +437,12 @@ func requireScope(pattern string, next http.HandlerFunc) http.HandlerFunc {
 		var b []byte
 		if folderRoutes[pattern] {
 			var err error
-			if b, err = io.ReadAll(body(r)); err != nil {
+			if b, err = io.ReadAll(http.MaxBytesReader(w, io.NopCloser(body(r)), maxJSONBody)); err != nil {
+				var tooLarge *http.MaxBytesError
+				if errors.As(err, &tooLarge) {
+					http.Error(w, "request body too large", http.StatusRequestEntityTooLarge)
+					return
+				}
 				http.Error(w, "could not read the request body", http.StatusBadRequest)
 				return
 			}

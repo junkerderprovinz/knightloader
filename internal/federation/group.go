@@ -30,10 +30,10 @@ type GroupState struct {
 	// MemberSeenAt is when another instance or a phone of the group was first
 	// there after JoinedAt, zero until one has been.
 	MemberSeenAt time.Time `json:"memberSeenAt"`
-	// Apps is every phone seen in the group, by its relay id, so one that has
+	// Apps is every phone seen in the group, by appID, so one that has
 	// gone away still has a card saying when it was last there.
 	Apps map[string]KnownApp `json:"apps,omitempty"`
-	// Removed is every phone taken out of the group, by relay id and when.
+	// Removed is every phone taken out of the group, by appID and when.
 	// Its calls are turned away; scanning the phrase again gives the app a
 	// new id, so it comes back as a new phone.
 	Removed map[string]time.Time `json:"removed,omitempty"`
@@ -121,7 +121,7 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 		for _, sib := range rt.Siblings() {
 			if sib.Client && clientDeployments[sib.Deployment] {
 				sib.Name = relay.ClipName(sib.Name)
-				connected[sib.InstanceID] = sib
+				connected[appID(sib)] = sib
 			}
 		}
 	}
@@ -172,6 +172,15 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 		return out[i].ID < out[j].ID
 	})
 	return out, err
+}
+
+// appID is what a phone or browser is known by in the group: the lasting
+// member id it announces, or its relay id when it has none.
+func appID(sib relay.Announce) string {
+	if sib.Member != "" {
+		return sib.Member
+	}
+	return sib.InstanceID
 }
 
 func forgetStalestApp(apps map[string]KnownApp) {

@@ -5,6 +5,7 @@ export const it: Dict = {
   'qr.cancel': 'Annulla',
   'qr.cameraPermissionHint': 'Per scansionare il codice QR serve l’accesso alla fotocamera.',
   'qr.grantAccess': 'Consenti accesso',
+  'qr.openSettings': 'Apri le impostazioni',
 
   'connections.addButton': '+ Connessione',
   'connections.empty': 'Nessuna connessione salvata finora.',

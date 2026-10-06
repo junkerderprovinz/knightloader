@@ -1,11 +1,13 @@
 package nntp_test
 
 import (
+	"bufio"
 	"bytes"
 	"context"
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"sync"
 	"testing"
 	"time"
@@ -334,5 +336,65 @@ func TestFetchStopsWithTheContext(t *testing.T) {
 	cancel()
 	if _, err := c.Fetch(ctx, "x@test", time.Time{}); !errors.Is(err, context.Canceled) {
 		t.Fatalf("got %v", err)
+	}
+}
+
+func TestAnArticleLargerThanAnyPostIsRefusedAsDamaged(t *testing.T) {
+	s := nntptest.New(t)
+	data := bytes.Repeat([]byte("knight"), 4<<20)
+	s.AddPart("huge@test", yenc.Part{Name: "huge.bin", FileSize: int64(len(data)), Number: 1, Total: 1, Data: data})
+	c := nntp.NewClient([]nntp.Server{serverOf(s, 0)}, nil)
+	defer c.Close()
+	if _, err := fetch(t, c, "huge@test"); !errors.Is(err, nntp.ErrDamaged) {
+		t.Fatalf("an article of 24 MiB is not read to its end, got %v", err)
+	}
+}
+
+func TestAStatusLineWithoutEndIsCutOff(t *testing.T) {
+	const limit = 64 << 20
+	for name, greeting := range map[string]string{"greeting": "", "reply": "200 news\r\n"} {
+		t.Run(name, func(t *testing.T) {
+			l, err := net.Listen("tcp", "127.0.0.1:0")
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer l.Close()
+			sent := make(chan int, 1)
+			go func() {
+				n := 0
+				defer func() { sent <- n }()
+				c, err := l.Accept()
+				if err != nil {
+					return
+				}
+				defer c.Close()
+				code := "200 "
+				if greeting != "" {
+					io.WriteString(c, greeting)
+					if _, err := bufio.NewReader(c).ReadString('\n'); err != nil {
+						return
+					}
+					code = "222 "
+				}
+				io.WriteString(c, code)
+				chunk := bytes.Repeat([]byte("a"), 64<<10)
+				for n < limit {
+					m, err := c.Write(chunk)
+					n += m
+					if err != nil {
+						return
+					}
+				}
+			}()
+			port := l.Addr().(*net.TCPAddr).Port
+			c := nntp.NewClient([]nntp.Server{{Host: "127.0.0.1", Port: port, Connections: 1}}, nil)
+			defer c.Close()
+			if _, err := fetch(t, c, "x@test"); err == nil {
+				t.Fatal("an endless status line was taken as an answer")
+			}
+			if n := <-sent; n >= limit {
+				t.Fatalf("the client read all %d MiB of one status line", n>>20)
+			}
+		})
 	}
 }

@@ -3,9 +3,13 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"io"
 	"net/http"
 	"sync"
+	"sync/atomic"
 	"testing"
+
+	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 )
 
 // TestParallelGuessesStillMeetTheThrottle: an attacker who has the password
@@ -120,5 +124,56 @@ func TestEveryJSONBodyHasACeiling(t *testing.T) {
 	resp.Body.Close()
 	if resp.StatusCode != http.StatusRequestEntityTooLarge {
 		t.Errorf("POST /api/links with a %d byte body answered %d, want 413", len(huge), resp.StatusCode)
+	}
+}
+
+// endlessLinks is a JSON body whose string value never ends, counting what the
+// server has taken of it. The transport can still be writing the body after
+// the response is in, so sent is read atomically.
+type endlessLinks struct {
+	sent    atomic.Int64
+	started bool
+}
+
+func (e *endlessLinks) Read(p []byte) (int, error) {
+	n := 0
+	if !e.started {
+		n = copy(p, `{"links":"`)
+		e.started = true
+	}
+	for i := n; i < len(p); i++ {
+		p[i] = 'A'
+	}
+	e.sent.Add(int64(len(p)))
+	return len(p), nil
+}
+
+// A body sent with a token that can add links or change downloads stops at
+// the same ceiling as one sent without any credential.
+func TestABodySentWithATokenStopsAtTheCeiling(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	_, secret, err := a.APITokens.CreateScoped("extension", []apitoken.Scope{apitoken.ScopeAdd, apitoken.ScopeControl})
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, route := range []string{"/api/links", "/api/tasks/options"} {
+		body := &endlessLinks{}
+		req, _ := http.NewRequest(http.MethodPost, srv.URL+route, io.LimitReader(body, 8*maxJSONBody))
+		req.Header.Set("Authorization", "Bearer "+secret)
+		resp, err := http.DefaultClient.Do(req)
+		if err == nil {
+			resp.Body.Close()
+			if resp.StatusCode != http.StatusRequestEntityTooLarge {
+				t.Errorf("%s answered %d, want 413", route, resp.StatusCode)
+			}
+		}
+		if sent := body.sent.Load(); sent > 2*maxJSONBody {
+			t.Errorf("%s took %d MiB of the body, the ceiling is %d MiB", route, sent>>20, maxJSONBody>>20)
+		}
 	}
 }

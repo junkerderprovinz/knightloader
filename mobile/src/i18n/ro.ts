@@ -5,6 +5,7 @@ export const ro: Dict = {
   'qr.cancel': 'Anulează',
   'qr.cameraPermissionHint': 'Este necesar accesul la cameră pentru a scana codul QR.',
   'qr.grantAccess': 'Permite accesul',
+  'qr.openSettings': 'Deschide setările',
 
   'connections.addButton': '+ Conexiune',
   'connections.empty': 'Nicio conexiune salvată încă.',
