@@ -109,9 +109,19 @@ func (d *download) write(i int, p yenc.Part) error {
 	}
 	d.mu.Lock()
 	d.m.done[i] = true
+	d.m.total = max(d.m.total, p.Total)
 	d.bytes += int64(len(p.Data))
 	d.mu.Unlock()
 	return nil
+}
+
+// articles is how many articles the file was posted in: the highest number
+// the .nzb lists or the yEnc headers count, whichever is more. An .nzb that
+// lists fewer leaves holes no fetch can fill.
+func (d *download) articles() int {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	return max(d.file.Segments[len(d.file.Segments)-1].Number, d.m.total)
 }
 
 // size is the file's size once an article has named it, and the size of its
@@ -137,7 +147,7 @@ func (d *download) save() {
 	// Taken before the sync, as an article written during it may not be on
 	// the disk yet.
 	d.mu.Lock()
-	snap := segMap{size: d.m.size, done: append([]bool(nil), d.m.done...)}
+	snap := segMap{size: d.m.size, total: d.m.total, done: append([]bool(nil), d.m.done...)}
 	d.mu.Unlock()
 	if err := d.f.Sync(); err != nil {
 		return
