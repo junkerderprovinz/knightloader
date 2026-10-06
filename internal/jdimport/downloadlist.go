@@ -2,12 +2,12 @@ package jdimport
 
 import (
 	"archive/zip"
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
 	"io/fs"
 	"net/url"
+	"os"
 	"path"
 	"regexp"
 	"sort"
@@ -101,10 +101,11 @@ func readList(fsys fs.FS, name string, budget *int64) ([]Package, error) {
 		return nil, err
 	}
 	defer f.Close()
-	zr, err := openZip(f)
+	zr, done, err := openZip(f, budget)
 	if err != nil {
 		return nil, err
 	}
+	defer done()
 
 	type indexed struct {
 		pkg   packageStorable
@@ -190,24 +191,44 @@ func readList(fsys fs.FS, name string, budget *int64) ([]Package, error) {
 	return out, nil
 }
 
-// openZip reads the zip in place when the file allows it, and copies it into
-// memory otherwise, as a file inside an uploaded zip must be.
-func openZip(f fs.File) (*zip.Reader, error) {
+// openZip reads the zip in place when the file allows it. A file inside an
+// uploaded zip does not, so it goes to a temporary file charged against
+// budget: a small upload can hold a list stored at hundreds of MiB.
+func openZip(f fs.File, budget *int64) (*zip.Reader, func(), error) {
 	fi, err := f.Stat()
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	if fi.Size() > maxListBytes {
-		return nil, fmt.Errorf("it is larger than %d MiB", maxListBytes>>20)
+		return nil, nil, fmt.Errorf("it is larger than %d MiB", maxListBytes>>20)
 	}
 	if ra, ok := f.(io.ReaderAt); ok {
-		return zip.NewReader(ra, fi.Size())
+		zr, err := zip.NewReader(ra, fi.Size())
+		return zr, func() {}, err
 	}
-	data, err := io.ReadAll(io.LimitReader(f, fi.Size()))
+	if fi.Size() > *budget {
+		return nil, nil, fmt.Errorf("the download lists unpack to more than %d MiB", maxListBytes>>20)
+	}
+	tmp, err := os.CreateTemp("", "kl-jdimport-*.zip")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
-	return zip.NewReader(bytes.NewReader(data), int64(len(data)))
+	done := func() {
+		tmp.Close()
+		os.Remove(tmp.Name())
+	}
+	n, err := io.Copy(tmp, io.LimitReader(f, fi.Size()))
+	*budget -= n
+	if err != nil {
+		done()
+		return nil, nil, err
+	}
+	zr, err := zip.NewReader(tmp, n)
+	if err != nil {
+		done()
+		return nil, nil, err
+	}
+	return zr, done, nil
 }
 
 func toLink(l linkStorable) Link {
