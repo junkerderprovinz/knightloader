@@ -2615,6 +2615,7 @@ export const el: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Αυτός ο κανόνας δεν ελέγχει τίποτα, οπότε εδώ θα ταίριαζε με κάθε σύνδεσμο.',
   'settings.jdimport.reason.ruleNoAction': 'Τίποτα από όσα ορίζει αυτός ο κανόνας δεν υπάρχει στο KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'Το KnightLoader δεν μπορεί να χρησιμοποιήσει αυτόν τον κανόνα: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Ο φάκελος λήψεων {folder} δεν μπορεί να χρησιμοποιηθεί σε αυτό το μηχάνημα, γι’ αυτό ο κανόνας μένει χωρίς επιλογή. Μπορεί όμως να επιλεγεί και ο φάκελος να αλλάξει αργότερα στον κανόνα.',
   'settings.jdimport.reason.rulePlaceholder': "Το {field} χρησιμοποιεί {tag}, που δεν το έχει το KnightLoader, γι' αυτό αυτό το κομμάτι παραλείπεται.",
   'settings.jdimport.reason.ruleRenameKept': 'Το νέο όνομα αρχείου μένει μέσα στον κανόνα και εμφανίζεται στη δοκιμή του κανόνα, αλλά οι λήψεις δεν το χρησιμοποιούν ακόμα.',
   'settings.jdimport.reason.ruleDropped': 'Παραλείφθηκε, επειδή οι κανόνες του KnightLoader δεν μπορούν να το κάνουν αυτό: {actions}',

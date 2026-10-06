@@ -159,6 +159,9 @@ function Report({ preview, report, ticked }: { preview: JDImportPreview; report:
           {report.links === 1 ? t('settings.jdimport.doneLinksOne') : t('settings.jdimport.doneLinks', { n: report.links })}
         </span>
       )}
+      {report.held > 0 && (
+        <span className="text-sm text-carbon-text">{t('collector.filtered.heldSummary', { n: report.held })}</span>
+      )}
       {report.filterStops && <span className="text-sm text-statusWarn">{t('settings.jdimport.filterStops')}</span>}
       {lines.length > 0 && (
         <>

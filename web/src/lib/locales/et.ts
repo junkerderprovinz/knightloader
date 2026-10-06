@@ -2607,6 +2607,7 @@ export const et: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'See reegel ei kontrolli midagi, nii et siin sobiks see iga lingiga.',
   'settings.jdimport.reason.ruleNoAction': 'Midagi sellest, mida see reegel määrab, ei ole KnightLoaderis olemas.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader ei saa seda reeglit kasutada: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Allalaadimiste kausta {folder} ei saa selles masinas kasutada, seega jääb reegel märkimata. Selle saab siiski märkida ja kausta hiljem reeglis muuta.',
   'settings.jdimport.reason.rulePlaceholder': '{field} kasutab märget {tag}, mida KnightLoaderil ei ole, nii et see osa jäetakse välja.',
   'settings.jdimport.reason.ruleRenameKept': 'Uus failinimi jääb reegli sisse ja on näha reegli testis, kuid allalaadimised seda veel ei kasuta.',
   'settings.jdimport.reason.ruleDropped': 'Jäeti välja, sest KnightLoaderi reeglid ei suuda seda teha: {actions}',

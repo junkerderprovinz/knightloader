@@ -2616,6 +2616,7 @@ export const vi: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Quy tắc này không kiểm tra điều gì, nên ở đây nó sẽ khớp với mọi liên kết.',
   'settings.jdimport.reason.ruleNoAction': 'Không điều gì mà quy tắc này thiết lập tồn tại trong KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader không thể dùng quy tắc này: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Không thể dùng thư mục tải về {folder} trên máy này, nên quy tắc không được đánh dấu. Bạn vẫn có thể đánh dấu nó và đổi thư mục trong quy tắc sau đó.',
   'settings.jdimport.reason.rulePlaceholder': '{field} dùng {tag}, thứ mà KnightLoader không có, nên phần đó bị bỏ qua.',
   'settings.jdimport.reason.ruleRenameKept': 'Tên tệp mới vẫn nằm trong quy tắc và hiện trong lúc kiểm tra quy tắc, nhưng các lượt tải xuống chưa dùng đến nó.',
   'settings.jdimport.reason.ruleDropped': 'Bị bỏ qua, vì quy tắc của KnightLoader không làm được điều này: {actions}',

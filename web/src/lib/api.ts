@@ -3802,6 +3802,8 @@ export interface JDImportReport {
   failed: { id: string; reason: JDImportReason }[];
   /** Collector rows the download list became. */
   links: number;
+  /** Links that went to the collector's rejected links instead. */
+  held: number;
   /** The link filter was switched to stop at its first match. */
   filterStops: boolean;
 }

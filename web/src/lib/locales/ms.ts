@@ -2615,6 +2615,7 @@ export const ms: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Peraturan ini tidak menyemak apa-apa, jadi di sini ia akan padan dengan setiap pautan.',
   'settings.jdimport.reason.ruleNoAction': 'Tiada apa yang ditetapkan oleh peraturan ini wujud dalam KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader tidak dapat menggunakan peraturan ini: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Folder muat turun {folder} tidak boleh digunakan pada mesin ini, jadi peraturan ini tidak ditanda. Peraturan ini masih boleh ditanda dan foldernya ditukar dalam peraturan kemudian.',
   'settings.jdimport.reason.rulePlaceholder': '{field} menggunakan {tag}, yang tiada dalam KnightLoader, jadi bahagian itu ditinggalkan.',
   'settings.jdimport.reason.ruleRenameKept': 'Nama fail baharu kekal dalam peraturan dan dipaparkan dalam ujian peraturan, tetapi muat turun masih belum menggunakannya.',
   'settings.jdimport.reason.ruleDropped': 'Ditinggalkan, kerana peraturan KnightLoader tidak dapat melakukan ini: {actions}',

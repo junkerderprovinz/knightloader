@@ -123,6 +123,21 @@ release's tag.
   page the bookmarklet opens, hidden behind a button of its own, so a click on
   that button pressed Add. That page now refuses to load inside another
   website.
+- **The JDownloader import ticked Packagizer rules whose folder exists only on
+  JDownloader's machine.** A rule that sends downloads to a folder that cannot
+  be used here, such as `/output/...` from a JDownloader container or a Linux
+  path on Windows, arrives unticked with a note, the way JDownloader's own
+  download folder already did.
+- **The JDownloader import report counted rejected links as waiting in the
+  link collector.** Links that a filter rule or the download history rejected
+  get a line of their own.
+- **The drop folder renamed files ending in `.opening` that it had not set
+  aside itself.** Only a container it parked while opening it gets its name
+  back.
+- **Feed entries and the files on a crawled page could point into the local
+  network.** A link that leads further inside the network than the feed or
+  page it came from, such as a LAN or cloud metadata address, is left out and
+  named in the log.
 
 ## [1.8.0] - 2026-10-05
 

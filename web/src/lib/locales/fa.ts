@@ -2605,6 +2605,7 @@ export const fa: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'این قاعده هیچ‌چیز را بررسی نمی‌کند، پس اینجا با هر پیوندی منطبق می‌شد.',
   'settings.jdimport.reason.ruleNoAction': 'هیچ‌چیز از آنچه این قاعده تنظیم می‌کند در KnightLoader وجود ندارد.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader نمی‌تواند از این قاعده استفاده کند: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'پوشه دانلود {folder} روی این دستگاه قابل استفاده نیست، برای همین قاعده علامت‌نخورده می‌ماند. با این حال می‌توان آن را علامت زد و بعداً پوشه را در قاعده تغییر داد.',
   'settings.jdimport.reason.rulePlaceholder': '{field} از {tag} استفاده می‌کند که KnightLoader ندارد، پس آن بخش کنار گذاشته می‌شود.',
   'settings.jdimport.reason.ruleRenameKept': 'نام جدید فایل در قاعده می‌ماند و در آزمایش قاعده نشان داده می‌شود، اما دانلودها هنوز از آن استفاده نمی‌کنند.',
   'settings.jdimport.reason.ruleDropped': 'کنار گذاشته شد، چون قاعده‌های KnightLoader نمی‌توانند این کار را بکنند: {actions}',

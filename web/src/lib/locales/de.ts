@@ -2865,6 +2865,7 @@ export const de: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Diese Regel prüft nichts und würde hier also auf jeden Link passen.',
   'settings.jdimport.reason.ruleNoAction': 'Nichts von dem, was diese Regel setzt, gibt es in KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader kann diese Regel nicht verwenden: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Den Download-Ordner {folder} kann KnightLoader auf diesem Rechner nicht verwenden, deshalb ist die Regel nicht angehakt. Du kannst sie trotzdem anhaken und den Ordner danach in der Regel ändern.',
   'settings.jdimport.reason.rulePlaceholder': 'Das Feld {field} verwendet {tag}, das es in KnightLoader nicht gibt, deshalb bleibt dieser Teil weg.',
   'settings.jdimport.reason.ruleRenameKept': 'Der neue Dateiname bleibt in der Regel und zeigt sich im Regeltest, Downloads verwenden ihn aber noch nicht.',
   'settings.jdimport.reason.ruleDropped': 'Weggelassen, weil Regeln in KnightLoader das nicht können: {actions}',

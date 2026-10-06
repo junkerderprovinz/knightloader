@@ -2613,6 +2613,7 @@ export const gl: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Esta regra non comproba nada, así que aquí coincidiría con calquera ligazón.',
   'settings.jdimport.reason.ruleNoAction': 'Nada do que esta regra establece existe en KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader non pode usar esta regra: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'O cartafol de descargas {folder} non se pode usar neste equipo, así que a regra queda sen marcar. Aínda así pódese marcar e cambiar o cartafol na regra despois.',
   'settings.jdimport.reason.rulePlaceholder': 'O campo {field} usa {tag}, que KnightLoader non ten, así que esa parte quédase fóra.',
   'settings.jdimport.reason.ruleRenameKept': 'O novo nome de ficheiro permanece na regra e móstrase na proba da regra, pero as descargas aínda non o usan.',
   'settings.jdimport.reason.ruleDropped': 'Quedou fóra, porque as regras de KnightLoader non poden facer isto: {actions}',
