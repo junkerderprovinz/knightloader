@@ -5,6 +5,7 @@ export const eu: Dict = {
   'qr.cancel': 'Utzi',
   'qr.cameraPermissionHint': 'Kamerarako sarbidea behar da QR kodea eskaneatzeko.',
   'qr.grantAccess': 'Baimendu sarbidea',
+  'qr.openSettings': 'Ireki ezarpenak',
 
   'connections.addButton': '+ Konexioa',
   'connections.empty': 'Oraindik ez da konexiorik gorde.',

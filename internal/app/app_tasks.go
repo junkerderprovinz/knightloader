@@ -1134,6 +1134,9 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	a.tally.forget(id)
 	a.dequeueLocked(id)
 	a.dispatchLocked()
+	if t != nil {
+		a.awaitStartLocked(id)
+	}
 	a.mu.Unlock()
 	if t != nil {
 		a.backendFor(t.Resolver).Remove(id, backendFiles)

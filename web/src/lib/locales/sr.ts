@@ -2630,6 +2630,7 @@ export const sr: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Ово правило ништа не проверава, па би се овде поклапало са сваком везом.',
   'settings.jdimport.reason.ruleNoAction': 'Ништа од онога што ово правило поставља не постоји у KnightLoader-у.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader не може да искористи ово правило: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Фасцикла за преузимања {folder} не може да се користи на овом рачунару, па правило остаје неозначено. Ипак може да се означи, а фасцикла у правилу касније промени.',
   'settings.jdimport.reason.rulePlaceholder': '{field} користи {tag}, ког KnightLoader нема, па је тај део изостављен.',
   'settings.jdimport.reason.ruleRenameKept': 'Ново име фајла остаје у правилу и приказује се у тесту правила, али преузимања га још не користе.',
   'settings.jdimport.reason.ruleDropped': 'Изостављено, пошто правила KnightLoader ово не умеју: {actions}',

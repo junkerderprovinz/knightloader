@@ -2616,6 +2616,7 @@ export const id: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Aturan ini tidak memeriksa apa pun, jadi di sini aturan ini akan cocok dengan semua tautan.',
   'settings.jdimport.reason.ruleNoAction': 'Tidak ada yang diatur aturan ini yang ada di KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader tidak bisa memakai aturan ini: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Folder unduhan {folder} tidak bisa dipakai di mesin ini, jadi aturannya tidak dicentang. Aturan ini tetap bisa dicentang, lalu foldernya diubah di aturan setelahnya.',
   'settings.jdimport.reason.rulePlaceholder': '{field} memakai {tag}, yang tidak dimiliki KnightLoader, jadi bagian itu dihilangkan.',
   'settings.jdimport.reason.ruleRenameKept': 'Nama berkas baru tetap ada di aturan dan muncul di uji coba aturan, tapi unduhan belum memakainya.',
   'settings.jdimport.reason.ruleDropped': 'Dihilangkan, karena aturan KnightLoader tidak bisa melakukan ini: {actions}',

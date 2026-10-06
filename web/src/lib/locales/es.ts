@@ -2607,6 +2607,7 @@ export const es: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Esta regla no comprueba nada, así que aquí coincidiría con todos los enlaces.',
   'settings.jdimport.reason.ruleNoAction': 'Nada de lo que establece esta regla existe en KnightLoader.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader no puede usar esta regla: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'La carpeta de descargas {folder} no se puede usar en este equipo, así que la regla queda sin marcar. Aun así se puede marcar y cambiar la carpeta en la regla después.',
   'settings.jdimport.reason.rulePlaceholder': 'El {field} usa {tag}, que KnightLoader no tiene, así que esa parte se deja fuera.',
   'settings.jdimport.reason.ruleRenameKept': 'El nuevo nombre de archivo se queda en la regla y aparece en la prueba de la regla, pero las descargas todavía no lo usan.',
   'settings.jdimport.reason.ruleDropped': 'Se deja fuera, porque las reglas de KnightLoader no pueden hacer esto: {actions}',

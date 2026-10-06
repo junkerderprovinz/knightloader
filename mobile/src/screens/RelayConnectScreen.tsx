@@ -57,6 +57,9 @@ export default function RelayConnectScreen({
   const { t } = useT();
   const { c, accent, corners } = useAppearance();
   const [phrase, setPhrase] = useState('');
+  // The relay the last scanned code named, kept for Connect pressed after the
+  // scan, and dropped once the words are typed or pasted.
+  const [codeRelay, setCodeRelay] = useState(DEFAULT_RELAY_URL);
   const [searching, setSearching] = useState(false);
   const [scanning, setScanning] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -111,7 +114,7 @@ export default function RelayConnectScreen({
   // render does not see yet, so it passes the scanned words in directly; the
   // button path passes nothing and reads state. `relay` is the relay a scanned
   // code names; typed words always pair on the project relay.
-  const join = async (entered?: string, relay = DEFAULT_RELAY_URL) => {
+  const join = async (entered?: string, relay = codeRelay) => {
     const words = splitPhrase(entered ?? phrase).join(' ');
     setError(null);
     let key: string;
@@ -248,6 +251,7 @@ export default function RelayConnectScreen({
         value={phrase}
         onChangeText={(text) => {
           setPhrase(text);
+          setCodeRelay(DEFAULT_RELAY_URL);
           setError(null);
         }}
         autoCapitalize="none"
@@ -298,7 +302,10 @@ export default function RelayConnectScreen({
         onPress={async () => {
           setError(null);
           const text = await Clipboard.getStringAsync();
-          if (text.trim()) setPhrase(text.trim());
+          if (text.trim()) {
+            setPhrase(text.trim());
+            setCodeRelay(DEFAULT_RELAY_URL);
+          }
         }}
       />
 
@@ -382,13 +389,15 @@ export default function RelayConnectScreen({
         onScanned={(data) => {
           setScanning(false);
           const code = readPairingCode(data);
+          const relay = ('refused' in code ? undefined : code.relay) ?? DEFAULT_RELAY_URL;
           setPhrase(code.words);
+          setCodeRelay(relay);
           if ('refused' in code) {
             setError(t('relay.errInsecureRelay', { address: code.refused }));
             zittern();
             return;
           }
-          void join(code.words, code.relay);
+          void join(code.words, relay);
         }}
         onClose={() => setScanning(false)}
       />

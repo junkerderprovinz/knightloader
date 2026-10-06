@@ -104,7 +104,7 @@ const (
 )
 
 // maxFile caps one settings file. JDownloader's own files are kilobytes; a
-// download list zip is read entry by entry under maxListBytes instead.
+// download list zip is read entry by entry under maxEntryBytes instead.
 const maxFile = 32 << 20
 
 // Read finds the cfg folder inside fsys and reads every file it knows. fsys

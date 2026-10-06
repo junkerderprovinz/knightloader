@@ -5,12 +5,14 @@
 // TestPairingCode in internal/relay/key_test.go, is scanned here: a code
 // without a second line pairs on the project relay, a wss:// relay is taken
 // over, and anything else is refused rather than dialled, since the app
-// permits no cleartext traffic.
+// permits no cleartext traffic. The connect screen then keeps searching the
+// relay a scanned code named until the words are typed or pasted.
 //
 // Run by hand and by CI, from mobile/: `node check-pairing-code.mjs`
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { compile, mount } from './stand-in-react.mjs';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const { readPairingCode } = await import(pathToFileURL(join(here, 'src', 'api', 'pairingCode.ts')).href);
@@ -64,8 +66,96 @@ for (const address of [
   expect(`${address} is refused`, readPairingCode(`${phrase}\n${address}`), { words: phrase, refused: address });
 }
 
+// The connect screen keeps the relay a scanned code names. When the instance
+// has not answered by the time the spinner stops, Connect is what somebody
+// presses next, and it has to search the same relay again rather than the
+// project relay, where that instance never shows up.
+{
+  const DEFAULT = 'wss://project.example/relay/connect';
+  const dialled = [];
+  let clipboard = '';
+  const split = (p) => p.split(/[\s,]+/).filter(Boolean);
+  const { default: RelayConnectScreen } = compile(join(here, 'src', 'screens', 'RelayConnectScreen.tsx'), {
+    'react-native': { Animated: { View: 'Animated.View' }, StyleSheet: { create: (s) => s }, View: 'View' },
+    'expo-clipboard': { getStringAsync: async () => clipboard },
+    '../components/QRScanner': { __esModule: true, default: 'QRScanner' },
+    '../api/relayClient': {
+      closeRelayClient() {},
+      relayClientFor: ({ url }) => {
+        dialled.push(url);
+        return { subscribe: () => () => {}, siblings: () => [] };
+      },
+    },
+    '../api/seedphrase': {
+      DEFAULT_RELAY_URL: DEFAULT,
+      PhraseError: class extends Error {},
+      WORD_COUNT: 12,
+      keyFromPhrase: () => 'key',
+      frameKeyFromPhrase: () => new Uint8Array(32),
+    },
+    '../api/phraseWords': {
+      splitPhrase: split,
+      checkPhrase: (p) => ({ words: split(p), unknown: [], complete: split(p).length === 12 }),
+    },
+    '../api/pairingCode': { readPairingCode },
+    '../api/deviceName': { deviceName: () => 'Phone' },
+    '../api/sha256': { toHex: () => '' },
+    '../storage/relayIdentity': { relayIdentity: async () => 'phone' },
+    '../storage/connections': { addConnection: async () => {}, listConnections: async () => [], setActiveConnectionId: async () => {} },
+    '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, accent: '', corners: {} }) },
+    '../theme/MotionContext': { useShake: () => ({ style: {}, shake() {} }) },
+    '../theme/tokens': { NUM: {}, TYPE: {} },
+    '../i18n/I18nContext': { useT: () => ({ t: (key) => key }) },
+    '../components/glim': { GlimButton: 'GlimButton' },
+    '../components/IconBadge': {
+      __esModule: true,
+      default: 'IconBadge',
+      Back: 'Back',
+      Connect: 'Connect',
+      Paste: 'Paste',
+      Scan: 'Scan',
+      boxForInk: (n) => n,
+    },
+    '../components/InfoTip': { InfoTip: 'InfoTip' },
+    '../components/Moving': { MovingScroll: 'MovingScroll' },
+    '../components/Text': { Text: 'Text', TextInput: 'TextInput' },
+  });
+
+  const screen = mount(() => RelayConnectScreen({ onConnected() {}, onBack() {} }));
+  const find = (shown, test) => shown.elements.find((e) => test(e.type, e.props))?.props;
+  const scan = async (code) => {
+    find(screen.shown(), (type) => type === 'QRScanner').onScanned(code);
+    return screen.settle();
+  };
+  const press = async (label) => {
+    find(screen.shown(), (type, props) => type === 'GlimButton' && props.label === label).onPress();
+    return screen.settle();
+  };
+  const last = () => dialled.at(-1);
+
+  await screen.settle();
+  await scan(`${phrase}\n${relay}`);
+  expect('a scanned code searches the relay it names', last(), relay);
+  await press('relay.joinButton');
+  expect('Connect after a scan searches the relay the code named', last(), relay);
+  await scan(phrase);
+  await press('relay.joinButton');
+  expect('Connect after a code without a relay searches the project relay', last(), DEFAULT);
+  await scan(`${phrase}\n${relay}`);
+  find(screen.shown(), (type) => type === 'TextInput').onChangeText(phrase);
+  await screen.settle();
+  await press('relay.joinButton');
+  expect('typed words search the project relay', last(), DEFAULT);
+  await scan(`${phrase}\n${relay}`);
+  clipboard = phrase;
+  await press('relay.pasteButton');
+  await press('relay.joinButton');
+  expect('pasted words search the project relay', last(), DEFAULT);
+  screen.unmount();
+}
+
 if (problems.length) {
   console.error('The app reads the pairing code differently from how the server writes it:\n' + problems.map((p) => '  ' + p).join('\n'));
   process.exit(1);
 }
-console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written.`);
+console.log(`Pairing codes: ${rows.length} server cases and the app's own read as written, and Connect keeps the scanned relay.`);

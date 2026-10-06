@@ -12,6 +12,7 @@ import (
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -349,6 +350,9 @@ func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.P
 				}
 			}()
 			serve.ServeHTTP(rec, httpReq)
+			if rec.tooLong {
+				return http.StatusBadGateway, []byte(errRelayAnswerTooLong.Error())
+			}
 			return rec.status, rec.body.Bytes()
 		}()
 		return status, out
@@ -458,18 +462,34 @@ func relayClipWatchRoute(method, rest string) bool {
 	return false
 }
 
+// relayAnswerMax bounds what one relayed call answers. No member reads more
+// than 32 MiB of an answer, sealed and encoded, so a larger one, such as a
+// finished file, could never arrive and would only fill this instance's memory.
+const relayAnswerMax = 32 << 20
+
 // relayRecorder buffers one handler's response in memory, so production code
 // does not depend on httptest.
 type relayRecorder struct {
-	header http.Header
-	status int
-	body   bytes.Buffer
+	header  http.Header
+	status  int
+	body    bytes.Buffer
+	tooLong bool
 }
 
 func newRelayRecorder() *relayRecorder {
 	return &relayRecorder{header: http.Header{}, status: http.StatusOK}
 }
 
-func (r *relayRecorder) Header() http.Header         { return r.header }
-func (r *relayRecorder) Write(b []byte) (int, error) { return r.body.Write(b) }
-func (r *relayRecorder) WriteHeader(status int)      { r.status = status }
+// errRelayAnswerTooLong stops a handler that writes past relayAnswerMax.
+var errRelayAnswerTooLong = errors.New("answer too large to pass on")
+
+func (r *relayRecorder) Header() http.Header    { return r.header }
+func (r *relayRecorder) WriteHeader(status int) { r.status = status }
+
+func (r *relayRecorder) Write(b []byte) (int, error) {
+	if r.tooLong || r.body.Len()+len(b) > relayAnswerMax {
+		r.tooLong = true
+		return 0, errRelayAnswerTooLong
+	}
+	return r.body.Write(b)
+}

@@ -5,6 +5,7 @@ export const ar: Dict = {
   'qr.cancel': 'إلغاء',
   'qr.cameraPermissionHint': 'يلزم الوصول إلى الكاميرا لمسح رمز QR.',
   'qr.grantAccess': 'السماح بالوصول',
+  'qr.openSettings': 'فتح الإعدادات',
 
   'connections.addButton': '+ اتصال',
   'connections.empty': 'لا يوجد اتصال محفوظ بعد.',

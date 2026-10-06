@@ -184,7 +184,7 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 		}
 		// A media player opened from the phone app sends neither cookie nor
 		// token, only the link it was given.
-		if playTicketOpens(r) {
+		if playTicketOpens(a, r) {
 			next.ServeHTTP(w, r)
 			return
 		}
@@ -322,8 +322,26 @@ func spaHandler() http.Handler {
 				return
 			}
 		}
+		if isQuickAdd(r) {
+			// On this page one press on Add queues whatever link the query
+			// string brought, so no other site may frame it and steer that
+			// press. The rest of the app stays open to dashboards that embed it.
+			w.Header().Set("Content-Security-Policy", "frame-ancestors 'self'")
+			w.Header().Set("X-Frame-Options", "SAMEORIGIN")
+		}
 		serveIndex(w, r, index)
 	})
+}
+
+// isQuickAdd reports whether r asks for the QuickAdd page. React Router
+// matches the base path and the route without regard to case, and withBasePath
+// strips the base only when its letters match exactly.
+func isQuickAdd(r *http.Request) bool {
+	p := r.URL.Path
+	if base := requestBasePath(r); len(p) >= len(base) && strings.EqualFold(p[:len(base)], base) {
+		p = p[len(base):]
+	}
+	return strings.EqualFold(strings.Trim(p, "/"), "quickadd")
 }
 
 // serveIndex answers with the page every client-side route starts from. Its

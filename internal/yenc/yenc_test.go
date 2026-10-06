@@ -97,6 +97,19 @@ func TestDecodeRefusesWhatIsNotYEnc(t *testing.T) {
 	}
 }
 
+func TestDecodeRefusesASizeTheBodyCannotHold(t *testing.T) {
+	cases := map[string]string{
+		"single part": "=ybegin line=128 size=99999999999999999 name=x.bin\r\nabc\r\n=yend size=3\r\n",
+		"ypart range": "=ybegin part=2 total=2 line=128 size=99999999999999999 name=x.bin\r\n" +
+			"=ypart begin=4001 end=99999999999999999\r\nabc\r\n=yend size=3 part=2\r\n",
+	}
+	for name, article := range cases {
+		if _, err := Decode([]byte(article)); !errors.Is(err, ErrCRC) {
+			t.Errorf("%s: got %v, want a size mismatch", name, err)
+		}
+	}
+}
+
 func TestEncodeRoundTripsEveryByte(t *testing.T) {
 	data := make([]byte, 1000)
 	for i := range data {

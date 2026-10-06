@@ -62,9 +62,12 @@ async function writePhrase(phrase) {
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase and the default target. */
+/** Leaves the group, dropping the phrase, the member id and the default target. */
 async function forgetGroup() {
-  await secretStore('readwrite', (s) => s.delete('phrase'));
+  await secretStore('readwrite', (s) => {
+    s.delete('member');
+    return s.delete('phrase');
+  });
   await chrome.storage.local.remove(['phrase', 'defaultInstance']);
 }
 
@@ -91,12 +94,30 @@ async function writeDefaultTarget(instanceId) {
 /**
  * A fresh relay id for every session. The relay takes a second join under an
  * id it already holds for a reconnect and drops the first socket, and the
- * popup, the options page and a send often have sessions open at once. A
- * browser is a client, so nothing needs to recognise it again later.
+ * popup, the options page and a send often have sessions open at once. The
+ * group recognises the browser by readMemberId instead.
  */
 function sessionInstanceId() {
   const bytes = crypto.getRandomValues(new Uint8Array(20));
   return Array.from(bytes, (b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+/**
+ * The id the group knows this browser by across sessions, sealed into every
+ * announce and call. An instance lists the browser once under it and turns it
+ * away once removed. It is minted on first use, in the same transaction that
+ * looks for it, so two sessions starting together agree on one.
+ */
+function readMemberId() {
+  return secretStore('readwrite', (s) => {
+    const out = {};
+    const got = s.get('member');
+    got.onsuccess = () => {
+      out.result = typeof got.result === 'string' ? got.result : sessionInstanceId();
+      if (out.result !== got.result) s.put(out.result, 'member');
+    };
+    return out;
+  });
 }
 
 /**
@@ -118,6 +139,7 @@ async function withGroup(work) {
       key,
       frameKey,
       selfId: sessionInstanceId(),
+      memberId: await readMemberId(),
       // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
       // An instance took this browser out of the group. It starts over like a

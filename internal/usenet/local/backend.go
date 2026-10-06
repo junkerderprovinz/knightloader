@@ -242,6 +242,8 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: d.size(), Loaded: d.loaded()})
 
 	missing, err := b.fetch(ctx, taskID, d)
+	articles := d.articles()
+	missing += articles - len(file.Segments)
 	closeErr := d.close()
 	switch {
 	case ctx.Err() != nil:
@@ -264,7 +266,7 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 			verb = "is"
 		}
 		fail(core.Update{
-			Err:    fmt.Sprintf("%d of the %d articles of this file %s on none of your Usenet servers", missing, len(file.Segments), verb),
+			Err:    fmt.Sprintf("%d of the %d articles of this file %s on none of your Usenet servers", missing, articles, verb),
 			Reason: core.ReasonGone,
 		})
 		return

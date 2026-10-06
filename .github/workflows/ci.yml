@@ -540,6 +540,9 @@ jobs:
       - name: Free QR scanner
         run: node check-free-scanner.mjs
 
+      - name: Camera permission
+        run: node check-camera.mjs
+
       - name: Background watch
         run: node check-watch.mjs
 

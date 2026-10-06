@@ -182,7 +182,9 @@ func (g *Guard) expiry(token string) (int64, bool) {
 	}
 	payload, sig := token[:i], token[i+1:]
 	exp, _, _ := strings.Cut(payload, ".")
-	want, err := base64.RawURLEncoding.DecodeString(sig)
+	// The last character of the signature has spare bits, so a lenient decode
+	// would let other spellings of a revoked token past the revocation list.
+	want, err := base64.RawURLEncoding.Strict().DecodeString(sig)
 	if err != nil {
 		return 0, false
 	}
@@ -232,6 +234,15 @@ func (g *Guard) RevokeAll() error {
 	g.endSessionsLocked()
 	g.mu.Unlock()
 	return g.flush()
+}
+
+// Epoch counts how often every session was ended at once, by a password change
+// or a sign-out everywhere. Credentials that should end with the sessions sign
+// it in.
+func (g *Guard) Epoch() uint64 {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.epoch
 }
 
 // endSessionsLocked moves the epoch on. The revocation list only ever named

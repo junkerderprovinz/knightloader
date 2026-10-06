@@ -210,3 +210,39 @@ func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 		t.Fatal("a new group still turns away a phone removed from the old one")
 	}
 }
+
+func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
+	m := newManager(t)
+	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
+	if err := m.SetJoined(joined); err != nil {
+		t.Fatal(err)
+	}
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}}}
+	m.SetRelay(rt)
+	now := joined.Add(time.Minute)
+	if _, err := m.Apps(now); err != nil {
+		t.Fatal(err)
+	}
+
+	member := strings.Repeat("b", 40)
+	for i := range 40 {
+		now = now.Add(time.Minute)
+		session := fmt.Sprintf("%040x", i)
+		rt.sibs = []relay.Announce{{InstanceID: session, Name: "Browser", Deployment: "extension", Client: true, Member: member}}
+		if _, err := m.Apps(now); err != nil {
+			t.Fatal(err)
+		}
+	}
+	rt.sibs = nil
+	apps, _ := m.Apps(now.Add(time.Minute))
+	if len(apps) != 2 || apps[0].ID != member || apps[1].ID != "phone-1" {
+		t.Fatalf("apps = %+v, want one card for the browser and the phone's", apps)
+	}
+
+	if err := m.RemoveApp(member, now); err != nil {
+		t.Fatal(err)
+	}
+	if !m.Removed(member) {
+		t.Fatal("a removed browser's next call is not turned away")
+	}
+}

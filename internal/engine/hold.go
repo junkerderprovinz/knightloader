@@ -7,6 +7,8 @@ package engine
 // carries on with the bytes it already has.
 
 import (
+	"cmp"
+	"log"
 	"time"
 
 	"github.com/GopeedLab/gopeed/pkg/download"
@@ -48,7 +50,7 @@ func (e *Engine) Hold(taskID string) bool {
 		return true
 	}
 	e.mu.Lock()
-	gid := e.toGopeed[taskID]
+	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
 	if gid == "" || e.torrents[taskID] || e.closed || e.holds[taskID] != nil {
 		e.mu.Unlock()
 		return false
@@ -117,7 +119,7 @@ func (e *Engine) Release(taskID string, moved func(string) string, resume bool) 
 		m.file = moved(m.file)
 		m.job.Dir, m.job.WorkDir = moved(m.job.Dir), moved(m.job.WorkDir)
 	}
-	gid := e.toGopeed[taskID]
+	gid := cmp.Or(e.toGopeed[taskID], e.restored[taskID])
 	if f := e.files[gid]; f != "" {
 		e.files[gid] = moved(f)
 	}
@@ -126,6 +128,11 @@ func (e *Engine) Release(taskID string, moved func(string) string, resume bool) 
 		// The library opens the file again from these options when it goes on.
 		if t := e.d.GetTask(gid); t != nil && t.Meta != nil && t.Meta.Opts != nil {
 			t.Meta.Opts.Path = moved(t.Meta.Opts.Path)
+			if e.layouts.kept != nil {
+				if err := e.layouts.kept.moved(gid, t.Meta.Opts.Path); err != nil {
+					log.Printf("could not keep the moved download for after a restart: %v (task %s)", err, taskID)
+				}
+			}
 		}
 	}
 	if h == nil || !h.running || !resume {

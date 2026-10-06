@@ -136,8 +136,12 @@ func (p *poller) poll() {
 			continue
 		}
 		name := e.Name()
-		if strings.HasSuffix(name, openingSuffix) {
-			p.reopen(name)
+		if base, ok := strings.CutSuffix(name, openingSuffix); ok {
+			// Only a container is ever parked, so any other file under this
+			// suffix belongs to someone else.
+			if isIntakeName(base) && wholeFiles[strings.ToLower(filepath.Ext(base))] {
+				p.reopen(name)
+			}
 			continue
 		}
 		if !isIntakeName(name) {

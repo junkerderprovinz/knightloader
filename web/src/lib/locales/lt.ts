@@ -2616,6 +2616,7 @@ export const lt: Dict = {
   'settings.jdimport.reason.ruleNoCondition': 'Ši taisyklė nieko netikrina, todėl čia atitiktų kiekvieną nuorodą.',
   'settings.jdimport.reason.ruleNoAction': 'Tai, ką nustato ši taisyklė, KnightLoader neturi.',
   'settings.jdimport.reason.ruleInvalid': 'KnightLoader negali naudoti šios taisyklės: {error}',
+  'settings.jdimport.reason.ruleFolderElsewhere': 'Atsisiuntimų aplanko {folder} šiame kompiuteryje naudoti negalima, todėl taisyklė lieka nepažymėta. Ją vis tiek galima pažymėti ir vėliau pakeisti aplanką taisyklėje.',
   'settings.jdimport.reason.rulePlaceholder': '{field} naudoja {tag}, kurio KnightLoader neturi, todėl ta dalis praleidžiama.',
   'settings.jdimport.reason.ruleRenameKept': 'Naujas failo vardas lieka taisyklėje ir matomas taisyklės bandyme, bet atsisiuntimai jo dar nenaudoja.',
   'settings.jdimport.reason.ruleDropped': 'Praleista, nes KnightLoader taisyklės to negali: {actions}',

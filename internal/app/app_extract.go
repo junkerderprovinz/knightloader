@@ -370,16 +370,25 @@ func (a *App) unpackLocked() *unpackState {
 	return a.unpack
 }
 
+// unpackingLocked reports whether an extraction of the task's archive is
+// queued or running. Caller holds a.mu.
+func (a *App) unpackingLocked(taskID string) bool {
+	for _, j := range a.unpackLocked().jobs {
+		if j.TaskID == taskID && (j.Status == ExtractQueued || j.Status == ExtractRunning) {
+			return true
+		}
+	}
+	return false
+}
+
 // enqueueExtractLocked queues one archive and moves its task into
 // StatusExtracting. It returns nil when that archive is already queued or
 // running, so simultaneous triggers make one job. Caller holds a.mu.
 func (a *App) enqueueExtractLocked(target *core.Task, path string) *extractJob {
-	st := a.unpackLocked()
-	for _, j := range st.jobs {
-		if j.TaskID == target.ID && (j.Status == ExtractQueued || j.Status == ExtractRunning) {
-			return nil
-		}
+	if a.unpackingLocked(target.ID) {
+		return nil
 	}
+	st := a.unpackLocked()
 	set := a.volumeSetLocked(target)
 	sort.Slice(set, func(i, j int) bool { return volumeBefore(set[i], set[j]) })
 	parts := make([]string, len(set))

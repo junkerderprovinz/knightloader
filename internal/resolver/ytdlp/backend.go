@@ -281,12 +281,14 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	}
 	defer tree.close()
 	cmd.Cancel = tree.kill
+	var grace *time.Timer
 	if opts.Live.Enabled {
 		// A killed yt-dlp leaves a live recording as an unplayable .part; on
 		// an interrupt it finishes the fragment and runs its post-processors.
-		// Windows has no os.Interrupt, so WaitDelay falls back to a kill there
-		// and for a yt-dlp that ignores the signal. A recording removed with
-		// its files has nothing worth finishing.
+		// Windows has no os.Interrupt, and a yt-dlp may ignore it, so the
+		// whole tree is killed once liveStopGrace is up: os/exec's own kill
+		// would end yt-dlp alone and leave ffmpeg recording. A recording
+		// removed with its files has nothing worth finishing.
 		cmd.Cancel = func() error {
 			b.mu.Lock()
 			discard := r.discard
@@ -294,9 +296,9 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			if discard {
 				return tree.kill()
 			}
+			grace = time.AfterFunc(liveStopGrace, func() { _ = tree.kill() })
 			return cmd.Process.Signal(os.Interrupt)
 		}
-		cmd.WaitDelay = liveStopGrace
 	}
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
@@ -385,6 +387,9 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	}
 	scanErr := sc.Err()
 	err = cmd.Wait()
+	if grace != nil {
+		grace.Stop()
+	}
 	if ctx.Err() != nil && stoppedBy == "" {
 		return core.Update{}, false // cancelled by Pause/Remove
 	}
@@ -483,8 +488,9 @@ func (b *Backend) placeSubtitles(taskID, stage, dir string, o Options, final str
 }
 
 // liveStopGrace is how long a live recording gets after the interrupt to
-// finalise its file before the process is killed.
-const liveStopGrace = 30 * time.Second
+// finalise its file before the process tree is killed. A var so the tests
+// need not wait that long.
+var liveStopGrace = 30 * time.Second
 
 // finish handles a successful yt-dlp exit around the file it produced: NFO,
 // measurement and the checks that turn a success into a failure (a subtitle
