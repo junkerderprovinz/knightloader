@@ -10,6 +10,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
@@ -383,5 +384,46 @@ func TestAFeedOnTheLANMayLeadIntoTheLAN(t *testing.T) {
 	}
 	if s := feedScope("https://203.0.113.9/rss"); *s != httpx.ScopePublic {
 		t.Errorf("scope of a public feed = %v, want public", *s)
+	}
+}
+
+// The files a page points at are probed and downloaded unconfined, so one that
+// leads further inside the network than the page itself is left out.
+func TestACrawledLinkFurtherInsideTheNetworkThanItsPageIsLeftOut(t *testing.T) {
+	a := newCrawlApp(t, true)
+	a.Crawler = &fakeCrawler{yield: []crawler.Result{
+		{URL: "https://host.example/one.bin", Name: "one.bin"},
+		{URL: "http://169.254.169.254/latest/meta-data/two.bin", Name: "two.bin"},
+		{URL: "http://192.168.1.1/three.bin", Name: "three.bin"},
+	}}
+
+	created := a.AddLinks([]string{"https://host.example/gallery"}, "Batch")
+	if len(created) != 1 || created[0].URL != "https://host.example/one.bin" {
+		var got []string
+		for _, task := range created {
+			got = append(got, task.URL)
+		}
+		t.Fatalf("staged %q, want only the public file", got)
+	}
+}
+
+// A public feed chose its entries, so one that points into the LAN or at a
+// metadata address is neither probed nor downloaded.
+func TestAFeedEntryFurtherInsideTheNetworkThanItsFeedIsLeftOut(t *testing.T) {
+	a := newCrawlApp(t, false)
+	for _, link := range []string{
+		"http://169.254.169.254/latest/meta-data/iam/x.bin",
+		"http://192.168.1.1/cgi-bin/x.bin",
+		"https://host.example/episode.bin",
+	} {
+		a.stageFeedJob(feed.Job{URL: link, Package: "Feed", Source: "https://feed.example/rss"})
+	}
+	tasks := a.Tasks()
+	if len(tasks) != 1 || tasks[0].URL != "https://host.example/episode.bin" {
+		var got []string
+		for _, task := range tasks {
+			got = append(got, task.URL)
+		}
+		t.Fatalf("staged %q, want only the public entry", got)
 	}
 }
