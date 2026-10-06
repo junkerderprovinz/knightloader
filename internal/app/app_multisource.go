@@ -33,8 +33,10 @@ type sourceAsk struct {
 
 // sourcesLocked is how the engine asks for t's further sources, or nil when
 // the setting is off or t's backend hands over no plain link to share the
-// file with. Caller holds a.mu.
-func (a *App) sourcesLocked(t *core.Task, cfg settings.Settings) func(context.Context) []string {
+// file with. The engine gives each source the conns connections of t's own
+// link, so an account that allows fewer for the hoster is left out. Caller
+// holds a.mu.
+func (a *App) sourcesLocked(t *core.Task, cfg settings.Settings, conns int) func(context.Context) []string {
 	if !cfg.MultiSource || torrent.IsURI(t.URL) || !sharesSources(t.Resolver) {
 		return nil
 	}
@@ -44,6 +46,18 @@ func (a *App) sourcesLocked(t *core.Task, cfg settings.Settings) func(context.Co
 			asks = append(asks, ask)
 		}
 	}
+	asks = slices.DeleteFunc(asks, func(ask sourceAsk) bool {
+		hl, ok := ask.svc.(debrid.HostLimiter)
+		if !ok {
+			return false
+		}
+		limit := hl.HostLimit(hostOf(ask.link))
+		if limit <= 0 || limit >= conns {
+			return false
+		}
+		log.Printf("task %s: %s not asked for a further source: it allows %d connections for the hoster, the download uses %d", t.ID, ask.svc.Label(), limit, conns)
+		return true
+	})
 	if len(asks) == 0 {
 		return nil
 	}
