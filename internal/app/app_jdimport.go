@@ -90,8 +90,10 @@ type JDImportFailure struct {
 type JDImportReport struct {
 	Imported []string          `json:"imported"`
 	Failed   []JDImportFailure `json:"failed"`
-	// Links is how many collector rows the download list became.
+	// Links is how many collector rows the download list became, and Held
+	// how many more went to the collector's rejected links.
 	Links int `json:"links"`
+	Held  int `json:"held"`
 	// FilterStops is set when the link filter was switched to stop at the
 	// first matching rule, which JDownloader's exceptions need.
 	FilterStops bool `json:"filterStops"`
@@ -581,7 +583,13 @@ func (a *App) ApplyJDImport(token string, ids []string, check JDSettingsCheck) (
 		if len(created) > 0 {
 			a.rememberPasswords(pkg.passwords)
 		}
-		rep.Links += len(created)
+		for _, t := range created {
+			if t.Skipped {
+				rep.Held++
+			} else {
+				rep.Links++
+			}
+		}
 		rep.Imported = append(rep.Imported, item.ID)
 	}
 	return rep, nil

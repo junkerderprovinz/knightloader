@@ -462,3 +462,30 @@ func TestRulesSwitchedOffInJDownloaderComeUnticked(t *testing.T) {
 		t.Errorf("rule = %+v, want offered off and unticked", it)
 	}
 }
+
+func TestAJDImportReportCountsRejectedLinksApart(t *testing.T) {
+	a, _ := newRuleApp(t, func(s *settings.Settings, base string) {})
+	dir := t.TempDir()
+	jdimporttest.Write(t, dir, jdimporttest.Config{
+		LinkFilter: []map[string]any{
+			jdimporttest.Rule("no samples", map[string]any{"filenameFilter": jdimporttest.Text("CONTAINS", "sample", false)}),
+		},
+		Packages: []jdimporttest.Package{{Name: "Show", Links: []jdimporttest.Link{
+			{URL: "https://host.example/ep1.mkv", Name: "ep1.mkv", Enabled: true},
+			{URL: "https://host.example/sample1.mkv", Name: "sample1.mkv", Enabled: true},
+			{URL: "https://host.example/sample2.mkv", Name: "sample2.mkv", Enabled: true},
+		}}},
+		ListNumber: 1,
+	})
+	p, err := a.ReadJDImport(os.DirFS(dir))
+	if err != nil {
+		t.Fatal(err)
+	}
+	rep, err := a.ApplyJDImport(p.Token, []string{"filter:0", "package:0"}, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if rep.Links != 1 || rep.Held != 2 {
+		t.Errorf("report says %d links wait and %d were rejected, want 1 and 2", rep.Links, rep.Held)
+	}
+}
