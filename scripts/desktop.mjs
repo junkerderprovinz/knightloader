@@ -44,10 +44,25 @@ const version = tagged || process.env.KL_VERSION || 'dev'
 // build gets 0.0.0.
 const numbers = /^v?(\d+\.\d+\.\d+)$/.exec(version)?.[1] ?? '0.0.0'
 
+// The DLC service key comes from the KL_DLC_KEY and KL_DLC_IV secrets in a
+// release build and is absent everywhere else (docs/decisions.md).
+const dlcKey = process.env.KL_DLC_KEY?.trim() ?? ''
+const dlcIV = process.env.KL_DLC_IV?.trim() ?? ''
+const dlcFlags = dlcKey && dlcIV
+  ? `-X github.com/junkerderprovinz/knightloader/internal/container.dlcKey=${dlcKey} -X github.com/junkerderprovinz/knightloader/internal/container.dlcIV=${dlcIV}`
+  : ''
+
+function redact(text) {
+  for (const secret of [dlcKey, dlcIV]) {
+    if (secret) text = text.split(secret).join('***')
+  }
+  return text
+}
+
 function run(command, commandArgs, { cwd = desktop, env = {} } = {}) {
   const res = spawnSync(command, commandArgs, { cwd, stdio: 'inherit', env: { ...process.env, ...env } })
   if (res.status !== 0) {
-    console.error(`failed: ${command} ${commandArgs.join(' ')}`)
+    console.error(redact(`failed: ${command} ${commandArgs.join(' ')}`))
     process.exit(res.status ?? 1)
   }
 }
@@ -55,7 +70,7 @@ function run(command, commandArgs, { cwd = desktop, env = {} } = {}) {
 function goBuild(out, { goos, goarch, cgo, tags, ldflags = '', env = {} }) {
   run('go', [
     'build', '-tags', tags, '-trimpath', '-buildvcs=false',
-    '-ldflags', `-s -w ${ldflags} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${version}`,
+    '-ldflags', `-s -w ${ldflags} ${dlcFlags} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${version}`,
     '-o', out, '.',
   ], { env: { GOOS: goos, GOARCH: goarch, CGO_ENABLED: cgo, ...env } })
 }
@@ -80,7 +95,7 @@ function writeWindowsVersion() {
   writeFileSync(join(desktop, 'build', 'windows', 'info.json'), JSON.stringify(info, null, '\t') + '\n')
 }
 
-console.log(`building KnightLoader ${version}`)
+console.log(`building KnightLoader ${version}, ${dlcFlags ? 'with' : 'without'} the DLC key`)
 
 rmSync(bin, { recursive: true, force: true })
 mkdirSync(bin, { recursive: true })

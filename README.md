@@ -266,7 +266,7 @@ or forum as of autumn 2026. If one has changed, please open an issue.
 | Torrents | ✅ | ❌ | ⚠️ via debrid | ✅ |
 | Usenet | ✅ | ⚠️ no repair | ⚠️ via debrid | ⚠️ via debrid |
 | Click'n'Load | ✅ | ✅ | ⚠️ add-on | ❌ |
-| DLC, CCF, RSDF | ⚠️ DLC via JD | ✅ | ⚠️ via JD | ❌ |
+| DLC, CCF, RSDF | ✅ | ✅ | ⚠️ via JD | ❌ |
 | Watched folder | ✅ | ⚠️ add-on | ⚠️ add-on | ✅ |
 | Browser extension | ✅ | ⚠️ outdated | ⚠️ third-party | ⚠️ third-party |
 | Phone app | ✅ | ✅ | ✅ | ❌ |

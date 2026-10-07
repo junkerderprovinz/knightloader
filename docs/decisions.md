@@ -325,3 +325,26 @@ check runs beside the downloads and whatever else the server does, so it takes
 half of the machine rather than all of it; the two numbers are constants until
 somebody has a box where they are wrong. Usenet posts come with PAR 2.0
 files, and PAR 3 is still a draft.
+
+## DLC: the key arrives when a release is built
+
+**Built:** `.dlc` files opened by KnightLoader itself, with the application key
+the DLC service issued to KnightLoader. The key and its IV are two package
+variables in `internal/container`, empty in the source, and `release.yml` fills
+them with `-ldflags -X` from the repository secrets `KL_DLC_KEY` and
+`KL_DLC_IV`: the image build receives them as BuildKit secrets, so they appear
+in no layer, build argument or provenance record, and the desktop builds read
+them from the environment.
+
+**Not built:** the key in the source, a setting for it, or a variable that
+supplies it at run time.
+
+The key names the client to the service. Committed to a public repository it
+would belong to every fork and every script that copies it, and whatever they
+did with it would be done under KnightLoader's name, up to the service
+withdrawing it from every installation at once. A setting or a variable would
+only move the same problem to wherever people paste their configuration. The
+cost is that a build from source opens no `.dlc` itself and hands every one to
+the JDownloader backend; CI builds and tests without the secrets. The key does
+end up in the shipped binary, and somebody determined can dig it out of there.
+What keeping it out of the source prevents is publishing it next to the code.

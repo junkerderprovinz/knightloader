@@ -15,6 +15,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/container"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -374,10 +375,8 @@ func joinClasses(in []CleanupClass) string {
 	return strings.Join(out, ", ")
 }
 
-// containerAdder is a backend that can open an encrypted link container. Only
-// the shipped headless JD can open a DLC, whose key is issued to registered
-// clients, and it is also the fallback for an RSDF or CCF that will not decode
-// here.
+// containerAdder is a backend that can open an encrypted link container: the
+// fallback for a DLC, RSDF or CCF that will not open here.
 type containerAdder interface {
 	AddContainer(ctx context.Context, url, packageName string, timeout time.Duration) ([]resolver.Result, error)
 }
@@ -485,34 +484,69 @@ func (a *App) CryptedV1BackendConfigured() bool {
 }
 
 // AddContainerCnL implements the Click'n'Load listener's ContainerAdder. The
-// "crypted" field is encrypted against JDownloader's own key, so only the JD
-// backend can open it. JDownloader itself writes the field to a temporary .dlc
-// (ExternInterfaceImpl#addcrypted); this passes the bytes inline instead.
+// "crypted" field is a DLC: JDownloader itself writes it to a temporary .dlc
+// (ExternInterfaceImpl#addcrypted). A build with the DLC key opens it here,
+// and the JD backend, which takes the bytes inline, is the fallback.
 func (a *App) AddContainerCnL(data []byte, pkg string) error {
 	if len(data) == 0 {
 		return errors.New("no crypted content")
 	}
+	if container.CanOpenDLC() && container.ValidateDLC(data) == nil {
+		a.spawn(func() {
+			links, err := container.OpenDLC(a.ctx, data)
+			if err == nil {
+				created := a.AddLinksFrom(links, pkg, OriginCnL)
+				log.Printf("addcrypted (v1): opened here, %d links, %d staged", len(links), len(created))
+				return
+			}
+			if a.ctx.Err() != nil {
+				return
+			}
+			log.Printf("addcrypted (v1): handing it to JDownloader: %v", err)
+			adder, err := a.cryptedV1Backend()
+			if err != nil {
+				a.cryptedV1Failed(err)
+				return
+			}
+			a.crawlCryptedV1(adder, data, pkg)
+		})
+		return nil
+	}
+	adder, err := a.cryptedV1Backend()
+	if err != nil {
+		return err
+	}
+	a.spawn(func() { a.crawlCryptedV1(adder, data, pkg) })
+	return nil
+}
+
+func (a *App) cryptedV1Backend() (cryptedV1Adder, error) {
 	if a.ModuleOff("jd") {
-		return ErrJDOff
+		return nil, ErrJDOff
 	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()
 	adder, ok := be.(cryptedV1Adder)
 	if !ok {
-		return ErrNoContainerBackend
+		return nil, ErrNoContainerBackend
 	}
-	a.spawn(func() {
-		links, err := adder.AddCryptedV1(a.ctx, data, pkg, containerCrawlLimit)
-		if err != nil {
-			log.Printf("addcrypted (v1): %v", err)
-			a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())
-			return
-		}
-		created := a.AddResolvedLinksFrom(links, pkg, OriginCnL)
-		log.Printf("addcrypted (v1): %d links, %d staged", len(links), len(created))
-	})
-	return nil
+	return adder, nil
+}
+
+func (a *App) crawlCryptedV1(adder cryptedV1Adder, data []byte, pkg string) {
+	links, err := adder.AddCryptedV1(a.ctx, data, pkg, containerCrawlLimit)
+	if err != nil {
+		a.cryptedV1Failed(err)
+		return
+	}
+	created := a.AddResolvedLinksFrom(links, pkg, OriginCnL)
+	log.Printf("addcrypted (v1): %d links, %d staged", len(links), len(created))
+}
+
+func (a *App) cryptedV1Failed(err error) {
+	log.Printf("addcrypted (v1): %v", err)
+	a.recordSkippedReason("Click'n'Load (addcrypted v1)", "container", err.Error())
 }
 
 // UIState and SetUIState store opaque interface state between reloads, such as
