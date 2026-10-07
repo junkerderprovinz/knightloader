@@ -60,9 +60,29 @@ jobs:
           fi
           echo "app.json and manifest.json both say $tagged"
 
+      # Without the key every build still succeeds and every .dlc goes to the
+      # JDownloader backend, so a missing secret would only show once people
+      # open DLCs.
+      - name: The DLC key is available
+        if: github.ref_type == 'tag'
+        env:
+          KL_DLC_KEY: ${{ secrets.KL_DLC_KEY }}
+          KL_DLC_IV: ${{ secrets.KL_DLC_IV }}
+        run: |
+          missing=""
+          [ -n "$KL_DLC_KEY" ] || missing="$missing KL_DLC_KEY"
+          [ -n "$KL_DLC_IV" ] || missing="$missing KL_DLC_IV"
+          if [ -n "$missing" ]; then
+            echo "::error::missing repository secret(s):$missing - a release without them cannot open a .dlc itself."
+            exit 1
+          fi
+
   desktop:
     needs: tag
     uses: ./.github/workflows/desktop.yml
+    secrets:
+      KL_DLC_KEY: ${{ secrets.KL_DLC_KEY }}
+      KL_DLC_IV: ${{ secrets.KL_DLC_IV }}
 
   # Android identifies an app by package name and signing certificate, so the
   # key can never change without an uninstall. expo prebuild signs release
@@ -391,6 +411,8 @@ jobs:
             type=semver,pattern={{version}}
 
       # .dockerignore keeps .git out of the context, so the commit is passed in.
+      # The DLC key goes in as BuildKit secrets, which no layer, build argument
+      # or provenance record keeps; Dockerfile.relay does not mount them.
       - name: Build and push
         uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7
         with:
@@ -403,6 +425,9 @@ jobs:
           build-args: |
             VERSION=${{ github.ref_name }}
             COMMIT=${{ github.sha }}
+          secrets: |
+            kl_dlc_key=${{ secrets.KL_DLC_KEY }}
+            kl_dlc_iv=${{ secrets.KL_DLC_IV }}
           cache-from: type=gha,scope=${{ matrix.name }}
           cache-to: type=gha,mode=max,scope=${{ matrix.name }}
           provenance: true

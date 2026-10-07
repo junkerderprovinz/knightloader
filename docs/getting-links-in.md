@@ -16,20 +16,15 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   renamed to `.done`. Until then a `.torrent`, a container or an `.nzb` carries
   an `.opening` suffix, since JDownloader can take minutes to crawl a
   container, and if the box restarts before it is done, the file is taken
-  again. One this instance cannot open, such as a `.dlc` with
-  no JDownloader backend, stays where it is, and the log says
+  again. One this instance cannot open stays where it is, and the log says
   why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.
 - **A page**: paste one, and the files it links to are staged instead.
 - **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link
-  list, an RSDF and a CCF are read on the spot, since the keys for RSDF and CCF
-  are built into every program that reads them. A DLC cannot be opened by
-  anyone offline, because its key is issued to registered clients, so it is
-  handed to the JDownloader backend, which has one. An RSDF or CCF that will
-  not open here goes the same way. That backend is provisioned on first run by
-  default (`KL_PROVISION_JD`), so this normally works with nothing set. With no
-  backend at all, a DLC is recognised and refused, with the missing backend
-  named as the reason.
+  list, a DLC, an RSDF and a CCF are read on the spot. One that will not open
+  here is handed to the JDownloader backend, which is provisioned on first run
+  by default (`KL_PROVISION_JD`). With no backend at all, such a file is
+  refused, with the missing backend named as the reason.
 - **An `.nzb`**: upload it the same way and it goes to Usenet, see below.
 - **Your debrid account**: what you add on the service's own website can come
   in by itself. See below.

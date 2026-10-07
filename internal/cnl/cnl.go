@@ -27,9 +27,8 @@ type Adder interface {
 }
 
 // ContainerAdder is an Adder that can also take a Click'n'Load v1
-// ("addcrypted") submission, which is encrypted for JDownloader's own RSA key
-// and so has to go to the JD backend like an uploaded .dlc. Without it,
-// /flash/addcrypted answers 501.
+// ("addcrypted") submission, whose payload is a DLC and goes where an
+// uploaded .dlc would. Without it, /flash/addcrypted answers 501.
 type ContainerAdder interface {
 	AddContainerCnL(data []byte, pkg string) error
 }

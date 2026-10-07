@@ -5,11 +5,9 @@ package api
 //
 // A plain list, an RSDF and a CCF are read here and staged like any paste,
 // since every program that reads RSDF and CCF has their keys built in. A DLC is
-// not decrypted here and never will be: its key is issued by a service to
-// registered clients, and borrowing somebody else's application key to pretend
-// to be their client is not something this project does. It goes to the
-// headless JDownloader backend, which has its own key and does this
-// legitimately, and so does an RSDF or CCF that will not open here.
+// read here too when the build carries KnightLoader's own key for the DLC
+// service (see internal/container). One that still will not open, and an RSDF
+// or CCF that will not, goes to the headless JDownloader backend.
 //
 // Handing it over is the awkward part, and the shape of this file is entirely
 // about it. JD's API takes links, not files: a filesystem path would have to
@@ -168,7 +166,7 @@ func registerContainers(reg *Registry, a *app.App) {
 	relay := newContainerRelay()
 	relay.onCount = a.SetContainerActivity
 
-	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list, RSDF or CCF is staged, a DLC goes to the JD backend, an .nzb to the own Usenet servers, TorBox or Premiumize.me",
+	reg.Add(http.MethodPost, "/api/containers", "upload a link container: a text list, RSDF, CCF or DLC is staged, one that does not open here goes to the JD backend, an .nzb to the own Usenet servers, TorBox or Premiumize.me",
 		func(w http.ResponseWriter, r *http.Request) {
 			// The cap is on the request, not on the part: without it the multipart
 			// reader will happily buffer whatever is sent before the size of the file
@@ -201,11 +199,11 @@ func registerContainers(reg *Registry, a *app.App) {
 				sendNZB(w, a, name, data, pkg)
 				return
 			}
-			links, err := container.Links(name, data)
+			links, err := container.Open(r.Context(), name, data)
 			kind := container.Detect(name, data)
 			switch {
 			case err == nil:
-				if kind == container.KindRSDF || kind == container.KindCCF {
+				if kind != container.KindText {
 					log.Printf("container %q: opened here as %s, %d links", name, kind, len(links))
 				}
 				created := a.AddLinksFrom(links, pkg, app.OriginContainer)
