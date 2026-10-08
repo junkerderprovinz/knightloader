@@ -148,7 +148,7 @@ func TestOpenReadsEveryLinkOfADLC(t *testing.T) {
 				t.Errorf("the service was asked %d times, want once", n)
 			}
 			q := stub.query.Load().(url.Values)
-			if q.Get("srcType") != "dlc" || q.Get("destType") != "KNIGHT" || q.Get("data") != tail {
+			if q.Get("srcType") != "dlc" || q.Get("destType") != dlcDestType || q.Get("data") != tail {
 				t.Errorf("the service was asked srcType=%q destType=%q data=%q", q.Get("srcType"), q.Get("destType"), q.Get("data"))
 			}
 		})

@@ -29,7 +29,9 @@ var (
 // for the client named by destType.
 var dlcService = "https://service.jdownloader.org/dlcrypt/service.php"
 
-const dlcDestType = "KNIGHT"
+// dlcDestType is the client id the service issued to KnightLoader, spelled
+// the way it was registered there.
+const dlcDestType = "KIGHT"
 
 // dlcTimeout bounds the one request a DLC costs. The service answers in well
 // under a second; this only keeps an upload from hanging on a dead one.
