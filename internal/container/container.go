@@ -2,11 +2,12 @@
 // the encrypted DLC, CCF and RSDF formats.
 //
 // Plain lists, RSDF and CCF are decoded here, since the keys of the last two
-// are built into every program that reads them. A .dlc can only be opened
-// with a key a service hands out to registered clients, so KnightLoader passes
-// it to its bundled headless JDownloader, which has its own key, rather than
-// borrowing another client's. For a DLC, and for an RSDF or CCF that will not
-// decode here, this package returns ErrNeedsBackend.
+// are built into every program that reads them. A .dlc is opened with a key
+// the DLC service hands to registered clients, and KnightLoader has its own,
+// which only official builds carry (see dlc.go). Links never asks the service;
+// Open does. For a DLC that does not open, and an RSDF or CCF that will not
+// decode, this package returns ErrNeedsBackend, and the caller hands the bytes
+// to the bundled headless JDownloader.
 package container
 
 import (

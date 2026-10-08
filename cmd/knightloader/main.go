@@ -111,7 +111,7 @@ func main() {
 	}
 
 	// A private headless JDownloader gives full hoster coverage without a
-	// sidecar, and DLC or container links cannot be opened without one.
+	// sidecar, and opens the containers KnightLoader cannot read itself.
 	// KL_PROVISION_JD=0 opts out, and an existing KL_JD is never overridden.
 	// This blocks because the JD backend is wired from KL_JD at app start.
 	if envInt("KL_PROVISION_JD", 1) == 1 && os.Getenv("KL_JD") == "" {

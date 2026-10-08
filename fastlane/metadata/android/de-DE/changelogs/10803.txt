@@ -1,0 +1,1 @@
+KnightLoader öffnet .dlc-Dateien jetzt selbst, ein DLC aus dem Click'n'Load-Knopf einer Seite oder einem überwachten Ordner landet sofort in der Liste.

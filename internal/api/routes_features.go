@@ -951,7 +951,7 @@ func jdFeature(a *app.App, s settings.Settings) Feature {
 			code: "jdNotConfigured",
 		})
 		return withDetail(f, line{
-			text: "DLC containers are refused, and hoster links go to a debrid service or fail",
+			text: "hoster links go to a debrid service or fail",
 			code: "jdMissing",
 		})
 	}
@@ -959,7 +959,7 @@ func jdFeature(a *app.App, s settings.Settings) Feature {
 	f.Switch, f.Enabled = SwitchSetting, !off
 	return withDetail(f, offDetail(off,
 		line{text: "off; downloads already in JDownloader finish, and new hoster links wait until it is switched back on", code: "jdOff"},
-		line{text: "reachable; DLC containers can be opened", code: "jdReachable"}))
+		line{text: "reachable", code: "jdReachable"}))
 }
 
 // ytdlpFeature has a switch only when a yt-dlp binary was found.

@@ -56,6 +56,11 @@ func (a *App) checkWatchJob(j watch.Job) error {
 	if !errors.Is(err, container.ErrNeedsBackend) {
 		return err
 	}
+	// Whether this DLC opens is only known once the service has answered, and
+	// that request belongs to staging, so a build with the key takes it.
+	if container.CanOpenDLC() && container.Detect(f.Name, f.Data) == container.KindDLC {
+		return nil
+	}
 	switch {
 	case !a.ContainerBackendConfigured():
 		return ErrNoContainerBackend
@@ -88,10 +93,10 @@ func (a *App) stageWatchFile(f *watch.File, pkg string) {
 		}
 		a.stageWatchJob(watch.Job{URLs: linkscan.Extract(string(f.Data)), Package: pkg})
 	default:
-		links, err := container.Links(f.Name, f.Data)
+		links, err := container.Open(a.ctx, f.Name, f.Data)
 		switch {
 		case err == nil:
-			if k := container.Detect(f.Name, f.Data); k == container.KindRSDF || k == container.KindCCF {
+			if k := container.Detect(f.Name, f.Data); k != container.KindText {
 				log.Printf("dropped container %q: opened here as %s, %d links", f.Name, k, len(links))
 			}
 			a.stageWatchJob(watch.Job{URLs: links, Package: pkg})

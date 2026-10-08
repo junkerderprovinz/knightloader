@@ -6,6 +6,11 @@ name: desktop
 on:
   workflow_dispatch:
   workflow_call:
+    secrets:
+      KL_DLC_KEY:
+        required: false
+      KL_DLC_IV:
+        required: false
 
 permissions:
   contents: read
@@ -95,9 +100,13 @@ jobs:
 
       # Only a tag build knows its version, which scripts/desktop.mjs reads
       # from the ref. Every other build keeps "dev", which never updates
-      # itself.
+      # itself. The DLC key is there when release.yml passes it or the run
+      # was dispatched here; desktop.mjs keeps it out of the log.
       - name: Build
         run: node scripts/desktop.mjs ${{ matrix.args }}
+        env:
+          KL_DLC_KEY: ${{ secrets.KL_DLC_KEY }}
+          KL_DLC_IV: ${{ secrets.KL_DLC_IV }}
 
       # A bundle that builds can still die on start: the tray and the window
       # both need the main thread on macOS. The app runs for a while with a

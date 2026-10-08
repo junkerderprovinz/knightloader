@@ -971,9 +971,8 @@ export interface ContainerStaged {
 }
 
 /**
- * A container the server could not open itself: a DLC, whose key is issued
- * only to registered clients, or an RSDF or CCF that would not decode. It goes
- * to the headless JDownloader backend. Nothing is staged yet when this comes
+ * A container the server could not open itself: a DLC, RSDF or CCF that would
+ * not decode here. It goes to the headless JDownloader backend. Nothing is staged yet when this comes
  * back; the links appear once JD has fetched it.
  */
 export interface ContainerHandedOver {
@@ -1459,9 +1458,9 @@ export async function fetchSkipped(): Promise<SkippedLink[]> {
 export const clearSkipped = () => fetch('/api/collector/skipped', { method: 'DELETE' });
 
 /**
- * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A link list, RSDF or
- * CCF comes back staged in `created`; a DLC is handed to the JD backend and
- * an .nzb to a Usenet-capable account, and their links arrive later over the
+ * uploadContainer sends a .txt/.dlc/.ccf/.rsdf/.nzb file. A link list, RSDF,
+ * CCF or DLC comes back staged in `created`; one that does not open here is
+ * handed to the JD backend and an .nzb to a Usenet-capable account, and their links arrive later over the
  * websocket, which the caller has to say rather than report
  * "0 links added". A failure throws the server's sentence, with a code when
  * nothing here can open the file.

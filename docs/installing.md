@@ -141,8 +141,7 @@ the same program as a portable copy that needs no installing.
 The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 
 - Java, on `PATH` or under `JAVA_HOME`, for the private JDownloader. Without
-  it, file hoster links have no catch-all and `.dlc` container files cannot be
-  opened. Pointing `KL_JD` at a JDownloader
+  it, file hoster links have no catch-all. Pointing `KL_JD` at a JDownloader
   that runs elsewhere works too.
 - yt-dlp for video sites. The Resolvers settings page can fetch a copy and
   keep it current.
