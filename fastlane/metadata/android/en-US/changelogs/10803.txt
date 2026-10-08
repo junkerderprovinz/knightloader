@@ -1,0 +1,1 @@
+KnightLoader opens .dlc files itself, so a DLC from a site's Click'n'Load button or a watched folder lands in the list straight away.

@@ -37,6 +37,8 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-10-08
+
 ### Added
 
 - **KnightLoader opens `.dlc` files itself.** A DLC you upload, drop into a
