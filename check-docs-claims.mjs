@@ -259,8 +259,8 @@ function goFiles(dir) {
 
 // The two defaults a reader acts on. KL_CNL decides whether the Click'n'Load
 // switch reads on or off on a fresh install, and KL_PROVISION_JD decides
-// whether a .dlc opens at all. Both have been documented as the opposite of
-// what main.go does.
+// whether hoster links have a catch-all. Both have been documented as the
+// opposite of what main.go does.
 
 for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
   const found = [...MAIN_GO.matchAll(new RegExp(`envInt\\("${env}", (\\d+)\\)`, 'g'))].map((m) => m[1]);

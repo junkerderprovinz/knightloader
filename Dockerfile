@@ -17,10 +17,25 @@ ARG VERSION=dev
 # Without it the build warns but finishes, and the binary reports an empty
 # commit.
 ARG COMMIT=
+# The DLC service key reaches a release build as two BuildKit secrets, which
+# leave no trace in a layer or the build history (docs/decisions.md):
+#
+#   docker build --secret id=kl_dlc_key,env=KL_DLC_KEY --secret id=kl_dlc_iv,env=KL_DLC_IV .
+#
+# Without them every .dlc goes to the JDownloader backend.
+#
 # Pure Go (modernc SQLite), so a static binary needs no cgo.
-RUN [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image will not know its revision: GET /api/health answers an empty commit and the About crest cannot turn' >&2; \
+RUN --mount=type=secret,id=kl_dlc_key --mount=type=secret,id=kl_dlc_iv \
+    [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image will not know its revision: GET /api/health answers an empty commit and the About crest cannot turn' >&2; \
+    dlc=""; \
+    if [ -s /run/secrets/kl_dlc_key ] && [ -s /run/secrets/kl_dlc_iv ]; then \
+      dlc="-X github.com/junkerderprovinz/knightloader/internal/container.dlcKey=$(cat /run/secrets/kl_dlc_key) -X github.com/junkerderprovinz/knightloader/internal/container.dlcIV=$(cat /run/secrets/kl_dlc_iv)"; \
+      echo 'building with the DLC key'; \
+    else \
+      echo 'building without the DLC key'; \
+    fi; \
     CGO_ENABLED=0 go build \
-      -ldflags="-s -w -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
+      -ldflags="-s -w ${dlc} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Version=${VERSION} -X github.com/junkerderprovinz/knightloader/internal/buildinfo.Commit=${COMMIT}" \
       -o /out/knightloader ./cmd/knightloader
 
 FROM alpine:3.24@sha256:294b683cb724975bec92580e1e685676bd4b50bda910ddb8c51d4cabeaec77e6

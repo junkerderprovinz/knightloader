@@ -53,7 +53,7 @@ type Options struct {
 	OnJob func(Job)
 	// Check, when set, is asked about every job of a file before the file is
 	// retired. An error leaves the file in place and is logged once, which is
-	// how a .dlc on an instance without JDownloader is refused.
+	// how a container this instance cannot open is refused.
 	Check func(Job) error
 }
 

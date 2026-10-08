@@ -37,6 +37,15 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.3] - 2026-10-08
+
+### Added
+
+- **KnightLoader opens `.dlc` files itself.** A DLC you upload, drop into a
+  watched folder or get from a site's Click'n'Load button is read on the spot,
+  and its links are staged the way those of an RSDF or CCF are. One that does
+  not open is handed on as before, and the log says why.
+
 ## [1.8.2] - 2026-10-06
 
 ### Added
