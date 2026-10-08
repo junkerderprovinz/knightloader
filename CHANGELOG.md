@@ -37,6 +37,14 @@ release's tag.
 
 ## [Unreleased]
 
+## [1.8.4] - 2026-10-08
+
+### Fixed
+
+- **The container image opens `.dlc` files itself.** The 1.8.3 image was built
+  with a key it could not use and handed every DLC to the JDownloader backend.
+  The desktop apps were not affected.
+
 ## [1.8.3] - 2026-10-08
 
 ### Added
