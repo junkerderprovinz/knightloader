@@ -1,0 +1,1 @@
+Das Container-Image des Servers öffnet .dlc-Dateien jetzt selbst, wie die Desktop-Apps.
