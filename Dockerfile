@@ -29,7 +29,9 @@ RUN --mount=type=secret,id=kl_dlc_key --mount=type=secret,id=kl_dlc_iv \
     [ -n "${COMMIT}" ] || echo 'WARNING: no --build-arg COMMIT, so this image will not know its revision: GET /api/health answers an empty commit and the About crest cannot turn' >&2; \
     dlc=""; \
     if [ -s /run/secrets/kl_dlc_key ] && [ -s /run/secrets/kl_dlc_iv ]; then \
-      dlc="-X github.com/junkerderprovinz/knightloader/internal/container.dlcKey=$(cat /run/secrets/kl_dlc_key) -X github.com/junkerderprovinz/knightloader/internal/container.dlcIV=$(cat /run/secrets/kl_dlc_iv)"; \
+      key=$(tr -d ' \r\n' < /run/secrets/kl_dlc_key); iv=$(tr -d ' \r\n' < /run/secrets/kl_dlc_iv); \
+      if [ ${#key} -ne 16 ] || [ ${#iv} -ne 16 ]; then echo 'the DLC key and IV must be 16 characters each' >&2; exit 1; fi; \
+      dlc="-X github.com/junkerderprovinz/knightloader/internal/container.dlcKey=${key} -X github.com/junkerderprovinz/knightloader/internal/container.dlcIV=${iv}"; \
       echo 'building with the DLC key'; \
     else \
       echo 'building without the DLC key'; \

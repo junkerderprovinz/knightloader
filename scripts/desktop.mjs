@@ -48,6 +48,10 @@ const numbers = /^v?(\d+\.\d+\.\d+)$/.exec(version)?.[1] ?? '0.0.0'
 // release build and is absent everywhere else (docs/decisions.md).
 const dlcKey = process.env.KL_DLC_KEY?.trim() ?? ''
 const dlcIV = process.env.KL_DLC_IV?.trim() ?? ''
+if ((dlcKey || dlcIV) && (dlcKey.length !== 16 || dlcIV.length !== 16)) {
+  console.error('the DLC key and IV must be 16 characters each')
+  process.exit(1)
+}
 const dlcFlags = dlcKey && dlcIV
   ? `-X github.com/junkerderprovinz/knightloader/internal/container.dlcKey=${dlcKey} -X github.com/junkerderprovinz/knightloader/internal/container.dlcIV=${dlcIV}`
   : ''
