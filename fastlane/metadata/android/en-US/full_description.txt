@@ -12,6 +12,8 @@ To connect, type the twelve-word connection phrase your KnightLoader shows, or s
 
 The app reaches your instances through a relay. The developer runs the default one, parleyport.halleluja.design. If your instance uses a ParleyPort relay of your own, the app follows it when you scan the instance's QR code. Requests and answers between the app and your instances are end-to-end encrypted with a key that comes from your phrase, so the relay passes them on without being able to read them. The app shows no ads.
 
+To tell you about captchas and finished or failed downloads while the app is closed, it keeps its own connection to your instances through the relay. With "Stay connected", which is on by default, it does so all the time: Android shows a quiet notification, and while nothing happens the app checks about once a minute. You can turn it off under Settings › Notifications.
+
 You need a running KnightLoader instance. KnightLoader is free and open source under the AGPL-3.0: https://github.com/junkerderprovinz/knightloader
 
 KnightLoader is at an early stage and changes quickly, and an update to your instance can need an update to the app as well. Please report problems on GitHub.
