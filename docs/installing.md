@@ -242,14 +242,16 @@ anywhere else: see [Connecting instances and apps](connecting.md).
 Chrome, Brave, Opera and Vivaldi install it from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
 Edge from
-[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl).
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl)
+and Firefox from
+[Firefox Add-ons](https://addons.mozilla.org/addon/knightloader/).
 Settings, Apps on a running instance has a button for each browser that opens
 its listing, with the steps beside it:
 
-1. Press **Add to Chrome** (in Edge **Get**) and confirm. Opera first asks
-   for its Install Chrome Extensions add-on.
-2. Pin it. Chrome does not put a new extension on the toolbar; it waits
-   behind the puzzle-piece button at the right of the address bar.
+1. Press **Add to Chrome** (in Edge **Get**, in Firefox **Add to Firefox**)
+   and confirm. Opera first asks for its Install Chrome Extensions add-on.
+2. Pin it. Chrome and Firefox do not put a new extension on the toolbar; it
+   waits behind the puzzle-piece button at the right of the address bar.
 3. Paste your connection phrase into the Remote access card on the options
    page, which opens by itself on a fresh install.
 
@@ -259,9 +261,8 @@ ZIP from the
 unpack it, open `chrome://extensions`, switch on Developer mode and choose
 **Load unpacked** with the unpacked folder.
 
-Firefox installs only add-ons Mozilla has signed. Those come from the
-add-on's page on Firefox Add-ons, which is not listed yet. Until it is,
-`about:debugging`, This Firefox, **Load Temporary Add-on** loads the ZIP until
+Firefox installs only add-ons Mozilla has signed, so a build you want to test
+loads through `about:debugging`, This Firefox, **Load Temporary Add-on** until
 the next restart. What the extension does is in
 [Bookmarklet, extension and share target](browser-tools.md).
 

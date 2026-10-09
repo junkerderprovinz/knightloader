@@ -1697,6 +1697,7 @@ export const ja: Dict = {
   'settings.browsertools.installFirefoxStep3': '代わりにすぐ試すには、about:debugging#/runtime/this-firefox を開いて「一時的なアドオンを読み込む」を選びます。アドオンは Firefox を再起動すると消えます。',
   'settings.browsertools.installStoreOpenChrome': 'ボタンを押すと、Chrome Web Store で KnightLoader が開きます。',
   'settings.browsertools.installStoreOpenEdge': 'ボタンを押すと、Edge Add-ons で KnightLoader が開きます。',
+  'settings.browsertools.installStoreOpenFirefox': 'ボタンを押すと、Firefox Add-ons で KnightLoader が開きます。',
   'settings.browsertools.installStoreAddChrome': 'そこで「{browser} に追加」を押し、確認する。',
   'settings.browsertools.installStoreGetEdge': 'そこで「入手」を押し、確認する。',
   'settings.browsertools.installStoreOpera': 'Opera が先に「Install Chrome Extensions」の追加を求めたら、追加する。その後「Opera に追加」を押し、確認する。',

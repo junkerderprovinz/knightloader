@@ -1690,6 +1690,7 @@ export const pt: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Para um teste rápido, abre antes about:debugging#/runtime/this-firefox e escolhe «Carregar extra temporário». O extra desaparece quando o Firefox reinicia.',
   'settings.browsertools.installStoreOpenChrome': 'Prime o botão. O KnightLoader abre na Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Prime o botão. O KnightLoader abre no Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Prime o botão. O KnightLoader abre no Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Aí, prime «Adicionar ao {browser}» e confirma.',
   'settings.browsertools.installStoreGetEdge': 'Aí, prime «Obter» e confirma.',
   'settings.browsertools.installStoreOpera': 'Se o Opera pedir primeiro o «Install Chrome Extensions», adiciona-o. Depois prime «Adicionar ao Opera» e confirma.',

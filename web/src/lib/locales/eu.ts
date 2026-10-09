@@ -1697,6 +1697,7 @@ export const eu: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Proba azkar baterako, ireki horren ordez about:debugging#/runtime/this-firefox eta aukeratu «Kargatu aldi baterako gehigarria». Gehigarria desagertu egiten da Firefox berrabiaraztean.',
   'settings.browsertools.installStoreOpenChrome': 'Sakatu botoia. KnightLoader Chrome Web Store-n irekiko da.',
   'settings.browsertools.installStoreOpenEdge': 'Sakatu botoia. KnightLoader Edge Add-ons-en irekiko da.',
+  'settings.browsertools.installStoreOpenFirefox': 'Sakatu botoia. KnightLoader Firefox Add-ons-en irekiko da.',
   'settings.browsertools.installStoreAddChrome': 'Han, sakatu «Gehitu {browser} nabigatzaileari» eta berretsi.',
   'settings.browsertools.installStoreGetEdge': 'Han, sakatu «Eskuratu» eta berretsi.',
   'settings.browsertools.installStoreOpera': 'Operak lehenik «Install Chrome Extensions» eskatzen badu, gehitu hori. Gero sakatu «Gehitu Operari» eta berretsi.',

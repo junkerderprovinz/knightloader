@@ -1697,6 +1697,7 @@ export const tr: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Bunun yerine hızlıca denemek için about:debugging#/runtime/this-firefox adresini aç ve “Geçici Eklenti Yükle”yi seç. Eklenti, Firefox yeniden başladığında kaybolur.',
   'settings.browsertools.installStoreOpenChrome': 'Düğmeye basın. KnightLoader, Chrome Web Store’da açılır.',
   'settings.browsertools.installStoreOpenEdge': 'Düğmeye basın. KnightLoader, Edge Add-ons’ta açılır.',
+  'settings.browsertools.installStoreOpenFirefox': 'Düğmeye basın. KnightLoader, Firefox Add-ons’ta açılır.',
   'settings.browsertools.installStoreAddChrome': 'Orada „{browser} tarayıcısına ekle” düğmesine basın ve onaylayın.',
   'settings.browsertools.installStoreGetEdge': 'Orada „Alın” düğmesine basın ve onaylayın.',
   'settings.browsertools.installStoreOpera': 'Opera önce „Install Chrome Extensions” isterse onu ekleyin. Ardından „Opera’ya ekle” düğmesine basın ve onaylayın.',

@@ -38,8 +38,7 @@ BUTTONS = {
     "opera": CHROME_WEB_STORE,
     "vivaldi": CHROME_WEB_STORE,
     # Firefox takes only an add-on Mozilla has signed, and the signed builds
-    # come from the Firefox Add-ons listing. Its address goes here once the
-    # listing is live.
-    "firefox": None,
+    # come from the Firefox Add-ons listing.
+    "firefox": "https://addons.mozilla.org/addon/knightloader/",
     "parleyport": "https://github.com/junkerderprovinz/parleyport",
 }

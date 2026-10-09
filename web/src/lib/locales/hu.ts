@@ -1697,6 +1697,7 @@ export const hu: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Gyors kipróbáláshoz nyisd meg inkább az about:debugging#/runtime/this-firefox oldalt, és válaszd az „Ideiglenes kiegészítő betöltése” lehetőséget. A kiegészítő a Firefox újraindításakor eltűnik.',
   'settings.browsertools.installStoreOpenChrome': 'Nyomd meg a gombot. A KnightLoader megnyílik a Chrome Web Store-ban.',
   'settings.browsertools.installStoreOpenEdge': 'Nyomd meg a gombot. A KnightLoader megnyílik az Edge Add-ons oldalon.',
+  'settings.browsertools.installStoreOpenFirefox': 'Nyomd meg a gombot. A KnightLoader megnyílik az Firefox Add-ons oldalon.',
   'settings.browsertools.installStoreAddChrome': 'Ott nyomd meg a „Hozzáadás a(z) {browser} böngészőhöz” gombot, és erősítsd meg.',
   'settings.browsertools.installStoreGetEdge': 'Ott nyomd meg a „Beszerzés” gombot, és erősítsd meg.',
   'settings.browsertools.installStoreOpera': 'Ha az Opera előbb az „Install Chrome Extensions” bővítményt kéri, add hozzá. Ezután nyomd meg a „Hozzáadás az Operához” gombot, és erősítsd meg.',

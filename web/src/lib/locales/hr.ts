@@ -1698,6 +1698,7 @@ export const hr: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Za brzo isprobavanje otvori about:debugging#/runtime/this-firefox i odaberi „Učitaj privremeni dodatak”. Dodatak nestaje kad se Firefox ponovno pokrene.',
   'settings.browsertools.installStoreOpenChrome': 'Pritisni gumb. KnightLoader se otvara u trgovini Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Pritisni gumb. KnightLoader se otvara u trgovini Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Pritisni gumb. KnightLoader se otvara u trgovini Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Ondje pritisni „Dodaj u {browser}” i potvrdi.',
   'settings.browsertools.installStoreGetEdge': 'Ondje pritisni „Nabavi” i potvrdi.',
   'settings.browsertools.installStoreOpera': 'Ako Opera najprije zatraži „Install Chrome Extensions”, dodaj ga. Zatim pritisni „Dodaj u Opera” i potvrdi.',

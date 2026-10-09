@@ -1697,6 +1697,7 @@ export const ko: Dict = {
   'settings.browsertools.installFirefoxStep3': '대신 빠르게 사용해 보려면 about:debugging#/runtime/this-firefox를 열고 “임시 부가 기능 로드”를 선택하세요. 이 부가 기능은 Firefox를 다시 시작하면 사라집니다.',
   'settings.browsertools.installStoreOpenChrome': '버튼을 누르면 Chrome Web Store에서 KnightLoader가 열립니다.',
   'settings.browsertools.installStoreOpenEdge': '버튼을 누르면 Edge Add-ons에서 KnightLoader가 열립니다.',
+  'settings.browsertools.installStoreOpenFirefox': '버튼을 누르면 Firefox Add-ons에서 KnightLoader가 열립니다.',
   'settings.browsertools.installStoreAddChrome': '그곳에서 “{browser}에 추가”를 누르고 확인합니다.',
   'settings.browsertools.installStoreGetEdge': '그곳에서 “받기”를 누르고 확인합니다.',
   'settings.browsertools.installStoreOpera': 'Opera가 먼저 “Install Chrome Extensions”를 요청하면 추가합니다. 그런 다음 “Opera에 추가”를 누르고 확인합니다.',

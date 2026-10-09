@@ -1697,6 +1697,7 @@ export const lv: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Ātrai izmēģināšanai atver about:debugging#/runtime/this-firefox un izvēlies „Ielādēt pagaidu papildinājumu“. Papildinājums pazūd, kad Firefox tiek restartēts.',
   'settings.browsertools.installStoreOpenChrome': 'Nospied pogu. KnightLoader atvērsies Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Nospied pogu. KnightLoader atvērsies Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Nospied pogu. KnightLoader atvērsies Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Tur nospied „Pievienot pārlūkam {browser}” un apstiprini.',
   'settings.browsertools.installStoreGetEdge': 'Tur nospied „Iegūt” un apstiprini.',
   'settings.browsertools.installStoreOpera': 'Ja Opera vispirms prasa „Install Chrome Extensions”, pievieno to. Pēc tam nospied „Pievienot pārlūkam Opera” un apstiprini.',

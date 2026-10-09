@@ -1697,6 +1697,7 @@ export const hi: Dict = {
   'settings.browsertools.installFirefoxStep3': 'इसके बजाय जल्दी आज़माने के लिए about:debugging#/runtime/this-firefox खोलें और “Load Temporary Add-on” चुनें। Firefox के फिर से शुरू होने पर ऐड-ऑन हट जाता है।',
   'settings.browsertools.installStoreOpenChrome': 'बटन दबाएँ। KnightLoader, Chrome Web Store में खुलेगा।',
   'settings.browsertools.installStoreOpenEdge': 'बटन दबाएँ। KnightLoader, Edge Add-ons में खुलेगा।',
+  'settings.browsertools.installStoreOpenFirefox': 'बटन दबाएँ। KnightLoader, Firefox Add-ons में खुलेगा।',
   'settings.browsertools.installStoreAddChrome': 'वहाँ “{browser} में जोड़ें” दबाएँ और पुष्टि करें।',
   'settings.browsertools.installStoreGetEdge': 'वहाँ “प्राप्त करें” दबाएँ और पुष्टि करें।',
   'settings.browsertools.installStoreOpera': 'अगर Opera पहले “Install Chrome Extensions” माँगे, तो उसे जोड़ें। फिर “Opera में जोड़ें” दबाएँ और पुष्टि करें।',

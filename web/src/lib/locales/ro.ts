@@ -1698,6 +1698,7 @@ export const ro: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Pentru o încercare rapidă, deschide în schimb about:debugging#/runtime/this-firefox și alege „Încarcă un supliment temporar”. Suplimentul dispare când repornește Firefox.',
   'settings.browsertools.installStoreOpenChrome': 'Apasă butonul. KnightLoader se deschide în Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Apasă butonul. KnightLoader se deschide în Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Apasă butonul. KnightLoader se deschide în Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Acolo apasă „Adaugă în {browser}” și confirmă.',
   'settings.browsertools.installStoreGetEdge': 'Acolo apasă „Obțineți” și confirmă.',
   'settings.browsertools.installStoreOpera': 'Dacă Opera cere mai întâi „Install Chrome Extensions”, adaug-o. Apoi apasă „Adaugă în Opera” și confirmă.',

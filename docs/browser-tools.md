@@ -62,9 +62,10 @@ Chrome, Brave, Opera and Vivaldi install it from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
 Edge from
 [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl),
-and the buttons on Settings > Apps open those listings. Firefox has no listing
-yet, so its button downloads the add-on. The zip stays for a browser without a
-listing and for testing a build.
+Firefox from
+[Firefox Add-ons](https://addons.mozilla.org/addon/knightloader/),
+and the buttons on Settings > Apps open those listings. The zip stays for a
+browser without a listing and for testing a build.
 
 The zip a running instance serves is **byte-identical** to `extension/src` in
 the repository. It used to bake that instance's address into a

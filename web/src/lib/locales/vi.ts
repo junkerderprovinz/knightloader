@@ -1697,6 +1697,7 @@ export const vi: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Để dùng thử nhanh, hãy mở about:debugging#/runtime/this-firefox và chọn “Load Temporary Add-on”. Tiện ích sẽ biến mất khi Firefox khởi động lại.',
   'settings.browsertools.installStoreOpenChrome': 'Nhấn nút. KnightLoader sẽ mở trong Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Nhấn nút. KnightLoader sẽ mở trong Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Nhấn nút. KnightLoader sẽ mở trong Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Tại đó, nhấn “Thêm vào {browser}” rồi xác nhận.',
   'settings.browsertools.installStoreGetEdge': 'Tại đó, nhấn “Nhận” rồi xác nhận.',
   'settings.browsertools.installStoreOpera': 'Nếu Opera yêu cầu “Install Chrome Extensions” trước, hãy thêm nó. Sau đó nhấn “Thêm vào Opera” rồi xác nhận.',

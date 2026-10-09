@@ -1698,6 +1698,7 @@ export const sk: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Na rýchle vyskúšanie namiesto toho otvor about:debugging#/runtime/this-firefox a zvoľ „Načítať dočasný doplnok“. Doplnok po reštarte Firefoxu zmizne.',
   'settings.browsertools.installStoreOpenChrome': 'Stlač tlačidlo. KnightLoader sa otvorí v Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Stlač tlačidlo. KnightLoader sa otvorí v Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Stlač tlačidlo. KnightLoader sa otvorí v Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Tam stlač „Pridať do prehliadača {browser}“ a potvrď.',
   'settings.browsertools.installStoreGetEdge': 'Tam stlač „Získať“ a potvrď.',
   'settings.browsertools.installStoreOpera': 'Ak Opera najprv požiada o „Install Chrome Extensions“, pridaj ho. Potom stlač „Pridať do prehliadača Opera“ a potvrď.',
