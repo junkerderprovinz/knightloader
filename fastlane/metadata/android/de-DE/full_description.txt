@@ -12,6 +12,8 @@ Zum Verbinden tippst du die zwölf Wörter der Verbindungsphrase ein, die dein K
 
 Die App erreicht deine Instanzen über ein Relay. Das Standard-Relay parleyport.halleluja.design betreibt der Entwickler. Nutzt deine Instanz ein eigenes ParleyPort-Relay, folgt ihm die App, sobald du den QR-Code der Instanz scannst. Anfragen und Antworten zwischen App und Instanzen sind Ende-zu-Ende verschlüsselt, mit einem Schlüssel aus deiner Phrase. Das Relay reicht sie weiter, kann sie aber nicht lesen. Werbung zeigt die App keine.
 
+Damit du auch bei geschlossener App von Captchas und fertigen oder fehlgeschlagenen Downloads erfährst, hält sie über das Relay eine eigene Verbindung zu deinen Instanzen. Mit „Verbunden bleiben“, standardmäßig an, tut sie das ständig: Android zeigt eine leise Benachrichtigung, und solange nichts passiert, fragt die App etwa einmal pro Minute nach. Abschalten kannst du das unter Einstellungen › Benachrichtigungen.
+
 Du brauchst eine laufende KnightLoader-Instanz. KnightLoader ist kostenlos und quelloffen unter der AGPL-3.0: https://github.com/junkerderprovinz/knightloader
 
 KnightLoader ist noch in einem frühen Stadium und ändert sich schnell. Ein Update deiner Instanz kann auch ein Update der App verlangen. Probleme meldest du am besten auf GitHub.
