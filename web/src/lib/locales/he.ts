@@ -1699,6 +1699,7 @@ export const he: Dict = {
   'settings.browsertools.installFirefoxStep3': 'לניסיון מהיר במקום זאת, פתח את about:debugging#/runtime/this-firefox ובחר „טען תוסף זמני”. התוסף נעלם כש-Firefox מופעל מחדש.',
   'settings.browsertools.installStoreOpenChrome': 'לחצו על הכפתור. KnightLoader ייפתח ב-Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'לחצו על הכפתור. KnightLoader ייפתח ב-Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'לחצו על הכפתור. KnightLoader ייפתח ב-Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'שם לחצו על „הוספה ל-{browser}” ואשרו.',
   'settings.browsertools.installStoreGetEdge': 'שם לחצו על „קבל” ואשרו.',
   'settings.browsertools.installStoreOpera': 'אם Opera מבקש קודם את „Install Chrome Extensions”, הוסיפו אותו. אחר כך לחצו על „הוספה ל-Opera” ואשרו.',

@@ -1697,6 +1697,7 @@ export const et: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Kiireks proovimiseks ava hoopis about:debugging#/runtime/this-firefox ja vali „Laadi ajutine lisand“. Lisand kaob, kui Firefox taaskäivitub.',
   'settings.browsertools.installStoreOpenChrome': 'Vajuta nuppu. KnightLoader avaneb Chrome Web Store’is.',
   'settings.browsertools.installStoreOpenEdge': 'Vajuta nuppu. KnightLoader avaneb Edge Add-ons’is.',
+  'settings.browsertools.installStoreOpenFirefox': 'Vajuta nuppu. KnightLoader avaneb Firefox Add-ons’is.',
   'settings.browsertools.installStoreAddChrome': 'Vajuta seal „Lisa brauserisse {browser}” ja kinnita.',
   'settings.browsertools.installStoreGetEdge': 'Vajuta seal „Hangi” ja kinnita.',
   'settings.browsertools.installStoreOpera': 'Kui Opera palub esmalt lisada „Install Chrome Extensions”, lisa see. Seejärel vajuta „Lisa brauserisse Opera” ja kinnita.',

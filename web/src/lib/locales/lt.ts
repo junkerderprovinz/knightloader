@@ -1697,6 +1697,7 @@ export const lt: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Jei nori greitai išbandyti, atidaryk about:debugging#/runtime/this-firefox ir pasirink „Įkelti laikiną priedą“. Priedas dings, kai Firefox bus paleista iš naujo.',
   'settings.browsertools.installStoreOpenChrome': 'Paspausk mygtuką. KnightLoader atsidarys Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Paspausk mygtuką. KnightLoader atsidarys Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Paspausk mygtuką. KnightLoader atsidarys Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Ten paspausk „Pridėti prie {browser}“ ir patvirtink.',
   'settings.browsertools.installStoreGetEdge': 'Ten paspausk „Gauti“ ir patvirtink.',
   'settings.browsertools.installStoreOpera': 'Jei Opera pirmiausia paprašys „Install Chrome Extensions“, pridėk jį. Tada paspausk „Pridėti prie Opera“ ir patvirtink.',

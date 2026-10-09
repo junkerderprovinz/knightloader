@@ -1696,6 +1696,7 @@ export const th: Dict = {
   'settings.browsertools.installFirefoxStep3': 'หากต้องการลองอย่างรวดเร็ว ให้เปิด about:debugging#/runtime/this-firefox แทน แล้วเลือก “โหลดส่วนเสริมชั่วคราว” ส่วนเสริมจะหายไปเมื่อรีสตาร์ท Firefox',
   'settings.browsertools.installStoreOpenChrome': 'กดปุ่ม แล้ว KnightLoader จะเปิดใน Chrome Web Store',
   'settings.browsertools.installStoreOpenEdge': 'กดปุ่ม แล้ว KnightLoader จะเปิดใน Edge Add-ons',
+  'settings.browsertools.installStoreOpenFirefox': 'กดปุ่ม แล้ว KnightLoader จะเปิดใน Firefox Add-ons',
   'settings.browsertools.installStoreAddChrome': 'กด “เพิ่มใน {browser}” ที่นั่น แล้วยืนยัน',
   'settings.browsertools.installStoreGetEdge': 'กด “รับ” ที่นั่น แล้วยืนยัน',
   'settings.browsertools.installStoreOpera': 'ถ้า Opera ขอให้ติดตั้ง “Install Chrome Extensions” ก่อน ให้เพิ่มส่วนเสริมนั้น จากนั้นกด “เพิ่มใน Opera” แล้วยืนยัน',

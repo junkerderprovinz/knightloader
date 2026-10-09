@@ -1690,6 +1690,7 @@ export const es: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Para una prueba rápida, abre about:debugging#/runtime/this-firefox y elige «Cargar complemento temporal». El complemento desaparece cuando Firefox se reinicia.',
   'settings.browsertools.installStoreOpenChrome': 'Pulsa el botón. KnightLoader se abre en Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Pulsa el botón. KnightLoader se abre en Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Pulsa el botón. KnightLoader se abre en Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Allí pulsa «Añadir a {browser}» y confirma.',
   'settings.browsertools.installStoreGetEdge': 'Allí pulsa «Obtener» y confirma.',
   'settings.browsertools.installStoreOpera': 'Si Opera te pide primero «Install Chrome Extensions», añádelo. Después pulsa «Añadir a Opera» y confirma.',

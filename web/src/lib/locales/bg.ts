@@ -1698,6 +1698,7 @@ export const bg: Dict = {
   'settings.browsertools.installFirefoxStep3': 'За бърз тест вместо това отвори about:debugging#/runtime/this-firefox и избери „Зареждане на временна добавка“. Добавката изчезва при рестартиране на Firefox.',
   'settings.browsertools.installStoreOpenChrome': 'Натиснете бутона. KnightLoader се отваря в Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Натиснете бутона. KnightLoader се отваря в Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Натиснете бутона. KnightLoader се отваря в Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Там натиснете „Добавяне към {browser}“ и потвърдете.',
   'settings.browsertools.installStoreGetEdge': 'Там натиснете „Получаване“ и потвърдете.',
   'settings.browsertools.installStoreOpera': 'Ако Opera първо поиска „Install Chrome Extensions“, добавете го. След това натиснете „Добавяне към Opera“ и потвърдете.',

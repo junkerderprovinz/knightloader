@@ -1697,6 +1697,7 @@ export const fi: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Nopeaa kokeilua varten avaa sen sijaan about:debugging#/runtime/this-firefox ja valitse ”Lataa väliaikainen lisäosa”. Lisäosa katoaa, kun Firefox käynnistyy uudelleen.',
   'settings.browsertools.installStoreOpenChrome': 'Paina painiketta. KnightLoader avautuu Chrome Web Storessa.',
   'settings.browsertools.installStoreOpenEdge': 'Paina painiketta. KnightLoader avautuu Edge Add-onsissa.',
+  'settings.browsertools.installStoreOpenFirefox': 'Paina painiketta. KnightLoader avautuu Firefox Add-onsissa.',
   'settings.browsertools.installStoreAddChrome': 'Paina siellä ”Lisää selaimeen {browser}” ja vahvista.',
   'settings.browsertools.installStoreGetEdge': 'Paina siellä ”Hanki” ja vahvista.',
   'settings.browsertools.installStoreOpera': 'Jos Opera pyytää ensin lisäosaa ”Install Chrome Extensions”, lisää se. Paina sitten ”Lisää selaimeen Opera” ja vahvista.',

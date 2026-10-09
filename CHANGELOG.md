@@ -37,6 +37,12 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **The extension is on Firefox Add-ons.** The Firefox button in the README and
+  on Settings > Apps opens the listing, with the steps to add and pin it, and
+  the manual names it beside the Chrome and Edge stores.
+
 ## [1.8.4] - 2026-10-08
 
 ### Fixed

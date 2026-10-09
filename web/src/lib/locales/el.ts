@@ -1697,6 +1697,7 @@ export const el: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Για μια γρήγορη δοκιμή, άνοιξε το about:debugging#/runtime/this-firefox και επίλεξε «Φόρτωση προσωρινού προσθέτου». Το πρόσθετο εξαφανίζεται όταν γίνει επανεκκίνηση του Firefox.',
   'settings.browsertools.installStoreOpenChrome': 'Πάτησε το κουμπί. Το KnightLoader ανοίγει στο Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Πάτησε το κουμπί. Το KnightLoader ανοίγει στο Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Πάτησε το κουμπί. Το KnightLoader ανοίγει στο Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Εκεί πάτησε «Προσθήκη στο {browser}» και επιβεβαίωσε.',
   'settings.browsertools.installStoreGetEdge': 'Εκεί πάτησε «Λήψη» και επιβεβαίωσε.',
   'settings.browsertools.installStoreOpera': 'Αν το Opera ζητήσει πρώτα το «Install Chrome Extensions», πρόσθεσέ το. Μετά πάτησε «Προσθήκη στο Opera» και επιβεβαίωσε.',

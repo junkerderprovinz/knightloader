@@ -44,8 +44,10 @@ section of the root `CHANGELOG.md`.
 Chrome, Brave, Opera and Vivaldi install it from the
 [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf),
 Edge from
-[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl);
-the store packages are the release's Chromium zip. The zip served by Settings > App is built from the copy embedded
+[Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl),
+Firefox from [Firefox Add-ons](https://addons.mozilla.org/addon/knightloader/);
+the Chromium stores get the release's Chromium zip, Firefox Add-ons the
+Firefox zip. The zip served by Settings > App is built from the copy embedded
 in whatever server binary is running (`embed.go`), so that one matches the
 server. The zips are for a browser without a listing and for testing a build.
 
@@ -62,7 +64,9 @@ addresses, so a store build is reproducible from a checkout.
 [Chrome Web Store](https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf)
 for Chrome, Brave, Opera and Vivaldi,
 [Edge Add-ons](https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl)
-for Edge. Settings > App links your browser's listing from its tile on the
+for Edge,
+[Firefox Add-ons](https://addons.mozilla.org/addon/knightloader/)
+for Firefox. Settings > App links your browser's listing from its tile on the
 Browser extension card.
 
 **From a zip:** the release's `knightloader-extension.zip`, unpacked and

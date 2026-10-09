@@ -1695,6 +1695,7 @@ export const zh: Dict = {
   'settings.browsertools.installFirefoxStep3': '如果只想快速试用，可以打开 about:debugging#/runtime/this-firefox，选择“临时载入附加组件”。重启 Firefox 后，这个附加组件就会消失。',
   'settings.browsertools.installStoreOpenChrome': '点击按钮，KnightLoader 会在 Chrome Web Store 中打开。',
   'settings.browsertools.installStoreOpenEdge': '点击按钮，KnightLoader 会在 Edge Add-ons 中打开。',
+  'settings.browsertools.installStoreOpenFirefox': '点击按钮，KnightLoader 会在 Firefox Add-ons 中打开。',
   'settings.browsertools.installStoreAddChrome': '在那里点击"添加至 {browser}"并确认。',
   'settings.browsertools.installStoreGetEdge': '在那里点击"获取"并确认。',
   'settings.browsertools.installStoreOpera': '如果 Opera 先要求添加"Install Chrome Extensions"，请添加它。然后点击"添加至 Opera"并确认。',

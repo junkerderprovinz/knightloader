@@ -1690,6 +1690,7 @@ export const nl: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Voor een snelle test open je in plaats daarvan about:debugging#/runtime/this-firefox en kies je “Tijdelijke add-on laden”. De add-on verdwijnt als Firefox opnieuw start.',
   'settings.browsertools.installStoreOpenChrome': 'Druk op de knop. KnightLoader opent in de Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Druk op de knop. KnightLoader opent in Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Druk op de knop. KnightLoader opent in Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Druk daar op „Toevoegen aan {browser}” en bevestig.',
   'settings.browsertools.installStoreGetEdge': 'Druk daar op „Downloaden” en bevestig.',
   'settings.browsertools.installStoreOpera': 'Vraagt Opera eerst om „Install Chrome Extensions”, voeg die dan toe. Druk daarna op „Toevoegen aan Opera” en bevestig.',

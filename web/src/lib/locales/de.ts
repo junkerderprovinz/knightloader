@@ -1874,6 +1874,7 @@ export const de: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Für einen schnellen Test stattdessen about:debugging#/runtime/this-firefox öffnen und „Temporäres Add-on laden“ wählen. Das Add-on verschwindet beim Neustart von Firefox.',
   'settings.browsertools.installStoreOpenChrome': 'Drück den Knopf. KnightLoader öffnet sich im Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Drück den Knopf. KnightLoader öffnet sich bei Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Drück den Knopf. KnightLoader öffnet sich bei Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Drück dort „Zu {browser} hinzufügen“ und bestätige.',
   'settings.browsertools.installStoreGetEdge': 'Drück dort „Abrufen“ und bestätige.',
   'settings.browsertools.installStoreOpera': 'Wenn Opera zuerst „Install Chrome Extensions“ verlangt, füg es hinzu. Drück dann „Zu Opera hinzufügen“ und bestätige.',

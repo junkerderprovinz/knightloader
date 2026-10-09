@@ -1698,6 +1698,7 @@ export const sv: Dict = {
   'settings.browsertools.installFirefoxStep3': 'För ett snabbt test kan du i stället öppna about:debugging#/runtime/this-firefox och välja ”Läs in tillfälligt tillägg”. Tillägget försvinner när Firefox startas om.',
   'settings.browsertools.installStoreOpenChrome': 'Tryck på knappen. KnightLoader öppnas i Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Tryck på knappen. KnightLoader öppnas i Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Tryck på knappen. KnightLoader öppnas i Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Tryck där på „Lägg till i {browser}” och bekräfta.',
   'settings.browsertools.installStoreGetEdge': 'Tryck där på „Hämta” och bekräfta.',
   'settings.browsertools.installStoreOpera': 'Om Opera först ber om „Install Chrome Extensions”, lägg till det. Tryck sedan på „Lägg till i Opera” och bekräfta.',

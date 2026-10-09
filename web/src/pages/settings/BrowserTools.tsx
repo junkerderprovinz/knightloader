@@ -126,7 +126,13 @@ export function BrowserTools() {
       t('settings.browsertools.installPinVivaldi'),
     ),
   };
-  const firefoxHint = (
+  const firefoxHint = STORE_URLS.Firefox ? (
+    <ol className="list-decimal space-y-1 ps-4">
+      <li>{t('settings.browsertools.installStoreOpenFirefox')}</li>
+      <li>{addTo('Firefox')}</li>
+      <li>{t('settings.browsertools.installPinPuzzle', { browser: 'Firefox' })}</li>
+    </ol>
+  ) : (
     <ol className="list-decimal space-y-1 ps-4">
       <li>{t('settings.browsertools.installFirefoxStep1')}</li>
       <li>{t('settings.browsertools.installFirefoxStep2')}</li>
@@ -192,7 +198,11 @@ export function BrowserTools() {
           <ReadmeButton
             brand="firefox"
             parts={[
-              { name: 'Firefox', sub: t('settings.browsertools.firefoxSub'), onClick: storeOr('Firefox', downloadXpi) },
+              {
+                name: 'Firefox',
+                sub: STORE_URLS.Firefox ? undefined : t('settings.browsertools.firefoxSub'),
+                onClick: storeOr('Firefox', downloadXpi),
+              },
             ]}
             mark={<BrandMark svg={FIREFOX_SVG} lit={FIREFOX_LIT_SVG} />}
             hint={firefoxHint}
@@ -610,14 +620,11 @@ function ReleaseVersion({ version }: { version: string }) {
 
 type Store = 'Chrome' | 'Edge' | 'Firefox';
 
-/**
- * Store listings. Brave, Opera and Vivaldi install from the Chrome Web Store.
- * Firefox has no listing yet, so its button downloads the packaged add-on.
- */
+/** Store listings. Brave, Opera and Vivaldi install from the Chrome Web Store. */
 const STORE_URLS: Record<Store, string> = {
   Chrome: 'https://chromewebstore.google.com/detail/knightloader/elofnnhhimbaeknbmncmlhhfkbncdpdf',
   Edge: 'https://microsoftedge.microsoft.com/addons/detail/knightloader/fjmmdihlohkllidleeofpmhbekibfkfl',
-  Firefox: '',
+  Firefox: 'https://addons.mozilla.org/addon/knightloader/',
 };
 
 /** storeOr opens the store listing once one exists, else downloads the package. */

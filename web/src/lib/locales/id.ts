@@ -1697,6 +1697,7 @@ export const id: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Untuk mencoba cepat, buka about:debugging#/runtime/this-firefox dan pilih “Load Temporary Add-on”. Add-on itu hilang saat Firefox dimulai ulang.',
   'settings.browsertools.installStoreOpenChrome': 'Tekan tombolnya. KnightLoader terbuka di Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Tekan tombolnya. KnightLoader terbuka di Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Tekan tombolnya. KnightLoader terbuka di Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Di sana, tekan “Tambahkan ke {browser}” lalu konfirmasi.',
   'settings.browsertools.installStoreGetEdge': 'Di sana, tekan “Dapatkan” lalu konfirmasi.',
   'settings.browsertools.installStoreOpera': 'Jika Opera lebih dulu meminta “Install Chrome Extensions”, tambahkan itu. Lalu tekan “Tambahkan ke Opera” dan konfirmasi.',

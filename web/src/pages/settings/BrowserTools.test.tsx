@@ -71,7 +71,7 @@ describe('BrowserTools', () => {
     expect(writeText).toHaveBeenCalledWith(buildBookmarklet(window.location.origin));
   });
 
-  it('opens the store listing for each Chromium browser, Edge its own', async () => {
+  it('opens the store listing for each Chromium browser, Edge and Firefox their own', async () => {
     const open = vi.fn();
     vi.stubGlobal('open', open);
     await act(async () => root.render(<BrowserTools />));
@@ -90,7 +90,13 @@ describe('BrowserTools', () => {
       '_blank',
       'noopener,noreferrer',
     );
-    expect(open).toHaveBeenCalledTimes(5);
+    await act(async () => button('Firefox').click());
+    expect(open).toHaveBeenLastCalledWith(
+      expect.stringContaining('addons.mozilla.org/addon/knightloader/'),
+      '_blank',
+      'noopener,noreferrer',
+    );
+    expect(open).toHaveBeenCalledTimes(6);
   });
 
   describe('in the desktop app', () => {

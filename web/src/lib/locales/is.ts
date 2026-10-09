@@ -1697,6 +1697,7 @@ export const is: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Fyrir fljótlega prófun skaltu í staðinn opna about:debugging#/runtime/this-firefox og velja „Hlaða inn tímabundinni viðbót“. Viðbótin hverfur þegar Firefox endurræsist.',
   'settings.browsertools.installStoreOpenChrome': 'Ýttu á hnappinn. KnightLoader opnast í Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Ýttu á hnappinn. KnightLoader opnast í Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Ýttu á hnappinn. KnightLoader opnast í Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Ýttu þar á „Bæta við {browser}“ og staðfestu.',
   'settings.browsertools.installStoreGetEdge': 'Ýttu þar á „Sækja“ og staðfestu.',
   'settings.browsertools.installStoreOpera': 'Ef Opera biður fyrst um „Install Chrome Extensions“ skaltu bæta henni við. Ýttu svo á „Bæta við Opera“ og staðfestu.',

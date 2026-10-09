@@ -1697,6 +1697,7 @@ export const ca: Dict = {
   'settings.browsertools.installFirefoxStep3': 'Per a una prova ràpida, obre about:debugging#/runtime/this-firefox i tria «Carrega un complement temporal». El complement desapareix quan reinicies el Firefox.',
   'settings.browsertools.installStoreOpenChrome': 'Prem el botó. KnightLoader s’obre a Chrome Web Store.',
   'settings.browsertools.installStoreOpenEdge': 'Prem el botó. KnightLoader s’obre a Edge Add-ons.',
+  'settings.browsertools.installStoreOpenFirefox': 'Prem el botó. KnightLoader s’obre a Firefox Add-ons.',
   'settings.browsertools.installStoreAddChrome': 'Allà, prem «Afegeix a {browser}» i confirma.',
   'settings.browsertools.installStoreGetEdge': 'Allà, prem «Obtén» i confirma.',
   'settings.browsertools.installStoreOpera': 'Si Opera et demana primer «Install Chrome Extensions», afegeix-lo. Després prem «Afegeix a Opera» i confirma.',
