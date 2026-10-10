@@ -3726,6 +3726,21 @@ export const en = {
   'auth.passkey.signInFailed': 'That passkey did not sign you in.',
   'auth.passkey.error.expired': 'The setup took too long. Start it again.',
   'auth.passkey.error.otherAddress': 'This setup was started on a different address. Open KnightLoader on the address the key should work on, and start again there.',
+
+  // The animated pictures (components/pictures).
+  'picture.view': 'View',
+  'picture.view.picture': 'Graphic',
+  'picture.view.list': 'List',
+  'settings.archives.journey': 'After a download',
+  'settings.archives.journeyHint': 'What happens to a file once it has downloaded, station by station. A grey station is switched off, and the file passes it. “{verifying}” follows the switch “{checksums}” under “{downloads}”. “{repairing}” needs a Usenet server of your own. “{moving}” needs “{workDir}” or a place for the unpacked files. “{cleanup}” is skipped while the archive is kept.',
+  'picture.journey.move': 'Moving',
+  'picture.journey.cleanup': 'Cleaning up',
+  'picture.reconnect.router': 'Router',
+  'picture.reconnect.internet': 'Internet',
+  'picture.reconnect.oldAddress': 'Old address',
+  'picture.reconnect.newAddress': 'New address',
+  'picture.reconnect.alt': 'KnightLoader asks the router for a new address. The router drops its connection and comes back with a new one.',
+  'picture.seed.target': 'Target {ratio}',
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -12,6 +12,7 @@ import {
   UnitNumberInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
@@ -280,6 +281,7 @@ const NEW_ROW = (): ScheduleEntry => ({
 export function ScheduleCards({ hue }: { hue: number }) {
   const { t } = useT();
   const locale = uiLocale();
+  const dayLabels = useMemo(() => shortWeekdayLabels(locale), [locale]);
   const { toast } = useToast();
 
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<ScheduleState>(fetchSchedule);
@@ -508,25 +510,37 @@ export function ScheduleCards({ hue }: { hue: number }) {
             </p>
           )
         ) : (
-          <ul className="flex flex-col">
-            {rows.map((row, i) => (
-              <EntryRow
-                key={row.key}
-                row={row}
-                index={i}
-                last={i === rows.length - 1}
-                open={openKey === row.key}
-                onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
-                onChange={(fields) => update(row.key, fields)}
-                onMove={(by) => move(i, by)}
-                onRemove={() => remove(row.key)}
-                error={rowErrors[row.key]}
-                actions={actions}
-                now={now}
-                locale={locale}
-              />
-            ))}
-          </ul>
+          <>
+            {/* The band draws the rows as they stand on screen, so it follows an
+                edit before the save has gone out. */}
+            <WeekBand
+              entries={rows.map((r) => r.entry)}
+              dayLabels={dayLabels}
+              now={now}
+              nowLabel={fmtClock(now, locale)}
+              quiet={parked || live?.suspended === true}
+              label={t('settings.module.scheduler')}
+            />
+            <ul className="flex flex-col">
+              {rows.map((row, i) => (
+                <EntryRow
+                  key={row.key}
+                  row={row}
+                  index={i}
+                  last={i === rows.length - 1}
+                  open={openKey === row.key}
+                  onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
+                  onChange={(fields) => update(row.key, fields)}
+                  onMove={(by) => move(i, by)}
+                  onRemove={() => remove(row.key)}
+                  error={rowErrors[row.key]}
+                  actions={actions}
+                  now={now}
+                  locale={locale}
+                />
+              ))}
+            </ul>
+          </>
         )}
       </Card>
     </>
