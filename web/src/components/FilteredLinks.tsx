@@ -83,7 +83,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         {shown.map((h) => {
           const reason = rejectionReason(t, h.skipCode, h.skipParams, h.skipReason);
           return (
-            <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
+            <div key={h.id} className="glim-row flex items-baseline gap-3 px-4 py-1 text-xs">
               {/* The rule first, since it is what gets edited. */}
               <Tip tip={heldBy(t, h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
                 {heldBy(t, h)}
@@ -99,14 +99,11 @@ export function FilteredLinks({ held }: { held: Task[] }) {
                 <InfoBubble tip={t('collector.filtered.originTitle')} />
               </span>
               <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
-              <Button
-                kind="ghost"
-                className="shrink-0 px-2 text-xs"
-                disabled={busy}
-                onClick={() => restore([h.id])}
-              >
-                {t('collector.filtered.restore')}
-              </Button>
+              <span className="glim-row-actions shrink-0">
+                <Button kind="ghost" className="px-2 text-xs" disabled={busy} onClick={() => restore([h.id])}>
+                  {t('collector.filtered.restore')}
+                </Button>
+              </span>
             </div>
           );
         })}

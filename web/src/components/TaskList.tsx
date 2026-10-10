@@ -83,6 +83,7 @@ import {
   type PresetMenus,
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
+import type { MenuGroup } from './ContextMenu';
 import { renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
@@ -102,7 +103,9 @@ import {
   usePriorityNames,
   variantKindOf,
   PriorityTag,
+  ROW_EDGES,
   RowMarks,
+  SelectionMark,
   TWISTY_STEP,
   type CellContext,
   type ColumnDef,
@@ -227,9 +230,10 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
  * gridTemplate). It paints no ground, so the row's own fill, selection tint
  * and rainbow wash run through it, and it pushes its badges to the trailing
  * edge, so the trash of every row lines up however many badges stand before
- * it.
+ * it. The badges show while the pointer or the focus is on the row, and always
+ * on a touch screen (`.glim-row-actions` in index.css).
  */
-const ACTIONS_CELL = 'flex items-center justify-end gap-1';
+const ACTIONS_CELL = 'glim-row-actions flex items-center justify-end gap-1';
 
 /**
  * Whether a parked row greys this cell (see isParked). The switch is how the
@@ -285,6 +289,63 @@ export function useCollapsedPackages(profile: ListProfile = 'downloads') {
   );
 
   return { collapsed, collapse, expand, toggle };
+}
+
+/** A card's sort as the Sort button above the list offers it (ListBar.tsx). */
+export interface ListSort {
+  /** The card's title, which names its entry where a page has several cards. */
+  title: string;
+  /** The header of the column the card is sorted by, absent in queue order. */
+  current?: string;
+  groups: MenuGroup[];
+}
+
+/**
+ * useListSort is a card's sort as a menu: the queue's own order, every column
+ * the card shows that can be sorted by, and the two directions. It reads and
+ * writes the fields TaskListCard does, so a pick here and a click on a column
+ * header are the same change.
+ */
+export function useListSort(title: string, profile: ListProfile = 'downloads', sortKey?: string): ListSort {
+  const { t } = useT();
+  const [stored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
+  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
+  const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
+  const header = (col: ColumnDef) => t(col.labelByProfile?.[profile] ?? col.labelKey);
+  const sortedBy = sort ? layout.visible.find((c) => c.id === sort.id) : undefined;
+
+  return {
+    title,
+    current: sortedBy && header(sortedBy),
+    groups: [
+      {
+        id: 'by',
+        items: [
+          { id: 'queue', label: t('list.sortQueue'), checked: !sort, onSelect: () => setSort(null) },
+          ...layout.visible
+            .filter((c) => c.compare)
+            .map((c) => ({
+              id: c.id,
+              label: header(c),
+              checked: sort?.id === c.id,
+              onSelect: () => setSort({ id: c.id, dir: sort?.dir ?? 'asc' }),
+            })),
+        ],
+      },
+      {
+        id: 'direction',
+        items: (['asc', 'desc'] as const).map((dir) => ({
+          id: dir,
+          label: t(dir === 'asc' ? 'list.sortAsc' : 'list.sortDesc'),
+          icon: dir === 'asc' ? <IconArrowUp /> : <IconArrowDown />,
+          checked: sort?.dir === dir,
+          disabled: !sort,
+          onSelect: () => sort && setSort({ id: sort.id, dir }),
+        })),
+      },
+    ],
+  };
 }
 
 /**
@@ -447,11 +508,19 @@ function TaskRow({
       //
       // has-[:focus-visible] is the keyboard's hover, and the fill has to
       // arrive with it.
-      className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
+      className={`glim-row glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } relative grid items-center px-3 py-[var(--row-pad)] transition-colors
+      } relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
+      {selection && (
+        <SelectionMark
+          checked={selection.ids.has(task.id)}
+          label={ctx.t('select.mark')}
+          tabIndex={current ? 0 : -1}
+          onPick={(range) => dnd.pick(unit, range)}
+        />
+      )}
       {columns.map((col) => {
         const node = col.render(task, ctx);
         return (
@@ -500,13 +569,10 @@ function TaskRow({
         );
       })}
 
-      {/* The actions stand in a track of their own at the row's end and are
-          there on every row at rest (GlimStone rule 6): a touch screen has no
-          hover to reveal them, and an action nobody can see is one nobody knows
-          is there. Floating over the row instead, they would cover its size,
-          speed and status cells whenever they showed. The badges are quiet, so
-          forty rows do not read as a wall of tiles, and the context menu on the
-          row offers every one of these verbs too.
+      {/* The actions stand in a track of their own at the row's end. Floating
+          over the row instead, they would cover its size, speed and status
+          cells whenever they showed. The context menu on the row offers every
+          one of these verbs too.
           The badges are hued per slot rather than per row position, so a row's
           play badge is always the same hue and Recheck is always the next one,
           the same "position is the identity" rule every other badge set in this
@@ -518,7 +584,7 @@ function TaskRow({
   );
 }
 
-/** A link row's badges in the trailing track; see TaskRow for why they show at rest. */
+/** A link row's badges in the trailing track; see ACTIONS_CELL for when they show. */
 export function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -747,7 +813,7 @@ function PackageName({
             online ratio beside it: the package's aggregate dot in the Status
             column already says that, and saying it twice is how a package
             reads differently from its own status cell. */}
-        <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
+        <span className="glim-num hidden shrink-0 whitespace-nowrap text-meta text-carbon-textSub @[13rem]:inline">
           {count}
         </span>
       </div>
@@ -1025,12 +1091,20 @@ function PackageRow({
       // glyph and the bold name set it apart, and a tinted band on every
       // package would make a long list striped. The selected state paints over
       // it with .glim-row-selected.
-      className={`relative grid cursor-pointer select-none items-center ${
+      className={`glim-row relative grid cursor-pointer select-none items-center ${
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
         divider ? 'border-t border-carbon-border/60' : ''
-      } px-3 py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
+      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
+      {selection && (
+        <SelectionMark
+          checked={!!allSelected}
+          label={ctx.t('select.mark')}
+          tabIndex={current ? 0 : -1}
+          onPick={(range) => dnd.pick(unit, range)}
+        />
+      )}
       {columns.map((col) => (
         <div
           key={col.id}
@@ -1065,9 +1139,8 @@ function PackageRow({
         </div>
       ))}
 
-      {/* The folder row's actions, in the same trailing track as a link row's
-          and visible at rest for the same reason. A header that is its torrent
-          carries the torrent's own.
+      {/* The folder row's actions, in the same trailing track as a link row's.
+          A header that is its torrent carries the torrent's own.
 
           The gear is for a package whose variant rows share a host
           (variantKindOf is '' for anything not yt-dlp-routed) and collector
@@ -1115,6 +1188,10 @@ interface RowDnD {
    *  running. Every link row and every folder header spreads this into its own
    *  style; see TaskListCard's previewOffsets for where the numbers come from. */
   slide: (unit: RowDragKey) => CSSProperties;
+  /** A press on the row's selection mark: it adds the row to the marking or
+   *  takes it out, as a Ctrl-click does, and with `range` picks up to it, as a
+   *  Shift-click does. */
+  pick: (unit: RowDragKey, range: boolean) => void;
 }
 
 /** The three fields TaskListCard's own selectUnit reads off a press. */
@@ -1317,7 +1394,7 @@ function Header({
       // group/header: hovering anywhere on the header lights up every column
       // boundary at once. Per-handle hover would not do, because the handle is
       // 8px wide and invisible and nobody can hover what they are looking for.
-      className="group/header relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
+      className={`group/header relative grid items-center border-b border-carbon-border/60 ${ROW_EDGES} py-1 select-none`}
     >
       {layout.visible.map((col) => {
         const sorted = sort?.id === col.id ? sort.dir : null;
@@ -1341,7 +1418,7 @@ function Header({
               onDragEnd={() => setDragId(null)}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
-              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-[11px] font-semibold uppercase
+              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-meta font-semibold uppercase
                 tracking-wide transition-colors ${
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
@@ -1698,7 +1775,10 @@ export function TaskProperties({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Secondary, like every button in a card: the page's one accent is
+              its floating action. */}
           <Button
+            kind="secondary"
             shake={shake}
             disabled={touched.size === 0 || busy}
             onClick={() => void apply()}
@@ -3062,6 +3142,7 @@ export function TaskListCard({
       const dy = movingRows.has(key) ? undefined : rowOffsets.get(key);
       return dy === undefined ? NO_SLIDE : { translate: `0px ${dy}px` };
     },
+    pick: (unit, range) => selectFromUnit(unit, { ctrlKey: !range, metaKey: false, shiftKey: range }),
   };
 
   const template = gridTemplate(layout);
@@ -3361,7 +3442,9 @@ export function TaskListCard({
                   on a row's link or icon. */}
               <div
                 ref={stripRef}
-                className="relative overflow-x-clip [-webkit-touch-callout:none]"
+                className={`relative overflow-x-clip [-webkit-touch-callout:none] ${
+                  chosen.length > 0 ? 'glim-selecting' : ''
+                }`}
                 role="tree"
                 aria-multiselectable="true"
                 aria-label={title}

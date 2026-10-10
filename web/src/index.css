@@ -793,26 +793,53 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
 
-/* The mark on a selected list row. A class rather than a `bg-accent/20`
+/* The wash on a selected list row. A class rather than a `bg-accent/20`
    utility, because the rainbow wash is an inset shadow painted above the
-   background; the mark has to live in the same property at a higher
-   specificity. The accent edge reads in any palette. */
+   background; the wash has to live in the same property at a higher
+   specificity. No line runs down the row's edge: what is picked is filled
+   (GlimStone rule 5), and the selection mark at the row's start says which. */
 .glim-row-selected,
-/* Listed with :hover so the row's hover utility cannot take the mark away. */
+/* Listed with :hover so the row's hover utility cannot take the wash away. */
 .glim-row-selected:hover {
   background-color: color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
 [data-rainbow] .glim-tint.glim-row-selected {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
-.glim-row-selected::before {
-  content: '';
+
+/* The selection mark of a list row (GlimStone, "Switches") stands in the
+   gutter before the row's first cell. It shows while the pointer or the focus
+   is on its row and once something in the list is picked. A touch screen has
+   no hover, so there a tap on a row brings the marks in. */
+.glim-select-mark {
   position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 3px;
-  background: var(--accent-fixed);
-  pointer-events: none;
+  inset-inline-start: 4px;
+  top: 50%;
+  translate: 0 -50%;
+  opacity: 0;
+  transition: opacity var(--motion-control-dur, 0ms) ease;
+}
+:is(:hover, :focus-within) > .glim-select-mark,
+.glim-selecting .glim-select-mark {
+  opacity: 1;
+}
+
+/* A list row's buttons come in while the pointer is over the row or the focus
+   is inside it, and stay where there is no hover to bring them (GlimStone
+   rule 6). They keep their room at rest, so nothing beside them moves. */
+.glim-row-actions {
+  opacity: 0;
+  transition: opacity var(--motion-control-dur, 0ms) ease;
+}
+.glim-row:is(:hover, :focus-within) .glim-row-actions,
+/* A button whose menu is open stays, though the pointer is in the menu. */
+.glim-row-actions:has([aria-expanded='true']) {
+  opacity: 1;
+}
+@media (hover: none) {
+  .glim-row-actions {
+    opacity: 1;
+  }
 }
 
 /* A carried list row (TaskList.tsx) floats over the rows it passes, so it
