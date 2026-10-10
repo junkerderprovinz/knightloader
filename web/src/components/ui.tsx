@@ -173,14 +173,14 @@ export function Button({
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
   // while the badge beside it showed the bubble at the trigger.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // A bubble only says what the button does not show: one that repeated the
+  // words standing on the button would be noise under every pointer.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : body === title ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
@@ -220,7 +220,7 @@ export function Button({
       ) : (
         button
       )}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -473,16 +473,15 @@ export function IconBadge({
   const boxed = !!hint && !showText && !!rest.disabled;
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // Showing its words, the badge has nothing left for a bubble to add.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : showText ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // triggerProps was built for InfoBubble's otherwise-inert <div>, which needs
   // a role and a tab stop to be reachable at all. A button has both already,
   // and the "note" role would take these badges' click semantics away from a
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       type="button"
@@ -527,7 +526,7 @@ export function IconBadge({
   return (
     <>
       {shown}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -549,7 +548,7 @@ export function linkBadgeClass(showText: boolean): string {
 export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
   const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
-  const tip = useTooltip<HTMLAnchorElement>(title);
+  const tip = useTooltip<HTMLAnchorElement>(showText ? undefined : title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -558,7 +557,7 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         target="_blank"
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
-        {...tipHoverProps}
+        {...(showText ? {} : tipHoverProps)}
         onClick={followExternal}
         className={`${linkBadgeClass(showText)} ${className}`}
       >
