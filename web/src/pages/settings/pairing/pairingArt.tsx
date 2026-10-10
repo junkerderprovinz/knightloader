@@ -10,6 +10,7 @@ import type { RelayMode } from '../../../lib/api';
 import { PARLEYPORT_SVG } from '../../../lib/appMarks';
 import { IconCheck, IconClipboard } from '../../../lib/icons';
 import { useStillPictures } from '../../../lib/motion';
+import { TRAVEL } from '../../../components/pictures/scene';
 
 const TILE = 'var(--carbon-surface2)';
 const RAISED = 'var(--carbon-surface3)';
@@ -245,10 +246,6 @@ export interface RouteDiagramLabels {
   selfHosted: string;
 }
 
-// Envelopes travel at one speed in all four pictures, in viewBox units per
-// second; a short hop just takes less time.
-const MESSAGE_SPEED = 70;
-
 function Region({ x, w, label }: { x: number; w: number; label: string }) {
   return (
     <>
@@ -282,7 +279,8 @@ function Flow({ d, calm }: { d: string; calm: boolean }) {
 /** A message that stays in sight from one instance to the other. */
 function Message({ path, length, begin, dur }: { path: string; length: number; begin: number; dur: number }) {
   const from = 0.04;
-  const to = round(from + length / MESSAGE_SPEED / dur);
+  // At the speed everything in a picture travels at, so a short hop takes less time.
+  const to = round(from + length / TRAVEL / dur);
   const loop = { dur: `${dur}s`, begin: `${begin}s`, repeatCount: 'indefinite' };
   return (
     <g opacity="0">
@@ -511,6 +509,8 @@ function Through({ into, out, begin, dur }: { into: string; out: string; begin: 
 // phrase on the first instance, pastes it on the next, and the pair celebrates.
 const STEP_LOOP_S = 12;
 const STEP_LOOP = `${STEP_LOOP_S}s`;
+/** When the phrase's envelope, which sets off at .72 of the loop, has crossed the 56 units between the two instances. */
+const HANDED = round(0.72 + 56 / TRAVEL / STEP_LOOP_S);
 
 // Words from the real list, so the scene shows what a phrase looks like.
 const SAMPLE = ['orbit', 'wagon', 'lemon', 'crisp', 'absent', 'tunnel', 'galaxy', 'harbor', 'pencil', 'ribbon', 'velvet', 'yellow'];
@@ -555,7 +555,9 @@ export function StepPicture({ step, labels }: { step: 1 | 2 | 3; labels: StepLab
     <>
       <rect className="kl-pic-control" x="8" y="8" width="224" height="38" rx="9" fill={RAISED} />
       <rect className="kl-pic-control" x="14" y="14" width="26" height="26" rx="7" fill={KEY} />
-      <g color="var(--accent-contrast)">
+      {/* Cut out of the tile rather than drawn in the accent's ink, which
+          would change with every accent and rainbow position. */}
+      <g color={CUT}>
         <PhraseGlyph kind={kind} size={20} x={17} y={17} />
       </g>
       <text x="48" y="30.5" fontSize="11" fontWeight="600" fill={INK} {...squeezed(title, 11, 176)}>
@@ -668,8 +670,8 @@ export function StepPicture({ step, labels }: { step: 1 | 2 | 3; labels: StepLab
           <>
             <g opacity="0">
               <Envelope />
-              <animateMotion path="M92 80 H148" calcMode="linear" keyPoints="0;0;1;1" keyTimes="0;.72;.78;1" {...loop} />
-              {anim('opacity', [[0, 0], [0.72, 0], [0.725, 1], [0.78, 1], [0.785, 0], [1, 0]])}
+              <animateMotion path="M92 80 H148" calcMode="linear" keyPoints="0;0;1;1" keyTimes={`0;.72;${HANDED};1`} {...loop} />
+              {anim('opacity', [[0, 0], [0.72, 0], [0.725, 1], [HANDED, 1], [round(HANDED + 0.003), 0], [1, 0]])}
             </g>
             <circle cx="120" cy="22" r="14" fill="none" stroke={OK} strokeWidth="2" opacity="0">
               {anim('r', [[0, 14], [0.79, 14], [0.86, 52], [1, 52]])}
