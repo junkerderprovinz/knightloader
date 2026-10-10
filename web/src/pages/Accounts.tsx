@@ -5,6 +5,8 @@
 // section follows the catalogue's Group field, and every card draws an
 // AccountTable. The Allow free downloads switch comes under them, since whether
 // a link may be fetched for free is a question of which accounts there are.
+// Adding is the page's one floating action, which lists the kinds in the
+// cards' order; no card carries an add button of its own.
 import {
   useCallback,
   useEffect,
@@ -55,9 +57,11 @@ import {
   Toggle,
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
+import type { MenuItem } from '../components/ContextMenu';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
+import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
 import {
   IconAccounts,
@@ -66,6 +70,7 @@ import {
   IconClose,
   IconGrip,
   IconExternalLink,
+  IconGlobe,
   IconInstances,
   IconPlus,
   IconRetry,
@@ -129,6 +134,9 @@ export function Accounts() {
   // Bumped on every change to the Usenet servers, whose row on the priority
   // card comes and goes with them.
   const [usenetSaves, setUsenetSaves] = useState(0);
+  // The two cards that keep their own windows open the add one when the
+  // floating action asks for it.
+  const [adding, setAdding] = useState<'usenet' | 'hoster' | null>(null);
   const hoster = useHosterLogins(setLoginHosts);
 
   const load = useCallback(async () => {
@@ -236,6 +244,35 @@ export function Accounts() {
     onEdit,
   };
 
+  // Every empty card sends the reader to the floating action by its name.
+  const addPointer = t('accounts.addPointer', { button: t('accounts.newAccount') });
+  const kinds: MenuItem[] = [
+    {
+      id: 'debrid',
+      label: t('accounts.kind.debrid'),
+      icon: <IconAccounts />,
+      onSelect: () => setDialog({ mode: 'new', group: 'debrid' }),
+    },
+    { id: 'usenet', label: t('accounts.kind.usenet'), icon: <IconGlobe />, onSelect: () => setAdding('usenet') },
+    { id: 'hoster', label: t('accounts.kind.hoster'), icon: <IconAccounts />, onSelect: () => setAdding('hoster') },
+    ...(serverService
+      ? [
+          {
+            id: 'server',
+            label: t('accounts.kind.server'),
+            icon: <IconInstances />,
+            onSelect: () => setDialog({ mode: 'server', service: serverService, host: null }),
+          },
+        ]
+      : []),
+    {
+      id: 'captcha',
+      label: t('accounts.kind.captcha'),
+      icon: <IconCaptcha />,
+      onSelect: () => setDialog({ mode: 'new', group: 'captchaSolver' }),
+    },
+  ];
+
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
@@ -245,86 +282,50 @@ export function Accounts() {
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <>
-            <AccountsTable
-              label={t('accounts.debrid.title')}
-              rows={debridRows}
-              importColumn
-              {...tableProps}
-            />
-            <Button
-              kind="secondary"
-              hue={0}
-              icon={<IconPlus width={16} height={16} />}
-              className="self-start"
-              onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
-            >
-              {t('accounts.newAccount')}
-            </Button>
-          </>
+          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} importColumn {...tableProps} />
         ) : (
           <EmptyState
             nested
             icon={<IconAccounts width={26} height={26} />}
             title={t('accounts.debrid.empty')}
-            hint={t('accounts.debrid.emptyHint')}
-            action={
-              <Button
-                kind="secondary"
-                hue={0}
-                icon={<IconPlus width={16} height={16} />}
-                onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
-              >
-                {t('accounts.newAccount')}
-              </Button>
-            }
+            hint={`${t('accounts.debrid.emptyHint')} ${addPointer}`}
           />
         )}
       </Card>
 
       <Card hue={1} className="flex flex-col gap-3">
-        <UsenetServersSection hue={1} onChanged={() => setUsenetSaves((n) => n + 1)} />
+        <UsenetServersSection
+          hue={1}
+          onChanged={() => setUsenetSaves((n) => n + 1)}
+          emptyPointer={addPointer}
+          adding={adding === 'usenet'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
-        <HosterLoginSection data={hoster} />
+        <HosterLoginSection
+          data={hoster}
+          emptyPointer={addPointer}
+          adding={adding === 'hoster'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       {serverService && (
         <Card hue={3} className="flex flex-col gap-3">
           <SectionTitle hint={t('accounts.server.hint')}>{t('accounts.server.title')}</SectionTitle>
           {serverRows.length > 0 ? (
-            <>
-              <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
-              <Button
-                kind="secondary"
-                hue={3}
-                icon={<IconPlus width={16} height={16} />}
-                className="self-start"
-                onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
-              >
-                {t('accounts.server.add')}
-              </Button>
-            </>
+            <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
           ) : (
             <EmptyState
               nested
               icon={<IconInstances width={26} height={26} />}
               title={t('accounts.server.empty')}
-              hint={t('accounts.server.emptyHint')}
-              action={
-                <Button
-                  kind="secondary"
-                  hue={3}
-                  icon={<IconPlus width={16} height={16} />}
-                  onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
-                >
-                  {t('accounts.server.add')}
-                </Button>
-              }
+              hint={`${t('accounts.server.emptyHint')} ${addPointer}`}
             />
           )}
         </Card>
@@ -336,34 +337,13 @@ export function Accounts() {
       <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
-          <>
-            <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
-            <Button
-              kind="secondary"
-              hue={4}
-              icon={<IconPlus width={16} height={16} />}
-              className="self-start"
-              onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
-            >
-              {t('accounts.newAccount')}
-            </Button>
-          </>
+          <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
             icon={<IconCaptcha width={26} height={26} />}
             title={t('accounts.captcha.empty')}
-            hint={t('accounts.captcha.emptyHint')}
-            action={
-              <Button
-                kind="secondary"
-                hue={4}
-                icon={<IconPlus width={16} height={16} />}
-                onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
-              >
-                {t('accounts.newAccount')}
-              </Button>
-            }
+            hint={`${t('accounts.captcha.emptyHint')} ${addPointer}`}
           />
         )}
       </Card>
@@ -377,8 +357,16 @@ export function Accounts() {
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
       />
 
-      {/* The windows below belong to the card they were opened from, so they
-          wear its colour. */}
+      <PageActions>
+        <PageAction
+          primary
+          icon={<IconPlus />}
+          label={t('accounts.newAccount')}
+          menu={[{ id: 'kinds', items: kinds }]}
+        />
+      </PageActions>
+
+      {/* The windows below belong to a card, so they wear its colour. */}
       {dialog?.mode === 'server' && (
         <ServerDialog
           service={dialog.service}
@@ -623,6 +611,7 @@ function ServerDialog({
   return (
     <Modal
       title={host ? t('accounts.editCredentialTitle', { service: host }) : t('accounts.server.add')}
+      hint={host ? undefined : t('accounts.server.hint')}
       hue={3}
       onClose={onClose}
       footer={
@@ -757,13 +746,27 @@ function CredentialDialog({
   return (
     <Modal
       title={title}
-      hue={0}
+      // While adding, the window says what the card it fills is for.
+      hint={mode === 'new' ? t(solver ? 'accounts.captcha.hint' : 'accounts.debrid.hint') : undefined}
+      hue={solver ? 4 : 0}
       onClose={onClose}
       footer={
         picked && !fromEnv ? (
           <>
+            {/* A new account's form leads back to the list it was picked from;
+                an edit has no list behind it and offers the way out. */}
+            {mode === 'new' ? (
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconChevronStart className="rtl:-scale-x-100" />}
+                title={t('onboarding.back')}
+                onClick={() => setPicked(null)}
+              />
+            ) : (
+              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+            )}
             <span className="flex-1" />
-            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             {verifyResult && !verifyResult.ok && (
               <Button kind="secondary" onClick={() => void doSave(true)} disabled={saving}>
                 {t('accounts.saveAnyway')}
@@ -795,17 +798,6 @@ function CredentialDialog({
         />
       ) : (
         <div className="flex flex-col gap-4">
-          {mode === 'new' && (
-            <Button
-              kind="secondary"
-              labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
-              title={t('accounts.changeAccount')}
-              onClick={() => setPicked(null)}
-              className="self-start"
-            />
-          )}
-
           {fromEnv ? (
             <p className="text-sm text-carbon-textSub">{t('accounts.credentialFromEnv', { env: editingRow?.envVar ?? '' })}</p>
           ) : (

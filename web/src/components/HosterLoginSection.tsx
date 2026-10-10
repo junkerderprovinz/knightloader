@@ -3,7 +3,8 @@
 // JD's hoster plugin performs the login; JD's own UI is never shown. The table
 // is AccountTable, shared with the debrid card; this file adds the JD status
 // badge and the host picker. The picker offers no debrid service: KnightLoader
-// speaks to each of those itself.
+// speaks to each of those itself. The page's floating action opens the picker
+// through `adding`.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -19,14 +20,12 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconChevronStart, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
+import { IconAccounts, IconChevronStart, IconClose, IconSearch, IconTrash } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
 
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
 const POLL_MS = 8000;
-
-type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
 /** HosterLogins is the logins and the host list. */
 export interface HosterLogins {
@@ -120,9 +119,21 @@ function hosterLoginRow(
 }
 
 /** HosterLoginSection is the hoster card. */
-export function HosterLoginSection({ data }: { data: HosterLogins }) {
+export function HosterLoginSection({
+  data,
+  emptyPointer,
+  adding,
+  onAddClose,
+}: {
+  data: HosterLogins;
+  /** The sentence of the empty card that names the page's add action. */
+  emptyPointer: string;
+  /** The page asked for the window that adds a login. */
+  adding: boolean;
+  onAddClose: () => void;
+}) {
   const { t } = useT();
-  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [editing, setEditing] = useState<HosterLogin | null>(null);
   // The login awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
@@ -137,42 +148,31 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
           rows={rows.map((row) =>
             hosterLoginRow(row, {
               onToggle: (v) => void data.toggle(row, v),
-              onEdit: () => setDialog({ mode: 'edit', login: row }),
+              onEdit: () => setEditing(row),
               onRemove: () => setConfirming(row),
             }),
           )}
         />
       )}
 
-      {hasRows ? (
-        <Button
-          kind="secondary"
-          hue={2}
-          icon={<IconPlus width={16} height={16} />}
-          className="self-start"
-          onClick={() => setDialog({ mode: 'new' })}
-        >
-          {t('accounts.newAccount')}
-        </Button>
-      ) : (
+      {!hasRows && (
         <EmptyState
           nested
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
-          action={
-            <Button kind="secondary" hue={2} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
-              {t('accounts.newAccount')}
-            </Button>
-          }
+          hint={emptyPointer}
         />
       )}
 
-      {dialog && (
+      {(editing || adding) && (
         <HosterLoginDialog
           hosts={data.hosts}
           existing={rows}
-          editing={dialog.mode === 'edit' ? dialog.login : undefined}
-          onClose={() => setDialog(null)}
+          editing={editing ?? undefined}
+          onClose={() => {
+            setEditing(null);
+            onAddClose();
+          }}
           onSaved={data.load}
         />
       )}
@@ -328,13 +328,27 @@ function HosterLoginDialog({
   return (
     <Modal
       title={title}
+      // While adding, the window says what the card it fills is for.
+      hint={editing ? undefined : t('accounts.hoster.hint')}
       hue={2}
       onClose={onClose}
       footer={
         picked ? (
           <>
+            {/* A new login's form leads back to the list it was picked from;
+                an edit stays on its host and offers the way out. */}
+            {editing ? (
+              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+            ) : (
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconChevronStart className="rtl:-scale-x-100" />}
+                title={t('onboarding.back')}
+                onClick={() => setPicked(null)}
+              />
+            )}
             <span className="flex-1" />
-            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             <Button onClick={() => void doSave()} disabled={saving || !canSave}>
               {saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
@@ -380,18 +394,6 @@ function HosterLoginDialog({
         </div>
       ) : (
         <div className="flex flex-col gap-4">
-          {/* Only while adding from this list; an edit stays on its host. */}
-          {!editing && (
-            <Button
-              kind="secondary"
-              labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
-              title={t('accounts.changeAccount')}
-              onClick={() => setPicked(null)}
-              className="self-start"
-            />
-          )}
-
           <Field label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>
