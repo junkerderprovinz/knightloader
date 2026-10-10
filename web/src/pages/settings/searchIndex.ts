@@ -433,7 +433,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'pairing.phraseTitle',
       hint: 'pairing.phraseHint',
       rows: [],
-      // The two tiles, the word fields and the words' window.
+      // The two tiles, the word fields, the words' window and the sub-card
+      // of a group without a relay.
       also: [
         'pairing.create',
         'pairing.enter',
@@ -441,6 +442,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'pairing.enterLabel',
         'pairing.enterLabelOther',
         'pairing.wordsLabel',
+        'pairing.otherNetTitle',
       ],
       // The rest of the card's (i), and the (i) of the two windows a group
       // nobody has come to opens.
@@ -468,8 +470,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'relay.serve', hint: 'relay.serveHint' },
       ],
       // The route picker, the state in the header, the window behind the
-      // button beside it and the facts line.
+      // button beside it, the facts line and the sub-cards.
       also: [
+        'pairing.relayCheckOpen',
+        'relay.containerName',
+        'relay.instanceName',
         'relay.project',
         'relay.own',
         'relay.off',
