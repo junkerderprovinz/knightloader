@@ -9,6 +9,7 @@ import { usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { useNeeds } from '../lib/useNeeds';
 import { EventBell } from './EventBell';
 import {
   IconDashboard,
@@ -187,6 +188,8 @@ function Item({
 export function Sidebar() {
   const { t } = useT();
   const tasks = useTasks('');
+  // The overview's own list, so the count here is the number of rows there.
+  const needs = useNeeds(tasks).needs.length;
 
   const [locked, setLocked] = useState(false);
 
@@ -250,6 +253,7 @@ export function Sidebar() {
         locked={locked}
         showInstances={!hideInstances}
         showAccounts={!hideAccounts}
+        needs={needs}
         active={active}
         collected={collected}
       />
@@ -291,7 +295,7 @@ export function Sidebar() {
 
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads before the collector, as in JDownloader. */}
-        <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
+        <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
         <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
         <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
         {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
@@ -460,6 +464,7 @@ function PhoneBar({
   locked,
   showInstances,
   showAccounts,
+  needs,
   active,
   collected,
 }: {
@@ -467,6 +472,7 @@ function PhoneBar({
   locked: boolean;
   showInstances: boolean;
   showAccounts: boolean;
+  needs: number;
   active: number;
   collected: number;
 }) {
@@ -477,7 +483,7 @@ function PhoneBar({
     // order-last draws it under the page while it stays ahead of the page in
     // the document, where the rail is.
     <nav className="order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
-      <BarItem to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} />
+      <BarItem to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
       <BarItem to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
       <BarItem to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
       {showInstances && <BarItem to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
