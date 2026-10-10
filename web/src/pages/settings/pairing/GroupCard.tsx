@@ -187,7 +187,7 @@ export function GroupCard({
 
   const list = (
     <div className="flex min-w-0 flex-col gap-2">
-      <ul className="flex flex-col gap-2" data-testid="members">
+      <ul className="flex flex-col gap-2" data-testid="members" data-new="pairing-group">
         <Row
           entry={SELF_KEY}
           hot={net.hot === SELF_KEY}

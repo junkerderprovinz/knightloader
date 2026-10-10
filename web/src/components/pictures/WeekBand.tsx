@@ -131,7 +131,7 @@ export function WeekBand({
   const nowAt = now.getHours() * 60 + now.getMinutes();
 
   return (
-    <div ref={band} role="img" aria-label={label} className="flex flex-col gap-3">
+    <div ref={band} role="img" aria-label={label} data-new="week-band" className="flex flex-col gap-3">
       <div className="flex flex-col gap-1.5">
         <div className="grid grid-cols-[2.5rem_minmax(0,1fr)]">
           <span />

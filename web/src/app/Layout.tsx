@@ -11,6 +11,7 @@ import { CommandPalette } from '../components/CommandPalette';
 import { GlobalIntake } from '../components/GlobalIntake';
 import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
+import { WhatsNew } from '../components/whatsnew/WhatsNew';
 import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
@@ -249,13 +250,14 @@ export function Layout() {
       </div>
       {/* Mounted once, outside the keyed page div, so navigation does not
           remount them: the captcha dialog, the paste and drop listeners, the
-          activity strip, the end-of-queue banner, the first-run tour, the
-          command palette and the keyboard dispatcher. */}
+          activity strip, the end-of-queue banner, the first-run tour, what an
+          update brought, the command palette and the keyboard dispatcher. */}
       <CaptchaModal />
       <GlobalIntake />
       <StatusStrip />
       <IdleActionBanner />
       <OnboardingWizard />
+      <WhatsNew />
       <CommandPalette />
       {/* Handles every command shortcut except the palette's own mod+k, which
           CommandPalette listens for itself. */}

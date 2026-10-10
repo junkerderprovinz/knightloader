@@ -10,6 +10,7 @@ import { BarBody, barIdle, barSegment, navBase, navCount, navHued, navInactive, 
 import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
+import { WhatsNewEntry } from './whatsnew/WhatsNew';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useLabelMode } from '../lib/labelModes';
 import { IconBell } from '../lib/icons';
@@ -318,6 +319,8 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
           >
             {/* The bubble says the list starts over on every page load. */}
             <SectionTitle hint={t('events.titleHint', { max: CAPACITY })}>{name}</SectionTitle>
+
+            <WhatsNewEntry onOpen={() => setEventsPanelOpen(false)} />
 
             {(chips.length > 1 || families.size > 0) && (
               <Tabs select="many" size="sm" label={t('events.filterLabel')} items={chips} active={families} onSelect={toggleFamily} />

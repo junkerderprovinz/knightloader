@@ -78,7 +78,7 @@ export function AfterDownload({ steps, title }: { steps: AfterDownloadSteps; tit
   // Read out as the steps that run, since the picture says no more than that.
   const label = `${title}: ${stations.filter((s) => s.on).map((s) => s.label).join(', ')}`;
   return (
-    <div className="@container">
+    <div data-new="after-download" className="@container">
       <Walk arrangement={ROW} stations={stations} label={label} />
       <Walk arrangement={COLUMN} stations={stations} label={label} />
     </div>

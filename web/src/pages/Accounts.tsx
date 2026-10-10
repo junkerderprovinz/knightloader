@@ -365,6 +365,7 @@ export function Accounts() {
           icon={<IconPlus />}
           label={t('accounts.newAccount')}
           menu={[{ id: 'kinds', items: kinds }]}
+          data-new="accounts-add"
         />
       </PageActions>
 

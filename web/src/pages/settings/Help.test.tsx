@@ -5,6 +5,7 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../../lib/i18n';
+import { closeWhatsNew, useWhatsNewOpen } from '../../lib/useWhatsNew';
 import { Help } from './Help';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -90,7 +91,7 @@ const button = (within: HTMLElement, words: string) =>
 
 async function check() {
   await act(async () => button(card('Version'), 'Check for updates').click());
-  return card('Version').querySelector<HTMLButtonElement>('div.justify-end > button')!;
+  return card('Version').querySelector<HTMLButtonElement>('div.justify-end > button:last-of-type')!;
 }
 
 describe('the Info tile', () => {
@@ -163,6 +164,28 @@ describe('the Info tile', () => {
     expect(hrefs('KnightLoader')).toContain('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.9.0');
     expect(row('yt-dlp').textContent).toContain('2026.09.30 is available');
     expect(hrefs('yt-dlp')).toContain('/settings/resolvers');
+  });
+
+  it('opens the release notes of the running version from the Version card', async () => {
+    let open: string | null = null;
+    function Probe() {
+      open = useWhatsNewOpen();
+      return null;
+    }
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <MemoryRouter>
+            <Help />
+            <Probe />
+          </MemoryRouter>
+        </I18nProvider>,
+      ),
+    );
+    expect(open).toBeNull();
+    await act(async () => button(card('Version'), 'Release notes').click());
+    expect(open).toBe('notes');
+    act(() => closeWhatsNew());
   });
 
   it('turns the update check red when GitHub cannot be asked', async () => {
