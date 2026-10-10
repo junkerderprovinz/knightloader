@@ -1,4 +1,4 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -11,6 +11,16 @@ const mobileVersion = (
   }
 ).expo.version;
 
+// The release notes of that version, which release.yml wants written before
+// the tag. The window that opens after an update reads them out of the build,
+// so it shows them without asking GitHub. A build between two releases carries
+// the notes of the release behind it.
+const notesFile = new URL(`../.github/release-notes/v${mobileVersion}.md`, import.meta.url);
+const releaseNotes = {
+  version: mobileVersion,
+  text: existsSync(notesFile) ? readFileSync(notesFile, 'utf8') : '',
+};
+
 // Builds the SPA into web/dist, which the Go binary embeds. Stable asset names
 // keep the committed dist clean. Asset paths are relative, resolved against the
 // <base> element the server puts into index.html, so one build serves at the
@@ -21,6 +31,7 @@ export default defineConfig({
   base: './',
   define: {
     __MOBILE_VERSION__: JSON.stringify(mobileVersion),
+    __RELEASE_NOTES__: JSON.stringify(releaseNotes),
   },
   build: {
     outDir: 'dist',
