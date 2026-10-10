@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button, Card, InfoBubble, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
 import { IconClose, IconDownloads, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
@@ -16,6 +16,7 @@ import { withBase } from '../../../lib/basePath';
 import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
+import { SubCard } from '../controls';
 import { SettingsImportPreview } from './SettingsImportPreview';
 
 /**
@@ -136,11 +137,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.transfer.cardHint')}>{t('settings.transfer.cardTitle')}</SectionTitle>
 
-      <div className="flex flex-col gap-2">
-        <span className="flex items-center text-sm font-medium text-carbon-text">
-          {t('settings.transfer.archiveLabel')}
-          <InfoBubble tip={t('settings.transfer.archiveText')} />
-        </span>
+      <SubCard label={t('settings.transfer.archiveLabel')} hint={t('settings.transfer.archiveText')} className="gap-3">
         <input
           ref={archiveInput}
           type="file"
@@ -155,7 +152,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconDownloads width={16} height={16} />}
             onClick={() => {
@@ -165,7 +161,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             {t('settings.system.backupButton')}
           </Button>
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconUpload width={16} height={16} />}
             onClick={() => archiveInput.current?.click()}
@@ -178,13 +173,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         {restoreStatus && (
           <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
         )}
-      </div>
+      </SubCard>
 
-      <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
-        <span className="flex items-center text-sm font-medium text-carbon-text">
-          {t('settings.transfer.settingsLabel')}
-          <InfoBubble tip={t('settings.transfer.settingsText')} />
-        </span>
+      <SubCard label={t('settings.transfer.settingsLabel')} hint={t('settings.transfer.settingsText')} className="gap-3">
 
         <ToggleRow
           label={t('settings.transfer.withSecrets')}
@@ -207,7 +198,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconDownloads width={16} height={16} />}
             onClick={() => {
@@ -218,7 +208,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             {t('settings.transfer.export')}
           </Button>
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconUpload width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
@@ -236,7 +225,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             {line}
           </span>
         ))}
-      </div>
+      </SubCard>
 
       {pending && (
         <SettingsImportPreview

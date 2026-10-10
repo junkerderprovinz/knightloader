@@ -60,7 +60,7 @@ export function EventProgramsCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.eventPrograms.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
             {t('settings.eventPrograms.add')}
           </Button>
         }

@@ -97,6 +97,12 @@ interface Common {
    */
   inline?: boolean;
   /**
+   * Lets every segment of a well hug its own label instead of taking the width
+   * of the longest, for a selector at the end of a settings row, where a row
+   * of equal segments would not fit beside the setting's name.
+   */
+  hug?: boolean;
+  /**
    * Vertical only: the tabs share the strip's full height, each with a floor
    * height so a long list scrolls instead of shrinking to slivers.
    */
@@ -230,6 +236,7 @@ export function Tabs(props: TabsProps) {
     hueOffset = 0,
     orientation = 'horizontal',
     inline = false,
+    hug = false,
     fill = false,
     sidebarGround = false,
     display: asked,
@@ -290,7 +297,7 @@ export function Tabs(props: TabsProps) {
   const glyphRem = showIcon && items.some((i) => i.icon) ? GLYPH_REM[size] : 0;
   const pinWidth = glyphRem ? `calc(${emWidth(pinUnits)} + ${glyphRem}rem)` : emWidth(pinUnits);
   const bigWell = isWell && size === 'md';
-  const pinned = vertical || nameOnly
+  const pinned = vertical || nameOnly || hug
     ? undefined
     : bigWell
       ? `clamp(${WELL_FLOOR_PX}px, ${pinWidth}, ${WELL_CEIL_REM}rem)`
@@ -347,12 +354,15 @@ export function Tabs(props: TabsProps) {
   const contentRow = pinned !== undefined && byContent;
   const segmentFlex: CSSProperties = vertical
     ? {}
-    : pinned === undefined || contentRow
-      ? { flex: '1 0 auto' }
-      : {
-          minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
-          flex: `1 0 calc((100% - ${perRow} * ${gap}) / ${perRow})`,
-        };
+    : hug
+      ? // A label wider than the whole row wraps inside its segment.
+        { flex: '1 1 auto', minWidth: 0 }
+      : pinned === undefined || contentRow
+        ? { flex: '1 0 auto' }
+        : {
+            minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
+            flex: `1 0 calc((100% - ${perRow} * ${gap}) / ${perRow})`,
+          };
 
   // Roving tabindex: the strip is one tab stop and the arrows move inside it.
   const roved = Math.max(

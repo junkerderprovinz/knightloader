@@ -17,17 +17,17 @@ import {
   type Placeholder,
   type TargetMethod,
 } from '../../../lib/eventtargets';
-import { RowRefusal } from '../controls';
+import { RowRefusal, SettingRow, Sheet } from '../controls';
 import { TargetEvents } from './TargetEvents';
 import { TargetHealth } from './TargetHealth';
 import { TargetProbe } from './TargetProbe';
 
 /**
- * TargetRow shows one target, collapsed to its name and host, expanded to the
- * whole request. The address, headers and body are committed on blur, because
- * the server refuses the whole settings document when one row is invalid and
- * the autosave would fire mid-typing. A refused value stays on screen, marked,
- * while the collapsed row shows what is stored.
+ * TargetRow shows one target as its name and host, and the whole request in
+ * the window the row opens. The address, headers and body are committed on
+ * blur, because the server refuses the whole settings document when one row is
+ * invalid and the autosave would fire mid-typing. A refused value stays in its
+ * box, marked, while the row shows what is stored.
  */
 export function TargetRow({
   row,
@@ -143,7 +143,7 @@ export function TargetRow({
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
-        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
+        <button type="button" onClick={onToggle} aria-haspopup="dialog" className="flex min-w-0 items-center gap-3 text-start">
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-carbon-text">
@@ -179,7 +179,7 @@ export function TargetRow({
       {stored && <RowRefusal field={`eventTargets.${index}`} />}
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={row.name.trim() || t('settings.eventTargets.name')} hue={index} wide onClose={onToggle}>
           <ToggleRow
             label={t('settings.eventTargets.enabled')}
             hint={t('settings.eventTargets.enabledHint')}
@@ -218,11 +218,12 @@ export function TargetRow({
             <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>
           )}
 
-          {/* FieldGroup, because a Field's label would pass a click on the
-              caption to GET. */}
-          <FieldGroup label={t('settings.eventTargets.method')} hint={t('settings.eventTargets.methodHint')}>
+          <SettingRow label={t('settings.eventTargets.method')} hint={t('settings.eventTargets.methodHint')}>
             <Tabs
+              variant="well"
               size="sm"
+              inline
+              hug
               label={t('settings.eventTargets.method')}
               active={method}
               onSelect={(id) => onChange({ ...row, method: id as TargetMethod })}
@@ -232,7 +233,7 @@ export function TargetRow({
                 { id: 'GET', label: 'GET' },
               ]}
             />
-          </FieldGroup>
+          </SettingRow>
 
           <Field label={t('settings.eventTargets.headers')} hint={t('settings.eventTargets.headersHint')}>
             {/* The halo sits on a wrapper because TextArea's className prop
@@ -328,7 +329,7 @@ export function TargetRow({
 
           {stored && <TargetHealth status={status} />}
           <TargetProbe row={{ ...row, url: urlText.trim() }} />
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -349,8 +350,8 @@ function clamp(v: number, max: number): number {
 function TickedCount({ n }: { n: number }) {
   const { t } = useT();
   const tip = useTooltip<HTMLSpanElement>(t('settings.eventTargets.events'));
-  // The span sits inside the row's expand button, so it takes no role and no
-  // tab stop of its own.
+  // The span sits inside the row's button, so it takes no role and no tab stop
+  // of its own.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>

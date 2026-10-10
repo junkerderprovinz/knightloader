@@ -119,7 +119,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.headerProfiles.hint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} disabled={busy || draft !== null} onClick={add}>
+          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} disabled={busy} onClick={add}>
             {t('settings.headerProfiles.add')}
           </Button>
         }
@@ -127,7 +127,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         {t('settings.headerProfiles.title')}
       </SectionTitle>
 
-      {profiles.length === 0 && !draft ? (
+      {profiles.length === 0 ? (
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.headerProfiles.empty')}
@@ -141,11 +141,12 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             <li
               key={p.id}
               className={`flex items-center gap-3 py-2.5 ${
-                i === profiles.length - 1 && !draft ? '' : 'border-b border-carbon-border/60'
+                i === profiles.length - 1 ? '' : 'border-b border-carbon-border/60'
               }`}
             >
               <button
                 type="button"
+                aria-haspopup="dialog"
                 className="flex min-w-0 flex-1 items-center gap-3 text-start"
                 onClick={() => {
                   setError('');
@@ -175,8 +176,30 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         </ul>
       )}
 
+      {/* A profile is edited in a window and stored whole: its lines only make
+          sense together, and Cancel throws the draft away. */}
       {draft && (
-        <div className="glim-well flex flex-col gap-4 p-4">
+        <Modal
+          title={draft.original || t('settings.headerProfiles.add')}
+          height="capped"
+          wide
+          onClose={() => (busy ? undefined : setDraft(null))}
+          footer={
+            <>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                disabled={busy}
+                onClick={() => setDraft(null)}
+              />
+              <Button disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''} onClick={save}>
+                {t('settings.headerProfiles.save')}
+              </Button>
+            </>
+          }
+        >
           <div className="grid gap-4 sm:grid-cols-2">
             <Field label={t('settings.headerProfiles.name')} hint={t('settings.headerProfiles.nameHint')}>
               <TextInput
@@ -234,6 +257,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
               </div>
             ))}
             <Button
+              kind="secondary"
               className="w-fit"
               icon={<IconPlus width={16} height={16} />}
               onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
@@ -242,22 +266,9 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             </Button>
           </div>
 
-          {/* The spacer and the error come first so Save ends the row. The JSX
-              order sets it, so the row mirrors in right-to-left languages. */}
-          <div className="flex items-center gap-3">
-            <span className="flex-1" />
-            {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
-            <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''}
-              onClick={save}
-            >
-              {t('settings.headerProfiles.save')}
-            </Button>
-          </div>
-        </div>
+          {/* Why the save was refused, above the buttons until the next try. */}
+          {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+        </Modal>
       )}
 
       {confirming && (

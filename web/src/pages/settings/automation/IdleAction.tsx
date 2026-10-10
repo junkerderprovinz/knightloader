@@ -8,8 +8,10 @@ import {
   NumberInput,
   SectionTitle,
   TextInput,
+  type ButtonVerdict,
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
+import { TestButton } from '../../../components/TestButton';
 import { idleProblemText } from '../../../components/IdleActionBanner';
 import {
   checkIdleCommand,
@@ -24,7 +26,7 @@ import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
-import { ListArea } from '../controls';
+import { ListArea, SettingRow } from '../controls';
 import { KeepAwakeRow } from './KeepAwake';
 
 // The idle action: what happens once the wait queue has nothing left, and how
@@ -89,16 +91,16 @@ export function useIdleActions(): string[] {
 }
 
 /**
- * IdleActionPicker is the choice of action as this card draws it. The shell
- * bar's quick settings show the same strip, so both places offer the same
- * menu and write the same value. The panel there is too narrow for the big
- * well, which would stack one action per line, so it asks for `sm`.
+ * IdleActionPicker is the choice of action as this card draws it: its name at
+ * the row's start and the compact selector at its end. The shell bar's quick
+ * settings show the same row, so both places offer the same menu and write the
+ * same value.
  */
 export function IdleActionPicker({
   actions,
   value,
   onValue,
-  size = 'md',
+  size = 'sm',
 }: {
   actions: string[];
   value: string;
@@ -108,21 +110,22 @@ export function IdleActionPicker({
   const { t } = useT();
   const hint = ACTION_HINTS[value];
   return (
-    <FieldGroup
-      layout="row"
+    <SettingRow
       label={t('settings.downloads.idleAction')}
       hint={hint ? `${t('settings.downloads.idleActionHint')} ${t(hint)}` : t('settings.downloads.idleActionHint')}
     >
       <Tabs
         variant="well"
         size={size}
+        inline
+        hug
         labelled
         label={t('settings.downloads.idleAction')}
         active={value}
         onSelect={onValue}
         items={actions.map((id) => ({ id, label: ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id, icon: ACTION_ICONS[id] }))}
       />
-    </FieldGroup>
+    </SettingRow>
   );
 }
 
@@ -134,7 +137,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
   const actions = useIdleActions();
   const [deployment, setDeployment] = useState('');
   const [check, setCheck] = useState<IdleCommandCheck | null>(null);
-  const [checking, setChecking] = useState(false);
   const [lastRun, setLastRun] = useState<IdleRun | null>(null);
   const [running, setRunning] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -181,15 +183,11 @@ export function IdleActionCard({ hue }: { hue: number }) {
         ? t('settings.downloads.idleDeploymentContainer')
         : undefined;
 
-  async function handleCheck() {
-    setChecking(true);
-    try {
-      setCheck(await checkIdleCommand());
-    } catch {
-      setCheck(null);
-    } finally {
-      setChecking(false);
-    }
+  async function handleCheck(): Promise<ButtonVerdict> {
+    setCheck(null);
+    const found = await checkIdleCommand();
+    setCheck(found);
+    return found.problem ? 'fail' : 'ok';
   }
 
   async function handleRun() {
@@ -276,15 +274,27 @@ export function IdleActionCard({ hue }: { hue: number }) {
             hint={t('settings.downloads.idleCommandVerifyHint')}
           >
             <div className="flex flex-col gap-2">
+              {/* What the check found, above the buttons until the next one. */}
+              {check && (
+                <div className="glim-well p-3 text-xs text-carbon-textSub">
+                  {check.problem
+                    ? idleProblemText(t, check.problem, { program: probeName, deployment })
+                    : t('settings.downloads.idleCommandCheckOk', {
+                        path: check.resolvedPath ?? '',
+                        argv: (check.argv ?? []).join(' '),
+                      })}
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2">
-                <Button
-                  kind="secondary"
-                  className="w-fit"
-                  disabled={checking || dirty}
-                  onClick={() => void handleCheck()}
-                >
-                  {checking ? t('settings.downloads.idleCommandChecking') : t('settings.downloads.idleCommandCheck')}
-                </Button>
+                <TestButton
+                  label={t('settings.downloads.idleCommandCheck')}
+                  busyLabel={t('settings.downloads.idleCommandChecking')}
+                  words={{ ok: t('test.passed'), fail: t('test.failed') }}
+                  disabled={dirty}
+                  run={handleCheck}
+                  resetKey={JSON.stringify(command)}
+                />
                 {/* Only for the command action; the run route answers 409
                     otherwise. */}
                 <Button
@@ -296,23 +306,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
                   {t('settings.downloads.idleCommandRun')}
                 </Button>
               </div>
-
-              {check && (
-                <div className="glim-well flex flex-col gap-1 p-3 text-xs">
-                  {check.problem ? (
-                    <p className="text-statusWarn">
-                      {idleProblemText(t, check.problem, { program: probeName, deployment })}
-                    </p>
-                  ) : (
-                    <p className="text-carbon-textSub">
-                      {t('settings.downloads.idleCommandCheckOk', {
-                        path: check.resolvedPath ?? '',
-                        argv: (check.argv ?? []).join(' '),
-                      })}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </FieldGroup>
         </>

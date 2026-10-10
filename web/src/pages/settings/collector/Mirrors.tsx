@@ -1,8 +1,9 @@
-import { Card, FieldGroup, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 import { choices, useTx } from '../tx';
 
 // What becomes of a link that is another copy of a file already in the list.
@@ -18,23 +19,21 @@ export function MirrorsCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle>{tx('settings.advanced.mirrorsTitle')}</SectionTitle>
 
-      {/* FieldGroup, because a Field's label would pass a click on the
-          caption to the first tab. Drawn only once the server answered, since
-          dedupe.ParsePolicy silently folds an unknown value onto the default. */}
+      {/* Drawn only once the server answered, since dedupe.ParsePolicy
+          silently folds an unknown value onto the default. */}
       {policies.length > 0 && (
-        <FieldGroup
-          layout="row"
-          label={tx('settings.advanced.mirrorPolicy')}
-          hint={tx('settings.advanced.mirrorPolicyHint')}
-        >
+        <SettingRow label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
           <Tabs
             variant="well"
+            size="sm"
+            inline
+            hug
             label={tx('settings.advanced.mirrorPolicy')}
             active={cfg.mirrorPolicy ?? ''}
             onSelect={(mirrorPolicy) => patch({ mirrorPolicy })}
             items={choices(tx, 'settings.advanced.mirror.', policies)}
           />
-        </FieldGroup>
+        </SettingRow>
       )}
 
       {/* Not dimmed when the policy is off: it decides what becomes of a

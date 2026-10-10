@@ -42,6 +42,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
+import { SettingRow } from './controls';
 import { moduleReason } from './tx';
 
 // Named like the download list's own variant labels.
@@ -207,16 +208,18 @@ export function Resolvers() {
         <SectionTitle hint={t('settings.resolvers.about')}>{t('settings.resolvers.quality')}</SectionTitle>
 
         {qualities.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
+          <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Tabs
+              variant="well"
               size="sm"
-              className="w-fit"
+              inline
+              hug
               label={t('settings.resolvers.quality')}
               active={ytdlp.quality}
               onSelect={(id) => patchYtdlp({ quality: id })}
               items={qualities.map((q) => ({ id: q, label: capLabel(q, t) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         {ytdlp.quality === 'custom' && (
@@ -236,6 +239,18 @@ export function Resolvers() {
           onChange={(v) => patchYtdlp({ playlist: v })}
           label={t('settings.resolvers.playlist')}
         />
+
+        {/* Music mode's naming, on the audio card, applies only while this
+            field is empty. */}
+        <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
+          <TextInput
+            dir="ltr"
+            value={ytdlp.outputTemplate}
+            placeholder="%(title)s.%(ext)s"
+            spellCheck={false}
+            onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
+          />
+        </Field>
       </Card>
 
       {/* Whether a subtitle row exists is set per hoster in the presets; this
@@ -271,50 +286,39 @@ export function Resolvers() {
       </Card>
 
       <Card hue={4} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.outputTitle')}</SectionTitle>
-        <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
-          <TextInput
-            dir="ltr"
-            value={ytdlp.outputTemplate}
-            placeholder="%(title)s.%(ext)s"
-            spellCheck={false}
-            onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
-          />
-        </Field>
-      </Card>
-
-      {/* Below the output filename card, since music mode's naming applies only
-          while that field is empty. */}
-      <Card hue={5} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
         {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
         {audioFormats.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.audioFormat')} hint={t('settings.resolvers.audioFormatHint')}>
+          <SettingRow label={t('settings.resolvers.audioFormat')} hint={t('settings.resolvers.audioFormatHint')}>
             <Tabs
+              variant="well"
               size="sm"
-              className="w-fit"
+              inline
+              hug
               label={t('settings.resolvers.audioFormat')}
               active={ytdlp.audioFormat}
               onSelect={(id) => patchYtdlp({ audioFormat: id })}
               items={audioFormats.map((f) => ({ id: f, label: formatLabel(f, t) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         {/* "" means no --audio-quality at all. Kept while the format is "best",
             since a row can still pick a format that is converted. */}
         {audioBitrates.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
+          <SettingRow label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
             <Tabs
+              variant="well"
               size="sm"
-              className="w-fit"
+              inline
+              hug
               label={t('settings.resolvers.audioBitrate')}
               active={ytdlp.audioBitrate}
               onSelect={(id) => patchYtdlp({ audioBitrate: id })}
               items={audioBitrates.map((b) => ({ id: b, label: bitrateLabel(b, t) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         {/* Free text: the available languages vary per source. The server keeps
@@ -339,7 +343,7 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={6} className="flex flex-col gap-4">
+      <Card hue={5} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.resolvers.embedTitle')}</SectionTitle>
         <ToggleRow
           checked={embed.metadata}
@@ -389,7 +393,7 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={7} className="flex flex-col gap-5">
+      <Card hue={6} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.measureTitle')}</SectionTitle>
         <ToggleRow
           checked={measure.enabled}
@@ -427,7 +431,7 @@ export function Resolvers() {
         )}
       </Card>
 
-      <Card hue={8} className="flex flex-col gap-5">
+      <Card hue={7} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.liveTitle')}</SectionTitle>
         {/* This switch also gates the detection, so with it off progress is
             parsed as before, and the rows under it are absent. Both limits are
@@ -471,9 +475,9 @@ export function Resolvers() {
       </Card>
 
       {/* Its own file, since the jar form is shared with a failed download. */}
-      <CookieJarsCard hue={9} />
+      <CookieJarsCard hue={8} />
 
-      <Card hue={10} className="flex flex-col gap-5">
+      <Card hue={9} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.presetsHint')}>
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
