@@ -36,15 +36,24 @@ function serve(connect: object, instances: object[] = []) {
     '/api/settings': { instanceName: 'nas' },
     '/api/tasks': [],
   };
+  const calls: string[] = [];
   vi.stubGlobal(
     'fetch',
-    vi.fn((url: string) =>
-      Promise.resolve(
+    vi.fn((url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url}`);
+      return Promise.resolve(
         new Response(JSON.stringify(answers[url.split('?')[0]] ?? []), { headers: { 'Content-Type': 'application/json' } }),
-      ),
-    ),
+      );
+    }),
   );
+  return calls;
 }
+
+/** The card of the grid that carries this name; the net's nodes carry it too. */
+const card = (name: string) =>
+  [...host.querySelectorAll<HTMLElement>('[data-nk]')].find((c) => !c.closest('svg') && c.textContent?.includes(name))!;
+const buttons = (within: Element) => [...within.querySelectorAll('button')].map((b) => b.textContent);
+const button = (within: Element, text: string) => [...within.querySelectorAll('button')].find((b) => b.textContent === text)!;
 
 beforeEach(() => {
   vi.stubGlobal(
@@ -77,11 +86,14 @@ async function draw() {
 }
 
 describe('Instances', () => {
-  it('stands the Pairing button in the middle of the page before there is a group', async () => {
+  it('stands a card that leads to pairing beside this instance before there is a group', async () => {
     serve(noGroup);
     await draw();
-    expect(host.textContent).toContain('Connect your instances and the Android app with a 12-word phrase');
-    expect(host.textContent).not.toContain('This instance');
+    const way = [...host.querySelectorAll('button')].find((b) => b.textContent?.includes('Connect your instances'))!;
+    expect(way.textContent).toContain('Connect your instances and the Android app with a 12-word phrase');
+    expect(way.parentElement!.querySelector('[data-nk="self"]')!.textContent).toContain('This instance');
+    // Nothing to draw a net of yet.
+    expect(host.querySelector('[data-testid="group-net"]')).toBeNull();
   });
 
   it('shows a card for every phone of the group, connected or not', async () => {
@@ -100,7 +112,7 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
-  it('marks every card with the glyph of its kind and gives the phone and the extension the logo', async () => {
+  it('names the kind on every card and gives the phone and the extension a glyph of their own', async () => {
     serve(
       {
         ...noGroup,
@@ -117,15 +129,97 @@ describe('Instances', () => {
       ],
     );
     await draw();
-    const card = (name: string) => [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes(name))!;
-    const kind = (name: string) => card(name).querySelector('[data-kind]')?.getAttribute('data-kind') ?? null;
-    expect(kind('Pixel 8')).toBe('mobile');
-    expect(kind('Browser')).toBe('extension');
-    expect(kind('Laptop')).toBe('desktop');
-    expect(kind('NAS')).toBe('container');
-    expect(kind('cellar')).toBeNull();
-    expect(card('Pixel 8').querySelector('[data-kind="mobile"]')?.getAttribute('aria-label')).toBe('Android app');
-    expect(card('Pixel 8').querySelector('img')).not.toBeNull();
+    expect(card('Pixel 8').textContent).toContain('Android app');
+    expect(card('Browser').textContent).toContain('Browser extension');
+    expect(card('Laptop').textContent).toContain('Desktop app');
+    expect(card('NAS').textContent).toContain('Container');
+    expect(card('cellar').textContent).not.toMatch(/Container|Desktop app|Android app/);
+    // The mark stands for a KnightLoader instance; a phone and a browser wear their glyph.
+    expect(card('Laptop').querySelector('img')).not.toBeNull();
+    expect(card('Pixel 8').querySelector('img')).toBeNull();
+    expect(card('Browser').querySelector('img')).toBeNull();
+  });
+
+  it('says on each card how the instance is reached', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [
+          { id: 'id-laptop', name: 'Laptop', direct: true, relay: false },
+          { id: 'id-nas', name: 'NAS', direct: false, relay: true },
+        ],
+      },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    expect(card('Laptop').textContent).toContain('Direct');
+    expect(card('NAS').textContent).toContain('Via relay');
+    expect(card('cellar').textContent).toContain('By address');
+  });
+
+  it('draws the group as a net above the cards and lights a card with its node', async () => {
+    serve(
+      { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: false, lastSeen: 1 }] },
+      [{ name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' }],
+    );
+    await draw();
+    const wide = host.querySelector('[data-testid="group-net"] svg.wide')!;
+    const spokes = [...wide.querySelectorAll('g[data-nk]')];
+    expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:id-laptop', 'app:p1', 'self']);
+    expect(spokes[1].classList.contains('dim')).toBe(true);
+
+    act(() => {
+      spokes[0].querySelector('[role="button"]')!.dispatchEvent(new MouseEvent('pointerover', { bubbles: true }));
+    });
+    expect(card('Laptop').className).toContain('shadow-');
+    expect(card('Pixel 8').className).not.toContain('shadow-');
+  });
+
+  it('opens the rest about an instance in a window', async () => {
+    serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
+    await draw();
+    expect(buttons(card('cellar'))).toEqual(['Open', 'Details', 'Remove']);
+    // This instance has nothing more to say about itself and cannot be taken out.
+    expect(buttons(card('nas'))).toEqual(['Open']);
+
+    await act(async () => button(card('cellar'), 'Details').click());
+    const window = document.body.querySelector('[role="dialog"]')!;
+    expect(window.querySelector('h2')!.textContent).toBe('cellar');
+    expect(window.textContent).toContain('192.168.1.9:8749');
+    expect(window.textContent).toContain('By address');
+  });
+
+  it('takes an instance or a phone out only after the window asks', async () => {
+    const calls = serve(
+      { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    const window = () => document.body.querySelector('[role="dialog"]');
+    const confirm = () => button(window()!, 'Remove');
+
+    await act(async () => button(card('Laptop'), 'Remove').click());
+    expect(window()!.textContent).toContain('Laptop');
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/connect/members/id-laptop');
+    expect(window()).toBeNull();
+
+    await act(async () => button(card('cellar'), 'Remove').click());
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/instances/cellar');
+
+    await act(async () => button(card('Pixel 8'), 'Remove').click());
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/connect/apps/p1');
   });
 
   it('shows every instance under its address and opens a member there', async () => {

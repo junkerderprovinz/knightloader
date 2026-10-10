@@ -139,6 +139,7 @@ export const ja: Dict = {
   'instances.foundKnown': '追加済み',
   'instances.offlineWarning': '追加しましたが、応答がありません（オフライン？）。',
   'instances.open': '開く',
+  'instances.details': '詳細',
   'instances.connected': '接続済み',
   'instances.refused': '拒否',
   'instances.refusedByPassword': '到達はできましたが、相手にパスワードが設定されているため、このインスタンスは拒否されました。「設定」の「ペアリング」で両方を同じフレーズでペアリングすると、グループのメンバーとしてここに表示されます。',

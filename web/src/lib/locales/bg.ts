@@ -139,6 +139,7 @@ export const bg: Dict = {
   'instances.foundKnown': 'вече добавена',
   'instances.offlineWarning': 'Добавена, но инстанцията не отговори (офлайн?).',
   'instances.open': 'Отвори',
+  'instances.details': 'Подробности',
   'instances.connected': 'Свързан',
   'instances.refused': 'Отказ',
   'instances.refusedByPassword': 'Достъпна е, но отказва тази инстанция, защото има зададена парола. Сдвои двете с една и съща фраза в Настройки, Сдвояване, и тя ще се появи тук като член на групата.',

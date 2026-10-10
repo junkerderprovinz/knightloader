@@ -139,6 +139,7 @@ export const ms: Dict = {
   'instances.foundKnown': 'sudah ditambah',
   'instances.offlineWarning': 'Ditambah, tetapi instance tidak menjawab (luar talian?).',
   'instances.open': 'Buka',
+  'instances.details': 'Butiran',
   'instances.connected': 'Bersambung',
   'instances.refused': 'Ditolak',
   'instances.refusedByPassword': 'Boleh dicapai, tetapi ia menolak instans ini kerana ia mempunyai kata laluan. Gandingkan kedua-duanya dengan frasa yang sama di Tetapan, Gandingan, dan ia akan muncul di sini sebagai ahli kumpulan.',

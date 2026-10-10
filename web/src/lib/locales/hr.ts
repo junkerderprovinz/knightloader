@@ -139,6 +139,7 @@ export const hr: Dict = {
   'instances.foundKnown': 'već dodana',
   'instances.offlineWarning': 'Dodana, ali instanca nije odgovorila (offline?).',
   'instances.open': 'Otvori',
+  'instances.details': 'Pojedinosti',
   'instances.connected': 'Povezano',
   'instances.refused': 'Odbijeno',
   'instances.refusedByPassword': 'Dostupna, ali je odbila ovu instancu jer ima postavljenu lozinku. Uparite obje istom frazom u odjeljku Postavke, Uparivanje, i pojavit će se ovdje kao član skupine.',

@@ -141,6 +141,7 @@ export const he: Dict = {
   'instances.foundKnown': 'כבר נוסף',
   'instances.offlineWarning': 'נוסף, אך המופע לא הגיב (לא מקוון?).',
   'instances.open': 'פתח',
+  'instances.details': 'פרטים',
   'instances.connected': 'מחובר',
   'instances.refused': 'נדחה',
   'instances.refusedByPassword': 'נגיש, אבל הוא דחה את המופע הזה כי מוגדרת בו סיסמה. צמד את שניהם עם אותו ביטוי בהגדרות, תחת צימוד, והוא יופיע כאן כחבר בקבוצה.',

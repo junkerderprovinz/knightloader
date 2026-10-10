@@ -139,6 +139,7 @@ export const fa: Dict = {
   'instances.foundKnown': 'از قبل افزوده شده',
   'instances.offlineWarning': 'اضافه شد، اما نمونه پاسخ نداد (آفلاین؟).',
   'instances.open': 'باز کردن',
+  'instances.details': 'جزئیات',
   'instances.connected': 'متصل',
   'instances.refused': 'رد شده',
   'instances.refusedByPassword': 'در دسترس است، اما این نمونه را رد کرد چون رمز عبور دارد. هر دو را با همان عبارت در تنظیمات، بخش جفت‌سازی، جفت کن، و اینجا به‌عنوان عضو گروه نشان داده می‌شود.',

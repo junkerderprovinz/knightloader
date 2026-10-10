@@ -139,6 +139,7 @@ export const hu: Dict = {
   'instances.foundKnown': 'már hozzáadva',
   'instances.offlineWarning': 'Hozzáadva, de a példány nem válaszolt (offline?).',
   'instances.open': 'Megnyitás',
+  'instances.details': 'Részletek',
   'instances.connected': 'Csatlakozva',
   'instances.refused': 'Elutasítva',
   'instances.refusedByPassword': 'Elérhető, de elutasította ezt a példányt, mert jelszó van rajta beállítva. Párosítsd a kettőt ugyanazzal a jelmondattal a Beállítások, Párosítás oldalon, és itt a csoport tagjaként jelenik meg.',

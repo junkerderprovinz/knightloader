@@ -139,6 +139,7 @@ export const ko: Dict = {
   'instances.foundKnown': '이미 추가됨',
   'instances.offlineWarning': '추가했지만 응답이 없습니다 (오프라인?).',
   'instances.open': '열기',
+  'instances.details': '세부 정보',
   'instances.connected': '연결됨',
   'instances.refused': '거부됨',
   'instances.refusedByPassword': '연결은 되었지만, 그쪽에 비밀번호가 설정되어 있어 이 인스턴스를 거부했습니다. 설정의 페어링에서 둘을 같은 문구로 페어링하면 그룹의 구성원으로 여기에 표시됩니다.',

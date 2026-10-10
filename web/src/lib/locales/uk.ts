@@ -139,6 +139,7 @@ export const uk: Dict = {
   'instances.foundKnown': 'уже додано',
   'instances.offlineWarning': 'Додано, але екземпляр не відповів (offline?).',
   'instances.open': 'Відкрити',
+  'instances.details': 'Подробиці',
   'instances.connected': 'Підключено',
   'instances.refused': 'Відмова',
   'instances.refusedByPassword': "Доступний, але відхилив цей екземпляр, бо на ньому встановлено пароль. Спаруйте обидва однією фразою на сторінці «Спарювання» у розділі «Налаштування», і він з'явиться тут як учасник групи.",

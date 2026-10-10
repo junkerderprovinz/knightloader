@@ -179,6 +179,7 @@ export const en = {
   'instances.foundKnown': 'already added',
   'instances.offlineWarning': 'Added, but the instance did not answer (offline?).',
   'instances.open': 'Open',
+  'instances.details': 'Details',
   'instances.connected': 'Connected',
   'instances.refused': 'Refused',
   'instances.refusedByPassword': 'Reached, but it refused this instance because it has a password set. Pair the two with the same phrase under Settings, Pairing, and it shows up here as a member of the group.',

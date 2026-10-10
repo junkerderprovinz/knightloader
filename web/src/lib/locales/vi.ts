@@ -139,6 +139,7 @@ export const vi: Dict = {
   'instances.foundKnown': 'đã thêm',
   'instances.offlineWarning': 'Đã thêm, nhưng phiên bản không phản hồi (ngoại tuyến?).',
   'instances.open': 'Mở',
+  'instances.details': 'Chi tiết',
   'instances.connected': 'Đã kết nối',
   'instances.refused': 'Bị từ chối',
   'instances.refusedByPassword': 'Đã với tới được, nhưng nó từ chối phiên bản này vì có đặt mật khẩu. Hãy ghép nối cả hai bằng cùng một cụm từ trong Cài đặt, Ghép nối, rồi nó sẽ hiện ở đây như một thành viên của nhóm.',

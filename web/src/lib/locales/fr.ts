@@ -133,6 +133,7 @@ export const fr: Dict = {
   'instances.foundKnown': 'déjà ajoutée',
   'instances.offlineWarning': 'Ajoutée, mais l’instance n’a pas répondu (hors ligne ?).',
   'instances.open': 'Ouvrir',
+  'instances.details': 'Détails',
   'instances.connected': 'Connecté',
   'instances.refused': 'Refusé',
   'instances.refusedByPassword': 'Joignable, mais elle a refusé cette instance parce qu’un mot de passe y est défini. Appairez les deux avec la même phrase dans Paramètres, Appairage, et elle apparaîtra ici comme membre du groupe.',

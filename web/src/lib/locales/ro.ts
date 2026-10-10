@@ -139,6 +139,7 @@ export const ro: Dict = {
   'instances.foundKnown': 'deja adăugată',
   'instances.offlineWarning': 'Adăugată, dar instanța nu a răspuns (offline?).',
   'instances.open': 'Deschide',
+  'instances.details': 'Detalii',
   'instances.connected': 'Conectat',
   'instances.refused': 'Refuzat',
   'instances.refusedByPassword': 'Accesibilă, dar a refuzat această instanță pentru că are o parolă setată. Împerechează-le pe amândouă cu aceeași frază în Setări, Împerechere, și va apărea aici ca membru al grupului.',

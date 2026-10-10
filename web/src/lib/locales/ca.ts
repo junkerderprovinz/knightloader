@@ -139,6 +139,7 @@ export const ca: Dict = {
   'instances.foundKnown': 'ja afegida',
   'instances.offlineWarning': 'Afegida, però la instància no ha respost (fora de línia?).',
   'instances.open': 'Obre',
+  'instances.details': 'Detalls',
   'instances.connected': 'Connectat',
   'instances.refused': 'Rebutjat',
   'instances.refusedByPassword': 'Accessible, però ha rebutjat aquesta instància perquè té una contrasenya posada. Aparella-les totes dues amb la mateixa frase a Configuració, Aparellament, i apareixerà aquí com a membre del grup.',

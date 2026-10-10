@@ -139,6 +139,7 @@ export const zh: Dict = {
   'instances.foundKnown': '已添加',
   'instances.offlineWarning': '已添加，但该实例没有回应（离线？）。',
   'instances.open': '打开',
+  'instances.details': '详情',
   'instances.connected': '已连接',
   'instances.refused': '已拒绝',
   'instances.refusedByPassword': '能访问到，但对方设置了密码，所以拒绝了这个实例。在“设置”的“配对”里用同一个口令把两边配对，它就会作为组成员显示在这里。',

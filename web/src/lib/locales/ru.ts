@@ -133,6 +133,7 @@ export const ru: Dict = {
   'instances.foundKnown': 'уже добавлен',
   'instances.offlineWarning': 'Добавлен, но экземпляр не ответил (не в сети?).',
   'instances.open': 'Открыть',
+  'instances.details': 'Подробности',
   'instances.connected': 'Подключено',
   'instances.refused': 'Отказ',
   'instances.refusedByPassword': 'Доступен, но отклонил этот экземпляр, потому что на нём задан пароль. Сопрягите оба экземпляра одной и той же фразой на странице «Сопряжение» в разделе «Настройки», и он появится здесь как участник группы.',

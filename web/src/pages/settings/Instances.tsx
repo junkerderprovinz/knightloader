@@ -29,7 +29,7 @@ export function InstancesTab() {
           }}
         />
       </Card>
-      <Instances />
+      <Instances firstHue={1} />
     </div>
   );
 }

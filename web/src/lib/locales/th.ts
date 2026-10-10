@@ -139,6 +139,7 @@ export const th: Dict = {
   'instances.foundKnown': 'เพิ่มไว้แล้ว',
   'instances.offlineWarning': 'เพิ่มแล้ว แต่อินสแตนซ์ไม่ตอบสนอง (ออฟไลน์?)',
   'instances.open': 'เปิด',
+  'instances.details': 'รายละเอียด',
   'instances.connected': 'เชื่อมต่อแล้ว',
   'instances.refused': 'ถูกปฏิเสธ',
   'instances.refusedByPassword': 'เข้าถึงได้ แต่อีกฝั่งปฏิเสธอินสแตนซ์นี้ เพราะตั้งรหัสผ่านไว้ จับคู่ทั้งสองด้วยวลีเดียวกันในหน้าการจับคู่ของการตั้งค่า แล้วเครื่องนั้นจะปรากฏที่นี่ในฐานะสมาชิกของกลุ่ม',

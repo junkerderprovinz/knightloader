@@ -141,6 +141,7 @@ export const ar: Dict = {
   'instances.foundKnown': 'مضافة بالفعل',
   'instances.offlineWarning': 'تمت الإضافة، لكن النسخة لم تستجب (غير متصلة؟).',
   'instances.open': 'فتح',
+  'instances.details': 'التفاصيل',
   'instances.connected': 'متصل',
   'instances.refused': 'مرفوض',
   'instances.refusedByPassword': 'أمكن الوصول إليه، لكنه رفض هذا المثيل لأن عليه كلمة مرور. اقرن الاثنين بالعبارة نفسها في الإعدادات، ضمن الاقتران، فيظهر هنا عضوًا في المجموعة.',

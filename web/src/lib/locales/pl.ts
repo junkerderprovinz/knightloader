@@ -133,6 +133,7 @@ export const pl: Dict = {
   'instances.foundKnown': 'już dodana',
   'instances.offlineWarning': 'Dodano, ale instancja nie odpowiedziała (offline?).',
   'instances.open': 'Otwórz',
+  'instances.details': 'Szczegóły',
   'instances.connected': 'Połączono',
   'instances.refused': 'Odmowa',
   'instances.refusedByPassword': 'Osiągalna, ale odrzuciła tę instancję, bo ma ustawione hasło. Sparuj obie tą samą frazą w sekcji Ustawienia, Parowanie, a pojawi się tutaj jako członek grupy.',

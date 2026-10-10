@@ -133,6 +133,7 @@ export const it: Dict = {
   'instances.foundKnown': 'già aggiunta',
   'instances.offlineWarning': 'Aggiunta, ma l’istanza non ha risposto (offline?).',
   'instances.open': 'Apri',
+  'instances.details': 'Dettagli',
   'instances.connected': 'Connesso',
   'instances.refused': 'Rifiutato',
   'instances.refusedByPassword': 'Raggiungibile, ma ha rifiutato questa istanza perché ha una password impostata. Associa le due con la stessa frase in Impostazioni, Associazione, e comparirà qui come membro del gruppo.',

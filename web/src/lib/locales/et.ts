@@ -139,6 +139,7 @@ export const et: Dict = {
   'instances.foundKnown': 'juba lisatud',
   'instances.offlineWarning': 'Lisatud, kuid eksemplar ei vastanud (võrguühenduseta?).',
   'instances.open': 'Ava',
+  'instances.details': 'Üksikasjad',
   'instances.connected': 'Ühendatud',
   'instances.refused': 'Tagasi lükatud',
   'instances.refusedByPassword': 'Kättesaadav, aga see lükkas selle eksemplari tagasi, sest sellel on parool seatud. Seo need kaks sama fraasiga jaotises Seaded, Sidumine, ja see ilmub siia grupi liikmena.',

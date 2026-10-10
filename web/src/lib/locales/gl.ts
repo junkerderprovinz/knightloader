@@ -139,6 +139,7 @@ export const gl: Dict = {
   'instances.foundKnown': 'xa engadida',
   'instances.offlineWarning': 'Engadida, pero a instancia non respondeu (fóra de liña?).',
   'instances.open': 'Abrir',
+  'instances.details': 'Detalles',
   'instances.connected': 'Conectado',
   'instances.refused': 'Rexeitado',
   'instances.refusedByPassword': 'Accesible, pero rexeitou esta instancia porque ten un contrasinal definido. Emparella as dúas coa mesma frase en Axustes, Emparellamento, e aparecerá aquí como membro do grupo.',

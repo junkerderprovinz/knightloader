@@ -139,6 +139,7 @@ export const sk: Dict = {
   'instances.foundKnown': 'už pridaná',
   'instances.offlineWarning': 'Pridaná, ale inštancia neodpovedala (offline?).',
   'instances.open': 'Otvoriť',
+  'instances.details': 'Podrobnosti',
   'instances.connected': 'Pripojené',
   'instances.refused': 'Odmietnuté',
   'instances.refusedByPassword': 'Dostupná, ale túto inštanciu odmietla, lebo má nastavené heslo. Spárujte obe rovnakou frázou v časti Nastavenia, Párovanie a zobrazí sa tu ako člen skupiny.',

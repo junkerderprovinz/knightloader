@@ -139,6 +139,7 @@ export const sr: Dict = {
   'instances.foundKnown': 'већ додата',
   'instances.offlineWarning': 'Додато, али инстанца није одговорила (недоступна?).',
   'instances.open': 'Отвори',
+  'instances.details': 'Детаљи',
   'instances.connected': 'Повезано',
   'instances.refused': 'Одбијено',
   'instances.refusedByPassword': 'Доступна је, али је одбила ову инстанцу јер има постављену лозинку. Упари обе истом фразом у одељку Подешавања, Упаривање и појавиће се овде као члан групе.',
