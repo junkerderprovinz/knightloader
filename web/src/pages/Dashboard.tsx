@@ -6,6 +6,7 @@ import { useTasks } from '../lib/useTasks';
 import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtRate, pct } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
+import { countTasks } from '../lib/needs';
 import { refreshNeeds, useNeeds } from '../lib/useNeeds';
 import {
   DEFAULT_LAYOUT,
@@ -101,25 +102,7 @@ export function Dashboard() {
   const empty = useEmptyCards(grid);
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
-  const counts = useMemo(() => {
-    let running = 0,
-      queued = 0,
-      done = 0,
-      error = 0,
-      collected = 0,
-      speed = 0;
-    for (const x of list) {
-      if (x.status === 'running' || x.status === 'extracting') running++;
-      else if (x.status === 'queued') queued++;
-      else if (x.status === 'done') done++;
-      else if (x.status === 'error') error++;
-      // Links the filter holds back and rows a hoster preset set aside are in
-      // no list and not counted.
-      else if (x.status === 'collected' && !x.skipped && !x.variantOff) collected++;
-      if (x.status === 'running') speed += x.speed;
-    }
-    return { running, queued, done, error, collected, speed };
-  }, [list]);
+  const counts = useMemo(() => countTasks(list, Date.now()), [list]);
 
   const recent = useMemo(
     () =>
@@ -166,7 +149,7 @@ export function Dashboard() {
                 {fmtRate(counts.speed)}
               </div>
               <div className="mt-4">
-                <Counters counts={counts} />
+                <Counters counts={counts} collector />
               </div>
             </div>
             {/* The limit feeds the 1337 easter egg (docs/easter-eggs.md). */}
