@@ -170,7 +170,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.hostRules.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.hostRules.emptyHint')}</span>
+          <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.hostRules.emptyHint')}</span>
         </p>
       ) : (
         <ul className="flex flex-col">

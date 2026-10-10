@@ -6,7 +6,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
-import { BarBody, barIdle, barSegment, navBase, navHued, navInactive, NavLabel } from './Sidebar';
+import { BarBody, barIdle, barSegment, navBase, navCount, navHued, navInactive, NavLabel } from './Sidebar';
 import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
@@ -92,7 +92,7 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   const body = (
     <>
-      <span className="glim-num shrink-0 text-[11px] leading-5 text-carbon-textMuted">
+      <span className="glim-num shrink-0 text-meta leading-5 text-carbon-textMuted">
         {fmtClock(event.at)}
       </span>
       <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[event.tone]}`} />
@@ -290,9 +290,7 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
                 the glyph stays centred. */}
             {unread > 0 && (
               <span
-                className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px]
-                  font-semibold leading-none text-carbon-textSub
-                  ${centred ? 'absolute end-1 top-1' : ''}`}
+                className={`${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}
               >
                 {unread > 99 ? '99+' : unread}
               </span>

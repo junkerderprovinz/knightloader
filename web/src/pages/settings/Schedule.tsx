@@ -504,7 +504,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
           !parked && (
             <p className="py-6 text-center text-sm text-carbon-textSub">
               {t('settings.schedule.empty')}
-              <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
+              <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
             </p>
           )
         ) : (

@@ -23,16 +23,31 @@ import { openWindow } from '../lib/windowStack';
 type ButtonKind = 'primary' | 'secondary' | 'ghost';
 
 /**
- * An accent fill hovers by opacity, and the other two kinds take the next tier
- * of the surface ramp (web/check-hover-ramp.mjs guards the surface2/surface3
- * pair). A brightness step can only move one way while the two themes need
- * opposite directions, and an accent fill is not on the ramp, so it has no tier
- * above it to step to.
+ * Every kind hovers by a colour step (GlimStone rule 21). The surface kinds
+ * take the next tier of the ramp (web/check-hover-ramp.mjs guards the
+ * surface2/surface3 pair). An accent fill is not on the ramp, so it steps
+ * toward the theme's text colour through `--accent-hover`: opacity would let
+ * the card show through, and a brightness step can only move one way while the
+ * two themes need opposite directions.
  */
 const kindClass: Record<ButtonKind, string> = {
-  primary: 'bg-accent text-accentContrast hover:opacity-90',
+  primary: 'bg-accent text-accentContrast hover:bg-accentHover',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
   ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
+};
+
+/**
+ * The answer a button that tests something shows on itself: green once the
+ * test passed, red when it could not run, orange when it found something. It
+ * reports a state the way a status badge does, which is why it is a table of
+ * its own and not a kind: nothing here is for a button that deletes.
+ */
+export type ButtonVerdict = 'ok' | 'fail' | 'warn';
+
+const verdictClass: Record<ButtonVerdict, string> = {
+  ok: 'bg-statusOkSolid text-carbon-background hover:bg-statusOkHover',
+  fail: 'bg-statusFailSolid text-carbon-background hover:bg-statusFailHover',
+  warn: 'bg-statusWarnSolid text-carbon-background hover:bg-statusWarnHover',
 };
 
 /**
@@ -67,6 +82,7 @@ export function Button({
   children,
   className = '',
   hue,
+  verdict,
   labelled,
   transport = false,
   title,
@@ -78,6 +94,8 @@ export function Button({
   kind?: ButtonKind;
   icon?: ReactNode;
   hue?: number;
+  /** The answer of the test this button ran, which outranks `kind` and `hue`. */
+  verdict?: ButtonVerdict;
   /**
    * Opts a glyph-only button into the Beschriftung setting; see IconBadge's own
    * `labelled`. Used by the windows' way out, which has a title and no
@@ -110,8 +128,14 @@ export function Button({
   const body = children ?? fallback;
   const hideIcon = labelled && labelMode === 'text' && !!fallback;
   const iconOnly = !!icon && !body;
-  const hued = hue !== undefined;
+  const hued = hue !== undefined && !verdict;
   const hueCss = hued ? (hueVars(hue) as CSSProperties) : undefined;
+  const fill = verdict
+    ? verdictClass[verdict]
+    : hued
+      ? 'glim-hue bg-accent text-accentContrast hover:bg-accentHover'
+      : kindClass[kind];
+  const ink = verdict ? 'text-carbon-background' : hued ? 'text-accentContrast' : kindInk[kind];
   const slotted = !!hint && !iconOnly;
   // A disabled button takes no pointer events, so a square's name, which is all
   // it shows, is held by a box around it; see IconBadge.
@@ -132,10 +156,10 @@ export function Button({
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${
+        motion-safe:active:scale-[.97] ${
           transport ? 'glim-btn-transport' : `${BTN_H} ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}`
         }
-        ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
+        ${fill} ${className}`}
       style={hueCss}
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
@@ -156,7 +180,7 @@ export function Button({
   return (
     <>
       {slotted ? (
-        <HintSlot tip={hint} label={title} ink={hued ? 'text-accentContrast' : kindInk[kind]} end="end-3.5" hueCss={hueCss}>
+        <HintSlot tip={hint} label={title} ink={ink} end="end-3.5" hueCss={hueCss}>
           {button}
         </HintSlot>
       ) : boxed ? (
@@ -257,6 +281,9 @@ const iconBadgeClass = 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-s
  * than doing anything when pressed. A bare glyph beside a list row reads as an
  * unfinished control, while an IconBadge there would be a button that ignores
  * clicks. Every square badge in the app shares one size regardless of role.
+ *
+ * A row that carries `glim-row` fills its tile with the accent while it is
+ * hovered, focused or picked (`.glim-row-tile` in index.css).
  */
 export function IconTile({
   icon,
@@ -271,14 +298,29 @@ export function IconTile({
   return (
     <span
       aria-hidden
-      className={`glim-btn-icon flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-pill)]
-        bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
+      className={`glim-btn-icon glim-row-tile flex ${BTN_SQUARE} shrink-0 items-center justify-center
+        rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors duration-150
+        ${hued ? 'glim-tint-badge' : ''} ${className}`}
       style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <Glyph>{icon}</Glyph>
     </span>
   );
 }
+
+type LabelTone = 'ok' | 'warn' | 'fail';
+
+const LABEL_TONE: Record<LabelTone, string> = {
+  ok: 'bg-statusOkBg text-statusOk',
+  warn: 'bg-statusWarnBg text-statusWarn',
+  fail: 'bg-statusFailBg text-statusFail',
+};
+
+const LABEL_TONE_HOVER: Record<LabelTone, string> = {
+  ok: 'hover:bg-[color-mix(in_srgb,var(--status-ok-bg),var(--status-ok-text)_12%)]',
+  warn: 'hover:bg-[color-mix(in_srgb,var(--status-warn-bg),var(--status-warn-text)_12%)]',
+  fail: 'hover:bg-[color-mix(in_srgb,var(--status-fail-bg),var(--status-fail-text)_12%)]',
+};
 
 /**
  * LabelBadge is the text-carrying member of the same family: one line of label,
@@ -297,31 +339,24 @@ export function LabelBadge({
   label: string;
   tip?: ReactNode;
   hue?: number;
-  tone?: 'ok' | 'warn' | 'fail';
+  tone?: LabelTone;
   onClick?: () => void;
 }) {
   const hued = hue !== undefined && !tone;
-  const toneClass =
-    tone === 'ok'
-      ? 'bg-statusOkBg text-statusOk'
-      : tone === 'warn'
-        ? 'bg-statusWarnBg text-statusWarn'
-        : tone === 'fail'
-          ? 'bg-statusFailBg text-statusFail'
-          : 'bg-carbon-surface2 text-carbon-textSub';
+  const toneClass = tone ? LABEL_TONE[tone] : 'bg-carbon-surface2 text-carbon-textSub';
+  // A badge that is pressed hovers by a colour step, as a button does. A wash
+  // mixes a little of its own ink into itself, so it keeps the state it
+  // reports. The neutral badge takes the next tier of the ramp, and the hue
+  // wash, an inset shadow, lies over that tier and moves with it.
+  const hoverClass = tone ? LABEL_TONE_HOVER[tone] : 'hover:bg-carbon-surface3';
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      // An opacity step rather than a rung of the surface ramp: this badge
-      // wears three fills and one hover has to answer for all of them. Only the
-      // neutral one has a tier above it, the status pair would lose the state
-      // it reports, and the hue wash is an inset box-shadow a background
-      // utility sits under.
       className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3
-        text-[11px] font-medium transition duration-150
+        text-meta font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
-        ${onClick ? 'motion-safe:active:scale-[.98] hover:opacity-80' : ''}`}
+        ${onClick ? `motion-safe:active:scale-[.97] ${hoverClass}` : ''}`}
       style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <span className="whitespace-nowrap">{label}</span>
@@ -425,10 +460,10 @@ export function IconBadge({
       // glyph size all fork on that.
       className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98]
+        motion-safe:active:scale-[.97]
         ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'}
         ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
-        ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
+        ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:bg-accentHover' : iconBadgeClass} ${className}`}
       style={hued ? { ...(hueVars(hue) as CSSProperties), ...style } : style}
       // `title` is pulled out for the bubble and never reaches the DOM, so it
       // cannot act as the accessible name the way a native tooltip does.
@@ -471,7 +506,7 @@ export function IconBadge({
  */
 export function linkBadgeClass(showText: boolean): string {
   return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
-    transition duration-150 select-none motion-safe:active:scale-[.98]
+    transition duration-150 select-none motion-safe:active:scale-[.97]
     ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
 }
 
@@ -1629,7 +1664,7 @@ export function EmptyState({
           rule is never reached. See .kl-doze in index.css. */}
       {icon && <div className="kl-doze text-carbon-textMuted/60">{icon}</div>}
       <div className="text-sm text-carbon-textSub">{title}</div>
-      {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
+      {hint && <div className="text-meta text-carbon-textMuted">{hint}</div>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   );

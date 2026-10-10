@@ -223,7 +223,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.mediahook.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.mediahook.emptyHint')}</span>
+          <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.mediahook.emptyHint')}</span>
         </p>
       ) : (
         <ul className="flex flex-col">
@@ -245,7 +245,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 >
                   <span className="shrink-0 text-sm text-carbon-text">{h.name || h.id}</span>
                   <HostLine host={h.host} url={h.url} />
-                  <span className="shrink-0 text-[11px] text-carbon-textMuted">
+                  <span className="shrink-0 text-meta text-carbon-textMuted">
                     {h.usedBy.length > 0
                       ? t('settings.mediahook.usedBy', { n: h.usedBy.length })
                       : t('settings.mediahook.usedByNone')}
@@ -276,12 +276,12 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   }}
                 />
               </div>
-              <p className="ps-0 text-[11px] text-carbon-textMuted">
+              <p className="ps-0 text-meta text-carbon-textMuted">
                 {lastLine(h.last)}
                 {lastFor(h.last) !== '' && <span className="ms-1">{lastFor(h.last)}</span>}
               </p>
               {!h.private && (
-                <p className="text-[11px] text-statusWarn">{t('settings.mediahook.goesToForeign')}</p>
+                <p className="text-meta text-statusWarn">{t('settings.mediahook.goesToForeign')}</p>
               )}
             </li>
           ))}
@@ -333,7 +333,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
           </Field>
 
           {hostOf(draft.url) !== '' && (
-            <p className="-mt-2 text-[11px] text-carbon-textMuted">
+            <p className="-mt-2 text-meta text-carbon-textMuted">
               {t('settings.mediahook.goesTo', { host: hostOf(draft.url) })}
             </p>
           )}

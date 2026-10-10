@@ -81,7 +81,8 @@ interface Common {
   variant?: 'default' | 'well';
   /**
    * How far along the rainbow the first tab starts, for strips stacked in one
-   * card, so no two of them open on the same colour.
+   * card, so no two of them open on the same colour. A well has no positions
+   * to offset.
    */
   hueOffset?: number;
   /**
@@ -494,7 +495,7 @@ export function Tabs(props: TabsProps) {
         const glyphless = nameOnly && !item.icon;
         // In hover mode a stacked tile has the shape of the phone's bottom bar
         // tab (GlimStone 2.3.0): 48px for a 20px glyph, a 2px gap and a caption
-        // line, with about 5px above and below. At 40px with the row's 15px
+        // line, with about 5px above and below. At 40px with the row's 14px
         // label, the label gets a 6px sliver.
         const captioned = stacked && labelOnHover;
         // A filling tile grows from zero rather than from its content, so a
@@ -502,15 +503,17 @@ export function Tabs(props: TabsProps) {
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : sidebarGround ? SIDEBAR_OFF : segOff}
-              flex w-full min-w-0 overflow-hidden text-[15px]
+              flex w-full min-w-0 overflow-hidden text-body
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${look} ${grip}`
           : isWell
           ? // An idle segment has no fill of its own and shows the surface3
-            // groove, so its hover is the step above that (rule 21).
-            `${segBase} glim-nav-row glim-hue glim-hue-icon justify-center text-center leading-snug ${WELL_SIZE[size]}
+            // groove, so its hover is the step above that (rule 21). A segment
+            // sets a value and owns no palette position: the chosen one is
+            // filled with the accent of the card it sits in.
+            `${segBase} glim-nav-row justify-center text-center leading-snug ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
@@ -531,9 +534,9 @@ export function Tabs(props: TabsProps) {
             {(showLabel || glyphless) && (
               // A well segment can grow taller, so it wraps. A rail tile beside
               // its glyph takes a second line where its name needs one, split
-              // evenly. A 20px line is what the font asks for at 15px, so two
-              // lines fill the 40px every tile has without cutting a descender,
-              // and the clip reaches 3px further for the marks that Arabic and
+              // evenly. A 20px line holds the font at 14px, so two lines fill
+              // the 40px every tile has without cutting a descender, and the
+              // clip reaches 3px further for the marks that Arabic and
               // Devanagari set outside the line. Elsewhere the row height is
               // fixed, so the label truncates.
               <span
@@ -551,7 +554,7 @@ export function Tabs(props: TabsProps) {
             {item.badge !== undefined && item.badge !== null && (
               // On the filled tab the badge takes the ink colour.
               <span
-                className="glim-num rounded-[var(--radius-pill)] px-1 text-[11px] font-semibold leading-none
+                className="glim-num rounded-[var(--radius-pill)] px-1 text-meta font-semibold leading-none
                   text-carbon-textMuted [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current"
               >
                 {item.badge}
@@ -568,7 +571,7 @@ export function Tabs(props: TabsProps) {
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
-              { ...hueStyle(i + hueOffset), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
+              { ...segmentFlex, borderRadius: 'var(--radius-pill)' }
             : { ...hueStyle(i + hueOffset), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
@@ -636,7 +639,7 @@ export function FoldChip({
         {!glyph && <span className="whitespace-nowrap">{label}</span>}
         {count !== undefined && (
           <span
-            className="glim-num rounded-[var(--radius-pill)] px-1 text-[11px] font-semibold leading-none
+            className="glim-num rounded-[var(--radius-pill)] px-1 text-meta font-semibold leading-none
               text-carbon-textMuted [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current"
           >
             {count}

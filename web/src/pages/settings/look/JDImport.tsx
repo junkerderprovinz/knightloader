@@ -166,7 +166,7 @@ function Report({ preview, report, ticked }: { preview: JDImportPreview; report:
       {lines.length > 0 && (
         <>
           <span className="mt-1 text-sm text-carbon-text">{t('settings.jdimport.leftBehind')}</span>
-          <ul className="flex max-h-64 min-w-0 flex-col gap-0.5 overflow-y-auto ps-4 text-[11px] text-carbon-textMuted">
+          <ul className="flex max-h-64 min-w-0 flex-col gap-0.5 overflow-y-auto ps-4 text-meta text-carbon-textMuted">
             {lines.map((line, i) => (
               <li key={i} className="list-disc break-words">
                 {line}

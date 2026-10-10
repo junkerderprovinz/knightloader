@@ -84,7 +84,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
           <button
             type="button"
             onClick={() => setTask('')}
-            className="rounded-[var(--radius-pill)] px-2 py-1 text-[11px] text-carbon-textMuted
+            className="rounded-[var(--radius-pill)] px-2 py-1 text-meta text-carbon-textMuted
               transition-colors hover:bg-carbon-hover hover:text-carbon-text"
           >
             {t('settings.diagnostics.logTaskClear')}
@@ -98,7 +98,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
         </span>
       )}
 
-      <span className="text-[11px] text-carbon-textMuted">
+      <span className="text-meta text-carbon-textMuted">
         {t('settings.diagnostics.logMatches', { shown: shown.length, total: lines.length })}
       </span>
 
@@ -113,7 +113,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
           ref={box}
           dir="ltr"
           className="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-[var(--radius-control)]
-            bg-carbon-surface2 p-4 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+            bg-carbon-surface2 p-4 font-mono text-meta leading-relaxed text-carbon-textSub"
         >
           {shown.map((line) => (
             <Row key={line.seq} line={line} onTask={setTask} chipLabel={t('settings.diagnostics.logTaskChip')} />

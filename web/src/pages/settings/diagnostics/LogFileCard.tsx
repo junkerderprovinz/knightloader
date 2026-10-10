@@ -121,7 +121,7 @@ function Problem({ state, capacity }: { state: LogFileState; capacity: number })
         {/* The ring size comes from the diagnostics bundle, not a copy here. */}
         <InfoBubble tip={t('settings.diagnostics.fileProblemHint', { path: state.path, n: capacity })} />
       </span>
-      <span className="text-[11px] text-carbon-textMuted">
+      <span className="text-meta text-carbon-textMuted">
         {state.freeKnown
           ? t('settings.diagnostics.fileProblemSpace', { free: fmtBytes(state.freeBytes ?? 0) })
           : t('settings.diagnostics.fileProblemSpaceUnknown')}
@@ -152,7 +152,7 @@ function Generations({ generations }: { generations: LogGeneration[] }) {
           <span className="glim-num text-carbon-text">
             {fmtBytes(g.bytes)}
           </span>
-          <span className="text-[11px] text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
+          <span className="text-meta text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
           <span className="flex-1" />
           {/* An anchor for its download attribute, drawn as a badge. */}
           <a

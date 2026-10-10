@@ -131,7 +131,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.headerProfiles.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">
+          <span className="mt-1 block text-meta text-carbon-textMuted">
             {t('settings.headerProfiles.emptyHint')}
           </span>
         </p>
@@ -154,7 +154,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
               >
                 <span className="shrink-0 text-sm text-carbon-text">{p.id}</span>
                 <OriginLine origin={p.origin} />
-                <span className="shrink-0 text-[11px] text-carbon-textMuted">
+                <span className="shrink-0 text-meta text-carbon-textMuted">
                   {t('settings.headerProfiles.count', { n: p.headers.length })}
                 </span>
               </button>

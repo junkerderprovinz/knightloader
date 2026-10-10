@@ -29,7 +29,7 @@ export function PartsCard({ hue, report }: { hue: number; report: HealthReport }
               </span>
             )}
             {s.detail && (
-              <span className="glim-num break-all text-[11px] text-carbon-textMuted" dir="ltr">
+              <span className="glim-num break-all text-meta text-carbon-textMuted" dir="ltr">
                 {s.detail}
               </span>
             )}

@@ -44,14 +44,21 @@
   /* The accent where the colour is read rather than filled: accent on a
      background, accentInk for color, fill and stroke against the page. */
   --color-accentInk: var(--accent-ink);
+  /* The ink for a line-drawn glyph, which takes a rainbow position where text
+     does not. */
+  --color-accentGlyph: var(--accent-glyph);
+  /* The hover step of an accent fill, which has no surface ramp to climb. */
+  --color-accentHover: var(--accent-hover);
 
   --color-statusOk: var(--status-ok-text);
   --color-statusOkBg: var(--status-ok-bg);
   --color-statusOkSolid: var(--status-ok-solid);
+  --color-statusOkHover: var(--status-ok-hover);
 
   --color-statusFail: var(--status-fail-text);
   --color-statusFailBg: var(--status-fail-bg);
   --color-statusFailSolid: var(--status-fail-solid);
+  --color-statusFailHover: var(--status-fail-hover);
 
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
@@ -61,6 +68,7 @@
   /* The quiet warn wash, for a paragraph that explains rather than warns. */
   --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnSolid: var(--status-warn-solid);
+  --color-statusWarnHover: var(--status-warn-hover);
 
   --color-statusInfo: var(--status-info-text);
   --color-statusInfoBg: var(--status-info-bg);
@@ -74,13 +82,21 @@
   --radius-control: 0.75rem;
   --radius-pill: 9999px;
 
-  /* A fixed type scale. --text-caption covers the plain caption, the eyebrow
-     label and the info bubble; the treatment carries the difference. A page's
-     hero figure and the brand wordmark sit outside it. */
-  --text-heading: 1.25rem;  /* 20px */
+  /* A fixed type scale of five sizes, one per role. --text-meta covers a
+     card's notch badge, the eyebrow label, the info bubble, a muted meta line
+     and a count; the treatment carries the difference. A page's hero figure
+     and the brand wordmark sit outside it. */
+  --text-status: 1.375rem;  /* 22px, the status head and a tile's one figure */
+  --text-title: 1rem;       /* 16px, an emphasised row title, a window's title */
   --text-body: 0.875rem;    /* 14px */
-  --text-dense: 0.75rem;    /* 12px */
-  --text-caption: 0.6875rem; /* 11px */
+  --text-subline: 0.8125rem; /* 13px, the text beside or under a name, a hint, a time */
+  --text-meta: 0.75rem;     /* 12px */
+
+  /* The four-step names, for the copies of GlimStone's reference files that
+     read them. */
+  --text-heading: var(--text-status);
+  --text-dense: var(--text-meta);
+  --text-caption: var(--text-meta);
 }
 
 /* Every rounded corner reads one of these three tokens, so the shape setting
@@ -236,7 +252,7 @@
   --brand-unraid-to:         #ff8d30;
   --brand-windows:           #2b88d8;
 
-  /* Four steps, the last still legible at 11px. */
+  /* Four steps, the last still legible at 12px. */
   --carbon-text:       #f4f4f4;
   --carbon-text-sub:   #c6c6c6;
   --carbon-text-muted: #8d8d8d;
@@ -247,10 +263,14 @@
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
   /* The accent used as ink on the page's own ground. The theme only sets
-     --ink-mix, inherited from <html>, so every --accent-ink in this file is
-     the same mix and the rainbow blocks need no light-theme twin. */
+     --ink-mix, inherited from <html>, so every --accent-ink and --accent-glyph
+     in this file is the same mix and the rainbow blocks need no light-theme
+     twin. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
+     subtree redefines this one and leaves --accent-ink on the single accent. */
+  --accent-glyph:      color-mix(in srgb, var(--accent) var(--ink-mix), black);
   /* The theme's accent, reachable inside a rainbowed subtree where .glim-hue
      redefines --accent per row. A selection mark uses it so every selected row
      shows the same colour. Custom properties resolve where they are declared,
@@ -270,12 +290,13 @@
   --status-fail-bg:      rgba(255, 131, 137, 0.14);
   --status-fail-solid:   #ff8389;
 
-  --status-warn-text:    #f1c21b;
-  --status-warn-bg:      rgba(241, 194, 27, 0.12);
+  /* Orange, so that yellow only means "act here" or "chosen". */
+  --status-warn-text:    #FF832B;
+  --status-warn-bg:      rgba(255, 131, 43, 0.12);
   /* The opaque twin of the line above, value from GlimStone's reference tokens. */
-  --status-warn-bg-strong: #3a2f1c;
-  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
-  --status-warn-solid:   #f1c21b;
+  --status-warn-bg-strong: #36231a;
+  --status-warn-bg-soft: rgba(255, 131, 43, 0.06);
+  --status-warn-solid:   #FF832B;
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
@@ -342,13 +363,13 @@
     --status-fail-bg:      rgba(218, 30, 40, 0.10);
     --status-fail-solid:   #da1e28;
 
-    --status-warn-text:    #8E6A00;
-    --status-warn-bg:      rgba(142, 106, 0, 0.10);
+    --status-warn-text:    #ba4e00;
+    --status-warn-bg:      rgba(186, 78, 0, 0.10);
     /* A pale wash here, since an opaque chip inverts with the theme like every
        other surface. */
-    --status-warn-bg-strong: #fcf4d6;
-    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
-    --status-warn-solid:   #b28600;
+    --status-warn-bg-strong: #fff2e8;
+    --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
+    --status-warn-solid:   #ba4e00;
 
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -394,7 +415,7 @@
   --sidebar-text:      #393939;
 
   /* The accent fill keeps its colour in both themes; only its use as ink gets
-     darker, because yellow text at 11px is unreadable on white. 55% toward
+     darker, because yellow text at 12px is unreadable on white. 55% toward
      black gives Sunflower 4.95:1 on white, and every accent preset clears
      4.5:1. */
   --accent:            #FCC419;
@@ -414,11 +435,11 @@
   --status-fail-bg:      rgba(218, 30, 40, 0.10);
   --status-fail-solid:   #da1e28;
 
-  --status-warn-text:    #8E6A00;
-  --status-warn-bg:      rgba(142, 106, 0, 0.10);
-  --status-warn-bg-strong: #fcf4d6;
-  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
-  --status-warn-solid:   #b28600;
+  --status-warn-text:    #ba4e00;
+  --status-warn-bg:      rgba(186, 78, 0, 0.10);
+  --status-warn-bg-strong: #fff2e8;
+  --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
+  --status-warn-solid:   #ba4e00;
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -429,6 +450,19 @@
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 
+}
+
+/* The hover step of a filled tone that has no surface ramp of its own
+   (GlimStone rule 21): the fill mixed toward the theme's text colour, which is
+   lighter on dark and darker on light, the way the ramp moves. 15% is about
+   one step of the dark ramp, surface3 to hover-raised. Declared wherever a
+   theme is set, so --carbon-text is the one that theme defines. */
+:root,
+[data-theme] {
+  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
+  --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
+  --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -500,7 +534,7 @@ body {
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
    that names a category beside something louder. */
 .glim-eyebrow {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--carbon-text-muted);
@@ -539,7 +573,7 @@ body {
   border-radius: var(--radius-control);
   box-shadow: var(--elevation), var(--hairline);
   padding: 7px 10px;
-  font-size: 11px;
+  font-size: var(--text-meta);
   line-height: 1.45;
   letter-spacing: normal;
   text-transform: none;
@@ -558,7 +592,14 @@ body {
    filter chips, segments, and badges belonging to them. A one-off element such
    as the primary submit button or the speed curve keeps the single accent, and
    the state hues are never rainbowed. hueStyle(i) in components/ui.tsx hands out
-   the class and the properties together. */
+   the class and the properties together.
+
+   Rainbow never colours text. A custom property containing var() is resolved
+   where it is declared, so the --accent-ink from :root arrives here already
+   computed on the single accent, and these rules leave it alone. A line-drawn
+   glyph reads --accent-glyph instead, which they do redefine, and
+   --accent-hover is restated so a filled button's hover steps from its own
+   hue. */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
@@ -573,9 +614,10 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* --accent-ink resolved against :root's accent for the same reason. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
+  --color-accentHover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
 }
 
 /* Opt-in: the element's glyph takes the hue too, so a nav or tab bar reads as a
@@ -587,7 +629,7 @@ body {
    Normal mode and the position under a rainbow (GlimStone, "The tab-strip
    colour rule"). Reactive mode is the one that rests, with its own pair below. */
 .glim-hue-icon:not(.glim-active) svg {
-  color: var(--accent-ink);
+  color: var(--accent-glyph);
 }
 /* In Reactive mode idle icons are colourless until hovered or focused. Tabs.tsx
    and Sidebar.tsx both rely on this pair. */
@@ -596,7 +638,7 @@ body {
 }
 [data-rainbow='reactive'] .glim-hue-icon:hover:not(.glim-active) svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within:not(.glim-active) svg {
-  color: var(--accent-ink);
+  color: var(--accent-glyph);
 }
 
 /* Opt-in: a list row shows its hue as a wash on hover, in every rainbow mode.
@@ -718,17 +760,35 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
 
+/* The glyph tile at the start of a row (IconTile in components/ui.tsx) fills
+   with the accent while its row is hovered, focused or picked, and its glyph
+   takes the accent's ink (GlimStone, "Lists"). The row carries .glim-row, and
+   .glim-active while it is picked. Under a rainbow the tile fills with its own
+   position, which it holds as --item-hue without rebinding the accent, and the
+   wash it wore at rest gives way to the fill. */
+.glim-row:is(:hover, :focus-within) > .glim-row-tile,
+.glim-row.glim-active > .glim-row-tile {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+[data-rainbow] .glim-row:is(:hover, :focus-within) > .glim-row-tile.glim-tint-badge,
+[data-rainbow] .glim-row.glim-active > .glim-row-tile.glim-tint-badge {
+  background-color: var(--item-hue);
+  color: var(--item-hue-ink);
+  box-shadow: none;
+}
+
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is
    the active item, so colour still marks activity. */
 [data-rainbow='reactive'] .glim-hue {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
-  --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
   --color-accent: var(--carbon-text-muted);
   --color-accentContrast: var(--carbon-bg);
   --color-accentSoft: transparent;
-  --color-accentInk: var(--carbon-text-muted);
+  --color-accentGlyph: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -739,10 +799,10 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* The resting rule muted the ink too and comes later at the same
-     specificity, so the ink has to be restated. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  /* The resting rule muted the glyph too and comes later at the same
+     specificity, so the glyph has to be restated. */
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
 /* SectionTitle's notch badge in reactive mode. The card owns the palette
@@ -778,18 +838,24 @@ body {
 
    Ink takes the muted text step and a fill the neutral dot's grey, which is
    the lighter of the two on a light theme: a bar in the text grey outweighs
-   the live bars around it. */
+   the live bars around it. A fill's hover step takes the same grey, so
+   nothing on the row lights up under the pointer. */
 .kl-parked {
   --carbon-text: var(--carbon-text-muted);
   --carbon-text-sub: var(--carbon-text-muted);
   --accent: var(--status-neutral-solid);
   --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
+  --accent-hover: var(--status-neutral-solid);
   --status-ok-text: var(--carbon-text-muted);
   --status-ok-solid: var(--status-neutral-solid);
+  --status-ok-hover: var(--status-neutral-solid);
   --status-fail-text: var(--carbon-text-muted);
   --status-fail-solid: var(--status-neutral-solid);
+  --status-fail-hover: var(--status-neutral-solid);
   --status-warn-text: var(--carbon-text-muted);
   --status-warn-solid: var(--status-neutral-solid);
+  --status-warn-hover: var(--status-neutral-solid);
   --status-info-text: var(--carbon-text-muted);
   --status-info-solid: var(--status-neutral-solid);
   --status-neutral-text: var(--carbon-text-muted);
@@ -797,12 +863,17 @@ body {
   --color-carbon-textSub: var(--carbon-text-muted);
   --color-accent: var(--status-neutral-solid);
   --color-accentInk: var(--carbon-text-muted);
+  --color-accentGlyph: var(--carbon-text-muted);
+  --color-accentHover: var(--status-neutral-solid);
   --color-statusOk: var(--carbon-text-muted);
   --color-statusOkSolid: var(--status-neutral-solid);
+  --color-statusOkHover: var(--status-neutral-solid);
   --color-statusFail: var(--carbon-text-muted);
   --color-statusFailSolid: var(--status-neutral-solid);
+  --color-statusFailHover: var(--status-neutral-solid);
   --color-statusWarn: var(--carbon-text-muted);
   --color-statusWarnSolid: var(--status-neutral-solid);
+  --color-statusWarnHover: var(--status-neutral-solid);
   --color-statusInfo: var(--carbon-text-muted);
   --color-statusInfoSolid: var(--status-neutral-solid);
   --color-statusNeutral: var(--carbon-text-muted);
@@ -1661,7 +1732,7 @@ body {
   background-color: var(--carbon-surface2);
   color: var(--carbon-text);
   font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -1695,14 +1766,14 @@ body {
 /* The single-colour marks at rest. A published brand colour fails on one of
    the two grounds, so the marks take the theme-adjusted tokens above, and the
    house mark, on the button that reaches this app's authors, follows the
-   accent. Each sits on the mark's box, where a lit tile's ink overrides it. */
+   accent and, under rainbow, its position. Each sits on the mark's box, where a lit tile's ink overrides it. */
 .glim-android-mark { color: var(--brand-android); }
 .glim-docker-mark { color: var(--brand-docker); }
 .glim-windows-mark { color: var(--brand-windows); }
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
-.glim-house-mark { color: var(--accent-ink); }
+.glim-house-mark { color: var(--accent-glyph); }
 
 /* A tile carrying a brand mark (GlimStone's "Brand tiles"): the README buttons
    and the coin tiles. Under the pointer it fills with the brand's own colour
@@ -1907,7 +1978,7 @@ body {
 }
 
 .glim-readme-btn-sub {
-  font-size: var(--text-dense);
+  font-size: var(--text-meta);
   opacity: 0;
   translate: 0 0.25rem;
 }
@@ -1992,10 +2063,11 @@ body {
   }
 }
 
-/* The About card's give buttons stand a blank line of the card's text apart
-   from the sentences above and below them (GlimStone's "The About card"). */
+/* The About card's give buttons stand a blank line of the card's text below
+   the sentence above them (GlimStone's "The Info tile and the About card").
+   They end the card, and space after the last row reads as a missing row. */
 .glim-about-give {
-  margin-block: calc(var(--text-body) * 1.5);
+  margin-block-start: calc(var(--text-body) * 1.5);
 }
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up

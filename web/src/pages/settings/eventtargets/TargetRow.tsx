@@ -151,14 +151,14 @@ export function TargetRow({
             </span>
             {/* Only the host, since ntfy and Gotify take their credential in
                 the query. */}
-            <span dir="ltr" className="block truncate text-[11px] text-carbon-textMuted">
+            <span dir="ltr" className="block truncate text-meta text-carbon-textMuted">
               {host}
             </span>
           </span>
           {ticked > 0 && <TickedCount n={ticked} />}
           {/* Only the off state is marked. */}
           {!row.enabled && (
-            <span className="hidden shrink-0 text-[11px] uppercase tracking-wider text-carbon-textMuted sm:block">
+            <span className="hidden shrink-0 text-meta uppercase tracking-wider text-carbon-textMuted sm:block">
               {t('settings.modules.off')}
             </span>
           )}
@@ -302,7 +302,7 @@ export function TargetRow({
                   step={1}
                   onValue={(v) => onChange({ ...row, attempts: clamp(v, MAX_ATTEMPTS) })}
                 />
-                <span className="shrink-0 text-[11px] text-carbon-textMuted">
+                <span className="shrink-0 text-meta text-carbon-textMuted">
                   {row.attempts === 0
                     ? t('settings.eventTargets.attemptsDefault')
                     : String(Math.min(row.attempts, MAX_ATTEMPTS))}
@@ -319,7 +319,7 @@ export function TargetRow({
                   step={1}
                   onValue={(v) => onChange({ ...row, timeoutSeconds: clamp(v, MAX_TIMEOUT_SECONDS) })}
                 />
-                <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">
+                <span className="glim-num shrink-0 text-meta text-carbon-textMuted">
                   {row.timeoutSeconds === 0 ? DEFAULT_TIMEOUT_SECONDS : Math.min(row.timeoutSeconds, MAX_TIMEOUT_SECONDS)}
                 </span>
               </div>
@@ -370,7 +370,7 @@ function PlaceholderChip({ name, tip: tipText, unused }: { name: string; tip: st
       <code
         dir="ltr"
         {...tip.triggerProps}
-        className={`rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] ${
+        className={`rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-meta ${
           unused ? 'text-carbon-textMuted line-through' : 'text-carbon-textSub'
         }`}
       >

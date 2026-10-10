@@ -117,7 +117,7 @@ export function FailureAdvice({
           {/* Verbatim, since it gets pasted into searches and bug reports. */}
           <div
             dir="ltr"
-            className="glim-well max-h-40 overflow-auto whitespace-pre-wrap break-all p-3 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+            className="glim-well max-h-40 overflow-auto whitespace-pre-wrap break-all p-3 font-mono text-meta leading-relaxed text-carbon-textSub"
           >
             {task.error}
           </div>

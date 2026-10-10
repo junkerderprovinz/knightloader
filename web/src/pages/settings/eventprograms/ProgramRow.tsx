@@ -89,13 +89,13 @@ export function ProgramRow({
             <span className="block truncate text-sm text-carbon-text">
               {row.name.trim() || <span className="text-carbon-textMuted">{t('settings.eventPrograms.name')}</span>}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {picked.length > 0 ? picked.map(triggerLabel).join(', ') : t('settings.eventPrograms.eventsNone')}
             </span>
           </span>
           {/* Only the off state is marked. */}
           {!row.enabled && (
-            <span className="hidden shrink-0 text-[11px] uppercase tracking-wider text-carbon-textMuted sm:block">
+            <span className="hidden shrink-0 text-meta uppercase tracking-wider text-carbon-textMuted sm:block">
               {t('settings.modules.off')}
             </span>
           )}
@@ -156,7 +156,7 @@ export function ProgramRow({
                 <code
                   key={name}
                   dir="ltr"
-                  className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] text-carbon-textSub"
+                  className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-meta text-carbon-textSub"
                 >
                   {name}
                 </code>

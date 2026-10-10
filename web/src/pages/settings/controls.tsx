@@ -1,8 +1,48 @@
-import type { ComponentProps, CSSProperties, TextareaHTMLAttributes } from 'react';
+import { useEffect, useState, type ComponentProps, type CSSProperties, type TextareaHTMLAttributes } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { PathInput } from '../../components/FolderPicker';
-import { TextArea } from '../../components/ui';
+import { Button, TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
+import { useT } from '../../lib/i18n';
 import { useFieldError } from './context';
+import { usePendingJump } from './jump';
+
+/**
+ * useWholePage tells whether a settings tile draws the whole page it belongs
+ * to. A page that stands in the sidebar is set up there, so its tile keeps
+ * only the switches and the way to the page and nothing shows twice. The
+ * settings search still lands on any of the page's rows: a result that leads
+ * here brings the page along until the tile is left.
+ */
+export function useWholePage(page: string, pinned: boolean): boolean {
+  const jump = usePendingJump();
+  const asked = jump?.page === page;
+  const [found, setFound] = useState(asked);
+  useEffect(() => {
+    if (asked) setFound(true);
+  }, [asked]);
+  return !pinned || asked || found;
+}
+
+/**
+ * OpenPageRow leads from a pinned page's settings tile to the page itself. Its
+ * button says only "Open", since the row already names the page.
+ */
+export function OpenPageRow({ label, to }: { label: string; to: string }) {
+  const { t } = useT();
+  const navigate = useNavigate();
+  return (
+    <div className="flex items-center justify-between gap-4">
+      {/* data-glim-label is where the settings search scrolls to, as on ToggleRow. */}
+      <span data-glim-label={label} className="text-sm text-carbon-text">
+        {label}
+      </span>
+      <Button kind="secondary" onClick={() => navigate(to)}>
+        {t('settings.pinned.open')}
+      </Button>
+    </div>
+  );
+}
 
 /**
  * SettingPathInput is PathInput for a folder setting, with the server's

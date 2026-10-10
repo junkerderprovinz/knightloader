@@ -124,7 +124,7 @@ function CompactNote({ text, full }: { text: string; full: string }) {
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
-      <span className="glim-num min-w-0 truncate text-[11px] text-carbon-textMuted" {...tipHoverProps}>
+      <span className="glim-num min-w-0 truncate text-meta text-carbon-textMuted" {...tipHoverProps}>
         {text}
       </span>
       {tip.node}

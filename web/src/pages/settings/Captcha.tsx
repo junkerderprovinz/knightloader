@@ -287,7 +287,7 @@ export function SolverRow({
 
         <div className="ms-auto flex flex-wrap items-center justify-end gap-x-3 gap-y-2">
           <span
-            className={`inline-flex shrink-0 items-center gap-1.5 text-[11px] font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
+            className={`inline-flex shrink-0 items-center gap-1.5 text-meta font-medium ${state === 'set' ? 'text-statusOk' : 'text-carbon-textMuted'}`}
           >
             <span className={`h-1.5 w-1.5 rounded-[var(--radius-pill)] ${state === 'set' ? 'bg-statusOkSolid' : 'bg-carbon-textMuted/50'}`} />
             {t(KEY_STATE[state])}

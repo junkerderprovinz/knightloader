@@ -137,7 +137,7 @@ export function SolverStatus({
   const lines = (report.refusals ?? []).map(line);
 
   return (
-    <p className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
+    <p className="flex items-center gap-1.5 text-meta text-carbon-textMuted">
       <span dir="auto">{text}</span>
       {(hint || lines.length > 0) && (
         <InfoBubble
@@ -434,7 +434,7 @@ export function CaptchaModal() {
         <>
           {/* The forward button ends the row, so the clock goes first. */}
           {displayRemaining !== null && (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
+            <span className="inline-flex shrink-0 items-center gap-1 text-meta text-carbon-textMuted">
               <IconClock width={12} height={12} />
               {fmtCountdown(displayRemaining)}
             </span>
@@ -527,7 +527,7 @@ export function CaptchaModal() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
+            <span className="text-meta text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
             {points.length > 0 && (
               <Button kind="ghost" onClick={() => setPoints([])}>
                 {t('captcha.clickClear')}
@@ -548,7 +548,7 @@ export function CaptchaModal() {
               onLoad={() => setWidgetStatus((s) => (s === 'loading' ? 'ready' : s))}
             />
           </div>
-          {widgetStatus === 'expired' && <p className="text-[11px] text-statusFail">{t('captcha.tooLate')}</p>}
+          {widgetStatus === 'expired' && <p className="text-meta text-statusFail">{t('captcha.tooLate')}</p>}
         </div>
       )}
 
