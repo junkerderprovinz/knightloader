@@ -90,7 +90,7 @@ const statusGlyph: Record<RowState, Glyph> = {
 function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; label: string; fits?: boolean }) {
   return (
     <span
-      className={`inline-flex min-w-0 items-center gap-1.5 text-[11px] font-medium ${fits ? '' : 'shrink-0'} ${toneText[tone]}`}
+      className={`inline-flex min-w-0 items-center gap-1.5 text-meta font-medium ${fits ? '' : 'shrink-0'} ${toneText[tone]}`}
     >
       <Glyph width={13} height={13} className="shrink-0" />
       <span className="truncate">{label}</span>
@@ -200,7 +200,7 @@ export function RepairPill({ repair }: { repair: RepairProgress }) {
 export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Task['mode'] }) {
   const { t } = useT();
   return (
-    <span className="text-[11px] text-carbon-textMuted">
+    <span className="text-meta text-carbon-textMuted">
       {resolverLabel(resolver, t)}
       {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
     </span>

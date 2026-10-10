@@ -158,6 +158,8 @@ export const en = {
 
   'empty.downloadsTitle': 'Nothing downloading yet',
   'empty.downloadsHint': 'Add links in the collector, then start them.',
+  'empty.collectorTitle': 'The collector is empty',
+  'empty.collectorHint': 'Paste some links above to stage them.',
 
   'collector.title': 'Collector',
   'collector.listTitle': 'Link list',
@@ -165,7 +167,6 @@ export const en = {
   'collector.package': 'Package (optional)',
   'collector.add': 'Add links',
   'collector.addTitle': 'Link collector',
-  'collector.empty': 'The collector is empty. Paste some links above to stage them.',
   'collector.startSelected': 'Start selected',
   'collector.startAll': 'Start all',
   'collector.toastStaged': 'Staged {n} link(s)',
@@ -425,6 +426,7 @@ export const en = {
   'select.reduceRemove': 'Only remove the rows on screen',
   'select.reduceRemoveAria': '{n} of the rows about to go are not visible. Click to remove only the rows on screen.',
   'select.reduced': '{n} row(s) dropped from the selection.',
+  'select.mark': 'Select',
   'settings.removePassword': 'Remove password',
 
   'common.cancel': 'Cancel',
@@ -553,6 +555,11 @@ export const en = {
 
   'list.sortedView': 'Sorted order',
   'list.sortedViewTip': 'Sorting changes the order you see, not the order that runs. Downloads still start in queue order. A third click on the same column header shows the queue order again.',
+  'list.filter': 'Filter',
+  'list.sort': 'Sort',
+  'list.sortQueue': 'Queue order',
+  'list.sortAsc': 'Ascending',
+  'list.sortDesc': 'Descending',
   'list.dragNeedsQueueOrder': 'Dragging works in queue order only. Click the sorted column header until the sort is off to move rows by hand.',
   'list.dragNotInQueue': 'This one cannot be moved by hand: only links still waiting in the queue can, and a folder only while its links share one priority.',
   'list.controls': 'List controls',
@@ -619,7 +626,7 @@ export const en = {
   'filter.disabled': 'Disabled',
   'filter.stalled': 'Stalled',
 
-  'cleanup.menu': 'Clean up…',
+  'cleanup.menu': 'Clean up',
   'cleanup.menuLabel': 'Clean-up entries',
   'cleanup.finished': 'Remove finished',
   'cleanup.offline': 'Remove offline',
@@ -663,7 +670,7 @@ export const en = {
   'menu.enable': 'Enable',
   'menu.disable': 'Disable',
   'menu.unforce': 'Cancel start now',
-  'menu.setFolder': 'Set download folder…',
+  'menu.setFolder': 'Set download folder',
   'menu.collapseAll': 'Collapse all packages',
   'menu.expandAll': 'Expand all packages',
   'collector.checkAll': 'Check all',
@@ -1268,7 +1275,7 @@ export const en = {
   'menu.priority': 'Priority',
   'menu.move': 'Move',
   'menu.forceStart': 'Start now',
-  'rename.menu': 'Rename…',
+  'rename.menu': 'Rename',
   'rename.confirm': 'Rename',
   'rename.linkTitle': 'Rename link',
   'rename.packageTitle': 'Rename package',

@@ -5,14 +5,15 @@ import { useStartTasks } from '../lib/useStartTasks';
 import { useReportListView } from '../lib/listview';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
-import { PageHeader, IconBadge } from '../components/ui';
-import { Tabs } from '../components/Tabs';
+import { EmptyState, PageHeader, IconBadge } from '../components/ui';
 import {
   TaskListCard,
   groupByPackage,
   useCollapsedPackages,
+  useListSort,
   type Selection,
 } from '../components/TaskList';
+import { ListBar } from '../components/ListBar';
 import { usePackageMenu } from '../components/PackageActions';
 import { AddLinksForm, useStagedReport } from '../components/AddLinksForm';
 import { FileDrop, newestContainerLink, type FileDropHandle } from '../components/FileDrop';
@@ -34,9 +35,8 @@ import {
   useRename,
   type ListContext,
   type MenuTarget,
-  type QuickFilterId,
 } from '../components/ListToolbar';
-import { matchesSearch, SearchField } from '../components/SearchField';
+import { matchesSearch } from '../components/SearchField';
 import { SavedViewChips } from '../components/SavedViewChips';
 import { useListNarrowing, type Narrowing } from '../lib/listNarrowing';
 import { useSavedViews } from '../lib/savedViews';
@@ -49,22 +49,7 @@ import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
-import {
-  IconCheck,
-  IconClock,
-  IconClose,
-  IconFilter,
-  IconPlay,
-  IconRetry,
-  IconSearch,
-  IconTrash,
-  IconWarning,
-} from '../lib/icons';
-
-/** COLLECTOR_FILTERS without the two drawn as square badges in the action row. */
-const COLLECTOR_BADGE_FILTERS: QuickFilterId[] = COLLECTOR_FILTERS.filter(
-  (id) => id !== 'uncheckable' && id !== 'unchecked',
-);
+import { IconCheck, IconClose, IconCollector, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -78,15 +63,11 @@ export function Collector() {
   const lastContainerAt = useMemo(() => newestContainerLink(tasks), [tasks]);
   // The search text, quick filters and facet ticks are stored in the
   // interface-state document, so they survive leaving the page
-  // (lib/listNarrowing.ts). The full COLLECTOR_FILTERS, since the two badge
-  // filters toggle the same set.
+  // (lib/listNarrowing.ts).
   const narrowing = useListNarrowing('collector', COLLECTOR_FILTERS);
   const { search, filters } = narrowing;
-  // The search opens as a popover under its badge. The badge and the popover
-  // are apart while the action row scrolls, as on Downloads.tsx.
+  // Whether the Search button has been turned into its field (ListBar.tsx).
   const [searchOpen, setSearchOpen] = useState(false);
-  const searchRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   // The list's own scroll box, reset when a saved view cuts the list short.
   const listScroll = useRef<HTMLDivElement>(null);
@@ -125,22 +106,14 @@ export function Collector() {
   );
   const groups = useMemo(() => groupByPackage(filtered), [filtered]);
 
-  // "Uncheckable" and "unchecked" are square badges toggling the same filter set.
-  const uncheckableCount = useMemo(() => collected.filter((x) => x.online === 'uncheckable').length, [collected]);
-  const uncheckedCount = useMemo(() => collected.filter((x) => !x.online).length, [collected]);
-  // The other chips share the badge row, counted by ListToolbar's own logic.
-  const offeredFilters = useMemo(
-    () => offeredQuickFilters(COLLECTOR_BADGE_FILTERS, collected, filters),
-    [collected, filters],
-  );
+  // The chips under Filter, counted by ListToolbar's own logic.
+  const offeredFilters = useMemo(() => offeredQuickFilters(COLLECTOR_FILTERS, collected, filters), [collected, filters]);
+  const sort = useListSort(t('collector.listTitle'), 'collector');
   // Compared by count, since the sidebar facets narrow the list too.
   const narrowed = filtered.length !== collected.length;
   // Whether anything is set, even a filter that hides nothing; the dot and the
   // reset badge read this.
   const anyNarrowing = narrowing.active;
-  // The chips and the two badges together, for the one menu the row folds
-  // them into when it runs short of room.
-  const allOffered = useMemo(() => offeredQuickFilters(COLLECTOR_FILTERS, collected, filters), [collected, filters]);
 
   // What the action row holds, so it measures itself again when that changes.
   const buttonLabels = useLabelMode('buttons');
@@ -153,28 +126,14 @@ export function Collector() {
     narrowed ? `${filtered.length}/${collected.length}` : '',
     anyNarrowing,
     views.map((v) => v.name).join('\n'),
-    allOffered.map(({ f, n }) => `${f.id}${n}${filters.has(f.id) ? '*' : ''}`).join(),
+    searchOpen || search.text !== '',
   ].join('|');
   // Downloads.tsx's fold order, less the cause chips this list does not have.
   const fold = useRowFit(rowRef, 4, rowContent);
   const glyphs = fold >= 1;
-  const foldStates = fold >= 2;
+  const hideCount = fold >= 2;
   const compact = fold >= 3;
   const scrolls = fold >= 4;
-  // The folded chips' menu offers what the badge beside the chips does.
-  const clearFiltersEntry =
-    filters.size > 0
-      ? [{ id: 'clear', label: t('filter.clear'), icon: <IconClose />, onSelect: narrowing.clearFilters }]
-      : [];
-  const searchPanel = searchOpen && (
-    <div
-      ref={panelRef}
-      className="absolute end-0 top-full z-20 mt-2 w-96 max-w-[90vw] rounded-[var(--radius-control)]
-        bg-carbon-surface p-2 shadow-[var(--elevation)]"
-    >
-      <SearchField value={search} onChange={narrowing.setSearch} className="w-full" />
-    </div>
-  );
 
   /**
    * applyView applies a saved view and puts the list's own scroll box back to
@@ -187,22 +146,6 @@ export function Collector() {
     },
     [narrowing.apply],
   );
-
-  // Closes the search popover on an outside click or Escape.
-  useEffect(() => {
-    if (!searchOpen) return;
-    const onClick = (e: MouseEvent) => {
-      const at = e.target as Node;
-      if (!searchRef.current?.contains(at) && !panelRef.current?.contains(at)) setSearchOpen(false);
-    };
-    const onKey = (e: KeyboardEvent) => e.key === 'Escape' && setSearchOpen(false);
-    document.addEventListener('mousedown', onClick);
-    document.addEventListener('keydown', onKey);
-    return () => {
-      document.removeEventListener('mousedown', onClick);
-      document.removeEventListener('keydown', onKey);
-    };
-  }, [searchOpen]);
 
   // Drop selections that have left the collector.
   useEffect(() => {
@@ -372,219 +315,140 @@ export function Collector() {
         <FilteredLinks held={held} />
         <SkippedLinks />
 
-        {/* One row for saved views, filters, search, the selection's actions
-            and the page actions. Downloads.tsx draws the same row, and the two
-            must hold the same control in every slot and fold the same way when
-            short of room (useRowFit). The search opens as a popover under its
-            badge, so nothing else moves. */}
-        <div className="relative shrink-0">
-          <div
-            ref={rowRef}
-            className={`flex items-center gap-2 ${scrolls ? '-my-1 overflow-x-auto py-1' : ''}`}
-            role="group"
-            aria-label={t('list.actions')}
-          >
-            {/* Left of the spacer, which nothing else here uses. */}
-            <div className="shrink-0">
-              <SavedViewChips
-                profile="collector"
-                allowed={COLLECTOR_FILTERS}
-                narrowing={narrowing.narrowing}
-                onApply={applyView}
-                glyphs={glyphs}
-                folded={compact}
-              />
-            </div>
-            <span data-spacer className="flex-1" />
-
-            {/* Filters, visible whatever the selection, left of the search badge
-                so a changing number of chips does not move it. Like the other
-                chips they show only when they can match something or are on. */}
-            {!foldStates && (uncheckableCount > 0 || filters.has('uncheckable')) && (
-              <IconBadge
-                labelled={!glyphs}
-                hue={0}
-                active={filters.has('uncheckable')}
-                icon={<IconWarning width={16} height={16} />}
-                title={t('filter.uncheckable')}
-                aria-label={t('filter.uncheckable')}
-                onClick={() => narrowing.toggleFilter('uncheckable')}
-              />
-            )}
-            {!foldStates && (uncheckedCount > 0 || filters.has('unchecked')) && (
-              <IconBadge
-                labelled={!glyphs}
-                hue={1}
-                active={filters.has('unchecked')}
-                icon={<IconClock width={16} height={16} />}
-                title={t('filter.unchecked')}
-                aria-label={t('filter.unchecked')}
-                onClick={() => narrowing.toggleFilter('unchecked')}
-              />
-            )}
-
-            {(foldStates ? allOffered : offeredFilters).length > 0 && (
-              <div className="shrink-0">
-                <Tabs
-                  inline
-                  select="many"
-                  size="sm"
-                  label={t('filter.label')}
-                  labelled
-                  folded={foldStates ? { icon: <IconFilter />, glyph: compact, more: clearFiltersEntry } : undefined}
-                  active={filters}
-                  onSelect={(id) => narrowing.toggleFilter(id as QuickFilterId)}
-                  items={(foldStates ? allOffered : offeredFilters).map(({ f, n }) => ({
-                    id: f.id,
-                    label: t(f.label),
-                    badge: n,
-                  }))}
-                  // The same badge Downloads.tsx has in this slot.
-                  after={
-                    filters.size > 0 && (
-                      <IconBadge
-                        labelled
-                        hue={0}
-                        icon={<IconClose width={16} height={16} />}
-                        title={t('filter.clear')}
-                        aria-label={t('filter.clear')}
-                        onClick={narrowing.clearFilters}
-                      />
-                    )
-                  }
-                />
-              </div>
-            )}
-            {/* The overview strip counts the visible rows as well. */}
-            {narrowed && !foldStates && (
-              <span className="glim-num shrink-0 whitespace-nowrap text-xs text-carbon-textMuted">
-                {t('search.shown', { n: filtered.length, total: collected.length })}
-              </span>
-            )}
-
-            <div ref={searchRef} className="relative shrink-0">
-              {/* A glyph whatever the label setting, as on Downloads.tsx. */}
-              <IconBadge
-                hue={0}
-                // Lit while its popover is open, as on Downloads.tsx.
-                active={searchOpen}
-                icon={<IconSearch width={16} height={16} />}
-                // The key the download list's badge uses.
-                title={t('search.toggle')}
-                aria-label={t('search.toggle')}
-                aria-expanded={searchOpen}
-                onClick={() => setSearchOpen((v) => !v)}
-              />
-              {/* Shows that something still narrows the list while the panel is
-                  closed, such as after a restart. */}
-              {anyNarrowing && !searchOpen && (
-                <span
-                  aria-hidden
-                  className="pointer-events-none absolute -end-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
-                />
-              )}
-              {!scrolls && searchPanel}
-            </div>
-
-            {/* Clears search, quick filters and facet ticks at once; it also works
-                while the collector is empty and the sidebar is not drawn. */}
-            {anyNarrowing && (
-              <IconBadge
-                labelled={!glyphs}
-                hue={5}
-                icon={<IconClose width={16} height={16} />}
-                title={t('views.clearAll')}
-                aria-label={t('views.clearAll')}
-                hint={t('views.clearAllHint')}
-                onClick={narrowing.clearAll}
-              />
-            )}
-
-            {/* The verbs in one piece after the count they act on, as on
-                Downloads.tsx. */}
-            <div className="flex shrink-0 items-center gap-2">
-              {selected.size > 0 ? (
-                <>
-                  {/* The count and its ×, as on Downloads.tsx. */}
-                  <span className="flex items-center gap-1.5">
-                    <SelectionReach
-                      mode="select"
-                      total={selected.size}
-                      hidden={reach.hidden.length}
-                      onReduce={reduceToShown}
-                    />
-                    <IconBadge
-                      hue={1}
-                      icon={<IconClose width={16} height={16} />}
-                      title={t('select.none')}
-                      aria-label={t('select.none')}
-                      onClick={clearSelection}
-                    />
-                  </span>
-                  {/* Secondary: the page's one accent is the floating Start all. */}
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={2}
-                    icon={<IconPlay width={16} height={16} />}
-                    title={t('collector.startSelected')}
-                    aria-label={t('collector.startSelected')}
-                    onClick={startSelected}
-                  />
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={4}
-                    icon={<IconTrash width={16} height={16} />}
-                    title={t('task.remove')}
-                    aria-label={t('task.remove')}
-                    onClick={() => void removal.removeNow(selectedIds)}
-                  />
-                  <SelectionMore
-                    hue={5}
-                    labelled={!glyphs}
-                    chosen={selectedTasks}
-                    removal={removal}
-                    groups={[packageMenu.group]}
-                  />
-                </>
-              ) : (
-                <>
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={1}
-                    icon={<IconCheck width={16} height={16} />}
-                    title={allChosen ? t('select.none') : t('select.all')}
-                    aria-label={allChosen ? t('select.none') : t('select.all')}
-                    disabled={filtered.length === 0}
-                    onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
-                  />
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={2}
-                    icon={<IconTrash width={16} height={16} />}
-                    title={t('cleanup.menu')}
-                    aria-label={t('cleanup.menu')}
-                    onClick={(e) => void openCleanup(e.currentTarget)}
-                  />
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={3}
-                    icon={<IconRetry width={16} height={16} />}
-                    title={t('collector.checkAll')}
-                    aria-label={t('collector.checkAll')}
-                    disabled={collected.length === 0}
-                    onClick={() => {
-                      // An empty id list means every staged link on this route,
-                      // unlike the bulk routes, which refuse it.
-                      recheckTasks([]);
-                      toast(t('task.recheck'), 'info');
-                    }}
-                  />
-                </>
-              )}
-            </div>
+        {/* One row for the saved views, the selection's actions and the page
+            actions, with Filter, Sort and Search at its end. Downloads.tsx
+            draws the same row, and the two must hold the same control in every
+            slot and fold the same way when short of room (useRowFit). */}
+        <ListBar
+          rowRef={rowRef}
+          glyphs={glyphs}
+          scrolls={scrolls}
+          filters={offeredFilters}
+          active={filters}
+          onToggleFilter={narrowing.toggleFilter}
+          onClearFilters={narrowing.clearFilters}
+          sorts={[sort]}
+          search={search}
+          onSearch={narrowing.setSearch}
+          searchOpen={searchOpen}
+          onSearchOpen={setSearchOpen}
+        >
+          {/* Left of the spacer, which nothing else here uses. */}
+          <div className="shrink-0">
+            <SavedViewChips
+              profile="collector"
+              allowed={COLLECTOR_FILTERS}
+              narrowing={narrowing.narrowing}
+              onApply={applyView}
+              glyphs={glyphs}
+              folded={compact}
+            />
           </div>
-          {scrolls && searchPanel}
-        </div>
+          <span data-spacer className="flex-1" />
+
+          {/* The verbs in one piece after the count they act on, as on
+              Downloads.tsx. */}
+          <div className="flex shrink-0 items-center gap-2">
+            {selected.size > 0 ? (
+              <>
+                {/* The count and its ×, as on Downloads.tsx. */}
+                <span className="flex items-center gap-1.5">
+                  <SelectionReach
+                    mode="select"
+                    total={selected.size}
+                    hidden={reach.hidden.length}
+                    onReduce={reduceToShown}
+                  />
+                  <IconBadge
+                    hue={1}
+                    icon={<IconClose width={16} height={16} />}
+                    title={t('select.none')}
+                    aria-label={t('select.none')}
+                    onClick={clearSelection}
+                  />
+                </span>
+                {/* Secondary: the page's one accent is the floating Start all. */}
+                <IconBadge
+                  labelled={!glyphs}
+                  hue={2}
+                  icon={<IconPlay width={16} height={16} />}
+                  title={t('collector.startSelected')}
+                  aria-label={t('collector.startSelected')}
+                  onClick={startSelected}
+                />
+                <IconBadge
+                  labelled={!glyphs}
+                  hue={4}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('task.remove')}
+                  aria-label={t('task.remove')}
+                  onClick={() => void removal.removeNow(selectedIds)}
+                />
+                <SelectionMore
+                  hue={5}
+                  labelled={!glyphs}
+                  chosen={selectedTasks}
+                  removal={removal}
+                  groups={[packageMenu.group]}
+                />
+              </>
+            ) : (
+              <>
+                <IconBadge
+                  labelled={!glyphs}
+                  hue={1}
+                  icon={<IconCheck width={16} height={16} />}
+                  title={allChosen ? t('select.none') : t('select.all')}
+                  aria-label={allChosen ? t('select.none') : t('select.all')}
+                  disabled={filtered.length === 0}
+                  onClick={() => setSelected(allChosen ? new Set() : new Set(filtered.map((x) => x.id)))}
+                />
+                <IconBadge
+                  labelled={!glyphs}
+                  hue={2}
+                  icon={<IconTrash width={16} height={16} />}
+                  title={t('cleanup.menu')}
+                  aria-label={t('cleanup.menu')}
+                  onClick={(e) => void openCleanup(e.currentTarget)}
+                />
+                <IconBadge
+                  labelled={!glyphs}
+                  hue={3}
+                  icon={<IconRetry width={16} height={16} />}
+                  title={t('collector.checkAll')}
+                  aria-label={t('collector.checkAll')}
+                  disabled={collected.length === 0}
+                  onClick={() => {
+                    // An empty id list means every staged link on this route,
+                    // unlike the bulk routes, which refuse it.
+                    recheckTasks([]);
+                    toast(t('task.recheck'), 'info');
+                  }}
+                />
+              </>
+            )}
+          </div>
+
+          {/* The overview strip counts the visible rows as well. */}
+          {narrowed && !hideCount && (
+            <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
+              {t('search.shown', { n: filtered.length, total: collected.length })}
+            </span>
+          )}
+          {/* Clears search, quick filters and facet ticks at once; it also works
+              while the collector is empty and the sidebar is not drawn. */}
+          {anyNarrowing && (
+            <IconBadge
+              labelled={!glyphs}
+              hue={5}
+              icon={<IconClose width={16} height={16} />}
+              title={t('views.clearAll')}
+              aria-label={t('views.clearAll')}
+              hint={t('views.clearAllHint')}
+              onClick={narrowing.clearAll}
+            />
+          )}
+        </ListBar>
 
         {/* The one scrolling region: everything above keeps its height and the
             list takes the rest down to the window's edge, never less than a
@@ -593,13 +457,14 @@ export function Collector() {
             list runs at full length (app/Layout.tsx). */}
         <div className="flex min-h-48 flex-1 flex-col" onContextMenu={onContextMenu}>
         {collected.length === 0 ? (
-          <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
-            {t('collector.empty')}
-          </div>
+          <EmptyState
+            fill
+            icon={<IconCollector width={26} height={26} />}
+            title={t('empty.collectorTitle')}
+            hint={t('empty.collectorHint')}
+          />
         ) : filtered.length === 0 ? (
-          <div className="glim-card flex flex-1 items-center justify-center p-12 text-center text-sm text-carbon-textMuted">
-            {t('downloads.noMatch')}
-          </div>
+          <EmptyState fill icon={<IconSearch width={26} height={26} />} title={t('downloads.noMatch')} />
         ) : (
           // A flex column, since h-full on TaskListCard does not resolve through
           // a flex-grown overflow box. pt-3 keeps the card's title badge inside
