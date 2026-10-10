@@ -139,6 +139,7 @@ export const el: Dict = {
   'instances.foundKnown': 'ήδη προστέθηκε',
   'instances.offlineWarning': 'Προστέθηκε, αλλά το στιγμιότυπο δεν απάντησε (εκτός σύνδεσης;).',
   'instances.open': 'Άνοιγμα',
+  'instances.details': 'Λεπτομέρειες',
   'instances.connected': 'Συνδεδεμένο',
   'instances.refused': 'Άρνηση',
   'instances.refusedByPassword': 'Είναι προσβάσιμη, αλλά απέρριψε αυτή την εγκατάσταση επειδή έχει ορίσει κωδικό πρόσβασης. Κάντε σύζευξη των δύο με την ίδια φράση στις Ρυθμίσεις, Σύζευξη, και θα εμφανιστεί εδώ ως μέλος της ομάδας.',

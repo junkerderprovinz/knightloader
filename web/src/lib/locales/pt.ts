@@ -133,6 +133,7 @@ export const pt: Dict = {
   'instances.foundKnown': 'já adicionada',
   'instances.offlineWarning': 'Adicionada, mas a instância não respondeu (offline?).',
   'instances.open': 'Abrir',
+  'instances.details': 'Detalhes',
   'instances.connected': 'Ligado',
   'instances.refused': 'Recusado',
   'instances.refusedByPassword': 'Acessível, mas recusou esta instância porque tem uma palavra-passe definida. Emparelhe as duas com a mesma frase em Definições, Emparelhamento, e ela aparece aqui como membro do grupo.',

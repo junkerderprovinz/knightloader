@@ -139,6 +139,7 @@ export const sv: Dict = {
   'instances.foundKnown': 'redan tillagd',
   'instances.offlineWarning': 'Tillagd, men instansen svarade inte (offline?).',
   'instances.open': 'Öppna',
+  'instances.details': 'Detaljer',
   'instances.connected': 'Ansluten',
   'instances.refused': 'Avvisad',
   'instances.refusedByPassword': 'Nåddes, men den avvisade den här instansen eftersom den har ett lösenord. Parkoppla de två med samma fras under Inställningar, Parkoppling, så visas den här som medlem i gruppen.',

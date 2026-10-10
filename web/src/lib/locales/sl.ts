@@ -139,6 +139,7 @@ export const sl: Dict = {
   'instances.foundKnown': 'že dodana',
   'instances.offlineWarning': 'Dodana, a se instanca ni odzvala (nepovezana?).',
   'instances.open': 'Odpri',
+  'instances.details': 'Podrobnosti',
   'instances.connected': 'Povezano',
   'instances.refused': 'Zavrnjeno',
   'instances.refusedByPassword': 'Dosegljiva, a je to instanco zavrnila, ker ima nastavljeno geslo. Seznani obe z isto frazo v razdelku Nastavitve, Seznanjanje, in tukaj se bo prikazala kot članica skupine.',

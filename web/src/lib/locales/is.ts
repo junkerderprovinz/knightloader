@@ -139,6 +139,7 @@ export const is: Dict = {
   'instances.foundKnown': 'þegar bætt við',
   'instances.offlineWarning': 'Bætt við, en tilvikið svaraði ekki (ótengt?).',
   'instances.open': 'Opna',
+  'instances.details': 'Nánar',
   'instances.connected': 'Tengt',
   'instances.refused': 'Hafnað',
   'instances.refusedByPassword': 'Náðist í það, en það hafnaði þessu tilviki af því að á því er lykilorð. Paraðu þau tvö með sömu setningu undir Stillingar, Pörun, og það birtist hér sem meðlimur hópsins.',

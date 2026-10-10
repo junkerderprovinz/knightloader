@@ -139,6 +139,7 @@ export const tr: Dict = {
   'instances.foundKnown': 'zaten eklendi',
   'instances.offlineWarning': 'Eklendi, ancak örnek yanıt vermedi (çevrimdışı mı?).',
   'instances.open': 'Aç',
+  'instances.details': 'Ayrıntılar',
   'instances.connected': 'Bağlı',
   'instances.refused': 'Reddedildi',
   'instances.refusedByPassword': 'Ulaşıldı, ama parolası olduğu için bu örneği reddetti. İkisini Ayarlar, Eşleştirme altında aynı ifadeyle eşleştir, burada grubun bir üyesi olarak görünsün.',

@@ -139,6 +139,7 @@ export const fi: Dict = {
   'instances.foundKnown': 'jo lisätty',
   'instances.offlineWarning': 'Lisätty, mutta instanssi ei vastannut (offline?).',
   'instances.open': 'Avaa',
+  'instances.details': 'Tiedot',
   'instances.connected': 'Yhdistetty',
   'instances.refused': 'Hylätty',
   'instances.refusedByPassword': 'Tavoitettu, mutta se hylkäsi tämän instanssin, koska siinä on salasana. Pariuta ne kaksi samalla lauseella kohdassa Asetukset, Pariliitos, niin se näkyy täällä ryhmän jäsenenä.',

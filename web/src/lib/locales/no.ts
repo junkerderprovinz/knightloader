@@ -141,6 +141,7 @@ export const no: Dict = {
   'instances.foundKnown': 'allerede lagt til',
   'instances.offlineWarning': 'Lagt til, men instansen svarte ikke (offline?).',
   'instances.open': 'Åpne',
+  'instances.details': 'Detaljer',
   'instances.connected': 'Tilkoblet',
   'instances.refused': 'Avvist',
   'instances.refusedByPassword': 'Nådd, men den avviste denne instansen fordi den har passord. Par de to med samme frase under Innstillinger, Paring, så vises den her som medlem av gruppen.',

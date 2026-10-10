@@ -139,6 +139,7 @@ export const hi: Dict = {
   'instances.foundKnown': 'पहले से जोड़ा गया',
   'instances.offlineWarning': 'जोड़ दिया, पर इंस्टेंस ने जवाब नहीं दिया (ऑफ़लाइन?)।',
   'instances.open': 'खोलें',
+  'instances.details': 'विवरण',
   'instances.connected': 'कनेक्टेड',
   'instances.refused': 'अस्वीकृत',
   'instances.refusedByPassword': 'पहुँच में है, पर उसने इस इंस्टेंस को अस्वीकार कर दिया क्योंकि उस पर पासवर्ड सेट है। सेटिंग्स में पेयरिंग के अंतर्गत दोनों को एक ही वाक्यांश से पेयर करें, और वह यहाँ समूह के सदस्य के रूप में दिखेगा।',

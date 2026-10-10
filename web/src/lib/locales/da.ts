@@ -139,6 +139,7 @@ export const da: Dict = {
   'instances.foundKnown': 'allerede tilføjet',
   'instances.offlineWarning': 'Tilføjet, men instansen svarede ikke (offline?).',
   'instances.open': 'Åbn',
+  'instances.details': 'Detaljer',
   'instances.connected': 'Forbundet',
   'instances.refused': 'Afvist',
   'instances.refusedByPassword': 'Kan nås, men den afviste denne instans, fordi den har en adgangskode. Par de to med den samme sætning under Indstillinger, Parring, så vises den her som medlem af gruppen.',

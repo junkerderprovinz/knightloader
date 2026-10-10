@@ -139,6 +139,7 @@ export const eu: Dict = {
   'instances.foundKnown': 'jada gehituta',
   'instances.offlineWarning': 'Gehituta, baina instantziak ez du erantzun (lineaz kanpo?).',
   'instances.open': 'Ireki',
+  'instances.details': 'Xehetasunak',
   'instances.connected': 'Konektatuta',
   'instances.refused': 'Baztertuta',
   'instances.refusedByPassword': 'Iristeko moduan dago, baina instantzia hau baztertu du pasahitz bat ezarrita duelako. Parekatu biak esaldi berarekin Ezarpenak, Parekatzea atalean, eta hemen agertuko da taldeko kide gisa.',

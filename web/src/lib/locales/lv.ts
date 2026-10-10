@@ -139,6 +139,7 @@ export const lv: Dict = {
   'instances.foundKnown': 'jau pievienota',
   'instances.offlineWarning': 'Pievienota, bet instance neatbildēja (bezsaistē?).',
   'instances.open': 'Atvērt',
+  'instances.details': 'Sīkāka informācija',
   'instances.connected': 'Savienots',
   'instances.refused': 'Noraidīts',
   'instances.refusedByPassword': 'Sasniedzama, bet tā noraidīja šo instanci, jo tai ir iestatīta parole. Sapārojiet abas ar vienu un to pašu frāzi sadaļā Iestatījumi, Pārošana, un tā šeit parādīsies kā grupas dalībniece.',

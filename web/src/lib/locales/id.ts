@@ -139,6 +139,7 @@ export const id: Dict = {
   'instances.foundKnown': 'sudah ditambahkan',
   'instances.offlineWarning': 'Ditambahkan, tapi instance tidak menjawab (offline?).',
   'instances.open': 'Buka',
+  'instances.details': 'Detail',
   'instances.connected': 'Terhubung',
   'instances.refused': 'Ditolak',
   'instances.refusedByPassword': 'Terjangkau, tetapi menolak instance ini karena memakai kata sandi. Pasangkan keduanya dengan frasa yang sama di Pengaturan, Pemasangan, lalu instance itu muncul di sini sebagai anggota grup.',

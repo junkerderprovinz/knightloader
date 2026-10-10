@@ -133,6 +133,7 @@ export const nl: Dict = {
   'instances.foundKnown': 'al toegevoegd',
   'instances.offlineWarning': 'Toegevoegd, maar de instantie antwoordde niet (offline?).',
   'instances.open': 'Openen',
+  'instances.details': 'Details',
   'instances.connected': 'Verbonden',
   'instances.refused': 'Geweigerd',
   'instances.refusedByPassword': 'Bereikbaar, maar ze weigert deze instantie omdat ze een wachtwoord heeft. Koppel de twee met dezelfde frase onder Instellingen, Koppeling, dan verschijnt ze hier als lid van de groep.',

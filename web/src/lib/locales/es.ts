@@ -133,6 +133,7 @@ export const es: Dict = {
   'instances.foundKnown': 'ya añadida',
   'instances.offlineWarning': 'Añadida, pero la instancia no respondió (¿sin conexión?).',
   'instances.open': 'Abrir',
+  'instances.details': 'Detalles',
   'instances.connected': 'Conectado',
   'instances.refused': 'Rechazado',
   'instances.refusedByPassword': 'Accesible, pero ha rechazado esta instancia porque tiene una contraseña puesta. Empareja las dos con la misma frase en Ajustes, Emparejamiento, y aparecerá aquí como miembro del grupo.',

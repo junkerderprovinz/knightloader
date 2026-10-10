@@ -139,6 +139,7 @@ export const lt: Dict = {
   'instances.foundKnown': 'jau pridėtas',
   'instances.offlineWarning': 'Pridėta, bet egzempliorius neatsakė (neprisijungęs?).',
   'instances.open': 'Atverti',
+  'instances.details': 'Išsamiau',
   'instances.connected': 'Prisijungta',
   'instances.refused': 'Atmesta',
   'instances.refusedByPassword': 'Pasiekiamas, bet atmetė šį egzempliorių, nes jame nustatytas slaptažodis. Susiekite abu ta pačia fraze skiltyje Nustatymai, Susiejimas, ir jis čia pasirodys kaip grupės narys.',

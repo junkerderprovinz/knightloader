@@ -159,6 +159,7 @@ export const de: Dict = {
   'instances.foundKnown': 'bereits hinzugefügt',
   'instances.offlineWarning': 'Hinzugefügt, aber die Instanz antwortet nicht (offline?).',
   'instances.open': 'Öffnen',
+  'instances.details': 'Details',
   'instances.connected': 'Verbunden',
   'instances.refused': 'Abgelehnt',
   'instances.refusedByPassword': 'Erreichbar, lehnt diese Instanz aber ab, weil dort ein Passwort gesetzt ist. Kopple die beiden unter Einstellungen, Kopplung mit derselben Phrase, dann erscheint sie hier als Mitglied der Gruppe.',
