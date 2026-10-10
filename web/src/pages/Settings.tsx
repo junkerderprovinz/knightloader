@@ -4,6 +4,7 @@ import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/a
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { seedLabelModes, useLabelMode } from '../lib/labelModes';
+import { setHidden } from '../lib/sidebarPrefs';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
@@ -314,8 +315,14 @@ export function SettingsPage() {
         for (const [k, v] of Object.entries(kept)) if (same(doc[k], v)) merged[k] = doc[k];
         return merged as unknown as Settings;
       });
+      // Switching a module on puts its page into the sidebar once. The page's
+      // own switch takes it out again, and it then stays out.
+      if (id === 'federation' && enabled && fresh.hideInstancesFromSidebar) {
+        patch({ hideInstancesFromSidebar: false });
+        setHidden('instances', false);
+      }
     },
-    [pending, onSave, setFeatures, setSaved, answer],
+    [pending, onSave, setFeatures, setSaved, answer, patch],
   );
 
   /**
