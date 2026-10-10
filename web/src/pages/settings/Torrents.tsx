@@ -11,8 +11,9 @@ import {
   ToggleRow,
   UnitNumberInput,
 } from '../../components/ui';
+import { SeedGauge } from '../../components/pictures/SeedRing';
 import { Tabs } from '../../components/Tabs';
-import type { TorrentFileRules } from '../../lib/api';
+import { fetchTorrentOverview, type TorrentFileRules } from '../../lib/api';
 import { happened } from '../../lib/countdown';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
@@ -125,6 +126,20 @@ export function Torrents() {
   // Stored in seconds, shown in hours.
   const seedHours = Math.round(tr.seedDurationSeconds / 3600);
 
+  // What all torrents together have given back, which the ring holds against
+  // the target as it is typed. Read once: the overview follows it live.
+  const [ratio, setRatio] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void fetchTorrentOverview().then(
+      (o) => live && setRatio(o.ratio),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('settings.torrents.title')} />
@@ -132,6 +147,7 @@ export function Torrents() {
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.seedingTitle')}</SectionTitle>
         <ModuleToggle id="torrents" />
+        <SeedGauge ratio={ratio} target={tr.seedRatioTarget} />
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label={t('settings.torrents.seedRatio')} hint={t('settings.torrents.seedRatioHint')}>
             <NumberInput

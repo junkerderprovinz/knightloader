@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { connectWS, fetchVolumeUsage, type VolumeUsage } from '../lib/api';
 import { fmtDate, fmtGB } from '../lib/format';
 import { useT } from '../lib/i18n';
+import { Vessel } from './pictures/Vessel';
 import { InfoBubble } from './ui';
 
 /**
@@ -49,52 +50,39 @@ export function VolumeUsageRow() {
   if (!usage) return null;
 
   const capped = usage.cap > 0;
-  const filled = capped ? Math.min(100, Math.round((usage.used / usage.cap) * 100)) : 0;
 
   return (
-    <div className="glim-well flex flex-col gap-2 px-4 py-3">
-      <div className="flex items-center gap-2">
-        <span className="text-[11px] text-carbon-textMuted">{t('settings.volume.used')}</span>
-        <InfoBubble tip={t('volume.meterHint')} />
-        <span className="flex-1" />
-        <span
-          className={`glim-num text-[12px] font-semibold leading-none ${
-            usage.reached ? 'text-statusFail' : 'text-carbon-text'
-          }`}
-        >
-          {capped
-            ? t('settings.volume.usedOf', { used: fmtGB(usage.used), cap: fmtGB(usage.cap) })
-            : fmtGB(usage.used)}
-        </span>
-      </div>
-
-      {/* Without a cap a track could never fill. */}
-      {capped && (
-        <div
-          className="h-1.5 w-full overflow-hidden rounded-[var(--radius-pill)] bg-carbon-surface3/70"
-          role="progressbar"
-          aria-valuemin={0}
-          aria-valuemax={100}
-          aria-valuenow={filled}
-          aria-label={t('volume.meter')}
-        >
-          <div
-            className="h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
-            style={{
-              width: `${filled}%`,
-              background: usage.reached ? 'var(--status-fail-solid)' : 'var(--accent)',
-            }}
-          />
+    <div className="glim-well flex items-center gap-4 px-4 py-3">
+      {/* Without a cap the vessel has no line for full and stands open. */}
+      <Vessel
+        share={capped ? usage.used / usage.cap : null}
+        label={t('volume.meter')}
+        tone={usage.reached ? 'fail' : 'accent'}
+      />
+      <div className="flex min-w-0 flex-1 flex-col gap-2">
+        <div className="flex items-center gap-2">
+          <span className="text-[11px] text-carbon-textMuted">{t('settings.volume.used')}</span>
+          <InfoBubble tip={t('volume.meterHint')} />
+          <span className="flex-1" />
+          <span
+            className={`glim-num text-[12px] font-semibold leading-none ${
+              usage.reached ? 'text-statusFail' : 'text-carbon-text'
+            }`}
+          >
+            {capped
+              ? t('settings.volume.usedOf', { used: fmtGB(usage.used), cap: fmtGB(usage.cap) })
+              : fmtGB(usage.used)}
+          </span>
         </div>
-      )}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
-        {/* periodEnd is an instant, not a calendar bucket, so fmtDate fits. */}
-        <span className="text-carbon-textMuted">
-          {t('settings.volume.resetsOn', { date: fmtDate(usage.periodEnd) })}
-        </span>
-        {usage.reached && <span className="text-statusFail">{t('settings.volume.reached')}</span>}
-        {!capped && <span className="text-carbon-textMuted">{t('settings.volume.noCap')}</span>}
+        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+          {/* periodEnd is an instant, not a calendar bucket, so fmtDate fits. */}
+          <span className="text-carbon-textMuted">
+            {t('settings.volume.resetsOn', { date: fmtDate(usage.periodEnd) })}
+          </span>
+          {usage.reached && <span className="text-statusFail">{t('settings.volume.reached')}</span>}
+          {!capped && <span className="text-carbon-textMuted">{t('settings.volume.noCap')}</span>}
+        </div>
       </div>
     </div>
   );

@@ -224,6 +224,21 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   archives: [
     {
+      title: 'settings.archives.journey',
+      hint: 'settings.archives.journeyHint',
+      rows: [],
+      // The names the hint is filled with: the stations and the switches they follow.
+      body: [
+        'status.verifying',
+        'settings.module.checksums',
+        'settings.nav.downloads',
+        'status.repairing',
+        'picture.journey.move',
+        'settings.downloads.workDir',
+        'picture.journey.cleanup',
+      ],
+    },
+    {
       title: 'settings.module.extraction',
       rows: [
         { key: 'settings.archives.destination', hint: 'settings.archives.destinationHint' },
