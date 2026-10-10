@@ -157,7 +157,7 @@ describe('a rail on the sidebar ground', () => {
 });
 
 describe('a selector that sets a value', () => {
-  const segments = (variant: 'default' | 'well') => {
+  const segments = (variant: 'default' | 'well', links = false) => {
     act(() =>
       root.render(
         <Tabs
@@ -166,8 +166,8 @@ describe('a selector that sets a value', () => {
           active="dark"
           onSelect={() => {}}
           items={[
-            { id: 'dark', label: 'Dark' },
-            { id: 'light', label: 'Light' },
+            { id: 'dark', label: 'Dark', href: links ? '/dark' : undefined },
+            { id: 'light', label: 'Light', href: links ? '/light' : undefined },
           ]}
         />,
       ),
@@ -175,16 +175,16 @@ describe('a selector that sets a value', () => {
     return [...host.querySelectorAll<HTMLElement>('[role="tab"]')];
   };
 
-  it('owns no palette position, so the chosen segment wears the accent of its card', () => {
-    for (const segment of segments('well')) {
+  it.each(['well', 'default'] as const)('owns no palette position as a %s, so the chosen segment wears the accent of its card', (variant) => {
+    for (const segment of segments(variant)) {
       expect(segment.classList.contains('glim-hue')).toBe(false);
       expect(segment.style.getPropertyValue('--item-hue')).toBe('');
     }
-    expect(segments('well')[0].className).toContain('bg-accent');
+    expect(segments(variant)[0].className).toContain('bg-accent');
   });
 
-  it('leaves a tab strip its position per tab', () => {
-    const [first, second] = segments('default');
+  it('leaves a strip that chooses a page its position per tab', () => {
+    const [first, second] = segments('default', true);
     expect(first.classList.contains('glim-hue')).toBe(true);
     expect(first.style.getPropertyValue('--item-hue')).not.toBe(second.style.getPropertyValue('--item-hue'));
   });

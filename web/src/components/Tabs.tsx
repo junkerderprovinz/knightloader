@@ -80,12 +80,6 @@ interface Common {
    */
   variant?: 'default' | 'well';
   /**
-   * How far along the rainbow the first tab starts, for strips stacked in one
-   * card, so no two of them open on the same colour. A well has no positions
-   * to offset.
-   */
-  hueOffset?: number;
-  /**
    * `vertical` is the settings rail. It is a mode of this component so the
    * rail shares the reorder gesture, roving tabindex and rainbow wiring.
    */
@@ -233,7 +227,6 @@ export function Tabs(props: TabsProps) {
     onReorder,
     equalWidth = false,
     variant = 'default',
-    hueOffset = 0,
     orientation = 'horizontal',
     inline = false,
     hug = false,
@@ -246,6 +239,11 @@ export function Tabs(props: TabsProps) {
   const labelMode = useLabelMode('tabs');
   const display: LabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
+  // A strip whose tabs are links chooses a page, and each tab owns a palette
+  // position. A selector that sets a value owns none: its chosen segment is
+  // filled with the accent of the card it sits in (GlimStone, "The one
+  // horizontal selector").
+  const pages = items.some((item) => item.href !== undefined);
   const vertical = orientation === 'vertical';
 
   // `hover` renders the label collapsed rather than omitting it, so it grows
@@ -526,7 +524,7 @@ export function Tabs(props: TabsProps) {
             `${segBase} glim-nav-row justify-center text-center leading-snug ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
-          : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
+          : `${segBase} glim-nav-row ${pages ? 'glim-hue' : ''} glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex max-w-full items-center justify-center ${!on && item.dim ? 'opacity-60' : ''}
               ${look} ${grip}`;
@@ -582,7 +580,7 @@ export function Tabs(props: TabsProps) {
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
               { ...segmentFlex, borderRadius: 'var(--radius-pill)' }
-            : { ...hueStyle(i + hueOffset), ...segmentFlex },
+            : { ...hueStyle(pages || vertical ? i : undefined), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
           draggable: reorderable ? false : undefined,
