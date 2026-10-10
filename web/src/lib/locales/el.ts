@@ -1325,7 +1325,6 @@ export const el: Dict = {
   'captcha.continue': 'Συνέχεια',
   'captcha.cancel': 'Άκυρο',
   'captcha.refresh': 'Ανανέωση',
-  'captcha.moreOptions': 'Περισσότερες επιλογές',
   'captcha.blockHoster': 'Να σταματήσει επίσης η ερώτηση για {host} σε αυτήν τη συνεδρία',
   'captcha.blockEverywhere': 'Να σταματήσει επίσης η ερώτηση για κάθε hoster σε αυτήν τη συνεδρία',
   'captcha.tooLate': 'Αυτή η απάντηση έφτασε πολύ αργά.',

@@ -1325,7 +1325,6 @@ export const ms: Dict = {
   'captcha.continue': 'Teruskan',
   'captcha.cancel': 'Batal',
   'captcha.refresh': 'Segar semula',
-  'captcha.moreOptions': 'Lagi pilihan',
   'captcha.blockHoster': 'Berhenti juga bertanya tentang {host} untuk sesi ini',
   'captcha.blockEverywhere': 'Berhenti juga bertanya tentang mana-mana hoster untuk sesi ini',
   'captcha.tooLate': 'Jawapan itu tiba terlalu lewat.',

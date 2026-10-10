@@ -1325,7 +1325,6 @@ export const da: Dict = {
   'captcha.continue': 'Fortsæt',
   'captcha.cancel': 'Annullér',
   'captcha.refresh': 'Opdater',
-  'captcha.moreOptions': 'Flere valgmuligheder',
   'captcha.blockHoster': 'Stop også med at spørge om {host} denne session',
   'captcha.blockEverywhere': 'Stop også med at spørge om enhver hoster denne session',
   'captcha.tooLate': 'Det svar kom for sent.',

@@ -1327,7 +1327,6 @@ export const ar: Dict = {
   'captcha.continue': 'متابعة',
   'captcha.cancel': 'إلغاء',
   'captcha.refresh': 'تحديث',
-  'captcha.moreOptions': 'خيارات أخرى',
   'captcha.blockHoster': 'التوقف أيضًا عن السؤال بخصوص {host} لهذه الجلسة',
   'captcha.blockEverywhere': 'التوقف أيضًا عن السؤال بخصوص أي مضيف لهذه الجلسة',
   'captcha.tooLate': 'وصلت هذه الإجابة متأخرة جدًا.',

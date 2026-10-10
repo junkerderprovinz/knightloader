@@ -1325,7 +1325,6 @@ export const gl: Dict = {
   'captcha.continue': 'Continuar',
   'captcha.cancel': 'Cancelar',
   'captcha.refresh': 'Actualizar',
-  'captcha.moreOptions': 'Máis opcións',
   'captcha.blockHoster': 'Deixar de preguntar tamén por {host} nesta sesión',
   'captcha.blockEverywhere': 'Deixar de preguntar tamén por calquera aloxador nesta sesión',
   'captcha.tooLate': 'Esa resposta chegou demasiado tarde.',

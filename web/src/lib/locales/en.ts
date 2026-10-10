@@ -1634,7 +1634,6 @@ export const en = {
   'captcha.continue': 'Continue',
   'captcha.cancel': 'Cancel',
   'captcha.refresh': 'Refresh',
-  'captcha.moreOptions': 'More options',
   'captcha.blockHoster': 'Also stop asking for {host} this session',
   'captcha.blockEverywhere': 'Also stop asking for every host this session',
   'captcha.tooLate': 'That answer arrived too late.',

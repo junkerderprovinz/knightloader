@@ -1325,7 +1325,6 @@ export const is: Dict = {
   'captcha.continue': 'Áfram',
   'captcha.cancel': 'Hætta við',
   'captcha.refresh': 'Endurnýja',
-  'captcha.moreOptions': 'Fleiri valkostir',
   'captcha.blockHoster': 'Hætta líka að spyrja um {host} þessa lotu',
   'captcha.blockEverywhere': 'Hætta líka að spyrja um alla hýsingaraðila þessa lotu',
   'captcha.tooLate': 'Þetta svar barst of seint.',

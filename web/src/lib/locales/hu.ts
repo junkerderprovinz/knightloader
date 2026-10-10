@@ -1325,7 +1325,6 @@ export const hu: Dict = {
   'captcha.continue': 'Folytatás',
   'captcha.cancel': 'Mégse',
   'captcha.refresh': 'Frissítés',
-  'captcha.moreOptions': 'További lehetőségek',
   'captcha.blockHoster': 'Ebben a munkamenetben {host} esetén se kérdezz többé',
   'captcha.blockEverywhere': 'Ebben a munkamenetben egyik hoster esetén se kérdezz többé',
   'captcha.tooLate': 'Ez a válasz túl későn érkezett.',

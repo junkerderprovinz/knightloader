@@ -1325,7 +1325,6 @@ export const ko: Dict = {
   'captcha.continue': '계속',
   'captcha.cancel': '취소',
   'captcha.refresh': '새로고침',
-  'captcha.moreOptions': '추가 옵션',
   'captcha.blockHoster': '이번 세션에서 {host} 요청도 중단',
   'captcha.blockEverywhere': '이번 세션에서 모든 호스터 요청도 중단',
   'captcha.tooLate': '그 답변은 너무 늦게 도착했습니다.',

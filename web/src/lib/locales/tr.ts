@@ -1325,7 +1325,6 @@ export const tr: Dict = {
   'captcha.continue': 'Devam Et',
   'captcha.cancel': 'Vazgeç',
   'captcha.refresh': 'Yenile',
-  'captcha.moreOptions': 'Diğer seçenekler',
   'captcha.blockHoster': 'Bu oturumda {host} için sormayı da durdur',
   'captcha.blockEverywhere': 'Bu oturumda hiçbir hoster için sormayı da durdur',
   'captcha.tooLate': 'O yanıt çok geç ulaştı.',

@@ -1325,7 +1325,6 @@ export const et: Dict = {
   'captcha.continue': 'Jätka',
   'captcha.cancel': 'Loobu',
   'captcha.refresh': 'Värskenda',
-  'captcha.moreOptions': 'Rohkem valikuid',
   'captcha.blockHoster': 'Selles seansis ka enam mitte küsida {host} kohta',
   'captcha.blockEverywhere': 'Selles seansis ka enam mitte küsida ühegi hosteri kohta',
   'captcha.tooLate': 'See vastus jõudis liiga hilja.',
