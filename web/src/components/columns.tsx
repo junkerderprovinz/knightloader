@@ -106,6 +106,13 @@ export type Translate = (key: TranslationKey, vars?: Record<string, string | num
 // decision: a floor that does not include the indent is a floor for a name that
 // is no longer there.
 
+/**
+ * A row's padding at its two ends, the header's included, since every row
+ * lays its cells on the same tracks. The start is the wider one: the selection
+ * mark stands in it, clear of the first cell.
+ */
+export const ROW_EDGES = 'ps-5 pe-3';
+
 /** The name cell's own leading padding. */
 const CELL_PAD = 8;
 /** The tree control's hit target (`h-6 w-6` on the package row). */
@@ -267,39 +274,39 @@ export function Tip({
   );
 }
 
-/** The selection mark: a filled square, as everywhere else in GlimStone. */
-export function Checkbox({
+/**
+ * SelectionMark is the round mark a row is picked with (GlimStone, "Switches"):
+ * grey at rest, filled with the accent and ticked once its row is chosen. In a
+ * row that owns a rainbow position the accent is that position's hue.
+ * `.glim-select-mark` in index.css places it and decides when it shows.
+ */
+export function SelectionMark({
   checked,
-  onChange,
+  onPick,
   label,
+  tabIndex,
 }: {
   checked: boolean;
-  onChange: () => void;
-  label?: string;
+  /** `range` is a Shift-click, which picks everything up to this row. */
+  onPick: (range: boolean) => void;
+  label: string;
+  /** Whether this is the roving tab stop, where the row keeps one. */
+  tabIndex?: number;
 }) {
-  // The house bubble, never the OS balloon; see Tip above. A glyph-only control
-  // needs a tooltip unconditionally, since there is no other way to know what
-  // it does.
-  const tip = useTooltip<HTMLButtonElement>(label);
-  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
   return (
-    <>
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={checked}
-        aria-label={label}
-        {...(label ? hover : undefined)}
-        onClick={onChange}
-        className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
-          checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent hover:bg-carbon-surface3'
-        }`}
-        style={{ height: '1.125rem', width: '1.125rem' }}
-      >
-        <IconCheck width={12} height={12} />
-      </button>
-      {label && tip.node}
-    </>
+    <button
+      type="button"
+      role="checkbox"
+      aria-checked={checked}
+      aria-label={label}
+      tabIndex={tabIndex}
+      onClick={(e) => onPick(e.shiftKey)}
+      className={`glim-select-mark grid h-4 w-4 place-items-center rounded-[var(--radius-pill)] transition-colors ${
+        checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3 text-transparent hover:bg-carbon-hoverRaised'
+      }`}
+    >
+      <IconCheck width={10} height={10} />
+    </button>
   );
 }
 
@@ -829,7 +836,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
         <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
       )}
       {failure && (
-        <div className={`mt-0.5 flex items-center gap-1.5 text-[11px] ${parked}`}>
+        <div className={`mt-0.5 flex items-center gap-1.5 text-meta ${parked}`}>
           {/* The typed cause leads the line as a tag rather than a second
               sentence: a column reading "disk full" four times is one fact
               about this box, where four hoster sentences that each mean it are
@@ -930,7 +937,7 @@ export function ProgressCell({
           striped={unpack !== undefined}
         />
       </div>
-      <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{fmtPct(p)}</span>
+      <span className="glim-num w-9 shrink-0 text-end text-meta text-carbon-textMuted">{fmtPct(p)}</span>
     </div>
   );
 }
@@ -991,7 +998,7 @@ function AvailCell({ task, t }: { task: Task; t: Translate }) {
   return (
     <span className={STATUS_LINE}>
       {dot}
-      <Tip tip={t('task.waiting.premium')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+      <Tip tip={t('task.waiting.premium')} className="min-w-0 truncate text-meta text-carbon-textMuted">
         {t('task.waiting.premium')}
       </Tip>
     </span>
@@ -1058,7 +1065,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           status. Muted and truncating, since it is a sentence from somebody
           else's program and may be long. */}
       {task.note && (
-        <Tip tip={task.note} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+        <Tip tip={task.note} className="min-w-0 truncate text-meta text-carbon-textMuted">
           {task.note}
         </Tip>
       )}
@@ -1080,7 +1087,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         // space they get, so the ellipsis needs somewhere to lead.
         <Tip
           tip={t(task.waiting === 'spare' ? 'task.waiting.spareHint' : (waitingKey[task.waiting] ?? 'task.waiting.slot'))}
-          className="min-w-0 truncate text-[11px] text-carbon-textMuted"
+          className="min-w-0 truncate text-meta text-carbon-textMuted"
         >
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         </Tip>
@@ -1103,7 +1110,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         <Tip
           tip={t('task.checksumFail')}
           label={t('task.checksumFail')}
-          className="shrink-0 text-[11px] font-semibold text-statusFail"
+          className="shrink-0 text-meta font-semibold text-statusFail"
         >
           !
         </Tip>
@@ -1121,7 +1128,7 @@ function RemoteNote({ task, remote, t }: { task: Task; remote: RemoteFetch; t: T
   const hint = [t('task.remoteHint', { service, percent })];
   if (remote.seeds) hint.push(t('task.remoteSeeds', { n: remote.seeds }));
   return (
-    <Tip tip={hint.join(' ')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+    <Tip tip={hint.join(' ')} className="min-w-0 truncate text-meta text-carbon-textMuted">
       {line}
     </Tip>
   );
@@ -1213,11 +1220,11 @@ function UnpackStatus({
     <Tip tip={detail} className={STATUS_LINE}>
       <UnpackPill state={state} percent={percent} />
       {tally && (
-        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{`${tally.done}/${tally.total}`}</span>
+        <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{`${tally.done}/${tally.total}`}</span>
       )}
       {/* flex-1 from a zero basis: the cause takes what the word leaves and
           never squeezes the word itself. */}
-      {failure && <span className="min-w-0 flex-1 truncate text-[11px] text-carbon-textMuted">{failure.line}</span>}
+      {failure && <span className="min-w-0 flex-1 truncate text-meta text-carbon-textMuted">{failure.line}</span>}
     </Tip>
   );
 }
@@ -1240,7 +1247,7 @@ function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: str
   const label = useConnectionLabel(task, t, base);
   if (!label) return null;
   return (
-    <Tip dir="ltr" tip={label.hint} className="block truncate text-[11px] text-carbon-textMuted">
+    <Tip dir="ltr" tip={label.hint} className="block truncate text-meta text-carbon-textMuted">
       {label.text}
     </Tip>
   );
@@ -1407,7 +1414,7 @@ function PackageStatusCell({ items, ctx }: { items: Task[]; ctx: CellContext }) 
       <Tip
         tip={label}
         label={label}
-        className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-statusFail"
+        className="inline-flex shrink-0 items-center gap-0.5 text-meta font-medium text-statusFail"
       >
         <IconWarning width={13} height={13} className="shrink-0" />
         <span className="glim-num">{failed}</span>
@@ -1571,7 +1578,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     // Wrapping rather than shrinking: somebody who narrows this column past
     // what two pickers need gets them on two lines, which is readable, instead
     // of two boxes with one letter in each, which is not.
-    <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
+    <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-meta text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
       {pair && <VariantDropdown picker={pair[0]} busy={busy} shake={shakeFirst} />}
       {pair?.[1] && <VariantDropdown picker={pair[1]} busy={busy} shake={shakeSecond} />}
@@ -1591,7 +1598,7 @@ function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; 
   if (kind === 'video') picked = videoSummary(sub, t);
   if (kind === 'audio') picked = audioSummary(sub, task.audioBitrate ?? '', t);
   return (
-    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-[11px] text-carbon-textMuted">
+    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-meta text-carbon-textMuted">
       {label}
       {picked && <span className="text-carbon-textSub"> {picked}</span>}
     </Tip>
@@ -1718,7 +1725,7 @@ export const COLUMNS: ColumnDef[] = [
     // Two lists, two honest meanings for one stored column; see CellContext's
     // own `profile`.
     labelByProfile: { collector: 'columns.availability' },
-    width: 136,
+    width: 144,
     minWidth: 90,
     align: 'center',
     hideable: true,
@@ -1838,16 +1845,16 @@ export const COLUMNS: ColumnDef[] = [
     id: 'variant',
     labelKey: 'columns.variant',
     // Sized for the row every yt-dlp package has, the video row with its
-    // format and quality pickers. 231 carries it on one line in English and
+    // format and quality pickers. 234 carries it on one line in English and
     // German, the widest pick included; in a language with a longer word for
-    // Auto (287 in Lithuanian) the quality picker wraps, which it can since the
+    // Auto (293 in Lithuanian) the quality picker wraps, which it can since the
     // pickers are shrink-0 and the cell flex-wrap. Measurements are in
     // check-column-widths.mjs.
     //
     // minWidth is about the widest single control, because a picker cannot
     // shrink and the cell clips rather than squeezes it: the widest measured is
     // the Persian bitrate picker at 320 kbit/s, 144px with the padding.
-    width: 231,
+    width: 234,
     minWidth: 144,
     // The download list shows one line of text instead of the pickers, and it
     // truncates into its tooltip, so neither the pickers' width nor their floor

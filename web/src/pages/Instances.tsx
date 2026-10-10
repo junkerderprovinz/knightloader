@@ -278,7 +278,7 @@ export function Instances({
         <Card hue={firstHue + 1} className="flex flex-col gap-3">
           <SectionTitle hint={t('instances.foundHint')}>{t('instances.foundTitle')}</SectionTitle>
           {found.map((f) => (
-            <div key={f.id} className="flex flex-wrap items-center gap-3">
+            <div key={f.id} className="glim-row flex flex-wrap items-center gap-3">
               <span className="min-w-0 flex-1">
                 <span className="text-sm text-carbon-text">{f.name}</span>
                 <span className="ms-2 text-xs text-carbon-textMuted" dir="ltr">
@@ -288,14 +288,16 @@ export function Instances({
               {f.known ? (
                 <span className="text-xs text-carbon-textMuted">{t('instances.foundKnown')}</span>
               ) : (
-                <Button
-                  kind="secondary"
-                  className="px-2.5 text-xs"
-                  shake={shakes[f.id] ?? 0}
-                  onClick={() => void onAddFound(f)}
-                >
-                  {t('instances.foundAdd')}
-                </Button>
+                <span className="glim-row-actions">
+                  <Button
+                    kind="secondary"
+                    className="px-2.5 text-xs"
+                    shake={shakes[f.id] ?? 0}
+                    onClick={() => void onAddFound(f)}
+                  >
+                    {t('instances.foundAdd')}
+                  </Button>
+                </span>
               )}
             </div>
           ))}

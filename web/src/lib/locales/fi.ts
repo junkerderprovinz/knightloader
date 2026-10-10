@@ -127,6 +127,8 @@ export const fi: Dict = {
 
   'empty.downloadsTitle': 'Mitään ei ladata vielä',
   'empty.downloadsHint': 'Lisää linkit kerääjään ja käynnistä ne sitten.',
+  'empty.collectorTitle': 'Kerääjä on tyhjä',
+  'empty.collectorHint': 'Liitä linkkejä yllä valmistellaksesi ne.',
 
   'collector.title': 'Kerääjä',
   'collector.listTitle': 'Linkkiluettelo',
@@ -134,7 +136,6 @@ export const fi: Dict = {
   'collector.package': 'Paketti (valinnainen)',
   'collector.add': 'Lisää linkit',
   'collector.addTitle': 'Linkkikerääjä',
-  'collector.empty': 'Kerääjä on tyhjä. Liitä linkkejä yllä valmistellaksesi ne.',
   'collector.startSelected': 'Käynnistä valitut',
   'collector.startAll': 'Käynnistä kaikki',
   'collector.toastStaged': 'Valmisteltu {n} linkkiä',
@@ -490,6 +491,11 @@ export const fi: Dict = {
 
   'list.sortedView': 'Lajiteltu järjestys',
   'list.sortedViewTip': 'Lajittelu muuttaa näkemääsi järjestystä, ei suoritusjärjestystä. Lataukset alkavat yhä jonon järjestyksessä. Kolmas napsautus samaan sarakeotsikkoon näyttää taas jonon järjestyksen.',
+  'list.filter': 'Suodatin',
+  'list.sort': 'Lajittele',
+  'list.sortQueue': 'Jonon järjestys',
+  'list.sortAsc': 'Nouseva',
+  'list.sortDesc': 'Laskeva',
   'list.dragNeedsQueueOrder': 'Raahaus toimii vain jonon järjestyksessä. Napsauta lajiteltua sarakeotsikkoa, kunnes lajittelu on pois päältä, niin voit siirtää rivejä käsin.',
   'list.dragNotInQueue': 'Tätä ei voi siirtää käsin: vain linkkejä, jotka yhä odottavat jonossa, ja kansiota vain silloin, kun sen linkeillä on sama prioriteetti.',
   'list.controls': 'Listan hallinta',
@@ -542,7 +548,7 @@ export const fi: Dict = {
   'filter.unchecked': 'Tarkistamatta',
   'filter.stalled': 'Pysähtynyt',
 
-  'cleanup.menu': 'Siivoa…',
+  'cleanup.menu': 'Siivoa',
   'cleanup.menuLabel': 'Siivouskohteet',
   'cleanup.finished': 'Poista valmiit',
   'cleanup.offline': 'Poista poissa olevat',
@@ -574,7 +580,7 @@ export const fi: Dict = {
   'menu.packageLabel': 'Toiminnot tälle paketille',
   'menu.more': 'Lisää',
   'menu.unforce': 'Peru ”Aloita nyt”',
-  'menu.setFolder': 'Aseta latauskansio…',
+  'menu.setFolder': 'Aseta latauskansio',
   'menu.collapseAll': 'Supista kaikki paketit',
   'menu.expandAll': 'Laajenna kaikki paketit',
   'collector.checkAll': 'Tarkista kaikki',
@@ -2458,6 +2464,7 @@ export const fi: Dict = {
   'select.reduceRemove': 'Poista vain näkyvät rivit',
   'select.reduceRemoveAria': 'Poistuvista riveistä {n} ei ole näkyvissä. Napsauta, niin poistetaan vain näkyvät rivit.',
   'select.reduced': '{n} riviä otettiin pois valinnasta.',
+  'select.mark': 'Valitse',
   'remove.doneHidden': 'Poistettiin {n} latausta. {hidden} niistä jäi näkemättä.',
 
   'settings.dbmaint.title': 'Tietokannan ylläpito',
@@ -3173,7 +3180,7 @@ export const fi: Dict = {
   'props.backendAuto': 'Automaattinen',
   'props.backendHint': 'Mikä taustaosa hakee nämä linkit. ”Automaattinen” ottaa Tilit-sivun prioriteettijärjestyksestä ensimmäisen, joka voi ottaa linkin juuri nyt. Kiinnitetty linkki menee vain kyseiselle taustaosalle ja epäonnistuu syineen, kun taustaosa ei voi ottaa sitä. Käynnissä oleva lataus pitää taustaosansa. Keskeytetty lataus siirtyy, kun jatkat sitä, ja alkaa siellä alusta.',
   'settings.globalSpeedLimit': 'Nopeusrajoitus (0 = ∞)',
-  'rename.menu': 'Nimeä uudelleen…',
+  'rename.menu': 'Nimeä uudelleen',
   'rename.confirm': 'Nimeä uudelleen',
   'rename.linkTitle': 'Nimeä linkki uudelleen',
   'rename.packageTitle': 'Nimeä paketti uudelleen',

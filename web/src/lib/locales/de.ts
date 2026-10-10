@@ -141,6 +141,8 @@ export const de: Dict = {
 
   'empty.downloadsTitle': 'Noch nichts am Laden',
   'empty.downloadsHint': 'Füge Links im Sammler hinzu und starte sie.',
+  'empty.collectorTitle': 'Der Sammler ist leer',
+  'empty.collectorHint': 'Füge oben Links ein, um sie zu sammeln.',
 
   'collector.title': 'Sammler',
   'collector.listTitle': 'Linkliste',
@@ -148,7 +150,6 @@ export const de: Dict = {
   'collector.package': 'Paket (optional)',
   'collector.add': 'Links hinzufügen',
   'collector.addTitle': 'Linksammler',
-  'collector.empty': 'Der Sammler ist leer. Füge oben Links ein, um sie zu sammeln.',
   'collector.startSelected': 'Auswahl starten',
   'collector.startAll': 'Alle starten',
   'collector.toastStaged': '{n} Link(s) gesammelt',
@@ -402,6 +403,7 @@ export const de: Dict = {
   'select.reduceRemove': 'Nur die sichtbaren Zeilen entfernen',
   'select.reduceRemoveAria': '{n} der Zeilen, die weggehen, sind nicht sichtbar. Klick, um nur die sichtbaren zu entfernen.',
   'select.reduced': '{n} Zeile(n) aus der Auswahl genommen.',
+  'select.mark': 'Auswählen',
   'settings.removePassword': 'Passwort entfernen',
 
   'common.cancel': 'Abbrechen',
@@ -527,6 +529,11 @@ export const de: Dict = {
 
   'list.sortedView': 'Sortierte Reihenfolge',
   'list.sortedViewTip': 'Sortieren ändert die Reihenfolge, die du siehst, nicht die, die läuft. Downloads starten weiter in der Reihenfolge der Warteschlange. Ein dritter Klick auf dieselbe Spaltenüberschrift zeigt wieder die Reihenfolge der Warteschlange.',
+  'list.filter': 'Filter',
+  'list.sort': 'Sortieren',
+  'list.sortQueue': 'Reihenfolge der Warteschlange',
+  'list.sortAsc': 'Aufsteigend',
+  'list.sortDesc': 'Absteigend',
   'list.dragNeedsQueueOrder': 'Ziehen geht nur in der Reihenfolge der Warteschlange. Klick so oft auf die sortierte Spaltenüberschrift, bis die Sortierung aus ist, um Zeilen selbst zu verschieben.',
   'list.dragNotInQueue': 'Das lässt sich nicht von Hand verschieben: nur Links, die noch in der Warteschlange warten, und ein Ordner nur dann, wenn seine Links dieselbe Priorität haben.',
   'list.controls': 'Listensteuerung',
@@ -581,7 +588,7 @@ export const de: Dict = {
   'filter.disabled': 'Deaktiviert',
   'filter.stalled': 'Steht still',
 
-  'cleanup.menu': 'Aufräumen…',
+  'cleanup.menu': 'Aufräumen',
   'cleanup.menuLabel': 'Aufräum-Einträge',
   'cleanup.finished': 'Fertige entfernen',
   'cleanup.offline': 'Offline entfernen',
@@ -618,7 +625,7 @@ export const de: Dict = {
   'menu.enable': 'Aktivieren',
   'menu.disable': 'Deaktivieren',
   'menu.unforce': '„Jetzt starten“ aufheben',
-  'menu.setFolder': 'Download-Ordner festlegen…',
+  'menu.setFolder': 'Download-Ordner festlegen',
   'menu.collapseAll': 'Alle Pakete zuklappen',
   'menu.expandAll': 'Alle Pakete aufklappen',
   'collector.checkAll': 'Alle prüfen',
@@ -1150,7 +1157,7 @@ export const de: Dict = {
   'menu.priority': 'Priorität',
   'menu.move': 'Verschieben',
   'menu.forceStart': 'Jetzt starten',
-  'rename.menu': 'Umbenennen…',
+  'rename.menu': 'Umbenennen',
   'rename.confirm': 'Umbenennen',
   'rename.linkTitle': 'Link umbenennen',
   'rename.packageTitle': 'Paket umbenennen',

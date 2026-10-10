@@ -129,6 +129,8 @@ export const no: Dict = {
 
   'empty.downloadsTitle': 'Ingenting lastes ned ennå',
   'empty.downloadsHint': 'Legg til lenker i samleren, og start dem deretter.',
+  'empty.collectorTitle': 'Samleren er tom',
+  'empty.collectorHint': 'Lim inn lenker over for å klargjøre dem.',
 
   'collector.title': 'Samler',
   'collector.listTitle': 'Lenkeliste',
@@ -136,7 +138,6 @@ export const no: Dict = {
   'collector.package': 'Pakke (valgfritt)',
   'collector.add': 'Legg til lenker',
   'collector.addTitle': 'Lenkesamler',
-  'collector.empty': 'Samleren er tom. Lim inn lenker over for å klargjøre dem.',
   'collector.startSelected': 'Start valgte',
   'collector.startAll': 'Start alle',
   'collector.toastStaged': '{n} lenke(r) klargjort',
@@ -492,6 +493,11 @@ export const no: Dict = {
 
   'list.sortedView': 'Sortert rekkefølge',
   'list.sortedViewTip': 'Sortering endrer rekkefølgen du ser, ikke rekkefølgen som kjører. Nedlastinger starter fortsatt i køens rekkefølge. Et tredje klikk på samme kolonneoverskrift viser køens rekkefølge igjen.',
+  'list.filter': 'Filter',
+  'list.sort': 'Sorter',
+  'list.sortQueue': 'Køens rekkefølge',
+  'list.sortAsc': 'Stigende',
+  'list.sortDesc': 'Synkende',
   'list.dragNeedsQueueOrder': 'Dra fungerer bare i køens rekkefølge. Klikk på den sorterte kolonneoverskriften til sorteringen er av for å flytte rader for hånd.',
   'list.dragNotInQueue': 'Denne kan ikke flyttes manuelt: bare lenker som fortsatt venter i køen, og en mappe bare når lenkene har samme prioritet.',
   'list.controls': 'Listekontroller',
@@ -544,7 +550,7 @@ export const no: Dict = {
   'filter.unchecked': 'Ikke sjekket',
   'filter.stalled': 'Står stille',
 
-  'cleanup.menu': 'Rydd opp…',
+  'cleanup.menu': 'Rydd opp',
   'cleanup.menuLabel': 'Oppryddingspunkter',
   'cleanup.finished': 'Fjern ferdige',
   'cleanup.offline': 'Fjern offline',
@@ -576,7 +582,7 @@ export const no: Dict = {
   'menu.packageLabel': 'Handlinger for denne pakken',
   'menu.more': 'Mer',
   'menu.unforce': 'Angre «Start nå»',
-  'menu.setFolder': 'Angi nedlastingsmappe…',
+  'menu.setFolder': 'Angi nedlastingsmappe',
   'menu.collapseAll': 'Fold sammen alle pakker',
   'menu.expandAll': 'Fold ut alle pakker',
   'collector.checkAll': 'Sjekk alle',
@@ -2459,6 +2465,7 @@ export const no: Dict = {
   'select.reduceRemove': 'Fjern bare de synlige radene',
   'select.reduceRemoveAria': '{n} av radene som blir fjernet, er ikke synlige. Klikk for å fjerne bare de synlige.',
   'select.reduced': '{n} rad(er) tatt ut av utvalget.',
+  'select.mark': 'Velg',
   'remove.doneHidden': 'Fjernet {n} nedlasting(er). {hidden} av dem så du ikke.',
 
   'settings.dbmaint.title': 'Databasevedlikehold',
@@ -3174,7 +3181,7 @@ export const no: Dict = {
   'props.backendAuto': 'Automatisk',
   'props.backendHint': 'Hvilken backend som henter disse lenkene. «Automatisk» tar den første i prioritetsrekkefølgen på siden Kontoer som kan ta lenken akkurat nå. En låst lenke går bare til den backenden, og feiler med grunnen når backenden ikke kan ta den. En nedlasting som kjører, beholder backenden sin. En som er satt på pause, flytter når du fortsetter den, og starter fra begynnelsen der.',
   'settings.globalSpeedLimit': 'Hastighetsgrense (0 = ∞)',
-  'rename.menu': 'Gi nytt navn…',
+  'rename.menu': 'Gi nytt navn',
   'rename.confirm': 'Gi nytt navn',
   'rename.linkTitle': 'Gi lenken nytt navn',
   'rename.packageTitle': 'Gi pakken nytt navn',
