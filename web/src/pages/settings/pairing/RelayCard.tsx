@@ -208,8 +208,10 @@ export function RelayCard({
           onSelect={(id) => void pick(id as RelayMode)}
           items={MODES.map((m) => ({ id: m, label: t(COPY[m].name), icon: <RouteGlyph kind={m} /> }))}
         />
-        <span className="ms-auto inline-flex items-center gap-2.5">
-          <Button kind="secondary" icon={<IconEye />} onClick={() => setSeesOpen(true)}>
+        {/* Where the two do not fit side by side, the state goes under the
+            button, whose words stay on one line. */}
+        <span className="ms-auto flex flex-wrap items-center justify-end gap-2.5">
+          <Button kind="secondary" className="whitespace-nowrap" icon={<IconEye />} onClick={() => setSeesOpen(true)}>
             {t('relay.seesTitle')}
           </Button>
           <span data-testid="relay-state" className="inline-flex">
@@ -247,7 +249,7 @@ export function RelayCard({
               </SetRow>
               {urlError && <p className="text-sm text-statusFail">{urlError}</p>}
               {!urlError && PLAINTEXT_RELAY.test(url.trim()) && (
-                <p className="rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5 text-[13px] leading-relaxed text-carbon-text">
+                <p className="rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5 text-subline leading-relaxed text-carbon-text">
                   {t('relay.plaintextWarning')}
                 </p>
               )}
@@ -258,8 +260,8 @@ export function RelayCard({
           </Fact>
           {unreachable && (
             <Subcard title={t('pairing.relayCheckOpen')} hint={t('pairing.relayCheckTip')}>
-              <p className="text-[13px] text-carbon-textMuted">{t('pairing.relayCheckLead')}</p>
-              <ul className="flex list-disc flex-col gap-1 ps-5 text-[13px] text-carbon-textSub">
+              <p className="text-subline text-carbon-textMuted">{t('pairing.relayCheckLead')}</p>
+              <ul className="flex list-disc flex-col gap-1 ps-5 text-subline text-carbon-textSub">
                 <li>
                   {mode === 'own' ? (
                     t('pairing.relayCheckOwn')
@@ -303,14 +305,14 @@ export function RelayCard({
           <span className="glim-eyebrow">{t('relay.sourcesTitle')}</span>
           <div className="grid grid-cols-1 gap-3 min-[861px]:grid-cols-2">
             <Subcard title={t('relay.containerName')}>
-              <p className="text-[13px] text-carbon-textMuted">{t('relay.containerSub')}</p>
+              <p className="text-subline text-carbon-textMuted">{t('relay.containerSub')}</p>
               <Fact glyph={<FactGlyph kind="search" />}>{t('relay.containerFind', { name: t('relay.containerName') })}</Fact>
               <CommandLine t={t} />
               <Fact glyph={<FactGlyph kind="shield" />}>{t('relay.containerCert')}</Fact>
               <AddressAfter address="https://relay.example.org" t={t} />
             </Subcard>
             <Subcard title={t('relay.instanceName')}>
-              <p className="text-[13px] text-carbon-textMuted">{t('relay.instanceSub')}</p>
+              <p className="text-subline text-carbon-textMuted">{t('relay.instanceSub')}</p>
               <div className="rounded-[var(--radius-control)] bg-carbon-surface px-3 py-2">
                 <ToggleRow
                   label={t('relay.serve')}

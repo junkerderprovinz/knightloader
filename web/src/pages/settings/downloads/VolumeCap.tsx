@@ -1,10 +1,11 @@
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
+import { Card, Field, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { VolumeUsageRow } from '../../../components/VolumeMeter';
 import { RATE_UNITS } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { VolumeCapAction } from '../../../lib/api';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // The volume cap: how much may finish downloading in one period and what
 // happens once it has. A cap of 0 is off. The figure sums the sizes hosters
@@ -61,15 +62,18 @@ export function VolumeCapCard({ hue }: { hue: number }) {
         </Field>
       </div>
 
-      <FieldGroup layout="row" label={t('settings.volume.action')} hint={t('settings.volume.actionHint')}>
+      <SettingRow label={t('settings.volume.action')} hint={t('settings.volume.actionHint')}>
         <Tabs
           variant="well"
+          size="sm"
+          inline
+          hug
           label={t('settings.volume.action')}
           active={cfg.volumeCapAction}
           onSelect={(id) => patch({ volumeCapAction: id as VolumeCapAction })}
           items={ACTIONS.map((a) => ({ id: a.id, label: t(a.key) }))}
         />
-      </FieldGroup>
+      </SettingRow>
 
       {cfg.volumeCapAction === 'throttle' && (
         <Field label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>

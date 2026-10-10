@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
+import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
-import { SettingPathInput } from './controls';
+import { SettingPathInput, SettingRow } from './controls';
 // Each card owns one subject in ./downloads and shares the draft through
 // useDraft; the page passes the hues because it decides the order.
 import { CollisionCard } from './downloads/Collision';
@@ -14,7 +14,6 @@ import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
 import { FolderCheckCard } from './downloads/FolderCheck';
 import { ListCardsCard } from './downloads/ListCards';
-import { ReclaimCard } from './downloads/Reclaim';
 import { SpeedLimitField } from './downloads/SpeedLimit';
 import { StallCard } from './downloads/Stall';
 import { VolumeCapCard } from './downloads/VolumeCap';
@@ -75,11 +74,9 @@ export function DownloadsSettings() {
         </Field>
       </Card>
 
-      <ReclaimCard hue={1} />
+      <CollisionCard hue={1} />
 
-      <CollisionCard hue={2} />
-
-      <Card hue={3} className="flex flex-col gap-5">
+      <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.downloads.limitsTitle')}</SectionTitle>
         {/* Read together: two downloads on one host with eight connections
             each open sixteen. */}
@@ -102,15 +99,18 @@ export function DownloadsSettings() {
           </Field>
         </div>
         {modes.length > 0 && (
-          <FieldGroup layout="row" label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
+          <SettingRow label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
             <Tabs
               variant="well"
+              size="sm"
+              inline
+              hug
               label={t('settings.resumeOnStart')}
               active={cfg.resumeOnStart}
               onSelect={(id) => patch({ resumeOnStart: id })}
               items={modes.map((m) => ({ id: m, label: t(`settings.resume.${m}` as TranslationKey) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         <div className="grid gap-4 sm:grid-cols-2">
@@ -144,17 +144,17 @@ export function DownloadsSettings() {
         </div>
       </Card>
 
-      <StallCard hue={4} />
-      <DiskSpaceCard hue={5} />
+      <StallCard hue={3} />
+      <DiskSpaceCard hue={4} />
 
-      <VolumeCapCard hue={6} />
+      <VolumeCapCard hue={5} />
 
       {/* setFeature's refusal points people here to add a feed. */}
-      <FeedsCard hue={7} />
+      <FeedsCard hue={6} />
 
-      <FolderCheckCard hue={8} />
+      <FolderCheckCard hue={7} />
 
-      <ListCardsCard hue={9} />
+      <ListCardsCard hue={8} />
     </div>
   );
 }

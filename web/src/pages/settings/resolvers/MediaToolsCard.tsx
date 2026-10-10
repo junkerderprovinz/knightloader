@@ -1,5 +1,15 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Button, Card, FieldGroup, InfoBubble, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import {
+  Button,
+  Card,
+  FieldGroup,
+  InfoBubble,
+  SectionTitle,
+  ToggleRow,
+  useTooltip,
+  type ButtonVerdict,
+} from '../../../components/ui';
+import { IconCheck, IconClose, IconDownloads, IconRetry } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   fetchMediaTools,
@@ -56,6 +66,8 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
   const [latest, setLatest] = useState<YtdlpLatest | null>(null);
   const [checking, setChecking] = useState(false);
+  // The failure counter of the check button, so a repeated failure shakes it again.
+  const [shake, setShake] = useState(0);
   const [fetching, setFetching] = useState(false);
   const [reverting, setReverting] = useState(false);
   // Separate outcomes, so a later check does not wipe a failed fetch.
@@ -80,14 +92,16 @@ export function MediaToolsCard({ hue }: { hue: number }) {
     setFetched('');
     setFailed('');
     setReverted('');
+    let found: YtdlpLatest;
     try {
-      setLatest(await fetchYtdlpLatest());
+      found = await fetchYtdlpLatest();
     } catch (e) {
       // A GitHub refusal still answers 200, so this is the request failing.
-      setLatest({ checked: false, compare: 'unknown', detail: String(e).replace(/^(Error|ApiError):\s*/, '') });
-    } finally {
-      setChecking(false);
+      found = { checked: false, compare: 'unknown', detail: String(e).replace(/^(Error|ApiError):\s*/, '') };
     }
+    setLatest(found);
+    if (!found.checked) setShake((n) => n + 1);
+    setChecking(false);
   }, []);
 
   // Checks once the stored switch has resolved, never before.
@@ -149,6 +163,20 @@ export function MediaToolsCard({ hue }: { hue: number }) {
 
   const busy = checking || fetching || reverting;
 
+  // The check button shows its answer on itself; the sentence above the
+  // buttons names the versions. An order the server could not tell stays
+  // without a colour.
+  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } =
+    !latest || checking
+      ? { label: checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck'), icon: <IconRetry /> }
+      : !latest.checked
+        ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
+        : latest.compare === 'newer'
+          ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownloads />, verdict: 'warn' }
+          : latest.compare === 'unknown'
+            ? { label: t('settings.resolvers.toolsCheck'), icon: <IconRetry /> }
+            : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
+
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.resolvers.toolsHint')}>{t('settings.resolvers.toolsTitle')}</SectionTitle>
@@ -201,6 +229,19 @@ export function MediaToolsCard({ hue }: { hue: number }) {
 
       {/* FieldGroup, because a label would pass clicks to the first button. */}
       <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
+        {/* What the last action came to, above the buttons until the next one.
+            The fetch came after the check, so its outcome wins. */}
+        {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
+        {!failed && fetched && (
+          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
+        )}
+        {!failed && !fetched && reverted && (
+          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
+        )}
+        {!failed && !fetched && !reverted && latest && (
+          <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
+        )}
+
         {/* Revert, check, fetch: the forward action sits last. The JSX order
             sets it, so the row mirrors in right-to-left languages. */}
         <div className="flex flex-wrap items-center gap-3">
@@ -210,32 +251,28 @@ export function MediaToolsCard({ hue }: { hue: number }) {
             </Button>
           )}
 
-          <Button kind="secondary" disabled={busy} onClick={() => void onCheck()}>
-            {checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck')}
+          <Button
+            kind="secondary"
+            icon={face.icon}
+            verdict={face.verdict}
+            shake={shake}
+            disabled={busy}
+            onClick={() => void onCheck()}
+          >
+            {face.label}
           </Button>
+          <span role="status" className="sr-only">
+            {face.verdict ? face.label : ''}
+          </span>
 
           {/* Only after a check found a tag, so nobody fetches a version they
               were not shown. */}
           {latest?.checked && latest.tag && (
-            <Button kind="primary" disabled={busy} onClick={() => void onFetch()}>
+            <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
               {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
             </Button>
           )}
         </div>
-
-        {/* The fetch came after the check, so its outcome wins. */}
-        {failed && <p className="mt-2 text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
-        {!failed && fetched && (
-          <p className="mt-2 text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
-        )}
-        {!failed && !fetched && reverted && (
-          <p className="mt-2 text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
-        )}
-        {!failed && !fetched && !reverted && latest && (
-          <p className={`mt-2 text-sm ${latest.checked ? 'text-carbon-textSub' : 'text-statusFail'}`}>
-            {checkLine(t, latest, ytdlp?.version ?? '')}
-          </p>
-        )}
       </FieldGroup>
     </Card>
   );

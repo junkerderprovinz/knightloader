@@ -156,7 +156,6 @@ function PasswordCard({
           <Button
             shake={shake}
             kind="secondary"
-            hue={0}
             onClick={onApply}
             disabled={locked ? current === '' : next === ''}
           >
@@ -309,7 +308,6 @@ export function TokensSection() {
         <div>
           <Button
             kind="secondary"
-            hue={5}
             icon={<IconPlus width={16} height={16} />}
             onClick={() => setShowCreate(true)}
           >

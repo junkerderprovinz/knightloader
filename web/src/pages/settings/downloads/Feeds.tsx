@@ -9,9 +9,11 @@ import {
   SectionTitle,
   TextInput,
   useTooltip,
+  type ButtonVerdict,
 } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { Tabs } from '../../../components/Tabs';
+import { TestButton } from '../../../components/TestButton';
 import { IconFilter, IconFolder, IconPlus, IconPriority, IconTrash } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -26,7 +28,7 @@ import {
 } from '../../../lib/api';
 import { happened } from '../../../lib/countdown';
 import { useDraft, useFeatures } from '../context';
-import { RowRefusal } from '../controls';
+import { RowRefusal, SettingRow, Sheet } from '../controls';
 import { ModuleToggle } from '../ModuleToggle';
 
 // Feeds lists the RSS and Atom subscriptions this instance follows, each
@@ -164,6 +166,10 @@ export function FeedsCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
+  // A row keeps the React key it was typed under once it is stored, so the
+  // window it is edited in stays open; that key is kept by the row's address.
+  const [rowIds, setRowIds] = useState<Record<string, string>>({});
+  const idOf = (url: string) => rowIds[url] ?? storedId(url);
 
   // Fetched once, keyed by address: it changes on each feed's own timer. A
   // failure leaves it empty, which reads as "nothing to report yet".
@@ -220,7 +226,7 @@ export function FeedsCard({ hue }: { hue: number }) {
           // A row added while the module is off would take the place of the
           // parked ones, so Add waits for the switch.
           !parked && (
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+            <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
               {t('settings.feeds.add')}
             </Button>
           )
@@ -242,49 +248,52 @@ export function FeedsCard({ hue }: { hue: number }) {
         )
       ) : (
         <ul className="flex flex-col">
-          {rows.map((row, i) => (
-            <FeedRow
-              key={storedId(row.url)}
-              row={row}
-              index={i}
-              last={i === rowCount - 1}
-              stored
-              priorities={priorities}
-              status={health[row.url]}
-              open={openRow === storedId(row.url)}
-              onToggle={() => setOpenRow(openRow === storedId(row.url) ? '' : storedId(row.url))}
-              onCommitUrl={() => 'ok'}
-              onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
-              onRemove={() => write(rows.filter((r) => r.url !== row.url))}
-            />
-          ))}
-          {pending.map((p, i) => (
-            <FeedRow
-              key={p.id}
-              row={p.row}
-              index={rows.length + i}
-              last={rows.length + i === rowCount - 1}
-              stored={false}
-              priorities={priorities}
-              open={openRow === p.id}
-              onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
-              onCommitUrl={(typed) => {
-                // Kept so collapsing a half-typed row keeps the text.
-                setPending((list) =>
-                  list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
-                );
-                const verdict = commit(typed, p.row);
-                if (verdict === 'ok') {
-                  setPending((list) => list.filter((r) => r.id !== p.id));
-                  // The stored row is keyed by its address, so it remounts; keep it open.
-                  setOpenRow(storedId(typed.trim()));
-                }
-                return verdict;
-              }}
-              onChange={(next) => setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row: next } : r)))}
-              onRemove={() => setPending((list) => list.filter((r) => r.id !== p.id))}
-            />
-          ))}
+          {/* One list, so a row that gets stored keeps its place among the
+              keys React compares. */}
+          {[
+            ...rows.map((row, i) => (
+              <FeedRow
+                key={idOf(row.url)}
+                row={row}
+                index={i}
+                last={i === rowCount - 1}
+                stored
+                priorities={priorities}
+                status={health[row.url]}
+                open={openRow === idOf(row.url)}
+                onToggle={() => setOpenRow(openRow === idOf(row.url) ? '' : idOf(row.url))}
+                onCommitUrl={() => 'ok'}
+                onChange={(next) => write(rows.map((r) => (r.url === row.url ? next : r)))}
+                onRemove={() => write(rows.filter((r) => r.url !== row.url))}
+              />
+            )),
+            ...pending.map((p, i) => (
+              <FeedRow
+                key={p.id}
+                row={p.row}
+                index={rows.length + i}
+                last={rows.length + i === rowCount - 1}
+                stored={false}
+                priorities={priorities}
+                open={openRow === p.id}
+                onToggle={() => setOpenRow(openRow === p.id ? '' : p.id)}
+                onCommitUrl={(typed) => {
+                  // Kept so closing a half-typed row keeps the text.
+                  setPending((list) =>
+                    list.map((r) => (r.id === p.id ? { ...r, row: { ...r.row, url: typed } } : r)),
+                  );
+                  const verdict = commit(typed, p.row);
+                  if (verdict === 'ok') {
+                    setPending((list) => list.filter((r) => r.id !== p.id));
+                    setRowIds((ids) => ({ ...ids, [typed.trim()]: p.id }));
+                  }
+                  return verdict;
+                }}
+                onChange={(next) => setPending((list) => list.map((r) => (r.id === p.id ? { ...r, row: next } : r)))}
+                onRemove={() => setPending((list) => list.filter((r) => r.id !== p.id))}
+              />
+            )),
+          ]}
         </ul>
       )}
     </Card>
@@ -292,9 +301,9 @@ export function FeedsCard({ hue }: { hue: number }) {
 }
 
 /**
- * FeedRow shows one subscription, collapsed to its address and overrides,
- * expanded to the five fields. A new row's address reaches the draft only once
- * it is valid.
+ * FeedRow shows one subscription as its address and overrides, and its five
+ * fields in the window the row opens. A new row's address reaches the draft
+ * only once it is valid.
  */
 function FeedRow({
   row,
@@ -365,7 +374,7 @@ function FeedRow({
   const effective = derived ? DEFAULT_INTERVAL_MINUTES : row.intervalMinutes;
 
   // The house tooltip rather than a native title. Both spans sit inside the
-  // row's expand button, so they take no role and no tab stop of their own.
+  // row's button, so they take no role and no tab stop of their own.
   const urlTip = useTooltip<HTMLSpanElement>(row.url);
   const { role: _urlRole, tabIndex: _urlTabIndex, ...urlTipProps } = urlTip.triggerProps;
   const intervalTip = useTooltip<HTMLSpanElement>(t('settings.feeds.interval'));
@@ -377,7 +386,7 @@ function FeedRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
@@ -418,7 +427,7 @@ function FeedRow({
       {stored && <RowRefusal field={`feeds.${index}`} />}
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={row.url || t('settings.feeds.url')} hue={index} wide onClose={onToggle}>
           <Field label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
             {stored ? (
               // Read only rather than absent, so the address can still be copied.
@@ -507,26 +516,27 @@ function FeedRow({
             />
           </Field>
 
-          {/* FieldGroup, because a Field's label would pass a click on the
-              caption to the first tab. */}
           {priorities.length > 0 && (
-            <FieldGroup label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>
+            <SettingRow label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>
               <Tabs
+                variant="well"
                 size="sm"
+                inline
+                hug
                 label={t('settings.feeds.priority')}
-                  // Matched on undefined, since 0 is a real priority.
+                // Matched on undefined, since 0 is a real priority.
                 active={row.priority === undefined ? NO_PRIORITY : String(row.priority)}
                 onSelect={(id) =>
                   onChange(id === NO_PRIORITY ? without(row, 'priority') : { ...row, priority: Number(id) })
                 }
                 items={priorities}
               />
-            </FieldGroup>
+            </SettingRow>
           )}
 
           {stored && <FeedHealth status={status} />}
           <FeedProbe url={stored ? row.url : text} filter={filter} />
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -594,31 +604,38 @@ function fmtWhen(iso?: string): string {
  */
 function FeedProbe({ url, filter }: { url: string; filter: string }) {
   const { t } = useT();
-  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<FeedTest | null>(null);
   const [refused, setRefused] = useState('');
 
-  const run = async () => {
-    setBusy(true);
+  const run = async (): Promise<ButtonVerdict> => {
     setRefused('');
     setResult(null);
     try {
-      setResult(await testFeed(url, filter));
+      const found = await testFeed(url, filter);
+      setResult(found);
+      return found.error ? 'fail' : 'ok';
     } catch (e) {
       setRefused(String(e).replace(/^(Error|ApiError):\s*/, ''));
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
   };
 
   return (
     <FieldGroup label={t('settings.feeds.testResult')} hint={t('settings.feeds.testHint')}>
       <div className="flex flex-col gap-2">
-        <Button className="w-fit" disabled={busy || !usableAddress(url)} onClick={() => void run()}>
-          {busy ? t('settings.feeds.testBusy') : t('settings.feeds.test')}
-        </Button>
+        {/* Why the row could not be read at all, above the button until the next try. */}
+        {refused && <p dir="auto" className="text-xs text-carbon-textSub">{refused}</p>}
 
-        {refused && <p dir="auto" className="text-xs text-statusWarn">{refused}</p>}
+        <div className="flex">
+          <TestButton
+            label={t('settings.feeds.test')}
+            busyLabel={t('settings.feeds.testBusy')}
+            words={{ ok: t('test.passed'), fail: t('test.failed') }}
+            disabled={!usableAddress(url)}
+            run={run}
+            resetKey={`${url}\n${filter}`}
+          />
+        </div>
 
         {result && (
           <div className="glim-well flex flex-col gap-2 p-3 text-xs">
@@ -676,9 +693,9 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
   );
 }
 
-/** Marker is one mark in the collapsed row, shown only when its field is set. */
+/** Marker is one mark on the row, shown only when its field is set. */
 function Marker({ icon, title }: { icon: ReactNode; title: string }) {
-  // The house tooltip. The mark sits inside the expand button, so it drops the
+  // The house tooltip. The mark sits inside the row's button, so it drops the
   // tab stop, and its role would overwrite the img role that carries its name.
   const tip = useTooltip<HTMLSpanElement>(title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;

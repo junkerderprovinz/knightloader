@@ -1,37 +1,33 @@
-import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle } from '../../../components/ui';
+import { Card, Field, NumberInput, SectionTitle } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
+import { useResource } from '../../../lib/useResource';
 import { COLLISION_LABEL } from '../Archives';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
+import { choices, useTx } from '../tx';
 
-// The collision card: what a download does when its name is already taken in
-// the destination folder, and how far "keep both" may count. The labels are
-// the extraction page's, since both strips answer the same question; the id
-// lists stay apart because the server sends each its own.
+// The card for a file that is already on the disk: what a download does when
+// its name is taken in the destination folder, how far "keep both" may count,
+// and when a file found there counts as the download itself, for the pass that
+// settles tasks from finished files instead of fetching them again. The
+// collision labels are the extraction page's, since both strips answer the
+// same question; the id lists stay apart because the server sends each its own.
 
 export function CollisionCard({ hue }: { hue: number }) {
   const { t } = useT();
+  const { tx } = useTx();
   const { cfg, patch } = useDraft();
 
   // The ids come from GET /api/options, which withholds collide.Ask because a
-  // download has nobody to ask.
-  const [policies, setPolicies] = useState<string[]>([]);
-  useEffect(() => {
-    let live = true;
-    void fetchOptions().then(
-      (o) => {
-        if (live) setPolicies(o.collisionPolicies ?? []);
-      },
-      () => {
-        /* the strip stays out rather than offering a guess at the policies */
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
+  // download has nobody to ask. Without an answer the strips stay out rather
+  // than offering a guess: reclaim.ParseTrust folds an unknown value onto a
+  // looser tier.
+  const { data: options } = useResource(fetchOptions);
+  const policies = options?.collisionPolicies ?? [];
+  // The tiers come strictest first.
+  const trustModes = options?.reclaimTrustModes ?? [];
 
   const policyLabel = (id: string) => {
     const key = COLLISION_LABEL[id];
@@ -47,24 +43,21 @@ export function CollisionCard({ hue }: { hue: number }) {
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.downloads.collisionTitle')}</SectionTitle>
+      <SectionTitle>{tx('settings.advanced.reclaimTitle')}</SectionTitle>
 
-      {/* FieldGroup, because a Field's label would pass a click on the
-          caption to the first tab. */}
       {policies.length > 0 && (
-        <FieldGroup
-          layout="row"
-          label={t('settings.downloads.collision')}
-          hint={t('settings.downloads.collisionHint')}
-        >
+        <SettingRow label={t('settings.downloads.collision')} hint={t('settings.downloads.collisionHint')}>
           <Tabs
             variant="well"
+            size="sm"
+            inline
+            hug
             label={t('settings.downloads.collision')}
             active={policy}
             onSelect={(collisionPolicy) => patch({ collisionPolicy })}
             items={policies.map((id) => ({ id, label: policyLabel(id) }))}
           />
-        </FieldGroup>
+        </SettingRow>
       )}
 
       {/* Only "keep both" counts attempts, so the box is absent otherwise and
@@ -81,6 +74,21 @@ export function CollisionCard({ hue }: { hue: number }) {
             onValue={(v) => patch({ collisionMaxAttempts: Math.max(0, Math.min(1000, Math.round(v) || 0)) })}
           />
         </Field>
+      )}
+
+      {trustModes.length > 0 && (
+        <SettingRow label={tx('settings.advanced.reclaimTrust')} hint={tx('settings.advanced.reclaimTrustHint')}>
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            hug
+            label={tx('settings.advanced.reclaimTrust')}
+            active={cfg.reclaimTrust ?? ''}
+            onSelect={(reclaimTrust) => patch({ reclaimTrust })}
+            items={choices(tx, 'settings.advanced.reclaim.', trustModes)}
+          />
+        </SettingRow>
       )}
     </Card>
   );

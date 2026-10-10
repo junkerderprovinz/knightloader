@@ -6,12 +6,12 @@ import { CollectorCard } from './collector/Collector';
 import { CrawlCard } from './collector/Crawl';
 import { LinkIntakeCard } from './collector/LinkIntake';
 import { MirrorsCard } from './collector/Mirrors';
-import { OfflineCard } from './collector/Offline';
 
 /**
  * CollectorSettings is everything between a link arriving and it becoming a
- * download: how it gets in, how long its batch waits, which pages are crawled
- * for more, and what happens to copies and dead links on the way out. Not
+ * download: how it gets in, how long its batch waits and what happens to
+ * links it already has or knows to be dead, which pages are crawled for more,
+ * and what happens to copies of one file. Not
  * Collector, which is already the name of pages/Collector.
  */
 export function CollectorSettings() {
@@ -23,7 +23,6 @@ export function CollectorSettings() {
       <CollectorCard hue={1} />
       <CrawlCard hue={2} />
       <MirrorsCard hue={3} />
-      <OfflineCard hue={4} />
     </div>
   );
 }

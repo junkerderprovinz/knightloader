@@ -30,7 +30,7 @@ export function SetRow({
           <label htmlFor={htmlFor}>{label}</label>
           {hint && <InfoBubble tip={hint} />}
         </span>
-        {sub && <div className="mt-0.5 text-[13px] text-carbon-textMuted">{sub}</div>}
+        {sub && <div className="mt-0.5 text-subline text-carbon-textMuted">{sub}</div>}
       </div>
       <div className="flex min-w-0 max-w-full flex-wrap items-center justify-end gap-2">{children}</div>
     </div>

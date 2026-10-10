@@ -599,7 +599,7 @@ function Caption({ label, hint }: { label: string; hint?: Hint }) {
     // compares against; pages/settings/jump.ts reads the property rather than
     // building a `[data-glim-label="…"]` selector out of it, because a caption
     // may contain a quote in any of 42 languages.
-    <span data-glim-label={label} className="flex shrink-0 items-center text-xs text-carbon-textSub">
+    <span data-glim-label={label} className="flex max-w-full shrink-0 items-center text-xs text-carbon-textSub">
       {label}
       <HintBubble hint={hint} />
     </span>
@@ -625,14 +625,15 @@ export function Field({
   label: string;
   hint?: Hint;
   /** `'row'` puts the caption and the control on one line instead of stacking
-   *  them; the control gets `flex-1` so it still fills the line. */
+   *  them. The control fills the line, and moves under the caption where less
+   *  than a readable field's width is left beside it. */
   layout?: 'stack' | 'row';
   children: ReactNode;
 }) {
   return (
     <label className={layout === 'row' ? FIELD_SHELL_ROW_TEXT : FIELD_SHELL}>
       <Caption label={label} hint={hint} />
-      {layout === 'row' ? <span className="min-w-0 flex-1">{children}</span> : children}
+      {layout === 'row' ? <span className="min-w-0 flex-[1_1_16rem]">{children}</span> : children}
     </label>
   );
 }
@@ -1848,10 +1849,11 @@ export function SectionTitle({
   );
 }
 
-const MODAL_SIZE = {
-  content: 'max-w-md',
-  screen: 'max-w-lg h-[calc(100dvh-7rem)]',
-  capped: 'max-w-lg max-h-[calc(100dvh-7rem)]',
+const MODAL_WIDTH = { content: 'max-w-md', screen: 'max-w-lg', capped: 'max-w-lg' } as const;
+const MODAL_HEIGHT = {
+  content: '',
+  screen: 'h-[calc(100dvh-7rem)]',
+  capped: 'max-h-[calc(100dvh-7rem)]',
 } as const;
 
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
@@ -1903,7 +1905,7 @@ export function Modal({
    */
   height?: 'content' | 'screen' | 'capped';
   /** Room for a grid beside a picture, such as the twelve words and their QR
-   *  code. It goes with the content height. */
+   *  code, or for a form of several columns. */
   wide?: boolean;
 }) {
   const { t } = useT();
@@ -1935,7 +1937,7 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_SIZE[height]}`}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_WIDTH[height]} ${MODAL_HEIGHT[height]}`}
         style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
         role="dialog"
         aria-modal="true"

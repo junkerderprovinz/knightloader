@@ -3,9 +3,9 @@ import {
   Button,
   Card,
   Field,
-  FieldGroup,
   IconBadge,
   InfoBubble,
+  Modal,
   NumberInput,
   SectionTitle,
   TextArea,
@@ -17,6 +17,7 @@ import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
   IconArrowUp,
+  IconClose,
   IconCollector,
   IconGlobe,
   IconInstances,
@@ -28,6 +29,7 @@ import {
 } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import { useDraft, useFieldError } from './context';
+import { SettingRow, SubCard, SubHead } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -231,13 +233,13 @@ export function ReconnectCards({ hue }: { hue: number }) {
       <Card hue={hue} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.module.reconnect')}</SectionTitle>
         <ModuleToggle id="reconnect" />
-        {/* FieldGroup, because a Field's label would pass a click on the
-            caption to the first tab. */}
-        <FieldGroup layout="row" label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
+        <SettingRow label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
           <Tabs
             label={t('settings.reconnect.method')}
             variant="well"
             size="sm"
+            inline
+            hug
             labelled
             active={off ? null : rc.method}
             onSelect={(id) => write({ method: id as Method })}
@@ -248,8 +250,8 @@ export function ReconnectCards({ hue }: { hue: number }) {
               icon: m.icon,
             }))}
           />
-          {methodRefused.line}
-        </FieldGroup>
+        </SettingRow>
+        {methodRefused.line}
 
         <ReconnectScene
           method={rc.method}
@@ -490,13 +492,14 @@ function RequestFields({ rc, write }: FieldProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <SectionTitle
+      <SubHead
+        label={t('settings.reconnect.requests')}
+        hint={t('settings.reconnect.requestsHint')}
         right={
-          <div className="flex items-center gap-2">
-            <Button kind="secondary" onClick={() => setImporting(!importing)}>
+          <>
+            <Button kind="secondary" onClick={() => setImporting(true)}>
               {t('settings.reconnect.import')}
             </Button>
-            {/* Secondary: the one primary button here is "Run it now". */}
             <Button
               kind="secondary"
               icon={<IconPlus width={16} height={16} />}
@@ -504,12 +507,9 @@ function RequestFields({ rc, write }: FieldProps) {
             >
               {t('settings.reconnect.requestAdd')}
             </Button>
-          </div>
+          </>
         }
-      >
-        {t('settings.reconnect.requests')}
-        <InfoBubble tip={t('settings.reconnect.requestsHint')} />
-      </SectionTitle>
+      />
 
       {importing && (
         <ImportPanel
@@ -563,88 +563,89 @@ function RequestRow({
 }) {
   const { t } = useT();
   const urlRefused = useRefusal(`requests.${index}.url`);
+  const step = t('settings.reconnect.requestStep', { n: index + 1 });
   return (
-    <li className="glim-well flex flex-col gap-3 p-4">
-      <div className="flex items-center gap-3">
-        <span className="glim-num text-xs font-medium text-carbon-textSub">
-          {t('settings.reconnect.requestStep', { n: index + 1 })}
-        </span>
-        <span className="flex-1" />
-        {/* `labelled`, so the actions follow the Beschriftung setting. */}
-        <div className="flex items-center gap-1.5">
-          <IconBadge
-            labelled
-            icon={<IconArrowUp width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestUp')}
-            aria-label={t('settings.reconnect.requestUp')}
-            disabled={index === 0}
-            onClick={() => onMove(-1)}
-          />
-          <IconBadge
-            labelled
-            icon={<IconArrowDown width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestDown')}
-            aria-label={t('settings.reconnect.requestDown')}
-            disabled={last}
-            onClick={() => onMove(1)}
-          />
-          <IconBadge
-            labelled
-            icon={<IconTrash width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestRemove')}
-            aria-label={t('settings.reconnect.requestRemove')}
-            onClick={onRemove}
-          />
+    <li>
+      <SubCard
+        label={step}
+        className="gap-3"
+        right={
+          // `labelled`, so the actions follow the Beschriftung setting.
+          <>
+            <IconBadge
+              labelled
+              icon={<IconArrowUp width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestUp')}
+              aria-label={t('settings.reconnect.requestUp')}
+              disabled={index === 0}
+              onClick={() => onMove(-1)}
+            />
+            <IconBadge
+              labelled
+              icon={<IconArrowDown width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestDown')}
+              aria-label={t('settings.reconnect.requestDown')}
+              disabled={last}
+              onClick={() => onMove(1)}
+            />
+            <IconBadge
+              labelled
+              icon={<IconTrash width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestRemove')}
+              aria-label={t('settings.reconnect.requestRemove')}
+              onClick={onRemove}
+            />
+          </>
+        }
+      >
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
+          <Field label={t('settings.reconnect.requestMethod')}>
+            <Dropdown
+              label={t('settings.reconnect.requestMethod')}
+              value={(row.method || 'GET').toUpperCase()}
+              onChange={(v) => onChange({ method: v })}
+              options={VERBS.map((v) => ({ value: v, label: v }))}
+            />
+          </Field>
+          <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
+            <TextInput
+              {...urlRefused.mark}
+              dir="ltr"
+              spellCheck={false}
+              value={row.url}
+              placeholder="http://%%router%%/login.cgi"
+              onChange={(e) => onChange({ url: e.target.value })}
+            />
+            {urlRefused.line}
+          </Field>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
-        <Field label={t('settings.reconnect.requestMethod')}>
-          <Dropdown
-            label={t('settings.reconnect.requestMethod')}
-            value={(row.method || 'GET').toUpperCase()}
-            onChange={(v) => onChange({ method: v })}
-            options={VERBS.map((v) => ({ value: v, label: v }))}
-          />
-        </Field>
-        <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
-          <TextInput
-            {...urlRefused.mark}
-            dir="ltr"
-            spellCheck={false}
-            value={row.url}
-            placeholder="http://%%router%%/login.cgi"
-            onChange={(e) => onChange({ url: e.target.value })}
-          />
-          {urlRefused.line}
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.requestHeaders')} hint={t('settings.reconnect.requestHeadersHint')}>
-          <HeadersArea headers={row.headers} onHeaders={(h) => onChange({ headers: h })} />
-        </Field>
-        <Field label={t('settings.reconnect.requestBody')} hint={t('settings.reconnect.requestBodyHint')}>
-          <TextArea
-            dir="ltr"
-            rows={3}
-            spellCheck={false}
-            value={row.body ?? ''}
-            placeholder="user=%%username%%&pass=%%password%%"
-            onChange={(e) => onChange({ body: e.target.value })}
-          />
-        </Field>
-      </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t('settings.reconnect.requestHeaders')} hint={t('settings.reconnect.requestHeadersHint')}>
+            <HeadersArea headers={row.headers} onHeaders={(h) => onChange({ headers: h })} />
+          </Field>
+          <Field label={t('settings.reconnect.requestBody')} hint={t('settings.reconnect.requestBodyHint')}>
+            <TextArea
+              dir="ltr"
+              rows={3}
+              spellCheck={false}
+              value={row.body ?? ''}
+              placeholder="user=%%username%%&pass=%%password%%"
+              onChange={(e) => onChange({ body: e.target.value })}
+            />
+          </Field>
+        </div>
+      </SubCard>
     </li>
   );
 }
 
 /**
- * ImportPanel reads a LiveHeader script inline, showing what mapped and every
- * refused line side by side. A script with a refused line cannot be used, since
+ * ImportPanel reads a LiveHeader script in a window, showing what mapped and
+ * every refused line side by side. A script with a refused line cannot be used, since
  * half a router script logs in without rebooting.
  */
 function ImportPanel({
@@ -683,7 +684,27 @@ function ImportPanel({
   const refused = Boolean(result?.error);
 
   return (
-    <div className="glim-well flex flex-col gap-4 p-4">
+    <Modal
+      title={t('settings.reconnect.import')}
+      height="capped"
+      wide
+      onClose={onClose}
+      footer={
+        <>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.reconnect.importClose')} onClick={onClose} />
+          {/* Read or use, never both; an edit drops the result. */}
+          {result ? (
+            <Button disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
+              {t('settings.reconnect.importUse', { n: mapped.length })}
+            </Button>
+          ) : (
+            <Button disabled={busy || text.trim() === ''} onClick={read}>
+              {busy ? t('settings.reconnect.importReading') : t('settings.reconnect.importRead')}
+            </Button>
+          )}
+        </>
+      }
+    >
       <Field label={t('settings.reconnect.importLabel')} hint={t('settings.reconnect.importHint')}>
         <TextArea
           dir="ltr"
@@ -698,23 +719,6 @@ function ImportPanel({
           }}
         />
       </Field>
-
-      {/* Read or use, never both; an edit drops the result. */}
-      <div className="flex items-center gap-2">
-        <span className="flex-1" />
-        <Button kind="ghost" onClick={onClose}>
-          {t('settings.reconnect.importClose')}
-        </Button>
-        {result ? (
-          <Button disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
-            {t('settings.reconnect.importUse', { n: mapped.length })}
-          </Button>
-        ) : (
-          <Button disabled={busy || text.trim() === ''} onClick={read}>
-            {busy ? t('settings.reconnect.importReading') : t('settings.reconnect.importRead')}
-          </Button>
-        )}
-      </div>
 
       {failed && <StateLine tone="fail">{failed}</StateLine>}
 
@@ -765,7 +769,7 @@ function ImportPanel({
           {refused && <StateLine tone="warn">{t('settings.reconnect.importBlocked')}</StateLine>}
         </div>
       )}
-    </div>
+    </Modal>
   );
 }
 
@@ -793,15 +797,16 @@ function CheckFields({ rc, write }: FieldProps) {
       </Field>
 
       {/* No preset is selected while the URL is somebody's own. */}
-      <FieldGroup label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
+      <SettingRow label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
         <Tabs
           label={t('settings.reconnect.checkPresets')}
           size="sm"
+          inline
           active={preset?.id ?? null}
           onSelect={(id) => write({ checkUrl: CHECK_PRESETS.find((p) => p.id === id)?.url ?? '' })}
           items={CHECK_PRESETS.map((p) => ({ id: p.id, label: p.id, title: p.url }))}
         />
-      </FieldGroup>
+      </SettingRow>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
@@ -899,11 +904,7 @@ function RunPanel({
           />
         )}
         <span className="flex-1" />
-        <Button
-          onClick={run}
-          disabled={busy || disabled}
-          icon={<IconRetry width={16} height={16} />}
-        >
+        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRetry width={16} height={16} />}>
           {running ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
         </Button>
       </div>

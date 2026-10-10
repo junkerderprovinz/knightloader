@@ -287,7 +287,7 @@ function PhoneCard() {
           </span>
           {canInstall && (
             <div>
-              <Button kind="secondary" hue={0} onClick={() => void promptInstall()}>
+              <Button kind="secondary" onClick={() => void promptInstall()}>
                 {t('settings.browsertools.install')}
               </Button>
             </div>

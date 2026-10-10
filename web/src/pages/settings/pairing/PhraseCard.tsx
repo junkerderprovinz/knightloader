@@ -78,7 +78,7 @@ function WordGrid({ phrase, qr, bare = false, t }: { phrase: string; qr: QRMatri
     <div className="flex flex-col gap-2">
       <WordSlots words={phrase.split(/\s+/)} label={t('pairing.wordsLabel')} qr={qr} />
       {(qr || !bare) && (
-        <p className="flex items-center justify-end gap-1.5 text-[13px] text-carbon-textMuted">
+        <p className="flex items-center justify-end gap-1.5 text-subline text-carbon-textMuted">
           {qr && t('pairing.qrCaption')}
           {!bare && <InfoBubble tip={t('pairing.wordsTip')} />}
         </p>
@@ -249,7 +249,7 @@ export function PhraseCard({
 
   const noPasswordNote = !group.passwordSet && !noteGone && (
     <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
-      <p className="min-w-0 flex-[1_1_18rem] text-[13px] leading-relaxed text-carbon-text">{t('pairing.noPasswordHint')}</p>
+      <p className="min-w-0 flex-[1_1_18rem] text-subline leading-relaxed text-carbon-text">{t('pairing.noPasswordHint')}</p>
       <span className="flex items-center gap-2">
         <Button kind="secondary" onClick={() => navigate('/settings/access')}>
           {t('settings.setPassword')}
@@ -348,7 +348,7 @@ export function PhraseCard({
     </div>
   );
 
-  const lead = (text: string) => <p className="text-[13px] text-carbon-textMuted">{text}</p>;
+  const lead = (text: string) => <p className="text-subline text-carbon-textMuted">{text}</p>;
 
   const windows =
     shown === 'words' ? (
@@ -429,7 +429,7 @@ export function PhraseCard({
         <WordGrid phrase={phrase} qr={qr} t={t} />
         <NextStep t={t} />
         <div className="flex flex-wrap items-center justify-end gap-2.5">
-          <span className="min-w-0 flex-[1_1_10rem] text-[13px] text-carbon-textMuted">{t('pairing.notFirst')}</span>
+          <span className="min-w-0 flex-[1_1_10rem] text-subline text-carbon-textMuted">{t('pairing.notFirst')}</span>
           <Button kind="secondary" icon={<IconEdit />} onClick={() => void leave(() => setShown('enter'))} disabled={busy}>
             {t('pairing.enter')}
           </Button>
@@ -459,7 +459,7 @@ export function PhraseCard({
         </div>
         {group.relayMode === 'off' && (
           <Subcard title={t('pairing.otherNetTitle')}>
-            <p className="text-[13px] text-carbon-textSub">{t('pairing.otherNetBody')}</p>
+            <p className="text-subline text-carbon-textSub">{t('pairing.otherNetBody')}</p>
           </Subcard>
         )}
         {relayDown}
@@ -522,7 +522,7 @@ function Choice({
       <span className="grid h-11 w-11 place-items-center rounded-[var(--radius-control)] bg-accent text-accentContrast">{glyph}</span>
       <span>
         <span className="block text-sm font-semibold text-carbon-text">{title}</span>
-        <span className="mt-0.5 block text-[13px] leading-[1.35] text-carbon-textSub">{sub}</span>
+        <span className="mt-0.5 block text-subline leading-[1.35] text-carbon-textSub">{sub}</span>
       </span>
     </button>
   );

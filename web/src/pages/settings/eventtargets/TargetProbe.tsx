@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Button, FieldGroup } from '../../../components/ui';
+import { TestButton } from '../../../components/TestButton';
+import { FieldGroup, type ButtonVerdict } from '../../../components/ui';
 import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -19,31 +20,38 @@ import {
  */
 export function TargetProbe({ row }: { row: EventTargetRow }) {
   const { t } = useT();
-  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<EventTargetTest | null>(null);
   const [refused, setRefused] = useState('');
 
-  const run = async () => {
-    setBusy(true);
+  const run = async (): Promise<ButtonVerdict> => {
     setRefused('');
     setResult(null);
     try {
-      setResult(await testEventTarget(row));
+      const answer = await testEventTarget(row);
+      setResult(answer);
+      return !answer.error && answer.status >= 200 && answer.status < 300 ? 'ok' : 'fail';
     } catch (e) {
       setRefused(String(e).replace(/^(Error|EventTargetApiError):\s*/, ''));
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
   };
 
   return (
     <FieldGroup label={t('settings.eventTargets.testResult')} hint={t('settings.eventTargets.testHint')}>
       <div className="flex flex-col gap-2">
-        <Button className="w-fit" disabled={busy || !usableAddress(row.url)} onClick={() => void run()}>
-          {busy ? t('settings.eventTargets.testBusy') : t('settings.eventTargets.test')}
-        </Button>
+        {/* Why the row could not be sent at all, above the button until the next try. */}
+        {refused && <p dir="auto" className="text-xs text-carbon-textSub">{refused}</p>}
 
-        {refused && <p dir="auto" className="text-xs text-statusWarn">{refused}</p>}
+        <div className="flex">
+          <TestButton
+            label={t('settings.eventTargets.test')}
+            busyLabel={t('settings.eventTargets.testBusy')}
+            words={{ ok: t('test.sent'), fail: t('test.failed') }}
+            disabled={!usableAddress(row.url)}
+            run={run}
+            resetKey={JSON.stringify(row)}
+          />
+        </div>
 
         {result && (
           <div className="glim-well flex flex-col gap-2 p-3 text-xs">

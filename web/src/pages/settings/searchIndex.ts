@@ -71,6 +71,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.downloads.autoConfirmDelay', hint: 'settings.downloads.autoConfirmDelayHint' },
         { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
+        { key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' },
         { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
       ],
       // What the countdown row reads while its switch is off.
@@ -96,10 +97,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.advanced.rejectDownloaded', hint: 'settings.advanced.rejectDownloadedHint' },
       ],
     },
-    {
-      title: 'settings.advanced.offlineTitle',
-      rows: [{ key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' }],
-    },
   ],
 
   downloads: [
@@ -115,13 +112,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.advanced.reclaimTitle',
-      rows: [{ key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' }],
-    },
-    {
-      title: 'settings.downloads.collisionTitle',
       rows: [
         { key: 'settings.downloads.collision', hint: 'settings.downloads.collisionHint' },
         { key: 'settings.downloads.collisionAttempts', hint: 'settings.downloads.collisionAttemptsHint' },
+        { key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' },
       ],
     },
     {
@@ -181,6 +175,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.feeds.status', hint: 'settings.feeds.lastPolledHint' },
         { key: 'settings.feeds.testResult', hint: 'settings.feeds.testHint' },
       ],
+      also: ['settings.feeds.test'],
     },
     // The folder check draws no captioned rows, so the role names go in `also`
     // and the sentences, where words like "chown" live, in `body`.
@@ -245,6 +240,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.archives.subfolder', hint: 'settings.archives.subfolderHint' },
         { key: 'settings.archives.moveTo', hint: 'settings.archives.moveToHint' },
         { key: 'settings.archives.collision', hint: 'settings.archives.collisionHint' },
+        { key: 'settings.archivePasswords', hint: 'settings.archivePasswordsHint' },
       ],
       body: ['settings.pathVars'],
     },
@@ -255,10 +251,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.archives.retention', hint: 'settings.archives.retentionHint' },
         { key: 'settings.archives.infoFiles', hint: 'settings.archives.infoFilesHint' },
       ],
-    },
-    {
-      title: 'settings.archivePasswords',
-      rows: [{ key: 'settings.archivePasswords', hint: 'settings.archivePasswordsHint' }],
     },
   ],
 
@@ -283,49 +275,59 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.look.updatesAutoUpdateContainerHint'],
     },
     { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
-    // The archive and "settings only" share one card, so the old card titles
-    // are `also` entries and a search for backup still lands here.
+    // The archive and "settings only" share one card as its two sub-cards.
     {
       title: 'settings.transfer.cardTitle',
       hint: 'settings.transfer.cardHint',
-      rows: [{ key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' }],
-      // Row headings and buttons, with no anchor of their own.
+      rows: [
+        { key: 'settings.transfer.archiveLabel', hint: 'settings.transfer.archiveText' },
+        { key: 'settings.transfer.settingsLabel', hint: 'settings.transfer.settingsText' },
+        { key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' },
+      ],
+      // Buttons, with no anchor of their own.
       also: [
-        'settings.transfer.archiveLabel',
-        'settings.transfer.settingsLabel',
         'settings.system.backupButton',
         'settings.system.restoreButton',
         'settings.transfer.export',
         'settings.transfer.import',
       ],
-      body: ['settings.transfer.archiveText', 'settings.transfer.settingsText'],
       // The import preview's strings stay out: its dialog exists only once a
       // file is chosen.
     },
     {
       title: 'settings.jdimport.cardTitle',
       hint: 'settings.jdimport.cardHint',
-      rows: [{ key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' }],
-      also: ['settings.jdimport.uploadLabel', 'settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
-      body: ['settings.jdimport.uploadText'],
+      rows: [
+        { key: 'settings.jdimport.uploadLabel', hint: 'settings.jdimport.uploadText' },
+        { key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' },
+      ],
+      also: ['settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
       // The preview's strings stay out: its dialog exists only once a folder is read.
     },
   ],
 
   // The `{appearance && …}` half of the same component.
   appearance: [
-    { title: 'lang.label', rows: [] },
-    { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
+    {
+      title: 'settings.look.displayTitle',
+      rows: [
+        { key: 'lang.label' },
+        { key: 'settings.theme' },
+        { key: 'settings.shape', hint: 'settings.shapeHint' },
+        { key: 'settings.motion.title', hint: 'settings.motion.hint' },
+        { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },
+      ],
+    },
     {
       title: 'settings.labels',
       hint: 'settings.labelsHint',
-      rows: [],
-      // Each row's caption sits over a bare selector, with no anchor.
-      also: ['settings.labels.buttons', 'settings.labels.sidebar', 'settings.labels.tabs', 'settings.labels.bottombar'],
-      body: ['settings.axisSidebarHint', 'settings.axisBottombarHint'],
+      rows: [
+        { key: 'settings.labels.buttons' },
+        { key: 'settings.labels.sidebar', hint: 'settings.axisSidebarHint' },
+        { key: 'settings.labels.tabs' },
+        { key: 'settings.labels.bottombar', hint: 'settings.axisBottombarHint' },
+      ],
     },
-    { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
-    { title: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint', rows: [] },
     {
       title: 'settings.colours',
       rows: [],
@@ -349,7 +351,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rainbowPaletteHint',
       ],
     },
-    { title: 'settings.theme', rows: [] },
   ],
 
   accounts: [
@@ -390,6 +391,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'accounts.usenet.level',
         'accounts.usenet.retention',
         'accounts.usenet.optional',
+        'accounts.usenet.test',
       ],
       body: [
         'accounts.usenet.emptyHint',
@@ -596,6 +598,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.connections.testTarget', hint: 'settings.connections.testTargetHint' },
         { key: 'settings.connections.importLabel', hint: 'settings.connections.importHint' },
       ],
+      also: ['settings.connections.test'],
       // The user name's (i) on a SOCKS4 row.
       body: ['settings.connections.stateSocks4'],
     },
@@ -612,15 +615,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.reconnect.router', hint: 'settings.reconnect.routerHint' },
         { key: 'settings.reconnect.username', hint: 'settings.reconnect.usernameHint' },
         { key: 'settings.reconnect.password', hint: 'settings.reconnect.passwordHint' },
+        // The requests' own heading inside the card.
+        { key: 'settings.reconnect.requests', hint: 'settings.reconnect.requestsHint' },
         { key: 'settings.reconnect.requestMethod' },
         { key: 'settings.reconnect.requestUrl', hint: 'settings.reconnect.requestUrlHint' },
         { key: 'settings.reconnect.requestHeaders', hint: 'settings.reconnect.requestHeadersHint' },
         { key: 'settings.reconnect.requestBody', hint: 'settings.reconnect.requestBodyHint' },
         { key: 'settings.reconnect.importLabel', hint: 'settings.reconnect.importHint' },
       ],
-      // The method's sub-heading belongs to this card.
-      also: ['settings.reconnect.requests'],
-      body: ['settings.reconnect.requestsHint', 'settings.reconnect.upnpState'],
+      body: ['settings.reconnect.upnpState'],
     },
     {
       title: 'settings.reconnect.checkTitle',
@@ -696,6 +699,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resolvers.quality', hint: 'settings.resolvers.qualityHint' },
         { key: 'settings.resolvers.customFormat', hint: 'settings.resolvers.customFormatHint' },
         { key: 'settings.resolvers.playlist' },
+        { key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' },
       ],
     },
     {
@@ -705,10 +709,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resolvers.subtitleAuto' },
         { key: 'settings.resolvers.subtitleStrict', hint: 'settings.resolvers.subtitleStrictHint' },
       ],
-    },
-    {
-      title: 'settings.resolvers.outputTitle',
-      rows: [{ key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' }],
     },
     {
       title: 'settings.resolvers.audioTitle',
@@ -774,11 +774,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.module.torrents' },
         { key: 'settings.torrents.seedRatio', hint: 'settings.torrents.seedRatioHint' },
         { key: 'settings.torrents.seedDuration', hint: 'settings.torrents.seedDurationHint' },
+        { key: 'settings.torrents.uploadLimit', hint: 'settings.torrents.uploadLimitHint' },
       ],
-    },
-    {
-      title: 'settings.torrents.transferTitle',
-      rows: [{ key: 'settings.torrents.uploadLimit', hint: 'settings.torrents.uploadLimitHint' }],
     },
     {
       title: 'settings.torrents.portTitle',
@@ -786,6 +783,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.torrents.port', hint: 'settings.torrents.portHint' },
         { key: 'settings.torrents.interface', hint: 'settings.torrents.interfaceHint' },
       ],
+      also: ['settings.torrents.portMapButton'],
       // The port's further paragraphs, and the (i) inside the mapping button.
       body: [
         'settings.torrents.clientApplyHint',
@@ -1035,6 +1033,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.scripts.timeout', hint: 'settings.scripts.timeoutHint' },
         { key: 'settings.scripts.code' },
       ],
+      also: ['settings.scripts.run'],
       body: ['settings.scripts.empty', 'settings.scripts.emptyHint'],
     },
   ],
@@ -1342,11 +1341,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   shortcuts: [
-    // The command palette already searches the command names, so only the
-    // card titles are here.
-    { title: 'settings.nav.shortcuts', hint: 'settings.shortcuts.subtitle', rows: [] },
-    // The list keys are not commands, so this card is the only place they are
-    // written down; its table is left alone.
-    { title: 'settings.shortcuts.listTitle', hint: 'settings.shortcuts.listHint', rows: [] },
+    // The command palette already searches the command names, and the groups'
+    // titles come from the commands, so the one card with a title of its own
+    // is here. It also answers for what the page is for and for the reset that
+    // stands at the head of the first group.
+    {
+      title: 'settings.shortcuts.listTitle',
+      hint: 'settings.shortcuts.listHint',
+      rows: [],
+      also: ['settings.shortcuts.resetAll'],
+      body: ['settings.shortcuts.subtitle'],
+    },
   ],
 };

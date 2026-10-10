@@ -17,12 +17,13 @@ import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { useTriggerLabel } from '../../../lib/triggers';
 import { TargetEvents } from '../eventtargets/TargetEvents';
+import { Sheet } from '../controls';
 import { Placeholders } from '../eventtargets/TargetRow';
 import { ProgramHealth } from './ProgramHealth';
 
 /**
- * ProgramRow shows one event program, collapsed to its name and events,
- * expanded to the whole row. A stored program and its arguments come back
+ * ProgramRow shows one event program as its name and events, and all of it in
+ * the window the row opens. A stored program and its arguments come back
  * masked, so their boxes stay empty with a note until something is typed,
  * which then replaces the stored value, as on the idle card.
  *
@@ -83,7 +84,7 @@ export function ProgramRow({
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
-        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
+        <button type="button" onClick={onToggle} aria-haspopup="dialog" className="flex min-w-0 items-center gap-3 text-start">
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-carbon-text">
@@ -113,7 +114,7 @@ export function ProgramRow({
       </div>
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={row.name.trim() || t('settings.eventPrograms.name')} hue={index} wide onClose={onToggle}>
           <ToggleRow
             label={t('settings.eventPrograms.enabled')}
             hint={t('settings.eventPrograms.enabledHint')}
@@ -208,7 +209,7 @@ export function ProgramRow({
             deployment={deployment}
             timeoutSeconds={command.timeoutSeconds || TIMEOUT.fallback}
           />
-        </div>
+        </Sheet>
       )}
     </li>
   );

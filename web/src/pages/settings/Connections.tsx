@@ -9,14 +9,16 @@ import {
   SectionTitle,
   TextArea,
   TextInput,
+  type ButtonVerdict,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { TestButton } from '../../components/TestButton';
 import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
-import { ListArea, NeutralSwitch, RowRefusal } from './controls';
+import { ListArea, NeutralSwitch, RowRefusal, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -117,11 +119,11 @@ export function ConnectionsCard({ hue }: { hue: number }) {
       <Card hue={hue} className="flex flex-col gap-4">
         <SectionTitle
           right={
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
               <Button kind="secondary" onClick={() => setImporting(true)}>
                 {t('settings.connections.import')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
                 {t('settings.connections.add')}
               </Button>
             </div>
@@ -172,7 +174,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
   );
 }
 
-/** ConnectionRow draws hairlines between rows; the open row's editor sits in a well. */
+/** ConnectionRow draws hairlines between rows; a row opens its editor in a window. */
 function ConnectionRow({
   row,
   index,
@@ -197,7 +199,9 @@ function ConnectionRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own where the card is too
+          narrow for them beside the summary. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch
           on={row.enabled}
           onChange={(v) => onChange({ enabled: v })}
@@ -207,9 +211,9 @@ function ConnectionRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           aria-label={t('settings.connections.edit')}
-          className="flex min-w-0 items-center gap-3 text-start"
+          className="flex min-w-0 flex-1 basis-48 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="w-16 shrink-0 text-meta font-medium uppercase tracking-wide text-carbon-textSub">
@@ -227,7 +231,7 @@ function ConnectionRow({
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the summary
             truncates instead. */}
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
             icon={<IconArrowUp width={16} height={16} />}
@@ -260,10 +264,10 @@ function ConnectionRow({
       <RowRefusal field={`connections.${index}`} className="ps-12" />
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={endpointOf(row) || kindLabel(t, row.type)} hue={index} wide onClose={onToggle}>
           <Editor row={row} onChange={onChange} />
           {!inert && <TestPanel row={row} />}
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -376,11 +380,9 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 function TestPanel({ row }: { row: Connection }) {
   const { t } = useT();
   const [target, setTarget] = useState('');
-  const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
-  async function run() {
-    setBusy(true);
+  async function run(): Promise<ButtonVerdict> {
     setReport(null);
     try {
       const r = await fetch('/api/connections/test', {
@@ -389,7 +391,9 @@ function TestPanel({ row }: { row: Connection }) {
         body: JSON.stringify({ entry: row, target }),
       });
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      setReport((await r.json()) as Report);
+      const answer = (await r.json()) as Report;
+      setReport(answer);
+      return answer.ok ? 'ok' : 'fail';
     } catch (e) {
       // A transport failure is reported as a refusal to run, not as a verdict.
       setReport({
@@ -398,15 +402,21 @@ function TestPanel({ row }: { row: Connection }) {
         detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
         millis: 0,
       });
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
   }
 
   return (
     <div className="flex flex-col gap-3 border-t border-carbon-border/60 pt-4">
-      <div className="flex items-end gap-3">
-        <div className="min-w-0 flex-1">
+      {/* How far the probe got, in the server's words; the button holds the answer. */}
+      {report && (
+        <p className="text-xs text-carbon-textSub">
+          {report.detail}
+          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {fmtUnit(report.millis, 'ms')}</span>}
+        </p>
+      )}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-[1_1_12rem]">
           <Field label={t('settings.connections.testTarget')} hint={t('settings.connections.testTargetHint')}>
             <TextInput
               dir="ltr"
@@ -417,16 +427,15 @@ function TestPanel({ row }: { row: Connection }) {
             />
           </Field>
         </div>
-        <Button kind="secondary" onClick={run} disabled={busy} icon={<IconGlobe width={16} height={16} />}>
-          {busy ? t('settings.connections.testing') : t('settings.connections.test')}
-        </Button>
+        <TestButton
+          label={t('settings.connections.test')}
+          busyLabel={t('settings.connections.testing')}
+          icon={<IconGlobe />}
+          words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+          run={run}
+          resetKey={JSON.stringify(row) + target}
+        />
       </div>
-      {report && (
-        <p className={`text-xs ${report.ok ? 'text-statusOk' : 'text-statusFail'}`}>
-          {report.detail}
-          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {fmtUnit(report.millis, 'ms')}</span>}
-        </p>
-      )}
     </div>
   );
 }

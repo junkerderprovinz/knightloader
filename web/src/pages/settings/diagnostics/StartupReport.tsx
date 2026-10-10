@@ -3,7 +3,8 @@ import { type StartupCheck, type StartupReport, runStartupCheck } from '../../..
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtDate } from '../../../lib/format';
 import { adviceFor } from '../../../lib/startupAdvice';
-import { Button, Card, InfoBubble, SectionTitle } from '../../../components/ui';
+import { Card, InfoBubble, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import { TestButton } from '../../../components/TestButton';
 import { IconCheck, IconClose, IconWarning } from '../../../lib/icons';
 
 // The start report shows what this instance checked once after it came up. It
@@ -60,20 +61,21 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
   const { t } = useT();
   // Null while the card shows the boot reading.
   const [fresh, setFresh] = useState<StartupReport | null>(null);
-  const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
 
   const shown = fresh ?? report;
 
-  async function onRecheck() {
+  // The worst row decides what the button shows; the rows say which and why.
+  async function onRecheck(): Promise<ButtonVerdict> {
     setError('');
-    setBusy(true);
     try {
-      setFresh(await runStartupCheck());
+      const next = await runStartupCheck();
+      setFresh(next);
+      if (next.checks.some((c) => c.verdict === 'fail')) return 'fail';
+      return next.checks.some((c) => c.verdict === 'warn') ? 'warn' : 'ok';
     } catch (e) {
       setError(t('settings.diagnostics.startupRecheckFailed', { error: String(e).replace(/^Error:\s*/, '') }));
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
   }
 
@@ -116,19 +118,22 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
 
       {nothingWrong && <span className="text-sm text-statusOk">{t('settings.diagnostics.startupNothingWrong')}</span>}
 
-      <div className="flex flex-wrap items-center gap-1.5">
-        <Button
-          kind="secondary"
-          hue={hue}
-          disabled={busy}
-          hint={t('settings.diagnostics.startupRecheckHint')}
-          onClick={() => void onRecheck()}
-        >
-          {busy ? t('settings.diagnostics.startupRechecking') : t('settings.diagnostics.startupRecheck')}
-        </Button>
-      </div>
+      {/* Why the check could not run, above the button until the next one. */}
+      {error && <span className="text-sm text-carbon-textSub">{error}</span>}
 
-      {error && <span className="text-sm text-statusFail">{error}</span>}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <TestButton
+          label={t('settings.diagnostics.startupRecheck')}
+          busyLabel={t('settings.diagnostics.startupRechecking')}
+          hint={t('settings.diagnostics.startupRecheckHint')}
+          words={{
+            ok: t('settings.diagnostics.verdict.ok'),
+            warn: t('settings.diagnostics.verdict.warn'),
+            fail: error ? t('settings.info.checkFailed') : t('settings.diagnostics.verdict.fail'),
+          }}
+          run={onRecheck}
+        />
+      </div>
     </Card>
   );
 }

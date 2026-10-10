@@ -1,5 +1,7 @@
-import { Button, Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { useState } from 'react';
+import { Button, Card, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
+import { IconBell, IconCheck, IconClose } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useQuietMode, useToast } from '../../../lib/toast';
 import {
@@ -9,6 +11,7 @@ import {
   useNotifyChannels,
   type NotifyChannel,
 } from '../../../lib/notify';
+import { SettingRow } from '../controls';
 
 /**
  * The Benachrichtigungen card: quiet mode first, since it filters on top of
@@ -42,11 +45,22 @@ export function NotificationsCard({ hue }: { hue: number }) {
     if (next === 'system' && outcome === 'default') toast(t('notifications.systemNotGranted'), 'info');
   }
 
+  // What the last test came to, shown on its button, and the failure counter
+  // that shakes it.
+  const [sent, setSent] = useState<ButtonVerdict | null>(null);
+  const [shake, setShake] = useState(0);
+
   // A real press may ask for permission; without it the test falls back to the bubble.
   async function sendTest() {
     const outcome = await ask();
-    if (outcome === 'granted') showSystem(t('notifications.title'), t('notifications.testBody'), 'test');
-    else toast(t('notifications.testBody'), 'info');
+    if (outcome === 'granted') {
+      showSystem(t('notifications.title'), t('notifications.testBody'), 'test');
+      setSent('ok');
+      return;
+    }
+    toast(t('notifications.testBody'), 'info');
+    setSent('fail');
+    setShake((n) => n + 1);
   }
 
   return (
@@ -55,8 +69,14 @@ export function NotificationsCard({ hue }: { hue: number }) {
         hint={t('notifications.titleHint')}
         right={
           SYSTEM_SUPPORTED ? (
-            <Button kind="secondary" onClick={() => void sendTest()}>
-              {t('notifications.test')}
+            <Button
+              kind="secondary"
+              icon={sent === 'ok' ? <IconCheck /> : sent === 'fail' ? <IconClose /> : <IconBell />}
+              verdict={sent ?? undefined}
+              shake={shake}
+              onClick={() => void sendTest()}
+            >
+              {sent === 'ok' ? t('test.sent') : sent === 'fail' ? t('test.failed') : t('notifications.test')}
             </Button>
           ) : undefined
         }
@@ -79,19 +99,16 @@ export function NotificationsCard({ hue }: { hue: number }) {
         // not overwrite what the desktop set (lib/notify.ts).
         const active = channels[ev.kind] ?? ev.fallback;
         return (
-          // A well strip sizes every segment to the longest label, so the row wraps.
-          <div key={ev.kind} className="flex flex-wrap items-center justify-between gap-3">
-            <span className="flex items-center gap-1.5 text-sm text-carbon-text">
-              {label}
-              <InfoBubble tip={t(ev.hint)} />
-            </span>
-            {/* Not in a Field, whose label would pass a click on the caption to
-                the first segment. activateOnFocus={false} keeps arrow keys from
-                selecting "System notification" and raising the permission
-                prompt, which can only be refused once. */}
+          // Not a Field, whose label would pass a click on the caption to the
+          // first segment. activateOnFocus={false} keeps arrow keys from
+          // selecting "System notification" and raising the permission prompt,
+          // which can only be refused once.
+          <SettingRow key={ev.kind} label={label} hint={t(ev.hint)}>
             <Tabs
               variant="well"
               size="sm"
+              inline
+              hug
               activateOnFocus={false}
               label={label}
               active={active}
@@ -103,7 +120,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
                 dim: c.id === 'system' && !SYSTEM_SUPPORTED,
               }))}
             />
-          </div>
+          </SettingRow>
         );
       })}
     </Card>

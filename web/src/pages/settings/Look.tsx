@@ -1,5 +1,17 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, LinkBadge, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  Button,
+  Card,
+  ErrorCard,
+  InfoBubble,
+  LinkBadge,
+  Modal,
+  SectionTitle,
+  Toggle,
+  ToggleRow,
+  useTooltip,
+  type ButtonVerdict,
+} from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
 import { LanguagePicker } from '../../components/LanguagePicker';
@@ -11,7 +23,7 @@ import {
   requestRestart,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import { IconCheck, IconClose, IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -45,6 +57,7 @@ import {
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
 import { useDraft, useFeatures } from './context';
+import { SettingRow } from './controls';
 import { ModulesPageBadge } from './ModuleToggle';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
@@ -435,133 +448,146 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Each card title is a notch badge with its own rainbow position. The
-          language comes first on this tab, with the other things that decide
-          how the app looks to the person using it; its trigger is a field, as
-          tall as one. */}
+      {/* What decides how the app looks to the person using it, one row each
+          with its selector at the row's end. The language comes first, and its
+          trigger is a field, as tall as one. */}
       {appearance && (
-      <Card hue={3} className="flex flex-col gap-3">
-        <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: OnboardingWizard mounts a second instance at the same
-            time (see LanguagePicker.tsx). */}
-        <LanguagePicker
-          direction="down"
-          standalone
-          className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
-        />
-      </Card>
-      )}
-
-      {appearance && (
-      <Card hue={0} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.shapeHint')}>
-          {t('settings.shape')}
-        </SectionTitle>
-        {/* The well variant of Tabs: one padded track, equal segments, no glyphs.
-            The leaf joins it only while it has just been found or is in force. */}
-        <Tabs
-          label={t('settings.shape')}
-          variant="well"
-          active={cfg.shape}
-          onSelect={(id) => {
-            // Taps on a chosen square count toward the hidden shape.
-            const found = leafTap(leafTaps.current, id, cfg.shape);
-            if (found) setLeafFound(true);
-            patch({ shape: found ?? (id as Shape) });
-          }}
-          items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
-            id: s,
-            label: t(SHAPE_LABELS[s]),
-          }))}
-        />
+      <Card hue={0} className="flex flex-col gap-4">
+        <SectionTitle>{t('settings.look.displayTitle')}</SectionTitle>
+        <SettingRow label={t('lang.label')}>
+          {/* standalone: OnboardingWizard mounts a second instance at the same
+              time (see LanguagePicker.tsx). */}
+          <LanguagePicker
+            direction="down"
+            standalone
+            className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
+          />
+        </SettingRow>
+        <SettingRow label={t('settings.theme')}>
+          <Tabs
+            label={t('settings.theme')}
+            variant="well"
+            size="sm"
+            inline
+            hug
+            labelled
+            active={theme}
+            onSelect={(id) => setTheme(id as 'dark' | 'light')}
+            items={[
+              { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
+              { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
+            ]}
+          />
+        </SettingRow>
+        {/* The leaf joins the shapes only while it has just been found or is
+            in force. */}
+        <SettingRow label={t('settings.shape')} hint={t('settings.shapeHint')}>
+          <Tabs
+            label={t('settings.shape')}
+            variant="well"
+            size="sm"
+            inline
+            hug
+            active={cfg.shape}
+            onSelect={(id) => {
+              // Taps on a chosen square count toward the hidden shape.
+              const found = leafTap(leafTaps.current, id, cfg.shape);
+              if (found) setLeafFound(true);
+              patch({ shape: found ?? (id as Shape) });
+            }}
+            items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
+              id: s,
+              label: t(SHAPE_LABELS[s]),
+            }))}
+          />
+        </SettingRow>
+        {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
+            level joins the list only while it has just been found or is in
+            force. */}
+        <SettingRow label={t('settings.motion.title')} hint={t('settings.motion.hint')}>
+          <Tabs
+            label={t('settings.motion.title')}
+            variant="well"
+            size="sm"
+            inline
+            hug
+            active={motion}
+            onSelect={(id) => {
+              // A tap on the active segment, which a picker would otherwise
+              // swallow, counts toward the hidden level.
+              const found = stormTap(stormTaps.current, id, motion);
+              const next = found ?? (id as Motion);
+              if (found) setStormFound(true);
+              setMotion(next);
+              applyMotion(next);
+              cacheMotionIntensity(next);
+            }}
+            items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => ({
+              id: m,
+              label: t(`settings.motion.${m}` as never),
+            }))}
+          />
+        </SettingRow>
+        {/* How tall a row of the download and collector lists is, per browser
+            like the motion level (lib/rowHeight.ts). */}
+        <SettingRow label={t('settings.rowHeight.title')} hint={t('settings.rowHeight.hint')}>
+          <Tabs
+            label={t('settings.rowHeight.title')}
+            variant="well"
+            size="sm"
+            inline
+            hug
+            active={rowHeight}
+            onSelect={(id) => setRowHeight(id as RowHeight)}
+            items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
+          />
+        </SettingRow>
       </Card>
       )}
 
       {/* How much of each kind of control is drawn, one selector per kind. It
           writes through the store as well as the draft, since the sidebar
-          renders outside this page's provider (lib/labelModes.ts). */}
+          renders outside this page's provider (lib/labelModes.ts). The sidebar
+          draws as the rail or as the bar, never both, so each of those two
+          rows does nothing at the other width and says so. */}
       {appearance && (
-      <Card hue={9} className="flex flex-col gap-3">
+      <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle hint={t('settings.labelsHint')}>
           {t('settings.labels')}
         </SectionTitle>
-        <div className="flex flex-col gap-4">
-          {labelAxes.map((axis) => (
-            <div key={axis} className="flex flex-col gap-1">
-              <span className="flex items-center gap-1 text-xs text-carbon-textSub">
-                {t(LABEL_AXIS_NAMES[axis])}
-                {/* The sidebar draws as the rail or as the bar, never both, so
-                    each of those two rows does nothing at the other width and
-                    says so. */}
-                {axis === 'sidebar' && <InfoBubble tip={t('settings.axisSidebarHint')} />}
-                {axis === 'bottombar' && <InfoBubble tip={t('settings.axisBottombarHint')} />}
-              </span>
-              <Tabs
-                label={t(LABEL_AXIS_NAMES[axis])}
-                variant="well"
-                active={labelModes[axis]}
-                onSelect={(id) => {
-                  const next = asLabelMode(id);
-                  setLabelMode(axis, next);
-                  patch({ [LABEL_SETTING[axis]]: next });
-                }}
-                items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
-              />
-            </div>
-          ))}
-        </div>
-      </Card>
-      )}
-
-      {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
-          level joins the list only while it has just been found or is in
-          force. */}
-      {appearance && (
-      <Card hue={8} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.motion.hint')}>
-          {t('settings.motion.title')}
-        </SectionTitle>
-        <Tabs
-          label={t('settings.motion.title')}
-          variant="well"
-          active={motion}
-          onSelect={(id) => {
-            // A tap on the active segment, which a picker would otherwise
-            // swallow, counts toward the hidden level.
-            const found = stormTap(stormTaps.current, id, motion);
-            const next = found ?? (id as Motion);
-            if (found) setStormFound(true);
-            setMotion(next);
-            applyMotion(next);
-            cacheMotionIntensity(next);
-          }}
-          items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => ({
-            id: m,
-            label: t(`settings.motion.${m}` as never),
-          }))}
-        />
-      </Card>
-      )}
-
-      {/* How tall a row of the download and collector lists is, per browser
-          like the motion level (lib/rowHeight.ts). */}
-      {appearance && (
-      <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.rowHeight.hint')}>
-          {t('settings.rowHeight.title')}
-        </SectionTitle>
-        <Tabs
-          label={t('settings.rowHeight.title')}
-          variant="well"
-          active={rowHeight}
-          onSelect={(id) => setRowHeight(id as RowHeight)}
-          items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
-        />
+        {labelAxes.map((axis) => (
+          <SettingRow
+            key={axis}
+            label={t(LABEL_AXIS_NAMES[axis])}
+            hint={
+              axis === 'sidebar'
+                ? t('settings.axisSidebarHint')
+                : axis === 'bottombar'
+                  ? t('settings.axisBottombarHint')
+                  : undefined
+            }
+          >
+            <Tabs
+              label={t(LABEL_AXIS_NAMES[axis])}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              active={labelModes[axis]}
+              onSelect={(id) => {
+                const next = asLabelMode(id);
+                setLabelMode(axis, next);
+                patch({ [LABEL_SETTING[axis]]: next });
+              }}
+              items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
+            />
+          </SettingRow>
+        ))}
       </Card>
       )}
 
       {appearance && (
-      <Card hue={1} className="flex flex-col gap-4">
+      <Card hue={2} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.colours')}</SectionTitle>
 
         {/* Label on the left, circles on the right. While rainbow mode is on
@@ -730,23 +756,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
       {general && <NotificationsCard hue={0} />}
 
-      {appearance && (
-      <Card hue={4} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.theme')}</SectionTitle>
-        <Tabs
-          label={t('settings.theme')}
-          variant="well"
-          labelled
-          active={theme}
-          onSelect={(id) => setTheme(id as 'dark' | 'light')}
-          items={[
-            { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
-            { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
-          ]}
-        />
-      </Card>
-      )}
-
       {general && <MutedDialogsCard hue={1} />}
       {general && <UpdateCard hue={2} />}
       {general && <SystemCards hue={3} />}
@@ -855,10 +864,8 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
           {t('settings.system.lifecycleTitle')}
         </SectionTitle>
         <div className="flex flex-wrap items-center gap-3">
-          {/* hue overrides kind's colour, so both buttons look alike. */}
           <Button
-            hue={hue}
-            kind="primary"
+            kind="secondary"
             icon={<IconSignOut width={16} height={16} />}
             disabled={!data.canQuit || acting}
             onClick={() => setConfirmAction('quit')}
@@ -866,8 +873,7 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
             {t('settings.system.quit')}
           </Button>
           <Button
-            hue={hue}
-            kind="primary"
+            kind="secondary"
             icon={<IconRetry width={16} height={16} />}
             disabled={!data.canRestart || acting}
             onClick={() => setConfirmAction('restart')}
@@ -926,6 +932,8 @@ function UpdateCard({ hue }: { hue: number }) {
   const [deployment, setDeployment] = useState<string | null>(null);
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
+  // The failure counter of the check button, so a repeated failure shakes it again.
+  const [shake, setShake] = useState(0);
 
   useEffect(() => {
     void fetchDeploymentInfo()
@@ -935,13 +943,15 @@ function UpdateCard({ hue }: { hue: number }) {
 
   const onCheck = useCallback(async () => {
     setChecking(true);
+    let next: UpdateCheckT;
     try {
-      setCheck(await fetchUpdateCheck());
+      next = await fetchUpdateCheck();
     } catch {
-      setCheck({ checked: false, available: false, current: '' });
-    } finally {
-      setChecking(false);
+      next = { checked: false, available: false, current: '' };
     }
+    setCheck(next);
+    if (!next.checked) setShake((n) => n + 1);
+    setChecking(false);
   }, []);
 
   // Auto-check once, when the switch's value arrives, on a container only:
@@ -956,6 +966,17 @@ function UpdateCard({ hue }: { hue: number }) {
   if (deployment === null) return null;
   const isDesktop = deployment === 'desktop';
   const ready = check?.ready;
+  const available = !!check?.checked && check.available;
+
+  // The button shows the answer on itself, like any button that tests
+  // something; what the answer cannot hold stands as one line above it.
+  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = !check
+    ? { label: t('settings.look.updatesCheck'), icon: <IconRetry /> }
+    : !check.checked
+      ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
+      : available
+        ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownloads />, verdict: 'warn' }
+        : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
 
   return (
     <Card hue={hue} className="flex flex-col gap-3">
@@ -982,24 +1003,33 @@ function UpdateCard({ hue }: { hue: number }) {
         // page rather than claiming this switch is there as well.
         aside={updater && <ModulesPageBadge m={updater} title={t('settings.nav.modules')} />}
       />
-      <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
-          {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
-        </Button>
-        {check && !check.checked && <span className="text-sm text-statusFail">{t('settings.look.updatesFailed')}</span>}
-        {ready && <span className="text-sm text-statusOk">{t('settings.look.updatesReady', { version: ready })}</span>}
-        {!ready && check && check.checked && !check.available && (
-          <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
-        )}
-        {!ready && check && check.checked && check.available && (
-          <span className="inline-flex items-center text-sm font-medium text-carbon-text">
-            {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
-            {!isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
+      {/* A downloaded version outranks the offer of it: it only waits for a
+          restart. */}
+      {!checking && (ready || available) && (
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-carbon-textSub">
+          <span className="inline-flex items-center">
+            {ready
+              ? t('settings.look.updatesReady', { version: ready })
+              : t('settings.look.updatesAvailable', { version: check?.latest ?? '' })}
+            {!ready && !isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
           </span>
-        )}
-        {check && check.checked && check.available && check.url && (
-          <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />
-        )}
+          {available && check?.url && <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />}
+        </p>
+      )}
+      <div className="flex justify-end">
+        <Button
+          kind="secondary"
+          icon={checking ? <IconRetry /> : face.icon}
+          verdict={checking ? undefined : face.verdict}
+          shake={shake}
+          disabled={checking}
+          onClick={() => void onCheck()}
+        >
+          {checking ? t('settings.look.updatesChecking') : face.label}
+        </Button>
+        <span role="status" className="sr-only">
+          {check && !checking ? face.label : ''}
+        </span>
       </div>
     </Card>
   );

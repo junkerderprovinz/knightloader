@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { checkFolderOwners, type FolderOwnerProbe, type FolderOwnerReport } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtDate } from '../../../lib/format';
-import { Button, Card, SectionTitle } from '../../../components/ui';
+import { Button, Card, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import { IconCheck, IconClose } from '../../../lib/icons';
 import { useDraft } from '../context';
 
 // The folder check writes a probe file into each configured folder and
@@ -44,14 +45,19 @@ export function FolderCheckCard({ hue }: { hue: number }) {
   const [report, setReport] = useState<FolderOwnerReport | null>(null);
   const [running, setRunning] = useState(false);
   const [error, setError] = useState('');
+  // The failure counter of the check button, so a repeated failure shakes it again.
+  const [shake, setShake] = useState(0);
 
   const run = useCallback(async () => {
     setError('');
     setRunning(true);
     try {
-      setReport(await checkFolderOwners());
+      const found = await checkFolderOwners();
+      setReport(found);
+      if (found.folders.some(unusable)) setShake((n) => n + 1);
     } catch (e) {
       setError(t('settings.owner.checkFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      setShake((n) => n + 1);
     } finally {
       setRunning(false);
     }
@@ -73,20 +79,36 @@ export function FolderCheckCard({ hue }: { hue: number }) {
     void run();
   }, [dirty, cfg.downloadDir, cfg.workDir, run]);
 
+  // The button shows the answer on itself: every folder usable, one that is
+  // not, or a check that could not run. The rows below say which and why.
+  const face: { label: string; icon?: ReactNode; verdict?: ButtonVerdict } = running
+    ? { label: t('settings.owner.running') }
+    : error
+      ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
+      : !report
+        ? { label: t('settings.owner.run') }
+        : report.folders.some(unusable)
+          ? { label: t('settings.diagnostics.verdict.fail'), icon: <IconClose />, verdict: 'fail' }
+          : { label: t('settings.diagnostics.verdict.ok'), icon: <IconCheck />, verdict: 'ok' };
+
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.owner.checkHint')}>{t('settings.owner.checkTitle')}</SectionTitle>
 
+      {/* Why the check could not run, above the button until the next one. */}
+      {error && <span className="text-sm text-carbon-textSub">{error}</span>}
+
       <div className="flex flex-wrap items-center gap-3">
-        <Button onClick={() => void run()} disabled={running}>
-          {running ? t('settings.owner.running') : t('settings.owner.run')}
+        <Button kind="secondary" icon={face.icon} verdict={face.verdict} shake={shake} onClick={() => void run()} disabled={running}>
+          {face.label}
         </Button>
+        <span role="status" className="sr-only">
+          {face.verdict ? face.label : ''}
+        </span>
         <span className="text-meta text-carbon-textMuted">
           {report ? t('settings.owner.checkedAt', { time: fmtDate(report.checkedAt) }) : t('settings.owner.never')}
         </span>
       </div>
-
-      {error && <span className="text-sm text-statusFail">{error}</span>}
 
       {/* There is always a download folder, so the list is never empty. */}
       {report && report.folders.length > 0 && (
@@ -99,6 +121,9 @@ export function FolderCheckCard({ hue }: { hue: number }) {
     </Card>
   );
 }
+
+/** unusable tells whether the check found something wrong with a folder. */
+const unusable = (f: FolderOwnerProbe): boolean => f.verdict !== 'ok' && f.verdict !== 'unknown';
 
 function FolderRow({ f }: { f: FolderOwnerProbe }) {
   const { t } = useT();
@@ -117,7 +142,7 @@ function FolderRow({ f }: { f: FolderOwnerProbe }) {
     detail: f.detail ?? '',
   };
   const sentence = verdictKey(f.verdict);
-  const bad = f.verdict !== 'ok' && f.verdict !== 'unknown';
+  const bad = unusable(f);
 
   return (
     <div className="glim-well flex flex-col gap-1 p-4">
