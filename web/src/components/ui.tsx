@@ -37,6 +37,18 @@ const kindClass: Record<ButtonKind, string> = {
 };
 
 /**
+ * A pressed button shows a state that is in force, the way a chosen segment
+ * does, so it is filled and has no hover step: pressing it again changes
+ * nothing. `primary` is the accent, for a state that means running; the
+ * surface kinds stand one tier above their rest.
+ */
+const pressedClass: Record<ButtonKind, string> = {
+  primary: 'glim-active bg-accent text-accentContrast',
+  secondary: 'bg-carbon-surface3 text-carbon-text',
+  ghost: 'bg-carbon-hover text-carbon-text',
+};
+
+/**
  * The answer a button that tests something shows on itself: green once the
  * test passed, red when it could not run, orange when it found something. It
  * reports a state the way a status badge does, which is why it is a table of
@@ -88,6 +100,7 @@ export function Button({
   labelled,
   transport = false,
   keyHeight = false,
+  pressed,
   title,
   hint,
   shake = 0,
@@ -99,6 +112,12 @@ export function Button({
   hue?: number;
   /** The answer of the test this button ran, which outranks `kind` and `hue`. */
   verdict?: ButtonVerdict;
+  /**
+   * Makes the button one of a set that shows which state is in force, such as
+   * the head bar's Play and Pause. Left undefined everywhere else, so an
+   * action button does not become a toggle for assistive tech.
+   */
+  pressed?: boolean;
   /**
    * Opts a glyph-only button into the Beschriftung setting; see IconBadge's own
    * `labelled`. Used by the windows' way out, which has a title and no
@@ -142,7 +161,9 @@ export function Button({
     ? verdictClass[verdict]
     : hued
       ? 'glim-hue bg-accent text-accentContrast hover:bg-accentHover'
-      : kindClass[kind];
+      : pressed
+        ? pressedClass[kind]
+        : kindClass[kind];
   const ink = verdict ? 'text-carbon-background' : hued ? 'text-accentContrast' : kindInk[kind];
   const slotted = !!hint && !iconOnly;
   // A disabled button takes no pointer events, so a square's name, which is all
@@ -174,6 +195,7 @@ export function Button({
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
       aria-label={iconOnly && title ? title : undefined}
+      aria-pressed={pressed}
       {...hover}
       ref={(el) => {
         shakeRef.current = el;

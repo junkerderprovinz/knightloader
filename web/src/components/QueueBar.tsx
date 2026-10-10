@@ -92,23 +92,26 @@ export function QueueBar() {
   // high; the name is in the tooltip. The bar lays them out.
   return (
     <>
-      {/* `secondary` rather than `ghost` for the inactive buttons, since a
-          disabled ghost button has no fill and reads as gone. Stop asks first
-          through the cost dialog. */}
+      {/* Play and Pause show which of the two states the queue is in, as a
+          player's transport does, and the other one is the button to press.
+          The fill is the state's colour, not a call to act: the accent while
+          the queue runs and the neutral tone while it is halted (GlimStone
+          rule 4), which leaves the page's floating action the one filled
+          accent button. Stop asks first through the cost dialog. */}
       <Button
-        kind={queue.halted ? 'primary' : 'secondary'}
+        kind={queue.halted ? 'secondary' : 'primary'}
         transport
         icon={<IconPlay />}
-        onClick={() => void setHalted(false)}
-        disabled={!queue.halted}
+        pressed={!queue.halted}
+        onClick={() => queue.halted && void setHalted(false)}
         title={t('queue.play')}
       />
       <Button
-        kind={!queue.halted ? 'primary' : 'secondary'}
+        kind="secondary"
         transport
         icon={<IconPause />}
-        onClick={() => void setHalted(true)}
-        disabled={queue.halted}
+        pressed={queue.halted}
+        onClick={() => !queue.halted && void setHalted(true)}
         title={t('queue.pause')}
       />
       <Button
