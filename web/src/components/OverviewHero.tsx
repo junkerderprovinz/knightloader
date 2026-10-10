@@ -153,19 +153,17 @@ function StatusRing({
 
 /**
  * OverviewHero opens the overview: the ring, one sentence from a short fixed
- * list and one line of live figures. `action` ends the line.
+ * list and one line of live figures.
  */
 export function OverviewHero({
   tasks,
   needs,
   done,
-  action,
 }: {
   tasks: Task[];
   needs: Need[];
   /** What was marked as done, so a settled failure does not colour the ring. */
   done: ReadonlySet<string>;
-  action?: ReactNode;
 }) {
   const { t } = useT();
   const [segments, figures] = useMemo(() => {
@@ -232,7 +230,6 @@ export function OverviewHero({
         <h2 className="text-[22px] font-semibold leading-tight text-carbon-text">{title}</h2>
         <p className="glim-num mt-1 text-sm text-carbon-textSub">{line.join(' · ')}</p>
       </div>
-      {action && <div className="flex shrink-0 items-center gap-2.5 max-md:w-full">{action}</div>}
     </div>
   );
 }

@@ -36,6 +36,8 @@ import { InstanceRow } from '../components/InstanceCard';
 import { TorrentCard } from '../components/TorrentCard';
 import { NeedsCard } from '../components/NeedsCard';
 import { OverviewHero } from '../components/OverviewHero';
+import { PageAction, PageActions } from '../components/PageActions';
+import { useAddLinks } from '../components/AddLinksAction';
 import { Tabs } from '../components/Tabs';
 import { useReorder } from '../components/dragLift';
 import { IconArrowDown, IconArrowUp, IconCheck, IconDownloads, IconEdit, IconEye, IconEyeOff, IconGrip } from '../lib/icons';
@@ -94,6 +96,7 @@ export function Dashboard() {
   const [stored, setStored] = useUIState<OverviewLayout | null>('overview.cards', null);
   const layout = useMemo(() => readLayout(stored), [stored]);
   const [editing, setEditing] = useState(false);
+  const addLinks = useAddLinks();
   const grid = useRef<HTMLDivElement>(null);
   const empty = useEmptyCards(grid);
 
@@ -282,21 +285,7 @@ export function Dashboard() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('overview.title')} />
 
-      <OverviewHero
-        tasks={list}
-        needs={feed.needs}
-        done={feed.done}
-        action={
-          <Button
-            kind="secondary"
-            icon={editing ? <IconCheck /> : <IconEdit />}
-            aria-pressed={editing}
-            onClick={() => setEditing((on) => !on)}
-          >
-            {t(editing ? 'overview.customize.finish' : 'overview.customize')}
-          </Button>
-        }
-      />
+      <OverviewHero tasks={list} needs={feed.needs} done={feed.done} />
 
       {editing && (
         <div className="flex flex-wrap items-center justify-end gap-3">
@@ -360,6 +349,16 @@ export function Dashboard() {
           </div>
         </div>
       )}
+
+      <PageActions>
+        <PageAction
+          icon={editing ? <IconCheck /> : <IconEdit />}
+          label={t(editing ? 'overview.customize.finish' : 'overview.customize')}
+          onClick={() => setEditing((on) => !on)}
+        />
+        {addLinks.action}
+      </PageActions>
+      {addLinks.dialog}
     </div>
   );
 }
