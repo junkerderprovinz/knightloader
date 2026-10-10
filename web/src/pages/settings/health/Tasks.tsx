@@ -52,7 +52,8 @@ export function TasksCard({ hue, report }: { hue: number; report: HealthReport }
 function Count({ label, n }: { label: string; n: number }) {
   return (
     <div className="flex flex-col gap-1">
-      <span data-glim-label={label} className="text-meta text-carbon-textMuted">
+      {/* Three figures share a phone's width, so a long word breaks. */}
+      <span data-glim-label={label} className="text-meta text-carbon-textMuted [overflow-wrap:anywhere]">
         {label}
       </span>
       <span className="glim-num text-title text-carbon-text" dir="ltr">

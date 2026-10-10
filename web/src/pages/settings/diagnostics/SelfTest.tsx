@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type SelfTestResult,
   type SelfTestRun,
@@ -10,8 +10,8 @@ import { clockSkewMs, fmtSkew, skewStatus } from '../../../lib/selftest';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { happened } from '../../../lib/countdown';
-import { Button, Card, SectionTitle } from '../../../components/ui';
-import { IconRetry } from '../../../lib/icons';
+import { Button, Card, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import { IconCheck, IconClose, IconRetry, IconWarning } from '../../../lib/icons';
 import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
 
 // The instance's own checks: the JDownloader sidecar, yt-dlp, the target
@@ -64,6 +64,10 @@ export function SelfTestCard({ hue }: { hue: number }) {
   const [starting, setStarting] = useState(false);
   const [error, setError] = useState('');
   const [skewMs, setSkewMs] = useState<number | null>(null);
+  // Whether the run on screen was started from this button, whose answer it then is.
+  const [mine, setMine] = useState(false);
+  // The failure counter of the run button, so a repeated failure shakes it again.
+  const [shake, setShake] = useState(0);
 
   const refresh = useCallback(() => {
     void fetchSelfTest().then(setRun, () => undefined);
@@ -84,6 +88,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
     setStarting(true);
     try {
       setRun(await startSelfTest());
+      setMine(true);
       // Started once the sweep runs, so the two calls do not queue on a
       // single-connection proxy. A failure leaves the server's clock row as is.
       const sentAt = Date.now();
@@ -95,6 +100,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
       }
     } catch (e) {
       setError(t('settings.selftest.startFailed', { error: String(e).replace(/^Error:\s*/, '') }));
+      setShake((n) => n + 1);
     } finally {
       setStarting(false);
     }
@@ -104,14 +110,52 @@ export function SelfTestCard({ hue }: { hue: number }) {
   const planned = run?.planned ?? [];
   const busy = starting || running;
 
+  // The worst row of the run this button started, with the clock row as the
+  // browser finished it. A run found on arrival leaves the button as it was.
+  const statuses = (run?.results ?? []).map((r) => (r.id === 'clock' ? clockRow(r, skewMs).status : r.status));
+  const outcome: ButtonVerdict | null =
+    !mine || busy || run === null || !happened(run.finishedAt)
+      ? null
+      : statuses.includes('fail')
+        ? 'fail'
+        : statuses.includes('warn')
+          ? 'warn'
+          : 'ok';
+  useEffect(() => {
+    if (outcome === 'fail') setShake((n) => n + 1);
+  }, [outcome]);
+  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = busy
+    ? { label: t('settings.selftest.running'), icon: <IconRetry /> }
+    : error
+      ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
+      : outcome === 'ok'
+        ? { label: t('settings.diagnostics.verdict.ok'), icon: <IconCheck />, verdict: 'ok' }
+        : outcome === 'warn'
+          ? { label: t('settings.diagnostics.verdict.warn'), icon: <IconWarning />, verdict: 'warn' }
+          : outcome === 'fail'
+            ? { label: t('settings.diagnostics.verdict.fail'), icon: <IconClose />, verdict: 'fail' }
+            : { label: t('settings.selftest.run'), icon: <IconRetry /> };
+
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle
         hint={t('settings.selftest.hint')}
         right={
-          <Button onClick={() => void start()} disabled={busy} icon={<IconRetry width={16} height={16} />}>
-            {busy ? t('settings.selftest.running') : t('settings.selftest.run')}
-          </Button>
+          <>
+            <Button
+              kind="secondary"
+              icon={face.icon}
+              verdict={face.verdict}
+              shake={shake}
+              disabled={busy}
+              onClick={() => void start()}
+            >
+              {face.label}
+            </Button>
+            <span role="status" className="sr-only">
+              {face.verdict ? face.label : ''}
+            </span>
+          </>
         }
       >
         {t('settings.selftest.title')}
@@ -162,7 +206,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
           {t('settings.selftest.lastRun', { when: fmtDate(run.finishedAt) })}
         </span>
       )}
-      {error && <span className="text-sm text-statusFail">{error}</span>}
+      {error && <span className="text-sm text-carbon-textSub">{error}</span>}
     </Card>
   );
 }

@@ -92,8 +92,9 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
         <HintBubble hint={[reason ?? '', moduleDetail(tx, m) ?? '']} />
       </div>
 
-      {/* Wraps under the name where the row runs out of width. */}
-      <div className="ms-auto flex items-center gap-3">
+      {/* Wraps under the name where the row runs out of width, and the switch
+          under the badge where the two do not fit one line either. */}
+      <div className="ms-auto flex max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2">
         {page && (
           <PageBadge
             page={page}

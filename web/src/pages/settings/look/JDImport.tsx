@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Field, InfoBubble, SectionTitle } from '../../../components/ui';
+import { Button, Card, SectionTitle } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
@@ -11,6 +11,7 @@ import {
   type JDImportPreview,
   type JDImportReport,
 } from '../../../lib/api';
+import { SubCard } from '../controls';
 import { JDImportPreviewDialog, itemName, reasonText } from './JDImportPreview';
 
 /**
@@ -66,11 +67,7 @@ export function JDImportCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.jdimport.cardHint')}>{t('settings.jdimport.cardTitle')}</SectionTitle>
 
-      <div className="flex flex-col gap-2">
-        <span className="flex items-center text-sm font-medium text-carbon-text">
-          {t('settings.jdimport.uploadLabel')}
-          <InfoBubble tip={t('settings.jdimport.uploadText')} />
-        </span>
+      <SubCard label={t('settings.jdimport.uploadLabel')} hint={t('settings.jdimport.uploadText')} className="gap-3">
         <input
           ref={fileInput}
           type="file"
@@ -85,7 +82,6 @@ export function JDImportCard({ hue }: { hue: number }) {
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconUpload width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
@@ -95,15 +91,12 @@ export function JDImportCard({ hue }: { hue: number }) {
             {t('settings.jdimport.uploadButton')}
           </Button>
         </div>
-      </div>
+      </SubCard>
 
-      <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
-        <Field label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')}>
-          <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
-        </Field>
+      <SubCard label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')} className="gap-3">
+        <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
             onClick={() => void read(() => readJDImportPath(path.trim()))}
             disabled={busy || path.trim() === ''}
@@ -112,7 +105,7 @@ export function JDImportCard({ hue }: { hue: number }) {
             {busy ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
           </Button>
         </div>
-      </div>
+      </SubCard>
 
       {failure && <span className="text-sm text-statusFail">{failure}</span>}
       {report && <Report {...report} />}

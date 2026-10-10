@@ -10,7 +10,6 @@ import {
 import { type TranslationKey, useT } from '../../lib/i18n';
 import { useToast } from '../../lib/toast';
 import {
-  Button,
   Card,
   ErrorCard,
   Field,
@@ -22,7 +21,9 @@ import {
   PageHeader,
   SectionTitle,
   ToggleRow,
+  type ButtonVerdict,
 } from '../../components/ui';
+import { TestButton } from '../../components/TestButton';
 import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch } from './controls';
@@ -205,36 +206,31 @@ export function testRefusal(e: unknown): TranslationKey {
 function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
-  const [busy, setBusy] = useState(false);
+  const words = { ok: t('test.sent'), fail: t('test.failed') };
 
-  async function send(toSolvers: boolean) {
-    setBusy(true);
+  // The button says whether the captcha went up; why it did not is a toast.
+  const send = (toSolvers: boolean) => async (): Promise<ButtonVerdict> => {
     try {
       await createTestCaptcha(toSolvers);
+      return 'ok';
     } catch (e) {
       toast(t(testRefusal(e)), 'fail');
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
-  }
+  };
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle>{t('settings.captcha.testTitle')}</SectionTitle>
       <div className="flex flex-wrap gap-2">
-        <Button kind="secondary" hue={0} disabled={busy} hint={t('settings.captcha.testHint')} onClick={() => void send(false)}>
-          {t('settings.captcha.test')}
-        </Button>
+        <TestButton label={t('settings.captcha.test')} hint={t('settings.captcha.testHint')} words={words} run={send(false)} />
         {solvers && (
-          <Button
-            kind="secondary"
-            hue={1}
-            disabled={busy}
+          <TestButton
+            label={t('settings.captcha.testSolvers')}
             hint={t('settings.captcha.testSolversHint')}
-            onClick={() => void send(true)}
-          >
-            {t('settings.captcha.testSolvers')}
-          </Button>
+            words={words}
+            run={send(true)}
+          />
         )}
       </div>
     </Card>

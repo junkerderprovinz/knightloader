@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
+import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
 import { AfterDownload } from '../../components/pictures/AfterDownload';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
-import { ListArea, SettingPathInput } from './controls';
+import { ListArea, SettingPathInput, SettingRow } from './controls';
 
 /**
  * Archives settles everything about an archive: whether it is unpacked, where
@@ -154,21 +154,28 @@ export function Archives() {
             />
           </Field>
 
-          {/* FieldGroup, because a Field's label would pass a click on the
-              caption to the first tab. */}
           {options && options.archiveCollisions.length > 0 && (
-            <FieldGroup layout="row" label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
+            <SettingRow label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
               <Tabs
                 label={t('settings.archives.collision')}
                 variant="well"
+                size="sm"
+                inline
+                hug
                 active={cfg.extractCollision ?? ''}
                 onSelect={(extractCollision) => patch({ extractCollision })}
                 items={choices(options.archiveCollisions, COLLISION_LABEL)}
               />
-            </FieldGroup>
+            </SettingRow>
           )}
         </div>
         )}
+
+        {/* Outside the switch's rows: a category can unpack while the switch
+            is off, and its archives need the passwords all the same. */}
+        <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
+          <ListArea rows={4} lines={cfg.archivePasswords} onLines={(archivePasswords) => patch({ archivePasswords })} />
+        </Field>
       </Card>
 
       {/* The whole card goes while nothing is unpacked. */}
@@ -177,8 +184,7 @@ export function Archives() {
         <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
         <div className="flex flex-col gap-5">
           {options && options.archiveDisposals.length > 0 && (
-            <FieldGroup
-              layout="row"
+            <SettingRow
               label={t('settings.archives.disposal')}
               // A container has no recycle bin: "trash" moves into a hidden
               // folder the server names and sweeps by age.
@@ -189,11 +195,14 @@ export function Archives() {
               <Tabs
                 label={t('settings.archives.disposal')}
                 variant="well"
+                size="sm"
+                inline
+                hug
                 active={disposal}
                 onSelect={(archiveDisposal) => patch({ archiveDisposal })}
                 items={choices(options.archiveDisposals, DISPOSAL_LABEL)}
               />
-            </FieldGroup>
+            </SettingRow>
           )}
 
           {disposal === 'trash' && (
@@ -226,13 +235,6 @@ export function Archives() {
         </div>
       </Card>
       )}
-
-      <Card hue={3} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.archivePasswords')}</SectionTitle>
-        <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
-          <ListArea rows={4} lines={cfg.archivePasswords} onLines={(archivePasswords) => patch({ archivePasswords })} />
-        </Field>
-      </Card>
 
       {/* Only when the option lists did not arrive. */}
       {failed && <p className="text-xs text-statusFail">{t('settings.archives.optionsFailed')}</p>}

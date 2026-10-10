@@ -22,7 +22,7 @@ import { rejectionReason } from '../../lib/rejectionReason';
 import { useT } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
-import { NeutralSwitch, RowRefusal } from './controls';
+import { NeutralSwitch, RowRefusal, Sheet } from './controls';
 import { usePendingJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -301,7 +301,7 @@ function RuleCards() {
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
           right={
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
               {/* One bubble per button, since Import and Export do different things. */}
               <Button kind="secondary" hint={t('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
                 {t('settings.rules.import')}
@@ -309,7 +309,7 @@ function RuleCards() {
               <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
                 {t('settings.rules.export')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
                 {t('settings.rules.add')}
               </Button>
             </div>
@@ -439,10 +439,13 @@ function RuleRow({
 }) {
   const { t } = useT();
   const broken = problems.length > 0;
+  const name = rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 });
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own where the card is too
+          narrow for them beside the summary. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch
           on={!rule.disabled}
           onChange={(v) => onChange({ ...rule, disabled: !v })}
@@ -452,14 +455,12 @@ function RuleRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
-          className="flex min-w-0 items-center gap-3 text-start"
+          aria-haspopup="dialog"
+          className="flex min-w-0 flex-1 basis-48 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm text-carbon-text">
-              {rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 })}
-            </span>
+            <span className="block truncate text-sm text-carbon-text">{name}</span>
             <span className="block truncate text-meta text-carbon-textMuted">
               {ruleSummary(t, rule, flavour)}
             </span>
@@ -470,7 +471,7 @@ function RuleRow({
               {t('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
-          {/* Red reports the rule's state; it sits inside the expand button,
+          {/* Red reports the rule's state; it sits inside the row's button,
               whose own classes carry no status colour. */}
           {broken && (
             <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-meta text-statusFail">
@@ -482,7 +483,7 @@ function RuleRow({
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the name
             and summary truncate instead. */}
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
             icon={<IconArrowUp width={16} height={16} />}
@@ -520,15 +521,13 @@ function RuleRow({
         </div>
       </div>
 
-      {/* Shown on a closed rule too, so a broken one is found without opening
-          each. The engine drops a rule with any problem whole. */}
-      {broken && !open && (
-        <p className="pb-2.5 ps-12 text-meta text-statusFail">{t('settings.rules.notRunning')}</p>
-      )}
+      {/* On the row, so a broken rule is found without opening each. The
+          engine drops a rule with any problem whole. */}
+      {broken && <p className="pb-2.5 ps-12 text-meta text-statusFail">{t('settings.rules.notRunning')}</p>}
       <RowRefusal field={`${FIELD[flavour]}.rules.${index}`} className="ps-12" />
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={name} hue={index} wide onClose={onToggle}>
           {broken && <p className="text-meta text-statusFail">{t('settings.rules.notRunning')}</p>}
           <RuleEditor
             rule={rule}
@@ -538,7 +537,7 @@ function RuleRow({
             categories={categories}
             onChange={onChange}
           />
-        </div>
+        </Sheet>
       )}
     </li>
   );

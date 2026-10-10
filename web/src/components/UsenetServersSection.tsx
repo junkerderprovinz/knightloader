@@ -17,6 +17,7 @@ import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconClose, IconRetry, IconTrash, IconGlobe } from '../lib/icons';
 import { AccountTable } from './AccountTable';
+import { TestButton } from './TestButton';
 import {
   Button,
   EmptyState,
@@ -28,6 +29,7 @@ import {
   SectionTitle,
   TextInput,
   ToggleRow,
+  type ButtonVerdict,
 } from './ui';
 
 /** A server's last test on this page, kept until the page is left. */
@@ -266,25 +268,27 @@ function ServerDialog({
   const { toast } = useToast();
   const [s, setS] = useState<UsenetServerSave>(initial);
   const [result, setResult] = useState<Checked | null>(null);
-  const [busy, setBusy] = useState<'test' | 'save' | null>(null);
+  const [saving, setSaving] = useState(false);
   const set = (patch: Partial<UsenetServerSave>) => {
     setS((cur) => ({ ...cur, ...patch }));
     setResult(null);
   };
 
-  async function onTest() {
-    setBusy('test');
+  // The button says whether the server took the login; a test that could not
+  // run at all says why in a toast.
+  async function onTest(): Promise<ButtonVerdict> {
     try {
-      setResult(await testUsenetServer(s));
+      const answer = await testUsenetServer(s);
+      setResult(answer);
+      return answer.ok ? 'ok' : 'fail';
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
-    } finally {
-      setBusy(null);
+      return 'fail';
     }
   }
 
   async function onSaveClick() {
-    setBusy('save');
+    setSaving(true);
     try {
       await onSave(s);
       toast(t('accounts.saved'), 'ok');
@@ -292,7 +296,7 @@ function ServerDialog({
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
     } finally {
-      setBusy(null);
+      setSaving(false);
     }
   }
 
@@ -307,11 +311,16 @@ function ServerDialog({
         <>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button kind="secondary" onClick={() => void onTest()} disabled={!filled || busy !== null}>
-            {busy === 'test' ? t('accounts.verifying') : t('accounts.usenet.test')}
-          </Button>
-          <Button onClick={() => void onSaveClick()} disabled={!filled || busy !== null}>
-            {busy === 'save' ? t('accounts.saving') : t('accounts.save')}
+          <TestButton
+            label={t('accounts.usenet.test')}
+            busyLabel={t('accounts.verifying')}
+            words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+            disabled={!filled || saving}
+            run={onTest}
+            resetKey={JSON.stringify(s)}
+          />
+          <Button onClick={() => void onSaveClick()} disabled={!filled || saving}>
+            {saving ? t('accounts.saving') : t('accounts.save')}
           </Button>
         </>
       }
@@ -360,10 +369,9 @@ function ServerDialog({
           checked={s.optional}
           onChange={(optional) => set({ optional })}
         />
-        {result && (
-          <p className={`text-xs ${result.ok ? 'text-statusOk' : 'text-statusFail'}`} role="status">
-            {result.ok ? t('accounts.ok') : t('accounts.verifyFailed', { detail: result.detail })}
-          </p>
+        {/* Why the server refused, above the buttons until the next test. */}
+        {result && !result.ok && (
+          <p className="text-xs text-carbon-textSub">{t('accounts.verifyFailed', { detail: result.detail })}</p>
         )}
       </div>
     </Modal>

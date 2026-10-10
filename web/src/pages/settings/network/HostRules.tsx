@@ -22,6 +22,7 @@ import {
 } from '../../../lib/api';
 import { resolverLabel } from '../../../lib/resolverLabels';
 import { useDraft } from '../context';
+import { Sheet } from '../controls';
 
 // Per-host exceptions to the global counts: how many downloads one hoster may
 // have open, how many connections each gets, how a failure is retried, and
@@ -119,6 +120,10 @@ export function HostRulesCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
+  // A row keeps its React key when its host is typed or renamed, so the window
+  // it is edited in stays open; the key it started under is kept by host.
+  const [rowIds, setRowIds] = useState<Record<string, string>>({});
+  const idOf = (key: string) => rowIds[key] ?? storedId(key);
 
   const write = (next: Record<string, HostRule>) => patch({ hostRules: next });
 
@@ -158,7 +163,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.hostRules.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
             {t('settings.hostRules.add')}
           </Button>
         }
@@ -174,55 +179,57 @@ export function HostRulesCard({ hue }: { hue: number }) {
         </p>
       ) : (
         <ul className="flex flex-col">
-          {keys.map((key, i) => (
-            <HostRuleRow
-              key={storedId(key)}
-              host={key}
-              rule={rules[key] ?? {}}
-              services={services}
-              index={i}
-              last={i === rowCount - 1}
-              open={openRow === storedId(key)}
-              onToggle={() => setOpenRow(openRow === storedId(key) ? '' : storedId(key))}
-              onCommit={(typed) => {
-                const verdict = commit(key, typed, rules[key] ?? {});
-                // The row is keyed by its host, so a rename remounts it under
-                // the new name; without this the editor would close on itself.
-                if (verdict === 'ok') setOpenRow(storedId(normalizeHost(typed)));
-                return verdict;
-              }}
-              onChange={(next) => write({ ...rules, [key]: next })}
-              onRemove={() => {
-                const map = { ...rules };
-                delete map[key];
-                write(map);
-              }}
-            />
-          ))}
-          {pending.map((row, i) => (
-            <HostRuleRow
-              key={row.id}
-              host={row.host}
-              rule={row.rule}
-              services={services}
-              index={keys.length + i}
-              last={keys.length + i === rowCount - 1}
-              open={openRow === row.id}
-              onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
-              onCommit={(typed) => {
-                // Kept so collapsing a half-typed row keeps the text.
-                setPending((p) => p.map((r) => (r.id === row.id ? { ...r, host: typed } : r)));
-                const verdict = commit('', typed, row.rule);
-                if (verdict === 'ok') {
-                  setPending((p) => p.filter((r) => r.id !== row.id));
-                  setOpenRow(storedId(normalizeHost(typed)));
-                }
-                return verdict;
-              }}
-              onChange={(next) => setPending((p) => p.map((r) => (r.id === row.id ? { ...r, rule: next } : r)))}
-              onRemove={() => setPending((p) => p.filter((r) => r.id !== row.id))}
-            />
-          ))}
+          {/* One list, so a row that gets its host keeps its place among the
+              keys React compares. */}
+          {[
+            ...keys.map((key, i) => (
+              <HostRuleRow
+                key={idOf(key)}
+                host={key}
+                rule={rules[key] ?? {}}
+                services={services}
+                index={i}
+                last={i === rowCount - 1}
+                open={openRow === idOf(key)}
+                onToggle={() => setOpenRow(openRow === idOf(key) ? '' : idOf(key))}
+                onCommit={(typed) => {
+                  const verdict = commit(key, typed, rules[key] ?? {});
+                  if (verdict === 'ok') setRowIds((ids) => ({ ...ids, [normalizeHost(typed)]: idOf(key) }));
+                  return verdict;
+                }}
+                onChange={(next) => write({ ...rules, [key]: next })}
+                onRemove={() => {
+                  const map = { ...rules };
+                  delete map[key];
+                  write(map);
+                }}
+              />
+            )),
+            ...pending.map((row, i) => (
+              <HostRuleRow
+                key={row.id}
+                host={row.host}
+                rule={row.rule}
+                services={services}
+                index={keys.length + i}
+                last={keys.length + i === rowCount - 1}
+                open={openRow === row.id}
+                onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
+                onCommit={(typed) => {
+                  // Kept so closing a half-typed row keeps the text.
+                  setPending((p) => p.map((r) => (r.id === row.id ? { ...r, host: typed } : r)));
+                  const verdict = commit('', typed, row.rule);
+                  if (verdict === 'ok') {
+                    setPending((p) => p.filter((r) => r.id !== row.id));
+                    setRowIds((ids) => ({ ...ids, [normalizeHost(typed)]: row.id }));
+                  }
+                  return verdict;
+                }}
+                onChange={(next) => setPending((p) => p.map((r) => (r.id === row.id ? { ...r, rule: next } : r)))}
+                onRemove={() => setPending((p) => p.filter((r) => r.id !== row.id))}
+              />
+            )),
+          ]}
         </ul>
       )}
     </Card>
@@ -230,9 +237,9 @@ export function HostRulesCard({ hue }: { hue: number }) {
 }
 
 /**
- * HostRuleRow shows one host, collapsed to its name and numbers, expanded to
- * every field. The typed host reaches the draft only on blur, or every prefix
- * would become a map key.
+ * HostRuleRow shows one host as its name and numbers, and every field in the
+ * window the row opens. The typed host reaches the draft only on blur, or
+ * every prefix would become a map key.
  */
 function HostRuleRow({
   host,
@@ -260,6 +267,8 @@ function HostRuleRow({
   const { t } = useT();
   const [text, setText] = useState(host);
   const [duplicate, setDuplicate] = useState(false);
+  // The stored host is the typed one tidied, so the box follows it.
+  useEffect(() => setText(host), [host]);
 
   const prefer = rule.prefer ?? '';
   const exclude = rule.exclude ?? [];
@@ -315,7 +324,7 @@ function HostRuleRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
@@ -353,7 +362,7 @@ function HostRuleRow({
       </div>
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={host || t('settings.hostRules.pattern')} hue={index} wide onClose={onToggle}>
           <Field label={t('settings.hostRules.pattern')} hint={t('settings.hostRules.patternHint')}>
             <TextInput
               dir="ltr"
@@ -466,7 +475,7 @@ function HostRuleRow({
               />
             </div>
           )}
-        </div>
+        </Sheet>
       )}
     </li>
   );

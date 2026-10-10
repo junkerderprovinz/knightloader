@@ -133,7 +133,6 @@ export function TwoFactorCard({
           <Button
             shake={shake}
             kind="secondary"
-            hue={hue}
             icon={<IconShieldCheck width={16} height={16} />}
             disabled={busy}
             hint={t('auth.twoFactor.beforeYouStart')}
@@ -201,7 +200,7 @@ export function TwoFactorCard({
             </Button>
             <Button
               shake={shake}
-              kind="primary"
+              kind="secondary"
               disabled={busy || code.trim() === ''}
               onClick={() => void confirm()}
             >
@@ -239,7 +238,7 @@ export function TwoFactorCard({
               {copied ? t('common.copied') : t('common.copy')}
             </Button>
             <span className="flex-1" />
-            <Button kind="primary" onClick={() => setStep({ kind: 'idle' })}>
+            <Button kind="secondary" onClick={() => setStep({ kind: 'idle' })}>
               {t('auth.twoFactor.codesAck')}
             </Button>
           </div>
@@ -256,7 +255,7 @@ export function TwoFactorCard({
           )}
           {!disarming ? (
             <div>
-              <Button kind="secondary" hue={hue} onClick={() => setDisarming(true)}>
+              <Button kind="secondary" onClick={() => setDisarming(true)}>
                 {t('auth.twoFactor.disable')}
               </Button>
             </div>
@@ -290,7 +289,7 @@ export function TwoFactorCard({
                 </Button>
                 <Button
                   shake={shake}
-                  kind="primary"
+                  kind="secondary"
                   disabled={busy || code.trim() === ''}
                   onClick={() => void disable()}
                 >

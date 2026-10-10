@@ -158,14 +158,16 @@ export function PageBadge({ page, title, onFollow }: { page: string; title: stri
         onClick={onFollow}
         aria-label={showText ? undefined : title}
         {...tipHoverProps}
-        className={linkBadgeClass(showText)}
+        // Never wider than its row: on a phone a long page name is cut short
+        // instead of running out of the card.
+        className={`${linkBadgeClass(showText)} max-w-full`}
       >
         {labelMode !== 'text' && (
           <span className="glim-btn-glyph">
             {Glyph ? <Glyph aria-hidden /> : <IconChevronEnd aria-hidden className="rtl:-scale-x-100" />}
           </span>
         )}
-        {showText && <span className="whitespace-nowrap">{title}</span>}
+        {showText && <span className="min-w-0 truncate">{title}</span>}
       </Link>
       {tip.node}
     </>
