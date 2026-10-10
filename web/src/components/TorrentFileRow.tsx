@@ -3,7 +3,16 @@ import { fetchTorrentFiles, selectTorrentFiles, type Task, type TorrentFileView 
 import { hueVars } from '../lib/appearance';
 import { fmtBytes } from '../lib/format';
 import { useToast } from '../lib/toast';
-import { ProgressCell, RowSwitch, Tip, TREE_INDENT, TWISTY_STEP, type CellContext, type ColumnDef } from './columns';
+import {
+  ProgressCell,
+  ROW_EDGES,
+  RowSwitch,
+  Tip,
+  TREE_INDENT,
+  TWISTY_STEP,
+  type CellContext,
+  type ColumnDef,
+} from './columns';
 import type { ListRow } from './listRows';
 
 // A torrent's files under its row. The task carries only how many there are
@@ -207,7 +216,7 @@ export function TorrentFileRow({
       aria-setsize={row.setsize}
       onKeyDown={onKeyDown}
       style={{ ...hueVars(row.index), gridTemplateColumns: 'var(--kl-cols)', ...slide } as CSSProperties}
-      className={`glim-hue glim-tint select-none ${look} relative grid items-center px-3 py-[var(--row-pad)] transition-colors
+      className={`glim-hue glim-tint select-none ${look} relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {

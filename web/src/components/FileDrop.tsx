@@ -271,7 +271,7 @@ function TorrentTreeCard({
         <Button kind="ghost" onClick={onCancel} disabled={busy}>
           {t('torrent.tree.cancel')}
         </Button>
-        <Button kind="primary" onClick={onConfirm} disabled={busy || selectedCount === 0}>
+        <Button kind="secondary" onClick={onConfirm} disabled={busy || selectedCount === 0}>
           {busy ? t('torrent.staging') : t('torrent.tree.add')}
         </Button>
       </div>

@@ -113,7 +113,7 @@ export function PlayerCard({
       ) : (
         // Disabled rather than hidden, so people learn that playing is possible.
         <div className="flex items-center gap-2">
-          <Button disabled={!ready} hint={note || undefined} onClick={() => setPlaying(true)}>
+          <Button kind="secondary" disabled={!ready} hint={note || undefined} onClick={() => setPlaying(true)}>
             {t('detail.play')}
           </Button>
         </div>
