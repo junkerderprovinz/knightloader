@@ -199,7 +199,10 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle>{t('overview.needs.title')}</SectionTitle>
       {/* The rows scroll here rather than the card, which would cut its badge. */}
-      <div className="-mx-2 flex max-h-[28rem] flex-col divide-y divide-carbon-border/60 overflow-y-auto">
+      <div
+        data-new="overview-needs"
+        className="-mx-2 flex max-h-[28rem] flex-col divide-y divide-carbon-border/60 overflow-y-auto"
+      >
         {feed.needs.map((need) => {
           const row = rowOf(need);
           return (

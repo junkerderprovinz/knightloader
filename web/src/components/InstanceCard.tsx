@@ -137,6 +137,7 @@ function Tile({
   return (
     <div
       data-nk={entry}
+      data-new="instance-cards"
       className={`flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-carbon-surface2 ${
         hot ? 'shadow-[inset_0_0_0_2px_var(--accent)]' : ''
       }`}

@@ -34,6 +34,7 @@ export function SeedRing({
       width={size}
       height={size}
       className="shrink-0"
+      data-new="seed-ring"
       role={aimed ? 'progressbar' : 'img'}
       aria-label={aimed ? label : `${label} ${ratio.toFixed(2)}`}
       aria-valuemin={aimed ? 0 : undefined}

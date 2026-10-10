@@ -32,6 +32,7 @@ export function PriorityFlow({ backends, label }: { backends: { id: string; name
       viewBox={`0 0 ${WIDTH} ${height}`}
       role="img"
       aria-label={`${label}: ${backends.map((b, i) => `${i + 1}. ${b.name}`).join(', ')}`}
+      data-new="priority-flow"
       className="block w-full max-w-[24rem] overflow-visible"
     >
       <path
