@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { recheckTasks, type Task } from '../lib/api';
+import { recheckTasks } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useReportListView } from '../lib/listview';
@@ -14,8 +14,9 @@ import {
   type Selection,
 } from '../components/TaskList';
 import { usePackageMenu } from '../components/PackageActions';
-import { AddLinksForm } from '../components/AddLinksForm';
-import { FileDrop, type FileDropHandle } from '../components/FileDrop';
+import { AddLinksForm, useStagedReport } from '../components/AddLinksForm';
+import { FileDrop, newestContainerLink, type FileDropHandle } from '../components/FileDrop';
+import { PageAction, PageActions } from '../components/PageActions';
 import { FilteredLinks } from '../components/FilteredLinks';
 import { SkippedLinks } from '../components/SkippedLinks';
 import {
@@ -74,18 +75,7 @@ export function Collector() {
   const [pkg, setPkg] = useState('');
   // Lets AddLinksForm's buttons and paste box hand files to FileDrop.
   const fileDrop = useRef<FileDropHandle>(null);
-  // When a link from a container file last landed, in epoch milliseconds; it
-  // ends FileDrop's "handed to JDownloader" bar. Derived from the task list this
-  // page already holds rather than a second subscription.
-  const lastContainerAt = useMemo(() => {
-    let newest = 0;
-    for (const x of Object.values(tasks)) {
-      if (x.origin !== 'container') continue;
-      const at = Date.parse(x.createdAt);
-      if (Number.isFinite(at) && at > newest) newest = at;
-    }
-    return newest;
-  }, [tasks]);
+  const lastContainerAt = useMemo(() => newestContainerLink(tasks), [tasks]);
   // The search text, quick filters and facet ticks are stored in the
   // interface-state document, so they survive leaving the page
   // (lib/listNarrowing.ts). The full COLLECTOR_FILTERS, since the two badge
@@ -285,33 +275,8 @@ export function Collector() {
     set: setSelected,
   };
 
-  // AddLinksForm's onStaged: the form owns the request, this page the report.
-  // submittedCount is the number of URL-shaped lines the box held.
-  function handleStaged(created: Task[], submittedCount: number) {
-    if (!created.length) {
-      toast(t('collector.toastNone'), 'fail');
-      return;
-    }
-    // A held link comes back in `created` but was not staged.
-    const heldNow = created.filter((x) => x.skipped).length;
-    const staged = created.length - heldNow;
-    const skipped = Math.max(0, submittedCount - created.length);
-    if (heldNow) {
-      toast(
-        staged
-          ? t('collector.filtered.toastHeldBack', { n: staged, held: heldNow })
-          : t('collector.filtered.toastAllHeldBack', { held: heldNow }),
-        staged ? 'ok' : 'info',
-      );
-      return;
-    }
-    toast(
-      skipped
-        ? t('collector.toastSkipped', { n: staged, skipped })
-        : t('collector.toastStaged', { n: staged }),
-      'ok',
-    );
-  }
+  // The form owns the request, this page the report.
+  const handleStaged = useStagedReport();
 
   const runStart = useStartTasks();
   const startSelected = () => {
@@ -556,7 +521,7 @@ export function Collector() {
                       onClick={clearSelection}
                     />
                   </span>
-                  {/* Secondary: the page's one accent button is "Add to collector". */}
+                  {/* Secondary: the page's one accent is the floating Start all. */}
                   <IconBadge
                     labelled={!glyphs}
                     hue={2}
@@ -614,15 +579,6 @@ export function Collector() {
                       toast(t('task.recheck'), 'info');
                     }}
                   />
-                  <IconBadge
-                    labelled={!glyphs}
-                    hue={4}
-                    icon={<IconPlay width={16} height={16} />}
-                    title={t('collector.startAll')}
-                    aria-label={t('collector.startAll')}
-                    disabled={collected.length === 0}
-                    onClick={startAll}
-                  />
                 </>
               )}
             </div>
@@ -664,6 +620,19 @@ export function Collector() {
         )}
         </div>
       </div>
+
+      {/* Starting is what the collected links wait for, so it is the page's
+          floating action; adding stays with the box it sends, in the first
+          card. */}
+      <PageActions>
+        <PageAction
+          primary
+          icon={<IconPlay />}
+          label={t('collector.startAll')}
+          disabled={collected.length === 0}
+          onClick={startAll}
+        />
+      </PageActions>
 
       {cleanupMenu.anchor && cleanup.classes && (
         <ContextMenu

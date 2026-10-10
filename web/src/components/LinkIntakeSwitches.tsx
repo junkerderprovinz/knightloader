@@ -1,5 +1,4 @@
-import { Button } from './ui';
-import { IconBrowser, IconClipboard } from '../lib/icons';
+import { ToggleRow } from './ui';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -9,15 +8,14 @@ import { isDesktop } from '../lib/desktop';
 import { moduleDetail } from '../pages/settings/tx';
 
 /**
- * LinkIntakeButtons are the collector's switches for Click'n'Load and the
- * clipboard watch, sharing their state with the settings card. They are modes,
- * so `primary` means on and `secondary` off.
+ * LinkIntakeSwitches are the add-links options' switches for Click'n'Load and
+ * the clipboard watch, sharing their state with the settings card.
  *
- * The clipboard button stays visible but disabled where the browser cannot read
+ * The clipboard row stays visible but disabled where the browser cannot read
  * the clipboard. Click'n'Load disappears when the server has no such module,
  * since there is nothing to enable.
  */
-export function LinkIntakeButtons() {
+export function LinkIntakeSwitches() {
   const { t } = useT();
   const { toast } = useToast();
   const { row, busy, set } = useCnl();
@@ -25,9 +23,9 @@ export function LinkIntakeButtons() {
 
   const cnlSwitchable = !!row && row.verdict === 'shipped' && row.switch !== 'none';
 
-  async function onCnl() {
+  async function onCnl(on: boolean) {
     try {
-      await set(!row?.enabled);
+      await set(on);
     } catch (e) {
       toast(
         t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }),
@@ -39,23 +37,18 @@ export function LinkIntakeButtons() {
   return (
     <>
       {cnlSwitchable && (
-        <Button
-          kind={row.enabled ? 'primary' : 'secondary'}
-          className="px-2.5 text-xs"
-          icon={<IconBrowser width={14} height={14} />}
-          // The live reading, such as the address it listens on; the button
-          // already says its own name.
-          title={moduleDetail(t, row)}
-          onClick={() => void onCnl()}
+        <ToggleRow
+          label={t('settings.module.cnl')}
+          // What it takes, then the live reading, such as the address it
+          // listens on.
+          hint={[t('settings.linkIntake.cnlHint'), moduleDetail(t, row) ?? '']}
+          checked={row.enabled}
+          onChange={(on) => void onCnl(on)}
           disabled={busy}
-        >
-          {t('settings.module.cnl')}
-        </Button>
+        />
       )}
-      <Button
-        kind={watch ? 'primary' : 'secondary'}
-        className="px-2.5 text-xs"
-        icon={<IconClipboard width={14} height={14} />}
+      <ToggleRow
+        label={t('intake.clipboardWatch')}
         hint={
           !WATCH_SUPPORTED
             ? t('intake.clipboardWatchUnavailable')
@@ -63,11 +56,10 @@ export function LinkIntakeButtons() {
               ? t('intake.clipboardWatchHintDesktop')
               : t('intake.clipboardWatchHint')
         }
-        onClick={() => flip(!watch)}
+        checked={watch}
+        onChange={flip}
         disabled={!WATCH_SUPPORTED}
-      >
-        {t('intake.clipboardWatch')}
-      </Button>
+      />
       {dialog}
     </>
   );
