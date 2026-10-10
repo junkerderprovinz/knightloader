@@ -223,7 +223,6 @@ export function PasskeyCard({
             <Button
               shake={shake}
               kind="secondary"
-              hue={hue}
               icon={<IconPlus width={16} height={16} />}
               disabled={busy}
               onClick={() => setAdding(true)}
@@ -260,7 +259,7 @@ export function PasskeyCard({
               </Button>
               <Button
                 shake={shake}
-                kind="primary"
+                kind="secondary"
                 disabled={busy}
                 onClick={() => void add()}
               >

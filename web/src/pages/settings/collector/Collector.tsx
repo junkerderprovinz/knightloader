@@ -1,13 +1,15 @@
-import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
+import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
+import { choices, useTx } from '../tx';
 
 // The collector card: what happens to a batch on its way out of the collector.
-// How long it waits, what happens to a link already in the list, and where the
-// confirmed batch lands in the queue.
+// How long it waits, what happens to a link already in the list or already
+// found dead, and where the confirmed batch lands in the queue.
 
 /**
  * Labels for the confirm policies. A map rather than a built key because
@@ -23,25 +25,14 @@ export const CONFIRM_LABEL: Partial<Record<string, TranslationKey>> = {
 
 export function CollectorCard({ hue }: { hue: number }) {
   const { t } = useT();
+  const { tx } = useTx();
   const { cfg, patch } = useDraft();
 
   // The ids come from GET /api/options, which withholds confirm.UseGlobal
-  // because a global default cannot defer to itself.
-  const [policies, setPolicies] = useState<string[]>([]);
-  useEffect(() => {
-    let live = true;
-    void fetchOptions().then(
-      (o) => {
-        if (live) setPolicies(o.confirmPolicies ?? []);
-      },
-      () => {
-        /* the strip stays out rather than offering a guess at the policies */
-      },
-    );
-    return () => {
-      live = false;
-    };
-  }, []);
+  // because a global default cannot defer to itself. Without an answer the
+  // strips stay out rather than offering a guess at the policies.
+  const { data: options } = useResource(fetchOptions);
+  const policies = options?.confirmPolicies ?? [];
 
   const policyLabel = (id: string) => {
     const key = CONFIRM_LABEL[id];
@@ -87,18 +78,35 @@ export function CollectorCard({ hue }: { hue: number }) {
         </FieldGroup>
       )}
 
-      {/* FieldGroup, because a Field's label would pass a click on the
-          caption to the first tab. */}
       {policies.length > 0 && (
-        <FieldGroup layout="row" label={t('settings.downloads.onDupes')} hint={t('settings.downloads.onDupesHint')}>
+        <SettingRow label={t('settings.downloads.onDupes')} hint={t('settings.downloads.onDupesHint')}>
           <Tabs
             variant="well"
+            size="sm"
+            inline
+            hug
             label={t('settings.downloads.onDupes')}
             active={dupes}
             onSelect={(onDupes) => patch({ onDupes })}
             items={policies.map((id) => ({ id, label: policyLabel(id) }))}
           />
-        </FieldGroup>
+        </SettingRow>
+      )}
+
+      {/* What becomes of a link a check has already found gone. */}
+      {policies.length > 0 && (
+        <SettingRow label={tx('settings.advanced.onOffline')} hint={tx('settings.advanced.onOfflineHint')}>
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            hug
+            label={tx('settings.advanced.onOffline')}
+            active={cfg.onOffline ?? ''}
+            onSelect={(onOffline) => patch({ onOffline })}
+            items={choices(tx, 'settings.advanced.offline.', policies)}
+          />
+        </SettingRow>
       )}
 
       {/* app.startTasks applies it however the batch was confirmed. */}

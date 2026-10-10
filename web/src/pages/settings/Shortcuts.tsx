@@ -67,15 +67,6 @@ export function Shortcuts() {
 
   return (
     <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex flex-col gap-1">
-          <SectionTitle hint={t('settings.shortcuts.subtitle')}>{t('settings.nav.shortcuts')}</SectionTitle>
-        </div>
-        <Button kind="secondary" className="shrink-0" disabled={!hasOverrides} onClick={() => setConfirmResetAll(true)}>
-          {t('settings.shortcuts.resetAll')}
-        </Button>
-      </Card>
-
       {groups.length === 0 && (
         <EmptyState icon={<IconKeyboard width={28} height={28} />} title={t('settings.shortcuts.empty')} />
       )}
@@ -84,9 +75,28 @@ export function Shortcuts() {
         <div key={group} className="flex flex-col gap-3">
           {/* The title sits outside the divide-y flow, so no divider lands
               under the badge. */}
-          <Card hue={i + 1} padding="none" className="flex flex-col">
+          <Card hue={i} padding="none" className="flex flex-col">
             <div className="p-5 pb-0">
-              <SectionTitle>{groupLabel(t, group)}</SectionTitle>
+              {/* The page has no card of its own for it, so the reset for every
+                  group stands at the head of the first, with what the page is
+                  for behind its (i). */}
+              <SectionTitle
+                right={
+                  i === 0 && (
+                    <Button
+                      kind="secondary"
+                      className="shrink-0"
+                      disabled={!hasOverrides}
+                      hint={t('settings.shortcuts.subtitle')}
+                      onClick={() => setConfirmResetAll(true)}
+                    >
+                      {t('settings.shortcuts.resetAll')}
+                    </Button>
+                  )
+                }
+              >
+                {groupLabel(t, group)}
+              </SectionTitle>
             </div>
             <div className="flex flex-col divide-y divide-carbon-border/60">
               {cmds.map((cmd) => (
@@ -96,7 +106,7 @@ export function Shortcuts() {
                   overrides={overrides}
                   onChange={() => setCaptureFor(cmd)}
                   onReset={() => resetOne(cmd.id)}
-                  hue={i + 1}
+                  hue={i}
                 />
               ))}
             </div>
@@ -106,7 +116,7 @@ export function Shortcuts() {
 
       {/* Not a command group: these keys cannot be rebound. Its hue carries on
           from the last group. */}
-      <ListKeysCard hue={groups.length + 1} />
+      <ListKeysCard hue={groups.length} />
 
       {captureFor && (
         <CaptureModal
@@ -178,7 +188,7 @@ function ShortcutRow({
           {t('settings.shortcuts.reset')}
         </Button>
       )}
-      <Button kind="secondary" hue={hue} className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
+      <Button kind="secondary" className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
         {t('settings.shortcuts.change')}
       </Button>
     </div>

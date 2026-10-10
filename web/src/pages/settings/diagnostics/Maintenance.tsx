@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type MaintenanceRun,
   type MaintenanceState,
@@ -7,12 +7,24 @@ import {
   startMaintenance,
 } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
-import { IconClose } from '../../../lib/icons';
+import { IconCheck, IconClose } from '../../../lib/icons';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { useResource } from '../../../lib/useResource';
-import { Button, Card, ErrorCard, FieldGroup, InfoBubble, LoadingCard, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
+import {
+  Button,
+  Card,
+  ErrorCard,
+  FieldGroup,
+  InfoBubble,
+  LoadingCard,
+  Modal,
+  SectionTitle,
+  ToggleRow,
+  type ButtonVerdict,
+} from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // The database's state and the three things that can be done about it. A
 // compaction can outlive any request, so the server answers 202 and the card
@@ -49,6 +61,8 @@ export function MaintenanceCard({ hue }: { hue: number }) {
   const [confirming, setConfirming] = useState(false);
   const [busy, setBusy] = useState(false);
   const [starting, setStarting] = useState('');
+  // Whether the last check was started from this button, whose answer it then is.
+  const [checked, setChecked] = useState(false);
 
   const running = data?.running ?? '';
 
@@ -64,6 +78,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
   async function start(action: 'check' | 'compact' | 'analyze') {
     setBusy(false);
     setStarting(action);
+    setChecked(action === 'check');
     try {
       setData(await startMaintenance(action));
     } catch (e) {
@@ -82,6 +97,19 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
   const { storage, last } = data;
   const acting = running !== '' || starting !== '';
+  // What the check this button started found; the sentence below says the rest.
+  const checkVerdict: ButtonVerdict | undefined =
+    !checked || acting || last?.kind !== 'check' || last.skipped
+      ? undefined
+      : last.error || last.problems.length > 0
+        ? 'fail'
+        : 'ok';
+  const checkWord =
+    checkVerdict === 'ok'
+      ? t('settings.diagnostics.verdict.ok')
+      : checkVerdict === 'fail'
+        ? t('test.failed')
+        : t('settings.dbmaint.check');
 
   return (
     <>
@@ -119,9 +147,10 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
         <div className="flex flex-wrap items-center gap-3">
           <Action
-            label={t('settings.dbmaint.check')}
+            label={checkWord}
+            icon={checkVerdict === 'ok' ? <IconCheck /> : checkVerdict === 'fail' ? <IconClose /> : undefined}
+            verdict={checkVerdict}
             hint={t('settings.dbmaint.checkHint')}
-            hue={hue}
             disabled={acting}
             pending={running === 'check' || starting === 'check'}
             pendingLabel={t('settings.dbmaint.running')}
@@ -131,7 +160,6 @@ export function MaintenanceCard({ hue }: { hue: number }) {
           <Action
             label={t('settings.dbmaint.compact')}
             hint={t('settings.dbmaint.compactHint')}
-            hue={hue}
             disabled={acting}
             pending={running === 'compact' || starting === 'compact'}
             pendingLabel={t('settings.dbmaint.running')}
@@ -140,7 +168,6 @@ export function MaintenanceCard({ hue }: { hue: number }) {
           <Action
             label={t('settings.dbmaint.analyze')}
             hint={t('settings.dbmaint.analyzeHint')}
-            hue={hue}
             disabled={acting}
             pending={running === 'analyze' || starting === 'analyze'}
             pendingLabel={t('settings.dbmaint.running')}
@@ -154,15 +181,18 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
         {/* A fixed set of intervals rather than a number box, which would
             invite a daily compaction on a live queue. */}
-        <FieldGroup label={t('settings.dbmaint.interval')} hint={t('settings.dbmaint.intervalHint')}>
+        <SettingRow label={t('settings.dbmaint.interval')} hint={t('settings.dbmaint.intervalHint')}>
           <Tabs
             variant="well"
+            size="sm"
+            inline
+            hug
             label={t('settings.dbmaint.interval')}
             active={String(cfg.maintenanceIntervalDays ?? 0)}
             onSelect={(id) => patch({ maintenanceIntervalDays: Number(id) })}
             items={INTERVALS.map((i) => ({ id: String(i.days), label: t(i.key) }))}
           />
-        </FieldGroup>
+        </SettingRow>
 
         {/* Absent while nothing is scheduled. */}
         {(cfg.maintenanceIntervalDays ?? 0) > 0 && (
@@ -217,12 +247,14 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
 /**
  * Action is a maintenance button, its explanation in the (i) inside it rather
- * than in a native title, which the keyboard cannot open.
+ * than in a native title, which the keyboard cannot open. The check shows what
+ * it found on itself.
  */
 function Action({
   label,
   hint,
-  hue,
+  icon,
+  verdict,
   disabled,
   pending,
   pendingLabel,
@@ -230,14 +262,24 @@ function Action({
 }: {
   label: string;
   hint: string;
-  hue: number;
+  icon?: ReactNode;
+  verdict?: ButtonVerdict;
   disabled: boolean;
   pending: boolean;
   pendingLabel: string;
   onClick: () => void;
 }) {
   return (
-    <Button kind="secondary" hue={hue} disabled={disabled} hint={hint} onClick={onClick}>
+    <Button
+      kind="secondary"
+      icon={pending ? undefined : icon}
+      verdict={pending ? undefined : verdict}
+      // A check that found damage shakes its button like any failed click.
+      shake={verdict === 'fail' ? 1 : 0}
+      disabled={disabled}
+      hint={hint}
+      onClick={onClick}
+    >
       {pending ? pendingLabel : label}
     </Button>
   );

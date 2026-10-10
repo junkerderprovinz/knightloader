@@ -2250,7 +2250,6 @@ export const en = {
   'settings.torrents.seedDurationHint':
     'Keep seeding a finished torrent for this long after it completes. 0 = no time limit. Whichever of the two targets above is reached first stops seeding.',
   'settings.torrents.seedDurationUnit': 'hours',
-  'settings.torrents.transferTitle': 'Transfer limit',
   'settings.torrents.uploadLimit': 'Upload limit',
   'settings.torrents.uploadLimitHint':
     'Caps how fast all torrents together upload to the swarm, both while they download and while they seed. A change applies at once. 0 = unlimited.',
@@ -2571,13 +2570,11 @@ export const en = {
   'settings.module.feeds': 'Feed subscriptions',
   'settings.module.downloadclient': 'Download client for Sonarr and Radarr',
   'settings.module.debriddrive': 'Debrid drive',
-  'settings.downloads.collisionTitle': 'Name conflicts',
   'settings.downloads.collectorTitle': 'Collector',
   'settings.downloads.diskTitle': 'Disk space',
   'settings.downloads.diskHint': 'Three numbers that hold downloads back before the disk fills. All three are free bytes on the volume the download is being written to, so a working folder on a different disk is measured on that one. Zero switches a number off. Not every system can be asked how much space is free, and where the answer is unavailable nothing is ever held back, because a guard that blocks when it does not know would stop a perfectly healthy machine.',
   'settings.stall.title': 'Standing still',
   'settings.advanced.mirrorsTitle': 'Copies of the same file',
-  'settings.advanced.offlineTitle': 'Links that are already dead',
   'settings.advanced.reclaimTitle': 'Files already on the disk',
   'settings.advanced.retryTitle': 'Retries per failure',
   'settings.resolvers.audioTitle': 'Audio',
@@ -3789,6 +3786,14 @@ export const en = {
   'picture.reconnect.newAddress': 'New address',
   'picture.reconnect.alt': 'KnightLoader asks the router for a new address. The router drops its connection and comes back with a new one.',
   'picture.seed.target': 'Target {ratio}',
+  'settings.look.displayTitle': 'Display',
+  'test.connected': 'Connected',
+  'test.notConnected': 'Not connected',
+  'test.passed': 'Passed',
+  'test.failed': 'Failed',
+  'test.sent': 'Sent',
+  'test.confirmed': 'Confirmed',
+  'test.unconfirmed': 'Not confirmed',
 } as const;
 
 export type TranslationKey = keyof typeof en;

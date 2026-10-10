@@ -65,6 +65,7 @@ export function Diagnostics() {
 
         <div className="flex flex-wrap items-center gap-3">
           <Button
+            kind="secondary"
             onClick={onDownload}
             disabled={downloading}
             icon={<IconDownloads width={16} height={16} />}

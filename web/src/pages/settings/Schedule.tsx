@@ -5,7 +5,6 @@ import {
   Card,
   FIELD_TRIGGER,
   Field,
-  FieldGroup,
   IconBadge,
   SectionTitle,
   TextInput,
@@ -32,7 +31,7 @@ import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
 import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
 import { useFeatures } from './context';
-import { NeutralSwitch } from './controls';
+import { NeutralSwitch, SettingRow, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -490,7 +489,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
             // A window added while the module is off would take the place of
             // the parked ones, so Add waits for the switch.
             !parked && (
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
                 {t('settings.schedule.add')}
               </Button>
             )
@@ -705,7 +704,7 @@ function EntryRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           aria-label={t('settings.schedule.edit')}
           className={`flex min-w-0 flex-1 basis-48 items-center gap-3 text-start ${entry.disabled ? 'opacity-55' : ''}`}
         >
@@ -732,9 +731,8 @@ function EntryRow({
             labelled
             icon={<IconEdit width={16} height={16} />}
             hue={index}
-            active={open}
             title={t('settings.schedule.edit')}
-            aria-expanded={open}
+            aria-haspopup="dialog"
             onClick={onToggle}
           />
           <IconBadge
@@ -766,13 +764,13 @@ function EntryRow({
         </div>
       </div>
 
-      {/* Repeated on a collapsed row, so the reason is not hidden behind a click. */}
-      {!open && error && (
+      {/* On the row too, so the reason is not hidden behind a click. */}
+      {error && (
         <p dir="auto" className="pb-2 text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>
       )}
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={description} hue={index} wide onClose={onToggle}>
           {error && <p dir="auto" className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
 
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -820,7 +818,7 @@ function EntryRow({
           )}
 
           {entry.disabled && <p className="text-xs text-carbon-textMuted">{t('settings.schedule.disabledOff')}</p>}
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -940,11 +938,13 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
       if (panel.current?.contains(target) || trigger.current?.contains(target)) return;
       close();
     };
+    // Caught on the way down and passed no further, so Escape closes the
+    // picker alone and not the window it stands in as well.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        close();
-        trigger.current?.focus();
-      }
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      close();
+      trigger.current?.focus();
     };
     // Capturing, to see scrolls in any ancestor; the panel's own are ignored.
     const onScroll = (e: Event) => {
@@ -952,12 +952,12 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
       close();
     };
     document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown, true);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', close);
     };
@@ -1162,37 +1162,45 @@ function DayPicker({
   const mode = custom ? 'custom' : presetOf(days);
   const chosen = useMemo(() => new Set(days.map(String)), [days]);
   return (
-    <FieldGroup label={t('settings.schedule.days')} hint={t('settings.schedule.daysHint')}>
-      <Tabs
-        select="one"
-        variant="well"
-        size="sm"
-        label={t('settings.schedule.days')}
-        active={mode}
-        onSelect={(id) => {
-          const preset = DAY_PRESETS.find((p) => p.id === id);
-          setCustom(!preset);
-          if (preset) onChange(preset.days);
-        }}
-        items={[...DAY_PRESETS.map((p) => p.id), 'custom' as const].map((id) => ({
-          id,
-          label: t(`settings.schedule.preset.${id}`),
-        }))}
-      />
-      {mode === 'custom' && (
+    <>
+      <SettingRow label={t('settings.schedule.days')} hint={t('settings.schedule.daysHint')}>
         <Tabs
-          select="many"
+          select="one"
           variant="well"
           size="sm"
+          inline
+          hug
           label={t('settings.schedule.days')}
-          active={chosen}
+          active={mode}
           onSelect={(id) => {
-            const d = Number(id);
-            onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+            const preset = DAY_PRESETS.find((p) => p.id === id);
+            setCustom(!preset);
+            if (preset) onChange(preset.days);
           }}
-          items={labels.map((label, d) => ({ id: String(d), label }))}
+          items={[...DAY_PRESETS.map((p) => p.id), 'custom' as const].map((id) => ({
+            id,
+            label: t(`settings.schedule.preset.${id}`),
+          }))}
         />
+      </SettingRow>
+      {mode === 'custom' && (
+        <div className="flex justify-end">
+          <Tabs
+            select="many"
+            variant="well"
+            size="sm"
+            inline
+            hug
+            label={t('settings.schedule.days')}
+            active={chosen}
+            onSelect={(id) => {
+              const d = Number(id);
+              onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+            }}
+            items={labels.map((label, d) => ({ id: String(d), label }))}
+          />
+        </div>
       )}
-    </FieldGroup>
+    </>
   );
 }

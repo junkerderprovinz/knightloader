@@ -568,6 +568,24 @@ body {
   background-color: var(--carbon-hover-raised);
 }
 
+/* A sub-card groups rows inside a card: flat, on the well's colour and at the
+   card's radius. Fields and neutral buttons in it move one step up the ramp,
+   as fields do in a well, and their hover moves with them. */
+.glim-subcard {
+  background-color: var(--carbon-surface2);
+  border-radius: var(--radius-card);
+}
+.glim-subcard input,
+.glim-subcard textarea,
+.glim-subcard .glim-field,
+.glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet) {
+  background-color: var(--carbon-surface3);
+}
+.glim-subcard button.glim-field:hover,
+.glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
+  background-color: var(--carbon-hover-raised);
+}
+
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
    that names a category beside something louder. */
 .glim-eyebrow {
