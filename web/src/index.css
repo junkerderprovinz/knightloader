@@ -523,6 +523,104 @@ body {
   -moz-appearance: textfield;
 }
 
+/* A button on a surface2 tile stands one tier up the surface ramp and hovers
+   one more, or it would have no ground of its own. Unlayered, so it wins over
+   the fill the button's kind brings. */
+.kl-raised-btn {
+  background-color: var(--carbon-surface3);
+}
+.kl-raised-btn:hover {
+  background-color: var(--carbon-hover-raised);
+}
+
+/* Illustrations (pairing/pairingArt.tsx, components/GroupNet.tsx). A picture
+   keeps its left-to-right geometry on a right-to-left page, where an anchored
+   label would otherwise grow the wrong way, and its corners follow the corner
+   setting like the rest of the interface. */
+.kl-pic {
+  direction: ltr;
+}
+.kl-pic-control {
+  rx: var(--radius-control);
+}
+.kl-pic-pill {
+  rx: var(--radius-pill);
+}
+.kl-pic-card {
+  rx: var(--radius-card);
+}
+.kl-pic-lift {
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / .28));
+}
+/* SMIL sets these values frame by frame, and the app's transition set would
+   trail every one of them. */
+.glim-shape-transitions .kl-pic-timed * {
+  transition: none;
+}
+
+/* The group as a net: one arrangement for a wide box and one with every node
+   on the same side for a narrow one. */
+.kl-net {
+  container: kl-net / inline-size;
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+.kl-net-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.kl-net-svg.narrow {
+  display: none;
+  max-width: 400px;
+  margin-inline: auto;
+}
+@container kl-net (max-width: 559px) {
+  .kl-net-svg.wide {
+    display: none;
+  }
+  .kl-net-svg.narrow {
+    display: block;
+  }
+}
+/* With pathLength="1" on the path, one dash is the whole link, so an offset
+   from 1 to 0 draws it in. */
+.kl-net-link {
+  fill: none;
+  stroke: var(--carbon-text-muted);
+  stroke-opacity: .6;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+}
+.kl-net-svg.picked .kl-net-spoke:not(.hot, .hub) {
+  opacity: .35;
+}
+.kl-net-node {
+  cursor: pointer;
+  outline: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.kl-net-spoke.dim .kl-net-node {
+  opacity: .5;
+}
+.kl-net-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0;
+}
+.kl-net-spoke.hot .kl-net-ring,
+.kl-net-node:is(:hover, :focus-visible) .kl-net-ring {
+  opacity: 1;
+}
+.kl-net-tile {
+  fill: var(--carbon-surface3);
+}
+
 /* The info bubble, rendered at body level so nothing can clip it, and centred
    under the icon by translating it back half its own width. */
 .glim-bubble {

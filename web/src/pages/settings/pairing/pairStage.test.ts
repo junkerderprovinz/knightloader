@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { ALONE_AFTER_S, STAGE_BADGE, clock, pairStage } from './pairStage';
+import { ALONE_AFTER_S, STAGE_PILL, clock, pairStage } from './pairStage';
 
 const member = { id: 'b', name: 'office', direct: true, relay: false };
 
@@ -35,16 +35,16 @@ describe('pairStage', () => {
 
   it('goes back to searching, not to alone, when members that came are gone', () => {
     expect(pairStage({ active: true, members: [], apps: [], memberSeen: true }, 3600, false)).toBe('gone');
-    expect(STAGE_BADGE.gone.key).toBe('pairing.stateSearching');
+    expect(STAGE_PILL.gone.key).toBe('pairing.stateSearching');
   });
 });
 
-describe('STAGE_BADGE', () => {
+describe('STAGE_PILL', () => {
   it('gives every stage in a group its word and tone', () => {
-    expect(STAGE_BADGE.new).toEqual({ key: 'pairing.stateNew', tone: 'hue' });
-    expect(STAGE_BADGE.searching).toEqual({ key: 'pairing.stateSearching', tone: 'neutral' });
-    expect(STAGE_BADGE.alone).toEqual({ key: 'pairing.stateAlone', tone: 'warn' });
-    expect(STAGE_BADGE.paired).toEqual({ key: 'pairing.paired', tone: 'ok' });
+    expect(STAGE_PILL.new).toEqual({ key: 'pairing.stateNew', tone: 'run' });
+    expect(STAGE_PILL.searching).toEqual({ key: 'pairing.stateSearching', tone: 'run' });
+    expect(STAGE_PILL.alone).toEqual({ key: 'pairing.stateAlone', tone: 'warn' });
+    expect(STAGE_PILL.paired).toEqual({ key: 'pairing.paired', tone: 'ok' });
   });
 });
 

@@ -65,7 +65,10 @@ describe('RelayCard', () => {
   it('says there is no group yet instead of Not connected before a phrase', () => {
     draw({});
     expect(state()).toBe('No group yet');
-    expect(host.textContent).toContain('The relay connects as soon as this instance has a phrase.');
+    // The sentence behind the word stands in the state's (i).
+    const why = host.querySelector('[data-testid="relay-state"] [role="note"]')!;
+    expect(why.getAttribute('aria-label')).toBe('The relay connects as soon as this instance has a phrase.');
+    expect(host.textContent).not.toContain('What to check');
   });
 
   it('reports the connection once there is a group', () => {
@@ -73,12 +76,64 @@ describe('RelayCard', () => {
     expect(state()).toBe('Not connected');
     draw({ active: true }, { connected: true });
     expect(state()).toBe('Connected');
-    expect(host.textContent).not.toContain('as soon as this instance has a phrase');
+    expect(host.querySelector('[data-testid="relay-state"] [role="note"]')).toBeNull();
   });
 
   it('says No relay when none is picked, group or not', () => {
     draw({ relayMode: 'off' }, { mode: 'off' });
     expect(state()).toBe('No relay');
+  });
+
+  it('lists what to check while a group cannot reach its relay', () => {
+    const onRefresh = vi.fn();
+    act(() =>
+      root.render(
+        <I18nProvider>
+          <RelayCard group={{ ...group, active: true }} relay={relay} onRelay={() => {}} onRefresh={onRefresh} />
+        </I18nProvider>,
+      ),
+    );
+    expect(host.textContent).toContain('What to check');
+    expect(host.textContent).toContain('parleyport.halleluja.design');
+    act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Check again')!.click());
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+
+    draw({ active: true }, { connected: true });
+    expect(host.textContent).not.toContain('What to check');
+  });
+
+  it('draws the route that is picked, and this instance as the relay once it serves one', () => {
+    const drawn = () => host.querySelector('svg[role="img"]')!.textContent;
+    draw({});
+    expect(drawn()).toContain('ParleyPort');
+    expect(drawn()).not.toContain('Own relay');
+
+    draw({ relayMode: 'own' }, { mode: 'own' });
+    expect(drawn()).toContain('ParleyPort');
+    expect(drawn()).toContain('Own relay');
+
+    draw({ relayMode: 'own' }, { mode: 'own', serve: true });
+    expect(drawn()).not.toContain('ParleyPort');
+    expect(drawn()).toContain('Relay');
+
+    draw({ relayMode: 'off' }, { mode: 'off' });
+    expect(drawn()).toBe('Your networkOther network');
+  });
+
+  it('says what the relay sees in a window, and for no relay only that there is none', () => {
+    const dialog = () => document.body.querySelector('[role="dialog"]');
+    const open = () => act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'What the relay sees')!.click());
+    draw({});
+    open();
+    expect(dialog()!.textContent).toContain('The relay sees:');
+    expect(dialog()!.textContent).toContain('The relay does not see:');
+    act(() => [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Close')!.click());
+    expect(dialog()).toBeNull();
+
+    draw({ relayMode: 'off' }, { mode: 'off' });
+    open();
+    expect(dialog()!.textContent).toContain('The relay sees:');
+    expect(dialog()!.textContent).not.toContain('The relay does not see:');
   });
 
   it('goes back to the stored mode when picking another one fails', async () => {

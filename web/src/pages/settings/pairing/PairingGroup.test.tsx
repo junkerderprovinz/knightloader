@@ -1,12 +1,12 @@
 // @vitest-environment jsdom
-import { act } from 'react';
+import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
-import { PhraseCard } from './PhraseCard';
+import { PairingGroup } from './PairingGroup';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -42,16 +42,23 @@ const base: ConnectInfo = {
   memberSeen: false,
 };
 
-function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}) {
+function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}, onRefresh: () => void = () => {}) {
   act(() =>
     root.render(
       <MemoryRouter>
         <I18nProvider>
-          <PhraseCard group={{ ...base, ...group }} onGroup={onGroup} onRefresh={() => {}} />
+          <PairingGroup group={{ ...base, ...group }} onGroup={onGroup} onRefresh={onRefresh} />
         </I18nProvider>
       </MemoryRouter>,
     ),
   );
+}
+
+/** The two cards with the page's own state around them, so the group a
+ *  request answers with reaches them. */
+function Live({ start }: { start: ConnectInfo }) {
+  const [group, setGroup] = useState(start);
+  return <PairingGroup group={group} onGroup={setGroup} onRefresh={() => {}} />;
 }
 
 const stage = () => host.querySelector('[data-stage]')!.getAttribute('data-stage');
@@ -59,6 +66,8 @@ const tiles = () => [...host.querySelectorAll<HTMLButtonElement>('button[data-ch
 const tile = (title: string) => tiles().find((b) => b.textContent?.startsWith(title))!;
 const dialog = () => document.body.querySelector('[role="dialog"]');
 const button = (text: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === text)!;
+const rows = () => [...host.querySelectorAll('[data-testid="members"] > li')];
+const net = () => host.querySelector('[data-testid="group-net"]');
 const WORDS = 'orbit wagon lemon crisp absent tunnel galaxy harbor pencil ribbon velvet yellow';
 
 function answer(body: object) {
@@ -72,27 +81,42 @@ function answer(body: object) {
   );
   return calls;
 }
-const badge = () => host.querySelector('[data-testid="pair-state"]')?.textContent ?? '';
+const state = () => host.querySelector('[data-testid="pair-state"]')?.textContent ?? '';
 
-describe('PhraseCard', () => {
-  it('offers the two tiles outside a group', () => {
+describe('PairingGroup', () => {
+  it('offers the two tiles outside a group and lists this instance alone', () => {
     draw({ active: false });
     expect(stage()).toBe('unpaired');
     const titles = tiles().map((b) => b.textContent);
     expect(titles[0]).toContain('Generate phrase');
     expect(titles[1]).toContain('Enter phrase');
     expect(dialog()).toBeNull();
+    expect(rows().map((li) => li.textContent)).toEqual(['nasThis instance']);
+    expect(net()).toBeNull();
   });
 
-  it('shows a generated phrase in the words window', async () => {
+  it('keeps a generated phrase on the card, with the way to the other instance', async () => {
     const calls = answer({ phrase: WORDS, info: { ...base, joinedAgo: 0 } });
-    draw({ active: false });
+    act(() =>
+      root.render(
+        <MemoryRouter>
+          <I18nProvider>
+            <Live start={{ ...base, active: false }} />
+          </I18nProvider>
+        </MemoryRouter>,
+      ),
+    );
     await act(async () => tile('Generate phrase').click());
     expect(calls).toContain('POST /api/connect/activate');
-    const slots = [...dialog()!.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
+    expect(stage()).toBe('new');
+    expect(dialog()).toBeNull();
+    const slots = [...host.querySelectorAll('li[data-slot]')].map((li) => li.textContent);
     expect(slots).toEqual(WORDS.split(' ').map((w, i) => `${i + 1}${w}`));
-    const row = [...dialog()!.querySelectorAll('button')].map((b) => b.textContent);
-    expect(row.slice(-2)).toEqual(['Close', 'Copy']);
+    expect(host.textContent).toContain('Now, on the other instance');
+    const foot = [...host.querySelector('[data-stage]')!.querySelectorAll('button')].map((b) => b.textContent);
+    expect(foot.slice(-3)).toEqual(['Enter phrase', 'Copy', 'Leave group']);
+    expect(state()).toBe('New group');
+    expect(host.textContent).toContain('Waiting for the next instance');
   });
 
   it('takes a first instance\'s words in a window with Close, Paste and Pair', () => {
@@ -115,22 +139,24 @@ describe('PhraseCard', () => {
     expect(host.textContent).not.toContain('Anyone who can open this web interface');
   });
 
-  it('says Searching in the first minute after entering a phrase', () => {
+  it('says Searching on this instance\'s row in the first minute after entering a phrase', () => {
     draw({ joinedAgo: 12 });
     expect(stage()).toBe('searching');
-    expect(badge()).toContain('Searching');
+    expect(state()).toBe('Searching');
     expect(host.textContent).toContain('0:12');
+    expect(host.textContent).toContain('Phrase entered.');
   });
 
   it('says Still alone after a minute and offers the two ways out, with nothing open', () => {
     draw({ joinedAgo: 75 });
     expect(stage()).toBe('alone');
-    expect(badge()).toContain('Still alone');
+    expect(state()).toBe('Still alone');
     expect(host.textContent).toContain('Nothing entered over there yet?');
     expect(host.textContent).toContain('Generated a phrase over there too?');
     expect(host.querySelector('textarea')).toBeNull();
     expect(host.querySelector('ol')).toBeNull();
     expect(host.textContent).not.toContain('Relay not reachable');
+    expect(button('Leave group')).toBeDefined();
   });
 
   it('joins the other group in one step, without leaving this one first', async () => {
@@ -179,17 +205,18 @@ describe('PhraseCard', () => {
     expect(host.textContent).not.toContain('Anyone who can open this web interface');
   });
 
-  it('lists what to check when the relay cannot be reached and nobody came', () => {
-    draw({ joinedAgo: 75, connected: false });
+  it('says the relay cannot be reached when nobody came, and asks again on request', () => {
+    const onRefresh = vi.fn();
+    draw({ joinedAgo: 75, connected: false }, () => {}, onRefresh);
     expect(host.textContent).toContain('Relay not reachable');
-    const open = [...host.querySelectorAll('button')].find((b) => b.textContent === 'What to check')!;
-    act(() => open.click());
-    expect(host.textContent).toContain('parleyport.halleluja.design');
+    act(() => button('Check again').click());
+    expect(onRefresh).toHaveBeenCalledTimes(1);
   });
 
   it('points at the relay card when there is no relay', () => {
     draw({ joinedAgo: 75, relayMode: 'off', connected: false });
     expect(host.textContent).toContain('Is the other instance on another network?');
+    expect(host.textContent).not.toContain('Relay not reachable');
   });
 
   it('shows all twelve words in a window with Copy beside Close', async () => {
@@ -232,18 +259,42 @@ describe('PhraseCard', () => {
         { id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 },
       ],
     });
-    const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
-    expect(rows).toEqual([
-      'nasThis instanceConnected',
-      'officeVia relayConnectedRemove',
-      'Pixel 8ConnectedRemove',
-      'Old phoneNot connectedRemove',
+    expect(rows().map((li) => li.textContent)).toEqual([
+      'nasThis instancePaired',
+      'officePaired·Via relayRemove',
+      'Pixel 8Android appConnectedRemove',
+      'Old phoneAndroid appNot connectedRemove',
     ]);
-    expect(host.textContent).not.toContain('This instance appears as');
-    expect(host.textContent).not.toContain('In the group');
-    // The row without a badge is as high as those with one.
-    const heights = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.classList.contains('h-11'));
-    expect(heights).toEqual([true, true, true, true]);
+    // The row without a button is as high as those with one.
+    expect(rows().map((li) => li.classList.contains('min-h-11'))).toEqual([true, true, true, true]);
+  });
+
+  it('draws the group as a net and lights a row together with its node', () => {
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      members: [{ id: 'b', name: 'office', direct: true, relay: false }],
+      apps: [{ id: 'q', name: 'Old phone', deployment: 'mobile', connected: false, lastSeen: 1 }],
+    });
+    const wide = net()!.querySelector('svg.wide')!;
+    const spokes = [...wide.querySelectorAll('g[data-nk]')];
+    expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:b', 'app:q', 'self']);
+    // A phone that is away stands dimmed.
+    expect(spokes.map((g) => g.classList.contains('dim'))).toEqual([false, true, false]);
+    expect(wide.textContent).toContain('officeDirect');
+
+    const row = rows().find((li) => li.getAttribute('data-nk') === 'member:b')!;
+    act(() => {
+      row.dispatchEvent(new MouseEvent('pointerover', { bubbles: true }));
+    });
+    expect(spokes[0].classList.contains('hot')).toBe(true);
+    expect(wide.classList.contains('picked')).toBe(true);
+
+    act(() => {
+      spokes[1].querySelector('[role="button"]')!.dispatchEvent(new FocusEvent('focusin', { bubbles: true }));
+    });
+    expect(rows().find((li) => li.getAttribute('data-nk') === 'app:q')!.className).toContain('shadow-');
+    expect(row.className).not.toContain('shadow-');
   });
 
   it('takes a phone out of the group only after the window asks', async () => {
@@ -264,30 +315,28 @@ describe('PhraseCard', () => {
     expect(dialog()).toBeNull();
   });
 
-  it('leaves the relay to the relay card and ends the first line with the state', () => {
+  it('leaves the relay to the relay card and ends this instance\'s row with the stage', () => {
     for (const connected of [true, false]) {
       draw({ joinedAgo: 12, connected });
-      // The rows say whether each member is there; the relay's own state is
-      // the relay card's.
-      const members = host.querySelector('[data-testid="members"]')!.textContent!;
-      expect(host.textContent!.replace(members, '')).not.toMatch(/Connected|Not connected|No relay/);
-      const state = host.querySelector('[data-testid="pair-state"]')!;
-      expect(state.parentElement!.lastElementChild).toBe(state);
+      expect(host.textContent).not.toMatch(/Connected|Not connected|No relay/);
+      const own = host.querySelector('[data-testid="pair-state"]')!;
+      expect(own.parentElement!.lastElementChild).toBe(own);
     }
     draw({ joinedAgo: 75 });
-    const state = host.querySelector('[data-testid="pair-state"]')!;
-    expect(state.textContent).toBe('Still alone');
-    expect(state.parentElement!.lastElementChild).toBe(state);
+    const own = host.querySelector('[data-testid="pair-state"]')!;
+    expect(own.textContent).toBe('Still alone');
+    expect(own.parentElement!.lastElementChild).toBe(own);
   });
 
-  it('drops the state badge once another instance is there, since every row carries its own', () => {
+  it('says Paired once another instance is there, and Searching again when it is gone', () => {
     draw({ joinedAgo: 500, memberSeen: true, members: [{ id: 'b', name: 'office', direct: false, relay: true }] });
     expect(stage()).toBe('paired');
-    expect(badge()).toBe('');
+    expect(state()).toBe('Paired');
     expect(host.textContent).toContain('office');
 
     draw({ joinedAgo: 500, memberSeen: true, members: [] });
-    expect(badge()).toContain('Searching');
+    expect(stage()).toBe('gone');
+    expect(state()).toBe('Searching');
   });
 
   it('counts a connected phone as the other member', () => {

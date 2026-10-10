@@ -410,7 +410,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'pairing.phraseTitle',
       hint: 'pairing.phraseHint',
       rows: [],
-      // The two tiles, the word fields, the words' window and a member's badges.
+      // The two tiles, the word fields and the words' window.
       also: [
         'pairing.create',
         'pairing.enter',
@@ -418,29 +418,17 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'pairing.enterLabel',
         'pairing.enterLabelOther',
         'pairing.wordsLabel',
-        'pairing.direct',
-        'pairing.byAddress',
-        'pairing.viaRelay',
       ],
-      // The sentence above the step cards and its (i), and the (i) of the two
-      // windows a group nobody has come to opens.
+      // The rest of the card's (i), and the (i) of the two windows a group
+      // nobody has come to opens.
       body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
     },
     {
-      title: 'relay.title',
-      hint: 'relay.hint',
-      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
-      // The route picker, the state badge in the header and the facts line.
-      also: [
-        'relay.project',
-        'relay.own',
-        'relay.off',
-        'relay.noGroup',
-        'instances.connected',
-        'instances.notConnected',
-        'relay.needLabel',
-      ],
-      body: ['relay.lead'],
+      title: 'instances.title',
+      hint: 'pairing.groupHint',
+      rows: [],
+      // How a member of the group is reached.
+      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay'],
     },
     {
       title: 'settings.access.identity.title',
@@ -448,6 +436,30 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.access.identity.nameLabel', hint: 'settings.access.identity.nameHint' },
         { key: 'settings.access.identity.domainsLabel', hint: 'settings.access.identity.domainsHint' },
       ],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [
+        { key: 'relay.addressLabel', hint: 'relay.addressTip' },
+        { key: 'relay.serve', hint: 'relay.serveHint' },
+      ],
+      // The route picker, the state in the header, the window behind the
+      // button beside it and the facts line.
+      also: [
+        'relay.project',
+        'relay.own',
+        'relay.off',
+        'relay.noGroup',
+        'instances.connected',
+        'instances.notConnected',
+        'relay.seesTitle',
+        'relay.seesLabel',
+        'relay.notSeesLabel',
+        'relay.needLabel',
+      ],
+      // The rest of the card's (i), and the (i) of what to check.
+      body: ['relay.lead', 'pairing.relayCheckTip'],
     },
   ],
 
