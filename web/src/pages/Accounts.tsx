@@ -519,7 +519,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   const { t } = useT();
   if (busy) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
         {/* The house's live dot rather than animate-spin, so it follows the
             motion level and reduced motion. */}
         <span
@@ -533,7 +533,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   // Never checked yet differs from a failed check.
   if (!account.detail) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
         {t('accounts.unchecked')}
       </span>
@@ -541,14 +541,14 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   }
   if (account.ok) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
         {t('accounts.ok')}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={account.detail} />
@@ -560,7 +560,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
 function ServerStatus() {
   const { t } = useT();
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
       {t('accounts.unchecked')}
       <InfoBubble tip={t('accounts.server.uncheckedHint')} />
