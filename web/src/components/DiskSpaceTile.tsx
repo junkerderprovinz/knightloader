@@ -67,7 +67,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
   const sizeTip = useTooltip<HTMLSpanElement>(t('disk.size'));
 
   return (
-    <div className="flex items-center gap-4 px-5 py-3">
+    <div data-new="folder-vessel" className="flex items-center gap-4 px-5 py-3">
       {/* The platform cannot always measure, and then there is no level to draw. */}
       {v.known && v.total > 0 && (
         <Vessel share={v.used / v.total} label={t('disk.used')} tone={floorTone(v, cfg)} marks={floorMarks(v, cfg, t)} />

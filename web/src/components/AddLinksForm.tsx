@@ -242,6 +242,7 @@ export function AddLinksForm({
         title={t('collector.options')}
         aria-label={t('collector.options')}
         aria-expanded={optionsOpen}
+        data-new="collector-options"
         onClick={() => setOptionsOpen(!optionsOpen)}
       />
       <div className="ms-auto flex flex-wrap items-center justify-end gap-3">

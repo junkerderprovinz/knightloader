@@ -59,6 +59,7 @@ export function ReconnectScene({
       role="img"
       aria-label={off ? t('settings.reconnect.offState') : t('picture.reconnect.alt')}
       data-state={off ? 'off' : 'on'}
+      data-new="reconnect-scene"
       className="mx-auto block w-full max-w-[30rem] overflow-visible"
     >
       <path d={`M${APP + 24} ${Y}H${ROUTER - 36}`} stroke={QUIET} strokeOpacity=".6" strokeWidth="2" strokeLinecap="round" strokeDasharray="2 7" />

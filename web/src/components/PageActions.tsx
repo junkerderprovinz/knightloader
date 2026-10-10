@@ -45,7 +45,11 @@ export function PageActionsSlot({ ref, className }: { ref: Ref<HTMLDivElement>; 
  */
 export function PageActions({ children }: { children: ReactNode }) {
   const slot = useContext(SlotContext);
-  const row = <div className="flex items-center gap-2.5">{children}</div>;
+  const row = (
+    <div data-new="page-actions" className="flex items-center gap-2.5">
+      {children}
+    </div>
+  );
   if (slot === undefined) return <div className="flex justify-end">{row}</div>;
   return slot && createPortal(row, slot);
 }
@@ -64,6 +68,7 @@ export function PageAction({
   disabled,
   menu,
   onClick,
+  'data-new': mark,
 }: {
   icon: ReactNode;
   label: string;
@@ -73,6 +78,8 @@ export function PageAction({
   disabled?: boolean;
   menu?: MenuGroup[];
   onClick?: () => void;
+  /** The change this action is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
 }) {
   const phone = usePhoneLayout();
   const choices = useContextMenu();
@@ -88,6 +95,7 @@ export function PageAction({
         disabled={disabled}
         aria-haspopup={menu ? 'menu' : undefined}
         aria-expanded={menu ? choices.anchor !== null : undefined}
+        data-new={mark}
         className="glim-float pointer-events-auto"
         onClick={menu ? (e) => choices.openAt(anchorAbove(e.currentTarget)) : onClick}
       />

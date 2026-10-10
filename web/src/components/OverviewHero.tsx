@@ -218,7 +218,7 @@ export function OverviewHero({
   const ring = <StatusRing segments={segments} percent={progress} centre={centre} ink={ink} />;
 
   return (
-    <div className="flex flex-wrap items-center gap-x-[22px] gap-y-4 px-1 pt-1.5">
+    <div data-new="overview-head" className="flex flex-wrap items-center gap-x-[22px] gap-y-4 px-1 pt-1.5">
       {progress !== null ? (
         <Link to="/downloads" aria-label={t('nav.downloads')} className="shrink-0 rounded-[var(--radius-pill)]">
           {ring}
