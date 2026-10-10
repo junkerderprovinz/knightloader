@@ -72,7 +72,22 @@ function ContainerHandedProgress({
   );
 }
 
-/** What Collector.tsx reaches through the ref, for AddLinksForm's picker
+/**
+ * newestContainerLink is when a link from a container file last landed, in
+ * epoch milliseconds, or 0. It ends the "handed to JDownloader" bar, read from
+ * the task list its caller already holds rather than a second subscription.
+ */
+export function newestContainerLink(tasks: Record<string, Task>): number {
+  let newest = 0;
+  for (const id in tasks) {
+    if (tasks[id].origin !== 'container') continue;
+    const at = Date.parse(tasks[id].createdAt);
+    if (Number.isFinite(at) && at > newest) newest = at;
+  }
+  return newest;
+}
+
+/** What the form's owner reaches through the ref, for AddLinksForm's picker
  *  button and paste box drops. */
 export interface FileDropHandle {
   openPicker: () => void;

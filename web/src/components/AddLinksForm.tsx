@@ -5,6 +5,9 @@
 // A matching Packagizer rule wins over priority, unpacking and comment unless
 // "Overrule" is on; a destination picked here always wins (see
 // app.LinkBatchOptions).
+//
+// The collector draws it as its first card. The pages that list downloads
+// without holding the form open it in a window instead (AddLinksAction.tsx).
 import { useEffect, useState, type CSSProperties } from 'react';
 import { hueVars } from '../lib/appearance';
 import {
@@ -18,7 +21,7 @@ import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
-import { LinkIntakeButtons } from './LinkIntakeButtons';
+import { LinkIntakeSwitches } from './LinkIntakeSwitches';
 import { Tabs } from './Tabs';
 import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
@@ -58,6 +61,39 @@ function pushRecent(list: string[], value: string): string[] {
   return next.slice(0, DESTINATION_HISTORY_MAX);
 }
 
+/**
+ * useStagedReport says what became of a batch the form sent, for onStaged:
+ * how many links were staged, how many the link filter rejected and how many
+ * were known already.
+ */
+export function useStagedReport(): (created: Task[], submittedCount: number) => void {
+  const { t } = useT();
+  const { toast } = useToast();
+  return (created, submittedCount) => {
+    if (!created.length) {
+      toast(t('collector.toastNone'), 'fail');
+      return;
+    }
+    // A held link comes back in `created` but was not staged.
+    const heldNow = created.filter((x) => x.skipped).length;
+    const staged = created.length - heldNow;
+    const skipped = Math.max(0, submittedCount - created.length);
+    if (heldNow) {
+      toast(
+        staged
+          ? t('collector.filtered.toastHeldBack', { n: staged, held: heldNow })
+          : t('collector.filtered.toastAllHeldBack', { held: heldNow }),
+        staged ? 'ok' : 'info',
+      );
+      return;
+    }
+    toast(
+      skipped ? t('collector.toastSkipped', { n: staged, skipped }) : t('collector.toastStaged', { n: staged }),
+      'ok',
+    );
+  };
+}
+
 export function AddLinksForm({
   pkg,
   onPkgChange,
@@ -65,6 +101,7 @@ export function AddLinksForm({
   onChooseFile,
   onFilesDropped,
   footer,
+  bare = false,
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
@@ -77,6 +114,12 @@ export function AddLinksForm({
   onFilesDropped: (files: File[]) => void;
   /** FileDrop's output, rendered inside this card beside the drop target. */
   footer?: React.ReactNode;
+  /**
+   * Drawn inside a window, which is the card and carries the title. The add
+   * button is the window's one accent there; on the collector that is the
+   * page's floating action.
+   */
+  bare?: boolean;
 }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -149,6 +192,174 @@ export function AddLinksForm({
     if (text) setLinks((l) => (l ? `${l}\n${text}` : text));
   }
 
+  const box = (
+    <div
+      onDragOver={(e) => {
+        e.preventDefault();
+        setDragOver(true);
+      }}
+      onDragLeave={() => setDragOver(false)}
+      onDrop={onDrop}
+      className={`relative rounded-[var(--radius-control)] transition-colors ${bare ? '' : 'm-3 flex-1'} ${
+        dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
+      }`}
+    >
+      <textarea
+        dir="ltr"
+        // A window opened to add links starts in the box they go into.
+        autoFocus={bare}
+        placeholder={t('collector.placeholder')}
+        rows={4}
+        value={links}
+        onChange={(e) => setLinks(e.target.value)}
+        onKeyDown={(e) => {
+          if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') void onAdd();
+        }}
+        className="h-full min-h-[6rem] w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
+      />
+      {dragOver && (
+        <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">
+          <span className="flex items-center gap-2 text-sm font-medium text-accentInk">
+            <IconCollector width={18} height={18} />
+            {t('collector.add')}
+          </span>
+        </div>
+      )}
+    </div>
+  );
+
+  // Options opens the batch's settings and the two standing ways in, and the
+  // three ways to hand links over end the row. With labels on, the row is wider
+  // than a narrow card, so it wraps, and the trailing actions wrap as one group
+  // pushed over by ms-auto. A flex-1 spacer would drop everything after it to a
+  // line of its own.
+  const actions = (
+    <div className={`flex flex-wrap items-center gap-3 ${bare ? '' : 'px-4 pb-4'}`}>
+      <IconBadge
+        labelled
+        icon={<IconSettings width={16} height={16} />}
+        hue={0}
+        title={t('collector.options')}
+        aria-label={t('collector.options')}
+        aria-expanded={optionsOpen}
+        onClick={() => setOptionsOpen(!optionsOpen)}
+      />
+      <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
+        <PasteFromClipboardButton pkg={pkg} />
+        <IconBadge
+          labelled
+          icon={<IconFolder width={16} height={16} />}
+          hue={1}
+          title={t('container.choose')}
+          aria-label={t('container.choose')}
+          onClick={onChooseFile}
+        />
+        <IconBadge
+          labelled
+          icon={<IconPlus width={16} height={16} />}
+          hue={2}
+          title={t('collector.add')}
+          aria-label={t('collector.add')}
+          className={bare ? 'bg-accent text-accentContrast hover:brightness-110' : ''}
+          shake={shake}
+          onClick={() => void onAdd()}
+          disabled={!links.trim() || busy}
+        />
+      </div>
+    </div>
+  );
+
+  const options = (
+    <>
+      {/* The two ways links come in by themselves. They are no part of a
+          batch, and they stand first because they are what is looked for
+          here most. */}
+      <LinkIntakeSwitches />
+
+      <Field label={t('collector.package')}>
+        <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} className="max-w-xs" />
+      </Field>
+      <Field label={t('collector.destination')} hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}>
+        <PathInput value={dir} placeholder="/downloads" title={t('collector.destination')} onValue={setDir} />
+      </Field>
+      {recent.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <span className="glim-eyebrow text-carbon-textSub">{t('collector.destinationRecent')}</span>
+          <div dir="ltr" className="flex flex-wrap gap-1.5">
+            {recent.map((d) => (
+              <Button
+                key={d}
+                type="button"
+                kind="ghost"
+                className="max-w-[220px] truncate px-2 py-1 text-xs"
+                title={d}
+                onClick={() => setDir(d)}
+              >
+                {d}
+              </Button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      <FieldGroup label={t('props.priority')} hint={t('props.priorityHint')}>
+        <Tabs
+          size="sm"
+          label={t('props.priority')}
+          active={priority}
+          onSelect={setPriority}
+          items={priorities.map((p) => ({ id: p.id, label: p.label }))}
+        />
+      </FieldGroup>
+
+      <FieldGroup label={t('props.autoExtract')} hint={t('props.autoExtractHint')}>
+        <Tabs
+          size="sm"
+          label={t('props.autoExtract')}
+          active={autoExtract}
+          onSelect={(id) => setAutoExtract(id as 'inherit' | 'on' | 'off')}
+          items={[
+            { id: 'inherit', label: t('props.inherit') },
+            { id: 'on', label: t('props.on') },
+            { id: 'off', label: t('props.off') },
+          ]}
+        />
+      </FieldGroup>
+
+      <Field label={t('props.comment')} hint={t('props.commentHint')}>
+        <TextArea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} />
+      </Field>
+
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <Field label={t('task.password')} hint={t('collector.archivePasswordHint')}>
+          <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
+        </Field>
+        <Field label={t('collector.linkPassword')} hint={t('collector.linkPasswordHint')}>
+          <TextInput value={downloadPassword} onChange={(e) => setDownloadPassword(e.target.value)} />
+        </Field>
+      </div>
+
+      <ToggleRow
+        checked={overrule}
+        onChange={setOverrule}
+        label={t('collector.overrule')}
+        hint={t('collector.overruleHint')}
+      />
+    </>
+  );
+
+  if (bare) {
+    return (
+      <div className="flex flex-col gap-4">
+        {box}
+        {actions}
+        {footer}
+        {/* A well, since the window around it is the card. */}
+        {optionsOpen && <div className="glim-well flex flex-col gap-4 p-4">{options}</div>}
+      </div>
+    );
+  }
+
   return (
     <div className="flex h-full flex-col gap-3">
       {/* flex-1 on the card itself so the row's cards match in height; the
@@ -159,163 +370,12 @@ export function AddLinksForm({
         <div className="px-4 pt-3">
           <SectionTitle>{t('collector.addTitle')}</SectionTitle>
         </div>
-        <div
-          onDragOver={(e) => {
-            e.preventDefault();
-            setDragOver(true);
-          }}
-          onDragLeave={() => setDragOver(false)}
-          onDrop={onDrop}
-          className={`relative m-3 flex-1 rounded-[var(--radius-control)] transition-colors ${
-            dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
-          }`}
-        >
-          <textarea
-            dir="ltr"
-            placeholder={t('collector.placeholder')}
-            rows={4}
-            value={links}
-            onChange={(e) => setLinks(e.target.value)}
-            onKeyDown={(e) => {
-              if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') void onAdd();
-            }}
-            className="h-full min-h-[6rem] w-full resize-y rounded-[var(--radius-control)] bg-transparent px-4 py-3 text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-          />
-          {dragOver && (
-            <div className="pointer-events-none absolute inset-0 grid place-items-center rounded-[var(--radius-control)]">
-              <span className="flex items-center gap-2 text-sm font-medium text-accentInk">
-                <IconCollector width={18} height={18} />
-                {t('collector.add')}
-              </span>
-            </div>
-          )}
-        </div>
-        {/* With labels on, this row is wider than the card, so it wraps, and the
-            trailing actions wrap as one group pushed over by ms-auto. A flex-1
-            spacer would drop everything after it to a line of its own. */}
-        <div className="flex flex-wrap items-center gap-3 px-4 pb-4">
-          <IconBadge
-            labelled
-            icon={<IconSettings width={16} height={16} />}
-            hue={0}
-            title={t('collector.options')}
-            aria-label={t('collector.options')}
-            aria-expanded={optionsOpen}
-            onClick={() => setOptionsOpen(!optionsOpen)}
-          />
-          {/* Modes, so they sit with Options rather than with the actions. */}
-          <LinkIntakeButtons />
-          {/* Wraps inside itself too, since on a narrow card these three alone
-              are wider than the card. */}
-          <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
-            <PasteFromClipboardButton pkg={pkg} />
-            <IconBadge
-              labelled
-              icon={<IconFolder width={16} height={16} />}
-              hue={1}
-              title={t('container.choose')}
-              aria-label={t('container.choose')}
-              onClick={onChooseFile}
-            />
-            <IconBadge
-              labelled
-              icon={<IconPlus width={16} height={16} />}
-              hue={2}
-              title={t('collector.add')}
-              aria-label={t('collector.add')}
-              className="bg-accent text-accentContrast hover:brightness-110"
-              shake={shake}
-              onClick={() => void onAdd()}
-              disabled={!links.trim() || busy}
-            />
-          </div>
-        </div>
+        {box}
+        {actions}
         {footer && <div className="flex flex-col gap-1.5 px-4 pb-4">{footer}</div>}
       </div>
 
-      {optionsOpen && (
-        <Card className="flex flex-col gap-4">
-          <Field label={t('collector.package')}>
-            <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} className="max-w-xs" />
-          </Field>
-          <Field
-            label={t('collector.destination')}
-            hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
-          >
-            <PathInput
-              value={dir}
-              placeholder="/downloads"
-              title={t('collector.destination')}
-              onValue={setDir}
-            />
-          </Field>
-          {recent.length > 0 && (
-            <div className="flex flex-col gap-1.5">
-              <span className="glim-eyebrow text-carbon-textSub">
-                {t('collector.destinationRecent')}
-              </span>
-              <div dir="ltr" className="flex flex-wrap gap-1.5">
-                {recent.map((d) => (
-                  <Button
-                    key={d}
-                    type="button"
-                    kind="ghost"
-                    className="max-w-[220px] truncate px-2 py-1 text-xs"
-                    title={d}
-                    onClick={() => setDir(d)}
-                  >
-                    {d}
-                  </Button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <FieldGroup label={t('props.priority')} hint={t('props.priorityHint')}>
-            <Tabs
-              size="sm"
-              label={t('props.priority')}
-              active={priority}
-              onSelect={setPriority}
-              items={priorities.map((p) => ({ id: p.id, label: p.label }))}
-            />
-          </FieldGroup>
-
-          <FieldGroup label={t('props.autoExtract')} hint={t('props.autoExtractHint')}>
-            <Tabs
-              size="sm"
-              label={t('props.autoExtract')}
-              active={autoExtract}
-              onSelect={(id) => setAutoExtract(id as 'inherit' | 'on' | 'off')}
-              items={[
-                { id: 'inherit', label: t('props.inherit') },
-                { id: 'on', label: t('props.on') },
-                { id: 'off', label: t('props.off') },
-              ]}
-            />
-          </FieldGroup>
-
-          <Field label={t('props.comment')} hint={t('props.commentHint')}>
-            <TextArea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} />
-          </Field>
-
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('task.password')} hint={t('collector.archivePasswordHint')}>
-              <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
-            </Field>
-            <Field label={t('collector.linkPassword')} hint={t('collector.linkPasswordHint')}>
-              <TextInput value={downloadPassword} onChange={(e) => setDownloadPassword(e.target.value)} />
-            </Field>
-          </div>
-
-          <ToggleRow
-            checked={overrule}
-            onChange={setOverrule}
-            label={t('collector.overrule')}
-            hint={t('collector.overruleHint')}
-          />
-        </Card>
-      )}
+      {optionsOpen && <Card className="flex flex-col gap-4">{options}</Card>}
     </div>
   );
 }
