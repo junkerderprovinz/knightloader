@@ -12,6 +12,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { ReconnectScene } from '../../components/pictures/ReconnectScene';
 import { Tabs } from '../../components/Tabs';
 import {
   IconArrowDown,
@@ -201,6 +202,8 @@ export function ReconnectCards({ hue }: { hue: number }) {
   );
 
   const [state, setState] = useState<ReconnectState | null>(null);
+  // The last run from this page, whose two addresses the picture shows.
+  const [moved, setMoved] = useState<RunResult | null>(null);
 
   // Polled, since a hoster limit can start a run while the page is open.
   useEffect(() => {
@@ -248,6 +251,14 @@ export function ReconnectCards({ hue }: { hue: number }) {
           {methodRefused.line}
         </FieldGroup>
 
+        <ReconnectScene
+          method={rc.method}
+          glyph={METHODS.find((m) => m.id === rc.method)?.icon}
+          off={off}
+          from={moved?.oldIp}
+          to={moved?.newIp}
+        />
+
         {off && <StateLine tone="muted">{t('settings.reconnect.offState')}</StateLine>}
         {rc.method === 'command' && <CommandFields rc={rc} write={write} />}
         {rc.method === 'http' && <RequestFields rc={rc} write={write} />}
@@ -265,7 +276,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
 
       <Card hue={hue + 2} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.reconnect.runTitle')}</SectionTitle>
-        <RunPanel state={state} disabled={off} />
+        <RunPanel state={state} disabled={off} onMoved={setMoved} />
       </Card>
     </>
   );
@@ -833,7 +844,15 @@ function Clamped({ value, band }: { value: number; band: { lo: number; hi: numbe
 }
 
 /** RunPanel shows the state, the run button and when reconnects happen on their own. */
-function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled: boolean }) {
+function RunPanel({
+  state,
+  disabled,
+  onMoved,
+}: {
+  state: ReconnectState | null;
+  disabled: boolean;
+  onMoved: (result: RunResult) => void;
+}) {
   const { t } = useT();
   // The state and the run use the saved configuration, which differs while
   // the form is dirty.
@@ -851,8 +870,12 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
     setNote(null);
     try {
       const res = await runReconnect();
-      if (res) setResult(res);
-      else setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
+      if (res) {
+        setResult(res);
+        onMoved(res);
+      } else {
+        setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
+      }
     } catch (e) {
       setNote({ tone: 'fail', text: t('settings.reconnect.runFailed', { reason: String(e).replace(/^Error:\s*/, '') }) });
     } finally {

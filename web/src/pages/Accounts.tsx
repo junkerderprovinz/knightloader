@@ -77,6 +77,8 @@ import {
   IconTrash,
 } from '../lib/icons';
 import { HosterIcon } from '../components/HosterIcon';
+import { PictureSwitch, usePictureView } from '../components/pictures/PictureSwitch';
+import { PriorityFlow } from '../components/pictures/PriorityFlow';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -930,6 +932,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   const { t } = useT();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
+  const [view, setView] = usePictureView('accounts.priorityView');
 
   // Re-read whenever the configured services or the switched-on hoster logins
   // change: saving a debrid key registers a resolver at once, and each login
@@ -952,13 +955,21 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card hue={6} className="flex flex-col gap-3">
-        <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
+        <SectionTitle
+          hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}
+          right={priority !== null && priority.length > 0 && <PictureSwitch view={view} onView={setView} />}
+        >
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
+        ) : view === 'picture' ? (
+          <PriorityFlow
+            backends={priority.map((r) => ({ id: r.id, name: labelFor(r.id) }))}
+            label={t('accounts.routing.priorityTitle')}
+          />
         ) : (
           <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
         )}

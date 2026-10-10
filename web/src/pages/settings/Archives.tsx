@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
+import { AfterDownload } from '../../components/pictures/AfterDownload';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -70,11 +71,42 @@ export function Archives() {
   const collecting = extractTo.trim() !== '';
   const keeping = disposal === 'keep';
 
+  // A file leaves its work folder for the download folder once it is checked
+  // and unpacked, and unpacked files have a destination of their own.
+  const moving = (cfg.workDir ?? '').trim() !== '' || (unpacking && extractMoveTo.trim() !== '');
+
   return (
     <div className="flex flex-col gap-10">
-      <Card hue={0} className="flex flex-col gap-5">
+      <Card hue={0} className="flex flex-col gap-4">
+        <SectionTitle
+          hint={t('settings.archives.journeyHint', {
+            verifying: t('status.verifying'),
+            checksums: t('settings.module.checksums'),
+            downloads: t('settings.nav.downloads'),
+            repairing: t('status.repairing'),
+            moving: t('picture.journey.move'),
+            workDir: t('settings.downloads.workDir'),
+            cleanup: t('picture.journey.cleanup'),
+          })}
+        >
+          {t('settings.archives.journey')}
+        </SectionTitle>
+        <AfterDownload
+          title={t('settings.archives.journey')}
+          steps={{
+            verify: cfg.verifyChecksums,
+            // par2 only ever checks a release that came from a Usenet server of one's own.
+            repair: (cfg.usenetServers ?? []).length > 0,
+            unpack: unpacking,
+            move: moving,
+            cleanup: unpacking && !keeping,
+          }}
+        />
+      </Card>
+
+      <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.module.extraction')}</SectionTitle>
-        <ModuleToggle id="extraction" hue={0} />
+        <ModuleToggle id="extraction" hue={1} />
 
         {/* Flush left under the switch, and absent while it is off. */}
         {unpacking && (
@@ -96,7 +128,7 @@ export function Archives() {
 
           {collecting && (
             <ToggleRow
-              hue={1}
+              hue={2}
               checked={cfg.extractSubfolder ?? false}
               onChange={(v) => patch({ extractSubfolder: v })}
               label={t('settings.archives.subfolder')}
@@ -141,7 +173,7 @@ export function Archives() {
 
       {/* The whole card goes while nothing is unpacked. */}
       {unpacking && (
-      <Card hue={1} className="flex flex-col gap-5">
+      <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archives.afterwards')}</SectionTitle>
         <div className="flex flex-col gap-5">
           {options && options.archiveDisposals.length > 0 && (
@@ -195,7 +227,7 @@ export function Archives() {
       </Card>
       )}
 
-      <Card hue={2} className="flex flex-col gap-5">
+      <Card hue={3} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.archivePasswords')}</SectionTitle>
         <Field label={t('settings.archivePasswords')} hint={t('settings.archivePasswordsHint')}>
           <ListArea rows={4} lines={cfg.archivePasswords} onLines={(archivePasswords) => patch({ archivePasswords })} />
