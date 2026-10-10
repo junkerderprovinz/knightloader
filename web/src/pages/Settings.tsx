@@ -10,6 +10,7 @@ import { withBase } from '../lib/basePath';
 import { useStagger, useTabSlide } from '../lib/motion';
 import { useToast } from '../lib/toast';
 import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
+import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
@@ -76,6 +77,7 @@ export function SettingsPage() {
 
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
 
   // What the server did not take of the draft. A refused value shows beside
   // its field and is not sent again until the field holds something else.
@@ -380,12 +382,20 @@ export function SettingsPage() {
           {/* Here rather than in PageHeader, which would push the rail down, and
               outside the Routes so a search and its jump survive a page change. */}
           <SettingsSearch pages={features.pages} />
-          <Routes>
-            <Route index element={<RememberedPage pages={features.pages} />} />
-            <Route path=":page" element={<SubPage pages={features.pages} />} />
-            {/* Anything deeper than one segment is not a page we ever made. */}
-            <Route path="*" element={<Navigate to={pagePath(FALLBACK_PAGE)} replace />} />
-          </Routes>
+          <PageActionsProvider slot={actionSlot}>
+            <Routes>
+              <Route index element={<RememberedPage pages={features.pages} />} />
+              <Route path=":page" element={<SubPage pages={features.pages} />} />
+              {/* Anything deeper than one segment is not a page we ever made. */}
+              <Route path="*" element={<Navigate to={pagePath(FALLBACK_PAGE)} replace />} />
+            </Routes>
+          </PageActionsProvider>
+          {/* A tab's floating actions, such as Accounts' own. A short tab
+              ends above the foot of the column, so the slot takes the height
+              that is left. It is as tall as the column's gap at least and
+              takes that gap back, so it adds nothing under a long tab's last
+              card and its foot is the column's. */}
+          <PageActionsSlot ref={setActionSlot} className="-mt-6 min-h-6 flex-1" />
         </div>
       </div>
     </SettingsProvider>

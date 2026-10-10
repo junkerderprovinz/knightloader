@@ -335,7 +335,8 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   return (
     <Ctx.Provider value={{ toast }}>
       {children}
-      <div className="fixed bottom-[calc(1.25rem+var(--phone-bar-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
+      {/* Above a page's floating actions, which stand in the same corner. */}
+      <div className="fixed bottom-[calc(1.25rem+var(--phone-bar-space)+var(--page-actions-space))] end-5 z-50 flex flex-col gap-2 pointer-events-none">
         {items.map((m) => (
           <ToastBubble key={m.id} item={m} onDismiss={dismiss} />
         ))}

@@ -21,6 +21,8 @@ export interface MenuAnchor {
   y: number;
   /** Where the menu flips to when it does not fit; see Spot. */
   flipAt?: number;
+  /** The menu opens upwards and ends at this point; see anchorAbove. */
+  above?: boolean;
 }
 
 export interface MenuItem {
@@ -100,6 +102,17 @@ export function anchorBelow(el: Element | null): MenuAnchor {
 }
 
 /**
+ * anchorAbove puts a menu over the control that opened it, ending where the
+ * control ends, for a control at the foot of the window with no room under it.
+ */
+export function anchorAbove(el: Element | null): MenuAnchor {
+  const r = el?.getBoundingClientRect();
+  if (!r) return { x: MARGIN, y: MARGIN };
+  const rtl = document.documentElement.dir === 'rtl';
+  return { x: rtl ? r.left : r.right, y: r.top - 4, above: true };
+}
+
+/**
  * Spot is where a panel wants to sit. `flipAt` is the coordinate it flips
  * around when it does not fit: the pointer for a right-click menu, the
  * control's other edge for a dropdown, the opening row's other edge for a
@@ -109,6 +122,7 @@ interface Spot {
   x: number;
   y: number;
   flipAt?: number;
+  above?: boolean;
 }
 
 // Every panel of one open menu, so a click in a submenu is not taken as a click
@@ -240,15 +254,17 @@ function Panel({
     const flip = spot.flipAt ?? spot.x;
     // Flipping rather than sliding keeps the first item out from under the cursor.
     let left = rtl ? spot.x - width : spot.x;
-    if (rtl ? left < MARGIN : left + width > window.innerWidth - MARGIN) {
+    if (spot.above) {
+      left = rtl ? spot.x : spot.x - width;
+    } else if (rtl ? left < MARGIN : left + width > window.innerWidth - MARGIN) {
       left = rtl ? flip : flip - width;
     }
     left = Math.max(MARGIN, Math.min(left, window.innerWidth - width - MARGIN));
-    let top = spot.y;
+    let top = spot.above ? spot.y - height : spot.y;
     if (top + height > window.innerHeight - MARGIN) top = spot.y - height;
     top = Math.max(MARGIN, Math.min(top, window.innerHeight - height - MARGIN));
     setPos({ top, left });
-  }, [spot.x, spot.y, spot.flipAt, flat.length]);
+  }, [spot.x, spot.y, spot.flipAt, spot.above, flat.length]);
 
   // Once per open, so the arrow keys work at once; re-running on a changed
   // firstEnabled would pull focus back to the top mid-navigation.
@@ -512,7 +528,7 @@ export function ContextMenu({
   return (
     <PanelsCtx.Provider value={panels}>
       <Panel
-        spot={{ x: anchor.x, y: anchor.y, flipAt: anchor.flipAt }}
+        spot={{ x: anchor.x, y: anchor.y, flipAt: anchor.flipAt, above: anchor.above }}
         groups={groups}
         label={label}
         minWidth={minWidth}
