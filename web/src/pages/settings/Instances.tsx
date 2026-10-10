@@ -35,7 +35,7 @@ export function InstancesTab() {
         />
         {pinned && <OpenPageRow label={t('nav.instances')} to="/instances" />}
       </Card>
-      {whole && <Instances />}
+      {whole && <Instances firstHue={1} />}
     </div>
   );
 }

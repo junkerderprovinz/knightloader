@@ -1,6 +1,7 @@
 // The round-two animations of the motion engine, switched from the page. The
-// keyframes and the dials live in index.css; this only sets classes.
-import { useLayoutEffect, useRef, type CSSProperties } from 'react';
+// keyframes and the dials live in index.css; this only sets classes, and says
+// whether a picture that a script moves may move.
+import { useLayoutEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
 
 /**
  * useStagger lets the children of the element `list` returns arrive one after
@@ -45,4 +46,32 @@ export function useTabSlide(tab: string, order: string[]): { className: string; 
     };
   }
   return last.current.slide;
+}
+
+const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
+
+function picturesStill(): boolean {
+  return (window.matchMedia?.(REDUCED_MOTION).matches ?? false) || document.documentElement.dataset.motion === 'off';
+}
+
+function subscribeStill(onChange: () => void): () => void {
+  const query = window.matchMedia?.(REDUCED_MOTION);
+  query?.addEventListener('change', onChange);
+  const level = new MutationObserver(onChange);
+  level.observe(document.documentElement, { attributes: true, attributeFilter: ['data-motion'] });
+  return () => {
+    query?.removeEventListener('change', onChange);
+    level.disconnect();
+  };
+}
+
+/**
+ * useStillPictures says whether an illustration shows its still frame: at the
+ * motion level "off" and when the system asks for less motion. A picture moves
+ * with SMIL and the Web Animations API, which the stylesheet's gate cannot
+ * reach, so it asks here. The storm is not exempt, since a picture loops and
+ * wanting more movement is not wanting something that never stops.
+ */
+export function useStillPictures(): boolean {
+  return useSyncExternalStore(subscribeStill, picturesStill, () => true);
 }
