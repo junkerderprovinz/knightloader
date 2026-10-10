@@ -8,6 +8,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
 import { IconClose, IconSearch } from '../../lib/icons';
+import { isEditableTarget } from '../../lib/intake';
 import { fold, scoreFolded, scoreProse } from '../../lib/rank';
 import { useToast } from '../../lib/toast';
 import { useUIState } from '../../lib/uistate';
@@ -262,6 +263,20 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     const raf = requestAnimationFrame(() => inputRef.current?.focus());
     return () => cancelAnimationFrame(raf);
   }, [focusAskedAt, show]);
+
+  // `/` summons the bar from anywhere on a settings page, for somebody who
+  // knows it is there. Not while a text box has the key, and not under a window.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      if (isEditableTarget(e.target) || document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      show();
+      requestAnimationFrame(() => inputRef.current?.focus());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [show]);
 
   // The other half of the jump, keyed on the nonce so asking twice looks twice.
   const jump = usePendingJump();
