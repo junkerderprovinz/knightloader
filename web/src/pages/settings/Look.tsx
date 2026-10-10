@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import { Button, Card, ErrorCard, InfoBubble, LinkBadge, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
-import { About } from './Help';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
 import { LanguagePicker } from '../../components/LanguagePicker';
@@ -487,7 +486,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           {t('settings.labels')}
         </SectionTitle>
         <div className="flex flex-col gap-4">
-          {labelAxes.map((axis, i) => (
+          {labelAxes.map((axis) => (
             <div key={axis} className="flex flex-col gap-1">
               <span className="flex items-center gap-1 text-xs text-carbon-textSub">
                 {t(LABEL_AXIS_NAMES[axis])}
@@ -500,9 +499,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               <Tabs
                 label={t(LABEL_AXIS_NAMES[axis])}
                 variant="well"
-                // One colour further along per row, so no two rows open on
-                // the same colour and the card still reads as one group.
-                hueOffset={i}
                 active={labelModes[axis]}
                 onSelect={(id) => {
                   const next = asLabelMode(id);
@@ -755,8 +751,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <UpdateCard hue={2} />}
       {general && <SystemCards hue={3} />}
       {general && <JDImportCard hue={5} />}
-      {/* Last on the General tab, where a version and a contact are looked for. */}
-      {general && <About hue={6} />}
     </div>
   );
 }

@@ -77,7 +77,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
       <span className="flex items-center gap-2">
         <span className="glim-num text-carbon-textSub">∞</span>
         {(traffic.used ?? 0) > 0 && (
-          <span className="glim-num whitespace-nowrap text-[11px] text-carbon-textMuted">
+          <span className="glim-num whitespace-nowrap text-meta text-carbon-textMuted">
             {t('accounts.trafficUsedTotal', { used: fmtGB(traffic.used ?? 0) })}
           </span>
         )}
@@ -94,7 +94,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
         <span className="min-w-0 flex-1">
           <ProgressBar active percent={(used / limit) * 100} />
         </span>
-        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
+        <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftOf', { left: fmtGB(limit - used), total: fmtGB(limit) })}
         </span>
       </span>
@@ -108,7 +108,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
         <span className="min-w-0 flex-1">
           <ProgressBar active percent={usedPct} />
         </span>
-        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
+        <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftPercent', { n: Math.floor(100 - usedPct) })}
         </span>
       </span>

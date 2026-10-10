@@ -69,8 +69,8 @@ export function QuickAdd() {
     <div className="flex min-h-screen items-center justify-center bg-carbon-background p-6">
       <div className="flex w-full max-w-sm flex-col gap-4">
         <div className="flex items-center gap-2">
-          <IconDownloads width={20} height={20} className="text-accentInk" />
-          <span className="text-xl font-semibold text-carbon-text">{t('quickadd.title')}</span>
+          <IconDownloads width={20} height={20} className="text-accentGlyph" />
+          <span className="text-title font-semibold text-carbon-text">{t('quickadd.title')}</span>
         </div>
 
         {/* A link bound for another machine always names it. */}

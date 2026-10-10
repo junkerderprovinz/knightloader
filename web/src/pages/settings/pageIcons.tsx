@@ -11,7 +11,7 @@ import {
   IconDownloads,
   IconFilter,
   IconGlobe,
-  IconHelp,
+  IconInfo,
   IconInstances,
   IconKeyboard,
   IconLink,
@@ -57,7 +57,7 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   // A pulse, apart from the diagnostics bundle next to it.
   health: IconBolt,
   diagnostics: IconDiagnostics,
-  help: IconHelp,
+  help: IconInfo,
   shortcuts: IconKeyboard,
   browsertools: IconTabApp,
 };

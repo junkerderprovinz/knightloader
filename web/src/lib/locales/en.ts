@@ -8,7 +8,7 @@ export const en = {
   'nav.accounts': 'Accounts',
   'settings.accounts.setupTitle': 'Sidebar',
   'settings.accounts.showInSidebar': 'Show in the sidebar too',
-  'settings.accounts.showInSidebarHint': 'This tab and the Accounts entry in the sidebar show the same page. Turn this off if having both feels redundant.',
+  'settings.accounts.showInSidebarHint': 'While this is on, the Accounts page is in the sidebar, and this tab keeps only its switches and the way to the page. Turn it off to have the whole page here.',
   'settings.accounts.freeTitle': 'Free downloads',
   'settings.accounts.allowFree': 'Allow free downloads',
   'settings.accounts.allowFreeHint': 'A hoster link that none of your accounts can fetch goes to JDownloader, which downloads it for free: slowly, with waiting times and captchas. Switch this off and such a link waits in the queue instead and says why. So does a free download you paused. It starts by itself once you add a login for that hoster, or a debrid service that carries it. A category can decide this differently for its own links.',
@@ -27,7 +27,8 @@ export const en = {
   'settings.nav.instances': 'Instances',
   'settings.instances.setupTitle': 'Sidebar',
   'settings.instances.showInSidebar': 'Show in the sidebar too',
-  'settings.instances.showInSidebarHint': 'This tab and the Instances entry in the sidebar show the same page. Turn this off if having both feels redundant, or if you only run the one instance.',
+  'settings.instances.showInSidebarHint': 'While this is on, the Instances page is in the sidebar, and this tab keeps only its switches and the way to the page. Turn it off to have the whole page here.',
+  'settings.pinned.open': 'Open',
   'nav.settings': 'Settings',
   'nav.workingTitle': 'working title',
   'theme.dark': 'Dark',
@@ -1884,7 +1885,7 @@ export const en = {
   'settings.diagnostics.loadFailed': 'Could not load diagnostics. Is the server reachable?',
 
   // The help page (pages/settings/Help.tsx).
-  'settings.nav.help': 'Help',
+  'settings.nav.help': 'Info',
 
   'settings.help.intake.title': 'Adding downloads',
   'settings.help.intake.body':
@@ -1987,6 +1988,19 @@ export const en = {
   'settings.about.github': 'GitHub',
   'settings.about.mail': 'Email',
   'settings.about.mailSubject': 'Feedback',
+  'settings.info.versionHint': 'A click on a version number opens its release page.',
+  'settings.info.glimstoneSub': 'The design language KnightLoader is built in',
+  'settings.info.ytdlpSub': 'Reads video pages',
+  'settings.info.ffmpegSub': 'Joins picture and sound',
+  'settings.info.upToDate': 'Up to date',
+  'settings.info.updatesFound': 'Updates: {n}',
+  'settings.info.checkFailed': 'Check failed',
+  'settings.info.helpTitle': 'Help',
+  'settings.info.helpHint': 'The bug report is a JSON file with the details of this build, your settings with every password removed, and the latest log lines. Attach it to an issue on GitHub.',
+  'settings.info.manual': 'Manual',
+  'settings.info.manualOpen': 'Open',
+  'settings.info.bugReport': 'Bug report',
+  'settings.info.bugReportDownload': 'Download',
 
   // The script editor (pages/settings/Scripts.tsx) and its manual-invocation
   // menu entry (components/ScriptActions.tsx), JDownloader's Event Scripter.

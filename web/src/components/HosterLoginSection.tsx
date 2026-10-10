@@ -239,21 +239,21 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
     case 'off':
       // Not "queued": JD does not have a switched-off login at all.
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
           {t('accounts.hoster.status.off')}
         </span>
       );
     case 'active':
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
           {t('accounts.hoster.status.active')}
         </span>
       );
     case 'rejected':
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
           {t('accounts.hoster.status.rejected')}
           {detail && <InfoBubble tip={detail} />}
@@ -263,7 +263,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       // 'queued' covers both "not yet confirmed" and "not yet validated" by JD;
       // the detail text says which.
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
           {t('accounts.hoster.status.queued')}
           {detail && <InfoBubble tip={detail} />}

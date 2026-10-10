@@ -71,7 +71,7 @@ export function NotificationsCard({ hue }: { hue: number }) {
         onChange={setQuiet}
       />
 
-      {status && <span className="text-[11px] text-carbon-textMuted">{status}</span>}
+      {status && <span className="text-meta text-carbon-textMuted">{status}</span>}
 
       {NOTIFY_EVENTS.map((ev) => {
         const label = t(ev.label);

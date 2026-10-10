@@ -29,10 +29,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = (rel) => readFileSync(join(here, rel), 'utf8');
 
 /**
- * Which file draws which page. A file may serve two pages (Look.tsx, or
- * Help.tsx whose About card the General tab draws), and its keys count for
- * either. `titleTags` names wrapper components whose `title` prop becomes a
- * SectionTitle (Help.tsx's Topic, Modules.tsx's Group).
+ * Which file draws which page. A file may serve two pages (Look.tsx), and its
+ * keys count for either. `titleTags` names wrapper components whose `title`
+ * prop becomes a SectionTitle (Help.tsx's Topic, Modules.tsx's Group).
  *
  * An entry ending in `/` is a directory, so a card added to it is scanned
  * without editing this table.
@@ -47,8 +46,8 @@ const FILE_PAGES = [
   // One component, two rail entries, split by `{appearance && (` / `{general && (`.
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
   { file: 'src/pages/settings/look/', pages: ['look'] },
-  // The Help page's topics, plus the About card the General tab draws at its foot.
-  { file: 'src/pages/settings/Help.tsx', pages: ['help', 'look'], titleTags: ['Topic'] },
+  // The Info tile: the About, Version and Help cards and the help topics.
+  { file: 'src/pages/settings/Help.tsx', pages: ['help'], titleTags: ['Topic'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.

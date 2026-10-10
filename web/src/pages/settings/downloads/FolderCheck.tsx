@@ -81,7 +81,7 @@ export function FolderCheckCard({ hue }: { hue: number }) {
         <Button onClick={() => void run()} disabled={running}>
           {running ? t('settings.owner.running') : t('settings.owner.run')}
         </Button>
-        <span className="text-[11px] text-carbon-textMuted">
+        <span className="text-meta text-carbon-textMuted">
           {report ? t('settings.owner.checkedAt', { time: fmtDate(report.checkedAt) }) : t('settings.owner.never')}
         </span>
       </div>
@@ -122,14 +122,14 @@ function FolderRow({ f }: { f: FolderOwnerProbe }) {
   return (
     <div className="glim-well flex flex-col gap-1 p-4">
       <div className="flex flex-wrap items-baseline gap-2">
-        <span className="text-[11px] uppercase tracking-wide text-carbon-textMuted">{roleLabel(t, f.role)}</span>
-        <span className="glim-num break-all font-mono text-[11px] text-carbon-textSub" dir="ltr">
+        <span className="text-meta uppercase tracking-wide text-carbon-textMuted">{roleLabel(t, f.role)}</span>
+        <span className="glim-num break-all font-mono text-meta text-carbon-textSub" dir="ltr">
           {f.dir}
         </span>
       </div>
       <span className={`text-sm ${bad ? 'text-statusFail' : 'text-carbon-textSub'}`}>{t(sentence, vars)}</span>
       {fixes(f.verdict).map((key) => (
-        <span key={key} className="text-[11px] text-carbon-textMuted" dir={key === 'settings.owner.fix.chown' ? 'ltr' : undefined}>
+        <span key={key} className="text-meta text-carbon-textMuted" dir={key === 'settings.owner.fix.chown' ? 'ltr' : undefined}>
           {/* The chown line gets pasted into a shell, where the isolate marks
               t() sets around a path would become part of the path. */}
           {key === 'settings.owner.fix.chown'

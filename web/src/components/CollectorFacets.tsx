@@ -117,7 +117,7 @@ function FacetRow({
       <Tip tip={label} className="min-w-0 flex-1 truncate">
         {label}
       </Tip>
-      <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{count}</span>
+      <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{count}</span>
       <Toggle hideLabel label={label} checked={checked} onChange={onToggle} hue={hue} />
     </label>
   );
@@ -211,7 +211,7 @@ export function CollectorFacetSidebar({
         hint={t('collector.facets.hint')}
         right={
           activeCount > 0 && (
-            <Button kind="ghost" className="px-2 py-1 text-[11px]" onClick={() => onChange(EMPTY_FACETS)}>
+            <Button kind="ghost" className="px-2 py-1 text-meta" onClick={() => onChange(EMPTY_FACETS)}>
               {t('collector.facets.clearAll')}
             </Button>
           )

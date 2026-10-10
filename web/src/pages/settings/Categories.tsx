@@ -292,7 +292,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.categories.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">
+          <span className="mt-1 block text-meta text-carbon-textMuted">
             {t('settings.categories.emptyHint')}
           </span>
         </p>
@@ -464,7 +464,7 @@ function CategoryRow({
               {/* A new row stands under the muted name placeholder. */}
               {title || <span className="text-carbon-textMuted">{t('settings.categories.name')}</span>}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {summarise(t, cat, priorities)}
             </span>
           </span>

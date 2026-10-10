@@ -43,7 +43,7 @@ export function OverallCard({ hue, report }: { hue: number; report: HealthReport
       {/* The server caches the probes for half a minute, so the page shows
           how old the reading is instead of pretending to be live. */}
       {age !== null && (
-        <span className="text-[11px] text-carbon-textMuted">{t('settings.health.sampled', { n: age })}</span>
+        <span className="text-meta text-carbon-textMuted">{t('settings.health.sampled', { n: age })}</span>
       )}
     </Card>
   );

@@ -16,7 +16,7 @@ export function Reading({
 }) {
   return (
     <div className="flex flex-col gap-1">
-      <span data-glim-label={label} className="flex items-center text-[11px] text-carbon-textMuted">
+      <span data-glim-label={label} className="flex items-center text-meta text-carbon-textMuted">
         {label}
         {hint && <InfoBubble tip={hint} />}
       </span>

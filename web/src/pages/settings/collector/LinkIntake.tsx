@@ -84,7 +84,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             {t('intake.clipboardWatch')}
             <InfoBubble tip={t('intake.clipboardWatchHint')} />
           </span>
-          <span className="text-[11px] text-carbon-textMuted">
+          <span className="text-meta text-carbon-textMuted">
             {t('intake.clipboardWatchUnavailable')}
           </span>
         </div>

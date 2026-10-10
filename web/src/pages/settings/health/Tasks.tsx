@@ -52,10 +52,10 @@ export function TasksCard({ hue, report }: { hue: number; report: HealthReport }
 function Count({ label, n }: { label: string; n: number }) {
   return (
     <div className="flex flex-col gap-1">
-      <span data-glim-label={label} className="text-[11px] text-carbon-textMuted">
+      <span data-glim-label={label} className="text-meta text-carbon-textMuted">
         {label}
       </span>
-      <span className="glim-num text-lg text-carbon-text" dir="ltr">
+      <span className="glim-num text-title text-carbon-text" dir="ltr">
         {n}
       </span>
     </div>
@@ -82,7 +82,7 @@ function Breakdown({
     <div className="flex flex-col gap-2">
       <span className="text-xs font-medium text-carbon-textSub">{heading}</span>
       {rows.length === 0 ? (
-        <span className="text-[11px] text-carbon-textMuted">{empty}</span>
+        <span className="text-meta text-carbon-textMuted">{empty}</span>
       ) : (
         <ul className="flex flex-col gap-1">
           {rows.map(([id, n]) => (

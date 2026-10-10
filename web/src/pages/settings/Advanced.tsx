@@ -293,7 +293,7 @@ function KeyRow({
           {secret && <InfoBubble tip={tx('settings.advanced.secret')} />}
           {row.kind === 'list' && <InfoBubble tip={tx('settings.advanced.listHint')} />}
         </span>
-        <span className="flex items-center gap-2 text-[11px] text-carbon-textMuted">
+        <span className="flex items-center gap-2 text-meta text-carbon-textMuted">
           {tx(`settings.advanced.type.${row.kind}` as `settings.advanced.type.${ValueKind}`)}
           {modified && <span className="text-carbon-textSub">· {tx('settings.advanced.modified')}</span>}
         </span>
@@ -375,7 +375,7 @@ function ValueEditor({
               }
             }}
           />
-          {badJSON && <span className="text-[11px] text-statusFail">{tx('settings.advanced.badJson')}</span>}
+          {badJSON && <span className="text-meta text-statusFail">{tx('settings.advanced.badJson')}</span>}
         </div>
       );
     default: {

@@ -65,7 +65,7 @@ function ContainerHandedProgress({
         <Tip dir="ltr" tip={file} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
           {file}
         </Tip>
-        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
+        <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
       </div>
       <ProgressBar active percent={0} indeterminate />
     </div>
@@ -238,7 +238,7 @@ function TorrentTreeCard({
           </p>
         </div>
         {pending.tree.private && (
-          <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-2 py-0.5 text-[11px] text-carbon-textSub">
+          <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-2 py-0.5 text-meta text-carbon-textSub">
             {t('torrent.tree.private')}
           </span>
         )}
