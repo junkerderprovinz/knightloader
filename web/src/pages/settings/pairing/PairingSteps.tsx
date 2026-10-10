@@ -42,7 +42,7 @@ export function PairingSteps({ hues }: { hues: [number, number, number] }) {
     <section aria-label={t('pairing.howTitle')}>
       {/* The badges straddle the cards' top edge, so a card under another needs
           more room above it than one beside it. */}
-      <div ref={grid} className="relative grid grid-cols-1 gap-x-5 gap-y-7 min-[861px]:grid-cols-3">
+      <div ref={grid} className="relative mt-3 grid grid-cols-1 gap-x-5 gap-y-7 min-[861px]:grid-cols-3">
         {steps.map((s, i) => (
           <div
             key={i}

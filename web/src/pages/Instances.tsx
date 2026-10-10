@@ -22,6 +22,7 @@ import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
 import { openExternal } from '../lib/external';
 import { IconLink } from '../lib/icons';
+import { PageAction, PageActions } from '../components/PageActions';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
 import { ModulesPageBadge } from './settings/ModuleToggle';
@@ -268,11 +269,9 @@ export function Instances({
           ))}
         </div>
       </Card>
-      <div>
-        <Button icon={<IconLink />} onClick={openPairing}>
-          {t('pairing.title')}
-        </Button>
-      </div>
+      <PageActions>
+        <PageAction primary icon={<IconLink />} label={t('pairing.title')} onClick={openPairing} />
+      </PageActions>
       {removing && <RemovalWindow removal={removing} onClose={() => setRemoving(null)} onRemoved={load} />}
 
       {found.length > 0 && (

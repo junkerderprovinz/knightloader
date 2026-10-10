@@ -56,6 +56,8 @@ const buttons = (within: Element) => [...within.querySelectorAll('button')].map(
 const button = (within: Element, text: string) => [...within.querySelectorAll('button')].find((b) => b.textContent === text)!;
 
 beforeEach(() => {
+  // A desktop width, where the floating action shows its words.
+  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal(
     'WebSocket',
     class {
