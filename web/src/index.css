@@ -2249,6 +2249,22 @@ body {
   }
 }
 
+/* A picker of brands (components/BrandPicker.tsx): the same button as a tile
+   that fills its cell of the grid, so the logos stand in columns. A brand's
+   name that is too long for its tile is cut rather than shrunk. */
+.glim-provider-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
+  gap: 0.5rem;
+}
+.glim-provider-pick .glim-readme-btn {
+  flex: 1;
+  width: auto;
+}
+.glim-provider-pick :is(.glim-readme-btn-name, .glim-readme-btn-sub) {
+  text-overflow: ellipsis;
+}
+
 .glim-readme-btn-hint {
   position: absolute;
   top: 50%;

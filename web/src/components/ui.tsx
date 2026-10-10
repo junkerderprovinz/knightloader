@@ -1889,6 +1889,7 @@ export function Modal({
   hue,
   height = 'content',
   wide = false,
+  right,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
@@ -1928,6 +1929,8 @@ export function Modal({
   /** Room for a grid beside a picture, such as the twelve words and their QR
    *  code, or for a form of several columns. */
   wide?: boolean;
+  /** What stands at the end of the title's row, such as a picker's search. */
+  right?: ReactNode;
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1970,7 +1973,7 @@ export function Modal({
             title as a badge, so one app does not carry two heading treatments.
             SectionTitle itself rather than a copy of its markup, which is the
             drift this file exists to prevent. */}
-        <SectionTitle id={titleId} hint={hint}>
+        <SectionTitle id={titleId} hint={hint} right={right}>
           {title}
         </SectionTitle>
         {height === 'content' ? (

@@ -389,8 +389,9 @@ it('opens the list of services for the picked kind, and a new account leads back
 
   await addKind('Debrid account');
   expect(windowTitle()).toContain('Choose a debrid account');
-  const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find((b) =>
-    b.textContent?.endsWith('TorBox'),
+  // A tile is the brand's name over the site it lives at.
+  const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+    (b) => b.textContent === 'TorBoxtorbox.app',
   )!;
   await act(async () => service.click());
   expect(windowTitle()).toContain('Add your TorBox account');

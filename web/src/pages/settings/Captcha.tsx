@@ -23,6 +23,7 @@ import {
   ToggleRow,
   type ButtonVerdict,
 } from '../../components/ui';
+import { HosterIcon } from '../../components/HosterIcon';
 import { TestButton } from '../../components/TestButton';
 import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
@@ -277,6 +278,8 @@ export function SolverRow({
         <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
         <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          {/* The service's mark, as in the accounts table and the picker. */}
+          <HosterIcon host={svc.whereUrl} />
           <span className="text-sm text-carbon-text">{svc.label}</span>
           {svc.whereUrl && <LinkBadge href={svc.whereUrl} title={t('accounts.whereToFind')} />}
         </div>
