@@ -66,7 +66,7 @@ function NodeLabel({ at: [x, y, w, align], name, sub }: { at: Label; name: strin
     <foreignObject x={Math.round(x)} y={Math.round(y)} width={Math.round(w)} height="36">
       <div className={`kl-net-label flex h-full min-w-0 flex-col justify-center leading-[1.3] ${ALIGN[align]}`}>
         <b className="truncate text-[13px] font-semibold text-carbon-text">{name}</b>
-        <span className="truncate text-[11px] text-carbon-textMuted">{sub}</span>
+        <span className="truncate text-meta text-carbon-textMuted">{sub}</span>
       </div>
     </foreignObject>
   );

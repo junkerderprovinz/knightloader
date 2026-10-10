@@ -260,7 +260,7 @@ export function AddLinksForm({
           hue={2}
           title={t('collector.add')}
           aria-label={t('collector.add')}
-          className={bare ? 'bg-accent text-accentContrast hover:brightness-110' : ''}
+          className={bare ? 'bg-accent text-accentContrast hover:bg-accentHover' : ''}
           shake={shake}
           onClick={() => void onAdd()}
           disabled={!links.trim() || busy}
