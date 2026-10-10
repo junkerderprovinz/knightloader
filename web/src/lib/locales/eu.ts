@@ -1325,7 +1325,6 @@ export const eu: Dict = {
   'captcha.continue': 'Jarraitu',
   'captcha.cancel': 'Utzi',
   'captcha.refresh': 'Freskatu',
-  'captcha.moreOptions': 'Aukera gehiago',
   'captcha.blockHoster': 'Utzi {host}(r)i ere galdetzeari saio honetan',
   'captcha.blockEverywhere': 'Utzi edozein ostalariri ere galdetzeari saio honetan',
   'captcha.tooLate': 'Erantzun hori berandu iritsi da.',

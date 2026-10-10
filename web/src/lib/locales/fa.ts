@@ -1325,7 +1325,6 @@ export const fa: Dict = {
   'captcha.continue': 'ادامه',
   'captcha.cancel': 'انصراف',
   'captcha.refresh': 'تازه‌سازی',
-  'captcha.moreOptions': 'گزینه‌های بیشتر',
   'captcha.blockHoster': 'پرسیدن درباره {host} را هم برای این نشست متوقف کنید',
   'captcha.blockEverywhere': 'پرسیدن درباره هر هاستری را هم برای این نشست متوقف کنید',
   'captcha.tooLate': 'آن پاسخ خیلی دیر رسید.',

@@ -1325,7 +1325,6 @@ export const ja: Dict = {
   'captcha.continue': '続ける',
   'captcha.cancel': 'キャンセル',
   'captcha.refresh': '更新',
-  'captcha.moreOptions': 'その他のオプション',
   'captcha.blockHoster': 'このセッションでは {host} への確認も停止する',
   'captcha.blockEverywhere': 'このセッションではどのホスターへの確認も停止する',
   'captcha.tooLate': 'その回答は届くのが遅すぎました。',

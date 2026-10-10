@@ -1325,7 +1325,6 @@ export const bg: Dict = {
   'captcha.continue': 'Продължи',
   'captcha.cancel': 'Отказ',
   'captcha.refresh': 'Опресни',
-  'captcha.moreOptions': 'Още опции',
   'captcha.blockHoster': 'Спри да питаш и за {host} тази сесия',
   'captcha.blockEverywhere': 'Спри да питаш и за който и да е хостър тази сесия',
   'captcha.tooLate': 'Този отговор пристигна твърде късно.',

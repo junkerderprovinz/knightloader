@@ -19,7 +19,7 @@ import {
   type TestCaptchaResult,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
+import { IconClock, IconClose } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -193,7 +193,6 @@ export function CaptchaModal() {
   const [focused, setFocused] = useState(false);
   const [frozenRemaining, setFrozenRemaining] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const [widgetStatus, setWidgetStatus] = useState<'loading' | 'ready' | 'expired' | 'error' | 'unsolvable'>(
     'loading',
   );
@@ -286,7 +285,6 @@ export function CaptchaModal() {
     setWidgetError(null);
     setFocused(false);
     setFrozenRemaining(null);
-    setMoreOpen(false);
     setWidgetKey((k) => k + 1);
   }, [current?.id]);
 
@@ -397,7 +395,6 @@ export function CaptchaModal() {
 
   async function handleSkip(scope: CaptchaAbortScope = 'skip-once') {
     setBusy(true);
-    setMoreOpen(false);
     try {
       await skipCaptcha(current!.id, scope);
     } catch {
@@ -598,27 +595,16 @@ export function CaptchaModal() {
         </p>
       )}
 
-      {/* Stopping the questions for a hoster would only skip a test captcha. */}
+      {/* Stopping the questions for a hoster would only skip a test captcha.
+          Two actions are two buttons, with no fold or menu to open first. */}
       {!current.test && (
-        <div className="flex flex-col items-start gap-2">
-          <Button
-            kind="secondary"
-            icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
-            aria-expanded={moreOpen}
-            onClick={() => setMoreOpen((v) => !v)}
-          >
-            {t('captcha.moreOptions')}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
+            {t('captcha.blockHoster', { host: current.host || '?' })}
           </Button>
-          {moreOpen && (
-            <div className="flex flex-col items-start gap-2">
-              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
-                {t('captcha.blockHoster', { host: current.host || '?' })}
-              </Button>
-              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
-                {t('captcha.blockEverywhere')}
-              </Button>
-            </div>
-          )}
+          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
+            {t('captcha.blockEverywhere')}
+          </Button>
         </div>
       )}
     </Modal>

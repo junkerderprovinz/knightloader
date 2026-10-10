@@ -1327,7 +1327,6 @@ export const he: Dict = {
   'captcha.continue': 'המשך',
   'captcha.cancel': 'ביטול',
   'captcha.refresh': 'רענון',
-  'captcha.moreOptions': 'אפשרויות נוספות',
   'captcha.blockHoster': 'גם להפסיק לשאול לגבי {host} בהפעלה זו',
   'captcha.blockEverywhere': 'גם להפסיק לשאול לגבי כל מארח בהפעלה זו',
   'captcha.tooLate': 'התשובה הזו הגיעה מאוחר מדי.',

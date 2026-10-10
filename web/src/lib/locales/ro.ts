@@ -1326,7 +1326,6 @@ export const ro: Dict = {
   'captcha.continue': 'Continuă',
   'captcha.cancel': 'Anulează',
   'captcha.refresh': 'Reîmprospătează',
-  'captcha.moreOptions': 'Mai multe opțiuni',
   'captcha.blockHoster': 'Oprește și întrebările pentru {host} în această sesiune',
   'captcha.blockEverywhere': 'Oprește și întrebările pentru orice hoster în această sesiune',
   'captcha.tooLate': 'Acel răspuns a ajuns prea târziu.',

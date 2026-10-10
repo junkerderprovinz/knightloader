@@ -1325,7 +1325,6 @@ export const uk: Dict = {
   'captcha.continue': 'Продовжити',
   'captcha.cancel': 'Скасувати',
   'captcha.refresh': 'Оновити',
-  'captcha.moreOptions': 'Інші варіанти',
   'captcha.blockHoster': 'Також більше не питати про {host} цієї сесії',
   'captcha.blockEverywhere': 'Також більше не питати про жоден хостер цієї сесії',
   'captcha.tooLate': 'Ця відповідь надійшла надто пізно.',

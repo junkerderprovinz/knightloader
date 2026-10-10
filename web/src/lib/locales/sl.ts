@@ -1325,7 +1325,6 @@ export const sl: Dict = {
   'captcha.continue': 'Nadaljuj',
   'captcha.cancel': 'Prekliči',
   'captcha.refresh': 'Osveži',
-  'captcha.moreOptions': 'Več možnosti',
   'captcha.blockHoster': 'Za to sejo tudi nehaj spraševati za {host}',
   'captcha.blockEverywhere': 'Za to sejo tudi nehaj spraševati za katerega koli gostitelja',
   'captcha.tooLate': 'Ta odgovor je prispel prepozno.',

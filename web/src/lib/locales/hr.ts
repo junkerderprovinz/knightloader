@@ -1325,7 +1325,6 @@ export const hr: Dict = {
   'captcha.continue': 'Nastavi',
   'captcha.cancel': 'Odustani',
   'captcha.refresh': 'Osvježi',
-  'captcha.moreOptions': 'Više opcija',
   'captcha.blockHoster': 'Također prestani pitati za {host} ovu sesiju',
   'captcha.blockEverywhere': 'Također prestani pitati za bilo kojeg hostera ovu sesiju',
   'captcha.tooLate': 'Taj odgovor stigao je prekasno.',
