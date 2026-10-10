@@ -186,7 +186,7 @@ function CardLogo() {
 function ClientMark({ deployment }: { deployment: string }) {
   const Glyph = deployment === 'extension' ? IconBrowser : IconPhone;
   return (
-    <span className="grid h-22 w-16 place-items-center rounded-[var(--radius-control)] bg-carbon-surface3 text-accentInk">
+    <span className="grid h-22 w-16 place-items-center rounded-[var(--radius-control)] bg-carbon-surface3 text-accentGlyph">
       <Glyph width={34} height={34} />
     </span>
   );

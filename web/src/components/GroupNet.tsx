@@ -81,7 +81,7 @@ function Shape({ kind, x, y, size = 50 }: { kind: NetNode['kind']; x: number; y:
   return (
     <>
       <rect className="kl-net-tile" x={x - w / 2} y={y - h / 2} width={w} height={h} rx="8" />
-      <g color="var(--accent-ink)">
+      <g color="var(--accent-glyph)">
         <Glyph x={x - 10} y={y - 10} width={20} height={20} />
       </g>
     </>
