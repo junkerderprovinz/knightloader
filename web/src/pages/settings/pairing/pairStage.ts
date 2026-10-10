@@ -26,11 +26,12 @@ export function pairStage(
   return createdHere ? 'new' : 'searching';
 }
 
-/** The badge each stage shows once there is a group. */
-export const STAGE_BADGE = {
-  new: { key: 'pairing.stateNew', tone: 'hue' },
-  searching: { key: 'pairing.stateSearching', tone: 'neutral' },
-  gone: { key: 'pairing.stateSearching', tone: 'neutral' },
+/** What this instance's row says in each stage once there is a group. A stage
+ *  that still waits for somebody takes the tone with the live dot. */
+export const STAGE_PILL = {
+  new: { key: 'pairing.stateNew', tone: 'run' },
+  searching: { key: 'pairing.stateSearching', tone: 'run' },
+  gone: { key: 'pairing.stateSearching', tone: 'run' },
   alone: { key: 'pairing.stateAlone', tone: 'warn' },
   paired: { key: 'pairing.paired', tone: 'ok' },
 } as const satisfies Record<Exclude<PairStage, 'unpaired'>, { key: string; tone: string }>;
