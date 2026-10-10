@@ -1,7 +1,8 @@
 // The accounts page's card for the own Usenet servers. A server is a settings
 // row plus a sealed login (internal/api/routes_usenetservers.go), so it is
 // edited here through its own routes rather than the catalogue's credential
-// dialog: it has a host, a port and limits that no debrid key has.
+// dialog: it has a host, a port and limits that no debrid key has. The page's
+// floating action opens the window for a new one through `adding`.
 import { useCallback, useEffect, useState } from 'react';
 import {
   REDACTED_HEADER,
@@ -14,7 +15,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconClose, IconPlus, IconRetry, IconTrash, IconGlobe } from '../lib/icons';
+import { IconClose, IconRetry, IconTrash, IconGlobe } from '../lib/icons';
 import { AccountTable } from './AccountTable';
 import {
   Button,
@@ -46,7 +47,21 @@ const BLANK: UsenetServerSave = {
   password: '',
 };
 
-export function UsenetServersSection({ hue, onChanged }: { hue: number; onChanged: () => void }) {
+export function UsenetServersSection({
+  hue,
+  onChanged,
+  emptyPointer,
+  adding,
+  onAddClose,
+}: {
+  hue: number;
+  onChanged: () => void;
+  /** The sentence of the empty card that names the page's add action. */
+  emptyPointer: string;
+  /** The page asked for a new server's window. */
+  adding: boolean;
+  onAddClose: () => void;
+}) {
   const { t } = useT();
   const { toast } = useToast();
   const [rows, setRows] = useState<UsenetServerRow[] | null>(null);
@@ -110,11 +125,7 @@ export function UsenetServersSection({ hue, onChanged }: { hue: number; onChange
     }
   }
 
-  const addButton = (
-    <Button kind="secondary" hue={hue} icon={<IconPlus width={16} height={16} />} onClick={() => setEditing({ ...BLANK })}>
-      {t('accounts.usenet.add')}
-    </Button>
-  );
+  const form = editing ?? (adding ? BLANK : null);
 
   return (
     <>
@@ -126,46 +137,45 @@ export function UsenetServersSection({ hue, onChanged }: { hue: number; onChange
           nested
           icon={<IconGlobe width={26} height={26} />}
           title={t('accounts.usenet.empty')}
-          hint={t('accounts.usenet.emptyHint')}
-          action={addButton}
+          hint={`${t('accounts.usenet.emptyHint')} ${emptyPointer}`}
         />
       ) : (
-        <>
-          <AccountTable
-            label={t('accounts.usenet.title')}
-            rows={rows.map((r) => ({
-              key: r.id,
-              iconHost: r.host,
-              label: r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host,
-              enabled: r.enabled,
-              status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
-              onToggle: (v) => void onToggle(r, v),
-              onEdit: () => setEditing(asSave(r)),
-              onRemove: () => setConfirming(r),
-              menu: [
-                {
-                  id: 'actions',
-                  items: [
-                    {
-                      id: 'test',
-                      label: t('accounts.usenet.test'),
-                      icon: <IconRetry width={16} height={16} />,
-                      onSelect: () => void onTest(r),
-                    },
-                  ],
-                },
-              ],
-            }))}
-          />
-          <span className="self-start">{addButton}</span>
-        </>
+        <AccountTable
+          label={t('accounts.usenet.title')}
+          rows={rows.map((r) => ({
+            key: r.id,
+            iconHost: r.host,
+            label: r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host,
+            enabled: r.enabled,
+            status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
+            onToggle: (v) => void onToggle(r, v),
+            onEdit: () => setEditing(asSave(r)),
+            onRemove: () => setConfirming(r),
+            menu: [
+              {
+                id: 'actions',
+                items: [
+                  {
+                    id: 'test',
+                    label: t('accounts.usenet.test'),
+                    icon: <IconRetry width={16} height={16} />,
+                    onSelect: () => void onTest(r),
+                  },
+                ],
+              },
+            ],
+          }))}
+        />
       )}
 
-      {editing && (
+      {form && (
         <ServerDialog
           hue={hue}
-          initial={editing}
-          onClose={() => setEditing(null)}
+          initial={form}
+          onClose={() => {
+            setEditing(null);
+            onAddClose();
+          }}
           onSave={async (s) => {
             await save(s);
             setChecked((c) => {
@@ -290,6 +300,7 @@ function ServerDialog({
   return (
     <Modal
       title={initial.id ? t('accounts.usenet.editTitle', { host: initial.host }) : t('accounts.usenet.addTitle')}
+      hint={initial.id ? undefined : t('accounts.usenet.hint')}
       hue={hue}
       onClose={onClose}
       footer={

@@ -30,8 +30,20 @@ class OffScreen {
   disconnect() {}
 }
 
+/** The last button reading `text`, since a window's button comes after the page's. */
+const button = (text: string) =>
+  [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
+
+/** addKind presses the floating action and picks a kind from its list. */
+async function addKind(kind: string) {
+  await act(async () => button('Add an account').click());
+  await act(async () => button(kind).click());
+}
+
 beforeEach(() => {
   patched = [];
+  // A desktop width, where the floating action shows its words.
+  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('WebSocket', QuietSocket);
   vi.stubGlobal('IntersectionObserver', OffScreen);
   vi.stubGlobal(
@@ -200,9 +212,6 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
   );
   expect(host.querySelector('[aria-label="Own servers"]')?.textContent).toContain('nas.lan');
 
-  // The last match, since the Usenet card above has an Add a server button too.
-  const button = (text: string) =>
-    [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
   const field = (caption: string) =>
     [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
   const type = (input: HTMLInputElement, text: string) => {
@@ -210,7 +219,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await act(async () => button('Add a server').click());
+  await addKind('Own server');
   type(field('Hostname'), 'ftp://Seedbox.Example.net:2121/files/');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
@@ -254,9 +263,6 @@ it('saves an own server only under a name a host can have', async () => {
       </I18nProvider>,
     ),
   );
-  // The last match, since the Usenet card above has an Add a server button too.
-  const button = (text: string) =>
-    [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
   const field = (caption: string) =>
     [...document.querySelectorAll('label')].find((l) => l.textContent?.startsWith(caption))!.querySelector('input')!;
   const type = (input: HTMLInputElement, text: string) => {
@@ -264,7 +270,7 @@ it('saves an own server only under a name a host can have', async () => {
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await act(async () => button('Add a server').click());
+  await addKind('Own server');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
   for (const name of ['nas!box', 'nas"box', 'nas{box}', 'two words']) {
@@ -323,4 +329,109 @@ it('lists the own Usenet servers in their own section and saves a switch without
     expect.objectContaining({ id: 'news.example.com', enabled: false, username: 'reader', password: '********' }),
   ]);
   expect(posted[0]).not.toHaveProperty('hasPassword');
+});
+
+const page = (
+  <I18nProvider>
+    <ToastProvider>
+      <MemoryRouter>
+        <Accounts />
+      </MemoryRouter>
+    </ToastProvider>
+  </I18nProvider>
+);
+
+const services = [
+  { id: 'torbox', label: 'TorBox', kind: 'apiKey', group: 'debrid', whereUrl: 'https://torbox.app/settings' },
+  { id: 'remotefs', label: 'Own server (FTP, SFTP, WebDAV)', kind: 'usernamePassword', group: 'remoteServer', whereUrl: '' },
+  { id: 'capsolver', label: 'CapSolver', kind: 'apiKey', group: 'captchaSolver', whereUrl: 'https://dashboard.capsolver.com/' },
+];
+
+/** The catalogue answers with `catalogue`, everything else as empty. */
+function stubCatalogue(catalogue: unknown[]) {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/accounts/catalogue') return reply(catalogue);
+      if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+}
+
+const windowTitle = () => document.querySelector('[role="dialog"] h2')?.textContent;
+
+it('adds every kind of account from one floating action, listed in the order of the cards', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+
+  const adders = [...document.querySelectorAll('button')].filter((b) => /^Add /.test(b.textContent ?? ''));
+  expect(adders.map((b) => b.textContent)).toEqual(['Add an account']);
+  expect(adders[0].closest('.glim-card')).toBeNull();
+
+  await act(async () => adders[0].click());
+  const kinds = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
+  expect(kinds).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Own server', 'Captcha account']);
+});
+
+it('offers no own server where the instance has no such service', async () => {
+  stubCatalogue(services.filter((s) => s.group !== 'remoteServer'));
+  await act(async () => root.render(page));
+  await act(async () => button('Add an account').click());
+  const kinds = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
+  expect(kinds).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Captcha account']);
+});
+
+it('opens the list of services for the picked kind, and a new account leads back to it', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+
+  await addKind('Debrid account');
+  expect(windowTitle()).toContain('Choose a debrid account');
+  const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find((b) =>
+    b.textContent?.endsWith('TorBox'),
+  )!;
+  await act(async () => service.click());
+  expect(windowTitle()).toContain('Add your TorBox account');
+
+  // The form's row is Back and Save, as in the window it was picked in.
+  const dialog = document.querySelector('[role="dialog"]')!;
+  const row = [...dialog.querySelectorAll('button')].map((b) => b.textContent).filter(Boolean);
+  expect(row.slice(-2)).toEqual(['Back', 'Save']);
+  await act(async () => button('Back').click());
+  expect(windowTitle()).toContain('Choose a debrid account');
+
+  await act(async () => button('Cancel').click());
+  await addKind('Captcha account');
+  expect(windowTitle()).toContain('Choose a captcha account');
+});
+
+it('opens the window of the cards that keep their own, each time it is asked for', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+
+  await addKind('Usenet server');
+  expect(windowTitle()).toContain('New Usenet server');
+  await act(async () => button('Cancel').click());
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  await addKind('Usenet server');
+  expect(windowTitle()).toContain('New Usenet server');
+  await act(async () => button('Cancel').click());
+
+  await addKind('Hoster account');
+  expect(windowTitle()).toContain('Choose a hoster account');
+  await act(async () => button('Cancel').click());
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  await addKind('Hoster account');
+  expect(windowTitle()).toContain('Choose a hoster account');
+});
+
+it('sends the reader of an empty card to the floating action by its name', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+  const pointer = 'To add one, use “Add an account” at the bottom of the page.';
+  const empty = [...host.querySelectorAll('.glim-well')].filter((w) => w.textContent?.includes('yet'));
+  expect(empty).toHaveLength(5);
+  for (const card of empty) expect(card.textContent).toContain(pointer);
 });
