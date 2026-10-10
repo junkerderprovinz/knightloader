@@ -11,6 +11,13 @@ import { PageActions } from './PageActions';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// The options' selectors measure their box, and jsdom lays nothing out.
+globalThis.ResizeObserver ??= class {
+  observe() {}
+  unobserve() {}
+  disconnect() {}
+};
+
 let root: Root;
 let host: HTMLDivElement;
 let switched: unknown[];
@@ -89,9 +96,25 @@ it('keeps Options, the file picker and Add on the card and the two standing ways
   await act(async () => toggle("Click'n'Load")!.click());
   expect(switched).toEqual([{ enabled: true }]);
   expect(toggle("Click'n'Load")?.getAttribute('aria-checked')).toBe('true');
+});
 
-  // Folded again, since the interface remembers it open for the next test.
+it('asks for the options of a batch in a window and marks its button while one is set', async () => {
+  await act(async () => root.render(<Card />));
+  const marked = () => host.querySelector('[data-marked]') !== null;
+  expect(marked()).toBe(false);
+
   await act(async () => button('Options').click());
+  const dialog = document.querySelector('[role="dialog"]')!;
+  expect(dialog.querySelector('h2')?.textContent).toContain('Options');
+
+  await act(async () => toggle('Overrule a matching Packagizer rule')!.click());
+  await act(async () => button('Close').click());
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+  expect(marked()).toBe(true);
+
+  // Back off, since the interface remembers the switch for the next test.
+  await act(async () => button('Options').click());
+  await act(async () => toggle('Overrule a matching Packagizer rule')!.click());
 });
 
 function Page() {

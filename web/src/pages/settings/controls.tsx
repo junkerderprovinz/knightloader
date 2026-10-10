@@ -156,7 +156,8 @@ export function Sheet({
       height="capped"
       wide={wide}
       onClose={onClose}
-      footer={<Button kind="ghost" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
+      // Filled, since it is the window's one button and a bare word would not read as one.
+      footer={<Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
     >
       {children}
     </Modal>
