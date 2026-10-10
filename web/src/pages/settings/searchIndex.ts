@@ -420,6 +420,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'instances.foundTitle',
       hint: 'instances.foundHint',
       rows: [],
+      // The page's floating action.
+      also: ['pairing.title'],
       body: ['instances.pairLead'],
     },
   ],
