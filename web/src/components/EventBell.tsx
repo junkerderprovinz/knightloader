@@ -125,10 +125,12 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
 
 /**
  * EventBell is the sidebar row that opens the event panel, or with `bar` the
- * phone bar's segment. It takes a rail `hue` like every other row; the caller
- * counts it so a hidden row leaves no gap in the sequence.
+ * phone bar's segment. Where the bar keeps the bell behind its More slot,
+ * `behind` draws no segment and only stands the panel on the bar. It takes a
+ * rail `hue` like every other row; the caller counts it so a hidden row leaves
+ * no gap in the sequence.
  */
-export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) {
+export function EventBell({ hue, bar = false }: { hue: number; bar?: false | 'segment' | 'behind' }) {
   const { t } = useT();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -264,41 +266,46 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   return (
-    <div ref={wrapRef} className={bar ? 'flex min-w-0 flex-1' : undefined}>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={centred || unread > 0 ? spoken : undefined}
-        {...(tipped ? tipHoverProps : {})}
-        onClick={() => setEventsPanelOpen(!open)}
-        // Not an Item, since it navigates nowhere. text-start because a
-        // <button> centres its text where an <a> does not.
-        className={
-          bar
-            ? `${navHued} ${barSegment} ${barIdle}`
-            : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
-        }
-        style={hueVars(hue) as CSSProperties}
-      >
-        {bar ? (
-          <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />
-        ) : (
-          <>
-            {mode !== 'text' && <IconBell />}
-            <NavLabel label={name} mode={mode} />
-            {/* Sidebar Item's badge, pinned to the corner in the centred modes so
-                the glyph stays centred. */}
-            {unread > 0 && (
-              <span
-                className={`${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}
-              >
-                {unread > 99 ? '99+' : unread}
-              </span>
-            )}
-          </>
-        )}
-      </button>
+    // Behind More the wrapper is a line along the bar's top edge, which is all
+    // the panel needs to stand on.
+    <div
+      ref={wrapRef}
+      className={bar === 'behind' ? 'pointer-events-none absolute inset-x-0 top-0' : bar ? 'flex min-w-0 flex-1' : undefined}
+    >
+      {bar !== 'behind' && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={centred || unread > 0 ? spoken : undefined}
+          {...(tipped ? tipHoverProps : {})}
+          onClick={() => setEventsPanelOpen(!open)}
+          // Not an Item, since it navigates nowhere. text-start because a
+          // <button> centres its text where an <a> does not.
+          className={
+            bar
+              ? `${navHued} ${barSegment} ${barIdle}`
+              : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
+          }
+          style={hueVars(hue) as CSSProperties}
+        >
+          {bar ? (
+            <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />
+          ) : (
+            <>
+              {mode !== 'text' && <IconBell />}
+              <NavLabel label={name} mode={mode} />
+              {/* Sidebar Item's badge, pinned to the corner in the centred modes so
+                  the glyph stays centred. */}
+              {unread > 0 && (
+                <span className={`${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}>
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </>
+          )}
+        </button>
+      )}
       {tip.node}
 
       {open &&
