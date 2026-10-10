@@ -267,7 +267,7 @@ function VariablesMenu({
       style={{ top: pos.top, left: pos.left }}
       className="glim-card glim-fade fixed z-50 max-h-[70vh] w-[26rem] max-w-[calc(100vw-1rem)] overflow-y-auto p-1.5"
     >
-      <div className="flex items-center px-2 py-1.5 text-[11px] font-semibold text-carbon-textSub">
+      <div className="flex items-center px-2 py-1.5 text-meta font-semibold text-carbon-textSub">
         {t('settings.rules.variablesTitle')}
         {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
         <InfoBubble
@@ -291,7 +291,7 @@ function VariablesMenu({
           <span className="glim-num text-[12px] text-carbon-text" dir="ltr">
             {v.tag}
           </span>
-          <span className="text-[11px] leading-snug text-carbon-textMuted">
+          <span className="text-meta leading-snug text-carbon-textMuted">
             {variableLabel(t, v.id)}
             {v.params?.length ? ` · ${t('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
           </span>
@@ -440,7 +440,7 @@ function SizeInput({
         }}
         onBlur={() => setTouched(false)}
       />
-      {parsed === null && <span className="text-[11px] text-statusFail">{t('settings.rules.badSize')}</span>}
+      {parsed === null && <span className="text-meta text-statusFail">{t('settings.rules.badSize')}</span>}
     </div>
   );
 }
@@ -508,7 +508,7 @@ export function RuleEditor({
         </h3>
 
         {conditions.length === 0 && (
-          <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
+          <p className="text-meta text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
         )}
 
         {conditions.map((c, i) => (
@@ -564,7 +564,7 @@ export function RuleEditor({
           {problems
             .filter((p) => !p.condition)
             .map((p, i) => (
-              <li key={i} className="text-[11px] text-statusFail">
+              <li key={i} className="text-meta text-statusFail">
                 {p.message}
               </li>
             ))}
@@ -718,7 +718,7 @@ function ConditionRow({
 
       {/* Shown on the offending condition itself. */}
       {problems.map((p, i) => (
-        <p key={i} className="text-[11px] text-statusFail">
+        <p key={i} className="text-meta text-statusFail">
           {p.message}
         </p>
       ))}

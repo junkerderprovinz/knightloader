@@ -23,7 +23,7 @@ function Chip({ label, hint, tone }: { label: string; hint?: string; tone: 'neut
   return (
     <span
       dir="auto"
-      className={`inline-flex min-w-0 shrink items-center rounded-[var(--radius-pill)] px-2 py-0.5 text-[11px] ${ground}`}
+      className={`inline-flex min-w-0 shrink items-center rounded-[var(--radius-pill)] px-2 py-0.5 text-meta ${ground}`}
     >
       <span className="truncate">{label}</span>
       {hint && <InfoBubble tip={hint} label={label} />}
@@ -92,7 +92,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
           {folderName(v.dir)}
         </span>
         {pathTip.node}
-        <span className="flex shrink-0 items-center text-[11px] text-carbon-textMuted">
+        <span className="flex shrink-0 items-center text-meta text-carbon-textMuted">
           {roleLabel(t, v.role)}
           {hint && <InfoBubble tip={hint} label={t('disk.title')} />}
         </span>
@@ -124,7 +124,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
               <Marks v={v} cfg={cfg} />
             </div>
           )}
-          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-[11px] text-carbon-textMuted">
+          <div className="flex flex-wrap items-baseline gap-x-4 gap-y-1 text-meta text-carbon-textMuted">
             <span className="flex items-baseline gap-1.5">
               <span>{t('disk.free')}</span>
               <span className="glim-num text-carbon-text">{fmtTotal(v.free)}</span>
@@ -150,7 +150,7 @@ export function DiskVolumeRow({ v, cfg, hint }: { v: DiskVolume; cfg: Settings |
         </>
       ) : (
         // The platform cannot measure, so the zeros mean nothing and no bar is drawn.
-        <span className="flex items-center text-[11px] text-carbon-textMuted">
+        <span className="flex items-center text-meta text-carbon-textMuted">
           {t('disk.unknown')}
           <InfoBubble tip={t('disk.unknownHint')} />
         </span>
@@ -183,7 +183,7 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
       </div>
       {/* The server cuts only unconfigured destinations owed the least. */}
       {report?.truncated && (
-        <span className="flex items-center text-[11px] text-carbon-textMuted">
+        <span className="flex items-center text-meta text-carbon-textMuted">
           {t('disk.truncated')}
           <InfoBubble tip={t('disk.truncatedHint')} />
         </span>

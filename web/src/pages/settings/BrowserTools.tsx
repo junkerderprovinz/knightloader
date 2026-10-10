@@ -500,7 +500,7 @@ function ServerCard() {
           hint={
             <>
               <span className="block">{t('settings.browsertools.dockerHint')}</span>
-              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+              <code dir="ltr" className="mt-1.5 block font-mono text-meta [overflow-wrap:anywhere]">
                 {command}
               </code>
             </>
@@ -527,7 +527,7 @@ function ServerCard() {
           hint={
             <>
               <span className="block">{t('settings.browsertools.parleyportHint')}</span>
-              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+              <code dir="ltr" className="mt-1.5 block font-mono text-meta [overflow-wrap:anywhere]">
                 {RELAY_RUN_COMMAND}
               </code>
             </>
@@ -603,7 +603,7 @@ function dockerRun(): string {
  */
 function ReleaseVersion({ version }: { version: string }) {
   const notch = `glim-num absolute end-5 top-0 z-10 -translate-y-1/2 rounded-[var(--radius-pill)] bg-carbon-surface2
-    px-2.5 py-[3px] text-[11px] leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
+    px-2.5 py-[3px] text-meta leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
   if (!/^\d+\.\d+\.\d+$/.test(version)) return <span className={notch}>v{version}</span>;
   return (
     <a

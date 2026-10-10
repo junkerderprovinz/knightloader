@@ -166,7 +166,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
             // Inside the card rather than an EmptyState, which would hide Add.
             <p className="py-6 text-center text-sm text-carbon-textSub">
               {t('settings.eventTargets.empty')}
-              <span className="mt-1 block text-[11px] text-carbon-textMuted">
+              <span className="mt-1 block text-meta text-carbon-textMuted">
                 {t('settings.eventTargets.emptyHint')}
               </span>
             </p>

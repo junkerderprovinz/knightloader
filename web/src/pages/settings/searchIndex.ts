@@ -295,8 +295,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.jdimport.uploadText'],
       // The preview's strings stay out: its dialog exists only once a folder is read.
     },
-    // Drawn by Help.tsx at the foot of this page.
-    { title: 'settings.about.title', rows: [] },
   ],
 
   // The `{appearance && …}` half of the same component.
@@ -342,7 +340,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   accounts: [
     {
       title: 'settings.accounts.setupTitle',
-      rows: [{ key: 'settings.accounts.showInSidebar', hint: 'settings.accounts.showInSidebarHint' }],
+      rows: [
+        { key: 'settings.accounts.showInSidebar', hint: 'settings.accounts.showInSidebarHint' },
+        // The way to the page, while it stands in the sidebar.
+        { key: 'nav.accounts' },
+      ],
     },
     {
       title: 'settings.accounts.freeTitle',
@@ -394,6 +396,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.module.federation' },
         { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
+        // The way to the page, while it stands in the sidebar.
+        { key: 'nav.instances' },
       ],
     },
     // The page drawn below that card.
@@ -1212,6 +1216,28 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   help: [
+    // The Info tile's three cards. Their buttons carry no caption to scroll
+    // to, so they are `also` entries.
+    {
+      title: 'settings.about.title',
+      rows: [],
+      also: ['settings.about.coffeeButton', 'settings.about.paypal', 'settings.about.crypto'],
+      body: ['settings.about.body', 'settings.about.coffee'],
+    },
+    {
+      title: 'settings.about.version',
+      hint: 'settings.info.versionHint',
+      rows: [],
+      also: ['settings.look.updatesCheck'],
+      body: ['settings.info.glimstoneSub', 'settings.info.ytdlpSub', 'settings.info.ffmpegSub'],
+    },
+    {
+      title: 'settings.info.helpTitle',
+      hint: 'settings.info.helpHint',
+      rows: [],
+      also: ['settings.about.github', 'settings.about.mail', 'settings.info.manual', 'settings.info.bugReport'],
+      body: ['settings.about.report'],
+    },
     { title: 'settings.help.intake.title', rows: [], body: ['settings.help.intake.body'] },
     { title: 'settings.help.collector.title', rows: [], body: ['settings.help.collector.body'] },
     { title: 'settings.help.rules.title', rows: [], body: ['settings.help.rules.body'] },

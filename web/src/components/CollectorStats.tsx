@@ -51,7 +51,7 @@ function Item({ label, value, tone = 'text-carbon-text' }: { label: string; valu
   return (
     <div className="flex items-baseline gap-1.5">
       <span className={`glim-num text-sm font-semibold leading-none ${tone}`}>{value}</span>
-      <span className="text-[11px] text-carbon-textMuted">{label}</span>
+      <span className="text-meta text-carbon-textMuted">{label}</span>
     </div>
   );
 }

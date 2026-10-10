@@ -276,12 +276,12 @@ function ScriptRow({
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>
               {dirty && (
-                <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
+                <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusInfoBg px-1.5 py-0.5 text-meta text-statusInfo">
                   {t('settings.scripts.unsaved')}
                 </span>
               )}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {triggerLabel(draft.trigger)}
               {/* No "last run" line: internal/script keeps no run history. */}
             </span>
@@ -373,8 +373,8 @@ function ScriptRow({
               </p>
               {runResult.output && runResult.output.length > 0 && (
                 <>
-                  <span className="text-[11px] text-carbon-textMuted">{t('settings.scripts.output')}</span>
-                  <pre dir="ltr" className="glim-well overflow-x-auto whitespace-pre-wrap p-2 text-[11px] text-carbon-textSub">
+                  <span className="text-meta text-carbon-textMuted">{t('settings.scripts.output')}</span>
+                  <pre dir="ltr" className="glim-well overflow-x-auto whitespace-pre-wrap p-2 text-meta text-carbon-textSub">
                     {runResult.output.join('\n')}
                   </pre>
                 </>

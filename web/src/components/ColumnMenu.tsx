@@ -84,7 +84,7 @@ export function ColumnMenu({
       style={{ top: pos.top, left: pos.left }}
       className="glim-card glim-fade fixed z-50 min-w-[15rem] max-w-[20rem] p-1.5"
     >
-      <div className="flex items-center px-2 py-1.5 text-[11px] font-semibold text-carbon-textSub">
+      <div className="flex items-center px-2 py-1.5 text-meta font-semibold text-carbon-textSub">
         {t('columns.menuTitle')}
         <InfoBubble tip={t('columns.headerHint')} />
       </div>

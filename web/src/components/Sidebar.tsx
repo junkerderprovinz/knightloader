@@ -99,7 +99,7 @@ function useDrawAndStrike(): {
 // filled with the accent. No `gap` here: the centred modes need none, and two
 // gap utilities on one element resolve by stylesheet order.
 export const navBase =
-  'glim-nav-row relative flex items-center rounded-[var(--radius-pill)] px-3 py-2.5 text-[15px] font-medium transition duration-150 select-none';
+  'glim-nav-row relative flex items-center rounded-[var(--radius-pill)] px-3 py-2.5 text-body font-medium transition duration-150 select-none';
 const navActive = 'glim-active bg-accent text-accentContrast';
 // The 2px nudge toward the content makes hover readable on a quiet rail.
 export const navInactive =
@@ -107,6 +107,12 @@ export const navInactive =
 
 // In rainbow mode the glyph takes the row's hue.
 export const navHued = 'glim-hue glim-hue-icon';
+
+// A count wears the colours of the glyph beside it, the accent or the row's
+// rainbow hue, with that colour's ink. On the active row, which is filled with
+// the colour itself, the two swap.
+export const navCount =
+  'glim-num rounded-[var(--radius-pill)] bg-accent px-1.5 py-0.5 text-meta font-semibold leading-none text-accentContrast [.glim-active_&]:bg-accentContrast [.glim-active_&]:text-accent';
 
 /**
  * NavLabel renders a row's label for the display mode. In `hover` mode it
@@ -167,14 +173,13 @@ function Item({
         {mode !== 'text' && icon}
         <NavLabel label={label} mode={mode} />
         {/* In the centred modes the badge pins to the glyph's corner, so the
-            glyph stays centred. On the active row it takes the ink colour. */}
+            glyph stays centred. */}
         {badge ? (
           <span
             // A new key per value replays .kl-count's entrance, so the number
             // visibly rolls when it changes.
             key={badge}
-            className={`kl-count glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px] font-semibold leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
-              ${centred ? 'absolute end-1 top-1' : ''}`}
+            className={`kl-count ${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}
           >
             {badge}
           </span>
@@ -341,7 +346,7 @@ async function signOut(): Promise<void> {
 // make the segments equal whatever their words, so the filled one keeps its
 // shape from page to page (GlimStone, "The bottom bar").
 export const barSegment =
-  'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-pill)] px-0.5 text-[11px] font-medium leading-[14px] transition-colors duration-150 select-none';
+  'relative flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-[var(--radius-pill)] px-0.5 text-meta font-medium leading-[14px] transition-colors duration-150 select-none';
 export const barIdle = 'text-[var(--sidebar-text)] hover:bg-carbon-hover hover:text-carbon-text';
 
 /**
@@ -365,12 +370,14 @@ export function BarBody({
 }) {
   const glyph = mode !== 'text';
   const word = mode === 'text' || mode === 'both' || (mode === 'hover' && current);
-  // On the glyph's corner, or on the segment's when there is no glyph.
+  // On the glyph's corner, or on the segment's when there is no glyph. The
+  // bar's count is grey and takes the accent on the current segment, as ink on
+  // the accent's own contrast, since the segment is filled with the accent.
   const count = badge > 0 && (
     <span
       key={badge}
-      className={`kl-count glim-num absolute rounded-[var(--radius-pill)] bg-carbon-surface3 px-1 py-px text-[11px] font-semibold
-        leading-none text-carbon-textSub [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current
+      className={`kl-count glim-num absolute rounded-[var(--radius-pill)] bg-carbon-textSub px-1 py-px text-meta font-semibold
+        leading-none text-carbon-background [.glim-active_&]:bg-accentContrast [.glim-active_&]:text-accent
         ${glyph ? '-top-1.5 start-3.5' : 'end-0.5 top-0.5'}`}
     >
       {badge > 99 ? '99+' : badge}

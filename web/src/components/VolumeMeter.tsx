@@ -54,7 +54,7 @@ export function VolumeUsageRow() {
   return (
     <div className="glim-well flex flex-col gap-2 px-4 py-3">
       <div className="flex items-center gap-2">
-        <span className="text-[11px] text-carbon-textMuted">{t('settings.volume.used')}</span>
+        <span className="text-meta text-carbon-textMuted">{t('settings.volume.used')}</span>
         <InfoBubble tip={t('volume.meterHint')} />
         <span className="flex-1" />
         <span
@@ -88,7 +88,7 @@ export function VolumeUsageRow() {
         </div>
       )}
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px]">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-meta">
         {/* periodEnd is an instant, not a calendar bucket, so fmtDate fits. */}
         <span className="text-carbon-textMuted">
           {t('settings.volume.resetsOn', { date: fmtDate(usage.periodEnd) })}
@@ -115,7 +115,7 @@ export function VolumeMeter() {
   return (
     // w-full to share both edges with the row of buttons above it.
     <span className="flex w-full flex-col gap-1">
-      <span className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
+      <span className="flex items-center gap-1.5 text-meta text-carbon-textMuted">
         <span
           className={`glim-num min-w-0 flex-1 truncate ${usage.reached ? 'text-statusFail' : 'text-carbon-text'}`}
         >

@@ -155,3 +155,37 @@ describe('a rail on the sidebar ground', () => {
     expect(rail(false).off).toContain('bg-carbon-surface2');
   });
 });
+
+describe('a selector that sets a value', () => {
+  const segments = (variant: 'default' | 'well') => {
+    act(() =>
+      root.render(
+        <Tabs
+          variant={variant}
+          label="Theme"
+          active="dark"
+          onSelect={() => {}}
+          items={[
+            { id: 'dark', label: 'Dark' },
+            { id: 'light', label: 'Light' },
+          ]}
+        />,
+      ),
+    );
+    return [...host.querySelectorAll<HTMLElement>('[role="tab"]')];
+  };
+
+  it('owns no palette position, so the chosen segment wears the accent of its card', () => {
+    for (const segment of segments('well')) {
+      expect(segment.classList.contains('glim-hue')).toBe(false);
+      expect(segment.style.getPropertyValue('--item-hue')).toBe('');
+    }
+    expect(segments('well')[0].className).toContain('bg-accent');
+  });
+
+  it('leaves a tab strip its position per tab', () => {
+    const [first, second] = segments('default');
+    expect(first.classList.contains('glim-hue')).toBe(true);
+    expect(first.style.getPropertyValue('--item-hue')).not.toBe(second.style.getPropertyValue('--item-hue'));
+  });
+});

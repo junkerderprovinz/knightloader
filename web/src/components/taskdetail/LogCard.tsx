@@ -54,7 +54,7 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
         <pre
           dir="ltr"
           className="max-h-64 overflow-auto whitespace-pre-wrap break-all rounded-[var(--radius-control)]
-            bg-carbon-surface2 p-4 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+            bg-carbon-surface2 p-4 font-mono text-meta leading-relaxed text-carbon-textSub"
         >
           {lines.map((l) => l.line).join('\n')}
         </pre>

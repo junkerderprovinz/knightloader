@@ -152,29 +152,29 @@ function Row({ check }: { check: StartupCheck }) {
           <Glyph width={16} height={16} />
           <span className="text-sm">{name}</span>
         </span>
-        <span className={`text-[11px] ${toneText[v.tone]}`}>{v.key ? t(v.key) : check.verdict}</span>
+        <span className={`text-meta ${toneText[v.tone]}`}>{v.key ? t(v.key) : check.verdict}</span>
         {advice && <InfoBubble tip={t(advice, adviceVars(check))} />}
       </span>
 
       {check.subject && (
-        <span className="glim-num break-all text-[11px] text-carbon-textMuted" dir="ltr">
+        <span className="glim-num break-all text-meta text-carbon-textMuted" dir="ltr">
           {check.subject}
         </span>
       )}
       {/* A missing folder was measured somewhere else, often another disk. */}
       {check.measured && check.measured !== check.subject && (
-        <span className="glim-num break-all text-[11px] text-carbon-textMuted" dir="ltr">
+        <span className="glim-num break-all text-meta text-carbon-textMuted" dir="ltr">
           {t('settings.diagnostics.startupNearest', { measured: check.measured })}
         </span>
       )}
       {check.detail && (
-        <span className="glim-num break-all text-[11px] text-carbon-textSub" dir="ltr">
+        <span className="glim-num break-all text-meta text-carbon-textSub" dir="ltr">
           {check.detail}
         </span>
       )}
       {/* Raw, so the error stays searchable. */}
       {check.err && (
-        <span className="break-all font-mono text-[11px] text-carbon-textMuted" dir="ltr">
+        <span className="break-all font-mono text-meta text-carbon-textMuted" dir="ltr">
           {check.err}
         </span>
       )}

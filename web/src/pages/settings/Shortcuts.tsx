@@ -168,7 +168,7 @@ function ShortcutRow({
     <div className="flex items-center gap-3 px-4 py-2.5">
       {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
       <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{t(cmd.labelKey)}</span>
-      <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
+      <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
         {bound ? formatShortcut(bound, t) : ''}
       </kbd>
       {/* Reset, then Change, which moves the row on. JSX order, so the pair

@@ -281,7 +281,7 @@ function Verdict({
             />
           )}
         </span>
-        <span className="text-[11px] text-carbon-textMuted">{when}</span>
+        <span className="text-meta text-carbon-textMuted">{when}</span>
       </div>
     );
   }
@@ -295,11 +295,11 @@ function Verdict({
         </span>
         <pre
           dir="ltr"
-          className="max-h-96 overflow-auto whitespace-pre-wrap break-all p-4 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+          className="max-h-96 overflow-auto whitespace-pre-wrap break-all p-4 font-mono text-meta leading-relaxed text-carbon-textSub"
         >
           {last.problems.join('\n')}
         </pre>
-        <span className="text-[11px] text-carbon-textMuted">{when}</span>
+        <span className="text-meta text-carbon-textMuted">{when}</span>
       </div>
     );
   }
@@ -322,7 +322,7 @@ function Verdict({
   return (
     <div className="flex flex-col gap-1">
       <span className="text-sm text-statusOk">{line}</span>
-      <span className="text-[11px] text-carbon-textMuted">{when}</span>
+      <span className="text-meta text-carbon-textMuted">{when}</span>
     </div>
   );
 }

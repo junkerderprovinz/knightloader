@@ -4,6 +4,7 @@ import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
 import { IconDownloads } from '../../lib/icons';
+import { saveDiagnostics } from './diagnostics/bundle';
 import { LogFileCard } from './diagnostics/LogFileCard';
 import { LogViewerCard } from './diagnostics/LogViewerCard';
 import { MaintenanceCard } from './diagnostics/Maintenance';
@@ -13,29 +14,13 @@ import { SelfTestCard } from './diagnostics/SelfTest';
 import { StartupReportCard } from './diagnostics/StartupReport';
 
 // The diagnostics page shows what this build is and what it runs on, with a
-// button that saves the same bundle to a file for a bug report. The download
-// fetches a fresh bundle, since the log lines and goroutine count keep moving.
+// button that saves the same bundle to a file for a bug report.
 
 /** deploymentLabel translates buildinfo.Deployment, falling back to the raw value. */
 function deploymentLabel(t: ReturnType<typeof useT>['t'], raw: string): string {
   if (raw === 'container') return t('settings.diagnostics.deployment.container');
   if (raw === 'desktop') return t('settings.diagnostics.deployment.desktop');
   return raw;
-}
-
-/** fileStamp is a sortable UTC stamp for the file name. */
-function fileStamp(): string {
-  return new Date().toISOString().replace(/[-:]/g, '').replace(/\.\d+Z$/, 'Z');
-}
-
-function saveJSON(doc: unknown, filename: string): void {
-  const blob = new Blob([JSON.stringify(doc, null, 2)], { type: 'application/json' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = filename;
-  a.click();
-  URL.revokeObjectURL(url);
 }
 
 export function Diagnostics() {
@@ -48,8 +33,7 @@ export function Diagnostics() {
     setError('');
     setDownloading(true);
     try {
-      const fresh = await fetchDiagnostics();
-      saveJSON(fresh, `knightloader-diagnostics-${fileStamp()}.json`);
+      await saveDiagnostics();
     } catch (e) {
       setError(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:\s*/, '') }));
     } finally {
@@ -114,7 +98,7 @@ export function Diagnostics() {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] text-carbon-textMuted">{label}</span>
+      <span className="text-meta text-carbon-textMuted">{label}</span>
       <span className="glim-num text-sm text-carbon-text" dir="ltr">
         {value}
       </span>

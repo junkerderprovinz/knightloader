@@ -72,7 +72,7 @@ export function VolumeGraph({
   return (
     <div className="flex flex-col gap-3">
       {/* The top of the scale; the foot is zero. Printed in every state. */}
-      <span className="glim-num self-end text-[11px] leading-none text-carbon-textMuted">
+      <span className="glim-num self-end text-meta leading-none text-carbon-textMuted">
         {fmtGB(peak)}
       </span>
       <svg
@@ -136,7 +136,7 @@ export function VolumeGraph({
       </svg>
 
       {multi && (
-        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-[11px] text-carbon-textMuted">
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 text-meta text-carbon-textMuted">
           {series.map((s, si) => (
             <span key={s.id} className="flex min-w-0 items-center gap-1.5">
               <span

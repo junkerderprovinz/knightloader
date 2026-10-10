@@ -273,12 +273,12 @@ export function TokensSection() {
         ) : (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
-              <div key={tok.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
+              <div key={tok.id} className="glim-row flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
                 {/* An inert tile marking the row, not a control. */}
                 <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
                 <div className="min-w-[10rem] flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
-                  <div className="text-[11px] text-carbon-textMuted">
+                  <div className="text-meta text-carbon-textMuted">
                     {t('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
                     {' · '}
                     {t('settings.access.tokens.lastUsed')}{' '}

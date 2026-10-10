@@ -717,14 +717,14 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
     // is the accent and down is muted: a raised link is the one somebody wants
     // to spot in a long list.
     //
-    // --accent-ink, not --accent: a colour on a `background` is --accent, a
-    // colour on `color`, `fill` or `stroke` against the page is --accent-ink.
-    // This glyph is drawn in the text colour on the card's own ground, where
-    // the flat accent is Sunflower on white in the light theme.
+    // --accent-glyph, not --accent: a colour on a `background` is --accent,
+    // while a glyph drawn against the page takes the ink, which a rainbow row
+    // turns to its own hue. On the card's own ground the flat accent is
+    // Sunflower on white in the light theme.
     <Tip
       tip={label}
       label={label}
-      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accentInk' : 'text-carbon-textMuted'}`}
+      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accentGlyph' : 'text-carbon-textMuted'}`}
     >
       <PriorityGlyph steps={value} />
     </Tip>
@@ -754,15 +754,15 @@ export const PARKED = 'kl-parked';
  */
 export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   const { t, stopMark, switchShown } = ctx;
-  // The two that change what the queue does next take --accent-ink, as a
+  // The two that change what the queue does next take --accent-glyph, as a
   // raised priority does; a disabled row stays in the quiet ink.
   const marks: { id: string; label: string; icon: ReactNode; ink: string }[] = [];
   // The server clears the mark as its download finishes, which on a peer's
   // list only the row itself reports.
   if (stopMark && items.some((x) => x.id === stopMark && x.status !== 'done'))
-    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentInk' });
+    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentGlyph' });
   if (items.every((x) => !!x.forced))
-    marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentInk' });
+    marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentGlyph' });
   if (!switchShown && items.every((x) => !x.enabled))
     marks.push({ id: 'off', label: t('task.waiting.disabled'), icon: <IconPower />, ink: 'text-carbon-textSub' });
   return marks.map((m) => (

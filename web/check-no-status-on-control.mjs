@@ -142,7 +142,7 @@ function classLists(text) {
 
 /**
  * A class token's variant chain, split on the colons that are not inside
- * brackets: `motion-safe:active:scale-[.98]` is three, and `bg-[url(a:b)]` is
+ * brackets: `motion-safe:active:scale-[.97]` is three, and `bg-[url(a:b)]` is
  * one. The last element is the utility, everything before it is a variant.
  */
 function chain(token) {

@@ -220,7 +220,7 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   const { t } = useT();
   if (busy) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
         <span aria-hidden className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent" />
         {t('accounts.refreshing')}
       </span>
@@ -228,7 +228,7 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   }
   if (!checked) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
         {t('accounts.unchecked')}
       </span>
@@ -236,14 +236,14 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   }
   if (checked.ok) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
         {t('accounts.ok')}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={checked.detail} />

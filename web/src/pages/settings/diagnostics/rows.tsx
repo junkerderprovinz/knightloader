@@ -145,7 +145,7 @@ export function CheckRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-sm font-medium text-carbon-text">{name}</span>
-          <span className="glim-eyebrow text-[11px] text-carbon-textMuted">
+          <span className="glim-eyebrow text-meta text-carbon-textMuted">
             {status === 'pending' ? t('settings.selftest.pending') : t(STATUS_WORDS[status])}
           </span>
         </div>
@@ -156,7 +156,7 @@ export function CheckRow({
         {detail && (
           <span
             dir="ltr"
-            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-carbon-textMuted"
+            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-meta leading-relaxed text-carbon-textMuted"
           >
             {detail}
           </span>
@@ -188,7 +188,7 @@ export function SubRow({
         <StatusGlyph status={status} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        {name && <span className="glim-eyebrow text-[11px] text-carbon-textMuted">{name}</span>}
+        {name && <span className="glim-eyebrow text-meta text-carbon-textMuted">{name}</span>}
         <span className="flex items-start gap-1 text-sm text-carbon-textSub">
           <span className="min-w-0">{sentence}</span>
           {advice && <InfoBubble tip={advice} />}
@@ -196,7 +196,7 @@ export function SubRow({
         {detail && (
           <span
             dir="ltr"
-            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-carbon-textMuted"
+            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-meta leading-relaxed text-carbon-textMuted"
           >
             {detail}
           </span>
