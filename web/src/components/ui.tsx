@@ -37,9 +37,11 @@ const kindClass: Record<ButtonKind, string> = {
 
 /**
  * The button heights (GlimStone rule 19). `--btn-h` (2rem) is what a text field
- * measures, so a button in a row of fields matches it, and `--btn-h-transport`
+ * measures, so a button in a row of fields matches it, `--btn-h-key` (2.5rem,
+ * `.glim-btn-key`) is the action a page exists for, and `--btn-h-transport`
  * (3rem, `.glim-btn-transport`) belongs to the head bar's transport squares
- * alone. Both live in index.css, so nothing here writes a height of its own.
+ * alone. All three live in index.css, so nothing here writes a height of its
+ * own.
  */
 const BTN_H = 'h-[var(--btn-h)]';
 const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
@@ -69,6 +71,7 @@ export function Button({
   hue,
   labelled,
   transport = false,
+  keyHeight = false,
   title,
   hint,
   shake = 0,
@@ -89,6 +92,11 @@ export function Button({
    * bar's play, pause, stop and quick-settings controls and for nothing else.
    */
   transport?: boolean;
+  /**
+   * The key height (`--btn-h-key`), for the one action a page exists for;
+   * PageActions is its caller.
+   */
+  keyHeight?: boolean;
   /**
    * What the button does beyond its label, as an (i) inside the button; see
    * HintSlot. A button showing its glyph alone has no room for one, so there
@@ -133,7 +141,9 @@ export function Button({
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
         motion-safe:active:scale-[.98] ${
-          transport ? 'glim-btn-transport' : `${BTN_H} ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}`
+          transport
+            ? 'glim-btn-transport'
+            : `${keyHeight ? 'glim-btn-key' : BTN_H} ${iconOnly ? 'glim-btn-icon' : keyHeight ? 'px-4.5' : 'px-3.5'}`
         }
         ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
       style={hueCss}
@@ -156,7 +166,13 @@ export function Button({
   return (
     <>
       {slotted ? (
-        <HintSlot tip={hint} label={title} ink={hued ? 'text-accentContrast' : kindInk[kind]} end="end-3.5" hueCss={hueCss}>
+        <HintSlot
+          tip={hint}
+          label={title}
+          ink={hued ? 'text-accentContrast' : kindInk[kind]}
+          end={keyHeight ? 'end-4.5' : 'end-3.5'}
+          hueCss={hueCss}
+        >
           {button}
         </HintSlot>
       ) : boxed ? (

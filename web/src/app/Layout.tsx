@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
@@ -11,6 +11,7 @@ import { CommandPalette } from '../components/CommandPalette';
 import { GlobalIntake } from '../components/GlobalIntake';
 import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
+import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
@@ -192,6 +193,7 @@ export function Layout() {
   // the sidebar, which the padded, page-scrolling wrapper below cannot give.
   // pages/Settings.tsx scrolls its own content column.
   const ownsFrame = section === 'settings';
+  const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
   // The download list and the link collector scroll inside their own cards, so
   // those pages get exactly the height left under the shell bar, which only
   // Downloads shows. With min-h-full instead, a long list pushes the page past
@@ -226,16 +228,23 @@ export function Layout() {
               the sidebar; the frame's 1rem keeps them off the window edge.
               glim-column-top gives the room a section badge's notch needs to
               the first card that has one (index.css). */}
-          <div
-            key={section}
-            className={
-              ownsFrame
-                ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
-                : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
-            }
-          >
-            <Outlet />
-          </div>
+          <PageActionsProvider slot={actionSlot}>
+            <div
+              key={section}
+              className={
+                ownsFrame
+                  ? 'glim-page-enter flex h-full w-full min-h-0 flex-col'
+                  : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
+              }
+            >
+              <Outlet />
+            </div>
+          </PageActionsProvider>
+          {/* The page's floating actions, with the page's own side padding so
+              they end where its cards end. No height: every page here reaches
+              the foot of the column. Settings holds a slot of its own in the
+              column it scrolls. */}
+          {!ownsFrame && <PageActionsSlot ref={setActionSlot} className="h-0 sm:px-6 md:px-8" />}
         </main>
       </div>
       {/* Mounted once, outside the keyed page div, so navigation does not

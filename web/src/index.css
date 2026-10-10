@@ -123,9 +123,9 @@
 
 /* The button heights (GlimStone rule 19). --btn-h matches a text field (a
    20px line box plus 12px padding), so a button in a row of fields lines up
-   with them. --btn-h-transport is the head bar's transport squares and nothing
-   else. GlimStone's key height, one step up from --btn-h, has no button here
-   to carry it.
+   with them. --btn-h-key is the one step up, for the action a page exists
+   for, which floats in the page's corner (components/PageActions.tsx).
+   --btn-h-transport is the head bar's transport squares and nothing else.
 
    The four width stages are minimum widths chosen from the label, so a button
    keeps its width whichever label mode is active and a translation that runs
@@ -134,6 +134,8 @@
    `min-w-[var(--btn-w-sm)]`. */
 :root {
   --btn-h: 2rem;
+  /* The second height; see `.glim-btn-key`. */
+  --btn-h-key: 2.5rem;
   /* Only for the transport squares of a head bar; see `.glim-btn-transport`. */
   --btn-h-transport: 3rem;
 
@@ -171,6 +173,22 @@
   height: 1rem;
 }
 
+/* The key height, for the one control that creates what the page lists or
+   starts what it holds. Two heights read as a difference that was meant, and
+   the half-rem step is too large to pass for a rounding error. The glyph grows
+   with the box, and a key control showing its glyph alone is a square at this
+   height. The rules are GlimStone's (reference/tokens.css). */
+.glim-btn-key {
+  height: var(--btn-h-key);
+}
+.glim-btn-key .glim-btn-glyph > svg {
+  width: 1rem;
+  height: 1rem;
+}
+.glim-btn-icon.glim-btn-key {
+  width: var(--btn-h-key);
+}
+
 /* The transport squares of an app's head bar: play, pause, stop and the
    square beside them that opens the quick settings. They are the controls the
    whole app runs on and sit in a bar of their own, with no field or ordinary
@@ -198,6 +216,25 @@
   :root {
     --phone-bar-space: 4rem;
   }
+}
+
+/* A page's floating actions (components/PageActions.tsx) stand in a slot at
+   the foot of the column that scrolls. The slot has no height of its own, so
+   whatever stands before a filled one keeps the room under its last row, and a
+   toast stands that much higher while a page has actions in its corner. */
+:root {
+  --page-actions-space: 0px;
+}
+:root:has(.glim-page-actions:not(:empty)) {
+  --page-actions-space: calc(var(--btn-h-key) + 0.75rem);
+}
+:has(+ .glim-page-actions:not(:empty)) {
+  padding-bottom: calc(var(--btn-h-key) + 1.5rem);
+}
+/* A floating action lies over the page's rows. The card elevation barely shows
+   under something one row tall, so it takes the shadow of a lifted row. */
+.glim-float {
+  box-shadow: var(--drag-lift-shadow), var(--hairline);
 }
 
 :root,
