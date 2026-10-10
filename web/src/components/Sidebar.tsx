@@ -19,6 +19,7 @@ import { usePhoneLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { fetchAuth, fetchSettings, logout } from '../lib/api';
 import { useTasks } from '../lib/useTasks';
+import { countTasks, openDownloads } from '../lib/needs';
 import { useNeeds } from '../lib/useNeeds';
 import { EventBell } from './EventBell';
 import {
@@ -236,18 +237,10 @@ export function Sidebar() {
       .catch(() => {});
   }, []);
 
+  // The overview's own counting, so a badge here and a figure there agree.
   const { collected, active } = useMemo(() => {
-    let collected = 0,
-      active = 0;
-    for (const t of Object.values(tasks)) {
-      // Held links and rows a hoster preset set aside are not in the
-      // collector's list, so not in its badge either.
-      if (t.status === 'collected') {
-        if (!t.skipped && !t.variantOff) collected++;
-      }
-      else if (t.status === 'running' || t.status === 'queued' || t.status === 'extracting') active++;
-    }
-    return { collected, active };
+    const counts = countTasks(Object.values(tasks), Date.now());
+    return { collected: counts.collected, active: openDownloads(counts) };
   }, [tasks]);
 
   // Only glyph mode narrows the rail; hover mode keeps its width so nothing

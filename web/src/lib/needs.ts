@@ -252,6 +252,51 @@ export function kindSegments(tasks: readonly Task[], done: ReadonlySet<string>, 
   return [...kinds.values()].sort((a, b) => (a.id < b.id ? -1 : 1));
 }
 
+/**
+ * What the lists hold, by state. The overview's head, its row of figures, the
+ * counts in the rail and the tray window all read countTasks, so a count never
+ * stands beside another count of the same thing that disagrees.
+ */
+export interface TaskCounts {
+  /** Downloads in the list at all, the collector's links left out. */
+  listed: number;
+  /** Loading right now. */
+  running: number;
+  /** Being unpacked. */
+  extracting: number;
+  /** Queued, paused or waiting for a scheduled retry. A link that is switched off waits for nothing. */
+  waiting: number;
+  done: number;
+  /** Failed, with no retry coming. */
+  failed: number;
+  /** In the collector's list, without what the filter holds back or a hoster preset set aside. */
+  collected: number;
+  speed: number;
+}
+
+export function countTasks(tasks: Iterable<Task>, now: number): TaskCounts {
+  const c: TaskCounts = { listed: 0, running: 0, extracting: 0, waiting: 0, done: 0, failed: 0, collected: 0, speed: 0 };
+  for (const t of tasks) {
+    if (t.status === 'collected') {
+      if (!t.skipped && !t.variantOff) c.collected++;
+      continue;
+    }
+    c.listed++;
+    if (t.status === 'done') c.done++;
+    else if (t.enabled === false) continue;
+    else if (t.status === 'running') {
+      c.running++;
+      c.speed += t.speed;
+    } else if (t.status === 'extracting') c.extracting++;
+    else if (failedForGood(t, now)) c.failed++;
+    else c.waiting++;
+  }
+  return c;
+}
+
+/** The count on the rail's Downloads entry: what the download list still has to do. */
+export const openDownloads = (c: TaskCounts): number => c.running + c.extracting + c.waiting;
+
 export interface QueueFigures {
   /** Downloads in the list at all, the collector's links left out. */
   listed: number;
@@ -269,22 +314,14 @@ export interface QueueFigures {
 
 /** queueFigures counts the download list for the overview's head. */
 export function queueFigures(tasks: readonly Task[], now: number): QueueFigures {
-  const f: QueueFigures = { listed: 0, running: 0, waiting: 0, speed: 0, eta: null, percent: null, halted: false };
+  const { listed, running, waiting, speed } = countTasks(tasks, now);
+  const f: QueueFigures = { listed, running, waiting, speed, eta: null, percent: null, halted: false };
   const open = new Set<string>();
   let remaining = 0;
   const packageOf = (t: Task) => (t.package ? `p:${t.package}` : `t:${t.id}`);
   for (const t of tasks) {
-    if (t.status === 'collected') continue;
-    f.listed++;
-    if (t.enabled === false) continue;
-    const moving = t.status === 'running';
-    if (moving) {
-      f.running++;
-      f.speed += t.speed;
-    } else if (t.status === 'queued' || t.status === 'paused' || (t.status === 'error' && !failedForGood(t, now))) {
-      f.waiting++;
-    }
-    if (moving || t.status === 'queued') {
+    if (t.status === 'collected' || t.enabled === false) continue;
+    if (t.status === 'running' || t.status === 'queued') {
       open.add(packageOf(t));
       if (t.size > t.loaded) remaining += t.size - t.loaded;
       if (t.waiting === 'halted') f.halted = true;

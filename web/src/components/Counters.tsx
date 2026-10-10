@@ -3,32 +3,24 @@ import type { Task } from '../lib/api';
 import { fmtEta, fmtTotal } from '../lib/format';
 import { useT } from '../lib/i18n';
 import type { ListView } from '../lib/listview';
+import type { TaskCounts } from '../lib/needs';
 import { InfoBubble, Toggle } from './ui';
 import { Tabs } from './Tabs';
 
-export interface CountsInput {
-  running: number;
-  queued: number;
-  collected?: number;
-  done: number;
-  error: number;
-}
-
 // A quiet row of figures below the speed hero. Zeros stay so the row does not
-// reflow, and only a non-zero error count is highlighted.
-export function Counters({ counts }: { counts: CountsInput }) {
+// reflow, and only a non-zero error count is highlighted. `collector` adds the
+// collector's links, which the tray window has no room for.
+export function Counters({ counts, collector = false }: { counts: TaskCounts; collector?: boolean }) {
   const { t } = useT();
   const items: { label: string; value: number; tone: string }[] = [
-    { label: t('overview.active'), value: counts.running, tone: 'text-statusInfo' },
-    { label: t('overview.queued'), value: counts.queued, tone: 'text-carbon-text' },
-    ...(counts.collected === undefined
-      ? []
-      : [{ label: t('overview.inCollector'), value: counts.collected, tone: 'text-carbon-text' }]),
+    { label: t('overview.active'), value: counts.running + counts.extracting, tone: 'text-statusInfo' },
+    { label: t('overview.queued'), value: counts.waiting, tone: 'text-carbon-text' },
+    ...(collector ? [{ label: t('overview.inCollector'), value: counts.collected, tone: 'text-carbon-text' }] : []),
     { label: t('overview.done'), value: counts.done, tone: 'text-carbon-text' },
     {
       label: t('overview.errors'),
-      value: counts.error,
-      tone: counts.error > 0 ? 'text-statusFail' : 'text-carbon-textMuted',
+      value: counts.failed,
+      tone: counts.failed > 0 ? 'text-statusFail' : 'text-carbon-textMuted',
     },
   ];
   return (
