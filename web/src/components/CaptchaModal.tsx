@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   answerCaptcha,
   captchaWidgetUrl,
@@ -71,6 +71,22 @@ function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChall
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
   return list[0];
+}
+
+// The challenge somebody picked from the overview's list. It is shown ahead of
+// the one that runs out first for as long as it waits.
+let picked: string | null = null;
+const pickListeners = new Set<() => void>();
+
+/** showCaptcha brings one waiting challenge to the front of the captcha window. */
+export function showCaptcha(id: string): void {
+  picked = id;
+  for (const l of pickListeners) l();
+}
+
+function onPick(l: () => void): () => void {
+  pickListeners.add(l);
+  return () => pickListeners.delete(l);
 }
 
 // The widget page's error details that mean the vendor was never reached, as
@@ -196,7 +212,11 @@ export function CaptchaModal() {
   const answering = useRef(new Map<string, TestCaptchaResult | null>());
   const shownHere = useRef(new Set<string>());
 
-  const current = useMemo(() => pickCurrent(challenges), [challenges]);
+  const front = useSyncExternalStore(onPick, () => picked);
+  const current = useMemo(
+    () => (front !== null ? challenges[front] : undefined) ?? pickCurrent(challenges),
+    [challenges, front],
+  );
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
 
   // "snapshot" arrives on every reconnect without a subscription (Hub.SendTo),
