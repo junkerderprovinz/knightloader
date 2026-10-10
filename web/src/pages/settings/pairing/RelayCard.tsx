@@ -14,7 +14,8 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { IconCheckDrawn, IconClipboard, IconClose, IconEye, IconRetry } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { FactGlyph, RouteDiagram, RouteGlyph, type RouteKind } from './pairingArt';
-import { Fact, SetRow, Subcard } from './parts';
+import { SubCard } from '../controls';
+import { Fact, SetRow } from './parts';
 
 type T = ReturnType<typeof useT>['t'];
 
@@ -259,7 +260,7 @@ export function RelayCard({
             {t('relay.e2e')} <InfoBubble tip={t('relay.e2eTip')} />
           </Fact>
           {unreachable && (
-            <Subcard title={t('pairing.relayCheckOpen')} hint={t('pairing.relayCheckTip')}>
+            <SubCard className="gap-2.5" label={t('pairing.relayCheckOpen')} hint={t('pairing.relayCheckTip')}>
               <p className="text-subline text-carbon-textMuted">{t('pairing.relayCheckLead')}</p>
               <ul className="flex list-disc flex-col gap-1 ps-5 text-subline text-carbon-textSub">
                 <li>
@@ -284,7 +285,7 @@ export function RelayCard({
                   </Button>
                 </div>
               )}
-            </Subcard>
+            </SubCard>
           )}
         </div>
         <RouteDiagram
@@ -304,14 +305,14 @@ export function RelayCard({
         <div className="flex flex-col gap-3" data-testid="own-relay">
           <span className="glim-eyebrow">{t('relay.sourcesTitle')}</span>
           <div className="grid grid-cols-1 gap-3 min-[861px]:grid-cols-2">
-            <Subcard title={t('relay.containerName')}>
+            <SubCard className="gap-2.5" label={t('relay.containerName')}>
               <p className="text-subline text-carbon-textMuted">{t('relay.containerSub')}</p>
               <Fact glyph={<FactGlyph kind="search" />}>{t('relay.containerFind', { name: t('relay.containerName') })}</Fact>
               <CommandLine t={t} />
               <Fact glyph={<FactGlyph kind="shield" />}>{t('relay.containerCert')}</Fact>
               <AddressAfter address="https://relay.example.org" t={t} />
-            </Subcard>
-            <Subcard title={t('relay.instanceName')}>
+            </SubCard>
+            <SubCard className="gap-2.5" label={t('relay.instanceName')}>
               <p className="text-subline text-carbon-textMuted">{t('relay.instanceSub')}</p>
               <div className="rounded-[var(--radius-control)] bg-carbon-surface px-3 py-2">
                 <ToggleRow
@@ -328,7 +329,7 @@ export function RelayCard({
                 {t('relay.instanceCert')} <InfoBubble tip={t('relay.instanceCertTip')} />
               </Fact>
               <AddressAfter address="https://knightloader.example.org" t={t} />
-            </Subcard>
+            </SubCard>
           </div>
         </div>
       )}

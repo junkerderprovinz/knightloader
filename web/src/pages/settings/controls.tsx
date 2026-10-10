@@ -91,7 +91,7 @@ export function SubHead({ label, hint, right }: { label: string; hint?: Hint; ri
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {/* data-glim-label is where the settings search scrolls to. */}
-      <h3 data-glim-label={label} className="glim-eyebrow flex items-center gap-1.5 font-semibold">
+      <h3 data-glim-label={label} className="glim-eyebrow flex items-center gap-1.5 font-semibold leading-4">
         {label}
         <HintBubble hint={hint} />
       </h3>
