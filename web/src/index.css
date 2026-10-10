@@ -1959,6 +1959,40 @@ body {
   :root { --glim-scrim-blur: 0px; }
 }
 
+/* In a narrow window a dialog is a sheet standing on the bottom edge
+   (GlimStone, "Narrow windows"): as wide as the window, with its button row
+   in reach of the thumb however long the content, so only the part between
+   the title and the buttons scrolls. The card itself must not scroll, or it
+   would cut the title badge standing over its top edge. .glim-sheet marks the
+   windows that take this form, which the command palette at the top of the
+   window does not. The width is lib/phoneLayout.ts's. */
+.glim-modal-body {
+  display: contents;
+}
+@media (max-width: 767.98px) {
+  .glim-sheet {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .glim-sheet > .glim-modal-card {
+    max-width: none;
+    max-height: calc(100dvh - 3rem);
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .glim-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-height: 0;
+    /* The inset keeps focus rings clear of the scroll edge. */
+    margin: -0.25rem;
+    padding: 0.25rem;
+    overflow-y: auto;
+  }
+}
+
 /* The single-colour marks at rest. A published brand colour fails on one of
    the two grounds, so the marks take the theme-adjusted tokens above, and the
    house mark, on the button that reaches this app's authors, follows the

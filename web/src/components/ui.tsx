@@ -1948,7 +1948,7 @@ export function Modal({
       // glim-modal-backdrop, not a number typed here: the darkening and the
       // blur behind a window are tokens (index.css), so every window in the
       // app changes with them.
-      className="glim-modal-backdrop fixed inset-0 z-50 grid place-items-center p-6"
+      className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -1974,7 +1974,10 @@ export function Modal({
           {title}
         </SectionTitle>
         {height === 'content' ? (
-          children
+          // No box of its own in a wide window, where the children are the
+          // card's rows. As a bottom sheet it is the part that scrolls
+          // (.glim-modal-body in index.css).
+          <div className="glim-modal-body">{children}</div>
         ) : (
           // The inset keeps focus rings clear of the scroll edge.
           <div className={`-m-1 flex min-h-0 flex-1 flex-col gap-5 p-1 ${height === 'capped' ? 'overflow-y-auto' : ''}`}>
