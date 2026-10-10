@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchTorrentOverview, type Settings, type TorrentOverview } from '../lib/api';
 import { fmtBytes, fmtRate, fmtUptime } from '../lib/format';
 import { useT } from '../lib/i18n';
+import { SeedGauge, SeedRing } from './pictures/SeedRing';
 import { Card, SectionTitle } from './ui';
 
 // The seeding figures move every few seconds, and the engine reads a torrent
@@ -56,6 +57,8 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
 
   if (off || !data?.any) return null;
   const top = data.top ?? [];
+  // lib/api.ts's Settings does not declare `torrent`. Without the figure no target is drawn.
+  const target = (settings as { torrent?: { seedRatioTarget?: number } } | null)?.torrent?.seedRatioTarget ?? 0;
 
   return (
     <Card hue={hue} className="flex flex-col gap-3">
@@ -85,7 +88,9 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
             value={fmtBytes(data.uploadedToday)}
             sub={t('overview.torrents.inAll', { size: fmtBytes(data.uploaded) })}
           />
-          <Figure label={t('columns.ratio')} value={fmtRatio(data.ratio)} />
+          <div className="col-span-2">
+            <SeedGauge ratio={data.ratio} target={target} />
+          </div>
         </div>
 
         <div className="min-w-0">
@@ -95,18 +100,21 @@ export function TorrentCard({ settings, hue }: { settings: Settings | null; hue?
           ) : (
             <ol className="mt-2 flex flex-col gap-2">
               {top.map((x) => (
-                <li key={x.id} className="min-w-0">
-                  <div dir="ltr" className="truncate text-start text-sm text-carbon-text">
-                    {x.name}
-                  </div>
-                  <div className="glim-num truncate text-xs text-carbon-textMuted">
-                    {[
-                      fmtRate(x.uploadSpeed),
-                      `${t('columns.ratio')} ${fmtRatio(x.ratio)}`,
-                      x.secondsLeft < 0
-                        ? t('overview.torrents.noTarget')
-                        : t('overview.torrents.left', { time: fmtUptime(x.secondsLeft) }),
-                    ].join(' · ')}
+                <li key={x.id} className="flex min-w-0 items-center gap-2.5">
+                  <SeedRing ratio={x.ratio} target={target} label={t('columns.ratio')} size={22} />
+                  <div className="min-w-0">
+                    <div dir="ltr" className="truncate text-start text-sm text-carbon-text">
+                      {x.name}
+                    </div>
+                    <div className="glim-num truncate text-xs text-carbon-textMuted">
+                      {[
+                        fmtRate(x.uploadSpeed),
+                        `${t('columns.ratio')} ${fmtRatio(x.ratio)}`,
+                        x.secondsLeft < 0
+                          ? t('overview.torrents.noTarget')
+                          : t('overview.torrents.left', { time: fmtUptime(x.secondsLeft) }),
+                      ].join(' · ')}
+                    </div>
                   </div>
                 </li>
               ))}
