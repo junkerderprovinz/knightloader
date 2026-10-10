@@ -79,14 +79,14 @@ export function DriveCard({ hue }: { hue: number }) {
       <div className="flex flex-col gap-1.5">
         <span
           data-glim-label={t('settings.accounts.driveRclone')}
-          className="flex items-center text-[11px] text-carbon-textMuted"
+          className="flex items-center text-meta text-carbon-textMuted"
         >
           {t('settings.accounts.driveRclone')}
           <InfoBubble tip={t('settings.accounts.driveRcloneHint')} />
         </span>
         <pre
           dir="ltr"
-          className="overflow-x-auto whitespace-pre rounded-[var(--radius-control)] bg-carbon-surface2 p-3 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+          className="overflow-x-auto whitespace-pre rounded-[var(--radius-control)] bg-carbon-surface2 p-3 font-mono text-meta leading-relaxed text-carbon-textSub"
         >
           {snippet}
         </pre>
@@ -96,7 +96,7 @@ export function DriveCard({ hue }: { hue: number }) {
       </div>
 
       {/* While the switch is off the address answers 404. */}
-      {!on && <span className="text-[11px] text-carbon-textMuted">{t('settings.accounts.driveOffHint')}</span>}
+      {!on && <span className="text-meta text-carbon-textMuted">{t('settings.accounts.driveOffHint')}</span>}
     </Card>
   );
 }

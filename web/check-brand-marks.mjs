@@ -14,7 +14,7 @@
 //   own ground  a button with a `markClass` holds a mark that paints in
 //               currentColor, followed through components and the markup
 //               constants passed to BrandMark.
-//   every mark  every button on the About card carries a mark or the vendor's
+//   every mark  every button on the Info tile carries a mark or the vendor's
 //               artwork, passed at its call site.
 //
 // Not checked: a mark with its own colours worn without a class, which is
@@ -272,9 +272,9 @@ for (const [path, body] of text) {
         if (paint) problems.push(`${where(at)} -> ${cls} on a mark with colours of its own (${paint}): the class reaches none of them`);
       }
     }
-    // The About card: every button carries a mark, passed at its call site.
+    // The Info tile: every button carries a mark, passed at its call site.
     if (show(path) === 'pages/settings/Help.tsx' && !mark && !art) {
-      problems.push(`${where(at)} -> an About card button without a mark: a row where four wear a logo and one does not reads as a missing image`);
+      problems.push(`${where(at)} -> an Info tile button without a mark: a row where the others wear a logo and one does not reads as a missing image`);
     }
   }
 }

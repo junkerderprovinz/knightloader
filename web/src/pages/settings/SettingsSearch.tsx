@@ -449,7 +449,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
                       <span className="w-full truncate">{item.name}</span>
                       {/* The card and the prose marker as two spans, with no
                           separator glyph to translate or mirror. */}
-                      <span className="flex w-full min-w-0 gap-2 text-[11px] text-carbon-textMuted">
+                      <span className="flex w-full min-w-0 gap-2 text-meta text-carbon-textMuted">
                         {item.tier === 'page' ? (
                           <span className="truncate">{t('settings.search.section')}</span>
                         ) : (

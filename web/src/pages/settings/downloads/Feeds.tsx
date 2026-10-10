@@ -237,7 +237,7 @@ export function FeedsCard({ hue }: { hue: number }) {
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.feeds.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
+            <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
           </p>
         )
       ) : (
@@ -648,7 +648,7 @@ function FeedProbe({ url, filter }: { url: string; filter: string }) {
                       {result.entries.map((e) => (
                         <li key={e.link || e.title} className="flex items-baseline gap-2">
                           <span
-                            className={`shrink-0 text-[11px] uppercase tracking-wider ${
+                            className={`shrink-0 text-meta uppercase tracking-wider ${
                               e.matches ? 'text-carbon-textSub' : 'text-carbon-textMuted'
                             }`}
                           >

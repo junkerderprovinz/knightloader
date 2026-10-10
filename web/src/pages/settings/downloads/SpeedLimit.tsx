@@ -22,7 +22,7 @@ export function SpeedLimitField({ value, onValue }: { value: number; onValue: (b
             beside the number rather than under it, where it would read as a
             validation message. */}
         {isLeet(value) && (
-          <span className="shrink-0 text-[11px] leading-none text-carbon-textMuted">{t('settings.motion.storm')}</span>
+          <span className="shrink-0 text-meta leading-none text-carbon-textMuted">{t('settings.motion.storm')}</span>
         )}
       </span>
     </Field>

@@ -17,7 +17,7 @@ function Figure({ label, value, sub }: { label: string; value: string; sub?: str
   return (
     <div className="min-w-0">
       <div className="glim-eyebrow truncate">{label}</div>
-      <div className="glim-num mt-1 truncate text-lg font-semibold text-carbon-text">{value}</div>
+      <div className="glim-num mt-1 truncate text-title font-semibold text-carbon-text">{value}</div>
       {sub && <div className="glim-num truncate text-xs text-carbon-textMuted">{sub}</div>}
     </div>
   );

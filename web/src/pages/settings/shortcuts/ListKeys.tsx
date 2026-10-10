@@ -52,7 +52,7 @@ export function ListKeysCard({ hue }: { hue: number }) {
               {row.combos.map((combo) => (
                 <kbd
                   key={combo}
-                  className="glim-num rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-[11px]
+                  className="glim-num rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-meta
                     font-medium text-carbon-textSub"
                 >
                   {formatShortcut(combo, t)}

@@ -331,16 +331,16 @@ function RuleCards() {
           }}
         />
 
-        {notice && <p className="text-[11px] text-carbon-textSub">{notice}</p>}
+        {notice && <p className="text-meta text-carbon-textSub">{notice}</p>}
         {previewError && (
-          <p className="text-[11px] text-statusFail">{t('settings.rules.testFailed', { reason: previewError })}</p>
+          <p className="text-meta text-statusFail">{t('settings.rules.testFailed', { reason: previewError })}</p>
         )}
 
         {rules.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.rules.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">
+            <span className="mt-1 block text-meta text-carbon-textMuted">
               {flavour === 'packagizer'
                 ? t('settings.rules.emptyPackagizer')
                 : t('settings.rules.emptyFilter')}
@@ -460,20 +460,20 @@ function RuleRow({
             <span className="block truncate text-sm text-carbon-text">
               {rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 })}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {ruleSummary(t, rule, flavour)}
             </span>
           </span>
           {/* Shown only once there are samples, or "0 of 0" reads as broken. */}
           {samples > 0 && !broken && (
-            <span className="glim-num hidden shrink-0 text-[11px] text-carbon-textMuted sm:block">
+            <span className="glim-num hidden shrink-0 text-meta text-carbon-textMuted sm:block">
               {t('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
           {/* Red reports the rule's state; it sits inside the expand button,
               whose own classes carry no status colour. */}
           {broken && (
-            <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
+            <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-meta text-statusFail">
               {problems.length === 1
                 ? t('settings.rules.problemOne')
                 : t('settings.rules.problemCount', { n: problems.length })}
@@ -523,13 +523,13 @@ function RuleRow({
       {/* Shown on a closed rule too, so a broken one is found without opening
           each. The engine drops a rule with any problem whole. */}
       {broken && !open && (
-        <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>
+        <p className="pb-2.5 ps-12 text-meta text-statusFail">{t('settings.rules.notRunning')}</p>
       )}
       <RowRefusal field={`${FIELD[flavour]}.rules.${index}`} className="ps-12" />
 
       {open && (
         <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {broken && <p className="text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>}
+          {broken && <p className="text-meta text-statusFail">{t('settings.rules.notRunning')}</p>}
           <RuleEditor
             rule={rule}
             flavour={flavour}
@@ -634,7 +634,7 @@ function TestBox({
               onClick={() => setSamples(samples.filter((_, j) => j !== i))}
             />
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-carbon-textMuted">
+          <div className="flex items-center gap-3 text-meta text-carbon-textMuted">
             <span className="flex items-center">
               {t('settings.rules.testSource')}
               <InfoBubble tip={t('settings.rules.testSourceHint')} />
@@ -667,7 +667,7 @@ function Outcomes({
 }) {
   const { t } = useT();
   if (!report || report.links.length === 0) {
-    return <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.testEmpty')}</p>;
+    return <p className="text-meta text-carbon-textMuted">{t('settings.rules.testEmpty')}</p>;
   }
 
   return (
@@ -697,7 +697,7 @@ function Outcomes({
           <li key={i} className="glim-well flex flex-col gap-1.5 p-3 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`rounded-[var(--radius-pill)] px-2 py-0.5 text-[11px] ${
+                className={`rounded-[var(--radius-pill)] px-2 py-0.5 text-meta ${
                   rejected ? 'bg-statusFailBg text-statusFail' : 'text-carbon-textSub'
                 }`}
               >
@@ -709,7 +709,7 @@ function Outcomes({
             </div>
 
             {rejected && (
-              <p className="text-[11px] text-statusFail">
+              <p className="text-meta text-statusFail">
                 {rejectionReason(t, l.verdict.code, l.verdict.params, l.verdict.reason)}
                 {/* The engine's own reason already names the rule. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
@@ -718,7 +718,7 @@ function Outcomes({
               </p>
             )}
 
-            <p className="text-[11px] text-carbon-textSub">
+            <p className="text-meta text-carbon-textSub">
               {names.length === 0
                 ? t('settings.rules.resultNone')
                 : `${t('settings.rules.resultMatched')}: ${names.join(' → ')}`}
@@ -727,7 +727,7 @@ function Outcomes({
             {/* Shown for a link the filter rejects too: it is what the other
                 list would do. */}
             {flavour === 'packagizer' && (
-              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-meta">
                 <dt className="text-carbon-textMuted">{t('settings.rules.resultPackage')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
                   {l.result.package || '-'}
@@ -762,7 +762,7 @@ function Outcomes({
           </li>
         );
       })}
-      {report.disabled && <li className="text-[11px] text-carbon-textMuted">{t('settings.rules.setOff')}</li>}
+      {report.disabled && <li className="text-meta text-carbon-textMuted">{t('settings.rules.setOff')}</li>}
     </ul>
   );
 }

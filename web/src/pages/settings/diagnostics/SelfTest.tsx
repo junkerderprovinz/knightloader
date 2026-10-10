@@ -158,7 +158,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
       )}
 
       {run !== null && happened(run.finishedAt) && (
-        <span className="text-[11px] text-carbon-textMuted">
+        <span className="text-meta text-carbon-textMuted">
           {t('settings.selftest.lastRun', { when: fmtDate(run.finishedAt) })}
         </span>
       )}

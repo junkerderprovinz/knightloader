@@ -526,7 +526,7 @@ export function SpeedGraph({
         />
         <span className="flex items-center gap-1.5">
           <InfoBubble tip={t('overview.speedGraphHint')} />
-          <span className="glim-num text-[11px] leading-none text-carbon-textMuted">
+          <span className="glim-num text-meta leading-none text-carbon-textMuted">
             {fmtSpeed(ceiling)}
           </span>
         </span>
@@ -544,8 +544,8 @@ export function SpeedGraph({
       {/* Both ends of the time axis, oldest on the left. The plot does not
           mirror in a right-to-left language, so neither do its labels. */}
       <div dir="ltr" className="flex justify-between">
-        <span className="glim-num text-[11px] leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
-        <span className="glim-num text-[11px] leading-none text-carbon-textMuted">0s</span>
+        <span className="glim-num text-meta leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
+        <span className="glim-num text-meta leading-none text-carbon-textMuted">0s</span>
       </div>
     </div>
   );
@@ -601,7 +601,7 @@ export function SpeedMeter({ value, instance = '' }: { value: number; instance?:
     // than the squares.
     <span dir="ltr" className="-my-2 flex min-h-22 min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
       <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
-        <span className="glim-num text-[11px] text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
+        <span className="glim-num text-meta text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
         <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtRate(value)}</span>
       </span>
       {/* h-0 with flex-auto: without a height the svg's aspect ratio would set
@@ -618,7 +618,7 @@ export function SpeedMeter({ value, instance = '' }: { value: number; instance?:
       >
         <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limit={inForce} />
       </svg>
-      <span className="flex justify-between text-[11px] leading-none text-carbon-textMuted">
+      <span className="flex justify-between text-meta leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>
         <span className="glim-num">0s</span>
       </span>

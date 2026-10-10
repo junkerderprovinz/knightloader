@@ -135,7 +135,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.connections.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">
+            <span className="mt-1 block text-meta text-carbon-textMuted">
               {t('settings.connections.emptyHint')}
             </span>
           </p>
@@ -212,7 +212,7 @@ function ConnectionRow({
           className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
-          <span className="w-16 shrink-0 text-[11px] font-medium uppercase tracking-wide text-carbon-textSub">
+          <span className="w-16 shrink-0 text-meta font-medium uppercase tracking-wide text-carbon-textSub">
             {kindLabel(t, row.type)}
           </span>
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">

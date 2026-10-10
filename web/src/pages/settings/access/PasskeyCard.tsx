@@ -165,13 +165,13 @@ export function PasskeyCard({
         {keys.length > 0 && (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {keys.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+              <div key={p.id} className="glim-row flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
                 <IconTile icon={<IconKey width={16} height={16} />} hue={hue} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm text-carbon-text">{p.name}</div>
                   {/* The two facts are joined in markup, and neither string
                       ends in a full stop, since the second one is optional. */}
-                  <div className="text-[11px] text-carbon-textMuted">
+                  <div className="text-meta text-carbon-textMuted">
                     {p.usableHere
                       ? t('auth.passkey.usableHere')
                       : t('auth.passkey.otherAddress', { host: p.rpId })}

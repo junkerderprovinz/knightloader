@@ -15,7 +15,7 @@
 //            where white reaches 2:1 on it, #161616 below that. The About
 //            card's four keep GlimStone's own values.
 //   tiles    ReadmeButton names only tile classes index.css defines, every
-//            README button on the Apps page and the About card names its
+//            README button on the Apps page and the Info tile names its
 //            brand, and neither a README button nor an unpicked coin tile
 //            moves its colours through a transition.
 //   marks    on the lit button every mark on the Apps page paints in the ink

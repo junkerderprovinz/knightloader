@@ -207,7 +207,7 @@ export function CommandPalette() {
                     {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
                     <span className="min-w-0 flex-1 truncate">{t(cmd.labelKey)}</span>
                     {cmd.defaultShortcut && (
-                      <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">
+                      <span className="glim-num shrink-0 text-meta text-carbon-textMuted">
                         {formatShortcut(cmd.defaultShortcut, t)}
                       </span>
                     )}

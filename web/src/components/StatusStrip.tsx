@@ -142,7 +142,7 @@ export function StatusStrip() {
         {rows.map((s) => {
           const countdown = countdownOf(s);
           return (
-            <div key={s.kind} className="flex items-center gap-2 text-[11px]">
+            <div key={s.kind} className="flex items-center gap-2 text-meta">
               <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent glim-live" aria-hidden="true" />
               <span className="text-carbon-textMuted">{kindIcon(s.kind)}</span>
               <span className="text-carbon-textMuted">{t(LABEL_KEY[s.kind])}</span>

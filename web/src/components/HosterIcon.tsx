@@ -210,7 +210,7 @@ function Monogram({ host, box }: { host: string; box: { width: number; height: n
       aria-hidden
       style={box}
       className="inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)]
-        bg-carbon-surface3 text-[11px] font-semibold uppercase text-carbon-textMuted"
+        bg-carbon-surface3 text-meta font-semibold uppercase text-carbon-textMuted"
     >
       {host.charAt(0) || '?'}
     </span>

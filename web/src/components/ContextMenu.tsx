@@ -352,7 +352,7 @@ function Panel({
               {/* In line with the labels, past the rows' 16px glyph gutter. The
                   group carries the name for a screen reader. */}
               {g.heading && (
-                <div aria-hidden className="pe-3 ps-[38px] pb-1 pt-0.5 text-[11px] font-medium text-carbon-textMuted">
+                <div aria-hidden className="pe-3 ps-[38px] pb-1 pt-0.5 text-meta font-medium text-carbon-textMuted">
                   {g.heading}
                 </div>
               )}
@@ -404,11 +404,11 @@ function Panel({
                     </span>
                     <span className="min-w-0 flex-1 truncate">{item.label}</span>
                     {item.detail && (
-                      <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{item.detail}</span>
+                      <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{item.detail}</span>
                     )}
                     {/* In the caret's place, since a choice has no submenu. */}
                     {item.checked && (
-                      <span className="shrink-0 text-accentInk [&_svg]:h-3 [&_svg]:w-3">
+                      <span className="shrink-0 text-accentGlyph [&_svg]:h-3 [&_svg]:w-3">
                         <IconCheck />
                       </span>
                     )}

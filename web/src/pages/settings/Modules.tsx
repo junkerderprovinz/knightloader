@@ -132,7 +132,7 @@ function jumpToSwitch(id: string, page: string) {
 function StateChip({ m }: { m: Feature }) {
   const { tx } = useTx();
   return (
-    <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
+    <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
       {tx(m.verdict === 'desktop' ? 'settings.modules.desktopOnly' : 'settings.modules.notBuilt')}
     </span>
   );
