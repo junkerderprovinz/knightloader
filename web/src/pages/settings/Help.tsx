@@ -13,7 +13,7 @@ import {
   type YtdlpLatest,
 } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import { IconBook, IconBug, IconCheck, IconClose, IconDownloads, IconGithub, IconRetry } from '../../lib/icons';
+import { IconBook, IconBug, IconCheck, IconClose, IconDownloads, IconGithub, IconInfo, IconRetry } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -23,6 +23,7 @@ import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
 import { followExternal, openExternal, openMail, popupsWork } from '../../lib/external';
 import { useToast } from '../../lib/toast';
+import { openWhatsNew } from '../../lib/useWhatsNew';
 import { saveDiagnostics } from './diagnostics/bundle';
 import { PageBadge } from './ModuleToggle';
 
@@ -84,7 +85,7 @@ export function Help() {
   const { t } = useT();
 
   return (
-    <div className="flex flex-col gap-10">
+    <div data-new="info-tile" className="flex flex-col gap-10">
       {/* The hues number the cards in draw order; renumber when adding one. */}
       <About hue={0} />
       <Versions hue={1} />
@@ -460,7 +461,12 @@ function Versions({ hue }: { hue: number }) {
           {tools && (tools.ffmpeg.version || missing)}
         </VersionRow>
       </ul>
-      <div className="flex justify-end">
+      <div className="flex flex-wrap justify-end gap-3">
+        {/* What this version brought: its release notes and the changes the
+            dots mark. */}
+        <Button kind="secondary" icon={<IconInfo />} onClick={() => openWhatsNew('notes')}>
+          {t('settings.look.updatesReleaseNotes')}
+        </Button>
         <Button
           kind="secondary"
           icon={checking ? <IconRetry /> : face.icon}

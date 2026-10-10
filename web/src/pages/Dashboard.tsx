@@ -354,6 +354,7 @@ export function Dashboard() {
         <PageAction
           icon={editing ? <IconCheck /> : <IconEdit />}
           label={t(editing ? 'overview.customize.finish' : 'overview.customize')}
+          data-new="overview-customize"
           onClick={() => setEditing((on) => !on)}
         />
         {addLinks.action}
