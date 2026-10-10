@@ -1416,6 +1416,22 @@ body {
       glim-fade-in var(--motion-content-dur) ease-out both;
   }
 
+  /* The overview's ring. Its segments draw in one after another when the page
+     opens, a kind that takes a turn for the worse pulses once, and the arc of
+     a running queue follows its figure. At "off" the durations are 0, so the
+     ring stands as it is. The second class outweighs the app's one transition
+     set, which would otherwise replace the arc's. */
+  .kl-ring-seg {
+    animation: kl-ring-draw var(--motion-check-dur) ease-out backwards;
+    animation-delay: calc(var(--seg-i, 0) * var(--motion-stagger-step) * 4);
+  }
+  .kl-ring-seg.kl-ring-worse {
+    animation: kl-ring-pulse var(--motion-confirm-dur) ease-in-out;
+  }
+  .kl-ring .kl-ring-progress {
+    transition: stroke-dashoffset var(--motion-content-dur) linear;
+  }
+
   /* The progress bar's front edge breathes on glim-pulse while bytes are
      moving. .kl-bar-edge is the mark; .kl-bar-edge-live is the caller saying
      the download is moving, so finished and paused rows stay still and only the
@@ -2149,6 +2165,16 @@ body {
 @keyframes kl-count-roll {
   from { transform: translateY(-45%); }
   to   { transform: none; }
+}
+
+/* A ring segment growing from its start to the length its attribute gives. */
+@keyframes kl-ring-draw {
+  from { stroke-dasharray: 0 var(--ring-round); }
+}
+
+/* A ring segment swelling once. */
+@keyframes kl-ring-pulse {
+  50% { stroke-width: 11; opacity: .55; }
 }
 
 /* The doze: two blinks, the second slower, then a settle. It ends dimmed and
