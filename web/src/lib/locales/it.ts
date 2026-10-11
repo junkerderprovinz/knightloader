@@ -334,7 +334,7 @@ export const it: Dict = {
   'settings.lockHint': 'Protegge questa istanza da chiunque possa raggiungerla: sulla stessa rete, tramite un dominio o tramite un relay. Una volta impostata, deve essere inserita prima che questa istanza si apra, per chiunque, compreso te stesso alla prossima visita. Senza password, chiunque trovi l\'indirizzo può vedere ogni download e aggiungere, mettere in pausa o eliminare i propri.',
   'settings.passwordCurrent': 'Password attuale',
   'settings.passwordNew': 'Nuova password',
-  'settings.passwordHint': 'Almeno 8 caratteri. Lascia vuoto per togliere il blocco.',
+  'settings.passwordHint': 'Almeno 8 caratteri. Lascia vuoto per togliere il blocco. Questo disattiva anche l\'autenticazione a due fattori ed elimina tutte le passkey.',
   'settings.setPassword': 'Imposta password',
   'settings.passwordSaved': 'Password aggiornata.',
   'auth.title': 'Questa istanza è bloccata',

@@ -334,7 +334,7 @@ export const pt: Dict = {
   'settings.lockHint': 'Protege esta instância de qualquer pessoa que a possa alcançar: na mesma rede, através de um domínio ou de um relay. Depois de definida, tem de ser introduzida antes de esta instância sequer abrir, para qualquer pessoa, incluindo você da próxima vez. Sem palavra-passe, qualquer pessoa que encontre o endereço pode ver todos os downloads, e adicionar, pausar ou eliminar os seus próprios.',
   'settings.passwordCurrent': 'Palavra-passe atual',
   'settings.passwordNew': 'Nova palavra-passe',
-  'settings.passwordHint': 'Pelo menos 8 caracteres. Deixe vazio para remover o bloqueio.',
+  'settings.passwordHint': 'Pelo menos 8 caracteres. Deixe vazio para remover o bloqueio. Isso também desliga a autenticação em dois fatores e apaga todas as chaves de acesso.',
   'settings.setPassword': 'Definir palavra-passe',
   'settings.passwordSaved': 'Palavra-passe atualizada.',
   'auth.title': 'Esta instância está bloqueada',

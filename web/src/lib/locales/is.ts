@@ -342,7 +342,7 @@ export const is: Dict = {
   'settings.lockHint': 'Verndar þtta tilvik gegn öllum sem geta náð til þess: á sama neti, í gegnum lén eða í gegnum gengi (relay). Þegar það hefur verið stillt þarf að slá það inn áður en þetta tilvik opnast yfirhöfuð, fyrir alla, líka þig sjálfan næst þegar þú kemur. Án lykilorðs getur hver sem finnur vistfangið séð hverja niðurhal og bætt við, gert hlé á eða eytt sínum eigin.',
   'settings.passwordCurrent': 'Núverandi lykilorð',
   'settings.passwordNew': 'Nýtt lykilorð',
-  'settings.passwordHint': 'Að minnsta kosti 8 stafir. Skildu eftir autt til að fjarlægja lásinn.',
+  'settings.passwordHint': 'Að minnsta kosti 8 stafir. Skildu eftir autt til að fjarlægja lásinn. Það slekkur líka á tveggja þátta auðkenningu og eyðir öllum aðgangslyklum.',
   'settings.setPassword': 'Setja lykilorð',
   'settings.passwordSaved': 'Lykilorð uppfært.',
   'auth.title': 'Þetta tilvik er læst',

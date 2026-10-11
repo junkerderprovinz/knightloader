@@ -342,7 +342,7 @@ export const sk: Dict = {
   'settings.lockHint': 'Chráni túto inštánciu pred kýmkoľvek, kto sa k nej dostane: v tej istej sieti, cez doménu alebo cez relay. Po nastavení sa musí zadať skôr, než sa táto inštancia vôbec otvorí, pre kohokoľvek, vrátane vás pri ďalšej návšteve. Bez hesla môže ktokoľvek, kto nájde adresu, vidieť každé sťahovanie a pridávať, pozastavovať alebo mazať vlastné.',
   'settings.passwordCurrent': 'Súčasné heslo',
   'settings.passwordNew': 'Nové heslo',
-  'settings.passwordHint': 'Aspoň 8 znakov. Nechaj prázdne, ak chceš zámok zrušiť.',
+  'settings.passwordHint': 'Aspoň 8 znakov. Nechaj prázdne, ak chceš zámok zrušiť. Tým sa zároveň vypne dvojfaktorové overenie a zmažú sa všetky prístupové kľúče.',
   'settings.setPassword': 'Nastaviť heslo',
   'settings.passwordSaved': 'Heslo zmenené.',
   'auth.title': 'Táto inštancia je uzamknutá',

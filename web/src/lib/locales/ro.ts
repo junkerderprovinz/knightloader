@@ -342,7 +342,7 @@ export const ro: Dict = {
   'settings.lockHint': 'Protejează această instanță de oricine o poate accesa: în aceeași rețea, printr-un domeniu sau printr-un releu. Odată setată, trebuie introdusă înainte ca această instanță să se deschidă, pentru oricine, inclusiv pentru tine data viitoare. Fără parolă, oricine găsește adresa poate vedea fiecare descărcare și poate adăuga, pune pe pauză sau șterge propriile descărcări.',
   'settings.passwordCurrent': 'Parola actuală',
   'settings.passwordNew': 'Parolă nouă',
-  'settings.passwordHint': 'Cel puțin 8 caractere. Lasă gol pentru a scoate blocarea.',
+  'settings.passwordHint': 'Cel puțin 8 caractere. Lasă gol pentru a scoate blocarea. Asta oprește și autentificarea în doi pași și șterge toate cheile de acces.',
   'settings.setPassword': 'Setează parola',
   'settings.passwordSaved': 'Parolă actualizată.',
   'auth.title': 'Această instanță este blocată',

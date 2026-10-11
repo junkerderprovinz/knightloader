@@ -342,7 +342,7 @@ export const sl: Dict = {
   'settings.lockHint': 'Ščiti to instanco pred vsakomer, ki jo lahko doseže: v istem omrežju, prek domene ali prek releja. Ko je geslo nastavljeno, ga je treba vnesti, preden se ta instanca sploh odpre, za vsakogar, tudi zase ob naslednjem obisku. Brez gesla lahko vsak, ki najde naslov, vidi vsak prenos ter dodaja, ustavlja ali briše svoje.',
   'settings.passwordCurrent': 'Trenutno geslo',
   'settings.passwordNew': 'Novo geslo',
-  'settings.passwordHint': 'Vsaj 8 znakov. Pusti prazno, da odstraniš zaklep.',
+  'settings.passwordHint': 'Vsaj 8 znakov. Pusti prazno, da odstraniš zaklep. S tem se izklopi tudi dvostopenjsko preverjanje in izbrišejo se vsi ključi za dostop.',
   'settings.setPassword': 'Nastavi geslo',
   'settings.passwordSaved': 'Geslo posodobljeno.',
   'auth.title': 'Ta instanca je zaklenjena',

@@ -342,7 +342,7 @@ export const ko: Dict = {
   'settings.lockHint': '이 인스턴스에 접근할 수 있는 모든 사람으로부터 보호합니다. 같은 네트워크에서든, 도메인을 통해서든, 릴레이를 통해서든 마찬가지입니다. 한 번 설정하면, 이 인스턴스가 열리기 전에 누구나, 다음 방문 시의 본인을 포함해, 입력해야 합니다. 비밀번호가 없으면 주소를 찾은 누구나 모든 다운로드를 보고, 자신의 다운로드를 추가·일시정지·삭제할 수 있습니다.',
   'settings.passwordCurrent': '현재 암호',
   'settings.passwordNew': '새 암호',
-  'settings.passwordHint': '8자 이상. 비워 두면 잠금을 해제합니다.',
+  'settings.passwordHint': '8자 이상. 비워 두면 잠금을 해제합니다. 이때 2단계 인증도 꺼지고 모든 패스키가 삭제됩니다.',
   'settings.setPassword': '암호 설정',
   'settings.passwordSaved': '암호를 변경했습니다.',
   'auth.title': '이 인스턴스는 잠겨 있습니다',

@@ -342,7 +342,7 @@ export const id: Dict = {
   'settings.lockHint': 'Melindungi instance ini dari siapa pun yang bisa menjangkaunya - di jaringan yang sama, melalui domain, atau melalui relay. Setelah diatur, kata sandi harus dimasukkan sebelum instance ini terbuka sama sekali - untuk siapa pun, termasuk Anda sendiri pada kunjungan berikutnya. Tanpa kata sandi, siapa pun yang menemukan alamatnya bisa melihat setiap unduhan, dan menambah, menjeda, atau menghapus miliknya sendiri.',
   'settings.passwordCurrent': 'Kata sandi saat ini',
   'settings.passwordNew': 'Kata sandi baru',
-  'settings.passwordHint': 'Minimal 8 karakter. Kosongkan untuk melepas kunci.',
+  'settings.passwordHint': 'Minimal 8 karakter. Kosongkan untuk melepas kunci. Ini juga mematikan autentikasi dua faktor dan menghapus semua kunci sandi.',
   'settings.setPassword': 'Setel kata sandi',
   'settings.passwordSaved': 'Kata sandi diperbarui.',
   'auth.title': 'Instance ini terkunci',

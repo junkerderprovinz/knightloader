@@ -342,7 +342,7 @@ export const lv: Dict = {
   'settings.lockHint': 'Aizsargā šo instanci no ikviena, kas var to sasniegt: tajā pašā tīklā, izmantojot domēnu vai releju. Kad parole ir iestatīta, tā jāievada, pirms šī instance vispār atveras - jebkuram, arī jums pašam nākamajā reizē. Bez paroles ikviens, kas atrod adresi, var redzēt katru lejupielādi un pievienot, apturēt vai dzēst savas.',
   'settings.passwordCurrent': 'Pašreizējā parole',
   'settings.passwordNew': 'Jaunā parole',
-  'settings.passwordHint': 'Vismaz 8 rakstzīmes. Atstāj tukšu, lai noņemtu slēdzeni.',
+  'settings.passwordHint': 'Vismaz 8 rakstzīmes. Atstāj tukšu, lai noņemtu slēdzeni. Tas arī izslēdz divfaktoru autentifikāciju un izdzēš visas piekļuves atslēgas.',
   'settings.setPassword': 'Iestatīt paroli',
   'settings.passwordSaved': 'Parole nomainīta.',
   'auth.title': 'Šī instance ir slēgta',

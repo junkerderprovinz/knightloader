@@ -342,7 +342,7 @@ export const ca: Dict = {
   'settings.lockHint': 'Protegeix aquesta instància de qualsevol que hi pugui accedir: a la mateixa xarxa, mitjançant un domini o mitjançant un relay. Un cop establerta, cal introduir-la abans que aquesta instància s\'obri, per a tothom, inclòs tu mateix la propera vegada. Sense contrasenya, qualsevol que trobi l\'adreça pot veure totes les baixades i afegir, pausar o suprimir les seves.',
   'settings.passwordCurrent': 'Contrasenya actual',
   'settings.passwordNew': 'Contrasenya nova',
-  'settings.passwordHint': 'Mínim 8 caràcters. Deixa-ho buit per treure el bloqueig.',
+  'settings.passwordHint': 'Mínim 8 caràcters. Deixa-ho buit per treure el bloqueig. Això també desactiva l\'autenticació de dos factors i esborra totes les claus d\'accés.',
   'settings.setPassword': 'Estableix la contrasenya',
   'settings.passwordSaved': 'Contrasenya actualitzada.',
   'auth.title': 'Aquesta instància està bloquejada',
