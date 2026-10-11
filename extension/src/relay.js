@@ -111,13 +111,51 @@ function relayRequestId() {
   return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 }
 
+const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v1\x00';
+
+/** Eight bytes, big-endian. Lengths and the time stay far below 2^53. */
+function relayUint64(n) {
+  const hi = Math.floor(n / 0x100000000);
+  const lo = n >>> 0;
+  return [hi >>> 24, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255, lo >>> 24, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255];
+}
+
+/**
+ * relayCallMessage is what a member signs for a call, every field with its
+ * length and then the time. Mirrors relay.CallMessage byte for byte; the
+ * instance refuses a call whose signature does not hold.
+ */
+function relayCallMessage(target, call) {
+  const parts = [relayUtf8(RELAY_CALL_DOMAIN)];
+  for (const field of [call.id, target, call.method, call.path, call.body || '', call.authorization || '', call.from, call.kind]) {
+    const bytes = relayUtf8(field);
+    parts.push(new Uint8Array(relayUint64(bytes.length)), bytes);
+  }
+  parts.push(new Uint8Array(relayUint64(call.sent)));
+  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  let at = 0;
+  for (const p of parts) {
+    out.set(p, at);
+    at += p.length;
+  }
+  return out;
+}
+
 /**
  * relaySealCall seals one call as relay.SealCall does, stamped with its request
  * id and the time, which the target checks so a relay cannot send it again, and
- * with this browser's member id, so an instance can turn away a browser taken
- * out of the group.
+ * with this browser's member id. With `member`, a { privateKey, publicKey }
+ * pair whose publicKey is the raw 32 bytes, the call is signed as
+ * relay.SealSignedCall signs it: the instance pinned that key to the member id
+ * and takes the id from nobody else.
  */
-function relaySealCall(frameKey, requestId, target, method, path, body, from) {
+async function relaySealCall(frameKey, requestId, target, method, path, body, from, member) {
+  const call = { method, path, body: body || '', id: requestId, sent: Math.floor(Date.now() / 1000), from: from || '', kind: 'extension' };
+  let signed = {};
+  if (member && from) {
+    const sig = new Uint8Array(await crypto.subtle.sign('Ed25519', member.privateKey, relayCallMessage(target, call)));
+    signed = { kind: call.kind, key: relayToBase64(member.publicKey), sig: relayToBase64(sig) };
+  }
   return relaySeal(
     frameKey,
     relayRequestAAD(requestId, target),
@@ -127,8 +165,9 @@ function relaySealCall(frameKey, requestId, target, method, path, body, from) {
         path,
         ...(body ? { body: relayToBase64(relayUtf8(body)) } : {}),
         id: requestId,
-        sent: Math.floor(Date.now() / 1000),
+        sent: call.sent,
         ...(from ? { from } : {}),
+        ...signed,
       }),
     ),
   );
@@ -139,9 +178,10 @@ function relaySealCall(frameKey, requestId, target, method, path, body, from) {
  * { siblings, call } and closes again, resolving with what `work` returns.
  * `siblings` leaves out clients such as phones and browsers, which cannot take
  * a download. `selfId` routes this one session; `memberId`, when given, is
- * what the group knows the browser by, and travels only inside the seals.
+ * what the group knows the browser by, and travels only inside the seals;
+ * `memberKey` signs its calls under that id (see relaySealCall).
  */
-async function relaySession({ url, key, frameKey, selfId, memberId, selfName, onRemoved }, work) {
+async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, selfName, onRemoved }, work) {
   const socket = await new Promise((resolve, reject) => {
     let ws;
     try {
@@ -321,7 +361,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, selfName, on
         requestId,
         target,
         // The relay sees only the two routing fields, not what is asked.
-        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, memberId || selfId),
+        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, memberId || selfId, memberId ? memberKey : null),
       });
       const res = await answer;
       if (res.status === 410 && res.body === 'removed') await onRemoved?.();
