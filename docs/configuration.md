@@ -51,10 +51,14 @@ any address it likes into that header, and with it guess without ever being
 made to wait. A range must cover your proxies and no one who signs in. If
 KnightLoader's port is also published directly, leave out the gateway of its
 Docker network, because a visitor on that port can arrive from the gateway.
-KnightLoader refuses a range wider than `/16` for IPv4 or `/48` for IPv6.
+KnightLoader refuses a range wider than `/28` for IPv4 or `/48` for IPv6, so a
+whole home network such as a `/24` never counts as a proxy. A wider range an
+earlier version took stays in the list, is not used, and is named under the
+field until you change it.
 Empty, the default, means every request counts for the address it connected
 from. An IPv6 caller counts by its `/64`, since one connection usually gets
-that many addresses. The relay an instance serves under Pairing reads the same
+that many addresses, and a whole `/48` together gets 20 failed sign-ins a
+minute. At most two password checks run at once, and the rest wait. The relay an instance serves under Pairing reads the same
 list for its own count of failed handshakes.
 
 ## A forgotten password

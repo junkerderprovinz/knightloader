@@ -48,6 +48,11 @@ release's tag.
   instance card used the plural for every count, and in languages with more
   plural forms, such as Russian, Polish or Arabic, the same form stood after 2
   and after 5. It uses the form each language's plural rules ask for.
+- **A damaged group file no longer opens an empty group.** It is written so a
+  crash leaves the old or the new one, and an instance that finds it cut off
+  stops with a message instead of forgetting every approval and removal.
+- **Unpacking a large archive is quick again,** and a download folder on a
+  network share that hangs no longer stalls the whole instance.
 
 ### Security
 
@@ -112,28 +117,23 @@ release's tag.
 - **Every member of a group signs its own calls.** Instances, the Android app
   and the browser extension each make a key of their own when they join, and
   an instance remembers it on the member's first signed call. After that no
-  other key, and no unsigned call, is taken in that member's name. Groups
-  paired before keep working; each member's key is remembered after the
-  update without pairing again. An instance still on an older version no
-  longer reaches one on this version, so update every instance of a group
-  together.
+  other key is taken in that member's name. A call without a signature is
+  refused, and a phone or a browser that cannot sign is told to update. The
+  devices of a group paired with an earlier version are approved once, like
+  new ones, so update every instance and device of a group together.
 - **A new device has to be approved.** A phone, a browser or an instance that
   enters the twelve words waits under **Waiting for approval** on the Pairing
   card, with its kind and key fingerprint, until somebody approves or refuses
   it there. The decision reaches every instance of the group, and the waiting
-  device says where to approve it. Phones and browsers the instance knew
-  before the update count as approved, and nothing added later joins that
-  list. Instances of a group from before approve each other once, on each
-  side.
-- **A device can no longer name itself an approved instance.** A call without
-  a key used to put its name on the list of devices from before the update,
-  so whoever had the twelve words could sign in as an instance and remove
-  others or make an instance leave its group. A call has to name an id of the
-  kind it claims, and right after entering the words an instance takes as
-  approved only the instances it actually finds in the group.
-- **A removed device stays out, with or without a key.** A call without a key
-  that names nobody, or a device the instance did not know before the update,
-  is refused. Play links a removed phone asked for stop working with the
+  device says where to approve it. Instances approve each other both ways:
+  one that enters the words waits on the instances already there, and they
+  wait on its Pairing card in turn, each listed as soon as the cards are open.
+- **A device can no longer name itself an approved instance or have one
+  banned.** Instances, browsers and phones each make their ids in a shape of
+  their own, and a call has to name an id of the kind it claims. A browser
+  announcing an instance's id gets no card, and refusing or removing a device
+  never takes an instance out.
+- **A removed device stays out.** Play links a removed phone asked for stop working with the
   removal, and the sign-in status a group member can read no longer shows
   whether two-factor sign-in is on.
 - **A removal that arrives during a password reset no longer takes the
@@ -144,19 +144,37 @@ release's tag.
   back only as a new device, which waits for approval again. A removal made on
   your Pairing page reaches every instance of the group, and an instance you
   take out forgets the twelve words. The instances take approvals and removals
-  only from another instance with an approved key, so a phone, the extension
-  or a member on an older build cannot remove anybody or make an instance
-  leave.
+  only from another instance with an approved key, so a phone or the
+  extension cannot remove anybody or make an instance leave.
 - **One member can no longer crowd out the others.** How many calls wait at
   once and which request ids are used up are counted per key by the instance
-  itself, and per device for phones and browsers on an older version. How
-  many new devices join in an hour is counted per relay connection too. A
-  member minting keys no longer slows down every call.
+  itself, and only for keys it knows, so calls made up by somebody with the
+  twelve words no longer hold up the whole group. How many new devices join
+  in an hour is counted per relay connection too, and keys made to fill the
+  hour give way to a real new device.
+- **The relay writes every call it passes on afresh, with the sender it
+  knows,** and drops one that names a field twice or in another spelling, so a
+  sender cannot pass itself off as another connection.
+- **API tokens without the Admin right no longer see tracker passkeys through
+  the qBittorrent bridge.** A magnet link's trackers keep only their host there.
+- **More kinds of tokens in links stay out of logs and member views:** a
+  Newznab feed's key, access and auth tokens, `key` and `tp` arguments,
+  signed S3 addresses, and the tokens of Telegram bots, Discord webhooks and
+  TorrentLeech feeds. Feed and crawler log lines are redacted too.
+- **A trusted proxy range can be at most `/28` for IPv4,** so a home network
+  can no longer be named a proxy. A wider range saved earlier is shown under
+  the field as not used, instead of being dropped without a word.
+- **Guessing passwords costs the server less.** At most two password checks
+  run at once, and a whole IPv6 `/48` shares one count of failed sign-ins on
+  top of the one per `/64`.
 - **The standalone relay trusts only a proxy on its own host** when
   `KL_RELAY_TRUSTED_PROXIES` is not set. A proxy in another container or on
   another machine has to be named there by its address.
 ### Added
 
+- **Devices learn when an instance was reset.** For 30 days after a password
+  reset, the phone and the extension say that the instance was reset and that
+  they need its new twelve words, instead of losing it without a word.
 - **Forgot password? on the sign-in page.** KnightLoader writes a code where
   only somebody with access to the machine can read it: the container log (on
   Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started
