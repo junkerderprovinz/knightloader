@@ -9,6 +9,8 @@ import (
 	"slices"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
 
 // FileName is the file in the data folder settings live in.
@@ -79,8 +81,12 @@ func (s *Store) encode(n Settings) ([]byte, error) {
 }
 
 // mapSecrets returns a copy of s with f applied to every value that is a
-// password or a token, or a command line that may hold one: the values
-// Redacted hides from clients, and the archive passwords.
+// password or a token, or a command line, address, header or body that may
+// hold one: the values Redacted hides from clients, the archive passwords, the
+// event targets' addresses and bodies (a Discord or Telegram token sits in the
+// path), the feeds' addresses (an indexer's API key) and the reconnect
+// requests and script. Scrubbed reads the same list, so a secret added here
+// is sealed at rest and kept out of the diagnostics bundle at once.
 func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 	var firstErr error
 	apply := func(v *string) {
@@ -95,7 +101,24 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 	}
 
 	apply(&s.Reconnect.Password)
+	apply(&s.Reconnect.Script)
+	s.Reconnect.Requests = slices.Clone(s.Reconnect.Requests)
+	for i := range s.Reconnect.Requests {
+		q := &s.Reconnect.Requests[i]
+		apply(&q.URL)
+		q.Headers = maps.Clone(q.Headers)
+		for k, v := range q.Headers {
+			apply(&v)
+			q.Headers[k] = v
+		}
+		apply(&q.Body)
+	}
 	apply(&s.Torrent.QBittorrent.Password)
+
+	s.Feeds = slices.Clone(s.Feeds)
+	for i := range s.Feeds {
+		apply(&s.Feeds[i].URL)
+	}
 
 	s.ArchivePasswords = slices.Clone(s.ArchivePasswords)
 	for i := range s.ArchivePasswords {
@@ -115,6 +138,8 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 			h[k] = v
 		}
 		s.EventTargets[i].Headers = h
+		apply(&s.EventTargets[i].URL)
+		apply(&s.EventTargets[i].Body)
 	}
 
 	apply(&s.IdleAction.Command.Program)
@@ -133,4 +158,21 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 		}
 	}
 	return s, firstErr
+}
+
+// Scrubbed is s for a document that leaves the owner's hands, such as the
+// diagnostics bundle: every value mapSecrets reaches is replaced by
+// reconnect.RedactedPassword, and an address keeps only its scheme and host,
+// which says what is configured without the token in its path or query.
+func (s Settings) Scrubbed() Settings {
+	out, _ := s.mapSecrets(func(v string) (string, error) {
+		if v == "" {
+			return v, nil
+		}
+		if host := core.HostOf(v); host != "" {
+			return host, nil
+		}
+		return reconnect.RedactedPassword, nil
+	})
+	return out
 }

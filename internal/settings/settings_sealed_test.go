@@ -10,7 +10,9 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
 
 // everySecret is configured() with a value in each field mapSecrets covers.
@@ -19,7 +21,17 @@ func everySecret() Settings {
 	s.Torrent.QBittorrent.URL = "http://qbittorrent:8080"
 	s.Torrent.QBittorrent.Username = "admin"
 	s.Torrent.QBittorrent.Password = "qbit-secret"
-	s.EventTargets = []notify.Target{targetWithToken()}
+	target := targetWithToken()
+	target.URL = "https://discord.example/api/webhooks/1/hook-token"
+	target.Body = `{"token":"body-token"}`
+	s.EventTargets = []notify.Target{target}
+	s.Feeds = []feed.Subscription{{URL: "https://indexer.example/api?t=search&apikey=feed-key"}}
+	s.Reconnect.Requests = []reconnect.Request{{
+		URL:     "https://192.168.0.1/reconnect",
+		Headers: map[string]string{"Cookie": "sid=request-cookie"},
+		Body:    "password=request-body",
+	}}
+	s.Reconnect.Script = "router-script --token=script-token"
 	s.EventPrograms = []eventprog.Program{programWithToken()}
 	s.IdleAction.Command.Program = "/home/someone/bin/idle-secret.sh"
 	s.IdleAction.Command.Args = []string{"--token=idle-token"}
@@ -28,7 +40,8 @@ func everySecret() Settings {
 
 var secretsInEverySecret = []string{
 	"router-secret", "proxy-secret", "hunter2", "qbit-secret", "Bearer real-token",
-	"--token=real-token", "after.sh", "idle-secret.sh", "--token=idle-token",
+	"--token=real-token", "after.sh", "idle-secret.sh", "--token=idle-token", "hook-token", "body-token",
+	"feed-key", "request-cookie", "request-body", "script-token",
 }
 
 func appKey(t *testing.T) *appkey.Key {
