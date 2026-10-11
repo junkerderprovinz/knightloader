@@ -145,7 +145,12 @@ func New(dir string, onUpdate func(taskID string, u core.Update)) (*Engine, erro
 // Open is New with a folder to keep paused HTTP transfers in, which then carry
 // on after a restart instead of starting over (see resume.go).
 func Open(dir, stateDir string, onUpdate func(taskID string, u core.Update)) (*Engine, error) {
-	layouts := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}}
+	layouts := &layoutStore{
+		Storage: download.NewMemStorage(),
+		want:    map[string][]byte{},
+		files:   map[string][]int64{},
+		watched: map[string]*watchedLayout{},
+	}
 	restored := map[string]string{}
 	if stateDir != "" {
 		layouts.kept = newKeptTransfers(stateDir)
