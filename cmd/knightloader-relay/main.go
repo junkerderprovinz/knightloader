@@ -16,8 +16,12 @@
 //
 // KL_RELAY_TRUSTED_PROXIES lists the proxies, by address or CIDR range and
 // separated by commas, whose X-Forwarded-For names the caller for the
-// handshake throttle. Unset trusts loopback and the private ranges; "none"
-// trusts no proxy.
+// handshake throttle. Unset trusts loopback alone, which fits a proxy on the
+// same host; "none" trusts no proxy. A proxy in another container or on
+// another machine has to be named, such as KL_RELAY_TRUSTED_PROXIES=172.18.0.5
+// for a proxy container on a Docker network, and a range only when the proxy
+// is the sole thing in it: anybody else inside could otherwise pick the
+// address the throttle counts.
 package main
 
 import (
@@ -215,12 +219,11 @@ func splitNames(v string) []string {
 }
 
 // trustedProxies reads the comma-separated addresses and CIDR ranges of the
-// reverse proxies in front of the relay. Unset means loopback and the private
-// ranges, where a proxy beside a relay on a server sits; "none" trusts no
-// proxy.
+// reverse proxies in front of the relay. Unset means loopback, where a proxy
+// on the relay's own host sits; "none" trusts no proxy.
 func trustedProxies(v string) ([]netip.Prefix, error) {
 	if strings.TrimSpace(v) == "" {
-		return relay.LocalNetworks(), nil
+		return []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("::1/128")}, nil
 	}
 	if strings.TrimSpace(v) == "none" {
 		return nil, nil

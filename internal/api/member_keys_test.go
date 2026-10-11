@@ -107,8 +107,8 @@ func waitForMember(t *testing.T, a *app.App, id string) {
 // TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem runs two instances
 // and a relay on real sockets. The first instance's calls are signed and its
 // key pinned on the second; a call in its name under another key, or without
-// one, is refused with a code that says why; a caller on the release before
-// keys still gets through; approvals and removals made by the owner of the
+// one, is refused with a code that says why, and so is an unsigned call naming
+// nobody; approvals and removals made by the owner of the
 // first reach the second, while a phone cannot pass one on; and once the
 // second instance is taken out, it forgets the phrase and its old key is
 // refused.
@@ -149,8 +149,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-forger", secondID, nil, tasks); code != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
 		t.Errorf("an unsigned call in the first instance's name = %d %s, want 403 memberUnsigned", code, body)
 	}
-	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}); code != http.StatusOK {
-		t.Errorf("a member on the release before keys = %d %s, want it served", code, body)
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}); code != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
+		t.Errorf("an unsigned call naming nobody = %d %s, want 403 memberUnsigned", code, body)
 	}
 
 	// The second instance entered the words, so the first was there already
@@ -192,7 +192,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden {
 		t.Errorf("an unsigned member passing an approval on = %d %s, want it refused", code, body)
 	}
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: "phone-new", Kind: relay.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {

@@ -238,15 +238,11 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	if rt == nil {
 		return out, nil
 	}
-	var unsigned []string
 	for _, sib := range rt.Siblings() {
 		// A client-only sibling (the mobile app) calls instances but is not
 		// one; see relay.Announce.Client.
 		if sib.Client || !admit(sib.InstanceID) {
 			continue
-		}
-		if !sib.Signs {
-			unsigned = append(unsigned, sib.InstanceID)
 		}
 		in, ok := out[sib.InstanceID]
 		if !ok {
@@ -261,7 +257,6 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		in.viaRelay = true
 		out[sib.InstanceID] = in
 	}
-	m.noteLegacy(unsigned)
 	return out, rt
 }
 

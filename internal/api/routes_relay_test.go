@@ -737,9 +737,7 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	}); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
-	if status, body := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks", From: "phone-kept",
-	}); status != http.StatusOK {
+	if status, body := signedMember(t, a, "phone-kept", relay.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
 		t.Fatalf("another phone = %d (%s), want 200", status, body)
 	}
 }

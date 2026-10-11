@@ -322,8 +322,6 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
               deployment: 'extension',
               client: true,
               ...(memberId ? { member: memberId } : {}),
-              // Tells an instance this browser signs, so it is not taken for
-              // one that was in the group before member keys.
               ...(memberId && memberKey ? { signs: true } : {}),
             }),
           ),

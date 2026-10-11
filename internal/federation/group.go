@@ -47,14 +47,15 @@ type GroupState struct {
 	// KeysSince is when this instance first held the group with member keys.
 	// Members on a release before keys were never approved, since there was
 	// nothing to approve: Legacy holds the ids of the phones and browsers known
-	// at that moment and of every member seen announcing without keys since.
-	// Their keys count as approved when they are pinned. An id taken out stays
-	// in it as false, so it is never added again.
+	// at that moment, and nothing that arrives later adds to it, or anybody
+	// holding the words could name themselves a member. Their keys count as
+	// approved when they are pinned. An id taken out stays in it as false.
 	KeysSince time.Time       `json:"keysSince"`
 	Legacy    map[string]bool `json:"legacy,omitempty"`
 	// TrustUntil is set when this instance entered the words of an existing
-	// group: the instances it meets before then were there already, and count
-	// as approved here.
+	// group: an instance that signs in before then and is already listed in
+	// the group, on this network or on the relay, was there before this one
+	// and counts as approved here.
 	TrustUntil time.Time `json:"trustUntil"`
 }
 
@@ -182,19 +183,14 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	rt := m.rt
 	m.mu.Unlock()
 	connected := map[string]relay.Announce{}
-	var unsigned []string
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
 			if sib.Client && clientDeployments[sib.Deployment] {
 				sib.Name = relay.ClipName(sib.Name)
 				connected[appID(sib)] = sib
-				if !sib.Signs {
-					unsigned = append(unsigned, appID(sib))
-				}
 			}
 		}
 	}
-	m.noteLegacy(unsigned)
 
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
@@ -268,12 +264,14 @@ func forgetStalestApp(apps map[string]KnownApp) {
 var ErrIsInstance = errors.New("federation: that id belongs to an instance of the group, not to a phone or a browser")
 
 // RemoveApp takes phone id out of the group at now: its card goes, its pinned
-// key is revoked and its calls are turned away from then on.
+// key is revoked and its calls are turned away from then on. An id with a
+// phone's or a browser's card is one, whatever kind its key was pinned as.
 func (m *Manager) RemoveApp(id string, now time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
-	if pin, ok := st.Keys[id]; ok && pin.Kind == relay.KindInstance {
+	_, isApp := st.Apps[id]
+	if pin, ok := st.Keys[id]; ok && pin.Kind == relay.KindInstance && !isApp {
 		return ErrIsInstance
 	}
 	if _, done := st.Removed[id]; done {

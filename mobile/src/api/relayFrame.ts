@@ -59,8 +59,7 @@ export interface Identity {
   name?: string;
   deployment?: string;
   client?: boolean;
-  /** Set when this phone signs its calls, so an instance does not take it
-   *  for a member from before member keys. */
+  /** Set when this phone signs its calls. */
   signs?: boolean;
 }
 

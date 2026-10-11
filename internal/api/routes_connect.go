@@ -237,7 +237,7 @@ func registerConnect(reg *Registry, a *app.App) {
 		"take a phone or browser extension out of the group on every instance of it - it drops every connection to the group and comes back as a new device, waiting for approval, when the phrase is entered again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if fromRelayGroup(r) && !fromApprovedInstance(r) {
+			if fromRelayGroup(r) && !fromApprovedInstance(a, r) {
 				refuseDecision(w)
 				return
 			}
@@ -260,7 +260,7 @@ func registerConnect(reg *Registry, a *app.App) {
 		"take another instance out of the group on every instance of it - its key is revoked, it forgets the phrase, and it comes back as a new device, waiting for approval, when the phrase is entered there again",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if fromRelayGroup(r) && !fromApprovedInstance(r) {
+			if fromRelayGroup(r) && !fromApprovedInstance(a, r) {
 				refuseDecision(w)
 				return
 			}
@@ -271,10 +271,15 @@ func registerConnect(reg *Registry, a *app.App) {
 					return
 				}
 				// Answered before the relay socket closes under this request.
+				// The leaving runs under Mint, and only while the instance
+				// that asked is still approved here: a reset in between puts
+				// this instance in a group of its own, which nobody else may
+				// make it leave.
 				w.WriteHeader(http.StatusNoContent)
 				go func() {
-					if err := enterGroup(a, nil, false); err != nil {
-						log.Printf("connect: could not leave the group after an instance of it took this one out: %v", err)
+					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil, false) })
+					if err != nil {
+						log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 					}
 				}()
 				return
@@ -301,7 +306,7 @@ func registerConnect(reg *Registry, a *app.App) {
 			id := r.PathValue("id")
 			var passed deviceDecision
 			if fromRelayGroup(r) {
-				if !fromApprovedInstance(r) {
+				if !fromApprovedInstance(a, r) {
 					refuseDecision(w)
 					return
 				}
@@ -313,6 +318,9 @@ func registerConnect(reg *Registry, a *app.App) {
 			switch {
 			case errors.Is(err, federation.ErrNoSuchPending):
 				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			case errors.Is(err, federation.ErrKindMismatch):
+				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			case errors.Is(err, federation.ErrGone):
 				http.Error(w, err.Error(), http.StatusGone)
@@ -335,16 +343,29 @@ func registerConnect(reg *Registry, a *app.App) {
 		"turn away a device that entered the words, on every instance of the group - its key is revoked",
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
-			if fromRelayGroup(r) && !fromApprovedInstance(r) {
-				refuseDecision(w)
-				return
+			var passed deviceDecision
+			if fromRelayGroup(r) {
+				if !fromApprovedInstance(a, r) {
+					refuseDecision(w)
+					return
+				}
+				if !decodeJSON(w, r, &passed) {
+					return
+				}
 			}
-			if err := a.Federation.Refuse(id, time.Now()); err != nil {
+			kind := ""
+			for _, p := range a.Federation.PendingMembers() {
+				if p.ID == id {
+					kind = p.Kind
+				}
+			}
+			if err := a.Federation.Refuse(id, passed.Kind, time.Now()); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			if !fromRelayGroup(r) {
-				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", []byte("{}"))
+				body, _ := json.Marshal(deviceDecision{Kind: kind})
+				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", body)
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -514,18 +535,20 @@ func connectInfo(a *app.App) ConnectInfo {
 
 // deviceDecision is what an approval carries when it is passed on: the key
 // approved and the kind it signs as, so an instance the device has not called
-// yet pins it as approved.
+// yet pins it as approved. A refusal carries the kind alone, so an instance
+// that never saw the device knows whether to keep its id out for good.
 type deviceDecision struct {
 	Key  []byte `json:"key,omitempty"`
 	Kind string `json:"kind,omitempty"`
 }
 
 // fromApprovedInstance reports whether a call from the group came from an
-// instance signing with an approved key. Only such a call may decide who else
-// is in the group; an unsigned one, or one from a phone, may not.
-func fromApprovedInstance(r *http.Request) bool {
+// instance whose key is pinned and approved here as an instance's. Only such
+// a call may decide who else is in the group; an unsigned one, or one from a
+// phone, may not.
+func fromApprovedInstance(a *app.App, r *http.Request) bool {
 	c, ok := federation.CallerOf(r.Context())
-	return ok && c.Kind == relay.KindInstance
+	return ok && a.Federation.ApprovedInstance(c)
 }
 
 func refuseDecision(w http.ResponseWriter) {

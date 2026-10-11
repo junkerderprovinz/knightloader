@@ -99,8 +99,8 @@ type Announce struct {
 	// still recognise it and turn it away once removed.
 	Member string `json:"member,omitempty"`
 	// Signs says the member signs its calls with a member key. A member on a
-	// release before keys leaves it out, which is how an instance tells the
-	// members that were in the group before keys from new ones.
+	// release before keys leaves it out. Anybody holding the words can leave
+	// it out too, so an instance approves nobody for it.
 	Signs bool `json:"signs,omitempty"`
 }
 
@@ -273,6 +273,11 @@ type ProxyRequest struct {
 	// Target as additional data, so a relay cannot redirect it to another
 	// instance and have it open.
 	Sealed []byte `json:"sealed,omitempty"`
+	// Sender is the id the sending connection announced, written by the relay
+	// over whatever the sender put there. It is not sealed, so the receiver
+	// only spreads its limits by it (see WithSource) and trusts it with
+	// nothing else.
+	Sender string `json:"sender,omitempty"`
 }
 
 // ProxyCall is what a ProxyRequest asks once opened: the same (method, path,

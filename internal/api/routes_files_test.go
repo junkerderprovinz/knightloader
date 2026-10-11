@@ -26,6 +26,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -309,6 +310,38 @@ func getStatus(t *testing.T, u string) int {
 	_, _ = io.Copy(io.Discard, resp.Body)
 	resp.Body.Close()
 	return resp.StatusCode
+}
+
+func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	base := t.TempDir()
+	if _, err := a.ApplySettings(settings.Settings{MaxConcurrent: 2, MaxPerHost: 1, DownloadDir: base}); err != nil {
+		t.Fatal(err)
+	}
+	id := putFile(t, a, base, "movie.mkv", []byte("frames"))
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+		t.Fatal(err)
+	}
+	phone := signedMember(t, a, "phone-player", relay.KindMobile)
+	status, body := phone(http.MethodPost, "/api/tasks/"+id+"/play")
+	var link struct{ Path string }
+	if err := json.Unmarshal(body, &link); err != nil || status != http.StatusOK {
+		t.Fatalf("the phone asking for a play link = %d %s", status, body)
+	}
+	if got := getStatus(t, srv.URL+link.Path); got != http.StatusOK {
+		t.Fatalf("the link answered %d, want 200", got)
+	}
+	if err := a.Federation.RemoveApp("phone-player", time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if got := getStatus(t, srv.URL+link.Path); got != http.StatusUnauthorized {
+		t.Errorf("the link of the removed phone answered %d, want 401", got)
+	}
 }
 
 // A media player the phone app opens sends no cookie and no token. The link
