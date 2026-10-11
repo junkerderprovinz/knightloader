@@ -239,6 +239,31 @@ func TestABrokenSignatureIsAnsweredAndNeverServed(t *testing.T) {
 	}
 }
 
+// TestACallIsServedWithTheConnectionThatSentIt checks that the instance
+// serving a call learns which relay connection it came through, as the relay
+// says and not as the call claims.
+func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
+	addr, _ := relayOn(t, "127.0.0.1:0")
+	sources := make(chan string, 1)
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, func(ctx context.Context, _ ProxyCall) (int, []byte) {
+		sources <- SourceOf(ctx)
+		return http.StatusOK, nil
+	})
+	waitFor(t, "alpha to connect", alpha.Connected)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
+	readFrame(t, bravo, TypeAnnounce)
+	call := ProxyCall{Method: http.MethodGet, Path: "/api/tasks", ID: "r1", Sent: time.Now().Unix()}
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID, Sender: charlieID, Sealed: mustSeal(t, "r1", alphaID, call)})
+	select {
+	case got := <-sources:
+		if got != "relay\x00"+bravoID {
+			t.Errorf("the call was served as from %q, want bravo's connection", got)
+		}
+	case <-time.After(5 * time.Second):
+		t.Fatal("the call was never served")
+	}
+}
+
 func TestAnAnnounceSaysWhetherItsMemberSigns(t *testing.T) {
 	for _, signs := range []bool{true, false} {
 		wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Name: "nas", Signs: signs})
