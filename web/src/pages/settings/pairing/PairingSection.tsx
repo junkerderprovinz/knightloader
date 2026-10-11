@@ -13,7 +13,13 @@ import { RelayCard } from './RelayCard';
 // relay connection and the local network, which nothing pushes here.
 const REFRESH_MS = 10_000;
 
-export function PairingSection({ identity }: { identity: ReactNode }) {
+export function PairingSection({
+  identity,
+}: {
+  /** The card with this instance's name and addresses, which reads what the
+   *  instance found about itself from the group's answer. */
+  identity: (group: ConnectInfo | null) => ReactNode;
+}) {
   const { t } = useT();
   const [group, setGroup] = useState<ConnectInfo | null>(null);
   const [relay, setRelay] = useState<RelayConfig | null>(null);
@@ -41,7 +47,7 @@ export function PairingSection({ identity }: { identity: ReactNode }) {
       {error && <p className="text-sm text-statusFail">{t('pairing.loadError')}</p>}
       {group && <PairingGroup group={group} onGroup={setGroup} onRefresh={load} hues={[3, 4]} />}
       {/* Between the group and the relay, since both show the name it sets. */}
-      {identity}
+      {identity(group)}
       {group && relay && (
         <RelayCard
           group={group}

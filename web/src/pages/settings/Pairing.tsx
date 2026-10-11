@@ -8,15 +8,15 @@ import { PairingSection } from './pairing/PairingSection';
 import { SetRow } from './pairing/parts';
 
 export function Pairing() {
-  return <PairingSection identity={<IdentityCard />} />;
+  return <PairingSection identity={(group) => <IdentityCard found={group?.networkAddress ?? ''} />} />;
 }
 
-// IdentityCard holds an optional name and the domains this instance is known
-// by, both ordinary settings fields. Domains are recorded automatically when
-// somebody signs in through one (routes_remote.go's learnDomain); the box covers
-// a domain nobody has signed in through yet, which an instance without a
-// password needs before it answers on that name at all.
-function IdentityCard() {
+// IdentityCard holds an optional name and the addresses this instance is known
+// by. Its address on the network it finds itself, and that one is only shown.
+// A domain is recorded when somebody signs in through it (routes_remote.go's
+// learnDomain); the box covers a domain nobody has signed in through yet, which
+// an instance without a password needs before it answers on that name at all.
+export function IdentityCard({ found }: { found: string }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -38,13 +38,21 @@ function IdentityCard() {
         </div>
       </SetRow>
       <SetRow
-        label={t('settings.access.identity.domainsLabel')}
-        hint={t('settings.access.identity.domainsHint')}
-        htmlFor="known-domains"
+        label={t('settings.access.identity.addressesLabel')}
+        hint={t('settings.access.identity.addressesHint')}
+        htmlFor="known-addresses"
       >
-        <div className="w-[18rem] max-w-full">
+        <div className="flex w-[18rem] max-w-full flex-col gap-2">
+          {found && (
+            <p data-testid="found-address" className="flex flex-wrap items-baseline justify-between gap-x-3 gap-y-0.5 px-3">
+              <span dir="ltr" className="min-w-0 break-all font-mono text-sm text-carbon-text">
+                {found}
+              </span>
+              <span className="glim-eyebrow">{t('settings.access.identity.addressFound')}</span>
+            </p>
+          )}
           <ListArea
-            id="known-domains"
+            id="known-addresses"
             rows={3}
             dir="ltr"
             lines={cfg.knownDomains}

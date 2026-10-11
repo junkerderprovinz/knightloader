@@ -1,12 +1,12 @@
 // RelayCard picks how the instances of a group reach each other: the project
-// relay, an own relay, or none. The route picker, what the relay sees and
-// whether it is connected stand in one line. Under it each route gets a few
-// fact lines on one side and its picture on the other, and an own relay the
-// two places it can come from. Every control saves on its own, as the rest of
-// the settings do.
+// relay, an own relay, this instance serving as the relay, or none. The route
+// picker, what the relay sees and whether it is connected stand in one line.
+// Under it each route gets a few fact lines on one side and its picture on the
+// other, and an own relay the two places it can come from. Every control saves
+// on its own, as the rest of the settings do.
 import { useEffect, useRef, useState } from 'react';
 import { StatePill } from '../../../components/StatePill';
-import { Button, Card, IconBadge, InfoBubble, Modal, SectionTitle, TextInput, ToggleRow } from '../../../components/ui';
+import { Button, Card, IconBadge, InfoBubble, Modal, SectionTitle, TextInput } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { saveRelayConfig, type ConnectInfo, type RelayConfig, type RelayMode } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
@@ -19,7 +19,24 @@ import { Fact, SetRow } from './parts';
 
 type T = ReturnType<typeof useT>['t'];
 
-const MODES: RelayMode[] = ['project', 'own', 'off'];
+const ROUTES: RouteKind[] = ['project', 'own', 'instance', 'off'];
+
+// The server keeps serving the relay as a switch beside the mode. The picker
+// shows it as a route of its own, an own relay on this instance's address.
+function routeOf(relay: RelayConfig): RouteKind {
+  return relay.mode === 'own' && relay.serve ? 'instance' : relay.mode;
+}
+
+function modeOf(route: RouteKind): RelayMode {
+  return route === 'instance' ? 'own' : route;
+}
+
+// The example in the address field, which is the relay's own address or the
+// address this instance is reached at from outside.
+const ADDRESS_EXAMPLE: Partial<Record<RouteKind, string>> = {
+  own: 'https://relay.example.org',
+  instance: 'https://knightloader.example.org',
+};
 
 // An own relay without TLS still works on a LAN, but its relay key then
 // travels in the clear, so the card says so.
@@ -33,7 +50,7 @@ export const RELAY_RUN_COMMAND =
   'docker run -d --name parleyport -p 8760:8760 --restart unless-stopped junkerderprovinz/parleyport:latest';
 
 const COPY: Record<
-  RelayMode,
+  RouteKind,
   { name: TranslationKey; sentence: TranslationKey; need?: TranslationKey; sees: TranslationKey; alt: TranslationKey }
 > = {
   project: {
@@ -48,6 +65,13 @@ const COPY: Record<
   own: {
     name: 'relay.own',
     sentence: 'relay.ownSentence',
+    sees: 'relay.ownSees',
+    alt: 'relay.ownAlt',
+  },
+  // The relay an instance serves is an own relay to everything but the picker.
+  instance: {
+    name: 'relay.serve',
+    sentence: 'relay.instanceSub',
     sees: 'relay.ownSees',
     alt: 'relay.ownAlt',
   },
@@ -121,7 +145,7 @@ export function RelayCard({
 }) {
   const { t } = useT();
   const { toast } = useToast();
-  const [mode, setMode] = useState<RelayMode>(relay.mode);
+  const [route, setRoute] = useState<RouteKind>(routeOf(relay));
   const [url, setUrl] = useState(relay.relayUrl);
   const [urlError, setUrlError] = useState<string | null>(null);
   const [seesOpen, setSeesOpen] = useState(false);
@@ -135,8 +159,8 @@ export function RelayCard({
     if (!editing.current) setUrl(relay.relayUrl);
   }, [relay.relayUrl]);
   useEffect(() => {
-    setMode(relay.mode);
-  }, [relay.mode]);
+    setRoute(routeOf(relay));
+  }, [relay.mode, relay.serve]);
   useEffect(
     () => () => {
       if (timer.current !== null) window.clearTimeout(timer.current);
@@ -156,11 +180,13 @@ export function RelayCard({
     }
   }
 
-  // A failed save leaves the server on its old mode, and the tabs go back to
-  // it, or the address typed next would be stored for a relay nobody uses.
-  async function pick(next: RelayMode) {
-    setMode(next);
-    if (!(await save({ mode: next }))) setMode(relay.mode);
+  // Every pick stores the switch with the mode, so leaving the route on which
+  // this instance serves also stops it serving. A failed save leaves the server
+  // on its old route, and the tabs go back to it, or the address typed next
+  // would be stored for a relay nobody uses.
+  async function pick(next: RouteKind) {
+    setRoute(next);
+    if (!(await save({ mode: modeOf(next), serve: next === 'instance' }))) setRoute(routeOf(relay));
   }
 
   function typeUrl(v: string) {
@@ -177,7 +203,8 @@ export function RelayCard({
     }, 800);
   }
 
-  const copy = COPY[mode];
+  const copy = COPY[route];
+  const mode = modeOf(route);
   // The relay key comes from the twelve words, so the relay is only dialled
   // inside a group; before that there is nothing to be connected.
   const state =
@@ -192,12 +219,10 @@ export function RelayCard({
     );
   const unreachable = group.active && mode !== 'off' && !relay.connected;
 
-  // An instance that serves the relay itself is the relay in the picture.
-  const route: RouteKind = mode === 'own' ? (relay.serve ? 'instance' : 'own') : mode;
   const [before, after] = t('pairing.relayCheckProject').split('{host}');
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
+    <Card hue={hue} data-new="relay-serve" className="flex flex-col gap-4">
       <SectionTitle hint={`${t('relay.lead')} ${t('relay.hint')}`}>{t('relay.title')}</SectionTitle>
       <div className="flex flex-wrap items-center justify-between gap-3">
         <Tabs
@@ -205,9 +230,9 @@ export function RelayCard({
           inline
           labelled
           label={t('relay.title')}
-          active={mode}
-          onSelect={(id) => void pick(id as RelayMode)}
-          items={MODES.map((m) => ({ id: m, label: t(COPY[m].name), icon: <RouteGlyph kind={m} /> }))}
+          active={route}
+          onSelect={(id) => void pick(id as RouteKind)}
+          items={ROUTES.map((r) => ({ id: r, label: t(COPY[r].name), icon: <RouteGlyph kind={r} /> }))}
         />
         {/* Where the two do not fit side by side, the state goes under the
             button, whose words stay on one line. */}
@@ -224,7 +249,13 @@ export function RelayCard({
       <div className="grid grid-cols-1 items-start gap-6 min-[861px]:grid-cols-2">
         <div className="flex min-w-0 flex-col gap-2.5">
           <Fact glyph={<FactGlyph kind="route" />}>
-            {mode === 'project' ? t(copy.sentence, { host: hostOf(group.projectRelayUrl) }) : t(copy.sentence)}
+            {route === 'project' ? t(copy.sentence, { host: hostOf(group.projectRelayUrl) }) : t(copy.sentence)}
+            {route === 'instance' && (
+              <>
+                {' '}
+                <InfoBubble tip={t('relay.serveHint')} />
+              </>
+            )}
           </Fact>
           {copy.need && (
             <Fact glyph={<FactGlyph kind="need" />} label={t('relay.needLabel')}>
@@ -242,7 +273,7 @@ export function RelayCard({
                     onChange={(e) => typeUrl(e.target.value)}
                     spellCheck={false}
                     autoComplete="off"
-                    placeholder="https://relay.example.org"
+                    placeholder={ADDRESS_EXAMPLE[route]}
                     dir="ltr"
                     className="font-mono"
                   />
@@ -253,6 +284,16 @@ export function RelayCard({
                 <p className="rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5 text-subline leading-relaxed text-carbon-text">
                   {t('relay.plaintextWarning')}
                 </p>
+              )}
+            </>
+          )}
+          {route === 'instance' && (
+            <>
+              <Fact glyph={<FactGlyph kind="shield" />}>
+                {t('relay.instanceCert')} <InfoBubble tip={t('relay.instanceCertTip')} />
+              </Fact>
+              {relay.serve && (
+                <Fact glyph={<RouteGlyph kind="instance" />}>{t('relay.serveClients', { count: relay.serveClients })}</Fact>
               )}
             </>
           )}
@@ -301,7 +342,7 @@ export function RelayCard({
         />
       </div>
 
-      {mode === 'own' && (
+      {route === 'own' && (
         <div className="flex flex-col gap-3" data-testid="own-relay">
           <span className="glim-eyebrow">{t('relay.sourcesTitle')}</span>
           <div className="grid grid-cols-1 gap-3 min-[861px]:grid-cols-2">
@@ -314,17 +355,6 @@ export function RelayCard({
             </SubCard>
             <SubCard className="gap-2.5" label={t('relay.instanceName')}>
               <p className="text-subline text-carbon-textMuted">{t('relay.instanceSub')}</p>
-              <div className="rounded-[var(--radius-control)] bg-carbon-surface px-3 py-2">
-                <ToggleRow
-                  label={t('relay.serve')}
-                  hint={t('relay.serveHint')}
-                  checked={relay.serve}
-                  onChange={(v) => void save({ serve: v })}
-                />
-                {relay.serve && (
-                  <p className="mt-1 text-xs text-carbon-textMuted">{t('relay.serveClients', { count: relay.serveClients })}</p>
-                )}
-              </div>
               <Fact glyph={<FactGlyph kind="shield" />}>
                 {t('relay.instanceCert')} <InfoBubble tip={t('relay.instanceCertTip')} />
               </Fact>
@@ -346,7 +376,7 @@ export function RelayCard({
           {/* What it sees and what it never does stand together, so the one
               honest limit, the routing metadata, sits next to everything it
               does not cost. */}
-          {mode !== 'off' && (
+          {route !== 'off' && (
             <div className="flex flex-col gap-2">
               <Fact glyph={<FactGlyph kind="hidden" />} label={t('relay.notSeesLabel')} />
               <ul className="flex list-disc flex-col gap-1 ps-7 text-sm text-carbon-textSub">

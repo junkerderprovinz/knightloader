@@ -1,7 +1,8 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
+import { hueVars } from '../lib/appearance';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, LabelBadge, Modal } from './ui';
 import { IconBrowser, IconClose, IconEye, IconInfo, IconPhone, IconTrash } from '../lib/icons';
@@ -94,13 +95,15 @@ export function InstanceRow({ name, base, onOpen }: { name: string; base: string
 /**
  * Tile is the shape every card of the instance grid shares: the mark at the
  * start edge, the name with its state, one line of facts, the figures in a row
- * and the buttons at the bottom. The cards of a row take one height, so the
+ * and the buttons at the bottom. It is a card of its own on the page, so it
+ * owns a place in the palette. The cards of a row take one height, so the
  * buttons line up. Nothing lifts under the pointer, since the card is no
  * control (check-card-hover.mjs).
  */
 function Tile({
   entry,
   hot,
+  hue,
   mark,
   name,
   eyebrow,
@@ -112,6 +115,7 @@ function Tile({
   /** The key the card shares with its node in the net (`data-nk`). */
   entry: string;
   hot: boolean;
+  hue: number;
   mark: ReactNode;
   name: string;
   eyebrow?: string;
@@ -125,9 +129,9 @@ function Tile({
     <div
       data-nk={entry}
       data-new="instance-cards"
-      className={`flex flex-col overflow-hidden rounded-[var(--radius-card)] bg-carbon-surface2 ${
-        hot ? 'shadow-[inset_0_0_0_2px_var(--accent)]' : ''
-      }`}
+      // An outline, since a shadow utility would take the card's own away.
+      className={`glim-card glim-hue flex flex-col overflow-hidden ${hot ? 'outline-2 -outline-offset-2 outline-accent' : ''}`}
+      style={hueVars(hue) as CSSProperties}
     >
       <div className="flex items-stretch">
         <div className="flex shrink-0 items-center ps-4">{mark}</div>
@@ -173,7 +177,7 @@ function CardLogo() {
 function ClientMark({ deployment }: { deployment: string }) {
   const Glyph = deployment === 'extension' ? IconBrowser : IconPhone;
   return (
-    <span className="grid h-22 w-16 place-items-center rounded-[var(--radius-control)] bg-carbon-surface3 text-accentGlyph">
+    <span className="grid h-22 w-16 place-items-center rounded-[var(--radius-control)] bg-carbon-surface2 text-accentGlyph">
       <Glyph width={34} height={34} />
     </span>
   );
@@ -209,6 +213,7 @@ export function InstanceCard({
   onRemove,
   onReach,
   hot = false,
+  hue = 0,
   isSelf = false,
   deployment,
 }: {
@@ -232,6 +237,8 @@ export function InstanceCard({
   onReach?: (online: boolean) => void;
   /** The pointer or the focus is on the instance's node in the net. */
   hot?: boolean;
+  /** The card's place in the palette, counted along the grid. */
+  hue?: number;
   /** Marks the card of the instance being viewed. */
   isSelf?: boolean;
 }) {
@@ -268,6 +275,7 @@ export function InstanceCard({
       <Tile
         entry={entry}
         hot={hot}
+        hue={hue}
         mark={<CardLogo />}
         name={name}
         eyebrow={isSelf ? t('instances.thisInstance') : undefined}
@@ -277,19 +285,18 @@ export function InstanceCard({
         actions={
           <>
             {onOpen && (
-              <Button kind="secondary" className="kl-raised-btn" icon={<IconEye />} onClick={onOpen}>
+              <Button kind="secondary" icon={<IconEye />} onClick={onOpen}>
                 {t('instances.open')}
               </Button>
             )}
             {!isSelf && (
-              <Button kind="secondary" className="kl-raised-btn" icon={<IconInfo />} onClick={() => setDetails(true)}>
+              <Button kind="secondary" icon={<IconInfo />} onClick={() => setDetails(true)}>
                 {t('instances.details')}
               </Button>
             )}
             {onRemove && (
               <Button
                 kind="secondary"
-                className="kl-raised-btn"
                 icon={<IconTrash />}
                 aria-label={t('instances.removeTitle', { name })}
                 onClick={onRemove}
@@ -341,6 +348,7 @@ export function AppCard({
   lastSeen,
   onRemove,
   hot = false,
+  hue = 0,
 }: {
   /** The key the card shares with its node in the net. */
   entry: string;
@@ -352,12 +360,15 @@ export function AppCard({
   lastSeen: number;
   onRemove: () => void;
   hot?: boolean;
+  /** The card's place in the palette, counted along the grid. */
+  hue?: number;
 }) {
   const { t } = useT();
   return (
     <Tile
       entry={entry}
       hot={hot}
+      hue={hue}
       mark={<ClientMark deployment={deployment} />}
       name={name}
       eyebrow={KINDS[deployment] ? t(KINDS[deployment]) : undefined}
@@ -368,7 +379,6 @@ export function AppCard({
       actions={
         <Button
           kind="secondary"
-          className="kl-raised-btn"
           icon={<IconTrash />}
           aria-label={t('instances.removeTitle', { name })}
           onClick={onRemove}

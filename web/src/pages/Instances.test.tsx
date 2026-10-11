@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
@@ -75,12 +75,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** Where the router stands, for the actions that lead off the page. */
+function Where() {
+  return <span data-testid="where">{useLocation().pathname}</span>;
+}
+
 async function draw() {
   await act(async () =>
     root.render(
       <MemoryRouter>
         <I18nProvider>
           <Instances />
+          <Where />
         </I18nProvider>
       </MemoryRouter>,
     ),
@@ -88,14 +94,32 @@ async function draw() {
 }
 
 describe('Instances', () => {
-  it('stands a card that leads to pairing beside this instance before there is a group', async () => {
+  it('leaves the way into pairing to the floating action before there is a group', async () => {
     serve(noGroup);
     await draw();
-    const way = [...host.querySelectorAll('button')].find((b) => b.textContent?.includes('Connect your instances'))!;
-    expect(way.textContent).toContain('Connect your instances and the Android app with a 12-word phrase');
-    expect(way.parentElement!.querySelector('[data-nk="self"]')!.textContent).toContain('This instance');
+    // This instance alone, with no tile beside it that repeats the action.
+    expect([...host.querySelectorAll('[data-nk]')].map((c) => c.getAttribute('data-nk'))).toEqual(['self']);
+    expect(card('nas').textContent).toContain('This instance');
+    expect(host.textContent).not.toContain('Connect your instances');
     // Nothing to draw a net of yet.
     expect(host.querySelector('[data-testid="group-net"]')).toBeNull();
+
+    const ways = [...host.querySelectorAll('button')].filter((b) => b.textContent?.trim() === 'Pairing');
+    expect(ways).toHaveLength(1);
+    await act(async () => ways[0].click());
+    expect(host.querySelector('[data-testid="where"]')!.textContent).toBe('/settings/pairing');
+  });
+
+  it('stands every card on the page itself, the picture of the group included', async () => {
+    serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] }, [
+      { name: 'cellar', url: 'http://192.168.1.9:8749' },
+    ]);
+    await draw();
+    const picture = host.querySelector<HTMLElement>('[data-testid="group-net"]')!.closest<HTMLElement>('.glim-card')!;
+    for (const one of [picture, card('nas'), card('cellar'), card('Pixel 8')]) {
+      expect(one.classList.contains('glim-card')).toBe(true);
+      expect(one.parentElement!.closest('.glim-card')).toBeNull();
+    }
   });
 
   it('shows a card for every phone of the group, connected or not', async () => {
@@ -178,8 +202,8 @@ describe('Instances', () => {
     act(() => {
       spokes[0].querySelector('[role="button"]')!.dispatchEvent(new MouseEvent('pointerover', { bubbles: true }));
     });
-    expect(card('Laptop').className).toContain('shadow-');
-    expect(card('Pixel 8').className).not.toContain('shadow-');
+    expect(card('Laptop').className).toContain('outline-accent');
+    expect(card('Pixel 8').className).not.toContain('outline-accent');
   });
 
   it('opens the rest about an instance in a window', async () => {

@@ -1,8 +1,8 @@
 // Instances shows the group as a net and every instance of it as a card, this
 // one first and the phones of the group last, and below them the instances
-// announcing themselves on this network, which can be added by address.
-// Pairing itself happens on the Pairing page in Settings, which the Pairing
-// button opens.
+// announcing themselves on this network, which can be added by address. The
+// cards stand on the page itself. Pairing happens on the Pairing page in
+// Settings, which the floating Pairing action opens, group or none.
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
@@ -44,7 +44,7 @@ function withoutScheme(url: string): string {
 export function Instances({
   firstHue = 0,
 }: {
-  /** The palette position of the grid's card, which follows the cards above it. */
+  /** The palette position of the grid's first card, which follows the cards above it. */
   firstHue?: number;
 }) {
   const { t } = useT();
@@ -141,10 +141,7 @@ export function Instances({
     }
   }
 
-  const openPairing = () => navigate('/settings/pairing');
   const apps = group?.apps ?? [];
-  // Nothing to show but this instance: the page is the way into pairing.
-  const empty = !off && group !== null && peers !== null && !group.active && peers.length === 0 && apps.length === 0;
 
   // A group member carries the key the Pairing page gives it, so the two
   // pages name one thing one way.
@@ -178,6 +175,9 @@ export function Instances({
     ),
   ];
 
+  // Every card of the grid owns the next place in the palette, the net first.
+  const selfHue = firstHue + (nodes.length > 0 ? 1 : 0);
+
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('instances.title')} />
@@ -192,93 +192,81 @@ export function Instances({
         />
       )}
 
-      <Card hue={firstHue}>
-        {/* One card width wherever the grid stands, here and on the Instances
-            settings tab, and one height per row. A narrow window shows fewer
-            cards. */}
-        <div {...net.scope} className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,24rem),1fr))] items-stretch gap-4">
-          {nodes.length > 0 && (
-            <div className="col-span-full rounded-[var(--radius-card)] bg-carbon-surface2 px-5 py-4 max-sm:p-3">
-              <GroupNet
-                self={{ name: ownName || t('instances.thisInstance'), sub: ownName ? t('instances.thisInstance') : '' }}
-                nodes={nodes}
-                hot={net.hot}
-                onPick={net.pick}
-                alt={t('pairing.netAlt')}
-              />
-            </div>
-          )}
-          {/* This instance shows the address the group is told, and Open
-              stays here on the local download list. */}
-          <InstanceCard
-            entry={SELF_KEY}
-            hot={net.hot === SELF_KEY}
-            name={ownName || t('instances.thisInstance')}
-            deployment={ownKind}
-            address={withoutScheme(group?.address || location.host + basePath())}
-            base="/api"
-            // Without a configured name the title already says "this instance".
-            isSelf={ownName !== ''}
-            onOpen={() => navigate('/downloads')}
-          />
-          {(peers ?? []).map((p) => {
-            // A group member's own announced address, a stored peer's the
-            // one it was added with. Without one, Open shows its downloads
-            // here.
-            const address = (p.relayId ? p.address : p.url) ?? '';
-            const entry = entryOf(p);
-            const name = p.displayName ?? p.name;
-            return (
-              <InstanceCard
-                key={p.name}
-                entry={entry}
-                hot={net.hot === entry}
-                name={name}
-                deployment={p.deployment}
-                address={withoutScheme(address)}
-                route={routeOf(p)}
-                base={`/api/instances/${encodeURIComponent(p.name)}`}
-                onOpen={
-                  address ? () => openExternal(address) : () => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)
-                }
-                onReach={(online) => onReach(entry, online)}
-                onRemove={() => setRemoving({ kind: p.relayId ? 'member' : 'peer', id: p.name, name })}
-              />
-            );
-          })}
-          {empty && (
-            <button
-              type="button"
-              onClick={openPairing}
-              className="flex flex-col items-center justify-center gap-1.5 rounded-[var(--radius-card)] border-[1.5px] border-dashed
-                border-carbon-border px-5 py-7 text-center transition-colors hover:bg-carbon-hover
-                focus-visible:shadow-[0_0_0_2px_var(--focus-ring)] focus-visible:outline-none"
-            >
-              <span className="text-sm font-semibold text-carbon-text">{t('pairing.title')}</span>
-              <span className="text-sm text-carbon-textMuted">{t('instances.pairLead')}</span>
-            </button>
-          )}
-          {apps.map((a) => (
-            <AppCard
-              key={a.id}
-              entry={`app:${a.id}`}
-              hot={net.hot === `app:${a.id}`}
-              name={a.name || a.id}
-              deployment={a.deployment}
-              connected={a.connected}
-              lastSeen={a.lastSeen}
-              onRemove={() => setRemoving({ kind: 'app', id: a.id, name: a.name || a.id })}
+      {/* One card width wherever the grid stands, here and on the Instances
+          settings tab, and one height per row. A narrow window shows fewer
+          cards. */}
+      <div {...net.scope} className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,24rem),1fr))] items-stretch gap-5">
+        {nodes.length > 0 && (
+          <Card hue={firstHue} padding="none" className="col-span-full px-5 py-4 max-sm:p-3">
+            <GroupNet
+              self={{ name: ownName || t('instances.thisInstance'), sub: ownName ? t('instances.thisInstance') : '' }}
+              nodes={nodes}
+              hot={net.hot}
+              onPick={net.pick}
+              alt={t('pairing.netAlt')}
             />
-          ))}
-        </div>
-      </Card>
+          </Card>
+        )}
+        {/* This instance shows the address the group is told, and Open stays
+            here on the local download list. */}
+        <InstanceCard
+          entry={SELF_KEY}
+          hot={net.hot === SELF_KEY}
+          hue={selfHue}
+          name={ownName || t('instances.thisInstance')}
+          deployment={ownKind}
+          address={withoutScheme(group?.address || location.host + basePath())}
+          base="/api"
+          // Without a configured name the title already says "this instance".
+          isSelf={ownName !== ''}
+          onOpen={() => navigate('/downloads')}
+        />
+        {(peers ?? []).map((p, i) => {
+          // A group member's own announced address, a stored peer's the one
+          // it was added with. Without one, Open shows its downloads here.
+          const address = (p.relayId ? p.address : p.url) ?? '';
+          const entry = entryOf(p);
+          const name = p.displayName ?? p.name;
+          return (
+            <InstanceCard
+              key={p.name}
+              entry={entry}
+              hot={net.hot === entry}
+              hue={selfHue + 1 + i}
+              name={name}
+              deployment={p.deployment}
+              address={withoutScheme(address)}
+              route={routeOf(p)}
+              base={`/api/instances/${encodeURIComponent(p.name)}`}
+              onOpen={
+                address ? () => openExternal(address) : () => navigate(`/downloads?instance=${encodeURIComponent(p.name)}`)
+              }
+              onReach={(online) => onReach(entry, online)}
+              onRemove={() => setRemoving({ kind: p.relayId ? 'member' : 'peer', id: p.name, name })}
+            />
+          );
+        })}
+        {apps.map((a, i) => (
+          <AppCard
+            key={a.id}
+            entry={`app:${a.id}`}
+            hot={net.hot === `app:${a.id}`}
+            hue={selfHue + 1 + (peers?.length ?? 0) + i}
+            name={a.name || a.id}
+            deployment={a.deployment}
+            connected={a.connected}
+            lastSeen={a.lastSeen}
+            onRemove={() => setRemoving({ kind: 'app', id: a.id, name: a.name || a.id })}
+          />
+        ))}
+      </div>
       <PageActions>
-        <PageAction primary icon={<IconLink />} label={t('pairing.title')} onClick={openPairing} />
+        <PageAction primary icon={<IconLink />} label={t('pairing.title')} onClick={() => navigate('/settings/pairing')} />
       </PageActions>
       {removing && <RemovalWindow removal={removing} onClose={() => setRemoving(null)} onRemoved={load} />}
 
       {found.length > 0 && (
-        <Card hue={firstHue + 1} className="flex flex-col gap-3">
+        <Card hue={selfHue + 1 + nodes.length} className="flex flex-col gap-3">
           <SectionTitle hint={t('instances.foundHint')}>{t('instances.foundTitle')}</SectionTitle>
           {found.map((f) => (
             <div key={f.id} className="glim-row flex flex-wrap items-center gap-3">
