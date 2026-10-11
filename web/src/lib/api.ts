@@ -787,6 +787,9 @@ export interface AuthState {
    *  needs from the login answer. */
   twoFactor?: boolean;
   recoveryLeft?: number;
+  /** Whether the server seals its secrets with KL_APP_KEY; absent like the
+   *  two above. */
+  appKey?: boolean;
 }
 
 /**
