@@ -15,16 +15,14 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
 // SessionTTL is how long a login lasts.
@@ -41,7 +39,7 @@ var (
 )
 
 type stored struct {
-	Hash string `json:"hash"` // bcrypt, empty = no password set
+	Hash string `json:"hash"` // bcrypt, or Argon2id with an app key; empty = no password set
 	Key  string `json:"key"`  // hex, signs session cookies
 	// TOTP is the base32 authenticator secret, written only once a code from
 	// it has been confirmed. Empty means no second factor.
@@ -72,32 +70,14 @@ type Guard struct {
 	epoch    uint64
 	revoked  map[string]int64
 	pending  *pending // never written to the file
+	// appKey seals the file and peppers the password; nil keeps the file
+	// plain and the hash bcrypt.
+	appKey *appkey.Key
 }
 
-// Open loads (or creates) the lock state in dir.
+// Open loads (or creates) the lock state in dir, without an app key.
 func Open(dir string) (*Guard, error) {
-	g := &Guard{path: filepath.Join(dir, "auth.json")}
-	if b, err := os.ReadFile(g.path); err == nil {
-		var s stored
-		if err := json.Unmarshal(b, &s); err == nil {
-			g.hash = []byte(s.Hash)
-			g.key, _ = hex.DecodeString(s.Key)
-			g.totp = s.TOTP
-			g.recovery = s.Recovery
-			g.epoch = s.Epoch
-			g.revoked = s.Revoked
-		}
-	}
-	if len(g.key) == 0 {
-		g.key = make([]byte, 32)
-		if _, err := rand.Read(g.key); err != nil {
-			return nil, err
-		}
-		if err := g.flush(); err != nil {
-			return nil, err
-		}
-	}
-	return g, nil
+	return OpenWithKey(dir, nil)
 }
 
 // Enabled reports whether a password is required.
@@ -132,7 +112,7 @@ func (g *Guard) SetPassword(current, next string) error {
 	if len(next) < 8 {
 		return ErrTooShort
 	}
-	h, err := bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost)
+	h, err := hashPassword(g.appKey, next)
 	if err != nil {
 		return err
 	}
@@ -151,7 +131,11 @@ func (g *Guard) Check(password string) bool {
 	if len(h) == 0 {
 		return false
 	}
-	return bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
+	if !verifyPassword(g.appKey, password, h) {
+		return false
+	}
+	g.upgradeHash(password, h)
+	return true
 }
 
 // Issue returns a session token valid for SessionTTL. The random part keeps two
@@ -298,7 +282,7 @@ func (g *Guard) flush() error {
 		Revoked:  g.revoked,
 	}
 	g.mu.RUnlock()
-	b, err := json.MarshalIndent(s, "", "  ")
+	b, err := encodeStored(s, g.appKey)
 	if err != nil {
 		return err
 	}
