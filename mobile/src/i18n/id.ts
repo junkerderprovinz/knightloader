@@ -128,6 +128,7 @@ export const id: Dict = {
   'error.groupFull': 'Grup sudah berisi perangkat sebanyak yang bisa ditampung. Hapus satu di Pengaturan, Pemasangan pada sebuah instans, lalu coba lagi.',
   'error.groupJoinsBusy': 'Terlalu banyak perangkat baru bergabung ke grup dalam satu jam terakhir. Coba lagi nanti.',
   'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci perangkat ini. Coba lagi sebentar lagi.',
+  'error.connectionEnded': 'Instans tidak lagi menerima sambungan ini karena kata sandinya diubah atau disetel ulang. Hapus sambungan, lalu sambungkan lagi dengan dua belas kata yang ditampilkan instans di Pengaturan, Pemasangan. Setelah setel ulang, kata-katanya baru.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 

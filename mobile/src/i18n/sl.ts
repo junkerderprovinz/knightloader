@@ -128,6 +128,7 @@ export const sl: Dict = {
   'error.groupFull': 'Skupina ima že toliko naprav, kot jih lahko sprejme. Odstrani eno pod Nastavitve, Seznanjanje na kakšnem primerku in poskusi znova.',
   'error.groupJoinsBusy': 'V zadnji uri se je skupini pridružilo preveč novih naprav. Poskusi znova pozneje.',
   'error.memberNotPinned': 'Primerek ni mogel shraniti ključa te naprave. Poskusi znova čez trenutek.',
+  'error.connectionEnded': 'Instanca te povezave ne sprejema več, ker je bilo njeno geslo spremenjeno ali ponastavljeno. Odstrani povezavo in se znova poveži z dvanajstimi besedami, ki jih instanca prikazuje v razdelku Nastavitve, Seznanjanje. Po ponastavitvi so to nove besede.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 

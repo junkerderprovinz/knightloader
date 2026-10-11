@@ -128,6 +128,7 @@ export const pt: Dict = {
   'error.groupFull': 'O grupo já tem tantos dispositivos quanto consegue ter. Remove um em Definições, Emparelhamento numa instância e tenta de novo.',
   'error.groupJoinsBusy': 'Demasiados dispositivos novos entraram no grupo na última hora. Tenta de novo mais tarde.',
   'error.memberNotPinned': 'A instância não conseguiu guardar a chave deste dispositivo. Tenta de novo daqui a pouco.',
+  'error.connectionEnded': 'A instância já não aceita esta ligação, porque a palavra-passe dela foi alterada ou reposta. Remove a ligação e volta a ligar com as doze palavras que a instância mostra em Definições, Emparelhamento. Depois de uma reposição, são palavras novas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 

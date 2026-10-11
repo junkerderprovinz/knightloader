@@ -128,6 +128,7 @@ export const lt: Dict = {
   'error.groupFull': 'Grupėje jau tiek įrenginių, kiek telpa. Pašalink vieną skiltyje Nustatymai, Susiejimas kuriame nors egzemplioriuje ir bandyk dar kartą.',
   'error.groupJoinsBusy': 'Per paskutinę valandą prie grupės prisijungė per daug naujų įrenginių. Bandyk vėliau.',
   'error.memberNotPinned': 'Egzempliorius negalėjo išsaugoti šio įrenginio rakto. Bandyk dar kartą po akimirkos.',
+  'error.connectionEnded': 'Egzempliorius šio ryšio nebepriima, nes jo slaptažodis buvo pakeistas arba nustatytas iš naujo. Pašalink ryšį ir prisijunk iš naujo su dvylika žodžių, kuriuos egzempliorius rodo skiltyje Nustatymai, Susiejimas. Po nustatymo iš naujo tai nauji žodžiai.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 

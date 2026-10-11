@@ -128,6 +128,7 @@ export const ca: Dict = {
   'error.groupFull': 'El grup ja té tants dispositius com admet. Elimina’n un a Configuració, Aparellament d’una instància i torna-ho a provar.',
   'error.groupJoinsBusy': 'Massa dispositius nous s’han unit al grup en l’última hora. Torna-ho a provar més tard.',
   'error.memberNotPinned': 'La instància no ha pogut desar la clau d’aquest dispositiu. Torna-ho a provar d’aquí a un moment.',
+  'error.connectionEnded': 'La instància ja no accepta aquesta connexió perquè se n’ha canviat o restablert la contrasenya. Elimina la connexió i torna a connectar amb les dotze paraules que la instància mostra a Configuració, Aparellament. Després d’un restabliment, són paraules noves.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 

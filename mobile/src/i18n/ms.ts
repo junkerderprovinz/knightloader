@@ -128,6 +128,7 @@ export const ms: Dict = {
   'error.groupFull': 'Kumpulan sudah mempunyai seberapa banyak peranti yang boleh dimuatkan. Alih keluar satu di Tetapan, Gandingan pada sebuah instans, kemudian cuba lagi.',
   'error.groupJoinsBusy': 'Terlalu banyak peranti baharu menyertai kumpulan dalam sejam yang lalu. Cuba lagi kemudian.',
   'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci peranti ini. Cuba lagi sebentar nanti.',
+  'error.connectionEnded': 'Tika tidak lagi menerima sambungan ini kerana kata laluannya telah diubah atau ditetapkan semula. Alih keluar sambungan itu dan sambung semula dengan dua belas perkataan yang ditunjukkan oleh tika di Tetapan, Gandingan. Selepas tetapan semula, perkataan itu baharu.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 

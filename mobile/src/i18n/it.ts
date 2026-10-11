@@ -128,6 +128,7 @@ export const it: Dict = {
   'error.groupFull': 'Il gruppo ha già tutti i dispositivi che può accogliere. Rimuovine uno in Impostazioni, Associazione su un’istanza, poi riprova.',
   'error.groupJoinsBusy': 'Troppi nuovi dispositivi sono entrati nel gruppo nell’ultima ora. Riprova più tardi.',
   'error.memberNotPinned': 'L’istanza non è riuscita a salvare la chiave di questo dispositivo. Riprova tra un momento.',
+  'error.connectionEnded': 'L’istanza non accetta più questa connessione perché la sua password è stata cambiata o reimpostata. Rimuovi la connessione e ricollegati con le dodici parole che l’istanza mostra in Impostazioni, Associazione. Dopo una reimpostazione, sono parole nuove.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 

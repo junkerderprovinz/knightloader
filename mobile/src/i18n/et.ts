@@ -128,6 +128,7 @@ export const et: Dict = {
   'error.groupFull': 'Grupis on juba nii palju seadmeid, kui sinna mahub. Eemalda üks mõnes eksemplaris jaotises Seaded, Sidumine ja proovi uuesti.',
   'error.groupJoinsBusy': 'Viimase tunni jooksul liitus grupiga liiga palju uusi seadmeid. Proovi hiljem uuesti.',
   'error.memberNotPinned': 'Eksemplar ei saanud selle seadme võtit salvestada. Proovi hetke pärast uuesti.',
+  'error.connectionEnded': 'Eksemplar ei võta seda ühendust enam vastu, sest selle parooli muudeti või lähtestati. Eemalda ühendus ja ühenda uuesti kaheteistkümne sõnaga, mida eksemplar näitab jaotises Seaded, Sidumine. Pärast lähtestamist on need uued sõnad.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 

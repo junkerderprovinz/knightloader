@@ -128,6 +128,7 @@ export const da: Dict = {
   'error.groupFull': 'Gruppen har allerede så mange enheder, som den kan rumme. Fjern en under Indstillinger, Parring på en instans, og prøv igen.',
   'error.groupJoinsBusy': 'For mange nye enheder kom med i gruppen inden for den seneste time. Prøv igen senere.',
   'error.memberNotPinned': 'Instansen kunne ikke gemme denne enheds nøgle. Prøv igen om lidt.',
+  'error.connectionEnded': 'Instansen tager ikke længere imod denne forbindelse, fordi dens adgangskode er ændret eller nulstillet. Fjern forbindelsen, og forbind igen med de tolv ord, som instansen viser under Indstillinger, Parring. Efter en nulstilling er det nye ord.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 

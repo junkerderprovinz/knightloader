@@ -128,6 +128,7 @@ export const cs: Dict = {
   'error.groupFull': 'Skupina už má tolik zařízení, kolik pojme. Odeber jedno v Nastavení, Párování na některé instanci a zkus to znovu.',
   'error.groupJoinsBusy': 'Za poslední hodinu se ke skupině připojilo příliš mnoho nových zařízení. Zkus to později.',
   'error.memberNotPinned': 'Instance nemohla uložit klíč tohoto zařízení. Zkus to za chvíli znovu.',
+  'error.connectionEnded': 'Instance už toto připojení nepřijímá, protože její heslo bylo změněno nebo obnoveno. Odeber připojení a připoj se znovu pomocí dvanácti slov, která instance ukazuje v části Nastavení, Párování. Po obnovení hesla jsou to nová slova.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 

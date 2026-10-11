@@ -128,6 +128,7 @@ export const nl: Dict = {
   'error.groupFull': 'De groep heeft al zoveel apparaten als erin passen. Verwijder er een onder Instellingen, Koppeling op een instantie en probeer het opnieuw.',
   'error.groupJoinsBusy': 'In het afgelopen uur zijn te veel nieuwe apparaten bij de groep gekomen. Probeer het later opnieuw.',
   'error.memberNotPinned': 'De instantie kon de sleutel van dit apparaat niet opslaan. Probeer het zo meteen opnieuw.',
+  'error.connectionEnded': 'De instantie accepteert deze verbinding niet meer, omdat haar wachtwoord is gewijzigd of opnieuw ingesteld. Verwijder de verbinding en maak opnieuw verbinding met de twaalf woorden die de instantie toont onder Instellingen, Koppeling. Na het opnieuw instellen zijn dat nieuwe woorden.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 

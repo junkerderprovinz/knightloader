@@ -128,6 +128,7 @@ export const ro: Dict = {
   'error.groupFull': 'Grupul are deja atâtea dispozitive câte poate primi. Elimină unul în Setări, Împerechere pe o instanță și încearcă din nou.',
   'error.groupJoinsBusy': 'Prea multe dispozitive noi s-au alăturat grupului în ultima oră. Încearcă din nou mai târziu.',
   'error.memberNotPinned': 'Instanța nu a putut salva cheia acestui dispozitiv. Încearcă din nou peste câteva momente.',
+  'error.connectionEnded': 'Instanța nu mai acceptă această conexiune, pentru că parola ei a fost schimbată sau resetată. Elimină conexiunea și conectează-te din nou cu cele douăsprezece cuvinte pe care instanța le arată în Setări, Împerechere. După o resetare, acestea sunt cuvinte noi.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 

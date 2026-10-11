@@ -5,7 +5,7 @@
 //
 // The codes are read from the server (internal/federation/members.go,
 // internal/relay/member.go and internal/api/group_routes.go), so a code added
-// there fails this check until it is mapped in src/api/client.ts or listed
+// there fails this check until it is mapped in src/api/refusal.ts or listed
 // below as one no phone can meet.
 //
 // Run by CI and by hand, from mobile/: `node check-member-refusals.mjs`
@@ -36,9 +36,9 @@ const codes = new Set(
 const problems = [];
 if (codes.size === 0) problems.push('no refusal codes found in the server; the pattern in this check no longer matches it');
 
-const client = read('src', 'api', 'client.ts');
+const client = read('src', 'api', 'refusal.ts');
 const map = client.match(/const REFUSALS[^=]*= \{([\s\S]*?)\n\};/);
-if (!map) problems.push('REFUSALS was not found in src/api/client.ts');
+if (!map) problems.push('REFUSALS was not found in src/api/refusal.ts');
 const mapped = Object.fromEntries([...(map?.[1] ?? '').matchAll(/(\w+): '([^']+)'/g)].map((m) => [m[1], m[2]]));
 
 const dir = join(here, 'src', 'i18n');
@@ -48,7 +48,7 @@ for (const code of codes) {
   if (code in UNREACHABLE) continue;
   const key = mapped[code];
   if (!key) {
-    problems.push(`${code} is a refusal the server sends and src/api/client.ts does not word`);
+    problems.push(`${code} is a refusal the server sends and src/api/refusal.ts does not word`);
     continue;
   }
   for (const f of catalogues) {

@@ -128,6 +128,7 @@ export const es: Dict = {
   'error.groupFull': 'El grupo ya tiene todos los dispositivos que admite. Quita uno en Ajustes, Emparejamiento de una instancia y vuelve a intentarlo.',
   'error.groupJoinsBusy': 'Demasiados dispositivos nuevos se unieron al grupo en la última hora. Vuelve a intentarlo más tarde.',
   'error.memberNotPinned': 'La instancia no pudo guardar la clave de este dispositivo. Vuelve a intentarlo en un momento.',
+  'error.connectionEnded': 'La instancia ya no acepta esta conexión porque su contraseña se cambió o se restableció. Elimina la conexión y vuelve a conectar con las doce palabras que la instancia muestra en Ajustes, Emparejamiento. Tras un restablecimiento, son palabras nuevas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
 
