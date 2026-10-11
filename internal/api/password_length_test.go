@@ -15,7 +15,7 @@ func TestAPasswordOfTheWrongLengthIsRefusedWithACode(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 	for _, c := range []struct{ password, code string }{
-		{"äöüßäöü", "passwordTooShort"},
+		{"äöüßäöüéäöü", "passwordTooShort"},
 		{strings.Repeat("ä", 37), "passwordTooLong"},
 	} {
 		body, _ := json.Marshal(map[string]string{"current": "", "new": c.password})

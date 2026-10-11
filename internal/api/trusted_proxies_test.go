@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"net/netip"
+	"strconv"
 	"strings"
 	"testing"
 	"time"
@@ -34,7 +35,8 @@ func TestTheThrottleKeyIsTheCallerBehindATrustedProxy(t *testing.T) {
 		{"a trusted proxy without the header counts itself", "10.0.0.2:4000", proxy, nil, "10.0.0.2"},
 		{"proxies all the way stop at the left-most", "10.0.0.2:4000", proxy, []string{"10.0.0.9, 10.0.0.3"}, "10.0.0.9"},
 		{"a mapped address matches its IPv4 range", "[::ffff:10.0.0.2]:4000", proxy, []string{"203.0.113.5"}, "203.0.113.5"},
-		{"an IPv6 caller", "10.0.0.2:4000", proxy, []string{"2001:db8::7"}, "2001:db8::7"},
+		{"an IPv6 caller counts by its /64", "10.0.0.2:4000", proxy, []string{"2001:db8::7"}, "2001:db8::/64"},
+		{"a direct IPv6 caller counts by its /64", "[2001:db8:1:2:3:4:5:6]:4000", nil, nil, "2001:db8:1:2::/64"},
 	}
 	for _, c := range cases {
 		r, _ := http.NewRequest(http.MethodPost, "http://kl.lan/api/auth/login", nil)
@@ -178,5 +180,27 @@ func TestTheServedRelayBelievesOnlyTheTrustedProxies(t *testing.T) {
 			t.Errorf("with no trusted proxy, a header naming another caller answered %d, want the shared 429", code)
 		}
 		srv.Close()
+	}
+}
+
+// TestOneIPv6NetworkIsOneCaller: a home connection gets a /64 or more, so
+// counting each address would give one guesser more buckets than it could use.
+func TestOneIPv6NetworkIsOneCaller(t *testing.T) {
+	g := newLoginGate(nil)
+	from := func(addr string) *http.Request {
+		r, _ := http.NewRequest(http.MethodPost, "http://kl.lan/api/auth/login", nil)
+		r.RemoteAddr = "[" + addr + "]:4000"
+		return r
+	}
+	for i := range loginFailLimit {
+		if !g.try(from("2001:db8:0:1::" + strconv.Itoa(i+1))) {
+			t.Fatalf("attempt %d was refused before the limit", i+1)
+		}
+	}
+	if g.try(from("2001:db8:0:1:ffff::9")) {
+		t.Error("another address in the same /64 got an attempt past the limit")
+	}
+	if !g.try(from("2001:db8:0:2::1")) {
+		t.Error("an address in another /64 was refused with the first one's limit")
 	}
 }

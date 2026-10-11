@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"os"
+	"path/filepath"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
@@ -66,6 +68,52 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 	want := resetRemoved{TwoFactor: true, Passkeys: 1, Tokens: 2, Group: true}
 	if answer.Removed != want {
 		t.Errorf("the answer says %+v was removed, want %+v", answer.Removed, want)
+	}
+}
+
+// TestTheResetPageListsOnlyWhatWasRemoved: a token list or a group that could
+// not be written is still there, and the page must not say otherwise.
+func TestTheResetPageListsOnlyWhatWasRemoved(t *testing.T) {
+	srv, a, out := resetServer(t)
+	old, _, err := seedphrase.New()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := enterGroup(a, old, false); err != nil {
+		t.Fatal(err)
+	}
+	for _, name := range []string{"the phone", "the extension"} {
+		if _, _, err := a.APITokens.Create(name); err != nil {
+			t.Fatal(err)
+		}
+	}
+	// A folder where each file was makes every write of it fail.
+	for _, name := range []string{"tokens.json", "accounts.json"} {
+		path := filepath.Join(a.DataDir, name)
+		if err := os.Remove(path); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.Mkdir(path, 0o700); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	code := askForCode(t, srv.URL, out)
+	status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword)
+	if status != http.StatusOK {
+		t.Fatalf("the right code answered %d: %s", status, body)
+	}
+	var answer struct {
+		Removed resetRemoved `json:"removed"`
+	}
+	if err := json.Unmarshal(body, &answer); err != nil {
+		t.Fatal(err)
+	}
+	if left := len(a.APITokens.List()); answer.Removed.Tokens != 2-left {
+		t.Errorf("the answer says %d tokens were removed, and %d of 2 are left", answer.Removed.Tokens, left)
+	}
+	if answer.Removed.Group {
+		t.Error("the answer says the group was left, though the new phrase could not be stored")
 	}
 }
 

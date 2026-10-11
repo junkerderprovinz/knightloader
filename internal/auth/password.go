@@ -32,9 +32,13 @@ const (
 	argonPrefix    = "argon2id$"
 )
 
+// bcryptCost is a variable so the tests can hash at bcrypt's lowest cost,
+// which the race detector would otherwise slow to a second per hash.
+var bcryptCost = bcrypt.DefaultCost
+
 func hashPassword(key *appkey.Key, password string) ([]byte, error) {
 	if key == nil {
-		return bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+		return bcrypt.GenerateFromPassword([]byte(password), bcryptCost)
 	}
 	salt := make([]byte, argonSaltLen)
 	if _, err := rand.Read(salt); err != nil {

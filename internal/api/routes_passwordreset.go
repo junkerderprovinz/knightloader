@@ -239,10 +239,13 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 			// outlive the reset. The password is stored by then, so nothing
 			// here may fail the request.
 			endTheRest := func() {
-				removed.Tokens = len(a.APITokens.List())
+				// Counted after the removal, which keeps every token when it
+				// fails.
+				tokens := len(a.APITokens.List())
 				if err := a.APITokens.RevokeAll(); err != nil {
 					log.Printf("auth: password reset: revoking the API tokens: %v", err)
 				}
+				removed.Tokens = tokens - len(a.APITokens.List())
 				n, err := a.Store.DeleteAllPasskeys()
 				if err != nil {
 					log.Printf("auth: password reset: removing the passkeys: %v", err)
@@ -254,11 +257,18 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 				if err != nil {
 					log.Printf("auth: password reset: leaving the pairing group: %v", err)
 				}
-				removed.Group = group
+				removed.Group = group && err == nil
 				// A live stream was let in when it opened and would keep
 				// delivering to a session that has just ended.
 				a.Hub.DropAll()
 				removeResetCodeFile(a, "")
+			}
+			// The right code is looked for first and always passes. Anything
+			// else meets the gate before the rest of the request is read.
+			if !a.Auth.ResetCodeMatches(body.Code) && !gate.try(r) {
+				wrong.add()
+				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+				return
 			}
 			reset, err := a.Auth.FinishReset(body.Code, body.Password, endTheRest)
 			switch {
@@ -269,10 +279,6 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 				return
 			case errors.Is(err, auth.ErrCodeRejected):
 				wrong.add()
-				if !gate.try(r) {
-					http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-					return
-				}
 				writeRefusal(w, http.StatusUnauthorized, "codeRejected", err.Error(), nil)
 				return
 			case err != nil:
