@@ -18,6 +18,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/collide"
 	"github.com/junkerderprovinz/knightloader/internal/confirm"
 	"github.com/junkerderprovinz/knightloader/internal/crawler"
@@ -872,26 +873,20 @@ type Store struct {
 	// it kept a copy. Both are set only by Load.
 	unreadable error
 	backup     string
+
+	// appKey seals the secrets in the file; nil writes them as they are.
+	appKey *appkey.Key
 }
 
-// Load reads settings.json from dir, falling back to defaults.
+// Load reads settings.json from dir without an app key, falling back to
+// defaults.
 //
 // A file that does not read as a whole is copied aside first, or the next save
 // would make the loss permanent. A cut-off file reads as nothing, while a value
 // of the wrong type costs only its own field, since encoding/json decodes
 // everything around it.
 func Load(dir string) (*Store, error) {
-	s := &Store{path: filepath.Join(dir, "settings.json"), cur: Defaults()}
-	if b, err := os.ReadFile(s.path); err == nil {
-		// Unmarshal over defaults so new fields keep their default value.
-		if err := json.Unmarshal(b, &s.cur); err != nil {
-			s.keepUnreadable(b, err)
-		}
-		s.cur = migrate(b, s.cur)
-	}
-	s.cur = loadInstanceID(dir, s.cur)
-	s.cur = sanitize(s.cur)
-	return s, nil
+	return LoadWithKey(dir, nil)
 }
 
 // unreadablePrefix starts the name of the copy keepUnreadable makes, beside
@@ -1055,7 +1050,7 @@ func (s *Store) setLocked(n Settings) (Settings, error) {
 	// by row, before sanitize for the IDs.
 	n.EventPrograms = eventprog.Merge(n.EventPrograms, s.cur.EventPrograms)
 	n = sanitize(n)
-	b, err := json.MarshalIndent(n, "", "  ")
+	b, err := s.encode(n)
 	if err != nil {
 		return s.cur, err
 	}
