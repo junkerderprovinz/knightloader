@@ -41,7 +41,7 @@ however close it was. Passwords and two-factor codes share one count, passkeys
 and reset codes have one each. Behind a reverse proxy every request arrives
 from the proxy, so one person guessing makes everybody wait.
 
-**Trusted proxies** under Settings > Access, beside the password, fixes that.
+**Trusted proxies** under Settings > Security, beside the password, fixes that.
 Enter the proxy's address, one IP address or CIDR range per line, such as
 `172.17.0.1` or `10.0.0.0/8`. For a request from one of them, KnightLoader
 counts the right-most address in `X-Forwarded-For` that is not itself a

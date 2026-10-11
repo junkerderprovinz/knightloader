@@ -316,7 +316,7 @@ and cannot be explained.
   one. One saved with an `http://` address does not, since the app permits no
   cleartext traffic: its card says it has to be added again with the twelve
   words. Those builds took the address
-  typed in, scanned from the Access tab's QR or found with **Find on this
+  typed in, scanned from the QR code the Security page showed then or found with **Find on this
   network**, plus a token where the instance had a password.
 
   Find on this network, in those builds, asks every address on the phone's own

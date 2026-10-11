@@ -1139,7 +1139,7 @@ func qbitBearer(t *testing.T, srv *httptest.Server, secret, call string, form ur
 }
 
 // TestSonarrsRoundWorksWithAnAddAndReadToken walks Sonarr's calls with the
-// preset the Access page offers for it. Its cleanup of a finished torrent
+// preset the Security page offers for it. Its cleanup of a finished torrent
 // forgets the torrent, and the download stays, since the token cannot control;
 // a torrent still on its way is not forgotten.
 func TestSonarrsRoundWorksWithAnAddAndReadToken(t *testing.T) {
