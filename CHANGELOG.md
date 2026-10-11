@@ -37,6 +37,21 @@ release's tag.
 
 ## [Unreleased]
 
+### Security
+
+- **An app key keeps a copied data folder useless.** Set `KL_APP_KEY` once
+  (`openssl rand -hex 32`) and the password is hashed with Argon2id and
+  peppered with it, while the session key, the second factor, the recovery
+  codes, the key to the stored accounts and the passwords and tokens in
+  settings.json are sealed with it. An existing install seals its files at the
+  next start and keeps a copy of them first; the password moves over at the
+  next sign-in. Without the variable nothing changes, and Settings > Security
+  says how to add one. The desktop apps make their key themselves and keep it
+  in the system's credential store.
+- **Backups are encrypted with the app key.** A downloaded backup then opens
+  only on an instance with the same key, and a restore without it says which
+  key it needs. Backups made before still restore.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added
