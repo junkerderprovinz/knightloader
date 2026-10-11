@@ -217,6 +217,28 @@ func TestTheGuardAnswersAsInsideDataDoes(t *testing.T) {
 	}
 }
 
+// TestTheGuardNoticesAFolderAboveTurnedIntoALink: the guard has looked at a
+// folder, and the folder above it is then replaced by a link into the data
+// folder, which holds a folder of the same name. A file in it counts as inside.
+func TestTheGuardNoticesAFolderAboveTurnedIntoALink(t *testing.T) {
+	data := dataFolder(t)
+	out := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(out, "show", "tools"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	g := NewDataGuard(data)
+	if g.Inside(filepath.Join(out, "show", "tools", "e01.mkv")) {
+		t.Fatal("a folder outside the data folder counts as inside")
+	}
+	if err := os.RemoveAll(filepath.Join(out, "show")); err != nil {
+		t.Fatal(err)
+	}
+	linkTo(t, data, filepath.Join(out, "show"))
+	if !g.Inside(filepath.Join(out, "show", "tools", "e02.mkv")) {
+		t.Error("the guard kept its answer for a folder whose parent became a link into the data folder")
+	}
+}
+
 // TestTheGuardLooksAtEachFolderOnce: an archive of thousands of entries in a
 // few folders is checked file by file. Walking every entry's path up the tree
 // takes many times as long as looking at each folder once.
