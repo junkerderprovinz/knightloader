@@ -37,6 +37,7 @@ import {
   ok,
   restartTasks,
   recheckTasks,
+  renamePackage,
   setPackage,
   setTaskOptions,
   refusal,
@@ -84,10 +85,12 @@ import {
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
 import type { MenuGroup } from './ContextMenu';
-import { renameRefusal } from './RenameDialog';
+import type { Rename } from './ListToolbar';
+import { nameFault, renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
   FOLDER_GLYPH,
+  HEAD_LABEL,
   PARKED,
   Tip,
   TREE_INDENT,
@@ -100,6 +103,7 @@ import {
   resolveLayout,
   sharedPriority,
   toStored,
+  useHeadWidths,
   usePriorityNames,
   variantKindOf,
   PriorityTag,
@@ -149,6 +153,7 @@ import {
   IconPause,
   IconPlay,
   IconTrash,
+  IconPencil,
   IconRefresh,
   IconFolder,
   IconFolderOpen,
@@ -1420,8 +1425,7 @@ function Header({
               onDragEnd={() => setDragId(null)}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
-              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-meta font-semibold uppercase
-                tracking-wide transition-colors ${
+              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 ${HEAD_LABEL} transition-colors ${
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
@@ -1452,7 +1456,7 @@ function Header({
 }
 
 /** Which box was edited. Nothing else is sent; see TaskProperties. */
-type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
+type PropField = 'name' | 'package' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
 
 /**
  * The backends the selection can be pinned to, asked of the instance its rows
@@ -1525,9 +1529,51 @@ function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
   return tasks.every((x) => pick(x) === first) ? first : null;
 }
 
+/** One name of what is picked and the button that opens its rename window. */
+function NameLine({
+  name,
+  folder = false,
+  inset = false,
+  onRename,
+}: {
+  name: string;
+  /** A package, which stands over its links. */
+  folder?: boolean;
+  inset?: boolean;
+  onRename?: () => void;
+}) {
+  const { t } = useT();
+  return (
+    <div className={`flex min-h-[var(--btn-h)] min-w-0 items-center gap-2 ${inset ? 'ps-6' : ''}`}>
+      {folder && <IconFolder width={14} height={14} className="shrink-0 text-carbon-textMuted" />}
+      <Tip
+        tip={name}
+        className={`min-w-0 flex-1 truncate text-xs ${folder ? 'font-semibold text-carbon-text' : 'text-carbon-textSub'}`}
+      >
+        {name}
+      </Tip>
+      {onRename && (
+        <IconBadge
+          quiet
+          icon={<IconPencil width={16} height={16} />}
+          title={t('rename.menu')}
+          aria-label={`${t('rename.menu')}: ${name}`}
+          onClick={onRename}
+        />
+      )}
+    </div>
+  );
+}
+
 /**
  * TaskProperties edits what is selected, one row or forty, through the same
  * panel and the same request.
+ *
+ * It names what is picked. One link has its name in a box, and so has a
+ * package picked whole; both are saved with the rest. Names that cannot change
+ * together are listed, each with the rename window the right-click menu opens:
+ * the links of a larger selection, and a package only part of which is picked,
+ * since renaming it reaches the links that are not.
  *
  * A field is sent only if it was edited: not if it differs from what was
  * loaded, and not if it is non-empty. A selection whose rows disagree opens
@@ -1546,11 +1592,14 @@ export function TaskProperties({
   ids,
   tasks,
   base,
+  rename,
   autoFocus = false,
 }: {
   ids: string[];
   tasks: Task[];
   base: string;
+  /** The page's rename windows and its packages' members. Without it only a single link is named. */
+  rename?: Rename;
   /** Set only where the keyboard opened this panel. It renders below the list
    *  card, which on a five-thousand-row list is thousands of pixels down the
    *  page, so Enter would otherwise open a panel nobody can see. A double-click
@@ -1562,12 +1611,21 @@ export function TaskProperties({
   const priorities = usePriorities();
   const pinChoices = usePinChoices(ids, base);
 
+  const groups = useMemo(() => groupByPackage(tasks), [tasks]);
+  // The package every picked row is in, '' for rows outside any, and null when
+  // they are spread over several.
+  const pkg = groups.length === 1 ? groups[0][0] : null;
+  // Every link of that package on the page, which is what a rename reaches.
+  const members = rename && pkg ? rename.members(pkg) : [];
+  const whole = members.length > 0 && members.length === ids.length && members.every((x) => ids.includes(x.id));
+
   // Read once, at mount. The panel is remounted whenever the selection changes
   // (see the key in TaskListCard), so this is the only moment these values are
   // the ones the user is looking at; reading them again on every render would
   // pull a half-typed box back to what the server last broadcast.
   const [start] = useState(() => ({
     name: tasks.length === 1 ? tasks[0].name : '',
+    pkg: pkg ?? '',
     dir: agree(tasks, (x) => x.dir ?? ''),
     comment: agree(tasks, (x) => x.comment ?? ''),
     priority: agree(tasks, (x) => String(x.priority ?? 0)),
@@ -1576,6 +1634,7 @@ export function TaskProperties({
   }));
 
   const [name, setName] = useState(start.name);
+  const [pkgName, setPkgName] = useState(start.pkg);
   const [dir, setDir] = useState(start.dir ?? '');
   const [comment, setComment] = useState(start.comment ?? '');
   const [priority, setPriority] = useState(start.priority);
@@ -1616,6 +1675,28 @@ export function TaskProperties({
   const backends = (pinChoices ?? []).map((c) => ({ value: c.id, label: c.label || resolverLabel(c.id, t) }));
   if (pin && !backends.some((b) => b.value === pin)) backends.push({ value: pin, label: resolverLabel(pin, t) });
 
+  /** Renames the package picked whole. False when the name was refused. */
+  async function applyPackage(): Promise<boolean> {
+    const next = pkgName.trim();
+    if (next === pkg) return true;
+    const fault = nameFault(next);
+    if (fault) {
+      toast(t(fault), 'fail');
+      return false;
+    }
+    try {
+      await renamePackage(
+        members.map((x) => x.id),
+        next,
+        base,
+      );
+    } catch (e) {
+      toast(renameRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+      return false;
+    }
+    return true;
+  }
+
   async function apply(): Promise<void> {
     const opts: TaskOptionsPatch = {};
     if (touched.has('name')) opts.name = name;
@@ -1631,6 +1712,19 @@ export function TaskProperties({
     if (touched.has('resolver') && pin !== null) opts.resolver = pin;
 
     setBusy(true);
+    // The package first: a refused name leaves the other boxes unsent, to be
+    // saved together once the name is right.
+    if (touched.has('package') && whole && !(await applyPackage())) {
+      setBusy(false);
+      setShake((n) => n + 1);
+      return;
+    }
+    if (Object.keys(opts).length === 0) {
+      setBusy(false);
+      setTouched(new Set());
+      toast(t('settings.saved'), 'ok');
+      return;
+    }
     const r = await setTaskOptions(ids, opts, base);
     setBusy(false);
     if (!r.ok) {
@@ -1670,18 +1764,59 @@ export function TaskProperties({
           {t('props.title')}
         </SectionTitle>
 
-        {/* Only over a single row, and left out rather than greyed out over
-            several: a name is an identity, not a property. Forty rows given one
-            name are forty downloads pointed at one destination, which the
-            server refuses for the same reason. */}
-        {ids.length === 1 && (
-          <Field label={t('props.name')} hint={t('props.nameHint')}>
-            <TextInput
-              value={name}
-              spellCheck={false}
-              onChange={(e) => edit('name', setName)(e.target.value)}
-            />
-          </Field>
+        {/* A box only over a single row: a name is an identity, not a
+            property. Forty rows given one name are forty downloads pointed at
+            one destination, which the server refuses for the same reason. */}
+        {(ids.length === 1 || (rename && pkg)) && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ids.length === 1 && (
+              <Field label={t('props.name')} hint={t('props.nameHint')}>
+                <TextInput
+                  value={name}
+                  spellCheck={false}
+                  onChange={(e) => edit('name', setName)(e.target.value)}
+                />
+              </Field>
+            )}
+            {rename && pkg && whole && (
+              <Field label={t('pkg.name')} hint={t('rename.packageHint')}>
+                <TextInput
+                  value={pkgName}
+                  spellCheck={false}
+                  onChange={(e) => edit('package', setPkgName)(e.target.value)}
+                />
+              </Field>
+            )}
+            {rename && pkg && !whole && (
+              <FieldGroup label={t('pkg.name')} hint={t('rename.packageHint')}>
+                <NameLine name={pkg} folder onRename={() => rename.openPackage(pkg)} />
+              </FieldGroup>
+            )}
+          </div>
+        )}
+
+        {/* Several rows: every name, with its own rename. The packages head
+            their links only where the rows are spread over more than one,
+            since a single package stands in the row above. */}
+        {rename && ids.length > 1 && (
+          <FieldGroup label={t('props.name')} hint={t('props.namesHint')}>
+            <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+              {groups.map(([group, items]) => (
+                <Fragment key={group}>
+                  {groups.length > 1 && (
+                    <NameLine
+                      name={group || t('task.ungrouped')}
+                      folder
+                      onRename={group ? () => rename.openPackage(group) : undefined}
+                    />
+                  )}
+                  {items.map((x) => (
+                    <NameLine key={x.id} name={x.name} inset={groups.length > 1} onRename={() => rename.openLink(x.id)} />
+                  ))}
+                </Fragment>
+              ))}
+            </div>
+          </FieldGroup>
         )}
 
         {/* One row, not two stacked full-width fields: the same grid-cols-2
@@ -1809,10 +1944,13 @@ export function TaskListCard({
   count,
   fold,
   edge,
+  rename,
 }: {
   groups: [string, Task[]][];
   base: string;
   selection?: Selection;
+  /** The page's rename windows, which the properties panel offers per name. */
+  rename?: Rename;
   /**
    * Which stored layout this list uses. The collector and the downloads list
    * want different columns, and one shared layout would mean switching a column
@@ -1886,7 +2024,8 @@ export function TaskListCard({
   const stripRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
-  const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const heads = useHeadWidths(profile);
+  const layout = useMemo(() => resolveLayout(profile, stored, heads), [profile, stored, heads]);
   const switchShown = layout.visible.some((c) => c.id === 'enabled');
   const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
@@ -3602,6 +3741,7 @@ export function TaskListCard({
           ids={[...chosenIds]}
           tasks={chosen}
           base={base}
+          rename={rename}
           autoFocus={propertiesAutoFocus}
         />
       )}

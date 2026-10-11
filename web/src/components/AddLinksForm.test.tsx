@@ -83,19 +83,24 @@ function Card() {
   );
 }
 
-it('keeps Options, the file picker and Add on the card and the two standing ways in under Options', async () => {
+it('keeps the two standing ways in on the card as buttons that show their state', async () => {
   await act(async () => root.render(<Card />));
   // jsdom has no clipboard to read, which is where the paste button stays out.
-  expect(words(host)).toEqual(['Options', 'Choose a file', 'Add links']);
-  expect(toggle('Watch the clipboard')).toBeNull();
+  expect(words(host)).toEqual(['Options', "Click'n'Load", 'Watch the clipboard', 'Choose a file', 'Add links']);
+  expect(button("Click'n'Load").getAttribute('aria-pressed')).toBe('false');
+  expect(button('Watch the clipboard').getAttribute('aria-pressed')).toBe('false');
 
-  await act(async () => button('Options').click());
-  expect(toggle("Click'n'Load")?.getAttribute('aria-checked')).toBe('false');
-  expect(toggle('Watch the clipboard')).not.toBeNull();
-
-  await act(async () => toggle("Click'n'Load")!.click());
+  await act(async () => button("Click'n'Load").click());
   expect(switched).toEqual([{ enabled: true }]);
-  expect(toggle("Click'n'Load")?.getAttribute('aria-checked')).toBe('true');
+  expect(button("Click'n'Load").getAttribute('aria-pressed')).toBe('true');
+});
+
+it('leaves the two standing ways in out of the options window', async () => {
+  await act(async () => root.render(<Card />));
+  await act(async () => button('Options').click());
+  const dialog = document.querySelector('[role="dialog"]')!;
+  expect(dialog.textContent).not.toContain("Click'n'Load");
+  expect(dialog.textContent).not.toContain('Watch the clipboard');
 });
 
 it('asks for the options of a batch in a window and marks its button while one is set', async () => {
@@ -136,7 +141,14 @@ it('opens the same form in a window from the floating Add links, and closes it o
   await act(async () => button('Add links').click());
   const dialog = document.querySelector('[role="dialog"]')!;
   expect(dialog.querySelector('h2')?.textContent).toContain('Add links');
-  expect(words(dialog)).toEqual(['Options', 'Choose a file', 'Add links', 'Close']);
+  expect(words(dialog)).toEqual([
+    'Options',
+    "Click'n'Load",
+    'Watch the clipboard',
+    'Choose a file',
+    'Add links',
+    'Close',
+  ]);
 
   const box = dialog.querySelector('textarea')!;
   Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(box, 'https://example.com/a.bin');

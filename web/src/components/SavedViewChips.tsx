@@ -107,7 +107,7 @@ export function SavedViewChips({
       return;
     }
     // The window stays open and says why.
-    setRefusal(r.reason === 'full' ? t('views.full', { n: MAX_VIEWS }) : t('views.tooBig'));
+    setRefusal(r.reason === 'full' ? t('views.full', { n: MAX_VIEWS }) : t('views.tooBig', { filter: t('list.filter') }));
   }
 
   // select="many" with at most one lit id: clicking the lit chip clears it, and

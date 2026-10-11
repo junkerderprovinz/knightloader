@@ -17,7 +17,12 @@
 //                                 Accounts page, in the order on Settings,
 //                                 Captcha and in the captcha window alike; not
 //                                 "solver" or "Löser"
-//   das Token                     German takes the neuter, as "Leg eins an" does
+//   the link collector            the page, its list's home and its settings
+//                                 card carry the name the navigation gives
+//                                 them (Linksammler) in the web interface; the
+//                                 collector on the Health page is a monitoring
+//                                 tool and keeps the bare word
+//   das Token                   German takes the neuter, as "Leg eins an" does
 //   Ihr at a sentence start       reads as the formal "your" in a du interface
 //
 // A hint that sends the reader to a switch names it as the switch reads.
@@ -68,6 +73,8 @@ const LINK_SWITCH = [
   /^disk\.queuedHint$/,
 ];
 
+const METRICS = [/^settings\.health\.scrapeHint$/];
+
 const rules = [
   { book: /en$/, words: /Torrent and magnet|\bbuilt-in client\b|\btorrent engine\b/i, why: 'the built-in torrent client has one name' },
   { book: /de$/, words: /Torrent & Magnet|\beingebaute[nmrs]? Client|Torrent-Engine/, why: 'der eingebaute Torrent-Client hat einen Namen' },
@@ -87,6 +94,8 @@ const rules = [
   },
   { book: /en$/, keys: PRIORITY_ROW, words: /\bresolvers?\b|(?<!debrid )\bservices?\b/i, why: 'a row of the priority order is a backend' },
   { book: /de$/, keys: PRIORITY_ROW, words: /Resolver|(?<!Debrid-)\bDienst(e|en|es)?\b/, why: 'eine Zeile der Prioritätsreihenfolge ist ein Backend' },
+  { book: /^web en$/, except: METRICS, words: /(?<!link )\bcollector\b/i, why: 'the page is the link collector' },
+  { book: /^web de$/, except: METRICS, words: /(?<![Ll]ink)Sammler/, why: 'die Seite heißt Linksammler' },
   { book: /en$/, words: /\bsolv(er|ers|ing service)\b/i, why: 'a paid captcha service is a captcha account' },
   { book: /de$/, words: /Löser|Lösedienst/, why: 'ein bezahlter Captcha-Dienst ist ein Captcha-Konto' },
   {
@@ -104,6 +113,7 @@ for (const [book, values] of Object.entries(books)) {
     if (!rule.book.test(book)) continue;
     for (const [key, value] of values) {
       if (rule.keys && !rule.keys.some((k) => k.test(key))) continue;
+      if (rule.except?.some((k) => k.test(key))) continue;
       checked++;
       // A placeholder such as {held} is a name for code, not for the reader.
       const hit = rule.words.exec(value.replace(/\{\w+\}/g, ''));

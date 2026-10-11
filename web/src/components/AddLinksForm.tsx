@@ -9,7 +9,9 @@
 // The collector draws it as its first card. The pages that list downloads
 // without holding the form open it in a window instead (AddLinksAction.tsx).
 // The batch's options open in a window of their own, and the button that opens
-// it is marked while one of them is set, since they apply unseen.
+// it is marked while one of them is set, since they apply unseen. Click'n'Load
+// and the clipboard watch stand beside it as buttons that show their state:
+// they bring links in by themselves and belong to no batch.
 import { useEffect, useState, type CSSProperties } from 'react';
 import { hueVars } from '../lib/appearance';
 import {
@@ -23,7 +25,7 @@ import { useToast } from '../lib/toast';
 import { useUIState } from '../lib/uistate';
 import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
-import { LinkIntakeSwitches } from './LinkIntakeSwitches';
+import { LinkIntakeButtons } from './LinkIntakeButtons';
 import { Tabs } from './Tabs';
 import { Button, Field, FieldGroup, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
 import { IconAdd, IconClose, IconCollector, IconFolder, IconGear } from '../lib/icons';
@@ -229,11 +231,11 @@ export function AddLinksForm({
     </div>
   );
 
-  // Options opens the batch's settings and the two standing ways in, and the
-  // three ways to hand links over end the row. With labels on, the row is wider
-  // than a narrow card, so it wraps, and the trailing actions wrap as one group
-  // pushed over by ms-auto. A flex-1 spacer would drop everything after it to a
-  // line of its own.
+  // Options opens the batch's settings, the two standing ways in follow it,
+  // and the three ways to hand links over end the row. With labels on, the row
+  // is wider than a narrow card, so it wraps, and the trailing actions wrap as
+  // one group pushed over by ms-auto. A flex-1 spacer would drop everything
+  // after it to a line of its own.
   const optionsSet =
     dir.trim() !== '' ||
     priority !== null ||
@@ -265,12 +267,13 @@ export function AddLinksForm({
           />
         )}
       </span>
+      <LinkIntakeButtons hue={1} />
       <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
         <PasteFromClipboardButton pkg={pkg} />
         <IconBadge
           labelled
           icon={<IconFolder width={16} height={16} />}
-          hue={1}
+          hue={3}
           title={t('container.choose')}
           aria-label={t('container.choose')}
           onClick={onChooseFile}
@@ -278,7 +281,7 @@ export function AddLinksForm({
         <IconBadge
           labelled
           icon={<IconAdd width={16} height={16} />}
-          hue={2}
+          hue={4}
           title={t('collector.add')}
           aria-label={t('collector.add')}
           className={bare ? 'bg-accent text-accentContrast hover:bg-accentHover' : ''}
@@ -292,11 +295,6 @@ export function AddLinksForm({
 
   const options = (
     <>
-      {/* The two ways links come in by themselves. They are no part of a
-          batch, and they stand first because they are what is looked for
-          here most. */}
-      <LinkIntakeSwitches />
-
       <Field label={t('collector.package')}>
         <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} className="max-w-xs" />
       </Field>
@@ -406,7 +404,7 @@ export function AddLinksForm({
           needs the hueVars style beside it. */}
       <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(0) as CSSProperties}>
         <div className="px-4 pt-3">
-          <SectionTitle>{t('collector.addTitle')}</SectionTitle>
+          <SectionTitle>{t('nav.collector')}</SectionTitle>
         </div>
         {box}
         {actions}

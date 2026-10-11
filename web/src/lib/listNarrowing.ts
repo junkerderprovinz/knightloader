@@ -70,8 +70,8 @@ function facetValues(raw: unknown): string[] {
 
 /**
  * sanitiseNarrowing reads a stored document back into something the page can
- * trust. `keepFacets` is false for the download list, which has no facet
- * sidebar and so could never show or clear stored facets.
+ * trust. `keepFacets` is false for the download list, whose Filter window
+ * has no facets and so could never show or clear stored ones.
  */
 export function sanitiseNarrowing(
   raw: unknown,

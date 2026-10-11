@@ -51,6 +51,15 @@ export function linkRenameNote(task: Task): { key: TranslationKey; blocked: bool
   return null;
 }
 
+/**
+ * nameFault says what is wrong with a name before anything is sent. The server
+ * refuses such a name too, but in English.
+ */
+export function nameFault(name: string): TranslationKey | null {
+  if (name === '') return 'rename.empty';
+  return /[\\/]/.test(name) ? 'rename.separator' : null;
+}
+
 function RenameWindow({
   title,
   label,
@@ -94,10 +103,9 @@ function RenameWindow({
       onClose();
       return;
     }
-    // The server refuses it too, but in English; this says it in the
-    // reader's language before anything is sent.
-    if (/[\\/]/.test(clean)) {
-      toast(t('rename.separator'), 'fail');
+    const fault = nameFault(clean);
+    if (fault) {
+      toast(t(fault), 'fail');
       setShake((n) => n + 1);
       return;
     }
