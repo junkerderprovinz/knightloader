@@ -58,6 +58,17 @@ release's tag.
 - **A group member no longer sees archive or download passwords,** a sign-in
   or passkey inside a link, or a private tracker's passkey. API tokens without
   the Admin right get the same redacted task list, on the live stream too.
+- **Group members and API tokens without the Admin right no longer see a
+  sign-in or passkey in any link.** That covers a task named after its link
+  because the link names no file, an error that quotes a link, the phone's
+  watch list, folded links and the download history.
+- **With an app key, settings.json also seals the addresses of event targets
+  and feeds,** an event target's body, and the reconnect requests and script,
+  the same way it seals passwords.
+- **The diagnostics bundle and the log no longer carry tokens from links.**
+  The bundle shows event targets and feeds by host only and hides the
+  reconnect requests and script. Log lines drop the sign-in and API keys from
+  any link they quote.
 - **A group member picks a download folder only inside your download folder
   or a category's folder, and can remove rows but not erase the files behind
   them.**
