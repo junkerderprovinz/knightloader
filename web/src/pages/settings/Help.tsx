@@ -1,5 +1,4 @@
 import { type ReactNode, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useT } from '../../lib/i18n';
 import { Button, Card, InfoBubble, LinkBadge, SectionTitle, type ButtonVerdict } from '../../components/ui';
 import {
@@ -13,7 +12,17 @@ import {
   type YtdlpLatest,
 } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import { IconBook, IconCheck, IconClose, IconDiagnostics, IconDownload, IconGithub, IconInfo, IconRefresh } from '../../lib/icons';
+import {
+  IconBook,
+  IconBookOpen,
+  IconCheck,
+  IconClose,
+  IconDiagnostics,
+  IconDownload,
+  IconGithub,
+  IconInfo,
+  IconRefresh,
+} from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -28,172 +37,18 @@ import { saveDiagnostics } from './diagnostics/bundle';
 import { PageBadge } from './ModuleToggle';
 
 /**
- * A help topic answers a question people have ("how do I get past a hoster
- * limit") and points at the settings page that controls it. The topics are
- * written by hand against what the build ships rather than generated from the
- * feature registry, whose reasons explain a grey switch, not a feature.
- * check-docs-claims.mjs keeps the settings.help.* keys read here equal to the
- * ones in en.ts.
- */
-function Topic({
-  title,
-  children,
-  links,
-  hue,
-}: {
-  title: string;
-  children: ReactNode;
-  links?: { to: string; label: string }[];
-  hue?: number;
-}) {
-  const navigate = useNavigate();
-  return (
-      <Card hue={hue} className="flex flex-col gap-3">
-        <SectionTitle>{title}</SectionTitle>
-        <div className="flex flex-col gap-2 text-sm text-carbon-textSub">{children}</div>
-        {links && links.length > 0 && (
-          <div className="flex flex-wrap gap-2 pt-1">
-            {links.map((l) => (
-              <Button key={l.to} kind="secondary" onClick={() => navigate(l.to)}>
-                {l.label}
-              </Button>
-            ))}
-          </div>
-        )}
-      </Card>
-  );
-}
-
-function Bullets({ items }: { items: string[] }) {
-  return (
-    <ul className="flex flex-col gap-1.5 ps-4">
-      {items.map((it, i) => (
-        <li key={i} className="list-disc marker:text-carbon-textMuted">
-          {it}
-        </li>
-      ))}
-    </ul>
-  );
-}
-
-/**
- * Help draws the Info tile, the last one in Settings (GlimStone's "The Info
- * tile and the About card"): who made the app, every version it is made of and
- * the ways to report something, with the help topics under them.
+ * Help draws the Info tile, the last one in Settings: every version the app is
+ * made of, the ways to report something and who made the app, in the order of
+ * BombVault's Info tile. What the app can do is told by the manual, which the
+ * Help card opens.
  */
 export function Help() {
-  const { t } = useT();
-
   return (
     <div data-new="info-tile" className="flex flex-col gap-10">
       {/* The hues number the cards in draw order; renumber when adding one. */}
-      <About hue={0} />
-      <Versions hue={1} />
-      <Report hue={2} />
-
-      <Topic
-        title={t('settings.help.intake.title')}
-        hue={3}
-        links={[{ to: '/settings/collector', label: t('settings.help.intake.link1') }]}
-      >
-        <p>{t('settings.help.intake.body')}</p>
-        <Bullets
-          items={[
-            t('settings.help.intake.b1'),
-            t('settings.help.intake.b2'),
-            t('settings.help.intake.b3'),
-            t('settings.help.intake.watchFiles'),
-            t('settings.help.intake.nzb'),
-          ]}
-        />
-      </Topic>
-
-      <Topic
-        title={t('settings.help.collector.title')}
-        hue={4}
-        links={[{ to: '/settings/collector', label: t('settings.help.collector.link') }]}
-      >
-        <p>{t('settings.help.collector.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.rules.title')}
-        hue={5}
-        links={[{ to: '/settings/rules', label: t('settings.help.rules.link') }]}
-      >
-        <p>{t('settings.help.rules.body')}</p>
-      </Topic>
-
-      <Topic title={t('settings.help.queue.title')} hue={6}>
-        <p>{t('settings.help.queue.body')}</p>
-        <Bullets items={[t('settings.help.queue.b1'), t('settings.help.queue.b2')]} />
-      </Topic>
-
-      <Topic
-        title={t('settings.help.limits.title')}
-        hue={7}
-        links={[
-          { to: '/settings/network', label: t('settings.help.limits.link1') },
-          { to: '/accounts', label: t('settings.help.limits.link3') },
-        ]}
-      >
-        <p>{t('settings.help.limits.body')}</p>
-        <Bullets items={[t('settings.help.limits.b1'), t('settings.help.limits.b2'), t('settings.help.limits.b3')]} />
-      </Topic>
-
-      <Topic
-        title={t('settings.help.captcha.title')}
-        hue={8}
-        links={[{ to: '/settings/captcha', label: t('settings.help.captcha.link') }]}
-      >
-        <p>{t('settings.help.captcha.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.after.title')}
-        hue={9}
-        links={[
-          { to: '/settings/archives', label: t('settings.help.after.link1') },
-          { to: '/settings/downloads', label: t('settings.help.after.link2') },
-        ]}
-      >
-        <p>{t('settings.help.after.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.schedule.title')}
-        hue={10}
-        links={[{ to: '/settings/automation', label: t('settings.help.schedule.link') }]}
-      >
-        <p>{t('settings.help.schedule.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.instances.title')}
-        hue={11}
-        links={[{ to: '/instances', label: t('settings.help.instances.link') }]}
-      >
-        <p>{t('settings.help.instances.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.access.title')}
-        hue={12}
-        links={[
-          { to: '/settings/access', label: t('settings.help.access.link1') },
-          { to: '/settings/diagnostics', label: t('settings.help.access.link2') },
-        ]}
-      >
-        <p>{t('settings.help.access.body')}</p>
-      </Topic>
-
-      <Topic
-        title={t('settings.help.advanced.title')}
-        hue={13}
-        links={[{ to: '/settings/advanced', label: t('settings.help.advanced.link') }]}
-      >
-        <p>{t('settings.help.advanced.body')}</p>
-      </Topic>
+      <Versions hue={0} />
+      <Report hue={1} />
+      <About hue={2} />
     </div>
   );
 }
@@ -206,7 +61,7 @@ const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 
 /**
  * About says who made the app and on what terms, then offers the ways to give.
- * It is the first card of the Info tile. Its buttons are the README's
+ * It is the last card of the Info tile. Its buttons are the README's
  * (GlimStone's "The App tab"), one line each, every one with its mark.
  */
 export function About({ hue }: { hue: number }) {
@@ -486,9 +341,24 @@ function Versions({ hue }: { hue: number }) {
 }
 
 /**
+ * BookMark is the manual's book, closed at rest and open while its button is
+ * pointed at, pressed or focused, as the envelope beside it is.
+ */
+function BookMark() {
+  return (
+    <span className="glim-mark-opens contents">
+      <IconBook tight className="glim-mark-rest" />
+      <IconBookOpen tight className="glim-mark-hover" />
+    </span>
+  );
+}
+
+/**
  * Report holds the ways to report something: the repository, a mail, the
  * manual and the diagnostics bundle as a file to attach to an issue. The
- * sentence sits directly above the buttons it asks for.
+ * sentence sits directly above the buttons it asks for. The glyphs are drawn
+ * tight, so each fills the mark's box as the envelope does, which comes
+ * cropped to its ink.
  */
 function Report({ hue }: { hue: number }) {
   const { t } = useT();
@@ -499,7 +369,7 @@ function Report({ hue }: { hue: number }) {
     try {
       await saveDiagnostics();
     } catch (e) {
-      toast(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      toast(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:s*/, '') }), 'fail');
     }
   }
 
@@ -512,7 +382,7 @@ function Report({ hue }: { hue: number }) {
         <ReadmeButton
           brand="github"
           parts={[{ name: t('settings.about.github'), href: REPO_URL }]}
-          mark={<IconGithub />}
+          mark={<IconGithub tight />}
           markClass="glim-github-mark"
         />
         {/* The one control without a vendor's mark: it reaches this app's
@@ -522,13 +392,13 @@ function Report({ hue }: { hue: number }) {
         <ReadmeButton
           brand="house"
           parts={[{ name: t('settings.about.mail'), onClick: () => openMail(mailto) }]}
-          mark={<BrandMark svg={MAIL_SVG} />}
+          mark={<BrandMark svg={MAIL_SVG} className="glim-mark-opens" />}
           markClass="glim-house-mark"
         />
         <ReadmeButton
           brand="github"
           parts={[{ name: t('settings.info.manual'), sub: t('settings.info.manualOpen'), href: MANUAL_URL }]}
-          mark={<IconBook />}
+          mark={<BookMark />}
         />
         {/* The file goes with an issue on GitHub, so it lights up beside it. */}
         <ReadmeButton
@@ -540,7 +410,7 @@ function Report({ hue }: { hue: number }) {
               onClick: () => void onBugReport(),
             },
           ]}
-          mark={<IconDiagnostics />}
+          mark={<IconDiagnostics tight />}
         />
       </div>
     </Card>

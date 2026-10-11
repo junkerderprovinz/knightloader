@@ -34,6 +34,14 @@ describe('the generated glyphs', () => {
     viewBox(markup(name)).forEach((n, i) => expect(Math.abs(n - want[i])).toBeLessThan(side / 1000));
   });
 
+  it.each(drawn)('$name drawn tight fills the box the list crops it to', ({ name, viewBox: crop }) => {
+    const Icon = components[name] as ComponentType<glyphs.GlyphProps>;
+    const [x, y, side] = crop.split(' ').map(Number);
+    viewBox(renderToStaticMarkup(<Icon tight />)).forEach((n, i) =>
+      expect(Math.abs(n - [x, y, side, side][i])).toBeLessThan(side / 1000),
+    );
+  });
+
   it.each(drawn)('$name is the drawing the list has', ({ name, svg }) => {
     const shapes = (s: string) => [...s.matchAll(/<(path|rect|circle|ellipse)\b/g)].length;
     const paths = (s: string) => [...s.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);

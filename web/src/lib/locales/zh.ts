@@ -1532,72 +1532,6 @@ export const zh: Dict = {
 
   'settings.nav.help': '信息',
 
-  'settings.help.intake.title': '添加下载',
-  'settings.help.intake.body':
-    '把链接粘贴到收集器里，每行一个，或者是一段杂乱的文字。扫描会找出链接，无论它们在哪里：句子中间、一行多个，或者被邮件客户端拆成两行。',
-  'settings.help.intake.b1': '拖放一个链接容器文件（.dlc、.ccf、.rsdf）或一份简单的链接列表。',
-  'settings.help.intake.b2':
-    '网盘和论坛页面上的 Click\'n\'Load 按钮照常可用。KnightLoader 在 127.0.0.1:9666 上响应，这和其他所有下载器用的端口相同。',
-  'settings.help.intake.b3':
-    '粘贴页面 URL 而非文件链接，并打开爬取，以提取它链接到的每个文件，而不是下载页面本身。',
-  'settings.help.intake.link1': '打开链接收集器设置',
-
-  'settings.help.collector.title': '收集器，在任何内容下载之前',
-  'settings.help.collector.body':
-    '新链接首先到达收集器，而不是队列：这是一个过渡区域，用于在任何内容开始之前检查名称、大小和重复警告。自动确认可以跳过此步骤，并可选延迟；一旦确认，链接要么立即开始，要么在队列中等待，取决于自动开始设置。',
-  'settings.help.collector.link': '打开链接收集器设置',
-
-  'settings.help.rules.title': '规则：包、文件夹以及保留的内容',
-  'settings.help.rules.body':
-    'Packagizer 在链接到达时，按你写的条件给它重命名、选择文件夹并设置下载选项。链接过滤决定一个链接到底要不要保留。每次拒绝都会说明是哪条规则导致的，以及原因。',
-  'settings.help.rules.link': '打开规则',
-
-  'settings.help.queue.title': '管理队列',
-  'settings.help.queue.body':
-    '暂停、继续或重新排序任何链接，可以单个操作，也可以整个包一起。停止队列有两种方式。暂停队列不会碰已经在运行的任务，它们会自己完成。立即停止所有传输则会先显示会丢失什么，只有在你确认后才执行。这个警告是为那些无法从中断处继续的传输准备的。',
-  'settings.help.queue.b1': '单个链接可以覆盖全局连接数或下载后解压开关。',
-  'settings.help.queue.b2': '列表中已存在的链接的重复项总是会被拒绝，甚至在它到达收集器之前。',
-
-  'settings.help.limits.title': '绕过托管商限制',
-  'settings.help.limits.body': '三种独立的方法可以防止免费限制成为上限：',
-  'settings.help.limits.b1':
-    '连接：把下载分散到多条出站路径上（第二条线路、代理、SOCKS），而不是总从这台机器自己的地址出去。',
-  'settings.help.limits.b2':
-    '重新拨号：向路由器要一个新的公网地址，只有这样才能解除和地址本身绑定的限制。可以通过 UPnP、外部程序、脚本，或者向路由器管理页面重放 HTTP 请求来实现。现有的 JDownloader LiveHeader/curl 脚本无需改动即可使用。',
-  'settings.help.limits.b3':
-    '账户：保存高级账户或 debrid 的登录信息（Real-Debrid、AllDebrid、TorBox 等），让符合条件的链接以满速下载，而不是受免费用户的限制。',
-  'settings.help.limits.link1': '打开网络',
-  'settings.help.limits.link3': '打开账户',
-
-  'settings.help.captcha.title': '验证码',
-  'settings.help.captcha.body':
-    '当网盘要求验证码时，会先按你设定的顺序尝试你配置的验证码账户。如果一个都没配置，或者没有一个能解开，验证码就会交给你，而不是悄无声息地失败。',
-  'settings.help.captcha.link': '打开验证码设置',
-
-  'settings.help.after.title': '下载完成后',
-  'settings.help.after.body':
-    '压缩包会自动解压：zip（包括加密的，WinZip AES 和旧式 ZipCrypto 都支持）、带多卷的 rar、7z、tar，以及无论是否包着 tar 的 gzip/bzip2/xz/zstd。解压由纯 Go 实现，不需要外部的 unrar 或 7z 程序。遇到加密的压缩包，会按顺序尝试一份密码列表。完成的文件会与随附的任何校验和进行核对：.sfv 列表、md5/sha1/sha256sum 文件，或者发布名称本身带的 CRC32。',
-  'settings.help.after.link1': '打开压缩包设置',
-  'settings.help.after.link2': '打开下载设置',
-
-  'settings.help.schedule.title': '无人值守运行',
-  'settings.help.schedule.body':
-    '每周计划按时钟暂停队列或限制其速度，比如在夜间时间段，并且在夏令时切换时依然准确。和 JDownloader 的 Scheduler 是同一个思路。',
-  'settings.help.schedule.link': '打开自动化',
-
-  'settings.help.instances.title': '运行多个实例',
-  'settings.help.instances.body': '把另一台 KnightLoader 添加为对端，它的队列也会出现在这块面板上。在同一网络里，这是直接调用对方实例自己的 API，和浏览器的做法一样。跨网络时，十二个词通过一个你可以自建的中继把两者配对。',
-  'settings.help.instances.link': '打开实例',
-
-  'settings.help.access.title': '访问与故障排除',
-  'settings.help.access.body': '设置密码后，整个界面都会被锁住，只有带着会话 cookie 才能使用。“安全”页面里有这个密码，以及双重验证、通行密钥和 API 令牌。“诊断”页面会生成一个文件，用于附到错误报告里：版本和构建信息、去掉了所有密码的当前设置、这个进程自己最近的日志行，以及正在运行的 goroutine 数量。',
-  'settings.help.access.link1': '打开“安全”页面',
-  'settings.help.access.link2': '打开诊断',
-
-  'settings.help.advanced.title': '其他所有内容',
-  'settings.help.advanced.body':
-    '这个构建版本的每一项设置，都可以在高级页面上通过原始名称读取和修改。其中也包括几项目前在别处还没有专门控件的设置，比如已下载文件的镜像如何处理，以及下载要落到一个已被占用的名字上时会怎样。',
-  'settings.help.advanced.link': '打开高级设置',
   'task.mode.free': '免费',
   'task.mode.premium': '会员',
   'settings.about.title': '关于 KnightLoader',
@@ -3344,11 +3278,9 @@ export const zh: Dict = {
   'settings.categories.torrentFilesOwn': '单独设置',
   'settings.watchDirFilesHint': '放到这里的文件会被自动接收：链接列表（.txt、.crawljob、.magnet）、.torrent 文件、容器（.dlc、.ccf、.rsdf）和 .nzb 文件。',
   'container.usenet': '{file} 已交给 {service}。等 {service} 从 Usenet 取回文件后，它们就会出现在这里。',
-  'settings.help.intake.watchFiles': '监视文件夹会接收放进去的东西：链接列表（.txt、.crawljob、.magnet）、.torrent 文件、容器（.dlc、.ccf、.rsdf）和 .nzb 文件。',
   'container.nzbTooBig': '它超过了 {max}，这是 .nzb 允许的最大大小',
   'container.noUsenet': '它是 .nzb，这里没有任何东西能从 Usenet 获取它。请在“账户”下添加一个 Usenet 服务器，或者一个 TorBox 或 Premiumize.me 账户。',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '一个 .nzb，无论是在这里上传的，还是 Sonarr 或 Radarr 发来的，都会交给你自己的 Usenet 服务器，或者你的 TorBox 或 Premiumize.me 账户，具体看“账户”下优先级顺序中谁排在前面。你自己的服务器会立刻获取每个文件。debrid 服务会先获取整个资源，之后其中的文件再像其他链接一样下载。TorBox 只在包含 Usenet 的套餐上接收 .nzb 文件。如果 TorBox 拒收第一个，这个 .nzb 就会失败，除非有其他账户接手。',
   'task.remote': '正在 {service} 上获取',
   'task.remoteSeeds': '做种数：{n}',
   'accounts.routing.orderHintTorrents': '磁力链接和 .torrent 文件要么交给内置种子客户端，要么交给支持种子的 Debrid 服务，看哪个在列表里排得更靠上。',

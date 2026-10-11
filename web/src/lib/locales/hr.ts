@@ -1533,72 +1533,6 @@ export const hr: Dict = {
 
   'settings.nav.help': 'Informacije',
 
-  'settings.help.intake.title': 'Dodavanje preuzimanja',
-  'settings.help.intake.body':
-    'Zalijepi poveznice u sakupljač, jednu po retku ili kao neuredan tekst. Pretraga pronalazi poveznice gdje god stoje: usred rečenice, više njih u retku ili ih je klijent e-pošte prelomio u dva retka.',
-  'settings.help.intake.b1': 'Ispustite datoteku spremnika veza (.dlc, .ccf, .rsdf) ili obični popis veza.',
-  'settings.help.intake.b2':
-    'Gumbi Click\'n\'Load na stranicama hostera i foruma rade bez promjena. KnightLoader odgovara na 127.0.0.1:9666, istom portu koji koristi svaki drugi upravitelj preuzimanja.',
-  'settings.help.intake.b3':
-    'Zalijepite URL stranice umjesto veze na datoteku i uključite Pretraživanje kako biste izvukli svaku datoteku na koju upućuje, umjesto preuzimanja same stranice.',
-  'settings.help.intake.link1': 'Otvori postavke Sakupljača poveznica',
-
-  'settings.help.collector.title': 'Kolektor, prije nego što se išta preuzme',
-  'settings.help.collector.body':
-    'Nove veze najprije stižu u Kolektor, a ne u red čekanja: prijelazna zona za provjeru naziva, veličina i upozorenja o duplikatima prije nego što išta počne. Automatska potvrda može preskočiti ovaj korak, s neobaveznim odgodom; nakon potvrde, veza ili odmah počinje preuzimati ili čeka u redu, ovisno o automatskom pokretanju.',
-  'settings.help.collector.link': 'Otvori postavke Sakupljača poveznica',
-
-  'settings.help.rules.title': 'Pravila: paketi, mape i što se zadržava',
-  'settings.help.rules.body':
-    'Packagizer preimenuje poveznicu, bira njezinu mapu i postavlja njezine opcije preuzimanja kad stigne, prema uvjetima koje napišeš. Filtar poveznica odlučuje hoće li se poveznica uopće zadržati. Odbijanje uvijek navodi pravilo koje ga je uzrokovalo i zašto.',
-  'settings.help.rules.link': 'Otvori Pravila',
-
-  'settings.help.queue.title': 'Upravljanje redom čekanja',
-  'settings.help.queue.body':
-    'Pauziraj, nastavi ili presloži bilo koju poveznicu, pojedinačno ili kao cijeli paket. Red čekanja može se zaustaviti na dva načina. Zaustavljanje reda ostavlja netaknutim sve što već radi, pa to završi samo od sebe. Trenutačno zaustavljanje svih prijenosa najprije pokazuje što bi se izgubilo i nastavlja tek kad potvrdiš. Upozorenje postoji zbog prijenosa koji ne mogu nastaviti ondje gdje su stali.',
-  'settings.help.queue.b1': 'Jedna veza može nadjačati globalni broj veza ili prekidač raspakiravanja nakon preuzimanja.',
-  'settings.help.queue.b2': 'Duplikat veze koja je već na popisu uvijek se odbija, čak i prije nego što ikad stigne do Kolektora.',
-
-  'settings.help.limits.title': 'Zaobilaženje ograničenja hostera',
-  'settings.help.limits.body': 'Tri neovisna načina da besplatno ograničenje ne bude strop:',
-  'settings.help.limits.b1':
-    'Veze: raspodijeli preuzimanja na više od jednog izlaznog puta (druga linija, proxy, SOCKS) umjesto da uvijek izlaze preko vlastite adrese ovog računala.',
-  'settings.help.limits.b2':
-    'Ponovno spajanje: zatraži od usmjerivača novu javnu adresu, jedino što ukida ograničenje vezano uz samu adresu. To radi preko UPnP-a, vanjskog programa, skripte ili ponovnog slanja HTTP zahtjeva administracijskoj stranici usmjerivača. Postojeće JDownloader LiveHeader/curl skripte rade bez promjena.',
-  'settings.help.limits.b3':
-    'Računi: spremi premium ili debrid prijave (Real-Debrid, AllDebrid, TorBox i drugi) kako bi se prihvatljiva poveznica dohvaćala punom brzinom umjesto uz ograničenje za besplatne korisnike.',
-  'settings.help.limits.link1': 'Otvori Mrežu',
-  'settings.help.limits.link3': 'Otvori Račune',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Kad hoster zatraži captchu, najprije se isprobavaju računi captche koje si postavio, redoslijedom koji si odredio. Ako nijedan nije postavljen ili je nijedan ne može riješiti, captcha se prikazuje tebi umjesto da tiho propadne.',
-  'settings.help.captcha.link': 'Otvori postavke Captcha',
-
-  'settings.help.after.title': 'Nakon preuzimanja',
-  'settings.help.after.body':
-    'Arhive se raspakiravaju automatski: zip (i šifrirane, i WinZip AES i stariji ZipCrypto), rar s višedijelnim skupovima, 7z, tar te gzip/bzip2/xz/zstd, bez obzira omotavaju li tar. Raspakiravanje je čisti Go i ne treba vanjske programe unrar ni 7z. Za šifriranu arhivu redom se isprobava popis lozinki. Gotova datoteka provjerava se prema kontrolnom zbroju koji je stigao s njom: popisu .sfv, datoteci md5/sha1/sha256sum ili CRC32 koji nosi sam naziv izdanja.',
-  'settings.help.after.link1': 'Otvori postavke Arhiva',
-  'settings.help.after.link2': 'Otvori postavke Preuzimanja',
-
-  'settings.help.schedule.title': 'Rad bez nadzora',
-  'settings.help.schedule.body':
-    'Tjedni raspored pauzira ili usporava red čekanja prema satu, primjerice u noćnom prozoru, i ostaje točan i pri prijelazu na ljetno vrijeme. Ista je to ideja kao Scheduler u JDownloaderu.',
-  'settings.help.schedule.link': 'Otvori Automatizaciju',
-
-  'settings.help.instances.title': 'Pokretanje više od jedne instance',
-  'settings.help.instances.body': 'Dodaj još jedan KnightLoader kao partnera i njegov red pojavit će se i na ovoj nadzornoj ploči. U istoj mreži to je izravan poziv API-ju druge instance, kao što bi ga napravio preglednik. Preko mreža, dvanaest riječi povezuje njih dvije putem relaya koji možeš sam hostati.',
-  'settings.help.instances.link': 'Otvori Instance',
-
-  'settings.help.access.title': 'Pristup i rješavanje problema',
-  'settings.help.access.body': 'Lozinka zaključava cijelo sučelje, pa se unutra ulazi samo s kolačićem sesije. Stranica Sigurnost drži je zajedno s drugim faktorom, pristupnim ključevima i API tokenima. Stranica Dijagnostika izrađuje datoteku za prilaganje prijavi greške: verziju i podatke o buildu, trenutačne postavke bez ijedne lozinke, nedavne retke dnevnika ovog procesa i broj gorutina koje rade.',
-  'settings.help.access.link1': 'Otvori Sigurnost',
-  'settings.help.access.link2': 'Otvori Dijagnostiku',
-
-  'settings.help.advanced.title': 'Sve ostalo',
-  'settings.help.advanced.body':
-    'Svaka postavka ovog builda može se pročitati i promijeniti prema svom sirovom nazivu na stranici Napredno. To uključuje i nekoliko njih koje još nigdje drugdje nemaju vlastitu kontrolu, poput toga kako se postupa sa zrcalom već preuzete datoteke i što se događa kad bi preuzimanje završilo na već zauzetom nazivu.',
-  'settings.help.advanced.link': 'Otvori postavke Napredno',
   'task.mode.free': 'Besplatno',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderu',
@@ -3375,11 +3309,9 @@ export const hr: Dict = {
   'settings.categories.torrentFilesOwn': 'Vlastiti',
   'settings.watchDirFilesHint': 'Ono što ovdje ostaviš preuzima se automatski: popisi poveznica (.txt, .crawljob, .magnet), .torrent datoteke, spremnici (.dlc, .ccf, .rsdf) i .nzb datoteke.',
   'container.usenet': '{file} je predana usluzi {service}. Njezine datoteke pojavit će se ovdje čim ih {service} dohvati s Useneta.',
-  'settings.help.intake.watchFiles': 'Nadzirana mapa preuzima ono što u nju ostaviš: popise poveznica (.txt, .crawljob, .magnet), .torrent datoteke, spremnike (.dlc, .ccf, .rsdf) i .nzb datoteke.',
   'container.nzbTooBig': 'veća je od {max}, a veća .nzb datoteka ne smije biti',
   'container.noUsenet': 'to je .nzb, a ništa ovdje ne može to dohvatiti s Useneta. Dodaj Usenet poslužitelj ili TorBox ili Premiumize.me račun pod Računi.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Datoteka .nzb, koju ovdje preneseš ili koju pošalje Sonarr ili Radarr, ide na tvoj vlastiti Usenet poslužitelj ili na tvoj TorBox ili Premiumize.me račun, ovisno o tome što je prvo u redoslijedu prioriteta pod Računi. Tvoj vlastiti poslužitelj dohvaća svaku datoteku odmah. Debrid usluga prvo dohvati release, a njezine se datoteke zatim preuzimaju kao i svaka druga poveznica. TorBox prima .nzb datoteke samo uz pakete koji uključuju Usenet. Ako TorBox odbije prvu, ta .nzb ne uspije, osim ako je preuzme neki drugi račun.',
   'task.remote': 'Preuzima se kod usluge {service}',
   'task.remoteSeeds': 'Seedovi: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet poveznice i .torrent datoteke idu ili ugrađenom torrent klijentu ili debrid usluzi koja prima torrente, ovisno o tome što je na popisu više.',

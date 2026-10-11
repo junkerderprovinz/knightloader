@@ -1525,72 +1525,6 @@ export const nl: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Downloads toevoegen',
-  'settings.help.intake.body':
-    'Plak links in de Verzamelaar, één per regel of als rommelige tekst. Een scan vindt links waar ze ook staan: midden in een zin, meerdere op een regel, of door een mailprogramma over twee regels verdeeld.',
-  'settings.help.intake.b1': 'Zet een linkcontainerbestand (.dlc, .ccf, .rsdf) neer, of een gewone linklijst.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load-knoppen op hoster- en forumpagina\'s werken ongewijzigd. KnightLoader antwoordt op 127.0.0.1:9666, dezelfde poort die elke andere downloadmanager gebruikt.',
-  'settings.help.intake.b3':
-    'Plak een pagina-URL in plaats van een bestandslink en zet Crawlen aan om elk bestand waarnaar wordt gelinkt eruit te halen, in plaats van de pagina zelf te downloaden.',
-  'settings.help.intake.link1': 'Linkverzamelaar-instellingen openen',
-
-  'settings.help.collector.title': 'De verzamelaar, voordat er iets download',
-  'settings.help.collector.body':
-    'Nieuwe links komen eerst in de Verzamelaar terecht, niet in de wachtrij: een tussengebied om namen, groottes en duplicaatwaarschuwingen te controleren voordat er iets begint. Automatisch bevestigen kan die stap overslaan, met een optionele vertraging; eenmaal bevestigd, begint een link meteen of wacht hij in de wachtrij, afhankelijk van Automatisch starten.',
-  'settings.help.collector.link': 'Linkverzamelaar-instellingen openen',
-
-  'settings.help.rules.title': 'Regels: pakketten, mappen en wat behouden blijft',
-  'settings.help.rules.body':
-    'De Packagizer hernoemt een link, kiest zijn map en stelt zijn downloadopties in zodra hij binnenkomt, op basis van voorwaarden die jij schrijft. Het Linkfilter bepaalt of een link überhaupt blijft. Een weigering noemt altijd de regel die haar veroorzaakte en waarom.',
-  'settings.help.rules.link': 'Regels openen',
-
-  'settings.help.queue.title': 'De wachtrij beheren',
-  'settings.help.queue.body':
-    'Pauzeer, hervat of herschik elke link, los of als heel pakket. De wachtrij kun je op twee manieren stoppen. Stilzetten laat alles wat al loopt ongemoeid, zodat het vanzelf afloopt. Alle overdrachten meteen stoppen laat eerst zien wat er verloren zou gaan en gaat pas door als je bevestigt. Die waarschuwing is er voor overdrachten die niet kunnen hervatten waar ze gebleven waren.',
-  'settings.help.queue.b1': 'Eén link kan het globale aantal verbindingen of de schakelaar voor uitpakken na download overschrijven.',
-  'settings.help.queue.b2': 'Een duplicaat van een link die al in de lijst staat wordt altijd geweigerd, voordat het ooit de verzamelaar bereikt.',
-
-  'settings.help.limits.title': 'Hosterlimieten omzeilen',
-  'settings.help.limits.body': 'Drie onafhankelijke manieren om te voorkomen dat een gratis limiet het plafond is:',
-  'settings.help.limits.b1':
-    'Verbindingen: downloads over meer dan één uitgaande route verdelen (een tweede lijn, een proxy, SOCKS) in plaats van altijd via het eigen adres van deze machine naar buiten te gaan.',
-  'settings.help.limits.b2':
-    'Opnieuw verbinden: de router om een nieuw publiek adres vragen, het enige dat een limiet opheft die aan het adres zelf gekoppeld is. Dat gaat via UPnP, een extern programma, een script, of door HTTP-verzoeken naar de beheerpagina van de router opnieuw af te spelen. Bestaande LiveHeader/curl-scripts van JDownloader werken ongewijzigd.',
-  'settings.help.limits.b3':
-    'Accounts: premium- of debrid-logins opslaan (Real-Debrid, AllDebrid, TorBox en andere), zodat een geschikte link op volle snelheid wordt opgehaald in plaats van met de limiet voor gratis gebruikers.',
-  'settings.help.limits.link1': 'Netwerk openen',
-  'settings.help.limits.link3': 'Accounts openen',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Als een hoster om een captcha vraagt, worden eerst de captcha-accounts geprobeerd die je hebt ingesteld, in de volgorde die je hebt bepaald. Is er geen ingesteld of kan geen enkele hem oplossen, dan wordt de captcha aan jou voorgelegd in plaats van stilletjes te mislukken.',
-  'settings.help.captcha.link': 'Captcha-instellingen openen',
-
-  'settings.help.after.title': 'Na de download',
-  'settings.help.after.body':
-    'Archieven worden automatisch uitgepakt: zip (ook versleuteld, zowel WinZip AES als het oudere ZipCrypto), rar met meerdelige sets, 7z, tar, en gzip/bzip2/xz/zstd, of ze nu een tar omhullen of niet. Uitpakken gebeurt in puur Go en heeft geen externe unrar- of 7z-programma nodig. Bij een versleuteld archief wordt een lijst wachtwoorden op volgorde geprobeerd. Een voltooid bestand wordt gecontroleerd tegen elke meegeleverde controlesom: een .sfv-lijst, een md5-/sha1-/sha256sum-bestand, of een CRC32 die in de releasenaam zelf staat.',
-  'settings.help.after.link1': 'Archieven-instellingen openen',
-  'settings.help.after.link2': 'Downloads-instellingen openen',
-
-  'settings.help.schedule.title': 'Onbeheerd laten draaien',
-  'settings.help.schedule.body':
-    'Een weekrooster pauzeert of vertraagt de wachtrij op basis van de klok, bijvoorbeeld in een nachtelijk tijdvak, en blijft correct over de overgang naar zomer- of wintertijd heen. Het is hetzelfde idee als de Scheduler van JDownloader.',
-  'settings.help.schedule.link': 'Automatisering openen',
-
-  'settings.help.instances.title': 'Meer dan één instantie draaien',
-  'settings.help.instances.body': 'Voeg een andere KnightLoader als peer toe en zijn wachtrij verschijnt ook op dit dashboard. Op hetzelfde netwerk is dat een directe aanroep van de API van de andere instantie, zoals een browser die zou doen. Over netwerken heen koppelen twaalf woorden de twee via een relay die je zelf kunt draaien.',
-  'settings.help.instances.link': 'Instanties openen',
-
-  'settings.help.access.title': 'Toegang en probleemoplossing',
-  'settings.help.access.body': 'Een wachtwoord sluit de hele interface af, zodat alleen een sessiecookie nog toegang geeft. Op de pagina Beveiliging staat het samen met de tweede factor, toegangssleutels en API-tokens. De pagina Diagnostiek maakt een bestand om bij een bugmelding te voegen: versie- en build-info, de huidige instellingen met alle wachtwoorden verwijderd, de recente logregels van dit proces zelf en hoeveel goroutines er draaien.',
-  'settings.help.access.link1': 'Beveiliging openen',
-  'settings.help.access.link2': 'Diagnostiek openen',
-
-  'settings.help.advanced.title': 'Al de rest',
-  'settings.help.advanced.body':
-    'Elke instelling van deze build kun je op de pagina Geavanceerd lezen en wijzigen via haar ruwe naam. Daaronder vallen ook een paar die nog nergens anders een eigen bediening hebben, zoals hoe een spiegel van een al gedownload bestand wordt behandeld en wat er gebeurt als een download op een naam zou uitkomen die al bezet is.',
-  'settings.help.advanced.link': 'Geavanceerd-instellingen openen',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Over KnightLoader',
@@ -3344,11 +3278,9 @@ export const nl: Dict = {
   'settings.categories.torrentFilesOwn': 'Eigen',
   'settings.watchDirFilesHint': 'Bestanden die je hier neerzet, worden automatisch opgepakt: linklijsten (.txt, .crawljob, .magnet), .torrent-bestanden, containers (.dlc, .ccf, .rsdf) en .nzb-bestanden.',
   'container.usenet': '{file} is naar {service} gegaan. De bestanden ervan verschijnen hier zodra {service} ze van Usenet heeft opgehaald.',
-  'settings.help.intake.watchFiles': 'Een bewaakte map pakt op wat erin wordt gezet: linklijsten (.txt, .crawljob, .magnet), .torrent-bestanden, containers (.dlc, .ccf, .rsdf) en .nzb-bestanden.',
   'container.nzbTooBig': 'hij is groter dan {max}, het maximum voor een .nzb',
   'container.noUsenet': 'hij is een .nzb, en niets hier kan hem van Usenet ophalen. Voeg een Usenet-server of een TorBox- of Premiumize.me-account toe onder Accounts.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Een .nzb die je hier uploadt of die Sonarr of Radarr stuurt, gaat naar je eigen Usenet-server of naar je TorBox- of Premiumize.me-account, afhankelijk van wat eerst komt in de prioriteitsvolgorde onder Accounts. Je eigen server haalt elk bestand meteen op. Een debrid-dienst haalt eerst de release op, en de bestanden daarvan worden daarna gedownload zoals elke andere link. TorBox neemt .nzb-bestanden alleen aan bij abonnementen met Usenet. Wijst TorBox de eerste af, dan mislukt die .nzb tenzij een ander account hem overneemt.',
   'task.remote': 'Ophalen bij {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-links en .torrent-bestanden gaan naar de ingebouwde torrentclient of naar een debrid-dienst die torrents aanneemt, afhankelijk van wie hoger in de lijst staat.',

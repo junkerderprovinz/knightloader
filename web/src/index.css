@@ -2034,6 +2034,10 @@ body {
 /* A mark whose layers do not survive one ink brings the brand's own
    single-colour version for the hover. */
 .glim-mark-hover { display: none; }
+/* A mark that opens, the envelope and the manual's book, also opens under a
+   finger and on focus, where no pointer rests on its button. */
+.glim-brand-tile:is(:active, :focus-visible) .glim-mark-opens .glim-mark-rest { display: none; }
+.glim-brand-tile:is(:active, :focus-visible) .glim-mark-opens .glim-mark-hover { display: block; }
 
 /* The brands' tile colours: the true colour and the ink that holds on it,
    white wherever white reaches 2:1 and near-black below that. The coins carry

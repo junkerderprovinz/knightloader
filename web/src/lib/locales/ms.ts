@@ -1533,72 +1533,6 @@ export const ms: Dict = {
 
   'settings.nav.help': 'Maklumat',
 
-  'settings.help.intake.title': 'Menambah muat turun',
-  'settings.help.intake.body':
-    'Tampal pautan ke dalam Pengumpul, satu setiap baris atau sebagai teks bercelaru. Imbasan menemui pautan di mana sahaja ia berada: di tengah ayat, beberapa dalam satu baris, atau dipecahkan kepada dua baris oleh klien e-mel.',
-  'settings.help.intake.b1': 'Lepaskan fail bekas pautan (.dlc, .ccf, .rsdf) atau senarai pautan biasa.',
-  'settings.help.intake.b2':
-    'Butang Click\'n\'Load pada halaman hoster dan forum berfungsi tanpa perubahan. KnightLoader menjawab pada 127.0.0.1:9666, port yang sama yang digunakan oleh setiap pengurus muat turun lain.',
-  'settings.help.intake.b3':
-    'Tampal URL halaman dan bukannya pautan fail dan hidupkan Rayapan untuk mengekstrak setiap fail yang dipautnya, bukannya memuat turun halaman itu sendiri.',
-  'settings.help.intake.link1': 'Buka tetapan Pengumpul pautan',
-
-  'settings.help.collector.title': 'Pengumpul, sebelum apa-apa dimuat turun',
-  'settings.help.collector.body':
-    'Pautan baharu mula-mula tiba di Pengumpul, bukan baris gilir: zon peralihan untuk menyemak nama, saiz dan amaran pendua sebelum apa-apa bermula. Pengesahan automatik boleh melangkau langkah ini, dengan kelewatan pilihan; setelah disahkan, pautan sama ada mula serta-merta atau menunggu dalam baris gilir, bergantung pada permulaan automatik.',
-  'settings.help.collector.link': 'Buka tetapan Pengumpul pautan',
-
-  'settings.help.rules.title': 'Peraturan: pakej, folder dan apa yang dikekalkan',
-  'settings.help.rules.body':
-    'Packagizer menamakan semula pautan, memilih foldernya dan menetapkan pilihan muat turunnya semasa ia tiba, berdasarkan syarat yang anda tulis. Penapis Pautan memutuskan sama ada pautan dikekalkan langsung. Penolakan sentiasa menamakan peraturan yang menyebabkannya dan sebabnya.',
-  'settings.help.rules.link': 'Buka Peraturan',
-
-  'settings.help.queue.title': 'Mengurus baris gilir',
-  'settings.help.queue.body':
-    'Jeda, sambung semula atau susun semula mana-mana pautan, secara berasingan atau sebagai seluruh pakej. Ada dua cara untuk menghentikan baris gilir. Menghentikannya membiarkan apa-apa yang sudah berjalan tanpa diganggu, jadi ia selesai dengan sendirinya. Menghentikan setiap pemindahan serta-merta menunjukkan dahulu apa yang akan hilang dan hanya diteruskan selepas anda mengesahkan. Amaran itu ada untuk pemindahan yang tidak dapat disambung semula dari tempat ia terhenti.',
-  'settings.help.queue.b1': 'Satu pautan boleh mengatasi bilangan sambungan global atau suis ekstrak selepas muat turun.',
-  'settings.help.queue.b2': 'Pendua pautan yang sudah ada dalam senarai sentiasa ditolak, sebelum ia sampai ke Pengumpul.',
-
-  'settings.help.limits.title': 'Mengelak had hoster',
-  'settings.help.limits.body': 'Tiga cara bebas untuk menghalang had percuma daripada menjadi siling:',
-  'settings.help.limits.b1':
-    'Sambungan: agihkan muat turun ke lebih daripada satu laluan keluar (talian kedua, proksi, SOCKS) dan bukannya sentiasa keluar melalui alamat mesin ini sendiri.',
-  'settings.help.limits.b2':
-    'Sambung semula: minta penghala untuk alamat awam baharu, satu-satunya cara untuk menghapuskan had yang terikat pada alamat itu sendiri. Ini berfungsi melalui UPnP, program luaran, skrip, atau dengan memainkan semula permintaan HTTP terhadap halaman pentadbiran penghala. Skrip LiveHeader/curl JDownloader sedia ada berfungsi tanpa perubahan.',
-  'settings.help.limits.b3':
-    'Akaun: simpan log masuk premium atau debrid (Real-Debrid, AllDebrid, TorBox dan lain-lain) supaya pautan yang layak diambil pada kelajuan penuh dan bukannya dengan had pengguna percuma.',
-  'settings.help.limits.link1': 'Buka Rangkaian',
-  'settings.help.limits.link3': 'Buka Akaun',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Apabila hoster meminta captcha, akaun captcha yang anda konfigurasikan dicuba dahulu, mengikut urutan yang anda tetapkan. Jika tiada yang dikonfigurasikan, atau tiada yang dapat menyelesaikannya, captcha itu diletakkan di hadapan anda dan bukannya gagal secara senyap.',
-  'settings.help.captcha.link': 'Buka tetapan Captcha',
-
-  'settings.help.after.title': 'Selepas muat turun',
-  'settings.help.after.body':
-    'Arkib diekstrak secara automatik: zip (termasuk yang disulitkan, kedua-dua WinZip AES dan ZipCrypto lama), rar dengan set berbilang jilid, 7z, tar, serta gzip/bzip2/xz/zstd sama ada ia membungkus tar atau tidak. Pengekstrakan ditulis dalam Go tulen dan tidak memerlukan binari unrar atau 7z luaran. Untuk arkib yang disulitkan, senarai kata laluan dicuba mengikut urutan. Fail yang siap disemak terhadap mana-mana checksum yang disertakan bersamanya: senarai .sfv, fail md5/sha1/sha256sum, atau CRC32 yang dibawa oleh nama keluaran itu sendiri.',
-  'settings.help.after.link1': 'Buka tetapan Arkib',
-  'settings.help.after.link2': 'Buka tetapan Muat turun',
-
-  'settings.help.schedule.title': 'Berjalan tanpa pengawasan',
-  'settings.help.schedule.body':
-    'Jadual mingguan menjeda atau mengehadkan kelajuan baris gilir mengikut jam, contohnya dalam tetingkap waktu malam, dan kekal tepat merentas pertukaran waktu jimat siang. Ideanya sama seperti Scheduler dalam JDownloader.',
-  'settings.help.schedule.link': 'Buka Automasi',
-
-  'settings.help.instances.title': 'Menjalankan lebih daripada satu instans',
-  'settings.help.instances.body': 'Tambah satu lagi KnightLoader sebagai rakan dan baris giliranya muncul pada papan pemuka ini juga. Dalam rangkaian yang sama ia panggilan terus ke API instans yang satu lagi, seperti yang dilakukan pelayar. Merentas rangkaian, dua belas patah perkataan memasangkan kedua-duanya melalui relay yang boleh kamu hos sendiri.',
-  'settings.help.instances.link': 'Buka Instans',
-
-  'settings.help.access.title': 'Akses dan penyelesaian masalah',
-  'settings.help.access.body': 'Kata laluan mengunci seluruh antara muka supaya hanya boleh dibuka dengan kuki sesi. Halaman Keselamatan menyimpannya bersama faktor kedua, kunci laluan dan token API. Halaman Diagnostik membina fail untuk dilampirkan pada laporan pepijat: maklumat versi dan build, tetapan semasa dengan setiap kata laluan dibuang, baris log terbaru proses ini sendiri, dan bilangan goroutine yang sedang berjalan.',
-  'settings.help.access.link1': 'Buka Keselamatan',
-  'settings.help.access.link2': 'Buka Diagnostik',
-
-  'settings.help.advanced.title': 'Semua yang lain',
-  'settings.help.advanced.body':
-    'Setiap tetapan yang ada pada build ini boleh dibaca dan diubah melalui nama mentahnya pada halaman Lanjutan. Ini termasuk beberapa tetapan yang belum mempunyai kawalan khusus di tempat lain, seperti cara cermin bagi fail yang sudah dimuat turun dikendalikan dan apa yang berlaku apabila muat turun akan mendarat pada nama yang sudah digunakan.',
-  'settings.help.advanced.link': 'Buka tetapan Lanjutan',
   'task.mode.free': 'Percuma',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Perihal KnightLoader',
@@ -3360,11 +3294,9 @@ export const ms: Dict = {
   'settings.categories.torrentFilesOwn': 'Sendiri',
   'settings.watchDirFilesHint': 'Fail yang diletakkan di sini diambil secara automatik: senarai pautan (.txt, .crawljob, .magnet), fail .torrent, bekas (.dlc, .ccf, .rsdf) dan fail .nzb.',
   'container.usenet': '{file} dihantar kepada {service}. Failnya muncul di sini sebaik sahaja {service} mengambilnya daripada Usenet.',
-  'settings.help.intake.watchFiles': 'Folder pantauan mengambil apa yang diletakkan ke dalamnya: senarai pautan (.txt, .crawljob, .magnet), fail .torrent, bekas (.dlc, .ccf, .rsdf) dan fail .nzb.',
   'container.nzbTooBig': 'saiznya melebihi {max}, saiz maksimum sesuatu .nzb',
   'container.noUsenet': 'ia ialah .nzb, dan tiada apa-apa di sini boleh mengambilnya daripada Usenet. Tambah pelayan Usenet atau akaun TorBox atau Premiumize.me di bawah Akaun.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Fail .nzb, sama ada dimuat naik di sini atau dihantar oleh Sonarr atau Radarr, pergi ke pelayan Usenet anda sendiri atau ke akaun TorBox atau Premiumize.me anda, bergantung pada yang mana datang dahulu dalam susunan keutamaan di bawah Akaun. Pelayan anda sendiri mengambil setiap fail dengan segera. Perkhidmatan debrid mengambil release itu dahulu, kemudian failnya dimuat turun seperti pautan lain. TorBox hanya menerima fail .nzb pada pelan yang merangkumi Usenet. Jika TorBox menolak yang pertama, .nzb itu gagal melainkan akaun lain mengambilnya.',
   'task.remote': 'Mengambil di {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Pautan magnet dan fail .torrent dihantar sama ada ke klien torrent terbina dalam atau ke perkhidmatan debrid yang menyokong torrent, mengikut yang mana lebih tinggi dalam senarai.',

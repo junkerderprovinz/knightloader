@@ -1533,72 +1533,6 @@ export const lv: Dict = {
 
   'settings.nav.help': 'Informācija',
 
-  'settings.help.intake.title': 'Lejupielāžu pievienošana',
-  'settings.help.intake.body':
-    'Ielīmē saites savācējā, pa vienai rindiņā vai kā nekārtīgu tekstu. Meklēšana atrod saites, lai kur tās atrastos: teikuma vidū, vairākas vienā rindiņā vai e-pasta programmas sadalītas divās rindiņās.',
-  'settings.help.intake.b1': 'Nometiet saišu konteinera failu (.dlc, .ccf, .rsdf) vai vienkāršu saišu sarakstu.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load pogas hosteru un forumu lapās darbojas bez izmaiņām. KnightLoader atbild uz 127.0.0.1:9666, to pašu portu, ko izmanto visi pārējie lejupielādētāji.',
-  'settings.help.intake.b3':
-    'Ielīmējiet lapas URL failu saites vietā un ieslēdziet Rāpošanu, lai izgūtu katru failu, uz ko tā norāda, tā vietā, lai lejupielādētu pašu lapu.',
-  'settings.help.intake.link1': 'Atvērt Saišu savācēja iestatījumus',
-
-  'settings.help.collector.title': 'Kolektors, pirms kaut kas tiek lejupielādēts',
-  'settings.help.collector.body':
-    'Jaunas saites vispirms nonāk Kolektorā, nevis rindā: starpposma zona, lai pirms kaut kā sākuma pārbaudītu nosaukumus, izmērus un dublikātu brīdinājumus. Automātiskā apstiprināšana var izlaist šo soli, ar neobligātu aizkavi; kad apstiprināts, saite vai nu sāk lejupielādēties uzreiz, vai gaida rindā, atkarībā no automātiskās sākšanas.',
-  'settings.help.collector.link': 'Atvērt Saišu savācēja iestatījumus',
-
-  'settings.help.rules.title': 'Noteikumi: pakotnes, mapes un kas tiek saglabāts',
-  'settings.help.rules.body':
-    'Packagizer pārdēvē saiti, izvēlas tās mapi un iestata lejupielādes opcijas tās ienākšanas brīdī, pēc tevis rakstītiem nosacījumiem. Saišu filtrs izlemj, vai saite vispār tiek paturēta. Noraidījums vienmēr nosauc noteikumu, kas to izraisīja, un iemeslu.',
-  'settings.help.rules.link': 'Atvērt Noteikumus',
-
-  'settings.help.queue.title': 'Rindas pārvaldība',
-  'settings.help.queue.body':
-    'Aptur, atsāc vai pārkārto jebkuru saiti, atsevišķi vai kā veselu pakotni. Rindu var apturēt divos veidos. Ja rindu aptur, viss, kas jau notiek, paliek neskarts un pabeidzas pats. Ja uzreiz aptur visas pārsūtīšanas, vispirms tiek parādīts, kas tiktu zaudēts, un turpināts tiek tikai pēc tava apstiprinājuma. Brīdinājums ir domāts pārsūtīšanām, kas nevar turpināties no vietas, kur apstājās.',
-  'settings.help.queue.b1': 'Viena saite var ignorēt globālo savienojumu skaitu vai izsaiņošanas pēc lejupielādes slēdzi.',
-  'settings.help.queue.b2': 'Sarakstā jau esošas saites dublikāts vienmēr tiek noraidīts, pirms tas jebkad sasniedz Kolektoru.',
-
-  'settings.help.limits.title': 'Hostinga ierobežojumu apiešana',
-  'settings.help.limits.body': 'Trīs neatkarīgi veidi, kā neļaut bezmaksas ierobežojumam būt griestiem:',
-  'settings.help.limits.b1':
-    'Savienojumi: sadali lejupielādes pa vairāk nekā vienu izejošo ceļu (otru līniju, starpniekserveri, SOCKS), nevis vienmēr izej caur šī datora paša adresi.',
-  'settings.help.limits.b2':
-    'Atkalsavienošanās: palūdz maršrutētājam jaunu publisko adresi; tikai tā var noņemt ierobežojumu, kas piesaistīts pašai adresei. Tas darbojas caur UPnP, ārēju programmu, skriptu vai atkārtojot HTTP pieprasījumus maršrutētāja administrēšanas lapai. Esošie JDownloader LiveHeader/curl skripti darbojas bez izmaiņām.',
-  'settings.help.limits.b3':
-    'Konti: saglabā premium vai debrid pieteikšanās datus (Real-Debrid, AllDebrid, TorBox un citus), lai atbilstoša saite tiktu lejupielādēta ar pilnu ātrumu, nevis ar bezmaksas lietotāja ierobežojumu.',
-  'settings.help.limits.link1': 'Atvērt Tīklu',
-  'settings.help.limits.link3': 'Atvērt Kontus',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Kad hosteris prasa captcha, vispirms tiek izmēģināti tevis iestatītie captcha konti tevis noteiktajā secībā. Ja neviens nav iestatīts vai neviens to nevar atrisināt, captcha tiek parādīta tev, nevis klusi neizdodas.',
-  'settings.help.captcha.link': 'Atvērt Captcha iestatījumus',
-
-  'settings.help.after.title': 'Pēc lejupielādes',
-  'settings.help.after.body':
-    'Arhīvi tiek izpakoti automātiski: zip (arī šifrēti, gan WinZip AES, gan vecais ZipCrypto), rar ar vairāku sējumu kopām, 7z, tar un gzip/bzip2/xz/zstd neatkarīgi no tā, vai tajos ir tar. Izpakošana notiek tīrā Go, un tai nav vajadzīgas ārējas unrar vai 7z programmas. Šifrētam arhīvam pēc kārtas tiek izmēģināts paroļu saraksts. Pabeigts fails tiek pārbaudīts pret jebkuru līdzi atnākušu kontrolsummu: .sfv sarakstu, md5/sha1/sha256sum failu vai CRC32, kas ir pašā laidiena nosaukumā.',
-  'settings.help.after.link1': 'Atvērt Arhīvu iestatījumus',
-  'settings.help.after.link2': 'Atvērt Lejupielāžu iestatījumus',
-
-  'settings.help.schedule.title': 'Darbība bez uzraudzības',
-  'settings.help.schedule.body':
-    'Iknedēļas grafiks pēc pulksteņa aptur rindu vai ierobežo tās ātrumu, piemēram, nakts logā, un paliek precīzs arī pārejā uz vasaras laiku un atpakaļ. Tā ir tā pati ideja kā JDownloader Scheduler.',
-  'settings.help.schedule.link': 'Atvērt Automatizāciju',
-
-  'settings.help.instances.title': 'Vairāk nekā vienas instances darbināšana',
-  'settings.help.instances.body': 'Pievieno vēl vienu KnightLoader kā partneri, un tā rinda parādīsies arī šajā panelī. Tajā pašā tīklā tas ir tiešs izsaukums otras instances API, tāpat kā to darītu pārlūks. Starp tīkliem divpadsmit vārdi savieno abas caur releju, ko vari mitināt pats.',
-  'settings.help.instances.link': 'Atvērt Instances',
-
-  'settings.help.access.title': 'Piekļuve un problēmu novēršana',
-  'settings.help.access.body': 'Parole aizslēdz visu saskarni, un piekļūt var tikai ar sesijas sīkfailu. Lapā Drošība tā atrodas kopā ar otro faktoru, piekļuves atslēgām un API pilnvarām. Lapa Diagnostika izveido failu, ko pievienot kļūdas ziņojumam: versijas un būvējuma informāciju, pašreizējos iestatījumus bez nevienas paroles, šī procesa nesenās žurnāla rindiņas un to, cik gorutīnu darbojas.',
-  'settings.help.access.link1': 'Atvērt Drošību',
-  'settings.help.access.link2': 'Atvērt Diagnostiku',
-
-  'settings.help.advanced.title': 'Viss pārējais',
-  'settings.help.advanced.body':
-    'Katru šī būvējuma iestatījumu var nolasīt un mainīt pēc tā neapstrādātā nosaukuma lapā Papildu. Tajā ir arī daži, kuriem citur vēl nav savas vadīklas, piemēram, kā tiek apstrādāts jau lejupielādēta faila spogulis un kas notiek, ja lejupielāde nonāktu pie jau aizņemta nosaukuma.',
-  'settings.help.advanced.link': 'Atvērt Papildu iestatījumus',
   'task.mode.free': 'Bez maksas',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Par KnightLoader',
@@ -3351,11 +3285,9 @@ export const lv: Dict = {
   'settings.categories.torrentFilesOwn': 'Sava',
   'settings.watchDirFilesHint': 'Šeit ieliktie faili tiek paņemti automātiski: saišu saraksti (.txt, .crawljob, .magnet), .torrent faili, konteineri (.dlc, .ccf, .rsdf) un .nzb faili.',
   'container.usenet': '{file} nonāca pie {service}. Tā faili parādīsies šeit, tiklīdz {service} tos būs ielādējis no Usenet.',
-  'settings.help.intake.watchFiles': 'Uzraudzītā mape paņem to, kas tajā ielikts: saišu sarakstus (.txt, .crawljob, .magnet), .torrent failus, konteinerus (.dlc, .ccf, .rsdf) un .nzb failus.',
   'container.nzbTooBig': 'tas ir lielāks par {max}, kas ir lielākais pieļaujamais .nzb izmērs',
   'container.noUsenet': 'tas ir .nzb, un šeit nav nekā, kas to varētu ielādēt no Usenet. Pievieno Usenet serveri vai TorBox vai Premiumize.me kontu sadaļā Konti.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Fails .nzb, kas augšupielādēts šeit vai ko atsūtījis Sonarr vai Radarr, nonāk tavā paša Usenet serverī vai tavā TorBox vai Premiumize.me kontā, atkarībā no tā, kurš ir pirmais prioritātes secībā sadaļā Konti. Tavs paša serveris katru failu ielādē uzreiz. Debrid pakalpojums vispirms ielādē izlaidumu, un tā faili pēc tam tiek lejupielādēti kā jebkura cita saite. TorBox pieņem .nzb failus tikai plānos, kas ietver Usenet. Ja TorBox noraida pirmo, šis .nzb neizdodas, ja vien to nepārņem cits konts.',
   'task.remote': 'Ielādē pie {service}',
   'task.remoteSeeds': 'Seedi: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet saites un .torrent faili nonāk vai nu iebūvētajā torrentu klientā, vai debrid pakalpojumā, kas pieņem torrentus, atkarībā no tā, kurš sarakstā ir augstāk.',

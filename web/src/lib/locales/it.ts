@@ -1525,72 +1525,6 @@ export const it: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Aggiungere download',
-  'settings.help.intake.body':
-    'Incolla i link nel raccoglitore, uno per riga o come testo disordinato. Una scansione trova i link ovunque siano: in mezzo a una frase, più di uno per riga, o spezzati su due righe da un client di posta.',
-  'settings.help.intake.b1': 'Trascina un file contenitore di link (.dlc, .ccf, .rsdf) o un semplice elenco di link.',
-  'settings.help.intake.b2':
-    'I pulsanti Click\'n\'Load sulle pagine di hoster e forum funzionano come sempre. KnightLoader risponde su 127.0.0.1:9666, la stessa porta che usa ogni altro download manager.',
-  'settings.help.intake.b3':
-    'Incolla l’URL di una pagina invece di un link a un file e attiva Scansiona per estrarre ogni file a cui rimanda, invece di scaricare la pagina stessa.',
-  'settings.help.intake.link1': 'Apri le impostazioni Raccoglitore di link',
-
-  'settings.help.collector.title': 'Il collettore, prima che scarichi qualcosa',
-  'settings.help.collector.body':
-    'I nuovi link arrivano prima nel Collettore, non in coda: un’area di attesa per controllare nomi, dimensioni e avvisi di duplicati prima che inizi qualcosa. La conferma automatica può saltare questo passaggio, con un ritardo facoltativo; una volta confermato, un link parte subito oppure aspetta in coda, a seconda dell’avvio automatico.',
-  'settings.help.collector.link': 'Apri le impostazioni Raccoglitore di link',
-
-  'settings.help.rules.title': 'Regole: pacchetti, cartelle e cosa viene tenuto',
-  'settings.help.rules.body':
-    'Il Packagizer rinomina un link, ne sceglie la cartella e ne imposta le opzioni di download al suo arrivo, in base a condizioni che scrivi tu. Il Filtro link decide se un link viene tenuto o no. Un rifiuto indica sempre la regola che l’ha causato, e perché.',
-  'settings.help.rules.link': 'Apri Regole',
-
-  'settings.help.queue.title': 'Gestire la coda',
-  'settings.help.queue.body':
-    'Metti in pausa, riprendi o riordina qualsiasi link, da solo o come pacchetto intero. Ci sono due modi per fermare la coda. Arrestarla lascia intatto ciò che è già in corso, che così finisce da solo. Fermare subito tutti i trasferimenti mostra prima cosa andrebbe perso e procede solo dopo la tua conferma. L’avviso c’è per i trasferimenti che non possono riprendere da dove si erano interrotti.',
-  'settings.help.queue.b1': 'Un singolo link può sovrascrivere il numero globale di connessioni o l’interruttore di estrazione dopo il download.',
-  'settings.help.queue.b2': 'Un duplicato di un link già presente nell’elenco viene sempre rifiutato, prima ancora di raggiungere il collettore.',
-
-  'settings.help.limits.title': 'Aggirare i limiti dell’hoster',
-  'settings.help.limits.body': 'Tre modi indipendenti per evitare che un limite gratuito sia il tetto massimo:',
-  'settings.help.limits.b1':
-    'Connessioni: distribuisci i download su più di un percorso in uscita (una seconda linea, un proxy, SOCKS) invece di uscire sempre dall’indirizzo di questa macchina.',
-  'settings.help.limits.b2':
-    'Riconnessione: chiedi al router un nuovo indirizzo pubblico, l’unica cosa che toglie un limite legato all’indirizzo stesso. Funziona tramite UPnP, un programma esterno, uno script, o ripetendo richieste HTTP verso la pagina di amministrazione del router. Gli script LiveHeader/curl di JDownloader che hai già funzionano senza modifiche.',
-  'settings.help.limits.b3':
-    'Account: salva le credenziali premium o debrid (Real-Debrid, AllDebrid, TorBox e altri) così un link idoneo viene scaricato a piena velocità invece che con il limite degli utenti gratuiti.',
-  'settings.help.limits.link1': 'Apri Rete',
-  'settings.help.limits.link3': 'Apri Account',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Quando un hoster chiede un captcha, vengono provati prima gli account captcha che hai configurato, nell’ordine che hai impostato. Se non ce n’è nessuno, o nessuno riesce a risolverlo, il captcha viene mostrato a te invece di fallire in silenzio.',
-  'settings.help.captcha.link': 'Apri le impostazioni Captcha',
-
-  'settings.help.after.title': 'Dopo il download',
-  'settings.help.after.body':
-    'Gli archivi vengono estratti automaticamente: zip (anche cifrati, sia WinZip AES sia il vecchio ZipCrypto), rar con set multivolume, 7z, tar, e gzip/bzip2/xz/zstd, che contengano un tar oppure no. L’estrazione è in Go puro e non richiede binari esterni unrar o 7z. Per un archivio cifrato viene provato in ordine un elenco di password. Un file completato viene verificato con qualunque checksum sia arrivato insieme: un elenco .sfv, un file md5/sha1/sha256sum, o un CRC32 contenuto nel nome stesso della release.',
-  'settings.help.after.link1': 'Apri le impostazioni Archivi',
-  'settings.help.after.link2': 'Apri le impostazioni Download',
-
-  'settings.help.schedule.title': 'Funzionare senza supervisione',
-  'settings.help.schedule.body':
-    'Un orario settimanale mette in pausa o rallenta la coda in base all’ora, per esempio in una fascia notturna, e resta corretto anche con il cambio dell’ora legale. È la stessa idea dello Scheduler di JDownloader.',
-  'settings.help.schedule.link': 'Apri Automazione',
-
-  'settings.help.instances.title': 'Eseguire più di un’istanza',
-  'settings.help.instances.body': 'Aggiungi un altro KnightLoader come pari e la sua coda compare anche su questo pannello. Sulla stessa rete è una chiamata diretta all\'API dell\'altra istanza, come la farebbe un browser. Tra reti diverse, dodici parole accoppiano le due tramite un relay che puoi ospitare tu.',
-  'settings.help.instances.link': 'Apri Istanze',
-
-  'settings.help.access.title': 'Accesso e risoluzione dei problemi',
-  'settings.help.access.body': 'Una password blocca tutta l’interfaccia, a cui si accede poi solo con un cookie di sessione. La pagina Sicurezza la raccoglie insieme al secondo fattore, alle passkey e ai token API. La pagina Diagnostica crea un file da allegare a una segnalazione di bug: versione e informazioni sulla build, le impostazioni attuali senza nessuna password, le righe di log recenti di questo processo e quante goroutine sono in esecuzione.',
-  'settings.help.access.link1': 'Apri Sicurezza',
-  'settings.help.access.link2': 'Apri Diagnostica',
-
-  'settings.help.advanced.title': 'Tutto il resto',
-  'settings.help.advanced.body':
-    'Ogni impostazione di questa build si può leggere e modificare con il suo nome grezzo nella pagina Avanzate. Comprese alcune che altrove non hanno ancora un controllo dedicato, come il modo in cui viene trattato un mirror di un file già scaricato e cosa succede quando un download finirebbe su un nome già usato.',
-  'settings.help.advanced.link': 'Apri le impostazioni Avanzate',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Informazioni su KnightLoader',
@@ -3345,11 +3279,9 @@ export const it: Dict = {
   'settings.categories.torrentFilesOwn': 'Propria',
   'settings.watchDirFilesHint': 'Quello che lasci qui viene preso automaticamente: elenchi di link (.txt, .crawljob, .magnet), file .torrent, contenitori (.dlc, .ccf, .rsdf) e file .nzb.',
   'container.usenet': '{file} è andato a {service}. I suoi file compaiono qui appena {service} li ha recuperati da Usenet.',
-  'settings.help.intake.watchFiles': 'Una cartella sorvegliata prende quello che ci lasci dentro: elenchi di link (.txt, .crawljob, .magnet), file .torrent, contenitori (.dlc, .ccf, .rsdf) e file .nzb.',
   'container.nzbTooBig': 'supera {max}, il massimo consentito per un .nzb',
   'container.noUsenet': 'è un .nzb, e qui non c’è niente che possa recuperarlo da Usenet. Aggiungi un server Usenet o un account TorBox o Premiumize.me in Account.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, caricato qui o mandato da Sonarr o Radarr, va al tuo server Usenet personale o al tuo account TorBox o Premiumize.me, a seconda di quale viene prima nell’ordine di priorità in Account. Il tuo server personale recupera subito ogni file. Un servizio debrid recupera prima la release, e i suoi file poi si scaricano come qualsiasi altro link. TorBox accetta file .nzb solo con i piani che includono Usenet. Se TorBox rifiuta il primo, quel .nzb fallisce, a meno che non lo prenda in carico un altro account.',
   'task.remote': 'In download su {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'I link magnet e i file .torrent vanno o al client torrent integrato o a un servizio debrid che accetta torrent, a seconda di quale sta più in alto nell’elenco.',

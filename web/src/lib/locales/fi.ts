@@ -1533,72 +1533,6 @@ export const fi: Dict = {
 
   'settings.nav.help': 'Tiedot',
 
-  'settings.help.intake.title': 'Latausten lisääminen',
-  'settings.help.intake.body':
-    'Liitä linkit Kerääjään yksi riviä kohden tai sotkuisena tekstinä. Haku löytää linkit, missä ne ovatkin: keskeltä lausetta, useita samalta riviltä tai sähköpostiohjelman kahdelle riville katkaisemina.',
-  'settings.help.intake.b1': 'Pudota linkkikontainer-tiedosto (.dlc, .ccf, .rsdf) tai tavallinen linkkilista.',
-  'settings.help.intake.b2':
-    'Hosteri- ja foorumisivujen Click\'n\'Load-painikkeet toimivat ennallaan. KnightLoader vastaa osoitteessa 127.0.0.1:9666, samassa portissa, jota jokainen muukin latausohjelma käyttää.',
-  'settings.help.intake.b3':
-    'Liitä sivun URL tiedostolinkin sijaan ja kytke Ryömintä päälle poimiaksesi jokaisen tiedoston, johon se linkittää, sen sijaan että lataisit itse sivun.',
-  'settings.help.intake.link1': 'Avaa Linkkikerääjä-asetukset',
-
-  'settings.help.collector.title': 'Kerääjä, ennen kuin mitään latautuu',
-  'settings.help.collector.body':
-    'Uudet linkit saapuvat ensin Kerääjään, ei jonoon: väliaikainen alue nimien, kokojen ja kaksoiskappalevaroitusten tarkistamiseen ennen kuin mikään alkaa. Automaattinen vahvistus voi ohittaa tämän vaiheen, valinnaisella viiveellä; kun vahvistettu, linkki joko alkaa heti tai odottaa jonossa, riippuen automaattisesta käynnistyksestä.',
-  'settings.help.collector.link': 'Avaa Linkkikerääjä-asetukset',
-
-  'settings.help.rules.title': 'Säännöt: paketit, kansiot ja mikä säilyy',
-  'settings.help.rules.body':
-    'Packagizer nimeää linkin uudelleen, valitsee sen kansion ja asettaa sen latausasetukset linkin saapuessa kirjoittamiesi ehtojen perusteella. Linkkisuodatin päättää, säilytetäänkö linkki ylipäätään. Hylkäys kertoo aina, mikä sääntö sen aiheutti ja miksi.',
-  'settings.help.rules.link': 'Avaa Säännöt',
-
-  'settings.help.queue.title': 'Jonon hallinta',
-  'settings.help.queue.body':
-    'Keskeytä, jatka tai järjestä uudelleen mikä tahansa linkki, yksittäin tai kokonaisena pakettina. Jonon voi pysäyttää kahdella tavalla. Jonon seisauttaminen jättää jo käynnissä olevat rauhaan, jolloin ne valmistuvat itsestään. Kaikkien siirtojen pysäyttäminen heti näyttää ensin, mitä menetettäisiin, ja tapahtuu vasta, kun vahvistat. Varoitus on olemassa siirtoja varten, jotka eivät voi jatkaa siitä, mihin ne jäivät.',
-  'settings.help.queue.b1': 'Yksittäinen linkki voi ohittaa globaalin yhteysmäärän tai lataamisen jälkeisen purkamisen kytkimen.',
-  'settings.help.queue.b2': 'Listalla jo olevan linkin kaksoiskappale hylätään aina, ennen kuin se koskaan saavuttaa Kerääjän.',
-
-  'settings.help.limits.title': 'Hosterin rajoitusten kiertäminen',
-  'settings.help.limits.body': 'Kolme riippumatonta tapaa estää ilmaisrajaa olemasta katto:',
-  'settings.help.limits.b1':
-    'Yhteydet: jaa lataukset useammalle lähtevälle reitille (toinen liittymä, välityspalvelin, SOCKS) sen sijaan, että liikenne lähtisi aina tämän koneen omasta osoitteesta.',
-  'settings.help.limits.b2':
-    'Uudelleenyhdistäminen: pyydä reitittimeltä uusi julkinen osoite, ainoa asia, joka poistaa itse osoitteeseen sidotun rajan. Tämä toimii UPnP:n, ulkoisen ohjelman, skriptin tai reitittimen hallintasivulle toistettujen HTTP-pyyntöjen kautta. Olemassa olevat JDownloaderin LiveHeader-/curl-skriptit toimivat ennallaan.',
-  'settings.help.limits.b3':
-    'Tilit: tallenna premium- tai debrid-kirjautumistiedot (Real-Debrid, AllDebrid, TorBox ja muut), jotta kelvollinen linkki haetaan täydellä nopeudella ilmaiskäyttäjän rajan sijaan.',
-  'settings.help.limits.link1': 'Avaa Verkko',
-  'settings.help.limits.link3': 'Avaa Tilit',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Kun hosteri pyytää captchaa, ensin kokeillaan määrittämiäsi captcha-tilejä asettamassasi järjestyksessä. Jos yhtään ei ole määritetty tai mikään ei osaa ratkaista sitä, captcha tuodaan sinun eteesi sen sijaan, että lataus epäonnistuisi hiljaa.',
-  'settings.help.captcha.link': 'Avaa Captcha-asetukset',
-
-  'settings.help.after.title': 'Latauksen jälkeen',
-  'settings.help.after.body':
-    'Arkistot puretaan automaattisesti: zip (myös salattu, sekä WinZip AES että vanhempi ZipCrypto), rar monivolyymisarjoineen, 7z, tar sekä gzip/bzip2/xz/zstd riippumatta siitä, sisältävätkö ne tarin. Purku on puhdasta Go:ta eikä tarvitse ulkoista unrar- tai 7z-ohjelmaa. Salatulle arkistolle kokeillaan salasanalistaa järjestyksessä. Valmis tiedosto tarkistetaan minkä tahansa sen mukana tulleen tarkistussumman perusteella: .sfv-listan, md5-/sha1-/sha256sum-tiedoston tai julkaisun nimessä itsessään olevan CRC32:n.',
-  'settings.help.after.link1': 'Avaa Arkistot-asetukset',
-  'settings.help.after.link2': 'Avaa Lataukset-asetukset',
-
-  'settings.help.schedule.title': 'Toiminta ilman valvontaa',
-  'settings.help.schedule.body':
-    'Viikkoaikataulu keskeyttää tai rajoittaa jonoa kellonajan mukaan, esimerkiksi yöllisessä ikkunassa, ja pysyy oikeana myös kesäaikaan siirryttäessä. Idea on sama kuin JDownloaderin Schedulerissa.',
-  'settings.help.schedule.link': 'Avaa Automaatio',
-
-  'settings.help.instances.title': 'Useamman kuin yhden instanssin ajaminen',
-  'settings.help.instances.body': 'Lisää toinen KnightLoader vertaiseksi, ja sen jono näkyy myös tällä työpöydällä. Samassa verkossa se on suora kutsu toisen instanssin omaan rajapintaan, aivan kuten selain sen tekisi. Verkkojen välillä kaksitoista sanaa parittaa nämä kaksi välityspalvelimen kautta, jonka voit isännöidä itse.',
-  'settings.help.instances.link': 'Avaa Instanssit',
-
-  'settings.help.access.title': 'Pääsy ja vianmääritys',
-  'settings.help.access.body': 'Salasana lukitsee koko käyttöliittymän niin, että sisään pääsee vain istuntoevästeellä. Tietoturva-sivulla sitä hallitaan yhdessä toisen tunnistustekijän, pääsyavainten ja API-tokenien kanssa. Diagnostiikka-sivu kokoaa vikailmoitukseen liitettävän tiedoston: versio- ja build-tiedot, nykyiset asetukset jokainen salasana poistettuna, tämän prosessin omat viimeisimmät lokirivit ja sen, kuinka monta goroutinea on käynnissä.',
-  'settings.help.access.link1': 'Avaa Tietoturva',
-  'settings.help.access.link2': 'Avaa Diagnostiikka',
-
-  'settings.help.advanced.title': 'Kaikki muu',
-  'settings.help.advanced.body':
-    'Jokaista tämän buildin asetusta voi lukea ja muuttaa sen raa’alla nimellä Lisäasetukset-sivulla. Mukana on myös muutama, jolla ei vielä ole omaa säädintä missään muualla, kuten se, miten jo ladatun tiedoston peiliä kohdellaan ja mitä tapahtuu, kun lataus osuisi jo varattuun nimeen.',
-  'settings.help.advanced.link': 'Avaa Lisäasetukset',
   'task.mode.free': 'Ilmainen',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Tietoja KnightLoaderista',
@@ -3363,11 +3297,9 @@ export const fi: Dict = {
   'settings.categories.torrentFilesOwn': 'Oma',
   'settings.watchDirFilesHint': 'Tänne pudotetut tiedostot otetaan vastaan automaattisesti: linkkilistat (.txt, .crawljob, .magnet), .torrent-tiedostot, säiliöt (.dlc, .ccf, .rsdf) ja .nzb-tiedostot.',
   'container.usenet': '{file} lähti palveluun {service}. Sen tiedostot näkyvät täällä, kun {service} on hakenut ne Usenetistä.',
-  'settings.help.intake.watchFiles': 'Valvottu kansio ottaa vastaan siihen pudotetut tiedostot: linkkilistat (.txt, .crawljob, .magnet), .torrent-tiedostot, säiliöt (.dlc, .ccf, .rsdf) ja .nzb-tiedostot.',
   'container.nzbTooBig': 'se on suurempi kuin {max}, joka on .nzb-tiedoston enimmäiskoko',
   'container.noUsenet': 'se on .nzb, eikä mikään täällä pysty hakemaan sitä Usenetistä. Lisää Usenet-palvelin tai TorBox- tai Premiumize.me-tili kohdassa Tilit.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb, jonka lataat tänne tai jonka Sonarr tai Radarr lähettää, menee omalle Usenet-palvelimellesi tai TorBox- tai Premiumize.me-tilillesi, kumpi niistä on ensin Tilit-kohdan prioriteettijärjestyksessä. Oma palvelimesi hakee jokaisen tiedoston heti. Debrid-palvelu hakee releasen ensin, ja sen tiedostot ladataan sitten kuten mikä tahansa muu linkki. TorBox ottaa .nzb-tiedostoja vastaan vain tilauksissa, joihin Usenet sisältyy. Jos TorBox torjuu ensimmäisen, kyseinen .nzb epäonnistuu, ellei jokin toinen tili ota sitä.',
   'task.remote': 'Haetaan palvelussa {service}',
   'task.remoteSeeds': 'Seedit: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet-linkit ja .torrent-tiedostot menevät joko sisäänrakennetulle torrent-asiakasohjelmalle tai torrentteja ottavalle debrid-palvelulle sen mukaan, kumpi on listalla ylempänä.',
