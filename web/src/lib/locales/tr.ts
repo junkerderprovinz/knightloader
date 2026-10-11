@@ -3076,7 +3076,7 @@ export const tr: Dict = {
   'settings.diagnostics.toolsMissing': 'bulunamadı',
   'settings.eventTargets.problem.redirect': 'Adres bir yönlendirmeyle yanıt veriyor ve bu örnek onu izlemiyor. Bu satırdaki her başlık değeri bir sır sayılır, başka bir hosta giden bir yönlendirme de onu o hostun sahibinin eline verirdi. Adresi bir tarayıcıda aç, nereye indiğine bak ve onun yerine o adresi buraya yaz.',
   'auth.twoFactor.title': 'İki adımlı doğrulama',
-  'auth.twoFactor.hint': 'Parolanın yanı sıra, bir kimlik doğrulama uygulamasından gelen altı haneli kod. Parolanın yanında durur ve onun yerini asla almaz. Bu örnekte kullanıcı hesabı yok, yani senin yerine kilidi açacak başka kimse yok: kurtarma kodlarını, kodları üreten telefondan başka bir yerde sakla. İkisi de kaybolduysa makinede knightloader -reset-2fa çalıştır ya da KnightLoader\'ı durdurup veri klasöründeki auth.json dosyasından totp ve recovery girdilerini sil. Parola her iki durumda da çalışmaya devam eder.',
+  'auth.twoFactor.hint': 'Parolanın yanı sıra, bir kimlik doğrulama uygulamasından gelen altı haneli kod. Parolanın yanında durur ve onun yerini asla almaz. Bu örnekte kullanıcı hesabı yok, yani senin yerine kilidi açacak başka kimse yok: kurtarma kodlarını, kodları üreten telefondan başka bir yerde sakla. İkisi de kaybolduysa makinede knightloader -reset-2fa çalıştır ya da KnightLoader\'ı durdurup veri klasöründeki auth.json dosyasından totp ve recovery girdilerini sil. Parola her iki durumda da çalışmaya devam eder. Parolayı günlükteki bir kodla sıfırlarsan iki adımlı doğrulama kapanır.',
   'auth.twoFactor.on': 'Açık',
   'auth.twoFactor.off': 'Kapalı',
   'auth.twoFactor.needsPassword': 'Önce bir parola belirle. İkinci etken bir parolayı korur, yani bir parola olmalı.',

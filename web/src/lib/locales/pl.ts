@@ -3062,7 +3062,7 @@ export const pl: Dict = {
   'settings.diagnostics.toolsMissing': 'nie znaleziono',
   'settings.eventTargets.problem.redirect': 'Adres odpowiada przekierowaniem, a ta instancja za nim nie idzie. Każda wartość nagłówka w tym wierszu uchodzi za sekret, a przekierowanie na innego hosta oddałoby ją w ręce właściciela tamtego hosta. Otwórz ten adres w przeglądarce, zobacz, gdzie ląduje, i wpisz tutaj tamten adres.',
   'auth.twoFactor.title': 'Uwierzytelnianie dwuskładnikowe',
-  'auth.twoFactor.hint': 'Sześciocyfrowy kod z aplikacji uwierzytelniającej, dodatkowo do hasła. Stoi obok hasła i nigdy go nie zastępuje. Ta instancja nie ma kont użytkowników, więc nie ma nikogo innego, kto mógłby ją dla ciebie odblokować: trzymaj kody odzyskiwania gdzie indziej niż na telefonie, który generuje kody. Jeśli oba przepadną, uruchom na maszynie knightloader -reset-2fa albo zatrzymaj KnightLoader i usuń wpisy totp oraz recovery z pliku auth.json w folderze danych. Hasło i tak działa dalej.',
+  'auth.twoFactor.hint': 'Sześciocyfrowy kod z aplikacji uwierzytelniającej, dodatkowo do hasła. Stoi obok hasła i nigdy go nie zastępuje. Ta instancja nie ma kont użytkowników, więc nie ma nikogo innego, kto mógłby ją dla ciebie odblokować: trzymaj kody odzyskiwania gdzie indziej niż na telefonie, który generuje kody. Jeśli oba przepadną, uruchom na maszynie knightloader -reset-2fa albo zatrzymaj KnightLoader i usuń wpisy totp oraz recovery z pliku auth.json w folderze danych. Hasło i tak działa dalej. Zresetowanie hasła kodem z logów wyłącza uwierzytelnianie dwuskładnikowe.',
   'auth.twoFactor.on': 'Włączony',
   'auth.twoFactor.off': 'Wyłączony',
   'auth.twoFactor.needsPassword': 'Najpierw ustaw hasło. Drugi składnik chroni hasło, więc musi ono istnieć.',
