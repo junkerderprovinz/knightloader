@@ -119,6 +119,7 @@ export const ko: Dict = {
   'addDownload.errorSend': '링크를 전송하지 못했습니다: {message}',
   'error.federationOff': '연결된 인스턴스에서 짝 인스턴스가 꺼져 있어서, 그 인스턴스가 다른 인스턴스에 닿지 못합니다.',
   'error.addAgain': '이 연결은 이전 버전의 앱에서 저장되어 더 이상 작동하지 않습니다. 삭제한 뒤 12개 단어로 다시 연결하세요.',
+  'error.ownLoginNeeded': '인스턴스가 이 작업을 자체 웹 인터페이스에서만 허용합니다. 그곳에서 로그인하세요.',
   'addDownload.cancel': '취소',
   'addDownload.button': '추가',
 

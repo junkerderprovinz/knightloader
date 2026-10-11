@@ -120,6 +120,7 @@ export const gl: Dict = {
   'addDownload.errorSend': 'Non se puideron enviar as ligazóns: {message}',
   'error.federationOff': 'As instancias irmás están desactivadas na instancia á que estás conectado, así que non pode chegar ás outras.',
   'error.addAgain': 'Esta conexión gardouna unha versión anterior da app e xa non funciona. Elimínaa e volve conectar coas doce palabras.',
+  'error.ownLoginNeeded': 'A instancia só o permite desde a súa propia interface web. Inicia sesión alí para facelo.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 

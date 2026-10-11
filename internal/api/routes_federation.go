@@ -11,6 +11,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
@@ -29,7 +30,13 @@ func registerFederation(reg *Registry, a *app.App) {
 				writeJSON(w, []federation.Instance{})
 				return
 			}
-			writeJSON(w, a.Federation.List())
+			list := a.Federation.List()
+			if !seesCredentials(r) {
+				for i := range list {
+					list[i].URL = core.RedactURL(list[i].URL)
+				}
+			}
+			writeJSON(w, list)
 		})
 	reg.Add(http.MethodPost, "/api/instances", "register a peer instance and report whether it answered",
 		func(w http.ResponseWriter, r *http.Request) {

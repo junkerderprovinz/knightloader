@@ -119,6 +119,7 @@ export const zh: Dict = {
   'addDownload.errorSend': '无法发送链接：{message}',
   'error.federationOff': '你连接的实例上关闭了“同伴实例”，所以它联系不到其他实例。',
   'error.addAgain': '这个连接是旧版应用保存的，已无法使用。请删除它，再用十二个词重新连接。',
+  'error.ownLoginNeeded': '该实例只允许在它自己的网页界面上这样做。请在那里登录后操作。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',
 

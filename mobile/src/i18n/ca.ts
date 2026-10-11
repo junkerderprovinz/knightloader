@@ -120,6 +120,7 @@ export const ca: Dict = {
   'addDownload.errorSend': "No s'han pogut enviar els enllaços: {message}",
   'error.federationOff': 'Les instàncies germanes estan desactivades a la instància a la qual estàs connectat, així que no pot arribar a les altres.',
   'error.addAgain': 'Aquesta connexió la va desar una versió anterior de l’app i ja no funciona. Elimina-la i torna a connectar amb les dotze paraules.',
+  'error.ownLoginNeeded': 'La instància només ho permet des de la seva pròpia interfície web. Inicia-hi la sessió per fer-ho.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 

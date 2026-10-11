@@ -203,8 +203,8 @@ func TestTheRelayForwardsTheClipboardWatcherCalls(t *testing.T) {
 		{http.MethodPost, "/api/clipboard-watchers/abc/other", false},
 		{http.MethodPost, "/api/clipboard-watchers/abc/stop/more", false},
 	} {
-		if got := relayForwardable(c.method, c.path); got != c.want {
-			t.Errorf("relayForwardable(%s %s) = %v, want %v", c.method, c.path, got, c.want)
+		if got := groupReaches(t, c.method, c.path); got != c.want {
+			t.Errorf("groupReaches(%s %s) = %v, want %v", c.method, c.path, got, c.want)
 		}
 	}
 }
