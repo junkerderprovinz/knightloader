@@ -58,6 +58,13 @@ func TestRedactTextKnowsTheCredentialsOfFeedsAndServices(t *testing.T) {
 		{"https://api.telegram.org/botTELEGRAMTOKEN/sendMessage", "TELEGRAMTOKEN", "/sendMessage"},
 		{"https://discord.com/api/webhooks/1/DISCORDTOKEN", "DISCORDTOKEN", "webhooks/1/"},
 		{`error: Get "http://u:QUOTEDPW@host/x": dial tcp`, "QUOTEDPW", `"http://host/x"`},
+		{"https://www.torrentleech.org/rss/download/123456/TLDLKEY/film.torrent", "TLDLKEY", "/rss/download/123456/"},
+		{"https://hooks.slack.com/services/T0001/B0002/SLACKSECRET", "SLACKSECRET", "hooks.slack.com/services/"},
+		{"magnet:?xt=urn:btih:abc&xs=https%3A%2F%2Ft.example%2FXSKEY%2Ff.torrent&as=https%3A%2F%2Fm.example%2FASKEY", "XSKEY", "xs=https%3A%2F%2Ft.example"},
+		{"magnet:?xt=urn:btih:abc&as=https%3A%2F%2Fm.example%2FASKEY%2Ff", "ASKEY", "as=https%3A%2F%2Fm.example"},
+		{"https://proxy.example/get?url=https%3A%2F%2Fu%3ANESTEDPW%40host.example%2Ff%3Fapikey%3DNESTEDKEY&page=2", "NESTEDPW", "page=2"},
+		{"https://proxy.example/get?url=https%3A%2F%2Fhost.example%2Ff%3Fapikey%3DNESTEDKEY", "NESTEDKEY", "proxy.example/get?url="},
+		{"https://proxy.example/get?to=https%253A%252F%252Fhost.example%252Ff%253Ftoken%253DTWICEKEY", "TWICEKEY", "proxy.example/get?to="},
 	} {
 		got := RedactText(c.in)
 		if strings.Contains(got, c.secret) || !strings.Contains(got, c.keep) {

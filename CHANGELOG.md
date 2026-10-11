@@ -159,8 +159,11 @@ release's tag.
   the qBittorrent bridge.** A magnet link's trackers keep only their host there.
 - **More kinds of tokens in links stay out of logs and member views:** a
   Newznab feed's key, access and auth tokens, `key` and `tp` arguments,
-  signed S3 addresses, and the tokens of Telegram bots, Discord webhooks and
-  TorrentLeech feeds. Feed and crawler log lines are redacted too.
+  signed S3 addresses, the tokens of Telegram bots and of Discord and Slack
+  webhooks, and the keys in TorrentLeech feeds and download links. A magnet
+  link's sources and web seeds keep only their host, like its trackers, and a
+  link passed inside another link, as a redirect takes one, is redacted the
+  same way. Feed and crawler log lines are redacted too.
 - **A trusted proxy range can be at most `/28` for IPv4 or `/124` for IPv6,**
   sixteen addresses either way, so a home network can no longer be named a
   proxy. A wider range saved earlier is shown under the field as not used,
