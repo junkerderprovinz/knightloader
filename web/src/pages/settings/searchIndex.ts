@@ -102,13 +102,41 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   downloads: [
     {
       title: 'settings.downloads.locationTitle',
+      // The folder check is the card's second group, under a heading of its own.
       rows: [
         { key: 'settings.downloadDir', hint: 'settings.downloadDirHint' },
         { key: 'settings.subfolderByPackage' },
         { key: 'settings.downloads.workDir', hint: 'settings.downloads.workDirHint' },
+        { key: 'settings.owner.checkTitle', hint: 'settings.owner.checkHint' },
       ],
-      // The download folder's hint is two keys glued together at the call site.
-      body: ['settings.pathVars'],
+      // The check draws no captioned rows, so its button and the role names go here.
+      also: [
+        'settings.owner.run',
+        'settings.owner.role.downloads',
+        'settings.owner.role.work',
+        'settings.owner.role.category',
+        'settings.owner.role.watch',
+      ],
+      // The download folder's hint is two keys glued together at the call
+      // site. The check's sentences are where words like "chown" live.
+      body: [
+        'settings.pathVars',
+        'settings.owner.never',
+        'settings.owner.checkedAt',
+        'settings.owner.checkFailed',
+        'settings.owner.v.ok',
+        'settings.owner.v.ownerMismatch',
+        'settings.owner.v.groupUnreadable',
+        'settings.owner.v.dirUnreadable',
+        'settings.owner.v.notWritable',
+        'settings.owner.v.missing',
+        'settings.owner.v.unknown',
+        'settings.owner.fix.user',
+        'settings.owner.fix.chown',
+        'settings.owner.fix.mask',
+        'settings.owner.fix.recreate',
+        'settings.owner.fix.past',
+      ],
     },
     {
       title: 'settings.advanced.reclaimTitle',
@@ -177,37 +205,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       also: ['settings.feeds.test'],
     },
-    // The folder check draws no captioned rows, so the role names go in `also`
-    // and the sentences, where words like "chown" live, in `body`.
-    {
-      title: 'settings.owner.checkTitle',
-      hint: 'settings.owner.checkHint',
-      rows: [],
-      also: [
-        'settings.owner.run',
-        'settings.owner.role.downloads',
-        'settings.owner.role.work',
-        'settings.owner.role.category',
-        'settings.owner.role.watch',
-      ],
-      body: [
-        'settings.owner.never',
-        'settings.owner.checkedAt',
-        'settings.owner.checkFailed',
-        'settings.owner.v.ok',
-        'settings.owner.v.ownerMismatch',
-        'settings.owner.v.groupUnreadable',
-        'settings.owner.v.dirUnreadable',
-        'settings.owner.v.notWritable',
-        'settings.owner.v.missing',
-        'settings.owner.v.unknown',
-        'settings.owner.fix.user',
-        'settings.owner.fix.chown',
-        'settings.owner.fix.mask',
-        'settings.owner.fix.recreate',
-        'settings.owner.fix.past',
-      ],
-    },
     {
       title: 'downloads.listTitle',
       rows: [
@@ -267,14 +264,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
+      // Quit and restart are the card's second group, under a heading of their own.
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
+        { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
       ],
       // The container build uses its own sentence for the update hint.
       body: ['settings.look.updatesAutoUpdateContainerHint'],
     },
-    { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
     // The archive and "settings only" share one card as its two sub-cards.
     {
       title: 'settings.transfer.cardTitle',
@@ -848,7 +846,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.captcha.orderTitle',
       hint: 'settings.captcha.orderHint',
-      rows: [{ key: 'settings.module.captcha' }],
+      // The test captcha is the card's second group, under a heading of its own.
+      rows: [
+        { key: 'settings.module.captcha' },
+        { key: 'settings.captcha.testTitle' },
+        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
+        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
+      ],
       body: ['settings.captcha.orderEmpty'],
     },
     {
@@ -856,13 +860,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
-      ],
-    },
-    {
-      title: 'settings.captcha.testTitle',
-      rows: [
-        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
-        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
     },
   ],

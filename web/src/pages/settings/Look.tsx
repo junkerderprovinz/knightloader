@@ -57,7 +57,7 @@ import {
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
 import { useDraft, useFeatures } from './context';
-import { SettingRow } from './controls';
+import { SettingRow, SubHead } from './controls';
 import { ModulesPageBadge } from './ModuleToggle';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
@@ -757,9 +757,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       {general && <NotificationsCard hue={0} />}
 
       {general && <MutedDialogsCard hue={1} />}
-      {general && <UpdateCard hue={2} />}
-      {general && <SystemCards hue={3} />}
-      {general && <JDImportCard hue={5} />}
+      {general && <SystemCards hue={2} />}
+      {general && <JDImportCard hue={4} />}
     </div>
   );
 }
@@ -790,23 +789,30 @@ function MutedDialogsCard({ hue }: { hue: number }) {
 }
 
 /**
- * SystemCards holds quit and restart and the transfer card, on `hue` and the
- * one after it. LifecycleCard does the deployment fetch alone, so a slow
- * /api/deployment never hides the transfer card; both share `shuttingDown`,
- * since a restore can restart the server.
+ * SystemCards holds the update card, with quit and restart as its second
+ * group, and the transfer card, on `hue` and the one after it. Lifecycle does
+ * the deployment fetch alone, so a slow /api/deployment hides neither card;
+ * it and the transfer card share `shuttingDown`, since a restore can restart
+ * the server.
  */
 function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
-      <LifecycleCard hue={hue} shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
+      <UpdateCard hue={hue}>
+        <Lifecycle shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
+      </UpdateCard>
       <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }
 
-/** LifecycleCard loads on its own, so a failed deployment fetch drops only this card. */
-function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttingDown: boolean; onShutdown: () => void }) {
+/**
+ * Lifecycle is quit and restart, a group of the update card under its own
+ * small heading, since two buttons are no card. It loads on its own, so a
+ * failed deployment fetch drops only this group.
+ */
+function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
@@ -837,51 +843,48 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
   // Nothing while loading, like UpdateCard.
   if (loading) return null;
   if (failed || !data) {
-    return <ErrorCard message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
+    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
   }
 
   if (shuttingDown) {
     return (
-      <Card hue={hue} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.system.shuttingDownTitle')}</SectionTitle>
+      <>
+        <SubHead label={t('settings.system.shuttingDownTitle')} />
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
-      </Card>
+      </>
     );
   }
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-3">
-        {/* The note comes from translated keys by deployment, since the server
-            sends it in English; an unavailable reason wins. */}
-        <SectionTitle
-          hint={
-            !data.canQuit || !data.canRestart
-              ? t('settings.system.unavailable')
-              : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
-          }
+      {/* The note comes from translated keys by deployment, since the server
+          sends it in English; an unavailable reason wins. */}
+      <SubHead
+        label={t('settings.system.lifecycleTitle')}
+        hint={
+          !data.canQuit || !data.canRestart
+            ? t('settings.system.unavailable')
+            : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
+        }
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          kind="secondary"
+          icon={<IconSignOut width={16} height={16} />}
+          disabled={!data.canQuit || acting}
+          onClick={() => setConfirmAction('quit')}
         >
-          {t('settings.system.lifecycleTitle')}
-        </SectionTitle>
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconSignOut width={16} height={16} />}
-            disabled={!data.canQuit || acting}
-            onClick={() => setConfirmAction('quit')}
-          >
-            {t('settings.system.quit')}
-          </Button>
-          <Button
-            kind="secondary"
-            icon={<IconRetry width={16} height={16} />}
-            disabled={!data.canRestart || acting}
-            onClick={() => setConfirmAction('restart')}
-          >
-            {t('settings.system.restart')}
-          </Button>
-        </div>
-      </Card>
+          {t('settings.system.quit')}
+        </Button>
+        <Button
+          kind="secondary"
+          icon={<IconRetry width={16} height={16} />}
+          disabled={!data.canRestart || acting}
+          onClick={() => setConfirmAction('restart')}
+        >
+          {t('settings.system.restart')}
+        </Button>
+      </div>
 
       {confirmAction && (
         <Modal
@@ -923,7 +926,7 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
  * background (desktop/updates.go), and a check there also tells whether a
  * downloaded version waits for the next start.
  */
-function UpdateCard({ hue }: { hue: number }) {
+function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   // Updating from inside the app is the In-app updates module; its row says
@@ -1031,6 +1034,7 @@ function UpdateCard({ hue }: { hue: number }) {
           {check && !checking ? face.label : ''}
         </span>
       </div>
+      {children}
     </Card>
   );
 }

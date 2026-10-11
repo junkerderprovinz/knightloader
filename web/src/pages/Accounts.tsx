@@ -59,6 +59,7 @@ import {
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import type { MenuItem } from '../components/ContextMenu';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
+import { SubHead } from './settings/controls';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { PageAction, PageActions } from '../components/PageActions';
@@ -349,8 +350,6 @@ export function Accounts() {
           />
         )}
       </Card>
-
-      <FreeDownloadsCard hue={5} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -932,7 +931,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={6} className="flex flex-col gap-3">
+      <Card hue={5} className="flex flex-col gap-3">
         <SectionTitle
           hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}
           right={priority !== null && priority.length > 0 && <PictureSwitch view={view} onView={setView} />}
@@ -953,10 +952,10 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={7} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.routing.jdHint')}>
-          {t('settings.module.jd')}
-        </SectionTitle>
+      {/* Whether a link may be loaded for free, and the state of the backend
+          that would load it. */}
+      <FreeDownloadsCard hue={6}>
+        <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
         {jd === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : !jd.configured ? (
@@ -969,7 +968,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
             {jd.detail && <InfoBubble tip={jd.detail} />}
           </span>
         )}
-      </Card>
+      </FreeDownloadsCard>
     </div>
   );
 }
