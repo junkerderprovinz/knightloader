@@ -155,7 +155,6 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			gate.pass(r)
 			setSession(w, r, a.Auth.Issue())
-			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session, or with {\"everywhere\": true} every session; open because logging out of an expired session must work",
@@ -220,7 +219,6 @@ func registerSystem(reg *Registry, a *app.App) {
 			_ = a.APITokens.RevokeAll()
 			if body.New != "" {
 				setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
-				learnDomain(a, reg, r)
 			} else {
 				clearSession(w, r)
 			}

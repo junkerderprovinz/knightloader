@@ -6,7 +6,6 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
-	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -400,27 +399,18 @@ func TestTheModuleLinesNameAddressesUnderTheBasePath(t *testing.T) {
 	}
 }
 
-func TestMovingUnderABasePathReplacesTheDomainKnownAtTheRoot(t *testing.T) {
+// Seen from the LAN, the QR code carries the known domain with its path.
+func TestTheQRCodeCarriesTheKnownDomainsPath(t *testing.T) {
 	requireContainerDeployment(t)
 	servedUnder(t, "/kl")
 	srv, a := testServer(t)
 	defer srv.Close()
 	s := a.Settings.Get()
-	s.KnownDomains = []string{"https://example.com", "https://other.example.org"}
+	s.KnownDomains = []string{"https://example.com/kl", "https://other.example.org"}
 	if _, err := a.Settings.Set(s); err != nil {
 		t.Fatal(err)
 	}
 
-	if code := signInOn(t, a, srv.URL+"/kl", "example.com"); code != http.StatusOK {
-		t.Fatalf("signing in under /kl answered %d", code)
-	}
-	unlock(t, a)
-	want := []string{"https://example.com/kl", "https://other.example.org"}
-	if got := a.Settings.Get().KnownDomains; !slices.Equal(got, want) {
-		t.Errorf("KnownDomains = %q, want %q", got, want)
-	}
-
-	// Seen from the LAN, the QR code carries the domain with its path.
 	_, info := getRemoteAccess(t, srv.URL, "192.0.2.10:8749")
 	if addr, _ := preferredAddress(info.Addresses); addr != "https://example.com/kl" {
 		t.Errorf("preferred address = %q among %+v, want https://example.com/kl", addr, info.Addresses)
