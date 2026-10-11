@@ -18,6 +18,7 @@ import (
 	"errors"
 	"maps"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -113,6 +114,10 @@ type Guard struct {
 	// sign-out everywhere ends the credentials, and for reading by everything
 	// that creates one outside this package; see Mint.
 	minting sync.RWMutex
+	// writing is held from taking the state to its write in auth.json, so a
+	// slow write of an older state cannot land over a newer one. It is taken
+	// after minting and before mu.
+	writing sync.Mutex
 }
 
 // ErrStale refuses to mint a credential for a caller whose own credential
@@ -408,6 +413,8 @@ func signWith(key []byte, msg string) []byte {
 }
 
 func (g *Guard) flush() error {
+	g.writing.Lock()
+	defer g.writing.Unlock()
 	g.mu.RLock()
 	s := stored{
 		Hash:     string(g.hash),
@@ -427,5 +434,36 @@ func writeState(path string, s stored, key *appkey.Key) error {
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, b, 0o600)
+	return writeAtomic(path, b)
+}
+
+// writeAtomic replaces path with b so that a crash at any point leaves the old
+// file or the new one: a file cut short would read as no password at all.
+func writeAtomic(path string, b []byte) error {
+	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	_, err = f.Write(b)
+	if err == nil {
+		err = f.Sync()
+	}
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Rename(tmp, path)
+	}
+	if err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	// The rename lives in the folder. Windows cannot sync a folder, and there
+	// the rename is durable without it.
+	if d, err := os.Open(filepath.Dir(path)); err == nil {
+		_ = d.Sync()
+		d.Close()
+	}
+	return nil
 }

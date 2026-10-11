@@ -157,14 +157,28 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 
 	g.minting.Lock()
 	defer g.minting.Unlock()
+	c, err := g.commitReset(code, h, key)
+	if err != nil {
+		return Credentials{}, err
+	}
+	if alsoEnd != nil {
+		alsoEnd()
+	}
+	return c, nil
+}
+
+// commitReset writes the reset state and then takes it on in memory, both
+// under writing, so no write of the state from before can land after it.
+func (g *Guard) commitReset(code string, h, key []byte) (Credentials, error) {
+	g.writing.Lock()
+	defer g.writing.Unlock()
 	g.mu.Lock()
+	defer g.mu.Unlock()
 	// Another request may have used the code while this one hashed.
 	if !g.reset.matches(code, time.Now()) {
-		g.mu.Unlock()
 		return Credentials{}, ErrCodeRejected
 	}
 	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}, g.appKey); err != nil {
-		g.mu.Unlock()
 		return Credentials{}, err
 	}
 	g.hash = h
@@ -175,11 +189,5 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 	g.endSessionsLocked()
 	g.reset = resetCode{}
 	g.gen++
-	c := Credentials{gen: g.gen, enabled: true}
-	g.mu.Unlock()
-
-	if alsoEnd != nil {
-		alsoEnd()
-	}
-	return c, nil
+	return Credentials{gen: g.gen, enabled: true}, nil
 }
