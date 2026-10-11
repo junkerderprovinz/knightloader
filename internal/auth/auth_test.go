@@ -2,7 +2,9 @@ package auth
 
 import (
 	"encoding/base64"
+	"errors"
 	"strconv"
+	"strings"
 	"testing"
 	"time"
 )
@@ -135,5 +137,29 @@ func TestSessionsFromBeforeTheEpochStayValid(t *testing.T) {
 	legacy := exp + "." + base64.RawURLEncoding.EncodeToString(g.sign(exp))
 	if !g.Valid(legacy) {
 		t.Error("a cookie signed over the expiry alone is refused while the epoch is still zero")
+	}
+}
+
+func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
+	g, err := Open(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, c := range []struct {
+		password string
+		want     error
+	}{
+		{"äöüßäöü", ErrTooShort},
+		{"日本語のパスワ", ErrTooShort},
+		{strings.Repeat("a", 73), ErrTooLong},
+		{strings.Repeat("ä", 37), ErrTooLong},
+	} {
+		if err := g.SetPassword("", c.password); !errors.Is(err, c.want) {
+			t.Errorf("%q (%d characters, %d bytes) = %v, want %v",
+				c.password, len([]rune(c.password)), len(c.password), err, c.want)
+		}
+	}
+	if err := g.SetPassword("", "äöüßäöüé"); err != nil {
+		t.Errorf("eight characters were refused: %v", err)
 	}
 }
