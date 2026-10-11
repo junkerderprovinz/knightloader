@@ -354,6 +354,7 @@ export const ar: Dict = {
   'settings.pathProblem.notAbsolute': 'أدخل مسارًا كاملًا، مثل /downloads أو D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'تعذّر إنشاء {dir}.',
   'settings.pathProblem.cannotWrite': 'تعذّرت الكتابة في {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} داخل مجلد بيانات KnightLoader، بجانب كلمات المرور والإعدادات. اختر مجلدًا خارجه.',
   'settings.crawl': 'تتبّع الصفحات وجمع الملفات التي تشير إليها',
   'settings.crawl.depth': 'عمق الزحف',
   'settings.crawl.depthHint': 'إلى أي عمق يمضي. 1 هي الصفحة الملصوقة وحدها، و2 يفتح أيضًا الصفحات التي تربط إليها، و3 يفتح روابطها. لا تُفتح الصفحة مرتين أبدًا، لذا فالروابط المتبادلة تنهي الزحف بدل أن تدور به في حلقة.',

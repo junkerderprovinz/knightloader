@@ -39,6 +39,11 @@ release's tag.
 
 ### Security
 
+- **Nothing lands in the data folder any more.** A download, an unpacking, a
+  move or a rename that would write next to `auth.json`, `tokens.json` and
+  `settings.json` is refused, whether the folder was typed in the settings, set
+  for one download, built from a template or a package name, or reached through
+  a link. The built-in `downloads` folder inside it still works.
 - **An older KnightLoader no longer starts on a database a newer one wrote,**
   as after going back to an older image. It stops with a message that says
   which version to run, instead of reading and writing a schema it does not

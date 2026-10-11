@@ -352,6 +352,7 @@ export const id: Dict = {
   'settings.pathProblem.notAbsolute': 'Masukkan jalur lengkap, misalnya /downloads atau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Tidak dapat membuat {dir}.',
   'settings.pathProblem.cannotWrite': 'Tidak dapat menulis ke {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ada di dalam folder data KnightLoader, di samping kata sandi dan pengaturan. Pilih folder di luarnya.',
   'settings.crawl': 'Ikuti halaman dan kumpulkan file yang ditautkan',
   'settings.crawl.depth': 'Kedalaman penelusuran',
   'settings.crawl.depthHint': 'Seberapa dalam ditelusuri. 1 hanya halaman yang ditempel, 2 juga membuka halaman yang ditautkannya, 3 membuka tautan mereka. Satu halaman tidak pernah dibuka dua kali, jadi tautan yang saling menunjuk mengakhiri penelusuran, bukan memutarnya.',

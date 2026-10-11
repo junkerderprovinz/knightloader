@@ -352,6 +352,7 @@ export const tr: Dict = {
   'settings.pathProblem.notAbsolute': 'Tam bir yol gir, örneğin /downloads ya da D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} oluşturulamadı.',
   'settings.pathProblem.cannotWrite': '{dir} içine yazılamadı.',
+  'settings.pathProblem.dataFolder': '{dir}, KnightLoader veri klasörünün içinde, parolaların ve ayarların yanında. Bunun dışında bir klasör seç.',
   'settings.crawl': 'Sayfaları izle ve bağlantı verdikleri dosyaları topla',
   'settings.crawl.depth': 'Tarama derinliği',
   'settings.crawl.depthHint': 'Ne kadar derine inileceği. 1 yalnızca yapıştırılan sayfadır, 2 bağlantı verdiği sayfaları da açar, 3 onlarınkini açar. Bir sayfa iki kez açılmaz, bu yüzden birbirine işaret eden bağlantılar taramayı döngüye sokmak yerine bitirir.',

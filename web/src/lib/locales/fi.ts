@@ -352,6 +352,7 @@ export const fi: Dict = {
   'settings.pathProblem.notAbsolute': 'Anna koko polku, esimerkiksi /downloads tai D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kansiota {dir} ei voitu luoda.',
   'settings.pathProblem.cannotWrite': 'Kansioon {dir} ei voitu kirjoittaa.',
+  'settings.pathProblem.dataFolder': '{dir} on KnightLoaderin datakansiossa, salasanojen ja asetusten vieressä. Valitse kansio sen ulkopuolelta.',
   'settings.crawl': 'Seuraa sivuja ja kerää tiedostot, joihin ne viittaavat',
   'settings.crawl.depth': 'Läpikäynnin syvyys',
   'settings.crawl.depthHint': 'Kuinka syvälle mennään. 1 on vain liitetty sivu, 2 avaa myös sivut joihin se linkittää, 3 avaa niiden linkit. Sivua ei avata koskaan kahdesti, joten toisiinsa osoittavat linkit päättävät ajon sen sijaan että se kiertäisi kehää.',

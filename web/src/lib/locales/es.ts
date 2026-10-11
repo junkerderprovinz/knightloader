@@ -344,6 +344,7 @@ export const es: Dict = {
   'settings.pathProblem.notAbsolute': 'Escribe una ruta completa, como /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'No se pudo crear {dir}.',
   'settings.pathProblem.cannotWrite': 'No se pudo escribir en {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} está dentro de la carpeta de datos de KnightLoader, junto a las contraseñas y los ajustes. Elige una carpeta fuera de ella.',
   'settings.crawl': 'Seguir las páginas y recoger los archivos que enlazan',
   'settings.crawl.depth': 'Profundidad de rastreo',
   'settings.crawl.depthHint': 'Hasta dónde llegar. 1 es solo la página pegada, 2 abre también las páginas que enlaza, 3 abre las de estas. Una página nunca se abre dos veces, así que los enlaces mutuos terminan el rastreo en lugar de dar vueltas.',

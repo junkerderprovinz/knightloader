@@ -352,6 +352,7 @@ export const et: Dict = {
   'settings.pathProblem.notAbsolute': 'Sisesta täielik tee, näiteks /downloads või D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kausta {dir} ei õnnestunud luua.',
   'settings.pathProblem.cannotWrite': 'Kausta {dir} ei õnnestunud midagi kirjutada.',
+  'settings.pathProblem.dataFolder': '{dir} asub KnightLoaderi andmekaustas, paroolide ja seadete kõrval. Vali kaust väljaspool seda.',
   'settings.crawl': 'Järgi lehti ja kogu failid, millele need viitavad',
   'settings.crawl.depth': 'Läbimise sügavus',
   'settings.crawl.depthHint': 'Kui sügavale minnakse. 1 on ainult kleebitud leht, 2 avab ka lehed, millele see viitab, 3 avab nende omad. Lehte ei avata kunagi kaks korda, seega teineteisele viitavad lingid lõpetavad käigu, mitte ei aja seda ringi.',

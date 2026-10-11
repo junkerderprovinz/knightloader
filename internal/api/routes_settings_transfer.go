@@ -167,11 +167,11 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+		if err := settings.CheckFolders(a.DataDir, preview, patched(patch)); err != nil {
 			writeValidationError(w, err)
 			return
 		}
-		if err := validateRows(preview, patched(patch)); err != nil {
+		if err := validateRows(a.DataDir, preview, patched(patch)); err != nil {
 			writeValidationError(w, err)
 			return
 		}

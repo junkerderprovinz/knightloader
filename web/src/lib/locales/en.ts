@@ -408,6 +408,7 @@ export const en = {
   'settings.pathProblem.notAbsolute': 'Enter a full path, such as /downloads or D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Could not create {dir}.',
   'settings.pathProblem.cannotWrite': 'Could not write to {dir}.',
+  'settings.pathProblem.dataFolder': "{dir} is inside KnightLoader's data folder, next to its passwords and settings. Choose a folder outside it.",
   'settings.watchDirFilesHint':
     'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
   'settings.crawl': 'Follow pages and collect the files they link to',

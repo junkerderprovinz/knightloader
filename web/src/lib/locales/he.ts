@@ -354,6 +354,7 @@ export const he: Dict = {
   'settings.pathProblem.notAbsolute': 'הזן נתיב מלא, למשל /downloads או D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'לא ניתן היה ליצור את {dir}.',
   'settings.pathProblem.cannotWrite': 'לא ניתן היה לכתוב אל {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} נמצאת בתיקיית הנתונים של KnightLoader, ליד הסיסמאות וההגדרות. בחר תיקייה מחוץ לה.',
   'settings.crawl': 'מעקב אחר דפים ואיסוף הקבצים שהם מקשרים אליהם',
   'settings.crawl.depth': 'עומק סריקה',
   'settings.crawl.depthHint': 'עד כמה להעמיק. 1 הוא רק הדף שהודבק, 2 פותח גם את הדפים שהוא מקשר אליהם, 3 פותח את שלהם. דף לעולם אינו נפתח פעמיים, כך שקישורים הדדיים מסיימים את הסריקה במקום לסובב אותה במעגל.',

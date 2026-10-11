@@ -352,6 +352,7 @@ export const eu: Dict = {
   'settings.pathProblem.notAbsolute': 'Idatzi bide oso bat, adibidez /downloads edo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Ezin izan da {dir} karpeta sortu.',
   'settings.pathProblem.cannotWrite': 'Ezin izan da {dir} karpetan idatzi.',
+  'settings.pathProblem.dataFolder': '{dir} KnightLoader-en datuen karpetaren barruan dago, pasahitzen eta ezarpenen ondoan. Aukeratu karpeta horretatik kanpoko bat.',
   'settings.crawl': 'Jarraitu orriak eta bildu estekatzen dituzten fitxategiak',
   'settings.crawl.depth': 'Arakatze sakonera',
   'settings.crawl.depthHint': 'Zenbateraino sakondu. 1 itsatsitako orrialdea baino ez da, 2k estekatzen dituen orrialdeak ere irekitzen ditu, 3k haienak. Orrialde bat ez da inoiz birritan irekitzen, beraz elkarri lotutako estekek exekuzioa amaitzen dute, biraka ibili beharrean.',

@@ -352,6 +352,7 @@ export const hu: Dict = {
   'settings.pathProblem.notAbsolute': 'Adj meg teljes útvonalat, például /downloads vagy D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nem sikerült létrehozni: {dir}.',
   'settings.pathProblem.cannotWrite': 'Nem sikerült írni ide: {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} a KnightLoader adatmappájában van, a jelszavak és a beállítások mellett. Válassz egy mappát rajta kívül.',
   'settings.crawl': 'Oldalak követése és a hivatkozott fájlok összegyűjtése',
   'settings.crawl.depth': 'Bejárási mélység',
   'settings.crawl.depthHint': 'Meddig menjen. Az 1 csak a beillesztett oldal, a 2 megnyitja a hivatkozott oldalakat is, a 3 azok hivatkozásait. Egy oldal soha nem nyílik meg kétszer, így az egymásra mutató hivatkozások lezárják a futást ahelyett, hogy körbejárnának.',

@@ -352,6 +352,7 @@ export const lt: Dict = {
   'settings.pathProblem.notAbsolute': 'Įvesk visą kelią, pavyzdžiui, /downloads arba D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nepavyko sukurti {dir}.',
   'settings.pathProblem.cannotWrite': 'Nepavyko rašyti į {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} yra KnightLoader duomenų aplanke, šalia slaptažodžių ir nustatymų. Pasirink aplanką už jo ribų.',
   'settings.crawl': 'Sekti puslapius ir surinkti failus, į kuriuos jie veda',
   'settings.crawl.depth': 'Apėjimo gylis',
   'settings.crawl.depthHint': 'Kaip giliai eiti. 1 yra tik įklijuotas puslapis, 2 atveria ir puslapius, į kuriuos jis rodo, 3 atveria jų nuorodas. Puslapis niekada neatveriamas dukart, tad viena į kitą rodančios nuorodos užbaigia apėjimą, o ne suka jį ratu.',

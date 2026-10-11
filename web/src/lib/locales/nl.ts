@@ -344,6 +344,7 @@ export const nl: Dict = {
   'settings.pathProblem.notAbsolute': 'Vul een volledig pad in, zoals /downloads of D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} kon niet worden aangemaakt.',
   'settings.pathProblem.cannotWrite': 'Kon niet naar {dir} schrijven.',
+  'settings.pathProblem.dataFolder': '{dir} staat in de datamap van KnightLoader, naast wachtwoorden en instellingen. Kies een map daarbuiten.',
   'settings.crawl': 'Paginas volgen en de bestanden verzamelen waarnaar ze linken',
   'settings.crawl.depth': 'Zoekdiepte',
   'settings.crawl.depthHint': 'Hoe diep er wordt gegaan. 1 is alleen de geplakte pagina, 2 opent ook de pagina’s waarnaar die verwijst, 3 opent die van hen. Een pagina wordt nooit twee keer geopend, dus links die naar elkaar wijzen beëindigen de run in plaats van rond te blijven gaan.',

@@ -146,3 +146,42 @@ func TestAPatchIsNotRefusedForACategoryFolderItDoesNotName(t *testing.T) {
 		t.Errorf("a patch sending the category with the unusable folder answered %d, want it refused", code)
 	}
 }
+
+// No folder a save names may lie in the data folder, where a download would
+// land beside auth.json, tokens.json and settings.json. Its built-in download
+// folder is the one exception.
+func TestAFolderInTheDataFolderIsRefusedByEverySave(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	inside := filepath.Join(a.DataDir, "tools")
+
+	for _, field := range []string{"downloadDir", "workDir", "watchDir", "extractTo", "extractMoveTo"} {
+		code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{%q:%q}`, field, inside))
+		var body struct {
+			Field string `json:"field"`
+			Code  string `json:"code"`
+		}
+		_ = json.Unmarshal([]byte(msg), &body)
+		if code != http.StatusBadRequest || body.Field != field || body.Code != "pathProblem.dataFolder" {
+			t.Errorf("%s in the data folder answered %d %s, want pathProblem.dataFolder", field, code, msg)
+		}
+	}
+	cats := fmt.Sprintf(`{"categories":[{"id":"filme","name":"Filme","dir":%q}]}`, inside)
+	if code, _, msg := patchSettings(t, srv.URL, cats); code != http.StatusBadRequest {
+		t.Errorf("a category folder in the data folder answered %d %s, want it refused", code, msg)
+	}
+	whole := a.Settings.Get()
+	whole.DownloadDir = a.DataDir
+	if code, _, _ := putSettings(t, srv.URL, whole); code != http.StatusBadRequest {
+		t.Errorf("a whole settings document with the data folder as download folder answered %d, want it refused", code)
+	}
+	if got := a.Settings.Get().DownloadDir; got == inside || got == a.DataDir {
+		t.Errorf("the refused folder %q was stored", got)
+	}
+
+	builtIn := filepath.Join(a.DataDir, settings.DownloadsDirName, "Filme")
+	if code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{"downloadDir":%q}`, builtIn)); code != http.StatusOK {
+		t.Errorf("a folder in the built-in download folder answered %d %s", code, msg)
+	}
+}

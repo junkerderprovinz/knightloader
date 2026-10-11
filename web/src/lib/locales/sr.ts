@@ -352,6 +352,7 @@ export const sr: Dict = {
   'settings.pathProblem.notAbsolute': 'Упиши пуну путању, на пример /downloads или D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Није могуће направити {dir}.',
   'settings.pathProblem.cannotWrite': 'Није могуће уписивати у {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} је у фасцикли са подацима KnightLoader-а, поред лозинки и подешавања. Изабери фасциклу ван ње.',
   'settings.crawl': 'Прати странице и сакупи датотеке на које воде',
   'settings.crawl.depth': 'Дубина претраживања',
   'settings.crawl.depthHint': 'Колико дубоко иде. 1 је само налепљена страница, 2 отвара и странице на које она води, 3 отвара њихове. Страница се никада не отвара двапут, па узајамне везе завршавају пролаз уместо да га врте у круг.',

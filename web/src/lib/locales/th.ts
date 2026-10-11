@@ -352,6 +352,7 @@ export const th: Dict = {
   'settings.pathProblem.notAbsolute': 'ใส่พาธแบบเต็ม เช่น /downloads หรือ D:\\Downloads',
   'settings.pathProblem.cannotCreate': 'สร้าง {dir} ไม่ได้',
   'settings.pathProblem.cannotWrite': 'เขียนลงใน {dir} ไม่ได้',
+  'settings.pathProblem.dataFolder': '{dir} อยู่ในโฟลเดอร์ข้อมูลของ KnightLoader ข้างรหัสผ่านและการตั้งค่า เลือกโฟลเดอร์ที่อยู่นอกโฟลเดอร์นี้',
   'settings.crawl': 'ตามหน้าเว็บและเก็บไฟล์ที่ลิงก์ไว้',
   'settings.crawl.depth': 'ความลึกในการไล่เก็บ',
   'settings.crawl.depthHint': 'จะลงลึกแค่ไหน 1 คือเฉพาะหน้าที่วางไว้ 2 จะเปิดหน้าที่หน้านั้นลิงก์ถึงด้วย 3 จะเปิดของหน้าเหล่านั้นต่อ หน้าเดิมจะไม่ถูกเปิดซ้ำ ลิงก์ที่ชี้กลับไปกลับมาจึงทำให้การไล่เก็บจบลง ไม่ใช่วนอยู่กับที่',

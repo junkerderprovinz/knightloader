@@ -352,6 +352,7 @@ export const cs: Dict = {
   'settings.pathProblem.notAbsolute': 'Zadej úplnou cestu, třeba /downloads nebo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} se nepodařilo vytvořit.',
   'settings.pathProblem.cannotWrite': 'Do {dir} se nepodařilo zapisovat.',
+  'settings.pathProblem.dataFolder': '{dir} je v datové složce KnightLoaderu, vedle hesel a nastavení. Zvol složku mimo ni.',
   'settings.crawl': 'Následovat stránky a sbírat soubory, na které odkazují',
   'settings.crawl.depth': 'Hloubka procházení',
   'settings.crawl.depthHint': 'Jak hluboko jít. 1 je jen vložená stránka, 2 otevře i stránky, na které odkazuje, 3 otevře jejich odkazy. Stránka se nikdy neotevře dvakrát, takže vzájemné odkazy běh ukončí, místo aby ho zacyklily.',

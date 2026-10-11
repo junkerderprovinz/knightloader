@@ -387,3 +387,30 @@ func TestSingleStreamDoesNotCollideWithASibling(t *testing.T) {
 		t.Error("the target became a directory")
 	}
 }
+
+// An archive named after a folder it must not reach, unpacked beside itself,
+// is refused before anything is written, and so is one sent there by Dest.
+func TestABarredDestinationIsRefusedBeforeWriting(t *testing.T) {
+	dir := t.TempDir()
+	arc := filepath.Join(dir, "data.zip")
+	f, _ := os.Create(arc)
+	zw := zip.NewWriter(f)
+	w, _ := zw.Create("auth.json")
+	_, _ = w.Write([]byte(`{}`))
+	_ = zw.Close()
+	_ = f.Close()
+	barred := filepath.Join(dir, "data")
+	isBarred := func(d string) bool { return filepath.Clean(d) == barred }
+
+	for name, o := range map[string]Options{
+		"beside the archive": {Barred: isBarred},
+		"through Dest":       {Dest: dir, Barred: isBarred},
+	} {
+		if _, err := o.Extract(arc); err == nil {
+			t.Errorf("unpacking %s into a barred folder went through", name)
+		}
+		if _, err := os.Stat(barred); !os.IsNotExist(err) {
+			t.Fatalf("unpacking %s wrote into the barred folder: %v", name, err)
+		}
+	}
+}

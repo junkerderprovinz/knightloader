@@ -352,6 +352,7 @@ export const gl: Dict = {
   'settings.pathProblem.notAbsolute': 'Escribe unha ruta completa, como /downloads ou D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Non se puido crear {dir}.',
   'settings.pathProblem.cannotWrite': 'Non se puido escribir en {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} está no cartafol de datos de KnightLoader, xunto aos contrasinais e os axustes. Escolle un cartafol fóra del.',
   'settings.crawl': 'Seguir as páxinas e recoller os ficheiros que ligan',
   'settings.crawl.depth': 'Profundidade do rastrexo',
   'settings.crawl.depthHint': 'Ata onde chegar. 1 é só a páxina pegada, 2 abre tamén as páxinas que liga, 3 abre as delas. Unha páxina nunca se abre dúas veces, así que as ligazóns mutuas rematan o rastrexo en vez de facelo dar voltas.',

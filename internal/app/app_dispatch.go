@@ -928,6 +928,16 @@ func (a *App) dispatchLocked() {
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
+		// The folder is final only here, with the template, the category and
+		// the package level applied, and a setting checks no more than its
+		// fixed part. None of it may lead into the data folder.
+		if inData := a.dataFolderOf(dir, a.workDirFor(t)); inData != "" {
+			t.Status = core.StatusError
+			t.Reason = core.ReasonUnknown
+			t.SetError("not downloaded: "+inData+" is inside KnightLoader's data folder; choose a folder outside it", "", nil)
+			settled = append(settled, a.copyLocked(t))
+			continue
+		}
 		be := a.backendFor(t.Resolver)
 		// One collision policy for both the skip check and the engine.
 		// CollisionFor resolves the category's rule; ParsePolicy alone would

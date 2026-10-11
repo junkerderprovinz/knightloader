@@ -344,6 +344,7 @@ export const pl: Dict = {
   'settings.pathProblem.notAbsolute': 'Podaj pełną ścieżkę, na przykład /downloads albo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nie udało się utworzyć {dir}.',
   'settings.pathProblem.cannotWrite': 'Nie udało się zapisać w {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} leży w folderze danych KnightLoadera, obok haseł i ustawień. Wybierz folder poza nim.',
   'settings.crawl': 'Podążaj za stronami i zbieraj pliki, do których prowadzą',
   'settings.crawl.depth': 'Głębokość przeszukiwania',
   'settings.crawl.depthHint': 'Jak głęboko sięgnąć. 1 to tylko wklejona strona, 2 otwiera także strony, do których prowadzi, 3 otwiera ich odnośniki. Strona nigdy nie jest otwierana dwa razy, więc wzajemne odnośniki kończą przebieg, zamiast zapętlać go w kółko.',
