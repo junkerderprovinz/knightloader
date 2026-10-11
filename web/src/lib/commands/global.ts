@@ -68,7 +68,7 @@ export const GLOBAL_COMMANDS: Command[] = [
     defaultShortcut: 'mod+shift+m',
     enabled: () => true,
     visible: () => true,
-    // toggleTheme notifies its subscribers, so the sidebar's sun/moon icon
+    // toggleTheme notifies its subscribers, so the Appearance page's selector
     // follows.
     run: () => {
       toggleTheme();

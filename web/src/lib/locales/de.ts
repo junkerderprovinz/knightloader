@@ -31,6 +31,7 @@ export const de: Dict = {
   'nav.workingTitle': 'Arbeitstitel',
   'theme.dark': 'Dunkel',
   'theme.light': 'Hell',
+  'theme.system': 'System',
   'theme.toggle': 'Design wechseln',
   'lang.label': 'Sprache',
   'lang.open': 'Sprache ändern',
@@ -475,6 +476,8 @@ export const de: Dict = {
   'settings.rainbowPaletteHint': 'Die acht Farben, die nach Position vergeben werden. Jede einzeln bearbeitbar.',
   'settings.look.saveFailed': 'Konnte nicht gespeichert werden: {error}',
   'settings.theme': 'Design',
+  'settings.themeHint':
+    '„{system}“ folgt der Einstellung deines Geräts für Hell oder Dunkel und wechselt mit ihr.',
   'settings.motion.wild': 'Wild',
   'settings.motion.storm': 'Sturm',
   'settings.motion.subtle': 'Dezent',

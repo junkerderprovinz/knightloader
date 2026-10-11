@@ -18,6 +18,7 @@ export const ro: Dict = {
   'nav.workingTitle': 'titlu de lucru',
   'theme.dark': 'Întunecat',
   'theme.light': 'Luminos',
+  'theme.system': 'Sistem',
   'theme.toggle': 'Schimbă tema',
   'lang.label': 'Limbă',
   'lang.open': 'Schimbă limba',
@@ -438,6 +439,8 @@ export const ro: Dict = {
   'settings.rainbowPaletteHint': 'Cele opt culori atribuite după poziție. Editabile individual.',
   'settings.look.saveFailed': 'Nu s-a putut salva: {error}',
   'settings.theme': 'Temă',
+  'settings.themeHint':
+    '„{system}” urmează setarea luminoasă sau întunecată a dispozitivului tău și se schimbă odată cu ea.',
   'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Furtună',
   'settings.motion.subtle': 'Discret',

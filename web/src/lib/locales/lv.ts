@@ -18,6 +18,7 @@ export const lv: Dict = {
   'nav.workingTitle': 'darba nosaukums',
   'theme.dark': 'Tumšs',
   'theme.light': 'Gaišs',
+  'theme.system': 'Sistēmas',
   'theme.toggle': 'Mainīt tēmu',
   'lang.label': 'Valoda',
   'lang.open': 'Mainīt valodu',
@@ -438,6 +439,8 @@ export const lv: Dict = {
   'settings.rainbowPaletteHint': 'Astoņas krāsas, kas piešķirtas pēc pozīcijas. Katru var rediģēt atsevišķi.',
   'settings.look.saveFailed': 'Neizdevās saglabāt: {error}',
   'settings.theme': 'Tēma',
+  'settings.themeHint':
+    '„{system}“ seko tavas ierīces gaišajam vai tumšajam iestatījumam un mainās līdz ar to.',
   'settings.motion.wild': 'Mežonīgs',
   'settings.motion.storm': 'Vētra',
   'settings.motion.subtle': 'Smalks',

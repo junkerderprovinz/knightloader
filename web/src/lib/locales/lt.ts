@@ -18,6 +18,7 @@ export const lt: Dict = {
   'nav.workingTitle': 'darbinis pavadinimas',
   'theme.dark': 'Tamsi',
   'theme.light': 'Šviesi',
+  'theme.system': 'Sistemos',
   'theme.toggle': 'Keisti temą',
   'lang.label': 'Kalba',
   'lang.open': 'Keisti kalbą',
@@ -438,6 +439,8 @@ export const lt: Dict = {
   'settings.rainbowPaletteHint': 'Aštuonios spalvos, priskirtos pagal poziciją. Kiekvieną galima redaguoti atskirai.',
   'settings.look.saveFailed': 'Nepavyko įrašyti: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint':
+    '„{system}“ seka tavo įrenginio šviesų arba tamsų nustatymą ir keičiasi kartu su juo.',
   'settings.motion.wild': 'Laukinis',
   'settings.motion.storm': 'Audra',
   'settings.motion.subtle': 'Subtilu',

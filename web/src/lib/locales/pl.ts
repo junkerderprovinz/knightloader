@@ -18,6 +18,7 @@ export const pl: Dict = {
   'nav.workingTitle': 'tytuł roboczy',
   'theme.dark': 'Ciemny',
   'theme.light': 'Jasny',
+  'theme.system': 'Systemowy',
   'theme.toggle': 'Zmień motyw',
   'lang.label': 'Język',
   'lang.open': 'Zmień język',
@@ -430,6 +431,8 @@ export const pl: Dict = {
   'settings.rainbowPaletteHint': 'Osiem kolorów przypisanych według pozycji. Każdy można edytować osobno.',
   'settings.look.saveFailed': 'Nie udało się zapisać: {error}',
   'settings.theme': 'Motyw',
+  'settings.themeHint':
+    '„{system}” podąża za jasnym lub ciemnym ustawieniem twojego urządzenia i zmienia się razem z nim.',
   'settings.motion.wild': 'Dzikie',
   'settings.motion.storm': 'Burza',
   'settings.motion.subtle': 'Subtelne',
