@@ -494,7 +494,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.SetPeerTokens(staticTokens{"nas": "secret-the-nas-issued"})
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: "nas", Name: "nas", URL: "http://192.168.1.66:8749"}}})
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "nas", Name: "nas"}}}
 	m.SetRelay(rt)
@@ -515,7 +515,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 
 func TestAMemberIsListedOnlyUnderAnInstanceID(t *testing.T) {
 	m := newManager(t)
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{
 		{ID: "cellar", Name: "Cellar", URL: "http://192.168.1.66:8749"},
 		{ID: nasID, Name: "NAS", URL: "http://192.168.1.5:8749"},
@@ -552,7 +552,7 @@ func TestAStoredPeerIsNeverReplacedByAMember(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, URL: "http://192.168.1.66:8749"}}})
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}})
 

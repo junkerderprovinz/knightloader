@@ -14,6 +14,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // fakeNetwork stands in for the multicast service: it hands out the announces
@@ -86,6 +87,11 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil)
 	if code != http.StatusOK || !strings.HasPrefix(strings.TrimSpace(string(body)), "[") {
 		t.Fatalf("the second instance's downloads answered %d: %s", code, body)
+	}
+	// The direct call was signed like one over the relay.
+	st, _ := secondApp.Federation.Group(false, time.Now())
+	if pin, ok := st.Keys[firstApp.Settings.Get().InstanceID]; !ok || pin.Kind != relay.KindInstance {
+		t.Fatalf("the second instance pinned %+v, want the first instance's key", st.Keys)
 	}
 }
 

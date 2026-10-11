@@ -9,6 +9,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -17,6 +18,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -77,7 +79,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, "not ready", http.StatusServiceUnavailable)
 				return
 			}
-			a.Federation.ServeDirect(w, r, relayProxyHandler(serve, a.Federation.Removed))
+			a.Federation.ServeDirect(w, r, a.Federation.Guard(relayProxyHandler(serve)))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -269,7 +271,9 @@ func applyRelay(a *app.App) {
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
 		},
-		Serve:  relayProxyHandler(serve, a.Federation.Removed),
+		// A hand-entered relay key is no phrase group, so nothing pins a key.
+		Member: memberKey(a),
+		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
 		Replay: a.Federation.Replay(),
 	})
 	if err != nil {
@@ -284,7 +288,36 @@ func applyRelay(a *app.App) {
 // applyGroup hands the stored group secret to the direct transport, which
 // works whichever relay is chosen, none included.
 func applyGroup(a *app.App) {
-	a.Federation.SetGroup(groupSecret(a), a.Settings.Get().InstanceID)
+	a.Federation.SetGroup(groupSecret(a), a.Settings.Get().InstanceID, memberKey(a))
+}
+
+// memberMu keeps two callers from minting two member keys at once.
+var memberMu sync.Mutex
+
+// memberKey is the key this instance signs its calls to the group with, nil
+// outside a group. An instance that joined before member keys existed mints
+// one here, the first time it needs it.
+func memberKey(a *app.App) ed25519.PrivateKey {
+	if groupSecret(a) == nil {
+		return nil
+	}
+	memberMu.Lock()
+	defer memberMu.Unlock()
+	if stored, err := a.Accounts.Get(relay.MemberAccountService); err == nil && stored != "" {
+		if seed, err := hex.DecodeString(stored); err == nil && len(seed) == ed25519.SeedSize {
+			return ed25519.NewKeyFromSeed(seed)
+		}
+		log.Printf("relay: the stored member key is malformed, minting a new one; the group pins it as a new key")
+	}
+	seed, err := relay.NewMemberSeed()
+	if err == nil {
+		err = a.Accounts.Set(relay.MemberAccountService, hex.EncodeToString(seed))
+	}
+	if err != nil {
+		log.Printf("relay: no member key, calls to the group go out unsigned: %v", err)
+		return nil
+	}
+	return ed25519.NewKeyFromSeed(seed)
 }
 
 // groupSecret is the stored connection secret of this instance's phrase
@@ -309,14 +342,10 @@ func groupSecret(a *app.App) []byte {
 // is marked authenticated. Whoever holds the phrase can join the group anyway.
 // In return the reachable surface is limited here by relayForwardable, so a
 // sibling cannot read accounts, change the password, mint a token or ask for
-// the phrase.
-func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.ProxyHandler {
+// the phrase. Who the sender is, and whether it was taken out, is the guard's
+// to decide (federation.Manager.Guard) before this runs.
+func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
-		// A phone taken out of the group learns it from this answer and drops
-		// its connections to the group.
-		if call.From != "" && removed(call.From) {
-			return http.StatusGone, []byte("removed")
-		}
 		if !relayForwardable(call.Method, call.Path) {
 			// An allowlist, so a route added later is not exposed to peers
 			// until somebody adds it.
