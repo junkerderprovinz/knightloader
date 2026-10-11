@@ -121,6 +121,7 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.module.connections' },
       },
       { id: 'reconnect-scene', to: ['/settings/reconnect'], text: 'whatsnew.change.reconnectScene' },
+      { id: 'ways-in', to: ['/settings/collector'], text: 'whatsnew.change.waysIn' },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'test-button', to: ['/settings/captcha'], text: 'whatsnew.change.testButton' },
       {

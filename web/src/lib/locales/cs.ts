@@ -3555,6 +3555,8 @@ export const cs: Dict = {
   'picture.reconnect.newAddress': 'Nová adresa',
   'picture.reconnect.alt': 'KnightLoader požádá router o novou adresu. Router přeruší spojení a vrátí se s novou.',
   'picture.seed.target': 'Cíl {ratio}',
+  'picture.intake.file': 'Soubory a kontejnery',
+  'picture.intake.account': 'Účet debrid',
   'whatsnew.title': 'Novinky ve verzi {version}',
   'whatsnew.changes': 'Změny',
   'whatsnew.notesMissing': 'KnightLoader tady nedokázal načíst poznámky k vydání. Najdeš je na GitHubu.',
@@ -3582,6 +3584,8 @@ export const cs: Dict = {
   'whatsnew.change.reconnectScene': 'Obrázek ukazuje, jak KnightLoader žádá router o novou adresu.',
   'whatsnew.change.seedRing': 'Kruh ukazuje, jak blízko je torrent svému cíli seedování.',
   'whatsnew.change.routes': '„{name}“ kreslí cesty ven a test obarví každou linku zeleně nebo červeně.',
+  'whatsnew.change.waysIn':
+    'Obrázek ukazuje každou cestu, kterou se odkaz dostane do sběrače odkazů, a kliknutí na cestu otevře její nastavení.',
   'whatsnew.change.infoTile': '„{name}“ říká, kdo KnightLoader dělá, vypisuje každou verzi a ukazuje, kde najdeš pomoc.',
   'whatsnew.change.phoneBar': 'Na telefonu si spodní panel nechává čtyři stránky a jeho poslední místo otevírá všechno ostatní.',
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazují, co fronta dělá: vyplněné tlačítko je její stav, to druhé se mačká.',

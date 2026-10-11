@@ -3545,6 +3545,8 @@ export const id: Dict = {
   'picture.reconnect.newAddress': 'Alamat baru',
   'picture.reconnect.alt': 'KnightLoader meminta alamat baru ke router. Router memutus sambungan dan kembali dengan alamat baru.',
   'picture.seed.target': 'Sasaran {ratio}',
+  'picture.intake.file': 'File dan kontainer',
+  'picture.intake.account': 'Akun debrid',
   'whatsnew.title': 'Yang baru di {version}',
   'whatsnew.changes': 'Perubahan',
   'whatsnew.notesMissing': 'KnightLoader tidak dapat memuat catatan rilis di sini. Kamu bisa menemukannya di GitHub.',
@@ -3572,6 +3574,8 @@ export const id: Dict = {
   'whatsnew.change.reconnectScene': 'Sebuah gambar menunjukkan cara KnightLoader meminta alamat baru kepada router.',
   'whatsnew.change.seedRing': 'Sebuah cincin menunjukkan seberapa dekat torrent dengan target seed-nya.',
   'whatsnew.change.routes': '“{name}” menggambar rute keluar, dan sebuah uji mewarnai setiap garis hijau atau merah.',
+  'whatsnew.change.waysIn':
+    'Sebuah gambar menunjukkan setiap jalan yang dilalui tautan menuju pengumpul tautan, dan klik pada sebuah jalan membuka pengaturannya.',
   'whatsnew.change.infoTile': '“{name}” mengatakan siapa yang membuat KnightLoader, mencantumkan setiap versi, dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Di ponsel, bilah bawah menyimpan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan antrean: tombol yang terisi adalah keadaannya, yang satunya adalah tombol untuk ditekan.',

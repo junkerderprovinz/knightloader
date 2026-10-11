@@ -3535,6 +3535,8 @@ export const lv: Dict = {
   'picture.reconnect.newAddress': 'Jaunā adrese',
   'picture.reconnect.alt': 'KnightLoader prasa maršrutētājam jaunu adresi. Maršrutētājs pārtrauc savienojumu un atgriežas ar jaunu.',
   'picture.seed.target': 'Mērķis {ratio}',
+  'picture.intake.file': 'Faili un konteineri',
+  'picture.intake.account': 'Debrid konts',
   'whatsnew.title': 'Jaunumi versijā {version}',
   'whatsnew.changes': 'Izmaiņas',
   'whatsnew.notesMissing': 'KnightLoader nevarēja šeit ielādēt laidiena piezīmes. Tās atradīsi GitHub.',
@@ -3562,6 +3564,8 @@ export const lv: Dict = {
   'whatsnew.change.reconnectScene': 'Attēls rāda, kā KnightLoader lūdz maršrutētājam jaunu adresi.',
   'whatsnew.change.seedRing': 'Gredzens rāda, cik tuvu torrents ir savam sēšanas mērķim.',
   'whatsnew.change.routes': '„{name}“ uzzīmē ceļus uz āru, un tests katru līniju iekrāso zaļu vai sarkanu.',
+  'whatsnew.change.waysIn':
+    'Attēls rāda katru ceļu, pa kuru saite nonāk saišu savācējā, un klikšķis uz ceļa atver tā iestatījumu.',
   'whatsnew.change.infoTile': '„{name}“ pasaka, kas veido KnightLoader, uzskaita katru versiju un parāda, kur saņemt palīdzību.',
   'whatsnew.change.phoneBar': 'Telefonā apakšjosla patur četras lapas, un tās pēdējā vieta atver visu pārējo.',
   'whatsnew.change.queueState': '„{play}“ un „{pause}“ rāda, ko dara rinda: aizpildītā poga ir tās stāvoklis, otra ir tā, ko nospiest.',
