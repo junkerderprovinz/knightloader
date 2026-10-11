@@ -99,8 +99,8 @@ type Announce struct {
 	// still recognise it and turn it away once removed.
 	Member string `json:"member,omitempty"`
 	// Signs says the member signs its calls with a member key. A member on a
-	// release before keys leaves it out, which is how an instance tells the
-	// members that were in the group before keys from new ones.
+	// release before keys leaves it out. Anybody holding the words can leave
+	// it out too, so an instance approves nobody for it.
 	Signs bool `json:"signs,omitempty"`
 }
 

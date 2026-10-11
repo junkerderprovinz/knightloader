@@ -36,6 +36,10 @@ var ErrGone = errors.New("federation: that member was taken out of the group")
 // ErrNoSuchPending is what Approve answers locally for an id with no pinned key.
 var ErrNoSuchPending = errors.New("federation: no device with that id waits for approval")
 
+// ErrKindMismatch is what Approve answers for a key passed on for an id that no
+// device of the kind it names would use.
+var ErrKindMismatch = errors.New("federation: that id does not fit the kind of device named for it")
+
 // Fingerprint is how a person compares a member key: the start of its hash in
 // four groups.
 func Fingerprint(key []byte) string {
@@ -76,8 +80,8 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 		if _, revoked := st.Revoked[hex.EncodeToString(key)]; revoked {
 			return nil, "", ErrGone
 		}
-		if kind != relay.KindInstance && kind != relay.KindMobile && kind != relay.KindExtension {
-			kind = ""
+		if !claimFits(st, id, kind) {
+			return nil, "", ErrKindMismatch
 		}
 		pin = PinnedKey{Key: bytes.Clone(key), Kind: kind}
 		if st.Keys == nil {
@@ -95,54 +99,25 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 }
 
 // Refuse turns member id away: an instance as RemoveMember does, a phone or a
-// browser as RemoveApp does. Its key is revoked either way.
-func (m *Manager) Refuse(id string, now time.Time) error {
+// browser as RemoveApp does. Its key is revoked either way. kind is what the
+// instance that passed the refusal on knew the device as, "" when it was made
+// here; the key pinned here, if any, decides first.
+func (m *Manager) Refuse(id, kind string, now time.Time) error {
 	m.group.mu.Lock()
-	pin := m.group.state.Keys[id]
+	st := &m.group.state
+	if pin, ok := st.Keys[id]; ok {
+		kind = pin.Kind
+	} else if kind == "" && relay.ValidInstanceID(id) {
+		// An instance keeps its id when it is taken out, so a guess that bans
+		// one for good would cost more than one that lets a browser ask again.
+		kind = relay.KindInstance
+	}
+	_, isApp := st.Apps[id]
 	m.group.mu.Unlock()
-	if pin.Kind == relay.KindInstance {
+	if kind == relay.KindInstance && !isApp {
 		return m.RemoveMember(id, now)
 	}
 	return m.RemoveApp(id, now)
-}
-
-// noteLegacy adds members seen announcing without member keys to the ones
-// taken as approved once they sign: they were in the group before keys. It
-// ends with unsigned calls, since then such a member cannot act anyway.
-func (m *Manager) noteLegacy(ids []string) {
-	if !acceptUnsigned || len(ids) == 0 {
-		return
-	}
-	m.group.mu.Lock()
-	defer m.group.mu.Unlock()
-	st := &m.group.state
-	if st.JoinedAt.IsZero() {
-		return
-	}
-	added := false
-	for _, id := range ids {
-		added = noteLegacyLocked(st, id) || added
-	}
-	if added {
-		_ = m.group.flushLocked()
-	}
-}
-
-// maxLegacy bounds the ids noted as members from before keys. Anybody holding
-// the words can name new ones while unsigned calls are served.
-const maxLegacy = 256
-
-// noteLegacyLocked notes id as a member from before keys, unless it was noted
-// or taken out already, and reports whether it did.
-func noteLegacyLocked(st *GroupState, id string) bool {
-	if _, known := st.Legacy[id]; known || len(st.Legacy) >= maxLegacy {
-		return false
-	}
-	if st.Legacy == nil {
-		st.Legacy = map[string]bool{}
-	}
-	st.Legacy[id] = true
-	return true
 }
 
 // awaitWindow is how long one answer saying "waits for approval" is taken to
