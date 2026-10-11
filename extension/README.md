@@ -161,8 +161,8 @@ such as a desktop build or a relay-only instance.
 
 The relay path replaces it without weakening that guard: nothing here strips an
 `Origin` header. A relayed call arrives at the instance marked as coming from a
-group sibling and is admitted on that basis alone (`relayForwardable` in
-`internal/relay`). The bookmarklet and the PWA share target still open
+group member and reaches only the routes a member may call (`groupRoutes` in
+`internal/api/group_routes.go`). The bookmarklet and the PWA share target still open
 `/quickadd`, because they have no phrase and no relay client. See
 `docs/browser-tools.md`.
 
