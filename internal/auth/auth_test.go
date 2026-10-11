@@ -3,6 +3,7 @@ package auth
 import (
 	"encoding/base64"
 	"errors"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
@@ -183,8 +184,8 @@ func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
 		password string
 		want     error
 	}{
-		{"äöüßäöü", ErrTooShort},
-		{"日本語のパスワ", ErrTooShort},
+		{"äöüßäöüéäöü", ErrTooShort},
+		{"日本語のパスワードです", ErrTooShort},
 		{strings.Repeat("a", 73), ErrTooLong},
 		{strings.Repeat("ä", 37), ErrTooLong},
 	} {
@@ -193,7 +194,33 @@ func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
 				c.password, len([]rune(c.password)), len(c.password), err, c.want)
 		}
 	}
-	if err := g.SetPassword("", "äöüßäöüé"); err != nil {
-		t.Errorf("eight characters were refused: %v", err)
+	if err := g.SetPassword("", "äöüßäöüéäöüß"); err != nil {
+		t.Errorf("twelve characters were refused: %v", err)
+	}
+}
+
+// TestAPasswordSetUnderTheOldMinimumStillSignsIn: the length counts for a new
+// password only, so an owner with an eight character one is not locked out.
+func TestAPasswordSetUnderTheOldMinimumStillSignsIn(t *testing.T) {
+	dir := t.TempDir()
+	h, err := hashPassword(nil, "eightchr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := writeState(filepath.Join(dir, FileName), stored{Hash: string(h), Key: strings.Repeat("ab", 32)}, nil); err != nil {
+		t.Fatal(err)
+	}
+	g, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !g.Check("eightchr") {
+		t.Fatal("a password set under the old minimum no longer signs in")
+	}
+	if err := g.SetPassword("eightchr", "ninechars"); !errors.Is(err, ErrTooShort) {
+		t.Errorf("a new password of nine characters = %v, want ErrTooShort", err)
+	}
+	if err := g.SetPassword("eightchr", "twelve-chars"); err != nil {
+		t.Errorf("changing it to twelve characters: %v", err)
 	}
 }

@@ -2,11 +2,11 @@ import { ApiError } from './api';
 import type { TranslationKey } from './i18n';
 
 /**
- * The lengths the server takes for a password: at least eight characters,
+ * The lengths the server takes for a new password: at least twelve characters,
  * counted as it counts them, by code point, and at most 72 bytes, which is
  * what bcrypt hashes.
  */
-export const MIN_PASSWORD_CHARS = 8;
+export const MIN_PASSWORD_CHARS = 12;
 export const MAX_PASSWORD_BYTES = 72;
 
 export type LengthProblem = 'short' | 'long';
