@@ -32,8 +32,9 @@ another one. Settings, Diagnostics shows which user and mask are in force.
 `KL_APP_KEY` makes the secrets in the data folder useless without it. The login
 password is hashed with Argon2id and peppered with the key. The session key,
 the second factor and its recovery codes, the key that seals the stored
-accounts, and every password, token and command line in `settings.json` are
-sealed with it, and so is the backup you download from Settings. Somebody who
+accounts, every password, token and command line in `settings.json`, and the
+archive and download passwords stored with each download are sealed with it,
+and so is the backup you download from Settings. Somebody who
 copies the appdata folder, through a backup plugin for instance, gets nothing
 they can use.
 
@@ -49,10 +50,13 @@ from then on. KnightLoader refuses to start on a data folder sealed with a
 different key, or with none, instead of overwriting it.
 
 An install that ran without the key seals its files at the first start with
-it. It copies them to a `before-app-key-<date>` folder in the data folder first;
-delete that folder once KnightLoader runs, because the copies are as readable
-as the files were. The password itself moves to Argon2id the next time you
-sign in. Without the variable nothing changes, and Settings, Security shows a
+it. It copies them to a `before-app-key-<date>` folder in the data folder first,
+so a sealing that goes wrong can be undone by hand. The copies are as readable
+as the files were, so KnightLoader deletes the folder itself once it has run
+for seven days without a value failing to seal or open; each such failure, a
+start with the wrong key included, starts the seven days over. Until then the
+Security page says when the folder goes. The password itself moves to Argon2id
+the next time you sign in. Without the variable nothing changes, and Settings, Security shows a
 hint.
 
 A sealed backup ends in `.zip.sealed` and restores only on an instance with the
