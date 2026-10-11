@@ -12,6 +12,7 @@ import (
 	"github.com/coder/websocket"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 // narrowAndAdmin are a token that may only read and one that may administer,
@@ -100,5 +101,39 @@ func TestANarrowTokenSeesNoCredentialsInLinksThatNameNoFile(t *testing.T) {
 		if !strings.Contains(body, "host.example") {
 			t.Errorf("%s lost the host: %s", what, body)
 		}
+	}
+}
+
+// TestANarrowTokenReadsTheHistoryWithoutCredentials files a finished download
+// whose link carries a sign-in and a passkey and names no file, and reads the
+// history with a read token and with an admin token.
+func TestANarrowTokenReadsTheHistoryWithoutCredentials(t *testing.T) {
+	t.Parallel()
+	srv, a := lockedServer(t)
+	read, admin := narrowAndAdmin(t, a)
+	for _, task := range []*core.Task{
+		{ID: "h1", URL: "https://user:HISTORYPW@host.example/?passkey=HISTORYLEAK", Name: "https://user:HISTORYPW@host.example/?passkey=HISTORYLEAK"},
+		{ID: "h2", URL: "https://host.example/film.mkv?token=FILELEAK", Name: "film.mkv", Package: "https://u:PACKAGELEAK@host.example/"},
+	} {
+		task.Status, task.CreatedAt = core.StatusDone, time.Now()
+		if err := a.Store.Save(task); err != nil {
+			t.Fatal(err)
+		}
+	}
+	leaks := []string{"HISTORYPW", "HISTORYLEAK", "FILELEAK", "PACKAGELEAK"}
+	whole := getWithToken(t, srv.URL, "/api/history", admin)
+	for _, leak := range leaks {
+		if !strings.Contains(whole, leak) {
+			t.Fatalf("the history for an admin token = %s, want %q in it, or this test proves nothing", whole, leak)
+		}
+	}
+	body := getWithToken(t, srv.URL, "/api/history", read)
+	for _, leak := range leaks {
+		if strings.Contains(body, leak) {
+			t.Errorf("the history gave a read token %q: %s", leak, body)
+		}
+	}
+	if !strings.Contains(body, "https://host.example/film.mkv") {
+		t.Errorf("the redacted history lost what names the file: %s", body)
 	}
 }
