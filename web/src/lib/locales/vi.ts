@@ -342,7 +342,7 @@ export const vi: Dict = {
   'settings.lockHint': 'Bảo vệ phiên bản này khỏi bất kỳ ai có thể truy cập tới nó: trên cùng mạng, qua một tên miền, hoặc qua một relay. Sau khi thiết lập, mật khẩu phải được nhập trước khi phiên bản này mở ra, đối với bất kỳ ai, kể cả chính bạn ở lần truy cập tiếp theo. Không có mật khẩu, bất kỳ ai tìm thấy địa chỉ đều có thể xem mọi lượt tải xuống, và thêm, tạm dừng hoặc xoá lượt tải của riêng họ.',
   'settings.passwordCurrent': 'Mật khẩu hiện tại',
   'settings.passwordNew': 'Mật khẩu mới',
-  'settings.passwordHint': 'Ít nhất 8 ký tự. Để trống để gỡ khóa. Việc này cũng tắt xác thực hai yếu tố và xoá mọi khoá truy cập.',
+  'settings.passwordHint': 'Ít nhất 8 ký tự. Để trống để gỡ khoá. Việc này cũng tắt xác thực hai yếu tố và xoá mọi khoá truy cập.',
   'settings.setPassword': 'Đặt mật khẩu',
   'settings.passwordSaved': 'Đã cập nhật mật khẩu.',
   'settings.access.trustedProxies': 'Proxy tin cậy',
