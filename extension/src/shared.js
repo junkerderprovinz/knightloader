@@ -230,7 +230,7 @@ function statusLine(s) {
 
   // The file count is shown even at zero, so the card keeps its height when a
   // download appears.
-  parts.push(`${c.files ?? 0} ${t('instance.files')}`);
+  parts.push(`${c.files ?? 0} ${tn('instance.files', c.files ?? 0)}`);
   if ((c.remaining ?? 0) > 0) parts.push(`${fmtBytes(c.remaining)} ${t('instance.left')}`);
   if ((c.speed ?? 0) > 0) parts.push(`${fmtBytes(c.speed)}/s`);
   return parts.join(' · ');
