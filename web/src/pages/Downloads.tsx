@@ -57,14 +57,15 @@ import { taskRefusal } from '../lib/taskRefusal';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import {
   IconSearch,
-  IconDownloads,
-  IconCheck,
+  IconDownload,
   IconClose,
   IconPause,
   IconPlay,
-  IconRetry,
+  IconRefresh,
   IconTrash,
   IconTrashFiles,
+  IconSelectAll,
+  IconClearSelection,
 } from '../lib/icons';
 
 // The two cards below the download list, in the order they are drawn. Each
@@ -525,7 +526,7 @@ export function Downloads() {
                   />
                   <IconBadge
                     hue={1}
-                    icon={<IconClose width={16} height={16} />}
+                    icon={<IconClearSelection width={16} height={16} />}
                     title={t('select.none')}
                     aria-label={t('select.none')}
                     onClick={clearSelection}
@@ -534,7 +535,7 @@ export function Downloads() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={3}
-                  icon={<IconRetry width={16} height={16} />}
+                  icon={<IconRefresh width={16} height={16} />}
                   title={t('task.restart')}
                   aria-label={t('task.restart')}
                   onClick={() =>
@@ -593,7 +594,7 @@ export function Downloads() {
                   <IconBadge
                     labelled={!glyphs}
                     hue={4}
-                    icon={<IconRetry width={16} height={16} />}
+                    icon={<IconRefresh width={16} height={16} />}
                     title={t('downloads.retryFailed')}
                     aria-label={t('downloads.retryFailed')}
                     onClick={retryFailed}
@@ -602,7 +603,7 @@ export function Downloads() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={1}
-                  icon={<IconCheck width={16} height={16} />}
+                  icon={allChosen ? <IconClearSelection width={16} height={16} /> : <IconSelectAll width={16} height={16} />}
                   title={allChosen ? t('select.none') : t('select.all')}
                   aria-label={allChosen ? t('select.none') : t('select.all')}
                   disabled={filtered.length === 0}
@@ -653,7 +654,7 @@ export function Downloads() {
         {list.length === 0 ? (
           <EmptyState
             fill
-            icon={<IconDownloads width={26} height={26} />}
+            icon={<IconDownload width={26} height={26} />}
             title={t('empty.downloadsTitle')}
             hint={t('empty.downloadsHint')}
           />

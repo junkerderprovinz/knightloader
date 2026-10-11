@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { SVGProps } from 'react';
 import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
 import {
   RuleEditor,
@@ -16,7 +15,7 @@ import {
   type Rule,
   type RuleSet,
 } from '../../components/RuleEditor';
-import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconCopy, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
 import { rejectionReason } from '../../lib/rejectionReason';
 import { useT } from '../../lib/i18n';
@@ -54,13 +53,6 @@ interface Sample {
 }
 
 const emptySample = (): Sample => ({ url: '', filename: '', source: '', size: '', pkg: '' });
-
-const IconDuplicate = (p: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden {...p}>
-    <rect x="5.5" y="5.5" width="8" height="8" rx="1.6" />
-    <path d="M10.5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v6.5" />
-  </svg>
-);
 
 export function Rules() {
   const { t } = useT();
@@ -309,7 +301,7 @@ function RuleCards() {
               <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
                 {t('settings.rules.export')}
               </Button>
-              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.rules.add')}
               </Button>
             </div>
@@ -486,7 +478,7 @@ function RuleRow({
         <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -495,7 +487,7 @@ function RuleRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}
@@ -504,7 +496,7 @@ function RuleRow({
           />
           <IconBadge
             labelled
-            icon={<IconDuplicate width={16} height={16} />}
+            icon={<IconCopy width={16} height={16} />}
             hue={index}
             title={t('settings.rules.duplicate')}
             aria-label={t('settings.rules.duplicate')}
@@ -569,7 +561,7 @@ function TestBox({
     <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
             {t('settings.rules.testAdd')}
           </Button>
         }

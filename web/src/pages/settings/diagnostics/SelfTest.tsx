@@ -11,7 +11,7 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { happened } from '../../../lib/countdown';
 import { Button, Card, SectionTitle, type ButtonVerdict } from '../../../components/ui';
-import { IconCheck, IconClose, IconRetry, IconWarning } from '../../../lib/icons';
+import { IconCheck, IconClose, IconRefresh, IconWarning } from '../../../lib/icons';
 import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
 
 // The instance's own checks: the JDownloader sidecar, yt-dlp, the target
@@ -125,7 +125,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
     if (outcome === 'fail') setShake((n) => n + 1);
   }, [outcome]);
   const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = busy
-    ? { label: t('settings.selftest.running'), icon: <IconRetry /> }
+    ? { label: t('settings.selftest.running'), icon: <IconRefresh /> }
     : error
       ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
       : outcome === 'ok'
@@ -134,7 +134,7 @@ export function SelfTestCard({ hue }: { hue: number }) {
           ? { label: t('settings.diagnostics.verdict.warn'), icon: <IconWarning />, verdict: 'warn' }
           : outcome === 'fail'
             ? { label: t('settings.diagnostics.verdict.fail'), icon: <IconClose />, verdict: 'fail' }
-            : { label: t('settings.selftest.run'), icon: <IconRetry /> };
+            : { label: t('settings.selftest.run'), icon: <IconRefresh /> };
 
   return (
     <Card hue={hue} className="flex flex-col gap-5">

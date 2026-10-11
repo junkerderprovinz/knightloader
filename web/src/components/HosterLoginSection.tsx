@@ -20,7 +20,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconChevronStart, IconClose, IconTrash } from '../lib/icons';
+import { IconAccounts, IconBack, IconClose, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 
 // Faster than the 30s account health poll, since a new login moves from queued
@@ -350,7 +350,7 @@ function HosterLoginDialog({
               <Button
                 kind="secondary"
                 labelled
-                icon={<IconChevronStart className="rtl:-scale-x-100" />}
+                icon={<IconBack className="rtl:-scale-x-100" />}
                 title={t('onboarding.back')}
                 onClick={() => setPicked(null)}
               />

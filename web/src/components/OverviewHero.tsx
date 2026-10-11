@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import type { Task } from '../lib/api';
 import { fmtPct, fmtRate, fmtUptime } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconCheck, IconClock, IconDownloads } from '../lib/icons';
+import { IconCheck, IconDownload, IconQueued } from '../lib/icons';
 import { headState, kindSegments, queueFigures, type KindSegment, type KindTone, type Need } from '../lib/needs';
 import { resolverLabel } from '../lib/resolverLabels';
 import { breakdownLabel } from '../lib/useHealthReport';
@@ -201,9 +201,9 @@ export function OverviewHero({
     ) : state === 'done' ? (
       <IconCheck width={24} height={24} />
     ) : state === 'waiting' ? (
-      <IconClock width={24} height={24} />
+      <IconQueued width={24} height={24} />
     ) : (
-      <IconDownloads width={24} height={24} />
+      <IconDownload width={24} height={24} />
     );
   const ink =
     state === 'needs'

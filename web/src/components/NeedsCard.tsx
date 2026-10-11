@@ -9,11 +9,11 @@ import {
   IconAccounts,
   IconCaptcha,
   IconCheck,
-  IconDiagnostics,
   IconExternalLink,
   IconEye,
+  IconHealth,
   IconHelp,
-  IconRetry,
+  IconRefresh,
   IconSliders,
 } from '../lib/icons';
 import { message } from '../lib/intake';
@@ -110,7 +110,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
           name: titleOf(need.tasks),
           sub: need.tasks.length > 1 ? `${t('overview.needs.links', { n: need.tasks.length })} · ${why}` : why,
           open: () => reveal(first),
-          main: { label: t('common.retry'), icon: <IconRetry />, run: () => void retry(need.tasks) },
+          main: { label: t('common.retry'), icon: <IconRefresh />, run: () => void retry(need.tasks) },
           side:
             reason && adviceFor(first.reason)
               ? { label: t('failure.open'), icon: <IconHelp />, run: () => setAdvised(first), glyphOnly: true }
@@ -181,7 +181,7 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
           name: `${part} · ${healthLabel(t, 'health.state.', need.part.state)}`,
           sub: healthLabel(t, 'health.remedy.', need.part.remedy ?? ''),
           open: health,
-          main: { label: t('settings.nav.health'), icon: <IconDiagnostics />, run: health },
+          main: { label: t('settings.nav.health'), icon: <IconHealth />, run: health },
         };
       }
     }

@@ -17,7 +17,7 @@ import {
   type SavedView,
 } from '../lib/listNarrowing';
 import type { QuickFilterId } from './ListToolbar';
-import { IconEdit, IconPin, IconTrash } from '../lib/icons';
+import { IconPencil, IconPin, IconTrash } from '../lib/icons';
 
 type Open = { kind: 'save' } | { kind: 'rename'; view: SavedView } | { kind: 'delete'; view: SavedView };
 
@@ -79,7 +79,7 @@ export function SavedViewChips({
           {
             id: `${v.id}:rename`,
             label: t('views.rename'),
-            icon: <IconEdit />,
+            icon: <IconPencil />,
             onSelect: () => {
               setRefusal('');
               setOpen({ kind: 'rename', view: v });
@@ -152,7 +152,7 @@ export function SavedViewChips({
                   ? [{ id: 'save', label: t('views.save'), icon: <IconPin />, disabled: full, onSelect: startSave }]
                   : []),
                 ...(views.length > 0
-                  ? [{ id: 'manage', label: t('views.manage'), icon: <IconEdit />, submenu: [{ id: 'views', items }] }]
+                  ? [{ id: 'manage', label: t('views.manage'), icon: <IconPencil />, submenu: [{ id: 'views', items }] }]
                   : []),
               ],
             },
@@ -191,7 +191,7 @@ export function SavedViewChips({
             <IconBadge
               labelled={!glyphs}
               hue={4}
-              icon={<IconEdit width={16} height={16} />}
+              icon={<IconPencil width={16} height={16} />}
               title={t('views.manage')}
               aria-label={t('views.manage')}
               onClick={(e) => openMenu(e.currentTarget)}
