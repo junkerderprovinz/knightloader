@@ -73,8 +73,12 @@ It has twelve characters, so wrong guesses do not use it up, and nobody can
 keep you from resetting by guessing. The new password switches two-factor
 authentication off, removes every passkey and every API token, signs out every
 other browser and replaces the key sessions are signed with, so a copy of
-`auth.json` taken earlier opens nothing either. Devices paired with the
-connection phrase stay paired. Settings that run something, such as event
+`auth.json` taken earlier opens nothing either. An instance in a pairing group
+leaves it: it gets new connection words that nobody else holds, a relay key
+entered by hand is removed, and every phone, browser extension and other
+instance has to pair again with the new words, which Settings > Pairing shows
+once you are signed in. The page after the reset lists what was removed.
+Settings that run something, such as event
 programs, scripts and the end-of-queue action, are left as they are: if
 somebody else may have had access, look through them.
 
@@ -83,6 +87,7 @@ page, in the log file nor in a diagnostics bundle. Somebody who only reaches
 the web interface cannot reset anything.
 
 Anybody who can read the container log or the service's output can reset the
-password and take the instance over. That includes access that is otherwise
+password and take the instance over. That is root on the host, anybody who can
+use the Docker socket, even only to read from it, and access that is otherwise
 read-only: a log viewer such as Dozzle, or a log shipper and everybody who
 reads what it collects. Keep that access to people who may own this instance.
