@@ -190,6 +190,25 @@ func TestDropAllClosesEveryConnection(t *testing.T) {
 	}
 }
 
+func TestDropAllKeepsTheLocalListeners(t *testing.T) {
+	h := New()
+	tray, browser := newFakeConn(), newFakeConn()
+	h.AddLocal(tray)
+	h.Add(browser)
+	t.Cleanup(func() { h.Remove(tray) })
+
+	h.DropAll()
+
+	if n := h.Len(); n != 1 {
+		t.Fatalf("%d connections are registered after the drop, want the local one alone", n)
+	}
+	h.Broadcast("task", "after the drop")
+	got := recv(t, tray, "the local listener missed a broadcast after the drop")
+	if !bytes.Contains(got, []byte("after the drop")) {
+		t.Errorf("the local listener received %s", got)
+	}
+}
+
 func TestWriteErrorRemovesClient(t *testing.T) {
 	h := New()
 	broken := newFakeConn()

@@ -184,6 +184,9 @@ release's tag.
 - **A browser whose session has ended returns to the sign-in page,** after a
   reset, a changed password or a sign-out everywhere, instead of showing load
   errors.
+- **A changed password and a sign-out everywhere close the live updates** of
+  every open page, as a reset does. The page you changed the password on
+  picks them up again with its new session.
 
 ### Fixed
 
