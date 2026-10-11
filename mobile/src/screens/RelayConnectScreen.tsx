@@ -7,7 +7,7 @@ import { checkPhrase, splitPhrase } from '../api/phraseWords';
 import { readPairingCode } from '../api/pairingCode';
 import { deviceName } from '../api/deviceName';
 import { toHex } from '../api/sha256';
-import { relayIdentity } from '../storage/relayIdentity';
+import { memberOptions } from '../storage/relayIdentity';
 import { addConnection, listConnections, setActiveConnectionId } from '../storage/connections';
 import type { RelayConnection, ServerConnection } from '../api/types';
 import { useAppearance } from '../theme/AppearanceContext';
@@ -147,7 +147,7 @@ export default function RelayConnectScreen({
       url: relay,
       key,
       frameKey,
-      selfId: await relayIdentity(),
+      ...(await memberOptions()),
       selfName: deviceName(),
     });
     // Subscribed rather than passed in as an option: this client may already

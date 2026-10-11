@@ -1,5 +1,6 @@
 import { decodeBody, encodeBody } from './base64';
-import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult } from './relayFrame';
+import { getRandomBytes } from 'expo-crypto';
+import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult, sealSignedCall } from './relayFrame';
 
 // This app's client for internal/relay's wire protocol, the second way it can
 // reach an instance: one behind a NAT with no port forwarding and no reverse
@@ -86,6 +87,9 @@ export interface RelayClientOptions {
   frameKey: Uint8Array;
   /** This device's stable id on the relay. See storage/relayIdentity.ts. */
   selfId: string;
+  /** The seed of this device's member key, which signs every call as selfId;
+   *  null sends them unsigned. */
+  memberSeed: Uint8Array | null;
   /** What siblings would call this device, if they listed it; they do not. */
   selfName: string;
 }
@@ -106,7 +110,6 @@ export class RelayClient {
   private openedAt = 0;
   private sibs: RelaySibling[] = [];
   private pending = new Map<string, Pending>();
-  private seq = 0;
   // A set, not a single callback: one client is shared by every connection
   // through the same relay (see relayClientFor), and the connect screen
   // watches the same client a saved connection is already using. A lone
@@ -173,10 +176,9 @@ export class RelayClient {
         reject(new Error('relay: not connected'));
         return;
       }
-      // Unique per client instance and never reused, which is all the relay
-      // needs: it matches a response to a request only within this one
-      // connection's pending set.
-      const requestId = `${Date.now().toString(36)}-${(this.seq++).toString(36)}`;
+      // Random rather than counted: an instance runs each id once per key, and
+      // an id somebody else can predict is one they can send first.
+      const requestId = Array.from(getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('');
       const timer = setTimeout(() => {
         this.pending.delete(requestId);
         reject(new Error('relay: the instance did not answer in time'));
@@ -188,16 +190,19 @@ export class RelayClient {
         // the relay sees which instance the frame is for and nothing about what
         // is being asked, the bearer token below included: that is the one
         // field here that keeps working for whoever reads it. See relayFrame.ts.
+        const call = { method, path, body, authorization, from: this.opts.selfId };
         this.send(T_PROXY_REQUEST, {
           requestId,
           target,
-          sealed: sealCall(this.opts.frameKey, requestId, target, {
-            method,
-            path,
-            ...(body ? { body: encodeBody(body) } : {}),
-            ...(authorization ? { authorization } : {}),
-            from: this.opts.selfId,
-          }),
+          sealed: this.opts.memberSeed
+            ? sealSignedCall(this.opts.frameKey, this.opts.memberSeed, requestId, target, call)
+            : sealCall(this.opts.frameKey, requestId, target, {
+                method,
+                path,
+                ...(body ? { body: encodeBody(body) } : {}),
+                ...(authorization ? { authorization } : {}),
+                from: this.opts.selfId,
+              }),
         });
       } catch (err) {
         clearTimeout(timer);

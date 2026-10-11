@@ -19,7 +19,7 @@ import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
-import { relayIdentity, resetRelayIdentity } from '../storage/relayIdentity';
+import { memberOptions, resetRelayIdentity } from '../storage/relayIdentity';
 import { removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
@@ -125,7 +125,7 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
     url: conn.relayUrl,
     key: conn.relayKey,
     frameKey: fromHex(conn.relayFrameKey),
-    selfId: await relayIdentity(),
+    ...(await memberOptions()),
     selfName: deviceName(),
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;
