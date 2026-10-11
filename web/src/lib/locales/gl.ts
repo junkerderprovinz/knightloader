@@ -310,7 +310,7 @@ export const gl: Dict = {
   'settings.lockHint': 'Protexe esta instancia de calquera que poida acceder a ela: na mesma rede, mediante un dominio ou mediante un relay. Unha vez establecido, hai que introducilo antes de que esta instancia sequera se abra, para calquera, incluído ti mesmo a próxima vez. Sen contrasinal, calquera que atope o enderezo pode ver cada descarga, e engadir, pausar ou eliminar as súas propias.',
   'settings.passwordCurrent': 'Contrasinal actual',
   'settings.passwordNew': 'Contrasinal novo',
-  'settings.passwordHint': 'Polo menos 8 caracteres. Déixao baleiro para quitar o bloqueo.',
+  'settings.passwordHint': 'Polo menos 8 caracteres. Déixao baleiro para quitar o bloqueo. Iso tamén desactiva a autenticación en dous pasos e borra todas as chaves de acceso.',
   'settings.setPassword': 'Definir o contrasinal',
   'settings.passwordSaved': 'Contrasinal actualizado.',
   'auth.title': 'Esta instancia está bloqueada',

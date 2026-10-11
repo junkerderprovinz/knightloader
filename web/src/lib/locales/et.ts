@@ -310,7 +310,7 @@ export const et: Dict = {
   'settings.lockHint': 'Kaitseb seda eksemplari kõigi eest, kes seda saavad kätte: samas võrgus, domeeni kaudu või relee kaudu. Kui parool on määratud, tuleb see enne selle eksemplari avanemist sisestada, kõigi jaoks, ka sinu enda jaoks järgmisel korral. Ilma paroolita näeb igaüks, kes aadressi leiab, iga allalaadimist ning saab lisada, peatada või kustutada omaenda omi.',
   'settings.passwordCurrent': 'Praegune parool',
   'settings.passwordNew': 'Uus parool',
-  'settings.passwordHint': 'Vähemalt 8 märki. Jäta tühjaks, et lukk eemaldada.',
+  'settings.passwordHint': 'Vähemalt 8 märki. Jäta tühjaks, et lukk eemaldada. See lülitab välja ka kaheastmelise autentimise ja kustutab kõik pääsuvõtmed.',
   'settings.setPassword': 'Määra parool',
   'settings.passwordSaved': 'Parool muudetud.',
   'auth.title': 'See eksemplar on lukus',

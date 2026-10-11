@@ -312,7 +312,7 @@ export const no: Dict = {
   'settings.lockHint': 'Beskytter denne instansen mot alle som kan nå den: på samme nettverk, via et domene eller via et relé. Når det er satt, må det tastes inn før denne instansen i det hele tatt åpner, for alle, også deg selv neste gang. Uten passord kan alle som finner adressen se hver nedlasting, og legge til, pause eller slette sine egne.',
   'settings.passwordCurrent': 'Nåværende passord',
   'settings.passwordNew': 'Nytt passord',
-  'settings.passwordHint': 'Minst 8 tegn. La stå tom for å fjerne låsen.',
+  'settings.passwordHint': 'Minst 8 tegn. La stå tom for å fjerne låsen. Det slår også av tofaktorautentisering og sletter alle passnøkler.',
   'settings.setPassword': 'Sett passord',
   'settings.passwordSaved': 'Passordet er oppdatert.',
   'auth.title': 'Denne instansen er låst',

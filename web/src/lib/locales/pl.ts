@@ -302,7 +302,7 @@ export const pl: Dict = {
   'settings.lockHint': 'Chroni tę instancję przed każdym, kto może się do niej dostać: w tej samej sieci, przez domenę lub przez przekaźnik (relay). Po ustawieniu trzeba je podać, zanim ta instancja w ogóle się otworzy, dla każdego, także dla ciebie przy następnej wizycie. Bez hasła każdy, kto znajdzie adres, może zobaczyć każde pobieranie oraz dodawać, wstrzymywać lub usuwać własne.',
   'settings.passwordCurrent': 'Obecne hasło',
   'settings.passwordNew': 'Nowe hasło',
-  'settings.passwordHint': 'Co najmniej 8 znaków. Zostaw puste, aby zdjąć blokadę.',
+  'settings.passwordHint': 'Co najmniej 8 znaków. Zostaw puste, aby zdjąć blokadę. To wyłącza też uwierzytelnianie dwuskładnikowe i usuwa wszystkie klucze dostępu.',
   'settings.setPassword': 'Ustaw hasło',
   'settings.passwordSaved': 'Hasło zaktualizowane.',
   'auth.title': 'Ta instancja jest zablokowana',

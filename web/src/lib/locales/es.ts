@@ -302,7 +302,7 @@ export const es: Dict = {
   'settings.lockHint': 'Protege esta instancia de cualquiera que pueda alcanzarla: en la misma red, a través de un dominio o de un relay. Una vez establecida, debe introducirse antes de que esta instancia se abra siquiera, para cualquiera, incluido tú mismo la próxima vez. Sin contraseña, cualquiera que encuentre la dirección puede ver todas las descargas, y añadir, pausar o eliminar las suyas propias.',
   'settings.passwordCurrent': 'Contraseña actual',
   'settings.passwordNew': 'Nueva contraseña',
-  'settings.passwordHint': 'Al menos 8 caracteres. Déjelo vacío para quitar el bloqueo.',
+  'settings.passwordHint': 'Al menos 8 caracteres. Déjelo vacío para quitar el bloqueo. Eso también desactiva la autenticación en dos pasos y borra todas las claves de acceso.',
   'settings.setPassword': 'Establecer contraseña',
   'settings.passwordSaved': 'Contraseña actualizada.',
   'auth.title': 'Esta instancia está bloqueada',

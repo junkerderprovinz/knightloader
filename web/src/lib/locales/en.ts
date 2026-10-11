@@ -359,7 +359,7 @@ export const en = {
   'settings.lockHint': 'Protects this instance from anyone who can reach it: on the same network, through a domain, or through a relay. Once set, it has to be entered before this instance opens at all, for anyone, including you on your next visit. Without one, anyone who finds the address can see every download, and add, pause or delete their own.',
   'settings.passwordCurrent': 'Current password',
   'settings.passwordNew': 'New password',
-  'settings.passwordHint': 'At least 8 characters. Leave empty to remove the lock.',
+  'settings.passwordHint': 'At least 8 characters. Leave it empty to remove the lock. That also switches two-factor authentication off and deletes every passkey.',
   'settings.setPassword': 'Set password',
   'settings.passwordSaved': 'Password updated.',
   'auth.title': 'This instance is locked',

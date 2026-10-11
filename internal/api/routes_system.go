@@ -5,6 +5,7 @@ package api
 import (
 	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
@@ -196,7 +197,7 @@ func registerSystem(reg *Registry, a *app.App) {
 			clearSession(w, r)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password",
+	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password; removing it removes the second factor and every passkey too",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Setting the first password is open (the instance is unprotected
 			// anyway); changing or removing one requires the current password and an
@@ -218,7 +219,18 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			// The page that changed it reconnects its own stream with the
 			// cookie this answer sets.
-			changed, err := a.Auth.ChangePassword(body.Current, body.New, a.Hub.DropAll)
+			alsoEnd := a.Hub.DropAll
+			if body.New == "" {
+				alsoEnd = func() {
+					// A passkey stands beside the password. Kept, it would
+					// open the instance again as soon as any password is set.
+					if _, err := a.Store.DeleteAllPasskeys(); err != nil {
+						log.Printf("auth: removing the password: removing the passkeys: %v", err)
+					}
+					a.Hub.DropAll()
+				}
+			}
+			changed, err := a.Auth.ChangePassword(body.Current, body.New, alsoEnd)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

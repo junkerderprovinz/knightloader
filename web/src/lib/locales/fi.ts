@@ -310,7 +310,7 @@ export const fi: Dict = {
   'settings.lockHint': 'Suojaa tätä instanssia kaikilta, jotka pääsevät siihen käsiksi: samassa verkossa, verkkotunnuksen kautta tai releen kautta. Kun salasana on asetettu, se on syötettävä ennen kuin tämä instanssi ylipäätään avautuu, kaikille, myös sinulle itsellesi seuraavalla kerralla. Ilman salasanaa kuka tahansa osoitteen löytävä näkee jokaisen latauksen ja voi lisätä, keskeyttää tai poistaa omiaan.',
   'settings.passwordCurrent': 'Nykyinen salasana',
   'settings.passwordNew': 'Uusi salasana',
-  'settings.passwordHint': 'Vähintään 8 merkkiä. Jätä tyhjäksi poistaaksesi lukituksen.',
+  'settings.passwordHint': 'Vähintään 8 merkkiä. Jätä tyhjäksi poistaaksesi lukituksen. Samalla kaksivaiheinen tunnistautuminen kytkeytyy pois ja kaikki pääsyavaimet poistetaan.',
   'settings.setPassword': 'Aseta salasana',
   'settings.passwordSaved': 'Salasana päivitetty.',
   'auth.title': 'Tämä instanssi on lukittu',

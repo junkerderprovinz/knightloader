@@ -310,7 +310,7 @@ export const ja: Dict = {
   'settings.lockHint': 'このインスタンスに到達できる誰からも保護します: 同じネットワーク内でも、ドメイン経由でも、リレー経由でも。一度設定すると、このインスタンスが開く前に、誰であっても, 次回訪れる自分自身も含めて, 入力する必要があります。パスワードがないと、アドレスを見つけた誰もがすべてのダウンロードを見て、自分のダウンロードを追加・一時停止・削除できてしまいます。',
   'settings.passwordCurrent': '現在のパスワード',
   'settings.passwordNew': '新しいパスワード',
-  'settings.passwordHint': '8文字以上。空欄にすると保護を解除します。',
+  'settings.passwordHint': '8文字以上。空欄にすると保護を解除します。二要素認証もオフになり、パスキーはすべて削除されます。',
   'settings.setPassword': 'パスワードを設定',
   'settings.passwordSaved': 'パスワードを更新しました。',
   'auth.title': 'このインスタンスはロックされています',
