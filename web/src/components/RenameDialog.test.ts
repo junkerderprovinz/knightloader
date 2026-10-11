@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 
 import { ApiError, type Task } from '../lib/api';
+import { en } from '../lib/locales/en';
+import type { TranslationKey } from '../lib/i18n';
 import { linkRenameNote, renameRefusal } from './RenameDialog';
 
 function task(over: Partial<Task>): Task {
@@ -69,6 +71,13 @@ describe('renameRefusal', () => {
     expect(renameRefusal(new ApiError('the folder Old could not be renamed', 'notMoved', { name: 'Old' }, 400), t)).toBe(
       'rename.notMoved Old',
     );
+  });
+
+  it('words a rename the data folder guard refused from the catalogue', () => {
+    const tEn = (key: TranslationKey, vars: Record<string, string | number> = {}): string =>
+      Object.entries(vars).reduce<string>((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), en[key]);
+    const refused = new ApiError("not renamed: /data is inside KnightLoader's data folder", 'dataFolder', { name: 'data' }, 400);
+    expect(renameRefusal(refused, tEn)).toBe("Renaming to “data” would put it in KnightLoader's data folder, and downloads may not go there.");
   });
 
   it('leaves a refusal without a code it knows to the server', () => {

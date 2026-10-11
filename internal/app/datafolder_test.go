@@ -3,7 +3,6 @@ package app
 import (
 	"errors"
 	"path/filepath"
-	"strings"
 	"testing"
 	"time"
 
@@ -25,9 +24,15 @@ func startsNothing(t *testing.T, stub *stubBackend) {
 func refusedForTheDataFolder(t *testing.T, a *App, id string) {
 	t.Helper()
 	got := liveTask(a, id)
-	if got.Status != core.StatusError || !strings.Contains(got.Error, "data folder") {
-		t.Errorf("the download reads %s %q, want it refused for the data folder", got.Status, got.Error)
+	if got.Status != core.StatusError || !wordedAsDataFolder(got) {
+		t.Errorf("the download reads %s %q (%s %v), want it refused for the data folder", got.Status, got.Error, got.ErrorCode, got.ErrorParams)
 	}
+}
+
+// wordedAsDataFolder reports whether a row carries the code the interface
+// words a data folder refusal by, with the folder it names.
+func wordedAsDataFolder(task core.Task) bool {
+	return task.ErrorCode == core.CodeDataFolder && task.ErrorParams["path"] != ""
 }
 
 // A folder of its own that leads into the data folder, set before the
@@ -98,8 +103,8 @@ func TestAFileInTheDataFolderIsNotRenamedThere(t *testing.T) {
 	if fileExists(filepath.Join(a.DataDir, name)) || !fileExists(file) {
 		t.Error("the file was renamed inside the data folder")
 	}
-	if got := liveTask(a, "1"); got.Name != "film.mkv" || !strings.Contains(got.Error, "data folder") {
-		t.Errorf("the download reads %q with %q, want the old name and the reason", got.Name, got.Error)
+	if got := liveTask(a, "1"); got.Name != "film.mkv" || !wordedAsDataFolder(got) {
+		t.Errorf("the download reads %q with %q (%s), want the old name and the data folder refusal", got.Name, got.Error, got.ErrorCode)
 	}
 }
 
@@ -173,8 +178,11 @@ func TestAnArchiveIsNotUnpackedOrMovedIntoTheDataFolder(t *testing.T) {
 				return ok && j.Status != ExtractQueued && j.Status != ExtractRunning
 			})
 			j, _ := jobFor(a, task.ID)
-			if j.Status == ExtractDone && j.Error == "" {
-				t.Error("the job ended without a word about the data folder")
+			if j.ErrorCode != core.CodeDataFolder {
+				t.Errorf("the job ended %s with %q (%s), want the data folder refusal", j.Status, j.Error, j.ErrorCode)
+			}
+			if got := liveTask(a, task.ID); !wordedAsDataFolder(got) {
+				t.Errorf("the row reads %q (%s %v), want the data folder refusal", got.Error, got.ErrorCode, got.ErrorParams)
 			}
 			for _, p := range []string{filepath.Join(inside, "yt-dlp"), filepath.Join(inside, "release", "yt-dlp")} {
 				if fileExists(p) {

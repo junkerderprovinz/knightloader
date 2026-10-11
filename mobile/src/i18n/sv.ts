@@ -292,6 +292,8 @@ export const sv: Dict = {
   'failure.pinned.next': 'Ta bort fastlåsningen i webbgränssnittet, eller kontrollera den backendens konto där.',
   'failure.fileExists.line': 'Det finns redan en fil som heter {file} i mappen.',
   'failure.fileExists.next': 'Flytta eller byt namn på den filen, eller ändra i webbgränssnittet vad som händer med befintliga filer, och starta sedan om nedladdningen.',
+  'failure.dataFolder.line': '{path} ligger i KnightLoaders datamapp, och nedladdningar får inte hamna där.',
+  'failure.dataFolder.next': 'Välj i webbgränssnittet en mapp utanför datamappen och försök igen.',
   'failure.captcha.line': 'Värden vill att en captcha löses.',
   'failure.captcha.next': 'Besvara captchan på skärmen Captchor, eller lägg till ett captcha-konto i webbgränssnittet.',
   'failure.cancelled.line': 'Nedladdningen stoppades innan den var klar.',

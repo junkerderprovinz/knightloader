@@ -292,6 +292,8 @@ export const ca: Dict = {
   'failure.pinned.next': 'Treu la fixació a la interfície web, o comprova-hi el compte d’aquest rerefons.',
   'failure.fileExists.line': 'A la carpeta ja hi ha un fitxer anomenat {file}.',
   'failure.fileExists.next': 'Mou o canvia el nom d’aquest fitxer, o canvia a la interfície web què passa amb els fitxers existents, i després reinicia la baixada.',
+  'failure.dataFolder.line': '{path} és a la carpeta de dades de KnightLoader, i les baixades no hi poden anar.',
+  'failure.dataFolder.next': 'Tria a la interfície web una carpeta fora de la carpeta de dades i torna-ho a provar.',
   'failure.captcha.line': 'L’allotjador vol que es resolgui un captcha.',
   'failure.captcha.next': 'Respon el captcha a la pantalla Captchas, o afegeix un compte de captcha a la interfície web.',
   'failure.cancelled.line': 'La baixada s’ha aturat abans d’acabar.',

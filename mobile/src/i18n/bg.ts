@@ -292,6 +292,8 @@ export const bg: Dict = {
   'failure.pinned.next': 'Откачи връзката в уеб интерфейса или провери там акаунта на този бекенд.',
   'failure.fileExists.line': 'В папката вече има файл с име {file}.',
   'failure.fileExists.next': 'Премести или преименувай този файл или промени в уеб интерфейса какво става със съществуващи файлове, после стартирай изтеглянето отново.',
+  'failure.dataFolder.line': '{path} е в папката с данните на KnightLoader, а там не бива да отиват изтегляния.',
+  'failure.dataFolder.next': 'Избери в уеб интерфейса папка извън папката с данните, после опитай отново.',
   'failure.captcha.line': 'Хостърът иска да се реши captcha.',
   'failure.captcha.next': 'Отговори на captcha-та в екрана Captcha или добави captcha акаунт в уеб интерфейса.',
   'failure.cancelled.line': 'Изтеглянето беше спряно, преди да завърши.',

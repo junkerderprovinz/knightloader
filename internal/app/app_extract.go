@@ -484,7 +484,7 @@ func (a *App) runExtractions() {
 		// Where the content would move to is refused before anything is
 		// unpacked; where it unpacks, the extractor refuses (opts.Barred).
 		if inData := a.dataFolderOf(a.unpackPlanFor(target, a.Settings.Get()).Deliver); refused == nil && inData != "" {
-			refused = fmt.Errorf("not unpacked: %s is inside KnightLoader's data folder; choose a folder outside it", inData)
+			refused = &dataFolderError{dir: inData}
 		}
 		snap := job.ExtractJob
 		a.mu.Unlock()

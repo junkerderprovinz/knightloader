@@ -252,6 +252,8 @@ export const en = {
   'failure.pinned.next': 'Remove the pin in the web UI, or check that backend\'s account there.',
   'failure.fileExists.line': 'A file named {file} is already in the folder.',
   'failure.fileExists.next': 'Move or rename that file, or change what happens to existing files in the web UI, then restart the download.',
+  'failure.dataFolder.line': "{path} is in KnightLoader's data folder, and downloads may not go there.",
+  'failure.dataFolder.next': 'Choose a folder outside the data folder in the web UI, then try again.',
   'failure.captcha.line': 'The host wants a captcha solved.',
   'failure.captcha.next': 'Answer the captcha on the Captchas screen, or add a captcha account in the web UI.',
   'failure.cancelled.line': 'The download was stopped before it finished.',

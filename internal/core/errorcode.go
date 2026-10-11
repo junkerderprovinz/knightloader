@@ -61,6 +61,10 @@ const (
 	// CodeFileExists is a file of the same name already in the folder while
 	// the collision policy says to skip. Params: "file". No Reason.
 	CodeFileExists ErrorCode = "fileExists"
+	// CodeDataFolder is a download, unpacking, move or rename refused because
+	// it would write into KnightLoader's data folder. Params: "path", the
+	// folder it would have written to. No Reason.
+	CodeDataFolder ErrorCode = "dataFolder"
 	CodeCaptcha    ErrorCode = "captcha"   // ReasonCaptcha
 	CodeCancelled  ErrorCode = "cancelled" // ReasonCancelled
 

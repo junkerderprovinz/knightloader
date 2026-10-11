@@ -292,6 +292,8 @@ export const lt: Dict = {
   'failure.pinned.next': 'Atsek ją žiniatinklio sąsajoje arba patikrink ten tos posistemės paskyrą.',
   'failure.fileExists.line': 'Aplanke jau yra failas pavadinimu {file}.',
   'failure.fileExists.next': 'Perkelk ar pervadink tą failą arba žiniatinklio sąsajoje pakeisk, kas nutinka esamiems failams, tada paleisk atsisiuntimą iš naujo.',
+  'failure.dataFolder.line': '{path} yra KnightLoader duomenų aplanke, o atsisiuntimai ten negali patekti.',
+  'failure.dataFolder.next': 'Žiniatinklio sąsajoje pasirink aplanką už duomenų aplanko ribų ir bandyk dar kartą.',
   'failure.captcha.line': 'Talpykla nori, kad būtų išspręsta captcha.',
   'failure.captcha.next': 'Atsakyk į captcha ekrane Captcha arba pridėk captcha paskyrą žiniatinklio sąsajoje.',
   'failure.cancelled.line': 'Atsisiuntimas sustabdytas nepasibaigęs.',

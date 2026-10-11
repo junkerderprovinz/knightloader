@@ -131,10 +131,11 @@ func (a *App) planRenameLocked(ids []string, name string) (*renamePlan, error) {
 	return p, nil
 }
 
-// refuseDataFolder turns down a package name that would move its folder to
-// dir, which lies in the data folder.
+// refuseDataFolder turns down a name that would put a file or a package's
+// folder in dir, which lies in the data folder.
 func refuseDataFolder(name, dir string) error {
-	return refuseRename("dataFolder", name, "%s would move the package to %s, inside KnightLoader's data folder", name, dir)
+	cause := &dataFolderError{dir: dir}
+	return &RenameRefusal{Code: "dataFolder", Name: name, text: renameErrorPrefix + cause.Error(), err: cause}
 }
 
 // refuseBusy turns a rename of pkg down until what holds its files is done.

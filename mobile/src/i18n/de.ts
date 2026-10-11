@@ -251,6 +251,8 @@ export const de: Dict = {
   'failure.pinned.next': 'Heb die Festlegung in der Weboberfläche auf oder prüf dort das Konto dieses Backends.',
   'failure.fileExists.line': 'Im Ordner liegt schon eine Datei namens {file}.',
   'failure.fileExists.next': 'Verschieb diese Datei oder benenn sie um, oder änder in der Weboberfläche, was mit vorhandenen Dateien passiert, dann starte den Download neu.',
+  'failure.dataFolder.line': '{path} liegt im Datenordner von KnightLoader, und dort dürfen keine Downloads hin.',
+  'failure.dataFolder.next': 'Wähl in der Weboberfläche einen Ordner außerhalb des Datenordners, dann versuch es noch einmal.',
   'failure.captcha.line': 'Der Hoster will ein Captcha gelöst haben.',
   'failure.captcha.next': 'Beantworte das Captcha unter Captchas, oder richte in der Weboberfläche ein Captcha-Konto ein.',
   'failure.cancelled.line': 'Der Download wurde gestoppt, bevor er fertig war.',
