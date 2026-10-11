@@ -107,19 +107,25 @@ function sessionInstanceId() {
  * The id the group knows this browser by across sessions, sealed into every
  * announce and call. An instance lists the browser once under it and turns it
  * away once removed. It is minted on first use, in the same transaction that
- * looks for it, so two sessions starting together agree on one.
+ * looks for it, so two sessions starting together agree on one. Its shape,
+ * "browser-" and hex, is the extension's own: an instance only takes a browser
+ * under such an id, so no browser can stand in for an instance or the other
+ * way round. An id of another shape, minted by an older release, is replaced.
  */
 function readMemberId() {
   return secretStore('readwrite', (s) => {
     const out = {};
     const got = s.get('member');
     got.onsuccess = () => {
-      out.result = typeof got.result === 'string' ? got.result : sessionInstanceId();
+      const kept = typeof got.result === 'string' && BROWSER_ID.test(got.result);
+      out.result = kept ? got.result : `browser-${sessionInstanceId().slice(0, 32)}`;
       if (out.result !== got.result) s.put(out.result, 'member');
     };
     return out;
   });
 }
+
+const BROWSER_ID = /^browser-[0-9a-f]{32}$/;
 
 /**
  * The member key this browser signs its calls with, kept beside the member id
@@ -263,8 +269,11 @@ const REFUSAL_KEYS = {
 };
 
 /** refusalKey is the catalogue key for why an instance refused a call: its
- *  own sentence where the code is in REFUSAL_KEYS, else the plain one. */
+ *  own sentence where the code is in REFUSAL_KEYS, else the plain one. An
+ *  instance that was reset answers the old words with a plain 410 "reset"
+ *  (internal/api/retired_group.go). */
 function refusalKey(res) {
+  if (res.status === 410 && res.body === 'reset') return 'refusal.groupReset';
   try {
     const code = JSON.parse(res.body)?.code;
     if (typeof code === 'string' && Object.hasOwn(REFUSAL_KEYS, code)) return REFUSAL_KEYS[code];
