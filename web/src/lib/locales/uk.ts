@@ -3474,6 +3474,8 @@ export const uk: Dict = {
   'settings.archives.journeyHint': 'Що відбувається з файлом після завантаження, станція за станцією. Сіра станція вимкнена, і файл проходить повз неї. «{verifying}» залежить від перемикача «{checksums}» у розділі «{downloads}». Для станції «{repairing}» потрібен ваш власний сервер Usenet. Для станції «{moving}» потрібна «{workDir}» або місце для розпакованих файлів. «{cleanup}» пропускається, доки архів лишається.',
   'picture.journey.move': 'Переміщення',
   'picture.journey.cleanup': 'Прибирання',
+  'picture.journey.wayTo': 'Перейти до «{setting}» у розділі {page}',
+  'picture.journey.wayHere': 'Перейти до «{setting}» на цій сторінці',
   'picture.reconnect.router': 'Роутер',
   'picture.reconnect.internet': 'Інтернет',
   'picture.reconnect.oldAddress': 'Стара адреса',

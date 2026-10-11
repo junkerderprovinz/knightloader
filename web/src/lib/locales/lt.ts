@@ -3474,6 +3474,8 @@ export const lt: Dict = {
   'settings.archives.journeyHint': 'Kas nutinka failui, kai jis atsisiųstas, stotis po stoties. Pilka stotis išjungta, ir failas pro ją praeina. „{verifying}“ priklauso nuo jungiklio „{checksums}“ skiltyje „{downloads}“. „{repairing}“ reikia tavo paties Usenet serverio. „{moving}“ reikia „{workDir}“ arba vietos išpakuotiems failams. „{cleanup}“ praleidžiama, kol archyvas paliekamas.',
   'picture.journey.move': 'Perkeliama',
   'picture.journey.cleanup': 'Tvarkoma',
+  'picture.journey.wayTo': 'Eiti į „{setting}“ skiltyje {page}',
+  'picture.journey.wayHere': 'Eiti į „{setting}“ šiame puslapyje',
   'picture.reconnect.router': 'Maršrutizatorius',
   'picture.reconnect.internet': 'Internetas',
   'picture.reconnect.oldAddress': 'Senas adresas',

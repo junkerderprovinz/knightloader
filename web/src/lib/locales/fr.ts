@@ -3462,6 +3462,8 @@ export const fr: Dict = {
   'settings.archives.journeyHint': 'Ce qui arrive à un fichier une fois téléchargé, station après station. Une station grise est désactivée et le fichier passe sans s’y arrêter. « {verifying} » suit l’interrupteur « {checksums} » dans « {downloads} ». « {repairing} » demande votre propre serveur Usenet. « {moving} » demande « {workDir} » ou une destination pour les fichiers extraits. « {cleanup} » est ignoré tant que l’archive est conservée.',
   'picture.journey.move': 'Déplacement',
   'picture.journey.cleanup': 'Nettoyage',
+  'picture.journey.wayTo': 'Aller à « {setting} » dans {page}',
+  'picture.journey.wayHere': 'Aller à « {setting} » sur cette page',
   'picture.reconnect.router': 'Routeur',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Ancienne adresse',

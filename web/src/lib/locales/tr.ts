@@ -3472,6 +3472,8 @@ export const tr: Dict = {
   'settings.archives.journeyHint': 'Bir dosyanın indikten sonra başına gelenler, durak durak. Gri durak kapalıdır ve dosya ondan durmadan geçer. “{verifying}”, “{downloads}” altındaki “{checksums}” anahtarına bağlıdır. “{repairing}” için kendi Usenet sunucun gerekir. “{moving}” için “{workDir}” ya da ayıklanan dosyalar için bir hedef gerekir. “{cleanup}”, arşiv tutulduğu sürece atlanır.',
   'picture.journey.move': 'Taşınıyor',
   'picture.journey.cleanup': 'Temizleniyor',
+  'picture.journey.wayTo': '{page} altındaki “{setting}” ayarına git',
+  'picture.journey.wayHere': 'Bu sayfadaki “{setting}” ayarına git',
   'picture.reconnect.router': 'Yönlendirici',
   'picture.reconnect.internet': 'İnternet',
   'picture.reconnect.oldAddress': 'Eski adres',

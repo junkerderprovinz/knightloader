@@ -3476,6 +3476,8 @@ export const no: Dict = {
   'settings.archives.journeyHint': 'Hva som skjer med en fil når den er lastet ned, stasjon for stasjon. En grå stasjon er slått av, og filen går forbi den. «{verifying}» følger bryteren «{checksums}» under «{downloads}». «{repairing}» trenger din egen Usenet-server. «{moving}» trenger «{workDir}» eller et sted for de utpakkede filene. «{cleanup}» hoppes over så lenge arkivet beholdes.',
   'picture.journey.move': 'Flytter',
   'picture.journey.cleanup': 'Rydder opp',
+  'picture.journey.wayTo': 'Gå til «{setting}» under {page}',
+  'picture.journey.wayHere': 'Gå til «{setting}» på denne siden',
   'picture.reconnect.router': 'Ruter',
   'picture.reconnect.internet': 'Internett',
   'picture.reconnect.oldAddress': 'Gammel adresse',

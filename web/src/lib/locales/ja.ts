@@ -3470,6 +3470,8 @@ export const ja: Dict = {
   'settings.archives.journeyHint': 'ダウンロードが終わったファイルに起こることを、ステーションごとに示します。灰色のステーションはオフで、ファイルはそのまま通り過ぎます。「{verifying}」は「{downloads}」のスイッチ「{checksums}」に従います。「{repairing}」には自分の Usenet サーバーが必要です。「{moving}」には「{workDir}」か、展開したファイルの移動先が必要です。「{cleanup}」はアーカイブを残すあいだは行われません。',
   'picture.journey.move': '移動中',
   'picture.journey.cleanup': '片付け中',
+  'picture.journey.wayTo': '{page}の「{setting}」へ移動',
+  'picture.journey.wayHere': 'このページの「{setting}」へ移動',
   'picture.reconnect.router': 'ルーター',
   'picture.reconnect.internet': 'インターネット',
   'picture.reconnect.oldAddress': '古いアドレス',

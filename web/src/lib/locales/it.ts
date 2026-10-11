@@ -3457,6 +3457,8 @@ export const it: Dict = {
   'settings.archives.journeyHint': 'Che cosa succede a un file una volta scaricato, stazione dopo stazione. Una stazione grigia è spenta e il file la oltrepassa. «{verifying}» segue l’interruttore «{checksums}» in «{downloads}». «{repairing}» richiede un tuo server Usenet. «{moving}» richiede «{workDir}» o una destinazione per i file estratti. «{cleanup}» viene saltata finché l’archivio viene tenuto.',
   'picture.journey.move': 'Spostamento',
   'picture.journey.cleanup': 'Pulizia',
+  'picture.journey.wayTo': 'Vai a «{setting}» in {page}',
+  'picture.journey.wayHere': 'Vai a «{setting}» in questa pagina',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Indirizzo vecchio',

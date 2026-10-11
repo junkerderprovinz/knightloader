@@ -3472,6 +3472,8 @@ export const sl: Dict = {
   'settings.archives.journeyHint': 'Kaj se zgodi z datoteko po prenosu, postajo za postajo. Siva postaja je izklopljena in datoteka gre mimo nje. „{verifying}“ sledi stikalu „{checksums}“ pod „{downloads}“. „{repairing}“ potrebuje tvoj lastni Usenet strežnik. „{moving}“ potrebuje „{workDir}“ ali cilj za razpakirane datoteke. „{cleanup}“ se preskoči, dokler arhiv ostane.',
   'picture.journey.move': 'Premikanje',
   'picture.journey.cleanup': 'Čiščenje',
+  'picture.journey.wayTo': 'Pojdi na »{setting}« v razdelku {page}',
+  'picture.journey.wayHere': 'Pojdi na »{setting}« na tej strani',
   'picture.reconnect.router': 'Usmerjevalnik',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stari naslov',

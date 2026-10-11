@@ -3477,6 +3477,8 @@ export const de: Dict = {
   'settings.archives.journeyHint': 'Was mit einer Datei geschieht, sobald sie geladen ist, Station für Station. Eine graue Station ist aus, die Datei läuft an ihr vorbei. „{verifying}“ folgt dem Schalter „{checksums}“ unter „{downloads}“. „{repairing}“ braucht einen eigenen Usenet-Server. „{moving}“ braucht einen „{workDir}“ oder ein Ziel für die entpackten Dateien. „{cleanup}“ entfällt, solange das Archiv behalten wird.',
   'picture.journey.move': 'Verschieben',
   'picture.journey.cleanup': 'Aufräumen',
+  'picture.journey.wayTo': 'Zu „{setting}“ unter {page}',
+  'picture.journey.wayHere': 'Zu „{setting}“ auf dieser Seite',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Alte Adresse',

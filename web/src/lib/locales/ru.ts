@@ -3453,6 +3453,8 @@ export const ru: Dict = {
   'settings.archives.journeyHint': 'Что происходит с файлом после загрузки, станция за станцией. Серая станция выключена, и файл проходит мимо. «{verifying}» зависит от переключателя «{checksums}» в разделе «{downloads}». Для станции «{repairing}» нужен ваш собственный сервер Usenet. Для станции «{moving}» нужна «{workDir}» или место для распакованных файлов. «{cleanup}» пропускается, пока архив остаётся.',
   'picture.journey.move': 'Перемещение',
   'picture.journey.cleanup': 'Очистка',
+  'picture.journey.wayTo': 'Перейти к «{setting}» в разделе {page}',
+  'picture.journey.wayHere': 'Перейти к «{setting}» на этой странице',
   'picture.reconnect.router': 'Роутер',
   'picture.reconnect.internet': 'Интернет',
   'picture.reconnect.oldAddress': 'Старый адрес',

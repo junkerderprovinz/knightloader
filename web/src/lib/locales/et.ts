@@ -3465,6 +3465,8 @@ export const et: Dict = {
   'settings.archives.journeyHint': 'Mis failiga pärast allalaadimist juhtub, jaam jaama haaval. Hall jaam on välja lülitatud ja fail möödub sellest. „{verifying}“ järgib lülitit „{checksums}“ lehel „{downloads}“. „{repairing}“ vajab sinu enda Usenet serverit. „{moving}“ vajab seadet „{workDir}“ või sihtkohta lahtipakitud failidele. „{cleanup}“ jääb vahele, kuni arhiiv alles hoitakse.',
   'picture.journey.move': 'Teisaldamine',
   'picture.journey.cleanup': 'Koristamine',
+  'picture.journey.wayTo': 'Ava „{setting}“ jaotises {page}',
+  'picture.journey.wayHere': 'Ava „{setting}“ sellel lehel',
   'picture.reconnect.router': 'Ruuter',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Vana aadress',

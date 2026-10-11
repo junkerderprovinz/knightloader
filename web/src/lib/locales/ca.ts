@@ -3460,6 +3460,8 @@ export const ca: Dict = {
   'settings.archives.journeyHint': 'Què li passa a un fitxer un cop baixat, estació per estació. Una estació grisa està desactivada i el fitxer hi passa de llarg. «{verifying}» segueix l’interruptor «{checksums}» a «{downloads}». «{repairing}» necessita un servidor d’Usenet propi. «{moving}» necessita «{workDir}» o una destinació per als fitxers extrets. «{cleanup}» se salta mentre l’arxiu es conserva.',
   'picture.journey.move': 'Movent',
   'picture.journey.cleanup': 'Netejant',
+  'picture.journey.wayTo': 'Ves a «{setting}» a {page}',
+  'picture.journey.wayHere': 'Ves a «{setting}» en aquesta pàgina',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Adreça antiga',

@@ -3473,6 +3473,8 @@ export const vi: Dict = {
   'settings.archives.journeyHint': 'Những gì xảy ra với một tệp sau khi tải xong, theo từng trạm. Trạm màu xám đang tắt và tệp đi qua mà không dừng. “{verifying}” theo công tắc “{checksums}” trong “{downloads}”. “{repairing}” cần máy chủ Usenet riêng của bạn. “{moving}” cần “{workDir}” hoặc một nơi cho các tệp đã giải nén. “{cleanup}” được bỏ qua chừng nào tệp nén còn được giữ.',
   'picture.journey.move': 'Đang chuyển',
   'picture.journey.cleanup': 'Đang dọn dẹp',
+  'picture.journey.wayTo': 'Đến “{setting}” trong {page}',
+  'picture.journey.wayHere': 'Đến “{setting}” trong trang này',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Địa chỉ cũ',

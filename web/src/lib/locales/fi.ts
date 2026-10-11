@@ -3475,6 +3475,8 @@ export const fi: Dict = {
   'settings.archives.journeyHint': 'Mitä tiedostolle tapahtuu latauksen jälkeen, asema asemalta. Harmaa asema on pois päältä, ja tiedosto ohittaa sen. ”{verifying}” noudattaa kytkintä ”{checksums}” sivulla ”{downloads}”. ”{repairing}” vaatii oman Usenet-palvelimen. ”{moving}” vaatii asetuksen ”{workDir}” tai kohteen puretuille tiedostoille. ”{cleanup}” jää väliin niin kauan kuin arkisto säilytetään.',
   'picture.journey.move': 'Siirretään',
   'picture.journey.cleanup': 'Siivotaan',
+  'picture.journey.wayTo': 'Siirry kohtaan ”{setting}” osiossa {page}',
+  'picture.journey.wayHere': 'Siirry kohtaan ”{setting}” tällä sivulla',
   'picture.reconnect.router': 'Reititin',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Vanha osoite',

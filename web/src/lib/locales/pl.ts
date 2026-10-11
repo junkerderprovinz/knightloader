@@ -3458,6 +3458,8 @@ export const pl: Dict = {
   'settings.archives.journeyHint': 'Co dzieje się z plikiem po pobraniu, stacja po stacji. Szara stacja jest wyłączona i plik ją mija. „{verifying}” zależy od przełącznika „{checksums}” w sekcji „{downloads}”. „{repairing}” wymaga twojego własnego serwera Usenetu. „{moving}” wymaga ustawienia „{workDir}” albo miejsca na rozpakowane pliki. „{cleanup}” jest pomijane, dopóki archiwum zostaje.',
   'picture.journey.move': 'Przenoszenie',
   'picture.journey.cleanup': 'Sprzątanie',
+  'picture.journey.wayTo': 'Przejdź do „{setting}” w sekcji {page}',
+  'picture.journey.wayHere': 'Przejdź do „{setting}” na tej stronie',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stary adres',

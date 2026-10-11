@@ -3483,6 +3483,8 @@ export const cs: Dict = {
   'settings.archives.journeyHint': 'Co se děje se souborem po stažení, stanici po stanici. Šedá stanice je vypnutá a soubor ji mine. „{verifying}“ se řídí přepínačem „{checksums}“ v části „{downloads}“. „{repairing}“ potřebuje vlastní Usenet server. „{moving}“ potřebuje „{workDir}“ nebo cíl pro rozbalené soubory. „{cleanup}“ se vynechá, dokud se archiv nechává.',
   'picture.journey.move': 'Přesouvá se',
   'picture.journey.cleanup': 'Uklízí se',
+  'picture.journey.wayTo': 'Přejít na „{setting}“ v sekci {page}',
+  'picture.journey.wayHere': 'Přejít na „{setting}“ na této stránce',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stará adresa',

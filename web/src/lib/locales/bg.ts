@@ -3474,6 +3474,8 @@ export const bg: Dict = {
   'settings.archives.journeyHint': 'Какво става с един файл, след като се изтегли, станция по станция. Сивата станция е изключена и файлът я подминава. „{verifying}“ следва превключвателя „{checksums}“ в „{downloads}“. „{repairing}“ иска твой собствен Usenet сървър. „{moving}“ иска „{workDir}“ или място за разархивираните файлове. „{cleanup}“ се пропуска, докато архивът се пази.',
   'picture.journey.move': 'Премества се',
   'picture.journey.cleanup': 'Почиства се',
+  'picture.journey.wayTo': 'Към „{setting}“ в {page}',
+  'picture.journey.wayHere': 'Към „{setting}“ на тази страница',
   'picture.reconnect.router': 'Рутер',
   'picture.reconnect.internet': 'Интернет',
   'picture.reconnect.oldAddress': 'Стар адрес',

@@ -3462,6 +3462,8 @@ export const fa: Dict = {
   'settings.archives.journeyHint': 'آنچه پس از دانلود بر سر یک فایل می‌آید، ایستگاه به ایستگاه. ایستگاه خاکستری خاموش است و فایل از کنارش می‌گذرد. «{verifying}» از کلید «{checksums}» در «{downloads}» پیروی می‌کند. «{repairing}» به سرور Usenet خودت نیاز دارد. «{moving}» به «{workDir}» یا مقصدی برای فایل‌های استخراج‌شده نیاز دارد. «{cleanup}» تا وقتی آرشیو نگه داشته می‌شود انجام نمی‌شود.',
   'picture.journey.move': 'در حال انتقال',
   'picture.journey.cleanup': 'در حال پاک‌سازی',
+  'picture.journey.wayTo': 'رفتن به «{setting}» در {page}',
+  'picture.journey.wayHere': 'رفتن به «{setting}» در همین صفحه',
   'picture.reconnect.router': 'روتر',
   'picture.reconnect.internet': 'اینترنت',
   'picture.reconnect.oldAddress': 'نشانی قدیمی',

@@ -3491,6 +3491,8 @@ export const he: Dict = {
   'settings.archives.journeyHint': 'מה קורה לקובץ אחרי שירד, תחנה אחרי תחנה. תחנה אפורה כבויה, והקובץ חולף על פניה. “{verifying}” תלוי במתג “{checksums}” תחת “{downloads}”. “{repairing}” דורש שרת Usenet משלך. “{moving}” דורש “{workDir}” או יעד לקבצים המחולצים. “{cleanup}” מדולג כל עוד הארכיון נשמר.',
   'picture.journey.move': 'העברה',
   'picture.journey.cleanup': 'ניקוי',
+  'picture.journey.wayTo': 'מעבר אל „{setting}” תחת {page}',
+  'picture.journey.wayHere': 'מעבר אל „{setting}” בעמוד הזה',
   'picture.reconnect.router': 'נתב',
   'picture.reconnect.internet': 'אינטרנט',
   'picture.reconnect.oldAddress': 'כתובת ישנה',

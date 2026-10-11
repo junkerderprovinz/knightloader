@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
-import { AfterDownload } from '../../components/pictures/AfterDownload';
+import { AfterDownload, type AfterDownloadSteps, type StationWays } from '../../components/pictures/AfterDownload';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions, type ApiOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
+import { requestJump, type JumpTarget } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 import { ListArea, SettingPathInput, SettingRow } from './controls';
+import { label as pageLabel } from './tx';
 
 /**
  * Archives settles everything about an archive: whether it is unpacked, where
@@ -51,8 +54,56 @@ export const DISPOSAL_LABEL: Partial<Record<string, TranslationKey>> = {
   delete: 'settings.archives.disposal.delete',
 };
 
+/** The row or card a station of the picture is set by. */
+type StationSetting = Omit<JumpTarget, 'nonce'>;
+
+const EXTRACTION: StationSetting = {
+  page: 'archives',
+  title: 'settings.module.extraction',
+  label: 'settings.module.extraction',
+};
+const MOVE_UNPACKED: StationSetting = {
+  page: 'archives',
+  title: 'settings.module.extraction',
+  label: 'settings.archives.moveTo',
+};
+const WORK_FOLDER: StationSetting = {
+  page: 'downloads',
+  title: 'settings.downloads.locationTitle',
+  label: 'settings.downloads.workDir',
+};
+
+/**
+ * stationSettings says where each step after a download is set. Moving has
+ * two settings: the place for unpacked files on this page, which is offered
+ * while archives are unpacked, and the working folder on Downloads. The
+ * station leads to the one that is filled in, and to the one on this page
+ * where both or neither are. Cleaning up is the archive's fate, whose row
+ * exists only while archives are unpacked, so without that the switch comes
+ * first.
+ */
+export function stationSettings(state: {
+  unpacking: boolean;
+  workDir: string;
+  moveTo: string;
+}): Record<keyof AfterDownloadSteps, StationSetting> {
+  const { unpacking } = state;
+  const here = unpacking && (state.moveTo.trim() !== '' || state.workDir.trim() === '');
+  return {
+    verify: { page: 'downloads', title: 'settings.downloads.limitsTitle', label: 'settings.module.checksums' },
+    // The servers are a card of their own, with no single row that switches repairing on.
+    repair: { page: 'accounts', title: 'accounts.usenet.title' },
+    unpack: EXTRACTION,
+    move: here ? MOVE_UNPACKED : WORK_FOLDER,
+    cleanup: unpacking
+      ? { page: 'archives', title: 'settings.archives.afterwards', label: 'settings.archives.disposal' }
+      : EXTRACTION,
+  };
+}
+
 export function Archives() {
   const { t } = useT();
+  const navigate = useNavigate();
   const { cfg, patch } = useDraft();
   const { options, failed } = useArchiveOptions();
 
@@ -74,6 +125,25 @@ export function Archives() {
   // A file leaves its work folder for the download folder once it is checked
   // and unpacked, and unpacked files have a destination of their own.
   const moving = (cfg.workDir ?? '').trim() !== '' || (unpacking && extractMoveTo.trim() !== '');
+
+  // Each station leads to its setting the way a result of the settings search
+  // does: the row is asked for, then the page changes if it is another one.
+  const settings = stationSettings({ unpacking, workDir: cfg.workDir ?? '', moveTo: extractMoveTo });
+  const ways: StationWays = {};
+  for (const step of Object.keys(settings) as (keyof AfterDownloadSteps)[]) {
+    const to = settings[step];
+    const setting = t(to.label ?? to.title);
+    const elsewhere = to.page !== 'archives';
+    ways[step] = {
+      leadsTo: elsewhere
+        ? t('picture.journey.wayTo', { setting, page: pageLabel(t, 'settings.nav.', to.page) })
+        : t('picture.journey.wayHere', { setting }),
+      go: () => {
+        requestJump(to);
+        if (elsewhere) navigate(`/settings/${to.page}`);
+      },
+    };
+  }
 
   return (
     <div className="flex flex-col gap-10">
@@ -101,6 +171,7 @@ export function Archives() {
             move: moving,
             cleanup: unpacking && !keeping,
           }}
+          ways={ways}
         />
       </Card>
 

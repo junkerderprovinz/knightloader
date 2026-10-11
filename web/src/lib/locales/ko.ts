@@ -3461,6 +3461,8 @@ export const ko: Dict = {
   'settings.archives.journeyHint': '다운로드가 끝난 파일에 일어나는 일을 단계별로 보여 줍니다. 회색 단계는 꺼져 있어 파일이 그냥 지나갑니다. “{verifying}” 단계는 “{downloads}”의 “{checksums}” 스위치를 따릅니다. “{repairing}” 단계에는 직접 가입한 Usenet 서버가 필요합니다. “{moving}” 단계에는 “{workDir}” 또는 푼 파일을 옮길 위치가 필요합니다. “{cleanup}” 단계는 압축 파일을 그대로 두는 동안 건너뜁니다.',
   'picture.journey.move': '이동 중',
   'picture.journey.cleanup': '정리 중',
+  'picture.journey.wayTo': '{page}의 “{setting}”(으)로 이동',
+  'picture.journey.wayHere': '이 페이지의 “{setting}”(으)로 이동',
   'picture.reconnect.router': '공유기',
   'picture.reconnect.internet': '인터넷',
   'picture.reconnect.oldAddress': '이전 주소',

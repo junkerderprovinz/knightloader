@@ -3474,6 +3474,8 @@ export const el: Dict = {
   'settings.archives.journeyHint': 'Τι συμβαίνει σε ένα αρχείο μόλις ληφθεί, σταθμό προς σταθμό. Ένας γκρίζος σταθμός είναι ανενεργός και το αρχείο τον προσπερνά. Ο σταθμός «{verifying}» ακολουθεί τον διακόπτη «{checksums}» στο «{downloads}». Ο σταθμός «{repairing}» χρειάζεται δικό σου διακομιστή Usenet. Ο σταθμός «{moving}» χρειάζεται «{workDir}» ή προορισμό για τα αποσυμπιεσμένα αρχεία. Ο σταθμός «{cleanup}» παραλείπεται όσο το συμπιεσμένο διατηρείται.',
   'picture.journey.move': 'Μετακίνηση',
   'picture.journey.cleanup': 'Εκκαθάριση',
+  'picture.journey.wayTo': 'Μετάβαση στο «{setting}» στην ενότητα {page}',
+  'picture.journey.wayHere': 'Μετάβαση στο «{setting}» σε αυτή τη σελίδα',
   'picture.reconnect.router': 'Δρομολογητής',
   'picture.reconnect.internet': 'Διαδίκτυο',
   'picture.reconnect.oldAddress': 'Παλιά διεύθυνση',

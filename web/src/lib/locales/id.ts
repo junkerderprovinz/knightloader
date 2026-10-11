@@ -3473,6 +3473,8 @@ export const id: Dict = {
   'settings.archives.journeyHint': 'Apa yang terjadi pada berkas setelah selesai diunduh, stasiun demi stasiun. Stasiun abu-abu sedang mati, dan berkas melewatinya. “{verifying}” mengikuti sakelar “{checksums}” di “{downloads}”. “{repairing}” memerlukan server Usenet milikmu sendiri. “{moving}” memerlukan “{workDir}” atau tujuan untuk berkas hasil ekstrak. “{cleanup}” dilewati selama arsip disimpan.',
   'picture.journey.move': 'Memindahkan',
   'picture.journey.cleanup': 'Membersihkan',
+  'picture.journey.wayTo': 'Buka “{setting}” di {page}',
+  'picture.journey.wayHere': 'Buka “{setting}” di halaman ini',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Alamat lama',
