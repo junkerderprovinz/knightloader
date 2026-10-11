@@ -2353,9 +2353,13 @@ body {
 
 /* The About card's give buttons stand a blank line of the card's text below
    the sentence above them (GlimStone's "The Info tile and the About card").
-   They end the card, and space after the last row reads as a missing row. */
+   They end the card, and space after the last row reads as a missing row.
+   Their marks stand 1.5rem inside them, the Help card's 0.875rem, so the row
+   moves out by the difference and the marks and names of both cards line up
+   while the give buttons stay as they are. */
 .glim-about-give {
   margin-block-start: calc(var(--text-body) * 1.5);
+  margin-inline-start: -0.625rem;
 }
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
