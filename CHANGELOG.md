@@ -37,6 +37,71 @@ release's tag.
 
 ## [Unreleased]
 
+### Added
+
+- **Forgot password? on the sign-in page.** KnightLoader writes a code where
+  only somebody with access to the machine can read it: the container log (on
+  Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started
+  from a terminal or as a service, or the file `password-reset-code.txt` in the
+  data folder for the desktop app. That code and a new password sign you in. A
+  code is valid for 10 minutes. The reset switches two-factor authentication
+  off, removes every passkey and API token, signs out every other browser and
+  replaces the key sessions are signed with. Event programs and scripts stay
+  as they are. Anybody who can read the container log can do this, and the
+  manual says who that includes.
+- **A reset takes the instance out of its pairing group.** It gets twelve new
+  words that nobody else holds, a relay key entered by hand is removed, and
+  every phone, browser extension and other instance pairs again with the new
+  words. The page after the reset lists what was removed.
+- **Trusted proxies under Settings, Security.** Behind a reverse proxy, the
+  sign-in limit counts every visitor by the address the proxy reports, so one
+  person guessing at the password no longer makes everybody wait. The relay
+  an instance serves reads the same list. It is empty by default, and the
+  manual says when to fill it in. The standalone relay takes the list from
+  `KL_RELAY_TRUSTED_PROXIES`.
+
+### Changed
+
+- **Five failed sign-ins a minute.** After five wrong passwords or codes from
+  one address within a minute, KnightLoader makes that address wait until the
+  first of them is a minute old. It allowed eight and then half a minute.
+- **Removing the password deletes every passkey,** as it already switched
+  two-factor authentication off, so no old passkey opens the instance again
+  once a new password is set. The hint under New password says so.
+- **A browser whose session has ended returns to the sign-in page,** after a
+  reset, a changed password or a sign-out everywhere, instead of showing load
+  errors.
+- **The two-factor info says that a password reset from the log switches
+  two-factor authentication off.**
+
+### Fixed
+
+- **The sign-in page says to wait after too many attempts,** where it said
+  "Wrong password." even when the password was right. A refused passkey
+  sign-in says the same.
+- **"At least 8 characters" counts characters, not bytes,** so a password in
+  another alphabet is held to the same length as one in English. A password
+  over 72 bytes, the most the hash takes, gets its own message on the
+  settings card and the reset form instead of an English error.
+
+### Security
+
+- **An authenticator code signs in once.** The same code, or an older one, is
+  refused for the rest of the time it would otherwise still be valid.
+- **A changed password and a sign-out everywhere close the live updates** of
+  every open page, as a reset does. The page you changed the password on
+  picks them up again with its new session.
+- **Nothing started with a session outlasts its end.** A token, a passkey, a
+  second factor or a pairing group set up by a session that a reset or a
+  password change ends in the meantime is refused, and a sign-in checked
+  against the old password gets no session.
+- **Behind a reverse proxy that serves https, the session cookie is marked
+  Secure,** so the browser never sends it over plain HTTP. The same goes for
+  the qBittorrent login Sonarr and Radarr use.
+- **The relay an instance serves no longer believes `X-Forwarded-For` from
+  every address on the local network,** only from the trusted proxies, so a
+  device there cannot dodge the limit on failed handshakes.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added
