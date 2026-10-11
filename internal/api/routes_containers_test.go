@@ -8,7 +8,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/textproto"
-	"os"
 	"strings"
 	"testing"
 )
@@ -76,8 +75,9 @@ func TestAnRSDFIsOpenedHereWithoutJD(t *testing.T) {
 
 func TestAnUploadedFileNameCannotStartALogLineOfItsOwn(t *testing.T) {
 	var logged bytes.Buffer
+	prev := log.Writer()
 	log.SetOutput(&logged)
-	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	t.Cleanup(func() { log.SetOutput(prev) })
 	a := testApp(t)
 	reg := newRegistry()
 	registerContainers(reg, a)
