@@ -10,6 +10,7 @@ import {
   releaseSince,
   routeOf,
   trail,
+  type Change,
   type NewsRecord,
   type Release,
 } from './whatsNew';
@@ -144,6 +145,18 @@ describe('the way to a change', () => {
     expect(routeOf('/settings/schedule')).toBe('/settings/automation');
     expect(trail('/settings/reconnect', '/')).toEqual(['/settings', '/settings/network']);
     expect(isAt({ id: 'x', to: ['/settings/schedule'], text: 'whatsnew.title' }, '/settings/automation')).toBe(true);
+  });
+
+  it('takes a section for every page in it', () => {
+    const search: Change = { id: 'x', to: ['/settings'], text: 'whatsnew.title' };
+    expect(isAt(search, '/settings/look')).toBe(true);
+    expect(isAt(search, '/downloads')).toBe(false);
+    expect(trail('/settings', '/downloads')).toEqual(['/settings']);
+    expect(trail('/settings', '/settings/look')).toEqual([]);
+  });
+
+  it('does not take the overview for a section', () => {
+    expect(isAt({ id: 'x', to: ['/'], text: 'whatsnew.title' }, '/downloads')).toBe(false);
   });
 });
 

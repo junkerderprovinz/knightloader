@@ -579,7 +579,7 @@ function PhoneBar({
   return (
     // order-last draws it under the page while it stays ahead of the page in
     // the document, where the rail is.
-    <nav ref={bar} className="relative order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
+    <nav ref={bar} data-new="phone-bar" className="relative order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
       <BarItem to="/" end hue={overview} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
       <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
       <BarItem to="/collector" hue={collector} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />

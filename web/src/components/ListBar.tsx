@@ -134,6 +134,7 @@ export function ListBar({
         className={`flex items-center gap-2 ${scrolls ? '-my-1 overflow-x-auto py-1' : ''}`}
         role="group"
         aria-label={t('list.actions')}
+        data-new="list-bar"
       >
         {children}
 

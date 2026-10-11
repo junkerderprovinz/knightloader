@@ -372,6 +372,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
       }}
     >
       <div
+        data-new="settings-search"
         className="flex h-[var(--btn-h)] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
           transition-shadow has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]"
       >

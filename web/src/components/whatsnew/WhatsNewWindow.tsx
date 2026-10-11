@@ -14,6 +14,7 @@ const RAIL: Record<string, TranslationKey> = {
   '/collector': 'nav.collector',
   '/instances': 'nav.instances',
   '/accounts': 'nav.accounts',
+  '/settings': 'nav.settings',
 };
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
