@@ -16,26 +16,27 @@ import (
 func TestANewDeviceIsRefusedUntilApproved(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(20)
+	phoneID := idOf(phone, relay.KindMobile)
 	for range 2 {
-		if status, body := serve(context.Background(), signedCall(phone, "phone-new", relay.KindMobile)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
+		if status, body := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusForbidden || codeOf(body) != "memberPending" {
 			t.Fatalf("a new device = %d %s, want 403 memberPending", status, body)
 		}
 	}
 	pending := m.PendingMembers()
-	if len(pending) != 1 || pending[0].ID != "phone-new" || pending[0].Kind != relay.KindMobile || pending[0].Fingerprint != Fingerprint(phone.Public().(ed25519.PublicKey)) {
+	if len(pending) != 1 || pending[0].ID != phoneID || pending[0].Kind != relay.KindMobile || pending[0].Fingerprint != Fingerprint(phone.Public().(ed25519.PublicKey)) {
 		t.Fatalf("pending = %+v, want the phone with its kind and fingerprint", pending)
 	}
-	key, kind, err := m.Approve("phone-new", nil, "")
+	key, kind, err := m.Approve(phoneID, nil, "")
 	if err != nil || kind != relay.KindMobile || string(key) != string(phone.Public().(ed25519.PublicKey)) {
 		t.Fatalf("approve = %x %q %v, want the phone's key and kind to pass on", key, kind, err)
 	}
-	if status, _ := serve(context.Background(), signedCall(phone, "phone-new", relay.KindMobile)); status != http.StatusOK {
+	if status, _ := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK {
 		t.Fatalf("the approved device = %d, want 200", status)
 	}
 	if len(m.PendingMembers()) != 0 {
 		t.Error("the approved device is still listed as waiting")
 	}
-	if _, _, err := m.Approve("phone-unknown", nil, ""); err != ErrNoSuchPending {
+	if _, _, err := m.Approve(idOf(memberKeyOf(19), relay.KindMobile), nil, ""); err != ErrNoSuchPending {
 		t.Errorf("approving an id nobody pinned = %v, want ErrNoSuchPending", err)
 	}
 }
@@ -46,16 +47,17 @@ func TestANewDeviceIsRefusedUntilApproved(t *testing.T) {
 func TestAnApprovalPassedOnLetsTheDeviceInBeforeItCalls(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(21)
-	if _, _, err := m.Approve("phone-x", phone.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
+	phoneID := idOf(phone, relay.KindMobile)
+	if _, _, err := m.Approve(phoneID, phone.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
 		t.Fatal(err)
 	}
-	if status, _ := serve(context.Background(), signedCall(phone, "phone-x", relay.KindMobile)); status != http.StatusOK {
+	if status, _ := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK {
 		t.Fatalf("the device approved elsewhere = %d, want 200", status)
 	}
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(22), "phone-x", relay.KindMobile)); codeOf(body) != "memberKeyChanged" {
-		t.Errorf("another key in its name = %d %s, want memberKeyChanged", status, body)
+	if status, body := serve(context.Background(), signedCall(memberKeyOf(22), phoneID, relay.KindMobile)); codeOf(body) != "memberKind" {
+		t.Errorf("another key in its name = %d %s, want memberKind", status, body)
 	}
-	if _, _, err := m.Approve("phone-x", memberKeyOf(22).Public().(ed25519.PublicKey), relay.KindMobile); err != ErrKeyMismatch {
+	if _, _, err := m.Approve(phoneID, memberKeyOf(22).Public().(ed25519.PublicKey), relay.KindMobile); err != ErrKeyMismatch {
 		t.Errorf("an approval passed on for another key = %v, want ErrKeyMismatch", err)
 	}
 }
@@ -63,26 +65,24 @@ func TestAnApprovalPassedOnLetsTheDeviceInBeforeItCalls(t *testing.T) {
 func TestARefusedDeviceStaysOutAndComesBackOnlyAsANewOneWaiting(t *testing.T) {
 	m, serve := guarded(t)
 	phone := memberKeyOf(23)
-	serve(context.Background(), signedCall(phone, "phone-r", relay.KindMobile))
-	if err := m.Refuse("phone-r", time.Now()); err != nil {
+	phoneID := idOf(phone, relay.KindMobile)
+	serve(context.Background(), callAs(phone, relay.KindMobile))
+	if err := m.Refuse(phoneID, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if status, body := serve(context.Background(), signedCall(phone, "phone-r", relay.KindMobile)); status != http.StatusGone || string(body) != "removed" {
+	if status, body := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusGone || string(body) != "removed" {
 		t.Errorf("the refused device = %d %s, want 410 removed", status, body)
 	}
-	if _, _, err := m.Approve("phone-r", phone.Public().(ed25519.PublicKey), relay.KindMobile); err != ErrGone {
+	if _, _, err := m.Approve(phoneID, phone.Public().(ed25519.PublicKey), relay.KindMobile); err != ErrGone {
 		t.Errorf("approving the refused device afterwards = %v, want ErrGone", err)
 	}
-	if status, body := serve(context.Background(), signedCall(phone, "phone-other", relay.KindMobile)); status != http.StatusGone {
-		t.Errorf("the refused key under a new id = %d %s, want 410", status, body)
+	if status, body := serve(context.Background(), callAs(phone, relay.KindExtension)); status != http.StatusGone {
+		t.Errorf("the refused key as another kind of device = %d %s, want 410", status, body)
 	}
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(24), "phone-r2", relay.KindMobile)); codeOf(body) != "memberPending" {
-		t.Errorf("the device with a new key and id = %d %s, want it waiting for approval", status, body)
+	if status, body := serve(context.Background(), callAs(memberKeyOf(24), relay.KindMobile)); codeOf(body) != "memberPending" {
+		t.Errorf("the device with a new key = %d %s, want it waiting for approval", status, body)
 	}
 }
-
-// browserID is a browser extension's member id.
-var browserID = "browser-" + strings.Repeat("f", 32)
 
 func unsignedCall(from string) relay.ProxyCall {
 	return relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: from, ID: nextCallID(), Sent: time.Now().Unix()}
@@ -92,9 +92,9 @@ func unsignedCall(from string) relay.ProxyCall {
 // browser or an instance, in a group or outside one, known or not.
 func TestNoCallWithoutAKeyIsServed(t *testing.T) {
 	m, serve := guarded(t)
-	letIn(t, m, serve, memberKeyOf(30), "phone-known", relay.KindMobile)
+	known := letIn(t, m, serve, memberKeyOf(30), relay.KindMobile)
 	outside := newManager(t).Guard(func(context.Context, relay.ProxyCall) (int, []byte) { return http.StatusOK, nil })
-	for _, from := range []string{"", "phone-known", "phone-other", browserID, nasID} {
+	for _, from := range []string{"", known, idOf(memberKeyOf(31), relay.KindMobile), idOf(memberKeyOf(32), relay.KindExtension), nasID} {
 		for name, s := range map[string]relay.ProxyHandler{"in a group": serve, "outside a group": outside} {
 			if status, body := s(context.Background(), unsignedCall(from)); status != http.StatusForbidden || codeOf(body) != "memberUnsigned" {
 				t.Errorf("an unsigned call naming %q %s = %d %s, want 403 memberUnsigned", from, name, status, body)
@@ -103,47 +103,49 @@ func TestNoCallWithoutAKeyIsServed(t *testing.T) {
 	}
 }
 
-// TestACallMustNameAnIdItsKindUses refuses a key for an id that no device of
-// the kind it claims would mint, so no key is pinned under another kind's id.
-func TestACallMustNameAnIdItsKindUses(t *testing.T) {
+// TestACallMustNameTheIDItsKeyMakesForItsKind refuses a key for any id but the
+// one it makes for the kind it claims, so no key is pinned under another
+// kind's id or another key's.
+func TestACallMustNameTheIDItsKeyMakesForItsKind(t *testing.T) {
 	m, serve := guarded(t)
 	for i, c := range []struct{ id, kind string }{
-		{"phone-old", relay.KindInstance},
-		{browserID, relay.KindInstance},
-		{nasID, relay.KindMobile},
-		{nasID, relay.KindExtension},
-		{"phone-Old!", relay.KindMobile},
-		{"phone-x", relay.KindExtension},
+		{idOf(memberKeyOf(80), relay.KindMobile), relay.KindInstance},
+		{idOf(memberKeyOf(81), relay.KindExtension), relay.KindInstance},
+		{idOf(memberKeyOf(82), relay.KindInstance), relay.KindMobile},
+		{idOf(memberKeyOf(83), relay.KindInstance), relay.KindExtension},
+		{strings.ToUpper(idOf(memberKeyOf(84), relay.KindMobile)), relay.KindMobile},
+		{idOf(memberKeyOf(85), relay.KindMobile), relay.KindExtension},
 		{"browser-xyz", relay.KindExtension},
-		{browserID, relay.KindMobile},
-		{nasID, ""},
-		{nasID, "robot"},
+		{idOf(memberKeyOf(87), relay.KindExtension), relay.KindMobile},
+		{idOf(memberKeyOf(88), relay.KindInstance), ""},
+		{idOf(memberKeyOf(89), relay.KindInstance), "robot"},
+		{nasID, relay.KindInstance},
 	} {
 		if status, body := serve(context.Background(), signedCall(memberKeyOf(byte(80+i)), c.id, c.kind)); status != http.StatusForbidden || codeOf(body) != "memberKind" {
 			t.Errorf("%q signing as %q = %d %s, want 403 memberKind", c.id, c.kind, status, body)
 		}
 	}
 	if pending := m.PendingMembers(); len(pending) != 0 {
-		t.Errorf("pinned %+v for ids that do not fit their kind", pending)
+		t.Errorf("pinned %+v for ids their keys do not make", pending)
 	}
-	if _, _, err := m.Approve("phone-new", memberKeyOf(90).Public().(ed25519.PublicKey), relay.KindInstance); err != ErrKindMismatch {
+	phone := memberKeyOf(90)
+	if _, _, err := m.Approve(idOf(phone, relay.KindMobile), phone.Public().(ed25519.PublicKey), relay.KindInstance); err != ErrKindMismatch {
 		t.Errorf("an approval passed on for an instance under a phone's id = %v, want ErrKindMismatch", err)
 	}
-	if _, _, err := m.Approve(nasID, memberKeyOf(91).Public().(ed25519.PublicKey), relay.KindExtension); err != ErrKindMismatch {
-		t.Errorf("an approval passed on for a browser under an instance's id = %v, want ErrKindMismatch", err)
-	}
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(92), browserID, relay.KindExtension)); codeOf(body) != "memberPending" {
-		t.Errorf("a browser under its own kind of id = %d %s, want it waiting for approval", status, body)
+	if status, body := serve(context.Background(), callAs(memberKeyOf(92), relay.KindExtension)); codeOf(body) != "memberPending" {
+		t.Errorf("a browser under the id its key makes = %d %s, want it waiting for approval", status, body)
 	}
 }
 
 // TestAnInstancesIDCannotBePinnedAsABrowser: whoever holds the words signs as
-// a browser under an approved instance's id first. Nothing is pinned for it,
-// and refusing or removing that id as a device never bans the instance.
+// a browser under an instance's id first. Nothing is pinned for it, and
+// refusing or removing that id as a device never bans the instance.
 func TestAnInstancesIDCannotBePinnedAsABrowser(t *testing.T) {
 	m, serve := guarded(t)
+	nas := memberKeyOf(221)
+	nasID := idOf(nas, relay.KindInstance)
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: nasID, Name: "nas"}}})
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(220), nasID, relay.KindExtension)); codeOf(body) != "memberKind" {
+	if status, body := serve(context.Background(), signedCall(nas, nasID, relay.KindExtension)); codeOf(body) != "memberKind" {
 		t.Fatalf("a browser under the NAS's id = %d %s, want 403 memberKind", status, body)
 	}
 	if pending := m.PendingMembers(); len(pending) != 0 {
@@ -158,9 +160,8 @@ func TestAnInstancesIDCannotBePinnedAsABrowser(t *testing.T) {
 	if m.Removed(nasID) {
 		t.Fatal("refusing a device under the NAS's id banned the NAS")
 	}
-	nas := memberKeyOf(221)
-	letIn(t, m, serve, nas, nasID, relay.KindInstance)
-	if status, body := serve(context.Background(), signedCall(nas, nasID, relay.KindInstance)); status != http.StatusOK {
+	letIn(t, m, serve, nas, relay.KindInstance)
+	if status, body := serve(context.Background(), callAs(nas, relay.KindInstance)); status != http.StatusOK {
 		t.Errorf("the real NAS once approved = %d %s, want it served", status, body)
 	}
 }
@@ -172,14 +173,14 @@ func TestAnInstancesIDCannotBePinnedAsABrowser(t *testing.T) {
 func TestABrowserCardUnderAnInstancesIDIsNeverKept(t *testing.T) {
 	m, serve := guarded(t)
 	nas := memberKeyOf(230)
-	letIn(t, m, serve, nas, nasID, relay.KindInstance)
+	nasID := letIn(t, m, serve, nas, relay.KindInstance)
 	m.group.mu.Lock()
 	m.group.state.Apps = map[string]KnownApp{officeID: {Name: "office", Deployment: relay.KindExtension, LastSeen: time.Now()}}
 	m.group.mu.Unlock()
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{
 		{InstanceID: nasID, Name: "nas"},
 		{InstanceID: strings.Repeat("9", 40), Client: true, Deployment: relay.KindExtension, Name: "nas", Member: nasID},
-		{InstanceID: "phone-impostor", Client: true, Deployment: relay.KindExtension, Name: "phone"},
+		{InstanceID: idOf(memberKeyOf(231), relay.KindMobile), Client: true, Deployment: relay.KindExtension, Name: "phone"},
 		{InstanceID: strings.Repeat("8", 40), Client: true, Deployment: relay.KindMobile, Name: "laptop", Member: laptopID},
 	}})
 	apps, err := m.Apps(time.Now())
@@ -189,7 +190,7 @@ func TestABrowserCardUnderAnInstancesIDIsNeverKept(t *testing.T) {
 	if len(apps) != 0 {
 		t.Fatalf("cards = %+v, want none for ids that are not a phone's or a browser's", apps)
 	}
-	if status, body := serve(context.Background(), signedCall(nas, nasID, relay.KindInstance)); status != http.StatusOK {
+	if status, body := serve(context.Background(), callAs(nas, relay.KindInstance)); status != http.StatusOK {
 		t.Errorf("the NAS after the owner opened the Pairing page = %d %s, want it served", status, body)
 	}
 	pin := m.group.state.Keys[nasID]
@@ -209,19 +210,22 @@ func TestABrowserCardUnderAnInstancesIDIsNeverKept(t *testing.T) {
 // nothing away for good.
 func TestRefusingAnInstanceWithoutAKeyDoesNotBanIt(t *testing.T) {
 	m, serve := guarded(t)
+	nas := memberKeyOf(93)
+	nasID := idOf(nas, relay.KindInstance)
 	if err := m.Refuse(nasID, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	if m.Removed(nasID) {
 		t.Error("refusing an instance without a key banned its id")
 	}
-	if status, body := serve(context.Background(), signedCall(memberKeyOf(93), nasID, relay.KindInstance)); codeOf(body) != "memberPending" {
+	if status, body := serve(context.Background(), callAs(nas, relay.KindInstance)); codeOf(body) != "memberPending" {
 		t.Errorf("the instance signing in afterwards = %d %s, want it waiting for approval", status, body)
 	}
-	if err := m.Refuse("phone-q", time.Now()); err != nil {
+	phoneID := idOf(memberKeyOf(94), relay.KindMobile)
+	if err := m.Refuse(phoneID, time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if !m.Removed("phone-q") {
+	if !m.Removed(phoneID) {
 		t.Error("refusing a phone without a key left its id free")
 	}
 }
@@ -236,10 +240,10 @@ func TestAnInstanceEnteringTheWordsApprovesTheInstancesAlreadyThere(t *testing.T
 	if err := m.SetJoined(joined); err != nil {
 		t.Fatal(err)
 	}
-	evilID := strings.Repeat("e0", 20)
-	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: officeID, Name: "office"}, {InstanceID: evilID, Name: "office"}}})
 	office, evil := memberKeyOf(40), memberKeyOf(41)
-	for _, c := range []relay.ProxyCall{signedCall(office, officeID, relay.KindInstance), signedCall(evil, evilID, relay.KindInstance)} {
+	officeID, evilID := idOf(office, relay.KindInstance), idOf(evil, relay.KindInstance)
+	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: officeID, Name: "office"}, {InstanceID: evilID, Name: "office"}}})
+	for _, c := range []relay.ProxyCall{callAs(office, relay.KindInstance), callAs(evil, relay.KindInstance)} {
 		caller, r := m.admit(c, "", joined.Add(time.Second))
 		if r == nil || codeOf(r.body) != "memberPending" {
 			t.Errorf("%s signing right after the words were entered = %+v, want it waiting for approval", c.From, r)
@@ -251,7 +255,7 @@ func TestAnInstanceEnteringTheWordsApprovesTheInstancesAlreadyThere(t *testing.T
 	if _, _, err := m.Approve(officeID, nil, ""); err != nil {
 		t.Fatal(err)
 	}
-	if _, r := m.admit(signedCall(office, officeID, relay.KindInstance), "", joined.Add(2*time.Second)); r != nil {
+	if _, r := m.admit(callAs(office, relay.KindInstance), "", joined.Add(2*time.Second)); r != nil {
 		t.Errorf("the office once its owner approved it here = %s, want it served", r.body)
 	}
 }
@@ -265,7 +269,8 @@ func TestADamagedGroupFileStopsTheStart(t *testing.T) {
 	if err := m.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if err := m.RemoveApp("phone-gone", time.Now()); err != nil {
+	gone := idOf(memberKeyOf(95), relay.KindMobile)
+	if err := m.RemoveApp(gone, time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	path := filepath.Join(dir, "group.json")
@@ -286,7 +291,7 @@ func TestADamagedGroupFileStopsTheStart(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if !again.Removed("phone-gone") {
+	if !again.Removed(gone) {
 		t.Error("the removal did not survive a restart")
 	}
 	if left, _ := filepath.Glob(filepath.Join(dir, ".group.json.tmp-*")); len(left) != 0 {

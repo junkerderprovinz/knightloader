@@ -287,18 +287,18 @@ func applyRelay(a *app.App) {
 		return
 	}
 
-	cfg := a.Settings.Get()
+	member := memberKey(a)
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      relayURL,
 		Key:      key,
 		FrameKey: frameKey,
 		Self: relay.Announce{
-			InstanceID: cfg.InstanceID,
+			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
 		},
-		Member: memberKey(a),
+		Member: member,
 		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
 	})
 	if err != nil {
@@ -313,7 +313,8 @@ func applyRelay(a *app.App) {
 // applyGroup hands the stored group secret to the direct transport, which
 // works whichever relay is chosen, none included.
 func applyGroup(a *app.App) {
-	a.Federation.SetGroup(groupSecret(a), a.Settings.Get().InstanceID, memberKey(a))
+	member := memberKey(a)
+	a.Federation.SetGroup(groupSecret(a), idOf(a, member), member)
 }
 
 // memberMu keeps two callers from minting two member keys at once.
@@ -345,6 +346,18 @@ func memberKey(a *app.App) ed25519.PrivateKey {
 	}
 	return ed25519.NewKeyFromSeed(seed)
 }
+
+// idOf is the id this instance goes by with member: the one the key makes
+// (relay.MemberID), or its own instance id without one.
+func idOf(a *app.App, member ed25519.PrivateKey) string {
+	if member == nil {
+		return a.Settings.Get().InstanceID
+	}
+	return relay.MemberID(relay.KindInstance, member.Public().(ed25519.PublicKey))
+}
+
+// groupID is the id the group knows this instance by.
+func groupID(a *app.App) string { return idOf(a, memberKey(a)) }
 
 // groupSecret is the stored connection secret of this instance's phrase
 // group, nil outside a group or when the stored value is malformed.

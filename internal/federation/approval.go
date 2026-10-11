@@ -38,9 +38,9 @@ var ErrGone = errors.New("federation: that member was taken out of the group")
 // ErrNoSuchPending is what Approve answers locally for an id with no pinned key.
 var ErrNoSuchPending = errors.New("federation: no device with that id waits for approval")
 
-// ErrKindMismatch is what Approve answers for a key passed on for an id that no
-// device of the kind it names would use.
-var ErrKindMismatch = errors.New("federation: that id does not fit the kind of device named for it")
+// ErrKindMismatch is what Approve answers for a key passed on for an id that
+// the key does not make for the kind it names.
+var ErrKindMismatch = errors.New("federation: that id is not the one the key makes for the kind of device named")
 
 // Fingerprint is how a person compares a member key: the start of its hash in
 // four groups.
@@ -82,7 +82,7 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 		if _, revoked := st.Revoked[hex.EncodeToString(key)]; revoked {
 			return nil, "", ErrGone
 		}
-		if !claimFits(id, kind) {
+		if !claimFits(id, kind, key) {
 			return nil, "", ErrKindMismatch
 		}
 		pin = PinnedKey{Key: bytes.Clone(key), Kind: kind}

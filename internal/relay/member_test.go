@@ -30,6 +30,33 @@ const (
 	vectorSig = "kQ04zLmeEVum6FSrH9e85KeTQfmAqfHo+7DEmJ7v124FUwniOjZQp2BTTiFkRn3zKmIIkdPKT7Sj2igK/+WaBQ=="
 )
 
+// The ids the vector seed's key makes, which the app's and the extension's
+// ports are held to as well.
+const (
+	vectorInstanceID = "b600306cfa76723fdec395e53a9b3d9fdb78b1e2"
+	vectorPhoneID    = "phone-b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092"
+	vectorBrowserID  = "browser-b600306cfa76723fdec395e53a9b3d9fdb78b1e2d7a23c32fcbcd2dc6d0c4092"
+)
+
+func TestAMembersIDIsMadeFromItsKey(t *testing.T) {
+	key := ed25519.NewKeyFromSeed(vectorSeed).Public().(ed25519.PublicKey)
+	for kind, want := range map[string]string{KindInstance: vectorInstanceID, KindMobile: vectorPhoneID, KindExtension: vectorBrowserID} {
+		if got := MemberID(kind, key); got != want {
+			t.Errorf("MemberID(%s) = %s, want %s", kind, got, want)
+		}
+	}
+	if !ValidInstanceID(vectorInstanceID) || len(vectorBrowserID) > maxClientIDBytes {
+		t.Error("a member id does not fit the shape its kind is listed under")
+	}
+	other := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{1}, ed25519.SeedSize)).Public().(ed25519.PublicKey)
+	if MemberID(KindMobile, other) == vectorPhoneID {
+		t.Error("two keys make one id")
+	}
+	if MemberID("robot", key) != "" || MemberID(KindMobile, key[:10]) != "" {
+		t.Error("an unknown kind or a short key made an id")
+	}
+}
+
 func TestTheMemberCallVectorStaysTheSame(t *testing.T) {
 	member := ed25519.NewKeyFromSeed(vectorSeed)
 	sig := ed25519.Sign(member, CallMessage(vectorTarget, vectorCall))

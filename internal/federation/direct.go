@@ -51,9 +51,10 @@ type LocalNetwork interface {
 	// Members is the members of this instance's group announcing on this
 	// network.
 	Members() []discovery.Peer
-	// SetGroup tags this instance's announces with sign and accepts an
-	// announce as a member's when isMember says so; nil for both leaves.
-	SetGroup(sign func(discovery.Peer) string, isMember func(discovery.Peer) bool)
+	// SetGroup announces this instance under id, tagged with sign, and
+	// accepts an announce as a member's when isMember says so; nil for both
+	// leaves.
+	SetGroup(id string, sign func(discovery.Peer) string, isMember func(discovery.Peer) bool)
 }
 
 type groupKeys struct {
@@ -67,9 +68,9 @@ type groupKeys struct {
 func (m *Manager) SetDiscovery(ln LocalNetwork) {
 	m.mu.Lock()
 	m.local = ln
-	keys := m.keys
+	keys, selfID := m.keys, m.selfID
 	m.mu.Unlock()
-	configureLocal(ln, keys)
+	configureLocal(ln, selfID, keys)
 }
 
 // SetGroup puts this instance into the group secret belongs to, or takes it
@@ -85,18 +86,18 @@ func (m *Manager) SetGroup(secret []byte, selfID string, member ed25519.PrivateK
 	m.keys, m.selfID = keys, selfID
 	ln := m.local
 	m.mu.Unlock()
-	configureLocal(ln, keys)
+	configureLocal(ln, selfID, keys)
 }
 
-func configureLocal(ln LocalNetwork, keys *groupKeys) {
+func configureLocal(ln LocalNetwork, selfID string, keys *groupKeys) {
 	if ln == nil {
 		return
 	}
 	if keys == nil {
-		ln.SetGroup(nil, nil)
+		ln.SetGroup("", nil, nil)
 		return
 	}
-	ln.SetGroup(func(p discovery.Peer) string { return announceTag(keys.peerAuth, p) }, func(p discovery.Peer) bool {
+	ln.SetGroup(selfID, func(p discovery.Peer) string { return announceTag(keys.peerAuth, p) }, func(p discovery.Peer) bool {
 		if d := time.Since(time.Unix(p.Sent, 0)); d > relay.ClockSkew || d < -relay.ClockSkew {
 			return false
 		}

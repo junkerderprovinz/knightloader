@@ -128,11 +128,13 @@ release's tag.
   device says where to approve it. Instances approve each other both ways:
   one that enters the words waits on the instances already there, and they
   wait on its Pairing card in turn, each listed as soon as the cards are open.
-- **A device can no longer name itself an approved instance or have one
-  banned.** Instances, browsers and phones each make their ids in a shape of
-  their own, and a call has to name an id of the kind it claims. A browser
-  announcing an instance's id gets no card, and refusing or removing a device
-  never takes an instance out.
+- **Nobody can sign in under another device's id.** Every instance, phone and
+  browser makes its id from its own key, and an instance takes a call only
+  under the id its key makes. Somebody holding the twelve words can no longer
+  wait under a new phone's or a new instance's name to be approved in its
+  place. The ids of the three kinds differ in shape, so a browser announcing an
+  instance's id gets no card, and refusing or removing a device never takes an
+  instance out.
 - **A removed device stays out.** Play links a removed phone asked for stop working with the
   removal, and the sign-in status a group member can read no longer shows
   whether two-factor sign-in is on.
@@ -150,8 +152,10 @@ release's tag.
   once and which request ids are used up are counted per key by the instance
   itself, and only for keys it knows, so calls made up by somebody with the
   twelve words no longer hold up the whole group. How many new devices join
-  in an hour is counted per relay connection too, and keys made to fill the
-  hour give way to a real new device.
+  in an hour is counted per relay connection too. Once the hour is full, new
+  devices wait for the next one, and a device waiting for approval is never
+  pushed off the Pairing card to make room; you refuse the ones you do not
+  know there.
 - **The relay writes every call it passes on afresh, with the sender it
   knows,** and drops one that names a field twice or in another spelling, so a
   sender cannot pass itself off as another connection.

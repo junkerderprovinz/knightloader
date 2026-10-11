@@ -271,7 +271,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				refuseDecision(w)
 				return
 			}
-			if id == a.Settings.Get().InstanceID {
+			if id == groupID(a) {
 				// The own page leaves through DELETE /api/connect.
 				if !fromRelayGroup(r) {
 					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)

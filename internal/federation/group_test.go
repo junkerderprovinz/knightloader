@@ -16,7 +16,7 @@ func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
 		t.Fatal(err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "phone-old", Name: strings.Repeat("x", 10000), Deployment: "mobile", Client: true},
+		{InstanceID: phoneOld, Name: strings.Repeat("x", 10000), Deployment: "mobile", Client: true},
 	}}
 	m.SetRelay(rt)
 	apps, err := m.Apps(joined.Add(time.Minute))
@@ -32,7 +32,7 @@ func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
 
 	rt.sibs = nil
 	for i := 0; i < maxApps; i++ {
-		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: fmt.Sprintf("phone-%d", i), Deployment: "mobile", Client: true})
+		rt.sibs = append(rt.sibs, relay.Announce{InstanceID: idOf(memberKeyOf(byte(i)), relay.KindMobile), Deployment: "mobile", Client: true})
 	}
 	if apps, err = m.Apps(joined.Add(time.Hour)); err != nil {
 		t.Fatal(err)
@@ -41,7 +41,7 @@ func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
 		t.Fatalf("%d phones remembered, want %d", len(apps), maxApps)
 	}
 	for _, a := range apps {
-		if a.ID == "phone-old" {
+		if a.ID == phoneOld {
 			t.Fatal("the phone seen longest ago was kept over a connected one")
 		}
 	}
@@ -142,8 +142,8 @@ func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 		t.Fatal(err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
-		{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true},
-		{InstanceID: "browser-1", Name: "Chrome", Deployment: "extension", Client: true},
+		{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true},
+		{InstanceID: browser1, Name: "Chrome", Deployment: "extension", Client: true},
 		{InstanceID: officeID, Name: "office"},
 	}}
 	m.SetRelay(rt)
@@ -154,8 +154,8 @@ func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 		t.Fatal(err)
 	}
 	// Connected ones first, then by name.
-	if len(apps) != 2 || apps[0].ID != "browser-1" || apps[0].Deployment != "extension" || !apps[0].Connected ||
-		apps[1].ID != "phone-1" || apps[1].Deployment != "mobile" || !apps[1].Connected {
+	if len(apps) != 2 || apps[0].ID != browser1 || apps[0].Deployment != "extension" || !apps[0].Connected ||
+		apps[1].ID != phone1 || apps[1].Deployment != "mobile" || !apps[1].Connected {
 		t.Fatalf("apps = %+v, want the extension and the phone connected and not the instance", apps)
 	}
 
@@ -179,7 +179,7 @@ func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 	if err := m.SetJoined(joined); err != nil {
 		t.Fatal(err)
 	}
-	phone := relay.Announce{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}
+	phone := relay.Announce{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true}
 	rt := &fakeRelay{sibs: []relay.Announce{phone}}
 	m.SetRelay(rt)
 	seen := joined.Add(time.Minute)
@@ -187,26 +187,26 @@ func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := m.RemoveApp("phone-1", seen); err != nil {
+	if err := m.RemoveApp(phone1, seen); err != nil {
 		t.Fatal(err)
 	}
-	if !m.Removed("phone-1") {
+	if !m.Removed(phone1) {
 		t.Fatal("the removed phone is not listed as removed")
 	}
 	if apps, _ := m.Apps(seen.Add(time.Hour)); len(apps) != 0 {
 		t.Fatalf("apps while the removed phone is still connected = %+v, want none", apps)
 	}
 
-	rescanned := relay.Announce{InstanceID: "phone-2", Name: "Pixel 8", Deployment: "mobile", Client: true}
+	rescanned := relay.Announce{InstanceID: phone2, Name: "Pixel 8", Deployment: "mobile", Client: true}
 	rt.sibs = []relay.Announce{rescanned}
-	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || apps[0].ID != "phone-2" {
+	if apps, _ := m.Apps(seen.Add(2 * time.Hour)); len(apps) != 1 || apps[0].ID != phone2 {
 		t.Fatalf("apps after scanning the phrase again = %+v, want the new id", apps)
 	}
 
 	if err := m.SetJoined(time.Time{}); err != nil {
 		t.Fatal(err)
 	}
-	if m.Removed("phone-1") {
+	if m.Removed(phone1) {
 		t.Fatal("a new group still turns away a phone removed from the old one")
 	}
 }
@@ -217,14 +217,14 @@ func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
 	if err := m.SetJoined(joined); err != nil {
 		t.Fatal(err)
 	}
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}}}
+	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: phone1, Name: "Pixel 8", Deployment: "mobile", Client: true}}}
 	m.SetRelay(rt)
 	now := joined.Add(time.Minute)
 	if _, err := m.Apps(now); err != nil {
 		t.Fatal(err)
 	}
 
-	member := "browser-" + strings.Repeat("b", 32)
+	member := idOf(memberKeyOf(201), relay.KindExtension)
 	for i := range 40 {
 		now = now.Add(time.Minute)
 		session := fmt.Sprintf("%040x", i)
@@ -235,7 +235,7 @@ func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
 	}
 	rt.sibs = nil
 	apps, _ := m.Apps(now.Add(time.Minute))
-	if len(apps) != 2 || apps[0].ID != member || apps[1].ID != "phone-1" {
+	if len(apps) != 2 || apps[0].ID != member || apps[1].ID != phone1 {
 		t.Fatalf("apps = %+v, want one card for the browser and the phone's", apps)
 	}
 
@@ -246,3 +246,11 @@ func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
 		t.Fatal("a removed browser's next call is not turned away")
 	}
 }
+
+// Device ids as the app and the extension make them.
+var (
+	phoneOld = idOf(memberKeyOf(200), relay.KindMobile)
+	phone1   = idOf(memberKeyOf(202), relay.KindMobile)
+	phone2   = idOf(memberKeyOf(203), relay.KindMobile)
+	browser1 = idOf(memberKeyOf(204), relay.KindExtension)
+)

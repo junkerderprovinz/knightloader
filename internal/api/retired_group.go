@@ -3,13 +3,15 @@ package api
 // The group an instance left at a password reset. Its phones, browsers and
 // other instances still hold the old words and would only see this instance
 // go quiet. For retiredFor after the reset the instance stays on the old
-// group's relay key and answers every call that opens under the old frame key
-// with a sealed 410 "reset", which the app and the extension turn into "pair
-// again with the new words". It keeps the two derived keys and never the old
-// phrase, and the answer runs no route.
+// group's relay key, under the id it had there, and answers every call that
+// opens under the old frame key with a sealed 410 "reset", which the app and
+// the extension turn into "pair again with the new words". It keeps the two
+// derived keys and its old member key, never the old phrase, and the answer
+// runs no route.
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"log"
@@ -34,10 +36,23 @@ const retiredBody = "reset"
 
 // retiredGroup is what is kept of the group left at a reset.
 type retiredGroup struct {
-	URL      string    `json:"url"`
-	Key      string    `json:"key"`
-	FrameKey string    `json:"frameKey"`
-	Until    time.Time `json:"until"`
+	URL      string `json:"url"`
+	Key      string `json:"key"`
+	FrameKey string `json:"frameKey"`
+	// Member is the seed of the member key this instance had in the group, in
+	// hex: the group knows the instance by the id it makes.
+	Member string    `json:"member"`
+	Until  time.Time `json:"until"`
+}
+
+// member is the member key the instance had in the group, nil when it had
+// none.
+func (g retiredGroup) member() ed25519.PrivateKey {
+	seed, err := hex.DecodeString(g.Member)
+	if err != nil || len(seed) != ed25519.SeedSize {
+		return nil
+	}
+	return ed25519.NewKeyFromSeed(seed)
 }
 
 // retireGroup keeps the keys of the group this instance dials now, before a
@@ -47,7 +62,11 @@ func retireGroup(a *app.App, now time.Time) error {
 	if url == "" || key == "" {
 		return nil
 	}
-	b, err := json.Marshal(retiredGroup{URL: url, Key: key, FrameKey: hex.EncodeToString(frameKey), Until: now.Add(retiredFor)})
+	g := retiredGroup{URL: url, Key: key, FrameKey: hex.EncodeToString(frameKey), Until: now.Add(retiredFor)}
+	if member := memberKey(a); member != nil {
+		g.Member = hex.EncodeToString(member.Seed())
+	}
+	b, err := json.Marshal(g)
 	if err != nil {
 		return err
 	}
@@ -79,16 +98,18 @@ func applyRetired(a *app.App) {
 		a.Federation.SetRetired(nil, time.Time{})
 		return
 	}
+	member := g.member()
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      g.URL,
 		Key:      g.Key,
 		FrameKey: frameKey,
 		Self: relay.Announce{
-			InstanceID: a.Settings.Get().InstanceID,
+			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
 		},
-		Serve: retiredAnswer(g.Until),
+		Member: member,
+		Serve:  retiredAnswer(g.Until),
 	})
 	if err != nil {
 		log.Printf("relay: could not stay on the group left at the reset: %v", err)

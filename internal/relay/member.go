@@ -5,16 +5,20 @@ package relay
 // therefore also holds an Ed25519 key pair of its own and signs every call
 // with it:
 //
+//   - A member's id is made from its key (MemberID), so nobody can speak for
+//     an id without holding the key behind it, and the shape of the id says
+//     which kind of device it is: 40 hex digits for an instance, "browser-"
+//     and hex for the extension, "phone-" and hex for the app. No key is
+//     pinned, and no device is listed, refused or removed, under an instance's
+//     id, nor the other way round.
 //   - The signature and the public half travel inside the seal (ProxyCall.Key
 //     and Sig), so a relay never learns them and an older relay carries them
 //     unchanged. It covers the request id, the target, the method, the path,
 //     the body, the authorization field, the member id, the kind and the time,
 //     each with its length, so no field can be moved into another.
-//   - The receiving instance pins the key to the member id the call names the
-//     first time it sees that id (trust on first use). From then on only that
-//     key speaks for that id: another key is refused with a code that says
-//     so. A call without a signature is refused too, with a code that tells
-//     the device to update.
+//   - The receiving instance pins the key on the first signed call. A call
+//     without a signature is refused with a code that tells the device to
+//     update.
 //   - Taking a member out revokes its pinned key on that instance for good.
 //     The id stays removed for a phone or a browser; an instance's id is freed,
 //     so the instance can join again under a key of its own.
@@ -25,11 +29,6 @@ package relay
 //     approves each of them. The approval, and a refusal, are passed on to the
 //     other instances with the key, so they pin it as approved before the
 //     device calls them.
-//   - Each kind mints its ids in a shape of its own: 40 hex digits for an
-//     instance, "browser-" and hex for the extension, "phone-" and more for
-//     the app. The id a call names has to have the shape of the kind it signs
-//     as, so no key is pinned, and no device is listed, refused or removed,
-//     under an instance's id, nor the other way round.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
 //     from the verified key: the replay guard and the calls served at once.
 //     How many keys may be pinned per hour counts per sender as well as for
@@ -39,7 +38,9 @@ import (
 	"context"
 	"crypto/ed25519"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/binary"
+	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -74,6 +75,26 @@ const (
 	KindMobile    = "mobile"
 	KindExtension = "extension"
 )
+
+// MemberID is the id a member of kind goes by with key: the hex of the key's
+// SHA-256 after "phone-" for the app and "browser-" for the extension, and for
+// an instance the first 20 bytes of it, the 40 hex digits an instance id has.
+// It is "" for a key of the wrong length or an unknown kind.
+func MemberID(kind string, key []byte) string {
+	if len(key) != ed25519.PublicKeySize {
+		return ""
+	}
+	sum := sha256.Sum256(key)
+	switch kind {
+	case KindInstance:
+		return hex.EncodeToString(sum[:20])
+	case KindMobile:
+		return "phone-" + hex.EncodeToString(sum[:])
+	case KindExtension:
+		return "browser-" + hex.EncodeToString(sum[:])
+	}
+	return ""
+}
 
 // callDomain opens every signed call message, so a member key's signature
 // over a call can never be taken for one over anything else.

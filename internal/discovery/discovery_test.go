@@ -130,7 +130,7 @@ func peerID(label string) string {
 
 func TestAnAnnounceUnderAnIDOfAnotherShapeIsIgnored(t *testing.T) {
 	s := New(Peer{ID: peerID("self"), URL: "http://192.168.1.2:8749"})
-	s.SetGroup(func(Peer) string { return "tag" }, func(Peer) bool { return true })
+	s.SetGroup(peerID("self"), func(Peer) string { return "tag" }, func(Peer) bool { return true })
 
 	for _, id := range []string{"nas", strings.ToUpper(peerID("nas")), peerID("nas") + "0"} {
 		s.absorb(Peer{ID: id, URL: "http://192.168.1.66:8749", Tag: "tag"})
@@ -238,7 +238,7 @@ func TestARenameReachesTheNetwork(t *testing.T) {
 func TestAnAnnounceWithTheGroupTagIsAMember(t *testing.T) {
 	s := New(Peer{ID: peerID("self"), URL: "http://192.168.1.2:8749"})
 	tag := func(p Peer) string { return "tag:" + p.ID + ":" + p.URL }
-	s.SetGroup(tag, func(p Peer) bool { return p.Tag == tag(p) })
+	s.SetGroup(peerID("self"), tag, func(p Peer) bool { return p.Tag == tag(p) })
 
 	s.absorb(Peer{ID: peerID("member"), URL: "http://192.168.1.3:8749", Sent: 10, Tag: "tag:" + peerID("member") + ":http://192.168.1.3:8749"})
 	s.absorb(Peer{ID: peerID("stranger"), URL: "http://192.168.1.4:8749"})
@@ -256,7 +256,7 @@ func TestAnAnnounceWithTheGroupTagIsAMember(t *testing.T) {
 		t.Fatalf("peers = %+v, want the stranger and the forged announce", got)
 	}
 
-	s.SetGroup(nil, nil)
+	s.SetGroup("", nil, nil)
 	if got := s.Members(); len(got) != 0 {
 		t.Fatalf("members after leaving = %+v, want none", got)
 	}
@@ -265,7 +265,7 @@ func TestAnAnnounceWithTheGroupTagIsAMember(t *testing.T) {
 func TestOnlyAMemberKeepsItsAddress(t *testing.T) {
 	s := New(Peer{ID: peerID("self"), URL: "http://192.168.1.2:8749"})
 	tag := func(p Peer) string { return "tag:" + p.ID + ":" + p.Address }
-	s.SetGroup(tag, func(p Peer) bool { return p.Tag == tag(p) })
+	s.SetGroup(peerID("self"), tag, func(p Peer) bool { return p.Tag == tag(p) })
 
 	s.absorb(Peer{ID: peerID("member"), URL: "http://192.168.1.3:8749", Address: "https://kl.example.org", Sent: 10, Tag: "tag:" + peerID("member") + ":https://kl.example.org"})
 	s.absorb(Peer{ID: peerID("stranger"), URL: "http://192.168.1.4:8749", Address: "https://elsewhere.example.org"})
@@ -284,5 +284,23 @@ func TestOnlyAMemberKeepsItsAddress(t *testing.T) {
 	}
 	if p, ok := byID[peerID("long")]; !ok || p.Address != "" {
 		t.Errorf("a member with a long address = %+v, want it listed without the address", p)
+	}
+}
+
+// TestInAGroupTheAnnounceGoesOutUnderTheGroupID: the id a group knows an
+// instance by is made from its member key, and its own instance id stays for
+// the network outside the group.
+func TestInAGroupTheAnnounceGoesOutUnderTheGroupID(t *testing.T) {
+	s := New(Peer{ID: peerID("self"), URL: "http://192.168.1.2:8749"})
+	if self, _ := s.currentSelf(); self.ID != peerID("self") {
+		t.Fatalf("outside a group the announce goes out as %s", self.ID)
+	}
+	s.SetGroup(peerID("member key"), func(Peer) string { return "tag" }, func(Peer) bool { return true })
+	if self, sign := s.currentSelf(); self.ID != peerID("member key") || sign == nil {
+		t.Fatalf("in a group the announce goes out as %s, want the group id", self.ID)
+	}
+	s.SetGroup("", nil, nil)
+	if self, _ := s.currentSelf(); self.ID != peerID("self") {
+		t.Errorf("after leaving the announce goes out as %s, want the instance id again", self.ID)
 	}
 }

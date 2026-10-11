@@ -22,7 +22,7 @@ import (
 // Member ids in the shape instances mint them, the only one a member is
 // listed under.
 var (
-	siblingID = strings.Repeat("5", 40)
+	siblingID = idAs("sibling", relay.KindInstance)
 	officeID  = strings.Repeat("0", 40)
 	desktopID = strings.Repeat("d", 40)
 )
@@ -213,7 +213,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
 		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
-		Member:   keyOf(siblingID),
+		Member:   keyOf("sibling"),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -260,7 +260,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	// relayProxyHandler, once the owner approved it there. A hand-entered
 	// relay key makes a group whose members sign and are approved like one
 	// reached by the words.
-	selfID := a.Settings.Get().InstanceID
+	selfID := groupID(a)
 	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, ""); err != nil || status != http.StatusForbidden {
 		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
 	}
@@ -737,11 +737,11 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {
+	if err := a.Federation.RemoveApp(idAs("phone-gone", relay.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
 
-	if status, body := signedAs(serve, "phone-gone", relay.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
+	if status, body := signedAs(serve, idAs("phone-gone", relay.KindMobile), relay.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
 	if status, body := signedMember(t, a, "phone-kept", relay.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {

@@ -336,7 +336,7 @@ func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
 	if got := getStatus(t, srv.URL+link.Path); got != http.StatusOK {
 		t.Fatalf("the link answered %d, want 200", got)
 	}
-	if err := a.Federation.RemoveApp("phone-player", time.Now()); err != nil {
+	if err := a.Federation.RemoveApp(idAs("phone-player", relay.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	if got := getStatus(t, srv.URL+link.Path); got != http.StatusUnauthorized {
