@@ -161,6 +161,7 @@ export const hi: Dict = {
   'settings.theme': 'थीम',
   'settings.theme.light': 'लाइट',
   'settings.theme.dark': 'डार्क',
+  'settings.theme.system': 'सिस्टम',
   'settings.corners': 'कोने',
   'settings.corners.round': 'गोल',
   'settings.corners.slightlyRounded': 'हल्के गोल',

@@ -31,7 +31,7 @@ const src = (rel) => readFileSync(join(here, rel), 'utf8');
 /**
  * Which file draws which page. A file may serve two pages (Look.tsx), and its
  * keys count for either. `titleTags` names wrapper components whose `title`
- * prop becomes a SectionTitle (Help.tsx's Topic, Modules.tsx's Group).
+ * prop becomes a SectionTitle (Modules.tsx's Group).
  *
  * An entry ending in `/` is a directory, so a card added to it is scanned
  * without editing this table.
@@ -46,8 +46,8 @@ const FILE_PAGES = [
   // One component, two rail entries, split by `{appearance && (` / `{general && (`.
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
   { file: 'src/pages/settings/look/', pages: ['look'] },
-  // The Info tile: the About, Version and Help cards and the help topics.
-  { file: 'src/pages/settings/Help.tsx', pages: ['help'], titleTags: ['Topic'] },
+  // The Info tile: the Version, Help and About cards.
+  { file: 'src/pages/settings/Help.tsx', pages: ['help'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.
@@ -189,14 +189,13 @@ function sectionTitles(text) {
     const end = text.indexOf('</SectionTitle>', i);
     const children = text.slice(i + 1, end === -1 ? i + 1 : end);
     const keys = keysIn(children);
-    // A dynamic title (Help.tsx's `{title}`, Shortcuts.tsx's `{groupLabel(…)}`)
-    // has no key here. Its file names the wrapper in `titleTags` instead.
+    // A dynamic title (Shortcuts.tsx's `{groupLabel(…)}`) has no key here. Its file names the wrapper in `titleTags` instead.
     if (keys.length > 0) out.push({ at: m.index, key: keys[0] });
   }
   return out;
 }
 
-/** `<Topic … title={t('k')}` and friends - a card title one component removed. */
+/** `<Group … title={t('k')}` and friends - a card title one component removed. */
 function wrapperTitles(text, tags) {
   const out = [];
   for (const tag of tags ?? []) {

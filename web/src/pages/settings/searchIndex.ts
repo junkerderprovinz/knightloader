@@ -310,11 +310,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.look.displayTitle',
       rows: [
         { key: 'lang.label' },
-        { key: 'settings.theme' },
+        { key: 'settings.theme', hint: 'settings.themeHint' },
         { key: 'settings.shape', hint: 'settings.shapeHint' },
         { key: 'settings.motion.title', hint: 'settings.motion.hint' },
         { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },
       ],
+      // The choice the theme's hint is filled with.
+      body: ['theme.system'],
     },
     {
       title: 'settings.labels',
@@ -1249,12 +1251,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     // The Info tile's three cards. Their buttons carry no caption to scroll
     // to, so they are `also` entries.
     {
-      title: 'settings.about.title',
-      rows: [],
-      also: ['settings.about.coffeeButton', 'settings.about.paypal', 'settings.about.crypto'],
-      body: ['settings.about.body', 'settings.about.coffee'],
-    },
-    {
       title: 'settings.about.version',
       hint: 'settings.info.versionHint',
       rows: [],
@@ -1268,17 +1264,12 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: ['settings.about.github', 'settings.about.mail', 'settings.info.manual', 'settings.info.bugReport'],
       body: ['settings.about.report'],
     },
-    { title: 'settings.help.intake.title', rows: [], body: ['settings.help.intake.body'] },
-    { title: 'settings.help.collector.title', rows: [], body: ['settings.help.collector.body'] },
-    { title: 'settings.help.rules.title', rows: [], body: ['settings.help.rules.body'] },
-    { title: 'settings.help.queue.title', rows: [], body: ['settings.help.queue.body'] },
-    { title: 'settings.help.limits.title', rows: [], body: ['settings.help.limits.body'] },
-    { title: 'settings.help.captcha.title', rows: [], body: ['settings.help.captcha.body'] },
-    { title: 'settings.help.after.title', rows: [], body: ['settings.help.after.body'] },
-    { title: 'settings.help.schedule.title', rows: [], body: ['settings.help.schedule.body'] },
-    { title: 'settings.help.instances.title', rows: [], body: ['settings.help.instances.body'] },
-    { title: 'settings.help.access.title', rows: [], body: ['settings.help.access.body'] },
-    { title: 'settings.help.advanced.title', rows: [], body: ['settings.help.advanced.body'] },
+    {
+      title: 'settings.about.title',
+      rows: [],
+      also: ['settings.about.coffeeButton', 'settings.about.paypal', 'settings.about.crypto'],
+      body: ['settings.about.body', 'settings.about.coffee'],
+    },
   ],
 
   browsertools: [

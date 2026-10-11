@@ -161,6 +161,7 @@ export const sk: Dict = {
   'settings.theme': 'Motív',
   'settings.theme.light': 'Svetlý',
   'settings.theme.dark': 'Tmavý',
+  'settings.theme.system': 'Systémový',
   'settings.corners': 'Rohy',
   'settings.corners.round': 'Okrúhle',
   'settings.corners.slightlyRounded': 'Mierne zaoblené',

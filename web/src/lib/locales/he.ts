@@ -20,6 +20,7 @@ export const he: Dict = {
   'nav.workingTitle': 'שם זמני',
   'theme.dark': 'כהה',
   'theme.light': 'בהיר',
+  'theme.system': 'מערכת',
   'theme.toggle': 'החלפת ערכת נושא',
   'lang.label': 'שפה',
   'lang.open': 'החלפת שפה',
@@ -439,6 +440,7 @@ export const he: Dict = {
   'settings.rainbowPaletteHint': 'שמונת הצבעים המוקצים לפי מיקום. ניתן לערוך כל אחד בנפרד.',
   'settings.look.saveFailed': 'לא ניתן היה לשמור: {error}',
   'settings.theme': 'ערכת נושא',
+  'settings.themeHint': '„{system}” עוקבת אחרי ההגדרה הבהירה או הכהה של המכשיר שלך ומשתנה יחד איתה.',
   'settings.motion.wild': 'פראי',
   'settings.motion.storm': 'סערה',
   'settings.motion.subtle': 'עדין',
@@ -1534,72 +1536,6 @@ export const he: Dict = {
 
   'settings.nav.help': 'מידע',
 
-  'settings.help.intake.title': 'הוספת הורדות',
-  'settings.help.intake.body':
-    'הדבק קישורים לאוסף, אחד בכל שורה או כטקסט מבולגן. סריקה מוצאת קישורים בכל מקום שהם נמצאים: בתוך משפט, כמה בשורה אחת, או שבורים לשתי שורות על ידי תוכנת אימייל.',
-  'settings.help.intake.b1': 'שחרר קובץ מכל קישורים (.dlc, .ccf, .rsdf) או רשימת קישורים פשוטה.',
-  'settings.help.intake.b2':
-    'כפתורי Click\'n\'Load בדפי מארחים ופורומים עובדים ללא שינוי. KnightLoader עונה בכתובת 127.0.0.1:9666, אותו פורט שכל מנהל הורדות אחר משתמש בו.',
-  'settings.help.intake.b3':
-    'הדבק כתובת URL של דף במקום קישור לקובץ והפעל סריקה כדי לחלץ כל קובץ שהוא מקשר אליו, במקום להוריד את הדף עצמו.',
-  'settings.help.intake.link1': 'פתח הגדרות אוסף הקישורים',
-
-  'settings.help.collector.title': 'האספן, לפני שמשהו יורד',
-  'settings.help.collector.body':
-    'קישורים חדשים מגיעים קודם לאספן, לא לתור: אזור מעבר לבדיקת שמות, גדלים ואזהרות כפילויות לפני שמשהו מתחיל. אישור אוטומטי יכול לדלג על השלב הזה, עם עיכוב אופציונלי; ברגע שאושר, קישור מתחיל מיד או ממתין בתור, בהתאם להתחלה האוטומטית.',
-  'settings.help.collector.link': 'פתח הגדרות אוסף הקישורים',
-
-  'settings.help.rules.title': 'חוקים: חבילות, תיקיות ומה נשמר',
-  'settings.help.rules.body':
-    'ה-Packagizer משנה את שם הקישור, בוחר את התיקייה שלו וקובע את אפשרויות ההורדה שלו כשהוא מגיע, לפי תנאים שאתה כותב. מסנן הקישורים מחליט אם קישור נשמר בכלל. דחייה תמיד מציינת את הכלל שגרם לה ואת הסיבה.',
-  'settings.help.rules.link': 'פתח חוקים',
-
-  'settings.help.queue.title': 'ניהול התור',
-  'settings.help.queue.body':
-    'השהה, המשך או סדר מחדש כל קישור, לבד או כחבילה שלמה. יש שתי דרכים לעצור את התור. עצירת התור משאירה את מה שכבר רץ בלי לגעת בו, כך שהוא מסתיים מעצמו. עצירה מיידית של כל ההעברות מראה קודם מה יאבד וממשיכה רק אחרי שתאשר. האזהרה קיימת בשביל העברות שלא יכולות להמשיך מהמקום שבו נעצרו.',
-  'settings.help.queue.b1': 'קישור בודד יכול לעקוף את מספר החיבורים הגלובלי או את מתג החילוץ לאחר ההורדה.',
-  'settings.help.queue.b2': 'כפילות של קישור שכבר קיים ברשימה תמיד נדחית, עוד לפני שהיא מגיעה לאספן.',
-
-  'settings.help.limits.title': 'עקיפת מגבלות של ספק האחסון',
-  'settings.help.limits.body': 'שלוש דרכים עצמאיות למנוע ממגבלה חינמית להיות התקרה:',
-  'settings.help.limits.b1':
-    'חיבורים: פזר הורדות על פני יותר מנתיב יציאה אחד (קו שני, פרוקסי, SOCKS) במקום לצאת תמיד דרך הכתובת של המכונה הזו עצמה.',
-  'settings.help.limits.b2':
-    'התחברות מחדש: בקש מהנתב כתובת ציבורית חדשה, הדבר היחיד שמסיר מגבלה שקשורה לכתובת עצמה. זה עובד דרך UPnP, תוכנית חיצונית, סקריפט, או השמעה חוזרת של בקשות HTTP מול עמוד הניהול של הנתב. סקריפטי JDownloader LiveHeader/curl קיימים עובדים ללא שינוי.',
-  'settings.help.limits.b3':
-    'חשבונות: שמור פרטי התחברות של פרימיום או debrid (Real-Debrid, AllDebrid, TorBox ואחרים) כדי שקישור זכאי יירד במהירות מלאה במקום במגבלת המשתמש החינמי.',
-  'settings.help.limits.link1': 'פתח רשת',
-  'settings.help.limits.link3': 'פתח חשבונות',
-
-  'settings.help.captcha.title': 'קאפצ׳ה',
-  'settings.help.captcha.body':
-    'כשמארח מבקש קאפצ׳ה, מנסים קודם את חשבונות הקאפצ׳ה שהגדרת, לפי הסדר שקבעת. אם אף אחד לא מוגדר, או שאף אחד לא מצליח לפתור אותה, הקאפצ׳ה מוצגת לך במקום להיכשל בשקט.',
-  'settings.help.captcha.link': 'פתח הגדרות קאפצ׳ה',
-
-  'settings.help.after.title': 'אחרי ההורדה',
-  'settings.help.after.body':
-    'ארכיונים מחולצים אוטומטית: zip (כולל מוצפנים, גם WinZip AES וגם ZipCrypto הישן), rar עם סטים מרובי כרכים, 7z, tar, וגם gzip/bzip2/xz/zstd בין אם הם עוטפים tar ובין אם לא. החילוץ כתוב ב-Go טהור ולא צריך תוכנת unrar או 7z חיצונית. עבור ארכיון מוצפן מנסים רשימת סיסמאות לפי הסדר. קובץ שהסתיים נבדק מול כל checksum שהגיע איתו: רשימת .sfv, קובץ md5/sha1/sha256sum, או CRC32 ששם הגרסה עצמו נושא.',
-  'settings.help.after.link1': 'פתח הגדרות ארכיונים',
-  'settings.help.after.link2': 'פתח הגדרות הורדות',
-
-  'settings.help.schedule.title': 'פעולה ללא השגחה',
-  'settings.help.schedule.body':
-    'לוח זמנים שבועי משהה או מאט את התור לפי השעון, למשל בחלון לילי, ונשאר נכון גם במעבר לשעון קיץ. זה אותו רעיון כמו ה-Scheduler של JDownloader.',
-  'settings.help.schedule.link': 'פתח אוטומציה',
-
-  'settings.help.instances.title': 'הרצת יותר ממופע אחד',
-  'settings.help.instances.body': 'הוסף KnightLoader נוסף כעמית והתור שלו יופיע גם בלוח הזה. באותה רשת זו קריאה ישירה ל-API של המופע האחר, בדיוק כפי שדפדפן היה עושה. בין רשתות, שתים עשרה מילים מזווגות את השניים דרך ממסר שאפשר לארח בעצמך.',
-  'settings.help.instances.link': 'פתח מופעים',
-
-  'settings.help.access.title': 'גישה ופתרון תקלות',
-  'settings.help.access.body': 'סיסמה נועלת את כל הממשק, והגישה אליו אפשרית רק עם עוגיית סשן. עמוד אבטחה מרכז אותה יחד עם הגורם השני, מפתחות הגישה וטוקני ה-API. עמוד אבחון בונה קובץ לצירוף לדוח באג: פרטי גרסה ובילד, ההגדרות הנוכחיות בלי אף סיסמה, שורות היומן האחרונות של התהליך הזה עצמו, וכמה גורוטינות רצות.',
-  'settings.help.access.link1': 'פתח אבטחה',
-  'settings.help.access.link2': 'פתח אבחון',
-
-  'settings.help.advanced.title': 'כל השאר',
-  'settings.help.advanced.body':
-    'כל הגדרה שיש לבילד הזה אפשר לקרוא ולשנות לפי השם הגולמי שלה בעמוד מתקדם. זה כולל כמה שעדיין אין להן פקד ייעודי בשום מקום אחר, כמו הטיפול במראה של קובץ שכבר הורד ומה קורה כשהורדה הייתה נוחתת על שם שכבר תפוס.',
-  'settings.help.advanced.link': 'פתח הגדרות מתקדמות',
   'task.mode.free': 'חינם',
   'task.mode.premium': 'פרימיום',
   'settings.about.title': 'על KnightLoader',
@@ -3379,11 +3315,9 @@ export const he: Dict = {
   'settings.categories.torrentFilesOwn': 'משלה',
   'settings.watchDirFilesHint': 'קבצים שמונחים כאן נקלטים אוטומטית: רשימות קישורים (.txt, .crawljob, .magnet), קבצי ‎.torrent, מכלים (.dlc, .ccf, .rsdf) וקבצי ‎.nzb.',
   'container.usenet': '{file} עבר אל {service}. הקבצים שלו יופיעו כאן ברגע ש-{service} יביא אותם מ-Usenet.',
-  'settings.help.intake.watchFiles': 'תיקייה במעקב קולטת את מה שמונח בה: רשימות קישורים (.txt, .crawljob, .magnet), קבצי ‎.torrent, מכלים (.dlc, .ccf, .rsdf) וקבצי ‎.nzb.',
   'container.nzbTooBig': 'הוא גדול מ־{max}, הגודל המרבי של קובץ ‎.nzb',
   'container.noUsenet': 'זה קובץ ‎.nzb, ושום דבר כאן לא יכול להביא אותו מ-Usenet. הוסף שרת Usenet או חשבון TorBox או Premiumize.me תחת חשבונות.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'קובץ ‎.nzb שהעלית כאן, או ש-Sonarr או Radarr שלחו, עובר לשרת ה-Usenet שלך או לחשבון ה-TorBox או ה-Premiumize.me שלך, לפי מי שקודם בסדר העדיפויות תחת חשבונות. השרת שלך מביא כל קובץ מיד. שירות Debrid מביא קודם את ה-release, ואז הקבצים שלו יורדים כמו כל קישור אחר. TorBox מקבל קבצי ‎.nzb רק במסלולים שכוללים Usenet. אם TorBox דוחה את הראשון, הקובץ הזה נכשל אלא אם חשבון אחר לוקח אותו.',
   'task.remote': 'בהורדה ב-{service}',
   'task.remoteSeeds': 'זרעים: {n}',
   'accounts.routing.orderHintTorrents': 'קישורי מגנט וקבצי ‎.torrent עוברים או ללקוח הטורנטים המובנה או לשירות debrid שמקבל טורנטים, לפי מי שנמצא גבוה יותר ברשימה.',
@@ -3557,6 +3491,8 @@ export const he: Dict = {
   'settings.archives.journeyHint': 'מה קורה לקובץ אחרי שירד, תחנה אחרי תחנה. תחנה אפורה כבויה, והקובץ חולף על פניה. “{verifying}” תלוי במתג “{checksums}” תחת “{downloads}”. “{repairing}” דורש שרת Usenet משלך. “{moving}” דורש “{workDir}” או יעד לקבצים המחולצים. “{cleanup}” מדולג כל עוד הארכיון נשמר.',
   'picture.journey.move': 'העברה',
   'picture.journey.cleanup': 'ניקוי',
+  'picture.journey.wayTo': 'מעבר אל „{setting}” תחת {page}',
+  'picture.journey.wayHere': 'מעבר אל „{setting}” בעמוד הזה',
   'picture.reconnect.router': 'נתב',
   'picture.reconnect.internet': 'אינטרנט',
   'picture.reconnect.oldAddress': 'כתובת ישנה',

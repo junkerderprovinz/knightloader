@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import list from '../../scripts/glyphs.json';
+import { MAIL_SVG, MANUAL_SVG } from './appMarks';
 import * as glyphs from './glyphs';
 
 type Glyph = ComponentType<SVGProps<SVGSVGElement>>;
@@ -34,12 +35,29 @@ describe('the generated glyphs', () => {
     viewBox(markup(name)).forEach((n, i) => expect(Math.abs(n - want[i])).toBeLessThan(side / 1000));
   });
 
+  it.each(drawn)('$name drawn tight fills the box the list crops it to', ({ name, viewBox: crop }) => {
+    const Icon = components[name] as ComponentType<glyphs.GlyphProps>;
+    const [x, y, side] = crop.split(' ').map(Number);
+    viewBox(renderToStaticMarkup(<Icon tight />)).forEach((n, i) =>
+      expect(Math.abs(n - [x, y, side, side][i])).toBeLessThan(side / 1000),
+    );
+  });
+
   it.each(drawn)('$name is the drawing the list has', ({ name, svg }) => {
     const shapes = (s: string) => [...s.matchAll(/<(path|rect|circle|ellipse)\b/g)].length;
     const paths = (s: string) => [...s.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);
     const out = markup(name);
     expect(paths(out)).toEqual(paths(svg));
     expect(shapes(out)).toBe(shapes(svg));
+  });
+
+  it.each([
+    ['the envelope', MAIL_SVG, 'IconMail', 'IconMailOpen'],
+    ['the book', MANUAL_SVG, 'IconManual', 'IconManualOpen'],
+  ])('%s on its button is the pair the list has, shut and open', (_, pair, shut, open) => {
+    const paths = (s: string) => [...s.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);
+    const listed = (name: string) => paths(list.find((entry) => entry.name === name)!.svg);
+    expect(paths(pair)).toEqual([...listed(shut), ...listed(open)]);
   });
 
   it('draw the check in over the check itself', () => {

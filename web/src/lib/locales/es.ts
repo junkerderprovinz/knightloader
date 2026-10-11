@@ -18,6 +18,7 @@ export const es: Dict = {
   'nav.workingTitle': 'título provisional',
   'theme.dark': 'Oscuro',
   'theme.light': 'Claro',
+  'theme.system': 'Sistema',
   'theme.toggle': 'Cambiar tema',
   'lang.label': 'Idioma',
   'lang.open': 'Cambiar idioma',
@@ -429,6 +430,7 @@ export const es: Dict = {
   'settings.rainbowPaletteHint': 'Los ocho colores asignados por posición. Editable individualmente.',
   'settings.look.saveFailed': 'No se pudo guardar: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint': '«{system}» sigue el modo claro u oscuro de tu dispositivo y cambia con él.',
   'settings.motion.wild': 'Intenso',
   'settings.motion.storm': 'Tormenta',
   'settings.motion.subtle': 'Sutil',
@@ -1524,72 +1526,6 @@ export const es: Dict = {
 
   'settings.nav.help': 'Información',
 
-  'settings.help.intake.title': 'Añadir descargas',
-  'settings.help.intake.body':
-    'Pega enlaces en el Colector, uno por línea o como texto desordenado. Un escaneo encuentra los enlaces estén donde estén: dentro de una frase, varios en una línea o partidos en dos líneas por un cliente de correo.',
-  'settings.help.intake.b1': 'Suelta un archivo contenedor de enlaces (.dlc, .ccf, .rsdf) o una simple lista de enlaces.',
-  'settings.help.intake.b2':
-    'Los botones de Click\'n\'Load en páginas de hosters y foros funcionan sin cambios. KnightLoader responde en 127.0.0.1:9666, el mismo puerto que usan todos los demás gestores de descargas.',
-  'settings.help.intake.b3':
-    'Pega la URL de una página en lugar de un enlace de archivo y activa Explorar para extraer cada archivo al que enlaza, en vez de descargar la página en sí.',
-  'settings.help.intake.link1': 'Abrir ajustes del Colector de enlaces',
-
-  'settings.help.collector.title': 'El colector, antes de que nada se descargue',
-  'settings.help.collector.body':
-    'Los enlaces nuevos llegan primero al Colector, no a la cola: una zona de espera para revisar nombres, tamaños y avisos de duplicados antes de que empiece nada. La confirmación automática puede saltarse ese paso, con un retraso opcional; una vez confirmado, un enlace empieza de inmediato o espera en la cola, según el inicio automático.',
-  'settings.help.collector.link': 'Abrir ajustes del Colector de enlaces',
-
-  'settings.help.rules.title': 'Reglas: paquetes, carpetas y qué se conserva',
-  'settings.help.rules.body':
-    'El Packagizer renombra un enlace, elige su carpeta y fija sus opciones de descarga cuando llega, según las condiciones que escribas. El Filtro de enlaces decide si un enlace se conserva o no. Un rechazo siempre indica la regla que lo causó y por qué.',
-  'settings.help.rules.link': 'Abrir Reglas',
-
-  'settings.help.queue.title': 'Gestionar la cola',
-  'settings.help.queue.body':
-    'Pausa, reanuda o reordena cualquier enlace, solo o como paquete entero. Hay dos formas de parar la cola. Detenerla deja intacto lo que ya se está ejecutando, así que termina por sí solo. Parar todas las transferencias ahora mismo muestra primero lo que se perdería y solo sigue adelante cuando confirmas. El aviso existe para las transferencias que no pueden reanudarse donde se quedaron.',
-  'settings.help.queue.b1': 'Un solo enlace puede anular el número de conexiones global o el interruptor de extraer tras la descarga.',
-  'settings.help.queue.b2': 'Un duplicado de un enlace ya presente en la lista siempre se rechaza, antes incluso de llegar al colector.',
-
-  'settings.help.limits.title': 'Sortear los límites del hoster',
-  'settings.help.limits.body': 'Tres formas independientes de evitar que un límite gratuito sea el techo:',
-  'settings.help.limits.b1':
-    'Conexiones: reparte las descargas entre más de una vía de salida (una segunda línea, un proxy, SOCKS) en lugar de salir siempre por la dirección propia de esta máquina.',
-  'settings.help.limits.b2':
-    'Reconexión: pide al router una nueva dirección pública, lo único que levanta un límite ligado a la propia dirección. Funciona con UPnP, un programa externo, un script o reproduciendo peticiones HTTP contra la página de administración del router. Los scripts LiveHeader/curl de JDownloader que ya tengas funcionan sin cambios.',
-  'settings.help.limits.b3':
-    'Cuentas: guarda inicios de sesión premium o debrid (Real-Debrid, AllDebrid, TorBox y otros) para que un enlace compatible se descargue a toda velocidad en lugar de con el límite de usuario gratuito.',
-  'settings.help.limits.link1': 'Abrir Red',
-  'settings.help.limits.link3': 'Abrir Cuentas',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Cuando un hoster pide un captcha, primero se prueban las cuentas de captcha que has configurado, en el orden que fijaste. Si no hay ninguna, o ninguna puede resolverlo, el captcha se te muestra a ti en lugar de fallar en silencio.',
-  'settings.help.captcha.link': 'Abrir ajustes de Captcha',
-
-  'settings.help.after.title': 'Después de la descarga',
-  'settings.help.after.body':
-    'Los archivos comprimidos se extraen automáticamente: zip (también cifrados, tanto WinZip AES como el antiguo ZipCrypto), rar con conjuntos de varios volúmenes, 7z, tar y gzip/bzip2/xz/zstd, envuelvan o no un tar. La extracción es Go puro y no necesita ningún binario externo de unrar ni 7z. Para un archivo cifrado se prueba una lista de contraseñas en orden. Un archivo terminado se comprueba con la suma de verificación que lo acompañe: una lista .sfv, un archivo md5/sha1/sha256sum o un CRC32 que lleve el propio nombre de la release.',
-  'settings.help.after.link1': 'Abrir ajustes de Archivos comprimidos',
-  'settings.help.after.link2': 'Abrir ajustes de Descargas',
-
-  'settings.help.schedule.title': 'Funcionar sin supervisión',
-  'settings.help.schedule.body':
-    'Un horario semanal pausa o limita la cola según el reloj, por ejemplo en una franja nocturna, y sigue siendo correcto con el cambio de hora. Es la misma idea que el Scheduler de JDownloader.',
-  'settings.help.schedule.link': 'Abrir Automatización',
-
-  'settings.help.instances.title': 'Ejecutar más de una instancia',
-  'settings.help.instances.body': 'Añade otro KnightLoader como par y su cola aparece también en este panel. En la misma red es una llamada directa a la API de la otra instancia, igual que la haría un navegador. Entre redes, doce palabras emparejan las dos a través de un relé que puedes alojar tú mismo.',
-  'settings.help.instances.link': 'Abrir Instancias',
-
-  'settings.help.access.title': 'Acceso y solución de problemas',
-  'settings.help.access.body': 'Una contraseña bloquea toda la interfaz, a la que entonces solo se accede con una cookie de sesión. La página Seguridad la reúne con el segundo factor, las claves de acceso y los tokens de API. La página Diagnóstico genera un archivo para adjuntar a un informe de error: la versión y la información del build, los ajustes actuales sin ninguna contraseña, las líneas de registro recientes de este proceso y cuántas goroutines están en marcha.',
-  'settings.help.access.link1': 'Abrir Seguridad',
-  'settings.help.access.link2': 'Abrir Diagnóstico',
-
-  'settings.help.advanced.title': 'Todo lo demás',
-  'settings.help.advanced.body':
-    'Todos los ajustes de este build se pueden leer y cambiar por su nombre interno en la página Avanzado. Eso incluye algunos que aún no tienen un control propio en ningún otro sitio, como el trato que recibe una réplica de un archivo ya descargado y lo que pasa cuando una descarga fuera a caer en un nombre ya ocupado.',
-  'settings.help.advanced.link': 'Abrir ajustes de Avanzado',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Acerca de KnightLoader',
@@ -3353,11 +3289,9 @@ export const es: Dict = {
   'settings.categories.torrentFilesOwn': 'Propia',
   'settings.watchDirFilesHint': 'Lo que dejes aquí se recoge automáticamente: listas de enlaces (.txt, .crawljob, .magnet), archivos .torrent, contenedores (.dlc, .ccf, .rsdf) y archivos .nzb.',
   'container.usenet': '{file} se envió a {service}. Sus archivos aparecerán aquí en cuanto {service} los haya descargado de Usenet.',
-  'settings.help.intake.watchFiles': 'Una carpeta vigilada recoge lo que dejes en ella: listas de enlaces (.txt, .crawljob, .magnet), archivos .torrent, contenedores (.dlc, .ccf, .rsdf) y archivos .nzb.',
   'container.nzbTooBig': 'supera {max}, el tamaño máximo de un .nzb',
   'container.noUsenet': 'es un .nzb, y nada aquí puede descargarlo de Usenet. Añade un servidor de Usenet o una cuenta de TorBox o de Premiumize.me en Cuentas.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, subido aquí o enviado por Sonarr o Radarr, va a tu propio servidor de Usenet o a tu cuenta de TorBox o de Premiumize.me, según cuál venga primero en el orden de prioridad de Cuentas. Tu propio servidor descarga cada archivo al instante. Un servicio de debrid descarga primero el lanzamiento, y luego sus archivos se descargan como cualquier otro enlace. TorBox solo acepta archivos .nzb en los planes que incluyen Usenet. Si TorBox rechaza el primero, ese .nzb falla a menos que otra cuenta lo acepte.',
   'task.remote': 'Descargando en {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Los enlaces magnet y los archivos .torrent van o bien al cliente de torrents integrado, o bien a un servicio debrid que acepte torrents, según cuál esté más arriba en la lista.',
@@ -3531,6 +3465,8 @@ export const es: Dict = {
   'settings.archives.journeyHint': 'Lo que le ocurre a un archivo una vez descargado, estación por estación. Una estación gris está desactivada y el archivo pasa de largo. «{verifying}» sigue el interruptor «{checksums}» en «{downloads}». «{repairing}» necesita un servidor de Usenet propio. «{moving}» necesita «{workDir}» o un destino para los archivos extraídos. «{cleanup}» se omite mientras se conserve el comprimido.',
   'picture.journey.move': 'Moviendo',
   'picture.journey.cleanup': 'Limpiando',
+  'picture.journey.wayTo': 'Ir a «{setting}» en {page}',
+  'picture.journey.wayHere': 'Ir a «{setting}» en esta página',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Dirección antigua',

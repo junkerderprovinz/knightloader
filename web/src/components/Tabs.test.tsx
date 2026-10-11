@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act } from 'react';
+import { act, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -157,35 +157,74 @@ describe('a rail on the sidebar ground', () => {
 });
 
 describe('a selector that sets a value', () => {
-  const segments = (variant: 'default' | 'well', links = false) => {
-    act(() =>
-      root.render(
-        <Tabs
-          variant={variant}
-          label="Theme"
-          active="dark"
-          onSelect={() => {}}
-          items={[
-            { id: 'dark', label: 'Dark', href: links ? '/dark' : undefined },
-            { id: 'light', label: 'Light', href: links ? '/light' : undefined },
-          ]}
-        />,
-      ),
-    );
-    return [...host.querySelectorAll<HTMLElement>('[role="tab"]')];
-  };
+  const selector = (label: string, variant: 'default' | 'well' = 'well', links = false) => (
+    <Tabs
+      key={label}
+      variant={variant}
+      label={label}
+      active="dark"
+      onSelect={() => {}}
+      items={[
+        { id: 'dark', label: 'Dark', href: links ? '/dark' : undefined },
+        { id: 'light', label: 'Light', href: links ? '/light' : undefined },
+      ]}
+    />
+  );
+  /** Draws, and lets the rainbow engine count the selectors out. */
+  const draw = (page: ReactNode) => act(async () => root.render(page));
+  const strip = (label: string) => document.querySelector<HTMLElement>(`[aria-label="${label}"]`)!;
+  const position = (label: string) => strip(label).style.getPropertyValue('--item-hue');
 
-  it.each(['well', 'default'] as const)('owns no palette position as a %s, so the chosen segment wears the accent of its card', (variant) => {
-    for (const segment of segments(variant)) {
-      expect(segment.classList.contains('glim-hue')).toBe(false);
+  it.each(['well', 'default'] as const)('owns one palette position as a %s, which its segments share', async (variant) => {
+    await draw(selector('Theme', variant));
+    expect(position('Theme')).toBe('var(--rb-0)');
+    for (const segment of strip('Theme').querySelectorAll<HTMLElement>('[role="tab"]')) {
+      expect(segment.classList.contains('glim-hue')).toBe(true);
       expect(segment.style.getPropertyValue('--item-hue')).toBe('');
     }
-    expect(segments(variant)[0].className).toContain('bg-accent');
+    expect(strip('Theme').querySelector('[aria-selected="true"]')!.className).toContain('bg-accent');
   });
 
-  it('leaves a strip that chooses a page its position per tab', () => {
-    const [first, second] = segments('default', true);
+  it('counts the selectors through the palette in the order they stand', async () => {
+    await draw([selector('Theme'), selector('Corners'), selector('Motion'), selector('Row height')]);
+    expect(['Theme', 'Corners', 'Motion', 'Row height'].map(position)).toEqual([
+      'var(--rb-0)',
+      'var(--rb-1)',
+      'var(--rb-2)',
+      'var(--rb-3)',
+    ]);
+  });
+
+  it('counts again when a selector appears between two others', async () => {
+    await draw([selector('Theme'), selector('Motion')]);
+    expect(position('Motion')).toBe('var(--rb-1)');
+    await draw([selector('Theme'), selector('Corners'), selector('Motion')]);
+    expect(['Theme', 'Corners', 'Motion'].map(position)).toEqual(['var(--rb-0)', 'var(--rb-1)', 'var(--rb-2)']);
+    await draw([selector('Theme'), selector('Motion')]);
+    expect(position('Motion')).toBe('var(--rb-1)');
+  });
+
+  it('counts the selectors of a window on their own', async () => {
+    await draw(
+      <>
+        {selector('Theme')}
+        <div aria-modal="true">
+          {selector('Category')}
+          {selector('Priority')}
+        </div>
+        {selector('Corners')}
+      </>,
+    );
+    expect(['Theme', 'Corners'].map(position)).toEqual(['var(--rb-0)', 'var(--rb-1)']);
+    expect(['Category', 'Priority'].map(position)).toEqual(['var(--rb-0)', 'var(--rb-1)']);
+  });
+
+  it('leaves a strip that chooses a page its position per tab, and out of the count', async () => {
+    await draw([selector('Pages', 'default', true), selector('Theme')]);
+    const [first, second] = strip('Pages').querySelectorAll<HTMLElement>('[role="tab"]');
     expect(first.classList.contains('glim-hue')).toBe(true);
     expect(first.style.getPropertyValue('--item-hue')).not.toBe(second.style.getPropertyValue('--item-hue'));
+    expect(position('Pages')).toBe('');
+    expect(position('Theme')).toBe('var(--rb-0)');
   });
 });

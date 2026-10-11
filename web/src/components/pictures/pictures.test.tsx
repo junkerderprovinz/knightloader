@@ -140,6 +140,50 @@ describe('the scene after a download', () => {
     await draw(<AfterDownload title="After a download" steps={all} />);
     expect(lit('unpack')).toBe(true);
   });
+
+  describe('with a way to a setting', () => {
+    const way = (id: string) => station(id).closest<SVGGElement>('[role="link"]');
+    let went: string[];
+    const ways = {
+      verify: { leadsTo: 'Go to "Checksum verification" under Downloads', go: () => went.push('verify') },
+    };
+
+    beforeEach(() => {
+      went = [];
+    });
+
+    it('makes the station a link that says where it leads', async () => {
+      await draw(<AfterDownload title="After a download" steps={all} ways={ways} />);
+      expect(way('verify')!.getAttribute('aria-label')).toBe('Verifying. Go to "Checksum verification" under Downloads');
+      expect(way('verify')!.getAttribute('tabindex')).toBe('0');
+      // The name belongs to the link, so a click on it goes too.
+      expect(way('verify')!.textContent).toContain('Verifying');
+    });
+
+    it('goes there on a click and on Enter, and on no other key', async () => {
+      await draw(<AfterDownload title="After a download" steps={all} ways={ways} />);
+      const key = (k: string) => way('verify')!.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+      act(() => {
+        way('verify')!.dispatchEvent(new MouseEvent('click', { bubbles: true }));
+        key('Enter');
+        key('a');
+      });
+      expect(went).toEqual(['verify', 'verify']);
+    });
+
+    it('leaves a station with nothing to set plain', async () => {
+      await draw(<AfterDownload title="After a download" steps={all} ways={ways} />);
+      expect(way('download')).toBeNull();
+      expect(way('unpack')).toBeNull();
+      expect(station('download').querySelector('.kl-station-ring')).toBeNull();
+    });
+
+    it('is a group of parts once one of them can be pressed', async () => {
+      await draw(<AfterDownload title="After a download" steps={all} ways={ways} />);
+      expect(host.querySelector('svg')!.getAttribute('role')).toBe('group');
+      expect(host.querySelector('svg')!.getAttribute('aria-label')).toContain('After a download');
+    });
+  });
 });
 
 describe('a trip', () => {

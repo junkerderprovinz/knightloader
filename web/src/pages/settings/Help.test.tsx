@@ -95,12 +95,10 @@ async function check() {
 }
 
 describe('the Info tile', () => {
-  it('opens with About, Version and Help and keeps the help topics under them', async () => {
+  it('holds three cards: Version, then Help, then About', async () => {
     await draw();
     const titles = [...host.querySelectorAll('.glim-section-badge')].map((b) => b.textContent);
-    expect(titles.slice(0, 3)).toEqual(['About KnightLoader', 'Version', 'Help']);
-    expect(titles).toContain('Adding downloads');
-    expect(titles).toHaveLength(14);
+    expect(titles).toEqual(['Version', 'Help', 'About KnightLoader']);
   });
 
   it('lists every version the app is made of and links a number to its release', async () => {
@@ -208,6 +206,30 @@ describe('the Info tile', () => {
     const manual = [...card('Help').querySelectorAll('a')].find((a) => a.textContent?.includes('Manual'))!;
     expect(manual.getAttribute('href')).toBe('https://junkerderprovinz.github.io/knightloader/');
     expect(manual.textContent).toContain('Open');
+  });
+
+  it('shows the manual as a closed book with an open one for the pointer, as the envelope has', async () => {
+    await draw();
+    const pair = (name: string) =>
+      [...card('Help').querySelectorAll('.glim-readme-btn')]
+        .find((b) => b.textContent?.includes(name))!
+        .querySelectorAll('.glim-house-mark svg');
+    for (const name of ['Manual', 'Email']) {
+      expect([...pair(name)].map((svg) => svg.getAttribute('class'))).toEqual(['glim-mark-rest', 'glim-mark-hover']);
+    }
+  });
+
+  it('draws the marks of the Help card at one size, each across its whole box', async () => {
+    await draw();
+    const sides = [...card('Help').querySelectorAll('.glim-readme-btn-mark svg')].map((svg) => {
+      const [, , width, height] = svg.getAttribute('viewBox')!.split(' ').map(Number);
+      expect(height).toBe(width);
+      return width;
+    });
+    // GitHub, the envelope shut and open, the book shut and open, the bug: each
+    // box is the longer side of its ink. An ordinary glyph keeps a quarter of
+    // its box as air, so GitHub's 24 would stand in a box of 32.
+    expect(sides).toEqual([24, 14, 20, 14, 14, 13.9]);
   });
 
   it('downloads the diagnostics bundle as the bug report', async () => {

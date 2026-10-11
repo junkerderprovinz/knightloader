@@ -161,6 +161,7 @@ export const hu: Dict = {
   'settings.theme': 'Téma',
   'settings.theme.light': 'Világos',
   'settings.theme.dark': 'Sötét',
+  'settings.theme.system': 'Rendszer',
   'settings.corners': 'Sarkok',
   'settings.corners.round': 'Kerek',
   'settings.corners.slightlyRounded': 'Enyhe',

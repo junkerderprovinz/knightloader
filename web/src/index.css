@@ -647,6 +647,22 @@ body {
   transition: none;
 }
 
+/* A station that leads to its setting looks like the others at rest. A ring
+   answers the pointer and the focus. */
+.kl-station-way {
+  cursor: pointer;
+  outline: none;
+}
+.kl-station-ring {
+  fill: none;
+  stroke: var(--accent-glyph);
+  stroke-width: 2;
+  opacity: 0;
+}
+.kl-station-way:is(:hover, :focus-visible) .kl-station-ring {
+  opacity: 1;
+}
+
 /* The group as a net: one arrangement for a wide box and one with every node
    on the same side for a narrow one. */
 .kl-net {
@@ -2043,6 +2059,14 @@ body {
 /* A mark whose layers do not survive one ink brings the brand's own
    single-colour version for the hover. */
 .glim-mark-hover { display: none; }
+/* The house marks open: the envelope and the manual's book show their open
+   drawing on the focus as well, and under a finger, where nothing hovers. */
+.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-hover { display: block; }
+@media (hover: none) {
+  .glim-brand-tile:active .glim-house-mark .glim-mark-rest { display: none; }
+  .glim-brand-tile:active .glim-house-mark .glim-mark-hover { display: block; }
+}
 
 /* The brands' tile colours: the true colour and the ink that holds on it,
    white wherever white reaches 2:1 and near-black below that. The coins carry
@@ -2213,7 +2237,7 @@ body {
 
 /* Half the second line's height down, so the name alone sits in the middle. */
 .glim-readme-btn-name:not(:only-child) {
-  translate: 0 0.4375rem;
+  translate: 0 calc(var(--text-meta) * 1.15 / 2);
 }
 
 .glim-readme-btn-sub {
@@ -2316,6 +2340,15 @@ body {
   :root:not([data-motion="off"]) .glim-readme-btn-group:hover .glim-readme-btn-sheen::after {
     animation-duration: calc(var(--motion-button-sheen-dur) * 1.9);
   }
+}
+
+/* The Help card's buttons stand as BombVault's do, the mark 14px from the
+   edge, which leaves a name as long as "Fehlerbericht" its room. */
+.kl-help-buttons .glim-readme-btn-mark {
+  inset-inline-start: 0.875rem;
+}
+.kl-help-buttons .glim-readme-btn-text {
+  inset-inline-start: 3.3125rem;
 }
 
 /* The About card's give buttons stand a blank line of the card's text below

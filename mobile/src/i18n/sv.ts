@@ -161,6 +161,7 @@ export const sv: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Ljust',
   'settings.theme.dark': 'Mörkt',
+  'settings.theme.system': 'System',
   'settings.corners': 'Hörn',
   'settings.corners.round': 'Runda',
   'settings.corners.slightlyRounded': 'Mjuka',

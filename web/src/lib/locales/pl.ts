@@ -18,6 +18,7 @@ export const pl: Dict = {
   'nav.workingTitle': 'tytuł roboczy',
   'theme.dark': 'Ciemny',
   'theme.light': 'Jasny',
+  'theme.system': 'Systemowy',
   'theme.toggle': 'Zmień motyw',
   'lang.label': 'Język',
   'lang.open': 'Zmień język',
@@ -429,6 +430,8 @@ export const pl: Dict = {
   'settings.rainbowPaletteHint': 'Osiem kolorów przypisanych według pozycji. Każdy można edytować osobno.',
   'settings.look.saveFailed': 'Nie udało się zapisać: {error}',
   'settings.theme': 'Motyw',
+  'settings.themeHint':
+    '„{system}” podąża za jasnym lub ciemnym ustawieniem twojego urządzenia i zmienia się razem z nim.',
   'settings.motion.wild': 'Dzikie',
   'settings.motion.storm': 'Burza',
   'settings.motion.subtle': 'Subtelne',
@@ -1524,72 +1527,6 @@ export const pl: Dict = {
 
   'settings.nav.help': 'Informacje',
 
-  'settings.help.intake.title': 'Dodawanie pobrań',
-  'settings.help.intake.body':
-    'Wklej linki do Kolektora, jeden na wiersz albo jako nieuporządkowany tekst. Skanowanie znajduje linki, gdziekolwiek są: w środku zdania, po kilka w wierszu albo przełamane przez program pocztowy na dwa wiersze.',
-  'settings.help.intake.b1': 'Upuść plik kontenera linków (.dlc, .ccf, .rsdf) albo zwykłą listę linków.',
-  'settings.help.intake.b2':
-    'Przyciski Click\'n\'Load na stronach hosterów i forów działają bez zmian. KnightLoader odpowiada na 127.0.0.1:9666, tym samym porcie, którego używa każdy inny menedżer pobierania.',
-  'settings.help.intake.b3':
-    'Wklej adres URL strony zamiast linku do pliku i włącz Przeszukiwanie, aby wyciągnąć każdy plik, do którego prowadzi, zamiast pobierać samą stronę.',
-  'settings.help.intake.link1': 'Otwórz ustawienia Kolektora linków',
-
-  'settings.help.collector.title': 'Kolektor, zanim cokolwiek zacznie się pobierać',
-  'settings.help.collector.body':
-    'Nowe linki trafiają najpierw do Kolektora, nie do kolejki: strefa przejściowa do sprawdzenia nazw, rozmiarów i ostrzeżeń o duplikatach, zanim cokolwiek się zacznie. Automatyczne potwierdzanie może pominąć ten krok, z opcjonalnym opóźnieniem; po potwierdzeniu link albo zaczyna się natychmiast, albo czeka w kolejce, zależnie od automatycznego startu.',
-  'settings.help.collector.link': 'Otwórz ustawienia Kolektora linków',
-
-  'settings.help.rules.title': 'Reguły: pakiety, foldery i co jest zachowywane',
-  'settings.help.rules.body':
-    'Packagizer zmienia nazwę linku, wybiera jego folder i ustawia opcje pobierania w chwili, gdy link przychodzi, na podstawie warunków, które piszesz. Filtr linków decyduje, czy link w ogóle zostaje. Odrzucenie zawsze podaje regułę, która je spowodowała, i powód.',
-  'settings.help.rules.link': 'Otwórz Reguły',
-
-  'settings.help.queue.title': 'Zarządzanie kolejką',
-  'settings.help.queue.body':
-    'Wstrzymuj, wznawiaj lub przestawiaj dowolny link, pojedynczo albo jako cały pakiet. Kolejkę można zatrzymać na dwa sposoby. Wstrzymanie kolejki nie rusza tego, co już trwa, więc to dokończy się samo. Natychmiastowe zatrzymanie wszystkich transferów najpierw pokazuje, co zostałoby utracone, i działa dopiero po twoim potwierdzeniu. Ostrzeżenie jest dla transferów, które nie potrafią wznowić się tam, gdzie przerwały.',
-  'settings.help.queue.b1': 'Pojedynczy link może nadpisać globalną liczbę połączeń albo przełącznik wypakowywania po pobraniu.',
-  'settings.help.queue.b2': 'Duplikat linku już obecnego na liście jest zawsze odrzucany, zanim w ogóle dotrze do kolektora.',
-
-  'settings.help.limits.title': 'Omijanie limitów hostera',
-  'settings.help.limits.body': 'Trzy niezależne sposoby, aby darmowy limit nie był sufitem:',
-  'settings.help.limits.b1':
-    'Połączenia: rozłóż pobrania na więcej niż jedną drogę wychodzącą (drugie łącze, proxy, SOCKS), zamiast zawsze wychodzić przez własny adres tej maszyny.',
-  'settings.help.limits.b2':
-    'Ponowne łączenie: poproś router o nowy adres publiczny, jedyną rzecz, która znosi limit przypisany do samego adresu. Działa to przez UPnP, zewnętrzny program, skrypt albo odtwarzanie żądań HTTP do strony administracyjnej routera. Istniejące skrypty LiveHeader/curl z JDownloadera działają bez zmian.',
-  'settings.help.limits.b3':
-    'Konta: zapisz dane logowania premium lub debrid (Real-Debrid, AllDebrid, TorBox i inne), aby uprawniony link był pobierany z pełną prędkością, a nie z limitem dla darmowych użytkowników.',
-  'settings.help.limits.link1': 'Otwórz Sieć',
-  'settings.help.limits.link3': 'Otwórz Konta',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Gdy hoster prosi o captchę, najpierw próbowane są skonfigurowane przez ciebie konta captcha, w ustalonej przez ciebie kolejności. Jeśli żadne nie jest skonfigurowane albo żadne jej nie rozwiąże, captcha trafia do ciebie, zamiast po cichu zawieść.',
-  'settings.help.captcha.link': 'Otwórz ustawienia Captcha',
-
-  'settings.help.after.title': 'Po pobraniu',
-  'settings.help.after.body':
-    'Archiwa są rozpakowywane automatycznie: zip (także szyfrowany, zarówno WinZip AES, jak i starszy ZipCrypto), rar z zestawami wielotomowymi, 7z, tar oraz gzip/bzip2/xz/zstd, niezależnie od tego, czy zawierają tar. Rozpakowywanie działa w czystym Go i nie potrzebuje zewnętrznego programu unrar ani 7z. Dla zaszyfrowanego archiwum po kolei próbowana jest lista haseł. Ukończony plik jest sprawdzany względem każdej dołączonej sumy kontrolnej: listy .sfv, pliku md5/sha1/sha256sum albo CRC32 zawartego w samej nazwie wydania.',
-  'settings.help.after.link1': 'Otwórz ustawienia Archiwów',
-  'settings.help.after.link2': 'Otwórz ustawienia Pobierania',
-
-  'settings.help.schedule.title': 'Działanie bez nadzoru',
-  'settings.help.schedule.body':
-    'Tygodniowy harmonogram wstrzymuje lub spowalnia kolejkę według zegara, na przykład w nocnym oknie, i działa poprawnie także przy zmianie czasu. To ten sam pomysł co Scheduler w JDownloaderze.',
-  'settings.help.schedule.link': 'Otwórz Automatyzację',
-
-  'settings.help.instances.title': 'Uruchamianie więcej niż jednej instancji',
-  'settings.help.instances.body': 'Dodaj kolejny KnightLoader jako partnera, a jego kolejka pojawi się także na tym pulpicie. W tej samej sieci to bezpośrednie wywołanie API drugiej instancji, tak jak zrobiłaby to przeglądarka. Między sieciami dwanaście słów łączy obie przez przekaźnik, który możesz hostować sam.',
-  'settings.help.instances.link': 'Otwórz Instancje',
-
-  'settings.help.access.title': 'Dostęp i rozwiązywanie problemów',
-  'settings.help.access.body': 'Hasło zamyka cały interfejs: wejść można wtedy tylko z ciasteczkiem sesji. Na stronie Bezpieczeństwo jest ono razem z drugim składnikiem, kluczami dostępu i tokenami API. Strona Diagnostyka tworzy plik do dołączenia do zgłoszenia błędu: wersję i informacje o buildzie, bieżące ustawienia bez żadnych haseł, ostatnie wiersze dziennika tego procesu oraz liczbę działających goroutines.',
-  'settings.help.access.link1': 'Otwórz Bezpieczeństwo',
-  'settings.help.access.link2': 'Otwórz Diagnostykę',
-
-  'settings.help.advanced.title': 'Wszystko inne',
-  'settings.help.advanced.body':
-    'Każde ustawienie tego builda można odczytać i zmienić po jego surowej nazwie na stronie Zaawansowane. Dotyczy to także kilku, które nie mają jeszcze nigdzie indziej własnej kontrolki, na przykład tego, jak traktowane jest lustro już pobranego pliku i co się dzieje, gdy pobranie miałoby trafić na zajętą już nazwę.',
-  'settings.help.advanced.link': 'Otwórz ustawienia Zaawansowane',
   'task.mode.free': 'Darmowy',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderze',
@@ -3345,11 +3282,9 @@ export const pl: Dict = {
   'settings.categories.torrentFilesOwn': 'Własny',
   'settings.watchDirFilesHint': 'Pliki upuszczone tutaj są przejmowane automatycznie: listy linków (.txt, .crawljob, .magnet), pliki .torrent, kontenery (.dlc, .ccf, .rsdf) i pliki .nzb.',
   'container.usenet': '{file} trafił do {service}. Jego pliki pojawią się tutaj, gdy {service} pobierze je z Usenetu.',
-  'settings.help.intake.watchFiles': 'Obserwowany folder przejmuje to, co do niego wrzucisz: listy linków (.txt, .crawljob, .magnet), pliki .torrent, kontenery (.dlc, .ccf, .rsdf) i pliki .nzb.',
   'container.nzbTooBig': 'jest większy niż {max}, a większy plik .nzb być nie może',
   'container.noUsenet': 'to plik .nzb, a nic tutaj nie potrafi pobrać go z Usenetu. Dodaj serwer Usenetu albo konto TorBox lub Premiumize.me na stronie Konta.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Plik .nzb przesłany tutaj albo wysłany przez Sonarr lub Radarr trafia na twój własny serwer Usenetu albo na twoje konto TorBox lub Premiumize.me, zależnie od tego, co jest wyżej w kolejności priorytetów na stronie Konta. Twój własny serwer pobiera każdy plik od razu. Usługa debrid najpierw pobiera release, a jego pliki potem pobierają się jak każdy inny link. TorBox przyjmuje pliki .nzb tylko w planach obejmujących Usenet. Jeśli TorBox odrzuci pierwszy plik, ten .nzb kończy się błędem, chyba że przejmie go inne konto.',
   'task.remote': 'Pobieranie w usłudze {service}',
   'task.remoteSeeds': 'Seedy: {n}',
   'accounts.routing.orderHintTorrents': 'Linki magnet i pliki .torrent trafiają albo do wbudowanego klienta torrentów, albo do usługi debrid, która przyjmuje torrenty, zależnie od tego, co stoi wyżej na liście.',
@@ -3523,6 +3458,8 @@ export const pl: Dict = {
   'settings.archives.journeyHint': 'Co dzieje się z plikiem po pobraniu, stacja po stacji. Szara stacja jest wyłączona i plik ją mija. „{verifying}” zależy od przełącznika „{checksums}” w sekcji „{downloads}”. „{repairing}” wymaga twojego własnego serwera Usenetu. „{moving}” wymaga ustawienia „{workDir}” albo miejsca na rozpakowane pliki. „{cleanup}” jest pomijane, dopóki archiwum zostaje.',
   'picture.journey.move': 'Przenoszenie',
   'picture.journey.cleanup': 'Sprzątanie',
+  'picture.journey.wayTo': 'Przejdź do „{setting}” w sekcji {page}',
+  'picture.journey.wayHere': 'Przejdź do „{setting}” na tej stronie',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stary adres',

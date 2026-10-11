@@ -161,6 +161,7 @@ export const eu: Dict = {
   'settings.theme': 'Gaia',
   'settings.theme.light': 'Argia',
   'settings.theme.dark': 'Iluna',
+  'settings.theme.system': 'Sistema',
   'settings.corners': 'Izkinak',
   'settings.corners.round': 'Biribilak',
   'settings.corners.slightlyRounded': 'Leunak',

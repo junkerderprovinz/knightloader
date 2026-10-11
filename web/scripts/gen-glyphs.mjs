@@ -1,7 +1,9 @@
 // Regenerates src/lib/glyphs.tsx from scripts/glyphs.json, GlimStone's
 // reference/glyphs.json copied unchanged: one drawing per meaning, the same in
 // every GlimStone app. Refresh the copy from GlimStone instead of editing it
-// here, or the apps that share the set drift apart.
+// here, or the apps that share the set drift apart. IconManual and
+// IconManualOpen at its end are BombVault's, under the names it gave them, so
+// the copy agrees with GlimStone's once that carries them.
 //
 //   node scripts/gen-glyphs.mjs
 //
@@ -105,14 +107,18 @@ const INK_SHARE = 0.75;
 
 const round = (n: number) => Math.round(n * 1000) / 1000;
 
+/** What a glyph takes: its <svg>'s own props, and \`tight\` to drop the air around the ink. */
+export type GlyphProps = SVGProps<SVGSVGElement> & { tight?: boolean };
+
 /**
  * glyph returns what every glyph's <svg> takes: 22px, the current colour and a
  * square viewBox around the centre of the ink, sized so that the ink's longer
  * side spans INK_SHARE of it. Glyphs drawn on different grids then read as one
- * size in one box.
+ * size in one box. A \`tight\` glyph fills its box, for a slot that is sized
+ * for the mark alone, as a README button's is for a vendor's logo.
  */
-export function glyph([x, y, w, h]: Ink, p: SVGProps<SVGSVGElement>) {
-  const side = Math.max(w, h) / INK_SHARE;
+export function glyph([x, y, w, h]: Ink, { tight, ...p }: GlyphProps) {
+  const side = Math.max(w, h) / (tight ? 1 : INK_SHARE);
   return {
     width: 22,
     height: 22,
@@ -129,7 +135,7 @@ export function glyph([x, y, w, h]: Ink, p: SVGProps<SVGSVGElement>) {
 for (const g of glyphs) {
   const ink = `[${g.ink.join(', ')}]`;
   parts.push(`/** ${g.means}: ${g.source}. */
-export const ${g.name} = (p: SVGProps<SVGSVGElement>) => (
+export const ${g.name} = (p: GlyphProps) => (
   <svg {...glyph(${ink}, p)}>
 ${toJsx(g.svg, 4)}
   </svg>
@@ -142,7 +148,7 @@ ${toJsx(g.svg, 4)}
  * a mask and uncovers the filled glyph as it goes. pathLength="1" lets the dash
  * offset run from 1 to 0 whatever the path's real length.
  */
-export function IconCheckDrawn(p: SVGProps<SVGSVGElement>) {
+export function IconCheckDrawn(p: GlyphProps) {
   // useId has colons, which a url(#...) reference does not take in every browser.
   const mask = \`check\${useId().replace(/[^\\w-]/g, '')}\`;
   return (

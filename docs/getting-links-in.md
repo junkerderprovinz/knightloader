@@ -1,6 +1,8 @@
 # Getting links in
 
-Pasting works, and so does dropping text onto the collector. Beyond that:
+Pasting works, and so does dropping text onto the collector. The text need not
+be tidy: a link is found inside a sentence, beside others on one line, and
+where a mail client broke it across two lines. Beyond that:
 
 - **[Click'n'Load](clicknload.md)**: a site's own CnL button hands its links
   straight over. Every site addresses `127.0.0.1`, and a container's loopback is
@@ -19,7 +21,8 @@ Pasting works, and so does dropping text onto the collector. Beyond that:
   again. One this instance cannot open stays where it is, and the log says
   why. An `.nzb` left there for want of an account is taken once you add one.
   Point Settings at the folder to switch it on.
-- **A page**: paste one, and the files it links to are staged instead.
+- **A page**: paste one with the Page crawler on under Settings, Link
+  collector, and the files it links to are staged instead of the page.
 - **A container file**: upload a `.txt`, `.dlc`, `.ccf` or `.rsdf`. A link
   list, a DLC, an RSDF and a CCF are read on the spot. One that will not open
   here is handed to the JDownloader backend, which is provisioned on first run

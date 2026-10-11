@@ -18,6 +18,7 @@ export const tr: Dict = {
   'nav.workingTitle': 'çalışma adı',
   'theme.dark': 'Koyu',
   'theme.light': 'Açık',
+  'theme.system': 'Sistem',
   'theme.toggle': 'Temayı değiştir',
   'lang.label': 'Dil',
   'lang.open': 'Dili değiştir',
@@ -437,6 +438,7 @@ export const tr: Dict = {
   'settings.rainbowPaletteHint': 'Konuma göre atanan sekiz renk. Her biri ayrı ayrı düzenlenebilir.',
   'settings.look.saveFailed': 'Kaydedilemedi: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint': '“{system}”, cihazının açık veya koyu ayarını izler ve onunla birlikte değişir.',
   'settings.motion.wild': 'Coşkulu',
   'settings.motion.storm': 'Fırtına',
   'settings.motion.subtle': 'İnce',
@@ -1532,72 +1534,6 @@ export const tr: Dict = {
 
   'settings.nav.help': 'Bilgi',
 
-  'settings.help.intake.title': 'İndirme ekleme',
-  'settings.help.intake.body':
-    'Bağlantıları Toplayıcıya yapıştır, satır başına bir tane ya da dağınık bir metin olarak. Bir tarama bağlantıları nerede olurlarsa bulur: bir cümlenin ortasında, bir satırda birkaç tane ya da bir e-posta programının iki satıra böldüğü hâlde.',
-  'settings.help.intake.b1': 'Bir bağlantı kapsayıcı dosyası (.dlc, .ccf, .rsdf) veya düz bir bağlantı listesi bırakın.',
-  'settings.help.intake.b2':
-    'Hoster ve forum sayfalarındaki Click\'n\'Load düğmeleri değişmeden çalışır. KnightLoader, diğer her indiricinin kullandığı port olan 127.0.0.1:9666 üzerinden yanıt verir.',
-  'settings.help.intake.b3':
-    'Bir dosya bağlantısı yerine bir sayfa URL’si yapıştırın ve sayfanın kendisini indirmek yerine bağlantı verdiği her dosyayı çıkarmak için Tarama’yı açın.',
-  'settings.help.intake.link1': 'Bağlantı toplayıcı ayarlarını aç',
-
-  'settings.help.collector.title': 'Toplayıcı, herhangi bir şey indirilmeden önce',
-  'settings.help.collector.body':
-    'Yeni bağlantılar önce Toplayıcıya gelir, kuyruğa değil: herhangi bir şey başlamadan önce adları, boyutları ve yinelenen uyarılarını kontrol etmek için bir ara bölge. Otomatik onay bu adımı atlayabilir, isteğe bağlı bir gecikmeyle; onaylandıktan sonra, bir bağlantı ya hemen başlar ya da otomatik başlatmaya bağlı olarak kuyrukta bekler.',
-  'settings.help.collector.link': 'Bağlantı toplayıcı ayarlarını aç',
-
-  'settings.help.rules.title': 'Kurallar: paketler, klasörler ve ne saklanır',
-  'settings.help.rules.body':
-    'Packagizer, bir bağlantı gelirken senin yazdığın koşullara göre onu yeniden adlandırır, klasörünü seçer ve indirme seçeneklerini ayarlar. Bağlantı süzgeci, bir bağlantının tutulup tutulmayacağına karar verir. Bir ret, ona yol açan kuralı ve nedenini her zaman söyler.',
-  'settings.help.rules.link': 'Kuralları aç',
-
-  'settings.help.queue.title': 'Kuyruğu yönet',
-  'settings.help.queue.body':
-    'Herhangi bir bağlantıyı tek başına ya da bütün bir paket olarak duraklat, sürdür ya da yeniden sırala. Kuyruğu durdurmanın iki yolu var. Kuyruğu bekletmek zaten çalışan her şeye dokunmaz, onlar kendi kendine biter. Tüm aktarımları hemen durdurmak ise önce neyin kaybolacağını gösterir ve ancak sen onaylayınca devam eder. Bu uyarı, kaldığı yerden devam edemeyen aktarımlar için var.',
-  'settings.help.queue.b1': 'Tek bir bağlantı, genel bağlantı sayısını veya indirme sonrası çıkarma anahtarını geçersiz kılabilir.',
-  'settings.help.queue.b2': 'Listede zaten bulunan bir bağlantının kopyası, Toplayıcıya hiç ulaşmadan önce her zaman reddedilir.',
-
-  'settings.help.limits.title': 'Barındırıcı sınırlarını aşma',
-  'settings.help.limits.body': 'Ücretsiz bir sınırın tavan olmasını önlemenin üç bağımsız yolu:',
-  'settings.help.limits.b1':
-    'Bağlantılar: indirmeleri her zaman bu makinenin kendi adresinden çıkmak yerine birden fazla giden yola dağıt (ikinci bir hat, bir proxy, SOCKS).',
-  'settings.help.limits.b2':
-    'Yeniden bağlanma: yönlendiriciden yeni bir genel adres iste; adresin kendisine bağlı bir sınırı kaldıran tek şey budur. UPnP, harici bir program, bir betik ya da yönlendiricinin yönetim sayfasına gönderilen HTTP isteklerinin yeniden oynatılmasıyla çalışır. Mevcut JDownloader LiveHeader/curl betikleri değişmeden çalışır.',
-  'settings.help.limits.b3':
-    'Hesaplar: premium ya da debrid girişlerini (Real-Debrid, AllDebrid, TorBox ve diğerleri) kaydet, böylece uygun bir bağlantı ücretsiz kullanıcı sınırı yerine tam hızda alınır.',
-  'settings.help.limits.link1': 'Ağı aç',
-  'settings.help.limits.link3': 'Hesapları aç',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Bir hoster captcha istediğinde önce ayarladığın captcha hesapları, belirlediğin sırayla denenir. Hiçbiri ayarlanmamışsa ya da hiçbiri çözemezse captcha, sessizce başarısız olmak yerine sana gösterilir.',
-  'settings.help.captcha.link': 'Captcha ayarlarını aç',
-
-  'settings.help.after.title': 'İndirmeden sonra',
-  'settings.help.after.body':
-    'Arşivler otomatik olarak ayıklanır: zip (hem WinZip AES hem de eski ZipCrypto ile şifrelenmişler dahil), çok ciltli setlerle rar, 7z, tar ve bir tar\'ı sarsın ya da sarmasın gzip/bzip2/xz/zstd. Ayıklama saf Go ile yapılır ve harici bir unrar ya da 7z programı gerektirmez. Şifreli bir arşiv için bir parola listesi sırayla denenir. Biten bir dosya, onunla gelen sağlama toplamına göre denetlenir: bir .sfv listesi, bir md5/sha1/sha256sum dosyası ya da sürüm adının kendisinin taşıdığı bir CRC32.',
-  'settings.help.after.link1': 'Arşivler ayarlarını aç',
-  'settings.help.after.link2': 'İndirmeler ayarlarını aç',
-
-  'settings.help.schedule.title': 'Gözetimsiz çalışma',
-  'settings.help.schedule.body':
-    'Haftalık bir zamanlama, kuyruğu saate göre duraklatır ya da yavaşlatır, örneğin bir gece penceresinde, ve yaz saati geçişinde de doğru kalır. JDownloader\'ın Scheduler\'ı ile aynı fikir.',
-  'settings.help.schedule.link': 'Otomasyonu aç',
-
-  'settings.help.instances.title': 'Birden fazla örnek çalıştırma',
-  'settings.help.instances.body': 'Başka bir KnightLoader\'ı eş olarak ekle, kuyruğu bu panoda da görünsün. Aynı ağdayken bu, tarayıcının yapacağı gibi diğer örneğin kendi API\'sine doğrudan bir çağrıdır. Ağlar arasında on iki kelime, kendin barındırabileceğin bir aktarıcı üzerinden ikisini eşler.',
-  'settings.help.instances.link': 'Örnekleri aç',
-
-  'settings.help.access.title': 'Erişim ve sorun giderme',
-  'settings.help.access.body': 'Bir parola, arayüzün tamamını kilitler; erişim yalnızca oturum çereziyle olur. Güvenlik sayfası parolayı ikinci faktör, geçiş anahtarları ve API tokenleriyle birlikte tutar. Tanılama sayfası bir hata raporuna eklenecek bir dosya oluşturur: sürüm ve yapı bilgisi, bütün parolaları çıkarılmış güncel ayarlar, bu sürecin kendi son günlük satırları ve kaç goroutine’in çalıştığı.',
-  'settings.help.access.link1': 'Güvenliği aç',
-  'settings.help.access.link2': 'Tanılamayı aç',
-
-  'settings.help.advanced.title': 'Geri kalan her şey',
-  'settings.help.advanced.body':
-    'Bu yapının her ayarı, Gelişmiş sayfasında ham adıyla okunabilir ve değiştirilebilir. Buna henüz başka bir yerde kendi denetimi olmayan birkaç ayar da dahil; örneğin zaten indirilmiş bir dosyanın yansısının nasıl ele alınacağı ve bir indirme zaten kullanılan bir ada düşecekse ne olacağı.',
-  'settings.help.advanced.link': 'Gelişmiş ayarlarını aç',
   'task.mode.free': 'Ücretsiz',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'KnightLoader hakkında',
@@ -3360,11 +3296,9 @@ export const tr: Dict = {
   'settings.categories.torrentFilesOwn': 'Kendi seçimi',
   'settings.watchDirFilesHint': 'Buraya bırakılan dosyalar otomatik olarak alınır: bağlantı listeleri (.txt, .crawljob, .magnet), .torrent dosyaları, konteynerler (.dlc, .ccf, .rsdf) ve .nzb dosyaları.',
   'container.usenet': '{file}, {service} hizmetine gitti. {service} dosyalarını Usenet’ten aldığında burada görünürler.',
-  'settings.help.intake.watchFiles': 'İzlenen bir klasör içine bırakılanları alır: bağlantı listeleri (.txt, .crawljob, .magnet), .torrent dosyaları, konteynerler (.dlc, .ccf, .rsdf) ve .nzb dosyaları.',
   'container.nzbTooBig': '{max} boyutundan büyük, bir .nzb en fazla bu kadar olabilir',
   'container.noUsenet': 'bu bir .nzb ve buradaki hiçbir şey onu Usenet\'ten alamıyor. Hesaplar altında bir Usenet sunucusu ya da bir TorBox veya Premiumize.me hesabı ekle.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Buraya yüklediğin ya da Sonarr veya Radarr\'ın gönderdiği bir .nzb, Hesaplar altındaki öncelik sırasında hangisi önce geliyorsa, kendi Usenet sunucuna ya da TorBox veya Premiumize.me hesabına gider. Kendi sunucun her dosyayı hemen alır. Bir debrid hizmeti önce sürümü alır, ardından içindeki dosyalar diğer her bağlantı gibi indirilir. TorBox .nzb dosyalarını yalnızca Usenet içeren planlarda kabul eder. TorBox ilkini geri çevirirse, başka bir hesap onu devralmadığı sürece o .nzb başarısız olur.',
   'task.remote': '{service} indiriyor',
   'task.remoteSeeds': 'Seedler: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet bağlantıları ve .torrent dosyaları ya yerleşik torrent istemcisine ya da torrent kabul eden bir debrid hizmetine gider; listede hangisi daha yukarıdaysa ona.',
@@ -3538,6 +3472,8 @@ export const tr: Dict = {
   'settings.archives.journeyHint': 'Bir dosyanın indikten sonra başına gelenler, durak durak. Gri durak kapalıdır ve dosya ondan durmadan geçer. “{verifying}”, “{downloads}” altındaki “{checksums}” anahtarına bağlıdır. “{repairing}” için kendi Usenet sunucun gerekir. “{moving}” için “{workDir}” ya da ayıklanan dosyalar için bir hedef gerekir. “{cleanup}”, arşiv tutulduğu sürece atlanır.',
   'picture.journey.move': 'Taşınıyor',
   'picture.journey.cleanup': 'Temizleniyor',
+  'picture.journey.wayTo': '{page} altındaki “{setting}” ayarına git',
+  'picture.journey.wayHere': 'Bu sayfadaki “{setting}” ayarına git',
   'picture.reconnect.router': 'Yönlendirici',
   'picture.reconnect.internet': 'İnternet',
   'picture.reconnect.oldAddress': 'Eski adres',
