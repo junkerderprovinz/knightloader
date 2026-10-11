@@ -138,6 +138,8 @@ export interface LinkReport {
     priority?: number;
     autoExtract?: boolean;
     chunks?: number;
+    /** The id of the Categories-page drawer a rule filed the link under. */
+    category?: string;
     matched?: string[];
   };
   verdict: { rejected: boolean; rule?: string; reason?: string; code?: string; params?: Record<string, string> };
