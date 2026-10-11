@@ -2,6 +2,7 @@ package relay
 
 import (
 	"context"
+	"encoding/json"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -256,5 +257,45 @@ func TestConnectionWithATooShortKeyIsRejected(t *testing.T) {
 	}
 	if relaySrv.Len() != 0 {
 		t.Errorf("%d connections registered, want the short-keyed one rejected", relaySrv.Len())
+	}
+}
+
+// TestNoSpellingOfTheSenderFieldOutlivesTheRelaysStamp: encoding/json takes
+// "ſender" and "Sender" for "sender", and the last of two equal keys. A frame
+// that names the field in any such way is not passed on, and every frame that
+// is carries the id the sending connection announced.
+func TestNoSpellingOfTheSenderFieldOutlivesTheRelaysStamp(t *testing.T) {
+	srv := httptest.NewServer(New())
+	t.Cleanup(srv.Close)
+	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+	alpha := dialInstance(t, url, "shared-relay-test-key-0123456789ab", alphaID)
+	bravo := dialInstance(t, url, "shared-relay-test-key-0123456789ab", bravoID)
+	readFrame(t, bravo, TypeAnnounce)
+	readFrame(t, alpha, TypeAnnounce)
+
+	sealed, err := json.Marshal(sealFor(t, "r1", bravoID, ProxyCall{Method: "GET", Path: "/api/tasks"}))
+	if err != nil {
+		t.Fatal(err)
+	}
+	head := `{"type":"proxy-request","data":{"requestId":"r1","target":"` + bravoID + `","sealed":` + string(sealed)
+	for _, frame := range []string{
+		head + `,"\u017fender":"` + charlieID + `"}}`,
+		head + `,"Sender":"` + charlieID + `"}}`,
+		head + `,"sender":"x","sender":"` + charlieID + `"}}`,
+		head + `,"requestId":"r1"}}`,
+	} {
+		ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+		if err := alpha.Write(ctx, websocket.MessageText, []byte(frame)); err != nil {
+			t.Fatal(err)
+		}
+		cancel()
+	}
+	writeFrame(t, alpha, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: bravoID, Sealed: sealFor(t, "r2", bravoID, ProxyCall{Method: "GET", Path: "/api/tasks"})})
+	var req ProxyRequest
+	if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
+		t.Fatal(err)
+	}
+	if req.RequestID != "r2" || req.Sender != alphaID {
+		t.Errorf("bravo was handed %s from %q, want only r2, from %q", req.RequestID, req.Sender, alphaID)
 	}
 }

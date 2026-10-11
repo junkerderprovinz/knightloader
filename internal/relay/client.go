@@ -447,7 +447,7 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 		c.deliver(resp)
 	case TypeProxyRequest:
 		var req ProxyRequest
-		if env.Into(&req) != nil || req.RequestID == "" {
+		if env.intoStrict(&req) != nil || req.RequestID == "" {
 			return
 		}
 		// Answering runs a real API call, and the read loop has to stay free
