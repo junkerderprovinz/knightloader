@@ -44,8 +44,8 @@ func TestATrustedRangeHoldsProxiesNotVisitors(t *testing.T) {
 	}
 }
 
-// TestAWideRangeSavedEarlierIsKeptForTheOwnerToSee: a range an earlier build
-// took is no longer believed, but it stays in the settings, where the Security
+// TestAWideRangeSavedEarlierIsKeptForTheOwnerToSee: a range wider than the
+// limit is not believed, but it stays in the settings, where the Security
 // page shows it as unused, rather than going without a word.
 func TestAWideRangeSavedEarlierIsKeptForTheOwnerToSee(t *testing.T) {
 	kept := sanitizeTrustedProxies(Settings{TrustedProxies: []string{"192.168.0.0/16", "10.0.0.2"}})
