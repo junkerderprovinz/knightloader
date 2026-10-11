@@ -124,3 +124,35 @@ func TestPasswordsStoredBeforeTheKeyAreSealedOnOpen(t *testing.T) {
 		}
 	}
 }
+
+// Sealing rewrites the rows, which leaves the old values on SQLite's free pages
+// and in the free space of the pages themselves. The file is rebuilt, so a copy
+// of it taken afterwards holds no password in the clear.
+func TestNoPlainPasswordIsLeftInTheFileAfterSealing(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	plain := openAt(t, path, nil)
+	for _, id := range []string{"t1", "t2", "t3"} {
+		if err := plain.Save(withPasswords(id)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	plain.Close()
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Contains(raw, []byte(archivePassword)) {
+		t.Fatal("the file holds no password before sealing, so this test would prove nothing")
+	}
+
+	openAt(t, path, newKey(t)).Close()
+	raw, err = os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, secret := range []string{archivePassword, downloadPassword} {
+		if bytes.Contains(raw, []byte(secret)) {
+			t.Errorf("the file still holds %q in the clear after sealing", secret)
+		}
+	}
+}
