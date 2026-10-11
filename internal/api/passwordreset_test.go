@@ -12,6 +12,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"strconv"
 	"strings"
 	"sync"
 	"testing"
@@ -34,7 +35,7 @@ const (
 	resetNewPassword = "another-good-password"
 )
 
-var shownResetCode = regexp.MustCompile(`Password reset code: ([2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4})`)
+var shownResetCode = regexp.MustCompile(`Password reset code: ([2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4}-[2-9A-HJ-NP-Z]{4})`)
 
 // output is the process's error output for a test, safe to read while a
 // handler writes.
@@ -167,7 +168,7 @@ func TestTheResetCodeIsInNoAnswer(t *testing.T) {
 	if m == nil {
 		t.Fatalf("no code in the output: %q", out.String())
 	}
-	_, refused := finishReset(t, http.DefaultClient, srv.URL, "2222-2222", resetNewPassword)
+	_, refused := finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	_, done := finishReset(t, http.DefaultClient, srv.URL, m[1], resetNewPassword)
 
 	bare := strings.ReplaceAll(m[1], "-", "")
@@ -189,9 +190,7 @@ func TestTheResetCodeIsInNoAnswer(t *testing.T) {
 }
 
 // TestAskingAnswersTheSameWhetherACodeWasWrittenOrNot: a caller must not
-// learn from the answer whether somebody is in the middle of a reset. The
-// third request comes after the code was guessed away and inside the minute
-// in which no new one is minted.
+// learn from the answer whether somebody is in the middle of a reset.
 func TestAskingAnswersTheSameWhetherACodeWasWrittenOrNot(t *testing.T) {
 	srv, _, out := resetServer(t)
 	ask := func() (int, string) {
@@ -201,24 +200,20 @@ func TestAskingAnswersTheSameWhetherACodeWasWrittenOrNot(t *testing.T) {
 
 	firstStatus, first := ask()
 	liveStatus, live := ask()
-	for range auth.ResetCodeTries {
-		finishReset(t, http.DefaultClient, srv.URL, "2222-2222", resetNewPassword)
-	}
-	heldStatus, held := ask()
 
-	if firstStatus != http.StatusOK || liveStatus != firstStatus || heldStatus != firstStatus {
-		t.Errorf("statuses %d, %d and %d, want 200 three times", firstStatus, liveStatus, heldStatus)
+	if firstStatus != http.StatusOK || liveStatus != firstStatus {
+		t.Errorf("statuses %d and %d, want 200 twice", firstStatus, liveStatus)
 	}
-	if live != first || held != first {
-		t.Errorf("the answers differ:\n%s\n%s\n%s", first, live, held)
+	if live != first {
+		t.Errorf("the answers differ:\n%s\n%s", first, live)
 	}
 	if n := len(shownResetCode.FindAllString(out.String(), -1)); n != 1 {
-		t.Errorf("%d codes were written for three requests within a minute, want 1", n)
+		t.Errorf("%d codes were written for two requests within a minute, want 1", n)
 	}
 }
 
 // TestARefusedResetCodeAnswersTheSameWhateverTheReason: no code asked for, a
-// wrong guess at a live one and a code that was used up are one answer.
+// wrong guess at a live one and a code that was used are one answer.
 func TestARefusedResetCodeAnswersTheSameWhateverTheReason(t *testing.T) {
 	srv, a, out := resetServer(t)
 	refuse := func(code string) string {
@@ -230,19 +225,19 @@ func TestARefusedResetCodeAnswersTheSameWhateverTheReason(t *testing.T) {
 		return string(body)
 	}
 
-	nothingAsked := refuse("2222-2222")
+	nothingAsked := refuse("2222-2222-2222")
 	code := askForCode(t, srv.URL, out)
-	wrongGuess := refuse("2222-2222")
-	for range auth.ResetCodeTries - 1 {
-		refuse("2222-2222")
-	}
-	usedUp := refuse(code)
-
-	if wrongGuess != nothingAsked || usedUp != nothingAsked {
-		t.Errorf("the refusals differ:\n%s\n%s\n%s", nothingAsked, wrongGuess, usedUp)
-	}
+	wrongGuess := refuse("2222-2222-2222")
 	if !a.Auth.Check(resetOldPassword) {
 		t.Error("a refused code changed the password")
+	}
+	if status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword); status != http.StatusOK {
+		t.Fatalf("the right code answered %d: %s", status, body)
+	}
+	used := refuse(code)
+
+	if wrongGuess != nothingAsked || used != nothingAsked {
+		t.Errorf("the refusals differ:\n%s\n%s\n%s", nothingAsked, wrongGuess, used)
 	}
 }
 
@@ -251,7 +246,7 @@ func TestARefusedResetCodeSignsNobodyIn(t *testing.T) {
 	session := a.Auth.Issue()
 	askForCode(t, srv.URL, out)
 
-	body, _ := json.Marshal(map[string]string{"code": "2222-2222", "password": resetNewPassword})
+	body, _ := json.Marshal(map[string]string{"code": "2222-2222-2222", "password": resetNewPassword})
 	resp, err := http.Post(srv.URL+"/api/auth/reset/finish", "application/json", bytes.NewReader(body))
 	if err != nil {
 		t.Fatal(err)
@@ -355,13 +350,261 @@ func TestWrongResetCodesMeetAThrottleOfTheirOwn(t *testing.T) {
 
 	var last int
 	for range loginFailBurst + 1 {
-		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222", resetNewPassword)
+		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 	if last != http.StatusTooManyRequests {
 		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
 	}
 	if status := login(t, &http.Client{Jar: newJar(t)}, srv.URL, resetOldPassword); status != http.StatusOK {
 		t.Errorf("the password answered %d after the reset ran out of attempts, want 200", status)
+	}
+}
+
+// TestTheRightCodeGetsPastAClosedGate: behind a reverse proxy every caller
+// shares one bucket, so a gate in front of the right code would let anybody
+// who reaches the page keep the owner from resetting. Wrong guesses do not
+// spend the code either.
+func TestTheRightCodeGetsPastAClosedGate(t *testing.T) {
+	srv, _, out := resetServer(t)
+	code := askForCode(t, srv.URL, out)
+	var last int
+	for range loginFailBurst + 1 {
+		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
+	}
+	if last != http.StatusTooManyRequests {
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+	}
+
+	if status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword); status != http.StatusOK {
+		t.Errorf("the right code answered %d behind a closed gate: %s", status, body)
+	}
+}
+
+// TestWrongCodesAreReportedWithoutAnAddress: the host sees somebody guessing,
+// once a minute at most, and the bundle that carries the log names nobody.
+func TestWrongCodesAreReportedWithoutAnAddress(t *testing.T) {
+	srv, _, out := resetServer(t)
+	before := len(logring.Lines())
+	askForCode(t, srv.URL, out)
+	for range 5 {
+		finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
+	}
+
+	reports := 0
+	for _, line := range logring.Lines()[before:] {
+		if strings.Contains(line, "wrong password reset code") {
+			reports++
+		}
+		if strings.Contains(line, "auth:") && (strings.Contains(line, "127.0.0.1") || strings.Contains(line, "::1")) {
+			t.Errorf("a log line names the caller: %s", line)
+		}
+	}
+	if reports != 1 {
+		t.Errorf("five wrong codes were reported %d times, want once", reports)
+	}
+}
+
+// TestAnIntruderChangingThePasswordCannotOutlastAReset: somebody signed in
+// with the old password changes it in a loop while the owner resets it. A
+// change checked against the old password must not land after the reset.
+func TestAnIntruderChangingThePasswordCannotOutlastAReset(t *testing.T) {
+	for range 3 {
+		srv, _, out := resetServer(t)
+		intruder, _ := signedIn(t, srv.URL, resetOldPassword)
+		code := askForCode(t, srv.URL, out)
+
+		var mu sync.Mutex
+		current := resetOldPassword
+		stop := make(chan struct{})
+		done := make(chan struct{})
+		go func() {
+			defer close(done)
+			for i := 0; ; i++ {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+				mu.Lock()
+				from := current
+				mu.Unlock()
+				next := "intruder-password-" + strconv.Itoa(i)
+				body, _ := json.Marshal(map[string]string{"current": from, "new": next})
+				req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", bytes.NewReader(body))
+				req.Header.Set("Content-Type", "application/json")
+				resp, err := intruder.Do(req)
+				if err != nil {
+					return
+				}
+				resp.Body.Close()
+				if resp.StatusCode == http.StatusOK {
+					mu.Lock()
+					current = next
+					mu.Unlock()
+				}
+			}
+		}()
+		time.Sleep(150 * time.Millisecond)
+		owner := &http.Client{Jar: newJar(t)}
+		status, body := finishReset(t, owner, srv.URL, code, resetNewPassword)
+		time.Sleep(300 * time.Millisecond)
+		close(stop)
+		<-done
+		if status != http.StatusOK {
+			t.Fatalf("the reset answered %d: %s", status, body)
+		}
+
+		if status := login(t, &http.Client{Jar: newJar(t)}, srv.URL, resetNewPassword); status != http.StatusOK {
+			t.Errorf("the owner's new password answered %d after the intruder's changes, want 200", status)
+		}
+		mu.Lock()
+		last := current
+		mu.Unlock()
+		if last != resetOldPassword {
+			if status := login(t, &http.Client{Jar: newJar(t)}, srv.URL, last); status == http.StatusOK {
+				t.Errorf("the intruder's password %q still signs in after the reset", last)
+			}
+		}
+	}
+}
+
+// TestSignInsWithTheOldPasswordDuringAResetOpenNothing: a sign-in that
+// checked the old password must not be handed a session that works after the
+// reset.
+func TestSignInsWithTheOldPasswordDuringAResetOpenNothing(t *testing.T) {
+	srv, _, out := resetServer(t)
+	code := askForCode(t, srv.URL, out)
+
+	var mu sync.Mutex
+	var cookies []string
+	stop := make(chan struct{})
+	var wg sync.WaitGroup
+	for range 4 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for {
+				select {
+				case <-stop:
+					return
+				default:
+				}
+				body, _ := json.Marshal(map[string]string{"password": resetOldPassword})
+				resp, err := http.Post(srv.URL+"/api/auth/login", "application/json", bytes.NewReader(body))
+				if err != nil {
+					return
+				}
+				resp.Body.Close()
+				for _, c := range resp.Cookies() {
+					if c.Name == auth.CookieName && c.Value != "" {
+						mu.Lock()
+						cookies = append(cookies, c.Value)
+						mu.Unlock()
+					}
+				}
+			}
+		}()
+	}
+	time.Sleep(150 * time.Millisecond)
+	status, body := finishReset(t, &http.Client{Jar: newJar(t)}, srv.URL, code, resetNewPassword)
+	time.Sleep(300 * time.Millisecond)
+	close(stop)
+	wg.Wait()
+	if status != http.StatusOK {
+		t.Fatalf("the reset answered %d: %s", status, body)
+	}
+
+	for _, c := range cookies {
+		if s := tasksStatus(t, srv.URL, sessionHeader(c)); s != http.StatusUnauthorized {
+			t.Fatalf("a session from a sign-in with the old password answered %d after the reset, want 401 (%d sessions)", s, len(cookies))
+		}
+	}
+}
+
+// TestNoTokenMintedDuringAResetSurvivesIt: a token request let in on the old
+// session must either be revoked by the reset or refused after it. Its body
+// arrives only after the reset, so the guard has let it in before and the
+// token would be created after.
+func TestNoTokenMintedDuringAResetSurvivesIt(t *testing.T) {
+	srv, a, out := resetServer(t)
+	code := askForCode(t, srv.URL, out)
+	_, session := signedIn(t, srv.URL, resetOldPassword)
+
+	body, slow := io.Pipe()
+	req, _ := http.NewRequest(http.MethodPost, srv.URL+"/api/tokens", body)
+	req.Header = sessionHeader(session)
+	req.Header.Set("Content-Type", "application/json")
+	answered := make(chan int, 1)
+	go func() {
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			answered <- 0
+			return
+		}
+		resp.Body.Close()
+		answered <- resp.StatusCode
+	}()
+	if _, err := slow.Write([]byte(`{"name":"in the window"`)); err != nil {
+		t.Fatal(err)
+	}
+
+	if status, body := finishReset(t, &http.Client{Jar: newJar(t)}, srv.URL, code, resetNewPassword); status != http.StatusOK {
+		t.Fatalf("the reset answered %d: %s", status, body)
+	}
+	_, _ = slow.Write([]byte("}"))
+	_ = slow.Close()
+
+	if status := <-answered; status == http.StatusCreated {
+		t.Error("a token was created for a session the reset had ended")
+	}
+	if left := a.APITokens.List(); len(left) != 0 {
+		t.Errorf("%d token(s) created with the old session outlived the reset", len(left))
+	}
+}
+
+// TestNoStreamOpenedDuringAResetSurvivesIt: a stream let in on the old
+// session and registered after the reset dropped the others would go on
+// delivering.
+func TestNoStreamOpenedDuringAResetSurvivesIt(t *testing.T) {
+	for range 3 {
+		srv, a, out := resetServer(t)
+		code := askForCode(t, srv.URL, out)
+		_, session := signedIn(t, srv.URL, resetOldPassword)
+
+		stop := make(chan struct{})
+		var wg sync.WaitGroup
+		for range 4 {
+			wg.Add(1)
+			go func() {
+				defer wg.Done()
+				for {
+					select {
+					case <-stop:
+						return
+					default:
+					}
+					ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+					c, _, err := websocket.Dial(ctx, srv.URL+"/api/ws", &websocket.DialOptions{HTTPHeader: sessionHeader(session)})
+					cancel()
+					if err != nil {
+						continue
+					}
+					// Held open, so one the hub missed stays registered.
+					t.Cleanup(func() { _ = c.CloseNow() })
+				}
+			}()
+		}
+		time.Sleep(100 * time.Millisecond)
+		status, body := finishReset(t, &http.Client{Jar: newJar(t)}, srv.URL, code, resetNewPassword)
+		time.Sleep(200 * time.Millisecond)
+		close(stop)
+		wg.Wait()
+		if status != http.StatusOK {
+			t.Fatalf("the reset answered %d: %s", status, body)
+		}
+		if n := a.Hub.Len(); n != 0 {
+			t.Fatalf("%d stream(s) opened with the old session outlived the reset", n)
+		}
 	}
 }
 
@@ -408,7 +651,7 @@ func TestAnOpenInstanceHasNothingToReset(t *testing.T) {
 	if out.String() != "" {
 		t.Errorf("something was written for an instance without a password: %q", out.String())
 	}
-	status, body = finishReset(t, http.DefaultClient, srv.URL, "2222-2222", resetNewPassword)
+	status, body = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	if status != http.StatusBadRequest {
 		t.Errorf("finishing on an open instance answered %d: %s", status, body)
 	}
@@ -452,6 +695,7 @@ func TestTheResetCodeStaysOutOfTheLogPageTheLogFileAndTheBundle(t *testing.T) {
 		t.Fatal(err)
 	}
 	const asked = "a password reset code was asked for"
+	ownAddress := regexp.MustCompile(`auth:.*(127\.0\.0\.1|::1)`)
 	bare := strings.ReplaceAll(code, "-", "")
 	for name, text := range map[string][]byte{
 		"the log page": read("/api/diagnostics/log"),
@@ -463,6 +707,9 @@ func TestTheResetCodeStaysOutOfTheLogPageTheLogFileAndTheBundle(t *testing.T) {
 		}
 		if bytes.Contains(text, []byte(code)) || bytes.Contains(text, []byte(bare)) {
 			t.Errorf("%s carries the code", name)
+		}
+		if ownAddress.Match(text) {
+			t.Errorf("%s names the caller's address", name)
 		}
 	}
 }
@@ -581,7 +828,7 @@ func TestACodeThatCouldNotBeWrittenIsNotHeld(t *testing.T) {
 func TestACodeFileFromAnEarlierRunIsRemovedAtStart(t *testing.T) {
 	a := testApp(t)
 	path := filepath.Join(a.DataDir, resetCodeFile)
-	if err := os.WriteFile(path, []byte("  Password reset code: ABCD-EFGH\n"), 0o600); err != nil {
+	if err := os.WriteFile(path, []byte("  Password reset code: ABCD-EFGH-JKLM\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 
@@ -589,6 +836,52 @@ func TestACodeFileFromAnEarlierRunIsRemovedAtStart(t *testing.T) {
 
 	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
 		t.Errorf("a code file from a process that is gone is still there: %v", err)
+	}
+}
+
+// TestTheCodeFileIsWrittenAnewAndRemovedOnceUsed: a file already at the path
+// keeps its own mode when it is only written over, and a used code has no
+// reason to stay on disk.
+func TestTheCodeFileIsWrittenAnewAndRemovedOnceUsed(t *testing.T) {
+	writeTo(t, nil)
+	srv, a := testServer(t)
+	t.Cleanup(srv.Close)
+	if err := a.Auth.SetPassword("", resetOldPassword); err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(a.DataDir, resetCodeFile)
+	if err := os.WriteFile(path, []byte("left by somebody\n"), 0o644); err != nil {
+		t.Fatal(err)
+	}
+
+	if status, body := postTo(t, http.DefaultClient, srv.URL+"/api/auth/reset", struct{}{}); status != http.StatusOK {
+		t.Fatalf("asking for a code answered %d: %s", status, body)
+	}
+	written, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(written, []byte("left by somebody")) {
+		t.Error("the code was added to the file that was there")
+	}
+	if runtime.GOOS != "windows" {
+		if info, err := os.Stat(path); err != nil || info.Mode().Perm()&0o077 != 0 {
+			t.Errorf("the code file is %v, %v; want it readable by its owner alone", info.Mode().Perm(), err)
+		}
+	}
+	m := shownResetCode.FindSubmatch(written)
+	if m == nil {
+		t.Fatalf("no code in the file: %q", written)
+	}
+
+	// Kept while it is another code than the one asked about.
+	removeResetCodeFile(a, "ABCDEFGHJKLM")
+	if _, err := os.Stat(path); err != nil {
+		t.Fatalf("a newer code was removed: %v", err)
+	}
+	removeResetCodeFile(a, strings.ReplaceAll(string(m[1]), "-", ""))
+	if _, err := os.Stat(path); !errors.Is(err, os.ErrNotExist) {
+		t.Errorf("the code file outlived its code: %v", err)
 	}
 }
 

@@ -75,6 +75,27 @@ type Guard struct {
 	// The live reset code and when it was minted, in memory only.
 	reset       resetCode
 	resetMinted time.Time
+	// gen counts changes to the password and the second factor in this
+	// process, so a session is only issued for the state a password was
+	// checked against (see Credentials).
+	gen uint64
+
+	// minting is held for writing while a reset swaps the credentials, and
+	// for reading by everything that creates one outside this package; see
+	// Mint.
+	minting sync.RWMutex
+}
+
+// ErrStale refuses to mint a credential for a caller whose own credential
+// ended while the request was under way.
+var ErrStale = errors.New("this session has ended, sign in again")
+
+// Credentials is the state a password was checked against: which generation
+// of the password and the second factor, and whether a code is needed on top.
+type Credentials struct {
+	gen       uint64
+	enabled   bool
+	TwoFactor bool
 }
 
 // Open loads (or creates) the lock state in dir.
@@ -110,51 +131,119 @@ func (g *Guard) Enabled() bool {
 	return len(g.hash) > 0
 }
 
-// SetPassword sets, changes or (with an empty next) removes the password. When
-// a password is already set, the current one has to be supplied, so an open
-// session cannot lock the owner out.
+// SetPassword is ChangePassword for a caller that needs no session afterwards.
 func (g *Guard) SetPassword(current, next string) error {
-	if g.Enabled() && !g.Check(current) {
-		return ErrWrongPassword
+	_, err := g.ChangePassword(current, next)
+	return err
+}
+
+// ChangePassword sets, changes or (with an empty next) removes the password,
+// and returns the new state for the session of whoever changed it. When a
+// password is already set, the current one has to be supplied, so an open
+// session cannot lock the owner out. A change that lands after another one,
+// a reset included, is refused: current was checked against a password that
+// is gone.
+func (g *Guard) ChangePassword(current, next string) (Credentials, error) {
+	c, ok := g.CheckPassword(current)
+	if c.enabled && !ok {
+		return Credentials{}, ErrWrongPassword
 	}
+	return g.changeFrom(c, next)
+}
+
+// changeFrom applies next to the state c was checked against, and refuses
+// when that state has changed since.
+func (g *Guard) changeFrom(c Credentials, next string) (Credentials, error) {
+	var h []byte
+	if next != "" {
+		if len(next) < 8 {
+			return Credentials{}, ErrTooShort
+		}
+		var err error
+		if h, err = bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost); err != nil {
+			return Credentials{}, err
+		}
+	}
+	g.mu.Lock()
+	if g.gen != c.gen {
+		g.mu.Unlock()
+		return Credentials{}, ErrWrongPassword
+	}
+	g.hash = h
+	// Removing the password ends the sessions too, or a password set again
+	// later would bring back every unexpired cookie from before.
+	g.endSessionsLocked()
 	if next == "" {
-		g.mu.Lock()
-		g.hash = nil
-		// Otherwise a password set again later would bring back every
-		// unexpired cookie from before.
-		g.endSessionsLocked()
 		// The second factor hangs off the password and goes with it. Changing
 		// the password keeps it, since rotating one is no reason to re-enrol a
 		// phone.
 		g.totp = ""
 		g.recovery = nil
 		g.pending = nil
-		g.mu.Unlock()
-		return g.flush()
 	}
-	if len(next) < 8 {
-		return ErrTooShort
-	}
-	h, err := bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost)
-	if err != nil {
-		return err
-	}
-	g.mu.Lock()
-	g.hash = h
-	g.endSessionsLocked()
+	g.gen++
+	c = Credentials{gen: g.gen, enabled: len(h) > 0, TwoFactor: g.totp != ""}
 	g.mu.Unlock()
-	return g.flush()
+	return c, g.flush()
 }
 
 // Check verifies a password against the stored hash.
 func (g *Guard) Check(password string) bool {
+	_, ok := g.CheckPassword(password)
+	return ok
+}
+
+// CheckPassword verifies a password and returns the state it was checked
+// against, which IssueFor holds the session to.
+func (g *Guard) CheckPassword(password string) (Credentials, bool) {
 	g.mu.RLock()
 	h := g.hash
+	c := Credentials{gen: g.gen, enabled: len(h) > 0, TwoFactor: g.totp != ""}
 	g.mu.RUnlock()
 	if len(h) == 0 {
-		return false
+		return c, false
 	}
-	return bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
+	return c, bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
+}
+
+// Current is the present state, for a sign-in that proves something other than
+// the password. It waits out a reset under way, so whatever the caller reads
+// after it is from one side of the reset.
+func (g *Guard) Current() Credentials {
+	g.minting.RLock()
+	defer g.minting.RUnlock()
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return Credentials{gen: g.gen, enabled: len(g.hash) > 0, TwoFactor: g.totp != ""}
+}
+
+// IssueFor returns a session for a caller who proved c, or false when the
+// password or the second factor has changed since.
+func (g *Guard) IssueFor(c Credentials) (string, bool) {
+	payload := strconv.FormatInt(time.Now().Add(SessionTTL).Unix(), 10) + "." + rand.Text()
+	g.mu.RLock()
+	stale := g.gen != c.gen
+	epoch, key := g.epoch, g.key
+	g.mu.RUnlock()
+	if stale {
+		return "", false
+	}
+	return payload + "." + base64.RawURLEncoding.EncodeToString(signWith(key, sessionMessage(payload, epoch))), true
+}
+
+// Mint runs fn, which creates a credential outside this package (an API
+// token, a passkey, a live stream), unless valid reports that the caller's own
+// credential has ended. A reset holds minting off while it swaps the
+// credentials and removes those, so fn runs entirely before it, and is undone
+// by it, or after it with valid checked against the new state. fn must not
+// call Current.
+func (g *Guard) Mint(valid func() bool, fn func() error) error {
+	g.minting.RLock()
+	defer g.minting.RUnlock()
+	if !valid() {
+		return ErrStale
+	}
+	return fn()
 }
 
 // Issue returns a session token valid for SessionTTL. The random part keeps two
@@ -163,9 +252,9 @@ func (g *Guard) Check(password string) bool {
 func (g *Guard) Issue() string {
 	payload := strconv.FormatInt(time.Now().Add(SessionTTL).Unix(), 10) + "." + rand.Text()
 	g.mu.RLock()
-	epoch := g.epoch
+	epoch, key := g.epoch, g.key
 	g.mu.RUnlock()
-	return payload + "." + base64.RawURLEncoding.EncodeToString(g.sign(sessionMessage(payload, epoch)))
+	return payload + "." + base64.RawURLEncoding.EncodeToString(signWith(key, sessionMessage(payload, epoch)))
 }
 
 // Valid reports whether a token is well-formed, signed for the current epoch,
@@ -192,10 +281,10 @@ func (g *Guard) expiry(token string) (int64, bool) {
 		return 0, false
 	}
 	g.mu.RLock()
-	epoch := g.epoch
+	epoch, key := g.epoch, g.key
 	_, revoked := g.revoked[revocationKey(token)]
 	g.mu.RUnlock()
-	if revoked || subtle.ConstantTimeCompare(want, g.sign(sessionMessage(payload, epoch))) != 1 {
+	if revoked || subtle.ConstantTimeCompare(want, signWith(key, sessionMessage(payload, epoch))) != 1 {
 		return 0, false
 	}
 	ts, err := strconv.ParseInt(exp, 10, 64)
@@ -285,6 +374,10 @@ func (g *Guard) sign(msg string) []byte {
 	g.mu.RLock()
 	key := g.key
 	g.mu.RUnlock()
+	return signWith(key, msg)
+}
+
+func signWith(key []byte, msg string) []byte {
 	m := hmac.New(sha256.New, key)
 	m.Write([]byte(msg))
 	return m.Sum(nil)
@@ -301,9 +394,13 @@ func (g *Guard) flush() error {
 		Revoked:  g.revoked,
 	}
 	g.mu.RUnlock()
+	return writeState(g.path, s)
+}
+
+func writeState(path string, s stored) error {
 	b, err := json.MarshalIndent(s, "", "  ")
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(g.path, b, 0o600)
+	return os.WriteFile(path, b, 0o600)
 }

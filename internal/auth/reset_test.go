@@ -1,16 +1,20 @@
 package auth
 
 import (
+	"encoding/json"
 	"errors"
+	"os"
+	"path/filepath"
 	"regexp"
 	"strings"
+	"sync/atomic"
 	"testing"
 	"time"
 )
 
 const resetPassword = "a-new-long-password"
 
-var resetCodeShape = regexp.MustCompile(`^[2-9A-HJ-NP-Z]{8}$`)
+var resetCodeShape = regexp.MustCompile(`^[2-9A-HJ-NP-Z]{12}$`)
 
 // askedFor returns a Guard with a password and the reset code just minted
 // for it.
@@ -22,9 +26,14 @@ func askedFor(t *testing.T) (*Guard, string, string) {
 		t.Fatal(err)
 	}
 	if !resetCodeShape.MatchString(code) {
-		t.Fatalf("StartReset minted %q, want eight symbols of the alphabet", code)
+		t.Fatalf("StartReset minted %q, want twelve symbols of the alphabet", code)
 	}
 	return g, dir, code
+}
+
+func finish(g *Guard, code, next string) error {
+	_, err := g.FinishReset(code, next, nil)
+	return err
 }
 
 func TestThereIsNothingToResetWithoutAPassword(t *testing.T) {
@@ -35,7 +44,7 @@ func TestThereIsNothingToResetWithoutAPassword(t *testing.T) {
 	if code, err := g.StartReset(); !errors.Is(err, ErrNothingToReset) || code != "" {
 		t.Fatalf("StartReset with no password = %q, %v, want ErrNothingToReset", code, err)
 	}
-	if err := g.FinishReset("ABCDEFGH", resetPassword); !errors.Is(err, ErrNothingToReset) {
+	if err := finish(g, "ABCDEFGHJKLM", resetPassword); !errors.Is(err, ErrNothingToReset) {
 		t.Fatalf("FinishReset with no password = %v, want ErrNothingToReset", err)
 	}
 	if g.Enabled() {
@@ -46,7 +55,8 @@ func TestThereIsNothingToResetWithoutAPassword(t *testing.T) {
 func TestTheResetCodeSetsThePassword(t *testing.T) {
 	g, dir, code := askedFor(t)
 
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	c, err := g.FinishReset(code, resetPassword, nil)
+	if err != nil {
 		t.Fatalf("the right code was refused: %v", err)
 	}
 	if !g.Check(resetPassword) {
@@ -54,6 +64,9 @@ func TestTheResetCodeSetsThePassword(t *testing.T) {
 	}
 	if g.Check("correct-horse") {
 		t.Error("the old password still signs in")
+	}
+	if tok, ok := g.IssueFor(c); !ok || !g.Valid(tok) {
+		t.Error("the caller who reset the password gets no session")
 	}
 	again, err := Open(dir)
 	if err != nil {
@@ -68,11 +81,42 @@ func TestAResetEndsEverySession(t *testing.T) {
 	g, _, code := askedFor(t)
 	before := g.Issue()
 
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatal(err)
 	}
 	if g.Valid(before) {
 		t.Error("a session from before the reset is still valid")
+	}
+}
+
+// TestAnOldCopyOfAuthJSONSignsNothingAfterAReset: whoever copied the file
+// before the reset holds the key that signed sessions, and can write any
+// epoch they like beside it.
+func TestAnOldCopyOfAuthJSONSignsNothingAfterAReset(t *testing.T) {
+	g, dir, code := askedFor(t)
+	old, err := os.ReadFile(filepath.Join(dir, "auth.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := finish(g, code, resetPassword); err != nil {
+		t.Fatal(err)
+	}
+
+	var copied stored
+	if err := json.Unmarshal(old, &copied); err != nil {
+		t.Fatal(err)
+	}
+	copied.Epoch = g.Epoch()
+	forged := t.TempDir()
+	if err := writeState(filepath.Join(forged, "auth.json"), copied); err != nil {
+		t.Fatal(err)
+	}
+	thief, err := Open(forged)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if g.Valid(thief.Issue()) {
+		t.Error("a session signed with the key from before the reset is valid")
 	}
 }
 
@@ -92,7 +136,7 @@ func TestAResetSwitchesTheSecondFactorOff(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatal(err)
 	}
 	if g.TwoFactorEnabled() || g.RecoveryLeft() != 0 {
@@ -110,12 +154,12 @@ func TestAResetSwitchesTheSecondFactorOff(t *testing.T) {
 func TestAWrongResetCodeChangesNothing(t *testing.T) {
 	g, _, code := askedFor(t)
 	session := g.Issue()
-	wrong := "2222-2222"
-	if strings.ReplaceAll(wrong, "-", "") == code {
-		wrong = "3333-3333"
+	wrong := strings.Repeat("2", ResetCodeLen)
+	if wrong == code {
+		wrong = strings.Repeat("3", ResetCodeLen)
 	}
 
-	if err := g.FinishReset(wrong, resetPassword); !errors.Is(err, ErrCodeRejected) {
+	if err := finish(g, wrong, resetPassword); !errors.Is(err, ErrCodeRejected) {
 		t.Fatalf("a wrong code = %v, want ErrCodeRejected", err)
 	}
 	if !g.Check("correct-horse") || g.Check(resetPassword) {
@@ -128,11 +172,11 @@ func TestAWrongResetCodeChangesNothing(t *testing.T) {
 
 func TestAResetCodeWorksOnce(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := g.FinishReset(code, "another-long-password"); !errors.Is(err, ErrCodeRejected) {
+	if err := finish(g, code, "another-long-password"); !errors.Is(err, ErrCodeRejected) {
 		t.Fatalf("the second use of a code = %v, want ErrCodeRejected", err)
 	}
 	if !g.Check(resetPassword) {
@@ -144,7 +188,7 @@ func TestAResetCodeExpires(t *testing.T) {
 	g, _, code := askedFor(t)
 	g.reset.expires = time.Now().Add(-time.Second)
 
-	if err := g.FinishReset(code, resetPassword); !errors.Is(err, ErrCodeRejected) {
+	if err := finish(g, code, resetPassword); !errors.Is(err, ErrCodeRejected) {
 		t.Fatalf("an expired code = %v, want ErrCodeRejected", err)
 	}
 	if !g.Check("correct-horse") {
@@ -152,101 +196,85 @@ func TestAResetCodeExpires(t *testing.T) {
 	}
 }
 
-func TestWrongGuessesSpendTheResetCode(t *testing.T) {
+// TestWrongGuessesLeaveTheCodeAlone: if guesses could spend the code, anybody
+// who reaches the page could keep the owner from ever using one.
+func TestWrongGuessesLeaveTheCodeAlone(t *testing.T) {
 	g, _, code := askedFor(t)
-	for range ResetCodeTries {
-		if err := g.FinishReset("not-the-code", resetPassword); !errors.Is(err, ErrCodeRejected) {
+	for range 100 {
+		if err := finish(g, "not-the-code", resetPassword); !errors.Is(err, ErrCodeRejected) {
 			t.Fatalf("a wrong guess = %v, want ErrCodeRejected", err)
 		}
 	}
 
-	if err := g.FinishReset(code, resetPassword); !errors.Is(err, ErrCodeRejected) {
-		t.Fatalf("the code after %d wrong guesses = %v, want ErrCodeRejected", ResetCodeTries, err)
-	}
-}
-
-func TestTheLastTryStillTakesTheRightCode(t *testing.T) {
-	g, _, code := askedFor(t)
-	for range ResetCodeTries - 1 {
-		_ = g.FinishReset("not-the-code", resetPassword)
-	}
-
-	if err := g.FinishReset(code, resetPassword); err != nil {
-		t.Fatalf("the right code on the last try was refused: %v", err)
+	if err := finish(g, code, resetPassword); err != nil {
+		t.Fatalf("the code after a hundred wrong guesses was refused: %v", err)
 	}
 }
 
 // TestAskingAgainNeitherReplacesNorExtendsTheCode: a second request must not
 // take the code away from whoever is typing it, and must not give a guesser
-// more time or more tries with it.
+// more time with it.
 func TestAskingAgainNeitherReplacesNorExtendsTheCode(t *testing.T) {
 	g, _, code := askedFor(t)
-	_ = g.FinishReset("not-the-code", resetPassword)
-	expires, tries := g.reset.expires, g.reset.tries
+	expires := g.reset.expires
 
 	again, err := g.StartReset()
 	if err != nil || again != "" {
 		t.Fatalf("asking while a code is live = %q, %v, want nothing new", again, err)
 	}
-	if !g.reset.expires.Equal(expires) || g.reset.tries != tries {
-		t.Error("asking again changed how long or how often the code can be tried")
+	if !g.reset.expires.Equal(expires) {
+		t.Error("asking again changed how long the code can be used")
 	}
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatalf("the first code stopped working: %v", err)
 	}
 }
 
-// TestANewCodeIsMintedAtMostOnceAMinute: without the gap, somebody who burns
-// the five tries could ask for the next five at once, and fill the log with
-// codes while doing it.
+// TestANewCodeIsMintedAtMostOnceAMinute: asking must not fill the output.
 func TestANewCodeIsMintedAtMostOnceAMinute(t *testing.T) {
 	g, _, _ := askedFor(t)
-	for range ResetCodeTries {
-		_ = g.FinishReset("not-the-code", resetPassword)
-	}
+	g.reset.expires = time.Now().Add(-time.Second)
 
 	if code, err := g.StartReset(); err != nil || code != "" {
-		t.Fatalf("asking right after a code was spent = %q, %v, want nothing new", code, err)
+		t.Fatalf("asking right after a code ran out = %q, %v, want nothing new", code, err)
 	}
 	g.resetMinted = time.Now().Add(-resetCodeGap)
 	code, err := g.StartReset()
 	if err != nil || !resetCodeShape.MatchString(code) {
 		t.Fatalf("asking a minute later = %q, %v, want a new code", code, err)
 	}
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatalf("the new code was refused: %v", err)
 	}
 }
 
-func TestAPasswordThatIsTooShortKeepsTheCodeAndItsTries(t *testing.T) {
+func TestAPasswordThatIsTooShortKeepsTheCode(t *testing.T) {
 	g, _, code := askedFor(t)
-	for range ResetCodeTries + 1 {
-		if err := g.FinishReset(code, "short"); !errors.Is(err, ErrTooShort) {
-			t.Fatalf("a short password = %v, want ErrTooShort", err)
-		}
+	if err := finish(g, code, "short"); !errors.Is(err, ErrTooShort) {
+		t.Fatalf("a short password = %v, want ErrTooShort", err)
 	}
 
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatalf("the code did not survive a password that was too short: %v", err)
 	}
 }
 
 func TestAPasswordBcryptWouldRefuseKeepsTheCode(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := g.FinishReset(code, strings.Repeat("a", 73)); err == nil {
+	if err := finish(g, code, strings.Repeat("a", 73)); err == nil {
 		t.Fatal("a 73 byte password was accepted")
 	}
 
-	if err := g.FinishReset(code, resetPassword); err != nil {
+	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatalf("the code did not survive a password that was too long: %v", err)
 	}
 }
 
 func TestTheResetCodeIsAcceptedAsTyped(t *testing.T) {
 	g, _, code := askedFor(t)
-	typed := " " + strings.ToLower(code[:4]) + " - " + strings.ToLower(code[4:]) + " "
+	typed := " " + strings.ToLower(code[:4]) + " - " + strings.ToLower(code[4:8]) + "-" + code[8:] + " "
 
-	if err := g.FinishReset(typed, resetPassword); err != nil {
+	if err := finish(g, typed, resetPassword); err != nil {
 		t.Fatalf("%q was refused for the code %q: %v", typed, code, err)
 	}
 }
@@ -255,8 +283,8 @@ func TestTheResetCodeIsAcceptedAsTyped(t *testing.T) {
 // live must not open anything, typed or empty.
 func TestNoCodeIsNoCode(t *testing.T) {
 	g, _ := locked(t)
-	for _, typed := range []string{"", noResetCode, "0000-0000"} {
-		if err := g.FinishReset(typed, resetPassword); !errors.Is(err, ErrCodeRejected) {
+	for _, typed := range []string{"", noResetCode, "0000-0000-0000"} {
+		if err := finish(g, typed, resetPassword); !errors.Is(err, ErrCodeRejected) {
 			t.Errorf("FinishReset(%q) with no code asked for = %v, want ErrCodeRejected", typed, err)
 		}
 	}
@@ -272,7 +300,7 @@ func TestARestartCancelsAResetUnderWay(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if err := again.FinishReset(code, resetPassword); !errors.Is(err, ErrCodeRejected) {
+	if err := finish(again, code, resetPassword); !errors.Is(err, ErrCodeRejected) {
 		t.Fatalf("a code from before the restart = %v, want ErrCodeRejected", err)
 	}
 }
@@ -288,8 +316,32 @@ func TestACodeThatCouldNotBeShownMakesRoomForTheNext(t *testing.T) {
 	if first == second {
 		t.Fatalf("the cancelled code %q was minted again", first)
 	}
-	if err := g.FinishReset(first, resetPassword); !errors.Is(err, ErrCodeRejected) {
+	if err := finish(g, first, resetPassword); !errors.Is(err, ErrCodeRejected) {
 		t.Fatalf("the cancelled code = %v, want ErrCodeRejected", err)
+	}
+}
+
+// TestAResetThatCannotBeWrittenChangesNothing: applied in memory alone, the
+// reset would end the sessions at once and give the old password back at the next
+// start.
+func TestAResetThatCannotBeWrittenChangesNothing(t *testing.T) {
+	g, _, code := askedFor(t)
+	session := g.Issue()
+	path := g.path
+	g.path = t.TempDir()
+
+	if err := finish(g, code, resetPassword); err == nil {
+		t.Fatal("a reset that could not be written succeeded")
+	}
+	if !g.Check("correct-horse") || g.Check(resetPassword) {
+		t.Error("the password changed in memory without reaching the file")
+	}
+	if !g.Valid(session) {
+		t.Error("a reset that could not be written ended the sessions")
+	}
+	g.path = path
+	if err := finish(g, code, resetPassword); err != nil {
+		t.Errorf("the code did not survive a reset that could not be written: %v", err)
 	}
 }
 
@@ -301,11 +353,83 @@ func TestResetCodesDiffer(t *testing.T) {
 			t.Fatal(err)
 		}
 		if !resetCodeShape.MatchString(code) {
-			t.Fatalf("newResetCode() = %q, want eight symbols of the alphabet", code)
+			t.Fatalf("newResetCode() = %q, want twelve symbols of the alphabet", code)
 		}
 		if seen[code] {
-			t.Fatalf("newResetCode() repeated %q within 64 codes of forty bits", code)
+			t.Fatalf("newResetCode() repeated %q within 64 codes of sixty bits", code)
 		}
 		seen[code] = true
+	}
+}
+
+// TestASessionIsIssuedOnlyForThePasswordItWasCheckedAgainst: a sign-in that
+// checked the old password and issues its session after a change or a reset
+// would let the old password in once more.
+func TestASessionIsIssuedOnlyForThePasswordItWasCheckedAgainst(t *testing.T) {
+	g, _, code := askedFor(t)
+	checked, ok := g.CheckPassword("correct-horse")
+	if !ok {
+		t.Fatal("the password was refused")
+	}
+	if err := finish(g, code, resetPassword); err != nil {
+		t.Fatal(err)
+	}
+	if tok, ok := g.IssueFor(checked); ok || g.Valid(tok) {
+		t.Error("a check made before the reset was issued a session after it")
+	}
+
+	checked, _ = g.CheckPassword(resetPassword)
+	if err := g.SetPassword(resetPassword, "a-third-password"); err != nil {
+		t.Fatal(err)
+	}
+	if _, ok := g.IssueFor(checked); ok {
+		t.Error("a check made before a password change was issued a session after it")
+	}
+}
+
+// TestAChangeCheckedAgainstAResetPasswordIsRefused: somebody changing the
+// password with the old one while the owner resets it must not have the last
+// word.
+func TestAChangeCheckedAgainstAResetPasswordIsRefused(t *testing.T) {
+	g, _, code := askedFor(t)
+	checked, ok := g.CheckPassword("correct-horse")
+	if !ok {
+		t.Fatal("the password was refused")
+	}
+	if err := finish(g, code, resetPassword); err != nil {
+		t.Fatal(err)
+	}
+
+	if _, err := g.changeFrom(checked, "the-intruders-password"); !errors.Is(err, ErrWrongPassword) {
+		t.Fatalf("a change checked before the reset = %v, want ErrWrongPassword", err)
+	}
+	if !g.Check(resetPassword) {
+		t.Error("the change checked before the reset replaced the reset password")
+	}
+}
+
+// TestNothingIsMintedWhileAResetEndsTheOtherCredentials: a token or passkey
+// created by a request that started before the reset must be either removed
+// by it or refused after it, never created in between.
+func TestNothingIsMintedWhileAResetEndsTheOtherCredentials(t *testing.T) {
+	g, _, code := askedFor(t)
+	var ended, minted atomic.Bool
+	result := make(chan error, 1)
+
+	_, err := g.FinishReset(code, resetPassword, func() {
+		go func() {
+			result <- g.Mint(func() bool { return !ended.Load() }, func() error {
+				minted.Store(true)
+				return nil
+			})
+		}()
+		time.Sleep(50 * time.Millisecond)
+		ended.Store(true)
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := <-result; !errors.Is(err, ErrStale) || minted.Load() {
+		t.Errorf("a mint started while the reset ended the credentials = %v, minted %v; want ErrStale", err, minted.Load())
 	}
 }

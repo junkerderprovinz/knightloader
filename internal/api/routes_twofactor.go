@@ -193,10 +193,14 @@ func registerTwoFactor(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) {
 				return
 			}
-			codes, err := a.Auth.ConfirmTwoFactor(body.Code)
+			var codes []string
+			err := a.Auth.Mint(stillAdmitted(a, r), func() (err error) {
+				codes, err = a.Auth.ConfirmTwoFactor(body.Code)
+				return err
+			})
 			if err != nil {
 				status := http.StatusBadRequest
-				if errors.Is(err, auth.ErrCodeRejected) {
+				if errors.Is(err, auth.ErrCodeRejected) || errors.Is(err, auth.ErrStale) {
 					status = http.StatusUnauthorized
 				}
 				http.Error(w, err.Error(), status)
