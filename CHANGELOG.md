@@ -169,6 +169,8 @@ release's tag.
   wider by default.
 - **The link collector has one name** throughout the German and English
   interface.
+- **Each language keeps one form of address** and its own words for
+  password, proxy, log and reset in the sign-in and security texts.
 - **Instances stand on the page as cards of their own.** The tile that led to
   pairing is gone; the floating Pairing action leads there.
 - **Pairing lists what it knows.** "Known domains" is "Known addresses" and
