@@ -169,7 +169,7 @@ release's tag.
 - **The sign-in page says to wait after too many attempts,** where it said
   "Wrong password." even when the password was right. A refused passkey
   sign-in says the same.
-- **"At least 8 characters" counts characters, not bytes,** so a password in
+- **"At least 12 characters" counts characters, not bytes,** so a password in
   another alphabet is held to the same length as one in English. A password
   over 72 bytes, the most the hash takes, gets its own message on the
   settings card and the reset form instead of an English error.
@@ -191,6 +191,20 @@ release's tag.
 - **The relay an instance serves no longer believes `X-Forwarded-For` from
   every address on the local network,** only from the trusted proxies, so a
   device there cannot dodge the limit on failed handshakes.
+- **A new password needs at least 12 characters.** A shorter one set before
+  keeps working until you change it.
+- **Signing out during a password reset can no longer bring the old password
+  back,** and two sign-outs at the same moment no longer stop KnightLoader.
+  `auth.json` is written whole or not at all, one write at a time.
+- **KnightLoader no longer starts on a damaged `auth.json`.** It read as no
+  password, so the instance was open to anybody. It now stops and says to
+  restore the file from a backup, or to remove it and set a password again.
+- **The code that turns on two-factor authentication cannot sign in
+  afterwards.**
+- **Wrong reset codes meet the limit before anything else is checked.** The
+  right code still always gets through.
+- **The page after a reset lists only what was removed.** A token or the
+  pairing group that could not be removed is no longer counted.
 ### Security
 
 - **An app key keeps a copied data folder useless.** Set `KL_APP_KEY` once
