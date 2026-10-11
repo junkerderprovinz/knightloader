@@ -165,7 +165,8 @@ secret to derive from and the frame key comes from the relay key itself. That
 still seals the traffic against anything sitting *between* you and the relay
 (a reverse proxy, a TLS terminator, a captured log), but not against the relay
 operator, who is handed that key. That trade fits the case it exists for:
-somebody hosting the relay themselves.
+somebody hosting the relay themselves. The instances on such a key sign their
+calls and approve each other just as a group made with the words does.
 
 **Every member signs its own calls.** The words are shared, so a sealed frame
 only proves that its sender holds them. On top of that, every instance, the
@@ -174,19 +175,24 @@ they join a group, and sign every call with it, inside the seal. An instance
 remembers the key of each member the first time that member signs a call to
 it, and after that accepts no other key in that member's name. A call that
 names a known member but comes with another key, or with no signature at all,
-is refused with a message that says so. A member's id also has to look like
-the ids its kind makes, so nobody can sign in as an instance under a phone's
-id. A group from a build before this keeps working: each member's key is
-remembered on its first signed call after the update, with no new pairing.
+is refused with a message that says so. Every call has to be signed: a phone
+or a browser that cannot make a key, or still runs a build from before keys,
+is told to update. Each kind of device makes its id in a shape of its own: an
+instance 40 hex digits, the extension `browser-` and hex, the app `phone-`
+and more. An id has to have the shape of the kind it signs as, so no device
+can be listed, approved, refused or removed under an instance's id, and no
+instance under a device's.
 
 Limits count per key, so one member cannot use up another's share. Each key
-can have 16 calls waiting on an instance at once. A phone or browser still on
-an older build can have 8, and all of them together 32. An instance takes at
-most 64 new keys an hour, no more than 4 of them through one relay connection
-or one address on your network, and keeps 64 in all. When the list is full, a
-key that has not been used for 30 days makes room. A request id is used up
-only for the key that sent it, so a member cannot block another member's calls
-by sending their ids first.
+can have 16 calls waiting on an instance at once. An instance takes at most 64
+new keys an hour, no more than 2 of them through one relay connection or one
+address on your network, and keeps 64 in all. Once the hour's 64 are taken, a
+new key takes the place of the oldest one from that hour that still waits for
+approval, so keys made to fill the hour keep nobody out. When the list is full,
+a key that has not been used for 30 days makes room. A request id is used up
+only for the key that sent it, and only once the instance knows that key, so
+nobody can block a member's calls by sending their ids first or by filling the
+record with keys of their own.
 
 **A new device waits for approval.** A phone, a browser or another instance
 that enters the words is listed under **Waiting for approval** on the Pairing
@@ -196,13 +202,11 @@ there with **Approve**. Without a login password that is whoever opens the
 page. The approval, or **Refuse**, reaches the other instances of the group,
 so one decision is enough. The device itself says that it waits and where to
 approve it: the app and the extension with a message, an instance with a line
-on its own Pairing card. The phones and browsers an instance knew when it
-first started this build count as approved; that list is written once and
-nothing adds to it later. Other instances of a group from before this build
-are approved once on each instance, like a new device. An instance that
-enters the words of a group takes the instances it finds already there, on
-its network or on the relay, in the first ten minutes as approved; the new
-instance itself still needs their approval.
+on its own Pairing card. Instances approve each other both ways: an instance
+that enters the words of a group waits for approval on the instances already
+there, and they wait on its Pairing card for its owner's approval in turn.
+While the Pairing card is open, an instance calls the others it sees in the
+group, so each lists the other as waiting as soon as both cards are open.
 
 **Removing a device**, or refusing it, takes back its key on every instance
 the decision reaches, and that key is never accepted there again. Like an
@@ -211,14 +215,6 @@ the others. A removed phone or browser cannot use its old id again either. An
 instance that was removed forgets the words and gets its id back, so it can
 enter the words again later. Whoever still has the words can come back with a
 new key, but only as a new device that waits for approval.
-
-The Android app and the browser extension of the build before this still
-reach an instance after it, as long as the instance knew them before the
-update, has no key for them yet and nobody removed them. Every other call
-without a signature is refused, and that includes the calls of an instance
-still on the older build: update every instance of a group together.
-Unsigned calls, and with them apps that never updated, are meant to be turned
-away in a later major release.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay** or **No relay**, with a badge that says Connected, Not connected
@@ -255,8 +251,12 @@ going without it; a phrase is a group, not a pairing.
 
 **A password reset leaves the group too.** The instance gets new twelve words
 that nobody else holds, so every phone, browser extension and other instance
-pairs again with them. See
-[A forgotten password](configuration.md#a-forgotten-password).
+pairs again with them. For 30 days after the reset it stays on the old group's
+relay key and answers every call made with the old words with "this instance
+was reset", which the app and the extension show as a sentence telling you to
+pair again with the new words. It keeps only the two keys derived from the old
+words for that, never the words themselves, and runs nothing such a call asks
+for. See [A forgotten password](configuration.md#a-forgotten-password).
 
 ## When neither can reach the other: the relay
 
@@ -350,8 +350,8 @@ sign-in or a passkey inside a link, and with each tracker cut to its host.
 Approving, refusing and removing a device start on an instance's own Pairing
 page. The other instances take such a decision only from an instance that
 signs with an approved key, so a phone or the extension cannot approve,
-remove or make an instance leave, and neither can a member on a build before
-keys. Leaving the group is done on the instance's own page alone. A phone or
+remove or make an instance leave. Leaving the group is done on the instance's
+own page alone. A phone or
 extension that was removed drops the whole group the next time it calls an
 instance that knows.
 
