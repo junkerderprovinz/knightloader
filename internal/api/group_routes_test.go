@@ -529,6 +529,27 @@ func signedAs(serve relay.ProxyHandler, id, kind string, key ed25519.PrivateKey)
 	}
 }
 
+func TestAMemberLearnsNoMoreOfTheLoginThanAStranger(t *testing.T) {
+	t.Parallel()
+	a, _, _, member, owner := groupServer(t)
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	_, body := member(http.MethodGet, "/api/auth", "")
+	var got map[string]any
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("GET /api/auth for a member = %s", body)
+	}
+	for _, key := range []string{"twoFactor", "recoveryLeft", "appKey", "appKeyCopiesUntil"} {
+		if _, ok := got[key]; ok {
+			t.Errorf("a member of the group read %q from GET /api/auth: %s", key, body)
+		}
+	}
+	if _, body := owner(http.MethodGet, "/api/auth", ""); bytes.Contains(body, []byte("twoFactor")) {
+		t.Errorf("a stranger read the second factor from GET /api/auth: %s", body)
+	}
+}
+
 // TestNamingItselfWithoutAKeyDoesNotMakeAnApprovedInstance plays the whole
 // attack: whoever holds the words names a fresh id without a key, then signs
 // as an instance under it, and tries to take a phone out and make this
