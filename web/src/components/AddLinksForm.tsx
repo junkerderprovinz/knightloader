@@ -406,7 +406,7 @@ export function AddLinksForm({
           needs the hueVars style beside it. */}
       <div className="glim-card glim-hue flex flex-1 flex-col p-0" style={hueVars(0) as CSSProperties}>
         <div className="px-4 pt-3">
-          <SectionTitle>{t('collector.addTitle')}</SectionTitle>
+          <SectionTitle>{t('nav.collector')}</SectionTitle>
         </div>
         {box}
         {actions}

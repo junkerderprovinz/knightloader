@@ -82,5 +82,5 @@ it('words the reason from its code rather than repeating the server', async () =
 
 it('says an upload that was staged was added', async () => {
   staging({ package: '' });
-  expect(await drop()).toContain('Added movie.torrent to the collector.');
+  expect(await drop()).toContain('Added movie.torrent to the link collector.');
 });
