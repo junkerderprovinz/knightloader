@@ -130,12 +130,10 @@ export const sk: Dict = {
   'empty.collectorTitle': 'Zberač je prázdny',
   'empty.collectorHint': 'Vlož odkazy hore a odložia sa sem.',
 
-  'collector.title': 'Zberač',
   'collector.listTitle': 'Zoznam odkazov',
   'collector.placeholder': 'Vlož odkazy, jednu URL na riadok, alebo ich sem pretiahni…  (Ctrl+Enter pridá)',
   'collector.package': 'Balík (voliteľné)',
   'collector.add': 'Pridať odkazy',
-  'collector.addTitle': 'Zberač odkazov',
   'collector.startSelected': 'Spustiť vybrané',
   'collector.startAll': 'Spustiť všetko',
   'collector.toastStaged': 'Odložených odkazov: {n}',
@@ -2068,7 +2066,7 @@ export const sk: Dict = {
   'settings.module.downloadclient': 'Klient sťahovania pre Sonarr a Radarr',
   'settings.module.debriddrive': 'Debrid disk',
 
-  'settings.downloads.collectorTitle': 'Zberač',
+  'settings.downloads.collectorTitle': 'Zberač odkazov',
   'settings.downloads.diskTitle': 'Miesto na disku',
   'settings.downloads.diskHint': 'Tri čísla, ktoré zadržia sťahovania skôr, než sa disk naplní. Všetky tri znamenajú voľné bajty na zväzku, na ktorý sa sťahovanie práve zapisuje, takže pracovný priečinok na inom disku sa meria na ňom. Nula príslušné číslo vypne. Nie každý systém sa dá spýtať, koľko miesta je voľné, a tam, kde odpoveď chýba, sa nikdy nič nezadrží, lebo stráž, ktorá blokuje, keď nevie, by zastavila úplne zdravý stroj.',
   'settings.stall.title': 'Stojace sťahovania',

@@ -61,7 +61,7 @@ describe('QuickAdd', () => {
     expect(posts).toEqual([
       { url: '/api/instances/cellar/links', body: { links: 'https://files.example/a.zip', package: 'Holiday' } },
     ]);
-    expect(host.textContent).toContain('Added “a.zip” to the collector.');
+    expect(host.textContent).toContain('Added “a.zip” to the link collector.');
   });
 
   it('opens on an empty box when nothing was handed over', async () => {

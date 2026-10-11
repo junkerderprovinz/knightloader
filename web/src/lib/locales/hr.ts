@@ -130,12 +130,10 @@ export const hr: Dict = {
   'empty.collectorTitle': 'Sakupljač je prazan',
   'empty.collectorHint': 'Zalijepi poveznice gore da ih pripremiš.',
 
-  'collector.title': 'Sakupljač',
   'collector.listTitle': 'Popis poveznica',
   'collector.placeholder': 'Zalijepi poveznice, jedan URL po retku, ili ih ispusti ovdje…  (Ctrl+Enter dodaje)',
   'collector.package': 'Paket (neobavezno)',
   'collector.add': 'Dodaj poveznice',
-  'collector.addTitle': 'Sakupljač poveznica',
   'collector.startSelected': 'Pokreni odabrano',
   'collector.startAll': 'Pokreni sve',
   'collector.toastStaged': 'Dodano poveznica: {n}',
@@ -2070,7 +2068,7 @@ export const hr: Dict = {
   'settings.module.downloadclient': 'Klijent za preuzimanje za Sonarr i Radarr',
   'settings.module.debriddrive': 'Debrid pogon',
 
-  'settings.downloads.collectorTitle': 'Sakupljač',
+  'settings.downloads.collectorTitle': 'Sakupljač poveznica',
   'settings.downloads.diskTitle': 'Prostor na disku',
   'settings.downloads.diskHint': 'Tri broja koja zadržavaju preuzimanja prije nego što se disk napuni. Sva tri su slobodni bajtovi na volumenu na koji se preuzimanje zapisuje, pa se radna mapa na drugom disku mjeri na tom disku. Nula isključuje pojedini broj. Ne može se svaki sustav pitati koliko je prostora slobodno, a gdje odgovor nije dostupan ništa se nikad ne zadržava, jer bi zaštita koja blokira kad ne zna zaustavila posve zdravo računalo.',
   'settings.stall.title': 'Zastoj',
