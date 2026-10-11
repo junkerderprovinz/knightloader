@@ -117,7 +117,7 @@ export function PasswordReset({
           autoComplete="one-time-code"
           autoCapitalize="characters"
           spellCheck={false}
-          placeholder="XXXX-XXXX"
+          placeholder="XXXX-XXXX-XXXX"
           dir="ltr"
           className="uppercase"
         />
