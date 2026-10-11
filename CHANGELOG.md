@@ -161,9 +161,10 @@ release's tag.
   Newznab feed's key, access and auth tokens, `key` and `tp` arguments,
   signed S3 addresses, and the tokens of Telegram bots, Discord webhooks and
   TorrentLeech feeds. Feed and crawler log lines are redacted too.
-- **A trusted proxy range can be at most `/28` for IPv4,** so a home network
-  can no longer be named a proxy. A wider range saved earlier is shown under
-  the field as not used, instead of being dropped without a word.
+- **A trusted proxy range can be at most `/28` for IPv4 or `/124` for IPv6,**
+  sixteen addresses either way, so a home network can no longer be named a
+  proxy. A wider range saved earlier is shown under the field as not used,
+  instead of being dropped without a word.
 - **Guessing passwords costs the server less.** At most two password checks
   run at once, and a whole IPv6 `/48` shares one count of failed sign-ins on
   top of the one per `/64`.
@@ -194,7 +195,7 @@ release's tag.
   person guessing at the password no longer makes everybody wait. The relay
   an instance serves reads the same list. It is empty by default, and the
   manual says when to fill it in. A range has to cover your proxies and none
-  of your visitors, so one wider than a /16 (IPv4) or a /48 (IPv6) is
+  of your visitors, so one wider than a /28 (IPv4) or a /124 (IPv6) is
   refused. The standalone relay takes the list from
   `KL_RELAY_TRUSTED_PROXIES`.
 - **The sign-in limit counts an IPv6 visitor by its /64,** the block one
