@@ -103,6 +103,7 @@ export function QueueBar() {
         transport
         icon={<IconPlay />}
         pressed={!queue.halted}
+        data-new="queue-state"
         onClick={() => queue.halted && void setHalted(false)}
         title={t('queue.play')}
       />

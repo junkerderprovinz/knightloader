@@ -157,7 +157,7 @@ export function AccountTable({
   return (
     // relative keeps the sr-only header cell inside this scroller. Placed
     // against the page, it would widen the whole page on a phone.
-    <div className="glim-well relative overflow-x-auto p-0">
+    <div data-new="account-rows" className="glim-well relative overflow-x-auto p-0">
       <table
         className={`w-full border-collapse text-sm ${importColumn ? 'min-w-[50rem]' : 'min-w-[46rem]'}`}
         aria-label={label}

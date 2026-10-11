@@ -301,7 +301,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
           </span>
         </p>
       ) : (
-        <ul className="flex flex-col">
+        <ul data-new="row-window" className="flex flex-col">
           {cats.map((cat, i) => (
             <CategoryRow
               key={uids[i] ?? `row-${i}`}

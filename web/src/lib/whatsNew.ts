@@ -11,7 +11,8 @@ export interface Change {
   id: string;
   /**
    * Where the element is drawn. Several when a page has more than one address,
-   * in the order a way there is looked for; "Go there" takes the first.
+   * in the order a way there is looked for; "Go there" takes the first. The
+   * address of a section stands for every page in it.
    */
   to: string[];
   text: TranslationKey;
@@ -31,6 +32,7 @@ export interface Release {
 
 const ACCOUNTS = ['/accounts', '/settings/accounts'];
 const INSTANCES = ['/instances', '/settings/instances'];
+const LISTS = ['/downloads', '/collector'];
 
 /** Newest first. Only the newest release an update passes is marked. */
 export const RELEASES: Release[] = [
@@ -51,7 +53,22 @@ export const RELEASES: Release[] = [
         names: { name: 'overview.customize' },
       },
       { id: 'folder-vessel', to: ['/'], text: 'whatsnew.change.vessel', names: { name: 'disk.title' } },
+      // Drawn on every page of a narrow window, and listed with the first of them.
+      { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },
       { id: 'page-actions', to: ['/downloads'], text: 'whatsnew.change.pageActions' },
+      {
+        id: 'queue-state',
+        to: ['/downloads'],
+        text: 'whatsnew.change.queueState',
+        names: { play: 'queue.play', pause: 'queue.pause' },
+      },
+      {
+        id: 'list-bar',
+        to: LISTS,
+        text: 'whatsnew.change.listBar',
+        names: { filter: 'list.filter', sort: 'list.sort', search: 'search.toggle' },
+      },
+      { id: 'list-rows', to: LISTS, text: 'whatsnew.change.listRows' },
       {
         id: 'collector-options',
         to: ['/collector'],
@@ -65,12 +82,29 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.accountsAdd',
         names: { name: 'accounts.newAccount' },
       },
+      { id: 'account-picker', to: ACCOUNTS, text: 'whatsnew.change.accountPicker' },
+      { id: 'account-rows', to: ACCOUNTS, text: 'whatsnew.change.accountRows' },
       {
         id: 'priority-flow',
         to: ACCOUNTS,
         text: 'whatsnew.change.priorityFlow',
         names: { name: 'accounts.routing.priorityTitle' },
       },
+      { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
+      {
+        id: 'display-card',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.displayCard',
+        names: {
+          name: 'settings.look.displayTitle',
+          lang: 'lang.label',
+          theme: 'settings.theme',
+          shape: 'settings.shape',
+          motion: 'settings.motion.title',
+          rows: 'settings.rowHeight.title',
+        },
+      },
+      { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
       { id: 'pairing-group', to: ['/settings/pairing'], text: 'whatsnew.change.pairingGroup' },
       { id: 'after-download', to: ['/settings/archives'], text: 'whatsnew.change.afterDownload' },
@@ -82,11 +116,18 @@ export const RELEASES: Release[] = [
       },
       { id: 'reconnect-scene', to: ['/settings/reconnect'], text: 'whatsnew.change.reconnectScene' },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
+      { id: 'test-button', to: ['/settings/captcha'], text: 'whatsnew.change.testButton' },
       {
         id: 'info-tile',
         to: ['/settings/help'],
         text: 'whatsnew.change.infoTile',
         names: { name: 'settings.nav.help' },
+      },
+      {
+        id: 'release-notes',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.releaseNotes',
+        names: { name: 'settings.look.updatesReleaseNotes' },
       },
     ],
   },
@@ -177,9 +218,12 @@ export function routeOf(to: string): string {
   return m ? `/settings/${pageId(m[1])}` : to;
 }
 
-/** isAt reports whether `here` is one of the addresses a change is drawn at. */
+/** isAt reports whether `here` is one of the addresses a change is drawn at, or a page of a section it is drawn in. */
 export function isAt(change: Change, here: string): boolean {
-  return change.to.some((to) => routeOf(to) === here);
+  return change.to.some((to) => {
+    const route = routeOf(to);
+    return route === here || here.startsWith(`${route}/`);
+  });
 }
 
 /**

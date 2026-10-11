@@ -119,6 +119,8 @@ interface Clip {
   box: Element;
   /** It scrolls up and down, so what it cuts off can be brought into view. */
   scrolls: boolean;
+  /** The same from side to side. */
+  sideways: boolean;
 }
 
 // The boxes that cut off what lies outside them, by element. Looked up once,
@@ -132,7 +134,11 @@ function clipsOf(el: Element): Clip[] {
     for (let up = el.parentElement; up && up !== document.body; up = up.parentElement) {
       const { overflowX, overflowY } = getComputedStyle(up);
       if (overflowX !== 'visible' || overflowY !== 'visible') {
-        found.push({ box: up, scrolls: overflowY === 'auto' || overflowY === 'scroll' });
+        found.push({
+          box: up,
+          scrolls: overflowY === 'auto' || overflowY === 'scroll',
+          sideways: overflowX === 'auto' || overflowX === 'scroll',
+        });
       }
     }
     clips.set(el, found);
@@ -143,7 +149,9 @@ function clipsOf(el: Element): Clip[] {
 /**
  * spot is where the dot of an element stands, or null while its corner cannot
  * be seen. A corner that only has to be scrolled to keeps its dot, at the edge
- * it lies beyond, so a page the dots led to never arrives without one.
+ * it lies beyond, so a page the dots led to never arrives without one. A link
+ * scrolled out of its strip sideways gives its dot up instead: the strip's edge
+ * would gather the dots of every link beyond it.
  */
 function spot(target: Target, rtl: boolean, top: Element | null): { x: number; y: number } | null {
   const r = target.el.getBoundingClientRect();
@@ -151,11 +159,14 @@ function spot(target: Target, rtl: boolean, top: Element | null): { x: number; y
   // A window covers the page, and only what is inside it can be pointed at.
   if (top !== null && !top.contains(target.el)) return null;
   const inset = target.kind === 'page' ? EDGE_INSET : INSET;
-  const x = rtl ? r.left + inset : r.right - inset;
+  let x = rtl ? r.left + inset : r.right - inset;
   let y = r.top + inset;
-  for (const { box, scrolls } of clipsOf(target.el)) {
+  for (const { box, scrolls, sideways } of clipsOf(target.el)) {
     const c = box.getBoundingClientRect();
-    if (x < c.left || x > c.right) return null;
+    if (x < c.left || x > c.right) {
+      if (!sideways || target.kind === 'way') return null;
+      x = x < c.left ? c.left + EDGE_INSET : c.right - EDGE_INSET;
+    }
     if (y >= c.top && y <= c.bottom) continue;
     if (!scrolls) return null;
     y = y < c.top ? c.top + EDGE_INSET : c.bottom - EDGE_INSET;
@@ -235,6 +246,9 @@ export function NewDots({ news }: { news: WhatsNew }) {
     const rtl = document.documentElement.dir === 'rtl';
     const windows = document.querySelectorAll('[aria-modal="true"]');
     const top = windows.length > 0 ? windows[windows.length - 1] : null;
+    // Over a window while one is open, since only the dots inside it are left,
+    // and still under the menus and bubbles it opens.
+    if (layer.current) layer.current.style.zIndex = top ? '55' : '';
     const taken: { x: number; y: number }[] = [];
     for (const target of live.current) {
       const dot = dots.current.get(target.key);
@@ -304,7 +318,8 @@ export function NewDots({ news }: { news: WhatsNew }) {
 
   if (!on) return null;
   return createPortal(
-    // Under the windows and the panels, which cover the page and its dots alike.
+    // Under the windows and the panels, which cover the page and its dots
+    // alike; placeAll lifts it while the dots stand inside a window.
     <div ref={layer} className="pointer-events-none fixed left-0 top-0 z-30 h-0 w-0">
       {targets.map((target) => (
         <Dot

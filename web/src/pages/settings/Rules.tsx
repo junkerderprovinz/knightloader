@@ -339,7 +339,7 @@ function RuleCards() {
             </span>
           </p>
         ) : (
-          <ul className="flex flex-col">
+          <ul data-new="row-window" className="flex flex-col">
             {rules.map((rule, i) => (
               <RuleRow
                 key={i}

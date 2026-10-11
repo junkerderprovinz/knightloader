@@ -475,6 +475,7 @@ function TaskRow({
       aria-level={level}
       aria-posinset={posinset}
       aria-setsize={setsize}
+      data-new="list-rows"
       onKeyDown={onKeyDown}
       // The live drag preview slides this row with a translate rather than
       // rendering it somewhere else in the list; see TaskListCard's
@@ -1067,6 +1068,7 @@ function PackageRow({
       aria-level={level}
       aria-posinset={posinset}
       aria-setsize={setsize}
+      data-new="list-rows"
       onKeyDown={onKeyDown}
       // Slid out of the way by a drag in flight exactly like a link row; see
       // TaskRow's identical style above and previewOffsets for the arithmetic.

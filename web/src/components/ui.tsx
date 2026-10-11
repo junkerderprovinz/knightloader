@@ -1581,6 +1581,7 @@ export function Card({
   hover = false,
   padding = 'normal',
   hue,
+  'data-new': mark,
 }: {
   children: ReactNode;
   className?: string;
@@ -1601,9 +1602,12 @@ export function Card({
    * lands 20px right of where it should.
    */
   padding?: 'normal' | 'none';
+  /** The change this card is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
 }) {
   return (
     <div
+      data-new={mark}
       // The trailing space lives inside the string, never after the
       // interpolation: an expression glued to the class before it fuses into
       // one nonsense name and drops both.

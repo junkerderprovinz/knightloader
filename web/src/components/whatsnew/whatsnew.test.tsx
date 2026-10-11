@@ -16,6 +16,7 @@ import { WhatsNewWindow } from './WhatsNewWindow';
 const HEAD: Change = { id: 'overview-head', to: ['/'], text: 'whatsnew.change.pageActions' };
 const RING: Change = { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' };
 const ADD: Change = { id: 'accounts-add', to: ['/accounts', '/settings/accounts'], text: 'whatsnew.change.pairingSteps' };
+const SEARCH: Change = { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.pairingSteps' };
 
 // jsdom has no ResizeObserver, which the window's tab strip measures with.
 globalThis.ResizeObserver ??= class {
@@ -41,6 +42,7 @@ afterEach(() => {
   act(() => root.unmount());
   host.remove();
   Element.prototype.getClientRects = rects;
+  vi.restoreAllMocks();
   vi.useRealTimers();
 });
 
@@ -92,6 +94,25 @@ function Here() {
 
 const link = (path: string) => host.querySelector(`a[href="${path}"]`)!;
 
+/**
+ * layOut gives the page the boxes its `data-box` attributes name (left, top,
+ * width, height) and lets `data-scrolls` scroll sideways, since jsdom has no
+ * layout. Whatever names no box fills the window.
+ */
+function layOut() {
+  vi.spyOn(Element.prototype, 'getBoundingClientRect').mockImplementation(function (this: Element) {
+    const [x, y, w, h] = (this.getAttribute('data-box') ?? '0,0,1000,800').split(',').map(Number);
+    return new DOMRect(x, y, w, h);
+  });
+  const computed = globalThis.getComputedStyle;
+  vi.spyOn(globalThis, 'getComputedStyle').mockImplementation((el, pseudo) => {
+    const style = computed(el, pseudo);
+    style.overflowX = el.hasAttribute('data-scrolls') ? 'auto' : 'visible';
+    style.overflowY = 'visible';
+    return style;
+  });
+}
+
 describe('where a change is marked', () => {
   it('stands on the element that carries its marker', async () => {
     await act(async () => root.render(<Frame at="/" page={<h2 data-new="overview-head">Head</h2>} />));
@@ -133,6 +154,12 @@ describe('where a change is marked', () => {
     const [target] = collect([HEAD], '/', true);
     expect(target.kind).toBe('page');
     expect(target.el).toBe(host.querySelector('main'));
+  });
+
+  it('marks every page of a section for a change the section names', async () => {
+    await act(async () => root.render(<Frame at="/settings/torrents" />));
+    expect(collect([SEARCH], '/settings/torrents', true).map((t) => t.kind)).toEqual(['page']);
+    expect(collect([SEARCH], '/', true).map((t) => t.el)).toEqual([link('/settings')]);
   });
 });
 
@@ -191,6 +218,52 @@ describe('the dots', () => {
     await draw('/', news([RING], [], { dots: false }));
     expect(dots()).toEqual([]);
   });
+
+  it('stand over a window that holds the changed element', async () => {
+    layOut();
+    await draw(
+      '/',
+      news([HEAD]),
+      <div role="dialog" aria-modal="true" data-box="100,100,400,300">
+        <h2 data-new="overview-head" data-box="120,120,200,30">
+          Head
+        </h2>
+      </div>,
+    );
+    const [dot] = dots();
+    expect(dot.style.display).toBe('');
+    expect(dot.parentElement!.style.zIndex).toBe('55');
+  });
+
+  it('stay under a window that covers the changed element', async () => {
+    layOut();
+    await draw(
+      '/',
+      news([HEAD]),
+      <>
+        <h2 data-new="overview-head" data-box="120,120,200,30">
+          Head
+        </h2>
+        <div role="dialog" aria-modal="true" data-box="100,100,400,300" />
+      </>,
+    );
+    expect(dots().map((d) => d.style.display)).toEqual(['none']);
+  });
+
+  it('keep to the edge of a box the change has to be scrolled sideways to', async () => {
+    layOut();
+    await draw(
+      '/',
+      news([HEAD]),
+      <div data-box="0,0,300,200" data-scrolls>
+        <div data-new="overview-head" data-box="0,10,900,30">
+          Row
+        </div>
+      </div>,
+    );
+    const [dot] = dots();
+    expect([dot.style.display, dot.style.left, dot.style.top]).toEqual(['', '288px', '14px']);
+  });
 });
 
 describe('the window', () => {
@@ -248,6 +321,13 @@ describe('the window', () => {
     await act(async () => button('Go there').click());
     expect(host.querySelector('[data-here]')!.textContent).toBe('/settings/torrents');
     expect(onClose).toHaveBeenCalled();
+  });
+
+  it('lists a change of a whole section under the section and goes there', async () => {
+    await act(async () => root.render(<Shown shown={news([SEARCH])} notes="" tab="changes" />));
+    expect(host.querySelector('h3')!.textContent).toBe('Settings');
+    await act(async () => button('Go there').click());
+    expect(host.querySelector('[data-here]')!.textContent).toBe('/settings');
   });
 
   it('has no list where the version marked nothing', async () => {

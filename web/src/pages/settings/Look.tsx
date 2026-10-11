@@ -452,7 +452,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           with its selector at the row's end. The language comes first, and its
           trigger is a field, as tall as one. */}
       {appearance && (
-      <Card hue={0} className="flex flex-col gap-4">
+      <Card hue={0} data-new="display-card" className="flex flex-col gap-4">
         <SectionTitle>{t('settings.look.displayTitle')}</SectionTitle>
         <SettingRow label={t('lang.label')}>
           {/* standalone: OnboardingWizard mounts a second instance at the same

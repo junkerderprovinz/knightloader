@@ -82,6 +82,7 @@ export function TestButton({
         shake={shake}
         disabled={disabled || busy}
         hint={hint}
+        data-new="test-button"
         onClick={() => void onClick()}
       >
         {word}
