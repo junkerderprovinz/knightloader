@@ -1,6 +1,7 @@
 package store
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -30,7 +31,10 @@ func OpenWithKey(path string, key *appkey.Key) (*Store, error) {
 }
 
 // sealPlainPasswords seals every password a row holds in the clear, in one
-// transaction, so a start that stops halfway leaves every row readable.
+// transaction, so a start that stops halfway leaves every row readable. The
+// plain values must not stay behind in the file either: secure_delete zeroes
+// the space the old rows held, and VACUUM rebuilds the file from the live rows
+// alone.
 func (s *Store) sealPlainPasswords() error {
 	rows, err := s.db.Query(`SELECT id, password, download_password FROM tasks WHERE password != '' OR download_password != ''`)
 	if err != nil {
@@ -55,7 +59,18 @@ func (s *Store) sealPlainPasswords() error {
 	if len(plain) == 0 {
 		return nil
 	}
-	tx, err := s.db.Begin()
+	ctx := context.Background()
+	// The pragma belongs to one connection, so everything runs on this one.
+	conn, err := s.db.Conn(ctx)
+	if err != nil {
+		return fmt.Errorf("store: sealing task passwords: %w", err)
+	}
+	defer conn.Close()
+	if _, err := conn.ExecContext(ctx, `PRAGMA secure_delete = ON`); err != nil {
+		return fmt.Errorf("store: sealing task passwords: %w", err)
+	}
+	defer conn.ExecContext(ctx, `PRAGMA secure_delete = OFF`)
+	tx, err := conn.BeginTx(ctx, nil)
 	if err != nil {
 		return fmt.Errorf("store: sealing task passwords: %w", err)
 	}
@@ -75,6 +90,10 @@ func (s *Store) sealPlainPasswords() error {
 	}
 	if err := tx.Commit(); err != nil {
 		return fmt.Errorf("store: sealing task passwords: %w", err)
+	}
+	// A failed rebuild leaves zeroed space behind, not the passwords.
+	if _, err := conn.ExecContext(ctx, `VACUUM`); err != nil {
+		log.Printf("store: the file could not be rebuilt after sealing the task passwords: %v", err)
 	}
 	log.Printf("store: sealed the passwords of %d task(s) with the app key", len(plain))
 	return nil
