@@ -33,6 +33,11 @@ const (
 	unsignedCalls  = 32
 )
 
+// acceptUnsigned serves calls that carry no member key, from members on a
+// release before keys, as long as they claim no id with a pinned key. Turning
+// it off refuses every unsigned call.
+const acceptUnsigned = true
+
 // Caller is the member a call came from, as its pinned key says.
 type Caller struct {
 	ID   string
@@ -145,6 +150,9 @@ func (m *Manager) admit(call relay.ProxyCall, now time.Time) (Caller, *refusal) 
 	_, removed := st.Removed[call.From]
 	if !call.Signed() {
 		switch {
+		case !acceptUnsigned:
+			return Caller{}, refuse(http.StatusForbidden, "memberUnsigned",
+				"this instance only takes signed calls; update the device, or remove it on the Pairing page and pair it again")
 		case call.From == "":
 			return Caller{}, nil
 		case removed:
@@ -153,6 +161,11 @@ func (m *Manager) admit(call relay.ProxyCall, now time.Time) (Caller, *refusal) 
 		if _, pinned := st.Keys[call.From]; pinned {
 			return Caller{}, refuse(http.StatusForbidden, "memberUnsigned",
 				"this device signs its calls, so a call in its name without a signature is refused; update it, or remove it on the Pairing page and pair it again")
+		}
+		// A member calling without a key is on a release from before keys,
+		// so it was let in before there was anything to approve.
+		if noteLegacyLocked(st, call.From) {
+			_ = m.group.flushLocked()
 		}
 		return Caller{}, nil
 	}
@@ -172,6 +185,9 @@ func (m *Manager) admit(call relay.ProxyCall, now time.Time) (Caller, *refusal) 
 			pin.Used = now
 			st.Keys[call.From] = pin
 			_ = m.group.flushLocked()
+		}
+		if !pin.Approved {
+			return Caller{}, pendingRefusal
 		}
 		return Caller{ID: call.From, Kind: pin.Kind}, nil
 	}
@@ -196,25 +212,43 @@ func (m *Manager) admit(call relay.ProxyCall, now time.Time) (Caller, *refusal) 
 	if kind != relay.KindInstance && kind != relay.KindMobile && kind != relay.KindExtension {
 		kind = ""
 	}
-	st.Keys[call.From] = PinnedKey{Key: bytes.Clone(call.Key), Kind: kind, Used: now}
+	approved := st.Legacy[call.From] || (kind == relay.KindInstance && now.Before(st.TrustUntil))
+	st.Keys[call.From] = PinnedKey{Key: bytes.Clone(call.Key), Kind: kind, Used: now, Approved: approved}
 	if err := m.group.flushLocked(); err != nil {
 		delete(st.Keys, call.From)
 		return Caller{}, refuse(http.StatusInternalServerError, "memberNotPinned", "this instance could not record the device's key")
 	}
+	if !approved {
+		return Caller{}, pendingRefusal
+	}
 	return Caller{ID: call.From, Kind: kind}, nil
 }
 
-// forgetIdlePinLocked drops the pin used longest ago if it is older than
-// pinIdle, and reports whether it made room. Its member pins its key again on
-// its next call.
+// pendingRefusal answers a member whose key is pinned but nobody approved yet.
+var pendingRefusal = refuse(http.StatusForbidden, "memberPending",
+	"this device waits for approval; approve it on an instance of the group under Settings, Pairing")
+
+// forgetIdlePinLocked makes room for one more pin and reports whether it
+// could: it drops the waiting pin used longest ago, else an approved one
+// nobody used for pinIdle. A dropped member pins its key again on its next
+// call.
 func forgetIdlePinLocked(st *GroupState, now time.Time) bool {
 	idlest := ""
 	for id, pin := range st.Keys {
-		if idlest == "" || pin.Used.Before(st.Keys[idlest].Used) {
+		cur, ok := st.Keys[idlest]
+		switch {
+		case !ok:
+			idlest = id
+		case pin.Approved != cur.Approved:
+			if !pin.Approved {
+				idlest = id
+			}
+		case pin.Used.Before(cur.Used):
 			idlest = id
 		}
 	}
-	if idlest == "" || now.Sub(st.Keys[idlest].Used) < pinIdle {
+	pin, ok := st.Keys[idlest]
+	if !ok || (pin.Approved && now.Sub(pin.Used) < pinIdle) {
 		return false
 	}
 	delete(st.Keys, idlest)

@@ -151,8 +151,47 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		t.Errorf("a member on the release before keys = %d %s, want it served", code, body)
 	}
 
+	// The second instance entered the words, so the first was there already
+	// for it; the first has to approve the second.
+	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Fatalf("the second instance asking the first before it was approved = %d %s, want 403 memberPending", code, body)
+	}
+	if !connectInfoOf(t, secondToken, second.URL).Awaiting {
+		t.Error("the second instance does not say it waits for approval")
+	}
+	pending := connectInfoOf(t, firstToken, first.URL).Pending
+	if len(pending) != 1 || pending[0].ID != secondID || pending[0].Kind != relay.KindInstance || pending[0].Fingerprint == "" {
+		t.Fatalf("the first instance lists %+v as waiting, want the second with its kind and fingerprint", pending)
+	}
+	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+secondID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the second instance = %d %s", code, body)
+	}
 	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusOK {
-		t.Fatalf("the second instance asking the first = %d %s", code, body)
+		t.Fatalf("the second instance asking the first once approved = %d %s", code, body)
+	}
+
+	// A phone is approved on the first instance, and the second honours it.
+	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("p", ed25519.SeedSize)))
+	asPhone := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: "phone-new", Kind: relay.KindMobile}
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-new", firstID, phone, asPhone); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Fatalf("a new phone = %d %s, want 403 memberPending", code, body)
+	}
+	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/phone-new/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the phone = %d %s", code, body)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, asPhone)
+		if code == http.StatusOK {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the phone approved on the first instance = %d %s on the second, want the approval passed on", code, body)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+		t.Errorf("an unsigned member passing an approval on = %d %s, want it refused", code, body)
 	}
 	secondKey := memberKey(secondApp)
 	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/members/"+secondID, nil); code != http.StatusNoContent {

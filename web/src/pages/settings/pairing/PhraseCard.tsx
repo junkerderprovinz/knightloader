@@ -9,17 +9,20 @@ import {
   ApiError,
   PhraseRejected,
   activateConnect,
+  approveDevice,
   fetchInstances,
   joinConnect,
   leaveConnect,
   removeApp,
   removeInstance,
+  refuseDevice,
   removeMember,
   revealConnect,
   type ConnectInfo,
   type GroupApp,
   type GroupMember,
   type Instance,
+  type PendingDevice,
   type QRMatrix,
 } from '../../../lib/api';
 import { basePath } from '../../../lib/basePath';
@@ -27,6 +30,7 @@ import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import {
   IconBrowser,
+  IconCheck,
   IconCheckDrawn,
   IconChevronEnd,
   IconClipboard,
@@ -206,9 +210,54 @@ function AppRow({ app, action, t }: { app: GroupApp; action: ReactNode; t: T }) 
   );
 }
 
+/** PendingRow is a device that entered the words and waits for approval, with
+ *  what to compare it by and the two answers. */
+function PendingRow({
+  device,
+  busy,
+  onApprove,
+  onRefuse,
+  t,
+}: {
+  device: PendingDevice;
+  busy: boolean;
+  onApprove: () => void;
+  onRefuse: () => void;
+  t: T;
+}) {
+  const glyph = device.kind === 'mobile' ? <IconPhone /> : device.kind === 'extension' ? <IconBrowser /> : <IconInstances />;
+  const kind =
+    device.kind === 'mobile'
+      ? t('instances.kind.mobile')
+      : device.kind === 'extension'
+        ? t('instances.kind.extension')
+        : t('pairing.pendingInstance');
+  return (
+    <li className="flex flex-wrap items-center gap-x-2.5 gap-y-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+      <span className="shrink-0 text-carbon-textMuted [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
+      <span className="flex min-w-0 flex-col">
+        <span className="flex min-w-0 items-center gap-2">
+          <span className="truncate text-sm font-semibold text-carbon-text">{device.name || device.id}</span>
+          <span className="glim-eyebrow shrink-0">{kind}</span>
+        </span>
+        <span className="glim-num text-xs text-carbon-textMuted">{t('pairing.fingerprint', { fingerprint: device.fingerprint })}</span>
+      </span>
+      <span className="ms-auto flex shrink-0 items-center gap-2">
+        <Button kind="secondary" className="px-2.5 text-xs" disabled={busy} onClick={onRefuse}>
+          {t('pairing.refuse')}
+        </Button>
+        <Button kind="primary" icon={<IconCheck width={14} height={14} />} className="px-2.5 text-xs" disabled={busy} onClick={onApprove}>
+          {t('pairing.approve')}
+        </Button>
+      </span>
+    </li>
+  );
+}
+
 /** What the removal window is about: a phone or extension of the group, an
- *  instance of the group, or an instance added by its address. */
-type Removal = { kind: 'app' | 'member' | 'peer'; id: string; name: string };
+ *  instance of the group, an instance added by its address, or a device that
+ *  waits for approval and is about to be refused. */
+type Removal = { kind: 'app' | 'member' | 'peer' | 'refuse'; id: string; name: string };
 
 function WaitRow({ text, seconds }: { text: string; seconds?: number }) {
   return (
@@ -371,6 +420,8 @@ export function PhraseCard({
     await run(async () => {
       if (r.kind === 'app') {
         await removeApp(r.id);
+      } else if (r.kind === 'refuse') {
+        await refuseDevice(r.id);
       } else if (r.kind === 'member') {
         await removeMember(r.id);
       } else {
@@ -383,6 +434,14 @@ export function PhraseCard({
   }
 
   const stage = pairStage(group, joinedAgo, createdHere);
+  // A device waiting for approval is listed once, under the approval.
+  const waiting = new Set(group.pending.map((p) => p.id));
+
+  const approve = (id: string) =>
+    run(async () => {
+      await approveDevice(id);
+      onRefresh();
+    });
 
   async function run(action: () => Promise<void>) {
     setBusy(true);
@@ -655,6 +714,27 @@ export function PhraseCard({
         {stage !== 'paired' && stateRow(t(badge.key), badge.tone)}
         {noPasswordNote}
         {relayHint}
+        {group.awaiting && <WaitRow text={t('pairing.awaiting')} />}
+        {group.pending.length > 0 && (
+          <section className="flex flex-col gap-2" data-testid="pending">
+            <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
+              {t('pairing.pendingTitle')}
+              <InfoBubble tip={t('pairing.pendingTip')} />
+            </span>
+            <ul className="flex flex-col gap-2">
+              {group.pending.map((p) => (
+                <PendingRow
+                  key={p.id}
+                  device={p}
+                  busy={busy}
+                  t={t}
+                  onApprove={() => void approve(p.id)}
+                  onRefuse={() => setRemoving({ kind: 'refuse', id: p.id, name: p.name || p.id })}
+                />
+              ))}
+            </ul>
+          </section>
+        )}
         {stage === 'new' && (
           <>
             <div className="flex flex-wrap items-center justify-end gap-2 text-sm text-carbon-textMuted">
@@ -669,7 +749,7 @@ export function PhraseCard({
         <div className="flex flex-col gap-2">
           <ul className="flex flex-col gap-2" data-testid="members">
             <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} badge={<StateBadge on t={t} />} />
-            {group.members.map((m) => (
+            {group.members.filter((m) => !waiting.has(m.id)).map((m) => (
               <MemberRow
                 key={m.id}
                 m={m}
@@ -685,7 +765,7 @@ export function PhraseCard({
                 action={removeButton({ kind: 'peer', id: p.name, name: p.displayName ?? p.name })}
               />
             ))}
-            {group.apps.map((a) => (
+            {group.apps.filter((a) => !waiting.has(a.id)).map((a) => (
               <AppRow
                 key={a.id}
                 app={a}
@@ -714,7 +794,7 @@ export function PhraseCard({
       {windows}
       {removing && (
         <Modal
-          title={t('instances.removeTitle', { name: removing.name })}
+          title={removing.kind === 'refuse' ? t('pairing.refuseTitle', { name: removing.name }) : t('instances.removeTitle', { name: removing.name })}
           onClose={() => setRemoving(null)}
           footer={
             <>
@@ -723,7 +803,7 @@ export function PhraseCard({
                 kind="primary"
                 labelled
                 icon={<IconTrash />}
-                title={t('instances.remove')}
+                title={removing.kind === 'refuse' ? t('pairing.refuse') : t('instances.remove')}
                 disabled={busy}
                 shake={shake}
                 onClick={() => void remove(removing)}
@@ -732,7 +812,9 @@ export function PhraseCard({
           }
         >
           <p className="text-sm text-carbon-textSub">
-            {removing.kind === 'app'
+            {removing.kind === 'refuse'
+              ? t('pairing.refuseConfirm', { name: removing.name })
+              : removing.kind === 'app'
               ? t('instances.removeAppConfirm', { name: removing.name })
               : removing.kind === 'member'
                 ? t('instances.removeMemberConfirm', { name: removing.name })

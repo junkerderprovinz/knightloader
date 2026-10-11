@@ -277,6 +277,7 @@ export class RelayClient {
               name: this.opts.selfName,
               deployment: 'mobile',
               client: true,
+              ...(this.opts.memberSeed ? { signs: true } : {}),
             }),
           },
         });

@@ -18,6 +18,13 @@ package relay
 //   - Taking a member out revokes its pinned key on that instance for good.
 //     The id stays removed for a phone or a browser; an instance's id is freed,
 //     so the instance can join again under a key of its own.
+//   - A key pinned for the first time waits for approval: until somebody at an
+//     instance approves the device, its calls are refused with a code that
+//     says so. The approval, and a refusal, are passed on to the other
+//     instances with the key, so they pin it as approved before the device
+//     calls them. Members that were in the group before keys count as
+//     approved, and so do the instances an instance meets right after its
+//     owner entered the words of a group that already existed.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
 //     from the verified key: the replay guard, the calls served at once, and
 //     how many keys may be pinned per hour. Calls without a signature, from
@@ -25,9 +32,8 @@ package relay
 //
 // A call without a signature is still served during the move to keys, unless
 // its id has a pinned key or was removed, so an instance on the release before
-// keys and one after it keep talking. Holding the phrase still lets anybody
-// join as a new member with a new key; what a key stops is speaking for a
-// member that already exists.
+// keys and one after it keep talking. federation.acceptUnsigned is the one
+// switch that ends this.
 
 import (
 	"crypto/ed25519"
