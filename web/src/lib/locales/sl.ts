@@ -366,7 +366,7 @@ export const sl: Dict = {
   'auth.reset.mismatch': 'Gesli se ne ujemata.',
   'auth.reset.length': 'Novo geslo mora imeti od 8 do 72 znakov.',
   'auth.reset.rejected': 'Te kode ni sprejelo. Uporabi najnovejšo kodo, ki je tam zapisana. Ko je koda prestara, KnightLoader zapiše novo, največ enkrat na minuto.',
-  'auth.reset.wait': 'Preveč poskusov. Počakaj pol minute in poskusi znova.',
+  'auth.tooMany': 'Preveč poskusov. Počakaj pol minute in poskusi znova.',
   'auth.reset.unavailable': 'KnightLoader ni mogel zapisati kode za ponastavitev, zato gesla s te strani ni mogoče ponastaviti.',
   'auth.reset.failed': 'Gesla ni bilo mogoče nastaviti. Poskusi znova.',
   'accounts.ok': 'Deluje',

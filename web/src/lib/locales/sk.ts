@@ -366,7 +366,7 @@ export const sk: Dict = {
   'auth.reset.mismatch': 'Heslá sa nezhodujú.',
   'auth.reset.length': 'Nové heslo musí mať 8 až 72 znakov.',
   'auth.reset.rejected': 'Tento kód nebol prijatý. Použi najnovší kód, ktorý je tam zapísaný. Keď je kód príliš starý, KnightLoader zapíše nový, najviac raz za minútu.',
-  'auth.reset.wait': 'Príliš veľa pokusov. Počkaj pol minúty a skús to znova.',
+  'auth.tooMany': 'Príliš veľa pokusov. Počkaj pol minúty a skús to znova.',
   'auth.reset.unavailable': 'KnightLoader nedokázal zapísať kód, takže heslo sa z tejto stránky nedá resetovať.',
   'auth.reset.failed': 'Heslo sa nepodarilo nastaviť. Skús to znova.',
   'accounts.ok': 'Funguje',

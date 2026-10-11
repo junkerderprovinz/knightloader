@@ -366,7 +366,7 @@ export const ro: Dict = {
   'auth.reset.mismatch': 'Cele două parole diferă.',
   'auth.reset.length': 'Parola nouă trebuie să aibă între 8 și 72 de caractere.',
   'auth.reset.rejected': 'Acest cod nu a fost acceptat. Folosește cel mai nou cod scris acolo. Când un cod e prea vechi, KnightLoader scrie unul nou, cel mult o dată pe minut.',
-  'auth.reset.wait': 'Prea multe încercări. Așteaptă o jumătate de minut și încearcă din nou.',
+  'auth.tooMany': 'Prea multe încercări. Așteaptă o jumătate de minut și încearcă din nou.',
   'auth.reset.unavailable': 'KnightLoader nu a putut scrie un cod de resetare, așa că parola nu poate fi resetată din această pagină.',
   'auth.reset.failed': 'Parola nu a putut fi setată. Încearcă din nou.',
   'accounts.ok': 'Funcționează',

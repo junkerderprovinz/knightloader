@@ -366,7 +366,7 @@ export const ca: Dict = {
   'auth.reset.mismatch': 'Les dues contrasenyes no coincideixen.',
   'auth.reset.length': 'La contrasenya nova ha de tenir entre 8 i 72 caràcters.',
   'auth.reset.rejected': 'Aquest codi no s’ha acceptat. Fes servir el codi més recent que hi hagi escrit. Quan un codi caduca, KnightLoader n’escriu un de nou, com a màxim un cop per minut.',
-  'auth.reset.wait': 'Massa intents. Espera mig minut i torna-ho a provar.',
+  'auth.tooMany': 'Massa intents. Espera mig minut i torna-ho a provar.',
   'auth.reset.unavailable': 'KnightLoader no ha pogut escriure cap codi de restabliment, així que la contrasenya no es pot restablir des d’aquesta pàgina.',
   'auth.reset.failed': 'No s’ha pogut establir la contrasenya. Torna-ho a provar.',
   'accounts.ok': 'Funciona',

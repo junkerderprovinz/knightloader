@@ -366,7 +366,7 @@ export const vi: Dict = {
   'auth.reset.mismatch': 'Hai mật khẩu không khớp nhau.',
   'auth.reset.length': 'Mật khẩu mới cần có từ 8 đến 72 ký tự.',
   'auth.reset.rejected': 'Mã đó không được chấp nhận. Hãy dùng mã mới nhất được ghi ở đó. Khi một mã quá cũ, KnightLoader sẽ ghi mã mới, nhiều nhất mỗi phút một lần.',
-  'auth.reset.wait': 'Quá nhiều lần thử. Hãy chờ nửa phút rồi thử lại.',
+  'auth.tooMany': 'Quá nhiều lần thử. Hãy chờ nửa phút rồi thử lại.',
   'auth.reset.unavailable': 'KnightLoader không ghi được mã đặt lại, nên không thể đặt lại mật khẩu từ trang này.',
   'auth.reset.failed': 'Không đặt được mật khẩu. Hãy thử lại.',
   'accounts.ok': 'Hoạt động',

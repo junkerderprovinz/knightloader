@@ -358,7 +358,7 @@ export const nl: Dict = {
   'auth.reset.mismatch': 'De twee wachtwoorden zijn niet gelijk.',
   'auth.reset.length': 'Het nieuwe wachtwoord moet tussen 8 en 72 tekens lang zijn.',
   'auth.reset.rejected': 'Die code is niet geaccepteerd. Gebruik de nieuwste code die daar staat. Is een code te oud, dan schrijft KnightLoader een nieuwe, hooguit één keer per minuut.',
-  'auth.reset.wait': 'Te veel pogingen. Wacht een halve minuut en probeer het opnieuw.',
+  'auth.tooMany': 'Te veel pogingen. Wacht een halve minuut en probeer het opnieuw.',
   'auth.reset.unavailable': 'KnightLoader kon geen code schrijven, dus het wachtwoord kan niet vanaf deze pagina opnieuw worden ingesteld.',
   'auth.reset.failed': 'Het wachtwoord kon niet worden ingesteld. Probeer het opnieuw.',
   'accounts.ok': 'Werkt',

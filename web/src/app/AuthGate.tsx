@@ -51,6 +51,11 @@ export function AuthGate({ children }: { children: ReactNode }) {
   return <>{children}</>;
 }
 
+/** tooMany reports whether a sign-in was refused by the throttle. */
+function tooMany(e: unknown): boolean {
+  return e instanceof ApiError && e.status === 429;
+}
+
 /**
  * The sign-in screen, with a passkey button where one can work. The code is a
  * second step because the server only says whether a second factor is armed
@@ -62,7 +67,9 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
   const [code, setCode] = useState('');
   // Which question is on screen, decided by the server's answer.
   const [step, setStep] = useState<'password' | 'code'>('password');
-  const [error, setError] = useState<'' | 'password' | 'code' | 'passkey' | 'noResetCode' | 'unreachable'>('');
+  const [error, setError] = useState<'' | 'password' | 'code' | 'passkey' | 'wait' | 'noResetCode' | 'unreachable'>(
+    '',
+  );
   const [busy, setBusy] = useState(false);
   // A passkey is bound to its domain, so the button only appears where a key
   // registered for this address exists.
@@ -92,7 +99,13 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
       setStep('code');
       setCode('');
       if (res.codeRejected) setError('code');
-    } catch {
+    } catch (e) {
+      // The throttle refuses the right password too, so nothing typed is
+      // wrong and all of it stays.
+      if (tooMany(e)) {
+        setError('wait');
+        return;
+      }
       setError('password');
       setPassword('');
       setCode('');
@@ -119,8 +132,8 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
     setError('');
     try {
       onSignedIn(await signInWithPasskey());
-    } catch {
-      setError('passkey');
+    } catch (e) {
+      setError(tooMany(e) ? 'wait' : 'passkey');
     } finally {
       setBusy(false);
     }
@@ -181,6 +194,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                   {error === 'passkey' && (
                     <span className="text-statusFail text-sm">{t('auth.passkey.signInFailed')}</span>
                   )}
+                  {error === 'wait' && <span className="text-statusFail text-sm">{t('auth.tooMany')}</span>}
                 </div>
               </form>
 

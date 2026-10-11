@@ -366,7 +366,7 @@ export const id: Dict = {
   'auth.reset.mismatch': 'Kedua kata sandi tidak sama.',
   'auth.reset.length': 'Kata sandi baru harus antara 8 dan 72 karakter.',
   'auth.reset.rejected': 'Kode itu tidak diterima. Gunakan kode terbaru yang tertulis di sana. Setelah sebuah kode terlalu lama, KnightLoader menulis kode baru, paling banyak sekali per menit.',
-  'auth.reset.wait': 'Terlalu banyak percobaan. Tunggu setengah menit lalu coba lagi.',
+  'auth.tooMany': 'Terlalu banyak percobaan. Tunggu setengah menit lalu coba lagi.',
   'auth.reset.unavailable': 'KnightLoader tidak bisa menulis kode setel ulang, jadi kata sandi tidak bisa disetel ulang dari halaman ini.',
   'auth.reset.failed': 'Kata sandi tidak bisa disetel. Coba lagi.',
   'accounts.ok': 'Berfungsi',
