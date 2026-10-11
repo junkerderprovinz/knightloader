@@ -120,6 +120,13 @@ export const fi: Dict = {
   'addDownload.errorSend': 'Linkkien lähettäminen epäonnistui: {message}',
   'error.federationOff': 'Rinnakkaisinstanssit on kytketty pois instanssissa, johon olet yhteydessä, joten se ei tavoita muita.',
   'error.addAgain': 'Sovelluksen vanhempi versio tallensi tämän yhteyden, eikä se toimi enää. Poista se ja yhdistä uudelleen kahdellatoista sanalla.',
+  'error.memberPending': 'Tämä laite odottaa hyväksyntää. Hyväksy se jossakin instanssissasi kohdassa Asetukset, Pariliitos.',
+  'error.memberKeyChanged': 'Instanssi tuntee tämän laitteen eri avaimella. Poista laite siellä kohdassa Asetukset, Pariliitos ja yhdistä se uudelleen kahdellatoista sanalla.',
+  'error.memberUnsigned': 'Instanssi odottaa tältä laitteelta allekirjoitettuja pyyntöjä, mutta tätä ei ollut allekirjoitettu. Poista laite siellä kohdassa Asetukset, Pariliitos ja yhdistä se uudelleen kahdellatoista sanalla.',
+  'error.memberBusy': 'Tällä laitteella on liian monta pyyntöä odottamassa instanssissa. Yritä hetken päästä uudelleen.',
+  'error.groupFull': 'Ryhmässä on jo niin monta laitetta kuin siihen mahtuu. Poista yksi kohdassa Asetukset, Pariliitos jossakin instanssissa ja yritä uudelleen.',
+  'error.groupJoinsBusy': 'Ryhmään liittyi viimeisen tunnin aikana liian monta uutta laitetta. Yritä myöhemmin uudelleen.',
+  'error.memberNotPinned': 'Instanssi ei voinut tallentaa tämän laitteen avainta. Yritä hetken päästä uudelleen.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 

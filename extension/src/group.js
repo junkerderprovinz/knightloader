@@ -204,9 +204,12 @@ async function groupInstances() {
  */
 async function groupStatus() {
   return withGroup(async ({ siblings, call }) => {
-    const read = async (id, path) => {
+    const read = async (id, path, refused) => {
       const res = await call(id, 'GET', path).catch(() => null);
-      if (!res || res.status < 200 || res.status >= 300) return null;
+      if (!res || res.status < 200 || res.status >= 300) {
+        if (res && refused) refused.key = refusalKey(res);
+        return null;
+      }
       try {
         return JSON.parse(res.body);
       } catch {
@@ -215,13 +218,15 @@ async function groupStatus() {
     };
     return Promise.all(
       siblings.map(async (s) => {
+        const refused = {};
         const [queue, counters, remote] = await Promise.all([
-          read(s.instanceId, '/api/queue'),
+          read(s.instanceId, '/api/queue', refused),
           read(s.instanceId, '/api/queue/counters'),
           read(s.instanceId, '/api/remote-access'),
         ]);
-        // Connected to the relay but not serving, which differs from idle.
-        if (!queue && !counters) return { ...s, status: null };
+        // Connected to the relay but not serving, which differs from idle. An
+        // instance that turned this browser away says why.
+        if (!queue && !counters) return { ...s, status: null, refusal: refused.key };
         return { ...s, status: { queue, counters, webUrl: bestWebUrl(remote) } };
       }),
     );
@@ -238,6 +243,33 @@ function bestWebUrl(remote) {
   const usable = list.filter((a) => a && a.url && !a.loopback);
   const domain = usable.find((a) => a.domain);
   return (domain ?? usable[0])?.url ?? '';
+}
+
+/**
+ * The refusals an instance answers a browser with when it will not take its
+ * key (internal/federation/members.go), each with its sentence.
+ * check-member-refusals.mjs holds this map to the server's codes.
+ */
+const REFUSAL_KEYS = {
+  memberPending: 'refusal.memberPending',
+  memberKeyChanged: 'refusal.memberKeyChanged',
+  memberUnsigned: 'refusal.memberUnsigned',
+  memberBusy: 'refusal.memberBusy',
+  groupFull: 'refusal.groupFull',
+  groupJoinsBusy: 'refusal.groupJoinsBusy',
+  memberNotPinned: 'refusal.memberNotPinned',
+};
+
+/** refusalKey is the catalogue key for why an instance refused a call: its
+ *  own sentence where the code is in REFUSAL_KEYS, else the plain one. */
+function refusalKey(res) {
+  try {
+    const code = JSON.parse(res.body)?.code;
+    if (typeof code === 'string' && Object.hasOwn(REFUSAL_KEYS, code)) return REFUSAL_KEYS[code];
+  } catch {
+    // A plain-text refusal.
+  }
+  return 'send.refused';
 }
 
 /** What an instance is called in a list, falling back to the start of its id so

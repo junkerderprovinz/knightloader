@@ -120,6 +120,13 @@ export const it: Dict = {
   'addDownload.errorSend': 'Impossibile inviare i link: {message}',
   'error.federationOff': 'Le istanze collegate sono disattivate sull’istanza a cui sei collegato, quindi non può raggiungere le altre.',
   'error.addAgain': 'Questa connessione è stata salvata da una versione precedente dell’app e non funziona più. Rimuovila e ricollegati con le dodici parole.',
+  'error.memberPending': 'Questo dispositivo attende l’approvazione. Approvalo su una delle tue istanze in Impostazioni, Associazione.',
+  'error.memberKeyChanged': 'L’istanza conosce questo dispositivo con un’altra chiave. Rimuovi lì il dispositivo in Impostazioni, Associazione, poi associalo di nuovo con le dodici parole.',
+  'error.memberUnsigned': 'L’istanza si aspetta richieste firmate da questo dispositivo, ma questa non lo era. Rimuovi lì il dispositivo in Impostazioni, Associazione, poi associalo di nuovo con le dodici parole.',
+  'error.memberBusy': 'Questo dispositivo ha troppe richieste in attesa sull’istanza. Riprova tra un momento.',
+  'error.groupFull': 'Il gruppo ha già tutti i dispositivi che può accogliere. Rimuovine uno in Impostazioni, Associazione su un’istanza, poi riprova.',
+  'error.groupJoinsBusy': 'Troppi nuovi dispositivi sono entrati nel gruppo nell’ultima ora. Riprova più tardi.',
+  'error.memberNotPinned': 'L’istanza non è riuscita a salvare la chiave di questo dispositivo. Riprova tra un momento.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 

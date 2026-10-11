@@ -120,6 +120,13 @@ export const ca: Dict = {
   'addDownload.errorSend': "No s'han pogut enviar els enllaços: {message}",
   'error.federationOff': 'Les instàncies germanes estan desactivades a la instància a la qual estàs connectat, així que no pot arribar a les altres.',
   'error.addAgain': 'Aquesta connexió la va desar una versió anterior de l’app i ja no funciona. Elimina-la i torna a connectar amb les dotze paraules.',
+  'error.memberPending': 'Aquest dispositiu espera aprovació. Aprova’l en una de les teves instàncies a Configuració, Aparellament.',
+  'error.memberKeyChanged': 'La instància coneix aquest dispositiu amb una altra clau. Elimina-hi el dispositiu a Configuració, Aparellament i torna’l a aparellar amb les dotze paraules.',
+  'error.memberUnsigned': 'La instància espera sol·licituds signades d’aquest dispositiu, però aquesta no ho estava. Elimina-hi el dispositiu a Configuració, Aparellament i torna’l a aparellar amb les dotze paraules.',
+  'error.memberBusy': 'Aquest dispositiu té massa sol·licituds esperant a la instància. Torna-ho a provar d’aquí a un moment.',
+  'error.groupFull': 'El grup ja té tants dispositius com admet. Elimina’n un a Configuració, Aparellament d’una instància i torna-ho a provar.',
+  'error.groupJoinsBusy': 'Massa dispositius nous s’han unit al grup en l’última hora. Torna-ho a provar més tard.',
+  'error.memberNotPinned': 'La instància no ha pogut desar la clau d’aquest dispositiu. Torna-ho a provar d’aquí a un moment.',
   'addDownload.cancel': 'Cancel·la',
   'addDownload.button': 'Afegeix',
 

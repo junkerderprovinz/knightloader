@@ -142,6 +142,13 @@ export const de: Dict = {
   'addDownload.errorSend': 'Die Links konnten nicht gesendet werden: {message}',
   'error.federationOff': 'Auf der verbundenen Instanz sind Partner-Instanzen ausgeschaltet, deshalb erreicht sie die anderen nicht.',
   'error.addAgain': 'Diese Verbindung stammt aus einer älteren Version der App und funktioniert nicht mehr. Entfern sie und verbinde dich neu mit den zwölf Wörtern.',
+  'error.memberPending': 'Dieses Gerät wartet auf Freigabe. Gib es auf einer deiner Instanzen unter Einstellungen, Kopplung frei.',
+  'error.memberKeyChanged': 'Die Instanz kennt dieses Gerät unter einem anderen Schlüssel. Entfern das Gerät dort unter Einstellungen, Kopplung und kopple es mit den zwölf Wörtern neu.',
+  'error.memberUnsigned': 'Die Instanz erwartet von diesem Gerät signierte Anfragen, diese kam ohne Signatur. Entfern das Gerät dort unter Einstellungen, Kopplung und kopple es mit den zwölf Wörtern neu.',
+  'error.memberBusy': 'Von diesem Gerät warten zu viele Anfragen auf die Instanz. Versuch es gleich noch einmal.',
+  'error.groupFull': 'Die Gruppe hat schon so viele Geräte, wie sie aufnehmen kann. Entfern auf einer Instanz unter Einstellungen, Kopplung eines und versuch es dann noch einmal.',
+  'error.groupJoinsBusy': 'In der letzten Stunde sind zu viele neue Geräte der Gruppe beigetreten. Versuch es später noch einmal.',
+  'error.memberNotPinned': 'Die Instanz konnte den Schlüssel dieses Geräts nicht speichern. Versuch es gleich noch einmal.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',
 

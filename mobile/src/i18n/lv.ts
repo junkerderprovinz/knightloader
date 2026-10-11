@@ -120,6 +120,13 @@ export const lv: Dict = {
   'addDownload.errorSend': 'Neizdevās nosūtīt saites: {message}',
   'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
   'error.addAgain': 'Šo savienojumu saglabāja vecāka lietotnes versija, un tas vairs nedarbojas. Noņem to un savienojies vēlreiz ar divpadsmit vārdiem.',
+  'error.memberPending': 'Šī ierīce gaida apstiprinājumu. Apstiprini to kādā no savām instancēm sadaļā Iestatījumi, Pārošana.',
+  'error.memberKeyChanged': 'Instance šo ierīci pazīst ar citu atslēgu. Noņem tur ierīci sadaļā Iestatījumi, Pārošana un savieno to vēlreiz ar divpadsmit vārdiem.',
+  'error.memberUnsigned': 'Instance no šīs ierīces gaida parakstītus pieprasījumus, bet šis nebija parakstīts. Noņem tur ierīci sadaļā Iestatījumi, Pārošana un savieno to vēlreiz ar divpadsmit vārdiem.',
+  'error.memberBusy': 'Šai ierīcei instancē gaida pārāk daudz pieprasījumu. Mēģini vēlreiz pēc brīža.',
+  'error.groupFull': 'Grupā jau ir tik daudz ierīču, cik tajā ietilpst. Noņem vienu sadaļā Iestatījumi, Pārošana kādā instancē un mēģini vēlreiz.',
+  'error.groupJoinsBusy': 'Pēdējās stundas laikā grupai pievienojās pārāk daudz jaunu ierīču. Mēģini vēlāk.',
+  'error.memberNotPinned': 'Instance nevarēja saglabāt šīs ierīces atslēgu. Mēģini vēlreiz pēc brīža.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 

@@ -120,6 +120,13 @@ export const ro: Dict = {
   'addDownload.errorSend': 'Nu s-au putut trimite linkurile: {message}',
   'error.federationOff': 'Instanțele partenere sunt dezactivate pe instanța la care ești conectat, deci aceasta nu le poate accesa pe celelalte.',
   'error.addAgain': 'Această conexiune a fost salvată de o versiune mai veche a aplicației și nu mai funcționează. Elimin-o și conectează-te din nou cu cele douăsprezece cuvinte.',
+  'error.memberPending': 'Acest dispozitiv așteaptă aprobarea. Aprobă-l pe una dintre instanțele tale în Setări, Împerechere.',
+  'error.memberKeyChanged': 'Instanța cunoaște acest dispozitiv după altă cheie. Elimină acolo dispozitivul în Setări, Împerechere și împerechează-l din nou cu cele douăsprezece cuvinte.',
+  'error.memberUnsigned': 'Instanța așteaptă cereri semnate de la acest dispozitiv, dar aceasta nu a fost semnată. Elimină acolo dispozitivul în Setări, Împerechere și împerechează-l din nou cu cele douăsprezece cuvinte.',
+  'error.memberBusy': 'Acest dispozitiv are prea multe cereri care așteaptă pe instanță. Încearcă din nou peste câteva momente.',
+  'error.groupFull': 'Grupul are deja atâtea dispozitive câte poate primi. Elimină unul în Setări, Împerechere pe o instanță și încearcă din nou.',
+  'error.groupJoinsBusy': 'Prea multe dispozitive noi s-au alăturat grupului în ultima oră. Încearcă din nou mai târziu.',
+  'error.memberNotPinned': 'Instanța nu a putut salva cheia acestui dispozitiv. Încearcă din nou peste câteva momente.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 

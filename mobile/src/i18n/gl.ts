@@ -120,6 +120,13 @@ export const gl: Dict = {
   'addDownload.errorSend': 'Non se puideron enviar as ligazóns: {message}',
   'error.federationOff': 'As instancias irmás están desactivadas na instancia á que estás conectado, así que non pode chegar ás outras.',
   'error.addAgain': 'Esta conexión gardouna unha versión anterior da app e xa non funciona. Elimínaa e volve conectar coas doce palabras.',
+  'error.memberPending': 'Este dispositivo agarda aprobación. Apróbao nunha das túas instancias en Axustes, Emparellamento.',
+  'error.memberKeyChanged': 'A instancia coñece este dispositivo con outra chave. Elimina alí o dispositivo en Axustes, Emparellamento e volve emparellalo coas doce palabras.',
+  'error.memberUnsigned': 'A instancia espera solicitudes asinadas deste dispositivo, pero esta non o estaba. Elimina alí o dispositivo en Axustes, Emparellamento e volve emparellalo coas doce palabras.',
+  'error.memberBusy': 'Este dispositivo ten demasiadas solicitudes agardando na instancia. Téntao de novo nun momento.',
+  'error.groupFull': 'O grupo xa ten tantos dispositivos como admite. Elimina un en Axustes, Emparellamento nunha instancia e téntao de novo.',
+  'error.groupJoinsBusy': 'Demasiados dispositivos novos uníronse ao grupo na última hora. Téntao de novo máis tarde.',
+  'error.memberNotPinned': 'A instancia non puido gardar a chave deste dispositivo. Téntao de novo nun momento.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 
