@@ -8,6 +8,13 @@ import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { PhraseCard } from './PhraseCard';
 
+// The desktop window is the one place without a password that shows the words again.
+const shell = vi.hoisted(() => ({ desktop: false }));
+vi.mock('../../../lib/desktop', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../lib/desktop')>()),
+  isDesktop: () => shell.desktop,
+}));
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let root: Root;
@@ -24,6 +31,7 @@ afterEach(() => {
   host.remove();
   vi.unstubAllGlobals();
   localStorage.clear();
+  shell.desktop = false;
 });
 
 const base: ConnectInfo = {
@@ -193,6 +201,7 @@ describe('PhraseCard', () => {
   });
 
   it('shows all twelve words in a window with Copy beside Close', async () => {
+    shell.desktop = true;
     answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
@@ -206,6 +215,7 @@ describe('PhraseCard', () => {
   });
 
   it('keeps the words across a poll of the same group and drops them once the group changes', async () => {
+    shell.desktop = true;
     const calls = answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
@@ -220,6 +230,15 @@ describe('PhraseCard', () => {
     await act(async () => button('Show phrase').click());
     expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
     expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
+  });
+
+  it('asks a browser for a password instead of showing the words without one', async () => {
+    const calls = answer({ phrase: WORDS });
+    draw({ joinedAgo: 75, passwordSet: false });
+    await act(async () => tile('Nothing entered over there yet?').click());
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
+    expect(dialog()!.textContent).toContain('only shows them again once a login password is set');
+    expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(0);
   });
 
   it('lists this instance, the other instances and every phone, one row each', () => {
