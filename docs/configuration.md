@@ -88,7 +88,11 @@ other browser and replaces the key sessions are signed with, so a copy of
 leaves it: it gets new connection words that nobody else holds, a relay key
 entered by hand is removed, and every phone, browser extension and other
 instance has to pair again with the new words, which Settings > Pairing shows
-once you are signed in. The page after the reset lists what was removed.
+once you are signed in. For 30 days it tells the devices that still hold the
+old words that it was reset, in an answer signed with its old key, and on a
+relay it serves itself the old words reach this instance and nobody else (see
+[Connecting](connecting.md)). The page after the reset lists what
+was removed.
 Settings that run something, such as event
 programs, scripts and the end-of-queue action, are left as they are: if
 somebody else may have had access, look through them.
