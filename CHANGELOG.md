@@ -69,6 +69,29 @@ release's tag.
 - **An Info tile closes the settings.** It holds About, every version with a
   button that checks for updates, and Help with the manual and a bug report
   that downloads as a file.
+- **From hoster to disk.** A card on the Overview shows where the running
+  downloads load from, what carries them (direct, a proxy or a debrid account)
+  and the folder they land in. Packets run along each line and their density
+  follows the speed; a line that waits is dashed. The same picture stands as
+  one line in the head bar of Downloads.
+- **The pieces of a file.** The detail panel shows a download as a band of
+  pieces: the written ranges of an HTTP download with a marker for every
+  connection, the articles of a Usenet file, and the blocks a par2 check found
+  damaged.
+- **Pictures on the settings pages.** Rules draws the way a sample link takes
+  through the rule list, Network the routes out of the instance with a test
+  that turns each line green or red, and Link collector every way a link
+  comes in. Captcha shows who a captcha goes to and in which order, Resolvers
+  what a video file is put together from, Automation today's speed against
+  the timetable, and Health the self-test as beads on a pulse line.
+- **A handover shows in the picture of the group.** A parcel travels along the
+  line when links go to another instance or arrive from a device of the
+  group. A line through the relay is dashed.
+- **The theme has a third choice, System.** It follows the device and changes
+  with it, in the web interface and in the Android app. A browser that has not
+  been here before starts with it.
+- **The server keeps a day of download speed** as five minute means in memory,
+  for the day's curve. The record starts again with the server.
 
 ### Changed
 
@@ -123,6 +146,31 @@ release's tag.
   here as in the other GlimStone apps, and every glyph fills the same share of
   its box, where a stop square used to be a third smaller than the pause bars
   beside it.
+- **The collector's filters open from the Filter button.** Host, file type and
+  package moved from their card into the Filter window above the link list,
+  so the page's top row is two low cards and the list starts higher.
+  Click'n'Load and the clipboard watch are two buttons on the add-links card,
+  filled while on.
+- **The properties panel names what is selected.** A package selected whole is
+  renamed in the panel, and every other name is listed with a rename button of
+  its own.
+- **A column head is no longer cut.** In a language whose word is longer than
+  the column, the column starts as wide as its head. The progress column is
+  wider by default.
+- **The link collector has one name** throughout the German and English
+  interface.
+- **Instances stand on the page as cards of their own.** The tile that led to
+  pairing is gone; the floating Pairing action leads there.
+- **Pairing lists what it knows.** "Known domains" is "Known addresses" and
+  shows the address the instance found on its network above the field. "Serve
+  as relay" is a choice of its own in the relay card.
+- **The Info page holds three cards,** Version, Help and About. The help
+  chapters moved into the manual, which the Manual button opens; its book
+  opens under the pointer, and the Help card's marks are one size.
+- **The stations of "After the download" lead to their settings** on a click
+  or with Enter.
+- **Under rainbow every selector has a colour of its own,** counted in the
+  order the selectors stand on the page.
 - **The web UI follows GlimStone 3.4.0.**
 
 ## [1.8.4] - 2026-10-08
