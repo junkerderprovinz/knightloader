@@ -54,7 +54,7 @@ export function PairingSteps({ hues }: { hues: [number, number, number] }) {
             </SectionTitle>
             <div className="flex flex-col gap-3">
               <StepPicture step={(i + 1) as 1 | 2 | 3} labels={labels} />
-              <p className="text-sm text-carbon-textMuted">{s.body}</p>
+              <p className="text-sm text-carbon-textSub">{s.body}</p>
             </div>
           </div>
         ))}
