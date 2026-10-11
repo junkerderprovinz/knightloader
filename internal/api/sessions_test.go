@@ -53,6 +53,7 @@ func TestChangingThePasswordSignsOutEveryOtherBrowser(t *testing.T) {
 
 	body, _ := json.Marshal(map[string]string{"current": "a-good-password", "new": "another-good-password"})
 	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", bytes.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
 	resp, err := owner.Do(req)
 	if err != nil {
 		t.Fatal(err)

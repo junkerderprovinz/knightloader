@@ -354,6 +354,7 @@ func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
 
 	call := func(method, rest string) int {
 		req, _ := http.NewRequest(method, srv.URL+"/api/instances/cellar/"+rest, strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

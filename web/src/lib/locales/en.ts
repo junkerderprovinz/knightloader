@@ -196,7 +196,7 @@ export const en = {
 
   // The Pairing page (pages/settings/pairing/): the step cards, the twelve
   // words with the members of the group, and the relay.
-  'pairing.noPasswordHint': 'This instance has no login password. Anyone who can open this web interface can see the twelve words and control every instance in the group.',
+  'pairing.noPasswordHint': 'This instance has no login password. Anyone who can open this web interface can control it, and through it the downloads of every instance in the group.',
   'pairing.direct': 'Direct',
   'pairing.byAddress': 'By address',
   'pairing.otherNetTitle': 'Is the other instance on another network?',
@@ -244,6 +244,7 @@ export const en = {
   'pairing.show': 'Show phrase',
   'pairing.passwordLabel': 'Login password',
   'pairing.passwordTip': 'The words open every instance in the group, so showing them again always asks for the password.',
+  'pairing.wordsNeedPassword': 'These words open every instance in the group, so KnightLoader only shows them again once a login password is set.',
   'pairing.passwordWrong': 'That is not the login password.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Leave group',
@@ -610,6 +611,7 @@ export const en = {
   'remove.fromList': 'Remove from the list',
   'remove.withFiles': 'Remove and delete the files',
   'remove.filesKept': 'The files already on disk stay where they are.',
+  'remove.filesNeedPassword': 'Deleting the files needs a login password. Without one, anybody who opens this page could erase your downloads. You set it under {path}.',
   'remove.filesGone': 'This also erases {files} file(s), {bytes} on disk. It cannot be undone.',
   'remove.noFiles': 'Nothing has been written to disk yet.',
   'remove.done': 'Removed {n} download(s).',
@@ -2046,7 +2048,7 @@ export const en = {
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
   'settings.access.identity.nameHint': 'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional: leave it empty to keep using that name.',
   'settings.access.identity.domainsLabel': 'Known domains',
-  'settings.access.identity.domainsHint': 'KnightLoader remembers a domain the first time someone signs in through it and keeps it listed here, even when later requests come in over the LAN IP. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
+  'settings.access.identity.domainsHint': 'KnightLoader never adds a domain here on its own. The first one is the address it gives its group, so your phone and other instances can open it away from home. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
 
   // Every other way to get KnightLoader: the phone app, the desktop app or a
   // server install, the bookmarklet, the MV3 browser extension and the PWA
@@ -3072,6 +3074,7 @@ export const en = {
   'settings.transfer.import': 'Import settings',
   'settings.transfer.withSecrets': 'Include stored passwords',
   'settings.transfer.withSecretsHint': 'On, the file carries the router password, every proxy password and every archive password in clear text. Off, those fields arrive empty on the other box and you type them in once. Either way a secret can still be sitting somewhere nothing here recognises: a feed address with an API key in it, or a password written into a reconnect script.',
+  'settings.transfer.needsPassword': 'A backup and a settings file with passwords both carry every stored password, so they need a login password first. You set it under {path}.',
   'settings.transfer.previewTitle': 'What should be taken over?',
   'settings.transfer.previewFrom': 'From {version}, {date}',
   'settings.transfer.previewSecretless': 'This file was exported without passwords. The rows marked below arrive without theirs.',

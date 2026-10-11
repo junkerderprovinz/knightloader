@@ -29,7 +29,7 @@ func TestACaptchaWithoutJDIsRefusedWithACode(t *testing.T) {
 		"/api/captcha/c1/skip":   `{"scope":"skip-once"}`,
 	} {
 		rec := httptest.NewRecorder()
-		mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, path, strings.NewReader(body)))
+		mux.ServeHTTP(rec, jsonRequest(http.MethodPost, path, body))
 		var got struct{ Error, Code string }
 		if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
 			t.Errorf("%s answered %d with %q, want a JSON refusal", path, rec.Code, rec.Body.String())
@@ -138,7 +138,7 @@ func TestATestCaptchaIsAnsweredOverTheCaptchaRoutes(t *testing.T) {
 	reg.attach(mux, http.NotFoundHandler())
 	call := func(method, path, body string) *httptest.ResponseRecorder {
 		rec := httptest.NewRecorder()
-		mux.ServeHTTP(rec, httptest.NewRequest(method, path, strings.NewReader(body)))
+		mux.ServeHTTP(rec, jsonRequest(method, path, body))
 		return rec
 	}
 
@@ -177,7 +177,7 @@ func TestATestCaptchaIsRefusedWhileCaptchasAreSwitchedOff(t *testing.T) {
 	reg.attach(mux, http.NotFoundHandler())
 
 	rec := httptest.NewRecorder()
-	mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/api/captcha/test", strings.NewReader(`{}`)))
+	mux.ServeHTTP(rec, jsonRequest(http.MethodPost, "/api/captcha/test", `{}`))
 	var got struct{ Code string }
 	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != "captchaOff" {
 		t.Errorf("POST /api/captcha/test with captchas off answered %d %q, want 409 captchaOff", rec.Code, rec.Body.String())
@@ -209,7 +209,7 @@ func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
 			reg.attach(mux, http.NotFoundHandler())
 
 			rec := httptest.NewRecorder()
-			mux.ServeHTTP(rec, httptest.NewRequest(http.MethodPost, "/api/captcha/test", strings.NewReader(tc.body)))
+			mux.ServeHTTP(rec, jsonRequest(http.MethodPost, "/api/captcha/test", tc.body))
 			var got struct{ Code string }
 			if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil || rec.Code != http.StatusConflict || got.Code != tc.wantCode {
 				t.Errorf("POST /api/captcha/test answered %d %q, want 409 %s", rec.Code, rec.Body.String(), tc.wantCode)

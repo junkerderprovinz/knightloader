@@ -121,6 +121,9 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
+			if body.Files && !passwordFirst(a, w, "deleting downloaded files") {
+				return
+			}
 			// Not bulkDone: removing rows asks nothing first when no files are
 			// involved, and the selection can include rows a filter is hiding,
 			// so the answer has to carry enough to offer the undo.
@@ -158,7 +161,11 @@ func registerBulk(reg *Registry, a *app.App) {
 		})
 	reg.Add(http.MethodPost, "/api/cleanup/{class}", "remove every task in a cleanup class; files=1 also erases what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
-			ids, err := a.Cleanup(app.CleanupClass(r.PathValue("class")), r.URL.Query().Get("files") == "1")
+			files := r.URL.Query().Get("files") == "1"
+			if files && !passwordFirst(a, w, "deleting downloaded files") {
+				return
+			}
+			ids, err := a.Cleanup(app.CleanupClass(r.PathValue("class")), files)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

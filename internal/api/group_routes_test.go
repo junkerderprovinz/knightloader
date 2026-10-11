@@ -17,6 +17,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
@@ -458,7 +459,7 @@ func TestAMemberPicksOnlyAmongTheDownloadFolders(t *testing.T) {
 
 func TestAMemberCannotEraseWhatWasDownloaded(t *testing.T) {
 	t.Parallel()
-	a, downloads, _, member, owner := groupServer(t)
+	a, downloads, _, member, _ := groupServer(t)
 	id := putFile(t, a, downloads, "film.mkv", []byte("frames"))
 	file := filepath.Join(downloads, "film.mkv")
 
@@ -478,9 +479,19 @@ func TestAMemberCannotEraseWhatWasDownloaded(t *testing.T) {
 		t.Fatalf("removing the row took the file: %v", err)
 	}
 
+	// Erasing files needs a password of its own, so the owner signs in first.
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
 	other := putFile(t, a, downloads, "other.mkv", []byte("frames"))
-	if status, body := owner(http.MethodPost, "/api/tasks/delete", `{"ids":["`+other+`"],"files":true}`); status != http.StatusOK {
-		t.Fatalf("the owner deleting with files = %d (%s), want 200", status, body)
+	r := httptest.NewRequest(http.MethodPost, "/api/tasks/delete", strings.NewReader(`{"ids":["`+other+`"],"files":true}`))
+	r.Host = "127.0.0.1:8080"
+	r.Header.Set("Content-Type", "application/json")
+	r.AddCookie(&http.Cookie{Name: auth.CookieName, Value: a.Auth.Issue()})
+	w := httptest.NewRecorder()
+	Handler(a).ServeHTTP(w, r)
+	if w.Code != http.StatusOK {
+		t.Fatalf("the owner deleting with files = %d (%s), want 200", w.Code, w.Body.Bytes())
 	}
 }
 

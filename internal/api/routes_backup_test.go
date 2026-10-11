@@ -21,6 +21,11 @@ import (
 func backupServer(t *testing.T) (*app.App, *httptest.Server) {
 	t.Helper()
 	a := testApp(t)
+	// A backup carries every password in the settings, so one is set. The
+	// bare mux has no session guard, so the tests need no sign-in.
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
 	reg := newRegistry()
 	registerBackup(reg, a)
 	mux := http.NewServeMux()

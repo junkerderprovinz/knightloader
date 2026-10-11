@@ -278,6 +278,7 @@ func TestUIStateRefusesWhatItCannotHandBack(t *testing.T) {
 
 	for _, body := range []string{"not json at all", "[1,2,3]", "42"} {
 		req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/uistate", strings.NewReader(body))
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

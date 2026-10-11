@@ -43,6 +43,9 @@ func registerSettingsTransfer(reg *Registry, a *app.App) {
 
 func exportSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 	includeSecrets := r.URL.Query().Get("secrets") == secretsIncludeParam
+	if includeSecrets && !passwordFirst(a, w, "exporting the settings with their passwords") {
+		return
+	}
 	now := time.Now()
 	doc, err := settings.Portable(a.Settings.Get(), includeSecrets, buildinfo.Version, buildinfo.Deployment, now)
 	if err != nil {
