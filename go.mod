@@ -187,4 +187,4 @@ replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0
 // stopped announces before it closes its tracker sockets, and a web seed
 // fetches a piece that a reader is waiting for before the rest of its slice.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261011123920-f7d726c1a2f0
