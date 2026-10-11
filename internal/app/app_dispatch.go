@@ -931,7 +931,13 @@ func (a *App) dispatchLocked() {
 		// The folder is final only here, with the template, the category and
 		// the package level applied, and a setting checks no more than its
 		// fixed part. None of it may lead into the data folder.
-		if refusal := a.dataFolderOf(dir, a.workDirFor(t)); refusal != nil {
+		refusal, known := a.dataFolderOfLocked(dir, a.workDirFor(t))
+		if !known {
+			waiting[id] = core.WaitingDisk
+			rest = append(rest, id)
+			continue
+		}
+		if refusal != nil {
 			t.Status = core.StatusError
 			t.Reason = core.ReasonUnknown
 			code, params := diskCode(refusal)

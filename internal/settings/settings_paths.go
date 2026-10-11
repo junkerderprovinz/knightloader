@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"runtime"
 	"strings"
+	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/realpath"
 )
@@ -315,6 +316,58 @@ func InsideData(dataDir, path string) bool {
 		}
 		p = parent
 	}
+}
+
+// DataGuard answers InsideData for the many files one extraction or move
+// writes. A file that does not exist yet is judged by its folder, and the
+// answer for each folder is kept with the folder's identity, so an archive of
+// thousands of entries in a few folders costs a lookup per folder rather than
+// a walk up the tree per entry. A folder that turns into another one, such as
+// a link put in its place, is looked up again.
+type DataGuard struct {
+	dataDir string
+	mu      sync.Mutex
+	dirs    map[string]guardedDir
+}
+
+type guardedDir struct {
+	fi     os.FileInfo
+	inside bool
+}
+
+// NewDataGuard returns a guard for dataDir that has looked at nothing.
+func NewDataGuard(dataDir string) *DataGuard {
+	return &DataGuard{dataDir: dataDir, dirs: map[string]guardedDir{}}
+}
+
+// Inside is InsideData(dataDir, path).
+func (g *DataGuard) Inside(path string) bool {
+	clean := filepath.Clean(fixedPrefix(strings.TrimSpace(path)))
+	if g.dataDir == "" || !filepath.IsAbs(clean) {
+		return false
+	}
+	// Whatever is already there, a link above all, and the data folder and its
+	// built-in download folder, whose answers do not follow from the folder
+	// above, get the full walk.
+	if _, err := os.Lstat(clean); err == nil || sameName(clean, g.dataDir) || sameName(clean, filepath.Join(g.dataDir, DownloadsDirName)) {
+		return InsideData(g.dataDir, clean)
+	}
+	dir := filepath.Dir(clean)
+	fi, err := os.Stat(dir)
+	if err != nil {
+		return InsideData(g.dataDir, clean)
+	}
+	g.mu.Lock()
+	known, ok := g.dirs[dir]
+	g.mu.Unlock()
+	if ok && os.SameFile(known.fi, fi) {
+		return known.inside
+	}
+	inside := InsideData(g.dataDir, dir)
+	g.mu.Lock()
+	g.dirs[dir] = guardedDir{fi: fi, inside: inside}
+	g.mu.Unlock()
+	return inside
 }
 
 // HoldsData reports whether dir is the data folder or one of the folders above

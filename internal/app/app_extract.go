@@ -286,7 +286,7 @@ func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Opt
 		TrashMaxAge: time.Duration(cfg.TrashRetentionDays) * 24 * time.Hour,
 		InfoFiles:   cfg.DeleteInfoFiles,
 		Barred:      a.barFolder,
-		BarredFile:  a.barFile,
+		BarredFile:  a.barFiles(),
 	}
 	if t != nil {
 		o.Package = t.Package
