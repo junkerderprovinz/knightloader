@@ -264,8 +264,10 @@ func (a *App) CancelUsenetJob(id string) []string {
 // stageUsenetFiles stages a finished job's files through the ordinary path, so
 // the filter, the Packagizer and the duplicate check see them like any link. A
 // file in a folder of the download keeps that folder under the package's, or
-// under the job's own folder when it has one.
-func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, error) {
+// under the job's own folder when it has one. The files start through the func
+// it returns, which the queue calls once the job lists them: the par2 check
+// and the early verdict on a lost release read the job's tasks from there.
+func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, func(), error) {
 	if j.Service == local.ResolverID {
 		// Owed before the first file can finish.
 		a.usenetStateFor().jobs.SetCheck(j.ID, usenet.CheckPending)
@@ -312,7 +314,7 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 		// builds on the folder.
 		if err := a.SetTaskOptions(idsOf(created), TaskOptions{Dir: &j.Dir}); err != nil {
 			a.RemoveTasks(idsOf(created), false)
-			return nil, err
+			return nil, nil, err
 		}
 	}
 	a.keepUsenetFolders(created, dirOf)
@@ -334,15 +336,17 @@ func (a *App) stageUsenetFiles(j usenet.Job, files []usenet.File) ([]string, err
 	}
 	a.SetEnabled(off, false)
 	started := idsOf(created)
-	if j.Start {
-		// StartTasks rather than by hand, so a queue halted by hand stays
-		// halted, as for every other grab.
-		a.StartTasks(started)
-	} else {
-		a.autoConfirm(started)
+	start := func() {
+		if j.Start {
+			// StartTasks rather than by hand, so a queue halted by hand stays
+			// halted, as for every other grab.
+			a.StartTasks(started)
+		} else {
+			a.autoConfirm(started)
+		}
 	}
 	log.Printf("usenet: %s is ready at %s; %d of its %d files staged", j.Name, j.Label, len(ids), len(files))
-	return ids, nil
+	return ids, start, nil
 }
 
 // keptUsenetFiles maps the file name of each task in ids that is still done
