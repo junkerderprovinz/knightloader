@@ -194,6 +194,8 @@ release's tag.
 - **Removing the password deletes every passkey,** as it already switched
   two-factor authentication off, so no old passkey opens the instance again
   once a new password is set. The hint under New password says so.
+- **The two-factor info says that a password reset from the log switches
+  two-factor authentication off.**
 
 ### Fixed
 

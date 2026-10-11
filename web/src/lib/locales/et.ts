@@ -3068,7 +3068,7 @@ export const et: Dict = {
   'settings.diagnostics.toolsMissing': 'ei leitud',
   'settings.eventTargets.problem.redirect': 'Aadress vastab ümbersuunamisega ja see eksemplar ei järgi seda. Iga selle rea päise väärtus loeb saladuseks, ja ümbersuunamine teisele hostile annaks selle selle hosti omaniku kätte. Ava aadress brauseris, vaata, kuhu see maandub, ja kirjuta see aadress siia.',
   'auth.twoFactor.title': 'Kaheastmeline autentimine',
-  'auth.twoFactor.hint': 'Kuuekohaline kood autentimisrakendusest, lisaks paroolile. See seisab parooli kõrval ega asenda seda kunagi. Sellel isendil pole kasutajakontosid, seega pole kedagi teist, kes selle sinu eest lahti teeks: hoia taastekoode mujal kui telefonis, mis koode loob. Kui mõlemad on kadunud, käivita masinas knightloader -reset-2fa või peata KnightLoader ja kustuta kirjed totp ja recovery andmekausta failist auth.json. Parool töötab mõlemal juhul edasi.',
+  'auth.twoFactor.hint': 'Kuuekohaline kood autentimisrakendusest, lisaks paroolile. See seisab parooli kõrval ega asenda seda kunagi. Sellel isendil pole kasutajakontosid, seega pole kedagi teist, kes selle sinu eest lahti teeks: hoia taastekoode mujal kui telefonis, mis koode loob. Kui mõlemad on kadunud, käivita masinas knightloader -reset-2fa või peata KnightLoader ja kustuta kirjed totp ja recovery andmekausta failist auth.json. Parool töötab mõlemal juhul edasi. Kui lähtestad parooli logist saadud koodiga, lülitub kaheastmeline autentimine välja.',
   'auth.twoFactor.on': 'Sees',
   'auth.twoFactor.off': 'Väljas',
   'auth.twoFactor.needsPassword': 'Sea kõigepealt parool. Teine tegur kaitseb parooli, seega peab see olemas olema.',
