@@ -352,6 +352,7 @@ export const hi: Dict = {
   'settings.pathProblem.notAbsolute': 'पूरा पथ डालें, जैसे /downloads या D:\\Downloads।',
   'settings.pathProblem.cannotCreate': '{dir} नहीं बनाया जा सका।',
   'settings.pathProblem.cannotWrite': '{dir} में लिखा नहीं जा सका।',
+  'settings.pathProblem.dataFolder': '{dir} KnightLoader के डेटा फ़ोल्डर के अंदर है, पासवर्ड और सेटिंग्स के पास। इसके बाहर का कोई फ़ोल्डर चुनें।',
   'settings.crawl': 'पेज खोलकर उनमें लिंक की गई फ़ाइलें इकट्ठा करें',
   'settings.crawl.depth': 'क्रॉल की गहराई',
   'settings.crawl.depthHint': 'कितनी गहराई तक जाना है। 1 का मतलब सिर्फ़ चिपकाया गया पेज, 2 उसके लिंक किए पेज भी खोलता है, 3 उनके लिंक भी। कोई पेज दो बार नहीं खुलता, इसलिए आपस में जुड़े लिंक क्रॉल को घुमाने के बजाय ख़त्म कर देते हैं।',

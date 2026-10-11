@@ -352,6 +352,7 @@ export const el: Dict = {
   'settings.pathProblem.notAbsolute': 'Γράψε μια πλήρη διαδρομή, για παράδειγμα /downloads ή D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Δεν ήταν δυνατή η δημιουργία του {dir}.',
   'settings.pathProblem.cannotWrite': 'Δεν ήταν δυνατή η εγγραφή στο {dir}.',
+  'settings.pathProblem.dataFolder': 'Το {dir} βρίσκεται στον φάκελο δεδομένων του KnightLoader, δίπλα στους κωδικούς και τις ρυθμίσεις. Επίλεξε φάκελο έξω από αυτόν.',
   'settings.crawl': 'Άνοιγμα σελίδων και συλλογή των αρχείων στα οποία παραπέμπουν',
   'settings.crawl.depth': 'Βάθος σάρωσης',
   'settings.crawl.depthHint': 'Πόσο βαθιά θα πάει. Το 1 είναι μόνο η σελίδα που επικολλήσατε, το 2 ανοίγει και τις σελίδες που συνδέει, το 3 τις δικές τους. Μια σελίδα δεν ανοίγει ποτέ δύο φορές, οπότε αμοιβαίοι σύνδεσμοι τερματίζουν τη σάρωση αντί να την κάνουν κύκλους.',

@@ -352,6 +352,7 @@ export const ko: Dict = {
   'settings.pathProblem.notAbsolute': '/downloads 또는 D:\\Downloads 같은 전체 경로를 입력하세요.',
   'settings.pathProblem.cannotCreate': '{dir}을(를) 만들 수 없었습니다.',
   'settings.pathProblem.cannotWrite': '{dir}에 쓸 수 없었습니다.',
+  'settings.pathProblem.dataFolder': '{dir}은(는) KnightLoader 데이터 폴더 안에 있어 비밀번호와 설정 옆에 놓입니다. 그 밖의 폴더를 고르세요.',
   'settings.crawl': '페이지를 따라가 링크된 파일을 모으기',
   'settings.crawl.depth': '크롤링 깊이',
   'settings.crawl.depthHint': '얼마나 깊이 들어갈지입니다. 1은 붙여넣은 페이지만, 2는 그 페이지가 링크한 페이지까지, 3은 그 링크까지 엽니다. 같은 페이지를 두 번 열지 않으므로 서로 가리키는 링크는 순환하지 않고 실행을 끝냅니다.',

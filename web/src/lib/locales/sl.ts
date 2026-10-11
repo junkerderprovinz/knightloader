@@ -352,6 +352,7 @@ export const sl: Dict = {
   'settings.pathProblem.notAbsolute': 'Vnesi polno pot, na primer /downloads ali D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} ni bilo mogoče ustvariti.',
   'settings.pathProblem.cannotWrite': 'V {dir} ni bilo mogoče pisati.',
+  'settings.pathProblem.dataFolder': '{dir} je v mapi s podatki KnightLoaderja, ob geslih in nastavitvah. Izberi mapo zunaj nje.',
   'settings.crawl': 'Sledi stranem in poberi datoteke, na katere kažejo',
   'settings.crawl.depth': 'Globina prečesavanja',
   'settings.crawl.depthHint': 'Kako globoko gre. 1 je samo prilepljena stran, 2 odpre tudi strani, na katere kaže, 3 odpre njihove. Stran se nikoli ne odpre dvakrat, zato medsebojne povezave zaključijo tek, namesto da bi ga vrtele v krogu.',

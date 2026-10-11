@@ -352,6 +352,7 @@ export const uk: Dict = {
   'settings.pathProblem.notAbsolute': 'Введіть повний шлях, наприклад /downloads або D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Не вдалося створити {dir}.',
   'settings.pathProblem.cannotWrite': 'Не вдалося записати в {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} лежить у теці даних KnightLoader, поруч із паролями й налаштуваннями. Виберіть теку поза нею.',
   'settings.crawl': 'Відкривати сторінки та збирати файли, на які вони посилаються',
   'settings.crawl.depth': 'Глибина обходу',
   'settings.crawl.depthHint': 'Наскільки глибоко йти. 1 це лише вставлена сторінка, 2 відкриває й сторінки, на які вона посилається, 3 відкриває їхні посилання. Сторінка ніколи не відкривається двічі, тож взаємні посилання завершують обхід, а не закільцьовують його.',

@@ -285,6 +285,7 @@ func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Opt
 		TrashRoot:   a.trashRootFor(t),
 		TrashMaxAge: time.Duration(cfg.TrashRetentionDays) * 24 * time.Hour,
 		InfoFiles:   cfg.DeleteInfoFiles,
+		Barred:      func(dir string) bool { return a.dataFolderOf(dir) != "" },
 	}
 	if t != nil {
 		o.Package = t.Package
@@ -479,8 +480,13 @@ func (a *App) runExtractions() {
 		if target != nil {
 			refused = a.volumeMismatchLocked(target)
 		}
-		snap := job.ExtractJob
 		path := job.path
+		// Where the content would move to is refused before anything is
+		// unpacked; where it unpacks, the extractor refuses (opts.Barred).
+		if inData := a.dataFolderOf(a.unpackPlanFor(target, a.Settings.Get()).Deliver); refused == nil && inData != "" {
+			refused = fmt.Errorf("not unpacked: %s is inside KnightLoader's data folder; choose a folder outside it", inData)
+		}
+		snap := job.ExtractJob
 		a.mu.Unlock()
 
 		a.publishTasks(parts)

@@ -352,6 +352,7 @@ export const ca: Dict = {
   'settings.pathProblem.notAbsolute': 'Escriu un camí complet, com ara /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'No s’ha pogut crear {dir}.',
   'settings.pathProblem.cannotWrite': 'No s’ha pogut escriure a {dir}.',
+  'settings.pathProblem.dataFolder': "{dir} és dins la carpeta de dades de KnightLoader, al costat de les contrasenyes i la configuració. Tria una carpeta fora d'aquesta.",
   'settings.crawl': 'Segueix les pàgines i recull els fitxers que enllacen',
   'settings.crawl.depth': 'Profunditat del rastreig',
   'settings.crawl.depthHint': 'Fins on arribar. 1 és només la pàgina enganxada, 2 obre també les pàgines que enllaça, 3 obre les d’aquestes. Una pàgina no s’obre mai dues vegades, de manera que els enllaços mutus acaben el rastreig en comptes de fer-lo giravoltar.',

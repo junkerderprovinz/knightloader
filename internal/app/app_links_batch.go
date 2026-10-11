@@ -75,7 +75,7 @@ type LinkBatchOptions struct {
 func (a *App) AddLinksWithOptions(urls []string, pkg string, origin core.Origin, opts LinkBatchOptions) ([]*core.Task, error) {
 	dir := strings.TrimSpace(opts.Dir)
 	if dir != "" {
-		if err := settings.Validate("the folder for this batch", dir); err != nil {
+		if err := settings.Validate(a.DataDir, "the folder for this batch", dir); err != nil {
 			return nil, err
 		}
 	}

@@ -289,6 +289,9 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if plan.Deliver == "" || sameDir(out.Dir, plan.Deliver) {
 		return delivery{}
 	}
+	if a.dataFolderOf(plan.Deliver) != "" {
+		return delivery{Err: fmt.Errorf("%s is inside KnightLoader's data folder, so the unpacked content was left in %s", plan.Deliver, out.Dir)}
+	}
 	// A single compressed stream ("dump.sql.gz") unpacks beside its archive, so
 	// out.Dir is a shared folder and moving it would take everything else too.
 	if sameDir(out.Dir, filepath.Dir(archive)) {

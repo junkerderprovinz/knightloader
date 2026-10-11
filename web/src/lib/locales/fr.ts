@@ -344,6 +344,7 @@ export const fr: Dict = {
   'settings.pathProblem.notAbsolute': 'Saisissez un chemin complet, comme /downloads ou D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Impossible de créer {dir}.',
   'settings.pathProblem.cannotWrite': 'Impossible d’écrire dans {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} se trouve dans le dossier de données de KnightLoader, à côté des mots de passe et des paramètres. Choisissez un dossier en dehors.',
   'settings.crawl': 'Suivre les pages et récupérer les fichiers qu’elles référencent',
   'settings.crawl.depth': 'Profondeur d’exploration',
   'settings.crawl.depthHint': 'Jusqu’où aller. 1 se limite à la page collée, 2 ouvre aussi les pages qu’elle référence, 3 ouvre les leurs. Une page n’est jamais ouverte deux fois, des liens réciproques terminent donc l’exploration au lieu de la faire tourner en rond.',

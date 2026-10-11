@@ -352,6 +352,7 @@ export const ja: Dict = {
   'settings.pathProblem.notAbsolute': '/downloads や D:\\Downloads のような完全なパスを入力してください。',
   'settings.pathProblem.cannotCreate': '{dir} を作成できませんでした。',
   'settings.pathProblem.cannotWrite': '{dir} に書き込めませんでした。',
+  'settings.pathProblem.dataFolder': '{dir} は KnightLoader のデータフォルダーの中にあり、パスワードや設定と同じ場所です。その外にあるフォルダーを選んでください。',
   'settings.crawl': 'ページをたどってリンク先のファイルを集める',
   'settings.crawl.depth': '巡回の深さ',
   'settings.crawl.depthHint': 'どこまで辿るかです。1 は貼り付けたページだけ、2 はリンク先のページも開き、3 はそのリンク先まで開きます。同じページを二度開くことはないので、互いに張り合ったリンクは巡回を終わらせ、堂々巡りにはなりません。',

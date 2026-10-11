@@ -10,6 +10,7 @@ package extract
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -142,6 +143,9 @@ type Options struct {
 	// already is the package folder whenever subfolder-by-package is on for
 	// downloads, and a second one inside it would give "Films/Film/Film".
 	Subfolder bool
+	// Barred reports a folder nothing may be unpacked into, which is checked
+	// against the folder the archive would unpack into. Nil bars nothing.
+	Barred func(dir string) bool
 
 	// Collision is what to do when the destination folder already exists. It is
 	// decided per folder and never per file inside the archive - see
@@ -257,6 +261,9 @@ func attempt(path, dest, password string) (*Result, error) {
 // for the folder so it does not claim otherwise.
 func (o Options) destination(path string) (string, error) {
 	dest := o.baseDest(path)
+	if o.Barred != nil && o.Barred(dest) {
+		return "", fmt.Errorf("extract: nothing may be unpacked into %s", dest)
+	}
 	policy := ParseCollision(string(o.Collision))
 	if policy == collide.Overwrite {
 		return dest, nil

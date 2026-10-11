@@ -354,6 +354,7 @@ export const no: Dict = {
   'settings.pathProblem.notAbsolute': 'Skriv inn en fullstendig sti, for eksempel /downloads eller D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kunne ikke opprette {dir}.',
   'settings.pathProblem.cannotWrite': 'Kunne ikke skrive til {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ligger i datamappen til KnightLoader, ved siden av passord og innstillinger. Velg en mappe utenfor den.',
   'settings.crawl': 'Følg sider og samle filene de lenker til',
   'settings.crawl.depth': 'Dybde',
   'settings.crawl.depthHint': 'Hvor dypt det går. 1 er bare den innlimte siden, 2 åpner også sidene den lenker til, 3 åpner deres. En side åpnes aldri to ganger, så lenker som peker på hverandre avslutter kjøringen i stedet for å gå i ring.',

@@ -352,6 +352,7 @@ export const vi: Dict = {
   'settings.pathProblem.notAbsolute': 'Hãy nhập một đường dẫn đầy đủ, ví dụ /downloads hoặc D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Không thể tạo {dir}.',
   'settings.pathProblem.cannotWrite': 'Không thể ghi vào {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} nằm trong thư mục dữ liệu của KnightLoader, cạnh mật khẩu và cài đặt. Hãy chọn một thư mục bên ngoài.',
   'settings.crawl': 'Đi theo trang và thu thập các tệp mà trang liên kết tới',
   'settings.crawl.depth': 'Độ sâu quét',
   'settings.crawl.depthHint': 'Đi sâu tới đâu. 1 chỉ là trang đã dán, 2 mở thêm các trang mà nó liên kết tới, 3 mở tiếp các trang của chúng. Một trang không bao giờ được mở hai lần, nên các liên kết trỏ về nhau sẽ kết thúc lượt quét thay vì chạy vòng.',

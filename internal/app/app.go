@@ -462,7 +462,7 @@ func New(dataDir string) (*App, error) {
 		Federation: fed,
 		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
-		dlDir:      filepath.Join(dataDir, "downloads"),
+		dlDir:      filepath.Join(dataDir, settings.DownloadsDirName),
 		Throttle:   throttle.New(),
 		tasks:      map[string]*core.Task{},
 		saved:      map[string]uint64{},
@@ -490,7 +490,7 @@ func New(dataDir string) (*App, error) {
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
-	eng, err := engine.Open(filepath.Join(dataDir, "downloads"), filepath.Join(dataDir, "transfers"), a.engineUpdate)
+	eng, err := engine.Open(filepath.Join(dataDir, settings.DownloadsDirName), filepath.Join(dataDir, "transfers"), a.engineUpdate)
 	if err != nil {
 		st.Close()
 		return nil, err

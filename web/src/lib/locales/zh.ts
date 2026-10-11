@@ -352,6 +352,7 @@ export const zh: Dict = {
   'settings.pathProblem.notAbsolute': '请输入完整路径，例如 /downloads 或 D:\\Downloads。',
   'settings.pathProblem.cannotCreate': '无法创建 {dir}。',
   'settings.pathProblem.cannotWrite': '无法写入 {dir}。',
+  'settings.pathProblem.dataFolder': '{dir} 位于 KnightLoader 的数据文件夹里，和密码、设置放在一起。请选择它之外的文件夹。',
   'settings.crawl': '跟进页面并收集其中链接的文件',
   'settings.crawl.depth': '抓取深度',
   'settings.crawl.depthHint': '要走多深。1 只是粘贴的那一页，2 会打开它链接到的页面，3 再打开那些页面的链接。同一页不会打开两次，因此互相指向的链接会让抓取结束，而不是绕圈。',

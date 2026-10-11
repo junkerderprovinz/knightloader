@@ -352,6 +352,7 @@ export const is: Dict = {
   'settings.pathProblem.notAbsolute': 'Sláðu inn fulla slóð, til dæmis /downloads eða D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Ekki tókst að búa til {dir}.',
   'settings.pathProblem.cannotWrite': 'Ekki tókst að skrifa í {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} er í gagnamöppu KnightLoader, við hlið lykilorða og stillinga. Veldu möppu utan hennar.',
   'settings.crawl': 'Fylgja síðum og safna skránum sem þær tengja í',
   'settings.crawl.depth': 'Dýpt skriðs',
   'settings.crawl.depthHint': 'Hversu djúpt er farið. 1 er aðeins síðan sem límd var inn, 2 opnar líka síðurnar sem hún tengir í, 3 opnar þeirra tengla. Síða er aldrei opnuð tvisvar, svo tenglar sem vísa hver á annan ljúka keyrslunni í stað þess að hringsóla.',

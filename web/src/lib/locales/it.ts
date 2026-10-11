@@ -344,6 +344,7 @@ export const it: Dict = {
   'settings.pathProblem.notAbsolute': 'Inserisci un percorso completo, come /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Impossibile creare {dir}.',
   'settings.pathProblem.cannotWrite': 'Impossibile scrivere in {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} si trova nella cartella dei dati di KnightLoader, accanto a password e impostazioni. Scegli una cartella fuori da essa.',
   'settings.crawl': 'Segui le pagine e raccogli i file a cui rimandano',
   'settings.crawl.depth': 'Profondità di scansione',
   'settings.crawl.depthHint': 'Fin dove arrivare. 1 è solo la pagina incollata, 2 apre anche le pagine collegate, 3 apre le loro. Una pagina non viene mai aperta due volte, quindi i collegamenti reciproci chiudono la scansione invece di farla girare a vuoto.',

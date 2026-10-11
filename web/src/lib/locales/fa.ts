@@ -352,6 +352,7 @@ export const fa: Dict = {
   'settings.pathProblem.notAbsolute': 'یک مسیر کامل وارد کن، مثلاً /downloads یا D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} ساخته نشد.',
   'settings.pathProblem.cannotWrite': 'نوشتن در {dir} ممکن نشد.',
+  'settings.pathProblem.dataFolder': '{dir} داخل پوشهٔ دادهٔ KnightLoader است، کنار گذرواژه‌ها و تنظیمات. پوشه‌ای بیرون از آن انتخاب کن.',
   'settings.crawl': 'دنبال کردن صفحه‌ها و جمع کردن فایل‌های لینک‌شده',
   'settings.crawl.depth': 'ژرفای خزش',
   'settings.crawl.depthHint': 'تا کجا پیش برود. ۱ فقط همان صفحهٔ چسبانده‌شده است، ۲ صفحه‌های پیوندشده را هم باز می‌کند و ۳ پیوندهای آن‌ها را. هیچ صفحه‌ای دو بار باز نمی‌شود، پس پیوندهای دوسویه خزش را پایان می‌دهند نه اینکه آن را دور بزنند.',

@@ -352,6 +352,7 @@ export const sv: Dict = {
   'settings.pathProblem.notAbsolute': 'Ange en fullständig sökväg, till exempel /downloads eller D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kunde inte skapa {dir}.',
   'settings.pathProblem.cannotWrite': 'Kunde inte skriva till {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ligger i KnightLoaders datamapp, bredvid lösenord och inställningar. Välj en mapp utanför den.',
   'settings.crawl': 'Följ sidor och samla in filerna de länkar till',
   'settings.crawl.depth': 'Sökdjup',
   'settings.crawl.depthHint': 'Hur djupt det går. 1 är bara den inklistrade sidan, 2 öppnar även sidorna den länkar till, 3 öppnar deras. En sida öppnas aldrig två gånger, så länkar som pekar på varandra avslutar körningen i stället för att snurra runt.',

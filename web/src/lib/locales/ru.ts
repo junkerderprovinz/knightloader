@@ -344,6 +344,7 @@ export const ru: Dict = {
   'settings.pathProblem.notAbsolute': 'Введите полный путь, например /downloads или D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Не удалось создать {dir}.',
   'settings.pathProblem.cannotWrite': 'Не удалось записать в {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} находится в папке данных KnightLoader, рядом с паролями и настройками. Выберите папку за её пределами.',
   'settings.crawl': 'Открывать страницы и собирать файлы, на которые они ссылаются',
   'settings.crawl.depth': 'Глубина обхода',
   'settings.crawl.depthHint': 'Насколько глубоко идти. 1 это только вставленная страница, 2 открывает и страницы, на которые она ссылается, 3 открывает их ссылки. Страница никогда не открывается дважды, поэтому взаимные ссылки завершают обход, а не зацикливают его.',

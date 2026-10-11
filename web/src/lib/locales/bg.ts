@@ -352,6 +352,7 @@ export const bg: Dict = {
   'settings.pathProblem.notAbsolute': 'Въведи пълен път, например /downloads или D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} не можа да бъде създадена.',
   'settings.pathProblem.cannotWrite': 'В {dir} не може да се записва.',
+  'settings.pathProblem.dataFolder': '{dir} е в папката с данните на KnightLoader, до паролите и настройките. Избери папка извън нея.',
   'settings.crawl': 'Следвай страниците и събирай файловете, към които водят',
   'settings.crawl.depth': 'Дълбочина на обхождане',
   'settings.crawl.depthHint': 'Докъде да стигне. 1 е само поставената страница, 2 отваря и страниците, към които води, 3 отваря техните. Страница не се отваря два пъти, затова взаимните връзки приключват обхождането, вместо да го въртят в кръг.',

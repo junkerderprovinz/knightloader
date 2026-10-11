@@ -788,7 +788,7 @@ func (a *App) SetTaskOptions(ids []string, o TaskOptions) error {
 	// Everything is validated before any task is touched, so a refusal never
 	// leaves a selection half edited.
 	if o.Dir != nil && *o.Dir != "" {
-		if err := settings.Validate("the folder for this download", *o.Dir); err != nil {
+		if err := settings.Validate(a.DataDir, "the folder for this download", *o.Dir); err != nil {
 			return err
 		}
 	}
@@ -983,9 +983,9 @@ func checkName(what, name string) (string, error) {
 
 // RenameRefusal is a rename turned down for a reason the interface words in
 // the reader's language. Code names the reason: torrent, remote, unpacking,
-// volume, empty, separator, dots or exists for a link, busy or folderExists for
-// a package. Name is the file, folder or name it is about, and Error says the
-// same in English for every other client.
+// volume, empty, separator, dots, exists or dataFolder for a link, busy,
+// folderExists or dataFolder for a package. Name is the file, folder or name
+// it is about, and Error says the same in English for every other client.
 type RenameRefusal struct {
 	Code string
 	Name string
@@ -1063,6 +1063,9 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		from = filepath.Join(dir, t.Name)
 	}
 	to := filepath.Join(filepath.Dir(from), want)
+	if inData := a.dataFolderOf(filepath.Dir(to)); inData != "" {
+		return refuse(refuseRename("dataFolder", want, renameErrorPrefix+"%s is inside KnightLoader's data folder", inData))
+	}
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
 	if _, err := os.Stat(to); err == nil {

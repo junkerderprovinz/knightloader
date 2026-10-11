@@ -385,6 +385,7 @@ export const de: Dict = {
   'settings.pathProblem.notAbsolute': 'Gib einen vollständigen Pfad ein, etwa /downloads oder D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} lässt sich nicht anlegen.',
   'settings.pathProblem.cannotWrite': 'In {dir} lässt sich nichts schreiben.',
+  'settings.pathProblem.dataFolder': '{dir} liegt im Datenordner von KnightLoader, neben Passwörtern und Einstellungen. Wähl einen Ordner außerhalb davon.',
   'settings.watchDirFilesHint':
     'Was du hier ablegst, wird automatisch übernommen: Linklisten (.txt, .crawljob, .magnet), .torrent-Dateien, Container (.dlc, .ccf, .rsdf) und .nzb-Dateien.',
   'settings.crawl': 'Seiten folgen und die verlinkten Dateien einsammeln',

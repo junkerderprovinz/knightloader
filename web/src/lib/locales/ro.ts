@@ -352,6 +352,7 @@ export const ro: Dict = {
   'settings.pathProblem.notAbsolute': 'Introdu o cale completă, de exemplu /downloads sau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nu s-a putut crea {dir}.',
   'settings.pathProblem.cannotWrite': 'Nu s-a putut scrie în {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} se află în dosarul de date al KnightLoader, lângă parole și setări. Alege un dosar din afara lui.',
   'settings.crawl': 'Urmărește paginile și adună fișierele către care duc',
   'settings.crawl.depth': 'Adâncimea parcurgerii',
   'settings.crawl.depthHint': 'Cât de adânc se merge. 1 este doar pagina lipită, 2 deschide și paginile către care trimite, 3 le deschide pe ale lor. O pagină nu se deschide niciodată de două ori, așa că legăturile reciproce încheie parcurgerea în loc să o învârtă în cerc.',

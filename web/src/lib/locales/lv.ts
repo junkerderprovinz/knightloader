@@ -352,6 +352,7 @@ export const lv: Dict = {
   'settings.pathProblem.notAbsolute': 'Ievadi pilnu ceļu, piemēram, /downloads vai D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Neizdevās izveidot {dir}.',
   'settings.pathProblem.cannotWrite': 'Neizdevās ierakstīt mapē {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} atrodas KnightLoader datu mapē, blakus parolēm un iestatījumiem. Izvēlies mapi ārpus tās.',
   'settings.crawl': 'Sekot lapām un savākt failus, uz kuriem tās norāda',
   'settings.crawl.depth': 'Apstaigāšanas dziļums',
   'settings.crawl.depthHint': 'Cik dziļi iet. 1 ir tikai ielīmētā lapa, 2 atver arī lapas, uz kurām tā norāda, 3 atver to saites. Lapa nekad netiek atvērta divreiz, tāpēc savstarpējas saites pabeidz gājienu, nevis riņķo pa apli.',
