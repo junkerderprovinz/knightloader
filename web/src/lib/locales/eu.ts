@@ -3542,6 +3542,7 @@ export const eu: Dict = {
   'picture.seed.target': 'Helburua {ratio}',
   'picture.intake.file': 'Fitxategiak eta edukiontziak',
   'picture.intake.account': 'Debrid kontua',
+  'picture.day.since': '{time}etatik neurtuta',
   'whatsnew.title': '{version} bertsioko berritasunak',
   'whatsnew.changes': 'Aldaketak',
   'whatsnew.notesMissing': 'KnightLoaderrek ezin izan ditu bertsio-oharrak hemen kargatu. GitHuben aurkituko dituzu.',
@@ -3572,6 +3573,8 @@ export const eu: Dict = {
     '«{name}» atalak kanporako bideak marrazten ditu, eta proba batek lerro bakoitza berdez edo gorriz margotzen du.',
   'whatsnew.change.waysIn':
     'Irudi batek erakusten du esteka bat esteka biltzailera zer bidetatik iristen den, eta bide batean klik eginda haren ezarpena irekitzen da.',
+  'whatsnew.change.dayCurve':
+    '«{name}» atalak gaurko eguna kurba gisa marrazten du: aurreikusitako abiadura-muga azalera gisa eta neurtutako abiadura lerro gisa.',
   'whatsnew.change.infoTile': '«{name}» atalak esaten du nork egiten duen KnightLoader, bertsio guztiak zerrendatzen ditu eta laguntza non lortu erakusten du.',
   'whatsnew.change.phoneBar': 'Telefonoan beheko barrak lau orri gordetzen ditu, eta bere azken lekuak gainerako guztia irekitzen du.',
   'whatsnew.change.queueState': '«{play}» eta «{pause}» botoiek ilara zertan ari den erakusten dute: betetako botoia haren egoera da, bestea sakatzekoa.',

@@ -3549,6 +3549,7 @@ export const fi: Dict = {
   'picture.seed.target': 'Tavoite {ratio}',
   'picture.intake.file': 'Tiedostot ja säiliöt',
   'picture.intake.account': 'Debrid-tili',
+  'picture.day.since': 'Mitattu klo {time} alkaen',
   'whatsnew.title': 'Uutta versiossa {version}',
   'whatsnew.changes': 'Muutokset',
   'whatsnew.notesMissing': 'KnightLoader ei voinut ladata julkaisutietoja tässä. Löydät ne GitHubista.',
@@ -3578,6 +3579,8 @@ export const fi: Dict = {
   'whatsnew.change.routes': '”{name}” piirtää reitit ulos, ja testi värittää jokaisen viivan vihreäksi tai punaiseksi.',
   'whatsnew.change.waysIn':
     'Kuva näyttää jokaisen reitin, jota pitkin linkki päätyy linkkikerääjään, ja reitin napsautus avaa sen asetuksen.',
+  'whatsnew.change.dayCurve':
+    '”{name}” piirtää tämän päivän käyränä: suunniteltu nopeusrajoitus alueena ja mitattu nopeus viivana.',
   'whatsnew.change.infoTile': '”{name}” kertoo, kuka tekee KnightLoaderia, näyttää jokaisen version ja kertoo, mistä saat apua.',
   'whatsnew.change.phoneBar': 'Puhelimessa alapalkissa on neljä sivua, ja sen viimeinen paikka avaa kaiken muun.',
   'whatsnew.change.queueState': '”{play}” ja ”{pause}” näyttävät, mitä jono tekee: täytetty painike on jonon tila, toinen on se, jota painetaan.',

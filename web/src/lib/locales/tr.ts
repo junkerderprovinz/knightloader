@@ -3546,6 +3546,7 @@ export const tr: Dict = {
   'picture.seed.target': 'Hedef {ratio}',
   'picture.intake.file': 'Dosyalar ve kapsayıcılar',
   'picture.intake.account': 'Debrid hesabı',
+  'picture.day.since': '{time} itibarıyla ölçülüyor',
   'whatsnew.title': '{version} sürümündeki yenilikler',
   'whatsnew.changes': 'Değişiklikler',
   'whatsnew.notesMissing': 'KnightLoader sürüm notlarını burada yükleyemedi. Onları GitHub’da bulabilirsin.',
@@ -3575,6 +3576,8 @@ export const tr: Dict = {
   'whatsnew.change.routes': '“{name}” dışarı giden yolları çizer ve bir test her çizgiyi yeşile ya da kırmızıya boyar.',
   'whatsnew.change.waysIn':
     'Bir resim, bir bağlantının bağlantı toplayıcıya ulaştığı her yolu gösterir ve bir yola tıklamak onun ayarını açar.',
+  'whatsnew.change.dayCurve':
+    '“{name}” bugünü bir eğri olarak çizer: planlanan hız sınırı bir alan, ölçülen hız bir çizgi olarak.',
   'whatsnew.change.infoTile': '“{name}”, KnightLoader’ı kimin yaptığını söyler, her sürümü listeler ve nereden yardım alabileceğini gösterir.',
   'whatsnew.change.phoneBar': 'Telefonda alt çubuk dört sayfa tutar, son yeri de geri kalan her şeyi açar.',
   'whatsnew.change.queueState': '“{play}” ve “{pause}” kuyruğun ne yaptığını gösterir: dolu olan düğme kuyruğun durumudur, öteki ise basılacak olandır.',

@@ -3552,6 +3552,7 @@ export const de: Dict = {
   'picture.seed.target': 'Ziel {ratio}',
   'picture.intake.file': 'Dateien und Container',
   'picture.intake.account': 'Debrid-Konto',
+  'picture.day.since': 'Gemessen seit {time}',
   'whatsnew.title': 'Neu in {version}',
   'whatsnew.changes': 'Änderungen',
   'whatsnew.notesMissing': 'KnightLoader konnte die Versionshinweise hier nicht laden. Du findest sie auf GitHub.',
@@ -3581,6 +3582,8 @@ export const de: Dict = {
   'whatsnew.change.routes': '„{name}“ zeichnet die Wege nach draußen, und ein Test färbt jede Linie grün oder rot.',
   'whatsnew.change.waysIn':
     'Ein Bild zeigt jeden Weg, auf dem ein Link in den Linksammler kommt, und ein Klick auf einen Weg öffnet seine Einstellung.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ zeichnet den heutigen Tag als Kurve: das geplante Geschwindigkeitslimit als Fläche und die gemessene Geschwindigkeit als Linie.',
   'whatsnew.change.infoTile': '„{name}“ sagt, wer KnightLoader macht, listet jede Version und zeigt, wo du Hilfe bekommst.',
   'whatsnew.change.phoneBar': 'Auf dem Handy behält die untere Leiste vier Seiten, und ihr letzter Platz öffnet alles Weitere.',
   'whatsnew.change.queueState': '„{play}“ und „{pause}“ zeigen, was die Warteschlange tut: Der gefüllte Knopf ist ihr Zustand, den anderen drückst du.',

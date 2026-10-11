@@ -3557,6 +3557,7 @@ export const sk: Dict = {
   'picture.seed.target': 'Cieľ {ratio}',
   'picture.intake.file': 'Súbory a kontajnery',
   'picture.intake.account': 'Účet debrid',
+  'picture.day.since': 'Merané od {time}',
   'whatsnew.title': 'Novinky vo verzii {version}',
   'whatsnew.changes': 'Zmeny',
   'whatsnew.notesMissing': 'KnightLoader tu nedokázal načítať poznámky k vydaniu. Nájdeš ich na GitHube.',
@@ -3586,6 +3587,8 @@ export const sk: Dict = {
   'whatsnew.change.routes': '„{name}“ kreslí cesty von a test zafarbí každú čiaru na zeleno alebo na červeno.',
   'whatsnew.change.waysIn':
     'Obrázok ukazuje každú cestu, ktorou sa odkaz dostane do zberača odkazov, a kliknutie na cestu otvorí jej nastavenie.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ kreslí dnešok ako krivku: plánované obmedzenie rýchlosti ako plochu a nameranú rýchlosť ako čiaru.',
   'whatsnew.change.infoTile': '„{name}“ hovorí, kto KnightLoader robí, vypisuje každú verziu a ukazuje, kde nájdeš pomoc.',
   'whatsnew.change.phoneBar': 'Na telefóne si spodný panel necháva štyri stránky a jeho posledné miesto otvára všetko ostatné.',
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazujú, čo front robí: vyplnené tlačidlo je jeho stav, to druhé sa stláča.',

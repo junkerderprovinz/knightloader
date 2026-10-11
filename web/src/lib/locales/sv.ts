@@ -3547,6 +3547,7 @@ export const sv: Dict = {
   'picture.seed.target': 'Mål {ratio}',
   'picture.intake.file': 'Filer och behållare',
   'picture.intake.account': 'Debrid-konto',
+  'picture.day.since': 'Mätt sedan {time}',
   'whatsnew.title': 'Nytt i {version}',
   'whatsnew.changes': 'Ändringar',
   'whatsnew.notesMissing': 'KnightLoader kunde inte läsa in versionsinformationen här. Du hittar den på GitHub.',
@@ -3576,6 +3577,8 @@ export const sv: Dict = {
   'whatsnew.change.routes': '”{name}” ritar vägarna ut, och ett test färgar varje linje grön eller röd.',
   'whatsnew.change.waysIn':
     'En bild visar varje väg en länk kommer in i länksamlaren, och ett klick på en väg öppnar dess inställning.',
+  'whatsnew.change.dayCurve':
+    '”{name}” ritar dagens dygn som en kurva: den planerade hastighetsgränsen som en yta och den uppmätta hastigheten som en linje.',
   'whatsnew.change.infoTile': '”{name}” säger vem som gör KnightLoader, visar varje version och visar var du får hjälp.',
   'whatsnew.change.phoneBar': 'På en telefon behåller det nedre fältet fyra sidor, och dess sista plats öppnar allt annat.',
   'whatsnew.change.queueState': '”{play}” och ”{pause}” visar vad kön gör: den fyllda knappen är köns tillstånd, den andra är den du trycker på.',

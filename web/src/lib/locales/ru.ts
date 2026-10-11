@@ -3526,6 +3526,7 @@ export const ru: Dict = {
   'picture.seed.target': 'Цель {ratio}',
   'picture.intake.file': 'Файлы и контейнеры',
   'picture.intake.account': 'Аккаунт debrid',
+  'picture.day.since': 'Измеряется с {time}',
   'whatsnew.title': 'Новое в версии {version}',
   'whatsnew.changes': 'Изменения',
   'whatsnew.notesMissing': 'KnightLoader не смог загрузить здесь примечания к выпуску. Вы найдёте их на GitHub.',
@@ -3555,6 +3556,8 @@ export const ru: Dict = {
   'whatsnew.change.routes': '«{name}» рисует пути наружу, а проверка окрашивает каждую линию в зелёный или красный.',
   'whatsnew.change.waysIn':
     'Изображение показывает каждый путь, которым ссылка попадает в сборщик ссылок, а щелчок по пути открывает его настройку.',
+  'whatsnew.change.dayCurve':
+    '«{name}» рисует сегодняшний день в виде кривой: запланированное ограничение скорости как область, а измеренную скорость как линию.',
   'whatsnew.change.infoTile': '«{name}» говорит, кто делает KnightLoader, перечисляет все версии и показывает, где получить помощь.',
   'whatsnew.change.phoneBar': 'На телефоне нижняя панель оставляет четыре страницы, а её последнее место открывает всё остальное.',
   'whatsnew.change.queueState': '«{play}» и «{pause}» показывают, что делает очередь: закрашенная кнопка показывает её состояние, а другую нажимают.',

@@ -3536,6 +3536,7 @@ export const fa: Dict = {
   'picture.seed.target': 'هدف {ratio}',
   'picture.intake.file': 'فایل‌ها و کانتینرها',
   'picture.intake.account': 'حساب debrid',
+  'picture.day.since': 'اندازه‌گیری از {time}',
   'whatsnew.title': 'تازه‌های {version}',
   'whatsnew.changes': 'تغییرات',
   'whatsnew.notesMissing': 'KnightLoader نتوانست یادداشت‌های انتشار را اینجا بار کند. آن‌ها را در GitHub پیدا می‌کنی.',
@@ -3565,6 +3566,8 @@ export const fa: Dict = {
   'whatsnew.change.routes': '«{name}» مسیرهای خروج را می‌کشد و آزمون هر خط را سبز یا قرمز می‌کند.',
   'whatsnew.change.waysIn':
     'یک تصویر هر راهی را نشان می‌دهد که پیوند از آن به گردآور پیوندها می‌رسد، و کلیک روی یک راه تنظیم آن را باز می‌کند.',
+  'whatsnew.change.dayCurve':
+    '«{name}» امروز را به شکل یک منحنی می‌کشد: محدودیت سرعت برنامه‌ریزی‌شده به شکل سطح و سرعت اندازه‌گیری‌شده به شکل خط.',
   'whatsnew.change.infoTile': '«{name}» می‌گوید چه کسی KnightLoader را می‌سازد، همهٔ نسخه‌ها را فهرست می‌کند و نشان می‌دهد از کجا کمک بگیری.',
   'whatsnew.change.phoneBar': 'در گوشی، نوار پایینی چهار صفحه را نگه می‌دارد و جای آخرش هر چیز دیگری را باز می‌کند.',
   'whatsnew.change.queueState': '«{play}» و «{pause}» نشان می‌دهند صف چه می‌کند: دکمهٔ پُر وضعیت آن است و دکمهٔ دیگر همانی است که فشار می‌دهی.',
