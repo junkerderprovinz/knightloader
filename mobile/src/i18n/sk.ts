@@ -292,6 +292,8 @@ export const sk: Dict = {
   'failure.pinned.next': 'Odopni ho vo webovom rozhraní alebo tam skontroluj účet toho backendu.',
   'failure.fileExists.line': 'V priečinku už je súbor s názvom {file}.',
   'failure.fileExists.next': 'Presuň alebo premenuj ten súbor, alebo vo webovom rozhraní zmeň, čo sa deje s existujúcimi súbormi, a potom sťahovanie spusti znova.',
+  'failure.dataFolder.line': '{path} je v dátovom priečinku KnightLoadera a sťahovanie tam nesmie.',
+  'failure.dataFolder.next': 'Vo webovom rozhraní zvoľ priečinok mimo dátového priečinka a skús to znova.',
   'failure.captcha.line': 'Hoster chce vyriešiť captchu.',
   'failure.captcha.next': 'Odpovedz na captchu na obrazovke Captchy alebo pridaj účet captchy vo webovom rozhraní.',
   'failure.cancelled.line': 'Sťahovanie sa zastavilo skôr, než skončilo.',

@@ -329,6 +329,15 @@ func containsAny(low string, phrases []string) bool {
 // steps after a download, renaming, moving and unpacking, whose failures carry
 // no Reason: the download itself finished.
 func diskCode(err error) (core.ErrorCode, map[string]string) {
+	var inData *dataFolderError
+	var barred *extract.BarredError
+	switch {
+	case errors.As(err, &inData):
+		return core.CodeDataFolder, map[string]string{"path": inData.dir}
+	case errors.As(err, &barred):
+		// The only folder the app bars is the data folder.
+		return core.CodeDataFolder, map[string]string{"path": barred.Dir}
+	}
 	if isDiskFull(err) {
 		return core.CodeDiskFull, nil
 	}

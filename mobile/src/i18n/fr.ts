@@ -292,6 +292,8 @@ export const fr: Dict = {
   'failure.pinned.next': 'Détachez le lien de ce backend dans l’interface web, ou vérifiez-y son compte.',
   'failure.fileExists.line': 'Un fichier nommé {file} se trouve déjà dans le dossier.',
   'failure.fileExists.next': 'Déplacez ou renommez ce fichier, ou changez dans l’interface web ce qui arrive aux fichiers existants, puis relancez le téléchargement.',
+  'failure.dataFolder.line': '{path} se trouve dans le dossier de données de KnightLoader, et les téléchargements ne doivent pas y aller.',
+  'failure.dataFolder.next': 'Choisissez dans l’interface web un dossier en dehors du dossier de données, puis réessayez.',
   'failure.captcha.line': 'L’hébergeur demande de résoudre un captcha.',
   'failure.captcha.next': 'Répondez au captcha dans l’écran Captchas, ou ajoutez un compte captcha dans l’interface web.',
   'failure.cancelled.line': 'Le téléchargement a été arrêté avant la fin.',

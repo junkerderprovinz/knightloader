@@ -292,6 +292,8 @@ export const nl: Dict = {
   'failure.pinned.next': 'Hef het vastzetten op in de webinterface, of controleer daar het account van die backend.',
   'failure.fileExists.line': 'Er staat al een bestand met de naam {file} in de map.',
   'failure.fileExists.next': 'Verplaats of hernoem dat bestand, of wijzig in de webinterface wat er met bestaande bestanden gebeurt, en start de download dan opnieuw.',
+  'failure.dataFolder.line': '{path} staat in de datamap van KnightLoader, en daar mogen geen downloads heen.',
+  'failure.dataFolder.next': 'Kies in de webinterface een map buiten de datamap en probeer het opnieuw.',
   'failure.captcha.line': 'De hoster wil dat er een captcha wordt opgelost.',
   'failure.captcha.next': 'Beantwoord de captcha op het scherm Captcha’s, of voeg een captcha-account toe in de webinterface.',
   'failure.cancelled.line': 'De download is gestopt voordat hij klaar was.',

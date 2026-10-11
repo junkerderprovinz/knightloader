@@ -292,6 +292,8 @@ export const vi: Dict = {
   'failure.pinned.next': 'Bỏ ghim trong giao diện web, hoặc kiểm tra tài khoản của backend đó ở đó.',
   'failure.fileExists.line': 'Trong thư mục đã có một tệp tên {file}.',
   'failure.fileExists.next': 'Di chuyển hoặc đổi tên tệp đó, hoặc đổi cách xử lý tệp đã có trong giao diện web, rồi chạy lại lượt tải.',
+  'failure.dataFolder.line': '{path} nằm trong thư mục dữ liệu của KnightLoader, và các lượt tải không được đặt ở đó.',
+  'failure.dataFolder.next': 'Hãy chọn trong giao diện web một thư mục bên ngoài thư mục dữ liệu, rồi thử lại.',
   'failure.captcha.line': 'Hoster muốn giải một captcha.',
   'failure.captcha.next': 'Trả lời captcha ở màn hình Captcha, hoặc thêm một tài khoản captcha trong giao diện web.',
   'failure.cancelled.line': 'Lượt tải đã bị dừng trước khi xong.',

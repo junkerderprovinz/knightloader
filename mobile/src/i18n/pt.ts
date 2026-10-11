@@ -292,6 +292,8 @@ export const pt: Dict = {
   'failure.pinned.next': 'Tira a fixação na interface web, ou verifica lá a conta desse backend.',
   'failure.fileExists.line': 'Já existe na pasta um ficheiro chamado {file}.',
   'failure.fileExists.next': 'Move ou muda o nome desse ficheiro, ou altera na interface web o que acontece aos ficheiros existentes, e depois reinicia a transferência.',
+  'failure.dataFolder.line': '{path} está na pasta de dados do KnightLoader, e as transferências não podem ir para lá.',
+  'failure.dataFolder.next': 'Escolhe na interface web uma pasta fora da pasta de dados e tenta outra vez.',
   'failure.captcha.line': 'O hoster quer um captcha resolvido.',
   'failure.captcha.next': 'Responde ao captcha no ecrã Captchas, ou adiciona uma conta de captcha na interface web.',
   'failure.cancelled.line': 'A transferência foi parada antes de terminar.',

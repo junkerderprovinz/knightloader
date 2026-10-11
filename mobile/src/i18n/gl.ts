@@ -292,6 +292,8 @@ export const gl: Dict = {
   'failure.pinned.next': 'Quita a fixación na interface web, ou comproba alí a conta dese backend.',
   'failure.fileExists.line': 'Xa hai no cartafol un ficheiro chamado {file}.',
   'failure.fileExists.next': 'Move ou renomea ese ficheiro, ou cambia na interface web o que pasa cos ficheiros existentes, e despois reinicia a descarga.',
+  'failure.dataFolder.line': '{path} está no cartafol de datos de KnightLoader, e as descargas non poden ir aí.',
+  'failure.dataFolder.next': 'Escolle na interface web un cartafol fóra do cartafol de datos e téntao de novo.',
   'failure.captcha.line': 'O aloxador quere que se resolva un captcha.',
   'failure.captcha.next': 'Responde o captcha na pantalla Captchas, ou engade unha conta de captcha na interface web.',
   'failure.cancelled.line': 'A descarga detívose antes de rematar.',
