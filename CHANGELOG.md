@@ -168,6 +168,9 @@ release's tag.
   another alphabet is held to the same length as one in English. A password
   over 72 bytes, the most the hash takes, gets its own message on the
   settings card and the reset form instead of an English error.
+- **A backup from a newer KnightLoader is refused when you upload it,** with a
+  message that says to update first. It was accepted and then kept the
+  instance from starting.
 
 ### Security
 
@@ -202,6 +205,18 @@ release's tag.
 - **Backups are encrypted with the app key.** A downloaded backup then opens
   only on an instance with the same key, and a restore without it says which
   key it needs. Backups made before still restore.
+- **No download, unpacking, move or rename writes into KnightLoader's data
+  folder from a folder above it.** A download, category, extraction or move
+  folder that holds the data folder, such as `C:\Users\you` or `D:\`, is
+  refused like one inside it, and every file an archive unpacks, a move puts
+  in place or a rename names is checked where it lands, links on the way
+  included. A link to a folder inside the data folder is refused too.
+- **Sealing the download passwords leaves no plain copy in the database
+  file.** The first start with an app key wipes the space the old values held
+  and rebuilds the file.
+- **A restore runs nothing the uploaded database brings along.** Triggers and
+  views are removed however their type is spelled, before anything in the
+  file is changed.
 
 ## [1.8.5] - 2026-10-11
 
