@@ -275,11 +275,11 @@ func TestAPasswordBcryptWouldRefuseKeepsTheCode(t *testing.T) {
 
 func TestAResetCountsCharactersNotBytes(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := finish(g, code, "äöüßäöü"); !errors.Is(err, ErrTooShort) {
-		t.Fatalf("seven characters in fourteen bytes = %v, want ErrTooShort", err)
+	if err := finish(g, code, "äöüßäöüéäöü"); !errors.Is(err, ErrTooShort) {
+		t.Fatalf("eleven characters in twenty-two bytes = %v, want ErrTooShort", err)
 	}
-	if err := finish(g, code, "äöüßäöüé"); err != nil {
-		t.Fatalf("eight characters were refused: %v", err)
+	if err := finish(g, code, "äöüßäöüéäöüß"); err != nil {
+		t.Fatalf("twelve characters were refused: %v", err)
 	}
 }
 

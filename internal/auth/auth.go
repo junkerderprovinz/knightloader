@@ -38,15 +38,16 @@ var (
 	// ErrWrongPassword is returned when the supplied password does not match.
 	ErrWrongPassword = errors.New("wrong password")
 	// ErrTooShort rejects a password that is not worth having.
-	ErrTooShort = errors.New("the password must be at least 8 characters")
+	ErrTooShort = errors.New("the password must be at least 12 characters")
 	// ErrTooLong rejects a password bcrypt cannot hash whole.
 	ErrTooLong = errors.New("the password must be at most 72 bytes")
 )
 
 const (
 	// minPasswordChars counts characters, so a password in another alphabet
-	// is held to the same length as one in English.
-	minPasswordChars = 8
+	// is held to the same length as one in English. Only a new password is
+	// measured, so one set under a lower minimum keeps signing in.
+	minPasswordChars = 12
 	// maxPasswordBytes is bcrypt's limit, which counts bytes.
 	maxPasswordBytes = 72
 )
