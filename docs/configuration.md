@@ -31,3 +31,34 @@ DebridItalia, Mega-Debrid, MultiUp, MyDebrid and NeoDebrid take the login the
 website takes; ProLeech and RPNet take the two values their API page shows. The full
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
+
+## A forgotten password
+
+**Forgot password?** on the sign-in page has KnightLoader write a code where
+only somebody with access to the machine can read it:
+
+- In a container, to the container log. On Unraid: Docker tab, KnightLoader
+  icon, **Logs**. Elsewhere `docker logs` followed by the name of the container.
+- A server started from a terminal or as a service, to its own output: that
+  terminal, or the service's journal (`journalctl -u` followed by the name of
+  the service).
+- The desktop app, and a server whose output goes nowhere, to the file
+  `password-reset-code.txt` in the data directory. On Linux and macOS only
+  the user KnightLoader runs as can read it; on Windows it takes the
+  permissions of the data directory, which by default is your own profile.
+  The file is removed once the code is used or has run out.
+
+Enter the code and a new password on the sign-in page and you are signed in. A
+code is valid for 10 minutes, and a new one is written at most once a minute.
+It has twelve characters, so wrong guesses do not use it up, and nobody can
+keep you from resetting by guessing. The new password switches two-factor
+authentication off, removes every passkey and every API token, signs out every
+other browser and replaces the key sessions are signed with, so a copy of
+`auth.json` taken earlier opens nothing either. Devices paired with the
+connection phrase stay paired. Settings that run something, such as event
+programs, scripts and the end-of-queue action, are left as they are: if
+somebody else may have had access, look through them.
+
+The code is never sent over the network, and it appears neither on the log
+page, in the log file nor in a diagnostics bundle. Somebody who only reaches
+the web interface cannot reset anything.

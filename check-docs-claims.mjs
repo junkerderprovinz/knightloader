@@ -36,6 +36,7 @@ const MAIN_GO = read('cmd', 'knightloader', 'main.go');
 const CATALOGUE = read('internal', 'accounts', 'catalogue.go');
 const DOCKERFILE = read('Dockerfile');
 const LOCALES_INDEX = read('web', 'src', 'lib', 'locales', 'index.ts');
+const EN_TS = read('web', 'src', 'lib', 'locales', 'en.ts');
 
 const problems = [];
 const fail = (msg) => problems.push(msg);
@@ -278,6 +279,36 @@ for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
       `docs/configuration.md says ${env} defaults to "${documented}", cmd/knightloader/main.go defaults it to ${found[0]}`,
     );
   }
+}
+
+// How long a password reset code lasts and how long it is. The manual says
+// both, and the sign-in page says the first in every language, where a
+// number is declined and cannot be a placeholder. internal/auth is the source;
+// the English sentence stands for the catalogues translated from it.
+
+const RESET_GO = read('internal', 'auth', 'reset.go');
+const resetMinutes = RESET_GO.match(/ResetCodeTTL = (\d+) \* time\.Minute/)?.[1];
+const resetLength = RESET_GO.match(/ResetCodeLen = (\d+)/)?.[1];
+const resetGapIsAMinute = /resetCodeGap = time\.Minute/.test(RESET_GO);
+const WORDS = { 8: 'eight', 10: 'ten', 12: 'twelve', 16: 'sixteen' };
+if (!resetMinutes || !resetLength) {
+  fail('internal/auth/reset.go no longer states ResetCodeTTL in minutes and ResetCodeLen, so the pages cannot be held to them');
+} else {
+  const valid = `valid for ${resetMinutes} minutes`;
+  const length = `${WORDS[resetLength] ?? resetLength} characters`;
+  const effect = EN_TS.match(/'auth\.reset\.effect': '([^']*)'/)?.[1] ?? '';
+  for (const [claim, where, text] of [
+    [valid, 'docs/configuration.md', CONFIGURATION],
+    [length, 'docs/configuration.md', CONFIGURATION],
+    [valid, 'en.ts auth.reset.effect', effect],
+  ]) {
+    if (!text.includes(claim)) {
+      fail(`${where} does not say "${claim}", which is what internal/auth/reset.go makes a reset code`);
+    }
+  }
+}
+if (!resetGapIsAMinute) {
+  fail('internal/auth/reset.go no longer mints a reset code at most once a minute, which docs/configuration.md and auth.reset.rejected both say');
 }
 
 // The container must not pin KL_CNL, or the binary's default above is not the
