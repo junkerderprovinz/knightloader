@@ -464,7 +464,7 @@ function Versions({ hue }: { hue: number }) {
       <div className="flex flex-wrap justify-end gap-3">
         {/* What this version brought: its release notes and the changes the
             dots mark. */}
-        <Button kind="secondary" icon={<IconInfo />} onClick={() => openWhatsNew('notes')}>
+        <Button kind="secondary" icon={<IconInfo />} data-new="release-notes" onClick={() => openWhatsNew('notes')}>
           {t('settings.look.updatesReleaseNotes')}
         </Button>
         <Button
