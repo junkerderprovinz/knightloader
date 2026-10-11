@@ -334,7 +334,7 @@ export const hr: Dict = {
   'auth.reset.mismatch': 'Lozinke se ne podudaraju.',
   'auth.reset.length': 'Nova lozinka mora imati između 8 i 72 znaka.',
   'auth.reset.rejected': 'Taj kod nije prihvaćen. Upotrijebi najnoviji kod koji je ondje zapisan. Kad kod zastari, KnightLoader zapisuje novi, najviše jednom u minuti.',
-  'auth.reset.wait': 'Previše pokušaja. Pričekaj pola minute i pokušaj ponovno.',
+  'auth.tooMany': 'Previše pokušaja. Pričekaj pola minute i pokušaj ponovno.',
   'auth.reset.unavailable': 'KnightLoader nije mogao zapisati kod za ponovno postavljanje, pa se lozinka ne može ponovno postaviti s ove stranice.',
   'auth.reset.failed': 'Lozinku nije bilo moguće postaviti. Pokušaj ponovno.',
   'accounts.ok': 'Radi',

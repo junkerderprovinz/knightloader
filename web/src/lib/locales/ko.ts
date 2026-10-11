@@ -334,7 +334,7 @@ export const ko: Dict = {
   'auth.reset.mismatch': '두 암호가 서로 다릅니다.',
   'auth.reset.length': '새 암호는 8자 이상 72자 이하여야 합니다.',
   'auth.reset.rejected': '이 코드는 받아들여지지 않았습니다. 그곳에 기록된 가장 최근 코드를 사용하세요. 코드가 너무 오래되면 KnightLoader가 새 코드를 기록합니다. 다만 1분에 한 번까지만 기록합니다.',
-  'auth.reset.wait': '시도가 너무 많습니다. 30초 기다린 뒤 다시 시도하세요.',
+  'auth.tooMany': '시도가 너무 많습니다. 30초 기다린 뒤 다시 시도하세요.',
   'auth.reset.unavailable': 'KnightLoader가 재설정 코드를 기록하지 못해 이 페이지에서는 암호를 재설정할 수 없습니다.',
   'auth.reset.failed': '암호를 설정하지 못했습니다. 다시 시도하세요.',
   'accounts.ok': '정상',

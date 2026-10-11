@@ -334,7 +334,7 @@ export const zh: Dict = {
   'auth.reset.mismatch': '两次输入的密码不一致。',
   'auth.reset.length': '新密码需要 8 到 72 个字符。',
   'auth.reset.rejected': '该重置码未被接受。请使用写在那里的最新一个。一个重置码过期后，KnightLoader 会写出新的，最多每分钟一次。',
-  'auth.reset.wait': '尝试次数过多。请等半分钟再试。',
+  'auth.tooMany': '尝试次数过多。请等半分钟再试。',
   'auth.reset.unavailable': 'KnightLoader 没能写出重置码，因此无法在本页重置密码。',
   'auth.reset.failed': '密码没能设置成功。请再试一次。',
   'accounts.ok': '可用',

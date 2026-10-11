@@ -334,7 +334,7 @@ export const fi: Dict = {
   'auth.reset.mismatch': 'Salasanat eivät täsmää.',
   'auth.reset.length': 'Uudessa salasanassa on oltava vähintään 8 ja enintään 72 merkkiä.',
   'auth.reset.rejected': 'Koodia ei hyväksytty. Käytä uusinta sinne kirjoitettua koodia. Kun koodi on vanhentunut, KnightLoader kirjoittaa uuden, enintään kerran minuutissa.',
-  'auth.reset.wait': 'Liian monta yritystä. Odota puoli minuuttia ja yritä uudelleen.',
+  'auth.tooMany': 'Liian monta yritystä. Odota puoli minuuttia ja yritä uudelleen.',
   'auth.reset.unavailable': 'KnightLoader ei voinut kirjoittaa nollauskoodia, joten salasanaa ei voi nollata tältä sivulta.',
   'auth.reset.failed': 'Salasanan asettaminen ei onnistunut. Yritä uudelleen.',
   'accounts.ok': 'Toimii',

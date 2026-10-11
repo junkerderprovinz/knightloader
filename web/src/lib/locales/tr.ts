@@ -334,7 +334,7 @@ export const tr: Dict = {
   'auth.reset.mismatch': 'Parolalar eşleşmiyor.',
   'auth.reset.length': 'Yeni parola 8 ile 72 karakter arasında olmalı.',
   'auth.reset.rejected': 'Bu kod kabul edilmedi. Orada yazan en yeni kodu kullan. Bir kod eskidiğinde KnightLoader yenisini yazar, en fazla dakikada bir kez.',
-  'auth.reset.wait': 'Çok fazla deneme. Yarım dakika bekle ve yeniden dene.',
+  'auth.tooMany': 'Çok fazla deneme. Yarım dakika bekle ve yeniden dene.',
   'auth.reset.unavailable': 'KnightLoader sıfırlama kodunu yazamadı, bu yüzden parola bu sayfadan sıfırlanamıyor.',
   'auth.reset.failed': 'Parola ayarlanamadı. Yeniden dene.',
   'accounts.ok': 'Çalışıyor',

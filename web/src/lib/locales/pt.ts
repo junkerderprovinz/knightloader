@@ -326,7 +326,7 @@ export const pt: Dict = {
   'auth.reset.mismatch': 'As duas palavras-passe são diferentes.',
   'auth.reset.length': 'A nova palavra-passe precisa de ter entre 8 e 72 caracteres.',
   'auth.reset.rejected': 'Esse código não foi aceite. Usa o código mais recente que lá estiver escrito. Quando um código fica demasiado antigo, o KnightLoader escreve um novo, no máximo uma vez por minuto.',
-  'auth.reset.wait': 'Demasiadas tentativas. Espera meio minuto e tenta outra vez.',
+  'auth.tooMany': 'Demasiadas tentativas. Espera meio minuto e tenta outra vez.',
   'auth.reset.unavailable': 'O KnightLoader não conseguiu escrever um código de reposição, por isso não é possível repor a palavra-passe a partir desta página.',
   'auth.reset.failed': 'Não foi possível definir a palavra-passe. Tenta outra vez.',
   'accounts.ok': 'Funciona',

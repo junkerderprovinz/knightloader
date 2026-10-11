@@ -334,7 +334,7 @@ export const lv: Dict = {
   'auth.reset.mismatch': 'Abas paroles nesakrīt.',
   'auth.reset.length': 'Jaunajā parolē jābūt no 8 līdz 72 rakstzīmēm.',
   'auth.reset.rejected': 'Šis kods netika pieņemts. Izmanto jaunāko tur ierakstīto kodu. Kad kods ir pārāk vecs, KnightLoader ieraksta jaunu, bet ne biežāk kā reizi minūtē.',
-  'auth.reset.wait': 'Pārāk daudz mēģinājumu. Pagaidi pusminūti un mēģini vēlreiz.',
+  'auth.tooMany': 'Pārāk daudz mēģinājumu. Pagaidi pusminūti un mēģini vēlreiz.',
   'auth.reset.unavailable': 'KnightLoader nevarēja ierakstīt kodu, tāpēc šajā lapā paroli atiestatīt nevar.',
   'auth.reset.failed': 'Paroli neizdevās iestatīt. Mēģini vēlreiz.',
   'accounts.ok': 'Darbojas',

@@ -334,7 +334,7 @@ export const gl: Dict = {
   'auth.reset.mismatch': 'Os dous contrasinais non coinciden.',
   'auth.reset.length': 'O contrasinal novo ten que ter entre 8 e 72 caracteres.',
   'auth.reset.rejected': 'Ese código non foi aceptado. Usa o código máis recente que apareza alí. Cando un código caduca, KnightLoader escribe un novo, como moito unha vez por minuto.',
-  'auth.reset.wait': 'Demasiados intentos. Agarda medio minuto e téntao de novo.',
+  'auth.tooMany': 'Demasiados intentos. Agarda medio minuto e téntao de novo.',
   'auth.reset.unavailable': 'KnightLoader non puido escribir un código de restablecemento, así que o contrasinal non se pode restablecer desde esta páxina.',
   'auth.reset.failed': 'Non se puido definir o contrasinal. Téntao de novo.',
   'accounts.ok': 'Funciona',

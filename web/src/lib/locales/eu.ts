@@ -334,7 +334,7 @@ export const eu: Dict = {
   'auth.reset.mismatch': 'Bi pasahitzak ez datoz bat.',
   'auth.reset.length': 'Pasahitz berriak 8 eta 72 karaktere artean izan behar ditu.',
   'auth.reset.rejected': 'Kode hori ez da onartu. Erabili han idatzitako kode berriena. Kode bat zaharregia denean, KnightLoaderek berri bat idazten du, gehienez minutuan behin.',
-  'auth.reset.wait': 'Saiakera gehiegi. Itxaron minutu erdi eta saiatu berriro.',
+  'auth.tooMany': 'Saiakera gehiegi. Itxaron minutu erdi eta saiatu berriro.',
   'auth.reset.unavailable': 'KnightLoaderek ezin izan du berrezartze-koderik idatzi, beraz pasahitza ezin da orri honetatik berrezarri.',
   'auth.reset.failed': 'Ezin izan da pasahitza ezarri. Saiatu berriro.',
   'accounts.ok': 'Dabil',

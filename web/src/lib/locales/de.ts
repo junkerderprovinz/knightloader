@@ -360,7 +360,7 @@ export const de: Dict = {
   'auth.reset.mismatch': 'Die beiden Passwörter stimmen nicht überein.',
   'auth.reset.length': 'Das neue Passwort braucht zwischen 8 und 72 Zeichen.',
   'auth.reset.rejected': 'Dieser Code wurde nicht angenommen. Nimm den neuesten Code, der dort steht. Ist ein Code abgelaufen, schreibt KnightLoader einen neuen, höchstens einmal pro Minute.',
-  'auth.reset.wait': 'Zu viele Versuche. Warte eine halbe Minute und versuch es noch einmal.',
+  'auth.tooMany': 'Zu viele Versuche. Warte eine halbe Minute und versuch es noch einmal.',
   'auth.reset.unavailable': 'KnightLoader konnte keinen Code schreiben. Das Passwort lässt sich deshalb von dieser Seite aus nicht zurücksetzen.',
   'auth.reset.failed': 'Das Passwort konnte nicht gesetzt werden. Versuch es noch einmal.',
   'accounts.ok': 'Funktioniert',

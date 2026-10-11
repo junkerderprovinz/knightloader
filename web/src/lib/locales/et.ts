@@ -334,7 +334,7 @@ export const et: Dict = {
   'auth.reset.mismatch': 'Paroolid ei kattu.',
   'auth.reset.length': 'Uues paroolis peab olema 8 kuni 72 märki.',
   'auth.reset.rejected': 'Seda koodi ei võetud vastu. Kasuta kõige uuemat sinna kirjutatud koodi. Kui kood on liiga vana, kirjutab KnightLoader uue, kõige rohkem kord minutis.',
-  'auth.reset.wait': 'Liiga palju katseid. Oota pool minutit ja proovi uuesti.',
+  'auth.tooMany': 'Liiga palju katseid. Oota pool minutit ja proovi uuesti.',
   'auth.reset.unavailable': 'KnightLoader ei saanud lähtestuskoodi kirjutada, seega ei saa parooli sellelt lehelt lähtestada.',
   'auth.reset.failed': 'Parooli ei õnnestunud määrata. Proovi uuesti.',
   'accounts.ok': 'Töötab',

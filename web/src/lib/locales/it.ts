@@ -326,7 +326,7 @@ export const it: Dict = {
   'auth.reset.mismatch': 'Le due password non coincidono.',
   'auth.reset.length': 'La nuova password deve avere tra 8 e 72 caratteri.',
   'auth.reset.rejected': 'Questo codice non è stato accettato. Usa il codice più recente scritto lì. Quando un codice è troppo vecchio, KnightLoader ne scrive uno nuovo, al massimo una volta al minuto.',
-  'auth.reset.wait': 'Troppi tentativi. Aspetta mezzo minuto e riprova.',
+  'auth.tooMany': 'Troppi tentativi. Aspetta mezzo minuto e riprova.',
   'auth.reset.unavailable': 'KnightLoader non è riuscito a scrivere un codice di reimpostazione, quindi la password non si può reimpostare da questa pagina.',
   'auth.reset.failed': 'Non è stato possibile impostare la password. Riprova.',
   'accounts.ok': 'Funziona',

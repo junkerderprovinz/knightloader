@@ -326,7 +326,7 @@ export const pl: Dict = {
   'auth.reset.mismatch': 'Hasła się różnią.',
   'auth.reset.length': 'Nowe hasło musi mieć od 8 do 72 znaków.',
   'auth.reset.rejected': 'Ten kod nie został przyjęty. Użyj najnowszego kodu, który tam zapisano. Gdy kod się zestarzeje, KnightLoader zapisuje nowy, najwyżej raz na minutę.',
-  'auth.reset.wait': 'Za dużo prób. Odczekaj pół minuty i spróbuj jeszcze raz.',
+  'auth.tooMany': 'Za dużo prób. Odczekaj pół minuty i spróbuj jeszcze raz.',
   'auth.reset.unavailable': 'KnightLoader nie mógł zapisać kodu resetowania, więc z tej strony nie da się zresetować hasła.',
   'auth.reset.failed': 'Nie udało się ustawić hasła. Spróbuj jeszcze raz.',
   'accounts.ok': 'Działa',

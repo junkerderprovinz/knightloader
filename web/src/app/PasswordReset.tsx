@@ -33,7 +33,7 @@ const FAILURE: Record<Exclude<Failure, ''>, TranslationKey> = {
   mismatch: 'auth.reset.mismatch',
   length: 'auth.reset.length',
   rejected: 'auth.reset.rejected',
-  wait: 'auth.reset.wait',
+  wait: 'auth.tooMany',
   failed: 'auth.reset.failed',
 };
 
