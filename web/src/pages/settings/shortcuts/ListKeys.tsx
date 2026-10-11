@@ -45,10 +45,12 @@ export function ListKeysCard({ hue }: { hue: number }) {
       </div>
       <div className="flex flex-col divide-y divide-carbon-border/60">
         {keyRows(rtl).map((row) => (
-          <div key={row.label} className="flex items-center gap-3 px-4 py-2.5">
-            <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{t(row.label)}</span>
+          // Too narrow for both, the keys move under the sentence, which is
+          // never cut.
+          <div key={row.label} className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5">
+            <span className="min-w-[min(100%,11rem)] flex-1 text-sm text-carbon-text">{t(row.label)}</span>
             {/* One keycap per chord, so no separator needs translating. */}
-            <div className="flex shrink-0 items-center gap-1.5">
+            <div className="ms-auto flex shrink-0 items-center gap-1.5">
               {row.combos.map((combo) => (
                 <kbd
                   key={combo}
