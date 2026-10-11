@@ -1104,6 +1104,7 @@ export const hu: Dict = {
   'props.mixedHint': 'Ezek a sorok nem egyeznek, ezért a mező üres. Ha nem nyúlsz hozzá, semmi sem változik; írj bele, és minden kijelölt sor azt kapja, amit beírtál.',
   'props.name': 'Név',
   'props.nameHint': 'Egyetlen fájlnév, sosem elérési út: a / vagy \\ jelet tartalmazó név elutasításra kerül. A befejezett letöltés a lemezen is átnevezésre kerül, hogy a lista és a mappa ne térhessen el. A futó letöltés megtartja a fájlt, amelyet a backendje megnyitott, és a befejezéskor kapja meg az új nevet. A még el nem indult azonnal megkapja. Egy név egy fájlhoz tartozik, ezért ez a mező csak egy sorhoz jelenik meg.',
+  'props.namesHint': 'Egy név egy fájlhoz tartozik, ezért több linket nem lehet egyszerre átnevezni. Itt mindegyiknek saját átnevezőgombja van. A csomagot a saját sorában lehet átnevezni, és az minden linkjét viszi magával, a ki nem jelölteket is.',
   'props.comment': 'Megjegyzés',
   'props.commentHint': 'A saját megjegyzésed ehhez a linkhez. Elmentődik és megjelenik a listában; az alkalmazásban semmi nem igazodik hozzá.',
   'props.priority': 'Prioritás',

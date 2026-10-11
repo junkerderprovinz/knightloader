@@ -1104,6 +1104,7 @@ export const tr: Dict = {
   'props.mixedHint': 'Bu satırlar birbirini tutmuyor, bu yüzden kutu boş. Dokunmazsanız hiçbir şey değişmez; içine yazın, seçili her satır yazdığınızı alır.',
   'props.name': 'Ad',
   'props.nameHint': 'Tek bir dosya adı, asla bir yol: / veya \\ içeren ad reddedilir. Bitmiş bir indirme diskte de yeniden adlandırılır, böylece liste ve klasör birbirinden ayrılamaz. Süren bir indirme, arka ucunun açık tuttuğu dosyayı korur ve bitince yeni adı alır. Henüz başlamamış olan onu hemen alır. Bir ad tek bir dosyaya aittir, bu yüzden bu alan yalnızca tek bir satır için sunulur.',
+  'props.namesHint': 'Bir ad tek bir dosyaya aittir, bu yüzden birkaç bağlantı bir kerede yeniden adlandırılmaz. Burada her birinin kendi yeniden adlandırma düğmesi var. Bir paket kendi satırından yeniden adlandırılır ve seçili olmayanlar da dahil bütün bağlantılarını yanında götürür.',
   'props.comment': 'Not',
   'props.commentHint': 'Bu bağlantı hakkındaki kendi notun. Kaydedilir ve listede gösterilir; uygulamada hiçbir şey ona göre davranmaz.',
   'props.priority': 'Öncelik',

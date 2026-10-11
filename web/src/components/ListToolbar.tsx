@@ -656,7 +656,14 @@ export function useRename({
     );
   }
 
-  return { openLink, openPackage, fromKeyboard, shortcut: binding ? formatShortcut(binding, t) : undefined, dialog };
+  return {
+    openLink,
+    openPackage,
+    fromKeyboard,
+    members,
+    shortcut: binding ? formatShortcut(binding, t) : undefined,
+    dialog,
+  };
 }
 
 export type Rename = ReturnType<typeof useRename>;

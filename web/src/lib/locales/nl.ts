@@ -1096,6 +1096,7 @@ export const nl: Dict = {
   'props.mixedHint': 'Deze rijen zijn het oneens, daarom is het vak leeg. Onaangeroerd verandert het niets; typ erin en elke geselecteerde rij krijgt wat je typt.',
   'props.name': 'Naam',
   'props.nameHint': 'Eén bestandsnaam, nooit een pad: een naam met / of \\ wordt geweigerd. Een voltooide download wordt ook op de schijf hernoemd, zodat lijst en map niet uiteen kunnen lopen. Een lopende houdt het bestand dat zijn backend open heeft en krijgt de nieuwe naam als hij klaar is. Een die nog niet begonnen is, krijgt hem meteen. Een naam hoort bij één bestand, dus dit veld verschijnt alleen voor één rij.',
+  'props.namesHint': 'Een naam hoort bij één bestand, daarom worden meerdere links niet in één keer hernoemd. Elke link heeft hier zijn eigen knop om te hernoemen. Een pakket hernoem je op zijn eigen regel, en dat neemt al zijn links mee, ook de niet-geselecteerde.',
   'props.comment': 'Notitie',
   'props.commentHint': 'Je eigen notitie bij deze link. Hij wordt opgeslagen en in de lijst getoond; niets in de app doet er iets mee.',
   'props.priority': 'Prioriteit',

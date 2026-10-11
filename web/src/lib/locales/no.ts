@@ -1106,6 +1106,7 @@ export const no: Dict = {
   'props.mixedHint': 'Disse radene er ikke enige, derfor er feltet tomt. Rører du det ikke, endrer det ingenting; skriv i det, og hver valgt rad får det du skrev.',
   'props.name': 'Navn',
   'props.nameHint': 'Ett filnavn, aldri en sti: et navn med / eller \\ avvises. En ferdig nedlasting får også nytt navn på disken, så listen og mappen ikke kan være uenige. En som pågår, beholder filen backenden har åpen, og får det nye navnet når den er ferdig. En som ikke har startet, får det med en gang. Et navn hører til én fil, så feltet vises bare for én rad.',
+  'props.namesHint': 'Et navn hører til én fil, så flere lenker får ikke nytt navn på én gang. Hver lenke har sin egen knapp for det her. En pakke får nytt navn på sin egen linje og tar med seg alle lenkene sine, også de som ikke er valgt.',
   'props.comment': 'Kommentar',
   'props.commentHint': 'Din egen notat om denne lenken. Det lagres og vises i listen; ingenting i appen retter seg etter det.',
   'props.priority': 'Prioritet',

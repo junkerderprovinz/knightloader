@@ -1104,6 +1104,7 @@ export const sk: Dict = {
   'props.mixedHint': 'Tieto riadky sa nezhodujú, preto je políčko prázdne. Keď sa ho nedotknete, nič nezmení; napíšte doň a každý vybraný riadok dostane to, čo ste napísali.',
   'props.name': 'Názov',
   'props.nameHint': 'Jeden názov súboru, nikdy cesta: názov s / alebo \\ sa odmietne. Dokončené sťahovanie sa premenuje aj na disku, aby sa zoznam a priečinok nemohli rozchádzať. Bežiace si ponechá súbor, ktorý má jeho backend otvorený, a nový názov dostane po skončení. Nespustené ho dostane hneď. Názov patrí jednému súboru, takže toto pole sa ponúka len pre jeden riadok.',
+  'props.namesHint': 'Názov patrí jednému súboru, preto sa viac odkazov naraz nepremenuje. Každý tu má vlastné tlačidlo na premenovanie. Balík sa premenuje vo svojom riadku a vezme so sebou všetky svoje odkazy, aj tie nevybrané.',
   'props.comment': 'Poznámka',
   'props.commentHint': 'Tvoja vlastná poznámka k tomuto odkazu. Uloží sa a zobrazí v zozname; aplikácia sa podľa nej neriadi.',
   'props.priority': 'Priorita',

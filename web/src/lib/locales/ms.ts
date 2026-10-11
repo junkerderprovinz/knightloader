@@ -1104,6 +1104,7 @@ export const ms: Dict = {
   'props.mixedHint': 'Baris-baris ini tidak sepadan, jadi kotaknya kosong. Jika tidak disentuh ia tidak mengubah apa-apa; taip di dalamnya dan setiap baris terpilih mendapat apa yang anda taip.',
   'props.name': 'Nama',
   'props.nameHint': 'Satu nama fail, bukan laluan: nama yang mengandungi / atau \\ ditolak. Muat turun yang selesai juga dinamakan semula pada cakera, supaya senarai dan folder tidak boleh berbeza. Muat turun yang berjalan mengekalkan fail yang dibuka oleh backendnya dan mendapat nama baharu apabila selesai. Yang belum bermula mendapatnya serta-merta. Satu nama milik satu fail, jadi medan ini hanya ditawarkan untuk satu baris.',
+  'props.namesHint': 'Sesuatu nama adalah milik satu fail, jadi beberapa pautan tidak dinamakan semula serentak. Di sini setiap satu mempunyai butang namakan semula sendiri. Pakej dinamakan semula dari barisnya sendiri dan membawa semua pautannya bersama, termasuk yang tidak dipilih.',
   'props.comment': 'Nota',
   'props.commentHint': 'Nota anda sendiri tentang pautan ini. Ia disimpan dan dipaparkan dalam senarai; tiada apa dalam apl yang bertindak berdasarkannya.',
   'props.priority': 'Keutamaan',

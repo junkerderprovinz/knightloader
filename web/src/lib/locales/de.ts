@@ -1197,6 +1197,7 @@ export const de: Dict = {
   'props.mixedHint': 'Diese Zeilen sind sich nicht einig, deshalb ist das Feld leer. Unberührt ändert es nichts; sobald du hineinschreibst, bekommt jede ausgewählte Zeile das Getippte.',
   'props.name': 'Name',
   'props.nameHint': 'Ein Dateiname, nie ein Pfad: Ein Name mit / oder \\ wird abgelehnt. Ein fertiger Download wird auch auf der Platte umbenannt, damit Liste und Ordner nicht auseinanderlaufen. Ein laufender behält die Datei, die sein Backend offen hat, und übernimmt den neuen Namen, wenn er fertig ist. Ein noch nicht gestarteter übernimmt ihn sofort. Ein Name gehört zu einer Datei, deshalb gibt es dieses Feld nur für eine einzelne Zeile.',
+  'props.namesHint': 'Ein Name gehört zu einer Datei, deshalb lassen sich mehrere Links nicht in einem Zug umbenennen. Jeder hat hier seinen eigenen Knopf dafür. Ein Paket benennst du in seiner eigenen Zeile um, und es nimmt alle seine Links mit, auch die nicht ausgewählten.',
   'props.comment': 'Kommentar',
   'props.commentHint': 'Deine eigene Notiz zu diesem Link. Sie wird gespeichert und in der Liste angezeigt; die App richtet sich nicht danach.',
   'props.priority': 'Priorität',

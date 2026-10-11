@@ -1104,6 +1104,7 @@ export const hr: Dict = {
   'props.mixedHint': 'Ovi se redci ne slažu, zato je polje prazno. Ako ga ne dirnete, ne mijenja ništa; upišite u njega i svaki odabrani redak dobiva upisano.',
   'props.name': 'Naziv',
   'props.nameHint': 'Jedan naziv datoteke, nikad putanja: naziv s / ili \\ se odbija. Završeno preuzimanje preimenuje se i na disku, kako se popis i mapa ne bi mogli razilaziti. Preuzimanje u tijeku zadržava datoteku koju je njegova pozadina otvorila i dobiva novi naziv kad završi. Ono koje još nije počelo dobiva ga odmah. Naziv pripada jednoj datoteci, pa se ovo polje nudi samo za jedan redak.',
+  'props.namesHint': 'Naziv pripada jednoj datoteci, zato se više poveznica ne preimenuje odjednom. Ovdje svaka ima svoj gumb za preimenovanje. Paket se preimenuje u svom retku i sa sobom nosi sve svoje poveznice, i one koje nisu odabrane.',
   'props.comment': 'Napomena',
   'props.commentHint': 'Tvoja vlastita bilješka uz ovu poveznicu. Sprema se i prikazuje u popisu; ništa u aplikaciji se ne ravna po njoj.',
   'props.priority': 'Prioritet',

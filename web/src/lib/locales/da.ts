@@ -1104,6 +1104,7 @@ export const da: Dict = {
   'props.mixedHint': 'Disse rækker er ikke enige, derfor er feltet tomt. Rører du det ikke, ændrer det ingenting; skriv i det, og hver markeret række får det, du skrev.',
   'props.name': 'Navn',
   'props.nameHint': 'Ét filnavn, aldrig en sti: et navn med / eller \\ afvises. En færdig download omdøbes også på disken, så listen og mappen ikke kan være uenige. En, der kører, beholder den fil, dens backend har åben, og får det nye navn, når den er færdig. En, der ikke er startet, får det med det samme. Et navn hører til én fil, så feltet vises kun for én række.',
+  'props.namesHint': 'Et navn hører til én fil, så flere links kan ikke omdøbes på én gang. Hvert link har sin egen omdøbningsknap her. En pakke omdøbes på sin egen linje og tager alle sine links med, også dem, der ikke er valgt.',
   'props.comment': 'Kommentar',
   'props.commentHint': 'Din egen note til dette link. Den gemmes og vises i listen; intet i appen retter sig efter den.',
   'props.priority': 'Prioritet',

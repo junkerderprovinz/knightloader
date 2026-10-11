@@ -1104,6 +1104,7 @@ export const gl: Dict = {
   'props.mixedHint': 'Estas filas non coinciden, así que a caixa está baleira. Se non a tocas non cambia nada; escribe nela e cada fila seleccionada recibe o que escribas.',
   'props.name': 'Nome',
   'props.nameHint': 'Un nome de ficheiro, nunca unha ruta: rexéitase un nome con / ou \\. Unha descarga rematada tamén se renomea no disco, para que a lista e o cartafol non poidan discrepar. Unha en curso conserva o ficheiro que o seu backend ten aberto e colle o novo nome ao rematar. Unha que non comezou cólleo de inmediato. Un nome pertence a un só ficheiro, así que este campo só se ofrece para unha fila.',
+  'props.namesHint': 'Un nome pertence a un só ficheiro, por iso non se lles cambia o nome a varias ligazóns dunha vez. Aquí cada unha ten o seu propio botón para cambialo. A un paquete cámbiaselle o nome desde a súa propia liña, e leva consigo todas as súas ligazóns, tamén as non seleccionadas.',
   'props.comment': 'Comentario',
   'props.commentHint': 'A túa propia nota sobre esta ligazón. Gárdase e amósase na lista; nada da aplicación actúa segundo ela.',
   'props.priority': 'Prioridade',

@@ -1096,6 +1096,7 @@ export const it: Dict = {
   'props.mixedHint': 'Queste righe non concordano, perciò la casella è vuota. Lasciata così non cambia nulla; scrivici dentro e ogni riga selezionata prende quello che hai scritto.',
   'props.name': 'Nome',
   'props.nameHint': 'Un nome di file, mai un percorso: un nome con / o \\ viene rifiutato. Un download finito viene rinominato anche sul disco, così elenco e cartella non possono divergere. Uno in corso tiene il file che il suo backend ha aperto e prende il nuovo nome quando finisce. Uno non ancora iniziato lo prende subito. Un nome appartiene a un solo file, quindi questo campo è offerto solo per una riga.',
+  'props.namesHint': 'Un nome appartiene a un solo file, perciò più link non si rinominano in una volta. Qui ognuno ha il proprio pulsante per rinominarlo. Un pacchetto si rinomina dalla sua riga e porta con sé tutti i suoi link, anche quelli non selezionati.',
   'props.comment': 'Commento',
   'props.commentHint': 'La tua nota su questo link. Viene salvata e mostrata nell’elenco; nulla nell’app agisce in base a essa.',
   'props.priority': 'Priorità',

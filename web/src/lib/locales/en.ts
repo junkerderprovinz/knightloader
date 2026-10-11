@@ -1325,6 +1325,8 @@ export const en = {
   'props.name': 'Name',
   'props.nameHint':
     'One file name, never a path: a name with / or \\ in it is refused. A download that has finished is renamed on disk too, so the list and the folder cannot disagree. One that is running keeps the file its backend has open and takes the new name when it finishes. One that has not started takes it straight away. A name belongs to one file, so this box is only offered for a single row.',
+  'props.namesHint':
+    'A name belongs to one file, so you cannot rename several links in one go. Each has its own rename button here. A package is renamed on its own line and takes all of its links along, including the ones that are not selected.',
   'props.comment': 'Comment',
   'props.commentHint': 'Your own note about this link. It is stored and shown in the list; nothing in the app acts on it.',
   'props.priority': 'Priority',

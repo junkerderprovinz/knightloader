@@ -1105,6 +1105,7 @@ export const ro: Dict = {
   'props.mixedHint': 'Rândurile astea nu se potrivesc, de aceea căsuța e goală. Lăsată în pace nu schimbă nimic; scrie în ea și fiecare rând selectat primește ce ai scris.',
   'props.name': 'Nume',
   'props.nameHint': 'Un nume de fișier, niciodată o cale: un nume cu / sau \\ este refuzat. O descărcare terminată este redenumită și pe disc, ca lista și dosarul să nu poată diferi. Una în curs păstrează fișierul pe care backendul său îl are deschis și primește noul nume când se termină. Una care nu a început îl primește imediat. Un nume aparține unui singur fișier, așa că acest câmp apare doar pentru un singur rând.',
+  'props.namesHint': 'Un nume aparține unui singur fișier, de aceea mai multe linkuri nu se redenumesc dintr-odată. Aici fiecare are propriul buton de redenumire. Un pachet se redenumește din rândul lui și își ia cu el toate linkurile, inclusiv pe cele neselectate.',
   'props.comment': 'Comentariu',
   'props.commentHint': 'Nota ta despre acest link. Se salvează și se afișează în listă; nimic din aplicație nu se ghidează după ea.',
   'props.priority': 'Prioritate',
