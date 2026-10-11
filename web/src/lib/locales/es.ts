@@ -3551,7 +3551,7 @@ export const es: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» te permite mover las tarjetas de esta página y ocultar las que no necesitas.',
   'whatsnew.change.vessel': 'Un recipiente muestra lo llena que está cada carpeta de «{name}».',
   'whatsnew.change.pageActions': 'La acción principal de una página flota en su parte inferior y sigue a mano mientras te desplazas.',
-  'whatsnew.change.collectorOptions': '«{name}» abre una ventana. «{cnl}» y «{watch}» son interruptores dentro de ella.',
+  'whatsnew.change.collectorOptions': '«{name}» abre una ventana. «{cnl}» y «{watch}» siguen a su lado como botones que muestran si están activados.',
   'whatsnew.change.instanceCards': 'Cada instancia es una tarjeta compacta, con una imagen del grupo encima.',
   'whatsnew.change.accountsAdd': 'Un solo botón añade cualquier tipo de cuenta: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» dibuja el orden como una imagen: a quién se pregunta primero y a quién después.',

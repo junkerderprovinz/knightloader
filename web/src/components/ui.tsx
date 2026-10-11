@@ -515,8 +515,17 @@ export function IconBadge({
   );
   let shown: ReactNode = button;
   if (slotted) {
+    // An engaged toggle is filled, so its (i) takes the fill's ink and, under
+    // rainbow, the fill's palette position.
+    const engaged = toggle && active;
     shown = (
-      <HintSlot tip={hint} label={title} ink="text-carbon-textSub" end="end-2.5">
+      <HintSlot
+        tip={hint}
+        label={title}
+        ink={engaged ? 'text-accentContrast' : 'text-carbon-textSub'}
+        end="end-2.5"
+        hueCss={engaged && hued ? (hueVars(hue) as CSSProperties) : undefined}
+      >
         {button}
       </HintSlot>
     );

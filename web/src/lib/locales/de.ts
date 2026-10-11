@@ -3564,7 +3564,7 @@ export const de: Dict = {
   'whatsnew.change.overviewCustomize': 'Mit „{name}“ ordnest du die Karten dieser Seite und blendest aus, was du nicht brauchst.',
   'whatsnew.change.vessel': 'Ein Gefäß zeigt, wie voll jeder Ordner unter „{name}“ ist.',
   'whatsnew.change.pageActions': 'Die wichtigste Aktion einer Seite schwebt an ihrem unteren Rand und bleibt beim Scrollen erreichbar.',
-  'whatsnew.change.collectorOptions': '„{name}“ öffnet ein Fenster. „{cnl}“ und „{watch}“ sind Schalter darin.',
+  'whatsnew.change.collectorOptions': '„{name}“ öffnet ein Fenster. „{cnl}“ und „{watch}“ bleiben daneben als Knöpfe, die zeigen, ob sie an sind.',
   'whatsnew.change.instanceCards': 'Jede Instanz ist eine kompakte Karte, darüber steht ein Bild der Gruppe.',
   'whatsnew.change.accountsAdd': 'Ein Knopf legt jede Art von Konto an: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ zeigt die Reihenfolge als Bild: wer zuerst gefragt wird und wer danach.',

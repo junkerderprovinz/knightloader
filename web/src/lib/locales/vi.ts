@@ -3559,7 +3559,7 @@ export const vi: Dict = {
   'whatsnew.change.overviewCustomize': '“{name}” cho bạn di chuyển các thẻ của trang này và ẩn những thẻ bạn không cần.',
   'whatsnew.change.vessel': 'Một chiếc bình cho thấy mỗi thư mục trong “{name}” đầy đến đâu.',
   'whatsnew.change.pageActions': 'Thao tác chính của một trang nổi ở cuối trang và luôn trong tầm tay khi bạn cuộn.',
-  'whatsnew.change.collectorOptions': '“{name}” mở một cửa sổ. “{cnl}” và “{watch}” là các công tắc trong đó.',
+  'whatsnew.change.collectorOptions': '“{name}” mở một cửa sổ. “{cnl}” và “{watch}” vẫn nằm bên cạnh dưới dạng các nút cho biết chúng đang bật hay không.',
   'whatsnew.change.instanceCards': 'Mỗi phiên bản là một thẻ gọn, phía trên là hình của cả nhóm.',
   'whatsnew.change.accountsAdd': 'Một nút thêm được mọi loại tài khoản: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” vẽ thứ tự thành một hình: ai được hỏi trước và ai kế tiếp.',

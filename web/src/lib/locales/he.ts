@@ -3577,7 +3577,7 @@ export const he: Dict = {
   'whatsnew.change.overviewCustomize': 'עם „{name}” אתה מזיז את הכרטיסים בעמוד הזה ומסתיר את אלה שאינך צריך.',
   'whatsnew.change.vessel': 'כלי קיבול מראה כמה מלאה כל תיקייה תחת „{name}”.',
   'whatsnew.change.pageActions': 'הפעולה הראשית של עמוד מרחפת בתחתיתו ונשארת בהישג יד בזמן הגלילה.',
-  'whatsnew.change.collectorOptions': '„{name}” פותח חלון. „{cnl}” ו„{watch}” הם מתגים בתוכו.',
+  'whatsnew.change.collectorOptions': '„{name}” פותח חלון. „{cnl}” ו„{watch}” נשארים לצידו ככפתורים שמראים אם הם פועלים.',
   'whatsnew.change.instanceCards': 'כל מופע הוא כרטיס קומפקטי, ומעליהם תמונה של הקבוצה.',
   'whatsnew.change.accountsAdd': 'כפתור אחד מוסיף כל סוג של חשבון: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” מצייר את הסדר כתמונה: את מי שואלים קודם ואת מי אחר כך.',

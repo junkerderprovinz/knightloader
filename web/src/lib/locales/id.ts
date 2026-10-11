@@ -3559,7 +3559,7 @@ export const id: Dict = {
   'whatsnew.change.overviewCustomize': 'Dengan “{name}” kamu memindahkan kartu di halaman ini dan menyembunyikan yang tidak kamu perlukan.',
   'whatsnew.change.vessel': 'Sebuah bejana menunjukkan seberapa penuh setiap folder di “{name}”.',
   'whatsnew.change.pageActions': 'Tindakan utama sebuah halaman melayang di bagian bawahnya dan tetap terjangkau saat kamu menggulir.',
-  'whatsnew.change.collectorOptions': '“{name}” membuka sebuah jendela. “{cnl}” dan “{watch}” adalah sakelar di dalamnya.',
+  'whatsnew.change.collectorOptions': '“{name}” membuka sebuah jendela. “{cnl}” dan “{watch}” tetap di sampingnya sebagai tombol yang menunjukkan apakah keduanya aktif.',
   'whatsnew.change.instanceCards': 'Setiap instance adalah kartu ringkas, dengan gambar grup di atasnya.',
   'whatsnew.change.accountsAdd': 'Satu tombol menambahkan semua jenis akun: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” menggambar urutan sebagai gambar: siapa yang ditanya lebih dulu dan siapa berikutnya.',

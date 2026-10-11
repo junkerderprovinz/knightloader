@@ -3545,7 +3545,7 @@ export const da: Dict = {
   'whatsnew.change.overviewCustomize': 'Med „{name}“ flytter du kortene på denne side og skjuler dem, du ikke har brug for.',
   'whatsnew.change.vessel': 'En beholder viser, hvor fuld hver mappe under „{name}“ er.',
   'whatsnew.change.pageActions': 'En sides vigtigste handling svæver nederst på siden og er inden for rækkevidde, mens du ruller.',
-  'whatsnew.change.collectorOptions': '„{name}“ åbner et vindue. „{cnl}“ og „{watch}“ er kontakter i det.',
+  'whatsnew.change.collectorOptions': '„{name}“ åbner et vindue. „{cnl}“ og „{watch}“ bliver stående ved siden af som knapper, der viser, om de er slået til.',
   'whatsnew.change.instanceCards': 'Hver instans er et kompakt kort med et billede af gruppen ovenover.',
   'whatsnew.change.accountsAdd': 'Én knap tilføjer alle slags konti: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ tegner rækkefølgen som et billede: hvem der spørges først, og hvem derefter.',

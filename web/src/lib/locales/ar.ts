@@ -3557,7 +3557,7 @@ export const ar: Dict = {
   'whatsnew.change.overviewCustomize': 'مع «{name}» تنقل بطاقات هذه الصفحة وتخفي ما لا تحتاج إليه منها.',
   'whatsnew.change.vessel': 'يُظهر وعاء مدى امتلاء كل مجلد ضمن «{name}».',
   'whatsnew.change.pageActions': 'الإجراء الرئيسي في الصفحة يطفو في أسفلها ويبقى في المتناول أثناء التمرير.',
-  'whatsnew.change.collectorOptions': '«{name}» يفتح نافذة. و«{cnl}» و«{watch}» مفتاحان فيها.',
+  'whatsnew.change.collectorOptions': '«{name}» يفتح نافذة. و«{cnl}» و«{watch}» يبقيان بجانبه زرّين يُظهران إن كانا مفعّلين.',
   'whatsnew.change.instanceCards': 'كل نسخة بطاقة مدمجة، وفوقها صورة للمجموعة.',
   'whatsnew.change.accountsAdd': 'زر واحد يضيف أي نوع من الحسابات: «{name}».',
   'whatsnew.change.priorityFlow': 'ترسم «{name}» الترتيب على هيئة صورة: مَن يُسأل أولًا ومَن بعده.',

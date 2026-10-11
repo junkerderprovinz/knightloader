@@ -3555,7 +3555,7 @@ export const is: Dict = {
   'whatsnew.change.overviewCustomize': 'Með „{name}“ færir þú spjöldin á þessari síðu og felur þau sem þú þarft ekki.',
   'whatsnew.change.vessel': 'Ílát sýnir hve full hver mappa undir „{name}“ er.',
   'whatsnew.change.pageActions': 'Aðalaðgerð síðu svífur neðst á henni og er innan seilingar á meðan þú skrunar.',
-  'whatsnew.change.collectorOptions': '„{name}“ opnar glugga. „{cnl}“ og „{watch}“ eru rofar í honum.',
+  'whatsnew.change.collectorOptions': '„{name}“ opnar glugga. „{cnl}“ og „{watch}“ standa áfram við hliðina sem hnappar sem sýna hvort kveikt er á þeim.',
   'whatsnew.change.instanceCards': 'Hvert tilvik er þétt spjald með mynd af hópnum fyrir ofan.',
   'whatsnew.change.accountsAdd': 'Einn hnappur bætir við öllum gerðum reikninga: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ teiknar röðina sem mynd: hver er spurður fyrst og hver næst.',

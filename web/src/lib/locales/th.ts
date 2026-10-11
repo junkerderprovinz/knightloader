@@ -3557,7 +3557,7 @@ export const th: Dict = {
   'whatsnew.change.overviewCustomize': '“{name}” ให้คุณย้ายการ์ดของหน้านี้และซ่อนการ์ดที่ไม่ต้องการ',
   'whatsnew.change.vessel': 'ภาชนะแสดงว่าแต่ละโฟลเดอร์ใน “{name}” เต็มแค่ไหน',
   'whatsnew.change.pageActions': 'การทำงานหลักของหน้าลอยอยู่ที่ด้านล่างของหน้าและอยู่ใกล้มือเสมอขณะเลื่อน',
-  'whatsnew.change.collectorOptions': '“{name}” เปิดหน้าต่าง โดย “{cnl}” และ “{watch}” เป็นสวิตช์ในหน้าต่างนั้น',
+  'whatsnew.change.collectorOptions': '“{name}” เปิดหน้าต่าง ส่วน “{cnl}” และ “{watch}” ยังอยู่ข้าง ๆ เป็นปุ่มที่บอกว่าเปิดอยู่หรือไม่',
   'whatsnew.change.instanceCards': 'แต่ละอินสแตนซ์เป็นการ์ดขนาดกะทัดรัด โดยมีภาพของกลุ่มอยู่ด้านบน',
   'whatsnew.change.accountsAdd': 'ปุ่มเดียวเพิ่มบัญชีได้ทุกประเภท: “{name}”',
   'whatsnew.change.priorityFlow': '“{name}” วาดลำดับเป็นภาพ: ถามใครก่อนและถามใครถัดไป',

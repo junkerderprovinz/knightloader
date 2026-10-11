@@ -3561,7 +3561,7 @@ export const fi: Dict = {
   'whatsnew.change.overviewCustomize': 'Kohdalla ”{name}” siirrät tämän sivun kortteja ja piilotat ne, joita et tarvitse.',
   'whatsnew.change.vessel': 'Astia näyttää, kuinka täynnä kukin kohdan ”{name}” kansio on.',
   'whatsnew.change.pageActions': 'Sivun päätoiminto leijuu sivun alareunassa ja pysyy ulottuvilla vierittäessäsi.',
-  'whatsnew.change.collectorOptions': '”{name}” avaa ikkunan. ”{cnl}” ja ”{watch}” ovat siinä kytkimiä.',
+  'whatsnew.change.collectorOptions': '”{name}” avaa ikkunan. ”{cnl}” ja ”{watch}” pysyvät sen vieressä painikkeina, jotka näyttävät, ovatko ne päällä.',
   'whatsnew.change.instanceCards': 'Jokainen instanssi on tiivis kortti, ja niiden yllä on kuva ryhmästä.',
   'whatsnew.change.accountsAdd': 'Yksi painike lisää minkä tahansa tilin: ”{name}”.',
   'whatsnew.change.priorityFlow': '”{name}” piirtää järjestyksen kuvana: keneltä kysytään ensin ja keneltä sen jälkeen.',

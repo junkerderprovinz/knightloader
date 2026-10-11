@@ -3543,7 +3543,7 @@ export const it: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» ti permette di spostare le schede di questa pagina e di nascondere quelle che non ti servono.',
   'whatsnew.change.vessel': 'Un recipiente mostra quanto è piena ogni cartella sotto «{name}».',
   'whatsnew.change.pageActions': 'L’azione principale di una pagina resta sospesa in fondo e a portata di mano mentre scorri.',
-  'whatsnew.change.collectorOptions': '«{name}» apre una finestra. «{cnl}» e «{watch}» sono interruttori al suo interno.',
+  'whatsnew.change.collectorOptions': '«{name}» apre una finestra. «{cnl}» e «{watch}» restano accanto come pulsanti che mostrano se sono attivi.',
   'whatsnew.change.instanceCards': 'Ogni istanza è una scheda compatta, con sopra un’immagine del gruppo.',
   'whatsnew.change.accountsAdd': 'Un solo pulsante aggiunge ogni tipo di account: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» disegna l’ordine come immagine: chi viene interpellato per primo e chi dopo.',

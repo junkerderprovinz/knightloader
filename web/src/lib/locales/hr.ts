@@ -3573,7 +3573,7 @@ export const hr: Dict = {
   'whatsnew.change.overviewCustomize': 'Uz „{name}” premještaš kartice ove stranice i skrivaš one koje ti ne trebaju.',
   'whatsnew.change.vessel': 'Posuda pokazuje koliko je puna svaka mapa u odjeljku „{name}”.',
   'whatsnew.change.pageActions': 'Glavna radnja stranice lebdi uz njezin donji rub i ostaje nadohvat ruke dok se pomičeš.',
-  'whatsnew.change.collectorOptions': '„{name}” otvara prozor. „{cnl}” i „{watch}” prekidači su u njemu.',
+  'whatsnew.change.collectorOptions': '„{name}” otvara prozor. „{cnl}” i „{watch}” ostaju pokraj njega kao gumbi koji pokazuju jesu li uključeni.',
   'whatsnew.change.instanceCards': 'Svaka instanca je kompaktna kartica, a iznad njih je slika skupine.',
   'whatsnew.change.accountsAdd': 'Jedan gumb dodaje svaku vrstu računa: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” crta redoslijed kao sliku: tko se pita prvi, a tko zatim.',

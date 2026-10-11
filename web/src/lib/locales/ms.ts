@@ -3558,7 +3558,7 @@ export const ms: Dict = {
   'whatsnew.change.overviewCustomize': 'Dengan “{name}” anda memindahkan kad di halaman ini dan menyorokkan kad yang anda tidak perlukan.',
   'whatsnew.change.vessel': 'Sebuah bekas menunjukkan sepenuh mana setiap folder di bawah “{name}”.',
   'whatsnew.change.pageActions': 'Tindakan utama sesebuah halaman terapung di bahagian bawahnya dan kekal dalam capaian semasa anda menatal.',
-  'whatsnew.change.collectorOptions': '“{name}” membuka sebuah tetingkap. “{cnl}” dan “{watch}” ialah suis di dalamnya.',
+  'whatsnew.change.collectorOptions': '“{name}” membuka sebuah tetingkap. “{cnl}” dan “{watch}” kekal di sebelahnya sebagai butang yang menunjukkan sama ada ia dihidupkan.',
   'whatsnew.change.instanceCards': 'Setiap instance ialah kad padat, dengan gambar kumpulan di atasnya.',
   'whatsnew.change.accountsAdd': 'Satu butang menambah semua jenis akaun: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” melukis susunan sebagai gambar: siapa yang ditanya dahulu dan siapa selepas itu.',

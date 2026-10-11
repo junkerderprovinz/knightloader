@@ -3542,7 +3542,7 @@ export const zh: Dict = {
   'whatsnew.change.overviewCustomize': '通过“{name}”可以移动本页的卡片，并隐藏你不需要的卡片。',
   'whatsnew.change.vessel': '一个容器显示“{name}”下每个文件夹有多满。',
   'whatsnew.change.pageActions': '页面的主要操作悬浮在页面底部，滚动时始终触手可及。',
-  'whatsnew.change.collectorOptions': '“{name}”会打开一个窗口。“{cnl}”和“{watch}”是窗口里的开关。',
+  'whatsnew.change.collectorOptions': '“{name}”会打开一个窗口。“{cnl}”和“{watch}”仍在它旁边，是会显示开关状态的按钮。',
   'whatsnew.change.instanceCards': '每个实例是一张紧凑的卡片，上方是一幅本组的图。',
   'whatsnew.change.accountsAdd': '一个按钮即可添加任何类型的账户：“{name}”。',
   'whatsnew.change.priorityFlow': '“{name}”把顺序画成一幅图：先询问谁，再询问谁。',

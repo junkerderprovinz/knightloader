@@ -3806,7 +3806,7 @@ export const en = {
   'whatsnew.change.overviewCustomize': '"{name}" lets you move the cards of this page and hide the ones you do not need.',
   'whatsnew.change.vessel': 'A vessel shows how full each folder under "{name}" is.',
   'whatsnew.change.pageActions': 'The main action of a page floats at its foot and stays in reach while you scroll.',
-  'whatsnew.change.collectorOptions': '"{name}" opens a window. "{cnl}" and "{watch}" are switches in it.',
+  'whatsnew.change.collectorOptions': '"{name}" opens a window. "{cnl}" and "{watch}" stay beside it as buttons that show whether they are on.',
   'whatsnew.change.instanceCards': 'Every instance is a compact card, with a picture of the group above.',
   'whatsnew.change.accountsAdd': 'One button adds every kind of account: "{name}".',
   'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture: who is asked first and who next.',

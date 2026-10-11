@@ -3542,7 +3542,7 @@ export const nl: Dict = {
   'whatsnew.change.overviewCustomize': 'Met “{name}” verplaats je de kaarten van deze pagina en verberg je wat je niet nodig hebt.',
   'whatsnew.change.vessel': 'Een vat laat zien hoe vol elke map onder “{name}” is.',
   'whatsnew.change.pageActions': 'De hoofdactie van een pagina zweeft onderaan en blijft binnen bereik terwijl je scrolt.',
-  'whatsnew.change.collectorOptions': '“{name}” opent een venster. “{cnl}” en “{watch}” zijn schakelaars daarin.',
+  'whatsnew.change.collectorOptions': '“{name}” opent een venster. “{cnl}” en “{watch}” blijven ernaast staan als knoppen die laten zien of ze aan staan.',
   'whatsnew.change.instanceCards': 'Elke instantie is een compacte kaart, met een afbeelding van de groep erboven.',
   'whatsnew.change.accountsAdd': 'Eén knop voegt elk soort account toe: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” tekent de volgorde als afbeelding: wie eerst wordt gevraagd en wie daarna.',

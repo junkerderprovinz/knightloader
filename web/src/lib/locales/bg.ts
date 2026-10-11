@@ -3559,7 +3559,7 @@ export const bg: Dict = {
   'whatsnew.change.overviewCustomize': 'С „{name}“ местиш картите на тази страница и скриваш тези, които не ти трябват.',
   'whatsnew.change.vessel': 'Съд показва колко пълна е всяка папка в „{name}“.',
   'whatsnew.change.pageActions': 'Основното действие на страницата се носи в долния ѝ край и остава под ръка, докато превърташ.',
-  'whatsnew.change.collectorOptions': '„{name}“ отваря прозорец. „{cnl}“ и „{watch}“ са превключватели в него.',
+  'whatsnew.change.collectorOptions': '„{name}“ отваря прозорец. „{cnl}“ и „{watch}“ остават до него като бутони, които показват дали са включени.',
   'whatsnew.change.instanceCards': 'Всяка инстанция е компактна карта, а над тях има изображение на групата.',
   'whatsnew.change.accountsAdd': 'Един бутон добавя всеки вид акаунт: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ рисува реда като изображение: кой се пита първи и кой след това.',

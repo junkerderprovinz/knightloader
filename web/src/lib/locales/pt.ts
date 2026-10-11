@@ -3549,7 +3549,7 @@ export const pt: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» deixa-te mover os cartões desta página e ocultar os que não precisas.',
   'whatsnew.change.vessel': 'Um recipiente mostra quão cheia está cada pasta em «{name}».',
   'whatsnew.change.pageActions': 'A ação principal de uma página flutua no fundo dela e fica ao alcance enquanto deslocas a página.',
-  'whatsnew.change.collectorOptions': '«{name}» abre uma janela. «{cnl}» e «{watch}» são interruptores dentro dela.',
+  'whatsnew.change.collectorOptions': '«{name}» abre uma janela. «{cnl}» e «{watch}» ficam ao lado como botões que mostram se estão ligados.',
   'whatsnew.change.instanceCards': 'Cada instância é um cartão compacto, com uma imagem do grupo por cima.',
   'whatsnew.change.accountsAdd': 'Um só botão adiciona qualquer tipo de conta: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» desenha a ordem como uma imagem: a quem se pergunta primeiro e a quem depois.',
