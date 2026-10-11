@@ -20,8 +20,8 @@ const read = (...p) => readFileSync(join(here, ...p), 'utf8');
 const UNREACHABLE = {
   // The app names its relay id in every call it signs.
   memberUnnamed: 'every signed call names its member',
-  // The app signs as a phone under the "phone-" id it mints.
-  memberKind: 'the member id has the shape its kind mints',
+  // The app signs as a phone under the id its key makes.
+  memberKind: 'the app goes by the id its key makes',
   // The app's signature is held to the server's vector by check-member-key.mjs.
   memberSignature: 'the signature is checked against the server vector',
 };
