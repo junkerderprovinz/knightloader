@@ -6,7 +6,6 @@
 // frame.
 import { useEffect, useId, type ReactNode, type RefObject, type SVGProps } from 'react';
 import logoUrl from '../../../assets/logo.svg';
-import type { RelayMode } from '../../../lib/api';
 import { PARLEYPORT_SVG } from '../../../lib/appMarks';
 import { IconCheck, IconCopy, IconPaste } from '../../../lib/icons';
 import { useStillPictures } from '../../../lib/motion';
@@ -145,10 +144,10 @@ const CLOUD = 'M5.4 16.5h9.2a3.9 3.9 0 0 0 .6-7.8A5.4 5.4 0 0 0 4.9 7.3a4.6 4.6 
 
 /**
  * RouteGlyph draws a relay route as a filled glyph for the route picker: a
- * cloud for the project relay, a house for an own relay and a crossed-out
- * cloud for none.
+ * cloud for the project relay, a house for an own relay, a box that sends for
+ * an instance serving the relay and a crossed-out cloud for none.
  */
-export function RouteGlyph({ kind }: { kind: RelayMode }) {
+export function RouteGlyph({ kind }: { kind: RouteKind }) {
   // useId has colons, which a url(#...) reference does not take in every browser.
   const cut = `route-cut${useId().replace(/[^\w-]/g, '')}`;
   const box = { viewBox: '0 0 20 20', width: 20, height: 20, fill: 'currentColor', 'aria-hidden': true as const };
@@ -163,6 +162,23 @@ export function RouteGlyph({ kind }: { kind: RelayMode }) {
       return (
         <svg {...box}>
           <path d="M10 2.4 2.3 9.2c-.5.4-.2 1.2.5 1.2h1.6V17a1 1 0 0 0 1 1h3.1v-4.6h3V18h3.1a1 1 0 0 0 1-1v-6.6h1.6c.7 0 1-.8.5-1.2z" />
+        </svg>
+      );
+    case 'instance':
+      // The light on the box is a hole in it, so the ground shows through.
+      return (
+        <svg {...box}>
+          <path
+            fillRule="evenodd"
+            d="M4.8 9h10.4A1.8 1.8 0 0 1 17 10.8v4.9a1.8 1.8 0 0 1-1.8 1.8H4.8A1.8 1.8 0 0 1 3 15.7v-4.9A1.8 1.8 0 0 1 4.8 9zm1.9 3.1a1.15 1.15 0 1 0 0 2.3 1.15 1.15 0 0 0 0-2.3z"
+          />
+          <path
+            d="M7.2 6.3a4.2 4.2 0 0 1 5.6 0M5 3.9a7.4 7.4 0 0 1 10 0"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.7"
+            strokeLinecap="round"
+          />
         </svg>
       );
     case 'off':

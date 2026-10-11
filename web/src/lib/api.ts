@@ -3962,6 +3962,10 @@ export interface ConnectInfo {
   name: string;
   /** Where they open it, '' when it has no address anybody else can reach. */
   address: string;
+  /** Where this instance found itself on its network, which `address` leaves
+   *  out once a known domain stands in for it. '' when nothing outside the
+   *  machine reaches it. */
+  networkAddress: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */

@@ -422,7 +422,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [],
       // The page's floating action.
       also: ['pairing.title'],
-      body: ['instances.pairLead'],
     },
   ],
 
@@ -457,16 +456,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.access.identity.title',
       rows: [
         { key: 'settings.access.identity.nameLabel', hint: 'settings.access.identity.nameHint' },
-        { key: 'settings.access.identity.domainsLabel', hint: 'settings.access.identity.domainsHint' },
+        { key: 'settings.access.identity.addressesLabel', hint: 'settings.access.identity.addressesHint' },
       ],
+      // What stands beside the address the instance found itself.
+      also: ['settings.access.identity.addressFound'],
     },
     {
       title: 'relay.title',
       hint: 'relay.hint',
-      rows: [
-        { key: 'relay.addressLabel', hint: 'relay.addressTip' },
-        { key: 'relay.serve', hint: 'relay.serveHint' },
-      ],
+      rows: [{ key: 'relay.addressLabel', hint: 'relay.addressTip' }],
       // The route picker, the state in the header, the window behind the
       // button beside it, the facts line and the sub-cards.
       also: [
@@ -475,6 +473,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'relay.instanceName',
         'relay.project',
         'relay.own',
+        'relay.serve',
         'relay.off',
         'relay.noGroup',
         'instances.connected',
@@ -484,8 +483,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'relay.notSeesLabel',
         'relay.needLabel',
       ],
-      // The rest of the card's (i), and the (i) of what to check.
-      body: ['relay.lead', 'pairing.relayCheckTip'],
+      // The rest of the card's (i), the (i) of serving the relay and the (i)
+      // of what to check.
+      body: ['relay.lead', 'relay.serveHint', 'pairing.relayCheckTip'],
     },
   ],
 
