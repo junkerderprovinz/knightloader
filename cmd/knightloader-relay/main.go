@@ -13,6 +13,11 @@
 // it, it serves plain HTTP on KL_RELAY_ADDR for a local test or a proxy in
 // front. The relay key is a credential, so anything reachable from outside a
 // trusted network needs one of the two.
+//
+// KL_RELAY_TRUSTED_PROXIES lists the proxies, by address or CIDR range and
+// separated by commas, whose X-Forwarded-For names the caller for the
+// handshake throttle. Unset trusts loopback and the private ranges; "none"
+// trusts no proxy.
 package main
 
 import (
@@ -26,6 +31,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/signal"
 	"strings"
@@ -64,6 +70,11 @@ func main() {
 	addr := env("KL_RELAY_ADDR", ":8760")
 
 	r := relay.New()
+	trusted, err := trustedProxies(os.Getenv("KL_RELAY_TRUSTED_PROXIES"))
+	if err != nil {
+		log.Fatalf("KL_RELAY_TRUSTED_PROXIES: %v", err)
+	}
+	r.TrustedProxies = func() []netip.Prefix { return trusted }
 	// The request path sweeps too, but only while traffic arrives. The timer
 	// keeps the 61 minute retention promised in extension/PRIVACY.md on a
 	// quiet relay.
@@ -201,6 +212,32 @@ func splitNames(v string) []string {
 		}
 	}
 	return out
+}
+
+// trustedProxies reads the comma-separated addresses and CIDR ranges of the
+// reverse proxies in front of the relay. Unset means loopback and the private
+// ranges, where a proxy beside a relay on a server sits; "none" trusts no
+// proxy.
+func trustedProxies(v string) ([]netip.Prefix, error) {
+	if strings.TrimSpace(v) == "" {
+		return relay.LocalNetworks(), nil
+	}
+	if strings.TrimSpace(v) == "none" {
+		return nil, nil
+	}
+	var out []netip.Prefix
+	for _, s := range splitNames(v) {
+		p, err := netip.ParsePrefix(s)
+		if err != nil {
+			a, aerr := netip.ParseAddr(s)
+			if aerr != nil {
+				return nil, fmt.Errorf("%q is neither an IP address nor a CIDR range", s)
+			}
+			p = netip.PrefixFrom(a.Unmap(), a.Unmap().BitLen())
+		}
+		out = append(out, p.Masked())
+	}
+	return out, nil
 }
 
 func env(k, def string) string {

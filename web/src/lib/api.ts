@@ -672,6 +672,9 @@ export interface Settings {
   /** Full URLs such as "https://kl.example.com", remembered the first time a
    *  request arrives on one or added by hand. */
   knownDomains: string[];
+  /** The reverse proxies whose X-Forwarded-For the sign-in throttle reads,
+   *  as IP addresses or CIDR ranges. */
+  trustedProxies: string[];
 }
 
 /**
@@ -1024,11 +1027,27 @@ export class ApiError extends Error {
   }
 }
 
+const unauthorizedListeners = new Set<() => void>();
+
+/**
+ * onUnauthorized calls fn whenever a call is answered with 401, and returns
+ * the way to stop. A 401 can mean this browser's session has ended, by a
+ * sign-out everywhere, a changed password or a reset, but a peer's refusal
+ * arrives with the same status, so the listener asks the server which it was.
+ */
+export function onUnauthorized(fn: () => void): () => void {
+  unauthorizedListeners.add(fn);
+  return () => {
+    unauthorizedListeners.delete(fn);
+  };
+}
+
 /**
  * refusal reads a refused response. A JSON envelope keeps its code, so the
  * refusal can be translated; any other body is the server's sentence.
  */
 export async function refusal(r: Response): Promise<ApiError> {
+  if (r.status === 401) for (const fn of unauthorizedListeners) fn();
   const body = (await r.text()).trim();
   try {
     const p = JSON.parse(body) as {
@@ -2802,8 +2821,9 @@ export async function fetchAuth(): Promise<AuthState> {
 
 /**
  * login exchanges the password, and a code once a second factor is armed, for
- * a session cookie. A wrong password throws; a request for a code or a
- * rejected code are returned, since the sign-in is still in progress.
+ * a session cookie. A wrong password throws, and so do too many attempts, as
+ * an ApiError with status 429; a request for a code or a rejected code are
+ * returned, since the sign-in is still in progress.
  */
 export async function login(password: string, code = ''): Promise<LoginResult> {
   const r = await post('/api/auth/login', { password, code });
@@ -2815,7 +2835,51 @@ export async function login(password: string, code = ''): Promise<LoginResult> {
   } catch {
     // A plain-text body, which is the wrong-password case.
   }
-  throw new Error(text || String(r.status));
+  // Not through refusal: a wrong password is no sign that a session ended.
+  throw new ApiError(text || String(r.status), undefined, undefined, r.status);
+}
+
+/**
+ * Where the server wrote a password reset code (POST /api/auth/reset). The
+ * code itself never comes back: reading it takes access to the machine.
+ */
+export interface ResetCodePlace {
+  /** `container` and `process` are the server's own output, `file` a file in
+   *  its data folder. */
+  place: 'container' | 'process' | 'file';
+  file?: string;
+  /** The data folder, which only the desktop app names. */
+  dir?: string;
+}
+
+/**
+ * askForResetCode has the server write a reset code. The answer is the same
+ * whether this call wrote one or an earlier one still counts. A server that
+ * could write nowhere refuses with the code `resetUnavailable`.
+ */
+export async function askForResetCode(): Promise<ResetCodePlace> {
+  return json<ResetCodePlace>(await post('/api/auth/reset', {}));
+}
+
+/** What a password reset took away. Every other session ends as well. */
+export interface ResetRemoved {
+  twoFactor: boolean;
+  passkeys: number;
+  tokens: number;
+  /** The instance left its pairing group for a new one with new words. */
+  group: boolean;
+}
+
+/**
+ * resetPassword sets a new password with the reset code and signs this
+ * browser in. A code that is wrong, used up or too old is refused with the
+ * code `codeRejected`, and too many attempts with status 429.
+ */
+export async function resetPassword(
+  code: string,
+  password: string,
+): Promise<AuthState & { removed?: ResetRemoved }> {
+  return json<AuthState & { removed?: ResetRemoved }>(await post('/api/auth/reset/finish', { code, password }));
 }
 
 /** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
@@ -3027,13 +3091,14 @@ export async function logout(): Promise<void> {
 }
 
 // setPassword sets, changes or (with an empty next) removes the password lock.
+// A new password of the wrong length is refused with the code passwordTooShort
+// or passwordTooLong.
 export async function setPassword(current: string, next: string): Promise<AuthState> {
   const r = await fetch('/api/auth/password', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ current, new: next }),
   });
-  if (!r.ok) throw new Error(await r.text());
   return json<AuthState>(r);
 }
 

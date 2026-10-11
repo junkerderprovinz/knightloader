@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
@@ -120,20 +121,27 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodPost, "/api/connect/activate",
 		"generate a new connection phrase for this instance and start dialling the relay - answers with the phrase, the only time it is returned without the password",
 		func(w http.ResponseWriter, r *http.Request) {
-			// Replacing an existing secret would orphan every instance joined
-			// to the old phrase; leaving is an explicit DELETE.
-			if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
-				writeRefusal(w, http.StatusConflict, "phraseExists",
-					"this instance already has a connection phrase; remove it first to start a new group", nil)
-				return
-			}
 			secret, phrase, err := seedphrase.New()
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if err := enterGroup(a, secret, false); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			exists := false
+			err = a.Auth.Mint(stillAdmitted(a, r), func() error {
+				// Replacing an existing secret would orphan every instance
+				// joined to the old phrase; leaving is an explicit DELETE.
+				if existing, err := a.Accounts.Get(relay.SeedAccountService); err == nil && existing != "" {
+					exists = true
+					return nil
+				}
+				return enterGroup(a, secret, false)
+			})
+			if exists {
+				writeRefusal(w, http.StatusConflict, "phraseExists",
+					"this instance already has a connection phrase; remove it first to start a new group", nil)
+				return
+			}
+			if refuseGroupChange(w, err) {
 				return
 			}
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase), "info": connectInfo(a)})
@@ -167,8 +175,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := enterGroup(a, secret, true); err != nil {
-				http.Error(w, err.Error(), http.StatusInternalServerError)
+			if refuseGroupChange(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return enterGroup(a, secret, true) })) {
 				return
 			}
 			writeJSON(w, connectInfo(a))
@@ -379,6 +386,43 @@ func enterGroup(a *app.App, secret []byte, entered bool) error {
 	// "own" from a typed address.
 	applyRelay(a)
 	return a.Federation.SetJoined(joined, entered && secret != nil)
+}
+
+// refuseGroupChange answers a failed join or activation and reports whether
+// err was one. Both run under Mint, so a session a reset ended cannot put the
+// instance back into a group the reset left.
+func refuseGroupChange(w http.ResponseWriter, err error) bool {
+	switch {
+	case err == nil:
+		return false
+	case errors.Is(err, auth.ErrStale):
+		http.Error(w, err.Error(), http.StatusUnauthorized)
+	default:
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
+	return true
+}
+
+// renewGroup puts an instance that is in a pairing group, by phrase or by a
+// hand-entered relay key, into a new group of its own with a new phrase, so
+// every member and phone has to pair again. It reports whether there was a
+// group to leave.
+func renewGroup(a *app.App) (bool, error) {
+	seed, _ := a.Accounts.Get(relay.SeedAccountService)
+	manual, _ := a.Accounts.Get(relay.AccountService)
+	if seed == "" && manual == "" {
+		return false, nil
+	}
+	if manual != "" {
+		if err := a.Accounts.Set(relay.AccountService, ""); err != nil {
+			return true, err
+		}
+	}
+	secret, _, err := seedphrase.New()
+	if err != nil {
+		return true, err
+	}
+	return true, enterGroup(a, secret, false)
 }
 
 // phraseQR is the QR code for the app, naming the relay this instance dials

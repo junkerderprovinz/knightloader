@@ -245,6 +245,11 @@ not this instance's password but the key to every instance in the group.
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
 
+**A password reset leaves the group too.** The instance gets new twelve words
+that nobody else holds, so every phone, browser extension and other instance
+pairs again with them. See
+[A forgotten password](configuration.md#a-forgotten-password).
+
 ## When neither can reach the other: the relay
 
 Both ends dial *out* to a relay and meet there, so neither needs a public
@@ -374,7 +379,7 @@ and cannot be explained.
   one. One saved with an `http://` address does not, since the app permits no
   cleartext traffic: its card says it has to be added again with the twelve
   words. Those builds took the address
-  typed in, scanned from the Access tab's QR or found with **Find on this
+  typed in, scanned from the QR code the Security page showed then or found with **Find on this
   network**, plus a token where the instance had a password.
 
   Find on this network, in those builds, asks every address on the phone's own

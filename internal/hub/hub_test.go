@@ -170,6 +170,45 @@ func TestOverFullClientIsDropped(t *testing.T) {
 // The other way a connection dies: the write fails outright. A client left
 // registered would collect broadcasts forever and eventually be dropped for a
 // queue overflow that never mattered.
+func TestDropAllClosesEveryConnection(t *testing.T) {
+	h := New()
+	plain, narrow := newFakeConn(), newFakeConn()
+	h.Add(plain)
+	h.AddRestricted(narrow)
+
+	h.DropAll()
+
+	if n := h.Len(); n != 0 {
+		t.Fatalf("%d connections are still registered", n)
+	}
+	waitFor(t, func() bool { return plain.closed.Load() && narrow.closed.Load() }, "a dropped connection was never closed")
+	h.Broadcast("task", "after the drop")
+	select {
+	case msg := <-plain.writes:
+		t.Fatalf("a dropped connection was still written to: %s", msg)
+	case <-time.After(50 * time.Millisecond):
+	}
+}
+
+func TestDropAllKeepsTheLocalListeners(t *testing.T) {
+	h := New()
+	tray, browser := newFakeConn(), newFakeConn()
+	h.AddLocal(tray)
+	h.Add(browser)
+	t.Cleanup(func() { h.Remove(tray) })
+
+	h.DropAll()
+
+	if n := h.Len(); n != 1 {
+		t.Fatalf("%d connections are registered after the drop, want the local one alone", n)
+	}
+	h.Broadcast("task", "after the drop")
+	got := recv(t, tray, "the local listener missed a broadcast after the drop")
+	if !bytes.Contains(got, []byte("after the drop")) {
+		t.Errorf("the local listener received %s", got)
+	}
+}
+
 func TestWriteErrorRemovesClient(t *testing.T) {
 	h := New()
 	broken := newFakeConn()

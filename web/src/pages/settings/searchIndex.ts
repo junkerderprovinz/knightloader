@@ -458,6 +458,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.passwordCurrent' },
         { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
+        { key: 'settings.access.trustedProxies', hint: 'settings.access.trustedProxiesHint' },
       ],
     },
     {

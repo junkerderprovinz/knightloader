@@ -108,8 +108,10 @@ func (g *Guard) ConfirmTwoFactor(code string) ([]string, error) {
 		return nil, ErrTwoFactorArmed
 	}
 	g.totp = p.secret
+	g.totpUsed = 0
 	g.recovery = hashed
 	g.pending = nil
+	g.gen++
 	g.mu.Unlock()
 
 	if err := g.flush(); err != nil {
@@ -138,12 +140,14 @@ func (g *Guard) ClearTwoFactor() error {
 	g.totp = ""
 	g.recovery = nil
 	g.pending = nil
+	g.gen++
 	g.mu.Unlock()
 	return g.flush()
 }
 
-// CheckSecond verifies a live code or a recovery code, spending the latter.
-// It answers false while the factor is off, because the login route calls it
+// CheckSecond verifies a live code or a recovery code, spending either: a
+// live code is refused for the rest of its time steps once accepted. It
+// answers false while the factor is off, because the login route calls it
 // before knowing whether the instance is armed.
 func (g *Guard) CheckSecond(code string) bool {
 	g.mu.RLock()
@@ -152,7 +156,15 @@ func (g *Guard) CheckSecond(code string) bool {
 	if sec == "" {
 		return false
 	}
-	if secret.ValidTOTP(sec, code, time.Now()) {
+	if step, ok := secret.MatchTOTP(sec, code, time.Now()); ok {
+		g.mu.Lock()
+		defer g.mu.Unlock()
+		// A code from an earlier step than one already used is refused too,
+		// or a code read off the screen could follow the owner's in.
+		if g.totp != sec || step <= g.totpUsed {
+			return false
+		}
+		g.totpUsed = step
 		return true
 	}
 	idx := secret.MatchRecoveryCode(key, code, stored)

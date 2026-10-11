@@ -345,7 +345,7 @@ func (qb *qbitClient) login(w http.ResponseWriter, r *http.Request) {
 		Value:    qb.sessions.open(tok.ID),
 		Path:     "/",
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   requestScheme(r) == "https",
 		SameSite: http.SameSiteStrictMode,
 	})
 	qbitText(w, http.StatusOK, "Ok.")

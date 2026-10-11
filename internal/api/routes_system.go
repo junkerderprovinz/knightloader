@@ -4,7 +4,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
@@ -111,6 +113,8 @@ func registerSystem(reg *Registry, a *app.App) {
 		})
 	// routes_twofactor.go says why a second factor needs a throttle.
 	gate := reg.passwordGate
+	// The registry makes its gate before it knows the app.
+	gate.trusted = trustedProxies(a)
 	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
 		func(w http.ResponseWriter, r *http.Request) {
 			if !gate.try(r) {
@@ -126,13 +130,14 @@ func registerSystem(reg *Registry, a *app.App) {
 			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
 				return
 			}
-			if !a.Auth.Check(body.Password) {
+			checked, ok := a.Auth.CheckPassword(body.Password)
+			if !ok {
 				// The same answer on every instance, so it does not reveal
 				// whether a second factor exists.
 				http.Error(w, "wrong password", http.StatusUnauthorized)
 				return
 			}
-			if a.Auth.TwoFactorEnabled() {
+			if checked.TwoFactor {
 				if body.Code == "" {
 					// The password was right and the screen now asks for the
 					// code. Not counted: every honest login passes here once,
@@ -153,8 +158,15 @@ func registerSystem(reg *Registry, a *app.App) {
 					return
 				}
 			}
+			// Refused when the password or the factor changed during the
+			// check, which would otherwise let the old password in once more.
+			tok, ok := a.Auth.IssueFor(checked)
+			if !ok {
+				http.Error(w, "wrong password", http.StatusUnauthorized)
+				return
+			}
 			gate.pass(r)
-			setSession(w, r, a.Auth.Issue())
+			setSession(w, r, tok)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 	reg.AddOpen(http.MethodPost, "/api/auth/logout", "drop this client's session, or with {\"everywhere\": true} every session; open because logging out of an expired session must work",
@@ -170,7 +182,9 @@ func registerSystem(reg *Registry, a *app.App) {
 					http.Error(w, "unauthorized", http.StatusUnauthorized)
 					return
 				}
-				if err := a.Auth.RevokeAll(); err != nil {
+				// A live stream was let in when it opened and would go on
+				// delivering to the sessions that have just ended.
+				if err := a.Auth.RevokeAll(a.Hub.DropAll); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -185,7 +199,7 @@ func registerSystem(reg *Registry, a *app.App) {
 			clearSession(w, r)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password",
+	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password; removing it removes the second factor and every passkey too",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Setting the first password is open (the instance is unprotected
 			// anyway); changing or removing one requires the current password and an
@@ -205,7 +219,24 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
-			if err := a.Auth.SetPassword(body.Current, body.New); err != nil {
+			// The page that changed it reconnects its own stream with the
+			// cookie this answer sets.
+			alsoEnd := a.Hub.DropAll
+			if body.New == "" {
+				alsoEnd = func() {
+					// A passkey stands beside the password. Kept, it would
+					// open the instance again as soon as any password is set.
+					if _, err := a.Store.DeleteAllPasskeys(); err != nil {
+						log.Printf("auth: removing the password: removing the passkeys: %v", err)
+					}
+					a.Hub.DropAll()
+				}
+			}
+			changed, err := a.Auth.ChangePassword(body.Current, body.New, alsoEnd)
+			if refusePasswordLength(w, err) {
+				return
+			}
+			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -218,10 +249,28 @@ func registerSystem(reg *Registry, a *app.App) {
 			// change that is already persisted.
 			_ = a.APITokens.RevokeAll()
 			if body.New != "" {
-				setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
+				// Whoever just set it stays signed in, unless it has changed
+				// again since.
+				if tok, ok := a.Auth.IssueFor(changed); ok {
+					setSession(w, r, tok)
+				}
 			} else {
 				clearSession(w, r)
 			}
 			writeJSON(w, map[string]bool{"enabled": a.Auth.Enabled(), "authenticated": true})
 		})
+}
+
+// refusePasswordLength answers a new password of the wrong length with a code
+// the interface translates, and reports whether err was one.
+func refusePasswordLength(w http.ResponseWriter, err error) bool {
+	switch {
+	case errors.Is(err, auth.ErrTooShort):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooShort", err.Error(), nil)
+	case errors.Is(err, auth.ErrTooLong):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooLong", err.Error(), nil)
+	default:
+		return false
+	}
+	return true
 }

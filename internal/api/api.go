@@ -94,6 +94,15 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 	return nil, false
 }
 
+// stillAdmitted is what auth.Guard.Mint asks before r creates a credential:
+// whether the session or token that let r in still would.
+func stillAdmitted(a *app.App, r *http.Request) func() bool {
+	return func() bool {
+		_, ok := caller(a, r)
+		return ok
+	}
+}
+
 // bearerToken reads the RFC 6750 Authorization header, which is how scripts,
 // extension background pages and phone apps authenticate without a session
 // cookie. The scheme is matched case-insensitively, as the RFC requires.
@@ -120,13 +129,17 @@ func tokenSecret(r *http.Request) string {
 	return ""
 }
 
+// setSession hands the browser its session cookie. Behind a proxy that ends
+// TLS, the forwarded scheme is the only sign the browser used https. A sender
+// that lies about it gains nothing: a Secure cookie only stays off plain HTTP,
+// and the cookie is its own.
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     auth.CookieName,
 		Value:    token,
 		Path:     cookiePath(r),
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   requestScheme(r) == "https",
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(auth.SessionTTL / time.Second),
 	})
@@ -143,7 +156,7 @@ func clearSession(w http.ResponseWriter, r *http.Request) {
 	for _, p := range paths {
 		http.SetCookie(w, &http.Cookie{
 			Name: auth.CookieName, Value: "", Path: p, HttpOnly: true,
-			Secure: r.TLS != nil, SameSite: http.SameSiteLaxMode, MaxAge: -1,
+			Secure: requestScheme(r) == "https", SameSite: http.SameSiteLaxMode, MaxAge: -1,
 		})
 	}
 }
@@ -240,7 +253,15 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	openStream(a, c, narrowToken(r))
+	// The guard let the request in before the upgrade; a reset in between
+	// has dropped every stream and must not miss this one.
+	if err := a.Auth.Mint(stillAdmitted(a, r), func() error {
+		openStream(a, c, narrowToken(r))
+		return nil
+	}); err != nil {
+		c.Close(websocket.StatusPolicyViolation, "unauthorized")
+		return
+	}
 	defer func() {
 		a.Hub.Remove(c)
 		c.CloseNow()
