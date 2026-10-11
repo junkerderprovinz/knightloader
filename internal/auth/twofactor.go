@@ -110,6 +110,7 @@ func (g *Guard) ConfirmTwoFactor(code string) ([]string, error) {
 	g.totp = p.secret
 	g.recovery = hashed
 	g.pending = nil
+	g.gen++
 	g.mu.Unlock()
 
 	if err := g.flush(); err != nil {
@@ -138,6 +139,7 @@ func (g *Guard) ClearTwoFactor() error {
 	g.totp = ""
 	g.recovery = nil
 	g.pending = nil
+	g.gen++
 	g.mu.Unlock()
 	return g.flush()
 }

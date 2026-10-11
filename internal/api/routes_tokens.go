@@ -12,6 +12,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
 func registerTokens(reg *Registry, a *app.App) {
@@ -56,7 +57,16 @@ func registerTokens(reg *Registry, a *app.App) {
 					}
 				}
 			}
-			tok, secret, err := a.APITokens.CreateScoped(body.Name, scopes)
+			var tok apitoken.Token
+			var secret string
+			err := a.Auth.Mint(stillAdmitted(a, r), func() (err error) {
+				tok, secret, err = a.APITokens.CreateScoped(body.Name, scopes)
+				return err
+			})
+			if errors.Is(err, auth.ErrStale) {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
 			if err != nil {
 				status := http.StatusInternalServerError
 				if errors.Is(err, apitoken.ErrEmptyName) || errors.Is(err, apitoken.ErrTooMany) {
