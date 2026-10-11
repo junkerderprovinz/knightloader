@@ -31,3 +31,28 @@ DebridItalia, Mega-Debrid, MultiUp, MyDebrid and NeoDebrid take the login the
 website takes; ProLeech and RPNet take the two values their API page shows. The full
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
+
+## A forgotten password
+
+**Forgot password?** on the sign-in page has KnightLoader write a code where
+only somebody with access to the machine can read it:
+
+- In a container, to the container log. On Unraid: Docker tab, KnightLoader
+  icon, **Logs**. Elsewhere `docker logs` followed by the name of the container.
+- A server started from a terminal or as a service, to its own output: that
+  terminal, or the service's journal (`journalctl -u` followed by the name of
+  the service).
+- The desktop app, and a server whose output goes nowhere, to the file
+  `password-reset-code.txt` in the data directory, which only the user
+  KnightLoader runs as can read.
+
+Enter the code and a new password on the sign-in page and you are signed in. A
+code is valid for 10 minutes and five tries, and a new one is written at most
+once a minute. The new password switches two-factor authentication off,
+removes every passkey and every API token and signs out every other browser,
+so afterwards it is the only way in. Devices paired with the connection phrase
+stay paired.
+
+The code is never sent over the network, and it appears neither on the log
+page, in the log file nor in a diagnostics bundle. Somebody who only reaches
+the web interface cannot reset anything.
