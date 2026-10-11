@@ -71,19 +71,21 @@ jobs:
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list and the clipboard link rule are held to
-            # the web UI's.
+            # the web UI's, and the signed call to internal/relay's vector.
             extension:
               - 'extension/**'
+              - 'internal/relay/member_test.go'
               - 'web/src/lib/donate.ts'
               - 'web/src/lib/clipboardWatch.ts'
               - '.github/workflows/ci.yml'
-            # check-relay-url.mjs and check-pairing-code.mjs read their cases
-            # from internal/relay's tests, and check-failures.mjs the failure
-            # codes.
+            # check-relay-url.mjs, check-pairing-code.mjs and
+            # check-member-key.mjs read their cases from internal/relay's
+            # tests, and check-failures.mjs the failure codes.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
               - 'internal/relay/client_test.go'
+              - 'internal/relay/member_test.go'
               - 'internal/relay/key_test.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
@@ -518,6 +520,9 @@ jobs:
 
       - name: Relay addresses
         run: node check-relay-url.mjs
+
+      - name: Member key
+        run: node check-member-key.mjs
 
       - name: Pairing codes
         run: node check-pairing-code.mjs
