@@ -211,6 +211,10 @@ release's tag.
   another alphabet is held to the same length as one in English. A password
   over 72 bytes, the most the hash takes, gets its own message on the
   settings card and the reset form instead of an English error.
+- **A Usenet release whose files finished very quickly could stay in
+  Verifying for good,** and one already known to be lost could fetch its
+  remaining parts anyway. The files of a release now start only after the
+  queue has recorded which files belong to it.
 
 ## [1.8.4] - 2026-10-08
 
