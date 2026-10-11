@@ -47,7 +47,7 @@ export function BrandPicker({
 }) {
   if (brands.length === 0) return <p className="px-2 py-6 text-center text-sm text-carbon-textMuted">{none}</p>;
   return (
-    <ul className="glim-provider-pick">
+    <ul data-new="account-picker" className="glim-provider-pick">
       {brands.map((b) => (
         <li
           key={b.id}
