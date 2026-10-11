@@ -342,7 +342,7 @@ export const cs: Dict = {
   'settings.lockHint': 'Chrání tuto instanci před kýmkoli, kdo se k ní dostane: ve stejné síti, přes doménu nebo přes relay. Jakmile je heslo nastaveno, musí se zadat, než se tato instance vůbec otevře, pro kohokoli, včetně vás při příští návštěvě. Bez hesla může kdokoli, kdo najde adresu, vidět každé stahování a přidávat, pozastavovat nebo mazat vlastní.',
   'settings.passwordCurrent': 'Současné heslo',
   'settings.passwordNew': 'Nové heslo',
-  'settings.passwordHint': 'Nejméně 8 znaků. Nechte prázdné pro zrušení zámku. Tím se zároveň vypne dvoufaktorové ověření a smažou se všechny přístupové klíče.',
+  'settings.passwordHint': 'Nejméně 8 znaků. Nech prázdné, pokud chceš zámek zrušit. Tím se zároveň vypne dvoufaktorové ověření a smažou se všechny přístupové klíče.',
   'settings.setPassword': 'Nastavit heslo',
   'settings.passwordSaved': 'Heslo změněno.',
   'settings.access.trustedProxies': 'Důvěryhodné proxy',
