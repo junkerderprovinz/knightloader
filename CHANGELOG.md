@@ -208,6 +208,9 @@ release's tag.
   another alphabet is held to the same length as one in English. A password
   over 72 bytes, the most the hash takes, gets its own message on the
   settings card and the reset form instead of an English error.
+- **A torrent removed while its first tracker announce was still out tells
+  the tracker it has left,** where the tracker went on counting KnightLoader
+  as a peer of it.
 
 ## [1.8.5] - 2026-10-11
 
