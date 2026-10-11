@@ -519,6 +519,9 @@ jobs:
       - name: Relay addresses
         run: node check-relay-url.mjs
 
+      - name: Refused calls
+        run: node check-refusals.mjs
+
       - name: Pairing codes
         run: node check-pairing-code.mjs
 

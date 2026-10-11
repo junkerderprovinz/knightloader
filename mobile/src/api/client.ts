@@ -23,44 +23,9 @@ import { relayIdentity, resetRelayIdentity } from '../storage/relayIdentity';
 import { removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
+import { ApiError, errorText, refusedCall } from './refusal';
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    /** Names the reason where the server sent one, so it can be translated. */
-    public code?: string
-  ) {
-    super(message);
-  }
-}
-
-// refusal reads a refused call. A refusal the interface can translate comes as
-// {error, code}; the message is then the sentence, not the envelope.
-function refusal(body: string, status: number): ApiError {
-  try {
-    const p = JSON.parse(body) as { error?: unknown; code?: unknown };
-    if (p && typeof p.error === 'string') {
-      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined);
-    }
-  } catch {
-    // Plain text.
-  }
-  return new ApiError(body, status);
-}
-
-// The refusals this app words itself. The rest show the server's sentence.
-const REFUSALS: Partial<Record<string, TranslationKey>> = {
-  federationOff: 'error.federationOff',
-  addAgain: 'error.addAgain',
-};
-
-/** errorText is what a failed call shows: translated where the code is known. */
-export function errorText(t: (key: TranslationKey) => string, e: unknown): string {
-  const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
-  if (key) return t(key);
-  return e instanceof Error ? e.message : String(e);
-}
+export { ApiError, errorText } from './refusal';
 
 // Every call takes a connection and a base path prefix. base is '/api' for the
 // connection's own instance; a peer's routes proxy through the connected server
@@ -83,14 +48,7 @@ export async function request<T>(conn: ServerConnection, base: string, path: str
     : await httpRequest(conn, base + path, init);
 
   if (status < 200 || status >= 300) {
-    // A direct connection signs in with an API token, and the instance drops
-    // every token when its password is changed or reset. This app has nowhere
-    // to enter a new one, so the connection is made again from the phrase. A
-    // peer's 401 comes through another base and keeps its own words.
-    if (status === 401 && !isRelayConnection(conn) && base === '/api') {
-      throw new ApiError(body || statusText, status, 'addAgain');
-    }
-    throw refusal(body || statusText, status);
+    throw refusedCall(!isRelayConnection(conn), base, status, body || statusText);
   }
   if (status === 204 || body === '') return undefined as T;
   return JSON.parse(body) as T;

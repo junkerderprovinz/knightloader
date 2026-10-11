@@ -120,6 +120,7 @@ export const vi: Dict = {
   'addDownload.errorSend': 'Không thể gửi các liên kết: {message}',
   'error.federationOff': '“Thực thể bạn” đang tắt trên phiên bản bạn đang kết nối, nên nó không liên lạc được với các phiên bản khác.',
   'error.addAgain': 'Kết nối này được lưu bởi phiên bản ứng dụng cũ hơn và không còn hoạt động. Hãy xóa nó rồi kết nối lại bằng mười hai từ.',
+  'error.connectionEnded': 'Phiên bản không còn chấp nhận kết nối này vì mật khẩu của nó đã bị đổi hoặc đặt lại. Hãy xóa kết nối rồi kết nối lại bằng mười hai từ mà phiên bản hiển thị trong Cài đặt, Ghép nối. Sau khi đặt lại, đó là những từ mới.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 

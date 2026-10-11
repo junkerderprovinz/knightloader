@@ -120,6 +120,7 @@ export const fr: Dict = {
   'addDownload.errorSend': 'Impossible d’envoyer les liens : {message}',
   'error.federationOff': 'Les instances jumelées sont désactivées sur l’instance à laquelle vous êtes connecté : elle ne peut donc pas joindre les autres.',
   'error.addAgain': 'Cette connexion a été enregistrée par une ancienne version de l’application et ne fonctionne plus. Supprimez-la et reconnectez-vous avec les douze mots.',
+  'error.connectionEnded': 'L’instance n’accepte plus cette connexion, car son mot de passe a été modifié ou réinitialisé. Supprimez la connexion et reconnectez-vous avec les douze mots que l’instance affiche dans Paramètres, Appairage. Après une réinitialisation, ce sont de nouveaux mots.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 

@@ -120,6 +120,7 @@ export const pt: Dict = {
   'addDownload.errorSend': 'Não foi possível enviar os links: {message}',
   'error.federationOff': 'As instâncias parceiras estão desligadas na instância a que estás ligado, por isso ela não consegue chegar às outras.',
   'error.addAgain': 'Esta ligação foi guardada por uma versão anterior da app e já não funciona. Remove-a e volta a ligar com as doze palavras.',
+  'error.connectionEnded': 'A instância já não aceita esta ligação, porque a palavra-passe dela foi alterada ou reposta. Remove a ligação e volta a ligar com as doze palavras que a instância mostra em Definições, Emparelhamento. Depois de uma reposição, são palavras novas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 

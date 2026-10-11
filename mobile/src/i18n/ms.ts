@@ -120,6 +120,7 @@ export const ms: Dict = {
   'addDownload.errorSend': 'Pautan tidak dapat dihantar: {message}',
   'error.federationOff': 'Instans rakan dimatikan pada instans yang anda sambungkan, jadi ia tidak dapat mencapai instans lain.',
   'error.addAgain': 'Sambungan ini disimpan oleh versi apl yang lebih lama dan tidak berfungsi lagi. Alih keluarnya dan sambung semula dengan dua belas perkataan itu.',
+  'error.connectionEnded': 'Tika tidak lagi menerima sambungan ini kerana kata laluannya telah diubah atau ditetapkan semula. Alih keluar sambungan itu dan sambung semula dengan dua belas perkataan yang ditunjukkan oleh tika di Tetapan, Gandingan. Selepas tetapan semula, perkataan itu baharu.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 

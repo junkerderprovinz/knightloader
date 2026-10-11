@@ -120,6 +120,7 @@ export const es: Dict = {
   'addDownload.errorSend': 'No se pudieron enviar los enlaces: {message}',
   'error.federationOff': 'Las instancias asociadas están desactivadas en la instancia a la que estás conectado, así que no puede llegar a las demás.',
   'error.addAgain': 'Esta conexión la guardó una versión anterior de la app y ya no funciona. Elimínala y vuelve a conectar con las doce palabras.',
+  'error.connectionEnded': 'La instancia ya no acepta esta conexión porque su contraseña se cambió o se restableció. Elimina la conexión y vuelve a conectar con las doce palabras que la instancia muestra en Ajustes, Emparejamiento. Tras un restablecimiento, son palabras nuevas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
 

@@ -120,6 +120,7 @@ export const cs: Dict = {
   'addDownload.errorSend': 'Odkazy se nepodařilo odeslat: {message}',
   'error.federationOff': 'Na instanci, ke které jsi připojený, jsou spřátelené instance vypnuté, takže se k ostatním nedostane.',
   'error.addAgain': 'Toto připojení uložila starší verze aplikace a už nefunguje. Odeber ho a připoj se znovu pomocí dvanácti slov.',
+  'error.connectionEnded': 'Instance už toto připojení nepřijímá, protože její heslo bylo změněno nebo obnoveno. Odeber připojení a připoj se znovu pomocí dvanácti slov, která instance ukazuje v části Nastavení, Párování. Po obnovení hesla jsou to nová slova.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 

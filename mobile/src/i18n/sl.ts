@@ -120,6 +120,7 @@ export const sl: Dict = {
   'addDownload.errorSend': 'Povezav ni bilo mogoče poslati: {message}',
   'error.federationOff': 'Na primerku, s katerim si povezan, so sorodni primerki izklopljeni, zato drugih ne doseže.',
   'error.addAgain': 'To povezavo je shranila starejša različica aplikacije in ne deluje več. Odstrani jo in se znova poveži z dvanajstimi besedami.',
+  'error.connectionEnded': 'Instanca te povezave ne sprejema več, ker je bilo njeno geslo spremenjeno ali ponastavljeno. Odstrani povezavo in se znova poveži z dvanajstimi besedami, ki jih instanca prikazuje v razdelku Nastavitve, Seznanjanje. Po ponastavitvi so to nove besede.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 
