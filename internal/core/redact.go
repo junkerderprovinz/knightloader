@@ -55,17 +55,28 @@ var secretArgs = map[string]bool{
 
 // pathSecrets are services that put a credential in the path of an address:
 // Telegram's bot token, a Discord webhook's token and a TorrentLeech feed's
-// key. The path from the match on is replaced.
-var pathSecrets = regexp.MustCompile(`(?i)^([a-z][a-z0-9+.-]*://(?:api\.telegram\.org/bot|(?:[a-z0-9-]+\.)?discord(?:app)?\.com/api(?:/v\d+)?/webhooks/[^/?#]+/|rss24h\.torrentleech\.org/|rss\.torrentleech\.org/))[^/?#]+`)
+// or download link's key. The path segment after the match is replaced.
+var pathSecrets = regexp.MustCompile(`(?i)^([a-z][a-z0-9+.-]*://(?:api\.telegram\.org/bot|(?:[a-z0-9-]+\.)?discord(?:app)?\.com/api(?:/v\d+)?/webhooks/[^/?#]+/|rss24h\.torrentleech\.org/|rss\.torrentleech\.org/|(?:www\.)?torrentleech\.org/rss/download/[^/?#]+/))[^/?#]+`)
+
+// slackHook matches a Slack webhook, whose whole path after the kind is the
+// credential.
+var slackHook = regexp.MustCompile(`(?i)^([a-z][a-z0-9+.-]*://hooks\.slack\.com/(?:services|workflows|triggers)/)[^?#]+`)
+
+// magnetAddresses are the arguments of a magnet link that name an address a
+// client fetches from: trackers, the exact and the acceptable source, and web
+// seeds. A private tracker or a seedbox puts a passkey in their path.
+var magnetAddresses = map[string]bool{"tr": true, "xs": true, "as": true, "ws": true}
 
 // RedactURL is address s without a sign-in and with the value of every secret
 // query argument, and a token a known service puts in the path, replaced. In a
-// magnet link the trackers keep their host alone, as in WithoutCredentials.
-// Arguments may be separated by "&" or ";". Anything that is not an address
-// comes back as it is.
+// magnet link the addresses keep their host alone, as trackers do in
+// WithoutCredentials. An argument that is itself an address, as a redirect or
+// a proxy takes one, is redacted the same way. Arguments may be separated by
+// "&" or ";". Anything that is not an address comes back as it is.
 func RedactURL(s string) string {
 	s = userinfo.ReplaceAllString(s, "$1")
 	s = pathSecrets.ReplaceAllString(s, "${1}redacted")
+	s = slackHook.ReplaceAllString(s, "${1}redacted")
 	head, query, ok := strings.Cut(s, "?")
 	if !ok {
 		return s
@@ -88,12 +99,24 @@ func RedactURL(s string) string {
 			name = key
 		}
 		name = strings.ToLower(name)
+		kind, _, _ := strings.Cut(name, ".")
+		decoded, err := url.QueryUnescape(value)
+		if err != nil {
+			decoded = value
+		}
 		switch {
 		case secretArgs[name]:
 			arg = key + "=redacted"
-		case magnet && name == "tr":
-			if tr, err := url.QueryUnescape(value); err == nil {
-				arg = key + "=" + url.QueryEscape(HostOf(tr))
+		case magnet && magnetAddresses[kind]:
+			arg = key + "=" + url.QueryEscape(HostOf(decoded))
+		default:
+			if inner, rounds := nestedAddress(decoded); rounds > 0 {
+				if redacted := RedactURL(inner); redacted != inner {
+					for range rounds {
+						redacted = url.QueryEscape(redacted)
+					}
+					arg = key + "=" + redacted
+				}
 			}
 		}
 		out.WriteString(arg + sep)
@@ -102,6 +125,24 @@ func RedactURL(s string) string {
 		out.WriteString("#" + fragment)
 	}
 	return out.String()
+}
+
+// nestedAddress unescapes an argument once escaped, as far as it was escaped
+// again and at most three times more, and reports how many escapes it took to
+// reach an address, or 0 when it holds none.
+func nestedAddress(once string) (string, int) {
+	s := once
+	for rounds := 1; rounds <= 4; rounds++ {
+		if strings.Contains(s, "://") || strings.HasPrefix(strings.ToLower(s), "magnet:") {
+			return s, rounds
+		}
+		next, err := url.QueryUnescape(s)
+		if err != nil || next == s {
+			return "", 0
+		}
+		s = next
+	}
+	return "", 0
 }
 
 // addressInText finds an address in free text. It runs to the next blank,
