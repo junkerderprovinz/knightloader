@@ -15,15 +15,15 @@ import { Dropdown } from '../../components/Dropdown';
 import { ReconnectScene } from '../../components/pictures/ReconnectScene';
 import { Tabs } from '../../components/Tabs';
 import {
-  IconArrowDown,
-  IconArrowUp,
+  IconAdd,
   IconClose,
   IconCollector,
+  IconFleet,
   IconGlobe,
-  IconInstances,
+  IconMoveDown,
+  IconMoveUp,
   IconPlay,
-  IconPlus,
-  IconRetry,
+  IconRefresh,
   IconSearch,
   IconTrash,
 } from '../../lib/icons';
@@ -167,7 +167,7 @@ const DEFAULTS: ReconnectConfig = {
 const METHODS: { id: Exclude<Method, 'none'>; icon: ReactNode }[] = [
   { id: 'command', icon: <IconPlay width={16} height={16} /> },
   { id: 'http', icon: <IconGlobe width={16} height={16} /> },
-  { id: 'upnp', icon: <IconInstances width={16} height={16} /> },
+  { id: 'upnp', icon: <IconFleet width={16} height={16} /> },
   { id: 'script', icon: <IconCollector width={16} height={16} /> },
 ];
 
@@ -502,7 +502,7 @@ function RequestFields({ rc, write }: FieldProps) {
             </Button>
             <Button
               kind="secondary"
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               onClick={() => write({ requests: [...rows, { method: 'GET', url: '' }] })}
             >
               {t('settings.reconnect.requestAdd')}
@@ -574,7 +574,7 @@ function RequestRow({
           <>
             <IconBadge
               labelled
-              icon={<IconArrowUp width={16} height={16} />}
+              icon={<IconMoveUp width={16} height={16} />}
               hue={index}
               title={t('settings.reconnect.requestUp')}
               aria-label={t('settings.reconnect.requestUp')}
@@ -583,7 +583,7 @@ function RequestRow({
             />
             <IconBadge
               labelled
-              icon={<IconArrowDown width={16} height={16} />}
+              icon={<IconMoveDown width={16} height={16} />}
               hue={index}
               title={t('settings.reconnect.requestDown')}
               aria-label={t('settings.reconnect.requestDown')}
@@ -904,7 +904,7 @@ function RunPanel({
           />
         )}
         <span className="flex-1" />
-        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRetry width={16} height={16} />}>
+        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRefresh width={16} height={16} />}>
           {running ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
         </Button>
       </div>

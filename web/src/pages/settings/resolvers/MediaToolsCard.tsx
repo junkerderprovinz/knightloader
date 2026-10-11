@@ -9,7 +9,7 @@ import {
   useTooltip,
   type ButtonVerdict,
 } from '../../../components/ui';
-import { IconCheck, IconClose, IconDownloads, IconRetry } from '../../../lib/icons';
+import { IconCheck, IconClose, IconDownload, IconRefresh } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   fetchMediaTools,
@@ -168,13 +168,13 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   // without a colour.
   const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } =
     !latest || checking
-      ? { label: checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck'), icon: <IconRetry /> }
+      ? { label: checking ? t('settings.resolvers.toolsChecking') : t('settings.resolvers.toolsCheck'), icon: <IconRefresh /> }
       : !latest.checked
         ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
         : latest.compare === 'newer'
-          ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownloads />, verdict: 'warn' }
+          ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownload />, verdict: 'warn' }
           : latest.compare === 'unknown'
-            ? { label: t('settings.resolvers.toolsCheck'), icon: <IconRetry /> }
+            ? { label: t('settings.resolvers.toolsCheck'), icon: <IconRefresh /> }
             : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
 
   return (

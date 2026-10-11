@@ -26,7 +26,7 @@ import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { LinkIntakeSwitches } from './LinkIntakeSwitches';
 import { Tabs } from './Tabs';
 import { Button, Field, FieldGroup, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
-import { IconClose, IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
+import { IconAdd, IconClose, IconCollector, IconFolder, IconGear } from '../lib/icons';
 
 // The same number JD keeps.
 const DESTINATION_HISTORY_MAX = 25;
@@ -248,7 +248,7 @@ export function AddLinksForm({
       <span className="relative">
         <IconBadge
           labelled
-          icon={<IconSettings width={16} height={16} />}
+          icon={<IconGear width={16} height={16} />}
           hue={0}
           title={t('collector.options')}
           aria-label={t('collector.options')}
@@ -277,7 +277,7 @@ export function AddLinksForm({
         />
         <IconBadge
           labelled
-          icon={<IconPlus width={16} height={16} />}
+          icon={<IconAdd width={16} height={16} />}
           hue={2}
           title={t('collector.add')}
           aria-label={t('collector.add')}

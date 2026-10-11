@@ -22,7 +22,7 @@ import {
   type IdleCommandCheck,
   type IdleRun,
 } from '../../../lib/api';
-import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
+import { IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';

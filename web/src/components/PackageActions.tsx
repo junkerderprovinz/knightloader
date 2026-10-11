@@ -5,7 +5,7 @@ import { useToast } from '../lib/toast';
 import { Button, Field, Modal } from './ui';
 import { SuggestField } from './SuggestField';
 import type { MenuGroup, MenuItem } from './ContextMenu';
-import { IconArrowDown, IconArrowUp, IconBottom, IconClose, IconFolder, IconPriority, IconTop } from '../lib/icons';
+import { IconClose, IconFirst, IconFolder, IconLatest, IconMoveDown, IconMoveUp, IconPriority } from '../lib/icons';
 
 // Split by hoster: one package's box forking into three per-host boxes, drawn
 // solid like the glyphs in lib/icons.tsx.
@@ -116,10 +116,10 @@ export function usePackageMenu({
         {
           id: 'steps',
           items: [
-            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: () => void move('top') },
-            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: () => void move('up') },
-            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: () => void move('down') },
-            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: () => void move('bottom') },
+            { id: 'top', label: t('task.moveTop'), icon: <IconFirst width={14} height={14} />, onSelect: () => void move('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconMoveUp width={14} height={14} />, onSelect: () => void move('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconMoveDown width={14} height={14} />, onSelect: () => void move('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconLatest width={14} height={14} />, onSelect: () => void move('bottom') },
           ],
         },
       ],

@@ -25,14 +25,14 @@ import { EventBell } from './EventBell';
 import {
   IconDashboard,
   IconCollector,
-  IconDownloads,
-  IconInstances,
+  IconDownload,
+  IconFleet,
   IconAccounts,
-  IconBell,
-  IconChevronEnd,
+  IconNotifications,
+  IconForward,
   IconClose,
   IconMore,
-  IconSettings,
+  IconGear,
   IconSignOut,
 } from '../lib/icons';
 
@@ -308,9 +308,9 @@ export function Sidebar() {
       <nav data-nav-rail className={`flex flex-col gap-1 flex-1 ${narrow ? 'p-2' : 'p-3'}`}>
         {/* Downloads before the collector, as in JDownloader. */}
         <Item to="/" end hue={nextHue()} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
-        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+        <Item to="/downloads" hue={nextHue()} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
         <Item to="/collector" hue={nextHue()} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-        {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconInstances />} />}
+        {!hideInstances && <Item to="/instances" hue={nextHue()} mode={mode} label={t('nav.instances')} icon={<IconFleet />} />}
         {!hideAccounts && <Item to="/accounts" hue={nextHue()} mode={mode} label={t('nav.accounts')} icon={<IconAccounts />} />}
       </nav>
 
@@ -334,7 +334,7 @@ export function Sidebar() {
             {signOutTip.node}
           </>
         )}
-        <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+        <Item to="/settings" hue={nextHue()} mode={mode} label={t('nav.settings')} icon={<IconGear />} />
       </div>
     </aside>
   );
@@ -568,7 +568,7 @@ function PhoneBar({
   const downloads = nextHue();
   const collector = nextHue();
   const pinned = [
-    ...(showInstances ? [{ to: '/instances', label: t('nav.instances'), icon: <IconInstances />, hue: nextHue() }] : []),
+    ...(showInstances ? [{ to: '/instances', label: t('nav.instances'), icon: <IconFleet />, hue: nextHue() }] : []),
     ...(showAccounts ? [{ to: '/accounts', label: t('nav.accounts'), icon: <IconAccounts />, hue: nextHue() }] : []),
   ];
   const bell = nextHue();
@@ -581,9 +581,9 @@ function PhoneBar({
     // the document, where the rail is.
     <nav ref={bar} className="relative order-last flex h-12 shrink-0 gap-0.5 rounded-[var(--radius-card)] bg-carbon-sidebar p-1">
       <BarItem to="/" end hue={overview} mode={mode} label={t('nav.overview')} icon={<IconDashboard />} badge={needs} />
-      <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownloads />} badge={active} />
+      <BarItem to="/downloads" hue={downloads} mode={mode} label={t('nav.downloads')} icon={<IconDownload />} badge={active} />
       <BarItem to="/collector" hue={collector} mode={mode} label={t('nav.collector')} icon={<IconCollector />} badge={collected} />
-      <BarItem to="/settings" hue={settings} mode={mode} label={t('nav.settings')} icon={<IconSettings />} />
+      <BarItem to="/settings" hue={settings} mode={mode} label={t('nav.settings')} icon={<IconGear />} />
       {/* Behind More the bell draws no segment and stands its list on the bar. */}
       <EventBell hue={bell} bar={more ? 'behind' : 'segment'} />
       {more && (
@@ -621,7 +621,7 @@ function PhoneBar({
               >
                 <IconTile icon={p.icon} hue={p.hue} />
                 <span className="min-w-0 flex-1 truncate">{p.label}</span>
-                <IconChevronEnd aria-hidden width={14} height={14} className="shrink-0 text-carbon-textMuted rtl:-scale-x-100" />
+                <IconForward aria-hidden width={14} height={14} className="shrink-0 text-carbon-textMuted rtl:-scale-x-100" />
               </NavLink>
             ))}
             <button
@@ -632,14 +632,14 @@ function PhoneBar({
                 setEventsPanelOpen(true);
               }}
             >
-              <IconTile icon={<IconBell />} hue={bell} />
+              <IconTile icon={<IconNotifications />} hue={bell} />
               <span className="min-w-0 flex-1 truncate">{t('events.title')}</span>
               {unread > 0 && (
                 <span className="glim-num rounded-[var(--radius-pill)] bg-carbon-surface3 px-1.5 py-0.5 text-meta font-semibold leading-none text-carbon-text">
                   {unread > 99 ? '99+' : unread}
                 </span>
               )}
-              <IconChevronEnd aria-hidden width={14} height={14} className="shrink-0 text-carbon-textMuted rtl:-scale-x-100" />
+              <IconForward aria-hidden width={14} height={14} className="shrink-0 text-carbon-textMuted rtl:-scale-x-100" />
             </button>
           </div>
         </Modal>

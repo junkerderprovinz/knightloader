@@ -14,7 +14,7 @@ import {
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
-import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
 import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -217,7 +217,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.mediahook.hint')}
         right={
-          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} disabled={busy} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} disabled={busy} onClick={add}>
             {t('settings.mediahook.add')}
           </Button>
         }

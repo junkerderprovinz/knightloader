@@ -5,7 +5,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
-import { IconFolder, IconPlus, IconTrash } from '../lib/icons';
+import { IconAdd, IconFolder, IconTrash } from '../lib/icons';
 import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
 import { FolderPicker } from './FolderPicker';
@@ -526,7 +526,7 @@ export function RuleEditor({
         ))}
 
         <div>
-          <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={addCondition}>
+          <Button kind="secondary" icon={<IconAdd width={14} height={14} />} onClick={addCondition}>
             {t('settings.rules.addCondition')}
           </Button>
         </div>

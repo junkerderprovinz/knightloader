@@ -21,7 +21,7 @@ import {
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
 import { openExternal } from '../lib/external';
-import { IconInstances, IconLink } from '../lib/icons';
+import { IconFleet, IconLink } from '../lib/icons';
 import { PageAction, PageActions } from '../components/PageActions';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
@@ -186,7 +186,7 @@ export function Instances({
           it on (GlimStone, "Navigation and modules"). */}
       {off && (
         <EmptyState
-          icon={<IconInstances width={26} height={26} />}
+          icon={<IconFleet width={26} height={26} />}
           title={t('instances.moduleOff')}
           action={<ModulesPageBadge m={off} title={t('settings.nav.modules')} />}
         />

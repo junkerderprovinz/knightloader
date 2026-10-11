@@ -11,49 +11,12 @@ import { glyph } from './glyphs';
 
 export * from './glyphs';
 
-// KnightLoader's names for glyphs the list calls something else.
-export {
-  IconAdd as IconPlus,
-  IconBack as IconChevronStart,
-  IconCollapse as IconChevronUp,
-  IconContainers as IconContainer,
-  IconDiagnostics as IconBug,
-  IconDownload as IconDownloads,
-  IconExpand as IconChevronDown,
-  IconFirst as IconTop,
-  IconFleet as IconInstances,
-  IconFolderAdd as IconFolderPlus,
-  IconForward as IconChevronEnd,
-  IconGear as IconSettings,
-  IconLatest as IconBottom,
-  IconMoveDown as IconArrowDown,
-  IconMoveUp as IconArrowUp,
-  IconNotifications as IconBell,
-  IconPaste as IconClipboard,
-  IconPencil as IconEdit,
-  IconRefresh as IconRetry,
-  IconSchedules as IconClock,
-  IconShieldOn as IconShieldCheck,
-  IconTabLook as IconLook,
-  IconTabSecurity as IconLock,
-} from './glyphs';
-
 /** Play a file: the play mark on a disc, so it is not taken for the arrow
  *  that starts or resumes a download. */
 export const IconPlayFile = (p: SVGProps<SVGSVGElement>) => (
   <svg {...glyph([2.75, 2.75, 14.5, 14.5], p)}>
     <circle cx="10" cy="10" r="7.25" opacity=".3" />
     <path d="M8.2 6.6v6.8a.7.7 0 0 0 1.07.6l5.3-3.4a.7.7 0 0 0 0-1.2l-5.3-3.4a.7.7 0 0 0-1.07.6Z" />
-  </svg>
-);
-
-/** A monitor on its foot, for an instance that is the desktop app. */
-export const IconDesktop = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph([2, 2.5, 16, 15], p)}>
-    <path
-      fillRule="evenodd"
-      d="M3.5 2.5A1.5 1.5 0 0 0 2 4v8.5A1.5 1.5 0 0 0 3.5 14h5v1.5H6v2h8v-2h-2.5V14h5a1.5 1.5 0 0 0 1.5-1.5V4a1.5 1.5 0 0 0-1.5-1.5h-13ZM4 4.5h12V12H4V4.5Z"
-    />
   </svg>
 );
 
@@ -71,15 +34,6 @@ export const IconGlobe = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-export const IconSwords = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph([1, 3, 20, 19], p)}>
-    <path d="M3 3h4l11.5 11.5-2.5 2.5L4.5 5.5V3H3Z" />
-    <path d="M14.5 15.5 19 20l2-2-4.5-4.5-2 2Z" />
-    <path d="M21 3h-3L6.5 14.5l2 2L21 4.5V3Z" />
-    <path d="M5.5 15.5 1 20l2 2 4.5-4.5-2-2Z" />
-  </svg>
-);
-
 /** Manual: a closed book with its title lines and the page edge carved out. */
 export const IconBook = (p: SVGProps<SVGSVGElement>) => (
   <svg {...glyph([5, 3.5, 10, 13], p)}>
@@ -88,18 +42,6 @@ export const IconBook = (p: SVGProps<SVGSVGElement>) => (
       clipRule="evenodd"
       d="M5 3.5h8.5A1.5 1.5 0 0 1 15 5v11.5H6.8A1.8 1.8 0 0 1 5 14.7Zm2 2.7v1.5h6V6.2Zm0 3v1.4h4V9.2Zm-.2 4.3a.75.75 0 0 0 0 1.5h6.7v-1.5Z"
     />
-  </svg>
-);
-
-/** A QR code: three finder squares and a corner of modules. */
-export const IconQr = (p: SVGProps<SVGSVGElement>) => (
-  <svg {...glyph([2.5, 2.5, 15, 15], p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M2.5 2.5h6v6h-6Zm1.4 1.4v3.2h3.2V3.9ZM4.75 4.75h1.5v1.5h-1.5ZM11.5 2.5h6v6h-6Zm1.4 1.4v3.2h3.2V3.9Zm.85.85h1.5v1.5h-1.5ZM2.5 11.5h6v6h-6Zm1.4 1.4v3.2h3.2v-3.2Zm.85.85h1.5v1.5h-1.5Z"
-    />
-    <path d="M11.5 11.5h2v2h-2Zm4 0h2v2h-2Zm-2 2h2v2h-2Zm-2 2h2v2h-2Zm4 0h2v2h-2Z" />
   </svg>
 );
 
