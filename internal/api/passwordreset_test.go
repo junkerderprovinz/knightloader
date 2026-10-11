@@ -384,14 +384,16 @@ func TestTheRightCodeGetsPastAClosedGate(t *testing.T) {
 // once a minute at most, and the bundle that carries the log names nobody.
 func TestWrongCodesAreReportedWithoutAnAddress(t *testing.T) {
 	srv, _, out := resetServer(t)
-	before := len(logring.Lines())
+	_, _, before := logring.Since(0, 1)
 	askForCode(t, srv.URL, out)
 	for range 5 {
 		finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 
 	reports := 0
-	for _, line := range logring.Lines()[before:] {
+	logged, _, _ := logring.Since(before, logring.Capacity)
+	for _, e := range logged {
+		line := e.Line
 		if strings.Contains(line, "wrong password reset code") {
 			reports++
 		}
@@ -695,7 +697,9 @@ func TestTheResetCodeStaysOutOfTheLogPageTheLogFileAndTheBundle(t *testing.T) {
 		t.Fatal(err)
 	}
 	const asked = "a password reset code was asked for"
-	ownAddress := regexp.MustCompile(`auth:.*(127\.0\.0\.1|::1)`)
+	// Other tests in the process log sign-ins with an address, so only the
+	// reset's own lines are held to this.
+	ownAddress := regexp.MustCompile(`auth: [^\n]*(password reset|password was reset)[^\n]*(127\.0\.0\.1|::1)`)
 	bare := strings.ReplaceAll(code, "-", "")
 	for name, text := range map[string][]byte{
 		"the log page": read("/api/diagnostics/log"),
