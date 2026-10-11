@@ -152,7 +152,7 @@ type Registry struct {
 }
 
 func newRegistry() *Registry {
-	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate()}
+	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate(nil)}
 }
 
 // Add registers a route that needs a session once a password is set.

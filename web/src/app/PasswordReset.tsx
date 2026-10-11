@@ -2,18 +2,7 @@ import { useState } from 'react';
 import { ApiError, askForResetCode, resetPassword, type AuthState, type ResetCodePlace } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, PasswordInput, TextInput } from '../components/ui';
-
-/**
- * The lengths the server takes, counted the way it counts them, in bytes. It
- * refuses the others in English.
- */
-const MIN_PASSWORD = 8;
-const MAX_PASSWORD = 72;
-
-function fits(password: string): boolean {
-  const bytes = new TextEncoder().encode(password).length;
-  return bytes >= MIN_PASSWORD && bytes <= MAX_PASSWORD;
-}
+import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../lib/passwordLength';
 
 const CODE_LABEL: Record<ResetCodePlace['place'], TranslationKey> = {
   container: 'auth.reset.code.container',
@@ -27,13 +16,13 @@ const WHERE: Record<ResetCodePlace['place'], TranslationKey> = {
   file: 'auth.reset.where.file',
 };
 
-type Failure = '' | 'mismatch' | 'length' | 'rejected' | 'wait' | 'failed';
+type Failure = '' | 'mismatch' | 'short' | 'long' | 'rejected' | 'wait' | 'failed';
 
 const FAILURE: Record<Exclude<Failure, ''>, TranslationKey> = {
   mismatch: 'auth.reset.mismatch',
-  length: 'auth.reset.length',
+  ...LENGTH_PROBLEM,
   rejected: 'auth.reset.rejected',
-  wait: 'auth.reset.wait',
+  wait: 'auth.tooMany',
   failed: 'auth.reset.failed',
 };
 
@@ -73,7 +62,8 @@ export function PasswordReset({
     e.preventDefault();
     if (busy) return;
     if (password !== again) return fail('mismatch');
-    if (!fits(password)) return fail('length');
+    const length = lengthProblem(password);
+    if (length) return fail(length);
     setBusy(true);
     setFailure('');
     try {
@@ -92,7 +82,7 @@ export function PasswordReset({
       } else if (status === 429) {
         fail('wait');
       } else if (status === 400) {
-        fail('length');
+        fail(refusedLength(err) ?? 'failed');
       } else {
         fail('failed');
       }

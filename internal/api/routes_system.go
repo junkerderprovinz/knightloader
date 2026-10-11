@@ -4,7 +4,9 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
@@ -111,6 +113,8 @@ func registerSystem(reg *Registry, a *app.App) {
 		})
 	// routes_twofactor.go says why a second factor needs a throttle.
 	gate := reg.passwordGate
+	// The registry makes its gate before it knows the app.
+	gate.trusted = trustedProxies(a)
 	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
 		func(w http.ResponseWriter, r *http.Request) {
 			if !gate.try(r) {
@@ -179,7 +183,9 @@ func registerSystem(reg *Registry, a *app.App) {
 					http.Error(w, "unauthorized", http.StatusUnauthorized)
 					return
 				}
-				if err := a.Auth.RevokeAll(); err != nil {
+				// A live stream was let in when it opened and would go on
+				// delivering to the sessions that have just ended.
+				if err := a.Auth.RevokeAll(a.Hub.DropAll); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -194,7 +200,7 @@ func registerSystem(reg *Registry, a *app.App) {
 			clearSession(w, r)
 			w.WriteHeader(http.StatusNoContent)
 		})
-	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password",
+	reg.Add(http.MethodPut, "/api/auth/password", "set, change or remove the instance password; removing it removes the second factor and every passkey too",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Setting the first password is open (the instance is unprotected
 			// anyway); changing or removing one requires the current password and an
@@ -214,7 +220,23 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
-			changed, err := a.Auth.ChangePassword(body.Current, body.New)
+			// The page that changed it reconnects its own stream with the
+			// cookie this answer sets.
+			alsoEnd := a.Hub.DropAll
+			if body.New == "" {
+				alsoEnd = func() {
+					// A passkey stands beside the password. Kept, it would
+					// open the instance again as soon as any password is set.
+					if _, err := a.Store.DeleteAllPasskeys(); err != nil {
+						log.Printf("auth: removing the password: removing the passkeys: %v", err)
+					}
+					a.Hub.DropAll()
+				}
+			}
+			changed, err := a.Auth.ChangePassword(body.Current, body.New, alsoEnd)
+			if refusePasswordLength(w, err) {
+				return
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -239,4 +261,18 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, map[string]bool{"enabled": a.Auth.Enabled(), "authenticated": true})
 		})
+}
+
+// refusePasswordLength answers a new password of the wrong length with a code
+// the interface translates, and reports whether err was one.
+func refusePasswordLength(w http.ResponseWriter, err error) bool {
+	switch {
+	case errors.Is(err, auth.ErrTooShort):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooShort", err.Error(), nil)
+	case errors.Is(err, auth.ErrTooLong):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooLong", err.Error(), nil)
+	default:
+		return false
+	}
+	return true
 }

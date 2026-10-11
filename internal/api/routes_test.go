@@ -98,7 +98,7 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 			"session, so an open route is not an open list",
 		"POST /api/auth/passkey/login/begin": "one half of signing in with a passkey, which by definition " +
 			"happens without a session. It refuses outright unless a password is set and a credential is " +
-			"registered for this exact address, and it shares the password login's throttle",
+			"registered for this exact address, and it has a throttle of its own",
 		"POST /api/auth/passkey/login/finish": "the other half, and the one that issues the cookie. The " +
 			"credential is the signature the authenticator made over this instance's own challenge, which " +
 			"is a stronger thing to hold than the password would have been",

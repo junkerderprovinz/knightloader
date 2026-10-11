@@ -329,7 +329,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 	// every started ceremony is stored, so starting one counts as an attempt
 	// too. Sharing the password's counter would let somebody hammering the
 	// password lock the owner out of this way in too.
-	gate := newLoginGate()
+	gate := newLoginGate(trustedProxies(a))
 
 	reg.AddOpen(http.MethodGet, "/api/auth/passkeys",
 		"whether this address can carry passkeys and how many are registered; open because the sign-in screen has to know before anybody is signed in. The registered keys themselves are only listed to a session",
@@ -397,7 +397,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := registrations.begin(session, rpID, loginClientKey(r))
+			handle, err := registrations.begin(session, rpID, gate.key(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -510,7 +510,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := signIns.begin(session, rpID, loginClientKey(r))
+			handle, err := signIns.begin(session, rpID, gate.key(r))
 			if errors.Is(err, errCeremoniesFull) {
 				http.Error(w, err.Error(), http.StatusServiceUnavailable)
 				return

@@ -99,7 +99,7 @@ func newTray(a *app.App, cfgPath string) *Tray {
 func (t *Tray) joinHub(h *hub.Hub) {
 	t.hub = h
 	t.hubConn = &deskHubConn{t: t}
-	h.Add(t.hubConn)
+	h.AddLocal(t.hubConn)
 	h.Subscribe(t.hubConn, []string{"captcha", "captchaResolved", "queue"})
 }
 

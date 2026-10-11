@@ -2,9 +2,12 @@ package auth
 
 // A forgotten password is reset with a code that the embedding shows only
 // where reading takes access to the machine: the process's own output, or a
-// file in the data directory. Whoever can read either could delete auth.json
-// outright, so the code grants nothing new, and somebody who only reaches the
-// HTTP port never sees it.
+// file in the data directory. Somebody who only reaches the HTTP port never
+// sees it. Whoever can read that output can reset the password and take the
+// instance over, though, even with no other access at all: a read-only log
+// viewer such as Dozzle, or a log shipper and everybody who reads what it
+// collects. The manual tells the operator to keep that access to people who
+// may own the instance.
 
 import (
 	"crypto/rand"
@@ -130,11 +133,8 @@ func (g *Guard) CancelReset() {
 // ErrCodeRejected. A password the hash would refuse is refused before the code
 // is looked at.
 func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, error) {
-	if len(next) < 8 {
-		return Credentials{}, ErrTooShort
-	}
-	if len(next) > 72 {
-		return Credentials{}, bcrypt.ErrPasswordTooLong
+	if err := checkLength(next); err != nil {
+		return Credentials{}, err
 	}
 	g.mu.RLock()
 	enabled := len(g.hash) > 0

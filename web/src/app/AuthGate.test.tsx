@@ -177,15 +177,28 @@ describe('a forgotten password on the sign-in screen', () => {
   });
 
   it.each([
-    ['shorter than the server takes', 'short'],
-    ['longer than the server takes', 'a'.repeat(73)],
-  ])('sends nothing for a password %s', async (_, password) => {
+    ['shorter than the server takes', 'short', en['auth.passwordShort']],
+    ['of seven characters in fourteen bytes', 'äöüßäöü', en['auth.passwordShort']],
+    ['longer than bcrypt takes', 'a'.repeat(73), en['auth.passwordLong']],
+  ])('sends nothing for a password %s', async (_, password, said) => {
     await forgot();
 
     await fillAndSubmit('abcd-efgh-jkmn', password);
 
-    expect(alert()).toBe(en['auth.reset.length']);
+    expect(alert()).toBe(said);
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
+  });
+
+  it('says in its own words why the server refused the length', async () => {
+    answers['/api/auth/reset/finish'] = answer(
+      { code: 'passwordTooLong', error: 'the password must be at most 72 bytes' },
+      400,
+    );
+    await forgot();
+
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
+
+    expect(alert()).toBe(en['auth.passwordLong']);
   });
 
   it('asks for a code again after a refused one, empties the field and keeps the passwords', async () => {
@@ -206,7 +219,7 @@ describe('a forgotten password on the sign-in screen', () => {
 
     await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
-    expect(alert()).toBe(en['auth.reset.wait']);
+    expect(alert()).toBe(en['auth.tooMany']);
     expect(posts('/api/auth/reset')).toHaveLength(1);
     expect(field(en['auth.reset.code.container'])!.value).toBe('abcd-efgh-jkmn');
   });
@@ -229,6 +242,32 @@ describe('a forgotten password on the sign-in screen', () => {
 
     expect(field(en['auth.twoFactor.confirmLabel'])).not.toBeNull();
     expect(button(en['auth.forgot'])).toBeUndefined();
+  });
+});
+
+describe('a sign-in the throttle refuses', () => {
+  it('says to wait rather than that the password is wrong, and keeps the password', async () => {
+    answers['/api/auth/login'] = answer('too many attempts, wait a moment', 429);
+    await open();
+    type(en['auth.password'], 'a-good-password');
+
+    await press(en['auth.signIn']);
+
+    expect(host.textContent).toContain(en['auth.tooMany']);
+    expect(host.textContent).not.toContain(en['auth.wrong']);
+    expect(field(en['auth.password'])!.value).toBe('a-good-password');
+  });
+
+  it('says to wait when the passkey sign-in is refused for it', async () => {
+    vi.stubGlobal('PublicKeyCredential', function PublicKeyCredential() {});
+    answers['/api/auth/passkeys'] = answer({ supported: true, rpId: 'kl.example.com', total: 1, here: 1 });
+    answers['/api/auth/passkey/login/begin'] = answer('too many attempts, wait a moment', 429);
+    await open();
+
+    await press(en['auth.passkey.signIn']);
+
+    expect(host.textContent).toContain(en['auth.tooMany']);
+    expect(host.textContent).not.toContain(en['auth.passkey.signInFailed']);
   });
 });
 

@@ -20,8 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -181,7 +179,7 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 	// bucket, so a gate in front of the right code would let anybody who
 	// reaches the page keep the owner out; the code's sixty bits are what
 	// stops a guesser.
-	gate := newLoginGate()
+	gate := newLoginGate(trustedProxies(a))
 	var wrong wrongGuesses
 
 	reg.AddOpen(http.MethodPost, "/api/auth/reset",
@@ -245,8 +243,7 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 			}
 			reset, err := a.Auth.FinishReset(body.Code, body.Password, endTheRest)
 			switch {
-			case errors.Is(err, auth.ErrTooShort), errors.Is(err, bcrypt.ErrPasswordTooLong):
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			case refusePasswordLength(w, err):
 				return
 			case errors.Is(err, auth.ErrNothingToReset):
 				writeRefusal(w, http.StatusBadRequest, "noPassword", err.Error(), nil)

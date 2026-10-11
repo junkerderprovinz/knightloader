@@ -58,6 +58,11 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "schedule.0",
 		},
 		{
+			name:  "a trusted proxy that is no address",
+			patch: `{"trustedProxies":["172.17.0.0/16","","proxy.lan"]}`,
+			field: "trustedProxies",
+		},
+		{
 			name:  "a feed that is not on the web",
 			patch: `{"feeds":[{"url":"https://feeds.example/rss"},{"url":"ftp://feeds.example/rss"}]}`,
 			field: "feeds.1",
