@@ -72,7 +72,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       setPendingFile(null);
     } catch (e) {
       // The window stays open so the pressed button can shake.
-      toast(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      const keyRefusal = e instanceof ApiError ? RESTORE_KEY_REFUSAL[e.code ?? ''] : undefined;
+      const message = keyRefusal
+        ? t(keyRefusal)
+        : t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') });
+      toast(message, 'fail');
       setRestoreShake((n) => n + 1);
     } finally {
       setRestoring(false);
@@ -148,7 +152,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <input
           ref={archiveInput}
           type="file"
-          accept="application/zip,.zip"
+          accept="application/zip,.zip,.sealed"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -297,6 +301,12 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     </Card>
   );
 }
+
+/** The restore refusals about the app key, which say what to set rather than what failed. */
+const RESTORE_KEY_REFUSAL: Record<string, 'settings.system.restoreKeyMissing' | 'settings.system.restoreKeyWrong'> = {
+  'restore.appKeyMissing': 'settings.system.restoreKeyMissing',
+  'restore.appKeyWrong': 'settings.system.restoreKeyWrong',
+};
 
 /**
  * Labels for the incomplete-row codes the server sends. An unknown code falls

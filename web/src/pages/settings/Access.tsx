@@ -7,6 +7,7 @@ import {
   FieldGroup,
   IconBadge,
   IconTile,
+  InfoBubble,
   LabelBadge,
   Modal,
   PasswordInput,
@@ -29,6 +30,7 @@ import {
   setPassword,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
+import { isDesktop } from '../../lib/desktop';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
@@ -181,6 +183,19 @@ export function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
+        {/* The desktop keeps its key in the credential store, so the template
+            the hint talks about is a container's. */}
+        {auth?.appKey === false && !isDesktop() && (
+          <span className="flex items-center text-sm text-statusWarn">
+            {t('settings.appKeyMissing')}
+            <InfoBubble tip={t('settings.appKeyMissingHint')} />
+          </span>
+        )}
+        {auth?.appKeyCopiesUntil && (
+          <span className="text-sm text-carbon-textSub">
+            {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
+          </span>
+        )}
         <TrustedProxiesField />
       </Card>
   );

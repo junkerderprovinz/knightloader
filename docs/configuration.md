@@ -10,6 +10,7 @@ the Accounts page. None of them is required.
 | `KL_ADDR` | `:8749` | listen address |
 | `KL_BASE_PATH` | | path the interface and the API are served under behind a reverse proxy, e.g. `/kl` for `https://example.com/kl/`. Unset means the root, or the prefix a proxy sends in `X-Forwarded-Prefix`; see [Behind a reverse proxy](installing.md#behind-a-reverse-proxy) |
 | `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
+| `KL_APP_KEY` | | 64 hexadecimal characters, made once with `openssl rand -hex 32`. The password is then hashed with Argon2id peppered with it, and the secrets in the data directory and the backup archive are sealed with it, so a copy of the data directory alone opens nothing. Without it everything is stored as before. Keep it: KnightLoader does not start on a sealed data directory without the same key. See [App key](installing.md#app-key) |
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. A copy fetched by the Resolvers settings page ("keeping yt-dlp current") or by its daily update is started ahead of this one, and that page says so and offers to remove it again |
 | `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |
 | `KL_ALLDEBRID` | | AllDebrid API key, as above |

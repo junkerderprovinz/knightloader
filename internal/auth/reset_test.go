@@ -108,7 +108,7 @@ func TestAnOldCopyOfAuthJSONSignsNothingAfterAReset(t *testing.T) {
 	}
 	copied.Epoch = g.Epoch()
 	forged := t.TempDir()
-	if err := writeState(filepath.Join(forged, "auth.json"), copied); err != nil {
+	if err := writeState(filepath.Join(forged, "auth.json"), copied, nil); err != nil {
 		t.Fatal(err)
 	}
 	thief, err := Open(forged)

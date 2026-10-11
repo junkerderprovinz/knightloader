@@ -148,7 +148,7 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 	}
 	// Hashed only for a code that was right, so the route cannot be made to
 	// spend a bcrypt per request.
-	h, err := bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost)
+	h, err := hashPassword(g.appKey, next)
 	if err != nil {
 		return Credentials{}, err
 	}
@@ -165,7 +165,7 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 		g.mu.Unlock()
 		return Credentials{}, ErrCodeRejected
 	}
-	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}); err != nil {
+	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}, g.appKey); err != nil {
 		g.mu.Unlock()
 		return Credentials{}, err
 	}
