@@ -400,7 +400,7 @@ func TestAChangeCheckedAgainstAResetPasswordIsRefused(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := g.changeFrom(checked, "the-intruders-password"); !errors.Is(err, ErrWrongPassword) {
+	if _, err := g.changeFrom(checked, "the-intruders-password", nil); !errors.Is(err, ErrWrongPassword) {
 		t.Fatalf("a change checked before the reset = %v, want ErrWrongPassword", err)
 	}
 	if !g.Check(resetPassword) {
