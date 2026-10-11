@@ -3565,6 +3565,7 @@ export const fi: Dict = {
   'whatsnew.change.pageActions': 'Sivun päätoiminto leijuu sivun alareunassa ja pysyy ulottuvilla vierittäessäsi.',
   'whatsnew.change.collectorOptions': '”{name}” avaa ikkunan. ”{cnl}” ja ”{watch}” ovat siinä kytkimiä.',
   'whatsnew.change.instanceCards': 'Jokainen instanssi on tiivis kortti, ja niiden yllä on kuva ryhmästä.',
+  'whatsnew.change.handover': 'Ryhmän kuvassa paketti kulkee viivaa pitkin, kun linkkejä lähtee toiseen instanssiin tai saapuu ryhmän laitteesta. Katkoviiva kulkee releen kautta.',
   'whatsnew.change.accountsAdd': 'Yksi painike lisää minkä tahansa tilin: ”{name}”.',
   'whatsnew.change.priorityFlow': '”{name}” piirtää järjestyksen kuvana: keneltä kysytään ensin ja keneltä sen jälkeen.',
   'whatsnew.change.pairingSteps': 'Kolme kuvaa näyttää, miten pariliitos tehdään.',

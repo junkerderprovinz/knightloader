@@ -3577,6 +3577,7 @@ export const sr: Dict = {
   'whatsnew.change.pageActions': 'Главна радња странице лебди уз њену доњу ивицу и остаје надохват руке док се помераш.',
   'whatsnew.change.collectorOptions': '„{name}“ отвара прозор. „{cnl}“ и „{watch}“ су прекидачи у њему.',
   'whatsnew.change.instanceCards': 'Свака инстанца је компактна картица, а изнад њих је слика групе.',
+  'whatsnew.change.handover': 'На слици групе пакет путује линијом када линкови одлазе на другу инстанцу или стижу са уређаја из групе. Испрекидана линија иде преко релеја.',
   'whatsnew.change.accountsAdd': 'Једно дугме додаје сваку врсту налога: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ црта редослед као слику: ко се пита први, а ко затим.',
   'whatsnew.change.pairingSteps': 'Три слике показују како тече упаривање.',

@@ -3546,6 +3546,7 @@ export const zh: Dict = {
   'whatsnew.change.pageActions': '页面的主要操作悬浮在页面底部，滚动时始终触手可及。',
   'whatsnew.change.collectorOptions': '“{name}”会打开一个窗口。“{cnl}”和“{watch}”是窗口里的开关。',
   'whatsnew.change.instanceCards': '每个实例是一张紧凑的卡片，上方是一幅本组的图。',
+  'whatsnew.change.handover': '在本组的图里，链接发往另一台实例或从组里的设备传来时，会有一个包裹沿着连线移动。虚线表示经过中继。',
   'whatsnew.change.accountsAdd': '一个按钮即可添加任何类型的账户：“{name}”。',
   'whatsnew.change.priorityFlow': '“{name}”把顺序画成一幅图：先询问谁，再询问谁。',
   'whatsnew.change.pairingSteps': '三幅图展示配对的过程。',

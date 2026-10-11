@@ -3553,6 +3553,7 @@ export const lv: Dict = {
   'whatsnew.change.pageActions': 'Lapas galvenā darbība peld tās apakšā un ritinot paliek sasniedzama.',
   'whatsnew.change.collectorOptions': '„{name}“ atver logu. „{cnl}“ un „{watch}“ ir slēdži tajā.',
   'whatsnew.change.instanceCards': 'Katra instance ir kompakta kartīte, un virs tām ir grupas attēls.',
+  'whatsnew.change.handover': 'Grupas attēlā pa līniju ceļo pakete, kad saites dodas uz citu instanci vai pienāk no grupas ierīces. Raustīta līnija iet caur relay.',
   'whatsnew.change.accountsAdd': 'Viena poga pievieno jebkura veida kontu: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ uzzīmē secību kā attēlu: kam jautā vispirms un kam pēc tam.',
   'whatsnew.change.pairingSteps': 'Trīs attēli rāda, kā notiek pārošana.',

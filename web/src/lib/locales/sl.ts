@@ -3562,6 +3562,7 @@ export const sl: Dict = {
   'whatsnew.change.pageActions': 'Glavno dejanje strani lebdi ob njenem spodnjem robu in ostane pri roki med drsenjem.',
   'whatsnew.change.collectorOptions': '»{name}« odpre okno. »{cnl}« in »{watch}« sta stikali v njem.',
   'whatsnew.change.instanceCards': 'Vsaka instanca je strnjena kartica, nad njimi pa je slika skupine.',
+  'whatsnew.change.handover': 'Na sliki skupine paket potuje po črti, ko povezave odidejo na drugo instanco ali prispejo iz naprave v skupini. Črtkana črta poteka prek relaya.',
   'whatsnew.change.accountsAdd': 'En gumb doda vsako vrsto računa: »{name}«.',
   'whatsnew.change.priorityFlow': '»{name}« nariše vrstni red kot sliko: kdo je vprašan najprej in kdo zatem.',
   'whatsnew.change.pairingSteps': 'Tri slike kažejo, kako poteka seznanjanje.',

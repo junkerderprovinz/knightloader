@@ -3560,6 +3560,7 @@ export const ja: Dict = {
   'whatsnew.change.pageActions': 'ページの主な操作はページの下端に浮かび、スクロール中も手の届く場所にあります。',
   'whatsnew.change.collectorOptions': '「{name}」を押すとウィンドウが開きます。「{cnl}」と「{watch}」はその中のスイッチです。',
   'whatsnew.change.instanceCards': '各インスタンスはコンパクトなカードで、その上にグループの絵があります。',
+  'whatsnew.change.handover': 'グループの絵では、リンクが別のインスタンスへ送られるとき、またはグループの端末から届くときに、小包が線の上を移動します。破線はリレー経由です。',
   'whatsnew.change.accountsAdd': '1 つのボタンであらゆる種類のアカウントを追加できます: 「{name}」。',
   'whatsnew.change.priorityFlow': '「{name}」は順番を絵で描きます。誰に最初に問い合わせ、次に誰に問い合わせるかがわかります。',
   'whatsnew.change.pairingSteps': '3 枚の絵がペアリングの流れを示します。',

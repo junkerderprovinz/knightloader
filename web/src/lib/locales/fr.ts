@@ -3552,6 +3552,7 @@ export const fr: Dict = {
   'whatsnew.change.pageActions': 'L’action principale d’une page flotte en bas de celle-ci et reste à portée pendant le défilement.',
   'whatsnew.change.collectorOptions': '« {name} » ouvre une fenêtre. « {cnl} » et « {watch} » y sont des interrupteurs.',
   'whatsnew.change.instanceCards': 'Chaque instance est une carte compacte, avec une image du groupe au-dessus.',
+  'whatsnew.change.handover': 'Dans l’image du groupe, un paquet parcourt la ligne quand des liens partent vers une autre instance ou arrivent d’un appareil du groupe. Une ligne en pointillés passe par le relais.',
   'whatsnew.change.accountsAdd': 'Un seul bouton ajoute tous les types de compte : « {name} ».',
   'whatsnew.change.priorityFlow': '« {name} » dessine l’ordre sous forme d’image : qui est sollicité en premier et qui ensuite.',
   'whatsnew.change.pairingSteps': 'Trois images montrent comment se déroule l’appairage.',

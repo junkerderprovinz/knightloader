@@ -3551,6 +3551,7 @@ export const ko: Dict = {
   'whatsnew.change.pageActions': '페이지의 주요 동작은 페이지 아래쪽에 떠 있으며 스크롤하는 동안에도 손이 닿는 곳에 있습니다.',
   'whatsnew.change.collectorOptions': '“{name}” 버튼은 창을 엽니다. “{cnl}” 및 “{watch}” 항목은 그 창 안의 스위치입니다.',
   'whatsnew.change.instanceCards': '각 인스턴스는 작은 카드이며, 그 위에 그룹 그림이 있습니다.',
+  'whatsnew.change.handover': '그룹 그림에서, 링크가 다른 인스턴스로 가거나 그룹의 기기에서 도착하면 꾸러미가 선을 따라 이동합니다. 점선은 릴레이를 거칩니다.',
   'whatsnew.change.accountsAdd': '버튼 하나로 모든 종류의 계정을 추가합니다: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” 카드는 순서를 그림으로 그립니다. 누구에게 먼저 묻고 그다음에 누구에게 묻는지 보여 줍니다.',
   'whatsnew.change.pairingSteps': '그림 세 장이 페어링 과정을 보여 줍니다.',

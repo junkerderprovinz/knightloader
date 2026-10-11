@@ -3570,6 +3570,7 @@ export const ro: Dict = {
   'whatsnew.change.pageActions': 'Acțiunea principală a unei pagini plutește în partea ei de jos și rămâne la îndemână cât derulezi.',
   'whatsnew.change.collectorOptions': '„{name}” deschide o fereastră. „{cnl}” și „{watch}” sunt comutatoare în ea.',
   'whatsnew.change.instanceCards': 'Fiecare instanță este un card compact, cu o imagine a grupului deasupra.',
+  'whatsnew.change.handover': 'În imaginea grupului, un pachet călătorește pe linie când linkuri pleacă spre altă instanță sau sosesc de la un dispozitiv din grup. O linie întreruptă trece prin relay.',
   'whatsnew.change.accountsAdd': 'Un singur buton adaugă orice fel de cont: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” desenează ordinea ca imagine: cine este întrebat primul și cine apoi.',
   'whatsnew.change.pairingSteps': 'Trei imagini arată cum decurge împerecherea.',

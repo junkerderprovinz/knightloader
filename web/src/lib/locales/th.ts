@@ -3561,6 +3561,7 @@ export const th: Dict = {
   'whatsnew.change.pageActions': 'การทำงานหลักของหน้าลอยอยู่ที่ด้านล่างของหน้าและอยู่ใกล้มือเสมอขณะเลื่อน',
   'whatsnew.change.collectorOptions': '“{name}” เปิดหน้าต่าง โดย “{cnl}” และ “{watch}” เป็นสวิตช์ในหน้าต่างนั้น',
   'whatsnew.change.instanceCards': 'แต่ละอินสแตนซ์เป็นการ์ดขนาดกะทัดรัด โดยมีภาพของกลุ่มอยู่ด้านบน',
+  'whatsnew.change.handover': 'ในภาพของกลุ่ม พัสดุจะเคลื่อนไปตามเส้นเมื่อลิงก์ถูกส่งไปยังอินสแตนซ์อื่นหรือมาจากอุปกรณ์ในกลุ่ม เส้นประคือเส้นทางที่ผ่านรีเลย์',
   'whatsnew.change.accountsAdd': 'ปุ่มเดียวเพิ่มบัญชีได้ทุกประเภท: “{name}”',
   'whatsnew.change.priorityFlow': '“{name}” วาดลำดับเป็นภาพ: ถามใครก่อนและถามใครถัดไป',
   'whatsnew.change.pairingSteps': 'ภาพสามภาพแสดงขั้นตอนของการจับคู่',

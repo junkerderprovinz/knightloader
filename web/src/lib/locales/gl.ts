@@ -3561,6 +3561,7 @@ export const gl: Dict = {
   'whatsnew.change.pageActions': 'A acción principal dunha páxina flota na súa parte inferior e segue á man mentres te desprazas.',
   'whatsnew.change.collectorOptions': '«{name}» abre unha xanela. «{cnl}» e «{watch}» son interruptores dentro dela.',
   'whatsnew.change.instanceCards': 'Cada instancia é unha tarxeta compacta, cunha imaxe do grupo enriba.',
+  'whatsnew.change.handover': 'Na imaxe do grupo, un paquete viaxa pola liña cando unhas ligazóns van a outra instancia ou chegan desde un dispositivo do grupo. Unha liña descontinua pasa polo relé.',
   'whatsnew.change.accountsAdd': 'Un só botón engade calquera tipo de conta: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» debuxa a orde como unha imaxe: a quen se pregunta primeiro e a quen despois.',
   'whatsnew.change.pairingSteps': 'Tres imaxes amosan como funciona o emparellamento.',

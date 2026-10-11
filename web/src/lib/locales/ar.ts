@@ -3561,6 +3561,7 @@ export const ar: Dict = {
   'whatsnew.change.pageActions': 'الإجراء الرئيسي في الصفحة يطفو في أسفلها ويبقى في المتناول أثناء التمرير.',
   'whatsnew.change.collectorOptions': '«{name}» يفتح نافذة. و«{cnl}» و«{watch}» مفتاحان فيها.',
   'whatsnew.change.instanceCards': 'كل نسخة بطاقة مدمجة، وفوقها صورة للمجموعة.',
+  'whatsnew.change.handover': 'في صورة المجموعة تنتقل حزمة على الخط عندما تُرسَل روابط إلى نسخة أخرى أو تصل من أحد أجهزة المجموعة. الخط المتقطع يمر عبر المُرحِّل.',
   'whatsnew.change.accountsAdd': 'زر واحد يضيف أي نوع من الحسابات: «{name}».',
   'whatsnew.change.priorityFlow': 'ترسم «{name}» الترتيب على هيئة صورة: مَن يُسأل أولًا ومَن بعده.',
   'whatsnew.change.pairingSteps': 'ثلاث صور تبيّن كيف يجري الاقتران.',

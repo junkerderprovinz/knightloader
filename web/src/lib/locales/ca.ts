@@ -3550,6 +3550,7 @@ export const ca: Dict = {
   'whatsnew.change.pageActions': 'L’acció principal d’una pàgina flota a la part inferior i queda a mà mentre et desplaces.',
   'whatsnew.change.collectorOptions': '«{name}» obre una finestra. «{cnl}» i «{watch}» hi són interruptors.',
   'whatsnew.change.instanceCards': 'Cada instància és una targeta compacta, amb una imatge del grup a sobre.',
+  'whatsnew.change.handover': 'A la imatge del grup, un paquet viatja per la línia quan uns enllaços van a una altra instància o arriben d’un dispositiu del grup. Una línia discontínua passa pel repetidor.',
   'whatsnew.change.accountsAdd': 'Un sol botó afegeix qualsevol tipus de compte: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» dibuixa l’ordre com una imatge: a qui es pregunta primer i a qui després.',
   'whatsnew.change.pairingSteps': 'Tres imatges mostren com funciona l’aparellament.',

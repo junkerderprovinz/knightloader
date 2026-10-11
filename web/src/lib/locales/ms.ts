@@ -3562,6 +3562,7 @@ export const ms: Dict = {
   'whatsnew.change.pageActions': 'Tindakan utama sesebuah halaman terapung di bahagian bawahnya dan kekal dalam capaian semasa anda menatal.',
   'whatsnew.change.collectorOptions': '“{name}” membuka sebuah tetingkap. “{cnl}” dan “{watch}” ialah suis di dalamnya.',
   'whatsnew.change.instanceCards': 'Setiap instance ialah kad padat, dengan gambar kumpulan di atasnya.',
+  'whatsnew.change.handover': 'Dalam gambar kumpulan, satu paket bergerak di sepanjang garisan apabila pautan dihantar ke instance lain atau tiba daripada peranti dalam kumpulan. Garisan putus-putus melalui relay.',
   'whatsnew.change.accountsAdd': 'Satu butang menambah semua jenis akaun: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” melukis susunan sebagai gambar: siapa yang ditanya dahulu dan siapa selepas itu.',
   'whatsnew.change.pairingSteps': 'Tiga gambar menunjukkan cara gandingan berjalan.',

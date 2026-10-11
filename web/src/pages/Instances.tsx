@@ -3,7 +3,13 @@
 // announcing themselves on this network, which can be added by address. The
 // cards stand on the page itself. Pairing happens on the Pairing page in
 // Settings, which the floating Pairing action opens, group or none.
-import { useEffect, useState } from 'react';
+//
+// The server says when links go from this instance to another or come in from
+// a member of the group, and the net sends a parcel along that line. An
+// instance that hands links over through the relay is not named by its call,
+// so only its outgoing line and the lines of phones, extensions and members on
+// this network carry parcels both ways.
+import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
   type ConnectInfo,
@@ -27,7 +33,7 @@ import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
 import { ModulesPageBadge } from './settings/ModuleToggle';
 import { Button, Card, EmptyState, PageHeader, SectionTitle } from '../components/ui';
-import { GroupNet, SELF_KEY, appNodeKind, useNetHover, type NetNode } from '../components/GroupNet';
+import { GroupNet, SELF_KEY, appNodeKind, useNetHover, type NetNode, type NetParcel } from '../components/GroupNet';
 import { AppCard, InstanceCard } from '../components/InstanceCard';
 import { RemovalWindow, type Removal } from '../components/InstanceRemoval';
 
@@ -69,6 +75,11 @@ export function Instances({
   // dim the node of one that does not.
   const [answers, setAnswers] = useState<Record<string, boolean>>({});
   const [removing, setRemoving] = useState<Removal | null>(null);
+  const [parcels, setParcels] = useState<NetParcel[]>([]);
+  const parcelId = useRef(0);
+  // The socket is opened once, and whom a handover names is looked up in the
+  // lists as they stand when it arrives.
+  const entryNamed = useRef<(peer: string) => string | null>(() => null);
 
   const load = () => {
     fetchInstances()
@@ -100,12 +111,17 @@ export function Instances({
     const every20 = window.setInterval(refresh, INSTANCES_REFRESH_MS);
     document.addEventListener('visibilitychange', refresh);
     const close = connectWS(
-      (type) => {
+      (type, data: { peer: string; out: boolean }) => {
+        if (type === 'handover') {
+          const key = entryNamed.current(data.peer);
+          if (key) setParcels((on) => [...on, { id: parcelId.current++, key, out: data.out }]);
+          return;
+        }
         if (type !== 'settings') return;
         load();
         loadOff();
       },
-      ['settings'],
+      ['settings', 'handover'],
     );
     return () => {
       window.clearInterval(everyFew);
@@ -146,10 +162,16 @@ export function Instances({
   // A group member carries the key the Pairing page gives it, so the two
   // pages name one thing one way.
   const entryOf = (p: Instance) => (p.relayId ? `member:${p.name}` : `peer:${p.name}`);
+  const memberOf = (p: Instance) => group?.members.find((m) => m.id === p.relayId);
   const routeOf = (p: Instance) => {
     if (!p.relayId) return t('pairing.byAddress');
-    const member = group?.members.find((m) => m.id === p.relayId);
+    const member = memberOf(p);
     return member ? (member.direct ? t('pairing.direct') : t('pairing.viaRelay')) : '';
+  };
+  entryNamed.current = (peer) => {
+    const instance = (peers ?? []).find((p) => p.name === peer || p.relayId === peer);
+    if (instance) return entryOf(instance);
+    return apps.some((a) => a.id === peer) ? `app:${peer}` : null;
   };
   const onReach = (entry: string, online: boolean) =>
     setAnswers((a) => (a[entry] === online ? a : { ...a, [entry]: online }));
@@ -162,6 +184,7 @@ export function Instances({
         name: p.displayName ?? p.name,
         sub: routeOf(p),
         dim: answers[entryOf(p)] === false,
+        relay: memberOf(p)?.direct === false,
       }),
     ),
     ...apps.map(
@@ -171,6 +194,8 @@ export function Instances({
         name: a.name || a.id,
         sub: a.deployment === 'extension' ? t('instances.kind.extension') : t('instances.kind.mobile'),
         dim: !a.connected,
+        // A phone and an extension reach the group through the relay alone.
+        relay: true,
       }),
     ),
   ];
@@ -197,10 +222,12 @@ export function Instances({
           cards. */}
       <div {...net.scope} className="grid grid-cols-[repeat(auto-fill,minmax(min(100%,24rem),1fr))] items-stretch gap-5">
         {nodes.length > 0 && (
-          <Card hue={firstHue} padding="none" className="col-span-full px-5 py-4 max-sm:p-3">
+          <Card hue={firstHue} padding="none" data-new="net-handover" className="col-span-full px-5 py-4 max-sm:p-3">
             <GroupNet
               self={{ name: ownName || t('instances.thisInstance'), sub: ownName ? t('instances.thisInstance') : '' }}
               nodes={nodes}
+              parcels={parcels}
+              onDelivered={(id) => setParcels((on) => on.filter((parcel) => parcel.id !== id))}
               hot={net.hot}
               onPick={net.pick}
               alt={t('pairing.netAlt')}

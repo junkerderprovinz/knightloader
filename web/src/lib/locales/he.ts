@@ -3581,6 +3581,7 @@ export const he: Dict = {
   'whatsnew.change.pageActions': 'הפעולה הראשית של עמוד מרחפת בתחתיתו ונשארת בהישג יד בזמן הגלילה.',
   'whatsnew.change.collectorOptions': '„{name}” פותח חלון. „{cnl}” ו„{watch}” הם מתגים בתוכו.',
   'whatsnew.change.instanceCards': 'כל מופע הוא כרטיס קומפקטי, ומעליהם תמונה של הקבוצה.',
+  'whatsnew.change.handover': 'בתמונת הקבוצה חבילה נעה לאורך הקו כשקישורים נשלחים למופע אחר או מגיעים ממכשיר בקבוצה. קו מקווקו עובר דרך הממסר.',
   'whatsnew.change.accountsAdd': 'כפתור אחד מוסיף כל סוג של חשבון: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” מצייר את הסדר כתמונה: את מי שואלים קודם ואת מי אחר כך.',
   'whatsnew.change.pairingSteps': 'שלוש תמונות מראות איך הצימוד מתבצע.',

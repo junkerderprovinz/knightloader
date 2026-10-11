@@ -3568,6 +3568,7 @@ export const de: Dict = {
   'whatsnew.change.pageActions': 'Die wichtigste Aktion einer Seite schwebt an ihrem unteren Rand und bleibt beim Scrollen erreichbar.',
   'whatsnew.change.collectorOptions': '„{name}“ öffnet ein Fenster. „{cnl}“ und „{watch}“ sind Schalter darin.',
   'whatsnew.change.instanceCards': 'Jede Instanz ist eine kompakte Karte, darüber steht ein Bild der Gruppe.',
+  'whatsnew.change.handover': 'Im Bild der Gruppe wandert ein Paket über die Linie, wenn Links an eine andere Instanz gehen oder von einem Gerät der Gruppe ankommen. Eine gestrichelte Linie läuft über das Relay.',
   'whatsnew.change.accountsAdd': 'Ein Knopf legt jede Art von Konto an: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ zeigt die Reihenfolge als Bild: wer zuerst gefragt wird und wer danach.',
   'whatsnew.change.pairingSteps': 'Drei Bilder zeigen, wie die Kopplung abläuft.',

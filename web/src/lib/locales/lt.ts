@@ -3563,6 +3563,7 @@ export const lt: Dict = {
   'whatsnew.change.pageActions': 'Pagrindinis puslapio veiksmas sklando jo apačioje ir lieka pasiekiamas, kol slenki.',
   'whatsnew.change.collectorOptions': '„{name}“ atveria langą. „{cnl}“ ir „{watch}“ yra jungikliai jame.',
   'whatsnew.change.instanceCards': 'Kiekvienas egzempliorius yra kompaktiška kortelė, o virš jų yra grupės paveikslėlis.',
+  'whatsnew.change.handover': 'Grupės paveikslėlyje paketas keliauja linija, kai nuorodos siunčiamos į kitą egzempliorių arba atkeliauja iš grupės įrenginio. Punktyrinė linija eina per relay.',
   'whatsnew.change.accountsAdd': 'Vienas mygtukas prideda bet kurios rūšies paskyrą: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ nupiešia eilės tvarką kaip paveikslėlį: ko klausiama pirmiausia ir ko po to.',
   'whatsnew.change.pairingSteps': 'Trys paveikslėliai rodo, kaip vyksta susiejimas.',

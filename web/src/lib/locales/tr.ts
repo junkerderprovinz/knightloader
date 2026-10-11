@@ -3562,6 +3562,7 @@ export const tr: Dict = {
   'whatsnew.change.pageActions': 'Bir sayfanın ana eylemi sayfanın altında süzülür ve kaydırırken elinin altında kalır.',
   'whatsnew.change.collectorOptions': '“{name}” bir pencere açar. “{cnl}” ve “{watch}” bu pencerede birer anahtardır.',
   'whatsnew.change.instanceCards': 'Her örnek küçük bir karttır, üstlerinde de grubun bir resmi durur.',
+  'whatsnew.change.handover': 'Grubun resminde, bağlantılar başka bir örneğe giderken ya da gruptaki bir cihazdan gelirken çizgi boyunca bir paket ilerler. Kesikli çizgi röle üzerinden geçer.',
   'whatsnew.change.accountsAdd': 'Tek bir düğme her tür hesabı ekler: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” sırayı bir resim olarak çizer: önce kime, sonra kime sorulduğunu.',
   'whatsnew.change.pairingSteps': 'Üç resim eşleştirmenin nasıl ilerlediğini gösterir.',

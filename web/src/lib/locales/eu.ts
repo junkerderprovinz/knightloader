@@ -3558,6 +3558,7 @@ export const eu: Dict = {
   'whatsnew.change.pageActions': 'Orri baten ekintza nagusia haren behealdean flotatzen da eta eskura geratzen da korritzen duzun bitartean.',
   'whatsnew.change.collectorOptions': '«{name}» botoiak leiho bat irekitzen du. «{cnl}» eta «{watch}» etengailuak dira bertan.',
   'whatsnew.change.instanceCards': 'Instantzia bakoitza txartel trinko bat da, eta gainean taldearen irudi bat dago.',
+  'whatsnew.change.handover': 'Taldearen irudian, pakete bat lerroan zehar doa estekak beste instantzia batera doazenean edo taldeko gailu batetik iristen direnean. Lerro etena bitartekaritik igarotzen da.',
   'whatsnew.change.accountsAdd': 'Botoi bakar batek edozein kontu mota gehitzen du: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» atalak ordena irudi gisa marrazten du: nori galdetzen zaion lehenik eta nori gero.',
   'whatsnew.change.pairingSteps': 'Hiru irudik erakusten dute parekatzea nola egiten den.',

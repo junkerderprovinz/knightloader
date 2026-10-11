@@ -3577,6 +3577,7 @@ export const hr: Dict = {
   'whatsnew.change.pageActions': 'Glavna radnja stranice lebdi uz njezin donji rub i ostaje nadohvat ruke dok se pomičeš.',
   'whatsnew.change.collectorOptions': '„{name}” otvara prozor. „{cnl}” i „{watch}” prekidači su u njemu.',
   'whatsnew.change.instanceCards': 'Svaka instanca je kompaktna kartica, a iznad njih je slika skupine.',
+  'whatsnew.change.handover': 'Na slici skupine paket putuje po liniji kad poveznice odlaze na drugu instancu ili stižu s uređaja iz skupine. Isprekidana linija ide preko releja.',
   'whatsnew.change.accountsAdd': 'Jedan gumb dodaje svaku vrstu računa: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” crta redoslijed kao sliku: tko se pita prvi, a tko zatim.',
   'whatsnew.change.pairingSteps': 'Tri slike pokazuju kako teče uparivanje.',

@@ -3546,6 +3546,7 @@ export const nl: Dict = {
   'whatsnew.change.pageActions': 'De hoofdactie van een pagina zweeft onderaan en blijft binnen bereik terwijl je scrolt.',
   'whatsnew.change.collectorOptions': '“{name}” opent een venster. “{cnl}” en “{watch}” zijn schakelaars daarin.',
   'whatsnew.change.instanceCards': 'Elke instantie is een compacte kaart, met een afbeelding van de groep erboven.',
+  'whatsnew.change.handover': 'In de afbeelding van de groep reist een pakketje over de lijn wanneer links naar een andere instantie gaan of van een apparaat in de groep binnenkomen. Een stippellijn loopt via de relay.',
   'whatsnew.change.accountsAdd': 'Eén knop voegt elk soort account toe: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” tekent de volgorde als afbeelding: wie eerst wordt gevraagd en wie daarna.',
   'whatsnew.change.pairingSteps': 'Drie afbeeldingen laten zien hoe de koppeling verloopt.',
