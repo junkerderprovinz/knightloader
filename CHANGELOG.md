@@ -76,6 +76,8 @@ release's tag.
 
 ### Fixed
 
+- **Android: a connection by address whose token was revoked** says it has to
+  be added again with the twelve words, where it showed "unauthorized".
 - **The sign-in page says to wait after too many attempts,** where it said
   "Wrong password." even when the password was right. A refused passkey
   sign-in says the same.
