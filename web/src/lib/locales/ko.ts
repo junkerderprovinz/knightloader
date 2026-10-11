@@ -3077,7 +3077,7 @@ export const ko: Dict = {
   'settings.diagnostics.toolsMissing': '찾지 못함',
   'settings.eventTargets.problem.redirect': '주소가 리디렉션으로 응답하는데 이 인스턴스는 그것을 따라가지 않습니다. 이 행의 모든 헤더 값은 비밀로 다루며, 다른 호스트로 가는 리디렉션은 그 값을 그 호스트의 주인 손에 쥐여 주게 됩니다. 브라우저에서 그 주소를 열어 어디에 닿는지 보고, 그 주소를 대신 여기에 적으세요.',
   'auth.twoFactor.title': '2단계 인증',
-  'auth.twoFactor.hint': '비밀번호에 더해 인증 앱의 여섯 자리 코드를 씁니다. 비밀번호 옆에 서는 것이지 비밀번호를 대신하지는 않습니다. 이 인스턴스에는 사용자 계정이 없어서 대신 잠금을 풀어 줄 사람이 없습니다. 복구 코드는 코드를 만드는 휴대폰이 아닌 다른 곳에 보관하세요. 둘 다 잃었다면 기기에서 knightloader -reset-2fa 를 실행하거나, KnightLoader 를 멈추고 데이터 폴더의 auth.json 에서 totp 와 recovery 항목을 지우세요. 어느 쪽이든 비밀번호는 그대로 작동합니다.',
+  'auth.twoFactor.hint': '비밀번호에 더해 인증 앱의 여섯 자리 코드를 씁니다. 비밀번호 옆에 서는 것이지 비밀번호를 대신하지는 않습니다. 이 인스턴스에는 사용자 계정이 없어서 대신 잠금을 풀어 줄 사람이 없습니다. 복구 코드는 코드를 만드는 휴대폰이 아닌 다른 곳에 보관하세요. 둘 다 잃었다면 기기에서 knightloader -reset-2fa 를 실행하거나, KnightLoader 를 멈추고 데이터 폴더의 auth.json 에서 totp 와 recovery 항목을 지우세요. 어느 쪽이든 비밀번호는 그대로 작동합니다. 로그의 코드로 비밀번호를 재설정하면 2단계 인증이 꺼집니다.',
   'auth.twoFactor.on': '켜짐',
   'auth.twoFactor.off': '꺼짐',
   'auth.twoFactor.needsPassword': '먼저 비밀번호를 정하세요. 2단계 인증은 비밀번호를 지키는 것이므로 비밀번호가 있어야 합니다.',

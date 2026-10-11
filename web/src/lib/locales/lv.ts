@@ -3076,7 +3076,7 @@ export const lv: Dict = {
   'settings.diagnostics.toolsMissing': 'nav atrasts',
   'settings.eventTargets.problem.redirect': 'Adrese atbild ar pāradresāciju, un šī instance tai neseko. Katra galvenes vērtība šajā rindā tiek uzskatīta par noslēpumu, un pāradresācija uz citu resursdatoru to iedotu rokā tam, kam šis resursdators pieder. Atver adresi pārlūkā, paskaties, kur tā nonāk, un ieraksti šeit to adresi.',
   'auth.twoFactor.title': 'Divfaktoru autentifikācija',
-  'auth.twoFactor.hint': 'Sešciparu kods no autentifikācijas lietotnes, papildus parolei. Tas stāv līdzās parolei un nekad to neaizstāj. Šai instancei nav lietotāju kontu, tātad nav neviena cita, kas to tev atslēgtu: atkopšanas kodus glabā citur, nevis telefonā, kas kodus rada. Ja pazudis abi, palaid uz mašīnas knightloader -reset-2fa vai apstādini KnightLoader un izdzēs ierakstus totp un recovery no faila auth.json datu mapē. Parole abos gadījumos darbojas tālāk.',
+  'auth.twoFactor.hint': 'Sešciparu kods no autentifikācijas lietotnes, papildus parolei. Tas stāv līdzās parolei un nekad to neaizstāj. Šai instancei nav lietotāju kontu, tātad nav neviena cita, kas to tev atslēgtu: atkopšanas kodus glabā citur, nevis telefonā, kas kodus rada. Ja pazudis abi, palaid uz mašīnas knightloader -reset-2fa vai apstādini KnightLoader un izdzēs ierakstus totp un recovery no faila auth.json datu mapē. Parole abos gadījumos darbojas tālāk. Ja atiestati paroli ar kodu no žurnāla, divfaktoru autentifikācija tiek izslēgta.',
   'auth.twoFactor.on': 'Ieslēgts',
   'auth.twoFactor.off': 'Izslēgts',
   'auth.twoFactor.needsPassword': 'Vispirms uzstādi paroli. Otrais faktors sargā paroli, tātad tādai jābūt.',
