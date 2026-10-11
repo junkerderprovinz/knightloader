@@ -307,7 +307,7 @@ func (s *sink) run(ctx context.Context, req Request) (*Outcome, error) {
 		s.open(cur.path, cur.depth)
 		mark := s.recorded()
 
-		res, err := extractInto(cur.path, dest, o.Passwords)
+		res, err := extractInto(cur.path, o.into(dest), o.Passwords)
 		if err != nil {
 			if cur.depth == 0 {
 				return nil, err

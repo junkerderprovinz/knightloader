@@ -331,10 +331,13 @@ func containsAny(low string, phrases []string) bool {
 func diskCode(err error) (core.ErrorCode, map[string]string) {
 	var inData *dataFolderError
 	var barred *extract.BarredError
-	switch {
-	case errors.As(err, &inData):
+	if errors.As(err, &inData) {
+		if inData.holds {
+			return core.CodeHoldsDataFolder, map[string]string{"path": inData.dir}
+		}
 		return core.CodeDataFolder, map[string]string{"path": inData.dir}
-	case errors.As(err, &barred):
+	}
+	if errors.As(err, &barred) {
 		// The only folder the app bars is the data folder.
 		return core.CodeDataFolder, map[string]string{"path": barred.Dir}
 	}

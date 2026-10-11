@@ -2,7 +2,11 @@ package app
 
 import (
 	"errors"
+	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
+	"strings"
 	"testing"
 	"time"
 
@@ -47,8 +51,8 @@ func TestADownloadIsNotStartedIntoTheDataFolder(t *testing.T) {
 	refusedForTheDataFolder(t, a, "1")
 }
 
-// A download folder above the data folder is allowed, but a package named
-// after the data folder would put its files there.
+// A package named after the data folder puts its files there when the download
+// folder holds it.
 func TestAPackageFolderThatLeadsIntoTheDataFolderIsRefused(t *testing.T) {
 	a, stub, _ := delegatedFileApp(t)
 	s := a.Settings.Get()
@@ -62,6 +66,26 @@ func TestAPackageFolderThatLeadsIntoTheDataFolderIsRefused(t *testing.T) {
 	})
 	startsNothing(t, stub)
 	refusedForTheDataFolder(t, a, "1")
+}
+
+// A download folder that holds the data folder is refused when the download
+// would start, whatever the download is called.
+func TestADownloadIsNotStartedInAFolderThatHoldsTheDataFolder(t *testing.T) {
+	a, stub, _ := delegatedFileApp(t)
+	s := a.Settings.Get()
+	s.DownloadDir = filepath.Dir(a.DataDir)
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	queueTask(a, &core.Task{
+		ID: "1", URL: "https://elsewhere.example/film.mkv", Name: "film.mkv", Resolver: "elsewhere",
+		Status: core.StatusQueued, Enabled: true,
+	})
+	startsNothing(t, stub)
+	got := liveTask(a, "1")
+	if got.Status != core.StatusError || got.ErrorCode != core.CodeHoldsDataFolder || got.ErrorParams["path"] == "" {
+		t.Errorf("the download reads %s %q (%s %v), want it refused for holding the data folder", got.Status, got.Error, got.ErrorCode, got.ErrorParams)
+	}
 }
 
 func TestAFolderForOneDownloadIsRefusedInTheDataFolder(t *testing.T) {
@@ -141,11 +165,21 @@ func TestAPackageIsNotRenamedIntoTheDataFolder(t *testing.T) {
 func TestNothingIsUnpackedIntoTheDataFolder(t *testing.T) {
 	a, _, _ := delegatedFileApp(t)
 	opts := a.extractOptionsFor(nil, a.Settings.Get())
-	if opts.Barred == nil || !opts.Barred(filepath.Join(a.DataDir, "film")) {
+	if opts.Barred == nil || opts.Barred(filepath.Join(a.DataDir, "film")) == nil {
 		t.Error("the extraction options do not bar the data folder")
 	}
-	if opts.Barred(filepath.Join(a.DataDir, settings.DownloadsDirName, "film")) {
+	if opts.Barred(filepath.Join(a.DataDir, settings.DownloadsDirName, "film")) != nil {
 		t.Error("the extraction options bar the built-in download folder")
+	}
+	if opts.Barred(filepath.Dir(a.DataDir)) == nil {
+		t.Error("the extraction options do not bar a folder that holds the data folder")
+	}
+	planted := filepath.Join(a.DataDir, "settings.json")
+	if opts.BarredFile == nil || opts.BarredFile(planted) == nil {
+		t.Error("the extraction options let a file be written into the data folder")
+	}
+	if move := a.moveOptions(nil, a.Settings.Get()); move.Barred == nil || move.Barred(planted) == nil {
+		t.Error("the move options let a file be moved into the data folder")
 	}
 }
 
@@ -191,4 +225,77 @@ func TestAnArchiveIsNotUnpackedOrMovedIntoTheDataFolder(t *testing.T) {
 			}
 		})
 	}
+}
+
+// unpackAndSettle unpacks the archive of a finished download and waits for the
+// job to end.
+func unpackAndSettle(t *testing.T, a *App, task *core.Task) ExtractJob {
+	t.Helper()
+	if err := a.StartExtraction([]string{task.ID}); err != nil {
+		t.Fatal(err)
+	}
+	waitFor(t, "the job settling", func() bool {
+		j, ok := jobFor(a, task.ID)
+		return ok && j.Status != ExtractQueued && j.Status != ExtractRunning
+	})
+	j, _ := jobFor(a, task.ID)
+	return j
+}
+
+// notPlanted fails the test when the settings file in the data folder is the
+// one an archive brought.
+func notPlanted(t *testing.T, a *App) {
+	t.Helper()
+	if b, err := os.ReadFile(filepath.Join(a.DataDir, "settings.json")); err == nil && strings.Contains(string(b), "planted") {
+		t.Errorf("the archive replaced the settings file: %s", b)
+	}
+}
+
+// An extraction folder above the data folder, as a hand-edited settings file
+// can set, would let AppData.zip unpack over the settings, the login and the
+// tools. Nothing of it is written.
+func TestAnArchiveAboveTheDataFolderDoesNotReachIt(t *testing.T) {
+	home := t.TempDir()
+	data := filepath.Join(home, "AppData", "Roaming", "KnightLoader")
+	if err := os.MkdirAll(data, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	a, base := newRuleAppIn(t, data, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.ExtractTo = home
+	})
+	writeZip(t, filepath.Join(base, "AppData.zip"), "Roaming/KnightLoader/settings.json", `{"planted":true}`)
+	task := stageDone(t, a, "1", "AppData.zip")
+
+	j := unpackAndSettle(t, a, task)
+	if j.ErrorCode != core.CodeHoldsDataFolder {
+		t.Errorf("the job ended %s with %q (%s), want the refusal for a folder holding the data folder", j.Status, j.Error, j.ErrorCode)
+	}
+	notPlanted(t, a)
+}
+
+// A link already in the folder an archive unpacks into, leading into the data
+// folder, is followed when each file is checked.
+func TestAnArchiveEntryIsNotWrittenThroughALinkIntoTheDataFolder(t *testing.T) {
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+	})
+	release := filepath.Join(base, "release")
+	if err := os.MkdirAll(release, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	link := filepath.Join(release, "x")
+	if err := os.Symlink(a.DataDir, link); err != nil {
+		if out, jerr := exec.Command("cmd", "/c", "mklink", "/J", link, a.DataDir).CombinedOutput(); runtime.GOOS != "windows" || jerr != nil {
+			t.Skipf("this system cannot make a link: %v %s", err, out)
+		}
+	}
+	writeZip(t, filepath.Join(base, "release.zip"), "x/settings.json", `{"planted":true}`)
+	task := stageDone(t, a, "1", "release.zip")
+
+	j := unpackAndSettle(t, a, task)
+	if j.ErrorCode != core.CodeDataFolder {
+		t.Errorf("the job ended %s with %q (%s), want the data folder refusal", j.Status, j.Error, j.ErrorCode)
+	}
+	notPlanted(t, a)
 }
