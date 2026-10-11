@@ -1,10 +1,12 @@
 // Every refusal an instance can answer this browser with when it will not take
-// its key has a sentence in every catalogue, so the badge never falls back to
-// "The instance refused it" for something the browser could fix.
+// its key, or when a member may not make the call, has a sentence in every
+// catalogue, so the badge never falls back to "The instance refused it" for
+// something the browser could fix.
 //
-// The codes are read from the server (internal/federation/members.go and
-// internal/relay/member.go), so a code added there fails this check until it
-// is mapped in src/group.js or listed below as one no browser can meet.
+// The codes are read from the server (internal/federation/members.go,
+// internal/relay/member.go and internal/api/group_routes.go), so a code added
+// there fails this check until it is mapped in src/group.js or listed below as
+// one no browser can meet.
 //
 // Run by CI and by hand: `node extension/check-member-refusals.mjs`.
 import { readFileSync } from 'node:fs';
@@ -22,8 +24,13 @@ const UNREACHABLE = {
   memberSignature: 'the signature is checked against the server vector',
 };
 
-const server = read('..', 'internal', 'federation', 'members.go') + read('..', 'internal', 'relay', 'member.go');
-const codes = new Set([...server.matchAll(/(?:refuse\([^,]+,|RefusalBody\()\s*"([A-Za-z]+)"/g)].map((m) => m[1]));
+const server =
+  read('..', 'internal', 'federation', 'members.go') +
+  read('..', 'internal', 'relay', 'member.go') +
+  read('..', 'internal', 'api', 'group_routes.go');
+const codes = new Set(
+  [...server.matchAll(/(?:refuse\([^,]+,|RefusalBody\(|writeRefusal\([^,]+,[^,]+,)\s*"([A-Za-z]+)"/g)].map((m) => m[1]),
+);
 const problems = [];
 if (codes.size === 0) problems.push('no refusal codes found in the server; the pattern in this check no longer matches it');
 

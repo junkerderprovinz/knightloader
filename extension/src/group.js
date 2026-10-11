@@ -247,7 +247,8 @@ function bestWebUrl(remote) {
 
 /**
  * The refusals an instance answers a browser with when it will not take its
- * key (internal/federation/members.go), each with its sentence.
+ * key (internal/federation/members.go) or a call a member may not make
+ * (internal/api/group_routes.go), each with its sentence.
  * check-member-refusals.mjs holds this map to the server's codes.
  */
 const REFUSAL_KEYS = {
@@ -258,6 +259,7 @@ const REFUSAL_KEYS = {
   groupFull: 'refusal.groupFull',
   groupJoinsBusy: 'refusal.groupJoinsBusy',
   memberNotPinned: 'refusal.memberNotPinned',
+  ownLoginNeeded: 'refusal.ownLoginNeeded',
 };
 
 /** refusalKey is the catalogue key for why an instance refused a call: its
