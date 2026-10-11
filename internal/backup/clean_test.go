@@ -188,3 +188,93 @@ func TestARestoreKeepsTheRunningServersPasskeys(t *testing.T) {
 		t.Errorf("after the restore the passkeys are %v, want only the running server's [current]", ids)
 	}
 }
+
+// firing is a trigger that records each time it runs, and a view beside it.
+var firing = []string{
+	`CREATE TABLE fired (n INTEGER)`,
+	`CREATE TRIGGER mark AFTER DELETE ON passkeys BEGIN INSERT INTO fired VALUES (1); END`,
+	`CREATE VIEW keys AS SELECT * FROM passkeys`,
+}
+
+// retype gives the schema rows of the planted trigger and view another
+// spelling of their type, the way a hand-edited file can.
+func retype(t *testing.T, path, trigger, view string) {
+	t.Helper()
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+	db.SetMaxOpenConns(1)
+	for _, q := range []string{
+		`PRAGMA writable_schema = ON`,
+		`UPDATE sqlite_master SET type = '` + trigger + `' WHERE name = 'mark'`,
+		`UPDATE sqlite_master SET type = '` + view + `' WHERE name = 'keys'`,
+		`PRAGMA writable_schema = OFF`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			t.Fatalf("%s: %v", q, err)
+		}
+	}
+}
+
+// The schema rows are matched whatever their type is spelled as, and nothing
+// the file brings runs while it is cleaned.
+func TestCleaningRunsNoTriggerHoweverItsTypeIsSpelled(t *testing.T) {
+	for _, spelling := range [][2]string{{"Trigger", "View"}, {"TRIGGER", "VIEW"}} {
+		t.Run(spelling[0], func(t *testing.T) {
+			path := databaseWith(t, []string{"old"}, firing...)
+			retype(t, path, spelling[0], spelling[1])
+			dataDir := t.TempDir()
+			if _, err := Stage(dataDir, archiveOf(t, path), "v1.2.3"); err != nil {
+				t.Fatalf("Stage: %v", err)
+			}
+			staged := filepath.Join(dataDir, pendingDirName, dbEntry)
+			db, err := sql.Open("sqlite", staged)
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer db.Close()
+			var code, fired int
+			if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE name IN ('mark', 'keys')`).Scan(&code); err != nil {
+				t.Fatal(err)
+			}
+			if code != 0 {
+				t.Errorf("the staged database still has %d of the planted trigger and view", code)
+			}
+			if err := db.QueryRow(`SELECT count(*) FROM fired`).Scan(&fired); err != nil {
+				t.Fatal(err)
+			}
+			if fired != 0 {
+				t.Errorf("the planted trigger ran %d time(s) while the database was cleaned", fired)
+			}
+		})
+	}
+}
+
+func TestOnlyPlainTablesAndIndexesStayInTheSchema(t *testing.T) {
+	stmt := func(s string) sql.NullString { return sql.NullString{String: s, Valid: true} }
+	for _, c := range []struct {
+		kind string
+		stmt sql.NullString
+		keep bool
+	}{
+		{"table", stmt("CREATE TABLE tasks (id TEXT)"), true},
+		{"table", stmt("/* a */ create\n  table x (a)"), true},
+		{"index", stmt("CREATE UNIQUE INDEX i ON t(a)"), true},
+		{"index", sql.NullString{}, true},
+		{"table", sql.NullString{}, false},
+		{"table", stmt("CREATE TRIGGER t AFTER DELETE ON x BEGIN SELECT 1; END"), false},
+		{"table", stmt("create/**/trigger t after delete on x begin select 1; end"), false},
+		{"Trigger", stmt("CREATE TRIGGER t AFTER DELETE ON x BEGIN SELECT 1; END"), false},
+		{"view", stmt("CREATE VIEW v AS SELECT 1"), false},
+		{"table", stmt("CREATE VIRTUAL TABLE f USING fts5(a)"), false},
+		{"table", stmt("CREATE TEMP TABLE x (a)"), false},
+		{"index", stmt("CREATE TABLE x (a)"), false},
+		{"table", stmt("-- unterminated"), false},
+	} {
+		if got := plainSchema(c.kind, c.stmt); got != c.keep {
+			t.Errorf("plainSchema(%q, %q) = %v, want %v", c.kind, c.stmt.String, got, c.keep)
+		}
+	}
+}
