@@ -130,13 +130,17 @@ func tokenSecret(r *http.Request) string {
 	return ""
 }
 
+// setSession hands the browser its session cookie. Behind a proxy that ends
+// TLS, the forwarded scheme is the only sign the browser used https. A sender
+// that lies about it gains nothing: a Secure cookie only stays off plain HTTP,
+// and the cookie is its own.
 func setSession(w http.ResponseWriter, r *http.Request, token string) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     auth.CookieName,
 		Value:    token,
 		Path:     cookiePath(r),
 		HttpOnly: true,
-		Secure:   r.TLS != nil,
+		Secure:   requestScheme(r) == "https",
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(auth.SessionTTL / time.Second),
 	})
@@ -153,7 +157,7 @@ func clearSession(w http.ResponseWriter, r *http.Request) {
 	for _, p := range paths {
 		http.SetCookie(w, &http.Cookie{
 			Name: auth.CookieName, Value: "", Path: p, HttpOnly: true,
-			Secure: r.TLS != nil, SameSite: http.SameSiteLaxMode, MaxAge: -1,
+			Secure: requestScheme(r) == "https", SameSite: http.SameSiteLaxMode, MaxAge: -1,
 		})
 	}
 }

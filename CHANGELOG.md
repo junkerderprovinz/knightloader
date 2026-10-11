@@ -192,6 +192,9 @@ release's tag.
 
 - **Android: a connection by address whose token was revoked** says it has to
   be added again with the twelve words, where it showed "unauthorized".
+- **Behind a reverse proxy that serves https, the session cookie is marked
+  Secure,** so the browser never sends it over plain HTTP. The same goes for
+  the qBittorrent login Sonarr and Radarr use.
 
 ## [1.8.4] - 2026-10-08
 
