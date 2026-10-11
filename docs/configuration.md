@@ -34,8 +34,10 @@ list of services, and where each one issues its key, is
 
 ## Trusted proxies
 
-After eight failed sign-ins from one address, KnightLoader makes that address
-wait half a minute. Passwords and two-factor codes share one count, passkeys
+KnightLoader takes five failed sign-ins a minute from one address and refuses
+the next until the first of them is a minute old. The right password is
+refused too while the address waits, and a wrong password gets the same answer
+however close it was. Passwords and two-factor codes share one count, passkeys
 and reset codes have one each. Behind a reverse proxy every request arrives
 from the proxy, so one person guessing makes everybody wait.
 

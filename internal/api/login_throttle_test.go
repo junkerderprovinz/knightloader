@@ -5,9 +5,11 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
+	"net/http/httptest"
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 )
@@ -15,14 +17,14 @@ import (
 // TestParallelGuessesStillMeetTheThrottle: an attacker who has the password
 // sends a burst of code guesses at once. Every one of them must count before
 // the first answer comes back, or the burst gets as many guesses as bcrypt
-// can check rather than loginFailBurst.
+// can check rather than loginFailLimit.
 func TestParallelGuessesStillMeetTheThrottle(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	armTwoFactor(t, a, "a-good-password")
 
-	const burst = 4 * loginFailBurst
+	const burst = 4 * loginFailLimit
 	codes := make(chan int, burst)
 	var start, done sync.WaitGroup
 	start.Add(1)
@@ -51,12 +53,64 @@ func TestParallelGuessesStillMeetTheThrottle(t *testing.T) {
 			checked++
 		}
 	}
-	if checked > loginFailBurst {
-		t.Errorf("%d of %d parallel guesses were checked, want at most %d", checked, burst, loginFailBurst)
+	if checked > loginFailLimit {
+		t.Errorf("%d of %d parallel guesses were checked, want at most %d", checked, burst, loginFailLimit)
 	}
 }
 
-// TestRevealSharesTheLoginThrottle: the phrase route asks for the password
+// TestFiveFailedSignInsAMinute: the sixth wrong password within a minute is
+// refused unchecked, and the client may try again once the first has left
+// the window.
+func TestFiveFailedSignInsAMinute(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	for i := range 5 {
+		if code := login(t, http.DefaultClient, srv.URL, "not-the-password"); code != http.StatusUnauthorized {
+			t.Fatalf("wrong password %d answered %d, want 401", i+1, code)
+		}
+	}
+	if code := login(t, http.DefaultClient, srv.URL, "a-good-password"); code != http.StatusTooManyRequests {
+		t.Fatalf("the right password after five wrong ones answered %d, want 429", code)
+	}
+}
+
+// TestTheThrottleWindowSlides: a failure stops counting a minute after it
+// happened, not a minute after the last one.
+func TestTheThrottleWindowSlides(t *testing.T) {
+	t.Parallel()
+	g := newLoginGate(nil)
+	now := time.Unix(1_700_000_000, 0)
+	g.now = func() time.Time { return now }
+	r := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+
+	for i := range loginFailLimit {
+		if !g.try(r) {
+			t.Fatalf("attempt %d was refused", i+1)
+		}
+		now = now.Add(10 * time.Second)
+	}
+	if g.try(r) {
+		t.Fatalf("attempt %d within %v was let through", loginFailLimit+1, loginFailWindow)
+	}
+	// 50 seconds have passed; the first failure leaves the window at 60.
+	now = now.Add(9 * time.Second)
+	if g.try(r) {
+		t.Fatal("an attempt was let through before the first failure left the window")
+	}
+	now = now.Add(time.Second)
+	if !g.try(r) {
+		t.Fatal("an attempt was refused after the first failure left the window")
+	}
+	if g.try(r) {
+		t.Fatal("two attempts were let through when one failure had left the window")
+	}
+}
+
+// TestRevealSharesTheLoginThrottle:the phrase route asks for the password
 // again, so it must not be a way to guess the password the login throttles.
 func TestRevealSharesTheLoginThrottle(t *testing.T) {
 	t.Parallel()
@@ -77,11 +131,11 @@ func TestRevealSharesTheLoginThrottle(t *testing.T) {
 		return resp.StatusCode
 	}
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last = reveal("not-the-password")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong passwords the phrase route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong passwords the phrase route answered %d, want 429", loginFailLimit+1, last)
 	}
 	if code := login(t, http.DefaultClient, srv.URL, "a-good-password"); code != http.StatusTooManyRequests {
 		t.Errorf("the login answered %d right after the phrase route ran out of attempts, want 429", code)

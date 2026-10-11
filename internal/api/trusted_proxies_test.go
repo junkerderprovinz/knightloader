@@ -75,11 +75,11 @@ func TestBehindATrustedProxyOneGuesserMakesOnlyThemselvesWait(t *testing.T) {
 			trustLoopback(t, a)
 		}
 		var last int
-		for range loginFailBurst + 1 {
+		for range loginFailLimit + 1 {
 			last = loginFrom(t, srv.URL, "not-the-password", "203.0.113.5")
 		}
 		if last != http.StatusTooManyRequests {
-			t.Fatalf("trusted %v: after %d wrong passwords the login answered %d, want 429", trusted, loginFailBurst+1, last)
+			t.Fatalf("trusted %v: after %d wrong passwords the login answered %d, want 429", trusted, loginFailLimit+1, last)
 		}
 		got := loginFrom(t, srv.URL, "a-good-password", "203.0.113.6")
 		if trusted && got != http.StatusOK {
@@ -108,11 +108,11 @@ func TestWrongResetCodesBehindATrustedProxyCountPerCaller(t *testing.T) {
 		return resp.StatusCode
 	}
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last = finish("203.0.113.5")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailLimit+1, last)
 	}
 	if got := finish("203.0.113.6"); got != http.StatusUnauthorized {
 		t.Errorf("another caller's wrong code answered %d, want 401 rather than the other caller's 429", got)

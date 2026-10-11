@@ -349,11 +349,11 @@ func TestWrongResetCodesMeetAThrottleOfTheirOwn(t *testing.T) {
 	srv, _, _ := resetServer(t)
 
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailLimit+1, last)
 	}
 	if status := login(t, &http.Client{Jar: newJar(t)}, srv.URL, resetOldPassword); status != http.StatusOK {
 		t.Errorf("the password answered %d after the reset ran out of attempts, want 200", status)
@@ -368,11 +368,11 @@ func TestTheRightCodeGetsPastAClosedGate(t *testing.T) {
 	srv, _, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailLimit+1, last)
 	}
 
 	if status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword); status != http.StatusOK {
@@ -613,11 +613,11 @@ func TestNoStreamOpenedDuringAResetSurvivesIt(t *testing.T) {
 func TestAThrottledPasswordLeavesTheResetOpen(t *testing.T) {
 	srv, _, out := resetServer(t)
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last = login(t, http.DefaultClient, srv.URL, "not-the-password")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong passwords the login answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong passwords the login answered %d, want 429", loginFailLimit+1, last)
 	}
 
 	code := askForCode(t, srv.URL, out)
@@ -630,7 +630,7 @@ func TestAPasswordThatIsTooShortCostsNeitherTheCodeNorAnAttempt(t *testing.T) {
 	srv, _, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		if status, body := finishReset(t, http.DefaultClient, srv.URL, code, "short"); status != http.StatusBadRequest {
 			t.Fatalf("a short password answered %d: %s", status, body)
 		}
