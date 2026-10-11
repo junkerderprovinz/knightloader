@@ -187,6 +187,9 @@ release's tag.
 - **A changed password and a sign-out everywhere close the live updates** of
   every open page, as a reset does. The page you changed the password on
   picks them up again with its new session.
+- **Removing the password deletes every passkey,** as it already switched
+  two-factor authentication off, so no old passkey opens the instance again
+  once a new password is set. The hint under New password says so.
 
 ### Fixed
 

@@ -342,7 +342,7 @@ export const tr: Dict = {
   'settings.lockHint': 'Bu örneğe erişebilen herkese karşı korur: aynı ağda, bir alan adı üzerinden veya bir aktarıcı (relay) üzerinden. Bir kez ayarlandığında, bu örnek açılmadan önce girilmesi gerekir, herkes için, bir sonraki ziyaretinizde siz de dahil. Parola olmadan, adresi bulan herkes her indirmeyi görebilir ve kendi indirmelerini ekleyebilir, duraklatabilir veya silebilir.',
   'settings.passwordCurrent': 'Mevcut parola',
   'settings.passwordNew': 'Yeni parola',
-  'settings.passwordHint': 'En az 8 karakter. Kilidi kaldırmak için boş bırakın.',
+  'settings.passwordHint': 'En az 8 karakter. Kilidi kaldırmak için boş bırakın. Bu, iki adımlı doğrulamayı da kapatır ve bütün geçiş anahtarlarını siler.',
   'settings.setPassword': 'Parolayı ayarla',
   'settings.passwordSaved': 'Parola güncellendi.',
   'auth.title': 'Bu örnek kilitli',

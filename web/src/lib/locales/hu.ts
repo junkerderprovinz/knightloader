@@ -342,7 +342,7 @@ export const hu: Dict = {
   'settings.lockHint': 'Megvédi ezt a példányt mindenkitől, aki el tudja érni: ugyanazon a hálózaton, egy domainen vagy egy relén keresztül. Ha be van állítva, meg kell adni, mielőtt ez a példány egyáltalán megnyílna, mindenki számára, beleértve téged is a következő látogatáskor. Jelszó nélkül bárki, aki megtalálja a címet, láthat minden letöltést, és hozzáadhatja, szüneteltetheti vagy törölheti a sajátjait.',
   'settings.passwordCurrent': 'Jelenlegi jelszó',
   'settings.passwordNew': 'Új jelszó',
-  'settings.passwordHint': 'Legalább 8 karakter. Hagyja üresen a zár eltávolításához.',
+  'settings.passwordHint': 'Legalább 8 karakter. Hagyja üresen a zár eltávolításához. Ezzel a kétlépcsős azonosítás is kikapcsol, és minden azonosítókulcs törlődik.',
   'settings.setPassword': 'Jelszó beállítása',
   'settings.passwordSaved': 'A jelszó frissítve.',
   'auth.title': 'Ez a példány zárolva van',

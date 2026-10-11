@@ -342,7 +342,7 @@ export const ms: Dict = {
   'settings.lockHint': 'Melindungi instans ini daripada sesiapa yang boleh mencapainya: pada rangkaian yang sama, melalui domain, atau melalui geganti (relay). Setelah ditetapkan, ia mesti dimasukkan sebelum instans ini dibuka sama sekali, untuk sesiapa sahaja, termasuk anda sendiri pada lawatan seterusnya. Tanpa kata laluan, sesiapa yang menemui alamat boleh melihat setiap muat turun, dan menambah, menjeda atau memadam miliknya sendiri.',
   'settings.passwordCurrent': 'Kata laluan semasa',
   'settings.passwordNew': 'Kata laluan baharu',
-  'settings.passwordHint': 'Sekurang-kurangnya 8 aksara. Biar kosong untuk buang kunci.',
+  'settings.passwordHint': 'Sekurang-kurangnya 8 aksara. Biar kosong untuk buang kunci. Ini juga mematikan pengesahan dua faktor dan membuang setiap kunci laluan.',
   'settings.setPassword': 'Tetapkan kata laluan',
   'settings.passwordSaved': 'Kata laluan dikemas kini.',
   'auth.title': 'Instance ini berkunci',

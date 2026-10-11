@@ -342,7 +342,7 @@ export const lt: Dict = {
   'settings.lockHint': 'Apsaugo šį egzempliorių nuo bet ko, kas gali jį pasiekti: tame pačiame tinkle, per domeną ar per relę. Kai slaptažodis nustatytas, jį reikia įvesti prieš atsidarant šiam egzemplioriui, visiems, įskaitant jus patį kitą kartą. Be slaptažodžio bet kas, radęs adresą, gali matyti kiekvieną atsisiuntimą ir pridėti, pristabdyti ar ištrinti savuosius.',
   'settings.passwordCurrent': 'Dabartinis slaptažodis',
   'settings.passwordNew': 'Naujas slaptažodis',
-  'settings.passwordHint': 'Bent 8 simboliai. Palik tuščią, kad panaikintum užraktą.',
+  'settings.passwordHint': 'Bent 8 simboliai. Palik tuščią, kad panaikintum užraktą. Tai taip pat išjungia dviejų veiksnių tapatybės nustatymą ir ištrina visus prieigos raktus.',
   'settings.setPassword': 'Nustatyti slaptažodį',
   'settings.passwordSaved': 'Slaptažodis pakeistas.',
   'auth.title': 'Šis egzempliorius užrakintas',

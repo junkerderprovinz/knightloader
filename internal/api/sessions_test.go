@@ -12,6 +12,7 @@ import (
 	"github.com/coder/websocket"
 
 	"github.com/junkerderprovinz/knightloader/internal/auth"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 // sessionStatus asks for the task list with only cookie, the way a copy of it
@@ -219,5 +220,36 @@ func TestSigningOutEverywhereClosesTheLiveStreams(t *testing.T) {
 	}
 	if !closedByServer(stream) {
 		t.Error("a stream was still open ten seconds after signing out everywhere")
+	}
+}
+
+func TestRemovingThePasswordRemovesEveryPasskey(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.Store.AddPasskey(store.Passkey{
+		Name: "my phone", RPID: "kl.example.com",
+		CredentialID: []byte{1, 2, 3}, PublicKey: []byte{4, 5, 6},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	owner, _ := signedIn(t, srv.URL, "a-good-password")
+
+	body, _ := json.Marshal(map[string]string{"current": "a-good-password", "new": ""})
+	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", bytes.NewReader(body))
+	resp, err := owner.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK || a.Auth.Enabled() {
+		t.Fatalf("removing the password answered %d", resp.StatusCode)
+	}
+
+	if left, _ := a.Store.ListPasskeys(); len(left) != 0 {
+		t.Errorf("%d passkey(s) outlived the password and would sign in once another one is set", len(left))
 	}
 }
