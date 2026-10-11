@@ -101,6 +101,10 @@ release's tag.
   off, removes every passkey and API token, signs out every other browser and
   replaces the key sessions are signed with. Event programs and scripts stay
   as they are.
+- **Trusted proxies under Settings > Access.** Behind a reverse proxy, the
+  sign-in throttle counts every visitor by the address the proxy reports, so
+  one person guessing at the password no longer makes everybody wait. It is
+  empty by default, and the manual says when to fill it in.
 
 ### Changed
 
@@ -184,11 +188,29 @@ release's tag.
 - **A browser whose session has ended returns to the sign-in page,** after a
   reset, a changed password or a sign-out everywhere, instead of showing load
   errors.
+- **A changed password and a sign-out everywhere close the live updates** of
+  every open page, as a reset does. The page you changed the password on
+  picks them up again with its new session.
+- **Removing the password deletes every passkey,** as it already switched
+  two-factor authentication off, so no old passkey opens the instance again
+  once a new password is set. The hint under New password says so.
+- **The two-factor info says that a password reset from the log switches
+  two-factor authentication off.**
 
 ### Fixed
 
 - **Android: a connection by address whose token was revoked** says it has to
   be added again with the twelve words, where it showed "unauthorized".
+- **Behind a reverse proxy that serves https, the session cookie is marked
+  Secure,** so the browser never sends it over plain HTTP. The same goes for
+  the qBittorrent login Sonarr and Radarr use.
+- **The sign-in page says to wait after too many attempts,** where it said
+  "Wrong password." even when the password was right. A refused passkey
+  sign-in says the same.
+- **"At least 8 characters" counts characters, not bytes,** so a password in
+  another alphabet is held to the same length as one in English. A password
+  over 72 bytes, the most the hash takes, gets its own message on the
+  settings card and the reset form instead of an English error.
 
 ## [1.8.4] - 2026-10-08
 

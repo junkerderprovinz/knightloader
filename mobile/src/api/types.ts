@@ -169,10 +169,10 @@ export interface DirectConnection {
  * Reached through a relay both ends dial out to, for the case where nothing on
  * this phone's network can open a connection to the instance.
  *
- * It still carries a token: a relay-proxied call is replayed against the
- * target's own API and hits its normal auth guard, so a password-protected
- * instance needs one as it would over HTTP. The relay key gets the call to the
- * instance, the token gets it past the door.
+ * It carries a token too, and sends it along, but the instance does not read
+ * it on a relay call: a frame sealed under the group's key is let in on that
+ * alone (caller in internal/api/api.go), and relayForwardable limits what it
+ * can reach.
  */
 export interface RelayConnection {
   kind: 'relay';

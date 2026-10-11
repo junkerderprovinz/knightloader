@@ -307,6 +307,24 @@ if (!resetMinutes || !resetLength) {
     }
   }
 }
+// A reset switches the second factor off, and both places that explain the
+// second factor or the reset have to say so: whoever sets up two-factor
+// authentication should know that reading the log undoes it.
+const resetEndsTwoFactor = /func \(g \*Guard\) FinishReset[\s\S]*?g\.totp = ""/.test(RESET_GO);
+const twoFactorHint = EN_TS.match(/'auth\.twoFactor\.hint': '([^']*)'/)?.[1] ?? '';
+const resetEffect = EN_TS.match(/'auth\.reset\.effect': '([^']*)'/)?.[1] ?? '';
+if (!resetEndsTwoFactor) {
+  fail('internal/auth/reset.go no longer switches the second factor off in FinishReset, which auth.twoFactor.hint and auth.reset.effect both say');
+} else {
+  for (const [where, text] of [
+    ['en.ts auth.twoFactor.hint', twoFactorHint],
+    ['en.ts auth.reset.effect', resetEffect],
+  ]) {
+    if (!/two-factor authentication off/.test(text)) {
+      fail(`${where} does not say that a password reset switches two-factor authentication off`);
+    }
+  }
+}
 if (!resetGapIsAMinute) {
   fail('internal/auth/reset.go no longer mints a reset code at most once a minute, which docs/configuration.md and auth.reset.rejected both say');
 }

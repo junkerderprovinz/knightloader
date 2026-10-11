@@ -701,6 +701,9 @@ export interface Settings {
   /** Full URLs such as "https://kl.example.com", remembered the first time a
    *  request arrives on one or added by hand. */
   knownDomains: string[];
+  /** The reverse proxies whose X-Forwarded-For the sign-in throttle reads,
+   *  as IP addresses or CIDR ranges. */
+  trustedProxies: string[];
 }
 
 /**
@@ -2847,8 +2850,9 @@ export async function fetchAuth(): Promise<AuthState> {
 
 /**
  * login exchanges the password, and a code once a second factor is armed, for
- * a session cookie. A wrong password throws; a request for a code or a
- * rejected code are returned, since the sign-in is still in progress.
+ * a session cookie. A wrong password throws, and so do too many attempts, as
+ * an ApiError with status 429; a request for a code or a rejected code are
+ * returned, since the sign-in is still in progress.
  */
 export async function login(password: string, code = ''): Promise<LoginResult> {
   const r = await post('/api/auth/login', { password, code });
@@ -2860,7 +2864,8 @@ export async function login(password: string, code = ''): Promise<LoginResult> {
   } catch {
     // A plain-text body, which is the wrong-password case.
   }
-  throw new Error(text || String(r.status));
+  // Not through refusal: a wrong password is no sign that a session ended.
+  throw new ApiError(text || String(r.status), undefined, undefined, r.status);
 }
 
 /**
@@ -3103,13 +3108,14 @@ export async function logout(): Promise<void> {
 }
 
 // setPassword sets, changes or (with an empty next) removes the password lock.
+// A new password of the wrong length is refused with the code passwordTooShort
+// or passwordTooLong.
 export async function setPassword(current: string, next: string): Promise<AuthState> {
   const r = await fetch('/api/auth/password', {
     method: 'PUT',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ current, new: next }),
   });
-  if (!r.ok) throw new Error(await r.text());
   return json<AuthState>(r);
 }
 

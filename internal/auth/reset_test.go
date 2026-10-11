@@ -261,12 +261,22 @@ func TestAPasswordThatIsTooShortKeepsTheCode(t *testing.T) {
 
 func TestAPasswordBcryptWouldRefuseKeepsTheCode(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := finish(g, code, strings.Repeat("a", 73)); err == nil {
-		t.Fatal("a 73 byte password was accepted")
+	if err := finish(g, code, strings.Repeat("a", 73)); !errors.Is(err, ErrTooLong) {
+		t.Fatalf("a 73 byte password = %v, want ErrTooLong", err)
 	}
 
 	if err := finish(g, code, resetPassword); err != nil {
 		t.Fatalf("the code did not survive a password that was too long: %v", err)
+	}
+}
+
+func TestAResetCountsCharactersNotBytes(t *testing.T) {
+	g, _, code := askedFor(t)
+	if err := finish(g, code, "äöüßäöü"); !errors.Is(err, ErrTooShort) {
+		t.Fatalf("seven characters in fourteen bytes = %v, want ErrTooShort", err)
+	}
+	if err := finish(g, code, "äöüßäöüé"); err != nil {
+		t.Fatalf("eight characters were refused: %v", err)
 	}
 }
 
@@ -400,7 +410,7 @@ func TestAChangeCheckedAgainstAResetPasswordIsRefused(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := g.changeFrom(checked, "the-intruders-password"); !errors.Is(err, ErrWrongPassword) {
+	if _, err := g.changeFrom(checked, "the-intruders-password", nil); !errors.Is(err, ErrWrongPassword) {
 		t.Fatalf("a change checked before the reset = %v, want ErrWrongPassword", err)
 	}
 	if !g.Check(resetPassword) {
