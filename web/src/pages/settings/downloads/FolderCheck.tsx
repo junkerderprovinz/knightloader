@@ -2,9 +2,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { checkFolderOwners, type FolderOwnerProbe, type FolderOwnerReport } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtDate } from '../../../lib/format';
-import { Button, Card, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import { Button, type ButtonVerdict } from '../../../components/ui';
 import { IconCheck, IconClose } from '../../../lib/icons';
 import { useDraft } from '../context';
+import { SubHead } from '../controls';
 
 // The folder check writes a probe file into each configured folder and
 // compares its owner and mode with the folder's, which catches a share owned by
@@ -39,7 +40,7 @@ function roleLabel(t: Translate, role: string): string {
   }
 }
 
-export function FolderCheckCard({ hue }: { hue: number }) {
+export function FolderCheck() {
   const { t } = useT();
   const { cfg, dirty } = useDraft();
   const [report, setReport] = useState<FolderOwnerReport | null>(null);
@@ -92,8 +93,8 @@ export function FolderCheckCard({ hue }: { hue: number }) {
           : { label: t('settings.diagnostics.verdict.ok'), icon: <IconCheck />, verdict: 'ok' };
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={t('settings.owner.checkHint')}>{t('settings.owner.checkTitle')}</SectionTitle>
+    <>
+      <SubHead label={t('settings.owner.checkTitle')} hint={t('settings.owner.checkHint')} />
 
       {/* Why the check could not run, above the button until the next one. */}
       {error && <span className="text-sm text-carbon-textSub">{error}</span>}
@@ -118,7 +119,7 @@ export function FolderCheckCard({ hue }: { hue: number }) {
           ))}
         </div>
       )}
-    </Card>
+    </>
   );
 }
 
