@@ -1,6 +1,6 @@
 import { useRef, useState } from 'react';
 import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
-import { IconClose, IconDownloads, IconUpload } from '../../../lib/icons';
+import { IconClose, IconDownload, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   ApiError,
@@ -153,7 +153,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
-            icon={<IconDownloads width={16} height={16} />}
+            icon={<IconDownload width={16} height={16} />}
             onClick={() => {
               window.location.href = withBase(BACKUP_DOWNLOAD_URL);
             }}
@@ -199,7 +199,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
-            icon={<IconDownloads width={16} height={16} />}
+            icon={<IconDownload width={16} height={16} />}
             onClick={() => {
               // Opened rather than fetched, so the browser owns the save dialog.
               window.location.href = settingsExportURL(withSecrets);

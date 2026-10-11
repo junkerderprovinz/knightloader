@@ -20,7 +20,7 @@ import {
 import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { IconCheckDrawn, IconClipboard, IconClose, IconEdit, IconEye, IconRetry, IconSignOut, IconWarning } from '../../../lib/icons';
+import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconPencil, IconRefresh, IconSignOut, IconWarning } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
 import { useToast } from '../../../lib/toast';
 import { PhraseGlyph } from './pairingArt';
@@ -314,7 +314,7 @@ export function PhraseCard({
   const copyButton = (
     <Button
       kind="secondary"
-      icon={copies > 0 ? <IconCheckDrawn /> : <IconClipboard />}
+      icon={copies > 0 ? <IconCheckDrawn /> : <IconCopy />}
       confirm={copies}
       onClick={() => void copy()}
     >
@@ -341,7 +341,7 @@ export function PhraseCard({
       <span className="font-semibold text-carbon-text">{t('relay.notConnected')}</span>
       <InfoBubble tip={t('pairing.relayCheckTip')} />
       <span className="ms-auto">
-        <Button kind="secondary" icon={<IconRetry />} onClick={onRefresh}>
+        <Button kind="secondary" icon={<IconRefresh />} onClick={onRefresh}>
           {t('pairing.checkAgain')}
         </Button>
       </span>
@@ -430,7 +430,7 @@ export function PhraseCard({
         <NextStep t={t} />
         <div className="flex flex-wrap items-center justify-end gap-2.5">
           <span className="min-w-0 flex-[1_1_10rem] text-subline text-carbon-textMuted">{t('pairing.notFirst')}</span>
-          <Button kind="secondary" icon={<IconEdit />} onClick={() => void leave(() => setShown('enter'))} disabled={busy}>
+          <Button kind="secondary" icon={<IconPencil />} onClick={() => void leave(() => setShown('enter'))} disabled={busy}>
             {t('pairing.enter')}
           </Button>
           {copyButton}

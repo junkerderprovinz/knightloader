@@ -7,7 +7,7 @@ import { IconBadge, InfoBubble, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
-import { IconSettings } from '../lib/icons';
+import { IconGear } from '../lib/icons';
 
 /**
  * AccountTraffic is an allowance in one of the three shapes services report:
@@ -240,7 +240,7 @@ export function AccountTable({
                 <span className="glim-row-actions inline-flex">
                   <IconBadge
                     hue={i}
-                    icon={<IconSettings width={16} height={16} />}
+                    icon={<IconGear width={16} height={16} />}
                     title={t('accounts.rowActions')}
                     aria-label={t('accounts.rowActions')}
                     aria-haspopup="menu"

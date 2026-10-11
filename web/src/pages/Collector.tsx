@@ -50,7 +50,7 @@ import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
-import { IconCheck, IconClose, IconCollector, IconPlay, IconRetry, IconSearch, IconTrash } from '../lib/icons';
+import { IconClearSelection, IconClose, IconCollector, IconPlay, IconRefresh, IconSearch, IconSelectAll, IconTrash } from '../lib/icons';
 
 export function Collector() {
   const { t } = useT();
@@ -362,7 +362,7 @@ export function Collector() {
                   />
                   <IconBadge
                     hue={1}
-                    icon={<IconClose width={16} height={16} />}
+                    icon={<IconClearSelection width={16} height={16} />}
                     title={t('select.none')}
                     aria-label={t('select.none')}
                     onClick={clearSelection}
@@ -398,7 +398,7 @@ export function Collector() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={1}
-                  icon={<IconCheck width={16} height={16} />}
+                  icon={allChosen ? <IconClearSelection width={16} height={16} /> : <IconSelectAll width={16} height={16} />}
                   title={allChosen ? t('select.none') : t('select.all')}
                   aria-label={allChosen ? t('select.none') : t('select.all')}
                   disabled={filtered.length === 0}
@@ -415,7 +415,7 @@ export function Collector() {
                 <IconBadge
                   labelled={!glyphs}
                   hue={3}
-                  icon={<IconRetry width={16} height={16} />}
+                  icon={<IconRefresh width={16} height={16} />}
                   title={t('collector.checkAll')}
                   aria-label={t('collector.checkAll')}
                   disabled={collected.length === 0}

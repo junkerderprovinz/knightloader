@@ -11,7 +11,7 @@ import { Tabs } from '../../../components/Tabs';
 import { saveRelayConfig, type ConnectInfo, type RelayConfig, type RelayMode } from '../../../lib/api';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconCheckDrawn, IconClipboard, IconClose, IconEye, IconRetry } from '../../../lib/icons';
+import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconRefresh } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { FactGlyph, RouteDiagram, RouteGlyph, type RouteKind } from './pairingArt';
 import { SubCard } from '../controls';
@@ -92,7 +92,7 @@ function CommandLine({ t }: { t: T }) {
       <IconBadge
         labelled
         className="kl-raised-btn"
-        icon={copies > 0 ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+        icon={copies > 0 ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
         title={t('common.copy')}
         aria-label={t('common.copy')}
         confirm={copies}
@@ -280,7 +280,7 @@ export function RelayCard({
               </ul>
               {onRefresh && (
                 <div className="flex justify-end">
-                  <Button kind="secondary" className="kl-raised-btn" icon={<IconRetry />} onClick={onRefresh}>
+                  <Button kind="secondary" className="kl-raised-btn" icon={<IconRefresh />} onClick={onRefresh}>
                     {t('pairing.checkAgain')}
                   </Button>
                 </div>

@@ -67,14 +67,14 @@ import { UsenetServersSection } from '../components/UsenetServersSection';
 import {
   IconAccounts,
   IconCaptcha,
-  IconChevronStart,
+  IconBack,
   IconClose,
   IconGrip,
   IconExternalLink,
   IconGlobe,
-  IconInstances,
-  IconPlus,
-  IconRetry,
+  IconFleet,
+  IconAdd,
+  IconRefresh,
   IconTrash,
 } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, siteOf, type Brand } from '../components/BrandPicker';
@@ -263,7 +263,7 @@ export function Accounts() {
           {
             id: 'server',
             label: t('accounts.kind.server'),
-            icon: <IconInstances />,
+            icon: <IconFleet />,
             onSelect: () => setDialog({ mode: 'server', service: serverService, host: null }),
           },
         ]
@@ -326,7 +326,7 @@ export function Accounts() {
           ) : (
             <EmptyState
               nested
-              icon={<IconInstances width={26} height={26} />}
+              icon={<IconFleet width={26} height={26} />}
               title={t('accounts.server.empty')}
               hint={`${t('accounts.server.emptyHint')} ${addPointer}`}
             />
@@ -361,7 +361,7 @@ export function Accounts() {
       <PageActions>
         <PageAction
           primary
-          icon={<IconPlus />}
+          icon={<IconAdd />}
           label={t('accounts.newAccount')}
           menu={[{ id: 'kinds', items: kinds }]}
           data-new="accounts-add"
@@ -489,7 +489,7 @@ function AccountsTable({
                     {
                       id: 'refresh',
                       label: t('accounts.refresh'),
-                      icon: <IconRetry width={16} height={16} />,
+                      icon: <IconRefresh width={16} height={16} />,
                       onSelect: () => onRefresh(a),
                     },
                     ...(renewable
@@ -781,7 +781,7 @@ function CredentialDialog({
               <Button
                 kind="secondary"
                 labelled
-                icon={<IconChevronStart className="rtl:-scale-x-100" />}
+                icon={<IconBack className="rtl:-scale-x-100" />}
                 title={t('onboarding.back')}
                 onClick={() => setPicked(null)}
               />

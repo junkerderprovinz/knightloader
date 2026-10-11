@@ -13,7 +13,7 @@ import {
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { TestButton } from '../../components/TestButton';
-import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconClose, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
@@ -123,7 +123,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
               <Button kind="secondary" onClick={() => setImporting(true)}>
                 {t('settings.connections.import')}
               </Button>
-              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.connections.add')}
               </Button>
             </div>
@@ -234,7 +234,7 @@ function ConnectionRow({
         <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveUp')}
             aria-label={t('settings.connections.moveUp')}
@@ -243,7 +243,7 @@ function ConnectionRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveDown')}
             aria-label={t('settings.connections.moveDown')}
@@ -430,7 +430,7 @@ function TestPanel({ row }: { row: Connection }) {
         <TestButton
           label={t('settings.connections.test')}
           busyLabel={t('settings.connections.testing')}
-          icon={<IconGlobe />}
+          icon={<IconNetwork />}
           words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
           run={run}
           resetKey={JSON.stringify(row) + target}

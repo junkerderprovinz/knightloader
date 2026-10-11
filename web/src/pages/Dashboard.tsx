@@ -41,7 +41,7 @@ import { PageAction, PageActions } from '../components/PageActions';
 import { useAddLinks } from '../components/AddLinksAction';
 import { Tabs } from '../components/Tabs';
 import { useReorder } from '../components/dragLift';
-import { IconArrowDown, IconArrowUp, IconCheck, IconDownloads, IconEdit, IconEye, IconEyeOff, IconGrip } from '../lib/icons';
+import { IconCheck, IconDownload, IconEye, IconEyeOff, IconGrip, IconMoveDown, IconMoveUp, IconPencil } from '../lib/icons';
 
 const CARD_NAME: Record<OverviewCard, TranslationKey> = {
   needs: 'overview.needs.title',
@@ -162,7 +162,7 @@ export function Dashboard() {
           <Card hue={hue} className="flex flex-col gap-3">
             <SectionTitle>{t('overview.recent')}</SectionTitle>
             {recent.length === 0 ? (
-              <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('overview.noDownloads')} />
+              <EmptyState nested icon={<IconDownload width={26} height={26} />} title={t('overview.noDownloads')} />
             ) : (
               <div className="glim-well divide-y divide-carbon-border/60 p-0">
                 {recent.map((x) => (
@@ -231,14 +231,14 @@ export function Dashboard() {
         <>
           <Button
             kind="ghost"
-            icon={<IconArrowUp />}
+            icon={<IconMoveUp />}
             title={t('task.moveUp')}
             disabled={at === 0}
             onClick={() => step(id, -1)}
           />
           <Button
             kind="ghost"
-            icon={<IconArrowDown />}
+            icon={<IconMoveDown />}
             title={t('task.moveDown')}
             disabled={at === drawn.length - 1}
             onClick={() => step(id, 1)}
@@ -335,7 +335,7 @@ export function Dashboard() {
 
       <PageActions>
         <PageAction
-          icon={editing ? <IconCheck /> : <IconEdit />}
+          icon={editing ? <IconCheck /> : <IconPencil />}
           label={t(editing ? 'overview.customize.finish' : 'overview.customize')}
           data-new="overview-customize"
           onClick={() => setEditing((on) => !on)}

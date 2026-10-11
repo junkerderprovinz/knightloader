@@ -149,15 +149,15 @@ import {
   IconPause,
   IconPlay,
   IconTrash,
-  IconRetry,
+  IconRefresh,
   IconFolder,
   IconFolderOpen,
   IconSearch,
-  IconSettings,
-  IconArrowUp,
-  IconArrowDown,
-  IconChevronDown,
-  IconChevronUp,
+  IconGear,
+  IconMoveUp,
+  IconMoveDown,
+  IconExpand,
+  IconCollapse,
   IconClose,
 } from '../lib/icons';
 
@@ -338,7 +338,7 @@ export function useListSort(title: string, profile: ListProfile = 'downloads', s
         items: (['asc', 'desc'] as const).map((dir) => ({
           id: dir,
           label: t(dir === 'asc' ? 'list.sortAsc' : 'list.sortDesc'),
-          icon: dir === 'asc' ? <IconArrowUp /> : <IconArrowDown />,
+          icon: dir === 'asc' ? <IconMoveUp /> : <IconMoveDown />,
           checked: sort?.dir === dir,
           disabled: !sort,
           onSelect: () => sort && setSort({ id: sort.id, dir }),
@@ -660,7 +660,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
             quiet
             hue={3}
             tabIndex={current ? 0 : -1}
-            icon={<IconRetry width={16} height={16} />}
+            icon={<IconRefresh width={16} height={16} />}
             title={t('task.restart')}
             aria-label={t('task.restart')}
             onClick={send(() => restartTasks([task.id], base))}
@@ -838,7 +838,7 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
       <IconBadge
         hue={0}
         tabIndex={focusable ? 0 : -1}
-        icon={<IconSettings width={16} height={16} />}
+        icon={<IconGear width={16} height={16} />}
         title={label}
         aria-label={label}
         onClick={() => setOpen(true)}
@@ -1426,8 +1426,8 @@ function Header({
               {/* One list can call a column something else; see CellContext's
                   `profile` for why that is one column and not two. */}
               <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
-              {sorted === 'asc' && <IconArrowUp width={11} height={11} className="shrink-0" />}
-              {sorted === 'desc' && <IconArrowDown width={11} height={11} className="shrink-0" />}
+              {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
+              {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
             </button>
 
             {/* Double-click gives a column its built-in width back, which is the
@@ -3338,7 +3338,7 @@ export function TaskListCard({
           <div className="absolute end-4 top-0 z-10 flex -translate-y-1/2 items-center gap-2">
             {edge}
             <IconBadge
-              icon={folded ? <IconChevronDown width={16} height={16} /> : <IconChevronUp width={16} height={16} />}
+              icon={folded ? <IconExpand width={16} height={16} /> : <IconCollapse width={16} height={16} />}
               title={t(folded ? 'task.expand' : 'task.collapse')}
               aria-label={t(folded ? 'task.expand' : 'task.collapse')}
               aria-expanded={!folded}

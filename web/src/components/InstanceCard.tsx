@@ -4,7 +4,7 @@ import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, LabelBadge, Modal } from './ui';
-import { IconBrowser, IconClose, IconEye, IconPhone, IconTrash } from '../lib/icons';
+import { IconBrowser, IconClose, IconEye, IconInfo, IconPhone, IconTrash } from '../lib/icons';
 import { StatePill } from './StatePill';
 
 // What each kind of instance calls itself, keyed by buildinfo.Deployment and by
@@ -15,19 +15,6 @@ const KINDS: Record<string, TranslationKey> = {
   container: 'instances.kind.container',
   extension: 'instances.kind.extension',
 };
-
-/** The "i" carved out of a disc, on the Details button. */
-function IconInfo() {
-  return (
-    <svg viewBox="0 0 20 20" width={22} height={22} fill="currentColor" className="shrink-0" aria-hidden>
-      <path
-        fillRule="evenodd"
-        clipRule="evenodd"
-        d="M17.25 10A7.25 7.25 0 1 0 2.75 10a7.25 7.25 0 0 0 14.5 0ZM10 5.4a1.1 1.1 0 1 1 0 2.2 1.1 1.1 0 0 1 0-2.2ZM9 9h2v5.6H9V9Z"
-      />
-    </svg>
-  );
-}
 
 interface Stats {
   online: boolean;

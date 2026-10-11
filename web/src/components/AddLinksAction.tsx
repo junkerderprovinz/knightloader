@@ -4,7 +4,7 @@
 // same corner on those pages and works as it does in the collector.
 import { useMemo, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
-import { IconClose, IconPlus } from '../lib/icons';
+import { IconAdd, IconClose } from '../lib/icons';
 import { useTasks } from '../lib/useTasks';
 import { AddLinksForm, useStagedReport } from './AddLinksForm';
 import { FileDrop, newestContainerLink, type FileDropHandle } from './FileDrop';
@@ -21,7 +21,7 @@ export function useAddLinks(): { action: ReactNode; dialog: ReactNode } {
   const { t } = useT();
   const [open, setOpen] = useState(false);
   return {
-    action: <PageAction primary icon={<IconPlus />} label={t('collector.add')} onClick={() => setOpen(true)} />,
+    action: <PageAction primary icon={<IconAdd />} label={t('collector.add')} onClick={() => setOpen(true)} />,
     dialog: open ? <AddLinksDialog onClose={() => setOpen(false)} /> : null,
   };
 }

@@ -14,13 +14,13 @@ import { Dropdown } from '../../components/Dropdown';
 import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
-  IconArrowDown,
-  IconArrowUp,
-  IconClock,
-  IconEdit,
+  IconAdd,
+  IconMoveDown,
+  IconMoveUp,
   IconPause,
+  IconPencil,
   IconPlay,
-  IconPlus,
+  IconSchedules,
   IconSliders,
   IconTrash,
 } from '../../lib/icons';
@@ -489,7 +489,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
             // A window added while the module is off would take the place of
             // the parked ones, so Add waits for the switch.
             !parked && (
-              <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.schedule.add')}
               </Button>
             )
@@ -630,7 +630,7 @@ function actionIcon(action: ScheduleAction) {
   if (action === 'pause') return <IconPause width={16} height={16} />;
   if (action === 'resume') return <IconPlay width={16} height={16} />;
   if (action === 'limit') return <IconSliders width={16} height={16} />;
-  return <IconClock width={16} height={16} />;
+  return <IconSchedules width={16} height={16} />;
 }
 
 function daysSummary(days: number[], labels: string[]): string {
@@ -729,7 +729,7 @@ function EntryRow({
         <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconEdit width={16} height={16} />}
+            icon={<IconPencil width={16} height={16} />}
             hue={index}
             title={t('settings.schedule.edit')}
             aria-haspopup="dialog"
@@ -737,7 +737,7 @@ function EntryRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.schedule.moveUp')}
             aria-label={t('settings.schedule.moveUp')}
@@ -746,7 +746,7 @@ function EntryRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.schedule.moveDown')}
             aria-label={t('settings.schedule.moveDown')}
@@ -981,7 +981,7 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
         className={`${FIELD_TRIGGER} glim-num flex w-full items-center gap-2 ps-3 pe-2.5 text-start text-sm`}
       >
         <span className="min-w-0 flex-1">{shown}</span>
-        <IconClock width={16} height={16} className="shrink-0 text-carbon-textSub" />
+        <IconSchedules width={16} height={16} className="shrink-0 text-carbon-textSub" />
       </button>
       {open &&
         createPortal(

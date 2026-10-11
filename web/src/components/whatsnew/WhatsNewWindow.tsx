@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { IconCheck, IconChevronEnd, IconClose, IconEye } from '../../lib/icons';
+import { IconCheck, IconClose, IconEye, IconForward } from '../../lib/icons';
 import type { NewsTab, WhatsNew } from '../../lib/useWhatsNew';
 import { releaseNotesPage, releaseOf, routeOf, sentenceOf, type Change } from '../../lib/whatsNew';
 import { label } from '../../pages/settings/tx';
@@ -128,7 +128,7 @@ export function WhatsNewWindow({
             <section key={page.route} className="flex flex-col gap-2">
               <div className="flex items-center gap-3">
                 <h3 className="glim-eyebrow min-w-0 flex-1 truncate">{pageName(t, page.route)}</h3>
-                <Button kind="ghost" icon={<IconChevronEnd />} onClick={() => go(page.route)}>
+                <Button kind="ghost" icon={<IconForward />} onClick={() => go(page.route)}>
                   {t('whatsnew.go')}
                 </Button>
               </div>

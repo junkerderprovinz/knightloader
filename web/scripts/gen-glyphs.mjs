@@ -24,14 +24,13 @@ const USED = [
   'IconSignOut', 'IconInfo', 'IconHelp', 'IconMore', 'IconMenu', 'IconBack', 'IconForward',
   'IconLatest', 'IconFirst', 'IconMoveUp', 'IconMoveDown', 'IconExpand', 'IconCollapse',
   'IconSelectAll', 'IconClearSelection', 'IconFilter', 'IconPin', 'IconPriority', 'IconGrip',
-  'IconExternalLink', 'IconWarning', 'IconBolt', 'IconCoffee', 'IconShieldOn', 'IconCode',
-  'IconMoon', 'IconSun', 'IconGear', 'IconDashboard', 'IconFolder', 'IconFolderOpen',
-  'IconFolderAdd', 'IconArchive', 'IconFleet', 'IconCollector', 'IconAccounts', 'IconNetwork',
-  'IconPhone', 'IconBrowser', 'IconApp', 'IconModules', 'IconCaptcha', 'IconContainers',
-  'IconGithub', 'IconTabGeneral', 'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced',
-  'IconTabApp', 'IconSchedules', 'IconNotifications', 'IconSliders', 'IconDiagnostics',
-  'IconKeyboard', 'IconPaste', 'IconSort', 'IconFolderUp', 'IconHealth', 'IconQueued',
-  'IconCaptchaTimer', 'IconResolvers',
+  'IconExternalLink', 'IconWarning', 'IconBolt', 'IconShieldOn', 'IconCode', 'IconMoon',
+  'IconSun', 'IconGear', 'IconDashboard', 'IconFolder', 'IconFolderOpen', 'IconFolderAdd',
+  'IconArchive', 'IconFleet', 'IconCollector', 'IconAccounts', 'IconNetwork', 'IconPhone',
+  'IconBrowser', 'IconApp', 'IconModules', 'IconCaptcha', 'IconGithub', 'IconTabGeneral',
+  'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp', 'IconSchedules',
+  'IconNotifications', 'IconSliders', 'IconDiagnostics', 'IconKeyboard', 'IconPaste',
+  'IconSort', 'IconFolderUp', 'IconHealth', 'IconQueued', 'IconCaptchaTimer', 'IconResolvers',
 ];
 
 // The centre line IconCheckDrawn traces through IconCheck, in IconCheck's

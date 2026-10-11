@@ -14,7 +14,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
-import { IconRetry, IconSearch } from '../../lib/icons';
+import { IconRefresh, IconSearch } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
@@ -308,7 +308,7 @@ function KeyRow({
       <div className="w-8 shrink-0">
         {modified && (
           <IconBadge
-            icon={<IconRetry width={16} height={16} />}
+            icon={<IconRefresh width={16} height={16} />}
             hue={hue}
             title={tx('settings.advanced.resetTitle')}
             aria-label={tx('settings.advanced.resetTitle')}

@@ -3,14 +3,14 @@
 // works as a keyboard address bar.
 import {
   IconAccounts,
-  IconBell,
   IconCollector,
   IconDashboard,
-  IconDownloads,
-  IconInstances,
+  IconDownload,
+  IconFleet,
+  IconGear,
   IconMoon,
+  IconNotifications,
   IconSearch,
-  IconSettings,
 } from '../icons';
 import { setCommandPaletteOpen } from '../commandPaletteOpen';
 import { setEventsPanelOpen } from '../eventLog';
@@ -23,11 +23,11 @@ export const OPEN_PALETTE_ID = 'app.commandPalette.open';
 /** One "go to X" per surface with a real page, sharing the same run/enabled/visible shape. */
 const NAV: { id: string; labelKey: Command['labelKey']; icon: Command['icon']; surface: CommandSurface; path: string; shortcut: string }[] = [
   { id: 'nav.goOverview', labelKey: 'commands.goOverview', icon: IconDashboard, surface: 'overview', path: '/', shortcut: 'mod+shift+1' },
-  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownloads, surface: 'downloads', path: '/downloads', shortcut: 'mod+shift+2' },
+  { id: 'nav.goDownloads', labelKey: 'commands.goDownloads', icon: IconDownload, surface: 'downloads', path: '/downloads', shortcut: 'mod+shift+2' },
   { id: 'nav.goCollector', labelKey: 'commands.goCollector', icon: IconCollector, surface: 'collector', path: '/collector', shortcut: 'mod+shift+3' },
-  { id: 'nav.goInstances', labelKey: 'commands.goInstances', icon: IconInstances, surface: 'instances', path: '/instances', shortcut: 'mod+shift+4' },
+  { id: 'nav.goInstances', labelKey: 'commands.goInstances', icon: IconFleet, surface: 'instances', path: '/instances', shortcut: 'mod+shift+4' },
   { id: 'nav.goAccounts', labelKey: 'commands.goAccounts', icon: IconAccounts, surface: 'accounts', path: '/accounts', shortcut: 'mod+shift+5' },
-  { id: 'nav.goSettings', labelKey: 'commands.goSettings', icon: IconSettings, surface: 'settings', path: '/settings', shortcut: 'mod+shift+6' },
+  { id: 'nav.goSettings', labelKey: 'commands.goSettings', icon: IconGear, surface: 'settings', path: '/settings', shortcut: 'mod+shift+6' },
 ];
 
 export const GLOBAL_COMMANDS: Command[] = [
@@ -48,7 +48,7 @@ export const GLOBAL_COMMANDS: Command[] = [
   {
     id: 'app.events.open',
     labelKey: 'commands.openEvents',
-    icon: IconBell,
+    icon: IconNotifications,
     group: 'commands.group.general',
     surfaces: ['global'],
     // mod+shift+e is free: mod+k, mod+a, mod+f and mod+u are taken, as are

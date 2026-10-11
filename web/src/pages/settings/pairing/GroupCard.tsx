@@ -11,7 +11,7 @@ import { OkState, StatePill } from '../../../components/StatePill';
 import { Button, Card, SectionTitle } from '../../../components/ui';
 import { fetchInstances, type ConnectInfo, type GroupApp, type GroupMember, type Instance } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconBrowser, IconInstances, IconPhone, IconTrash } from '../../../lib/icons';
+import { IconBrowser, IconFleet, IconPhone, IconTrash } from '../../../lib/icons';
 import { STAGE_PILL, clock, type PairStage } from './pairStage';
 
 type T = ReturnType<typeof useT>['t'];
@@ -88,7 +88,7 @@ function PeerRow({
     <Row
       entry={`peer:${p.name}`}
       hot={hot}
-      glyph={<IconInstances />}
+      glyph={<IconFleet />}
       name={p.displayName ?? p.name}
       tag={t('pairing.byAddress')}
       state={reached(online, t)}
@@ -191,7 +191,7 @@ export function GroupCard({
         <Row
           entry={SELF_KEY}
           hot={net.hot === SELF_KEY}
-          glyph={<IconInstances />}
+          glyph={<IconFleet />}
           name={group.name}
           tag={t('instances.thisInstance')}
           state={own && <span data-testid="pair-state" className="inline-flex">{own}</span>}
@@ -201,7 +201,7 @@ export function GroupCard({
             key={m.id}
             entry={`member:${m.id}`}
             hot={net.hot === `member:${m.id}`}
-            glyph={<IconInstances />}
+            glyph={<IconFleet />}
             name={m.name || m.id}
             // A member is listed only while it is reachable.
             state={<OkState parts={[t('pairing.paired'), route(m)]} />}

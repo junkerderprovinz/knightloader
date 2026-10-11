@@ -3,10 +3,10 @@ import { useT } from '../../lib/i18n';
 import {
   IconArchive,
   IconCheck,
-  IconDownloads,
+  IconDownload,
   IconFolderOpen,
   IconShield,
-  IconShieldCheck,
+  IconShieldOn,
   IconTrash,
 } from '../../lib/icons';
 import { FILL, GROUND, OK, QUIET, SURFACE, trip, useStage } from './scene';
@@ -68,8 +68,8 @@ const WORK = 0.9;
 export function AfterDownload({ steps, title }: { steps: AfterDownloadSteps; title: string }) {
   const { t } = useT();
   const stations: Station[] = [
-    { id: 'download', label: t('status.running'), glyph: IconDownloads, on: true },
-    { id: 'verify', label: t('status.verifying'), glyph: IconShieldCheck, on: steps.verify },
+    { id: 'download', label: t('status.running'), glyph: IconDownload, on: true },
+    { id: 'verify', label: t('status.verifying'), glyph: IconShieldOn, on: steps.verify },
     { id: 'repair', label: t('status.repairing'), glyph: IconShield, on: steps.repair },
     { id: 'unpack', label: t('status.extracting'), glyph: IconArchive, on: steps.unpack },
     { id: 'move', label: t('picture.journey.move'), glyph: IconFolderOpen, on: steps.move },
