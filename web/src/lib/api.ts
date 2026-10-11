@@ -2861,13 +2861,25 @@ export async function askForResetCode(): Promise<ResetCodePlace> {
   return json<ResetCodePlace>(await post('/api/auth/reset', {}));
 }
 
+/** What a password reset took away. Every other session ends as well. */
+export interface ResetRemoved {
+  twoFactor: boolean;
+  passkeys: number;
+  tokens: number;
+  /** The instance left its pairing group for a new one with new words. */
+  group: boolean;
+}
+
 /**
  * resetPassword sets a new password with the reset code and signs this
  * browser in. A code that is wrong, used up or too old is refused with the
  * code `codeRejected`, and too many attempts with status 429.
  */
-export async function resetPassword(code: string, password: string): Promise<AuthState> {
-  return json<AuthState>(await post('/api/auth/reset/finish', { code, password }));
+export async function resetPassword(
+  code: string,
+  password: string,
+): Promise<AuthState & { removed?: ResetRemoved }> {
+  return json<AuthState & { removed?: ResetRemoved }>(await post('/api/auth/reset/finish', { code, password }));
 }
 
 /** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
