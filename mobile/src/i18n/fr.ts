@@ -128,6 +128,7 @@ export const fr: Dict = {
   'error.groupFull': 'Le groupe compte déjà autant d’appareils qu’il peut en accueillir. Supprimez-en un dans Paramètres, Appairage sur une instance, puis réessayez.',
   'error.groupJoinsBusy': 'Trop de nouveaux appareils ont rejoint le groupe au cours de la dernière heure. Réessayez plus tard.',
   'error.memberNotPinned': 'L’instance n’a pas pu enregistrer la clé de cet appareil. Réessayez dans un instant.',
+  'error.connectionEnded': 'L’instance n’accepte plus cette connexion, car son mot de passe a été modifié ou réinitialisé. Supprimez la connexion et reconnectez-vous avec les douze mots que l’instance affiche dans Paramètres, Appairage. Après une réinitialisation, ce sont de nouveaux mots.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 

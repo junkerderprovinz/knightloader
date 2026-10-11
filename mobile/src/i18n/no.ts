@@ -128,6 +128,7 @@ export const no: Dict = {
   'error.groupFull': 'Gruppen har allerede så mange enheter som den har plass til. Fjern en under Innstillinger, Paring på en instans, og prøv igjen.',
   'error.groupJoinsBusy': 'For mange nye enheter ble med i gruppen den siste timen. Prøv igjen senere.',
   'error.memberNotPinned': 'Instansen kunne ikke lagre nøkkelen til denne enheten. Prøv igjen om litt.',
+  'error.connectionEnded': 'Instansen godtar ikke lenger denne tilkoblingen, fordi passordet er endret eller tilbakestilt. Fjern tilkoblingen og koble til på nytt med de tolv ordene instansen viser under Innstillinger, Paring. Etter en tilbakestilling er det nye ord.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 

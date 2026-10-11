@@ -128,6 +128,7 @@ export const tr: Dict = {
   'error.groupFull': 'Grup alabileceği kadar cihaza zaten sahip. Bir örnekte Ayarlar, Eşleştirme altında birini kaldır ve yeniden dene.',
   'error.groupJoinsBusy': 'Son bir saatte gruba çok fazla yeni cihaz katıldı. Daha sonra yeniden dene.',
   'error.memberNotPinned': 'Örnek bu cihazın anahtarını kaydedemedi. Birazdan yeniden dene.',
+  'error.connectionEnded': 'Örnek bu bağlantıyı artık kabul etmiyor, çünkü parolası değiştirildi ya da sıfırlandı. Bağlantıyı kaldır ve örneğin Ayarlar, Eşleştirme altında gösterdiği on iki kelimeyle yeniden bağlan. Sıfırlamadan sonra bunlar yeni kelimelerdir.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 

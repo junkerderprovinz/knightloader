@@ -128,6 +128,7 @@ export const hu: Dict = {
   'error.groupFull': 'A csoportban már annyi eszköz van, amennyi elfér. Távolíts el egyet valamelyik példányon a Beállítások, Párosítás alatt, majd próbáld újra.',
   'error.groupJoinsBusy': 'Az elmúlt órában túl sok új eszköz csatlakozott a csoporthoz. Próbáld újra később.',
   'error.memberNotPinned': 'A példány nem tudta elmenteni ennek az eszköznek a kulcsát. Próbáld újra egy kis idő múlva.',
+  'error.connectionEnded': 'A példány már nem fogadja el ezt a kapcsolatot, mert a jelszavát megváltoztatták vagy visszaállították. Távolítsd el a kapcsolatot, és csatlakozz újra azzal a tizenkét szóval, amelyet a példány a Beállítások, Párosítás oldalon mutat. Visszaállítás után ezek új szavak.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 

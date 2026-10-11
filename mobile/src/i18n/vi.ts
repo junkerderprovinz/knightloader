@@ -128,6 +128,7 @@ export const vi: Dict = {
   'error.groupFull': 'Nhóm đã có đủ số thiết bị tối đa. Hãy gỡ một thiết bị tại Cài đặt, Ghép nối trên một phiên bản rồi thử lại.',
   'error.groupJoinsBusy': 'Có quá nhiều thiết bị mới tham gia nhóm trong giờ qua. Hãy thử lại sau.',
   'error.memberNotPinned': 'Phiên bản không lưu được khóa của thiết bị này. Hãy thử lại sau giây lát.',
+  'error.connectionEnded': 'Phiên bản không còn chấp nhận kết nối này vì mật khẩu của nó đã bị đổi hoặc đặt lại. Hãy xóa kết nối rồi kết nối lại bằng mười hai từ mà phiên bản hiển thị trong Cài đặt, Ghép nối. Sau khi đặt lại, đó là những từ mới.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 

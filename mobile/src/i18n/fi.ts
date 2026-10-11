@@ -128,6 +128,7 @@ export const fi: Dict = {
   'error.groupFull': 'Ryhmässä on jo niin monta laitetta kuin siihen mahtuu. Poista yksi kohdassa Asetukset, Pariliitos jossakin instanssissa ja yritä uudelleen.',
   'error.groupJoinsBusy': 'Ryhmään liittyi viimeisen tunnin aikana liian monta uutta laitetta. Yritä myöhemmin uudelleen.',
   'error.memberNotPinned': 'Instanssi ei voinut tallentaa tämän laitteen avainta. Yritä hetken päästä uudelleen.',
+  'error.connectionEnded': 'Instanssi ei enää hyväksy tätä yhteyttä, koska sen salasana on vaihdettu tai nollattu. Poista yhteys ja yhdistä uudelleen kahdellatoista sanalla, jotka instanssi näyttää kohdassa Asetukset, Pariliitos. Nollauksen jälkeen sanat ovat uusia.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 

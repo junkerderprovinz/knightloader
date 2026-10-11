@@ -128,6 +128,7 @@ export const eu: Dict = {
   'error.groupFull': 'Taldeak jada har ditzakeen gailu guztiak ditu. Kendu bat instantzia batean, Ezarpenak, Parekatzea atalean, eta saiatu berriro.',
   'error.groupJoinsBusy': 'Azken orduan gailu berri gehiegi batu dira taldera. Saiatu berriro geroago.',
   'error.memberNotPinned': 'Instantziak ezin izan du gailu honen gakoa gorde. Saiatu berriro une batean.',
+  'error.connectionEnded': 'Instantziak ez du konexio hau onartzen jada, haren pasahitza aldatu edo berrezarri delako. Kendu konexioa eta konektatu berriro instantziak Ezarpenak, Parekatzea atalean erakusten dituen hamabi hitzekin. Berrezarri ondoren, hitz berriak dira.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 

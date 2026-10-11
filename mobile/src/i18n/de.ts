@@ -150,6 +150,7 @@ export const de: Dict = {
   'error.groupFull': 'Die Gruppe hat schon so viele Geräte, wie sie aufnehmen kann. Entfern auf einer Instanz unter Einstellungen, Kopplung eines und versuch es dann noch einmal.',
   'error.groupJoinsBusy': 'In der letzten Stunde sind zu viele neue Geräte der Gruppe beigetreten. Versuch es später noch einmal.',
   'error.memberNotPinned': 'Die Instanz konnte den Schlüssel dieses Geräts nicht speichern. Versuch es gleich noch einmal.',
+  'error.connectionEnded': 'Die Instanz nimmt diese Verbindung nicht mehr an, weil ihr Passwort geändert oder zurückgesetzt wurde. Entfern die Verbindung und verbinde dich neu mit den zwölf Wörtern, die die Instanz unter Einstellungen, Kopplung zeigt. Nach einem Zurücksetzen sind es neue Wörter.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',
 

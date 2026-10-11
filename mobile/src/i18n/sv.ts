@@ -128,6 +128,7 @@ export const sv: Dict = {
   'error.groupFull': 'Gruppen har redan så många enheter som den rymmer. Ta bort en under Inställningar, Parkoppling på en instans och försök igen.',
   'error.groupJoinsBusy': 'För många nya enheter gick med i gruppen under den senaste timmen. Försök igen senare.',
   'error.memberNotPinned': 'Instansen kunde inte spara den här enhetens nyckel. Försök igen om en stund.',
+  'error.connectionEnded': 'Instansen tar inte längre emot den här anslutningen, eftersom dess lösenord har ändrats eller återställts. Ta bort anslutningen och anslut igen med de tolv ord som instansen visar under Inställningar, Parkoppling. Efter en återställning är det nya ord.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 

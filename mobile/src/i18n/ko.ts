@@ -127,6 +127,7 @@ export const ko: Dict = {
   'error.groupFull': '그룹에 이미 수용할 수 있는 만큼의 기기가 있습니다. 인스턴스의 설정, 페어링에서 하나를 제거한 뒤 다시 시도하세요.',
   'error.groupJoinsBusy': '지난 1시간 동안 너무 많은 새 기기가 그룹에 참여했습니다. 나중에 다시 시도하세요.',
   'error.memberNotPinned': '인스턴스가 이 기기의 키를 저장하지 못했습니다. 잠시 후 다시 시도하세요.',
+  'error.connectionEnded': '인스턴스의 암호가 변경되었거나 재설정되어 이 연결을 더 이상 받아들이지 않습니다. 연결을 삭제한 뒤 인스턴스가 설정의 페어링에 표시하는 12개 단어로 다시 연결하세요. 재설정 후에는 새 단어입니다.',
   'addDownload.cancel': '취소',
   'addDownload.button': '추가',
 

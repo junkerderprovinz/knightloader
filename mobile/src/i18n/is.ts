@@ -128,6 +128,7 @@ export const is: Dict = {
   'error.groupFull': 'Hópurinn er þegar með eins mörg tæki og hann rúmar. Fjarlægðu eitt undir Stillingar, Pörun á einhverju tilviki og reyndu aftur.',
   'error.groupJoinsBusy': 'Of mörg ný tæki bættust í hópinn síðustu klukkustundina. Reyndu aftur síðar.',
   'error.memberNotPinned': 'Tilvikið gat ekki vistað lykil þessa tækis. Reyndu aftur eftir smástund.',
+  'error.connectionEnded': 'Tilvikið tekur ekki lengur við þessari tengingu, af því að lykilorði þess var breytt eða það endurstillt. Fjarlægðu tenginguna og tengstu aftur með orðunum tólf sem tilvikið sýnir undir Stillingar, Pörun. Eftir endurstillingu eru þetta ný orð.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 

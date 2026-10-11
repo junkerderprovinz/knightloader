@@ -128,6 +128,7 @@ export const hr: Dict = {
   'error.groupFull': 'Grupa već ima onoliko uređaja koliko može primiti. Ukloni jedan pod Postavke, Uparivanje na nekoj instanci i pokušaj ponovno.',
   'error.groupJoinsBusy': 'U posljednjih sat vremena grupi se pridružilo previše novih uređaja. Pokušaj ponovno kasnije.',
   'error.memberNotPinned': 'Instanca nije mogla spremiti ključ ovog uređaja. Pokušaj ponovno za trenutak.',
+  'error.connectionEnded': 'Instanca više ne prihvaća ovu vezu jer je njezina lozinka promijenjena ili ponovno postavljena. Ukloni vezu i ponovno se poveži s dvanaest riječi koje instanca prikazuje u odjeljku Postavke, Uparivanje. Nakon ponovnog postavljanja to su nove riječi.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 

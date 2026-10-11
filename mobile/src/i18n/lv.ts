@@ -128,6 +128,7 @@ export const lv: Dict = {
   'error.groupFull': 'Grupā jau ir tik daudz ierīču, cik tajā ietilpst. Noņem vienu sadaļā Iestatījumi, Pārošana kādā instancē un mēģini vēlreiz.',
   'error.groupJoinsBusy': 'Pēdējās stundas laikā grupai pievienojās pārāk daudz jaunu ierīču. Mēģini vēlāk.',
   'error.memberNotPinned': 'Instance nevarēja saglabāt šīs ierīces atslēgu. Mēģini vēlreiz pēc brīža.',
+  'error.connectionEnded': 'Instance vairs nepieņem šo savienojumu, jo tās parole ir mainīta vai atiestatīta. Noņem savienojumu un savienojies vēlreiz ar divpadsmit vārdiem, ko instance rāda sadaļā Iestatījumi, Pārošana. Pēc atiestatīšanas tie ir jauni vārdi.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 

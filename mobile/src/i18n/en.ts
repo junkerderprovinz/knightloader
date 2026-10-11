@@ -151,6 +151,7 @@ export const en = {
   'error.groupFull': 'The group already has as many devices as it can hold. Remove one under Settings, Pairing on an instance, then try again.',
   'error.groupJoinsBusy': 'Too many new devices joined the group in the last hour. Try again later.',
   'error.memberNotPinned': "The instance could not save this device's key. Try again in a moment.",
+  'error.connectionEnded': 'The instance no longer accepts this connection because its password was changed or reset. Remove the connection and connect again with the twelve words the instance shows under Settings, Pairing. After a reset, those are new words.',
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',
 

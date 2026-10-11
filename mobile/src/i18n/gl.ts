@@ -128,6 +128,7 @@ export const gl: Dict = {
   'error.groupFull': 'O grupo xa ten tantos dispositivos como admite. Elimina un en Axustes, Emparellamento nunha instancia e téntao de novo.',
   'error.groupJoinsBusy': 'Demasiados dispositivos novos uníronse ao grupo na última hora. Téntao de novo máis tarde.',
   'error.memberNotPinned': 'A instancia non puido gardar a chave deste dispositivo. Téntao de novo nun momento.',
+  'error.connectionEnded': 'A instancia xa non acepta esta conexión porque o seu contrasinal se cambiou ou se restableceu. Elimina a conexión e volve conectar coas doce palabras que a instancia mostra en Axustes, Emparellamento. Despois dun restablecemento, son palabras novas.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Engadir',
 
