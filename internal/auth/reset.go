@@ -133,11 +133,8 @@ func (g *Guard) CancelReset() {
 // ErrCodeRejected. A password the hash would refuse is refused before the code
 // is looked at.
 func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, error) {
-	if len(next) < 8 {
-		return Credentials{}, ErrTooShort
-	}
-	if len(next) > 72 {
-		return Credentials{}, bcrypt.ErrPasswordTooLong
+	if err := checkLength(next); err != nil {
+		return Credentials{}, err
 	}
 	g.mu.RLock()
 	enabled := len(g.hash) > 0

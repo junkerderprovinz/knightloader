@@ -207,6 +207,10 @@ release's tag.
 - **The sign-in page says to wait after too many attempts,** where it said
   "Wrong password." even when the password was right. A refused passkey
   sign-in says the same.
+- **"At least 8 characters" counts characters, not bytes,** so a password in
+  another alphabet is held to the same length as one in English. A password
+  over 72 bytes, the most the hash takes, gets its own message on the
+  settings card and the reset form instead of an English error.
 
 ## [1.8.4] - 2026-10-08
 
