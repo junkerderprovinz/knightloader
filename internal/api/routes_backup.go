@@ -20,6 +20,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 func registerBackup(reg *Registry, a *app.App) {
@@ -143,6 +144,10 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 	}
 
 	manifest, err := backup.Stage(a.DataDir, data, buildinfo.Version)
+	if errors.Is(err, store.ErrNewerSchema) {
+		writeRefusal(w, http.StatusBadRequest, "restore.newerSchema", err.Error(), nil)
+		return
+	}
 	if err != nil {
 		// Verbatim: every error Stage returns names which check failed.
 		// "invalid file" would send somebody re-uploading the same

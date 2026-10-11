@@ -249,6 +249,9 @@ var migrations = []string{
 // ErrNewerSchema is the refusal to open a database a newer build has written.
 var ErrNewerSchema = errors.New("store: this database was written by a newer KnightLoader")
 
+// SchemaVersion is the schema version this build brings a database to.
+func SchemaVersion() int { return len(migrations) }
+
 func Open(path string) (*Store, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
