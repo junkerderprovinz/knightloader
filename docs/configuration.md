@@ -44,12 +44,17 @@ from the proxy, so one person guessing makes everybody wait.
 
 **Trusted proxies** under Settings > Security, beside the password, fixes that.
 Enter the proxy's address, one IP address or CIDR range per line, such as
-`172.17.0.1` or `10.0.0.0/8`. For a request from one of them, KnightLoader
+`172.18.0.5` or `10.10.0.0/28`. For a request from one of them, KnightLoader
 counts the right-most address in `X-Forwarded-For` that is not itself a
 trusted proxy. List only proxies you run: every machine on the list can put
 any address it likes into that header, and with it guess without ever being
-made to wait. Empty, the default, means every request counts for the address
-it connected from. The relay an instance serves under Pairing reads the same
+made to wait. A range must cover your proxies and no one who signs in. If
+KnightLoader's port is also published directly, leave out the gateway of its
+Docker network, because a visitor on that port can arrive from the gateway.
+KnightLoader refuses a range wider than `/16` for IPv4 or `/48` for IPv6.
+Empty, the default, means every request counts for the address it connected
+from. An IPv6 caller counts by its `/64`, since one connection usually gets
+that many addresses. The relay an instance serves under Pairing reads the same
 list for its own count of failed handshakes.
 
 ## A forgotten password
