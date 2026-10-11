@@ -452,6 +452,7 @@ func New(dataDir string) (*App, error) {
 // NewWithKey opens the app in dataDir, sealing its secrets with key when key
 // is not nil.
 func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
+	noteKeyFailures(dataDir, key)
 	if err := keepCopiesBeforeSealing(dataDir, key); err != nil {
 		return nil, err
 	}
@@ -734,6 +735,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
 	a.startUsenet()
+	a.spawn(a.sweepKeyCopies)
 	return a, nil
 }
 

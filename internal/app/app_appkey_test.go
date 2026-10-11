@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
@@ -68,5 +69,19 @@ func TestAddingAnAppKeyKeepsCopiesOnceAndSealsInPlace(t *testing.T) {
 
 	if _, err := NewWithKey(dir, nil); !errors.Is(err, appkey.ErrMissing) {
 		t.Fatalf("a start without the key = %v, want ErrMissing", err)
+	}
+
+	// A start that fails on another key keeps the copies for longer.
+	first, ok := appkey.CopiesUntil(dir, time.Now())
+	if !ok {
+		t.Fatal("the copies are gone already")
+	}
+	time.Sleep(20 * time.Millisecond)
+	other, _ := appkey.Generate()
+	if _, err := NewWithKey(dir, other); !errors.Is(err, appkey.ErrWrongKey) {
+		t.Fatalf("a start with another key = %v, want ErrWrongKey", err)
+	}
+	if later, _ := appkey.CopiesUntil(dir, time.Now()); !later.After(first) {
+		t.Fatalf("after a failed start the copies still go at %v, the date from before it", later)
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
@@ -121,7 +122,19 @@ func TestAuthStateSaysWhetherAnAppKeyIsSet(t *testing.T) {
 		t.Fatalf("appKey = %v without a key, want false", got)
 	}
 	a.AppKey = newAppKey(t)
-	if got := read()["appKey"]; got != true {
+	state := read()
+	if got := state["appKey"]; got != true {
 		t.Fatalf("appKey = %v with a key, want true", got)
+	}
+	if _, ok := state["appKeyCopiesUntil"]; ok {
+		t.Fatal("appKeyCopiesUntil is set with no copies in the data folder")
+	}
+	made := time.Now()
+	if _, err := appkey.KeepCopies(a.DataDir, []string{"settings.json", "auth.json"}, made); err != nil {
+		t.Fatal(err)
+	}
+	until, _ := read()["appKeyCopiesUntil"].(string)
+	if got, err := time.Parse(time.RFC3339, until); err != nil || got.Before(made.Add(appkey.CopiesKept-time.Second)) {
+		t.Fatalf("appKeyCopiesUntil = %q, want about seven days from now", until)
 	}
 }
