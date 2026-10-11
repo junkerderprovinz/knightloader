@@ -19,12 +19,12 @@ func TestStagingAJobAgainTakesTheTasksItBecame(t *testing.T) {
 	j := usenet.Job{Name: "Show", Package: "Show", Service: "torbox", Label: "TorBox", Remote: "9"}
 	files := []usenet.File{{ID: "1", Name: "a.mkv", Size: 5}, {ID: "2", Name: "b.mkv", Size: 6}}
 
-	first, err := a.stageUsenetFiles(j, files)
+	first, _, err := a.stageUsenetFiles(j, files)
 	if err != nil {
 		t.Fatal(err)
 	}
 	// As after a restart that came before the job list was saved.
-	second, err := a.stageUsenetFiles(j, files)
+	second, _, err := a.stageUsenetFiles(j, files)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -41,7 +41,7 @@ func TestFilesInFoldersKeepThemUnderThePackage(t *testing.T) {
 	for _, dir := range []string{"", own} {
 		a := newCrawlApp(t, false)
 		j := usenet.Job{Name: "Season", Package: "Season", Dir: dir, Service: "torbox", Label: "TorBox", Remote: "9"}
-		ids, err := a.stageUsenetFiles(j, []usenet.File{
+		ids, _, err := a.stageUsenetFiles(j, []usenet.File{
 			{ID: "2", Name: "2_English.srt", Dir: "Subs/Show.S01E01", Size: 10},
 			{ID: "3", Name: "2_English.srt", Dir: "Subs/Show.S01E02", Size: 11},
 			{ID: "1", Name: "Show.S01E01.mkv", Size: 100},
