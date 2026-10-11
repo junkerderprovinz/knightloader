@@ -170,11 +170,11 @@ func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 
 	client := &http.Client{Jar: newJar(t)}
 	var last int
-	for i := 0; i < loginFailBurst+1; i++ {
+	for i := 0; i < loginFailLimit+1; i++ {
 		last, _ = loginWith(t, client, srv.URL, "a-good-password", "000000")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route still answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route still answered %d, want 429", loginFailLimit+1, last)
 	}
 	// The throttle refuses a correct code too while it is in force; letting
 	// one through would tell an attacker when a guess was right.

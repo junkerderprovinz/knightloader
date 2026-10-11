@@ -41,6 +41,8 @@ var groupRefused = []string{
 	"POST /api/auth/passkey/register/begin",
 	"POST /api/auth/passkey/register/finish",
 	"GET /api/auth/passkeys",
+	"POST /api/auth/reset",
+	"POST /api/auth/reset/finish",
 	"DELETE /api/auth/passkeys/{id}",
 	"PATCH /api/auth/passkeys/{id}",
 	"PUT /api/auth/password",

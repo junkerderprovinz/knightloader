@@ -70,6 +70,48 @@ describe('a page in a browser', () => {
     expect(onMessage).not.toHaveBeenCalled();
   });
 
+  // The server closes every stream when the sessions end: a changed password
+  // or a sign-out everywhere. The page that changed the password holds the new
+  // cookie by the time it opens one again.
+  it('opens a stream the server closed again, with the same subscription', () => {
+    vi.useFakeTimers();
+    const sockets: { onopen: (() => void) | null; onclose: (() => void) | null; sent: string[] }[] = [];
+    vi.stubGlobal(
+      'WebSocket',
+      Object.assign(
+        function () {
+          const ws = {
+            readyState: 1,
+            onopen: null,
+            onmessage: null,
+            onclose: null,
+            sent: [] as string[],
+            send(frame: string) {
+              this.sent.push(frame);
+            },
+            close() {},
+          };
+          sockets.push(ws);
+          return ws;
+        },
+        { CONNECTING: 0, OPEN: 1 },
+      ),
+    );
+    try {
+      const close = connectWS(() => {}, ['task']);
+      sockets[0].onopen?.();
+      sockets[0].onclose?.();
+      vi.advanceTimersByTime(1500);
+
+      expect(sockets).toHaveLength(2);
+      sockets[1].onopen?.();
+      expect(sockets[1].sent).toEqual([JSON.stringify({ type: 'subscribe', kinds: ['task'] })]);
+      close();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
   it('sets up nothing for the news of a desktop update', () => {
     onUpdateReady(() => {});
     expect((window as { _wails?: unknown })._wails).toBeUndefined();

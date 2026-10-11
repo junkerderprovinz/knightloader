@@ -59,6 +59,10 @@ type client struct {
 	// (see AddRestricted). Set before the client is registered and never
 	// changed.
 	restricted bool
+
+	// local marks a connection inside this process that no credential let in
+	// (see AddLocal). Set before the client is registered and never changed.
+	local bool
 }
 
 // Redactor is a payload with parts a restricted connection must not see.
@@ -90,13 +94,18 @@ func New() *Hub { return &Hub{clients: map[Conn]*client{}, lastSeen: map[string]
 
 // Add registers a connection and starts the goroutine that writes to it.
 // Registering the same connection twice is a no-op.
-func (h *Hub) Add(c Conn) { h.add(c, false) }
+func (h *Hub) Add(c Conn) { h.add(c, false, false) }
 
 // AddRestricted is Add for a connection let in on a narrow API token: every
 // payload that is a Redactor reaches it in its redacted form.
-func (h *Hub) AddRestricted(c Conn) { h.add(c, true) }
+func (h *Hub) AddRestricted(c Conn) { h.add(c, true, false) }
 
-func (h *Hub) add(c Conn, restricted bool) {
+// AddLocal is Add for a listener inside this process, such as the desktop
+// tray. No session let it in, so DropAll leaves it registered; nothing would
+// open it again.
+func (h *Hub) AddLocal(c Conn) { h.add(c, false, true) }
+
+func (h *Hub) add(c Conn, restricted, local bool) {
 	h.mu.Lock()
 	if _, ok := h.clients[c]; ok {
 		h.mu.Unlock()
@@ -107,6 +116,7 @@ func (h *Hub) add(c Conn, restricted bool) {
 		send:       make(chan []byte, queueDepth),
 		quit:       make(chan struct{}),
 		restricted: restricted,
+		local:      local,
 	}
 	h.clients[c] = cl
 	h.mu.Unlock()
@@ -129,6 +139,23 @@ func (h *Hub) Remove(c Conn) {
 	h.mu.Unlock()
 	if cl != nil {
 		cl.stop()
+	}
+}
+
+// DropAll unregisters every connection but the local ones, which closes each
+// one. A stream is let in once, when it opens, so the moment every session
+// ends is the moment to make each viewer open one again.
+func (h *Hub) DropAll() {
+	h.mu.Lock()
+	conns := make([]Conn, 0, len(h.clients))
+	for c, cl := range h.clients {
+		if !cl.local {
+			conns = append(conns, c)
+		}
+	}
+	h.mu.Unlock()
+	for _, c := range conns {
+		h.Remove(c)
 	}
 }
 

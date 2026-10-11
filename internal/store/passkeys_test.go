@@ -139,6 +139,28 @@ func TestRenameAndDeletePasskey(t *testing.T) {
 	}
 }
 
+func TestDeleteAllPasskeysRemovesEveryAddress(t *testing.T) {
+	s := open(t)
+	for i, rp := range []string{"kl.example.com", "kl.example.com", "localhost"} {
+		if _, err := s.AddPasskey(aKey("a key", rp, byte(0x10+i))); err != nil {
+			t.Fatal(err)
+		}
+	}
+	n, err := s.DeleteAllPasskeys()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if n != 3 {
+		t.Errorf("DeleteAllPasskeys reported %d removed, want 3", n)
+	}
+	if all, _ := s.ListPasskeys(); len(all) != 0 {
+		t.Errorf("%d rows are left", len(all))
+	}
+	if n, err := s.DeleteAllPasskeys(); n != 0 || err != nil {
+		t.Errorf("with nothing left = %d, %v, want 0 and no error", n, err)
+	}
+}
+
 func TestTouchPasskeyRecordsTheCounter(t *testing.T) {
 	s := open(t)
 	saved, err := s.AddPasskey(aKey("my phone", "kl.example.com", 0x10))

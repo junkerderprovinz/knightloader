@@ -26,6 +26,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
@@ -328,7 +329,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 	// every started ceremony is stored, so starting one counts as an attempt
 	// too. Sharing the password's counter would let somebody hammering the
 	// password lock the owner out of this way in too.
-	gate := newLoginGate()
+	gate := newLoginGate(trustedProxies(a))
 
 	reg.AddOpen(http.MethodGet, "/api/auth/passkeys",
 		"whether this address can carry passkeys and how many are registered; open because the sign-in screen has to know before anybody is signed in. The registered keys themselves are only listed to a session",
@@ -396,7 +397,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := registrations.begin(session, rpID, loginClientKey(r))
+			handle, err := registrations.begin(session, rpID, gate.key(r))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
@@ -449,16 +450,24 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			if name == "" {
 				name = "Passkey"
 			}
-			saved, err := a.Store.AddPasskey(store.Passkey{
-				Name:         name,
-				CredentialID: cred.ID,
-				PublicKey:    cred.PublicKey,
-				AAGUID:       cred.Authenticator.AAGUID,
-				SignCount:    cred.Authenticator.SignCount,
-				Transports:   joinTransports(cred.Transport),
-				RPID:         rpID,
-				BackedUp:     cred.Flags.BackupEligible,
+			var saved store.Passkey
+			err = a.Auth.Mint(stillAdmitted(a, r), func() (err error) {
+				saved, err = a.Store.AddPasskey(store.Passkey{
+					Name:         name,
+					CredentialID: cred.ID,
+					PublicKey:    cred.PublicKey,
+					AAGUID:       cred.Authenticator.AAGUID,
+					SignCount:    cred.Authenticator.SignCount,
+					Transports:   joinTransports(cred.Transport),
+					RPID:         rpID,
+					BackedUp:     cred.Flags.BackupEligible,
+				})
+				return err
 			})
+			if errors.Is(err, auth.ErrStale) {
+				http.Error(w, err.Error(), http.StatusUnauthorized)
+				return
+			}
 			if errors.Is(err, store.ErrPasskeyExists) {
 				http.Error(w, err.Error(), http.StatusConflict)
 				return
@@ -501,7 +510,7 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			handle, err := signIns.begin(session, rpID, loginClientKey(r))
+			handle, err := signIns.begin(session, rpID, gate.key(r))
 			if errors.Is(err, errCeremoniesFull) {
 				http.Error(w, err.Error(), http.StatusServiceUnavailable)
 				return
@@ -538,6 +547,9 @@ func registerPasskeys(reg *Registry, a *app.App) {
 				http.Error(w, "that sign-in has expired, try again", http.StatusBadRequest)
 				return
 			}
+			// Read before the keys are, so a reset either removed them already
+			// or refuses the session below.
+			state := a.Auth.Current()
 			wa, rpID, err := webAuthnFor(r)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
@@ -580,11 +592,16 @@ func registerPasskeys(reg *Registry, a *app.App) {
 					break
 				}
 			}
-			gate.pass(r)
 			// No second factor on top: a passkey is already a device key plus
 			// the person unlocking it, and the code backs up a password this
 			// sign-in did not use.
-			setSession(w, r, a.Auth.Issue())
+			tok, ok := a.Auth.IssueFor(state)
+			if !ok {
+				http.Error(w, "that passkey was not accepted", http.StatusUnauthorized)
+				return
+			}
+			gate.pass(r)
+			setSession(w, r, tok)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 

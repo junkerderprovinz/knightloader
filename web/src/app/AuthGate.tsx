@@ -1,16 +1,21 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
+  ApiError,
+  askForResetCode,
   fetchAuth,
   fetchPasskeys,
   login,
+  onUnauthorized,
   passkeysInBrowser,
   signInWithPasskey,
   type AuthState,
+  type ResetCodePlace,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { Button, Card, Field, PasswordInput, TextInput } from '../components/ui';
 import { IconKey } from '../lib/icons';
 import { LanguagePicker } from '../components/LanguagePicker';
+import { PasswordReset } from './PasswordReset';
 
 // AuthGate shows the app, or the sign-in screen when the instance is locked.
 // While the state is still unknown it renders nothing, so a locked instance
@@ -26,9 +31,29 @@ export function AuthGate({ children }: { children: ReactNode }) {
       .catch(() => setAuth({ enabled: false, authenticated: true }));
   }, []);
 
+  // A session can end under an open page: somebody signed out everywhere,
+  // changed the password or reset it. The next refused call brings the
+  // sign-in screen back, once the server confirms the refusal was its own.
+  useEffect(
+    () =>
+      onUnauthorized(() => {
+        fetchAuth()
+          .then((a) => {
+            if (a.enabled && !a.authenticated) setAuth(a);
+          })
+          .catch(() => undefined);
+      }),
+    [],
+  );
+
   if (!auth) return null;
   if (auth.enabled && !auth.authenticated) return <SignIn onSignedIn={setAuth} />;
   return <>{children}</>;
+}
+
+/** tooMany reports whether a sign-in was refused by the throttle. */
+function tooMany(e: unknown): boolean {
+  return e instanceof ApiError && e.status === 429;
 }
 
 /**
@@ -42,11 +67,16 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
   const [code, setCode] = useState('');
   // Which question is on screen, decided by the server's answer.
   const [step, setStep] = useState<'password' | 'code'>('password');
-  const [error, setError] = useState<'' | 'password' | 'code' | 'passkey'>('');
+  const [error, setError] = useState<'' | 'password' | 'code' | 'passkey' | 'wait' | 'noResetCode' | 'unreachable'>(
+    '',
+  );
   const [busy, setBusy] = useState(false);
   // A passkey is bound to its domain, so the button only appears where a key
   // registered for this address exists.
   const [passkeyHere, setPasskeyHere] = useState(false);
+  // Where the server wrote a reset code, which is what puts the reset form on
+  // screen in place of the password.
+  const [resetAt, setResetAt] = useState<ResetCodePlace | null>(null);
 
   useEffect(() => {
     if (!passkeysInBrowser()) return;
@@ -69,11 +99,29 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
       setStep('code');
       setCode('');
       if (res.codeRejected) setError('code');
-    } catch {
+    } catch (e) {
+      // The throttle refuses the right password too, so nothing typed is
+      // wrong and all of it stays.
+      if (tooMany(e)) {
+        setError('wait');
+        return;
+      }
       setError('password');
       setPassword('');
       setCode('');
       setStep('password');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  async function forgot() {
+    setBusy(true);
+    setError('');
+    try {
+      setResetAt(await askForResetCode());
+    } catch (e) {
+      setError(e instanceof ApiError && e.code === 'resetUnavailable' ? 'noResetCode' : 'unreachable');
     } finally {
       setBusy(false);
     }
@@ -84,8 +132,8 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
     setError('');
     try {
       onSignedIn(await signInWithPasskey());
-    } catch {
-      setError('passkey');
+    } catch (e) {
+      setError(tooMany(e) ? 'wait' : 'passkey');
     } finally {
       setBusy(false);
     }
@@ -101,60 +149,92 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
         </div>
         <Card className="flex flex-col gap-5">
           <h1 className="text-sm font-semibold text-carbon-text">
-            {step === 'code' ? t('auth.twoFactor.title') : t('auth.title')}
+            {resetAt ? t('auth.reset.title') : step === 'code' ? t('auth.twoFactor.title') : t('auth.title')}
           </h1>
-          <form className="flex flex-col gap-5" onSubmit={submit}>
-            {step === 'password' ? (
-              <Field label={t('auth.password')}>
-                <PasswordInput
-                  value={password}
-                  onChange={setPassword}
-                  autoComplete="current-password"
-                  autoFocus
-                  showLabel={t('common.showPassword')}
-                  hideLabel={t('common.hidePassword')}
-                />
-              </Field>
-            ) : (
-              <Field label={t('auth.twoFactor.confirmLabel')} hint={t('auth.twoFactor.signInHint')}>
-                <TextInput
-                  autoFocus
-                  value={code}
-                  onChange={(e) => setCode(e.target.value)}
-                  inputMode="numeric"
-                  autoComplete="one-time-code"
-                  placeholder="000000"
-                  dir="ltr"
-                />
-              </Field>
-            )}
-            <div className="flex items-center gap-3">
-              <Button type="submit" disabled={busy || (step === 'code' ? code === '' : password === '')}>
-                {step === 'code' ? t('auth.twoFactor.verify') : t('auth.signIn')}
-              </Button>
-              {error === 'password' && <span className="text-statusFail text-sm">{t('auth.wrong')}</span>}
-              {error === 'code' && <span className="text-statusFail text-sm">{t('auth.twoFactor.codeWrong')}</span>}
-              {error === 'passkey' && (
-                <span className="text-statusFail text-sm">{t('auth.passkey.signInFailed')}</span>
-              )}
-            </div>
-          </form>
+          {resetAt ? (
+            <PasswordReset
+              place={resetAt}
+              onPlace={setResetAt}
+              onDone={onSignedIn}
+              onBack={() => setResetAt(null)}
+            />
+          ) : (
+            <>
+              <form className="flex flex-col gap-5" onSubmit={submit}>
+                {step === 'password' ? (
+                  <Field label={t('auth.password')}>
+                    <PasswordInput
+                      value={password}
+                      onChange={setPassword}
+                      autoComplete="current-password"
+                      autoFocus
+                      showLabel={t('common.showPassword')}
+                      hideLabel={t('common.hidePassword')}
+                    />
+                  </Field>
+                ) : (
+                  <Field label={t('auth.twoFactor.confirmLabel')} hint={t('auth.twoFactor.signInHint')}>
+                    <TextInput
+                      autoFocus
+                      value={code}
+                      onChange={(e) => setCode(e.target.value)}
+                      inputMode="numeric"
+                      autoComplete="one-time-code"
+                      placeholder="000000"
+                      dir="ltr"
+                    />
+                  </Field>
+                )}
+                <div className="flex items-center gap-3">
+                  <Button type="submit" disabled={busy || (step === 'code' ? code === '' : password === '')}>
+                    {step === 'code' ? t('auth.twoFactor.verify') : t('auth.signIn')}
+                  </Button>
+                  {error === 'password' && <span className="text-statusFail text-sm">{t('auth.wrong')}</span>}
+                  {error === 'code' && <span className="text-statusFail text-sm">{t('auth.twoFactor.codeWrong')}</span>}
+                  {error === 'passkey' && (
+                    <span className="text-statusFail text-sm">{t('auth.passkey.signInFailed')}</span>
+                  )}
+                  {error === 'wait' && <span className="text-statusFail text-sm">{t('auth.tooMany')}</span>}
+                </div>
+              </form>
 
-          {/* Below the password, which always works; shown only where a key
-              can answer on this address. */}
-          {passkeyHere && step === 'password' && (
-            <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
-              <div>
-                <Button
-                  kind="secondary"
-                  icon={<IconKey width={16} height={16} />}
-                  disabled={busy}
-                  onClick={() => void withPasskey()}
-                >
-                  {t('auth.passkey.signIn')}
-                </Button>
-              </div>
-            </div>
+              {/* Below the password, which always works; shown only where a key
+                  can answer on this address. */}
+              {passkeyHere && step === 'password' && (
+                <div className="flex flex-col gap-3 border-t border-carbon-border/40 pt-4">
+                  <div>
+                    <Button
+                      kind="secondary"
+                      icon={<IconKey width={16} height={16} />}
+                      disabled={busy}
+                      onClick={() => void withPasskey()}
+                    >
+                      {t('auth.passkey.signIn')}
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {/* Not beside the code: whoever is asked for one knows the
+                  password. */}
+              {step === 'password' && (
+                <div className="flex flex-col items-start gap-2">
+                  <Button kind="ghost" className="-ms-3.5" disabled={busy} onClick={() => void forgot()}>
+                    {t('auth.forgot')}
+                  </Button>
+                  {error === 'noResetCode' && (
+                    <p role="alert" className="text-statusFail text-sm">
+                      {t('auth.reset.unavailable')}
+                    </p>
+                  )}
+                  {error === 'unreachable' && (
+                    <p role="alert" className="text-statusFail text-sm">
+                      {t('common.loadFailed')}
+                    </p>
+                  )}
+                </div>
+              )}
+            </>
           )}
         </Card>
       </div>
