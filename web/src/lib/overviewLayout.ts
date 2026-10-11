@@ -3,7 +3,7 @@
 // interface state (lib/uistate.ts), so it follows the person between browsers.
 
 /** Every card of the overview, in the order a new arrangement starts with. */
-export const OVERVIEW_CARDS = ['needs', 'speed', 'recent', 'disk', 'instances', 'torrents', 'volume'] as const;
+export const OVERVIEW_CARDS = ['needs', 'speed', 'flow', 'recent', 'disk', 'instances', 'torrents', 'volume'] as const;
 export type OverviewCard = (typeof OVERVIEW_CARDS)[number];
 
 /** The grid has six columns, so a card is a third, a half, two thirds or the whole row wide. */
@@ -14,6 +14,7 @@ export type CardSpan = (typeof SPANS)[number];
 const NATURAL_SPAN: Record<OverviewCard, CardSpan> = {
   needs: 6,
   speed: 6,
+  flow: 3,
   recent: 3,
   disk: 3,
   instances: 2,
@@ -27,7 +28,7 @@ export interface OverviewLayout {
   widths: Partial<Record<OverviewCard, CardSpan>>;
 }
 
-/** The overview opens on the head and four cards; the rest waits under Customize. */
+/** The overview opens on the head and five cards; the rest waits under Customize. */
 export const DEFAULT_LAYOUT: OverviewLayout = {
   order: [...OVERVIEW_CARDS],
   hidden: ['instances', 'torrents', 'volume'],

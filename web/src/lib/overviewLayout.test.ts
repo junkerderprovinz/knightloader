@@ -14,8 +14,8 @@ import {
 } from './overviewLayout';
 
 describe('the overview arrangement', () => {
-  it('opens on four cards and keeps the rest for later', () => {
-    expect(shownCards(DEFAULT_LAYOUT)).toEqual(['needs', 'speed', 'recent', 'disk']);
+  it('opens on five cards and keeps the rest for later', () => {
+    expect(shownCards(DEFAULT_LAYOUT)).toEqual(['needs', 'speed', 'flow', 'recent', 'disk']);
     expect([...shownCards(DEFAULT_LAYOUT), ...DEFAULT_LAYOUT.hidden].sort()).toEqual([...OVERVIEW_CARDS].sort());
   });
 
@@ -26,7 +26,7 @@ describe('the overview arrangement', () => {
 
   it('appends a card the stored order does not know and drops one this build lacks', () => {
     const layout = readLayout({ order: ['disk', 'gone', 'needs'], hidden: ['gone', 'disk'], widths: { disk: 4, needs: 5, gone: 2 } });
-    expect(layout.order).toEqual(['disk', 'needs', 'speed', 'recent', 'instances', 'torrents', 'volume']);
+    expect(layout.order).toEqual(['disk', 'needs', 'speed', 'flow', 'recent', 'instances', 'torrents', 'volume']);
     expect(layout.hidden).toEqual(['disk']);
     expect(layout.widths).toEqual({ disk: 4 });
   });
@@ -41,10 +41,10 @@ describe('the overview arrangement', () => {
 
   it('moves a card one place among the cards on show', () => {
     const start = withHidden(DEFAULT_LAYOUT, 'speed', true);
-    expect(shownCards(start)).toEqual(['needs', 'recent', 'disk']);
+    expect(shownCards(start)).toEqual(['needs', 'flow', 'recent', 'disk']);
     const later = moved(start, 'needs', 1);
-    expect(shownCards(later)).toEqual(['recent', 'needs', 'disk']);
-    expect(moved(later, 'recent', -1)).toBe(later);
+    expect(shownCards(later)).toEqual(['flow', 'needs', 'recent', 'disk']);
+    expect(moved(later, 'flow', -1)).toBe(later);
     expect(moved(later, 'disk', 1)).toBe(later);
   });
 
@@ -57,8 +57,8 @@ describe('the overview arrangement', () => {
   });
 
   it('takes a dragged order without losing the hidden cards', () => {
-    const layout = withOrder(DEFAULT_LAYOUT, ['disk', 'recent', 'speed', 'needs']);
-    expect(shownCards(layout)).toEqual(['disk', 'recent', 'speed', 'needs']);
+    const layout = withOrder(DEFAULT_LAYOUT, ['disk', 'recent', 'flow', 'speed', 'needs']);
+    expect(shownCards(layout)).toEqual(['disk', 'recent', 'flow', 'speed', 'needs']);
     expect(layout.order).toHaveLength(OVERVIEW_CARDS.length);
   });
 });

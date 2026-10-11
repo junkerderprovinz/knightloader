@@ -8,6 +8,7 @@ import { fmtBytes, fmtRate, pct } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { countTasks } from '../lib/needs';
 import { refreshNeeds, useNeeds } from '../lib/useNeeds';
+import { useTransferFlow } from '../lib/useTransferFlow';
 import {
   DEFAULT_LAYOUT,
   OVERVIEW_CARDS,
@@ -37,6 +38,7 @@ import { InstanceRow } from '../components/InstanceCard';
 import { TorrentCard } from '../components/TorrentCard';
 import { NeedsCard } from '../components/NeedsCard';
 import { OverviewHero } from '../components/OverviewHero';
+import { TransferFlow } from '../components/pictures/TransferFlow';
 import { PageAction, PageActions } from '../components/PageActions';
 import { useAddLinks } from '../components/AddLinksAction';
 import { Tabs } from '../components/Tabs';
@@ -46,6 +48,7 @@ import { IconCheck, IconDownload, IconEye, IconEyeOff, IconGrip, IconMoveDown, I
 const CARD_NAME: Record<OverviewCard, TranslationKey> = {
   needs: 'overview.needs.title',
   speed: 'overview.totalSpeed',
+  flow: 'overview.flow.title',
   recent: 'overview.recent',
   disk: 'disk.title',
   instances: 'overview.instances',
@@ -103,6 +106,7 @@ export function Dashboard() {
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
   const counts = useMemo(() => countTasks(list, Date.now()), [list]);
+  const flow = useTransferFlow(list, '/api');
 
   const recent = useMemo(
     () =>
@@ -155,6 +159,13 @@ export function Dashboard() {
             {/* The limit feeds the 1337 easter egg (docs/easter-eggs.md). */}
             <SpeedGraph value={counts.speed} height={96} limit={settings?.speedLimit ?? 0} />
           </div>
+        );
+      case 'flow':
+        return (
+          <Card hue={hue} className="flex flex-col gap-3">
+            <SectionTitle hint={t('overview.flow.hint')}>{t('overview.flow.title')}</SectionTitle>
+            <TransferFlow flow={flow} title={t('overview.flow.title')} cfg={settings} />
+          </Card>
         );
       case 'recent':
         return (

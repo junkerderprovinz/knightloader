@@ -53,6 +53,13 @@ export const RELEASES: Release[] = [
         names: { name: 'overview.customize' },
       },
       { id: 'folder-vessel', to: ['/'], text: 'whatsnew.change.vessel', names: { name: 'disk.title' } },
+      {
+        id: 'transfer-flow',
+        to: ['/', '/downloads'],
+        text: 'whatsnew.change.transferFlow',
+        names: { name: 'overview.flow.title' },
+      },
+      { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       // Drawn on every page of a narrow window, and listed with the first of them.
       { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },
       { id: 'page-actions', to: ['/downloads'], text: 'whatsnew.change.pageActions' },
