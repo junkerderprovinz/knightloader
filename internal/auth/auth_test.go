@@ -96,7 +96,7 @@ func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
 func TestRevokeAllEndsEverySession(t *testing.T) {
 	g, dir := locked(t)
 	s := g.Issue()
-	if err := g.RevokeAll(); err != nil {
+	if err := g.RevokeAll(nil); err != nil {
 		t.Fatal(err)
 	}
 	if g.Valid(s) {

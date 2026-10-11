@@ -179,7 +179,9 @@ func registerSystem(reg *Registry, a *app.App) {
 					http.Error(w, "unauthorized", http.StatusUnauthorized)
 					return
 				}
-				if err := a.Auth.RevokeAll(); err != nil {
+				// A live stream was let in when it opened and would go on
+				// delivering to the sessions that have just ended.
+				if err := a.Auth.RevokeAll(a.Hub.DropAll); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
 				}
@@ -214,7 +216,9 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
-			changed, err := a.Auth.ChangePassword(body.Current, body.New)
+			// The page that changed it reconnects its own stream with the
+			// cookie this answer sets.
+			changed, err := a.Auth.ChangePassword(body.Current, body.New, a.Hub.DropAll)
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

@@ -2,10 +2,14 @@ package api
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/url"
 	"testing"
+	"time"
+
+	"github.com/coder/websocket"
 
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
@@ -31,14 +35,7 @@ func signedIn(t *testing.T, base, password string) (*http.Client, string) {
 	if code := login(t, c, base, password); code != http.StatusOK {
 		t.Fatalf("login answered %d", code)
 	}
-	u, _ := url.Parse(base)
-	for _, ck := range c.Jar.Cookies(u) {
-		if ck.Name == auth.CookieName {
-			return c, ck.Value
-		}
-	}
-	t.Fatal("the login set no session cookie")
-	return nil, ""
+	return c, cookieOf(t, c, base)
 }
 
 func TestChangingThePasswordSignsOutEveryOtherBrowser(t *testing.T) {
@@ -130,5 +127,97 @@ func TestLoggingOutEverywhereNeedsASessionAndEndsThemAll(t *testing.T) {
 		if code := sessionStatus(t, srv.URL, s); code != http.StatusUnauthorized {
 			t.Errorf("a session answered %d after signing out everywhere, want 401", code)
 		}
+	}
+}
+
+// dialStream opens the live stream with cookie and waits for its snapshot.
+func dialStream(t *testing.T, base, cookie string) *websocket.Conn {
+	t.Helper()
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	c, _, err := websocket.Dial(ctx, base+"/api/ws", &websocket.DialOptions{HTTPHeader: sessionHeader(cookie)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = c.CloseNow() })
+	readOneOfType(t, c, "snapshot")
+	return c
+}
+
+// closedByServer reports whether the server closes c within ten seconds.
+func closedByServer(c *websocket.Conn) bool {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	for {
+		if _, _, err := c.Read(ctx); err != nil {
+			return ctx.Err() == nil
+		}
+	}
+}
+
+func cookieOf(t *testing.T, c *http.Client, base string) string {
+	t.Helper()
+	u, _ := url.Parse(base)
+	for _, ck := range c.Jar.Cookies(u) {
+		if ck.Name == auth.CookieName {
+			return ck.Value
+		}
+	}
+	t.Fatal("the client holds no session cookie")
+	return ""
+}
+
+func TestChangingThePasswordClosesTheLiveStreamsAndTheOwnerReconnects(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	owner, before := signedIn(t, srv.URL, "a-good-password")
+	_, other := signedIn(t, srv.URL, "a-good-password")
+	own, others := dialStream(t, srv.URL, before), dialStream(t, srv.URL, other)
+
+	body, _ := json.Marshal(map[string]string{"current": "a-good-password", "new": "another-good-password"})
+	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", bytes.NewReader(body))
+	resp, err := owner.Do(req)
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("changing the password answered %d", resp.StatusCode)
+	}
+
+	if !closedByServer(others) {
+		t.Error("another browser's stream was still open ten seconds after the change")
+	}
+	if !closedByServer(own) {
+		t.Error("the owner's stream from before the change was still open ten seconds after it")
+	}
+	dialStream(t, srv.URL, cookieOf(t, owner, srv.URL))
+}
+
+func TestSigningOutEverywhereClosesTheLiveStreams(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	c, _ := signedIn(t, srv.URL, "a-good-password")
+	_, other := signedIn(t, srv.URL, "a-good-password")
+	stream := dialStream(t, srv.URL, other)
+
+	resp, err := c.Post(srv.URL+"/api/auth/logout", "application/json", bytes.NewReader([]byte(`{"everywhere":true}`)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	if resp.StatusCode != http.StatusNoContent {
+		t.Fatalf("signing out everywhere answered %d", resp.StatusCode)
+	}
+	if !closedByServer(stream) {
+		t.Error("a stream was still open ten seconds after signing out everywhere")
 	}
 }

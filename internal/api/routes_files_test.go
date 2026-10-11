@@ -416,7 +416,7 @@ func TestAPlayLinkEndsWithTheCredentialsThatMadeIt(t *testing.T) {
 		t.Fatal("revoking one token ended the link of another")
 	}
 
-	if err := a.Auth.RevokeAll(); err != nil {
+	if err := a.Auth.RevokeAll(nil); err != nil {
 		t.Fatal(err)
 	}
 	if opens(keptLink) {
