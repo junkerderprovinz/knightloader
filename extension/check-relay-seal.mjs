@@ -301,6 +301,16 @@ await vm.runInContext(`((opts) => relaySession(opts, ({ call }) => call('f'.repe
   selfName: 'Browser',
 });
 FakeSocket.answer = null;
+const signingHello = [...sent].reverse().map((raw) => JSON.parse(raw)).find((f) => f.type === 'hello')?.data?.announce;
+const signingIdentity = signingHello
+  ? await vm.runInContext(
+      `((key, id, blob) => relayOpen(key, relayAnnounceAAD(id), blob).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, signingHello.instanceId, signingHello.sealed)
+  : null;
+if (signingIdentity?.signs !== true) {
+  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want signs: true, or an instance takes it for a member from before keys`);
+}
 const signed = asked
   ? await vm.runInContext(
       `((key, a) => relayOpen(key, relayRequestAAD(a.requestId, a.target), a.sealed).then(p => p && JSON.parse(relayFromUtf8(p))))`,

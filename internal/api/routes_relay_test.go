@@ -771,7 +771,7 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
 	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	if err := a.Federation.SetJoined(time.Now()); err != nil {
+	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
 		t.Fatal(err)
 	}
 	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {

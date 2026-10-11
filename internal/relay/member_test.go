@@ -176,3 +176,18 @@ func TestABrokenSignatureIsAnsweredAndNeverServed(t *testing.T) {
 	case <-time.After(100 * time.Millisecond):
 	}
 }
+
+func TestAnAnnounceSaysWhetherItsMemberSigns(t *testing.T) {
+	for _, signs := range []bool{true, false} {
+		wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Name: "nas", Signs: signs})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if wire.Signs {
+			t.Error("the flag travels in the clear, where a relay can set it")
+		}
+		if got := openAnnounce(testFrameKey, wire); got.Signs != signs {
+			t.Errorf("an announce sealed with signs=%v opened as %v", signs, got.Signs)
+		}
+	}
+}

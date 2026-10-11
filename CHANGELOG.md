@@ -46,9 +46,15 @@ release's tag.
   paired before keep working; each member's key is remembered after the
   update without pairing again.
 
-- **Removing a device takes back its key for good.** A removed phone or
-  browser comes back only as a new device, and an instance taken out can only
-  rejoin under a new key.
+- **A new device has to be approved.** A phone, a browser or an instance that
+  enters the twelve words waits under **Waiting for approval** on the Pairing
+  card, with its kind and key fingerprint, until somebody approves or refuses
+  it there. The decision reaches every instance of the group, and the waiting
+  device says where to approve it. Devices already in a group count as
+  approved.
+
+- **Removing or refusing a device takes back its key for good.** It can come
+  back only as a new device, which waits for approval again.
 
 - **One member can no longer crowd out the others.** How many calls wait at
   once, which request ids are used up, and how many new devices join in an

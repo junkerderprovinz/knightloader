@@ -98,6 +98,10 @@ type Announce struct {
 	// for every session, as the browser extension does, so the group can
 	// still recognise it and turn it away once removed.
 	Member string `json:"member,omitempty"`
+	// Signs says the member signs its calls with a member key. A member on a
+	// release before keys leaves it out, which is how an instance tells the
+	// members that were in the group before keys from new ones.
+	Signs bool `json:"signs,omitempty"`
 }
 
 // Identity is the part of an announce the relay server never reads: it routes
@@ -110,6 +114,7 @@ type Identity struct {
 	Client     bool   `json:"client,omitempty"`
 	Address    string `json:"address,omitempty"`
 	Member     string `json:"member,omitempty"`
+	Signs      bool   `json:"signs,omitempty"`
 }
 
 // announceAAD binds an announce's seal to its instance id. Its label differs
@@ -154,6 +159,7 @@ func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 		Client:     a.Client,
 		Address:    FitAddress(a.Address),
 		Member:     a.Member,
+		Signs:      a.Signs,
 	})
 	if err != nil {
 		return Announce{}, err
@@ -181,6 +187,7 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 		Deployment: ClipName(id.Deployment),
 		Client:     id.Client,
 		Address:    FitAddress(id.Address),
+		Signs:      id.Signs,
 	}
 	if id.Client && len(id.Member) <= maxClientIDBytes {
 		out.Member = id.Member

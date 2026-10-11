@@ -106,6 +106,9 @@ type Manager struct {
 	group  *groupFile
 	replay *relay.ReplayGuard
 	limits *memberLimits
+	// awaiting is when each member last answered that this instance waits
+	// for approval there.
+	awaiting map[string]time.Time
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
@@ -235,11 +238,15 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 	if rt == nil {
 		return out, nil
 	}
+	var unsigned []string
 	for _, sib := range rt.Siblings() {
 		// A client-only sibling (the mobile app) calls instances but is not
 		// one; see relay.Announce.Client.
 		if sib.Client || !admit(sib.InstanceID) {
 			continue
+		}
+		if !sib.Signs {
+			unsigned = append(unsigned, sib.InstanceID)
 		}
 		in, ok := out[sib.InstanceID]
 		if !ok {
@@ -254,6 +261,7 @@ func (m *Manager) reachable() (map[string]Instance, RelayTransport) {
 		in.viaRelay = true
 		out[sib.InstanceID] = in
 	}
+	m.noteLegacy(unsigned)
 	return out, rt
 }
 
@@ -326,13 +334,11 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 		// A member on this network is asked directly, and the relay carries
 		// the call when that fails or the member is elsewhere. rt is set
 		// whenever viaRelay is, since both came from the same snapshot.
-		if in.directURL != "" {
-			out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body, auth)
-			if err == nil || !in.viaRelay {
-				return out, code, err
-			}
+		out, code, err := m.proxyMember(ctx, in, rt, method, path, body, auth)
+		if err == nil {
+			m.noteAnswer(in.RelayID, code, out, time.Now())
 		}
-		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
+		return out, code, err
 	}
 	auth := bearer(in.Name)
 	var rd io.Reader
@@ -356,6 +362,19 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	return b, resp.StatusCode, nil
+}
+
+// proxyMember calls a member of the group: directly when it is on this
+// network, and through the relay when that fails or the member is elsewhere.
+// rt is set whenever viaRelay is, since both came from the same snapshot.
+func (m *Manager) proxyMember(ctx context.Context, in Instance, rt RelayTransport, method, path string, body []byte, auth string) ([]byte, int, error) {
+	if in.directURL != "" {
+		out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body, auth)
+		if err == nil || !in.viaRelay {
+			return out, code, err
+		}
+	}
+	return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
 }
 
 // ErrUnauthorized is what Ping reports when a peer answered but refused the

@@ -13,10 +13,12 @@ package api
 import (
 	"context"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"log"
 	"net/http"
 	"net/url"
+	"sort"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -64,6 +66,19 @@ type ConnectInfo struct {
 	// that never forms.
 	JoinedAgo  int64 `json:"joinedAgo"`
 	MemberSeen bool  `json:"memberSeen"`
+	// Pending is every device whose key is pinned here and waits for
+	// approval, and Awaiting whether another instance said lately that this
+	// one waits for approval there.
+	Pending  []pendingDevice `json:"pending"`
+	Awaiting bool            `json:"awaiting"`
+}
+
+type pendingDevice struct {
+	ID   string `json:"id"`
+	Name string `json:"name"`
+	// Kind is "instance", "mobile" or "extension", as the device signs.
+	Kind        string `json:"kind"`
+	Fingerprint string `json:"fingerprint"`
 }
 
 type groupMember struct {
@@ -90,7 +105,7 @@ func registerConnect(reg *Registry, a *app.App) {
 	// the page waits a minute before it says nobody came.
 	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
 		if st, err := a.Federation.Group(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
-			if err := a.Federation.SetJoined(time.Now()); err != nil {
+			if err := a.Federation.SetJoinedBeforeKeys(time.Now()); err != nil {
 				log.Printf("connect: could not record when this instance joined its group: %v", err)
 			}
 		}
@@ -117,7 +132,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			if err := enterGroup(a, secret); err != nil {
+			if err := enterGroup(a, secret, false); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -152,7 +167,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if err := enterGroup(a, secret); err != nil {
+			if err := enterGroup(a, secret, true); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -224,6 +239,59 @@ func registerConnect(reg *Registry, a *app.App) {
 			w.WriteHeader(http.StatusNoContent)
 		})
 
+	reg.Add(http.MethodPost, "/api/connect/devices/{id}/approve",
+		"let a device that entered the words act in the group, on every instance of it - its key is refused until then",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			var passed deviceDecision
+			if fromRelayGroup(r) {
+				if !fromApprovedInstance(r) {
+					refuseDecision(w)
+					return
+				}
+				if !decodeJSON(w, r, &passed) {
+					return
+				}
+			}
+			key, kind, err := a.Federation.Approve(id, passed.Key, passed.Kind)
+			switch {
+			case errors.Is(err, federation.ErrNoSuchPending):
+				http.Error(w, err.Error(), http.StatusNotFound)
+				return
+			case errors.Is(err, federation.ErrGone):
+				http.Error(w, err.Error(), http.StatusGone)
+				return
+			case errors.Is(err, federation.ErrKeyMismatch):
+				http.Error(w, err.Error(), http.StatusConflict)
+				return
+			case err != nil:
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if !fromRelayGroup(r) {
+				go passDecisionOn(a, id, "approve", deviceDecision{Key: key, Kind: kind})
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
+	reg.Add(http.MethodPost, "/api/connect/devices/{id}/refuse",
+		"turn away a device that entered the words, on every instance of the group - its key is revoked",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			if fromRelayGroup(r) && !fromApprovedInstance(r) {
+				refuseDecision(w)
+				return
+			}
+			if err := a.Federation.Refuse(id, time.Now()); err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			if !fromRelayGroup(r) {
+				go passDecisionOn(a, id, "refuse", deviceDecision{})
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
 	reg.Add(http.MethodDelete, "/api/connect/members/{id}",
 		"take another instance out of the group - it forgets the phrase and comes back when the phrase is entered there again",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -238,7 +306,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				// Answered before the relay socket closes under this request.
 				w.WriteHeader(http.StatusNoContent)
 				go func() {
-					if err := enterGroup(a, nil); err != nil {
+					if err := enterGroup(a, nil, false); err != nil {
 						log.Printf("connect: could not leave the group after a sibling removed this instance: %v", err)
 					}
 				}()
@@ -269,7 +337,7 @@ func registerConnect(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			// Idempotent: setting an empty secret deletes it, whether or not
 			// one was stored.
-			if err := enterGroup(a, nil); err != nil {
+			if err := enterGroup(a, nil, false); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -279,8 +347,9 @@ func registerConnect(reg *Registry, a *app.App) {
 
 // enterGroup stores secret as this instance's group, or leaves the group with
 // nil, and redials the relay. Either way the group starts over with nobody
-// seen in it.
-func enterGroup(a *app.App, secret []byte) error {
+// seen in it. entered is set when the words came from a group that already
+// exists, whose instances this one then meets as members already there.
+func enterGroup(a *app.App, secret []byte, entered bool) error {
 	stored := ""
 	joined := time.Time{}
 	if secret != nil {
@@ -299,7 +368,7 @@ func enterGroup(a *app.App, secret []byte) error {
 	// project relay, and writing one would stop RelayModeOf from inferring
 	// "own" from a typed address.
 	applyRelay(a)
-	return a.Federation.SetJoined(joined)
+	return a.Federation.SetJoined(joined, entered && secret != nil)
 }
 
 // phraseQR is the QR code for the app, naming the relay this instance dials
@@ -357,6 +426,19 @@ func connectInfo(a *app.App) ConnectInfo {
 		joinedAgo = max(int64(now.Sub(st.JoinedAt).Seconds()), 0)
 	}
 
+	names := map[string]string{}
+	for _, m := range members {
+		names[m.ID] = m.Name
+	}
+	for _, p := range apps {
+		names[p.ID] = p.Name
+	}
+	pending := []pendingDevice{}
+	for _, p := range a.Federation.PendingMembers() {
+		pending = append(pending, pendingDevice{ID: p.ID, Name: names[p.ID], Kind: p.Kind, Fingerprint: p.Fingerprint})
+	}
+	sort.Slice(pending, func(i, j int) bool { return pending[i].ID < pending[j].ID })
+
 	return ConnectInfo{
 		Active:          secretHex != "",
 		Connected:       a.Federation.RelayConnected(),
@@ -371,6 +453,50 @@ func connectInfo(a *app.App) ConnectInfo {
 		Apps:            apps,
 		JoinedAgo:       joinedAgo,
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
+		Pending:         pending,
+		Awaiting:        a.Federation.AwaitingApproval(now),
+	}
+}
+
+// deviceDecision is what an approval carries when it is passed on: the key
+// approved and the kind it signs as, so an instance the device has not called
+// yet pins it as approved.
+type deviceDecision struct {
+	Key  []byte `json:"key,omitempty"`
+	Kind string `json:"kind,omitempty"`
+}
+
+// fromApprovedInstance reports whether a call from the group came from an
+// instance signing with an approved key. Only such a call may decide who else
+// is let in; an unsigned one, or one from a phone, may not.
+func fromApprovedInstance(r *http.Request) bool {
+	c, ok := federation.CallerOf(r.Context())
+	return ok && c.Kind == relay.KindInstance
+}
+
+func refuseDecision(w http.ResponseWriter) {
+	writeRefusal(w, http.StatusForbidden, "decisionNotFromInstance",
+		"only an approved instance of the group passes an approval or a refusal on", nil)
+}
+
+// passDecisionOn tells the other instances of the group that device id was
+// approved or refused here. One that is away misses it, and the device waits
+// there until it is approved there too.
+func passDecisionOn(a *app.App, id, verb string, d deviceDecision) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	body, err := json.Marshal(d)
+	if err != nil {
+		return
+	}
+	path := "/api/connect/devices/" + url.PathEscape(id) + "/" + verb
+	for _, m := range a.Federation.Members() {
+		if m.RelayID == id {
+			continue
+		}
+		if _, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodPost, path, body); err != nil || status >= 300 {
+			log.Printf("connect: could not pass the %s of %s on to %s: status %d, %v", verb, id, m.Name, status, err)
+		}
 	}
 }
 

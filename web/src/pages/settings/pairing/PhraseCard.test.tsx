@@ -40,6 +40,8 @@ const base: ConnectInfo = {
   apps: [],
   joinedAgo: 0,
   memberSeen: false,
+  pending: [],
+  awaiting: false,
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}) {
@@ -294,5 +296,44 @@ describe('PhraseCard', () => {
     draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] });
     expect(stage()).toBe('paired');
     expect(host.textContent).toContain('Pixel 8');
+  });
+
+  it('lists a device waiting for approval once, with its kind and fingerprint, and approves it', async () => {
+    const calls = answer({});
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
+      pending: [{ id: 'p', name: 'Pixel 8', kind: 'mobile', fingerprint: '3fa2 9c01 77be 0d45' }],
+    });
+    const pending = host.querySelector('[data-testid="pending"]')!;
+    expect(pending.textContent).toContain('Waiting for approval');
+    expect(pending.textContent).toContain('Android app');
+    expect(pending.textContent).toContain('Key 3fa2 9c01 77be 0d45');
+    expect(host.querySelector('[data-testid="members"]')!.textContent).not.toContain('Pixel 8');
+    const actions = [...pending.querySelectorAll('button')].map((b) => b.textContent);
+    expect(actions).toEqual(['Refuse', 'Approve']);
+
+    await act(async () => [...pending.querySelectorAll('button')].find((b) => b.textContent === 'Approve')!.click());
+    expect(calls).toContain('POST /api/connect/devices/p/approve');
+  });
+
+  it('refuses a waiting device only after the window asks', async () => {
+    const calls = answer({});
+    draw({ joinedAgo: 500, memberSeen: true, pending: [{ id: 'x', name: '', kind: 'instance', fingerprint: 'aaaa bbbb cccc dddd' }] });
+    const pending = host.querySelector('[data-testid="pending"]')!;
+    await act(async () => [...pending.querySelectorAll('button')].find((b) => b.textContent === 'Refuse')!.click());
+    expect(dialog()?.textContent).toContain('twelve words');
+    expect(calls.some((c) => c.includes('/refuse'))).toBe(false);
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Refuse')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('POST /api/connect/devices/x/refuse');
+  });
+
+  it('says where to approve this instance while another one keeps it waiting', () => {
+    draw({ joinedAgo: 500, memberSeen: true, awaiting: true });
+    expect(host.textContent).toContain('waiting for approval from the others in the group');
+    draw({ joinedAgo: 500, memberSeen: true, awaiting: false });
+    expect(host.textContent).not.toContain('waiting for approval from the others in the group');
   });
 });

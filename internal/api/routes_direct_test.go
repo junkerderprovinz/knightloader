@@ -145,6 +145,15 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	net := &fakeNetwork{}
 	callerApp.Federation.SetDiscovery(net)
 	net.heard = []discovery.Peer{announce(t, tap, net, self)}
+	// The caller entered the words of a group that was there already, so it
+	// waits for approval here first.
+	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {
+		t.Fatalf("the new member's first direct call answered %d: %s, want 403 until it is approved", code, body)
+	}
+	if code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/devices/"+callerApp.Settings.Get().InstanceID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the caller answered %d: %s", code, body)
+	}
+	captured = nil
 	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the member's direct call answered %d: %s", code, body)
 	}

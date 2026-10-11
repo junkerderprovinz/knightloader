@@ -261,6 +261,9 @@ func applyRelay(a *app.App) {
 	}
 
 	cfg := a.Settings.Get()
+	// A hand-entered relay key is no phrase group, so there is no member key
+	// and nothing pins one.
+	member := memberKey(a)
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      relayURL,
 		Key:      key,
@@ -270,9 +273,9 @@ func applyRelay(a *app.App) {
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
+			Signs:      member != nil,
 		},
-		// A hand-entered relay key is no phrase group, so nothing pins a key.
-		Member: memberKey(a),
+		Member: member,
 		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
 		Replay: a.Federation.Replay(),
 	})
@@ -422,6 +425,12 @@ func relayForwardable(method, path string) bool {
 	// by the instance the removal started on; taking an instance out reaches
 	// that instance, which then leaves.
 	if method == http.MethodDelete && (strings.HasPrefix(rest, "connect/apps/") || strings.HasPrefix(rest, "connect/members/")) {
+		return true
+	}
+	// An approval or a refusal of a new device is passed on the same way. The
+	// route itself takes it only from an instance signing with an approved key.
+	if method == http.MethodPost && strings.HasPrefix(rest, "connect/devices/") &&
+		(strings.HasSuffix(rest, "/approve") || strings.HasSuffix(rest, "/refuse")) {
 		return true
 	}
 	if relayClipWatchRoute(method, rest) {

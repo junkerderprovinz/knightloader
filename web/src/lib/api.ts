@@ -3971,6 +3971,22 @@ export interface ConnectInfo {
   joinedAgo: number;
   /** Whether another instance has shown up in the group since. */
   memberSeen: boolean;
+  /** Devices that entered the words and wait for approval here. */
+  pending: PendingDevice[];
+  /** Whether another instance said lately that this one waits for approval
+   *  there. */
+  awaiting: boolean;
+}
+
+/** A device whose key is pinned here but nobody approved yet. */
+export interface PendingDevice {
+  id: string;
+  /** What it announced itself as, '' when it is not connected. */
+  name: string;
+  /** 'instance', 'mobile' or 'extension', as the device signs. */
+  kind: string;
+  /** The start of its key's hash, for comparing by eye. */
+  fingerprint: string;
 }
 
 export interface GroupMember {
@@ -4067,6 +4083,28 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
  *  instance of it; the phrase entered again brings it back as a new member. */
 export async function removeApp(id: string): Promise<void> {
   const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** approveDevice lets a device that entered the words act in the group, on
+ *  every instance of it. */
+export async function approveDevice(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** refuseDevice turns such a device away on every instance; its key is
+ *  revoked there for good. */
+export async function refuseDevice(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/refuse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
   if (!r.ok) throw new Error(await r.text());
 }
 
