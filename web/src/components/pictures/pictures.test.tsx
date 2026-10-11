@@ -105,7 +105,7 @@ describe('a target folder', () => {
   it('turns the liquid red once the free space is under the stop floor', async () => {
     await draw(<DiskVolumeRow v={folder(60 * GIB)} cfg={floors} />);
     const liquid = () => host.querySelector('g[clip-path] path')!.getAttribute('fill');
-    expect(liquid()).toBe('var(--accent-ink)');
+    expect(liquid()).toBe('var(--accent)');
     await draw(<DiskVolumeRow v={folder(2 * GIB)} cfg={floors} />);
     expect(liquid()).toBe('var(--status-fail-solid)');
   });
@@ -318,7 +318,7 @@ describe('the reconnect scene', () => {
     const scene = host.querySelector('[role="img"]')!;
     expect(scene.getAttribute('data-state')).toBe('off');
     expect(scene.getAttribute('aria-label')).toContain('Reconnect is off');
-    expect(scene.querySelector('[stroke="var(--accent-ink)"]')).toBeNull();
+    expect(scene.querySelector('[stroke="var(--accent-glyph)"]')).toBeNull();
     expect(scene.textContent).not.toContain('address');
   });
 
@@ -326,7 +326,7 @@ describe('the reconnect scene', () => {
     await draw(<ReconnectScene method="command" glyph={glyph} off={false} />);
     const scene = host.querySelector('[role="img"]')!;
     expect(scene.getAttribute('data-state')).toBe('on');
-    expect(scene.querySelector('[stroke="var(--accent-ink)"]')).not.toBeNull();
+    expect(scene.querySelector('[stroke="var(--accent-glyph)"]')).not.toBeNull();
     expect(scene.textContent).toContain('New address');
   });
 
@@ -345,7 +345,7 @@ describe('the seed ring', () => {
   it('closes by the share of the target that is seeded', async () => {
     await draw(<SeedRing ratio={0.5} target={2} label="Ratio" />);
     expect(drawn()).toBeCloseTo(around / 4, 1);
-    expect(arc()!.getAttribute('stroke')).toBe('var(--accent-ink)');
+    expect(arc()!.getAttribute('stroke')).toBe('var(--accent-glyph)');
     expect(host.querySelector('text')!.textContent).toBe('0.50');
   });
 
