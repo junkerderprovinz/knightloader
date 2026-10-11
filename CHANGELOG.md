@@ -43,6 +43,10 @@ release's tag.
   as after going back to an older image. It stops with a message that says
   which version to run, instead of reading and writing a schema it does not
   know.
+- **A restored backup brings no passkeys and no database code along.** The
+  passkeys registered on the running server stay, so a backup made before a
+  passkey was removed cannot bring it back. Triggers and views in an uploaded
+  database are removed before it is put in place.
 
 ## [1.8.5] - 2026-10-11
 
