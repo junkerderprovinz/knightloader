@@ -21,12 +21,12 @@ import {
 import { useT } from '../lib/i18n';
 import { basePath } from '../lib/basePath';
 import { openExternal } from '../lib/external';
-import { IconLink } from '../lib/icons';
+import { IconInstances, IconLink } from '../lib/icons';
 import { PageAction, PageActions } from '../components/PageActions';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
 import { ModulesPageBadge } from './settings/ModuleToggle';
-import { Button, Card, PageHeader, SectionTitle } from '../components/ui';
+import { Button, Card, EmptyState, PageHeader, SectionTitle } from '../components/ui';
 import { GroupNet, SELF_KEY, appNodeKind, useNetHover, type NetNode } from '../components/GroupNet';
 import { AppCard, InstanceCard } from '../components/InstanceCard';
 import { RemovalWindow, type Removal } from '../components/InstanceRemoval';
@@ -182,11 +182,14 @@ export function Instances({
     <div className="flex flex-col gap-10">
       <PageHeader title={t('instances.title')} />
 
+      {/* Switched off, the page still answers: what is off and where to switch
+          it on (GlimStone, "Navigation and modules"). */}
       {off && (
-        <p className="flex flex-wrap items-center gap-x-2 text-sm text-carbon-textSub">
-          {t('instances.moduleOff')}
-          <ModulesPageBadge m={off} title={t('settings.nav.modules')} />
-        </p>
+        <EmptyState
+          icon={<IconInstances width={26} height={26} />}
+          title={t('instances.moduleOff')}
+          action={<ModulesPageBadge m={off} title={t('settings.nav.modules')} />}
+        />
       )}
 
       <Card hue={firstHue}>

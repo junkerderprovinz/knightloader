@@ -1327,7 +1327,6 @@ export const no: Dict = {
   'captcha.continue': 'Fortsett',
   'captcha.cancel': 'Avbryt',
   'captcha.refresh': 'Oppdater',
-  'captcha.moreOptions': 'Flere valg',
   'captcha.blockHoster': 'Slutt også å spørre om {host} denne økten',
   'captcha.blockEverywhere': 'Slutt også å spørre om enhver hoster denne økten',
   'captcha.tooLate': 'Det svaret kom for sent.',

@@ -1317,7 +1317,6 @@ export const nl: Dict = {
   'captcha.continue': 'Doorgaan',
   'captcha.cancel': 'Annuleren',
   'captcha.refresh': 'Vernieuwen',
-  'captcha.moreOptions': 'Meer opties',
   'captcha.blockHoster': 'Ook stoppen met vragen voor {host} deze sessie',
   'captcha.blockEverywhere': 'Ook stoppen met vragen voor elke hoster deze sessie',
   'captcha.tooLate': 'Dat antwoord kwam te laat aan.',

@@ -12,7 +12,7 @@ import { CollisionCard } from './downloads/Collision';
 import { ChunksField, MaxConcurrentField, MaxPerHostField } from './downloads/Concurrency';
 import { DiskSpaceCard } from './downloads/DiskSpace';
 import { FeedsCard } from './downloads/Feeds';
-import { FolderCheckCard } from './downloads/FolderCheck';
+import { FolderCheck } from './downloads/FolderCheck';
 import { ListCardsCard } from './downloads/ListCards';
 import { SpeedLimitField } from './downloads/SpeedLimit';
 import { StallCard } from './downloads/Stall';
@@ -72,6 +72,7 @@ export function DownloadsSettings() {
             onValue={(workDir) => patch({ workDir })}
           />
         </Field>
+        <FolderCheck />
       </Card>
 
       <CollisionCard hue={1} />
@@ -152,9 +153,7 @@ export function DownloadsSettings() {
       {/* setFeature's refusal points people here to add a feed. */}
       <FeedsCard hue={6} />
 
-      <FolderCheckCard hue={7} />
-
-      <ListCardsCard hue={8} />
+      <ListCardsCard hue={7} />
     </div>
   );
 }

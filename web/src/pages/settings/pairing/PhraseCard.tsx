@@ -24,7 +24,7 @@ import { IconCheckDrawn, IconClipboard, IconClose, IconEdit, IconEye, IconRetry,
 import { useShake } from '../../../lib/useShake';
 import { useToast } from '../../../lib/toast';
 import { PhraseGlyph } from './pairingArt';
-import { Subcard } from './parts';
+import { SubCard } from '../controls';
 import { usePhraseEntry } from './PhraseInput';
 import { WordSlots } from './WordSlots';
 import type { PairStage } from './pairStage';
@@ -458,9 +458,9 @@ export function PhraseCard({
           />
         </div>
         {group.relayMode === 'off' && (
-          <Subcard title={t('pairing.otherNetTitle')}>
+          <SubCard className="gap-2.5" label={t('pairing.otherNetTitle')}>
             <p className="text-subline text-carbon-textSub">{t('pairing.otherNetBody')}</p>
-          </Subcard>
+          </SubCard>
         )}
         {relayDown}
         {foot}

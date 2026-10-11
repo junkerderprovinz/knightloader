@@ -1,5 +1,5 @@
 // The pieces the cards of the Pairing tab are laid out with: a row with its
-// control at the end, a fact line and a sub-card.
+// control at the end and a fact line.
 import type { ReactNode } from 'react';
 import { InfoBubble } from '../../../components/ui';
 
@@ -26,7 +26,8 @@ export function SetRow({
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-carbon-border py-3 first:border-t-0 first:pt-0.5 last:pb-0.5">
       <div className="min-w-0 flex-[1_1_12.5rem]">
-        <span className="inline-flex items-center gap-1.5 text-sm text-carbon-text">
+        {/* data-glim-label is where the settings search scrolls to. */}
+        <span data-glim-label={label} className="inline-flex items-center gap-1.5 text-sm text-carbon-text">
           <label htmlFor={htmlFor}>{label}</label>
           {hint && <InfoBubble tip={hint} />}
         </span>
@@ -47,19 +48,5 @@ export function Fact({ glyph, label, children }: { glyph: ReactNode; label?: str
         {children}
       </span>
     </p>
-  );
-}
-
-/** Subcard sets a group of lines apart inside a card, one step up the surface
- *  ramp, under a small heading. */
-export function Subcard({ title, hint, children }: { title: string; hint?: string; children: ReactNode }) {
-  return (
-    <section className="flex flex-col gap-2.5 rounded-[var(--radius-card)] bg-carbon-surface2 px-4 pb-4 pt-3">
-      <h3 className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-[.14em] text-carbon-textMuted">
-        {title}
-        {hint && <InfoBubble tip={hint} />}
-      </h3>
-      {children}
-    </section>
   );
 }

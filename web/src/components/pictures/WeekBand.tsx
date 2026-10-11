@@ -185,9 +185,9 @@ export function WeekBand({
                     style={{ insetInlineStart: share(nowAt) }}
                     className="pointer-events-none absolute -inset-y-1 z-10 w-0.5 -translate-x-1/2 rounded-[var(--radius-pill)] bg-carbon-text"
                   >
-                    <span className="glim-live absolute -top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-full bg-carbon-text" />
+                    <span className="glim-live absolute -top-1 left-1/2 h-1.5 w-1.5 -translate-x-1/2 rounded-[var(--radius-pill)] bg-carbon-text" />
                     <span
-                      className={`glim-num absolute top-1/2 -translate-y-1/2 rounded bg-carbon-text px-1 text-[10px] font-bold leading-[14px]
+                      className={`glim-num absolute top-1/2 -translate-y-1/2 rounded-[var(--radius-control)] bg-carbon-text px-1 text-meta font-bold leading-[14px]
                         text-carbon-surface ${nowAt > DAY * 0.85 ? 'end-1.5' : 'start-1.5'}`}
                     >
                       {nowLabel}

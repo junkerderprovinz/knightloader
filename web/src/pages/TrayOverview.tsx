@@ -9,6 +9,7 @@ import { showMain, useEdgeResize } from '../lib/desktop';
 import { fmtRate, pct } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { IconCaptcha, IconPause, IconPlay } from '../lib/icons';
+import { countTasks } from '../lib/needs';
 import { useTasks } from '../lib/useTasks';
 
 /**
@@ -70,21 +71,7 @@ export function TrayOverview() {
   }, [refresh]);
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
-  const counts = useMemo(() => {
-    let running = 0,
-      queued = 0,
-      done = 0,
-      error = 0,
-      speed = 0;
-    for (const x of list) {
-      if (x.status === 'running' || x.status === 'extracting') running++;
-      else if (x.status === 'queued') queued++;
-      else if (x.status === 'done') done++;
-      else if (x.status === 'error') error++;
-      if (x.status === 'running') speed += x.speed;
-    }
-    return { running, queued, done, error, speed };
-  }, [list]);
+  const counts = useMemo(() => countTasks(list, Date.now()), [list]);
   const running = useMemo(
     () => list.filter((x) => x.status === 'running' || x.status === 'extracting').sort((a, b) => b.speed - a.speed),
     [list],

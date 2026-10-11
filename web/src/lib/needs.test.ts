@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { Account, CaptchaChallenge, DiskVolume, HealthReport, HosterLogin, Task, VolumeUsage } from './api';
-import { headState, kindSegments, needsOf, queueFigures, type NeedSources } from './needs';
+import { countTasks, headState, kindSegments, needsOf, openDownloads, queueFigures, type NeedSources } from './needs';
 
 const NOW = Date.parse('2026-10-10T12:00:00Z');
 const DAY = 24 * 60 * 60 * 1000;
@@ -207,6 +207,40 @@ describe('the ring', () => {
     const tasks = [task({ id: '1', status: 'error' }), task({ id: '2', status: 'done' })];
     expect(kindSegments(tasks, new Set(), NOW)[0].tone).toBe('fail');
     expect(kindSegments(tasks, new Set(['task:1']), NOW)[0].tone).toBe('ok');
+  });
+});
+
+describe('the one count of the lists', () => {
+  const tasks = [
+    task({ id: '1', status: 'running', speed: 100 }),
+    task({ id: '2', status: 'extracting' }),
+    task({ id: '3', status: 'queued' }),
+    task({ id: '4', status: 'paused' }),
+    task({ id: '5', status: 'queued', enabled: false }),
+    task({ id: '6', status: 'error', nextTry: new Date(NOW + 60_000).toISOString() }),
+    task({ id: '7', status: 'error' }),
+    task({ id: '8', status: 'done' }),
+    task({ id: '9', status: 'collected' }),
+    task({ id: '10', status: 'collected', skipped: true }),
+  ];
+
+  it('puts every download into one state and a retry among the waiting', () => {
+    expect(countTasks(tasks, NOW)).toEqual({
+      listed: 8,
+      running: 1,
+      extracting: 1,
+      waiting: 3,
+      done: 1,
+      failed: 1,
+      collected: 1,
+      speed: 100,
+    });
+  });
+
+  it('gives the head the figures every other count shows', () => {
+    const c = countTasks(tasks, NOW);
+    expect(queueFigures(tasks, NOW)).toMatchObject({ listed: c.listed, running: c.running, waiting: c.waiting, speed: c.speed });
+    expect(openDownloads(c)).toBe(5);
   });
 });
 

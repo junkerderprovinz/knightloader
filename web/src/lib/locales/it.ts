@@ -1317,7 +1317,6 @@ export const it: Dict = {
   'captcha.continue': 'Continua',
   'captcha.cancel': 'Annulla',
   'captcha.refresh': 'Aggiorna',
-  'captcha.moreOptions': 'Altre opzioni',
   'captcha.blockHoster': 'Smetti anche di chiedere per {host} in questa sessione',
   'captcha.blockEverywhere': 'Smetti anche di chiedere per qualsiasi hoster in questa sessione',
   'captcha.tooLate': 'Quella risposta è arrivata troppo tardi.',

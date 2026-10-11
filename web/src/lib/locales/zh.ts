@@ -1325,7 +1325,6 @@ export const zh: Dict = {
   'captcha.continue': '继续',
   'captcha.cancel': '取消',
   'captcha.refresh': '刷新',
-  'captcha.moreOptions': '更多选项',
   'captcha.blockHoster': '本次会话也不再询问 {host}',
   'captcha.blockEverywhere': '本次会话也不再询问任何网盘',
   'captcha.tooLate': '该回答送达得太晚了。',

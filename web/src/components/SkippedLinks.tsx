@@ -86,27 +86,30 @@ export function SkippedLinks() {
             {t('skipped.summary', { n: items.length })}
             <InfoBubble tip={t('skipped.info')} />
           </span>
-          <span className="flex-1" />
-          {/* Filled buttons, since ghost buttons read as text on a filled panel. */}
-          {items.length > 1 && (
-            <Button kind="secondary" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
-              {showAll ? t('common.hide') : t('common.show')}
+          {/* One group, so a narrow panel moves the buttons under the count
+              together. Filled, since ghost buttons read as text on a filled
+              panel. */}
+          <span className="ms-auto flex items-center gap-2">
+            {items.length > 1 && (
+              <Button kind="secondary" className="px-2.5 text-xs" onClick={() => setShowAll((v) => !v)}>
+                {showAll ? t('common.hide') : t('common.show')}
+              </Button>
+            )}
+            <Button
+              kind="secondary"
+              className="px-2.5 text-xs"
+              icon={<IconTrash width={14} height={14} />}
+              onClick={onClear}
+            >
+              {t('skipped.clear')}
             </Button>
-          )}
-          <Button
-            kind="secondary"
-            className="px-2.5 text-xs"
-            icon={<IconTrash width={14} height={14} />}
-            onClick={onClear}
-          >
-            {t('skipped.clear')}
-          </Button>
-          <Button
-            kind="secondary"
-            icon={<IconClose width={14} height={14} />}
-            title={t('common.dismiss')}
-            onClick={() => setDismissed(true)}
-          />
+            <Button
+              kind="secondary"
+              icon={<IconClose width={14} height={14} />}
+              title={t('common.dismiss')}
+              onClick={() => setDismissed(true)}
+            />
+          </span>
         </div>
 
         <div className="max-h-56 overflow-y-auto pb-1.5">

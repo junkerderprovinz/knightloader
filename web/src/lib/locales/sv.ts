@@ -1325,7 +1325,6 @@ export const sv: Dict = {
   'captcha.continue': 'Fortsätt',
   'captcha.cancel': 'Avbryt',
   'captcha.refresh': 'Uppdatera',
-  'captcha.moreOptions': 'Fler alternativ',
   'captcha.blockHoster': 'Sluta även fråga om {host} den här sessionen',
   'captcha.blockEverywhere': 'Sluta även fråga om alla hostrar den här sessionen',
   'captcha.tooLate': 'Det svaret kom fram för sent.',

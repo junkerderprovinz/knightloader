@@ -27,6 +27,7 @@ import {
   SeedingBadges,
   SelectionMore,
   matchesQuickFilters,
+  narrowedTitle,
   offeredQuickFilters,
   targetPackage,
   targetTaskId,
@@ -677,7 +678,7 @@ export function Downloads() {
                   onRemovePackage={removal.askWithFiles}
                   extractions={extractions}
                   stopMark={queueVerbs.stopMark}
-                  title={t('downloads.listTitle')}
+                  title={narrowedTitle(filters, t, t('downloads.listTitle'))}
                   count={flat(groups).length}
                   hue={0}
                 />

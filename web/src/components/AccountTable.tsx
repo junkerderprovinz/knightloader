@@ -6,7 +6,7 @@ import { fmtDate, fmtGB } from '../lib/format';
 import { IconBadge, InfoBubble, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
-import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
+import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
 import { IconSettings } from '../lib/icons';
 
 /**
@@ -185,7 +185,21 @@ export function AccountTable({
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((row, i) => (
-            <tr key={row.key} className="glim-row transition-colors hover:bg-carbon-hover">
+            // The whole row opens its account, and a right click its menu
+            // (GlimStone, "Lists"). A press on one of the row's own controls
+            // is that control's alone.
+            <tr
+              key={row.key}
+              className="glim-row cursor-pointer transition-colors hover:bg-carbon-hover"
+              onClick={(e) => {
+                if (!(e.target as Element).closest('button, a, [role="switch"], [role="note"]')) row.onEdit();
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setMenuKey(row.key);
+                menu.openAt(anchorFromEvent(e));
+              }}
+            >
               <td className="px-4 py-3">
                 <Toggle
                   checked={row.enabled}

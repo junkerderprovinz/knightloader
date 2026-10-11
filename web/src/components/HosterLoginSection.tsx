@@ -20,8 +20,8 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconChevronStart, IconClose, IconSearch, IconTrash } from '../lib/icons';
-import { HosterIcon } from './HosterIcon';
+import { IconAccounts, IconChevronStart, IconClose, IconTrash } from '../lib/icons';
+import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
 
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
@@ -300,7 +300,7 @@ function HosterLoginDialog({
   const [saving, setSaving] = useState(false);
 
   const configured = new Set(existing.map((e) => e.host));
-  const filtered = hosts.filter((h) => !configured.has(h.id) && h.label.toLowerCase().includes(query.trim().toLowerCase()));
+  const brands: Brand[] = hosts.filter((h) => !configured.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id }));
 
   async function doSave() {
     if (!picked) return;
@@ -331,6 +331,13 @@ function HosterLoginDialog({
       // While adding, the window says what the card it fills is for.
       hint={editing ? undefined : t('accounts.hoster.hint')}
       hue={2}
+      // The picker's window, which the form of the picked hoster stays in.
+      wide={!editing}
+      height={picked ? 'content' : 'capped'}
+      right={
+        // Open from the start: nobody picks one of several hundred hosters by eye.
+        !picked && <PickerSearch open value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />
+      }
       onClose={onClose}
       footer={
         picked ? (
@@ -362,38 +369,14 @@ function HosterLoginDialog({
       }
     >
       {!picked ? (
-        <div className="flex flex-col gap-3">
-          <div className="flex h-[var(--btn-h)] items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3">
-            <IconSearch width={15} height={15} className="shrink-0 text-carbon-textMuted" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('accounts.hoster.searchHosts')}
-              aria-label={t('accounts.hoster.searchHosts')}
-              className="min-w-0 flex-1 bg-transparent text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-            />
-          </div>
-          <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-            {filtered.length === 0 && (
-              <p className="px-2 py-3 text-center text-sm text-carbon-textMuted">{t('accounts.noServicesFound')}</p>
-            )}
-            {filtered.map((h) => (
-              <button
-                key={h.id}
-                type="button"
-                onClick={() => setPicked(h)}
-                className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
-              >
-                {/* Lazy, so only rows scrolled into view fetch their icon. */}
-                <HosterIcon host={h.id} />
-                <span className="text-sm text-carbon-text">{h.label}</span>
-              </button>
-            ))}
-          </div>
-        </div>
+        <BrandPicker
+          brands={brands.filter((b) => brandMatches(b, query))}
+          none={t('accounts.noServicesFound')}
+          onPick={(id) => setPicked(hosts.find((h) => h.id === id) ?? null)}
+        />
       ) : (
-        <div className="flex flex-col gap-4">
+        // The form keeps a reading width in the picker's wide window.
+        <div className="flex max-w-md flex-col gap-4">
           <Field label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
           </Field>

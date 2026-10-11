@@ -37,6 +37,18 @@ const kindClass: Record<ButtonKind, string> = {
 };
 
 /**
+ * A pressed button shows a state that is in force, the way a chosen segment
+ * does, so it is filled and has no hover step: pressing it again changes
+ * nothing. `primary` is the accent, for a state that means running; the
+ * surface kinds stand one tier above their rest.
+ */
+const pressedClass: Record<ButtonKind, string> = {
+  primary: 'glim-active bg-accent text-accentContrast',
+  secondary: 'bg-carbon-surface3 text-carbon-text',
+  ghost: 'bg-carbon-hover text-carbon-text',
+};
+
+/**
  * The answer a button that tests something shows on itself: green once the
  * test passed, red when it could not run, orange when it found something. It
  * reports a state the way a status badge does, which is why it is a table of
@@ -88,6 +100,7 @@ export function Button({
   labelled,
   transport = false,
   keyHeight = false,
+  pressed,
   title,
   hint,
   shake = 0,
@@ -99,6 +112,12 @@ export function Button({
   hue?: number;
   /** The answer of the test this button ran, which outranks `kind` and `hue`. */
   verdict?: ButtonVerdict;
+  /**
+   * Makes the button one of a set that shows which state is in force, such as
+   * the head bar's Play and Pause. Left undefined everywhere else, so an
+   * action button does not become a toggle for assistive tech.
+   */
+  pressed?: boolean;
   /**
    * Opts a glyph-only button into the Beschriftung setting; see IconBadge's own
    * `labelled`. Used by the windows' way out, which has a title and no
@@ -142,7 +161,9 @@ export function Button({
     ? verdictClass[verdict]
     : hued
       ? 'glim-hue bg-accent text-accentContrast hover:bg-accentHover'
-      : kindClass[kind];
+      : pressed
+        ? pressedClass[kind]
+        : kindClass[kind];
   const ink = verdict ? 'text-carbon-background' : hued ? 'text-accentContrast' : kindInk[kind];
   const slotted = !!hint && !iconOnly;
   // A disabled button takes no pointer events, so a square's name, which is all
@@ -152,14 +173,14 @@ export function Button({
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
   // while the badge beside it showed the bubble at the trigger.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // A bubble only says what the button does not show: one that repeated the
+  // words standing on the button would be noise under every pointer.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : body === title ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
@@ -174,6 +195,7 @@ export function Button({
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
       aria-label={iconOnly && title ? title : undefined}
+      aria-pressed={pressed}
       {...hover}
       ref={(el) => {
         shakeRef.current = el;
@@ -198,7 +220,7 @@ export function Button({
       ) : (
         button
       )}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -451,16 +473,15 @@ export function IconBadge({
   const boxed = !!hint && !showText && !!rest.disabled;
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // Showing its words, the badge has nothing left for a bubble to add.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : showText ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // triggerProps was built for InfoBubble's otherwise-inert <div>, which needs
   // a role and a tab stop to be reachable at all. A button has both already,
   // and the "note" role would take these badges' click semantics away from a
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       type="button"
@@ -505,7 +526,7 @@ export function IconBadge({
   return (
     <>
       {shown}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -527,7 +548,7 @@ export function linkBadgeClass(showText: boolean): string {
 export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
   const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
-  const tip = useTooltip<HTMLAnchorElement>(title);
+  const tip = useTooltip<HTMLAnchorElement>(showText ? undefined : title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -536,7 +557,7 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         target="_blank"
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
-        {...tipHoverProps}
+        {...(showText ? {} : tipHoverProps)}
         onClick={followExternal}
         className={`${linkBadgeClass(showText)} ${className}`}
       >
@@ -1868,6 +1889,7 @@ export function Modal({
   hue,
   height = 'content',
   wide = false,
+  right,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
@@ -1907,6 +1929,8 @@ export function Modal({
   /** Room for a grid beside a picture, such as the twelve words and their QR
    *  code, or for a form of several columns. */
   wide?: boolean;
+  /** What stands at the end of the title's row, such as a picker's search. */
+  right?: ReactNode;
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1927,7 +1951,7 @@ export function Modal({
       // glim-modal-backdrop, not a number typed here: the darkening and the
       // blur behind a window are tokens (index.css), so every window in the
       // app changes with them.
-      className="glim-modal-backdrop fixed inset-0 z-50 grid place-items-center p-6"
+      className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -1949,11 +1973,14 @@ export function Modal({
             title as a badge, so one app does not carry two heading treatments.
             SectionTitle itself rather than a copy of its markup, which is the
             drift this file exists to prevent. */}
-        <SectionTitle id={titleId} hint={hint}>
+        <SectionTitle id={titleId} hint={hint} right={right}>
           {title}
         </SectionTitle>
         {height === 'content' ? (
-          children
+          // No box of its own in a wide window, where the children are the
+          // card's rows. As a bottom sheet it is the part that scrolls
+          // (.glim-modal-body in index.css).
+          <div className="glim-modal-body">{children}</div>
         ) : (
           // The inset keeps focus rings clear of the scroll edge.
           <div className={`-m-1 flex min-h-0 flex-1 flex-col gap-5 p-1 ${height === 'capped' ? 'overflow-y-auto' : ''}`}>

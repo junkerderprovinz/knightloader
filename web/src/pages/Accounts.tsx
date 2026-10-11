@@ -59,6 +59,7 @@ import {
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import type { MenuItem } from '../components/ContextMenu';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
+import { SubHead } from './settings/controls';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { PageAction, PageActions } from '../components/PageActions';
@@ -76,7 +77,7 @@ import {
   IconRetry,
   IconTrash,
 } from '../lib/icons';
-import { HosterIcon } from '../components/HosterIcon';
+import { BrandPicker, PickerSearch, brandMatches, siteOf, type Brand } from '../components/BrandPicker';
 import { PictureSwitch, usePictureView } from '../components/pictures/PictureSwitch';
 import { PriorityFlow } from '../components/pictures/PriorityFlow';
 
@@ -349,8 +350,6 @@ export function Accounts() {
           />
         )}
       </Card>
-
-      <FreeDownloadsCard hue={5} />
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -688,6 +687,7 @@ function CredentialDialog({
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState('');
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
@@ -746,12 +746,31 @@ function CredentialDialog({
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
 
+  // A tile's second line says where the brand lives, or that it has a key
+  // already, which stays in view.
+  const brands: Brand[] = services
+    .map((s) => {
+      const connected = hasDefault(s.id);
+      return {
+        id: s.id,
+        name: s.label,
+        host: s.whereUrl,
+        sub: connected ? t('accounts.connected') : siteOf(s.whereUrl),
+        held: connected,
+      };
+    })
+    .sort((x, y) => x.name.localeCompare(y.name));
+
   return (
     <Modal
       title={title}
       // While adding, the window says what the card it fills is for.
       hint={mode === 'new' ? t(solver ? 'accounts.captcha.hint' : 'accounts.debrid.hint') : undefined}
       hue={solver ? 4 : 0}
+      // The picker's window, which the form of the picked brand stays in.
+      wide={mode === 'new'}
+      height={picked ? 'content' : 'capped'}
+      right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={
         picked && !fromEnv ? (
@@ -790,17 +809,18 @@ function CredentialDialog({
       }
     >
       {!picked ? (
-        <ServicePicker
-          services={services}
-          hasDefault={hasDefault}
-          onPick={(s) => {
-            setPicked(s);
+        <BrandPicker
+          brands={brands.filter((b) => brandMatches(b, query))}
+          none={t('accounts.noServicesFound')}
+          onPick={(id) => {
+            setPicked(services.find((s) => s.id === id) ?? null);
             setAccountId('');
             setVerifyResult(null);
           }}
         />
       ) : (
-        <div className="flex flex-col gap-4">
+        // The form keeps a reading width in the picker's wide window.
+        <div className="flex max-w-md flex-col gap-4">
           {fromEnv ? (
             <p className="text-sm text-carbon-textSub">{t('accounts.credentialFromEnv', { env: editingRow?.envVar ?? '' })}</p>
           ) : (
@@ -865,50 +885,6 @@ function CredentialDialog({
   );
 }
 
-function ServicePicker({
-  services,
-  hasDefault,
-  onPick,
-}: {
-  services: CatalogueService[];
-  hasDefault: (id: string) => boolean;
-  onPick: (s: CatalogueService) => void;
-}) {
-  const { t } = useT();
-  const entries = services
-    .map((s) => ({
-      key: s.id,
-      label: s.label,
-      iconHost: s.whereUrl,
-      pick: () => onPick(s),
-      connected: hasDefault(s.id),
-    }))
-    .sort((x, y) => x.label.localeCompare(y.label));
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-        {entries.map((e) => (
-          <button
-            key={e.key}
-            type="button"
-            onClick={e.pick}
-            className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
-          >
-            <span className="min-w-0 flex-1">
-              {/* The service's icon, as in the table. */}
-              <span className="flex items-center gap-2 text-sm text-carbon-text">
-                <HosterIcon host={e.iconHost} />
-                {e.label}
-              </span>
-            </span>
-            {e.connected && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 // Routing: the resolver priority order and the JD sidecar's status. Neither is
 // an account: the order belongs to the registry (internal/resolver), and the
 // sidecar is configured by KL_JD without a credential.
@@ -955,7 +931,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={6} className="flex flex-col gap-3">
+      <Card hue={5} className="flex flex-col gap-3">
         <SectionTitle
           hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}
           right={priority !== null && priority.length > 0 && <PictureSwitch view={view} onView={setView} />}
@@ -976,10 +952,10 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </Card>
 
-      <Card hue={7} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.routing.jdHint')}>
-          {t('settings.module.jd')}
-        </SectionTitle>
+      {/* Whether a link may be loaded for free, and the state of the backend
+          that would load it. */}
+      <FreeDownloadsCard hue={6}>
+        <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
         {jd === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : !jd.configured ? (
@@ -992,7 +968,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
             {jd.detail && <InfoBubble tip={jd.detail} />}
           </span>
         )}
-      </Card>
+      </FreeDownloadsCard>
     </div>
   );
 }

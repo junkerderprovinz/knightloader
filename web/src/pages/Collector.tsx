@@ -26,6 +26,7 @@ import {
   SelectionMore,
   cleanupItems,
   matchesQuickFilters,
+  narrowedTitle,
   offeredQuickFilters,
   targetPackage,
   targetTaskId,
@@ -478,7 +479,7 @@ export function Collector() {
               // As in Downloads.tsx: one removal question for the whole page.
               onRemovePackage={removal.askWithFiles}
               stopMark={queueVerbs.stopMark}
-              title={t('collector.listTitle')}
+              title={narrowedTitle(filters, t, t('collector.listTitle'))}
               hue={3}
             />
           </div>

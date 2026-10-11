@@ -175,22 +175,28 @@ function ShortcutRow({
   const isOverridden = cmd.id in overrides;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5">
-      {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
-      <span className="min-w-0 flex-1 truncate text-sm text-carbon-text">{t(cmd.labelKey)}</span>
-      <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
-        {bound ? formatShortcut(bound, t) : ''}
-      </kbd>
-      {/* Reset, then Change, which moves the row on. JSX order, so the pair
-          mirrors in right-to-left languages. */}
-      {isOverridden && (
-        <Button kind="ghost" className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
-          {t('settings.shortcuts.reset')}
+    // The command keeps its whole name: where the row is too narrow for both,
+    // the keys and the buttons move under it and keep the row's end.
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5 px-4 py-2.5">
+      <span className="flex min-w-[min(100%,11rem)] flex-1 items-center gap-3">
+        {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
+        <span className="min-w-0 text-sm text-carbon-text">{t(cmd.labelKey)}</span>
+      </span>
+      <span className="ms-auto flex items-center gap-3">
+        <kbd className="glim-num shrink-0 rounded-[var(--radius-control)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
+          {bound ? formatShortcut(bound, t) : ''}
+        </kbd>
+        {/* Reset, then Change, which moves the row on. JSX order, so the pair
+            mirrors in right-to-left languages. */}
+        {isOverridden && (
+          <Button kind="ghost" className="shrink-0 px-2.5 py-1 text-xs" onClick={onReset}>
+            {t('settings.shortcuts.reset')}
+          </Button>
+        )}
+        <Button kind="secondary" className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
+          {t('settings.shortcuts.change')}
         </Button>
-      )}
-      <Button kind="secondary" className="shrink-0 px-2.5 py-1 text-xs" onClick={onChange}>
-        {t('settings.shortcuts.change')}
-      </Button>
+      </span>
     </div>
   );
 }

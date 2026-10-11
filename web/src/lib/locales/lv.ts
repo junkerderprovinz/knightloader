@@ -1325,7 +1325,6 @@ export const lv: Dict = {
   'captcha.continue': 'Turpināt',
   'captcha.cancel': 'Atcelt',
   'captcha.refresh': 'Atsvaidzināt',
-  'captcha.moreOptions': 'Vairāk iespēju',
   'captcha.blockHoster': 'Šai sesijai arī vairs nejautāt par {host}',
   'captcha.blockEverywhere': 'Šai sesijai arī vairs nejautāt ne par vienu hosteru',
   'captcha.tooLate': 'Šī atbilde pienāca par vēlu.',

@@ -8,6 +8,8 @@
 //
 // The collector draws it as its first card. The pages that list downloads
 // without holding the form open it in a window instead (AddLinksAction.tsx).
+// The batch's options open in a window of their own, and the button that opens
+// it is marked while one of them is set, since they apply unseen.
 import { useEffect, useState, type CSSProperties } from 'react';
 import { hueVars } from '../lib/appearance';
 import {
@@ -23,13 +25,12 @@ import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { LinkIntakeSwitches } from './LinkIntakeSwitches';
 import { Tabs } from './Tabs';
-import { Button, Card, Field, FieldGroup, IconBadge, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
-import { IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
+import { Button, Field, FieldGroup, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
+import { IconClose, IconCollector, IconFolder, IconPlus, IconSettings } from '../lib/icons';
 
 // The same number JD keeps.
 const DESTINATION_HISTORY_MAX = 25;
 const DESTINATION_HISTORY_KEY = 'addLinks.recentDestinations';
-const OPTIONS_OPEN_KEY = 'addLinks.optionsOpen';
 const OVERRULE_KEY = 'addLinks.overrule';
 
 // usePriorityTabs mirrors TaskList.tsx's usePriorities.
@@ -131,7 +132,7 @@ export function AddLinksForm({
   // The add badge's failure counter, so a repeated refusal shakes it again.
   const [shake, setShake] = useState(0);
 
-  const [optionsOpen, setOptionsOpen] = useUIState(OPTIONS_OPEN_KEY, false);
+  const [optionsOpen, setOptionsOpen] = useState(false);
   const [recent, setRecent] = useUIState<string[]>(DESTINATION_HISTORY_KEY, []);
   const [overrule, setOverrule] = useUIState(OVERRULE_KEY, false);
 
@@ -233,18 +234,37 @@ export function AddLinksForm({
   // than a narrow card, so it wraps, and the trailing actions wrap as one group
   // pushed over by ms-auto. A flex-1 spacer would drop everything after it to a
   // line of its own.
+  const optionsSet =
+    dir.trim() !== '' ||
+    priority !== null ||
+    autoExtract !== 'inherit' ||
+    comment.trim() !== '' ||
+    password.trim() !== '' ||
+    downloadPassword.trim() !== '' ||
+    overrule;
+
   const actions = (
     <div className={`flex flex-wrap items-center gap-3 ${bare ? '' : 'px-4 pb-4'}`}>
-      <IconBadge
-        labelled
-        icon={<IconSettings width={16} height={16} />}
-        hue={0}
-        title={t('collector.options')}
-        aria-label={t('collector.options')}
-        aria-expanded={optionsOpen}
-        data-new="collector-options"
-        onClick={() => setOptionsOpen(!optionsOpen)}
-      />
+      <span className="relative">
+        <IconBadge
+          labelled
+          icon={<IconSettings width={16} height={16} />}
+          hue={0}
+          title={t('collector.options')}
+          aria-label={t('collector.options')}
+          aria-haspopup="dialog"
+          aria-expanded={optionsOpen}
+          data-new="collector-options"
+          onClick={() => setOptionsOpen(true)}
+        />
+        {optionsSet && (
+          <span
+            aria-hidden
+            data-marked
+            className="pointer-events-none absolute -end-1 -top-1 h-2 w-2 rounded-[var(--radius-pill)] bg-accent"
+          />
+        )}
+      </span>
       <div className="ms-auto flex flex-wrap items-center justify-end gap-3">
         <PasteFromClipboardButton pkg={pkg} />
         <IconBadge
@@ -305,6 +325,7 @@ export function AddLinksForm({
 
       <FieldGroup label={t('props.priority')} hint={t('props.priorityHint')}>
         <Tabs
+          variant="well"
           size="sm"
           label={t('props.priority')}
           active={priority}
@@ -315,6 +336,7 @@ export function AddLinksForm({
 
       <FieldGroup label={t('props.autoExtract')} hint={t('props.autoExtractHint')}>
         <Tabs
+          variant="well"
           size="sm"
           label={t('props.autoExtract')}
           active={autoExtract}
@@ -349,14 +371,29 @@ export function AddLinksForm({
     </>
   );
 
+  // A window rather than a fold under the form (GlimStone rule 26). Every
+  // field in it is kept as it is typed, so its one answer is Close.
+  const optionsWindow = optionsOpen && (
+    <Modal
+      title={t('collector.options')}
+      hue={0}
+      height="capped"
+      onClose={() => setOptionsOpen(false)}
+      footer={
+        <Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={() => setOptionsOpen(false)} />
+      }
+    >
+      {options}
+    </Modal>
+  );
+
   if (bare) {
     return (
       <div className="flex flex-col gap-4">
         {box}
         {actions}
         {footer}
-        {/* A well, since the window around it is the card. */}
-        {optionsOpen && <div className="glim-well flex flex-col gap-4 p-4">{options}</div>}
+        {optionsWindow}
       </div>
     );
   }
@@ -376,7 +413,7 @@ export function AddLinksForm({
         {footer && <div className="flex flex-col gap-1.5 px-4 pb-4">{footer}</div>}
       </div>
 
-      {optionsOpen && <Card className="flex flex-col gap-4">{options}</Card>}
+      {optionsWindow}
     </div>
   );
 }

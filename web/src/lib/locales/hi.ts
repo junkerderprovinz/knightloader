@@ -1325,7 +1325,6 @@ export const hi: Dict = {
   'captcha.continue': 'जारी रखें',
   'captcha.cancel': 'रद्द करें',
   'captcha.refresh': 'रीफ़्रेश करें',
-  'captcha.moreOptions': 'और विकल्प',
   'captcha.blockHoster': 'इस सत्र के लिए {host} से भी पूछना बंद करें',
   'captcha.blockEverywhere': 'इस सत्र के लिए किसी भी होस्टर से पूछना बंद करें',
   'captcha.tooLate': 'वह उत्तर बहुत देर से पहुँचा।',

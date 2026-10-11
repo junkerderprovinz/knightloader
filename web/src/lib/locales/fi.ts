@@ -1325,7 +1325,6 @@ export const fi: Dict = {
   'captcha.continue': 'Jatka',
   'captcha.cancel': 'Peruuta',
   'captcha.refresh': 'Päivitä',
-  'captcha.moreOptions': 'Lisää vaihtoehtoja',
   'captcha.blockHoster': 'Älä myöskään enää kysy palvelulta {host} tällä istunnolla',
   'captcha.blockEverywhere': 'Älä myöskään enää kysy miltään hosterilta tällä istunnolla',
   'captcha.tooLate': 'Tuo vastaus saapui liian myöhään.',
