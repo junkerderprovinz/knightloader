@@ -204,6 +204,9 @@ release's tag.
 - **Behind a reverse proxy that serves https, the session cookie is marked
   Secure,** so the browser never sends it over plain HTTP. The same goes for
   the qBittorrent login Sonarr and Radarr use.
+- **The sign-in page says to wait after too many attempts,** where it said
+  "Wrong password." even when the password was right. A refused passkey
+  sign-in says the same.
 
 ## [1.8.4] - 2026-10-08
 

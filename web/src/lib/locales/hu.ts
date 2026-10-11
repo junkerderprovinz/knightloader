@@ -366,7 +366,7 @@ export const hu: Dict = {
   'auth.reset.mismatch': 'A két jelszó nem egyezik.',
   'auth.reset.length': 'Az új jelszónak 8 és 72 karakter közötti hosszúságúnak kell lennie.',
   'auth.reset.rejected': 'Ezt a kódot nem fogadta el. Az ott szereplő legújabb kódot használd. Ha egy kód túl régi, a KnightLoader újat ír, legfeljebb percenként egyszer.',
-  'auth.reset.wait': 'Túl sok próbálkozás. Várj fél percet, és próbáld újra.',
+  'auth.tooMany': 'Túl sok próbálkozás. Várj fél percet, és próbáld újra.',
   'auth.reset.unavailable': 'A KnightLoader nem tudott visszaállító kódot írni, ezért a jelszó erről az oldalról nem állítható vissza.',
   'auth.reset.failed': 'A jelszót nem sikerült beállítani. Próbáld újra.',
   'accounts.ok': 'Működik',

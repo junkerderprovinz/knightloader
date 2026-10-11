@@ -366,7 +366,7 @@ export const sv: Dict = {
   'auth.reset.mismatch': 'Lösenorden stämmer inte överens.',
   'auth.reset.length': 'Det nya lösenordet ska ha mellan 8 och 72 tecken.',
   'auth.reset.rejected': 'Den koden godtogs inte. Använd den nyaste koden som står där. När en kod är för gammal skriver KnightLoader en ny, högst en gång i minuten.',
-  'auth.reset.wait': 'För många försök. Vänta en halv minut och försök igen.',
+  'auth.tooMany': 'För många försök. Vänta en halv minut och försök igen.',
   'auth.reset.unavailable': 'KnightLoader kunde inte skriva någon kod, så lösenordet kan inte återställas från den här sidan.',
   'auth.reset.failed': 'Lösenordet kunde inte sättas. Försök igen.',
   'accounts.ok': 'Fungerar',

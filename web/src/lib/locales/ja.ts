@@ -366,7 +366,7 @@ export const ja: Dict = {
   'auth.reset.mismatch': '2つのパスワードが一致しません。',
   'auth.reset.length': '新しいパスワードは8文字以上72文字以下にしてください。',
   'auth.reset.rejected': 'このコードは受け付けられませんでした。そこに書かれた最新のコードを使ってください。コードが古くなると、KnightLoader は新しいコードを書き込みます。ただし、多くても1分に1回です。',
-  'auth.reset.wait': '試行回数が多すぎます。30秒待ってから、もう一度試してください。',
+  'auth.tooMany': '試行回数が多すぎます。30秒待ってから、もう一度試してください。',
   'auth.reset.unavailable': 'KnightLoader がリセット用のコードを書き込めなかったため、このページからはパスワードをリセットできません。',
   'auth.reset.failed': 'パスワードを設定できませんでした。もう一度試してください。',
   'accounts.ok': '正常',
