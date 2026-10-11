@@ -29,6 +29,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
@@ -144,6 +145,10 @@ type App struct {
 	// DataDir is the directory New was given. Backup and restore need the
 	// directory itself, since internal/backup stages a restore beside it.
 	DataDir string
+
+	// AppKey seals the secrets in DataDir and the backup archive; nil leaves
+	// them unsealed (see app_appkey.go).
+	AppKey *appkey.Key
 
 	// RequestExit is how the quit, restart and restore routes ask whatever
 	// embeds this App to stop the process; App owns no server or signal loop.
@@ -439,12 +444,22 @@ type App struct {
 	imports accountImports
 }
 
+// New opens the app in dataDir without an app key.
 func New(dataDir string) (*App, error) {
+	return NewWithKey(dataDir, nil)
+}
+
+// NewWithKey opens the app in dataDir, sealing its secrets with key when key
+// is not nil.
+func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
+	if err := keepCopiesBeforeSealing(dataDir, key); err != nil {
+		return nil, err
+	}
 	st, err := store.Open(filepath.Join(dataDir, "knightloader.db"))
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := settings.Load(dataDir)
+	cfg, err := settings.LoadWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -462,6 +477,7 @@ func New(dataDir string) (*App, error) {
 		Federation: fed,
 		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
+		AppKey:     key,
 		dlDir:      filepath.Join(dataDir, "downloads"),
 		Throttle:   throttle.New(),
 		tasks:      map[string]*core.Task{},
@@ -559,14 +575,14 @@ func New(dataDir string) (*App, error) {
 		a.proxy = px
 	}
 
-	acc, err := accounts.Open(dataDir)
+	acc, err := accounts.OpenWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
 	}
 	a.Accounts = acc
 
-	guard, err := auth.Open(dataDir)
+	guard, err := auth.OpenWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
