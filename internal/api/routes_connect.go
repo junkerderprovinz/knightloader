@@ -425,13 +425,16 @@ func refuseGroupChange(w http.ResponseWriter, err error) bool {
 
 // renewGroup puts an instance that is in a pairing group, by phrase or by a
 // hand-entered relay key, into a new group of its own with a new phrase, so
-// every member and phone has to pair again. It reports whether there was a
-// group to leave.
+// every member and phone has to pair again, and tells them so for a while (see
+// retired_group.go). It reports whether there was a group to leave.
 func renewGroup(a *app.App) (bool, error) {
 	seed, _ := a.Accounts.Get(relay.SeedAccountService)
 	manual, _ := a.Accounts.Get(relay.AccountService)
 	if seed == "" && manual == "" {
 		return false, nil
+	}
+	if err := retireGroup(a, time.Now()); err != nil {
+		log.Printf("connect: the devices of the group left at the reset will not hear why: %v", err)
 	}
 	if manual != "" {
 		if err := a.Accounts.Set(relay.AccountService, ""); err != nil {

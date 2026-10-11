@@ -185,6 +185,9 @@ func servesKey(a *app.App, key string) bool {
 	if secret := groupSecret(a); secret != nil {
 		served = append(served, relay.DeriveKey(secret))
 	}
+	if g, ok := retiredOf(a, time.Now()); ok {
+		served = append(served, g.Key)
+	}
 	ok := false
 	for _, s := range served {
 		// Constant time, because the caller controls the guess.
@@ -276,6 +279,7 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 // caller; the client keeps retrying in the background.
 func applyRelay(a *app.App) {
 	applyGroup(a)
+	applyRetired(a)
 	relayURL, key, frameKey := relayTarget(a)
 	serve := a.SelfServeHandler()
 	if relayURL == "" || key == "" || serve == nil {
