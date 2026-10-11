@@ -191,6 +191,16 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	return result.Body, result.Status, nil
 }
 
+type senderKey struct{}
+
+// Sender is the member a direct call came from, "" for a call that arrived
+// any other way. A call over the relay names no instance, so only a member on
+// this network can be told apart.
+func Sender(ctx context.Context) string {
+	id, _ := ctx.Value(senderKey{}).(string)
+	return id
+}
+
 // ServeDirect answers a member's direct call with serve. Outside a group it
 // answers like an instance without the feature. A call that is unsigned,
 // stale, replayed, addressed to another instance or does not open is refused
@@ -241,7 +251,7 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	status, out := serve(r.Context(), call)
+	status, out := serve(context.WithValue(r.Context(), senderKey{}, sender), call)
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)

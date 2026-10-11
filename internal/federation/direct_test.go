@@ -52,6 +52,35 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	}
 }
 
+// TestADirectCallNamesTheMemberItCameFrom: the page that draws the group shows
+// links arriving on the sender's line, and the sealed call does not say who
+// sent it.
+func TestADirectCallNamesTheMemberItCameFrom(t *testing.T) {
+	secret := []byte("0123456789abcdef")
+	callee := newManager(t)
+	callee.SetGroup(secret, officeID)
+	var from string
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callee.ServeDirect(w, r, func(ctx context.Context, _ relay.ProxyCall) (int, []byte) {
+			from = Sender(ctx)
+			return http.StatusOK, nil
+		})
+	}))
+	defer srv.Close()
+
+	caller := newManager(t)
+	caller.SetGroup(secret, bravoID)
+	if _, status, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodPost, "/api/links", nil, ""); err != nil || status != http.StatusOK {
+		t.Fatalf("a member's call = %d %v, want it served", status, err)
+	}
+	if from != bravoID {
+		t.Errorf("Sender = %q, want the calling member %q", from, bravoID)
+	}
+	if got := Sender(context.Background()); got != "" {
+		t.Errorf("Sender = %q for a call that did not come directly, want none", got)
+	}
+}
+
 // TestABodyThatNeverFinishesIsRefused also checks that a member's call whose
 // answer outlasts the body deadline is still served.
 func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
