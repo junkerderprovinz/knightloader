@@ -135,8 +135,11 @@ const (
 type Options struct {
 	// Dir keeps the job list and the NZBs of waiting jobs.
 	Dir string
-	// Stage turns a finished job's files into tasks and returns their ids.
-	Stage func(Job, []File) ([]string, error)
+	// Stage turns a finished job's files into tasks and returns their ids,
+	// and start, which sets them going. The manager calls start once the job
+	// is recorded as staged with those ids, so no file can finish before its
+	// job lists it. start may be nil.
+	Stage func(Job, []File) (ids []string, start func(), err error)
 	// Finished reports whether a staged job's tasks need the service's copy
 	// no more, after which it is deleted.
 	Finished func(Job) bool
@@ -784,7 +787,8 @@ func (m *Manager) stage(id string, files []File) {
 	if !ok || j.State != StateFetching {
 		return
 	}
-	ids, err := m.o.Stage(j, withoutCommonDir(files))
+	ids, start, err := m.o.Stage(j, withoutCommonDir(files))
+	staged := false
 	m.update(id, func(j *Job) {
 		switch {
 		case err != nil:
@@ -794,8 +798,12 @@ func (m *Manager) stage(id string, files []File) {
 		default:
 			j.State, j.TaskIDs, j.Kept, j.Ended = StateStaged, ids, nil, m.o.Now()
 			j.Loaded, j.Speed = j.Size, 0
+			staged = true
 		}
 	})
+	if staged && start != nil {
+		start()
+	}
 }
 
 // Fallback takes back the staged job the account in slot knows as remote,
