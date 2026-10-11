@@ -302,6 +302,8 @@ export const cs: Dict = {
   'failure.fileExists.next': 'Přesuň nebo přejmenuj ten soubor, nebo ve webovém rozhraní změň, co se děje s existujícími soubory, a pak stahování spusť znovu.',
   'failure.dataFolder.line': '{path} je v datové složce KnightLoaderu a stahování tam nesmí.',
   'failure.dataFolder.next': 'Ve webovém rozhraní zvol složku mimo datovou složku a zkus to znovu.',
+  'failure.holdsDataFolder.line': 'Datová složka KnightLoaderu leží uvnitř {path}, a proto tam stahování nesmí.',
+  'failure.holdsDataFolder.next': 'Ve webovém rozhraní zvol složku, která neobsahuje datovou složku, a zkus to znovu.',
   'failure.captcha.line': 'Hoster chce vyřešit captchu.',
   'failure.captcha.next': 'Odpověz na captchu na obrazovce Captchy, nebo přidej účet captchy ve webovém rozhraní.',
   'failure.cancelled.line': 'Stahování bylo zastaveno dřív, než skončilo.',

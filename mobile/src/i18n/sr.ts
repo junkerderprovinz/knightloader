@@ -302,6 +302,8 @@ export const sr: Dict = {
   'failure.fileExists.next': 'Премести или преименуј ту датотеку, или у веб интерфејсу промени шта се дешава са постојећим датотекама, па поново покрени преузимање.',
   'failure.dataFolder.line': '{path} је у фасцикли са подацима KnightLoader-а, а преузимања тамо не смеју.',
   'failure.dataFolder.next': 'У веб интерфејсу изабери фасциклу ван фасцикле са подацима, па покушај поново.',
+  'failure.holdsDataFolder.line': 'Фасцикла са подацима KnightLoader-а налази се унутар {path}, па преузимања тамо не смеју.',
+  'failure.holdsDataFolder.next': 'У веб интерфејсу изабери фасциклу која не садржи фасциклу са подацима, па покушај поново.',
   'failure.captcha.line': 'Хостер тражи да се реши captcha.',
   'failure.captcha.next': 'Одговори на captcha на екрану Captcha или додај captcha налог у веб интерфејсу.',
   'failure.cancelled.line': 'Преузимање је заустављено пре него што је завршено.',

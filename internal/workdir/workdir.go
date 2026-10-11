@@ -166,10 +166,22 @@ type Options struct {
 	// that: Windows will not rename a folder holding an open file, and the copy
 	// would take as long as the folder is large and leave the held file behind.
 	OnlyAcrossDisks bool
+	// Barred says why nothing may be put at a path, or returns nil. It is asked
+	// about every entry before it moves, under the name it would get there,
+	// so a folder merged into one already there is checked entry by entry.
+	// Nil bars nothing.
+	Barred func(path string) error
 	// Rename replaces os.Rename. A test uses it to force the cross-filesystem
 	// path, which cannot be produced on demand on a single-disk build agent;
 	// nil means the real one.
 	Rename func(oldpath, newpath string) error
+}
+
+func (o Options) barred(path string) error {
+	if o.Barred == nil {
+		return nil
+	}
+	return o.Barred(path)
 }
 
 func (o Options) rename(oldpath, newpath string) error {
@@ -238,6 +250,11 @@ func Move(ctx context.Context, src, dstDir string, o Options) (Result, error) {
 		return Result{Path: src}, err
 	}
 
+	// Checked before the policy has a say, since Overwrite clears the name it
+	// is given.
+	if err := o.barred(filepath.Join(dstDir, filepath.Base(src))); err != nil {
+		return Result{Path: src}, err
+	}
 	target, skipped, err := o.target(src, dstDir, info.IsDir())
 	if err != nil {
 		return Result{Path: src}, err
@@ -284,6 +301,9 @@ func MoveAs(ctx context.Context, src, target string, o Options) (Result, error) 
 
 // place moves src to target by a rename, or by a copy where no rename reaches.
 func (o Options) place(ctx context.Context, src, target string, info fs.FileInfo) (Result, error) {
+	if err := o.barred(target); err != nil {
+		return Result{Path: src}, err
+	}
 	err := o.rename(src, target)
 	if err == nil {
 		o.prune(filepath.Dir(src))

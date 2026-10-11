@@ -20,6 +20,7 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -224,14 +225,24 @@ func checkDatabase(path string) error {
 	if n == 0 {
 		return errors.New("the backup's database has no tasks table; it is not a KnightLoader backup")
 	}
+
+	// Staged, it would keep every later start from opening the store.
+	var version int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+		return fmt.Errorf("the backup's database could not be read: %w", err)
+	}
+	if version > store.SchemaVersion() {
+		return fmt.Errorf("%w: the backup's database is at schema version %d and this build knows %d; "+
+			"update this server first, then restore", store.ErrNewerSchema, version, store.SchemaVersion())
+	}
 	return nil
 }
 
-// stripDatabase removes every trigger and view from the SQLite file at path
-// and empties its passkeys table. Both kinds are code the file brings along,
-// and a trigger on passkeys would write a removed key straight back. They are
-// deleted as rows of sqlite_master, so no name from the file ever becomes part
-// of a statement. KnightLoader's own schema has neither.
+// stripDatabase removes every trigger and view from the SQLite file at path,
+// and anything else in its schema that is not a table or an index, before it
+// empties its passkeys table. They are code the file brings along, and a
+// trigger on passkeys would write a removed key straight back. KnightLoader's
+// own schema has none of them.
 func stripDatabase(path string) error {
 	if err := dropCode(path); err != nil {
 		return err
@@ -242,6 +253,12 @@ func stripDatabase(path string) error {
 		return err
 	}
 	defer db.Close()
+	// What the tables still carry, a default or a check, may call no function
+	// with side effects.
+	db.SetMaxOpenConns(1)
+	if _, err := db.Exec(`PRAGMA trusted_schema = OFF`); err != nil {
+		return err
+	}
 	var n int
 	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'passkeys'`).Scan(&n); err != nil {
 		return err
@@ -266,6 +283,11 @@ func stripDatabase(path string) error {
 	return nil
 }
 
+// dropCode deletes every schema row that is not a plain table or index. The
+// type column is not what SQLite goes by when it loads the schema, so a row is
+// judged by the statement it holds as well, and both have to agree. The rows
+// are deleted by rowid, so nothing read from the file becomes part of a
+// statement.
 func dropCode(path string) error {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -274,16 +296,94 @@ func dropCode(path string) error {
 	defer db.Close()
 	// writable_schema is a setting of one connection.
 	db.SetMaxOpenConns(1)
-	for _, q := range []string{
-		`PRAGMA writable_schema = ON`,
-		`DELETE FROM sqlite_master WHERE type IN ('trigger', 'view')`,
-		`PRAGMA writable_schema = OFF`,
-	} {
-		if _, err := db.Exec(q); err != nil {
+	rows, err := db.Query(`SELECT rowid, type, sql FROM sqlite_master`)
+	if err != nil {
+		return err
+	}
+	var code []int64
+	for rows.Next() {
+		var rowid int64
+		var kind string
+		var stmt sql.NullString
+		if err := rows.Scan(&rowid, &kind, &stmt); err != nil {
+			rows.Close()
+			return err
+		}
+		if !plainSchema(kind, stmt) {
+			code = append(code, rowid)
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return err
+	}
+	if len(code) == 0 {
+		return nil
+	}
+	if _, err := db.Exec(`PRAGMA writable_schema = ON`); err != nil {
+		return err
+	}
+	for _, rowid := range code {
+		if _, err := db.Exec(`DELETE FROM sqlite_master WHERE rowid = ?`, rowid); err != nil {
 			return err
 		}
 	}
-	return nil
+	_, err = db.Exec(`PRAGMA writable_schema = OFF`)
+	return err
+}
+
+// plainSchema reports whether a schema row of the given type and statement is
+// a table or an index and nothing else. An index SQLite made for a constraint
+// has no statement.
+func plainSchema(kind string, stmt sql.NullString) bool {
+	kind = strings.ToLower(kind)
+	if !stmt.Valid {
+		return kind == "index"
+	}
+	words := leadingWords(stmt.String, 3)
+	if len(words) < 2 || words[0] != "create" {
+		return false
+	}
+	switch {
+	case words[1] == "table":
+		return kind == "table"
+	case words[1] == "index", words[1] == "unique" && len(words) == 3 && words[2] == "index":
+		return kind == "index"
+	}
+	return false
+}
+
+// leadingWords returns up to n words at the start of a statement in lower
+// case, skipping white space and comments, and stops at anything else.
+func leadingWords(stmt string, n int) []string {
+	var words []string
+	for i := 0; i < len(stmt) && len(words) < n; {
+		switch c := stmt[i]; {
+		case c == ' ' || c == '\t' || c == '\n' || c == '\r' || c == '\f':
+			i++
+		case strings.HasPrefix(stmt[i:], "--"):
+			end := strings.IndexByte(stmt[i:], '\n')
+			if end < 0 {
+				return words
+			}
+			i += end + 1
+		case strings.HasPrefix(stmt[i:], "/*"):
+			end := strings.Index(stmt[i+2:], "*/")
+			if end < 0 {
+				return words
+			}
+			i += end + 4
+		case c >= 'a' && c <= 'z' || c >= 'A' && c <= 'Z':
+			start := i
+			for i < len(stmt) && (stmt[i] >= 'a' && stmt[i] <= 'z' || stmt[i] >= 'A' && stmt[i] <= 'Z') {
+				i++
+			}
+			words = append(words, strings.ToLower(stmt[start:i]))
+		default:
+			return words
+		}
+	}
+	return words
 }
 
 // stageFiles writes the restore into a fresh staging directory and commits it

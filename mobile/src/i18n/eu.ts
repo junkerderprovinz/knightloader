@@ -302,6 +302,8 @@ export const eu: Dict = {
   'failure.fileExists.next': 'Mugitu fitxategi hori edo aldatu haren izena, edo aldatu web-interfazean zer gertatzen den dauden fitxategiekin, eta gero berrabiarazi deskarga.',
   'failure.dataFolder.line': '{path} KnightLoader-en datuen karpetan dago, eta deskargak ezin dira hara joan.',
   'failure.dataFolder.next': 'Aukeratu web-interfazean datuen karpetatik kanpoko karpeta bat, eta saiatu berriro.',
+  'failure.holdsDataFolder.line': 'KnightLoader-en datuen karpeta {path} barruan dago, eta, beraz, deskargak ezin dira hara joan.',
+  'failure.holdsDataFolder.next': 'Aukeratu web-interfazean datuen karpeta barnean ez duen karpeta bat, eta saiatu berriro.',
   'failure.captcha.line': 'Ostalariak captcha bat ebaztea nahi du.',
   'failure.captcha.next': 'Erantzun captchari Captchak pantailan, edo gehitu captcha kontu bat web-interfazean.',
   'failure.cancelled.line': 'Deskarga gelditu egin da amaitu aurretik.',

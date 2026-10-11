@@ -118,10 +118,10 @@ func Extract(path string) (*Result, error) {
 // second copy of "try each password in turn" is a second place to forget that a
 // failed attempt has to leave the destination untouched.
 func ExtractWith(path string, passwords []string) (*Result, error) {
-	return extractInto(path, destDir(path), passwords)
+	return extractInto(path, target{dir: destDir(path)}, passwords)
 }
 
-func extractOnce(path, dest, password string) (*Result, error) {
+func extractOnce(path string, dest target, password string) (*Result, error) {
 	res, err := unpackOnce(path, dest, password)
 	if err != nil {
 		return nil, inPart(err, filepath.Base(path))
@@ -129,13 +129,13 @@ func extractOnce(path, dest, password string) (*Result, error) {
 	return res, nil
 }
 
-func unpackOnce(path, dest, password string) (*Result, error) {
+func unpackOnce(path string, dest target, password string) (*Result, error) {
 	// Unknown until a reader below learns it from its headers; a single
 	// compressed stream never does.
 	expectWatched(0)
 	// Everything that can hold more than one file unpacks into its own folder;
 	// only the single-stream path below decides for itself.
-	container := func() error { return os.MkdirAll(dest, filemode.Dir) }
+	container := func() error { return os.MkdirAll(dest.dir, filemode.Dir) }
 	// The bytes pick the reader, the name only breaks the tie. See format.go:
 	// keying off the name alone hands a renamed .rar to the zip reader and
 	// reports a healthy file as broken.
@@ -214,6 +214,27 @@ func destDir(path string) string {
 	return out
 }
 
+// target is the folder one extraction writes into, with the check every file's
+// final path passes before it is written (Options.BarredFile).
+type target struct {
+	dir    string
+	barred func(path string) error
+}
+
+// file is where the entry name is written under t, or why it may not be.
+func (t target) file(name string) (string, error) {
+	p, err := safePath(t.dir, name)
+	if err != nil {
+		return "", err
+	}
+	if t.barred != nil {
+		if err := t.barred(p); err != nil {
+			return "", &BarredError{Dir: p, Err: err}
+		}
+	}
+	return p, nil
+}
+
 // safePath joins name under dest and rejects traversal outside dest.
 func safePath(dest, name string) (string, error) {
 	p := filepath.Join(dest, filepath.FromSlash(name))
@@ -242,7 +263,7 @@ func writeFile(dst string, mode os.FileMode, r io.Reader) error {
 	return err
 }
 
-func extractZip(path, dest, password string) (*Result, error) {
+func extractZip(path string, dest target, password string) (*Result, error) {
 	zr, err := zip.OpenReader(path)
 	if err != nil {
 		return nil, err
@@ -260,12 +281,12 @@ func extractZip(path, dest, password string) (*Result, error) {
 		size += f.UncompressedSize64
 	}
 	expectWatched(int64(size))
-	res := &Result{Dir: dest, Volumes: []string{path}}
+	res := &Result{Dir: dest.dir, Volumes: []string{path}}
 	for _, f := range zr.File {
 		if f.FileInfo().IsDir() {
 			continue
 		}
-		dst, err := safePath(dest, f.Name)
+		dst, err := dest.file(f.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -283,7 +304,7 @@ func extractZip(path, dest, password string) (*Result, error) {
 	return res, nil
 }
 
-func extractRar(path, dest, password string) (*Result, error) {
+func extractRar(path string, dest target, password string) (*Result, error) {
 	var opts []rardecode.Option
 	if password != "" {
 		opts = append(opts, rardecode.Password(password))
@@ -294,7 +315,7 @@ func extractRar(path, dest, password string) (*Result, error) {
 	}
 	defer rc.Close()
 	expectWatched(rarSize(path, opts))
-	res := &Result{Dir: dest}
+	res := &Result{Dir: dest.dir}
 	body := &archiveSide{r: rc}
 	// Sequential Next/Read works for solid and multi-volume archives alike.
 	for {
@@ -314,7 +335,7 @@ func extractRar(path, dest, password string) (*Result, error) {
 		if h.Encrypted && password == "" {
 			return nil, ErrPasswordRequired
 		}
-		dst, err := safePath(dest, h.Name)
+		dst, err := dest.file(h.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -392,7 +413,7 @@ func (a *archiveSide) Read(p []byte) (int, error) {
 	return n, err
 }
 
-func extract7z(path, dest, password string) (*Result, error) {
+func extract7z(path string, dest target, password string) (*Result, error) {
 	var zr *sevenzip.ReadCloser
 	var err error
 	if password == "" {
@@ -412,13 +433,13 @@ func extract7z(path, dest, password string) (*Result, error) {
 		size += f.UncompressedSize
 	}
 	expectWatched(int64(size))
-	res := &Result{Dir: dest, Volumes: zr.Volumes()}
+	res := &Result{Dir: dest.dir, Volumes: zr.Volumes()}
 	// In-order extraction so solid-block streams are read once.
 	for _, f := range zr.File {
 		if f.FileInfo().IsDir() {
 			continue
 		}
-		dst, err := safePath(dest, f.Name)
+		dst, err := dest.file(f.Name)
 		if err != nil {
 			return nil, err
 		}
@@ -457,7 +478,7 @@ func isEncrypted(err error) bool {
 // them in res. Directories and the various special entries are skipped: the
 // directories are recreated implicitly by writeFile, and devices, links and
 // fifos have no business being restored from a download.
-func unpackTar(tr *tar.Reader, dest string, res *Result) error {
+func unpackTar(tr *tar.Reader, dest target, res *Result) error {
 	for {
 		h, err := tr.Next()
 		if err == io.EOF {
@@ -469,7 +490,7 @@ func unpackTar(tr *tar.Reader, dest string, res *Result) error {
 		if h.Typeflag != tar.TypeReg {
 			continue
 		}
-		dst, err := safePath(dest, h.Name)
+		dst, err := dest.file(h.Name)
 		if err != nil {
 			return err
 		}
@@ -480,13 +501,13 @@ func unpackTar(tr *tar.Reader, dest string, res *Result) error {
 	}
 }
 
-func extractTar(path, dest string) (*Result, error) {
+func extractTar(path string, dest target) (*Result, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
 	}
 	defer f.Close()
-	res := &Result{Dir: dest, Volumes: []string{path}}
+	res := &Result{Dir: dest.dir, Volumes: []string{path}}
 	if err := unpackTar(tar.NewReader(f), dest, res); err != nil {
 		return nil, err
 	}
@@ -568,7 +589,7 @@ func looksLikeTar(head []byte) bool {
 // extractCompressed handles every single-stream compressed archive: it opens
 // the codec, decides from the content whether the stream is a tar, and either
 // unpacks it or writes the payload out as one file.
-func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadCloser, error)) (*Result, error) {
+func extractCompressed(path string, dest target, suffix string, open func(io.Reader) (io.ReadCloser, error)) (*Result, error) {
 	f, err := os.Open(path)
 	if err != nil {
 		return nil, err
@@ -589,9 +610,9 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 	br := bufio.NewReaderSize(&cappedReader{r: dec, left: streamLimit(packed) + 1}, tarProbeSize)
 	head, _ := br.Peek(tarProbeSize)
 
-	res := &Result{Dir: dest, Volumes: []string{path}}
+	res := &Result{Dir: dest.dir, Volumes: []string{path}}
 	if looksLikeTar(head) {
-		if err := os.MkdirAll(dest, filemode.Dir); err != nil {
+		if err := os.MkdirAll(dest.dir, filemode.Dir); err != nil {
 			return nil, err
 		}
 		if err := unpackTar(tar.NewReader(br), dest, res); err != nil {
@@ -604,7 +625,7 @@ func extractCompressed(path, dest, suffix string, open func(io.Reader) (io.ReadC
 	// as a mistake, and collides with a sibling of that name.
 	beside := filepath.Dir(path)
 	res.Dir = beside
-	dst, err := safePath(beside, payloadName(filepath.Base(path), suffix))
+	dst, err := target{dir: beside, barred: dest.barred}.file(payloadName(filepath.Base(path), suffix))
 	if err != nil {
 		return nil, err
 	}

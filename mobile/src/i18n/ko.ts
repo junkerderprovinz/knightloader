@@ -301,6 +301,8 @@ export const ko: Dict = {
   'failure.fileExists.next': '그 파일을 옮기거나 이름을 바꾸거나, 웹 UI에서 기존 파일 처리 방식을 바꾼 다음 다운로드를 다시 시작하세요.',
   'failure.dataFolder.line': '{path}은(는) KnightLoader 데이터 폴더 안에 있으며, 다운로드는 그곳에 둘 수 없습니다.',
   'failure.dataFolder.next': '웹 UI에서 데이터 폴더 밖의 폴더를 고른 다음 다시 시도하세요.',
+  'failure.holdsDataFolder.line': 'KnightLoader 데이터 폴더가 {path} 안에 있으므로, 다운로드는 그곳에 둘 수 없습니다.',
+  'failure.holdsDataFolder.next': '웹 UI에서 데이터 폴더를 포함하지 않는 폴더를 고른 다음 다시 시도하세요.',
   'failure.captcha.line': '호스터가 캡차를 풀라고 요구합니다.',
   'failure.captcha.next': '캡차 화면에서 답하거나, 웹 UI에서 캡차 계정을 추가하세요.',
   'failure.cancelled.line': '다운로드가 끝나기 전에 중지되었습니다.',

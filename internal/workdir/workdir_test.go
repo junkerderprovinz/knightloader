@@ -355,6 +355,31 @@ func TestOverwriteMergesAFolderInsteadOfDeletingIt(t *testing.T) {
 	}
 }
 
+// A folder merged into one that is already there is checked entry by entry,
+// so an entry that would land in a barred place stays where it is.
+func TestAMergedEntryIsCheckedWhereItWouldLand(t *testing.T) {
+	work, dest := t.TempDir(), t.TempDir()
+	write(t, filepath.Join(work, "Roaming", "KnightLoader", "settings.json"), `{"planted":true}`)
+	write(t, filepath.Join(dest, "Roaming", "KnightLoader", "settings.json"), "the real one")
+	barred := filepath.Join(dest, "Roaming", "KnightLoader", "settings.json")
+	errBarred := errors.New("barred")
+	o := Options{Policy: collide.Overwrite, Barred: func(p string) error {
+		if p == barred {
+			return errBarred
+		}
+		return nil
+	}}
+	if _, err := Move(context.Background(), filepath.Join(work, "Roaming"), dest, o); !errors.Is(err, errBarred) {
+		t.Errorf("Move gave %v, want the entry refused", err)
+	}
+	if got := read(t, barred); got != "the real one" {
+		t.Errorf("the barred file reads %q", got)
+	}
+	if got := read(t, filepath.Join(work, "Roaming", "KnightLoader", "settings.json")); got != `{"planted":true}` {
+		t.Errorf("the refused entry left the working folder: %q", got)
+	}
+}
+
 // TestMoveContentsPutsTheFilesWhereTheFilesGo is the difference between
 // "unpack into this folder" and "put the unpacked files here": a release
 // dropped in whole leaves one folder level no library asked for.

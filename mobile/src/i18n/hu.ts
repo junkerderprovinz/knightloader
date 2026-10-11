@@ -302,6 +302,8 @@ export const hu: Dict = {
   'failure.fileExists.next': 'Helyezd át vagy nevezd át azt a fájlt, vagy változtasd meg a webes felületen, mi történjen a meglévő fájlokkal, aztán indítsd újra a letöltést.',
   'failure.dataFolder.line': '{path} a KnightLoader adatmappájában van, ahová letöltés nem kerülhet.',
   'failure.dataFolder.next': 'Válassz a webes felületen egy mappát az adatmappán kívül, aztán próbáld újra.',
+  'failure.holdsDataFolder.line': 'A KnightLoader adatmappája ezen belül van: {path}, ezért oda letöltés nem kerülhet.',
+  'failure.holdsDataFolder.next': 'Válassz a webes felületen egy mappát, amely nem tartalmazza az adatmappát, aztán próbáld újra.',
   'failure.captcha.line': 'A tárhely egy captcha megoldását kéri.',
   'failure.captcha.next': 'Válaszolj a captchára a Captchák képernyőn, vagy adj hozzá egy captcha-fiókot a webes felületen.',
   'failure.cancelled.line': 'A letöltés a befejezés előtt leállt.',

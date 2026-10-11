@@ -301,6 +301,8 @@ export const ja: Dict = {
   'failure.fileExists.next': 'そのファイルを移動するか名前を変えるか、Web UI で既存のファイルの扱いを変えてから、ダウンロードをやり直してください。',
   'failure.dataFolder.line': '{path} は KnightLoader のデータフォルダーの中にあり、ダウンロードはそこに置けません。',
   'failure.dataFolder.next': 'Web UI でデータフォルダーの外にあるフォルダーを選んでから、もう一度お試しください。',
+  'failure.holdsDataFolder.line': 'KnightLoader のデータフォルダーが {path} の中にあるため、ダウンロードはそこに置けません。',
+  'failure.holdsDataFolder.next': 'Web UI でデータフォルダーを含まないフォルダーを選んでから、もう一度お試しください。',
   'failure.captcha.line': 'ホスターがキャプチャを解くよう求めています。',
   'failure.captcha.next': '「キャプチャ」の画面で答えるか、Web UI でキャプチャアカウントを追加してください。',
   'failure.cancelled.line': 'ダウンロードは終わる前に止められました。',

@@ -46,15 +46,20 @@ func TestAFolderInTheDataFolderIsRefused(t *testing.T) {
 	outside := t.TempDir()
 	link := filepath.Join(outside, "into-data")
 	linkTo(t, data, link)
+	toolsLink := filepath.Join(outside, "into-tools")
+	linkTo(t, filepath.Join(data, "tools"), toolsLink)
 
 	for name, dir := range map[string]string{
-		"the data folder":             data,
-		"a folder of its own":         filepath.Join(data, "tools"),
-		"a folder not made yet":       filepath.Join(data, "new", "deeper"),
-		"a way back out of downloads": filepath.Join(data, DownloadsDirName, "..", "tools"),
-		"a link to it":                link,
-		"a folder behind a link":      filepath.Join(link, "tools"),
-		"a template inside it":        filepath.Join(data, "x", "<jd:packagename>"),
+		"the data folder":               data,
+		"a folder of its own":           filepath.Join(data, "tools"),
+		"a folder not made yet":         filepath.Join(data, "new", "deeper"),
+		"a way back out of downloads":   filepath.Join(data, DownloadsDirName, "..", "tools"),
+		"a link to it":                  link,
+		"a folder behind a link":        filepath.Join(link, "tools"),
+		"a template inside it":          filepath.Join(data, "x", "<jd:packagename>"),
+		"a link to a folder inside it":  toolsLink,
+		"a folder behind such a link":   filepath.Join(toolsLink, "new"),
+		"a template behind such a link": filepath.Join(toolsLink, "<jd:packagename>"),
 	} {
 		if !InsideData(data, dir) {
 			t.Errorf("%s (%s) is not seen as inside the data folder", name, dir)
@@ -83,6 +88,55 @@ func TestTheBuiltInDownloadFolderAndFoldersOutsideAreAllowed(t *testing.T) {
 		if InsideData(data, dir) {
 			t.Errorf("%s (%s) is seen as inside the data folder", name, dir)
 		}
+	}
+}
+
+// A folder above the data folder is refused like one inside it: an archive
+// whose entries name the folders in between would write into the data folder.
+func TestAFolderThatHoldsTheDataFolderIsRefused(t *testing.T) {
+	data := dataFolder(t)
+	parent := filepath.Dir(data)
+	link := filepath.Join(t.TempDir(), "into-parent")
+	linkTo(t, parent, link)
+	for name, dir := range map[string]string{
+		"the folder above it":      parent,
+		"the folder above that":    filepath.Dir(parent),
+		"the root of its disk":     filepath.VolumeName(data) + string(filepath.Separator),
+		"a link to the folder":     link,
+		"a template on the folder": filepath.Join(parent, "<jd:packagename>"),
+	} {
+		if !OverlapsData(data, dir) {
+			t.Errorf("%s (%s) is not seen as holding the data folder", name, dir)
+		}
+		var p *PathProblem
+		if err := Validate(data, "the download folder", dir); !errors.As(err, &p) || p.Code != "holdsDataFolder" {
+			t.Errorf("%s (%s) was not refused for holding the data folder: %v", name, dir, err)
+		}
+	}
+	for _, f := range folderFields {
+		var s Settings
+		switch f.key {
+		case "downloadDir":
+			s.DownloadDir = parent
+		case "workDir":
+			s.WorkDir = parent
+		case "watchDir":
+			s.WatchDir = parent
+		case "extractTo":
+			s.ExtractTo = parent
+		case "extractMoveTo":
+			s.ExtractMoveTo = parent
+		default:
+			t.Fatalf("no case for %s", f.key)
+		}
+		var p *PathProblem
+		if err := CheckFolders(data, s, nil); !errors.As(err, &p) || p.Code != "holdsDataFolder" || p.Field != f.key {
+			t.Errorf("%s above the data folder: %v, want a holdsDataFolder refusal for it", f.key, err)
+		}
+	}
+	beside := filepath.Join(parent, "downloads")
+	if OverlapsData(data, beside) {
+		t.Errorf("%s, beside the data folder, is seen as overlapping it", beside)
 	}
 }
 
