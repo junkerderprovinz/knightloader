@@ -396,6 +396,54 @@ func TestPauseKeepsTheMapAndRemoveDeletesIt(t *testing.T) {
 	}
 }
 
+// While a file comes, its map says which articles are written, which no
+// server had and which one the connection is on.
+func TestARunningFileShowsItsArticles(t *testing.T) {
+	r := newRelease("p.bin", 400_000, 4_000)
+	s := nntptest.New(t)
+	var posted []int
+	for n := 2; n <= len(r.parts); n++ {
+		posted = append(posted, n)
+	}
+	r.post(s, posted...)
+	cfg := serverFor(s, 0)
+	cfg.Connections = 1
+	h := newHarness(t, nntp.NewClient([]nntp.Server{cfg}, slowCopy{}), r)
+	if pm, ok := h.be.Pieces("task"); ok {
+		t.Fatalf("a map before the download started: %+v", pm)
+	}
+
+	h.be.Download("task", FileLink(h.job, 0, r.name), nil, 0)
+	var pm core.PieceMap
+	for deadline := time.Now().Add(20 * time.Second); ; time.Sleep(2 * time.Millisecond) {
+		var ok bool
+		if pm, ok = h.be.Pieces("task"); ok && len(pm.Runs) == 3 && len(pm.Heads) == 1 {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the map never showed a written article and one being fetched: %+v", pm)
+		}
+	}
+	h.be.Halt("task")
+
+	if pm.Unit != core.UnitArticles || pm.Total != int64(len(r.parts)) {
+		t.Errorf("unit %q, total %d, want %d articles", pm.Unit, pm.Total, len(r.parts))
+	}
+	lost, written, coming := pm.Runs[0], pm.Runs[1], pm.Runs[2]
+	if lost != (core.PieceRun{State: core.PieceLost, Len: 1}) {
+		t.Errorf("the article on no server reads %+v", lost)
+	}
+	if written.State != core.PieceDone || coming.State != core.PieceMissing || 1+written.Len+coming.Len != pm.Total {
+		t.Errorf("runs %+v do not read written, then still to come", pm.Runs)
+	}
+	if pm.Heads[0] != 1+written.Len {
+		t.Errorf("the connection is on article %d, want the first one still to come, %d", pm.Heads[0], 1+written.Len)
+	}
+	if pm, ok := h.be.Pieces("task"); ok {
+		t.Errorf("a map of a halted download: %+v", pm)
+	}
+}
+
 func TestAnUndoneRemoveCarriesOnFromTheBytesItHad(t *testing.T) {
 	r := newRelease("u.bin", 160_000, 4_000)
 	s := nntptest.New(t)
