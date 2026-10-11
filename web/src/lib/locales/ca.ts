@@ -3558,6 +3558,8 @@ export const ca: Dict = {
   'whatsnew.change.weekBand': '«{name}» dibuixa tota la setmana com una banda.',
   'whatsnew.change.reconnectScene': 'Una imatge mostra com KnightLoader demana al router una adreça nova.',
   'whatsnew.change.seedRing': 'Un anell mostra com de a prop és un torrent del seu objectiu de seed.',
+  'whatsnew.change.routes':
+    '«{name}» dibuixa els camins cap a fora, i una prova pinta cada línia de verd o de vermell.',
   'whatsnew.change.infoTile': '«{name}» diu qui fa KnightLoader, enumera cada versió i mostra on trobar ajuda.',
   'whatsnew.change.phoneBar': 'En un telèfon, la barra inferior conserva quatre pàgines, i el seu últim lloc obre tota la resta.',
   'whatsnew.change.queueState': '«{play}» i «{pause}» mostren què fa la cua: el botó ple n’és l’estat, l’altre és el que es prem.',

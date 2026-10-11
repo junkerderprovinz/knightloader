@@ -3569,6 +3569,7 @@ export const th: Dict = {
   'whatsnew.change.weekBand': '“{name}” วาดทั้งสัปดาห์เป็นแถบเดียว',
   'whatsnew.change.reconnectScene': 'ภาพแสดงว่า KnightLoader ขอที่อยู่ใหม่จากเราเตอร์อย่างไร',
   'whatsnew.change.seedRing': 'วงแหวนแสดงว่าทอร์เรนต์เข้าใกล้เป้าหมายการซีดแค่ไหน',
+  'whatsnew.change.routes': '“{name}” วาดเส้นทางออกไปข้างนอก และการทดสอบจะทำให้แต่ละเส้นเป็นสีเขียวหรือสีแดง',
   'whatsnew.change.infoTile': '“{name}” บอกว่าใครทำ KnightLoader แสดงทุกรุ่น และบอกว่าขอความช่วยเหลือได้ที่ไหน',
   'whatsnew.change.phoneBar': 'บนโทรศัพท์ แถบด้านล่างเก็บไว้สี่หน้า และช่องสุดท้ายของแถบเปิดทุกอย่างที่เหลือ',
   'whatsnew.change.queueState': '“{play}” และ “{pause}” บอกว่าคิวกำลังทำอะไร: ปุ่มที่เติมสีคือสถานะของคิว ส่วนอีกปุ่มคือปุ่มให้กด',

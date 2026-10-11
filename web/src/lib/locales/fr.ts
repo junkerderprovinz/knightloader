@@ -3560,6 +3560,8 @@ export const fr: Dict = {
   'whatsnew.change.weekBand': '« {name} » dessine toute la semaine sous forme de bande.',
   'whatsnew.change.reconnectScene': 'Une image montre comment KnightLoader demande une nouvelle adresse au routeur.',
   'whatsnew.change.seedRing': 'Un anneau montre à quel point un torrent est proche de son objectif de partage.',
+  'whatsnew.change.routes':
+    '« {name} » dessine les routes vers l’extérieur, et un test colore chaque ligne en vert ou en rouge.',
   'whatsnew.change.infoTile': '« {name} » dit qui fait KnightLoader, liste chaque version et montre où trouver de l’aide.',
   'whatsnew.change.phoneBar': 'Sur un téléphone, la barre inférieure garde quatre pages, et son dernier emplacement ouvre tout le reste.',
   'whatsnew.change.queueState': '« {play} » et « {pause} » montrent ce que fait la file d’attente : le bouton plein indique son état, l’autre est celui sur lequel appuyer.',

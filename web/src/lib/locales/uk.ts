@@ -3571,6 +3571,7 @@ export const uk: Dict = {
   'whatsnew.change.weekBand': '«{name}» малює весь тиждень у вигляді стрічки.',
   'whatsnew.change.reconnectScene': 'Зображення показує, як KnightLoader просить у роутера нову адресу.',
   'whatsnew.change.seedRing': 'Кільце показує, наскільки торент близький до своєї цілі роздачі.',
+  'whatsnew.change.routes': '«{name}» малює шляхи назовні, а перевірка фарбує кожну лінію в зелений або червоний.',
   'whatsnew.change.infoTile': '«{name}» каже, хто робить KnightLoader, перелічує всі версії та показує, де отримати допомогу.',
   'whatsnew.change.phoneBar': 'На телефоні нижня панель лишає чотири сторінки, а її останнє місце відкриває все інше.',
   'whatsnew.change.queueState': '«{play}» і «{pause}» показують, що робить черга: зафарбована кнопка показує її стан, а іншу натискають.',

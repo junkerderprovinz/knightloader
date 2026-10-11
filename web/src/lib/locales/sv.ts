@@ -3571,6 +3571,7 @@ export const sv: Dict = {
   'whatsnew.change.weekBand': '”{name}” ritar hela veckan som ett band.',
   'whatsnew.change.reconnectScene': 'En bild visar hur KnightLoader ber routern om en ny adress.',
   'whatsnew.change.seedRing': 'En ring visar hur nära en torrent är sitt delningsmål.',
+  'whatsnew.change.routes': '”{name}” ritar vägarna ut, och ett test färgar varje linje grön eller röd.',
   'whatsnew.change.infoTile': '”{name}” säger vem som gör KnightLoader, visar varje version och visar var du får hjälp.',
   'whatsnew.change.phoneBar': 'På en telefon behåller det nedre fältet fyra sidor, och dess sista plats öppnar allt annat.',
   'whatsnew.change.queueState': '”{play}” och ”{pause}” visar vad kön gör: den fyllda knappen är köns tillstånd, den andra är den du trycker på.',

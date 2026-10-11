@@ -114,6 +114,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.weekBand',
         names: { name: 'settings.module.scheduler' },
       },
+      {
+        id: 'routes',
+        to: ['/settings/connections'],
+        text: 'whatsnew.change.routes',
+        names: { name: 'settings.module.connections' },
+      },
       { id: 'reconnect-scene', to: ['/settings/reconnect'], text: 'whatsnew.change.reconnectScene' },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'test-button', to: ['/settings/captcha'], text: 'whatsnew.change.testButton' },

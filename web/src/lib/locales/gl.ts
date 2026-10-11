@@ -3569,6 +3569,7 @@ export const gl: Dict = {
   'whatsnew.change.weekBand': '«{name}» debuxa toda a semana como unha banda.',
   'whatsnew.change.reconnectScene': 'Unha imaxe amosa como KnightLoader lle pide ao router un enderezo novo.',
   'whatsnew.change.seedRing': 'Un anel amosa o preto que está un torrent do seu obxectivo de seed.',
+  'whatsnew.change.routes': '«{name}» debuxa as rutas de saída, e unha proba pinta cada liña de verde ou de vermello.',
   'whatsnew.change.infoTile': '«{name}» di quen fai KnightLoader, enumera cada versión e amosa onde conseguir axuda.',
   'whatsnew.change.phoneBar': 'Nun teléfono, a barra inferior conserva catro páxinas, e o seu último lugar abre todo o demais.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» amosan que fai a cola: o botón recheo é o seu estado, o outro é o que se preme.',

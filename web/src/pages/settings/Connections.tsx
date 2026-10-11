@@ -1,4 +1,5 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -12,13 +13,17 @@ import {
   type ButtonVerdict,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { Routes, TORRENT_ROUTE, routesOf, type RouteTest } from '../../components/pictures/Routes';
 import { TestButton } from '../../components/TestButton';
 import { IconAdd, IconClose, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
-import { useDraft } from './context';
+import { useResource } from '../../lib/useResource';
+import { useTasks } from '../../lib/useTasks';
+import { useDraft, useFeatures } from './context';
 import { ListArea, NeutralSwitch, RowRefusal, Sheet } from './controls';
+import { requestJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -26,7 +31,9 @@ import { ModuleToggle } from './ModuleToggle';
  * are spread across. The list lives in the settings draft, because PUT
  * /api/settings validates the rows and merges back the passwords the client
  * never sees; an empty password with `hasPassword` means "keep the stored one".
- * No row wears the accent, since nearly every row is switched on.
+ * No row wears the accent, since nearly every row is switched on. Above the
+ * list a picture draws the routes the rows add up to, and its test dials every
+ * route in use.
  */
 
 // The types the server accepts, in /api/options order. They are protocol
@@ -75,6 +82,46 @@ function readConnections(cfg: unknown): Connection[] {
   return (cfg as { connections?: Connection[] }).connections ?? [];
 }
 
+/** The interface the built-in torrent client is tied to, which the Torrents page sets; empty for none. */
+function torrentInterface(cfg: unknown): string {
+  return (cfg as { torrent?: { interface?: string } }).torrent?.interface ?? '';
+}
+
+/** Whether torrents can go out over the named interface, as the server sees it. */
+async function interfaceUp(name: string): Promise<boolean> {
+  if (!name) return false;
+  const r = await fetch('/api/torrents/interfaces');
+  if (!r.ok) throw new Error(String(r.status));
+  const { interfaces } = (await r.json()) as { interfaces: { name: string; up: boolean }[] | null };
+  return (interfaces ?? []).some((i) => i.name === name && i.up);
+}
+
+/**
+ * probe asks the server to reach a connection, and through it `target` where
+ * one is named. A test that could not be run comes back as a refusal, so every
+ * answer is a report.
+ */
+async function probe(t: Translate, entry: Connection, target: string): Promise<Report> {
+  try {
+    const r = await fetch('/api/connections/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry, target }),
+    });
+    if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
+    return (await r.json()) as Report;
+  } catch (e) {
+    return {
+      ok: false,
+      stage: 'refused',
+      detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
+      millis: 0,
+    };
+  }
+}
+
+const UNTESTED: RouteTest = { run: 0, verdicts: {} };
+
 // A client-side id for a new row, so two unsaved rows never share a React key.
 // Sanitize keeps any unique id.
 let newRowCounter = 0;
@@ -87,6 +134,60 @@ export function ConnectionsCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState<string>('');
   const [importing, setImporting] = useState(false);
+
+  const navigate = useNavigate();
+  const { features } = useFeatures();
+  const tasks = useTasks('');
+  const ifname = features.modules.some((m) => m.id === 'torrents' && !m.enabled) ? '' : torrentInterface(cfg);
+  const { data: up } = useResource(() => interfaceUp(ifname), ifname);
+  const routes = routesOf({
+    rows,
+    enabled: !features.modules.some((m) => m.id === 'connections' && !m.enabled),
+    torrentInterface: ifname,
+    // Until the server has answered, the interface is taken to be there.
+    interfaceUp: up ?? true,
+    tasks: Object.values(tasks),
+  });
+
+  const [test, setTest] = useState(UNTESTED);
+  const [refusals, setRefusals] = useState<string[]>([]);
+  const runs = useRef(0);
+  const dialled = routes.filter((route) => route.probe);
+  // Whatever was tested: once a route changes, the answers are stale and go.
+  const testedKey = JSON.stringify(dialled.map((route) => route.probe));
+  useEffect(() => {
+    setTest(UNTESTED);
+    setRefusals([]);
+  }, [testedKey]);
+
+  async function testRoutes(): Promise<ButtonVerdict> {
+    const run = ++runs.current;
+    setTest({ run, verdicts: {} });
+    setRefusals([]);
+    const reports = await Promise.all(
+      dialled.map(async (route) => {
+        const report = await probe(t, route.probe!.entry as Connection, route.probe!.target);
+        setTest((shown) =>
+          shown.run === run
+            ? { run, verdicts: { ...shown.verdicts, [route.id]: report.ok ? 'ok' : 'fail' } }
+            : shown,
+        );
+        return report;
+      }),
+    );
+    const refused = reports.filter((report) => !report.ok);
+    setRefusals(refused.map((report) => report.detail));
+    return refused.length === 0 ? 'ok' : 'fail';
+  }
+
+  const pickRoute = (id: string) => {
+    if (id !== TORRENT_ROUTE) {
+      setOpenRow(id);
+      return;
+    }
+    requestJump({ page: 'torrents', title: 'settings.torrents.portTitle', label: 'settings.torrents.interface' });
+    navigate('/settings/torrents');
+  };
 
   // Positions are renumbered on every write, since the server sorts by them.
   const write = useCallback(
@@ -132,6 +233,26 @@ export function ConnectionsCard({ hue }: { hue: number }) {
           {t('settings.module.connections')}
         </SectionTitle>
         <ModuleToggle id="connections" />
+
+        <Routes routes={routes} test={test} label={t('settings.module.connections')} onPick={pickRoute} />
+        {dialled.length > 0 && (
+          <div className="flex flex-col items-center gap-2">
+            {/* Why a route did not answer, in the server's words; the button and the lines hold the answer. */}
+            {refusals.map((reason) => (
+              <p key={reason} dir="auto" className="text-center text-xs text-carbon-textSub">
+                {reason}
+              </p>
+            ))}
+            <TestButton
+              label={t('settings.connections.test')}
+              busyLabel={t('settings.connections.testing')}
+              icon={<IconNetwork />}
+              words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+              run={testRoutes}
+              resetKey={testedKey}
+            />
+          </div>
+        )}
 
         {rows.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
@@ -384,26 +505,9 @@ function TestPanel({ row }: { row: Connection }) {
 
   async function run(): Promise<ButtonVerdict> {
     setReport(null);
-    try {
-      const r = await fetch('/api/connections/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entry: row, target }),
-      });
-      if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      const answer = (await r.json()) as Report;
-      setReport(answer);
-      return answer.ok ? 'ok' : 'fail';
-    } catch (e) {
-      // A transport failure is reported as a refusal to run, not as a verdict.
-      setReport({
-        ok: false,
-        stage: 'refused',
-        detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
-        millis: 0,
-      });
-      return 'fail';
-    }
+    const answer = await probe(t, row, target);
+    setReport(answer);
+    return answer.ok ? 'ok' : 'fail';
   }
 
   return (

@@ -3576,6 +3576,7 @@ export const de: Dict = {
   'whatsnew.change.weekBand': '„{name}“ zeichnet die ganze Woche als Band.',
   'whatsnew.change.reconnectScene': 'Ein Bild zeigt, wie KnightLoader den Router um eine neue Adresse bittet.',
   'whatsnew.change.seedRing': 'Ein Ring zeigt, wie nah ein Torrent seinem Seed-Ziel ist.',
+  'whatsnew.change.routes': '„{name}“ zeichnet die Wege nach draußen, und ein Test färbt jede Linie grün oder rot.',
   'whatsnew.change.infoTile': '„{name}“ sagt, wer KnightLoader macht, listet jede Version und zeigt, wo du Hilfe bekommst.',
   'whatsnew.change.phoneBar': 'Auf dem Handy behält die untere Leiste vier Seiten, und ihr letzter Platz öffnet alles Weitere.',
   'whatsnew.change.queueState': '„{play}“ und „{pause}“ zeigen, was die Warteschlange tut: Der gefüllte Knopf ist ihr Zustand, den anderen drückst du.',

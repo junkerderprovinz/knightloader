@@ -3581,6 +3581,7 @@ export const sk: Dict = {
   'whatsnew.change.weekBand': '„{name}“ kreslí celý týždeň ako pás.',
   'whatsnew.change.reconnectScene': 'Obrázok ukazuje, ako KnightLoader žiada router o novú adresu.',
   'whatsnew.change.seedRing': 'Kruh ukazuje, ako blízko je torrent k svojmu cieľu seedovania.',
+  'whatsnew.change.routes': '„{name}“ kreslí cesty von a test zafarbí každú čiaru na zeleno alebo na červeno.',
   'whatsnew.change.infoTile': '„{name}“ hovorí, kto KnightLoader robí, vypisuje každú verziu a ukazuje, kde nájdeš pomoc.',
   'whatsnew.change.phoneBar': 'Na telefóne si spodný panel necháva štyri stránky a jeho posledné miesto otvára všetko ostatné.',
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazujú, čo front robí: vyplnené tlačidlo je jeho stav, to druhé sa stláča.',

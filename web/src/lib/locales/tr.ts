@@ -3570,6 +3570,7 @@ export const tr: Dict = {
   'whatsnew.change.weekBand': '“{name}” bütün haftayı bir şerit olarak çizer.',
   'whatsnew.change.reconnectScene': 'Bir resim, KnightLoader’ın yönlendiriciden nasıl yeni bir adres istediğini gösterir.',
   'whatsnew.change.seedRing': 'Bir halka, bir torrentin seed hedefine ne kadar yakın olduğunu gösterir.',
+  'whatsnew.change.routes': '“{name}” dışarı giden yolları çizer ve bir test her çizgiyi yeşile ya da kırmızıya boyar.',
   'whatsnew.change.infoTile': '“{name}”, KnightLoader’ı kimin yaptığını söyler, her sürümü listeler ve nereden yardım alabileceğini gösterir.',
   'whatsnew.change.phoneBar': 'Telefonda alt çubuk dört sayfa tutar, son yeri de geri kalan her şeyi açar.',
   'whatsnew.change.queueState': '“{play}” ve “{pause}” kuyruğun ne yaptığını gösterir: dolu olan düğme kuyruğun durumudur, öteki ise basılacak olandır.',

@@ -3571,6 +3571,8 @@ export const hu: Dict = {
   'whatsnew.change.weekBand': 'A(z) „{name}” az egész hetet egyetlen sávként rajzolja meg.',
   'whatsnew.change.reconnectScene': 'Egy kép mutatja, hogyan kér a KnightLoader új címet a routertől.',
   'whatsnew.change.seedRing': 'Egy gyűrű mutatja, milyen közel van egy torrent a seedelési céljához.',
+  'whatsnew.change.routes':
+    'A(z) „{name}” megrajzolja a kifelé vezető utakat, egy teszt pedig minden vonalat zöldre vagy pirosra színez.',
   'whatsnew.change.infoTile': 'A(z) „{name}” megmondja, ki készíti a KnightLoadert, felsorol minden verziót, és megmutatja, hol kapsz segítséget.',
   'whatsnew.change.phoneBar': 'Telefonon az alsó sáv négy oldalt tart meg, az utolsó helye pedig minden mást megnyit.',
   'whatsnew.change.queueState': 'A(z) „{play}” és a(z) „{pause}” megmutatja, mit csinál a sor: a kitöltött gomb az állapota, a másik az, amelyiket megnyomod.',

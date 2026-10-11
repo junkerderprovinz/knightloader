@@ -3569,6 +3569,7 @@ export const ar: Dict = {
   'whatsnew.change.weekBand': 'ترسم «{name}» الأسبوع كله على هيئة شريط.',
   'whatsnew.change.reconnectScene': 'صورة تبيّن كيف يطلب KnightLoader من الموجّه عنوانًا جديدًا.',
   'whatsnew.change.seedRing': 'حلقة تبيّن مدى اقتراب التورنت من هدف البذر.',
+  'whatsnew.change.routes': 'ترسم «{name}» الطرق إلى الخارج، والاختبار يلوّن كل خط بالأخضر أو الأحمر.',
   'whatsnew.change.infoTile': 'تذكر «{name}» مَن يصنع KnightLoader، وتسرد كل إصدار، وتبيّن أين تجد المساعدة.',
   'whatsnew.change.phoneBar': 'في الهاتف يحتفظ الشريط السفلي بأربع صفحات، وموضعه الأخير يفتح كل ما عداها.',
   'whatsnew.change.queueState': '«{play}» و«{pause}» يبيّنان ما يفعله الطابور: الزر الممتلئ هو حالته، والآخر هو الذي تضغطه.',

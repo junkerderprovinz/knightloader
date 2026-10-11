@@ -3567,6 +3567,7 @@ export const is: Dict = {
   'whatsnew.change.weekBand': '„{name}“ teiknar alla vikuna sem borða.',
   'whatsnew.change.reconnectScene': 'Mynd sýnir hvernig KnightLoader biður beininn um nýtt vistfang.',
   'whatsnew.change.seedRing': 'Hringur sýnir hve nálægt torrent er sáningarmarki sínu.',
+  'whatsnew.change.routes': '„{name}“ teiknar leiðirnar út og prófun litar hverja línu græna eða rauða.',
   'whatsnew.change.infoTile': '„{name}“ segir hver býr til KnightLoader, sýnir hverja útgáfu og sýnir hvar þú færð hjálp.',
   'whatsnew.change.phoneBar': 'Í síma heldur neðri stikan fjórum síðum og síðasta sæti hennar opnar allt annað.',
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ sýna hvað biðröðin er að gera: fyllti hnappurinn er staða hennar, hinn er sá sem þú ýtir á.',

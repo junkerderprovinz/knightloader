@@ -3578,6 +3578,8 @@ export const ro: Dict = {
   'whatsnew.change.weekBand': '„{name}” desenează toată săptămâna ca o bandă.',
   'whatsnew.change.reconnectScene': 'O imagine arată cum îi cere KnightLoader routerului o adresă nouă.',
   'whatsnew.change.seedRing': 'Un inel arată cât de aproape este un torrent de ținta lui de seed.',
+  'whatsnew.change.routes':
+    '„{name}” desenează drumurile spre exterior, iar un test colorează fiecare linie în verde sau roșu.',
   'whatsnew.change.infoTile': '„{name}” spune cine face KnightLoader, enumeră fiecare versiune și arată unde găsești ajutor.',
   'whatsnew.change.phoneBar': 'Pe telefon, bara inferioară păstrează patru pagini, iar ultimul ei loc deschide tot restul.',
   'whatsnew.change.queueState': '„{play}” și „{pause}” arată ce face coada: butonul plin este starea ei, celălalt este cel de apăsat.',

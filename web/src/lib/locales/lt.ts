@@ -3571,6 +3571,8 @@ export const lt: Dict = {
   'whatsnew.change.weekBand': '„{name}“ nupiešia visą savaitę kaip juostą.',
   'whatsnew.change.reconnectScene': 'Paveikslėlis rodo, kaip KnightLoader prašo maršrutizatoriaus naujo adreso.',
   'whatsnew.change.seedRing': 'Žiedas rodo, kiek torrentui liko iki jo sėjimo tikslo.',
+  'whatsnew.change.routes':
+    '„{name}“ nupiešia kelius į išorę, o testas kiekvieną liniją nuspalvina žaliai arba raudonai.',
   'whatsnew.change.infoTile': '„{name}“ pasako, kas kuria KnightLoader, išvardija kiekvieną versiją ir parodo, kur gauti pagalbos.',
   'whatsnew.change.phoneBar': 'Telefone apatinė juosta išlaiko keturis puslapius, o paskutinė jos vieta atveria visa kita.',
   'whatsnew.change.queueState': '„{play}“ ir „{pause}“ rodo, ką daro eilė: užpildytas mygtukas yra jos būsena, kitas yra tas, kurį reikia paspausti.',

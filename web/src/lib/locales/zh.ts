@@ -3554,6 +3554,7 @@ export const zh: Dict = {
   'whatsnew.change.weekBand': '“{name}”把整周画成一条带。',
   'whatsnew.change.reconnectScene': '一幅图展示 KnightLoader 如何向路由器请求新地址。',
   'whatsnew.change.seedRing': '一个圆环显示种子离做种目标还有多远。',
+  'whatsnew.change.routes': '“{name}”画出通往外部的各条路线，测试会把每条线变成绿色或红色。',
   'whatsnew.change.infoTile': '“{name}”说明谁在制作 KnightLoader，列出每个版本，并指出在哪里获得帮助。',
   'whatsnew.change.phoneBar': '在手机上，底栏保留四个页面，最后一个位置可以打开其余的一切。',
   'whatsnew.change.queueState': '“{play}”和“{pause}”显示队列正在做什么：填充的那个按钮是它的状态，另一个是可以按的按钮。',

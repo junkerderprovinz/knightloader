@@ -3571,6 +3571,7 @@ export const vi: Dict = {
   'whatsnew.change.weekBand': '“{name}” vẽ cả tuần thành một dải.',
   'whatsnew.change.reconnectScene': 'Một hình cho thấy KnightLoader xin bộ định tuyến một địa chỉ mới như thế nào.',
   'whatsnew.change.seedRing': 'Một vòng tròn cho thấy một torrent còn cách mục tiêu seed bao xa.',
+  'whatsnew.change.routes': '“{name}” vẽ các đường đi ra ngoài, và một lượt kiểm tra tô mỗi đường màu xanh lá hoặc đỏ.',
   'whatsnew.change.infoTile': '“{name}” cho biết ai làm ra KnightLoader, liệt kê mọi bản phát hành và chỉ chỗ nhận trợ giúp.',
   'whatsnew.change.phoneBar': 'Trên điện thoại, thanh dưới giữ bốn trang, và chỗ cuối cùng của nó mở mọi thứ còn lại.',
   'whatsnew.change.queueState': '“{play}” và “{pause}” cho thấy hàng đợi đang làm gì: nút được tô kín là trạng thái của nó, nút còn lại là nút để bấm.',

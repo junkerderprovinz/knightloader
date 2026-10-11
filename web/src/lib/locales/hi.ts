@@ -3571,6 +3571,7 @@ export const hi: Dict = {
   'whatsnew.change.weekBand': '“{name}” पूरे सप्ताह को एक पट्टी के रूप में दिखाता है।',
   'whatsnew.change.reconnectScene': 'एक चित्र दिखाता है कि KnightLoader राउटर से नया पता कैसे माँगता है।',
   'whatsnew.change.seedRing': 'एक छल्ला दिखाता है कि कोई टोरेंट अपने सीड लक्ष्य के कितना करीब है।',
+  'whatsnew.change.routes': '“{name}” बाहर जाने के रास्ते दिखाता है, और जाँच हर रेखा को हरा या लाल कर देती है।',
   'whatsnew.change.infoTile': '“{name}” बताता है कि KnightLoader कौन बनाता है, हर संस्करण सूचीबद्ध करता है और दिखाता है कि मदद कहाँ मिलेगी।',
   'whatsnew.change.phoneBar': 'फ़ोन पर बॉटम बार चार पेज रखता है, और उसकी आख़िरी जगह बाकी सब कुछ खोलती है।',
   'whatsnew.change.queueState': '“{play}” और “{pause}” दिखाते हैं कि कतार क्या कर रही है: भरा हुआ बटन उसकी स्थिति है, और दूसरा वह है जिसे दबाना है।',

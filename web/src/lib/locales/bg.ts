@@ -3571,6 +3571,7 @@ export const bg: Dict = {
   'whatsnew.change.weekBand': '„{name}“ рисува цялата седмица като лента.',
   'whatsnew.change.reconnectScene': 'Изображение показва как KnightLoader иска нов адрес от рутера.',
   'whatsnew.change.seedRing': 'Пръстен показва колко близо е един торент до целта си за сийдване.',
+  'whatsnew.change.routes': '„{name}“ рисува пътищата навън, а тест оцветява всяка линия в зелено или червено.',
   'whatsnew.change.infoTile': '„{name}“ казва кой прави KnightLoader, изброява всяка версия и показва къде да получиш помощ.',
   'whatsnew.change.phoneBar': 'На телефон долната лента пази четири страници, а последното ѝ място отваря всичко останало.',
   'whatsnew.change.queueState': '„{play}“ и „{pause}“ показват какво прави опашката: запълненият бутон е състоянието ѝ, а другият е за натискане.',

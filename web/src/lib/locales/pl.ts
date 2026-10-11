@@ -3555,6 +3555,7 @@ export const pl: Dict = {
   'whatsnew.change.weekBand': '„{name}” rysuje cały tydzień jako pas.',
   'whatsnew.change.reconnectScene': 'Obraz pokazuje, jak KnightLoader prosi router o nowy adres.',
   'whatsnew.change.seedRing': 'Pierścień pokazuje, jak blisko celu seedowania jest torrent.',
+  'whatsnew.change.routes': '„{name}” rysuje drogi na zewnątrz, a test barwi każdą linię na zielono lub czerwono.',
   'whatsnew.change.infoTile': '„{name}” mówi, kto tworzy KnightLoader, wymienia każdą wersję i pokazuje, gdzie uzyskać pomoc.',
   'whatsnew.change.phoneBar': 'Na telefonie panel dolny zachowuje cztery strony, a jego ostatnie miejsce otwiera całą resztę.',
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazują, co robi kolejka: wypełniony przycisk to jej stan, a drugi jest do naciśnięcia.',
