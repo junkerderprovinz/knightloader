@@ -3559,7 +3559,7 @@ export const hi: Dict = {
   'whatsnew.change.overviewCustomize': '“{name}” से आप इस पेज के कार्ड इधर-उधर कर सकते हैं और जिनकी ज़रूरत नहीं उन्हें छिपा सकते हैं।',
   'whatsnew.change.vessel': 'एक पात्र दिखाता है कि “{name}” के नीचे हर फ़ोल्डर कितना भरा है।',
   'whatsnew.change.pageActions': 'पेज की मुख्य क्रिया उसके निचले किनारे पर तैरती है और स्क्रॉल करते समय पहुँच में रहती है।',
-  'whatsnew.change.collectorOptions': '“{name}” एक विंडो खोलता है। “{cnl}” और “{watch}” उसमें स्विच हैं।',
+  'whatsnew.change.collectorOptions': '“{name}” एक विंडो खोलता है। “{cnl}” और “{watch}” उसके बगल में बटन बनकर रहते हैं, जो दिखाते हैं कि वे चालू हैं या नहीं।',
   'whatsnew.change.instanceCards': 'हर इंस्टेंस एक छोटा कार्ड है, और उनके ऊपर समूह का चित्र है।',
   'whatsnew.change.accountsAdd': 'एक ही बटन हर तरह का खाता जोड़ता है: “{name}”।',
   'whatsnew.change.priorityFlow': '“{name}” क्रम को चित्र के रूप में दिखाता है: पहले किससे पूछा जाता है और उसके बाद किससे।',

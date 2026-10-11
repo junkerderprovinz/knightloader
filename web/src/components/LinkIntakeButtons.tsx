@@ -1,4 +1,5 @@
-import { ToggleRow } from './ui';
+import { IconBadge } from './ui';
+import { IconBrowser, IconPaste } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -8,14 +9,15 @@ import { isDesktop } from '../lib/desktop';
 import { moduleDetail } from '../pages/settings/tx';
 
 /**
- * LinkIntakeSwitches are the add-links options' switches for Click'n'Load and
- * the clipboard watch, sharing their state with the settings card.
+ * LinkIntakeButtons are the add-links form's buttons for Click'n'Load and the
+ * clipboard watch, sharing their state with the settings card. Each holds its
+ * state: filled while on, and a press turns it the other way.
  *
- * The clipboard row stays visible but disabled where the browser cannot read
+ * The clipboard button stays visible but disabled where the browser cannot read
  * the clipboard. Click'n'Load disappears when the server has no such module,
  * since there is nothing to enable.
  */
-export function LinkIntakeSwitches() {
+export function LinkIntakeButtons({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const { row, busy, set } = useCnl();
@@ -37,18 +39,27 @@ export function LinkIntakeSwitches() {
   return (
     <>
       {cnlSwitchable && (
-        <ToggleRow
-          label={t('settings.module.cnl')}
+        <IconBadge
+          labelled
+          active={row.enabled}
+          hue={hue}
+          icon={<IconBrowser width={16} height={16} />}
+          title={t('settings.module.cnl')}
+          aria-label={t('settings.module.cnl')}
           // What it takes, then the live reading, such as the address it
           // listens on.
-          hint={[t('settings.linkIntake.cnlHint'), moduleDetail(t, row) ?? '']}
-          checked={row.enabled}
-          onChange={(on) => void onCnl(on)}
+          hint={[t('settings.linkIntake.cnlHint'), moduleDetail(t, row) ?? ''].filter(Boolean).join(' ')}
+          onClick={() => void onCnl(!row.enabled)}
           disabled={busy}
         />
       )}
-      <ToggleRow
-        label={t('intake.clipboardWatch')}
+      <IconBadge
+        labelled
+        active={watch}
+        hue={hue + 1}
+        icon={<IconPaste width={16} height={16} />}
+        title={t('intake.clipboardWatch')}
+        aria-label={t('intake.clipboardWatch')}
         hint={
           !WATCH_SUPPORTED
             ? t('intake.clipboardWatchUnavailable')
@@ -56,8 +67,7 @@ export function LinkIntakeSwitches() {
               ? t('intake.clipboardWatchHintDesktop')
               : t('intake.clipboardWatchHint')
         }
-        checked={watch}
-        onChange={flip}
+        onClick={() => flip(!watch)}
         disabled={!WATCH_SUPPORTED}
       />
       {dialog}

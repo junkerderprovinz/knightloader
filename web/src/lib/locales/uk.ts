@@ -3559,7 +3559,7 @@ export const uk: Dict = {
   'whatsnew.change.overviewCustomize': 'За допомогою «{name}» можна переставити картки цієї сторінки та приховати непотрібні.',
   'whatsnew.change.vessel': 'Посудина показує, наскільки заповнена кожна тека в розділі «{name}».',
   'whatsnew.change.pageActions': 'Головна дія сторінки ширяє біля її нижнього краю та лишається під рукою під час прокручування.',
-  'whatsnew.change.collectorOptions': '«{name}» відкриває вікно. «{cnl}» і «{watch}» стали перемикачами в ньому.',
+  'whatsnew.change.collectorOptions': '«{name}» відкриває вікно. «{cnl}» і «{watch}» лишаються поруч як кнопки, з яких видно, чи вони ввімкнені.',
   'whatsnew.change.instanceCards': 'Кожен екземпляр показано компактною карткою, а над ними розміщено зображення групи.',
   'whatsnew.change.accountsAdd': 'Одна кнопка додає обліковий запис будь-якого виду: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» малює порядок як зображення: кого питають першим, а кого далі.',

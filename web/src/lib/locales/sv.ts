@@ -3559,7 +3559,7 @@ export const sv: Dict = {
   'whatsnew.change.overviewCustomize': 'Med ”{name}” flyttar du korten på den här sidan och döljer dem du inte behöver.',
   'whatsnew.change.vessel': 'Ett kärl visar hur full varje mapp under ”{name}” är.',
   'whatsnew.change.pageActions': 'En sidas viktigaste åtgärd svävar längst ner och finns inom räckhåll medan du rullar.',
-  'whatsnew.change.collectorOptions': '”{name}” öppnar ett fönster. ”{cnl}” och ”{watch}” är reglage i det.',
+  'whatsnew.change.collectorOptions': '”{name}” öppnar ett fönster. ”{cnl}” och ”{watch}” står kvar bredvid som knappar som visar om de är på.',
   'whatsnew.change.instanceCards': 'Varje instans är ett kompakt kort med en bild av gruppen ovanför.',
   'whatsnew.change.accountsAdd': 'En enda knapp lägger till alla slags konton: ”{name}”.',
   'whatsnew.change.priorityFlow': '”{name}” ritar ordningen som en bild: vem som tillfrågas först och vem sedan.',

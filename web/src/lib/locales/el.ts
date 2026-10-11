@@ -3559,7 +3559,7 @@ export const el: Dict = {
   'whatsnew.change.overviewCustomize': 'Με το «{name}» μετακινείς τις κάρτες αυτής της σελίδας και κρύβεις όσες δεν χρειάζεσαι.',
   'whatsnew.change.vessel': 'Ένα δοχείο δείχνει πόσο γεμάτος είναι κάθε φάκελος στο «{name}».',
   'whatsnew.change.pageActions': 'Η κύρια ενέργεια μιας σελίδας αιωρείται στο κάτω μέρος της και μένει κοντά όσο κάνεις κύλιση.',
-  'whatsnew.change.collectorOptions': 'Το «{name}» ανοίγει ένα παράθυρο. Τα «{cnl}» και «{watch}» είναι διακόπτες μέσα σε αυτό.',
+  'whatsnew.change.collectorOptions': 'Το «{name}» ανοίγει ένα παράθυρο. Τα «{cnl}» και «{watch}» μένουν δίπλα του ως κουμπιά που δείχνουν αν είναι ενεργά.',
   'whatsnew.change.instanceCards': 'Κάθε στιγμιότυπο είναι μια συμπαγής κάρτα, με μια εικόνα της ομάδας από πάνω.',
   'whatsnew.change.accountsAdd': 'Ένα κουμπί προσθέτει κάθε είδος λογαριασμού: «{name}».',
   'whatsnew.change.priorityFlow': 'Το «{name}» σχεδιάζει τη σειρά ως εικόνα: ποιος ρωτιέται πρώτος και ποιος μετά.',

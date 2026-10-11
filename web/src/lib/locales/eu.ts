@@ -3554,7 +3554,7 @@ export const eu: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» aukerarekin orri honetako txartelak mugi ditzakezu eta behar ez dituzunak ezkutatu.',
   'whatsnew.change.vessel': 'Ontzi batek «{name}» ataleko karpeta bakoitza zenbat beteta dagoen erakusten du.',
   'whatsnew.change.pageActions': 'Orri baten ekintza nagusia haren behealdean flotatzen da eta eskura geratzen da korritzen duzun bitartean.',
-  'whatsnew.change.collectorOptions': '«{name}» botoiak leiho bat irekitzen du. «{cnl}» eta «{watch}» etengailuak dira bertan.',
+  'whatsnew.change.collectorOptions': '«{name}» botoiak leiho bat irekitzen du. «{cnl}» eta «{watch}» haren ondoan geratzen dira, piztuta dauden erakusten duten botoi gisa.',
   'whatsnew.change.instanceCards': 'Instantzia bakoitza txartel trinko bat da, eta gainean taldearen irudi bat dago.',
   'whatsnew.change.accountsAdd': 'Botoi bakar batek edozein kontu mota gehitzen du: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» atalak ordena irudi gisa marrazten du: nori galdetzen zaion lehenik eta nori gero.',

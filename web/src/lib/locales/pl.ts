@@ -3543,7 +3543,7 @@ export const pl: Dict = {
   'whatsnew.change.overviewCustomize': 'Dzięki „{name}” przestawisz karty tej strony i ukryjesz te, których nie potrzebujesz.',
   'whatsnew.change.vessel': 'Naczynie pokazuje, jak pełny jest każdy folder w sekcji „{name}”.',
   'whatsnew.change.pageActions': 'Główna akcja strony unosi się u jej dołu i pozostaje pod ręką podczas przewijania.',
-  'whatsnew.change.collectorOptions': '„{name}” otwiera okno. „{cnl}” i „{watch}” to przełączniki w nim.',
+  'whatsnew.change.collectorOptions': '„{name}” otwiera okno. „{cnl}” i „{watch}” zostają obok jako przyciski, które pokazują, czy są włączone.',
   'whatsnew.change.instanceCards': 'Każda instancja to zwarta karta, a nad nimi jest obraz grupy.',
   'whatsnew.change.accountsAdd': 'Jeden przycisk dodaje każdy rodzaj konta: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” rysuje kolejność jako obraz: kto jest pytany najpierw, a kto potem.',

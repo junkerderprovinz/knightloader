@@ -3559,7 +3559,7 @@ export const hu: Dict = {
   'whatsnew.change.overviewCustomize': 'A(z) „{name}” gombbal áthelyezheted az oldal kártyáit, és elrejtheted azokat, amelyekre nincs szükséged.',
   'whatsnew.change.vessel': 'Egy edény mutatja, mennyire telt meg a(z) „{name}” minden egyes mappája.',
   'whatsnew.change.pageActions': 'Az oldal fő művelete az oldal alján lebeg, és görgetés közben is kéznél marad.',
-  'whatsnew.change.collectorOptions': 'A(z) „{name}” ablakot nyit. A(z) „{cnl}” és a(z) „{watch}” kapcsolók benne.',
+  'whatsnew.change.collectorOptions': 'A(z) „{name}” ablakot nyit. A(z) „{cnl}” és a(z) „{watch}” mellette marad gombként, amely mutatja, hogy be van-e kapcsolva.',
   'whatsnew.change.instanceCards': 'Minden példány egy tömör kártya, fölöttük pedig a csoport képe látható.',
   'whatsnew.change.accountsAdd': 'Egyetlen gomb ad hozzá bármilyen fiókot: „{name}”.',
   'whatsnew.change.priorityFlow': 'A(z) „{name}” képként rajzolja meg a sorrendet: kit kérdez először, és kit utána.',

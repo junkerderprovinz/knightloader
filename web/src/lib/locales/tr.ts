@@ -3558,7 +3558,7 @@ export const tr: Dict = {
   'whatsnew.change.overviewCustomize': '“{name}” ile bu sayfadaki kartları taşıyabilir, ihtiyacın olmayanları gizleyebilirsin.',
   'whatsnew.change.vessel': 'Bir kap, “{name}” altındaki her klasörün ne kadar dolu olduğunu gösterir.',
   'whatsnew.change.pageActions': 'Bir sayfanın ana eylemi sayfanın altında süzülür ve kaydırırken elinin altında kalır.',
-  'whatsnew.change.collectorOptions': '“{name}” bir pencere açar. “{cnl}” ve “{watch}” bu pencerede birer anahtardır.',
+  'whatsnew.change.collectorOptions': '“{name}” bir pencere açar. “{cnl}” ve “{watch}” onun yanında, açık olup olmadıklarını gösteren düğmeler olarak kalır.',
   'whatsnew.change.instanceCards': 'Her örnek küçük bir karttır, üstlerinde de grubun bir resmi durur.',
   'whatsnew.change.accountsAdd': 'Tek bir düğme her tür hesabı ekler: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” sırayı bir resim olarak çizer: önce kime, sonra kime sorulduğunu.',

@@ -3559,7 +3559,7 @@ export const lt: Dict = {
   'whatsnew.change.overviewCustomize': 'Su „{name}“ perkeli šio puslapio korteles ir paslepi tas, kurių tau nereikia.',
   'whatsnew.change.vessel': 'Indas rodo, kiek pilnas kiekvienas aplankas skiltyje „{name}“.',
   'whatsnew.change.pageActions': 'Pagrindinis puslapio veiksmas sklando jo apačioje ir lieka pasiekiamas, kol slenki.',
-  'whatsnew.change.collectorOptions': '„{name}“ atveria langą. „{cnl}“ ir „{watch}“ yra jungikliai jame.',
+  'whatsnew.change.collectorOptions': '„{name}“ atveria langą. „{cnl}“ ir „{watch}“ lieka šalia kaip mygtukai, kurie rodo, ar jie įjungti.',
   'whatsnew.change.instanceCards': 'Kiekvienas egzempliorius yra kompaktiška kortelė, o virš jų yra grupės paveikslėlis.',
   'whatsnew.change.accountsAdd': 'Vienas mygtukas prideda bet kurios rūšies paskyrą: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ nupiešia eilės tvarką kaip paveikslėlį: ko klausiama pirmiausia ir ko po to.',

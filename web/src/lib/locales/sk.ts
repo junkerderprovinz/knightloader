@@ -3569,7 +3569,7 @@ export const sk: Dict = {
   'whatsnew.change.overviewCustomize': 'Pomocou „{name}“ presunieš karty tejto stránky a skryješ tie, ktoré nepotrebuješ.',
   'whatsnew.change.vessel': 'Nádoba ukazuje, aký plný je každý priečinok v časti „{name}“.',
   'whatsnew.change.pageActions': 'Hlavná akcia stránky sa vznáša pri jej spodnom okraji a pri posúvaní zostáva poruke.',
-  'whatsnew.change.collectorOptions': '„{name}“ otvára okno. „{cnl}“ a „{watch}“ sú prepínače v ňom.',
+  'whatsnew.change.collectorOptions': '„{name}“ otvára okno. „{cnl}“ a „{watch}“ zostávajú vedľa neho ako tlačidlá, ktoré ukazujú, či sú zapnuté.',
   'whatsnew.change.instanceCards': 'Každá inštancia je kompaktná karta a nad nimi je obrázok skupiny.',
   'whatsnew.change.accountsAdd': 'Jedno tlačidlo pridá akýkoľvek druh účtu: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ kreslí poradie ako obrázok: koho sa pýta najprv a koho potom.',

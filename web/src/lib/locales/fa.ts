@@ -3548,7 +3548,7 @@ export const fa: Dict = {
   'whatsnew.change.overviewCustomize': 'با «{name}» کارت‌های این صفحه را جابه‌جا می‌کنی و آن‌هایی را که لازم نداری پنهان می‌کنی.',
   'whatsnew.change.vessel': 'یک ظرف نشان می‌دهد هر پوشه در «{name}» چقدر پر است.',
   'whatsnew.change.pageActions': 'کار اصلی هر صفحه در پایین آن شناور است و هنگام پیمایش در دسترس می‌ماند.',
-  'whatsnew.change.collectorOptions': '«{name}» پنجره‌ای باز می‌کند. «{cnl}» و «{watch}» کلیدهایی در آن هستند.',
+  'whatsnew.change.collectorOptions': '«{name}» پنجره‌ای باز می‌کند. «{cnl}» و «{watch}» کنار آن می‌مانند، به شکل دکمه‌هایی که نشان می‌دهند روشن‌اند یا نه.',
   'whatsnew.change.instanceCards': 'هر نمونه یک کارت فشرده است و بالای آن‌ها تصویری از گروه قرار دارد.',
   'whatsnew.change.accountsAdd': 'یک دکمه هر نوع حسابی را اضافه می‌کند: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» ترتیب را به شکل تصویر می‌کشد: اول از چه کسی پرسیده می‌شود و بعد از چه کسی.',

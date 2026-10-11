@@ -3556,7 +3556,7 @@ export const ja: Dict = {
   'whatsnew.change.overviewCustomize': '「{name}」で、このページのカードを動かし、不要なカードを隠せます。',
   'whatsnew.change.vessel': '容器の絵が、「{name}」の各フォルダーがどれだけ埋まっているかを示します。',
   'whatsnew.change.pageActions': 'ページの主な操作はページの下端に浮かび、スクロール中も手の届く場所にあります。',
-  'whatsnew.change.collectorOptions': '「{name}」を押すとウィンドウが開きます。「{cnl}」と「{watch}」はその中のスイッチです。',
+  'whatsnew.change.collectorOptions': '「{name}」を押すとウィンドウが開きます。「{cnl}」と「{watch}」はその隣にボタンとして残り、オンかどうかがひと目でわかります。',
   'whatsnew.change.instanceCards': '各インスタンスはコンパクトなカードで、その上にグループの絵があります。',
   'whatsnew.change.accountsAdd': '1 つのボタンであらゆる種類のアカウントを追加できます: 「{name}」。',
   'whatsnew.change.priorityFlow': '「{name}」は順番を絵で描きます。誰に最初に問い合わせ、次に誰に問い合わせるかがわかります。',

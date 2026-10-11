@@ -3549,7 +3549,7 @@ export const lv: Dict = {
   'whatsnew.change.overviewCustomize': 'Ar „{name}“ tu pārvieto šīs lapas kartītes un paslēp tās, kas tev nav vajadzīgas.',
   'whatsnew.change.vessel': 'Trauks rāda, cik pilna ir katra mape sadaļā „{name}“.',
   'whatsnew.change.pageActions': 'Lapas galvenā darbība peld tās apakšā un ritinot paliek sasniedzama.',
-  'whatsnew.change.collectorOptions': '„{name}“ atver logu. „{cnl}“ un „{watch}“ ir slēdži tajā.',
+  'whatsnew.change.collectorOptions': '„{name}“ atver logu. „{cnl}“ un „{watch}“ paliek tam blakus kā pogas, kas rāda, vai tās ir ieslēgtas.',
   'whatsnew.change.instanceCards': 'Katra instance ir kompakta kartīte, un virs tām ir grupas attēls.',
   'whatsnew.change.accountsAdd': 'Viena poga pievieno jebkura veida kontu: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ uzzīmē secību kā attēlu: kam jautā vispirms un kam pēc tam.',

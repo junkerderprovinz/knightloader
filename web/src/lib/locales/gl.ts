@@ -3557,7 +3557,7 @@ export const gl: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» permíteche mover as tarxetas desta páxina e agochar as que non precisas.',
   'whatsnew.change.vessel': 'Un recipiente amosa o chea que está cada cartafol de «{name}».',
   'whatsnew.change.pageActions': 'A acción principal dunha páxina flota na súa parte inferior e segue á man mentres te desprazas.',
-  'whatsnew.change.collectorOptions': '«{name}» abre unha xanela. «{cnl}» e «{watch}» son interruptores dentro dela.',
+  'whatsnew.change.collectorOptions': '«{name}» abre unha xanela. «{cnl}» e «{watch}» quedan ao seu carón como botóns que amosan se están activados.',
   'whatsnew.change.instanceCards': 'Cada instancia é unha tarxeta compacta, cunha imaxe do grupo enriba.',
   'whatsnew.change.accountsAdd': 'Un só botón engade calquera tipo de conta: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» debuxa a orde como unha imaxe: a quen se pregunta primeiro e a quen despois.',

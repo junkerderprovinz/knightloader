@@ -3548,7 +3548,7 @@ export const fr: Dict = {
   'whatsnew.change.overviewCustomize': '« {name} » vous permet de déplacer les cartes de cette page et de masquer celles dont vous n’avez pas besoin.',
   'whatsnew.change.vessel': 'Un récipient montre à quel point chaque dossier sous « {name} » est rempli.',
   'whatsnew.change.pageActions': 'L’action principale d’une page flotte en bas de celle-ci et reste à portée pendant le défilement.',
-  'whatsnew.change.collectorOptions': '« {name} » ouvre une fenêtre. « {cnl} » et « {watch} » y sont des interrupteurs.',
+  'whatsnew.change.collectorOptions': '« {name} » ouvre une fenêtre. « {cnl} » et « {watch} » restent à côté sous forme de boutons qui montrent s’ils sont activés.',
   'whatsnew.change.instanceCards': 'Chaque instance est une carte compacte, avec une image du groupe au-dessus.',
   'whatsnew.change.accountsAdd': 'Un seul bouton ajoute tous les types de compte : « {name} ».',
   'whatsnew.change.priorityFlow': '« {name} » dessine l’ordre sous forme d’image : qui est sollicité en premier et qui ensuite.',

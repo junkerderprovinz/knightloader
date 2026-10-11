@@ -3566,7 +3566,7 @@ export const ro: Dict = {
   'whatsnew.change.overviewCustomize': 'Cu „{name}” muți cardurile acestei pagini și le ascunzi pe cele de care nu ai nevoie.',
   'whatsnew.change.vessel': 'Un vas arată cât de plin este fiecare dosar din „{name}”.',
   'whatsnew.change.pageActions': 'Acțiunea principală a unei pagini plutește în partea ei de jos și rămâne la îndemână cât derulezi.',
-  'whatsnew.change.collectorOptions': '„{name}” deschide o fereastră. „{cnl}” și „{watch}” sunt comutatoare în ea.',
+  'whatsnew.change.collectorOptions': '„{name}” deschide o fereastră. „{cnl}” și „{watch}” rămân alături ca butoane care arată dacă sunt pornite.',
   'whatsnew.change.instanceCards': 'Fiecare instanță este un card compact, cu o imagine a grupului deasupra.',
   'whatsnew.change.accountsAdd': 'Un singur buton adaugă orice fel de cont: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” desenează ordinea ca imagine: cine este întrebat primul și cine apoi.',

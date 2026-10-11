@@ -3538,7 +3538,7 @@ export const ru: Dict = {
   'whatsnew.change.overviewCustomize': 'С помощью «{name}» можно переставить карточки этой страницы и скрыть ненужные.',
   'whatsnew.change.vessel': 'Сосуд показывает, насколько заполнена каждая папка в разделе «{name}».',
   'whatsnew.change.pageActions': 'Главное действие страницы парит у её нижнего края и остаётся под рукой при прокрутке.',
-  'whatsnew.change.collectorOptions': '«{name}» открывает окно. «{cnl}» и «{watch}» стали переключателями в нём.',
+  'whatsnew.change.collectorOptions': '«{name}» открывает окно. «{cnl}» и «{watch}» остаются рядом как кнопки, по которым видно, включены ли они.',
   'whatsnew.change.instanceCards': 'Каждый экземпляр показан компактной карточкой, а над ними расположено изображение группы.',
   'whatsnew.change.accountsAdd': 'Одна кнопка добавляет аккаунт любого вида: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» рисует порядок как изображение: кого спрашивают первым, а кого следом.',

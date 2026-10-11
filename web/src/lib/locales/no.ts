@@ -3561,7 +3561,7 @@ export const no: Dict = {
   'whatsnew.change.overviewCustomize': 'Med «{name}» flytter du kortene på denne siden og skjuler dem du ikke trenger.',
   'whatsnew.change.vessel': 'En beholder viser hvor full hver mappe under «{name}» er.',
   'whatsnew.change.pageActions': 'Den viktigste handlingen på en side svever nederst og er innen rekkevidde mens du ruller.',
-  'whatsnew.change.collectorOptions': '«{name}» åpner et vindu. «{cnl}» og «{watch}» er brytere i det.',
+  'whatsnew.change.collectorOptions': '«{name}» åpner et vindu. «{cnl}» og «{watch}» blir stående ved siden av som knapper som viser om de er slått på.',
   'whatsnew.change.instanceCards': 'Hver instans er et kompakt kort med et bilde av gruppen over.',
   'whatsnew.change.accountsAdd': 'Én knapp legger til alle slags kontoer: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» tegner rekkefølgen som et bilde: hvem som spørres først, og hvem deretter.',

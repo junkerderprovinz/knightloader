@@ -3551,7 +3551,7 @@ export const et: Dict = {
   'whatsnew.change.overviewCustomize': 'Valikuga „{name}“ saad selle lehe kaarte ümber tõsta ja peita need, mida sa ei vaja.',
   'whatsnew.change.vessel': 'Anum näitab, kui täis on iga kaust jaotises „{name}“.',
   'whatsnew.change.pageActions': 'Lehe põhitegevus hõljub lehe allservas ja jääb kerimise ajal käeulatusse.',
-  'whatsnew.change.collectorOptions': '„{name}“ avab akna. „{cnl}“ ja „{watch}“ on selles lülitid.',
+  'whatsnew.change.collectorOptions': '„{name}“ avab akna. „{cnl}“ ja „{watch}“ jäävad selle kõrvale nuppudena, mis näitavad, kas need on sees.',
   'whatsnew.change.instanceCards': 'Iga eksemplar on kompaktne kaart, mille kohal on pilt grupist.',
   'whatsnew.change.accountsAdd': 'Üks nupp lisab igat liiki konto: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ joonistab järjekorra pildina: kellelt küsitakse esimesena ja kellelt seejärel.',

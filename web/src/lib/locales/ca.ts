@@ -3546,7 +3546,7 @@ export const ca: Dict = {
   'whatsnew.change.overviewCustomize': '«{name}» et permet moure les targetes d’aquesta pàgina i amagar les que no necessites.',
   'whatsnew.change.vessel': 'Un recipient mostra com de plena és cada carpeta de «{name}».',
   'whatsnew.change.pageActions': 'L’acció principal d’una pàgina flota a la part inferior i queda a mà mentre et desplaces.',
-  'whatsnew.change.collectorOptions': '«{name}» obre una finestra. «{cnl}» i «{watch}» hi són interruptors.',
+  'whatsnew.change.collectorOptions': '«{name}» obre una finestra. «{cnl}» i «{watch}» es queden al costat com a botons que mostren si estan activats.',
   'whatsnew.change.instanceCards': 'Cada instància és una targeta compacta, amb una imatge del grup a sobre.',
   'whatsnew.change.accountsAdd': 'Un sol botó afegeix qualsevol tipus de compte: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» dibuixa l’ordre com una imatge: a qui es pregunta primer i a qui després.',

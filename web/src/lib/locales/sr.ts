@@ -3573,7 +3573,7 @@ export const sr: Dict = {
   'whatsnew.change.overviewCustomize': 'Уз „{name}“ премешташ картице ове странице и сакриваш оне које ти не требају.',
   'whatsnew.change.vessel': 'Посуда показује колико је пуна свака фасцикла у одељку „{name}“.',
   'whatsnew.change.pageActions': 'Главна радња странице лебди уз њену доњу ивицу и остаје надохват руке док се помераш.',
-  'whatsnew.change.collectorOptions': '„{name}“ отвара прозор. „{cnl}“ и „{watch}“ су прекидачи у њему.',
+  'whatsnew.change.collectorOptions': '„{name}“ отвара прозор. „{cnl}“ и „{watch}“ остају поред њега као дугмад која показују да ли су укључена.',
   'whatsnew.change.instanceCards': 'Свака инстанца је компактна картица, а изнад њих је слика групе.',
   'whatsnew.change.accountsAdd': 'Једно дугме додаје сваку врсту налога: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ црта редослед као слику: ко се пита први, а ко затим.',
