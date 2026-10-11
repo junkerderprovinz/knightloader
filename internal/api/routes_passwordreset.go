@@ -170,6 +170,16 @@ func (g *wrongGuesses) add() {
 	g.reported = time.Now()
 }
 
+// resetRemoved is what a reset took away, for the page that follows it.
+type resetRemoved struct {
+	TwoFactor bool `json:"twoFactor"`
+	Passkeys  int  `json:"passkeys"`
+	Tokens    int  `json:"tokens"`
+	// Group is whether this instance left a pairing group for a new one of
+	// its own.
+	Group bool `json:"group"`
+}
+
 func registerPasswordReset(reg *Registry, a *app.App) {
 	// A file left by a process that is gone names a code nobody holds.
 	removeResetCodeFile(a, "")
@@ -212,7 +222,8 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 
 	reg.AddOpen(http.MethodPost, "/api/auth/reset/finish",
 		"set a new password with the reset code and take the session cookie; turns the second factor off, "+
-			"removes every passkey and API token and ends every other session. Open because it is for somebody who cannot sign in",
+			"removes every passkey and API token, ends every other session and leaves the pairing group for a new one of its own. "+
+			"Open because it is for somebody who cannot sign in",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Code     string `json:"code"`
@@ -221,13 +232,14 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
 				return
 			}
-			passkeys := 0
+			removed := resetRemoved{TwoFactor: a.Auth.TwoFactorEnabled()}
 			// Runs while nothing can be minted: whoever resets from the machine
-			// ends up holding the only way in, and a token or a passkey
-			// somebody else got hold of or registered would otherwise outlive
-			// the reset. The password is stored by then, so nothing here may
-			// fail the request.
+			// ends up holding the only way in, and a token, a passkey or a
+			// place in the group somebody else got hold of would otherwise
+			// outlive the reset. The password is stored by then, so nothing
+			// here may fail the request.
 			endTheRest := func() {
+				removed.Tokens = len(a.APITokens.List())
 				if err := a.APITokens.RevokeAll(); err != nil {
 					log.Printf("auth: password reset: revoking the API tokens: %v", err)
 				}
@@ -235,7 +247,14 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 				if err != nil {
 					log.Printf("auth: password reset: removing the passkeys: %v", err)
 				}
-				passkeys = n
+				removed.Passkeys = n
+				// The phrase opens the group's routes without a password, so
+				// whoever read it before the reset would keep that.
+				group, err := renewGroup(a)
+				if err != nil {
+					log.Printf("auth: password reset: leaving the pairing group: %v", err)
+				}
+				removed.Group = group
 				// A live stream was let in when it opened and would keep
 				// delivering to a session that has just ended.
 				a.Hub.DropAll()
@@ -262,12 +281,13 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 			}
 			gate.pass(r)
 			log.Printf("auth: the password was reset with a reset code; the second factor is off, "+
-				"%d passkey(s) and every API token are removed and every other session has ended", passkeys)
+				"%d passkey(s) and %d API token(s) are removed, every other session has ended, pairing group dissolved: %v",
+				removed.Passkeys, removed.Tokens, removed.Group)
 
 			if tok, ok := a.Auth.IssueFor(reset); ok {
 				setSession(w, r, tok)
 			}
 			learnDomain(a, reg, r)
-			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
+			writeJSON(w, map[string]any{"enabled": true, "authenticated": true, "removed": removed})
 		})
 }

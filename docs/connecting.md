@@ -197,6 +197,11 @@ not this instance's password but the key to every instance in the group.
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
 
+**A password reset leaves the group too.** The instance gets new twelve words
+that nobody else holds, so every phone, browser extension and other instance
+pairs again with them. See
+[A forgotten password](configuration.md#a-forgotten-password).
+
 ## When neither can reach the other: the relay
 
 Both ends dial *out* to a relay and meet there, so neither needs a public
