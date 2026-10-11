@@ -37,6 +37,13 @@ release's tag.
 
 ## [Unreleased]
 
+### Security
+
+- **An older KnightLoader no longer starts on a database a newer one wrote,**
+  as after going back to an older image. It stops with a message that says
+  which version to run, instead of reading and writing a schema it does not
+  know.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added
