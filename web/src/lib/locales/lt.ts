@@ -526,6 +526,7 @@ export const lt: Dict = {
   'cleanup.localOnly': 'Tvarkymas visada vyksta šiame egzemplioriuje, o ne tame, kurį matai. Grįžk į „Šis egzempliorius“, kad juo pasinaudotum.',
   'cleanup.nothing': 'Šiuo metu niekas neatitinka „{what}“, todėl nieko nepašalinta.',
   'cleanup.failed': 'Nepavyko išsiaiškinti, ką tai pašalintų: {error}',
+  'cleanup.changed': 'Nuorodos po „{what}“ pasikeitė po peržiūros, todėl nieko nepašalinta. Pasirink tai dar kartą, kad pamatytum naują sąrašą.',
 
   'remove.title': 'Ištrinti ir atsiųstus failus?',
   'remove.count': 'Nuo sąrašo bus nuimta {n} atsiuntimų.',

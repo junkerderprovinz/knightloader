@@ -528,6 +528,7 @@ export const no: Dict = {
   'cleanup.localOnly': 'Opprydding kjører alltid på denne instansen, ikke på den du ser på. Bytt tilbake til «Denne instansen» for å bruke den.',
   'cleanup.nothing': 'Ingenting passer til «{what}» akkurat nå, så ingenting ble fjernet.',
   'cleanup.failed': 'Klarte ikke å finne ut hva dette ville fjerne: {error}',
+  'cleanup.changed': 'Lenkene under «{what}» endret seg etter forhåndsvisningen, så ingenting ble fjernet. Velg det igjen for å se den nye lista.',
 
   'remove.title': 'Skal de nedlastede filene slettes også?',
   'remove.count': '{n} nedlasting(er) blir tatt av listen.',

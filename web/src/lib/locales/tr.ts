@@ -526,6 +526,7 @@ export const tr: Dict = {
   'cleanup.localOnly': 'Temizlik her zaman bu örnekte çalışır, baktığınız örnekte değil. Kullanmak için “Bu örnek”e geri dönün.',
   'cleanup.nothing': 'Şu anda “{what}” ile eşleşen bir şey yok, bu yüzden hiçbir şey kaldırılmadı.',
   'cleanup.failed': 'Bunun neyi kaldıracağı anlaşılamadı: {error}',
+  'cleanup.changed': '“{what}” altındaki bağlantılar önizlemeden sonra değişti, bu yüzden hiçbir şey kaldırılmadı. Yeni listeyi görmek için yeniden seç.',
 
   'remove.title': 'İndirilen dosyalar da silinsin mi?',
   'remove.count': '{n} indirme listeden alınacak.',

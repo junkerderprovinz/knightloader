@@ -526,6 +526,7 @@ export const fi: Dict = {
   'cleanup.localOnly': 'Siivous ajetaan aina tässä instanssissa, ei siinä jota katselet. Vaihda takaisin kohtaan ”Tämä instanssi” käyttääksesi sitä.',
   'cleanup.nothing': 'Mikään ei täsmää juuri nyt kohtaan ”{what}”, joten mitään ei poistettu.',
   'cleanup.failed': 'Ei saatu selville mitä tämä poistaisi: {error}',
+  'cleanup.changed': 'Kohdan ”{what}” linkit muuttuivat esikatselun jälkeen, joten mitään ei poistettu. Valitse se uudelleen nähdäksesi uuden luettelon.',
 
   'remove.title': 'Poistetaanko myös ladatut tiedostot?',
   'remove.count': '{n} latausta otetaan pois listalta.',

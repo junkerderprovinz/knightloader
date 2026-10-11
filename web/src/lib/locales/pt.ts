@@ -518,6 +518,7 @@ export const pt: Dict = {
   'cleanup.localOnly': 'A limpeza corre sempre nesta instância, não na que está a ver. Volte a «Esta instância» para a usar.',
   'cleanup.nothing': 'Neste momento nada corresponde a «{what}», por isso nada foi removido.',
   'cleanup.failed': 'Não foi possível apurar o que isto removeria: {error}',
+  'cleanup.changed': 'As ligações em «{what}» mudaram depois da pré-visualização, por isso nada foi removido. Escolhe outra vez para veres a lista nova.',
 
   'remove.title': 'Apagar também os ficheiros descarregados?',
   'remove.count': '{n} download(s) serão retirados da lista.',

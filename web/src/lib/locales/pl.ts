@@ -518,6 +518,7 @@ export const pl: Dict = {
   'cleanup.localOnly': 'Porządkowanie zawsze działa na tej instancji, a nie na tej, którą oglądasz. Wróć do „Ta instancja”, aby z niego skorzystać.',
   'cleanup.nothing': 'Nic teraz nie pasuje do „{what}”, więc nic nie zostało usunięte.',
   'cleanup.failed': 'Nie udało się ustalić, co to usunie: {error}',
+  'cleanup.changed': 'Linki w „{what}” zmieniły się po podglądzie, więc nic nie zostało usunięte. Wybierz to jeszcze raz, żeby zobaczyć nową listę.',
 
   'remove.title': 'Skasować także pobrane pliki?',
   'remove.count': '{n} pobierań zostanie zdjętych z listy.',

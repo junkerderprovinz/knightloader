@@ -518,6 +518,7 @@ export const es: Dict = {
   'cleanup.localOnly': 'La limpieza siempre se ejecuta en esta instancia, no en la que estás viendo. Vuelve a «Esta instancia» para usarla.',
   'cleanup.nothing': 'Ahora mismo no hay nada que coincida con «{what}», así que no se quitó nada.',
   'cleanup.failed': 'No se pudo averiguar qué quitaría esto: {error}',
+  'cleanup.changed': 'Los enlaces de «{what}» cambiaron después de la vista previa, así que no se quitó nada. Vuelve a elegirlo para ver la lista nueva.',
 
   'remove.title': '¿Borrar también los archivos descargados?',
   'remove.count': 'Se quitarán {n} descarga(s) de la lista.',

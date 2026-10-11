@@ -526,6 +526,7 @@ export const sv: Dict = {
   'cleanup.localOnly': 'Rensning körs alltid på den här instansen, inte på den du tittar på. Byt tillbaka till ”Den här instansen” för att använda den.',
   'cleanup.nothing': 'Inget matchar ”{what}” just nu, så inget togs bort.',
   'cleanup.failed': 'Kunde inte räkna ut vad det här skulle ta bort: {error}',
+  'cleanup.changed': 'Länkarna under ”{what}” ändrades efter förhandsvisningen, så inget togs bort. Välj det igen för att se den nya listan.',
 
   'remove.title': 'Radera de nedladdade filerna också?',
   'remove.count': '{n} nedladdning(ar) tas bort från listan.',

@@ -567,6 +567,7 @@ export const de: Dict = {
   'cleanup.localOnly': 'Aufräumen läuft immer auf dieser Instanz, nicht auf der, die du gerade siehst. Wechsle zurück zu „Diese Instanz“, um es zu nutzen.',
   'cleanup.nothing': 'Auf „{what}“ passt gerade nichts, es wurde also nichts entfernt.',
   'cleanup.failed': 'Konnte nicht ermitteln, was das entfernen würde: {error}',
+  'cleanup.changed': 'Unter „{what}“ hat sich seit der Vorschau etwas geändert, deshalb wurde nichts entfernt. Wähl es noch einmal, dann siehst du die neue Liste.',
 
   'remove.title': 'Auch die geladenen Dateien löschen?',
   'remove.count': '{n} Download(s) werden von der Liste genommen.',

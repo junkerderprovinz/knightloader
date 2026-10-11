@@ -526,6 +526,7 @@ export const sl: Dict = {
   'cleanup.localOnly': 'Pospravljanje vedno teče na tem primerku, ne na tistem, ki ga gledaš. Vrni se na »Ta primerek«, da ga uporabiš.',
   'cleanup.nothing': 'Trenutno se nič ne ujema z »{what}«, zato ni bilo nič odstranjeno.',
   'cleanup.failed': 'Ni bilo mogoče ugotoviti, kaj bi to odstranilo: {error}',
+  'cleanup.changed': 'Povezave pod »{what}« so se po predogledu spremenile, zato ni bilo nič odstranjeno. Izberi to znova, da vidiš nov seznam.',
 
   'remove.title': 'Naj se izbrišejo tudi prenesene datoteke?',
   'remove.count': '{n} prenosov bo umaknjenih s seznama.',

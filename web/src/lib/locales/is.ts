@@ -526,6 +526,7 @@ export const is: Dict = {
   'cleanup.localOnly': 'Tiltekt keyrir alltaf á þessu tilviki, ekki því sem þú ert að skoða. Farðu aftur á „Þetta tilvik“ til að nota hana.',
   'cleanup.nothing': 'Ekkert passar við „{what}“ núna, svo ekkert var fjarlægt.',
   'cleanup.failed': 'Ekki tókst að finna út hvað þetta myndi fjarlægja: {error}',
+  'cleanup.changed': 'Tenglarnir undir „{what}“ breyttust eftir forskoðunina, svo ekkert var fjarlægt. Veldu þetta aftur til að sjá nýja listann.',
 
   'remove.title': 'Á líka að eyða sóttu skránum?',
   'remove.count': '{n} niðurhöl verða tekin af listanum.',

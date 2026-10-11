@@ -526,6 +526,7 @@ export const eu: Dict = {
   'cleanup.localOnly': 'Garbiketa beti instantzia honetan exekutatzen da, ez begiratzen ari zarenean. Itzuli «Instantzia hau» aukerara erabiltzeko.',
   'cleanup.nothing': 'Orain ez dago «{what}» horrekin bat datorren ezer, beraz ez da ezer kendu.',
   'cleanup.failed': 'Ezin izan da jakin honek zer kenduko lukeen: {error}',
+  'cleanup.changed': '«{what}» ataleko estekak aldatu egin dira aurrebistaren ondoren, beraz ez da ezer kendu. Aukeratu berriro zerrenda berria ikusteko.',
 
   'remove.title': 'Deskargatutako fitxategiak ere ezabatu?',
   'remove.count': '{n} deskarga kenduko dira zerrendatik.',

@@ -526,6 +526,7 @@ export const ko: Dict = {
   'cleanup.localOnly': '정리는 보고 있는 인스턴스가 아니라 언제나 이 인스턴스에서 실행됩니다. 사용하려면 “이 인스턴스”로 돌아가세요.',
   'cleanup.nothing': '지금은 “{what}”에 해당하는 것이 없어 아무것도 지우지 않았습니다.',
   'cleanup.failed': '무엇이 지워질지 알아내지 못했습니다: {error}',
+  'cleanup.changed': '미리 보기 후에 “{what}”의 링크가 바뀌어서 아무것도 지우지 않았습니다. 새 목록을 보려면 다시 고르세요.',
 
   'remove.title': '내려받은 파일도 삭제할까요?',
   'remove.count': '다운로드 {n}개를 목록에서 뺍니다.',

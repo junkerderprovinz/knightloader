@@ -182,7 +182,8 @@ func TestCleanupPreviewDoesNotRemove(t *testing.T) {
 		t.Fatalf("cleanup preview = %d: %s", code, body)
 	}
 	var preview struct {
-		Count int `json:"count"`
+		Count  int    `json:"count"`
+		Digest string `json:"digest"`
 	}
 	if err := json.Unmarshal(body, &preview); err != nil {
 		t.Fatal(err)
@@ -194,11 +195,45 @@ func TestCleanupPreviewDoesNotRemove(t *testing.T) {
 		t.Fatalf("the preview removed something: %d tasks left of 2", left)
 	}
 
-	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/cleanup/disabled", nil); code != http.StatusOK {
+	if code, body := postJSON(t, http.MethodPost, srv.URL+"/api/cleanup/disabled",
+		map[string]any{"digest": preview.Digest}); code != http.StatusOK {
 		t.Fatalf("cleanup = %d: %s", code, body)
 	}
 	if left := len(a.Tasks()); left != 1 {
 		t.Errorf("%d tasks left after cleaning up the disabled one, want 1", left)
+	}
+}
+
+// A cleanup takes what its preview showed or nothing. A link that joined the
+// class after the confirmation dialog opened was never shown, and with files
+// on its download would go with it.
+func TestCleanupRefusesWhatThePreviewDidNotShow(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+
+	created := ids(stage(t, a, "https://host.example/one.bin", "https://host.example/two.bin"))
+	a.SetEnabled(created[:1], false)
+	_, body := postJSON(t, http.MethodGet, srv.URL+"/api/cleanup/disabled", nil)
+	var preview struct {
+		Digest string `json:"digest"`
+	}
+	if err := json.Unmarshal(body, &preview); err != nil {
+		t.Fatal(err)
+	}
+	a.SetEnabled(created[1:], false)
+
+	for name, sent := range map[string]map[string]any{
+		"the old digest": {"digest": preview.Digest, "files": true},
+		"no digest":      {"files": true},
+	} {
+		code, body := postJSON(t, http.MethodPost, srv.URL+"/api/cleanup/disabled", sent)
+		if code != http.StatusConflict || !strings.Contains(string(body), `"cleanupChanged"`) {
+			t.Errorf("a cleanup with %s = %d %s, want 409 cleanupChanged", name, code, body)
+		}
+	}
+	if left := len(a.Tasks()); left != 2 {
+		t.Errorf("%d tasks left of 2 after the refused cleanups", left)
 	}
 }
 
@@ -210,7 +245,7 @@ func TestUnknownCleanupClassSaysWhichExist(t *testing.T) {
 	srv, _ := testServer(t)
 	defer srv.Close()
 
-	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/cleanup/whatever", nil)
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/cleanup/whatever", map[string]any{})
 	if code != http.StatusBadRequest {
 		t.Fatalf("an unknown cleanup class = %d, want 400", code)
 	}

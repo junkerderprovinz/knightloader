@@ -518,6 +518,7 @@ export const fr: Dict = {
   'cleanup.localOnly': 'Le nettoyage s’exécute toujours sur cette instance, pas sur celle que vous regardez. Revenez à « Cette instance » pour l’utiliser.',
   'cleanup.nothing': 'Rien ne correspond à « {what} » pour l’instant, donc rien n’a été retiré.',
   'cleanup.failed': 'Impossible de déterminer ce que cela retirerait : {error}',
+  'cleanup.changed': 'Les liens de « {what} » ont changé depuis l’aperçu, donc rien n’a été retiré. Choisissez-le à nouveau pour voir la nouvelle liste.',
 
   'remove.title': 'Supprimer aussi les fichiers téléchargés ?',
   'remove.count': '{n} téléchargement(s) seront retirés de la liste.',

@@ -526,6 +526,7 @@ export const et: Dict = {
   'cleanup.localOnly': 'Koristus käib alati selles isendis, mitte selles, mida sa vaatad. Kasutamiseks mine tagasi valikule „See isend“.',
   'cleanup.nothing': 'Praegu ei sobi „{what}“ alla midagi, seega ei eemaldatud midagi.',
   'cleanup.failed': 'Ei õnnestunud välja selgitada, mida see eemaldaks: {error}',
+  'cleanup.changed': '„{what}“ all olevad lingid muutusid pärast eelvaadet, seega ei eemaldatud midagi. Vali see uuesti, et näha uut loendit.',
 
   'remove.title': 'Kas kustutada ka alla laaditud failid?',
   'remove.count': 'Loendist võetakse maha {n} allalaadimist.',

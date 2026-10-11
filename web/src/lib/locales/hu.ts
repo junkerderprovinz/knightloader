@@ -526,6 +526,7 @@ export const hu: Dict = {
   'cleanup.localOnly': 'A takarítás mindig ezen a példányon fut, nem azon, amit épp nézel. Válts vissza a „Ez a példány” lehetőségre a használatához.',
   'cleanup.nothing': 'Most semmi nem illik ide: „{what}”, ezért semmi nem lett eltávolítva.',
   'cleanup.failed': 'Nem derült ki, mit távolítana el ez: {error}',
+  'cleanup.changed': 'A(z) „{what}” alá tartozó linkek az előnézet óta megváltoztak, ezért semmi nem lett eltávolítva. Válaszd ki újra, hogy lásd az új listát.',
 
   'remove.title': 'A letöltött fájlok is törlődjenek?',
   'remove.count': '{n} letöltés kerül le a listáról.',

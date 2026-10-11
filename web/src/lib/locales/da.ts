@@ -526,6 +526,7 @@ export const da: Dict = {
   'cleanup.localOnly': 'Oprydning kører altid på denne instans, ikke på den du kigger på. Skift tilbage til “Denne instans” for at bruge den.',
   'cleanup.nothing': 'Der matcher ikke noget “{what}” lige nu, så der blev ikke fjernet noget.',
   'cleanup.failed': 'Kunne ikke regne ud, hvad dette ville fjerne: {error}',
+  'cleanup.changed': 'Linkene under “{what}” har ændret sig siden forhåndsvisningen, så der blev ikke fjernet noget. Vælg det igen for at se den nye liste.',
 
   'remove.title': 'Skal de hentede filer også slettes?',
   'remove.count': '{n} download(s) bliver taget af listen.',

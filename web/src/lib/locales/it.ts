@@ -518,6 +518,7 @@ export const it: Dict = {
   'cleanup.localOnly': 'La pulizia gira sempre su questa istanza, non su quella che stai guardando. Torna a «Questa istanza» per usarla.',
   'cleanup.nothing': 'Al momento non corrisponde nulla a «{what}», quindi non è stato rimosso nulla.',
   'cleanup.failed': 'Impossibile capire che cosa verrebbe rimosso: {error}',
+  'cleanup.changed': 'I link sotto «{what}» sono cambiati dopo l’anteprima, quindi non è stato rimosso nulla. Sceglilo di nuovo per vedere il nuovo elenco.',
 
   'remove.title': 'Cancellare anche i file scaricati?',
   'remove.count': "{n} download verranno tolti dall'elenco.",
