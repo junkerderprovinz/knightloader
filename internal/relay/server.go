@@ -16,7 +16,6 @@ package relay
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"net/http"
 	"net/netip"
@@ -276,10 +275,10 @@ func (s *Server) Route(c Conn, frame []byte) {
 	switch env.Type {
 	case TypeProxyRequest:
 		var req ProxyRequest
-		if env.Into(&req) != nil || req.RequestID == "" || req.Target == "" {
+		if env.intoStrict(&req) != nil || req.RequestID == "" || req.Target == "" {
 			return
 		}
-		s.routeRequest(c, req, frame)
+		s.routeRequest(c, req)
 	case TypeProxyResponse:
 		var resp ProxyResponse
 		if env.Into(&resp) != nil || resp.RequestID == "" {
@@ -289,11 +288,12 @@ func (s *Server) Route(c Conn, frame []byte) {
 	}
 }
 
-// routeRequest forwards a call to the sibling it names with the sender's id
-// written in (see withSender). An unknown target, or a sender already at
-// maxPendingPerSender, gets an immediate error response instead of a timeout,
-// and the refused frame never reaches the target's queue.
-func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
+// routeRequest forwards a call to the sibling it names, encoded afresh from
+// what was decoded with the sender's own id in Sender, so nothing the sender
+// put in the frame can stand in for it. An unknown target, or a sender
+// already at maxPendingPerSender, gets an immediate error response instead of
+// a timeout, and the refused frame never reaches the target's queue.
+func (s *Server) routeRequest(c Conn, req ProxyRequest) {
 	s.mu.Lock()
 	cl := s.clients[c]
 	if cl == nil {
@@ -337,31 +337,8 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest, frame []byte) {
 		s.enqueue(cl, frameOf(TypeProxyResponse, *refusal))
 		return
 	}
-	s.enqueue(target, withSender(frame, cl.announce.InstanceID))
-}
-
-// withSender writes sender into a proxy-request frame. Every other field,
-// including any this build does not know, is carried over as it came.
-func withSender(frame []byte, sender string) []byte {
-	var env map[string]json.RawMessage
-	if json.Unmarshal(frame, &env) != nil {
-		return frame
-	}
-	var req map[string]json.RawMessage
-	if json.Unmarshal(env["data"], &req) != nil || req == nil {
-		return frame
-	}
-	req["sender"], _ = json.Marshal(sender)
-	data, err := json.Marshal(req)
-	if err != nil {
-		return frame
-	}
-	env["data"] = data
-	out, err := json.Marshal(env)
-	if err != nil {
-		return frame
-	}
-	return out
+	req.Sender = cl.announce.InstanceID
+	s.enqueue(target, frameOf(TypeProxyRequest, req))
 }
 
 // routeResponse sends an answer back to whoever asked, using the relay's own

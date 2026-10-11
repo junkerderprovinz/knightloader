@@ -11,8 +11,12 @@ package relay
 // single frame whose length the relay can see, not a stream.
 
 import (
+	"bytes"
 	"crypto/ed25519"
 	"encoding/json"
+	"errors"
+	"reflect"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
@@ -432,4 +436,53 @@ func Decode(frame []byte) (Envelope, error) {
 // Into unmarshals the payload of an already-decoded frame.
 func (e Envelope) Into(v any) error {
 	return json.Unmarshal(e.Data, v)
+}
+
+// errLooseKey refuses a payload whose keys could be read two ways.
+var errLooseKey = errors.New("relay: a frame names a field twice or in another spelling")
+
+// intoStrict is Into for a payload whose fields one side checks and another
+// acts on. encoding/json matches a key without regard to case, Unicode
+// folding included ("ſender" reads as "sender"), and lets the last of two
+// equal keys win, so it refuses a payload with a key that is not spelled
+// exactly as one of v's, or that comes twice. Keys of no field are let
+// through, for a newer sender.
+func (e Envelope) intoStrict(v any) error {
+	known := jsonKeys(reflect.TypeOf(v).Elem())
+	dec := json.NewDecoder(bytes.NewReader(e.Data))
+	if tok, err := dec.Token(); err != nil || tok != json.Delim('{') {
+		return errLooseKey
+	}
+	seen := map[string]bool{}
+	for dec.More() {
+		tok, err := dec.Token()
+		key, ok := tok.(string)
+		if err != nil || !ok || seen[key] {
+			return errLooseKey
+		}
+		seen[key] = true
+		for _, k := range known {
+			if key != k && strings.EqualFold(key, k) {
+				return errLooseKey
+			}
+		}
+		var skip json.RawMessage
+		if err := dec.Decode(&skip); err != nil {
+			return errLooseKey
+		}
+	}
+	return e.Into(v)
+}
+
+// jsonKeys is the JSON names of struct type t's fields.
+func jsonKeys(t reflect.Type) []string {
+	keys := make([]string, 0, t.NumField())
+	for i := range t.NumField() {
+		name, _, _ := strings.Cut(t.Field(i).Tag.Get("json"), ",")
+		if name == "" {
+			name = t.Field(i).Name
+		}
+		keys = append(keys, name)
+	}
+	return keys
 }
