@@ -334,7 +334,7 @@ export const lt: Dict = {
   'auth.reset.mismatch': 'Slaptažodžiai nesutampa.',
   'auth.reset.length': 'Naujas slaptažodis turi būti nuo 8 iki 72 simbolių ilgio.',
   'auth.reset.rejected': 'Šis kodas nebuvo priimtas. Naudok naujausią ten įrašytą kodą. Kai kodas pasensta, KnightLoader įrašo naują, bet ne dažniau kaip kartą per minutę.',
-  'auth.reset.wait': 'Per daug bandymų. Palauk pusę minutės ir bandyk dar kartą.',
+  'auth.tooMany': 'Per daug bandymų. Palauk pusę minutės ir bandyk dar kartą.',
   'auth.reset.unavailable': 'KnightLoader negalėjo įrašyti kodo, todėl šiame puslapyje slaptažodžio nustatyti iš naujo negalima.',
   'auth.reset.failed': 'Slaptažodžio nustatyti nepavyko. Bandyk dar kartą.',
   'accounts.ok': 'Veikia',

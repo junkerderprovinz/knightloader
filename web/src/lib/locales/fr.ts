@@ -326,7 +326,7 @@ export const fr: Dict = {
   'auth.reset.mismatch': 'Les deux mots de passe ne sont pas identiques.',
   'auth.reset.length': 'Le nouveau mot de passe doit compter entre 8 et 72 caractères.',
   'auth.reset.rejected': 'Ce code n’a pas été accepté. Utilisez le code le plus récent qui y est écrit. Lorsqu’un code est trop ancien, KnightLoader en écrit un nouveau, au plus une fois par minute.',
-  'auth.reset.wait': 'Trop de tentatives. Attendez une demi-minute et réessayez.',
+  'auth.tooMany': 'Trop de tentatives. Attendez une demi-minute et réessayez.',
   'auth.reset.unavailable': 'KnightLoader n’a pas pu écrire de code de réinitialisation : le mot de passe ne peut donc pas être réinitialisé depuis cette page.',
   'auth.reset.failed': 'Le mot de passe n’a pas pu être défini. Réessayez.',
   'accounts.ok': 'Fonctionne',

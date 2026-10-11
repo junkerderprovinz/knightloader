@@ -383,7 +383,7 @@ export const en = {
   'auth.reset.mismatch': 'The two passwords differ.',
   'auth.reset.length': 'The new password needs between 8 and 72 characters.',
   'auth.reset.rejected': 'That code was not accepted. Use the newest code written there. Once a code is too old, KnightLoader writes a new one, at most once a minute.',
-  'auth.reset.wait': 'Too many attempts. Wait half a minute and try again.',
+  'auth.tooMany': 'Too many attempts. Wait half a minute and try again.',
   'auth.reset.unavailable': 'KnightLoader could not write a reset code, so the password cannot be reset from this page.',
   'auth.reset.failed': 'The password could not be set. Try again.',
   'accounts.ok': 'Working',

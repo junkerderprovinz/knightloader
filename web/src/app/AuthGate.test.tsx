@@ -206,7 +206,7 @@ describe('a forgotten password on the sign-in screen', () => {
 
     await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
-    expect(alert()).toBe(en['auth.reset.wait']);
+    expect(alert()).toBe(en['auth.tooMany']);
     expect(posts('/api/auth/reset')).toHaveLength(1);
     expect(field(en['auth.reset.code.container'])!.value).toBe('abcd-efgh-jkmn');
   });
@@ -229,6 +229,32 @@ describe('a forgotten password on the sign-in screen', () => {
 
     expect(field(en['auth.twoFactor.confirmLabel'])).not.toBeNull();
     expect(button(en['auth.forgot'])).toBeUndefined();
+  });
+});
+
+describe('a sign-in the throttle refuses', () => {
+  it('says to wait rather than that the password is wrong, and keeps the password', async () => {
+    answers['/api/auth/login'] = answer('too many attempts, wait a moment', 429);
+    await open();
+    type(en['auth.password'], 'a-good-password');
+
+    await press(en['auth.signIn']);
+
+    expect(host.textContent).toContain(en['auth.tooMany']);
+    expect(host.textContent).not.toContain(en['auth.wrong']);
+    expect(field(en['auth.password'])!.value).toBe('a-good-password');
+  });
+
+  it('says to wait when the passkey sign-in is refused for it', async () => {
+    vi.stubGlobal('PublicKeyCredential', function PublicKeyCredential() {});
+    answers['/api/auth/passkeys'] = answer({ supported: true, rpId: 'kl.example.com', total: 1, here: 1 });
+    answers['/api/auth/passkey/login/begin'] = answer('too many attempts, wait a moment', 429);
+    await open();
+
+    await press(en['auth.passkey.signIn']);
+
+    expect(host.textContent).toContain(en['auth.tooMany']);
+    expect(host.textContent).not.toContain(en['auth.passkey.signInFailed']);
   });
 });
 

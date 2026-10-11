@@ -334,7 +334,7 @@ export const is: Dict = {
   'auth.reset.mismatch': 'Lykilorðin tvö eru ekki eins.',
   'auth.reset.length': 'Nýja lykilorðið þarf að vera milli 8 og 72 stafa langt.',
   'auth.reset.rejected': 'Þessi kóði var ekki samþykktur. Notaðu nýjasta kóðann sem þar stendur. Þegar kóði er of gamall skrifar KnightLoader nýjan, í mesta lagi einu sinni á mínútu.',
-  'auth.reset.wait': 'Of margar tilraunir. Bíddu í hálfa mínútu og reyndu aftur.',
+  'auth.tooMany': 'Of margar tilraunir. Bíddu í hálfa mínútu og reyndu aftur.',
   'auth.reset.unavailable': 'KnightLoader gat ekki skrifað endurstillingarkóða, svo ekki er hægt að endurstilla lykilorðið frá þessari síðu.',
   'auth.reset.failed': 'Ekki tókst að setja lykilorðið. Reyndu aftur.',
   'accounts.ok': 'Virkar',

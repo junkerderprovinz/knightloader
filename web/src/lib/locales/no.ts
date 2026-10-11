@@ -336,7 +336,7 @@ export const no: Dict = {
   'auth.reset.mismatch': 'De to passordene er ikke like.',
   'auth.reset.length': 'Det nye passordet må ha mellom 8 og 72 tegn.',
   'auth.reset.rejected': 'Den koden ble ikke godtatt. Bruk den nyeste koden som står der. Når en kode er for gammel, skriver KnightLoader en ny, høyst én gang i minuttet.',
-  'auth.reset.wait': 'For mange forsøk. Vent et halvt minutt og prøv igjen.',
+  'auth.tooMany': 'For mange forsøk. Vent et halvt minutt og prøv igjen.',
   'auth.reset.unavailable': 'KnightLoader klarte ikke å skrive en kode, så passordet kan ikke tilbakestilles fra denne siden.',
   'auth.reset.failed': 'Passordet kunne ikke settes. Prøv igjen.',
   'accounts.ok': 'Virker',

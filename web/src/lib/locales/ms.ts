@@ -334,7 +334,7 @@ export const ms: Dict = {
   'auth.reset.mismatch': 'Dua kata laluan itu tidak sama.',
   'auth.reset.length': 'Kata laluan baharu perlu antara 8 hingga 72 aksara.',
   'auth.reset.rejected': 'Kod itu tidak diterima. Gunakan kod terbaharu yang ditulis di sana. Apabila satu kod terlalu lama, KnightLoader menulis kod baharu, paling kerap sekali seminit.',
-  'auth.reset.wait': 'Terlalu banyak percubaan. Tunggu setengah minit dan cuba lagi.',
+  'auth.tooMany': 'Terlalu banyak percubaan. Tunggu setengah minit dan cuba lagi.',
   'auth.reset.unavailable': 'KnightLoader tidak dapat menulis kod tetapan semula, jadi kata laluan tidak boleh ditetapkan semula dari halaman ini.',
   'auth.reset.failed': 'Kata laluan tidak dapat ditetapkan. Cuba lagi.',
   'accounts.ok': 'Berfungsi',
