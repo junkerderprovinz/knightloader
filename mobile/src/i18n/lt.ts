@@ -161,6 +161,7 @@ export const lt: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Šviesi',
   'settings.theme.dark': 'Tamsi',
+  'settings.theme.system': 'Sistemos',
   'settings.corners': 'Kampai',
   'settings.corners.round': 'Apvalūs',
   'settings.corners.slightlyRounded': 'Švelnūs',

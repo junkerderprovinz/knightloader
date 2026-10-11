@@ -161,6 +161,7 @@ export const nl: Dict = {
   'settings.theme': 'Thema',
   'settings.theme.light': 'Licht',
   'settings.theme.dark': 'Donker',
+  'settings.theme.system': 'Systeem',
   'settings.corners': 'Hoeken',
   'settings.corners.round': 'Rond',
   'settings.corners.slightlyRounded': 'Zacht',

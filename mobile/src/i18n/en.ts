@@ -193,6 +193,7 @@ export const en = {
   'settings.theme': 'Theme',
   'settings.theme.light': 'Light',
   'settings.theme.dark': 'Dark',
+  'settings.theme.system': 'System',
   'settings.corners': 'Corners',
   'settings.corners.round': 'Round',
   'settings.corners.slightlyRounded': 'Soft',

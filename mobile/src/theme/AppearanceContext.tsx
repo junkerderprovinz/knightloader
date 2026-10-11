@@ -407,8 +407,9 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         }
         // Nothing was ever put away, so the resolved look is snapshotted: it
         // hands over what is on screen, so turning the switch off changes
-        // nothing visible and leaves something to edit from.
-        persist({ accent, shape, theme: dark ? 'dark' : 'light', rainbow: rainbow.on });
+        // nothing visible and leaves something to edit from. The theme is not
+        // the instance's to give, so it stays with the device.
+        persist({ accent, shape, rainbow: rainbow.on });
       },
       setInstanceAppearance: setInstance,
     };

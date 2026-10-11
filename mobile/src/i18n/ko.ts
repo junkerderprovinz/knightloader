@@ -160,6 +160,7 @@ export const ko: Dict = {
   'settings.theme': '테마',
   'settings.theme.light': '밝게',
   'settings.theme.dark': '어둡게',
+  'settings.theme.system': '시스템',
   'settings.corners': '모서리',
   'settings.corners.round': '둥글게',
   'settings.corners.slightlyRounded': '살짝 둥글게',

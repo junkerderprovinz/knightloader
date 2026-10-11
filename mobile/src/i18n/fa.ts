@@ -161,6 +161,7 @@ export const fa: Dict = {
   'settings.theme': 'پوسته',
   'settings.theme.light': 'روشن',
   'settings.theme.dark': 'تیره',
+  'settings.theme.system': 'سیستم',
   'settings.corners': 'گوشه‌ها',
   'settings.corners.round': 'گرد',
   'settings.corners.slightlyRounded': 'نرم',

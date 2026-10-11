@@ -44,7 +44,8 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "settings.theme.system"
     ],
     "el": [
       "addDownload.placeholder",
@@ -209,7 +210,8 @@
       "settings.aboutPaypal",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "settings.theme.system"
     ],
     "pl": [
       "addDownload.placeholder",
@@ -273,7 +275,8 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "settings.theme.system"
     ],
     "th": [
       "addDownload.placeholder",

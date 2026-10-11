@@ -161,6 +161,7 @@ export const pt: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Claro',
   'settings.theme.dark': 'Escuro',
+  'settings.theme.system': 'Sistema',
   'settings.corners': 'Cantos',
   'settings.corners.round': 'Arredondados',
   'settings.corners.slightlyRounded': 'Suaves',

@@ -161,6 +161,7 @@ export const lv: Dict = {
   'settings.theme': 'Motīvs',
   'settings.theme.light': 'Gaišs',
   'settings.theme.dark': 'Tumšs',
+  'settings.theme.system': 'Sistēmas',
   'settings.corners': 'Stūri',
   'settings.corners.round': 'Apaļi',
   'settings.corners.slightlyRounded': 'Mīksti',

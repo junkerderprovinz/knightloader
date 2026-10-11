@@ -161,6 +161,7 @@ export const cs: Dict = {
   'settings.theme': 'Motiv',
   'settings.theme.light': 'Světlý',
   'settings.theme.dark': 'Tmavý',
+  'settings.theme.system': 'Systémový',
   'settings.corners': 'Rohy',
   'settings.corners.round': 'Kulaté',
   'settings.corners.slightlyRounded': 'Zaoblené',

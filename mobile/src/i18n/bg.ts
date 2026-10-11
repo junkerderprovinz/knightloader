@@ -161,6 +161,7 @@ export const bg: Dict = {
   'settings.theme': 'Тема',
   'settings.theme.light': 'Светла',
   'settings.theme.dark': 'Тъмна',
+  'settings.theme.system': 'Системна',
   'settings.corners': 'Ъгли',
   'settings.corners.round': 'Кръгли',
   'settings.corners.slightlyRounded': 'Меки',
