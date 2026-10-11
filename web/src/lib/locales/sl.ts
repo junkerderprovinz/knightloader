@@ -3086,7 +3086,7 @@ export const sl: Dict = {
   'settings.diagnostics.toolsMissing': 'ni najden',
   'settings.eventTargets.problem.redirect': 'Naslov odgovarja s preusmeritvijo, in ta instanca ji ne sledi. Vsaka vrednost glave v tej vrstici velja za skrivnost, preusmeritev na drugega gostitelja pa bi jo dala v roke upravljavcu tega gostitelja. Odpri naslov v brskalniku, poglej, kje pristane, in tega vpiši sem.',
   'auth.twoFactor.title': 'Dvostopenjsko preverjanje',
-  'auth.twoFactor.hint': 'Šestmestna koda iz overitvene aplikacije, poleg gesla. Stoji ob geslu in ga nikoli ne nadomesti. Ta instanca nima uporabniških računov, torej ni nikogar drugega, ki bi jo odklenil namesto tebe: kode za obnovitev hrani drugje kot na telefonu, ki jih ustvarja. Če izgubiš oboje, na stroju poženi knightloader -reset-2fa ali ustavi KnightLoader in izbriši vnosa totp in recovery iz datoteke auth.json v podatkovni mapi. Geslo v obeh primerih deluje naprej. Če geslo ponastaviš s kodo iz dnevnika, se dvostopenjsko preverjanje izklopi.',
+  'auth.twoFactor.hint': 'Šestmestna koda iz overitvene aplikacije, poleg gesla. Stoji ob geslu in ga nikoli ne nadomesti. Ta instanca nima uporabniških računov, torej ni nikogar drugega, ki bi jo odklenil namesto tebe: kode za obnovitev hrani drugje kot na telefonu, ki jih ustvarja. Če izgubiš oboje, na stroju poženi knightloader -reset-2fa ali ustavi KnightLoader in izbriši vnosa totp in recovery iz datoteke auth.json v mapi s podatki. Geslo v obeh primerih deluje naprej. Če geslo ponastaviš s kodo iz dnevnika, se dvostopenjsko preverjanje izklopi.',
   'auth.twoFactor.on': 'Vklopljeno',
   'auth.twoFactor.off': 'Izklopljeno',
   'auth.twoFactor.needsPassword': 'Najprej nastavi geslo. Drugi dejavnik varuje geslo, torej mora obstajati.',

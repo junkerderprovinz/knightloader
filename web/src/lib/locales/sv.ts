@@ -323,7 +323,7 @@ export const sv: Dict = {
   'auth.forgot': 'Glömt lösenordet?',
   'auth.reset.title': 'Återställ lösenordet',
   'auth.reset.code.container': 'Kod från containerloggen',
-  'auth.reset.code.process': 'Kod från loggutskriften',
+  'auth.reset.code.process': 'Kod från loggutdata',
   'auth.reset.code.file': 'Kod från filen i datamappen',
   'auth.reset.where.container': 'KnightLoader har skrivit en kod till sin containerlogg. På Unraid: fliken Docker, ikonen för KnightLoader, Logs. Annars: docker logs följt av containerns namn.',
   'auth.reset.where.process': 'KnightLoader har skrivit en kod till sin egen utdata. Det är terminalen där programmet startades, eller journalen för dess tjänst: journalctl -u följt av tjänstens namn.',
