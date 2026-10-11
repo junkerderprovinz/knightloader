@@ -12,6 +12,7 @@ import {
   Toggle,
   ToggleRow,
 } from '../../components/ui';
+import { TrackMerge } from '../../components/pictures/TrackMerge';
 import { Tabs } from '../../components/Tabs';
 import {
   NO_PRESET_MENUS,
@@ -53,6 +54,13 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
   subtitle: 'columns.variant.subtitle',
   description: 'columns.variant.description',
 };
+
+// What buildArgs in internal/resolver/ytdlp falls back to, which no route
+// serves: a video row is merged into mkv unless a row picked its own
+// container, an empty template is this one, and no languages means English.
+const MERGED = 'mkv';
+const DEFAULT_TEMPLATE = '%(title)s.%(ext)s';
+const DEFAULT_SUBTITLE_LANGS = 'en';
 
 // ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
@@ -207,6 +215,35 @@ export function Resolvers() {
       <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.about')}>{t('settings.resolvers.quality')}</SectionTitle>
 
+        {/* The video row as these settings leave it. A custom selector picks
+            picture and sound alike, and the subtitles join only when the embed
+            card muxes them in. */}
+        <TrackMerge
+          label={t('settings.resolvers.quality')}
+          tracks={[
+            {
+              id: 'video',
+              name: t('columns.variant.video'),
+              value: (ytdlp.quality === 'custom' && ytdlp.customFormat.trim()) || capLabel(ytdlp.quality, t),
+              joins: true,
+            },
+            {
+              id: 'audio',
+              name: t('columns.variant.audio'),
+              value: capLabel(ytdlp.quality === 'custom' ? 'custom' : 'best', t),
+              joins: true,
+            },
+            {
+              id: 'subtitle',
+              name: t('columns.variant.subtitle'),
+              value: embed.subs ? ytdlp.subtitleLangs.trim() || DEFAULT_SUBTITLE_LANGS : t('picture.tracks.apart'),
+              joins: embed.subs,
+            },
+          ]}
+          extension={MERGED}
+          filename={ytdlp.outputTemplate.trim() || DEFAULT_TEMPLATE}
+        />
+
         {qualities.length > 0 && (
           <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Tabs
@@ -246,7 +283,7 @@ export function Resolvers() {
           <TextInput
             dir="ltr"
             value={ytdlp.outputTemplate}
-            placeholder="%(title)s.%(ext)s"
+            placeholder={DEFAULT_TEMPLATE}
             spellCheck={false}
             onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
           />

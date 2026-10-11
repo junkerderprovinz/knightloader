@@ -550,7 +550,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.rules.listTitle',
-      rows: [],
+      // The sample fields above the picture of the list.
+      rows: [{ key: 'settings.rules.testUrl', hint: 'picture.rules.sampleHint' }, { key: 'settings.rules.testFilename' }],
       // The rule editor's fields carry aria-labels and exist only while a rule
       // is open.
       also: [
@@ -1056,6 +1057,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.health.sampled',
         'settings.health.loadFailed',
       ],
+    },
+    {
+      title: 'settings.selftest.title',
+      hint: 'settings.selftest.hint',
+      // The beads are named by the checks the server planned.
+      rows: [],
+      body: ['settings.selftest.never'],
     },
     {
       title: 'settings.health.parts',
