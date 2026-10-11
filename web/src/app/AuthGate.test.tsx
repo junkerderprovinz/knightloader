@@ -161,16 +161,16 @@ describe('a forgotten password on the sign-in screen', () => {
     answers['/api/auth/reset/finish'] = answer(SIGNED_IN);
     await forgot();
 
-    await fillAndSubmit('abcd-efgh', NEW_PASSWORD);
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
-    expect(posts('/api/auth/reset/finish').map((c) => c.body)).toEqual([{ code: 'abcd-efgh', password: NEW_PASSWORD }]);
+    expect(posts('/api/auth/reset/finish').map((c) => c.body)).toEqual([{ code: 'abcd-efgh-jkmn', password: NEW_PASSWORD }]);
     expect(host.textContent).toBe('the app');
   });
 
   it('sends nothing while the two passwords differ', async () => {
     await forgot();
 
-    await fillAndSubmit('abcd-efgh', NEW_PASSWORD, 'another-good-passwort');
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD, 'another-good-passwort');
 
     expect(alert()).toBe(en['auth.reset.mismatch']);
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
@@ -182,7 +182,7 @@ describe('a forgotten password on the sign-in screen', () => {
   ])('sends nothing for a password %s', async (_, password) => {
     await forgot();
 
-    await fillAndSubmit('abcd-efgh', password);
+    await fillAndSubmit('abcd-efgh-jkmn', password);
 
     expect(alert()).toBe(en['auth.reset.length']);
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
@@ -192,7 +192,7 @@ describe('a forgotten password on the sign-in screen', () => {
     answers['/api/auth/reset/finish'] = answer({ code: 'codeRejected', error: 'that code was not accepted' }, 401);
     await forgot();
 
-    await fillAndSubmit('abcd-efgh', NEW_PASSWORD);
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
     expect(alert()).toBe(en['auth.reset.rejected']);
     expect(posts('/api/auth/reset')).toHaveLength(2);
@@ -204,11 +204,11 @@ describe('a forgotten password on the sign-in screen', () => {
     answers['/api/auth/reset/finish'] = answer('too many attempts, wait a moment', 429);
     await forgot();
 
-    await fillAndSubmit('abcd-efgh', NEW_PASSWORD);
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
     expect(alert()).toBe(en['auth.reset.wait']);
     expect(posts('/api/auth/reset')).toHaveLength(1);
-    expect(field(en['auth.reset.code.container'])!.value).toBe('abcd-efgh');
+    expect(field(en['auth.reset.code.container'])!.value).toBe('abcd-efgh-jkmn');
   });
 
   it('goes back to the password', async () => {
