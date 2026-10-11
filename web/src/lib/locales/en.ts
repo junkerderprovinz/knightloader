@@ -1711,7 +1711,7 @@ export const en = {
   'collector.overruleHint':
     'When off, a matching Packagizer rule wins over priority, unpacking and the comment above. When on, these values win instead. The destination is never part of this: it always applies as typed.',
 
-  // The collector's facet sidebar (components/CollectorFacets.tsx).
+  // The collector's facets in the Filter window (components/CollectorFacets.tsx).
   'collector.facets.title': 'Filters',
   'collector.facets.hint':
     'Narrow the staged list by where a link points, what kind of file it is, or which package it landed in.',
@@ -2799,7 +2799,7 @@ export const en = {
   'views.saveConfirm': 'Save view',
   'views.overwriteConfirm': 'Overwrite this view',
   'views.full': 'You have {n} saved views, which is all this list keeps. Delete one to make room for another.',
-  'views.tooBig': 'This view has more filter values in it than can be stored. Untick a few in the sidebar and save it again.',
+  'views.tooBig': 'This view has more filter values in it than can be stored. Switch a few off under "{filter}" and save it again.',
   'views.manage': 'Manage saved views',
   'views.rename': 'Rename',
   'views.renameTitle': 'Rename this view',
@@ -3807,6 +3807,7 @@ export const en = {
   'whatsnew.change.vessel': 'A vessel shows how full each folder under "{name}" is.',
   'whatsnew.change.pageActions': 'The main action of a page floats at its foot and stays in reach while you scroll.',
   'whatsnew.change.collectorOptions': '"{name}" opens a window. "{cnl}" and "{watch}" stay beside it as buttons that show whether they are on.',
+  'whatsnew.change.collectorFilter': 'The filters by host, file type and package are in the window that "{filter}" opens above the list.',
   'whatsnew.change.instanceCards': 'Every instance is a compact card, with a picture of the group above.',
   'whatsnew.change.accountsAdd': 'One button adds every kind of account: "{name}".',
   'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture: who is asked first and who next.',

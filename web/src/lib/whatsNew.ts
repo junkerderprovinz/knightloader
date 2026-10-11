@@ -75,6 +75,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.collectorOptions',
         names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', name: 'collector.options' },
       },
+      {
+        id: 'collector-filter',
+        to: ['/collector'],
+        text: 'whatsnew.change.collectorFilter',
+        names: { filter: 'list.filter' },
+      },
       { id: 'instance-cards', to: INSTANCES, text: 'whatsnew.change.instanceCards' },
       {
         id: 'accounts-add',

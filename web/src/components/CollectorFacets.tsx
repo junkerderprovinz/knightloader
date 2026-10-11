@@ -1,10 +1,12 @@
-// The collector's facet sidebar narrows staged links by host, file type or
-// package, computed from the tasks on screen. Availability is not a facet here
-// because ListToolbar's filter chips already cover it.
+// The collector's facets narrow staged links by host, file type or package,
+// computed from the tasks on screen. They stand in the Filter window under the
+// quick filters (ListBar.tsx). Availability is not a facet here because
+// ListToolbar's filter chips already cover it.
 import { useMemo } from 'react';
 import type { Task } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, Card, SectionTitle, Toggle } from './ui';
+import { IconClose } from '../lib/icons';
+import { IconBadge, InfoBubble, Toggle } from './ui';
 import { Tip, hostOf } from './columns';
 
 export type FacetKind = 'host' | 'fileType' | 'package';
@@ -136,10 +138,10 @@ function FacetGroup({
 }) {
   if (options.length === 0) return null;
   return (
-    <div className="flex flex-col gap-1">
+    <div className="flex min-w-0 flex-col gap-1">
       <h3 className="glim-eyebrow px-1.5">{title}</h3>
-      {/* Scrolls, so a paste from eighty hosts does not stretch the sidebar. */}
-      <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto">
+      {/* At full length: the window around the groups is what scrolls. */}
+      <div className="flex flex-col gap-0.5">
         {options.map((o, i) => (
           <FacetRow
             key={o.value}
@@ -163,10 +165,11 @@ function toggled<T>(set: ReadonlySet<T>, value: T): Set<T> {
 }
 
 /**
- * CollectorFacetSidebar is the facet panel. `tasks` is the collected set before
- * any narrowing, so a count never shrinks because another switch is on.
+ * CollectorFacets is the facets' part of the Filter window. `tasks` is the
+ * collected set before any narrowing, so a count never shrinks because another
+ * switch is on.
  */
-export function CollectorFacetSidebar({
+export function CollectorFacets({
   tasks,
   selection,
   onChange,
@@ -206,29 +209,36 @@ export function CollectorFacetSidebar({
   const activeCount = facetActiveCount(selection);
 
   return (
-    <Card hue={2} className="flex w-full shrink-0 flex-col gap-4 lg:w-64">
-      <SectionTitle
-        hint={t('collector.facets.hint')}
-        right={
-          activeCount > 0 && (
-            <Button kind="ghost" className="px-2 py-1 text-meta" onClick={() => onChange(EMPTY_FACETS)}>
-              {t('collector.facets.clearAll')}
-            </Button>
-          )
-        }
-      >
-        {t('collector.facets.title')}
-      </SectionTitle>
+    <div className="flex flex-col gap-3" data-new="collector-filter">
+      <div className="flex items-center gap-2">
+        <span className="flex items-center text-subline text-carbon-textMuted">
+          {t('collector.facets.title')}
+          <InfoBubble tip={t('collector.facets.hint')} />
+        </span>
+        <span className="flex-1" />
+        <IconBadge
+          labelled
+          icon={<IconClose width={16} height={16} />}
+          title={t('collector.facets.clearAll')}
+          aria-label={t('collector.facets.clearAll')}
+          disabled={activeCount === 0}
+          onClick={() => onChange(EMPTY_FACETS)}
+        />
+      </div>
 
-      <FacetGroup title={t('columns.host')} options={hostOptions} active={selection.host} onToggle={(v) => set('host', v)} />
-      <FacetGroup
-        title={t('collector.facets.fileType')}
-        options={typeOptions}
-        active={selection.fileType}
-        onToggle={(v) => set('fileType', v)}
-      />
-      <FacetGroup title={t('search.package')} options={pkgOptions} active={selection.package} onToggle={(v) => set('package', v)} />
-    </Card>
+      {/* Side by side where the window has the width, one under the other on
+          a phone. */}
+      <div className="grid gap-4 sm:grid-cols-3">
+        <FacetGroup title={t('columns.host')} options={hostOptions} active={selection.host} onToggle={(v) => set('host', v)} />
+        <FacetGroup
+          title={t('collector.facets.fileType')}
+          options={typeOptions}
+          active={selection.fileType}
+          onToggle={(v) => set('fileType', v)}
+        />
+        <FacetGroup title={t('search.package')} options={pkgOptions} active={selection.package} onToggle={(v) => set('package', v)} />
+      </div>
+    </div>
   );
 }
 

@@ -1,9 +1,9 @@
 // Filter, Sort and Search: the three buttons that end the row above a list's
-// card (GlimStone, "Lists"). Filter opens the quick filters, Sort offers what a
-// click on a column header does, and Search turns into its field. The page
-// hands in what stands before them and folds it when the row runs short
-// (lib/rowFit.ts).
-import { useEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+// card (GlimStone, "Lists"). Filter opens the quick filters and whatever else
+// the page narrows its list by, Sort offers what a click on a column header
+// does, and Search turns into its field. The page hands in what stands before
+// them and folds it when the row runs short (lib/rowFit.ts).
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
 import { useT } from '../lib/i18n';
 import { IconClose, IconFilter, IconSearch, IconSort } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
@@ -37,6 +37,49 @@ function useDismiss(open: boolean, close: () => void, ...boxes: RefObject<HTMLEl
     // The refs are stable; their boxes are read when the press arrives.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, close]);
+}
+
+// The Filter window's distance from the bar above it and from what ends its
+// room below, and the least height it is worth opening at.
+const WINDOW_GAP = 8;
+const WINDOW_FLOOR = 320;
+
+/**
+ * footOf is where the room under `el` ends: the foot of the frame that scrolls
+ * the page, which on a phone stands above the bottom bar, or the page's
+ * floating actions where it has some (PageActions.tsx).
+ */
+function footOf(el: HTMLElement): number {
+  let foot = window.innerHeight;
+  for (let p = el.parentElement; p; p = p.parentElement) {
+    const overflow = getComputedStyle(p).overflowY;
+    if (overflow === 'auto' || overflow === 'scroll') {
+      foot = Math.min(foot, p.getBoundingClientRect().bottom);
+      break;
+    }
+  }
+  const actions = document.querySelector('.glim-page-actions > *');
+  return actions ? Math.min(foot, actions.getBoundingClientRect().top) : foot;
+}
+
+/**
+ * useRoomBelow is the height a window hanging under `box` may take without
+ * running past the foot of the page. Where the page scrolls and the box stands
+ * too low for the floor, the box is brought to the top first.
+ */
+function useRoomBelow(open: boolean, box: RefObject<HTMLElement | null>): number | undefined {
+  const [room, setRoom] = useState<number>();
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!open || !el) return;
+    const below = () => footOf(el) - el.getBoundingClientRect().bottom - 2 * WINDOW_GAP;
+    if (below() < WINDOW_FLOOR) el.scrollIntoView({ block: 'start' });
+    const fit = () => setRoom(Math.max(below(), 0));
+    fit();
+    window.addEventListener('resize', fit);
+    return () => window.removeEventListener('resize', fit);
+  }, [open, box]);
+  return room;
 }
 
 /**
@@ -76,6 +119,7 @@ export function ListBar({
   active,
   onToggleFilter,
   onClearFilters,
+  facets,
   sorts,
   search,
   onSearch,
@@ -95,6 +139,11 @@ export function ListBar({
   active: ReadonlySet<QuickFilterId>;
   onToggleFilter: (id: QuickFilterId) => void;
   onClearFilters: () => void;
+  /**
+   * What else the page narrows its list by, drawn under the quick filters in
+   * the Filter window, and whether any of it is set.
+   */
+  facets?: { panel: ReactNode; active: boolean };
   /** One entry per card the page draws, the main list first. */
   sorts: ListSort[];
   search: SearchQuery;
@@ -105,6 +154,8 @@ export function ListBar({
 }) {
   const { t } = useT();
   const [filterOpen, setFilterOpen] = useState(false);
+  const bar = useRef<HTMLDivElement>(null);
+  const filterRoom = useRoomBelow(filterOpen, bar);
   const filterBox = useRef<HTMLDivElement>(null);
   const filterPanel = useRef<HTMLDivElement>(null);
   const searchBox = useRef<HTMLDivElement>(null);
@@ -128,7 +179,7 @@ export function ListBar({
       : [{ id: 'cards', items: sorts.map((s) => ({ id: s.title, label: s.title, detail: s.current, submenu: s.groups })) }];
 
   return (
-    <div className="relative shrink-0">
+    <div ref={bar} className="relative shrink-0 scroll-mt-2">
       <div
         ref={rowRef}
         className={`flex items-center gap-2 ${scrolls ? '-my-1 overflow-x-auto py-1' : ''}`}
@@ -138,7 +189,7 @@ export function ListBar({
       >
         {children}
 
-        <Marked on={active.size > 0} boxRef={filterBox}>
+        <Marked on={active.size > 0 || facets?.active === true} boxRef={filterBox}>
           <IconBadge
             labelled={!glyphs}
             hue={0}
@@ -147,7 +198,7 @@ export function ListBar({
             aria-label={t('list.filter')}
             aria-haspopup="dialog"
             aria-expanded={filterOpen}
-            disabled={filters.length === 0}
+            disabled={filters.length === 0 && !facets?.panel}
             onClick={() => setFilterOpen((v) => !v)}
           />
         </Marked>
@@ -193,33 +244,45 @@ export function ListBar({
         </div>
       )}
 
+      {/* It scrolls inside itself and stops short of the page's foot, however
+          much the page hands in. Each part is headed by its name, with the
+          button that clears it at the end of that line. */}
       {filterOpen && (
         <div
           ref={filterPanel}
           role="dialog"
-          aria-label={t('filter.label')}
-          className="glim-card glim-fade absolute end-0 top-full z-20 mt-2 flex w-[25rem] max-w-full flex-col gap-3 p-4"
+          aria-label={t('list.filter')}
+          style={{ maxHeight: filterRoom }}
+          className={`glim-card glim-fade absolute end-0 top-full z-20 mt-2 flex max-w-full flex-col gap-3 overflow-y-auto p-4 ${
+            facets?.panel ? 'w-[44rem]' : 'w-[25rem]'
+          }`}
         >
-          <div className="text-subline text-carbon-textMuted">{t('filter.label')}</div>
-          <Tabs
-            inline
-            select="many"
-            size="sm"
-            label={t('filter.label')}
-            active={active}
-            onSelect={(id) => onToggleFilter(id as QuickFilterId)}
-            items={filters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
-          />
-          <div className="flex justify-end">
-            <IconBadge
-              labelled
-              icon={<IconClose width={16} height={16} />}
-              title={t('filter.clear')}
-              aria-label={t('filter.clear')}
-              disabled={active.size === 0}
-              onClick={onClearFilters}
-            />
-          </div>
+          {filters.length > 0 && (
+            <>
+              <div className="flex items-center gap-2">
+                <span className="text-subline text-carbon-textMuted">{t('filter.label')}</span>
+                <span className="flex-1" />
+                <IconBadge
+                  labelled
+                  icon={<IconClose width={16} height={16} />}
+                  title={t('filter.clear')}
+                  aria-label={t('filter.clear')}
+                  disabled={active.size === 0}
+                  onClick={onClearFilters}
+                />
+              </div>
+              <Tabs
+                inline
+                select="many"
+                size="sm"
+                label={t('filter.label')}
+                active={active}
+                onSelect={(id) => onToggleFilter(id as QuickFilterId)}
+                items={filters.map(({ f, n }) => ({ id: f.id, label: t(f.label), badge: n }))}
+              />
+            </>
+          )}
+          {facets?.panel}
         </div>
       )}
 

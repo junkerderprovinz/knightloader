@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, useRef, useState } from 'react';
+import { act, useRef, useState, type ReactNode } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
@@ -61,8 +61,12 @@ const task = (id: string, size: number, status: Task['status']): Task => ({
 
 const TASKS = [task('small', 10, 'queued'), task('large', 30, 'paused'), task('middle', 20, 'queued')];
 
-/** The bar over a list of three links, with the page's share of the state. */
-async function show(): Promise<void> {
+/**
+ * The bar over a list of three links, with the page's share of the state.
+ * `facets` is what a page narrows by beyond the quick filters, which then
+ * stand aside so the window holds the page's part alone.
+ */
+async function show(facets?: { panel: ReactNode; active: boolean }): Promise<void> {
   const { ListBar } = await import('./ListBar');
   const { TaskListCard, useListSort } = await import('./TaskList');
   const { DOWNLOAD_FILTERS, matchesQuickFilters, offeredQuickFilters } = await import('./ListToolbar');
@@ -81,7 +85,8 @@ async function show(): Promise<void> {
           rowRef={row}
           glyphs={false}
           scrolls={false}
-          filters={offeredQuickFilters(DOWNLOAD_FILTERS, TASKS, filters)}
+          filters={facets ? [] : offeredQuickFilters(DOWNLOAD_FILTERS, TASKS, filters)}
+          facets={facets}
           active={filters}
           onToggleFilter={(id) => {
             const next = new Set(filters);
@@ -138,6 +143,21 @@ describe('the Filter button', () => {
       document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
     });
     expect(document.querySelector('[role="dialog"]')).toBeNull();
+  });
+});
+
+describe('what a page adds to the Filter window', () => {
+  it('stands in the window, which opens without a quick filter on offer', async () => {
+    await show({ panel: <p>by host</p>, active: false });
+    expect(button('Filter').disabled).toBe(false);
+    expect(marked('Filter')).toBe(false);
+    await press(button('Filter'));
+    expect(document.querySelector('[role="dialog"]')?.textContent).toBe('by host');
+  });
+
+  it('puts the dot on the button while any of it is set', async () => {
+    await show({ panel: <p>by host</p>, active: true });
+    expect(marked('Filter')).toBe(true);
   });
 });
 
