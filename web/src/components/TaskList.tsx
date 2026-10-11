@@ -90,6 +90,7 @@ import { nameFault, renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
   FOLDER_GLYPH,
+  HEAD_LABEL,
   PARKED,
   Tip,
   TREE_INDENT,
@@ -102,6 +103,7 @@ import {
   resolveLayout,
   sharedPriority,
   toStored,
+  useHeadWidths,
   usePriorityNames,
   variantKindOf,
   PriorityTag,
@@ -1423,8 +1425,7 @@ function Header({
               onDragEnd={() => setDragId(null)}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
-              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-meta font-semibold uppercase
-                tracking-wide transition-colors ${
+              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 ${HEAD_LABEL} transition-colors ${
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
@@ -2023,7 +2024,8 @@ export function TaskListCard({
   const stripRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
-  const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const heads = useHeadWidths(profile);
+  const layout = useMemo(() => resolveLayout(profile, stored, heads), [profile, stored, heads]);
   const switchShown = layout.visible.some((c) => c.id === 'enabled');
   const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
