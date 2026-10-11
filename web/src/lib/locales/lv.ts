@@ -313,6 +313,8 @@ export const lv: Dict = {
   'settings.passwordHint': 'Vismaz 8 rakstzīmes. Atstāj tukšu, lai noņemtu slēdzeni. Tas arī izslēdz divfaktoru autentifikāciju un izdzēš visas piekļuves atslēgas.',
   'settings.setPassword': 'Iestatīt paroli',
   'settings.passwordSaved': 'Parole nomainīta.',
+  'settings.access.trustedProxies': 'Uzticamie starpniekserveri',
+  'settings.access.trustedProxiesHint': 'Vajadzīgs tikai tad, ja KnightLoader priekšā ir reversais starpniekserveris. Pēc astoņām neveiksmīgām pieteikšanās reizēm no vienas adreses KnightLoader liek šai adresei pagaidīt pusminūti. Aiz starpniekservera katrs pieprasījums nāk no starpniekservera adreses, tāpēc, ja viens cilvēks min, jāgaida visiem. Ievadi šeit starpniekservera adresi, vienu IP adresi vai CIDR diapazonu katrā rindā, un KnightLoader nolasīs apmeklētāja adresi no X-Forwarded-For galvenes, ko sūta šis starpniekserveris. Ieraksti tikai tos starpniekserverus, kurus uztur pats, jo jebkurš cits šajā galvenē var ierakstīt jebkuru adresi. Ja lauks paliek tukšs, katrs pieprasījums tiek pieskaitīts adresei, no kuras tas pieslēdzās.',
   'auth.title': 'Šī instance ir slēgta',
   'auth.password': 'Parole',
   'auth.signIn': 'Pieteikties',

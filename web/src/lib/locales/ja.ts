@@ -313,6 +313,8 @@ export const ja: Dict = {
   'settings.passwordHint': '8文字以上。空欄にすると保護を解除します。二要素認証もオフになり、パスキーはすべて削除されます。',
   'settings.setPassword': 'パスワードを設定',
   'settings.passwordSaved': 'パスワードを更新しました。',
+  'settings.access.trustedProxies': '信頼するプロキシ',
+  'settings.access.trustedProxiesHint': 'KnightLoader の前にリバースプロキシがある場合にだけ必要です。1つのアドレスからサインインに 8 回失敗すると、KnightLoader はそのアドレスを30秒待たせます。プロキシの後ろでは、すべてのリクエストがプロキシのアドレスから届くため、誰か1人が推測を続けると全員が待たされます。ここにプロキシのアドレスを、1行に1つの IP アドレスまたは CIDR 範囲で入力すると、KnightLoader はそのプロキシが送る X-Forwarded-For ヘッダーから訪問者のアドレスを読み取ります。自分で運用しているプロキシだけを入力してください。それ以外の誰でも、このヘッダーに好きなアドレスを書き込めるからです。空欄のままなら、各リクエストは接続元のアドレスとして数えられます。',
   'auth.title': 'このインスタンスはロックされています',
   'auth.password': 'パスワード',
   'auth.signIn': 'サインイン',

@@ -313,6 +313,8 @@ export const eu: Dict = {
   'settings.passwordHint': 'Gutxienez 8 karaktere. Utzi hutsik blokeoa kentzeko. Horrek bi faktoreko autentifikazioa ere itzaltzen du eta sarbide-gako guztiak ezabatzen ditu.',
   'settings.setPassword': 'Ezarri pasahitza',
   'settings.passwordSaved': 'Pasahitza eguneratuta.',
+  'settings.access.trustedProxies': 'Proxy fidagarriak',
+  'settings.access.trustedProxiesHint': 'Alderantzizko proxy bat KnightLoaderren aurrean badago bakarrik behar da. Helbide beretik zortzi saio-hasiera huts egin ondoren, KnightLoaderrek helbide hori minutu erdiz itxaronarazten du. Proxy baten atzean eskaera guztiak proxyaren helbidetik datoz, beraz pertsona bat asmatzen saiatzen bada, denek itxaron behar dute. Idatzi hemen proxyaren helbidea, IP helbide bat edo CIDR barruti bat lerro bakoitzeko, eta KnightLoaderrek bisitariaren helbidea proxy horrek bidaltzen duen X-Forwarded-For goiburutik irakurriko du. Zerrendatu zuk zeuk kudeatzen dituzun proxyak bakarrik, beste edonork nahi duen helbidea jar dezakeelako goiburu horretan. Hutsik utziz gero, eskaera bakoitza konektatu den helbideari zenbatzen zaio.',
   'auth.title': 'Instantzia hau blokeatuta dago',
   'auth.password': 'Pasahitza',
   'auth.signIn': 'Hasi saioa',

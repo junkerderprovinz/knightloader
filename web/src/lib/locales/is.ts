@@ -313,6 +313,8 @@ export const is: Dict = {
   'settings.passwordHint': 'Að minnsta kosti 8 stafir. Skildu eftir autt til að fjarlægja lásinn. Það slekkur líka á tveggja þátta auðkenningu og eyðir öllum aðgangslyklum.',
   'settings.setPassword': 'Setja lykilorð',
   'settings.passwordSaved': 'Lykilorð uppfært.',
+  'settings.access.trustedProxies': 'Traustir milliþjónar',
+  'settings.access.trustedProxiesHint': 'Aðeins nauðsynlegt þegar öfugur milliþjónn stendur fyrir framan KnightLoader. Eftir átta misheppnaðar innskráningartilraunir frá einu vistfangi lætur KnightLoader það vistfang bíða í hálfa mínútu. Á bak við milliþjón kemur hver beiðni frá vistfangi milliþjónsins, svo ef einn giskar þurfa allir að bíða. Sláðu hér inn vistfang milliþjónsins, eina IP-tölu eða eitt CIDR-svið í hverja línu, og þá les KnightLoader vistfang gestsins úr X-Forwarded-For-hausnum sem sá milliþjónn sendir. Skráðu aðeins milliþjóna sem þú rekur sjálfur, því hver sem er annar getur sett hvaða vistfang sem er í þann haus. Sé reiturinn auður telst hver beiðni á vistfangið sem hún tengdist frá.',
   'auth.title': 'Þetta tilvik er læst',
   'auth.password': 'Lykilorð',
   'auth.signIn': 'Skrá inn',

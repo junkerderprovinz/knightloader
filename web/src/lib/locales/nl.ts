@@ -305,6 +305,8 @@ export const nl: Dict = {
   'settings.passwordHint': 'Minstens 8 tekens. Laat leeg om de vergrendeling op te heffen. Daarmee gaat ook tweefactorauthenticatie uit en worden alle toegangssleutels verwijderd.',
   'settings.setPassword': 'Wachtwoord instellen',
   'settings.passwordSaved': 'Wachtwoord bijgewerkt.',
+  'settings.access.trustedProxies': 'Vertrouwde proxy\'s',
+  'settings.access.trustedProxiesHint': 'Alleen nodig als er een reverse proxy voor KnightLoader staat. Na acht mislukte aanmeldpogingen vanaf één adres laat KnightLoader dat adres een halve minuut wachten. Achter een proxy komt elk verzoek van het adres van de proxy, dus als één persoon raadt, moet iedereen wachten. Vul hier het adres van de proxy in, één IP-adres of CIDR-bereik per regel, en KnightLoader leest het adres van de bezoeker uit de header X-Forwarded-For die die proxy meestuurt. Zet hier alleen proxy\'s die je zelf beheert, want ieder ander kan elk adres dat hij wil in die header zetten. Blijft het leeg, dan telt elk verzoek voor het adres waarvan de verbinding kwam.',
   'auth.title': 'Deze instantie is vergrendeld',
   'auth.password': 'Wachtwoord',
   'auth.signIn': 'Aanmelden',

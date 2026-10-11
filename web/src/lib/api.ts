@@ -672,6 +672,9 @@ export interface Settings {
   /** Full URLs such as "https://kl.example.com", remembered the first time a
    *  request arrives on one or added by hand. */
   knownDomains: string[];
+  /** The reverse proxies whose X-Forwarded-For the sign-in throttle reads,
+   *  as IP addresses or CIDR ranges. */
+  trustedProxies: string[];
 }
 
 /**

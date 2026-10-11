@@ -313,6 +313,8 @@ export const ms: Dict = {
   'settings.passwordHint': 'Sekurang-kurangnya 8 aksara. Biar kosong untuk buang kunci. Ini juga mematikan pengesahan dua faktor dan membuang setiap kunci laluan.',
   'settings.setPassword': 'Tetapkan kata laluan',
   'settings.passwordSaved': 'Kata laluan dikemas kini.',
+  'settings.access.trustedProxies': 'Proksi dipercayai',
+  'settings.access.trustedProxiesHint': 'Hanya perlu apabila ada proksi songsang di hadapan KnightLoader. Selepas lapan kali gagal log masuk dari satu alamat, KnightLoader membuat alamat itu menunggu setengah minit. Di belakang proksi, setiap permintaan datang dari alamat proksi, jadi seorang yang meneka membuatkan semua orang menunggu. Masukkan alamat proksi di sini, satu alamat IP atau julat CIDR setiap baris, dan KnightLoader akan membaca alamat pelawat daripada header X-Forwarded-For yang dihantar oleh proksi itu. Senaraikan hanya proksi yang anda jalankan sendiri, kerana sesiapa sahaja boleh meletakkan apa-apa alamat dalam header itu. Jika dibiarkan kosong, setiap permintaan dikira untuk alamat asal sambungannya.',
   'auth.title': 'Instance ini berkunci',
   'auth.password': 'Kata laluan',
   'auth.signIn': 'Log masuk',
