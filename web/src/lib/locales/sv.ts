@@ -310,7 +310,7 @@ export const sv: Dict = {
   'settings.lockHint': 'Skyddar den här instansen mot alla som kan nå den: på samma nätverk, via en domän eller via ett relä. När det väl är angivet måste det anges innan den här instansen ens öppnas, för alla, även dig själv nästa gång. Utan lösenord kan vem som helst som hittar adressen se varje nedladdning och lägga till, pausa eller ta bort sina egna.',
   'settings.passwordCurrent': 'Nuvarande lösenord',
   'settings.passwordNew': 'Nytt lösenord',
-  'settings.passwordHint': 'Minst 8 tecken. Lämna tomt för att ta bort låset.',
+  'settings.passwordHint': 'Minst 8 tecken. Lämna tomt för att ta bort låset. Det stänger också av tvåfaktorsautentiseringen och tar bort alla nycklar.',
   'settings.setPassword': 'Ange lösenord',
   'settings.passwordSaved': 'Lösenordet uppdaterat.',
   'auth.title': 'Den här instansen är låst',

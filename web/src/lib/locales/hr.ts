@@ -310,7 +310,7 @@ export const hr: Dict = {
   'settings.lockHint': 'Štiti ovu instancu od svakoga tko joj može pristupiti, na istoj mreži, putem domene ili putem relaya. Kad je jednom postavljena, mora se unijeti prije nego što se ova instanca uopće otvori, za svakoga, uključujući i vas idući put. Bez lozinke, svatko tko pronađe adresu može vidjeti svako preuzimanje i dodati, pauzirati ili izbrisati vlastita.',
   'settings.passwordCurrent': 'Trenutna lozinka',
   'settings.passwordNew': 'Nova lozinka',
-  'settings.passwordHint': 'Najmanje 8 znakova. Ostavi prazno da ukloniš zaključavanje.',
+  'settings.passwordHint': 'Najmanje 8 znakova. Ostavi prazno da ukloniš zaključavanje. Time se isključuje i dvofaktorska autentifikacija i brišu se svi pristupni ključevi.',
   'settings.setPassword': 'Postavi lozinku',
   'settings.passwordSaved': 'Lozinka je promijenjena.',
   'auth.title': 'Ova instanca je zaključana',

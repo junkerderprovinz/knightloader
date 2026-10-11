@@ -336,7 +336,7 @@ export const de: Dict = {
   'settings.lockHint': 'Schützt diese Instanz vor jedem, der sie erreichen kann: im selben Netzwerk, über eine Domain oder über ein Relay. Ist ein Passwort gesetzt, muss es jeder eingeben, bevor sich diese Instanz überhaupt öffnet, auch du bei deinem nächsten Besuch. Ohne Passwort kann jeder, der die Adresse findet, jeden Download sehen und eigene hinzufügen, pausieren oder löschen.',
   'settings.passwordCurrent': 'Aktuelles Passwort',
   'settings.passwordNew': 'Neues Passwort',
-  'settings.passwordHint': 'Mindestens 8 Zeichen. Leer lassen, um die Sperre aufzuheben.',
+  'settings.passwordHint': 'Mindestens 8 Zeichen. Leer lassen, um die Sperre aufzuheben. Dabei geht auch die Zwei-Faktor-Authentifizierung aus, und alle Passkeys werden gelöscht.',
   'settings.setPassword': 'Passwort setzen',
   'settings.passwordSaved': 'Passwort geändert.',
   'auth.title': 'Diese Instanz ist gesperrt',

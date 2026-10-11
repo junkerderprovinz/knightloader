@@ -310,7 +310,7 @@ export const eu: Dict = {
   'settings.lockHint': 'Instantzia hau babesten du hura eskura dezakeen edonorengandik: sare berean, domeinu baten bidez edo erretransmisio baten bidez. Behin ezarrita, instantzia hau irekiaren aurretik sartu behar da, edonorentzat, baita zuretzat ere hurrengoan. Pasahitzik gabe, helbidea aurkitzen duen edonork ikus dezake deskarga oro, eta bereak gehitu, pausatu edo ezaba ditzake.',
   'settings.passwordCurrent': 'Uneko pasahitza',
   'settings.passwordNew': 'Pasahitz berria',
-  'settings.passwordHint': 'Gutxienez 8 karaktere. Utzi hutsik blokeoa kentzeko.',
+  'settings.passwordHint': 'Gutxienez 8 karaktere. Utzi hutsik blokeoa kentzeko. Horrek bi faktoreko autentifikazioa ere itzaltzen du eta sarbide-gako guztiak ezabatzen ditu.',
   'settings.setPassword': 'Ezarri pasahitza',
   'settings.passwordSaved': 'Pasahitza eguneratuta.',
   'auth.title': 'Instantzia hau blokeatuta dago',

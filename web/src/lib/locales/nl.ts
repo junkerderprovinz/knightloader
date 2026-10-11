@@ -302,7 +302,7 @@ export const nl: Dict = {
   'settings.lockHint': 'Beschermt deze instantie tegen iedereen die haar kan bereiken: op hetzelfde netwerk, via een domein of via een relay. Eenmaal ingesteld, moet het worden ingevoerd voordat deze instantie überhaupt opent, voor iedereen, ook voor jezelf bij het volgende bezoek. Zonder wachtwoord kan iedereen die het adres vindt elke download zien, en eigen downloads toevoegen, pauzeren of verwijderen.',
   'settings.passwordCurrent': 'Huidig wachtwoord',
   'settings.passwordNew': 'Nieuw wachtwoord',
-  'settings.passwordHint': 'Minstens 8 tekens. Laat leeg om de vergrendeling op te heffen.',
+  'settings.passwordHint': 'Minstens 8 tekens. Laat leeg om de vergrendeling op te heffen. Daarmee gaat ook tweefactorauthenticatie uit en worden alle toegangssleutels verwijderd.',
   'settings.setPassword': 'Wachtwoord instellen',
   'settings.passwordSaved': 'Wachtwoord bijgewerkt.',
   'auth.title': 'Deze instantie is vergrendeld',

@@ -310,7 +310,7 @@ export const da: Dict = {
   'settings.lockHint': 'Beskytter denne instans mod alle, der kan nå den: på samme netværk, via et domæne eller via et relay. Når den er sat, skal den indtastes, før denne instans overhovedet åbner, for alle, også dig selv næste gang. Uden adgangskode kan alle, der finder adressen, se hver download og tilføje, pausere eller slette deres egne.',
   'settings.passwordCurrent': 'Nuværende adgangskode',
   'settings.passwordNew': 'Ny adgangskode',
-  'settings.passwordHint': 'Mindst 8 tegn. Lad stå tomt for at fjerne låsen.',
+  'settings.passwordHint': 'Mindst 8 tegn. Lad stå tomt for at fjerne låsen. Det slår også tofaktorgodkendelse fra og sletter alle adgangsnøgler.',
   'settings.setPassword': 'Sæt adgangskode',
   'settings.passwordSaved': 'Adgangskoden er opdateret.',
   'auth.title': 'Denne instans er låst',

@@ -310,7 +310,7 @@ export const zh: Dict = {
   'settings.lockHint': '保护此实例，防止任何能够访问到它的人: 无论是同一网络内、通过域名，还是通过中继（relay）。一旦设置，必须先输入密码，此实例才会打开, 对任何人都是如此，包括你自己下次访问时。没有密码，任何找到地址的人都能看到每一个下载任务，并添加、暂停或删除自己的下载。',
   'settings.passwordCurrent': '当前密码',
   'settings.passwordNew': '新密码',
-  'settings.passwordHint': '至少 8 个字符。留空即可取消锁定。',
+  'settings.passwordHint': '至少 8 个字符。留空即可取消锁定。这样也会关闭两步验证，并删除所有通行密钥。',
   'settings.setPassword': '设置密码',
   'settings.passwordSaved': '密码已更新。',
   'auth.title': '本实例已锁定',
