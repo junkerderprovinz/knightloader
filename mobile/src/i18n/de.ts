@@ -142,6 +142,7 @@ export const de: Dict = {
   'addDownload.errorSend': 'Die Links konnten nicht gesendet werden: {message}',
   'error.federationOff': 'Auf der verbundenen Instanz sind Partner-Instanzen ausgeschaltet, deshalb erreicht sie die anderen nicht.',
   'error.addAgain': 'Diese Verbindung stammt aus einer älteren Version der App und funktioniert nicht mehr. Entfern sie und verbinde dich neu mit den zwölf Wörtern.',
+  'error.ownLoginNeeded': 'Die Instanz erlaubt das nur über ihre eigene Weboberfläche. Melde dich dort an.',
   'addDownload.cancel': 'Abbrechen',
   'addDownload.button': 'Hinzufügen',
 

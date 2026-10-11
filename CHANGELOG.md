@@ -37,6 +37,27 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed
+
+- **Another instance can no longer be taken out of the group from your
+  Pairing page.** An instance leaves the group from its own page. Taking a
+  phone or the extension out applies on the instance where you do it, and the
+  phone or extension leaves the whole group the next time it calls there.
+
+### Security
+
+- **The phone, the extension and the other instances of a group reach only
+  the routes on a list.** Everything else answers that you have to sign in on
+  that instance's own web interface, and the web interface and the Android app
+  say so in your language. A path that does not exist answers 404.
+- **A group member no longer sees archive or download passwords,** a sign-in
+  or passkey inside a link, or a private tracker's passkey. API tokens without
+  the Admin right get the same redacted task list, on the live stream too.
+- **A group member picks a download folder only inside your download folder
+  or a category's folder, and can remove rows but not erase the files behind
+  them.** No member can take a phone out of the group or make an instance
+  leave it.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added

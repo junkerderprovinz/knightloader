@@ -120,6 +120,7 @@ export const eu: Dict = {
   'addDownload.errorSend': 'Ezin izan dira estekak bidali: {message}',
   'error.federationOff': 'Konektatuta zauden instantzian kide diren instantziak itzalita daude, beraz ezin da besteetara iritsi.',
   'error.addAgain': 'Aplikazioaren bertsio zahar batek gorde zuen konexio hau, eta jada ez dabil. Kendu eta konektatu berriro hamabi hitzekin.',
+  'error.ownLoginNeeded': 'Instantziak bere web interfazetik bakarrik uzten du hori egiten. Hasi saioa han hori egiteko.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 

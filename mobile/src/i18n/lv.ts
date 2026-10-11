@@ -120,6 +120,7 @@ export const lv: Dict = {
   'addDownload.errorSend': 'Neizdevās nosūtīt saites: {message}',
   'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
   'error.addAgain': 'Šo savienojumu saglabāja vecāka lietotnes versija, un tas vairs nedarbojas. Noņem to un savienojies vēlreiz ar divpadsmit vārdiem.',
+  'error.ownLoginNeeded': 'Instance to atļauj tikai no savas tīmekļa saskarnes. Piesakies tur, lai to izdarītu.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 

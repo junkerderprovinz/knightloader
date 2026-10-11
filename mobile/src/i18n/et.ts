@@ -120,6 +120,7 @@ export const et: Dict = {
   'addDownload.errorSend': 'Linkide saatmine ebaõnnestus: {message}',
   'error.federationOff': 'Eksemplaril, millega oled ühendatud, on naabereksemplarid välja lülitatud, seega ei jõua see teisteni.',
   'error.addAgain': 'Selle ühenduse salvestas rakenduse vanem versioon ja see ei tööta enam. Eemalda see ja ühenda uuesti kaheteistkümne sõnaga.',
+  'error.ownLoginNeeded': 'Eksemplar lubab seda ainult oma veebiliideses. Logi seal sisse, et seda teha.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 

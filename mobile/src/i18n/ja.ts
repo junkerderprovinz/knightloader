@@ -119,6 +119,7 @@ export const ja: Dict = {
   'addDownload.errorSend': 'リンクを送信できませんでした：{message}',
   'error.federationOff': '接続先のインスタンスで「連携インスタンス」がオフになっているため、ほかのインスタンスに届きません。',
   'error.addAgain': 'この接続は古いバージョンのアプリで保存されたもので、もう使えません。削除して、12個の単語でもう一度接続してください。',
+  'error.ownLoginNeeded': 'インスタンスは、この操作を自身のWebインターフェースからしか許可していません。そちらでサインインしてください。',
   'addDownload.cancel': 'キャンセル',
   'addDownload.button': '追加',
 

@@ -6,6 +6,9 @@ type Translate = (key: TranslationKey, vars?: Record<string, string | number>) =
 
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   nzbGone: 'task.restart.nzbGone',
+  // A peer refuses what a member of its group may not do, such as erasing
+  // files or picking a folder of its own.
+  ownLoginNeeded: 'list.ownLoginNeeded',
 };
 
 /**

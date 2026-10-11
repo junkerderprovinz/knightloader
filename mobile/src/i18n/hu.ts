@@ -120,6 +120,7 @@ export const hu: Dict = {
   'addDownload.errorSend': 'Nem sikerült elküldeni a linkeket: {message}',
   'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
   'error.addAgain': 'Ezt a kapcsolatot az alkalmazás egy régebbi verziója mentette, és már nem működik. Távolítsd el, és csatlakozz újra a tizenkét szóval.',
+  'error.ownLoginNeeded': 'A példány ezt csak a saját webes felületéről engedi. Jelentkezz be ott, hogy megtehesd.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 

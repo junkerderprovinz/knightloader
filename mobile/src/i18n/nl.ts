@@ -120,6 +120,7 @@ export const nl: Dict = {
   'addDownload.errorSend': 'Kon de links niet verzenden: {message}',
   'error.federationOff': 'Gekoppelde instanties staan uit op de instantie waarmee je verbonden bent, dus die kan de andere niet bereiken.',
   'error.addAgain': 'Deze verbinding is opgeslagen door een oudere versie van de app en werkt niet meer. Verwijder hem en maak opnieuw verbinding met de twaalf woorden.',
+  'error.ownLoginNeeded': 'De instantie staat dit alleen toe vanuit haar eigen webinterface. Meld je daar aan om het te doen.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 

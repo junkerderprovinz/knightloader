@@ -120,6 +120,7 @@ export const sv: Dict = {
   'addDownload.errorSend': 'Kunde inte skicka länkarna: {message}',
   'error.federationOff': 'Systerinstanser är avstängda på instansen du är ansluten till, så den når inte de andra.',
   'error.addAgain': 'Den här anslutningen sparades av en äldre version av appen och fungerar inte längre. Ta bort den och anslut igen med de tolv orden.',
+  'error.ownLoginNeeded': 'Instansen tillåter det här bara från sitt eget webbgränssnitt. Logga in där för att göra det.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 

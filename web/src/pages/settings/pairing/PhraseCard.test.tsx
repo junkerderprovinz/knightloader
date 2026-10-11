@@ -235,7 +235,7 @@ describe('PhraseCard', () => {
     const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
     expect(rows).toEqual([
       'nasThis instanceConnected',
-      'officeVia relayConnectedRemove',
+      'officeVia relayConnected',
       'Pixel 8ConnectedRemove',
       'Old phoneNot connectedRemove',
     ]);
