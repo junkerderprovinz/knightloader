@@ -302,6 +302,8 @@ export const ar: Dict = {
   'failure.fileExists.next': 'انقل ذلك الملف أو أعد تسميته، أو غيّر في واجهة الويب ما يحدث للملفات الموجودة، ثم أعد بدء التنزيل.',
   'failure.dataFolder.line': '{path} داخل مجلد بيانات KnightLoader، ولا يجوز أن تذهب التنزيلات إليه.',
   'failure.dataFolder.next': 'اختر في واجهة الويب مجلدًا خارج مجلد البيانات، ثم حاول مرة أخرى.',
+  'failure.holdsDataFolder.line': 'مجلد بيانات KnightLoader موجود داخل {path}، لذلك لا يجوز أن تذهب التنزيلات إليه.',
+  'failure.holdsDataFolder.next': 'اختر في واجهة الويب مجلدًا لا يحتوي على مجلد البيانات، ثم حاول مرة أخرى.',
   'failure.captcha.line': 'المستضيف يطلب حلّ كابتشا.',
   'failure.captcha.next': 'أجب عن الكابتشا في شاشة «كابتشا»، أو أضف حساب كابتشا في واجهة الويب.',
   'failure.cancelled.line': 'أُوقف التنزيل قبل أن يكتمل.',

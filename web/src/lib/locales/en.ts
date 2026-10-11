@@ -449,6 +449,7 @@ export const en = {
   'settings.pathProblem.cannotCreate': 'Could not create {dir}.',
   'settings.pathProblem.cannotWrite': 'Could not write to {dir}.',
   'settings.pathProblem.dataFolder': "{dir} is inside KnightLoader's data folder, next to its passwords and settings. Choose a folder outside it.",
+  'settings.pathProblem.holdsDataFolder': "KnightLoader's data folder, with its passwords and settings, is inside {dir}. Choose a folder that does not contain it.",
   'settings.watchDirFilesHint':
     'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
   'settings.crawl': 'Follow pages and collect the files they link to',
@@ -2199,6 +2200,7 @@ export const en = {
   'settings.system.restoreFailed': 'Could not restore: {error}',
   'settings.system.restoreKeyMissing': 'This backup is encrypted with an app key, but this instance has none. Start KnightLoader with the KL_APP_KEY of the instance that made the backup, then restore again.',
   'settings.system.restoreKeyWrong': 'This backup was encrypted with a different app key. To restore it, KnightLoader needs the KL_APP_KEY of the instance that made it.',
+  'settings.system.restoreNewerSchema': "This backup's database comes from a newer version of KnightLoader. Update this instance first, then restore again.",
   'settings.system.restoreStaged': '{status}',
   'settings.system.loadFailed': 'Could not load. Is the server reachable?',
 
@@ -2995,6 +2997,8 @@ export const en = {
   'failure.fileExists.next': 'Move or rename that file, or change what happens to existing files in the settings, then choose Restart.',
   'failure.dataFolder.line': "{path} is in KnightLoader's data folder, and downloads may not go there.",
   'failure.dataFolder.next': 'Choose a folder outside the data folder, in the settings or for this download, then try again.',
+  'failure.holdsDataFolder.line': "KnightLoader's data folder is inside {path}, so downloads may not go there.",
+  'failure.holdsDataFolder.next': 'Choose a folder that does not contain the data folder, in the settings or for this download, then try again.',
   'failure.captcha.line': 'The host wants a captcha solved.',
   'failure.captcha.next': 'Answer the captcha when it comes up, or add a captcha account on the Accounts page.',
   'failure.cancelled.line': 'The download was stopped before it finished.',

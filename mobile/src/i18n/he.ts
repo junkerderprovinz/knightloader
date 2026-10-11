@@ -302,6 +302,8 @@ export const he: Dict = {
   'failure.fileExists.next': 'העבר את הקובץ הזה או שנה את שמו, או שנה בממשק האינטרנט מה קורה לקבצים קיימים, ואז התחל את ההורדה מחדש.',
   'failure.dataFolder.line': '{path} נמצאת בתיקיית הנתונים של KnightLoader, ואסור שהורדות יגיעו לשם.',
   'failure.dataFolder.next': 'בחר בממשק האינטרנט תיקייה מחוץ לתיקיית הנתונים, ונסה שוב.',
+  'failure.holdsDataFolder.line': 'תיקיית הנתונים של KnightLoader נמצאת בתוך {path}, ולכן אסור שהורדות יגיעו לשם.',
+  'failure.holdsDataFolder.next': 'בחר בממשק האינטרנט תיקייה שאינה מכילה את תיקיית הנתונים, ונסה שוב.',
   'failure.captcha.line': 'המארח רוצה שתפתור קאפצ׳ה.',
   'failure.captcha.next': 'ענה על הקאפצ׳ה במסך „קאפצ׳ות”, או הוסף חשבון קאפצ׳ה בממשק האינטרנט.',
   'failure.cancelled.line': 'ההורדה נעצרה לפני שהסתיימה.',

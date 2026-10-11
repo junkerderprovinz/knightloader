@@ -63,10 +63,14 @@ const (
 	CodeFileExists ErrorCode = "fileExists"
 	// CodeDataFolder is a download, unpacking, move or rename refused because
 	// it would write into KnightLoader's data folder. Params: "path", the
-	// folder it would have written to. No Reason.
+	// folder or file it would have written to. No Reason.
 	CodeDataFolder ErrorCode = "dataFolder"
-	CodeCaptcha    ErrorCode = "captcha"   // ReasonCaptcha
-	CodeCancelled  ErrorCode = "cancelled" // ReasonCancelled
+	// CodeHoldsDataFolder is the same refusal for a folder that holds the data
+	// folder, from where an archive or a package naming the folders in between
+	// would write into it. Params: "path", that folder. No Reason.
+	CodeHoldsDataFolder ErrorCode = "holdsDataFolder"
+	CodeCaptcha         ErrorCode = "captcha"   // ReasonCaptcha
+	CodeCancelled       ErrorCode = "cancelled" // ReasonCancelled
 
 	// The causes a backend names itself, one code each, as their Reasons.
 	CodeBotCheck          ErrorCode = "botCheck"

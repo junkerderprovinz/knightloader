@@ -931,10 +931,9 @@ func (a *App) dispatchLocked() {
 		// The folder is final only here, with the template, the category and
 		// the package level applied, and a setting checks no more than its
 		// fixed part. None of it may lead into the data folder.
-		if inData := a.dataFolderOf(dir, a.workDirFor(t)); inData != "" {
+		if refusal := a.dataFolderOf(dir, a.workDirFor(t)); refusal != nil {
 			t.Status = core.StatusError
 			t.Reason = core.ReasonUnknown
-			refusal := &dataFolderError{dir: inData}
 			code, params := diskCode(refusal)
 			t.SetError("not downloaded: "+refusal.Error(), code, params)
 			settled = append(settled, a.copyLocked(t))

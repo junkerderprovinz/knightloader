@@ -9,11 +9,14 @@ import (
 	"io"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/dsnet/compress/bzip2"
 	"github.com/klauspost/compress/zstd"
 	"github.com/ulikunitz/xz"
+
+	"github.com/junkerderprovinz/knightloader/internal/extract/extracttest"
 )
 
 func TestSupported(t *testing.T) {
@@ -401,18 +404,109 @@ func TestABarredDestinationIsRefusedBeforeWriting(t *testing.T) {
 	_ = zw.Close()
 	_ = f.Close()
 	barred := filepath.Join(dir, "data")
-	isBarred := func(d string) bool { return filepath.Clean(d) == barred }
+	errBarred := errors.New("barred")
+	isBarred := func(d string) error {
+		if filepath.Clean(d) == barred {
+			return errBarred
+		}
+		return nil
+	}
 
 	for name, o := range map[string]Options{
 		"beside the archive": {Barred: isBarred},
 		"through Dest":       {Dest: dir, Barred: isBarred},
 	} {
 		var b *BarredError
-		if _, err := o.Extract(arc); !errors.As(err, &b) || b.Dir != barred {
+		if _, err := o.Extract(arc); !errors.As(err, &b) || b.Dir != barred || !errors.Is(err, errBarred) {
 			t.Errorf("unpacking %s into a barred folder gave %v, want a BarredError naming %s", name, err, barred)
 		}
 		if _, err := os.Stat(barred); !os.IsNotExist(err) {
 			t.Fatalf("unpacking %s wrote into the barred folder: %v", name, err)
 		}
+	}
+}
+
+// An archive unpacked into a folder above a barred one reaches it through the
+// folders its entries name. Each file is checked where it would land, before
+// anything of it is written, whatever format carries it.
+func TestAnEntryThatReachesABarredFolderIsRefused(t *testing.T) {
+	const entry = "Roaming/KnightLoader/settings.json"
+	body := []byte(`{"planted":true}`)
+	writers := map[string]func(t *testing.T, dir string) string{
+		"zip": func(t *testing.T, dir string) string {
+			arc := filepath.Join(dir, "AppData.zip")
+			f, err := os.Create(arc)
+			if err != nil {
+				t.Fatal(err)
+			}
+			zw := zip.NewWriter(f)
+			w, _ := zw.Create(entry)
+			_, _ = w.Write(body)
+			_ = zw.Close()
+			_ = f.Close()
+			return arc
+		},
+		"tar": func(t *testing.T, dir string) string {
+			arc := filepath.Join(dir, "AppData.tar")
+			if err := os.WriteFile(arc, tarStream(t, entry, body), 0o644); err != nil {
+				t.Fatal(err)
+			}
+			return arc
+		},
+		"tar.gz": func(t *testing.T, dir string) string {
+			arc := filepath.Join(dir, "AppData.tar.gz")
+			writeCompressed(t, arc, gzipWriter, tarStream(t, entry, body))
+			return arc
+		},
+		"rar": func(t *testing.T, dir string) string {
+			vols := extracttest.RarSet(4096, extracttest.File{Name: entry, Body: body})
+			return extracttest.WriteRarSet(t, dir, "AppData", vols)[0]
+		},
+	}
+	for name, write := range writers {
+		t.Run(name, func(t *testing.T) {
+			parent := t.TempDir()
+			barred := filepath.Join(parent, "AppData", "Roaming", "KnightLoader")
+			errBarred := errors.New("barred")
+			o := Options{
+				Dest: parent,
+				BarredFile: func(p string) error {
+					if rel, err := filepath.Rel(barred, p); err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+						return errBarred
+					}
+					return nil
+				},
+			}
+			_, err := o.Extract(write(t, t.TempDir()))
+			var b *BarredError
+			if !errors.As(err, &b) || !errors.Is(err, errBarred) || b.Dir != filepath.Join(barred, "settings.json") {
+				t.Errorf("unpacking gave %v, want a BarredError naming %s", err, filepath.Join(barred, "settings.json"))
+			}
+			if _, err := os.Stat(filepath.Join(barred, "settings.json")); !os.IsNotExist(err) {
+				t.Errorf("the entry was written into the barred folder: %v", err)
+			}
+		})
+	}
+}
+
+// A single compressed file is written beside its archive, and its name is
+// checked there like any entry's.
+func TestASingleCompressedFileIsCheckedWhereItLands(t *testing.T) {
+	dir := t.TempDir()
+	arc := filepath.Join(dir, "settings.json.gz")
+	writeCompressed(t, arc, gzipWriter, []byte(`{"planted":true}`))
+	target := filepath.Join(dir, "settings.json")
+	errBarred := errors.New("barred")
+	o := Options{BarredFile: func(p string) error {
+		if p == target {
+			return errBarred
+		}
+		return nil
+	}}
+	if _, err := o.Extract(arc); !errors.Is(err, errBarred) {
+		t.Errorf("unpacking gave %v, want the file refused", err)
+	}
+	if _, err := os.Stat(target); !os.IsNotExist(err) {
+		t.Errorf("the file was written: %v", err)
 	}
 }

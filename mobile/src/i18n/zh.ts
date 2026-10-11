@@ -301,6 +301,8 @@ export const zh: Dict = {
   'failure.fileExists.next': '移走或重命名那个文件，或者在网页界面中改变对已有文件的处理方式，然后重新开始下载。',
   'failure.dataFolder.line': '{path} 位于 KnightLoader 的数据文件夹里，下载不能放在那里。',
   'failure.dataFolder.next': '请在网页界面中选一个数据文件夹之外的文件夹，然后再试一次。',
+  'failure.holdsDataFolder.line': 'KnightLoader 的数据文件夹位于 {path} 里，所以下载不能放在那里。',
+  'failure.holdsDataFolder.next': '请在网页界面中选一个不包含数据文件夹的文件夹，然后再试一次。',
   'failure.captcha.line': '网盘要求先完成验证码。',
   'failure.captcha.next': '在“验证码”页面上回答这个验证码，或者在网页界面中添加一个验证码账户。',
   'failure.cancelled.line': '下载在完成之前被停止了。',

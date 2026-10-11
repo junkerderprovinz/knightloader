@@ -302,6 +302,8 @@ export const fr: Dict = {
   'failure.fileExists.next': 'Déplacez ou renommez ce fichier, ou changez dans l’interface web ce qui arrive aux fichiers existants, puis relancez le téléchargement.',
   'failure.dataFolder.line': '{path} se trouve dans le dossier de données de KnightLoader, et les téléchargements ne doivent pas y aller.',
   'failure.dataFolder.next': 'Choisissez dans l’interface web un dossier en dehors du dossier de données, puis réessayez.',
+  'failure.holdsDataFolder.line': 'Le dossier de données de KnightLoader se trouve dans {path}, les téléchargements ne doivent donc pas y aller.',
+  'failure.holdsDataFolder.next': 'Choisissez dans l’interface web un dossier qui ne contient pas le dossier de données, puis réessayez.',
   'failure.captcha.line': 'L’hébergeur demande de résoudre un captcha.',
   'failure.captcha.next': 'Répondez au captcha dans l’écran Captchas, ou ajoutez un compte captcha dans l’interface web.',
   'failure.cancelled.line': 'Le téléchargement a été arrêté avant la fin.',

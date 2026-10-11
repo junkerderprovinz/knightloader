@@ -302,6 +302,8 @@ export const sl: Dict = {
   'failure.fileExists.next': 'Premakni ali preimenuj to datoteko ali v spletnem vmesniku spremeni, kaj se zgodi z obstoječimi datotekami, nato prenos znova zaženi.',
   'failure.dataFolder.line': '{path} je v mapi s podatki KnightLoaderja, prenosi pa tja ne smejo.',
   'failure.dataFolder.next': 'V spletnem vmesniku izberi mapo zunaj mape s podatki in poskusi znova.',
+  'failure.holdsDataFolder.line': 'Mapa s podatki KnightLoaderja je znotraj {path}, zato prenosi tja ne smejo.',
+  'failure.holdsDataFolder.next': 'V spletnem vmesniku izberi mapo, ki ne vsebuje mape s podatki, in poskusi znova.',
   'failure.captcha.line': 'Gostitelj zahteva rešeno captcho.',
   'failure.captcha.next': 'Odgovori na captcho na zaslonu Captche ali dodaj račun captch v spletnem vmesniku.',
   'failure.cancelled.line': 'Prenos je bil ustavljen, preden se je končal.',

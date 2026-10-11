@@ -302,6 +302,8 @@ export const ro: Dict = {
   'failure.fileExists.next': 'Mută sau redenumește acel fișier, ori schimbă în interfața web ce se întâmplă cu fișierele existente, apoi repornește descărcarea.',
   'failure.dataFolder.line': '{path} se află în dosarul de date al KnightLoader, iar descărcările nu au voie să ajungă acolo.',
   'failure.dataFolder.next': 'Alege în interfața web un dosar din afara dosarului de date, apoi încearcă din nou.',
+  'failure.holdsDataFolder.line': 'Dosarul de date al KnightLoader se află în {path}, așa că descărcările nu au voie să ajungă acolo.',
+  'failure.holdsDataFolder.next': 'Alege în interfața web un dosar care nu conține dosarul de date, apoi încearcă din nou.',
   'failure.captcha.line': 'Hosterul vrea să fie rezolvat un captcha.',
   'failure.captcha.next': 'Răspunde la captcha pe ecranul Captcha-uri sau adaugă un cont de captcha în interfața web.',
   'failure.cancelled.line': 'Descărcarea a fost oprită înainte să se termine.',
