@@ -105,7 +105,7 @@ type Manager struct {
 
 	group  *groupFile
 	replay *relay.ReplayGuard
-	slots  chan struct{}
+	limits *memberLimits
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
@@ -117,7 +117,7 @@ func Load(dir string) (*Manager, error) {
 		list:   map[string]Instance{},
 		group:  loadGroupFile(filepath.Join(dir, "group.json")),
 		replay: relay.NewReplayGuard(),
-		slots:  make(chan struct{}, maxDirectCalls),
+		limits: newMemberLimits(),
 	}
 	if b, err := os.ReadFile(m.path); err == nil {
 		var arr []Instance

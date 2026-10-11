@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -208,6 +209,11 @@ func registerConnect(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			id := r.PathValue("id")
 			if err := a.Federation.RemoveApp(id, time.Now()); err != nil {
+				if errors.Is(err, federation.ErrIsInstance) {
+					writeRefusal(w, http.StatusConflict, "memberIsInstance",
+						"that id belongs to an instance of the group; take it out as an instance", nil)
+					return
+				}
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -247,6 +253,11 @@ func registerConnect(reg *Registry, a *app.App) {
 					http.Error(w, err.Error(), http.StatusBadGateway)
 					return
 				}
+				// Its key is done with here whatever it answered: it comes
+				// back only by entering the phrase, under a new key.
+				if err := a.Federation.RemoveMember(id, time.Now()); err != nil {
+					log.Printf("connect: could not revoke the key of the instance taken out: %v", err)
+				}
 				w.WriteHeader(status)
 				return
 			}
@@ -277,6 +288,11 @@ func enterGroup(a *app.App, secret []byte) error {
 		joined = time.Now()
 	}
 	if err := a.Accounts.Set(relay.SeedAccountService, stored); err != nil {
+		return err
+	}
+	// The member key belongs to one group, so a group entered again is
+	// entered under a new key, which the members pin as a new device.
+	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
 		return err
 	}
 	// No relay mode is written: an unset mode already resolves to the

@@ -1,7 +1,9 @@
 package federation
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"os"
 	"sort"
 	"sync"
@@ -37,6 +39,20 @@ type GroupState struct {
 	// Its calls are turned away; scanning the phrase again gives the app a
 	// new id, so it comes back as a new phone.
 	Removed map[string]time.Time `json:"removed,omitempty"`
+	// Keys is the member key pinned to every member id that signed a call
+	// here, and Revoked every key taken out of the group, by its hex, with
+	// when. See relay/member.go.
+	Keys    map[string]PinnedKey `json:"keys,omitempty"`
+	Revoked map[string]time.Time `json:"revoked,omitempty"`
+}
+
+// PinnedKey is the key a member signs with, pinned on its first signed call.
+type PinnedKey struct {
+	Key  []byte `json:"key"`
+	Kind string `json:"kind"`
+	// Used is when the key last signed a call here, kept to within
+	// lastSeenStep.
+	Used time.Time `json:"used"`
 }
 
 // KnownApp is a phone or a browser extension that joined the group with the
@@ -193,12 +209,19 @@ func forgetStalestApp(apps map[string]KnownApp) {
 	delete(apps, stalest)
 }
 
-// RemoveApp takes phone id out of the group at now: its card goes and its
-// calls are turned away from then on.
+// ErrIsInstance is what RemoveApp answers for an id whose pinned key signs as
+// an instance. An instance leaves through RemoveMember instead.
+var ErrIsInstance = errors.New("federation: that id belongs to an instance of the group, not to a phone or a browser")
+
+// RemoveApp takes phone id out of the group at now: its card goes, its pinned
+// key is revoked and its calls are turned away from then on.
 func (m *Manager) RemoveApp(id string, now time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
+	if pin, ok := st.Keys[id]; ok && pin.Kind == relay.KindInstance {
+		return ErrIsInstance
+	}
 	if _, done := st.Removed[id]; done {
 		return nil
 	}
@@ -207,7 +230,44 @@ func (m *Manager) RemoveApp(id string, now time.Time) error {
 		st.Removed = map[string]time.Time{}
 	}
 	st.Removed[id] = now
+	revokeLocked(st, id, now)
 	return m.group.flushLocked()
+}
+
+// RemoveMember revokes the key pinned to instance id at now. Its id stays
+// free, so the instance can enter the phrase again and join under a new key;
+// the old key never speaks here again.
+func (m *Manager) RemoveMember(id string, now time.Time) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if !revokeLocked(&m.group.state, id, now) {
+		return nil
+	}
+	return m.group.flushLocked()
+}
+
+// revokeLocked moves the key pinned to id onto the revoked list and reports
+// whether there was one.
+func revokeLocked(st *GroupState, id string, now time.Time) bool {
+	pin, ok := st.Keys[id]
+	if !ok {
+		return false
+	}
+	delete(st.Keys, id)
+	if st.Revoked == nil {
+		st.Revoked = map[string]time.Time{}
+	}
+	if len(st.Revoked) >= maxRevoked {
+		oldest := ""
+		for key, at := range st.Revoked {
+			if oldest == "" || at.Before(st.Revoked[oldest]) {
+				oldest = key
+			}
+		}
+		delete(st.Revoked, oldest)
+	}
+	st.Revoked[hex.EncodeToString(pin.Key)] = now
+	return true
 }
 
 // Removed reports whether phone id was taken out of the group.
