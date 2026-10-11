@@ -6,10 +6,10 @@ package relay
 // connection, a TLS negotiation and a goroutine for up to helloTimeout, and
 // burying real failures in the journal.
 //
-// It is keyed on the socket's remote address. Only a peer on this host or the
-// private network, where a reverse proxy sits, may name the caller in
-// X-Forwarded-For (see clientAddr); from anywhere else a header would let a
-// caller pick its own bucket.
+// It is keyed on the socket's remote address. Only a peer in
+// Server.TrustedProxies may name the caller in X-Forwarded-For (see
+// clientAddr); from anywhere else a header would let a caller pick its own
+// bucket.
 
 import (
 	"net"
@@ -194,40 +194,56 @@ func (l *limiter) evictIfFullLocked() {
 // clientAddr is the bucket a request counts against: the peer's IP without its
 // port, since every connection gets a fresh source port.
 //
-// Behind a reverse proxy, as with a relay an instance serves, every caller
-// arrives as the proxy, and one stranger failing ten handshakes would lock out
-// every member. So a peer on loopback or a private address is taken for a
-// proxy and the last X-Forwarded-For entry, the address that proxy saw, is
-// used. A caller on the private network can name its own bucket that way,
-// which only lifts the limit for itself; the key is what keeps it out.
-func clientAddr(r *http.Request) string {
+// Behind a reverse proxy every caller arrives as the proxy, and one stranger
+// failing ten handshakes would lock out every member. So for a peer in
+// trusted the caller is the right-most X-Forwarded-For entry that is not
+// itself in trusted: everything right of it was appended by proxies of ours,
+// everything left of it by whoever sent the request. Any other peer's header
+// is ignored, or a caller could pick a fresh bucket for every attempt.
+func clientAddr(r *http.Request, trusted []netip.Prefix) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
 		// An unparseable address is still limited, as a whole.
 		return r.RemoteAddr
 	}
-	if peer, err := netip.ParseAddr(host); err == nil && (peer.IsLoopback() || peer.IsPrivate()) {
-		if fwd := lastForwardedFor(r); fwd != "" {
-			return fwd
+	peer, err := netip.ParseAddr(host)
+	if err != nil || !inPrefixes(trusted, peer) {
+		return host
+	}
+	var hops []string
+	for _, v := range r.Header.Values("X-Forwarded-For") {
+		hops = append(hops, strings.Split(v, ",")...)
+	}
+	for i := len(hops) - 1; i >= 0; i-- {
+		addr, err := netip.ParseAddr(strings.TrimSpace(hops[i]))
+		if err != nil {
+			// Not an address the proxy saw; the proxy itself is all that
+			// is known.
+			return host
+		}
+		if !inPrefixes(trusted, addr) {
+			return addr.Unmap().String()
 		}
 	}
 	return host
 }
 
-// lastForwardedFor is the entry the nearest proxy appended, or "" when there
-// is none or it is not an IP address.
-func lastForwardedFor(r *http.Request) string {
-	values := r.Header.Values("X-Forwarded-For")
-	if len(values) == 0 {
-		return ""
+func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
+	a = a.Unmap()
+	for _, p := range prefixes {
+		if p.Contains(a) {
+			return true
+		}
 	}
-	last := values[len(values)-1]
-	if i := strings.LastIndexByte(last, ','); i >= 0 {
-		last = last[i+1:]
+	return false
+}
+
+// LocalNetworks is loopback and the private ranges, where the proxy in front
+// of a relay on its own host or network sits.
+func LocalNetworks() []netip.Prefix {
+	var out []netip.Prefix
+	for _, s := range []string{"127.0.0.0/8", "::1/128", "10.0.0.0/8", "172.16.0.0/12", "192.168.0.0/16", "fc00::/7"} {
+		out = append(out, netip.MustParsePrefix(s))
 	}
-	addr, err := netip.ParseAddr(strings.TrimSpace(last))
-	if err != nil {
-		return ""
-	}
-	return addr.Unmap().String()
+	return out
 }

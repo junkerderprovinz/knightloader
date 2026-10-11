@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"net/http"
+	"net/netip"
+	"slices"
 	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 func TestVersionFlagPrintsVersionAndCommit(t *testing.T) {
@@ -56,5 +59,29 @@ func TestUnknownFlagOrArgumentIsRefused(t *testing.T) {
 		if !strings.Contains(errOut.String(), "-version") {
 			t.Errorf("parseArgs(%q) printed no usage: %q", args, errOut.String())
 		}
+	}
+}
+
+func TestTrustedProxiesReadsAddressesAndRanges(t *testing.T) {
+	got, err := trustedProxies(" 172.17.0.1, 10.0.0.0/8 ,::1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []netip.Prefix{
+		netip.MustParsePrefix("172.17.0.1/32"),
+		netip.MustParsePrefix("10.0.0.0/8"),
+		netip.MustParsePrefix("::1/128"),
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("trustedProxies = %v, want %v", got, want)
+	}
+	if got, _ := trustedProxies("none"); got != nil {
+		t.Errorf(`trustedProxies("none") = %v, want none`, got)
+	}
+	if got, _ := trustedProxies(""); !slices.Equal(got, relay.LocalNetworks()) {
+		t.Errorf("unset trusts %v, want the local networks", got)
+	}
+	if _, err := trustedProxies("proxy.lan"); err == nil {
+		t.Error("a host name was taken for a trusted proxy")
 	}
 }

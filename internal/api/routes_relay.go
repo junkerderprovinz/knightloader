@@ -54,6 +54,7 @@ func registerRelay(reg *Registry, a *app.App) {
 	srv.Admit = func(key string) bool {
 		return a.Settings.Get().RelayServe && servesKey(a, key)
 	}
+	srv.TrustedProxies = trustedProxies(a)
 	reg.AddOpen(http.MethodGet, "/relay/connect",
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {

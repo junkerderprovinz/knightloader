@@ -18,6 +18,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"net/netip"
 	"sync"
 	"time"
 
@@ -130,6 +131,11 @@ type Server struct {
 	// a rendezvous for anyone who finds the address. It is a function because
 	// the switch and the key can change while the process runs.
 	Admit func(key string) bool
+
+	// TrustedProxies lists the reverse proxies whose X-Forwarded-For names
+	// the caller for the handshake throttle. nil trusts none. A function for
+	// the same reason as Admit.
+	TrustedProxies func() []netip.Prefix
 
 	// limiter backs off addresses that keep failing the handshake.
 	limiter *limiter
@@ -490,7 +496,11 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Refused before the upgrade, so a failing address costs one HTTP response
 	// rather than a WebSocket and a goroutine. 429 because the caller should
 	// slow down, not give up.
-	addr := clientAddr(r)
+	var trusted []netip.Prefix
+	if s.TrustedProxies != nil {
+		trusted = s.TrustedProxies()
+	}
+	addr := clientAddr(r, trusted)
 	if s.limiter.blocked(addr) {
 		http.Error(w, "too many failed handshakes from this address", http.StatusTooManyRequests)
 		return

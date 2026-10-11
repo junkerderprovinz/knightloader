@@ -4,6 +4,7 @@ import (
 	"context"
 	"net/http"
 	"net/http/httptest"
+	"net/netip"
 	"strconv"
 	"strings"
 	"testing"
@@ -147,7 +148,7 @@ func TestClientAddrDropsThePort(t *testing.T) {
 		{"[2a01:4f8:c014:3544::1]:44444", "2a01:4f8:c014:3544::1"},
 		{"no-port-here", "no-port-here"},
 	} {
-		got := clientAddr(&http.Request{RemoteAddr: c.in})
+		got := clientAddr(&http.Request{RemoteAddr: c.in}, LocalNetworks())
 		if got != c.want {
 			t.Errorf("clientAddr(%q) = %q, want %q", c.in, got, c.want)
 		}
@@ -163,8 +164,28 @@ func TestClientAddrTakesTheForwardedAddressOnlyFromAProxy(t *testing.T) {
 		{"203.0.113.9:40000", "198.51.100.7", "203.0.113.9"},
 	} {
 		r := &http.Request{RemoteAddr: c.remote, Header: http.Header{"X-Forwarded-For": {c.forwarded}}}
-		if got := clientAddr(r); got != c.want {
+		if got := clientAddr(r, LocalNetworks()); got != c.want {
 			t.Errorf("clientAddr(%s, X-Forwarded-For %q) = %q, want %q", c.remote, c.forwarded, got, c.want)
+		}
+	}
+}
+
+// TestAPeerOffTheListNamesNoCaller: a machine on the same network that is not
+// a listed proxy cannot pick a fresh bucket for each attempt.
+func TestAPeerOffTheListNamesNoCaller(t *testing.T) {
+	proxy := []netip.Prefix{netip.MustParsePrefix("192.168.1.2/32")}
+	for _, c := range []struct {
+		remote  string
+		trusted []netip.Prefix
+		want    string
+	}{
+		{"192.168.1.20:40000", proxy, "192.168.1.20"},
+		{"127.0.0.1:40000", nil, "127.0.0.1"},
+		{"192.168.1.2:40000", proxy, "198.51.100.7"},
+	} {
+		r := &http.Request{RemoteAddr: c.remote, Header: http.Header{"X-Forwarded-For": {"198.51.100.7"}}}
+		if got := clientAddr(r, c.trusted); got != c.want {
+			t.Errorf("clientAddr(%s, trusted %v) = %q, want %q", c.remote, c.trusted, got, c.want)
 		}
 	}
 }
@@ -172,7 +193,9 @@ func TestClientAddrTakesTheForwardedAddressOnlyFromAProxy(t *testing.T) {
 // TestBehindAProxyOneCallerCannotLockOutTheOthers: every caller of a relay
 // behind a reverse proxy arrives from the proxy's address.
 func TestBehindAProxyOneCallerCannotLockOutTheOthers(t *testing.T) {
-	srv := httptest.NewServer(New())
+	relay := New()
+	relay.TrustedProxies = LocalNetworks
+	srv := httptest.NewServer(relay)
 	t.Cleanup(srv.Close)
 	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
 	dial := func(from string) (*websocket.Conn, *http.Response, error) {
