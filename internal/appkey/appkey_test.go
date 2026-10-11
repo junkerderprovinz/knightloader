@@ -94,3 +94,80 @@ func TestKeepCopiesCopiesOnlyWhatExists(t *testing.T) {
 		t.Errorf("KeepCopies with nothing to copy = %q, %v", none, err)
 	}
 }
+
+func copiesIn(t *testing.T, dir string) []string {
+	t.Helper()
+	got, err := filepath.Glob(filepath.Join(dir, CopiesPrefix+"*"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return got
+}
+
+func madeCopies(t *testing.T, made time.Time) string {
+	t.Helper()
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "auth.json"), []byte(`{}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := KeepCopies(dir, []string{"auth.json"}, made); err != nil {
+		t.Fatal(err)
+	}
+	return dir
+}
+
+func TestCopiesStayForSevenDaysWithoutAFailure(t *testing.T) {
+	made := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	dir := madeCopies(t, made)
+
+	if until, ok := CopiesUntil(dir, made); !ok || !until.Equal(made.Add(CopiesKept)) {
+		t.Fatalf("CopiesUntil = %v, %v; want %v", until, ok, made.Add(CopiesKept))
+	}
+	if removed, err := SweepCopies(dir, made.Add(CopiesKept-time.Minute)); err != nil || len(removed) > 0 || len(copiesIn(t, dir)) != 1 {
+		t.Fatalf("the copies went before seven days: %v, %v", removed, err)
+	}
+	if removed, err := SweepCopies(dir, made.Add(CopiesKept)); err != nil || len(removed) != 1 || len(copiesIn(t, dir)) != 0 {
+		t.Fatalf("the copies stayed after seven days: %v, %v", removed, err)
+	}
+	if _, ok := CopiesUntil(dir, made); ok {
+		t.Fatal("CopiesUntil still reports copies that are gone")
+	}
+}
+
+func TestAFailureKeepsTheCopiesForAnotherSevenDays(t *testing.T) {
+	made := time.Date(2026, 1, 1, 12, 0, 0, 0, time.UTC)
+	dir := madeCopies(t, made)
+	failed := made.Add(5 * 24 * time.Hour)
+
+	k := mustGenerate(t)
+	k.OnFailure(func(error) {
+		if err := NoteFailure(dir, failed); err != nil {
+			t.Error(err)
+		}
+	})
+	if _, err := k.OpenString("settings", "kl-sealed:v1:not-what-it-claims"); !errors.Is(err, ErrWrongKey) {
+		t.Fatalf("OpenString = %v", err)
+	}
+
+	if removed, _ := SweepCopies(dir, made.Add(CopiesKept)); len(removed) > 0 {
+		t.Fatal("the copies went seven days after they were made despite a failure in between")
+	}
+	if until, _ := CopiesUntil(dir, made); !until.Equal(failed.Add(CopiesKept)) {
+		t.Fatalf("CopiesUntil = %v after a failure, want %v", until, failed.Add(CopiesKept))
+	}
+	if removed, _ := SweepCopies(dir, failed.Add(CopiesKept)); len(removed) != 1 {
+		t.Fatal("the copies stayed seven days after the failure")
+	}
+}
+
+func TestAForeignOpenIsNotReportedAsAFailure(t *testing.T) {
+	k := mustGenerate(t)
+	reported := false
+	k.OnFailure(func(error) { reported = true })
+	if _, err := k.OpenForeign("backup", []byte("not sealed by this key at all")); !errors.Is(err, ErrWrongKey) {
+		t.Fatalf("OpenForeign = %v", err)
+	}
+	if reported {
+		t.Fatal("an upload that does not open was counted against this install's own data")
+	}
+}

@@ -47,7 +47,7 @@ func Unseal(key *appkey.Key, upload []byte) ([]byte, error) {
 	if key == nil {
 		return nil, ErrNeedsKey
 	}
-	archive, err := key.Open(sealPurpose, upload[len(sealedMagic):])
+	archive, err := key.OpenForeign(sealPurpose, upload[len(sealedMagic):])
 	if err != nil {
 		return nil, ErrWrongKey
 	}

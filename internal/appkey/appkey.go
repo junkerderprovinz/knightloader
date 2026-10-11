@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"strings"
+	"sync/atomic"
 )
 
 // EnvVar names the environment variable a container passes the key in.
@@ -38,9 +39,25 @@ var (
 )
 
 // Key is the app key. A nil *Key means the install runs without one, and
-// every package that takes one then keeps its files as they always were.
+// every package that takes one then keeps its files unsealed.
 type Key struct {
 	raw []byte
+	// failed is told about every value of this install's own data that does
+	// not seal or open.
+	failed atomic.Pointer[func(error)]
+}
+
+// OnFailure sets the function told about every seal or open of this
+// install's own data that fails.
+func (k *Key) OnFailure(f func(error)) {
+	k.failed.Store(&f)
+}
+
+func (k *Key) report(err error) error {
+	if f := k.failed.Load(); f != nil {
+		(*f)(err)
+	}
+	return err
 }
 
 // Parse reads a key written as 64 hexadecimal digits.
@@ -104,11 +121,11 @@ func (k *Key) Seal(purpose string, plain []byte) ([]byte, error) {
 	}
 	gcm, err := k.aead(purpose)
 	if err != nil {
-		return nil, err
+		return nil, k.report(err)
 	}
 	nonce := make([]byte, gcm.NonceSize())
 	if _, err := rand.Read(nonce); err != nil {
-		return nil, err
+		return nil, k.report(err)
 	}
 	return gcm.Seal(nonce, nonce, plain, []byte(purpose)), nil
 }
@@ -116,6 +133,17 @@ func (k *Key) Seal(purpose string, plain []byte) ([]byte, error) {
 // Open reverses Seal. It answers ErrMissing without a key and ErrWrongKey for
 // anything the key does not open.
 func (k *Key) Open(purpose string, sealed []byte) ([]byte, error) {
+	plain, err := k.OpenForeign(purpose, sealed)
+	if err != nil && k != nil {
+		return nil, k.report(err)
+	}
+	return plain, err
+}
+
+// OpenForeign is Open for data that came from elsewhere, such as an uploaded
+// backup. A failure there says nothing about this install's own data, so it
+// is not reported to OnFailure.
+func (k *Key) OpenForeign(purpose string, sealed []byte) ([]byte, error) {
 	if k == nil {
 		return nil, ErrMissing
 	}
@@ -155,12 +183,9 @@ func (k *Key) SealString(purpose, plain string) (string, error) {
 // OpenString reverses SealString.
 func (k *Key) OpenString(purpose, s string) (string, error) {
 	s = strings.TrimSpace(s)
-	if !strings.HasPrefix(s, textPrefix) {
-		return "", ErrWrongKey
-	}
-	b, err := base64.RawURLEncoding.DecodeString(s[len(textPrefix):])
-	if err != nil {
-		return "", ErrWrongKey
+	b, err := base64.RawURLEncoding.DecodeString(strings.TrimPrefix(s, textPrefix))
+	if err != nil || !strings.HasPrefix(s, textPrefix) {
+		b = nil
 	}
 	plain, err := k.Open(purpose, b)
 	if err != nil {
