@@ -1359,3 +1359,50 @@ func TestACategorySavePathNeedsAdminAndOnlyShapesANewCategory(t *testing.T) {
 		t.Errorf("a save path moved an existing category to %q, want it kept in %q", got, want)
 	}
 }
+
+// TestATokenWithoutAdminSeesNoTrackerPasskey: a magnet link names its trackers,
+// and a private tracker puts the member's passkey in the address. A dashboard
+// token that may only read gets the trackers cut to their host; one with the
+// admin right gets the link as it is.
+func TestATokenWithoutAdminSeesNoTrackerPasskey(t *testing.T) {
+	now := time.Now()
+	magnet := "magnet:?xt=urn:btih:" + qbitTestHash + "&tr=" + url.QueryEscape("https://tracker.example/announce?passkey=QBITLEAK") +
+		"&tr=" + url.QueryEscape("https://tracker2.example/PATHLEAK/announce")
+	a := appWithTasks(t, core.Task{
+		ID: "m1", URL: magnet, Name: "Show", Package: "Show", InfoHash: qbitTestHash,
+		Status: core.StatusDone, Enabled: true, CreatedAt: now, FinishedAt: now, Dir: t.TempDir(),
+	})
+	_, srv, admin, qb := qbitServerOn(t, a, nil)
+	if err := qb.record(qbitTorrent{Hash: qbitTestHash, Category: "tv", TaskIDs: []string{"m1"}, AddedAt: now}); err != nil {
+		t.Fatal(err)
+	}
+	_, read, err := a.APITokens.CreateScoped("dashboard", []apitoken.Scope{apitoken.ScopeRead})
+	if err != nil {
+		t.Fatal(err)
+	}
+	get := func(token, call string) string {
+		req, _ := http.NewRequest(http.MethodGet, srv.URL+qbitPrefix+call, nil)
+		req.Header.Set("Authorization", "Bearer "+token)
+		resp, err := http.DefaultClient.Do(req)
+		if err != nil {
+			t.Fatal(err)
+		}
+		defer resp.Body.Close()
+		b, _ := io.ReadAll(resp.Body)
+		if resp.StatusCode != http.StatusOK {
+			t.Fatalf("%s = %d %s", call, resp.StatusCode, b)
+		}
+		return string(b)
+	}
+	for _, call := range []string{"torrents/info", "torrents/properties?hash=" + qbitTestHash, "sync/maindata"} {
+		if body := get(read, call); strings.Contains(body, "QBITLEAK") || strings.Contains(body, "PATHLEAK") {
+			t.Errorf("%s for a read-only token carries a tracker's passkey: %s", call, body)
+		}
+	}
+	if body := get(read, "torrents/info"); !strings.Contains(body, "tracker2.example") {
+		t.Errorf("the read-only token lost the trackers' hosts too: %s", body)
+	}
+	if body := get(admin, "torrents/info"); !strings.Contains(body, "QBITLEAK") {
+		t.Errorf("an admin token does not get the magnet link as it is: %s", body)
+	}
+}

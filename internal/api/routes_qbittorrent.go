@@ -246,9 +246,9 @@ func (qb *qbitClient) serve(w http.ResponseWriter, r *http.Request) {
 		qbitRefuse(w, need)
 		return
 	}
-	control := tok.Has(apitoken.ScopeControl)
+	control, admin := tok.Has(apitoken.ScopeControl), tok.Has(apitoken.ScopeAdmin)
 	if call == "torrents/add" {
-		qb.add(w, r, tok.Has(apitoken.ScopeAdmin))
+		qb.add(w, r, admin)
 		return
 	}
 	r.Body = http.MaxBytesReader(w, r.Body, qbitMaxForm)
@@ -272,9 +272,9 @@ func (qb *qbitClient) serve(w http.ResponseWriter, r *http.Request) {
 	case "app/preferences":
 		writeJSON(w, qb.preferences())
 	case "torrents/info":
-		qb.info(w, r)
+		qb.info(w, r, admin)
 	case "torrents/properties":
-		qb.properties(w, r)
+		qb.properties(w, r, admin)
 	case "torrents/files":
 		qb.files(w, r)
 	case "torrents/delete":
@@ -313,9 +313,9 @@ func (qb *qbitClient) serve(w http.ResponseWriter, r *http.Request) {
 	case "torrents/categories":
 		writeJSON(w, qb.categories())
 	case "torrents/createCategory":
-		qb.createCategory(w, r, tok.Has(apitoken.ScopeAdmin))
+		qb.createCategory(w, r, admin)
 	case "sync/maindata":
-		qb.maindata(w)
+		qb.maindata(w, admin)
 	case "transfer/info":
 		writeJSON(w, qb.transferInfo())
 	}
@@ -897,7 +897,18 @@ type qbitInfo struct {
 	MagnetURI            string  `json:"magnet_uri"`
 }
 
-func (qb *qbitClient) info(w http.ResponseWriter, r *http.Request) {
+// seenBy is i as a token reads it: one without the admin right gets every
+// address without the credentials it may carry, the passkeys a magnet link's
+// trackers hold among them.
+func (i qbitInfo) seenBy(admin bool) qbitInfo {
+	if !admin {
+		i.MagnetURI = core.RedactURL(i.MagnetURI)
+		i.Name = core.RedactText(i.Name)
+	}
+	return i
+}
+
+func (qb *qbitClient) info(w http.ResponseWriter, r *http.Request, admin bool) {
 	filter := strings.ToLower(strings.TrimSpace(r.Form.Get("filter")))
 	_, byCategory := r.Form["category"]
 	category := r.Form.Get("category")
@@ -918,7 +929,7 @@ func (qb *qbitClient) info(w http.ResponseWriter, r *http.Request) {
 		if !qbitFilterMatches(filter, v) {
 			continue
 		}
-		out = append(out, v.info())
+		out = append(out, v.info().seenBy(admin))
 	}
 	writeJSON(w, out)
 }
@@ -955,12 +966,12 @@ func qbitFilterMatches(filter string, v qbitView) bool {
 	return true
 }
 
-func (qb *qbitClient) properties(w http.ResponseWriter, r *http.Request) {
+func (qb *qbitClient) properties(w http.ResponseWriter, r *http.Request, admin bool) {
 	v, ok := qb.one(w, r)
 	if !ok {
 		return
 	}
-	i := v.info()
+	i := v.info().seenBy(admin)
 	writeJSON(w, map[string]any{
 		"hash":             i.Hash,
 		"infohash_v1":      i.InfoHashV1,
@@ -1010,10 +1021,10 @@ func (qb *qbitClient) one(w http.ResponseWriter, r *http.Request) (qbitView, boo
 
 // maindata answers every sync/maindata with a full update, which a client has
 // to be able to take at any time.
-func (qb *qbitClient) maindata(w http.ResponseWriter) {
+func (qb *qbitClient) maindata(w http.ResponseWriter, admin bool) {
 	torrents := map[string]qbitInfo{}
 	for _, v := range qb.views() {
-		torrents[v.torrent.Hash] = v.info()
+		torrents[v.torrent.Hash] = v.info().seenBy(admin)
 	}
 	writeJSON(w, map[string]any{
 		"rid":          qb.rid.Add(1),
