@@ -271,10 +271,15 @@ func registerConnect(reg *Registry, a *app.App) {
 					return
 				}
 				// Answered before the relay socket closes under this request.
+				// The leaving runs under Mint, and only while the instance
+				// that asked is still approved here: a reset in between puts
+				// this instance in a group of its own, which nobody else may
+				// make it leave.
 				w.WriteHeader(http.StatusNoContent)
 				go func() {
-					if err := enterGroup(a, nil, false); err != nil {
-						log.Printf("connect: could not leave the group after an instance of it took this one out: %v", err)
+					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil, false) })
+					if err != nil {
+						log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 					}
 				}()
 				return

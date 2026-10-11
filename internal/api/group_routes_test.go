@@ -666,6 +666,48 @@ func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	}
 }
 
+// TestARemovalThatArrivesDuringAResetDoesNotEndTheNewGroup has another
+// instance take this one out while a reset holds every session change: the
+// reset puts the instance in a group of its own, and the removal, which was
+// meant for the old group, must not make it leave that one.
+func TestARemovalThatArrivesDuringAResetDoesNotEndTheNewGroup(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, _ := groupServer(t)
+	if err := a.Accounts.Set(relay.SeedAccountService, "abababababababababababababababab"); err != nil {
+		t.Fatal(err)
+	}
+	instance := signedMember(t, a, instanceB, relay.KindInstance)
+	self := a.Settings.Get().InstanceID
+
+	resetting, renew := make(chan struct{}), make(chan struct{})
+	reset := make(chan error, 1)
+	go func() {
+		reset <- a.Auth.RevokeAll(func() {
+			close(resetting)
+			<-renew
+			if _, err := renewGroup(a); err != nil {
+				t.Error(err)
+			}
+		})
+	}()
+	<-resetting
+	if status, body := instance(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusNoContent {
+		t.Fatalf("the instance taking this one out = %d (%s), want 204", status, body)
+	}
+	time.Sleep(100 * time.Millisecond)
+	if got, _ := a.Accounts.Get(relay.SeedAccountService); got == "" {
+		t.Error("the instance left its group while a reset was under way")
+	}
+	close(renew)
+	if err := <-reset; err != nil {
+		t.Fatal(err)
+	}
+	time.Sleep(100 * time.Millisecond)
+	if got, _ := a.Accounts.Get(relay.SeedAccountService); got == "" {
+		t.Error("a removal meant for the group before the reset made the instance leave the new one")
+	}
+}
+
 func TestTheOwnerTakesAnotherInstanceOutButNotAPhoneThatWay(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, owner := groupServer(t)
