@@ -192,9 +192,10 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 	return out
 }
 
-// ValidInstanceID reports whether id has the shape every instance mints for
-// itself: 20 random bytes as lowercase hex. Stored peer names are at most 32
-// characters, so a member listed under such an id cannot take one.
+// ValidInstanceID reports whether id has the shape of an instance's id: 20
+// bytes as lowercase hex, made from its member key in a group (MemberID) and
+// random outside one. Stored peer names are at most 32 characters, so a member
+// listed under such an id cannot take one.
 func ValidInstanceID(id string) bool {
 	if len(id) != 40 {
 		return false
@@ -207,10 +208,10 @@ func ValidInstanceID(id string) bool {
 	return true
 }
 
-// maxClientIDBytes bounds the id of a client such as the phone, which mints
-// its own in another shape. It is only used as a map key, so it only has to
-// stay small.
-const maxClientIDBytes = 64
+// maxClientIDBytes bounds the id of a client such as the phone, which has an
+// id of another shape, the longest being a browser's MemberID. It is only used
+// as a map key, so it only has to stay small.
+const maxClientIDBytes = 72
 
 // listable reports whether an opened announce can be kept as a sibling. An
 // instance is addressed by its id, so the id has to be shaped like one.

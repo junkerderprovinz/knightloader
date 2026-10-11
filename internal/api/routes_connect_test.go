@@ -487,7 +487,7 @@ func TestAPhoneCountsAsSomebodyInTheGroup(t *testing.T) {
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
 	a.Federation.SetRelay(&relayOnlyPeer{sibs: []relay.Announce{
-		{InstanceID: "phone-pixel", Name: "Pixel 8", Deployment: "mobile", Client: true},
+		{InstanceID: idAs("pixel", relay.KindMobile), Name: "Pixel 8", Deployment: "mobile", Client: true},
 	}})
 
 	info := connectInfoOf(t, token, srv.URL)

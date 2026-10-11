@@ -126,7 +126,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	}
 	onOwnRelay(t, firstToken, first.URL, relaySrv.URL)
 	onOwnRelay(t, secondToken, second.URL, relaySrv.URL)
-	firstID, secondID := firstApp.Settings.Get().InstanceID, secondApp.Settings.Get().InstanceID
+	firstID, secondID := groupID(firstApp), groupID(secondApp)
 	waitForMember(t, firstApp, secondID)
 	waitForMember(t, secondApp, firstID)
 	secret, err := seedphrase.Decode(phrase)
@@ -165,8 +165,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 
 	// Somebody holding the words announces an instance of their own while the
 	// two meet. It waits like any other.
-	impostorID := strings.Repeat("9", 40)
 	impostor := ed25519.NewKeyFromSeed([]byte(strings.Repeat("i", ed25519.SeedSize)))
+	impostorID := relay.MemberID(relay.KindInstance, impostor.Public().(ed25519.PublicKey))
 	if code, body := relayCall(t, relaySrv.URL, secret, impostorID, secondID, impostor, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: impostorID, Kind: relay.KindInstance}); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
 		t.Errorf("an instance announced by somebody holding the words = %d %s, want 403 memberPending", code, body)
 	}
@@ -185,8 +185,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 
 	tasks := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: firstID, Kind: relay.KindInstance}
 	forger := ed25519.NewKeyFromSeed([]byte(strings.Repeat("f", ed25519.SeedSize)))
-	if code, body := relayCall(t, relaySrv.URL, secret, "phone-forger", secondID, forger, tasks); code != http.StatusForbidden || refusalCode(body) != "memberKeyChanged" {
-		t.Errorf("another key in the first instance's name = %d %s, want 403 memberKeyChanged", code, body)
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-forger", secondID, forger, tasks); code != http.StatusForbidden || refusalCode(body) != "memberKind" {
+		t.Errorf("another key in the first instance's name = %d %s, want 403 memberKind", code, body)
 	}
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-forger", secondID, nil, tasks); code != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
 		t.Errorf("an unsigned call in the first instance's name = %d %s, want 403 memberUnsigned", code, body)
@@ -205,16 +205,17 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 
 	// A phone is approved on the first instance, and the second honours it.
 	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("p", ed25519.SeedSize)))
-	asPhone := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: "phone-new", Kind: relay.KindMobile}
-	if code, body := relayCall(t, relaySrv.URL, secret, "phone-new", firstID, phone, asPhone); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+	phoneID := relay.MemberID(relay.KindMobile, phone.Public().(ed25519.PublicKey))
+	asPhone := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: phoneID, Kind: relay.KindMobile}
+	if code, body := relayCall(t, relaySrv.URL, secret, phoneID, firstID, phone, asPhone); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
 		t.Fatalf("a new phone = %d %s, want 403 memberPending", code, body)
 	}
-	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/phone-new/approve", nil); code != http.StatusNoContent {
+	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+phoneID+"/approve", nil); code != http.StatusNoContent {
 		t.Fatalf("approving the phone = %d %s", code, body)
 	}
 	deadline = time.Now().Add(5 * time.Second)
 	for {
-		code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, asPhone)
+		code, body := relayCall(t, relaySrv.URL, secret, phoneID, secondID, phone, asPhone)
 		if code == http.StatusOK {
 			break
 		}
@@ -226,18 +227,18 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden {
 		t.Errorf("an unsigned member passing an approval on = %d %s, want it refused", code, body)
 	}
-	if code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: "phone-new", Kind: relay.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+	if code, body := relayCall(t, relaySrv.URL, secret, phoneID, secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: phoneID, Kind: relay.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
 		t.Errorf("an approved phone passing a removal on = %d %s, want it refused", code, body)
 	}
 
 	// The owner takes the phone out on the first instance, and the second
 	// turns it away too.
-	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/apps/phone-new", nil); code != http.StatusNoContent {
+	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/apps/"+phoneID, nil); code != http.StatusNoContent {
 		t.Fatalf("removing the phone = %d %s", code, body)
 	}
 	deadline = time.Now().Add(5 * time.Second)
 	for {
-		code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, asPhone)
+		code, body := relayCall(t, relaySrv.URL, secret, phoneID, secondID, phone, asPhone)
 		if code == http.StatusGone {
 			break
 		}

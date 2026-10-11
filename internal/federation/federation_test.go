@@ -65,7 +65,7 @@ type fakeLocal struct{ members []discovery.Peer }
 
 func (f *fakeLocal) Members() []discovery.Peer { return f.members }
 
-func (f *fakeLocal) SetGroup(func(discovery.Peer) string, func(discovery.Peer) bool) {}
+func (f *fakeLocal) SetGroup(string, func(discovery.Peer) string, func(discovery.Peer) bool) {}
 
 func newManager(t *testing.T) *Manager {
 	t.Helper()

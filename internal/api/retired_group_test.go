@@ -86,10 +86,10 @@ func TestAResetTellsTheOldGroupToPairAgain(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	self := groupID(a)
 	if _, err := renewGroup(a); err != nil {
 		t.Fatal(err)
 	}
-	self := a.Settings.Get().InstanceID
 	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("o", ed25519.SeedSize)))
 
 	for _, call := range []relay.ProxyCall{
@@ -144,6 +144,7 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	self := groupID(a)
 	if err := retireGroup(a, time.Now().Add(-retiredFor-time.Minute)); err != nil {
 		t.Fatal(err)
 	}
@@ -154,7 +155,6 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 	if err := enterGroup(a, fresh); err != nil {
 		t.Fatal(err)
 	}
-	self := a.Settings.Get().InstanceID
 	phone := ed25519.NewKeyFromSeed([]byte(strings.Repeat("o", ed25519.SeedSize)))
 	time.Sleep(300 * time.Millisecond)
 	if status, body, answered := callUnder(t, relaySrv.URL, relay.DeriveKey(old), relay.DeriveFrameKey(old), self, phone,

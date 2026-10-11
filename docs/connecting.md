@@ -171,25 +171,27 @@ calls and approve each other just as a group made with the words does.
 **Every member signs its own calls.** The words are shared, so a sealed frame
 only proves that its sender holds them. On top of that, every instance, the
 Android app and the browser extension make an Ed25519 key of their own when
-they join a group, and sign every call with it, inside the seal. An instance
-remembers the key of each member the first time that member signs a call to
-it, and after that accepts no other key in that member's name. A call that
-names a known member but comes with another key, or with no signature at all,
-is refused with a message that says so. Every call has to be signed: a phone
-or a browser that cannot make a key, or still runs a build from before keys,
-is told to update. Each kind of device makes its id in a shape of its own: an
-instance 40 hex digits, the extension `browser-` and hex, the app `phone-`
-and more. An id has to have the shape of the kind it signs as, so no device
-can be listed, approved, refused or removed under an instance's id, and no
-instance under a device's.
+they join a group, and sign every call with it, inside the seal. A member's id
+is made from its key: the hex of the key's SHA-256, after `phone-` for the
+app and `browser-` for the extension, and its first 40 hex digits for an
+instance. An instance takes a call only when the id it names is the one its
+key makes, so nobody holding the words can sign in under another device's id,
+not even one that has not called yet, and the owner never approves a stranger
+under a known name. The shapes differ by kind, so no device can be listed,
+approved, refused or removed under an instance's id, and no instance under a
+device's. A call without a signature is refused with a message that says so:
+a phone or a browser that cannot make a key, or still runs a build from
+before keys, is told to update. An instance remembers each member's key the
+first time it signs a call there.
 
 Limits count per key, so one member cannot use up another's share. Each key
 can have 16 calls waiting on an instance at once. An instance takes at most 64
 new keys an hour, no more than 2 of them through one relay connection or one
-address on your network, and keeps 64 in all. Once the hour's 64 are taken, a
-new key takes the place of the oldest one from that hour that still waits for
-approval, so keys made to fill the hour keep nobody out. When the list is full,
-a key that has not been used for 30 days makes room. A request id is used up
+address on your network, and keeps 64 in all. Once the hour's 64 are taken,
+new keys wait for the next hour, and a key that waits for approval is never
+dropped to make room for another: refuse the ones you do not know on the
+Pairing card. When the list is full, an approved key that has not been used
+for 30 days makes room. A request id is used up
 only for the key that sent it, and only once the instance knows that key, so
 nobody can block a member's calls by sending their ids first or by filling the
 record with keys of their own.
@@ -212,9 +214,9 @@ group, so each lists the other as waiting as soon as both cards are open.
 the decision reaches, and that key is never accepted there again. Like an
 approval, a removal is made on one instance's Pairing page and passed on to
 the others. A removed phone or browser cannot use its old id again either. An
-instance that was removed forgets the words and gets its id back, so it can
-enter the words again later. Whoever still has the words can come back with a
-new key, but only as a new device that waits for approval.
+instance that was removed forgets the words. Whoever still has the words can
+come back with a new key, and so under a new id, but only as a new device that
+waits for approval.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay** or **No relay**, with a badge that says Connected, Not connected
