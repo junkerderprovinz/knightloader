@@ -40,6 +40,7 @@ import {
   IconPlus,
   IconTrash,
 } from '../../lib/icons';
+import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
 import { useToast } from '../../lib/toast';
 import { useDraft } from './context';
 import { ListArea, RowRefusal } from './controls';
@@ -84,7 +85,7 @@ export function Access() {
 
 // PasswordCard owns the password lock. It saves on its own button and not
 // through PUT /api/settings.
-function PasswordCard({
+export function PasswordCard({
   /** Called after the password changes, so the other cards re-read the lock. */
   onAuthChanged,
 }: {
@@ -111,7 +112,15 @@ function PasswordCard({
       .catch(() => setExposed(false));
   }, []);
 
+  function refuse(text: string) {
+    // The reason goes to the toast and the button shakes.
+    toast(text, 'fail');
+    setShake((n) => n + 1);
+  }
+
   async function onApply() {
+    const length = next === '' ? undefined : lengthProblem(next);
+    if (length) return refuse(t(LENGTH_PROBLEM[length]));
     try {
       setAuth(await setPassword(current, next));
       setCurrent('');
@@ -120,9 +129,8 @@ function PasswordCard({
       setTimeout(() => setDone(false), 1800);
       onAuthChanged();
     } catch (e) {
-      // The reason goes to the toast and the button shakes.
-      toast(String(e).replace(/^Error:\s*/, ''), 'fail');
-      setShake((n) => n + 1);
+      const refused = refusedLength(e);
+      refuse(refused ? t(LENGTH_PROBLEM[refused]) : String(e).replace(/^Error:\s*/, ''));
     }
   }
 
