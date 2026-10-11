@@ -20,6 +20,8 @@ const read = (...p) => readFileSync(join(here, ...p), 'utf8');
 const UNREACHABLE = {
   // The browser names its member id in every call it signs.
   memberUnnamed: 'every signed call names its member',
+  // The browser signs as an extension under the 40 hex digits it mints.
+  memberKind: 'the member id has the shape its kind mints',
   // The browser's signature is held to the server's vector by check-relay-seal.mjs.
   memberSignature: 'the signature is checked against the server vector',
 };

@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path/filepath"
+	"strconv"
 	"sync"
 	"testing"
 	"time"
@@ -101,16 +102,26 @@ func TestAMembersFirstSignedCallPinsItsKeyAndNoOtherKeySpeaksForIt(t *testing.T)
 }
 
 func TestAMemberKnownBeforeKeysKeepsItsCardAndPinsOnItsFirstSignedCall(t *testing.T) {
-	_, serve := guarded(t)
+	_, serve := fromBeforeKeys(t)
 	// Before the update: the phone called unsigned and has a card.
-	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: "phone-old"}); status != http.StatusOK {
+	if status, _ := serve(context.Background(), unsignedCall("phone-old")); status != http.StatusOK {
 		t.Fatalf("an unsigned call from a member not yet on keys = %d, want 200", status)
 	}
 	if status, body := serve(context.Background(), signedCall(memberKeyOf(4), "phone-old", relay.KindMobile)); status != http.StatusOK || string(body) != "phone-old" {
 		t.Fatalf("its first signed call = %d %s, want it pinned under the id it had", status, body)
 	}
-	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}); status != http.StatusOK {
-		t.Fatalf("an instance on the release before keys = %d, want it still served", status)
+	if status, body := serve(context.Background(), unsignedCall("phone-old")); codeOf(body) != "memberUnsigned" {
+		t.Fatalf("an unsigned call in its name once it signs = %d %s, want memberUnsigned", status, body)
+	}
+}
+
+// TestAHandEnteredRelayKeyStillServesCallsWithoutAKey: outside a phrase group
+// there are no member keys, and the relay key is all a caller can show.
+func TestAHandEnteredRelayKeyStillServesCallsWithoutAKey(t *testing.T) {
+	m := newManager(t)
+	serve := m.Guard(func(context.Context, relay.ProxyCall) (int, []byte) { return http.StatusOK, nil })
+	if status, body := serve(context.Background(), unsignedCall("")); status != http.StatusOK {
+		t.Errorf("an unsigned call outside a phrase group = %d %s, want it served", status, body)
 	}
 }
 
@@ -170,12 +181,12 @@ func TestOneKeysCallsDoNotUseUpAnothersShare(t *testing.T) {
 		return http.StatusOK, nil
 	})
 	forger, real := memberKeyOf(9), memberKeyOf(10)
-	for id, key := range map[string]ed25519.PrivateKey{"flood": forger, "phone-real": real} {
+	for id, key := range map[string]ed25519.PrivateKey{"phone-flood": forger, "phone-real": real} {
 		if _, _, err := m.Approve(id, key.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
 			t.Fatal(err)
 		}
 	}
-	busy := signedCall(forger, "flood", relay.KindMobile)
+	busy := signedCall(forger, "phone-flood", relay.KindMobile)
 	busy.Path = "/api/hold"
 	var done sync.WaitGroup
 	for range perMemberCalls {
@@ -189,14 +200,67 @@ func TestOneKeysCallsDoNotUseUpAnothersShare(t *testing.T) {
 	started.Wait()
 	defer func() { close(hold); done.Wait() }()
 
-	if status, body := serve(context.Background(), signedCall(forger, "flood", relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "memberBusy" {
+	if status, body := serve(context.Background(), signedCall(forger, "phone-flood", relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "memberBusy" {
 		t.Errorf("the flooding key's next call = %d %s, want 429 memberBusy", status, body)
 	}
 	if status, _ := serve(context.Background(), signedCall(real, "phone-real", relay.KindMobile)); status != http.StatusOK {
 		t.Errorf("another member = %d, want it served while one key is at its limit", status)
 	}
-	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}); status != http.StatusOK {
-		t.Errorf("a caller without a key = %d, want it served", status)
+}
+
+// TestOneMemberWithoutAKeyCannotTakeEveryUnsignedCall holds one phone from
+// before keys at its limit and checks that the other is still served.
+func TestOneMemberWithoutAKeyCannotTakeEveryUnsignedCall(t *testing.T) {
+	m, _ := fromBeforeKeys(t)
+	hold := make(chan struct{})
+	var started sync.WaitGroup
+	serve := m.Guard(func(_ context.Context, call relay.ProxyCall) (int, []byte) {
+		if call.Path == "/api/hold" {
+			started.Done()
+			<-hold
+		}
+		return http.StatusOK, nil
+	})
+	busy := unsignedCall("phone-old")
+	busy.Path = "/api/hold"
+	var done sync.WaitGroup
+	for range unsignedPerMember {
+		started.Add(1)
+		done.Add(1)
+		go func() {
+			defer done.Done()
+			serve(context.Background(), busy)
+		}()
+	}
+	started.Wait()
+	defer func() { close(hold); done.Wait() }()
+
+	if status, body := serve(context.Background(), unsignedCall("phone-old")); status != http.StatusTooManyRequests || codeOf(body) != "memberBusy" {
+		t.Errorf("the busy phone's next call = %d %s, want 429 memberBusy", status, body)
+	}
+	if status, body := serve(context.Background(), unsignedCall(browserID)); status != http.StatusOK {
+		t.Errorf("the other device from before keys = %d %s, want it served", status, body)
+	}
+}
+
+// TestOneSenderCannotUseUpTheHourForTheOthers mints keys through one relay
+// connection and checks that a device on another one still gets pinned.
+func TestOneSenderCannotUseUpTheHourForTheOthers(t *testing.T) {
+	_, serve := guarded(t)
+	minting := relay.WithSource(context.Background(), "relay\x00phone-minting")
+	refused := 0
+	for i := range maxNewPinsPerSource + 2 {
+		_, body := serve(minting, signedCall(memberKeyOf(byte(150+i)), "phone-minted-"+string(rune('a'+i)), relay.KindMobile))
+		if codeOf(body) == "groupJoinsBusy" {
+			refused++
+		}
+	}
+	if refused != 2 {
+		t.Errorf("%d keys from one connection were refused, want all past its %d", refused, maxNewPinsPerSource)
+	}
+	other := relay.WithSource(context.Background(), "relay\x00phone-honest")
+	if status, body := serve(other, signedCall(memberKeyOf(170), "phone-honest", relay.KindMobile)); codeOf(body) != "memberPending" {
+		t.Errorf("a device on another connection = %d %s, want it pinned and waiting", status, body)
 	}
 }
 
@@ -206,7 +270,7 @@ func TestMintingKeysCannotFillTheGroupForTheMembersItHas(t *testing.T) {
 	letIn(t, m, serve, real, "phone-real", relay.KindMobile)
 	refused := 0
 	for i := range maxNewPins + 4 {
-		status, body := serve(context.Background(), signedCall(memberKeyOf(byte(100+i)), "minted-"+string(rune('a'+i)), relay.KindMobile))
+		status, body := serve(context.Background(), signedCall(memberKeyOf(byte(100+i)), "phone-minted-"+strconv.Itoa(i), relay.KindMobile))
 		if status == http.StatusTooManyRequests && codeOf(body) == "groupJoinsBusy" {
 			refused++
 		}

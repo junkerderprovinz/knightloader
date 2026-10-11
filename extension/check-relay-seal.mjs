@@ -309,7 +309,7 @@ const signingIdentity = signingHello
     )(frameKey, signingHello.instanceId, signingHello.sealed)
   : null;
 if (signingIdentity?.signs !== true) {
-  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want signs: true, or an instance takes it for a member from before keys`);
+  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want signs: true`);
 }
 const signed = asked
   ? await vm.runInContext(

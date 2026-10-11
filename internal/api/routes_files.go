@@ -35,6 +35,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/federation"
 )
 
 // streamWait is how long one read of a file that is still downloading waits
@@ -113,6 +114,9 @@ func registerFiles(reg *Registry, a *app.App) {
 			if tok, ok := tokenOf(r); ok {
 				by = tok.ID
 			}
+			if c, ok := federation.CallerOf(r.Context()); ok && fromRelayGroup(r) {
+				by = memberTicket + c.ID
+			}
 			path := "/api/tasks/" + id + "/file?ticket=" + playTicket(id, file, by, a.Auth.Epoch(), time.Now().Add(playTicketTTL))
 			if file != "" {
 				path += "&file=" + file
@@ -190,10 +194,15 @@ var playKey = sync.OnceValue(func() []byte {
 	return key
 })
 
-// playTicket is the credential in a play link: when it runs out, the API token
-// that asked for it (empty for a session), and a MAC over both, the task, the
-// link's ?file (empty for the task's own file) and the session epoch. A lost
-// phone's links then end with its token, or when every session is signed out.
+// memberTicket opens the "by" of a play link a member of the group asked for,
+// before its member id. An API token's id never starts with it.
+const memberTicket = "member-"
+
+// playTicket is the credential in a play link: when it runs out, who asked for
+// it (an API token, a member of the group, or empty for a session), and a MAC
+// over both, the task, the link's ?file (empty for the task's own file) and
+// the session epoch. A lost phone's links then end with its token or with its
+// removal from the group, or when every session is signed out.
 func playTicket(id, file, by string, epoch uint64, until time.Time) string {
 	exp := strconv.FormatInt(until.Unix(), 36)
 	mac := hmac.New(sha256.New, playKey())
@@ -230,7 +239,11 @@ func playTicketOpens(a *app.App, r *http.Request) bool {
 	if err != nil || time.Now().Unix() > until {
 		return false
 	}
-	if by != "" && !slices.ContainsFunc(a.APITokens.List(), func(t apitoken.Token) bool { return t.ID == by }) {
+	if member, ok := strings.CutPrefix(by, memberTicket); ok {
+		if !a.Federation.StillMember(member) {
+			return false
+		}
+	} else if by != "" && !slices.ContainsFunc(a.APITokens.List(), func(t apitoken.Token) bool { return t.ID == by }) {
 		return false
 	}
 	return hmac.Equal([]byte(ticket), []byte(playTicket(id, q.Get("file"), by, a.Auth.Epoch(), time.Unix(until, 0))))

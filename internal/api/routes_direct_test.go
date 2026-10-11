@@ -78,6 +78,11 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	// Both hold the same keys, so the second instance's announce is tagged
 	// with the tag the first one computes.
 	net.heard = []discovery.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
+	// The second instance hears the first too, which is how it knows the
+	// first was in the group before it entered the words.
+	seen := &fakeNetwork{}
+	secondApp.Federation.SetDiscovery(seen)
+	seen.heard = []discovery.Peer{announce(t, first, seen, firstApp.Settings.Get().InstanceID)}
 
 	info := connectInfoOf(t, firstToken, first.URL)
 	if len(info.Members) != 1 || info.Members[0].ID != secondID || !info.Members[0].Direct {

@@ -482,6 +482,9 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 		return
 	case c.serve != nil:
 		serveCtx, cancel := context.WithTimeout(ctx, proxyTimeout)
+		if req.Sender != "" {
+			serveCtx = WithSource(serveCtx, "relay\x00"+req.Sender)
+		}
 		result.Status, result.Body = c.serve(serveCtx, call)
 		cancel()
 	}

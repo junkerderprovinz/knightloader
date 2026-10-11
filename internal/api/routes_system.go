@@ -104,8 +104,10 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			// An anonymous caller learns only whether a password is set; the
 			// second factor and the recovery codes left are security
-			// configuration, for a session or a token that may administer.
-			if permits(a, r, apitoken.ScopeAdmin) {
+			// configuration, for a session or a token that may administer. A
+			// member of the group passes every check that asks for a login,
+			// so it is told nothing more than a stranger.
+			if !fromRelayGroup(r) && permits(a, r, apitoken.ScopeAdmin) {
 				out["twoFactor"] = a.Auth.TwoFactorEnabled()
 				out["recoveryLeft"] = a.Auth.RecoveryLeft()
 				out["appKey"] = a.AppKey != nil
