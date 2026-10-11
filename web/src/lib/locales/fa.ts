@@ -353,6 +353,7 @@ export const fa: Dict = {
   'settings.pathProblem.notAbsolute': 'یک مسیر کامل وارد کن، مثلاً /downloads یا D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} ساخته نشد.',
   'settings.pathProblem.cannotWrite': 'نوشتن در {dir} ممکن نشد.',
+  'settings.pathProblem.dataFolder': '{dir} داخل پوشهٔ دادهٔ KnightLoader است، کنار گذرواژه‌ها و تنظیمات. پوشه‌ای بیرون از آن انتخاب کن.',
   'settings.crawl': 'دنبال کردن صفحه‌ها و جمع کردن فایل‌های لینک‌شده',
   'settings.crawl.depth': 'ژرفای خزش',
   'settings.crawl.depthHint': 'تا کجا پیش برود. ۱ فقط همان صفحهٔ چسبانده‌شده است، ۲ صفحه‌های پیوندشده را هم باز می‌کند و ۳ پیوندهای آن‌ها را. هیچ صفحه‌ای دو بار باز نمی‌شود، پس پیوندهای دوسویه خزش را پایان می‌دهند نه اینکه آن را دور بزنند.',
@@ -527,6 +528,7 @@ export const fa: Dict = {
   'cleanup.localOnly': 'پاک‌سازی همیشه روی همین نمونه اجرا می‌شود، نه روی نمونه‌ای که می‌بینید. برای استفاده به «این نمونه» برگردید.',
   'cleanup.nothing': 'همین حالا چیزی با «{what}» جور نیست، پس چیزی حذف نشد.',
   'cleanup.failed': 'معلوم نشد این کار چه چیزی را حذف می‌کند: {error}',
+  'cleanup.changed': 'پیوندهای «{what}» بعد از پیش‌نمایش تغییر کردند، پس چیزی حذف نشد. دوباره انتخابش کن تا فهرست تازه را ببینی.',
 
   'remove.title': 'پرونده‌های دانلودشده هم پاک شوند؟',
   'remove.count': '{n} دانلود از فهرست برداشته می‌شود.',
@@ -1746,6 +1748,7 @@ export const fa: Dict = {
   'settings.system.restoreConfirmTitle': 'از پشتیبان بازیابی شود؟',
   'settings.system.restoreConfirmBody':
     'این کار پایگاه‌داده و تنظیمات فعلی را با محتوای «{name}» جایگزین می‌کند. این کار قابل بازگشت نیست.',
+  'settings.system.restoreKeepsLogin': 'گذرواژه، کلیدهای گذر و توکن‌های API همان‌طور که هستند می‌مانند. بازیابی، کلیدهای گذرِ داخل نسخهٔ پشتیبان را برنمی‌گرداند.',
   'settings.system.restoring': 'در حال اعتبارسنجی و آماده‌سازی…',
   'settings.system.restoreFailed': 'بازیابی نشد: {error}',
   'settings.system.restoreStaged': '{status}',

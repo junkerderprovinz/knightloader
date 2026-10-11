@@ -131,6 +131,12 @@ func (a *App) planRenameLocked(ids []string, name string) (*renamePlan, error) {
 	return p, nil
 }
 
+// refuseDataFolder turns down a package name that would move its folder to
+// dir, which lies in the data folder.
+func refuseDataFolder(name, dir string) error {
+	return refuseRename("dataFolder", name, "%s would move the package to %s, inside KnightLoader's data folder", name, dir)
+}
+
 // refuseBusy turns a rename of pkg down until what holds its files is done.
 func refuseBusy(pkg string) error {
 	return refuseRename("busy", pkg,
@@ -154,6 +160,9 @@ func (a *App) packageFoldersLocked(p *renamePlan) error {
 		to := filepath.Clean(a.dirFor(&renamed))
 		if from == to || byFrom[from] != nil {
 			continue
+		}
+		if a.dataFolderOf(to) != "" {
+			return refuseDataFolder(p.name, to)
 		}
 		f := &packageFolder{from: from, to: to}
 		byFrom[from] = f
@@ -206,6 +215,9 @@ func (a *App) unpackFoldersLocked(p *renamePlan) error {
 		to := unpackRoot(a.expandFolder(&renamed, cfg.ExtractTo), &renamed, cfg.ExtractSubfolder)
 		if from == "" || to == "" || sameDir(from, to) || seen[from] {
 			continue
+		}
+		if a.dataFolderOf(to) != "" {
+			return refuseDataFolder(p.name, to)
 		}
 		if fi, err := os.Stat(from); err != nil || !fi.IsDir() {
 			continue

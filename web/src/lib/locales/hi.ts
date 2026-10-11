@@ -353,6 +353,7 @@ export const hi: Dict = {
   'settings.pathProblem.notAbsolute': 'पूरा पथ डालें, जैसे /downloads या D:\\Downloads।',
   'settings.pathProblem.cannotCreate': '{dir} नहीं बनाया जा सका।',
   'settings.pathProblem.cannotWrite': '{dir} में लिखा नहीं जा सका।',
+  'settings.pathProblem.dataFolder': '{dir} KnightLoader के डेटा फ़ोल्डर के अंदर है, पासवर्ड और सेटिंग्स के पास। इसके बाहर का कोई फ़ोल्डर चुनें।',
   'settings.crawl': 'पेज खोलकर उनमें लिंक की गई फ़ाइलें इकट्ठा करें',
   'settings.crawl.depth': 'क्रॉल की गहराई',
   'settings.crawl.depthHint': 'कितनी गहराई तक जाना है। 1 का मतलब सिर्फ़ चिपकाया गया पेज, 2 उसके लिंक किए पेज भी खोलता है, 3 उनके लिंक भी। कोई पेज दो बार नहीं खुलता, इसलिए आपस में जुड़े लिंक क्रॉल को घुमाने के बजाय ख़त्म कर देते हैं।',
@@ -527,6 +528,7 @@ export const hi: Dict = {
   'cleanup.localOnly': 'सफ़ाई हमेशा इसी इंस्टेंस पर चलती है, उस पर नहीं जिसे आप देख रहे हैं। इस्तेमाल के लिए “यह इंस्टेंस” पर लौटें।',
   'cleanup.nothing': 'अभी “{what}” से कुछ मेल नहीं खाता, इसलिए कुछ नहीं हटाया गया।',
   'cleanup.failed': 'पता नहीं चल सका कि इससे क्या हटेगा: {error}',
+  'cleanup.changed': 'पूर्वावलोकन के बाद “{what}” के लिंक बदल गए, इसलिए कुछ नहीं हटाया गया। नई सूची देखने के लिए इसे फिर से चुनें।',
 
   'remove.title': 'डाउनलोड की गई फ़ाइलें भी मिटाएँ?',
   'remove.count': '{n} डाउनलोड सूची से हटा दिए जाएँगे।',
@@ -1746,6 +1748,7 @@ export const hi: Dict = {
   'settings.system.restoreConfirmTitle': 'बैकअप से पुनर्स्थापित करें?',
   'settings.system.restoreConfirmBody':
     'यह मौजूदा डेटाबेस और सेटिंग्स को «{name}» की सामग्री से बदल देता है। यह पूर्ववत नहीं किया जा सकता।',
+  'settings.system.restoreKeepsLogin': 'आपका पासवर्ड, पासकी और API टोकन जैसे हैं वैसे ही रहते हैं। पुनर्स्थापना बैकअप की पासकी वापस नहीं लाती।',
   'settings.system.restoring': 'सत्यापित और तैयार किया जा रहा है…',
   'settings.system.restoreFailed': 'पुनर्स्थापित नहीं किया जा सका: {error}',
   'settings.system.restoreStaged': '{status}',

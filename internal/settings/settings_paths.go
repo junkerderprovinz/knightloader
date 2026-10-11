@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -47,7 +48,7 @@ func relative(dir string, template bool) bool {
 }
 
 // PathProblem is why a folder cannot be used. Code is what the interface
-// translates: "notAbsolute", "cannotCreate" or "cannotWrite".
+// translates: "notAbsolute", "cannotCreate", "cannotWrite" or "dataFolder".
 type PathProblem struct {
 	// Field is the folder's key in the settings document, set by CheckFolders
 	// and empty for a folder that is not a top-level setting.
@@ -64,6 +65,8 @@ func (p *PathProblem) Error() string {
 		return fmt.Sprintf("cannot create %s: %v", p.Dir, p.Err)
 	case "cannotWrite":
 		return fmt.Sprintf("cannot write to %s: %v", p.Dir, p.Err)
+	case "dataFolder":
+		return fmt.Sprintf("%s is inside KnightLoader's data folder; choose a folder outside it", p.Dir)
 	}
 	return p.What + " must be an absolute path"
 }
@@ -91,18 +94,21 @@ var folderFields = []struct {
 // CheckFolders returns a *PathProblem for the first top-level folder in s that
 // a save cannot keep, so the save is refused rather than sanitize clearing
 // what was typed. named limits the check to the fields a patch sends; nil
-// checks every one.
-func CheckFolders(s Settings, named func(key string) bool) error {
+// checks every one. No folder may lie in dataDir (see InsideData).
+func CheckFolders(dataDir string, s Settings, named func(key string) bool) error {
 	for _, f := range folderFields {
 		if named != nil && !named(f.key) {
 			continue
 		}
 		dir := strings.TrimSpace(f.get(s))
 		var err error
-		if f.probe {
-			err = Validate(f.what, dir)
-		} else if relative(dir, f.template) {
+		switch {
+		case f.probe:
+			err = Validate(dataDir, f.what, dir)
+		case relative(dir, f.template):
 			err = &PathProblem{What: f.what, Code: "notAbsolute", Dir: dir}
+		case InsideData(dataDir, dir):
+			err = &PathProblem{What: f.what, Code: "dataFolder", Dir: dir}
 		}
 		if err != nil {
 			if p := (*PathProblem)(nil); errors.As(err, &p) {
@@ -193,12 +199,16 @@ const WriteProbeName = ".knightloader-write-test"
 // With a fixed label all five reported "the download folder must be an absolute
 // path", so the field that failed was the one the message did not name. Passing
 // it in means a sixth caller cannot compile without answering the question.
-func Validate(what, dir string) error {
+// dataDir is the data folder, which no folder may lie in (see InsideData).
+func Validate(dataDir, what, dir string) error {
 	if dir == "" {
 		return nil // the built-in default is always usable
 	}
 	if !filepath.IsAbs(dir) {
 		return &PathProblem{What: what, Code: "notAbsolute", Dir: dir}
+	}
+	if InsideData(dataDir, dir) {
+		return &PathProblem{What: what, Code: "dataFolder", Dir: dir}
 	}
 	// A folder may be a template like /downloads/<jd:date>/<jd:packagename>.
 	// Only the part before the first placeholder is a real path: checking the
@@ -230,6 +240,68 @@ func Validate(what, dir string) error {
 }
 
 var errNotAFolder = errors.New("a file is in the way")
+
+// DownloadsDirName is the built-in download folder inside the data folder,
+// used while no download folder is set.
+const DownloadsDirName = "downloads"
+
+// InsideData reports whether dir is the data folder dataDir or lies inside it,
+// other than in its built-in download folder. The data folder holds the
+// password hash, the API tokens, the settings and the tools that run, so no
+// download, extraction or move may write there.
+//
+// Each folder from dir up to the root is compared with dataDir by identity
+// (os.SameFile), so a symlink, a junction, a bind mount or another spelling on
+// a disk that ignores case leads to the same answer. A folder that does not
+// exist yet is judged by the folders above it, and a template by its fixed
+// part.
+func InsideData(dataDir, dir string) bool {
+	dir = fixedPrefix(strings.TrimSpace(dir))
+	if dataDir == "" || !filepath.IsAbs(dir) {
+		return false
+	}
+	dir = filepath.Clean(dir)
+	downloadsPath := filepath.Join(dataDir, DownloadsDirName)
+	data, err := os.Stat(dataDir)
+	if err != nil {
+		return within(dir, dataDir) && !within(dir, downloadsPath)
+	}
+	downloads, err := os.Stat(downloadsPath)
+	if err != nil && within(dir, downloadsPath) {
+		return false
+	}
+	// A download folder that leads back to the data folder itself is no
+	// exception.
+	if downloads != nil && os.SameFile(downloads, data) {
+		downloads = nil
+	}
+	for p := dir; ; {
+		if fi, err := os.Stat(p); err == nil {
+			if downloads != nil && os.SameFile(fi, downloads) {
+				return false
+			}
+			if os.SameFile(fi, data) {
+				return true
+			}
+		}
+		parent := filepath.Dir(p)
+		if parent == p {
+			return false
+		}
+		p = parent
+	}
+}
+
+// within reports whether path is root or below it as written, ignoring case
+// where the platform's disks usually do.
+func within(path, root string) bool {
+	path, root = filepath.Clean(path), filepath.Clean(root)
+	if runtime.GOOS == "windows" || runtime.GOOS == "darwin" {
+		path, root = strings.ToLower(path), strings.ToLower(root)
+	}
+	rel, err := filepath.Rel(root, path)
+	return err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
 
 // nearestExisting walks up from dir to the first path that exists, or returns
 // the volume root when nothing on the way does.

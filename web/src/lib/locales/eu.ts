@@ -353,6 +353,7 @@ export const eu: Dict = {
   'settings.pathProblem.notAbsolute': 'Idatzi bide oso bat, adibidez /downloads edo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Ezin izan da {dir} karpeta sortu.',
   'settings.pathProblem.cannotWrite': 'Ezin izan da {dir} karpetan idatzi.',
+  'settings.pathProblem.dataFolder': '{dir} KnightLoader-en datuen karpetaren barruan dago, pasahitzen eta ezarpenen ondoan. Aukeratu karpeta horretatik kanpoko bat.',
   'settings.crawl': 'Jarraitu orriak eta bildu estekatzen dituzten fitxategiak',
   'settings.crawl.depth': 'Arakatze sakonera',
   'settings.crawl.depthHint': 'Zenbateraino sakondu. 1 itsatsitako orrialdea baino ez da, 2k estekatzen dituen orrialdeak ere irekitzen ditu, 3k haienak. Orrialde bat ez da inoiz birritan irekitzen, beraz elkarri lotutako estekek exekuzioa amaitzen dute, biraka ibili beharrean.',
@@ -527,6 +528,7 @@ export const eu: Dict = {
   'cleanup.localOnly': 'Garbiketa beti instantzia honetan exekutatzen da, ez begiratzen ari zarenean. Itzuli «Instantzia hau» aukerara erabiltzeko.',
   'cleanup.nothing': 'Orain ez dago «{what}» horrekin bat datorren ezer, beraz ez da ezer kendu.',
   'cleanup.failed': 'Ezin izan da jakin honek zer kenduko lukeen: {error}',
+  'cleanup.changed': '«{what}» ataleko estekak aldatu egin dira aurrebistaren ondoren, beraz ez da ezer kendu. Aukeratu berriro zerrenda berria ikusteko.',
 
   'remove.title': 'Deskargatutako fitxategiak ere ezabatu?',
   'remove.count': '{n} deskarga kenduko dira zerrendatik.',
@@ -1746,6 +1748,7 @@ export const eu: Dict = {
   'settings.system.restoreConfirmTitle': 'Babeskopia batetik berrezarri?',
   'settings.system.restoreConfirmBody':
     'Honek uneko datu-basea eta ezarpenak «{name}»-ren edukiarekin ordezten ditu. Hau ezin da desegin.',
+  'settings.system.restoreKeepsLogin': 'Pasahitza, sarbide-gakoak eta API token-ak dauden bezala geratzen dira. Berrezartzeak ez ditu babeskopiako sarbide-gakoak itzultzen.',
   'settings.system.restoring': 'Balioztatzen eta prestatzen…',
   'settings.system.restoreFailed': 'Ezin izan da berrezarri: {error}',
   'settings.system.restoreStaged': '{status}',

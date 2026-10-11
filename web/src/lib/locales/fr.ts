@@ -345,6 +345,7 @@ export const fr: Dict = {
   'settings.pathProblem.notAbsolute': 'Saisissez un chemin complet, comme /downloads ou D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Impossible de créer {dir}.',
   'settings.pathProblem.cannotWrite': 'Impossible d’écrire dans {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} se trouve dans le dossier de données de KnightLoader, à côté des mots de passe et des paramètres. Choisissez un dossier en dehors.',
   'settings.crawl': 'Suivre les pages et récupérer les fichiers qu’elles référencent',
   'settings.crawl.depth': 'Profondeur d’exploration',
   'settings.crawl.depthHint': 'Jusqu’où aller. 1 se limite à la page collée, 2 ouvre aussi les pages qu’elle référence, 3 ouvre les leurs. Une page n’est jamais ouverte deux fois, des liens réciproques terminent donc l’exploration au lieu de la faire tourner en rond.',
@@ -519,6 +520,7 @@ export const fr: Dict = {
   'cleanup.localOnly': 'Le nettoyage s’exécute toujours sur cette instance, pas sur celle que vous regardez. Revenez à « Cette instance » pour l’utiliser.',
   'cleanup.nothing': 'Rien ne correspond à « {what} » pour l’instant, donc rien n’a été retiré.',
   'cleanup.failed': 'Impossible de déterminer ce que cela retirerait : {error}',
+  'cleanup.changed': 'Les liens de « {what} » ont changé depuis l’aperçu, donc rien n’a été retiré. Choisissez-le à nouveau pour voir la nouvelle liste.',
 
   'remove.title': 'Supprimer aussi les fichiers téléchargés ?',
   'remove.count': '{n} téléchargement(s) seront retirés de la liste.',
@@ -1739,6 +1741,7 @@ export const fr: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurer depuis une sauvegarde ?',
   'settings.system.restoreConfirmBody':
     'Cela remplace la base de données et les paramètres actuels par le contenu de « {name} ». Cette action est irréversible.',
+  'settings.system.restoreKeepsLogin': 'Votre mot de passe, vos clés d’accès et vos jetons API restent tels quels. La restauration ne reprend pas les clés d’accès de la sauvegarde.',
   'settings.system.restoring': 'Validation et préparation…',
   'settings.system.restoreFailed': 'Impossible de restaurer : {error}',
   'settings.system.restoreStaged': '{status}',

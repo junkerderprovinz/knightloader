@@ -353,6 +353,7 @@ export const cs: Dict = {
   'settings.pathProblem.notAbsolute': 'Zadej úplnou cestu, třeba /downloads nebo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} se nepodařilo vytvořit.',
   'settings.pathProblem.cannotWrite': 'Do {dir} se nepodařilo zapisovat.',
+  'settings.pathProblem.dataFolder': '{dir} je v datové složce KnightLoaderu, vedle hesel a nastavení. Zvol složku mimo ni.',
   'settings.crawl': 'Následovat stránky a sbírat soubory, na které odkazují',
   'settings.crawl.depth': 'Hloubka procházení',
   'settings.crawl.depthHint': 'Jak hluboko jít. 1 je jen vložená stránka, 2 otevře i stránky, na které odkazuje, 3 otevře jejich odkazy. Stránka se nikdy neotevře dvakrát, takže vzájemné odkazy běh ukončí, místo aby ho zacyklily.',
@@ -527,6 +528,7 @@ export const cs: Dict = {
   'cleanup.localOnly': 'Úklid běží vždy na této instanci, ne na té, kterou si prohlížíte. Vraťte se na „Tato instance“, abyste ho mohli použít.',
   'cleanup.nothing': 'Na „{what}“ teď nic nesedí, takže se nic neodebralo.',
   'cleanup.failed': 'Nepodařilo se zjistit, co by to odebralo: {error}',
+  'cleanup.changed': 'Odkazy v „{what}“ se od náhledu změnily, takže se nic neodebralo. Zvol to znovu a uvidíš nový seznam.',
 
   'remove.title': 'Smazat i stažené soubory?',
   'remove.count': 'Ze seznamu se odebere {n} stahování.',
@@ -1747,6 +1749,7 @@ export const cs: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnovit ze zálohy?',
   'settings.system.restoreConfirmBody':
     'Tím se nahradí aktuální databáze a nastavení obsahem „{name}“. Tuto akci nelze vrátit zpět.',
+  'settings.system.restoreKeepsLogin': 'Heslo, přístupové klíče a tokeny API zůstávají, jak jsou. Obnovení nevrací přístupové klíče ze zálohy.',
   'settings.system.restoring': 'Ověřuje se a připravuje…',
   'settings.system.restoreFailed': 'Nepodařilo se obnovit: {error}',
   'settings.system.restoreStaged': '{status}',

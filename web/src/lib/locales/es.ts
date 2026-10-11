@@ -345,6 +345,7 @@ export const es: Dict = {
   'settings.pathProblem.notAbsolute': 'Escribe una ruta completa, como /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'No se pudo crear {dir}.',
   'settings.pathProblem.cannotWrite': 'No se pudo escribir en {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} está dentro de la carpeta de datos de KnightLoader, junto a las contraseñas y los ajustes. Elige una carpeta fuera de ella.',
   'settings.crawl': 'Seguir las páginas y recoger los archivos que enlazan',
   'settings.crawl.depth': 'Profundidad de rastreo',
   'settings.crawl.depthHint': 'Hasta dónde llegar. 1 es solo la página pegada, 2 abre también las páginas que enlaza, 3 abre las de estas. Una página nunca se abre dos veces, así que los enlaces mutuos terminan el rastreo en lugar de dar vueltas.',
@@ -519,6 +520,7 @@ export const es: Dict = {
   'cleanup.localOnly': 'La limpieza siempre se ejecuta en esta instancia, no en la que estás viendo. Vuelve a «Esta instancia» para usarla.',
   'cleanup.nothing': 'Ahora mismo no hay nada que coincida con «{what}», así que no se quitó nada.',
   'cleanup.failed': 'No se pudo averiguar qué quitaría esto: {error}',
+  'cleanup.changed': 'Los enlaces de «{what}» cambiaron después de la vista previa, así que no se quitó nada. Vuelve a elegirlo para ver la lista nueva.',
 
   'remove.title': '¿Borrar también los archivos descargados?',
   'remove.count': 'Se quitarán {n} descarga(s) de la lista.',
@@ -1739,6 +1741,7 @@ export const es: Dict = {
   'settings.system.restoreConfirmTitle': '¿Restaurar desde una copia de seguridad?',
   'settings.system.restoreConfirmBody':
     'Esto reemplaza la base de datos y los ajustes actuales con el contenido de «{name}». Esto no se puede deshacer.',
+  'settings.system.restoreKeepsLogin': 'La contraseña, las claves de acceso y los tokens de API se quedan como están. La restauración no recupera las claves de acceso de la copia de seguridad.',
   'settings.system.restoring': 'Validando y preparando…',
   'settings.system.restoreFailed': 'No se pudo restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

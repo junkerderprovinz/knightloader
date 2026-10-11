@@ -353,6 +353,7 @@ export const is: Dict = {
   'settings.pathProblem.notAbsolute': 'Sláðu inn fulla slóð, til dæmis /downloads eða D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Ekki tókst að búa til {dir}.',
   'settings.pathProblem.cannotWrite': 'Ekki tókst að skrifa í {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} er í gagnamöppu KnightLoader, við hlið lykilorða og stillinga. Veldu möppu utan hennar.',
   'settings.crawl': 'Fylgja síðum og safna skránum sem þær tengja í',
   'settings.crawl.depth': 'Dýpt skriðs',
   'settings.crawl.depthHint': 'Hversu djúpt er farið. 1 er aðeins síðan sem límd var inn, 2 opnar líka síðurnar sem hún tengir í, 3 opnar þeirra tengla. Síða er aldrei opnuð tvisvar, svo tenglar sem vísa hver á annan ljúka keyrslunni í stað þess að hringsóla.',
@@ -527,6 +528,7 @@ export const is: Dict = {
   'cleanup.localOnly': 'Tiltekt keyrir alltaf á þessu tilviki, ekki því sem þú ert að skoða. Farðu aftur á „Þetta tilvik“ til að nota hana.',
   'cleanup.nothing': 'Ekkert passar við „{what}“ núna, svo ekkert var fjarlægt.',
   'cleanup.failed': 'Ekki tókst að finna út hvað þetta myndi fjarlægja: {error}',
+  'cleanup.changed': 'Tenglarnir undir „{what}“ breyttust eftir forskoðunina, svo ekkert var fjarlægt. Veldu þetta aftur til að sjá nýja listann.',
 
   'remove.title': 'Á líka að eyða sóttu skránum?',
   'remove.count': '{n} niðurhöl verða tekin af listanum.',
@@ -1746,6 +1748,7 @@ export const is: Dict = {
   'settings.system.restoreConfirmTitle': 'Endurheimta úr öryggisafriti?',
   'settings.system.restoreConfirmBody':
     'Þetta skiptir núverandi gagnagrunni og stillingum út fyrir innihald „{name}“. Þessu er ekki hægt að breyta til baka.',
+  'settings.system.restoreKeepsLogin': 'Lykilorðið, aðgangslyklarnir og API-tókarnir haldast eins og þeir eru. Endurheimtin skilar ekki aðgangslyklunum úr öryggisafritinu.',
   'settings.system.restoring': 'Sannreynir og undirbýr…',
   'settings.system.restoreFailed': 'Ekki tókst að endurheimta: {error}',
   'settings.system.restoreStaged': '{status}',

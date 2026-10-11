@@ -353,6 +353,7 @@ export const hr: Dict = {
   'settings.pathProblem.notAbsolute': 'Upiši punu putanju, na primjer /downloads ili D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} nije bilo moguće stvoriti.',
   'settings.pathProblem.cannotWrite': 'U {dir} nije bilo moguće pisati.',
+  'settings.pathProblem.dataFolder': '{dir} nalazi se u mapi s podacima KnightLoadera, uz lozinke i postavke. Odaberi mapu izvan nje.',
   'settings.crawl': 'Prati stranice i sakupi datoteke na koje vode',
   'settings.crawl.depth': 'Dubina pretraživanja',
   'settings.crawl.depthHint': 'Koliko duboko ide. 1 je samo zalijepljena stranica, 2 otvara i stranice na koje ona vodi, 3 otvara njihove. Stranica se nikada ne otvara dvaput, pa uzajamne poveznice završavaju prolaz umjesto da ga vrte u krug.',
@@ -527,6 +528,7 @@ export const hr: Dict = {
   'cleanup.localOnly': 'Pospremanje uvijek radi na ovoj instanci, a ne na onoj koju gledaš. Vrati se na „Ova instanca” da bi ga koristio.',
   'cleanup.nothing': 'Trenutno ništa ne odgovara „{what}”, pa ništa nije uklonjeno.',
   'cleanup.failed': 'Nije se dalo utvrditi što bi ovo uklonilo: {error}',
+  'cleanup.changed': 'Poveznice pod „{what}” promijenile su se nakon pregleda, pa ništa nije uklonjeno. Odaberi to ponovno da vidiš novi popis.',
 
   'remove.title': 'Obrisati i preuzete datoteke?',
   'remove.count': '{n} preuzimanja bit će skinuto s popisa.',
@@ -1747,6 +1749,7 @@ export const hr: Dict = {
   'settings.system.restoreConfirmTitle': 'Vratiti iz sigurnosne kopije?',
   'settings.system.restoreConfirmBody':
     'Time se zamjenjuje trenutna baza podataka i postavke sadržajem „{name}“. Ovo se ne može poništiti.',
+  'settings.system.restoreKeepsLogin': 'Lozinka, pristupni ključevi i API tokeni ostaju kakvi jesu. Vraćanje ne vraća pristupne ključeve iz sigurnosne kopije.',
   'settings.system.restoring': 'Provjera i priprema…',
   'settings.system.restoreFailed': 'Nije uspjelo vratiti: {error}',
   'settings.system.restoreStaged': '{status}',

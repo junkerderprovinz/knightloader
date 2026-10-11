@@ -353,6 +353,7 @@ export const sl: Dict = {
   'settings.pathProblem.notAbsolute': 'Vnesi polno pot, na primer /downloads ali D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} ni bilo mogoče ustvariti.',
   'settings.pathProblem.cannotWrite': 'V {dir} ni bilo mogoče pisati.',
+  'settings.pathProblem.dataFolder': '{dir} je v mapi s podatki KnightLoaderja, ob geslih in nastavitvah. Izberi mapo zunaj nje.',
   'settings.crawl': 'Sledi stranem in poberi datoteke, na katere kažejo',
   'settings.crawl.depth': 'Globina prečesavanja',
   'settings.crawl.depthHint': 'Kako globoko gre. 1 je samo prilepljena stran, 2 odpre tudi strani, na katere kaže, 3 odpre njihove. Stran se nikoli ne odpre dvakrat, zato medsebojne povezave zaključijo tek, namesto da bi ga vrtele v krogu.',
@@ -527,6 +528,7 @@ export const sl: Dict = {
   'cleanup.localOnly': 'Pospravljanje vedno teče na tem primerku, ne na tistem, ki ga gledaš. Vrni se na »Ta primerek«, da ga uporabiš.',
   'cleanup.nothing': 'Trenutno se nič ne ujema z »{what}«, zato ni bilo nič odstranjeno.',
   'cleanup.failed': 'Ni bilo mogoče ugotoviti, kaj bi to odstranilo: {error}',
+  'cleanup.changed': 'Povezave pod »{what}« so se po predogledu spremenile, zato ni bilo nič odstranjeno. Izberi to znova, da vidiš nov seznam.',
 
   'remove.title': 'Naj se izbrišejo tudi prenesene datoteke?',
   'remove.count': '{n} prenosov bo umaknjenih s seznama.',
@@ -1747,6 +1749,7 @@ export const sl: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnoviti iz varnostne kopije?',
   'settings.system.restoreConfirmBody':
     'To nadomesti trenutno podatkovno bazo in nastavitve z vsebino „{name}“. Tega ni mogoče razveljaviti.',
+  'settings.system.restoreKeepsLogin': 'Geslo, ključi za dostop in žetoni API ostanejo takšni, kot so. Obnovitev ne vrne ključev za dostop iz varnostne kopije.',
   'settings.system.restoring': 'Preverjanje in priprava…',
   'settings.system.restoreFailed': 'Ni bilo mogoče obnoviti: {error}',
   'settings.system.restoreStaged': '{status}',

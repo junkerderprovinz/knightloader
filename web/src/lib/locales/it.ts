@@ -345,6 +345,7 @@ export const it: Dict = {
   'settings.pathProblem.notAbsolute': 'Inserisci un percorso completo, come /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Impossibile creare {dir}.',
   'settings.pathProblem.cannotWrite': 'Impossibile scrivere in {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} si trova nella cartella dei dati di KnightLoader, accanto a password e impostazioni. Scegli una cartella fuori da essa.',
   'settings.crawl': 'Segui le pagine e raccogli i file a cui rimandano',
   'settings.crawl.depth': 'Profondità di scansione',
   'settings.crawl.depthHint': 'Fin dove arrivare. 1 è solo la pagina incollata, 2 apre anche le pagine collegate, 3 apre le loro. Una pagina non viene mai aperta due volte, quindi i collegamenti reciproci chiudono la scansione invece di farla girare a vuoto.',
@@ -519,6 +520,7 @@ export const it: Dict = {
   'cleanup.localOnly': 'La pulizia gira sempre su questa istanza, non su quella che stai guardando. Torna a «Questa istanza» per usarla.',
   'cleanup.nothing': 'Al momento non corrisponde nulla a «{what}», quindi non è stato rimosso nulla.',
   'cleanup.failed': 'Impossibile capire che cosa verrebbe rimosso: {error}',
+  'cleanup.changed': 'I link sotto «{what}» sono cambiati dopo l’anteprima, quindi non è stato rimosso nulla. Sceglilo di nuovo per vedere il nuovo elenco.',
 
   'remove.title': 'Cancellare anche i file scaricati?',
   'remove.count': "{n} download verranno tolti dall'elenco.",
@@ -1739,6 +1741,7 @@ export const it: Dict = {
   'settings.system.restoreConfirmTitle': 'Ripristinare da un backup?',
   'settings.system.restoreConfirmBody':
     'Questo sostituisce il database e le impostazioni attuali con il contenuto di «{name}». L’operazione non può essere annullata.',
+  'settings.system.restoreKeepsLogin': 'La password, le passkey e i token API restano come sono. Il ripristino non riporta le passkey contenute nel backup.',
   'settings.system.restoring': 'Convalida e preparazione…',
   'settings.system.restoreFailed': 'Impossibile ripristinare: {error}',
   'settings.system.restoreStaged': '{status}',

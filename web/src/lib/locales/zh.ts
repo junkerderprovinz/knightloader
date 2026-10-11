@@ -353,6 +353,7 @@ export const zh: Dict = {
   'settings.pathProblem.notAbsolute': '请输入完整路径，例如 /downloads 或 D:\\Downloads。',
   'settings.pathProblem.cannotCreate': '无法创建 {dir}。',
   'settings.pathProblem.cannotWrite': '无法写入 {dir}。',
+  'settings.pathProblem.dataFolder': '{dir} 位于 KnightLoader 的数据文件夹里，和密码、设置放在一起。请选择它之外的文件夹。',
   'settings.crawl': '跟进页面并收集其中链接的文件',
   'settings.crawl.depth': '抓取深度',
   'settings.crawl.depthHint': '要走多深。1 只是粘贴的那一页，2 会打开它链接到的页面，3 再打开那些页面的链接。同一页不会打开两次，因此互相指向的链接会让抓取结束，而不是绕圈。',
@@ -527,6 +528,7 @@ export const zh: Dict = {
   'cleanup.localOnly': '清理始终在本实例上运行，而不是你正在查看的那一个。切回“本实例”才能使用。',
   'cleanup.nothing': '现在没有符合“{what}”的内容，因此什么也没移除。',
   'cleanup.failed': '无法判断这会移除什么：{error}',
+  'cleanup.changed': '预览之后“{what}”下的链接有了变化，所以什么也没移除。再选一次即可看到新的列表。',
 
   'remove.title': '同时删除已下载的文件吗？',
   'remove.count': '将从列表中移除 {n} 个下载。',
@@ -1743,6 +1745,7 @@ export const zh: Dict = {
   'settings.system.restoreButton': '上传备份',
   'settings.system.restoreConfirmTitle': '从备份恢复？',
   'settings.system.restoreConfirmBody': '这会用 "{name}" 的内容替换当前的数据库和设置。此操作无法撤销。',
+  'settings.system.restoreKeepsLogin': '密码、通行密钥和 API 令牌保持不变。恢复不会带回备份里的通行密钥。',
   'settings.system.restoring': '正在验证并准备…',
   'settings.system.restoreFailed': '无法恢复：{error}',
   'settings.system.restoreStaged': '{status}',

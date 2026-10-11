@@ -42,10 +42,10 @@ func registerJDImport(reg *Registry, a *app.App) {
 				return
 			}
 			rep, err := a.ApplyJDImport(body.Token, body.IDs, func(preview settings.Settings, patch map[string]json.RawMessage) error {
-				if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+				if err := settings.CheckFolders(a.DataDir, preview, patched(patch)); err != nil {
 					return err
 				}
-				return validateRows(preview, patched(patch))
+				return validateRows(a.DataDir, preview, patched(patch))
 			})
 			if errors.Is(err, app.ErrJDImportExpired) {
 				writeRefusal(w, http.StatusGone, "jdimport.expired", err.Error(), nil)

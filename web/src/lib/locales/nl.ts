@@ -345,6 +345,7 @@ export const nl: Dict = {
   'settings.pathProblem.notAbsolute': 'Vul een volledig pad in, zoals /downloads of D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} kon niet worden aangemaakt.',
   'settings.pathProblem.cannotWrite': 'Kon niet naar {dir} schrijven.',
+  'settings.pathProblem.dataFolder': '{dir} staat in de datamap van KnightLoader, naast wachtwoorden en instellingen. Kies een map daarbuiten.',
   'settings.crawl': 'Paginas volgen en de bestanden verzamelen waarnaar ze linken',
   'settings.crawl.depth': 'Zoekdiepte',
   'settings.crawl.depthHint': 'Hoe diep er wordt gegaan. 1 is alleen de geplakte pagina, 2 opent ook de pagina’s waarnaar die verwijst, 3 opent die van hen. Een pagina wordt nooit twee keer geopend, dus links die naar elkaar wijzen beëindigen de run in plaats van rond te blijven gaan.',
@@ -519,6 +520,7 @@ export const nl: Dict = {
   'cleanup.localOnly': 'Opruimen draait altijd op deze instantie, niet op degene die je bekijkt. Schakel terug naar “Deze instantie” om het te gebruiken.',
   'cleanup.nothing': 'Er past nu niets bij “{what}”, dus er is niets verwijderd.',
   'cleanup.failed': 'Kon niet bepalen wat dit zou verwijderen: {error}',
+  'cleanup.changed': 'De links onder “{what}” zijn na het voorbeeld veranderd, dus er is niets verwijderd. Kies het opnieuw om de nieuwe lijst te zien.',
 
   'remove.title': 'Ook de gedownloade bestanden verwijderen?',
   'remove.count': '{n} download(s) worden van de lijst gehaald.',
@@ -1739,6 +1741,7 @@ export const nl: Dict = {
   'settings.system.restoreConfirmTitle': 'Herstellen vanaf back-up?',
   'settings.system.restoreConfirmBody':
     'Dit vervangt de huidige database en instellingen door de inhoud van “{name}”. Dit kan niet ongedaan worden gemaakt.',
+  'settings.system.restoreKeepsLogin': 'Je wachtwoord, toegangssleutels en API-tokens blijven zoals ze zijn. Het herstel haalt de toegangssleutels uit de back-up niet terug.',
   'settings.system.restoring': 'Bezig met valideren en klaarzetten…',
   'settings.system.restoreFailed': 'Kon niet worden hersteld: {error}',
   'settings.system.restoreStaged': '{status}',

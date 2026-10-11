@@ -353,6 +353,7 @@ export const lt: Dict = {
   'settings.pathProblem.notAbsolute': 'Įvesk visą kelią, pavyzdžiui, /downloads arba D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nepavyko sukurti {dir}.',
   'settings.pathProblem.cannotWrite': 'Nepavyko rašyti į {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} yra KnightLoader duomenų aplanke, šalia slaptažodžių ir nustatymų. Pasirink aplanką už jo ribų.',
   'settings.crawl': 'Sekti puslapius ir surinkti failus, į kuriuos jie veda',
   'settings.crawl.depth': 'Apėjimo gylis',
   'settings.crawl.depthHint': 'Kaip giliai eiti. 1 yra tik įklijuotas puslapis, 2 atveria ir puslapius, į kuriuos jis rodo, 3 atveria jų nuorodas. Puslapis niekada neatveriamas dukart, tad viena į kitą rodančios nuorodos užbaigia apėjimą, o ne suka jį ratu.',
@@ -527,6 +528,7 @@ export const lt: Dict = {
   'cleanup.localOnly': 'Tvarkymas visada vyksta šiame egzemplioriuje, o ne tame, kurį matai. Grįžk į „Šis egzempliorius“, kad juo pasinaudotum.',
   'cleanup.nothing': 'Šiuo metu niekas neatitinka „{what}“, todėl nieko nepašalinta.',
   'cleanup.failed': 'Nepavyko išsiaiškinti, ką tai pašalintų: {error}',
+  'cleanup.changed': 'Nuorodos po „{what}“ pasikeitė po peržiūros, todėl nieko nepašalinta. Pasirink tai dar kartą, kad pamatytum naują sąrašą.',
 
   'remove.title': 'Ištrinti ir atsiųstus failus?',
   'remove.count': 'Nuo sąrašo bus nuimta {n} atsiuntimų.',
@@ -1746,6 +1748,7 @@ export const lt: Dict = {
   'settings.system.restoreConfirmTitle': 'Atkurti iš atsarginės kopijos?',
   'settings.system.restoreConfirmBody':
     'Tai pakeičia dabartinę duomenų bazę ir nustatymus failo „{name}“ turiniu. To anuliuoti negalima.',
+  'settings.system.restoreKeepsLogin': 'Slaptažodis, prieigos raktai ir API prieigos raktai lieka tokie, kokie yra. Atkūrimas negrąžina atsarginėje kopijoje esančių prieigos raktų.',
   'settings.system.restoring': 'Tikrinama ir ruošiama…',
   'settings.system.restoreFailed': 'Nepavyko atkurti: {error}',
   'settings.system.restoreStaged': '{status}',

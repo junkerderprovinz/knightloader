@@ -353,6 +353,7 @@ export const ms: Dict = {
   'settings.pathProblem.notAbsolute': 'Masukkan laluan penuh, seperti /downloads atau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Tidak dapat mencipta {dir}.',
   'settings.pathProblem.cannotWrite': 'Tidak dapat menulis ke {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} berada dalam folder data KnightLoader, bersebelahan kata laluan dan tetapan. Pilih folder di luarnya.',
   'settings.crawl': 'Ikut halaman dan kumpul fail yang dipautkan',
   'settings.crawl.depth': 'Kedalaman perayapan',
   'settings.crawl.depthHint': 'Sedalam mana hendak pergi. 1 hanya halaman yang ditampal, 2 turut membuka halaman yang dipautkannya, 3 membuka pautan mereka. Satu halaman tidak pernah dibuka dua kali, jadi pautan yang saling menunjuk menamatkan larian, bukan memusingkannya.',
@@ -527,6 +528,7 @@ export const ms: Dict = {
   'cleanup.localOnly': 'Pembersihan sentiasa berjalan pada instans ini, bukan pada yang anda sedang lihat. Kembali ke “Instans ini” untuk menggunakannya.',
   'cleanup.nothing': 'Sekarang tiada apa yang padan dengan “{what}”, jadi tiada apa dibuang.',
   'cleanup.failed': 'Tidak dapat mengetahui apa yang akan dibuang: {error}',
+  'cleanup.changed': 'Pautan di bawah “{what}” berubah selepas pratonton, jadi tiada apa dibuang. Pilih sekali lagi untuk melihat senarai baharu.',
 
   'remove.title': 'Padam fail yang dimuat turun juga?',
   'remove.count': '{n} muat turun akan diangkat dari senarai.',
@@ -1746,6 +1748,7 @@ export const ms: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan daripada sandaran?',
   'settings.system.restoreConfirmBody':
     'Ini menggantikan pangkalan data dan tetapan semasa dengan kandungan «{name}». Ini tidak boleh dibuat asal.',
+  'settings.system.restoreKeepsLogin': 'Kata laluan, kunci laluan dan token API kekal seperti sedia ada. Pemulihan tidak membawa balik kunci laluan daripada sandaran.',
   'settings.system.restoring': 'Mengesahkan dan menyediakan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreStaged': '{status}',

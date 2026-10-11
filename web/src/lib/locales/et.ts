@@ -353,6 +353,7 @@ export const et: Dict = {
   'settings.pathProblem.notAbsolute': 'Sisesta täielik tee, näiteks /downloads või D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kausta {dir} ei õnnestunud luua.',
   'settings.pathProblem.cannotWrite': 'Kausta {dir} ei õnnestunud midagi kirjutada.',
+  'settings.pathProblem.dataFolder': '{dir} asub KnightLoaderi andmekaustas, paroolide ja seadete kõrval. Vali kaust väljaspool seda.',
   'settings.crawl': 'Järgi lehti ja kogu failid, millele need viitavad',
   'settings.crawl.depth': 'Läbimise sügavus',
   'settings.crawl.depthHint': 'Kui sügavale minnakse. 1 on ainult kleebitud leht, 2 avab ka lehed, millele see viitab, 3 avab nende omad. Lehte ei avata kunagi kaks korda, seega teineteisele viitavad lingid lõpetavad käigu, mitte ei aja seda ringi.',
@@ -527,6 +528,7 @@ export const et: Dict = {
   'cleanup.localOnly': 'Koristus käib alati selles isendis, mitte selles, mida sa vaatad. Kasutamiseks mine tagasi valikule „See isend“.',
   'cleanup.nothing': 'Praegu ei sobi „{what}“ alla midagi, seega ei eemaldatud midagi.',
   'cleanup.failed': 'Ei õnnestunud välja selgitada, mida see eemaldaks: {error}',
+  'cleanup.changed': '„{what}“ all olevad lingid muutusid pärast eelvaadet, seega ei eemaldatud midagi. Vali see uuesti, et näha uut loendit.',
 
   'remove.title': 'Kas kustutada ka alla laaditud failid?',
   'remove.count': 'Loendist võetakse maha {n} allalaadimist.',
@@ -1746,6 +1748,7 @@ export const et: Dict = {
   'settings.system.restoreConfirmTitle': 'Taastada varukoopiast?',
   'settings.system.restoreConfirmBody':
     'See asendab praeguse andmebaasi ja seaded faili „{name}“ sisuga. Seda ei saa tagasi võtta.',
+  'settings.system.restoreKeepsLogin': 'Parool, pääsuvõtmed ja API tokenid jäävad samaks. Taastamine ei too varukoopias olevaid pääsuvõtmeid tagasi.',
   'settings.system.restoring': 'Valideerimine ja ettevalmistamine…',
   'settings.system.restoreFailed': 'Taastamine ebaõnnestus: {error}',
   'settings.system.restoreStaged': '{status}',

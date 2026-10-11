@@ -353,6 +353,7 @@ export const uk: Dict = {
   'settings.pathProblem.notAbsolute': 'Введіть повний шлях, наприклад /downloads або D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Не вдалося створити {dir}.',
   'settings.pathProblem.cannotWrite': 'Не вдалося записати в {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} лежить у теці даних KnightLoader, поруч із паролями й налаштуваннями. Виберіть теку поза нею.',
   'settings.crawl': 'Відкривати сторінки та збирати файли, на які вони посилаються',
   'settings.crawl.depth': 'Глибина обходу',
   'settings.crawl.depthHint': 'Наскільки глибоко йти. 1 це лише вставлена сторінка, 2 відкриває й сторінки, на які вона посилається, 3 відкриває їхні посилання. Сторінка ніколи не відкривається двічі, тож взаємні посилання завершують обхід, а не закільцьовують його.',
@@ -527,6 +528,7 @@ export const uk: Dict = {
   'cleanup.localOnly': 'Прибирання завжди працює на цьому примірнику, а не на тому, який ви дивитесь. Поверніться до «Цей примірник», щоб ним скористатися.',
   'cleanup.nothing': 'Зараз під «{what}» нічого не підпадає, тож нічого не прибрано.',
   'cleanup.failed': 'Не вдалося з’ясувати, що саме це прибере: {error}',
+  'cleanup.changed': 'Посилання в «{what}» змінилися після попереднього перегляду, тож нічого не вилучено. Виберіть цей пункт знову, щоб побачити новий список.',
 
   'remove.title': 'Видалити й завантажені файли?',
   'remove.count': '{n} завантажень буде знято зі списку.',
@@ -1747,6 +1749,7 @@ export const uk: Dict = {
   'settings.system.restoreConfirmTitle': 'Відновити з резервної копії?',
   'settings.system.restoreConfirmBody':
     'Це замінить поточну базу даних і налаштування вмістом «{name}». Цю дію не можна скасувати.',
+  'settings.system.restoreKeepsLogin': 'Пароль, ключі доступу й токени API залишаються без змін. Відновлення не повертає ключі доступу з резервної копії.',
   'settings.system.restoring': 'Перевірка та підготовка…',
   'settings.system.restoreFailed': 'Не вдалося відновити: {error}',
   'settings.system.restoreStaged': '{status}',

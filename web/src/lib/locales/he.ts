@@ -355,6 +355,7 @@ export const he: Dict = {
   'settings.pathProblem.notAbsolute': 'הזן נתיב מלא, למשל /downloads או D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'לא ניתן היה ליצור את {dir}.',
   'settings.pathProblem.cannotWrite': 'לא ניתן היה לכתוב אל {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} נמצאת בתיקיית הנתונים של KnightLoader, ליד הסיסמאות וההגדרות. בחר תיקייה מחוץ לה.',
   'settings.crawl': 'מעקב אחר דפים ואיסוף הקבצים שהם מקשרים אליהם',
   'settings.crawl.depth': 'עומק סריקה',
   'settings.crawl.depthHint': 'עד כמה להעמיק. 1 הוא רק הדף שהודבק, 2 פותח גם את הדפים שהוא מקשר אליהם, 3 פותח את שלהם. דף לעולם אינו נפתח פעמיים, כך שקישורים הדדיים מסיימים את הסריקה במקום לסובב אותה במעגל.',
@@ -529,6 +530,7 @@ export const he: Dict = {
   'cleanup.localOnly': 'הניקוי רץ תמיד על המופע הזה, לא על זה שאתה מסתכל עליו. חזור אל „המופע הזה” כדי להשתמש בו.',
   'cleanup.nothing': 'כרגע שום דבר לא מתאים ל„{what}”, ולכן שום דבר לא הוסר.',
   'cleanup.failed': 'לא הצלחנו להבין מה זה יסיר: {error}',
+  'cleanup.changed': 'הקישורים תחת „{what}” השתנו אחרי התצוגה המקדימה, ולכן שום דבר לא הוסר. בחר בזה שוב כדי לראות את הרשימה החדשה.',
 
   'remove.title': 'למחוק גם את הקבצים שהורדו?',
   'remove.count': '{n} הורדות יורדו מהרשימה.',
@@ -1748,6 +1750,7 @@ export const he: Dict = {
   'settings.system.restoreConfirmTitle': 'לשחזר מגיבוי?',
   'settings.system.restoreConfirmBody':
     'זה מחליף את מסד הנתונים וההגדרות הנוכחיים בתוכן של „{name}”. לא ניתן לבטל את זה.',
+  'settings.system.restoreKeepsLogin': 'הסיסמה, מפתחות הגישה וטוקני ה־API נשארים כמו שהם. השחזור לא מחזיר את מפתחות הגישה שבגיבוי.',
   'settings.system.restoring': 'מאמת ומכין…',
   'settings.system.restoreFailed': 'לא ניתן היה לשחזר: {error}',
   'settings.system.restoreStaged': '{status}',

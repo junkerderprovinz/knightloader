@@ -353,6 +353,7 @@ export const lv: Dict = {
   'settings.pathProblem.notAbsolute': 'Ievadi pilnu ceļu, piemēram, /downloads vai D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Neizdevās izveidot {dir}.',
   'settings.pathProblem.cannotWrite': 'Neizdevās ierakstīt mapē {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} atrodas KnightLoader datu mapē, blakus parolēm un iestatījumiem. Izvēlies mapi ārpus tās.',
   'settings.crawl': 'Sekot lapām un savākt failus, uz kuriem tās norāda',
   'settings.crawl.depth': 'Apstaigāšanas dziļums',
   'settings.crawl.depthHint': 'Cik dziļi iet. 1 ir tikai ielīmētā lapa, 2 atver arī lapas, uz kurām tā norāda, 3 atver to saites. Lapa nekad netiek atvērta divreiz, tāpēc savstarpējas saites pabeidz gājienu, nevis riņķo pa apli.',
@@ -527,6 +528,7 @@ export const lv: Dict = {
   'cleanup.localOnly': 'Sakopšana vienmēr notiek šajā instancē, nevis tajā, ko skaties. Atgriezies pie „Šī instance“, lai to izmantotu.',
   'cleanup.nothing': 'Šobrīd nekas neatbilst „{what}“, tāpēc nekas netika noņemts.',
   'cleanup.failed': 'Neizdevās noskaidrot, ko tas noņemtu: {error}',
+  'cleanup.changed': 'Saites zem „{what}“ mainījās pēc priekšskatījuma, tāpēc nekas netika noņemts. Izvēlies to vēlreiz, lai redzētu jauno sarakstu.',
 
   'remove.title': 'Dzēst arī lejupielādētos failus?',
   'remove.count': 'No saraksta tiks noņemtas {n} lejupielādes.',
@@ -1746,6 +1748,7 @@ export const lv: Dict = {
   'settings.system.restoreConfirmTitle': 'Atjaunot no dublējuma?',
   'settings.system.restoreConfirmBody':
     'Tas aizstāj pašreizējo datubāzi un iestatījumus ar faila „{name}“ saturu. To nevar atsaukt.',
+  'settings.system.restoreKeepsLogin': 'Parole, piekļuves atslēgas un API pilnvaras paliek tādas, kādas ir. Atjaunošana neatgriež piekļuves atslēgas no dublējuma.',
   'settings.system.restoring': 'Validē un sagatavo…',
   'settings.system.restoreFailed': 'Neizdevās atjaunot: {error}',
   'settings.system.restoreStaged': '{status}',

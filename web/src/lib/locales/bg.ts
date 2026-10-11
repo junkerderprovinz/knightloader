@@ -353,6 +353,7 @@ export const bg: Dict = {
   'settings.pathProblem.notAbsolute': 'Въведи пълен път, например /downloads или D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} не можа да бъде създадена.',
   'settings.pathProblem.cannotWrite': 'В {dir} не може да се записва.',
+  'settings.pathProblem.dataFolder': '{dir} е в папката с данните на KnightLoader, до паролите и настройките. Избери папка извън нея.',
   'settings.crawl': 'Следвай страниците и събирай файловете, към които водят',
   'settings.crawl.depth': 'Дълбочина на обхождане',
   'settings.crawl.depthHint': 'Докъде да стигне. 1 е само поставената страница, 2 отваря и страниците, към които води, 3 отваря техните. Страница не се отваря два пъти, затова взаимните връзки приключват обхождането, вместо да го въртят в кръг.',
@@ -527,6 +528,7 @@ export const bg: Dict = {
   'cleanup.localOnly': 'Почистването върви винаги на този екземпляр, а не на онзи, който гледаш. Върни се на „Този екземпляр“, за да го използваш.',
   'cleanup.nothing': 'В момента нищо не отговаря на „{what}“, така че нищо не беше премахнато.',
   'cleanup.failed': 'Не се разбра какво би премахнало това: {error}',
+  'cleanup.changed': 'Връзките под „{what}“ се промениха след прегледа, затова нищо не беше премахнато. Избери го отново, за да видиш новия списък.',
 
   'remove.title': 'Да се изтрият ли и свалените файлове?',
   'remove.count': '{n} изтегляния ще бъдат махнати от списъка.',
@@ -1747,6 +1749,7 @@ export const bg: Dict = {
   'settings.system.restoreConfirmTitle': 'Възстановяване от резервно копие?',
   'settings.system.restoreConfirmBody':
     'Това заменя текущата база данни и настройки със съдържанието на „{name}“. Това не може да бъде отменено.',
+  'settings.system.restoreKeepsLogin': 'Паролата, ключовете за достъп и API токените остават такива, каквито са. Възстановяването не връща ключовете за достъп от резервното копие.',
   'settings.system.restoring': 'Проверка и подготовка…',
   'settings.system.restoreFailed': 'Възстановяването не успя: {error}',
   'settings.system.restoreStaged': '{status}',

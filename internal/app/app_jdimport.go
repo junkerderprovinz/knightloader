@@ -130,6 +130,8 @@ type jdPlan struct {
 	// passwords are the ones new here, in JDownloader's order.
 	passwords []string
 	folder    string
+	// dataDir is the data folder, which no rule may send downloads into.
+	dataDir string
 }
 
 type jdAccountPlan struct {
@@ -249,6 +251,7 @@ func (a *App) takeJDPlan(token string) (*jdPlan, error) {
 
 func (a *App) planJDImport(cfg *jdimport.Config) *jdPlan {
 	p := &jdPlan{
+		dataDir:  a.DataDir,
 		accounts: map[string]jdAccountPlan{},
 		rules:    map[string]jdimport.MappedRule{},
 		packages: map[string]jdPackagePlan{},
@@ -475,7 +478,7 @@ func planJDRules(p *jdPlan, prefix, group string, mapped []jdimport.MappedRule, 
 				item.Ticked = m.Enabled
 				// Like JDownloader's own download folder, a rule's folder is a path on the
 				// machine JDownloader ran on.
-				if dir := m.Rule.Action.DownloadDir; dir != "" && settings.Validate("the rule's download folder", dir) != nil {
+				if dir := m.Rule.Action.DownloadDir; dir != "" && settings.Validate(p.dataDir, "the rule's download folder", dir) != nil {
 					item.Ticked = false
 					item.Notes = append(item.Notes, jdimport.Reason{
 						Code:   "ruleFolderElsewhere",

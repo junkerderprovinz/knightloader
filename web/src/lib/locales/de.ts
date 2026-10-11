@@ -385,6 +385,7 @@ export const de: Dict = {
   'settings.pathProblem.notAbsolute': 'Gib einen vollständigen Pfad ein, etwa /downloads oder D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} lässt sich nicht anlegen.',
   'settings.pathProblem.cannotWrite': 'In {dir} lässt sich nichts schreiben.',
+  'settings.pathProblem.dataFolder': '{dir} liegt im Datenordner von KnightLoader, neben Passwörtern und Einstellungen. Wähl einen Ordner außerhalb davon.',
   'settings.watchDirFilesHint':
     'Was du hier ablegst, wird automatisch übernommen: Linklisten (.txt, .crawljob, .magnet), .torrent-Dateien, Container (.dlc, .ccf, .rsdf) und .nzb-Dateien.',
   'settings.crawl': 'Seiten folgen und die verlinkten Dateien einsammeln',
@@ -567,6 +568,7 @@ export const de: Dict = {
   'cleanup.localOnly': 'Aufräumen läuft immer auf dieser Instanz, nicht auf der, die du gerade siehst. Wechsle zurück zu „Diese Instanz“, um es zu nutzen.',
   'cleanup.nothing': 'Auf „{what}“ passt gerade nichts, es wurde also nichts entfernt.',
   'cleanup.failed': 'Konnte nicht ermitteln, was das entfernen würde: {error}',
+  'cleanup.changed': 'Unter „{what}“ hat sich seit der Vorschau etwas geändert, deshalb wurde nichts entfernt. Wähl es noch einmal, dann siehst du die neue Liste.',
 
   'remove.title': 'Auch die geladenen Dateien löschen?',
   'remove.count': '{n} Download(s) werden von der Liste genommen.',
@@ -1923,6 +1925,7 @@ export const de: Dict = {
   'settings.system.restoreConfirmTitle': 'Aus Sicherung wiederherstellen?',
   'settings.system.restoreConfirmBody':
     'Dies ersetzt die aktuelle Datenbank und Einstellungen durch den Inhalt von „{name}“. Das lässt sich nicht rückgängig machen.',
+  'settings.system.restoreKeepsLogin': 'Passwort, Passkeys und API-Tokens bleiben, wie sie sind. Passkeys aus der Sicherung holt die Wiederherstellung nicht zurück.',
   'settings.system.restoring': 'Wird geprüft und vorbereitet…',
   'settings.system.restoreFailed': 'Konnte nicht wiederhergestellt werden: {error}',
   'settings.system.restoreStaged': '{status}',

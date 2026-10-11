@@ -353,6 +353,7 @@ export const da: Dict = {
   'settings.pathProblem.notAbsolute': 'Angiv en fuld sti, for eksempel /downloads eller D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kunne ikke oprette {dir}.',
   'settings.pathProblem.cannotWrite': 'Kunne ikke skrive til {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ligger i KnightLoaders datamappe, ved siden af adgangskoder og indstillinger. Vælg en mappe uden for den.',
   'settings.crawl': 'Følg sider og saml de filer, de linker til',
   'settings.crawl.depth': 'Dybde',
   'settings.crawl.depthHint': 'Hvor dybt der gås. 1 er kun den indsatte side, 2 åbner også de sider, den linker til, 3 åbner deres. En side åbnes aldrig to gange, så links der peger på hinanden afslutter kørslen i stedet for at køre i ring.',
@@ -527,6 +528,7 @@ export const da: Dict = {
   'cleanup.localOnly': 'Oprydning kører altid på denne instans, ikke på den du kigger på. Skift tilbage til “Denne instans” for at bruge den.',
   'cleanup.nothing': 'Der matcher ikke noget “{what}” lige nu, så der blev ikke fjernet noget.',
   'cleanup.failed': 'Kunne ikke regne ud, hvad dette ville fjerne: {error}',
+  'cleanup.changed': 'Linkene under “{what}” har ændret sig siden forhåndsvisningen, så der blev ikke fjernet noget. Vælg det igen for at se den nye liste.',
 
   'remove.title': 'Skal de hentede filer også slettes?',
   'remove.count': '{n} download(s) bliver taget af listen.',
@@ -1746,6 +1748,7 @@ export const da: Dict = {
   'settings.system.restoreConfirmTitle': 'Gendan fra sikkerhedskopi?',
   'settings.system.restoreConfirmBody':
     'Dette erstatter den nuværende database og indstillinger med indholdet af „{name}“. Dette kan ikke fortrydes.',
+  'settings.system.restoreKeepsLogin': 'Din adgangskode, dine adgangsnøgler og API-tokens forbliver, som de er. Gendannelsen henter ikke adgangsnøglerne fra sikkerhedskopien tilbage.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gendanne: {error}',
   'settings.system.restoreStaged': '{status}',

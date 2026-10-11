@@ -353,6 +353,7 @@ export const sv: Dict = {
   'settings.pathProblem.notAbsolute': 'Ange en fullständig sökväg, till exempel /downloads eller D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kunde inte skapa {dir}.',
   'settings.pathProblem.cannotWrite': 'Kunde inte skriva till {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ligger i KnightLoaders datamapp, bredvid lösenord och inställningar. Välj en mapp utanför den.',
   'settings.crawl': 'Följ sidor och samla in filerna de länkar till',
   'settings.crawl.depth': 'Sökdjup',
   'settings.crawl.depthHint': 'Hur djupt det går. 1 är bara den inklistrade sidan, 2 öppnar även sidorna den länkar till, 3 öppnar deras. En sida öppnas aldrig två gånger, så länkar som pekar på varandra avslutar körningen i stället för att snurra runt.',
@@ -527,6 +528,7 @@ export const sv: Dict = {
   'cleanup.localOnly': 'Rensning körs alltid på den här instansen, inte på den du tittar på. Byt tillbaka till ”Den här instansen” för att använda den.',
   'cleanup.nothing': 'Inget matchar ”{what}” just nu, så inget togs bort.',
   'cleanup.failed': 'Kunde inte räkna ut vad det här skulle ta bort: {error}',
+  'cleanup.changed': 'Länkarna under ”{what}” ändrades efter förhandsvisningen, så inget togs bort. Välj det igen för att se den nya listan.',
 
   'remove.title': 'Radera de nedladdade filerna också?',
   'remove.count': '{n} nedladdning(ar) tas bort från listan.',
@@ -1747,6 +1749,7 @@ export const sv: Dict = {
   'settings.system.restoreConfirmTitle': 'Återställa från säkerhetskopia?',
   'settings.system.restoreConfirmBody':
     'Detta ersätter den aktuella databasen och inställningarna med innehållet i ”{name}”. Detta kan inte ångras.',
+  'settings.system.restoreKeepsLogin': 'Lösenordet, nycklarna och API-token förblir som de är. Återställningen tar inte tillbaka nycklarna från säkerhetskopian.',
   'settings.system.restoring': 'Validerar och förbereder…',
   'settings.system.restoreFailed': 'Kunde inte återställa: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -353,6 +353,7 @@ export const sr: Dict = {
   'settings.pathProblem.notAbsolute': 'Упиши пуну путању, на пример /downloads или D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Није могуће направити {dir}.',
   'settings.pathProblem.cannotWrite': 'Није могуће уписивати у {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} је у фасцикли са подацима KnightLoader-а, поред лозинки и подешавања. Изабери фасциклу ван ње.',
   'settings.crawl': 'Прати странице и сакупи датотеке на које воде',
   'settings.crawl.depth': 'Дубина претраживања',
   'settings.crawl.depthHint': 'Колико дубоко иде. 1 је само налепљена страница, 2 отвара и странице на које она води, 3 отвара њихове. Страница се никада не отвара двапут, па узајамне везе завршавају пролаз уместо да га врте у круг.',
@@ -527,6 +528,7 @@ export const sr: Dict = {
   'cleanup.localOnly': 'Поспремање увек ради на овој инстанци, а не на оној коју гледаш. Врати се на „Ова инстанца“ да би га користио.',
   'cleanup.nothing': 'Тренутно ништа не одговара „{what}“, па ништа није уклоњено.',
   'cleanup.failed': 'Није могло да се утврди шта би ово уклонило: {error}',
+  'cleanup.changed': 'Везе под „{what}“ су се промениле после прегледа, па ништа није уклоњено. Изабери то поново да видиш нови списак.',
 
   'remove.title': 'Обрисати и преузете датотеке?',
   'remove.count': '{n} преузимања биће скинуто са списка.',
@@ -1747,6 +1749,7 @@ export const sr: Dict = {
   'settings.system.restoreConfirmTitle': 'Вратити из резервне копије?',
   'settings.system.restoreConfirmBody':
     'Ово замењује тренутну базу података и подешавања садржајем „{name}“. Ово се не може поништити.',
+  'settings.system.restoreKeepsLogin': 'Лозинка, приступни кључеви и API токени остају какви јесу. Враћање не враћа приступне кључеве из резервне копије.',
   'settings.system.restoring': 'Провера и припрема…',
   'settings.system.restoreFailed': 'Није успело враћање: {error}',
   'settings.system.restoreStaged': '{status}',
