@@ -9,7 +9,6 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
-	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 func TestVersionFlagPrintsVersionAndCommit(t *testing.T) {
@@ -78,8 +77,16 @@ func TestTrustedProxiesReadsAddressesAndRanges(t *testing.T) {
 	if got, _ := trustedProxies("none"); got != nil {
 		t.Errorf(`trustedProxies("none") = %v, want none`, got)
 	}
-	if got, _ := trustedProxies(""); !slices.Equal(got, relay.LocalNetworks()) {
-		t.Errorf("unset trusts %v, want the local networks", got)
+	unset, _ := trustedProxies("")
+	for _, addr := range []string{"127.0.0.1", "::1"} {
+		if !slices.ContainsFunc(unset, func(p netip.Prefix) bool { return p.Contains(netip.MustParseAddr(addr)) }) {
+			t.Errorf("unset does not trust %s on the relay's own host", addr)
+		}
+	}
+	for _, addr := range []string{"10.0.0.7", "172.17.0.2", "192.168.1.20", "fd00::7"} {
+		if slices.ContainsFunc(unset, func(p netip.Prefix) bool { return p.Contains(netip.MustParseAddr(addr)) }) {
+			t.Errorf("unset trusts %s, so any machine on that network picks the address the throttle counts", addr)
+		}
 	}
 	if _, err := trustedProxies("proxy.lan"); err == nil {
 		t.Error("a host name was taken for a trusted proxy")
