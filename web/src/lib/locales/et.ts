@@ -3563,6 +3563,7 @@ export const et: Dict = {
   'whatsnew.change.weekBand': '„{name}“ joonistab terve nädala ühe ribana.',
   'whatsnew.change.reconnectScene': 'Pilt näitab, kuidas KnightLoader küsib ruuterilt uut aadressi.',
   'whatsnew.change.seedRing': 'Rõngas näitab, kui lähedal on torrent oma levitamise sihile.',
+  'whatsnew.change.routes': '„{name}“ joonistab teed välja ja test värvib iga joone roheliseks või punaseks.',
   'whatsnew.change.infoTile': '„{name}“ ütleb, kes KnightLoaderit teeb, loetleb kõik versioonid ja näitab, kust abi saab.',
   'whatsnew.change.phoneBar': 'Telefonis hoiab alumine riba nelja lehte ja selle viimane koht avab kõik ülejäänu.',
   'whatsnew.change.queueState': '„{play}“ ja „{pause}“ näitavad, mida järjekord teeb: täidetud nupp on selle olek, teine on see, mida vajutada.',

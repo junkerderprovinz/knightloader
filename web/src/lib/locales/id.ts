@@ -3571,6 +3571,7 @@ export const id: Dict = {
   'whatsnew.change.weekBand': '“{name}” menggambar seluruh minggu sebagai satu pita.',
   'whatsnew.change.reconnectScene': 'Sebuah gambar menunjukkan cara KnightLoader meminta alamat baru kepada router.',
   'whatsnew.change.seedRing': 'Sebuah cincin menunjukkan seberapa dekat torrent dengan target seed-nya.',
+  'whatsnew.change.routes': '“{name}” menggambar rute keluar, dan sebuah uji mewarnai setiap garis hijau atau merah.',
   'whatsnew.change.infoTile': '“{name}” mengatakan siapa yang membuat KnightLoader, mencantumkan setiap versi, dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Di ponsel, bilah bawah menyimpan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan antrean: tombol yang terisi adalah keadaannya, yang satunya adalah tombol untuk ditekan.',

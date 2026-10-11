@@ -3566,6 +3566,8 @@ export const eu: Dict = {
   'whatsnew.change.weekBand': '«{name}» atalak aste osoa banda gisa marrazten du.',
   'whatsnew.change.reconnectScene': 'Irudi batek erakusten du KnightLoaderrek nola eskatzen dion helbide berri bat bideratzaileari.',
   'whatsnew.change.seedRing': 'Eraztun batek erakusten du torrent bat bere seed helburutik zein gertu dagoen.',
+  'whatsnew.change.routes':
+    '«{name}» atalak kanporako bideak marrazten ditu, eta proba batek lerro bakoitza berdez edo gorriz margotzen du.',
   'whatsnew.change.infoTile': '«{name}» atalak esaten du nork egiten duen KnightLoader, bertsio guztiak zerrendatzen ditu eta laguntza non lortu erakusten du.',
   'whatsnew.change.phoneBar': 'Telefonoan beheko barrak lau orri gordetzen ditu, eta bere azken lekuak gainerako guztia irekitzen du.',
   'whatsnew.change.queueState': '«{play}» eta «{pause}» botoiek ilara zertan ari den erakusten dute: betetako botoia haren egoera da, bestea sakatzekoa.',

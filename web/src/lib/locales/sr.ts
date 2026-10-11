@@ -3585,6 +3585,7 @@ export const sr: Dict = {
   'whatsnew.change.weekBand': '„{name}“ црта целу недељу као траку.',
   'whatsnew.change.reconnectScene': 'Слика показује како KnightLoader од рутера тражи нову адресу.',
   'whatsnew.change.seedRing': 'Прстен показује колико је торент близу свом циљу сидовања.',
+  'whatsnew.change.routes': '„{name}“ црта путеве ка споља, а тест боји сваку линију у зелено или црвено.',
   'whatsnew.change.infoTile': '„{name}“ каже ко прави KnightLoader, наводи сваку верзију и показује где да добијеш помоћ.',
   'whatsnew.change.phoneBar': 'На телефону доња трака задржава четири странице, а њено последње место отвара све остало.',
   'whatsnew.change.queueState': '„{play}“ и „{pause}“ показују шта ред ради: попуњено дугме је његово стање, а друго се притиска.',

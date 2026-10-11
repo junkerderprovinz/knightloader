@@ -3818,6 +3818,7 @@ export const en = {
   'whatsnew.change.weekBand': '"{name}" draws the whole week as a band.',
   'whatsnew.change.reconnectScene': 'A picture shows how KnightLoader asks the router for a new address.',
   'whatsnew.change.seedRing': 'A ring shows how close a torrent is to its seed target.',
+  'whatsnew.change.routes': '"{name}" draws the routes out of this instance, and a test turns each line green or red.',
   'whatsnew.change.infoTile': '"{name}" says who makes KnightLoader, lists every version and shows where to get help.',
   'whatsnew.change.phoneBar': 'On a phone the bottom bar keeps four pages, and its last place opens everything else.',
   'whatsnew.change.queueState': '"{play}" and "{pause}" show what the queue is doing: the filled one is its state, the other is the one to press.',

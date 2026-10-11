@@ -3560,6 +3560,7 @@ export const fa: Dict = {
   'whatsnew.change.weekBand': '«{name}» کل هفته را به شکل یک نوار می‌کشد.',
   'whatsnew.change.reconnectScene': 'یک تصویر نشان می‌دهد KnightLoader چطور از روتر نشانی تازه می‌خواهد.',
   'whatsnew.change.seedRing': 'یک حلقه نشان می‌دهد تورنت چقدر به هدف سید خود نزدیک است.',
+  'whatsnew.change.routes': '«{name}» مسیرهای خروج را می‌کشد و آزمون هر خط را سبز یا قرمز می‌کند.',
   'whatsnew.change.infoTile': '«{name}» می‌گوید چه کسی KnightLoader را می‌سازد، همهٔ نسخه‌ها را فهرست می‌کند و نشان می‌دهد از کجا کمک بگیری.',
   'whatsnew.change.phoneBar': 'در گوشی، نوار پایینی چهار صفحه را نگه می‌دارد و جای آخرش هر چیز دیگری را باز می‌کند.',
   'whatsnew.change.queueState': '«{play}» و «{pause}» نشان می‌دهند صف چه می‌کند: دکمهٔ پُر وضعیت آن است و دکمهٔ دیگر همانی است که فشار می‌دهی.',

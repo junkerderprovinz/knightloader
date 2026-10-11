@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { ConnectionsCard } from './Connections';
@@ -15,12 +16,17 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 
+// The card reads the running downloads off the live stream, which a test has none of.
+vi.mock('../../lib/useTasks', () => ({ useTasks: () => ({}) }));
+
 let root: Root;
 let host: HTMLDivElement;
 
 const proxy = { id: 'a', type: 'http', host: 'proxy.example.org', port: 8080, enabled: true, order: 0 };
 
 beforeEach(() => {
+  // The picture of the routes stands still, so a line turns with the answer.
+  vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -43,16 +49,32 @@ async function mount() {
   const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
   await act(async () =>
     root.render(
-      <SettingsProvider draft={draft} features={features}>
-        <ConnectionsCard hue={0} />
-      </SettingsProvider>,
+      <MemoryRouter>
+        <SettingsProvider draft={draft} features={features}>
+          <ConnectionsCard hue={0} />
+        </SettingsProvider>
+      </MemoryRouter>,
     ),
   );
 }
 
 const row = () => host.querySelector<HTMLButtonElement>('button[aria-haspopup="dialog"]')!;
 const sheet = () => host.querySelector<HTMLElement>('[role="dialog"]');
-const named = (text: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === text)!;
+const named = (text: string, within: Element = host) =>
+  [...within.querySelectorAll('button')].find((b) => b.textContent === text)!;
+const route = () => host.querySelector('[data-route="a"]')!;
+
+function answer(report: { ok: boolean; detail: string }) {
+  const asked = vi.fn((_url: string, _init?: RequestInit) =>
+    Promise.resolve(
+      new Response(JSON.stringify({ stage: 'dial', millis: 12, ...report }), {
+        headers: { 'Content-Type': 'application/json' },
+      }),
+    ),
+  );
+  vi.stubGlobal('fetch', asked);
+  return asked;
+}
 
 describe('a connection row', () => {
   it('opens its settings in a window over the page instead of unfolding', async () => {
@@ -72,19 +94,10 @@ describe('a connection row', () => {
   });
 
   it('shows what the test came to on the test button, with the reason above it', async () => {
-    vi.stubGlobal(
-      'fetch',
-      vi.fn(() =>
-        Promise.resolve(
-          new Response(JSON.stringify({ ok: false, stage: 'dial', detail: 'connection refused', millis: 12 }), {
-            headers: { 'Content-Type': 'application/json' },
-          }),
-        ),
-      ),
-    );
+    answer({ ok: false, detail: 'connection refused' });
     await mount();
     await act(async () => row().click());
-    const test = named('Test');
+    const test = named('Test', sheet()!);
     await act(async () => test.click());
 
     expect(test.textContent).toBe('Not connected');
@@ -93,5 +106,44 @@ describe('a connection row', () => {
     expect(reason.className).not.toMatch(/text-status/);
     // The reason stands before the button in the window.
     expect(reason.compareDocumentPosition(test) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+});
+
+describe('the picture of the routes', () => {
+  it('draws the row as a route out of this instance', async () => {
+    await mount();
+    expect(route().getAttribute('data-state')).toBe('on');
+    expect(route().textContent).toContain('proxy.example.org:8080');
+  });
+
+  it('dials every route in use from its one test button and turns the line with the answer', async () => {
+    const asked = answer({ ok: true, detail: 'proxy.example.org:8080 answers' });
+    await mount();
+    const test = named('Test');
+    await act(async () => test.click());
+
+    expect(JSON.parse(String(asked.mock.calls[0][1]!.body))).toEqual({ entry: proxy, target: '' });
+    expect(route().getAttribute('data-state')).toBe('ok');
+    expect(test.textContent).toBe('Connected');
+  });
+
+  it('says why a route did not answer, above the button', async () => {
+    answer({ ok: false, detail: 'proxy.example.org:8080 could not be reached' });
+    await mount();
+    const test = named('Test');
+    await act(async () => test.click());
+
+    expect(route().getAttribute('data-state')).toBe('fail');
+    expect(test.textContent).toBe('Not connected');
+    const reason = [...host.querySelectorAll('p')].find((p) => p.textContent === 'proxy.example.org:8080 could not be reached')!;
+    expect(reason.compareDocumentPosition(test) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('opens a row from its route', async () => {
+    await mount();
+    await act(async () =>
+      route().querySelector('[role="button"]')!.dispatchEvent(new MouseEvent('click', { bubbles: true })),
+    );
+    expect(sheet()!.querySelector('h2')!.textContent).toBe('proxy.example.org:8080');
   });
 });

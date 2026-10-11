@@ -3568,6 +3568,7 @@ export const ja: Dict = {
   'whatsnew.change.weekBand': '「{name}」は 1 週間全体を帯で描きます。',
   'whatsnew.change.reconnectScene': 'KnightLoader がルーターに新しいアドレスを求める様子を絵で示します。',
   'whatsnew.change.seedRing': 'リングは、トレントがシード目標にどれだけ近いかを示します。',
+  'whatsnew.change.routes': '「{name}」は外への経路を描き、テストすると各線が緑または赤になります。',
   'whatsnew.change.infoTile': '「{name}」には、KnightLoader の作者、すべてのバージョン、ヘルプの入手先があります。',
   'whatsnew.change.phoneBar': 'スマートフォンでは、ボトムバーに 4 つのページが残り、最後の枠からそれ以外のすべてを開けます。',
   'whatsnew.change.queueState': '「{play}」と「{pause}」はキューの状態を示します。塗りつぶされているほうが現在の状態で、もう一方が押すボタンです。',

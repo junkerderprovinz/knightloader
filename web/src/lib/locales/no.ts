@@ -3573,6 +3573,7 @@ export const no: Dict = {
   'whatsnew.change.weekBand': '«{name}» tegner hele uken som et bånd.',
   'whatsnew.change.reconnectScene': 'Et bilde viser hvordan KnightLoader ber ruteren om en ny adresse.',
   'whatsnew.change.seedRing': 'En ring viser hvor nær en torrent er seed-målet sitt.',
+  'whatsnew.change.routes': '«{name}» tegner veiene ut, og en test farger hver linje grønn eller rød.',
   'whatsnew.change.infoTile': '«{name}» sier hvem som lager KnightLoader, viser hver versjon og viser hvor du får hjelp.',
   'whatsnew.change.phoneBar': 'På en telefon beholder bunnfeltet fire sider, og den siste plassen åpner alt det andre.',
   'whatsnew.change.queueState': '«{play}» og «{pause}» viser hva køen gjør: Den fylte knappen er tilstanden, den andre er den du trykker på.',

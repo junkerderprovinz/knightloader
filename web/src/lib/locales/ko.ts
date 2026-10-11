@@ -3559,6 +3559,7 @@ export const ko: Dict = {
   'whatsnew.change.weekBand': '“{name}” 카드는 한 주 전체를 띠로 그립니다.',
   'whatsnew.change.reconnectScene': 'KnightLoader가 공유기에 새 주소를 요청하는 과정을 그림으로 보여 줍니다.',
   'whatsnew.change.seedRing': '고리는 토렌트가 시드 목표에 얼마나 가까운지 보여 줍니다.',
+  'whatsnew.change.routes': '“{name}” 카드는 밖으로 나가는 경로를 그리고, 테스트하면 각 선이 초록색이나 빨간색으로 바뀝니다.',
   'whatsnew.change.infoTile': '“{name}” 페이지에서는 KnightLoader를 만드는 사람, 모든 버전, 도움을 받을 곳을 볼 수 있습니다.',
   'whatsnew.change.phoneBar': '휴대폰에서는 하단 바에 네 개의 페이지가 남고, 마지막 자리에서 나머지를 모두 엽니다.',
   'whatsnew.change.queueState': '“{play}” 및 “{pause}” 버튼은 대기열이 무엇을 하고 있는지 보여 줍니다. 채워진 버튼이 현재 상태이고, 다른 버튼이 누를 버튼입니다.',

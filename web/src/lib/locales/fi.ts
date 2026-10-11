@@ -3573,6 +3573,7 @@ export const fi: Dict = {
   'whatsnew.change.weekBand': '”{name}” piirtää koko viikon nauhana.',
   'whatsnew.change.reconnectScene': 'Kuva näyttää, miten KnightLoader pyytää reitittimeltä uutta osoitetta.',
   'whatsnew.change.seedRing': 'Rengas näyttää, kuinka lähellä torrentti on jakotavoitettaan.',
+  'whatsnew.change.routes': '”{name}” piirtää reitit ulos, ja testi värittää jokaisen viivan vihreäksi tai punaiseksi.',
   'whatsnew.change.infoTile': '”{name}” kertoo, kuka tekee KnightLoaderia, näyttää jokaisen version ja kertoo, mistä saat apua.',
   'whatsnew.change.phoneBar': 'Puhelimessa alapalkissa on neljä sivua, ja sen viimeinen paikka avaa kaiken muun.',
   'whatsnew.change.queueState': '”{play}” ja ”{pause}” näyttävät, mitä jono tekee: täytetty painike on jonon tila, toinen on se, jota painetaan.',

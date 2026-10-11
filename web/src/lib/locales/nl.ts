@@ -3554,6 +3554,7 @@ export const nl: Dict = {
   'whatsnew.change.weekBand': '“{name}” tekent de hele week als een band.',
   'whatsnew.change.reconnectScene': 'Een afbeelding laat zien hoe KnightLoader de router om een nieuw adres vraagt.',
   'whatsnew.change.seedRing': 'Een ring laat zien hoe dicht een torrent bij zijn seeddoel is.',
+  'whatsnew.change.routes': '“{name}” tekent de routes naar buiten, en een test kleurt elke lijn groen of rood.',
   'whatsnew.change.infoTile': '“{name}” zegt wie KnightLoader maakt, toont elke versie en laat zien waar je hulp vindt.',
   'whatsnew.change.phoneBar': 'Op een telefoon houdt de onderbalk vier pagina’s, en de laatste plek opent al het andere.',
   'whatsnew.change.queueState': '“{play}” en “{pause}” laten zien wat de wachtrij doet: de gevulde knop is de toestand, de andere is de knop om in te drukken.',

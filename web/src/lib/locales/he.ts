@@ -3589,6 +3589,7 @@ export const he: Dict = {
   'whatsnew.change.weekBand': '„{name}” מצייר את כל השבוע כרצועה.',
   'whatsnew.change.reconnectScene': 'תמונה מראה איך KnightLoader מבקש מהנתב כתובת חדשה.',
   'whatsnew.change.seedRing': 'טבעת מראה כמה קרוב טורנט ליעד ההזרעה שלו.',
+  'whatsnew.change.routes': '„{name}” מצייר את הדרכים החוצה, ובדיקה צובעת כל קו בירוק או באדום.',
   'whatsnew.change.infoTile': '„{name}” אומר מי יוצר את KnightLoader, מפרט כל גרסה ומראה איפה מקבלים עזרה.',
   'whatsnew.change.phoneBar': 'בטלפון הסרגל התחתון שומר ארבעה עמודים, והמקום האחרון שבו פותח את כל השאר.',
   'whatsnew.change.queueState': '„{play}” ו„{pause}” מראים מה התור עושה: הכפתור המלא הוא המצב שלו, והשני הוא זה שלוחצים עליו.',
