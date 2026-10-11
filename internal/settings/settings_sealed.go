@@ -9,6 +9,8 @@ import (
 	"slices"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
+	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
 
 // FileName is the file in the data folder settings live in.
@@ -83,7 +85,8 @@ func (s *Store) encode(n Settings) ([]byte, error) {
 // hold one: the values Redacted hides from clients, the archive passwords, the
 // event targets' addresses and bodies (a Discord or Telegram token sits in the
 // path), the feeds' addresses (an indexer's API key) and the reconnect
-// requests and script.
+// requests and script. Scrubbed reads the same list, so a secret added here
+// is sealed at rest and kept out of the diagnostics bundle at once.
 func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 	var firstErr error
 	apply := func(v *string) {
@@ -155,4 +158,21 @@ func (s Settings) mapSecrets(f func(string) (string, error)) (Settings, error) {
 		}
 	}
 	return s, firstErr
+}
+
+// Scrubbed is s for a document that leaves the owner's hands, such as the
+// diagnostics bundle: every value mapSecrets reaches is replaced by
+// reconnect.RedactedPassword, and an address keeps only its scheme and host,
+// which says what is configured without the token in its path or query.
+func (s Settings) Scrubbed() Settings {
+	out, _ := s.mapSecrets(func(v string) (string, error) {
+		if v == "" {
+			return v, nil
+		}
+		if host := core.HostOf(v); host != "" {
+			return host, nil
+		}
+		return reconnect.RedactedPassword, nil
+	})
+	return out
 }

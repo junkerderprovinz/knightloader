@@ -12,9 +12,12 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
+	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
+	"github.com/junkerderprovinz/knightloader/internal/script"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -115,6 +118,50 @@ func TestDiagnosticsRedactsSecrets(t *testing.T) {
 	// up as one with none.
 	if !bytes.Contains(raw, []byte(reconnect.RedactedPassword)) {
 		t.Error("the router password field is missing rather than redacted")
+	}
+}
+
+// TestDiagnosticsRedactsTheSecretsTheSettingsPageShows plants a token in each
+// value the settings page shows its owner but the bundle must not carry: an
+// event target's address and body, a feed's address, and the reconnect
+// requests and script.
+func TestDiagnosticsRedactsTheSecretsTheSettingsPageShows(t *testing.T) {
+	srv, _ := testServer(t)
+	defer srv.Close()
+
+	withSecrets := settingsWith(func(s *settings.Settings) {
+		s.EventTargets = []notify.Target{{
+			ID: "1", Name: "chat", Enabled: true, Method: notify.MethodPOST,
+			URL:      "https://discord.example/api/webhooks/1/HOOKLEAK",
+			Body:     `{"token":"BODYLEAK"}`,
+			Triggers: []script.Trigger{script.TriggerTaskDone},
+		}}
+		s.Feeds = []feed.Subscription{{URL: "https://user:FEEDPW@indexer.example/api?t=search&apikey=FEEDLEAK"}}
+		s.Reconnect = reconnect.Config{
+			Method: reconnect.MethodHTTP,
+			Requests: []reconnect.Request{{
+				URL:     "http://admin:REQUESTPW@192.0.2.1/reboot",
+				Headers: map[string]string{"Cookie": "sid=COOKIELEAK"},
+				Body:    "password=REQUESTBODYLEAK",
+			}},
+			Script:   "login --token=SCRIPTLEAK",
+			CheckURL: "https://ip.example/",
+		}
+	})
+	if code, _, msg := putSettings(t, srv.URL, withSecrets); code != http.StatusOK {
+		t.Fatalf("PUT /api/settings answered %d: %s", code, msg)
+	}
+
+	_, _, raw := getDiagnostics(t, srv.URL)
+	for _, secret := range []string{"HOOKLEAK", "BODYLEAK", "FEEDPW", "FEEDLEAK", "REQUESTPW", "COOKIELEAK", "REQUESTBODYLEAK", "SCRIPTLEAK"} {
+		if bytes.Contains(raw, []byte(secret)) {
+			t.Errorf("GET /api/diagnostics shipped %q in the bundle", secret)
+		}
+	}
+	for _, host := range []string{"https://discord.example", "https://indexer.example"} {
+		if !bytes.Contains(raw, []byte(host)) {
+			t.Errorf("the bundle lost the host %s, which says what is configured", host)
+		}
 	}
 }
 

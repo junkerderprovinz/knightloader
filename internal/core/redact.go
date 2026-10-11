@@ -30,7 +30,7 @@ func (t Task) WithoutCredentials() Task {
 	if t.Trackers != nil {
 		trackers := make([]string, len(t.Trackers))
 		for i, tr := range t.Trackers {
-			trackers[i] = trackerHost(tr)
+			trackers[i] = HostOf(tr)
 		}
 		t.Trackers = trackers
 	}
@@ -74,7 +74,7 @@ func RedactURL(s string) string {
 			args[i] = key + "=redacted"
 		case magnet && name == "tr":
 			if tr, err := url.QueryUnescape(value); err == nil {
-				args[i] = key + "=" + url.QueryEscape(trackerHost(tr))
+				args[i] = key + "=" + url.QueryEscape(HostOf(tr))
 			}
 		}
 	}
@@ -113,9 +113,11 @@ func redactValues(m map[string]string) map[string]string {
 	return out
 }
 
-// trackerHost is a tracker's address cut to its scheme and host.
-func trackerHost(tr string) string {
-	u, err := url.Parse(strings.TrimSpace(tr))
+// HostOf is address s cut to its scheme and host, or empty when s is not an
+// address with a host. It is all a tracker keeps, and all of an address that
+// may carry a token in its path.
+func HostOf(s string) string {
+	u, err := url.Parse(strings.TrimSpace(s))
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return ""
 	}
