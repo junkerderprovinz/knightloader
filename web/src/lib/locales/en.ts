@@ -408,6 +408,7 @@ export const en = {
   'settings.pathProblem.notAbsolute': 'Enter a full path, such as /downloads or D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Could not create {dir}.',
   'settings.pathProblem.cannotWrite': 'Could not write to {dir}.',
+  'settings.pathProblem.dataFolder': "{dir} is inside KnightLoader's data folder, next to its passwords and settings. Choose a folder outside it.",
   'settings.watchDirFilesHint':
     'Files dropped here are picked up automatically: link lists (.txt, .crawljob, .magnet), .torrent files, containers (.dlc, .ccf, .rsdf) and .nzb files.',
   'settings.crawl': 'Follow pages and collect the files they link to',
@@ -605,6 +606,7 @@ export const en = {
   'cleanup.localOnly': 'Clean-up always runs on this instance, not on the one you are looking at. Switch back to “This instance” to use it.',
   'cleanup.nothing': 'Nothing matches “{what}” right now, so nothing was removed.',
   'cleanup.failed': 'Could not work out what this would remove: {error}',
+  'cleanup.changed': 'The links under “{what}” changed after the preview, so nothing was removed. Choose it again to see the new list.',
 
   'remove.title': 'Delete the downloaded files too?',
   'remove.count': '{n} download(s) will be taken off the list.',
@@ -2151,6 +2153,7 @@ export const en = {
   'settings.system.restoreConfirmTitle': 'Restore from backup?',
   'settings.system.restoreConfirmBody':
     'This replaces the current database and settings with the contents of “{name}”. This cannot be undone.',
+  'settings.system.restoreKeepsLogin': 'Your password, passkeys and API tokens stay as they are. The restore does not bring back passkeys from the backup.',
   'settings.system.restoring': 'Validating and staging…',
   'settings.system.restoreFailed': 'Could not restore: {error}',
   'settings.system.restoreStaged': '{status}',

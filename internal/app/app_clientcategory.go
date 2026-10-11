@@ -73,7 +73,7 @@ func (a *App) GrabFolder(category, dir, name string) (string, error) {
 	if base == "" {
 		base = settings.FixedPrefix(a.defaultDir())
 	}
-	if err := settings.Validate("the folder for this batch", base); err != nil {
+	if err := settings.Validate(a.DataDir, "the folder for this batch", base); err != nil {
 		return "", err
 	}
 	if err := os.MkdirAll(base, filemode.Dir); err != nil {

@@ -353,6 +353,7 @@ export const ko: Dict = {
   'settings.pathProblem.notAbsolute': '/downloads 또는 D:\\Downloads 같은 전체 경로를 입력하세요.',
   'settings.pathProblem.cannotCreate': '{dir}을(를) 만들 수 없었습니다.',
   'settings.pathProblem.cannotWrite': '{dir}에 쓸 수 없었습니다.',
+  'settings.pathProblem.dataFolder': '{dir}은(는) KnightLoader 데이터 폴더 안에 있어 비밀번호와 설정 옆에 놓입니다. 그 밖의 폴더를 고르세요.',
   'settings.crawl': '페이지를 따라가 링크된 파일을 모으기',
   'settings.crawl.depth': '크롤링 깊이',
   'settings.crawl.depthHint': '얼마나 깊이 들어갈지입니다. 1은 붙여넣은 페이지만, 2는 그 페이지가 링크한 페이지까지, 3은 그 링크까지 엽니다. 같은 페이지를 두 번 열지 않으므로 서로 가리키는 링크는 순환하지 않고 실행을 끝냅니다.',
@@ -527,6 +528,7 @@ export const ko: Dict = {
   'cleanup.localOnly': '정리는 보고 있는 인스턴스가 아니라 언제나 이 인스턴스에서 실행됩니다. 사용하려면 “이 인스턴스”로 돌아가세요.',
   'cleanup.nothing': '지금은 “{what}”에 해당하는 것이 없어 아무것도 지우지 않았습니다.',
   'cleanup.failed': '무엇이 지워질지 알아내지 못했습니다: {error}',
+  'cleanup.changed': '미리 보기 후에 “{what}”의 링크가 바뀌어서 아무것도 지우지 않았습니다. 새 목록을 보려면 다시 고르세요.',
 
   'remove.title': '내려받은 파일도 삭제할까요?',
   'remove.count': '다운로드 {n}개를 목록에서 뺍니다.',
@@ -1746,6 +1748,7 @@ export const ko: Dict = {
   'settings.system.restoreConfirmTitle': '백업에서 복원하시겠습니까?',
   'settings.system.restoreConfirmBody':
     '이렇게 하면 현재 데이터베이스와 설정이 "{name}"의 내용으로 교체됩니다. 이 작업은 되돌릴 수 없습니다.',
+  'settings.system.restoreKeepsLogin': '비밀번호, 패스키, API 토큰은 그대로 유지됩니다. 복원해도 백업에 들어 있는 패스키는 돌아오지 않습니다.',
   'settings.system.restoring': '검증하고 준비하는 중…',
   'settings.system.restoreFailed': '복원할 수 없었습니다: {error}',
   'settings.system.restoreStaged': '{status}',

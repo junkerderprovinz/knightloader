@@ -353,6 +353,7 @@ export const fi: Dict = {
   'settings.pathProblem.notAbsolute': 'Anna koko polku, esimerkiksi /downloads tai D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kansiota {dir} ei voitu luoda.',
   'settings.pathProblem.cannotWrite': 'Kansioon {dir} ei voitu kirjoittaa.',
+  'settings.pathProblem.dataFolder': '{dir} on KnightLoaderin datakansiossa, salasanojen ja asetusten vieressä. Valitse kansio sen ulkopuolelta.',
   'settings.crawl': 'Seuraa sivuja ja kerää tiedostot, joihin ne viittaavat',
   'settings.crawl.depth': 'Läpikäynnin syvyys',
   'settings.crawl.depthHint': 'Kuinka syvälle mennään. 1 on vain liitetty sivu, 2 avaa myös sivut joihin se linkittää, 3 avaa niiden linkit. Sivua ei avata koskaan kahdesti, joten toisiinsa osoittavat linkit päättävät ajon sen sijaan että se kiertäisi kehää.',
@@ -527,6 +528,7 @@ export const fi: Dict = {
   'cleanup.localOnly': 'Siivous ajetaan aina tässä instanssissa, ei siinä jota katselet. Vaihda takaisin kohtaan ”Tämä instanssi” käyttääksesi sitä.',
   'cleanup.nothing': 'Mikään ei täsmää juuri nyt kohtaan ”{what}”, joten mitään ei poistettu.',
   'cleanup.failed': 'Ei saatu selville mitä tämä poistaisi: {error}',
+  'cleanup.changed': 'Kohdan ”{what}” linkit muuttuivat esikatselun jälkeen, joten mitään ei poistettu. Valitse se uudelleen nähdäksesi uuden luettelon.',
 
   'remove.title': 'Poistetaanko myös ladatut tiedostot?',
   'remove.count': '{n} latausta otetaan pois listalta.',
@@ -1746,6 +1748,7 @@ export const fi: Dict = {
   'settings.system.restoreConfirmTitle': 'Palautetaanko varmuuskopiosta?',
   'settings.system.restoreConfirmBody':
     'Tämä korvaa nykyisen tietokannan ja asetukset tiedoston ”{name}” sisällöllä. Tätä ei voi perua.',
+  'settings.system.restoreKeepsLogin': 'Salasana, pääsyavaimet ja API-tokenit pysyvät ennallaan. Palautus ei tuo varmuuskopion pääsyavaimia takaisin.',
   'settings.system.restoring': 'Vahvistetaan ja valmistellaan…',
   'settings.system.restoreFailed': 'Palautus epäonnistui: {error}',
   'settings.system.restoreStaged': '{status}',

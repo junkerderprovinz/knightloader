@@ -355,6 +355,7 @@ export const no: Dict = {
   'settings.pathProblem.notAbsolute': 'Skriv inn en fullstendig sti, for eksempel /downloads eller D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Kunne ikke opprette {dir}.',
   'settings.pathProblem.cannotWrite': 'Kunne ikke skrive til {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ligger i datamappen til KnightLoader, ved siden av passord og innstillinger. Velg en mappe utenfor den.',
   'settings.crawl': 'Følg sider og samle filene de lenker til',
   'settings.crawl.depth': 'Dybde',
   'settings.crawl.depthHint': 'Hvor dypt det går. 1 er bare den innlimte siden, 2 åpner også sidene den lenker til, 3 åpner deres. En side åpnes aldri to ganger, så lenker som peker på hverandre avslutter kjøringen i stedet for å gå i ring.',
@@ -529,6 +530,7 @@ export const no: Dict = {
   'cleanup.localOnly': 'Opprydding kjører alltid på denne instansen, ikke på den du ser på. Bytt tilbake til «Denne instansen» for å bruke den.',
   'cleanup.nothing': 'Ingenting passer til «{what}» akkurat nå, så ingenting ble fjernet.',
   'cleanup.failed': 'Klarte ikke å finne ut hva dette ville fjerne: {error}',
+  'cleanup.changed': 'Lenkene under «{what}» endret seg etter forhåndsvisningen, så ingenting ble fjernet. Velg det igjen for å se den nye lista.',
 
   'remove.title': 'Skal de nedlastede filene slettes også?',
   'remove.count': '{n} nedlasting(er) blir tatt av listen.',
@@ -1748,6 +1750,7 @@ export const no: Dict = {
   'settings.system.restoreConfirmTitle': 'Gjenopprette fra sikkerhetskopi?',
   'settings.system.restoreConfirmBody':
     'Dette erstatter den nåværende databasen og innstillingene med innholdet i «{name}». Dette kan ikke angres.',
+  'settings.system.restoreKeepsLogin': 'Passordet, passnøklene og API-tokenene forblir som de er. Gjenopprettingen henter ikke tilbake passnøklene fra sikkerhetskopien.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gjenopprette: {error}',
   'settings.system.restoreStaged': '{status}',

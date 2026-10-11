@@ -12,6 +12,17 @@ usual `yyyy MM dd HH mm ss SSS` pattern letters. A task can also carry its own
 folder, which always wins, and a Packagizer rule can set one per link, which is
 how one paste lands in several places.
 
+## Never in the data folder
+
+Nothing a download, an unpacking, a move or a rename writes may land in
+KnightLoader's data folder (`KL_DATA`, `/data` in the container), which holds
+`auth.json`, `tokens.json`, `settings.json` and the tools KnightLoader runs. A
+folder there is refused when you save it. A download, an unpacking or a rename
+that would still end up there, through a template, a package folder or a link
+to the data folder, stops with a message instead. The one exception is the
+`downloads` folder inside the data folder, which is used while no download
+folder is set.
+
 ## Two variables that differ from JDownloader
 
 The variables menu says so next to each. `<jd:source:N>` here is the **Nth path

@@ -17,7 +17,7 @@ func TestValidateDoesNotCreatePlaceholderFolders(t *testing.T) {
 	}
 	tmpl := filepath.Join(base, "downloads", "<jd:date>", "<jd:packagename>")
 
-	if err := Validate("the download folder", tmpl); err != nil {
+	if err := Validate("", "the download folder", tmpl); err != nil {
 		t.Fatalf("a folder template was refused: %v", err)
 	}
 	entries, err := os.ReadDir(filepath.Join(base, "downloads"))
@@ -50,10 +50,10 @@ func TestFixedPrefix(t *testing.T) {
 // A relative path resolves against whatever the working directory happens to
 // be, which for a container is not somewhere anybody can reason about.
 func TestValidateRefusesARelativeFolder(t *testing.T) {
-	if err := Validate("the working folder", filepath.Join("relative", "downloads")); err == nil {
+	if err := Validate("", "the working folder", filepath.Join("relative", "downloads")); err == nil {
 		t.Error("a relative folder was accepted")
 	}
-	if err := Validate("the download folder", ""); err != nil {
+	if err := Validate("", "the download folder", ""); err != nil {
 		t.Errorf("the built-in default was refused: %v", err)
 	}
 }
@@ -65,7 +65,7 @@ func TestValidateRefusesARelativeFolder(t *testing.T) {
 // The message is asserted rather than only the error: a refusal comes back
 // either way, so err != nil is green against the bug this describes.
 func TestValidateNamesTheFieldThatFailed(t *testing.T) {
-	err := Validate("the working folder", filepath.Join("relative", "work"))
+	err := Validate("", "the working folder", filepath.Join("relative", "work"))
 	if err == nil {
 		t.Fatal("a relative folder was accepted")
 	}

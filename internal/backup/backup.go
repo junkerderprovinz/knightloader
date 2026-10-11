@@ -23,6 +23,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 	"golang.org/x/mod/semver"
 	_ "modernc.org/sqlite"
 )
@@ -145,7 +146,8 @@ func Stage(dataDir string, zipBytes []byte, runningVersion string) (Manifest, er
 	if err != nil {
 		return Manifest{}, err
 	}
-	if err := validateDatabase(dbRaw); err != nil {
+	dbRaw, err = cleanDatabase(dbRaw)
+	if err != nil {
 		return Manifest{}, err
 	}
 
@@ -178,24 +180,30 @@ func readEntry(zr *zip.Reader, name string) ([]byte, error) {
 	return b, nil
 }
 
-// validateDatabase opens raw as a standalone SQLite file and checks that it
-// passes SQLite's integrity check and has a tasks table.
-func validateDatabase(raw []byte) error {
-	tmp, err := os.CreateTemp("", "kl-restore-validate-*.db")
+// cleanDatabase opens raw as a standalone SQLite file, checks that it passes
+// SQLite's integrity check and has a tasks table, and returns it stripped (see
+// stripDatabase).
+func cleanDatabase(raw []byte) ([]byte, error) {
+	dir, err := os.MkdirTemp("", "kl-restore-validate-")
 	if err != nil {
-		return fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
 	}
-	tmpPath := tmp.Name()
-	defer os.Remove(tmpPath)
-	if _, err := tmp.Write(raw); err != nil {
-		tmp.Close()
-		return fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+	defer os.RemoveAll(dir)
+	path := filepath.Join(dir, dbEntry)
+	if err := os.WriteFile(path, raw, 0o600); err != nil {
+		return nil, fmt.Errorf("backup: could not stage a copy to validate: %w", err)
 	}
-	if err := tmp.Close(); err != nil {
-		return fmt.Errorf("backup: could not stage a copy to validate: %w", err)
+	if err := checkDatabase(path); err != nil {
+		return nil, err
 	}
+	if err := stripDatabase(path); err != nil {
+		return nil, fmt.Errorf("the backup's database could not be cleaned: %w", err)
+	}
+	return os.ReadFile(path)
+}
 
-	db, err := sql.Open("sqlite", tmpPath)
+func checkDatabase(path string) error {
+	db, err := sql.Open("sqlite", path)
 	if err != nil {
 		return fmt.Errorf("the backup's database could not be opened: %w", err)
 	}
@@ -215,6 +223,65 @@ func validateDatabase(raw []byte) error {
 	}
 	if n == 0 {
 		return errors.New("the backup's database has no tasks table; it is not a KnightLoader backup")
+	}
+	return nil
+}
+
+// stripDatabase removes every trigger and view from the SQLite file at path
+// and empties its passkeys table. Both kinds are code the file brings along,
+// and a trigger on passkeys would write a removed key straight back. They are
+// deleted as rows of sqlite_master, so no name from the file ever becomes part
+// of a statement. KnightLoader's own schema has neither.
+func stripDatabase(path string) error {
+	if err := dropCode(path); err != nil {
+		return err
+	}
+	// A fresh connection, which reads the schema without what dropCode deleted.
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	var n int
+	if err := db.QueryRow(`SELECT count(*) FROM sqlite_master WHERE type = 'table' AND name = 'passkeys'`).Scan(&n); err != nil {
+		return err
+	}
+	if n > 0 {
+		if _, err := db.Exec(`DELETE FROM passkeys`); err != nil {
+			return err
+		}
+	}
+	// Rebuilt, so neither the definitions nor the keys stay behind on free
+	// pages.
+	if _, err := db.Exec(`VACUUM`); err != nil {
+		return err
+	}
+	var result string
+	if err := db.QueryRow(`PRAGMA integrity_check`).Scan(&result); err != nil {
+		return err
+	}
+	if result != "ok" {
+		return fmt.Errorf("integrity check after cleaning: %s", result)
+	}
+	return nil
+}
+
+func dropCode(path string) error {
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		return err
+	}
+	defer db.Close()
+	// writable_schema is a setting of one connection.
+	db.SetMaxOpenConns(1)
+	for _, q := range []string{
+		`PRAGMA writable_schema = ON`,
+		`DELETE FROM sqlite_master WHERE type IN ('trigger', 'view')`,
+		`PRAGMA writable_schema = OFF`,
+	} {
+		if _, err := db.Exec(q); err != nil {
+			return err
+		}
 	}
 	return nil
 }
@@ -273,10 +340,19 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 		_ = json.Unmarshal(mf, &manifest) // a broken manifest must not block the restore
 	}
 
+	// The database is made ready before anything live is replaced, so a
+	// restore that cannot be prepared leaves the settings as they were too.
+	live := filepath.Join(dataDir, dbEntry)
+	ready, err := prepareDatabase(filepath.Join(pending, dbEntry), live)
+	if err != nil {
+		return false, manifest, fmt.Errorf("restore: could not prepare %s: %w", dbEntry, err)
+	}
 	if err := copyFile(filepath.Join(pending, settingsEntry), filepath.Join(dataDir, settingsEntry)); err != nil {
+		os.Remove(ready)
 		return false, manifest, fmt.Errorf("restore: could not put %s in place: %w", settingsEntry, err)
 	}
-	if err := copyFile(filepath.Join(pending, dbEntry), filepath.Join(dataDir, dbEntry)); err != nil {
+	if err := os.Rename(ready, live); err != nil {
+		os.Remove(ready)
 		return false, manifest, fmt.Errorf("restore: could not put %s in place: %w", dbEntry, err)
 	}
 	// A journal left by the replaced database would be reconciled against
@@ -293,29 +369,68 @@ func ApplyPending(dataDir string) (applied bool, manifest Manifest, err error) {
 	return true, manifest, nil
 }
 
+// prepareDatabase copies the staged database beside the live one and returns
+// the copy's path, ready to be renamed into place. The copy is stripped again,
+// for a restore staged by a build that did not strip it, brought to this
+// build's schema, and given the live database's passkeys in place of its own:
+// the login of the running server is what stays.
+func prepareDatabase(staged, live string) (string, error) {
+	ready := live + ".restoring"
+	if err := copyTo(staged, ready); err != nil {
+		return "", err
+	}
+	if err := carryLogin(ready, live); err != nil {
+		os.Remove(ready)
+		return "", err
+	}
+	return ready, nil
+}
+
+func carryLogin(ready, live string) error {
+	if err := stripDatabase(ready); err != nil {
+		return err
+	}
+	s, err := store.Open(ready)
+	if err != nil {
+		return err
+	}
+	if err := s.ReplacePasskeysFrom(live); err != nil {
+		s.Close()
+		return err
+	}
+	return s.Close()
+}
+
 // copyFile copies src to dst through a temporary file renamed into place, so
 // a crash mid-copy leaves the old dst intact. src is never modified, which
 // keeps ApplyPending retryable.
 func copyFile(src, dst string) error {
+	tmp := dst + ".restoring"
+	if err := copyTo(src, tmp); err != nil {
+		return err
+	}
+	return os.Rename(tmp, dst)
+}
+
+func copyTo(src, dst string) error {
 	in, err := os.Open(src)
 	if err != nil {
 		return err
 	}
 	defer in.Close()
 
-	tmp := dst + ".restoring"
-	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
+	out, err := os.OpenFile(dst, os.O_CREATE|os.O_TRUNC|os.O_WRONLY, 0o644)
 	if err != nil {
 		return err
 	}
 	if _, err := io.Copy(out, in); err != nil {
 		out.Close()
-		os.Remove(tmp)
+		os.Remove(dst)
 		return err
 	}
 	if err := out.Close(); err != nil {
-		os.Remove(tmp)
+		os.Remove(dst)
 		return err
 	}
-	return os.Rename(tmp, dst)
+	return nil
 }

@@ -353,6 +353,7 @@ export const gl: Dict = {
   'settings.pathProblem.notAbsolute': 'Escribe unha ruta completa, como /downloads ou D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Non se puido crear {dir}.',
   'settings.pathProblem.cannotWrite': 'Non se puido escribir en {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} está no cartafol de datos de KnightLoader, xunto aos contrasinais e os axustes. Escolle un cartafol fóra del.',
   'settings.crawl': 'Seguir as páxinas e recoller os ficheiros que ligan',
   'settings.crawl.depth': 'Profundidade do rastrexo',
   'settings.crawl.depthHint': 'Ata onde chegar. 1 é só a páxina pegada, 2 abre tamén as páxinas que liga, 3 abre as delas. Unha páxina nunca se abre dúas veces, así que as ligazóns mutuas rematan o rastrexo en vez de facelo dar voltas.',
@@ -527,6 +528,7 @@ export const gl: Dict = {
   'cleanup.localOnly': 'A limpeza execútase sempre nesta instancia, non na que estás a ver. Volve a «Esta instancia» para usala.',
   'cleanup.nothing': 'Agora mesmo non hai nada que coincida con «{what}», así que non se quitou nada.',
   'cleanup.failed': 'Non se puido saber que quitaría isto: {error}',
+  'cleanup.changed': 'As ligazóns de «{what}» cambiaron despois da vista previa, así que non se quitou nada. Volve escollelo para ver a lista nova.',
 
   'remove.title': 'Borrar tamén os ficheiros descargados?',
   'remove.count': 'Quitaranse {n} descargas da lista.',
@@ -1746,6 +1748,7 @@ export const gl: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurar desde unha copia de seguridade?',
   'settings.system.restoreConfirmBody':
     'Isto substitúe a base de datos e a configuración actuais polo contido de «{name}». Isto non se pode desfacer.',
+  'settings.system.restoreKeepsLogin': 'O contrasinal, as chaves de acceso e os tokens de API quedan como están. A restauración non recupera as chaves de acceso da copia de seguridade.',
   'settings.system.restoring': 'Validando e preparando…',
   'settings.system.restoreFailed': 'Non se puido restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

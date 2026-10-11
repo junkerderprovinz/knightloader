@@ -84,6 +84,30 @@ release's tag.
   tells its group is only ever one you typed under Settings > Pairing > Known
   domains, never the name a request happened to arrive on. Domains it noted
   before stay listed until you remove them.
+### Security
+
+- **Nothing lands in the data folder any more.** A download, an unpacking, a
+  move or a rename that would write next to `auth.json`, `tokens.json` and
+  `settings.json` is refused, whether the folder was typed in the settings, set
+  for one download, built from a template or a package name, or reached through
+  a link. The built-in `downloads` folder inside it still works.
+- **Clean up removes only what its preview showed.** If the links in a class
+  changed between the preview and your confirmation, such as a download that
+  finished in between, nothing is removed and the message says to look again.
+  `POST /api/cleanup/{class}` now takes the `digest` from the preview in a JSON
+  body, with `files` beside it.
+- **An older KnightLoader no longer starts on a database a newer one wrote,**
+  as after going back to an older image. It stops with a message that says
+  which version to run, instead of reading and writing a schema it does not
+  know.
+- **A restored backup brings no passkeys and no database code along.** The
+  passkeys registered on the running server stay, so a backup made before a
+  passkey was removed cannot bring it back. Triggers and views in an uploaded
+  database are removed before it is put in place.
+- **Removing a download with its files no longer deletes another download's
+  file that has a second path.** A path through a symlink, a junction or a bind
+  mount, or one spelled in another case on a disk that ignores case, counts as
+  the same file, and so does one the disk cannot answer for.
 
 ## [1.8.5] - 2026-10-11
 

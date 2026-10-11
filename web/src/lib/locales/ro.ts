@@ -353,6 +353,7 @@ export const ro: Dict = {
   'settings.pathProblem.notAbsolute': 'Introdu o cale completă, de exemplu /downloads sau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nu s-a putut crea {dir}.',
   'settings.pathProblem.cannotWrite': 'Nu s-a putut scrie în {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} se află în dosarul de date al KnightLoader, lângă parole și setări. Alege un dosar din afara lui.',
   'settings.crawl': 'Urmărește paginile și adună fișierele către care duc',
   'settings.crawl.depth': 'Adâncimea parcurgerii',
   'settings.crawl.depthHint': 'Cât de adânc se merge. 1 este doar pagina lipită, 2 deschide și paginile către care trimite, 3 le deschide pe ale lor. O pagină nu se deschide niciodată de două ori, așa că legăturile reciproce încheie parcurgerea în loc să o învârtă în cerc.',
@@ -528,6 +529,7 @@ export const ro: Dict = {
   'cleanup.localOnly': 'Curățarea rulează întotdeauna pe această instanță, nu pe cea la care te uiți. Revino la „Această instanță” ca să o folosești.',
   'cleanup.nothing': 'Nimic nu se potrivește acum cu „{what}”, deci nu s-a eliminat nimic.',
   'cleanup.failed': 'Nu s-a putut afla ce ar elimina asta: {error}',
+  'cleanup.changed': 'Linkurile din „{what}” s-au schimbat după previzualizare, deci nu s-a eliminat nimic. Alege din nou ca să vezi lista nouă.',
 
   'remove.title': 'Ștergem și fișierele descărcate?',
   'remove.count': '{n} descărcări vor fi scoase din listă.',
@@ -1747,6 +1749,7 @@ export const ro: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurezi dintr-un backup?',
   'settings.system.restoreConfirmBody':
     'Aceasta înlocuiește baza de date și setările actuale cu conținutul lui „{name}”. Nu se poate anula.',
+  'settings.system.restoreKeepsLogin': 'Parola, cheile de acces și tokenurile API rămân așa cum sunt. Restaurarea nu aduce înapoi cheile de acces din backup.',
   'settings.system.restoring': 'Se validează și se pregătește…',
   'settings.system.restoreFailed': 'Nu s-a putut restaura: {error}',
   'settings.system.restoreStaged': '{status}',

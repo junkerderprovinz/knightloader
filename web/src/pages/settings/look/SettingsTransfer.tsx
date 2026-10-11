@@ -291,6 +291,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           }
         >
           <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
+          <p className="mt-2 text-sm text-carbon-text">{t('settings.system.restoreKeepsLogin')}</p>
         </Modal>
       )}
     </Card>

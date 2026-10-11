@@ -285,6 +285,7 @@ func (a *App) extractOptionsFor(t *core.Task, cfg settings.Settings) extract.Opt
 		TrashRoot:   a.trashRootFor(t),
 		TrashMaxAge: time.Duration(cfg.TrashRetentionDays) * 24 * time.Hour,
 		InfoFiles:   cfg.DeleteInfoFiles,
+		Barred:      func(dir string) bool { return a.dataFolderOf(dir) != "" },
 	}
 	if t != nil {
 		o.Package = t.Package
@@ -343,18 +344,23 @@ func (a *App) disposable(paths []string) []string {
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	claims := make(map[string]int, len(a.tasks))
+	// Where each file was written, because the paths come from
+	// internal/extract, which saw the files there.
+	var files []string
 	for _, t := range a.tasks {
-		if t.Name == "" {
-			continue
+		if t.Name != "" {
+			files = append(files, a.fileOfLocked(t))
 		}
-		// Where the file was written, because the paths come from
-		// internal/extract, which saw the files there.
-		claims[filepath.Clean(a.fileOfLocked(t))]++
 	}
 	out := make([]string, 0, len(paths))
 	for _, p := range paths {
-		if claims[filepath.Clean(p)] <= 1 {
+		claims := 0
+		for _, f := range files {
+			if mayBeOneFile(f, p) {
+				claims++
+			}
+		}
+		if claims <= 1 {
 			out = append(out, p)
 		}
 	}
@@ -474,8 +480,13 @@ func (a *App) runExtractions() {
 		if target != nil {
 			refused = a.volumeMismatchLocked(target)
 		}
-		snap := job.ExtractJob
 		path := job.path
+		// Where the content would move to is refused before anything is
+		// unpacked; where it unpacks, the extractor refuses (opts.Barred).
+		if inData := a.dataFolderOf(a.unpackPlanFor(target, a.Settings.Get()).Deliver); refused == nil && inData != "" {
+			refused = fmt.Errorf("not unpacked: %s is inside KnightLoader's data folder; choose a folder outside it", inData)
+		}
+		snap := job.ExtractJob
 		a.mu.Unlock()
 
 		a.publishTasks(parts)

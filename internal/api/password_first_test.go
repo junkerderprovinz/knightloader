@@ -47,6 +47,18 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 		t.Fatalf("activate answered %d: %s", code, body)
 	}
 	task := stage(t, a, "https://host.example/one.bin")[0]
+	// A cleanup names the preview it confirms.
+	cleanup := func(c *http.Client) map[string]any {
+		t.Helper()
+		_, _, body := sendJSON(t, c, http.MethodGet, srv.URL+"/api/cleanup/offline", nil)
+		var preview struct {
+			Digest string `json:"digest"`
+		}
+		if err := json.Unmarshal(body, &preview); err != nil {
+			t.Fatal(err)
+		}
+		return map[string]any{"digest": preview.Digest, "files": true}
+	}
 
 	for _, r := range []struct {
 		method, path string
@@ -57,7 +69,7 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 		{http.MethodPost, "/api/connect/reveal", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},
-		{http.MethodPost, "/api/cleanup/offline?files=1", nil},
+		{http.MethodPost, "/api/cleanup/offline", cleanup(c)},
 	} {
 		code, refusal, body := sendJSON(t, c, r.method, srv.URL+r.path, r.body)
 		if code != http.StatusForbidden || refusal != "passwordNotSet" {
@@ -91,7 +103,7 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 		{http.MethodPost, "/api/connect/reveal", map[string]string{"password": password}},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{stage(t, a, "https://host.example/two.bin")[0].ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + stage(t, a, "https://host.example/three.bin")[0].ID + "?files=1", nil},
-		{http.MethodPost, "/api/cleanup/offline?files=1", nil},
+		{http.MethodPost, "/api/cleanup/offline", cleanup(signed)},
 	} {
 		if code, _, body := sendJSON(t, signed, r.method, srv.URL+r.path, r.body); code >= 300 {
 			t.Errorf("signed in, %s %s answered %d %.80s", r.method, r.path, code, body)

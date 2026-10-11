@@ -50,7 +50,7 @@ func (a *App) fileOfLocked(t *core.Task) string {
 		return t.File
 	}
 	for id, other := range a.tasks {
-		if id != t.ID && samePath(other.File, named) {
+		if id != t.ID && mayBeOneFile(other.File, named) {
 			return t.File
 		}
 	}
@@ -88,13 +88,10 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 	if t.File == "" || a.usedByOtherLocked(t.ID, t.File) {
 		return leftover{}
 	}
-	shared := map[string]bool{}
+	var shared []string
 	for id, other := range a.tasks {
-		if id == t.ID {
-			continue
-		}
-		for _, s := range sidecarsOf(other) {
-			shared[filepath.Clean(s)] = true
+		if id != t.ID {
+			shared = append(shared, sidecarsOf(other)...)
 		}
 	}
 	size := t.Size
@@ -105,7 +102,7 @@ func (a *App) ownFileLocked(t *core.Task) leftover {
 	}
 	l := leftover{path: t.File, size: size, empty: size == 0 && t.Status == core.StatusDone}
 	for _, s := range sidecarsOf(t) {
-		if !shared[filepath.Clean(s)] {
+		if !slices.ContainsFunc(shared, func(o string) bool { return mayBeOneFile(o, s) }) {
 			l.sidecars = append(l.sidecars, s)
 		}
 	}
@@ -136,7 +133,7 @@ func (a *App) usedByOther(id, path string) bool {
 
 // usedByOtherLocked is usedByOther for a caller that holds a.mu.
 func (a *App) usedByOtherLocked(id, path string) bool {
-	same := func(p string) bool { return samePath(p, path) }
+	same := func(p string) bool { return mayBeOneFile(p, path) }
 	for other, t := range a.tasks {
 		if other != id && (same(t.File) || slices.ContainsFunc(t.WorkFiles, same)) {
 			return true
@@ -317,4 +314,28 @@ func (a *App) volumeMismatchLocked(first *core.Task) error {
 // path names nothing.
 func samePath(x, y string) bool {
 	return x != "" && y != "" && filepath.Clean(x) == filepath.Clean(y)
+}
+
+// mayBeOneFile is samePath for the question whether deleting x would take y's
+// file: two spellings on a disk that ignores case, or a path through a symlink
+// or a bind mount, are one file on disk. Deleting a path removes one name, so
+// only paths that end in the same name (ignoring case) are compared. Where the
+// disk cannot answer, as on a share that does not respond, they count as one
+// file, so nothing is deleted on a guess.
+func mayBeOneFile(x, y string) bool {
+	if samePath(x, y) {
+		return true
+	}
+	if x == "" || y == "" || !strings.EqualFold(filepath.Base(x), filepath.Base(y)) {
+		return false
+	}
+	xi, xerr := os.Stat(x)
+	yi, yerr := os.Stat(y)
+	switch {
+	case xerr == nil && yerr == nil:
+		return os.SameFile(xi, yi)
+	case errors.Is(xerr, fs.ErrNotExist) || errors.Is(yerr, fs.ErrNotExist):
+		return false
+	}
+	return true
 }

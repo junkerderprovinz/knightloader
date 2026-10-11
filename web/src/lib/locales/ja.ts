@@ -353,6 +353,7 @@ export const ja: Dict = {
   'settings.pathProblem.notAbsolute': '/downloads や D:\\Downloads のような完全なパスを入力してください。',
   'settings.pathProblem.cannotCreate': '{dir} を作成できませんでした。',
   'settings.pathProblem.cannotWrite': '{dir} に書き込めませんでした。',
+  'settings.pathProblem.dataFolder': '{dir} は KnightLoader のデータフォルダーの中にあり、パスワードや設定と同じ場所です。その外にあるフォルダーを選んでください。',
   'settings.crawl': 'ページをたどってリンク先のファイルを集める',
   'settings.crawl.depth': '巡回の深さ',
   'settings.crawl.depthHint': 'どこまで辿るかです。1 は貼り付けたページだけ、2 はリンク先のページも開き、3 はそのリンク先まで開きます。同じページを二度開くことはないので、互いに張り合ったリンクは巡回を終わらせ、堂々巡りにはなりません。',
@@ -527,6 +528,7 @@ export const ja: Dict = {
   'cleanup.localOnly': '整理は常にこのインスタンスで実行され、いま見ているインスタンスでは実行されません。使うには「このインスタンス」に戻してください。',
   'cleanup.nothing': 'いまは「{what}」に当てはまるものが無いため、何も削除されませんでした。',
   'cleanup.failed': '何が削除されるか判断できませんでした: {error}',
+  'cleanup.changed': 'プレビューの後で「{what}」のリンクが変わったため、何も削除されませんでした。もう一度選ぶと、新しいリストを確認できます。',
 
   'remove.title': 'ダウンロード済みのファイルも削除しますか？',
   'remove.count': '{n} 件のダウンロードをリストから外します。',
@@ -1746,6 +1748,7 @@ export const ja: Dict = {
   'settings.system.restoreConfirmTitle': 'バックアップから復元しますか?',
   'settings.system.restoreConfirmBody':
     'これにより、現在のデータベースと設定が「{name}」の内容に置き換えられます。これは元に戻せません。',
+  'settings.system.restoreKeepsLogin': 'パスワード、パスキー、APIトークンはそのまま変わりません。バックアップに含まれるパスキーは復元されません。',
   'settings.system.restoring': '検証と準備をしています…',
   'settings.system.restoreFailed': '復元できませんでした: {error}',
   'settings.system.restoreStaged': '{status}',

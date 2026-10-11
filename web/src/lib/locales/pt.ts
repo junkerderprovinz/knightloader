@@ -345,6 +345,7 @@ export const pt: Dict = {
   'settings.pathProblem.notAbsolute': 'Introduz um caminho completo, como /downloads ou D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Não foi possível criar {dir}.',
   'settings.pathProblem.cannotWrite': 'Não foi possível escrever em {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} está dentro da pasta de dados do KnightLoader, ao lado das palavras-passe e das definições. Escolhe uma pasta fora dela.',
   'settings.crawl': 'Seguir as páginas e recolher os ficheiros que ligam',
   'settings.crawl.depth': 'Profundidade do rastreio',
   'settings.crawl.depthHint': 'Até onde ir. 1 é apenas a página colada, 2 abre também as páginas que ela liga, 3 abre as delas. Uma página nunca é aberta duas vezes, por isso ligações mútuas terminam o rastreio em vez de o fazerem andar em círculos.',
@@ -519,6 +520,7 @@ export const pt: Dict = {
   'cleanup.localOnly': 'A limpeza corre sempre nesta instância, não na que está a ver. Volte a «Esta instância» para a usar.',
   'cleanup.nothing': 'Neste momento nada corresponde a «{what}», por isso nada foi removido.',
   'cleanup.failed': 'Não foi possível apurar o que isto removeria: {error}',
+  'cleanup.changed': 'As ligações em «{what}» mudaram depois da pré-visualização, por isso nada foi removido. Escolhe outra vez para veres a lista nova.',
 
   'remove.title': 'Apagar também os ficheiros descarregados?',
   'remove.count': '{n} download(s) serão retirados da lista.',
@@ -1739,6 +1741,7 @@ export const pt: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurar a partir de uma cópia de segurança?',
   'settings.system.restoreConfirmBody':
     'Isto substitui a base de dados e as definições atuais pelo conteúdo de «{name}». Isto não pode ser desfeito.',
+  'settings.system.restoreKeepsLogin': 'A palavra-passe, as chaves de acesso e os tokens de API ficam como estão. O restauro não traz de volta as chaves de acesso da cópia de segurança.',
   'settings.system.restoring': 'A validar e preparar…',
   'settings.system.restoreFailed': 'Não foi possível restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

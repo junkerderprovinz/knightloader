@@ -353,6 +353,7 @@ export const tr: Dict = {
   'settings.pathProblem.notAbsolute': 'Tam bir yol gir, örneğin /downloads ya da D:\\Downloads.',
   'settings.pathProblem.cannotCreate': '{dir} oluşturulamadı.',
   'settings.pathProblem.cannotWrite': '{dir} içine yazılamadı.',
+  'settings.pathProblem.dataFolder': '{dir}, KnightLoader veri klasörünün içinde, parolaların ve ayarların yanında. Bunun dışında bir klasör seç.',
   'settings.crawl': 'Sayfaları izle ve bağlantı verdikleri dosyaları topla',
   'settings.crawl.depth': 'Tarama derinliği',
   'settings.crawl.depthHint': 'Ne kadar derine inileceği. 1 yalnızca yapıştırılan sayfadır, 2 bağlantı verdiği sayfaları da açar, 3 onlarınkini açar. Bir sayfa iki kez açılmaz, bu yüzden birbirine işaret eden bağlantılar taramayı döngüye sokmak yerine bitirir.',
@@ -527,6 +528,7 @@ export const tr: Dict = {
   'cleanup.localOnly': 'Temizlik her zaman bu örnekte çalışır, baktığınız örnekte değil. Kullanmak için “Bu örnek”e geri dönün.',
   'cleanup.nothing': 'Şu anda “{what}” ile eşleşen bir şey yok, bu yüzden hiçbir şey kaldırılmadı.',
   'cleanup.failed': 'Bunun neyi kaldıracağı anlaşılamadı: {error}',
+  'cleanup.changed': '“{what}” altındaki bağlantılar önizlemeden sonra değişti, bu yüzden hiçbir şey kaldırılmadı. Yeni listeyi görmek için yeniden seç.',
 
   'remove.title': 'İndirilen dosyalar da silinsin mi?',
   'remove.count': '{n} indirme listeden alınacak.',
@@ -1746,6 +1748,7 @@ export const tr: Dict = {
   'settings.system.restoreConfirmTitle': 'Yedekten geri yüklensin mi?',
   'settings.system.restoreConfirmBody':
     'Bu, mevcut veritabanını ve ayarları «{name}» içeriğiyle değiştirir. Bu geri alınamaz.',
+  'settings.system.restoreKeepsLogin': 'Parola, geçiş anahtarları ve API tokenleri olduğu gibi kalır. Geri yükleme, yedekteki geçiş anahtarlarını geri getirmez.',
   'settings.system.restoring': 'Doğrulanıyor ve hazırlanıyor…',
   'settings.system.restoreFailed': 'Geri yüklenemedi: {error}',
   'settings.system.restoreStaged': '{status}',

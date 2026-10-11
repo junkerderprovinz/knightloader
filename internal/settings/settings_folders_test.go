@@ -20,7 +20,7 @@ func TestCheckFoldersRefusesWhatSanitizeClears(t *testing.T) {
 			if err != nil {
 				t.Fatal(err)
 			}
-			refused := CheckFolders(s, func(key string) bool { return key == f.key }) != nil
+			refused := CheckFolders("", s, func(key string) bool { return key == f.key }) != nil
 			kept := f.get(sanitize(s)) == dir
 			if refused == kept {
 				t.Errorf("%s = %q: refused %v, kept by sanitize %v", f.key, dir, refused, kept)
@@ -30,7 +30,7 @@ func TestCheckFoldersRefusesWhatSanitizeClears(t *testing.T) {
 }
 
 func TestCheckFoldersNamesTheFieldThatFailed(t *testing.T) {
-	err := CheckFolders(Settings{WatchDir: "C:"}, nil)
+	err := CheckFolders("", Settings{WatchDir: "C:"}, nil)
 	var p *PathProblem
 	if !errors.As(err, &p) {
 		t.Fatalf("CheckFolders = %v, want a *PathProblem", err)

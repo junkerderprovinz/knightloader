@@ -353,6 +353,7 @@ export const th: Dict = {
   'settings.pathProblem.notAbsolute': 'ใส่พาธแบบเต็ม เช่น /downloads หรือ D:\\Downloads',
   'settings.pathProblem.cannotCreate': 'สร้าง {dir} ไม่ได้',
   'settings.pathProblem.cannotWrite': 'เขียนลงใน {dir} ไม่ได้',
+  'settings.pathProblem.dataFolder': '{dir} อยู่ในโฟลเดอร์ข้อมูลของ KnightLoader ข้างรหัสผ่านและการตั้งค่า เลือกโฟลเดอร์ที่อยู่นอกโฟลเดอร์นี้',
   'settings.crawl': 'ตามหน้าเว็บและเก็บไฟล์ที่ลิงก์ไว้',
   'settings.crawl.depth': 'ความลึกในการไล่เก็บ',
   'settings.crawl.depthHint': 'จะลงลึกแค่ไหน 1 คือเฉพาะหน้าที่วางไว้ 2 จะเปิดหน้าที่หน้านั้นลิงก์ถึงด้วย 3 จะเปิดของหน้าเหล่านั้นต่อ หน้าเดิมจะไม่ถูกเปิดซ้ำ ลิงก์ที่ชี้กลับไปกลับมาจึงทำให้การไล่เก็บจบลง ไม่ใช่วนอยู่กับที่',
@@ -527,6 +528,7 @@ export const th: Dict = {
   'cleanup.localOnly': 'การทำความสะอาดทำงานบนอินสแตนซ์นี้เสมอ ไม่ใช่อินสแตนซ์ที่คุณกำลังดู กลับไปที่ “อินสแตนซ์นี้” เพื่อใช้งาน',
   'cleanup.nothing': 'ตอนนี้ไม่มีอะไรตรงกับ “{what}” จึงไม่ได้เอาอะไรออก',
   'cleanup.failed': 'หาไม่ได้ว่าสิ่งนี้จะเอาอะไรออก: {error}',
+  'cleanup.changed': 'ลิงก์ใน “{what}” เปลี่ยนไปหลังจากดูตัวอย่าง จึงไม่ได้ลบอะไร เลือกอีกครั้งเพื่อดูรายการใหม่',
 
   'remove.title': 'ลบไฟล์ที่ดาวน์โหลดมาด้วยไหม',
   'remove.count': 'จะเอา {n} รายการออกจากรายการดาวน์โหลด',
@@ -1745,6 +1747,7 @@ export const th: Dict = {
   'settings.system.restoreConfirmTitle': 'กู้คืนจากข้อมูลสำรองหรือไม่',
   'settings.system.restoreConfirmBody':
     'การทำเช่นนี้จะแทนที่ฐานข้อมูลและการตั้งค่าปัจจุบันด้วยเนื้อหาของ «{name}» ไม่สามารถเลิกทำได้',
+  'settings.system.restoreKeepsLogin': 'รหัสผ่าน พาสคีย์ และโทเคน API ยังคงเหมือนเดิม การกู้คืนจะไม่นำพาสคีย์ในข้อมูลสำรองกลับมา',
   'settings.system.restoring': 'กำลังตรวจสอบและเตรียมการ…',
   'settings.system.restoreFailed': 'กู้คืนไม่สำเร็จ: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -345,6 +345,7 @@ export const pl: Dict = {
   'settings.pathProblem.notAbsolute': 'Podaj pełną ścieżkę, na przykład /downloads albo D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nie udało się utworzyć {dir}.',
   'settings.pathProblem.cannotWrite': 'Nie udało się zapisać w {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} leży w folderze danych KnightLoadera, obok haseł i ustawień. Wybierz folder poza nim.',
   'settings.crawl': 'Podążaj za stronami i zbieraj pliki, do których prowadzą',
   'settings.crawl.depth': 'Głębokość przeszukiwania',
   'settings.crawl.depthHint': 'Jak głęboko sięgnąć. 1 to tylko wklejona strona, 2 otwiera także strony, do których prowadzi, 3 otwiera ich odnośniki. Strona nigdy nie jest otwierana dwa razy, więc wzajemne odnośniki kończą przebieg, zamiast zapętlać go w kółko.',
@@ -519,6 +520,7 @@ export const pl: Dict = {
   'cleanup.localOnly': 'Porządkowanie zawsze działa na tej instancji, a nie na tej, którą oglądasz. Wróć do „Ta instancja”, aby z niego skorzystać.',
   'cleanup.nothing': 'Nic teraz nie pasuje do „{what}”, więc nic nie zostało usunięte.',
   'cleanup.failed': 'Nie udało się ustalić, co to usunie: {error}',
+  'cleanup.changed': 'Linki w „{what}” zmieniły się po podglądzie, więc nic nie zostało usunięte. Wybierz to jeszcze raz, żeby zobaczyć nową listę.',
 
   'remove.title': 'Skasować także pobrane pliki?',
   'remove.count': '{n} pobierań zostanie zdjętych z listy.',
@@ -1739,6 +1741,7 @@ export const pl: Dict = {
   'settings.system.restoreConfirmTitle': 'Przywrócić z kopii zapasowej?',
   'settings.system.restoreConfirmBody':
     'To zastępuje bieżącą bazę danych i ustawienia zawartością „{name}”. Tej operacji nie można cofnąć.',
+  'settings.system.restoreKeepsLogin': 'Hasło, klucze dostępu i tokeny API zostają bez zmian. Przywracanie nie odtwarza kluczy dostępu z kopii zapasowej.',
   'settings.system.restoring': 'Sprawdzanie i przygotowywanie…',
   'settings.system.restoreFailed': 'Nie udało się przywrócić: {error}',
   'settings.system.restoreStaged': '{status}',

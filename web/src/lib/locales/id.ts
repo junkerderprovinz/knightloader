@@ -353,6 +353,7 @@ export const id: Dict = {
   'settings.pathProblem.notAbsolute': 'Masukkan jalur lengkap, misalnya /downloads atau D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Tidak dapat membuat {dir}.',
   'settings.pathProblem.cannotWrite': 'Tidak dapat menulis ke {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} ada di dalam folder data KnightLoader, di samping kata sandi dan pengaturan. Pilih folder di luarnya.',
   'settings.crawl': 'Ikuti halaman dan kumpulkan file yang ditautkan',
   'settings.crawl.depth': 'Kedalaman penelusuran',
   'settings.crawl.depthHint': 'Seberapa dalam ditelusuri. 1 hanya halaman yang ditempel, 2 juga membuka halaman yang ditautkannya, 3 membuka tautan mereka. Satu halaman tidak pernah dibuka dua kali, jadi tautan yang saling menunjuk mengakhiri penelusuran, bukan memutarnya.',
@@ -527,6 +528,7 @@ export const id: Dict = {
   'cleanup.localOnly': 'Pembersihan selalu berjalan di instansi ini, bukan di instansi yang sedang kamu lihat. Kembali ke “Instansi ini” untuk memakainya.',
   'cleanup.nothing': 'Saat ini tidak ada yang cocok dengan “{what}”, jadi tidak ada yang dihapus.',
   'cleanup.failed': 'Tidak bisa mengetahui apa yang akan dihapus: {error}',
+  'cleanup.changed': 'Tautan di bawah “{what}” berubah setelah pratinjau, jadi tidak ada yang dihapus. Pilih lagi untuk melihat daftar yang baru.',
 
   'remove.title': 'Hapus juga berkas yang sudah diunduh?',
   'remove.count': '{n} unduhan akan diangkat dari daftar.',
@@ -1746,6 +1748,7 @@ export const id: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan dari cadangan?',
   'settings.system.restoreConfirmBody':
     'Ini mengganti basis data dan pengaturan saat ini dengan isi «{name}». Ini tidak dapat dibatalkan.',
+  'settings.system.restoreKeepsLogin': 'Kata sandi, kunci sandi, dan token API tetap seperti adanya. Pemulihan tidak mengembalikan kunci sandi dari cadangan.',
   'settings.system.restoring': 'Memvalidasi dan menyiapkan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreStaged': '{status}',

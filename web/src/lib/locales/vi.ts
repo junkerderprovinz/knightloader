@@ -353,6 +353,7 @@ export const vi: Dict = {
   'settings.pathProblem.notAbsolute': 'Hãy nhập một đường dẫn đầy đủ, ví dụ /downloads hoặc D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Không thể tạo {dir}.',
   'settings.pathProblem.cannotWrite': 'Không thể ghi vào {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} nằm trong thư mục dữ liệu của KnightLoader, cạnh mật khẩu và cài đặt. Hãy chọn một thư mục bên ngoài.',
   'settings.crawl': 'Đi theo trang và thu thập các tệp mà trang liên kết tới',
   'settings.crawl.depth': 'Độ sâu quét',
   'settings.crawl.depthHint': 'Đi sâu tới đâu. 1 chỉ là trang đã dán, 2 mở thêm các trang mà nó liên kết tới, 3 mở tiếp các trang của chúng. Một trang không bao giờ được mở hai lần, nên các liên kết trỏ về nhau sẽ kết thúc lượt quét thay vì chạy vòng.',
@@ -527,6 +528,7 @@ export const vi: Dict = {
   'cleanup.localOnly': 'Dọn dẹp luôn chạy trên phiên bản này, không phải phiên bản bạn đang xem. Quay lại “Phiên bản này” để dùng.',
   'cleanup.nothing': 'Hiện chẳng có gì khớp với “{what}”, nên không có gì bị bỏ đi.',
   'cleanup.failed': 'Không tìm ra việc này sẽ bỏ đi những gì: {error}',
+  'cleanup.changed': 'Các liên kết trong “{what}” đã thay đổi sau khi xem trước, nên không có gì bị bỏ đi. Chọn lại để xem danh sách mới.',
 
   'remove.title': 'Xóa luôn cả các tệp đã tải?',
   'remove.count': '{n} tải xuống sẽ bị bỏ khỏi danh sách.',
@@ -1746,6 +1748,7 @@ export const vi: Dict = {
   'settings.system.restoreConfirmTitle': 'Khôi phục từ bản sao lưu?',
   'settings.system.restoreConfirmBody':
     'Việc này sẽ thay thế cơ sở dữ liệu và cài đặt hiện tại bằng nội dung của «{name}». Việc này không thể hoàn tác.',
+  'settings.system.restoreKeepsLogin': 'Mật khẩu, khoá truy cập và token API vẫn giữ nguyên. Việc khôi phục không mang lại khoá truy cập trong bản sao lưu.',
   'settings.system.restoring': 'Đang xác thực và chuẩn bị…',
   'settings.system.restoreFailed': 'Không thể khôi phục: {error}',
   'settings.system.restoreStaged': '{status}',

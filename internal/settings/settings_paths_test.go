@@ -51,7 +51,7 @@ func TestATemplateAtADriveRootKeepsTheRoot(t *testing.T) {
 		}
 	}
 	s := Settings{ExtractTo: `E:\<jd:packagename>`, ExtractMoveTo: `E:\<jd:packagename>\done`}
-	if err := CheckFolders(s, nil); err != nil {
+	if err := CheckFolders("", s, nil); err != nil {
 		t.Errorf("an extraction folder at a drive root was refused: %v", err)
 	}
 }
@@ -64,7 +64,7 @@ func TestATemplateAtADriveRootIsCheckedByMakingAFolder(t *testing.T) {
 		t.Skip("drive letters are a Windows path form")
 	}
 	root := filepath.VolumeName(t.TempDir()) + `\`
-	if err := Validate("the download folder", root+"<jd:date>"); err != nil {
+	if err := Validate("", "the download folder", root+"<jd:date>"); err != nil {
 		t.Errorf("a template at %s was refused: %v", root, err)
 	}
 }
@@ -79,7 +79,7 @@ func TestValidateCreatesNoFolder(t *testing.T) {
 		filepath.Join(base, "a", "b", "c"),
 		filepath.Join(base, "series", "<jd:packagename>"),
 	} {
-		if err := Validate("the download folder", dir); err != nil {
+		if err := Validate("", "the download folder", dir); err != nil {
 			t.Errorf("Validate(%q) = %v, want it accepted", dir, err)
 		}
 	}
@@ -90,7 +90,7 @@ func TestValidateCreatesNoFolder(t *testing.T) {
 
 func TestValidateStillProbesAFolderThatExists(t *testing.T) {
 	dir := t.TempDir()
-	if err := Validate("the download folder", dir); err != nil {
+	if err := Validate("", "the download folder", dir); err != nil {
 		t.Fatal(err)
 	}
 	if left, _ := os.ReadDir(dir); len(left) != 0 {
@@ -105,7 +105,7 @@ func TestValidateRefusesAFileInTheWay(t *testing.T) {
 	}
 	for _, dir := range []string{file, filepath.Join(file, "sub")} {
 		var p *PathProblem
-		if err := Validate("the download folder", dir); !errors.As(err, &p) || p.Code != "cannotCreate" {
+		if err := Validate("", "the download folder", dir); !errors.As(err, &p) || p.Code != "cannotCreate" {
 			t.Errorf("Validate(%q) = %v, want cannotCreate", dir, err)
 		}
 	}
@@ -125,10 +125,10 @@ func TestValidateRefusesAFolderThatCouldNotBeCreated(t *testing.T) {
 	t.Cleanup(func() { _ = os.Chmod(locked, 0o755) })
 
 	var p *PathProblem
-	if err := Validate("the download folder", filepath.Join(locked, "new", "deeper")); !errors.As(err, &p) || p.Code != "cannotCreate" {
+	if err := Validate("", "the download folder", filepath.Join(locked, "new", "deeper")); !errors.As(err, &p) || p.Code != "cannotCreate" {
 		t.Errorf("a folder below a read-only one answered %v, want cannotCreate", err)
 	}
-	if err := Validate("the download folder", locked); !errors.As(err, &p) || p.Code != "cannotWrite" {
+	if err := Validate("", "the download folder", locked); !errors.As(err, &p) || p.Code != "cannotWrite" {
 		t.Errorf("a read-only folder answered %v, want cannotWrite", err)
 	}
 	if left, _ := os.ReadDir(locked); len(left) != 0 {

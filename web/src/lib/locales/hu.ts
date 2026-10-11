@@ -353,6 +353,7 @@ export const hu: Dict = {
   'settings.pathProblem.notAbsolute': 'Adj meg teljes útvonalat, például /downloads vagy D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'Nem sikerült létrehozni: {dir}.',
   'settings.pathProblem.cannotWrite': 'Nem sikerült írni ide: {dir}.',
+  'settings.pathProblem.dataFolder': '{dir} a KnightLoader adatmappájában van, a jelszavak és a beállítások mellett. Válassz egy mappát rajta kívül.',
   'settings.crawl': 'Oldalak követése és a hivatkozott fájlok összegyűjtése',
   'settings.crawl.depth': 'Bejárási mélység',
   'settings.crawl.depthHint': 'Meddig menjen. Az 1 csak a beillesztett oldal, a 2 megnyitja a hivatkozott oldalakat is, a 3 azok hivatkozásait. Egy oldal soha nem nyílik meg kétszer, így az egymásra mutató hivatkozások lezárják a futást ahelyett, hogy körbejárnának.',
@@ -527,6 +528,7 @@ export const hu: Dict = {
   'cleanup.localOnly': 'A takarítás mindig ezen a példányon fut, nem azon, amit épp nézel. Válts vissza a „Ez a példány” lehetőségre a használatához.',
   'cleanup.nothing': 'Most semmi nem illik ide: „{what}”, ezért semmi nem lett eltávolítva.',
   'cleanup.failed': 'Nem derült ki, mit távolítana el ez: {error}',
+  'cleanup.changed': 'A(z) „{what}” alá tartozó linkek az előnézet óta megváltoztak, ezért semmi nem lett eltávolítva. Válaszd ki újra, hogy lásd az új listát.',
 
   'remove.title': 'A letöltött fájlok is törlődjenek?',
   'remove.count': '{n} letöltés kerül le a listáról.',
@@ -1746,6 +1748,7 @@ export const hu: Dict = {
   'settings.system.restoreConfirmTitle': 'Visszaállítás biztonsági mentésből?',
   'settings.system.restoreConfirmBody':
     'Ez lecseréli a jelenlegi adatbázist és beállításokat a „{name}” tartalmára. Ez nem vonható vissza.',
+  'settings.system.restoreKeepsLogin': 'A jelszó, az azonosítókulcsok és az API tokenek maradnak úgy, ahogy vannak. A visszaállítás nem hozza vissza a biztonsági mentésben lévő azonosítókulcsokat.',
   'settings.system.restoring': 'Ellenőrzés és előkészítés…',
   'settings.system.restoreFailed': 'Nem sikerült visszaállítani: {error}',
   'settings.system.restoreStaged': '{status}',

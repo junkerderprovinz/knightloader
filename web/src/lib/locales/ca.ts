@@ -353,6 +353,7 @@ export const ca: Dict = {
   'settings.pathProblem.notAbsolute': 'Escriu un camí complet, com ara /downloads o D:\\Downloads.',
   'settings.pathProblem.cannotCreate': 'No s’ha pogut crear {dir}.',
   'settings.pathProblem.cannotWrite': 'No s’ha pogut escriure a {dir}.',
+  'settings.pathProblem.dataFolder': "{dir} és dins la carpeta de dades de KnightLoader, al costat de les contrasenyes i la configuració. Tria una carpeta fora d'aquesta.",
   'settings.crawl': 'Segueix les pàgines i recull els fitxers que enllacen',
   'settings.crawl.depth': 'Profunditat del rastreig',
   'settings.crawl.depthHint': 'Fins on arribar. 1 és només la pàgina enganxada, 2 obre també les pàgines que enllaça, 3 obre les d’aquestes. Una pàgina no s’obre mai dues vegades, de manera que els enllaços mutus acaben el rastreig en comptes de fer-lo giravoltar.',
@@ -527,6 +528,7 @@ export const ca: Dict = {
   'cleanup.localOnly': "La neteja s'executa sempre en aquesta instància, no en la que estàs mirant. Torna a «Aquesta instància» per fer-la servir.",
   'cleanup.nothing': "Ara mateix no hi ha res que coincideixi amb «{what}», així que no s'ha tret res.",
   'cleanup.failed': "No s'ha pogut esbrinar què trauria això: {error}",
+  'cleanup.changed': "Els enllaços de «{what}» han canviat després de la previsualització, així que no s'ha tret res. Torna-ho a triar per veure la llista nova.",
 
   'remove.title': 'Voleu esborrar també els fitxers baixats?',
   'remove.count': 'Es trauran {n} baixades de la llista.',
@@ -1746,6 +1748,7 @@ export const ca: Dict = {
   'settings.system.restoreConfirmTitle': 'Vols restaurar des d’una còpia de seguretat?',
   'settings.system.restoreConfirmBody':
     'Això substitueix la base de dades i la configuració actuals pel contingut de «{name}». No es pot desfer.',
+  'settings.system.restoreKeepsLogin': "La contrasenya, les claus d'accés i els tokens d'API es queden tal com són. La restauració no recupera les claus d'accés de la còpia de seguretat.",
   'settings.system.restoring': 'Validant i preparant…',
   'settings.system.restoreFailed': 'No s’ha pogut restaurar: {error}',
   'settings.system.restoreStaged': '{status}',
