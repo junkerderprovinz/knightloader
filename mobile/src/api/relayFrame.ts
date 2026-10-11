@@ -28,7 +28,6 @@ export interface ProxyCall {
   path: string;
   /** Base64, as the Go side's []byte field is on the wire. */
   body?: string;
-  authorization?: string;
   /** The request id and the Unix time the call was sealed at, inside the seal
    *  so a relay cannot send a captured call again later. sealCall sets both. */
   id?: string;
@@ -48,6 +47,10 @@ export interface ProxyResult {
   status: number;
   /** Base64, as above. */
   body?: string;
+  /** The answering instance's public key and its signature over the answer,
+   *  base64 (memberKey.ts verifyResult). */
+  key?: string;
+  sig?: string;
 }
 
 /**
@@ -203,14 +206,13 @@ export function sealSignedCall(
   seed: Uint8Array,
   requestId: string,
   target: string,
-  call: { method: string; path: string; body?: string; authorization?: string; from: string },
+  call: { method: string; path: string; body?: string; from: string },
 ): string {
   const fields = { ...call, id: requestId, kind: 'mobile', sent: Math.floor(Date.now() / 1000) };
   return sealCall(key, requestId, target, {
     method: call.method,
     path: call.path,
     ...(call.body ? { body: encodeBody(call.body) } : {}),
-    ...(call.authorization ? { authorization: call.authorization } : {}),
     from: call.from,
     kind: fields.kind,
     sent: fields.sent,

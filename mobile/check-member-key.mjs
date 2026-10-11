@@ -1,13 +1,15 @@
-// The app makes its id from its key and signs a call the way the server checks
-// both.
+// The app makes its id from its key, signs a call and proves its id the way the
+// server checks them, and takes an instance's answer only as the server signs
+// it.
 //
-// src/api/memberKey.ts ports relay.MemberID and relay.CallMessage. When they
-// disagree, every signed call the phone makes is refused. So the port makes
-// the ids and signs the call of the vector in internal/relay/member_test.go
-// with its seed, and the key, the ids and the signature have to come out as
-// the Go test pins them.
+// src/api/memberKey.ts ports relay.MemberID, CallMessage, HelloMessage and
+// ResultMessage. When they disagree, every call the phone makes is refused or
+// every answer dropped. So the port runs the vectors of
+// internal/relay/member_test.go with their seed, and what it makes has to come
+// out as the Go tests pin it.
 //
 // Run by hand and by CI, from mobile/: `node check-member-key.mjs`
+import { createPrivateKey, sign as cryptoSign } from 'node:crypto';
 import { readFileSync, writeFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { createRequire, stripTypeScriptTypes } from 'node:module';
 import { tmpdir } from 'node:os';
@@ -50,7 +52,6 @@ const fields = {
   method: field('Method'),
   path: field('Path'),
   body: call.match(/Body:\s*\[\]byte\(`([^`]*)`\)/)?.[1],
-  authorization: field('Authorization'),
   from: field('From'),
   kind: 'mobile',
   sent: Number(field('Sent')),
@@ -67,6 +68,28 @@ for (const [kind, name] of [['instance', 'vectorInstanceID'], ['mobile', 'vector
   const id = port.memberId(kind, port.memberPublicKey(seed));
   if (!want(name) || id !== want(name)) problems.push(`the ${kind} id is ${id}, the server makes ${want(name)}`);
 }
+
+// The answer the vector key signs, which the phone takes only as it stands,
+// and the proof of its id it gives the relay in its hello.
+const fromB64 = (s) => Array.from(Buffer.from(s ?? '', 'base64'));
+const instanceId = want('vectorInstanceID');
+const resultSig = new Uint8Array(fromB64(want('vectorResultSig')));
+const removed = Array.from(Buffer.from('removed'));
+const pub = port.memberPublicKey(seed);
+if (!port.verifyResult(fields.id, instanceId, 410, removed, pub, resultSig)) {
+  problems.push('the server\'s signed answer does not verify; resultMessage differs from relay.ResultMessage');
+}
+if (port.verifyResult(fields.id, instanceId, 200, removed, pub, resultSig)) problems.push('an answer whose status was changed still verifies');
+const forgerSeed = new Uint8Array(32).fill(9);
+const forgerKey = createPrivateKey({ key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), forgerSeed]), format: 'der', type: 'pkcs8' });
+const forged = new Uint8Array(cryptoSign(null, port.resultMessage(fields.id, instanceId, 410, removed), forgerKey));
+if (port.verifyResult(fields.id, instanceId, 410, removed, port.memberPublicKey(forgerSeed), forged)) {
+  problems.push('an answer signed by another key than the one the target\x27s id is made from verifies');
+}
+const helloAt = Number(goTest.match(/vectorHelloAt\s*=\s*time\.Unix\((\d+), 0\)/)?.[1]);
+const relayKey = goTest.match(/vectorRelayKey\s*=\s*"([^"]+)"/)?.[1];
+const hello = b64(port.proveId(seed, relayKey, want('vectorPhoneID'), helloAt));
+if (hello !== want('vectorHelloSig')) problems.push(`the hello proof is ${hello}, the server checks for ${want('vectorHelloSig')}`);
 
 if (problems.length) {
   console.error('The app signs calls the server refuses:\n' + problems.map((p) => '  ' + p).join('\n'));

@@ -1,5 +1,6 @@
-import { decodeBody, encodeBody } from './base64';
+import { base64Decode, base64Encode, bytesToUtf8, encodeBody } from './base64';
 import { getRandomBytes } from 'expo-crypto';
+import { memberPublicKey, proveId, verifyResult } from './memberKey';
 import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult, sealSignedCall } from './relayFrame';
 
 // This app's client for internal/relay's wire protocol, the second way it can
@@ -68,6 +69,8 @@ export function connectURL(raw: string): string | null {
 }
 
 interface Pending {
+  // The instance asked, whose key has to have signed the answer.
+  target: string;
   resolve: (r: RelayProxyResult) => void;
   reject: (e: Error) => void;
   timer: ReturnType<typeof setTimeout>;
@@ -167,9 +170,11 @@ export class RelayClient {
    * connected, the target is not, or nobody replied in time. An answer the
    * target produced resolves however bad its status, because "your instance
    * said no" and "your instance is gone" are different outcomes, as in the Go
-   * client's Proxy.
+   * client's Proxy. An answer counts only signed by the key target's id is
+   * made from: anybody holding the words can seal one, a "removed" that makes
+   * this phone leave its group included, but only the target can sign it.
    */
-  async proxy(target: string, method: string, path: string, body?: string, authorization?: string): Promise<RelayProxyResult> {
+  async proxy(target: string, method: string, path: string, body?: string): Promise<RelayProxyResult> {
     if (!this.open) await this.waitForConnection();
     return new Promise<RelayProxyResult>((resolve, reject) => {
       if (!this.open || !this.socket) {
@@ -183,14 +188,13 @@ export class RelayClient {
         this.pending.delete(requestId);
         reject(new Error('relay: the instance did not answer in time'));
       }, PROXY_TIMEOUT_MS);
-      this.pending.set(requestId, { resolve, reject, timer });
+      this.pending.set(requestId, { target, resolve, reject, timer });
 
       try {
         // Everything except the two routing fields goes inside the seal, so
         // the relay sees which instance the frame is for and nothing about what
-        // is being asked, the bearer token below included: that is the one
-        // field here that keeps working for whoever reads it. See relayFrame.ts.
-        const call = { method, path, body, authorization, from: this.opts.selfId };
+        // is being asked. See relayFrame.ts.
+        const call = { method, path, body, from: this.opts.selfId };
         this.send(T_PROXY_REQUEST, {
           requestId,
           target,
@@ -200,7 +204,6 @@ export class RelayClient {
                 method,
                 path,
                 ...(body ? { body: encodeBody(body) } : {}),
-                ...(authorization ? { authorization } : {}),
                 from: this.opts.selfId,
               }),
         });
@@ -263,8 +266,23 @@ export class RelayClient {
       // Hello has to be the first frame: the relay reads exactly one, on its
       // own deadline, before it joins this socket to anything.
       try {
+        // The proof lets this socket take the place of one the relay still
+        // holds for this phone after a dropped connection, which nobody
+        // without the phone's key can.
+        const sent = Math.floor(Date.now() / 1000);
+        const seed = this.opts.memberSeed;
         this.send(T_HELLO, {
           key: this.opts.key,
+          ...(seed
+            ? {
+                proof: {
+                  kind: 'mobile',
+                  key: base64Encode(Array.from(memberPublicKey(seed))),
+                  sent,
+                  sig: base64Encode(Array.from(proveId(seed, this.opts.key, this.opts.selfId, sent))),
+                },
+              }
+            : {}),
           announce: {
             instanceId: this.opts.selfId,
             // Everything but the id goes into the seal, under the frame key
@@ -391,10 +409,15 @@ export class RelayClient {
           p.reject(new Error('relay: the instance answered unreadably'));
           return;
         }
-        p.resolve({
-          status: typeof result.status === 'number' ? result.status : 0,
-          body: typeof result.body === 'string' && result.body ? decodeBody(result.body) : '',
-        });
+        const status = typeof result.status === 'number' ? result.status : 0;
+        const body = typeof result.body === 'string' ? base64Decode(result.body) : [];
+        const key = new Uint8Array(typeof result.key === 'string' ? base64Decode(result.key) : []);
+        const sig = new Uint8Array(typeof result.sig === 'string' ? base64Decode(result.sig) : []);
+        if (!verifyResult(data.requestId, p.target, status, body, key, sig)) {
+          p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
+          return;
+        }
+        p.resolve({ status, body: bytesToUtf8(body) });
         return;
       }
       case T_PROXY_REQUEST: {

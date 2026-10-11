@@ -187,8 +187,6 @@ export default function RelayConnectScreen({
         relayKey: live.key,
         relayFrameKey: live.frameKey,
         instanceId: s.instanceId,
-        // No token: being on this relay under this key is the credential.
-        token: '',
       };
       await addConnection(conn);
       first = first ?? conn;

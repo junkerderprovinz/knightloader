@@ -60,9 +60,8 @@ interface RawResponse {
   statusText: string;
 }
 
-async function httpRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  const base = isRelayConnection(conn) ? '' : conn.baseUrl;
-  const res = await fetch(`${base}${path}`, {
+async function httpRequest(conn: DirectConnection, path: string, init?: RequestInit): Promise<RawResponse> {
+  const res = await fetch(`${conn.baseUrl}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -82,8 +81,8 @@ export function onRemovedFromGroup(handler: () => void): void {
 }
 
 // A relay call is the same request, addressed to an instance id instead of a
-// host. The token travels in the frame's own authorization field rather than a
-// header, because the frame is all there is - see relay.ProxyRequest.
+// host. It carries no token: the phone's member key signs it, and the instance
+// it reaches signs the answer, which relayClient.ts checks.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
   if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
   const client = relayClientFor({
@@ -94,15 +93,10 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
     selfName: deviceName(),
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;
-  const r = await client.proxy(
-    conn.instanceId,
-    init?.method ?? 'GET',
-    path,
-    body,
-    conn.token ? `Bearer ${conn.token}` : undefined,
-  );
-  // A transport failure throws out of proxy() and never reaches here, so
-  // anything with a status is genuinely the instance's own answer.
+  const r = await client.proxy(conn.instanceId, init?.method ?? 'GET', path, body);
+  // A transport failure or an answer the instance did not sign throws out of
+  // proxy() and never reaches here, so anything with a status is the
+  // instance's own answer.
   if (r.status === 410 && r.body === 'removed') {
     // Every connection into the group goes, and a new relay id makes the
     // next scan of the phrase a new phone rather than the removed one.
