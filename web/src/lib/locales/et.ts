@@ -345,6 +345,8 @@ export const et: Dict = {
   'settings.passwordHint': 'Vähemalt 8 märki. Jäta tühjaks, et lukk eemaldada. See lülitab välja ka kaheastmelise autentimise ja kustutab kõik pääsuvõtmed.',
   'settings.setPassword': 'Määra parool',
   'settings.passwordSaved': 'Parool muudetud.',
+  'settings.access.trustedProxies': 'Usaldusväärsed puhverserverid',
+  'settings.access.trustedProxiesHint': 'Vajalik ainult siis, kui KnightLoaderi ees on pöördpuhverserver. Pärast kaheksat ebaõnnestunud sisselogimist ühelt aadressilt paneb KnightLoader selle aadressi pool minutit ootama. Puhverserveri taga tuleb iga päring puhverserveri aadressilt, nii et ühe arvaja pärast peavad kõik ootama. Sisesta siia puhverserveri aadress, üks IP-aadress või CIDR-vahemik rea kohta, ja KnightLoader loeb külastaja aadressi päisest X-Forwarded-For, mille see puhverserver saadab. Lisa ainult puhverservereid, mida ise haldad, sest keegi teine võib sellesse päisesse kirjutada mis tahes aadressi. Kui väli jääb tühjaks, arvestatakse iga päring sellele aadressile, millelt ühendus tuli.',
   'auth.title': 'See eksemplar on lukus',
   'auth.password': 'Parool',
   'auth.signIn': 'Logi sisse',

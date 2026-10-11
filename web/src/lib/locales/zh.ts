@@ -345,6 +345,8 @@ export const zh: Dict = {
   'settings.passwordHint': '至少 8 个字符。留空即可取消锁定。这样也会关闭两步验证，并删除所有通行密钥。',
   'settings.setPassword': '设置密码',
   'settings.passwordSaved': '密码已更新。',
+  'settings.access.trustedProxies': '受信任的代理',
+  'settings.access.trustedProxiesHint': '只有在 KnightLoader 前面有反向代理时才需要。同一地址登录失败八次后，KnightLoader 会让这个地址等待半分钟。在代理后面，每个请求都来自代理的地址，所以只要有一个人在猜密码，所有人都得等。在这里填写代理的地址，每行一个 IP 地址或 CIDR 范围，KnightLoader 就会从该代理发送的 X-Forwarded-For 请求头里读取访客的地址。只填写你自己运行的代理，因为其他任何人都可以在这个请求头里写入任意地址。留空时，每个请求都按它建立连接的地址计算。',
   'auth.title': '本实例已锁定',
   'auth.password': '密码',
   'auth.signIn': '登录',

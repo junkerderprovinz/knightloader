@@ -112,6 +112,8 @@ func registerSystem(reg *Registry, a *app.App) {
 		})
 	// routes_twofactor.go says why a second factor needs a throttle.
 	gate := reg.passwordGate
+	// The registry makes its gate before it knows the app.
+	gate.trusted = trustedProxies(a)
 	reg.AddOpen(http.MethodPost, "/api/auth/login", "exchange the password (and a second-factor code, when one is armed) for a session; open because it is the way in",
 		func(w http.ResponseWriter, r *http.Request) {
 			if !gate.try(r) {

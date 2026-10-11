@@ -347,6 +347,8 @@ export const no: Dict = {
   'settings.passwordHint': 'Minst 8 tegn. La stå tom for å fjerne låsen. Det slår også av tofaktorautentisering og sletter alle passnøkler.',
   'settings.setPassword': 'Sett passord',
   'settings.passwordSaved': 'Passordet er oppdatert.',
+  'settings.access.trustedProxies': 'Klarerte proxyer',
+  'settings.access.trustedProxiesHint': 'Bare nødvendig når en reverse-proxy står foran KnightLoader. Etter åtte mislykkede innloggingsforsøk fra én adresse lar KnightLoader den adressen vente et halvt minutt. Bak en proxy kommer hver forespørsel fra proxyens adresse, så når én person gjetter, må alle vente. Skriv inn proxyens adresse her, én IP-adresse eller ett CIDR-område per linje, så leser KnightLoader besøkerens adresse fra hodet X-Forwarded-For som proxyen sender. Før bare opp proxyer du drifter selv, for alle andre kan skrive hvilken adresse de vil i det hodet. Står feltet tomt, teller hver forespørsel for adressen den koblet til fra.',
   'auth.title': 'Denne instansen er låst',
   'auth.password': 'Passord',
   'auth.signIn': 'Logg inn',

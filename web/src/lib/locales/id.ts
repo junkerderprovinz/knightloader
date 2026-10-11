@@ -345,6 +345,8 @@ export const id: Dict = {
   'settings.passwordHint': 'Minimal 8 karakter. Kosongkan untuk melepas kunci. Ini juga mematikan autentikasi dua faktor dan menghapus semua kunci sandi.',
   'settings.setPassword': 'Setel kata sandi',
   'settings.passwordSaved': 'Kata sandi diperbarui.',
+  'settings.access.trustedProxies': 'Proxy tepercaya',
+  'settings.access.trustedProxiesHint': 'Hanya perlu kalau ada reverse proxy di depan KnightLoader. Setelah delapan kali gagal masuk dari satu alamat, KnightLoader membuat alamat itu menunggu setengah menit. Di belakang proxy, setiap permintaan datang dari alamat proxy, jadi satu orang yang menebak-nebak membuat semua orang menunggu. Masukkan alamat proxy di sini, satu alamat IP atau rentang CIDR per baris, lalu KnightLoader membaca alamat pengunjung dari header X-Forwarded-For yang dikirim proxy itu. Cantumkan hanya proxy yang kamu jalankan sendiri, karena siapa pun bisa menaruh alamat apa saja di header itu. Kalau dibiarkan kosong, setiap permintaan dihitung untuk alamat asal koneksinya.',
   'auth.title': 'Instance ini terkunci',
   'auth.password': 'Kata sandi',
   'auth.signIn': 'Masuk',

@@ -281,6 +281,11 @@ func validateRows(s settings.Settings, named func(key string) bool) error {
 			return &settings.FieldError{Field: field, Err: err}
 		}
 	}
+	if sent("trustedProxies") {
+		if err := s.ValidateTrustedProxies(); err != nil {
+			return err
+		}
+	}
 	if sent("schedule") {
 		for i, e := range s.Schedule {
 			if err := e.Validate(); err != nil {

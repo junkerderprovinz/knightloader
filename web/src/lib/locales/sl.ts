@@ -345,6 +345,8 @@ export const sl: Dict = {
   'settings.passwordHint': 'Vsaj 8 znakov. Pusti prazno, da odstraniš zaklep. S tem se izklopi tudi dvostopenjsko preverjanje in izbrišejo se vsi ključi za dostop.',
   'settings.setPassword': 'Nastavi geslo',
   'settings.passwordSaved': 'Geslo posodobljeno.',
+  'settings.access.trustedProxies': 'Zaupanja vredni posredniki',
+  'settings.access.trustedProxiesHint': 'Potrebno le, kadar pred KnightLoaderjem stoji povratni posrednik. Po osmih neuspelih poskusih prijave z enega naslova KnightLoader ta naslov za pol minute zadrži. Za posrednikom vsaka zahteva pride z naslova posrednika, zato ko en človek ugiba, morajo čakati vsi. Sem vpiši naslov posrednika, en IP-naslov ali obseg CIDR na vrstico, in KnightLoader bo naslov obiskovalca bral iz glave X-Forwarded-For, ki jo ta posrednik pošilja. Vpiši samo posrednike, ki jih upravljaš sam, ker lahko kdorkoli drug v to glavo zapiše kateri koli naslov. Če ostane prazno, se vsaka zahteva šteje naslovu, s katerega je prišla povezava.',
   'auth.title': 'Ta instanca je zaklenjena',
   'auth.password': 'Geslo',
   'auth.signIn': 'Prijava',

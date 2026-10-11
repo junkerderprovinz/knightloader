@@ -345,6 +345,8 @@ export const ro: Dict = {
   'settings.passwordHint': 'Cel puțin 8 caractere. Lasă gol pentru a scoate blocarea. Asta oprește și autentificarea în doi pași și șterge toate cheile de acces.',
   'settings.setPassword': 'Setează parola',
   'settings.passwordSaved': 'Parolă actualizată.',
+  'settings.access.trustedProxies': 'Proxy-uri de încredere',
+  'settings.access.trustedProxiesHint': 'E nevoie de asta doar când în fața KnightLoader stă un proxy invers. După opt încercări de autentificare eșuate de la aceeași adresă, KnightLoader pune adresa respectivă să aștepte o jumătate de minut. În spatele unui proxy, fiecare cerere vine de la adresa proxy-ului, așa că dacă o persoană ghicește, așteaptă toată lumea. Scrie aici adresa proxy-ului, câte o adresă IP sau un interval CIDR pe rând, iar KnightLoader citește adresa vizitatorului din antetul X-Forwarded-For pe care îl trimite acel proxy. Trece doar proxy-uri pe care le administrezi tu, pentru că oricine altcineva poate pune în acel antet orice adresă vrea. Dacă rămâne gol, fiecare cerere contează pentru adresa de la care s-a conectat.',
   'auth.title': 'Această instanță este blocată',
   'auth.password': 'Parolă',
   'auth.signIn': 'Autentificare',

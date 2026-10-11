@@ -371,6 +371,8 @@ export const de: Dict = {
   'settings.passwordHint': 'Mindestens 8 Zeichen. Leer lassen, um die Sperre aufzuheben. Dabei geht auch die Zwei-Faktor-Authentifizierung aus, und alle Passkeys werden gelöscht.',
   'settings.setPassword': 'Passwort setzen',
   'settings.passwordSaved': 'Passwort geändert.',
+  'settings.access.trustedProxies': 'Vertrauenswürdige Proxys',
+  'settings.access.trustedProxiesHint': 'Nur nötig, wenn ein Reverse-Proxy vor KnightLoader steht. Nach acht fehlgeschlagenen Anmeldungen von einer Adresse lässt KnightLoader diese Adresse eine halbe Minute warten. Hinter einem Proxy kommt jede Anfrage von der Adresse des Proxys, also müssen alle warten, wenn einer rät. Trag hier die Adresse des Proxys ein, eine IP-Adresse oder einen CIDR-Bereich pro Zeile. Dann liest KnightLoader die Adresse des Besuchers aus dem Header X-Forwarded-For, den dieser Proxy mitschickt. Trag nur Proxys ein, die du selbst betreibst, denn jeder andere kann in diesen Header jede beliebige Adresse schreiben. Bleibt das Feld leer, zählt jede Anfrage für die Adresse, die die Verbindung aufgebaut hat.',
   'auth.title': 'Diese Instanz ist gesperrt',
   'auth.password': 'Passwort',
   'auth.signIn': 'Anmelden',

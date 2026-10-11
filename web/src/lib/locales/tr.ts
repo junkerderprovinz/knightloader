@@ -345,6 +345,8 @@ export const tr: Dict = {
   'settings.passwordHint': 'En az 8 karakter. Kilidi kaldırmak için boş bırakın. Bu, iki adımlı doğrulamayı da kapatır ve bütün geçiş anahtarlarını siler.',
   'settings.setPassword': 'Parolayı ayarla',
   'settings.passwordSaved': 'Parola güncellendi.',
+  'settings.access.trustedProxies': 'Güvenilir vekil sunucular',
+  'settings.access.trustedProxiesHint': 'Yalnızca KnightLoader\'ın önünde bir ters vekil sunucu varsa gerekir. Bir adresten sekiz başarısız giriş denemesinden sonra KnightLoader o adresi yarım dakika bekletir. Vekil sunucunun arkasında her istek vekil sunucunun adresinden gelir, yani bir kişi tahmin yürüttüğünde herkes beklemek zorunda kalır. Vekil sunucunun adresini buraya gir, her satıra bir IP adresi ya da CIDR aralığı; böylece KnightLoader ziyaretçinin adresini o vekil sunucunun gönderdiği X-Forwarded-For başlığından okur. Yalnızca kendi işlettiğin vekil sunucuları yaz, çünkü başka herkes o başlığa istediği adresi koyabilir. Boş bırakılırsa her istek, bağlandığı adres için sayılır.',
   'auth.title': 'Bu örnek kilitli',
   'auth.password': 'Parola',
   'auth.signIn': 'Giriş yap',

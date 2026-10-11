@@ -704,6 +704,11 @@ type Settings struct {
 	InstanceName string   `json:"instanceName"`
 	KnownDomains []string `json:"knownDomains"`
 
+	// TrustedProxies are the reverse proxies, as IP addresses or CIDR ranges,
+	// whose X-Forwarded-For the sign-in throttle reads. See
+	// settings_access.go.
+	TrustedProxies []string `json:"trustedProxies"`
+
 	// RelayURL is the self-hosted relay this instance dials out to so that it
 	// can be reached by siblings on other networks. See settings_relay.go, and
 	// for why the relay key that goes with it is a credential in
@@ -1177,6 +1182,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeTorrent(n)
 	n = sanitizeDebridDrive(n)
 	n = sanitizeIdentity(n)
+	n = sanitizeTrustedProxies(n)
 	n = sanitizeRelay(n)
 	n.ModulesOff = cleanIDList(n.ModulesOff)
 	return n

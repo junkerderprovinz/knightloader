@@ -345,6 +345,8 @@ export const ca: Dict = {
   'settings.passwordHint': 'Mínim 8 caràcters. Deixa-ho buit per treure el bloqueig. Això també desactiva l\'autenticació de dos factors i esborra totes les claus d\'accés.',
   'settings.setPassword': 'Estableix la contrasenya',
   'settings.passwordSaved': 'Contrasenya actualitzada.',
+  'settings.access.trustedProxies': 'Proxies de confiança',
+  'settings.access.trustedProxiesHint': 'Només cal si hi ha un proxy invers davant de KnightLoader. Després de vuit inicis de sessió fallits des d’una mateixa adreça, KnightLoader fa esperar mig minut aquella adreça. Darrere d’un proxy, totes les peticions arriben des de l’adreça del proxy, així que si una persona prova d’endevinar, tothom ha d’esperar. Escriu aquí l’adreça del proxy, una adreça IP o un rang CIDR per línia, i KnightLoader llegirà l’adreça del visitant de la capçalera X-Forwarded-For que envia aquest proxy. Posa-hi només proxies que gestionis tu mateix, perquè qualsevol altre pot posar en aquesta capçalera l’adreça que vulgui. Si es deixa buit, cada petició compta per a l’adreça des de la qual s’ha connectat.',
   'auth.title': 'Aquesta instància està bloquejada',
   'auth.password': 'Contrasenya',
   'auth.signIn': 'Inicia la sessió',

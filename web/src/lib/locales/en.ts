@@ -394,6 +394,8 @@ export const en = {
   'settings.passwordHint': 'At least 8 characters. Leave it empty to remove the lock. That also switches two-factor authentication off and deletes every passkey.',
   'settings.setPassword': 'Set password',
   'settings.passwordSaved': 'Password updated.',
+  'settings.access.trustedProxies': 'Trusted proxies',
+  'settings.access.trustedProxiesHint': 'Only needed when a reverse proxy sits in front of KnightLoader. After eight failed sign-ins from one address, KnightLoader makes that address wait half a minute. Behind a proxy every request comes from the proxy\'s address, so one person guessing makes everybody wait. Enter the proxy\'s address here, one IP address or CIDR range per line, and KnightLoader reads the visitor\'s address from the X-Forwarded-For header that proxy sends. List only proxies you run yourself, because anybody else can put any address they like into that header. Left empty, every request counts for the address it connected from.',
   'auth.title': 'This instance is locked',
   'auth.password': 'Password',
   'auth.signIn': 'Sign in',

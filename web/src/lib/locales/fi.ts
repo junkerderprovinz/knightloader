@@ -345,6 +345,8 @@ export const fi: Dict = {
   'settings.passwordHint': 'Vähintään 8 merkkiä. Jätä tyhjäksi poistaaksesi lukituksen. Samalla kaksivaiheinen tunnistautuminen kytkeytyy pois ja kaikki pääsyavaimet poistetaan.',
   'settings.setPassword': 'Aseta salasana',
   'settings.passwordSaved': 'Salasana päivitetty.',
+  'settings.access.trustedProxies': 'Luotetut välityspalvelimet',
+  'settings.access.trustedProxiesHint': 'Tarpeen vain, jos KnightLoaderin edessä on käänteinen välityspalvelin. Kahdeksan epäonnistuneen kirjautumisen jälkeen samasta osoitteesta KnightLoader panee osoitteen odottamaan puoli minuuttia. Välityspalvelimen takana jokainen pyyntö tulee välityspalvelimen osoitteesta, joten kun yksi arvailee, kaikki joutuvat odottamaan. Kirjoita tähän välityspalvelimen osoite, yksi IP-osoite tai CIDR-alue riviä kohden, niin KnightLoader lukee kävijän osoitteen X-Forwarded-For-otsakkeesta, jonka välityspalvelin lähettää. Lisää vain välityspalvelimia, joita ylläpidät itse, sillä kuka tahansa muu voi kirjoittaa siihen otsakkeeseen minkä osoitteen haluaa. Jos kenttä jää tyhjäksi, jokainen pyyntö lasketaan sille osoitteelle, josta yhteys tuli.',
   'auth.title': 'Tämä instanssi on lukittu',
   'auth.password': 'Salasana',
   'auth.signIn': 'Kirjaudu sisään',

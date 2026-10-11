@@ -181,7 +181,7 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 	// bucket, so a gate in front of the right code would let anybody who
 	// reaches the page keep the owner out; the code's sixty bits are what
 	// stops a guesser.
-	gate := newLoginGate()
+	gate := newLoginGate(trustedProxies(a))
 	var wrong wrongGuesses
 
 	reg.AddOpen(http.MethodPost, "/api/auth/reset",
