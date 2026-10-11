@@ -18,6 +18,7 @@ export const hu: Dict = {
   'nav.workingTitle': 'munkacím',
   'theme.dark': 'Sötét',
   'theme.light': 'Világos',
+  'theme.system': 'Rendszer',
   'theme.toggle': 'Téma váltása',
   'lang.label': 'Nyelv',
   'lang.open': 'Nyelv váltása',
@@ -438,6 +439,8 @@ export const hu: Dict = {
   'settings.rainbowPaletteHint': 'A pozíció szerint kiosztott nyolc szín. Egyenként szerkeszthető.',
   'settings.look.saveFailed': 'Nem sikerült menteni: {error}',
   'settings.theme': 'Téma',
+  'settings.themeHint':
+    'A „{system}” az eszközöd világos vagy sötét beállítását követi, és vele együtt vált.',
   'settings.motion.wild': 'Vad',
   'settings.motion.storm': 'Vihar',
   'settings.motion.subtle': 'Visszafogott',

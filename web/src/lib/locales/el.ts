@@ -18,6 +18,7 @@ export const el: Dict = {
   'nav.workingTitle': 'προσωρινός τίτλος',
   'theme.dark': 'Σκούρο',
   'theme.light': 'Ανοιχτό',
+  'theme.system': 'Σύστημα',
   'theme.toggle': 'Εναλλαγή θέματος',
   'lang.label': 'Γλώσσα',
   'lang.open': 'Αλλαγή γλώσσας',
@@ -438,6 +439,8 @@ export const el: Dict = {
   'settings.rainbowPaletteHint': 'Τα οκτώ χρώματα που αποδίδονται ανά θέση. Επεξεργάσιμα μεμονωμένα.',
   'settings.look.saveFailed': 'Δεν ήταν δυνατή η αποθήκευση: {error}',
   'settings.theme': 'Θέμα',
+  'settings.themeHint':
+    'Το «{system}» ακολουθεί τη φωτεινή ή σκούρα ρύθμιση της συσκευής σου και αλλάζει μαζί της.',
   'settings.motion.wild': 'Έντονο',
   'settings.motion.storm': 'Καταιγίδα',
   'settings.motion.subtle': 'Διακριτικό',

@@ -310,11 +310,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.look.displayTitle',
       rows: [
         { key: 'lang.label' },
-        { key: 'settings.theme' },
+        { key: 'settings.theme', hint: 'settings.themeHint' },
         { key: 'settings.shape', hint: 'settings.shapeHint' },
         { key: 'settings.motion.title', hint: 'settings.motion.hint' },
         { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },
       ],
+      // The choice the theme's hint is filled with.
+      body: ['theme.system'],
     },
     {
       title: 'settings.labels',

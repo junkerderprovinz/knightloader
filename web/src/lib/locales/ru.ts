@@ -18,6 +18,7 @@ export const ru: Dict = {
   'nav.workingTitle': 'рабочее название',
   'theme.dark': 'Тёмная',
   'theme.light': 'Светлая',
+  'theme.system': 'Системная',
   'theme.toggle': 'Сменить тему',
   'lang.label': 'Язык',
   'lang.open': 'Сменить язык',
@@ -430,6 +431,8 @@ export const ru: Dict = {
   'settings.rainbowPaletteHint': 'Восемь цветов, назначаемых по позиции. Каждый можно изменить отдельно.',
   'settings.look.saveFailed': 'Не удалось сохранить: {error}',
   'settings.theme': 'Тема',
+  'settings.themeHint':
+    '«{system}» следует светлой или тёмной настройке твоего устройства и меняется вместе с ней.',
   'settings.motion.wild': 'Буйно',
   'settings.motion.storm': 'Буря',
   'settings.motion.subtle': 'Сдержанно',

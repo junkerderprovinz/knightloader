@@ -18,6 +18,7 @@ export const eu: Dict = {
   'nav.workingTitle': 'behin-behineko izena',
   'theme.dark': 'Iluna',
   'theme.light': 'Argia',
+  'theme.system': 'Sistema',
   'theme.toggle': 'Aldatu gaia',
   'lang.label': 'Hizkuntza',
   'lang.open': 'Aldatu hizkuntza',
@@ -438,6 +439,8 @@ export const eu: Dict = {
   'settings.rainbowPaletteHint': 'Posizioaren arabera esleitutako zortzi koloreak. Banaka editagarriak.',
   'settings.look.saveFailed': 'Ezin izan da gorde: {error}',
   'settings.theme': 'Itxura',
+  'settings.themeHint':
+    '«{system}» aukerak zure gailuaren modu argia edo iluna jarraitzen du, eta harekin batera aldatzen da.',
   'settings.motion.wild': 'Bizia',
   'settings.motion.storm': 'Ekaitza',
   'settings.motion.subtle': 'Diskretua',

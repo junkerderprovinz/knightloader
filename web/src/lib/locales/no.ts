@@ -20,6 +20,7 @@ export const no: Dict = {
   'nav.workingTitle': 'arbeidstittel',
   'theme.dark': 'Mørkt',
   'theme.light': 'Lyst',
+  'theme.system': 'System',
   'theme.toggle': 'Bytt tema',
   'lang.label': 'Språk',
   'lang.open': 'Bytt språk',
@@ -440,6 +441,8 @@ export const no: Dict = {
   'settings.rainbowPaletteHint': 'De åtte fargene som tildeles etter posisjon. Kan redigeres hver for seg.',
   'settings.look.saveFailed': 'Kunne ikke lagre: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint':
+    '«{system}» følger den lyse eller mørke innstillingen på enheten din og skifter med den.',
   'settings.motion.wild': 'Vill',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',

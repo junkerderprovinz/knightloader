@@ -18,6 +18,7 @@ export const hi: Dict = {
   'nav.workingTitle': 'कार्यकारी नाम',
   'theme.dark': 'डार्क',
   'theme.light': 'लाइट',
+  'theme.system': 'सिस्टम',
   'theme.toggle': 'थीम बदलें',
   'lang.label': 'भाषा',
   'lang.open': 'भाषा बदलें',
@@ -438,6 +439,8 @@ export const hi: Dict = {
   'settings.rainbowPaletteHint': 'स्थिति के अनुसार दिए गए आठ रंग। हर एक को अलग-अलग संपादित किया जा सकता है।',
   'settings.look.saveFailed': 'सहेजा नहीं जा सका: {error}',
   'settings.theme': 'थीम',
+  'settings.themeHint':
+    '“{system}” तुम्हारे डिवाइस की लाइट या डार्क सेटिंग के साथ चलता है और उसी के साथ बदलता है।',
   'settings.motion.wild': 'जीवंत',
   'settings.motion.storm': 'तूफ़ान',
   'settings.motion.subtle': 'सूक्ष्म',
