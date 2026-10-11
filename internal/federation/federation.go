@@ -98,6 +98,9 @@ type Manager struct {
 	list map[string]Instance // by name
 	rt   RelayTransport      // nil while no relay is configured
 	pt   PeerTokens          // nil means peers are called unauthenticated
+	// retired is the connection to the group this instance left at a
+	// password reset, nil when there is none (see SetRetired).
+	retired RelayTransport
 
 	local  LocalNetwork // nil where discovery does not run
 	keys   *groupKeys   // nil outside a phrase group
@@ -159,6 +162,33 @@ func (m *Manager) SetRelay(rt RelayTransport) {
 	if prev != nil {
 		_ = prev.Close()
 	}
+}
+
+// SetRetired installs the relay connection an instance keeps to the group it
+// left at a password reset, or clears it with nil, and closes the one it
+// replaces. The connection closes by itself at until.
+func (m *Manager) SetRetired(rt RelayTransport, until time.Time) {
+	m.mu.Lock()
+	prev := m.retired
+	m.retired = rt
+	m.mu.Unlock()
+	if prev != nil {
+		_ = prev.Close()
+	}
+	if rt == nil {
+		return
+	}
+	time.AfterFunc(time.Until(until), func() {
+		m.mu.Lock()
+		current := m.retired == rt
+		if current {
+			m.retired = nil
+		}
+		m.mu.Unlock()
+		if current {
+			_ = rt.Close()
+		}
+	})
 }
 
 // PeerTokens supplies the credential a call to one peer must carry. It is a

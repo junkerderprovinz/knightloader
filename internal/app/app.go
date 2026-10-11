@@ -887,6 +887,7 @@ func (a *App) Close() error {
 	// Leave the relay and stop announcing on the network.
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
+		a.Federation.SetRetired(nil, time.Time{})
 	}
 	a.smu.Lock()
 	disc := a.discovery
