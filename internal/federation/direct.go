@@ -19,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -242,7 +243,11 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	default:
-		status, out = serve(r.Context(), call)
+		source := r.RemoteAddr
+		if host, _, err := net.SplitHostPort(source); err == nil {
+			source = host
+		}
+		status, out = serve(relay.WithSource(r.Context(), "direct\x00"+source), call)
 	}
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
 	if err != nil {
