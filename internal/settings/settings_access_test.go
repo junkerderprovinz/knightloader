@@ -14,8 +14,13 @@ func TestATrustedRangeHoldsProxiesNotVisitors(t *testing.T) {
 		entry string
 		ok    bool
 	}{
-		{"172.17.0.0/16", true},
+		{"10.10.0.0/28", true},
+		{"10.10.0.0/27", false},
+		{"192.168.1.0/24", false},
+		{"192.168.0.0/16", false},
+		{"172.17.0.0/16", false},
 		{"172.16.0.0/15", false},
+		{"192.168.1.10/32", true},
 		{"10.0.0.0/8", false},
 		{"0.0.0.0/0", false},
 		{"2001:db8:1::/48", true},
@@ -36,5 +41,18 @@ func TestATrustedRangeHoldsProxiesNotVisitors(t *testing.T) {
 		if c.ok != (len(trusted) == 1) {
 			t.Errorf("%s is believed: %v, want %v", c.entry, len(trusted) == 1, c.ok)
 		}
+	}
+}
+
+// TestAWideRangeSavedEarlierIsKeptForTheOwnerToSee: a range an earlier build
+// took is no longer believed, but it stays in the settings, where the Security
+// page shows it as unused, rather than going without a word.
+func TestAWideRangeSavedEarlierIsKeptForTheOwnerToSee(t *testing.T) {
+	kept := sanitizeTrustedProxies(Settings{TrustedProxies: []string{"192.168.0.0/16", "10.0.0.2"}})
+	if len(kept.TrustedProxies) != 2 || kept.TrustedProxies[0] != "192.168.0.0/16" {
+		t.Fatalf("the saved list reads back as %v, want both entries kept", kept.TrustedProxies)
+	}
+	if got := kept.TrustedProxyPrefixes(); len(got) != 1 || got[0].String() != "10.0.0.2/32" {
+		t.Errorf("believed %v, want only the single proxy address", got)
 	}
 }

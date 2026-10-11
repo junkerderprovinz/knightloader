@@ -19,9 +19,10 @@ const maxTrustedProxies = 32
 
 // A range may be no wider than these. Every address inside one can name any
 // caller it likes, so a range must hold the proxies alone, and one as wide as
-// a whole network is sure to hold the visitors too.
+// a home or office network, a /24 or more, is sure to hold the visitors too.
+// A container network's proxy is named by its own address.
 const (
-	maxProxyRangeV4 = 16
+	maxProxyRangeV4 = 28
 	maxProxyRangeV6 = 48
 )
 
@@ -89,7 +90,8 @@ func (s Settings) ValidateTrustedProxies() error {
 }
 
 // TrustedProxyPrefixes is the list as ranges, a single address as a range of
-// its own. An entry that does not parse is left out.
+// its own. An entry that does not parse, or a range wider than the limit that
+// an earlier build saved, is left out; the Security page shows it as unused.
 func (s Settings) TrustedProxyPrefixes() []netip.Prefix {
 	var out []netip.Prefix
 	for _, e := range s.TrustedProxies {
