@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"io"
 	"net/http"
-	"strconv"
 	"strings"
 	"testing"
 
@@ -343,30 +342,47 @@ func signInOn(t *testing.T, a *app.App, url, host string) int {
 	return doJSON(t, req, nil)
 }
 
-// unlock removes the password signInOn set, so a test can look at the
-// instance without a session again.
-func unlock(t *testing.T, a *app.App) {
+// groupAddressOf is the address GET /api/connect says the group is told.
+func groupAddressOf(t *testing.T, url string) string {
 	t.Helper()
-	if err := a.Auth.SetPassword(signInPassword, ""); err != nil {
-		t.Fatal(err)
+	req, _ := http.NewRequest(http.MethodGet, url+"/api/connect", nil)
+	var info ConnectInfo
+	if code := doJSON(t, req, &info); code != http.StatusOK {
+		t.Fatalf("GET /api/connect answered %d", code)
 	}
+	return info.Address
 }
 
-// TestSigningInRemembersTheDomain checks that a domain somebody signed in on
-// is saved, so it stays listed when later requests use the LAN IP.
-func TestSigningInRemembersTheDomain(t *testing.T) {
+// TestTheHostOfASignInIsNeverAdopted: the Host header is whatever the caller
+// or a proxy in between wrote, and the first known domain is what the group,
+// the relay and the network announce are told. Only the owner's own entry
+// under Known domains may get there.
+func TestTheHostOfASignInIsNeverAdopted(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	if code := signInOn(t, a, srv.URL, "knightloader.example.tld"); code != http.StatusOK {
+	// The first password needs no session, so whoever reaches the port sets
+	// it, on any name an instance without a password answers on.
+	body := strings.NewReader(`{"new":"` + signInPassword + `"}`)
+	req, _ := http.NewRequest(http.MethodPut, srv.URL+"/api/auth/password", body)
+	req.Host = "attacker.home.lan"
+	req.Header.Set("Content-Type", "application/json")
+	if code := doJSON(t, req, nil); code != http.StatusOK {
+		t.Fatalf("setting the first password answered %d", code)
+	}
+	if code := signInOn(t, a, srv.URL, "phish.example.tld"); code != http.StatusOK {
 		t.Fatalf("signing in answered %d", code)
 	}
 
-	known := a.Settings.Get().KnownDomains
-	want := "https://knightloader.example.tld"
-	if len(known) != 1 || known[0] != want {
-		t.Fatalf("KnownDomains = %v, want [%q]", known, want)
+	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
+		t.Fatalf("KnownDomains = %v after a password and a sign-in on forged names, want none", known)
+	}
+	if err := a.Auth.SetPassword(signInPassword, ""); err != nil {
+		t.Fatal(err)
+	}
+	if got := groupAddressOf(t, srv.URL); strings.Contains(got, "example.tld") || strings.Contains(got, "home.lan") {
+		t.Fatalf("the group is told %q, a name only a request header carried", got)
 	}
 }
 
@@ -396,52 +412,13 @@ func TestReadingRemoteAccessRemembersNothing(t *testing.T) {
 	}
 }
 
-// TestAFullDomainListReportsNoChange: once the list is full the settings drop a
-// new entry, and a sign-in on yet another name must not redial the relay for a
-// list that stayed the same.
-func TestAFullDomainListReportsNoChange(t *testing.T) {
-	requireContainerDeployment(t)
-	a := testApp(t)
-	cfg := a.Settings.Get()
-	for i := range 8 {
-		cfg.KnownDomains = append(cfg.KnownDomains, "https://d"+strconv.Itoa(i)+".example.tld")
-	}
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-	known := a.Settings.Get().KnownDomains
-	if len(known) != 8 {
-		t.Fatalf("set up %d known domains, want 8", len(known))
-	}
-	addr := reachable("this connection", "https", "ninth.example.tld", "", false)
-	if rememberDomain(a, addr, known) {
-		t.Error("rememberDomain reported a change the settings dropped")
-	}
-}
-
 func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
 
-	address := func() string {
-		req, _ := http.NewRequest(http.MethodGet, srv.URL+"/api/connect", nil)
-		var info ConnectInfo
-		if code := doJSON(t, req, &info); code != http.StatusOK {
-			t.Fatalf("GET /api/connect answered %d", code)
-		}
-		return info.Address
-	}
-	if got := address(); strings.HasPrefix(got, "https://") {
+	if got := groupAddressOf(t, srv.URL); strings.HasPrefix(got, "https://") {
 		t.Fatalf("address = %q before any domain is known", got)
-	}
-
-	if code := signInOn(t, a, srv.URL, "kl.example.tld"); code != http.StatusOK {
-		t.Fatalf("signing in answered %d", code)
-	}
-	unlock(t, a)
-	if got := address(); got != "https://kl.example.tld" {
-		t.Fatalf("address = %q, want the domain the instance was reached on", got)
 	}
 
 	cfg := a.Settings.Get()
@@ -449,42 +426,8 @@ func TestTheGroupIsToldTheFirstKnownDomain(t *testing.T) {
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
 	}
-	if got := address(); got != "https://first.example.tld/kl" {
+	if got := groupAddressOf(t, srv.URL); got != "https://first.example.tld/kl" {
 		t.Fatalf("address = %q, want the first known domain", got)
-	}
-}
-
-func TestSigningInDoesNotRememberLoopbackOrBareIP(t *testing.T) {
-	requireContainerDeployment(t)
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	for _, host := range []string{strings.TrimPrefix(srv.URL, "http://"), "192.0.2.10:8749", "wails.localhost"} {
-		if code := signInOn(t, a, srv.URL, host); code != http.StatusOK {
-			t.Fatalf("signing in on %s answered %d", host, code)
-		}
-	}
-	if known := a.Settings.Get().KnownDomains; len(known) != 0 {
-		t.Fatalf("KnownDomains = %v, want none after signing in on loopback and bare IPs only", known)
-	}
-}
-
-func TestSigningInDoesNotDuplicateAnAlreadyKnownDomain(t *testing.T) {
-	requireContainerDeployment(t)
-	srv, a := testServer(t)
-	defer srv.Close()
-
-	cfg := a.Settings.Get()
-	cfg.KnownDomains = []string{"https://knightloader.example.tld"}
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
-
-	if code := signInOn(t, a, srv.URL, "knightloader.example.tld"); code != http.StatusOK {
-		t.Fatalf("signing in answered %d", code)
-	}
-	if known := a.Settings.Get().KnownDomains; len(known) != 1 {
-		t.Fatalf("KnownDomains = %v, want the same single entry, not a duplicate", known)
 	}
 }
 

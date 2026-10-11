@@ -585,7 +585,6 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			// the person unlocking it, and the code backs up a password this
 			// sign-in did not use.
 			setSession(w, r, a.Auth.Issue())
-			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 
