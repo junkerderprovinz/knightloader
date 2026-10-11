@@ -108,6 +108,10 @@ func registerSystem(reg *Registry, a *app.App) {
 			if permits(a, r, apitoken.ScopeAdmin) {
 				out["twoFactor"] = a.Auth.TwoFactorEnabled()
 				out["recoveryLeft"] = a.Auth.RecoveryLeft()
+				out["appKey"] = a.AppKey != nil
+				if until, ok := a.KeyCopiesUntil(); ok {
+					out["appKeyCopiesUntil"] = until
+				}
 			}
 			writeJSON(w, out)
 		})

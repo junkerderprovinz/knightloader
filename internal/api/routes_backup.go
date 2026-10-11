@@ -1,12 +1,15 @@
 package api
 
 // Backup and restore. The archive bundles the SQLite store and settings.json,
-// which is also where the rule sets and the timetable live. See
-// internal/backup for why a restore validates everything up front but applies
-// nothing until the next process start.
+// which is also where the rule sets and the timetable live, and is sealed with
+// the app key when the install has one. See internal/backup for why a restore
+// validates everything up front but applies nothing until the next process
+// start.
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log"
@@ -76,6 +79,10 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 	}
 
 	filename := fmt.Sprintf("knightloader-backup-%s.zip", time.Now().UTC().Format("20060102-150405"))
+	if a.AppKey != nil {
+		downloadSealedBackup(w, a, filename, manifest, settingsJSON, tmpPath)
+		return
+	}
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
@@ -85,6 +92,26 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 		// a 200 and only the log says otherwise.
 		log.Printf("backup: the archive did not finish writing to the response: %v", err)
 	}
+}
+
+// downloadSealedBackup builds the archive in memory and sends it sealed with
+// the app key. Sealing needs the whole archive, so unlike the plain download
+// a failure can still be answered as one.
+func downloadSealedBackup(w http.ResponseWriter, a *app.App, filename string, manifest backup.Manifest, settingsJSON []byte, dbPath string) {
+	var buf bytes.Buffer
+	if err := backup.Build(&buf, manifest, settingsJSON, dbPath); err != nil {
+		http.Error(w, "could not build the backup: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	sealed, err := backup.Seal(a.AppKey, buf.Bytes())
+	if err != nil {
+		http.Error(w, "could not encrypt the backup: "+err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("Content-Type", "application/octet-stream")
+	w.Header().Set("X-Content-Type-Options", "nosniff")
+	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+backup.SealedExt+`"`)
+	_, _ = w.Write(sealed)
 }
 
 func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
@@ -102,6 +129,16 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 	}
 	if len(data) > backup.MaxUploadBytes {
 		http.Error(w, fmt.Sprintf("a backup over %d bytes is refused", backup.MaxUploadBytes), http.StatusRequestEntityTooLarge)
+		return
+	}
+
+	data, err = backup.Unseal(a.AppKey, data)
+	switch {
+	case errors.Is(err, backup.ErrNeedsKey):
+		writeRefusal(w, http.StatusBadRequest, "restore.appKeyMissing", err.Error(), nil)
+		return
+	case errors.Is(err, backup.ErrWrongKey):
+		writeRefusal(w, http.StatusBadRequest, "restore.appKeyWrong", err.Error(), nil)
 		return
 	}
 

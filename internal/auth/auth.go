@@ -15,17 +15,15 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
 	"os"
-	"path/filepath"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
 	"unicode/utf8"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
 // SessionTTL is how long a login lasts.
@@ -63,7 +61,7 @@ func checkLength(password string) error {
 }
 
 type stored struct {
-	Hash string `json:"hash"` // bcrypt, empty = no password set
+	Hash string `json:"hash"` // bcrypt, or Argon2id with an app key; empty = no password set
 	Key  string `json:"key"`  // hex, signs session cookies
 	// TOTP is the base32 authenticator secret, written only once a code from
 	// it has been confirmed. Empty means no second factor.
@@ -106,6 +104,9 @@ type Guard struct {
 	// process, so a session is only issued for the state a password was
 	// checked against (see Credentials).
 	gen uint64
+	// appKey seals the file and peppers the password; nil keeps the file
+	// plain and the hash bcrypt.
+	appKey *appkey.Key
 
 	// minting is held for writing while a reset, a password change or a
 	// sign-out everywhere ends the credentials, and for reading by everything
@@ -125,30 +126,9 @@ type Credentials struct {
 	TwoFactor bool
 }
 
-// Open loads (or creates) the lock state in dir.
+// Open loads (or creates) the lock state in dir, without an app key.
 func Open(dir string) (*Guard, error) {
-	g := &Guard{path: filepath.Join(dir, "auth.json")}
-	if b, err := os.ReadFile(g.path); err == nil {
-		var s stored
-		if err := json.Unmarshal(b, &s); err == nil {
-			g.hash = []byte(s.Hash)
-			g.key, _ = hex.DecodeString(s.Key)
-			g.totp = s.TOTP
-			g.recovery = s.Recovery
-			g.epoch = s.Epoch
-			g.revoked = s.Revoked
-		}
-	}
-	if len(g.key) == 0 {
-		g.key = make([]byte, 32)
-		if _, err := rand.Read(g.key); err != nil {
-			return nil, err
-		}
-		if err := g.flush(); err != nil {
-			return nil, err
-		}
-	}
-	return g, nil
+	return OpenWithKey(dir, nil)
 }
 
 // Enabled reports whether a password is required.
@@ -188,7 +168,7 @@ func (g *Guard) changeFrom(c Credentials, next string, alsoEnd func()) (Credenti
 			return Credentials{}, err
 		}
 		var err error
-		if h, err = bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost); err != nil {
+		if h, err = hashPassword(g.appKey, next); err != nil {
 			return Credentials{}, err
 		}
 	}
@@ -236,7 +216,11 @@ func (g *Guard) CheckPassword(password string) (Credentials, bool) {
 	if len(h) == 0 {
 		return c, false
 	}
-	return c, bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
+	if !verifyPassword(g.appKey, password, h) {
+		return c, false
+	}
+	g.upgradeHash(password, h)
+	return c, true
 }
 
 // Current is the present state, for a sign-in that proves something other than
@@ -433,11 +417,11 @@ func (g *Guard) flush() error {
 		Revoked:  g.revoked,
 	}
 	g.mu.RUnlock()
-	return writeState(g.path, s)
+	return writeState(g.path, s, g.appKey)
 }
 
-func writeState(path string, s stored) error {
-	b, err := json.MarshalIndent(s, "", "  ")
+func writeState(path string, s stored, key *appkey.Key) error {
+	b, err := encodeStored(s, key)
 	if err != nil {
 		return err
 	}

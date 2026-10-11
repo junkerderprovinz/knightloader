@@ -186,6 +186,22 @@ release's tag.
 - **The relay an instance serves no longer believes `X-Forwarded-For` from
   every address on the local network,** only from the trusted proxies, so a
   device there cannot dodge the limit on failed handshakes.
+### Security
+
+- **An app key keeps a copied data folder useless.** Set `KL_APP_KEY` once
+  (`openssl rand -hex 32`) and the password is hashed with Argon2id and
+  peppered with it, while the session key, the second factor, the recovery
+  codes, the key to the stored accounts, the passwords and tokens in
+  settings.json and the archive and download passwords of each download are
+  sealed with it. An existing install seals its files at the next start and
+  keeps a copy of them first, which it deletes after seven days without an
+  error; the Security page says when. The password moves over at the next
+  sign-in. Without the variable nothing changes, and Settings > Security
+  says how to add one. The desktop apps make their key themselves and keep it
+  in the system's credential store.
+- **Backups are encrypted with the app key.** A downloaded backup then opens
+  only on an instance with the same key, and a restore without it says which
+  key it needs. Backups made before still restore.
 
 ## [1.8.5] - 2026-10-11
 

@@ -367,6 +367,9 @@ export const en = {
   'settings.lockOn': 'A password is set.',
   'settings.lockOff': 'No password is set.',
   'settings.lockHint': 'Protects this instance from anyone who can reach it: on the same network, through a domain, or through a relay. Once set, it has to be entered before this instance opens at all, for anyone, including you on your next visit. Without one, anyone who finds the address can see every download, and add, pause or delete their own.',
+  'settings.appKeyMissing': 'No app key is set.',
+  'settings.appKeyMissingHint': 'Without an app key, anyone with a copy of the data folder can read the stored passwords and sign in. To add one, run openssl rand -hex 32 once, put the result into the container template as the variable KL_APP_KEY and restart. KnightLoader then seals its secrets with it and keeps the old files in a before-app-key folder inside the data folder. KnightLoader deletes that folder itself after seven days without errors. Keep the key somewhere safe: without it, neither the data folder nor any backup made from then on can be opened.',
+  'settings.appKeyCopies': 'A copy of the files from before the app key is still in the data folder. KnightLoader deletes it after {date}.',
   'settings.passwordCurrent': 'Current password',
   'settings.passwordNew': 'New password',
   'settings.passwordHint': 'At least 8 characters. Leave it empty to remove the lock. That also switches two-factor authentication off and deletes every passkey.',
@@ -2194,6 +2197,8 @@ export const en = {
   'settings.system.restoreKeepsLogin': 'Your password, passkeys and API tokens stay as they are. The restore does not bring back passkeys from the backup.',
   'settings.system.restoring': 'Validating and staging…',
   'settings.system.restoreFailed': 'Could not restore: {error}',
+  'settings.system.restoreKeyMissing': 'This backup is encrypted with an app key, but this instance has none. Start KnightLoader with the KL_APP_KEY of the instance that made the backup, then restore again.',
+  'settings.system.restoreKeyWrong': 'This backup was encrypted with a different app key. To restore it, KnightLoader needs the KL_APP_KEY of the instance that made it.',
   'settings.system.restoreStaged': '{status}',
   'settings.system.loadFailed': 'Could not load. Is the server reachable?',
 
