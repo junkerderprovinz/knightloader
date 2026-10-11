@@ -13,6 +13,7 @@ import (
 	"errors"
 	"net"
 	"net/http"
+	"net/netip"
 	"strings"
 	"sync"
 	"time"
@@ -59,23 +60,82 @@ type loginFails struct {
 type loginGate struct {
 	mu    sync.Mutex
 	fails map[string]*loginFails
+	// trusted lists the proxies whose X-Forwarded-For counts; nil trusts none.
+	trusted func() []netip.Prefix
 }
 
-func newLoginGate() *loginGate { return &loginGate{fails: map[string]*loginFails{}} }
+func newLoginGate(trusted func() []netip.Prefix) *loginGate {
+	return &loginGate{fails: map[string]*loginFails{}, trusted: trusted}
+}
+
+// trustedProxies is the setting of that name, read on every request so a
+// change applies at once.
+func trustedProxies(a *app.App) func() []netip.Prefix {
+	return func() []netip.Prefix { return a.Settings.Get().TrustedProxyPrefixes() }
+}
+
+// key is who r counts as for the throttle.
+func (g *loginGate) key(r *http.Request) string {
+	var trusted []netip.Prefix
+	if g.trusted != nil {
+		trusted = g.trusted()
+	}
+	return loginClientKey(r, trusted)
+}
 
 // loginClientKey is the caller's address without its port.
 //
 // Behind a reverse proxy every caller arrives as the proxy, so the whole
-// instance shares one bucket. Trusting X-Forwarded-For instead would turn the
-// throttle into a formality, since a script rotating the header once per
-// attempt never meets it. One shared bucket is a real limit; a per-attacker
-// bucket the attacker names is none.
-func loginClientKey(r *http.Request) string {
+// instance shares one bucket unless the proxy is in trusted. Then the caller
+// is the right-most address in X-Forwarded-For that is not itself a trusted
+// proxy: each proxy appends the address it was reached from, so everything
+// to the right of that one was written by a proxy of ours and everything to
+// the left by whoever sent the request, who could name a new bucket per
+// attempt. A direct caller's header is never read, for the same reason.
+func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 	host, _, err := net.SplitHostPort(r.RemoteAddr)
 	if err != nil {
-		return r.RemoteAddr
+		host = r.RemoteAddr
+	}
+	peer, err := netip.ParseAddr(host)
+	if err != nil || !inPrefixes(trusted, peer) {
+		return host
+	}
+	var hops []string
+	for _, v := range r.Header.Values("X-Forwarded-For") {
+		hops = append(hops, strings.Split(v, ",")...)
+	}
+	for i := len(hops) - 1; i >= 0; i-- {
+		hop := strings.TrimSpace(hops[i])
+		addr, err := netip.ParseAddr(hop)
+		if err != nil {
+			// Some proxies add the caller's port, which changes with every
+			// connection and would make every attempt a bucket of its own.
+			ap, perr := netip.ParseAddrPort(hop)
+			if perr != nil {
+				return hop
+			}
+			addr = ap.Addr()
+		}
+		if !inPrefixes(trusted, addr) {
+			return addr.Unmap().String()
+		}
+	}
+	// Proxies of ours all the way: the left-most is as far as the trail goes.
+	if len(hops) > 0 {
+		return strings.TrimSpace(hops[0])
 	}
 	return host
+}
+
+func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
+	a = a.Unmap()
+	for _, p := range prefixes {
+		if p.Contains(a) {
+			return true
+		}
+	}
+	return false
 }
 
 // try takes one attempt from the caller's allowance and reports whether there
@@ -87,7 +147,7 @@ func loginClientKey(r *http.Request) string {
 // A caller inside a cool-off is refused even with the right answer; letting
 // one through would tell an attacker when a guess was right.
 func (g *loginGate) try(r *http.Request) bool {
-	key := loginClientKey(r)
+	key := g.key(r)
 	now := time.Now()
 	g.mu.Lock()
 	defer g.mu.Unlock()
@@ -113,7 +173,7 @@ func (g *loginGate) try(r *http.Request) bool {
 // be a guess, such as the right password arriving without the code it still
 // needs.
 func (g *loginGate) release(r *http.Request) {
-	key := loginClientKey(r)
+	key := g.key(r)
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	f := g.fails[key]
@@ -129,7 +189,7 @@ func (g *loginGate) release(r *http.Request) {
 // pass clears the record for a caller who got in, so a day of typos does not
 // meet somebody a week later.
 func (g *loginGate) pass(r *http.Request) {
-	key := loginClientKey(r)
+	key := g.key(r)
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	delete(g.fails, key)

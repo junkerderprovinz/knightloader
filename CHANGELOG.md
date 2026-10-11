@@ -101,6 +101,10 @@ release's tag.
   off, removes every passkey and API token, signs out every other browser and
   replaces the key sessions are signed with. Event programs and scripts stay
   as they are.
+- **Trusted proxies under Settings > Access.** Behind a reverse proxy, the
+  sign-in throttle counts every visitor by the address the proxy reports, so
+  one person guessing at the password no longer makes everybody wait. It is
+  empty by default, and the manual says when to fill it in.
 
 ### Changed
 

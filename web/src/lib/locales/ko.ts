@@ -345,6 +345,8 @@ export const ko: Dict = {
   'settings.passwordHint': '8자 이상. 비워 두면 잠금을 해제합니다. 이때 2단계 인증도 꺼지고 모든 패스키가 삭제됩니다.',
   'settings.setPassword': '암호 설정',
   'settings.passwordSaved': '암호를 변경했습니다.',
+  'settings.access.trustedProxies': '신뢰하는 프록시',
+  'settings.access.trustedProxiesHint': 'KnightLoader 앞에 리버스 프록시가 있을 때만 필요합니다. 한 주소에서 로그인에 여덟 번 실패하면 KnightLoader는 그 주소를 30초 동안 기다리게 합니다. 프록시 뒤에서는 모든 요청이 프록시의 주소에서 오므로, 한 사람이 추측하면 모두가 기다려야 합니다. 여기에 프록시의 주소를 한 줄에 IP 주소 또는 CIDR 범위 하나씩 입력하면, KnightLoader가 그 프록시가 보내는 X-Forwarded-For 헤더에서 방문자의 주소를 읽습니다. 직접 운영하는 프록시만 입력하세요. 다른 사람은 누구나 이 헤더에 원하는 주소를 넣을 수 있기 때문입니다. 비워 두면 모든 요청이 연결해 온 주소로 집계됩니다.',
   'auth.title': '이 인스턴스는 잠겨 있습니다',
   'auth.password': '암호',
   'auth.signIn': '로그인',

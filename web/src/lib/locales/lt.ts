@@ -345,6 +345,8 @@ export const lt: Dict = {
   'settings.passwordHint': 'Bent 8 simboliai. Palik tuščią, kad panaikintum užraktą. Tai taip pat išjungia dviejų veiksnių tapatybės nustatymą ir ištrina visus prieigos raktus.',
   'settings.setPassword': 'Nustatyti slaptažodį',
   'settings.passwordSaved': 'Slaptažodis pakeistas.',
+  'settings.access.trustedProxies': 'Patikimi tarpiniai serveriai',
+  'settings.access.trustedProxiesHint': 'Reikia tik tada, kai prieš KnightLoader stovi atvirkštinis tarpinis serveris. Po aštuonių nesėkmingų prisijungimo bandymų iš vieno adreso KnightLoader liepia tam adresui palaukti pusę minutės. Už tarpinio serverio kiekviena užklausa ateina iš tarpinio serverio adreso, todėl kai vienas žmogus spėlioja, laukti turi visi. Įrašyk čia tarpinio serverio adresą, po vieną IP adresą ar CIDR intervalą eilutėje, ir KnightLoader skaitys lankytojo adresą iš antraštės X-Forwarded-For, kurią siunčia tas tarpinis serveris. Įrašyk tik tuos tarpinius serverius, kuriuos valdai pats, nes bet kas kitas gali į tą antraštę įrašyti bet kokį adresą. Jei laukas paliktas tuščias, kiekviena užklausa skaičiuojama adresui, iš kurio ji prisijungė.',
   'auth.title': 'Šis egzempliorius užrakintas',
   'auth.password': 'Slaptažodis',
   'auth.signIn': 'Prisijungti',

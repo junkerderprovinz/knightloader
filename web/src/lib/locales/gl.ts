@@ -345,6 +345,8 @@ export const gl: Dict = {
   'settings.passwordHint': 'Polo menos 8 caracteres. Déixao baleiro para quitar o bloqueo. Iso tamén desactiva a autenticación en dous pasos e borra todas as chaves de acceso.',
   'settings.setPassword': 'Definir o contrasinal',
   'settings.passwordSaved': 'Contrasinal actualizado.',
+  'settings.access.trustedProxies': 'Proxies de confianza',
+  'settings.access.trustedProxiesHint': 'Só fai falta se hai un proxy inverso diante de KnightLoader. Despois de oito inicios de sesión fallidos desde un mesmo enderezo, KnightLoader fai agardar medio minuto a ese enderezo. Detrás dun proxy todas as solicitudes chegan desde o enderezo do proxy, así que se unha persoa tenta adiviñar, todos teñen que agardar. Escribe aquí o enderezo do proxy, un enderezo IP ou un rango CIDR por liña, e KnightLoader lerá o enderezo do visitante da cabeceira X-Forwarded-For que envía ese proxy. Pon só proxies que xestiones ti mesmo, porque calquera outro pode meter nesa cabeceira o enderezo que queira. Se se deixa baleiro, cada solicitude conta para o enderezo desde o que se conectou.',
   'auth.title': 'Esta instancia está bloqueada',
   'auth.password': 'Contrasinal',
   'auth.signIn': 'Iniciar sesión',

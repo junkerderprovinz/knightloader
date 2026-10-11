@@ -345,6 +345,8 @@ export const cs: Dict = {
   'settings.passwordHint': 'Nejméně 8 znaků. Nechte prázdné pro zrušení zámku. Tím se zároveň vypne dvoufaktorové ověření a smažou se všechny přístupové klíče.',
   'settings.setPassword': 'Nastavit heslo',
   'settings.passwordSaved': 'Heslo změněno.',
+  'settings.access.trustedProxies': 'Důvěryhodné proxy',
+  'settings.access.trustedProxiesHint': 'Je potřeba jen tehdy, když před KnightLoaderem stojí reverzní proxy. Po osmi neúspěšných pokusech o přihlášení z jedné adresy nechá KnightLoader tuto adresu půl minuty čekat. Za proxy přichází každý požadavek z adresy proxy, takže když jeden člověk hádá, čekají všichni. Zadej sem adresu proxy, jednu IP adresu nebo rozsah CIDR na řádek, a KnightLoader bude číst adresu návštěvníka z hlavičky X-Forwarded-For, kterou tato proxy posílá. Uváděj jen proxy, které sám provozuješ, protože kdokoli jiný může do této hlavičky napsat libovolnou adresu. Když pole zůstane prázdné, počítá se každý požadavek pro adresu, ze které se připojil.',
   'auth.title': 'Tato instance je zamčená',
   'auth.password': 'Heslo',
   'auth.signIn': 'Přihlásit se',

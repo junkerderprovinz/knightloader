@@ -41,6 +41,8 @@ import {
   IconTrash,
 } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
+import { useDraft } from './context';
+import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
@@ -170,7 +172,31 @@ function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
+        <TrustedProxiesField />
       </Card>
+  );
+}
+
+/**
+ * TrustedProxiesField names the reverse proxies whose X-Forwarded-For the
+ * sign-in throttle reads. It saves with the settings, not with the password's
+ * button.
+ */
+function TrustedProxiesField() {
+  const { t } = useT();
+  const { cfg, patch } = useDraft();
+  return (
+    <div className="flex flex-col gap-1.5">
+      <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>
+        <ListArea
+          rows={3}
+          dir="ltr"
+          lines={cfg.trustedProxies}
+          onLines={(trustedProxies) => patch({ trustedProxies })}
+        />
+      </Field>
+      <RowRefusal field="trustedProxies" className="pb-0" />
+    </div>
   );
 }
 

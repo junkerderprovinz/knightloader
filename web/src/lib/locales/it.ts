@@ -337,6 +337,8 @@ export const it: Dict = {
   'settings.passwordHint': 'Almeno 8 caratteri. Lascia vuoto per togliere il blocco. Questo disattiva anche l\'autenticazione a due fattori ed elimina tutte le passkey.',
   'settings.setPassword': 'Imposta password',
   'settings.passwordSaved': 'Password aggiornata.',
+  'settings.access.trustedProxies': 'Proxy attendibili',
+  'settings.access.trustedProxiesHint': 'Serve solo se davanti a KnightLoader c’è un reverse proxy. Dopo otto tentativi di accesso falliti dallo stesso indirizzo, KnightLoader fa aspettare quell’indirizzo mezzo minuto. Dietro un proxy ogni richiesta arriva dall’indirizzo del proxy, quindi se una persona tira a indovinare, aspettano tutti. Inserisci qui l’indirizzo del proxy, un indirizzo IP o un intervallo CIDR per riga, e KnightLoader leggerà l’indirizzo del visitatore dall’intestazione X-Forwarded-For che quel proxy invia. Elenca solo proxy che gestisci tu, perché chiunque altro può mettere in quell’intestazione l’indirizzo che vuole. Se resta vuoto, ogni richiesta conta per l’indirizzo da cui si è collegata.',
   'auth.title': 'Questa istanza è bloccata',
   'auth.password': 'Password',
   'auth.signIn': 'Accedi',

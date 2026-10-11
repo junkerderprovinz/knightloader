@@ -345,6 +345,8 @@ export const hr: Dict = {
   'settings.passwordHint': 'Najmanje 8 znakova. Ostavi prazno da ukloniš zaključavanje. Time se isključuje i dvofaktorska autentifikacija i brišu se svi pristupni ključevi.',
   'settings.setPassword': 'Postavi lozinku',
   'settings.passwordSaved': 'Lozinka je promijenjena.',
+  'settings.access.trustedProxies': 'Pouzdani proxyji',
+  'settings.access.trustedProxiesHint': 'Potrebno samo ako ispred KnightLoadera stoji obrnuti proxy. Nakon osam neuspjelih pokušaja prijave s jedne adrese KnightLoader tu adresu natjera da čeka pola minute. Iza proxyja svaki zahtjev dolazi s adrese proxyja, pa kad jedna osoba pogađa, svi moraju čekati. Ovdje upiši adresu proxyja, jednu IP adresu ili CIDR raspon po retku, i KnightLoader će adresu posjetitelja čitati iz zaglavlja X-Forwarded-For koje taj proxy šalje. Upiši samo proxyje koje sam održavaš, jer bilo tko drugi može u to zaglavlje upisati bilo koju adresu. Ako ostane prazno, svaki se zahtjev broji za adresu s koje je došla veza.',
   'auth.title': 'Ova instanca je zaključana',
   'auth.password': 'Lozinka',
   'auth.signIn': 'Prijava',

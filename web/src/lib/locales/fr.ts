@@ -337,6 +337,8 @@ export const fr: Dict = {
   'settings.passwordHint': 'Au moins 8 caractères. Laissez vide pour retirer le verrou. Cela désactive aussi l\'authentification à deux facteurs et supprime toutes les clés d\'accès.',
   'settings.setPassword': 'Définir le mot de passe',
   'settings.passwordSaved': 'Mot de passe mis à jour.',
+  'settings.access.trustedProxies': 'Proxys de confiance',
+  'settings.access.trustedProxiesHint': 'Utile seulement si un proxy inverse se trouve devant KnightLoader. Après huit tentatives de connexion échouées depuis une même adresse, KnightLoader fait attendre cette adresse une demi-minute. Derrière un proxy, chaque requête vient de l’adresse du proxy : une seule personne qui devine fait donc attendre tout le monde. Saisissez ici l’adresse du proxy, une adresse IP ou une plage CIDR par ligne, et KnightLoader lira l’adresse du visiteur dans l’en-tête X-Forwarded-For que ce proxy envoie. N’indiquez que des proxys que vous gérez vous-même, car n’importe qui d’autre peut mettre l’adresse de son choix dans cet en-tête. Laissé vide, chaque requête compte pour l’adresse depuis laquelle elle s’est connectée.',
   'auth.title': 'Cette instance est verrouillée',
   'auth.password': 'Mot de passe',
   'auth.signIn': 'Se connecter',
