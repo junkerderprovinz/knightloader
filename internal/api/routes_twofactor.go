@@ -80,7 +80,7 @@ func (g *loginGate) key(r *http.Request) string {
 	return loginClientKey(r, trusted)
 }
 
-// loginClientKey is the caller's address without its port.
+// loginClientKey is the caller's bucket (see bucketOf).
 //
 // Behind a reverse proxy every caller arrives as the proxy, so the whole
 // instance shares one bucket unless the proxy is in trusted. Then the caller
@@ -95,8 +95,11 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 		host = r.RemoteAddr
 	}
 	peer, err := netip.ParseAddr(host)
-	if err != nil || !inPrefixes(trusted, peer) {
+	if err != nil {
 		return host
+	}
+	if !inPrefixes(trusted, peer) {
+		return bucketOf(peer)
 	}
 	var hops []string
 	for _, v := range r.Header.Values("X-Forwarded-For") {
@@ -115,7 +118,7 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 			addr = ap.Addr()
 		}
 		if !inPrefixes(trusted, addr) {
-			return addr.Unmap().String()
+			return bucketOf(addr)
 		}
 	}
 	// Proxies of ours all the way: the left-most is as far as the trail goes.
@@ -123,6 +126,18 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 		return strings.TrimSpace(hops[0])
 	}
 	return host
+}
+
+// bucketOf is the key for a caller at a: the address itself for IPv4, and its
+// /64 for IPv6, the least a single connection is given, so that one guesser
+// cannot take a fresh bucket from every address of their own network.
+func bucketOf(a netip.Addr) string {
+	a = a.Unmap()
+	if a.Is4() {
+		return a.String()
+	}
+	p, _ := a.WithZone("").Prefix(64)
+	return p.String()
 }
 
 func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
