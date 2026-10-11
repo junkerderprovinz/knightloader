@@ -170,7 +170,7 @@ func newHarness(t *testing.T, services ...Service) *harness {
 func (h *harness) open() *Manager {
 	return New(Options{
 		Dir: h.dir,
-		Stage: func(j Job, files []File) ([]string, error) {
+		Stage: func(j Job, files []File) ([]string, func(), error) {
 			if h.beforeStage != nil {
 				h.beforeStage()
 			}
@@ -180,7 +180,7 @@ func (h *harness) open() *Manager {
 			for i := range files {
 				ids[i] = j.ID + "-task-" + strconv.Itoa(i)
 			}
-			return ids, nil
+			return ids, nil, nil
 		},
 		Finished: func(j Job) bool { return h.finished(j.TaskIDs) },
 		Failed:   func(j Job) { h.failed = append(h.failed, j) },
@@ -733,7 +733,7 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 	heard := make(chan string, 1)
 	m := New(Options{
 		Dir:      t.TempDir(),
-		Stage:    func(Job, []File) ([]string, error) { return nil, nil },
+		Stage:    func(Job, []File) ([]string, func(), error) { return nil, nil, nil },
 		Finished: func(Job) bool { return false },
 		Taken: func(_, remote string) {
 			select {
@@ -896,12 +896,16 @@ func TestAJobWithNoAccountLeftStaysWithTheFirst(t *testing.T) {
 func TestAJobThatFailsAfterAServiceTookItIsDeletedThere(t *testing.T) {
 	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}}}
 	h := newHarness(t, svc)
-	h.m.o.Stage = func(Job, []File) ([]string, error) { return nil, nil }
+	started := false
+	h.m.o.Stage = func(Job, []File) ([]string, func(), error) { return nil, func() { started = true }, nil }
 	j := h.add(t, "Dupe")
 	h.m.round(context.Background())
 	h.m.round(context.Background())
 	if got := h.job(t, j.ID); got.State != StateFailed {
 		t.Fatalf("job is %s, want failed with every file already in the list", got.State)
+	}
+	if started {
+		t.Error("a failed job's files were started")
 	}
 	deadline := time.Now().Add(5 * time.Second)
 	for svc.deletes() != 1 {
@@ -909,5 +913,20 @@ func TestAJobThatFailsAfterAServiceTookItIsDeletedThere(t *testing.T) {
 			t.Fatal("the service's copy of the failed job was never deleted")
 		}
 		time.Sleep(10 * time.Millisecond)
+	}
+}
+
+func TestAStagedJobListsItsTasksBeforeTheyStart(t *testing.T) {
+	svc := &fakeService{slot: "torbox", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}}}
+	h := newHarness(t, svc)
+	j := h.add(t, "Show")
+	var atStart Job
+	h.m.o.Stage = func(Job, []File) ([]string, func(), error) {
+		return []string{"t1"}, func() { atStart, _ = h.m.Get(j.ID) }, nil
+	}
+	h.m.round(context.Background())
+	h.m.round(context.Background())
+	if atStart.State != StateStaged || !slices.Equal(atStart.TaskIDs, []string{"t1"}) {
+		t.Fatalf("the tasks started while their job was %+v", atStart)
 	}
 }
