@@ -129,7 +129,7 @@ function ShellFlow({ instance, base }: { instance: string; base: string }) {
   const list = useMemo(() => Object.values(tasks), [tasks]);
   const flow = useTransferFlow(list, base, instance === '');
   return (
-    <span className="-mt-1 hidden sm:block [&:has(+*)]:hidden">
+    <span className="-mt-1 hidden sm:[&:not(:has(+*))]:block">
       <TransferFlowStrip flow={flow} title={t('overview.flow.title')} />
     </span>
   );
