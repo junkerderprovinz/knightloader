@@ -43,6 +43,10 @@ const (
 	// out, which on this app is the same damage as getting in.
 	loginFailLimit  = 5
 	loginFailWindow = time.Minute
+	// loginNetworkLimit failures within loginFailWindow are allowed per IPv6
+	// /48 as a whole. Its /64s count one by one as well, and whoever holds a
+	// /48 holds 65536 of them, each with a fresh allowance otherwise.
+	loginNetworkLimit = 4 * loginFailLimit
 	// loginGateMax bounds the map. This route answers without a session, so the
 	// number of keys is chosen by whoever calls it.
 	loginGateMax = 512
@@ -150,8 +154,19 @@ func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
 	return false
 }
 
-// try takes one attempt from the caller's allowance and reports whether there
-// was one left. The attempt counts as a failure from the start and pass wipes
+// networkOf is the key the IPv6 /48 around bucket key counts under, and ""
+// for an IPv4 caller.
+func networkOf(key string) string {
+	p, err := netip.ParsePrefix(key)
+	if err != nil || !p.Addr().Is6() {
+		return ""
+	}
+	wide, _ := p.Addr().Prefix(48)
+	return "net " + wide.String()
+}
+
+// try takes one attempt from the caller's allowance, and from its network's,
+// and reports whether there was one left in both. The attempt counts as a failure from the start and pass wipes
 // it on success: deciding and counting in one step under the lock is what
 // stops a burst of parallel requests from all passing the check before the
 // first of them has been counted.
@@ -164,16 +179,25 @@ func (g *loginGate) try(r *http.Request) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.sweep(now)
-	f := g.fails[key]
-	if f == nil {
-		f = &loginFails{}
-		g.fails[key] = f
+	limits := map[string]int{key: loginFailLimit}
+	if network := networkOf(key); network != "" {
+		limits[network] = loginNetworkLimit
 	}
-	f.forget(now)
-	if len(f.at) >= loginFailLimit {
-		return false
+	for k, most := range limits {
+		if f := g.fails[k]; f != nil {
+			if f.forget(now); len(f.at) >= most {
+				return false
+			}
+		}
 	}
-	f.at = append(f.at, now)
+	for k := range limits {
+		f := g.fails[k]
+		if f == nil {
+			f = &loginFails{}
+			g.fails[k] = f
+		}
+		f.at = append(f.at, now)
+	}
 	return true
 }
 
@@ -193,8 +217,10 @@ func (g *loginGate) release(r *http.Request) {
 	key := g.key(r)
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	if f := g.fails[key]; f != nil && len(f.at) > 0 {
-		f.at = f.at[:len(f.at)-1]
+	for _, k := range []string{key, networkOf(key)} {
+		if f := g.fails[k]; f != nil && len(f.at) > 0 {
+			f.at = f.at[:len(f.at)-1]
+		}
 	}
 }
 

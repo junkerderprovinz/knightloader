@@ -7,6 +7,8 @@ import (
 	"os"
 	"path/filepath"
 	"strings"
+	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -186,5 +188,40 @@ func TestWithoutAKeyAuthJSONStaysAsItWas(t *testing.T) {
 	}
 	if !NeedsSealing(dir) {
 		t.Fatal("a plain auth.json does not report that a key would seal it")
+	}
+}
+
+// TestOnlyAFewPasswordChecksRunAtOnce: every wrong guess costs an Argon2id run
+// of argonMemoryKiB, so a burst of sign-ins would otherwise take that much
+// memory per request.
+func TestOnlyAFewPasswordChecksRunAtOnce(t *testing.T) {
+	key := newKey(t)
+	h, err := hashPassword(key, "correct-horse")
+	if err != nil {
+		t.Fatal(err)
+	}
+	var running, most atomic.Int32
+	defer func(run func([]byte, []byte, uint32, uint32, uint8, uint32) []byte) { argonRun = run }(argonRun)
+	real := argonRun
+	argonRun = func(password, salt []byte, iterations, _ uint32, threads uint8, keyLen uint32) []byte {
+		n := running.Add(1)
+		for m := most.Load(); n > m && !most.CompareAndSwap(m, n); m = most.Load() {
+		}
+		defer running.Add(-1)
+		time.Sleep(5 * time.Millisecond)
+		time.Sleep(5 * time.Millisecond)
+		return real(password, salt, iterations, 64, threads, keyLen)
+	}
+	var wg sync.WaitGroup
+	for range 16 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			verifyPassword(key, "a wrong guess", h)
+		}()
+	}
+	wg.Wait()
+	if n := most.Load(); n > maxArgonAtOnce {
+		t.Errorf("%d password checks ran at once, want at most %d", n, maxArgonAtOnce)
 	}
 }
