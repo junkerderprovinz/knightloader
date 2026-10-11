@@ -120,6 +120,7 @@ export const da: Dict = {
   'addDownload.errorSend': 'Kunne ikke sende linkene: {message}',
   'error.federationOff': 'Søsterinstanser er slået fra på den instans, du er forbundet til, så den kan ikke nå de andre.',
   'error.addAgain': 'Denne forbindelse blev gemt af en ældre version af appen og virker ikke længere. Fjern den, og forbind igen med de tolv ord.',
+  'error.ownLoginNeeded': 'Instansen tillader kun dette fra sin egen webbrugerflade. Log ind der for at gøre det.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 

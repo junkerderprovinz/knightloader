@@ -158,8 +158,8 @@ async function groupInstances() {
 
 /**
  * groupStatus is the group plus what each instance is doing, asked in parallel
- * over one relay session through routes a member may reach (relayForwardable
- * in internal/api/routes_relay.go). An instance that does not answer gets
+ * over one relay session through routes a member may reach (groupRoutes in
+ * internal/api/group_routes.go). An instance that does not answer gets
  * `status: null`, so its card can say offline.
  *
  * The web address is asked for inside the encrypted frame rather than

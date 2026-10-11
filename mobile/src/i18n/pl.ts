@@ -120,6 +120,7 @@ export const pl: Dict = {
   'addDownload.errorSend': 'Nie udało się wysłać linków: {message}',
   'error.federationOff': 'Na instancji, z którą jesteś połączony, instancje partnerskie są wyłączone, więc nie może ona dotrzeć do pozostałych.',
   'error.addAgain': 'To połączenie zapisała starsza wersja aplikacji i już nie działa. Usuń je i połącz się ponownie za pomocą dwunastu słów.',
+  'error.ownLoginNeeded': 'Instancja pozwala na to tylko z własnego interfejsu webowego. Zaloguj się tam, żeby to zrobić.',
   'addDownload.cancel': 'Anuluj',
   'addDownload.button': 'Dodaj',
 

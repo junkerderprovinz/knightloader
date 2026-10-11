@@ -120,6 +120,7 @@ export const tr: Dict = {
   'addDownload.errorSend': 'Bağlantılar gönderilemedi: {message}',
   'error.federationOff': 'Bağlı olduğun örnekte eş örnekler kapalı, bu yüzden o, diğerlerine ulaşamıyor.',
   'error.addAgain': 'Bu bağlantı uygulamanın eski bir sürümü tarafından kaydedildi ve artık çalışmıyor. Kaldır ve on iki kelimeyle yeniden bağlan.',
+  'error.ownLoginNeeded': 'Örnek buna yalnızca kendi web arayüzünden izin veriyor. Bunu yapmak için orada oturum aç.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 

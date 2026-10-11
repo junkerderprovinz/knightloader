@@ -120,6 +120,7 @@ export const sk: Dict = {
   'addDownload.errorSend': 'Odkazy sa nepodarilo odoslať: {message}',
   'error.federationOff': 'Na inštancii, ku ktorej si pripojený, sú spriatelené inštancie vypnuté, takže sa k ostatným nedostane.',
   'error.addAgain': 'Toto pripojenie uložila staršia verzia aplikácie a už nefunguje. Odstráň ho a pripoj sa znova pomocou dvanástich slov.',
+  'error.ownLoginNeeded': 'Inštancia to dovolí len vo svojom vlastnom webovom rozhraní. Prihlás sa tam.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',
 

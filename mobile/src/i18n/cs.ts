@@ -120,6 +120,7 @@ export const cs: Dict = {
   'addDownload.errorSend': 'Odkazy se nepodařilo odeslat: {message}',
   'error.federationOff': 'Na instanci, ke které jsi připojený, jsou spřátelené instance vypnuté, takže se k ostatním nedostane.',
   'error.addAgain': 'Toto připojení uložila starší verze aplikace a už nefunguje. Odeber ho a připoj se znovu pomocí dvanácti slov.',
+  'error.ownLoginNeeded': 'Instance to dovolí jen ve svém vlastním webovém rozhraní. Přihlas se tam.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 

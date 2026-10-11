@@ -306,21 +306,16 @@ func groupSecret(a *app.App) []byte {
 //
 // The relay only joins sockets presenting the same group key, derived from the
 // connection phrase, so the sender has proved group membership and the request
-// is marked authenticated. Whoever holds the phrase can join the group anyway.
-// In return the reachable surface is limited here by relayForwardable, so a
-// sibling cannot read accounts, change the password, mint a token or ask for
-// the phrase.
+// is marked as coming from the group. Whoever holds the phrase can join the
+// group anyway. In return guard holds the call to groupRoutes, so a member
+// cannot read accounts, change the password, mint a token or ask for the
+// phrase.
 func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 		// A phone taken out of the group learns it from this answer and drops
 		// its connections to the group.
 		if call.From != "" && removed(call.From) {
 			return http.StatusGone, []byte("removed")
-		}
-		if !relayForwardable(call.Method, call.Path) {
-			// An allowlist, so a route added later is not exposed to peers
-			// until somebody adds it.
-			return http.StatusForbidden, []byte("route not proxied")
 		}
 		var body io.Reader
 		if len(call.Body) > 0 {
@@ -357,109 +352,6 @@ func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.P
 		}()
 		return status, out
 	}
-}
-
-// relayForwardable is the list of what a group sibling may reach on this
-// instance. It is wider than the browser's outbound filter on
-// /api/instances/{name}/{rest...}, because the phone app is a group member too
-// and asks things a browser never asks a peer.
-//
-// The task, link and queue routes take any method, since showing a sibling's
-// downloads without being able to stop them would be half a connection. So do
-// the captcha routes: a captcha holds a download up, and the phone answers or
-// skips it, loads a widget challenge's page, and says when that will not
-// load. The rest is read-only apart from the appearance fields and the
-// clipboard watchers. Settings, accounts, tokens, scripts and the phrase are
-// not on the list.
-func relayForwardable(method, path string) bool {
-	// The decision is about the route, not its query arguments.
-	if i := strings.IndexByte(path, '?'); i >= 0 {
-		path = path[:i]
-	}
-	const prefix = "/api/"
-	if !strings.HasPrefix(path, prefix) {
-		return false
-	}
-	rest := path[len(prefix):]
-
-	if rest == "links" || rest == "tasks" || rest == "queue" ||
-		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
-		return true
-	}
-	if relayCaptchaRoute(method, rest) {
-		return true
-	}
-	// Taking a phone out of the group reaches every instance of it, passed on
-	// by the instance the removal started on; taking an instance out reaches
-	// that instance, which then leaves.
-	if method == http.MethodDelete && (strings.HasPrefix(rest, "connect/apps/") || strings.HasPrefix(rest, "connect/members/")) {
-		return true
-	}
-	if relayClipWatchRoute(method, rest) {
-		return true
-	}
-	// Setting the appearance fields is less than a phrase holder can
-	// already do through the queue.
-	if method == http.MethodPost && rest == "appearance" {
-		return true
-	}
-	// Reads a companion needs: whether a password is wanted, the group's
-	// instances, the look, the addresses this instance answers on, and the
-	// unpackings its rows show. The addresses travel inside the encrypted
-	// frame, so the relay operator never learns them.
-	if method == http.MethodGet {
-		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access" ||
-			rest == "extract"
-	}
-	return false
-}
-
-// relayCaptchaRoute reports whether rest is one of the captcha calls the phone
-// makes: the list, a refresh, answering or skipping one challenge, its widget
-// page and the phone's report that the page will not load. The web UI's own
-// widget page and its report stay off. Matched by shape rather than by
-// prefix, so a route added under /api/captcha later is not forwarded until it
-// is named here.
-func relayCaptchaRoute(method, rest string) bool {
-	switch rest {
-	case "captcha":
-		return method == http.MethodGet
-	case "captcha/refresh":
-		return method == http.MethodPost
-	}
-	parts := strings.SplitN(rest, "/", 3)
-	if len(parts) != 3 || parts[0] != "captcha" || parts[1] == "" {
-		return false
-	}
-	switch parts[2] {
-	case "answer", "skip":
-		return method == http.MethodPost
-	case "widget/phone":
-		return method == http.MethodGet
-	case "unanswerable/phone":
-		return method == http.MethodPost || method == http.MethodDelete
-	}
-	return false
-}
-
-// relayClipWatchRoute reports whether rest is one of the clipboard watcher
-// calls: the extension renews and drops its lease through the relay, and the
-// members list and stop one another's watchers.
-func relayClipWatchRoute(method, rest string) bool {
-	if rest == "clipboard-watchers" {
-		return method == http.MethodGet
-	}
-	parts := strings.Split(rest, "/")
-	if parts[0] != "clipboard-watchers" || len(parts) < 2 || parts[1] == "" {
-		return false
-	}
-	switch len(parts) {
-	case 2:
-		return method == http.MethodPut || method == http.MethodDelete
-	case 3:
-		return parts[2] == "stop" && method == http.MethodPost
-	}
-	return false
 }
 
 // relayAnswerMax bounds what one relayed call answers. No member reads more

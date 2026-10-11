@@ -120,6 +120,7 @@ export const lt: Dict = {
   'addDownload.errorSend': 'Nepavyko išsiųsti nuorodų: {message}',
   'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
   'error.addAgain': 'Šį ryšį išsaugojo senesnė programėlės versija, ir jis nebeveikia. Pašalink jį ir prisijunk iš naujo su dvylika žodžių.',
+  'error.ownLoginNeeded': 'Egzempliorius tai leidžia tik per savo žiniatinklio sąsają. Prisijunk ten, kad tai padarytum.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 

@@ -9,7 +9,7 @@ package api
 // /api/fileowner/check creates a real file and sub-directory in every folder it
 // measures, which is why it is a POST (see app_diskreport.go).
 //
-// Neither route is forwarded to peers (routes_federation.go, routes_relay.go):
+// Neither route is forwarded to peers (routes_federation.go, group_routes.go):
 // a peer's answer names that box's uids and folders, and would send somebody
 // to chown a path on the wrong machine. They send the folder paths /api/folders
 // already lists, the uid and gid, and three environment variables visible in

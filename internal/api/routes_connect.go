@@ -11,12 +11,10 @@ package api
 // give back what a person would type.
 
 import (
-	"context"
 	"encoding/hex"
 	"errors"
 	"log"
 	"net/http"
-	"net/url"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -203,54 +201,18 @@ func registerConnect(reg *Registry, a *app.App) {
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase)})
 		})
 
+	// Only this instance's owner removes a phone here, never a member of the
+	// group, which holds the same words as the phone it would remove. The
+	// phone learns it from this instance's next answer and leaves the whole
+	// group.
 	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
-		"take a phone out of the group on every instance of it - the phone drops its connections and comes back as a new one when the phrase is scanned again",
+		"take a phone or browser extension out of the group on this instance - it is turned away here, drops every connection to the group when it next calls, and comes back as a new one when the phrase is entered again",
 		func(w http.ResponseWriter, r *http.Request) {
-			id := r.PathValue("id")
-			if err := a.Federation.RemoveApp(id, time.Now()); err != nil {
+			if err := a.Federation.RemoveApp(r.PathValue("id"), time.Now()); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
-			// A removal that arrived from a sibling is not passed on again.
-			if !fromRelayGroup(r) {
-				go passRemovalOn(a, id)
-			}
 			w.WriteHeader(http.StatusNoContent)
-		})
-
-	reg.Add(http.MethodDelete, "/api/connect/members/{id}",
-		"take another instance out of the group - it forgets the phrase and comes back when the phrase is entered there again",
-		func(w http.ResponseWriter, r *http.Request) {
-			id := r.PathValue("id")
-			if id == a.Settings.Get().InstanceID {
-				// Only a sibling asks this of this instance; the own page leaves
-				// through DELETE /api/connect.
-				if !fromRelayGroup(r) {
-					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
-					return
-				}
-				// Answered before the relay socket closes under this request.
-				w.WriteHeader(http.StatusNoContent)
-				go func() {
-					if err := enterGroup(a, nil); err != nil {
-						log.Printf("connect: could not leave the group after a sibling removed this instance: %v", err)
-					}
-				}()
-				return
-			}
-			for _, m := range a.Federation.Members() {
-				if m.RelayID != id {
-					continue
-				}
-				_, status, err := a.Federation.Proxy(r.Context(), m.Name, http.MethodDelete, "/api/connect/members/"+url.PathEscape(id), nil)
-				if err != nil {
-					http.Error(w, err.Error(), http.StatusBadGateway)
-					return
-				}
-				w.WriteHeader(status)
-				return
-			}
-			http.Error(w, "no instance "+id+" is reachable in this group", http.StatusNotFound)
 		})
 
 	reg.Add(http.MethodDelete, "/api/connect",
@@ -355,18 +317,5 @@ func connectInfo(a *app.App) ConnectInfo {
 		Apps:            apps,
 		JoinedAgo:       joinedAgo,
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
-	}
-}
-
-// passRemovalOn tells the other instances of the group that phone id is out.
-// One that is away misses it; the phone still learns it from this instance.
-func passRemovalOn(a *app.App, id string) {
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-	path := "/api/connect/apps/" + url.PathEscape(id)
-	for _, m := range a.Federation.Members() {
-		if _, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodDelete, path, nil); err != nil || status >= 300 {
-			log.Printf("connect: could not pass the removal of %s on to %s: status %d, %v", id, m.Name, status, err)
-		}
 	}
 }

@@ -148,6 +148,7 @@ type Registry struct {
 
 	lookupOnce sync.Once
 	lookup     *http.ServeMux
+	patterns   map[string]bool
 }
 
 func newRegistry() *Registry {
@@ -247,15 +248,18 @@ func (reg *Registry) open(path string) bool {
 // so a token has to be checked here against what it asks the peer to do. A
 // path no route serves needs admin.
 func (reg *Registry) scopeOfCall(method, path string, body []byte) apitoken.Scope {
-	reg.lookupOnce.Do(func() {
-		// Built only to ask which pattern matches; nothing is served from it.
-		reg.lookup = http.NewServeMux()
-		for _, r := range reg.routes {
-			reg.lookup.Handle(r.pattern(), http.NotFoundHandler())
-		}
-	})
-	_, pattern := reg.lookup.Handler(&http.Request{Method: method, URL: &url.URL{Path: path}})
-	return callScope(pattern, body)
+	return callScope(reg.patternOf(method, &url.URL{Path: path}), body)
+}
+
+// buildLookup builds a mux only to ask which pattern matches; nothing is
+// served from it.
+func (reg *Registry) buildLookup() {
+	reg.lookup = http.NewServeMux()
+	reg.patterns = map[string]bool{}
+	for _, r := range reg.routes {
+		reg.lookup.Handle(r.pattern(), http.NotFoundHandler())
+		reg.patterns[r.pattern()] = true
+	}
 }
 
 func (reg *Registry) buildOpen() {

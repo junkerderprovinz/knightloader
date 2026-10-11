@@ -211,10 +211,10 @@ func TestTheBundleCarriesTheOwnersAndNotAnybodysHomeDirectory(t *testing.T) {
 // and folders being shown under this machine's name.
 func TestTheOwnershipRoutesAreNotForwardedToAPeer(t *testing.T) {
 	t.Parallel()
-	if relayForwardable(http.MethodGet, "/api/fileowner") {
+	if groupReaches(t, http.MethodGet, "/api/fileowner") {
 		t.Error("GET /api/fileowner is forwardable to a peer; one machine's uid answered under another machine's name is a wrong number nobody can spot")
 	}
-	if relayForwardable(http.MethodPost, "/api/fileowner/check") {
+	if groupReaches(t, http.MethodPost, "/api/fileowner/check") {
 		t.Error("POST /api/fileowner/check is forwardable to a peer; it writes, and it would be writing into the peer's folders")
 	}
 }

@@ -17,7 +17,7 @@ import (
 func registerTasks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/tasks", "every task, oldest first",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, a.Tasks())
+			writeJSON(w, shownTasks(r, a.Tasks()))
 		})
 	reg.Add(http.MethodGet, "/api/tasks/watch", "what a background watch compares between two looks: each task's state without its progress, or only the tag when ?tag= names the list as it still is",
 		serveTaskWatch(a.Tasks))

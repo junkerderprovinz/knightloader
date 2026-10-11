@@ -134,7 +134,7 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		"POST /api/group/call": "a direct call from another member of the phrase group on the same " +
 			"network, which has no session here either. It is signed and sealed with keys derived " +
 			"from the phrase, refused when stale or replayed, answers 404 outside a group and reaches " +
-			"only what relayForwardable allows",
+			"only what groupRoutes allows",
 	}
 	got := map[string]bool{}
 	for _, r := range buildRegistry(t).Routes() {

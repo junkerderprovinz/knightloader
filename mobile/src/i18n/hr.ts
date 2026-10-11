@@ -120,6 +120,7 @@ export const hr: Dict = {
   'addDownload.errorSend': 'Veze nije moguće poslati: {message}',
   'error.federationOff': 'Na instanci s kojom si povezan srodne instance su isključene, pa ona ne dopire do ostalih.',
   'error.addAgain': 'Ovu je vezu spremila starija verzija aplikacije i više ne radi. Ukloni je i ponovno se poveži s dvanaest riječi.',
+  'error.ownLoginNeeded': 'Instanca to dopušta samo iz svog web sučelja. Prijavi se ondje da to napraviš.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 

@@ -14,7 +14,6 @@ import {
   leaveConnect,
   removeApp,
   removeInstance,
-  removeMember,
   revealConnect,
   type ConnectInfo,
   type GroupApp,
@@ -169,14 +168,15 @@ function StateBadge({ on, t }: { on: boolean; t: T }) {
 }
 
 // A member is listed only while it is reachable, so it is always connected.
-function MemberRow({ m, action, t }: { m: GroupMember; action: ReactNode; t: T }) {
+// It has no remove button: another instance leaves the group only from its
+// own page, which no member of the group can reach.
+function MemberRow({ m, t }: { m: GroupMember; t: T }) {
   return (
     <Row
       glyph={<IconInstances />}
       name={m.name || m.id}
       mark={m.direct ? t('pairing.direct') : t('pairing.viaRelay')}
       badge={<StateBadge on t={t} />}
-      action={action}
     />
   );
 }
@@ -206,9 +206,9 @@ function AppRow({ app, action, t }: { app: GroupApp; action: ReactNode; t: T }) 
   );
 }
 
-/** What the removal window is about: a phone or extension of the group, an
- *  instance of the group, or an instance added by its address. */
-type Removal = { kind: 'app' | 'member' | 'peer'; id: string; name: string };
+/** What the removal window is about: a phone or extension of the group, or an
+ *  instance added by its address. */
+type Removal = { kind: 'app' | 'peer'; id: string; name: string };
 
 function WaitRow({ text, seconds }: { text: string; seconds?: number }) {
   return (
@@ -371,8 +371,6 @@ export function PhraseCard({
     await run(async () => {
       if (r.kind === 'app') {
         await removeApp(r.id);
-      } else if (r.kind === 'member') {
-        await removeMember(r.id);
       } else {
         const res = await removeInstance(r.id);
         if (!res.ok) throw new Error(await res.text());
@@ -670,12 +668,7 @@ export function PhraseCard({
           <ul className="flex flex-col gap-2" data-testid="members">
             <Row glyph={<IconInstances />} name={group.name} mark={t('instances.thisInstance')} badge={<StateBadge on t={t} />} />
             {group.members.map((m) => (
-              <MemberRow
-                key={m.id}
-                m={m}
-                t={t}
-                action={removeButton({ kind: 'member', id: m.id, name: m.name || m.id })}
-              />
+              <MemberRow key={m.id} m={m} t={t} />
             ))}
             {peers.map((p) => (
               <PeerRow
@@ -734,9 +727,7 @@ export function PhraseCard({
           <p className="text-sm text-carbon-textSub">
             {removing.kind === 'app'
               ? t('instances.removeAppConfirm', { name: removing.name })
-              : removing.kind === 'member'
-                ? t('instances.removeMemberConfirm', { name: removing.name })
-                : t('instances.removePeerConfirm', { name: removing.name })}
+              : t('instances.removePeerConfirm', { name: removing.name })}
           </p>
         </Modal>
       )}

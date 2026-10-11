@@ -53,6 +53,7 @@ function refusal(body: string, status: number): ApiError {
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
   addAgain: 'error.addAgain',
+  ownLoginNeeded: 'error.ownLoginNeeded',
 };
 
 /** errorText is what a failed call shows: translated where the code is known. */
@@ -330,8 +331,8 @@ export async function setQueueHalted(conn: ServerConnection, halted: boolean, ba
  * POST /api/queue/stop, `StopAll`, which stops every transfer in flight and
  * halts the queue behind them, as the web interface's stop button does.
  *
- * Relay-forwardable like every other queue route (`queue/` prefix, see
- * routes_relay.go).
+ * Reachable over the relay like every other queue route (groupRoutes in
+ * internal/api/group_routes.go).
  */
 export async function stopAll(conn: ServerConnection, base = '/api'): Promise<QueueState> {
   const res = await request<{ queue: QueueState }>(conn, base, '/queue/stop', {
@@ -561,8 +562,8 @@ function poll<T>(
 
 // The captcha calls the web UI's CaptchaModal makes, on the same routes
 // (internal/api/routes_captcha.go). Over the relay they reach an instance that
-// forwards them (relayCaptchaRoute); an older one refuses them with a 403, see
-// captchaErrorText.
+// lets a group member call them (groupRoutes); an older one refuses them with
+// a 403, see captchaErrorText.
 
 /** Every captcha waiting on the connected instance, read from its cache. The
  *  read counts as watching the kinds this phone can answer, so with "only when

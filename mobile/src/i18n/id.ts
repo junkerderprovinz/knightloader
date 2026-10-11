@@ -120,6 +120,7 @@ export const id: Dict = {
   'addDownload.errorSend': 'Tautan tidak dapat dikirim: {message}',
   'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
   'error.addAgain': 'Sambungan ini disimpan oleh versi aplikasi yang lebih lama dan tidak berfungsi lagi. Hapus, lalu sambungkan lagi dengan dua belas kata.',
+  'error.ownLoginNeeded': 'Instans hanya mengizinkan ini dari antarmuka webnya sendiri. Masuklah di sana untuk melakukannya.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 

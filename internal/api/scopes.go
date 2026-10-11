@@ -22,6 +22,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 // forwardPattern hands a call on to a peer. It needs no right of its own: the
@@ -102,15 +103,14 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/clipboard-watchers/{id}":    apitoken.ScopeAdd,
 	"POST /api/clipboard-watchers/{id}/stop": apitoken.ScopeControl,
 
-	"DELETE /api/connect":              apitoken.ScopeAdmin,
-	"DELETE /api/connect/apps/{id}":    apitoken.ScopeAdmin,
-	"DELETE /api/connect/members/{id}": apitoken.ScopeAdmin,
-	"GET /api/connect":                 apitoken.ScopeAdmin,
-	"POST /api/connect/activate":       apitoken.ScopeAdmin,
-	"POST /api/connect/join":           apitoken.ScopeAdmin,
-	"POST /api/connect/reveal":         apitoken.ScopeAdmin,
-	"POST /api/connections/import":     apitoken.ScopeAdmin,
-	"POST /api/connections/test":       apitoken.ScopeAdmin,
+	"DELETE /api/connect":           apitoken.ScopeAdmin,
+	"DELETE /api/connect/apps/{id}": apitoken.ScopeAdmin,
+	"GET /api/connect":              apitoken.ScopeAdmin,
+	"POST /api/connect/activate":    apitoken.ScopeAdmin,
+	"POST /api/connect/join":        apitoken.ScopeAdmin,
+	"POST /api/connect/reveal":      apitoken.ScopeAdmin,
+	"POST /api/connections/import":  apitoken.ScopeAdmin,
+	"POST /api/connections/test":    apitoken.ScopeAdmin,
 
 	"POST /api/containers": apitoken.ScopeAdd,
 
@@ -474,6 +474,26 @@ func someTokenHolds(tokens []apitoken.Token, scopes ...apitoken.Scope) bool {
 func narrowToken(r *http.Request) bool {
 	tok, ok := tokenOf(r)
 	return ok && !tok.Has(apitoken.ScopeAdmin)
+}
+
+// seesCredentials reports whether r may be answered with the credentials a
+// task or a peer carries. A token that may not administer and a member of the
+// group get them redacted.
+func seesCredentials(r *http.Request) bool {
+	return !narrowToken(r) && !fromRelayGroup(r)
+}
+
+// shownTasks is tasks as the caller of r may see them.
+func shownTasks(r *http.Request, tasks []*core.Task) []*core.Task {
+	if seesCredentials(r) {
+		return tasks
+	}
+	out := make([]*core.Task, len(tasks))
+	for i, t := range tasks {
+		c := t.WithoutCredentials()
+		out[i] = &c
+	}
+	return out
 }
 
 // permits is requireScope for an open route that looks at its caller itself.

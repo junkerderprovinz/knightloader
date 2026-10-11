@@ -166,10 +166,10 @@ func probeFiles(t *testing.T, dir string) []string {
 // the argument routes_diskspace.go makes for disk figures. Both allowlists
 // name their routes one by one, so this pins that neither was widened.
 func TestStartupRecheckIsNeitherRelayedNorForwarded(t *testing.T) {
-	if relayForwardable(http.MethodPost, "/api/diagnostics/startup") {
+	if groupReaches(t, http.MethodPost, "/api/diagnostics/startup") {
 		t.Error("the relay would carry the start check to another instance")
 	}
-	if relayForwardable(http.MethodGet, "/api/diagnostics") {
+	if groupReaches(t, http.MethodGet, "/api/diagnostics") {
 		t.Error("the relay would carry the diagnostics bundle, which now contains the start report")
 	}
 }
