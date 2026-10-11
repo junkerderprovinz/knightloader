@@ -20,7 +20,7 @@ const read = (...p) => readFileSync(join(here, ...p), 'utf8');
 const UNREACHABLE = {
   // The browser names its member id in every call it signs.
   memberUnnamed: 'every signed call names its member',
-  // The browser signs as an extension under the 40 hex digits it mints.
+  // The browser signs as an extension under the "browser-" id it mints.
   memberKind: 'the member id has the shape its kind mints',
   // The browser's signature is held to the server's vector by check-relay-seal.mjs.
   memberSignature: 'the signature is checked against the server vector',
@@ -61,6 +61,19 @@ for (const code of Object.keys(mapped)) {
 }
 for (const code of Object.keys(UNREACHABLE)) {
   if (!codes.has(code)) problems.push(`${code} is listed as unreachable but the server never sends it`);
+}
+
+// An instance that was reset answers the old words with a plain 410 "reset"
+// (internal/api/retired_group.go), which says to pair again rather than
+// "refused".
+const fnStart = group.indexOf('function refusalKey(res)');
+const refusalKey = new Function(
+  `${map?.[0] ?? ''}\n${group.slice(fnStart, group.indexOf('\n}\n', fnStart) + 2)}\nreturn refusalKey;`,
+)();
+const reset = refusalKey({ status: 410, body: 'reset' });
+if (reset !== 'refusal.groupReset') problems.push(`an instance that was reset reads as ${reset}, want refusal.groupReset`);
+for (const [lang, messages] of Object.entries(MESSAGES)) {
+  if (typeof messages['refusal.groupReset'] !== 'string' || messages['refusal.groupReset'] === '') problems.push(`${lang}: refusal.groupReset is missing`);
 }
 
 if (problems.length) {

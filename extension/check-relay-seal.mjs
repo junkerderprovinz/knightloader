@@ -219,7 +219,7 @@ if (!bare) {
 // 8. The browser's lasting member id rides inside the seals: in the announce,
 //    so an instance lists the browser once, and as a call's `from`, so one that
 //    removed the browser can turn it away. The relay sees neither.
-const member = 'b'.repeat(40);
+const member = 'browser-' + 'b'.repeat(32);
 let asked = null;
 FakeSocket.answer = (socket, frame) => {
   if (frame.type !== 'proxy-request') return;
@@ -308,8 +308,8 @@ const signingIdentity = signingHello
       ctx,
     )(frameKey, signingHello.instanceId, signingHello.sealed)
   : null;
-if (signingIdentity?.signs !== true) {
-  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want signs: true`);
+if (signingIdentity?.member !== member || 'signs' in signingIdentity) {
+  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want its member id and nothing else about its key`);
 }
 const signed = asked
   ? await vm.runInContext(

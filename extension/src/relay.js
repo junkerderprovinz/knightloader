@@ -322,7 +322,6 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
               deployment: 'extension',
               client: true,
               ...(memberId ? { member: memberId } : {}),
-              ...(memberId && memberKey ? { signs: true } : {}),
             }),
           ),
         ),

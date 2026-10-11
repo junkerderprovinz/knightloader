@@ -37,6 +37,11 @@ export function refusedCall(direct: boolean, base: string, status: number, text:
   if (status === 401 && direct && base === '/api') {
     return new ApiError(text, status, 'connectionEnded');
   }
+  // An instance that was reset answers the old words with a plain 410
+  // "reset" (internal/api/retired_group.go).
+  if (status === 410 && text === 'reset') {
+    return new ApiError(text, status, 'groupReset');
+  }
   return refusal(text, status);
 }
 
@@ -48,6 +53,7 @@ const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
   addAgain: 'error.addAgain',
   connectionEnded: 'error.connectionEnded',
+  groupReset: 'error.groupReset',
   ownLoginNeeded: 'error.ownLoginNeeded',
   memberPending: 'error.memberPending',
   memberKeyChanged: 'error.memberKeyChanged',

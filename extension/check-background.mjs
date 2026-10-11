@@ -273,12 +273,14 @@ for (const stored of [false, undefined]) {
     // The group knows the browser by one member id, or every session leaves a
     // card of its own and removing the browser never reaches it.
     const members = await Promise.all([run('readMemberId')(), run('readMemberId')()]);
-    if (!/^[0-9a-f]{40}$/.test(members[0])) fail(`the browser's member id is ${JSON.stringify(members[0])}, want 40 hex characters`);
+    if (!/^browser-[0-9a-f]{32}$/.test(members[0])) fail(`the browser's member id is ${JSON.stringify(members[0])}, want "browser-" and 32 hex characters`);
     if (members[0] !== members[1]) fail('two sessions starting together get different member ids');
     if ((await run('readMemberId')()) !== members[0]) fail('the member id changes from one session to the next');
     if ('member' in store) fail('the member id is kept in storage.local, which every content script can read');
     await run('forgetGroup')();
     if ((await run('readMemberId')()) === members[0]) fail('a browser that left the group comes back under its old member id');
+    idb.stores.get('secrets').set('member', 'f'.repeat(40));
+    if (!/^browser-/.test(await run('readMemberId')())) fail('a member id shaped like an instance id, from an older release, is kept');
 
     await run('writePhrase')(PHRASE);
     const opened = [];

@@ -24,6 +24,8 @@ expect('a direct connection refused with 401', errorText(t, refusedCall(true, '/
 expect('a peer refusing through the connected instance', errorText(t, refusedCall(true, '/api/instances/office', 401, 'unauthorized')), 'unauthorized');
 expect('a relay connection refused with 401', errorText(t, refusedCall(false, '/api', 401, 'unauthorized')), 'unauthorized');
 expect('a refusal with a code of its own', errorText(t, refusedCall(true, '/api', 409, '{"error":"peers are off","code":"federationOff"}')), en['error.federationOff']);
+expect('an instance reset since this phone paired', errorText(t, refusedCall(false, '/api', 410, 'reset')), en['error.groupReset']);
+expect('a phone taken out of the group', errorText(t, refusedCall(false, '/api', 410, 'removed')), 'removed');
 expect('a refusal with no code', errorText(t, refusedCall(true, '/api', 500, 'disk full')), 'disk full');
 
 if (problems.length) {

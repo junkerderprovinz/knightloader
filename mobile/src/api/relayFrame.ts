@@ -59,8 +59,6 @@ export interface Identity {
   name?: string;
   deployment?: string;
   client?: boolean;
-  /** Set when this phone signs its calls. */
-  signs?: boolean;
 }
 
 /** relay.nonceLen. AES-GCM's standard nonce size. */
