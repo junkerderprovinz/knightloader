@@ -161,6 +161,7 @@ export const th: Dict = {
   'settings.theme': 'ธีม',
   'settings.theme.light': 'สว่าง',
   'settings.theme.dark': 'มืด',
+  'settings.theme.system': 'ระบบ',
   'settings.corners': 'มุม',
   'settings.corners.round': 'มน',
   'settings.corners.slightlyRounded': 'มนเล็กน้อย',

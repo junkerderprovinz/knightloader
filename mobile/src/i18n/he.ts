@@ -161,6 +161,7 @@ export const he: Dict = {
   'settings.theme': 'ערכת נושא',
   'settings.theme.light': 'בהיר',
   'settings.theme.dark': 'כהה',
+  'settings.theme.system': 'מערכת',
   'settings.corners': 'פינות',
   'settings.corners.round': 'עגולות',
   'settings.corners.slightlyRounded': 'רכות',

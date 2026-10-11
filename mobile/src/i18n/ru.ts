@@ -161,6 +161,7 @@ export const ru: Dict = {
   'settings.theme': 'Тема',
   'settings.theme.light': 'Светлая',
   'settings.theme.dark': 'Тёмная',
+  'settings.theme.system': 'Системная',
   'settings.corners': 'Углы',
   'settings.corners.round': 'Круглые',
   'settings.corners.slightlyRounded': 'Мягкие',

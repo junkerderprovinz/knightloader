@@ -161,6 +161,7 @@ export const uk: Dict = {
   'settings.theme': 'Тема',
   'settings.theme.light': 'Світла',
   'settings.theme.dark': 'Темна',
+  'settings.theme.system': 'Системна',
   'settings.corners': 'Кути',
   'settings.corners.round': 'Круглі',
   'settings.corners.slightlyRounded': 'М’які',

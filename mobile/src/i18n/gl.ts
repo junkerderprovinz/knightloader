@@ -161,6 +161,7 @@ export const gl: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Claro',
   'settings.theme.dark': 'Escuro',
+  'settings.theme.system': 'Sistema',
   'settings.corners': 'Esquinas',
   'settings.corners.round': 'Redondeadas',
   'settings.corners.slightlyRounded': 'Suaves',

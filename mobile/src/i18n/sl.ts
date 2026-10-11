@@ -161,6 +161,7 @@ export const sl: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Svetla',
   'settings.theme.dark': 'Temna',
+  'settings.theme.system': 'Sistemska',
   'settings.corners': 'Vogali',
   'settings.corners.round': 'Okrogli',
   'settings.corners.slightlyRounded': 'Rahlo zaobljeni',

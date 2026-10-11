@@ -161,6 +161,7 @@ export const vi: Dict = {
   'settings.theme': 'Chủ đề',
   'settings.theme.light': 'Sáng',
   'settings.theme.dark': 'Tối',
+  'settings.theme.system': 'Hệ thống',
   'settings.corners': 'Góc',
   'settings.corners.round': 'Tròn',
   'settings.corners.slightlyRounded': 'Bo nhẹ',

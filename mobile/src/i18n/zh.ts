@@ -160,6 +160,7 @@ export const zh: Dict = {
   'settings.theme': '主题',
   'settings.theme.light': '浅色',
   'settings.theme.dark': '深色',
+  'settings.theme.system': '跟随系统',
   'settings.corners': '边角',
   'settings.corners.round': '圆润',
   'settings.corners.slightlyRounded': '微圆',

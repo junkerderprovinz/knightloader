@@ -161,6 +161,7 @@ export const ro: Dict = {
   'settings.theme': 'Temă',
   'settings.theme.light': 'Deschisă',
   'settings.theme.dark': 'Închisă',
+  'settings.theme.system': 'Sistem',
   'settings.corners': 'Colțuri',
   'settings.corners.round': 'Rotunde',
   'settings.corners.slightlyRounded': 'Ușor rotunjite',
