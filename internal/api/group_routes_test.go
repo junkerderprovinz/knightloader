@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 // groupRefused are the routes a member of the group is refused on purpose. A
@@ -380,10 +381,30 @@ func TestAMemberGetsA404ForWhatNoRouteServes(t *testing.T) {
 }
 
 // groupServer is an instance with a download folder and a category folder,
-// reached as the group reaches it and as its owner does.
-func groupServer(t *testing.T) (a *app.App, downloads, category string, member func(method, path, body string) (int, []byte), owner func(method, path, body string) (int, []byte)) {
+// reached as the group reaches it and as its owner does. The tasks in seed are
+// in its list from the start, as they were saved.
+func groupServer(t *testing.T, seed ...*core.Task) (a *app.App, downloads, category string, member func(method, path, body string) (int, []byte), owner func(method, path, body string) (int, []byte)) {
 	t.Helper()
-	a = testApp(t)
+	dir := t.TempDir()
+	if len(seed) > 0 {
+		st, err := store.Open(filepath.Join(dir, "knightloader.db"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		for _, task := range seed {
+			if err := st.Save(task); err != nil {
+				t.Fatal(err)
+			}
+		}
+		if err := st.Close(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	a, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
 	downloads, category = t.TempDir(), t.TempDir()
 	s := settings.Defaults()
 	s.DownloadDir = downloads
@@ -618,31 +639,52 @@ func TestTheOwnerTakesAnotherInstanceOutButNotAPhoneThatWay(t *testing.T) {
 }
 
 // TestAMemberSeesNoCredentialsInWhatItReads plants a password of every kind a
-// task or a peer carries, checks that the owner reads each of them somewhere,
-// and then reads every route the group may GET, and the answer to adding a
-// link, as a member.
+// task or a peer carries, in links that name a file and in links that name
+// none, whose address is then the task's name, and in a failure. It checks that
+// the owner reads each of them somewhere, and then reads every route the group
+// may GET, and the answer to adding links, as a member.
 func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 	t.Parallel()
-	a, _, _, member, owner := groupServer(t)
-	const torrent = "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567&dn=film&tr=https%3A%2F%2Ftracker.example%2FPASSKEYLEAK%2Fannounce"
-	created, err := a.AddLinksWithOptions([]string{
-		"https://user:s3cr'et@host.example/file.zip?id=7&passkey=QUERYLEAK",
-		torrent,
-	}, "Batch", app.OriginPaste, app.LinkBatchOptions{
+	a, _, _, member, owner := groupServer(t, &core.Task{
+		ID:          "failed",
+		URL:         "https://host.example/?passkey=FAILEDLEAK",
+		Name:        "https://host.example/?passkey=FAILEDLEAK",
+		Status:      core.StatusError,
+		Enabled:     true,
+		CreatedAt:   time.Now(),
+		Error:       `Get "https://u:ERRORLEAK@host.example/?apikey=ERRORKEYLEAK": dial tcp: connection refused`,
+		ErrorParams: map[string]string{"url": "https://host.example/?auth=PARAMLEAK"},
+	})
+	torrent := func(hash string) string {
+		return "magnet:?xt=urn:btih:" + strings.Repeat(hash, 40) + "&dn=film&tr=https%3A%2F%2Ftracker.example%2FPASSKEYLEAK%2Fannounce"
+	}
+	links := func(who string) []string {
+		return []string{
+			"https://user:s3cr'et@host.example/" + who + ".zip?id=7&passkey=QUERYLEAK",
+			"https://host.example/?who=" + who + "&passkey=NOFILELEAK",
+			"https://user:NOFILEPW@" + who + ".host.example/",
+		}
+	}
+	created, err := a.AddLinksWithOptions(append(links("staged"), torrent("0")), "Batch", app.OriginPaste, app.LinkBatchOptions{
 		Password:         "ARCHIVELEAK",
 		DownloadPassword: "DOWNLOADLEAK",
 		Source:           "https://reader:SOURCELEAK@page.example/thread",
 	})
-	if err != nil || len(created) != 2 {
+	if err != nil || len(created) != 4 {
 		t.Fatalf("staging the links: %v, %d tasks", err, len(created))
 	}
 	if err := addPeer(a, federation.Instance{Name: "attic", URL: "http://admin:PEERLEAK@192.0.2.7:8080"}); err != nil {
 		t.Fatal(err)
 	}
-	leaks := []string{"s3cr", "QUERYLEAK", "PASSKEYLEAK", "ARCHIVELEAK", "DOWNLOADLEAK", "SOURCELEAK", "PEERLEAK"}
+	leaks := []string{
+		"s3cr", "QUERYLEAK", "NOFILELEAK", "NOFILEPW", "FAILEDLEAK", "ERRORLEAK", "ERRORKEYLEAK", "PARAMLEAK",
+		"PASSKEYLEAK", "ARCHIVELEAK", "DOWNLOADLEAK", "SOURCELEAK", "PEERLEAK",
+	}
 	id := created[0].ID
 
-	read := func(call func(method, path, body string) (int, []byte)) map[string]string {
+	// Each caller adds links of its own, or the second would only add
+	// duplicates and get an empty answer.
+	read := func(call func(method, path, body string) (int, []byte), who, hash string) map[string]string {
 		out := map[string]string{}
 		for pattern := range groupRoutes {
 			method, path := requestPath(pattern)
@@ -653,14 +695,14 @@ func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 			_, body := call(method, path, "")
 			out[pattern] = string(body)
 		}
-		add, _ := json.Marshal(map[string]string{"links": torrent + "\nhttps://user:s3cr'et@host.example/file.zip?id=7&passkey=QUERYLEAK", "password": "ARCHIVELEAK"})
+		add, _ := json.Marshal(map[string]string{"links": strings.Join(append(links(who), torrent(hash)), "\n"), "password": "ARCHIVELEAK"})
 		_, body := call(http.MethodPost, "/api/links", string(add))
 		out["POST /api/links"] = string(body)
 		return out
 	}
 
 	seen := map[string]bool{}
-	for _, body := range read(owner) {
+	for _, body := range read(owner, "owner", "a") {
 		for _, leak := range leaks {
 			seen[leak] = seen[leak] || strings.Contains(body, leak)
 		}
@@ -670,12 +712,16 @@ func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 			t.Fatalf("the owner does not read %q anywhere, so this test proves nothing", leak)
 		}
 	}
-	for route, body := range read(member) {
+	answers := read(member, "member", "b")
+	for route, body := range answers {
 		for _, leak := range leaks {
 			if strings.Contains(body, leak) {
 				t.Errorf("%s answered a member with %q", route, leak)
 			}
 		}
+	}
+	if added := answers["POST /api/links"]; !strings.Contains(added, "member.host.example") {
+		t.Errorf("adding links as a member answered %s, want the new tasks", added)
 	}
 
 	var tasks []core.Task
@@ -683,7 +729,8 @@ func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 	if err := json.Unmarshal(body, &tasks); err != nil || len(tasks) == 0 {
 		t.Fatalf("GET /api/tasks for a member = %s", body)
 	}
-	if !bytes.Contains(body, []byte("host.example/file.zip")) || !bytes.Contains(body, []byte("https://tracker.example")) {
-		t.Errorf("the redacted list lost what names the file or the tracker: %s", body)
+	if !bytes.Contains(body, []byte("host.example/staged.zip")) || !bytes.Contains(body, []byte("https://tracker.example")) ||
+		!bytes.Contains(body, []byte("https://staged.host.example/")) {
+		t.Errorf("the redacted list lost what names the file, the host or the tracker: %s", body)
 	}
 }

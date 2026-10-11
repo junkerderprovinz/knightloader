@@ -1326,6 +1326,17 @@ type SkippedLink struct {
 	At     time.Time `json:"at"`
 }
 
+// Redacted is s as a caller gets it that may not see the credentials a task
+// carries, see core.Task.Redacted.
+func (s SkippedLink) Redacted() any { return s.WithoutCredentials() }
+
+// WithoutCredentials is Redacted with its type.
+func (s SkippedLink) WithoutCredentials() SkippedLink {
+	s.URL = core.RedactURL(s.URL)
+	s.Reason = core.RedactText(s.Reason)
+	return s
+}
+
 // maxSkipped caps the trace; a watch folder rereading one list would otherwise
 // grow it for ever.
 const maxSkipped = 500
