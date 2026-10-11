@@ -1745,6 +1745,7 @@ export const el: Dict = {
   'settings.system.restoreConfirmTitle': 'Επαναφορά από αντίγραφο ασφαλείας;',
   'settings.system.restoreConfirmBody':
     'Αυτό αντικαθιστά την τρέχουσα βάση δεδομένων και τις ρυθμίσεις με τα περιεχόμενα του «{name}». Αυτό δεν μπορεί να αναιρεθεί.',
+  'settings.system.restoreKeepsLogin': 'Ο κωδικός πρόσβασης, τα κλειδιά πρόσβασης και τα διακριτικά API μένουν όπως είναι. Η επαναφορά δεν φέρνει πίσω τα κλειδιά πρόσβασης του αντιγράφου ασφαλείας.',
   'settings.system.restoring': 'Επικύρωση και προετοιμασία…',
   'settings.system.restoreFailed': 'Δεν ήταν δυνατή η επαναφορά: {error}',
   'settings.system.restoreStaged': '{status}',

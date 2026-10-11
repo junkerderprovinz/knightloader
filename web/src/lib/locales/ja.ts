@@ -1745,6 +1745,7 @@ export const ja: Dict = {
   'settings.system.restoreConfirmTitle': 'バックアップから復元しますか?',
   'settings.system.restoreConfirmBody':
     'これにより、現在のデータベースと設定が「{name}」の内容に置き換えられます。これは元に戻せません。',
+  'settings.system.restoreKeepsLogin': 'パスワード、パスキー、APIトークンはそのまま変わりません。バックアップに含まれるパスキーは復元されません。',
   'settings.system.restoring': '検証と準備をしています…',
   'settings.system.restoreFailed': '復元できませんでした: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1746,6 +1746,7 @@ export const uk: Dict = {
   'settings.system.restoreConfirmTitle': 'Відновити з резервної копії?',
   'settings.system.restoreConfirmBody':
     'Це замінить поточну базу даних і налаштування вмістом «{name}». Цю дію не можна скасувати.',
+  'settings.system.restoreKeepsLogin': 'Пароль, ключі доступу й токени API залишаються без змін. Відновлення не повертає ключі доступу з резервної копії.',
   'settings.system.restoring': 'Перевірка та підготовка…',
   'settings.system.restoreFailed': 'Не вдалося відновити: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1923,6 +1923,7 @@ export const de: Dict = {
   'settings.system.restoreConfirmTitle': 'Aus Sicherung wiederherstellen?',
   'settings.system.restoreConfirmBody':
     'Dies ersetzt die aktuelle Datenbank und Einstellungen durch den Inhalt von „{name}“. Das lässt sich nicht rückgängig machen.',
+  'settings.system.restoreKeepsLogin': 'Passwort, Passkeys und API-Tokens bleiben, wie sie sind. Passkeys aus der Sicherung holt die Wiederherstellung nicht zurück.',
   'settings.system.restoring': 'Wird geprüft und vorbereitet…',
   'settings.system.restoreFailed': 'Konnte nicht wiederhergestellt werden: {error}',
   'settings.system.restoreStaged': '{status}',

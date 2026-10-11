@@ -1745,6 +1745,7 @@ export const id: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan dari cadangan?',
   'settings.system.restoreConfirmBody':
     'Ini mengganti basis data dan pengaturan saat ini dengan isi «{name}». Ini tidak dapat dibatalkan.',
+  'settings.system.restoreKeepsLogin': 'Kata sandi, kunci sandi, dan token API tetap seperti adanya. Pemulihan tidak mengembalikan kunci sandi dari cadangan.',
   'settings.system.restoring': 'Memvalidasi dan menyiapkan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreStaged': '{status}',

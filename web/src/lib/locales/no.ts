@@ -1747,6 +1747,7 @@ export const no: Dict = {
   'settings.system.restoreConfirmTitle': 'Gjenopprette fra sikkerhetskopi?',
   'settings.system.restoreConfirmBody':
     'Dette erstatter den nåværende databasen og innstillingene med innholdet i «{name}». Dette kan ikke angres.',
+  'settings.system.restoreKeepsLogin': 'Passordet, passnøklene og API-tokenene forblir som de er. Gjenopprettingen henter ikke tilbake passnøklene fra sikkerhetskopien.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gjenopprette: {error}',
   'settings.system.restoreStaged': '{status}',

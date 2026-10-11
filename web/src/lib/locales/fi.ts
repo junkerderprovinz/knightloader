@@ -1745,6 +1745,7 @@ export const fi: Dict = {
   'settings.system.restoreConfirmTitle': 'Palautetaanko varmuuskopiosta?',
   'settings.system.restoreConfirmBody':
     'Tämä korvaa nykyisen tietokannan ja asetukset tiedoston ”{name}” sisällöllä. Tätä ei voi perua.',
+  'settings.system.restoreKeepsLogin': 'Salasana, pääsyavaimet ja API-tokenit pysyvät ennallaan. Palautus ei tuo varmuuskopion pääsyavaimia takaisin.',
   'settings.system.restoring': 'Vahvistetaan ja valmistellaan…',
   'settings.system.restoreFailed': 'Palautus epäonnistui: {error}',
   'settings.system.restoreStaged': '{status}',

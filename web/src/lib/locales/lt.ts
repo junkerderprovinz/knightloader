@@ -1745,6 +1745,7 @@ export const lt: Dict = {
   'settings.system.restoreConfirmTitle': 'Atkurti iš atsarginės kopijos?',
   'settings.system.restoreConfirmBody':
     'Tai pakeičia dabartinę duomenų bazę ir nustatymus failo „{name}“ turiniu. To anuliuoti negalima.',
+  'settings.system.restoreKeepsLogin': 'Slaptažodis, prieigos raktai ir API prieigos raktai lieka tokie, kokie yra. Atkūrimas negrąžina atsarginėje kopijoje esančių prieigos raktų.',
   'settings.system.restoring': 'Tikrinama ir ruošiama…',
   'settings.system.restoreFailed': 'Nepavyko atkurti: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1746,6 +1746,7 @@ export const sv: Dict = {
   'settings.system.restoreConfirmTitle': 'Återställa från säkerhetskopia?',
   'settings.system.restoreConfirmBody':
     'Detta ersätter den aktuella databasen och inställningarna med innehållet i ”{name}”. Detta kan inte ångras.',
+  'settings.system.restoreKeepsLogin': 'Lösenordet, nycklarna och API-token förblir som de är. Återställningen tar inte tillbaka nycklarna från säkerhetskopian.',
   'settings.system.restoring': 'Validerar och förbereder…',
   'settings.system.restoreFailed': 'Kunde inte återställa: {error}',
   'settings.system.restoreStaged': '{status}',

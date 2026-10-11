@@ -1745,6 +1745,7 @@ export const fa: Dict = {
   'settings.system.restoreConfirmTitle': 'از پشتیبان بازیابی شود؟',
   'settings.system.restoreConfirmBody':
     'این کار پایگاه‌داده و تنظیمات فعلی را با محتوای «{name}» جایگزین می‌کند. این کار قابل بازگشت نیست.',
+  'settings.system.restoreKeepsLogin': 'گذرواژه، کلیدهای گذر و توکن‌های API همان‌طور که هستند می‌مانند. بازیابی، کلیدهای گذرِ داخل نسخهٔ پشتیبان را برنمی‌گرداند.',
   'settings.system.restoring': 'در حال اعتبارسنجی و آماده‌سازی…',
   'settings.system.restoreFailed': 'بازیابی نشد: {error}',
   'settings.system.restoreStaged': '{status}',

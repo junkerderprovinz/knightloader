@@ -1738,6 +1738,7 @@ export const nl: Dict = {
   'settings.system.restoreConfirmTitle': 'Herstellen vanaf back-up?',
   'settings.system.restoreConfirmBody':
     'Dit vervangt de huidige database en instellingen door de inhoud van “{name}”. Dit kan niet ongedaan worden gemaakt.',
+  'settings.system.restoreKeepsLogin': 'Je wachtwoord, toegangssleutels en API-tokens blijven zoals ze zijn. Het herstel haalt de toegangssleutels uit de back-up niet terug.',
   'settings.system.restoring': 'Bezig met valideren en klaarzetten…',
   'settings.system.restoreFailed': 'Kon niet worden hersteld: {error}',
   'settings.system.restoreStaged': '{status}',

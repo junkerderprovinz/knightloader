@@ -1746,6 +1746,7 @@ export const sl: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnoviti iz varnostne kopije?',
   'settings.system.restoreConfirmBody':
     'To nadomesti trenutno podatkovno bazo in nastavitve z vsebino „{name}“. Tega ni mogoče razveljaviti.',
+  'settings.system.restoreKeepsLogin': 'Geslo, ključi za dostop in žetoni API ostanejo takšni, kot so. Obnovitev ne vrne ključev za dostop iz varnostne kopije.',
   'settings.system.restoring': 'Preverjanje in priprava…',
   'settings.system.restoreFailed': 'Ni bilo mogoče obnoviti: {error}',
   'settings.system.restoreStaged': '{status}',

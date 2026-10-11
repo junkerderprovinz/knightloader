@@ -1745,6 +1745,7 @@ export const gl: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurar desde unha copia de seguridade?',
   'settings.system.restoreConfirmBody':
     'Isto substitúe a base de datos e a configuración actuais polo contido de «{name}». Isto non se pode desfacer.',
+  'settings.system.restoreKeepsLogin': 'O contrasinal, as chaves de acceso e os tokens de API quedan como están. A restauración non recupera as chaves de acceso da copia de seguridade.',
   'settings.system.restoring': 'Validando e preparando…',
   'settings.system.restoreFailed': 'Non se puido restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

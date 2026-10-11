@@ -1738,6 +1738,7 @@ export const pl: Dict = {
   'settings.system.restoreConfirmTitle': 'Przywrócić z kopii zapasowej?',
   'settings.system.restoreConfirmBody':
     'To zastępuje bieżącą bazę danych i ustawienia zawartością „{name}”. Tej operacji nie można cofnąć.',
+  'settings.system.restoreKeepsLogin': 'Hasło, klucze dostępu i tokeny API zostają bez zmian. Przywracanie nie odtwarza kluczy dostępu z kopii zapasowej.',
   'settings.system.restoring': 'Sprawdzanie i przygotowywanie…',
   'settings.system.restoreFailed': 'Nie udało się przywrócić: {error}',
   'settings.system.restoreStaged': '{status}',

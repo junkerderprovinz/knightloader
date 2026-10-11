@@ -1745,6 +1745,7 @@ export const hi: Dict = {
   'settings.system.restoreConfirmTitle': 'बैकअप से पुनर्स्थापित करें?',
   'settings.system.restoreConfirmBody':
     'यह मौजूदा डेटाबेस और सेटिंग्स को «{name}» की सामग्री से बदल देता है। यह पूर्ववत नहीं किया जा सकता।',
+  'settings.system.restoreKeepsLogin': 'आपका पासवर्ड, पासकी और API टोकन जैसे हैं वैसे ही रहते हैं। पुनर्स्थापना बैकअप की पासकी वापस नहीं लाती।',
   'settings.system.restoring': 'सत्यापित और तैयार किया जा रहा है…',
   'settings.system.restoreFailed': 'पुनर्स्थापित नहीं किया जा सका: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1745,6 +1745,7 @@ export const eu: Dict = {
   'settings.system.restoreConfirmTitle': 'Babeskopia batetik berrezarri?',
   'settings.system.restoreConfirmBody':
     'Honek uneko datu-basea eta ezarpenak «{name}»-ren edukiarekin ordezten ditu. Hau ezin da desegin.',
+  'settings.system.restoreKeepsLogin': 'Pasahitza, sarbide-gakoak eta API token-ak dauden bezala geratzen dira. Berrezartzeak ez ditu babeskopiako sarbide-gakoak itzultzen.',
   'settings.system.restoring': 'Balioztatzen eta prestatzen…',
   'settings.system.restoreFailed': 'Ezin izan da berrezarri: {error}',
   'settings.system.restoreStaged': '{status}',

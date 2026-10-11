@@ -1745,6 +1745,7 @@ export const hu: Dict = {
   'settings.system.restoreConfirmTitle': 'Visszaállítás biztonsági mentésből?',
   'settings.system.restoreConfirmBody':
     'Ez lecseréli a jelenlegi adatbázist és beállításokat a „{name}” tartalmára. Ez nem vonható vissza.',
+  'settings.system.restoreKeepsLogin': 'A jelszó, az azonosítókulcsok és az API tokenek maradnak úgy, ahogy vannak. A visszaállítás nem hozza vissza a biztonsági mentésben lévő azonosítókulcsokat.',
   'settings.system.restoring': 'Ellenőrzés és előkészítés…',
   'settings.system.restoreFailed': 'Nem sikerült visszaállítani: {error}',
   'settings.system.restoreStaged': '{status}',

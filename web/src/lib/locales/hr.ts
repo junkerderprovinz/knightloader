@@ -1746,6 +1746,7 @@ export const hr: Dict = {
   'settings.system.restoreConfirmTitle': 'Vratiti iz sigurnosne kopije?',
   'settings.system.restoreConfirmBody':
     'Time se zamjenjuje trenutna baza podataka i postavke sadržajem „{name}“. Ovo se ne može poništiti.',
+  'settings.system.restoreKeepsLogin': 'Lozinka, pristupni ključevi i API tokeni ostaju kakvi jesu. Vraćanje ne vraća pristupne ključeve iz sigurnosne kopije.',
   'settings.system.restoring': 'Provjera i priprema…',
   'settings.system.restoreFailed': 'Nije uspjelo vratiti: {error}',
   'settings.system.restoreStaged': '{status}',

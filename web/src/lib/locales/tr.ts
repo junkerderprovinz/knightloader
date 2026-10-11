@@ -1745,6 +1745,7 @@ export const tr: Dict = {
   'settings.system.restoreConfirmTitle': 'Yedekten geri yüklensin mi?',
   'settings.system.restoreConfirmBody':
     'Bu, mevcut veritabanını ve ayarları «{name}» içeriğiyle değiştirir. Bu geri alınamaz.',
+  'settings.system.restoreKeepsLogin': 'Parola, geçiş anahtarları ve API tokenleri olduğu gibi kalır. Geri yükleme, yedekteki geçiş anahtarlarını geri getirmez.',
   'settings.system.restoring': 'Doğrulanıyor ve hazırlanıyor…',
   'settings.system.restoreFailed': 'Geri yüklenemedi: {error}',
   'settings.system.restoreStaged': '{status}',

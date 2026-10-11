@@ -1746,6 +1746,7 @@ export const sr: Dict = {
   'settings.system.restoreConfirmTitle': 'Вратити из резервне копије?',
   'settings.system.restoreConfirmBody':
     'Ово замењује тренутну базу података и подешавања садржајем „{name}“. Ово се не може поништити.',
+  'settings.system.restoreKeepsLogin': 'Лозинка, приступни кључеви и API токени остају какви јесу. Враћање не враћа приступне кључеве из резервне копије.',
   'settings.system.restoring': 'Провера и припрема…',
   'settings.system.restoreFailed': 'Није успело враћање: {error}',
   'settings.system.restoreStaged': '{status}',

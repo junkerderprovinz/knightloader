@@ -1745,6 +1745,7 @@ export const da: Dict = {
   'settings.system.restoreConfirmTitle': 'Gendan fra sikkerhedskopi?',
   'settings.system.restoreConfirmBody':
     'Dette erstatter den nuværende database og indstillinger med indholdet af „{name}“. Dette kan ikke fortrydes.',
+  'settings.system.restoreKeepsLogin': 'Din adgangskode, dine adgangsnøgler og API-tokens forbliver, som de er. Gendannelsen henter ikke adgangsnøglerne fra sikkerhedskopien tilbage.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gendanne: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1745,6 +1745,7 @@ export const vi: Dict = {
   'settings.system.restoreConfirmTitle': 'Khôi phục từ bản sao lưu?',
   'settings.system.restoreConfirmBody':
     'Việc này sẽ thay thế cơ sở dữ liệu và cài đặt hiện tại bằng nội dung của «{name}». Việc này không thể hoàn tác.',
+  'settings.system.restoreKeepsLogin': 'Mật khẩu, khoá truy cập và token API vẫn giữ nguyên. Việc khôi phục không mang lại khoá truy cập trong bản sao lưu.',
   'settings.system.restoring': 'Đang xác thực và chuẩn bị…',
   'settings.system.restoreFailed': 'Không thể khôi phục: {error}',
   'settings.system.restoreStaged': '{status}',

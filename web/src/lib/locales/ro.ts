@@ -1746,6 +1746,7 @@ export const ro: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurezi dintr-un backup?',
   'settings.system.restoreConfirmBody':
     'Aceasta înlocuiește baza de date și setările actuale cu conținutul lui „{name}”. Nu se poate anula.',
+  'settings.system.restoreKeepsLogin': 'Parola, cheile de acces și tokenurile API rămân așa cum sunt. Restaurarea nu aduce înapoi cheile de acces din backup.',
   'settings.system.restoring': 'Se validează și se pregătește…',
   'settings.system.restoreFailed': 'Nu s-a putut restaura: {error}',
   'settings.system.restoreStaged': '{status}',
