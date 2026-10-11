@@ -40,6 +40,15 @@ type HistoryEntry struct {
 	FinishedAt time.Time `json:"finishedAt"`
 }
 
+// WithoutCredentials is e as a caller gets it that may not see the credentials
+// a link carries, the way core.Task.WithoutCredentials redacts a task.
+func (e HistoryEntry) WithoutCredentials() HistoryEntry {
+	e.URL = core.RedactURL(e.URL)
+	e.Name = core.RedactText(e.Name)
+	e.Package = core.RedactText(e.Package)
+	return e
+}
+
 // stampFinish keeps the invariant that a task row carries a finish time
 // exactly while it is done.
 //

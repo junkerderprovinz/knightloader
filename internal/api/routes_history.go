@@ -41,6 +41,11 @@ func registerHistory(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
+			if !seesCredentials(r) {
+				for i, e := range entries {
+					entries[i] = e.WithoutCredentials()
+				}
+			}
 			writeJSON(w, entries)
 		})
 
