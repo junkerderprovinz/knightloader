@@ -790,6 +790,9 @@ export interface AuthState {
   /** Whether the server seals its secrets with KL_APP_KEY; absent like the
    *  two above. */
   appKey?: boolean;
+  /** When the copies of the files from before the app key are deleted, while
+   *  they are still in the data folder. */
+  appKeyCopiesUntil?: string;
 }
 
 /**

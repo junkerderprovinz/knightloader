@@ -181,6 +181,11 @@ function PasswordCard({
             <InfoBubble tip={t('settings.appKeyMissingHint')} />
           </span>
         )}
+        {auth?.appKeyCopiesUntil && (
+          <span className="text-sm text-carbon-textSub">
+            {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
+          </span>
+        )}
       </Card>
   );
 }

@@ -85,5 +85,11 @@ describe('Access', () => {
   it('says nothing about the app key once one is set', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
     expect(host.textContent).not.toContain('No app key is set.');
+    expect(host.textContent).not.toContain('from before the app key');
+  });
+
+  it('says when the copies from before the app key go', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
+    expect(host.textContent).toContain('A copy of the files from before the app key is still in the data folder.');
   });
 });
