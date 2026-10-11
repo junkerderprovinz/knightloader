@@ -80,9 +80,9 @@ type Guard struct {
 	// checked against (see Credentials).
 	gen uint64
 
-	// minting is held for writing while a reset swaps the credentials, and
-	// for reading by everything that creates one outside this package; see
-	// Mint.
+	// minting is held for writing while a reset, a password change or a
+	// sign-out everywhere ends the credentials, and for reading by everything
+	// that creates one outside this package; see Mint.
 	minting sync.RWMutex
 }
 
@@ -133,7 +133,7 @@ func (g *Guard) Enabled() bool {
 
 // SetPassword is ChangePassword for a caller that needs no session afterwards.
 func (g *Guard) SetPassword(current, next string) error {
-	_, err := g.ChangePassword(current, next)
+	_, err := g.ChangePassword(current, next, nil)
 	return err
 }
 
@@ -142,18 +142,19 @@ func (g *Guard) SetPassword(current, next string) error {
 // password is already set, the current one has to be supplied, so an open
 // session cannot lock the owner out. A change that lands after another one,
 // a reset included, is refused: current was checked against a password that
-// is gone.
-func (g *Guard) ChangePassword(current, next string) (Credentials, error) {
+// is gone. alsoEnd runs once the change is made, while nothing can be minted
+// (see Mint), for the credentials this package does not keep.
+func (g *Guard) ChangePassword(current, next string, alsoEnd func()) (Credentials, error) {
 	c, ok := g.CheckPassword(current)
 	if c.enabled && !ok {
 		return Credentials{}, ErrWrongPassword
 	}
-	return g.changeFrom(c, next)
+	return g.changeFrom(c, next, alsoEnd)
 }
 
 // changeFrom applies next to the state c was checked against, and refuses
 // when that state has changed since.
-func (g *Guard) changeFrom(c Credentials, next string) (Credentials, error) {
+func (g *Guard) changeFrom(c Credentials, next string, alsoEnd func()) (Credentials, error) {
 	var h []byte
 	if next != "" {
 		if len(next) < 8 {
@@ -164,6 +165,8 @@ func (g *Guard) changeFrom(c Credentials, next string) (Credentials, error) {
 			return Credentials{}, err
 		}
 	}
+	g.minting.Lock()
+	defer g.minting.Unlock()
 	g.mu.Lock()
 	if g.gen != c.gen {
 		g.mu.Unlock()
@@ -184,6 +187,9 @@ func (g *Guard) changeFrom(c Credentials, next string) (Credentials, error) {
 	g.gen++
 	c = Credentials{gen: g.gen, enabled: len(h) > 0, TwoFactor: g.totp != ""}
 	g.mu.Unlock()
+	if alsoEnd != nil {
+		alsoEnd()
+	}
 	return c, g.flush()
 }
 
@@ -233,10 +239,10 @@ func (g *Guard) IssueFor(c Credentials) (string, bool) {
 
 // Mint runs fn, which creates a credential outside this package (an API
 // token, a passkey, a live stream), unless valid reports that the caller's own
-// credential has ended. A reset holds minting off while it swaps the
-// credentials and removes those, so fn runs entirely before it, and is undone
-// by it, or after it with valid checked against the new state. fn must not
-// call Current.
+// credential has ended. A reset, a password change and a sign-out everywhere
+// hold minting off while they end the credentials and remove those, so fn
+// runs entirely before one, and is undone by it, or after it with valid
+// checked against the new state. fn must not call Current.
 func (g *Guard) Mint(valid func() bool, fn func() error) error {
 	g.minting.RLock()
 	defer g.minting.RUnlock()
@@ -320,11 +326,17 @@ func (g *Guard) Revoke(token string) error {
 	return g.flush()
 }
 
-// RevokeAll signs out every session issued so far.
-func (g *Guard) RevokeAll() error {
+// RevokeAll signs out every session issued so far. alsoEnd runs as
+// ChangePassword's does.
+func (g *Guard) RevokeAll(alsoEnd func()) error {
+	g.minting.Lock()
+	defer g.minting.Unlock()
 	g.mu.Lock()
 	g.endSessionsLocked()
 	g.mu.Unlock()
+	if alsoEnd != nil {
+		alsoEnd()
+	}
 	return g.flush()
 }
 
