@@ -10,6 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	_ "modernc.org/sqlite"
 )
@@ -22,6 +23,9 @@ type Store struct {
 	path string
 	// historyRev counts the writes to the history (see HistoryRevision).
 	historyRev atomic.Uint64
+	// appKey seals the task passwords at rest (see sealed.go); nil stores
+	// them as they are.
+	appKey *appkey.Key
 }
 
 // migrations run in order, exactly once each. The database records how far it
@@ -431,15 +435,23 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		serviceJob = string(b)
 	}
-	_, err := s.db.Exec(
+	password, err := s.sealPassword(t.Password)
+	if err != nil {
+		return err
+	}
+	downloadPassword, err := s.sealPassword(t.DownloadPassword)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
 		 VALUES (`+placeholders+`)`,
 		t.ID, t.URL, t.Name, t.Package, t.Resolver, t.Size, t.Loaded, t.Speed,
 		string(t.Status), t.Error, t.CreatedAt.UnixMilli(),
-		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
+		t.Dir, password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
 		t.Checksum, t.Comment, t.Chunks, autoExtract, matched,
 		finishedAt, t.Enabled, t.Skipped, t.SkipReason, t.Forced,
-		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
+		downloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
@@ -502,6 +514,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile); err != nil {
 			return nil, err
 		}
+		s.openPasswords(t)
 		t.Status = core.Status(status)
 		t.ErrorCode = core.ErrorCode(errorCode)
 		t.Unpack = core.UnpackResult(unpack)
