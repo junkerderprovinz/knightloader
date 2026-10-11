@@ -3573,6 +3573,7 @@ export const cs: Dict = {
   'whatsnew.change.pageActions': 'Hlavní akce stránky se vznáší u jejího spodního okraje a při posouvání zůstává po ruce.',
   'whatsnew.change.collectorOptions': '„{name}“ otevírá okno. „{cnl}“ a „{watch}“ jsou přepínače v něm.',
   'whatsnew.change.instanceCards': 'Každá instance je kompaktní karta a nad nimi je obrázek skupiny.',
+  'whatsnew.change.handover': 'Na obrázku skupiny putuje po čáře balíček, když odkazy odcházejí na jinou instanci nebo přicházejí ze zařízení ve skupině. Přerušovaná čára vede přes přeposílač.',
   'whatsnew.change.accountsAdd': 'Jedno tlačítko přidá jakýkoli druh účtu: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ kreslí pořadí jako obrázek: koho se ptá nejdřív a koho potom.',
   'whatsnew.change.pairingSteps': 'Tři obrázky ukazují, jak párování probíhá.',

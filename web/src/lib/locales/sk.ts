@@ -3573,6 +3573,7 @@ export const sk: Dict = {
   'whatsnew.change.pageActions': 'Hlavná akcia stránky sa vznáša pri jej spodnom okraji a pri posúvaní zostáva poruke.',
   'whatsnew.change.collectorOptions': '„{name}“ otvára okno. „{cnl}“ a „{watch}“ sú prepínače v ňom.',
   'whatsnew.change.instanceCards': 'Každá inštancia je kompaktná karta a nad nimi je obrázok skupiny.',
+  'whatsnew.change.handover': 'Na obrázku skupiny putuje po čiare balíček, keď odkazy odchádzajú na inú inštanciu alebo prichádzajú zo zariadenia v skupine. Prerušovaná čiara vedie cez relay.',
   'whatsnew.change.accountsAdd': 'Jedno tlačidlo pridá akýkoľvek druh účtu: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ kreslí poradie ako obrázok: koho sa pýta najprv a koho potom.',
   'whatsnew.change.pairingSteps': 'Tri obrázky ukazujú, ako párovanie prebieha.',

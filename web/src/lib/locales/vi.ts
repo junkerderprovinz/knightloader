@@ -3563,6 +3563,7 @@ export const vi: Dict = {
   'whatsnew.change.pageActions': 'Thao tác chính của một trang nổi ở cuối trang và luôn trong tầm tay khi bạn cuộn.',
   'whatsnew.change.collectorOptions': '“{name}” mở một cửa sổ. “{cnl}” và “{watch}” là các công tắc trong đó.',
   'whatsnew.change.instanceCards': 'Mỗi phiên bản là một thẻ gọn, phía trên là hình của cả nhóm.',
+  'whatsnew.change.handover': 'Trong hình của nhóm, một gói tin chạy dọc theo đường nối khi liên kết được gửi tới phiên bản khác hoặc đến từ một thiết bị trong nhóm. Đường nét đứt đi qua relay.',
   'whatsnew.change.accountsAdd': 'Một nút thêm được mọi loại tài khoản: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” vẽ thứ tự thành một hình: ai được hỏi trước và ai kế tiếp.',
   'whatsnew.change.pairingSteps': 'Ba hình cho thấy việc ghép nối diễn ra thế nào.',

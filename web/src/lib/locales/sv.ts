@@ -3563,6 +3563,7 @@ export const sv: Dict = {
   'whatsnew.change.pageActions': 'En sidas viktigaste åtgärd svävar längst ner och finns inom räckhåll medan du rullar.',
   'whatsnew.change.collectorOptions': '”{name}” öppnar ett fönster. ”{cnl}” och ”{watch}” är reglage i det.',
   'whatsnew.change.instanceCards': 'Varje instans är ett kompakt kort med en bild av gruppen ovanför.',
+  'whatsnew.change.handover': 'I bilden av gruppen färdas ett paket längs linjen när länkar skickas till en annan instans eller kommer från en enhet i gruppen. En streckad linje går via relät.',
   'whatsnew.change.accountsAdd': 'En enda knapp lägger till alla slags konton: ”{name}”.',
   'whatsnew.change.priorityFlow': '”{name}” ritar ordningen som en bild: vem som tillfrågas först och vem sedan.',
   'whatsnew.change.pairingSteps': 'Tre bilder visar hur parkopplingen går till.',

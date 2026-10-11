@@ -3547,6 +3547,7 @@ export const it: Dict = {
   'whatsnew.change.pageActions': 'L’azione principale di una pagina resta sospesa in fondo e a portata di mano mentre scorri.',
   'whatsnew.change.collectorOptions': '«{name}» apre una finestra. «{cnl}» e «{watch}» sono interruttori al suo interno.',
   'whatsnew.change.instanceCards': 'Ogni istanza è una scheda compatta, con sopra un’immagine del gruppo.',
+  'whatsnew.change.handover': 'Nell’immagine del gruppo, un pacchetto percorre la linea quando dei link vanno a un’altra istanza o arrivano da un dispositivo del gruppo. Una linea tratteggiata passa dal relay.',
   'whatsnew.change.accountsAdd': 'Un solo pulsante aggiunge ogni tipo di account: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» disegna l’ordine come immagine: chi viene interpellato per primo e chi dopo.',
   'whatsnew.change.pairingSteps': 'Tre immagini mostrano come funziona l’associazione.',

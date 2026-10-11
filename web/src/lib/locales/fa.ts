@@ -3552,6 +3552,7 @@ export const fa: Dict = {
   'whatsnew.change.pageActions': 'کار اصلی هر صفحه در پایین آن شناور است و هنگام پیمایش در دسترس می‌ماند.',
   'whatsnew.change.collectorOptions': '«{name}» پنجره‌ای باز می‌کند. «{cnl}» و «{watch}» کلیدهایی در آن هستند.',
   'whatsnew.change.instanceCards': 'هر نمونه یک کارت فشرده است و بالای آن‌ها تصویری از گروه قرار دارد.',
+  'whatsnew.change.handover': 'در تصویر گروه، وقتی لینک‌ها به نمونهٔ دیگری می‌روند یا از یکی از دستگاه‌های گروه می‌رسند، بسته‌ای روی خط حرکت می‌کند. خط‌چین از رله می‌گذرد.',
   'whatsnew.change.accountsAdd': 'یک دکمه هر نوع حسابی را اضافه می‌کند: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» ترتیب را به شکل تصویر می‌کشد: اول از چه کسی پرسیده می‌شود و بعد از چه کسی.',
   'whatsnew.change.pairingSteps': 'سه تصویر نشان می‌دهند جفت‌سازی چطور پیش می‌رود.',

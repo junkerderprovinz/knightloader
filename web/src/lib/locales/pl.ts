@@ -3547,6 +3547,7 @@ export const pl: Dict = {
   'whatsnew.change.pageActions': 'Główna akcja strony unosi się u jej dołu i pozostaje pod ręką podczas przewijania.',
   'whatsnew.change.collectorOptions': '„{name}” otwiera okno. „{cnl}” i „{watch}” to przełączniki w nim.',
   'whatsnew.change.instanceCards': 'Każda instancja to zwarta karta, a nad nimi jest obraz grupy.',
+  'whatsnew.change.handover': 'Na obrazie grupy paczka wędruje po linii, gdy linki trafiają do innej instancji albo przychodzą z urządzenia w grupie. Linia przerywana prowadzi przez relay.',
   'whatsnew.change.accountsAdd': 'Jeden przycisk dodaje każdy rodzaj konta: „{name}”.',
   'whatsnew.change.priorityFlow': '„{name}” rysuje kolejność jako obraz: kto jest pytany najpierw, a kto potem.',
   'whatsnew.change.pairingSteps': 'Trzy obrazy pokazują, jak przebiega parowanie.',

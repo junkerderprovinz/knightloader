@@ -3555,6 +3555,7 @@ export const es: Dict = {
   'whatsnew.change.pageActions': 'La acción principal de una página flota en su parte inferior y sigue a mano mientras te desplazas.',
   'whatsnew.change.collectorOptions': '«{name}» abre una ventana. «{cnl}» y «{watch}» son interruptores dentro de ella.',
   'whatsnew.change.instanceCards': 'Cada instancia es una tarjeta compacta, con una imagen del grupo encima.',
+  'whatsnew.change.handover': 'En la imagen del grupo, un paquete viaja por la línea cuando unos enlaces van a otra instancia o llegan desde un dispositivo del grupo. Una línea discontinua pasa por el repetidor.',
   'whatsnew.change.accountsAdd': 'Un solo botón añade cualquier tipo de cuenta: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» dibuja el orden como una imagen: a quién se pregunta primero y a quién después.',
   'whatsnew.change.pairingSteps': 'Tres imágenes muestran cómo funciona el emparejamiento.',

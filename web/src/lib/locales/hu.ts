@@ -3563,6 +3563,7 @@ export const hu: Dict = {
   'whatsnew.change.pageActions': 'Az oldal fő művelete az oldal alján lebeg, és görgetés közben is kéznél marad.',
   'whatsnew.change.collectorOptions': 'A(z) „{name}” ablakot nyit. A(z) „{cnl}” és a(z) „{watch}” kapcsolók benne.',
   'whatsnew.change.instanceCards': 'Minden példány egy tömör kártya, fölöttük pedig a csoport képe látható.',
+  'whatsnew.change.handover': 'A csoport képén egy csomag halad végig a vonalon, amikor hivatkozások mennek egy másik példányhoz, vagy a csoport egyik eszközéről érkeznek. A szaggatott vonal a relayen át vezet.',
   'whatsnew.change.accountsAdd': 'Egyetlen gomb ad hozzá bármilyen fiókot: „{name}”.',
   'whatsnew.change.priorityFlow': 'A(z) „{name}” képként rajzolja meg a sorrendet: kit kérdez először, és kit utána.',
   'whatsnew.change.pairingSteps': 'Három kép mutatja, hogyan zajlik a párosítás.',

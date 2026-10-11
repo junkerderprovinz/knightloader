@@ -3563,6 +3563,7 @@ export const id: Dict = {
   'whatsnew.change.pageActions': 'Tindakan utama sebuah halaman melayang di bagian bawahnya dan tetap terjangkau saat kamu menggulir.',
   'whatsnew.change.collectorOptions': '“{name}” membuka sebuah jendela. “{cnl}” dan “{watch}” adalah sakelar di dalamnya.',
   'whatsnew.change.instanceCards': 'Setiap instance adalah kartu ringkas, dengan gambar grup di atasnya.',
+  'whatsnew.change.handover': 'Pada gambar grup, sebuah paket bergerak di sepanjang garis saat tautan dikirim ke instance lain atau tiba dari perangkat dalam grup. Garis putus-putus melewati relay.',
   'whatsnew.change.accountsAdd': 'Satu tombol menambahkan semua jenis akun: “{name}”.',
   'whatsnew.change.priorityFlow': '“{name}” menggambar urutan sebagai gambar: siapa yang ditanya lebih dulu dan siapa berikutnya.',
   'whatsnew.change.pairingSteps': 'Tiga gambar menunjukkan cara pemasangan berlangsung.',

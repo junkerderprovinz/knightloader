@@ -271,4 +271,51 @@ describe('Instances', () => {
     expect(pairing).toBeDefined();
     expect(pairing!.closest('div')!.querySelector('[role="note"]')).toBeNull();
   });
+
+  it('sends a parcel along the line of whoever the server names in a handover', async () => {
+    const sockets: { onmessage: ((e: { data: string }) => void) | null }[] = [];
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        static OPEN = 1;
+        static CONNECTING = 0;
+        readyState = 1;
+        onmessage = null;
+        constructor() {
+          sockets.push(this);
+        }
+        send() {}
+        close() {}
+      },
+    );
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [{ id: 'id-nas', name: 'NAS', direct: false, relay: true }],
+        apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
+      },
+      [
+        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    const spoke = (key: string) => host.querySelector(`svg.wide g[data-nk="${key}"]`)!;
+    const parcels = (key: string) => spoke(key).querySelectorAll('.kl-net-parcel').length;
+    const dashed = (key: string) => spoke(key).querySelector('.kl-net-link')!.classList.contains('relay');
+    // The line says what the card says: through the relay or not.
+    expect([dashed('member:id-nas'), dashed('app:p1'), dashed('peer:cellar')]).toEqual([true, true, false]);
+
+    const hear = (data: object) =>
+      act(() => sockets.forEach((s) => s.onmessage?.({ data: JSON.stringify({ type: 'handover', data }) })));
+    hear({ peer: 'cellar', out: true });
+    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 0, 0]);
+    hear({ peer: 'p1', out: false });
+    hear({ peer: 'id-nas', out: true });
+    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 1, 1]);
+    // Somebody the page does not list has no line to travel on.
+    hear({ peer: 'stranger', out: false });
+    expect(host.querySelectorAll('svg.wide .kl-net-parcel')).toHaveLength(3);
+  });
 });

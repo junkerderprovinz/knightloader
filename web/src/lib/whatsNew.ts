@@ -76,6 +76,7 @@ export const RELEASES: Release[] = [
         names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', name: 'collector.options' },
       },
       { id: 'instance-cards', to: INSTANCES, text: 'whatsnew.change.instanceCards' },
+      { id: 'net-handover', to: INSTANCES, text: 'whatsnew.change.handover' },
       {
         id: 'accounts-add',
         to: ACCOUNTS,

@@ -3549,6 +3549,7 @@ export const da: Dict = {
   'whatsnew.change.pageActions': 'En sides vigtigste handling svæver nederst på siden og er inden for rækkevidde, mens du ruller.',
   'whatsnew.change.collectorOptions': '„{name}“ åbner et vindue. „{cnl}“ og „{watch}“ er kontakter i det.',
   'whatsnew.change.instanceCards': 'Hver instans er et kompakt kort med et billede af gruppen ovenover.',
+  'whatsnew.change.handover': 'På billedet af gruppen rejser en pakke langs linjen, når links sendes til en anden instans eller kommer fra en enhed i gruppen. En stiplet linje går gennem videresenderen.',
   'whatsnew.change.accountsAdd': 'Én knap tilføjer alle slags konti: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ tegner rækkefølgen som et billede: hvem der spørges først, og hvem derefter.',
   'whatsnew.change.pairingSteps': 'Tre billeder viser, hvordan parringen foregår.',

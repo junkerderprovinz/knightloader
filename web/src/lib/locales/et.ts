@@ -3555,6 +3555,7 @@ export const et: Dict = {
   'whatsnew.change.pageActions': 'Lehe põhitegevus hõljub lehe allservas ja jääb kerimise ajal käeulatusse.',
   'whatsnew.change.collectorOptions': '„{name}“ avab akna. „{cnl}“ ja „{watch}“ on selles lülitid.',
   'whatsnew.change.instanceCards': 'Iga eksemplar on kompaktne kaart, mille kohal on pilt grupist.',
+  'whatsnew.change.handover': 'Grupi pildil liigub pakk mööda joont, kui lingid lähevad teisele eksemplarile või saabuvad mõnest grupi seadmest. Katkendjoon kulgeb edastaja kaudu.',
   'whatsnew.change.accountsAdd': 'Üks nupp lisab igat liiki konto: „{name}“.',
   'whatsnew.change.priorityFlow': '„{name}“ joonistab järjekorra pildina: kellelt küsitakse esimesena ja kellelt seejärel.',
   'whatsnew.change.pairingSteps': 'Kolm pilti näitavad, kuidas sidumine käib.',

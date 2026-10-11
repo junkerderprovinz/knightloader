@@ -3810,6 +3810,7 @@ export const en = {
   'whatsnew.change.pageActions': 'The main action of a page floats at its foot and stays in reach while you scroll.',
   'whatsnew.change.collectorOptions': '"{name}" opens a window. "{cnl}" and "{watch}" are switches in it.',
   'whatsnew.change.instanceCards': 'Every instance is a compact card, with a picture of the group above.',
+  'whatsnew.change.handover': 'In the picture of the group, a packet travels along the line when links go to another instance or arrive from a device of the group. A dashed line runs through the relay.',
   'whatsnew.change.accountsAdd': 'One button adds every kind of account: "{name}".',
   'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture: who is asked first and who next.',
   'whatsnew.change.pairingSteps': 'Three pictures show how pairing works.',

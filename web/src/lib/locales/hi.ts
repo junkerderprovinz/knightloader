@@ -3563,6 +3563,7 @@ export const hi: Dict = {
   'whatsnew.change.pageActions': 'पेज की मुख्य क्रिया उसके निचले किनारे पर तैरती है और स्क्रॉल करते समय पहुँच में रहती है।',
   'whatsnew.change.collectorOptions': '“{name}” एक विंडो खोलता है। “{cnl}” और “{watch}” उसमें स्विच हैं।',
   'whatsnew.change.instanceCards': 'हर इंस्टेंस एक छोटा कार्ड है, और उनके ऊपर समूह का चित्र है।',
+  'whatsnew.change.handover': 'समूह के चित्र में, जब लिंक किसी दूसरे इंस्टेंस को जाते हैं या समूह के किसी डिवाइस से आते हैं, तो रेखा पर एक पैकेट चलता है। टूटी रेखा रिले से होकर जाती है।',
   'whatsnew.change.accountsAdd': 'एक ही बटन हर तरह का खाता जोड़ता है: “{name}”।',
   'whatsnew.change.priorityFlow': '“{name}” क्रम को चित्र के रूप में दिखाता है: पहले किससे पूछा जाता है और उसके बाद किससे।',
   'whatsnew.change.pairingSteps': 'तीन चित्र दिखाते हैं कि पेयरिंग कैसे होती है।',

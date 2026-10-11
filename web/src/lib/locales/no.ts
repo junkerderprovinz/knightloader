@@ -3565,6 +3565,7 @@ export const no: Dict = {
   'whatsnew.change.pageActions': 'Den viktigste handlingen på en side svever nederst og er innen rekkevidde mens du ruller.',
   'whatsnew.change.collectorOptions': '«{name}» åpner et vindu. «{cnl}» og «{watch}» er brytere i det.',
   'whatsnew.change.instanceCards': 'Hver instans er et kompakt kort med et bilde av gruppen over.',
+  'whatsnew.change.handover': 'I bildet av gruppen reiser en pakke langs linjen når lenker sendes til en annen instans eller kommer fra en enhet i gruppen. En stiplet linje går via relay.',
   'whatsnew.change.accountsAdd': 'Én knapp legger til alle slags kontoer: «{name}».',
   'whatsnew.change.priorityFlow': '«{name}» tegner rekkefølgen som et bilde: hvem som spørres først, og hvem deretter.',
   'whatsnew.change.pairingSteps': 'Tre bilder viser hvordan paringen foregår.',
