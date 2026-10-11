@@ -735,7 +735,9 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
 	a.startUsenet()
-	a.spawn(a.sweepKeyCopies)
+	if key != nil {
+		a.spawn(a.sweepKeyCopies)
+	}
 	return a, nil
 }
 

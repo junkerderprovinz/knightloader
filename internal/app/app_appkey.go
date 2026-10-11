@@ -50,9 +50,6 @@ func noteKeyFailures(dataDir string, key *appkey.Key) {
 // sweepKeyCopies removes the copies once the key has worked for
 // appkey.CopiesKept, at start and then on keyCopiesSweep until Close.
 func (a *App) sweepKeyCopies() {
-	if a.AppKey == nil {
-		return
-	}
 	t := time.NewTicker(keyCopiesSweep)
 	defer t.Stop()
 	for {
