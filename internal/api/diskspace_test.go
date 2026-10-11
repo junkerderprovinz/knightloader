@@ -67,7 +67,7 @@ func TestTheDiskReportAlwaysCarriesAListOfVolumes(t *testing.T) {
 // disks with nothing on screen to say so.
 func TestTheDiskReportIsNotForwardedToAPeer(t *testing.T) {
 	t.Parallel()
-	if relayForwardable(http.MethodGet, "/api/diskspace") {
+	if groupReaches(t, http.MethodGet, "/api/diskspace") {
 		t.Error("GET /api/diskspace is forwardable to a peer; a reading of one machine's disks answered under another machine's name is a wrong number nobody can spot")
 	}
 }

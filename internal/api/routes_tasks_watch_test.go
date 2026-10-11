@@ -138,7 +138,7 @@ func TestThePhoneReachesTheWatchListWithAReadToken(t *testing.T) {
 	if !served {
 		t.Error("the server does not serve the watch list")
 	}
-	if !relayForwardable(http.MethodGet, "/api/tasks/watch?tag=abc") {
+	if !groupReaches(t, http.MethodGet, "/api/tasks/watch?tag=abc") {
 		t.Error("the relay does not carry the watch list")
 	}
 	if s := scopeFor("GET /api/tasks/watch"); s != apitoken.ScopeRead {

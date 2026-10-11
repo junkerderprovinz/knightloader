@@ -122,7 +122,7 @@ func registerLinks(reg *Registry, a *app.App) {
 			if created == nil {
 				created = []*core.Task{} // an empty result is [] for clients, never null
 			}
-			writeJSON(w, created)
+			writeJSON(w, shownTasks(r, created))
 		})
 
 	// A browser sees held links on the task stream; this is for other clients.
