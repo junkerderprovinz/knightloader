@@ -72,9 +72,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       setPendingFile(null);
     } catch (e) {
       // The window stays open so the pressed button can shake.
-      const keyRefusal = e instanceof ApiError ? RESTORE_KEY_REFUSAL[e.code ?? ''] : undefined;
-      const message = keyRefusal
-        ? t(keyRefusal)
+      const refusal = e instanceof ApiError ? RESTORE_REFUSAL[e.code ?? ''] : undefined;
+      const message = refusal
+        ? t(refusal)
         : t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') });
       toast(message, 'fail');
       setRestoreShake((n) => n + 1);
@@ -302,10 +302,14 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   );
 }
 
-/** The restore refusals about the app key, which say what to set rather than what failed. */
-const RESTORE_KEY_REFUSAL: Record<string, 'settings.system.restoreKeyMissing' | 'settings.system.restoreKeyWrong'> = {
+/** The restore refusals that say what to do rather than what failed. */
+const RESTORE_REFUSAL: Record<
+  string,
+  'settings.system.restoreKeyMissing' | 'settings.system.restoreKeyWrong' | 'settings.system.restoreNewerSchema'
+> = {
   'restore.appKeyMissing': 'settings.system.restoreKeyMissing',
   'restore.appKeyWrong': 'settings.system.restoreKeyWrong',
+  'restore.newerSchema': 'settings.system.restoreNewerSchema',
 };
 
 /**

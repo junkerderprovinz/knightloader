@@ -36,6 +36,7 @@ const WORDS: Record<string, Words> = {
   pinned: { line: 'failure.pinned.line', next: 'failure.pinned.next' },
   fileExists: { line: 'failure.fileExists.line', next: 'failure.fileExists.next' },
   dataFolder: { line: 'failure.dataFolder.line', next: 'failure.dataFolder.next' },
+  holdsDataFolder: { line: 'failure.holdsDataFolder.line', next: 'failure.holdsDataFolder.next' },
   captcha: { line: 'failure.captcha.line', next: 'failure.captcha.next' },
   cancelled: { line: 'failure.cancelled.line', next: 'failure.cancelled.next' },
   botCheck: { line: 'failure.botCheck.line', next: 'failure.botCheck.next' },

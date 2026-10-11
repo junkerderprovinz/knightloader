@@ -302,6 +302,8 @@ export const el: Dict = {
   'failure.fileExists.next': 'Μετακίνησε ή μετονόμασε εκείνο το αρχείο, ή άλλαξε στη διεπαφή web τι γίνεται με τα υπάρχοντα αρχεία, και μετά κάνε επανεκκίνηση της λήψης.',
   'failure.dataFolder.line': 'Το {path} βρίσκεται στον φάκελο δεδομένων του KnightLoader, και εκεί δεν επιτρέπεται να πηγαίνουν λήψεις.',
   'failure.dataFolder.next': 'Επίλεξε στη διεπαφή web φάκελο έξω από τον φάκελο δεδομένων και δοκίμασε ξανά.',
+  'failure.holdsDataFolder.line': 'Ο φάκελος δεδομένων του KnightLoader βρίσκεται μέσα στο {path}, οπότε εκεί δεν επιτρέπεται να πηγαίνουν λήψεις.',
+  'failure.holdsDataFolder.next': 'Επίλεξε στη διεπαφή web φάκελο που δεν περιέχει τον φάκελο δεδομένων και δοκίμασε ξανά.',
   'failure.captcha.line': 'Ο hoster θέλει να λυθεί ένα captcha.',
   'failure.captcha.next': 'Απάντησε στο captcha στην οθόνη Captcha ή πρόσθεσε έναν λογαριασμό captcha στη διεπαφή web.',
   'failure.cancelled.line': 'Η λήψη σταμάτησε πριν ολοκληρωθεί.',

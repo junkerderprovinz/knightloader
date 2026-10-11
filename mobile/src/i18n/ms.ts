@@ -302,6 +302,8 @@ export const ms: Dict = {
   'failure.fileExists.next': 'Alihkan atau namakan semula fail itu, atau ubah apa yang berlaku kepada fail sedia ada dalam antara muka web, kemudian mulakan semula muat turun itu.',
   'failure.dataFolder.line': '{path} berada dalam folder data KnightLoader, dan muat turun tidak boleh pergi ke situ.',
   'failure.dataFolder.next': 'Pilih folder di luar folder data dalam antara muka web, kemudian cuba lagi.',
+  'failure.holdsDataFolder.line': 'Folder data KnightLoader berada di dalam {path}, jadi muat turun tidak boleh pergi ke situ.',
+  'failure.holdsDataFolder.next': 'Pilih folder yang tidak mengandungi folder data dalam antara muka web, kemudian cuba lagi.',
   'failure.captcha.line': 'Hoster mahu captcha diselesaikan.',
   'failure.captcha.next': 'Jawab captcha pada skrin Captcha, atau tambah akaun captcha dalam antara muka web.',
   'failure.cancelled.line': 'Muat turun dihentikan sebelum selesai.',

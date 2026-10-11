@@ -302,6 +302,8 @@ export const tr: Dict = {
   'failure.fileExists.next': 'O dosyayı taşı ya da yeniden adlandır veya web arayüzünde var olan dosyalara ne olacağını değiştir, sonra indirmeyi yeniden başlat.',
   'failure.dataFolder.line': '{path}, KnightLoader veri klasöründe ve indirmeler oraya gidemez.',
   'failure.dataFolder.next': 'Web arayüzünde veri klasörünün dışında bir klasör seç, sonra yeniden dene.',
+  'failure.holdsDataFolder.line': 'KnightLoader veri klasörü {path} içinde, bu yüzden indirmeler oraya gidemez.',
+  'failure.holdsDataFolder.next': 'Web arayüzünde veri klasörünü içermeyen bir klasör seç, sonra yeniden dene.',
   'failure.captcha.line': 'Hoster bir captcha çözülmesini istiyor.',
   'failure.captcha.next': 'Captchayı Captchalar ekranında yanıtla ya da web arayüzünde bir captcha hesabı ekle.',
   'failure.cancelled.line': 'İndirme bitmeden durduruldu.',

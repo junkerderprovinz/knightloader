@@ -302,6 +302,8 @@ export const hr: Dict = {
   'failure.fileExists.next': 'Premjesti ili preimenuj tu datoteku, ili u web sučelju promijeni što se događa s postojećim datotekama, pa ponovno pokreni preuzimanje.',
   'failure.dataFolder.line': '{path} je u mapi s podacima KnightLoadera, a preuzimanja ne smiju ići onamo.',
   'failure.dataFolder.next': 'U web sučelju odaberi mapu izvan mape s podacima, pa pokušaj ponovno.',
+  'failure.holdsDataFolder.line': 'Mapa s podacima KnightLoadera nalazi se unutar {path}, pa preuzimanja ne smiju ići onamo.',
+  'failure.holdsDataFolder.next': 'U web sučelju odaberi mapu koja ne sadrži mapu s podacima, pa pokušaj ponovno.',
   'failure.captcha.line': 'Hoster traži da se riješi captcha.',
   'failure.captcha.next': 'Odgovori na captchu na zaslonu Captche ili dodaj račun captche u web sučelju.',
   'failure.cancelled.line': 'Preuzimanje je zaustavljeno prije nego što je završilo.',

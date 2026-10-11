@@ -302,6 +302,8 @@ export const id: Dict = {
   'failure.fileExists.next': 'Pindahkan atau ganti nama berkas itu, atau ubah apa yang terjadi pada berkas yang sudah ada di antarmuka web, lalu mulai ulang unduhannya.',
   'failure.dataFolder.line': '{path} ada di folder data KnightLoader, dan unduhan tidak boleh ke sana.',
   'failure.dataFolder.next': 'Pilih folder di luar folder data di antarmuka web, lalu coba lagi.',
+  'failure.holdsDataFolder.line': 'Folder data KnightLoader ada di dalam {path}, jadi unduhan tidak boleh ke sana.',
+  'failure.holdsDataFolder.next': 'Pilih folder yang tidak memuat folder data di antarmuka web, lalu coba lagi.',
   'failure.captcha.line': 'Hoster ingin captcha dipecahkan.',
   'failure.captcha.next': 'Jawab captcha di layar Captcha, atau tambahkan akun captcha di antarmuka web.',
   'failure.cancelled.line': 'Unduhan dihentikan sebelum selesai.',
