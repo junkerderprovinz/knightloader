@@ -167,16 +167,19 @@ operator, who is handed that key. That trade fits the case it exists for:
 somebody hosting the relay themselves.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
-**Own relay** or **No relay**, with a badge that says Connected, Not connected
-or No relay. The phrase card shows the same badge beside its state. For your own relay the
-card names the two ways to run one, the [ParleyPort](https://github.com/junkerderprovinz/parleyport) container or any
-instance of the group that can be reached from outside with **Serve as relay**
-switched on, and takes its address, which every instance in the group needs;
+**Own relay**, **Serve as relay** or **No relay**, with a badge that says
+Connected, Not connected or No relay. The phrase card shows the same badge
+beside its state. **Serve as relay** makes this instance the relay of the
+group, which works for any instance that can be reached from outside. For
+your own relay the card names the two ways to run one, the
+[ParleyPort](https://github.com/junkerderprovinz/parleyport) container or an
+instance that serves as the relay, and takes its address, which every
+instance in the group needs;
 the same phrase then works against it, because the phrase carries the secret
 and not the address. An address starting with `ws://` or `http://` is allowed,
 for a relay on your own network, with a warning that the relay key then
 crosses the network unencrypted. The Android app does not follow such a relay:
-it only connects over `wss://`. **How does it work?** opens the route
+it only connects over `wss://`. **What the relay sees** opens the route
 picture, what the relay sees next to what it never sees, and how the traffic
 is encrypted. The same fields are `relayMode`, `relayUrl` and `relayServe`
 under **Settings → Advanced**.
@@ -233,7 +236,7 @@ for the server.
 
 ### Or let one instance be the relay
 
-**Settings → Pairing → Relay → Own relay → Serve as relay**
+**Settings → Pairing → Relay → Serve as relay**
 (`relayServe`). The relay then answers under `/relay/connect` on the address
 that instance already uses, behind the same reverse proxy and the same
 certificate, and the other instances put that address in their own relay
