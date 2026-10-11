@@ -120,6 +120,7 @@ export const is: Dict = {
   'addDownload.errorSend': 'Ekki tókst að senda tenglana: {message}',
   'error.federationOff': 'Slökkt er á systurtilvikum á tilvikinu sem þú ert tengdur við, svo það nær ekki í hin.',
   'error.addAgain': 'Eldri útgáfa forritsins vistaði þessa tengingu og hún virkar ekki lengur. Fjarlægðu hana og tengstu aftur með orðunum tólf.',
+  'error.connectionEnded': 'Tilvikið tekur ekki lengur við þessari tengingu, af því að lykilorði þess var breytt eða það endurstillt. Fjarlægðu tenginguna og tengstu aftur með orðunum tólf sem tilvikið sýnir undir Stillingar, Pörun. Eftir endurstillingu eru þetta ný orð.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 

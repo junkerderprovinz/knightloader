@@ -120,6 +120,7 @@ export const ro: Dict = {
   'addDownload.errorSend': 'Nu s-au putut trimite linkurile: {message}',
   'error.federationOff': 'Instanțele partenere sunt dezactivate pe instanța la care ești conectat, deci aceasta nu le poate accesa pe celelalte.',
   'error.addAgain': 'Această conexiune a fost salvată de o versiune mai veche a aplicației și nu mai funcționează. Elimin-o și conectează-te din nou cu cele douăsprezece cuvinte.',
+  'error.connectionEnded': 'Instanța nu mai acceptă această conexiune, pentru că parola ei a fost schimbată sau resetată. Elimină conexiunea și conectează-te din nou cu cele douăsprezece cuvinte pe care instanța le arată în Setări, Împerechere. După o resetare, acestea sunt cuvinte noi.',
   'addDownload.cancel': 'Anulează',
   'addDownload.button': 'Adaugă',
 

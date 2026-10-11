@@ -120,6 +120,7 @@ export const hu: Dict = {
   'addDownload.errorSend': 'Nem sikerült elküldeni a linkeket: {message}',
   'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
   'error.addAgain': 'Ezt a kapcsolatot az alkalmazás egy régebbi verziója mentette, és már nem működik. Távolítsd el, és csatlakozz újra a tizenkét szóval.',
+  'error.connectionEnded': 'A példány már nem fogadja el ezt a kapcsolatot, mert a jelszavát megváltoztatták vagy visszaállították. Távolítsd el a kapcsolatot, és csatlakozz újra azzal a tizenkét szóval, amelyet a példány a Beállítások, Párosítás oldalon mutat. Visszaállítás után ezek új szavak.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 

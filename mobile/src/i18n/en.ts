@@ -143,6 +143,7 @@ export const en = {
   'addDownload.errorSend': 'Could not send the links: {message}',
   'error.federationOff': 'Peer instances are switched off on the instance you are connected to, so it cannot reach the others.',
   'error.addAgain': 'This connection was saved by an older version of the app and no longer works. Remove it and connect again with the twelve words.',
+  'error.connectionEnded': 'The instance no longer accepts this connection because its password was changed or reset. Remove the connection and connect again with the twelve words the instance shows under Settings, Pairing. After a reset, those are new words.',
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',
 

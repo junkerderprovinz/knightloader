@@ -120,6 +120,7 @@ export const id: Dict = {
   'addDownload.errorSend': 'Tautan tidak dapat dikirim: {message}',
   'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
   'error.addAgain': 'Sambungan ini disimpan oleh versi aplikasi yang lebih lama dan tidak berfungsi lagi. Hapus, lalu sambungkan lagi dengan dua belas kata.',
+  'error.connectionEnded': 'Instans tidak lagi menerima sambungan ini karena kata sandinya diubah atau disetel ulang. Hapus sambungan, lalu sambungkan lagi dengan dua belas kata yang ditampilkan instans di Pengaturan, Pemasangan. Setelah setel ulang, kata-katanya baru.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 

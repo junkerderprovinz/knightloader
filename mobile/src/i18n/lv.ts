@@ -120,6 +120,7 @@ export const lv: Dict = {
   'addDownload.errorSend': 'Neizdevās nosūtīt saites: {message}',
   'error.federationOff': 'Pievienotajā instancē radniecīgās instances ir izslēgtas, tāpēc tā nevar sasniegt pārējās.',
   'error.addAgain': 'Šo savienojumu saglabāja vecāka lietotnes versija, un tas vairs nedarbojas. Noņem to un savienojies vēlreiz ar divpadsmit vārdiem.',
+  'error.connectionEnded': 'Instance vairs nepieņem šo savienojumu, jo tās parole ir mainīta vai atiestatīta. Noņem savienojumu un savienojies vēlreiz ar divpadsmit vārdiem, ko instance rāda sadaļā Iestatījumi, Pārošana. Pēc atiestatīšanas tie ir jauni vārdi.',
   'addDownload.cancel': 'Atcelt',
   'addDownload.button': 'Pievienot',
 

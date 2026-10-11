@@ -120,6 +120,7 @@ export const lt: Dict = {
   'addDownload.errorSend': 'Nepavyko išsiųsti nuorodų: {message}',
   'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
   'error.addAgain': 'Šį ryšį išsaugojo senesnė programėlės versija, ir jis nebeveikia. Pašalink jį ir prisijunk iš naujo su dvylika žodžių.',
+  'error.connectionEnded': 'Egzempliorius šio ryšio nebepriima, nes jo slaptažodis buvo pakeistas arba nustatytas iš naujo. Pašalink ryšį ir prisijunk iš naujo su dvylika žodžių, kuriuos egzempliorius rodo skiltyje Nustatymai, Susiejimas. Po nustatymo iš naujo tai nauji žodžiai.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 

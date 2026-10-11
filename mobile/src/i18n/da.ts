@@ -120,6 +120,7 @@ export const da: Dict = {
   'addDownload.errorSend': 'Kunne ikke sende linkene: {message}',
   'error.federationOff': 'Søsterinstanser er slået fra på den instans, du er forbundet til, så den kan ikke nå de andre.',
   'error.addAgain': 'Denne forbindelse blev gemt af en ældre version af appen og virker ikke længere. Fjern den, og forbind igen med de tolv ord.',
+  'error.connectionEnded': 'Instansen tager ikke længere imod denne forbindelse, fordi dens adgangskode er ændret eller nulstillet. Fjern forbindelsen, og forbind igen med de tolv ord, som instansen viser under Indstillinger, Parring. Efter en nulstilling er det nye ord.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 

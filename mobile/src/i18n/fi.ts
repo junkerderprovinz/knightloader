@@ -120,6 +120,7 @@ export const fi: Dict = {
   'addDownload.errorSend': 'Linkkien lähettäminen epäonnistui: {message}',
   'error.federationOff': 'Rinnakkaisinstanssit on kytketty pois instanssissa, johon olet yhteydessä, joten se ei tavoita muita.',
   'error.addAgain': 'Sovelluksen vanhempi versio tallensi tämän yhteyden, eikä se toimi enää. Poista se ja yhdistä uudelleen kahdellatoista sanalla.',
+  'error.connectionEnded': 'Instanssi ei enää hyväksy tätä yhteyttä, koska sen salasana on vaihdettu tai nollattu. Poista yhteys ja yhdistä uudelleen kahdellatoista sanalla, jotka instanssi näyttää kohdassa Asetukset, Pariliitos. Nollauksen jälkeen sanat ovat uusia.',
   'addDownload.cancel': 'Peruuta',
   'addDownload.button': 'Lisää',
 

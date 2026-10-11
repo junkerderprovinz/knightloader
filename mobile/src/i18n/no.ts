@@ -120,6 +120,7 @@ export const no: Dict = {
   'addDownload.errorSend': 'Kunne ikke sende lenkene: {message}',
   'error.federationOff': 'Søsterinstanser er slått av på instansen du er koblet til, så den når ikke de andre.',
   'error.addAgain': 'Denne tilkoblingen ble lagret av en eldre versjon av appen og virker ikke lenger. Fjern den og koble til på nytt med de tolv ordene.',
+  'error.connectionEnded': 'Instansen godtar ikke lenger denne tilkoblingen, fordi passordet er endret eller tilbakestilt. Fjern tilkoblingen og koble til på nytt med de tolv ordene instansen viser under Innstillinger, Paring. Etter en tilbakestilling er det nye ord.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 
