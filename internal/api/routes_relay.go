@@ -77,7 +77,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, "not ready", http.StatusServiceUnavailable)
 				return
 			}
-			a.Federation.ServeDirect(w, r, relayProxyHandler(serve, a.Federation.Removed))
+			a.Federation.ServeDirect(w, r, announceArrivals(a, relayProxyHandler(serve, a.Federation.Removed)))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -269,7 +269,7 @@ func applyRelay(a *app.App) {
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
 		},
-		Serve:  relayProxyHandler(serve, a.Federation.Removed),
+		Serve:  announceArrivals(a, relayProxyHandler(serve, a.Federation.Removed)),
 		Replay: a.Federation.Replay(),
 	})
 	if err != nil {

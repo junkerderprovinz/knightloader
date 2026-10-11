@@ -36,6 +36,7 @@ const base: ConnectInfo = {
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
   address: '',
+  networkAddress: '',
   members: [],
   apps: [],
   joinedAgo: 0,
