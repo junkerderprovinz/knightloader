@@ -5,6 +5,7 @@ import (
 	"errors"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -92,6 +93,32 @@ func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
 	}
 	if !g.Valid(b) {
 		t.Error("signing out one session ended another issued in the same second")
+	}
+}
+
+// TestParallelSignOutsWriteTheListSafely: each sign-out writes the list while
+// the others add to it, which the race detector, or the runtime itself on a
+// map, catches when the file is written from the live list.
+func TestParallelSignOutsWriteTheListSafely(t *testing.T) {
+	g, _ := locked(t)
+	exp := time.Now().Add(time.Hour).Unix()
+	sessions := make([]string, 64)
+	for i := range sessions {
+		sessions[i] = sessionUntil(g, exp+int64(i))
+	}
+	var wg sync.WaitGroup
+	for _, s := range sessions {
+		wg.Go(func() {
+			if err := g.Revoke(s); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	for _, s := range sessions {
+		if g.Valid(s) {
+			t.Fatal("a session signed out in parallel with others is still valid")
+		}
 	}
 }
 

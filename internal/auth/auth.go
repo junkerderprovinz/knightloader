@@ -16,6 +16,7 @@ import (
 	"encoding/base64"
 	"encoding/hex"
 	"errors"
+	"maps"
 	"os"
 	"strconv"
 	"strings"
@@ -414,7 +415,8 @@ func (g *Guard) flush() error {
 		TOTP:     g.totp,
 		Recovery: g.recovery,
 		Epoch:    g.epoch,
-		Revoked:  g.revoked,
+		// A copy, since a sign-out adds to the list while this one is encoded.
+		Revoked: maps.Clone(g.revoked),
 	}
 	g.mu.RUnlock()
 	return writeState(g.path, s, g.appKey)
