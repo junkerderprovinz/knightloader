@@ -142,9 +142,14 @@ type Options struct {
 	// already is the package folder whenever subfolder-by-package is on for
 	// downloads, and a second one inside it would give "Films/Film/Film".
 	Subfolder bool
-	// Barred reports a folder nothing may be unpacked into, which is checked
-	// against the folder the archive would unpack into. Nil bars nothing.
-	Barred func(dir string) bool
+	// Barred says why nothing may be unpacked into dir, the folder an archive
+	// would unpack into, or returns nil. Nil bars nothing.
+	Barred func(dir string) error
+	// BarredFile says why nothing may be written at path, or returns nil. It is
+	// asked about every file an archive holds, after its name is joined to the
+	// folder, so an entry cannot reach a barred place through the folders it
+	// names. Nil bars nothing.
+	BarredFile func(path string) error
 
 	// Collision is what to do when the destination folder already exists. It is
 	// decided per folder and never per file inside the archive - see
@@ -181,13 +186,20 @@ func (e *DestinationTakenError) Error() string { return ErrDestinationTaken.Erro
 
 func (e *DestinationTakenError) Unwrap() error { return ErrDestinationTaken }
 
-// BarredError is an archive refused because the folder it would unpack into is
-// one Options.Barred bars.
+// BarredError is an archive refused because the folder it would unpack into,
+// or the path one of its files would be written at, is barred by
+// Options.Barred or Options.BarredFile. Err is their reason.
 type BarredError struct {
 	Dir string
+	Err error
 }
 
 func (e *BarredError) Error() string { return "extract: nothing may be unpacked into " + e.Dir }
+
+func (e *BarredError) Unwrap() error { return e.Err }
+
+// into is the target an extraction into dest writes through.
+func (o Options) into(dest string) target { return target{dir: dest, barred: o.BarredFile} }
 
 // Extract unpacks path under these options and reports what it wrote.
 //
@@ -199,7 +211,7 @@ func (o Options) Extract(path string) (*Result, error) {
 	if err != nil {
 		return nil, err
 	}
-	return extractInto(path, dest, o.Passwords)
+	return extractInto(path, o.into(dest), o.Passwords)
 }
 
 // extractInto is the password walk every entry point shares: the unencrypted
@@ -211,7 +223,7 @@ func (o Options) Extract(path string) (*Result, error) {
 // would leave an empty directory behind and fail outright where a file of that
 // name already sits, which for "dump.sql.gz" next to "dump.sql" is the normal
 // case.
-func extractInto(path, dest string, passwords []string) (*Result, error) {
+func extractInto(path string, dest target, passwords []string) (*Result, error) {
 	res, err := attempt(path, dest, "")
 	if err == nil || !errors.Is(err, ErrPasswordRequired) {
 		return res, err
@@ -232,7 +244,7 @@ func extractInto(path, dest string, passwords []string) (*Result, error) {
 // contents are encrypted only turns the password down once an entry is being
 // written, so inside a job a pass that fails on it takes back what it wrote:
 // the next pass starts clean, and the job counts only the pass that worked.
-func attempt(path, dest, password string) (*Result, error) {
+func attempt(path string, dest target, password string) (*Result, error) {
 	s := bound.Load()
 	mark := s.checkpoint()
 	res, err := extractOnce(path, dest, password)
@@ -268,8 +280,10 @@ func attempt(path, dest, password string) (*Result, error) {
 // for the folder so it does not claim otherwise.
 func (o Options) destination(path string) (string, error) {
 	dest := o.baseDest(path)
-	if o.Barred != nil && o.Barred(dest) {
-		return "", &BarredError{Dir: dest}
+	if o.Barred != nil {
+		if err := o.Barred(dest); err != nil {
+			return "", &BarredError{Dir: dest, Err: err}
+		}
 	}
 	policy := ParseCollision(string(o.Collision))
 	if policy == collide.Overwrite {

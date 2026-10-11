@@ -1067,8 +1067,8 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 		from = filepath.Join(dir, t.Name)
 	}
 	to := filepath.Join(filepath.Dir(from), want)
-	if inData := a.dataFolderOf(filepath.Dir(to)); inData != "" {
-		return refuse(refuseDataFolder(want, inData))
+	if a.barFile(to) != nil {
+		return refuse(refuseDataFolder(want, filepath.Dir(to)))
 	}
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.
