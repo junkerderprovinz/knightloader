@@ -1,6 +1,6 @@
 import { useId } from 'react';
 import { useTooltip } from '../ui';
-import { FAIL, HUE, LABEL, QUIET, WARN, useStage } from './scene';
+import { FAIL, FILL, LABEL, QUIET, WARN, useStage } from './scene';
 
 // The picture is 34 by 40. The liquid stands between the floor and the brim,
 // the dashed line where the vessel counts as full.
@@ -21,7 +21,8 @@ export interface VesselMark {
   label: string;
 }
 
-const PAINT = { accent: HUE, warn: WARN, fail: FAIL };
+// The liquid is a fill like a progress bar's, so it takes the accent itself.
+const PAINT = { accent: FILL, warn: WARN, fail: FAIL };
 
 /**
  * Vessel draws a fill level against the dashed line that means full, with each

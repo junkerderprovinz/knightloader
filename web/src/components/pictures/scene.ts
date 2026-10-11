@@ -11,8 +11,12 @@ export const SURFACE = 'var(--carbon-surface)';
 export const GROUND = 'var(--carbon-surface2)';
 /** The accent as a fill. A detail drawn inside it is cut out in the colour of the surface behind. */
 export const FILL = 'var(--accent)';
-/** The accent where it is read against the page: a line, a ring, a liquid. */
-export const HUE = 'var(--accent-ink)';
+/**
+ * The accent where it is drawn against the page: a line, a ring. The glyph
+ * token, so it darkens on a light ground and takes its card's hue under
+ * rainbow, which the ink of accent-coloured words does not.
+ */
+export const HUE = 'var(--accent-glyph)';
 export const OK = 'var(--status-ok-solid)';
 export const WARN = 'var(--status-warn-solid)';
 export const FAIL = 'var(--status-fail-solid)';
