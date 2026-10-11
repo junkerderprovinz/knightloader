@@ -455,7 +455,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	if err := keepCopiesBeforeSealing(dataDir, key); err != nil {
 		return nil, err
 	}
-	st, err := store.Open(filepath.Join(dataDir, "knightloader.db"))
+	st, err := store.OpenWithKey(filepath.Join(dataDir, "knightloader.db"), key)
 	if err != nil {
 		return nil, err
 	}
