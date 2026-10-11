@@ -265,3 +265,35 @@ func TestCheckSecondAnswersNoWhileTheFactorIsOff(t *testing.T) {
 		}
 	}
 }
+
+// TestALiveCodeSignsInOnce: a code stays valid for three time steps, and one
+// read over a shoulder or out of a proxy log must not open a second session
+// in that time, nor may an older code once a newer one was used.
+func TestALiveCodeSignsInOnce(t *testing.T) {
+	g, _ := locked(t)
+	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := g.ConfirmTwoFactor(codeNow(t, sec)); err != nil {
+		t.Fatal(err)
+	}
+	now := time.Now()
+	earlier, err := secret.TOTPCode(sec, now.Add(-30*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	code, err := secret.TOTPCode(sec, now)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !g.CheckSecond(code) {
+		t.Fatal("a fresh code was refused")
+	}
+	if g.CheckSecond(code) {
+		t.Error("the same code was accepted a second time")
+	}
+	if g.CheckSecond(earlier) {
+		t.Error("a code from the step before was accepted after a newer one was used")
+	}
+}

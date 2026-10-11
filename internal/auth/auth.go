@@ -94,6 +94,11 @@ type Guard struct {
 	epoch    uint64
 	revoked  map[string]int64
 	pending  *pending // never written to the file
+	// totpUsed is the newest time step a code was accepted for. A code is
+	// valid for three steps, and one seen over a shoulder or in a proxy's
+	// log must not open a second session in that time. Kept in memory, so a
+	// restart forgets it, which costs at most those three steps.
+	totpUsed uint64
 	// The live reset code and when it was minted, in memory only.
 	reset       resetCode
 	resetMinted time.Time
