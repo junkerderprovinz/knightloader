@@ -190,7 +190,9 @@ release's tag.
 
 - **Devices learn when an instance was reset.** For 30 days after a password
   reset, the phone and the extension say that the instance was reset and that
-  they need its new twelve words, instead of losing it without a word.
+  they need its new twelve words, instead of losing it without a word. Only
+  the instance itself can send that notice, and on a relay it serves, the old
+  words reach that instance and nobody else.
 - **Forgot password? on the sign-in page.** KnightLoader writes a code where
   only somebody with access to the machine can read it: the container log (on
   Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started

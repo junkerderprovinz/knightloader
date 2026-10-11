@@ -559,3 +559,43 @@ func TestAnIDIsTakenOverOnlyWithItsKey(t *testing.T) {
 		t.Fatalf("alpha got a %q frame, want the proxy-request", got.Type)
 	}
 }
+
+// TestAConfinedKeyReachesOnlyItsInstance: a key the relay admits for one
+// instance alone, such as the one of the group an instance left at a reset,
+// lets the devices that still hold it reach that instance, and neither see nor
+// call each other.
+func TestAConfinedKeyReachesOnlyItsInstance(t *testing.T) {
+	s := New()
+	s.Confine = func(key string) string {
+		if key == "old-key" {
+			return "retired"
+		}
+		return ""
+	}
+	retired := join(t, s, "old-key", "retired")
+	phone := join(t, s, "old-key", "phone")
+	if got := announceOf(t, next(t, phone, "the phone was not told about the instance"), "announce"); got.InstanceID != "retired" {
+		t.Fatalf("the phone was introduced to %q, want the retired instance", got.InstanceID)
+	}
+	next(t, retired, "the instance was not told about the phone")
+	other := join(t, s, "old-key", "other")
+	next(t, other, "the newcomer was not told about the instance")
+	next(t, retired, "the instance was not told about the newcomer")
+	nothing(t, other, "a device on the key learnt of another device")
+	nothing(t, phone, "a device on the key learnt of a newcomer")
+
+	send(t, s, other, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "phone"})
+	var resp ProxyResponse
+	if env := next(t, other, "the call to another device was not refused"); env.Type != TypeProxyResponse || env.Into(&resp) != nil || resp.Error == "" {
+		t.Fatalf("a device calling another got %+v, want the relay's refusal", resp)
+	}
+	nothing(t, phone, "a device was reached through a confined key")
+	send(t, s, other, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "retired"})
+	if got := next(t, retired, "the call to the instance did not arrive"); got.Type != TypeProxyRequest {
+		t.Fatalf("the instance got a %q frame, want the call", got.Type)
+	}
+
+	s.Leave(phone)
+	next(t, retired, "the instance was not told the phone left")
+	nothing(t, other, "a device heard of another device leaving")
+}

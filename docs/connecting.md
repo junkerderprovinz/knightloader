@@ -256,9 +256,12 @@ that nobody else holds, so every phone, browser extension and other instance
 pairs again with them. For 30 days after the reset it stays on the old group's
 relay key and answers every call made with the old words with "this instance
 was reset", which the app and the extension show as a sentence telling you to
-pair again with the new words. It keeps only the two keys derived from the old
-words for that, never the words themselves, and runs nothing such a call asks
-for. See [A forgotten password](configuration.md#a-forgotten-password).
+pair again with the new words. It signs that answer with the key it had in
+the old group, so nobody else holding the old words can send it. It keeps only
+that key and the two keys derived from the old words for this, never the
+words themselves, and runs nothing such a call asks for. If the instance
+serves the relay itself, the old relay key reaches only this instance there,
+so the old words cannot be used to meet anybody else on it. See [A forgotten password](configuration.md#a-forgotten-password).
 
 ## When neither can reach the other: the relay
 
