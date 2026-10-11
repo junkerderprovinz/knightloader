@@ -48,7 +48,7 @@ is `https://`, but the app no longer makes one. One saved with an `http://`
 address cannot work, because the app permits no cleartext traffic; its card
 says it has to be added again with the twelve words. Those builds took the
 server's address and an API token
-from the web UI's Access tab (`POST /api/tokens`, see
+from the web UI's Security page (`POST /api/tokens`, see
 `internal/api/routes_tokens.go`). The app only uses Read, Add and Control, so a
 Custom token with those three was enough. Such a connection sends its token as
 `Authorization: Bearer <token>` on every request, the same header a script
