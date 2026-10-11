@@ -83,6 +83,13 @@ export async function request<T>(conn: ServerConnection, base: string, path: str
     : await httpRequest(conn, base + path, init);
 
   if (status < 200 || status >= 300) {
+    // A direct connection signs in with an API token, and the instance drops
+    // every token when its password is changed or reset. This app has nowhere
+    // to enter a new one, so the connection is made again from the phrase. A
+    // peer's 401 comes through another base and keeps its own words.
+    if (status === 401 && !isRelayConnection(conn) && base === '/api') {
+      throw new ApiError(body || statusText, status, 'addAgain');
+    }
     throw refusal(body || statusText, status);
   }
   if (status === 204 || body === '') return undefined as T;
