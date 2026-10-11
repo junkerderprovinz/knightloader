@@ -273,6 +273,11 @@ type ProxyRequest struct {
 	// Target as additional data, so a relay cannot redirect it to another
 	// instance and have it open.
 	Sealed []byte `json:"sealed,omitempty"`
+	// Sender is the id the sending connection announced, written by the relay
+	// over whatever the sender put there. It is not sealed, so the receiver
+	// only spreads its limits by it (see WithSource) and trusts it with
+	// nothing else.
+	Sender string `json:"sender,omitempty"`
 }
 
 // ProxyCall is what a ProxyRequest asks once opened: the same (method, path,

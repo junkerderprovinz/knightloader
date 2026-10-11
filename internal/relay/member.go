@@ -22,20 +22,26 @@ package relay
 //     instance approves the device, its calls are refused with a code that
 //     says so. The approval, and a refusal, are passed on to the other
 //     instances with the key, so they pin it as approved before the device
-//     calls them. Members that were in the group before keys count as
-//     approved, and so do the instances an instance meets right after its
-//     owner entered the words of a group that already existed.
+//     calls them. The phones and browsers an instance knew when it first ran
+//     with keys count as approved, a list written once and never added to.
+//     So do the instances already in the group that an instance meets right
+//     after its owner entered the words of a group that already existed.
+//   - The id a call names has to have the shape its kind mints for itself,
+//     so no key can be pinned as an instance under a phone's id.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
-//     from the verified key: the replay guard, the calls served at once, and
-//     how many keys may be pinned per hour. Calls without a signature, from
-//     members on a release before keys, share one bucket of their own.
+//     from the verified key: the replay guard and the calls served at once.
+//     Calls without a signature count per member id they name. How many keys
+//     may be pinned per hour counts per sender as well as for the group (see
+//     WithSource).
 //
-// A call without a signature is still served during the move to keys, unless
-// its id has a pinned key or was removed, so an instance on the release before
-// keys and one after it keep talking. federation.acceptUnsigned is the one
-// switch that ends this.
+// A call without a signature is still served during the move to keys when it
+// names a phone or a browser on that list, which has no pinned key and was not
+// removed, so the app and the extension of the release before keys keep
+// working. Instances of that release name nobody and are refused.
+// federation.acceptUnsigned is the one switch that ends this.
 
 import (
+	"context"
 	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/binary"
@@ -43,6 +49,23 @@ import (
 	"errors"
 	"fmt"
 )
+
+type sourceKey struct{}
+
+// WithSource marks ctx with where a call came in: the relay connection that
+// sent it, or the address a direct call came from. Whoever holds the words can
+// open as many of either as it likes, so a source proves nothing; it only
+// keeps one of them from using up a limit the whole group shares.
+func WithSource(ctx context.Context, source string) context.Context {
+	return context.WithValue(ctx, sourceKey{}, source)
+}
+
+// SourceOf returns what WithSource put on ctx, "" when the transport could not
+// tell.
+func SourceOf(ctx context.Context) string {
+	s, _ := ctx.Value(sourceKey{}).(string)
+	return s
+}
 
 // MemberAccountService is the credential-store service an instance's member
 // key seed is sealed under. It belongs to the group: joining one mints a new

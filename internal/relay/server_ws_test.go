@@ -164,7 +164,7 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 		Body: []byte(`{"url":"https://example.invalid/file.bin"}`),
 	}
 	writeFrame(t, alpha, TypeProxyRequest, ProxyRequest{
-		RequestID: "r1", Target: bravoID,
+		RequestID: "r1", Target: bravoID, Sender: charlieID,
 		Sealed: sealFor(t, "r1", bravoID, call),
 	})
 	var req ProxyRequest
@@ -173,6 +173,9 @@ func TestEndToEndOverRealWebSockets(t *testing.T) {
 	}
 	if req.RequestID != "r1" || req.Target != bravoID {
 		t.Fatalf("bravo received %+v, want alpha's request unchanged", req)
+	}
+	if req.Sender != alphaID {
+		t.Errorf("bravo was told the call came from %q, want %q whatever alpha claimed", req.Sender, alphaID)
 	}
 	got := openFrom(t, "r1", bravoID, req.Sealed)
 	if got.Method != "POST" || got.Path != "/api/links" {
