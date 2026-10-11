@@ -3552,6 +3552,8 @@ export const ro: Dict = {
   'picture.reconnect.newAddress': 'Adresa nouă',
   'picture.reconnect.alt': 'KnightLoader cere routerului o adresă nouă. Routerul întrerupe conexiunea și revine cu una nouă.',
   'picture.seed.target': 'Țintă {ratio}',
+  'picture.intake.file': 'Fișiere și containere',
+  'picture.intake.account': 'Cont debrid',
   'whatsnew.title': 'Noutăți în {version}',
   'whatsnew.changes': 'Modificări',
   'whatsnew.notesMissing': 'KnightLoader nu a putut încărca aici notele de lansare. Le găsești pe GitHub.',
@@ -3580,6 +3582,8 @@ export const ro: Dict = {
   'whatsnew.change.seedRing': 'Un inel arată cât de aproape este un torrent de ținta lui de seed.',
   'whatsnew.change.routes':
     '„{name}” desenează drumurile spre exterior, iar un test colorează fiecare linie în verde sau roșu.',
+  'whatsnew.change.waysIn':
+    'O imagine arată fiecare cale pe care un link ajunge în colectorul de linkuri, iar un clic pe o cale îi deschide setarea.',
   'whatsnew.change.infoTile': '„{name}” spune cine face KnightLoader, enumeră fiecare versiune și arată unde găsești ajutor.',
   'whatsnew.change.phoneBar': 'Pe telefon, bara inferioară păstrează patru pagini, iar ultimul ei loc deschide tot restul.',
   'whatsnew.change.queueState': '„{play}” și „{pause}” arată ce face coada: butonul plin este starea ei, celălalt este cel de apăsat.',

@@ -3547,6 +3547,8 @@ export const no: Dict = {
   'picture.reconnect.newAddress': 'Ny adresse',
   'picture.reconnect.alt': 'KnightLoader ber ruteren om en ny adresse. Ruteren bryter forbindelsen og kommer tilbake med en ny.',
   'picture.seed.target': 'Mål {ratio}',
+  'picture.intake.file': 'Filer og containere',
+  'picture.intake.account': 'Debrid-konto',
   'whatsnew.title': 'Nytt i {version}',
   'whatsnew.changes': 'Endringer',
   'whatsnew.notesMissing': 'KnightLoader kunne ikke laste inn utgivelsesnotatene her. Du finner dem på GitHub.',
@@ -3574,6 +3576,8 @@ export const no: Dict = {
   'whatsnew.change.reconnectScene': 'Et bilde viser hvordan KnightLoader ber ruteren om en ny adresse.',
   'whatsnew.change.seedRing': 'En ring viser hvor nær en torrent er seed-målet sitt.',
   'whatsnew.change.routes': '«{name}» tegner veiene ut, og en test farger hver linje grønn eller rød.',
+  'whatsnew.change.waysIn':
+    'Et bilde viser hver vei en lenke kommer inn i linksamleren på, og et klikk på en vei åpner innstillingen for den.',
   'whatsnew.change.infoTile': '«{name}» sier hvem som lager KnightLoader, viser hver versjon og viser hvor du får hjelp.',
   'whatsnew.change.phoneBar': 'På en telefon beholder bunnfeltet fire sider, og den siste plassen åpner alt det andre.',
   'whatsnew.change.queueState': '«{play}» og «{pause}» viser hva køen gjør: Den fylte knappen er tilstanden, den andre er den du trykker på.',

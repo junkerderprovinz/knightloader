@@ -3528,6 +3528,8 @@ export const nl: Dict = {
   'picture.reconnect.newAddress': 'Nieuw adres',
   'picture.reconnect.alt': 'KnightLoader vraagt de router om een nieuw adres. De router verbreekt de verbinding en komt terug met een nieuw adres.',
   'picture.seed.target': 'Doel {ratio}',
+  'picture.intake.file': 'Bestanden en containers',
+  'picture.intake.account': 'Debrid-account',
   'whatsnew.title': 'Nieuw in {version}',
   'whatsnew.changes': 'Wijzigingen',
   'whatsnew.notesMissing': 'KnightLoader kon de releasenotes hier niet laden. Je vindt ze op GitHub.',
@@ -3555,6 +3557,8 @@ export const nl: Dict = {
   'whatsnew.change.reconnectScene': 'Een afbeelding laat zien hoe KnightLoader de router om een nieuw adres vraagt.',
   'whatsnew.change.seedRing': 'Een ring laat zien hoe dicht een torrent bij zijn seeddoel is.',
   'whatsnew.change.routes': '“{name}” tekent de routes naar buiten, en een test kleurt elke lijn groen of rood.',
+  'whatsnew.change.waysIn':
+    'Een afbeelding toont elke weg waarlangs een link in de linkverzamelaar komt, en een klik op een weg opent de instelling ervan.',
   'whatsnew.change.infoTile': '“{name}” zegt wie KnightLoader maakt, toont elke versie en laat zien waar je hulp vindt.',
   'whatsnew.change.phoneBar': 'Op een telefoon houdt de onderbalk vier pagina’s, en de laatste plek opent al het andere.',
   'whatsnew.change.queueState': '“{play}” en “{pause}” laten zien wat de wachtrij doet: de gevulde knop is de toestand, de andere is de knop om in te drukken.',

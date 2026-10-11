@@ -3559,6 +3559,8 @@ export const hr: Dict = {
   'picture.reconnect.newAddress': 'Nova adresa',
   'picture.reconnect.alt': 'KnightLoader traži od usmjerivača novu adresu. Usmjerivač prekida vezu i vraća se s novom.',
   'picture.seed.target': 'Cilj {ratio}',
+  'picture.intake.file': 'Datoteke i spremnici',
+  'picture.intake.account': 'Debrid račun',
   'whatsnew.title': 'Novo u {version}',
   'whatsnew.changes': 'Promjene',
   'whatsnew.notesMissing': 'KnightLoader ovdje nije mogao učitati napomene uz izdanje. Naći ćeš ih na GitHubu.',
@@ -3586,6 +3588,8 @@ export const hr: Dict = {
   'whatsnew.change.reconnectScene': 'Slika pokazuje kako KnightLoader od usmjerivača traži novu adresu.',
   'whatsnew.change.seedRing': 'Prsten pokazuje koliko je torrent blizu svom cilju seedanja.',
   'whatsnew.change.routes': '„{name}” crta putove prema van, a test boji svaku liniju u zeleno ili crveno.',
+  'whatsnew.change.waysIn':
+    'Slika pokazuje svaki put kojim poveznica stiže u sakupljač poveznica, a klik na put otvara njegovu postavku.',
   'whatsnew.change.infoTile': '„{name}” kaže tko izrađuje KnightLoader, navodi svaku verziju i pokazuje gdje dobiti pomoć.',
   'whatsnew.change.phoneBar': 'Na telefonu donja traka zadržava četiri stranice, a njezino zadnje mjesto otvara sve ostalo.',
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazuju što red radi: ispunjeni gumb je njegovo stanje, a drugi se pritišće.',

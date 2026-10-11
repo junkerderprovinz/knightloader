@@ -3545,6 +3545,8 @@ export const vi: Dict = {
   'picture.reconnect.newAddress': 'Địa chỉ mới',
   'picture.reconnect.alt': 'KnightLoader yêu cầu router cấp địa chỉ mới. Router ngắt kết nối rồi quay lại với địa chỉ mới.',
   'picture.seed.target': 'Mục tiêu {ratio}',
+  'picture.intake.file': 'Tệp và container',
+  'picture.intake.account': 'Tài khoản debrid',
   'whatsnew.title': 'Có gì mới trong {version}',
   'whatsnew.changes': 'Thay đổi',
   'whatsnew.notesMissing': 'KnightLoader không tải được ghi chú phát hành tại đây. Bạn sẽ tìm thấy chúng trên GitHub.',
@@ -3572,6 +3574,8 @@ export const vi: Dict = {
   'whatsnew.change.reconnectScene': 'Một hình cho thấy KnightLoader xin bộ định tuyến một địa chỉ mới như thế nào.',
   'whatsnew.change.seedRing': 'Một vòng tròn cho thấy một torrent còn cách mục tiêu seed bao xa.',
   'whatsnew.change.routes': '“{name}” vẽ các đường đi ra ngoài, và một lượt kiểm tra tô mỗi đường màu xanh lá hoặc đỏ.',
+  'whatsnew.change.waysIn':
+    'Một hình cho thấy mọi đường mà một liên kết đi vào bộ thu liên kết, và nhấp vào một đường sẽ mở cài đặt của nó.',
   'whatsnew.change.infoTile': '“{name}” cho biết ai làm ra KnightLoader, liệt kê mọi bản phát hành và chỉ chỗ nhận trợ giúp.',
   'whatsnew.change.phoneBar': 'Trên điện thoại, thanh dưới giữ bốn trang, và chỗ cuối cùng của nó mở mọi thứ còn lại.',
   'whatsnew.change.queueState': '“{play}” và “{pause}” cho thấy hàng đợi đang làm gì: nút được tô kín là trạng thái của nó, nút còn lại là nút để bấm.',

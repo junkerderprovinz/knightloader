@@ -3529,6 +3529,8 @@ export const it: Dict = {
   'picture.reconnect.newAddress': 'Indirizzo nuovo',
   'picture.reconnect.alt': 'KnightLoader chiede al router un indirizzo nuovo. Il router chiude la connessione e torna con uno nuovo.',
   'picture.seed.target': 'Obiettivo {ratio}',
+  'picture.intake.file': 'File e contenitori',
+  'picture.intake.account': 'Account debrid',
   'whatsnew.title': 'Novità di {version}',
   'whatsnew.changes': 'Modifiche',
   'whatsnew.notesMissing': 'KnightLoader non è riuscito a caricare qui le note di rilascio. Le trovi su GitHub.',
@@ -3556,6 +3558,8 @@ export const it: Dict = {
   'whatsnew.change.reconnectScene': 'Un’immagine mostra come KnightLoader chiede al router un nuovo indirizzo.',
   'whatsnew.change.seedRing': 'Un anello mostra quanto manca a un torrent per raggiungere il suo obiettivo di seed.',
   'whatsnew.change.routes': '«{name}» disegna le vie verso l’esterno, e un test colora ogni linea di verde o di rosso.',
+  'whatsnew.change.waysIn':
+    'Un’immagine mostra ogni via per cui un link arriva nel raccoglitore di link, e un clic su una via ne apre l’impostazione.',
   'whatsnew.change.infoTile': '«{name}» dice chi realizza KnightLoader, elenca ogni versione e mostra dove trovare aiuto.',
   'whatsnew.change.phoneBar': 'Su un telefono la barra inferiore tiene quattro pagine, e il suo ultimo posto apre tutto il resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostrano che cosa fa la coda: il pulsante pieno è il suo stato, l’altro è quello da premere.',
