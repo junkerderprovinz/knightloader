@@ -3547,6 +3547,7 @@ export const lt: Dict = {
   'picture.seed.target': 'Tikslas {ratio}',
   'picture.intake.file': 'Failai ir konteineriai',
   'picture.intake.account': 'Debrid paskyra',
+  'picture.day.since': 'Matuojama nuo {time}',
   'whatsnew.title': 'Kas nauja versijoje {version}',
   'whatsnew.changes': 'Pakeitimai',
   'whatsnew.notesMissing': 'KnightLoader negalėjo čia įkelti versijos pastabų. Jas rasi GitHub.',
@@ -3577,6 +3578,8 @@ export const lt: Dict = {
     '„{name}“ nupiešia kelius į išorę, o testas kiekvieną liniją nuspalvina žaliai arba raudonai.',
   'whatsnew.change.waysIn':
     'Paveikslėlis rodo kiekvieną kelią, kuriuo nuoroda patenka į nuorodų rinkiklį, o spustelėjus kelią atsidaro jo nustatymas.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ nupiešia šiandieną kaip kreivę: suplanuotą greičio ribą kaip plotą ir išmatuotą greitį kaip liniją.',
   'whatsnew.change.infoTile': '„{name}“ pasako, kas kuria KnightLoader, išvardija kiekvieną versiją ir parodo, kur gauti pagalbos.',
   'whatsnew.change.phoneBar': 'Telefone apatinė juosta išlaiko keturis puslapius, o paskutinė jos vieta atveria visa kita.',
   'whatsnew.change.queueState': '„{play}“ ir „{pause}“ rodo, ką daro eilė: užpildytas mygtukas yra jos būsena, kitas yra tas, kurį reikia paspausti.',

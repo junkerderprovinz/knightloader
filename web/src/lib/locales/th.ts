@@ -3545,6 +3545,7 @@ export const th: Dict = {
   'picture.seed.target': 'เป้าหมาย {ratio}',
   'picture.intake.file': 'ไฟล์และคอนเทนเนอร์',
   'picture.intake.account': 'บัญชี debrid',
+  'picture.day.since': 'วัดตั้งแต่ {time}',
   'whatsnew.title': 'มีอะไรใหม่ใน {version}',
   'whatsnew.changes': 'การเปลี่ยนแปลง',
   'whatsnew.notesMissing': 'KnightLoader โหลดบันทึกประจำรุ่นที่นี่ไม่ได้ คุณดูได้ที่ GitHub',
@@ -3574,6 +3575,8 @@ export const th: Dict = {
   'whatsnew.change.routes': '“{name}” วาดเส้นทางออกไปข้างนอก และการทดสอบจะทำให้แต่ละเส้นเป็นสีเขียวหรือสีแดง',
   'whatsnew.change.waysIn':
     'ภาพแสดงทุกเส้นทางที่ลิงก์เข้ามาถึงตัวเก็บลิงก์ และการคลิกที่เส้นทางจะเปิดการตั้งค่าของเส้นทางนั้น',
+  'whatsnew.change.dayCurve':
+    '“{name}” วาดวันนี้เป็นเส้นโค้ง: ขีดจำกัดความเร็วที่วางแผนไว้เป็นพื้นที่ และความเร็วที่วัดได้เป็นเส้น',
   'whatsnew.change.infoTile': '“{name}” บอกว่าใครทำ KnightLoader แสดงทุกรุ่น และบอกว่าขอความช่วยเหลือได้ที่ไหน',
   'whatsnew.change.phoneBar': 'บนโทรศัพท์ แถบด้านล่างเก็บไว้สี่หน้า และช่องสุดท้ายของแถบเปิดทุกอย่างที่เหลือ',
   'whatsnew.change.queueState': '“{play}” และ “{pause}” บอกว่าคิวกำลังทำอะไร: ปุ่มที่เติมสีคือสถานะของคิว ส่วนอีกปุ่มคือปุ่มให้กด',

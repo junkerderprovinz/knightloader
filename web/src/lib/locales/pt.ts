@@ -3537,6 +3537,7 @@ export const pt: Dict = {
   'picture.seed.target': 'Alvo {ratio}',
   'picture.intake.file': 'Ficheiros e contentores',
   'picture.intake.account': 'Conta debrid',
+  'picture.day.since': 'Medido desde as {time}',
   'whatsnew.title': 'Novidades de {version}',
   'whatsnew.changes': 'Alterações',
   'whatsnew.notesMissing': 'O KnightLoader não conseguiu carregar aqui as notas de versão. Encontra-las no GitHub.',
@@ -3567,6 +3568,8 @@ export const pt: Dict = {
     '«{name}» desenha os caminhos para fora, e um teste pinta cada linha de verde ou de vermelho.',
   'whatsnew.change.waysIn':
     'Uma imagem mostra cada caminho pelo qual um link chega ao coletor de links, e um clique num caminho abre a sua definição.',
+  'whatsnew.change.dayCurve':
+    '«{name}» desenha o dia de hoje como uma curva: o limite de velocidade previsto como uma área e a velocidade medida como uma linha.',
   'whatsnew.change.infoTile': '«{name}» diz quem faz o KnightLoader, lista cada versão e mostra onde obter ajuda.',
   'whatsnew.change.phoneBar': 'Num telefone, a barra inferior mantém quatro páginas, e o seu último lugar abre tudo o resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostram o que a fila está a fazer: o botão preenchido é o estado dela, o outro é o que se prime.',

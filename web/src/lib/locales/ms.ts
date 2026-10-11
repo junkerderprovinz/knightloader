@@ -3546,6 +3546,7 @@ export const ms: Dict = {
   'picture.seed.target': 'Sasaran {ratio}',
   'picture.intake.file': 'Fail dan bekas',
   'picture.intake.account': 'Akaun debrid',
+  'picture.day.since': 'Diukur sejak {time}',
   'whatsnew.title': 'Baharu dalam {version}',
   'whatsnew.changes': 'Perubahan',
   'whatsnew.notesMissing': 'KnightLoader tidak dapat memuatkan nota keluaran di sini. Anda boleh menemuinya di GitHub.',
@@ -3576,6 +3577,8 @@ export const ms: Dict = {
     '“{name}” melukis laluan keluar, dan satu ujian mewarnakan setiap garisan hijau atau merah.',
   'whatsnew.change.waysIn':
     'Sebuah gambar menunjukkan setiap jalan yang dilalui pautan untuk sampai ke pengumpul pautan, dan klik pada satu jalan membuka tetapannya.',
+  'whatsnew.change.dayCurve':
+    '“{name}” melukis hari ini sebagai lengkung: had kelajuan yang dirancang sebagai kawasan dan kelajuan yang diukur sebagai garisan.',
   'whatsnew.change.infoTile': '“{name}” menyatakan siapa yang membuat KnightLoader, menyenaraikan setiap versi dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Pada telefon, bar bawah mengekalkan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan oleh baris gilir: butang yang terisi ialah keadaannya, yang satu lagi ialah butang untuk ditekan.',

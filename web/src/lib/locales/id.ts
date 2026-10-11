@@ -3547,6 +3547,7 @@ export const id: Dict = {
   'picture.seed.target': 'Sasaran {ratio}',
   'picture.intake.file': 'File dan kontainer',
   'picture.intake.account': 'Akun debrid',
+  'picture.day.since': 'Diukur sejak {time}',
   'whatsnew.title': 'Yang baru di {version}',
   'whatsnew.changes': 'Perubahan',
   'whatsnew.notesMissing': 'KnightLoader tidak dapat memuat catatan rilis di sini. Kamu bisa menemukannya di GitHub.',
@@ -3576,6 +3577,8 @@ export const id: Dict = {
   'whatsnew.change.routes': '“{name}” menggambar rute keluar, dan sebuah uji mewarnai setiap garis hijau atau merah.',
   'whatsnew.change.waysIn':
     'Sebuah gambar menunjukkan setiap jalan yang dilalui tautan menuju pengumpul tautan, dan klik pada sebuah jalan membuka pengaturannya.',
+  'whatsnew.change.dayCurve':
+    '“{name}” menggambar hari ini sebagai kurva: batas kecepatan yang direncanakan sebagai bidang dan kecepatan terukur sebagai garis.',
   'whatsnew.change.infoTile': '“{name}” mengatakan siapa yang membuat KnightLoader, mencantumkan setiap versi, dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Di ponsel, bilah bawah menyimpan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan antrean: tombol yang terisi adalah keadaannya, yang satunya adalah tombol untuk ditekan.',

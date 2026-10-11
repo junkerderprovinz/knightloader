@@ -115,6 +115,12 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.module.scheduler' },
       },
       {
+        id: 'day-curve',
+        to: ['/settings/schedule'],
+        text: 'whatsnew.change.dayCurve',
+        names: { name: 'settings.module.scheduler' },
+      },
+      {
         id: 'routes',
         to: ['/settings/connections'],
         text: 'whatsnew.change.routes',

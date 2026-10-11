@@ -3536,6 +3536,7 @@ export const fr: Dict = {
   'picture.seed.target': 'Objectif {ratio}',
   'picture.intake.file': 'Fichiers et conteneurs',
   'picture.intake.account': 'Compte debrid',
+  'picture.day.since': 'Mesuré depuis {time}',
   'whatsnew.title': 'Nouveautés de {version}',
   'whatsnew.changes': 'Changements',
   'whatsnew.notesMissing': 'KnightLoader n’a pas pu charger les notes de version ici. Vous les trouverez sur GitHub.',
@@ -3566,6 +3567,8 @@ export const fr: Dict = {
     '« {name} » dessine les routes vers l’extérieur, et un test colore chaque ligne en vert ou en rouge.',
   'whatsnew.change.waysIn':
     'Une image montre chaque chemin par lequel un lien arrive dans le collecteur de liens, et un clic sur un chemin ouvre son réglage.',
+  'whatsnew.change.dayCurve':
+    '« {name} » dessine la journée en cours sous forme de courbe : la limite de vitesse prévue en surface et la vitesse mesurée en ligne.',
   'whatsnew.change.infoTile': '« {name} » dit qui fait KnightLoader, liste chaque version et montre où trouver de l’aide.',
   'whatsnew.change.phoneBar': 'Sur un téléphone, la barre inférieure garde quatre pages, et son dernier emplacement ouvre tout le reste.',
   'whatsnew.change.queueState': '« {play} » et « {pause} » montrent ce que fait la file d’attente : le bouton plein indique son état, l’autre est celui sur lequel appuyer.',
