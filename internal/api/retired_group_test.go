@@ -171,3 +171,69 @@ func TestTheOldGroupHearsNothingAfterThirtyDays(t *testing.T) {
 		t.Errorf("an answer past its time = %d, want none", status)
 	}
 }
+
+// TestTheOldKeyOnAServedRelayReachesOnlyThisInstance: the instance serves the
+// relay its group used, and keeps admitting the old key after a reset so the
+// old devices hear of it. Somebody holding that key cannot use the relay to
+// reach anybody else on it.
+func TestTheOldKeyOnAServedRelayReachesOnlyThisInstance(t *testing.T) {
+	t.Parallel()
+	srv, a, token := pairingServer(t)
+	activate(t, token, srv.URL)
+	if code, body := call(t, token, http.MethodPut, srv.URL+"/api/relay/config", map[string]any{"relayUrl": srv.URL, "mode": "own", "serve": true}); code != http.StatusOK {
+		t.Fatalf("PUT /api/relay/config = %d %s", code, body)
+	}
+	_, oldKey, _ := relayTarget(a)
+	if _, err := renewGroup(a); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	dial := func(id string) *websocket.Conn {
+		conn, _, err := websocket.Dial(ctx, "ws"+strings.TrimPrefix(srv.URL, "http")+"/relay/connect", nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { conn.CloseNow() })
+		frame, err := relay.Encode(relay.TypeHello, relay.Hello{Key: oldKey, Announce: relay.Announce{InstanceID: id}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		if err := conn.Write(ctx, websocket.MessageText, frame); err != nil {
+			t.Fatal(err)
+		}
+		return conn
+	}
+	dial("phone-listening")
+	caller := dial("phone-calling")
+	frame, err := relay.Encode(relay.TypeProxyRequest, relay.ProxyRequest{RequestID: "r1", Target: "phone-listening", Sealed: []byte("x")})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := caller.Write(ctx, websocket.MessageText, frame); err != nil {
+		t.Fatal(err)
+	}
+	for {
+		_, raw, err := caller.Read(ctx)
+		if err != nil {
+			t.Fatalf("no answer to the call: %v", err)
+		}
+		env, err := relay.Decode(raw)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if env.Type == relay.TypeAnnounce {
+			var seen relay.Announce
+			if env.Into(&seen) == nil && seen.InstanceID == "phone-listening" {
+				t.Error("one holder of the old key was told about another")
+			}
+			continue
+		}
+		var resp relay.ProxyResponse
+		if env.Type != relay.TypeProxyResponse || env.Into(&resp) != nil || resp.Error == "" {
+			t.Fatalf("a call to another holder of the old key got %s, want the relay's refusal", raw)
+		}
+		return
+	}
+}

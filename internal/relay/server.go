@@ -86,7 +86,10 @@ type client struct {
 	conn     Conn
 	key      string
 	announce Announce
-	send     chan []byte
+	// only is the one id this connection may see and reach, "" for any (see
+	// Server.Confine).
+	only string
+	send chan []byte
 	// quit is closed once, by stop, to end the writer goroutine. send is never
 	// closed: frames are pushed into it without the server lock, so closing it
 	// would race a live send.
@@ -132,6 +135,13 @@ type Server struct {
 	// the switch and the key can change while the process runs.
 	Admit func(key string) bool
 
+	// Confine names, for a key the server admits on behalf of one instance
+	// alone, that instance's id: a connection on such a key sees and reaches
+	// that instance and nobody else, so whoever holds the key cannot use the
+	// relay to meet others who do. "" leaves a key open, and so does a nil
+	// Confine. It is read once per connection.
+	Confine func(key string) string
+
 	// TrustedProxies lists the reverse proxies whose X-Forwarded-For names
 	// the caller for the handshake throttle. nil trusts none. A function for
 	// the same reason as Admit.
@@ -149,6 +159,21 @@ func New() *Server {
 		pending: map[string]map[string]pending{},
 		limiter: newLimiter(),
 	}
+}
+
+// confined is the id connections on key are kept to, "" for none.
+func (s *Server) confined(key string) string {
+	if s.Confine == nil {
+		return ""
+	}
+	return s.Confine(key)
+}
+
+// sees reports whether cl may learn of other and call it: always on an open
+// key, and on a confined one only between the instance it is kept to and the
+// rest.
+func (cl *client) sees(other *client) bool {
+	return cl.only == "" || cl.announce.InstanceID == cl.only || other.announce.InstanceID == cl.only
 }
 
 // admits reports whether key may connect. Admit is read without the lock
@@ -186,6 +211,7 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 		conn:     c,
 		key:      key,
 		announce: a,
+		only:     s.confined(key),
 		send:     make(chan []byte, queueDepth),
 		quit:     make(chan struct{}),
 	}
@@ -207,7 +233,9 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 			replaced = other
 			continue
 		}
-		siblings = append(siblings, other)
+		if cl.sees(other) {
+			siblings = append(siblings, other)
+		}
 	}
 	switch {
 	case replaced != nil && !proven:
@@ -258,7 +286,9 @@ func (s *Server) Leave(c Conn) {
 	var siblings []*client
 	if cl != nil {
 		for _, sib := range s.keys[cl.key] {
-			siblings = append(siblings, sib)
+			if sib.sees(cl) {
+				siblings = append(siblings, sib)
+			}
 		}
 	}
 	s.mu.Unlock()
@@ -313,7 +343,7 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest) {
 	}
 	var target *client
 	for _, sib := range s.keys[cl.key] {
-		if sib.conn != c && sib.announce.InstanceID == req.Target {
+		if sib.conn != c && sib.announce.InstanceID == req.Target && cl.sees(sib) {
 			target = sib
 			break
 		}

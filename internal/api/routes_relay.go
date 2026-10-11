@@ -57,6 +57,15 @@ func registerRelay(reg *Registry, a *app.App) {
 	srv.Admit = func(key string) bool {
 		return a.Settings.Get().RelayServe && servesKey(a, key)
 	}
+	// The group left at a reset keeps its relay key for its devices to hear
+	// that, and for nothing else: on it they reach this instance alone.
+	srv.Confine = func(key string) string {
+		g, ok := retiredOf(a, time.Now())
+		if !ok || subtle.ConstantTimeCompare([]byte(key), []byte(g.Key)) != 1 {
+			return ""
+		}
+		return idOf(a, g.member())
+	}
 	srv.TrustedProxies = trustedProxies(a)
 	reg.AddOpen(http.MethodGet, "/relay/connect",
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
