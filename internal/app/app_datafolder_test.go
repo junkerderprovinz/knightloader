@@ -42,3 +42,39 @@ func TestAFolderThatDoesNotAnswerStallsNothing(t *testing.T) {
 		time.Sleep(20 * time.Millisecond)
 	}
 }
+
+// TestAFolderStillBeingLookedUpCostsTheNextPassNothing: while the answer about
+// a folder is still out, the next dispatcher pass goes on at once instead of
+// holding a.mu to wait for it again.
+func TestAFolderStillBeingLookedUpCostsTheNextPassNothing(t *testing.T) {
+	a, _ := diskApp(t, func(*settings.Settings) {})
+	release := make(chan struct{})
+	a.folders.lookup = func(string) *dataFolderError {
+		<-release
+		return nil
+	}
+	queueSized(a, "d1", 0)
+	dispatchNow(a)
+	start := time.Now()
+	_, waiting := dispatchNow(a)
+	if took := time.Since(start); took > folderLookupWait/4 {
+		t.Errorf("a second pass held the lock for %s on a folder already being looked up", took)
+	}
+	if waiting["d1"] == "" {
+		t.Error("d1 is not waiting while its folder is looked up")
+	}
+	close(release)
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		a.mu.Lock()
+		on := a.active["d1"]
+		a.mu.Unlock()
+		if on {
+			return
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("d1 never started once its folder answered")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}

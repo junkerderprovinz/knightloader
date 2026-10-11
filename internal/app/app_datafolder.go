@@ -44,7 +44,7 @@ const maxFolderVerdicts = 256
 type folderVerdicts struct {
 	mu     sync.Mutex
 	known  map[string]folderVerdict
-	asking map[string]chan struct{}
+	asking map[string]*folderLookup
 	// lookup stands in for dataFolderOf in tests.
 	lookup func(dir string) *dataFolderError
 }
@@ -52,6 +52,14 @@ type folderVerdicts struct {
 type folderVerdict struct {
 	refusal *dataFolderError
 	at      time.Time
+}
+
+// folderLookup is one folder being looked up. again is set by a dispatcher
+// pass that went on without the answer, so the dispatcher runs once more when
+// it comes.
+type folderLookup struct {
+	done  chan struct{}
+	again bool
 }
 
 // dataFolderOfLocked is dataFolderOf for a caller holding a.mu. Each folder is
@@ -70,6 +78,9 @@ func (a *App) dataFolderOfLocked(dirs ...string) (refusal *dataFolderError, ok b
 	return nil, true
 }
 
+// folderVerdict answers for dir from what is known, or starts a lookup and
+// waits for it up to folderLookupWait. A lookup another pass started is not
+// waited for again.
 func (a *App) folderVerdict(dir string) (*dataFolderError, bool) {
 	v := &a.folders
 	now := time.Now()
@@ -78,50 +89,54 @@ func (a *App) folderVerdict(dir string) (*dataFolderError, bool) {
 		v.mu.Unlock()
 		return k.refusal, true
 	}
-	done, asking := v.asking[dir]
-	started := !asking
-	if started {
-		if v.asking == nil {
-			v.asking, v.known = map[string]chan struct{}{}, map[string]folderVerdict{}
-		}
-		done = make(chan struct{})
-		v.asking[dir] = done
-		lookup := v.lookup
-		if lookup == nil {
-			lookup = func(dir string) *dataFolderError { return a.dataFolderOf(dir) }
-		}
-		go func() {
-			r := lookup(dir)
-			v.mu.Lock()
-			if len(v.known) >= maxFolderVerdicts {
-				for d, k := range v.known {
-					if time.Since(k.at) >= folderVerdictAge {
-						delete(v.known, d)
-					}
+	if q, ok := v.asking[dir]; ok {
+		q.again = true
+		v.mu.Unlock()
+		return nil, false
+	}
+	if v.asking == nil {
+		v.asking, v.known = map[string]*folderLookup{}, map[string]folderVerdict{}
+	}
+	q := &folderLookup{done: make(chan struct{})}
+	v.asking[dir] = q
+	lookup := v.lookup
+	if lookup == nil {
+		lookup = func(dir string) *dataFolderError { return a.dataFolderOf(dir) }
+	}
+	go func() {
+		r := lookup(dir)
+		v.mu.Lock()
+		if len(v.known) >= maxFolderVerdicts {
+			for d, k := range v.known {
+				if time.Since(k.at) >= folderVerdictAge {
+					delete(v.known, d)
 				}
 			}
-			v.known[dir] = folderVerdict{refusal: r, at: time.Now()}
-			delete(v.asking, dir)
-			v.mu.Unlock()
-			close(done)
-		}()
-	}
-	v.mu.Unlock()
-	select {
-	case <-done:
-	case <-time.After(folderLookupWait):
-		if !started {
-			return nil, false
 		}
-		go func() {
-			<-done
+		v.known[dir] = folderVerdict{refusal: r, at: time.Now()}
+		delete(v.asking, dir)
+		again := q.again
+		v.mu.Unlock()
+		close(q.done)
+		if again {
 			a.spawn(func() {
 				a.mu.Lock()
 				a.dispatchLocked()
 				a.mu.Unlock()
 			})
-		}()
-		return nil, false
+		}
+	}()
+	v.mu.Unlock()
+	select {
+	case <-q.done:
+	case <-time.After(folderLookupWait):
+		v.mu.Lock()
+		if v.asking[dir] == q {
+			q.again = true
+			v.mu.Unlock()
+			return nil, false
+		}
+		v.mu.Unlock()
 	}
 	v.mu.Lock()
 	k := v.known[dir]
