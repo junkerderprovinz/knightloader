@@ -1325,7 +1325,6 @@ export const th: Dict = {
   'captcha.continue': 'ดำเนินการต่อ',
   'captcha.cancel': 'ยกเลิก',
   'captcha.refresh': 'รีเฟรช',
-  'captcha.moreOptions': 'ตัวเลือกเพิ่มเติม',
   'captcha.blockHoster': 'หยุดถามเกี่ยวกับ {host} ในเซสชันนี้ด้วย',
   'captcha.blockEverywhere': 'หยุดถามเกี่ยวกับโฮสต์ใดๆ ในเซสชันนี้ด้วย',
   'captcha.tooLate': 'คำตอบนั้นมาถึงช้าเกินไป',

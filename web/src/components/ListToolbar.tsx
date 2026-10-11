@@ -249,6 +249,17 @@ export function matchesQuickFilters(t: Task, active: Set<QuickFilterId>): boolea
   return QUICK_FILTERS.some((f) => active.has(f.id) && f.match(t));
 }
 
+/**
+ * narrowedTitle names a list's card after the one quick filter that narrows
+ * it, as the card under a row of category tiles is named after the chosen
+ * tile. With none or several the card keeps its own name.
+ */
+export function narrowedTitle(active: ReadonlySet<QuickFilterId>, t: (key: TranslationKey) => string, own: string): string {
+  if (active.size !== 1) return own;
+  const filter = QUICK_FILTERS.find((f) => active.has(f.id));
+  return filter ? t(filter.label) : own;
+}
+
 interface Weight {
   count: number;
   files: number;

@@ -389,8 +389,9 @@ it('opens the list of services for the picked kind, and a new account leads back
 
   await addKind('Debrid account');
   expect(windowTitle()).toContain('Choose a debrid account');
-  const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find((b) =>
-    b.textContent?.endsWith('TorBox'),
+  // A tile is the brand's name over the site it lives at.
+  const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
+    (b) => b.textContent === 'TorBoxtorbox.app',
   )!;
   await act(async () => service.click());
   expect(windowTitle()).toContain('Add your TorBox account');
@@ -434,4 +435,35 @@ it('sends the reader of an empty card to the floating action by its name', async
   const empty = [...host.querySelectorAll('.glim-well')].filter((w) => w.textContent?.includes('yet'));
   expect(empty).toHaveLength(5);
   for (const card of empty) expect(card.textContent).toContain(pointer);
+});
+
+it('opens an account from anywhere on its row, and its menu on a right click', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/accounts/catalogue') return reply(services);
+      if (url === '/api/accounts') {
+        return reply([
+          { id: 'torbox', service: 'torbox', account: '', label: '', enabled: true, configured: true, fromEnv: false, ok: true, detail: 'ok', hosts: 0, tier: 'premium' },
+        ]);
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  const row = host.querySelector('[aria-label="Debrid accounts"] tbody tr')!;
+
+  // The row's switch is its own control and opens nothing.
+  await act(async () => row.querySelector<HTMLElement>('[role="switch"]')!.click());
+  expect(document.querySelector('[role="dialog"]')).toBeNull();
+
+  await act(async () => row.dispatchEvent(new MouseEvent('contextmenu', { bubbles: true, clientX: 40, clientY: 40 })));
+  const entries = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
+  expect(entries).toContain('Edit credential');
+  expect(entries).toContain('Remove');
+  await act(async () => document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+
+  await act(async () => row.querySelector('td:nth-child(3)')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
+  expect(windowTitle()).toContain('TorBox');
 });

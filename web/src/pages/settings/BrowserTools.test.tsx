@@ -99,6 +99,34 @@ describe('BrowserTools', () => {
     expect(open).toHaveBeenCalledTimes(6);
   });
 
+  describe('in a container', () => {
+    /** The page as a container at `version` draws it, and where its macOS button leads. */
+    async function macOS(version: string): Promise<string> {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((url: string) => {
+          if (url.endsWith('/api/system/deployment')) return Promise.resolve(Response.json({ deployment: 'container' }));
+          if (url.endsWith('/api/health')) return Promise.resolve(Response.json({ status: 'ok', version }));
+          return new Promise(() => {});
+        }),
+      );
+      await act(async () => root.render(<BrowserTools />));
+      return host.querySelector<HTMLAnchorElement>('a[aria-label^="macOS"]')!.href;
+    }
+
+    it('gives the desktop app of the release it runs and names that release on the card', async () => {
+      expect(await macOS('v1.8.4')).toContain('/releases/download/v1.8.4/knightloader-macos-universal.zip');
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
+      expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('v1.8.4');
+    });
+
+    it('gives the newest desktop app where it runs no release, and names no number', async () => {
+      expect(await macOS('v1.8.4-12-gabc123')).toContain('/releases/latest/download/knightloader-macos-universal.zip');
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
+      expect(card.querySelector('a[href*="/releases/tag/"]')).toBeNull();
+    });
+  });
+
   describe('in the desktop app', () => {
     beforeEach(() => {
       vi.stubGlobal(

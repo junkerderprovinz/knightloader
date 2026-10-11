@@ -49,7 +49,7 @@ function Row({
         hot ? 'shadow-[inset_0_0_0_2px_var(--accent)]' : ''
       }`}
     >
-      <span className="shrink-0 text-accentInk [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
+      <span className="shrink-0 text-accentGlyph [&>svg]:h-4.5 [&>svg]:w-4.5">{glyph}</span>
       <span className="min-w-24 flex-1 truncate text-sm font-medium text-carbon-text">{name}</span>
       {tag && <span className="glim-eyebrow shrink-0 tracking-[.12em]">{tag}</span>}
       {state}

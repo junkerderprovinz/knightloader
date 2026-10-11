@@ -1440,7 +1440,6 @@ export const de: Dict = {
   'captcha.continue': 'Weiter',
   'captcha.cancel': 'Abbrechen',
   'captcha.refresh': 'Aktualisieren',
-  'captcha.moreOptions': 'Weitere Optionen',
   'captcha.blockHoster': '{host} für diese Sitzung auch nicht mehr fragen',
   'captcha.blockEverywhere': 'Für diese Sitzung keinen Hoster mehr fragen',
   'captcha.tooLate': 'Diese Antwort kam zu spät an.',

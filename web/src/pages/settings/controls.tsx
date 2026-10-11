@@ -91,7 +91,7 @@ export function SubHead({ label, hint, right }: { label: string; hint?: Hint; ri
   return (
     <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
       {/* data-glim-label is where the settings search scrolls to. */}
-      <h3 data-glim-label={label} className="glim-eyebrow flex items-center gap-1.5 font-semibold">
+      <h3 data-glim-label={label} className="glim-eyebrow flex items-center gap-1.5 font-semibold leading-4">
         {label}
         <HintBubble hint={hint} />
       </h3>
@@ -156,7 +156,8 @@ export function Sheet({
       height="capped"
       wide={wide}
       onClose={onClose}
-      footer={<Button kind="ghost" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
+      // Filled, since it is the window's one button and a bare word would not read as one.
+      footer={<Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
     >
       {children}
     </Modal>

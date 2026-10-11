@@ -81,7 +81,7 @@ export function ceilingOf(samples: readonly number[], limit = 0): number {
 }
 
 // The limit's figure: its size, and its gap from the line.
-const LABEL_SIZE = 10;
+const LABEL_SIZE = 12;
 const LABEL_GAP = 3;
 
 /** Where the limit line sits against the ceiling the plot is drawn to. */

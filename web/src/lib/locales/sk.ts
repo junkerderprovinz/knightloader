@@ -1325,7 +1325,6 @@ export const sk: Dict = {
   'captcha.continue': 'Pokračovať',
   'captcha.cancel': 'Zrušiť',
   'captcha.refresh': 'Obnoviť',
-  'captcha.moreOptions': 'Ďalšie možnosti',
   'captcha.blockHoster': 'Tiež prestať pýtať sa na {host} po zvyšok tejto relácie',
   'captcha.blockEverywhere': 'Tiež prestať pýtať sa na akéhokoľvek hostera po zvyšok tejto relácie',
   'captcha.tooLate': 'Táto odpoveď prišla príliš neskoro.',

@@ -1325,7 +1325,6 @@ export const lt: Dict = {
   'captcha.continue': 'Tęsti',
   'captcha.cancel': 'Atsisakyti',
   'captcha.refresh': 'Atnaujinti',
-  'captcha.moreOptions': 'Daugiau parinkčių',
   'captcha.blockHoster': 'Taip pat nebeklausti dėl {host} šią sesiją',
   'captcha.blockEverywhere': 'Taip pat nebeklausti dėl jokio hosterio šią sesiją',
   'captcha.tooLate': 'Tas atsakymas atėjo per vėlai.',

@@ -4,6 +4,7 @@ import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/a
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { seedLabelModes, useLabelMode } from '../lib/labelModes';
+import { setHidden } from '../lib/sidebarPrefs';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
@@ -78,6 +79,8 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
+  const here = useMatch('/settings/:page');
+  const wide = WIDE_PAGES.has(pageId(here?.params.page ?? ''));
 
   // What the server did not take of the draft. A refused value shows beside
   // its field and is not sent again until the field holds something else.
@@ -314,8 +317,14 @@ export function SettingsPage() {
         for (const [k, v] of Object.entries(kept)) if (same(doc[k], v)) merged[k] = doc[k];
         return merged as unknown as Settings;
       });
+      // Switching a module on puts its page into the sidebar once. The page's
+      // own switch takes it out again, and it then stays out.
+      if (id === 'federation' && enabled && fresh.hideInstancesFromSidebar) {
+        patch({ hideInstancesFromSidebar: false });
+        setHidden('instances', false);
+      }
     },
-    [pending, onSave, setFeatures, setSaved, answer],
+    [pending, onSave, setFeatures, setSaved, answer, patch],
   );
 
   /**
@@ -377,7 +386,9 @@ export function SettingsPage() {
             glim-column-top keeps the first card's badge notch (index.css). */}
         <div
           data-settings-content
-          className="glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto ps-2 sm:px-6 md:px-8"
+          className={`glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto ps-2 sm:px-6 md:px-8 ${
+            wide ? '' : '[&>*]:max-w-[55rem]'
+          }`}
         >
           {/* Here rather than in PageHeader, which would push the rail down, and
               outside the Routes so a search and its jump survive a page change. */}
@@ -401,6 +412,16 @@ export function SettingsPage() {
     </SettingsProvider>
   );
 }
+
+/**
+ * The pages that are a list or a grid of objects and use the column's whole
+ * width. Every other page is a form of rows with a name at one end and a
+ * control at the other, and is capped at 880px so the two stay together in a
+ * wide window (GlimStone, "The content column"). The cap is on everything in
+ * the column, so the search and a page's floating actions end where its cards
+ * do.
+ */
+const WIDE_PAGES = new Set(['accounts', 'instances', 'pairing']);
 
 /**
  * orderPages applies a saved custom order, so a removed page drops out. A page

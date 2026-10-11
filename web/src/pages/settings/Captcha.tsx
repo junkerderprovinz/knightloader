@@ -23,10 +23,11 @@ import {
   ToggleRow,
   type ButtonVerdict,
 } from '../../components/ui';
+import { HosterIcon } from '../../components/HosterIcon';
 import { TestButton } from '../../components/TestButton';
 import { IconArrowDown, IconArrowUp } from '../../lib/icons';
 import { useDraft } from './context';
-import { NeutralSwitch } from './controls';
+import { NeutralSwitch, SubHead } from './controls';
 import { ModuleToggle, PageBadge } from './ModuleToggle';
 
 // The captcha page orders the solvers and says whether they wait for somebody
@@ -129,6 +130,7 @@ export function Captcha() {
         <div className="pt-2">
           <PageBadge page="accounts" title={t('settings.captcha.keys')} />
         </div>
+        <TestCaptcha solvers={canTakeATest(order, accounts)} />
       </Card>
 
       {/* Absent while no solver is enabled, since nothing reads these then. */}
@@ -158,7 +160,6 @@ export function Captcha() {
         </Card>
       )}
 
-      <TestCaptchaCard hue={order.length > 0 ? 2 : 1} solvers={canTakeATest(order, accounts)} />
     </div>
   );
 }
@@ -203,7 +204,7 @@ export function testRefusal(e: unknown): TranslationKey {
  * to them only from the second button, which shows while one of them could
  * take it.
  */
-function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
+function TestCaptcha({ solvers }: { solvers: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
   const words = { ok: t('test.sent'), fail: t('test.failed') };
@@ -220,8 +221,8 @@ function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
   };
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle>{t('settings.captcha.testTitle')}</SectionTitle>
+    <div className="flex flex-col gap-3 pt-4">
+      <SubHead label={t('settings.captcha.testTitle')} />
       <div className="flex flex-wrap gap-2">
         <TestButton label={t('settings.captcha.test')} hint={t('settings.captcha.testHint')} words={words} run={send(false)} />
         {solvers && (
@@ -233,7 +234,7 @@ function TestCaptchaCard({ hue, solvers }: { hue: number; solvers: boolean }) {
           />
         )}
       </div>
-    </Card>
+    </div>
   );
 }
 
@@ -277,6 +278,8 @@ export function SolverRow({
         <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
         <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
+          {/* The service's mark, as in the accounts table and the picker. */}
+          <HosterIcon host={svc.whereUrl} />
           <span className="text-sm text-carbon-text">{svc.label}</span>
           {svc.whereUrl && <LinkBadge href={svc.whereUrl} title={t('accounts.whereToFind')} />}
         </div>

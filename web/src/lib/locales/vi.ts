@@ -1325,7 +1325,6 @@ export const vi: Dict = {
   'captcha.continue': 'Tiếp tục',
   'captcha.cancel': 'Hủy',
   'captcha.refresh': 'Làm mới',
-  'captcha.moreOptions': 'Thêm tùy chọn',
   'captcha.blockHoster': 'Cũng ngừng hỏi về {host} trong phiên này',
   'captcha.blockEverywhere': 'Cũng ngừng hỏi về mọi dịch vụ lưu trữ trong phiên này',
   'captcha.tooLate': 'Câu trả lời đó đến quá trễ.',
