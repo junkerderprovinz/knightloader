@@ -30,7 +30,7 @@ import {
   IconBolt,
   IconCheck,
   IconPower,
-  IconRetry,
+  IconRefresh,
   IconStopMark,
   IconWarning,
   PriorityGlyph,
@@ -888,7 +888,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
               waiting rather than activity. */}
           {retrying && (
             <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
-              <IconRetry width={11} height={11} />
+              <IconRefresh width={11} height={11} />
             </Tip>
           )}
         </div>

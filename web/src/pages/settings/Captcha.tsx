@@ -25,7 +25,7 @@ import {
 } from '../../components/ui';
 import { HosterIcon } from '../../components/HosterIcon';
 import { TestButton } from '../../components/TestButton';
-import { IconArrowDown, IconArrowUp } from '../../lib/icons';
+import { IconMoveDown, IconMoveUp } from '../../lib/icons';
 import { useDraft } from './context';
 import { NeutralSwitch, SubHead } from './controls';
 import { ModuleToggle, PageBadge } from './ModuleToggle';
@@ -300,7 +300,7 @@ export function SolverRow({
               <>
                 <IconBadge
                   labelled
-                  icon={<IconArrowUp width={16} height={16} />}
+                  icon={<IconMoveUp width={16} height={16} />}
                   hue={hue}
                   title={t('settings.captcha.moveUp')}
                   aria-label={t('settings.captcha.moveUp')}
@@ -309,7 +309,7 @@ export function SolverRow({
                 />
                 <IconBadge
                   labelled
-                  icon={<IconArrowDown width={16} height={16} />}
+                  icon={<IconMoveDown width={16} height={16} />}
                   hue={hue}
                   title={t('settings.captcha.moveDown')}
                   aria-label={t('settings.captcha.moveDown')}

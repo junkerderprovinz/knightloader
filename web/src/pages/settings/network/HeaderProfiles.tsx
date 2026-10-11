@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
-import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   ApiError,
@@ -119,7 +119,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.headerProfiles.hint')}
         right={
-          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} disabled={busy} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} disabled={busy} onClick={add}>
             {t('settings.headerProfiles.add')}
           </Button>
         }
@@ -259,7 +259,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             <Button
               kind="secondary"
               className="w-fit"
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
             >
               {t('settings.headerProfiles.addHeader')}

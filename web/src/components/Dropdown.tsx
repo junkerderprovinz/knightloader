@@ -5,7 +5,7 @@
 import { useEffect, useRef, type KeyboardEvent, type MouseEvent } from 'react';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuItem } from './ContextMenu';
 import { FIELD_TRIGGER, useTooltip } from './ui';
-import { IconChevronDown } from '../lib/icons';
+import { IconExpand } from '../lib/icons';
 import { useShake } from '../lib/useShake';
 
 export interface DropdownOption<T extends string = string> {
@@ -225,7 +225,7 @@ export function Dropdown<T extends string>({
             </span>
           ))}
         </span>
-        <IconChevronDown
+        <IconExpand
           width={look === 'field' ? 14 : 12}
           height={look === 'field' ? 14 : 12}
           className="shrink-0 text-carbon-textMuted"

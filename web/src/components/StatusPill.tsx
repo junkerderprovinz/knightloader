@@ -6,13 +6,13 @@ import { resolverLabel } from '../lib/resolverLabels';
 import {
   IconArchive,
   IconCheck,
-  IconClock,
   IconCollector,
-  IconDownloads,
+  IconDownload,
   IconKey,
   IconPause,
+  IconQueued,
   IconShield,
-  IconShieldCheck,
+  IconShieldOn,
   IconUpload,
   IconWarning,
 } from '../lib/icons';
@@ -69,12 +69,12 @@ const toneText: Record<Tone, string> = {
 // leeching shares downloading's, since it is a download.
 const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
-  queued: IconClock,
-  running: IconDownloads,
-  leeching: IconDownloads,
+  queued: IconQueued,
+  running: IconDownload,
+  leeching: IconDownload,
   paused: IconPause,
   extracting: IconArchive,
-  verifying: IconShieldCheck,
+  verifying: IconShieldOn,
   repairing: IconShield,
   seeding: IconUpload,
   done: IconCheck,
@@ -101,7 +101,7 @@ function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; l
 export function StatusPill({ status }: { status: RowState }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
-  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconClock} label={t(s.key)} />;
+  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconQueued} label={t(s.key)} />;
 }
 
 /**

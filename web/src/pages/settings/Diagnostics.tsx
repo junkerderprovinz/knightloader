@@ -3,7 +3,7 @@ import { type Diagnostics as DiagnosticsBundle, fetchDiagnostics } from '../../l
 import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { Button, Card, ErrorCard, LoadingCard, SectionTitle } from '../../components/ui';
-import { IconDownloads } from '../../lib/icons';
+import { IconDownload } from '../../lib/icons';
 import { saveDiagnostics } from './diagnostics/bundle';
 import { LogFileCard } from './diagnostics/LogFileCard';
 import { LogViewerCard } from './diagnostics/LogViewerCard';
@@ -68,7 +68,7 @@ export function Diagnostics() {
             kind="secondary"
             onClick={onDownload}
             disabled={downloading}
-            icon={<IconDownloads width={16} height={16} />}
+            icon={<IconDownload width={16} height={16} />}
             hint={t('settings.diagnostics.downloadHint')}
           >
             {downloading ? t('settings.diagnostics.downloading') : t('settings.diagnostics.download')}

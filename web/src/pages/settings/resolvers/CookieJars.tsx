@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, FieldGroup, IconBadge, SectionTitle, ToggleRow } from '../../../components/ui';
 import { CookieJarDialog } from '../../../components/CookieJarDialog';
-import { IconPlus, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { fetchYtdlpCookieHosts, removeYtdlpCookieJar } from '../../../lib/api';
 import { useDraft } from '../context';
@@ -102,7 +102,7 @@ export function CookieJarsCard({ hue }: { hue: number }) {
         <div className="flex items-center gap-3">
           <Button
             kind="secondary"
-            icon={<IconPlus width={16} height={16} />}
+            icon={<IconAdd width={16} height={16} />}
             disabled={busy}
             onClick={() => {
               setError('');

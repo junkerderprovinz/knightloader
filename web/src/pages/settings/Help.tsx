@@ -13,7 +13,7 @@ import {
   type YtdlpLatest,
 } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import { IconBook, IconBug, IconCheck, IconClose, IconDownloads, IconGithub, IconInfo, IconRetry } from '../../lib/icons';
+import { IconBook, IconCheck, IconClose, IconDiagnostics, IconDownload, IconGithub, IconInfo, IconRefresh } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -399,11 +399,11 @@ function Versions({ hue }: { hue: number }) {
   // The button changes its word and its glyph with the answer, like any button
   // that tests something.
   const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = !found
-    ? { label: t('settings.look.updatesCheck'), icon: <IconRetry /> }
+    ? { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> }
     : !found.app
       ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
       : updates > 0
-        ? { label: t('settings.info.updatesFound', { n: updates }), icon: <IconDownloads />, verdict: 'warn' }
+        ? { label: t('settings.info.updatesFound', { n: updates }), icon: <IconDownload />, verdict: 'warn' }
         : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
 
   const app = found?.app;
@@ -469,7 +469,7 @@ function Versions({ hue }: { hue: number }) {
         </Button>
         <Button
           kind="secondary"
-          icon={checking ? <IconRetry /> : face.icon}
+          icon={checking ? <IconRefresh /> : face.icon}
           verdict={checking ? undefined : face.verdict}
           shake={shake}
           disabled={checking}
@@ -540,7 +540,7 @@ function Report({ hue }: { hue: number }) {
               onClick: () => void onBugReport(),
             },
           ]}
-          mark={<IconBug />}
+          mark={<IconDiagnostics />}
         />
       </div>
     </Card>

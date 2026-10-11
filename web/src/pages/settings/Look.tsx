@@ -23,7 +23,7 @@ import {
   requestRestart,
   type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconCheck, IconClose, IconDownloads, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import { IconCheck, IconClose, IconDownload, IconMoon, IconRefresh, IconSignOut, IconSun } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
@@ -254,7 +254,7 @@ function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onC
         }`}
         {...tipHoverProps}
       >
-        <IconRetry width={16} height={16} />
+        <IconRefresh width={16} height={16} />
       </button>
       {tip.node}
     </>
@@ -878,7 +878,7 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
         </Button>
         <Button
           kind="secondary"
-          icon={<IconRetry width={16} height={16} />}
+          icon={<IconRefresh width={16} height={16} />}
           disabled={!data.canRestart || acting}
           onClick={() => setConfirmAction('restart')}
         >
@@ -974,11 +974,11 @@ function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
   // The button shows the answer on itself, like any button that tests
   // something; what the answer cannot hold stands as one line above it.
   const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = !check
-    ? { label: t('settings.look.updatesCheck'), icon: <IconRetry /> }
+    ? { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> }
     : !check.checked
       ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
       : available
-        ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownloads />, verdict: 'warn' }
+        ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownload />, verdict: 'warn' }
         : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
 
   return (
@@ -1022,7 +1022,7 @@ function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
       <div className="flex justify-end">
         <Button
           kind="secondary"
-          icon={checking ? <IconRetry /> : face.icon}
+          icon={checking ? <IconRefresh /> : face.icon}
           verdict={checking ? undefined : face.verdict}
           shake={shake}
           disabled={checking}

@@ -8,7 +8,7 @@ import { useEffect, useId, type ReactNode, type RefObject, type SVGProps } from 
 import logoUrl from '../../../assets/logo.svg';
 import type { RelayMode } from '../../../lib/api';
 import { PARLEYPORT_SVG } from '../../../lib/appMarks';
-import { IconCheck, IconClipboard } from '../../../lib/icons';
+import { IconCheck, IconCopy, IconPaste } from '../../../lib/icons';
 import { useStillPictures } from '../../../lib/motion';
 import { TRAVEL } from '../../../components/pictures/scene';
 
@@ -566,14 +566,14 @@ export function StepPicture({ step, labels }: { step: 1 | 2 | 3; labels: StepLab
     </>
   );
 
-  const button = (label: string, t: number, done?: string) => (
+  const button = (Glyph: typeof IconCopy, label: string, t: number, done?: string) => (
     <>
       <rect className="kl-pic-pill" x="152" y="104" width="80" height="20" rx="10" fill={RAISED} />
       <g>
         {done &&
           anim('opacity', [[0, 1], [round(t + 0.006), 1], [round(t + 0.008), 0], [round(t + 0.15), 0], [round(t + 0.152), 1], [1, 1]])}
         <g color={LABEL}>
-          <IconClipboard x={160} y={109} width={10} height={10} />
+          <Glyph x={160} y={109} width={10} height={10} />
         </g>
         <text x="174" y="117.5" fontSize="8.5" fontWeight="600" fill={INK} {...squeezed(label, 8.5, 52)}>
           {label}
@@ -616,7 +616,7 @@ export function StepPicture({ step, labels }: { step: 1 | 2 | 3; labels: StepLab
         {choice('create', labels.create)}
         {press(8, 8, 224, 38, 9, 0.09, 'kl-pic-control')}
         {words(8, 56, 50, 8.67, 0.11, 0.006, RAISED)}
-        {button(labels.copy, 0.21, labels.copied)}
+        {button(IconCopy, labels.copy, 0.21, labels.copied)}
       </>
     );
   } else if (step === 2) {
@@ -648,7 +648,7 @@ export function StepPicture({ step, labels }: { step: 1 | 2 | 3; labels: StepLab
           </>
         )}
         {words(14, 56, 48, 6, 0.525, 0.005, TILE)}
-        {button(labels.paste, 0.51)}
+        {button(IconPaste, labels.paste, 0.51)}
       </>
     );
   } else {

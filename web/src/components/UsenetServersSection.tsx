@@ -15,7 +15,7 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconClose, IconRetry, IconTrash, IconGlobe } from '../lib/icons';
+import { IconClose, IconRefresh, IconTrash, IconGlobe } from '../lib/icons';
 import { AccountTable } from './AccountTable';
 import { TestButton } from './TestButton';
 import {
@@ -160,7 +160,7 @@ export function UsenetServersSection({
                   {
                     id: 'test',
                     label: t('accounts.usenet.test'),
-                    icon: <IconRetry width={16} height={16} />,
+                    icon: <IconRefresh width={16} height={16} />,
                     onSelect: () => void onTest(r),
                   },
                 ],
