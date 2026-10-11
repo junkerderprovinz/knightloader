@@ -8,6 +8,7 @@ import (
 	"runtime"
 	"strings"
 	"testing"
+	"time"
 )
 
 // linkTo makes link lead to dir: a symlink, or on Windows without the
@@ -179,5 +180,72 @@ func TestCheckFoldersRefusesEveryFolderInTheDataFolder(t *testing.T) {
 		if err := CheckFolders(data, s, nil); !errors.As(err, &p) || p.Code != "dataFolder" || p.Field != f.key {
 			t.Errorf("%s in the data folder: %v, want a dataFolder refusal for it", f.key, err)
 		}
+	}
+}
+
+// TestTheGuardAnswersAsInsideDataDoes asks a DataGuard and InsideData about
+// the same paths, a folder that becomes a link into the data folder after the
+// guard has looked at it among them.
+func TestTheGuardAnswersAsInsideDataDoes(t *testing.T) {
+	data := dataFolder(t)
+	out := t.TempDir()
+	if err := os.MkdirAll(filepath.Join(out, "season"), 0o755); err != nil {
+		t.Fatal(err)
+	}
+	g := NewDataGuard(data)
+	paths := []string{
+		filepath.Join(out, "season", "e01.mkv"),
+		filepath.Join(out, "new", "e01.mkv"),
+		filepath.Join(data, "tools", "x.exe"),
+		filepath.Join(data, "settings.json"),
+		filepath.Join(data, DownloadsDirName, "film.mkv"),
+		filepath.Join(data, DownloadsDirName),
+		data,
+	}
+	for _, p := range paths {
+		if got, want := g.Inside(p), InsideData(data, p); got != want {
+			t.Errorf("guard says %v for %s, InsideData %v", got, p, want)
+		}
+	}
+	swapped := filepath.Join(out, "season")
+	if err := os.Remove(swapped); err != nil {
+		t.Fatal(err)
+	}
+	linkTo(t, data, swapped)
+	if !g.Inside(filepath.Join(swapped, "settings.json")) {
+		t.Error("the guard kept its answer for a folder that became a link into the data folder")
+	}
+}
+
+// TestTheGuardLooksAtEachFolderOnce: an archive of thousands of entries in a
+// few folders is checked file by file. Walking every entry's path up the tree
+// takes many times as long as looking at each folder once.
+func TestTheGuardLooksAtEachFolderOnce(t *testing.T) {
+	data := dataFolder(t)
+	out := t.TempDir()
+	const folders, files = 20, 2000
+	for i := range folders {
+		if err := os.MkdirAll(filepath.Join(out, "d"+string(rune('a'+i)), "sub"), 0o755); err != nil {
+			t.Fatal(err)
+		}
+	}
+	path := func(i int) string {
+		return filepath.Join(out, "d"+string(rune('a'+i%folders)), "sub", "f"+strings.Repeat("x", i%7)+string(rune('0'+i%10))+".txt")
+	}
+	start := time.Now()
+	for i := range files {
+		InsideData(data, path(i))
+	}
+	walked := time.Since(start)
+	g := NewDataGuard(data)
+	start = time.Now()
+	for i := range files {
+		if g.Inside(path(i)) {
+			t.Fatalf("%s counts as inside the data folder", path(i))
+		}
+	}
+	guarded := time.Since(start)
+	if guarded*3 > walked {
+		t.Errorf("the guard took %s for %d files, walking each took %s; want it several times faster", guarded, files, walked)
 	}
 }

@@ -304,6 +304,10 @@ type App struct {
 	saved map[string]uint64
 	shown map[string]uint64
 
+	// folders keeps the dispatcher's answers about which folders lead into
+	// the data folder (see dataFolderOfLocked).
+	folders folderVerdicts
+
 	mu sync.Mutex
 	// halted stops the dispatcher from handing anything new to a backend.
 	// Running downloads keep running: this is a queue switch, not a kill

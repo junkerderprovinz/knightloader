@@ -624,7 +624,7 @@ func (a *App) moveFolders(folders []*packageFolder) (relocation, error) {
 			// this was left behind by a download removed while it ran, within
 			// the day the sweep gives it: the working folder is this app's
 			// own, so what is in the way there is replaced.
-			rep, err := workdir.MoveContents(a.ctx, work, workTo, workdir.Options{Policy: collide.Overwrite, PruneSourceDir: true, Barred: a.barFile})
+			rep, err := workdir.MoveContents(a.ctx, work, workTo, workdir.Options{Policy: collide.Overwrite, PruneSourceDir: true, Barred: a.barFiles()})
 			if err != nil && rep.Moved == 0 {
 				return fail(work, workTo, err)
 			}
@@ -650,7 +650,7 @@ func (a *App) moveFolders(folders []*packageFolder) (relocation, error) {
 // turned into a copy, which would take as long as the folder is large and
 // leave the held file behind.
 func (a *App) moveFolder(from, to string) error {
-	res, err := workdir.MoveAs(a.ctx, from, to, workdir.Options{OnlyAcrossDisks: true, Barred: a.barFile})
+	res, err := workdir.MoveAs(a.ctx, from, to, workdir.Options{OnlyAcrossDisks: true, Barred: a.barFiles()})
 	if res.Path != to {
 		if err == nil {
 			err = errors.New("the folder was not moved")

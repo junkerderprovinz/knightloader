@@ -83,7 +83,7 @@ func (a *App) moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
 		MaxAttempts: cfg.CollisionMaxAttempts,
 		// Emptied working folders are removed so they do not pile up.
 		PruneSourceDir: true,
-		Barred:         a.barFile,
+		Barred:         a.barFiles(),
 	}
 }
 
