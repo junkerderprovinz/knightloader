@@ -44,7 +44,8 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "settings.motion"
     ],
     "el": [
       "addDownload.placeholder",
@@ -102,7 +103,8 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "settings.notifications",
-      "settings.appsExtensionSub"
+      "settings.appsExtensionSub",
+      "settings.motion"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -273,7 +275,8 @@
       "settings.aboutVersion",
       "settings.aboutGithub",
       "settings.motion.storm",
-      "downloads.torrentsTitle"
+      "downloads.torrentsTitle",
+      "settings.motion"
     ],
     "th": [
       "addDownload.placeholder",

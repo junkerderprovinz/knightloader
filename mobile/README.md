@@ -215,7 +215,7 @@ names only the widget kind cannot. With "Only when nobody is watching" on, the
 instance holds the captcha accounts back for those alone. A card
 shows what the captcha accounts are doing (`solverStatus`), and leaves out the
 explanation that assumes you can answer when the phone cannot. An instance forwards these
-routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
+routes over the relay (`groupRoutes` in `internal/api/group_routes.go`);
 an older one refuses them with a 403, which the screen words as "update
 KnightLoader there". The overview counts the captchas on every saved instance
 from the `captchas` field of `/api/queue/counters`, which it reads anyway, so
