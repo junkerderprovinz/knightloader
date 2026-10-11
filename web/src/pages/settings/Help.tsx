@@ -13,8 +13,6 @@ import {
 } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import {
-  IconBook,
-  IconBookOpen,
   IconCheck,
   IconClose,
   IconDiagnostics,
@@ -23,7 +21,7 @@ import {
   IconInfo,
   IconRefresh,
 } from '../../lib/icons';
-import { COFFEE_BUTTON_SVG, MAIL_SVG } from '../../lib/appMarks';
+import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
 import { CoffeeDialog } from '../../components/CoffeeDialog';
@@ -341,24 +339,11 @@ function Versions({ hue }: { hue: number }) {
 }
 
 /**
- * BookMark is the manual's book, closed at rest and open while its button is
- * pointed at, pressed or focused, as the envelope beside it is.
- */
-function BookMark() {
-  return (
-    <span className="glim-mark-opens contents">
-      <IconBook tight className="glim-mark-rest" />
-      <IconBookOpen tight className="glim-mark-hover" />
-    </span>
-  );
-}
-
-/**
  * Report holds the ways to report something: the repository, a mail, the
  * manual and the diagnostics bundle as a file to attach to an issue. The
- * sentence sits directly above the buttons it asks for. The glyphs are drawn
- * tight, so each fills the mark's box as the envelope does, which comes
- * cropped to its ink.
+ * sentence sits directly above the buttons it asks for. The two glyphs are
+ * drawn tight, so they fill the mark's box as the envelope and the book do,
+ * which come cropped to their ink.
  */
 function Report({ hue }: { hue: number }) {
   const { t } = useT();
@@ -377,7 +362,7 @@ function Report({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.info.helpHint')}>{t('settings.info.helpTitle')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
-      <div className="glim-readme-btn-rows">
+      <div className="glim-readme-btn-rows kl-help-buttons">
         {/* A link, so middle-click and copy-link work. */}
         <ReadmeButton
           brand="github"
@@ -385,20 +370,23 @@ function Report({ hue }: { hue: number }) {
           mark={<IconGithub tight />}
           markClass="glim-github-mark"
         />
-        {/* The one control without a vendor's mark: it reaches this app's
-            authors, so it follows the user's accent, and its envelope opens
-            under the pointer. A mail address opened in a new tab would leave
-            an empty one behind, so it goes through openMail. */}
+        {/* Without a vendor's mark: it reaches this app's authors, so it
+            follows the user's accent, and its envelope opens under the
+            pointer. A mail address opened in a new tab would leave an empty
+            one behind, so it goes through openMail. */}
         <ReadmeButton
           brand="house"
           parts={[{ name: t('settings.about.mail'), onClick: () => openMail(mailto) }]}
-          mark={<BrandMark svg={MAIL_SVG} className="glim-mark-opens" />}
+          mark={<BrandMark svg={MAIL_SVG} />}
           markClass="glim-house-mark"
         />
+        {/* The manual is this app's own writing, so its button is a house
+            button too, and its book opens as the envelope does. */}
         <ReadmeButton
-          brand="github"
+          brand="house"
           parts={[{ name: t('settings.info.manual'), sub: t('settings.info.manualOpen'), href: MANUAL_URL }]}
-          mark={<BookMark />}
+          mark={<BrandMark svg={MANUAL_SVG} />}
+          markClass="glim-house-mark"
         />
         {/* The file goes with an issue on GitHub, so it lights up beside it. */}
         <ReadmeButton

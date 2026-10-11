@@ -2,6 +2,7 @@ import type { ComponentType, SVGProps } from 'react';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { describe, expect, it } from 'vitest';
 import list from '../../scripts/glyphs.json';
+import { MAIL_SVG, MANUAL_SVG } from './appMarks';
 import * as glyphs from './glyphs';
 
 type Glyph = ComponentType<SVGProps<SVGSVGElement>>;
@@ -48,6 +49,15 @@ describe('the generated glyphs', () => {
     const out = markup(name);
     expect(paths(out)).toEqual(paths(svg));
     expect(shapes(out)).toBe(shapes(svg));
+  });
+
+  it.each([
+    ['the envelope', MAIL_SVG, 'IconMail', 'IconMailOpen'],
+    ['the book', MANUAL_SVG, 'IconManual', 'IconManualOpen'],
+  ])('%s on its button is the pair the list has, shut and open', (_, pair, shut, open) => {
+    const paths = (s: string) => [...s.matchAll(/ d="([^"]+)"/g)].map((m) => m[1]);
+    const listed = (name: string) => paths(list.find((entry) => entry.name === name)!.svg);
+    expect(paths(pair)).toEqual([...listed(shut), ...listed(open)]);
   });
 
   it('draw the check in over the check itself', () => {

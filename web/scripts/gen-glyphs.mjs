@@ -1,7 +1,9 @@
 // Regenerates src/lib/glyphs.tsx from scripts/glyphs.json, GlimStone's
 // reference/glyphs.json copied unchanged: one drawing per meaning, the same in
 // every GlimStone app. Refresh the copy from GlimStone instead of editing it
-// here, or the apps that share the set drift apart.
+// here, or the apps that share the set drift apart. IconManual and
+// IconManualOpen at its end are BombVault's, under the names it gave them, so
+// the copy agrees with GlimStone's once that carries them.
 //
 //   node scripts/gen-glyphs.mjs
 //
