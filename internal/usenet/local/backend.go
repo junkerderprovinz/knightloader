@@ -58,10 +58,12 @@ type Backend struct {
 	// server is unreachable.
 	Wait time.Duration
 
-	mu      sync.Mutex
-	runs    map[string]*runState
-	link    map[string]string
-	part    map[string]string
+	mu   sync.Mutex
+	runs map[string]*runState
+	link map[string]string
+	part map[string]string
+	// open is the file each running task writes.
+	open    map[string]*download
 	whole   map[string]bool
 	stopped bool
 }
@@ -85,7 +87,7 @@ func NewBackend(files Files, client func() *nntp.Client, dir string, onUpdate fu
 	return &Backend{
 		files: files, client: client, dir: dir, onUpdate: onUpdate, Wait: defaultWait,
 		runs: map[string]*runState{}, link: map[string]string{}, part: map[string]string{},
-		whole: map[string]bool{},
+		open: map[string]*download{}, whole: map[string]bool{},
 	}
 }
 
@@ -259,7 +261,13 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	}
 	b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: name, Size: d.size(), Loaded: d.loaded()})
 
+	b.mu.Lock()
+	b.open[taskID] = d
+	b.mu.Unlock()
 	missing, err := b.fetch(ctx, taskID, d)
+	b.mu.Lock()
+	delete(b.open, taskID)
+	b.mu.Unlock()
 	articles := d.articles()
 	missing += articles - len(file.Segments)
 	closeErr := d.close()
@@ -306,6 +314,19 @@ func (b *Backend) run(ctx context.Context, taskID, link string) {
 	b.whole[taskID] = missing == 0
 	b.mu.Unlock()
 	b.onUpdate(taskID, core.Update{Status: core.StatusDone, Name: filepath.Base(final), Size: d.size(), Loaded: d.size(), File: final})
+}
+
+// Pieces is which articles of the file taskID is fetching are written, which
+// no server had, and which its connections are on. It reports false while the
+// task fetches nothing.
+func (b *Backend) Pieces(taskID string) (core.PieceMap, bool) {
+	b.mu.Lock()
+	d := b.open[taskID]
+	b.mu.Unlock()
+	if d == nil {
+		return core.PieceMap{}, false
+	}
+	return d.pieces(), true
 }
 
 // Whole reports whether the file of taskID finished while this backend ran
@@ -359,6 +380,7 @@ func (b *Backend) fetch(ctx context.Context, taskID string, d *download) (int, e
 				mu.Lock()
 				missing++
 				mu.Unlock()
+				d.noteGone(i)
 			default:
 				mu.Lock()
 				if fatal == nil {
@@ -407,6 +429,8 @@ func (b *Backend) fetch(ctx context.Context, taskID string, d *download) (int, e
 func (b *Backend) fetchOne(ctx context.Context, client *nntp.Client, d *download, i int) error {
 	seg := d.file.Segments[i]
 	wait := b.Wait
+	d.ask(i, true)
+	defer d.ask(i, false)
 	for try := 1; ; try++ {
 		p, err := client.Fetch(ctx, seg.ID, d.file.Posted)
 		if err == nil {

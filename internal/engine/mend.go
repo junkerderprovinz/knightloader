@@ -92,6 +92,9 @@ type layoutStore struct {
 	// files is the last per-file reading of every torrent watched, by the
 	// library's task id; nil until the first save.
 	files map[string][]int64
+	// watched is the layout of every HTTP task somebody is looking at, as
+	// the library last saved it (see pieces.go).
+	watched map[string]*watchedLayout
 	// kept writes paused transfers to disk for after a restart; nil keeps
 	// none (see resume.go).
 	kept *keptTransfers
@@ -111,6 +114,9 @@ func (s *layoutStore) Put(bucket, key string, v any) error {
 			if done, ok := savedFileProgress(v); ok {
 				s.files[key] = done
 			}
+		}
+		if w := s.watched[key]; w != nil {
+			w.raw, _ = json.Marshal(v)
 		}
 		s.mu.Unlock()
 	}
@@ -140,6 +146,7 @@ func (s *layoutStore) layout(gid string, save func() error) ([]byte, bool) {
 // they are.
 type savedLayout struct {
 	Connections []struct {
+		State int
 		Chunk *struct {
 			Begin, End, Downloaded int64
 		}
@@ -157,6 +164,10 @@ func gapsIn(raw []byte, size int64, ranged bool) []span {
 	if json.Unmarshal(raw, &l) != nil {
 		return nil
 	}
+	return l.gaps(size, ranged)
+}
+
+func (l savedLayout) gaps(size int64, ranged bool) []span {
 	var gaps []span
 	for _, c := range l.Connections {
 		switch {

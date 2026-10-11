@@ -208,6 +208,16 @@ func registerTasks(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, files)
 		})
+	// Asked for by the detail panel alone, about the one task it shows: a map
+	// on every task would go out with the whole list on every tick.
+	reg.Add(http.MethodGet, "/api/tasks/{id}/pieces", "which parts of one task's file are here and where its connections are writing: the bytes of an HTTP download, the articles of a file from the own Usenet servers, or the blocks a par2 check found damaged; null where nothing can say, as for a torrent",
+		func(w http.ResponseWriter, r *http.Request) {
+			if pm, ok := a.Pieces(r.PathValue("id")); ok {
+				writeJSON(w, pm)
+				return
+			}
+			writeJSON(w, nil)
+		})
 	reg.Add(http.MethodDelete, "/api/tasks/{id}", "remove one task; ?files=1 also deletes what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
 			// Through the bulk path, which takes along the set-aside rows of a
