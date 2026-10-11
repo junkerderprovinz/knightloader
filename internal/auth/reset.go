@@ -16,8 +16,6 @@ import (
 	"errors"
 	"strings"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
