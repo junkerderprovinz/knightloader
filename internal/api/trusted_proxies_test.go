@@ -1,13 +1,18 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"net/http"
 	"net/netip"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/coder/websocket"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 func TestTheThrottleKeyIsTheCallerBehindATrustedProxy(t *testing.T) {
@@ -116,5 +121,62 @@ func TestWrongResetCodesBehindATrustedProxyCountPerCaller(t *testing.T) {
 	}
 	if got := finish("203.0.113.6"); got != http.StatusUnauthorized {
 		t.Errorf("another caller's wrong code answered %d, want 401 rather than the other caller's 429", got)
+	}
+}
+
+// TestTheServedRelayBelievesOnlyTheTrustedProxies: the relay an instance
+// serves counts failed handshakes per caller, and a caller on the same
+// network is not a proxy unless the list says so.
+func TestTheServedRelayBelievesOnlyTheTrustedProxies(t *testing.T) {
+	t.Parallel()
+	for _, trusted := range []bool{false, true} {
+		srv, a := testServer(t)
+		if code, put := putRelayConfig(t, srv.URL, `{"relayUrl":"","key":"a-key-long-enough-to-pass","serve":true}`); code != http.StatusOK || !put.Serve {
+			t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
+		}
+		if trusted {
+			trustLoopback(t, a)
+		}
+		url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+		dial := func(from string) (*websocket.Conn, int) {
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
+			c, resp, err := websocket.Dial(ctx, url, &websocket.DialOptions{HTTPHeader: http.Header{"X-Forwarded-For": {from}}})
+			if err != nil {
+				if resp == nil {
+					t.Fatalf("dial: %v", err)
+				}
+				return nil, resp.StatusCode
+			}
+			return c, http.StatusSwitchingProtocols
+		}
+		blocked := false
+		for range 30 {
+			c, code := dial("203.0.113.66")
+			if code == http.StatusTooManyRequests {
+				blocked = true
+				break
+			}
+			hello, _ := relay.Encode(relay.TypeHello, relay.Hello{Key: "not-this-relays-key"})
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			_ = c.Write(ctx, websocket.MessageText, hello)
+			_, _, _ = c.Read(ctx)
+			cancel()
+			_ = c.CloseNow()
+		}
+		if !blocked {
+			t.Fatal("the failing caller was never blocked, so this test proves nothing")
+		}
+		c, code := dial("198.51.100.7")
+		if c != nil {
+			_ = c.CloseNow()
+		}
+		if trusted && code == http.StatusTooManyRequests {
+			t.Error("behind a trusted proxy, another caller was refused with the failing caller's 429")
+		}
+		if !trusted && code != http.StatusTooManyRequests {
+			t.Errorf("with no trusted proxy, a header naming another caller answered %d, want the shared 429", code)
+		}
+		srv.Close()
 	}
 }

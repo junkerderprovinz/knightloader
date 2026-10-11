@@ -48,7 +48,8 @@ counts the right-most address in `X-Forwarded-For` that is not itself a
 trusted proxy. List only proxies you run: every machine on the list can put
 any address it likes into that header, and with it guess without ever being
 made to wait. Empty, the default, means every request counts for the address
-it connected from.
+it connected from. The relay an instance serves under Pairing reads the same
+list for its own count of failed handshakes.
 
 ## A forgotten password
 
