@@ -120,6 +120,13 @@ export const nl: Dict = {
   'addDownload.errorSend': 'Kon de links niet verzenden: {message}',
   'error.federationOff': 'Gekoppelde instanties staan uit op de instantie waarmee je verbonden bent, dus die kan de andere niet bereiken.',
   'error.addAgain': 'Deze verbinding is opgeslagen door een oudere versie van de app en werkt niet meer. Verwijder hem en maak opnieuw verbinding met de twaalf woorden.',
+  'error.memberPending': 'Dit apparaat wacht op goedkeuring. Keur het goed op een van je instanties onder Instellingen, Koppeling.',
+  'error.memberKeyChanged': 'De instantie kent dit apparaat onder een andere sleutel. Verwijder het apparaat daar onder Instellingen, Koppeling en koppel het opnieuw met de twaalf woorden.',
+  'error.memberUnsigned': 'De instantie verwacht ondertekende verzoeken van dit apparaat, maar dit verzoek was niet ondertekend. Verwijder het apparaat daar onder Instellingen, Koppeling en koppel het opnieuw met de twaalf woorden.',
+  'error.memberBusy': 'Dit apparaat heeft te veel verzoeken die op de instantie wachten. Probeer het zo meteen opnieuw.',
+  'error.groupFull': 'De groep heeft al zoveel apparaten als erin passen. Verwijder er een onder Instellingen, Koppeling op een instantie en probeer het opnieuw.',
+  'error.groupJoinsBusy': 'In het afgelopen uur zijn te veel nieuwe apparaten bij de groep gekomen. Probeer het later opnieuw.',
+  'error.memberNotPinned': 'De instantie kon de sleutel van dit apparaat niet opslaan. Probeer het zo meteen opnieuw.',
   'addDownload.cancel': 'Annuleren',
   'addDownload.button': 'Toevoegen',
 

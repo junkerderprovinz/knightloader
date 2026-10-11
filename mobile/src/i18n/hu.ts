@@ -120,6 +120,13 @@ export const hu: Dict = {
   'addDownload.errorSend': 'Nem sikerült elküldeni a linkeket: {message}',
   'error.federationOff': 'Azon a példányon, amelyhez csatlakozol, a társpéldányok ki vannak kapcsolva, így nem éri el a többit.',
   'error.addAgain': 'Ezt a kapcsolatot az alkalmazás egy régebbi verziója mentette, és már nem működik. Távolítsd el, és csatlakozz újra a tizenkét szóval.',
+  'error.memberPending': 'Ez az eszköz jóváhagyásra vár. Hagyd jóvá valamelyik példányodon a Beállítások, Párosítás alatt.',
+  'error.memberKeyChanged': 'A példány más kulccsal ismeri ezt az eszközt. Távolítsd el ott az eszközt a Beállítások, Párosítás alatt, majd párosítsd újra a tizenkét szóval.',
+  'error.memberUnsigned': 'A példány aláírt kéréseket vár ettől az eszköztől, de ez nem volt aláírva. Távolítsd el ott az eszközt a Beállítások, Párosítás alatt, majd párosítsd újra a tizenkét szóval.',
+  'error.memberBusy': 'Ennek az eszköznek túl sok kérése vár a példányon. Próbáld újra egy kis idő múlva.',
+  'error.groupFull': 'A csoportban már annyi eszköz van, amennyi elfér. Távolíts el egyet valamelyik példányon a Beállítások, Párosítás alatt, majd próbáld újra.',
+  'error.groupJoinsBusy': 'Az elmúlt órában túl sok új eszköz csatlakozott a csoporthoz. Próbáld újra később.',
+  'error.memberNotPinned': 'A példány nem tudta elmenteni ennek az eszköznek a kulcsát. Próbáld újra egy kis idő múlva.',
   'addDownload.cancel': 'Mégse',
   'addDownload.button': 'Hozzáadás',
 

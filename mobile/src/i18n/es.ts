@@ -120,6 +120,13 @@ export const es: Dict = {
   'addDownload.errorSend': 'No se pudieron enviar los enlaces: {message}',
   'error.federationOff': 'Las instancias asociadas están desactivadas en la instancia a la que estás conectado, así que no puede llegar a las demás.',
   'error.addAgain': 'Esta conexión la guardó una versión anterior de la app y ya no funciona. Elimínala y vuelve a conectar con las doce palabras.',
+  'error.memberPending': 'Este dispositivo está esperando aprobación. Apruébalo en una de tus instancias en Ajustes, Emparejamiento.',
+  'error.memberKeyChanged': 'La instancia conoce este dispositivo con otra clave. Quita el dispositivo allí en Ajustes, Emparejamiento y vuelve a emparejarlo con las doce palabras.',
+  'error.memberUnsigned': 'La instancia espera solicitudes firmadas de este dispositivo, pero esta no lo estaba. Quita el dispositivo allí en Ajustes, Emparejamiento y vuelve a emparejarlo con las doce palabras.',
+  'error.memberBusy': 'Este dispositivo tiene demasiadas solicitudes esperando en la instancia. Vuelve a intentarlo en un momento.',
+  'error.groupFull': 'El grupo ya tiene todos los dispositivos que admite. Quita uno en Ajustes, Emparejamiento de una instancia y vuelve a intentarlo.',
+  'error.groupJoinsBusy': 'Demasiados dispositivos nuevos se unieron al grupo en la última hora. Vuelve a intentarlo más tarde.',
+  'error.memberNotPinned': 'La instancia no pudo guardar la clave de este dispositivo. Vuelve a intentarlo en un momento.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Añadir',
 

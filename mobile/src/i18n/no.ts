@@ -120,6 +120,13 @@ export const no: Dict = {
   'addDownload.errorSend': 'Kunne ikke sende lenkene: {message}',
   'error.federationOff': 'Søsterinstanser er slått av på instansen du er koblet til, så den når ikke de andre.',
   'error.addAgain': 'Denne tilkoblingen ble lagret av en eldre versjon av appen og virker ikke lenger. Fjern den og koble til på nytt med de tolv ordene.',
+  'error.memberPending': 'Denne enheten venter på godkjenning. Godkjenn den på en av instansene dine under Innstillinger, Paring.',
+  'error.memberKeyChanged': 'Instansen kjenner denne enheten under en annen nøkkel. Fjern enheten der under Innstillinger, Paring, og par den på nytt med de tolv ordene.',
+  'error.memberUnsigned': 'Instansen venter signerte forespørsler fra denne enheten, men denne var ikke signert. Fjern enheten der under Innstillinger, Paring, og par den på nytt med de tolv ordene.',
+  'error.memberBusy': 'Denne enheten har for mange forespørsler som venter på instansen. Prøv igjen om litt.',
+  'error.groupFull': 'Gruppen har allerede så mange enheter som den har plass til. Fjern en under Innstillinger, Paring på en instans, og prøv igjen.',
+  'error.groupJoinsBusy': 'For mange nye enheter ble med i gruppen den siste timen. Prøv igjen senere.',
+  'error.memberNotPinned': 'Instansen kunne ikke lagre nøkkelen til denne enheten. Prøv igjen om litt.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Legg til',
 

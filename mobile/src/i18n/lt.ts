@@ -120,6 +120,13 @@ export const lt: Dict = {
   'addDownload.errorSend': 'Nepavyko išsiųsti nuorodų: {message}',
   'error.federationOff': 'Egzemplioriuje, prie kurio prisijungta, gretimi egzemplioriai išjungti, todėl jis negali pasiekti kitų.',
   'error.addAgain': 'Šį ryšį išsaugojo senesnė programėlės versija, ir jis nebeveikia. Pašalink jį ir prisijunk iš naujo su dvylika žodžių.',
+  'error.memberPending': 'Šis įrenginys laukia patvirtinimo. Patvirtink jį viename iš savo egzempliorių skiltyje Nustatymai, Susiejimas.',
+  'error.memberKeyChanged': 'Egzempliorius šį įrenginį pažįsta kitu raktu. Pašalink ten įrenginį skiltyje Nustatymai, Susiejimas ir susiek jį iš naujo dvylika žodžių.',
+  'error.memberUnsigned': 'Egzempliorius iš šio įrenginio laukia pasirašytų užklausų, bet ši nebuvo pasirašyta. Pašalink ten įrenginį skiltyje Nustatymai, Susiejimas ir susiek jį iš naujo dvylika žodžių.',
+  'error.memberBusy': 'Šis įrenginys turi per daug egzemplioriuje laukiančių užklausų. Bandyk dar kartą po akimirkos.',
+  'error.groupFull': 'Grupėje jau tiek įrenginių, kiek telpa. Pašalink vieną skiltyje Nustatymai, Susiejimas kuriame nors egzemplioriuje ir bandyk dar kartą.',
+  'error.groupJoinsBusy': 'Per paskutinę valandą prie grupės prisijungė per daug naujų įrenginių. Bandyk vėliau.',
+  'error.memberNotPinned': 'Egzempliorius negalėjo išsaugoti šio įrenginio rakto. Bandyk dar kartą po akimirkos.',
   'addDownload.cancel': 'Atšaukti',
   'addDownload.button': 'Pridėti',
 

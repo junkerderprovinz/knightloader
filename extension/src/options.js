@@ -624,6 +624,10 @@ async function renderGroup() {
   ]);
   staggerRows(rosterArrivals, cards);
   list.append(...cards.map(([, card]) => card));
+  // A browser waiting for approval sees every instance as offline, so the
+  // reason is said once above the list.
+  const refusal = siblings.find((s) => s.refusal && s.refusal !== 'send.refused')?.refusal;
+  if (refusal) say(t(refusal), false, true);
 }
 
 /** When each instance's card first came in, kept across redraws (staggerRows). */

@@ -120,6 +120,13 @@ export const tr: Dict = {
   'addDownload.errorSend': 'Bağlantılar gönderilemedi: {message}',
   'error.federationOff': 'Bağlı olduğun örnekte eş örnekler kapalı, bu yüzden o, diğerlerine ulaşamıyor.',
   'error.addAgain': 'Bu bağlantı uygulamanın eski bir sürümü tarafından kaydedildi ve artık çalışmıyor. Kaldır ve on iki kelimeyle yeniden bağlan.',
+  'error.memberPending': 'Bu cihaz onay bekliyor. Örneklerinden birinde Ayarlar, Eşleştirme altında onayla.',
+  'error.memberKeyChanged': 'Örnek bu cihazı başka bir anahtarla tanıyor. Cihazı oradaki Ayarlar, Eşleştirme altında kaldır ve on iki kelimeyle yeniden eşleştir.',
+  'error.memberUnsigned': 'Örnek bu cihazdan imzalı istekler bekliyor, ama bu istek imzalı değildi. Cihazı oradaki Ayarlar, Eşleştirme altında kaldır ve on iki kelimeyle yeniden eşleştir.',
+  'error.memberBusy': 'Bu cihazın örnekte bekleyen çok fazla isteği var. Birazdan yeniden dene.',
+  'error.groupFull': 'Grup alabileceği kadar cihaza zaten sahip. Bir örnekte Ayarlar, Eşleştirme altında birini kaldır ve yeniden dene.',
+  'error.groupJoinsBusy': 'Son bir saatte gruba çok fazla yeni cihaz katıldı. Daha sonra yeniden dene.',
+  'error.memberNotPinned': 'Örnek bu cihazın anahtarını kaydedemedi. Birazdan yeniden dene.',
   'addDownload.cancel': 'İptal',
   'addDownload.button': 'Ekle',
 

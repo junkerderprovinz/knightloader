@@ -120,6 +120,13 @@ export const vi: Dict = {
   'addDownload.errorSend': 'Không thể gửi các liên kết: {message}',
   'error.federationOff': '“Thực thể bạn” đang tắt trên phiên bản bạn đang kết nối, nên nó không liên lạc được với các phiên bản khác.',
   'error.addAgain': 'Kết nối này được lưu bởi phiên bản ứng dụng cũ hơn và không còn hoạt động. Hãy xóa nó rồi kết nối lại bằng mười hai từ.',
+  'error.memberPending': 'Thiết bị này đang chờ duyệt. Hãy duyệt nó trên một phiên bản của bạn tại Cài đặt, Ghép nối.',
+  'error.memberKeyChanged': 'Phiên bản nhận biết thiết bị này bằng một khóa khác. Hãy gỡ thiết bị ở đó tại Cài đặt, Ghép nối rồi ghép nối lại bằng mười hai từ.',
+  'error.memberUnsigned': 'Phiên bản cần yêu cầu đã ký từ thiết bị này, nhưng yêu cầu này không được ký. Hãy gỡ thiết bị ở đó tại Cài đặt, Ghép nối rồi ghép nối lại bằng mười hai từ.',
+  'error.memberBusy': 'Thiết bị này có quá nhiều yêu cầu đang chờ trên phiên bản. Hãy thử lại sau giây lát.',
+  'error.groupFull': 'Nhóm đã có đủ số thiết bị tối đa. Hãy gỡ một thiết bị tại Cài đặt, Ghép nối trên một phiên bản rồi thử lại.',
+  'error.groupJoinsBusy': 'Có quá nhiều thiết bị mới tham gia nhóm trong giờ qua. Hãy thử lại sau.',
+  'error.memberNotPinned': 'Phiên bản không lưu được khóa của thiết bị này. Hãy thử lại sau giây lát.',
   'addDownload.cancel': 'Hủy',
   'addDownload.button': 'Thêm',
 

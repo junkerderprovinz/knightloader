@@ -120,6 +120,13 @@ export const et: Dict = {
   'addDownload.errorSend': 'Linkide saatmine ebaõnnestus: {message}',
   'error.federationOff': 'Eksemplaril, millega oled ühendatud, on naabereksemplarid välja lülitatud, seega ei jõua see teisteni.',
   'error.addAgain': 'Selle ühenduse salvestas rakenduse vanem versioon ja see ei tööta enam. Eemalda see ja ühenda uuesti kaheteistkümne sõnaga.',
+  'error.memberPending': 'See seade ootab kinnitust. Kinnita see mõnes oma eksemplaris jaotises Seaded, Sidumine.',
+  'error.memberKeyChanged': 'Eksemplar tunneb seda seadet teise võtmega. Eemalda seade seal jaotises Seaded, Sidumine ja seo see uuesti kaheteistkümne sõnaga.',
+  'error.memberUnsigned': 'Eksemplar ootab sellelt seadmelt allkirjastatud päringuid, kuid see päring polnud allkirjastatud. Eemalda seade seal jaotises Seaded, Sidumine ja seo see uuesti kaheteistkümne sõnaga.',
+  'error.memberBusy': 'Sellel seadmel on eksemplaris liiga palju ootel päringuid. Proovi hetke pärast uuesti.',
+  'error.groupFull': 'Grupis on juba nii palju seadmeid, kui sinna mahub. Eemalda üks mõnes eksemplaris jaotises Seaded, Sidumine ja proovi uuesti.',
+  'error.groupJoinsBusy': 'Viimase tunni jooksul liitus grupiga liiga palju uusi seadmeid. Proovi hiljem uuesti.',
+  'error.memberNotPinned': 'Eksemplar ei saanud selle seadme võtit salvestada. Proovi hetke pärast uuesti.',
   'addDownload.cancel': 'Tühista',
   'addDownload.button': 'Lisa',
 

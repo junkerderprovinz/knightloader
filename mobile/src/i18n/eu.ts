@@ -120,6 +120,13 @@ export const eu: Dict = {
   'addDownload.errorSend': 'Ezin izan dira estekak bidali: {message}',
   'error.federationOff': 'Konektatuta zauden instantzian kide diren instantziak itzalita daude, beraz ezin da besteetara iritsi.',
   'error.addAgain': 'Aplikazioaren bertsio zahar batek gorde zuen konexio hau, eta jada ez dabil. Kendu eta konektatu berriro hamabi hitzekin.',
+  'error.memberPending': 'Gailu hau onarpenaren zain dago. Onartu zure instantzietako batean, Ezarpenak, Parekatzea atalean.',
+  'error.memberKeyChanged': 'Instantziak beste gako batekin ezagutzen du gailu hau. Kendu gailua han, Ezarpenak, Parekatzea atalean, eta parekatu berriro hamabi hitzekin.',
+  'error.memberUnsigned': 'Instantziak eskaera sinatuak espero ditu gailu honetatik, baina hau ez zegoen sinatuta. Kendu gailua han, Ezarpenak, Parekatzea atalean, eta parekatu berriro hamabi hitzekin.',
+  'error.memberBusy': 'Gailu honek eskaera gehiegi ditu instantzian zain. Saiatu berriro une batean.',
+  'error.groupFull': 'Taldeak jada har ditzakeen gailu guztiak ditu. Kendu bat instantzia batean, Ezarpenak, Parekatzea atalean, eta saiatu berriro.',
+  'error.groupJoinsBusy': 'Azken orduan gailu berri gehiegi batu dira taldera. Saiatu berriro geroago.',
+  'error.memberNotPinned': 'Instantziak ezin izan du gailu honen gakoa gorde. Saiatu berriro une batean.',
   'addDownload.cancel': 'Utzi',
   'addDownload.button': 'Gehitu',
 

@@ -120,6 +120,13 @@ export const sk: Dict = {
   'addDownload.errorSend': 'Odkazy sa nepodarilo odoslať: {message}',
   'error.federationOff': 'Na inštancii, ku ktorej si pripojený, sú spriatelené inštancie vypnuté, takže sa k ostatným nedostane.',
   'error.addAgain': 'Toto pripojenie uložila staršia verzia aplikácie a už nefunguje. Odstráň ho a pripoj sa znova pomocou dvanástich slov.',
+  'error.memberPending': 'Toto zariadenie čaká na schválenie. Schváľ ho na jednej zo svojich inštancií v Nastavenia, Párovanie.',
+  'error.memberKeyChanged': 'Inštancia pozná toto zariadenie pod iným kľúčom. Odstráň tam zariadenie v Nastavenia, Párovanie a spáruj ho znova pomocou dvanástich slov.',
+  'error.memberUnsigned': 'Inštancia od tohto zariadenia očakáva podpísané požiadavky, ale táto podpísaná nebola. Odstráň tam zariadenie v Nastavenia, Párovanie a spáruj ho znova pomocou dvanástich slov.',
+  'error.memberBusy': 'Toto zariadenie má na inštancii priveľa čakajúcich požiadaviek. Skús to o chvíľu znova.',
+  'error.groupFull': 'Skupina už má toľko zariadení, koľko pojme. Odstráň jedno v Nastavenia, Párovanie na niektorej inštancii a skús to znova.',
+  'error.groupJoinsBusy': 'Za poslednú hodinu sa ku skupine pripojilo priveľa nových zariadení. Skús to neskôr.',
+  'error.memberNotPinned': 'Inštancia nemohla uložiť kľúč tohto zariadenia. Skús to o chvíľu znova.',
   'addDownload.cancel': 'Zrušiť',
   'addDownload.button': 'Pridať',
 

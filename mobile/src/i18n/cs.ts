@@ -120,6 +120,13 @@ export const cs: Dict = {
   'addDownload.errorSend': 'Odkazy se nepodařilo odeslat: {message}',
   'error.federationOff': 'Na instanci, ke které jsi připojený, jsou spřátelené instance vypnuté, takže se k ostatním nedostane.',
   'error.addAgain': 'Toto připojení uložila starší verze aplikace a už nefunguje. Odeber ho a připoj se znovu pomocí dvanácti slov.',
+  'error.memberPending': 'Toto zařízení čeká na schválení. Schval ho na jedné ze svých instancí v Nastavení, Párování.',
+  'error.memberKeyChanged': 'Instance zná toto zařízení pod jiným klíčem. Odeber tam zařízení v Nastavení, Párování a spáruj ho znovu pomocí dvanácti slov.',
+  'error.memberUnsigned': 'Instance od tohoto zařízení očekává podepsané požadavky, ale tento podepsaný nebyl. Odeber tam zařízení v Nastavení, Párování a spáruj ho znovu pomocí dvanácti slov.',
+  'error.memberBusy': 'Toto zařízení má na instanci příliš mnoho čekajících požadavků. Zkus to za chvíli znovu.',
+  'error.groupFull': 'Skupina už má tolik zařízení, kolik pojme. Odeber jedno v Nastavení, Párování na některé instanci a zkus to znovu.',
+  'error.groupJoinsBusy': 'Za poslední hodinu se ke skupině připojilo příliš mnoho nových zařízení. Zkus to později.',
+  'error.memberNotPinned': 'Instance nemohla uložit klíč tohoto zařízení. Zkus to za chvíli znovu.',
   'addDownload.cancel': 'Zrušit',
   'addDownload.button': 'Přidat',
 

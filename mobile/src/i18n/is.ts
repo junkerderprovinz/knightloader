@@ -120,6 +120,13 @@ export const is: Dict = {
   'addDownload.errorSend': 'Ekki tókst að senda tenglana: {message}',
   'error.federationOff': 'Slökkt er á systurtilvikum á tilvikinu sem þú ert tengdur við, svo það nær ekki í hin.',
   'error.addAgain': 'Eldri útgáfa forritsins vistaði þessa tengingu og hún virkar ekki lengur. Fjarlægðu hana og tengstu aftur með orðunum tólf.',
+  'error.memberPending': 'Þetta tæki bíður samþykkis. Samþykktu það á einu af tilvikunum þínum undir Stillingar, Pörun.',
+  'error.memberKeyChanged': 'Tilvikið þekkir þetta tæki undir öðrum lykli. Fjarlægðu tækið þar undir Stillingar, Pörun og paraðu það aftur með orðunum tólf.',
+  'error.memberUnsigned': 'Tilvikið býst við undirrituðum beiðnum frá þessu tæki, en þessi var ekki undirrituð. Fjarlægðu tækið þar undir Stillingar, Pörun og paraðu það aftur með orðunum tólf.',
+  'error.memberBusy': 'Þetta tæki á of margar beiðnir sem bíða á tilvikinu. Reyndu aftur eftir smástund.',
+  'error.groupFull': 'Hópurinn er þegar með eins mörg tæki og hann rúmar. Fjarlægðu eitt undir Stillingar, Pörun á einhverju tilviki og reyndu aftur.',
+  'error.groupJoinsBusy': 'Of mörg ný tæki bættust í hópinn síðustu klukkustundina. Reyndu aftur síðar.',
+  'error.memberNotPinned': 'Tilvikið gat ekki vistað lykil þessa tækis. Reyndu aftur eftir smástund.',
   'addDownload.cancel': 'Hætta við',
   'addDownload.button': 'Bæta við',
 

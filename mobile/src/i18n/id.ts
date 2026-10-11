@@ -120,6 +120,13 @@ export const id: Dict = {
   'addDownload.errorSend': 'Tautan tidak dapat dikirim: {message}',
   'error.federationOff': 'Instans sejawat dimatikan di instans yang sedang tersambung, jadi instans itu tidak bisa menjangkau yang lain.',
   'error.addAgain': 'Sambungan ini disimpan oleh versi aplikasi yang lebih lama dan tidak berfungsi lagi. Hapus, lalu sambungkan lagi dengan dua belas kata.',
+  'error.memberPending': 'Perangkat ini menunggu persetujuan. Setujui di salah satu instans Anda di Pengaturan, Pemasangan.',
+  'error.memberKeyChanged': 'Instans mengenal perangkat ini dengan kunci lain. Hapus perangkat di sana di Pengaturan, Pemasangan, lalu pasangkan lagi dengan dua belas kata.',
+  'error.memberUnsigned': 'Instans mengharapkan permintaan bertanda tangan dari perangkat ini, tetapi yang ini tidak ditandatangani. Hapus perangkat di sana di Pengaturan, Pemasangan, lalu pasangkan lagi dengan dua belas kata.',
+  'error.memberBusy': 'Perangkat ini punya terlalu banyak permintaan yang menunggu di instans. Coba lagi sebentar lagi.',
+  'error.groupFull': 'Grup sudah berisi perangkat sebanyak yang bisa ditampung. Hapus satu di Pengaturan, Pemasangan pada sebuah instans, lalu coba lagi.',
+  'error.groupJoinsBusy': 'Terlalu banyak perangkat baru bergabung ke grup dalam satu jam terakhir. Coba lagi nanti.',
+  'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci perangkat ini. Coba lagi sebentar lagi.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambahkan',
 
