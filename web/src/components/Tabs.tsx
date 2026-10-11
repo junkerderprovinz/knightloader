@@ -15,6 +15,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { countSelectorHues } from '../lib/appearance';
 import { useLabelMode, type LabelMode } from '../lib/labelModes';
 import { IconExpand } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
@@ -239,12 +240,19 @@ export function Tabs(props: TabsProps) {
   const labelMode = useLabelMode('tabs');
   const display: LabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
-  // A strip whose tabs are links chooses a page, and each tab owns a palette
-  // position. A selector that sets a value owns none: its chosen segment is
-  // filled with the accent of the card it sits in (GlimStone, "The one
-  // horizontal selector").
-  const pages = items.some((item) => item.href !== undefined);
   const vertical = orientation === 'vertical';
+  // A strip whose tabs are links chooses a page, and each tab owns a palette
+  // position. A selector that sets a value owns one for all its segments, so
+  // the chosen one is filled with the selector's colour and two selectors in
+  // one card can be told apart. The rainbow engine counts the selectors out in
+  // the order they stand, and one that appears, leaves or moves changes the
+  // count, hence on every commit.
+  const pages = vertical || items.some((item) => item.href !== undefined);
+  useLayoutEffect(() => {
+    if (pages) return;
+    countSelectorHues();
+    return countSelectorHues;
+  });
 
   // `hover` renders the label collapsed rather than omitting it, so it grows
   // back in place without re-measuring anything.
@@ -455,6 +463,7 @@ export function Tabs(props: TabsProps) {
       role={many ? 'group' : 'tablist'}
       aria-label={label}
       aria-orientation={vertical ? 'vertical' : 'horizontal'}
+      data-hue-selector={pages ? undefined : ''}
       onKeyDown={onKeyDown}
       // Horizontal strips, the well included, wrap rather than scroll, so they
       // never push the page sideways. The vertical rail scrolls; min-h-0 lets
@@ -518,13 +527,12 @@ export function Tabs(props: TabsProps) {
               ${look} ${grip}`
           : isWell
           ? // An idle segment has no fill of its own and shows the surface3
-            // groove, so its hover is the step above that (rule 21). A segment
-            // sets a value and owns no palette position: the chosen one is
-            // filled with the accent of the card it sits in.
-            `${segBase} glim-nav-row justify-center text-center leading-snug ${WELL_SIZE[size]}
+            // groove, so its hover is the step above that (rule 21). The
+            // chosen one is filled with the colour its selector was counted.
+            `${segBase} glim-nav-row ${pages ? '' : 'glim-hue'} justify-center text-center leading-snug ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
-          : `${segBase} glim-nav-row ${pages ? 'glim-hue' : ''} glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
+          : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
               SIZE[size]
             } flex max-w-full items-center justify-center ${!on && item.dim ? 'opacity-60' : ''}
               ${look} ${grip}`;
@@ -580,7 +588,9 @@ export function Tabs(props: TabsProps) {
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
               { ...segmentFlex, borderRadius: 'var(--radius-pill)' }
-            : { ...hueStyle(pages || vertical ? i : undefined), ...segmentFlex },
+            : // A tab of a strip that chooses a page has its own position. A
+              // selector's segments inherit the one their strip was counted.
+              { ...hueStyle(pages ? i : undefined), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
           draggable: reorderable ? false : undefined,
