@@ -108,8 +108,10 @@ func waitForMember(t *testing.T, a *app.App, id string) {
 // and a relay on real sockets. The first instance's calls are signed and its
 // key pinned on the second; a call in its name under another key, or without
 // one, is refused with a code that says why; a caller on the release before
-// keys still gets through; and once the second instance is taken out, its old
-// key is refused even after it left.
+// keys still gets through; approvals and removals made by the owner of the
+// first reach the second, while a phone cannot pass one on; and once the
+// second instance is taken out, it forgets the phrase and its old key is
+// refused.
 func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	t.Parallel()
 	relaySrv := httptest.NewServer(relay.New())
@@ -193,6 +195,27 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-older", secondID, nil, relay.ProxyCall{Method: http.MethodPost, Path: "/api/connect/devices/phone-forged/approve", Body: []byte(`{"key":"AAAA"}`)}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
 		t.Errorf("an unsigned member passing an approval on = %d %s, want it refused", code, body)
 	}
+	if code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, relay.ProxyCall{Method: http.MethodDelete, Path: "/api/connect/apps/phone-older", From: "phone-new", Kind: relay.KindMobile}); code != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+		t.Errorf("an approved phone passing a removal on = %d %s, want it refused", code, body)
+	}
+
+	// The owner takes the phone out on the first instance, and the second
+	// turns it away too.
+	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/apps/phone-new", nil); code != http.StatusNoContent {
+		t.Fatalf("removing the phone = %d %s", code, body)
+	}
+	deadline = time.Now().Add(5 * time.Second)
+	for {
+		code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, asPhone)
+		if code == http.StatusGone {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the phone removed on the first instance = %d %s on the second, want the removal passed on", code, body)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+
 	secondKey := memberKey(secondApp)
 	if code, body := call(t, firstToken, http.MethodDelete, first.URL+"/api/connect/members/"+secondID, nil); code != http.StatusNoContent {
 		t.Fatalf("taking the second instance out = %d %s", code, body)
@@ -200,5 +223,15 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	byOldKey := relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: secondID, Kind: relay.KindInstance}
 	if code, body := relayCall(t, relaySrv.URL, secret, "phone-replay", firstID, secondKey, byOldKey); code != http.StatusGone {
 		t.Errorf("the removed instance's old key = %d %s, want 410", code, body)
+	}
+	deadline = time.Now().Add(5 * time.Second)
+	for {
+		if stored, _ := secondApp.Accounts.Get(relay.SeedAccountService); stored == "" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the second instance kept the phrase after the owner of the first took it out")
+		}
+		time.Sleep(50 * time.Millisecond)
 	}
 }

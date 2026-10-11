@@ -199,11 +199,12 @@ ten minutes after its owner entered the words there, since they were in the
 group already; the new instance itself still needs their approval.
 
 **Removing a device**, or refusing it, takes back its key on every instance
-the decision reaches, and that key is never accepted there again. A removed
-phone or browser cannot use its old id again either. An instance that was
-removed gets its id back, so it can enter the words again later. Whoever
-still has the words can come back with a new key, but only as a new device
-that waits for approval.
+the decision reaches, and that key is never accepted there again. Like an
+approval, a removal is made on one instance's Pairing page and passed on to
+the others. A removed phone or browser cannot use its old id again either. An
+instance that was removed forgets the words and gets its id back, so it can
+enter the words again later. Whoever still has the words can come back with a
+new key, but only as a new device that waits for approval.
 
 An instance on the build before this still talks to one after it. The older
 one ignores the signature, and the newer one accepts its unsigned calls, as
@@ -333,10 +334,13 @@ member picks a download folder only inside the download folder or a
 category's folder, removes rows but never erases the files behind them, and
 reads the tasks without their archive and download passwords, without a
 sign-in or a passkey inside a link, and with each tracker cut to its host.
-Taking a phone or the extension out of the group, and leaving the group, are
-done on each instance's own Pairing page: no member can remove another or make
-an instance leave. A phone or extension that was removed drops the whole group
-the next time it calls the instance that removed it.
+Approving, refusing and removing a device start on an instance's own Pairing
+page. The other instances take such a decision only from an instance that
+signs with an approved key, so a phone or the extension cannot approve,
+remove or make an instance leave, and neither can a member on a build before
+keys. Leaving the group is done on the instance's own page alone. A phone or
+extension that was removed drops the whole group the next time it calls an
+instance that knows.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached

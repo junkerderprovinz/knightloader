@@ -222,14 +222,19 @@ func registerConnect(reg *Registry, a *app.App) {
 			writeJSON(w, map[string]any{"phrase": phrase, "qr": phraseQR(a, phrase)})
 		})
 
-	// Only this instance's owner removes a phone here, never a member of the
-	// group, which holds the same words as the phone it would remove. The
-	// phone learns it from this instance's next answer and leaves the whole
-	// group.
+	// A removal starts at the owner's session and reaches the other instances
+	// the way an approval does. A phone holds the same words as the phone it
+	// would remove, so the group takes a removal only from an approved
+	// instance.
 	reg.Add(http.MethodDelete, "/api/connect/apps/{id}",
-		"take a phone or browser extension out of the group on this instance - it is turned away here, drops every connection to the group when it next calls, and comes back as a new one when the phrase is entered again",
+		"take a phone or browser extension out of the group on every instance of it - it drops every connection to the group and comes back as a new device, waiting for approval, when the phrase is entered again",
 		func(w http.ResponseWriter, r *http.Request) {
-			if err := a.Federation.RemoveApp(r.PathValue("id"), time.Now()); err != nil {
+			id := r.PathValue("id")
+			if fromRelayGroup(r) && !fromApprovedInstance(r) {
+				refuseDecision(w)
+				return
+			}
+			if err := a.Federation.RemoveApp(id, time.Now()); err != nil {
 				if errors.Is(err, federation.ErrIsInstance) {
 					writeRefusal(w, http.StatusConflict, "memberIsInstance",
 						"that id belongs to an instance of the group; take it out as an instance", nil)
@@ -237,6 +242,48 @@ func registerConnect(reg *Registry, a *app.App) {
 				}
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
+			}
+			if !fromRelayGroup(r) {
+				go passOn(a, id, http.MethodDelete, "/api/connect/apps/"+url.PathEscape(id), nil)
+			}
+			w.WriteHeader(http.StatusNoContent)
+		})
+
+	reg.Add(http.MethodDelete, "/api/connect/members/{id}",
+		"take another instance out of the group on every instance of it - its key is revoked, it forgets the phrase, and it comes back as a new device, waiting for approval, when the phrase is entered there again",
+		func(w http.ResponseWriter, r *http.Request) {
+			id := r.PathValue("id")
+			if fromRelayGroup(r) && !fromApprovedInstance(r) {
+				refuseDecision(w)
+				return
+			}
+			if id == a.Settings.Get().InstanceID {
+				// The own page leaves through DELETE /api/connect.
+				if !fromRelayGroup(r) {
+					http.Error(w, "to leave the group, use DELETE /api/connect", http.StatusBadRequest)
+					return
+				}
+				// Answered before the relay socket closes under this request.
+				w.WriteHeader(http.StatusNoContent)
+				go func() {
+					if err := enterGroup(a, nil, false); err != nil {
+						log.Printf("connect: could not leave the group after an instance of it took this one out: %v", err)
+					}
+				}()
+				return
+			}
+			if err := a.Federation.RemoveMember(id, time.Now()); err != nil {
+				if errors.Is(err, federation.ErrNotInstance) {
+					writeRefusal(w, http.StatusConflict, "memberIsApp",
+						"that id belongs to a phone or a browser of the group; take it out as one", nil)
+					return
+				}
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			// The instance taken out hears it too, and leaves.
+			if !fromRelayGroup(r) {
+				go passOn(a, "", http.MethodDelete, "/api/connect/members/"+url.PathEscape(id), nil)
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -271,7 +318,8 @@ func registerConnect(reg *Registry, a *app.App) {
 				return
 			}
 			if !fromRelayGroup(r) {
-				go passDecisionOn(a, id, "approve", deviceDecision{Key: key, Kind: kind})
+				body, _ := json.Marshal(deviceDecision{Key: key, Kind: kind})
+				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/approve", body)
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -289,7 +337,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				return
 			}
 			if !fromRelayGroup(r) {
-				go passDecisionOn(a, id, "refuse", deviceDecision{})
+				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", []byte("{}"))
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -430,7 +478,7 @@ type deviceDecision struct {
 
 // fromApprovedInstance reports whether a call from the group came from an
 // instance signing with an approved key. Only such a call may decide who else
-// is let in; an unsigned one, or one from a phone, may not.
+// is in the group; an unsigned one, or one from a phone, may not.
 func fromApprovedInstance(r *http.Request) bool {
 	c, ok := federation.CallerOf(r.Context())
 	return ok && c.Kind == relay.KindInstance
@@ -438,26 +486,22 @@ func fromApprovedInstance(r *http.Request) bool {
 
 func refuseDecision(w http.ResponseWriter) {
 	writeRefusal(w, http.StatusForbidden, "decisionNotFromInstance",
-		"only an approved instance of the group passes an approval or a refusal on", nil)
+		"only an approved instance of the group passes an approval, a refusal or a removal on", nil)
 }
 
-// passDecisionOn tells the other instances of the group that device id was
-// approved or refused here. One that is away misses it, and the device waits
-// there until it is approved there too.
-func passDecisionOn(a *app.App, id, verb string, d deviceDecision) {
+// passOn hands a decision about the group's members, made here by the owner,
+// to the other instances of the group, signed with this instance's key. skip
+// is a member that is not told. One that is away misses it: a device approved
+// here still waits there, and one removed here is still served there.
+func passOn(a *app.App, skip, method, path string, body []byte) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
-	body, err := json.Marshal(d)
-	if err != nil {
-		return
-	}
-	path := "/api/connect/devices/" + url.PathEscape(id) + "/" + verb
 	for _, m := range a.Federation.Members() {
-		if m.RelayID == id {
+		if skip != "" && m.RelayID == skip {
 			continue
 		}
-		if _, status, err := a.Federation.Proxy(ctx, m.Name, http.MethodPost, path, body); err != nil || status >= 300 {
-			log.Printf("connect: could not pass the %s of %s on to %s: status %d, %v", verb, id, m.Name, status, err)
+		if _, status, err := a.Federation.Proxy(ctx, m.Name, method, path, body); err != nil || status >= 300 {
+			log.Printf("connect: could not pass %s %s on to %s: status %d, %v", method, path, m.Name, status, err)
 		}
 	}
 }

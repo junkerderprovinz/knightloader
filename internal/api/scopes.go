@@ -105,6 +105,7 @@ var routeScopes = map[string]apitoken.Scope{
 
 	"DELETE /api/connect":                    apitoken.ScopeAdmin,
 	"DELETE /api/connect/apps/{id}":          apitoken.ScopeAdmin,
+	"DELETE /api/connect/members/{id}":       apitoken.ScopeAdmin,
 	"POST /api/connect/devices/{id}/approve": apitoken.ScopeAdmin,
 	"POST /api/connect/devices/{id}/refuse":  apitoken.ScopeAdmin,
 	"GET /api/connect":                       apitoken.ScopeAdmin,

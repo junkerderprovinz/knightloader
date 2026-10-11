@@ -92,11 +92,13 @@ var groupRoutes = map[string]bool{
 	"DELETE /api/clipboard-watchers/{id}":    true,
 	"POST /api/clipboard-watchers/{id}/stop": true,
 
-	// An approval or a refusal of a new device, passed on by the instance it
-	// was made on. The handlers take it only from an instance that signs with
-	// an approved key, never from a phone or an unsigned caller.
+	// An approval, a refusal or a removal, passed on by the instance whose
+	// owner made it. The handlers take it only from an instance that signs
+	// with an approved key, never from a phone or an unsigned caller.
 	"POST /api/connect/devices/{id}/approve": true,
 	"POST /api/connect/devices/{id}/refuse":  true,
+	"DELETE /api/connect/apps/{id}":          true,
+	"DELETE /api/connect/members/{id}":       true,
 }
 
 // groupLimits are the allowed routes whose request can ask for more than a

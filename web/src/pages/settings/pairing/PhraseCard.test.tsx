@@ -256,7 +256,7 @@ describe('PhraseCard', () => {
     const rows = [...host.querySelectorAll('[data-testid="members"] > li')].map((li) => li.textContent);
     expect(rows).toEqual([
       'nasThis instanceConnected',
-      'officeVia relayConnected',
+      'officeVia relayConnectedRemove',
       'Pixel 8ConnectedRemove',
       'Old phoneNot connectedRemove',
     ]);
@@ -282,6 +282,23 @@ describe('PhraseCard', () => {
     const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
     await act(async () => confirm.click());
     expect(calls).toContain('DELETE /api/connect/apps/q');
+    expect(dialog()).toBeNull();
+  });
+
+  it('takes another instance out of the group only after the window says it waits for approval to come back', async () => {
+    const calls = answer([]);
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      members: [{ id: 'b', name: 'office', direct: false, relay: true }],
+    });
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Remove office"]')!.click());
+    expect(dialog()?.textContent).toContain('waits for approval');
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('DELETE /api/connect/members/b');
     expect(dialog()).toBeNull();
   });
 

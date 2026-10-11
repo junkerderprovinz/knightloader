@@ -291,6 +291,10 @@ func (m *Manager) RemoveApp(id string, now time.Time) error {
 	return m.group.flushLocked()
 }
 
+// ErrNotInstance is what RemoveMember answers for a phone or a browser, which
+// leave through RemoveApp instead.
+var ErrNotInstance = errors.New("federation: that id belongs to a phone or a browser of the group, not to an instance")
+
 // RemoveMember revokes the key pinned to instance id at now. Its id stays
 // free, so the instance can enter the phrase again and join under a new key;
 // the old key never speaks here again.
@@ -298,6 +302,10 @@ func (m *Manager) RemoveMember(id string, now time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
+	_, isApp := st.Apps[id]
+	if pin, ok := st.Keys[id]; isApp || (ok && pin.Kind != relay.KindInstance) {
+		return ErrNotInstance
+	}
 	legacy := st.Legacy[id]
 	if legacy {
 		st.Legacy[id] = false
