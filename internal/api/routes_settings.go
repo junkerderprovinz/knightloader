@@ -197,6 +197,11 @@ func writeValidationError(w http.ResponseWriter, err error) {
 		out["params"] = map[string]any{"dir": pp.Dir}
 		out["field"] = pp.Field
 	}
+	var wide *settings.ProxyRangeTooWide
+	if errors.As(err, &wide) {
+		out["code"] = "access.proxyRangeTooWide"
+		out["params"] = map[string]any{"entry": wide.Entry, "bits": wide.Bits}
+	}
 	var fe *settings.FieldError
 	if errors.As(err, &fe) {
 		out["field"] = fe.Field

@@ -70,14 +70,22 @@ func readStored(path string, key *appkey.Key) (s stored, sealed bool, err error)
 	}
 	if appkey.IsSealed(string(b)) {
 		plain, err := key.OpenString(sealPurpose, string(b))
+		if errors.Is(err, appkey.ErrWrongKey) {
+			// The seal cannot tell another key from a damaged file.
+			return stored{}, true, fmt.Errorf("%s does not open: %w. If that is the key in use, the file is damaged: "+
+				"restore it from a backup, or remove it to start with no password and set one again", path, err)
+		}
 		if err != nil {
 			return stored{}, true, fmt.Errorf("%s cannot be read: %w", path, err)
 		}
 		b = []byte(plain)
 		sealed = true
 	}
-	// A plain file that does not parse starts over with no password.
-	_ = json.Unmarshal(b, &s)
+	// Read as empty, a damaged file would open the instance to anybody.
+	if err := json.Unmarshal(b, &s); err != nil {
+		return stored{}, sealed, fmt.Errorf("%s is damaged (%v), and without it the instance would have no password: "+
+			"restore it from a backup, or remove it to start with no password and set one again", path, err)
+	}
 	return s, sealed, nil
 }
 

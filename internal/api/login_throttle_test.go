@@ -6,12 +6,16 @@ import (
 	"io"
 	"net/http"
 	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
+	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
 // TestParallelGuessesStillMeetTheThrottle: an attacker who has the password
@@ -230,5 +234,53 @@ func TestABodySentWithATokenStopsAtTheCeiling(t *testing.T) {
 		if sent := body.sent.Load(); sent > 2*maxJSONBody {
 			t.Errorf("%s took %d MiB of the body, the ceiling is %d MiB", route, sent>>20, maxJSONBody>>20)
 		}
+	}
+}
+
+// TestAClosedBucketCostsNoPasswordCheck: with an app key every check is an
+// Argon2id run of 19 MiB, so a caller the gate has stopped must not get one.
+// A bcrypt hash from before the key shows it: the first check of the right
+// password replaces it in auth.json.
+func TestAClosedBucketCostsNoPasswordCheck(t *testing.T) {
+	dir := t.TempDir()
+	plain, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := plain.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	plain.Close()
+	a, err := app.NewWithKey(dir, newAppKey(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	srv := httptest.NewServer(Handler(a))
+	t.Cleanup(srv.Close)
+	trustLoopback(t, a)
+	file := func() []byte {
+		b, err := os.ReadFile(filepath.Join(dir, auth.FileName))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+
+	for range loginFailLimit {
+		loginFrom(t, srv.URL, "not-the-password", "203.0.113.5")
+	}
+	before := file()
+	if got := loginFrom(t, srv.URL, "a-good-password", "203.0.113.5"); got != http.StatusTooManyRequests {
+		t.Fatalf("the right password from a closed bucket answered %d, want 429", got)
+	}
+	if !bytes.Equal(file(), before) {
+		t.Error("the right password from a closed bucket was checked")
+	}
+	if got := loginFrom(t, srv.URL, "a-good-password", "203.0.113.6"); got != http.StatusOK {
+		t.Fatalf("the right password from another caller answered %d", got)
+	}
+	if bytes.Equal(file(), before) {
+		t.Fatal("a check of the right password left auth.json as it was, so this test proves nothing")
 	}
 }

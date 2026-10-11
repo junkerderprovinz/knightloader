@@ -380,6 +380,20 @@ func TestTheRightCodeGetsPastAClosedGate(t *testing.T) {
 	}
 }
 
+// TestAClosedGateLooksAtNothingButTheRightCode: past the limit a wrong code
+// is answered by the gate alone, whatever else the request holds.
+func TestAClosedGateLooksAtNothingButTheRightCode(t *testing.T) {
+	srv, _, out := resetServer(t)
+	askForCode(t, srv.URL, out)
+	for range loginFailLimit {
+		finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
+	}
+
+	if status, body := finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", "short"); status != http.StatusTooManyRequests {
+		t.Errorf("a wrong code behind a closed gate answered %d: %s, want 429 before the password is looked at", status, body)
+	}
+}
+
 // TestWrongCodesAreReportedWithoutAnAddress: the host sees somebody guessing,
 // once a minute at most, and the bundle that carries the log names nobody.
 func TestWrongCodesAreReportedWithoutAnAddress(t *testing.T) {

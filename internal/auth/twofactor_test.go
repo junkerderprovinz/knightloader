@@ -145,7 +145,7 @@ func TestTurningItOffCostsTheSameProofAsUsingIt(t *testing.T) {
 	if !g.TwoFactorEnabled() {
 		t.Fatal("the factor came off without a code")
 	}
-	if err := g.DisableTwoFactor(codeNow(t, sec)); err != nil {
+	if err := g.DisableTwoFactor(nextCode(t, sec)); err != nil {
 		t.Fatal(err)
 	}
 	if g.TwoFactorEnabled() {
@@ -222,7 +222,7 @@ func TestChangingThePasswordKeepsTheSecondFactor(t *testing.T) {
 	if !g.TwoFactorEnabled() {
 		t.Error("changing the password disarmed the second factor")
 	}
-	if !g.CheckSecond(codeNow(t, sec)) {
+	if !g.CheckSecond(nextCode(t, sec)) {
 		t.Error("the enrolled secret stopped working when the password changed")
 	}
 }
@@ -266,6 +266,37 @@ func TestCheckSecondAnswersNoWhileTheFactorIsOff(t *testing.T) {
 	}
 }
 
+// TestTheCodeThatConfirmedTheEnrolmentSignsNobodyIn: it was typed on the
+// security page, where anybody looking at the screen could read it.
+func TestTheCodeThatConfirmedTheEnrolmentSignsNobodyIn(t *testing.T) {
+	g, _ := locked(t)
+	sec, _, err := g.BeginTwoFactor("KnightLoader", "this instance")
+	if err != nil {
+		t.Fatal(err)
+	}
+	code := codeNow(t, sec)
+	if _, err := g.ConfirmTwoFactor(code); err != nil {
+		t.Fatal(err)
+	}
+	if g.CheckSecond(code) {
+		t.Error("the code that confirmed the enrolment signed in")
+	}
+	if !g.CheckSecond(nextCode(t, sec)) {
+		t.Error("the code of the next time step was refused")
+	}
+}
+
+// nextCode is the code of the time step after the present one, which is
+// accepted for clock skew.
+func nextCode(t *testing.T, sec string) string {
+	t.Helper()
+	c, err := secret.TOTPCode(sec, time.Now().Add(30*time.Second))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return c
+}
+
 // TestALiveCodeSignsInOnce: a code stays valid for three time steps, and one
 // read over a shoulder or out of a proxy log must not open a second session
 // in that time, nor may an older code once a newer one was used.
@@ -278,7 +309,8 @@ func TestALiveCodeSignsInOnce(t *testing.T) {
 	if _, err := g.ConfirmTwoFactor(codeNow(t, sec)); err != nil {
 		t.Fatal(err)
 	}
-	now := time.Now()
+	// A step on, since the code of this one confirmed the enrolment.
+	now := time.Now().Add(30 * time.Second)
 	earlier, err := secret.TOTPCode(sec, now.Add(-30*time.Second))
 	if err != nil {
 		t.Fatal(err)
