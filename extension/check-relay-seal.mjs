@@ -8,7 +8,8 @@
 // six to eight hold a session to the order the relay sent its frames in,
 // to taking a peer's identity only from a seal that opens and to keeping the
 // browser's member id inside the seals. The ninth holds a signed call to the
-// member-call vector of internal/relay/member_test.go.
+// member-call vector of internal/relay/member_test.go, and the tenth the ids
+// that vector's key makes.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -334,6 +335,15 @@ if (!signed?.sig || !signed.key || signed.kind !== 'extension' || signed.from !=
   if (Buffer.from(signed.key, 'base64').toString('base64') !== Buffer.from(memberKey.publicKey).toString('base64')) {
     failures.push('a signed call presents another key than the one it was signed with');
   }
+}
+
+// 10. The browser's member id is made from its key the way the server makes
+//     it, or every instance refuses its calls as naming another id.
+const vectorKey = Buffer.from(goMember.match(/vectorKey\s*=\s*"([^"]+)"/)?.[1] ?? '', 'base64');
+for (const [kind, name] of [['instance', 'vectorInstanceID'], ['mobile', 'vectorPhoneID'], ['extension', 'vectorBrowserID']]) {
+  const want = goMember.match(new RegExp(`${name}\\s*=\\s*"([^"]+)"`))?.[1];
+  const got = await vm.runInContext(`((kind, key) => relayMemberId(kind, key))`, ctx)(kind, new Uint8Array(vectorKey));
+  if (!want || got !== want) failures.push(`the ${kind} id of the vector key is ${got}, the server makes ${want}`);
 }
 
 if (failures.length) {

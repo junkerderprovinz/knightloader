@@ -111,6 +111,20 @@ function relayRequestId() {
   return Array.from(b, (x) => x.toString(16).padStart(2, '0')).join('');
 }
 
+/**
+ * relayMemberId mirrors relay.MemberID: the id a member of kind goes by with
+ * the raw 32 bytes of its public key. An instance's is the first 20 bytes of
+ * the key's SHA-256 in hex, a phone's and a browser's the whole hash after
+ * their prefix.
+ */
+async function relayMemberId(kind, publicKey) {
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', publicKey)), (b) =>
+    b.toString(16).padStart(2, '0'),
+  ).join('');
+  if (kind === 'instance') return hash.slice(0, 40);
+  return (kind === 'mobile' ? 'phone-' : 'browser-') + hash;
+}
+
 const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v1\x00';
 
 /** Eight bytes, big-endian. Lengths and the time stay far below 2^53. */

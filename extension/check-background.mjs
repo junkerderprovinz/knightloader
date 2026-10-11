@@ -270,17 +270,16 @@ for (const stored of [false, undefined]) {
     if (!ids.every((id) => /^[0-9a-f]{40}$/.test(id))) fail(`a relay session joins under ${JSON.stringify(ids)}, want 40 hex characters`);
     if (ids[0] === ids[1]) fail('two relay sessions join under the same id, so the relay drops the first one');
 
-    // The group knows the browser by one member id, or every session leaves a
-    // card of its own and removing the browser never reaches it.
-    const members = await Promise.all([run('readMemberId')(), run('readMemberId')()]);
-    if (!/^browser-[0-9a-f]{32}$/.test(members[0])) fail(`the browser's member id is ${JSON.stringify(members[0])}, want "browser-" and 32 hex characters`);
+    // The group knows the browser by one member id, made from its member key,
+    // or every session leaves a card of its own and removing the browser never
+    // reaches it.
+    const members = (await Promise.all([run('readMember')(), run('readMember')()])).map((m) => m?.id);
+    if (!/^browser-[0-9a-f]{64}$/.test(members[0])) fail(`the browser's member id is ${JSON.stringify(members[0])}, want "browser-" and 64 hex characters`);
     if (members[0] !== members[1]) fail('two sessions starting together get different member ids');
-    if ((await run('readMemberId')()) !== members[0]) fail('the member id changes from one session to the next');
-    if ('member' in store) fail('the member id is kept in storage.local, which every content script can read');
+    if ((await run('readMember')())?.id !== members[0]) fail('the member id changes from one session to the next');
+    if ('member' in store || 'memberKey' in store) fail('the member key is kept in storage.local, which every content script can read');
     await run('forgetGroup')();
-    if ((await run('readMemberId')()) === members[0]) fail('a browser that left the group comes back under its old member id');
-    idb.stores.get('secrets').set('member', 'f'.repeat(40));
-    if (!/^browser-/.test(await run('readMemberId')())) fail('a member id shaped like an instance id, from an older release, is kept');
+    if ((await run('readMember')())?.id === members[0]) fail('a browser that left the group comes back under its old member id');
 
     await run('writePhrase')(PHRASE);
     const opened = [];
