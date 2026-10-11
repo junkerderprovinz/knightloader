@@ -1533,72 +1533,6 @@ export const et: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Allalaadimiste lisamine',
-  'settings.help.intake.body':
-    'Kleebi lingid Kogujasse, üks rea kohta või segase tekstina. Otsing leiab lingid, kus iganes need on: lause keskel, mitu ühel real või meiliprogrammi poolt kahele reale murtuna.',
-  'settings.help.intake.b1': 'Lohista lingikonteineri fail (.dlc, .ccf, .rsdf) või tavaline lingiloend.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load-nupud hosterite ja foorumite lehtedel töötavad muutmata kujul. KnightLoader vastab aadressil 127.0.0.1:9666, samal pordil, mida kasutab iga teine allalaadija.',
-  'settings.help.intake.b3':
-    'Kleebi faililingi asemel lehe URL ja lülita sisse Roomamine, et tõmmata välja iga fail, millele see viitab, selle asemel et laadida alla lehte ennast.',
-  'settings.help.intake.link1': 'Ava linkide koguja seaded',
-
-  'settings.help.collector.title': 'Koguja, enne kui midagi alla laadib',
-  'settings.help.collector.body':
-    'Uued lingid jõuavad esmalt Kogujasse, mitte järjekorda: vaheala nimede, suuruste ja duplikaadihoiatuste kontrollimiseks enne, kui midagi algab. Automaatne kinnitamine võib selle sammu vahele jätta, valikulise viivitusega; kord kinnitatuna, link kas käivitub kohe või ootab järjekorras, sõltuvalt automaatsest käivitamisest.',
-  'settings.help.collector.link': 'Ava linkide koguja seaded',
-
-  'settings.help.rules.title': 'Reeglid: paketid, kaustad ja mis jääb alles',
-  'settings.help.rules.body':
-    'Packagizer nimetab lingi saabumisel ümber, valib selle kausta ja määrab selle allalaadimisvalikud sinu kirjutatud tingimuste järgi. Lingifilter otsustab, kas link üldse alles jääb. Tagasilükkamine nimetab alati reegli, mis selle põhjustas, ja põhjuse.',
-  'settings.help.rules.link': 'Ava reeglid',
-
-  'settings.help.queue.title': 'Järjekorra haldamine',
-  'settings.help.queue.body':
-    'Peata, jätka või järjesta ümber ükskõik milline link, üksikult või terve pakina. Järjekorra peatamiseks on kaks viisi. Seiskamine jätab juba töötava puutumata, nii et see lõpeb iseenesest. Kõigi ülekannete kohene peatamine näitab enne, mis läheks kaotsi, ja toimub alles pärast sinu kinnitust. Hoiatus on olemas ülekannete jaoks, mis ei saa jätkata sealt, kus pooleli jäid.',
-  'settings.help.queue.b1': 'Üksik link võib tühistada globaalse ühenduste arvu või pärast allalaadimist lahtipakkimise lüliti.',
-  'settings.help.queue.b2': 'Nimekirjas juba oleva lingi duplikaat lükatakse alati tagasi, enne kui see kunagi Kogujani jõuab.',
-
-  'settings.help.limits.title': 'Hostingu piirangutest möödahiilimine',
-  'settings.help.limits.body': 'Kolm sõltumatut viisi takistamaks tasuta piirangul lae olemast:',
-  'settings.help.limits.b1':
-    'Ühendused: jaota allalaadimised rohkem kui ühe väljuva tee peale (teine liin, puhverserver, SOCKS), selle asemel et alati väljuda selle masina enda aadressilt.',
-  'settings.help.limits.b2':
-    'Taasühendus: küsi ruuterilt uut avalikku aadressi, ainus asi, mis tühistab aadressi endaga seotud piirangu. See käib UPnP, välise programmi, skripti või ruuteri halduslehele saadetavate HTTP-päringute kordamise kaudu. Olemasolevad JDownloaderi LiveHeader/curl-skriptid töötavad muutmata kujul.',
-  'settings.help.limits.b3':
-    'Kontod: salvesta premium- või debrid-sisselogimised (Real-Debrid, AllDebrid, TorBox ja teised), et sobiv link laaditaks täiskiirusel, mitte tasuta kasutaja piiranguga.',
-  'settings.help.limits.link1': 'Ava võrk',
-  'settings.help.limits.link3': 'Ava kontod',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Kui hoster küsib captchat, proovitakse kõigepealt sinu seadistatud captcha kontosid sinu määratud järjekorras. Kui ühtegi pole seadistatud või ükski ei suuda seda lahendada, näidatakse captcha sulle, selle asemel et vaikselt ebaõnnestuda.',
-  'settings.help.captcha.link': 'Ava captcha seaded',
-
-  'settings.help.after.title': 'Pärast allalaadimist',
-  'settings.help.after.body':
-    'Arhiivid pakitakse automaatselt lahti: zip (ka krüpteeritud, nii WinZip AES kui ka vanem ZipCrypto), rar koos mitmeosaliste komplektidega, 7z, tar ning gzip/bzip2/xz/zstd, olenemata sellest, kas nende sees on tar või mitte. Lahtipakkimine on puhas Go ega vaja välist unrar- ega 7z-programmi. Krüpteeritud arhiivi puhul proovitakse paroolide loendit järjekorras. Valmis faili kontrollitakse mis tahes sellega kaasa tulnud kontrollsumma vastu: .sfv-loend, md5/sha1/sha256sum-fail või CRC32, mis on väljalaske nimes endas.',
-  'settings.help.after.link1': 'Ava arhiivide seaded',
-  'settings.help.after.link2': 'Ava allalaadimiste seaded',
-
-  'settings.help.schedule.title': 'Töötamine järelevalveta',
-  'settings.help.schedule.body':
-    'Iganädalane ajakava peatab või piirab järjekorda kellaaja järgi, näiteks öises aknas, ja püsib korrektne ka suveajale ülemineku ajal. See on sama idee nagu JDownloaderi Scheduler.',
-  'settings.help.schedule.link': 'Ava automatiseerimine',
-
-  'settings.help.instances.title': 'Rohkem kui ühe instantsi käitamine',
-  'settings.help.instances.body': 'Lisa teine KnightLoader partneriks ja tema järjekord ilmub ka sellele töölauale. Samas võrgus on see otsekutse teise instantsi enda API-le, nagu brauser seda teeks. Üle võrkude seob kaksteist sõna need kaks releega, mida saad ise majutada.',
-  'settings.help.instances.link': 'Ava instantsid',
-
-  'settings.help.access.title': 'Ligipääs ja tõrkeotsing',
-  'settings.help.access.body': 'Parool lukustab kogu liidese nii, et sisse pääseb ainult seansiküpsisega. Turvalisuse leht hoiab seda koos teise faktori, pääsuvõtmete ja API-tokenitega. Diagnostika leht koostab faili, mille saab vearaportile lisada: versiooni- ja buildi andmed, praegused seaded, kust iga parool on eemaldatud, selle protsessi enda hiljutised logiread ja töötavate gorutiinide arv.',
-  'settings.help.access.link1': 'Ava Turvalisus',
-  'settings.help.access.link2': 'Ava diagnostika',
-
-  'settings.help.advanced.title': 'Kõik muu',
-  'settings.help.advanced.body':
-    'Iga selle buildi seadet saab lehel Täpsem lugeda ja muuta selle toornime järgi. Sinna kuuluvad ka mõned, millel pole veel kusagil mujal oma juhtelementi, näiteks see, kuidas käsitletakse juba alla laaditud faili peeglit ja mis juhtub, kui allalaadimine satuks juba võetud nimele.',
-  'settings.help.advanced.link': 'Ava täpsemad seaded',
   'task.mode.free': 'Tasuta',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Teave KnightLoaderi kohta',
@@ -3353,11 +3287,9 @@ export const et: Dict = {
   'settings.categories.torrentFilesOwn': 'Oma',
   'settings.watchDirFilesHint': 'Siia pandud failid võetakse automaatselt üles: lingiloendid (.txt, .crawljob, .magnet), .torrent-failid, konteinerid (.dlc, .ccf, .rsdf) ja .nzb-failid.',
   'container.usenet': '{file} läks teenusele {service}. Selle failid ilmuvad siia, kui {service} on need Usenetist toonud.',
-  'settings.help.intake.watchFiles': 'Jälgitav kaust võtab üles, mis sinna pannakse: lingiloendid (.txt, .crawljob, .magnet), .torrent-failid, konteinerid (.dlc, .ccf, .rsdf) ja .nzb-failid.',
   'container.nzbTooBig': 'see on suurem kui {max}, mis on .nzb suurim lubatud suurus',
   'container.noUsenet': 'see on .nzb ja miski siin ei suuda seda Usenetist tuua. Lisa Usenet server või TorBoxi või Premiumize.me konto lehel Kontod.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb, mille sa siia üles laadid või mille Sonarr või Radarr saadab, läheb sinu enda Usenet serverisse või sinu TorBoxi või Premiumize.me kontole, olenevalt sellest, kumb on Kontode lehe prioriteetide järjekorras esimene. Sinu enda server toob iga faili kohe. Debridi teenus toob kõigepealt väljaande ja selle failid laaditakse siis alla nagu iga teine link. TorBox võtab .nzb-faile vastu ainult pakettide puhul, mis sisaldavad Usenetti. Kui TorBox lükkab esimese tagasi, siis see .nzb nurjub, kui mõni teine konto seda üle ei võta.',
   'task.remote': 'Tuuakse teenuses {service}',
   'task.remoteSeeds': 'Seedid: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlingid ja .torrent-failid lähevad kas sisseehitatud torrendikliendile või debrid-teenusele, mis võtab torrente vastu, olenevalt sellest, kumb on loendis kõrgemal.',

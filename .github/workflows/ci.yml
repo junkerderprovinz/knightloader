@@ -113,7 +113,6 @@ jobs:
               - '.github/workflows/release.yml'
               - '.github/workflows/desktop.yml'
               - 'web/src/lib/locales/**'
-              - 'web/src/pages/settings/Help.tsx'
               - '.github/workflows/ci.yml'
             # Either side can break the queue-reach check: every Go file, and
             # every web file that decides whether a queue verb is reachable.

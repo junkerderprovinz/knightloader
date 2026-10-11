@@ -1525,72 +1525,6 @@ export const pt: Dict = {
 
   'settings.nav.help': 'Informações',
 
-  'settings.help.intake.title': 'Adicionar transferências',
-  'settings.help.intake.body':
-    'Cola links no Coletor, um por linha ou como texto desarrumado. Uma análise encontra links onde quer que estejam: no meio de uma frase, vários numa linha, ou partidos em duas linhas por um cliente de email.',
-  'settings.help.intake.b1': 'Larga um ficheiro contentor de links (.dlc, .ccf, .rsdf) ou uma simples lista de links.',
-  'settings.help.intake.b2':
-    'Os botões Click\'n\'Load em páginas de hosters e fóruns funcionam sem alterações. O KnightLoader responde em 127.0.0.1:9666, a mesma porta que qualquer outro gestor de transferências usa.',
-  'settings.help.intake.b3':
-    'Cola o URL de uma página em vez de um link de ficheiro e ativa Explorar para extrair cada ficheiro a que ela dá acesso, em vez de transferir a página em si.',
-  'settings.help.intake.link1': 'Abrir definições do Coletor de links',
-
-  'settings.help.collector.title': 'O coletor, antes de algo ser transferido',
-  'settings.help.collector.body':
-    'Os links novos chegam primeiro ao Coletor, não à fila: uma zona de espera para verificar nomes, tamanhos e avisos de duplicados antes de algo começar. A confirmação automática pode saltar esse passo, com um atraso opcional; depois de confirmado, um link começa de imediato ou espera na fila, consoante o início automático.',
-  'settings.help.collector.link': 'Abrir definições do Coletor de links',
-
-  'settings.help.rules.title': 'Regras: pacotes, pastas e o que fica',
-  'settings.help.rules.body':
-    'O Packagizer muda o nome a um link, escolhe a sua pasta e define as suas opções de transferência à chegada, a partir de condições que tu escreves. O Filtro de links decide se um link fica de todo. Uma recusa indica sempre a regra que a causou e porquê.',
-  'settings.help.rules.link': 'Abrir Regras',
-
-  'settings.help.queue.title': 'Gerir a fila',
-  'settings.help.queue.body':
-    'Pausa, retoma ou reordena qualquer link, sozinho ou como pacote inteiro. Há duas formas de parar a fila. Suspendê-la deixa intacto o que já está a correr, que termina sozinho. Parar já todas as transferências mostra primeiro o que se perderia e só avança depois de confirmares. O aviso existe para as transferências que não conseguem retomar de onde ficaram.',
-  'settings.help.queue.b1': 'Um único link pode substituir o número global de ligações ou o interruptor de extrair depois de transferir.',
-  'settings.help.queue.b2': 'Um duplicado de um link já presente na lista é sempre recusado, antes sequer de chegar ao coletor.',
-
-  'settings.help.limits.title': 'Contornar limites do hoster',
-  'settings.help.limits.body': 'Três formas independentes de impedir que um limite gratuito seja o teto:',
-  'settings.help.limits.b1':
-    'Ligações: distribuir as transferências por mais do que um caminho de saída (uma segunda linha, um proxy, SOCKS) em vez de sair sempre pelo próprio endereço desta máquina.',
-  'settings.help.limits.b2':
-    'Religação: pedir ao router um novo endereço público, a única coisa que levanta um limite associado ao próprio endereço. Funciona por UPnP, por um programa externo, por um script ou repetindo pedidos HTTP contra a página de administração do router. Os scripts LiveHeader/curl do JDownloader já existentes funcionam sem alterações.',
-  'settings.help.limits.b3':
-    'Contas: guardar credenciais premium ou debrid (Real-Debrid, AllDebrid, TorBox e outros) para que um link elegível seja obtido à velocidade máxima em vez do limite de utilizador gratuito.',
-  'settings.help.limits.link1': 'Abrir Rede',
-  'settings.help.limits.link3': 'Abrir Contas',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Quando um hoster pede um captcha, são tentadas primeiro as contas de captcha que configuraste, pela ordem que definiste. Se nenhuma estiver configurada, ou se nenhuma o conseguir resolver, o captcha é-te apresentado em vez de falhar em silêncio.',
-  'settings.help.captcha.link': 'Abrir definições de Captcha',
-
-  'settings.help.after.title': 'Depois da transferência',
-  'settings.help.after.body':
-    'Os arquivos são extraídos automaticamente: zip (incluindo cifrado, tanto WinZip AES como o antigo ZipCrypto), rar com conjuntos multivolume, 7z, tar, e gzip/bzip2/xz/zstd, envolvam ou não um tar. A extração é feita em Go puro e não precisa de nenhum binário externo unrar ou 7z. Para um arquivo cifrado é tentada uma lista de palavras-passe por ordem. Um ficheiro terminado é verificado com qualquer checksum que venha com ele: uma lista .sfv, um ficheiro md5/sha1/sha256sum, ou um CRC32 que o próprio nome do lançamento traz.',
-  'settings.help.after.link1': 'Abrir definições de Arquivos',
-  'settings.help.after.link2': 'Abrir definições de Transferências',
-
-  'settings.help.schedule.title': 'Funcionar sem supervisão',
-  'settings.help.schedule.body':
-    'Um horário semanal pausa ou limita a fila segundo a hora, por exemplo numa janela noturna, e mantém-se correto na mudança da hora de verão. É a mesma ideia do Scheduler do JDownloader.',
-  'settings.help.schedule.link': 'Abrir Automatização',
-
-  'settings.help.instances.title': 'Executar mais do que uma instância',
-  'settings.help.instances.body': 'Adiciona outro KnightLoader como par e a fila dele aparece também neste painel. Na mesma rede é uma chamada direta à API da outra instância, tal como um navegador a faria. Entre redes, doze palavras emparelham as duas através de um relé que podes alojar tu mesmo.',
-  'settings.help.instances.link': 'Abrir Instâncias',
-
-  'settings.help.access.title': 'Acesso e resolução de problemas',
-  'settings.help.access.body': 'Uma palavra-passe bloqueia toda a interface, que passa a só ser acessível com um cookie de sessão. A página Segurança guarda-a juntamente com o segundo fator, as chaves de acesso e os tokens de API. A página Diagnóstico cria um ficheiro para anexar a um relatório de erro: versão e informações da build, as definições atuais sem nenhuma palavra-passe, as linhas de registo recentes deste processo e quantas goroutines estão a correr.',
-  'settings.help.access.link1': 'Abrir Segurança',
-  'settings.help.access.link2': 'Abrir Diagnóstico',
-
-  'settings.help.advanced.title': 'Tudo o resto',
-  'settings.help.advanced.body':
-    'Todas as definições deste build podem ser lidas e alteradas pelo seu nome em bruto na página Avançado. Isso inclui algumas que ainda não têm um controlo próprio em mais lado nenhum, como o tratamento de um mirror de um ficheiro já transferido e o que acontece quando uma transferência iria parar a um nome já ocupado.',
-  'settings.help.advanced.link': 'Abrir definições de Avançado',
   'task.mode.free': 'Grátis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Sobre o KnightLoader',
@@ -3351,11 +3285,9 @@ export const pt: Dict = {
   'settings.categories.torrentFilesOwn': 'Própria',
   'settings.watchDirFilesHint': 'O que largares aqui é apanhado automaticamente: listas de links (.txt, .crawljob, .magnet), ficheiros .torrent, contentores (.dlc, .ccf, .rsdf) e ficheiros .nzb.',
   'container.usenet': '{file} foi para {service}. Os seus ficheiros aparecem aqui assim que {service} os tiver obtido da Usenet.',
-  'settings.help.intake.watchFiles': 'Uma pasta vigiada apanha o que lá largares: listas de links (.txt, .crawljob, .magnet), ficheiros .torrent, contentores (.dlc, .ccf, .rsdf) e ficheiros .nzb.',
   'container.nzbTooBig': 'é maior do que {max}, o máximo que um .nzb pode ter',
   'container.noUsenet': 'é um .nzb, e nada aqui consegue obtê-lo da Usenet. Adiciona um servidor Usenet ou uma conta TorBox ou Premiumize.me em Contas.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Um .nzb, carregado aqui ou enviado pelo Sonarr ou pelo Radarr, vai para o teu próprio servidor Usenet ou para a tua conta TorBox ou Premiumize.me, conforme o que vier primeiro na ordem de prioridade em Contas. O teu próprio servidor obtém cada ficheiro de imediato. Um serviço debrid obtém primeiro o release, e os ficheiros dele transferem-se depois como qualquer outro link. O TorBox só aceita ficheiros .nzb nos planos que incluem Usenet. Se o TorBox recusar o primeiro, esse .nzb falha, a não ser que outra conta fique com ele.',
   'task.remote': 'A obter em {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Os links magnet e os ficheiros .torrent vão ou para o cliente de torrents integrado, ou para um serviço debrid que aceite torrents, conforme o que estiver mais acima na lista.',

@@ -7,7 +7,7 @@
 // rather than painted over in a background colour, and the measured ink of
 // each handed to glyph(), which gives it the same share of the box.
 import type { SVGProps } from 'react';
-import { glyph } from './glyphs';
+import { glyph, type GlyphProps } from './glyphs';
 
 export * from './glyphs';
 
@@ -35,12 +35,34 @@ export const IconGlobe = (p: SVGProps<SVGSVGElement>) => (
 );
 
 /** Manual: a closed book with its title lines and the page edge carved out. */
-export const IconBook = (p: SVGProps<SVGSVGElement>) => (
+export const IconBook = (p: GlyphProps) => (
   <svg {...glyph([5, 3.5, 10, 13], p)}>
     <path
       fillRule="evenodd"
       clipRule="evenodd"
       d="M5 3.5h8.5A1.5 1.5 0 0 1 15 5v11.5H6.8A1.8 1.8 0 0 1 5 14.7Zm2 2.7v1.5h6V6.2Zm0 3v1.4h4V9.2Zm-.2 4.3a.75.75 0 0 0 0 1.5h6.7v-1.5Z"
+    />
+  </svg>
+);
+
+/** The manual being read: IconBook lying open, two pages with their lines carved out. */
+export const IconBookOpen = (p: GlyphProps) => (
+  <svg {...glyph([2.5, 4.5, 15, 12], p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M9.4 16.5V6.3a1.8 1.8 0 0 0-1.8-1.8H4A1.5 1.5 0 0 0 2.5 6v7.2A1.5 1.5 0 0 0 4 14.7h3.6a1.8 1.8 0 0 1 1.8 1.8ZM4.5 7.1v1.4h3.3V7.1Zm0 2.8v1.4h3.3V9.9Zm6.1 6.6V6.3a1.8 1.8 0 0 1 1.8-1.8H16A1.5 1.5 0 0 1 17.5 6v7.2a1.5 1.5 0 0 1-1.5 1.5h-3.6a1.8 1.8 0 0 0-1.8 1.8Zm1.6-9.4v1.4h3.3V7.1Zm0 2.8v1.4h2.2V9.9Z"
+    />
+  </svg>
+);
+
+/** Follow the device: a disc that is half dark and half light. */
+export const IconThemeSystem = (p: GlyphProps) => (
+  <svg {...glyph([2.75, 2.75, 14.5, 14.5], p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M10 2.75a7.25 7.25 0 1 1 0 14.5 7.25 7.25 0 0 1 0-14.5Zm0 1.5a5.75 5.75 0 0 0 0 11.5Z"
     />
   </svg>
 );

@@ -1533,72 +1533,6 @@ export const da: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Tilføj downloads',
-  'settings.help.intake.body':
-    'Indsæt links i Samleren, ét pr. linje eller som rodet tekst. En scanning finder links, uanset hvor de står: midt i en sætning, flere på en linje eller brudt over to linjer af et mailprogram.',
-  'settings.help.intake.b1': 'Slip en linkcontainerfil (.dlc, .ccf, .rsdf) eller en almindelig linkliste.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load-knapper på hoster- og forumsider virker uændret. KnightLoader svarer på 127.0.0.1:9666, den samme port, som alle andre downloadere bruger.',
-  'settings.help.intake.b3':
-    'Indsæt en side-URL i stedet for et fil-link, og slå Gennemsøgning til for at trække hver fil ud, den linker til, i stedet for at downloade selve siden.',
-  'settings.help.intake.link1': 'Åbn indstillinger for Linksamler',
-
-  'settings.help.collector.title': 'Samleren, før noget som helst downloades',
-  'settings.help.collector.body':
-    'Nye links havner først i Samleren, ikke i køen: et mellemområde til at tjekke navne, størrelser og duplikatadvarsler, før noget starter. Automatisk bekræftelse kan springe dette trin over, med en valgfri forsinkelse; når det er bekræftet, starter et link enten med det samme eller venter i køen, afhængigt af automatisk start.',
-  'settings.help.collector.link': 'Åbn indstillinger for Linksamler',
-
-  'settings.help.rules.title': 'Regler: pakker, mapper og hvad der beholdes',
-  'settings.help.rules.body':
-    'Packagizer omdøber et link, vælger dets mappe og sætter dets downloadindstillinger, når det ankommer, ud fra betingelser, du skriver. Linkfilteret afgør, om et link overhovedet beholdes. En afvisning nævner altid den regel, der udløste den, og hvorfor.',
-  'settings.help.rules.link': 'Åbn Regler',
-
-  'settings.help.queue.title': 'Administrer køen',
-  'settings.help.queue.body':
-    'Sæt et link på pause, genoptag det eller flyt det, alene eller som en hel pakke. Der er to måder at stoppe køen på. Standser du den, får det, der allerede kører, lov at køre færdigt af sig selv. Stopper du alle overførsler med det samme, ser du først, hvad der ville gå tabt, og der sker først noget, når du bekræfter. Advarslen er der for overførsler, der ikke kan fortsætte, hvor de slap.',
-  'settings.help.queue.b1': 'Et enkelt link kan tilsidesætte det globale antal forbindelser eller kontakten for udpakning efter download.',
-  'settings.help.queue.b2': 'Et duplikat af et link, der allerede er på listen, afvises altid, før det nogensinde når Samleren.',
-
-  'settings.help.limits.title': 'Kom uden om hosterens grænser',
-  'settings.help.limits.body': 'Tre uafhængige måder at forhindre en gratis grænse i at være loftet:',
-  'settings.help.limits.b1':
-    'Forbindelser: fordel downloads over mere end én udgående vej (en ekstra linje, en proxy, SOCKS) i stedet for altid at gå ud via denne maskines egen adresse.',
-  'settings.help.limits.b2':
-    'Genopkobling: bed routeren om en ny offentlig adresse, det eneste, der ophæver en grænse, som er bundet til selve adressen. Det virker via UPnP, et eksternt program, et script eller ved at afspille HTTP-anmodninger mod routerens administrationsside igen. Eksisterende JDownloader LiveHeader/curl-scripts virker uændret.',
-  'settings.help.limits.b3':
-    'Konti: gem premium- eller debrid-logins (Real-Debrid, AllDebrid, TorBox og andre), så et link, der kvalificerer, hentes med fuld hastighed i stedet for med grænsen for gratisbrugere.',
-  'settings.help.limits.link1': 'Åbn Netværk',
-  'settings.help.limits.link3': 'Åbn Konti',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Når en hoster beder om en captcha, prøves de captcha-konti, du har sat op, først, i den rækkefølge, du har valgt. Er ingen sat op, eller kan ingen løse den, bliver captchaen vist for dig i stedet for at fejle i stilhed.',
-  'settings.help.captcha.link': 'Åbn indstillinger for Captcha',
-
-  'settings.help.after.title': 'Efter download',
-  'settings.help.after.body':
-    'Arkiver pakkes automatisk ud: zip (også krypteret, både WinZip AES og det ældre ZipCrypto), rar med flerdelte sæt, 7z, tar samt gzip/bzip2/xz/zstd, uanset om de indeholder en tar eller ej. Udpakningen er ren Go og kræver ingen eksterne unrar- eller 7z-programmer. For et krypteret arkiv prøves en liste af adgangskoder i rækkefølge. En færdig fil kontrolleres mod den kontrolsum, der fulgte med: en .sfv-liste, en md5-/sha1-/sha256sum-fil eller en CRC32 i selve udgivelsesnavnet.',
-  'settings.help.after.link1': 'Åbn indstillinger for Arkiver',
-  'settings.help.after.link2': 'Åbn indstillinger for Downloads',
-
-  'settings.help.schedule.title': 'Køre uden opsyn',
-  'settings.help.schedule.body':
-    'En ugentlig tidsplan sætter køen på pause eller drosler den efter uret, for eksempel i et natligt vindue, og forbliver korrekt hen over skiftet til og fra sommertid. Det er samme idé som JDownloaders Scheduler.',
-  'settings.help.schedule.link': 'Åbn Automatisering',
-
-  'settings.help.instances.title': 'Køre mere end én instans',
-  'settings.help.instances.body': 'Tilføj en anden KnightLoader som modpart, og dens kø dukker også op på dette dashboard. På samme netværk er det et direkte kald til den anden instans\' eget API, som en browser ville gøre det. På tværs af netværk parrer tolv ord de to gennem et relay, du kan hoste selv.',
-  'settings.help.instances.link': 'Åbn Instanser',
-
-  'settings.help.access.title': 'Adgang og fejlfinding',
-  'settings.help.access.body': 'En adgangskode låser hele brugerfladen, så der kun er adgang med en sessionscookie. Siden Sikkerhed samler den med anden faktor, adgangsnøgler og API-tokens. Siden Diagnostik laver en fil, du kan vedhæfte en fejlrapport: version og buildinfo, de aktuelle indstillinger med alle adgangskoder fjernet, de seneste loglinjer fra selve denne proces og hvor mange goroutines der kører.',
-  'settings.help.access.link1': 'Åbn Sikkerhed',
-  'settings.help.access.link2': 'Åbn Diagnostik',
-
-  'settings.help.advanced.title': 'Alt det andet',
-  'settings.help.advanced.body':
-    'Alle indstillinger i dette build kan læses og ændres via deres rå navn på siden Avanceret. Det gælder også nogle få, der endnu ikke har deres egen kontrol andre steder, for eksempel hvordan et spejl af en allerede hentet fil behandles, og hvad der sker, når en download ville lande på et navn, der allerede er taget.',
-  'settings.help.advanced.link': 'Åbn indstillinger for Avanceret',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Om KnightLoader',
@@ -3347,11 +3281,9 @@ export const da: Dict = {
   'settings.categories.torrentFilesOwn': 'Eget',
   'settings.watchDirFilesHint': 'Filer, der lægges her, bliver taget ind automatisk: linklister (.txt, .crawljob, .magnet), .torrent-filer, containere (.dlc, .ccf, .rsdf) og .nzb-filer.',
   'container.usenet': '{file} gik til {service}. Dens filer dukker op her, så snart {service} har hentet dem fra Usenet.',
-  'settings.help.intake.watchFiles': 'En overvåget mappe tager det ind, der lægges i den: linklister (.txt, .crawljob, .magnet), .torrent-filer, containere (.dlc, .ccf, .rsdf) og .nzb-filer.',
   'container.nzbTooBig': 'den er større end {max}, det største en .nzb må være',
   'container.noUsenet': 'den er en .nzb, og intet her kan hente den fra Usenet. Tilføj en Usenet-server eller en TorBox- eller Premiumize.me-konto under Konti.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'En .nzb, du uploader her, eller som Sonarr eller Radarr sender, går til din egen Usenet-server eller til din TorBox- eller Premiumize.me-konto, alt efter hvad der kommer først i prioritetsrækkefølgen under Konti. Din egen server henter hver fil med det samme. En Debrid-tjeneste henter først udgivelsen, og dens filer downloades derefter som ethvert andet link. TorBox tager kun imod .nzb-filer på abonnementer, der omfatter Usenet. Afviser TorBox den første, fejler den .nzb, medmindre en anden konto tager den.',
   'task.remote': 'Henter hos {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlinks og .torrent-filer går enten til den indbyggede torrentklient eller til en debrid-tjeneste, der tager torrents, alt efter hvilken der står højest på listen.',

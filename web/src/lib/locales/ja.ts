@@ -1533,72 +1533,6 @@ export const ja: Dict = {
 
   'settings.nav.help': '情報',
 
-  'settings.help.intake.title': 'ダウンロードの追加',
-  'settings.help.intake.body':
-    'リンクをコレクターに貼り付けます。1行に1つでも、雑然としたテキストのままでも構いません。スキャンがリンクをどこにあっても見つけます。文の途中にあっても、1行に複数あっても、メールソフトで2行に折り返されていても大丈夫です。',
-  'settings.help.intake.b1': 'リンクコンテナファイル(.dlc、.ccf、.rsdf)または単純なリンクリストをドロップします。',
-  'settings.help.intake.b2':
-    'ホスターやフォーラムのページにある Click\'n\'Load ボタンはそのまま使えます。KnightLoader は 127.0.0.1:9666 で応答します。ほかのダウンローダーと同じポートです。',
-  'settings.help.intake.b3':
-    'ファイルリンクの代わりにページのURLを貼り付け、クロールをオンにすると、そのページ自体をダウンロードする代わりに、そこからリンクされているすべてのファイルを抽出します。',
-  'settings.help.intake.link1': 'リンクコレクター設定を開く',
-
-  'settings.help.collector.title': '何かがダウンロードされる前のコレクター',
-  'settings.help.collector.body':
-    '新しいリンクはまずコレクターに届き、キューには入りません。何かが始まる前に名前、サイズ、重複警告を確認するための中間領域です。自動確認はこのステップを省略できます(遅延はオプション)。確認後、リンクはすぐに開始するか、自動開始の設定に応じてキューで待機します。',
-  'settings.help.collector.link': 'リンクコレクター設定を開く',
-
-  'settings.help.rules.title': 'ルール: パッケージ、フォルダー、保持されるもの',
-  'settings.help.rules.body':
-    'Packagizer は、あなたが書いた条件に基づいて、届いたリンクの名前を変え、フォルダーを選び、ダウンロードオプションを設定します。リンクフィルターは、リンクをそもそも残すかどうかを決めます。拒否した場合は、原因となったルールとその理由が必ず表示されます。',
-  'settings.help.rules.link': 'ルールを開く',
-
-  'settings.help.queue.title': 'キューの管理',
-  'settings.help.queue.body':
-    'どのリンクも、単独でもパッケージごとでも、一時停止、再開、並べ替えができます。キューを止める方法は二つあります。停止すると、すでに実行中のものはそのまま残り、自然に完了します。すべての転送を今すぐ止める場合は、まず何が失われるかが表示され、あなたが確認して初めて実行されます。この警告は、中断したところから再開できない転送のためのものです。',
-  'settings.help.queue.b1': '個々のリンクは、グローバルな接続数やダウンロード後の展開の切り替えを上書きできます。',
-  'settings.help.queue.b2': 'リストにすでにあるリンクの重複は、コレクターに到達する前に必ず拒否されます。',
-
-  'settings.help.limits.title': 'ホスターの制限を回避する',
-  'settings.help.limits.body': '無料枠が上限にならないようにする3つの独立した方法:',
-  'settings.help.limits.b1':
-    '接続：いつもこのマシン自身のアドレスから出るのではなく、複数の出口（2本目の回線、プロキシ、SOCKS）にダウンロードを分散させます。',
-  'settings.help.limits.b2':
-    '再接続：ルーターに新しいパブリックアドレスを要求します。アドレス自体に結び付いた制限を解除できるのはこれだけです。UPnP、外部プログラム、スクリプト、またはルーターの管理ページへの HTTP リクエストの再送で動作します。既存の JDownloader LiveHeader/curl スクリプトはそのまま使えます。',
-  'settings.help.limits.b3':
-    'アカウント：プレミアムまたは debrid のログイン（Real-Debrid、AllDebrid、TorBox など）を保存すると、対象のリンクが無料ユーザーの制限ではなく最高速度で取得されます。',
-  'settings.help.limits.link1': 'ネットワークを開く',
-  'settings.help.limits.link3': 'アカウントを開く',
-
-  'settings.help.captcha.title': 'キャプチャ',
-  'settings.help.captcha.body':
-    'ホスターがキャプチャを求めると、まず設定済みのキャプチャアカウントが、設定した順に試されます。キャプチャアカウントが一つも設定されていないか、どれも解けない場合は、黙って失敗する代わりにキャプチャがあなたに表示されます。',
-  'settings.help.captcha.link': 'キャプチャ設定を開く',
-
-  'settings.help.after.title': 'ダウンロード後',
-  'settings.help.after.body':
-    'アーカイブは自動的に展開されます。zip（WinZip AES と従来の ZipCrypto の両方の暗号化を含む）、複数ボリュームの rar、7z、tar、そして tar を包んでいるかどうかにかかわらず gzip/bzip2/xz/zstd に対応します。展開は純粋な Go で行われ、外部の unrar や 7z のプログラムは不要です。暗号化されたアーカイブには、パスワードのリストが順に試されます。完了したファイルは、付属するチェックサム（.sfv リスト、md5/sha1/sha256sum ファイル、またはリリース名自体に含まれる CRC32）と照合されます。',
-  'settings.help.after.link1': 'アーカイブ設定を開く',
-  'settings.help.after.link2': 'ダウンロード設定を開く',
-
-  'settings.help.schedule.title': '無人での運用',
-  'settings.help.schedule.body':
-    '週単位のスケジュールで、たとえば夜間のウィンドウに、時刻に応じてキューを一時停止したり速度を制限したりします。夏時間の切り替えをまたいでも正確です。JDownloader の Scheduler と同じ考え方です。',
-  'settings.help.schedule.link': '自動化を開く',
-
-  'settings.help.instances.title': '複数のインスタンスを実行する',
-  'settings.help.instances.body': '別の KnightLoader をピアとして追加すると、そのキューがこのダッシュボードにも並びます。同じネットワークなら、ブラウザーがするのと同じく相手のインスタンスの API を直接呼びます。ネットワークをまたぐ場合は、十二語が自分でも運用できるリレーを介して両者を結びます。',
-  'settings.help.instances.link': 'インスタンスを開く',
-
-  'settings.help.access.title': 'アクセスとトラブルシューティング',
-  'settings.help.access.body': 'パスワードを設定すると画面全体がロックされ、セッション cookie があるときだけ使えるようになります。セキュリティのページには、このパスワードと一緒に二要素認証、パスキー、API トークンがあります。診断のページは、バグ報告に添付するファイルを作ります。中身はバージョンとビルド情報、すべてのパスワードを取り除いた現在の設定、このプロセス自身の直近のログ行、そして動いているゴルーチンの数です。',
-  'settings.help.access.link1': 'セキュリティを開く',
-  'settings.help.access.link2': '診断を開く',
-
-  'settings.help.advanced.title': 'その他すべて',
-  'settings.help.advanced.body':
-    'このビルドのすべての設定は、詳細のページで元の名前のまま読んだり変更したりできます。まだほかのどこにも専用のコントロールがない設定もいくつか含まれます。たとえば、すでにダウンロードしたファイルのミラーをどう扱うかや、ダウンロード先の名前がすでに使われている場合にどうするかです。',
-  'settings.help.advanced.link': '詳細設定を開く',
   'task.mode.free': '無料',
   'task.mode.premium': 'プレミアム',
   'settings.about.title': 'KnightLoader について',
@@ -3358,11 +3292,9 @@ export const ja: Dict = {
   'settings.categories.torrentFilesOwn': '独自',
   'settings.watchDirFilesHint': 'ここに置いたファイルは自動的に取り込まれます。リンクリスト（.txt、.crawljob、.magnet）、.torrent ファイル、コンテナ（.dlc、.ccf、.rsdf）、.nzb ファイルです。',
   'container.usenet': '{file} は {service} に渡しました。{service} が Usenet から取得すると、そのファイルがここに表示されます。',
-  'settings.help.intake.watchFiles': '監視フォルダーは、置かれたものを取り込みます。リンクリスト（.txt、.crawljob、.magnet）、.torrent ファイル、コンテナ（.dlc、.ccf、.rsdf）、.nzb ファイルです。',
   'container.nzbTooBig': '{max} より大きく、.nzb はそれ以上の大きさにできません',
   'container.noUsenet': '.nzb であり、これを Usenet から取得できるものがここにはありません。アカウントのページで Usenet サーバーか、TorBox か Premiumize.me のアカウントを追加してください。',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'ここでアップロードした .nzb も、Sonarr や Radarr から送られてきた .nzb も、アカウントのページの優先順位でどちらが先に来るかによって、あなた自身の Usenet サーバーか、TorBox または Premiumize.me のアカウントに渡ります。あなた自身のサーバーはすぐに各ファイルを取得します。debrid サービスはまずリリースを取得し、その後中のファイルはほかのリンクと同じようにダウンロードされます。TorBox が .nzb ファイルを受け付けるのは、Usenet を含むプランだけです。TorBox が最初の .nzb を断ると、ほかのアカウントが引き受けない限りその .nzb は失敗します。',
   'task.remote': '{service} で取得中',
   'task.remoteSeeds': 'シード: {n}',
   'accounts.routing.orderHintTorrents': 'マグネットリンクと .torrent ファイルは、内蔵トレントクライアントか、トレントを扱える Debrid サービスのうち、リストで上にあるほうに渡されます。',

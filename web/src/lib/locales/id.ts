@@ -1533,72 +1533,6 @@ export const id: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Menambahkan unduhan',
-  'settings.help.intake.body':
-    'Tempel tautan ke Pengumpul, satu per baris atau sebagai teks berantakan. Pemindaian menemukan tautan di mana pun berada: di tengah kalimat, beberapa dalam satu baris, atau terpotong jadi dua baris oleh program email.',
-  'settings.help.intake.b1': 'Jatuhkan file kontainer tautan (.dlc, .ccf, .rsdf) atau daftar tautan biasa.',
-  'settings.help.intake.b2':
-    'Tombol Click\'n\'Load di halaman hoster dan forum bekerja seperti biasa. KnightLoader menjawab di 127.0.0.1:9666, port yang sama dengan yang dipakai setiap pengelola unduhan lain.',
-  'settings.help.intake.b3':
-    'Tempel URL halaman alih-alih tautan file dan aktifkan Perayapan untuk mengekstrak setiap file yang ditautkannya, bukan mengunduh halaman itu sendiri.',
-  'settings.help.intake.link1': 'Buka pengaturan Pengumpul tautan',
-
-  'settings.help.collector.title': 'Kolektor, sebelum apa pun diunduh',
-  'settings.help.collector.body':
-    'Tautan baru pertama-tama masuk ke Kolektor, bukan antrean: zona transisi untuk memeriksa nama, ukuran, dan peringatan duplikat sebelum apa pun dimulai. Konfirmasi otomatis dapat melewati langkah ini, dengan penundaan opsional; setelah dikonfirmasi, tautan langsung mulai atau menunggu di antrean, tergantung pada mulai otomatis.',
-  'settings.help.collector.link': 'Buka pengaturan Pengumpul tautan',
-
-  'settings.help.rules.title': 'Aturan: paket, folder, dan apa yang dipertahankan',
-  'settings.help.rules.body':
-    'Packagizer mengganti nama tautan, memilih foldernya, dan mengatur opsi unduhannya saat tiba, berdasarkan syarat yang kamu tulis. Penyaring tautan menentukan apakah sebuah tautan disimpan sama sekali. Penolakan selalu menyebutkan aturan yang menyebabkannya, beserta alasannya.',
-  'settings.help.rules.link': 'Buka Aturan',
-
-  'settings.help.queue.title': 'Mengelola antrean',
-  'settings.help.queue.body':
-    'Jeda, lanjutkan, atau susun ulang tautan apa pun, satu per satu atau sebagai satu paket utuh. Ada dua cara menghentikan antrean. Menahannya membiarkan apa yang sudah berjalan tetap berjalan sampai selesai sendiri. Menghentikan semua transfer saat itu juga lebih dulu menunjukkan apa yang akan hilang dan baru dijalankan setelah kamu mengonfirmasi. Peringatan itu ada untuk transfer yang tidak bisa melanjutkan dari tempat terakhirnya.',
-  'settings.help.queue.b1': 'Satu tautan dapat menggantikan jumlah koneksi global atau sakelar ekstrak setelah unduhan.',
-  'settings.help.queue.b2': 'Duplikat tautan yang sudah ada di daftar selalu ditolak, bahkan sebelum mencapai Kolektor.',
-
-  'settings.help.limits.title': 'Menghindari batasan hoster',
-  'settings.help.limits.body': 'Tiga cara independen agar batas gratis tidak menjadi plafon:',
-  'settings.help.limits.b1':
-    'Koneksi: sebarkan unduhan ke lebih dari satu jalur keluar (jalur kedua, proxy, SOCKS) alih-alih selalu keluar lewat alamat mesin ini sendiri.',
-  'settings.help.limits.b2':
-    'Sambung ulang: minta alamat publik baru dari router, satu-satunya hal yang mencabut batas yang terikat pada alamat itu sendiri. Ini bisa lewat UPnP, program eksternal, skrip, atau dengan memutar ulang permintaan HTTP ke halaman admin router. Skrip LiveHeader/curl JDownloader yang sudah ada bekerja tanpa perubahan.',
-  'settings.help.limits.b3':
-    'Akun: simpan login premium atau debrid (Real-Debrid, AllDebrid, TorBox, dan lainnya) agar tautan yang memenuhi syarat diambil dengan kecepatan penuh, bukan dengan batas pengguna gratis.',
-  'settings.help.limits.link1': 'Buka Jaringan',
-  'settings.help.limits.link3': 'Buka Akun',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Ketika hoster meminta captcha, akun captcha yang sudah kamu atur dicoba lebih dulu, sesuai urutan yang kamu tetapkan. Kalau belum ada yang diatur, atau tidak ada yang bisa memecahkannya, captcha itu ditampilkan kepadamu alih-alih gagal diam-diam.',
-  'settings.help.captcha.link': 'Buka pengaturan Captcha',
-
-  'settings.help.after.title': 'Setelah unduhan',
-  'settings.help.after.body':
-    'Arsip diekstrak otomatis: zip (termasuk yang terenkripsi, baik WinZip AES maupun ZipCrypto lama), rar dengan set multi-volume, 7z, tar, serta gzip/bzip2/xz/zstd, baik membungkus tar maupun tidak. Ekstraksi ini murni Go dan tidak butuh program unrar atau 7z eksternal. Untuk arsip terenkripsi, daftar kata sandi dicoba berurutan. Berkas yang selesai diperiksa terhadap checksum apa pun yang menyertainya: daftar .sfv, berkas md5/sha1/sha256sum, atau CRC32 yang tercantum di nama rilisnya sendiri.',
-  'settings.help.after.link1': 'Buka pengaturan Arsip',
-  'settings.help.after.link2': 'Buka pengaturan Unduhan',
-
-  'settings.help.schedule.title': 'Berjalan tanpa pengawasan',
-  'settings.help.schedule.body':
-    'Jadwal mingguan menjeda atau memperlambat antrean menurut jam, misalnya pada jendela waktu malam, dan tetap tepat saat pergantian waktu musim panas. Idenya sama dengan Scheduler di JDownloader.',
-  'settings.help.schedule.link': 'Buka Otomatisasi',
-
-  'settings.help.instances.title': 'Menjalankan lebih dari satu instans',
-  'settings.help.instances.body': 'Tambahkan KnightLoader lain sebagai rekan dan antreannya muncul di dasbor ini juga. Di jaringan yang sama itu panggilan langsung ke API instansi lain, seperti yang dilakukan peramban. Lintas jaringan, dua belas kata memasangkan keduanya lewat relay yang bisa kamu inangi sendiri.',
-  'settings.help.instances.link': 'Buka Instans',
-
-  'settings.help.access.title': 'Akses dan pemecahan masalah',
-  'settings.help.access.body': 'Kata sandi mengunci seluruh antarmuka, sehingga akses hanya bisa lewat cookie sesi. Halaman Keamanan menyimpannya bersama faktor kedua, kunci sandi, dan token API. Halaman Diagnostik membuat berkas untuk dilampirkan ke laporan bug: info versi dan build, pengaturan saat ini dengan semua kata sandi dihapus, baris log terbaru dari proses ini sendiri, dan berapa banyak goroutine yang sedang berjalan.',
-  'settings.help.access.link1': 'Buka Keamanan',
-  'settings.help.access.link2': 'Buka Diagnostik',
-
-  'settings.help.advanced.title': 'Semua yang lain',
-  'settings.help.advanced.body':
-    'Setiap pengaturan build ini bisa dibaca dan diubah lewat nama mentahnya di halaman Lanjutan. Termasuk beberapa yang belum punya kontrol khusus di tempat lain, seperti bagaimana mirror dari berkas yang sudah diunduh diperlakukan dan apa yang terjadi kalau sebuah unduhan akan mendarat di nama yang sudah dipakai.',
-  'settings.help.advanced.link': 'Buka pengaturan Lanjutan',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Tentang KnightLoader',
@@ -3361,11 +3295,9 @@ export const id: Dict = {
   'settings.categories.torrentFilesOwn': 'Sendiri',
   'settings.watchDirFilesHint': 'Berkas yang ditaruh di sini diambil otomatis: daftar tautan (.txt, .crawljob, .magnet), berkas .torrent, kontainer (.dlc, .ccf, .rsdf), dan berkas .nzb.',
   'container.usenet': '{file} dikirim ke {service}. Berkasnya muncul di sini begitu {service} mengambilnya dari Usenet.',
-  'settings.help.intake.watchFiles': 'Folder pantauan mengambil apa yang ditaruh di dalamnya: daftar tautan (.txt, .crawljob, .magnet), berkas .torrent, kontainer (.dlc, .ccf, .rsdf), dan berkas .nzb.',
   'container.nzbTooBig': 'ukurannya melebihi {max}, batas terbesar untuk sebuah .nzb',
   'container.noUsenet': 'berkas ini adalah .nzb, dan tidak ada yang bisa mengambilnya dari Usenet di sini. Tambahkan server Usenet atau akun TorBox atau Premiumize.me di Akun.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Sebuah .nzb, yang diunggah di sini atau dikirim oleh Sonarr atau Radarr, dikirim ke server Usenet milikmu sendiri atau ke akun TorBox atau Premiumize.me milikmu, tergantung mana yang lebih dulu dalam urutan prioritas di Akun. Server milikmu sendiri langsung mengambil setiap berkas. Layanan debrid mengambil rilisnya lebih dulu, lalu berkas di dalamnya diunduh seperti tautan lain. TorBox hanya menerima berkas .nzb pada paket yang mencakup Usenet. Jika TorBox menolak yang pertama, .nzb itu gagal kecuali akun lain mengambilnya.',
   'task.remote': 'Mengambil di {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Tautan magnet dan berkas .torrent dikirim ke klien torrent bawaan atau ke layanan debrid yang mendukung torrent, mana saja yang lebih tinggi di daftar.',

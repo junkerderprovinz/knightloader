@@ -95,12 +95,10 @@ async function check() {
 }
 
 describe('the Info tile', () => {
-  it('opens with About, Version and Help and keeps the help topics under them', async () => {
+  it('holds three cards: Version, then Help, then About', async () => {
     await draw();
     const titles = [...host.querySelectorAll('.glim-section-badge')].map((b) => b.textContent);
-    expect(titles.slice(0, 3)).toEqual(['About KnightLoader', 'Version', 'Help']);
-    expect(titles).toContain('Adding downloads');
-    expect(titles).toHaveLength(14);
+    expect(titles).toEqual(['Version', 'Help', 'About KnightLoader']);
   });
 
   it('lists every version the app is made of and links a number to its release', async () => {
@@ -208,6 +206,32 @@ describe('the Info tile', () => {
     const manual = [...card('Help').querySelectorAll('a')].find((a) => a.textContent?.includes('Manual'))!;
     expect(manual.getAttribute('href')).toBe('https://junkerderprovinz.github.io/knightloader/');
     expect(manual.textContent).toContain('Open');
+  });
+
+  it('shows the manual as a closed book that opens', async () => {
+    await draw();
+    const manual = [...card('Help').querySelectorAll('a')].find((a) => a.textContent?.includes('Manual'))!;
+    const pair = manual.querySelector('.glim-mark-opens')!;
+    expect([...pair.querySelectorAll('svg')].map((svg) => svg.getAttribute('class'))).toEqual([
+      'glim-mark-rest',
+      'glim-mark-hover',
+    ]);
+    // The envelope beside it opens by the same rule.
+    expect(button(card('Help'), 'Email').querySelector('.glim-mark-opens .glim-mark-hover')).not.toBeNull();
+  });
+
+  it('draws the marks of the Help card at one size, each across its whole box', async () => {
+    await draw();
+    const boxes = [...card('Help').querySelectorAll('.glim-readme-btn-mark svg')].map((svg) =>
+      svg.getAttribute('viewBox')!.split(' ').map(Number),
+    );
+    // GitHub, the envelope shut and open, the book shut and open, the bug.
+    expect(boxes).toHaveLength(6);
+    // An ordinary glyph keeps a quarter of its box as air, so GitHub's 24 would stand in a box of 32.
+    expect(boxes[0]).toEqual([0, 0, 24, 24]);
+    expect(boxes[3][2]).toBe(13);
+    expect(boxes[4][2]).toBe(15);
+    expect(boxes[5][2]).toBeCloseTo(13.9, 5);
   });
 
   it('downloads the diagnostics bundle as the bug report', async () => {

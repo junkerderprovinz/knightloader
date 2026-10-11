@@ -1533,72 +1533,6 @@ export const hu: Dict = {
 
   'settings.nav.help': 'Infó',
 
-  'settings.help.intake.title': 'Letöltések hozzáadása',
-  'settings.help.intake.body':
-    'Illeszd be a linkeket a gyűjtőbe, soronként egyet vagy rendezetlen szövegként. A keresés bárhol megtalálja a linkeket: egy mondat közepén, soronként többet is, vagy ha egy levelezőprogram két sorba tördelte őket.',
-  'settings.help.intake.b1': 'Húzzon be egy hivatkozás-konténer fájlt (.dlc, .ccf, .rsdf) vagy egy egyszerű hivatkozáslistát.',
-  'settings.help.intake.b2':
-    'A tárhely- és fórumoldalak Click\'n\'Load gombjai változatlanul működnek. A KnightLoader a 127.0.0.1:9666 címen válaszol, ugyanazon a porton, amelyet minden más letöltéskezelő is használ.',
-  'settings.help.intake.b3':
-    'Illesszen be egy oldal URL-t egy fájlhivatkozás helyett, és kapcsolja be a Bejárást, hogy minden hivatkozott fájlt kinyerjen, ahelyett hogy magát az oldalt töltené le.',
-  'settings.help.intake.link1': 'Linkgyűjtő beállításainak megnyitása',
-
-  'settings.help.collector.title': 'A gyűjtő, mielőtt bármi is letöltődne',
-  'settings.help.collector.body':
-    'Az új hivatkozások először a Gyűjtőbe érkeznek, nem a sorba: egy átmeneti terület a nevek, méretek és duplikátum-figyelmeztetések ellenőrzésére, mielőtt bármi elindulna. Az automatikus megerősítés kihagyhatja ezt a lépést, opcionális késleltetéssel; megerősítés után egy hivatkozás vagy azonnal elindul, vagy a sorban vár, az automatikus indítástól függően.',
-  'settings.help.collector.link': 'Linkgyűjtő beállításainak megnyitása',
-
-  'settings.help.rules.title': 'Szabályok: csomagok, mappák és ami megmarad',
-  'settings.help.rules.body':
-    'A Packagizer érkezéskor átnevezi a linket, kiválasztja a mappáját és beállítja a letöltési beállításait, az általad írt feltételek alapján. A Hivatkozásszűrő dönti el, hogy egy link egyáltalán megmarad-e. Az elutasítás mindig megnevezi az okozó szabályt és az okát.',
-  'settings.help.rules.link': 'Szabályok megnyitása',
-
-  'settings.help.queue.title': 'A sor kezelése',
-  'settings.help.queue.body':
-    'Bármelyik linket szüneteltetheted, folytathatod vagy átrendezheted, egyenként vagy egész csomagként. A sort kétféleképpen lehet leállítani. A megállítás érintetlenül hagyja azt, ami már fut, így az magától befejeződik. Az összes átvitel azonnali leállítása előbb megmutatja, mi veszne el, és csak a megerősítésed után lép. A figyelmeztetés azoknak az átviteleknek szól, amelyek nem tudják ott folytatni, ahol abbahagyták.',
-  'settings.help.queue.b1': 'Egyetlen hivatkozás felülbírálhatja a globális kapcsolatszámot vagy a letöltés utáni kicsomagolás kapcsolóját.',
-  'settings.help.queue.b2': 'Egy már a listán szereplő hivatkozás duplikátuma mindig elutasításra kerül, mielőtt egyáltalán elérné a gyűjtőt.',
-
-  'settings.help.limits.title': 'A hoszterkorlátok megkerülése',
-  'settings.help.limits.body': 'Három független módszer, hogy egy ingyenes korlát ne legyen a plafon:',
-  'settings.help.limits.b1':
-    'Kapcsolatok: oszd el a letöltéseket több kimenő útvonal között (egy második vonal, egy proxy, SOCKS), ahelyett hogy mindig a gép saját címén menjenek ki.',
-  'settings.help.limits.b2':
-    'Újracsatlakozás: kérj új nyilvános címet a routertől; csak ez oldja fel a magához a címhez kötött korlátot. Működik UPnP-vel, külső programmal, szkripttel, vagy HTTP-kérések visszajátszásával a router adminoldalán. A meglévő JDownloader LiveHeader/curl szkriptek változatlanul működnek.',
-  'settings.help.limits.b3':
-    'Fiókok: tárold a prémium vagy debrid belépési adataidat (Real-Debrid, AllDebrid, TorBox és mások), hogy a jogosult link teljes sebességgel töltődjön le az ingyenes korlát helyett.',
-  'settings.help.limits.link1': 'Hálózat megnyitása',
-  'settings.help.limits.link3': 'Fiókok megnyitása',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Amikor egy tárhely captchát kér, előbb az általad beállított captcha-fiókokat próbáljuk, az általad megadott sorrendben. Ha egy sincs beállítva, vagy egyik sem tudja megoldani, a captcha eléd kerül, ahelyett hogy csendben meghiúsulna.',
-  'settings.help.captcha.link': 'Captcha beállításainak megnyitása',
-
-  'settings.help.after.title': 'Letöltés után',
-  'settings.help.after.body':
-    'Az archívumokat automatikusan kibontjuk: zip (titkosítva is, WinZip AES és a régi ZipCrypto egyaránt), rar többkötetes készletekkel, 7z, tar, valamint gzip/bzip2/xz/zstd, akár tar van bennük, akár nem. A kibontás tiszta Go, nem kell hozzá külső unrar vagy 7z program. Titkosított archívumnál egy jelszólistát próbálunk végig sorban. A kész fájlt összevetjük a vele érkezett ellenőrzőösszeggel, legyen az .sfv lista, md5/sha1/sha256sum fájl, vagy a kiadás nevében szereplő CRC32.',
-  'settings.help.after.link1': 'Archívumok beállításainak megnyitása',
-  'settings.help.after.link2': 'Letöltések beállításainak megnyitása',
-
-  'settings.help.schedule.title': 'Felügyelet nélküli működés',
-  'settings.help.schedule.body':
-    'Egy heti időbeosztás az óra szerint szünetelteti vagy lassítja a sort, például egy éjszakai idősávban, és az óraátállításkor is helyes marad. Ugyanaz az elgondolás, mint a JDownloader Schedulere.',
-  'settings.help.schedule.link': 'Automatizálás megnyitása',
-
-  'settings.help.instances.title': 'Több példány futtatása',
-  'settings.help.instances.body': 'Adj hozzá egy másik KnightLoadert társként, és a sora ezen a vezérlőpulton is megjelenik. Ugyanazon a hálózaton ez közvetlen hívás a másik példány saját API-jára, ahogy egy böngésző is tenné. Hálózatok között tizenkét szó párosítja a kettőt egy relén keresztül, amelyet magad is üzemeltethetsz.',
-  'settings.help.instances.link': 'Példányok megnyitása',
-
-  'settings.help.access.title': 'Hozzáférés és hibaelhárítás',
-  'settings.help.access.body': 'Egy jelszó az egész felületet lezárja, és onnantól csak munkamenet-sütivel lehet belépni. A Biztonság oldal ezt a második faktorral, az azonosítókulcsokkal és az API-tokenekkel együtt kezeli. A Diagnosztika oldal egy hibajelentéshez csatolható fájlt készít: verzió- és buildadatok, a jelenlegi beállítások minden jelszó nélkül, ennek a folyamatnak a saját legutóbbi naplósorai, és hogy hány goroutine fut.',
-  'settings.help.access.link1': 'Biztonság megnyitása',
-  'settings.help.access.link2': 'Diagnosztika megnyitása',
-
-  'settings.help.advanced.title': 'Minden más',
-  'settings.help.advanced.body':
-    'Ennek a buildnek minden beállítása kiolvasható és módosítható a nyers nevén a Haladó oldalon. Olyanok is, amelyeknek máshol még nincs saját kezelőeleme, például hogy mi legyen egy már letöltött fájl tükrével, és mi történjen, ha egy letöltés már foglalt névre kerülne.',
-  'settings.help.advanced.link': 'Haladó beállítások megnyitása',
   'task.mode.free': 'Ingyenes',
   'task.mode.premium': 'Prémium',
   'settings.about.title': 'A KnightLoaderről',
@@ -3361,11 +3295,9 @@ export const hu: Dict = {
   'settings.categories.torrentFilesOwn': 'Saját',
   'settings.watchDirFilesHint': 'Az ide tett fájlokat automatikusan felvesszük: linklisták (.txt, .crawljob, .magnet), .torrent fájlok, konténerek (.dlc, .ccf, .rsdf) és .nzb fájlok.',
   'container.usenet': 'A(z) {file} a(z) {service} szolgáltatáshoz került. A fájljai itt jelennek meg, amint a(z) {service} lehozta őket a Usenetről.',
-  'settings.help.intake.watchFiles': 'A figyelt mappa felveszi, amit beletesznek: linklisták (.txt, .crawljob, .magnet), .torrent fájlok, konténerek (.dlc, .ccf, .rsdf) és .nzb fájlok.',
   'container.nzbTooBig': 'nagyobb, mint {max}, pedig egy .nzb legfeljebb ekkora lehet',
   'container.noUsenet': 'ez egy .nzb fájl, és itt semmi nem tudja lehozni a Usenetről. Vegyél fel egy Usenet-szervert vagy egy TorBox- vagy Premiumize.me-fiókot a Fiókok alatt.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Egy .nzb, amelyet itt töltesz fel, vagy amelyet a Sonarr vagy a Radarr küld, a saját Usenet-szerveredhez vagy a TorBox- vagy Premiumize.me-fiókodhoz kerül, attól függően, melyik áll előrébb a Fiókok alatti prioritási sorrendben. A saját szervered azonnal letölti az egyes fájlokat. Egy debrid-szolgáltatás először a kiadást tölti le, a benne lévő fájlok pedig ezután úgy töltődnek le, mint bármely más link. A TorBox csak olyan előfizetési csomagoknál fogad .nzb fájlokat, amelyekben benne van a Usenet. Ha a TorBox visszautasítja az elsőt, az az .nzb meghiúsul, hacsak egy másik fiók át nem veszi.',
   'task.remote': '{service} tölti le',
   'task.remoteSeeds': 'Seedek: {n}',
   'accounts.routing.orderHintTorrents': 'A magnet linkek és a .torrent fájlok vagy a beépített torrentklienshez, vagy egy torrenteket fogadó debrid szolgáltatáshoz kerülnek, attól függően, melyik áll feljebb a listában.',

@@ -1,11 +1,11 @@
-// The claims README.md, the manual in docs/, the Help page and the census make
-// about this build, checked against the build.
+// The claims README.md, the manual in docs/ and the census make about this
+// build, checked against the build.
 //
-// Four documents describe this program to a reader who has not run it: the
-// README, the manual, the Help page in Settings, and docs/jd-feature-census.md. They are
-// written by hand at different times, and nothing else compares them to the
-// source or to each other. Such drift breaks no build, test or type check; it
-// is found by a person reading two files at once.
+// Three documents describe this program to a reader who has not run it: the
+// README, the manual and docs/jd-feature-census.md. They are written by hand
+// at different times, and nothing else compares them to the source or to each
+// other. Such drift breaks no build, test or type check; it is found by a
+// person reading two files at once.
 //
 // So this checks the claims that can be settled mechanically and only those. A
 // sentence about what the collector feels like is out of scope; a number, a
@@ -35,8 +35,6 @@ const MANUAL = [...read('mkdocs.yml').matchAll(/^\s+- .*: (\S+\.md)\r?$/gm)]
 const MAIN_GO = read('cmd', 'knightloader', 'main.go');
 const CATALOGUE = read('internal', 'accounts', 'catalogue.go');
 const DOCKERFILE = read('Dockerfile');
-const HELP_TSX = read('web', 'src', 'pages', 'settings', 'Help.tsx');
-const EN_TS = read('web', 'src', 'lib', 'locales', 'en.ts');
 const LOCALES_INDEX = read('web', 'src', 'lib', 'locales', 'index.ts');
 
 const problems = [];
@@ -429,23 +427,6 @@ for (const dir of resolverDirs) {
   }
 }
 
-// Help page key parity, and not a count: a hand-kept number goes stale, while
-// the two sets being equal is both the relationship worth asserting and the one
-// that is checkable.
-
-const helpKeysUsed = new Set([...HELP_TSX.matchAll(/'(settings\.help\.[A-Za-z0-9.]+)'/g)].map((m) => m[1]));
-const helpKeysDefined = new Set([...EN_TS.matchAll(/^ {2}'(settings\.help\.[A-Za-z0-9.]+)':/gm)].map((m) => m[1]));
-
-for (const k of helpKeysUsed) {
-  if (!helpKeysDefined.has(k)) fail(`Help.tsx reads ${k}, and en.ts does not define it`);
-}
-for (const k of helpKeysDefined) {
-  if (!helpKeysUsed.has(k)) fail(`en.ts defines ${k}, and Help.tsx renders nothing with it - dead help text`);
-}
-if (helpKeysUsed.size === 0) {
-  fail('Help.tsx reads no settings.help.* key at all - has the page changed shape?');
-}
-
 // The census counts its own tables. The summary table, the Contents list and
 // each area's heading all state totals somebody typed, so flipping one row's
 // Status falsifies three numbers at once.
@@ -558,5 +539,5 @@ if (problems.length > 0) {
 }
 console.log(
   `ok: ${languages} languages, ${catalogueEnvs.length} service env vars, ${resolverDirs.length} resolvers, ` +
-    `${helpKeysUsed.size} help keys, ${totals.rows} census rows across ${areas.length} areas`,
+    `${totals.rows} census rows across ${areas.length} areas`,
 );

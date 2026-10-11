@@ -1534,72 +1534,6 @@ export const ro: Dict = {
 
   'settings.nav.help': 'Informații',
 
-  'settings.help.intake.title': 'Adăugarea descărcărilor',
-  'settings.help.intake.body':
-    'Lipește linkuri în Colector, câte unul pe rând sau ca text dezordonat. O scanare găsește linkurile oriunde s-ar afla: în mijlocul unei propoziții, mai multe pe un rând sau rupte pe două rânduri de un client de e-mail.',
-  'settings.help.intake.b1': 'Trage un fișier container de linkuri (.dlc, .ccf, .rsdf) sau o listă simplă de linkuri.',
-  'settings.help.intake.b2':
-    'Butoanele Click\'n\'Load de pe paginile de hostere și forumuri funcționează neschimbate. KnightLoader răspunde pe 127.0.0.1:9666, același port pe care îl folosește orice alt manager de descărcări.',
-  'settings.help.intake.b3':
-    'Lipește un URL de pagină în loc de un link de fișier și activează Scanare pentru a extrage fiecare fișier spre care trimite, în loc să descarce pagina în sine.',
-  'settings.help.intake.link1': 'Deschide setările Colector de linkuri',
-
-  'settings.help.collector.title': 'Colectorul, înainte să se descarce ceva',
-  'settings.help.collector.body':
-    'Linkurile noi ajung mai întâi în Colector, nu în coadă: o zonă de așteptare pentru verificarea numelor, dimensiunilor și avertismentelor de duplicat înainte să înceapă ceva. Confirmarea automată poate sări acest pas, cu o întârziere opțională; odată confirmat, un link fie pornește imediat, fie așteaptă în coadă, în funcție de pornirea automată.',
-  'settings.help.collector.link': 'Deschide setările Colector de linkuri',
-
-  'settings.help.rules.title': 'Reguli: pachete, foldere și ce se păstrează',
-  'settings.help.rules.body':
-    'Packagizer redenumește un link, îi alege dosarul și îi setează opțiunile de descărcare la sosire, pe baza unor condiții pe care le scrii tu. Filtrul de linkuri decide dacă un link se păstrează sau nu. Un refuz numește mereu regula care l-a provocat și motivul.',
-  'settings.help.rules.link': 'Deschide Reguli',
-
-  'settings.help.queue.title': 'Gestionarea cozii',
-  'settings.help.queue.body':
-    'Pune pe pauză, reia sau reordonează orice link, singur sau ca pachet întreg. Coada se poate opri în două feluri. Suspendarea lasă neatins tot ce rulează deja, ca să se termine singur. Oprirea imediată a tuturor transferurilor arată mai întâi ce s-ar pierde și continuă doar după ce confirmi. Avertismentul există pentru transferurile care nu pot relua de unde au rămas.',
-  'settings.help.queue.b1': 'Un singur link poate suprascrie numărul global de conexiuni sau comutatorul de extragere după descărcare.',
-  'settings.help.queue.b2': 'Un duplicat al unui link deja prezent în listă e mereu refuzat, înainte să ajungă vreodată în colector.',
-
-  'settings.help.limits.title': 'Ocolirea limitelor hosterului',
-  'settings.help.limits.body': 'Trei moduri independente de a împiedica o limită gratuită să fie plafonul:',
-  'settings.help.limits.b1':
-    'Conexiuni: împarte descărcările pe mai multe căi de ieșire (o a doua linie, un proxy, SOCKS) în loc să ieși mereu prin adresa proprie a acestui calculator.',
-  'settings.help.limits.b2':
-    'Reconectare: cere routerului o nouă adresă publică, singurul lucru care ridică o limită legată de adresa în sine. Merge prin UPnP, printr-un program extern, printr-un script sau prin reluarea unor cereri HTTP către pagina de administrare a routerului. Scripturile JDownloader LiveHeader/curl existente funcționează neschimbate.',
-  'settings.help.limits.b3':
-    'Conturi: salvează date de autentificare premium sau debrid (Real-Debrid, AllDebrid, TorBox și altele), ca un link eligibil să fie preluat la viteză maximă în loc de limita pentru utilizatorii gratuiți.',
-  'settings.help.limits.link1': 'Deschide Rețea',
-  'settings.help.limits.link3': 'Deschide Conturi',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Când un hoster cere un captcha, se încearcă mai întâi conturile de captcha pe care le-ai configurat, în ordinea pe care ai stabilit-o. Dacă niciunul nu e configurat sau niciunul nu îl poate rezolva, captcha-ul ți se prezintă ție, în loc să eșueze în tăcere.',
-  'settings.help.captcha.link': 'Deschide setările Captcha',
-
-  'settings.help.after.title': 'După descărcare',
-  'settings.help.after.body':
-    'Arhivele sunt extrase automat: zip (inclusiv criptat, atât WinZip AES, cât și vechiul ZipCrypto), rar cu seturi multi-volum, 7z, tar și gzip/bzip2/xz/zstd, fie că înfășoară un tar sau nu. Extragerea este scrisă în Go pur și nu are nevoie de programe externe unrar sau 7z. Pentru o arhivă criptată se încearcă în ordine o listă de parole. Un fișier terminat este verificat cu orice sumă de control livrată cu el: o listă .sfv, un fișier md5/sha1/sha256sum sau un CRC32 pe care îl poartă chiar numele lansării.',
-  'settings.help.after.link1': 'Deschide setările Arhive',
-  'settings.help.after.link2': 'Deschide setările Descărcări',
-
-  'settings.help.schedule.title': 'Funcționare nesupravegheată',
-  'settings.help.schedule.body':
-    'Un program săptămânal pune pe pauză sau limitează coada după ceas, de exemplu într-o fereastră de noapte, și rămâne corect și la schimbarea orei de vară. Este aceeași idee ca Scheduler-ul din JDownloader.',
-  'settings.help.schedule.link': 'Deschide Automatizare',
-
-  'settings.help.instances.title': 'Rularea a mai mult de o instanță',
-  'settings.help.instances.body': 'Adaugă un alt KnightLoader ca partener și coada lui apare și pe acest panou. În aceeași rețea e un apel direct la API-ul celeilalte instanțe, așa cum l-ar face un browser. Între rețele, douăsprezece cuvinte le împerechează prin releu pe care îl poți găzdui singur.',
-  'settings.help.instances.link': 'Deschide Instanțe',
-
-  'settings.help.access.title': 'Acces și depanare',
-  'settings.help.access.body': 'O parolă blochează toată interfața, iar accesul se face doar cu un cookie de sesiune. Pagina Securitate o păstrează împreună cu al doilea factor, cheile de acces și tokenurile API. Pagina Diagnostic creează un fișier de atașat la un raport de eroare: informații despre versiune și build, setările curente cu toate parolele eliminate, liniile recente de jurnal ale acestui proces și câte goroutine rulează.',
-  'settings.help.access.link1': 'Deschide Securitate',
-  'settings.help.access.link2': 'Deschide Diagnostic',
-
-  'settings.help.advanced.title': 'Tot restul',
-  'settings.help.advanced.body':
-    'Fiecare setare a acestui build poate fi citită și schimbată după numele ei brut pe pagina Avansat. Asta include câteva care încă nu au un control dedicat nicăieri altundeva, cum ar fi felul în care e tratată o oglindă a unui fișier deja descărcat și ce se întâmplă când o descărcare ar ajunge pe un nume deja folosit.',
-  'settings.help.advanced.link': 'Deschide setările Avansat',
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Despre KnightLoader',
@@ -3368,11 +3302,9 @@ export const ro: Dict = {
   'settings.categories.torrentFilesOwn': 'Proprie',
   'settings.watchDirFilesHint': 'Ce pui aici este preluat automat: liste de linkuri (.txt, .crawljob, .magnet), fișiere .torrent, containere (.dlc, .ccf, .rsdf) și fișiere .nzb.',
   'container.usenet': '{file} a ajuns la {service}. Fișierele lui apar aici imediat ce {service} le-a preluat din Usenet.',
-  'settings.help.intake.watchFiles': 'Un dosar supravegheat preia ce pui în el: liste de linkuri (.txt, .crawljob, .magnet), fișiere .torrent, containere (.dlc, .ccf, .rsdf) și fișiere .nzb.',
   'container.nzbTooBig': 'depășește {max}, cât poate avea cel mult un .nzb',
   'container.noUsenet': 'este un .nzb, iar nimic de aici nu îl poate prelua din Usenet. Adaugă un server Usenet sau un cont TorBox sau Premiumize.me la Conturi.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, încărcat aici sau trimis de Sonarr sau Radarr, ajunge la propriul tău server Usenet sau la contul tău TorBox sau Premiumize.me, în funcție de ce vine primul în ordinea de prioritate de la Conturi. Propriul tău server preia fiecare fișier imediat. Un serviciu debrid preia mai întâi release-ul, iar fișierele lui se descarcă apoi ca orice alt link. TorBox acceptă fișiere .nzb doar la abonamentele care includ Usenet. Dacă TorBox refuză primul, acel .nzb eșuează, afară de cazul în care îl preia un alt cont.',
   'task.remote': 'Se descarcă la {service}',
   'task.remoteSeeds': 'Seed-uri: {n}',
   'accounts.routing.orderHintTorrents': 'Linkurile magnet și fișierele .torrent merg fie la clientul de torrente integrat, fie la un serviciu debrid care acceptă torrente, la cel care se află mai sus în listă.',
