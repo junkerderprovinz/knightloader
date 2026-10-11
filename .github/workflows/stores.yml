@@ -127,12 +127,19 @@ jobs:
           AMO_JWT_SECRET: ${{ secrets.AMO_JWT_SECRET }}
         run: node .github/scripts/amo-listed.mjs
 
+      - name: Write the reviewer notes
+        if: steps.amo.outputs.submit == 'true'
+        env:
+          REVIEW_PHRASE: ${{ secrets.REVIEW_PHRASE }}
+          REVIEW_PASSWORD: ${{ secrets.REVIEW_PASSWORD }}
+        run: node .github/scripts/amo-notes.mjs "$RUNNER_TEMP/amo-metadata.json"
+
       - name: Submit to Firefox Add-ons
         if: steps.amo.outputs.submit == 'true'
         env:
           WEB_EXT_API_KEY: ${{ secrets.AMO_JWT_ISSUER }}
           WEB_EXT_API_SECRET: ${{ secrets.AMO_JWT_SECRET }}
-        run: npx --yes web-ext@8 sign --channel=listed --approval-timeout=0 --source-dir extension/src
+        run: npx --yes web-ext@8 sign --channel=listed --approval-timeout=0 --amo-metadata "$RUNNER_TEMP/amo-metadata.json" --source-dir extension/src
 
   play:
     needs: changes

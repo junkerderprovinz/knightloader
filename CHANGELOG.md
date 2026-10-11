@@ -37,6 +37,18 @@ release's tag.
 
 ## [Unreleased]
 
+### Changed
+
+- **The motion setting is called Animation** in the web interface and the
+  Android app, in every language.
+
+### Fixed
+
+- **The extension says "1 file", not "1 files".** The status line on an
+  instance card used the plural for every count, and in languages with more
+  plural forms, such as Russian, Polish or Arabic, the same form stood after 2
+  and after 5. It uses the form each language's plural rules ask for.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added
