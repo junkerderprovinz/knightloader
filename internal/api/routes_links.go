@@ -183,6 +183,11 @@ func registerLinks(reg *Registry, a *app.App) {
 			if skipped == nil {
 				skipped = []app.SkippedLink{}
 			}
+			if !seesCredentials(r) {
+				for i, s := range skipped {
+					skipped[i] = s.WithoutCredentials()
+				}
+			}
 			writeJSON(w, skipped)
 		})
 	reg.Add(http.MethodDelete, "/api/collector/skipped", "empty that trace",

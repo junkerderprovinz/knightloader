@@ -256,7 +256,7 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// The guard let the request in before the upgrade; a reset in between
 	// has dropped every stream and must not miss this one.
 	if err := a.Auth.Mint(stillAdmitted(a, r), func() error {
-		openStream(a, c, narrowToken(r))
+		openStream(a, c, !seesCredentials(r))
 		return nil
 	}); err != nil {
 		c.Close(websocket.StatusPolicyViolation, "unauthorized")
