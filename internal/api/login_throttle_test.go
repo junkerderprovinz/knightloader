@@ -89,7 +89,8 @@ func TestRevealSharesTheLoginThrottle(t *testing.T) {
 }
 
 // TestTheSignInRoutesRefuseAnOversizedBody: these answer anybody, so a body
-// is read only up to what a password or a passkey answer can need.
+// is read only up to what a password, a passkey answer or a reset code can
+// need.
 func TestTheSignInRoutesRefuseAnOversizedBody(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
@@ -98,7 +99,7 @@ func TestTheSignInRoutesRefuseAnOversizedBody(t *testing.T) {
 		t.Fatal(err)
 	}
 	huge := append(append([]byte(`{"password":"`), bytes.Repeat([]byte("A"), 2*maxAuthBody)...), `"}`...)
-	for _, path := range []string{"/api/auth/login", "/api/auth/passkey/login/finish"} {
+	for _, path := range []string{"/api/auth/login", "/api/auth/passkey/login/finish", "/api/auth/reset/finish"} {
 		resp, err := http.Post(srv.URL+path, "application/json", bytes.NewReader(huge))
 		if err != nil {
 			t.Fatal(err)

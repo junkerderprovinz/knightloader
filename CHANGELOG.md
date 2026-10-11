@@ -92,6 +92,15 @@ release's tag.
   been here before starts with it.
 - **The server keeps a day of download speed** as five minute means in memory,
   for the day's curve. The record starts again with the server.
+- **Forgot password? on the sign-in page.** KnightLoader writes a code where
+  only somebody with access to the machine can read it: the container log (on
+  Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started
+  from a terminal or as a service, or the file `password-reset-code.txt` in the
+  data folder for the desktop app. That code and a new password sign you in. A
+  code is valid for 10 minutes. The reset switches two-factor authentication
+  off, removes every passkey and API token, signs out every other browser and
+  replaces the key sessions are signed with. Event programs and scripts stay
+  as they are.
 
 ### Changed
 
@@ -172,6 +181,14 @@ release's tag.
 - **Under rainbow every selector has a colour of its own,** counted in the
   order the selectors stand on the page.
 - **The web UI follows GlimStone 3.4.0.**
+- **A browser whose session has ended returns to the sign-in page,** after a
+  reset, a changed password or a sign-out everywhere, instead of showing load
+  errors.
+
+### Fixed
+
+- **Android: a connection by address whose token was revoked** says it has to
+  be added again with the twelve words, where it showed "unauthorized".
 
 ## [1.8.4] - 2026-10-08
 

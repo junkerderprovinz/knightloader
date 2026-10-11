@@ -180,6 +180,16 @@ func (s *Store) DeletePasskey(id string) error {
 	return nil
 }
 
+// DeleteAllPasskeys removes every credential and reports how many there were.
+func (s *Store) DeleteAllPasskeys() (int, error) {
+	res, err := s.db.Exec(`DELETE FROM passkeys`)
+	if err != nil {
+		return 0, fmt.Errorf("store: DeleteAllPasskeys: %w", err)
+	}
+	n, _ := res.RowsAffected()
+	return int(n), nil
+}
+
 // newPasskeyID has the same shape as a task id: 8 random bytes in hex.
 func newPasskeyID() string {
 	b := make([]byte, 8)

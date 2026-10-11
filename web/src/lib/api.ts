@@ -1051,11 +1051,27 @@ export class ApiError extends Error {
   }
 }
 
+const unauthorizedListeners = new Set<() => void>();
+
+/**
+ * onUnauthorized calls fn whenever a call is answered with 401, and returns
+ * the way to stop. A 401 can mean this browser's session has ended, by a
+ * sign-out everywhere, a changed password or a reset, but a peer's refusal
+ * arrives with the same status, so the listener asks the server which it was.
+ */
+export function onUnauthorized(fn: () => void): () => void {
+  unauthorizedListeners.add(fn);
+  return () => {
+    unauthorizedListeners.delete(fn);
+  };
+}
+
 /**
  * refusal reads a refused response. A JSON envelope keeps its code, so the
  * refusal can be translated; any other body is the server's sentence.
  */
 export async function refusal(r: Response): Promise<ApiError> {
+  if (r.status === 401) for (const fn of unauthorizedListeners) fn();
   const body = (await r.text()).trim();
   try {
     const p = JSON.parse(body) as {
@@ -2845,6 +2861,37 @@ export async function login(password: string, code = ''): Promise<LoginResult> {
     // A plain-text body, which is the wrong-password case.
   }
   throw new Error(text || String(r.status));
+}
+
+/**
+ * Where the server wrote a password reset code (POST /api/auth/reset). The
+ * code itself never comes back: reading it takes access to the machine.
+ */
+export interface ResetCodePlace {
+  /** `container` and `process` are the server's own output, `file` a file in
+   *  its data folder. */
+  place: 'container' | 'process' | 'file';
+  file?: string;
+  /** The data folder, which only the desktop app names. */
+  dir?: string;
+}
+
+/**
+ * askForResetCode has the server write a reset code. The answer is the same
+ * whether this call wrote one or an earlier one still counts. A server that
+ * could write nowhere refuses with the code `resetUnavailable`.
+ */
+export async function askForResetCode(): Promise<ResetCodePlace> {
+  return json<ResetCodePlace>(await post('/api/auth/reset', {}));
+}
+
+/**
+ * resetPassword sets a new password with the reset code and signs this
+ * browser in. A code that is wrong, used up or too old is refused with the
+ * code `codeRejected`, and too many attempts with status 429.
+ */
+export async function resetPassword(code: string, password: string): Promise<AuthState> {
+  return json<AuthState>(await post('/api/auth/reset/finish', { code, password }));
 }
 
 /** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
