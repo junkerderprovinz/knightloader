@@ -86,11 +86,13 @@ than choices:
   the group key is the credential: a request arriving that way came off a
   socket the relay only joins to connections presenting the same key, so the
   instance accepts it. This is what the phrase bought. What it admits is an
-  allowlist, not the whole API (`relayForwardable` in
-  `internal/api/routes_relay.go`): tasks, links, the queue and the captchas
+  allowlist, not the whole API (`groupRoutes` in
+  `internal/api/group_routes.go`): tasks, links, the queue and the captchas
   holding it up, the instance's look to read and to set, plus reading the auth
   state, the peer list and the addresses the instance answers on. Not the
-  settings, not the accounts, not the phrase itself.
+  settings, not the accounts, not the phrase itself, and no archive or
+  download password in the task list. A refusal carries the code
+  `ownLoginNeeded`, which the app words as "sign in on its own web interface".
 - **The phrase is the whole federation's admission ticket.** Every instance in
   the group is reachable by anything holding it, which is worth knowing before
   putting one on a device that gets lost. Leaving the group on that phone does

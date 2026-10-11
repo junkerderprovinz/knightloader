@@ -9,7 +9,7 @@ package api
 // fault in the JD sidecar, and internal/bridge refuses to start on anything
 // but a 200. The real state lives here instead.
 //
-// Neither route is forwarded to peers (routes_federation.go, routes_relay.go),
+// Neither route is forwarded to peers (routes_federation.go, group_routes.go),
 // since every number describes this machine. Both need a session; a collector
 // sends one of this instance's API tokens as a Bearer header, and the
 // exposition carries folder paths as label values. While Settings.Metrics is

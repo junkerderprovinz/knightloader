@@ -6,7 +6,7 @@ package api
 // per-package level, while Task.Dir only carries an explicit override.
 //
 // The route is on neither forwarding list (routes_federation.go,
-// routes_relay.go), since a peer's answer describes that box's volumes and
+// group_routes.go), since a peer's answer describes that box's volumes and
 // would be drawn under this box's task list. Whatever shows it has to withhold
 // it when the scope is not local, the same way the speed limit field does.
 //

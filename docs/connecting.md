@@ -270,14 +270,26 @@ which is what retired the pairing code: whoever can present the group key
 could have joined the group and been handed one anyway.
 
 That makes the reachable surface the thing to bound, and it is an allowlist
-rather than a property each route happens to have. A sibling may read and
-drive **tasks, links and the queue**, answer or skip the captchas holding them
-up, load a widget captcha's page for the phone and say when it will not load,
-and may read whether a password is set,
+of routes rather than a property each route happens to have. A sibling may
+read and drive **tasks, links and the queue**, answer or skip the captchas
+holding them up, load a widget captcha's page for the phone and say when it
+will not load, and may read whether a password is set,
 who else is in the group, and the instance's own accent and corner shape. It
 cannot read the settings or the accounts, change the password, mint an API
 token, or ask for the phrase back. A route added later is outside the list
-until somebody puts it in.
+until somebody puts it in. Anything off the list answers 403 with the code
+`ownLoginNeeded`, which the web interface and the app turn into "sign in on
+that instance's own web interface"; a path no route serves answers 404.
+
+Some things stay with the instance's owner even on the allowed routes. A
+member picks a download folder only inside the download folder or a
+category's folder, removes rows but never erases the files behind them, and
+reads the tasks without their archive and download passwords, without a
+sign-in or a passkey inside a link, and with each tracker cut to its host.
+Taking a phone or the extension out of the group, and leaving the group, are
+done on each instance's own Pairing page: no member can remove another or make
+an instance leave. A phone or extension that was removed drops the whole group
+the next time it calls the instance that removed it.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached

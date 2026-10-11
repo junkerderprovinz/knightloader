@@ -7,9 +7,9 @@ package api
 //
 // All four sit under /api/diagnostics for security, not filing. The obvious
 // address for the last of them, /api/tasks/{id}/log, falls inside the "tasks/"
-// prefix that routes_relay.go and routes_federation.go both forward. Those
-// allowlists rest on the relay phrase already granting the queue and the task
-// list; log lines are neither. internal/feed's poller logs subscription
+// prefix that routes_federation.go forwards, and beside the task routes
+// group_routes.go lists. Both rest on the relay phrase already granting the
+// queue and the task list; log lines are neither. internal/feed's poller logs subscription
 // addresses verbatim, and a private indexer's feed URL carries its API key in
 // the query string, the same way internal/crawler logs the pages it walks.
 //

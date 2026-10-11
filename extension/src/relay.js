@@ -3,7 +3,7 @@
  *
  * Like the phone, the extension joins the phrase group as a client and asks a
  * sibling to act for it, through routes a group member may reach
- * (relayForwardable in internal/api/routes_relay.go). Membership is the
+ * (groupRoutes in internal/api/group_routes.go). Membership is the
  * credential, so no token, password or address is needed.
  *
  * Each call opens a socket, says hello, asks and closes. The extension only

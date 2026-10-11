@@ -1014,6 +1014,37 @@ func (a *App) defaultDir() string {
 	return a.dlDir
 }
 
+// InsideDownloadFolders reports whether dir lies in the download folder or in
+// a category's folder, the places downloads go without anybody picking one.
+// A template counts by its fixed part, and a ".." anywhere in it is outside,
+// since a placeholder in front of one decides where it climbs to.
+func (a *App) InsideDownloadFolders(dir string) bool {
+	dir = strings.TrimSpace(dir)
+	if dir == "" {
+		return true
+	}
+	if !filepath.IsAbs(dir) || slices.Contains(strings.FieldsFunc(dir, isSlash), "..") {
+		return false
+	}
+	roots := []string{a.defaultDir()}
+	for _, c := range a.Settings.Get().Categories {
+		roots = append(roots, strings.TrimSpace(c.Dir))
+	}
+	want := filepath.Clean(settings.FixedPrefix(dir))
+	for _, root := range roots {
+		if root == "" || !filepath.IsAbs(root) {
+			continue
+		}
+		rel, err := filepath.Rel(filepath.Clean(settings.FixedPrefix(root)), want)
+		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return true
+		}
+	}
+	return false
+}
+
+func isSlash(r rune) bool { return r == '/' || r == '\\' }
+
 // sanitizeSegment turns a package name into something safe to use as one path
 // segment on any platform.
 func sanitizeSegment(s string) string {
