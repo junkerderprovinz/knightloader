@@ -3482,6 +3482,9 @@ export const el: Dict = {
   'picture.reconnect.newAddress': 'Νέα διεύθυνση',
   'picture.reconnect.alt': 'Το KnightLoader ζητά νέα διεύθυνση από τον δρομολογητή. Ο δρομολογητής κόβει τη σύνδεση και επιστρέφει με μια νέα.',
   'picture.seed.target': 'Στόχος {ratio}',
+  'picture.intake.file': 'Αρχεία και κοντέινερ',
+  'picture.intake.account': 'Λογαριασμός debrid',
+  'picture.day.since': 'Μέτρηση από τις {time}',
   'whatsnew.title': 'Τι νέο υπάρχει στην έκδοση {version}',
   'whatsnew.changes': 'Αλλαγές',
   'whatsnew.notesMissing': 'Το KnightLoader δεν μπόρεσε να φορτώσει εδώ τις σημειώσεις έκδοσης. Θα τις βρεις στο GitHub.',
@@ -3510,6 +3513,12 @@ export const el: Dict = {
   'whatsnew.change.weekBand': 'Το «{name}» σχεδιάζει όλη την εβδομάδα ως ταινία.',
   'whatsnew.change.reconnectScene': 'Μια εικόνα δείχνει πώς το KnightLoader ζητά από τον δρομολογητή μια νέα διεύθυνση.',
   'whatsnew.change.seedRing': 'Ένας δακτύλιος δείχνει πόσο κοντά είναι ένα torrent στον στόχο του seeding.',
+  'whatsnew.change.routes':
+    'Το «{name}» σχεδιάζει τις διαδρομές προς τα έξω, και μια δοκιμή βάφει κάθε γραμμή πράσινη ή κόκκινη.',
+  'whatsnew.change.waysIn':
+    'Μια εικόνα δείχνει κάθε δρόμο από τον οποίο ένας σύνδεσμος φτάνει στον συλλέκτη συνδέσμων, και ένα κλικ σε έναν δρόμο ανοίγει τη ρύθμισή του.',
+  'whatsnew.change.dayCurve':
+    'Το «{name}» σχεδιάζει τη σημερινή ημέρα ως καμπύλη: το προγραμματισμένο όριο ταχύτητας ως επιφάνεια και τη μετρημένη ταχύτητα ως γραμμή.',
   'whatsnew.change.infoTile': 'Το «{name}» λέει ποιος φτιάχνει το KnightLoader, απαριθμεί κάθε έκδοση και δείχνει πού θα βρεις βοήθεια.',
   'whatsnew.change.phoneBar': 'Στο τηλέφωνο η κάτω μπάρα κρατά τέσσερις σελίδες, και η τελευταία της θέση ανοίγει όλα τα υπόλοιπα.',
   'whatsnew.change.queueState': 'Τα «{play}» και «{pause}» δείχνουν τι κάνει η ουρά: το γεμάτο κουμπί είναι η κατάστασή της, το άλλο είναι αυτό που πατάς.',

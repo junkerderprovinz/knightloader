@@ -3470,6 +3470,9 @@ export const fr: Dict = {
   'picture.reconnect.newAddress': 'Nouvelle adresse',
   'picture.reconnect.alt': 'KnightLoader demande une nouvelle adresse au routeur. Le routeur coupe la connexion et revient avec une nouvelle.',
   'picture.seed.target': 'Objectif {ratio}',
+  'picture.intake.file': 'Fichiers et conteneurs',
+  'picture.intake.account': 'Compte debrid',
+  'picture.day.since': 'Mesuré depuis {time}',
   'whatsnew.title': 'Nouveautés de {version}',
   'whatsnew.changes': 'Changements',
   'whatsnew.notesMissing': 'KnightLoader n’a pas pu charger les notes de version ici. Vous les trouverez sur GitHub.',
@@ -3498,6 +3501,12 @@ export const fr: Dict = {
   'whatsnew.change.weekBand': '« {name} » dessine toute la semaine sous forme de bande.',
   'whatsnew.change.reconnectScene': 'Une image montre comment KnightLoader demande une nouvelle adresse au routeur.',
   'whatsnew.change.seedRing': 'Un anneau montre à quel point un torrent est proche de son objectif de partage.',
+  'whatsnew.change.routes':
+    '« {name} » dessine les routes vers l’extérieur, et un test colore chaque ligne en vert ou en rouge.',
+  'whatsnew.change.waysIn':
+    'Une image montre chaque chemin par lequel un lien arrive dans le collecteur de liens, et un clic sur un chemin ouvre son réglage.',
+  'whatsnew.change.dayCurve':
+    '« {name} » dessine la journée en cours sous forme de courbe : la limite de vitesse prévue en surface et la vitesse mesurée en ligne.',
   'whatsnew.change.infoTile': '« {name} » dit qui fait KnightLoader, liste chaque version et montre où trouver de l’aide.',
   'whatsnew.change.phoneBar': 'Sur un téléphone, la barre inférieure garde quatre pages, et son dernier emplacement ouvre tout le reste.',
   'whatsnew.change.queueState': '« {play} » et « {pause} » montrent ce que fait la file d’attente : le bouton plein indique son état, l’autre est celui sur lequel appuyer.',

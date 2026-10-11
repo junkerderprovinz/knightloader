@@ -90,14 +90,20 @@ export function useConnections(base: string): ReadonlyMap<string, Connection> {
   );
 }
 
+/** addressOf is where a proxy row is reached, host and port. Empty for kinds without an endpoint. */
+export function addressOf(c: Connection): string {
+  if (!c.host || c.type === 'none' || c.type === 'direct') return '';
+  // IPv6 literals are bracketed before the port is appended.
+  const host = c.host.includes(':') ? `[${c.host}]` : c.host;
+  return c.port ? `${host}:${c.port}` : host;
+}
+
 /**
  * endpointOf is how a proxy row reads, protocol and address, as on the
  * connection page. Empty for kinds without an endpoint, and never with
  * credentials.
  */
 export function endpointOf(c: Connection): string {
-  if (!c.host || c.type === 'none' || c.type === 'direct') return '';
-  // IPv6 literals are bracketed before the port is appended.
-  const host = c.host.includes(':') ? `[${c.host}]` : c.host;
-  return `${c.type}://${c.port ? `${host}:${c.port}` : host}`;
+  const address = addressOf(c);
+  return address && `${c.type}://${address}`;
 }

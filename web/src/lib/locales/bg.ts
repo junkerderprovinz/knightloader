@@ -3482,6 +3482,9 @@ export const bg: Dict = {
   'picture.reconnect.newAddress': 'Нов адрес',
   'picture.reconnect.alt': 'KnightLoader иска от рутера нов адрес. Рутерът прекъсва връзката и се връща с нов.',
   'picture.seed.target': 'Цел {ratio}',
+  'picture.intake.file': 'Файлове и контейнери',
+  'picture.intake.account': 'Debrid акаунт',
+  'picture.day.since': 'Измерва се от {time}',
   'whatsnew.title': 'Ново във версия {version}',
   'whatsnew.changes': 'Промени',
   'whatsnew.notesMissing': 'KnightLoader не успя да зареди бележките към версията тук. Ще ги намериш в GitHub.',
@@ -3510,6 +3513,11 @@ export const bg: Dict = {
   'whatsnew.change.weekBand': '„{name}“ рисува цялата седмица като лента.',
   'whatsnew.change.reconnectScene': 'Изображение показва как KnightLoader иска нов адрес от рутера.',
   'whatsnew.change.seedRing': 'Пръстен показва колко близо е един торент до целта си за сийдване.',
+  'whatsnew.change.routes': '„{name}“ рисува пътищата навън, а тест оцветява всяка линия в зелено или червено.',
+  'whatsnew.change.waysIn':
+    'Изображение показва всеки път, по който връзка стига до събирача на връзки, а щракване върху път отваря настройката му.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ рисува днешния ден като крива: планираното ограничение на скоростта като площ и измерената скорост като линия.',
   'whatsnew.change.infoTile': '„{name}“ казва кой прави KnightLoader, изброява всяка версия и показва къде да получиш помощ.',
   'whatsnew.change.phoneBar': 'На телефон долната лента пази четири страници, а последното ѝ място отваря всичко останало.',
   'whatsnew.change.queueState': '„{play}“ и „{pause}“ показват какво прави опашката: запълненият бутон е състоянието ѝ, а другият е за натискане.',

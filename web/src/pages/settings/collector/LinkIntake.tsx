@@ -1,5 +1,6 @@
 import { Card, Field, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
+import { WaysIn } from '../../../components/pictures/WaysIn';
 import { fetchInstances } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { WATCH_SUPPORTED } from '../../../lib/clipboardWatch';
@@ -10,6 +11,7 @@ import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 import { SettingPathInput } from '../controls';
+import { useWays } from './ways';
 
 /**
  * LinkIntakeCard holds the ways a link reaches the collector without being
@@ -19,7 +21,8 @@ import { SettingPathInput } from '../controls';
  * while its window is hidden, and is not offered where the browser cannot read
  * the clipboard, such as a plain-HTTP LAN address; the row points at Ctrl+V
  * instead. Where there are other instances, copied links can go to one of
- * them.
+ * them. The picture above the switches shows every way in, the ones set up
+ * elsewhere included, and leads to each.
  */
 export function LinkIntakeCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -28,6 +31,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   const { watch, flip, dialog } = useWatchSwitch();
   const [target, setTarget] = useClipboardWatchTarget();
   const { data: peers } = useResource(fetchInstances);
+  const { ways, open } = useWays(watch, peers);
   const watchHint = isDesktop() ? t('intake.clipboardWatchHintDesktop') : t('intake.clipboardWatchHint');
   // A target that has gone offline stays listed, so it can still be seen and
   // changed.
@@ -48,6 +52,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.linkIntakeHint')}>{t('settings.sectionLinkIntake')}</SectionTitle>
+      <WaysIn ways={ways} label={t('settings.sectionLinkIntake')} onPick={open} />
 
       {/* Where the build has no switch, the server's reason stands alone. The
           live reading the switch adds, such as the address it listens on,
