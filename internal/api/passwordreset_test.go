@@ -698,8 +698,10 @@ func TestTheResetCodeStaysOutOfTheLogPageTheLogFileAndTheBundle(t *testing.T) {
 	}
 	const asked = "a password reset code was asked for"
 	// Other tests in the process log sign-ins with an address, so only the
-	// reset's own lines are held to this.
-	ownAddress := regexp.MustCompile(`auth: [^\n]*(password reset|password was reset)[^\n]*(127\.0\.0\.1|::1)`)
+	// reset's own lines are held to this. A line ends at a quote too: the log
+	// page and the bundle carry the lines as JSON strings, with no line break
+	// between them.
+	ownAddress := regexp.MustCompile(`auth: [^\n"]*(password reset|password was reset)[^\n"]*(127\.0\.0\.1|::1)`)
 	bare := strings.ReplaceAll(code, "-", "")
 	for name, text := range map[string][]byte{
 		"the log page": read("/api/diagnostics/log"),
