@@ -43,6 +43,8 @@ vi.mock('../components/SpeedGraph', () => ({ SpeedGraph: () => <div>speed graph<
 vi.mock('../components/VolumeCard', () => ({ VolumeCard: () => <div>volume card</div> }));
 vi.mock('../components/DiskSpaceTile', () => ({ DiskSpaceTile: () => <div>disk card</div> }));
 vi.mock('../components/TorrentCard', () => ({ TorrentCard: () => null }));
+vi.mock('../lib/useTransferFlow', () => ({ useTransferFlow: vi.fn(() => ({})) }));
+vi.mock('../components/pictures/TransferFlow', () => ({ TransferFlow: () => <div>flow picture</div> }));
 vi.mock('../components/InstanceCard', () => ({ InstanceRow: ({ name }: { name: string }) => <div>{name}</div> }));
 vi.mock('../components/EventBell', () => ({ EventBell: () => null }));
 vi.mock('../components/CaptchaModal', () => ({ showCaptcha: vi.fn() }));
@@ -234,8 +236,9 @@ describe('the cards of the overview', () => {
     // Nothing needs the person, so that card gives its place up.
     expect(cards()).toEqual([
       ['speed', 'span 6'],
+      ['flow', 'span 3'],
       ['recent', 'span 3'],
-      ['disk', 'span 3'],
+      ['disk', 'span 6'],
     ]);
   });
 
@@ -263,9 +266,10 @@ describe('the cards of the overview', () => {
     await act(async () => button('Customize')!.click());
     const disk = main().querySelector('[data-ov-card="disk"]')!;
     await act(async () => button('Move up', disk)!.click());
-    expect(cards().map(([id]) => id)).toEqual(['needs', 'speed', 'disk', 'recent']);
+    expect(cards().map(([id]) => id)).toEqual(['needs', 'speed', 'flow', 'disk', 'recent']);
     await act(async () => button('⅔', disk)!.click());
     expect(cards().slice(2)).toEqual([
+      ['flow', 'span 6'],
       ['disk', 'span 6'],
       ['recent', 'span 6'],
     ]);
@@ -276,7 +280,7 @@ describe('the cards of the overview', () => {
     await act(async () => button('Customize')!.click());
     await act(async () => button('Hide', main().querySelector('[data-ov-card="disk"]')!)!.click());
     await act(async () => button('Reset')!.click());
-    expect(cards().map(([id]) => id)).toEqual(['needs', 'speed', 'recent', 'disk']);
+    expect(cards().map(([id]) => id)).toEqual(['needs', 'speed', 'flow', 'recent', 'disk']);
   });
 
   it('keeps one order on a phone, with what needs the person first', async () => {
@@ -287,6 +291,7 @@ describe('the cards of the overview', () => {
     expect(cards()).toEqual([
       ['needs', ''],
       ['speed', ''],
+      ['flow', ''],
       ['recent', ''],
       ['disk', ''],
       ['instances', ''],

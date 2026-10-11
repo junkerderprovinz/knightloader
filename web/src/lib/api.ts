@@ -272,6 +272,35 @@ export async function selectTorrentFiles(id: string, paths: string[], base = '/a
   );
 }
 
+/** core.PieceRun: `len` units in a row that share a state. 'lost' is an
+ *  article no server has, or a block the par2 check found bad. */
+export interface PieceRun {
+  state: 'missing' | 'done' | 'lost' | (string & {});
+  len: number;
+}
+
+/**
+ * core.PieceMap: which parts of one file are here, counted in bytes for an
+ * HTTP download, in articles for a file from the own Usenet servers and in
+ * par2 blocks for a file its check found damaged. The runs cover `total` in
+ * file order, and each head is the unit an open connection is writing at.
+ */
+export interface PieceMap {
+  unit: 'bytes' | 'articles' | 'blocks' | (string & {});
+  total: number;
+  runs: PieceRun[];
+  heads?: number[];
+}
+
+/**
+ * fetchPieces asks which parts of a task's file are here. Null where nothing
+ * can say: a torrent, a task that is not being fetched, and the first moment
+ * after an HTTP download is asked about.
+ */
+export async function fetchPieces(id: string, base = '/api'): Promise<PieceMap | null> {
+  return json<PieceMap | null>(await fetch(`${base}/tasks/${id}/pieces`));
+}
+
 /** One RSS or Atom subscription, mirroring feed.Subscription. */
 export interface FeedSubscription {
   /** http or https only. Also the subscription's identity, so a changed
