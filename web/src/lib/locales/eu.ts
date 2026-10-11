@@ -3469,6 +3469,8 @@ export const eu: Dict = {
   'settings.archives.journeyHint': 'Fitxategi bati deskargatu ondoren gertatzen zaiona, geltokiz geltoki. Geltoki grisa itzalita dago, eta fitxategiak aurrera egiten du gelditu gabe. «{verifying}» urratsak «{downloads}» ataleko «{checksums}» etengailuari jarraitzen dio. «{repairing}» urratsak zure Usenet zerbitzari bat behar du. «{moving}» urratsak «{workDir}» edo erauzitako fitxategientzako helmuga bat behar du. «{cleanup}» urratsa saltatu egiten da artxiboa gordetzen den bitartean.',
   'picture.journey.move': 'Mugitzen',
   'picture.journey.cleanup': 'Garbitzen',
+  'picture.journey.wayTo': 'Joan «{setting}» ezarpenera, {page} atalean',
+  'picture.journey.wayHere': 'Joan «{setting}» ezarpenera, orri honetan',
   'picture.reconnect.router': 'Bideratzailea',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Helbide zaharra',

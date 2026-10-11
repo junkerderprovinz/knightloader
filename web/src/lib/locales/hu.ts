@@ -3474,6 +3474,8 @@ export const hu: Dict = {
   'settings.archives.journeyHint': 'Mi történik egy fájllal a letöltés után, állomásról állomásra. A szürke állomás ki van kapcsolva, a fájl elhalad mellette. „{verifying}”: a „{downloads}” lap „{checksums}” kapcsolóját követi. „{repairing}”: saját Usenet-szerver kell hozzá. „{moving}”: „{workDir}” vagy a kibontott fájlok célhelye kell hozzá. „{cleanup}”: kimarad, amíg az archívum megmarad.',
   'picture.journey.move': 'Áthelyezés',
   'picture.journey.cleanup': 'Takarítás',
+  'picture.journey.wayTo': 'Ugrás ide: „{setting}”, {page}',
+  'picture.journey.wayHere': 'Ugrás ide: „{setting}”, ezen az oldalon',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Régi cím',

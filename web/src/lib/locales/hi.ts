@@ -3474,6 +3474,8 @@ export const hi: Dict = {
   'settings.archives.journeyHint': 'डाउनलोड पूरा होने के बाद फ़ाइल के साथ क्या होता है, एक-एक स्टेशन करके। धूसर स्टेशन बंद है और फ़ाइल उसे पार कर जाती है। “{verifying}” “{downloads}” के स्विच “{checksums}” के अनुसार चलता है। “{repairing}” के लिए आपका अपना Usenet सर्वर चाहिए। “{moving}” के लिए “{workDir}” या निकाली गई फ़ाइलों की कोई जगह चाहिए। “{cleanup}” तब तक छोड़ दिया जाता है जब तक आर्काइव रखा जाता है।',
   'picture.journey.move': 'ले जाया जा रहा है',
   'picture.journey.cleanup': 'सफ़ाई हो रही है',
+  'picture.journey.wayTo': '{page} में “{setting}” पर जाओ',
+  'picture.journey.wayHere': 'इसी पेज पर “{setting}” पर जाओ',
   'picture.reconnect.router': 'राउटर',
   'picture.reconnect.internet': 'इंटरनेट',
   'picture.reconnect.oldAddress': 'पुराना पता',

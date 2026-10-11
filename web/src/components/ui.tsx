@@ -862,7 +862,7 @@ function placeBubble(r: DOMRect, w: number, h: number): { left: number; top: num
 /** How long a hover has to hold still before the bubble opens. */
 const TOOLTIP_DELAY_MS = 400;
 
-export interface TooltipHandle<T extends HTMLElement> {
+export interface TooltipHandle<T extends Element> {
   /** Spread onto the element the tooltip is ABOUT. */
   triggerProps: {
     // RefObject<T | null>, matching what useRef<T>(null) returns under React
@@ -891,7 +891,7 @@ export interface TooltipHandle<T extends HTMLElement> {
  * `disabled` is whether the trigger is disabled; the bubble closes every time
  * it flips.
  */
-export function useTooltip<T extends HTMLElement = HTMLElement>(
+export function useTooltip<T extends Element = HTMLElement>(
   content: ReactNode,
   disabled = false,
 ): TooltipHandle<T> {

@@ -647,6 +647,22 @@ body {
   transition: none;
 }
 
+/* A station that leads to its setting looks like the others at rest. A ring
+   answers the pointer and the focus. */
+.kl-station-way {
+  cursor: pointer;
+  outline: none;
+}
+.kl-station-ring {
+  fill: none;
+  stroke: var(--accent-glyph);
+  stroke-width: 2;
+  opacity: 0;
+}
+.kl-station-way:is(:hover, :focus-visible) .kl-station-ring {
+  opacity: 1;
+}
+
 /* The group as a net: one arrangement for a wide box and one with every node
    on the same side for a narrow one. */
 .kl-net {

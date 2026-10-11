@@ -3473,6 +3473,8 @@ export const sv: Dict = {
   'settings.archives.journeyHint': 'Vad som händer med en fil när den har laddats ned, station för station. En grå station är av och filen går förbi den. ”{verifying}” följer reglaget ”{checksums}” under ”{downloads}”. ”{repairing}” kräver en egen Usenet-server. ”{moving}” kräver ”{workDir}” eller en plats för de uppackade filerna. ”{cleanup}” hoppas över så länge arkivet behålls.',
   'picture.journey.move': 'Flyttar',
   'picture.journey.cleanup': 'Städar',
+  'picture.journey.wayTo': 'Gå till ”{setting}” under {page}',
+  'picture.journey.wayHere': 'Gå till ”{setting}” på den här sidan',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Gammal adress',

@@ -3718,6 +3718,8 @@ export const en = {
   'settings.archives.journeyHint': 'What happens to a file once it has downloaded, station by station. A grey station is switched off, and the file passes it. “{verifying}” follows the switch “{checksums}” under “{downloads}”. “{repairing}” needs a Usenet server of your own. “{moving}” needs “{workDir}” or a place for the unpacked files. “{cleanup}” is skipped while the archive is kept.',
   'picture.journey.move': 'Moving',
   'picture.journey.cleanup': 'Cleaning up',
+  'picture.journey.wayTo': 'Go to "{setting}" under {page}',
+  'picture.journey.wayHere': 'Go to "{setting}" on this page',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Old address',

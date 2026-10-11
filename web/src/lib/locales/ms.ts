@@ -3472,6 +3472,8 @@ export const ms: Dict = {
   'settings.archives.journeyHint': 'Apa yang berlaku kepada fail selepas dimuat turun, stesen demi stesen. Stesen kelabu dimatikan dan fail melepasinya. “{verifying}” mengikut suis “{checksums}” di bawah “{downloads}”. “{repairing}” memerlukan pelayan Usenet anda sendiri. “{moving}” memerlukan “{workDir}” atau destinasi untuk fail yang diekstrak. “{cleanup}” dilangkau selagi arkib disimpan.',
   'picture.journey.move': 'Memindahkan',
   'picture.journey.cleanup': 'Membersihkan',
+  'picture.journey.wayTo': 'Pergi ke “{setting}” di bawah {page}',
+  'picture.journey.wayHere': 'Pergi ke “{setting}” pada halaman ini',
   'picture.reconnect.router': 'Penghala',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Alamat lama',

@@ -3487,6 +3487,8 @@ export const hr: Dict = {
   'settings.archives.journeyHint': 'Što se događa s datotekom nakon preuzimanja, postaju po postaju. Siva postaja je isključena i datoteka je prolazi. „{verifying}” prati prekidač „{checksums}” pod „{downloads}”. „{repairing}” treba tvoj vlastiti Usenet poslužitelj. „{moving}” treba „{workDir}” ili odredište za raspakirane datoteke. „{cleanup}” se preskače dok se arhiva zadržava.',
   'picture.journey.move': 'Premještanje',
   'picture.journey.cleanup': 'Čišćenje',
+  'picture.journey.wayTo': 'Idi na „{setting}” u odjeljku {page}',
+  'picture.journey.wayHere': 'Idi na „{setting}” na ovoj stranici',
   'picture.reconnect.router': 'Usmjerivač',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stara adresa',

@@ -3465,6 +3465,8 @@ export const es: Dict = {
   'settings.archives.journeyHint': 'Lo que le ocurre a un archivo una vez descargado, estación por estación. Una estación gris está desactivada y el archivo pasa de largo. «{verifying}» sigue el interruptor «{checksums}» en «{downloads}». «{repairing}» necesita un servidor de Usenet propio. «{moving}» necesita «{workDir}» o un destino para los archivos extraídos. «{cleanup}» se omite mientras se conserve el comprimido.',
   'picture.journey.move': 'Moviendo',
   'picture.journey.cleanup': 'Limpiando',
+  'picture.journey.wayTo': 'Ir a «{setting}» en {page}',
+  'picture.journey.wayHere': 'Ir a «{setting}» en esta página',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Dirección antigua',

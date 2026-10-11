@@ -3464,6 +3464,8 @@ export const lv: Dict = {
   'settings.archives.journeyHint': 'Kas notiek ar failu pēc lejupielādes, staciju pa stacijai. Pelēka stacija ir izslēgta, un fails tai paiet garām. „{verifying}“ seko slēdzim „{checksums}“ sadaļā „{downloads}“. „{repairing}“ vajag tavu paša Usenet serveri. „{moving}“ vajag „{workDir}“ vai vietu izpakotajiem failiem. „{cleanup}“ tiek izlaista, kamēr arhīvs tiek paturēts.',
   'picture.journey.move': 'Pārvieto',
   'picture.journey.cleanup': 'Sakopj',
+  'picture.journey.wayTo': 'Doties uz „{setting}“ sadaļā {page}',
+  'picture.journey.wayHere': 'Doties uz „{setting}“ šajā lapā',
   'picture.reconnect.router': 'Maršrutētājs',
   'picture.reconnect.internet': 'Internets',
   'picture.reconnect.oldAddress': 'Vecā adrese',

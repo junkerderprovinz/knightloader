@@ -3471,6 +3471,8 @@ export const th: Dict = {
   'settings.archives.journeyHint': 'สิ่งที่เกิดขึ้นกับไฟล์เมื่อดาวน์โหลดเสร็จ ทีละสถานี สถานีสีเทาปิดอยู่และไฟล์จะผ่านไปโดยไม่หยุด “{verifying}” ทำตามสวิตช์ “{checksums}” ใน “{downloads}” “{repairing}” ต้องมีเซิร์ฟเวอร์ Usenet ของคุณเอง “{moving}” ต้องมี “{workDir}” หรือปลายทางสำหรับไฟล์ที่แตกแล้ว “{cleanup}” จะถูกข้ามตราบใดที่ยังเก็บไฟล์บีบอัดไว้',
   'picture.journey.move': 'กำลังย้าย',
   'picture.journey.cleanup': 'กำลังเก็บกวาด',
+  'picture.journey.wayTo': 'ไปที่ “{setting}” ใน {page}',
+  'picture.journey.wayHere': 'ไปที่ “{setting}” ในหน้านี้',
   'picture.reconnect.router': 'เราเตอร์',
   'picture.reconnect.internet': 'อินเทอร์เน็ต',
   'picture.reconnect.oldAddress': 'ที่อยู่เดิม',

@@ -3483,6 +3483,8 @@ export const sk: Dict = {
   'settings.archives.journeyHint': 'Čo sa deje so súborom po stiahnutí, stanicu po stanici. Sivá stanica je vypnutá a súbor ju minie. „{verifying}“ sa riadi prepínačom „{checksums}“ v časti „{downloads}“. „{repairing}“ potrebuje vlastný server Usenet. „{moving}“ potrebuje „{workDir}“ alebo cieľ pre rozbalené súbory. „{cleanup}“ sa vynechá, kým sa archív necháva.',
   'picture.journey.move': 'Presúva sa',
   'picture.journey.cleanup': 'Upratuje sa',
+  'picture.journey.wayTo': 'Prejsť na „{setting}“ v sekcii {page}',
+  'picture.journey.wayHere': 'Prejsť na „{setting}“ na tejto stránke',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stará adresa',

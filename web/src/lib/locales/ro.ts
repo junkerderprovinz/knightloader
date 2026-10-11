@@ -3481,6 +3481,8 @@ export const ro: Dict = {
   'settings.archives.journeyHint': 'Ce se întâmplă cu un fișier după ce s-a descărcat, stație cu stație. O stație gri este oprită, iar fișierul trece pe lângă ea. „{verifying}” urmează comutatorul „{checksums}” din „{downloads}”. „{repairing}” are nevoie de propriul tău server Usenet. „{moving}” are nevoie de „{workDir}” sau de o destinație pentru fișierele dezarhivate. „{cleanup}” este sărită cât timp arhiva este păstrată.',
   'picture.journey.move': 'Se mută',
   'picture.journey.cleanup': 'Se curăță',
+  'picture.journey.wayTo': 'Mergi la „{setting}” în {page}',
+  'picture.journey.wayHere': 'Mergi la „{setting}” pe această pagină',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Adresa veche',

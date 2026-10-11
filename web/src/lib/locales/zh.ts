@@ -3456,6 +3456,8 @@ export const zh: Dict = {
   'settings.archives.journeyHint': '文件下载完成后会经历什么，一站一站地展示。灰色的站点已关闭，文件会直接经过。“{verifying}”取决于“{downloads}”里的开关“{checksums}”。“{repairing}”需要你自己的 Usenet 服务器。“{moving}”需要设置“{workDir}”，或为解压出的文件指定去处。只要保留压缩包，就会跳过“{cleanup}”。',
   'picture.journey.move': '移动中',
   'picture.journey.cleanup': '清理中',
+  'picture.journey.wayTo': '前往{page}中的“{setting}”',
+  'picture.journey.wayHere': '前往本页的“{setting}”',
   'picture.reconnect.router': '路由器',
   'picture.reconnect.internet': '互联网',
   'picture.reconnect.oldAddress': '旧地址',

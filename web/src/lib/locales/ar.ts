@@ -3471,6 +3471,8 @@ export const ar: Dict = {
   'settings.archives.journeyHint': 'ما يحدث للملف بعد اكتمال تنزيله، محطة بعد محطة. المحطة الرمادية متوقفة، والملف يمرّ بها دون توقف. «{verifying}» تتبع المفتاح «{checksums}» في «{downloads}». «{repairing}» تحتاج إلى خادم Usenet خاص بك. «{moving}» تحتاج إلى «{workDir}» أو إلى وجهة للملفات المفكوكة. «{cleanup}» تُتخطّى ما دام الأرشيف باقيًا.',
   'picture.journey.move': 'جارٍ النقل',
   'picture.journey.cleanup': 'جارٍ التنظيف',
+  'picture.journey.wayTo': 'الانتقال إلى «{setting}» ضمن {page}',
+  'picture.journey.wayHere': 'الانتقال إلى «{setting}» في هذه الصفحة',
   'picture.reconnect.router': 'الموجّه',
   'picture.reconnect.internet': 'الإنترنت',
   'picture.reconnect.oldAddress': 'العنوان القديم',

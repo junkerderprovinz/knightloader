@@ -3463,6 +3463,8 @@ export const pt: Dict = {
   'settings.archives.journeyHint': 'O que acontece a um ficheiro depois de transferido, estação a estação. Uma estação cinzenta está desligada e o ficheiro passa por ela sem parar. «{verifying}» segue o interruptor «{checksums}» em «{downloads}». «{repairing}» precisa de um servidor Usenet teu. «{moving}» precisa de «{workDir}» ou de um destino para os ficheiros extraídos. «{cleanup}» é ignorada enquanto o arquivo for mantido.',
   'picture.journey.move': 'A mover',
   'picture.journey.cleanup': 'A limpar',
+  'picture.journey.wayTo': 'Ir para «{setting}» em {page}',
+  'picture.journey.wayHere': 'Ir para «{setting}» nesta página',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Endereço antigo',

@@ -3469,6 +3469,8 @@ export const is: Dict = {
   'settings.archives.journeyHint': 'Það sem gerist við skrá þegar hún hefur verið sótt, stöð fyrir stöð. Grá stöð er óvirk og skráin fer fram hjá henni. „{verifying}“ fylgir rofanum „{checksums}“ undir „{downloads}“. „{repairing}“ þarf þinn eigin Usenet-netþjón. „{moving}“ þarf „{workDir}“ eða áfangastað fyrir afþjöppuðu skrárnar. „{cleanup}“ er sleppt á meðan safnskránni er haldið.',
   'picture.journey.move': 'Færir',
   'picture.journey.cleanup': 'Tekur til',
+  'picture.journey.wayTo': 'Fara í „{setting}“ undir {page}',
+  'picture.journey.wayHere': 'Fara í „{setting}“ á þessari síðu',
   'picture.reconnect.router': 'Beinir',
   'picture.reconnect.internet': 'Internetið',
   'picture.reconnect.oldAddress': 'Gamalt vistfang',

@@ -3456,6 +3456,8 @@ export const nl: Dict = {
   'settings.archives.journeyHint': 'Wat er met een bestand gebeurt zodra het binnen is, station voor station. Een grijs station staat uit en het bestand gaat eraan voorbij. “{verifying}” volgt de schakelaar “{checksums}” onder “{downloads}”. “{repairing}” heeft een eigen Usenet-server nodig. “{moving}” heeft “{workDir}” of een bestemming voor de uitgepakte bestanden nodig. “{cleanup}” wordt overgeslagen zolang het archief blijft.',
   'picture.journey.move': 'Verplaatsen',
   'picture.journey.cleanup': 'Opruimen',
+  'picture.journey.wayTo': 'Ga naar “{setting}” onder {page}',
+  'picture.journey.wayHere': 'Ga naar “{setting}” op deze pagina',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Oud adres',
