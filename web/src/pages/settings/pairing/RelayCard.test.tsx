@@ -45,6 +45,8 @@ const group = {
   apps: [],
   joinedAgo: 0,
   memberSeen: false,
+  pending: [],
+  awaiting: false,
 } satisfies ConnectInfo;
 
 const relay: RelayConfig = { mode: 'project', relayUrl: '', keySet: false, connected: false, serve: false, serveClients: 0 };

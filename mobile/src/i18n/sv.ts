@@ -121,6 +121,13 @@ export const sv: Dict = {
   'error.federationOff': 'Systerinstanser är avstängda på instansen du är ansluten till, så den når inte de andra.',
   'error.addAgain': 'Den här anslutningen sparades av en äldre version av appen och fungerar inte längre. Ta bort den och anslut igen med de tolv orden.',
   'error.ownLoginNeeded': 'Instansen tillåter det här bara från sitt eget webbgränssnitt. Logga in där för att göra det.',
+  'error.memberPending': 'Den här enheten väntar på godkännande. Godkänn den på en av dina instanser under Inställningar, Parkoppling.',
+  'error.memberKeyChanged': 'Instansen känner den här enheten under en annan nyckel. Ta bort enheten där under Inställningar, Parkoppling och parkoppla den igen med de tolv orden.',
+  'error.memberUnsigned': 'Instansen väntar sig signerade förfrågningar från den här enheten, men den här var inte signerad. Ta bort enheten där under Inställningar, Parkoppling och parkoppla den igen med de tolv orden.',
+  'error.memberBusy': 'Den här enheten har för många förfrågningar som väntar på instansen. Försök igen om en stund.',
+  'error.groupFull': 'Gruppen har redan så många enheter som den rymmer. Ta bort en under Inställningar, Parkoppling på en instans och försök igen.',
+  'error.groupJoinsBusy': 'För många nya enheter gick med i gruppen under den senaste timmen. Försök igen senare.',
+  'error.memberNotPinned': 'Instansen kunde inte spara den här enhetens nyckel. Försök igen om en stund.',
   'addDownload.cancel': 'Avbryt',
   'addDownload.button': 'Lägg till',
 

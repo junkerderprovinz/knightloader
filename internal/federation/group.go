@@ -1,7 +1,9 @@
 package federation
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"os"
 	"sort"
 	"sync"
@@ -37,6 +39,35 @@ type GroupState struct {
 	// Its calls are turned away; scanning the phrase again gives the app a
 	// new id, so it comes back as a new phone.
 	Removed map[string]time.Time `json:"removed,omitempty"`
+	// Keys is the member key pinned to every member id that signed a call
+	// here, and Revoked every key taken out of the group, by its hex, with
+	// when. See relay/member.go.
+	Keys    map[string]PinnedKey `json:"keys,omitempty"`
+	Revoked map[string]time.Time `json:"revoked,omitempty"`
+	// KeysSince is when this instance first held the group with member keys.
+	// Members on a release before keys were never approved, since there was
+	// nothing to approve: Legacy holds the ids of the phones and browsers known
+	// at that moment and of every member seen announcing without keys since.
+	// Their keys count as approved when they are pinned. An id taken out stays
+	// in it as false, so it is never added again.
+	KeysSince time.Time       `json:"keysSince"`
+	Legacy    map[string]bool `json:"legacy,omitempty"`
+	// TrustUntil is set when this instance entered the words of an existing
+	// group: the instances it meets before then were there already, and count
+	// as approved here.
+	TrustUntil time.Time `json:"trustUntil"`
+}
+
+// PinnedKey is the key a member signs with, pinned on its first signed call.
+type PinnedKey struct {
+	Key  []byte `json:"key"`
+	Kind string `json:"kind"`
+	// Used is when the key last signed a call here, kept to within
+	// lastSeenStep.
+	Used time.Time `json:"used"`
+	// Approved is whether somebody at an instance let the member in. A key
+	// that is pinned but not approved is refused.
+	Approved bool `json:"approved"`
 }
 
 // KnownApp is a phone or a browser extension that joined the group with the
@@ -72,12 +103,30 @@ const lastSeenStep = time.Minute
 // the cap the phone seen longest ago makes room.
 const maxApps = 32
 
+// trustWindow is how long an instance that entered the words of an existing
+// group takes the instances it meets as members already there.
+const trustWindow = 10 * time.Minute
+
 func loadGroupFile(path string) *groupFile {
 	g := &groupFile{path: path}
 	if b, err := os.ReadFile(path); err == nil {
 		_ = json.Unmarshal(b, &g.state)
 	}
+	if st := &g.state; !st.JoinedAt.IsZero() && st.KeysSince.IsZero() {
+		beforeKeysLocked(st, time.Now())
+		_ = g.flushLocked()
+	}
 	return g
+}
+
+// beforeKeysLocked marks a group this instance held before member keys: the
+// phones and browsers it knows are taken as approved.
+func beforeKeysLocked(st *GroupState, now time.Time) {
+	st.KeysSince = now
+	st.Legacy = map[string]bool{}
+	for id := range st.Apps {
+		st.Legacy[id] = true
+	}
 }
 
 func (g *groupFile) flushLocked() error {
@@ -89,11 +138,27 @@ func (g *groupFile) flushLocked() error {
 }
 
 // SetJoined records that this instance entered a group at at, or left its
-// group when at is zero. Nobody has been seen in the group that follows.
-func (m *Manager) SetJoined(at time.Time) error {
+// group when at is zero. Nobody has been seen in the group that follows, and
+// every member that signs in has to be approved, apart from the instances met
+// within trustWindow when this instance entered the words of a group that
+// already existed.
+func (m *Manager) SetJoined(at time.Time, entered bool) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	m.group.state = GroupState{JoinedAt: at, KeysSince: at}
+	if entered {
+		m.group.state.TrustUntil = at.Add(trustWindow)
+	}
+	return m.group.flushLocked()
+}
+
+// SetJoinedBeforeKeys records a group this instance held before it knew when
+// it joined, and so before member keys.
+func (m *Manager) SetJoinedBeforeKeys(at time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	m.group.state = GroupState{JoinedAt: at}
+	beforeKeysLocked(&m.group.state, at)
 	return m.group.flushLocked()
 }
 
@@ -117,14 +182,19 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	rt := m.rt
 	m.mu.Unlock()
 	connected := map[string]relay.Announce{}
+	var unsigned []string
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
 			if sib.Client && clientDeployments[sib.Deployment] {
 				sib.Name = relay.ClipName(sib.Name)
 				connected[appID(sib)] = sib
+				if !sib.Signs {
+					unsigned = append(unsigned, appID(sib))
+				}
 			}
 		}
 	}
+	m.noteLegacy(unsigned)
 
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
@@ -193,12 +263,19 @@ func forgetStalestApp(apps map[string]KnownApp) {
 	delete(apps, stalest)
 }
 
-// RemoveApp takes phone id out of the group at now: its card goes and its
-// calls are turned away from then on.
+// ErrIsInstance is what RemoveApp answers for an id whose pinned key signs as
+// an instance. An instance leaves through RemoveMember instead.
+var ErrIsInstance = errors.New("federation: that id belongs to an instance of the group, not to a phone or a browser")
+
+// RemoveApp takes phone id out of the group at now: its card goes, its pinned
+// key is revoked and its calls are turned away from then on.
 func (m *Manager) RemoveApp(id string, now time.Time) error {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
+	if pin, ok := st.Keys[id]; ok && pin.Kind == relay.KindInstance {
+		return ErrIsInstance
+	}
 	if _, done := st.Removed[id]; done {
 		return nil
 	}
@@ -207,7 +284,52 @@ func (m *Manager) RemoveApp(id string, now time.Time) error {
 		st.Removed = map[string]time.Time{}
 	}
 	st.Removed[id] = now
+	if st.Legacy != nil {
+		st.Legacy[id] = false
+	}
+	revokeLocked(st, id, now)
 	return m.group.flushLocked()
+}
+
+// RemoveMember revokes the key pinned to instance id at now. Its id stays
+// free, so the instance can enter the phrase again and join under a new key;
+// the old key never speaks here again.
+func (m *Manager) RemoveMember(id string, now time.Time) error {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	st := &m.group.state
+	legacy := st.Legacy[id]
+	if legacy {
+		st.Legacy[id] = false
+	}
+	if !revokeLocked(st, id, now) && !legacy {
+		return nil
+	}
+	return m.group.flushLocked()
+}
+
+// revokeLocked moves the key pinned to id onto the revoked list and reports
+// whether there was one.
+func revokeLocked(st *GroupState, id string, now time.Time) bool {
+	pin, ok := st.Keys[id]
+	if !ok {
+		return false
+	}
+	delete(st.Keys, id)
+	if st.Revoked == nil {
+		st.Revoked = map[string]time.Time{}
+	}
+	if len(st.Revoked) >= maxRevoked {
+		oldest := ""
+		for key, at := range st.Revoked {
+			if oldest == "" || at.Before(st.Revoked[oldest]) {
+				oldest = key
+			}
+		}
+		delete(st.Revoked, oldest)
+	}
+	st.Revoked[hex.EncodeToString(pin.Key)] = now
+	return true
 }
 
 // Removed reports whether phone id was taken out of the group.

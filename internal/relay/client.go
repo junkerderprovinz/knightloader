@@ -12,6 +12,7 @@ package relay
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
@@ -82,6 +83,9 @@ type ClientOptions struct {
 	FrameKey []byte
 	// Self is what siblings see on their Instances page.
 	Self Announce
+	// Member is this instance's member key. Every call it makes is signed
+	// with it, as Self.InstanceID; nil sends calls unsigned.
+	Member ed25519.PrivateKey
 	// Serve answers calls siblings make to this instance. With a nil Serve
 	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
@@ -108,6 +112,7 @@ type Client struct {
 	// the process.
 	frameKey []byte
 	self     Announce
+	member   ed25519.PrivateKey
 	serve    ProxyHandler
 	replay   *ReplayGuard
 	onChange func()
@@ -156,6 +161,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		key:        opts.Key,
 		frameKey:   opts.FrameKey,
 		self:       opts.Self,
+		member:     opts.Member,
 		serve:      opts.Serve,
 		replay:     replay,
 		onChange:   opts.OnChange,
@@ -255,9 +261,11 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 
 	ctx, cancel := context.WithTimeout(ctx, proxyTimeout)
 	defer cancel()
-	sealed, err := SealCall(c.frameKey, id, target, ProxyCall{
-		Method: method, Path: path, Body: body, Authorization: authorization,
-	})
+	call := ProxyCall{Method: method, Path: path, Body: body, Authorization: authorization}
+	if c.member != nil {
+		call.From, call.Kind = c.self.InstanceID, KindInstance
+	}
+	sealed, err := SealSignedCall(c.frameKey, c.member, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -460,14 +468,19 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 // not open is dropped without a reply: its sender is on this relay key without
 // this group's secret, or the frame was rewritten, and an error reply would
 // only confirm that the key was accepted. Nor does one that is old or ran
-// before get a reply, which is a relay sending a captured frame again.
+// before get a reply, which is a relay sending a captured frame again. A call
+// that opens but carries a broken signature is answered with the reason.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
 	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
-	if err != nil || !c.replay.Admit(call) {
-		return
-	}
 	result := ProxyResult{Status: http.StatusNotImplemented}
-	if c.serve != nil {
+	switch {
+	case errors.Is(err, ErrSignature):
+		// Only a member can seal this, so it learns nothing from the answer
+		// and gets one instead of a timeout.
+		result = ProxyResult{Status: http.StatusForbidden, Body: SignatureRefused}
+	case err != nil || !c.replay.Admit(call):
+		return
+	case c.serve != nil:
 		serveCtx, cancel := context.WithTimeout(ctx, proxyTimeout)
 		result.Status, result.Body = c.serve(serveCtx, call)
 		cancel()

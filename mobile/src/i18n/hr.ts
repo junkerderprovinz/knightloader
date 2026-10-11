@@ -121,6 +121,13 @@ export const hr: Dict = {
   'error.federationOff': 'Na instanci s kojom si povezan srodne instance su isključene, pa ona ne dopire do ostalih.',
   'error.addAgain': 'Ovu je vezu spremila starija verzija aplikacije i više ne radi. Ukloni je i ponovno se poveži s dvanaest riječi.',
   'error.ownLoginNeeded': 'Instanca to dopušta samo iz svog web sučelja. Prijavi se ondje da to napraviš.',
+  'error.memberPending': 'Ovaj uređaj čeka odobrenje. Odobri ga na jednoj od svojih instanci pod Postavke, Uparivanje.',
+  'error.memberKeyChanged': 'Instanca poznaje ovaj uređaj pod drugim ključem. Ukloni ondje uređaj pod Postavke, Uparivanje i ponovno ga upari s dvanaest riječi.',
+  'error.memberUnsigned': 'Instanca od ovog uređaja očekuje potpisane zahtjeve, ali ovaj nije bio potpisan. Ukloni ondje uređaj pod Postavke, Uparivanje i ponovno ga upari s dvanaest riječi.',
+  'error.memberBusy': 'Ovaj uređaj ima previše zahtjeva koji čekaju na instanci. Pokušaj ponovno za trenutak.',
+  'error.groupFull': 'Grupa već ima onoliko uređaja koliko može primiti. Ukloni jedan pod Postavke, Uparivanje na nekoj instanci i pokušaj ponovno.',
+  'error.groupJoinsBusy': 'U posljednjih sat vremena grupi se pridružilo previše novih uređaja. Pokušaj ponovno kasnije.',
+  'error.memberNotPinned': 'Instanca nije mogla spremiti ključ ovog uređaja. Pokušaj ponovno za trenutak.',
   'addDownload.cancel': 'Odustani',
   'addDownload.button': 'Dodaj',
 

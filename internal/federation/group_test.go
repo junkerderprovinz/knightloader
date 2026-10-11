@@ -12,7 +12,7 @@ import (
 func TestGroupRemembersABoundedNumberOfPhones(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
@@ -54,7 +54,7 @@ func TestGroupKeepsTheFirstTimeAMemberCame(t *testing.T) {
 		t.Fatal(err)
 	}
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 
@@ -92,14 +92,14 @@ func TestGroupKeepsTheFirstTimeAMemberCame(t *testing.T) {
 func TestLeavingStartsTheNextGroupWithNobodySeen(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := m.Group(true, joined.Add(time.Minute)); err != nil {
 		t.Fatal(err)
 	}
 
-	if err := m.SetJoined(time.Time{}); err != nil {
+	if err := m.SetJoined(time.Time{}, false); err != nil {
 		t.Fatal(err)
 	}
 	st, err := m.Group(true, joined.Add(2*time.Minute))
@@ -111,7 +111,7 @@ func TestLeavingStartsTheNextGroupWithNobodySeen(t *testing.T) {
 	}
 
 	rejoined := joined.Add(3 * time.Minute)
-	if err := m.SetJoined(rejoined); err != nil {
+	if err := m.SetJoined(rejoined, false); err != nil {
 		t.Fatal(err)
 	}
 	if st, _ := m.Group(false, rejoined); !st.MemberSeenAt.IsZero() {
@@ -138,7 +138,7 @@ func TestMembersAreTheInstancesOnTheRelay(t *testing.T) {
 func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{
@@ -165,7 +165,7 @@ func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 		t.Fatalf("apps after both left = %+v, want them not connected, last seen %v", apps, seen)
 	}
 
-	if err := m.SetJoined(time.Time{}); err != nil {
+	if err := m.SetJoined(time.Time{}, false); err != nil {
 		t.Fatal(err)
 	}
 	if apps, _ := m.Apps(seen); len(apps) != 0 {
@@ -176,7 +176,7 @@ func TestAPhoneOrExtensionThatWentAwayKeepsItsCard(t *testing.T) {
 func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 	phone := relay.Announce{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}
@@ -203,7 +203,7 @@ func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 		t.Fatalf("apps after scanning the phrase again = %+v, want the new id", apps)
 	}
 
-	if err := m.SetJoined(time.Time{}); err != nil {
+	if err := m.SetJoined(time.Time{}, false); err != nil {
 		t.Fatal(err)
 	}
 	if m.Removed("phone-1") {
@@ -214,7 +214,7 @@ func TestARemovedPhoneStaysOutUntilItComesBackAsANewOne(t *testing.T) {
 func TestABrowserJoiningUnderAFreshIDEachSessionKeepsOneCard(t *testing.T) {
 	m := newManager(t)
 	joined := time.Date(2026, 9, 1, 10, 0, 0, 0, time.UTC)
-	if err := m.SetJoined(joined); err != nil {
+	if err := m.SetJoined(joined, false); err != nil {
 		t.Fatal(err)
 	}
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "phone-1", Name: "Pixel 8", Deployment: "mobile", Client: true}}}

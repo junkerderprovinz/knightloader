@@ -392,7 +392,7 @@ func groupServer(t *testing.T) (a *app.App, downloads, category string, member f
 	}
 	a.SetHalted(true)
 	h := Handler(a)
-	serve := relayProxyHandler(h, a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(h))
 	member = func(method, path, body string) (int, []byte) {
 		return serve(context.Background(), relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
 	}
@@ -498,7 +498,7 @@ func TestAMemberCannotEraseWhatWasDownloaded(t *testing.T) {
 func TestOnlyTheOwnerTakesAPhoneOutOfTheGroup(t *testing.T) {
 	t.Parallel()
 	a, _, _, member, owner := groupServer(t)
-	if err := a.Federation.SetJoined(time.Now()); err != nil {
+	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
 		t.Fatal(err)
 	}
 	if status, body := member(http.MethodDelete, "/api/connect/apps/phone-other", ""); !refusedForGroup(status, body) {

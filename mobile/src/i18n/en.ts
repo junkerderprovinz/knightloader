@@ -144,6 +144,13 @@ export const en = {
   'error.federationOff': 'Peer instances are switched off on the instance you are connected to, so it cannot reach the others.',
   'error.addAgain': 'This connection was saved by an older version of the app and no longer works. Remove it and connect again with the twelve words.',
   'error.ownLoginNeeded': 'The instance allows this only from its own web interface. Sign in there to do it.',
+  'error.memberPending': 'This device is waiting for approval. Approve it on one of your instances under Settings, Pairing.',
+  'error.memberKeyChanged': 'The instance knows this device by a different key. Remove the device there under Settings, Pairing, then pair it again with the twelve words.',
+  'error.memberUnsigned': "The instance expects signed requests from this device, but this one wasn't signed. Remove the device there under Settings, Pairing, then pair it again with the twelve words.",
+  'error.memberBusy': 'This device has too many requests waiting on the instance. Try again in a moment.',
+  'error.groupFull': 'The group already has as many devices as it can hold. Remove one under Settings, Pairing on an instance, then try again.',
+  'error.groupJoinsBusy': 'Too many new devices joined the group in the last hour. Try again later.',
+  'error.memberNotPinned': "The instance could not save this device's key. Try again in a moment.",
   'addDownload.cancel': 'Cancel',
   'addDownload.button': 'Add',
 

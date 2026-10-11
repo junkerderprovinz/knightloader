@@ -25,6 +25,8 @@ const noGroup = {
   apps: [],
   joinedAgo: 0,
   memberSeen: false,
+  pending: [],
+  awaiting: false,
 };
 
 function serve(connect: object, instances: object[] = []) {

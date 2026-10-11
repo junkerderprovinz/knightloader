@@ -4,10 +4,11 @@
 //
 // The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
 // run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
-// src/relay.js is loaded as is, so the shipped code is what gets checked. The
-// last three checks hold a session to the order the relay sent its frames in,
+// src/relay.js is loaded as is, so the shipped code is what gets checked. Checks
+// six to eight hold a session to the order the relay sent its frames in,
 // to taking a peer's identity only from a seal that opens and to keeping the
-// browser's member id inside the seals.
+// browser's member id inside the seals. The ninth holds a signed call to the
+// member-call vector of internal/relay/member_test.go.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -254,6 +255,86 @@ const askedCall = asked
     )(frameKey, asked)
   : null;
 if (askedCall?.from !== member) failures.push(`a call goes out from ${JSON.stringify(askedCall?.from)}, want the member id, or a removed browser is never turned away`);
+
+// 9. A signed call carries the key and a signature over relay.CallMessage, or
+//    the instance refuses it. The message is held to the Go vector in
+//    internal/relay/member_test.go: its seed, signed here, gives its signature.
+const goMember = readFileSync(join(here, '..', 'internal', 'relay', 'member_test.go'), 'utf8');
+const vectorSig = goMember.match(/vectorSig\s*=\s*"([^"]+)"/)?.[1];
+const pkcs8 = new Uint8Array([...Buffer.from('302e020100300506032b657004220420', 'hex'), ...new Uint8Array(32).fill(0x2a)]);
+const vectorPrivate = await webcrypto.subtle.importKey('pkcs8', pkcs8, 'Ed25519', false, ['sign']);
+const vectorMessage = vm.runInContext(`((target, call) => relayCallMessage(target, call))`, ctx)('office', {
+  id: 'req-7',
+  method: 'POST',
+  path: '/api/links',
+  body: '{"urls":["https://example.com/a"]}',
+  authorization: 'Bearer t0k',
+  from: 'phone-member',
+  kind: 'mobile',
+  sent: 1760000000,
+});
+const vectorSigned = Buffer.from(await webcrypto.subtle.sign('Ed25519', vectorPrivate, vectorMessage)).toString('base64');
+if (!vectorSig || vectorSigned !== vectorSig) {
+  failures.push(`the vector call signs to ${vectorSigned}, the server checks for ${vectorSig}; relayCallMessage differs from relay.CallMessage`);
+}
+
+const pair = await webcrypto.subtle.generateKey('Ed25519', false, ['sign', 'verify']);
+const memberKey = { privateKey: pair.privateKey, publicKey: new Uint8Array(await webcrypto.subtle.exportKey('raw', pair.publicKey)) };
+asked = null;
+FakeSocket.answer = (socket, frame) => {
+  if (frame.type !== 'proxy-request') return;
+  asked = frame.data;
+  vm.runInContext(
+    `((key, id) => relaySeal(key, relayResponseAAD(id), relayUtf8(JSON.stringify({ status: 200 }))))`,
+    ctx,
+  )(frameKey, frame.data.requestId).then((sealed) =>
+    socket.onmessage?.({ data: JSON.stringify({ type: 'proxy-response', data: { requestId: frame.data.requestId, sealed } }) }),
+  );
+};
+await vm.runInContext(`((opts) => relaySession(opts, ({ call }) => call('f'.repeat(40), 'POST', '/api/links', '{"links":"x"}')))`, ctx)({
+  url: 'ws://relay.invalid/relay/connect',
+  key: 'a-key-long-enough-for-the-relay',
+  frameKey,
+  selfId: 'd'.repeat(40),
+  memberId: member,
+  memberKey,
+  selfName: 'Browser',
+});
+FakeSocket.answer = null;
+const signingHello = [...sent].reverse().map((raw) => JSON.parse(raw)).find((f) => f.type === 'hello')?.data?.announce;
+const signingIdentity = signingHello
+  ? await vm.runInContext(
+      `((key, id, blob) => relayOpen(key, relayAnnounceAAD(id), blob).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, signingHello.instanceId, signingHello.sealed)
+  : null;
+if (signingIdentity?.signs !== true) {
+  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want signs: true, or an instance takes it for a member from before keys`);
+}
+const signed = asked
+  ? await vm.runInContext(
+      `((key, a) => relayOpen(key, relayRequestAAD(a.requestId, a.target), a.sealed).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, asked)
+  : null;
+if (!signed?.sig || !signed.key || signed.kind !== 'extension' || signed.from !== member) {
+  failures.push(`a call with a member key went out as ${JSON.stringify(signed)}, want it signed as the extension under the member id`);
+} else {
+  const message = vm.runInContext(`((target, call) => relayCallMessage(target, call))`, ctx)(asked.target, {
+    id: signed.id,
+    method: signed.method,
+    path: signed.path,
+    body: Buffer.from(signed.body ?? '', 'base64').toString('utf8'),
+    from: signed.from,
+    kind: signed.kind,
+    sent: signed.sent,
+  });
+  const holds = await webcrypto.subtle.verify('Ed25519', pair.publicKey, Buffer.from(signed.sig, 'base64'), message);
+  if (!holds) failures.push('the signature on a call the session sent does not hold over the call it came with');
+  if (Buffer.from(signed.key, 'base64').toString('base64') !== Buffer.from(memberKey.publicKey).toString('base64')) {
+    failures.push('a signed call presents another key than the one it was signed with');
+  }
+}
 
 if (failures.length) {
   console.error('The extension’s relay port fails its checks:\n');

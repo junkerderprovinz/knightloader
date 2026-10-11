@@ -121,6 +121,13 @@ export const fr: Dict = {
   'error.federationOff': 'Les instances jumelées sont désactivées sur l’instance à laquelle vous êtes connecté : elle ne peut donc pas joindre les autres.',
   'error.addAgain': 'Cette connexion a été enregistrée par une ancienne version de l’application et ne fonctionne plus. Supprimez-la et reconnectez-vous avec les douze mots.',
   'error.ownLoginNeeded': 'L’instance ne le permet que depuis sa propre interface web. Connectez-vous-y pour le faire.',
+  'error.memberPending': 'Cet appareil attend une approbation. Approuvez-le sur l’une de vos instances dans Paramètres, Appairage.',
+  'error.memberKeyChanged': 'L’instance connaît cet appareil sous une autre clé. Supprimez l’appareil là-bas dans Paramètres, Appairage, puis appairez-le à nouveau avec les douze mots.',
+  'error.memberUnsigned': 'L’instance attend des requêtes signées de cet appareil, mais celle-ci ne l’était pas. Supprimez l’appareil là-bas dans Paramètres, Appairage, puis appairez-le à nouveau avec les douze mots.',
+  'error.memberBusy': 'Cet appareil a trop de requêtes en attente sur l’instance. Réessayez dans un instant.',
+  'error.groupFull': 'Le groupe compte déjà autant d’appareils qu’il peut en accueillir. Supprimez-en un dans Paramètres, Appairage sur une instance, puis réessayez.',
+  'error.groupJoinsBusy': 'Trop de nouveaux appareils ont rejoint le groupe au cours de la dernière heure. Réessayez plus tard.',
+  'error.memberNotPinned': 'L’instance n’a pas pu enregistrer la clé de cet appareil. Réessayez dans un instant.',
   'addDownload.cancel': 'Annuler',
   'addDownload.button': 'Ajouter',
 

@@ -10,6 +10,7 @@ package federation
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -38,8 +39,6 @@ const (
 	// maxDirectCall caps a direct call as it arrives, before anything in it is
 	// checked. Adding links is the largest call a member makes.
 	maxDirectCall = 1 << 20
-	// maxDirectCalls is how many direct calls are served at once.
-	maxDirectCalls = 16
 )
 
 // directReadTimeout bounds how long a call's body may take to arrive. A
@@ -59,6 +58,7 @@ type LocalNetwork interface {
 type groupKeys struct {
 	frameKey []byte
 	peerAuth []byte
+	member   ed25519.PrivateKey
 }
 
 // SetDiscovery installs the service members are found through, and hands it
@@ -73,11 +73,12 @@ func (m *Manager) SetDiscovery(ln LocalNetwork) {
 
 // SetGroup puts this instance into the group secret belongs to, or takes it
 // out of any with a nil secret, for the direct transport. selfID is the id
-// this instance answers direct calls under.
-func (m *Manager) SetGroup(secret []byte, selfID string) {
+// this instance answers direct calls under, and member the key it signs its
+// calls with.
+func (m *Manager) SetGroup(secret []byte, selfID string, member ed25519.PrivateKey) {
 	var keys *groupKeys
 	if len(secret) > 0 {
-		keys = &groupKeys{frameKey: relay.DeriveFrameKey(secret), peerAuth: relay.DerivePeerAuthKey(secret)}
+		keys = &groupKeys{frameKey: relay.DeriveFrameKey(secret), peerAuth: relay.DerivePeerAuthKey(secret), member: member}
 	}
 	m.mu.Lock()
 	m.keys, m.selfID = keys, selfID
@@ -147,9 +148,11 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 		return nil, http.StatusInternalServerError, err
 	}
 	id := hex.EncodeToString(raw)
-	sealed, err := relay.SealCall(keys.frameKey, id, target, relay.ProxyCall{
-		Method: method, Path: path, Body: body, Authorization: authorization,
-	})
+	call := relay.ProxyCall{Method: method, Path: path, Body: body, Authorization: authorization}
+	if keys.member != nil {
+		call.From, call.Kind = self, relay.KindInstance
+	}
+	sealed, err := relay.SealSignedCall(keys.frameKey, keys.member, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -215,20 +218,13 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	// The body is read under its own deadline and checked before a slot is
-	// taken, so a stranger sending slowly holds neither a slot nor the
-	// connection.
+	// The body is read under its own deadline, so a stranger sending slowly
+	// holds the connection no longer than that. How many calls run at once is
+	// counted per member key, by the guard serve passes through.
 	_ = http.NewResponseController(w).SetReadDeadline(time.Now().Add(directReadTimeout))
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxDirectCall))
 	if err != nil || !hmac.Equal([]byte(r.Header.Get(headerSignature)), []byte(directSignature(keys.peerAuth, sender, unix, body))) {
 		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	select {
-	case m.slots <- struct{}{}:
-		defer func() { <-m.slots }()
-	default:
-		http.Error(w, "busy", http.StatusServiceUnavailable)
 		return
 	}
 	var req relay.ProxyRequest
@@ -237,11 +233,17 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		return
 	}
 	call, err := relay.OpenCall(keys.frameKey, req.RequestID, self, req.Sealed)
-	if err != nil || !m.replay.Admit(call) {
+	var status int
+	var out []byte
+	switch {
+	case errors.Is(err, relay.ErrSignature):
+		status, out = http.StatusForbidden, relay.SignatureRefused
+	case err != nil || !m.replay.Admit(call):
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
+	default:
+		status, out = serve(r.Context(), call)
 	}
-	status, out := serve(r.Context(), call)
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)

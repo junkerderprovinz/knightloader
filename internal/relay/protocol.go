@@ -11,6 +11,7 @@ package relay
 // single frame whose length the relay can see, not a stream.
 
 import (
+	"crypto/ed25519"
 	"encoding/json"
 	"time"
 	"unicode/utf8"
@@ -97,6 +98,10 @@ type Announce struct {
 	// for every session, as the browser extension does, so the group can
 	// still recognise it and turn it away once removed.
 	Member string `json:"member,omitempty"`
+	// Signs says the member signs its calls with a member key. A member on a
+	// release before keys leaves it out, which is how an instance tells the
+	// members that were in the group before keys from new ones.
+	Signs bool `json:"signs,omitempty"`
 }
 
 // Identity is the part of an announce the relay server never reads: it routes
@@ -109,6 +114,7 @@ type Identity struct {
 	Client     bool   `json:"client,omitempty"`
 	Address    string `json:"address,omitempty"`
 	Member     string `json:"member,omitempty"`
+	Signs      bool   `json:"signs,omitempty"`
 }
 
 // announceAAD binds an announce's seal to its instance id. Its label differs
@@ -153,6 +159,7 @@ func sealAnnounce(frameKey []byte, a Announce) (Announce, error) {
 		Client:     a.Client,
 		Address:    FitAddress(a.Address),
 		Member:     a.Member,
+		Signs:      a.Signs,
 	})
 	if err != nil {
 		return Announce{}, err
@@ -180,6 +187,7 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 		Deployment: ClipName(id.Deployment),
 		Client:     id.Client,
 		Address:    FitAddress(id.Address),
+		Signs:      id.Signs,
 	}
 	if id.Client && len(id.Member) <= maxClientIDBytes {
 		out.Member = id.Member
@@ -287,10 +295,17 @@ type ProxyCall struct {
 	// the receiver can refuse a frame it has run before or one that is old.
 	ID   string `json:"id"`
 	Sent int64  `json:"sent"`
-	// From is the phone app's relay id, or the extension's Member id, so an
-	// instance can turn away a client removed from the group. Instances leave
-	// it empty.
+	// From is the member id the call speaks for: the phone app's relay id,
+	// the extension's Member id, or a signing instance's InstanceID. Only a
+	// signature from the key pinned to it makes it count (see member.go). An
+	// instance that does not sign leaves it empty.
 	From string `json:"from,omitempty"`
+	// Kind is KindInstance, KindMobile or KindExtension, pinned with the key.
+	Kind string `json:"kind,omitempty"`
+	// Key is the public half of the caller's member key and Sig its signature
+	// over CallMessage. A release before member keys sends neither.
+	Key []byte `json:"key,omitempty"`
+	Sig []byte `json:"sig,omitempty"`
 }
 
 // ProxyResponse is the wire form of the answer to one ProxyRequest.
@@ -331,9 +346,21 @@ func responseAAD(requestID string) string {
 // Sent is set, the current time. It is exported so the mobile app's
 // TypeScript port can be tested against it.
 func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	return SealSignedCall(key, nil, requestID, target, call)
+}
+
+// SealSignedCall is SealCall with the call signed by member, the caller's
+// member key, once its id and time are stamped. call.From and call.Kind have
+// to be set by then. A nil member seals the call unsigned.
+func SealSignedCall(key []byte, member ed25519.PrivateKey, requestID, target string, call ProxyCall) ([]byte, error) {
 	call.ID = requestID
 	if call.Sent == 0 {
 		call.Sent = time.Now().Unix()
+	}
+	call.Key, call.Sig = nil, nil
+	if member != nil {
+		call.Key = member.Public().(ed25519.PublicKey)
+		call.Sig = ed25519.Sign(member, CallMessage(target, call))
 	}
 	plain, err := json.Marshal(call)
 	if err != nil {
@@ -342,7 +369,8 @@ func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, err
 	return seal(key, requestAAD(requestID, target), plain)
 }
 
-// OpenCall reverses SealCall.
+// OpenCall reverses SealCall and SealSignedCall. A signed call whose signature
+// does not hold opens to ErrSignature.
 func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, error) {
 	plain, err := open(key, requestAAD(requestID, target), sealed)
 	if err != nil {
@@ -354,6 +382,9 @@ func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, e
 		// another id, so the caller treats it like any other blob that fails
 		// to open.
 		return ProxyCall{}, ErrSealed
+	}
+	if !verifyCall(target, call) {
+		return ProxyCall{}, ErrSignature
 	}
 	return call, nil
 }

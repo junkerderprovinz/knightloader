@@ -120,6 +120,13 @@ export const zh: Dict = {
   'error.federationOff': '你连接的实例上关闭了“同伴实例”，所以它联系不到其他实例。',
   'error.addAgain': '这个连接是旧版应用保存的，已无法使用。请删除它，再用十二个词重新连接。',
   'error.ownLoginNeeded': '该实例只允许在它自己的网页界面上这样做。请在那里登录后操作。',
+  'error.memberPending': '此设备正在等待批准。请在你的任一实例的“设置”、“配对”中批准它。',
+  'error.memberKeyChanged': '实例以另一个密钥认识此设备。请在那里的“设置”、“配对”中移除该设备，再用十二个词重新配对。',
+  'error.memberUnsigned': '实例要求此设备发送签名请求，但这个请求没有签名。请在那里的“设置”、“配对”中移除该设备，再用十二个词重新配对。',
+  'error.memberBusy': '此设备在实例上等待的请求太多。请稍后再试。',
+  'error.groupFull': '组内设备已达上限。请在某个实例的“设置”、“配对”中移除一台，然后再试。',
+  'error.groupJoinsBusy': '过去一小时内加入组的新设备太多。请稍后再试。',
+  'error.memberNotPinned': '实例无法保存此设备的密钥。请稍后再试。',
   'addDownload.cancel': '取消',
   'addDownload.button': '添加',
 
