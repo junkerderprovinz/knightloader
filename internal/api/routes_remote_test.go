@@ -339,6 +339,7 @@ func signInOn(t *testing.T, a *app.App, url, host string) int {
 	}
 	req.Host = host
 	req.Header.Set("X-Forwarded-Proto", "https")
+	req.Header.Set("Content-Type", "application/json")
 	return doJSON(t, req, nil)
 }
 
