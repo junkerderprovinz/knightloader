@@ -1104,6 +1104,7 @@ export const lt: Dict = {
   'props.mixedHint': 'Šios eilutės nesutampa, todėl laukas tuščias. Nepaliestas jis nieko nekeičia; įrašykite į jį ir kiekviena pažymėta eilutė gaus tai, ką įrašėte.',
   'props.name': 'Pavadinimas',
   'props.nameHint': 'Vienas failo pavadinimas, niekada ne kelias: pavadinimas su / arba \\ atmetamas. Baigtas atsisiuntimas pervadinamas ir diske, kad sąrašas ir aplankas negalėtų skirtis. Vykstantis išlaiko failą, kurį atidariusi jo posistemė, ir gauna naują pavadinimą baigęsis. Dar nepradėtas gauna jį iš karto. Pavadinimas priklauso vienam failui, todėl šis laukas siūlomas tik vienai eilutei.',
+  'props.namesHint': 'Pavadinimas priklauso vienam failui, todėl kelių nuorodų vienu kartu nepervadinsi. Čia kiekviena turi savo pervadinimo mygtuką. Paketas pervadinamas savo eilutėje ir pasiima visas savo nuorodas, taip pat ir nepažymėtas.',
   'props.comment': 'Pastaba',
   'props.commentHint': 'Tavo paties pastaba apie šią nuorodą. Ji išsaugoma ir rodoma sąraše; programoje niekas pagal ją nesielgia.',
   'props.priority': 'Pirmenybė',

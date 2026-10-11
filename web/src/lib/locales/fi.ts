@@ -1104,6 +1104,7 @@ export const fi: Dict = {
   'props.mixedHint': 'Nämä rivit eivät ole yhtä mieltä, siksi kenttä on tyhjä. Koskematta se ei muuta mitään; kirjoita siihen, ja jokainen valittu rivi saa kirjoittamasi.',
   'props.name': 'Nimi',
   'props.nameHint': 'Yksi tiedostonimi, ei koskaan polku: nimi, jossa on / tai \\, hylätään. Valmistunut lataus nimetään uudelleen myös levyllä, jotta luettelo ja kansio eivät voi erota. Käynnissä oleva pitää tiedoston, jonka sen taustaosa on avannut, ja saa uuden nimen valmistuessaan. Aloittamaton saa sen heti. Nimi kuuluu yhdelle tiedostolle, joten tämä kenttä näytetään vain yhdelle riville.',
+  'props.namesHint': 'Nimi kuuluu yhdelle tiedostolle, joten useita linkkejä ei nimetä uudelleen kerralla. Jokaisella on tässä oma painikkeensa uudelleennimeämiseen. Paketti nimetään uudelleen omalta riviltään, ja se ottaa mukaansa kaikki linkkinsä, myös valitsemattomat.',
   'props.comment': 'Kommentti',
   'props.commentHint': 'Oma muistiinpanosi tästä linkistä. Se tallennetaan ja näytetään listassa; mikään sovelluksessa ei toimi sen mukaan.',
   'props.priority': 'Prioriteetti',

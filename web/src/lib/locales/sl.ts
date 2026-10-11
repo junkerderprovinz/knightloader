@@ -1104,6 +1104,7 @@ export const sl: Dict = {
   'props.mixedHint': 'Te vrstice se ne ujemajo, zato je polje prazno. Če se ga ne dotaknete, ne spremeni nič; vpišite vanj in vsaka izbrana vrstica dobi vpisano.',
   'props.name': 'Ime',
   'props.nameHint': 'Eno ime datoteke, nikoli pot: ime z / ali \\ je zavrnjeno. Končan prenos se preimenuje tudi na disku, da se seznam in mapa ne moreta razhajati. Prenos, ki teče, obdrži datoteko, ki jo ima njegovo zaledje odprto, in dobi novo ime, ko se konča. Prenos, ki se še ni začel, ga dobi takoj. Ime pripada eni datoteki, zato je to polje na voljo le za eno vrstico.',
+  'props.namesHint': 'Ime pripada eni datoteki, zato več povezav ni mogoče preimenovati hkrati. Tukaj ima vsaka svoj gumb za preimenovanje. Paket se preimenuje v svoji vrstici in s seboj vzame vse svoje povezave, tudi neizbrane.',
   'props.comment': 'Opomba',
   'props.commentHint': 'Tvoja lastna opomba k tej povezavi. Shrani se in prikaže na seznamu; nič v aplikaciji se po njej ne ravna.',
   'props.priority': 'Prednost',

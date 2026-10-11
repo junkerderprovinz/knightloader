@@ -1096,6 +1096,7 @@ export const pl: Dict = {
   'props.mixedHint': 'Te wiersze się nie zgadzają, więc pole jest puste. Nietknięte nic nie zmienia; wpisz w nie coś, a każdy zaznaczony wiersz dostanie to, co wpisałeś.',
   'props.name': 'Nazwa',
   'props.nameHint': 'Jedna nazwa pliku, nigdy ścieżka: nazwa zawierająca / lub \\ jest odrzucana. Zakończone pobranie dostaje nową nazwę także na dysku, żeby lista i folder nie mogły się rozjechać. Trwające zachowuje plik, który jego backend ma otwarty, i dostaje nową nazwę po zakończeniu. Takie, które się jeszcze nie zaczęło, dostaje ją od razu. Nazwa należy do jednego pliku, więc to pole jest dostępne tylko dla jednego wiersza.',
+  'props.namesHint': 'Nazwa należy do jednego pliku, dlatego kilku linków nie da się przemianować naraz. Każdy ma tu własny przycisk zmiany nazwy. Nazwę pakietu zmienia się w jego wierszu, a pakiet zabiera ze sobą wszystkie swoje linki, także te niezaznaczone.',
   'props.comment': 'Komentarz',
   'props.commentHint': 'Twoja własna notatka do tego linku. Jest zapisywana i pokazywana na liście; nic w aplikacji się nią nie kieruje.',
   'props.priority': 'Priorytet',

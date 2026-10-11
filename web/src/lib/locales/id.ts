@@ -1104,6 +1104,7 @@ export const id: Dict = {
   'props.mixedHint': 'Baris-baris ini tidak sama, jadi kotaknya kosong. Kalau tidak disentuh, tidak ada yang berubah; ketik di dalamnya dan setiap baris terpilih mendapat apa yang kamu ketik.',
   'props.name': 'Nama',
   'props.nameHint': 'Satu nama berkas, bukan jalur: nama yang berisi / atau \\ ditolak. Unduhan yang selesai juga diganti namanya di disk, agar daftar dan folder tidak bisa berbeda. Unduhan yang berjalan mempertahankan berkas yang dibuka backend-nya dan mendapat nama baru saat selesai. Yang belum dimulai langsung mendapatkannya. Satu nama milik satu berkas, jadi kolom ini hanya tersedia untuk satu baris.',
+  'props.namesHint': 'Sebuah nama adalah milik satu berkas, jadi beberapa tautan tidak diganti namanya sekaligus. Di sini masing-masing punya tombol ganti nama sendiri. Paket diganti namanya dari barisnya sendiri dan membawa serta semua tautannya, termasuk yang tidak dipilih.',
   'props.comment': 'Catatan',
   'props.commentHint': 'Catatan kamu sendiri tentang tautan ini. Disimpan dan ditampilkan di daftar; tidak ada bagian aplikasi yang mengikutinya.',
   'props.priority': 'Prioritas',

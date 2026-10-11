@@ -1096,6 +1096,7 @@ export const es: Dict = {
   'props.mixedHint': 'Estas filas no coinciden, así que la casilla está vacía. Si no la tocas no cambia nada; escribe en ella y cada fila seleccionada recibe lo que escribas.',
   'props.name': 'Nombre',
   'props.nameHint': 'Un nombre de archivo, nunca una ruta: se rechaza un nombre con / o \\. Una descarga terminada también se renombra en el disco, para que la lista y la carpeta no puedan discrepar. Una en curso conserva el archivo que su backend tiene abierto y toma el nuevo nombre al terminar. Una que no ha empezado lo toma enseguida. Un nombre pertenece a un solo archivo, así que este campo solo se ofrece para una fila.',
+  'props.namesHint': 'Un nombre pertenece a un solo archivo, por eso no se cambia el nombre de varios enlaces a la vez. Aquí cada uno tiene su propio botón para cambiarlo. A un paquete se le cambia el nombre desde su propia línea, y se lleva todos sus enlaces, también los no seleccionados.',
   'props.comment': 'Comentario',
   'props.commentHint': 'Tu propia nota sobre este enlace. Se guarda y se muestra en la lista; nada de la aplicación actúa según ella.',
   'props.priority': 'Prioridad',

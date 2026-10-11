@@ -1104,6 +1104,7 @@ export const ca: Dict = {
   'props.mixedHint': 'Aquestes files no coincideixen, per això la casella és buida. Si no la toques no canvia res; escriu-hi i cada fila seleccionada rep el que hi escriguis.',
   'props.name': 'Nom',
   'props.nameHint': 'Un nom de fitxer, mai un camí: es rebutja un nom amb / o \\. Una baixada acabada també es reanomena al disc, perquè la llista i la carpeta no puguin discrepar. Una en curs conserva el fitxer que el seu rerefons té obert i pren el nom nou quan acaba. Una que no ha començat el pren de seguida. Un nom pertany a un sol fitxer, així que aquest camp només s’ofereix per a una fila.',
+  'props.namesHint': 'Un nom pertany a un sol fitxer, per això no es canvia el nom de diversos enllaços alhora. Aquí cadascun té el seu botó per canviar-lo. A un paquet se li canvia el nom des de la seva línia, i s’enduu tots els seus enllaços, també els que no estan seleccionats.',
   'props.comment': 'Comentari',
   'props.commentHint': 'La teva nota sobre aquest enllaç. Es desa i es mostra a la llista; res de l’aplicació no hi actua.',
   'props.priority': 'Prioritat',

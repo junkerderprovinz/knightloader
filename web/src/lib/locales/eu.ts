@@ -1104,6 +1104,7 @@ export const eu: Dict = {
   'props.mixedHint': 'Errenkada hauek ez datoz bat, horregatik dago laukia hutsik. Ukitu gabe ez du ezer aldatzen; idatzi bertan eta hautatutako errenkada bakoitzak idatzitakoa jasoko du.',
   'props.name': 'Izena',
   'props.nameHint': 'Fitxategi-izen bat, inoiz ez bide bat: / edo \\ duen izena baztertzen da. Amaitutako deskarga bat diskoan ere berrizendatzen da, zerrenda eta karpeta bat ez etortzea ezinezkoa izan dadin. Abian dagoenak bere backendak irekita duen fitxategia gordetzen du eta amaitzean hartzen du izen berria. Hasi gabeak berehala hartzen du. Izen bat fitxategi bakar batena da, beraz eremu hau errenkada bakarrerako eskaintzen da.',
+  'props.namesHint': 'Izen bat fitxategi bakar batena da, eta horregatik ezin zaie hainbat estekari izena batera aldatu. Hemen bakoitzak bere botoia du izena aldatzeko. Pakete bati bere lerroan aldatzen zaio izena, eta bere esteka guztiak eramaten ditu berekin, hautatu gabeak ere bai.',
   'props.comment': 'Oharra',
   'props.commentHint': 'Esteka honi buruzko zure oharra. Gorde eta zerrendan erakusten da; aplikazioan ez du ezer eragiten.',
   'props.priority': 'Lehentasuna',

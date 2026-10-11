@@ -1104,6 +1104,7 @@ export const vi: Dict = {
   'props.mixedHint': 'Các hàng này không khớp nhau nên ô để trống. Không đụng vào thì không đổi gì; gõ vào đó thì mọi hàng đã chọn nhận đúng những gì bạn gõ.',
   'props.name': 'Tên',
   'props.nameHint': 'Một tên tệp, không bao giờ là đường dẫn: tên có / hoặc \\ sẽ bị từ chối. Lượt tải đã xong cũng được đổi tên trên đĩa, để danh sách và thư mục không thể lệch nhau. Lượt đang chạy giữ tệp mà backend của nó đang mở và nhận tên mới khi xong. Lượt chưa bắt đầu nhận tên ngay. Một tên thuộc về một tệp, nên ô này chỉ hiện cho một hàng.',
+  'props.namesHint': 'Một cái tên thuộc về một tệp, nên không thể đổi tên nhiều liên kết cùng lúc. Ở đây mỗi liên kết có nút đổi tên riêng. Gói được đổi tên ngay trên dòng của nó và mang theo mọi liên kết của nó, kể cả những liên kết không được chọn.',
   'props.comment': 'Ghi chú',
   'props.commentHint': 'Ghi chú của riêng bạn về liên kết này. Nó được lưu và hiển thị trong danh sách; không phần nào của ứng dụng hành động theo nó.',
   'props.priority': 'Độ ưu tiên',

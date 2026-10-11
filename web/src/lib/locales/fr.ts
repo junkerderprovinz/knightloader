@@ -1096,6 +1096,7 @@ export const fr: Dict = {
   'props.mixedHint': 'Ces lignes ne concordent pas, le champ est donc vide. Laissé tel quel, il ne change rien ; écrivez dedans et chaque ligne sélectionnée reçoit ce que vous avez tapé.',
   'props.name': 'Nom',
   'props.nameHint': 'Un nom de fichier, jamais un chemin : un nom contenant / ou \\ est refusé. Un téléchargement terminé est aussi renommé sur le disque, pour que la liste et le dossier ne puissent pas diverger. Un téléchargement en cours garde le fichier que son backend a ouvert et prend le nouveau nom à la fin. Un téléchargement pas encore commencé le prend tout de suite. Un nom appartient à un seul fichier, cette case n’est donc proposée que pour une seule ligne.',
+  'props.namesHint': 'Un nom appartient à un seul fichier, c’est pourquoi plusieurs liens ne se renomment pas d’un coup. Chacun a ici son propre bouton pour le renommer. Un paquet se renomme depuis sa propre ligne et emporte tous ses liens, y compris ceux qui ne sont pas sélectionnés.',
   'props.comment': 'Commentaire',
   'props.commentHint': 'Ta propre note sur ce lien. Elle est enregistrée et affichée dans la liste ; rien dans l’application n’agit dessus.',
   'props.priority': 'Priorité',

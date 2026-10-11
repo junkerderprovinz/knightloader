@@ -1104,6 +1104,7 @@ export const et: Dict = {
   'props.mixedHint': 'Need read ei lähe kokku, seepärast on kast tühi. Puutumata ei muuda see midagi; kirjuta sinna ja iga valitud rida saab kirjutatu.',
   'props.name': 'Nimi',
   'props.nameHint': 'Üks failinimi, mitte kunagi tee: nimi, milles on / või \\, lükatakse tagasi. Lõppenud allalaadimine nimetatakse ümber ka kettal, et loend ja kaust ei saaks lahku minna. Käimasolev jätab alles faili, mille tema taustsüsteem on avanud, ja saab uue nime lõpetades. Alustamata allalaadimine saab selle kohe. Nimi kuulub ühele failile, seega pakutakse seda välja ainult ühe rea jaoks.',
+  'props.namesHint': 'Nimi kuulub ühele failile, seepärast ei saa mitut linki korraga ümber nimetada. Igal lingil on siin oma ümbernimetamise nupp. Pakk nimetatakse ümber oma real ja see võtab kaasa kõik oma lingid, ka valimata.',
   'props.comment': 'Märkus',
   'props.commentHint': 'Sinu enda märkus selle lingi kohta. See salvestatakse ja kuvatakse loendis; rakenduses ei toimi selle järgi miski.',
   'props.priority': 'Tähtsus',

@@ -1104,6 +1104,7 @@ export const is: Dict = {
   'props.mixedHint': 'Þessar raðir eru ekki sammála, þess vegna er reiturinn tómur. Ósnertur breytir hann engu; skrifaðu í hann og hver valin röð fær það sem þú skrifaðir.',
   'props.name': 'Heiti',
   'props.nameHint': 'Eitt skráarheiti, aldrei slóð: heiti með / eða \\ er hafnað. Niðurhal sem er lokið er líka endurnefnt á diskinum, svo listinn og mappan geti ekki stangast á. Niðurhal í gangi heldur skránni sem bakendinn hefur opna og fær nýja heitið þegar því lýkur. Niðurhal sem er ekki hafið fær það strax. Heiti tilheyrir einni skrá, svo þessi reitur býðst aðeins fyrir eina línu.',
+  'props.namesHint': 'Heiti tilheyrir einni skrá, þess vegna er ekki hægt að endurnefna marga tengla í einu. Hér hefur hver þeirra sinn eigin hnapp til þess. Pakki er endurnefndur í sinni eigin línu og tekur alla tengla sína með sér, líka þá sem eru ekki valdir.',
   'props.comment': 'Athugasemd',
   'props.commentHint': 'Þín eigin athugasemd um þennan hlekk. Hún er vistuð og sýnd í listanum; ekkert í forritinu fer eftir henni.',
   'props.priority': 'Forgangur',

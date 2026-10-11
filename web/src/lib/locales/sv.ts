@@ -1104,6 +1104,7 @@ export const sv: Dict = {
   'props.mixedHint': 'De här raderna är inte överens, därför är rutan tom. Lämnad i fred ändrar den ingenting; skriv i den så får varje markerad rad det du skrev.',
   'props.name': 'Namn',
   'props.nameHint': 'Ett filnamn, aldrig en sökväg: ett namn med / eller \\ avvisas. En klar nedladdning byter namn på disken också, så att listan och mappen inte kan gå isär. En som pågår behåller filen som dess backend har öppen och får det nya namnet när den är klar. En som inte har börjat får det direkt. Ett namn hör till en fil, så fältet visas bara för en rad.',
+  'props.namesHint': 'Ett namn hör till en enda fil, därför byter flera länkar inte namn på en gång. Här har varje länk sin egen knapp för det. Ett paket byter namn på sin egen rad och tar med sig alla sina länkar, även de som inte är valda.',
   'props.comment': 'Kommentar',
   'props.commentHint': 'Din egen anteckning om den här länken. Den sparas och visas i listan; inget i appen rättar sig efter den.',
   'props.priority': 'Prioritet',

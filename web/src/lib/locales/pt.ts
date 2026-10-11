@@ -1096,6 +1096,7 @@ export const pt: Dict = {
   'props.mixedHint': 'Estas linhas não concordam, por isso a caixa está vazia. Deixada em paz não muda nada; escreve nela e cada linha selecionada fica com o que escreveste.',
   'props.name': 'Nome',
   'props.nameHint': 'Um nome de ficheiro, nunca um caminho: um nome com / ou \\ é recusado. Uma transferência concluída também muda de nome no disco, para que a lista e a pasta não possam divergir. Uma em curso mantém o ficheiro que o seu backend tem aberto e recebe o novo nome quando terminar. Uma que ainda não começou recebe-o de imediato. Um nome pertence a um só ficheiro, por isso esta caixa só é oferecida para uma linha.',
+  'props.namesHint': 'Um nome pertence a um só ficheiro, por isso não se muda o nome de várias ligações de uma vez. Aqui cada uma tem o seu próprio botão para isso. O nome de um pacote muda-se na sua própria linha, e o pacote leva consigo todas as suas ligações, incluindo as não selecionadas.',
   'props.comment': 'Comentário',
   'props.commentHint': 'A tua própria nota sobre este link. É guardada e mostrada na lista; nada na aplicação age com base nela.',
   'props.priority': 'Prioridade',

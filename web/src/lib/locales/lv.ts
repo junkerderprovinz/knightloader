@@ -1104,6 +1104,7 @@ export const lv: Dict = {
   'props.mixedHint': 'Šīs rindas nesakrīt, tāpēc lauks ir tukšs. Neaiztikts tas neko nemaina; ierakstiet tajā, un katra atlasītā rinda saņems ierakstīto.',
   'props.name': 'Nosaukums',
   'props.nameHint': 'Viens faila nosaukums, nekad ceļš: nosaukums ar / vai \\ tiek noraidīts. Pabeigta lejupielāde tiek pārdēvēta arī diskā, lai saraksts un mape nevarētu atšķirties. Notiekoša saglabā failu, ko tās aizmugure ir atvērusi, un saņem jauno nosaukumu, kad beidzas. Vēl nesākta to saņem uzreiz. Nosaukums pieder vienam failam, tāpēc šis lauks tiek piedāvāts tikai vienai rindai.',
+  'props.namesHint': 'Nosaukums pieder vienam failam, tāpēc vairākas saites nevar pārdēvēt reizē. Šeit katrai ir sava pārdēvēšanas poga. Pakotni pārdēvē tās pašas rindā, un tā paņem līdzi visas savas saites, arī neatlasītās.',
   'props.comment': 'Piezīme',
   'props.commentHint': 'Tava paša piezīme par šo saiti. Tā tiek saglabāta un rādīta sarakstā; lietotnē nekas pēc tās nerīkojas.',
   'props.priority': 'Prioritāte',

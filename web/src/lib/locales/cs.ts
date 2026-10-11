@@ -1104,6 +1104,7 @@ export const cs: Dict = {
   'props.mixedHint': 'Tyto řádky se neshodují, proto je políčko prázdné. Když se ho nedotknete, nic nezmění; napište do něj a každý vybraný řádek dostane to, co jste napsali.',
   'props.name': 'Název',
   'props.nameHint': 'Jeden název souboru, nikdy cesta: název s / nebo \\ se odmítne. Dokončené stahování se přejmenuje i na disku, aby se seznam a složka nemohly rozcházet. Běžící si ponechá soubor, který má jeho backend otevřený, a nový název dostane po skončení. Nespuštěné ho dostane hned. Název patří jednomu souboru, takže toto pole se nabízí jen pro jeden řádek.',
+  'props.namesHint': 'Název patří jednomu souboru, proto se víc odkazů najednou nepřejmenuje. Každý tu má vlastní tlačítko pro přejmenování. Balíček se přejmenuje na svém řádku a vezme s sebou všechny své odkazy, i ty nevybrané.',
   'props.comment': 'Poznámka',
   'props.commentHint': 'Tvoje vlastní poznámka k tomuto odkazu. Uloží se a zobrazí v seznamu; aplikace se podle ní neřídí.',
   'props.priority': 'Priorita',
