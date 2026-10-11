@@ -107,6 +107,15 @@ func (g *Guard) ResetPending() bool {
 	return g.reset.live(time.Now())
 }
 
+// ResetCodeMatches reports whether typed is the live reset code, in constant
+// time, so a caller can let the right code past a throttle and stop the rest
+// in front of it.
+func (g *Guard) ResetCodeMatches(typed string) bool {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.reset.matches(typed, time.Now())
+}
+
 // CancelReset drops a code that could not be shown, so the next request mints
 // one instead of waiting out a code nobody can read.
 func (g *Guard) CancelReset() {

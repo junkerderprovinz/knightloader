@@ -260,6 +260,13 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 				a.Hub.DropAll()
 				removeResetCodeFile(a, "")
 			}
+			// The right code is looked for first and always passes. Anything
+			// else meets the gate before the rest of the request is read.
+			if !a.Auth.ResetCodeMatches(body.Code) && !gate.try(r) {
+				wrong.add()
+				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
+				return
+			}
 			reset, err := a.Auth.FinishReset(body.Code, body.Password, endTheRest)
 			switch {
 			case refusePasswordLength(w, err):
@@ -269,10 +276,6 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 				return
 			case errors.Is(err, auth.ErrCodeRejected):
 				wrong.add()
-				if !gate.try(r) {
-					http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
-					return
-				}
 				writeRefusal(w, http.StatusUnauthorized, "codeRejected", err.Error(), nil)
 				return
 			case err != nil:
