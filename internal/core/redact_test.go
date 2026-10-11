@@ -41,6 +41,31 @@ func TestRedactTextRedactsEveryAddressInASentence(t *testing.T) {
 	}
 }
 
+// TestRedactTextKnowsTheCredentialsOfFeedsAndServices covers the places
+// indexers, trackers, storage services and bots put a credential, as a feed or
+// crawler log line quotes them.
+func TestRedactTextKnowsTheCredentialsOfFeedsAndServices(t *testing.T) {
+	t.Parallel()
+	for _, c := range []struct{ in, secret, keep string }{
+		{"feed https://indexer.example/rss?t=5000&dl=1&i=123&r=NEWZNABKEY was not polled", "NEWZNABKEY", "i=123"},
+		{"feed https://rss24h.torrentleech.org/TLPATHKEY was not polled", "TLPATHKEY", "rss24h.torrentleech.org"},
+		{"crawl https://x.example/dl?access_token=ATOKEN: 403", "ATOKEN", "x.example/dl"},
+		{"https://x.example/api?auth_token=RDTOKEN", "RDTOKEN", "x.example/api"},
+		{"https://x.example/api?key=PLAINKEY&page=2", "PLAINKEY", "page=2"},
+		{"https://ipt.example/t.rss?u=1;tp=IPTPASS;download", "IPTPASS", "u=1;tp=redacted;download"},
+		{"https://bucket.s3.amazonaws.com/f?X-Amz-Credential=AKIAKEY&X-Amz-Signature=SIGLEAK", "SIGLEAK", "bucket.s3.amazonaws.com/f"},
+		{"https://bucket.s3.amazonaws.com/f?X-Amz-Credential=AKIAKEY", "AKIAKEY", "bucket.s3.amazonaws.com/f"},
+		{"https://api.telegram.org/botTELEGRAMTOKEN/sendMessage", "TELEGRAMTOKEN", "/sendMessage"},
+		{"https://discord.com/api/webhooks/1/DISCORDTOKEN", "DISCORDTOKEN", "webhooks/1/"},
+		{`error: Get "http://u:QUOTEDPW@host/x": dial tcp`, "QUOTEDPW", `"http://host/x"`},
+	} {
+		got := RedactText(c.in)
+		if strings.Contains(got, c.secret) || !strings.Contains(got, c.keep) {
+			t.Errorf("RedactText(%q) = %q, want %s gone and %s kept", c.in, got, c.secret, c.keep)
+		}
+	}
+}
+
 // TestATaskWithoutCredentialsCarriesNoSecretAnywhere plants a secret in every
 // field of a task that can hold an address, the name of a link that names no
 // file among them, and looks for any of them in the redacted task's JSON.

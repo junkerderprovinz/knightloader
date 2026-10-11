@@ -42,27 +42,46 @@ func (t Task) WithoutCredentials() Task {
 var userinfo = regexp.MustCompile(`^([A-Za-z][A-Za-z0-9+.-]*://)[^/?#]*@`)
 
 // secretArgs are query arguments whose value is a credential on the hosters,
-// trackers and indexers links come from.
+// trackers, indexers and storage services links come from: "r" is a Newznab
+// feed's API key, "tp" a tracker's passkey, and the X-Amz ones sign an S3
+// address.
 var secretArgs = map[string]bool{
-	"apikey": true, "api_key": true, "auth": true, "authkey": true, "pass": true,
-	"passkey": true, "password": true, "pwd": true, "secret": true, "sid": true,
-	"sig": true, "signature": true, "token": true, "torrent_pass": true,
+	"access_token": true, "apikey": true, "api_key": true, "auth": true, "auth_token": true,
+	"authkey": true, "key": true, "pass": true, "passkey": true, "password": true,
+	"pwd": true, "r": true, "secret": true, "sid": true, "sig": true, "signature": true,
+	"token": true, "torrent_pass": true, "tp": true,
+	"x-amz-credential": true, "x-amz-security-token": true, "x-amz-signature": true,
 }
 
+// pathSecrets are services that put a credential in the path of an address:
+// Telegram's bot token, a Discord webhook's token and a TorrentLeech feed's
+// key. The path from the match on is replaced.
+var pathSecrets = regexp.MustCompile(`(?i)^([a-z][a-z0-9+.-]*://(?:api\.telegram\.org/bot|(?:[a-z0-9-]+\.)?discord(?:app)?\.com/api(?:/v\d+)?/webhooks/[^/?#]+/|rss24h\.torrentleech\.org/|rss\.torrentleech\.org/))[^/?#]+`)
+
 // RedactURL is address s without a sign-in and with the value of every secret
-// query argument replaced. In a magnet link the trackers keep their host
-// alone, as in WithoutCredentials. Anything that is not an address comes back
-// as it is.
+// query argument, and a token a known service puts in the path, replaced. In a
+// magnet link the trackers keep their host alone, as in WithoutCredentials.
+// Arguments may be separated by "&" or ";". Anything that is not an address
+// comes back as it is.
 func RedactURL(s string) string {
 	s = userinfo.ReplaceAllString(s, "$1")
+	s = pathSecrets.ReplaceAllString(s, "${1}redacted")
 	head, query, ok := strings.Cut(s, "?")
 	if !ok {
 		return s
 	}
 	query, fragment, hasFragment := strings.Cut(query, "#")
 	magnet := strings.HasPrefix(strings.ToLower(head), "magnet:")
-	args := strings.Split(query, "&")
-	for i, arg := range args {
+	var out strings.Builder
+	out.WriteString(head + "?")
+	for query != "" {
+		end := strings.IndexAny(query, "&;")
+		arg, sep := query, ""
+		if end >= 0 {
+			arg, sep, query = query[:end], query[end:end+1], query[end+1:]
+		} else {
+			query = ""
+		}
 		key, value, _ := strings.Cut(arg, "=")
 		name, err := url.QueryUnescape(key)
 		if err != nil {
@@ -71,18 +90,18 @@ func RedactURL(s string) string {
 		name = strings.ToLower(name)
 		switch {
 		case secretArgs[name]:
-			args[i] = key + "=redacted"
+			arg = key + "=redacted"
 		case magnet && name == "tr":
 			if tr, err := url.QueryUnescape(value); err == nil {
-				args[i] = key + "=" + url.QueryEscape(HostOf(tr))
+				arg = key + "=" + url.QueryEscape(HostOf(tr))
 			}
 		}
+		out.WriteString(arg + sep)
 	}
-	out := head + "?" + strings.Join(args, "&")
 	if hasFragment {
-		out += "#" + fragment
+		out.WriteString("#" + fragment)
 	}
-	return out
+	return out.String()
 }
 
 // addressInText finds an address in free text. It runs to the next blank,

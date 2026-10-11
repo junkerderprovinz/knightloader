@@ -1,11 +1,14 @@
 package feed
 
 import (
+	"bytes"
 	"context"
 	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/http/httptest"
+	"os"
 	"strings"
 	"sync"
 	"testing"
@@ -576,5 +579,23 @@ func TestAFeedRedirectIntoLinkLocalIsRefused(t *testing.T) {
 	_, err := fetch(context.Background(), httpx.New(httpx.Options{}), srv.URL)
 	if !errors.Is(err, httpx.ErrRefused) {
 		t.Errorf("fetch = %v, want the redirect refused", err)
+	}
+}
+
+// TestAFailedPollLogsTheFeedWithoutItsKey: an indexer's feed address carries
+// the account's key, and the log is read by more people than the settings.
+func TestAFailedPollLogsTheFeedWithoutItsKey(t *testing.T) {
+	srv := newServer(t, item(1, "Folge 1"))
+	srv.answer(http.StatusInternalServerError)
+	var logged bytes.Buffer
+	log.SetOutput(&logged)
+	t.Cleanup(func() { log.SetOutput(os.Stderr) })
+	r, _ := build(t, srv, newState(), Subscription{URL: srv.URL + "/rss?t=5000&r=FEEDKEY&apikey=OTHERKEY"})
+	pollAll(r)
+	if !strings.Contains(logged.String(), "was not read") {
+		t.Fatalf("the failed poll logged %q, want it reported", logged.String())
+	}
+	if strings.Contains(logged.String(), "FEEDKEY") || strings.Contains(logged.String(), "OTHERKEY") {
+		t.Errorf("the log carries the feed's key: %s", logged.String())
 	}
 }

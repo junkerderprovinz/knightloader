@@ -13,6 +13,7 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
@@ -207,7 +208,7 @@ func (w *walk) run(ctx context.Context, seed *url.URL) ([]Result, error) {
 			}
 			// One dead subpage must not discard the others; log it so a short
 			// result can be explained.
-			log.Printf("crawl %s: %v", cur.url, err)
+			log.Print(core.RedactText(fmt.Sprintf("crawl %s: %v", cur.url, err)))
 			continue
 		}
 
@@ -236,7 +237,7 @@ func (w *walk) run(ctx context.Context, seed *url.URL) ([]Result, error) {
 			if cur.depth == 1 {
 				return nil, err
 			}
-			log.Printf("crawl %s: %v", cur.url, err)
+			log.Print(core.RedactText(fmt.Sprintf("crawl %s: %v", cur.url, err)))
 			continue
 		}
 		for _, r := range found.files {
