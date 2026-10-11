@@ -60,6 +60,9 @@ type Envelope struct {
 type Hello struct {
 	Key      string   `json:"key"`
 	Announce Announce `json:"announce"`
+	// Proof shows the key the announced id is made from, which a connection
+	// needs to take the place of another one under that id.
+	Proof *IDProof `json:"proof,omitempty"`
 }
 
 // Announce is one instance introducing itself to everyone else on its key.
@@ -285,14 +288,6 @@ type ProxyCall struct {
 	Method string `json:"method"`
 	Path   string `json:"path"`
 	Body   []byte `json:"body,omitempty"`
-	// Authorization becomes the Authorization header of the replayed request.
-	// Only the mobile app sets it, because the relay is its only channel to
-	// the target; instance-to-instance calls leave it empty. It is one named
-	// field rather than a header map so a caller cannot set Host,
-	// X-Forwarded-For or a cookie on a request the target replays against its
-	// own handler. Being a reusable credential, it is the main reason calls
-	// are sealed.
-	Authorization string `json:"authorization,omitempty"`
 	// ID and Sent are the request id and the Unix time the call was sealed
 	// at. They travel inside the seal, where a relay cannot change them, so
 	// the receiver can refuse a frame it has run before or one that is old.
@@ -330,6 +325,11 @@ type ProxyResponse struct {
 type ProxyResult struct {
 	Status int    `json:"status"`
 	Body   []byte `json:"body,omitempty"`
+	// Key and Sig are the answering member's public key and its signature
+	// over ResultMessage, which the caller checks before it acts on the
+	// answer (VerifyResult).
+	Key []byte `json:"key,omitempty"`
+	Sig []byte `json:"sig,omitempty"`
 }
 
 // requestAAD and responseAAD bind each direction's sealed blob to the routing

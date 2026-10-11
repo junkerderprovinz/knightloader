@@ -54,6 +54,9 @@ description = "Invented credentials that are test fixtures for the parsers that 
 # internal/core/redact_test.go keeps the host of a TorrentLeech RSS address
 # while cutting the key from its path; the scanner takes the host name for a
 # key because of its digits.
+#
+# internal/relay/member_test.go also signs a hello for a made-up relay key,
+# which the app's port is held to.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
@@ -64,4 +67,5 @@ regexes = [
   '''abcdefghij0123456789k''',
   '''GX9rI\+FshTLGq8g4\+s1ep4m\+DHaykgM0A5v6iz02jWE=''',
   '''rss24h\.torrentleech\.org''',
+  '''relay-key-of-the-vector-0123456789''',
 ]

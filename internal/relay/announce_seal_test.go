@@ -7,6 +7,7 @@ package relay
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -376,7 +377,8 @@ func TestTheLargestClientHelloFitsTheLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
-	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire})
+	proof := ProveID(ed25519.NewKeyFromSeed(vectorSeed), KindExtension, strings.Repeat("k", 64), wire.InstanceID, time.Now())
+	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire, Proof: proof})
 	if err != nil {
 		t.Fatalf("encode: %v", err)
 	}

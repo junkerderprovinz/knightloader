@@ -21,8 +21,7 @@ import (
 // be taken before the body has arrived and been verified.
 func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	secret := []byte("0123456789abcdef")
-	callee := newManager(t)
-	callee.SetGroup(secret, officeID, nil)
+	callee, officeID := directCallee(t, secret)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callee.ServeDirect(w, r, func(context.Context, relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte("served")
@@ -43,11 +42,10 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	}
 	time.Sleep(100 * time.Millisecond)
 
-	caller := newManager(t)
-	caller.SetGroup(secret, bravoID, nil)
+	caller := callerOf(t, secret, callee, officeID)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
-	body, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil, "")
+	body, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil)
 	if err != nil || status != http.StatusOK || string(body) != "served" {
 		t.Fatalf("a member's call = %d %q %v, want it served while strangers dawdle", status, body, err)
 	}
@@ -59,8 +57,7 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 // checked against.
 func TestCallsWithoutAPinnedKeyUseUpNoIDs(t *testing.T) {
 	secret := []byte("0123456789abcdef")
-	callee := newManager(t)
-	callee.SetGroup(secret, officeID, nil)
+	callee, officeID := directCallee(t, secret)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callee.ServeDirect(w, r, callee.Guard(func(context.Context, relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte("served")
@@ -74,10 +71,10 @@ func TestCallsWithoutAPinnedKeyUseUpNoIDs(t *testing.T) {
 		{bravoID, nil},
 		{"not-an-instance-id", memberKeyOf(60)},
 	} {
-		caller := newManager(t)
+		caller := callerOf(t, secret, callee, officeID)
 		caller.SetGroup(secret, c.self, c.member)
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-		_, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil, "")
+		_, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil)
 		cancel()
 		if err != nil || status != http.StatusForbidden {
 			t.Errorf("a call from %s = %d %v, want it refused with a reason", c.self, status, err)
@@ -95,8 +92,7 @@ func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
 	directReadTimeout = 200 * time.Millisecond
 
 	secret := []byte("0123456789abcdef")
-	callee := newManager(t)
-	callee.SetGroup(secret, officeID, nil)
+	callee, officeID := directCallee(t, secret)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callee.ServeDirect(w, r, func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			time.Sleep(2 * directReadTimeout)
@@ -121,10 +117,60 @@ func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
 		t.Fatalf("a body that never finished got %q, want it refused once its time ran out", answer)
 	}
 
-	caller := newManager(t)
-	caller.SetGroup(secret, bravoID, nil)
-	body, status, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodPost, "/api/links", []byte(`{"links":"x"}`), "")
+	caller := callerOf(t, secret, callee, officeID)
+	body, status, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodPost, "/api/links", []byte(`{"links":"x"}`))
 	if err != nil || status != http.StatusOK || string(body) != "13" {
 		t.Fatalf("got %d %q %v, want the call served with its context intact", status, body, err)
+	}
+}
+
+// directCallee is a member of the group secret makes, with a member key of its
+// own, and the id it answers direct calls under.
+func directCallee(t *testing.T, secret []byte) (*Manager, string) {
+	t.Helper()
+	key := memberKeyOf(70)
+	id := idOf(key, relay.KindInstance)
+	callee := newManager(t)
+	callee.SetGroup(secret, id, key)
+	return callee, id
+}
+
+// callerOf is another member of the group, which has approved callee as
+// calleeID.
+func callerOf(t *testing.T, secret []byte, callee *Manager, calleeID string) *Manager {
+	t.Helper()
+	caller := newManager(t)
+	caller.SetGroup(secret, bravoID, nil)
+	if _, _, err := caller.Approve(calleeID, callee.keys.member.Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	return caller
+}
+
+// TestADirectAnswerCountsOnlyFromAnApprovedKey: an answer over the direct
+// route reaches the caller only signed by the key the target's id is made
+// from, and only once the target is approved here.
+func TestADirectAnswerCountsOnlyFromAnApprovedKey(t *testing.T) {
+	secret := []byte("0123456789abcdef")
+	callee, officeID := directCallee(t, secret)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callee.ServeDirect(w, r, func(context.Context, relay.ProxyCall) (int, []byte) {
+			return http.StatusGone, []byte("removed")
+		})
+	}))
+	defer srv.Close()
+
+	stranger := newManager(t)
+	stranger.SetGroup(secret, bravoID, nil)
+	if _, _, err := stranger.callDirect(context.Background(), srv.URL, officeID, http.MethodGet, "/api/tasks", nil); err == nil {
+		t.Error("an answer from an instance nobody approved here was taken")
+	}
+	caller := callerOf(t, secret, callee, officeID)
+	if _, status, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodGet, "/api/tasks", nil); err != nil || status != http.StatusGone {
+		t.Errorf("the approved target's answer = %d %v, want its 410", status, err)
+	}
+	callee.SetGroup(secret, officeID, nil)
+	if _, _, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodGet, "/api/tasks", nil); err == nil {
+		t.Error("an unsigned answer was taken")
 	}
 }

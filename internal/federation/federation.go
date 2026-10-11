@@ -72,9 +72,9 @@ type RelayTransport interface {
 	// Siblings is the instances the relay makes visible now; empty while the
 	// relay is unreachable.
 	Siblings() []relay.Announce
-	// Proxy calls one sibling by instance ID. authorization is the
-	// Authorization header value the target should see, or "".
-	Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error)
+	// Proxy calls one sibling by instance ID and returns its answer once the
+	// sibling's key signed it.
+	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
 	// Connected reports whether the socket to the relay is up. Siblings alone
 	// cannot tell an unreachable relay from one where nobody else is on the
 	// key.
@@ -352,27 +352,21 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	if !ok {
 		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
 	}
-	// The token is looked up under the key of the transport the peer is
-	// reached by, as the pairing exchange files it (routes_pairing.go): the
-	// InstanceID for a member, the stored name for a stored peer.
-	bearer := func(key string) string {
-		if tok := m.tokenFor(key); tok != "" {
-			return "Bearer " + tok
-		}
-		return ""
-	}
+	// A member of the group is called with no credential: its key signs
+	// the call, and an answer counts only once the member's key signed it
+	// in turn, so a stranger holding the words that takes the member's place
+	// learns nothing it could use and cannot answer for it.
 	if in.RelayID != "" {
-		auth := bearer(in.RelayID)
-		// A member on this network is asked directly, and the relay carries
-		// the call when that fails or the member is elsewhere. rt is set
-		// whenever viaRelay is, since both came from the same snapshot.
-		out, code, err := m.proxyMember(ctx, in, rt, method, path, body, auth)
+		out, code, err := m.proxyMember(ctx, in, rt, method, path, body)
 		if err == nil {
 			m.noteAnswer(in.RelayID, code, out, time.Now())
 		}
 		return out, code, err
 	}
-	auth := bearer(in.Name)
+	auth := ""
+	if tok := m.tokenFor(in.Name); tok != "" {
+		auth = "Bearer " + tok
+	}
 	var rd io.Reader
 	if len(body) > 0 {
 		rd = bytes.NewReader(body)
@@ -399,14 +393,14 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 // proxyMember calls a member of the group: directly when it is on this
 // network, and through the relay when that fails or the member is elsewhere.
 // rt is set whenever viaRelay is, since both came from the same snapshot.
-func (m *Manager) proxyMember(ctx context.Context, in Instance, rt RelayTransport, method, path string, body []byte, auth string) ([]byte, int, error) {
+func (m *Manager) proxyMember(ctx context.Context, in Instance, rt RelayTransport, method, path string, body []byte) ([]byte, int, error) {
 	if in.directURL != "" {
-		out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body, auth)
+		out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body)
 		if err == nil || !in.viaRelay {
 			return out, code, err
 		}
 	}
-	return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
+	return rt.Proxy(ctx, in.RelayID, method, path, body)
 }
 
 // ErrUnauthorized is what Ping reports when a peer answered but refused the

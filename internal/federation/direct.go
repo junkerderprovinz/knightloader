@@ -133,8 +133,9 @@ func (m *Manager) localMembers() []discovery.Peer {
 	return ln.Members()
 }
 
-// callDirect makes one sealed, signed call to a member at url.
-func (m *Manager) callDirect(ctx context.Context, url, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+// callDirect makes one sealed, signed call to a member at url and returns the
+// answer once the member's key signed it and that key is approved here.
+func (m *Manager) callDirect(ctx context.Context, url, target, method, path string, body []byte) ([]byte, int, error) {
 	m.mu.Lock()
 	keys, self := m.keys, m.selfID
 	m.mu.Unlock()
@@ -146,7 +147,7 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 		return nil, http.StatusInternalServerError, err
 	}
 	id := hex.EncodeToString(raw)
-	call := relay.ProxyCall{Method: method, Path: path, Body: body, Authorization: authorization}
+	call := relay.ProxyCall{Method: method, Path: path, Body: body}
 	if keys.member != nil {
 		call.From, call.Kind = self, relay.KindInstance
 	}
@@ -188,6 +189,12 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	result, err := relay.OpenResult(keys.frameKey, id, out.Sealed)
 	if err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s answered unreadably: %w", target, err)
+	}
+	if !relay.VerifyResult(id, target, result) {
+		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s's answer is not signed by its key", target)
+	}
+	if !m.TrustsAnswer(target, result.Key) {
+		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s is not approved on this instance", target)
 	}
 	return result.Body, result.Status, nil
 }
@@ -250,7 +257,11 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 			return
 		}
 	}
-	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
+	result := relay.ProxyResult{Status: status, Body: out}
+	if keys.member != nil {
+		result = relay.SignResult(keys.member, req.RequestID, self, result)
+	}
+	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, result)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return

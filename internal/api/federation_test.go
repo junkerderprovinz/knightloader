@@ -184,7 +184,7 @@ type relayOnlyPeer struct {
 func (r *relayOnlyPeer) Siblings() []relay.Announce { return r.sibs }
 func (r *relayOnlyPeer) Connected() bool            { return true }
 func (r *relayOnlyPeer) Close() error               { return nil }
-func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte, _ string) ([]byte, int, error) {
+func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	r.gotPath = path
 	r.gotBody = body
 	r.gotBoth = target == desktopID && method == http.MethodPost

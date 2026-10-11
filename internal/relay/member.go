@@ -12,13 +12,11 @@ package relay
 //     pinned, and no device is listed, refused or removed, under an instance's
 //     id, nor the other way round.
 //   - The signature and the public half travel inside the seal (ProxyCall.Key
-//     and Sig), so a relay never learns them and an older relay carries them
-//     unchanged. It covers the request id, the target, the method, the path,
-//     the body, the authorization field, the member id, the kind and the time,
-//     each with its length, so no field can be moved into another.
-//   - The receiving instance pins the key on the first signed call. A call
-//     without a signature is refused with a code that tells the device to
-//     update.
+//     and Sig), so a relay never learns them. It covers the request id, the
+//     target, the method, the path, the body, the member id, the kind and the
+//     time, each with its length, so no field can be moved into another.
+//   - The receiving instance pins the key on the first signed call and refuses
+//     a call without a signature with a code that tells the device to update.
 //   - Taking a member out revokes its pinned key on that instance for good.
 //     The id stays removed for a phone or a browser; an instance's id is freed,
 //     so the instance can join again under a key of its own.
@@ -29,6 +27,11 @@ package relay
 //     approves each of them. The approval, and a refusal, are passed on to the
 //     other instances with the key, so they pin it as approved before the
 //     device calls them.
+//   - The instance that answers signs the answer too (ResultMessage), and the
+//     caller acts on it only once the signature holds for the key the
+//     target's id is made from. Whoever holds the words can seal an answer,
+//     but only the target can sign one, so a forged "removed" or "reset"
+//     reaches nobody.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
 //     from the verified key: the replay guard and the calls served at once.
 //     How many keys may be pinned per hour counts per sender as well as for
@@ -44,6 +47,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"time"
 )
 
 type sourceKey struct{}
@@ -96,9 +100,13 @@ func MemberID(kind string, key []byte) string {
 	return ""
 }
 
-// callDomain opens every signed call message, so a member key's signature
-// over a call can never be taken for one over anything else.
-const callDomain = "knightloader/relay/member-call/v1\x00"
+// The domains that open every signed message, so a member key's signature over
+// one kind of message can never be taken for one over another.
+const (
+	callDomain   = "knightloader/relay/member-call/v2\x00"
+	resultDomain = "knightloader/relay/member-result/v1\x00"
+	helloDomain  = "knightloader/relay/member-hello/v1\x00"
+)
 
 // ErrSignature is returned for a call that opens but whose signature does not
 // match the key it presents. Only a member holding the phrase can seal such a
@@ -114,18 +122,43 @@ func NewMemberSeed() ([]byte, error) {
 	return seed, nil
 }
 
-// CallMessage is what a member signs for a call to target. It is exported so
-// the app's and the extension's ports can be held to it.
-func CallMessage(target string, c ProxyCall) []byte {
-	out := []byte(callDomain)
-	for _, field := range [][]byte{
-		[]byte(c.ID), []byte(target), []byte(c.Method), []byte(c.Path), c.Body,
-		[]byte(c.Authorization), []byte(c.From), []byte(c.Kind),
-	} {
+// signedMessage is domain followed by every field with its length and then n,
+// the one layout every signed message has.
+func signedMessage(domain string, n uint64, fields ...[]byte) []byte {
+	out := []byte(domain)
+	for _, field := range fields {
 		out = binary.BigEndian.AppendUint64(out, uint64(len(field)))
 		out = append(out, field...)
 	}
-	return binary.BigEndian.AppendUint64(out, uint64(c.Sent)) //nolint:gosec // G115: the bits of the time are signed as they are
+	return binary.BigEndian.AppendUint64(out, n)
+}
+
+// CallMessage is what a member signs for a call to target. It is exported so
+// the app's and the extension's ports can be held to it.
+func CallMessage(target string, c ProxyCall) []byte {
+	return signedMessage(callDomain, uint64(c.Sent), //nolint:gosec // G115: the bits of the time are signed as they are
+		[]byte(c.ID), []byte(target), []byte(c.Method), []byte(c.Path), c.Body, []byte(c.From), []byte(c.Kind))
+}
+
+// ResultMessage is what the member from signs when it answers requestID with
+// r.
+func ResultMessage(requestID, from string, r ProxyResult) []byte {
+	return signedMessage(resultDomain, uint64(int64(r.Status)), //nolint:gosec // G115: a status is signed as its bits
+		[]byte(requestID), []byte(from), r.Body)
+}
+
+// SignResult is r signed by member as the answer from from to requestID.
+func SignResult(member ed25519.PrivateKey, requestID, from string, r ProxyResult) ProxyResult {
+	r.Key = member.Public().(ed25519.PublicKey)
+	r.Sig = ed25519.Sign(member, ResultMessage(requestID, from, r))
+	return r
+}
+
+// VerifyResult reports whether r is target's answer to requestID: signed by
+// the key target's instance id is made from.
+func VerifyResult(requestID, target string, r ProxyResult) bool {
+	return len(r.Sig) == ed25519.SignatureSize && MemberID(KindInstance, r.Key) == target &&
+		ed25519.Verify(r.Key, ResultMessage(requestID, target, r), r.Sig)
 }
 
 // Signed reports whether a call presents a member key at all.
@@ -140,6 +173,47 @@ func verifyCall(target string, c ProxyCall) bool {
 	}
 	return len(c.Key) == ed25519.PublicKeySize && len(c.Sig) == ed25519.SignatureSize &&
 		ed25519.Verify(c.Key, CallMessage(target, c), c.Sig)
+}
+
+// IDProof shows that a connection holds the key its announced id is made
+// from. Only a connection that shows it takes the place of one already
+// connected under that id.
+type IDProof struct {
+	Kind string `json:"kind"`
+	Key  []byte `json:"key"`
+	Sent int64  `json:"sent"`
+	Sig  []byte `json:"sig"`
+}
+
+// HelloMessage is what a member signs to prove that id is its own on the
+// relay key key.
+func HelloMessage(key, id, kind string, sent int64) []byte {
+	return signedMessage(helloDomain, uint64(sent), []byte(key), []byte(id), []byte(kind)) //nolint:gosec // G115: the bits of the time are signed as they are
+}
+
+// ProveID signs the proof that member, a member of kind, holds id on the relay
+// key key at now.
+func ProveID(member ed25519.PrivateKey, kind, key, id string, now time.Time) *IDProof {
+	sent := now.Unix()
+	return &IDProof{
+		Kind: kind,
+		Key:  member.Public().(ed25519.PublicKey),
+		Sent: sent,
+		Sig:  ed25519.Sign(member, HelloMessage(key, id, kind, sent)),
+	}
+}
+
+// proves reports whether h shows, at now, the key its announced id is made
+// from.
+func (h Hello) proves(now time.Time) bool {
+	p := h.Proof
+	if p == nil || MemberID(p.Kind, p.Key) != h.Announce.InstanceID || len(p.Sig) != ed25519.SignatureSize {
+		return false
+	}
+	if d := now.Sub(time.Unix(p.Sent, 0)); d > ClockSkew || d < -ClockSkew {
+		return false
+	}
+	return ed25519.Verify(p.Key, HelloMessage(h.Key, h.Announce.InstanceID, p.Kind, p.Sent), p.Sig)
 }
 
 // RefusalBody is the answer body of a refused call, in the {error, code} shape

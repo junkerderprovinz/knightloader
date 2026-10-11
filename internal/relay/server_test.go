@@ -82,7 +82,9 @@ func announceOf(t *testing.T, env Envelope, msg string) Announce {
 func join(t *testing.T, s *Server, key, id string) *fakeConn {
 	t.Helper()
 	c := newFakeConn()
-	s.Join(key, c, Announce{InstanceID: id, Name: id, Deployment: "container"})
+	if err := s.Join(key, c, Announce{InstanceID: id, Name: id, Deployment: "container"}, true); err != nil {
+		t.Fatalf("join %s: %v", id, err)
+	}
 	t.Cleanup(func() { s.Leave(c) })
 	return c
 }
@@ -234,7 +236,7 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 	s := New()
 	stuck := newFakeConn()
 	stuck.block = make(chan struct{})
-	s.Join("key-1", stuck, Announce{InstanceID: "stuck"})
+	_ = s.Join("key-1", stuck, Announce{InstanceID: "stuck"}, false)
 	healthy := join(t, s, "key-1", "healthy")
 	next(t, healthy, "no sibling announce")
 
@@ -413,11 +415,11 @@ func TestTooManyInFlightRequestsAreRefused(t *testing.T) {
 func TestKeyGroupSizeIsCapped(t *testing.T) {
 	s := New()
 	for i := 0; i < maxClientsPerKey; i++ {
-		if !s.Join("key-1", newFakeConn(), Announce{InstanceID: fmt.Sprintf("i%d", i)}) {
+		if s.Join("key-1", newFakeConn(), Announce{InstanceID: fmt.Sprintf("i%d", i)}, false) != nil {
 			t.Fatalf("join %d was refused before the cap was reached", i)
 		}
 	}
-	if s.Join("key-1", newFakeConn(), Announce{InstanceID: "one-too-many"}) {
+	if s.Join("key-1", newFakeConn(), Announce{InstanceID: "one-too-many"}, false) == nil {
 		t.Error("a connection past maxClientsPerKey was admitted")
 	}
 	if s.Len() != maxClientsPerKey {
@@ -536,5 +538,24 @@ func TestEnvelopeShapeIsStable(t *testing.T) {
 				t.Error("payload is not valid JSON on its own")
 			}
 		})
+	}
+}
+
+// TestAnIDIsTakenOverOnlyWithItsKey: somebody announcing an id that is already
+// connected would get its calls. Only a connection whose hello proved the key
+// behind the id takes its place.
+func TestAnIDIsTakenOverOnlyWithItsKey(t *testing.T) {
+	s := New()
+	sib := join(t, s, "key-1", "watcher")
+	first := join(t, s, "key-1", "alpha")
+	next(t, sib, "no arrival announce")
+	next(t, first, "no sibling announce")
+
+	if err := s.Join("key-1", newFakeConn(), Announce{InstanceID: "alpha"}, false); err == nil {
+		t.Fatal("a connection that proved nothing took alpha's place")
+	}
+	send(t, s, sib, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "alpha"})
+	if got := next(t, first, "the request did not reach alpha"); got.Type != TypeProxyRequest {
+		t.Fatalf("alpha got a %q frame, want the proxy-request", got.Type)
 	}
 }
