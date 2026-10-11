@@ -30,4 +30,12 @@ func registerSpeedHistory(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.SpeedHistory())
 		})
+
+	// A route of its own: the shell seeds its meter from the one above on
+	// every page load, and only the timetable draws a day.
+	reg.Add(http.MethodGet, "/api/stats/speed/day",
+		"the aggregate download speed of the last day as five minute means, held in memory only and empty again after a restart",
+		func(w http.ResponseWriter, r *http.Request) {
+			writeJSON(w, a.SpeedDay())
+		})
 }

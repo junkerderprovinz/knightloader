@@ -296,3 +296,96 @@ func TestSpeedHistoryDeclaresItsOwnBounds(t *testing.T) {
 		t.Error("no sampledAt, so nothing can say how old the answer is")
 	}
 }
+
+// A day bucket is five minutes of readings, and its mean is what the day curve
+// draws against the planned limit.
+func TestADayBucketIsTheMeanOfItsFiveMinutes(t *testing.T) {
+	st := newSpeedHistoryState()
+
+	// One busy minute in five: the mean is a fifth of the busy reading.
+	for i := 1; i <= speedDayEvery; i++ {
+		v := int64(0)
+		if i > 240 {
+			v = 5000
+		}
+		st.sample(v, speedTestBase.Add(time.Duration(i)*time.Second))
+	}
+
+	day, closed := st.day.snapshot()
+	if len(day) != 1 || day[0] != 1000 {
+		t.Fatalf("five minutes of readings left the day ring at %v, want one bucket of 1000", day)
+	}
+	if want := speedTestBase.Add(speedDayStep); !closed.Equal(want) {
+		t.Errorf("the bucket is stamped %v, want %v, the moment it closed", closed, want)
+	}
+}
+
+// The day ring places its buckets by their number, so the readings a suspend
+// swallowed have to be counted in or everything after it moves on the clock.
+func TestASuspendKeepsTheDayBucketsOnTheClock(t *testing.T) {
+	st := newSpeedHistoryState()
+	for i := 1; i <= 120; i++ {
+		st.sample(3000, speedTestBase.Add(time.Duration(i)*time.Second))
+	}
+	// Two minutes in, the machine sleeps for twenty and then carries on.
+	woke := speedTestBase.Add(22 * time.Minute)
+	for i := 0; i < 180; i++ {
+		st.sample(600, woke.Add(time.Duration(i)*time.Second))
+	}
+
+	day, closed := st.day.snapshot()
+	// 120 readings of 3000 and 180 idle ones, three idle buckets, and none of
+	// the readings after the wake yet: the fifth bucket is still open.
+	want := []int64{1200, 0, 0, 0}
+	if len(day) != len(want) {
+		t.Fatalf("the day ring holds %v, want %v", day, want)
+	}
+	for i := range want {
+		if day[i] != want[i] {
+			t.Fatalf("the day ring holds %v, want %v", day, want)
+		}
+	}
+	if first := speedTestBase.Add(speedDayStep); !closed.Equal(first) {
+		t.Errorf("the oldest bucket is stamped %v, want %v", closed, first)
+	}
+}
+
+// A day is 288 buckets however long the instance has run.
+func TestTheDayRingHoldsOneDay(t *testing.T) {
+	st := newSpeedHistoryState()
+	st.sample(1, speedTestBase.Add(time.Second))
+	st.sample(1, speedTestBase.Add(30*time.Hour))
+
+	day, _ := st.day.snapshot()
+	if len(day) != speedDaySlots {
+		t.Fatalf("thirty hours left %d buckets in the day ring, want %d", len(day), speedDaySlots)
+	}
+}
+
+// SpeedDay says when its oldest bucket opened, which is what puts the curve on
+// the clock, and says nothing while there is no bucket.
+func TestSpeedDayDatesItsOldestBucket(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+
+	got := a.SpeedDay()
+	if got.Samples == nil || len(got.Samples) != 0 || got.From != nil {
+		t.Fatalf("a fresh instance answers %+v, want no samples as an empty list and no start", got)
+	}
+	if got.Step != 300 || got.Cap != speedDaySlots {
+		t.Errorf("the day record describes itself as %d s x %d, want 300 s x %d", got.Step, got.Cap, speedDaySlots)
+	}
+
+	closed := time.Now().Truncate(time.Second)
+	a.speedHistoryFor().day.push(4096, closed)
+	got = a.SpeedDay()
+	if len(got.Samples) != 1 || got.Samples[0] != 4096 {
+		t.Fatalf("samples = %v, want the one bucket", got.Samples)
+	}
+	if got.From == nil || !got.From.Equal(closed.Add(-speedDayStep)) {
+		t.Errorf("from = %v, want %v, five minutes before the bucket closed", got.From, closed.Add(-speedDayStep))
+	}
+}
