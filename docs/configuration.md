@@ -62,3 +62,8 @@ somebody else may have had access, look through them.
 The code is never sent over the network, and it appears neither on the log
 page, in the log file nor in a diagnostics bundle. Somebody who only reaches
 the web interface cannot reset anything.
+
+Anybody who can read the container log or the service's output can reset the
+password and take the instance over. That includes access that is otherwise
+read-only: a log viewer such as Dozzle, or a log shipper and everybody who
+reads what it collects. Keep that access to people who may own this instance.
