@@ -24,6 +24,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerSystem(reg, a)
 	registerTwoFactor(reg, a)
 	registerPasskeys(reg, a)
+	registerPasswordReset(reg, a)
 	registerTasks(reg, a)
 	registerExtract(reg, a)
 	registerBulk(reg, a)

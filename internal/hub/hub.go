@@ -132,6 +132,21 @@ func (h *Hub) Remove(c Conn) {
 	}
 }
 
+// DropAll unregisters every connection, which closes each one. A stream is
+// let in once, when it opens, so the moment every session ends is the moment
+// to make each viewer open one again.
+func (h *Hub) DropAll() {
+	h.mu.Lock()
+	conns := make([]Conn, 0, len(h.clients))
+	for c := range h.clients {
+		conns = append(conns, c)
+	}
+	h.mu.Unlock()
+	for _, c := range conns {
+		h.Remove(c)
+	}
+}
+
 // Len reports how many connections are currently registered.
 func (h *Hub) Len() int {
 	h.mu.Lock()

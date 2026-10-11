@@ -72,6 +72,9 @@ type Guard struct {
 	epoch    uint64
 	revoked  map[string]int64
 	pending  *pending // never written to the file
+	// The live reset code and when it was minted, in memory only.
+	reset       resetCode
+	resetMinted time.Time
 }
 
 // Open loads (or creates) the lock state in dir.
