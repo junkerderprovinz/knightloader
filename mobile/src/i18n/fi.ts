@@ -300,6 +300,8 @@ export const fi: Dict = {
   'failure.pinned.next': 'Poista kiinnitys verkkokäyttöliittymässä tai tarkista siellä sen taustaosan tili.',
   'failure.fileExists.line': 'Kansiossa on jo tiedosto nimeltä {file}.',
   'failure.fileExists.next': 'Siirrä tiedosto tai nimeä se uudelleen, tai muuta verkkokäyttöliittymässä, mitä olemassa oleville tiedostoille tapahtuu, ja aloita lataus sitten alusta.',
+  'failure.dataFolder.line': '{path} on KnightLoaderin datakansiossa, eikä latauksia saa viedä sinne.',
+  'failure.dataFolder.next': 'Valitse verkkokäyttöliittymässä kansio datakansion ulkopuolelta ja yritä uudelleen.',
   'failure.captcha.line': 'Hosteri haluaa, että captcha ratkaistaan.',
   'failure.captcha.next': 'Vastaa captchaan Captchat-näkymässä tai lisää captcha-tili verkkokäyttöliittymässä.',
   'failure.cancelled.line': 'Lataus pysäytettiin ennen kuin se valmistui.',

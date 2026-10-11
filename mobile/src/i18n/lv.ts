@@ -300,6 +300,8 @@ export const lv: Dict = {
   'failure.pinned.next': 'Tīmekļa saskarnē noņem piespraušanu vai pārbaudi tur šīs aizmugures kontu.',
   'failure.fileExists.line': 'Mapē jau ir fails ar nosaukumu {file}.',
   'failure.fileExists.next': 'Pārvieto vai pārdēvē šo failu vai tīmekļa saskarnē maini, kas notiek ar esošiem failiem, tad sāc lejupielādi no jauna.',
+  'failure.dataFolder.line': '{path} atrodas KnightLoader datu mapē, un lejupielādes tur nedrīkst nonākt.',
+  'failure.dataFolder.next': 'Tīmekļa saskarnē izvēlies mapi ārpus datu mapes un mēģini vēlreiz.',
   'failure.captcha.line': 'Glabātājs grib, lai atrisina captcha.',
   'failure.captcha.next': 'Atbildi uz captcha ekrānā Captcha vai pievieno captcha kontu tīmekļa saskarnē.',
   'failure.cancelled.line': 'Lejupielāde tika apturēta, pirms tā beidzās.',

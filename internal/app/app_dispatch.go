@@ -934,7 +934,9 @@ func (a *App) dispatchLocked() {
 		if inData := a.dataFolderOf(dir, a.workDirFor(t)); inData != "" {
 			t.Status = core.StatusError
 			t.Reason = core.ReasonUnknown
-			t.SetError("not downloaded: "+inData+" is inside KnightLoader's data folder; choose a folder outside it", "", nil)
+			refusal := &dataFolderError{dir: inData}
+			code, params := diskCode(refusal)
+			t.SetError("not downloaded: "+refusal.Error(), code, params)
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}

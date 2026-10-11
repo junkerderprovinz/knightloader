@@ -10,7 +10,6 @@ package extract
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"slices"
@@ -182,6 +181,14 @@ func (e *DestinationTakenError) Error() string { return ErrDestinationTaken.Erro
 
 func (e *DestinationTakenError) Unwrap() error { return ErrDestinationTaken }
 
+// BarredError is an archive refused because the folder it would unpack into is
+// one Options.Barred bars.
+type BarredError struct {
+	Dir string
+}
+
+func (e *BarredError) Error() string { return "extract: nothing may be unpacked into " + e.Dir }
+
 // Extract unpacks path under these options and reports what it wrote.
 //
 // It disposes of nothing. Whether a volume is still somebody else's file is a
@@ -262,7 +269,7 @@ func attempt(path, dest, password string) (*Result, error) {
 func (o Options) destination(path string) (string, error) {
 	dest := o.baseDest(path)
 	if o.Barred != nil && o.Barred(dest) {
-		return "", fmt.Errorf("extract: nothing may be unpacked into %s", dest)
+		return "", &BarredError{Dir: dest}
 	}
 	policy := ParseCollision(string(o.Collision))
 	if policy == collide.Overwrite {

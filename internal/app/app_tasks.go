@@ -990,9 +990,13 @@ type RenameRefusal struct {
 	Code string
 	Name string
 	text string
+	// err is the cause a task's row words, where there is one.
+	err error
 }
 
 func (e *RenameRefusal) Error() string { return e.text }
+
+func (e *RenameRefusal) Unwrap() error { return e.err }
 
 func refuseRename(code, name, format string, args ...any) error {
 	return &RenameRefusal{Code: code, Name: name, text: fmt.Sprintf(format, args...)}
@@ -1064,7 +1068,7 @@ func (a *App) renameFinishedLocked(t *core.Task) error {
 	}
 	to := filepath.Join(filepath.Dir(from), want)
 	if inData := a.dataFolderOf(filepath.Dir(to)); inData != "" {
-		return refuse(refuseRename("dataFolder", want, renameErrorPrefix+"%s is inside KnightLoader's data folder", inData))
+		return refuse(refuseDataFolder(want, inData))
 	}
 	// Checked first, since Rename replaces an existing destination on most
 	// platforms.

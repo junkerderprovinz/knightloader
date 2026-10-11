@@ -300,6 +300,8 @@ export const hr: Dict = {
   'failure.pinned.next': 'U web sučelju otkvači poveznicu ili ondje provjeri račun te pozadine.',
   'failure.fileExists.line': 'U mapi već postoji datoteka s nazivom {file}.',
   'failure.fileExists.next': 'Premjesti ili preimenuj tu datoteku, ili u web sučelju promijeni što se događa s postojećim datotekama, pa ponovno pokreni preuzimanje.',
+  'failure.dataFolder.line': '{path} je u mapi s podacima KnightLoadera, a preuzimanja ne smiju ići onamo.',
+  'failure.dataFolder.next': 'U web sučelju odaberi mapu izvan mape s podacima, pa pokušaj ponovno.',
   'failure.captcha.line': 'Hoster traži da se riješi captcha.',
   'failure.captcha.next': 'Odgovori na captchu na zaslonu Captche ili dodaj račun captche u web sučelju.',
   'failure.cancelled.line': 'Preuzimanje je zaustavljeno prije nego što je završilo.',

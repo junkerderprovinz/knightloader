@@ -300,6 +300,8 @@ export const pl: Dict = {
   'failure.pinned.next': 'Odepnij go w interfejsie webowym albo sprawdź tam konto tego backendu.',
   'failure.fileExists.line': 'W folderze jest już plik o nazwie {file}.',
   'failure.fileExists.next': 'Przenieś ten plik albo zmień jego nazwę lub zmień w interfejsie webowym, co dzieje się z istniejącymi plikami, a potem uruchom pobieranie ponownie.',
+  'failure.dataFolder.line': '{path} leży w folderze danych KnightLoadera, a pobierane pliki nie mogą tam trafiać.',
+  'failure.dataFolder.next': 'Wybierz w interfejsie webowym folder poza folderem danych i spróbuj ponownie.',
   'failure.captcha.line': 'Hoster chce rozwiązania captchy.',
   'failure.captcha.next': 'Odpowiedz na captchę na ekranie Captcha albo dodaj konto captcha w interfejsie webowym.',
   'failure.cancelled.line': 'Pobieranie zostało zatrzymane przed końcem.',

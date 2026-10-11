@@ -300,6 +300,8 @@ export const is: Dict = {
   'failure.pinned.next': 'Losaðu festinguna í vefviðmótinu, eða athugaðu reikning þess bakenda þar.',
   'failure.fileExists.line': 'Skrá sem heitir {file} er þegar í möppunni.',
   'failure.fileExists.next': 'Færðu eða endurnefndu þá skrá, eða breyttu í vefviðmótinu hvað gerist við skrár sem eru þegar til, og endurræstu svo niðurhalið.',
+  'failure.dataFolder.line': '{path} er í gagnamöppu KnightLoader og niðurhal má ekki fara þangað.',
+  'failure.dataFolder.next': 'Veldu í vefviðmótinu möppu utan gagnamöppunnar og reyndu aftur.',
   'failure.captcha.line': 'Hýsillinn vill fá captcha leyst.',
   'failure.captcha.next': 'Svaraðu captcha á Captcha-skjánum, eða bættu við captcha-reikningi í vefviðmótinu.',
   'failure.cancelled.line': 'Niðurhalið var stöðvað áður en því lauk.',

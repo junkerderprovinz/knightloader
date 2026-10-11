@@ -14,3 +14,13 @@ func (a *App) dataFolderOf(dirs ...string) string {
 	}
 	return ""
 }
+
+// dataFolderError is a write refused because dir lies in the data folder. It
+// reads as core.CodeDataFolder (see diskCode).
+type dataFolderError struct {
+	dir string
+}
+
+func (e *dataFolderError) Error() string {
+	return e.dir + " is inside KnightLoader's data folder; choose a folder outside it"
+}
