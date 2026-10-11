@@ -196,10 +196,20 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 // visitor's browser. The UI is served from the same origin as the API, so no
 // cross-origin access is ever needed. A site that points its own domain at
 // this address passes here; knownHost is what stops it.
+//
+// Sec-Fetch-Site is set by the browser itself and no page can change it, so it
+// still says cross-site where a privacy setting has dropped the Origin. Only
+// that value is refused: what a browser counts as one site for a bare LAN
+// address is not worth betting an install on, and a client that sends no such
+// header is not a browser.
 func sameOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) {
 			http.Error(w, "cross-origin requests are not allowed", http.StatusForbidden)
+			return
+		}
+		if changesState(r.Method) && r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+			http.Error(w, "cross-site requests are not allowed", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)

@@ -99,6 +99,7 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	self := a.Settings.Get().InstanceID
 
 	forged, _ := http.NewRequest(http.MethodPost, srv.URL+federation.DirectPath, strings.NewReader(`{"requestId":"r1","target":"`+self+`"}`))
+	forged.Header.Set("Content-Type", "application/json")
 	forged.Header.Set("X-Knightloader-Peer", "id-stranger")
 	forged.Header.Set("X-Knightloader-Target", self)
 	forged.Header.Set("X-Knightloader-Time", strconv.FormatInt(time.Now().Unix(), 10))
