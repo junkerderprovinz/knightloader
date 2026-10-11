@@ -677,6 +677,7 @@ export function Downloads() {
                   revealKey={revealRow?.card === 'downloads' ? revealRow.key : undefined}
                   // The same removal path as the selection bar and the context menu.
                   onRemovePackage={removal.askWithFiles}
+                  rename={rename}
                   extractions={extractions}
                   stopMark={queueVerbs.stopMark}
                   title={narrowedTitle(filters, t, t('downloads.listTitle'))}
@@ -703,6 +704,7 @@ export function Downloads() {
                       selection={selectionIn(card)}
                       revealKey={revealRow?.card === card ? revealRow.key : undefined}
                       onRemovePackage={removal.askWithFiles}
+                      rename={rename}
                       extractions={extractions}
                       stopMark={queueVerbs.stopMark}
                       sortKey={`downloads.${card}`}

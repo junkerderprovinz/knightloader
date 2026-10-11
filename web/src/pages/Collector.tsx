@@ -44,7 +44,7 @@ import { useSavedViews } from '../lib/savedViews';
 import { useLabelMode } from '../lib/labelModes';
 import { useRowFit } from '../lib/rowFit';
 import { anchorBelow, anchorFromEvent, useContextMenu, ContextMenu } from '../components/ContextMenu';
-import { CollectorFacetSidebar, matchesFacets } from '../components/CollectorFacets';
+import { CollectorFacets, facetActiveCount, matchesFacets } from '../components/CollectorFacets';
 import { CollectorStats } from '../components/CollectorStats';
 import { useScriptMenu } from '../components/ScriptActions';
 import { usePublishCommandPageContext } from '../lib/commands/pageContext';
@@ -110,7 +110,7 @@ export function Collector() {
   // The chips under Filter, counted by ListToolbar's own logic.
   const offeredFilters = useMemo(() => offeredQuickFilters(COLLECTOR_FILTERS, collected, filters), [collected, filters]);
   const sort = useListSort(t('collector.listTitle'), 'collector');
-  // Compared by count, since the sidebar facets narrow the list too.
+  // Compared by count, since the facets narrow the list too.
   const narrowed = filtered.length !== collected.length;
   // Whether anything is set, even a filter that hides nothing; the dot and the
   // reset badge read this.
@@ -283,12 +283,12 @@ export function Collector() {
   return (
     // flex-1 rather than h-full, since app/Layout.tsx's wrapper is a flex column.
     <div className="flex min-h-0 flex-1 flex-col gap-6">
-      <PageHeader title={t('collector.title')} />
+      <PageHeader title={t('nav.collector')} />
 
-      {/* Three columns of equal height through the row's default stretch;
-          AddLinksForm takes the free width. The cards sit deeper than
-          .glim-column-top reaches in index.css, so the row keeps the room their
-          badges overhang the top edge by. */}
+      {/* Two cards of equal height through the row's default stretch, as low
+          as the form needs; AddLinksForm takes the free width. The cards sit
+          deeper than .glim-column-top reaches in index.css, so the row keeps
+          the room their badges overhang the top edge by. */}
       <div className="flex min-w-0 shrink-0 flex-col gap-4 pt-3 lg:flex-row">
         <div className="min-w-0 flex-1">
           <AddLinksForm
@@ -303,9 +303,6 @@ export function Collector() {
           />
         </div>
         {collected.length > 0 && <CollectorStats all={collected} visible={filtered} selected={selectedTasks} />}
-        {collected.length > 0 && (
-          <CollectorFacetSidebar tasks={collected} selection={facets} onChange={narrowing.setFacets} />
-        )}
       </div>
 
       {/* The list cluster keeps a tighter gap than the page: held and skipped
@@ -328,6 +325,14 @@ export function Collector() {
           active={filters}
           onToggleFilter={narrowing.toggleFilter}
           onClearFilters={narrowing.clearFilters}
+          // Host, file type and package, which need links to be counted from.
+          facets={{
+            panel:
+              collected.length > 0 ? (
+                <CollectorFacets tasks={collected} selection={facets} onChange={narrowing.setFacets} />
+              ) : null,
+            active: facetActiveCount(facets) > 0,
+          }}
           sorts={[sort]}
           search={search}
           onSearch={narrowing.setSearch}
@@ -437,7 +442,8 @@ export function Collector() {
             </span>
           )}
           {/* Clears search, quick filters and facet ticks at once; it also works
-              while the collector is empty and the sidebar is not drawn. */}
+              while the collector is empty and the Filter window has no facets
+              to show. */}
           {anyNarrowing && (
             <IconBadge
               labelled={!glyphs}
@@ -478,6 +484,7 @@ export function Collector() {
               profile="collector"
               // As in Downloads.tsx: one removal question for the whole page.
               onRemovePackage={removal.askWithFiles}
+              rename={rename}
               stopMark={queueVerbs.stopMark}
               title={narrowedTitle(filters, t, t('collector.listTitle'))}
               hue={3}

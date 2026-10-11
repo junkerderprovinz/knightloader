@@ -37,6 +37,8 @@ beforeEach(() => {
           return reply([{ id: 'torbox', label: 'TorBox' }, { id: 'debridlink', label: 'Debrid-Link' }, { id: 'jd' }]);
         case '/api/tasks/options':
           return reply(null, 204);
+        case '/api/tasks/package/rename':
+          return reply({ ok: [] });
         default:
           return reply([]);
       }
@@ -75,6 +77,41 @@ async function openPanel(tasks: Task[]) {
   const { TaskProperties } = await import('./TaskList');
   await act(async () => root.render(<TaskProperties ids={tasks.map((x) => x.id)} tasks={tasks} base="/api" />));
 }
+
+/** What the page's rename windows were asked to open. */
+let opened: string[];
+
+/** The panel over `picked`, on a page whose list holds `all`. */
+async function openOnPage(picked: Task[], all: Task[] = picked) {
+  const { TaskProperties } = await import('./TaskList');
+  const { ToastProvider } = await import('../lib/toast');
+  opened = [];
+  const rename = {
+    openLink: (id: string) => opened.push(`link ${id}`),
+    openPackage: (name: string) => opened.push(`package ${name}`),
+    fromKeyboard: () => {},
+    members: (pkg: string) => all.filter((x) => x.package === pkg),
+    shortcut: undefined,
+    dialog: null,
+  };
+  await act(async () =>
+    root.render(
+      <ToastProvider>
+        <TaskProperties ids={picked.map((x) => x.id)} tasks={picked} base="/api" rename={rename} />
+      </ToastProvider>,
+    ),
+  );
+}
+
+const field = (label: string) =>
+  [...host.querySelectorAll('label')].find((l) => l.textContent?.startsWith(label))?.querySelector('input') ?? null;
+const renameButton = (name: string) => host.querySelector<HTMLButtonElement>(`button[aria-label="Rename: ${name}"]`);
+const type = (input: HTMLInputElement, text: string) =>
+  act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value')!.set!.call(input, text);
+    input.dispatchEvent(new Event('input', { bubbles: true }));
+  });
+const save = () => act(async () => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Save')!.click());
 
 const backendTrigger = () =>
   [...host.querySelectorAll<HTMLButtonElement>('button')].find((b) => b.getAttribute('aria-label')?.startsWith('Backend:'))!;
@@ -119,5 +156,54 @@ describe('TaskProperties', () => {
       { ...task, id: 't2', resolverPin: '' },
     ]);
     expect(backendTrigger().getAttribute('aria-label')).toBe('Backend: Several values');
+  });
+});
+
+describe('the names in TaskProperties', () => {
+  const part2: Task = { ...task, id: 't2', name: 'Cloud.Atlas.part2.rar' };
+  const other: Task = { ...task, id: 't3', name: 'Dune.mkv', package: 'Dune' };
+  const loose: Task = { ...task, id: 't4', name: 'readme.txt', package: '' };
+
+  it('renames a package picked whole from its name box', async () => {
+    await openOnPage([task, part2]);
+    expect(field('Package name')!.value).toBe('Cloud Atlas');
+
+    await type(field('Package name')!, 'Cloud Atlas (2012)');
+    await save();
+    expect(posted['/api/tasks/package/rename']).toEqual([{ ids: ['t1', 't2'], name: 'Cloud Atlas (2012)' }]);
+    expect(posted['/api/tasks/options']).toBeUndefined();
+  });
+
+  it('sends no package name with a separator in it', async () => {
+    await openOnPage([task, part2]);
+    await type(field('Package name')!, 'Films/Cloud Atlas');
+    await save();
+    expect(posted['/api/tasks/package/rename']).toBeUndefined();
+  });
+
+  it('lists the names of several links, each with its own rename', async () => {
+    await openOnPage([task, part2]);
+    expect(field('Name')).toBeNull();
+    await act(async () => renameButton('Cloud.Atlas.part2.rar')!.click());
+    expect(opened).toEqual(['link t2']);
+  });
+
+  it('offers the rename window for a package only part of which is picked', async () => {
+    await openOnPage([task], [task, part2]);
+    expect(field('Name')!.value).toBe('Cloud.Atlas.part1.rar');
+    expect(field('Package name')).toBeNull();
+    await act(async () => renameButton('Cloud Atlas')!.click());
+    expect(opened).toEqual(['package Cloud Atlas']);
+  });
+
+  it('heads the links of several packages with their package, and names the rows outside any', async () => {
+    await openOnPage([task, other, loose]);
+    expect(field('Package name')).toBeNull();
+    expect(renameButton('Cloud Atlas')).not.toBeNull();
+    expect(renameButton('Dune')).not.toBeNull();
+    expect(renameButton('Dune.mkv')).not.toBeNull();
+    expect(renameButton('Ungrouped')).toBeNull();
+    expect(host.textContent).toContain('Ungrouped');
+    expect(renameButton('readme.txt')).not.toBeNull();
   });
 });
