@@ -47,6 +47,10 @@ release's tag.
   passkeys registered on the running server stay, so a backup made before a
   passkey was removed cannot bring it back. Triggers and views in an uploaded
   database are removed before it is put in place.
+- **Removing a download with its files no longer deletes another download's
+  file that has a second path.** A path through a symlink, a junction or a bind
+  mount, or one spelled in another case on a disk that ignores case, counts as
+  the same file, and so does one the disk cannot answer for.
 
 ## [1.8.5] - 2026-10-11
 
