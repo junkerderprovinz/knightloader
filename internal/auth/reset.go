@@ -9,6 +9,7 @@ package auth
 import (
 	"crypto/rand"
 	"crypto/subtle"
+	"encoding/hex"
 	"errors"
 	"strings"
 	"time"
@@ -20,21 +21,22 @@ const (
 	// ResetCodeTTL is how long a code can be used. Asking again does not
 	// extend it.
 	ResetCodeTTL = 10 * time.Minute
-	// ResetCodeTries is how many wrong guesses a code survives.
-	ResetCodeTries = 5
-	// resetCodeGap is the least time between two new codes. With the tries it
-	// bounds a guesser to five attempts a minute against forty bits, and the
-	// output to one code a minute however often somebody asks.
+	// resetCodeGap is the least time between two new codes, so asking cannot
+	// fill the output.
 	resetCodeGap = time.Minute
 
-	resetCodeLen = 8
+	// ResetCodeLen is twelve symbols, sixty bits. Wrong guesses do not spend a
+	// code, since a code that a few guesses killed would let anybody who
+	// reaches the page keep the owner from ever using one, and sixty bits
+	// leave nothing to find in ten minutes at any rate HTTP allows.
+	ResetCodeLen = 12
 	// resetAlphabet has no 0, O, 1 or I, which look alike in a log window. Its
 	// 32 symbols take five bits of a random byte each without bias.
 	resetAlphabet = "23456789ABCDEFGHJKLMNPQRSTUVWXYZ"
 	// noResetCode stands in for the code while none is live, so a guess costs
 	// the same comparison either way. It has the length of a code and symbols
 	// no code has.
-	noResetCode = "00000000"
+	noResetCode = "000000000000"
 )
 
 // ErrNothingToReset refuses a reset on an instance without a password.
@@ -45,36 +47,26 @@ var ErrNothingToReset = errors.New("no password is set on this instance")
 type resetCode struct {
 	code    string
 	expires time.Time
-	tries   int
 }
 
-func (c *resetCode) live(now time.Time) bool {
+func (c resetCode) live(now time.Time) bool {
 	return c.code != "" && now.Before(c.expires)
 }
 
-// spend reports whether typed is the live code, which is then gone. A wrong
-// guess costs one try, and the last one takes the code with it.
-func (c *resetCode) spend(typed string, now time.Time) bool {
+// matches reports whether typed is the live code, as the log shows it or
+// without its dashes, in either case.
+func (c resetCode) matches(typed string, now time.Time) bool {
 	live := c.live(now)
 	want := noResetCode
 	if live {
 		want = c.code
 	}
-	// The code is shown in capitals with a dash in the middle.
 	typed = strings.ToUpper(strings.NewReplacer("-", "", " ", "").Replace(typed))
-	match := subtle.ConstantTimeCompare([]byte(typed), []byte(want)) == 1
-	if !live || match {
-		*c = resetCode{}
-		return live && match
-	}
-	if c.tries--; c.tries == 0 {
-		*c = resetCode{}
-	}
-	return false
+	return subtle.ConstantTimeCompare([]byte(typed), []byte(want)) == 1 && live
 }
 
 func newResetCode() (string, error) {
-	buf := make([]byte, resetCodeLen)
+	buf := make([]byte, ResetCodeLen)
 	if _, err := rand.Read(buf); err != nil {
 		return "", err
 	}
@@ -102,9 +94,16 @@ func (g *Guard) StartReset() (string, error) {
 	if err != nil {
 		return "", err
 	}
-	g.reset = resetCode{code: code, expires: now.Add(ResetCodeTTL), tries: ResetCodeTries}
+	g.reset = resetCode{code: code, expires: now.Add(ResetCodeTTL)}
 	g.resetMinted = now
 	return code, nil
+}
+
+// ResetPending reports whether a reset code is live.
+func (g *Guard) ResetPending() bool {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.reset.live(time.Now())
 }
 
 // CancelReset drops a code that could not be shown, so the next request mints
@@ -116,43 +115,73 @@ func (g *Guard) CancelReset() {
 	g.mu.Unlock()
 }
 
-// FinishReset sets next as the password when code is the live reset code. It
-// also removes the second factor, since whoever lost the password may have
-// lost the authenticator with it, and ends every session.
+// FinishReset sets next as the password when code is the live reset code,
+// and returns the credentials a session for the caller is issued against.
 //
-// A wrong code, an expired one, a spent one and no code at all are the same
-// ErrCodeRejected. A password that is too short is refused before the code is
-// looked at and costs no try.
-func (g *Guard) FinishReset(code, next string) error {
+// The reset leaves whoever holds the code alone in the instance: the second
+// factor goes, since the authenticator may have gone with the password, every
+// session ends and the signing key is replaced, so a copy of auth.json taken
+// earlier signs nothing. auth.json is written before anything changes in
+// memory, and a failed write leaves the old state and the code in place.
+// alsoEnd runs while nothing can be minted (see Mint), for the credentials
+// this package does not keep.
+//
+// A wrong code, an expired one and no code at all are the same
+// ErrCodeRejected. A password the hash would refuse is refused before the code
+// is looked at.
+func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, error) {
 	if len(next) < 8 {
-		return ErrTooShort
+		return Credentials{}, ErrTooShort
 	}
-	// bcrypt would refuse it after the code is spent.
 	if len(next) > 72 {
-		return bcrypt.ErrPasswordTooLong
+		return Credentials{}, bcrypt.ErrPasswordTooLong
 	}
-	g.mu.Lock()
+	g.mu.RLock()
 	enabled := len(g.hash) > 0
-	ok := g.reset.spend(code, time.Now())
-	g.mu.Unlock()
+	ok := g.reset.matches(code, time.Now())
+	g.mu.RUnlock()
 	if !enabled {
-		return ErrNothingToReset
+		return Credentials{}, ErrNothingToReset
 	}
 	if !ok {
-		return ErrCodeRejected
+		return Credentials{}, ErrCodeRejected
 	}
 	// Hashed only for a code that was right, so the route cannot be made to
 	// spend a bcrypt per request.
 	h, err := bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost)
 	if err != nil {
-		return err
+		return Credentials{}, err
 	}
+	key := make([]byte, 32)
+	if _, err := rand.Read(key); err != nil {
+		return Credentials{}, err
+	}
+
+	g.minting.Lock()
+	defer g.minting.Unlock()
 	g.mu.Lock()
+	// Another request may have used the code while this one hashed.
+	if !g.reset.matches(code, time.Now()) {
+		g.mu.Unlock()
+		return Credentials{}, ErrCodeRejected
+	}
+	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}); err != nil {
+		g.mu.Unlock()
+		return Credentials{}, err
+	}
 	g.hash = h
+	g.key = key
 	g.totp = ""
 	g.recovery = nil
 	g.pending = nil
 	g.endSessionsLocked()
+	g.reset = resetCode{}
+	g.gen++
+	c := Credentials{gen: g.gen, enabled: true}
 	g.mu.Unlock()
-	return g.flush()
+
+	if alsoEnd != nil {
+		alsoEnd()
+	}
+	return c, nil
 }

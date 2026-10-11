@@ -126,13 +126,14 @@ func registerSystem(reg *Registry, a *app.App) {
 			if !decodeJSONUpTo(w, r, &body, maxAuthBody) {
 				return
 			}
-			if !a.Auth.Check(body.Password) {
+			checked, ok := a.Auth.CheckPassword(body.Password)
+			if !ok {
 				// The same answer on every instance, so it does not reveal
 				// whether a second factor exists.
 				http.Error(w, "wrong password", http.StatusUnauthorized)
 				return
 			}
-			if a.Auth.TwoFactorEnabled() {
+			if checked.TwoFactor {
 				if body.Code == "" {
 					// The password was right and the screen now asks for the
 					// code. Not counted: every honest login passes here once,
@@ -153,8 +154,15 @@ func registerSystem(reg *Registry, a *app.App) {
 					return
 				}
 			}
+			// Refused when the password or the factor changed during the
+			// check, which would otherwise let the old password in once more.
+			tok, ok := a.Auth.IssueFor(checked)
+			if !ok {
+				http.Error(w, "wrong password", http.StatusUnauthorized)
+				return
+			}
 			gate.pass(r)
-			setSession(w, r, a.Auth.Issue())
+			setSession(w, r, tok)
 			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
@@ -206,7 +214,8 @@ func registerSystem(reg *Registry, a *app.App) {
 				http.Error(w, "too many attempts, wait a moment", http.StatusTooManyRequests)
 				return
 			}
-			if err := a.Auth.SetPassword(body.Current, body.New); err != nil {
+			changed, err := a.Auth.ChangePassword(body.Current, body.New)
+			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
@@ -219,7 +228,11 @@ func registerSystem(reg *Registry, a *app.App) {
 			// change that is already persisted.
 			_ = a.APITokens.RevokeAll()
 			if body.New != "" {
-				setSession(w, r, a.Auth.Issue()) // don't lock out the person who just set it
+				// Whoever just set it stays signed in, unless it has changed
+				// again since.
+				if tok, ok := a.Auth.IssueFor(changed); ok {
+					setSession(w, r, tok)
+				}
 				learnDomain(a, reg, r)
 			} else {
 				clearSession(w, r)
