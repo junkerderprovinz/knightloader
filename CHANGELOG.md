@@ -37,6 +37,23 @@ release's tag.
 
 ## [Unreleased]
 
+### Security
+
+- **Every member of a group signs its own calls.** Instances, the Android app
+  and the browser extension each make a key of their own when they join, and
+  an instance remembers it on the member's first signed call. After that no
+  other key, and no unsigned call, is taken in that member's name. Groups
+  paired before keep working; each member's key is remembered after the
+  update without pairing again.
+
+- **Removing a device takes back its key for good.** A removed phone or
+  browser comes back only as a new device, and an instance taken out can only
+  rejoin under a new key.
+
+- **One member can no longer crowd out the others.** How many calls wait at
+  once, which request ids are used up, and how many new devices join in an
+  hour are counted per key by the instance itself.
+
 ## [1.8.5] - 2026-10-11
 
 ### Added

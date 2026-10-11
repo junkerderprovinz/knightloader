@@ -166,6 +166,37 @@ still seals the traffic against anything sitting *between* you and the relay
 operator, who is handed that key. That trade fits the case it exists for:
 somebody hosting the relay themselves.
 
+**Every member signs its own calls.** The words are shared, so a sealed frame
+only proves that its sender holds them. On top of that, every instance, the
+Android app and the browser extension make an Ed25519 key of their own when
+they join a group, and sign every call with it, inside the seal. An instance
+remembers the key of each member the first time that member signs a call to
+it, and after that accepts no other key in that member's name. A call that
+names a known member but comes with another key, or with no signature at all,
+is refused with a message that says so. A group from a build before this keeps
+working: each member's key is remembered on its first signed call after the
+update, with no new pairing.
+
+Limits count per key, so one member cannot use up another's share. Each key
+can have 16 calls waiting on an instance at once, and every member still on an
+older build shares 32. An instance remembers at most 32 new keys an hour and
+64 in all. When the list is full, a key that has not been used for 30 days
+makes room. A request id is used up only for the key that sent it, so a member
+cannot block another member's calls by sending their ids first.
+
+**Removing a device** under the Pairing card takes back its key on the
+instances it is removed from, and that key is never accepted there again. A
+removed phone or browser cannot use its old id again either. An instance
+that was removed gets its id back, so it can enter the words again later
+under a new key. One limit remains: whoever still has the words can join
+again as a new device, with a new key, and shows up as a new card. To keep a
+device out for good, leave the group on every instance and pair again with a
+new phrase.
+
+An instance on the build before this still talks to one after it. The older
+one ignores the signature, and the newer one accepts its unsigned calls, as
+long as they do not claim the name of a member whose key it already knows.
+
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay** or **No relay**, with a badge that says Connected, Not connected
 or No relay. The phrase card shows the same badge beside its state. For your own relay the
