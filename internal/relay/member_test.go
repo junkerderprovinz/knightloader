@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/ed25519"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -139,6 +140,67 @@ func TestOneMembersCallsCannotUseUpAnothersIDs(t *testing.T) {
 	}
 	if !g.Admit(ProxyCall{ID: "after the flood", Sent: now.Unix(), Key: real}) {
 		t.Error("a key that filled its own record kept another member out")
+	}
+}
+
+// keyNumber is a distinct 32-byte value for each n, which is all the guard
+// reads of a key.
+func keyNumber(n int) []byte {
+	k := make([]byte, ed25519.PublicKeySize)
+	binary.BigEndian.PutUint64(k, uint64(n))
+	return k
+}
+
+func TestOneMemberWithoutAKeyCannotUseUpTheOthersIDs(t *testing.T) {
+	g := NewReplayGuard()
+	now := time.Unix(1760000000, 0)
+	g.now = func() time.Time { return now }
+	for i := 0; i < maxSeenPerMember; i++ {
+		g.Admit(ProxyCall{ID: string(rune(0x1000 + i)), Sent: now.Unix(), From: "phone-flood"})
+	}
+	if g.Admit(ProxyCall{ID: "one more", Sent: now.Unix(), From: "phone-flood"}) {
+		t.Error("one member without a key kept more ids on record than maxSeenPerMember")
+	}
+	if !g.Admit(ProxyCall{ID: "after the flood", Sent: now.Unix(), From: "phone-old"}) {
+		t.Error("a member without a key that filled its record kept another one out")
+	}
+}
+
+// TestManyKeysCostTheGuardLittle admits one call from each of many keys. A
+// guard that looks at every key on every call takes seconds for this.
+func TestManyKeysCostTheGuardLittle(t *testing.T) {
+	g := NewReplayGuard()
+	now := time.Unix(1760000000, 0)
+	g.now = func() time.Time { return now }
+	const keys = 40000
+	start := time.Now()
+	for i := range keys {
+		if !g.Admit(ProxyCall{ID: "only", Sent: now.Unix(), Key: keyNumber(i)}) {
+			t.Fatalf("call %d of a new key was refused", i)
+		}
+	}
+	if took := time.Since(start); took > 2*time.Second {
+		t.Errorf("admitting %d keys took %s", keys, took)
+	}
+	now = now.Add(2*ClockSkew + time.Second)
+	if !g.Admit(ProxyCall{ID: "later", Sent: now.Unix(), Key: keyNumber(0)}) || len(g.seen) != 1 {
+		t.Errorf("%d keys on record once the old ids ran out, want only the newest", len(g.seen))
+	}
+}
+
+func TestTheGuardKeepsNoMoreThanItsCeiling(t *testing.T) {
+	g := NewReplayGuard()
+	now := time.Unix(1760000000, 0)
+	g.now = func() time.Time { return now }
+	for i := range maxSeen {
+		g.Admit(ProxyCall{ID: string(rune(0x1000 + i%maxSeenPerMember)), Sent: now.Unix(), Key: keyNumber(i / maxSeenPerMember)})
+	}
+	if g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(1 << 20)}) {
+		t.Error("a full guard took one more id instead of refusing it")
+	}
+	now = now.Add(2*ClockSkew + time.Second)
+	if !g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(1 << 20)}) {
+		t.Error("the guard still refused calls once its ids had run out")
 	}
 }
 
