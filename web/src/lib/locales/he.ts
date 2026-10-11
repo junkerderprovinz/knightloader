@@ -1747,6 +1747,7 @@ export const he: Dict = {
   'settings.system.restoreConfirmTitle': 'לשחזר מגיבוי?',
   'settings.system.restoreConfirmBody':
     'זה מחליף את מסד הנתונים וההגדרות הנוכחיים בתוכן של „{name}”. לא ניתן לבטל את זה.',
+  'settings.system.restoreKeepsLogin': 'הסיסמה, מפתחות הגישה וטוקני ה־API נשארים כמו שהם. השחזור לא מחזיר את מפתחות הגישה שבגיבוי.',
   'settings.system.restoring': 'מאמת ומכין…',
   'settings.system.restoreFailed': 'לא ניתן היה לשחזר: {error}',
   'settings.system.restoreStaged': '{status}',

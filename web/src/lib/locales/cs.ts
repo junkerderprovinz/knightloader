@@ -1746,6 +1746,7 @@ export const cs: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnovit ze zálohy?',
   'settings.system.restoreConfirmBody':
     'Tím se nahradí aktuální databáze a nastavení obsahem „{name}“. Tuto akci nelze vrátit zpět.',
+  'settings.system.restoreKeepsLogin': 'Heslo, přístupové klíče a tokeny API zůstávají, jak jsou. Obnovení nevrací přístupové klíče ze zálohy.',
   'settings.system.restoring': 'Ověřuje se a připravuje…',
   'settings.system.restoreFailed': 'Nepodařilo se obnovit: {error}',
   'settings.system.restoreStaged': '{status}',

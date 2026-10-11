@@ -1745,6 +1745,7 @@ export const ko: Dict = {
   'settings.system.restoreConfirmTitle': '백업에서 복원하시겠습니까?',
   'settings.system.restoreConfirmBody':
     '이렇게 하면 현재 데이터베이스와 설정이 "{name}"의 내용으로 교체됩니다. 이 작업은 되돌릴 수 없습니다.',
+  'settings.system.restoreKeepsLogin': '비밀번호, 패스키, API 토큰은 그대로 유지됩니다. 복원해도 백업에 들어 있는 패스키는 돌아오지 않습니다.',
   'settings.system.restoring': '검증하고 준비하는 중…',
   'settings.system.restoreFailed': '복원할 수 없었습니다: {error}',
   'settings.system.restoreStaged': '{status}',

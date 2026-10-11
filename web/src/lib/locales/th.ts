@@ -1744,6 +1744,7 @@ export const th: Dict = {
   'settings.system.restoreConfirmTitle': 'กู้คืนจากข้อมูลสำรองหรือไม่',
   'settings.system.restoreConfirmBody':
     'การทำเช่นนี้จะแทนที่ฐานข้อมูลและการตั้งค่าปัจจุบันด้วยเนื้อหาของ «{name}» ไม่สามารถเลิกทำได้',
+  'settings.system.restoreKeepsLogin': 'รหัสผ่าน พาสคีย์ และโทเคน API ยังคงเหมือนเดิม การกู้คืนจะไม่นำพาสคีย์ในข้อมูลสำรองกลับมา',
   'settings.system.restoring': 'กำลังตรวจสอบและเตรียมการ…',
   'settings.system.restoreFailed': 'กู้คืนไม่สำเร็จ: {error}',
   'settings.system.restoreStaged': '{status}',

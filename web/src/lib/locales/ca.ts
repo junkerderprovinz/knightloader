@@ -1745,6 +1745,7 @@ export const ca: Dict = {
   'settings.system.restoreConfirmTitle': 'Vols restaurar des d’una còpia de seguretat?',
   'settings.system.restoreConfirmBody':
     'Això substitueix la base de dades i la configuració actuals pel contingut de «{name}». No es pot desfer.',
+  'settings.system.restoreKeepsLogin': "La contrasenya, les claus d'accés i els tokens d'API es queden tal com són. La restauració no recupera les claus d'accés de la còpia de seguretat.",
   'settings.system.restoring': 'Validant i preparant…',
   'settings.system.restoreFailed': 'No s’ha pogut restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

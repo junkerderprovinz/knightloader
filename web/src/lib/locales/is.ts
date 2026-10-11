@@ -1745,6 +1745,7 @@ export const is: Dict = {
   'settings.system.restoreConfirmTitle': 'Endurheimta úr öryggisafriti?',
   'settings.system.restoreConfirmBody':
     'Þetta skiptir núverandi gagnagrunni og stillingum út fyrir innihald „{name}“. Þessu er ekki hægt að breyta til baka.',
+  'settings.system.restoreKeepsLogin': 'Lykilorðið, aðgangslyklarnir og API-tókarnir haldast eins og þeir eru. Endurheimtin skilar ekki aðgangslyklunum úr öryggisafritinu.',
   'settings.system.restoring': 'Sannreynir og undirbýr…',
   'settings.system.restoreFailed': 'Ekki tókst að endurheimta: {error}',
   'settings.system.restoreStaged': '{status}',

@@ -1738,6 +1738,7 @@ export const fr: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurer depuis une sauvegarde ?',
   'settings.system.restoreConfirmBody':
     'Cela remplace la base de données et les paramètres actuels par le contenu de « {name} ». Cette action est irréversible.',
+  'settings.system.restoreKeepsLogin': 'Votre mot de passe, vos clés d’accès et vos jetons API restent tels quels. La restauration ne reprend pas les clés d’accès de la sauvegarde.',
   'settings.system.restoring': 'Validation et préparation…',
   'settings.system.restoreFailed': 'Impossible de restaurer : {error}',
   'settings.system.restoreStaged': '{status}',

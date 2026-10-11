@@ -2151,6 +2151,7 @@ export const en = {
   'settings.system.restoreConfirmTitle': 'Restore from backup?',
   'settings.system.restoreConfirmBody':
     'This replaces the current database and settings with the contents of “{name}”. This cannot be undone.',
+  'settings.system.restoreKeepsLogin': 'Your password, passkeys and API tokens stay as they are. The restore does not bring back passkeys from the backup.',
   'settings.system.restoring': 'Validating and staging…',
   'settings.system.restoreFailed': 'Could not restore: {error}',
   'settings.system.restoreStaged': '{status}',

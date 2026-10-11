@@ -1738,6 +1738,7 @@ export const es: Dict = {
   'settings.system.restoreConfirmTitle': '¿Restaurar desde una copia de seguridad?',
   'settings.system.restoreConfirmBody':
     'Esto reemplaza la base de datos y los ajustes actuales con el contenido de «{name}». Esto no se puede deshacer.',
+  'settings.system.restoreKeepsLogin': 'La contraseña, las claves de acceso y los tokens de API se quedan como están. La restauración no recupera las claves de acceso de la copia de seguridad.',
   'settings.system.restoring': 'Validando y preparando…',
   'settings.system.restoreFailed': 'No se pudo restaurar: {error}',
   'settings.system.restoreStaged': '{status}',

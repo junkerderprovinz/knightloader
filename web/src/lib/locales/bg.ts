@@ -1746,6 +1746,7 @@ export const bg: Dict = {
   'settings.system.restoreConfirmTitle': 'Възстановяване от резервно копие?',
   'settings.system.restoreConfirmBody':
     'Това заменя текущата база данни и настройки със съдържанието на „{name}“. Това не може да бъде отменено.',
+  'settings.system.restoreKeepsLogin': 'Паролата, ключовете за достъп и API токените остават такива, каквито са. Възстановяването не връща ключовете за достъп от резервното копие.',
   'settings.system.restoring': 'Проверка и подготовка…',
   'settings.system.restoreFailed': 'Възстановяването не успя: {error}',
   'settings.system.restoreStaged': '{status}',

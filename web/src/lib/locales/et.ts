@@ -1745,6 +1745,7 @@ export const et: Dict = {
   'settings.system.restoreConfirmTitle': 'Taastada varukoopiast?',
   'settings.system.restoreConfirmBody':
     'See asendab praeguse andmebaasi ja seaded faili „{name}“ sisuga. Seda ei saa tagasi võtta.',
+  'settings.system.restoreKeepsLogin': 'Parool, pääsuvõtmed ja API tokenid jäävad samaks. Taastamine ei too varukoopias olevaid pääsuvõtmeid tagasi.',
   'settings.system.restoring': 'Valideerimine ja ettevalmistamine…',
   'settings.system.restoreFailed': 'Taastamine ebaõnnestus: {error}',
   'settings.system.restoreStaged': '{status}',

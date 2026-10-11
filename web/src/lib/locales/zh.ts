@@ -1742,6 +1742,7 @@ export const zh: Dict = {
   'settings.system.restoreButton': '上传备份',
   'settings.system.restoreConfirmTitle': '从备份恢复？',
   'settings.system.restoreConfirmBody': '这会用 "{name}" 的内容替换当前的数据库和设置。此操作无法撤销。',
+  'settings.system.restoreKeepsLogin': '密码、通行密钥和 API 令牌保持不变。恢复不会带回备份里的通行密钥。',
   'settings.system.restoring': '正在验证并准备…',
   'settings.system.restoreFailed': '无法恢复：{error}',
   'settings.system.restoreStaged': '{status}',

@@ -1745,6 +1745,7 @@ export const ms: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan daripada sandaran?',
   'settings.system.restoreConfirmBody':
     'Ini menggantikan pangkalan data dan tetapan semasa dengan kandungan «{name}». Ini tidak boleh dibuat asal.',
+  'settings.system.restoreKeepsLogin': 'Kata laluan, kunci laluan dan token API kekal seperti sedia ada. Pemulihan tidak membawa balik kunci laluan daripada sandaran.',
   'settings.system.restoring': 'Mengesahkan dan menyediakan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreStaged': '{status}',

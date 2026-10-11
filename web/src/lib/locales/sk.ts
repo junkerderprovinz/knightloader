@@ -1746,6 +1746,7 @@ export const sk: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnoviť zo zálohy?',
   'settings.system.restoreConfirmBody':
     'Tým sa nahradí aktuálna databáza a nastavenia obsahom „{name}“. Túto akciu nemožno vrátiť späť.',
+  'settings.system.restoreKeepsLogin': 'Heslo, prístupové kľúče a tokeny API zostávajú tak, ako sú. Obnovenie nevracia prístupové kľúče zo zálohy.',
   'settings.system.restoring': 'Overuje sa a pripravuje…',
   'settings.system.restoreFailed': 'Nepodarilo sa obnoviť: {error}',
   'settings.system.restoreStaged': '{status}',

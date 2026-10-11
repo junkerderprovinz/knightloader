@@ -1747,6 +1747,7 @@ export const ar: Dict = {
   'settings.system.restoreConfirmTitle': 'الاستعادة من نسخة احتياطية؟',
   'settings.system.restoreConfirmBody':
     'يستبدل هذا قاعدة البيانات والإعدادات الحاليتين بمحتوى «{name}». لا يمكن التراجع عن هذا.',
+  'settings.system.restoreKeepsLogin': 'تبقى كلمة المرور ومفاتيح المرور ورموز API كما هي. لا تُعيد الاستعادة مفاتيح المرور التي في النسخة الاحتياطية.',
   'settings.system.restoring': 'جارٍ التحقق والتجهيز…',
   'settings.system.restoreFailed': 'تعذّرت الاستعادة: {error}',
   'settings.system.restoreStaged': '{status}',

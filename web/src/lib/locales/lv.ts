@@ -1745,6 +1745,7 @@ export const lv: Dict = {
   'settings.system.restoreConfirmTitle': 'Atjaunot no dublējuma?',
   'settings.system.restoreConfirmBody':
     'Tas aizstāj pašreizējo datubāzi un iestatījumus ar faila „{name}“ saturu. To nevar atsaukt.',
+  'settings.system.restoreKeepsLogin': 'Parole, piekļuves atslēgas un API pilnvaras paliek tādas, kādas ir. Atjaunošana neatgriež piekļuves atslēgas no dublējuma.',
   'settings.system.restoring': 'Validē un sagatavo…',
   'settings.system.restoreFailed': 'Neizdevās atjaunot: {error}',
   'settings.system.restoreStaged': '{status}',

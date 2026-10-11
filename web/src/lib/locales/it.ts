@@ -1738,6 +1738,7 @@ export const it: Dict = {
   'settings.system.restoreConfirmTitle': 'Ripristinare da un backup?',
   'settings.system.restoreConfirmBody':
     'Questo sostituisce il database e le impostazioni attuali con il contenuto di «{name}». L’operazione non può essere annullata.',
+  'settings.system.restoreKeepsLogin': 'La password, le passkey e i token API restano come sono. Il ripristino non riporta le passkey contenute nel backup.',
   'settings.system.restoring': 'Convalida e preparazione…',
   'settings.system.restoreFailed': 'Impossibile ripristinare: {error}',
   'settings.system.restoreStaged': '{status}',
