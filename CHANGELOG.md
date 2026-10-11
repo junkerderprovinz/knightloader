@@ -140,8 +140,13 @@ release's tag.
   sign-in limit counts every visitor by the address the proxy reports, so one
   person guessing at the password no longer makes everybody wait. The relay
   an instance serves reads the same list. It is empty by default, and the
-  manual says when to fill it in. The standalone relay takes the list from
+  manual says when to fill it in. A range has to cover your proxies and none
+  of your visitors, so one wider than a /16 (IPv4) or a /48 (IPv6) is
+  refused. The standalone relay takes the list from
   `KL_RELAY_TRUSTED_PROXIES`.
+- **The sign-in limit counts an IPv6 visitor by its /64,** the block one
+  connection usually gets, so moving to another address of the same network
+  does not start a fresh count.
 
 ### Changed
 
