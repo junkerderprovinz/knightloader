@@ -85,9 +85,14 @@ type ClientOptions struct {
 	FrameKey []byte
 	// Self is what siblings see on their Instances page.
 	Self Announce
-	// Member is this instance's member key. Every call it makes is signed
-	// with it, as Self.InstanceID; nil sends calls unsigned.
+	// Member is this instance's member key. Every call it makes and every
+	// answer it gives is signed with it, as Self.InstanceID, and its hello
+	// proves that id; nil leaves all three unsigned.
 	Member ed25519.PrivateKey
+	// Trusts reports whether an answer signed by key may count as target's,
+	// beyond the key making target's id, which Proxy checks itself. nil
+	// trusts every such answer.
+	Trusts func(target string, key ed25519.PublicKey) bool
 	// Serve answers calls siblings make to this instance. With a nil Serve
 	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
@@ -111,6 +116,7 @@ type Client struct {
 	frameKey []byte
 	self     Announce
 	member   ed25519.PrivateKey
+	trusts   func(target string, key ed25519.PublicKey) bool
 	serve    ProxyHandler
 	onChange func()
 
@@ -155,6 +161,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		frameKey:   opts.FrameKey,
 		self:       opts.Self,
 		member:     opts.Member,
+		trusts:     opts.Trusts,
 		serve:      opts.Serve,
 		onChange:   opts.OnChange,
 		minBackoff: minBackoff,
@@ -228,8 +235,10 @@ func (c *Client) Siblings() []Announce {
 // An error means no answer came from the sibling: the relay or the sibling is
 // not connected, or nobody replied in time. A reply the sibling produced is
 // returned with its status however bad, so a caller can tell "your other
-// instance said no" from "your other instance is gone".
-func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+// instance said no" from "your other instance is gone". An answer counts only
+// once it is signed by the key target's id is made from, and Trusts takes
+// that key.
+func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	id, err := requestID()
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -253,7 +262,7 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 
 	ctx, cancel := context.WithTimeout(ctx, proxyTimeout)
 	defer cancel()
-	call := ProxyCall{Method: method, Path: path, Body: body, Authorization: authorization}
+	call := ProxyCall{Method: method, Path: path, Body: body}
 	if c.member != nil {
 		call.From, call.Kind = c.self.InstanceID, KindInstance
 	}
@@ -281,6 +290,14 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 			// The peer holds a different secret, or the frame was rewritten
 			// in flight. Neither is a reply.
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s answered unreadably: %w", target, err)
+		}
+		// Whoever holds the words can seal an answer, but only the target can
+		// sign one.
+		if !VerifyResult(id, target, result) {
+			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s's answer is not signed by its key", target)
+		}
+		if c.trusts != nil && !c.trusts(target, result.Key) {
+			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s is not approved on this instance", target)
 		}
 		return result.Body, result.Status, nil
 	}
@@ -358,7 +375,11 @@ func (c *Client) session() {
 		return
 	}
 	helloCtx, helloCancel := context.WithTimeout(ctx, writeTimeout)
-	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, Hello{Key: c.key, Announce: self}))
+	hello := Hello{Key: c.key, Announce: self}
+	if c.member != nil {
+		hello.Proof = ProveID(c.member, KindInstance, c.key, c.self.InstanceID, time.Now())
+	}
+	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, hello))
 	helloCancel()
 	if err != nil {
 		return
@@ -482,6 +503,9 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 		if result.Status == StatusDrop {
 			return
 		}
+	}
+	if c.member != nil {
+		result = SignResult(c.member, req.RequestID, c.self.InstanceID, result)
 	}
 	sealed, err := SealResult(c.frameKey, req.RequestID, result)
 	if err != nil {

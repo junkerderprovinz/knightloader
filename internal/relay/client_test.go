@@ -1,6 +1,7 @@
 package relay
 
 import (
+	"bytes"
 	"context"
 	"crypto/ed25519"
 	"encoding/json"
@@ -21,14 +22,23 @@ const testBackoff = 20 * time.Millisecond
 // through the real DeriveFrameKey so the tests follow any change to it.
 var testFrameKey = DeriveFrameKey([]byte("relay package tests"))
 
-// Instance ids in the shape instances mint them, since a client drops an
-// instance's announce under any other.
+// The member keys of the instances in these tests, and the ids they make. A
+// client drops an instance's announce under an id of any other shape, and
+// takes an answer only when the target's key signed it.
 var (
-	alphaID   = strings.Repeat("a", 40)
-	bravoID   = strings.Repeat("b", 40)
-	charlieID = strings.Repeat("c", 40)
-	nasID     = strings.Repeat("d", 40)
+	alphaKey   = memberKeyFrom('a')
+	bravoKey   = memberKeyFrom('b')
+	charlieKey = memberKeyFrom('c')
+	alphaID    = MemberID(KindInstance, alphaKey.Public().(ed25519.PublicKey))
+	bravoID    = MemberID(KindInstance, bravoKey.Public().(ed25519.PublicKey))
+	charlieID  = MemberID(KindInstance, charlieKey.Public().(ed25519.PublicKey))
+	nasID      = strings.Repeat("d", 40)
+	memberKeys = map[string]ed25519.PrivateKey{alphaID: alphaKey, bravoID: bravoKey, charlieID: charlieKey}
 )
+
+func memberKeyFrom(b byte) ed25519.PrivateKey {
+	return ed25519.NewKeyFromSeed(bytes.Repeat([]byte{b}, ed25519.SeedSize))
+}
 
 // sealFor, sealResultFor, openFrom and openResultFrom seal and open payloads
 // for the hand-rolled peers, keeping the additional data in one place.
@@ -131,6 +141,7 @@ func startClient(t *testing.T, addr, key, id string, serve ProxyHandler) *Client
 		Key:      key,
 		FrameKey: testFrameKey,
 		Self:     Announce{InstanceID: id, Name: id, Deployment: "desktop"},
+		Member:   memberKeys[id],
 		Serve:    serve,
 	})
 	if err != nil {
@@ -207,7 +218,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	done := make(chan result, 1)
 	go func() {
-		body, status, err := alpha.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`), "")
+		body, status, err := alpha.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
 		done <- result{body, status, err}
 	}()
 
@@ -227,7 +238,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
 		RequestID: req.RequestID,
-		Sealed:    sealResultFor(t, req.RequestID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)}),
+		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
 	})
 
 	got := <-done
@@ -283,6 +294,9 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			res := openResultFrom(t, "r1", resp.Sealed)
 			if res.Status != tc.wantStatus || string(res.Body) != tc.wantBody {
 				t.Errorf("got %+v, want status %d body %q", res, tc.wantStatus, tc.wantBody)
+			}
+			if !VerifyResult("r1", alphaID, res) {
+				t.Error("alpha's answer is not signed by its member key")
 			}
 		})
 	}
@@ -429,7 +443,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			}
 
 			began := time.Now()
-			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil, "")
+			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil)
 			if err == nil {
 				t.Fatal("the call succeeded, want it to fail")
 			}
@@ -485,7 +499,7 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 
 	failed := make(chan error, 1)
 	go func() {
-		_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil, "")
+		_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
 		failed <- err
 	}()
 	// bravo receives the call and never answers it.
@@ -575,5 +589,40 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 	}
 	if _, err := NewClient(valid); err != nil {
 		t.Fatalf("a valid configuration was rejected: %v", err)
+	}
+}
+
+// TestAnAnswerNotSignedByTheTargetIsNoAnswer: bravo is on the relay, and
+// somebody else holding the words answers alpha's calls to it, sealed under the
+// frame key, as one who took bravo's place on the relay would. Neither an
+// unsigned answer nor one signed by another key reaches alpha's caller, and a
+// "removed" least of all.
+func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
+	addr, _ := relayOn(t, "127.0.0.1:0")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
+	readFrame(t, bravo, TypeAnnounce)
+	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
+
+	removed := ProxyResult{Status: http.StatusGone, Body: []byte("removed")}
+	for name, answer := range map[string]func(requestID string) ProxyResult{
+		"unsigned":             func(string) ProxyResult { return removed },
+		"signed by a stranger": func(id string) ProxyResult { return SignResult(charlieKey, id, bravoID, removed) },
+		"signed by bravo":      func(id string) ProxyResult { return SignResult(bravoKey, id, bravoID, removed) },
+	} {
+		done := make(chan error, 1)
+		go func() {
+			_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
+			done <- err
+		}()
+		var req ProxyRequest
+		if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
+			t.Fatal(err)
+		}
+		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID))})
+		err := <-done
+		if want := name == "signed by bravo"; (err == nil) != want {
+			t.Errorf("an answer %s: err %v, want it taken %v", name, err, want)
+		}
 	}
 }

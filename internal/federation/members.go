@@ -3,6 +3,7 @@ package federation
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/sha256"
 	"encoding/hex"
 	"net/http"
@@ -275,6 +276,14 @@ func (m *Manager) ApprovedInstance(c Caller) bool {
 	defer m.group.mu.Unlock()
 	pin, ok := m.group.state.Keys[c.ID]
 	return ok && pin.Approved && pin.Kind == relay.KindInstance && relay.ValidInstanceID(c.ID) && bytes.Equal(pin.Key, c.Key)
+}
+
+// TrustsAnswer reports whether an answer signed by key may count as instance
+// target's: target is approved here as an instance, under that key. It is
+// what the relay client and the direct transport ask before they hand an
+// answer on, a "removed" included.
+func (m *Manager) TrustsAnswer(target string, key ed25519.PublicKey) bool {
+	return m.ApprovedInstance(Caller{ID: target, Kind: relay.KindInstance, Key: key})
 }
 
 // StillMember reports whether id may still act in the group here: approved

@@ -67,6 +67,9 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 		if err != nil {
 			t.Fatal(err)
 		}
+		if !relay.VerifyResult(requestID, target, res) {
+			t.Errorf("the answer from %s is not signed by the key its id is made from", target)
+		}
 		return res.Status, res.Body, true
 	}
 }

@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -247,6 +248,20 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
+	// Both ways the owner approves the other side first. A hand-entered relay
+	// key makes a group whose members sign and are approved like one reached
+	// by the words.
+	selfID := groupID(a)
+	if _, _, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil); err == nil {
+		t.Fatal("the sibling's answer was taken before the sibling was approved here")
+	}
+	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil); err != nil || status != http.StatusForbidden {
+		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
+	}
+	if _, _, err := a.Federation.Approve(siblingID, nil, ""); err != nil {
+		t.Fatal(err)
+	}
+
 	// Outbound, addressed by the sibling's InstanceID.
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
@@ -257,17 +272,8 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	}
 
 	// Inbound: the sibling reaches the app's real API through
-	// relayProxyHandler, once the owner approved it there. A hand-entered
-	// relay key makes a group whose members sign and are approved like one
-	// reached by the words.
-	selfID := groupID(a)
-	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, ""); err != nil || status != http.StatusForbidden {
-		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
-	}
-	if _, _, err := a.Federation.Approve(siblingID, nil, ""); err != nil {
-		t.Fatal(err)
-	}
-	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, "")
+	// relayProxyHandler.
+	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("sibling proxy into the app: %v", err)
 	}
@@ -358,10 +364,9 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	waitForSiblingName("Renamed Instance")
 }
 
-// TestRelayProxyHonoursTheAuthorizationField runs relay calls against the real
-// Handler, since what matters is whether the auth guard believes the
-// forwarded credential, not only whether the header is copied.
-func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
+// TestARelayCallNeedsNoToken runs relay calls against the real Handler: a
+// member of the group carries no credential, with or without a password.
+func TestARelayCallNeedsNoToken(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
 	serve := asMember(t, a)
@@ -382,30 +387,6 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Errorf("a group sibling with no token = %d (%s), want 200; the relay socket is the credential", status, body)
-	}
-
-	// A stale token must not fail harder than no token.
-	if status, _ := serve(relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks",
-		Authorization: "Bearer not-a-real-token",
-	}); status != http.StatusOK {
-		t.Errorf("a group sibling with a stale token = %d, want 200", status)
-	}
-
-	_, secret, err := a.APITokens.Create("phone")
-	if err != nil {
-		t.Fatal(err)
-	}
-	status, body := serve(relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks",
-		Authorization: "Bearer " + secret,
-	})
-	if status != http.StatusOK {
-		t.Fatalf("a real API token = %d (%s), want 200", status, body)
-	}
-	var tasks []any
-	if err := json.Unmarshal(body, &tasks); err != nil {
-		t.Errorf("authenticated relay call answered unparseable JSON: %v (%s)", err, body)
 	}
 }
 
@@ -514,13 +495,14 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 // fixedSibling is a second relay client standing in for another instance, so a
 // test can prove a relay carried something rather than only that a socket
 // opened.
-func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
+func fixedSibling(t *testing.T, url, key, label string) *relay.Client {
 	t.Helper()
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      url,
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
-		Self:     relay.Announce{InstanceID: id, Name: "Sibling", Deployment: "desktop"},
+		Self:     relay.Announce{InstanceID: idAs(label, relay.KindInstance), Name: "Sibling", Deployment: "desktop"},
+		Member:   keyOf(label),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -547,7 +529,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
 	}
 
-	fixedSibling(t, srv.URL, key, siblingID)
+	fixedSibling(t, srv.URL, key, "sibling")
 
 	var list []struct {
 		Name        string `json:"name"`
@@ -569,6 +551,9 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
+	if _, _, err := a.Federation.Approve(siblingID, keyOf("sibling").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to the sibling through our own relay: %v", err)
@@ -596,7 +581,7 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 
-	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger-1")
+	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger")
 
 	// Long enough for a connection or a retry to succeed. The relay's count is
 	// what shows admission: the client counts itself connected as soon as its

@@ -135,6 +135,14 @@ release's tag.
   place. The ids of the three kinds differ in shape, so a browser announcing an
   instance's id gets no card, and refusing or removing a device never takes an
   instance out.
+- **Answers within a group are signed, and calls carry no token.** The phone,
+  the extension and the instances send no API token to another member any
+  more, and take an answer only when the instance that gives it signed it with
+  its own key. An instance also uses another's answers only once you approved
+  that instance on its Pairing card. Somebody who takes an instance's place on
+  the relay or on your network can no longer read a token from the calls or
+  tell a phone that it was removed. On the relay, a new connection takes over
+  an id already connected only when it proves the key behind that id.
 - **A removed device stays out.** Play links a removed phone asked for stop working with the
   removal, and the sign-in status a group member can read no longer shows
   whether two-factor sign-in is on.

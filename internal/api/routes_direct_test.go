@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -88,9 +89,13 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 		t.Fatalf("members = %+v, want the second instance, reached directly", info.Members)
 	}
 
-	// The second instance's owner approves the first, as every instance
-	// approves the others it meets in its group.
+	// The first instance's owner approves the second, and the second's owner
+	// approves the first, as every instance approves the others it meets in
+	// its group.
 	firstID := groupID(firstApp)
+	if _, _, err := firstApp.Federation.Approve(secondID, memberKey(secondApp).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
 	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
 		t.Fatalf("the second instance's downloads before it approved the first answered %d: %s, want 403 memberPending", code, body)
 	}
@@ -160,7 +165,10 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	callerApp.Federation.SetDiscovery(net)
 	net.heard = []discovery.Peer{announce(t, tap, net, self)}
 	// The caller entered the words of a group that was there already, so it
-	// waits for approval here first.
+	// waits for approval here first. Its own owner approved this one.
+	if _, _, err := callerApp.Federation.Approve(self, memberKey(a).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
 	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {
 		t.Fatalf("the new member's first direct call answered %d: %s, want 403 until it is approved", code, body)
 	}

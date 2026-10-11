@@ -148,7 +148,7 @@ secret under its own domain, `SHA-256("knightloader/relay/frame-key/v1" ||
 secret)`, and every proxy frame is sealed with AES-256-GCM under it. The relay
 sees which instance a frame is addressed to and which request it answers,
 because it routes on those, and nothing else: not the path, not the body, not
-the API token a phone attaches. The two domains are what makes this work: the
+who is asking. The two domains are what makes this work: the
 relay is handed the group key in every hello frame, so a frame key derived
 from *that* would be one it already holds.
 
@@ -353,9 +353,20 @@ Approving, refusing and removing a device start on an instance's own Pairing
 page. The other instances take such a decision only from an instance that
 signs with an approved key, so a phone or the extension cannot approve,
 remove or make an instance leave. Leaving the group is done on the instance's
-own page alone. A phone or
-extension that was removed drops the whole group the next time it calls an
-instance that knows.
+own page alone. A phone or extension that was removed drops the whole group
+the next time it calls an instance that knows.
+
+**A group call carries no token, and its answer is signed.** A phone, the
+extension or another instance calling a member sends no API token: its own
+key signs the call. The instance that answers signs the answer with its key
+too, and the caller takes it only when that key is the one the instance's id
+is made from, and, on another instance, only once that instance was approved
+there. Whoever holds the words can seal an answer, but cannot sign one, so
+nobody who takes an instance's place on the relay or on your network can
+answer for it, tell a phone it was removed or reset, or read a credential
+from the calls. On the relay, a connection takes over an id that is already
+connected only when its hello proves the key behind that id, which is how an
+instance or a phone whose old socket the relay still holds gets back in.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached

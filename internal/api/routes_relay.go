@@ -299,6 +299,7 @@ func applyRelay(a *app.App) {
 			Address:    groupAddress(a),
 		},
 		Member: member,
+		Trusts: a.Federation.TrustsAnswer,
 		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
 	})
 	if err != nil {
@@ -396,10 +397,6 @@ func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), relayGroupKey, true))
 		if len(call.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
-		}
-		// Set rather than added, so the frame is the header's only source.
-		if call.Authorization != "" {
-			httpReq.Header.Set("Authorization", call.Authorization)
 		}
 		rec := newRelayRecorder()
 		// There is no net/http server here to recover a panicking handler, and

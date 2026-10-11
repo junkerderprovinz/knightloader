@@ -170,16 +170,18 @@ func (s *Server) Len() int {
 // about every sibling already there.
 //
 // A connection announcing an instance ID already on this key replaces the old
-// one. An instance whose socket died without a close frame reconnects while
-// the relay still holds the dead socket, and requests routed there would never
-// be answered. The replaced connection gets no offline presence, since the
-// announce says the instance is back, but requests still waiting on it are
-// failed at once (see failPending).
+// one when proven says its hello proved the key that id is made from. An
+// instance whose socket died without a close frame reconnects while the relay
+// still holds the dead socket, and requests routed there would never be
+// answered. Anybody else could announce the same id to take the instance's
+// calls, so without the proof the newcomer is turned away instead. The
+// replaced connection gets no offline presence, since the announce says the
+// instance is back, but requests still waiting on it are failed at once (see
+// failPending).
 //
-// Join reports whether the connection was admitted; on false the caller closes
-// it. That happens when the connection limits are reached and this is not a
-// reconnect, or when the same connection joins twice.
-func (s *Server) Join(key string, c Conn, a Announce) bool {
+// Join returns why the connection was not admitted, nil when it was; on an
+// error the caller closes it.
+func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 	cl := &client{
 		conn:     c,
 		key:      key,
@@ -191,7 +193,7 @@ func (s *Server) Join(key string, c Conn, a Announce) bool {
 	s.mu.Lock()
 	if _, ok := s.clients[c]; ok {
 		s.mu.Unlock()
-		return false
+		return errJoinedTwice
 	}
 	group := s.keys[key]
 	if group == nil {
@@ -207,11 +209,13 @@ func (s *Server) Join(key string, c Conn, a Announce) bool {
 		}
 		siblings = append(siblings, other)
 	}
-	if replaced == nil {
-		if len(s.clients) >= maxTotalClients || len(group) >= maxClientsPerKey {
-			s.mu.Unlock()
-			return false
-		}
+	switch {
+	case replaced != nil && !proven:
+		s.mu.Unlock()
+		return errIDTaken
+	case replaced == nil && (len(s.clients) >= maxTotalClients || len(group) >= maxClientsPerKey):
+		s.mu.Unlock()
+		return errGroupFull
 	}
 	var failures []pendingFailure
 	if replaced != nil {
@@ -234,8 +238,15 @@ func (s *Server) Join(key string, c Conn, a Announce) bool {
 	for _, sib := range siblings {
 		s.enqueue(sib, arrival)
 	}
-	return true
+	return nil
 }
+
+// The reasons Join turns a connection away, which the close frame carries.
+var (
+	errJoinedTwice = errors.New("this connection has already joined")
+	errGroupFull   = errors.New("too many instances are already connected with this relay key")
+	errIDTaken     = errors.New("another connection holds this id; only one that proves the key behind it takes its place")
+)
 
 // Leave unregisters a connection, stops its writer (which closes the socket),
 // tells its siblings it went offline and fails any request still waiting on
@@ -532,8 +543,8 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.limiter.succeed(addr)
-	if !s.Join(hello.Key, c, hello.Announce) {
-		c.Close(websocket.StatusPolicyViolation, "too many instances are already connected with this relay key")
+	if err := s.Join(hello.Key, c, hello.Announce, hello.proves(time.Now())); err != nil {
+		c.Close(websocket.StatusPolicyViolation, err.Error())
 		return
 	}
 	c.SetReadLimit(readLimit)

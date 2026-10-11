@@ -156,8 +156,15 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
+	// An instance acts on another's answers only once it approved it.
+	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code == http.StatusOK || code == http.StatusForbidden {
+		t.Fatalf("the second instance asking the first it has not approved = %d %s, want no answer taken", code, body)
+	}
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the first instance on the second = %d %s", code, body)
+	}
 	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
-		t.Fatalf("the second instance asking the first before it was approved = %d %s, want 403 memberPending", code, body)
+		t.Fatalf("the second instance asking the first before the first approved it = %d %s, want 403 memberPending", code, body)
 	}
 	if !connectInfoOf(t, secondToken, second.URL).Awaiting {
 		t.Error("the second instance does not say it waits for approval")
@@ -171,8 +178,8 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		t.Errorf("an instance announced by somebody holding the words = %d %s, want 403 memberPending", code, body)
 	}
 
-	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
-		t.Fatalf("approving the first instance on the second = %d %s", code, body)
+	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+secondID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the second instance = %d %s", code, body)
 	}
 	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the first instance asking the second = %d %s", code, body)
@@ -195,10 +202,6 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		t.Errorf("an unsigned call naming nobody = %d %s, want 403 memberUnsigned", code, body)
 	}
 
-	// The first approves the second too.
-	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+secondID+"/approve", nil); code != http.StatusNoContent {
-		t.Fatalf("approving the second instance = %d %s", code, body)
-	}
 	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the second instance asking the first once approved = %d %s", code, body)
 	}

@@ -27,7 +27,7 @@ func (m *watchingMember) Siblings() []relay.Announce {
 }
 func (m *watchingMember) Connected() bool { return true }
 func (m *watchingMember) Close() error    { return nil }
-func (m *watchingMember) Proxy(_ context.Context, target, method, path string, _ []byte, _ string) ([]byte, int, error) {
+func (m *watchingMember) Proxy(_ context.Context, target, method, path string, _ []byte) ([]byte, int, error) {
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	switch {
@@ -226,7 +226,7 @@ func (m *twoMembers) Siblings() []relay.Announce {
 }
 func (m *twoMembers) Connected() bool { return true }
 func (m *twoMembers) Close() error    { return nil }
-func (m *twoMembers) Proxy(ctx context.Context, target, method, path string, _ []byte, _ string) ([]byte, int, error) {
+func (m *twoMembers) Proxy(ctx context.Context, target, method, path string, _ []byte) ([]byte, int, error) {
 	if target == aardvarkID {
 		<-ctx.Done()
 		return nil, http.StatusBadGateway, ctx.Err()

@@ -21,13 +21,13 @@ var (
 	vectorTarget = "office"
 	vectorCall   = ProxyCall{
 		ID: "req-7", Method: "POST", Path: "/api/links", Body: []byte(`{"urls":["https://example.com/a"]}`),
-		Authorization: "Bearer t0k", From: "phone-member", Kind: KindMobile, Sent: 1760000000,
+		From: "phone-member", Kind: KindMobile, Sent: 1760000000,
 	}
 )
 
 const (
 	vectorKey = "GX9rI+FshTLGq8g4+s1ep4m+DHaykgM0A5v6iz02jWE="
-	vectorSig = "kQ04zLmeEVum6FSrH9e85KeTQfmAqfHo+7DEmJ7v124FUwniOjZQp2BTTiFkRn3zKmIIkdPKT7Sj2igK/+WaBQ=="
+	vectorSig = "2DRpY1IMpnl6W0mqYgRv6Nq2SDimJFXhcYv2I4d0LDAPGzf3vdgfuf2ty0nb1bchk9xZXmMdHkTGFQOHhGvhDg=="
 )
 
 // The ids the vector seed's key makes, which the app's and the extension's
@@ -71,14 +71,13 @@ func TestTheMemberCallVectorStaysTheSame(t *testing.T) {
 func TestEveryFieldOfACallIsSigned(t *testing.T) {
 	base := CallMessage(vectorTarget, vectorCall)
 	changed := map[string]func(*ProxyCall){
-		"id":            func(c *ProxyCall) { c.ID = "req-8" },
-		"method":        func(c *ProxyCall) { c.Method = "GET" },
-		"path":          func(c *ProxyCall) { c.Path = "/api/tasks" },
-		"body":          func(c *ProxyCall) { c.Body = []byte(`{}`) },
-		"authorization": func(c *ProxyCall) { c.Authorization = "" },
-		"from":          func(c *ProxyCall) { c.From = "phone-other" },
-		"kind":          func(c *ProxyCall) { c.Kind = KindInstance },
-		"time":          func(c *ProxyCall) { c.Sent++ },
+		"id":     func(c *ProxyCall) { c.ID = "req-8" },
+		"method": func(c *ProxyCall) { c.Method = "GET" },
+		"path":   func(c *ProxyCall) { c.Path = "/api/tasks" },
+		"body":   func(c *ProxyCall) { c.Body = []byte(`{}`) },
+		"from":   func(c *ProxyCall) { c.From = "phone-other" },
+		"kind":   func(c *ProxyCall) { c.Kind = KindInstance },
+		"time":   func(c *ProxyCall) { c.Sent++ },
 		// A byte moved from one field to the next must not give the same
 		// message.
 		"boundary": func(c *ProxyCall) { c.Method, c.Path = "POST/", "api/links" },
@@ -294,5 +293,78 @@ func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("the call was never served")
+	}
+}
+
+// The answer and the hello the vector seed signs, which the app's and the
+// extension's ports check and make.
+var (
+	vectorResult   = ProxyResult{Status: 410, Body: []byte("removed")}
+	vectorRelayKey = "relay-key-of-the-vector-0123456789"
+	vectorHelloAt  = time.Unix(1760000000, 0)
+)
+
+const (
+	vectorResultSig = "DxMlge0wNPJ63dCh+p5D17xsnxl1Er5rGNC59Wr2kX05h8j4ikHUxRFemVr1WZ9g4VYQYAIN/I5de+iVJtlkCA=="
+	vectorHelloSig  = "+1C0rC/DE5gVfSmrxD2m4B3aQidpo9XF85UMapPZxmvXPI1mHTWaSlnyFUl1Zl8qnDnPyxv+0PfMjIX/ufNAAg=="
+)
+
+func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
+	member := ed25519.NewKeyFromSeed(vectorSeed)
+	signed := SignResult(member, vectorCall.ID, vectorInstanceID, vectorResult)
+	if got := base64.StdEncoding.EncodeToString(signed.Sig); got != vectorResultSig {
+		t.Errorf("answer signature = %s, want %s; the app and the extension check the old message", got, vectorResultSig)
+	}
+	proof := ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, vectorHelloAt)
+	if got := base64.StdEncoding.EncodeToString(proof.Sig); got != vectorHelloSig {
+		t.Errorf("hello signature = %s, want %s; the app proves its id with the old message", got, vectorHelloSig)
+	}
+}
+
+// TestAnAnswerCountsOnlySignedByTheTargetsKey: whoever holds the words can
+// seal an answer, such as a "removed" that makes a phone forget its group, but
+// only the target can sign one.
+func TestAnAnswerCountsOnlySignedByTheTargetsKey(t *testing.T) {
+	target := ed25519.NewKeyFromSeed(vectorSeed)
+	forger := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{9}, ed25519.SeedSize))
+	signed := SignResult(target, "r1", vectorInstanceID, vectorResult)
+	if !VerifyResult("r1", vectorInstanceID, signed) {
+		t.Fatal("the target's own answer does not verify")
+	}
+	altered := signed
+	altered.Status = http.StatusOK
+	for name, r := range map[string]ProxyResult{
+		"unsigned":                vectorResult,
+		"signed by another key":   SignResult(forger, "r1", vectorInstanceID, vectorResult),
+		"with its status changed": altered,
+		"from another target":     SignResult(forger, "r1", MemberID(KindInstance, forger.Public().(ed25519.PublicKey)), vectorResult),
+		"to another request":      SignResult(target, "r2", vectorInstanceID, vectorResult),
+	} {
+		if VerifyResult("r1", vectorInstanceID, r) {
+			t.Errorf("an answer %s verifies as the target's", name)
+		}
+	}
+}
+
+func TestAHelloProvesOnlyTheIDItsKeyMakes(t *testing.T) {
+	member := ed25519.NewKeyFromSeed(vectorSeed)
+	now := time.Now()
+	hello := func(id string, p *IDProof) Hello {
+		return Hello{Key: vectorRelayKey, Announce: Announce{InstanceID: id}, Proof: p}
+	}
+	if !hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, now)).proves(now) {
+		t.Fatal("a phone's proof of its own id does not hold")
+	}
+	other := MemberID(KindMobile, keyNumber(7))
+	for name, h := range map[string]Hello{
+		"without a proof":         hello(vectorPhoneID, nil),
+		"for another id":          hello(other, ProveID(member, KindMobile, vectorRelayKey, other, now)),
+		"on another relay key":    hello(vectorPhoneID, ProveID(member, KindMobile, "another-relay-key-0123456789abcdef", vectorPhoneID, now)),
+		"made long ago":           hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, now.Add(-time.Hour))),
+		"under another kind's id": hello(vectorInstanceID, ProveID(member, KindMobile, vectorRelayKey, vectorInstanceID, now)),
+	} {
+		if h.proves(now) {
+			t.Errorf("a hello %s proves its id", name)
+		}
 	}
 }
