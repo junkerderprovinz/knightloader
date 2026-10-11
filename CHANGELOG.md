@@ -103,13 +103,32 @@ release's tag.
   an instance remembers it on the member's first signed call. After that no
   other key, and no unsigned call, is taken in that member's name. Groups
   paired before keep working; each member's key is remembered after the
-  update without pairing again.
+  update without pairing again. An instance still on an older version no
+  longer reaches one on this version, so update every instance of a group
+  together.
 - **A new device has to be approved.** A phone, a browser or an instance that
   enters the twelve words waits under **Waiting for approval** on the Pairing
   card, with its kind and key fingerprint, until somebody approves or refuses
   it there. The decision reaches every instance of the group, and the waiting
-  device says where to approve it. Devices already in a group count as
-  approved.
+  device says where to approve it. Phones and browsers the instance knew
+  before the update count as approved, and nothing added later joins that
+  list. Instances of a group from before approve each other once, on each
+  side.
+- **A device can no longer name itself an approved instance.** A call without
+  a key used to put its name on the list of devices from before the update,
+  so whoever had the twelve words could sign in as an instance and remove
+  others or make an instance leave its group. A call has to name an id of the
+  kind it claims, and right after entering the words an instance takes as
+  approved only the instances it actually finds in the group.
+- **A removed device stays out, with or without a key.** A call without a key
+  that names nobody, or a device the instance did not know before the update,
+  is refused. Play links a removed phone asked for stop working with the
+  removal, and the sign-in status a group member can read no longer shows
+  whether two-factor sign-in is on.
+- **A removal that arrives during a password reset no longer takes the
+  instance out of the new group the reset made.** Refusing an instance this
+  one has no key of no longer bans its id for good, and a key pinned under the
+  wrong kind of device can be removed again.
 - **Removing or refusing a device takes back its key for good.** It can come
   back only as a new device, which waits for approval again. A removal made on
   your Pairing page reaches every instance of the group, and an instance you
@@ -118,8 +137,13 @@ release's tag.
   or a member on an older build cannot remove anybody or make an instance
   leave.
 - **One member can no longer crowd out the others.** How many calls wait at
-  once, which request ids are used up, and how many new devices join in an
-  hour are counted per key by the instance itself.
+  once and which request ids are used up are counted per key by the instance
+  itself, and per device for phones and browsers on an older version. How
+  many new devices join in an hour is counted per relay connection too. A
+  member minting keys no longer slows down every call.
+- **The standalone relay trusts only a proxy on its own host** when
+  `KL_RELAY_TRUSTED_PROXIES` is not set. A proxy in another container or on
+  another machine has to be named there by its address.
 ### Added
 
 - **Forgot password? on the sign-in page.** KnightLoader writes a code where
