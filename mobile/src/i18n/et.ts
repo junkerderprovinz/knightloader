@@ -302,6 +302,8 @@ export const et: Dict = {
   'failure.fileExists.next': 'Teisalda see fail või nimeta see ümber, või muuda veebiliideses, mis olemasolevate failidega juhtub, ja alusta siis allalaadimist uuesti.',
   'failure.dataFolder.line': '{path} asub KnightLoaderi andmekaustas ja sinna ei tohi allalaadimised minna.',
   'failure.dataFolder.next': 'Vali veebiliideses kaust väljaspool andmekausta ja proovi uuesti.',
+  'failure.holdsDataFolder.line': 'KnightLoaderi andmekaust asub kaustas {path}, seega ei tohi allalaadimised sinna minna.',
+  'failure.holdsDataFolder.next': 'Vali veebiliideses kaust, mis ei sisalda andmekausta, ja proovi uuesti.',
   'failure.captcha.line': 'Hoster tahab, et captcha saaks lahendatud.',
   'failure.captcha.next': 'Vasta captchale vaates Captchad või lisa veebiliideses captcha konto.',
   'failure.cancelled.line': 'Allalaadimine peatati enne, kui see valmis sai.',

@@ -262,6 +262,8 @@ export const en = {
   'failure.fileExists.next': 'Move or rename that file, or change what happens to existing files in the web UI, then restart the download.',
   'failure.dataFolder.line': "{path} is in KnightLoader's data folder, and downloads may not go there.",
   'failure.dataFolder.next': 'Choose a folder outside the data folder in the web UI, then try again.',
+  'failure.holdsDataFolder.line': "KnightLoader's data folder is inside {path}, so downloads may not go there.",
+  'failure.holdsDataFolder.next': 'Choose a folder that does not contain the data folder in the web UI, then try again.',
   'failure.captcha.line': 'The host wants a captcha solved.',
   'failure.captcha.next': 'Answer the captcha on the Captchas screen, or add a captcha account in the web UI.',
   'failure.cancelled.line': 'The download was stopped before it finished.',

@@ -302,6 +302,8 @@ export const nl: Dict = {
   'failure.fileExists.next': 'Verplaats of hernoem dat bestand, of wijzig in de webinterface wat er met bestaande bestanden gebeurt, en start de download dan opnieuw.',
   'failure.dataFolder.line': '{path} staat in de datamap van KnightLoader, en daar mogen geen downloads heen.',
   'failure.dataFolder.next': 'Kies in de webinterface een map buiten de datamap en probeer het opnieuw.',
+  'failure.holdsDataFolder.line': 'De datamap van KnightLoader staat in {path}, dus daar mogen geen downloads heen.',
+  'failure.holdsDataFolder.next': 'Kies in de webinterface een map waar de datamap niet in staat en probeer het opnieuw.',
   'failure.captcha.line': 'De hoster wil dat er een captcha wordt opgelost.',
   'failure.captcha.next': 'Beantwoord de captcha op het scherm Captcha’s, of voeg een captcha-account toe in de webinterface.',
   'failure.cancelled.line': 'De download is gestopt voordat hij klaar was.',
