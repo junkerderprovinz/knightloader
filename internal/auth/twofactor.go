@@ -88,7 +88,8 @@ func (g *Guard) ConfirmTwoFactor(code string) ([]string, error) {
 		g.mu.Unlock()
 		return nil, ErrTwoFactorArmed
 	}
-	if !secret.ValidTOTP(p.secret, code, time.Now()) {
+	step, ok := secret.MatchTOTP(p.secret, code, time.Now())
+	if !ok {
 		g.mu.Unlock()
 		return nil, ErrCodeRejected
 	}
@@ -108,7 +109,9 @@ func (g *Guard) ConfirmTwoFactor(code string) ([]string, error) {
 		return nil, ErrTwoFactorArmed
 	}
 	g.totp = p.secret
-	g.totpUsed = 0
+	// The code was typed where it could be read off the screen, so it does
+	// not sign in afterwards.
+	g.totpUsed = step
 	g.recovery = hashed
 	g.pending = nil
 	g.gen++

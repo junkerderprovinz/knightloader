@@ -23,7 +23,8 @@ func armTwoFactor(t *testing.T, a *app.App, password string) (totpSecret string,
 	if err != nil {
 		t.Fatal(err)
 	}
-	code, err := secret.TOTPCode(sec, time.Now())
+	// The code of the step before, which leaves the present one to the test.
+	code, err := secret.TOTPCode(sec, time.Now().Add(-30*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -341,7 +342,8 @@ func TestTheEnrolmentRunsEndToEndOverHTTP(t *testing.T) {
 	if resp.StatusCode == http.StatusOK {
 		t.Error("the factor came off without a valid code")
 	}
-	off, err := secret.TOTPCode(begun.Secret, time.Now())
+	// The next step's, since this one's confirmed the enrolment.
+	off, err := secret.TOTPCode(begun.Secret, time.Now().Add(30*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}
