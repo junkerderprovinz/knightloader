@@ -225,7 +225,6 @@ export const en = {
   'instances.removeMemberConfirm': '{name} leaves the group and forgets the twelve words. Entering them there again pairs it at any time.',
   'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
   'instances.moduleOff': 'Instances is switched off on the Modules page, so this instance neither lists nor contacts the others.',
-  'instances.pairLead': 'Connect your instances and the Android app with a 12-word phrase, so each one shows and controls the others.',
   'instances.lastSeen': 'Last seen {time}',
 
   // The Pairing page (pages/settings/pairing/): the step cards, the twelve
@@ -2099,8 +2098,9 @@ export const en = {
   'settings.access.identity.nameLabel': 'Name',
   'settings.access.identity.namePlaceholder': 'e.g. Home server',
   'settings.access.identity.nameHint': 'Offered first when pairing and in the QR code below, instead of whatever the OS or container runtime happens to call this machine. Optional: leave it empty to keep using that name.',
-  'settings.access.identity.domainsLabel': 'Known domains',
-  'settings.access.identity.domainsHint': 'KnightLoader remembers a domain the first time someone signs in through it and keeps it listed here, even when later requests come in over the LAN IP. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
+  'settings.access.identity.addressesLabel': 'Known addresses',
+  'settings.access.identity.addressesHint': 'KnightLoader finds its address on the local network by itself and shows it above the field. It remembers a domain the first time someone signs in through it and keeps it listed here, even when later requests come in over the LAN IP. Without a password it only answers on its IP address, on local names and on the domains listed here, so add yours before you open it through that domain. One full address per line, e.g. https://kl.example.com.',
+  'settings.access.identity.addressFound': 'Found automatically',
 
   // Every other way to get KnightLoader: the phone app, the desktop app or a
   // server install, the bookmarklet, the MV3 browser extension and the PWA
@@ -3810,10 +3810,12 @@ export const en = {
   'whatsnew.change.pageActions': 'The main action of a page floats at its foot and stays in reach while you scroll.',
   'whatsnew.change.collectorOptions': '"{name}" opens a window. "{cnl}" and "{watch}" are switches in it.',
   'whatsnew.change.instanceCards': 'Every instance is a compact card, with a picture of the group above.',
+  'whatsnew.change.handover': 'In the picture of the group, a packet travels along the line when links go to another instance or arrive from a device of the group. A dashed line runs through the relay.',
   'whatsnew.change.accountsAdd': 'One button adds every kind of account: "{name}".',
   'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture: who is asked first and who next.',
   'whatsnew.change.pairingSteps': 'Three pictures show how pairing works.',
   'whatsnew.change.pairingGroup': 'One card lists every device of your group and how KnightLoader reaches it.',
+  'whatsnew.change.relayServe': 'The relay card offers "{name}" as a choice of its own.',
   'whatsnew.change.afterDownload': 'A picture shows the stations a download passes once it has arrived.',
   'whatsnew.change.weekBand': '"{name}" draws the whole week as a band.',
   'whatsnew.change.reconnectScene': 'A picture shows how KnightLoader asks the router for a new address.',

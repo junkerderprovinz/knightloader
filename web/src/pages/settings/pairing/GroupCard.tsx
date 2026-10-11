@@ -159,7 +159,9 @@ export function GroupCard({
   const kind = (a: GroupApp) => (APP_KIND[a.deployment] ? t(APP_KIND[a.deployment]) : undefined);
 
   const nodes: NetNode[] = [
-    ...group.members.map((m): NetNode => ({ key: `member:${m.id}`, kind: 'instance', name: m.name || m.id, sub: route(m) })),
+    ...group.members.map(
+      (m): NetNode => ({ key: `member:${m.id}`, kind: 'instance', name: m.name || m.id, sub: route(m), relay: !m.direct }),
+    ),
     ...peers.map(
       (p): NetNode => ({
         key: `peer:${p.name}`,
@@ -176,6 +178,8 @@ export function GroupCard({
         name: a.name || a.id,
         sub: kind(a) ?? '',
         dim: !a.connected,
+        // A phone and an extension reach the group through the relay alone.
+        relay: true,
       }),
     ),
   ];

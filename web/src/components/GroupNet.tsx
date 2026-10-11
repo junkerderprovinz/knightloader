@@ -1,11 +1,13 @@
 // GroupNet draws a group as a net: this instance in the middle and everything
 // paired with it around it, each under its name. It reads the page's own
 // lists, so a member that comes or goes redraws it, and a node and its entry
-// on the page light up together.
+// on the page light up together. A line through the relay is dashed, and links
+// handed over travel along their line as a parcel.
 import { useEffect, useRef, useState, type FocusEvent, type PointerEvent, type ReactNode } from 'react';
 import logoUrl from '../assets/logo.svg';
 import { IconBrowser, IconPhone } from '../lib/icons';
 import { useStillPictures } from '../lib/motion';
+import { FILL, HUE, SURFACE, TRAVEL } from './pictures/scene';
 
 export interface NetNode {
   /** The key the node shares with its entry on the page (`data-nk`). */
@@ -16,6 +18,17 @@ export interface NetNode {
   sub: string;
   /** Not reachable right now. */
   dim?: boolean;
+  /** Reached through the relay, which its line says by being dashed. */
+  relay?: boolean;
+}
+
+/** Links on their way along a node's line. */
+export interface NetParcel {
+  id: number;
+  /** The node at the other end of the line. */
+  key: string;
+  /** From this instance to the node, or from the node to this instance. */
+  out: boolean;
 }
 
 /** The key of this instance's own node and entry. */
@@ -122,10 +135,73 @@ function NodeButton({
   );
 }
 
+type Point = { x: number; y: number };
+
+/** How long a parcel stays at its destination where nothing may move. */
+export const PARCEL_REST_MS = 1600;
+const ANSWER_MS = 450;
+
+/**
+ * Parcel is one handover on its line. It travels at the speed everything in a
+ * picture travels at and stays in sight all the way, and the node it reaches
+ * answers with a ring. A still picture shows it arrived.
+ */
+function Parcel({ from, to, at, r, onDone }: { from: Point; to: Point; at: Point; r: number; onDone: () => void }) {
+  const box = useRef<SVGGElement>(null);
+  const ring = useRef<SVGCircleElement>(null);
+  const calm = useStillPictures();
+  const done = useRef(onDone);
+  done.current = onDone;
+
+  useEffect(() => {
+    const parcel = box.current;
+    const answer = ring.current;
+    if (calm || !parcel || !answer || typeof parcel.animate !== 'function') {
+      const rest = window.setTimeout(() => done.current(), PARCEL_REST_MS);
+      return () => window.clearTimeout(rest);
+    }
+    const place = (p: Point) => `translate(${p.x}px, ${p.y}px)`;
+    const running: Animation[] = [];
+    const trip = parcel.animate([{ transform: place(from) }, { transform: place(to) }], {
+      duration: (Math.hypot(to.x - from.x, to.y - from.y) / TRAVEL) * 1000,
+      easing: 'linear',
+    });
+    running.push(trip);
+    trip.onfinish = () => {
+      parcel.style.visibility = 'hidden';
+      const rings = answer.animate(
+        [
+          { opacity: 0.8, transform: 'scale(1)' },
+          { opacity: 0, transform: 'scale(1.3)' },
+        ],
+        { duration: ANSWER_MS, easing: 'ease-out' },
+      );
+      running.push(rings);
+      rings.onfinish = () => done.current();
+    };
+    return () => running.forEach((a) => a.cancel());
+  }, [calm, from.x, from.y, to.x, to.y]);
+
+  return (
+    <g className="kl-net-parcel" aria-hidden>
+      <circle ref={ring} className="kl-net-answer" cx={at.x} cy={at.y} r={r + 6} fill="none" stroke={HUE} strokeWidth="2" opacity="0" />
+      <g ref={box} transform={`translate(${xy(to.x, to.y)})`}>
+        <rect x="-8" y="-6.5" width="16" height="13" rx="2.5" fill={FILL} />
+        {/* The tape is cut out of the box, so it reads on every hue. */}
+        <path d="M-8 -1.5H8M0 -6.5V-1.5" stroke={SURFACE} strokeWidth="1.5" />
+      </g>
+    </g>
+  );
+}
+
 interface NetProps {
   /** This instance, the node in the middle. */
   self: { name: string; sub: string };
   nodes: NetNode[];
+  /** The handovers under way, each on the line of its node. */
+  parcels?: NetParcel[];
+  /** A parcel has arrived and goes out of the picture. */
+  onDelivered?: (id: number) => void;
   /** The key under the pointer or the focus, here or on the page. */
   hot: string | null;
   /** Brings the node's entry on the page into view. */
@@ -134,7 +210,16 @@ interface NetProps {
   alt: string;
 }
 
-function NetSvg({ shape, self, nodes, hot, onPick, alt }: NetProps & { shape: 'wide' | 'narrow' }) {
+function NetSvg({
+  shape,
+  self,
+  nodes,
+  parcels = [],
+  onDelivered,
+  hot,
+  onPick,
+  alt,
+}: NetProps & { shape: 'wide' | 'narrow' }) {
   const { width, height, hub, points } = netLayout(shape, nodes.length);
   return (
     <svg
@@ -150,19 +235,34 @@ function NetSvg({ shape, self, nodes, hot, onPick, alt }: NetProps & { shape: 'w
         const ux = (p.x - hub.x) / length;
         const uy = (p.y - hub.y) / length;
         // The link ends a little outside the rim of both nodes.
-        const from = xy(hub.x + ux * (HUB_RADIUS + 5), hub.y + uy * (HUB_RADIUS + 5));
-        const to = xy(p.x - ux * (r + 5), p.y - uy * (r + 5));
+        const here = { x: hub.x + ux * (HUB_RADIUS + 5), y: hub.y + uy * (HUB_RADIUS + 5) };
+        const there = { x: p.x - ux * (r + 5), y: p.y - uy * (r + 5) };
+        const d = `M${xy(here.x, here.y)} L${xy(there.x, there.y)}`;
         return (
           <g
             key={node.key}
             className={`kl-net-spoke${node.dim ? ' dim' : ''}${hot === node.key ? ' hot' : ''}`}
             data-nk={node.key}
           >
-            <path className="kl-net-link" pathLength="1" d={`M${from} L${to}`} />
+            {/* A solid link is one dash as long as itself, which is what draws
+                it in. A dashed one keeps its own dashes and fades in. */}
+            {node.relay ? <path className="kl-net-link relay" d={d} /> : <path className="kl-net-link" pathLength="1" d={d} />}
             <NodeButton name={node.name} x={p.x} y={p.y} r={r} onPick={() => onPick(node.key)}>
               <Shape kind={node.kind} x={p.x} y={p.y} />
             </NodeButton>
             <NodeLabel at={p.label} name={node.name} sub={node.sub} />
+            {parcels
+              .filter((parcel) => parcel.key === node.key)
+              .map((parcel) => (
+                <Parcel
+                  key={parcel.id}
+                  from={parcel.out ? here : there}
+                  to={parcel.out ? there : here}
+                  at={parcel.out ? p : hub}
+                  r={parcel.out ? r : HUB_RADIUS}
+                  onDone={() => onDelivered?.(parcel.id)}
+                />
+              ))}
           </g>
         );
       })}
@@ -195,7 +295,8 @@ export function GroupNet(props: NetProps) {
               part.animate(frames, { duration: 420, delay: start + delay, easing: 'cubic-bezier(.3,0,.2,1)', fill: 'backwards' }),
             ),
           );
-        show('.kl-net-link', 0, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }]);
+        show('.kl-net-link:not(.relay)', 0, [{ strokeDashoffset: 1 }, { strokeDashoffset: 0 }]);
+        show('.kl-net-link.relay', 0, [{ opacity: 0 }, { opacity: 1 }]);
         show('.kl-net-node, .kl-net-label', 300, [
           { opacity: 0, transform: 'scale(.7)' },
           { opacity: 1, transform: 'none' },

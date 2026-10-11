@@ -5,8 +5,9 @@ import { InfoBubble } from '../../../components/ui';
 
 /**
  * SetRow is one setting on a line: what it is at the start, with its
- * explanation behind an (i), and the control at the end. Rows under each other
- * are parted by a hairline.
+ * explanation behind an (i), and the control at the end. A hairline parts two
+ * rows under each other; the first row of a card has none above it, whatever
+ * stands before it.
  */
 export function SetRow({
   label,
@@ -24,7 +25,11 @@ export function SetRow({
   children: ReactNode;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-t border-carbon-border py-3 first:border-t-0 first:pt-0.5 last:pb-0.5">
+    <div
+      data-set-row
+      className="flex flex-wrap items-center gap-x-4 gap-y-2 border-carbon-border py-0.5
+        [[data-set-row]+&]:mt-2.5 [[data-set-row]+&]:border-t [[data-set-row]+&]:pt-3"
+    >
       <div className="min-w-0 flex-[1_1_12.5rem]">
         {/* data-glim-label is where the settings search scrolls to. */}
         <span data-glim-label={label} className="inline-flex items-center gap-1.5 text-sm text-carbon-text">

@@ -76,6 +76,7 @@ export const RELEASES: Release[] = [
         names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', name: 'collector.options' },
       },
       { id: 'instance-cards', to: INSTANCES, text: 'whatsnew.change.instanceCards' },
+      { id: 'net-handover', to: INSTANCES, text: 'whatsnew.change.handover' },
       {
         id: 'accounts-add',
         to: ACCOUNTS,
@@ -107,6 +108,12 @@ export const RELEASES: Release[] = [
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
       { id: 'pairing-group', to: ['/settings/pairing'], text: 'whatsnew.change.pairingGroup' },
+      {
+        id: 'relay-serve',
+        to: ['/settings/pairing'],
+        text: 'whatsnew.change.relayServe',
+        names: { name: 'relay.serve' },
+      },
       { id: 'after-download', to: ['/settings/archives'], text: 'whatsnew.change.afterDownload' },
       {
         id: 'week-band',
