@@ -120,6 +120,7 @@ export const it: Dict = {
   'addDownload.errorSend': 'Impossibile inviare i link: {message}',
   'error.federationOff': 'Le istanze collegate sono disattivate sull’istanza a cui sei collegato, quindi non può raggiungere le altre.',
   'error.addAgain': 'Questa connessione è stata salvata da una versione precedente dell’app e non funziona più. Rimuovila e ricollegati con le dodici parole.',
+  'error.ownLoginNeeded': 'L’istanza lo consente solo dalla propria interfaccia web. Accedi lì per farlo.',
   'addDownload.cancel': 'Annulla',
   'addDownload.button': 'Aggiungi',
 

@@ -25,6 +25,7 @@ import {
   queueMove,
   queuePriority,
   recheckTasks,
+  refusal,
   restartTasks,
   resumeTasks,
   runCleanup,
@@ -405,7 +406,8 @@ export function TaskOptionsDialog({
       base,
     );
     if (!r.ok) {
-      setError(await r.text());
+      const e = await refusal(r);
+      setError(taskRefusal(e, t) ?? e.message);
       return;
     }
     onClose();
@@ -517,7 +519,7 @@ export function useRemoval({
         );
         onDone();
       } catch (e) {
-        toast(t('list.failed', { error: message(e) }), 'fail');
+        toast(taskRefusal(e, t) ?? t('list.failed', { error: message(e) }), 'fail');
       }
     },
     [base, drawn, onDone, t, toast, undoRemoval],
