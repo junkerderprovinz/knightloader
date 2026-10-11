@@ -100,7 +100,7 @@ func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
 // the others add to it, which the race detector, or the runtime itself on a
 // map, catches when the file is written from the live list.
 func TestParallelSignOutsWriteTheListSafely(t *testing.T) {
-	g, _ := locked(t)
+	g, dir := locked(t)
 	exp := time.Now().Add(time.Hour).Unix()
 	sessions := make([]string, 64)
 	for i := range sessions {
@@ -115,9 +115,16 @@ func TestParallelSignOutsWriteTheListSafely(t *testing.T) {
 		})
 	}
 	wg.Wait()
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
 	for _, s := range sessions {
 		if g.Valid(s) {
 			t.Fatal("a session signed out in parallel with others is still valid")
+		}
+		if reopened.Valid(s) {
+			t.Fatal("a session signed out in parallel with others is valid again after a restart")
 		}
 	}
 }
