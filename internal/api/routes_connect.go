@@ -106,7 +106,7 @@ func registerConnect(reg *Registry, a *app.App) {
 	// the page waits a minute before it says nobody came.
 	if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret != "" {
 		if st, err := a.Federation.Group(false, time.Now()); err == nil && st.JoinedAt.IsZero() {
-			if err := a.Federation.SetJoinedBeforeKeys(time.Now()); err != nil {
+			if err := a.Federation.SetJoined(time.Now()); err != nil {
 				log.Printf("connect: could not record when this instance joined its group: %v", err)
 			}
 		}
@@ -115,6 +115,13 @@ func registerConnect(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/connect",
 		"whether this instance has a connection phrase, who else is in its group, whether its relay socket is up, and which relay it uses",
 		func(w http.ResponseWriter, r *http.Request) {
+			// The Pairing card asks this while it is open, which is when the
+			// instances of a group have to meet to be approved on each other.
+			go func() {
+				ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+				defer cancel()
+				a.Federation.Greet(ctx, time.Now())
+			}()
 			writeJSON(w, connectInfo(a))
 		})
 
@@ -134,7 +141,7 @@ func registerConnect(reg *Registry, a *app.App) {
 					exists = true
 					return nil
 				}
-				return enterGroup(a, secret, false)
+				return enterGroup(a, secret)
 			})
 			if exists {
 				writeRefusal(w, http.StatusConflict, "phraseExists",
@@ -175,7 +182,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			if refuseGroupChange(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return enterGroup(a, secret, true) })) {
+			if refuseGroupChange(w, a.Auth.Mint(stillAdmitted(a, r), func() error { return enterGroup(a, secret) })) {
 				return
 			}
 			writeJSON(w, connectInfo(a))
@@ -277,7 +284,7 @@ func registerConnect(reg *Registry, a *app.App) {
 				// make it leave.
 				w.WriteHeader(http.StatusNoContent)
 				go func() {
-					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil, false) })
+					err := a.Auth.Mint(func() bool { return fromApprovedInstance(a, r) }, func() error { return enterGroup(a, nil) })
 					if err != nil {
 						log.Printf("connect: did not leave the group after an instance of it took this one out: %v", err)
 					}
@@ -353,19 +360,12 @@ func registerConnect(reg *Registry, a *app.App) {
 					return
 				}
 			}
-			kind := ""
-			for _, p := range a.Federation.PendingMembers() {
-				if p.ID == id {
-					kind = p.Kind
-				}
-			}
-			if err := a.Federation.Refuse(id, passed.Kind, time.Now()); err != nil {
+			if err := a.Federation.Refuse(id, time.Now()); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
 			if !fromRelayGroup(r) {
-				body, _ := json.Marshal(deviceDecision{Kind: kind})
-				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", body)
+				go passOn(a, id, http.MethodPost, "/api/connect/devices/"+url.PathEscape(id)+"/refuse", []byte("{}"))
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
@@ -375,7 +375,7 @@ func registerConnect(reg *Registry, a *app.App) {
 		func(w http.ResponseWriter, r *http.Request) {
 			// Idempotent: setting an empty secret deletes it, whether or not
 			// one was stored.
-			if err := enterGroup(a, nil, false); err != nil {
+			if err := enterGroup(a, nil); err != nil {
 				http.Error(w, err.Error(), http.StatusInternalServerError)
 				return
 			}
@@ -385,9 +385,8 @@ func registerConnect(reg *Registry, a *app.App) {
 
 // enterGroup stores secret as this instance's group, or leaves the group with
 // nil, and redials the relay. Either way the group starts over with nobody
-// seen in it. entered is set when the words came from a group that already
-// exists, whose instances this one then meets as members already there.
-func enterGroup(a *app.App, secret []byte, entered bool) error {
+// seen in it and nobody approved.
+func enterGroup(a *app.App, secret []byte) error {
 	stored := ""
 	joined := time.Time{}
 	if secret != nil {
@@ -406,7 +405,7 @@ func enterGroup(a *app.App, secret []byte, entered bool) error {
 	// project relay, and writing one would stop RelayModeOf from inferring
 	// "own" from a typed address.
 	applyRelay(a)
-	return a.Federation.SetJoined(joined, entered && secret != nil)
+	return a.Federation.SetJoined(joined)
 }
 
 // refuseGroupChange answers a failed join or activation and reports whether
@@ -443,7 +442,7 @@ func renewGroup(a *app.App) (bool, error) {
 	if err != nil {
 		return true, err
 	}
-	return true, enterGroup(a, secret, false)
+	return true, enterGroup(a, secret)
 }
 
 // phraseQR is the QR code for the app, naming the relay this instance dials

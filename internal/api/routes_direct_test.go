@@ -78,8 +78,7 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	// Both hold the same keys, so the second instance's announce is tagged
 	// with the tag the first one computes.
 	net.heard = []discovery.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
-	// The second instance hears the first too, which is how it knows the
-	// first was in the group before it entered the words.
+	// The second instance hears the first too, so its Pairing card names it.
 	seen := &fakeNetwork{}
 	secondApp.Federation.SetDiscovery(seen)
 	seen.heard = []discovery.Peer{announce(t, first, seen, firstApp.Settings.Get().InstanceID)}
@@ -89,6 +88,15 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 		t.Fatalf("members = %+v, want the second instance, reached directly", info.Members)
 	}
 
+	// The second instance's owner approves the first, as every instance
+	// approves the others it meets in its group.
+	firstID := firstApp.Settings.Get().InstanceID
+	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Fatalf("the second instance's downloads before it approved the first answered %d: %s, want 403 memberPending", code, body)
+	}
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the first instance on the second = %d %s", code, body)
+	}
 	code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil)
 	if code != http.StatusOK || !strings.HasPrefix(strings.TrimSpace(string(body)), "[") {
 		t.Fatalf("the second instance's downloads answered %d: %s", code, body)

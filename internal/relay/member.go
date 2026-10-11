@@ -12,33 +12,28 @@ package relay
 //     each with its length, so no field can be moved into another.
 //   - The receiving instance pins the key to the member id the call names the
 //     first time it sees that id (trust on first use). From then on only that
-//     key speaks for that id: another key, or no signature, is refused with a
-//     code that says so. A member already known before keys existed gets its
-//     key pinned on its first signed call.
+//     key speaks for that id: another key is refused with a code that says
+//     so. A call without a signature is refused too, with a code that tells
+//     the device to update.
 //   - Taking a member out revokes its pinned key on that instance for good.
 //     The id stays removed for a phone or a browser; an instance's id is freed,
 //     so the instance can join again under a key of its own.
 //   - A key pinned for the first time waits for approval: until somebody at an
 //     instance approves the device, its calls are refused with a code that
-//     says so. The approval, and a refusal, are passed on to the other
-//     instances with the key, so they pin it as approved before the device
-//     calls them. The phones and browsers an instance knew when it first ran
-//     with keys count as approved, a list written once and never added to.
-//     So do the instances already in the group that an instance meets right
-//     after its owner entered the words of a group that already existed.
-//   - The id a call names has to have the shape its kind mints for itself,
-//     so no key can be pinned as an instance under a phone's id.
+//     says so. That holds for an instance too, in both directions: the
+//     instances already in a group approve a new one, and the new one
+//     approves each of them. The approval, and a refusal, are passed on to the
+//     other instances with the key, so they pin it as approved before the
+//     device calls them.
+//   - Each kind mints its ids in a shape of its own: 40 hex digits for an
+//     instance, "browser-" and hex for the extension, "phone-" and more for
+//     the app. The id a call names has to have the shape of the kind it signs
+//     as, so no key is pinned, and no device is listed, refused or removed,
+//     under an instance's id, nor the other way round.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
 //     from the verified key: the replay guard and the calls served at once.
-//     Calls without a signature count per member id they name. How many keys
-//     may be pinned per hour counts per sender as well as for the group (see
-//     WithSource).
-//
-// A call without a signature is still served during the move to keys when it
-// names a phone or a browser on that list, which has no pinned key and was not
-// removed, so the app and the extension of the release before keys keep
-// working. Instances of that release name nobody and are refused.
-// federation.acceptUnsigned is the one switch that ends this.
+//     How many keys may be pinned per hour counts per sender as well as for
+//     the group (see WithSource).
 
 import (
 	"context"
@@ -116,7 +111,8 @@ func CallMessage(target string, c ProxyCall) []byte {
 func (c ProxyCall) Signed() bool { return len(c.Key) > 0 || len(c.Sig) > 0 }
 
 // verifyCall reports whether an unsigned call, or a signed one whose signature
-// holds, may go on.
+// holds, may go on. An unsigned one only goes on to be refused with a reason
+// (see federation.Manager.Guard).
 func verifyCall(target string, c ProxyCall) bool {
 	if !c.Signed() {
 		return true

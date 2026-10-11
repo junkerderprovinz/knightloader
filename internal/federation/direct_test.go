@@ -2,6 +2,7 @@ package federation
 
 import (
 	"context"
+	"crypto/ed25519"
 	"fmt"
 	"io"
 	"net"
@@ -49,6 +50,41 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	body, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil, "")
 	if err != nil || status != http.StatusOK || string(body) != "served" {
 		t.Fatalf("a member's call = %d %q %v, want it served while strangers dawdle", status, body, err)
+	}
+}
+
+// TestCallsWithoutAPinnedKeyUseUpNoIDs: whatever reaches the direct route
+// from somebody holding the words but no pinned key, signed or not, leaves the
+// replay guard as it was, so nobody fills the record members' calls are
+// checked against.
+func TestCallsWithoutAPinnedKeyUseUpNoIDs(t *testing.T) {
+	secret := []byte("0123456789abcdef")
+	callee := newManager(t)
+	callee.SetGroup(secret, officeID, nil)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callee.ServeDirect(w, r, callee.Guard(func(context.Context, relay.ProxyCall) (int, []byte) {
+			return http.StatusOK, []byte("served")
+		}))
+	}))
+	defer srv.Close()
+	for _, c := range []struct {
+		self   string
+		member ed25519.PrivateKey
+	}{
+		{bravoID, nil},
+		{"not-an-instance-id", memberKeyOf(60)},
+	} {
+		caller := newManager(t)
+		caller.SetGroup(secret, c.self, c.member)
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+		_, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil, "")
+		cancel()
+		if err != nil || status != http.StatusForbidden {
+			t.Errorf("a call from %s = %d %v, want it refused with a reason", c.self, status, err)
+		}
+	}
+	if n := callee.replay.Len(); n != 0 {
+		t.Errorf("the replay guard kept %d ids of calls without a pinned key, want none", n)
 	}
 }
 

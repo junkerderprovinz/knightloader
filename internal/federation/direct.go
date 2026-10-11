@@ -104,10 +104,6 @@ func configureLocal(ln LocalNetwork, keys *groupKeys) {
 	})
 }
 
-// Replay is the guard every call into this instance passes, over the relay
-// and directly, so a call captured on one path cannot run on the other.
-func (m *Manager) Replay() *relay.ReplayGuard { return m.replay }
-
 // announceTag signs everything an announce claims, its time included, so a
 // device on the network can neither point members at an address of its
 // choosing nor keep a departed member listed by playing its announces back.
@@ -197,8 +193,8 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 
 // ServeDirect answers a member's direct call with serve. Outside a group it
 // answers like an instance without the feature. A call that is unsigned,
-// stale, replayed, addressed to another instance or does not open is refused
-// without saying which, since the reason would only help a guesser.
+// stale, addressed to another instance, does not open or that serve drops is
+// refused without saying which, since the reason would only help a guesser.
 func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve relay.ProxyHandler) {
 	m.mu.Lock()
 	keys, self := m.keys, m.selfID
@@ -239,7 +235,7 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 	switch {
 	case errors.Is(err, relay.ErrSignature):
 		status, out = http.StatusForbidden, relay.SignatureRefused
-	case err != nil || !m.replay.Admit(call):
+	case err != nil:
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	default:
@@ -248,6 +244,10 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 			source = host
 		}
 		status, out = serve(relay.WithSource(r.Context(), "direct\x00"+source), call)
+		if status == relay.StatusDrop {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
 	}
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
 	if err != nil {
