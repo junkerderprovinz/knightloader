@@ -39,9 +39,6 @@ release's tag.
 
 ### Added
 
-- **The extension is on Firefox Add-ons.** The Firefox button in the README and
-  on Settings > Apps opens the listing, with the steps to add and pin it, and
-  the manual names it beside the Chrome and Edge stores.
 - **The main action of a page floats at its lower right corner.** Add links on
   the Overview and on Downloads, Start all on the Link collector, Add account
   on Accounts and Pairing on Instances stay in reach while the page scrolls.
@@ -211,10 +208,21 @@ release's tag.
   another alphabet is held to the same length as one in English. A password
   over 72 bytes, the most the hash takes, gets its own message on the
   settings card and the reset form instead of an English error.
+
+## [1.8.5] - 2026-10-11
+
+### Added
+
+- **The extension is on Firefox Add-ons.** The Firefox button in the README and
+  on Settings > Apps opens the listing, with the steps to add and pin it, and
+  the manual names it beside the Chrome and Edge stores.
+
+### Fixed
+
 - **A Usenet release whose files finished very quickly could stay in
   Verifying for good,** and one already known to be lost could fetch its
-  remaining parts anyway. The files of a release now start only after the
-  queue has recorded which files belong to it.
+  remaining parts anyway. The files of a release start only after the queue
+  has recorded which files belong to it.
 
 ## [1.8.4] - 2026-10-08
 
