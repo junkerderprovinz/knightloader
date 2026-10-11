@@ -161,6 +161,7 @@ export const fi: Dict = {
   'settings.theme': 'Teema',
   'settings.theme.light': 'Vaalea',
   'settings.theme.dark': 'Tumma',
+  'settings.theme.system': 'Järjestelmä',
   'settings.corners': 'Kulmat',
   'settings.corners.round': 'Pyöreät',
   'settings.corners.slightlyRounded': 'Pehmeät',

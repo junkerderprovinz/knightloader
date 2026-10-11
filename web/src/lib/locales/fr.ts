@@ -18,6 +18,7 @@ export const fr: Dict = {
   'nav.workingTitle': 'titre provisoire',
   'theme.dark': 'Sombre',
   'theme.light': 'Clair',
+  'theme.system': 'Système',
   'theme.toggle': 'Changer de thème',
   'lang.label': 'Langue',
   'lang.open': 'Changer de langue',
@@ -429,6 +430,7 @@ export const fr: Dict = {
   'settings.rainbowPaletteHint': 'Les huit couleurs attribuées par position. Modifiable individuellement.',
   'settings.look.saveFailed': 'Impossible d’enregistrer : {error}',
   'settings.theme': 'Thème',
+  'settings.themeHint': '« {system} » suit le mode clair ou sombre de ton appareil et change avec lui.',
   'settings.motion.wild': 'Intense',
   'settings.motion.storm': 'Tempête',
   'settings.motion.subtle': 'Discret',
@@ -1525,72 +1527,6 @@ export const fr: Dict = {
 
   'settings.nav.help': 'Infos',
 
-  'settings.help.intake.title': 'Ajouter des téléchargements',
-  'settings.help.intake.body':
-    'Collez des liens dans le Collecteur, un par ligne ou sous forme de texte en vrac. Une analyse trouve les liens où qu’ils se trouvent : au milieu d’une phrase, plusieurs par ligne, ou coupés sur deux lignes par un client de messagerie.',
-  'settings.help.intake.b1': 'Déposez un fichier conteneur de liens (.dlc, .ccf, .rsdf) ou une simple liste de liens.',
-  'settings.help.intake.b2':
-    'Les boutons Click\'n\'Load des pages d’hébergeurs et de forums fonctionnent sans changement. KnightLoader répond sur 127.0.0.1:9666, le même port que celui qu’utilise tout autre gestionnaire de téléchargement.',
-  'settings.help.intake.b3':
-    'Collez une URL de page au lieu d’un lien de fichier et activez Explorer pour extraire chaque fichier qu’elle référence, au lieu de télécharger la page elle-même.',
-  'settings.help.intake.link1': 'Ouvrir les paramètres Collecteur de liens',
-
-  'settings.help.collector.title': 'Le collecteur, avant tout téléchargement',
-  'settings.help.collector.body':
-    'Les nouveaux liens arrivent d’abord dans le Collecteur, pas dans la file : une zone d’attente pour vérifier les noms, les tailles et les avertissements de doublons avant que quoi que ce soit ne démarre. La confirmation automatique peut sauter cette étape, avec un délai optionnel ; une fois confirmé, un lien démarre immédiatement ou attend dans la file, selon le démarrage automatique.',
-  'settings.help.collector.link': 'Ouvrir les paramètres Collecteur de liens',
-
-  'settings.help.rules.title': 'Règles : paquets, dossiers et ce qui est conservé',
-  'settings.help.rules.body':
-    'Le Packagizer renomme un lien, choisit son dossier et définit ses options de téléchargement à son arrivée, à partir de conditions que vous écrivez. Le Filtre de liens décide si un lien est conservé ou non. Un rejet indique toujours la règle qui l’a provoqué, et pourquoi.',
-  'settings.help.rules.link': 'Ouvrir Règles',
-
-  'settings.help.queue.title': 'Gérer la file',
-  'settings.help.queue.body':
-    'Mettez en pause, reprenez ou réordonnez n’importe quel lien, seul ou en paquet entier. Il y a deux façons d’arrêter la file. La suspendre laisse intact ce qui tourne déjà, qui se termine alors de lui-même. Arrêter tous les transferts immédiatement montre d’abord ce qui serait perdu et n’agit qu’après votre confirmation. L’avertissement est là pour les transferts qui ne peuvent pas reprendre là où ils se sont arrêtés.',
-  'settings.help.queue.b1': 'Un seul lien peut remplacer le nombre de connexions global ou l’option d’extraction après téléchargement.',
-  'settings.help.queue.b2': 'Un doublon d’un lien déjà présent dans la liste est toujours refusé, avant même d’atteindre le collecteur.',
-
-  'settings.help.limits.title': 'Contourner les limites des hébergeurs',
-  'settings.help.limits.body': 'Trois façons indépendantes d’empêcher une limite gratuite de faire office de plafond :',
-  'settings.help.limits.b1':
-    'Connexions : répartir les téléchargements sur plusieurs chemins sortants (une seconde ligne, un proxy, SOCKS) au lieu de toujours sortir par l’adresse propre de cette machine.',
-  'settings.help.limits.b2':
-    'Reconnexion : demander au routeur une nouvelle adresse publique, la seule chose qui lève une limite liée à l’adresse elle-même. Cela passe par UPnP, un programme externe, un script, ou le rejeu de requêtes HTTP contre la page d’administration du routeur. Les scripts JDownloader LiveHeader/curl existants fonctionnent sans changement.',
-  'settings.help.limits.b3':
-    'Comptes : enregistrez des identifiants premium ou debrid (Real-Debrid, AllDebrid, TorBox et d’autres) pour qu’un lien éligible soit récupéré à pleine vitesse au lieu de la limite des utilisateurs gratuits.',
-  'settings.help.limits.link1': 'Ouvrir Réseau',
-  'settings.help.limits.link3': 'Ouvrir Comptes',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Quand un hébergeur demande un captcha, les comptes captcha que vous avez configurés sont essayés en premier, dans l’ordre que vous avez défini. Si aucun n’est configuré, ou si aucun ne peut le résoudre, le captcha vous est présenté au lieu d’échouer en silence.',
-  'settings.help.captcha.link': 'Ouvrir les paramètres Captcha',
-
-  'settings.help.after.title': 'Après le téléchargement',
-  'settings.help.after.body':
-    'Les archives sont extraites automatiquement : zip (y compris chiffré, aussi bien WinZip AES que l’ancien ZipCrypto), rar avec des ensembles multi-volumes, 7z, tar, ainsi que gzip/bzip2/xz/zstd, qu’ils enveloppent un tar ou non. L’extraction est écrite en Go pur et n’a besoin d’aucun binaire unrar ou 7z externe. Pour une archive chiffrée, une liste de mots de passe est essayée dans l’ordre. Un fichier terminé est vérifié par rapport à toute somme de contrôle fournie avec lui : une liste .sfv, un fichier md5/sha1/sha256sum, ou un CRC32 que porte le nom de la release lui-même.',
-  'settings.help.after.link1': 'Ouvrir les paramètres Archives',
-  'settings.help.after.link2': 'Ouvrir les paramètres Téléchargements',
-
-  'settings.help.schedule.title': 'Fonctionner sans surveillance',
-  'settings.help.schedule.body':
-    'Un horaire hebdomadaire met en pause ou bride la file selon l’heure, par exemple dans une plage nocturne, et reste correct lors du changement d’heure. C’est la même idée que le Scheduler de JDownloader.',
-  'settings.help.schedule.link': 'Ouvrir Automatisation',
-
-  'settings.help.instances.title': 'Faire tourner plusieurs instances',
-  'settings.help.instances.body': 'Ajoute un autre KnightLoader comme pair et sa file apparaît aussi sur ce tableau de bord. Sur le même réseau, c\'est un appel direct à l\'API de l\'autre instance, comme le ferait un navigateur. Entre réseaux, douze mots apparient les deux via un relais que tu peux héberger toi-même.',
-  'settings.help.instances.link': 'Ouvrir Instances',
-
-  'settings.help.access.title': 'Accès et dépannage',
-  'settings.help.access.body': 'Un mot de passe verrouille toute l’interface, qui n’est alors accessible qu’avec un cookie de session. La page Sécurité le regroupe avec le second facteur, les clés d’accès et les jetons API. La page Diagnostic crée un fichier à joindre à un rapport de bug : la version et les informations de build, les paramètres actuels sans aucun mot de passe, les lignes de journal récentes de ce processus, et le nombre de goroutines en cours d’exécution.',
-  'settings.help.access.link1': 'Ouvrir Sécurité',
-  'settings.help.access.link2': 'Ouvrir Diagnostic',
-
-  'settings.help.advanced.title': 'Tout le reste',
-  'settings.help.advanced.body':
-    'Chaque paramètre de ce build peut être lu et modifié par son nom brut sur la page Avancé. Cela inclut quelques-uns qui n’ont encore de contrôle dédié nulle part ailleurs, comme le traitement d’un miroir d’un fichier déjà téléchargé et ce qui se passe quand un téléchargement atterrirait sur un nom déjà pris.',
-  'settings.help.advanced.link': 'Ouvrir les paramètres Avancé',
   'task.mode.free': 'Gratuit',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'À propos de KnightLoader',
@@ -3350,11 +3286,9 @@ export const fr: Dict = {
   'settings.categories.torrentFilesOwn': 'Spécifique',
   'settings.watchDirFilesHint': 'Ce que vous déposez ici est repris automatiquement : listes de liens (.txt, .crawljob, .magnet), fichiers .torrent, conteneurs (.dlc, .ccf, .rsdf) et fichiers .nzb.',
   'container.usenet': '{file} est parti vers {service}. Ses fichiers apparaîtront ici dès que {service} les aura récupérés depuis Usenet.',
-  'settings.help.intake.watchFiles': 'Un dossier surveillé reprend ce que vous y déposez : listes de liens (.txt, .crawljob, .magnet), fichiers .torrent, conteneurs (.dlc, .ccf, .rsdf) et fichiers .nzb.',
   'container.nzbTooBig': 'il dépasse {max}, la taille maximale d’un .nzb',
   'container.noUsenet': 'c’est un .nzb, et rien ici ne peut le récupérer depuis Usenet. Ajoutez un serveur Usenet ou un compte TorBox ou Premiumize.me sous Comptes.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, envoyé ici ou transmis par Sonarr ou Radarr, va vers votre propre serveur Usenet ou vers votre compte TorBox ou Premiumize.me, selon celui qui vient en premier dans l’ordre de priorité sous Comptes. Votre propre serveur récupère chaque fichier aussitôt. Un service debrid récupère d’abord le release, puis ses fichiers se téléchargent comme n’importe quel autre lien. TorBox n’accepte les fichiers .nzb que sur les offres qui incluent Usenet. S’il refuse le premier, ce .nzb échoue, sauf si un autre compte le prend en charge.',
   'task.remote': 'Récupération chez {service}',
   'task.remoteSeeds': 'Seeds : {n}',
   'accounts.routing.orderHintTorrents': 'Les liens magnet et les fichiers .torrent vont soit au client torrent intégré, soit à un service debrid qui accepte les torrents, selon celui qui est placé le plus haut dans la liste.',
@@ -3528,6 +3462,8 @@ export const fr: Dict = {
   'settings.archives.journeyHint': 'Ce qui arrive à un fichier une fois téléchargé, station après station. Une station grise est désactivée et le fichier passe sans s’y arrêter. « {verifying} » suit l’interrupteur « {checksums} » dans « {downloads} ». « {repairing} » demande votre propre serveur Usenet. « {moving} » demande « {workDir} » ou une destination pour les fichiers extraits. « {cleanup} » est ignoré tant que l’archive est conservée.',
   'picture.journey.move': 'Déplacement',
   'picture.journey.cleanup': 'Nettoyage',
+  'picture.journey.wayTo': 'Aller à « {setting} » dans {page}',
+  'picture.journey.wayHere': 'Aller à « {setting} » sur cette page',
   'picture.reconnect.router': 'Routeur',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Ancienne adresse',

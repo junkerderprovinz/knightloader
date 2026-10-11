@@ -161,6 +161,7 @@ export const ar: Dict = {
   'settings.theme': 'السمة',
   'settings.theme.light': 'فاتح',
   'settings.theme.dark': 'داكن',
+  'settings.theme.system': 'النظام',
   'settings.corners': 'الزوايا',
   'settings.corners.round': 'دائرية',
   'settings.corners.slightlyRounded': 'ناعمة',

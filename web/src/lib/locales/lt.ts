@@ -18,6 +18,7 @@ export const lt: Dict = {
   'nav.workingTitle': 'darbinis pavadinimas',
   'theme.dark': 'Tamsi',
   'theme.light': 'Šviesi',
+  'theme.system': 'Sistemos',
   'theme.toggle': 'Keisti temą',
   'lang.label': 'Kalba',
   'lang.open': 'Keisti kalbą',
@@ -437,6 +438,8 @@ export const lt: Dict = {
   'settings.rainbowPaletteHint': 'Aštuonios spalvos, priskirtos pagal poziciją. Kiekvieną galima redaguoti atskirai.',
   'settings.look.saveFailed': 'Nepavyko įrašyti: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint':
+    '„{system}“ seka tavo įrenginio šviesų arba tamsų nustatymą ir keičiasi kartu su juo.',
   'settings.motion.wild': 'Laukinis',
   'settings.motion.storm': 'Audra',
   'settings.motion.subtle': 'Subtilu',
@@ -1532,72 +1535,6 @@ export const lt: Dict = {
 
   'settings.nav.help': 'Informacija',
 
-  'settings.help.intake.title': 'Atsisiuntimų pridėjimas',
-  'settings.help.intake.body':
-    'Įklijuok nuorodas į rinktuvą, po vieną eilutėje arba kaip netvarkingą tekstą. Paieška randa nuorodas, kad ir kur jos būtų: sakinio viduryje, po kelias eilutėje ar pašto programos perskeltas per dvi eilutes.',
-  'settings.help.intake.b1': 'Nutempkite nuorodų konteinerio failą (.dlc, .ccf, .rsdf) arba paprastą nuorodų sąrašą.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load mygtukai hosterių ir forumų puslapiuose veikia kaip anksčiau. KnightLoader atsako adresu 127.0.0.1:9666, tuo pačiu prievadu, kurį naudoja visos kitos atsisiuntimų programos.',
-  'settings.help.intake.b3':
-    'Įklijuokite puslapio URL vietoj failo nuorodos ir įjunkite Naršymą, kad ištrauktumėte kiekvieną failą, į kurį jis nukreipia, vietoj paties puslapio atsisiuntimo.',
-  'settings.help.intake.link1': 'Atverti Nuorodų rinkiklio nustatymus',
-
-  'settings.help.collector.title': 'Rinktuvas, prieš kažkam pradedant siųstis',
-  'settings.help.collector.body':
-    'Naujos nuorodos pirmiausia patenka į Rinktuvą, o ne į eilę: tarpinė zona patikrinti pavadinimus, dydžius ir įspėjimus apie dublikatus, prieš kažkam prasidedant. Automatinis patvirtinimas gali praleisti šį žingsnį, su neprivalomu vėlavimu; patvirtinus, nuoroda arba pradeda siųstis iš karto, arba laukia eilėje, priklausomai nuo automatinio paleidimo.',
-  'settings.help.collector.link': 'Atverti Nuorodų rinkiklio nustatymus',
-
-  'settings.help.rules.title': 'Taisyklės: paketai, aplankai ir kas išsaugoma',
-  'settings.help.rules.body':
-    'Packagizer pervadina nuorodą, parenka jai aplanką ir nustato atsisiuntimo parinktis jos atėjimo metu, pagal tavo parašytas sąlygas. Nuorodų filtras nusprendžia, ar nuoroda apskritai paliekama. Atmetimas visada nurodo, kuri taisyklė jį sukėlė ir kodėl.',
-  'settings.help.rules.link': 'Atverti Taisykles',
-
-  'settings.help.queue.title': 'Eilės valdymas',
-  'settings.help.queue.body':
-    'Pristabdyk, tęsk arba pertvarkyk bet kurią nuorodą, atskirai arba kaip visą paketą. Eilę sustabdyti galima dviem būdais. Sulaikius eilę tai, kas jau vyksta, neliečiama ir baigiasi savaime. Sustabdant visus perdavimus iš karto pirmiausia parodoma, kas būtų prarasta, ir tęsiama tik tau patvirtinus. Įspėjimas skirtas perdavimams, kurie negali tęstis nuo ten, kur sustojo.',
-  'settings.help.queue.b1': 'Viena nuoroda gali nepaisyti bendro ryšių skaičiaus arba išpakavimo po atsisiuntimo jungiklio.',
-  'settings.help.queue.b2': 'Sąraše jau esančios nuorodos dublikatas visada atmetamas, dar prieš jam pasiekiant Rinktuvą.',
-
-  'settings.help.limits.title': 'Hosterio ribojimų apėjimas',
-  'settings.help.limits.body': 'Trys nepriklausomi būdai, kad nemokamas apribojimas netaptų lubomis:',
-  'settings.help.limits.b1':
-    'Ryšiai: paskirstyk atsisiuntimus per daugiau nei vieną išeinantį kelią (antrą liniją, tarpinį serverį, SOCKS), užuot visada išėjęs per paties šio kompiuterio adresą.',
-  'settings.help.limits.b2':
-    'Persijungimas: paprašyk maršrutizatoriaus naujo viešo adreso; tik tai panaikina ribą, pririštą prie paties adreso. Tai veikia per UPnP, išorinę programą, skriptą arba pakartojant HTTP užklausas maršrutizatoriaus administravimo puslapiui. Esami JDownloader LiveHeader/curl skriptai veikia be pakeitimų.',
-  'settings.help.limits.b3':
-    'Paskyros: išsaugok premium ar debrid prisijungimus (Real-Debrid, AllDebrid, TorBox ir kitus), kad tinkama nuoroda būtų parsiųsta visu greičiu, o ne su nemokamo naudotojo riba.',
-  'settings.help.limits.link1': 'Atverti Tinklą',
-  'settings.help.limits.link3': 'Atverti Paskyras',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Kai hosteris prašo captcha, pirmiausia bandomos tavo sukonfigūruotos captcha paskyros tavo nustatyta tvarka. Jei nė viena nesukonfigūruota arba nė viena negali jos išspręsti, captcha parodoma tau, užuot tyliai žlugus.',
-  'settings.help.captcha.link': 'Atverti Captcha nustatymus',
-
-  'settings.help.after.title': 'Po atsisiuntimo',
-  'settings.help.after.body':
-    'Archyvai išpakuojami automatiškai: zip (taip pat šifruoti, tiek WinZip AES, tiek senasis ZipCrypto), rar su daugiatomiais rinkiniais, 7z, tar ir gzip/bzip2/xz/zstd, nesvarbu, ar juose yra tar. Išpakavimas vyksta grynu Go ir nereikalauja jokių išorinių unrar ar 7z programų. Šifruotam archyvui iš eilės bandomas slaptažodžių sąrašas. Baigtas failas patikrinamas pagal bet kokią kartu pateiktą kontrolinę sumą: .sfv sąrašą, md5/sha1/sha256sum failą arba CRC32, esantį pačiame leidimo pavadinime.',
-  'settings.help.after.link1': 'Atverti Archyvų nustatymus',
-  'settings.help.after.link2': 'Atverti Atsisiuntimų nustatymus',
-
-  'settings.help.schedule.title': 'Veikimas be priežiūros',
-  'settings.help.schedule.body':
-    'Savaitinis tvarkaraštis pagal laikrodį pristabdo eilę arba riboja jos greitį, pavyzdžiui, naktiniu langu, ir lieka teisingas pasikeitus vasaros laikui. Tai ta pati idėja kaip JDownloader Scheduler.',
-  'settings.help.schedule.link': 'Atverti Automatizavimą',
-
-  'settings.help.instances.title': 'Daugiau nei vieno egzemplioriaus paleidimas',
-  'settings.help.instances.body': 'Pridėk kitą KnightLoader kaip partnerį ir jo eilė atsiras ir šioje skydelyje. Tame pačiame tinkle tai tiesioginis kreipimasis į kito egzemplioriaus API, kaip tai darytų naršyklė. Tarp tinklų dvylika žodžių suporuoja abu per relę, kurią gali priglobti pats.',
-  'settings.help.instances.link': 'Atverti Egzempliorius',
-
-  'settings.help.access.title': 'Prieiga ir trikčių šalinimas',
-  'settings.help.access.body': 'Slaptažodis užrakina visą sąsają, ir prieiti galima tik su sesijos slapuku. Puslapyje Sauga jis laikomas kartu su antruoju veiksniu, prieigos raktais ir API prieigos raktais. Diagnostikos puslapis sukuria failą, kurį galima pridėti prie klaidos pranešimo: versijos ir laidos informaciją, dabartinius nustatymus be jokių slaptažodžių, paties šio proceso naujausias žurnalo eilutes ir kiek veikia gorutinų.',
-  'settings.help.access.link1': 'Atverti Saugą',
-  'settings.help.access.link2': 'Atverti Diagnostiką',
-
-  'settings.help.advanced.title': 'Viskas kita',
-  'settings.help.advanced.body':
-    'Kiekvieną šios laidos nustatymą galima perskaityti ir pakeisti pagal jo tikrąjį pavadinimą Išplėstinių nustatymų puslapyje. Tarp jų yra ir keli, kurie kitur dar neturi savo valdiklio, pavyzdžiui, kaip elgiamasi su jau atsisiųsto failo veidrodžiu ir kas nutinka, kai atsisiuntimas turėtų gauti jau užimtą pavadinimą.',
-  'settings.help.advanced.link': 'Atverti Išplėstinius nustatymus',
   'task.mode.free': 'Nemokamai',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Apie KnightLoader',
@@ -3361,11 +3298,9 @@ export const lt: Dict = {
   'settings.categories.torrentFilesOwn': 'Savas',
   'settings.watchDirFilesHint': 'Čia įdėti failai paimami automatiškai: nuorodų sąrašai (.txt, .crawljob, .magnet), .torrent failai, konteineriai (.dlc, .ccf, .rsdf) ir .nzb failai.',
   'container.usenet': '{file} perduotas į {service}. Jo failai pasirodys čia, kai tik {service} juos parsiųs iš Usenet.',
-  'settings.help.intake.watchFiles': 'Stebimas aplankas paima tai, kas į jį įdedama: nuorodų sąrašus (.txt, .crawljob, .magnet), .torrent failus, konteinerius (.dlc, .ccf, .rsdf) ir .nzb failus.',
   'container.nzbTooBig': 'jis didesnis nei {max}, o didesnis .nzb būti negali',
   'container.noUsenet': 'tai .nzb, ir čia nėra nieko, kas galėtų jį parsiųsti iš Usenet. Pridėk Usenet serverį arba TorBox ar Premiumize.me paskyrą skiltyje Paskyros.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb failas, įkeltas čia arba atsiųstas iš Sonarr ar Radarr, keliauja į tavo nuosavą Usenet serverį arba į tavo TorBox ar Premiumize.me paskyrą, priklausomai nuo to, kas pirmesnis prioriteto tvarkoje skiltyje Paskyros. Tavo nuosavas serveris kiekvieną failą parsisiunčia iš karto. Debrid paslauga pirmiausia parsisiunčia leidimą, o jo failai tada atsiunčiami kaip bet kuri kita nuoroda. TorBox priima .nzb failus tik planuose, į kuriuos įeina Usenet. Jei TorBox atmeta pirmąjį, tas .nzb nepavyksta, nebent jį perima kita paskyra.',
   'task.remote': 'Parsiunčia {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet nuorodos ir .torrent failai keliauja arba į įtaisytą torrentų klientą, arba į debrid paslaugą, kuri priima torrentus, priklausomai nuo to, kas sąraše stovi aukščiau.',
@@ -3539,6 +3474,8 @@ export const lt: Dict = {
   'settings.archives.journeyHint': 'Kas nutinka failui, kai jis atsisiųstas, stotis po stoties. Pilka stotis išjungta, ir failas pro ją praeina. „{verifying}“ priklauso nuo jungiklio „{checksums}“ skiltyje „{downloads}“. „{repairing}“ reikia tavo paties Usenet serverio. „{moving}“ reikia „{workDir}“ arba vietos išpakuotiems failams. „{cleanup}“ praleidžiama, kol archyvas paliekamas.',
   'picture.journey.move': 'Perkeliama',
   'picture.journey.cleanup': 'Tvarkoma',
+  'picture.journey.wayTo': 'Eiti į „{setting}“ skiltyje {page}',
+  'picture.journey.wayHere': 'Eiti į „{setting}“ šiame puslapyje',
   'picture.reconnect.router': 'Maršrutizatorius',
   'picture.reconnect.internet': 'Internetas',
   'picture.reconnect.oldAddress': 'Senas adresas',

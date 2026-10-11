@@ -1,28 +1,52 @@
-// The dark or light theme, set as data-theme on <html> and kept in localStorage.
+// The theme: dark, light or the device's own, kept in localStorage. A chosen
+// theme is data-theme on <html>. Without the attribute index.css reads
+// prefers-color-scheme, so "system" changes with the device while the app is
+// open.
 
-type Theme = 'dark' | 'light';
+export type Theme = 'system' | 'dark' | 'light';
 
 const STORAGE_KEY = 'kl-theme';
-const DEFAULT: Theme = 'dark';
 
-// The sidebar button and the theme.toggle command both change the theme, so
+// lib/appearance.ts writes its cache on every visit, so a browser that holds
+// one has been here before.
+const VISITED_KEY = 'kl-appearance';
+
+// The Appearance page and the theme.toggle command both change the theme, so
 // every display of it subscribes here.
 const listeners = new Set<(theme: Theme) => void>();
 
+/**
+ * getTheme is the stored choice. A browser without one that has been here
+ * opened dark until the choice existed and stays dark; a new one follows its
+ * device, the default GlimStone gives the theme axis.
+ */
 export function getTheme(): Theme {
   const stored = localStorage.getItem(STORAGE_KEY);
-  if (stored === 'dark' || stored === 'light') return stored;
-  return DEFAULT;
+  if (stored === 'system' || stored === 'dark' || stored === 'light') return stored;
+  return localStorage.getItem(VISITED_KEY) === null ? 'system' : 'dark';
+}
+
+function apply(theme: Theme): void {
+  if (theme === 'system') document.documentElement.removeAttribute('data-theme');
+  else document.documentElement.setAttribute('data-theme', theme);
 }
 
 export function setTheme(theme: Theme): void {
   localStorage.setItem(STORAGE_KEY, theme);
-  document.documentElement.setAttribute('data-theme', theme);
+  apply(theme);
   for (const fn of listeners) fn(theme);
 }
 
+/**
+ * toggleTheme flips what is on screen between dark and light and keeps the
+ * result as a choice. Under "system" it turns away from what the device
+ * shows; the way back to "system" is the Appearance page.
+ */
 export function toggleTheme(): Theme {
-  const next: Theme = getTheme() === 'dark' ? 'light' : 'dark';
+  const chosen = getTheme();
+  const shown =
+    chosen === 'system' ? (window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark') : chosen;
+  const next: Theme = shown === 'dark' ? 'light' : 'dark';
   setTheme(next);
   return next;
 }
@@ -35,7 +59,14 @@ export function onThemeChange(fn: (theme: Theme) => void): () => void {
   };
 }
 
-/** Applied at boot before first render to prevent a theme flash. */
+/**
+ * applyStoredTheme runs at boot, before the first render, so no other theme
+ * flashes. It writes down what a browser without a choice starts with, since
+ * the appearance cache that tells the two kinds apart exists from the first
+ * visit on.
+ */
 export function applyStoredTheme(): void {
-  document.documentElement.setAttribute('data-theme', getTheme());
+  const theme = getTheme();
+  if (localStorage.getItem(STORAGE_KEY) === null) localStorage.setItem(STORAGE_KEY, theme);
+  apply(theme);
 }

@@ -18,6 +18,7 @@ export const eu: Dict = {
   'nav.workingTitle': 'behin-behineko izena',
   'theme.dark': 'Iluna',
   'theme.light': 'Argia',
+  'theme.system': 'Sistema',
   'theme.toggle': 'Aldatu gaia',
   'lang.label': 'Hizkuntza',
   'lang.open': 'Aldatu hizkuntza',
@@ -437,6 +438,8 @@ export const eu: Dict = {
   'settings.rainbowPaletteHint': 'Posizioaren arabera esleitutako zortzi koloreak. Banaka editagarriak.',
   'settings.look.saveFailed': 'Ezin izan da gorde: {error}',
   'settings.theme': 'Itxura',
+  'settings.themeHint':
+    '«{system}» aukerak zure gailuaren modu argia edo iluna jarraitzen du, eta harekin batera aldatzen da.',
   'settings.motion.wild': 'Bizia',
   'settings.motion.storm': 'Ekaitza',
   'settings.motion.subtle': 'Diskretua',
@@ -1532,72 +1535,6 @@ export const eu: Dict = {
 
   'settings.nav.help': 'Informazioa',
 
-  'settings.help.intake.title': 'Deskargak gehitzea',
-  'settings.help.intake.body':
-    'Itsatsi estekak Biltzailean, bat lerroko edo testu nahasi gisa. Bilaketa batek estekak aurkitzen ditu dauden tokian daudela: esaldi baten erdian, hainbat lerro berean, edo posta-bezero batek bi lerrotan zatituta.',
-  'settings.help.intake.b1': 'Askatu esteka-edukiontzi fitxategi bat (.dlc, .ccf, .rsdf) edo esteka-zerrenda arrunt bat.',
-  'settings.help.intake.b2':
-    'Ostalari- eta foro-orrietako Click\'n\'Load botoiek lehen bezala funtzionatzen dute. KnightLoaderrek 127.0.0.1:9666 helbidean erantzuten du, beste deskarga-kudeatzaile guztiek erabiltzen duten ataka berean.',
-  'settings.help.intake.b3':
-    'Itsatsi orriaren URLa fitxategi-esteka baten ordez eta piztu Arakatzea esteka horrek lotutako fitxategi guztiak ateratzeko, orria bera deskargatu beharrean.',
-  'settings.help.intake.link1': 'Ireki Esteka biltzailearen ezarpenak',
-
-  'settings.help.collector.title': 'Bildumagailua, ezer deskargatu aurretik',
-  'settings.help.collector.body':
-    'Esteka berriak lehenengo Bildumagailura iristen dira, ez ilarara: izenak, tamainak eta bikoiztuen abisuak begiratzeko tarteko eremu bat, ezer hasi aurretik. Berrespen automatikoak urrats hori saltatu dezake, aukerako atzerapenarekin; behin berretsita, esteka bat berehala hasten da edo ilaran itxaroten du, hasiera automatikoaren arabera.',
-  'settings.help.collector.link': 'Ireki Esteka biltzailearen ezarpenak',
-
-  'settings.help.rules.title': 'Arauak: paketeak, karpetak eta zer gordetzen den',
-  'settings.help.rules.body':
-    'Packagizer-ek esteka bat berrizendatzen du, bere karpeta aukeratzen du eta bere deskarga-aukerak ezartzen ditu iristen denean, zuk idatzitako baldintzen arabera. Esteka-iragazkiak erabakitzen du esteka bat gordetzen den ala ez. Ezezko batek beti adierazten du zein arauk eragin duen eta zergatik.',
-  'settings.help.rules.link': 'Ireki Arauak',
-
-  'settings.help.queue.title': 'Ilara kudeatzea',
-  'settings.help.queue.body':
-    'Pausatu, berrekin edo berrantolatu edozein esteka, bakarka edo pakete oso gisa. Ilara bi modutan gelditu daiteke. Ilara geldiarazteak jada martxan dagoena ukitu gabe uzten du, eta bere kabuz amaitzen da. Transferentzia guztiak berehala geldiarazteak lehenik zer galduko litzatekeen erakusten du, eta zuk berretsi ondoren bakarrik egiten da. Abisua utzitako lekutik jarraitu ezin duten transferentzientzat dago.',
-  'settings.help.queue.b1': 'Esteka bakar batek konexio kopuru orokorra edo deskarga ondorengo deskonprimitze-etengailua gainidatzi dezake.',
-  'settings.help.queue.b2': 'Zerrendan jada dagoen esteka baten bikoizketa beti ukatzen da, inoiz Bildumagailura iritsi aurretik.',
-
-  'settings.help.limits.title': 'Ostalariaren mugak saihestea',
-  'settings.help.limits.body': 'Doako muga bat sabaia ez izateko hiru modu independente:',
-  'settings.help.limits.b1':
-    'Konexioak: banatu deskargak irteerako bide batean baino gehiagotan (bigarren linea bat, proxy bat, SOCKS), beti makina honen helbide propiotik irten beharrean.',
-  'settings.help.limits.b2':
-    'Birkonexioa: eskatu bideratzaileari helbide publiko berri bat, helbideari berari lotutako muga bat kentzen duen gauza bakarra. UPnP, kanpoko programa bat, script bat edo bideratzailearen administrazio-orrira HTTP eskaerak berriro bidaltzea erabil daitezke. Lehendik dauden JDownloader LiveHeader/curl scriptek lehen bezala funtzionatzen dute.',
-  'settings.help.limits.b3':
-    'Kontuak: gorde premium edo debrid saio-hasierak (Real-Debrid, AllDebrid, TorBox eta beste batzuk), esteka egoki bat abiadura osoan ekar dadin, doako erabiltzaileen mugaren ordez.',
-  'settings.help.limits.link1': 'Ireki Sarea',
-  'settings.help.limits.link3': 'Ireki Kontuak',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Ostalari batek captcha bat eskatzen duenean, konfiguratu dituzun captcha kontuak probatzen dira lehenik, ezarri duzun ordenan. Bat ere konfiguratuta ez badago, edo batek ere ezin badu ebatzi, captcha zuri aurkezten zaizu, isilean huts egin beharrean.',
-  'settings.help.captcha.link': 'Ireki Captcha ezarpenak',
-
-  'settings.help.after.title': 'Deskargaren ondoren',
-  'settings.help.after.body':
-    'Artxiboak automatikoki erauzten dira: zip (zifratuak barne, bai WinZip AES bai ZipCrypto zaharra), rar bolumen anitzeko multzoekin, 7z, tar, eta gzip/bzip2/xz/zstd, tar bat bildu ala ez. Erauzketa Go hutsean dago idatzita eta ez du kanpoko unrar edo 7z programarik behar. Artxibo zifratu baterako, pasahitz-zerrenda bat probatzen da ordenan. Amaitutako fitxategi bat berarekin datorren edozein egiaztapen-baturaren aurka egiaztatzen da: .sfv zerrenda bat, md5/sha1/sha256sum fitxategi bat edo argitalpenaren izenak berak daraman CRC32 bat.',
-  'settings.help.after.link1': 'Ireki Artxiboen ezarpenak',
-  'settings.help.after.link2': 'Ireki Deskargen ezarpenak',
-
-  'settings.help.schedule.title': 'Gainbegiratu gabe funtzionatzea',
-  'settings.help.schedule.body':
-    'Asteko ordutegi batek ilara pausatzen edo mugatzen du orduaren arabera, adibidez gaueko leiho batean, eta zuzen jarraitzen du ordu-aldaketan ere. JDownloader-en Scheduler-aren ideia bera da.',
-  'settings.help.schedule.link': 'Ireki Automatizazioa',
-
-  'settings.help.instances.title': 'Instantzia bat baino gehiago exekutatzea',
-  'settings.help.instances.body': 'Gehitu beste KnightLoader bat kide gisa eta haren ilara aginte-mahai honetan ere agertuko da. Sare berean beste instantziaren APIrako zuzeneko deia da, nabigatzaile batek egingo lukeen bezala. Sareen artean, hamabi hitzek biak lotzen dituzte zeuk ostatatu dezakezun errele baten bidez.',
-  'settings.help.instances.link': 'Ireki Instantziak',
-
-  'settings.help.access.title': 'Sarbidea eta arazoen konponketa',
-  'settings.help.access.body': 'Pasahitz batek interfaze osoa blokeatzen du, eta saio-cookie batekin bakarrik sar daiteke. Segurtasuna orriak bigarren faktorearekin, sarbide-gakoekin eta API tokenekin batera biltzen du. Diagnostikoa orriak errore-txosten bati eransteko fitxategi bat sortzen du: bertsioaren eta buildaren informazioa, uneko ezarpenak pasahitz guztiak kenduta, prozesu honen beraren azken erregistro-lerroak eta zenbat goroutine dauden martxan.',
-  'settings.help.access.link1': 'Ireki Segurtasuna',
-  'settings.help.access.link2': 'Ireki Diagnostikoa',
-
-  'settings.help.advanced.title': 'Gainerako guztia',
-  'settings.help.advanced.body':
-    'Build honen ezarpen guztiak beren izen gordinaren bidez irakur eta alda daitezke Aurreratua orrian. Horien artean daude oraindik beste inon kontrol propiorik ez duten batzuk, hala nola jada deskargatutako fitxategi baten ispilua nola tratatzen den eta zer gertatzen den deskarga bat jada hartuta dagoen izen batean amaituko litzatekeenean.',
-  'settings.help.advanced.link': 'Ireki Aurreratuaren ezarpenak',
   'task.mode.free': 'Doan',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'KnightLoader-i buruz',
@@ -3356,11 +3293,9 @@ export const eu: Dict = {
   'settings.categories.torrentFilesOwn': 'Berezkoa',
   'settings.watchDirFilesHint': 'Hemen uzten duzuna automatikoki hartzen da: esteka-zerrendak (.txt, .crawljob, .magnet), .torrent fitxategiak, edukiontziak (.dlc, .ccf, .rsdf) eta .nzb fitxategiak.',
   'container.usenet': '{file} {service} zerbitzura joan da. Bere fitxategiak hemen agertuko dira {service} zerbitzuak Usenetetik ekarri bezain laster.',
-  'settings.help.intake.watchFiles': 'Zaindutako karpeta batek bertan uzten dena hartzen du: esteka-zerrendak (.txt, .crawljob, .magnet), .torrent fitxategiak, edukiontziak (.dlc, .ccf, .rsdf) eta .nzb fitxategiak.',
   'container.nzbTooBig': '{max} baino handiagoa da, eta .nzb bat ezin da hori baino handiagoa izan',
   'container.noUsenet': '.nzb bat da, eta ez dago ezer hemen Usenetetik ekar dezakeenik. Gehitu Usenet zerbitzari bat edo TorBox edo Premiumize.me kontu bat Kontuak atalean.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Hemen igotako edo Sonarr edo Radarr-ek bidalitako .nzb bat zure Usenet zerbitzarira edo zure TorBox edo Premiumize.me kontura doa, Kontuak atalean lehentasun-ordenan lehenengo dagoenera. Zure zerbitzariak fitxategi bakoitza berehala ekartzen du. Debrid zerbitzu batek lehenengo release-a ekartzen du, eta ondoren bertako fitxategiak beste edozein esteka bezala deskargatzen dira. TorBox-ek Usenet barne duten planetan bakarrik onartzen ditu .nzb fitxategiak. TorBox-ek lehenengoa onartzen ez badu, .nzb horrek huts egiten du beste kontu batek hartzen ez badu.',
   'task.remote': '{service} zerbitzuan deskargatzen',
   'task.remoteSeeds': 'Seedak: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet estekak eta .torrent fitxategiak barneko torrent bezerora edo torrentak onartzen dituen debrid zerbitzu batera doaz, zerrendan gorago dagoenera.',
@@ -3534,6 +3469,8 @@ export const eu: Dict = {
   'settings.archives.journeyHint': 'Fitxategi bati deskargatu ondoren gertatzen zaiona, geltokiz geltoki. Geltoki grisa itzalita dago, eta fitxategiak aurrera egiten du gelditu gabe. «{verifying}» urratsak «{downloads}» ataleko «{checksums}» etengailuari jarraitzen dio. «{repairing}» urratsak zure Usenet zerbitzari bat behar du. «{moving}» urratsak «{workDir}» edo erauzitako fitxategientzako helmuga bat behar du. «{cleanup}» urratsa saltatu egiten da artxiboa gordetzen den bitartean.',
   'picture.journey.move': 'Mugitzen',
   'picture.journey.cleanup': 'Garbitzen',
+  'picture.journey.wayTo': 'Joan «{setting}» ezarpenera, {page} atalean',
+  'picture.journey.wayHere': 'Joan «{setting}» ezarpenera, orri honetan',
   'picture.reconnect.router': 'Bideratzailea',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Helbide zaharra',

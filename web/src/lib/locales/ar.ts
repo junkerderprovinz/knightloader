@@ -20,6 +20,7 @@ export const ar: Dict = {
   'nav.workingTitle': 'اسم مؤقت',
   'theme.dark': 'داكن',
   'theme.light': 'فاتح',
+  'theme.system': 'النظام',
   'theme.toggle': 'تبديل المظهر',
   'lang.label': 'اللغة',
   'lang.open': 'تغيير اللغة',
@@ -439,6 +440,7 @@ export const ar: Dict = {
   'settings.rainbowPaletteHint': 'الألوان الثمانية الموزعة حسب الموضع. يمكن تعديل كل منها على حدة.',
   'settings.look.saveFailed': 'تعذّر الحفظ: {error}',
   'settings.theme': 'السمة',
+  'settings.themeHint': '«{system}» يتبع إعداد الوضع الفاتح أو الداكن في جهازك ويتغيّر معه.',
   'settings.motion.wild': 'جامح',
   'settings.motion.storm': 'عاصفة',
   'settings.motion.subtle': 'خفيف',
@@ -1534,72 +1536,6 @@ export const ar: Dict = {
 
   'settings.nav.help': 'معلومات',
 
-  'settings.help.intake.title': 'إضافة تنزيلات',
-  'settings.help.intake.body':
-    'ألصق الروابط في المُجمِّع، رابطًا في كل سطر أو نصًا غير منظم. يجد الفحص الروابط أينما كانت: داخل جملة، أو عدة روابط في سطر واحد، أو مقسّمة على سطرين بواسطة برنامج بريد.',
-  'settings.help.intake.b1': 'أفلت ملف حاوية روابط (.dlc، .ccf، .rsdf) أو قائمة روابط عادية.',
-  'settings.help.intake.b2':
-    'تعمل أزرار Click\'n\'Load في صفحات المستضيفين والمنتديات دون تغيير. يستجيب KnightLoader على 127.0.0.1:9666، المنفذ نفسه الذي يستخدمه كل مدير تنزيلات آخر.',
-  'settings.help.intake.b3':
-    'الصق رابط URL لصفحة بدلًا من رابط ملف وفعّل الزحف لاستخراج كل ملف ترتبط به، بدلًا من تنزيل الصفحة نفسها.',
-  'settings.help.intake.link1': 'فتح إعدادات مجمّع الروابط',
-
-  'settings.help.collector.title': 'المجمِّع، قبل أن يُنزَّل أي شيء',
-  'settings.help.collector.body':
-    'تصل الروابط الجديدة أولًا إلى المجمِّع، لا إلى الطابور: منطقة انتقالية للتحقق من الأسماء والأحجام وتحذيرات التكرار قبل أن يبدأ أي شيء. يمكن للتأكيد التلقائي تخطي هذه الخطوة، بتأخير اختياري؛ بمجرد التأكيد، يبدأ الرابط فورًا أو ينتظر في الطابور، حسب البدء التلقائي.',
-  'settings.help.collector.link': 'فتح إعدادات مجمّع الروابط',
-
-  'settings.help.rules.title': 'القواعد: الحزم والمجلدات وما يُحتفَظ به',
-  'settings.help.rules.body':
-    'يعيد Packagizer تسمية الرابط ويختار مجلده ويضبط خيارات تنزيله عند وصوله، بناءً على شروط تكتبها أنت. ويقرر مرشّح الروابط ما إذا كان الرابط سيُحتفَظ به أصلًا. والرفض يذكر دائمًا القاعدة التي تسببت فيه وسببه.',
-  'settings.help.rules.link': 'فتح القواعد',
-
-  'settings.help.queue.title': 'إدارة الطابور',
-  'settings.help.queue.body':
-    'أوقف مؤقتًا أو استأنف أو أعد ترتيب أي رابط، بمفرده أو كحزمة كاملة. هناك طريقتان لإيقاف الطابور. إيقافه يترك ما يعمل بالفعل دون مساس، فيكتمل من تلقاء نفسه. أما إيقاف كل عمليات النقل فورًا فيُظهر أولًا ما سيضيع، ولا يُنفَّذ إلا بعد أن تؤكّد. التحذير موجود من أجل عمليات النقل التي لا تستطيع الاستئناف من حيث توقفت.',
-  'settings.help.queue.b1': 'يمكن لرابط واحد تجاوز عدد الاتصالات العام أو مفتاح فك الضغط بعد التنزيل.',
-  'settings.help.queue.b2': 'يُرفَض دائمًا تكرار رابط موجود بالفعل في القائمة، حتى قبل وصوله إلى المجمِّع.',
-
-  'settings.help.limits.title': 'تجاوز حدود المضيف',
-  'settings.help.limits.body': 'ثلاث طرق مستقلة لمنع حد مجاني من أن يكون السقف:',
-  'settings.help.limits.b1':
-    'الاتصالات: وزّع التنزيلات على أكثر من مسار صادر (خط ثانٍ، وكيل، SOCKS) بدل الخروج دائمًا عبر عنوان هذا الجهاز نفسه.',
-  'settings.help.limits.b2':
-    'إعادة الاتصال: اطلب من الموجّه عنوانًا عامًا جديدًا، فهو الشيء الوحيد الذي يرفع حدًا مرتبطًا بالعنوان نفسه. يعمل ذلك عبر UPnP أو برنامج خارجي أو سكربت أو بإعادة إرسال طلبات HTTP إلى صفحة إدارة الموجّه. وسكربتات JDownloader LiveHeader/curl الموجودة تعمل دون تغيير.',
-  'settings.help.limits.b3':
-    'الحسابات: احفظ بيانات دخول الحسابات المميّزة أو debrid (Real-Debrid وAllDebrid وTorBox وغيرها) كي يُجلَب الرابط المؤهَّل بالسرعة الكاملة بدل حد المستخدم المجاني.',
-  'settings.help.limits.link1': 'فتح الشبكة',
-  'settings.help.limits.link3': 'فتح الحسابات',
-
-  'settings.help.captcha.title': 'كابتشا',
-  'settings.help.captcha.body':
-    'عندما يطلب مستضيف كابتشا، تُجرَّب أولًا حسابات الكابتشا التي أعددتها، بالترتيب الذي حددته. وإن لم يُعدّ أي منها، أو لم يستطع أي منها حلّها، تُعرَض الكابتشا عليك بدل أن تفشل بصمت.',
-  'settings.help.captcha.link': 'فتح إعدادات كابتشا',
-
-  'settings.help.after.title': 'بعد التنزيل',
-  'settings.help.after.body':
-    'تُفَك الأرشيفات تلقائيًا: zip (بما فيها المشفّرة، سواء WinZip AES أو ZipCrypto القديم)، وrar بمجموعاته متعددة الأجزاء، و7z، وtar، وgzip/bzip2/xz/zstd سواء غلّفت tar أم لا. فك الضغط مكتوب بلغة Go خالصة ولا يحتاج إلى برنامج unrar أو 7z خارجي. وللأرشيف المشفّر تُجرَّب قائمة كلمات مرور بالترتيب. ويُتحقَّق من الملف المكتمل مقابل أي مجموع اختباري جاء معه: قائمة .sfv، أو ملف md5/sha1/sha256sum، أو CRC32 يحمله اسم الإصدار نفسه.',
-  'settings.help.after.link1': 'فتح إعدادات الأرشيفات',
-  'settings.help.after.link2': 'فتح إعدادات التنزيلات',
-
-  'settings.help.schedule.title': 'العمل دون إشراف',
-  'settings.help.schedule.body':
-    'جدول زمني أسبوعي يوقف الطابور مؤقتًا أو يبطئه حسب الساعة، في نافذة ليلية مثلًا، ويبقى صحيحًا عبر تغيير التوقيت الصيفي. الفكرة نفسها التي في Scheduler الخاص بـJDownloader.',
-  'settings.help.schedule.link': 'فتح الأتمتة',
-
-  'settings.help.instances.title': 'تشغيل أكثر من نسخة واحدة',
-  'settings.help.instances.body': 'أضف نسخة KnightLoader أخرى كنظير، فتظهر قائمتها على لوحة هذه النسخة أيضًا. على الشبكة نفسها يكون ذلك اتصالًا مباشرًا بواجهة النسخة الأخرى، تمامًا كما يفعل المتصفح. وعبر الشبكات، تربط اثنتا عشرة كلمة النسختين عبر ترحيل يمكنك استضافته بنفسك.',
-  'settings.help.instances.link': 'فتح النُسخ',
-
-  'settings.help.access.title': 'الوصول واستكشاف الأخطاء وإصلاحها',
-  'settings.help.access.body': 'كلمة المرور تقفل الواجهة كلها، فلا يُدخَل إليها إلا بملف تعريف ارتباط الجلسة. وتجمعها صفحة الأمان مع العامل الثاني ومفاتيح المرور ورموز API. وتُنشئ صفحة التشخيص ملفًا لإرفاقه بتقرير خطأ: معلومات الإصدار والبناء، والإعدادات الحالية بعد إزالة كل كلمات المرور، وأحدث سطور السجل الخاصة بهذه العملية، وعدد goroutines العاملة.',
-  'settings.help.access.link1': 'فتح الأمان',
-  'settings.help.access.link2': 'فتح التشخيص',
-
-  'settings.help.advanced.title': 'كل شيء آخر',
-  'settings.help.advanced.body':
-    'كل إعداد في هذا البناء يمكن قراءته وتغييره باسمه الخام في صفحة «متقدم». ويشمل ذلك بعض الإعدادات التي ليس لها بعد عنصر تحكم خاص في أي مكان آخر، مثل كيفية التعامل مع نسخة مطابقة لملف نُزِّل من قبل، وما يحدث حين يقع تنزيل على اسم مأخوذ بالفعل.',
-  'settings.help.advanced.link': 'فتح إعدادات متقدم',
   'task.mode.free': 'مجاني',
   'task.mode.premium': 'مدفوع',
   'settings.about.title': 'حول KnightLoader',
@@ -3359,11 +3295,9 @@ export const ar: Dict = {
   'settings.categories.torrentFilesOwn': 'خاص بها',
   'settings.watchDirFilesHint': 'الملفات التي تُترك هنا تُلتقط تلقائيًا: قوائم الروابط (.txt، .crawljob، .magnet)، وملفات ‎.torrent، والحاويات (.dlc، .ccf، .rsdf)، وملفات ‎.nzb.',
   'container.usenet': 'ذهب {file} إلى {service}. وستظهر ملفاته هنا بمجرد أن يجلبها {service} من Usenet.',
-  'settings.help.intake.watchFiles': 'المجلد المراقَب يلتقط ما يُترك فيه: قوائم الروابط (.txt، .crawljob، .magnet)، وملفات ‎.torrent، والحاويات (.dlc، .ccf، .rsdf)، وملفات ‎.nzb.',
   'container.nzbTooBig': 'حجمه يتجاوز {max}، وهو أقصى ما يجوز لملف ‎.nzb',
   'container.noUsenet': 'إنه ملف ‎.nzb، ولا شيء هنا يستطيع جلبه من Usenet. أضف خادم Usenet أو حساب TorBox أو Premiumize.me في الحسابات.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'ملف ‎.nzb، مرفوع هنا أو مرسل من Sonarr أو Radarr، يذهب إلى خادم Usenet الخاص بك أو إلى حسابك في TorBox أو Premiumize.me، أيهما يأتي أولًا في ترتيب الأولوية في الحسابات. خادمك الخاص يجلب كل ملف فورًا. أما خدمة Debrid فتجلب الإصدار أولًا، ثم تُنزَّل ملفاته كأي رابط آخر. لا تقبل TorBox ملفات ‎.nzb إلا في الباقات التي تشمل Usenet. وإذا رفضت TorBox الملف الأول، يفشل ذلك الملف ما لم يتولَّه حساب آخر.',
   'task.remote': 'قيد التنزيل لدى {service}',
   'task.remoteSeeds': 'البذور: {n}',
   'accounts.routing.orderHintTorrents': 'تذهب الروابط المغناطيسية وملفات ‎.torrent إما إلى عميل التورنت المدمج وإما إلى خدمة debrid تقبل التورنتات، أيهما أعلى في القائمة.',
@@ -3537,6 +3471,8 @@ export const ar: Dict = {
   'settings.archives.journeyHint': 'ما يحدث للملف بعد اكتمال تنزيله، محطة بعد محطة. المحطة الرمادية متوقفة، والملف يمرّ بها دون توقف. «{verifying}» تتبع المفتاح «{checksums}» في «{downloads}». «{repairing}» تحتاج إلى خادم Usenet خاص بك. «{moving}» تحتاج إلى «{workDir}» أو إلى وجهة للملفات المفكوكة. «{cleanup}» تُتخطّى ما دام الأرشيف باقيًا.',
   'picture.journey.move': 'جارٍ النقل',
   'picture.journey.cleanup': 'جارٍ التنظيف',
+  'picture.journey.wayTo': 'الانتقال إلى «{setting}» ضمن {page}',
+  'picture.journey.wayHere': 'الانتقال إلى «{setting}» في هذه الصفحة',
   'picture.reconnect.router': 'الموجّه',
   'picture.reconnect.internet': 'الإنترنت',
   'picture.reconnect.oldAddress': 'العنوان القديم',

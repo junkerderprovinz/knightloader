@@ -18,6 +18,7 @@ export const sk: Dict = {
   'nav.workingTitle': 'pracovný názov',
   'theme.dark': 'Tmavá',
   'theme.light': 'Svetlá',
+  'theme.system': 'Systémová',
   'theme.toggle': 'Prepnúť tému',
   'lang.label': 'Jazyk',
   'lang.open': 'Zmeniť jazyk',
@@ -437,6 +438,7 @@ export const sk: Dict = {
   'settings.rainbowPaletteHint': 'Osem farieb priradených podľa pozície. Každú možno upraviť samostatne.',
   'settings.look.saveFailed': 'Nepodarilo sa uložiť: {error}',
   'settings.theme': 'Motív',
+  'settings.themeHint': '„{system}“ sa riadi svetlým alebo tmavým režimom tvojho zariadenia a mení sa s ním.',
   'settings.motion.wild': 'Divoké',
   'settings.motion.storm': 'Búrka',
   'settings.motion.subtle': 'Jemné',
@@ -1532,72 +1534,6 @@ export const sk: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Pridávanie sťahovaní',
-  'settings.help.intake.body':
-    'Vlož odkazy do Zberača, jeden na riadok alebo ako neusporiadaný text. Vyhľadávanie nájde odkazy, nech sú kdekoľvek: uprostred vety, viac na jednom riadku alebo rozdelené e-mailovým klientom na dva riadky.',
-  'settings.help.intake.b1': 'Pretiahnite súbor kontajnera odkazov (.dlc, .ccf, .rsdf) alebo obyčajný zoznam odkazov.',
-  'settings.help.intake.b2':
-    'Tlačidlá Click\'n\'Load na stránkach hosterov a fór fungujú bez zmeny. KnightLoader odpovedá na 127.0.0.1:9666, na rovnakom porte, aký používa každý iný správca sťahovania.',
-  'settings.help.intake.b3':
-    'Vložte URL stránky namiesto odkazu na súbor a zapnite Prehľadávanie, aby sa vytiahol každý súbor, na ktorý odkazuje, namiesto sťahovania samotnej stránky.',
-  'settings.help.intake.link1': 'Otvoriť nastavenia Zberača odkazov',
-
-  'settings.help.collector.title': 'Kolektor, kým sa čokoľvek stiahne',
-  'settings.help.collector.body':
-    'Nové odkazy prídu najprv do Kolektora, nie do frontu: prechodná zóna na kontrolu názvov, veľkostí a upozornení na duplicity, kým čokoľvek začne. Automatické potvrdenie môže tento krok preskočiť, s voliteľným oneskorením; po potvrdení odkaz buď začne hneď, alebo čaká vo fronte, podľa automatického spustenia.',
-  'settings.help.collector.link': 'Otvoriť nastavenia Zberača odkazov',
-
-  'settings.help.rules.title': 'Pravidlá: balíky, priečinky a čo zostáva',
-  'settings.help.rules.body':
-    'Packagizer pri príchode odkazu premenuje odkaz, vyberie mu priečinok a nastaví jeho možnosti sťahovania podľa podmienok, ktoré napíšeš. Filter odkazov rozhoduje, či sa odkaz vôbec ponechá. Odmietnutie vždy uvedie pravidlo, ktoré ho spôsobilo, a dôvod.',
-  'settings.help.rules.link': 'Otvoriť Pravidlá',
-
-  'settings.help.queue.title': 'Správa frontu',
-  'settings.help.queue.body':
-    'Pozastav, obnov alebo preusporiadaj ktorýkoľvek odkaz, samostatne alebo ako celý balík. Front sa dá zastaviť dvoma spôsobmi. Pozdržanie nechá všetko, čo už beží, nedotknuté, takže to dobehne samo. Okamžité zastavenie všetkých prenosov najprv ukáže, čo by sa stratilo, a vykoná sa až po tvojom potvrdení. Upozornenie je tu pre prenosy, ktoré nedokážu pokračovať tam, kde prestali.',
-  'settings.help.queue.b1': 'Jeden odkaz môže prepísať globálny počet pripojení alebo prepínač rozbalenia po stiahnutí.',
-  'settings.help.queue.b2': 'Duplicita odkazu už prítomného v zozname je vždy odmietnutá, ešte skôr, než sa vôbec dostane do Kolektora.',
-
-  'settings.help.limits.title': 'Obchádzanie limitov hostera',
-  'settings.help.limits.body': 'Tri nezávislé spôsoby, ako zabrániť tomu, aby bol voľný limit stropom:',
-  'settings.help.limits.b1':
-    'Pripojenia: rozlož sťahovania na viac než jednu odchádzajúcu cestu (druhú linku, proxy, SOCKS), namiesto toho, aby išli vždy cez vlastnú adresu tohto stroja.',
-  'settings.help.limits.b2':
-    'Opätovné pripojenie: požiadaj router o novú verejnú adresu. Len to zruší limit viazaný na samotnú adresu. Funguje cez UPnP, externý program, skript alebo prehratie HTTP požiadaviek na administračnú stránku routera. Existujúce skripty JDownloader LiveHeader/curl fungujú bez zmeny.',
-  'settings.help.limits.b3':
-    'Účty: ulož prémiové alebo debrid prihlásenia (Real-Debrid, AllDebrid, TorBox a ďalšie), aby sa oprávnený odkaz sťahoval plnou rýchlosťou namiesto limitu pre bezplatných používateľov.',
-  'settings.help.limits.link1': 'Otvoriť Sieť',
-  'settings.help.limits.link3': 'Otvoriť Účty',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Keď hoster vyžiada captchu, najprv sa vyskúšajú účty captchy, ktoré si nastavil, v poradí, ktoré si určil. Ak nie je nastavený žiadny alebo ju žiadny nevyrieši, captcha sa predloží tebe, namiesto toho, aby potichu zlyhala.',
-  'settings.help.captcha.link': 'Otvoriť nastavenia Captcha',
-
-  'settings.help.after.title': 'Po stiahnutí',
-  'settings.help.after.body':
-    'Archívy sa rozbaľujú automaticky: zip (aj šifrovaný, WinZip AES aj staršie ZipCrypto), rar s viacdielnymi sadami, 7z, tar a gzip/bzip2/xz/zstd, či už obaľujú tar, alebo nie. Rozbaľovanie je napísané v čistom Go a nepotrebuje žiadne externé programy unrar ani 7z. Pri šifrovanom archíve sa postupne vyskúša zoznam hesiel. Dokončený súbor sa overí voči akémukoľvek kontrolnému súčtu, ktorý k nemu prišiel: zoznamu .sfv, súboru md5/sha1/sha256sum alebo CRC32, ktorý nesie samotný názov vydania.',
-  'settings.help.after.link1': 'Otvoriť nastavenia Archívov',
-  'settings.help.after.link2': 'Otvoriť nastavenia Sťahovania',
-
-  'settings.help.schedule.title': 'Beh bez dozoru',
-  'settings.help.schedule.body':
-    'Týždenný plán pozastaví alebo obmedzí front podľa hodín, napríklad v nočnom okne, a zostáva správny aj pri zmene letného času. Je to rovnaká myšlienka ako Scheduler v JDownloaderi.',
-  'settings.help.schedule.link': 'Otvoriť Automatizáciu',
-
-  'settings.help.instances.title': 'Spustenie viac ako jednej inštancie',
-  'settings.help.instances.body': 'Pridaj ďalší KnightLoader ako partnera a jeho fronta sa objaví aj na tomto prehľade. V rovnakej sieti je to priame volanie API druhej inštancie, tak ako by ho urobil prehliadač. Naprieč sieťami spojí obe dvanásť slov cez relay, ktorý si môžeš hostiť sám.',
-  'settings.help.instances.link': 'Otvoriť Inštancie',
-
-  'settings.help.access.title': 'Prístup a riešenie problémov',
-  'settings.help.access.body': 'Heslo uzamkne celé rozhranie a prístup potom dáva len cookie relácie. Na stránke Bezpečnosť je spolu s druhým faktorom, prístupovými kľúčmi a tokenmi API. Stránka Diagnostika vytvorí súbor na priloženie k hláseniu chyby: verziu a informácie o builde, aktuálne nastavenia bez akýchkoľvek hesiel, nedávne riadky denníka tohto procesu a počet bežiacich goroutín.',
-  'settings.help.access.link1': 'Otvoriť Bezpečnosť',
-  'settings.help.access.link2': 'Otvoriť Diagnostiku',
-
-  'settings.help.advanced.title': 'Všetko ostatné',
-  'settings.help.advanced.body':
-    'Každé nastavenie tohto buildu sa dá prečítať a zmeniť podľa jeho surového názvu na stránke Pokročilé. Patrí k nim aj niekoľko, ktoré zatiaľ nemajú vlastný ovládací prvok nikde inde, napríklad ako sa zaobchádza so zrkadlom už stiahnutého súboru a čo sa stane, keď by sťahovanie skončilo na už obsadenom názve.',
-  'settings.help.advanced.link': 'Otvoriť nastavenia Pokročilé',
   'task.mode.free': 'Zdarma',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'O KnightLoaderi',
@@ -3371,11 +3307,9 @@ export const sk: Dict = {
   'settings.categories.torrentFilesOwn': 'Vlastný',
   'settings.watchDirFilesHint': 'Čo sem vložíš, sa automaticky prevezme: zoznamy odkazov (.txt, .crawljob, .magnet), súbory .torrent, kontajnery (.dlc, .ccf, .rsdf) a súbory .nzb.',
   'container.usenet': '{file} bol odovzdaný službe {service}. Jeho súbory sa tu objavia, len čo ich {service} stiahne z Usenetu.',
-  'settings.help.intake.watchFiles': 'Sledovaný priečinok prevezme, čo doň vložíš: zoznamy odkazov (.txt, .crawljob, .magnet), súbory .torrent, kontajnery (.dlc, .ccf, .rsdf) a súbory .nzb.',
   'container.nzbTooBig': 'je väčší než {max}, a väčší súbor .nzb byť nesmie',
   'container.noUsenet': 'je to .nzb a nič tu ho nevie stiahnuť z Usenetu. Pridaj si server Usenet alebo účet TorBox či Premiumize.me v Účtoch.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Súbor .nzb nahraný sem alebo poslaný zo Sonarru či Radarru ide na tvoj vlastný server Usenet alebo na tvoj účet TorBox či Premiumize.me, podľa toho, čo je vyššie v poradí priority v Účtoch. Tvoj vlastný server stiahne každý súbor hneď. Služba debrid najprv stiahne release a jej súbory sa potom sťahujú ako každý iný odkaz. TorBox berie súbory .nzb len pri tarifoch, ktoré zahŕňajú Usenet. Ak TorBox prvý súbor odmietne, tento .nzb zlyhá, pokiaľ ho neprevezme iný účet.',
   'task.remote': 'Sťahuje sa v službe {service}',
   'task.remoteSeeds': 'Seedy: {n}',
   'accounts.routing.orderHintTorrents': 'Magnet odkazy a súbory .torrent idú buď do vstavaného torrentového klienta, alebo do debrid služby, ktorá berie torrenty, podľa toho, čo je v zozname vyššie.',
@@ -3549,6 +3483,8 @@ export const sk: Dict = {
   'settings.archives.journeyHint': 'Čo sa deje so súborom po stiahnutí, stanicu po stanici. Sivá stanica je vypnutá a súbor ju minie. „{verifying}“ sa riadi prepínačom „{checksums}“ v časti „{downloads}“. „{repairing}“ potrebuje vlastný server Usenet. „{moving}“ potrebuje „{workDir}“ alebo cieľ pre rozbalené súbory. „{cleanup}“ sa vynechá, kým sa archív necháva.',
   'picture.journey.move': 'Presúva sa',
   'picture.journey.cleanup': 'Upratuje sa',
+  'picture.journey.wayTo': 'Prejsť na „{setting}“ v sekcii {page}',
+  'picture.journey.wayHere': 'Prejsť na „{setting}“ na tejto stránke',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Stará adresa',

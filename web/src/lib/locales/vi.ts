@@ -18,6 +18,7 @@ export const vi: Dict = {
   'nav.workingTitle': 'tên tạm',
   'theme.dark': 'Tối',
   'theme.light': 'Sáng',
+  'theme.system': 'Hệ thống',
   'theme.toggle': 'Đổi giao diện',
   'lang.label': 'Ngôn ngữ',
   'lang.open': 'Đổi ngôn ngữ',
@@ -437,6 +438,7 @@ export const vi: Dict = {
   'settings.rainbowPaletteHint': 'Tám màu được gán theo vị trí. Có thể chỉnh sửa riêng từng màu.',
   'settings.look.saveFailed': 'Không thể lưu: {error}',
   'settings.theme': 'Giao diện',
+  'settings.themeHint': '“{system}” đi theo chế độ sáng hoặc tối của thiết bị và đổi theo nó.',
   'settings.motion.wild': 'Mạnh mẽ',
   'settings.motion.storm': 'Bão',
   'settings.motion.subtle': 'Nhẹ nhàng',
@@ -1532,72 +1534,6 @@ export const vi: Dict = {
 
   'settings.nav.help': 'Thông tin',
 
-  'settings.help.intake.title': 'Thêm lượt tải xuống',
-  'settings.help.intake.body':
-    'Dán liên kết vào Bộ thu thập, mỗi dòng một liên kết hoặc dưới dạng văn bản lộn xộn. Một lượt quét tìm liên kết ở bất cứ đâu: giữa câu, nhiều liên kết trên một dòng, hoặc bị trình email ngắt thành hai dòng.',
-  'settings.help.intake.b1': 'Thả một tệp container liên kết (.dlc, .ccf, .rsdf) hoặc một danh sách liên kết đơn giản.',
-  'settings.help.intake.b2':
-    'Các nút Click\'n\'Load trên trang hoster và diễn đàn vẫn hoạt động như cũ. KnightLoader trả lời trên 127.0.0.1:9666, cùng cổng mà mọi trình tải khác dùng.',
-  'settings.help.intake.b3':
-    'Dán một URL trang thay vì liên kết tệp và bật Thu thập để trích xuất mọi tệp mà nó liên kết đến, thay vì tải xuống chính trang đó.',
-  'settings.help.intake.link1': 'Mở cài đặt Bộ thu liên kết',
-
-  'settings.help.collector.title': 'Bộ thu thập, trước khi bất cứ thứ gì được tải xuống',
-  'settings.help.collector.body':
-    'Các liên kết mới đến Bộ thu thập trước, không phải hàng đợi: một vùng chuyển tiếp để kiểm tra tên, kích thước và cảnh báo trùng lặp trước khi bất cứ thứ gì bắt đầu. Xác nhận tự động có thể bỏ qua bước này, với độ trễ tùy chọn; khi đã xác nhận, một liên kết hoặc bắt đầu ngay lập tức hoặc chờ trong hàng đợi, tùy thuộc vào việc tự động bắt đầu.',
-  'settings.help.collector.link': 'Mở cài đặt Bộ thu liên kết',
-
-  'settings.help.rules.title': 'Quy tắc: gói, thư mục và những gì được giữ lại',
-  'settings.help.rules.body':
-    'Packagizer đổi tên một liên kết, chọn thư mục và đặt các tùy chọn tải cho nó ngay khi nó đến, theo các điều kiện do bạn viết. Bộ lọc liên kết quyết định một liên kết có được giữ lại hay không. Một lần từ chối luôn nêu tên quy tắc đã gây ra nó và lý do.',
-  'settings.help.rules.link': 'Mở Quy tắc',
-
-  'settings.help.queue.title': 'Quản lý hàng đợi',
-  'settings.help.queue.body':
-    'Tạm dừng, tiếp tục hoặc sắp xếp lại bất kỳ liên kết nào, riêng lẻ hoặc cả gói. Có hai cách dừng hàng đợi. Tạm ngưng hàng đợi thì để nguyên những gì đang chạy, để chúng tự chạy xong. Dừng ngay mọi lượt truyền thì trước tiên cho thấy những gì sẽ mất và chỉ thực hiện khi bạn xác nhận. Cảnh báo đó dành cho những lượt truyền không thể tiếp tục từ chỗ đã dừng.',
-  'settings.help.queue.b1': 'Một liên kết duy nhất có thể ghi đè số lượng kết nối toàn cục hoặc công tắc giải nén sau khi tải xuống.',
-  'settings.help.queue.b2': 'Bản sao của một liên kết đã có trong danh sách luôn bị từ chối, ngay cả trước khi nó đến được Bộ thu thập.',
-
-  'settings.help.limits.title': 'Vượt qua giới hạn của hoster',
-  'settings.help.limits.body': 'Ba cách độc lập để ngăn giới hạn miễn phí trở thành trần:',
-  'settings.help.limits.b1':
-    'Kết nối: phân tán lượt tải qua nhiều đường ra (một đường dây thứ hai, một proxy, SOCKS) thay vì luôn đi ra bằng địa chỉ của chính máy này.',
-  'settings.help.limits.b2':
-    'Kết nối lại: yêu cầu router cấp một địa chỉ công khai mới, điều duy nhất gỡ được giới hạn gắn với chính địa chỉ đó. Việc này chạy qua UPnP, một chương trình bên ngoài, một tập lệnh, hoặc phát lại các yêu cầu HTTP tới trang quản trị của router. Các tập lệnh LiveHeader/curl có sẵn của JDownloader vẫn chạy như cũ.',
-  'settings.help.limits.b3':
-    'Tài khoản: lưu thông tin đăng nhập premium hoặc debrid (Real-Debrid, AllDebrid, TorBox và các dịch vụ khác) để một liên kết đủ điều kiện được tải ở tốc độ tối đa thay vì giới hạn cho người dùng miễn phí.',
-  'settings.help.limits.link1': 'Mở Mạng',
-  'settings.help.limits.link3': 'Mở Tài khoản',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Khi một hoster đòi captcha, các tài khoản captcha mà bạn đã cấu hình sẽ được thử trước, theo thứ tự bạn đặt. Nếu không có tài khoản captcha nào được cấu hình, hoặc không tài khoản nào giải được, captcha sẽ được đưa cho bạn thay vì lặng lẽ thất bại.',
-  'settings.help.captcha.link': 'Mở cài đặt Captcha',
-
-  'settings.help.after.title': 'Sau khi tải xuống',
-  'settings.help.after.body':
-    'Tệp nén được giải nén tự động: zip (kể cả được mã hóa, cả WinZip AES lẫn ZipCrypto cũ), rar với các bộ nhiều tập, 7z, tar, và gzip/bzip2/xz/zstd dù có bọc một tar hay không. Việc giải nén viết bằng Go thuần và không cần chương trình unrar hay 7z bên ngoài. Với tệp nén được mã hóa, một danh sách mật khẩu được thử lần lượt. Một tệp đã xong được đối chiếu với mọi mã kiểm tra đi kèm: một danh sách .sfv, một tệp md5/sha1/sha256sum, hoặc một CRC32 nằm ngay trong tên bản phát hành.',
-  'settings.help.after.link1': 'Mở cài đặt Kho lưu trữ',
-  'settings.help.after.link2': 'Mở cài đặt Tải xuống',
-
-  'settings.help.schedule.title': 'Chạy không cần giám sát',
-  'settings.help.schedule.body':
-    'Một lịch theo tuần tạm dừng hoặc giảm tốc hàng đợi theo giờ, chẳng hạn trong một khung giờ ban đêm, và vẫn đúng khi đổi giờ mùa hè. Cùng ý tưởng với Scheduler của JDownloader.',
-  'settings.help.schedule.link': 'Mở Tự động hóa',
-
-  'settings.help.instances.title': 'Chạy nhiều hơn một thực thể',
-  'settings.help.instances.body': 'Thêm một KnightLoader khác làm máy ngang hàng, hàng đợi của nó cũng hiện trên bảng điều khiển này. Trong cùng mạng, đó là lời gọi trực tiếp tới API của máy kia, đúng như trình duyệt vẫn làm. Qua các mạng khác nhau, mười hai từ ghép đôi hai máy qua một bộ tiếp sức mà bạn có thể tự vận hành.',
-  'settings.help.instances.link': 'Mở Thực thể',
-
-  'settings.help.access.title': 'Truy cập và khắc phục sự cố',
-  'settings.help.access.body': 'Mật khẩu khóa toàn bộ giao diện lại, chỉ vào được khi có cookie phiên. Trang Bảo mật chứa mật khẩu này cùng với yếu tố thứ hai, khoá truy cập và token API. Trang Chẩn đoán tạo một tệp để đính kèm vào báo cáo lỗi: phiên bản và thông tin bản dựng, cài đặt hiện tại đã gỡ bỏ mọi mật khẩu, các dòng nhật ký gần đây của chính tiến trình này, và số goroutine đang chạy.',
-  'settings.help.access.link1': 'Mở Bảo mật',
-  'settings.help.access.link2': 'Mở Chẩn đoán',
-
-  'settings.help.advanced.title': 'Tất cả những thứ khác',
-  'settings.help.advanced.body':
-    'Mọi cài đặt của bản dựng này đều đọc và đổi được qua tên thô của nó trên trang Nâng cao. Trong đó có vài cài đặt chưa có điều khiển riêng ở đâu khác, như cách xử lý một bản sao của tệp đã tải và điều gì xảy ra khi một lượt tải sắp rơi vào một tên đã có người dùng.',
-  'settings.help.advanced.link': 'Mở cài đặt Nâng cao',
   'task.mode.free': 'Miễn phí',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Giới thiệu về KnightLoader',
@@ -3361,11 +3297,9 @@ export const vi: Dict = {
   'settings.categories.torrentFilesOwn': 'Riêng',
   'settings.watchDirFilesHint': 'Các tệp thả vào đây được nhận tự động: danh sách liên kết (.txt, .crawljob, .magnet), tệp .torrent, container (.dlc, .ccf, .rsdf) và tệp .nzb.',
   'container.usenet': '{file} đã được gửi tới {service}. Các tệp của nó sẽ hiện ở đây ngay khi {service} lấy chúng về từ Usenet.',
-  'settings.help.intake.watchFiles': 'Thư mục theo dõi nhận những gì được thả vào nó: danh sách liên kết (.txt, .crawljob, .magnet), tệp .torrent, container (.dlc, .ccf, .rsdf) và tệp .nzb.',
   'container.nzbTooBig': 'nó lớn hơn {max}, mức lớn nhất một tệp .nzb được phép',
   'container.noUsenet': 'nó là một tệp .nzb, và không có gì ở đây lấy được nó từ Usenet. Hãy thêm một máy chủ Usenet hoặc một tài khoản TorBox hay Premiumize.me ở mục Tài khoản.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Một tệp .nzb, dù được tải lên ở đây hay do Sonarr hoặc Radarr gửi tới, sẽ đi tới máy chủ Usenet của riêng bạn hoặc tài khoản TorBox hay Premiumize.me của bạn, tùy theo cái nào đứng trước trong thứ tự ưu tiên ở mục Tài khoản. Máy chủ của riêng bạn lấy ngay từng tệp. Một dịch vụ debrid lấy bản phát hành trước, rồi các tệp của nó mới được tải như mọi liên kết khác. TorBox chỉ nhận tệp .nzb với các gói cước có Usenet. Nếu TorBox từ chối tệp đầu tiên, tệp .nzb đó sẽ thất bại trừ khi một tài khoản khác nhận nó.',
   'task.remote': 'Đang lấy trên {service}',
   'task.remoteSeeds': 'Seed: {n}',
   'accounts.routing.orderHintTorrents': 'Liên kết magnet và tệp .torrent sẽ đi tới client torrent tích hợp hoặc tới một dịch vụ debrid hỗ trợ torrent, tùy cái nào đứng cao hơn trong danh sách.',
@@ -3539,6 +3473,8 @@ export const vi: Dict = {
   'settings.archives.journeyHint': 'Những gì xảy ra với một tệp sau khi tải xong, theo từng trạm. Trạm màu xám đang tắt và tệp đi qua mà không dừng. “{verifying}” theo công tắc “{checksums}” trong “{downloads}”. “{repairing}” cần máy chủ Usenet riêng của bạn. “{moving}” cần “{workDir}” hoặc một nơi cho các tệp đã giải nén. “{cleanup}” được bỏ qua chừng nào tệp nén còn được giữ.',
   'picture.journey.move': 'Đang chuyển',
   'picture.journey.cleanup': 'Đang dọn dẹp',
+  'picture.journey.wayTo': 'Đến “{setting}” trong {page}',
+  'picture.journey.wayHere': 'Đến “{setting}” trong trang này',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Địa chỉ cũ',

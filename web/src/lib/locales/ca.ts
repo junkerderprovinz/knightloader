@@ -18,6 +18,7 @@ export const ca: Dict = {
   'nav.workingTitle': 'títol provisional',
   'theme.dark': 'Fosc',
   'theme.light': 'Clar',
+  'theme.system': 'Sistema',
   'theme.toggle': 'Canvia el tema',
   'lang.label': 'Idioma',
   'lang.open': 'Canvia l’idioma',
@@ -437,6 +438,7 @@ export const ca: Dict = {
   'settings.rainbowPaletteHint': 'Els vuit colors assignats per posició. Editables individualment.',
   'settings.look.saveFailed': 'No s’ha pogut desar: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint': '«{system}» segueix el mode clar o fosc del teu dispositiu i canvia amb ell.',
   'settings.motion.wild': 'Intens',
   'settings.motion.storm': 'Tempesta',
   'settings.motion.subtle': 'Subtil',
@@ -1532,72 +1534,6 @@ export const ca: Dict = {
 
   'settings.nav.help': 'Informació',
 
-  'settings.help.intake.title': 'Afegir baixades',
-  'settings.help.intake.body':
-    'Enganxa enllaços al col·lector, un per línia o com a text desordenat. Una cerca troba els enllaços allà on siguin: al mig d’una frase, diversos en una línia o partits en dues línies per un client de correu.',
-  'settings.help.intake.b1': 'Deixa anar un fitxer contenidor d’enllaços (.dlc, .ccf, .rsdf) o una llista senzilla d’enllaços.',
-  'settings.help.intake.b2':
-    'Els botons Click\'n\'Load de les pàgines d’allotjadors i fòrums funcionen sense canvis. KnightLoader respon a 127.0.0.1:9666, el mateix port que fa servir qualsevol altre gestor de baixades.',
-  'settings.help.intake.b3':
-    'Enganxa un URL de pàgina en lloc d’un enllaç de fitxer i activa Rastreig per extreure cada fitxer al qual enllaça, en lloc de baixar la pàgina mateixa.',
-  'settings.help.intake.link1': 'Obre la configuració del Recol·lector d\'enllaços',
-
-  'settings.help.collector.title': 'El col·lector, abans que res es baixi',
-  'settings.help.collector.body':
-    'Els enllaços nous arriben primer al Col·lector, no a la cua: una zona d’espera per comprovar noms, mides i avisos de duplicats abans que res comenci. La confirmació automàtica pot saltar-se aquest pas, amb un retard opcional; un cop confirmat, un enllaç comença immediatament o espera a la cua, segons l’inici automàtic.',
-  'settings.help.collector.link': 'Obre la configuració del Recol·lector d\'enllaços',
-
-  'settings.help.rules.title': 'Regles: paquets, carpetes i què es conserva',
-  'settings.help.rules.body':
-    'El Packagizer canvia el nom d’un enllaç, en tria la carpeta i en configura les opcions de baixada quan arriba, a partir de condicions que escrius tu. El Filtre d’enllaços decideix si un enllaç es conserva. Un rebuig sempre indica quina regla l’ha causat i per què.',
-  'settings.help.rules.link': 'Obre Regles',
-
-  'settings.help.queue.title': 'Gestionar la cua',
-  'settings.help.queue.body':
-    'Posa en pausa, reprèn o reordena qualsevol enllaç, sol o com a paquet sencer. Hi ha dues maneres d’aturar la cua. Detenir-la deixa intacte el que ja s’està executant, perquè acabi tot sol. Aturar totes les transferències ara mateix mostra primer què es perdria i només ho fa quan ho confirmes. L’avís hi és per a les transferències que no poden reprendre’s on es van quedar.',
-  'settings.help.queue.b1': 'Un sol enllaç pot substituir el nombre global de connexions o l’interruptor d’extracció després de baixar.',
-  'settings.help.queue.b2': 'Un duplicat d’un enllaç ja present a la llista sempre es rebutja, abans que arribi mai al Col·lector.',
-
-  'settings.help.limits.title': 'Evitar els límits de l’allotjador',
-  'settings.help.limits.body': 'Tres maneres independents d’evitar que un límit gratuït sigui el sostre:',
-  'settings.help.limits.b1':
-    'Connexions: reparteix les baixades per més d’una via de sortida (una segona línia, un servidor intermediari, SOCKS) en lloc de sortir sempre per l’adreça pròpia d’aquesta màquina.',
-  'settings.help.limits.b2':
-    'Reconnexió: demana al router una adreça pública nova, l’única cosa que aixeca un límit lligat a l’adreça mateixa. Funciona amb UPnP, un programa extern, un script o repetint peticions HTTP contra la pàgina d’administració del router. Els scripts LiveHeader/curl de JDownloader que ja tinguis funcionen sense canvis.',
-  'settings.help.limits.b3':
-    'Comptes: desa credencials premium o debrid (Real-Debrid, AllDebrid, TorBox i altres) perquè un enllaç que ho permeti es baixi a màxima velocitat en lloc del límit dels usuaris gratuïts.',
-  'settings.help.limits.link1': 'Obre Xarxa',
-  'settings.help.limits.link3': 'Obre Comptes',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Quan un allotjador demana un captcha, primer es proven els comptes de captcha que has configurat, en l’ordre que has establert. Si no n’hi ha cap, o cap no el pot resoldre, el captcha se’t presenta a tu en lloc de fallar en silenci.',
-  'settings.help.captcha.link': 'Obre la configuració de Captcha',
-
-  'settings.help.after.title': 'Després de la baixada',
-  'settings.help.after.body':
-    'Els arxius s’extreuen automàticament: zip (també xifrats, tant WinZip AES com l’antic ZipCrypto), rar amb conjunts de diversos volums, 7z, tar i gzip/bzip2/xz/zstd, tant si embolcallen un tar com si no. L’extracció és Go pur i no necessita cap binari extern d’unrar ni de 7z. Per a un arxiu xifrat es prova una llista de contrasenyes per ordre. Un fitxer acabat es verifica contra la suma de verificació que l’acompanyi: una llista .sfv, un fitxer md5/sha1/sha256sum o un CRC32 que porti el mateix nom de la versió.',
-  'settings.help.after.link1': 'Obre la configuració d’Arxius',
-  'settings.help.after.link2': 'Obre la configuració de Baixades',
-
-  'settings.help.schedule.title': 'Funcionar sense supervisió',
-  'settings.help.schedule.body':
-    'Un horari setmanal posa en pausa o limita la cua segons l’hora, per exemple en una franja nocturna, i continua sent correcte amb el canvi d’horari d’estiu. És la mateixa idea que el Scheduler de JDownloader.',
-  'settings.help.schedule.link': 'Obre Automatització',
-
-  'settings.help.instances.title': 'Executar més d’una instància',
-  'settings.help.instances.body': 'Afegeix un altre KnightLoader com a company i la seva cua apareix també en aquest tauler. A la mateixa xarxa és una crida directa a l\'API de l\'altra instància, com la faria un navegador. Entre xarxes, dotze paraules emparellen les dues a través d\'un relé que pots allotjar tu mateix.',
-  'settings.help.instances.link': 'Obre Instàncies',
-
-  'settings.help.access.title': 'Accés i resolució de problemes',
-  'settings.help.access.body': 'Una contrasenya bloqueja tota la interfície, a la qual llavors només s’accedeix amb una galeta de sessió. La pàgina Seguretat la reuneix amb el segon factor, les claus d’accés i els tokens d’API. La pàgina Diagnòstic crea un fitxer per adjuntar a un informe d’error: la versió i la informació del build, la configuració actual sense cap contrasenya, les línies de registre recents d’aquest procés i quantes goroutines s’estan executant.',
-  'settings.help.access.link1': 'Obre Seguretat',
-  'settings.help.access.link2': 'Obre Diagnòstic',
-
-  'settings.help.advanced.title': 'Tota la resta',
-  'settings.help.advanced.body':
-    'Cada ajust d’aquesta compilació es pot llegir i canviar pel seu nom en brut a la pàgina Avançat. Això inclou alguns que encara no tenen cap control propi enlloc més, com ara com es tracta un mirall d’un fitxer ja baixat i què passa quan una baixada aniria a parar a un nom que ja existeix.',
-  'settings.help.advanced.link': 'Obre la configuració d’Avançat',
   'task.mode.free': 'Gratuït',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Quant a KnightLoader',
@@ -3348,11 +3284,9 @@ export const ca: Dict = {
   'settings.categories.torrentFilesOwn': 'Pròpia',
   'settings.watchDirFilesHint': 'El que deixis aquí es recull automàticament: llistes d’enllaços (.txt, .crawljob, .magnet), fitxers .torrent, contenidors (.dlc, .ccf, .rsdf) i fitxers .nzb.',
   'container.usenet': '{file} ha anat a {service}. Els seus fitxers apareixeran aquí quan {service} els hagi baixat d’Usenet.',
-  'settings.help.intake.watchFiles': 'Una carpeta vigilada recull el que hi deixes: llistes d’enllaços (.txt, .crawljob, .magnet), fitxers .torrent, contenidors (.dlc, .ccf, .rsdf) i fitxers .nzb.',
   'container.nzbTooBig': 'supera els {max}, el màxim que pot ocupar un .nzb',
   'container.noUsenet': 'és un .nzb, i res aquí el pot baixar d’Usenet. Afegeix un servidor d’Usenet o un compte de TorBox o de Premiumize.me a Comptes.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'Un .nzb, pujat aquí o enviat per Sonarr o Radarr, va al teu propi servidor d’Usenet o al teu compte de TorBox o de Premiumize.me, segons quin vingui primer a l’ordre de prioritat de Comptes. El teu propi servidor baixa cada fitxer a l’instant. Un servei de debrid baixa primer el llançament, i després els seus fitxers es baixen com qualsevol altre enllaç. TorBox només accepta fitxers .nzb en els plans que inclouen Usenet. Si TorBox rebutja el primer, aquest .nzb falla llevat que un altre compte se’n faci càrrec.',
   'task.remote': 'Baixant a {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Els enllaços magnet i els fitxers .torrent van o bé al client de torrents integrat, o bé a un servei debrid que accepti torrents, segons quin estigui més amunt a la llista.',
@@ -3526,6 +3460,8 @@ export const ca: Dict = {
   'settings.archives.journeyHint': 'Què li passa a un fitxer un cop baixat, estació per estació. Una estació grisa està desactivada i el fitxer hi passa de llarg. «{verifying}» segueix l’interruptor «{checksums}» a «{downloads}». «{repairing}» necessita un servidor d’Usenet propi. «{moving}» necessita «{workDir}» o una destinació per als fitxers extrets. «{cleanup}» se salta mentre l’arxiu es conserva.',
   'picture.journey.move': 'Movent',
   'picture.journey.cleanup': 'Netejant',
+  'picture.journey.wayTo': 'Ves a «{setting}» a {page}',
+  'picture.journey.wayHere': 'Ves a «{setting}» en aquesta pàgina',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Adreça antiga',

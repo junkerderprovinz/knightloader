@@ -18,6 +18,7 @@ export const is: Dict = {
   'nav.workingTitle': 'vinnuheiti',
   'theme.dark': 'Dökkt',
   'theme.light': 'Ljóst',
+  'theme.system': 'Kerfi',
   'theme.toggle': 'Skipta um þema',
   'lang.label': 'Tungumál',
   'lang.open': 'Skipta um tungumál',
@@ -437,6 +438,7 @@ export const is: Dict = {
   'settings.rainbowPaletteHint': 'Litirnir átta sem úthlutað er eftir stöðu. Hægt er að breyta hverjum fyrir sig.',
   'settings.look.saveFailed': 'Ekki tókst að vista: {error}',
   'settings.theme': 'Þema',
+  'settings.themeHint': '„{system}“ fylgir ljósri eða dökkri stillingu tækisins þíns og breytist með henni.',
   'settings.motion.wild': 'Villt',
   'settings.motion.storm': 'Stormur',
   'settings.motion.subtle': 'Fíngert',
@@ -1532,72 +1534,6 @@ export const is: Dict = {
 
   'settings.nav.help': 'Upplýsingar',
 
-  'settings.help.intake.title': 'Bæta við niðurhali',
-  'settings.help.intake.body':
-    'Límdu tengla inn í safnarann, einn í hverja línu eða sem óreiðukenndan texta. Leit finnur tengla hvar sem þeir eru: í miðri setningu, marga í línu, eða brotna yfir tvær línur af tölvupóstforriti.',
-  'settings.help.intake.b1': 'Slepptu tengilsgáma-skrá (.dlc, .ccf, .rsdf) eða einföldum tenglalista.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load-hnappar á síðum hýsla og spjallborða virka óbreyttir. KnightLoader svarar á 127.0.0.1:9666, sömu gátt og allir aðrir niðurhalsstjórar nota.',
-  'settings.help.intake.b3':
-    'Límdu inn slóð síðu í stað tengils á skrá og kveiktu á Skrið til að ná í hverja skrá sem hún tengir í, í stað þess að sækja síðuna sjálfa.',
-  'settings.help.intake.link1': 'Opna stillingar fyrir Tenglasafnara',
-
-  'settings.help.collector.title': 'Safnarinn, áður en nokkuð hleðst niður',
-  'settings.help.collector.body':
-    'Nýir tenglar lenda fyrst í Safnaranum, ekki í biðröðinni: millisvæði til að athuga heiti, stærðir og viðvaranir um tvítekningar áður en nokkuð byrjar. Sjálfvirk staðfesting getur sleppt þessu skrefi, með valfrjálsri töf; þegar staðfest, byrjar tengill annaðhvort strax eða bíður í biðröðinni, eftir sjálfvirkri ræsingu.',
-  'settings.help.collector.link': 'Opna stillingar fyrir Tenglasafnara',
-
-  'settings.help.rules.title': 'Reglur: pakkar, möppur og hvað er varðveitt',
-  'settings.help.rules.body':
-    'Packagizer endurnefnir tengil, velur möppuna hans og stillir niðurhalsvalkosti hans við komu, út frá skilyrðum sem þú skrifar. Tenglasían ákveður hvort tengill sé yfirhöfuð varðveittur. Höfnun nefnir alltaf regluna sem olli henni, og hvers vegna.',
-  'settings.help.rules.link': 'Opna Reglur',
-
-  'settings.help.queue.title': 'Stjórna biðröðinni',
-  'settings.help.queue.body':
-    'Hvaða tengli sem er má gera hlé á, halda áfram eða endurraða, einum sér eða sem heilum pakka. Það eru tvær leiðir til að stöðva biðröðina. Ef þú stöðvar biðröðina lætur það allt sem þegar er í gangi ósnert, svo það klárast sjálft. Ef þú stöðvar allar yfirfærslur samstundis sérðu fyrst hvað myndi tapast, og ekkert gerist fyrr en þú staðfestir. Viðvörunin er til fyrir yfirfærslur sem geta ekki haldið áfram þar sem þær hættu.',
-  'settings.help.queue.b1': 'Einn tengill getur yfirskrifað almenna tengingafjöldann eða rofann fyrir að afþjappa eftir niðurhal.',
-  'settings.help.queue.b2': 'Tvítekningu tengils sem þegar er á listanum er alltaf hafnað, áður en hann nær nokkurn tímann til Safnarans.',
-
-  'settings.help.limits.title': 'Komast fram hjá takmörkunum hostersins',
-  'settings.help.limits.body': 'Þrjár óháðar leiðir til að koma í veg fyrir að frítt takmark sé þakið:',
-  'settings.help.limits.b1':
-    'Tengingar: dreifðu niðurhali yfir fleiri en eina útleið (aðra línu, milliþjón, SOCKS) í stað þess að fara alltaf út um eigið vistfang þessarar vélar.',
-  'settings.help.limits.b2':
-    'Endurtenging: biddu beininn um nýtt opinbert vistfang, það eina sem afléttir takmörkun sem er bundin sjálfu vistfanginu. Þetta virkar með UPnP, utanaðkomandi forriti, skriftu eða með því að endurspila HTTP-beiðnir gegn stjórnsíðu beinisins. Núverandi LiveHeader-/curl-skriftur úr JDownloader virka óbreyttar.',
-  'settings.help.limits.b3':
-    'Reikningar: vistaðu premium- eða debrid-innskráningar (Real-Debrid, AllDebrid, TorBox og fleiri) svo að gjaldgengur tengill sé sóttur á fullum hraða í stað takmarkana fyrir ókeypis notendur.',
-  'settings.help.limits.link1': 'Opna Net',
-  'settings.help.limits.link3': 'Opna Reikninga',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'Þegar hýsill biður um captcha eru captcha-reikningarnir sem þú hefur stillt reyndir fyrst, í þeirri röð sem þú ákvaðst. Ef enginn er stilltur, eða enginn getur leyst það, er captcha-ið lagt fyrir þig í stað þess að mistakast í hljóði.',
-  'settings.help.captcha.link': 'Opna stillingar fyrir Captcha',
-
-  'settings.help.after.title': 'Eftir niðurhal',
-  'settings.help.after.body':
-    'Safnskrár eru afþjappaðar sjálfkrafa: zip (líka dulkóðaðar, bæði WinZip AES og eldra ZipCrypto), rar með fjölbinda settum, 7z, tar, og gzip/bzip2/xz/zstd hvort sem þær umlykja tar eða ekki. Afþjöppunin er hreint Go og þarf engin utanaðkomandi unrar- eða 7z-forrit. Fyrir dulkóðaða safnskrá er listi lykilorða reyndur í röð. Fullkláruð skrá er borin saman við hverja þá gátsummu sem fylgdi henni: .sfv-lista, md5-/sha1-/sha256sum-skrá, eða CRC32 sem útgáfuheitið sjálft ber.',
-  'settings.help.after.link1': 'Opna stillingar fyrir Söfn',
-  'settings.help.after.link2': 'Opna stillingar fyrir Niðurhal',
-
-  'settings.help.schedule.title': 'Keyra án eftirlits',
-  'settings.help.schedule.body':
-    'Vikuleg tímaáætlun gerir hlé á biðröðinni eða hægir á henni eftir klukkunni, til dæmis í næturglugga, og helst rétt þegar skipt er á milli sumar- og vetrartíma. Þetta er sama hugmynd og Scheduler í JDownloader.',
-  'settings.help.schedule.link': 'Opna Sjálfvirkni',
-
-  'settings.help.instances.title': 'Keyra fleiri en eitt tilvik',
-  'settings.help.instances.body': 'Bættu öðrum KnightLoader við sem jafningja og biðröð hans birtist líka á þessu mælaborði. Á sama neti er það beint kall í API hins tilviksins, eins og vafri myndi gera. Milli neta para tólf orð þau tvö saman gegnum endurvarpa sem þú getur hýst sjálfur.',
-  'settings.help.instances.link': 'Opna Tilvik',
-
-  'settings.help.access.title': 'Aðgangur og bilanaleit',
-  'settings.help.access.body': 'Lykilorð læsir öllu viðmótinu þannig að aðeins setukaka veitir aðgang. Síðan Öryggi geymir það ásamt öðrum þætti, aðgangslyklum og API-tókum. Síðan Greining býr til skrá til að hengja við villutilkynningu: útgáfu- og smíðaupplýsingar, núverandi stillingar með öll lykilorð fjarlægð, nýlegar annálalínur þessa ferlis sjálfs og hversu margar gorutínur eru í gangi.',
-  'settings.help.access.link1': 'Opna Öryggi',
-  'settings.help.access.link2': 'Opna Greiningu',
-
-  'settings.help.advanced.title': 'Allt annað',
-  'settings.help.advanced.body':
-    'Á síðunni Ítarlegt geturðu lesið hverja stillingu þessarar smíðar eftir hráu heiti hennar og breytt henni. Þar á meðal eru nokkrar sem hafa enn enga sérstaka stýringu annars staðar, svo sem hvernig farið er með spegil af skrá sem þegar hefur verið sótt og hvað gerist þegar niðurhal myndi lenda á heiti sem þegar er í notkun.',
-  'settings.help.advanced.link': 'Opna stillingar fyrir Ítarlegt',
   'task.mode.free': 'Ókeypis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Um KnightLoader',
@@ -3357,11 +3293,9 @@ export const is: Dict = {
   'settings.categories.torrentFilesOwn': 'Eigið',
   'settings.watchDirFilesHint': 'Skrár sem settar eru hér eru teknar inn sjálfkrafa: tenglalistar (.txt, .crawljob, .magnet), .torrent-skrár, gámar (.dlc, .ccf, .rsdf) og .nzb-skrár.',
   'container.usenet': '{file} fór til {service}. Skrár þess birtast hér um leið og {service} hefur sótt þær frá Usenet.',
-  'settings.help.intake.watchFiles': 'Vöktuð mappa tekur inn það sem sett er í hana: tenglalista (.txt, .crawljob, .magnet), .torrent-skrár, gáma (.dlc, .ccf, .rsdf) og .nzb-skrár.',
   'container.nzbTooBig': 'hún er stærri en {max}, sem er hámarksstærð .nzb-skrár',
   'container.noUsenet': 'hún er .nzb-skrá, og hér er ekkert sem getur sótt hana af Usenet. Bættu við Usenet-netþjóni eða TorBox- eða Premiumize.me-reikningi undir Reikningar.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '.nzb-skrá, sem þú hleður upp hér eða Sonarr eða Radarr senda, fer á þinn eigin Usenet-netþjón eða á TorBox- eða Premiumize.me-reikninginn þinn, hvort sem kemur fyrst í forgangsröðinni undir Reikningar. Þinn eigin netþjónn sækir hverja skrá samstundis. Debrid-þjónusta sækir útgáfuna fyrst, og skrárnar í henni eru síðan sóttar eins og hver annar tengill. TorBox tekur aðeins við .nzb-skrám í áskriftarleiðum sem innihalda Usenet. Hafni TorBox þeirri fyrstu mistekst sú .nzb-skrá nema annar reikningur taki við henni.',
   'task.remote': 'Sækir hjá {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Segultenglar og .torrent-skrár fara annaðhvort til innbyggða torrent-biðlarans eða til debrid-þjónustu sem tekur við torrentum, eftir því hvor er ofar á listanum.',
@@ -3535,6 +3469,8 @@ export const is: Dict = {
   'settings.archives.journeyHint': 'Það sem gerist við skrá þegar hún hefur verið sótt, stöð fyrir stöð. Grá stöð er óvirk og skráin fer fram hjá henni. „{verifying}“ fylgir rofanum „{checksums}“ undir „{downloads}“. „{repairing}“ þarf þinn eigin Usenet-netþjón. „{moving}“ þarf „{workDir}“ eða áfangastað fyrir afþjöppuðu skrárnar. „{cleanup}“ er sleppt á meðan safnskránni er haldið.',
   'picture.journey.move': 'Færir',
   'picture.journey.cleanup': 'Tekur til',
+  'picture.journey.wayTo': 'Fara í „{setting}“ undir {page}',
+  'picture.journey.wayHere': 'Fara í „{setting}“ á þessari síðu',
   'picture.reconnect.router': 'Beinir',
   'picture.reconnect.internet': 'Internetið',
   'picture.reconnect.oldAddress': 'Gamalt vistfang',

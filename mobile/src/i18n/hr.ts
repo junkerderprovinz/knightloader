@@ -161,6 +161,7 @@ export const hr: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Svijetla',
   'settings.theme.dark': 'Tamna',
+  'settings.theme.system': 'Sustav',
   'settings.corners': 'Kutovi',
   'settings.corners.round': 'Okrugli',
   'settings.corners.slightlyRounded': 'Blago zaobljeni',

@@ -161,6 +161,7 @@ export const pl: Dict = {
   'settings.theme': 'Motyw',
   'settings.theme.light': 'Jasny',
   'settings.theme.dark': 'Ciemny',
+  'settings.theme.system': 'Systemowy',
   'settings.corners': 'Narożniki',
   'settings.corners.round': 'Okrągłe',
   'settings.corners.slightlyRounded': 'Łagodne',

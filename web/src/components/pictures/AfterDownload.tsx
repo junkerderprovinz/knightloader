@@ -1,5 +1,6 @@
 import type { ComponentType, SVGProps } from 'react';
 import { useT } from '../../lib/i18n';
+import { useTooltip } from '../ui';
 import {
   IconArchive,
   IconCheck,
@@ -9,8 +10,8 @@ import {
   IconShieldOn,
   IconTrash,
 } from '../../lib/icons';
-import { FILL, GROUND, OK, QUIET, SURFACE, trip, useStage } from './scene';
-import { Answer, Hop, Traveller, litFrom, loopOf } from './station';
+import { FILL, GROUND, OK, QUIET, SURFACE, trip, useStage, type Trip } from './scene';
+import { Answer, Hop, Traveller, litFrom, loopOf, type Loop } from './station';
 
 /** Which of the steps after a download are switched on. The download itself always happens. */
 export interface AfterDownloadSteps {
@@ -21,11 +22,28 @@ export interface AfterDownloadSteps {
   cleanup: boolean;
 }
 
+/** Where a station's setting is: the words that say so, and the way there. */
+export interface StationWay {
+  leadsTo: string;
+  go: () => void;
+}
+
+/** The ways by station. The download itself and the finished file have nothing to set. */
+export type StationWays = Partial<Record<keyof AfterDownloadSteps, StationWay>>;
+
 interface Station {
   id: string;
   label: string;
   glyph: ComponentType<SVGProps<SVGSVGElement>>;
   on: boolean;
+  way?: StationWay;
+}
+
+interface Box {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
 }
 
 /** Where the stations stand and where their names go: side by side in a wide card, stacked in a narrow one. */
@@ -33,7 +51,9 @@ interface Arrangement {
   width: number;
   height: number;
   at: (i: number) => [x: number, y: number];
-  caption: (i: number) => { x: number; y: number; width: number; height: number };
+  caption: (i: number) => Box;
+  /** A station and its name together, which is what a station with a way answers the pointer on. */
+  cell: (i: number) => Box;
   captionClass: string;
   className: string;
 }
@@ -43,6 +63,7 @@ const ROW: Arrangement = {
   height: 98,
   at: (i) => [44 + i * 88, 30],
   caption: (i) => ({ x: 2 + i * 88, y: 54, width: 84, height: 44 }),
+  cell: (i) => ({ x: 2 + i * 88, y: 4, width: 84, height: 94 }),
   captionClass: 'items-center text-center',
   className: 'hidden max-w-[44rem] @[38rem]:block',
 };
@@ -52,6 +73,7 @@ const COLUMN: Arrangement = {
   height: 292,
   at: (i) => [26, 26 + i * 40],
   caption: (i) => ({ x: 56, y: 8 + i * 40, width: 230, height: 36 }),
+  cell: (i) => ({ x: 2, y: 6 + i * 40, width: 286, height: 40 }),
   captionClass: 'justify-center',
   className: 'block max-w-[20rem] @[38rem]:hidden',
 };
@@ -63,17 +85,26 @@ const WORK = 0.9;
 /**
  * AfterDownload plays what happens to a file once it has arrived, with the
  * steps that are switched on. A station that is on takes the file in and
- * answers; one that is off stays grey and the file passes it.
+ * answers; one that is off stays grey and the file passes it. A station with a
+ * way leads to its setting on a click or Enter.
  */
-export function AfterDownload({ steps, title }: { steps: AfterDownloadSteps; title: string }) {
+export function AfterDownload({
+  steps,
+  title,
+  ways = {},
+}: {
+  steps: AfterDownloadSteps;
+  title: string;
+  ways?: StationWays;
+}) {
   const { t } = useT();
   const stations: Station[] = [
     { id: 'download', label: t('status.running'), glyph: IconDownload, on: true },
-    { id: 'verify', label: t('status.verifying'), glyph: IconShieldOn, on: steps.verify },
-    { id: 'repair', label: t('status.repairing'), glyph: IconShield, on: steps.repair },
-    { id: 'unpack', label: t('status.extracting'), glyph: IconArchive, on: steps.unpack },
-    { id: 'move', label: t('picture.journey.move'), glyph: IconFolderOpen, on: steps.move },
-    { id: 'cleanup', label: t('picture.journey.cleanup'), glyph: IconTrash, on: steps.cleanup },
+    { id: 'verify', label: t('status.verifying'), glyph: IconShieldOn, on: steps.verify, way: ways.verify },
+    { id: 'repair', label: t('status.repairing'), glyph: IconShield, on: steps.repair, way: ways.repair },
+    { id: 'unpack', label: t('status.extracting'), glyph: IconArchive, on: steps.unpack, way: ways.unpack },
+    { id: 'move', label: t('picture.journey.move'), glyph: IconFolderOpen, on: steps.move, way: ways.move },
+    { id: 'cleanup', label: t('picture.journey.cleanup'), glyph: IconTrash, on: steps.cleanup, way: ways.cleanup },
   ];
   // Read out as the steps that run, since the picture says no more than that.
   const label = `${title}: ${stations.filter((s) => s.on).map((s) => s.label).join(', ')}`;
@@ -100,7 +131,8 @@ function Walk({ arrangement, stations, label }: { arrangement: Arrangement; stat
     <svg
       ref={stage}
       viewBox={`0 0 ${arrangement.width} ${arrangement.height}`}
-      role="img"
+      // One image, until a part of it can be pressed.
+      role={stations.some((s) => s.way) ? 'group' : 'img'}
       aria-label={label}
       className={`mx-auto w-full overflow-visible ${arrangement.className}`}
     >
@@ -114,37 +146,9 @@ function Walk({ arrangement, stations, label }: { arrangement: Arrangement; stat
         strokeDasharray="2 7"
       />
 
-      {stations.map((s, i) => {
-        const [x, y] = points[i];
-        const { arrive } = walk.stops[i];
-        const Glyph = s.glyph;
-        const glyph = <Glyph x={-9} y={-9} width={18} height={18} />;
-        return (
-          <g key={s.id} transform={`translate(${x} ${y})`} data-station={s.id} data-state={s.on ? 'on' : 'off'}>
-            {s.on && !still && <Answer radius={RADIUS} at={arrive} loop={loop} />}
-            <g>
-              {s.on && !still && <Hop at={arrive} loop={loop} />}
-              <circle
-                r={RADIUS}
-                fill={GROUND}
-                stroke={s.on ? undefined : QUIET}
-                strokeOpacity=".6"
-                strokeDasharray="3 4"
-              />
-              <g color={QUIET} opacity={s.on ? undefined : 0.6}>
-                {glyph}
-              </g>
-              {s.on && (
-                <g opacity={still ? undefined : 0}>
-                  {!still && <animate attributeName="opacity" {...litFrom(arrive, loop)} {...loop.smil} />}
-                  <circle r={RADIUS} fill={FILL} />
-                  <g color={SURFACE}>{glyph}</g>
-                </g>
-              )}
-            </g>
-          </g>
-        );
-      })}
+      {stations.map((s, i) => (
+        <StationMark key={s.id} station={s} index={i} arrangement={arrangement} walk={walk} loop={loop} still={still} />
+      ))}
 
       <rect
         x={endX - 13}
@@ -174,19 +178,92 @@ function Walk({ arrangement, stations, label }: { arrangement: Arrangement; stat
         </g>
       </g>
 
-      {[...stations.map((s) => ({ name: s.label, on: s.on })), { name: t('status.done'), on: true }].map((c, i) => (
-        <foreignObject key={i} {...arrangement.caption(i)}>
-          <div
-            className={`flex h-full flex-col text-meta leading-tight ${arrangement.captionClass} ${
-              c.on ? 'text-carbon-text' : 'text-carbon-textMuted'
-            }`}
-          >
-            <span className="max-w-full break-words">{c.name}</span>
-            {!c.on && <span>{t('settings.modules.off')}</span>}
-          </div>
-        </foreignObject>
-      ))}
+      <Caption box={arrangement.caption(finish)} className={arrangement.captionClass} name={t('status.done')} on />
     </svg>
+  );
+}
+
+/** A station with its name under or beside it. With a way the two are one link. */
+function StationMark({
+  station: s,
+  index,
+  arrangement,
+  walk,
+  loop,
+  still,
+}: {
+  station: Station;
+  index: number;
+  arrangement: Arrangement;
+  walk: Trip;
+  loop: Loop;
+  still: boolean;
+}) {
+  const [x, y] = arrangement.at(index);
+  const { arrive } = walk.stops[index];
+  const Glyph = s.glyph;
+  const glyph = <Glyph x={-9} y={-9} width={18} height={18} />;
+  const tip = useTooltip<SVGGElement>(s.way?.leadsTo ?? null);
+
+  const drawn = (
+    <>
+      <g transform={`translate(${x} ${y})`} data-station={s.id} data-state={s.on ? 'on' : 'off'}>
+        {s.way && <circle className="kl-station-ring" r={RADIUS + 5} />}
+        {s.on && !still && <Answer radius={RADIUS} at={arrive} loop={loop} />}
+        <g>
+          {s.on && !still && <Hop at={arrive} loop={loop} />}
+          <circle r={RADIUS} fill={GROUND} stroke={s.on ? undefined : QUIET} strokeOpacity=".6" strokeDasharray="3 4" />
+          <g color={QUIET} opacity={s.on ? undefined : 0.6}>
+            {glyph}
+          </g>
+          {s.on && (
+            <g opacity={still ? undefined : 0}>
+              {!still && <animate attributeName="opacity" {...litFrom(arrive, loop)} {...loop.smil} />}
+              <circle r={RADIUS} fill={FILL} />
+              <g color={SURFACE}>{glyph}</g>
+            </g>
+          )}
+        </g>
+      </g>
+      <Caption box={arrangement.caption(index)} className={arrangement.captionClass} name={s.label} on={s.on} />
+    </>
+  );
+  if (!s.way) return drawn;
+
+  const { go, leadsTo } = s.way;
+  return (
+    <g
+      {...tip.triggerProps}
+      role="link"
+      aria-label={`${s.label}. ${leadsTo}`}
+      // The ring around the station is its focus ring.
+      className="kl-station-way glim-focus-drawn"
+      onClick={go}
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter') return;
+        e.preventDefault();
+        go();
+      }}
+    >
+      {/* Unpainted, so the gap between a station and its name answers the pointer too. */}
+      <rect {...arrangement.cell(index)} fill="none" pointerEvents="all" />
+      {drawn}
+      {tip.node}
+    </g>
+  );
+}
+
+function Caption({ box, className, name, on }: { box: Box; className: string; name: string; on: boolean }) {
+  const { t } = useT();
+  return (
+    <foreignObject {...box}>
+      <div
+        className={`flex h-full flex-col text-meta leading-tight ${className} ${on ? 'text-carbon-text' : 'text-carbon-textMuted'}`}
+      >
+        <span className="max-w-full break-words">{name}</span>
+        {!on && <span>{t('settings.modules.off')}</span>}
+      </div>
+    </foreignObject>
   );
 }
 

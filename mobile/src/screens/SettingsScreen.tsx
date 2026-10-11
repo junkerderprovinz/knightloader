@@ -401,13 +401,16 @@ export default function SettingsScreen({
             flips the switch above off. */}
         <View style={[styles.options, following && styles.dimmed]}>
           <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
+          {/* "System" is no choice of this phone's: the theme then follows the
+              device, and changes with it while the app is open. */}
           <WellSelector
             options={[
               { value: 'light', label: t('settings.theme.light') },
               { value: 'dark', label: t('settings.theme.dark') },
+              { value: 'system', label: t('settings.theme.system') },
             ]}
-            value={dark ? 'dark' : 'light'}
-            onPick={(v) => setTheme(v)}
+            value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
+            onPick={(v) => setTheme(v === 'system' ? undefined : v)}
           />
 
           <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>

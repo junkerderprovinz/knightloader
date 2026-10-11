@@ -161,6 +161,7 @@ export const id: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Terang',
   'settings.theme.dark': 'Gelap',
+  'settings.theme.system': 'Sistem',
   'settings.corners': 'Sudut',
   'settings.corners.round': 'Bulat',
   'settings.corners.slightlyRounded': 'Lembut',

@@ -161,6 +161,7 @@ export const is: Dict = {
   'settings.theme': 'Þema',
   'settings.theme.light': 'Ljóst',
   'settings.theme.dark': 'Dökkt',
+  'settings.theme.system': 'Kerfi',
   'settings.corners': 'Horn',
   'settings.corners.round': 'Kringlótt',
   'settings.corners.slightlyRounded': 'Ávöl',

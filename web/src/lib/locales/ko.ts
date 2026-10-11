@@ -18,6 +18,7 @@ export const ko: Dict = {
   'nav.workingTitle': '가제',
   'theme.dark': '어두움',
   'theme.light': '밝음',
+  'theme.system': '시스템',
   'theme.toggle': '테마 전환',
   'lang.label': '언어',
   'lang.open': '언어 변경',
@@ -437,6 +438,7 @@ export const ko: Dict = {
   'settings.rainbowPaletteHint': '위치별로 지정되는 여덟 가지 색상입니다. 개별적으로 편집할 수 있습니다.',
   'settings.look.saveFailed': '저장할 수 없었습니다: {error}',
   'settings.theme': '테마',
+  'settings.themeHint': '“{system}”은 기기의 밝은 모드 또는 어두운 모드 설정을 따르고, 설정이 바뀌면 함께 바뀝니다.',
   'settings.motion.wild': '거칠게',
   'settings.motion.storm': '폭풍',
   'settings.motion.subtle': '은은하게',
@@ -1532,72 +1534,6 @@ export const ko: Dict = {
 
   'settings.nav.help': '정보',
 
-  'settings.help.intake.title': '다운로드 추가',
-  'settings.help.intake.body':
-    '링크를 수집함에 붙여넣으세요. 한 줄에 하나씩이어도, 어지러운 텍스트 그대로여도 됩니다. 스캔이 링크가 어디에 있든 찾아냅니다. 문장 한가운데에 있든, 한 줄에 여러 개가 있든, 메일 프로그램이 두 줄로 나눠 놓았든 상관없습니다.',
-  'settings.help.intake.b1': '링크 컨테이너 파일(.dlc, .ccf, .rsdf) 또는 일반 링크 목록을 놓으세요.',
-  'settings.help.intake.b2':
-    '호스터와 포럼 페이지의 Click\'n\'Load 버튼은 그대로 작동합니다. KnightLoader는 127.0.0.1:9666에서 응답하며, 다른 모든 다운로더가 쓰는 것과 같은 포트입니다.',
-  'settings.help.intake.b3':
-    '파일 링크 대신 페이지 URL을 붙여넣고 크롤링을 켜면 페이지 자체를 다운로드하는 대신 링크된 모든 파일을 추출합니다.',
-  'settings.help.intake.link1': '링크 수집기 설정 열기',
-
-  'settings.help.collector.title': '무언가 다운로드되기 전의 컬렉터',
-  'settings.help.collector.body':
-    '새 링크는 대기열이 아니라 먼저 컬렉터에 도착합니다: 무언가 시작되기 전에 이름, 크기, 중복 경고를 확인하는 중간 영역입니다. 자동 확인은 이 단계를 건너뛸 수 있으며, 선택적 지연이 있습니다. 확인되면 링크는 즉시 시작하거나 자동 시작 여부에 따라 대기열에서 기다립니다.',
-  'settings.help.collector.link': '링크 수집기 설정 열기',
-
-  'settings.help.rules.title': '규칙: 패키지, 폴더, 그리고 보존되는 것',
-  'settings.help.rules.body':
-    'Packagizer는 사용자가 작성한 조건에 따라, 링크가 들어올 때 이름을 바꾸고 폴더를 고르고 다운로드 옵션을 설정합니다. 링크 필터는 링크를 아예 남길지 결정합니다. 거부할 때는 원인이 된 규칙과 그 이유를 항상 알려 줍니다.',
-  'settings.help.rules.link': '규칙 열기',
-
-  'settings.help.queue.title': '대기열 관리',
-  'settings.help.queue.body':
-    '어떤 링크든 하나씩 또는 패키지 전체로 일시 정지, 재개, 순서 변경을 할 수 있습니다. 대기열을 멈추는 방법은 두 가지입니다. 대기열을 정지하면 이미 실행 중인 것은 건드리지 않으므로 스스로 끝납니다. 모든 전송을 지금 바로 멈추면 먼저 무엇을 잃게 되는지 보여 주고, 확인한 뒤에만 진행합니다. 이 경고는 멈춘 지점에서 다시 이어 받을 수 없는 전송을 위한 것입니다.',
-  'settings.help.queue.b1': '단일 링크가 전역 연결 수나 다운로드 후 압축 해제 스위치를 재정의할 수 있습니다.',
-  'settings.help.queue.b2': '목록에 이미 있는 링크의 중복은 컬렉터에 도달하기도 전에 항상 거부됩니다.',
-
-  'settings.help.limits.title': '호스터 제한 우회',
-  'settings.help.limits.body': '무료 제한이 상한이 되지 않도록 하는 세 가지 독립적인 방법:',
-  'settings.help.limits.b1':
-    '연결: 항상 이 기기 자체의 주소로 나가는 대신, 둘 이상의 나가는 경로(두 번째 회선, 프록시, SOCKS)에 다운로드를 나눕니다.',
-  'settings.help.limits.b2':
-    '재연결: 공유기에 새 공인 주소를 요청합니다. 주소 자체에 묶인 제한을 푸는 방법은 이것뿐입니다. UPnP, 외부 프로그램, 스크립트, 또는 공유기 관리 페이지에 HTTP 요청을 다시 보내는 방식으로 동작합니다. 기존 JDownloader LiveHeader/curl 스크립트도 그대로 작동합니다.',
-  'settings.help.limits.b3':
-    '계정: 프리미엄 또는 debrid 로그인(Real-Debrid, AllDebrid, TorBox 등)을 저장해 두면, 해당하는 링크를 무료 사용자 제한 대신 최대 속도로 가져옵니다.',
-  'settings.help.limits.link1': '네트워크 열기',
-  'settings.help.limits.link3': '계정 열기',
-
-  'settings.help.captcha.title': '캡차',
-  'settings.help.captcha.body':
-    '호스터가 캡차를 요구하면 설정해 둔 캡차 계정을 정해 둔 순서대로 먼저 시도합니다. 설정된 캡차 계정이 없거나 어느 것도 풀지 못하면, 조용히 실패하는 대신 캡차를 사용자에게 보여 줍니다.',
-  'settings.help.captcha.link': '캡차 설정 열기',
-
-  'settings.help.after.title': '다운로드 후',
-  'settings.help.after.body':
-    '압축 파일은 자동으로 풀립니다. zip(WinZip AES와 예전 ZipCrypto 방식의 암호화 포함), 여러 볼륨으로 나뉜 rar, 7z, tar, 그리고 tar를 감쌌는지와 상관없이 gzip/bzip2/xz/zstd를 지원합니다. 압축 풀기는 순수 Go로 이루어지며 외부 unrar나 7z 프로그램이 필요 없습니다. 암호화된 압축 파일에는 비밀번호 목록을 순서대로 시도합니다. 완료된 파일은 함께 제공된 체크섬(.sfv 목록, md5/sha1/sha256sum 파일, 또는 릴리스 이름 자체에 들어 있는 CRC32)과 대조해 확인합니다.',
-  'settings.help.after.link1': '압축 파일 설정 열기',
-  'settings.help.after.link2': '다운로드 설정 열기',
-
-  'settings.help.schedule.title': '무인 운영',
-  'settings.help.schedule.body':
-    '주간 시간표로 시각에 따라 대기열을 일시 정지하거나 속도를 제한합니다. 예를 들어 밤 시간대의 창에 적용할 수 있으며, 일광 절약 시간 전환 때도 정확합니다. JDownloader의 Scheduler와 같은 개념입니다.',
-  'settings.help.schedule.link': '자동화 열기',
-
-  'settings.help.instances.title': '둘 이상의 인스턴스 실행',
-  'settings.help.instances.body': '다른 KnightLoader를 피어로 추가하면 그 대기열이 이 대시보드에도 나타납니다. 같은 네트워크에서는 브라우저가 하듯 상대 인스턴스의 API를 직접 호출합니다. 네트워크를 넘어설 때는 열두 단어가 직접 운영할 수도 있는 릴레이를 통해 둘을 짝지어 줍니다.',
-  'settings.help.instances.link': '인스턴스 열기',
-
-  'settings.help.access.title': '접근 및 문제 해결',
-  'settings.help.access.body': '비밀번호를 설정하면 화면 전체가 잠기고, 세션 쿠키가 있어야만 쓸 수 있습니다. 보안 페이지에는 이 비밀번호와 함께 2차 인증, 패스키, API 토큰이 있습니다. 진단 페이지는 버그 보고서에 첨부할 파일을 만듭니다. 버전과 빌드 정보, 모든 비밀번호를 뺀 현재 설정, 이 프로세스 자신의 최근 로그 줄, 그리고 실행 중인 고루틴 수가 들어갑니다.',
-  'settings.help.access.link1': '보안 열기',
-  'settings.help.access.link2': '진단 열기',
-
-  'settings.help.advanced.title': '나머지 전부',
-  'settings.help.advanced.body':
-    '이 빌드의 모든 설정은 고급 페이지에서 원래 이름으로 읽고 바꿀 수 있습니다. 아직 다른 곳에 전용 컨트롤이 없는 설정도 몇 가지 포함됩니다. 예를 들어 이미 다운로드한 파일의 미러를 어떻게 처리할지, 다운로드가 이미 쓰이는 이름에 저장되려 할 때 어떻게 할지 같은 것입니다.',
-  'settings.help.advanced.link': '고급 설정 열기',
   'task.mode.free': '무료',
   'task.mode.premium': '프리미엄',
   'settings.about.title': 'KnightLoader 정보',
@@ -3349,11 +3285,9 @@ export const ko: Dict = {
   'settings.categories.torrentFilesOwn': '개별 설정',
   'settings.watchDirFilesHint': '여기에 넣은 파일은 자동으로 가져옵니다. 링크 목록(.txt, .crawljob, .magnet), .torrent 파일, 컨테이너(.dlc, .ccf, .rsdf), .nzb 파일입니다.',
   'container.usenet': '{file}을(를) {service}에 보냈습니다. {service}이(가) Usenet에서 가져오면 그 파일들이 여기에 나타납니다.',
-  'settings.help.intake.watchFiles': '감시 폴더는 안에 넣은 것을 가져옵니다. 링크 목록(.txt, .crawljob, .magnet), .torrent 파일, 컨테이너(.dlc, .ccf, .rsdf), .nzb 파일입니다.',
   'container.nzbTooBig': '{max}보다 커서, .nzb가 가질 수 있는 최대 크기를 넘습니다',
   'container.noUsenet': '.nzb 파일이며, 이를 Usenet에서 가져올 수 있는 것이 여기에 없습니다. 계정에서 Usenet 서버나 TorBox 또는 Premiumize.me 계정을 추가하세요.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': '여기서 올리거나 Sonarr 또는 Radarr가 보낸 .nzb는 계정의 우선순위에서 어느 쪽이 먼저인지에 따라 직접 가진 Usenet 서버나 TorBox 또는 Premiumize.me 계정으로 갑니다. 직접 가진 서버는 각 파일을 바로 가져옵니다. debrid 서비스는 먼저 릴리스를 가져오고, 그 안의 파일은 다른 링크처럼 다운로드됩니다. TorBox는 Usenet이 포함된 요금제에서만 .nzb 파일을 받습니다. TorBox가 첫 .nzb를 거부하면, 다른 계정이 맡지 않는 한 그 .nzb는 실패합니다.',
   'task.remote': '{service}에서 가져오는 중',
   'task.remoteSeeds': '시드: {n}',
   'accounts.routing.orderHintTorrents': '마그넷 링크와 .torrent 파일은 내장 토렌트 클라이언트와 토렌트를 지원하는 Debrid 서비스 중 목록에서 더 위에 있는 쪽으로 갑니다.',
@@ -3527,6 +3461,8 @@ export const ko: Dict = {
   'settings.archives.journeyHint': '다운로드가 끝난 파일에 일어나는 일을 단계별로 보여 줍니다. 회색 단계는 꺼져 있어 파일이 그냥 지나갑니다. “{verifying}” 단계는 “{downloads}”의 “{checksums}” 스위치를 따릅니다. “{repairing}” 단계에는 직접 가입한 Usenet 서버가 필요합니다. “{moving}” 단계에는 “{workDir}” 또는 푼 파일을 옮길 위치가 필요합니다. “{cleanup}” 단계는 압축 파일을 그대로 두는 동안 건너뜁니다.',
   'picture.journey.move': '이동 중',
   'picture.journey.cleanup': '정리 중',
+  'picture.journey.wayTo': '{page}의 “{setting}”(으)로 이동',
+  'picture.journey.wayHere': '이 페이지의 “{setting}”(으)로 이동',
   'picture.reconnect.router': '공유기',
   'picture.reconnect.internet': '인터넷',
   'picture.reconnect.oldAddress': '이전 주소',

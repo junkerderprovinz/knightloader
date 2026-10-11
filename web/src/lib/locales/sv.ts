@@ -18,6 +18,7 @@ export const sv: Dict = {
   'nav.workingTitle': 'arbetsnamn',
   'theme.dark': 'Mörkt',
   'theme.light': 'Ljust',
+  'theme.system': 'System',
   'theme.toggle': 'Byt tema',
   'lang.label': 'Språk',
   'lang.open': 'Byt språk',
@@ -437,6 +438,7 @@ export const sv: Dict = {
   'settings.rainbowPaletteHint': 'De åtta färgerna som tilldelas efter position. Redigerbara var för sig.',
   'settings.look.saveFailed': 'Kunde inte spara: {error}',
   'settings.theme': 'Tema',
+  'settings.themeHint': '”{system}” följer enhetens ljusa eller mörka inställning och växlar med den.',
   'settings.motion.wild': 'Vild',
   'settings.motion.storm': 'Storm',
   'settings.motion.subtle': 'Diskret',
@@ -1532,72 +1534,6 @@ export const sv: Dict = {
 
   'settings.nav.help': 'Info',
 
-  'settings.help.intake.title': 'Lägga till nedladdningar',
-  'settings.help.intake.body':
-    'Klistra in länkar i Samlaren, en per rad eller som rörig text. En genomsökning hittar länkar var de än står: mitt i en mening, flera på en rad eller delade över två rader av ett e-postprogram.',
-  'settings.help.intake.b1': 'Släpp en länkbehållarfil (.dlc, .ccf, .rsdf) eller en vanlig länklista.',
-  'settings.help.intake.b2':
-    'Click\'n\'Load-knappar på värd- och forumsidor fungerar som vanligt. KnightLoader svarar på 127.0.0.1:9666, samma port som alla andra nedladdningshanterare använder.',
-  'settings.help.intake.b3':
-    'Klistra in en sid-URL i stället för en fillänk och slå på Genomsökning för att extrahera varje fil den länkar till, i stället för att ladda ned själva sidan.',
-  'settings.help.intake.link1': 'Öppna inställningar för Länksamlare',
-
-  'settings.help.collector.title': 'Samlaren, innan något laddas ned',
-  'settings.help.collector.body':
-    'Nya länkar hamnar först i Samlaren, inte i kön: en mellanzon för att kontrollera namn, storlekar och dubblettvarningar innan något startar. Automatisk bekräftelse kan hoppa över det steget, med en valfri fördröjning; när den är bekräftad startar en länk antingen direkt eller väntar i kön, beroende på automatisk start.',
-  'settings.help.collector.link': 'Öppna inställningar för Länksamlare',
-
-  'settings.help.rules.title': 'Regler: paket, mappar och vad som behålls',
-  'settings.help.rules.body':
-    'Packagizer döper om en länk, väljer dess mapp och sätter dess nedladdningsalternativ när den kommer in, utifrån villkor du skriver. Länkfiltret avgör om en länk behålls över huvud taget. Ett nekande anger alltid vilken regel som orsakade det och varför.',
-  'settings.help.rules.link': 'Öppna Regler',
-
-  'settings.help.queue.title': 'Hantera kön',
-  'settings.help.queue.body':
-    'Pausa, återuppta eller ordna om vilken länk som helst, ensam eller som ett helt paket. Det finns två sätt att stoppa kön. Att stanna den lämnar det som redan körs orört, så att det blir klart av sig självt. Att stoppa alla överföringar direkt visar först vad som skulle gå förlorat och fortsätter bara när du bekräftar. Varningen finns för överföringar som inte kan fortsätta där de slutade.',
-  'settings.help.queue.b1': 'En enskild länk kan åsidosätta det globala antalet anslutningar eller brytaren för uppackning efter nedladdning.',
-  'settings.help.queue.b2': 'En dubblett av en länk som redan finns i listan avvisas alltid, innan den någonsin når Samlaren.',
-
-  'settings.help.limits.title': 'Ta sig runt hosterns gränser',
-  'settings.help.limits.body': 'Tre oberoende sätt att hindra en gratisgräns från att vara taket:',
-  'settings.help.limits.b1':
-    'Anslutningar: sprid nedladdningar över mer än en utgående väg (en andra linje, en proxy, SOCKS) i stället för att alltid gå ut via den här maskinens egen adress.',
-  'settings.help.limits.b2':
-    'Återanslutning: be routern om en ny publik adress, det enda som häver en gräns som är knuten till själva adressen. Det fungerar via UPnP, ett externt program, ett skript eller genom att spela upp HTTP-anrop mot routerns adminsida igen. Befintliga JDownloader LiveHeader/curl-skript fungerar oförändrat.',
-  'settings.help.limits.b3':
-    'Konton: spara premium- eller debrid-inloggningar (Real-Debrid, AllDebrid, TorBox och andra) så att en berättigad länk hämtas i full hastighet i stället för med gratisgränsen.',
-  'settings.help.limits.link1': 'Öppna Nätverk',
-  'settings.help.limits.link3': 'Öppna Konton',
-
-  'settings.help.captcha.title': 'Captcha',
-  'settings.help.captcha.body':
-    'När en värd begär en captcha provas först captcha-kontona du har ställt in, i den ordning du har angett. Om inget är inställt, eller inget kan lösa den, visas captchan för dig i stället för att misslyckas tyst.',
-  'settings.help.captcha.link': 'Öppna inställningar för Captcha',
-
-  'settings.help.after.title': 'Efter nedladdning',
-  'settings.help.after.body':
-    'Arkiv packas upp automatiskt: zip (även krypterade, både WinZip AES och det äldre ZipCrypto), rar med flerdelade set, 7z, tar samt gzip/bzip2/xz/zstd, oavsett om de omsluter en tar. Uppackningen är ren Go och behöver inga externa unrar- eller 7z-program. För ett krypterat arkiv provas en lista med lösenord i tur och ordning. En färdig fil kontrolleras mot den kontrollsumma som följde med: en .sfv-lista, en md5-/sha1-/sha256sum-fil eller en CRC32 som själva utgåvans namn bär.',
-  'settings.help.after.link1': 'Öppna inställningar för Arkiv',
-  'settings.help.after.link2': 'Öppna inställningar för Nedladdningar',
-
-  'settings.help.schedule.title': 'Köra obevakat',
-  'settings.help.schedule.body':
-    'Ett veckoschema pausar eller stryper kön efter klockan, till exempel under ett nattligt fönster, och håller sig korrekt över sommartidsskiftet. Det är samma idé som JDownloaders Scheduler.',
-  'settings.help.schedule.link': 'Öppna Automatisering',
-
-  'settings.help.instances.title': 'Köra mer än en instans',
-  'settings.help.instances.body': 'Lägg till en annan KnightLoader som motpart, så dyker dess kö upp på den här panelen också. I samma nätverk är det ett direkt anrop till den andra instansens eget API, precis som en webbläsare skulle göra. Över nätverksgränser parar tolv ord ihop de två via ett relä du kan driva själv.',
-  'settings.help.instances.link': 'Öppna Instanser',
-
-  'settings.help.access.title': 'Åtkomst och felsökning',
-  'settings.help.access.body': 'Ett lösenord låser hela gränssnittet så att det bara nås med en sessionscookie. På sidan Säkerhet finns det tillsammans med den andra faktorn, nycklar och API-token. Sidan Diagnostik skapar en fil att bifoga till en felrapport: version och bygginformation, de aktuella inställningarna med alla lösenord borttagna, den här processens egna senaste loggrader och hur många goroutines som körs.',
-  'settings.help.access.link1': 'Öppna Säkerhet',
-  'settings.help.access.link2': 'Öppna Diagnostik',
-
-  'settings.help.advanced.title': 'Allt annat',
-  'settings.help.advanced.body':
-    'Varje inställning i det här bygget kan läsas och ändras via sitt råa namn på sidan Avancerat. Det gäller även några som ännu inte har en egen kontroll någon annanstans, till exempel hur en spegel av en redan nedladdad fil hanteras och vad som händer när en nedladdning skulle hamna på ett namn som redan är upptaget.',
-  'settings.help.advanced.link': 'Öppna inställningar för Avancerat',
   'task.mode.free': 'Gratis',
   'task.mode.premium': 'Premium',
   'settings.about.title': 'Om KnightLoader',
@@ -3361,11 +3297,9 @@ export const sv: Dict = {
   'settings.categories.torrentFilesOwn': 'Eget',
   'settings.watchDirFilesHint': 'Filer som läggs här tas in automatiskt: länklistor (.txt, .crawljob, .magnet), .torrent-filer, behållare (.dlc, .ccf, .rsdf) och .nzb-filer.',
   'container.usenet': '{file} gick till {service}. Dess filer dyker upp här när {service} har hämtat dem från Usenet.',
-  'settings.help.intake.watchFiles': 'En bevakad mapp tar in det som läggs i den: länklistor (.txt, .crawljob, .magnet), .torrent-filer, behållare (.dlc, .ccf, .rsdf) och .nzb-filer.',
   'container.nzbTooBig': 'den är större än {max}, det största en .nzb får vara',
   'container.noUsenet': 'den är en .nzb, och inget här kan hämta den från Usenet. Lägg till en Usenet-server eller ett TorBox- eller Premiumize.me-konto under Konton.',
   'activity.usenet': 'Usenet',
-  'settings.help.intake.nzb': 'En .nzb, uppladdad här eller skickad av Sonarr eller Radarr, går till din egen Usenet-server eller till ditt TorBox- eller Premiumize.me-konto, beroende på vilket som kommer först i prioritetsordningen under Konton. Din egen server hämtar varje fil direkt. En debrid-tjänst hämtar releasen först, och filerna i den laddas sedan ned som vilken annan länk som helst. TorBox tar bara emot .nzb-filer i abonnemang som innehåller Usenet. Om TorBox tackar nej till den första, misslyckas den .nzb-filen om inte ett annat konto tar över den.',
   'task.remote': 'Hämtar hos {service}',
   'task.remoteSeeds': 'Seeds: {n}',
   'accounts.routing.orderHintTorrents': 'Magnetlänkar och .torrent-filer går antingen till den inbyggda torrentklienten eller till en debrid-tjänst som tar torrents, beroende på vilken som står högst i listan.',
@@ -3539,6 +3473,8 @@ export const sv: Dict = {
   'settings.archives.journeyHint': 'Vad som händer med en fil när den har laddats ned, station för station. En grå station är av och filen går förbi den. ”{verifying}” följer reglaget ”{checksums}” under ”{downloads}”. ”{repairing}” kräver en egen Usenet-server. ”{moving}” kräver ”{workDir}” eller en plats för de uppackade filerna. ”{cleanup}” hoppas över så länge arkivet behålls.',
   'picture.journey.move': 'Flyttar',
   'picture.journey.cleanup': 'Städar',
+  'picture.journey.wayTo': 'Gå till ”{setting}” under {page}',
+  'picture.journey.wayHere': 'Gå till ”{setting}” på den här sidan',
   'picture.reconnect.router': 'Router',
   'picture.reconnect.internet': 'Internet',
   'picture.reconnect.oldAddress': 'Gammal adress',

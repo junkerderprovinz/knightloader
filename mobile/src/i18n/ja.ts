@@ -160,6 +160,7 @@ export const ja: Dict = {
   'settings.theme': 'テーマ',
   'settings.theme.light': 'ライト',
   'settings.theme.dark': 'ダーク',
+  'settings.theme.system': 'システム',
   'settings.corners': '角',
   'settings.corners.round': '丸い',
   'settings.corners.slightlyRounded': 'やや丸い',

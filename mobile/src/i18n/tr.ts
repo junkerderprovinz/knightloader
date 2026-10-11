@@ -161,6 +161,7 @@ export const tr: Dict = {
   'settings.theme': 'Tema',
   'settings.theme.light': 'Açık',
   'settings.theme.dark': 'Koyu',
+  'settings.theme.system': 'Sistem',
   'settings.corners': 'Köşeler',
   'settings.corners.round': 'Yuvarlak',
   'settings.corners.slightlyRounded': 'Yumuşak',
