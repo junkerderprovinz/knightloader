@@ -3,6 +3,8 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
+	"crypto/sha256"
 	"encoding/json"
 	"net/http"
 	"net/http/httptest"
@@ -46,12 +48,10 @@ var groupRefused = []string{
 	"POST /api/tokens",
 	"DELETE /api/tokens/{id}",
 
-	// The phrase, the group, the relay and the peers. Only the owner takes a
-	// phone out of the group.
+	// The phrase, the group, the relay and the peers.
 	"DELETE /api/connect",
 	"GET /api/connect",
 	"POST /api/connect/activate",
-	"DELETE /api/connect/apps/{id}",
 	"POST /api/connect/join",
 	"POST /api/connect/reveal",
 	"GET /api/discovery",
@@ -495,42 +495,123 @@ func TestAMemberCannotEraseWhatWasDownloaded(t *testing.T) {
 	}
 }
 
-func TestOnlyTheOwnerTakesAPhoneOutOfTheGroup(t *testing.T) {
+// signedMember calls a's group routes as member id, signing with a key a has
+// approved for kind, the way the guard sees a call that relay.OpenCall let
+// through.
+func signedMember(t *testing.T, a *app.App, id, kind string) func(method, path string) (int, []byte) {
+	t.Helper()
+	seed := sha256.Sum256([]byte(id))
+	pub := ed25519.NewKeyFromSeed(seed[:]).Public().(ed25519.PublicKey)
+	// Built first: a handler built for an instance that holds a phrase from
+	// before member keys starts its group state over.
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	if _, _, err := a.Federation.Approve(id, pub, kind); err != nil {
+		t.Fatal(err)
+	}
+	return func(method, path string) (int, []byte) {
+		return serve(context.Background(), relay.ProxyCall{
+			Method: method, Path: path, From: id, Kind: kind, Key: pub, Sig: []byte("checked by OpenCall"),
+		})
+	}
+}
+
+func TestOnlyTheOwnerOrAnApprovedInstanceTakesAPhoneOut(t *testing.T) {
 	t.Parallel()
 	a, _, _, member, owner := groupServer(t)
 	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
 		t.Fatal(err)
 	}
-	if status, body := member(http.MethodDelete, "/api/connect/apps/phone-other", ""); !refusedForGroup(status, body) {
-		t.Errorf("a member removing a phone = %d (%s), want ownLoginNeeded", status, body)
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	for name, call := range map[string]func() (int, []byte){
+		"an unsigned member": func() (int, []byte) { return member(http.MethodDelete, "/api/connect/apps/phone-other", "") },
+		"an approved phone":  func() (int, []byte) { return phone(http.MethodDelete, "/api/connect/apps/phone-other") },
+	} {
+		if status, body := call(); status != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+			t.Errorf("%s removing a phone = %d (%s), want 403 decisionNotFromInstance", name, status, body)
+		}
 	}
 	if a.Federation.Removed("phone-other") {
-		t.Fatal("a member took a phone out of the group")
+		t.Fatal("a phone or an unsigned member took a phone out of the group")
 	}
-	if status, body := owner(http.MethodDelete, "/api/connect/apps/phone-other", ""); status != http.StatusNoContent {
-		t.Fatalf("the owner removing a phone = %d (%s), want 204", status, body)
+
+	instance := signedMember(t, a, "instance-b", relay.KindInstance)
+	if status, body := instance(http.MethodDelete, "/api/connect/apps/phone-other"); status != http.StatusNoContent {
+		t.Fatalf("an approved instance passing a removal on = %d (%s), want 204", status, body)
 	}
 	if !a.Federation.Removed("phone-other") {
-		t.Fatal("the owner's removal was not recorded")
+		t.Fatal("the removal an approved instance passed on was not recorded")
+	}
+	if status, body := owner(http.MethodDelete, "/api/connect/apps/phone-mine", ""); status != http.StatusNoContent {
+		t.Fatalf("the owner removing a phone = %d (%s), want 204", status, body)
+	}
+	if status, _ := phone(http.MethodGet, "/api/tasks"); status != http.StatusGone {
+		t.Errorf("the phone the owner removed = %d, want 410", status)
+	}
+	if status, body := owner(http.MethodDelete, "/api/connect/apps/instance-b", ""); status != http.StatusConflict || refusalCode(body) != "memberIsInstance" {
+		t.Errorf("the owner removing an instance as a phone = %d (%s), want 409 memberIsInstance", status, body)
 	}
 }
 
-func TestNoMemberMakesThisInstanceLeaveTheGroup(t *testing.T) {
+func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	t.Parallel()
-	a, _, _, member, _ := groupServer(t)
+	a, _, _, member, owner := groupServer(t)
 	const secret = "abababababababababababababababab"
 	if err := a.Accounts.Set(relay.SeedAccountService, secret); err != nil {
 		t.Fatal(err)
 	}
 	self := a.Settings.Get().InstanceID
-	if status, body := member(http.MethodDelete, "/api/connect/members/"+self, ""); status != http.StatusNotFound {
-		t.Errorf("a member asking this instance to leave = %d (%s), want 404", status, body)
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	if status, body := member(http.MethodDelete, "/api/connect/members/"+self, ""); status != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+		t.Errorf("an unsigned member asking this instance to leave = %d (%s), want 403 decisionNotFromInstance", status, body)
+	}
+	if status, body := phone(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
+		t.Errorf("an approved phone asking this instance to leave = %d (%s), want 403 decisionNotFromInstance", status, body)
 	}
 	if status, body := member(http.MethodDelete, "/api/connect", ""); !refusedForGroup(status, body) {
 		t.Errorf("a member leaving the group for this instance = %d (%s), want ownLoginNeeded", status, body)
 	}
+	if status, body := owner(http.MethodDelete, "/api/connect/members/"+self, ""); status != http.StatusBadRequest {
+		t.Errorf("the owner removing this instance as another = %d (%s), want 400", status, body)
+	}
 	if got, _ := a.Accounts.Get(relay.SeedAccountService); got != secret {
-		t.Fatalf("the phrase is %q after the members' calls, want it kept", got)
+		t.Fatalf("the phrase is %q after those calls, want it kept", got)
+	}
+
+	instance := signedMember(t, a, "instance-b", relay.KindInstance)
+	if status, body := instance(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusNoContent {
+		t.Fatalf("an approved instance taking this one out = %d (%s), want 204", status, body)
+	}
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if got, _ := a.Accounts.Get(relay.SeedAccountService); got == "" {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatal("the instance kept its phrase after an approved instance took it out of the group")
+		}
+		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func TestTheOwnerTakesAnotherInstanceOutButNotAPhoneThatWay(t *testing.T) {
+	t.Parallel()
+	a, _, _, _, owner := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+		t.Fatal(err)
+	}
+	instance := signedMember(t, a, "instance-b", relay.KindInstance)
+	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
+	if status, body := owner(http.MethodDelete, "/api/connect/members/phone-mine", ""); status != http.StatusConflict || refusalCode(body) != "memberIsApp" {
+		t.Errorf("the owner removing a phone as an instance = %d (%s), want 409 memberIsApp", status, body)
+	}
+	if status, body := phone(http.MethodGet, "/api/tasks"); status != http.StatusOK {
+		t.Errorf("the phone after the refused removal = %d (%s), want 200", status, body)
+	}
+	if status, body := owner(http.MethodDelete, "/api/connect/members/instance-b", ""); status != http.StatusNoContent {
+		t.Fatalf("the owner removing another instance = %d (%s), want 204", status, body)
+	}
+	if status, body := instance(http.MethodGet, "/api/tasks"); status != http.StatusGone {
+		t.Errorf("the removed instance's key = %d (%s), want 410", status, body)
 	}
 }
 

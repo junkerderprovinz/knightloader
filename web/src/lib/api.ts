@@ -4079,11 +4079,19 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
   return json(r);
 }
 
-/** removeApp takes a phone or browser extension out of the group. This
- *  instance turns it away, and it drops the whole group when it next calls
- *  here; the phrase entered again brings it back as a new member. */
+/** removeApp takes a phone or browser extension out of the group on every
+ *  instance of it; the phrase entered again brings it back as a new device
+ *  that waits for approval. */
 export async function removeApp(id: string): Promise<void> {
   const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** removeMember takes another instance out of the group on every instance of
+ *  it. It forgets the phrase, and entered there again the phrase brings it
+ *  back as a new device that waits for approval. */
+export async function removeMember(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
 }
 

@@ -48,44 +48,33 @@ release's tag.
   instance card used the plural for every count, and in languages with more
   plural forms, such as Russian, Polish or Arabic, the same form stood after 2
   and after 5. It uses the form each language's plural rules ask for.
-- **Another instance can no longer be taken out of the group from your
-  Pairing page.** An instance leaves the group from its own page. Taking a
-  phone or the extension out applies on the instance where you do it, and the
-  phone or extension leaves the whole group the next time it calls there.
 
 ### Security
 
 - **The phone, the extension and the other instances of a group reach only
   the routes on a list.** Everything else answers that you have to sign in on
-  that instance's own web interface, and the web interface and the Android app
-  say so in your language. A path that does not exist answers 404.
+  that instance's own web interface, and the web interface, the Android app
+  and the browser extension say so in your language. A path that does not exist answers 404.
 - **A group member no longer sees archive or download passwords,** a sign-in
   or passkey inside a link, or a private tracker's passkey. API tokens without
   the Admin right get the same redacted task list, on the live stream too.
 - **A group member picks a download folder only inside your download folder
   or a category's folder, and can remove rows but not erase the files behind
-  them.** No member can take a phone out of the group or make an instance
-  leave it.
-### Security
-
+  them.**
 - **Another website can no longer change anything through your browser.** A
   call that changes something and carries a body has to be sent as JSON, and
   a request your browser marks as started by another site is refused. Scripts
   that post with `curl -d` need `-H 'Content-Type: application/json'`. Uploads
   and the doors for Sonarr and Radarr take what they always took.
-
 - **Without a password, backups, passwords, the twelve words and your files
   stay put.** Downloading a backup, exporting the settings with their
   passwords, showing the twelve words again and deleting downloaded files need
   a login password first. The desktop app's own window still does all four
   without one.
-
 - **KnightLoader no longer takes a domain from a sign-in.** The address it
   tells its group is only ever one you typed under Settings > Pairing > Known
   domains, never the name a request happened to arrive on. Domains it noted
   before stay listed until you remove them.
-### Security
-
 - **Nothing lands in the data folder any more.** A download, an unpacking, a
   move or a rename that would write next to `auth.json`, `tokens.json` and
   `settings.json` is refused, whether the folder was typed in the settings, set
@@ -108,25 +97,25 @@ release's tag.
   file that has a second path.** A path through a symlink, a junction or a bind
   mount, or one spelled in another case on a disk that ignores case, counts as
   the same file, and so does one the disk cannot answer for.
-### Security
-
 - **Every member of a group signs its own calls.** Instances, the Android app
   and the browser extension each make a key of their own when they join, and
   an instance remembers it on the member's first signed call. After that no
   other key, and no unsigned call, is taken in that member's name. Groups
   paired before keep working; each member's key is remembered after the
   update without pairing again.
-
 - **A new device has to be approved.** A phone, a browser or an instance that
   enters the twelve words waits under **Waiting for approval** on the Pairing
   card, with its kind and key fingerprint, until somebody approves or refuses
   it there. The decision reaches every instance of the group, and the waiting
   device says where to approve it. Devices already in a group count as
   approved.
-
 - **Removing or refusing a device takes back its key for good.** It can come
-  back only as a new device, which waits for approval again.
-
+  back only as a new device, which waits for approval again. A removal made on
+  your Pairing page reaches every instance of the group, and an instance you
+  take out forgets the twelve words. The instances take approvals and removals
+  only from another instance with an approved key, so a phone, the extension
+  or a member on an older build cannot remove anybody or make an instance
+  leave.
 - **One member can no longer crowd out the others.** How many calls wait at
   once, which request ids are used up, and how many new devices join in an
   hour are counted per key by the instance itself.
