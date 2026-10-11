@@ -35,7 +35,7 @@ function Chip({ label, hint, tone }: { label: string; hint?: string; tone: 'neut
  * floorMarks puts the low-space and stop floors where the fill would reach
  * them. A floor of 0 means unset and draws nothing.
  */
-function floorMarks(v: DiskVolume, cfg: Settings | null, t: ReturnType<typeof useT>['t']): VesselMark[] {
+export function floorMarks(v: DiskVolume, cfg: Settings | null, t: ReturnType<typeof useT>['t']): VesselMark[] {
   if (!cfg) return [];
   const marks: VesselMark[] = [];
   const add = (bytes: number, label: string, tone: VesselMark['tone']) => {
@@ -48,7 +48,7 @@ function floorMarks(v: DiskVolume, cfg: Settings | null, t: ReturnType<typeof us
 }
 
 /** floorTone colours the liquid once the free space is under a floor that is set. */
-function floorTone(v: DiskVolume, cfg: Settings | null): 'accent' | 'warn' | 'fail' {
+export function floorTone(v: DiskVolume, cfg: Settings | null): 'accent' | 'warn' | 'fail' {
   if (!cfg) return 'accent';
   if (cfg.diskCriticalSpace > 0 && v.free < cfg.diskCriticalSpace) return 'fail';
   if (cfg.diskLowSpace > 0 && v.free < cfg.diskLowSpace) return 'warn';

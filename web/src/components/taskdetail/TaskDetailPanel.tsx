@@ -5,6 +5,7 @@ import { reachable as taskFileReachable } from '../FileActions';
 import { FailureCard } from './FailureCard';
 import { LinkCard } from './LinkCard';
 import { LogCard } from './LogCard';
+import { PiecesCard } from './PiecesCard';
 import { PlayerCard } from './PlayerCard';
 import { RulesCard } from './RulesCard';
 import { TimesCard } from './TimesCard';
@@ -35,11 +36,12 @@ export function TaskDetailPanel({ task, base, hue }: { task: Task; base: string;
       className="flex flex-col gap-4"
     >
       <LinkCard task={task} base={base} head={head} hue={at(0)} />
-      <TimesCard task={task} hue={at(1)} />
-      <FailureCard task={task} hue={at(2)} />
-      <RulesCard task={task} hue={at(3)} />
-      <PlayerCard task={task} base={base} head={head} hue={at(4)} />
-      <LogCard task={task} base={base} hue={at(5)} />
+      <PiecesCard task={task} base={base} hue={at(1)} />
+      <TimesCard task={task} hue={at(2)} />
+      <FailureCard task={task} hue={at(3)} />
+      <RulesCard task={task} hue={at(4)} />
+      <PlayerCard task={task} base={base} head={head} hue={at(5)} />
+      <LogCard task={task} base={base} hue={at(6)} />
     </section>
   );
 }
