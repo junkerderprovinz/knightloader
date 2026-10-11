@@ -51,8 +51,9 @@ any address it likes into that header, and with it guess without ever being
 made to wait. A range must cover your proxies and no one who signs in. If
 KnightLoader's port is also published directly, leave out the gateway of its
 Docker network, because a visitor on that port can arrive from the gateway.
-KnightLoader refuses a range wider than `/28` for IPv4 or `/48` for IPv6, so a
-whole home network such as a `/24` never counts as a proxy. A wider range an
+KnightLoader refuses a range wider than `/28` for IPv4 or `/124` for IPv6,
+sixteen addresses either way, so a whole home network such as a `/24` never
+counts as a proxy. A wider range an
 earlier version took stays in the list, is not used, and is named under the
 field until you change it.
 Empty, the default, means every request counts for the address it connected

@@ -1,7 +1,7 @@
 // The widest range the server believes as a trusted proxy, per family. It
 // mirrors maxProxyRangeV4 and maxProxyRangeV6 in internal/settings/settings_access.go.
 const WIDEST_V4 = 28;
-const WIDEST_V6 = 48;
+const WIDEST_V6 = 124;
 
 /**
  * unusedProxyRanges lists the saved entries the sign-in throttle passes over

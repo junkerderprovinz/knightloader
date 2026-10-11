@@ -20,10 +20,12 @@ const maxTrustedProxies = 32
 // A range may be no wider than these. Every address inside one can name any
 // caller it likes, so a range must hold the proxies alone, and one as wide as
 // a home or office network, a /24 or more, is sure to hold the visitors too.
-// A container network's proxy is named by its own address.
+// Both allow sixteen addresses, since an IPv6 network hands out a /64 or more
+// to every household on it. A container network's proxy is named by its own
+// address.
 const (
 	maxProxyRangeV4 = 28
-	maxProxyRangeV6 = 48
+	maxProxyRangeV6 = 124
 )
 
 // ProxyRangeTooWide refuses a trusted range wider than maxProxyRangeV4 or

@@ -69,8 +69,8 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			code:  "access.proxyRangeTooWide",
 		},
 		{
-			name:  "a trusted IPv6 range wider than a /48",
-			patch: `{"trustedProxies":["2001:db8::/32"]}`,
+			name:  "a trusted IPv6 range wider than a /124",
+			patch: `{"trustedProxies":["2001:db8::/64"]}`,
 			field: "trustedProxies",
 			code:  "access.proxyRangeTooWide",
 		},
