@@ -187,9 +187,8 @@ func TestManyKeysCostTheGuardLittle(t *testing.T) {
 	}
 }
 
-// TestManyFullRecordsKeepNoOtherKeyOut fills the records of more keys than
-// it once took to fill the whole guard. Each full record refuses only its own
-// key's calls.
+// TestManyFullRecordsKeepNoOtherKeyOut fills the records of seventeen keys.
+// Each full record refuses only its own key's calls.
 func TestManyFullRecordsKeepNoOtherKeyOut(t *testing.T) {
 	g := NewReplayGuard()
 	now := time.Unix(1760000000, 0)
