@@ -20,6 +20,7 @@ export const HUE = 'var(--accent-glyph)';
 export const OK = 'var(--status-ok-solid)';
 export const WARN = 'var(--status-warn-solid)';
 export const FAIL = 'var(--status-fail-solid)';
+export const INFO = 'var(--status-info-solid)';
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 

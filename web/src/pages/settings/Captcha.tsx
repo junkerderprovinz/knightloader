@@ -24,9 +24,10 @@ import {
   type ButtonVerdict,
 } from '../../components/ui';
 import { HosterIcon } from '../../components/HosterIcon';
+import { CaptchaChain, type ChainSolver } from '../../components/pictures/CaptchaChain';
 import { TestButton } from '../../components/TestButton';
 import { IconMoveDown, IconMoveUp } from '../../lib/icons';
-import { useDraft } from './context';
+import { useDraft, useFeatures } from './context';
 import { NeutralSwitch, SubHead } from './controls';
 import { ModuleToggle, PageBadge } from './ModuleToggle';
 
@@ -44,6 +45,7 @@ const MAX_WAIT = 600;
 export function Captcha() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const { features } = useFeatures();
 
   const [accounts, setAccounts] = useState<Account[] | null>(null);
   const [catalogue, setCatalogue] = useState<CatalogueService[]>([]);
@@ -81,6 +83,17 @@ export function Captcha() {
     ...solvers.filter((s) => !order.includes(s.id)),
   ];
 
+  const chain: ChainSolver[] = rows.map((svc) => {
+    const state = keyState(svc.id, accounts);
+    return {
+      id: svc.id,
+      name: svc.label,
+      place: order.indexOf(svc.id) + 1,
+      skipped: state === 'set' ? undefined : t(KEY_STATE[state]),
+    };
+  });
+  const switchedOff = features.modules.some((m) => m.id === 'captcha' && !m.enabled);
+
   function setOrder(next: string[]) {
     patch({ captchaSolverOrder: next.length > 0 ? next : null });
   }
@@ -111,22 +124,36 @@ export function Captcha() {
         <ModuleToggle id="captcha" />
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{t('settings.captcha.orderEmpty')}</p>}
 
-        <ul className="flex flex-col">
-          {rows.map((svc, i) => (
-            <SolverRow
-              key={svc.id}
-              svc={svc}
-              hue={i}
-              enabled={order.includes(svc.id)}
-              position={order.indexOf(svc.id)}
-              count={order.length}
-              last={i === rows.length - 1}
-              state={keyState(svc.id, accounts)}
-              onToggle={(on) => setEnabled(svc.id, on)}
-              onMove={(by) => move(svc.id, by)}
-            />
-          ))}
-        </ul>
+        {/* The chain stands beside the rows it is drawn from, and under them
+            where the card is too narrow for both. */}
+        <div className="@container">
+          <div className="flex flex-col gap-x-8 gap-y-4 @[46rem]:flex-row @[46rem]:items-start">
+            <ul className="flex min-w-0 flex-1 flex-col">
+              {rows.map((svc, i) => (
+                <SolverRow
+                  key={svc.id}
+                  svc={svc}
+                  hue={i}
+                  enabled={order.includes(svc.id)}
+                  position={order.indexOf(svc.id)}
+                  count={order.length}
+                  last={i === rows.length - 1}
+                  state={keyState(svc.id, accounts)}
+                  onToggle={(on) => setEnabled(svc.id, on)}
+                  onMove={(by) => move(svc.id, by)}
+                />
+              ))}
+            </ul>
+            <div className="w-full shrink-0 @[46rem]:w-[18rem]">
+              <CaptchaChain
+                solvers={chain}
+                wait={cfg.captchaSolverOnlyUnwatched ? cfg.captchaSolverWait : null}
+                off={switchedOff}
+                label={t('settings.captcha.orderTitle')}
+              />
+            </div>
+          </div>
+        </div>
         <div className="pt-2">
           <PageBadge page="accounts" title={t('settings.captcha.keys')} />
         </div>

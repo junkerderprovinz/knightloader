@@ -4,13 +4,14 @@ import { useHealthReport } from '../../lib/useHealthReport';
 import { OverallCard } from './health/Overall';
 import { PartsCard } from './health/Parts';
 import { ScrapeCard } from './health/Scrape';
+import { SelfTestPulseCard } from './health/SelfTestPulse';
 import { TasksCard } from './health/Tasks';
 
 /**
- * Health shows the state of this instance: every part that can fail on its
- * own, the queue by why tasks wait or failed, and the metrics switch. It reads
- * one polled report and is not part of the settings draft, since nothing here
- * is saved.
+ * Health shows the state of this instance: the self-test as a pulse, every
+ * part that can fail on its own, the queue by why tasks wait or failed, and
+ * the metrics switch. It reads one polled report and is not part of the
+ * settings draft, since nothing here is saved.
  */
 export function Health() {
   const { t } = useT();
@@ -26,9 +27,10 @@ export function Health() {
   return (
     <div className="flex flex-col gap-10">
       <OverallCard hue={0} report={report} />
-      <PartsCard hue={1} report={report} />
-      <TasksCard hue={2} report={report} />
-      <ScrapeCard hue={3} />
+      <SelfTestPulseCard hue={1} />
+      <PartsCard hue={2} report={report} />
+      <TasksCard hue={3} report={report} />
+      <ScrapeCard hue={4} />
     </div>
   );
 }

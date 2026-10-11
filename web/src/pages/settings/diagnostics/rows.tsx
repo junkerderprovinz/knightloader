@@ -30,7 +30,7 @@ export const PROXY_NAMES: Record<string, TranslationKey> = {
 };
 
 /** The status word beside a row's name. */
-const STATUS_WORDS: Record<SelfTestStatus, TranslationKey> = {
+export const STATUS_WORDS: Record<SelfTestStatus, TranslationKey> = {
   pass: 'settings.selftest.status.pass',
   warn: 'settings.selftest.status.warn',
   fail: 'settings.selftest.status.fail',
