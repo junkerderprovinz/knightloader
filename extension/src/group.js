@@ -62,10 +62,11 @@ async function writePhrase(phrase) {
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase, the member id and the default target. */
+/** Leaves the group, dropping the phrase, the member id and key and the default target. */
 async function forgetGroup() {
   await secretStore('readwrite', (s) => {
     s.delete('member');
+    s.delete('memberKey');
     return s.delete('phrase');
   });
   await chrome.storage.local.remove(['phrase', 'defaultInstance']);
@@ -121,6 +122,40 @@ function readMemberId() {
 }
 
 /**
+ * The member key this browser signs its calls with, kept beside the member id
+ * it was made for: an instance pins the key to that id on the first signed
+ * call and accepts no other key for it (internal/relay/member.go). The private
+ * half never leaves WebCrypto. A browser without Ed25519 in WebCrypto gets
+ * null and calls unsigned, as a release before keys did.
+ */
+async function readMemberKey(memberId) {
+  const kept = await secretStore('readonly', (s) => s.get('memberKey'));
+  if (kept && kept.member === memberId && kept.privateKey && kept.publicKey) return kept;
+  let pair;
+  try {
+    pair = await crypto.subtle.generateKey({ name: 'Ed25519' }, false, ['sign', 'verify']);
+  } catch {
+    return null;
+  }
+  const made = {
+    member: memberId,
+    privateKey: pair.privateKey,
+    publicKey: new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey)),
+  };
+  // Two sessions starting together each made a key; the first one stored wins
+  // and both sign with it.
+  await secretStore('readwrite', (s) => {
+    const got = s.get('memberKey');
+    got.onsuccess = () => {
+      if (!(got.result && got.result.member === memberId)) s.put(made, 'memberKey');
+    };
+    return got;
+  });
+  const stored = await secretStore('readonly', (s) => s.get('memberKey'));
+  return stored && stored.member === memberId ? stored : made;
+}
+
+/**
  * withGroup opens a relay session for the stored phrase and hands it to `work`,
  * like relaySession. Without a phrase it throws an Error with code 'no-phrase'
  * for callers to translate.
@@ -133,13 +168,15 @@ async function withGroup(work) {
     throw err;
   }
   const { key, frameKey } = await keysFromPhrase(phrase);
+  const memberId = await readMemberId();
   return relaySession(
     {
       url: DEFAULT_RELAY_URL,
       key,
       frameKey,
       selfId: sessionInstanceId(),
-      memberId: await readMemberId(),
+      memberId,
+      memberKey: await readMemberKey(memberId),
       // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
       // An instance took this browser out of the group. It starts over like a
