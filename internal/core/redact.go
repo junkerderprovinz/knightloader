@@ -13,16 +13,24 @@ import (
 // only its host, since a private tracker puts the member's passkey in the path.
 func (t Task) Redacted() any { return t.WithoutCredentials() }
 
-// WithoutCredentials is Redacted with its type.
+// WithoutCredentials is Redacted with its type. Every field that can hold an
+// address goes through RedactText, the name among them, since a link that
+// names no file keeps its address as the name.
 func (t Task) WithoutCredentials() Task {
 	t.Password = ""
 	t.DownloadPassword = ""
 	t.URL = RedactURL(t.URL)
 	t.Source = RedactURL(t.Source)
+	for _, s := range []*string{&t.Name, &t.Package, &t.Filename, &t.Comment, &t.Error, &t.SkipReason, &t.Note} {
+		*s = RedactText(*s)
+	}
+	t.ErrorParams = redactValues(t.ErrorParams)
+	t.RejectParams = redactValues(t.RejectParams)
+	t.SkipParams = redactValues(t.SkipParams)
 	if t.Trackers != nil {
 		trackers := make([]string, len(t.Trackers))
 		for i, tr := range t.Trackers {
-			trackers[i] = trackerHost(tr)
+			trackers[i] = HostOf(tr)
 		}
 		t.Trackers = trackers
 	}
@@ -66,7 +74,7 @@ func RedactURL(s string) string {
 			args[i] = key + "=redacted"
 		case magnet && name == "tr":
 			if tr, err := url.QueryUnescape(value); err == nil {
-				args[i] = key + "=" + url.QueryEscape(trackerHost(tr))
+				args[i] = key + "=" + url.QueryEscape(HostOf(tr))
 			}
 		}
 	}
@@ -77,9 +85,39 @@ func RedactURL(s string) string {
 	return out
 }
 
-// trackerHost is a tracker's address cut to its scheme and host.
-func trackerHost(tr string) string {
-	u, err := url.Parse(strings.TrimSpace(tr))
+// addressInText finds an address in free text. It runs to the next blank,
+// because a password in a sign-in may hold a quote or a bracket; RedactText
+// gives back the punctuation a sentence puts after an address.
+var addressInText = regexp.MustCompile(`(?i)\b(?:[a-z][a-z0-9+.-]*://|magnet:\?)\S+`)
+
+// RedactText is s with RedactURL applied to every address in it, for a name,
+// an error or a log line that may quote a link.
+func RedactText(s string) string {
+	if !strings.Contains(s, ":") {
+		return s
+	}
+	return addressInText.ReplaceAllStringFunc(s, func(addr string) string {
+		bare := strings.TrimRight(addr, `"'()<>[]{},.;:!?`)
+		return RedactURL(bare) + addr[len(bare):]
+	})
+}
+
+func redactValues(m map[string]string) map[string]string {
+	if m == nil {
+		return nil
+	}
+	out := make(map[string]string, len(m))
+	for k, v := range m {
+		out[k] = RedactText(v)
+	}
+	return out
+}
+
+// HostOf is address s cut to its scheme and host, or empty when s is not an
+// address with a host. It is all a tracker keeps, and all of an address that
+// may carry a token in its path.
+func HostOf(s string) string {
+	u, err := url.Parse(strings.TrimSpace(s))
 	if err != nil || u.Scheme == "" || u.Host == "" {
 		return ""
 	}

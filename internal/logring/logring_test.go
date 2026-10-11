@@ -165,3 +165,28 @@ func TestLinesReachTheRingWhenTheConsoleIsGone(t *testing.T) {
 type brokenConsole struct{}
 
 func (brokenConsole) Write([]byte) (int, error) { return 0, errors.New("the handle is invalid") }
+
+// A line that quotes a link, as a failed feed or crawl does with the error the
+// HTTP client gave, reaches the console, the ring and through it the log file
+// and the diagnostics bundle without the link's sign-in or secret arguments.
+func TestNoLineCarriesTheCredentialsOfALink(t *testing.T) {
+	out, ok := log.Writer().(tee)
+	if !ok {
+		t.Fatalf("the log package writes to %T, want the ring's tee", log.Writer())
+	}
+	r := New(10)
+	var console strings.Builder
+	out.ring = r
+	out.console = &console
+	link := "https://user:SIGNINLEAK@indexer.example/api?t=search&apikey=KEYLEAK"
+	log.New(out, "", 0).Printf("feed %s was not read: Get %q: dial tcp: refused", link, link)
+
+	for where, text := range map[string]string{"the ring": strings.Join(r.Lines(), "\n"), "the console": console.String()} {
+		if strings.Contains(text, "SIGNINLEAK") || strings.Contains(text, "KEYLEAK") {
+			t.Errorf("%s holds %q", where, text)
+		}
+		if !strings.Contains(text, "https://indexer.example/api?t=search") {
+			t.Errorf("%s lost the address: %q", where, text)
+		}
+	}
+}
