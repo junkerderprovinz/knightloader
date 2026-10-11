@@ -343,18 +343,23 @@ func (a *App) disposable(paths []string) []string {
 	}
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	claims := make(map[string]int, len(a.tasks))
+	// Where each file was written, because the paths come from
+	// internal/extract, which saw the files there.
+	var files []string
 	for _, t := range a.tasks {
-		if t.Name == "" {
-			continue
+		if t.Name != "" {
+			files = append(files, a.fileOfLocked(t))
 		}
-		// Where the file was written, because the paths come from
-		// internal/extract, which saw the files there.
-		claims[filepath.Clean(a.fileOfLocked(t))]++
 	}
 	out := make([]string, 0, len(paths))
 	for _, p := range paths {
-		if claims[filepath.Clean(p)] <= 1 {
+		claims := 0
+		for _, f := range files {
+			if mayBeOneFile(f, p) {
+				claims++
+			}
+		}
+		if claims <= 1 {
 			out = append(out, p)
 		}
 	}
