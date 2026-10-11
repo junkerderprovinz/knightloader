@@ -159,3 +159,32 @@ func TestTheSpeedRouteSaysItIsMemoryOnly(t *testing.T) {
 		}
 	}
 }
+
+// The day curve reads .length off the samples and places them from the step,
+// so a record with nothing in it still has to carry both.
+func TestTheDayRecordIsAnEmptyListBeforeItsFirstBucket(t *testing.T) {
+	t.Parallel()
+	_, srv := speedServer(t)
+
+	resp, err := http.Get(srv.URL + "/api/stats/speed/day")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode != http.StatusOK {
+		t.Fatalf("GET /api/stats/speed/day: %d", resp.StatusCode)
+	}
+	var raw map[string]json.RawMessage
+	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
+		t.Fatal(err)
+	}
+	if got := string(raw["samples"]); got != "[]" {
+		t.Errorf("samples = %s, want []", got)
+	}
+	if got := string(raw["step"]); got != "300" {
+		t.Errorf("step = %s, want 300", got)
+	}
+	if _, dated := raw["from"]; dated {
+		t.Errorf("an empty record says when it starts: %s", raw["from"])
+	}
+}

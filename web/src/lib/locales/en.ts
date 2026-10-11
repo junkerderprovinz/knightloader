@@ -3726,6 +3726,9 @@ export const en = {
   'picture.reconnect.newAddress': 'New address',
   'picture.reconnect.alt': 'KnightLoader asks the router for a new address. The router drops its connection and comes back with a new one.',
   'picture.seed.target': 'Target {ratio}',
+  'picture.intake.file': 'Files and containers',
+  'picture.intake.account': 'Debrid account',
+  'picture.day.since': 'Measured since {time}',
   'whatsnew.title': 'New in {version}',
   'whatsnew.changes': 'Changes',
   'whatsnew.notesMissing': 'KnightLoader could not load the release notes here. You will find them on GitHub.',
@@ -3754,6 +3757,11 @@ export const en = {
   'whatsnew.change.weekBand': '"{name}" draws the whole week as a band.',
   'whatsnew.change.reconnectScene': 'A picture shows how KnightLoader asks the router for a new address.',
   'whatsnew.change.seedRing': 'A ring shows how close a torrent is to its seed target.',
+  'whatsnew.change.routes': '"{name}" draws the routes out of this instance, and a test turns each line green or red.',
+  'whatsnew.change.waysIn':
+    'A picture shows every way a link reaches the collector, and a click on a way opens its setting.',
+  'whatsnew.change.dayCurve':
+    '"{name}" draws today as a curve: the planned speed limit as an area and the measured speed as a line.',
   'whatsnew.change.infoTile': '"{name}" says who makes KnightLoader, lists every version and shows where to get help.',
   'whatsnew.change.phoneBar': 'On a phone the bottom bar keeps four pages, and its last place opens everything else.',
   'whatsnew.change.queueState': '"{play}" and "{pause}" show what the queue is doing: the filled one is its state, the other is the one to press.',

@@ -3482,6 +3482,9 @@ export const uk: Dict = {
   'picture.reconnect.newAddress': 'Нова адреса',
   'picture.reconnect.alt': 'KnightLoader просить у роутера нову адресу. Роутер розриває з’єднання й повертається з новою.',
   'picture.seed.target': 'Ціль {ratio}',
+  'picture.intake.file': 'Файли й контейнери',
+  'picture.intake.account': 'Акаунт debrid',
+  'picture.day.since': 'Вимірюється з {time}',
   'whatsnew.title': 'Нове у версії {version}',
   'whatsnew.changes': 'Зміни',
   'whatsnew.notesMissing': 'KnightLoader не зміг завантажити тут примітки до випуску. Ви знайдете їх на GitHub.',
@@ -3510,6 +3513,11 @@ export const uk: Dict = {
   'whatsnew.change.weekBand': '«{name}» малює весь тиждень у вигляді стрічки.',
   'whatsnew.change.reconnectScene': 'Зображення показує, як KnightLoader просить у роутера нову адресу.',
   'whatsnew.change.seedRing': 'Кільце показує, наскільки торент близький до своєї цілі роздачі.',
+  'whatsnew.change.routes': '«{name}» малює шляхи назовні, а перевірка фарбує кожну лінію в зелений або червоний.',
+  'whatsnew.change.waysIn':
+    'Зображення показує кожен шлях, яким посилання потрапляє до збирача посилань, а клацання на шляху відкриває його налаштування.',
+  'whatsnew.change.dayCurve':
+    '«{name}» малює сьогоднішній день у вигляді кривої: заплановане обмеження швидкості як область, а виміряну швидкість як лінію.',
   'whatsnew.change.infoTile': '«{name}» каже, хто робить KnightLoader, перелічує всі версії та показує, де отримати допомогу.',
   'whatsnew.change.phoneBar': 'На телефоні нижня панель лишає чотири сторінки, а її останнє місце відкриває все інше.',
   'whatsnew.change.queueState': '«{play}» і «{pause}» показують, що робить черга: зафарбована кнопка показує її стан, а іншу натискають.',

@@ -24,6 +24,25 @@ export interface SpeedHistory {
   sampledAt: string;
 }
 
+/**
+ * What GET /api/stats/speed/day answers: internal/app's SpeedDay, the last day
+ * as five minute means, oldest first. Like the record above it is this
+ * instance's own and starts again with the server.
+ */
+export interface SpeedDay {
+  samples: number[];
+  /** Seconds one sample covers. */
+  step: number;
+  /** When the oldest sample began, absent while there is none. */
+  from?: string;
+}
+
+export async function fetchSpeedDay(): Promise<SpeedDay> {
+  const r = await fetch('/api/stats/speed/day');
+  if (!r.ok) throw new Error(`GET /api/stats/speed/day: ${r.status}`);
+  return (await r.json()) as SpeedDay;
+}
+
 /** The window a graph draws: at most `points` samples, oldest first. */
 export interface SpeedWindow {
   samples: number[];

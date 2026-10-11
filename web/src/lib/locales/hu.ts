@@ -3482,6 +3482,9 @@ export const hu: Dict = {
   'picture.reconnect.newAddress': 'Új cím',
   'picture.reconnect.alt': 'A KnightLoader új címet kér a routertől. A router bontja a kapcsolatot, és új címmel tér vissza.',
   'picture.seed.target': 'Cél: {ratio}',
+  'picture.intake.file': 'Fájlok és konténerek',
+  'picture.intake.account': 'Debrid-fiók',
+  'picture.day.since': 'Mérve {time} óta',
   'whatsnew.title': 'Újdonságok ebben: {version}',
   'whatsnew.changes': 'Változások',
   'whatsnew.notesMissing': 'A KnightLoader itt nem tudta betölteni a kiadási megjegyzéseket. A GitHubon megtalálod őket.',
@@ -3510,6 +3513,12 @@ export const hu: Dict = {
   'whatsnew.change.weekBand': 'A(z) „{name}” az egész hetet egyetlen sávként rajzolja meg.',
   'whatsnew.change.reconnectScene': 'Egy kép mutatja, hogyan kér a KnightLoader új címet a routertől.',
   'whatsnew.change.seedRing': 'Egy gyűrű mutatja, milyen közel van egy torrent a seedelési céljához.',
+  'whatsnew.change.routes':
+    'A(z) „{name}” megrajzolja a kifelé vezető utakat, egy teszt pedig minden vonalat zöldre vagy pirosra színez.',
+  'whatsnew.change.waysIn':
+    'Egy kép megmutat minden utat, amelyen egy link a linkgyűjtőbe jut, és egy útra kattintva megnyílik a beállítása.',
+  'whatsnew.change.dayCurve':
+    'A(z) „{name}” görbeként rajzolja meg a mai napot: a tervezett sebességkorlátot területként, a mért sebességet vonalként.',
   'whatsnew.change.infoTile': 'A(z) „{name}” megmondja, ki készíti a KnightLoadert, felsorol minden verziót, és megmutatja, hol kapsz segítséget.',
   'whatsnew.change.phoneBar': 'Telefonon az alsó sáv négy oldalt tart meg, az utolsó helye pedig minden mást megnyit.',
   'whatsnew.change.queueState': 'A(z) „{play}” és a(z) „{pause}” megmutatja, mit csinál a sor: a kitöltött gomb az állapota, a másik az, amelyiket megnyomod.',

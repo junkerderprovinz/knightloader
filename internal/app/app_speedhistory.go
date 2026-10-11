@@ -38,6 +38,11 @@ const (
 	speedCoarseSlots = 360
 	// speedCoarseEvery is how many fine readings make one coarse bucket.
 	speedCoarseEvery = int(speedCoarseStep / speedFineStep)
+	// The day ring: one bucket per five minutes for a day, 288 numbers, which
+	// the timetable's day curve draws against the limits it planned.
+	speedDayStep  = 5 * time.Minute
+	speedDaySlots = 288
+	speedDayEvery = int(speedDayStep / speedFineStep)
 	// speedGapSteps is how many steps may go missing before it counts as a gap
 	// rather than scheduling jitter.
 	speedGapSteps = 3
@@ -63,6 +68,18 @@ type SpeedHistory struct {
 	// that had not started yet.
 	RecordingSince *time.Time `json:"recordingSince,omitempty"`
 	SampledAt      time.Time  `json:"sampledAt"`
+}
+
+// SpeedDay is what GET /api/stats/speed/day answers: the last day in buckets
+// of five minutes, each the mean of its readings, oldest first.
+type SpeedDay struct {
+	Samples []int64 `json:"samples"` // bytes/s
+	Step    int     `json:"step"`    // seconds, 300
+	Cap     int     `json:"cap"`     // 288
+	// From is when the oldest bucket opened, absent while none has closed.
+	// Bucket i covers the Step seconds from From plus i steps.
+	From      *time.Time `json:"from,omitempty"`
+	SampledAt time.Time  `json:"sampledAt"`
 }
 
 // speedRing is a fixed-capacity ring of readings, oldest overwritten first. A
@@ -113,17 +130,21 @@ func (r *speedRing) snapshot() ([]int64, time.Time) {
 type speedHistoryState struct {
 	fine   *speedRing
 	coarse *speedRing
+	day    *speedRing
 
-	// bucket and last belong to the sampler goroutine alone; routes only read
-	// the rings, which lock themselves.
-	bucket []int64   // the fine readings since the last coarse bucket closed
-	last   time.Time // wall clock of the last fine write, for the gap check
+	// bucket, daySum, dayCount and last belong to the sampler goroutine alone;
+	// routes only read the rings, which lock themselves.
+	bucket   []int64   // the fine readings since the last coarse bucket closed
+	daySum   int64     // the readings since the last day bucket closed, added up
+	dayCount int       // and how many they are
+	last     time.Time // wall clock of the last fine write, for the gap check
 }
 
 func newSpeedHistoryState() *speedHistoryState {
 	return &speedHistoryState{
 		fine:   newSpeedRing(speedFineSlots, speedFineStep),
 		coarse: newSpeedRing(speedCoarseSlots, speedCoarseStep),
+		day:    newSpeedRing(speedDaySlots, speedDayStep),
 		bucket: make([]int64, 0, speedCoarseEvery),
 	}
 }
@@ -231,6 +252,7 @@ func (st *speedHistoryState) fillSpeedGap(now time.Time) {
 	for i := coarse; i >= 1; i-- {
 		st.coarse.push(0, now.Add(-time.Duration(i)*speedCoarseStep))
 	}
+	st.recordDay(0, min(missed, speedDaySlots*speedDayEvery), now.Add(-speedFineStep))
 
 	log.Printf("speed history: filled %d missed samples as idle after a %ds gap "+
 		"(the process was suspended, or the clock moved)", fine, int(elapsed.Seconds()))
@@ -240,6 +262,7 @@ func (st *speedHistoryState) fillSpeedGap(now time.Time) {
 // coarse bucket with the mean of the ten.
 func (st *speedHistoryState) recordFine(v int64, at time.Time) {
 	st.fine.push(v, at)
+	st.recordDay(v, 1, at)
 	st.bucket = append(st.bucket, v)
 	if len(st.bucket) < speedCoarseEvery {
 		return
@@ -250,6 +273,41 @@ func (st *speedHistoryState) recordFine(v int64, at time.Time) {
 	}
 	st.coarse.push(sum/int64(len(st.bucket)), at)
 	st.bucket = st.bucket[:0]
+}
+
+// recordDay adds n readings of v, the last of them taken at at, to the day's
+// open bucket and closes every bucket they fill. A gap is counted in rather
+// than dropped: the ring places its buckets by their number, so a lost partial
+// one would move every later bucket on the clock.
+func (st *speedHistoryState) recordDay(v int64, n int, at time.Time) {
+	for n > 0 {
+		take := min(n, speedDayEvery-st.dayCount)
+		st.daySum += v * int64(take)
+		st.dayCount += take
+		n -= take
+		if st.dayCount < speedDayEvery {
+			return
+		}
+		st.day.push(st.daySum/int64(speedDayEvery), at.Add(-time.Duration(n)*speedFineStep))
+		st.daySum, st.dayCount = 0, 0
+	}
+}
+
+// SpeedDay is the snapshot GET /api/stats/speed/day serves.
+func (a *App) SpeedDay() SpeedDay {
+	samples, closed := a.speedHistoryFor().day.snapshot()
+	out := SpeedDay{
+		Samples:   samples,
+		Step:      int(speedDayStep / time.Second),
+		Cap:       speedDaySlots,
+		SampledAt: time.Now().UTC(),
+	}
+	// The ring stamps a bucket when it closes.
+	if !closed.IsZero() {
+		from := closed.Add(-speedDayStep).UTC()
+		out.From = &from
+	}
+	return out
 }
 
 // SpeedHistory is the snapshot GET /api/stats/speed serves, and what the

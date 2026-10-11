@@ -11,6 +11,7 @@ import {
   UnitNumberInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { DayCurve, planOf, todayOf } from '../../components/pictures/DayCurve';
 import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
@@ -27,10 +28,11 @@ import {
 import { fetchOptions } from '../../lib/api';
 import { RATE_UNITS, fmtRateValue, splitRate } from '../../lib/format';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { fetchSpeedDay } from '../../lib/speedHistory';
 import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
 import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
-import { useFeatures } from './context';
+import { useDraft, useFeatures } from './context';
 import { NeutralSwitch, SettingRow, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -327,6 +329,10 @@ export function ScheduleCards({ hue }: { hue: number }) {
     return () => clearInterval(iv);
   }, []);
 
+  // The day's record gains a sample every five minutes, and is read again then.
+  const { cfg } = useDraft();
+  const { data: day } = useResource(fetchSpeedDay, String(Math.floor(now.getTime() / 300_000)));
+
   const [actions, setActions] = useState<ScheduleAction[]>(KNOWN_ACTIONS);
   useEffect(() => {
     let alive = true;
@@ -520,6 +526,20 @@ export function ScheduleCards({ hue }: { hue: number }) {
               quiet={parked || live?.suspended === true}
               label={t('settings.module.scheduler')}
             />
+            {/* Whether the timetable does what was wanted: today's plan against the speed measured. */}
+            <DayCurve
+              plan={planOf(
+                rows.map((r) => r.entry),
+                now.getDay(),
+                cfg.speedLimit,
+                quietLimit(cfg),
+              )}
+              points={day ? todayOf(day, now) : []}
+              now={now}
+              dayLabel={dayLabels[now.getDay()]}
+              quiet={parked || live?.suspended === true}
+              label={`${t('settings.module.scheduler')}, ${dayLabels[now.getDay()]}`}
+            />
             <ul className="flex flex-col">
               {rows.map((row, i) => (
                 <EntryRow
@@ -623,6 +643,11 @@ function StateBanner({
       </div>
     </Card>
   );
+}
+
+/** The limit quiet mode puts in place of every other, 0 while none is set; lib/api.ts's Settings does not declare it. */
+function quietLimit(cfg: unknown): number {
+  return (cfg as { quiet?: { speedLimit?: number } }).quiet?.speedLimit ?? 0;
 }
 
 /** actionIcon returns the row's mark at 16px, the glyph size used beside text. */

@@ -3479,6 +3479,9 @@ export const gl: Dict = {
   'picture.reconnect.newAddress': 'Enderezo novo',
   'picture.reconnect.alt': 'KnightLoader pídelle ao router un enderezo novo. O router corta a conexión e volve cun novo.',
   'picture.seed.target': 'Obxectivo {ratio}',
+  'picture.intake.file': 'Ficheiros e contedores',
+  'picture.intake.account': 'Conta debrid',
+  'picture.day.since': 'Medido desde as {time}',
   'whatsnew.title': 'Novidades de {version}',
   'whatsnew.changes': 'Cambios',
   'whatsnew.notesMissing': 'KnightLoader non puido cargar aquí as notas da versión. Atoparalas en GitHub.',
@@ -3507,6 +3510,11 @@ export const gl: Dict = {
   'whatsnew.change.weekBand': '«{name}» debuxa toda a semana como unha banda.',
   'whatsnew.change.reconnectScene': 'Unha imaxe amosa como KnightLoader lle pide ao router un enderezo novo.',
   'whatsnew.change.seedRing': 'Un anel amosa o preto que está un torrent do seu obxectivo de seed.',
+  'whatsnew.change.routes': '«{name}» debuxa as rutas de saída, e unha proba pinta cada liña de verde ou de vermello.',
+  'whatsnew.change.waysIn':
+    'Unha imaxe amosa cada camiño polo que unha ligazón chega ao colector de ligazóns, e un clic nun camiño abre o seu axuste.',
+  'whatsnew.change.dayCurve':
+    '«{name}» debuxa o día de hoxe como unha curva: o límite de velocidade previsto como unha área e a velocidade medida como unha liña.',
   'whatsnew.change.infoTile': '«{name}» di quen fai KnightLoader, enumera cada versión e amosa onde conseguir axuda.',
   'whatsnew.change.phoneBar': 'Nun teléfono, a barra inferior conserva catro páxinas, e o seu último lugar abre todo o demais.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» amosan que fai a cola: o botón recheo é o seu estado, o outro é o que se preme.',

@@ -3467,6 +3467,9 @@ export const da: Dict = {
   'picture.reconnect.newAddress': 'Ny adresse',
   'picture.reconnect.alt': 'KnightLoader beder routeren om en ny adresse. Routeren afbryder forbindelsen og kommer tilbage med en ny.',
   'picture.seed.target': 'Mål {ratio}',
+  'picture.intake.file': 'Filer og containere',
+  'picture.intake.account': 'Debrid-konto',
+  'picture.day.since': 'Målt siden {time}',
   'whatsnew.title': 'Nyt i {version}',
   'whatsnew.changes': 'Ændringer',
   'whatsnew.notesMissing': 'KnightLoader kunne ikke indlæse udgivelsesnoterne her. Du finder dem på GitHub.',
@@ -3495,6 +3498,11 @@ export const da: Dict = {
   'whatsnew.change.weekBand': '„{name}“ tegner hele ugen som et bånd.',
   'whatsnew.change.reconnectScene': 'Et billede viser, hvordan KnightLoader beder routeren om en ny adresse.',
   'whatsnew.change.seedRing': 'En ring viser, hvor tæt en torrent er på sit seedmål.',
+  'whatsnew.change.routes': '„{name}“ tegner vejene ud, og en test farver hver linje grøn eller rød.',
+  'whatsnew.change.waysIn':
+    'Et billede viser hver vej, et link kommer ind i linksamleren ad, og et klik på en vej åbner dens indstilling.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ tegner dagen i dag som en kurve: den planlagte hastighedsgrænse som en flade og den målte hastighed som en linje.',
   'whatsnew.change.infoTile': '„{name}“ siger, hvem der laver KnightLoader, viser hver version og viser, hvor du får hjælp.',
   'whatsnew.change.phoneBar': 'På en telefon beholder bundpanelet fire sider, og dets sidste plads åbner alt det andet.',
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ viser, hvad køen laver: Den udfyldte knap er dens tilstand, den anden er den, du trykker på.',

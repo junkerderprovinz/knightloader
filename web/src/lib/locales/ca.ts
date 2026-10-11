@@ -3468,6 +3468,9 @@ export const ca: Dict = {
   'picture.reconnect.newAddress': 'Adreça nova',
   'picture.reconnect.alt': 'KnightLoader demana una adreça nova al router. El router talla la connexió i torna amb una de nova.',
   'picture.seed.target': 'Objectiu {ratio}',
+  'picture.intake.file': 'Fitxers i contenidors',
+  'picture.intake.account': 'Compte debrid',
+  'picture.day.since': 'Mesurat des de les {time}',
   'whatsnew.title': 'Novetats de {version}',
   'whatsnew.changes': 'Canvis',
   'whatsnew.notesMissing': 'KnightLoader no ha pogut carregar aquí les notes de la versió. Les trobaràs a GitHub.',
@@ -3496,6 +3499,12 @@ export const ca: Dict = {
   'whatsnew.change.weekBand': '«{name}» dibuixa tota la setmana com una banda.',
   'whatsnew.change.reconnectScene': 'Una imatge mostra com KnightLoader demana al router una adreça nova.',
   'whatsnew.change.seedRing': 'Un anell mostra com de a prop és un torrent del seu objectiu de seed.',
+  'whatsnew.change.routes':
+    '«{name}» dibuixa els camins cap a fora, i una prova pinta cada línia de verd o de vermell.',
+  'whatsnew.change.waysIn':
+    'Una imatge mostra cada camí pel qual un enllaç arriba al recol·lector d’enllaços, i un clic en un camí n’obre la configuració.',
+  'whatsnew.change.dayCurve':
+    '«{name}» dibuixa el dia d’avui com una corba: el límit de velocitat previst com una àrea i la velocitat mesurada com una línia.',
   'whatsnew.change.infoTile': '«{name}» diu qui fa KnightLoader, enumera cada versió i mostra on trobar ajuda.',
   'whatsnew.change.phoneBar': 'En un telèfon, la barra inferior conserva quatre pàgines, i el seu últim lloc obre tota la resta.',
   'whatsnew.change.queueState': '«{play}» i «{pause}» mostren què fa la cua: el botó ple n’és l’estat, l’altre és el que es prem.',

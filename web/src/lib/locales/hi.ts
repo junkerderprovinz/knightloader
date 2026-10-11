@@ -3482,6 +3482,9 @@ export const hi: Dict = {
   'picture.reconnect.newAddress': 'नया पता',
   'picture.reconnect.alt': 'KnightLoader राउटर से नया पता माँगता है। राउटर कनेक्शन तोड़ता है और नए पते के साथ लौटता है।',
   'picture.seed.target': 'लक्ष्य {ratio}',
+  'picture.intake.file': 'फ़ाइलें और कंटेनर',
+  'picture.intake.account': 'Debrid खाता',
+  'picture.day.since': '{time} से मापा गया',
   'whatsnew.title': '{version} में नया',
   'whatsnew.changes': 'बदलाव',
   'whatsnew.notesMissing': 'KnightLoader यहाँ रिलीज़ नोट्स लोड नहीं कर सका। आपको वे GitHub पर मिलेंगे।',
@@ -3510,6 +3513,11 @@ export const hi: Dict = {
   'whatsnew.change.weekBand': '“{name}” पूरे सप्ताह को एक पट्टी के रूप में दिखाता है।',
   'whatsnew.change.reconnectScene': 'एक चित्र दिखाता है कि KnightLoader राउटर से नया पता कैसे माँगता है।',
   'whatsnew.change.seedRing': 'एक छल्ला दिखाता है कि कोई टोरेंट अपने सीड लक्ष्य के कितना करीब है।',
+  'whatsnew.change.routes': '“{name}” बाहर जाने के रास्ते दिखाता है, और जाँच हर रेखा को हरा या लाल कर देती है।',
+  'whatsnew.change.waysIn':
+    'एक चित्र वह हर रास्ता दिखाता है जिससे कोई लिंक लिंक संग्राहक तक पहुँचता है, और किसी रास्ते पर क्लिक करने से उसकी सेटिंग खुलती है।',
+  'whatsnew.change.dayCurve':
+    '“{name}” आज के दिन को एक वक्र के रूप में दिखाता है: नियोजित गति सीमा एक क्षेत्र के रूप में और मापी गई गति एक रेखा के रूप में।',
   'whatsnew.change.infoTile': '“{name}” बताता है कि KnightLoader कौन बनाता है, हर संस्करण सूचीबद्ध करता है और दिखाता है कि मदद कहाँ मिलेगी।',
   'whatsnew.change.phoneBar': 'फ़ोन पर बॉटम बार चार पेज रखता है, और उसकी आख़िरी जगह बाकी सब कुछ खोलती है।',
   'whatsnew.change.queueState': '“{play}” और “{pause}” दिखाते हैं कि कतार क्या कर रही है: भरा हुआ बटन उसकी स्थिति है, और दूसरा वह है जिसे दबाना है।',

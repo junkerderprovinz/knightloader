@@ -3473,6 +3473,9 @@ export const et: Dict = {
   'picture.reconnect.newAddress': 'Uus aadress',
   'picture.reconnect.alt': 'KnightLoader küsib ruuterilt uut aadressi. Ruuter katkestab ühenduse ja tuleb tagasi uue aadressiga.',
   'picture.seed.target': 'Siht {ratio}',
+  'picture.intake.file': 'Failid ja konteinerid',
+  'picture.intake.account': 'Debrid-konto',
+  'picture.day.since': 'Mõõdetud alates {time}',
   'whatsnew.title': 'Uut versioonis {version}',
   'whatsnew.changes': 'Muudatused',
   'whatsnew.notesMissing': 'KnightLoader ei saanud väljalaskemärkmeid siin laadida. Leiad need GitHubist.',
@@ -3501,6 +3504,11 @@ export const et: Dict = {
   'whatsnew.change.weekBand': '„{name}“ joonistab terve nädala ühe ribana.',
   'whatsnew.change.reconnectScene': 'Pilt näitab, kuidas KnightLoader küsib ruuterilt uut aadressi.',
   'whatsnew.change.seedRing': 'Rõngas näitab, kui lähedal on torrent oma levitamise sihile.',
+  'whatsnew.change.routes': '„{name}“ joonistab teed välja ja test värvib iga joone roheliseks või punaseks.',
+  'whatsnew.change.waysIn':
+    'Pilt näitab iga teed, mida mööda link linkide kogujasse jõuab, ja klõps teel avab selle seade.',
+  'whatsnew.change.dayCurve':
+    '„{name}“ joonistab tänase päeva kõverana: kavandatud kiiruspiirang pinnana ja mõõdetud kiirus joonena.',
   'whatsnew.change.infoTile': '„{name}“ ütleb, kes KnightLoaderit teeb, loetleb kõik versioonid ja näitab, kust abi saab.',
   'whatsnew.change.phoneBar': 'Telefonis hoiab alumine riba nelja lehte ja selle viimane koht avab kõik ülejäänu.',
   'whatsnew.change.queueState': '„{play}“ ja „{pause}“ näitavad, mida järjekord teeb: täidetud nupp on selle olek, teine on see, mida vajutada.',
