@@ -10,7 +10,7 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   fetchOptions,
   priorityChoices,
@@ -1655,7 +1655,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'progress',
     labelKey: 'columns.progress',
-    width: 128,
+    // The percentage and the padding take 60px, and the bar gets the rest.
+    width: 160,
     minWidth: 110,
     align: 'start',
     hideable: true,
@@ -2105,7 +2106,58 @@ function mergeHidden(profile: ListProfile, stored: ColumnLayout | null | undefin
   return hidden;
 }
 
-export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null | undefined): ResolvedLayout {
+/** The type a column head's word is set in, which useHeadWidths measures in. */
+export const HEAD_LABEL = 'text-meta font-semibold uppercase tracking-wide';
+
+/** The padding of a head's button on both sides of its word. */
+const HEAD_PAD = 16;
+
+/**
+ * useHeadWidths is the width each column's head needs to show its word whole
+ * in the reader's language. A default width is one number for 42 languages,
+ * sized for what the cells hold: the speed column's 88px carry "1023 MiB/s",
+ * and its German head, "Geschwindigkeit", needs 133. A default wide enough for
+ * the longest head would take that room from the name in every language.
+ * Empty until measured, and where nothing is laid out.
+ */
+export function useHeadWidths(profile: ListProfile): Partial<Record<ColumnId, number>> {
+  const { t } = useT();
+  const [heads, setHeads] = useState<Partial<Record<ColumnId, number>>>({});
+  useLayoutEffect(() => {
+    let live = true;
+    const measure = () => {
+      const probe = document.createElement('span');
+      probe.className = `${HEAD_LABEL} invisible absolute whitespace-nowrap`;
+      document.body.append(probe);
+      const next: Partial<Record<ColumnId, number>> = {};
+      for (const c of COLUMNS) {
+        probe.textContent = t(c.labelByProfile?.[profile] ?? c.labelKey);
+        const width = probe.getBoundingClientRect().width;
+        if (width > 0) next[c.id] = Math.ceil(width) + HEAD_PAD;
+      }
+      probe.remove();
+      if (live) setHeads((was) => (JSON.stringify(was) === JSON.stringify(next) ? was : next));
+    };
+    measure();
+    // The words are set in a web font, which can arrive after the first pass.
+    void document.fonts?.ready.then(() => live && measure());
+    return () => {
+      live = false;
+    };
+  }, [t, profile]);
+  return heads;
+}
+
+/**
+ * resolveLayout is a stored layout as this build draws it. `heads` raises a
+ * column's default width to what its head needs (useHeadWidths); a width
+ * somebody dragged stays as dragged.
+ */
+export function resolveLayout(
+  profile: ListProfile,
+  stored: ColumnLayout | null | undefined,
+  heads: Partial<Record<ColumnId, number>> = {},
+): ResolvedLayout {
   // A layout from before the stamp takes this build's order once; everything
   // that is genuinely a preference (which columns are off, how wide they are)
   // comes along unchanged. See LAYOUT_VERSION.
@@ -2126,7 +2178,8 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
     // A width somebody dragged first, then this list's own default, then the
     // shared one. The per-list default is only a starting point: it is read
     // before anything is stored, and the store already keeps widths per list.
-    return Math.max(minWidthOf(id), Math.round(widths[id] ?? def.widthByProfile?.[profile] ?? def.width));
+    const own = Math.max(def.widthByProfile?.[profile] ?? def.width, heads[id] ?? 0);
+    return Math.max(minWidthOf(id), Math.round(widths[id] ?? own));
   };
   const visible = order.filter((c) => !hidden.has(c.id));
   return { order, visible, hidden, widths, widthOf, minWidthOf };
