@@ -225,6 +225,16 @@ func checkDatabase(path string) error {
 	if n == 0 {
 		return errors.New("the backup's database has no tasks table; it is not a KnightLoader backup")
 	}
+
+	// Staged, it would keep every later start from opening the store.
+	var version int
+	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
+		return fmt.Errorf("the backup's database could not be read: %w", err)
+	}
+	if version > store.SchemaVersion() {
+		return fmt.Errorf("%w: the backup's database is at schema version %d and this build knows %d; "+
+			"update this server first, then restore", store.ErrNewerSchema, version, store.SchemaVersion())
+	}
 	return nil
 }
 
