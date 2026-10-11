@@ -125,34 +125,60 @@ async function relayMemberId(kind, publicKey) {
   return (kind === 'mobile' ? 'phone-' : 'browser-') + hash;
 }
 
-const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v1\x00';
+const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
+const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v1\x00';
 
-/** Eight bytes, big-endian. Lengths and the time stay far below 2^53. */
+/** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
 function relayUint64(n) {
   const hi = Math.floor(n / 0x100000000);
   const lo = n >>> 0;
   return [hi >>> 24, (hi >>> 16) & 255, (hi >>> 8) & 255, hi & 255, lo >>> 24, (lo >>> 16) & 255, (lo >>> 8) & 255, lo & 255];
 }
 
-/**
- * relayCallMessage is what a member signs for a call, every field with its
- * length and then the time. Mirrors relay.CallMessage byte for byte; the
- * instance refuses a call whose signature does not hold.
- */
-function relayCallMessage(target, call) {
-  const parts = [relayUtf8(RELAY_CALL_DOMAIN)];
-  for (const field of [call.id, target, call.method, call.path, call.body || '', call.authorization || '', call.from, call.kind]) {
-    const bytes = relayUtf8(field);
+/** The layout every signed message has: the domain, every field (text or raw
+ *  bytes) with its length, then n. Mirrors signedMessage in relay/member.go. */
+function relaySignedMessage(domain, n, fields) {
+  const parts = [relayUtf8(domain)];
+  for (const field of fields) {
+    const bytes = typeof field === 'string' ? relayUtf8(field) : field;
     parts.push(new Uint8Array(relayUint64(bytes.length)), bytes);
   }
-  parts.push(new Uint8Array(relayUint64(call.sent)));
-  const out = new Uint8Array(parts.reduce((n, p) => n + p.length, 0));
+  parts.push(new Uint8Array(relayUint64(n)));
+  const out = new Uint8Array(parts.reduce((len, p) => len + p.length, 0));
   let at = 0;
   for (const p of parts) {
     out.set(p, at);
     at += p.length;
   }
   return out;
+}
+
+/**
+ * relayCallMessage is what a member signs for a call. Mirrors relay.CallMessage
+ * byte for byte; the instance refuses a call whose signature does not hold.
+ */
+function relayCallMessage(target, call) {
+  return relaySignedMessage(RELAY_CALL_DOMAIN, call.sent, [call.id, target, call.method, call.path, call.body || '', call.from, call.kind]);
+}
+
+/**
+ * relayVerifyResult mirrors relay.VerifyResult: whether an opened answer to
+ * requestId is target's, signed by the key target's instance id is made from.
+ * Anybody holding the words can seal an answer, a "removed" included, but
+ * only the target can sign one.
+ */
+async function relayVerifyResult(requestId, target, result) {
+  try {
+    const key = relayFromBase64(result.key || '');
+    const sig = relayFromBase64(result.sig || '');
+    if (key.length !== 32 || sig.length !== 64 || (await relayMemberId('instance', key)) !== target) return false;
+    const body = result.body ? relayFromBase64(result.body) : new Uint8Array();
+    const message = relaySignedMessage(RELAY_RESULT_DOMAIN, result.status, [requestId, target, body]);
+    const pub = await crypto.subtle.importKey('raw', key, 'Ed25519', false, ['verify']);
+    return await crypto.subtle.verify('Ed25519', pub, sig, message);
+  } catch {
+    return false;
+  }
 }
 
 /**
@@ -303,6 +329,10 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
         }
         try {
           const result = JSON.parse(relayFromUtf8(plain));
+          if (!(await relayVerifyResult(d.requestId, p.target, result))) {
+            p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
+            return;
+          }
           p.resolve({
             status: result.status,
             body: result.body ? relayFromUtf8(relayFromBase64(result.body)) : '',
@@ -366,6 +396,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
           reject(new Error('relay: the instance did not answer'));
         }, RELAY_TIMEOUT_MS);
         pending.set(requestId, {
+          target,
           resolve: (v) => {
             clearTimeout(t);
             resolve(v);
