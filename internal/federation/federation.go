@@ -107,18 +107,25 @@ type Manager struct {
 	replay *relay.ReplayGuard
 	limits *memberLimits
 	// awaiting is when each member last answered that this instance waits
-	// for approval there.
+	// for approval there, heard which members served a call from it, and
+	// greeted when Greet last called each.
 	awaiting map[string]time.Time
+	heard    map[string]bool
+	greeted  map[string]time.Time
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
-// empty list and no group.
+// empty list and no group, and a damaged group.json is an error.
 func Load(dir string) (*Manager, error) {
+	group, err := loadGroupFile(filepath.Join(dir, "group.json"))
+	if err != nil {
+		return nil, err
+	}
 	m := &Manager{
 		path:   filepath.Join(dir, "instances.json"),
 		hc:     httpx.New(httpx.Options{Timeout: peerTimeout}),
 		list:   map[string]Instance{},
-		group:  loadGroupFile(filepath.Join(dir, "group.json")),
+		group:  group,
 		replay: relay.NewReplayGuard(),
 		limits: newMemberLimits(),
 	}

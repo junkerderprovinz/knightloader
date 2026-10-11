@@ -19,6 +19,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -142,14 +143,35 @@ func registerRelay(reg *Registry, a *app.App) {
 				return
 			}
 			if body.Key != nil {
+				before, _ := a.Accounts.Get(relay.AccountService)
 				if err := a.Accounts.Set(relay.AccountService, *body.Key); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
+				}
+				if before != *body.Key && groupSecret(a) == nil {
+					if err := enterManualGroup(a, *body.Key != ""); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
 				}
 			}
 			applyRelay(a)
 			writeJSON(w, relayConfigOf(a, srv))
 		})
+}
+
+// enterManualGroup starts the group a hand-entered relay key makes, or leaves
+// it when joined is false. Its instances sign their calls and approve each
+// other as in a group reached by the words, under a member key of its own.
+func enterManualGroup(a *app.App, joined bool) error {
+	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
+		return err
+	}
+	at := time.Time{}
+	if joined {
+		at = time.Now()
+	}
+	return a.Federation.SetJoined(at)
 }
 
 // servesKey reports whether the relay this instance serves admits key: the
@@ -262,9 +284,6 @@ func applyRelay(a *app.App) {
 	}
 
 	cfg := a.Settings.Get()
-	// A hand-entered relay key is no phrase group, so there is no member key
-	// and nothing pins one.
-	member := memberKey(a)
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      relayURL,
 		Key:      key,
@@ -274,11 +293,9 @@ func applyRelay(a *app.App) {
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
-			Signs:      member != nil,
 		},
-		Member: member,
+		Member: memberKey(a),
 		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
-		Replay: a.Federation.Replay(),
 	})
 	if err != nil {
 		log.Printf("relay: could not configure the client: %v", err)
@@ -299,10 +316,11 @@ func applyGroup(a *app.App) {
 var memberMu sync.Mutex
 
 // memberKey is the key this instance signs its calls to the group with, nil
-// outside a group. An instance that joined before member keys existed mints
-// one here, the first time it needs it.
+// outside a group. A group reached by a hand-entered relay key signs the same
+// way as one reached by the words. The key is minted here the first time it is
+// needed.
 func memberKey(a *app.App) ed25519.PrivateKey {
-	if groupSecret(a) == nil {
+	if manual, _ := a.Accounts.Get(relay.AccountService); groupSecret(a) == nil && manual == "" {
 		return nil
 	}
 	memberMu.Lock()
@@ -318,7 +336,7 @@ func memberKey(a *app.App) ed25519.PrivateKey {
 		err = a.Accounts.Set(relay.MemberAccountService, hex.EncodeToString(seed))
 	}
 	if err != nil {
-		log.Printf("relay: no member key, calls to the group go out unsigned: %v", err)
+		log.Printf("relay: no member key, the group refuses this instance's calls until one can be made: %v", err)
 		return nil
 	}
 	return ed25519.NewKeyFromSeed(seed)

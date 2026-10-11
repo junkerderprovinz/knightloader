@@ -2,11 +2,13 @@ package federation
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"net/http"
 	"strings"
+	"sync"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/relay"
@@ -80,7 +82,7 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 		if _, revoked := st.Revoked[hex.EncodeToString(key)]; revoked {
 			return nil, "", ErrGone
 		}
-		if !claimFits(st, id, kind) {
+		if !claimFits(id, kind) {
 			return nil, "", ErrKindMismatch
 		}
 		pin = PinnedKey{Key: bytes.Clone(key), Kind: kind}
@@ -99,25 +101,16 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 }
 
 // Refuse turns member id away: an instance as RemoveMember does, a phone or a
-// browser as RemoveApp does. Its key is revoked either way. kind is what the
-// instance that passed the refusal on knew the device as, "" when it was made
-// here; the key pinned here, if any, decides first.
-func (m *Manager) Refuse(id, kind string, now time.Time) error {
-	m.group.mu.Lock()
-	st := &m.group.state
-	if pin, ok := st.Keys[id]; ok {
-		kind = pin.Kind
-	} else if kind == "" && relay.ValidInstanceID(id) {
-		// An instance keeps its id when it is taken out, so a guess that bans
-		// one for good would cost more than one that lets a browser ask again.
-		kind = relay.KindInstance
-	}
-	_, isApp := st.Apps[id]
-	m.group.mu.Unlock()
-	if kind == relay.KindInstance && !isApp {
+// browser as RemoveApp does, told apart by the shape of the id. Its key is
+// revoked either way. An id no device mints is ignored.
+func (m *Manager) Refuse(id string, now time.Time) error {
+	switch kindOfID(id) {
+	case relay.KindInstance:
 		return m.RemoveMember(id, now)
+	case relay.KindMobile, relay.KindExtension:
+		return m.RemoveApp(id, now)
 	}
-	return m.RemoveApp(id, now)
+	return nil
 }
 
 // awaitWindow is how long one answer saying "waits for approval" is taken to
@@ -138,6 +131,47 @@ func (m *Manager) noteAnswer(member string, status int, body []byte, now time.Ti
 	} else {
 		delete(m.awaiting, member)
 	}
+	if status >= 200 && status < 300 {
+		if m.heard == nil {
+			m.heard = map[string]bool{}
+		}
+		m.heard[member] = true
+	}
+}
+
+// greetEvery is how often Greet calls a member that has not let this instance
+// in yet.
+const greetEvery = 30 * time.Second
+
+// Greet calls every instance of the group that has not yet served a call from
+// this one, at most once every greetEvery, and returns when the calls are done
+// or ctx ends. A first call pins this instance's key there, so two instances
+// that meet list each other as waiting for approval on their Pairing cards,
+// and each owner approves the other, whichever of them entered the words.
+func (m *Manager) Greet(ctx context.Context, now time.Time) {
+	members := m.Members()
+	var due []string
+	m.mu.Lock()
+	for _, in := range members {
+		if m.heard[in.RelayID] || now.Sub(m.greeted[in.RelayID]) < greetEvery {
+			continue
+		}
+		if m.greeted == nil {
+			m.greeted = map[string]time.Time{}
+		}
+		m.greeted[in.RelayID] = now
+		due = append(due, in.Name)
+	}
+	m.mu.Unlock()
+	var wg sync.WaitGroup
+	for _, name := range due {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			_, _, _ = m.Proxy(ctx, name, http.MethodGet, "/api/auth", nil)
+		}()
+	}
+	wg.Wait()
 }
 
 // AwaitingApproval reports whether another instance of the group said

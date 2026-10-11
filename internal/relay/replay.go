@@ -8,24 +8,30 @@ import (
 // ClockSkew is how far a call's timestamp may be from this instance's clock.
 const ClockSkew = 2 * time.Minute
 
-// maxSeenPerMember bounds the ids one member key, or one member id calling
-// without a key, can have on record, and maxSeen the ids of all of them
-// together. A member polling once a second stays far below the first within
-// the 2*ClockSkew that ids are kept.
-const (
-	maxSeenPerMember = 4096
-	maxSeen          = 1 << 16
-)
+// maxSeenPerMember bounds the ids one member key can have on record. A member
+// polling once a second stays far below it within the 2*ClockSkew that ids are
+// kept.
+const maxSeenPerMember = 4096
 
-// ReplayGuard admits each sealed call once and only while its timestamp is
+// StatusDrop is the status a ProxyHandler returns for a call that gets no
+// answer at all, such as one played back a second time.
+const StatusDrop = 0
+
+// Recent reports whether call names an id and was sealed close enough to now
+// to be taken at all.
+func Recent(call ProxyCall, now time.Time) bool {
+	d := now.Sub(time.Unix(call.Sent, 0))
+	return call.ID != "" && d <= ClockSkew && d >= -ClockSkew
+}
+
+// ReplayGuard admits each signed call once and only while its timestamp is
 // recent. An instance keeps one guard for the relay and the direct transport,
 // so a call captured on either cannot be run a second time on the other.
 //
-// Ids are kept per member key, a bucket this instance takes from the verified
-// key rather than from anything the caller names, so one member can neither
-// use up another's ids nor fill another's record. Unsigned calls are kept per
-// member id they name. Once the whole record is full, new calls wait until
-// old ids run out rather than push out ids that could still be played again.
+// Ids are kept per member key, so one member can neither use up another's ids
+// nor fill another's record, and a full record refuses only its own key's
+// calls. The guard is asked only for keys the instance has pinned (see
+// federation.Manager.Guard), which bounds how many records there are.
 type ReplayGuard struct {
 	mu   sync.Mutex
 	seen map[string]map[string]struct{}
@@ -46,20 +52,20 @@ func NewReplayGuard() *ReplayGuard {
 	return &ReplayGuard{seen: map[string]map[string]struct{}{}, now: time.Now}
 }
 
-// Admit reports whether call is recent and new, and records it. Ids are kept
-// for twice the skew, which covers every call whose timestamp would still
-// pass. The call has to come from OpenCall, which checked its signature.
+// Admit reports whether call is recent, signed and new, and records it. Ids
+// are kept for twice the skew, which covers every call whose timestamp would
+// still pass. The call has to come from OpenCall, which checked its signature.
 func (g *ReplayGuard) Admit(call ProxyCall) bool {
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	now := g.now()
-	if d := now.Sub(time.Unix(call.Sent, 0)); call.ID == "" || d > ClockSkew || d < -ClockSkew {
+	if !Recent(call, now) || !call.Signed() {
 		return false
 	}
 	g.forgetLocked(now)
-	bucket := replayBucket(call)
+	bucket := string(call.Key)
 	ids := g.seen[bucket]
-	if _, dup := ids[call.ID]; dup || len(ids) >= maxSeenPerMember || len(g.order)-g.head >= maxSeen {
+	if _, dup := ids[call.ID]; dup || len(ids) >= maxSeenPerMember {
 		return false
 	}
 	if ids == nil {
@@ -69,6 +75,13 @@ func (g *ReplayGuard) Admit(call ProxyCall) bool {
 	ids[call.ID] = struct{}{}
 	g.order = append(g.order, seenID{bucket: bucket, id: call.ID, at: now})
 	return true
+}
+
+// Len is how many ids the guard has on record.
+func (g *ReplayGuard) Len() int {
+	g.mu.Lock()
+	defer g.mu.Unlock()
+	return len(g.order) - g.head
 }
 
 // forgetLocked drops the ids that ran out, which all sit at the front of
@@ -89,14 +102,4 @@ func (g *ReplayGuard) forgetLocked(now time.Time) {
 		clear(g.order[n:])
 		g.order, g.head = g.order[:n], 0
 	}
-}
-
-// replayBucket is the record a call's id is kept in: its verified key, or for
-// a call without one the member id it names. The prefixes keep a key from
-// ever reading as an id.
-func replayBucket(call ProxyCall) string {
-	if call.Signed() {
-		return "k" + string(call.Key)
-	}
-	return "u" + call.From
 }

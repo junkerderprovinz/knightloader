@@ -213,6 +213,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
 		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
+		Member:   keyOf(siblingID),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -256,8 +257,16 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 	}
 
 	// Inbound: the sibling reaches the app's real API through
-	// relayProxyHandler.
+	// relayProxyHandler, once the owner approved it there. A hand-entered
+	// relay key makes a group whose members sign and are approved like one
+	// reached by the words.
 	selfID := a.Settings.Get().InstanceID
+	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, ""); err != nil || status != http.StatusForbidden {
+		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
+	}
+	if _, _, err := a.Federation.Approve(siblingID, nil, ""); err != nil {
+		t.Fatal(err)
+	}
 	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, "")
 	if err != nil {
 		t.Fatalf("sibling proxy into the app: %v", err)
@@ -355,9 +364,9 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	serve := asMember(t, a)
 
-	if status, body := serve(context.Background(), relay.ProxyCall{
+	if status, body := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Fatalf("unprotected instance answered %d (%s), want 200", status, body)
@@ -369,14 +378,14 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 
 	// A sibling without a token gets through, because reaching this handler
 	// already took the group key.
-	if status, body := serve(context.Background(), relay.ProxyCall{
+	if status, body := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Errorf("a group sibling with no token = %d (%s), want 200; the relay socket is the credential", status, body)
 	}
 
 	// A stale token must not fail harder than no token.
-	if status, _ := serve(context.Background(), relay.ProxyCall{
+	if status, _ := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer not-a-real-token",
 	}); status != http.StatusOK {
@@ -387,7 +396,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	status, body := serve(context.Background(), relay.ProxyCall{
+	status, body := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 		Authorization: "Bearer " + secret,
 	})
@@ -405,11 +414,11 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 func TestABodylessRelayCallDoesNotPanic(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	serve := asMember(t, a)
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	if status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden || status == http.StatusInternalServerError {
+	if status, body := serve(relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden || status == http.StatusInternalServerError {
 		t.Errorf("POST /api/appearance = %d (%s), want the palette settable without a panic", status, body)
 	}
 }
@@ -421,13 +430,13 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 	jd, solvedWith := fakeJDWithHCaptcha(t)
 	t.Setenv("KL_JD", jd.URL)
 	a := testApp(t)
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	serve := asMember(t, a)
 	// With a password set, a call the relay did not vouch for is a 401.
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
 	call := func(method, path, body string) (int, []byte) {
-		return serve(context.Background(), relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
+		return serve(relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
 	}
 	type listed struct {
 		ID string `json:"id"`
@@ -725,16 +734,14 @@ func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
 	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {
 		t.Fatal(err)
 	}
 
-	if status, body := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks", From: "phone-gone",
-	}); status != http.StatusGone {
+	if status, body := signedAs(serve, "phone-gone", relay.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
 	if status, body := signedMember(t, a, "phone-kept", relay.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
@@ -756,8 +763,7 @@ func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
 	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*relayAnswerMax); err != nil {
 		t.Fatal(err)
 	}
-	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
+	status, body := asMember(t, a)(relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
 	if status == http.StatusOK || len(body) > relayAnswerMax {
 		t.Fatalf("a relayed %d MiB file answered %d with %d MiB, want a refusal within %d MiB",
 			2*relayAnswerMax>>20, status, len(body)>>20, relayAnswerMax>>20)

@@ -324,7 +324,7 @@ func TestAPlayLinkEndsWithTheRemovalOfTheDeviceThatAskedForIt(t *testing.T) {
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	phone := signedMember(t, a, "phone-player", relay.KindMobile)

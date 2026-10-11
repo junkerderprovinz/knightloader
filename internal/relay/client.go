@@ -64,9 +64,11 @@ const pingInterval = 30 * time.Second
 const pingTimeout = 10 * time.Second
 
 // ProxyHandler answers one call a sibling made to this instance's REST API,
-// returning the status and body to send back. It receives the opened
-// ProxyCall rather than the wire frame, so it cannot trust a routing field the
-// relay was free to write.
+// returning the status and body to send back, or StatusDrop to send nothing.
+// It receives the opened ProxyCall rather than the wire frame, so it cannot
+// trust a routing field the relay was free to write. Whether the call is new
+// is the handler's to decide (see ReplayGuard), since only it knows whose key
+// signed it.
 type ProxyHandler func(ctx context.Context, call ProxyCall) (status int, body []byte)
 
 // ClientOptions configures a Client. URL, Key, FrameKey and Self.InstanceID
@@ -89,10 +91,6 @@ type ClientOptions struct {
 	// Serve answers calls siblings make to this instance. With a nil Serve
 	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
-	// Replay admits the calls Serve gets. nil gives the client a guard of its
-	// own; an instance that also takes direct calls passes the guard those go
-	// through.
-	Replay *ReplayGuard
 	// OnChange fires when a sibling arrives or leaves and when the connection
 	// comes up or goes down. It runs on the client's goroutine and must not
 	// block.
@@ -114,7 +112,6 @@ type Client struct {
 	self     Announce
 	member   ed25519.PrivateKey
 	serve    ProxyHandler
-	replay   *ReplayGuard
 	onChange func()
 
 	// minBackoff and maxBackoff default to the package constants; tests
@@ -152,10 +149,6 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	if len(opts.FrameKey) != 32 {
 		return nil, fmt.Errorf("relay: frame key is %d bytes, want 32", len(opts.FrameKey))
 	}
-	replay := opts.Replay
-	if replay == nil {
-		replay = NewReplayGuard()
-	}
 	return &Client{
 		url:        connect,
 		key:        opts.Key,
@@ -163,7 +156,6 @@ func NewClient(opts ClientOptions) (*Client, error) {
 		self:       opts.Self,
 		member:     opts.Member,
 		serve:      opts.Serve,
-		replay:     replay,
 		onChange:   opts.OnChange,
 		minBackoff: minBackoff,
 		maxBackoff: maxBackoff,
@@ -467,9 +459,9 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 // answer runs one inbound call and sends the result back. A frame that does
 // not open is dropped without a reply: its sender is on this relay key without
 // this group's secret, or the frame was rewritten, and an error reply would
-// only confirm that the key was accepted. Nor does one that is old or ran
-// before get a reply, which is a relay sending a captured frame again. A call
-// that opens but carries a broken signature is answered with the reason.
+// only confirm that the key was accepted. Nor does one Serve drops, such as a
+// relay sending a captured frame again. A call that opens but carries a broken
+// signature is answered with the reason.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
 	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
 	result := ProxyResult{Status: http.StatusNotImplemented}
@@ -478,7 +470,7 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 		// Only a member can seal this, so it learns nothing from the answer
 		// and gets one instead of a timeout.
 		result = ProxyResult{Status: http.StatusForbidden, Body: SignatureRefused}
-	case err != nil || !c.replay.Admit(call):
+	case err != nil:
 		return
 	case c.serve != nil:
 		serveCtx, cancel := context.WithTimeout(ctx, proxyTimeout)
@@ -487,6 +479,9 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 		}
 		result.Status, result.Body = c.serve(serveCtx, call)
 		cancel()
+		if result.Status == StatusDrop {
+			return
+		}
 	}
 	sealed, err := SealResult(c.frameKey, req.RequestID, result)
 	if err != nil {

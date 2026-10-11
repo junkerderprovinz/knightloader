@@ -13,8 +13,10 @@ import (
 	"path/filepath"
 	"regexp"
 	"slices"
+	"strconv"
 	"strings"
 	"sync"
+	"sync/atomic"
 	"testing"
 	"time"
 
@@ -415,9 +417,9 @@ func groupServer(t *testing.T, seed ...*core.Task) (a *app.App, downloads, categ
 	}
 	a.SetHalted(true)
 	h := Handler(a)
-	serve := a.Federation.Guard(relayProxyHandler(h))
+	asPhone := asMember(t, a)
 	member = func(method, path, body string) (int, []byte) {
-		return serve(context.Background(), relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
+		return asPhone(relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
 	}
 	owner = func(method, path, body string) (int, []byte) {
 		r := httptest.NewRequest(method, path, strings.NewReader(body))
@@ -541,12 +543,40 @@ func keyOf(id string) ed25519.PrivateKey {
 	return ed25519.NewKeyFromSeed(seed[:])
 }
 
-// signedAs calls serve as member id signing as kind with key, approved or not.
+// signedAs calls serve as member id signing as kind with key, approved or
+// not. A nil key sends the call unsigned.
 func signedAs(serve relay.ProxyHandler, id, kind string, key ed25519.PrivateKey) func(method, path string) (int, []byte) {
 	return func(method, path string) (int, []byte) {
-		return serve(context.Background(), relay.ProxyCall{
-			Method: method, Path: path, From: id, Kind: kind, Key: key.Public().(ed25519.PublicKey), Sig: []byte("checked by OpenCall"),
-		})
+		return serve(context.Background(), stamped(relay.ProxyCall{Method: method, Path: path}, id, kind, key))
+	}
+}
+
+var callSeq atomic.Int64
+
+// stamped is call as it opens from a member signing as id and kind with key:
+// with an id of its own and the time it was sent. A nil key leaves it
+// unsigned.
+func stamped(call relay.ProxyCall, id, kind string, key ed25519.PrivateKey) relay.ProxyCall {
+	call.From, call.Kind = id, kind
+	if key != nil {
+		call.Key, call.Sig = key.Public().(ed25519.PublicKey), []byte("checked by OpenCall")
+	}
+	call.ID = "test-" + strconv.FormatInt(callSeq.Add(1), 10)
+	call.Sent = time.Now().Unix()
+	return call
+}
+
+// asMember serves calls through a's guard as an approved phone of the group
+// sends them.
+func asMember(t *testing.T, a *app.App) func(relay.ProxyCall) (int, []byte) {
+	t.Helper()
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	const id = "phone-member"
+	if _, _, err := a.Federation.Approve(id, keyOf(id).Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
+		t.Fatal(err)
+	}
+	return func(call relay.ProxyCall) (int, []byte) {
+		return serve(context.Background(), stamped(call, id, relay.KindMobile, keyOf(id)))
 	}
 }
 
@@ -583,12 +613,12 @@ func TestNamingItselfWithoutAKeyDoesNotMakeAnApprovedInstance(t *testing.T) {
 		t.Fatal(err)
 	}
 	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
-	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
 	evilID := strings.Repeat("e", 40)
-	if status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: evilID}); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
+	if status, body := signedAs(serve, evilID, "", nil)(http.MethodGet, "/api/tasks"); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
 		t.Errorf("the unsigned call naming a fresh id = %d (%s), want 403 memberUnsigned", status, body)
 	}
 	evil := signedAs(serve, evilID, relay.KindInstance, keyOf(evilID))
@@ -613,12 +643,13 @@ func TestNamingItselfWithoutAKeyDoesNotMakeAnApprovedInstance(t *testing.T) {
 
 func TestOnlyTheOwnerOrAnApprovedInstanceTakesAPhoneOut(t *testing.T) {
 	t.Parallel()
-	a, _, _, member, owner := groupServer(t)
-	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+	a, _, _, _, owner := groupServer(t)
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
-	if status, body := member(http.MethodDelete, "/api/connect/apps/phone-other", ""); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
+	unsigned := signedAs(a.Federation.Guard(relayProxyHandler(Handler(a))), "phone-other", "", nil)
+	if status, body := unsigned(http.MethodDelete, "/api/connect/apps/phone-other"); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
 		t.Errorf("an unsigned member removing a phone = %d (%s), want 403 memberUnsigned", status, body)
 	}
 	if status, body := phone(http.MethodDelete, "/api/connect/apps/phone-other"); status != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
@@ -648,14 +679,15 @@ func TestOnlyTheOwnerOrAnApprovedInstanceTakesAPhoneOut(t *testing.T) {
 
 func TestOnlyAnApprovedInstanceMakesThisInstanceLeaveTheGroup(t *testing.T) {
 	t.Parallel()
-	a, _, _, member, owner := groupServer(t)
+	a, _, _, _, owner := groupServer(t)
 	const secret = "abababababababababababababababab"
 	if err := a.Accounts.Set(relay.SeedAccountService, secret); err != nil {
 		t.Fatal(err)
 	}
 	self := a.Settings.Get().InstanceID
 	phone := signedMember(t, a, "phone-mine", relay.KindMobile)
-	if status, body := member(http.MethodDelete, "/api/connect/members/"+self, ""); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
+	unsigned := signedAs(a.Federation.Guard(relayProxyHandler(Handler(a))), "phone-other", "", nil)
+	if status, body := unsigned(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusForbidden || refusalCode(body) != "memberUnsigned" {
 		t.Errorf("an unsigned member asking this instance to leave = %d (%s), want 403 memberUnsigned", status, body)
 	}
 	if status, body := phone(http.MethodDelete, "/api/connect/members/"+self); status != http.StatusForbidden || refusalCode(body) != "decisionNotFromInstance" {
@@ -732,7 +764,7 @@ func TestARemovalThatArrivesDuringAResetDoesNotEndTheNewGroup(t *testing.T) {
 func TestTheOwnerTakesAnotherInstanceOutButNotAPhoneThatWay(t *testing.T) {
 	t.Parallel()
 	a, _, _, _, owner := groupServer(t)
-	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
+	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
 	instance := signedMember(t, a, instanceB, relay.KindInstance)

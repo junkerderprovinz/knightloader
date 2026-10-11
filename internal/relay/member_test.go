@@ -151,18 +151,17 @@ func keyNumber(n int) []byte {
 	return k
 }
 
-func TestOneMemberWithoutAKeyCannotUseUpTheOthersIDs(t *testing.T) {
+func TestACallWithoutAKeyIsNeverRecorded(t *testing.T) {
 	g := NewReplayGuard()
 	now := time.Unix(1760000000, 0)
 	g.now = func() time.Time { return now }
-	for i := 0; i < maxSeenPerMember; i++ {
-		g.Admit(ProxyCall{ID: string(rune(0x1000 + i)), Sent: now.Unix(), From: "phone-flood"})
+	for i := 0; i < 10; i++ {
+		if g.Admit(ProxyCall{ID: string(rune(0x1000 + i)), Sent: now.Unix(), From: "phone-flood"}) {
+			t.Fatal("a call without a key was admitted")
+		}
 	}
-	if g.Admit(ProxyCall{ID: "one more", Sent: now.Unix(), From: "phone-flood"}) {
-		t.Error("one member without a key kept more ids on record than maxSeenPerMember")
-	}
-	if !g.Admit(ProxyCall{ID: "after the flood", Sent: now.Unix(), From: "phone-old"}) {
-		t.Error("a member without a key that filled its record kept another one out")
+	if n := g.Len(); n != 0 {
+		t.Errorf("the guard kept %d ids of calls without a key, want none", n)
 	}
 }
 
@@ -188,19 +187,27 @@ func TestManyKeysCostTheGuardLittle(t *testing.T) {
 	}
 }
 
-func TestTheGuardKeepsNoMoreThanItsCeiling(t *testing.T) {
+// TestManyFullRecordsKeepNoOtherKeyOut fills the records of more keys than
+// it once took to fill the whole guard. Each full record refuses only its own
+// key's calls.
+func TestManyFullRecordsKeepNoOtherKeyOut(t *testing.T) {
 	g := NewReplayGuard()
 	now := time.Unix(1760000000, 0)
 	g.now = func() time.Time { return now }
-	for i := range maxSeen {
-		g.Admit(ProxyCall{ID: string(rune(0x1000 + i%maxSeenPerMember)), Sent: now.Unix(), Key: keyNumber(i / maxSeenPerMember)})
+	for k := range 17 {
+		for i := range maxSeenPerMember {
+			g.Admit(ProxyCall{ID: string(rune(0x1000 + i)), Sent: now.Unix(), Key: keyNumber(k)})
+		}
 	}
-	if g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(1 << 20)}) {
-		t.Error("a full guard took one more id instead of refusing it")
+	if g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(0)}) {
+		t.Error("a full record took one more id instead of refusing it")
+	}
+	if !g.Admit(ProxyCall{ID: "member", Sent: now.Unix(), Key: keyNumber(1 << 20)}) {
+		t.Error("another key's call was refused because other records were full")
 	}
 	now = now.Add(2*ClockSkew + time.Second)
-	if !g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(1 << 20)}) {
-		t.Error("the guard still refused calls once its ids had run out")
+	if !g.Admit(ProxyCall{ID: "over", Sent: now.Unix(), Key: keyNumber(0)}) {
+		t.Error("the guard still refused a key's calls once its ids had run out")
 	}
 }
 
@@ -261,20 +268,5 @@ func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
 		}
 	case <-time.After(5 * time.Second):
 		t.Fatal("the call was never served")
-	}
-}
-
-func TestAnAnnounceSaysWhetherItsMemberSigns(t *testing.T) {
-	for _, signs := range []bool{true, false} {
-		wire, err := sealAnnounce(testFrameKey, Announce{InstanceID: alphaID, Name: "nas", Signs: signs})
-		if err != nil {
-			t.Fatal(err)
-		}
-		if wire.Signs {
-			t.Error("the flag travels in the clear, where a relay can set it")
-		}
-		if got := openAnnounce(testFrameKey, wire); got.Signs != signs {
-			t.Errorf("an announce sealed with signs=%v opened as %v", signs, got.Signs)
-		}
 	}
 }

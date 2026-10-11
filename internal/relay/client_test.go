@@ -2,6 +2,7 @@ package relay
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -287,11 +288,18 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 	}
 }
 
+// TestACallSentAgainOrLateIsNotRun has a handler use a ReplayGuard the way
+// federation.Manager.Guard does, and checks that a call it drops gets no
+// answer at all.
 func TestACallSentAgainOrLateIsNotRun(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	var mu sync.Mutex
 	var ran []string
+	guard := NewReplayGuard()
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, func(_ context.Context, call ProxyCall) (int, []byte) {
+		if !guard.Admit(call) {
+			return StatusDrop, nil
+		}
 		mu.Lock()
 		ran = append(ran, call.ID)
 		mu.Unlock()
@@ -301,14 +309,22 @@ func TestACallSentAgainOrLateIsNotRun(t *testing.T) {
 	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	readFrame(t, bravo, TypeAnnounce)
 
-	call := ProxyCall{Method: http.MethodPost, Path: "/api/queue/pause"}
-	first := ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: sealFor(t, "r1", alphaID, call)}
+	member := ed25519.NewKeyFromSeed([]byte(strings.Repeat("m", ed25519.SeedSize)))
+	signed := func(id string, call ProxyCall) []byte {
+		sealed, err := SealSignedCall(testFrameKey, member, id, alphaID, call)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return sealed
+	}
+	call := ProxyCall{Method: http.MethodPost, Path: "/api/queue/pause", From: bravoID, Kind: KindInstance}
+	first := ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: signed("r1", call)}
 	late := call
 	late.Sent = time.Now().Add(-10 * time.Minute).Unix()
 	writeFrame(t, bravo, TypeProxyRequest, first)
 	writeFrame(t, bravo, TypeProxyRequest, first)
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: alphaID, Sealed: sealFor(t, "r2", alphaID, late)})
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: alphaID, Sealed: sealFor(t, "r3", alphaID, call)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: alphaID, Sealed: signed("r2", late)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: alphaID, Sealed: signed("r3", call)})
 
 	// Each call is answered on its own goroutine, so the answers to r1 and
 	// r3 may come in either order.
@@ -356,21 +372,22 @@ func TestReplayGuardAdmitsACallOnceWithinTheSkew(t *testing.T) {
 	g := NewReplayGuard()
 	now := time.Unix(1_800_000_000, 0)
 	g.now = func() time.Time { return now }
-	call := ProxyCall{ID: "a", Sent: now.Unix()}
+	key := keyNumber(1)
+	call := ProxyCall{ID: "a", Sent: now.Unix(), Key: key}
 	if !g.Admit(call) || g.Admit(call) {
 		t.Fatal("a fresh call must pass once and only once")
 	}
 	for name, c := range map[string]ProxyCall{
-		"old":       {ID: "b", Sent: now.Add(-ClockSkew - time.Second).Unix()},
-		"future":    {ID: "c", Sent: now.Add(ClockSkew + time.Second).Unix()},
-		"unstamped": {ID: "", Sent: now.Unix()},
+		"old":       {ID: "b", Sent: now.Add(-ClockSkew - time.Second).Unix(), Key: key},
+		"future":    {ID: "c", Sent: now.Add(ClockSkew + time.Second).Unix(), Key: key},
+		"unstamped": {ID: "", Sent: now.Unix(), Key: key},
 	} {
 		if g.Admit(c) {
 			t.Errorf("an %s call was admitted", name)
 		}
 	}
 	now = now.Add(3 * ClockSkew)
-	if !g.Admit(ProxyCall{ID: "d", Sent: now.Unix()}) || len(g.seen) != 1 {
+	if !g.Admit(ProxyCall{ID: "d", Sent: now.Unix(), Key: key}) || g.Len() != 1 {
 		t.Fatalf("remembered %d ids, want only the one from inside the window", len(g.seen))
 	}
 }

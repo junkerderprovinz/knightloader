@@ -105,12 +105,14 @@ func waitForMember(t *testing.T, a *app.App, id string) {
 }
 
 // TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem runs two instances
-// and a relay on real sockets. The first instance's calls are signed and its
-// key pinned on the second; a call in its name under another key, or without
-// one, is refused with a code that says why, and so is an unsigned call naming
-// nobody; approvals and removals made by the owner of the
-// first reach the second, while a phone cannot pass one on; and once the
-// second instance is taken out, it forgets the phrase and its old key is
+// and a relay on real sockets. With their Pairing cards open, each instance
+// lists the other as waiting for approval, whichever entered the words, and
+// each owner approves the other; an instance somebody holding the words
+// announces at that moment waits too. A call in an instance's name under
+// another key, or without one, is refused with a code that says why, and so
+// is an unsigned call naming nobody; approvals and removals made by the owner
+// of the first reach the second, while a phone cannot pass one on; and once
+// the second instance is taken out, it forgets the phrase and its old key is
 // refused.
 func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	t.Parallel()
@@ -132,6 +134,46 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		t.Fatal(err)
 	}
 
+	// Both Pairing cards are open: each instance greets the other, so each
+	// lists the other as waiting.
+	waitingOn := func(token, base, id string) bool {
+		for _, p := range connectInfoOf(t, token, base).Pending {
+			if p.ID == id && p.Kind == relay.KindInstance && p.Fingerprint != "" {
+				return true
+			}
+		}
+		return false
+	}
+	deadline := time.Now().Add(10 * time.Second)
+	for {
+		firstLists, secondLists := waitingOn(firstToken, first.URL, secondID), waitingOn(secondToken, second.URL, firstID)
+		if firstLists && secondLists {
+			break
+		}
+		if time.Now().After(deadline) {
+			t.Fatalf("the instances do not list each other as waiting: first %+v, second %+v",
+				connectInfoOf(t, firstToken, first.URL).Pending, connectInfoOf(t, secondToken, second.URL).Pending)
+		}
+		time.Sleep(50 * time.Millisecond)
+	}
+	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Fatalf("the second instance asking the first before it was approved = %d %s, want 403 memberPending", code, body)
+	}
+	if !connectInfoOf(t, secondToken, second.URL).Awaiting {
+		t.Error("the second instance does not say it waits for approval")
+	}
+
+	// Somebody holding the words announces an instance of their own while the
+	// two meet. It waits like any other.
+	impostorID := strings.Repeat("9", 40)
+	impostor := ed25519.NewKeyFromSeed([]byte(strings.Repeat("i", ed25519.SeedSize)))
+	if code, body := relayCall(t, relaySrv.URL, secret, impostorID, secondID, impostor, relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: impostorID, Kind: relay.KindInstance}); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Errorf("an instance announced by somebody holding the words = %d %s, want 403 memberPending", code, body)
+	}
+
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the first instance on the second = %d %s", code, body)
+	}
 	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the first instance asking the second = %d %s", code, body)
 	}
@@ -153,18 +195,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		t.Errorf("an unsigned call naming nobody = %d %s, want 403 memberUnsigned", code, body)
 	}
 
-	// The second instance entered the words, so the first was there already
-	// for it; the first has to approve the second.
-	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
-		t.Fatalf("the second instance asking the first before it was approved = %d %s, want 403 memberPending", code, body)
-	}
-	if !connectInfoOf(t, secondToken, second.URL).Awaiting {
-		t.Error("the second instance does not say it waits for approval")
-	}
-	pending := connectInfoOf(t, firstToken, first.URL).Pending
-	if len(pending) != 1 || pending[0].ID != secondID || pending[0].Kind != relay.KindInstance || pending[0].Fingerprint == "" {
-		t.Fatalf("the first instance lists %+v as waiting, want the second with its kind and fingerprint", pending)
-	}
+	// The first approves the second too.
 	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/"+secondID+"/approve", nil); code != http.StatusNoContent {
 		t.Fatalf("approving the second instance = %d %s", code, body)
 	}
@@ -181,7 +212,7 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 	if code, body := call(t, firstToken, http.MethodPost, first.URL+"/api/connect/devices/phone-new/approve", nil); code != http.StatusNoContent {
 		t.Fatalf("approving the phone = %d %s", code, body)
 	}
-	deadline := time.Now().Add(5 * time.Second)
+	deadline = time.Now().Add(5 * time.Second)
 	for {
 		code, body := relayCall(t, relaySrv.URL, secret, "phone-new", secondID, phone, asPhone)
 		if code == http.StatusOK {

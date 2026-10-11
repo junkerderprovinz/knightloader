@@ -27,7 +27,7 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := enterGroup(a, old, false); err != nil {
+	if err := enterGroup(a, old); err != nil {
 		t.Fatal(err)
 	}
 	before, _ := a.Accounts.Get(relay.SeedAccountService)
@@ -79,7 +79,7 @@ func TestTheResetPageListsOnlyWhatWasRemoved(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := enterGroup(a, old, false); err != nil {
+	if err := enterGroup(a, old); err != nil {
 		t.Fatal(err)
 	}
 	for _, name := range []string{"the phone", "the extension"} {
