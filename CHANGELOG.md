@@ -42,6 +42,88 @@ release's tag.
 - **The extension is on Firefox Add-ons.** The Firefox button in the README and
   on Settings > Apps opens the listing, with the steps to add and pin it, and
   the manual names it beside the Chrome and Edge stores.
+- **The main action of a page floats at its lower right corner.** Add links on
+  the Overview and on Downloads, Start all on the Link collector, Add account
+  on Accounts and Pairing on Instances stay in reach while the page scrolls.
+  Add account lists every kind of account, so the cards no longer carry an add
+  button each.
+- **The Overview opens with what is going on.** A line at the top says what is
+  loading and how long it will take, and a "Needs you" card collects what only
+  you can settle, such as a captcha or an account that stopped working.
+  Customize arranges the cards and hides the ones you do not use.
+- **Pictures for what is easier seen than read.** A vessel shows how full each
+  target folder is, a row of stations shows what happens to a download once it
+  has arrived, and a flow shows the order in which accounts are asked. The
+  week's schedule is a band, a reconnect is a scene, and a ring shows how close
+  a torrent is to its seeding goal. Every picture reads the app's own state and
+  holds still when motion is off.
+- **Pairing shows the group.** The Pairing tab explains its three steps in
+  pictures and lists every device of the group with the way it is reached.
+  On Instances each device is a compact card under a picture of the group,
+  and the rest about it opens in a window.
+- **After an update, dots mark what changed.** A glowing dot stands at each
+  change, and every link that leads to one says how many changes lie that way.
+  A click hides a dot, and what you have seen follows you between browsers.
+  The release notes of the running version open once after an update and stay
+  reachable from the Version card and the event list.
+- **An Info tile closes the settings.** It holds About, every version with a
+  button that checks for updates, and Help with the manual and a bug report
+  that downloads as a file.
+
+### Changed
+
+- **Filter, Sort and Search stand above the lists as three buttons.** The
+  quick filters open under Filter, Sort offers every sortable column in both
+  directions, and Search turns into its field. Sorting by a click on a column
+  head works as before.
+- **Rows show their buttons when you point at them.** The buttons of a list
+  row appear while the pointer or the focus is on the row and stay visible on
+  touch screens. A round mark at the start of a row picks it, and a
+  Shift-click picks the range.
+- **Settings that used to unfold open in a window.** Connections, rules,
+  categories, host rules, feeds, schedules, event targets, event programs,
+  scripts, header profiles and media hooks are edited in a window of their
+  own, so a page keeps its place while you work on one row.
+- **Settings pages are shorter.** A selector stands compact at the end of its
+  row, several one-row cards joined the card they belong to, and Appearance
+  opens with one Display card for language, design, corners, motion and row
+  height. On a phone a row whose control does not fit beside its name stacks.
+- **A button that tests something shows the answer on itself.** It turns green
+  or red with a word, and the reason stands above it, for connection tests,
+  feeds, event targets, media hooks, captcha services, the port mapping, the
+  folder check and the self-test.
+- **One filled button per view.** Only the floating action of a page and the
+  main button of a window carry the accent colour. Every other button is
+  plain, so the next step is the one that stands out.
+- **The settings search appears when you ask for it.** It shows on a second
+  upward push at the top of a settings page or with the `/` key.
+- **Table cells are a size larger.** The download and collector tables use the
+  12px size of the rest of the interface, and the Status and Variant columns
+  are a little wider by default.
+- **Debrid, captcha and hoster accounts are picked from tiles with their
+  logos.** The services stand in one window with a search, and the form of the
+  chosen one opens in the same window with Back and Save. An account's whole
+  row opens it, and a right click opens its menu.
+- **The phone layout's bottom bar keeps four places.** Instances, Accounts, the
+  event list and Sign out open from More, and the bar's words shrink before
+  one is cut. In a narrow window a dialog stands on the bottom edge with its
+  buttons in reach.
+- **Play and Pause in the head bar show the queue's state.** Play is filled
+  while the queue runs and Pause is shown engaged while it is halted, where
+  the bar used to fill the button to press.
+- **Downloads are counted the same way everywhere.** The Overview, the
+  sidebar's badge and the tray window take their figures from one place: a
+  paused download and a retry that is coming count as waiting, and Failed
+  counts only what will not be tried again.
+- **The options of a batch of links open in a window.** The Options button
+  under the form is marked while an option is set.
+- **The desktop card on the Apps page names its release** and offers that
+  release's files.
+- **Glyphs come from GlimStone's shared list.** A meaning has the same drawing
+  here as in the other GlimStone apps, and every glyph fills the same share of
+  its box, where a stop square used to be a third smaller than the pause bars
+  beside it.
+- **The web UI follows GlimStone 3.4.0.**
 
 ## [1.8.4] - 2026-10-08
 
