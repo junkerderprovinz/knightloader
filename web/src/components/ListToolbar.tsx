@@ -44,6 +44,7 @@ import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
+import { passwordPath, usePasswordFirst } from '../lib/passwordFirst';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
@@ -306,7 +307,9 @@ function ConfirmRemove({
   onConfirm: (withFiles: boolean) => void;
 }) {
   const { t } = useT();
-  const files = allowFiles && weight.files > 0;
+  const locked = usePasswordFirst();
+  const files = allowFiles && !locked && weight.files > 0;
+  const why = allowFiles && locked && weight.files > 0 ? t('remove.filesNeedPassword', { path: passwordPath(t) }) : note;
 
   return (
     <Modal
@@ -345,7 +348,7 @@ function ConfirmRemove({
               ? t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })
               : t('remove.filesKept')}
         </p>
-        {note && <p className="text-carbon-textMuted">{note}</p>}
+        {why && <p className="text-carbon-textMuted">{why}</p>}
       </div>
     </Modal>
   );
@@ -517,7 +520,7 @@ export function useRemoval({
         );
         onDone();
       } catch (e) {
-        toast(t('list.failed', { error: message(e) }), 'fail');
+        toast(taskRefusal(e, t) ?? t('list.failed', { error: message(e) }), 'fail');
       }
     },
     [base, drawn, onDone, t, toast, undoRemoval],
@@ -710,7 +713,7 @@ export function useCleanup(all: Task[]) {
         const r = await runCleanup(cls, withFiles);
         toast(t('remove.done', { n: r.count }), 'ok');
       } catch (e) {
-        toast(t('cleanup.failed', { error: message(e) }), 'fail');
+        toast(taskRefusal(e, t) ?? t('cleanup.failed', { error: message(e) }), 'fail');
       }
     },
     [t, toast],
