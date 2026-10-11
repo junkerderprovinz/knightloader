@@ -121,6 +121,13 @@ export const sl: Dict = {
   'error.federationOff': 'Na primerku, s katerim si povezan, so sorodni primerki izklopljeni, zato drugih ne doseže.',
   'error.addAgain': 'To povezavo je shranila starejša različica aplikacije in ne deluje več. Odstrani jo in se znova poveži z dvanajstimi besedami.',
   'error.ownLoginNeeded': 'Primerek to dovoli samo iz svojega spletnega vmesnika. Prijavi se tam, da to narediš.',
+  'error.memberPending': 'Ta naprava čaka na odobritev. Odobri jo na enem od svojih primerkov pod Nastavitve, Seznanjanje.',
+  'error.memberKeyChanged': 'Primerek pozna to napravo pod drugim ključem. Tam odstrani napravo pod Nastavitve, Seznanjanje in jo znova seznani z dvanajstimi besedami.',
+  'error.memberUnsigned': 'Primerek od te naprave pričakuje podpisane zahteve, ta pa ni bila podpisana. Tam odstrani napravo pod Nastavitve, Seznanjanje in jo znova seznani z dvanajstimi besedami.',
+  'error.memberBusy': 'Ta naprava ima na primerku preveč čakajočih zahtev. Poskusi znova čez trenutek.',
+  'error.groupFull': 'Skupina ima že toliko naprav, kot jih lahko sprejme. Odstrani eno pod Nastavitve, Seznanjanje na kakšnem primerku in poskusi znova.',
+  'error.groupJoinsBusy': 'V zadnji uri se je skupini pridružilo preveč novih naprav. Poskusi znova pozneje.',
+  'error.memberNotPinned': 'Primerek ni mogel shraniti ključa te naprave. Poskusi znova čez trenutek.',
   'addDownload.cancel': 'Prekliči',
   'addDownload.button': 'Dodaj',
 

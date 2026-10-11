@@ -121,6 +121,13 @@ export const ms: Dict = {
   'error.federationOff': 'Instans rakan dimatikan pada instans yang anda sambungkan, jadi ia tidak dapat mencapai instans lain.',
   'error.addAgain': 'Sambungan ini disimpan oleh versi apl yang lebih lama dan tidak berfungsi lagi. Alih keluarnya dan sambung semula dengan dua belas perkataan itu.',
   'error.ownLoginNeeded': 'Instans hanya membenarkan ini daripada antara muka webnya sendiri. Log masuk di sana untuk melakukannya.',
+  'error.memberPending': 'Peranti ini menunggu kelulusan. Luluskannya pada salah satu instans anda di Tetapan, Gandingan.',
+  'error.memberKeyChanged': 'Instans mengenali peranti ini dengan kunci lain. Alih keluar peranti di sana di Tetapan, Gandingan, kemudian gandingkannya semula dengan dua belas perkataan itu.',
+  'error.memberUnsigned': 'Instans menjangkakan permintaan bertandatangan daripada peranti ini, tetapi yang ini tidak ditandatangani. Alih keluar peranti di sana di Tetapan, Gandingan, kemudian gandingkannya semula dengan dua belas perkataan itu.',
+  'error.memberBusy': 'Peranti ini mempunyai terlalu banyak permintaan yang menunggu pada instans. Cuba lagi sebentar nanti.',
+  'error.groupFull': 'Kumpulan sudah mempunyai seberapa banyak peranti yang boleh dimuatkan. Alih keluar satu di Tetapan, Gandingan pada sebuah instans, kemudian cuba lagi.',
+  'error.groupJoinsBusy': 'Terlalu banyak peranti baharu menyertai kumpulan dalam sejam yang lalu. Cuba lagi kemudian.',
+  'error.memberNotPinned': 'Instans tidak dapat menyimpan kunci peranti ini. Cuba lagi sebentar nanti.',
   'addDownload.cancel': 'Batal',
   'addDownload.button': 'Tambah',
 

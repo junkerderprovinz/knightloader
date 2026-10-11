@@ -19,7 +19,7 @@ import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
-import { relayIdentity, resetRelayIdentity } from '../storage/relayIdentity';
+import { memberOptions, resetRelayIdentity } from '../storage/relayIdentity';
 import { removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
@@ -50,15 +50,25 @@ function refusal(body: string, status: number): ApiError {
 }
 
 // The refusals this app words itself. The rest show the server's sentence.
+// The member refusals are the ones an instance answers when it will not take
+// this phone's key (internal/federation/members.go); check-member-refusals.mjs
+// holds them to the server's codes.
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
   federationOff: 'error.federationOff',
   addAgain: 'error.addAgain',
   ownLoginNeeded: 'error.ownLoginNeeded',
+  memberPending: 'error.memberPending',
+  memberKeyChanged: 'error.memberKeyChanged',
+  memberUnsigned: 'error.memberUnsigned',
+  memberBusy: 'error.memberBusy',
+  groupFull: 'error.groupFull',
+  groupJoinsBusy: 'error.groupJoinsBusy',
+  memberNotPinned: 'error.memberNotPinned',
 };
 
 /** errorText is what a failed call shows: translated where the code is known. */
 export function errorText(t: (key: TranslationKey) => string, e: unknown): string {
-  const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
+  const key = e instanceof ApiError && e.code && Object.hasOwn(REFUSALS, e.code) ? REFUSALS[e.code] : undefined;
   if (key) return t(key);
   return e instanceof Error ? e.message : String(e);
 }
@@ -126,7 +136,7 @@ async function relayRequest(conn: ServerConnection, path: string, init?: Request
     url: conn.relayUrl,
     key: conn.relayKey,
     frameKey: fromHex(conn.relayFrameKey),
-    selfId: await relayIdentity(),
+    ...(await memberOptions()),
     selfName: deviceName(),
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;

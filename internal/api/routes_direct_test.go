@@ -14,6 +14,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // fakeNetwork stands in for the multicast service: it hands out the announces
@@ -87,6 +88,11 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 	if code != http.StatusOK || !strings.HasPrefix(strings.TrimSpace(string(body)), "[") {
 		t.Fatalf("the second instance's downloads answered %d: %s", code, body)
 	}
+	// The direct call was signed like one over the relay.
+	st, _ := secondApp.Federation.Group(false, time.Now())
+	if pin, ok := st.Keys[firstApp.Settings.Get().InstanceID]; !ok || pin.Kind != relay.KindInstance {
+		t.Fatalf("the second instance pinned %+v, want the first instance's key", st.Keys)
+	}
 }
 
 // TestADirectCallNeedsTheGroupsSignature checks the open route: a call
@@ -140,6 +146,15 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	net := &fakeNetwork{}
 	callerApp.Federation.SetDiscovery(net)
 	net.heard = []discovery.Peer{announce(t, tap, net, self)}
+	// The caller entered the words of a group that was there already, so it
+	// waits for approval here first.
+	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {
+		t.Fatalf("the new member's first direct call answered %d: %s, want 403 until it is approved", code, body)
+	}
+	if code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/devices/"+callerApp.Settings.Get().InstanceID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the caller answered %d: %s", code, body)
+	}
+	captured = nil
 	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the member's direct call answered %d: %s", code, body)
 	}

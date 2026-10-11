@@ -121,6 +121,13 @@ export const pt: Dict = {
   'error.federationOff': 'As instâncias parceiras estão desligadas na instância a que estás ligado, por isso ela não consegue chegar às outras.',
   'error.addAgain': 'Esta ligação foi guardada por uma versão anterior da app e já não funciona. Remove-a e volta a ligar com as doze palavras.',
   'error.ownLoginNeeded': 'A instância só o permite a partir da sua própria interface web. Inicia sessão lá para o fazer.',
+  'error.memberPending': 'Este dispositivo está à espera de aprovação. Aprova-o numa das tuas instâncias em Definições, Emparelhamento.',
+  'error.memberKeyChanged': 'A instância conhece este dispositivo por outra chave. Remove lá o dispositivo em Definições, Emparelhamento e emparelha-o de novo com as doze palavras.',
+  'error.memberUnsigned': 'A instância espera pedidos assinados deste dispositivo, mas este não estava assinado. Remove lá o dispositivo em Definições, Emparelhamento e emparelha-o de novo com as doze palavras.',
+  'error.memberBusy': 'Este dispositivo tem demasiados pedidos à espera na instância. Tenta de novo daqui a pouco.',
+  'error.groupFull': 'O grupo já tem tantos dispositivos quanto consegue ter. Remove um em Definições, Emparelhamento numa instância e tenta de novo.',
+  'error.groupJoinsBusy': 'Demasiados dispositivos novos entraram no grupo na última hora. Tenta de novo mais tarde.',
+  'error.memberNotPinned': 'A instância não conseguiu guardar a chave deste dispositivo. Tenta de novo daqui a pouco.',
   'addDownload.cancel': 'Cancelar',
   'addDownload.button': 'Adicionar',
 

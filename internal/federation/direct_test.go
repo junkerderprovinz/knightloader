@@ -21,7 +21,7 @@ import (
 func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	secret := []byte("0123456789abcdef")
 	callee := newManager(t)
-	callee.SetGroup(secret, officeID)
+	callee.SetGroup(secret, officeID, nil)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callee.ServeDirect(w, r, func(context.Context, relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte("served")
@@ -31,7 +31,7 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 
 	// Each stranger sends the headers and one byte of a body it says is far
 	// longer, and then nothing.
-	for i := 0; i < maxDirectCalls; i++ {
+	for i := 0; i < 16; i++ {
 		c, err := net.Dial("tcp", strings.TrimPrefix(srv.URL, "http://"))
 		if err != nil {
 			t.Fatal(err)
@@ -43,7 +43,7 @@ func TestASlowStrangerCannotTakeTheDirectCallSlots(t *testing.T) {
 	time.Sleep(100 * time.Millisecond)
 
 	caller := newManager(t)
-	caller.SetGroup(secret, bravoID)
+	caller.SetGroup(secret, bravoID, nil)
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
 	defer cancel()
 	body, status, err := caller.callDirect(ctx, srv.URL, officeID, http.MethodGet, "/api/tasks", nil, "")
@@ -60,7 +60,7 @@ func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
 
 	secret := []byte("0123456789abcdef")
 	callee := newManager(t)
-	callee.SetGroup(secret, officeID)
+	callee.SetGroup(secret, officeID, nil)
 	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		callee.ServeDirect(w, r, func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			time.Sleep(2 * directReadTimeout)
@@ -86,7 +86,7 @@ func TestABodyThatNeverFinishesIsRefused(t *testing.T) {
 	}
 
 	caller := newManager(t)
-	caller.SetGroup(secret, bravoID)
+	caller.SetGroup(secret, bravoID, nil)
 	body, status, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodPost, "/api/links", []byte(`{"links":"x"}`), "")
 	if err != nil || status != http.StatusOK || string(body) != "13" {
 		t.Fatalf("got %d %q %v, want the call served with its context intact", status, body, err)

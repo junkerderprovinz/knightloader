@@ -108,6 +108,28 @@ release's tag.
   file that has a second path.** A path through a symlink, a junction or a bind
   mount, or one spelled in another case on a disk that ignores case, counts as
   the same file, and so does one the disk cannot answer for.
+### Security
+
+- **Every member of a group signs its own calls.** Instances, the Android app
+  and the browser extension each make a key of their own when they join, and
+  an instance remembers it on the member's first signed call. After that no
+  other key, and no unsigned call, is taken in that member's name. Groups
+  paired before keep working; each member's key is remembered after the
+  update without pairing again.
+
+- **A new device has to be approved.** A phone, a browser or an instance that
+  enters the twelve words waits under **Waiting for approval** on the Pairing
+  card, with its kind and key fingerprint, until somebody approves or refuses
+  it there. The decision reaches every instance of the group, and the waiting
+  device says where to approve it. Devices already in a group count as
+  approved.
+
+- **Removing or refusing a device takes back its key for good.** It can come
+  back only as a new device, which waits for approval again.
+
+- **One member can no longer crowd out the others.** How many calls wait at
+  once, which request ids are used up, and how many new devices join in an
+  hour are counted per key by the instance itself.
 
 ## [1.8.5] - 2026-10-11
 

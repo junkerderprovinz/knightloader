@@ -121,6 +121,13 @@ export const da: Dict = {
   'error.federationOff': 'Søsterinstanser er slået fra på den instans, du er forbundet til, så den kan ikke nå de andre.',
   'error.addAgain': 'Denne forbindelse blev gemt af en ældre version af appen og virker ikke længere. Fjern den, og forbind igen med de tolv ord.',
   'error.ownLoginNeeded': 'Instansen tillader kun dette fra sin egen webbrugerflade. Log ind der for at gøre det.',
+  'error.memberPending': 'Denne enhed venter på godkendelse. Godkend den på en af dine instanser under Indstillinger, Parring.',
+  'error.memberKeyChanged': 'Instansen kender denne enhed under en anden nøgle. Fjern enheden der under Indstillinger, Parring, og par den igen med de tolv ord.',
+  'error.memberUnsigned': 'Instansen forventer signerede forespørgsler fra denne enhed, men denne var ikke signeret. Fjern enheden der under Indstillinger, Parring, og par den igen med de tolv ord.',
+  'error.memberBusy': 'Denne enhed har for mange forespørgsler, der venter på instansen. Prøv igen om lidt.',
+  'error.groupFull': 'Gruppen har allerede så mange enheder, som den kan rumme. Fjern en under Indstillinger, Parring på en instans, og prøv igen.',
+  'error.groupJoinsBusy': 'For mange nye enheder kom med i gruppen inden for den seneste time. Prøv igen senere.',
+  'error.memberNotPinned': 'Instansen kunne ikke gemme denne enheds nøgle. Prøv igen om lidt.',
   'addDownload.cancel': 'Annuller',
   'addDownload.button': 'Tilføj',
 

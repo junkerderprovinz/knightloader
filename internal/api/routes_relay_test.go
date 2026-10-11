@@ -355,7 +355,7 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
 
 	if status, body := serve(context.Background(), relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
@@ -405,7 +405,7 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 func TestABodylessRelayCallDoesNotPanic(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
@@ -421,7 +421,7 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 	jd, solvedWith := fakeJDWithHCaptcha(t)
 	t.Setenv("KL_JD", jd.URL)
 	a := testApp(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
 	// With a password set, a call the relay did not vouch for is a 401.
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
@@ -724,8 +724,8 @@ func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
 func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
-	if err := a.Federation.SetJoined(time.Now()); err != nil {
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
+	if err := a.Federation.SetJoined(time.Now(), false); err != nil {
 		t.Fatal(err)
 	}
 	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {
@@ -758,7 +758,7 @@ func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
 	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*relayAnswerMax); err != nil {
 		t.Fatal(err)
 	}
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
 	status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
 	if status == http.StatusOK || len(body) > relayAnswerMax {
 		t.Fatalf("a relayed %d MiB file answered %d with %d MiB, want a refusal within %d MiB",
