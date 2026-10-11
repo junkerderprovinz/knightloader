@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
 	"net/http/httptest"
@@ -282,5 +283,36 @@ func TestAClosedBucketCostsNoPasswordCheck(t *testing.T) {
 	}
 	if bytes.Equal(file(), before) {
 		t.Fatal("a check of the right password left auth.json as it was, so this test proves nothing")
+	}
+}
+
+// TestAnIPv6NetworkCannotMintFreshAllowances: each /64 has an allowance of its
+// own, and whoever holds a /48 holds 65536 of them. The /48 as a whole stops
+// at loginNetworkLimit, while another network is not held up by it.
+func TestAnIPv6NetworkCannotMintFreshAllowances(t *testing.T) {
+	t.Parallel()
+	g := newLoginGate(nil)
+	from := func(addr string) *http.Request {
+		r := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+		r.RemoteAddr = "[" + addr + "]:443"
+		return r
+	}
+	let := 0
+	for sub := range 1000 {
+		r := from(fmt.Sprintf("2001:db8:7:%x::1", sub))
+		for range loginFailLimit {
+			if g.try(r) {
+				let++
+			}
+		}
+	}
+	if let > loginNetworkLimit {
+		t.Errorf("one /48 had %d guesses within the window, want at most %d", let, loginNetworkLimit)
+	}
+	if !g.try(from("2001:db8:8::1")) {
+		t.Error("a caller from another /48 was refused")
+	}
+	if !g.try(httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)) {
+		t.Error("an IPv4 caller was refused")
 	}
 }

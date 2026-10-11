@@ -32,6 +32,25 @@ const (
 	argonPrefix    = "argon2id$"
 )
 
+// maxArgonAtOnce bounds the Argon2id runs at once. Each takes argonMemoryKiB,
+// and a wrong guess costs the server one, so a burst of sign-ins from many
+// addresses would otherwise take as much memory as it has requests. The rest
+// wait their turn.
+const maxArgonAtOnce = 2
+
+var argonSlots = make(chan struct{}, maxArgonAtOnce)
+
+// argonRun is argon2.IDKey, replaced by a test that watches how many run at
+// once.
+var argonRun = argon2.IDKey
+
+// idKey is argonRun in one of argonSlots.
+func idKey(password, salt []byte, time, memory uint32, threads uint8, keyLen uint32) []byte {
+	argonSlots <- struct{}{}
+	defer func() { <-argonSlots }()
+	return argonRun(password, salt, time, memory, threads, keyLen)
+}
+
 // bcryptCost is a variable so the tests can hash at bcrypt's lowest cost,
 // which the race detector would otherwise slow to a second per hash.
 var bcryptCost = bcrypt.DefaultCost
@@ -44,7 +63,7 @@ func hashPassword(key *appkey.Key, password string) ([]byte, error) {
 	if _, err := rand.Read(salt); err != nil {
 		return nil, err
 	}
-	sum := argon2.IDKey(pepper(key, password), salt, argonTime, argonMemoryKiB, argonThreads, argonKeyLen)
+	sum := idKey(pepper(key, password), salt, argonTime, argonMemoryKiB, argonThreads, argonKeyLen)
 	return fmt.Appendf(nil, "%s%d$%d$%d$%s$%s", argonPrefix, argonMemoryKiB, argonTime, argonThreads,
 		base64.RawStdEncoding.EncodeToString(salt), base64.RawStdEncoding.EncodeToString(sum)), nil
 }
@@ -66,7 +85,7 @@ func verifyPassword(key *appkey.Key, password string, stored []byte) bool {
 	if !ok || len(want) > math.MaxUint32 {
 		return false
 	}
-	got := argon2.IDKey(pepper(key, password), salt, t, m, p, uint32(len(want)))
+	got := idKey(pepper(key, password), salt, t, m, p, uint32(len(want)))
 	return subtle.ConstantTimeCompare(got, want) == 1
 }
 
