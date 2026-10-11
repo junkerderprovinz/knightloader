@@ -313,6 +313,8 @@ export const sk: Dict = {
   'settings.passwordHint': 'Aspoň 8 znakov. Nechaj prázdne, ak chceš zámok zrušiť. Tým sa zároveň vypne dvojfaktorové overenie a zmažú sa všetky prístupové kľúče.',
   'settings.setPassword': 'Nastaviť heslo',
   'settings.passwordSaved': 'Heslo zmenené.',
+  'settings.access.trustedProxies': 'Dôveryhodné proxy',
+  'settings.access.trustedProxiesHint': 'Treba len vtedy, keď pred KnightLoaderom stojí reverzné proxy. Po ôsmich neúspešných pokusoch o prihlásenie z jednej adresy nechá KnightLoader túto adresu pol minúty čakať. Za proxy prichádza každá požiadavka z adresy proxy, takže keď jeden človek háda, čakajú všetci. Zadaj sem adresu proxy, jednu IP adresu alebo rozsah CIDR na riadok, a KnightLoader bude čítať adresu návštevníka z hlavičky X-Forwarded-For, ktorú toto proxy posiela. Uvádzaj len proxy, ktoré sám prevádzkuješ, pretože ktokoľvek iný môže do tejto hlavičky napísať ľubovoľnú adresu. Ak pole zostane prázdne, každá požiadavka sa počíta pre adresu, z ktorej sa pripojila.',
   'auth.title': 'Táto inštancia je uzamknutá',
   'auth.password': 'Heslo',
   'auth.signIn': 'Prihlásiť sa',

@@ -313,6 +313,8 @@ export const hu: Dict = {
   'settings.passwordHint': 'Legalább 8 karakter. Hagyja üresen a zár eltávolításához. Ezzel a kétlépcsős azonosítás is kikapcsol, és minden azonosítókulcs törlődik.',
   'settings.setPassword': 'Jelszó beállítása',
   'settings.passwordSaved': 'A jelszó frissítve.',
+  'settings.access.trustedProxies': 'Megbízható proxyk',
+  'settings.access.trustedProxiesHint': 'Csak akkor kell, ha a KnightLoader előtt fordított proxy áll. Egy címről érkező nyolc sikertelen bejelentkezés után a KnightLoader fél percig várakoztatja azt a címet. Proxy mögött minden kérés a proxy címéről érkezik, így ha egy ember találgat, mindenkinek várnia kell. Írd ide a proxy címét, soronként egy IP-címet vagy CIDR-tartományt, és a KnightLoader a látogató címét a proxy által küldött X-Forwarded-For fejlécből olvassa ki. Csak olyan proxykat adj meg, amelyeket te magad üzemeltetsz, mert bárki más bármilyen címet beírhat abba a fejlécbe. Ha üresen marad, minden kérés annak a címnek számít, amelyről a kapcsolat jött.',
   'auth.title': 'Ez a példány zárolva van',
   'auth.password': 'Jelszó',
   'auth.signIn': 'Bejelentkezés',

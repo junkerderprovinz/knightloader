@@ -313,6 +313,8 @@ export const sv: Dict = {
   'settings.passwordHint': 'Minst 8 tecken. Lämna tomt för att ta bort låset. Det stänger också av tvåfaktorsautentiseringen och tar bort alla nycklar.',
   'settings.setPassword': 'Ange lösenord',
   'settings.passwordSaved': 'Lösenordet uppdaterat.',
+  'settings.access.trustedProxies': 'Betrodda proxyer',
+  'settings.access.trustedProxiesHint': 'Behövs bara när en omvänd proxy står framför KnightLoader. Efter åtta misslyckade inloggningsförsök från en adress låter KnightLoader den adressen vänta en halv minut. Bakom en proxy kommer varje begäran från proxyns adress, så när en person gissar får alla vänta. Ange proxyns adress här, en IP-adress eller ett CIDR-intervall per rad, så läser KnightLoader besökarens adress från headern X-Forwarded-For som proxyn skickar. Lista bara proxyer som du själv driver, eftersom alla andra kan skriva vilken adress de vill i den headern. Lämnas fältet tomt räknas varje begäran på adressen den anslöt från.',
   'auth.title': 'Den här instansen är låst',
   'auth.password': 'Lösenord',
   'auth.signIn': 'Logga in',

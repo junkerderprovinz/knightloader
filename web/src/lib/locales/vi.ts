@@ -313,6 +313,8 @@ export const vi: Dict = {
   'settings.passwordHint': 'Ít nhất 8 ký tự. Để trống để gỡ khóa. Việc này cũng tắt xác thực hai yếu tố và xoá mọi khoá truy cập.',
   'settings.setPassword': 'Đặt mật khẩu',
   'settings.passwordSaved': 'Đã cập nhật mật khẩu.',
+  'settings.access.trustedProxies': 'Proxy tin cậy',
+  'settings.access.trustedProxiesHint': 'Chỉ cần khi có một proxy ngược đứng trước KnightLoader. Sau tám lần đăng nhập thất bại từ cùng một địa chỉ, KnightLoader bắt địa chỉ đó chờ nửa phút. Phía sau proxy, mọi yêu cầu đều đến từ địa chỉ của proxy, nên chỉ cần một người đoán mò là ai cũng phải chờ. Nhập địa chỉ của proxy vào đây, mỗi dòng một địa chỉ IP hoặc một dải CIDR, và KnightLoader sẽ đọc địa chỉ của người truy cập từ header X-Forwarded-For mà proxy đó gửi. Chỉ ghi những proxy do chính bạn vận hành, vì bất kỳ ai khác cũng có thể đặt bất cứ địa chỉ nào họ muốn vào header đó. Nếu để trống, mỗi yêu cầu được tính cho địa chỉ đã mở kết nối.',
   'auth.title': 'Phiên bản này đang bị khóa',
   'auth.password': 'Mật khẩu',
   'auth.signIn': 'Đăng nhập',

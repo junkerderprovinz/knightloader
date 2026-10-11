@@ -32,6 +32,22 @@ website takes; ProLeech and RPNet take the two values their API page shows. The 
 list of services, and where each one issues its key, is
 [`internal/accounts/catalogue.go`](https://github.com/junkerderprovinz/knightloader/blob/main/internal/accounts/catalogue.go).
 
+## Trusted proxies
+
+After eight failed sign-ins from one address, KnightLoader makes that address
+wait half a minute. Passwords and two-factor codes share one count, passkeys
+and reset codes have one each. Behind a reverse proxy every request arrives
+from the proxy, so one person guessing makes everybody wait.
+
+**Trusted proxies** under Settings > Access, beside the password, fixes that.
+Enter the proxy's address, one IP address or CIDR range per line, such as
+`172.17.0.1` or `10.0.0.0/8`. For a request from one of them, KnightLoader
+counts the right-most address in `X-Forwarded-For` that is not itself a
+trusted proxy. List only proxies you run: every machine on the list can put
+any address it likes into that header, and with it guess without ever being
+made to wait. Empty, the default, means every request counts for the address
+it connected from.
+
 ## A forgotten password
 
 **Forgot password?** on the sign-in page has KnightLoader write a code where

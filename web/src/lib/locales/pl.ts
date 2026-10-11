@@ -305,6 +305,8 @@ export const pl: Dict = {
   'settings.passwordHint': 'Co najmniej 8 znaków. Zostaw puste, aby zdjąć blokadę. To wyłącza też uwierzytelnianie dwuskładnikowe i usuwa wszystkie klucze dostępu.',
   'settings.setPassword': 'Ustaw hasło',
   'settings.passwordSaved': 'Hasło zaktualizowane.',
+  'settings.access.trustedProxies': 'Zaufane serwery proxy',
+  'settings.access.trustedProxiesHint': 'Potrzebne tylko wtedy, gdy przed KnightLoaderem stoi reverse proxy. Po ośmiu nieudanych próbach logowania z jednego adresu KnightLoader każe temu adresowi czekać pół minuty. Za proxy każde żądanie przychodzi z adresu proxy, więc gdy jedna osoba zgaduje, czekać muszą wszyscy. Wpisz tutaj adres proxy, jeden adres IP lub zakres CIDR w wierszu, a KnightLoader będzie odczytywać adres odwiedzającego z nagłówka X-Forwarded-For, który wysyła ten proxy. Wpisuj tylko serwery proxy, które sam prowadzisz, bo każdy inny może wpisać do tego nagłówka dowolny adres. Jeśli pole zostanie puste, każde żądanie liczy się dla adresu, z którego przyszło połączenie.',
   'auth.title': 'Ta instancja jest zablokowana',
   'auth.password': 'Hasło',
   'auth.signIn': 'Zaloguj się',
