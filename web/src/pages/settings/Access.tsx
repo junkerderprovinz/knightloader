@@ -44,6 +44,7 @@ import {
 } from '../../lib/icons';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
 import { useToast } from '../../lib/toast';
+import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
 import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
@@ -209,6 +210,7 @@ export function PasswordCard({
 function TrustedProxiesField() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const unused = unusedProxyRanges(cfg.trustedProxies);
   return (
     <div className="flex flex-col gap-1.5">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>
@@ -219,6 +221,11 @@ function TrustedProxiesField() {
           onLines={(trustedProxies) => patch({ trustedProxies })}
         />
       </Field>
+      {unused.length > 0 && (
+        <p className="text-xs text-statusWarn">
+          {t('settings.access.trustedProxiesUnused', { entries: unused.join(', ') })}
+        </p>
+      )}
       <RowRefusal field="trustedProxies" className="pb-0" />
     </div>
   );
