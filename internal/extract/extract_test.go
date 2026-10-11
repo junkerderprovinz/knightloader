@@ -5,6 +5,7 @@ import (
 	"archive/zip"
 	"bytes"
 	"compress/gzip"
+	"errors"
 	"io"
 	"os"
 	"path/filepath"
@@ -406,8 +407,9 @@ func TestABarredDestinationIsRefusedBeforeWriting(t *testing.T) {
 		"beside the archive": {Barred: isBarred},
 		"through Dest":       {Dest: dir, Barred: isBarred},
 	} {
-		if _, err := o.Extract(arc); err == nil {
-			t.Errorf("unpacking %s into a barred folder went through", name)
+		var b *BarredError
+		if _, err := o.Extract(arc); !errors.As(err, &b) || b.Dir != barred {
+			t.Errorf("unpacking %s into a barred folder gave %v, want a BarredError naming %s", name, err, barred)
 		}
 		if _, err := os.Stat(barred); !os.IsNotExist(err) {
 			t.Fatalf("unpacking %s wrote into the barred folder: %v", name, err)

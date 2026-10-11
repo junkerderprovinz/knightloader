@@ -300,6 +300,8 @@ export const ms: Dict = {
   'failure.pinned.next': 'Lepaskan kunci itu dalam antara muka web, atau semak akaun backend itu di sana.',
   'failure.fileExists.line': 'Fail bernama {file} sudah ada dalam folder.',
   'failure.fileExists.next': 'Alihkan atau namakan semula fail itu, atau ubah apa yang berlaku kepada fail sedia ada dalam antara muka web, kemudian mulakan semula muat turun itu.',
+  'failure.dataFolder.line': '{path} berada dalam folder data KnightLoader, dan muat turun tidak boleh pergi ke situ.',
+  'failure.dataFolder.next': 'Pilih folder di luar folder data dalam antara muka web, kemudian cuba lagi.',
   'failure.captcha.line': 'Hoster mahu captcha diselesaikan.',
   'failure.captcha.next': 'Jawab captcha pada skrin Captcha, atau tambah akaun captcha dalam antara muka web.',
   'failure.cancelled.line': 'Muat turun dihentikan sebelum selesai.',

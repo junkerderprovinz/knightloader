@@ -300,6 +300,8 @@ export const it: Dict = {
   'failure.pinned.next': 'Togli il fissaggio nell’interfaccia web, oppure controlla lì l’account di quel backend.',
   'failure.fileExists.line': 'Nella cartella c’è già un file chiamato {file}.',
   'failure.fileExists.next': 'Sposta o rinomina quel file, oppure cambia nell’interfaccia web cosa succede ai file esistenti, poi riavvia il download.',
+  'failure.dataFolder.line': '{path} si trova nella cartella dei dati di KnightLoader, e lì i download non possono andare.',
+  'failure.dataFolder.next': 'Scegli nell’interfaccia web una cartella fuori dalla cartella dei dati, poi riprova.',
   'failure.captcha.line': 'L’hoster vuole che venga risolto un captcha.',
   'failure.captcha.next': 'Rispondi al captcha nella schermata Captcha, oppure aggiungi un account captcha nell’interfaccia web.',
   'failure.cancelled.line': 'Il download è stato fermato prima di finire.',

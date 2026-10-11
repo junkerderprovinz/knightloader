@@ -290,7 +290,7 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 		return delivery{}
 	}
 	if a.dataFolderOf(plan.Deliver) != "" {
-		return delivery{Err: fmt.Errorf("%s is inside KnightLoader's data folder, so the unpacked content was left in %s", plan.Deliver, out.Dir)}
+		return delivery{Err: fmt.Errorf("the unpacked content was left in %s: %w", out.Dir, &dataFolderError{dir: plan.Deliver})}
 	}
 	// A single compressed stream ("dump.sql.gz") unpacks beside its archive, so
 	// out.Dir is a shared folder and moving it would take everything else too.
