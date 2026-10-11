@@ -605,6 +605,7 @@ export const en = {
   'cleanup.localOnly': 'Clean-up always runs on this instance, not on the one you are looking at. Switch back to “This instance” to use it.',
   'cleanup.nothing': 'Nothing matches “{what}” right now, so nothing was removed.',
   'cleanup.failed': 'Could not work out what this would remove: {error}',
+  'cleanup.changed': 'The links under “{what}” changed after the preview, so nothing was removed. Choose it again to see the new list.',
 
   'remove.title': 'Delete the downloaded files too?',
   'remove.count': '{n} download(s) will be taken off the list.',

@@ -44,6 +44,11 @@ release's tag.
   `settings.json` is refused, whether the folder was typed in the settings, set
   for one download, built from a template or a package name, or reached through
   a link. The built-in `downloads` folder inside it still works.
+- **Clean up removes only what its preview showed.** If the links in a class
+  changed between the preview and your confirmation, such as a download that
+  finished in between, nothing is removed and the message says to look again.
+  `POST /api/cleanup/{class}` now takes the `digest` from the preview in a JSON
+  body, with `files` beside it.
 - **An older KnightLoader no longer starts on a database a newer one wrote,**
   as after going back to an older image. It stops with a message that says
   which version to run, instead of reading and writing a schema it does not

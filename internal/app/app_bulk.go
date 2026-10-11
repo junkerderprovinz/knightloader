@@ -6,6 +6,8 @@ package app
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
@@ -222,11 +224,29 @@ func (a *App) CleanupPreview(class CleanupClass) ([]string, error) {
 	return a.cleanupTargetsLocked(class)
 }
 
-// Cleanup removes everything in a class and returns what it removed.
-func (a *App) Cleanup(class CleanupClass, deleteFiles bool) ([]string, error) {
+// CleanupDigest is the checksum of a cleanup selection, which the preview hands
+// out and the run is given back.
+func CleanupDigest(ids []string) string {
+	sorted := slices.Clone(ids)
+	slices.Sort(sorted)
+	sum := sha256.Sum256([]byte(strings.Join(sorted, "\n")))
+	return hex.EncodeToString(sum[:])
+}
+
+// ErrCleanupChanged refuses a cleanup whose class no longer selects what its
+// preview showed.
+var ErrCleanupChanged = errors.New("the links in this class changed since the preview; look at the list again")
+
+// Cleanup removes everything in a class and returns what it removed, as long
+// as the class still selects what the confirmed preview showed (digest). A
+// download that finished in between was never shown and is not taken along.
+func (a *App) Cleanup(class CleanupClass, deleteFiles bool, digest string) ([]string, error) {
 	ids, err := a.CleanupPreview(class)
 	if err != nil {
 		return nil, err
+	}
+	if CleanupDigest(ids) != digest {
+		return nil, ErrCleanupChanged
 	}
 	return a.RemoveTasks(ids, deleteFiles), nil
 }

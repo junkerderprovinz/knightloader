@@ -518,6 +518,7 @@ export const nl: Dict = {
   'cleanup.localOnly': 'Opruimen draait altijd op deze instantie, niet op degene die je bekijkt. Schakel terug naar “Deze instantie” om het te gebruiken.',
   'cleanup.nothing': 'Er past nu niets bij “{what}”, dus er is niets verwijderd.',
   'cleanup.failed': 'Kon niet bepalen wat dit zou verwijderen: {error}',
+  'cleanup.changed': 'De links onder “{what}” zijn na het voorbeeld veranderd, dus er is niets verwijderd. Kies het opnieuw om de nieuwe lijst te zien.',
 
   'remove.title': 'Ook de gedownloade bestanden verwijderen?',
   'remove.count': '{n} download(s) worden van de lijst gehaald.',

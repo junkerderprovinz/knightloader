@@ -526,6 +526,7 @@ export const hr: Dict = {
   'cleanup.localOnly': 'Pospremanje uvijek radi na ovoj instanci, a ne na onoj koju gledaš. Vrati se na „Ova instanca” da bi ga koristio.',
   'cleanup.nothing': 'Trenutno ništa ne odgovara „{what}”, pa ništa nije uklonjeno.',
   'cleanup.failed': 'Nije se dalo utvrditi što bi ovo uklonilo: {error}',
+  'cleanup.changed': 'Poveznice pod „{what}” promijenile su se nakon pregleda, pa ništa nije uklonjeno. Odaberi to ponovno da vidiš novi popis.',
 
   'remove.title': 'Obrisati i preuzete datoteke?',
   'remove.count': '{n} preuzimanja bit će skinuto s popisa.',

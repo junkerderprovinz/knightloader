@@ -526,6 +526,7 @@ export const ms: Dict = {
   'cleanup.localOnly': 'Pembersihan sentiasa berjalan pada instans ini, bukan pada yang anda sedang lihat. Kembali ke “Instans ini” untuk menggunakannya.',
   'cleanup.nothing': 'Sekarang tiada apa yang padan dengan “{what}”, jadi tiada apa dibuang.',
   'cleanup.failed': 'Tidak dapat mengetahui apa yang akan dibuang: {error}',
+  'cleanup.changed': 'Pautan di bawah “{what}” berubah selepas pratonton, jadi tiada apa dibuang. Pilih sekali lagi untuk melihat senarai baharu.',
 
   'remove.title': 'Padam fail yang dimuat turun juga?',
   'remove.count': '{n} muat turun akan diangkat dari senarai.',

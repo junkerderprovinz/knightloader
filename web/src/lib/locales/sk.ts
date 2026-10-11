@@ -526,6 +526,7 @@ export const sk: Dict = {
   'cleanup.localOnly': 'Upratovanie beží vždy na tejto inštancii, nie na tej, ktorú si prezeráte. Vráťte sa na „Táto inštancia“, aby ste ho mohli použiť.',
   'cleanup.nothing': 'Na „{what}“ teraz nič nesedí, takže sa nič neodstránilo.',
   'cleanup.failed': 'Nepodarilo sa zistiť, čo by to odstránilo: {error}',
+  'cleanup.changed': 'Odkazy v „{what}“ sa od náhľadu zmenili, takže sa nič neodstránilo. Zvoľ to znova a uvidíš nový zoznam.',
 
   'remove.title': 'Zmazať aj stiahnuté súbory?',
   'remove.count': 'Zo zoznamu sa odoberie {n} sťahovaní.',

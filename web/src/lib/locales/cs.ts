@@ -526,6 +526,7 @@ export const cs: Dict = {
   'cleanup.localOnly': 'Úklid běží vždy na této instanci, ne na té, kterou si prohlížíte. Vraťte se na „Tato instance“, abyste ho mohli použít.',
   'cleanup.nothing': 'Na „{what}“ teď nic nesedí, takže se nic neodebralo.',
   'cleanup.failed': 'Nepodařilo se zjistit, co by to odebralo: {error}',
+  'cleanup.changed': 'Odkazy v „{what}“ se od náhledu změnily, takže se nic neodebralo. Zvol to znovu a uvidíš nový seznam.',
 
   'remove.title': 'Smazat i stažené soubory?',
   'remove.count': 'Ze seznamu se odebere {n} stahování.',

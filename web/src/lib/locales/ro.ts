@@ -527,6 +527,7 @@ export const ro: Dict = {
   'cleanup.localOnly': 'Curățarea rulează întotdeauna pe această instanță, nu pe cea la care te uiți. Revino la „Această instanță” ca să o folosești.',
   'cleanup.nothing': 'Nimic nu se potrivește acum cu „{what}”, deci nu s-a eliminat nimic.',
   'cleanup.failed': 'Nu s-a putut afla ce ar elimina asta: {error}',
+  'cleanup.changed': 'Linkurile din „{what}” s-au schimbat după previzualizare, deci nu s-a eliminat nimic. Alege din nou ca să vezi lista nouă.',
 
   'remove.title': 'Ștergem și fișierele descărcate?',
   'remove.count': '{n} descărcări vor fi scoase din listă.',

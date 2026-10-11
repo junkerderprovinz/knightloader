@@ -526,6 +526,7 @@ export const gl: Dict = {
   'cleanup.localOnly': 'A limpeza execútase sempre nesta instancia, non na que estás a ver. Volve a «Esta instancia» para usala.',
   'cleanup.nothing': 'Agora mesmo non hai nada que coincida con «{what}», así que non se quitou nada.',
   'cleanup.failed': 'Non se puido saber que quitaría isto: {error}',
+  'cleanup.changed': 'As ligazóns de «{what}» cambiaron despois da vista previa, así que non se quitou nada. Volve escollelo para ver a lista nova.',
 
   'remove.title': 'Borrar tamén os ficheiros descargados?',
   'remove.count': 'Quitaranse {n} descargas da lista.',

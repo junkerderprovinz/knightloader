@@ -526,6 +526,7 @@ export const ca: Dict = {
   'cleanup.localOnly': "La neteja s'executa sempre en aquesta instància, no en la que estàs mirant. Torna a «Aquesta instància» per fer-la servir.",
   'cleanup.nothing': "Ara mateix no hi ha res que coincideixi amb «{what}», així que no s'ha tret res.",
   'cleanup.failed': "No s'ha pogut esbrinar què trauria això: {error}",
+  'cleanup.changed': "Els enllaços de «{what}» han canviat després de la previsualització, així que no s'ha tret res. Torna-ho a triar per veure la llista nova.",
 
   'remove.title': 'Voleu esborrar també els fitxers baixats?',
   'remove.count': 'Es trauran {n} baixades de la llista.',

@@ -886,6 +886,8 @@ export interface BulkResult {
   undo?: string;
   /** How long the undo token stays valid, in milliseconds. The server owns the window. */
   undoMs?: number;
+  /** What a cleanup preview showed, as runCleanup has to send it back. */
+  digest?: string;
 }
 
 /**
@@ -1436,15 +1438,13 @@ export const undoDelete = async (token: string, base = '/api') =>
 export const cleanupPreview = async (cls: CleanupClass) =>
   json<BulkResult>(await ok(await fetch(`/api/cleanup/${encodeURIComponent(cls)}`)));
 
-/** runCleanup removes everything in a class and reports what it removed. */
-export const runCleanup = async (cls: CleanupClass, withFiles = false) =>
-  json<BulkResult>(
-    await ok(
-      await fetch(`/api/cleanup/${encodeURIComponent(cls)}${withFiles ? '?files=1' : ''}`, {
-        method: 'POST',
-      }),
-    ),
-  );
+/**
+ * runCleanup removes everything in a class, as long as it still selects what the
+ * preview with this digest showed. Otherwise it fails with the code
+ * cleanupChanged and removes nothing.
+ */
+export const runCleanup = async (cls: CleanupClass, digest: string, withFiles = false) =>
+  json<BulkResult>(await ok(await post(`/api/cleanup/${encodeURIComponent(cls)}`, { digest, files: withFiles })));
 
 /**
  * fetchSkipped lists the links that were folded into one already in the list,

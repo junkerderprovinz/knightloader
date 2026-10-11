@@ -224,7 +224,11 @@ func TestRemovingRowsOutsideTheCollectorLeavesTheCountdownAsleep(t *testing.T) {
 	wake := a.autoConfirmWake()
 
 	a.Remove(one.ID, false)
-	if _, err := a.Cleanup(CleanupFinished, false); err != nil {
+	finished, err := a.CleanupPreview(CleanupFinished)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.Cleanup(CleanupFinished, false, CleanupDigest(finished)); err != nil {
 		t.Fatal(err)
 	}
 

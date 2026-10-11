@@ -526,6 +526,7 @@ export const lv: Dict = {
   'cleanup.localOnly': 'Sakopšana vienmēr notiek šajā instancē, nevis tajā, ko skaties. Atgriezies pie „Šī instance“, lai to izmantotu.',
   'cleanup.nothing': 'Šobrīd nekas neatbilst „{what}“, tāpēc nekas netika noņemts.',
   'cleanup.failed': 'Neizdevās noskaidrot, ko tas noņemtu: {error}',
+  'cleanup.changed': 'Saites zem „{what}“ mainījās pēc priekšskatījuma, tāpēc nekas netika noņemts. Izvēlies to vēlreiz, lai redzētu jauno sarakstu.',
 
   'remove.title': 'Dzēst arī lejupielādētos failus?',
   'remove.count': 'No saraksta tiks noņemtas {n} lejupielādes.',

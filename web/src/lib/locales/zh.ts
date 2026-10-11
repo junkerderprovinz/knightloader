@@ -526,6 +526,7 @@ export const zh: Dict = {
   'cleanup.localOnly': '清理始终在本实例上运行，而不是你正在查看的那一个。切回“本实例”才能使用。',
   'cleanup.nothing': '现在没有符合“{what}”的内容，因此什么也没移除。',
   'cleanup.failed': '无法判断这会移除什么：{error}',
+  'cleanup.changed': '预览之后“{what}”下的链接有了变化，所以什么也没移除。再选一次即可看到新的列表。',
 
   'remove.title': '同时删除已下载的文件吗？',
   'remove.count': '将从列表中移除 {n} 个下载。',

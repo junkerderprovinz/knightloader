@@ -526,6 +526,7 @@ export const id: Dict = {
   'cleanup.localOnly': 'Pembersihan selalu berjalan di instansi ini, bukan di instansi yang sedang kamu lihat. Kembali ke “Instansi ini” untuk memakainya.',
   'cleanup.nothing': 'Saat ini tidak ada yang cocok dengan “{what}”, jadi tidak ada yang dihapus.',
   'cleanup.failed': 'Tidak bisa mengetahui apa yang akan dihapus: {error}',
+  'cleanup.changed': 'Tautan di bawah “{what}” berubah setelah pratinjau, jadi tidak ada yang dihapus. Pilih lagi untuk melihat daftar yang baru.',
 
   'remove.title': 'Hapus juga berkas yang sudah diunduh?',
   'remove.count': '{n} unduhan akan diangkat dari daftar.',

@@ -526,6 +526,7 @@ export const vi: Dict = {
   'cleanup.localOnly': 'Dọn dẹp luôn chạy trên phiên bản này, không phải phiên bản bạn đang xem. Quay lại “Phiên bản này” để dùng.',
   'cleanup.nothing': 'Hiện chẳng có gì khớp với “{what}”, nên không có gì bị bỏ đi.',
   'cleanup.failed': 'Không tìm ra việc này sẽ bỏ đi những gì: {error}',
+  'cleanup.changed': 'Các liên kết trong “{what}” đã thay đổi sau khi xem trước, nên không có gì bị bỏ đi. Chọn lại để xem danh sách mới.',
 
   'remove.title': 'Xóa luôn cả các tệp đã tải?',
   'remove.count': '{n} tải xuống sẽ bị bỏ khỏi danh sách.',
