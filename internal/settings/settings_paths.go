@@ -357,6 +357,10 @@ func (g *DataGuard) Inside(path string) bool {
 	if err != nil {
 		return InsideData(g.dataDir, clean)
 	}
+	// On Windows a folder's identity is read by its name only when it is first
+	// compared. Read now, it stays the folder that was judged, rather than
+	// whatever the name leads to once a folder above is swapped.
+	os.SameFile(fi, fi)
 	g.mu.Lock()
 	known, ok := g.dirs[dir]
 	g.mu.Unlock()
