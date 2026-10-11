@@ -23,6 +23,7 @@ import (
 	"strings"
 	"sync"
 	"time"
+	"unicode/utf8"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -38,7 +39,28 @@ var (
 	ErrWrongPassword = errors.New("wrong password")
 	// ErrTooShort rejects a password that is not worth having.
 	ErrTooShort = errors.New("the password must be at least 8 characters")
+	// ErrTooLong rejects a password bcrypt cannot hash whole.
+	ErrTooLong = errors.New("the password must be at most 72 bytes")
 )
+
+const (
+	// minPasswordChars counts characters, so a password in another alphabet
+	// is held to the same length as one in English.
+	minPasswordChars = 8
+	// maxPasswordBytes is bcrypt's limit, which counts bytes.
+	maxPasswordBytes = 72
+)
+
+// checkLength refuses a password outside the lengths above.
+func checkLength(password string) error {
+	if utf8.RuneCountInString(password) < minPasswordChars {
+		return ErrTooShort
+	}
+	if len(password) > maxPasswordBytes {
+		return ErrTooLong
+	}
+	return nil
+}
 
 type stored struct {
 	Hash string `json:"hash"` // bcrypt, empty = no password set
@@ -157,8 +179,8 @@ func (g *Guard) ChangePassword(current, next string, alsoEnd func()) (Credential
 func (g *Guard) changeFrom(c Credentials, next string, alsoEnd func()) (Credentials, error) {
 	var h []byte
 	if next != "" {
-		if len(next) < 8 {
-			return Credentials{}, ErrTooShort
+		if err := checkLength(next); err != nil {
+			return Credentials{}, err
 		}
 		var err error
 		if h, err = bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost); err != nil {

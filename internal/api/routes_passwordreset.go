@@ -20,8 +20,6 @@ import (
 	"sync"
 	"time"
 
-	"golang.org/x/crypto/bcrypt"
-
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -245,8 +243,7 @@ func registerPasswordReset(reg *Registry, a *app.App) {
 			}
 			reset, err := a.Auth.FinishReset(body.Code, body.Password, endTheRest)
 			switch {
-			case errors.Is(err, auth.ErrTooShort), errors.Is(err, bcrypt.ErrPasswordTooLong):
-				http.Error(w, err.Error(), http.StatusBadRequest)
+			case refusePasswordLength(w, err):
 				return
 			case errors.Is(err, auth.ErrNothingToReset):
 				writeRefusal(w, http.StatusBadRequest, "noPassword", err.Error(), nil)

@@ -177,15 +177,28 @@ describe('a forgotten password on the sign-in screen', () => {
   });
 
   it.each([
-    ['shorter than the server takes', 'short'],
-    ['longer than the server takes', 'a'.repeat(73)],
-  ])('sends nothing for a password %s', async (_, password) => {
+    ['shorter than the server takes', 'short', en['auth.passwordShort']],
+    ['of seven characters in fourteen bytes', 'äöüßäöü', en['auth.passwordShort']],
+    ['longer than bcrypt takes', 'a'.repeat(73), en['auth.passwordLong']],
+  ])('sends nothing for a password %s', async (_, password, said) => {
     await forgot();
 
     await fillAndSubmit('abcd-efgh-jkmn', password);
 
-    expect(alert()).toBe(en['auth.reset.length']);
+    expect(alert()).toBe(said);
     expect(posts('/api/auth/reset/finish')).toHaveLength(0);
+  });
+
+  it('says in its own words why the server refused the length', async () => {
+    answers['/api/auth/reset/finish'] = answer(
+      { code: 'passwordTooLong', error: 'the password must be at most 72 bytes' },
+      400,
+    );
+    await forgot();
+
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
+
+    expect(alert()).toBe(en['auth.passwordLong']);
   });
 
   it('asks for a code again after a refused one, empties the field and keeps the passwords', async () => {

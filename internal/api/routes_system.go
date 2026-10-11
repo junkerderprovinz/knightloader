@@ -4,6 +4,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -233,6 +234,9 @@ func registerSystem(reg *Registry, a *app.App) {
 				}
 			}
 			changed, err := a.Auth.ChangePassword(body.Current, body.New, alsoEnd)
+			if refusePasswordLength(w, err) {
+				return
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
@@ -257,4 +261,18 @@ func registerSystem(reg *Registry, a *app.App) {
 			}
 			writeJSON(w, map[string]bool{"enabled": a.Auth.Enabled(), "authenticated": true})
 		})
+}
+
+// refusePasswordLength answers a new password of the wrong length with a code
+// the interface translates, and reports whether err was one.
+func refusePasswordLength(w http.ResponseWriter, err error) bool {
+	switch {
+	case errors.Is(err, auth.ErrTooShort):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooShort", err.Error(), nil)
+	case errors.Is(err, auth.ErrTooLong):
+		writeRefusal(w, http.StatusBadRequest, "passwordTooLong", err.Error(), nil)
+	default:
+		return false
+	}
+	return true
 }
