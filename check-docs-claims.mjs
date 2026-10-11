@@ -282,6 +282,32 @@ for (const env of ['KL_CNL', 'KL_PROVISION_JD']) {
   }
 }
 
+// How long a password reset code lasts and how many guesses it survives. The
+// manual says it, and so does the sign-in page in every language, where a
+// number is declined and cannot be a placeholder. internal/auth is the source;
+// the English sentence stands for the catalogues translated from it.
+
+const RESET_GO = read('internal', 'auth', 'reset.go');
+const resetMinutes = RESET_GO.match(/ResetCodeTTL = (\d+) \* time\.Minute/)?.[1];
+const resetTries = RESET_GO.match(/ResetCodeTries = (\d+)/)?.[1];
+const resetGapIsAMinute = /resetCodeGap = time\.Minute/.test(RESET_GO);
+const WORDS = ['zero', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+if (!resetMinutes || !resetTries) {
+  fail('internal/auth/reset.go no longer states ResetCodeTTL in minutes and ResetCodeTries, so the pages cannot be held to them');
+} else {
+  const claim = `${resetMinutes} minutes and ${WORDS[Number(resetTries)] ?? resetTries} tries`;
+  const effect = EN_TS.match(/'auth\.reset\.effect': '([^']*)'/)?.[1] ?? '';
+  if (!CONFIGURATION.includes(claim)) {
+    fail(`docs/configuration.md does not say a reset code is valid for "${claim}", which is what internal/auth/reset.go makes it`);
+  }
+  if (!effect.includes(claim)) {
+    fail(`en.ts auth.reset.effect does not say "${claim}", which is what internal/auth/reset.go makes a reset code`);
+  }
+}
+if (!resetGapIsAMinute) {
+  fail('internal/auth/reset.go no longer mints a reset code at most once a minute, which docs/configuration.md and auth.reset.rejected both say');
+}
+
 // The container must not pin KL_CNL, or the binary's default above is not the
 // one a container install actually gets - which is exactly the drift the image
 // carried while it set KL_CNL=0 and every doc said 9666.
