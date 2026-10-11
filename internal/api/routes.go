@@ -205,7 +205,7 @@ func (reg *Registry) Routes() []Route {
 // table does not claim (the single-page app).
 func (reg *Registry) attach(mux *http.ServeMux, fallback http.Handler) {
 	for _, r := range reg.routes {
-		h := r.handler
+		h := requireJSON(r.pattern(), r.handler)
 		if guardsScope(r) {
 			h = requireScope(r.pattern(), h)
 		}

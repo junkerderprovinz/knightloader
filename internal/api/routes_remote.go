@@ -6,11 +6,9 @@ package api
 // routes_help.go); the tokens the page writes live in routes_tokens.go.
 
 import (
-	"encoding/json"
 	"net"
 	"net/http"
 	neturl "net/url"
-	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -92,24 +90,6 @@ func remoteAccessInfo(a *app.App, r *http.Request) RemoteAccessInfo {
 	return info
 }
 
-// learnDomain remembers the domain a sign-in arrived on and, when the list
-// changed, tells the group, whose address for this instance may be that domain.
-//
-// Only a sign-in or a newly set password teaches a domain. Both prove the
-// caller knows the password, and a browser cannot be made to send a Host it
-// did not resolve, so the name is one the owner really reached this instance
-// through. A read, which a narrow token or a page that rebound its own domain
-// to this address can make, records nothing.
-func learnDomain(a *app.App, reg *Registry, r *http.Request) {
-	if buildinfo.Deployment == "desktop" || r.Host == "" {
-		return
-	}
-	if rememberDomain(a, connectionAddress(r), a.Settings.Get().KnownDomains) {
-		applyRelay(a)
-		reg.refreshDiscovery()
-	}
-}
-
 // preferredAddress is the address worth putting into a QR code or pairing
 // code: a known domain first, since it still works away from the LAN, else the
 // first non-loopback entry.
@@ -181,56 +161,6 @@ func requestScheme(r *http.Request) string {
 
 func reachable(label, scheme, hostport, base string, loopback bool) ReachableAddress {
 	return ReachableAddress{Label: label, URL: scheme + "://" + hostport + base, Loopback: loopback, Domain: !loopback && isDomainHost(hostport)}
-}
-
-// connectionAddress is the address r arrived on, as remoteAddresses lists it
-// first.
-func connectionAddress(r *http.Request) ReachableAddress {
-	return reachable("this connection", requestScheme(r), r.Host, requestBasePath(r), isLoopbackHost(r.Host))
-}
-
-// rememberDomain saves addr, the address a request arrived on, into
-// Settings.KnownDomains, so it stays listed when later requests come in over
-// the LAN IP. It replaces an entry for the same scheme and host, which a new
-// base path has made stale and remoteAddresses would list in its place. It
-// reports whether the stored list changed, which it does not once the list is
-// full and the settings drop the new entry.
-func rememberDomain(a *app.App, addr ReachableAddress, known []string) bool {
-	if addr.Loopback || !addr.Domain {
-		return false
-	}
-	current := addr.URL
-	origin := originOf(current)
-	next := make([]string, 0, len(known)+1)
-	placed := false
-	for _, k := range known {
-		if k != current && originOf(k) != origin {
-			next = append(next, k)
-		} else if !placed {
-			next, placed = append(next, current), true
-		}
-	}
-	if !placed {
-		next = append(next, current)
-	}
-	if slices.Equal(next, known) {
-		return false
-	}
-	patch, err := json.Marshal(next)
-	if err != nil {
-		return false
-	}
-	applied, err := a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": patch})
-	return err == nil && !slices.Equal(applied.KnownDomains, known)
-}
-
-// originOf is a known domain without its path, "" for one without a scheme.
-func originOf(address string) string {
-	u, err := neturl.Parse(address)
-	if err != nil || u.Host == "" {
-		return ""
-	}
-	return u.Scheme + "://" + u.Host
 }
 
 // isDomainHost reports whether hostport's host is a hostname rather than an

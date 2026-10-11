@@ -66,6 +66,24 @@ release's tag.
   or a category's folder, and can remove rows but not erase the files behind
   them.** No member can take a phone out of the group or make an instance
   leave it.
+### Security
+
+- **Another website can no longer change anything through your browser.** A
+  call that changes something and carries a body has to be sent as JSON, and
+  a request your browser marks as started by another site is refused. Scripts
+  that post with `curl -d` need `-H 'Content-Type: application/json'`. Uploads
+  and the doors for Sonarr and Radarr take what they always took.
+
+- **Without a password, backups, passwords, the twelve words and your files
+  stay put.** Downloading a backup, exporting the settings with their
+  passwords, showing the twelve words again and deleting downloaded files need
+  a login password first. The desktop app's own window still does all four
+  without one.
+
+- **KnightLoader no longer takes a domain from a sign-in.** The address it
+  tells its group is only ever one you typed under Settings > Pairing > Known
+  domains, never the name a request happened to arrive on. Domains it noted
+  before stay listed until you remove them.
 
 ## [1.8.5] - 2026-10-11
 

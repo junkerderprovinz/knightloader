@@ -109,7 +109,8 @@ phrase** under "Already have a phrase?", which leaves the empty group and
 opens the window for the words.
 
 Every instance tells its group where its web interface is: its first known
-domain (the addresses under **Settings → Pairing**), else its address on its
+domain (the addresses you type under **Settings → Pairing**; a name a request
+arrived on is never added there), else its address on its
 network, such as `192.168.20.86:8749`. The address travels in the announce
 members already send, sealed on the relay and signed on the network. An
 instance drops it from an announce that comes from outside the group. The Instances page shows it under each
@@ -186,10 +187,12 @@ each other there, but nothing outside it reaches them. The Android app and
 the browser extension always come through a relay, so they need one.
 
 **A login password is recommended, not required.** Without one the phrase
-card says that anyone who can open this web interface can see the twelve
-words and so control every instance in the group, with a button to the
+card says that anyone who can open this web interface can control it, and
+through it the downloads of every instance in the group, with a button to the
 Security page, where the password is set. The note can be closed, and stays
-closed in that browser. With a password set, **showing the phrase again**
+closed in that browser. Without a password the words are shown once, when the
+group is made, and not again until a password is set; only the desktop app's
+own window, which nobody else can reach, shows them without one. With a password set, **showing the phrase again**
 asks for it once more. A live session is not enough: it may have been opened
 hours ago on a screen nobody is sitting at, and what is behind that button is
 not this instance's password but the key to every instance in the group.
@@ -481,6 +484,21 @@ that may manage tokens can only issue ones with rights it holds itself. A call
 a token forwards to another instance is checked here, against the right it
 would need on this instance, before it leaves; forwarding needs no right of its
 own, so a token that may only add can add links on a peer too.
+
+A call that changes something and carries a body sends it as JSON, with
+`Content-Type: application/json`; any other body is answered with 415, so
+`curl` needs `-H 'Content-Type: application/json'` next to `-d`. A form on
+another website can only post the other kinds, which is what this closes. The
+uploads take a multipart form, and the SABnzbd and qBittorrent doors take what
+Sonarr and Radarr send, each with its own credential. A request the browser
+marks as started by another site (`Sec-Fetch-Site: cross-site`) gets a 403 on
+every route.
+
+Without a password set, the API is open to whoever reaches the port, apart
+from four things: downloading a backup, exporting the settings with their
+passwords, showing the twelve words again and deleting downloaded files.
+Those answer 403 with the code `passwordNotSet` until a password is set. The
+desktop app opens no port, so its window can do all four without one.
 
 The rights are kept in `token-scopes.json` beside `tokens.json` in the data
 directory. A token stays as narrow as it was even after going back to a

@@ -342,7 +342,7 @@ func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
 
 	for _, id := range []string{"watch", "feeds", "eventtargets", "scheduler", "reconnect"} {
 		rec := httptest.NewRecorder()
-		h.ServeHTTP(rec, httptest.NewRequest(http.MethodPut, "/api/features/"+id, strings.NewReader(`{"enabled":true}`)))
+		h.ServeHTTP(rec, jsonRequest(http.MethodPut, "/api/features/"+id, `{"enabled":true}`))
 		var body struct {
 			Error, Code string
 			Params      map[string]string
@@ -497,7 +497,7 @@ func TestSwitchedOffFederationShowsAndReachesNoPeer(t *testing.T) {
 	}
 	for _, req := range []*http.Request{
 		httptest.NewRequest(http.MethodGet, "/api/instances/peer/tasks", nil),
-		httptest.NewRequest(http.MethodPost, "/api/instances", strings.NewReader(`{"name":"peer","url":"http://peer:8749"}`)),
+		jsonRequest(http.MethodPost, "/api/instances", `{"name":"peer","url":"http://peer:8749"}`),
 	} {
 		rec = httptest.NewRecorder()
 		h.ServeHTTP(rec, req)

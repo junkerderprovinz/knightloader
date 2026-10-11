@@ -13,6 +13,7 @@ import {
 } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
+import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
 import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
@@ -49,6 +50,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   // Off by default: a settings export is a file people send, and a missing
   // password after import is visible and easy to fix.
   const [withSecrets, setWithSecrets] = useState(false);
+  // Both carry every stored password, which the server keeps back until a
+  // login password is set.
+  const locked = usePasswordFirst();
 
   const [pending, setPending] = useState<{ doc: SettingsExportDoc; rows: TransferRow[] } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -158,6 +162,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             hue={hue}
             kind="secondary"
             icon={<IconDownloads width={16} height={16} />}
+            disabled={locked}
             onClick={() => {
               window.location.href = withBase(BACKUP_DOWNLOAD_URL);
             }}
@@ -178,6 +183,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         {restoreStatus && (
           <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
         )}
+        {locked && (
+          <span className="text-sm text-carbon-textSub">
+            {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
+          </span>
+        )}
       </div>
 
       <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
@@ -189,8 +199,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <ToggleRow
           label={t('settings.transfer.withSecrets')}
           hint={t('settings.transfer.withSecretsHint')}
-          checked={withSecrets}
+          checked={withSecrets && !locked}
           onChange={setWithSecrets}
+          disabled={locked}
         />
 
         <input
@@ -212,7 +223,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             icon={<IconDownloads width={16} height={16} />}
             onClick={() => {
               // Opened rather than fetched, so the browser owns the save dialog.
-              window.location.href = settingsExportURL(withSecrets);
+              window.location.href = settingsExportURL(withSecrets && !locked);
             }}
           >
             {t('settings.transfer.export')}
