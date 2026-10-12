@@ -6,8 +6,6 @@ import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import { I18nProvider } from '../lib/i18n';
 import { ToastProvider } from '../lib/toast';
 import { AddLinksForm } from './AddLinksForm';
-import { useAddLinks } from './AddLinksAction';
-import { PageActions } from './PageActions';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -122,39 +120,12 @@ it('asks for the options of a batch in a window and marks its button while one i
   await act(async () => toggle('Overrule a matching Packagizer rule')!.click());
 });
 
-function Page() {
-  const addLinks = useAddLinks();
-  return (
-    <I18nProvider>
-      <ToastProvider>
-        <PageActions>{addLinks.action}</PageActions>
-        {addLinks.dialog}
-      </ToastProvider>
-    </I18nProvider>
-  );
-}
-
-it('opens the same form in a window from the floating Add links, and closes it once links are sent', async () => {
-  await act(async () => root.render(<Page />));
-  expect(document.querySelector('[role="dialog"]')).toBeNull();
-
-  await act(async () => button('Add links').click());
-  const dialog = document.querySelector('[role="dialog"]')!;
-  expect(dialog.querySelector('h2')?.textContent).toContain('Add links');
-  expect(words(dialog)).toEqual([
-    'Options',
-    "Click'n'Load",
-    'Watch the clipboard',
-    'Choose a file',
-    'Add links',
-    'Close',
-  ]);
-
-  const box = dialog.querySelector('textarea')!;
+it('sends the links in the box when Add links is pressed', async () => {
+  await act(async () => root.render(<Card />));
+  const box = host.querySelector('textarea')!;
   Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value')!.set!.call(box, 'https://example.com/a.bin');
   act(() => box.dispatchEvent(new Event('input', { bubbles: true })));
   await act(async () => button('Add links').click());
 
   expect(sent.map((s) => s.links)).toEqual(['https://example.com/a.bin']);
-  expect(document.querySelector('[role="dialog"]')).toBeNull();
 });

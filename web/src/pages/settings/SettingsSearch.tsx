@@ -371,12 +371,19 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
+      {/* Focus is a step up the surface ramp and a lit magnifier rather than a
+          ring: the bar sits at the top edge of the scrolling column, which
+          cuts off anything drawn outside it. */}
       <div
         data-new="settings-search"
-        className="flex h-[var(--btn-h)] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
-          transition-shadow has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]"
+        className="group flex h-[var(--btn-h)] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
+          transition-colors has-[input:focus]:bg-carbon-surface3"
       >
-        <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
+        <IconSearch
+          className="shrink-0 text-carbon-textMuted transition-colors group-has-[input:focus]:text-accentGlyph"
+          width={15}
+          height={15}
+        />
         <input
           ref={inputRef}
           type="search"
@@ -395,7 +402,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
           }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKeyDown}
-          className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
+          className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text caret-accentGlyph
             placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
         />
         {query && (
@@ -409,7 +416,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
               inputRef.current?.focus();
             }}
             className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
-              text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
+              text-carbon-textMuted transition-colors hover:bg-carbon-hoverRaised hover:text-carbon-text"
           >
             <IconClose width={13} height={13} />
           </button>

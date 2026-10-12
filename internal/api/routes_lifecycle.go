@@ -25,6 +25,19 @@ type DeploymentInfo struct {
 	// Note is untranslated English about what quit and restart do in this
 	// build, like Feature.Reason.
 	Note string `json:"note"`
+	// Engines are the libraries compiled in that do a share of the work
+	// somebody sees, which the Updates card lists beside the programs.
+	Engines []buildinfo.Module `json:"engines"`
+}
+
+// engineModules are the libraries Engines names, in the order the card lists them.
+var engineModules = []string{
+	"github.com/GopeedLab/gopeed",
+	"github.com/anacrolix/torrent",
+	"github.com/nwaples/rardecode/v2",
+	"github.com/bodgit/sevenzip",
+	"github.com/dop251/goja",
+	"modernc.org/sqlite",
 }
 
 func registerLifecycle(reg *Registry, a *app.App) {
@@ -62,6 +75,7 @@ func deploymentInfo(a *app.App) DeploymentInfo {
 		Deployment: buildinfo.Deployment,
 		CanQuit:    a.RequestExit != nil,
 		CanRestart: a.RequestExit != nil,
+		Engines:    buildinfo.Modules(engineModules...),
 	}
 	if buildinfo.Deployment == "desktop" {
 		info.Note = "this is the desktop build; quit and restart drain the same way closing the window does"

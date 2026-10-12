@@ -68,7 +68,7 @@ export const RELEASES: Release[] = [
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       // Drawn on every page of a narrow window, and listed with the first of them.
       { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },
-      { id: 'page-actions', to: ['/downloads'], text: 'whatsnew.change.pageActions' },
+      { id: 'page-actions', to: ['/'], text: 'whatsnew.change.pageActions' },
       {
         id: 'queue-state',
         to: ['/downloads'],
@@ -94,6 +94,12 @@ export const RELEASES: Release[] = [
         to: ['/collector'],
         text: 'whatsnew.change.intakeGlyphs',
         names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', intake: 'settings.sectionLinkIntake' },
+      },
+      {
+        id: 'add-links-home',
+        to: ['/collector'],
+        text: 'whatsnew.change.addLinksHome',
+        names: { name: 'collector.add' },
       },
       {
         id: 'collector-filter',
@@ -210,7 +216,12 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.module.connections' },
       },
       { id: 'reconnect-scene', to: ['/settings/reconnect'], text: 'whatsnew.change.reconnectScene' },
-      { id: 'ways-in', to: ['/settings/collector'], text: 'whatsnew.change.waysIn' },
+      {
+        id: 'ways-in',
+        to: ['/settings/collector'],
+        text: 'whatsnew.change.waysIn',
+        names: { rainbow: 'settings.rainbow' },
+      },
       {
         id: 'mirror-policy',
         to: ['/settings/collector'],
@@ -224,7 +235,7 @@ export const RELEASES: Release[] = [
         id: 'track-merge',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.trackMerge',
-        names: { name: 'settings.resolvers.quality' },
+        names: { name: 'settings.resolvers.embedTitle', rainbow: 'settings.rainbow' },
       },
       {
         id: 'video-card',
@@ -239,12 +250,28 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.resolvers.filesTitle' },
       },
       {
+        id: 'audio-best',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.audioBest',
+        names: {
+          best: 'settings.resolvers.quality.best',
+          name: 'settings.resolvers.audioTitle',
+          defaults: 'settings.resolvers.variantDefaults',
+        },
+      },
+      {
         id: 'variant-blocks',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.variantBlocks',
         names: { name: 'settings.resolvers.variantDefaults' },
       },
       { id: 'selftest-pulse', to: ['/settings/health'], text: 'whatsnew.change.selftestPulse' },
+      {
+        id: 'health-parts',
+        to: ['/settings/health'],
+        text: 'whatsnew.change.healthParts',
+        names: { name: 'settings.health.parts' },
+      },
       { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
       {
         id: 'fdroid',

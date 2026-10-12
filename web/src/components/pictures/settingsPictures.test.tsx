@@ -368,14 +368,24 @@ describe('the rules card', () => {
 });
 
 describe('the tracks of a video', () => {
+  beforeEach(() => {
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+  });
+
   const tracks: MediaTrack[] = [
-    { id: 'video', name: 'Video', value: 'Up to 1080p', joins: true },
-    { id: 'audio', name: 'Audio', value: 'Best available', joins: true },
-    { id: 'subtitle', name: 'Subtitles', value: 'en,de', joins: true },
+    { id: 'video', name: 'Video', value: 'Up to 1080p' },
+    { id: 'audio', name: 'Audio', value: 'Best available' },
+    { id: 'subtitle', name: 'Subtitles', value: 'en,de' },
   ];
   const track = (id: string) => host.querySelector(`[data-track="${id}"]`)!;
-  const picture = (list = tracks, filename = '%(title)s.%(ext)s') => (
-    <TrackMerge tracks={list} extension="mkv" filename={filename} label="Quality" />
+  const picture = (list = tracks, filename = '%(title)s.%(ext)s', more = {}) => (
+    <TrackMerge tracks={list} extension="mkv" filename={filename} label="Quality" {...more} />
   );
 
   it('says what each track takes and what file comes out', async () => {
@@ -387,13 +397,35 @@ describe('the tracks of a video', () => {
     expect(host.querySelector('[data-filename]')!.textContent).toBe('%(title)s.%(ext)s');
   });
 
-  it('runs a track that is taken into the file and ends one that stays out where it was picked', async () => {
-    await draw(picture([tracks[0], tracks[1], { ...tracks[2], value: 'Not in the file', joins: false }]));
-    const ways = [...host.querySelectorAll('path[stroke-dasharray="2 7"]')].map((p) => p.getAttribute('d'));
-    expect(ways).toEqual(['M20 88L66 38H250L292 88', 'M20 88L66 88H250L292 88', 'M20 88L66 138']);
-    expect(track('subtitle').getAttribute('data-state')).toBe('off');
-    expect(track('subtitle').querySelector('circle[fill="var(--accent)"]')).toBeNull();
-    expect(track('audio').querySelector('circle[fill="var(--accent)"]')).not.toBeNull();
+  it('runs every track into the file', async () => {
+    await draw(picture());
+    const ways = tracks.map((tr) => track(tr.id).querySelector('path')!.getAttribute('d'));
+    expect(ways).toEqual(['M20 88L66 38H250L292 88', 'M20 88L66 88H250L292 88', 'M20 88L66 138H250L292 88']);
+    expect(track('subtitle').querySelector('circle[fill="var(--accent)"]')).not.toBeNull();
+  });
+
+  it('lays itself out at the width of its card and keeps the file at the far end', async () => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(900);
+    await draw(picture());
+    expect(host.querySelector('svg')!.getAttribute('viewBox')).toMatch(/^0 0 900 /);
+    expect(host.querySelector('[data-file]')!.getAttribute('transform')).toBe('translate(872 88)');
+    width.mockRestore();
+  });
+
+  it('draws the files the chapters become and a sidecar beside the file, and says so', async () => {
+    await draw(picture(tracks, '%(title)s.%(ext)s', { split: 'One more file per chapter', sidecar: 'nfo' }));
+    expect(host.querySelector('[data-split]')).not.toBeNull();
+    expect(host.querySelector('[data-sidecar="nfo"]')).not.toBeNull();
+    expect(label()).toBe(
+      'Quality: Video Up to 1080p, Audio Best available, Subtitles en,de, mkv, nfo, %(title)s.%(ext)s, One more file per chapter',
+    );
+  });
+
+  it('gives the file and every track a rainbow position of its own', async () => {
+    await draw(picture());
+    const hues = [...host.querySelectorAll<SVGGElement>('.kl-pic-hue')].map((g) => g.style.getPropertyValue('--item-hue'));
+    expect(hues).toHaveLength(tracks.length + 1);
+    expect(new Set(hues).size).toBe(hues.length);
   });
 
   it('shows the output template as it is set', async () => {
@@ -401,11 +433,10 @@ describe('the tracks of a video', () => {
     expect(host.querySelector('[data-filename]')!.textContent).toBe('%(uploader)s/%(title)s.%(ext)s');
   });
 
-  it('sends one parcel per track that is taken', async () => {
+  it('sends one parcel per track', async () => {
     letMove();
-    await draw(picture([tracks[0], tracks[1], { ...tracks[2], joins: false }]));
-    expect(host.querySelectorAll('animateMotion')).toHaveLength(2);
-    expect(moving(track('subtitle'))).toBe(0);
+    await draw(picture());
+    expect(host.querySelectorAll('animateMotion')).toHaveLength(tracks.length);
   });
 });
 

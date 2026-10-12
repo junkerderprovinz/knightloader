@@ -6,8 +6,7 @@
 // "Overrule" is on; a destination picked here always wins (see
 // app.LinkBatchOptions).
 //
-// The collector draws it as its first card. The pages that list downloads
-// without holding the form open it in a window instead (AddLinksAction.tsx).
+// The collector draws it as its first card, the one place links are added.
 // The batch's options open in a window of their own, and the button that opens
 // it is marked while one of them is set, since they apply unseen. Click'n'Load
 // and the clipboard watch stand beside it as buttons that show their state:
@@ -104,7 +103,6 @@ export function AddLinksForm({
   onChooseFile,
   onFilesDropped,
   footer,
-  bare = false,
 }: {
   pkg: string;
   onPkgChange: (v: string) => void;
@@ -117,12 +115,6 @@ export function AddLinksForm({
   onFilesDropped: (files: File[]) => void;
   /** FileDrop's output, rendered inside this card beside the drop target. */
   footer?: React.ReactNode;
-  /**
-   * Drawn inside a window, which is the card and carries the title. The add
-   * button is the window's one accent there; on the collector that is the
-   * page's floating action.
-   */
-  bare?: boolean;
 }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -203,14 +195,12 @@ export function AddLinksForm({
       }}
       onDragLeave={() => setDragOver(false)}
       onDrop={onDrop}
-      className={`relative rounded-[var(--radius-control)] transition-colors ${bare ? '' : 'm-3 flex-1'} ${
+      className={`relative rounded-[var(--radius-control)] m-3 flex-1 transition-colors ${
         dragOver ? 'bg-accentSoft shadow-[0_0_0_2px_var(--focus-ring)]' : 'bg-carbon-surface2'
       }`}
     >
       <textarea
         dir="ltr"
-        // A window opened to add links starts in the box they go into.
-        autoFocus={bare}
         placeholder={t('collector.placeholder')}
         rows={4}
         value={links}
@@ -246,7 +236,7 @@ export function AddLinksForm({
     overrule;
 
   const actions = (
-    <div className={`flex flex-wrap items-center gap-3 ${bare ? '' : 'px-4 pb-4'}`}>
+    <div className="flex flex-wrap items-center gap-3 px-4 pb-4">
       <span className="relative">
         <IconBadge
           labelled
@@ -284,7 +274,7 @@ export function AddLinksForm({
           hue={4}
           title={t('collector.add')}
           aria-label={t('collector.add')}
-          className={bare ? 'bg-accent text-accentContrast hover:bg-accentHover' : ''}
+          data-new="add-links-home"
           shake={shake}
           onClick={() => void onAdd()}
           disabled={!links.trim() || busy}
@@ -384,17 +374,6 @@ export function AddLinksForm({
       {options}
     </Modal>
   );
-
-  if (bare) {
-    return (
-      <div className="flex flex-col gap-4">
-        {box}
-        {actions}
-        {footer}
-        {optionsWindow}
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-full flex-col gap-3">

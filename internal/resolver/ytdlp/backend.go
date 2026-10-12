@@ -937,9 +937,13 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, "-f", audioSelector(o.AudioLang), "-x")
 		}
 		// yt-dlp itself ignores the quality when nothing is transcoded.
+		// Without a bitrate a conversion asks for the encoder's best variable
+		// quality, 0, where yt-dlp's own default of 5 would settle for less.
+		quality := "0"
 		if o.AudioBitrate != "" {
-			args = append(args, "--audio-quality", o.AudioBitrate+"K")
+			quality = o.AudioBitrate + "K"
 		}
+		args = append(args, "--audio-quality", quality)
 		args = append(args, embedArgs(o, false)...)
 		if o.Music {
 			args = append(args, musicArgs(dir, tmpl)...)

@@ -1,7 +1,7 @@
-import { useLayoutEffect, useRef, useState, type ComponentType, type SVGProps } from 'react';
+import type { ComponentType, SVGProps } from 'react';
 import { useT } from '../../lib/i18n';
 import { IconCollector } from '../../lib/icons';
-import { FILL, GROUND, HUE, QUIET, SURFACE, useStage } from './scene';
+import { FILL, GROUND, HUE, QUIET, SURFACE, pictureHue, useRoom, useStage } from './scene';
 import { HubLabel, SpokeLabel, Stream, lineOf, spokeLayout, type SpokeShape } from './spokes';
 
 /** One way a link reaches the collector. */
@@ -36,19 +36,8 @@ export function WaysIn({
   const idle = { off: t('settings.modules.off'), unset: t('settings.selftest.status.skipped') };
   const drawn = ways.map((way) => ({ way, sub: way.state === 'on' ? way.detail : idle[way.state] }));
   const alt = `${label}: ${drawn.map((d) => (d.way.state === 'on' ? d.way.name : `${d.way.name} (${d.sub})`)).join(', ')}`;
-  // The wide picture is laid out at the card's own width, one unit to the
-  // pixel, so it fills the card without its names growing with it.
-  const box = useRef<HTMLDivElement>(null);
-  const [room, setRoom] = useState(0);
-  useLayoutEffect(() => {
-    const el = box.current;
-    if (!el) return;
-    const measure = () => setRoom(el.clientWidth);
-    measure();
-    const watch = new ResizeObserver(measure);
-    watch.observe(el);
-    return () => watch.disconnect();
-  }, []);
+  // Only the wide picture is laid out at the card's width.
+  const { box, room } = useRoom<HTMLDivElement>();
   return (
     <div ref={box} data-new="ways-in" className="kl-pic @container">
       {(['wide', 'narrow'] as const).map((shape) => (
@@ -89,7 +78,7 @@ function Net({
         const on = way.state === 'on';
         const Glyph = way.glyph;
         return (
-          <g key={way.id} data-way={way.id} data-state={way.state}>
+          <g key={way.id} data-way={way.id} data-state={way.state} {...pictureHue(i + 1)}>
             <path
               d={lineOf(spoke)}
               fill="none"
@@ -123,9 +112,11 @@ function Net({
           </g>
         );
       })}
-      <circle cx={hub.x} cy={hub.y} r={SIZES.hub} fill={FILL} />
-      <g color={SURFACE}>
-        <IconCollector x={hub.x - 13} y={hub.y - 13} width={26} height={26} />
+      <g {...pictureHue(0)}>
+        <circle cx={hub.x} cy={hub.y} r={SIZES.hub} fill={FILL} />
+        <g color={SURFACE}>
+          <IconCollector x={hub.x - 13} y={hub.y - 13} width={26} height={26} />
+        </g>
       </g>
       <HubLabel at={hubLabel}>{t('nav.collector')}</HubLabel>
     </svg>

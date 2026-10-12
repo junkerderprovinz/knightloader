@@ -112,6 +112,27 @@ describe('the picture of the ways into the collector', () => {
     width.mockRestore();
   });
 
+  it('stands the outer ways near both edges of the card, so the picture spans it', async () => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1200);
+    await draw();
+    const wide = host.querySelector('[data-new="ways-in"] > svg')!;
+    const nodes = [...wide.querySelectorAll('[data-way] circle[fill="var(--carbon-surface2)"]')].map((c) =>
+      Number(c.getAttribute('cx')),
+    );
+    // Each side keeps room for its names and nothing more.
+    expect(Math.min(...nodes)).toBeLessThan(250);
+    expect(Math.max(...nodes)).toBeGreaterThan(950);
+    width.mockRestore();
+  });
+
+  it('gives the collector and every way a rainbow position of its own', async () => {
+    await draw();
+    const svg = host.querySelector('svg')!;
+    const hues = [...svg.querySelectorAll<SVGGElement>('.kl-pic-hue')].map((g) => g.style.getPropertyValue('--item-hue'));
+    expect(hues).toHaveLength(ways.length + 1);
+    expect(new Set(hues).size).toBe(hues.length);
+  });
+
   it('carries packets on the open ways only, and on none when motion is off', async () => {
     await draw();
     expect(host.querySelectorAll('animateMotion')).toHaveLength(0);

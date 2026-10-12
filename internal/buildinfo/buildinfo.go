@@ -67,3 +67,46 @@ var BasePath string
 // listener. It is off by default so the many api.Handler instances in tests
 // do not each open a multicast socket; a serving main package opts in.
 var DiscoveryEnabled bool
+
+// Module is a library compiled into this binary, at the version the toolchain
+// recorded for it.
+type Module struct {
+	Path    string `json:"path"`
+	Version string `json:"version"`
+	// Fork is set where go.mod replaces the module with a fork, and Version is
+	// then the fork's.
+	Fork bool `json:"fork,omitempty"`
+}
+
+// Modules reports which of paths this binary carries, in the order of paths.
+func Modules(paths ...string) []Module {
+	info, ok := debug.ReadBuildInfo()
+	if !ok {
+		return nil
+	}
+	return modulesIn(info.Deps, paths)
+}
+
+func modulesIn(deps []*debug.Module, paths []string) []Module {
+	byPath := make(map[string]*debug.Module, len(deps))
+	for _, d := range deps {
+		byPath[d.Path] = d
+	}
+	var out []Module
+	for _, p := range paths {
+		d, ok := byPath[p]
+		if !ok {
+			continue
+		}
+		m := Module{Path: p, Version: d.Version}
+		if d.Replace != nil {
+			m.Fork = true
+			// A fork in a local directory has no version of its own.
+			if d.Replace.Version != "" {
+				m.Version = d.Replace.Version
+			}
+		}
+		out = append(out, m)
+	}
+	return out
+}
