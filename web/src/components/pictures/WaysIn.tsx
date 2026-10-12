@@ -1,4 +1,4 @@
-import type { ComponentType, SVGProps } from 'react';
+import { useLayoutEffect, useRef, useState, type ComponentType, type SVGProps } from 'react';
 import { useT } from '../../lib/i18n';
 import { IconCollector } from '../../lib/icons';
 import { FILL, GROUND, HUE, QUIET, SURFACE, useStage } from './scene';
@@ -36,10 +36,23 @@ export function WaysIn({
   const idle = { off: t('settings.modules.off'), unset: t('settings.selftest.status.skipped') };
   const drawn = ways.map((way) => ({ way, sub: way.state === 'on' ? way.detail : idle[way.state] }));
   const alt = `${label}: ${drawn.map((d) => (d.way.state === 'on' ? d.way.name : `${d.way.name} (${d.sub})`)).join(', ')}`;
+  // The wide picture is laid out at the card's own width, one unit to the
+  // pixel, so it fills the card without its names growing with it.
+  const box = useRef<HTMLDivElement>(null);
+  const [room, setRoom] = useState(0);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setRoom(el.clientWidth);
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, []);
   return (
-    <div data-new="ways-in" className="kl-pic @container">
+    <div ref={box} data-new="ways-in" className="kl-pic @container">
       {(['wide', 'narrow'] as const).map((shape) => (
-        <Net key={shape} shape={shape} drawn={drawn} alt={alt} onPick={onPick} />
+        <Net key={shape} shape={shape} drawn={drawn} alt={alt} room={room} onPick={onPick} />
       ))}
     </div>
   );
@@ -49,16 +62,18 @@ function Net({
   shape,
   drawn,
   alt,
+  room,
   onPick,
 }: {
   shape: SpokeShape;
   drawn: { way: Way; sub?: string }[];
   alt: string;
+  room: number;
   onPick: (id: string) => void;
 }) {
   const { t } = useT();
   const { stage, still } = useStage(drawn.map((d) => `${d.way.id}:${d.way.state}`).join(' '));
-  const { width, height, hub, hubLabel, spokes } = spokeLayout(shape, drawn.length, SIZES);
+  const { width, height, hub, hubLabel, spokes } = spokeLayout(shape, drawn.length, SIZES, room);
   return (
     <svg
       ref={stage}
@@ -66,7 +81,7 @@ function Net({
       role="group"
       aria-label={alt}
       className={`mx-auto w-full overflow-visible ${
-        shape === 'wide' ? 'hidden max-w-[50rem] @[42rem]:block' : 'block max-w-[26rem] @[42rem]:hidden'
+        shape === 'wide' ? 'hidden @[42rem]:block' : 'block max-w-[26rem] @[42rem]:hidden'
       }`}
     >
       {drawn.map(({ way, sub }, i) => {
