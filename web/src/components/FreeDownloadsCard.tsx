@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useState } from 'react';
 import { connectWS, fetchSettings, patchSettings } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -9,11 +9,9 @@ import { Card, SectionTitle, ToggleRow } from './ui';
  * stored premiumOnly setting the other way round. The Accounts page draws it,
  * so the sidebar entry and the settings tab both show it, and it reads and
  * saves the setting itself because the sidebar entry has no settings draft. A
- * change saved anywhere else arrives with the settings broadcast. `children`
- * is the card's second group, the state of the backend that loads for free,
- * which would be a card of one line by itself.
+ * change saved anywhere else arrives with the settings broadcast.
  */
-export function FreeDownloadsCard({ hue, children }: { hue: number; children?: ReactNode }) {
+export function FreeDownloadsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const [premiumOnly, setPremiumOnly] = useState<boolean | null>(null);
@@ -59,7 +57,6 @@ export function FreeDownloadsCard({ hue, children }: { hue: number; children?: R
           onChange={(allow) => void onChange(!allow)}
         />
       )}
-      {children}
     </Card>
   );
 }

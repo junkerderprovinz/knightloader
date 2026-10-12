@@ -555,7 +555,7 @@ function JDRow() {
     <ToolRow
       name={t('health.part.jd')}
       sub={t('settings.look.tool.jd')}
-      version={version}
+      version={version !== null && <span data-new="jd-state">{version}</span>}
       source={t('settings.look.toolsSource.self')}
     />
   );
