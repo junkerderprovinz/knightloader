@@ -18,6 +18,13 @@ function reducedMotion(reduced: boolean) {
 
 beforeEach(() => {
   reducedMotion(true);
+  vi.stubGlobal(
+    'ResizeObserver',
+    class {
+      observe() {}
+      disconnect() {}
+    },
+  );
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -92,6 +99,17 @@ describe('the picture of the ways into the collector', () => {
     await act(async () => figure.dispatchEvent(new MouseEvent('click', { bubbles: true })));
     await act(async () => figure.dispatchEvent(new KeyboardEvent('keydown', { key: ' ', bubbles: true })));
     expect(picked).toEqual(['cnl', 'cnl']);
+  });
+
+  it('lays the wide picture out at the width of its card, so it fills the card at one unit to the pixel', async () => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1200);
+    await draw();
+    const [wide, narrow] = [...host.querySelectorAll('[data-new="ways-in"] > svg')];
+    expect(wide.getAttribute('viewBox')).toMatch(/^0 0 1200 /);
+    expect(wide.getAttribute('class')).not.toContain('max-w');
+    // The narrow one keeps its own size, for a card too narrow for both sides.
+    expect(narrow.getAttribute('viewBox')).toMatch(/^0 0 360 /);
+    width.mockRestore();
   });
 
   it('carries packets on the open ways only, and on none when motion is off', async () => {

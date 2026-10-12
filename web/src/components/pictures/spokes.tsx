@@ -28,19 +28,27 @@ const LABEL_HEIGHT = 36;
 // The hub's name stands under it, in a box this wide and high.
 const HUB_LABEL = { width: 96, height: 18 };
 
+const WIDE = 800;
+
 /**
  * spokeLayout places a hub and n nodes in a box. A wide box has the nodes on
  * both sides of the hub with their names on the outside; a narrow one has room
  * for one side only. A line runs from the hub outwards.
+ *
+ * `room` widens a wide box past its own 800 units, for a picture drawn at the
+ * width of its card: the lines grow longer and the names keep their room on
+ * the outside, so the figures stay the size they are drawn at.
  */
-export function spokeLayout(shape: SpokeShape, n: number, sizes: SpokeSizes) {
+export function spokeLayout(shape: SpokeShape, n: number, sizes: SpokeSizes, room = WIDE) {
   const wide = shape === 'wide';
-  const width = wide ? 800 : 360;
-  const reach = wide ? 112 : 68;
+  const width = wide ? Math.max(WIDE, Math.round(room)) : 360;
+  const extra = (width - WIDE) / 2;
   const right = wide ? Math.ceil(n / 2) : n;
   const left = n - right;
+  // A hub with nodes on one side only moves along with the extra room instead.
+  const reach = wide ? 112 + (left ? extra : 0) : 68;
   const height = Math.max((sizes.hub + HUB_LABEL.height + 8) * 2, right * sizes.pitch + 8);
-  const hub = { x: !wide ? HUB_LABEL.width / 2 : left ? width / 2 : 240, y: height / 2 };
+  const hub = { x: !wide ? HUB_LABEL.width / 2 : left ? width / 2 : 240 + extra, y: height / 2 };
 
   const spokes = Array.from({ length: n }, (_, j): Spoke => {
     const side = wide && j % 2 ? -1 : 1;
