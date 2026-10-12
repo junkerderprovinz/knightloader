@@ -971,7 +971,7 @@ func (a *App) endSeeding() {
 	a.mu.Lock()
 	for _, t := range a.tasks {
 		if t.Seeding {
-			t.Seeding, t.SeedingEnded = false, ended
+			t.Seeding, t.SeedingEnded, t.UploadSpeed = false, ended, 0
 			copies = append(copies, a.copyLocked(t))
 		}
 	}

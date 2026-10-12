@@ -3,6 +3,10 @@
 // seeded once per page load from GET /api/stats/speed, the ring the server
 // keeps in memory, so a reload does not start from a flat line.
 //
+// It keeps two lanes on one clock: the download, and the upload of the
+// torrents that download or seed. Both are sampled on the same tick, so a
+// sample of one always has its twin in the other.
+//
 // Only scope '' is seeded. The route is not forwarded to peers, so a peer
 // scope would get this box's history; it starts empty and fills live.
 //
@@ -11,6 +15,7 @@
 // re-seeded when it becomes visible again; a short blip still shows.
 
 import { useCallback, useEffect, useMemo, useSyncExternalStore } from 'react';
+import type { Task } from './api';
 
 /** What GET /api/stats/speed answers: internal/app/app_speedhistory.go's SpeedHistory. */
 export interface SpeedHistory {
@@ -20,6 +25,9 @@ export interface SpeedHistory {
   hour: number[];
   hourStep: number;
   hourCap: number;
+  /** The upload over the same slots. An older server sends none. */
+  recentUp?: number[];
+  hourUp?: number[];
   recordingSince?: string;
   sampledAt: string;
 }
@@ -31,6 +39,8 @@ export interface SpeedHistory {
  */
 export interface SpeedDay {
   samples: number[];
+  /** The upload over the same buckets. An older server sends none. */
+  samplesUp?: number[];
   /** Seconds one sample covers. */
   step: number;
   /** When the oldest sample began, absent while there is none. */
@@ -43,9 +53,33 @@ export async function fetchSpeedDay(): Promise<SpeedDay> {
   return (await r.json()) as SpeedDay;
 }
 
+/**
+ * alignedUpload is the upload twin of a download series `length` long. A
+ * record without one, from a server that kept no upload, reads as none sent,
+ * which keeps the two lanes on one clock.
+ */
+export function alignedUpload(up: unknown, length: number): number[] {
+  return Array.isArray(up) && up.length === length ? (up as number[]) : new Array<number>(length).fill(0);
+}
+
+/**
+ * uploadOf sums what the torrents send right now, by the rule the server's
+ * record uses (app.UploadNow): a reading counts while its torrent downloads or
+ * seeds.
+ */
+export function uploadOf(tasks: Iterable<Pick<Task, 'status' | 'seeding' | 'uploadSpeed'>>): number {
+  let total = 0;
+  for (const t of tasks) {
+    if (t.status === 'running' || t.seeding) total += t.uploadSpeed ?? 0;
+  }
+  return total;
+}
+
 /** The window a graph draws: at most `points` samples, oldest first. */
 export interface SpeedWindow {
   samples: number[];
+  /** The upload on the same clock, as long as `samples`. */
+  upload: number[];
   /** Seconds between two samples. */
   step: number;
   /** performance.now() when the newest sample arrived, which a curve scrolls against. */
@@ -79,7 +113,8 @@ const LIVE_GRACE_TICKS = 2;
 // How long a hidden tab must have been away before it re-seeds on return.
 const RESEED_AFTER_MS = 30_000;
 
-interface Scope {
+/** One direction's samples. */
+interface Lane {
   /** Oldest first, as served. Empty for a scope that is not seeded. */
   seedRecent: number[];
   seedHour: number[];
@@ -88,15 +123,20 @@ interface Scope {
   live10s: number[];
   /** The fine samples since the last coarse entry closed. */
   bucket: number[];
-  /** performance.now() when the newest entry of each resolution arrived. */
-  arrived1s: number;
-  arrived10s: number;
   /** What the caller last reported, read by the tick. */
   value: number;
   /** Ticks left in which a reported 0 means "not known yet"; see LIVE_GRACE_TICKS. */
   grace: number;
   /** The server's own last reading, which stands in during the grace. */
   carry: number;
+}
+
+interface Scope {
+  down: Lane;
+  up: Lane;
+  /** performance.now() when the newest entry of each resolution arrived. */
+  arrived1s: number;
+  arrived10s: number;
   /** The seed fetch has been started for this scope. StrictMode's double mount must not fetch twice. */
   seedStarted: boolean;
   seededAt: number;
@@ -105,22 +145,29 @@ interface Scope {
   timer: ReturnType<typeof setInterval> | undefined;
 }
 
+function newLane(): Lane {
+  return {
+    seedRecent: [],
+    seedHour: [],
+    live1s: [],
+    live10s: [],
+    bucket: [],
+    value: 0,
+    grace: LIVE_GRACE_TICKS,
+    carry: 0,
+  };
+}
+
 const scopes = new Map<string, Scope>();
 
 function scopeFor(instance: string): Scope {
   let sc = scopes.get(instance);
   if (!sc) {
     sc = {
-      seedRecent: [],
-      seedHour: [],
-      live1s: [],
-      live10s: [],
-      bucket: [],
+      down: newLane(),
+      up: newLane(),
       arrived1s: 0,
       arrived10s: 0,
-      value: 0,
-      grace: LIVE_GRACE_TICKS,
-      carry: 0,
       seedStarted: false,
       seededAt: 0,
       version: 0,
@@ -142,36 +189,42 @@ function trim(a: number[]): void {
   if (a.length > LIVE_CAP) a.splice(0, a.length - LIVE_CAP);
 }
 
-function tick(sc: Scope): void {
-  let v = sc.value;
-  if (sc.grace > 0) {
+/** sampleLane takes one reading into a lane and reports whether it closed a coarse entry. */
+function sampleLane(l: Lane): boolean {
+  let v = l.value;
+  if (l.grace > 0) {
     if (v === 0) {
       // Not known yet rather than idle: the server's own last reading stands in.
-      v = sc.carry;
-      sc.grace--;
+      v = l.carry;
+      l.grace--;
     } else {
       // A real reading shows the stream is live.
-      sc.grace = 0;
+      l.grace = 0;
     }
   }
 
-  sc.live1s.push(v);
-  trim(sc.live1s);
+  l.live1s.push(v);
+  trim(l.live1s);
+
+  l.bucket.push(v);
+  if (l.bucket.length < COARSE_EVERY) return false;
+  // The mean, as the server's coarse ring uses, so seeded and live halves
+  // join without a step. The last sample alone would turn bursty traffic into
+  // noise.
+  let sum = 0;
+  for (const s of l.bucket) sum += s;
+  l.live10s.push(Math.round(sum / l.bucket.length));
+  trim(l.live10s);
+  l.bucket = [];
+  return true;
+}
+
+function tick(sc: Scope): void {
+  sampleLane(sc.down);
+  // The lanes fill their buckets in step, so either one says when both closed.
+  const closed = sampleLane(sc.up);
   sc.arrived1s = performance.now();
-
-  sc.bucket.push(v);
-  if (sc.bucket.length >= COARSE_EVERY) {
-    // The mean, as the server's coarse ring uses, so seeded and live halves
-    // join without a step. The last sample alone would turn bursty traffic
-    // into noise.
-    let sum = 0;
-    for (const s of sc.bucket) sum += s;
-    sc.live10s.push(Math.round(sum / sc.bucket.length));
-    trim(sc.live10s);
-    sc.arrived10s = sc.arrived1s;
-    sc.bucket = [];
-  }
-
+  if (closed) sc.arrived10s = sc.arrived1s;
   emit(sc);
 }
 
@@ -191,20 +244,27 @@ async function fetchSeed(): Promise<SpeedHistory> {
   return (await r.json()) as SpeedHistory;
 }
 
+function seedLane(l: Lane, recent: number[], hour: number[]): void {
+  l.seedRecent = recent;
+  l.seedHour = hour;
+  l.carry = recent.length > 0 ? recent[recent.length - 1] : 0;
+  l.grace = LIVE_GRACE_TICKS;
+}
+
 function seed(sc: Scope): void {
   if (sc.seedStarted) return;
   sc.seedStarted = true;
   void fetchSeed().then(
     (h) => {
-      sc.seedRecent = Array.isArray(h.recent) ? h.recent : [];
-      sc.seedHour = Array.isArray(h.hour) ? h.hour : [];
-      sc.carry = sc.seedRecent.length > 0 ? sc.seedRecent[sc.seedRecent.length - 1] : 0;
-      sc.grace = LIVE_GRACE_TICKS;
+      const recent = Array.isArray(h.recent) ? h.recent : [];
+      const hour = Array.isArray(h.hour) ? h.hour : [];
+      seedLane(sc.down, recent, hour);
+      seedLane(sc.up, alignedUpload(h.recentUp, recent.length), alignedUpload(h.hourUp, hour.length));
       sc.seededAt = Date.now();
       // With no live entry after it, the seed's last reading is the newest one.
       const now = performance.now();
-      if (sc.live1s.length === 0) sc.arrived1s = now;
-      if (sc.live10s.length === 0) sc.arrived10s = now;
+      if (sc.down.live1s.length === 0) sc.arrived1s = now;
+      if (sc.down.live10s.length === 0) sc.arrived10s = now;
       emit(sc);
     },
     () => {
@@ -223,34 +283,43 @@ if (typeof document !== 'undefined') {
     if (document.visibilityState !== 'visible') return;
     const sc = scopes.get('');
     if (!sc || sc.seededAt === 0 || Date.now() - sc.seededAt < RESEED_AFTER_MS) return;
-    sc.live1s = [];
-    sc.live10s = [];
-    sc.bucket = [];
+    for (const l of [sc.down, sc.up]) {
+      l.live1s = [];
+      l.live10s = [];
+      l.bucket = [];
+    }
     sc.seedStarted = false;
     seed(sc);
   });
 }
 
-function windowFor(instance: string, points: number, scale: SpeedScale): SpeedWindow {
-  const sc = scopeFor(instance);
-  const step = stepOf(scale);
-  const seeded = scale === 'hour' ? sc.seedHour : sc.seedRecent;
-  const live = scale === 'hour' ? sc.live10s : sc.live1s;
-
+function series(l: Lane, points: number, scale: SpeedScale): number[] {
+  const seeded = scale === 'hour' ? l.seedHour : l.seedRecent;
+  const live = scale === 'hour' ? l.live10s : l.live1s;
   // Not padded: zeros would claim the instance was idle before it booted.
   const all = seeded.concat(live);
-  const samples = all.length > points ? all.slice(all.length - points) : all;
-  return { samples, step, newestAt: scale === 'hour' ? sc.arrived10s : sc.arrived1s };
+  return all.length > points ? all.slice(all.length - points) : all;
+}
+
+function windowFor(instance: string, points: number, scale: SpeedScale): SpeedWindow {
+  const sc = scopeFor(instance);
+  return {
+    samples: series(sc.down, points, scale),
+    upload: series(sc.up, points, scale),
+    step: stepOf(scale),
+    newestAt: scale === 'hour' ? sc.arrived10s : sc.arrived1s,
+  };
 }
 
 /**
  * useSpeedWindow returns the live window for one instance scope ('' = this
- * instance). `value` is the caller's current reading in bytes/s; the store
- * owns the clock, so every graph samples on the same tick.
+ * instance). `value` and `upload` are the caller's current readings in
+ * bytes/s; the store owns the clock, so every graph samples on the same tick.
  */
 export function useSpeedWindow(
   instance: string,
   value: number,
+  upload: number,
   points: number,
   scale: SpeedScale,
 ): SpeedWindow {
@@ -279,8 +348,10 @@ export function useSpeedWindow(
 
   // In an effect, not during render, which must not write to a store.
   useEffect(() => {
-    scopeFor(instance).value = value;
-  }, [instance, value]);
+    const sc = scopeFor(instance);
+    sc.down.value = value;
+    sc.up.value = upload;
+  }, [instance, value, upload]);
 
   return useMemo(() => windowFor(instance, points, scale), [instance, points, scale, version]);
 }

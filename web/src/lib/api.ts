@@ -208,6 +208,9 @@ export interface Task {
   ratio?: number;
   /** Bytes sent to the swarm. */
   uploaded?: number;
+  /** Bytes a second sent to the swarm now. It counts only while the torrent
+   *  downloads or seeds; see uploadOf in lib/speedHistory.ts. */
+  uploadSpeed?: number;
   /** A finished torrent still uploading. A flag beside status 'done' rather
    *  than a status, so the existing status mappings stay exhaustive. */
   seeding?: boolean;
@@ -2269,6 +2272,8 @@ export interface YtdlpEmbed {
   splitChapters: boolean;
   /** Not a yt-dlp flag: KnightLoader writes the NFO itself. */
   nfo: boolean;
+  /** Keeps a video row's streams as files of their own; false merges them into one. */
+  separate: boolean;
 }
 
 /** Mirrors ytdlp.Measure: the ffprobe pass over a finished media file. */

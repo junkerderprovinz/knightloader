@@ -647,6 +647,9 @@ type Task struct {
 	Ratio float64 `json:"ratio,omitempty"`
 	// Uploaded is bytes sent to the swarm.
 	Uploaded int64 `json:"uploaded,omitempty"`
+	// UploadSpeed is bytes a second sent to the swarm now, a live reading like
+	// Speed. It means something only while the torrent downloads or seeds.
+	UploadSpeed int64 `json:"uploadSpeed,omitempty"`
 	// SeedSeconds is how long the torrent has seeded, over every run.
 	SeedSeconds int64 `json:"seedSeconds,omitempty"`
 	// Seeding is a finished torrent still uploading. It is a flag beside

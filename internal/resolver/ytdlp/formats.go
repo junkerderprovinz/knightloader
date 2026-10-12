@@ -287,12 +287,12 @@ func (v videoFormat) filters() []string {
 	return out
 }
 
-// selector asks for the track plus audio, the kind that keeps the track's own
+// choice asks for the track plus audio, the kind that keeps the track's own
 // container first, and takes a track that already carries its audio as it is.
 // Nothing falls back to another track: a pick that is gone fails with yt-dlp's
 // own sentence rather than quietly fetching something else.
-func (v videoFormat) selector() string {
-	return mergeSelector(v.filters(), v.companionAudio())
+func (v videoFormat) choice() videoChoice {
+	return videoChoice{streamsFor(v.filters(), v.companionAudio())}
 }
 
 // atRes matches a track of resolution r either way up: a portrait track by its
@@ -317,24 +317,65 @@ func underRes(r int) []string {
 	}
 }
 
-// mergeSelector asks for a video-only format that one of filters matches,
-// merged with audio of the companion container where there is one and then
-// with any audio, and last for a matching format that carries its own audio.
-// Each step tries the filters in order.
-func mergeSelector(filters []string, companion string) string {
-	var alts []string
+// streams is one step of a video row's format choice: video-only formats, the
+// audio to go with them, and formats that carry both, each in the order they
+// are tried.
+type streams struct {
+	video, audio, both []string
+}
+
+// videoChoice is a video row's format choice, its steps tried in order. It is
+// written as a -f value two ways: merged into one file, or kept apart.
+type videoChoice []streams
+
+// bestChoice is what yt-dlp picks when it is given no -f at all.
+var bestChoice = videoChoice{{video: []string{"bv*"}, audio: []string{"ba"}, both: []string{"b"}}}
+
+// streamsFor asks for a video-only format that one of filters matches, with
+// audio of the companion container where there is one and then with any
+// audio, and last for a matching format that carries its own audio. Each step
+// tries the filters in order.
+func streamsFor(filters []string, companion string) streams {
+	var s streams
 	if companion != "" {
-		for _, f := range filters {
-			alts = append(alts, "bv"+f+"+ba[ext="+companion+"]")
+		s.audio = append(s.audio, "ba[ext="+companion+"]")
+	}
+	s.audio = append(s.audio, "ba")
+	for _, f := range filters {
+		s.video = append(s.video, "bv"+f)
+		s.both = append(s.both, "b"+f)
+	}
+	return s
+}
+
+// merged is the -f value that merges each video with its audio, every pairing
+// of a step tried before the formats that carry both.
+func (c videoChoice) merged() string {
+	var alts []string
+	for _, s := range c {
+		for _, a := range s.audio {
+			for _, v := range s.video {
+				alts = append(alts, v+"+"+a)
+			}
 		}
-	}
-	for _, f := range filters {
-		alts = append(alts, "bv"+f+"+ba")
-	}
-	for _, f := range filters {
-		alts = append(alts, "b"+f)
+		alts = append(alts, s.both...)
 	}
 	return strings.Join(alts, "/")
+}
+
+// apart is the -f value that downloads the video and the audio as two files.
+// A comma is yt-dlp's way of asking for two formats without merging them. The
+// audio half ends on the formats that carry both, so a source with no
+// audio-only format names the same file twice, which yt-dlp writes once,
+// rather than failing.
+func (c videoChoice) apart() string {
+	var video, audio, both []string
+	for _, s := range c {
+		video = append(append(video, s.video...), s.both...)
+		audio = append(audio, s.audio...)
+		both = append(both, s.both...)
+	}
+	return "(" + strings.Join(video, "/") + "),(" + strings.Join(append(audio, both...), "/") + ")"
 }
 
 // videoWish is a host preset's video pick before a probe has resolved it: a
@@ -367,22 +408,22 @@ func parseVideoWish(s string) (videoWish, bool) {
 	return videoWish{videoContainer: c, capRes: capRes}, true
 }
 
-// selector asks for the best track of the container under the cap, then for
+// choice asks for the best track of the container under the cap, then for
 // what the cap alone would give.
-func (w videoWish) selector() string {
+func (w videoWish) choice() videoChoice {
 	if w.capRes == 0 {
-		return mergeSelector([]string{w.filter()}, w.companionAudio()) + "/bv*+ba/b"
+		return append(videoChoice{streamsFor([]string{w.filter()}, w.companionAudio())}, bestChoice...)
 	}
 	filters := underRes(w.capRes)
 	for i := range filters {
 		filters[i] = w.filter() + filters[i]
 	}
-	return mergeSelector(filters, w.companionAudio()) + "/" + capSelector(w.capRes)
+	return append(videoChoice{streamsFor(filters, w.companionAudio())}, capChoice(w.capRes)...)
 }
 
-// capSelector is the -f value for a resolution cap.
-func capSelector(r int) string {
-	return mergeSelector(underRes(r), "")
+// capChoice is the choice for a resolution cap.
+func capChoice(r int) videoChoice {
+	return videoChoice{streamsFor(underRes(r), "")}
 }
 
 // pickedContainer is the container a video track or wish asks for.
@@ -564,17 +605,18 @@ func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
 // file's extension, "" where it cannot be told in advance, and its size, the
 // video and the audio merged with it together, 0 where the host gave neither a
 // size nor a bitrate. o is the instance's options: Embed.Thumbnail decides the
-// container of a webm pick, and CustomFormat is what a custom pick asks for.
+// container of a webm pick, Embed.Separate keeps the video's own extension
+// since nothing is merged, and CustomFormat is what a custom pick asks for.
 func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size int64) {
 	pick = ResolveVideoPick(pick, formats)
 	if v, ok := parseVideoFormat(pick); ok {
-		return v.file(formats, o.Embed.Thumbnail)
+		return v.file(formats, o.Embed)
 	}
 	if r, ok := ResCap(Quality(pick)); ok {
-		// capSelector: a video-only track and audio, else one that has both.
+		// capChoice: a video-only track and audio, else one that has both.
 		if v := bestVideo(formats, r, isVideoOnly); v != nil {
 			if a := bestAudio(formats, ""); a != nil {
-				return "mkv", mergedSize(v, a)
+				return pairedExt(v, o.Embed), mergedSize(v, a)
 			}
 		}
 		if v := bestVideo(formats, r, carriesBoth); v != nil {
@@ -604,7 +646,7 @@ func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size 
 		if !carries(v.Vcodec) {
 			v, a = a, v
 		}
-		return "mkv", mergedSize(v, a)
+		return pairedExt(v, o.Embed), mergedSize(v, a)
 	}
 	v := bestVideo(formats, 0, func(FormatEntry) bool { return true })
 	if v == nil {
@@ -612,7 +654,7 @@ func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size 
 	}
 	if isVideoOnly(*v) {
 		if a := bestAudio(formats, ""); a != nil {
-			return "mkv", mergedSize(v, a)
+			return pairedExt(v, o.Embed), mergedSize(v, a)
 		}
 		return "", v.Size()
 	}
@@ -621,10 +663,20 @@ func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size 
 	return "", v.Size()
 }
 
+// pairedExt is the extension of a row's file that is a video downloaded with
+// its audio: mkv where the two are merged, the video's own where they are
+// kept apart.
+func pairedExt(video *FormatEntry, embed Embed) string {
+	if embed.Separate {
+		return video.Ext
+	}
+	return "mkv"
+}
+
 // file is VideoFile for a track. The selector asks for a video-only track
 // first and takes one that carries its own audio only when there is none, so
 // the two are kept apart.
-func (v videoFormat) file(formats []FormatEntry, embedThumbnail bool) (string, int64) {
+func (v videoFormat) file(formats []FormatEntry, embed Embed) (string, int64) {
 	var videoOnly, combined *FormatEntry
 	for i, f := range formats {
 		got, match := videoFormatOf(f)
@@ -650,8 +702,8 @@ func (v videoFormat) file(formats []FormatEntry, embedThumbnail bool) (string, i
 			audio = bestAudio(formats, "")
 		}
 		if audio != nil {
-			ext := "mkv"
-			if own && v.keepsContainer(embedThumbnail) {
+			ext := pairedExt(videoOnly, embed)
+			if !embed.Separate && own && v.keepsContainer(embed.Thumbnail) {
 				ext = v.ext
 			}
 			return ext, mergedSize(videoOnly, audio)

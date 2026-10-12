@@ -72,6 +72,7 @@ export const RELEASES: Release[] = [
         names: { name: 'volume.title' },
       },
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
+      { id: 'seeding-line', to: ['/'], text: 'whatsnew.change.seedingLine' },
       // Drawn on every page of a narrow window, and listed with the first of them.
       { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },
       { id: 'page-actions', to: ['/'], text: 'whatsnew.change.pageActions' },
@@ -253,6 +254,12 @@ export const RELEASES: Release[] = [
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.trackMerge',
         names: { name: 'settings.resolvers.embedTitle', rainbow: 'settings.rainbow' },
+      },
+      {
+        id: 'merge-files',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.mergeFiles',
+        names: { name: 'settings.resolvers.mergeFiles' },
       },
       {
         id: 'video-card',

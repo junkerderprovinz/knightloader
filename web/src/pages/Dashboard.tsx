@@ -7,6 +7,7 @@ import { useResource } from '../lib/useResource';
 import { fmtBytes, fmtRate, pct } from '../lib/format';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { countTasks } from '../lib/needs';
+import { uploadOf } from '../lib/speedHistory';
 import { refreshNeeds, useNeeds } from '../lib/useNeeds';
 import { useTransferFlow } from '../lib/useTransferFlow';
 import {
@@ -104,6 +105,7 @@ export function Dashboard() {
 
   const list = useMemo(() => Object.values(tasks), [tasks]);
   const counts = useMemo(() => countTasks(list, Date.now()), [list]);
+  const upload = useMemo(() => uploadOf(list), [list]);
   const flow = useTransferFlow(list, '/api');
 
   const recent = useMemo(
@@ -155,7 +157,7 @@ export function Dashboard() {
               </div>
             </div>
             {/* The limit feeds the 1337 easter egg (docs/easter-eggs.md). */}
-            <SpeedGraph value={counts.speed} height={96} limit={settings?.speedLimit ?? 0} />
+            <SpeedGraph value={counts.speed} upload={upload} height={96} limit={settings?.speedLimit ?? 0} />
           </div>
         );
       case 'flow':
