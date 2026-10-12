@@ -3,11 +3,13 @@
 // accounts come first, the own Usenet servers below them, then hoster logins,
 // the logins for the user's own servers and the captcha solvers' keys; the
 // section follows the catalogue's Group field, and every card draws an
-// AccountTable. The Allow free downloads switch comes under them, since whether
-// a link may be fetched for free is a question of which accounts there are.
+// AccountTable. Under them the two priority cards stand side by side, one for
+// the download backends and one for the captcha accounts, and the Allow free
+// downloads switch comes last, since whether a link may be fetched for free is
+// a question of which accounts there are.
 // Adding is the page's one floating action, which opens a window with a tile
 // per kind in the cards' order; no card carries an add button of its own.
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type Account,
   type AccountCredential,
@@ -52,12 +54,10 @@ import {
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { SubHead } from './settings/controls';
-import { LIFT, SETTLE, useReorder } from '../components/dragLift';
-import { RowGrip, moveTo } from '../components/RowGrip';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
-import { CaptchaCards } from './settings/accounts/CaptchaCards';
+import { CaptchaPriorityCard } from './settings/accounts/CaptchaPriorityCard';
 import { LiveSettings } from './settings/accounts/LiveSettings';
 import {
   IconAccounts,
@@ -81,7 +81,7 @@ import {
   type Brand,
   type Kind,
 } from '../components/BrandPicker';
-import { PriorityFlow, nameBand } from '../components/pictures/PriorityFlow';
+import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -252,6 +252,7 @@ export function Accounts() {
 
   // Every empty card sends the reader to the floating action by its name.
   const addPointer = t('accounts.addPointer', { button: t('accounts.newAccount') });
+  const captchaOrder = t('settings.captcha.orderTitle');
   const kinds: (Kind & { open: () => void })[] = [
     {
       id: 'debrid',
@@ -353,9 +354,10 @@ export function Accounts() {
       )}
 
       {/* A solver's key unlocks no link, so these rows have no import and
-          nothing to renew. The order they are tried in follows below. */}
+          nothing to renew. The order they are tried in is the captcha
+          priority card below. */}
       <Card hue={4} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
+        <SectionTitle hint={t('accounts.captcha.hint', { order: captchaOrder })}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
           <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
@@ -363,21 +365,23 @@ export function Accounts() {
             nested
             icon={<IconCaptcha width={26} height={26} />}
             title={t('accounts.captcha.empty')}
-            hint={`${t('accounts.captcha.emptyHint')} ${addPointer}`}
+            hint={`${t('accounts.captcha.emptyHint', { order: captchaOrder })} ${addPointer}`}
           />
         )}
       </Card>
 
-      {/* Outside the settings shell, so the captcha cards save as they go. */}
-      <LiveSettings>
-        <CaptchaCards hue={5} accounts={accounts} catalogue={catalogue} />
-      </LiveSettings>
-
       {/* The signature, so RoutingSection looks again only when the set of
-          services or switched-on logins changes, not on every poll. */}
+          services or switched-on logins changes, not on every poll. The
+          captcha card stands outside the settings shell, so it saves as it
+          goes. */}
       <RoutingSection
         catalogue={catalogue}
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
+        captcha={
+          <LiveSettings>
+            <CaptchaPriorityCard hue={6} accounts={accounts} catalogue={catalogue} />
+          </LiveSettings>
+        }
       />
 
       <PageActions>
@@ -817,7 +821,13 @@ function CredentialDialog({
     <Modal
       title={title}
       // While adding, the window says what the card it fills is for.
-      hint={mode === 'new' ? t(solver ? 'accounts.captcha.hint' : 'accounts.debrid.hint') : undefined}
+      hint={
+        mode === 'new'
+          ? solver
+            ? t('accounts.captcha.hint', { order: t('settings.captcha.orderTitle') })
+            : t('accounts.debrid.hint')
+          : undefined
+      }
       hue={solver ? 4 : 0}
       // The picker's window, which the form of the picked brand stays in.
       wide={mode === 'new'}
@@ -957,10 +967,21 @@ const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   nntp: 'accounts.routing.tip.nntp',
 };
 
-function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
+function RoutingSection({
+  catalogue,
+  signature,
+  captcha,
+}: {
+  catalogue: CatalogueService[];
+  signature: string;
+  /** The captcha priority card, which stands beside the download one. */
+  captcha: ReactNode;
+}) {
   const { t } = useT();
+  const { toast } = useToast();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Re-read whenever the configured services or the switched-on hoster logins
   // change: saving a debrid key registers a resolver at once, and each login
@@ -979,159 +1000,84 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
     if (id.startsWith(LOGIN_ROW)) return id.slice(LOGIN_ROW.length);
     return byId.get(id)?.label ?? resolverLabel(id, t);
   };
+  const tipFor = (id: string) => {
+    const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
+    return tip && t(tip);
+  };
 
+  // "Automatisch" stores an empty order, which clears the stored one, so the
+  // order follows the ladder as it changes instead of freezing today's.
+  async function store(next: string[]) {
+    setBusy(true);
+    try {
+      setPriority(await saveResolverPriority(next));
+    } catch (e) {
+      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  const title = t('accounts.routing.priorityTitle');
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={7} className="flex flex-col gap-3">
-        <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
-          {t('accounts.routing.priorityTitle')}
-        </SectionTitle>
+      <PriorityCard
+        hue={5}
+        data-new="priority-flow"
+        title={title}
+        hint={`${t('accounts.routing.orderHint')}
+
+${t('accounts.routing.orderHintTorrents')}`}
+        intro={t('accounts.routing.priorityIntro')}
+      >
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
+          <>
+            <PriorityLadder
+              ids={priority.map((r) => r.id)}
+              title={title}
+              labelFor={labelFor}
+              tipFor={tipFor}
+              busy={busy}
+              onReorder={store}
+            />
+            <div className="flex items-center gap-2">
+              <Button
+                kind="secondary"
+                disabled={busy}
+                hint={t('accounts.routing.priorityAutoHint')}
+                onClick={() => void store([])}
+              >
+                {t('accounts.routing.priorityAuto')}
+              </Button>
+            </div>
+          </>
         )}
-      </Card>
+      </PriorityCard>
+
+      {captcha}
 
       {/* Whether a link may be loaded for free, and the state of the backend
           that would load it. */}
-      <FreeDownloadsCard hue={8}>
-        <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
-        {jd === null ? (
-          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-        ) : !jd.configured ? (
-          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
-        ) : jd.reachable ? (
-          <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
-            {t('accounts.routing.jdUnreachable')}
-            {jd.detail && <InfoBubble tip={jd.detail} />}
-          </span>
-        )}
-      </FreeDownloadsCard>
-    </div>
-  );
-}
-
-/** LadderName is a row's name, with an (i) saying what the row takes where the name does not. */
-function LadderName({ id, label }: { id: string; label: string }) {
-  const { t } = useT();
-  const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
-  return (
-    <span className="flex min-w-0 items-center">
-      <span className="truncate text-carbon-text">{label}</span>
-      {tip && <InfoBubble tip={t(tip)} />}
-    </span>
-  );
-}
-
-/**
- * PriorityLadder is the priority picture with its names as rows that order the
- * resolvers: a row moves by drag, or with its grip focused by the arrow keys.
- * Every drop saves at once and redraws from the server's answer. "Automatisch"
- * clears the stored order, so it follows the ladder as it changes instead of
- * freezing today's.
- */
-function PriorityLadder({
-  rows,
-  labelFor,
-  onSaved,
-}: {
-  rows: ResolverInfo[];
-  labelFor: (id: string) => string;
-  onSaved: (rows: ResolverInfo[]) => void;
-}) {
-  const { t } = useT();
-  const { toast } = useToast();
-  const [busy, setBusy] = useState(false);
-  // The order a save is writing, drawn until the server answers, so a dropped
-  // row does not jump back to its old place and then forward again.
-  const [pending, setPending] = useState<string[] | null>(null);
-  const list = useRef<HTMLOListElement>(null);
-
-  async function store(next: string[]) {
-    setBusy(true);
-    if (next.length > 0) setPending(next);
-    try {
-      onSaved(await saveResolverPriority(next));
-    } catch (e) {
-      toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
-    } finally {
-      setBusy(false);
-      setPending(null);
-    }
-  }
-
-  const resting = pending ?? rows.map((r) => r.id);
-  // The whole row is pressed to move it, so a mouse arms the drag by moving
-  // and a click on a row's (i) still opens its bubble.
-  const drag = useReorder({
-    ids: resting,
-    container: list,
-    attr: 'data-ladder-id',
-    axis: 'y',
-    arm: 'move',
-    enabled: !busy,
-    onReorder: (next) => void store(next),
-  });
-
-  const byId = new Map(rows.map((r) => [r.id, r] as const));
-  const shown = drag.order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
-  const title = t('accounts.routing.priorityTitle');
-
-  return (
-    <div className="flex flex-col gap-3">
-      {/* The stations follow the resting order, so a drag in flight moves the
-          names past them without starting the picture over at every step. */}
-      <PriorityFlow backends={resting.map((id) => ({ id, name: labelFor(id) }))} label={title}>
-        {/* The list is the rows' offsetParent, the layout a drag measures in.
-            While a row is held the others wiggle (glim-drag-armed). */}
-        <ol
-          ref={list}
-          aria-label={title}
-          data-new="priority-drag"
-          style={nameBand(resting.length)}
-          className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
-        >
-          {shown.map((r) => {
-            const look = drag.look(r.id);
-            const carried = look === LIFT || look === SETTLE;
-            return (
-              <li
-                key={r.id}
-                data-ladder-id={r.id}
-                // A carried row floats over the others, so it takes a ground of
-                // its own. select-none keeps a drag from selecting the names.
-                className={`flex min-h-0 flex-1 cursor-grab select-none items-center gap-1 rounded-[var(--radius-control)]
-                  pe-1 text-sm text-carbon-textSub active:cursor-grabbing ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
-                onPointerDown={(e) => drag.press(e, r.id)}
-              >
-                <RowGrip
-                  label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-                  disabled={busy}
-                  onMove={(by) => {
-                    const next = moveTo(drag.order, r.id, by);
-                    if (next) void store(next);
-                  }}
-                />
-                <LadderName id={r.id} label={labelFor(r.id)} />
-              </li>
-            );
-          })}
-        </ol>
-      </PriorityFlow>
-      <div className="flex items-center gap-2">
-        <Button
-          kind="secondary"
-          disabled={busy}
-          hint={t('accounts.routing.priorityAutoHint')}
-          onClick={() => void store([])}
-        >
-          {t('accounts.routing.priorityAuto')}
-        </Button>
+      <div className="sm:col-span-2">
+        <FreeDownloadsCard hue={7}>
+          <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
+          {jd === null ? (
+            <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+          ) : !jd.configured ? (
+            <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
+          ) : jd.reachable ? (
+            <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
+          ) : (
+            <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
+              {t('accounts.routing.jdUnreachable')}
+              {jd.detail && <InfoBubble tip={jd.detail} />}
+            </span>
+          )}
+        </FreeDownloadsCard>
       </div>
     </div>
   );

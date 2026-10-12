@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from 'react';
+import type { GlyphProps } from '../../lib/glyphs';
 import { IconLink } from '../../lib/icons';
 import { ENTRY, Entry, LANE, Name, PITCH, RADIUS, Stop, Track, WIDTH, numbered, stopAt } from './lane';
 import { FILL, SURFACE, trip, useStage } from './scene';
@@ -30,7 +31,8 @@ export function nameBand(count: number): CSSProperties {
 /**
  * PriorityFlow shows the order backends are asked in: a link comes in at the
  * top and is offered to each backend in turn, first to the one that stands
- * first. Every backend the link reaches takes its colour and answers.
+ * first. Every backend the link reaches takes its colour and answers. `glyph`
+ * is what comes in, the link unless a captcha is handed down the order.
  *
  * `children` replaces the names with rows of the caller's own, placed with
  * nameBand, such as rows that can be dragged into another order. The stations
@@ -40,10 +42,12 @@ export function nameBand(count: number): CSSProperties {
 export function PriorityFlow({
   backends,
   label,
+  glyph: Glyph = IconLink,
   children,
 }: {
   backends: { id: string; name: string }[];
   label: string;
+  glyph?: (p: GlyphProps) => ReactNode;
   children?: ReactNode;
 }) {
   // The order is the scene, so a changed order starts it over.
@@ -61,12 +65,11 @@ export function PriorityFlow({
         role={named ? 'img' : undefined}
         aria-label={named ? `${label}: ${backends.map((b, i) => `${i + 1}. ${b.name}`).join(', ')}` : undefined}
         aria-hidden={named ? undefined : true}
-        data-new="priority-flow"
         className="block w-full overflow-visible"
       >
         <Track d={walk.motion.path} />
         <Entry>
-          <IconLink x={-7} y={-7} width={14} height={14} />
+          <Glyph x={-7} y={-7} width={14} height={14} />
         </Entry>
 
         {backends.map(({ id, name }, i) => (
@@ -78,7 +81,7 @@ export function PriorityFlow({
 
         {!still && (
           <Traveller trip={walk} loop={loop} taking={walk.stops} stays>
-            <LinkParcel />
+            <LinkParcel glyph={Glyph} />
           </Traveller>
         )}
       </svg>
@@ -87,13 +90,13 @@ export function PriorityFlow({
   );
 }
 
-/** The link on its way: a filled disc with the link glyph cut out. */
-export function LinkParcel() {
+/** The link on its way: a filled disc with the link glyph, or `glyph`, cut out. */
+export function LinkParcel({ glyph: Glyph = IconLink }: { glyph?: (p: GlyphProps) => ReactNode }) {
   return (
     <>
       <circle r="8" fill={FILL} />
       <g color={SURFACE}>
-        <IconLink x={-6} y={-6} width={12} height={12} />
+        <Glyph x={-6} y={-6} width={12} height={12} />
       </g>
     </>
   );

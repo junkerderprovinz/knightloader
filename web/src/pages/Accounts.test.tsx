@@ -499,11 +499,14 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
   expect(windowTitle()).toContain('TorBox');
 });
 
-it('orders the captcha accounts beside their keys and saves the order without a settings draft', async () => {
+it('orders the connected captcha accounts beside the download backends and saves without a settings draft', async () => {
+  const solver = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'captchaSolver', whereUrl: '' });
+  const key = (service: string) => ({ id: service, service, account: '', label: '', enabled: true, configured: true, fromEnv: false });
   vi.stubGlobal(
     'fetch',
     vi.fn(async (url: string, init?: RequestInit) => {
-      if (url === '/api/accounts/catalogue') return reply(services);
+      if (url === '/api/accounts/catalogue') return reply([...services, solver('2captcha', '2Captcha')]);
+      if (url === '/api/accounts') return reply([key('capsolver'), key('2captcha')]);
       if (url === '/api/settings' && init?.method === 'PATCH') {
         const body = JSON.parse(String(init.body));
         patched.push(body);
@@ -515,11 +518,12 @@ it('orders the captcha accounts beside their keys and saves the order without a 
     }),
   );
   await act(async () => root.render(page));
-  expect(host.textContent).toContain('Captcha account order');
+  expect(host.textContent).toContain('Download priority order');
+  expect(host.textContent).toContain('Captcha priority order');
 
-  const solver = host.querySelector<HTMLButtonElement>('[role="switch"][aria-label="Try CapSolver automatically"]')!;
-  await act(async () => solver.click());
+  const grip = host.querySelector<HTMLButtonElement>('[aria-label="Captcha priority order"] button[aria-label="Move CapSolver"]')!;
+  await act(async () => grip.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowDown' })));
   // Edits are gathered for a moment before they go out.
   await act(async () => void (await new Promise((done) => setTimeout(done, 700))));
-  expect(patched).toEqual([{ captchaSolverOrder: ['capsolver'] }]);
+  expect(patched).toEqual([{ captchaSolverOrder: ['2captcha', 'capsolver'] }]);
 });
