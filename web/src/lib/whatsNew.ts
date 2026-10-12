@@ -231,6 +231,16 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.resolvers.filesTitle' },
       },
       {
+        id: 'audio-best',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.audioBest',
+        names: {
+          best: 'settings.resolvers.quality.best',
+          name: 'settings.resolvers.audioTitle',
+          defaults: 'settings.resolvers.variantDefaults',
+        },
+      },
+      {
         id: 'variant-blocks',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.variantBlocks',

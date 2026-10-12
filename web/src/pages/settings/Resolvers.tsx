@@ -297,7 +297,7 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={5} className="flex flex-col gap-5">
+      <Card hue={5} data-new="audio-best" className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
         {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
@@ -316,7 +316,7 @@ export function Resolvers() {
           </SettingRow>
         )}
 
-        {/* "" means no --audio-quality at all. Kept while the format is "best",
+        {/* "" asks for the best quality. Kept while the format is "best",
             since a row can still pick a format that is converted. */}
         {audioBitrates.length > 0 && (
           <SettingRow label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
