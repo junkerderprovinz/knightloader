@@ -89,11 +89,6 @@ function row(name: string): HTMLElement {
 const button = (within: HTMLElement, words: string) =>
   [...within.querySelectorAll('button')].find((b) => b.textContent?.includes(words))!;
 
-async function check() {
-  await act(async () => button(card('Version'), 'Check for updates').click());
-  return card('Version').querySelector<HTMLButtonElement>('div.justify-end > button:last-of-type')!;
-}
-
 describe('the Info tile', () => {
   it('holds three cards: Version, then Help, then About', async () => {
     await draw();
@@ -135,33 +130,12 @@ describe('the Info tile', () => {
     expect(row('KnightLoader').querySelector('a')).toBeNull();
   });
 
-  it('turns the update check green when nothing is newer', async () => {
+  it('only shows the versions and leads to the updates on the General page', async () => {
     await draw();
-    const verdict = await check();
-    expect(verdict.textContent).toBe('Up to date');
-    expect(verdict.className).toContain('bg-statusOkSolid');
-    expect(asked).toContain('/api/mediatools/ytdlp/latest');
-  });
-
-  it('counts a newer KnightLoader and a newer yt-dlp and leads to both', async () => {
-    answers['/api/system/update-check'] = {
-      checked: true,
-      available: true,
-      current: 'v1.8.4',
-      latest: 'v1.9.0',
-      url: 'https://github.com/junkerderprovinz/knightloader/releases/tag/v1.9.0',
-    };
-    answers['/api/mediatools/ytdlp/latest'] = { checked: true, tag: '2026.09.30', compare: 'newer' };
-    await draw();
-    const verdict = await check();
-    expect(verdict.textContent).toBe('Updates: 2');
-    expect(verdict.className).toContain('bg-statusWarnSolid');
-
-    expect(row('KnightLoader').textContent).toContain('v1.9.0 is available');
-    const hrefs = (name: string) => [...row(name).querySelectorAll('a')].map((a) => a.getAttribute('href'));
-    expect(hrefs('KnightLoader')).toContain('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.9.0');
-    expect(row('yt-dlp').textContent).toContain('2026.09.30 is available');
-    expect(hrefs('yt-dlp')).toContain('/settings/resolvers');
+    expect(button(card('Version'), 'Check for updates')).toBeUndefined();
+    expect(card('Version').querySelector('a[href="/settings/look"]')).not.toBeNull();
+    expect(asked).not.toContain('/api/system/update-check');
+    expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
   });
 
   it('opens the release notes of the running version from the Version card', async () => {
@@ -184,21 +158,6 @@ describe('the Info tile', () => {
     await act(async () => button(card('Version'), 'Release notes').click());
     expect(open).toBe('notes');
     act(() => closeWhatsNew());
-  });
-
-  it('turns the update check red when GitHub cannot be asked', async () => {
-    answers['/api/system/update-check'] = { checked: false, available: false, current: 'v1.8.4' };
-    await draw();
-    const verdict = await check();
-    expect(verdict.textContent).toBe('Check failed');
-    expect(verdict.className).toContain('bg-statusFailSolid');
-  });
-
-  it('does not ask about yt-dlp where none runs', async () => {
-    answers['/api/mediatools'] = { ytdlp: { found: false }, ffmpeg: { found: true, version: '8.1.2' }, ffprobe: { found: true } };
-    await draw();
-    await check();
-    expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
   });
 
   it('offers the manual as a link to the documentation', async () => {

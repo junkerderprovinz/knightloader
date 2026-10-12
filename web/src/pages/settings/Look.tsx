@@ -1,16 +1,14 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
 import {
   Button,
   Card,
   ErrorCard,
   InfoBubble,
-  LinkBadge,
   Modal,
   SectionTitle,
   Toggle,
   ToggleRow,
   useTooltip,
-  type ButtonVerdict,
 } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
@@ -18,15 +16,11 @@ import { LanguagePicker } from '../../components/LanguagePicker';
 import {
   type DeploymentInfo,
   fetchDeploymentInfo,
-  fetchUpdateCheck,
   requestQuit,
   requestRestart,
-  type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
 import {
-  IconCheck,
   IconClose,
-  IconDownload,
   IconMoon,
   IconRefresh,
   IconSignOut,
@@ -69,6 +63,7 @@ import { useDraft } from './context';
 import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
+import { UpdatesCard } from './look/Updates';
 import { SettingsTransfer } from './look/SettingsTransfer';
 import { JDImportCard } from './look/JDImport';
 
@@ -808,9 +803,9 @@ function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
-      <UpdateCard hue={hue}>
+      <UpdatesCard hue={hue}>
         <Lifecycle shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
-      </UpdateCard>
+      </UpdatesCard>
       <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
     </>
   );
@@ -925,122 +920,6 @@ function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShut
         </Modal>
       )}
     </>
-  );
-}
-
-/**
- * UpdateCard checks GitHub for a newer release on request, and a container
- * also once on mount while its auto-check switch is on (off by default). A
- * container is pointed at the release. The desktop build updates itself in the
- * background (desktop/updates.go), and a check there also tells whether a
- * downloaded version waits for the next start.
- */
-function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
-  const { t } = useT();
-  const { cfg, patch } = useDraft();
-  // Updating from inside the app is the In-app updates module; its row says
-  // why neither build switches it.
-  const [deployment, setDeployment] = useState<string | null>(null);
-  const [check, setCheck] = useState<UpdateCheckT | null>(null);
-  const [checking, setChecking] = useState(false);
-  // The failure counter of the check button, so a repeated failure shakes it again.
-  const [shake, setShake] = useState(0);
-
-  useEffect(() => {
-    void fetchDeploymentInfo()
-      .then((d) => setDeployment(d.deployment))
-      .catch(() => {});
-  }, []);
-
-  const onCheck = useCallback(async () => {
-    setChecking(true);
-    let next: UpdateCheckT;
-    try {
-      next = await fetchUpdateCheck();
-    } catch {
-      next = { checked: false, available: false, current: '' };
-    }
-    setCheck(next);
-    if (!next.checked) setShake((n) => n + 1);
-    setChecking(false);
-  }, []);
-
-  // Auto-check once, when the switch's value arrives, on a container only:
-  // the desktop build asks GitHub on its own.
-  useEffect(() => {
-    if (deployment === 'container' && cfg.autoUpdateCheck) void onCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
-    // when deployment/autoUpdateCheck first resolve, not on every cfg change.
-  }, [deployment, cfg.autoUpdateCheck]);
-
-  // Wait for the deployment rather than flash the wrong copy.
-  if (deployment === null) return null;
-  const isDesktop = deployment === 'desktop';
-  const ready = check?.ready;
-  const available = !!check?.checked && check.available;
-
-  // The button shows the answer on itself, like any button that tests
-  // something; what the answer cannot hold stands as one line above it.
-  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = !check
-    ? { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> }
-    : !check.checked
-      ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
-      : available
-        ? { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownload />, verdict: 'warn' }
-        : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
-
-  return (
-    <Card hue={hue} className="flex flex-col gap-3">
-      <SectionTitle hint={t('settings.look.updatesHint')}>
-        {t('settings.look.updatesTitle')}
-      </SectionTitle>
-      {!isDesktop && (
-        <ToggleRow
-          label={t('settings.look.updatesAuto')}
-          hint={t('settings.look.updatesAutoHint')}
-          checked={cfg.autoUpdateCheck}
-          onChange={(v) => patch({ autoUpdateCheck: v })}
-        />
-      )}
-      {/* Shown on both builds; a container cannot replace itself, so there the
-          row is disabled and says why. */}
-      <ToggleRow
-        label={t('settings.look.updatesAutoUpdate')}
-        hint={isDesktop ? t('settings.look.updatesAutoUpdateHint') : t('settings.look.updatesAutoUpdateContainerHint')}
-        checked={isDesktop && cfg.autoUpdate}
-        disabled={!isDesktop}
-        onChange={(v) => patch({ autoUpdate: v })}
-      />
-      {/* A downloaded version outranks the offer of it: it only waits for a
-          restart. */}
-      {!checking && (ready || available) && (
-        <p className="flex flex-wrap items-center gap-x-3 gap-y-2 text-sm text-carbon-textSub">
-          <span className="inline-flex items-center">
-            {ready
-              ? t('settings.look.updatesReady', { version: ready })
-              : t('settings.look.updatesAvailable', { version: check?.latest ?? '' })}
-            {!ready && !isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
-          </span>
-          {available && check?.url && <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />}
-        </p>
-      )}
-      <div className="flex justify-end">
-        <Button
-          kind="secondary"
-          icon={checking ? <IconRefresh /> : face.icon}
-          verdict={checking ? undefined : face.verdict}
-          shake={shake}
-          disabled={checking}
-          onClick={() => void onCheck()}
-        >
-          {checking ? t('settings.look.updatesChecking') : face.label}
-        </Button>
-        <span role="status" className="sr-only">
-          {check && !checking ? face.label : ''}
-        </span>
-      </div>
-      {children}
-    </Card>
   );
 }
 

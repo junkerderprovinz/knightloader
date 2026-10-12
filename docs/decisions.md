@@ -150,8 +150,8 @@ points at the UPnP button, which is the thing that CAN be pressed.
 **Built:** a button that fetches a newer yt-dlp, verifies its checksum, proves it
 RUNS on this machine, and only then swaps it in. The same path runs once a day
 on its own, a few minutes after start and every 24 hours, behind a switch that
-ships on. Plus an opt-in "ask GitHub when this page opens" toggle that ships off
-and only ever checks.
+ships on. Plus an opt-in "Check automatically" toggle that ships off, asks GitHub when
+Settings, General opens and only ever checks.
 
 **Not built:** a daily run that installs yt-dlp where there is none, or that
 replaces a version it cannot put in order against the release, such as a build
