@@ -1,7 +1,7 @@
 import { useLayoutEffect, useRef, useState, type ComponentType, type SVGProps } from 'react';
 import { useT } from '../../lib/i18n';
 import { IconCollector } from '../../lib/icons';
-import { FILL, GROUND, HUE, QUIET, SURFACE, useStage } from './scene';
+import { FILL, GROUND, HUE, QUIET, SURFACE, pictureHue, useStage } from './scene';
 import { HubLabel, SpokeLabel, Stream, lineOf, spokeLayout, type SpokeShape } from './spokes';
 
 /** One way a link reaches the collector. */
@@ -89,7 +89,7 @@ function Net({
         const on = way.state === 'on';
         const Glyph = way.glyph;
         return (
-          <g key={way.id} data-way={way.id} data-state={way.state}>
+          <g key={way.id} data-way={way.id} data-state={way.state} {...pictureHue(i + 1)}>
             <path
               d={lineOf(spoke)}
               fill="none"
@@ -123,9 +123,11 @@ function Net({
           </g>
         );
       })}
-      <circle cx={hub.x} cy={hub.y} r={SIZES.hub} fill={FILL} />
-      <g color={SURFACE}>
-        <IconCollector x={hub.x - 13} y={hub.y - 13} width={26} height={26} />
+      <g {...pictureHue(0)}>
+        <circle cx={hub.x} cy={hub.y} r={SIZES.hub} fill={FILL} />
+        <g color={SURFACE}>
+          <IconCollector x={hub.x - 13} y={hub.y - 13} width={26} height={26} />
+        </g>
       </g>
       <HubLabel at={hubLabel}>{t('nav.collector')}</HubLabel>
     </svg>
