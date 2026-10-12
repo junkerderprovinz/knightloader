@@ -3618,7 +3618,7 @@ export const is: Dict = {
   'whatsnew.change.rowPick': 'Smellur eða snerting velur línu: Ctrl bætir fleirum við og Shift velur heilt bil.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ og „{watch}“ bera sömu tákn og myndin í „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ opnar stóra flís fyrir hverja gerð reiknings, hverja undir annarri í röð spjaldanna á þessari síðu.',
-  'whatsnew.change.fillSurface': 'Hvert fyllingarstig bylgjast mjúklega og ójafnt á yfirborði sínu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
+  'whatsnew.change.fillSurface': 'Hvert fyllingarstig gutlar, og loftbólur stíga upp í því og springa á yfirborðinu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
   'whatsnew.change.windowCard': 'Í skjáborðsforritinu ræður „{name}“ hvernig glugginn og tákn hans á tilkynningasvæðinu haga sér.',
   'whatsnew.change.updatesCard': '„{name}“ geymir KnightLoader og yt-dlp, hvort á sínu undirspjaldi með útgáfu, uppruna og uppfærslum.',
   'whatsnew.change.mirrorPolicy': 'Í „{name}“ ákveður fellilisti við hliðina á heiti þess hvenær tveir tenglar teljast sama skráin.',

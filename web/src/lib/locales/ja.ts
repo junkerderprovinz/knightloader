@@ -3618,7 +3618,7 @@ export const ja: Dict = {
   'whatsnew.change.rowPick': '行はクリックかタップで選べ、Ctrl で行を追加し、Shift で範囲をまとめて選びます。',
   'whatsnew.change.intakeGlyphs': '「{cnl}」と「{watch}」には「{intake}」の絵と同じアイコンが付いています。',
   'whatsnew.change.accountKinds': '「{name}」を押すと、アカウントの種類ごとに大きなタイルが、このページのカードと同じ順番で縦に並んで開きます。',
-  'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、表面がゆっくり不規則に揺れます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
+  'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、中身が波打ち、泡が浮かんで表面ではじけます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
   'whatsnew.change.windowCard': 'デスクトップアプリでは「{name}」で、ウィンドウと通知領域のアイコンの動きを決めます。',
   'whatsnew.change.updatesCard': '「{name}」には KnightLoader と yt-dlp がそれぞれ専用のサブカードで並び、バージョン、入手元、更新がまとまっています。',
   'whatsnew.change.mirrorPolicy': '「{name}」では、ラベルの横にあるドロップダウンで、2 つのリンクを同じファイルとみなす条件を選びます。',

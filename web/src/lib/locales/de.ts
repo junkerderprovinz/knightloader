@@ -3625,7 +3625,7 @@ export const de: Dict = {
   'whatsnew.change.rowPick': 'Ein Klick oder Tipp wählt eine Zeile aus: Mit Strg nimmst du weitere dazu, mit Umschalt einen ganzen Bereich.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ und „{watch}“ tragen dieselben Symbole wie das Bild in „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ öffnet für jede Art von Konto eine große Kachel, untereinander in der Reihenfolge der Karten auf dieser Seite.',
-  'whatsnew.change.fillSurface': 'Jeder Füllstand schwappt sanft und unregelmäßig an seiner Oberfläche: die Ordner unter „{name}“, „{volume}“ und der Traffic eines Kontos.',
+  'whatsnew.change.fillSurface': 'Jeder Füllstand schwappt, Bläschen steigen darin auf und platzen an der Oberfläche: die Ordner unter „{name}“, „{volume}“ und der Traffic eines Kontos.',
   'whatsnew.change.windowCard': 'In der Desktop-App legst du unter „{name}“ fest, wie sich das Fenster und sein Symbol verhalten.',
   'whatsnew.change.updatesCard': '„{name}“ hat KnightLoader und yt-dlp, jedes auf einer eigenen Unterkarte mit Version, Herkunft und Updates.',
   'whatsnew.change.mirrorPolicy': 'In „{name}“ legt eine Liste neben ihrer Beschriftung fest, wann zwei Links als dieselbe Datei gelten.',

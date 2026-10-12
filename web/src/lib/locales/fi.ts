@@ -3624,7 +3624,7 @@ export const fi: Dict = {
   'whatsnew.change.rowPick': 'Napsautus tai napautus valitsee rivin: Ctrl lisää muita ja Vaihto valitsee koko välin.',
   'whatsnew.change.intakeGlyphs': '”{cnl}” ja ”{watch}” käyttävät samoja symboleita kuin kohdan ”{intake}” kuva.',
   'whatsnew.change.accountKinds': '”{name}” avaa suuren ruudun jokaiselle tilityypille, allekkain tämän sivun korttien järjestyksessä.',
-  'whatsnew.change.fillSurface': 'Jokainen täyttötaso läikehtii pinnaltaan pehmeästi ja epätasaisesti: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
+  'whatsnew.change.fillSurface': 'Jokainen täyttötaso loiskuu, ja siinä nousee kuplia, jotka puhkeavat pinnalla: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
   'whatsnew.change.windowCard': 'Työpöytäsovelluksessa ”{name}” määrää, miten ikkuna ja sen ilmoitusalueen kuvake toimivat.',
   'whatsnew.change.updatesCard': '”{name}” sisältää KnightLoaderin ja yt-dlp:n, kumpikin omalla alakortillaan versioineen, alkuperineen ja päivityksineen.',
   'whatsnew.change.mirrorPolicy': 'Kohdassa ”{name}” otsikon vieressä oleva pudotusvalikko päättää, milloin kaksi linkkiä lasketaan samaksi tiedostoksi.',

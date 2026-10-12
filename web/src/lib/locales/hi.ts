@@ -3623,7 +3623,7 @@ export const hi: Dict = {
   'whatsnew.change.rowPick': 'क्लिक या टैप से पंक्ति चुनी जाती है: Ctrl से और पंक्तियाँ जुड़ती हैं, और Shift से पूरी रेंज चुनी जाती है।',
   'whatsnew.change.intakeGlyphs': '“{cnl}” और “{watch}” पर वही चिह्न हैं जो “{intake}” के चित्र में हैं।',
   'whatsnew.change.accountKinds': '“{name}” हर तरह के खाते के लिए एक बड़ी टाइल खोलता है, एक के नीचे एक, इस पेज के कार्डों के क्रम में।',
-  'whatsnew.change.fillSurface': 'भराव का हर स्तर अपनी सतह पर धीरे और असमान रूप से हिलता है: “{name}” के अंतर्गत फ़ोल्डर, “{volume}” और किसी खाते का ट्रैफ़िक।',
+  'whatsnew.change.fillSurface': 'भराव का हर स्तर छलकता है, और उसमें बुलबुले उठकर सतह पर फूटते हैं: “{name}” के अंतर्गत फ़ोल्डर, “{volume}” और किसी खाते का ट्रैफ़िक।',
   'whatsnew.change.windowCard': 'डेस्कटॉप ऐप में “{name}” तय करता है कि विंडो और सूचना क्षेत्र में उसका चिह्न कैसे व्यवहार करें।',
   'whatsnew.change.updatesCard': '“{name}” में KnightLoader और yt-dlp हैं, हर एक अपने उप-कार्ड पर अपने संस्करण, स्रोत और अपडेट के साथ।',
   'whatsnew.change.mirrorPolicy': '“{name}” में लेबल के पास की ड्रॉपडाउन तय करती है कि दो लिंक कब एक ही फ़ाइल माने जाएँ।',

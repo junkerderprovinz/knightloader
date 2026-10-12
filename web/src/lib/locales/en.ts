@@ -3866,7 +3866,7 @@ export const en = {
   'whatsnew.change.rowPick': 'A click or tap picks a row: Ctrl adds more, and Shift picks a whole range.',
   'whatsnew.change.intakeGlyphs': '"{cnl}" and "{watch}" carry the same glyphs as the picture in "{intake}".',
   'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account, one below the other in the order of the cards on this page.',
-  'whatsnew.change.fillSurface': 'Every fill level sloshes gently and unevenly at its surface: the folders under "{name}", "{volume}" and the traffic of an account.',
+  'whatsnew.change.fillSurface': 'Every fill level sloshes, and bubbles rise in it and pop at the surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
   'whatsnew.change.updatesCard': '"{name}" holds KnightLoader and yt-dlp, each on a sub-card of its own with its version, where it comes from and its updates.',
   'whatsnew.change.mirrorPolicy': 'In "{name}" a dropdown beside its label decides when two links count as the same file.',

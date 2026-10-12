@@ -3608,7 +3608,7 @@ export const da: Dict = {
   'whatsnew.change.rowPick': 'Et klik eller tryk vælger en række: Ctrl tilføjer flere, og Skift vælger et helt område.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ og „{watch}“ har de samme symboler som billedet i „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ åbner en stor flise for hver slags konto, den ene under den anden i rækkefølgen af kortene på denne side.',
-  'whatsnew.change.fillSurface': 'Hvert fyldniveau bølger blidt og uregelmæssigt i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
+  'whatsnew.change.fillSurface': 'Hvert fyldniveau skvulper, og bobler stiger op i det og brister i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
   'whatsnew.change.windowCard': 'I desktopappen bestemmer „{name}“, hvordan vinduet og dets ikon i meddelelsesområdet opfører sig.',
   'whatsnew.change.updatesCard': '„{name}“ rummer KnightLoader og yt-dlp, hver på sit eget underkort med version, oprindelse og opdateringer.',
   'whatsnew.change.mirrorPolicy': 'I „{name}“ afgør en rulleliste ved siden af etiketten, hvornår to links tæller som den samme fil.',

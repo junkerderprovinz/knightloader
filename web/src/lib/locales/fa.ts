@@ -3611,7 +3611,7 @@ export const fa: Dict = {
   'whatsnew.change.rowPick': 'یک کلیک یا لمس ردیفی را انتخاب می‌کند: Ctrl ردیف‌های دیگری اضافه می‌کند و Shift یک بازهٔ کامل را برمی‌گزیند.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» و «{watch}» همان نمادهای تصویر «{intake}» را دارند.',
   'whatsnew.change.accountKinds': '«{name}» برای هر نوع حساب یک کاشی بزرگ باز می‌کند، یکی زیر دیگری به ترتیب کارت‌های این صفحه.',
-  'whatsnew.change.fillSurface': 'هر سطح پُری روی سطح خود نرم و نامنظم موج می‌زند: پوشه‌های زیر «{name}»، «{volume}» و ترافیک یک حساب.',
+  'whatsnew.change.fillSurface': 'هر سطح پُری تکان می‌خورد و حباب‌هایی در آن بالا می‌آیند و روی سطح می‌ترکند: پوشه‌های زیر «{name}»، «{volume}» و ترافیک یک حساب.',
   'whatsnew.change.windowCard': 'در برنامهٔ دسکتاپ، «{name}» تعیین می‌کند پنجره و نشانه‌اش در ناحیهٔ اعلان چطور رفتار کنند.',
   'whatsnew.change.updatesCard': '«{name}» شامل KnightLoader و yt-dlp است، هر کدام روی کارت فرعی خودش با نسخه، منبع و به‌روزرسانی‌هایش.',
   'whatsnew.change.mirrorPolicy': 'در «{name}» یک فهرست کشویی کنار برچسبش تعیین می‌کند دو پیوند کی یک فایل حساب می‌شوند.',

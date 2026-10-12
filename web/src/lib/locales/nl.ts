@@ -3605,7 +3605,7 @@ export const nl: Dict = {
   'whatsnew.change.rowPick': 'Een klik of tik kiest een rij: Ctrl voegt er meer toe en Shift kiest een heel bereik.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” en “{watch}” dragen dezelfde symbolen als de afbeelding bij “{intake}”.',
   'whatsnew.change.accountKinds': '“{name}” opent een grote tegel voor elk soort account, onder elkaar in de volgorde van de kaarten op deze pagina.',
-  'whatsnew.change.fillSurface': 'Elk vulniveau golft zacht en ongelijkmatig aan zijn oppervlak: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
+  'whatsnew.change.fillSurface': 'Elk vulniveau klotst, en er stijgen belletjes in op die aan het oppervlak knappen: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
   'whatsnew.change.windowCard': 'In de desktopapp bepaalt “{name}” hoe het venster en zijn pictogram in het systeemvak zich gedragen.',
   'whatsnew.change.updatesCard': '“{name}” bevat KnightLoader en yt-dlp, elk op een eigen subkaart met versie, herkomst en updates.',
   'whatsnew.change.mirrorPolicy': 'In “{name}” bepaalt een vervolgkeuzelijst naast het label wanneer twee links als hetzelfde bestand tellen.',

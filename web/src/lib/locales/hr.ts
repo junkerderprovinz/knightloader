@@ -3636,7 +3636,7 @@ export const hr: Dict = {
   'whatsnew.change.rowPick': 'Klik ili dodir odabire redak: Ctrl dodaje još redaka, a Shift odabire cijeli raspon.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” i „{watch}” nose iste simbole kao slika u odjeljku „{intake}”.',
   'whatsnew.change.accountKinds': '„{name}” otvara veliku pločicu za svaku vrstu računa, jednu ispod druge redoslijedom kartica na ovoj stranici.',
-  'whatsnew.change.fillSurface': 'Svaka razina popunjenosti nježno i neravnomjerno se njiše na svojoj površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
+  'whatsnew.change.fillSurface': 'Svaka razina popunjenosti pljuska, a u njoj se dižu mjehurići koji pucaju na površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
   'whatsnew.change.windowCard': 'U desktop aplikaciji „{name}” određuje kako se ponašaju prozor i njegova ikona u području obavijesti.',
   'whatsnew.change.updatesCard': '„{name}” sadrži KnightLoader i yt-dlp, svaki na vlastitoj potkartici sa svojom verzijom, podrijetlom i ažuriranjima.',
   'whatsnew.change.mirrorPolicy': 'U „{name}” padajući popis pokraj oznake određuje kada se dvije poveznice smatraju istom datotekom.',

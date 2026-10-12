@@ -3614,7 +3614,7 @@ export const et: Dict = {
   'whatsnew.change.rowPick': 'Klõps või puudutus valib rea: Ctrl lisab veel ridu ja Shift valib terve vahemiku.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ ja „{watch}“ kannavad samu sümboleid nagu pilt jaotises „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ avab iga kontoliigi jaoks suure paani, üksteise all selle lehe kaartide järjekorras.',
-  'whatsnew.change.fillSurface': 'Iga täitetase loksub pinnal õrnalt ja ebaühtlaselt: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
+  'whatsnew.change.fillSurface': 'Iga täitetase loksub ning selles tõusevad mullid, mis pinnal lõhkevad: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
   'whatsnew.change.windowCard': 'Töölauarakenduses määrab „{name}“, kuidas aken ja selle ikoon teavitusalal käituvad.',
   'whatsnew.change.updatesCard': '„{name}“ sisaldab KnightLoaderit ja yt-dlp-d, kumbki oma alamkaardil koos versiooni, päritolu ja uuendustega.',
   'whatsnew.change.mirrorPolicy': 'Jaotises „{name}“ otsustab sildi kõrval olev rippmenüü, millal kaks linki loetakse samaks failiks.',

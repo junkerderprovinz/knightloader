@@ -3620,7 +3620,7 @@ export const th: Dict = {
   'whatsnew.change.rowPick': 'คลิกหรือแตะเพื่อเลือกแถว Ctrl ใช้เพิ่มแถว และ Shift ใช้เลือกทั้งช่วง',
   'whatsnew.change.intakeGlyphs': '“{cnl}” และ “{watch}” ใช้สัญลักษณ์เดียวกับภาพใน “{intake}”',
   'whatsnew.change.accountKinds': '“{name}” เปิดไทล์ขนาดใหญ่สำหรับบัญชีแต่ละประเภท เรียงลงมาตามลำดับการ์ดในหน้านี้',
-  'whatsnew.change.fillSurface': 'ระดับการเติมทุกระดับกระเพื่อมเบา ๆ และไม่สม่ำเสมอที่ผิวของมัน ได้แก่โฟลเดอร์ใต้ “{name}” “{volume}” และทราฟฟิกของบัญชี',
+  'whatsnew.change.fillSurface': 'ระดับการเติมทุกระดับกระฉอก และมีฟองลอยขึ้นแล้วแตกที่ผิว ได้แก่โฟลเดอร์ใต้ “{name}” “{volume}” และทราฟฟิกของบัญชี',
   'whatsnew.change.windowCard': 'ในแอปเดสก์ท็อป “{name}” กำหนดว่าหน้าต่างและไอคอนในพื้นที่แจ้งเตือนทำงานอย่างไร',
   'whatsnew.change.updatesCard': '“{name}” มี KnightLoader และ yt-dlp แต่ละตัวอยู่บนการ์ดย่อยของตัวเองพร้อมเวอร์ชัน ที่มา และการอัปเดต',
   'whatsnew.change.mirrorPolicy': 'ใน “{name}” เมนูดรอปดาวน์ข้างป้ายชื่อกำหนดว่าเมื่อใดลิงก์สองลิงก์นับเป็นไฟล์เดียวกัน',

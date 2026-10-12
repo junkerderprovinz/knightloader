@@ -3639,7 +3639,7 @@ export const he: Dict = {
   'whatsnew.change.rowPick': 'לחיצה או הקשה בוחרת שורה: Ctrl מוסיף עוד שורות, ואילו Shift בוחר טווח שלם.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” ו„{watch}” נושאים את אותם סמלים כמו התמונה ב„{intake}”.',
   'whatsnew.change.accountKinds': '„{name}” פותח אריח גדול לכל סוג של חשבון, אחד מתחת לשני בסדר הכרטיסים בעמוד הזה.',
-  'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנדנד ברכות ובצורה לא אחידה על פני השטח שלו: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
+  'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנודד, ובועות עולות בו ומתפוצצות על פני השטח: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
   'whatsnew.change.windowCard': 'באפליקציית שולחן העבודה, „{name}” קובע איך מתנהגים החלון והסמל שלו באזור ההתראות.',
   'whatsnew.change.updatesCard': '„{name}” מכיל את KnightLoader ואת yt-dlp, כל אחד בכרטיס משנה משלו עם הגרסה, המקור והעדכונים שלו.',
   'whatsnew.change.mirrorPolicy': 'ב„{name}” רשימה נפתחת ליד התווית שלו קובעת מתי שני קישורים נחשבים לאותו קובץ.',

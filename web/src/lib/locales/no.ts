@@ -3625,7 +3625,7 @@ export const no: Dict = {
   'whatsnew.change.rowPick': 'Et klikk eller trykk velger en rad: Ctrl legger til flere, og Skift velger et helt område.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» og «{watch}» har de samme symbolene som bildet i «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» åpner en stor flis for hver slags konto, under hverandre i rekkefølgen til kortene på denne siden.',
-  'whatsnew.change.fillSurface': 'Hvert fyllnivå bølger mykt og ujevnt i overflaten: mappene under «{name}», «{volume}» og trafikken til en konto.',
+  'whatsnew.change.fillSurface': 'Hvert fyllnivå skvulper, og bobler stiger opp i det og sprekker i overflaten: mappene under «{name}», «{volume}» og trafikken til en konto.',
   'whatsnew.change.windowCard': 'I skrivebordsappen bestemmer «{name}» hvordan vinduet og ikonet i varslingsområdet oppfører seg.',
   'whatsnew.change.updatesCard': '«{name}» har KnightLoader og yt-dlp, hver på sitt eget underkort med versjon, opprinnelse og oppdateringer.',
   'whatsnew.change.mirrorPolicy': 'I «{name}» avgjør en nedtrekksliste ved siden av etiketten når to lenker regnes som samme fil.',

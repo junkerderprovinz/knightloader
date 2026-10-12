@@ -3604,7 +3604,7 @@ export const zh: Dict = {
   'whatsnew.change.rowPick': '点击或轻点即可选中一行：按住 Ctrl 可再选几行，按住 Shift 可选中一整段。',
   'whatsnew.change.intakeGlyphs': '“{cnl}”和“{watch}”用的是与“{intake}”中图片相同的图标。',
   'whatsnew.change.accountKinds': '“{name}”会为每种账户打开一个大磁贴，按本页卡片的顺序从上到下排列。',
-  'whatsnew.change.fillSurface': '每个填充水平的表面都会轻柔而不规则地起伏：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
+  'whatsnew.change.fillSurface': '每个填充水平都会晃荡，气泡在其中上升并在表面破裂：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
   'whatsnew.change.windowCard': '在桌面应用中，“{name}”决定窗口及其通知区域图标的行为。',
   'whatsnew.change.updatesCard': '“{name}”包含 KnightLoader 和 yt-dlp，各自在单独的子卡片上，附有版本、来源和更新。',
   'whatsnew.change.mirrorPolicy': '在“{name}”中，标签旁边的下拉列表决定两个链接何时算作同一个文件。',
