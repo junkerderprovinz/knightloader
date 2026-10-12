@@ -600,6 +600,30 @@ func TestAConfinedKeyReachesOnlyItsInstance(t *testing.T) {
 	nothing(t, other, "a device heard of another device leaving")
 }
 
+// TestAConnectionFromBeforeTheResetCannotReachALaterDevice: a device that was
+// on a group's key before a reset kept the key to one instance joined while
+// it was open. It must not reach a phone that joins the confined key
+// afterwards, and it is closed so it comes back confined.
+func TestAConnectionFromBeforeTheResetCannotReachALaterDevice(t *testing.T) {
+	s := New()
+	var kept atomic.Value
+	kept.Store("")
+	s.Confine = func(string) string { return kept.Load().(string) }
+	old := join(t, s, "old-key", "old")
+
+	// The instance stays on the key it left at the reset, which keeps the key
+	// to it from then on.
+	kept.Store("retired")
+	join(t, s, "old-key", "retired")
+	phone := join(t, s, "old-key", "phone")
+	if got := announceOf(t, next(t, phone, "the phone was not told about the instance"), "announce"); got.InstanceID != "retired" {
+		t.Fatalf("the phone was introduced to %q, want the retired instance", got.InstanceID)
+	}
+	send(t, s, old, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "phone"})
+	nothing(t, phone, "a connection from before the reset reached a phone that joined after it")
+	waitFor(t, "the connection from before the reset to be closed", old.closed.Load)
+}
+
 // TestNobodyAnnouncesAConfinedInstanceUnproven: while the instance a key is
 // kept to is away, whoever holds the key announces its id to see and reach
 // everybody else on it. Without the instance's proof that is refused, and the
