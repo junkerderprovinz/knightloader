@@ -45,7 +45,8 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 	write(relay.TypeHello, relay.Hello{Key: relayKey, Announce: relay.Announce{InstanceID: self, Sealed: sealedID}})
 	requestID := hex.EncodeToString([]byte(time.Now().Format(time.RFC3339Nano)))
 	call.From, call.Kind = self, relay.KindMobile
-	sealed, err := relay.SealSignedCall(frameKey, member, requestID, target, call)
+	call = relay.SignCall(member, requestID, target, call)
+	sealed, err := relay.SealCall(frameKey, requestID, target, call)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -67,7 +68,7 @@ func callUnder(t *testing.T, relayURL, relayKey string, frameKey []byte, target 
 		if err != nil {
 			t.Fatal(err)
 		}
-		if !relay.VerifyResult(requestID, target, res) {
+		if !relay.VerifyResult(requestID, target, call, res) {
 			t.Errorf("the answer from %s is not signed by the key its id is made from", target)
 		}
 		return res.Status, res.Body, true

@@ -238,7 +238,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
 		RequestID: req.RequestID,
-		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
+		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, call, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
 	})
 
 	got := <-done
@@ -295,7 +295,7 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			if res.Status != tc.wantStatus || string(res.Body) != tc.wantBody {
 				t.Errorf("got %+v, want status %d body %q", res, tc.wantStatus, tc.wantBody)
 			}
-			if !VerifyResult("r1", alphaID, res) {
+			if !VerifyResult("r1", alphaID, ProxyCall{}, res) {
 				t.Error("alpha's answer is not signed by its member key")
 			}
 		})
@@ -595,8 +595,8 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 // TestAnAnswerNotSignedByTheTargetIsNoAnswer: bravo is on the relay, and
 // somebody else holding the words answers alpha's calls to it, sealed under the
 // frame key, as one who took bravo's place on the relay would. Neither an
-// unsigned answer nor one signed by another key reaches alpha's caller, and a
-// "removed" least of all.
+// unsigned answer, one signed by another key nor bravo's own answer to another
+// call reaches alpha's caller, and a "removed" least of all.
 func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
@@ -605,10 +605,14 @@ func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
 
 	removed := ProxyResult{Status: http.StatusGone, Body: []byte("removed")}
-	for name, answer := range map[string]func(requestID string) ProxyResult{
-		"unsigned":             func(string) ProxyResult { return removed },
-		"signed by a stranger": func(id string) ProxyResult { return SignResult(charlieKey, id, bravoID, removed) },
-		"signed by bravo":      func(id string) ProxyResult { return SignResult(bravoKey, id, bravoID, removed) },
+	// Whoever holds the words can call bravo under the request id of alpha's
+	// call and get bravo's signed answer to that call instead.
+	another := SignCall(charlieKey, "", bravoID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: charlieID, Kind: KindInstance})
+	for name, answer := range map[string]func(requestID string, call ProxyCall) ProxyResult{
+		"unsigned":                         func(string, ProxyCall) ProxyResult { return removed },
+		"signed by a stranger":             func(id string, call ProxyCall) ProxyResult { return SignResult(charlieKey, id, bravoID, call, removed) },
+		"signed by bravo for another call": func(id string, _ ProxyCall) ProxyResult { return SignResult(bravoKey, id, bravoID, another, removed) },
+		"signed by bravo":                  func(id string, call ProxyCall) ProxyResult { return SignResult(bravoKey, id, bravoID, call, removed) },
 	} {
 		done := make(chan error, 1)
 		go func() {
@@ -619,7 +623,7 @@ func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 		if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 			t.Fatal(err)
 		}
-		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID))})
+		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID, openFrom(t, req.RequestID, bravoID, req.Sealed)))})
 		err := <-done
 		if want := name == "signed by bravo"; (err == nil) != want {
 			t.Errorf("an answer %s: err %v, want it taken %v", name, err, want)

@@ -297,7 +297,8 @@ func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
 }
 
 // The answer and the hello the vector seed signs, which the app's and the
-// extension's ports check and make.
+// extension's ports check and make. The answer is to the vector call as its
+// signature stands.
 var (
 	vectorResult   = ProxyResult{Status: 410, Body: []byte("removed")}
 	vectorRelayKey = "relay-key-of-the-vector-0123456789"
@@ -305,13 +306,25 @@ var (
 )
 
 const (
-	vectorResultSig = "DxMlge0wNPJ63dCh+p5D17xsnxl1Er5rGNC59Wr2kX05h8j4ikHUxRFemVr1WZ9g4VYQYAIN/I5de+iVJtlkCA=="
+	vectorResultSig = "n977hIEXYvfFiEvycZjLyc6/KCb2IGAUXJe51ZyHqbFAbQYp+PWhBzOVDQsjjYUyDPFpXlenbBdTGMDBuapbBg=="
 	vectorHelloSig  = "+1C0rC/DE5gVfSmrxD2m4B3aQidpo9XF85UMapPZxmvXPI1mHTWaSlnyFUl1Zl8qnDnPyxv+0PfMjIX/ufNAAg=="
 )
 
+// vectorSignedCall is the vector call with the signature it carries.
+func vectorSignedCall(t *testing.T) ProxyCall {
+	t.Helper()
+	call := vectorCall
+	sig, err := base64.StdEncoding.DecodeString(vectorSig)
+	if err != nil {
+		t.Fatal(err)
+	}
+	call.Sig = sig
+	return call
+}
+
 func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
 	member := ed25519.NewKeyFromSeed(vectorSeed)
-	signed := SignResult(member, vectorCall.ID, vectorInstanceID, vectorResult)
+	signed := SignResult(member, vectorCall.ID, vectorInstanceID, vectorSignedCall(t), vectorResult)
 	if got := base64.StdEncoding.EncodeToString(signed.Sig); got != vectorResultSig {
 		t.Errorf("answer signature = %s, want %s; the app and the extension check the old message", got, vectorResultSig)
 	}
@@ -327,20 +340,23 @@ func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
 func TestAnAnswerCountsOnlySignedByTheTargetsKey(t *testing.T) {
 	target := ed25519.NewKeyFromSeed(vectorSeed)
 	forger := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{9}, ed25519.SeedSize))
-	signed := SignResult(target, "r1", vectorInstanceID, vectorResult)
-	if !VerifyResult("r1", vectorInstanceID, signed) {
+	call := vectorSignedCall(t)
+	signed := SignResult(target, "r1", vectorInstanceID, call, vectorResult)
+	if !VerifyResult("r1", vectorInstanceID, call, signed) {
 		t.Fatal("the target's own answer does not verify")
 	}
 	altered := signed
 	altered.Status = http.StatusOK
 	for name, r := range map[string]ProxyResult{
 		"unsigned":                vectorResult,
-		"signed by another key":   SignResult(forger, "r1", vectorInstanceID, vectorResult),
+		"signed by another key":   SignResult(forger, "r1", vectorInstanceID, call, vectorResult),
 		"with its status changed": altered,
-		"from another target":     SignResult(forger, "r1", MemberID(KindInstance, forger.Public().(ed25519.PublicKey)), vectorResult),
-		"to another request":      SignResult(target, "r2", vectorInstanceID, vectorResult),
+		"from another target":     SignResult(forger, "r1", MemberID(KindInstance, forger.Public().(ed25519.PublicKey)), call, vectorResult),
+		"to another request":      SignResult(target, "r2", vectorInstanceID, call, vectorResult),
+		"to another caller":       SignResult(target, "r1", vectorInstanceID, ProxyCall{From: vectorBrowserID, Sig: call.Sig}, vectorResult),
+		"to another call":         SignResult(target, "r1", vectorInstanceID, ProxyCall{From: call.From, Sig: bytes.Repeat([]byte{1}, ed25519.SignatureSize)}, vectorResult),
 	} {
-		if VerifyResult("r1", vectorInstanceID, r) {
+		if VerifyResult("r1", vectorInstanceID, call, r) {
 			t.Errorf("an answer %s verifies as the target's", name)
 		}
 	}

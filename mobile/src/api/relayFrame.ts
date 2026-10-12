@@ -200,16 +200,18 @@ export function sealCall(key: Uint8Array, requestId: string, target: string, cal
 
 /** sealSignedCall is sealCall with the call signed by the member key seed
  *  makes, in the name of from. Mirrors relay.SealSignedCall. body is the text
- *  the call carries. */
+ *  the call carries. It returns the signature too, which the answer has to
+ *  name (memberKey.ts verifyResult). */
 export function sealSignedCall(
   key: Uint8Array,
   seed: Uint8Array,
   requestId: string,
   target: string,
   call: { method: string; path: string; body?: string; from: string },
-): string {
+): { sealed: string; sig: Uint8Array } {
   const fields = { ...call, id: requestId, kind: 'mobile', sent: Math.floor(Date.now() / 1000) };
-  return sealCall(key, requestId, target, {
+  const sig = signCall(seed, target, fields);
+  const sealed = sealCall(key, requestId, target, {
     method: call.method,
     path: call.path,
     ...(call.body ? { body: encodeBody(call.body) } : {}),
@@ -217,8 +219,9 @@ export function sealSignedCall(
     kind: fields.kind,
     sent: fields.sent,
     key: toBase64(memberPublicKey(seed)),
-    sig: toBase64(signCall(seed, target, fields)),
+    sig: toBase64(sig),
   });
+  return { sealed, sig };
 }
 
 /** openCall opens an inbound call. Mirrors relay.OpenCall. */

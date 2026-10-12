@@ -31,7 +31,9 @@ package relay
 //     caller acts on it only once the signature holds for the key the
 //     target's id is made from. Whoever holds the words can seal an answer,
 //     but only the target can sign one, so a forged "removed" or "reset"
-//     reaches nobody.
+//     reaches nobody. The answer names the call it answers by the id the
+//     call spoke for and its signature, so one the target gave to somebody
+//     else's call under the same request id counts for nobody but them.
 //   - Limits count per pinned key, on buckets the receiving instance chooses
 //     from the verified key: the replay guard and the calls served at once.
 //     How many keys may be pinned per hour counts per sender as well as for
@@ -104,7 +106,7 @@ func MemberID(kind string, key []byte) string {
 // one kind of message can never be taken for one over another.
 const (
 	callDomain   = "knightloader/relay/member-call/v2\x00"
-	resultDomain = "knightloader/relay/member-result/v1\x00"
+	resultDomain = "knightloader/relay/member-result/v2\x00"
 	helloDomain  = "knightloader/relay/member-hello/v1\x00"
 )
 
@@ -140,25 +142,27 @@ func CallMessage(target string, c ProxyCall) []byte {
 		[]byte(c.ID), []byte(target), []byte(c.Method), []byte(c.Path), c.Body, []byte(c.From), []byte(c.Kind))
 }
 
-// ResultMessage is what the member from signs when it answers requestID with
-// r.
-func ResultMessage(requestID, from string, r ProxyResult) []byte {
+// ResultMessage is what the member from signs when it answers call, sent
+// under requestID, with r. The call is named by the id it spoke for and its
+// signature, both as it arrived; an unsigned call has neither.
+func ResultMessage(requestID, from string, call ProxyCall, r ProxyResult) []byte {
 	return signedMessage(resultDomain, uint64(int64(r.Status)), //nolint:gosec // G115: a status is signed as its bits
-		[]byte(requestID), []byte(from), r.Body)
+		[]byte(requestID), []byte(from), []byte(call.From), call.Sig, r.Body)
 }
 
-// SignResult is r signed by member as the answer from from to requestID.
-func SignResult(member ed25519.PrivateKey, requestID, from string, r ProxyResult) ProxyResult {
+// SignResult is r signed by member as the answer from from to call.
+func SignResult(member ed25519.PrivateKey, requestID, from string, call ProxyCall, r ProxyResult) ProxyResult {
 	r.Key = member.Public().(ed25519.PublicKey)
-	r.Sig = ed25519.Sign(member, ResultMessage(requestID, from, r))
+	r.Sig = ed25519.Sign(member, ResultMessage(requestID, from, call, r))
 	return r
 }
 
-// VerifyResult reports whether r is target's answer to requestID: signed by
-// the key target's instance id is made from.
-func VerifyResult(requestID, target string, r ProxyResult) bool {
+// VerifyResult reports whether r is target's answer to call, the caller's own
+// call as it sent it under requestID: signed by the key target's instance id
+// is made from.
+func VerifyResult(requestID, target string, call ProxyCall, r ProxyResult) bool {
 	return len(r.Sig) == ed25519.SignatureSize && MemberID(KindInstance, r.Key) == target &&
-		ed25519.Verify(r.Key, ResultMessage(requestID, target, r), r.Sig)
+		ed25519.Verify(r.Key, ResultMessage(requestID, target, call, r), r.Sig)
 }
 
 // Signed reports whether a call presents a member key at all.

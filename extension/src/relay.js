@@ -126,7 +126,7 @@ async function relayMemberId(kind, publicKey) {
 }
 
 const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
-const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v1\x00';
+const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v2\x00';
 
 /** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
 function relayUint64(n) {
@@ -162,18 +162,28 @@ function relayCallMessage(target, call) {
 }
 
 /**
- * relayVerifyResult mirrors relay.VerifyResult: whether an opened answer to
- * requestId is target's, signed by the key target's instance id is made from.
- * Anybody holding the words can seal an answer, a "removed" included, but
- * only the target can sign one.
+ * relayResultMessage mirrors relay.ResultMessage: what instance from signs when
+ * it answers call, sent under requestId. call is { from, sig } as the call went
+ * out, sig empty for an unsigned one; body is the answer's raw bytes.
  */
-async function relayVerifyResult(requestId, target, result) {
+function relayResultMessage(requestId, from, call, status, body) {
+  return relaySignedMessage(RELAY_RESULT_DOMAIN, status, [requestId, from, call.from, call.sig, body]);
+}
+
+/**
+ * relayVerifyResult mirrors relay.VerifyResult: whether an opened answer to
+ * call, this browser's own call sent under requestId, is target's, signed by
+ * the key target's instance id is made from. Anybody holding the words can
+ * seal an answer, a "removed" included, but only the target can sign one, and
+ * it signs it for one call.
+ */
+async function relayVerifyResult(requestId, target, call, result) {
   try {
     const key = relayFromBase64(result.key || '');
     const sig = relayFromBase64(result.sig || '');
     if (key.length !== 32 || sig.length !== 64 || (await relayMemberId('instance', key)) !== target) return false;
     const body = result.body ? relayFromBase64(result.body) : new Uint8Array();
-    const message = relaySignedMessage(RELAY_RESULT_DOMAIN, result.status, [requestId, target, body]);
+    const message = relayResultMessage(requestId, target, call, result.status, body);
     const pub = await crypto.subtle.importKey('raw', key, 'Ed25519', false, ['verify']);
     return await crypto.subtle.verify('Ed25519', pub, sig, message);
   } catch {
@@ -188,15 +198,19 @@ async function relayVerifyResult(requestId, target, result) {
  * pair whose publicKey is the raw 32 bytes, the call is signed as
  * relay.SealSignedCall signs it: the instance pinned that key to the member id
  * and takes the id from nobody else.
+ *
+ * It resolves with the sealed call and with { from, sig } as the call went out,
+ * which the answer has to name (relayVerifyResult).
  */
 async function relaySealCall(frameKey, requestId, target, method, path, body, from, member) {
   const call = { method, path, body: body || '', id: requestId, sent: Math.floor(Date.now() / 1000), from: from || '', kind: 'extension' };
   let signed = {};
+  let sig = new Uint8Array();
   if (member && from) {
-    const sig = new Uint8Array(await crypto.subtle.sign('Ed25519', member.privateKey, relayCallMessage(target, call)));
+    sig = new Uint8Array(await crypto.subtle.sign('Ed25519', member.privateKey, relayCallMessage(target, call)));
     signed = { kind: call.kind, key: relayToBase64(member.publicKey), sig: relayToBase64(sig) };
   }
-  return relaySeal(
+  const sealed = await relaySeal(
     frameKey,
     relayRequestAAD(requestId, target),
     relayUtf8(
@@ -211,6 +225,7 @@ async function relaySealCall(frameKey, requestId, target, method, path, body, fr
       }),
     ),
   );
+  return { sealed, asked: { from: call.from, sig } };
 }
 
 /**
@@ -329,7 +344,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
         }
         try {
           const result = JSON.parse(relayFromUtf8(plain));
-          if (!(await relayVerifyResult(d.requestId, p.target, result))) {
+          if (!(await relayVerifyResult(d.requestId, p.target, p.asked, result))) {
             p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
             return;
           }
@@ -390,6 +405,8 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
     const call = async (target, method, path, body) => {
       if (closedReason) throw closedReason;
       const requestId = relayRequestId();
+      // The relay sees only the two routing fields, not what is asked.
+      const { sealed, asked } = await relaySealCall(frameKey, requestId, target, method, path, body, memberId || selfId, memberId ? memberKey : null);
       const answer = new Promise((resolve, reject) => {
         const t = setTimeout(() => {
           pending.delete(requestId);
@@ -397,6 +414,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
         }, RELAY_TIMEOUT_MS);
         pending.set(requestId, {
           target,
+          asked,
           resolve: (v) => {
             clearTimeout(t);
             resolve(v);
@@ -407,12 +425,7 @@ async function relaySession({ url, key, frameKey, selfId, memberId, memberKey, s
           },
         });
       });
-      send(RELAY_PROXY_REQUEST, {
-        requestId,
-        target,
-        // The relay sees only the two routing fields, not what is asked.
-        sealed: await relaySealCall(frameKey, requestId, target, method, path, body, memberId || selfId, memberId ? memberKey : null),
-      });
+      send(RELAY_PROXY_REQUEST, { requestId, target, sealed });
       const res = await answer;
       if (res.status === 410 && res.body === 'removed') await onRemoved?.();
       return res;
