@@ -143,7 +143,8 @@ type Server struct {
 	// alone, that instance's id: a connection on such a key sees and reaches
 	// that instance and nobody else, so whoever holds the key cannot use the
 	// relay to meet others who do. "" leaves a key open, and so does a nil
-	// Confine. It is read once per connection.
+	// Confine. It is read as each connection joins, and connections that
+	// joined the key under an answer that no longer holds are dropped then.
 	Confine func(key string) string
 
 	// TrustedProxies lists the reverse proxies whose X-Forwarded-For names
@@ -180,6 +181,13 @@ func (cl *client) sees(other *client) bool {
 	return cl.only == "" || cl.announce.InstanceID == cl.only || other.announce.InstanceID == cl.only
 }
 
+// meets reports whether cl and other may learn of and call each other. It
+// asks both sides, since a connection that joined before its key was confined
+// sees everybody and must still not reach a device kept away from it.
+func (cl *client) meets(other *client) bool {
+	return cl.sees(other) && other.sees(cl)
+}
+
 // admits reports whether key may connect. Admit is read without the lock
 // because it is set once before the server is mounted, to a closure that
 // reads live configuration itself.
@@ -208,6 +216,10 @@ func (s *Server) Len() int {
 // instance is back, but requests still waiting on it are failed at once (see
 // failPending).
 //
+// Connections on the key that joined while Confine answered otherwise for it
+// are dropped, so a device that was on a group's key before a reset kept the
+// key to one instance cannot reach the devices that join it afterwards.
+//
 // Join returns why the connection was not admitted, nil when it was; on an
 // error the caller closes it.
 func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
@@ -231,13 +243,18 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 		s.keys[key] = group
 	}
 	var replaced *client
+	var stale []Conn
 	siblings := make([]*client, 0, len(group))
 	for _, other := range group {
-		if other.announce.InstanceID == a.InstanceID {
+		switch {
+		case other.announce.InstanceID == a.InstanceID:
 			replaced = other
-			continue
-		}
-		if cl.sees(other) {
+		case other.only != cl.only:
+			// It joined while the key was kept otherwise, such as before a
+			// reset confined it, and would keep what it could reach then. It
+			// reconnects and joins under what holds now.
+			stale = append(stale, other.conn)
+		case cl.meets(other):
 			siblings = append(siblings, other)
 		}
 	}
@@ -266,6 +283,9 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 		replaced.stop()
 	}
 	s.failPending(failures, "the instance that would have answered this reconnected before it replied; retry")
+	for _, gone := range stale {
+		s.Leave(gone)
+	}
 	go s.writeLoop(cl)
 
 	for _, sib := range siblings {
@@ -296,7 +316,7 @@ func (s *Server) Leave(c Conn) {
 	var siblings []*client
 	if cl != nil {
 		for _, sib := range s.keys[cl.key] {
-			if sib.sees(cl) {
+			if sib.meets(cl) {
 				siblings = append(siblings, sib)
 			}
 		}
@@ -353,7 +373,7 @@ func (s *Server) routeRequest(c Conn, req ProxyRequest) {
 	}
 	var target *client
 	for _, sib := range s.keys[cl.key] {
-		if sib.conn != c && sib.announce.InstanceID == req.Target && cl.sees(sib) {
+		if sib.conn != c && sib.announce.InstanceID == req.Target && cl.meets(sib) {
 			target = sib
 			break
 		}
