@@ -3632,7 +3632,7 @@ export const lv: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ atver lielu flīzi katram konta veidam.',
   'whatsnew.change.priorityDrag': 'Secība sadaļā „{name}“ ir pats attēls: velc nosaukumu, lai to pārvietotu, vai lieto bulttaustiņus uz tā roktura.',
   'whatsnew.change.captchaCards': '„{name}“ un „{when}“ ir pārcelti šurp no captcha iestatījumiem kopā ar attēlu un testu.',
-  'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis maigi un nevienmērīgi viļņojas savā virsmā: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
+  'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis šļakstās, un tajā ceļas burbulīši, kas pārplīst virspusē: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
   'whatsnew.change.windowCard': 'Darbvirsmas lietotnē „{name}“ nosaka, kā uzvedas logs un tā ikona paziņojumu apgabalā.',
   'whatsnew.change.updatesCard': '„{name}“ uzskaita katru rīku, ko KnightLoader nes līdzi, pa vienai rindai katram ar versiju un izcelsmi, un atjaunina KnightLoader un yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Sadaļā „{name}“ nolaižamais saraksts blakus tās nosaukumam nosaka, kad divas saites uzskata par vienu un to pašu failu.',

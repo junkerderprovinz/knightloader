@@ -3658,7 +3658,7 @@ export const he: Dict = {
   'whatsnew.change.accountKinds': '„{name}” פותח אריח גדול לכל סוג של חשבון.',
   'whatsnew.change.priorityDrag': 'הסדר ב„{name}” הוא התמונה עצמה: גרור שם כדי להזיז אותו, או השתמש במקשי החצים על הידית שלו.',
   'whatsnew.change.captchaCards': '„{name}” ו„{when}” עברו לכאן מהגדרות הקאפצ׳ה, יחד עם התמונה והבדיקה.',
-  'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנדנד ברכות ובצורה לא אחידה על פני השטח שלו: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
+  'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנודד, ובועות עולות בו ומתפוצצות על פני השטח: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
   'whatsnew.change.windowCard': 'באפליקציית שולחן העבודה, „{name}” קובע איך מתנהגים החלון והסמל שלו באזור ההתראות.',
   'whatsnew.change.updatesCard': '„{name}” מפרט כל כלי ש-KnightLoader מביא איתו, שורה לכל כלי עם הגרסה והמקור שלו, ומעדכן את KnightLoader ואת yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'ב„{name}” רשימה נפתחת ליד התווית שלו קובעת מתי שני קישורים נחשבים לאותו קובץ.',

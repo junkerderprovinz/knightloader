@@ -3629,7 +3629,7 @@ export const ca: Dict = {
   'whatsnew.change.accountKinds': '«{name}» obre un mosaic gran per a cada tipus de compte.',
   'whatsnew.change.priorityDrag': 'L’ordre de «{name}» és la mateixa imatge: arrossega un nom per moure’l o fes servir les fletxes sobre la seva nansa.',
   'whatsnew.change.captchaCards': '«{name}» i «{when}» s’han traslladat aquí des de la configuració de captcha, amb la imatge i la prova.',
-  'whatsnew.change.fillSurface': 'Cada nivell d’ompliment es belluga suaument i de manera irregular a la superfície: les carpetes sota «{name}», «{volume}» i el trànsit d’un compte.',
+  'whatsnew.change.fillSurface': 'Cada nivell d’ompliment s’agita, i hi pugen bombolles que esclaten a la superfície: les carpetes sota «{name}», «{volume}» i el trànsit d’un compte.',
   'whatsnew.change.windowCard': 'A l’aplicació d’escriptori, «{name}» decideix com es comporten la finestra i la seva icona a l’àrea de notificació.',
   'whatsnew.change.updatesCard': '«{name}» llista cada eina que porta KnightLoader, una fila per eina amb la versió i l’origen, i actualitza KnightLoader i yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'A «{name}» una llista desplegable al costat de l’etiqueta decideix quan dos enllaços compten com el mateix fitxer.',

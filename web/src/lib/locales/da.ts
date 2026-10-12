@@ -3627,7 +3627,7 @@ export const da: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ åbner en stor flise for hver slags konto.',
   'whatsnew.change.priorityDrag': 'Rækkefølgen i „{name}“ er selve billedet: træk et navn for at flytte det, eller brug piletasterne på dets greb.',
   'whatsnew.change.captchaCards': '„{name}“ og „{when}“ er flyttet hertil fra captcha-indstillingerne sammen med billedet og testen.',
-  'whatsnew.change.fillSurface': 'Hvert fyldniveau bølger blidt og uregelmæssigt i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
+  'whatsnew.change.fillSurface': 'Hvert fyldniveau skvulper, og bobler stiger op i det og brister i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
   'whatsnew.change.windowCard': 'I desktopappen bestemmer „{name}“, hvordan vinduet og dets ikon i meddelelsesområdet opfører sig.',
   'whatsnew.change.updatesCard': '„{name}“ lister hvert værktøj, KnightLoader har med, en række pr. værktøj med version og oprindelse, og opdaterer KnightLoader og yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'I „{name}“ afgør en rulleliste ved siden af etiketten, hvornår to links tæller som den samme fil.',

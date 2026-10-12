@@ -3643,7 +3643,7 @@ export const fi: Dict = {
   'whatsnew.change.accountKinds': '”{name}” avaa suuren ruudun jokaiselle tilityypille.',
   'whatsnew.change.priorityDrag': 'Kohdan ”{name}” järjestys on itse kuva: vedä nimeä siirtääksesi sitä tai käytä nuolinäppäimiä sen kahvassa.',
   'whatsnew.change.captchaCards': '”{name}” ja ”{when}” siirtyivät tänne captcha-asetuksista kuvan ja testin kanssa.',
-  'whatsnew.change.fillSurface': 'Jokainen täyttötaso läikehtii pinnaltaan pehmeästi ja epätasaisesti: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
+  'whatsnew.change.fillSurface': 'Jokainen täyttötaso loiskuu, ja siinä nousee kuplia, jotka puhkeavat pinnalla: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
   'whatsnew.change.windowCard': 'Työpöytäsovelluksessa ”{name}” määrää, miten ikkuna ja sen ilmoitusalueen kuvake toimivat.',
   'whatsnew.change.updatesCard': '”{name}” luettelee jokaisen työkalun, jonka KnightLoader tuo mukanaan, yksi rivi kullekin version ja alkuperän kanssa, ja päivittää KnightLoaderin ja yt-dlp:n.',
   'whatsnew.change.mirrorPolicy': 'Kohdassa ”{name}” otsikon vieressä oleva pudotusvalikko päättää, milloin kaksi linkkiä lasketaan samaksi tiedostoksi.',

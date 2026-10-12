@@ -3637,7 +3637,7 @@ export const ja: Dict = {
   'whatsnew.change.accountKinds': '「{name}」を押すと、アカウントの種類ごとに大きなタイルが開きます。',
   'whatsnew.change.priorityDrag': '「{name}」の順番は絵そのもので、名前をドラッグして動かすか、つまみで矢印キーを使います。',
   'whatsnew.change.captchaCards': '「{name}」と「{when}」は、絵とテストと一緒にキャプチャの設定からここへ移りました。',
-  'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、表面がゆっくり不規則に揺れます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
+  'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、中身が波打ち、泡が浮かんで表面ではじけます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
   'whatsnew.change.windowCard': 'デスクトップアプリでは「{name}」で、ウィンドウと通知領域のアイコンの動きを決めます。',
   'whatsnew.change.updatesCard': '「{name}」には、KnightLoader に同梱されているすべてのツールが、バージョンと入手元とともに 1 行ずつ並び、KnightLoader と yt-dlp の更新もここで行えます。',
   'whatsnew.change.mirrorPolicy': '「{name}」では、ラベルの横にあるドロップダウンで、2 つのリンクを同じファイルとみなす条件を選びます。',

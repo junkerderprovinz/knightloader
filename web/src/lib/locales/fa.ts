@@ -3630,7 +3630,7 @@ export const fa: Dict = {
   'whatsnew.change.accountKinds': '«{name}» برای هر نوع حساب یک کاشی بزرگ باز می‌کند.',
   'whatsnew.change.priorityDrag': 'ترتیب در «{name}» خودِ تصویر است: نامی را بکش تا جابه‌جا شود، یا از کلیدهای جهت روی دستگیره‌اش استفاده کن.',
   'whatsnew.change.captchaCards': '«{name}» و «{when}» همراه با تصویر و آزمون از تنظیمات کپچا به اینجا آمده‌اند.',
-  'whatsnew.change.fillSurface': 'هر سطح پُری روی سطح خود نرم و نامنظم موج می‌زند: پوشه‌های زیر «{name}»، «{volume}» و ترافیک یک حساب.',
+  'whatsnew.change.fillSurface': 'هر سطح پُری تکان می‌خورد و حباب‌هایی در آن بالا می‌آیند و روی سطح می‌ترکند: پوشه‌های زیر «{name}»، «{volume}» و ترافیک یک حساب.',
   'whatsnew.change.windowCard': 'در برنامهٔ دسکتاپ، «{name}» تعیین می‌کند پنجره و نشانه‌اش در ناحیهٔ اعلان چطور رفتار کنند.',
   'whatsnew.change.updatesCard': '«{name}» هر ابزاری را که KnightLoader با خود می‌آورد فهرست می‌کند، برای هر کدام یک ردیف با نسخه و منبع، و KnightLoader و yt-dlp را به‌روز می‌کند.',
   'whatsnew.change.mirrorPolicy': 'در «{name}» یک فهرست کشویی کنار برچسبش تعیین می‌کند دو پیوند کی یک فایل حساب می‌شوند.',

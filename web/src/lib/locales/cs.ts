@@ -3651,7 +3651,7 @@ export const cs: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ otevře velkou dlaždici pro každý druh účtu.',
   'whatsnew.change.priorityDrag': 'Pořadí v „{name}“ je samotný obrázek: přetáhni jméno jinam, nebo použij šipky na jeho úchytu.',
   'whatsnew.change.captchaCards': '„{name}“ a „{when}“ se sem přesunuly z nastavení captchy i s obrázkem a testem.',
-  'whatsnew.change.fillSurface': 'Každá hladina plnění se na povrchu jemně a nerovnoměrně vlní: složky pod „{name}“, „{volume}“ a provoz účtu.',
+  'whatsnew.change.fillSurface': 'Každá hladina plnění šplouchá a stoupají v ní bublinky, které na povrchu praskají: složky pod „{name}“, „{volume}“ a provoz účtu.',
   'whatsnew.change.windowCard': 'V desktopové aplikaci „{name}“ určuje, jak se chová okno a jeho ikona v oznamovací oblasti.',
   'whatsnew.change.updatesCard': '„{name}“ vypíše každý nástroj, který KnightLoader obsahuje, na jednom řádku s verzí a původem, a aktualizuje KnightLoader a yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'V „{name}“ rozbalovací nabídka vedle popisku určuje, kdy dva odkazy znamenají stejný soubor.',

@@ -3623,7 +3623,7 @@ export const zh: Dict = {
   'whatsnew.change.accountKinds': '“{name}”会为每种账户打开一个大磁贴。',
   'whatsnew.change.priorityDrag': '“{name}”中的顺序就是这幅图：拖动名称即可移动，也可以在它的手柄上用方向键。',
   'whatsnew.change.captchaCards': '“{name}”和“{when}”连同图片和测试一起从验证码设置移到了这里。',
-  'whatsnew.change.fillSurface': '每个填充水平的表面都会轻柔而不规则地起伏：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
+  'whatsnew.change.fillSurface': '每个填充水平都会晃荡，气泡在其中上升并在表面破裂：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
   'whatsnew.change.windowCard': '在桌面应用中，“{name}”决定窗口及其通知区域图标的行为。',
   'whatsnew.change.updatesCard': '“{name}”列出 KnightLoader 自带的每个工具，每个工具一行，附带版本和来源，并更新 KnightLoader 和 yt-dlp。',
   'whatsnew.change.mirrorPolicy': '在“{name}”中，标签旁边的下拉列表决定两个链接何时算作同一个文件。',

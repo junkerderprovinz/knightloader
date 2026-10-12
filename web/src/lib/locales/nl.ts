@@ -3624,7 +3624,7 @@ export const nl: Dict = {
   'whatsnew.change.accountKinds': '“{name}” opent een grote tegel voor elk soort account.',
   'whatsnew.change.priorityDrag': 'De volgorde in “{name}” is de afbeelding zelf: sleep een naam om hem te verplaatsen, of gebruik de pijltjestoetsen op zijn greep.',
   'whatsnew.change.captchaCards': '“{name}” en “{when}” zijn vanuit de captcha-instellingen hierheen verhuisd, samen met de afbeelding en de test.',
-  'whatsnew.change.fillSurface': 'Elk vulniveau golft zacht en ongelijkmatig aan zijn oppervlak: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
+  'whatsnew.change.fillSurface': 'Elk vulniveau klotst, en er stijgen belletjes in op die aan het oppervlak knappen: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
   'whatsnew.change.windowCard': 'In de desktopapp bepaalt “{name}” hoe het venster en zijn pictogram in het systeemvak zich gedragen.',
   'whatsnew.change.updatesCard': '“{name}” somt elk hulpmiddel op dat KnightLoader meebrengt, één regel per hulpmiddel met versie en herkomst, en werkt KnightLoader en yt-dlp bij.',
   'whatsnew.change.mirrorPolicy': 'In “{name}” bepaalt een vervolgkeuzelijst naast het label wanneer twee links als hetzelfde bestand tellen.',

@@ -3640,7 +3640,7 @@ export const tr: Dict = {
   'whatsnew.change.accountKinds': '“{name}”, her hesap türü için büyük bir kutucuk açar.',
   'whatsnew.change.priorityDrag': '“{name}” içindeki sıra resmin kendisidir: bir adı taşımak için sürükle ya da tutamacında ok tuşlarını kullan.',
   'whatsnew.change.captchaCards': '“{name}” ve “{when}”, resim ve testle birlikte captcha ayarlarından buraya taşındı.',
-  'whatsnew.change.fillSurface': 'Her doluluk düzeyi yüzeyinde yumuşak ve düzensiz biçimde dalgalanır: “{name}” altındaki klasörler, “{volume}” ve bir hesabın trafiği.',
+  'whatsnew.change.fillSurface': 'Her doluluk düzeyi çalkalanır, içinde kabarcıklar yükselir ve yüzeyde patlar: “{name}” altındaki klasörler, “{volume}” ve bir hesabın trafiği.',
   'whatsnew.change.windowCard': 'Masaüstü uygulamasında “{name}”, pencerenin ve bildirim alanındaki simgesinin nasıl davrandığını belirler.',
   'whatsnew.change.updatesCard': '“{name}”, KnightLoader’ın beraberinde getirdiği her aracı sürümü ve kaynağıyla birlikte araç başına bir satır olarak listeler ve KnightLoader ile yt-dlp’yi günceller.',
   'whatsnew.change.mirrorPolicy': '“{name}” içinde etiketin yanındaki açılır liste, iki bağlantının ne zaman aynı dosya sayılacağını belirler.',

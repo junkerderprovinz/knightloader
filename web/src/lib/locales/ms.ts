@@ -3641,7 +3641,7 @@ export const ms: Dict = {
   'whatsnew.change.accountKinds': '“{name}” membuka jubin besar untuk setiap jenis akaun.',
   'whatsnew.change.priorityDrag': 'Susunan dalam “{name}” ialah gambar itu sendiri: seret nama untuk mengalihkannya, atau gunakan kekunci anak panah pada pemegangnya.',
   'whatsnew.change.captchaCards': '“{name}” dan “{when}” telah berpindah ke sini dari tetapan captcha, bersama gambar dan ujiannya.',
-  'whatsnew.change.fillSurface': 'Setiap paras isi bergoyang perlahan dan tidak sekata di permukaannya: folder di bawah “{name}”, “{volume}” dan trafik sesebuah akaun.',
+  'whatsnew.change.fillSurface': 'Setiap paras isi berkocak, dan gelembung naik di dalamnya lalu pecah di permukaan: folder di bawah “{name}”, “{volume}” dan trafik sesebuah akaun.',
   'whatsnew.change.windowCard': 'Dalam aplikasi desktop, “{name}” menetapkan kelakuan tetingkap dan ikonnya di kawasan pemberitahuan.',
   'whatsnew.change.updatesCard': '“{name}” menyenaraikan setiap alat yang dibawa KnightLoader, satu baris setiap alat dengan versi dan asalnya, dan mengemas kini KnightLoader dan yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Dalam “{name}” senarai juntai bawah di sebelah labelnya menentukan bila dua pautan dikira sebagai fail yang sama.',

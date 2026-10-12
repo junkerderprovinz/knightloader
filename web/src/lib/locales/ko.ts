@@ -3628,7 +3628,7 @@ export const ko: Dict = {
   'whatsnew.change.accountKinds': '“{name}” 버튼은 계정 종류마다 큰 타일을 엽니다.',
   'whatsnew.change.priorityDrag': '“{name}” 카드에서는 그림이 곧 순서이며, 이름을 끌어 옮기거나 손잡이에서 화살표 키를 사용합니다.',
   'whatsnew.change.captchaCards': '“{name}” 및 “{when}” 항목이 그림, 테스트와 함께 캡차 설정에서 이곳으로 옮겨졌습니다.',
-  'whatsnew.change.fillSurface': '채움 수준은 모두 표면에서 부드럽고 불규칙하게 출렁입니다. “{name}” 아래의 폴더, “{volume}”, 계정의 트래픽이 해당됩니다.',
+  'whatsnew.change.fillSurface': '채움 수준은 모두 출렁이고, 그 안에서 거품이 올라와 표면에서 터집니다. “{name}” 아래의 폴더, “{volume}”, 계정의 트래픽이 해당됩니다.',
   'whatsnew.change.windowCard': '데스크톱 앱에서는 “{name}” 카드에서 창과 알림 영역 아이콘의 동작을 정합니다.',
   'whatsnew.change.updatesCard': '“{name}”는 KnightLoader에 함께 들어 있는 모든 도구를 도구마다 한 줄로 버전과 출처와 함께 나열하고, KnightLoader와 yt-dlp를 업데이트합니다.',
   'whatsnew.change.mirrorPolicy': '“{name}” 카드에서는 라벨 옆의 드롭다운에서 두 링크를 같은 파일로 볼 조건을 고릅니다.',

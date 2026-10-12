@@ -3655,7 +3655,7 @@ export const hr: Dict = {
   'whatsnew.change.accountKinds': '„{name}” otvara veliku pločicu za svaku vrstu računa.',
   'whatsnew.change.priorityDrag': 'Redoslijed u „{name}” je sama slika: povuci ime da ga premjestiš ili upotrijebi strelice na njegovoj ručki.',
   'whatsnew.change.captchaCards': '„{name}” i „{when}” preselili su se ovamo iz postavki captche, zajedno sa slikom i testom.',
-  'whatsnew.change.fillSurface': 'Svaka razina popunjenosti nježno i neravnomjerno se njiše na svojoj površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
+  'whatsnew.change.fillSurface': 'Svaka razina popunjenosti pljuska, a u njoj se dižu mjehurići koji pucaju na površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
   'whatsnew.change.windowCard': 'U desktop aplikaciji „{name}” određuje kako se ponašaju prozor i njegova ikona u području obavijesti.',
   'whatsnew.change.updatesCard': '„{name}” navodi svaki alat koji KnightLoader donosi sa sobom, po jedan redak s verzijom i podrijetlom, te ažurira KnightLoader i yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'U „{name}” padajući popis pokraj oznake određuje kada se dvije poveznice smatraju istom datotekom.',

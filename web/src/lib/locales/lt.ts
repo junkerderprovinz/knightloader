@@ -3643,7 +3643,7 @@ export const lt: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ atveria didelę plytelę kiekvienai paskyros rūšiai.',
   'whatsnew.change.priorityDrag': 'Tvarka skiltyje „{name}“ ir yra pats paveikslėlis: vilk pavadinimą, kad jį perkeltum, arba naudok rodyklių klavišus ant jo rankenėlės.',
   'whatsnew.change.captchaCards': '„{name}“ ir „{when}“ persikėlė čia iš captcha nustatymų kartu su paveikslėliu ir testu.',
-  'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis švelniai ir netolygiai banguoja savo paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
+  'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis tekšnoja, o jame kyla burbuliukai, kurie sprogsta paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
   'whatsnew.change.windowCard': 'Darbalaukio programoje „{name}“ nustato, kaip elgiasi langas ir jo piktograma pranešimų srityje.',
   'whatsnew.change.updatesCard': '„{name}“ išvardija kiekvieną įrankį, kurį KnightLoader atsineša, po vieną eilutę kiekvienam su versija ir kilme, ir atnaujina KnightLoader bei yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Skiltyje „{name}“ išskleidžiamasis sąrašas šalia jos pavadinimo nusprendžia, kada dvi nuorodos laikomos tuo pačiu failu.',

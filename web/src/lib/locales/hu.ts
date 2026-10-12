@@ -3643,7 +3643,7 @@ export const hu: Dict = {
   'whatsnew.change.accountKinds': 'A(z) „{name}” minden fióktípushoz nagy csempét nyit.',
   'whatsnew.change.priorityDrag': 'A(z) „{name}” sorrendje maga a kép: húzz el egy nevet az áthelyezéséhez, vagy használd a nyílbillentyűket a fogantyúján.',
   'whatsnew.change.captchaCards': 'A(z) „{name}” és a(z) „{when}” a captchabeállításokból költözött ide, a képpel és a teszttel együtt.',
-  'whatsnew.change.fillSurface': 'Minden töltöttségi szint finoman és egyenetlenül hullámzik a felszínén: a(z) „{name}” alatti mappák, a(z) „{volume}” és egy fiók forgalma.',
+  'whatsnew.change.fillSurface': 'Minden töltöttségi szint élénken hullámzik, és buborékok szállnak fel benne, amelyek a felszínen kipukkannak: a(z) „{name}” alatti mappák, a(z) „{volume}” és egy fiók forgalma.',
   'whatsnew.change.windowCard': 'Az asztali alkalmazásban a(z) „{name}” szabja meg, hogyan viselkedik az ablak és az értesítési területen lévő ikonja.',
   'whatsnew.change.updatesCard': 'A(z) „{name}” felsorol minden eszközt, amelyet a KnightLoader magával hoz, eszközönként egy sorban a verzióval és a származással, és frissíti a KnightLoadert és a yt-dlp-t.',
   'whatsnew.change.mirrorPolicy': 'A(z) „{name}” részben a felirata melletti legördülő lista dönti el, mikor számít két link ugyanannak a fájlnak.',

@@ -3631,7 +3631,7 @@ export const fr: Dict = {
   'whatsnew.change.accountKinds': '« {name} » ouvre une grande tuile pour chaque type de compte.',
   'whatsnew.change.priorityDrag': 'L’ordre de « {name} » est l’image elle-même : faites glisser un nom pour le déplacer, ou utilisez les flèches sur sa poignée.',
   'whatsnew.change.captchaCards': '« {name} » et « {when} » ont été déplacés ici depuis les paramètres de captcha, avec l’image et le test.',
-  'whatsnew.change.fillSurface': 'Chaque niveau de remplissage ondule doucement et de façon irrégulière à sa surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
+  'whatsnew.change.fillSurface': 'Chaque niveau de remplissage clapote, et des bulles y montent puis éclatent à la surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
   'whatsnew.change.windowCard': 'Dans l’application de bureau, « {name} » règle le comportement de la fenêtre et de son icône dans la zone de notification.',
   'whatsnew.change.updatesCard': '« {name} » liste chaque outil que KnightLoader apporte, une ligne par outil avec sa version et son origine, et met à jour KnightLoader et yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Dans « {name} », une liste déroulante à côté de son libellé décide quand deux liens comptent comme le même fichier.',

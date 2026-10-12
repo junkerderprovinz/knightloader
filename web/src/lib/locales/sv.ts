@@ -3641,7 +3641,7 @@ export const sv: Dict = {
   'whatsnew.change.accountKinds': '”{name}” öppnar en stor bricka för varje slags konto.',
   'whatsnew.change.priorityDrag': 'Ordningen i ”{name}” är själva bilden: dra ett namn för att flytta det, eller använd piltangenterna på dess grepp.',
   'whatsnew.change.captchaCards': '”{name}” och ”{when}” har flyttat hit från captcha-inställningarna tillsammans med bilden och testet.',
-  'whatsnew.change.fillSurface': 'Varje fyllnadsnivå vaggar mjukt och ojämnt i ytan: mapparna under ”{name}”, ”{volume}” och ett kontos trafik.',
+  'whatsnew.change.fillSurface': 'Varje fyllnadsnivå skvalpar, och bubblor stiger i den och spricker vid ytan: mapparna under ”{name}”, ”{volume}” och ett kontos trafik.',
   'whatsnew.change.windowCard': 'I skrivbordsappen bestämmer ”{name}” hur fönstret och dess ikon i meddelandefältet beter sig.',
   'whatsnew.change.updatesCard': '”{name}” listar varje verktyg som KnightLoader har med sig, en rad per verktyg med version och ursprung, och uppdaterar KnightLoader och yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'I ”{name}” avgör en listruta bredvid etiketten när två länkar räknas som samma fil.',
