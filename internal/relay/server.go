@@ -242,6 +242,11 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 		}
 	}
 	switch {
+	case cl.only != "" && a.InstanceID == cl.only && !proven:
+		// Whoever announces the id a confined key is kept to sees and reaches
+		// everybody on it, so that takes the instance's own key.
+		s.mu.Unlock()
+		return errConfinedID
 	case replaced != nil && !proven:
 		s.mu.Unlock()
 		return errIDTaken
@@ -278,6 +283,7 @@ var (
 	errJoinedTwice = errors.New("this connection has already joined")
 	errGroupFull   = errors.New("too many instances are already connected with this relay key")
 	errIDTaken     = errors.New("another connection holds this id; only one that proves the key behind it takes its place")
+	errConfinedID  = errors.New("this relay key is kept to one instance, and only a connection that proves its key announces its id")
 )
 
 // Leave unregisters a connection, stops its writer (which closes the socket),
