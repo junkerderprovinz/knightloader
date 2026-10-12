@@ -3657,4 +3657,5 @@ export const gl: Dict = {
   'settings.look.builtInTitle': 'Compoñentes integrados',
   'settings.look.builtInHint': 'O que KnightLoader trae consigo ou executa ao seu carón, cada parte coa súa versión e a súa orixe. Estas partes veñen con KnightLoader ou coa imaxe do contedor, ou actualízanse soas, así que aquí non hai nada que actualizar.',
   'whatsnew.change.builtIn': '«{name}» lista cada parte que vén con KnightLoader, coa súa versión e a súa orixe. O que se pode actualizar segue en «{updates}».',
+  'whatsnew.change.settingRows': 'Cada despregable e cada campo de entrada de Axustes está ao carón do seu nome, ao final da súa tarxeta.',
 };

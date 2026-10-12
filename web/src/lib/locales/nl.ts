@@ -3642,4 +3642,5 @@ export const nl: Dict = {
   'settings.look.builtInTitle': 'Ingebouwde onderdelen',
   'settings.look.builtInHint': 'Wat KnightLoader meebrengt of naast zich laat draaien, elk met zijn versie en herkomst. Deze onderdelen komen met KnightLoader of het containerimage, of werken zichzelf bij, dus hier valt niets bij te werken.',
   'whatsnew.change.builtIn': '“{name}” toont elk onderdeel dat met KnightLoader meekomt, met versie en herkomst. Wat bijgewerkt kan worden, blijft op “{updates}”.',
+  'whatsnew.change.settingRows': 'Elke keuzelijst en elk invoerveld in Instellingen staat naast zijn naam, aan het eind van zijn kaart.',
 };

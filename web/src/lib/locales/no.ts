@@ -3662,4 +3662,5 @@ export const no: Dict = {
   'settings.look.builtInTitle': 'Innebygde komponenter',
   'settings.look.builtInHint': 'Det KnightLoader har med seg eller kjører ved siden av seg, hver med sin versjon og opprinnelse. Disse delene følger med KnightLoader eller containerbildet, eller oppdaterer seg selv, så her er det ingenting å oppdatere.',
   'whatsnew.change.builtIn': '«{name}» viser hver del som følger med KnightLoader, med versjon og opprinnelse. Det som kan oppdateres, blir værende på «{updates}».',
+  'whatsnew.change.settingRows': 'Hver nedtrekksliste og hvert inndatafelt i Innstillinger står ved siden av navnet sitt, i enden av kortet.',
 };

@@ -14,7 +14,7 @@ import {
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { TestButton } from '../../components/TestButton';
-import { NeutralSwitch, Sheet } from './controls';
+import { NeutralSwitch, SettingRow, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
 import {
@@ -325,23 +325,23 @@ function ScriptRow({
 
       {open && (
         <Sheet title={title} hue={index} wide onClose={onToggle}>
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Field label={t('settings.scripts.name')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.scripts.name')}>
               <TextInput
                 value={draft.name}
                 placeholder={t('settings.scripts.namePlaceholder')}
                 onChange={(e) => update({ name: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
+            </SettingRow>
+            <SettingRow control="fit" label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
               <TriggerSelect
                 label={t('settings.scripts.trigger')}
                 value={draft.trigger}
                 options={triggers}
                 onChange={(t) => update({ trigger: t })}
               />
-            </Field>
-            <Field label={t('settings.scripts.timeout')} hint={t('settings.scripts.timeoutHint')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.scripts.timeout')} hint={t('settings.scripts.timeoutHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
@@ -353,7 +353,7 @@ function ScriptRow({
                 />
                 <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{t('settings.scripts.timeoutUnit')}</span>
               </div>
-            </Field>
+            </SettingRow>
           </div>
 
           {/* The placeholder uses the house pulse and the editor fades in, so

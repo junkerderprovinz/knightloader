@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   Modal,
@@ -320,8 +319,8 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </>
           }
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.mediahook.name')} hint={t('settings.mediahook.nameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.mediahook.name')} hint={t('settings.mediahook.nameHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -332,9 +331,10 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
-            </Field>
+            </SettingRow>
             {/* The (i) explains what 0 means while it is set. */}
-            <Field
+            <SettingRow
+              control="short"
               label={t('settings.mediahook.wait')}
               hint={
                 draft.waitSeconds === 0
@@ -349,10 +349,10 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 step={30}
                 onValue={(v) => setDraft({ ...draft, waitSeconds: Math.max(0, v) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
-          <Field label={t('settings.mediahook.url')} hint={t('settings.mediahook.urlHint')}>
+          <SettingRow control="long" label={t('settings.mediahook.url')} hint={t('settings.mediahook.urlHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -360,7 +360,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
               placeholder="http://jellyfin.lan:8096/Library/Refresh"
               onChange={(e) => setDraft({ ...draft, url: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           {hostOf(draft.url) !== '' && (
             <p className="-mt-2 text-meta text-carbon-textMuted">
@@ -383,8 +383,12 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </SettingRow>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.mediahook.headerName')} hint={t('settings.mediahook.headerNameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="long"
+              label={t('settings.mediahook.headerName')}
+              hint={t('settings.mediahook.headerNameHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -392,8 +396,9 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 placeholder="X-Emby-Token"
                 onChange={(e) => setDraft({ ...draft, headerName: e.target.value })}
               />
-            </Field>
-            <Field
+            </SettingRow>
+            <SettingRow
+              control="long"
               label={draft.stored ? t('settings.mediahook.valueStored') : t('settings.mediahook.headerValue')}
               hint={draft.stored ? t('settings.mediahook.valueStoredHint') : t('settings.mediahook.headerValueHint')}
             >
@@ -404,7 +409,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 // Typing turns the kept value into a real one.
                 onChange={(e) => setDraft({ ...draft, headerValue: e.target.value, stored: false })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {draft.original !== '' && (

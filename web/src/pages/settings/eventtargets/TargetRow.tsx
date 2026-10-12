@@ -1,5 +1,14 @@
 import { useEffect, useState } from 'react';
-import { Field, FieldGroup, IconBadge, NumberInput, TextArea, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
+import {
+  Field,
+  FieldGroup,
+  IconBadge,
+  NumberInput,
+  TextArea,
+  TextInput,
+  ToggleRow,
+  useTooltip,
+} from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
@@ -188,11 +197,11 @@ export function TargetRow({
             hue={index}
           />
 
-          <Field label={t('settings.eventTargets.name')} hint={t('settings.eventTargets.nameHint')}>
+          <SettingRow control="long" label={t('settings.eventTargets.name')} hint={t('settings.eventTargets.nameHint')}>
             <TextInput value={row.name} onChange={(e) => onChange({ ...row, name: e.target.value })} />
-          </Field>
+          </SettingRow>
 
-          <Field label={t('settings.eventTargets.url')} hint={t('settings.eventTargets.urlHint')}>
+          <SettingRow control="long" label={t('settings.eventTargets.url')} hint={t('settings.eventTargets.urlHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -213,7 +222,7 @@ export function TargetRow({
                 }
               }}
             />
-          </Field>
+          </SettingRow>
           {host !== '' && (
             <p className="text-xs text-carbon-textMuted">{t('settings.eventTargets.leavesTheBox', { host })}</p>
           )}
@@ -290,10 +299,14 @@ export function TargetRow({
 
           <Placeholders list={placeholders} picked={row.triggers ?? []} />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-4">
             {/* 0 takes the server's default of three, which is shown beside
                 the box. */}
-            <Field label={t('settings.eventTargets.attempts')} hint={t('settings.eventTargets.attemptsHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.eventTargets.attempts')}
+              hint={t('settings.eventTargets.attemptsHint')}
+            >
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
@@ -309,8 +322,12 @@ export function TargetRow({
                     : String(Math.min(row.attempts, MAX_ATTEMPTS))}
                 </span>
               </div>
-            </Field>
-            <Field label={t('settings.eventTargets.timeout')} hint={t('settings.eventTargets.timeoutHint')}>
+            </SettingRow>
+            <SettingRow
+              control="short"
+              label={t('settings.eventTargets.timeout')}
+              hint={t('settings.eventTargets.timeoutHint')}
+            >
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
@@ -324,7 +341,7 @@ export function TargetRow({
                   {row.timeoutSeconds === 0 ? DEFAULT_TIMEOUT_SECONDS : Math.min(row.timeoutSeconds, MAX_TIMEOUT_SECONDS)}
                 </span>
               </div>
-            </Field>
+            </SettingRow>
           </div>
 
           {stored && <TargetHealth status={status} />}

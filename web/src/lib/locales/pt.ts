@@ -3650,4 +3650,5 @@ export const pt: Dict = {
   'settings.look.builtInTitle': 'Componentes integrados',
   'settings.look.builtInHint': 'O que o KnightLoader traz consigo ou corre ao seu lado, cada parte com a sua versão e a sua origem. Estas partes vêm com o KnightLoader ou com a imagem do contentor, ou atualizam-se sozinhas, por isso aqui não há nada para atualizar.',
   'whatsnew.change.builtIn': '«{name}» lista cada parte que vem com o KnightLoader, com a versão e a origem. O que se pode atualizar fica em «{updates}».',
+  'whatsnew.change.settingRows': 'Cada lista pendente e cada campo de entrada das Definições fica ao lado do seu nome, no fim do seu cartão.',
 };

@@ -247,6 +247,9 @@ jobs:
       - name: Settings search index
         run: node check-settings-search.mjs
 
+      - name: A settings dropdown or field stands beside its name
+        run: node check-setting-rows.mjs
+
       - name: Ranking and folding
         run: node check-rank.mjs
 

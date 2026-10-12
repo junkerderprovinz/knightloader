@@ -3661,4 +3661,5 @@ export const lt: Dict = {
   'settings.look.builtInTitle': 'Įtaisytieji komponentai',
   'settings.look.builtInHint': 'Tai, ką KnightLoader atsineša arba paleidžia šalia savęs, kiekviena dalis su savo versija ir kilme. Šios dalys ateina su KnightLoader arba konteinerio atvaizdu, arba atsinaujina pačios, todėl čia nėra ko atnaujinti.',
   'whatsnew.change.builtIn': '„{name}“ išvardija kiekvieną dalį, kuri ateina su KnightLoader, su versija ir kilme. Tai, ką galima atnaujinti, lieka kortelėje „{updates}“.',
+  'whatsnew.change.settingRows': 'Kiekvienas išskleidžiamasis sąrašas ir įvesties laukas nustatymuose stovi šalia savo pavadinimo, kortelės gale.',
 };

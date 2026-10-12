@@ -3659,4 +3659,5 @@ export const id: Dict = {
   'settings.look.builtInTitle': 'Komponen bawaan',
   'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sampingnya, masing-masing dengan versi dan asalnya. Bagian-bagian ini datang bersama KnightLoader atau image kontainer, atau memperbarui dirinya sendiri, jadi tidak ada yang perlu diperbarui di sini.',
   'whatsnew.change.builtIn': '“{name}” mencantumkan setiap bagian yang datang bersama KnightLoader, beserta versi dan asalnya. Yang bisa diperbarui tetap di “{updates}”.',
+  'whatsnew.change.settingRows': 'Setiap dropdown dan kolom isian di Pengaturan berada di samping namanya, di ujung kartunya.',
 };

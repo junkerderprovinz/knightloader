@@ -3662,4 +3662,5 @@ export const de: Dict = {
   'settings.look.builtInTitle': 'Eingebaute Bestandteile',
   'settings.look.builtInHint': 'Was KnightLoader mitbringt oder neben sich laufen lässt, jeweils mit Version und Herkunft. Diese Teile kommen mit KnightLoader oder dem Container-Image oder aktualisieren sich selbst, deshalb gibt es hier nichts zu aktualisieren.',
   'whatsnew.change.builtIn': '„{name}“ listet jeden Teil auf, den KnightLoader mitbringt, jeweils mit Version und Herkunft. Was sich aktualisieren lässt, bleibt auf „{updates}“.',
+  'whatsnew.change.settingRows': 'Jedes Auswahl- und Eingabefeld in den Einstellungen steht neben seinem Namen, am Ende seiner Karte.',
 };

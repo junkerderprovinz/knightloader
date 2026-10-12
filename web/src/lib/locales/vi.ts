@@ -3659,4 +3659,5 @@ export const vi: Dict = {
   'settings.look.builtInTitle': 'Thành phần tích hợp',
   'settings.look.builtInHint': 'Những gì KnightLoader mang theo hoặc chạy bên cạnh, mỗi phần kèm phiên bản và nguồn gốc. Các phần này đi cùng KnightLoader hoặc ảnh container, hoặc tự cập nhật, nên ở đây không có gì để cập nhật.',
   'whatsnew.change.builtIn': '“{name}” liệt kê mọi phần đi kèm KnightLoader, kèm phiên bản và nguồn gốc. Những gì cập nhật được vẫn nằm ở “{updates}”.',
+  'whatsnew.change.settingRows': 'Mỗi danh sách thả xuống và ô nhập trong Cài đặt đều nằm cạnh tên của nó, ở cuối thẻ.',
 };

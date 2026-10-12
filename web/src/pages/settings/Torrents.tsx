@@ -148,8 +148,12 @@ export function Torrents() {
         <SectionTitle>{t('settings.torrents.seedingTitle')}</SectionTitle>
         <ModuleToggle id="torrents" />
         <SeedGauge ratio={ratio} target={tr.seedRatioTarget} />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t('settings.torrents.seedRatio')} hint={t('settings.torrents.seedRatioHint')}>
+        <div className="flex flex-col gap-4">
+          <SettingRow
+            control="short"
+            label={t('settings.torrents.seedRatio')}
+            hint={t('settings.torrents.seedRatioHint')}
+          >
             <NumberInput
               value={tr.seedRatioTarget}
               min={0}
@@ -157,8 +161,12 @@ export function Torrents() {
               step={0.1}
               onValue={(v) => write({ seedRatioTarget: Math.max(0, v) })}
             />
-          </Field>
-          <Field label={t('settings.torrents.seedDuration')} hint={t('settings.torrents.seedDurationHint')}>
+          </SettingRow>
+          <SettingRow
+            control="short"
+            label={t('settings.torrents.seedDuration')}
+            hint={t('settings.torrents.seedDurationHint')}
+          >
             <div className="flex items-center gap-2">
               <NumberInput
                 value={seedHours}
@@ -170,7 +178,7 @@ export function Torrents() {
                 {t('settings.torrents.seedDurationUnit')}
               </span>
             </div>
-          </Field>
+          </SettingRow>
         </div>
         {/* How fast it is given back stands with how much. */}
         <UploadLimitField value={tr.uploadLimitKiBs} onValue={(uploadLimitKiBs) => write({ uploadLimitKiBs })} />
@@ -178,7 +186,8 @@ export function Torrents() {
 
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.portTitle')}</SectionTitle>
-        <Field
+        <SettingRow
+          control="short"
           label={t('settings.torrents.port')}
           hint={[
             t('settings.torrents.portHint'),
@@ -192,7 +201,7 @@ export function Torrents() {
             max={65535}
             onValue={(v) => write({ port: Math.max(0, Math.min(65535, v)) })}
           />
-        </Field>
+        </SettingRow>
         <PortMapPanel port={tr.port} />
         <InterfaceField value={tr.interface} onValue={(name) => write({ interface: name })} />
       </Card>
@@ -232,7 +241,11 @@ export function Torrents() {
           onLines={(extraTrackers) => write({ extraTrackers })}
         />
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.torrents.trackerList')} hint={t('settings.torrents.trackerListHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.torrents.trackerList')}
+            hint={t('settings.torrents.trackerListHint')}
+          >
             <TextInput
               type="url"
               dir="ltr"
@@ -241,7 +254,7 @@ export function Torrents() {
               value={tr.trackerListUrl}
               onChange={(e) => write({ trackerListUrl: e.target.value })}
             />
-          </Field>
+          </SettingRow>
           <RowRefusal field="torrent.trackerListUrl" className="pb-0" />
           <TrackerListStatus saved={readTorrent(saved).trackerListUrl.trim()} />
         </div>
@@ -268,7 +281,11 @@ export function Torrents() {
           label={t('settings.torrents.cachedOnly')}
           hint={t('settings.torrents.cachedOnlyHint')}
         />
-        <Field label={t('settings.torrents.debridStall')} hint={t('settings.torrents.debridStallHint')}>
+        <SettingRow
+          control="short"
+          label={t('settings.torrents.debridStall')}
+          hint={t('settings.torrents.debridStallHint')}
+        >
           <div className="flex items-center gap-2">
             <NumberInput
               value={tr.debridStallMinutes}
@@ -280,7 +297,7 @@ export function Torrents() {
               {t('settings.torrents.debridStallUnit')}
             </span>
           </div>
-        </Field>
+        </SettingRow>
         <ToggleRow
           checked={tr.seedAfterDebrid}
           onChange={(v) => write({ seedAfterDebrid: v })}
@@ -337,14 +354,18 @@ export function FileSelectionFields({
     <>
       {/* Stored in bytes, so a sample of 40 MiB is as easy to write as an
           .nfo of 3 KiB. */}
-      <Field label={t('settings.torrents.minFileSize')} hint={t('settings.torrents.minFileSizeHint')}>
+      <SettingRow
+        control="short"
+        label={t('settings.torrents.minFileSize')}
+        hint={t('settings.torrents.minFileSizeHint')}
+      >
         <UnitNumberInput
           value={rules.minFileSize}
           units={SIZE_UNITS}
           snap={(bytes) => Math.round(bytes)}
           onValue={(minFileSize) => onChange({ ...rules, minFileSize })}
         />
-      </Field>
+      </SettingRow>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <LinesField
           lines={rules.includeFiles}
@@ -388,7 +409,7 @@ function QBittorrentFields({
   return (
     <SubCard label={name}>
       <div className="flex flex-col gap-1.5">
-        <Field label={t('settings.torrents.qbitUrl')} hint={t('settings.torrents.qbitUrlHint')}>
+        <SettingRow control="long" label={t('settings.torrents.qbitUrl')} hint={t('settings.torrents.qbitUrlHint')}>
           <TextInput
             type="url"
             dir="ltr"
@@ -397,11 +418,15 @@ function QBittorrentFields({
             value={q.url}
             onChange={(e) => onChange({ url: e.target.value })}
           />
-        </Field>
+        </SettingRow>
         <RowRefusal field="torrent.qbittorrent.url" className="pb-0" />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.torrents.qbitUsername')} hint={t('settings.torrents.qbitUsernameHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitUsername')}
+          hint={t('settings.torrents.qbitUsernameHint')}
+        >
           <TextInput
             dir="ltr"
             autoComplete="off"
@@ -409,8 +434,12 @@ function QBittorrentFields({
             value={q.username}
             onChange={(e) => onChange({ username: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitPassword')} hint={t('settings.torrents.qbitPasswordHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitPassword')}
+          hint={t('settings.torrents.qbitPasswordHint')}
+        >
           <TextInput
             type="password"
             dir="ltr"
@@ -419,16 +448,24 @@ function QBittorrentFields({
             placeholder={stored ? t('settings.torrents.qbitPasswordStored') : ''}
             onChange={(e) => onChange({ password: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitCategory')} hint={t('settings.torrents.qbitCategoryHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitCategory')}
+          hint={t('settings.torrents.qbitCategoryHint')}
+        >
           <TextInput
             dir="ltr"
             spellCheck={false}
             value={q.category}
             onChange={(e) => onChange({ category: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitDownloadsPath')} hint={t('settings.torrents.qbitDownloadsPathHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitDownloadsPath')}
+          hint={t('settings.torrents.qbitDownloadsPathHint')}
+        >
           <TextInput
             dir="ltr"
             spellCheck={false}
@@ -436,7 +473,7 @@ function QBittorrentFields({
             value={q.downloadsPath}
             onChange={(e) => onChange({ downloadsPath: e.target.value })}
           />
-        </Field>
+        </SettingRow>
       </div>
       <QBittorrentTest q={q} />
     </SubCard>

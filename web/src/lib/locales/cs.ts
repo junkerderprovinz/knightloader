@@ -3669,4 +3669,5 @@ export const cs: Dict = {
   'settings.look.builtInTitle': 'Vestavěné součásti',
   'settings.look.builtInHint': 'Co KnightLoader přináší nebo spouští vedle sebe, každá část se svou verzí a původem. Tyto části přicházejí s KnightLoaderem nebo s obrazem kontejneru, nebo se aktualizují samy, takže tu není co aktualizovat.',
   'whatsnew.change.builtIn': '„{name}“ uvádí každou část, kterou KnightLoader přináší, s její verzí a původem. Co jde aktualizovat, zůstává v „{updates}“.',
+  'whatsnew.change.settingRows': 'Každý rozbalovací seznam a každé vstupní pole v Nastavení stojí vedle svého názvu, na konci své karty.',
 };

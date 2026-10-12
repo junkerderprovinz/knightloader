@@ -1,4 +1,4 @@
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -55,7 +55,8 @@ export function CollectorCard({ hue }: { hue: number }) {
       {/* While no countdown runs the box gives way to a reading that points at
           the switch. */}
       {autoConfirming ? (
-        <Field
+        <SettingRow
+          control="short"
           label={t('settings.downloads.autoConfirmDelay')}
           hint={t('settings.downloads.autoConfirmDelayHint')}
         >
@@ -68,7 +69,7 @@ export function CollectorCard({ hue }: { hue: number }) {
             // staged; it is not off.
             onValue={(v) => patch({ autoConfirmDelay: Math.max(0, Math.min(86400, Math.round(v) || 0)) })}
           />
-        </Field>
+        </SettingRow>
       ) : (
         <FieldGroup
           label={t('settings.downloads.autoConfirmDelay')}

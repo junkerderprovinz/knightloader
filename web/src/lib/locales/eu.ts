@@ -3656,4 +3656,5 @@ export const eu: Dict = {
   'settings.look.builtInTitle': 'Osagai integratuak',
   'settings.look.builtInHint': 'KnightLoaderrek berarekin dakarrena edo bere ondoan exekutatzen duena, bakoitza bere bertsio eta jatorriarekin. Zati hauek KnightLoaderrekin edo edukiontziaren irudiarekin datoz, edo beren kabuz eguneratzen dira, beraz hemen ez dago ezer eguneratzeko.',
   'whatsnew.change.builtIn': '«{name}» txartelak KnightLoaderrekin datorren zati bakoitza zerrendatzen du, bertsio eta jatorriarekin. Egunera daitekeena «{updates}» txartelean geratzen da.',
+  'whatsnew.change.settingRows': 'Ezarpenetako goitibehera-zerrenda eta sarrera-eremu bakoitza bere izenaren ondoan dago, bere txartelaren amaieran.',
 };

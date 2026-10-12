@@ -3658,4 +3658,5 @@ export const tr: Dict = {
   'settings.look.builtInTitle': 'Yerleşik bileşenler',
   'settings.look.builtInHint': 'KnightLoader’ın yanında getirdiği ya da yanında çalıştırdığı şeyler, her biri sürümü ve kaynağıyla. Bu parçalar KnightLoader ya da kapsayıcı imajıyla gelir veya kendilerini günceller, bu yüzden burada güncellenecek bir şey yok.',
   'whatsnew.change.builtIn': '“{name}”, KnightLoader ile gelen her parçayı sürümü ve kaynağıyla listeler. Güncellenebilenler “{updates}” üzerinde kalır.',
+  'whatsnew.change.settingRows': 'Ayarlar’daki her açılır liste ve her giriş alanı adının yanında, kartının sonunda durur.',
 };

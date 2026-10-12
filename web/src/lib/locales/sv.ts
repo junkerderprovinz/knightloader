@@ -3659,4 +3659,5 @@ export const sv: Dict = {
   'settings.look.builtInTitle': 'Inbyggda komponenter',
   'settings.look.builtInHint': 'Det KnightLoader har med sig eller kör bredvid sig, var och en med sin version och sitt ursprung. De här delarna följer med KnightLoader eller containeravbilden, eller uppdaterar sig själva, så här finns inget att uppdatera.',
   'whatsnew.change.builtIn': '”{name}” listar varje del som följer med KnightLoader, med version och ursprung. Det som går att uppdatera ligger kvar på ”{updates}”.',
+  'whatsnew.change.settingRows': 'Varje rullgardinslista och varje inmatningsfält i Inställningar står bredvid sitt namn, i slutet av sitt kort.',
 };

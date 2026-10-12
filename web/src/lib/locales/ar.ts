@@ -3656,4 +3656,5 @@ export const ar: Dict = {
   'settings.look.builtInTitle': 'المكونات المدمجة',
   'settings.look.builtInHint': 'ما يحمله KnightLoader معه أو يشغّله بجانبه، ولكل منها إصداره ومصدره. تأتي هذه الأجزاء مع KnightLoader أو مع صورة الحاوية، أو تحدّث نفسها، لذا لا شيء لتحديثه هنا.',
   'whatsnew.change.builtIn': 'تسرد «{name}» كل جزء يأتي مع KnightLoader، مع إصداره ومصدره. ما يمكن تحديثه يبقى في «{updates}».',
+  'whatsnew.change.settingRows': 'كل قائمة منسدلة وكل حقل إدخال في الإعدادات يقف بجانب اسمه، في نهاية بطاقته.',
 };

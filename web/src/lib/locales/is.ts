@@ -3655,4 +3655,5 @@ export const is: Dict = {
   'settings.look.builtInTitle': 'Innbyggðir hlutar',
   'settings.look.builtInHint': 'Það sem KnightLoader tekur með sér eða keyrir við hlið sér, hvert með sína útgáfu og uppruna. Þessir hlutar koma með KnightLoader eða gámamyndinni, eða uppfæra sig sjálfir, svo hér er ekkert að uppfæra.',
   'whatsnew.change.builtIn': '„{name}“ telur upp hvern hluta sem fylgir KnightLoader, með útgáfu og uppruna. Það sem má uppfæra er áfram á „{updates}“.',
+  'whatsnew.change.settingRows': 'Hver fellilisti og hver innsláttarreitur í Stillingum stendur við hlið nafnsins síns, við enda spjaldsins.',
 };

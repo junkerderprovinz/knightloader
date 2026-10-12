@@ -1,15 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Button,
-  Card,
-  FIELD_TRIGGER,
-  Field,
-  IconBadge,
-  SectionTitle,
-  TextInput,
-  UnitNumberInput,
-} from '../../components/ui';
+import { Button, Card, FIELD_TRIGGER, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { DayCurve, planOf, todayOf } from '../../components/pictures/DayCurve';
 import { WeekBand } from '../../components/pictures/WeekBand';
@@ -798,15 +789,15 @@ function EntryRow({
         <Sheet title={description} hue={index} wide onClose={onToggle}>
           {error && <p dir="auto" className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.schedule.name')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.schedule.name')}>
               <TextInput
                 value={entry.name ?? ''}
                 placeholder={t('settings.schedule.namePlaceholder')}
                 onChange={(e) => onChange({ name: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.schedule.action')}>
+            </SettingRow>
+            <SettingRow control="fit" label={t('settings.schedule.action')}>
               <ActionSelect
                 value={entry.action}
                 actions={actions}
@@ -814,32 +805,32 @@ function EntryRow({
                 label={actionLabel}
                 caption={t('settings.schedule.action')}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <DayPicker days={entry.days} labels={labels} onChange={(days) => onChange({ days })} />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.schedule.start')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="short" label={t('settings.schedule.start')}>
               <TimePicker
                 label={t('settings.schedule.start')}
                 value={entry.start}
                 onChange={(start) => onChange({ start })}
               />
-            </Field>
-            <Field label={t('settings.schedule.end')} hint={t('settings.schedule.endHint')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.schedule.end')} hint={t('settings.schedule.endHint')}>
               <TimePicker
                 label={t('settings.schedule.end')}
                 value={entry.end}
                 onChange={(end) => onChange({ end })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {entry.action === 'limit' && (
-            <Field label={t('settings.schedule.limit')}>
+            <SettingRow control="short" label={t('settings.schedule.limit')}>
               <UnitNumberInput value={entry.limit ?? 0} units={RATE_UNITS} onValue={(limit) => onChange({ limit })} />
-            </Field>
+            </SettingRow>
           )}
 
           {entry.disabled && <p className="text-xs text-carbon-textMuted">{t('settings.schedule.disabledOff')}</p>}

@@ -219,7 +219,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
       />
 
       {action !== 'none' && (
-        <Field
+        <SettingRow
+          control="short"
           label={t('settings.downloads.idleCountdown')}
           hint={`${t('settings.downloads.idleCountdownHint')} ${t('settings.downloads.idleArmHint')}`}
         >
@@ -229,12 +230,13 @@ export function IdleActionCard({ hue }: { hue: number }) {
             max={DELAY.hi}
             onValue={(v) => patch({ idleAction: { ...cfg.idleAction, delaySeconds: v } })}
           />
-        </Field>
+        </SettingRow>
       )}
 
       {action === 'command' && (
         <>
-          <Field
+          <SettingRow
+            control="long"
             label={t('settings.downloads.idleCommandProgram')}
             hint={`${t('settings.downloads.idleCommandProgramHint')} ${t('settings.downloads.idleCommandSecretHint')}`}
           >
@@ -245,7 +247,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               dir="ltr"
               onChange={(e) => setCommand({ program: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           <Field label={t('settings.downloads.idleCommandArgs')} hint={t('settings.downloads.idleCommandArgsHint')}>
             <ListArea
@@ -257,7 +259,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
             />
           </Field>
 
-          <Field
+          <SettingRow
+            control="short"
             label={t('settings.downloads.idleCommandTimeout')}
             hint={t('settings.downloads.idleCommandTimeoutHint')}
           >
@@ -267,7 +270,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               max={TIMEOUT.hi}
               onValue={(v) => setCommand({ timeoutSeconds: v })}
             />
-          </Field>
+          </SettingRow>
 
           <FieldGroup
             label={t('settings.downloads.idleCommandVerify')}

@@ -3655,4 +3655,5 @@ export const ja: Dict = {
   'settings.look.builtInTitle': '組み込みコンポーネント',
   'settings.look.builtInHint': 'KnightLoader が同梱している、または隣で動かしているもので、それぞれのバージョンと入手元を示します。これらは KnightLoader かコンテナイメージに含まれているか、自分で更新されるため、ここで更新するものはありません。',
   'whatsnew.change.builtIn': '「{name}」は KnightLoader に含まれる部分を、バージョンと入手元とともにすべて一覧にします。更新できるものは「{updates}」に残ります。',
+  'whatsnew.change.settingRows': '設定のドロップダウンと入力欄は、どれも名前の横、カードの端に並びます。',
 };

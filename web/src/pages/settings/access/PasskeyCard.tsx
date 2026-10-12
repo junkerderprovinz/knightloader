@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   IconBadge,
   IconTile,
   Modal,
@@ -24,6 +23,7 @@ import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { IconAdd, IconClose, IconKey, IconPencil, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
+import { SettingRow } from '../controls';
 
 /** The refusals worded here. Any other shows the server's sentence. */
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
@@ -234,7 +234,7 @@ export function PasskeyCard({
 
         {adding && (
           <div className="flex flex-col gap-3">
-            <Field label={t('auth.passkey.nameLabel')} hint={t('auth.passkey.nameHint')}>
+            <SettingRow control="long" label={t('auth.passkey.nameLabel')} hint={t('auth.passkey.nameHint')}>
               <TextInput
                 autoFocus
                 value={name}
@@ -244,7 +244,7 @@ export function PasskeyCard({
                   if (e.key === 'Enter' && !busy) void add();
                 }}
               />
-            </Field>
+            </SettingRow>
             <div className="flex items-center gap-3">
               <span className="flex-1" />
               <Button
@@ -295,7 +295,7 @@ export function PasskeyCard({
             </>
           }
         >
-          <Field label={t('auth.passkey.nameLabel')}>
+          <SettingRow control="long" label={t('auth.passkey.nameLabel')}>
             <TextInput
               autoFocus
               value={renameTo}
@@ -304,7 +304,7 @@ export function PasskeyCard({
                 if (e.key === 'Enter' && renameTo.trim() !== '' && !busy) void saveName();
               }}
             />
-          </Field>
+          </SettingRow>
         </Modal>
       )}
 

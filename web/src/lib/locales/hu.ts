@@ -3661,4 +3661,5 @@ export const hu: Dict = {
   'settings.look.builtInTitle': 'Beépített összetevők',
   'settings.look.builtInHint': 'Amit a KnightLoader magával hoz vagy maga mellett futtat, mindegyik a verziójával és az eredetével. Ezek a részek a KnightLoaderrel vagy a konténer lemezképével érkeznek, vagy maguktól frissülnek, ezért itt nincs mit frissíteni.',
   'whatsnew.change.builtIn': 'A(z) „{name}” felsorol minden részt, ami a KnightLoaderrel érkezik, a verziójával és az eredetével. Ami frissíthető, az a(z) „{updates}” kártyán marad.',
+  'whatsnew.change.settingRows': 'A Beállításokban minden legördülő lista és beviteli mező a neve mellett áll, a kártyája végén.',
 };

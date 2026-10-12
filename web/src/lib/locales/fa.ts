@@ -3648,4 +3648,5 @@ export const fa: Dict = {
   'settings.look.builtInTitle': 'اجزای داخلی',
   'settings.look.builtInHint': 'آنچه KnightLoader با خود می‌آورد یا کنار خودش اجرا می‌کند، هر کدام با نسخه و منبعش. این بخش‌ها همراه KnightLoader یا ایمیج کانتینر می‌آیند یا خودشان به‌روز می‌شوند، پس اینجا چیزی برای به‌روزرسانی نیست.',
   'whatsnew.change.builtIn': '«{name}» هر بخشی را که با KnightLoader می‌آید با نسخه و منبعش فهرست می‌کند. آنچه به‌روزشدنی است در «{updates}» می‌ماند.',
+  'whatsnew.change.settingRows': 'هر فهرست کشویی و هر کادر ورودی در تنظیمات کنار نامش و در انتهای کارتش قرار دارد.',
 };

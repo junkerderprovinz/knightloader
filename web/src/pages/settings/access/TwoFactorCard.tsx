@@ -14,6 +14,7 @@ import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import { IconCheckDrawn, IconCopy, IconShieldOn } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
+import { SettingRow } from '../controls';
 
 /**
  * TwoFactorCard sets up a six-digit authenticator code beside the password and
@@ -173,7 +174,7 @@ export function TwoFactorCard({
               />
             </div>
           </Field>
-          <Field label={t('auth.twoFactor.confirmLabel')}>
+          <SettingRow control="long" label={t('auth.twoFactor.confirmLabel')}>
             <TextInput
               value={code}
               onChange={(e) => setCode(e.target.value)}
@@ -185,7 +186,7 @@ export function TwoFactorCard({
                 if (e.key === 'Enter' && code.trim() !== '' && !busy) void confirm();
               }}
             />
-          </Field>
+          </SettingRow>
           <div className="flex items-center gap-3">
             <span className="flex-1" />
             <Button
@@ -261,7 +262,7 @@ export function TwoFactorCard({
             </div>
           ) : (
             <div className="flex flex-col gap-3">
-              <Field label={t('auth.twoFactor.disablePrompt')}>
+              <SettingRow control="long" label={t('auth.twoFactor.disablePrompt')}>
                 <TextInput
                   autoFocus
                   value={code}
@@ -274,7 +275,7 @@ export function TwoFactorCard({
                     if (e.key === 'Enter' && code.trim() !== '' && !busy) void disable();
                   }}
                 />
-              </Field>
+              </SettingRow>
               <div className="flex items-center gap-3">
                 <span className="flex-1" />
                 <Button

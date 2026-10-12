@@ -17,7 +17,7 @@ import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { useTriggerLabel } from '../../../lib/triggers';
 import { TargetEvents } from '../eventtargets/TargetEvents';
-import { Sheet } from '../controls';
+import { SettingRow, Sheet } from '../controls';
 import { Placeholders } from '../eventtargets/TargetRow';
 import { ProgramHealth } from './ProgramHealth';
 
@@ -123,11 +123,19 @@ export function ProgramRow({
             hue={index}
           />
 
-          <Field label={t('settings.eventPrograms.name')} hint={t('settings.eventPrograms.nameHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.eventPrograms.name')}
+            hint={t('settings.eventPrograms.nameHint')}
+          >
             <TextInput value={row.name} onChange={(e) => onChange({ ...row, name: e.target.value })} />
-          </Field>
+          </SettingRow>
 
-          <Field label={t('settings.eventPrograms.program')} hint={t('settings.eventPrograms.programHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.eventPrograms.program')}
+            hint={t('settings.eventPrograms.programHint')}
+          >
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -135,7 +143,7 @@ export function ProgramRow({
               placeholder={programStored ? t('settings.downloads.idleCommandStored') : '/home/you/bin/after-download.sh'}
               onChange={(e) => setCommand({ program: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           <Field label={t('settings.eventPrograms.args')} hint={t('settings.eventPrograms.argsHint')}>
             <TextArea
@@ -180,8 +188,12 @@ export function ProgramRow({
             }}
           />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.eventPrograms.timeout')} hint={t('settings.eventPrograms.timeoutHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="short"
+              label={t('settings.eventPrograms.timeout')}
+              hint={t('settings.eventPrograms.timeoutHint')}
+            >
               <NumberInput
                 dir="ltr"
                 value={command.timeoutSeconds || TIMEOUT.fallback}
@@ -190,8 +202,12 @@ export function ProgramRow({
                 step={1}
                 onValue={(v) => setCommand({ timeoutSeconds: v })}
               />
-            </Field>
-            <Field label={t('settings.eventPrograms.parallel')} hint={t('settings.eventPrograms.parallelHint')}>
+            </SettingRow>
+            <SettingRow
+              control="short"
+              label={t('settings.eventPrograms.parallel')}
+              hint={t('settings.eventPrograms.parallelHint')}
+            >
               <NumberInput
                 dir="ltr"
                 value={row.parallel > 0 ? row.parallel : DEFAULT_PARALLEL}
@@ -200,7 +216,7 @@ export function ProgramRow({
                 step={1}
                 onValue={(v) => onChange({ ...row, parallel: clampParallel(v) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <ProgramHealth

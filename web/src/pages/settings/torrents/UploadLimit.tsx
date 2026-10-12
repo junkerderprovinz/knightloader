@@ -1,6 +1,7 @@
-import { Field, UnitNumberInput } from '../../../components/ui';
+import { UnitNumberInput } from '../../../components/ui';
 import { RATE_UNITS } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
+import { SettingRow } from '../controls';
 
 const KIB = 1024;
 
@@ -13,13 +14,17 @@ const KIB = 1024;
 export function UploadLimitField({ value, onValue }: { value: number; onValue: (kibs: number) => void }) {
   const { t } = useT();
   return (
-    <Field label={t('settings.torrents.uploadLimit')} hint={t('settings.torrents.uploadLimitHint')}>
+    <SettingRow
+      control="short"
+      label={t('settings.torrents.uploadLimit')}
+      hint={t('settings.torrents.uploadLimitHint')}
+    >
       <UnitNumberInput
         value={value * KIB}
         units={RATE_UNITS}
         snap={(bytes) => Math.round(bytes / KIB) * KIB}
         onValue={(bytes) => onValue(bytes / KIB)}
       />
-    </Field>
+    </SettingRow>
   );
 }

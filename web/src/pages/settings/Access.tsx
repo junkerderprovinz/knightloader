@@ -46,7 +46,7 @@ import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/password
 import { useToast } from '../../lib/toast';
 import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
-import { ListArea, RowRefusal } from './controls';
+import { ListArea, RowRefusal, SettingRow } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
@@ -146,7 +146,7 @@ export function PasswordCard({
           {t('auth.password')}
         </SectionTitle>
         {locked && (
-          <Field label={t('settings.passwordCurrent')}>
+          <SettingRow control="long" label={t('settings.passwordCurrent')}>
             <PasswordInput
               value={current}
               onChange={setCurrent}
@@ -154,9 +154,9 @@ export function PasswordCard({
               showLabel={t('common.showPassword')}
               hideLabel={t('common.hidePassword')}
             />
-          </Field>
+          </SettingRow>
         )}
-        <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
+        <SettingRow control="long" label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
           <PasswordInput
             value={next}
             onChange={setNext}
@@ -164,7 +164,7 @@ export function PasswordCard({
             showLabel={t('common.showPassword')}
             hideLabel={t('common.hidePassword')}
           />
-        </Field>
+        </SettingRow>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             shake={shake}
@@ -399,7 +399,7 @@ export function TokensSection() {
           }
         >
           <div className="flex flex-col gap-4">
-            <Field label={t('settings.access.tokens.name')}>
+            <SettingRow control="long" label={t('settings.access.tokens.name')}>
               <TextInput
                 autoFocus
                 placeholder={t('settings.access.tokens.namePlaceholder')}
@@ -409,7 +409,7 @@ export function TokensSection() {
                   if (e.key === 'Enter' && canCreate) void onCreate();
                 }}
               />
-            </Field>
+            </SettingRow>
             <TokenScopePicker scopes={scopes} onChange={setScopes} />
           </div>
         </Modal>

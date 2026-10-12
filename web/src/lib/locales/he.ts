@@ -3676,4 +3676,5 @@ export const he: Dict = {
   'settings.look.builtInTitle': 'רכיבים מובנים',
   'settings.look.builtInHint': 'מה ש־KnightLoader מביא איתו או מריץ לצידו, כל אחד עם הגרסה והמקור שלו. החלקים האלה מגיעים עם KnightLoader או עם תמונת הקונטיינר, או מתעדכנים בעצמם, ולכן אין כאן מה לעדכן.',
   'whatsnew.change.builtIn': '„{name}” מפרט כל חלק שמגיע עם KnightLoader, עם הגרסה והמקור שלו. מה שאפשר לעדכן נשאר ב„{updates}”.',
+  'whatsnew.change.settingRows': 'כל רשימה נפתחת וכל שדה קלט בהגדרות עומדים ליד השם שלהם, בקצה הכרטיס שלהם.',
 };

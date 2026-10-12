@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
 import { onWindowPrefs, setWindowPrefs, windowPrefs, type WindowPrefs } from '../../../lib/desktop';
 import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
+import { SettingRow } from '../controls';
 
 // The window's and the tray icon's behaviour belongs to this installation on
 // this computer, so the desktop app keeps it in its own file (desktop.json)
@@ -78,7 +79,7 @@ export function WindowCard({ hue }: { hue: number }) {
         disabled={noTray}
         onChange={(v) => void change({ onMinimize: v ? 'tray' : 'taskbar' })}
       />
-      <Field label={t('tray.captcha')} hint={t('settings.window.captchaHint')}>
+      <SettingRow control="fit" label={t('tray.captcha')} hint={t('settings.window.captchaHint')}>
         <Dropdown
           label={t('tray.captcha')}
           value={prefs.raiseOnAttention}
@@ -89,7 +90,7 @@ export function WindowCard({ hue }: { hue: number }) {
           ]}
           onChange={(v) => void change({ raiseOnAttention: v })}
         />
-      </Field>
+      </SettingRow>
     </Card>
   );
 }

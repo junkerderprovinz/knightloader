@@ -3641,4 +3641,5 @@ export const zh: Dict = {
   'settings.look.builtInTitle': '内置组件',
   'settings.look.builtInHint': 'KnightLoader 自带或在旁运行的部分，每项都注明版本和来源。这些部分随 KnightLoader 或容器镜像提供，或会自行更新，因此这里没有需要更新的内容。',
   'whatsnew.change.builtIn': '“{name}”列出 KnightLoader 自带的每个部分，并注明版本和来源。可以更新的内容仍在“{updates}”中。',
+  'whatsnew.change.settingRows': '设置中的每个下拉框和输入框都位于其名称旁边，靠在卡片的末端。',
 };

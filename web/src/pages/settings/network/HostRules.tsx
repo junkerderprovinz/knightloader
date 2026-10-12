@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   NumberInput,
@@ -22,7 +21,7 @@ import {
 } from '../../../lib/api';
 import { resolverLabel } from '../../../lib/resolverLabels';
 import { useDraft } from '../context';
-import { Sheet } from '../controls';
+import { SettingRow, Sheet } from '../controls';
 
 // Per-host exceptions to the global counts: how many downloads one hoster may
 // have open, how many connections each gets, how a failure is retried, and
@@ -363,7 +362,7 @@ function HostRuleRow({
 
       {open && (
         <Sheet title={host || t('settings.hostRules.pattern')} hue={index} wide onClose={onToggle}>
-          <Field label={t('settings.hostRules.pattern')} hint={t('settings.hostRules.patternHint')}>
+          <SettingRow control="long" label={t('settings.hostRules.pattern')} hint={t('settings.hostRules.patternHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -381,15 +380,15 @@ function HostRuleRow({
                 }
               }}
             />
-          </Field>
+          </SettingRow>
           {/* Refused, since two keys that normalise the same would both be
               stored and only one consulted. */}
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
 
           {/* Half the width, as in a download's properties: a menu of a few
               service names does not need the whole line. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="fit" label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
               <Dropdown
                 label={t('props.backend')}
                 value={prefer}
@@ -398,7 +397,7 @@ function HostRuleRow({
                 onChange={setPrefer}
                 busy={services === null}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {switchable.length > 0 && (
@@ -417,24 +416,32 @@ function HostRuleRow({
             </FieldGroup>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.hostRules.maxPerHost')} hint={t('settings.hostRules.maxPerHostHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="short"
+              label={t('settings.hostRules.maxPerHost')}
+              hint={t('settings.hostRules.maxPerHostHint')}
+            >
               <NumberInput
                 value={rule.maxPerHost ?? 0}
                 min={0}
                 max={MAX_PER_HOST}
                 onValue={(v) => onChange({ ...rule, maxPerHost: clampInt(v, MAX_PER_HOST) })}
               />
-            </Field>
+            </SettingRow>
             {/* An override, so it may exceed the global count. */}
-            <Field label={t('settings.hostRules.chunks')} hint={t('settings.hostRules.chunksHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.hostRules.chunks')}
+              hint={t('settings.hostRules.chunksHint')}
+            >
               <NumberInput
                 value={rule.chunks ?? 0}
                 min={0}
                 max={MAX_CHUNKS}
                 onValue={(v) => onChange({ ...rule, chunks: clampInt(v, MAX_CHUNKS) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <ToggleRow
@@ -502,7 +509,7 @@ function RetryNumber({
   onValue: (n: number) => void;
 }) {
   return (
-    <Field label={label} hint={hint}>
+    <SettingRow control="short" label={label} hint={hint}>
       <span className="block">
         <NumberInput value={value} min={0} max={max} onValue={(v) => onValue(clampInt(v, max))} />
         {raisedTo !== undefined && (
@@ -512,7 +519,7 @@ function RetryNumber({
           </span>
         )}
       </span>
-    </Field>
+    </SettingRow>
   );
 }
 

@@ -3903,6 +3903,7 @@ export const en = {
   'settings.look.builtInTitle': 'Built-in components',
   'settings.look.builtInHint': 'What KnightLoader brings along or runs beside it, each with its version and where it comes from. These parts come with KnightLoader or the container image, or update themselves, so there is nothing to update here.',
   'whatsnew.change.builtIn': '"{name}" lists every part that comes with KnightLoader, each with its version and where it comes from. What can be updated stays on "{updates}".',
+  'whatsnew.change.settingRows': 'Every dropdown and input field in Settings stands beside its name, at the end of its card.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

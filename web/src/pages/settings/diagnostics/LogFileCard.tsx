@@ -6,7 +6,6 @@ import { useResource } from '../../../lib/useResource';
 import {
   Card,
   ErrorCard,
-  Field,
   FieldGroup,
   InfoBubble,
   LoadingCard,
@@ -15,6 +14,7 @@ import {
   ToggleRow,
 } from '../../../components/ui';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 /**
  * LogFileCard switches the on-disk copy of the log and lists what is there. It
@@ -57,21 +57,29 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
 
       {/* The size and rotation boxes are absent while the switch is off. The
           path stays, since it tells where the log would land. */}
-      <div className={`grid grid-cols-1 gap-4 ${file.enabled ? 'sm:grid-cols-3' : ''}`}>
+      <div className="flex flex-col gap-4">
         {file.enabled && (
           <>
-            <Field label={t('settings.diagnostics.fileSize')} hint={t('settings.diagnostics.fileSizeHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.diagnostics.fileSize')}
+              hint={t('settings.diagnostics.fileSizeHint')}
+            >
               <NumberInput
                 value={file.maxMb}
                 min={1}
                 max={1024}
                 onValue={(maxMb) => patch({ logFile: { ...file, maxMb } })}
               />
-            </Field>
+            </SettingRow>
 
-            <Field label={t('settings.diagnostics.fileKeep')} hint={t('settings.diagnostics.fileKeepHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.diagnostics.fileKeep')}
+              hint={t('settings.diagnostics.fileKeepHint')}
+            >
               <NumberInput value={file.keep} min={0} max={20} onValue={(keep) => patch({ logFile: { ...file, keep } })} />
-            </Field>
+            </SettingRow>
           </>
         )}
 
