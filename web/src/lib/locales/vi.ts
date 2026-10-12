@@ -3609,6 +3609,7 @@ export const vi: Dict = {
   'whatsnew.change.seedingLine': 'Đường tốc độ có thêm một đường thứ hai cho những gì các torrent của bạn tải lên khi seed.',
   'whatsnew.change.seedingAlways': 'Các đường tốc độ luôn hiện đường seed và tên của nó bên dưới. Khi không có gì gửi đi, đường nằm phẳng dọc mép dưới.',
   'whatsnew.change.lineColours': 'Trong “{name}”, bạn có thể chọn một màu cho đường tải xuống và một màu cho đường seed trong các đường tốc độ.',
+  'whatsnew.change.captchaRefresh': 'Trong cửa sổ “{name}”, “{refresh}” trông giống các nút bên cạnh, nên bạn nhận ra đó là nút.',
   'whatsnew.change.mergeFiles': 'Tắt “{name}” để giữ video, âm thanh và phụ đề thành các tệp riêng.',
   'whatsnew.change.ruleSwitch': 'Các quy tắc được vẽ thành đường đi của một liên kết mẫu qua chúng: quy tắc nào bắt nó và nó dừng ở đâu.',
   'whatsnew.change.trackMerge': '“{name}” vẽ trên cả thẻ những gì nằm trong tệp video với cài đặt hiện tại, và đi theo các công tắc bên dưới. Khi “{rainbow}” bật, mỗi rãnh có một màu riêng.',

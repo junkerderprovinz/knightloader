@@ -3600,6 +3600,7 @@ export const pt: Dict = {
   'whatsnew.change.seedingLine': 'A curva de velocidade tem uma segunda linha para o que os teus torrents enviam enquanto fazem seed.',
   'whatsnew.change.seedingAlways': 'As curvas de velocidade mostram sempre a linha do seed e o nome dela por baixo. Quando nada sai, a linha fica plana ao longo da margem inferior.',
   'whatsnew.change.lineColours': 'Em «{name}» podes escolher uma cor para a linha da transferência e outra para a linha do seed nas curvas de velocidade.',
+  'whatsnew.change.captchaRefresh': 'Na janela «{name}», «{refresh}» tem o aspeto dos botões ao lado, para que vejas que também é um botão.',
   'whatsnew.change.mergeFiles': 'Desliga «{name}» para manter o vídeo, o áudio e as legendas como ficheiros separados.',
   'whatsnew.change.ruleSwitch': 'As regras são desenhadas como o caminho que um link de exemplo faz através delas: que regra o apanha e onde vai parar.',
   'whatsnew.change.trackMerge': '«{name}» desenha em todo o cartão o que acaba dentro de um ficheiro de vídeo com as definições atuais e segue os interruptores por baixo. Com «{rainbow}» ativo, cada faixa tem a sua própria cor.',

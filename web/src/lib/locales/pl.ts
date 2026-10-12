@@ -3594,6 +3594,7 @@ export const pl: Dict = {
   'whatsnew.change.seedingLine': 'Krzywa prędkości ma drugą linię dla tego, co twoje torrenty wysyłają podczas seedowania.',
   'whatsnew.change.seedingAlways': 'Krzywe prędkości zawsze pokazują linię seedowania i jej nazwę pod spodem. Gdy nic nie wychodzi, linia leży płasko przy dolnej krawędzi.',
   'whatsnew.change.lineColours': 'W sekcji „{name}” wybierzesz kolor linii pobierania i osobny kolor linii seedowania na krzywych prędkości.',
+  'whatsnew.change.captchaRefresh': 'W oknie „{name}” przycisk „{refresh}” wygląda jak przyciski obok, więc widać, że to przycisk.',
   'whatsnew.change.mergeFiles': 'Wyłącz „{name}”, żeby obraz, dźwięk i napisy zostały osobnymi plikami.',
   'whatsnew.change.ruleSwitch': 'Reguły są narysowane jako droga, którą przykładowy link przechodzi przez nie: która reguła go łapie i gdzie ląduje.',
   'whatsnew.change.trackMerge': '„{name}” rysuje na całej karcie, co przy obecnych ustawieniach trafia do pliku wideo, i podąża za przełącznikami poniżej. Gdy włączony jest „{rainbow}”, każda ścieżka ma własny kolor.',

@@ -3608,6 +3608,7 @@ export const tr: Dict = {
   'whatsnew.change.seedingLine': 'Hız eğrisinde, torrentlerinin seed ederken yüklediği için ikinci bir çizgi var.',
   'whatsnew.change.seedingAlways': 'Hız eğrileri seed çizgisini ve altında adını her zaman gösterir. Hiçbir şey çıkmadığında çizgi alt kenar boyunca düz durur.',
   'whatsnew.change.lineColours': '“{name}” altında hız eğrilerindeki indirme çizgisi için bir renk, seed çizgisi için başka bir renk seçebilirsin.',
+  'whatsnew.change.captchaRefresh': '“{name}” penceresinde “{refresh}” yanındaki düğmeler gibi görünür, böylece düğme olduğu anlaşılır.',
   'whatsnew.change.mergeFiles': 'Video, ses ve altyazıları ayrı dosyalar olarak tutmak için “{name}” seçeneğini kapat.',
   'whatsnew.change.ruleSwitch': 'Kurallar, örnek bir bağlantının aralarından geçtiği yol olarak çizilir: hangi kural onu yakalar ve nereye varır.',
   'whatsnew.change.trackMerge': '“{name}”, geçerli ayarlarla bir video dosyasına neyin gireceğini kartın tamamına çizer ve altındaki anahtarları izler. “{rainbow}” açıkken her izin kendi rengi olur.',

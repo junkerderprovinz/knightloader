@@ -310,6 +310,13 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.health.parts' },
       },
       { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
+      // Drawn in the captcha window, which a test captcha on the Accounts page opens.
+      {
+        id: 'captcha-refresh',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.captchaRefresh',
+        names: { name: 'captcha.title', refresh: 'captcha.refresh' },
+      },
       {
         id: 'fdroid',
         to: ['/settings/browsertools'],

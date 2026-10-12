@@ -3606,6 +3606,7 @@ export const eu: Dict = {
   'whatsnew.change.seedingLine': 'Abiadura-kurbak bigarren lerro bat du zure torrentek seed egiten duten bitartean igotzen dutenarentzat.',
   'whatsnew.change.seedingAlways': 'Abiadura-kurbek beti erakusten dute seed lerroa eta haren izena azpian. Ezer ateratzen ez denean, lerroa lau geratzen da beheko ertzean.',
   'whatsnew.change.lineColours': '«{name}» atalean kolore bat aukeratu dezakezu deskargaren lerroarentzat eta beste bat seed lerroarentzat abiadura-kurbetan.',
+  'whatsnew.change.captchaRefresh': '«{name}» leihoan, «{refresh}» ondoko botoien itxura du, botoia dela ikus dezazun.',
   'whatsnew.change.mergeFiles': 'Desaktibatu «{name}» bideoa, audioa eta azpitituluak fitxategi bereizi gisa gordetzeko.',
   'whatsnew.change.ruleSwitch': 'Arauak lagin-esteka batek haietan zehar egiten duen bide gisa marrazten dira: zein arauk harrapatzen duen eta non amaitzen den.',
   'whatsnew.change.trackMerge': '«{name}» atalak txartel osoan marrazten du uneko ezarpenekin zer amaitzen den bideo-fitxategi batean, eta azpiko etengailuei jarraitzen die. «{rainbow}» aktibatuta dagoenean, pista bakoitzak bere kolorea du.',

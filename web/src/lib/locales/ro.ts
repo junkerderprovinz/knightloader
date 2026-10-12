@@ -3618,6 +3618,7 @@ export const ro: Dict = {
   'whatsnew.change.seedingLine': 'Curba de viteză are o a doua linie pentru ce încarcă torrentele tale cât timp fac seed.',
   'whatsnew.change.seedingAlways': 'Curbele de viteză arată mereu linia de seed și numele ei dedesubt. Când nu iese nimic, linia stă plată de-a lungul marginii de jos.',
   'whatsnew.change.lineColours': 'În „{name}” poți alege o culoare pentru linia de descărcare și una pentru linia de seed din curbele de viteză.',
+  'whatsnew.change.captchaRefresh': 'În fereastra „{name}”, „{refresh}” arată ca butoanele de lângă el, ca să se vadă că e un buton.',
   'whatsnew.change.mergeFiles': 'Oprește „{name}” ca video, audio și subtitrările să rămână fișiere separate.',
   'whatsnew.change.ruleSwitch': 'Regulile sunt desenate ca drumul pe care un link de exemplu îl face prin ele: ce regulă îl prinde și unde ajunge.',
   'whatsnew.change.trackMerge': '„{name}” desenează pe toată cartela ce ajunge într-un fișier video cu setările actuale și urmează comutatoarele de dedesubt. Când „{rainbow}” e pornit, fiecare pistă are culoarea ei.',

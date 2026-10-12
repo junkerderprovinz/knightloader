@@ -3605,6 +3605,7 @@ export const ja: Dict = {
   'whatsnew.change.seedingLine': '速度の曲線に、トレントがシード中にアップロードする量を示す2本目の線が加わりました。',
   'whatsnew.change.seedingAlways': '速度の曲線には、シードの線と下の名前がいつも表示されます。何も送られていないときは、線が下の端に沿って平らに伸びます。',
   'whatsnew.change.lineColours': '「{name}」で、速度の曲線にあるダウンロードの線とシードの線の色をそれぞれ選べます。',
+  'whatsnew.change.captchaRefresh': '「{name}」ウィンドウの「{refresh}」が隣のボタンと同じ見た目になり、ボタンだとわかるようになりました。',
   'whatsnew.change.mergeFiles': '「{name}」をオフにすると、映像、音声、字幕を別々のファイルのまま残せます。',
   'whatsnew.change.ruleSwitch': 'ルールは、サンプルのリンクがたどる経路として描かれます。どのルールが受け止め、どこに着くかが分かります。',
   'whatsnew.change.trackMerge': '「{name}」は、現在の設定で動画ファイルに入るものをカード全体に描き、下のスイッチに合わせて変わります。「{rainbow}」では、トラックごとに色が異なります。',

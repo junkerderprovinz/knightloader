@@ -3605,6 +3605,7 @@ export const is: Dict = {
   'whatsnew.change.seedingLine': 'Hraðaferillinn hefur aðra línu fyrir það sem straumarnir þínir senda á meðan þeir sá.',
   'whatsnew.change.seedingAlways': 'Hraðaferlarnir sýna alltaf sáningarlínuna og heiti hennar fyrir neðan. Þegar ekkert fer út liggur línan flöt við neðri brúnina.',
   'whatsnew.change.lineColours': 'Undir „{name}“ velur þú lit fyrir niðurhalslínuna og annan fyrir sáningarlínuna í hraðaferlunum.',
+  'whatsnew.change.captchaRefresh': 'Í glugganum „{name}“ lítur „{refresh}“ út eins og hnapparnir við hliðina, svo þú sérð að það er hnappur.',
   'whatsnew.change.mergeFiles': 'Slökktu á „{name}“ til að halda mynd, hljóði og skjátextum sem aðskildum skrám.',
   'whatsnew.change.ruleSwitch': 'Reglurnar eru teiknaðar sem leiðin sem sýnistengill fer í gegnum þær: hvaða regla grípur hann og hvar hann lendir.',
   'whatsnew.change.trackMerge': '„{name}“ teiknar yfir allt spjaldið hvað endar í myndskeiðsskrá með núverandi stillingum og fylgir rofunum fyrir neðan. Þegar „{rainbow}“ er í gangi hefur hver rás sinn lit.',

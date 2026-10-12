@@ -3623,6 +3623,7 @@ export const hr: Dict = {
   'whatsnew.change.seedingLine': 'Krivulja brzine ima drugu crtu za ono što tvoji torrenti šalju dok seedaju.',
   'whatsnew.change.seedingAlways': 'Krivulje brzine uvijek prikazuju crtu seedanja i njezin naziv ispod sebe. Kad ništa ne izlazi, crta leži ravno uz donji rub.',
   'whatsnew.change.lineColours': 'Pod „{name}” biraš boju za crtu preuzimanja i jednu za crtu seedanja u krivuljama brzine.',
+  'whatsnew.change.captchaRefresh': 'U prozoru „{name}” „{refresh}” izgleda kao gumbi pokraj njega, pa se vidi da je i to gumb.',
   'whatsnew.change.mergeFiles': 'Isključi „{name}” da video, zvuk i titlovi ostanu zasebne datoteke.',
   'whatsnew.change.ruleSwitch': 'Pravila su nacrtana kao put kojim primjer poveznice prolazi kroz njih: koje ga pravilo hvata i gdje završava.',
   'whatsnew.change.trackMerge': '„{name}” crta preko cijele kartice što s trenutačnim postavkama završava u videodatoteci i prati prekidače ispod. Kad je uključen „{rainbow}”, svaka traka ima svoju boju.',

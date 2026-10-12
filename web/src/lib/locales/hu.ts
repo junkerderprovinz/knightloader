@@ -3611,6 +3611,7 @@ export const hu: Dict = {
   'whatsnew.change.seedingLine': 'A sebességgörbén van egy második vonal is arról, mit töltenek fel a torrentjeid seedelés közben.',
   'whatsnew.change.seedingAlways': 'A sebességgörbék mindig mutatják a seedelés vonalát és alattuk a nevét. Ha semmi nem megy ki, a vonal laposan fut az alsó szélen.',
   'whatsnew.change.lineColours': 'A(z) „{name}” alatt színt választhatsz a letöltés vonalának és egy másikat a seedelés vonalának a sebességgörbéken.',
+  'whatsnew.change.captchaRefresh': 'A(z) „{name}” ablakban a(z) „{refresh}” úgy néz ki, mint a mellette lévő gombok, így látszik, hogy ez is gomb.',
   'whatsnew.change.mergeFiles': 'Kapcsold ki a(z) „{name}” lehetőséget, ha a videót, a hangot és a feliratokat külön fájlokban akarod tartani.',
   'whatsnew.change.ruleSwitch': 'A szabályok úgy jelennek meg, mint az az út, amelyet egy mintahivatkozás megtesz rajtuk: melyik szabály kapja el, és hová érkezik.',
   'whatsnew.change.trackMerge': 'A(z) „{name}” a teljes kártyán megrajzolja, mi kerül a videófájlba a jelenlegi beállításokkal, és követi az alatta lévő kapcsolókat. Ha a „{rainbow}” be van kapcsolva, minden sávnak saját színe van.',

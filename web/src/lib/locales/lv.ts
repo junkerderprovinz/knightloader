@@ -3600,6 +3600,7 @@ export const lv: Dict = {
   'whatsnew.change.seedingLine': 'Ātruma līknei ir otra līnija tam, ko tavi torenti augšupielādē, kamēr sēj.',
   'whatsnew.change.seedingAlways': 'Ātruma līknes vienmēr rāda sēšanas līniju un tās nosaukumu zem tām. Kad nekas neiziet, līnija guļ līdzena gar apakšējo malu.',
   'whatsnew.change.lineColours': 'Sadaļā „{name}“ vari izvēlēties krāsu lejupielādes līnijai un citu sēšanas līnijai ātruma līknēs.',
+  'whatsnew.change.captchaRefresh': 'Logā „{name}“ „{refresh}“ izskatās kā blakus esošās pogas, tāpēc redzams, ka tā ir poga.',
   'whatsnew.change.mergeFiles': 'Izslēdz „{name}“, lai video, audio un subtitri paliktu atsevišķi faili.',
   'whatsnew.change.ruleSwitch': 'Noteikumi ir uzzīmēti kā ceļš, ko parauga saite veic cauri tiem: kurš noteikums to noķer un kur tā nonāk.',
   'whatsnew.change.trackMerge': '„{name}“ pāri visai kartītei uzzīmē, kas ar pašreizējiem iestatījumiem nonāk video failā, un seko slēdžiem zem tās. Kad „{rainbow}“ ir ieslēgts, katram celiņam ir sava krāsa.',

@@ -3609,6 +3609,7 @@ export const sv: Dict = {
   'whatsnew.change.seedingLine': 'Hastighetskurvan har en andra linje för det dina torrenter laddar upp medan de delar.',
   'whatsnew.change.seedingAlways': 'Hastighetskurvorna visar alltid delningslinjen och dess namn under dem. När inget går ut ligger linjen platt längs nederkanten.',
   'whatsnew.change.lineColours': 'Under ”{name}” väljer du en färg för nedladdningslinjen och en för delningslinjen i hastighetskurvorna.',
+  'whatsnew.change.captchaRefresh': 'I fönstret ”{name}” ser ”{refresh}” ut som knapparna bredvid, så att du ser att det är en knapp.',
   'whatsnew.change.mergeFiles': 'Stäng av ”{name}” för att behålla video, ljud och undertexter som separata filer.',
   'whatsnew.change.ruleSwitch': 'Reglerna är ritade som den väg en exempellänk tar genom dem: vilken regel som fångar den och var den hamnar.',
   'whatsnew.change.trackMerge': '”{name}” ritar över hela kortet vad som hamnar i en videofil med de aktuella inställningarna och följer reglagen under. När ”{rainbow}” är på har varje spår sin egen färg.',

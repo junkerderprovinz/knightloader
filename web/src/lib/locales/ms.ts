@@ -3609,6 +3609,7 @@ export const ms: Dict = {
   'whatsnew.change.seedingLine': 'Lengkung kelajuan ada garis kedua untuk apa yang dimuat naik oleh torrent anda semasa melakukan seed.',
   'whatsnew.change.seedingAlways': 'Lengkung kelajuan sentiasa menunjukkan garis seeding dan namanya di bawah. Apabila tiada apa-apa keluar, garis itu mendatar di tepi bawah.',
   'whatsnew.change.lineColours': 'Di “{name}” anda boleh memilih satu warna untuk garis muat turun dan satu untuk garis seeding dalam lengkung kelajuan.',
+  'whatsnew.change.captchaRefresh': 'Dalam tetingkap “{name}”, “{refresh}” kelihatan seperti butang di sebelahnya, jadi anda tahu ia butang.',
   'whatsnew.change.mergeFiles': 'Matikan “{name}” untuk menyimpan video, audio dan sari kata sebagai fail berasingan.',
   'whatsnew.change.ruleSwitch': 'Peraturan dilukis sebagai laluan yang diambil oleh satu pautan contoh melaluinya: peraturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.trackMerge': '“{name}” melukis merentasi seluruh kad apa yang masuk ke dalam fail video dengan tetapan semasa, dan mengikut suis di bawahnya. Apabila “{rainbow}” dihidupkan, setiap trek mempunyai warnanya sendiri.',

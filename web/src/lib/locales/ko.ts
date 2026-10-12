@@ -3596,6 +3596,7 @@ export const ko: Dict = {
   'whatsnew.change.seedingLine': '속도 곡선에 토렌트가 시드하면서 업로드하는 양을 보여 주는 두 번째 선이 있습니다.',
   'whatsnew.change.seedingAlways': '속도 곡선에 시드 선과 그 아래 이름이 항상 보입니다. 나가는 것이 없으면 선이 아래쪽 가장자리에 평평하게 놓입니다.',
   'whatsnew.change.lineColours': '“{name}”에서 속도 곡선의 다운로드 선과 시드 선의 색을 각각 고를 수 있습니다.',
+  'whatsnew.change.captchaRefresh': '“{name}” 창에서 “{refresh}”가 옆의 버튼과 같은 모양이라 버튼임을 알아볼 수 있습니다.',
   'whatsnew.change.mergeFiles': '영상, 오디오, 자막을 별도 파일로 두려면 “{name}”을 끄세요.',
   'whatsnew.change.ruleSwitch': '규칙은 샘플 링크가 규칙들을 지나는 경로로 그려집니다. 어느 규칙이 잡고 어디에 도착하는지 보입니다.',
   'whatsnew.change.trackMerge': '“{name}”는 현재 설정으로 동영상 파일에 무엇이 들어가는지 카드 전체에 그리고, 아래의 스위치를 따릅니다. “{rainbow}”에서는 트랙마다 고유한 색이 있습니다.',

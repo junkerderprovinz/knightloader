@@ -3607,6 +3607,7 @@ export const gl: Dict = {
   'whatsnew.change.seedingLine': 'A curva de velocidade ten unha segunda liña para o que os teus torrents soben mentres fan seed.',
   'whatsnew.change.seedingAlways': 'As curvas de velocidade sempre mostran a liña de seed e o seu nome debaixo. Cando non sae nada, a liña queda plana no bordo inferior.',
   'whatsnew.change.lineColours': 'En «{name}» podes escoller unha cor para a liña de descarga e outra para a liña de seed nas curvas de velocidade.',
+  'whatsnew.change.captchaRefresh': 'Na xanela «{name}», «{refresh}» parécese aos botóns do lado, para que vexas que tamén o é.',
   'whatsnew.change.mergeFiles': 'Desactiva «{name}» para manter o vídeo, o audio e os subtítulos como ficheiros separados.',
   'whatsnew.change.ruleSwitch': 'As regras debúxanse como o camiño que fai unha ligazón de mostra a través delas: que regra a atrapa e onde acaba.',
   'whatsnew.change.trackMerge': '«{name}» debuxa en toda a tarxeta o que acaba dentro dun ficheiro de vídeo cos axustes actuais e segue os interruptores de abaixo. Con «{rainbow}» activado, cada pista ten a súa propia cor.',
