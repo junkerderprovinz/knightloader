@@ -1783,6 +1783,7 @@ export const hi: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp का अपना --sub-langs मान, जैसे en,de। खाली छोड़ने पर डिफ़ॉल्ट रूप से en इस्तेमाल होता है।',
   'settings.resolvers.subtitleAuto': 'जब कोई मैन्युअल ट्रैक न हो तो अपने आप बने सबटाइटल भी लाएँ',
   'settings.resolvers.outputTitle': 'आउटपुट फ़ाइल का नाम',
+  'settings.resolvers.filesTitle': 'प्लेलिस्ट और फ़ाइल नाम',
   'settings.resolvers.outputHint': 'yt-dlp का अपना -o टेम्पलेट। खाली छोड़ने पर बिल्ट-इन %(title)s.%(ext)s इस्तेमाल होता है। इसमें सबफ़ोल्डर शामिल हो सकते हैं, जैसे %(uploader)s/%(title)s.%(ext)s।',
 
   'settings.nav.torrents': 'टॉरेंट',

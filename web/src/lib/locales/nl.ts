@@ -1775,6 +1775,7 @@ export const nl: Dict = {
   'settings.resolvers.subtitleLangsHint': 'De eigen --sub-langs-waarde van yt-dlp, bijv. en,de. Leeg valt terug op en.',
   'settings.resolvers.subtitleAuto': 'Ook automatisch gegenereerde ondertitels ophalen als er geen handmatig spoor bestaat',
   'settings.resolvers.outputTitle': 'Bestandsnaam van uitvoer',
+  'settings.resolvers.filesTitle': 'Afspeellijsten en bestandsnamen',
   'settings.resolvers.outputHint': 'De eigen -o-sjabloon van yt-dlp. Leeg gebruikt de ingebouwde %(title)s.%(ext)s. Kan submappen bevatten, bijv. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

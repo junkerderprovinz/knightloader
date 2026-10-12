@@ -1782,6 +1782,7 @@ export const fi: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp:n oma --sub-langs-arvo, esim. en,de. Tyhjä tarkoittaa oletusta en.',
   'settings.resolvers.subtitleAuto': 'Nouda myös automaattisesti luodut tekstitykset, kun manuaalista raitaa ei ole',
   'settings.resolvers.outputTitle': 'Tulostiedoston nimi',
+  'settings.resolvers.filesTitle': 'Soittolistat ja tiedostonimet',
   'settings.resolvers.outputHint': 'yt-dlp:n oma -o-malli. Tyhjä käyttää sisäänrakennettua %(title)s.%(ext)s. Voi sisältää alikansioita, esim. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrentit',

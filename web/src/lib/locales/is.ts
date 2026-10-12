@@ -1782,6 +1782,7 @@ export const is: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Eigið --sub-langs gildi yt-dlp, t.d. en,de. Tómt þýðir sjálfgefið en.',
   'settings.resolvers.subtitleAuto': 'Sækja einnig sjálfvirkt gerða skjátexta þegar engin handvirk rás er til',
   'settings.resolvers.outputTitle': 'Nafn úttaksskrár',
+  'settings.resolvers.filesTitle': 'Spilunarlistar og skráarheiti',
   'settings.resolvers.outputHint': 'Eigið -o snið yt-dlp. Tómt notar innbyggða %(title)s.%(ext)s. Getur innihaldið undirmöppur, t.d. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrent',

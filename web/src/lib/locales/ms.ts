@@ -1782,6 +1782,7 @@ export const ms: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Nilai --sub-langs milik yt-dlp sendiri, cth. en,de. Kosong bermaksud lalai en.',
   'settings.resolvers.subtitleAuto': 'Dapatkan juga sari kata yang dijana secara automatik apabila tiada trek manual',
   'settings.resolvers.outputTitle': 'Nama fail output',
+  'settings.resolvers.filesTitle': 'Senarai main dan nama fail',
   'settings.resolvers.outputHint': 'Templat -o milik yt-dlp sendiri. Kosong menggunakan templat terbina %(title)s.%(ext)s. Boleh merangkumi subfolder, cth. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrent',

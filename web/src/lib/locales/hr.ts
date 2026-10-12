@@ -1783,6 +1783,7 @@ export const hr: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Vlastita vrijednost --sub-langs za yt-dlp, npr. en,de. Prazno znači zadano en.',
   'settings.resolvers.subtitleAuto': 'Dohvati i automatski generirane titlove kada ne postoji ručna traka',
   'settings.resolvers.outputTitle': 'Naziv izlazne datoteke',
+  'settings.resolvers.filesTitle': 'Playliste i nazivi datoteka',
   'settings.resolvers.outputHint': 'Vlastiti predložak -o za yt-dlp. Prazno koristi ugrađeni %(title)s.%(ext)s. Može uključivati podmape, npr. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenti',

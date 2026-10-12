@@ -1782,6 +1782,7 @@ export const id: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Nilai --sub-langs milik yt-dlp sendiri, mis. en,de. Kosong berarti bawaan en.',
   'settings.resolvers.subtitleAuto': 'Ambil juga subtitel yang dibuat otomatis saat tidak ada trek manual',
   'settings.resolvers.outputTitle': 'Nama file keluaran',
+  'settings.resolvers.filesTitle': 'Playlist dan nama file',
   'settings.resolvers.outputHint': 'Templat -o milik yt-dlp sendiri. Kosong menggunakan bawaan %(title)s.%(ext)s. Bisa mencakup subfolder, mis. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrent',

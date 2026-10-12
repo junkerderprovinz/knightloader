@@ -685,7 +685,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.resolvers.toolsTitle',
       hint: 'settings.resolvers.toolsHint',
       rows: [
-        { key: 'settings.module.ytdlp' },
+        { key: 'settings.module.ytdlp', hint: 'settings.resolvers.about' },
         { key: 'settings.resolvers.toolsAutoUpdate', hint: 'settings.resolvers.toolsAutoUpdateHint' },
         { key: 'settings.resolvers.toolsAutoCheck', hint: 'settings.resolvers.toolsAutoCheckHint' },
         { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
@@ -700,11 +700,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: ['settings.resolvers.toolsCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
     },
     {
-      title: 'settings.resolvers.quality',
-      hint: 'settings.resolvers.about',
+      title: 'columns.variant.video',
       rows: [
         { key: 'settings.resolvers.quality', hint: 'settings.resolvers.qualityHint' },
         { key: 'settings.resolvers.customFormat', hint: 'settings.resolvers.customFormatHint' },
+      ],
+    },
+    {
+      title: 'settings.resolvers.filesTitle',
+      rows: [
         { key: 'settings.resolvers.playlist' },
         { key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' },
       ],

@@ -1782,6 +1782,7 @@ export const fa: Dict = {
   'settings.resolvers.subtitleLangsHint': 'مقدار --sub-langs مخصوص خود yt-dlp، مثلاً en,de. خالی به‌معنای مقدار پیش‌فرض en است.',
   'settings.resolvers.subtitleAuto': 'دریافت زیرنویس‌های خودکارساخته نیز در صورت نبود مسیر دستی',
   'settings.resolvers.outputTitle': 'نام فایل خروجی',
+  'settings.resolvers.filesTitle': 'فهرست‌های پخش و نام فایل‌ها',
   'settings.resolvers.outputHint': 'الگوی -o مخصوص خود yt-dlp. خالی از الگوی درونی %(title)s.%(ext)s استفاده می‌کند. می‌تواند شامل زیرپوشه‌ها باشد، مثلاً %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'تورنت‌ها',

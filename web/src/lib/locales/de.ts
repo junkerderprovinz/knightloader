@@ -1958,6 +1958,7 @@ export const de: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Der eigene --sub-langs-Wert von yt-dlp, z. B. en,de. Leer bedeutet en als Standard.',
   'settings.resolvers.subtitleAuto': 'Auch automatisch erzeugte Untertitel holen, wenn keine manuelle Spur existiert',
   'settings.resolvers.outputTitle': 'Ausgabedateiname',
+  'settings.resolvers.filesTitle': 'Playlists und Dateinamen',
   'settings.resolvers.outputHint': 'Die eigene -o-Vorlage von yt-dlp. Leer verwendet die eingebaute %(title)s.%(ext)s. Kann Unterordner enthalten, z. B. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

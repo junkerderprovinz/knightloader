@@ -1782,6 +1782,7 @@ export const ja: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp 独自の --sub-langs 値です。例: en,de。空欄の場合は既定で en になります。',
   'settings.resolvers.subtitleAuto': '手動トラックがない場合は自動生成字幕も取得する',
   'settings.resolvers.outputTitle': '出力ファイル名',
+  'settings.resolvers.filesTitle': 'プレイリストとファイル名',
   'settings.resolvers.outputHint': 'yt-dlp 独自の -o テンプレートです。空欄の場合は組み込みの %(title)s.%(ext)s が使われます。サブフォルダーを含めることもできます。例: %(uploader)s/%(title)s.%(ext)s。',
 
   'settings.nav.torrents': 'トレント',

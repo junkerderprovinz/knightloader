@@ -1775,6 +1775,7 @@ export const pt: Dict = {
   'settings.resolvers.subtitleLangsHint': 'O valor --sub-langs próprio do yt-dlp, por ex. en,de. Vazio usa en por predefinição.',
   'settings.resolvers.subtitleAuto': 'Obter também as legendas geradas automaticamente quando não existe uma faixa manual',
   'settings.resolvers.outputTitle': 'Nome do ficheiro de saída',
+  'settings.resolvers.filesTitle': 'Listas de reprodução e nomes de ficheiro',
   'settings.resolvers.outputHint': 'O modelo -o próprio do yt-dlp. Vazio usa o modelo incorporado %(title)s.%(ext)s. Pode incluir subpastas, por ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

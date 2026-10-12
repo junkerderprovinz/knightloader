@@ -1782,6 +1782,7 @@ export const vi: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Giá trị --sub-langs riêng của yt-dlp, ví dụ en,de. Để trống sẽ mặc định dùng en.',
   'settings.resolvers.subtitleAuto': 'Cũng lấy phụ đề được tạo tự động khi không có track thủ công',
   'settings.resolvers.outputTitle': 'Tên tệp đầu ra',
+  'settings.resolvers.filesTitle': 'Danh sách phát và tên tệp',
   'settings.resolvers.outputHint': 'Mẫu -o riêng của yt-dlp. Để trống sẽ dùng mẫu tích hợp sẵn %(title)s.%(ext)s. Có thể bao gồm thư mục con, ví dụ %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrent',

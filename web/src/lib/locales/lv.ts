@@ -1783,6 +1783,7 @@ export const lv: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp paša --sub-langs vērtība, piem. en,de. Tukšs nozīmē noklusējumu en.',
   'settings.resolvers.subtitleAuto': 'Iegūt arī automātiski izveidotus subtitrus, ja nav manuāla celiņa',
   'settings.resolvers.outputTitle': 'Izvades faila nosaukums',
+  'settings.resolvers.filesTitle': 'Atskaņošanas saraksti un failu nosaukumi',
   'settings.resolvers.outputHint': 'yt-dlp pats -o veidne. Tukšs izmanto iebūvēto %(title)s.%(ext)s. Var ietvert apakšmapes, piem. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenti',

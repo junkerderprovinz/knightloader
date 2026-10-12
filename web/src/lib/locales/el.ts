@@ -1783,6 +1783,7 @@ export const el: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Η δική του τιμή --sub-langs του yt-dlp, π.χ. en,de. Κενό σημαίνει en ως προεπιλογή.',
   'settings.resolvers.subtitleAuto': 'Λήψη και αυτόματα δημιουργημένων υποτίτλων όταν δεν υπάρχει χειροκίνητο κομμάτι',
   'settings.resolvers.outputTitle': 'Όνομα αρχείου εξόδου',
+  'settings.resolvers.filesTitle': 'Λίστες αναπαραγωγής και ονόματα αρχείων',
   'settings.resolvers.outputHint': 'Το δικό του πρότυπο -o του yt-dlp. Κενό χρησιμοποιεί το ενσωματωμένο %(title)s.%(ext)s. Μπορεί να περιλαμβάνει υποφακέλους, π.χ. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

@@ -2193,6 +2193,7 @@ export const en = {
   'settings.resolvers.subtitleLangsHint': "yt-dlp's own --sub-langs value, e.g. en,de. Empty defaults to en.",
   'settings.resolvers.subtitleAuto': 'Also fetch auto-generated captions when no manual track exists',
   'settings.resolvers.outputTitle': 'Output filename',
+  'settings.resolvers.filesTitle': 'Playlists and file names',
   'settings.resolvers.outputHint':
     "yt-dlp's own -o template. Empty uses the built-in %(title)s.%(ext)s. May include subfolders, e.g. %(uploader)s/%(title)s.%(ext)s.",
 

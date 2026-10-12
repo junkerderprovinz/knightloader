@@ -1775,6 +1775,7 @@ export const es: Dict = {
   'settings.resolvers.subtitleLangsHint': 'El valor --sub-langs propio de yt-dlp, p. ej. en,de. Vacío usa en por defecto.',
   'settings.resolvers.subtitleAuto': 'Obtener también los subtítulos generados automáticamente cuando no existe una pista manual',
   'settings.resolvers.outputTitle': 'Nombre de archivo de salida',
+  'settings.resolvers.filesTitle': 'Listas de reproducción y nombres de archivo',
   'settings.resolvers.outputHint': 'La plantilla -o propia de yt-dlp. Vacío usa la integrada %(title)s.%(ext)s. Puede incluir subcarpetas, p. ej. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

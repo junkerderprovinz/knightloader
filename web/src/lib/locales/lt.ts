@@ -1783,6 +1783,7 @@ export const lt: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Sava yt-dlp --sub-langs vertė, pvz. en,de. Palikus tuščią, numatytoji reikšmė yra en.',
   'settings.resolvers.subtitleAuto': 'Taip pat gauti automatiškai sukurtus subtitrus, kai nėra rankiniu būdu pridėto takelio',
   'settings.resolvers.outputTitle': 'Išvesties failo pavadinimas',
+  'settings.resolvers.filesTitle': 'Grojaraščiai ir failų pavadinimai',
   'settings.resolvers.outputHint': 'Savas yt-dlp -o šablonas. Palikus tuščią, naudojamas įtaisytasis %(title)s.%(ext)s. Gali apimti poaplankius, pvz. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrentai',

@@ -1784,6 +1784,7 @@ export const he: Dict = {
   'settings.resolvers.subtitleLangsHint': 'הערך של --sub-langs עבור yt-dlp עצמו, למשל en,de. ריק פירושו ברירת מחדל en.',
   'settings.resolvers.subtitleAuto': 'הבאת כתוביות שנוצרו אוטומטית גם כשאין מסלול ידני',
   'settings.resolvers.outputTitle': 'שם קובץ הפלט',
+  'settings.resolvers.filesTitle': 'רשימות השמעה ושמות קבצים',
   'settings.resolvers.outputHint': 'התבנית -o עבור yt-dlp עצמו. ריק משתמש בתבנית המובנית %(title)s.%(ext)s. יכול לכלול תיקיות משנה, למשל %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'טורנטים',

@@ -1784,6 +1784,7 @@ export const ar: Dict = {
   'settings.resolvers.subtitleLangsHint': 'قيمة --sub-langs الخاصة بـ yt-dlp، مثل en,de. الحقل الفارغ يعني en كافتراضي.',
   'settings.resolvers.subtitleAuto': 'جلب الترجمة المُنشأة تلقائيًا أيضًا عند عدم وجود مسار يدوي',
   'settings.resolvers.outputTitle': 'اسم ملف الإخراج',
+  'settings.resolvers.filesTitle': 'قوائم التشغيل وأسماء الملفات',
   'settings.resolvers.outputHint': 'قالب -o الخاص بـ yt-dlp. الحقل الفارغ يستخدم القالب المدمج %(title)s.%(ext)s. يمكن أن يتضمن مجلدات فرعية، مثل %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'التورنتات',

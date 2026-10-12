@@ -1775,6 +1775,7 @@ export const fr: Dict = {
   'settings.resolvers.subtitleLangsHint': 'La valeur --sub-langs propre à yt-dlp, par ex. en,de. Vide revient à en par défaut.',
   'settings.resolvers.subtitleAuto': "Récupérer aussi les sous-titres générés automatiquement quand aucune piste manuelle n'existe",
   'settings.resolvers.outputTitle': 'Nom de fichier de sortie',
+  'settings.resolvers.filesTitle': 'Playlists et noms de fichier',
   'settings.resolvers.outputHint': 'Le modèle -o propre à yt-dlp. Vide utilise le %(title)s.%(ext)s intégré. Peut inclure des sous-dossiers, par ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

@@ -1782,6 +1782,7 @@ export const ko: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp 자체의 --sub-langs 값입니다. 예: en,de. 비워두면 기본값 en이 사용됩니다.',
   'settings.resolvers.subtitleAuto': '수동 트랙이 없을 때 자동 생성된 자막도 가져오기',
   'settings.resolvers.outputTitle': '출력 파일 이름',
+  'settings.resolvers.filesTitle': '재생목록과 파일 이름',
   'settings.resolvers.outputHint': 'yt-dlp 자체의 -o 템플릿입니다. 비워두면 내장된 %(title)s.%(ext)s가 사용됩니다. 하위 폴더를 포함할 수 있습니다. 예: %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': '토렌트',
