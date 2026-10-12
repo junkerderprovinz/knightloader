@@ -641,6 +641,15 @@ body {
 .kl-pic-card {
   rx: var(--radius-card);
 }
+/* A figure that owns a palette position (pictureHue in pictures/scene.ts).
+   Under rainbow mode its lines and packets take that position, at rest too,
+   since here the colours tell the figures apart. Reactive mode rests them with
+   their card and lights them while the card is pointed at or focused. */
+[data-rainbow]:not([data-rainbow='reactive']) .kl-pic-hue,
+[data-rainbow='reactive'] .glim-hue:is(:hover, :focus-within) .kl-pic-hue {
+  --accent: var(--item-hue);
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+}
 .kl-pic-lift {
   filter: drop-shadow(0 3px 3px rgb(0 0 0 / .28));
 }

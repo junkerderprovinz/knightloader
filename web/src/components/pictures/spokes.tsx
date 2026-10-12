@@ -29,24 +29,31 @@ const LABEL_HEIGHT = 36;
 const HUB_LABEL = { width: 96, height: 18 };
 
 const WIDE = 800;
+// The room a node's name keeps outside it in a picture drawn at its card's width.
+const NAME_ROOM = 190;
 
 /**
  * spokeLayout places a hub and n nodes in a box. A wide box has the nodes on
  * both sides of the hub with their names on the outside; a narrow one has room
  * for one side only. A line runs from the hub outwards.
  *
- * `room` widens a wide box past its own 800 units, for a picture drawn at the
- * width of its card: the lines grow longer and the names keep their room on
- * the outside, so the figures stay the size they are drawn at.
+ * `room` is the width of the card for a picture drawn at it, one unit to the
+ * pixel. The nodes then stand a name's room in from either edge and the lines
+ * take everything between, so the picture spans the card instead of gathering
+ * in its middle, and the figures stay the size they are drawn at.
  */
-export function spokeLayout(shape: SpokeShape, n: number, sizes: SpokeSizes, room = WIDE) {
+export function spokeLayout(shape: SpokeShape, n: number, sizes: SpokeSizes, room?: number) {
   const wide = shape === 'wide';
-  const width = wide ? Math.max(WIDE, Math.round(room)) : 360;
+  const width = wide ? Math.max(WIDE, Math.round(room ?? WIDE)) : 360;
   const extra = (width - WIDE) / 2;
   const right = wide ? Math.ceil(n / 2) : n;
   const left = n - right;
+  const text = sizes.node + 10;
   // A hub with nodes on one side only moves along with the extra room instead.
-  const reach = wide ? 112 + (left ? extra : 0) : 68;
+  let reach = 68;
+  if (wide && !left) reach = 112;
+  else if (wide && room === undefined) reach = 112 + extra;
+  else if (wide) reach = width / 2 - NAME_ROOM - text - 4;
   const height = Math.max((sizes.hub + HUB_LABEL.height + 8) * 2, right * sizes.pitch + 8);
   const hub = { x: !wide ? HUB_LABEL.width / 2 : left ? width / 2 : 240 + extra, y: height / 2 };
 
@@ -58,7 +65,6 @@ export function spokeLayout(shape: SpokeShape, n: number, sizes: SpokeSizes, roo
     const length = Math.hypot(x - hub.x, y - hub.y);
     const ux = (x - hub.x) / length;
     const uy = (y - hub.y) / length;
-    const text = sizes.node + 10;
     return {
       x,
       y,
