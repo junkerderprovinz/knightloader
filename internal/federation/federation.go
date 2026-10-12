@@ -358,8 +358,15 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	// learns nothing it could use and cannot answer for it.
 	if in.RelayID != "" {
 		out, code, err := m.proxyMember(ctx, in, rt, method, path, body)
-		if err == nil {
+		var untrusted *relay.UntrustedAnswer
+		switch {
+		case err == nil:
 			m.noteAnswer(in.RelayID, code, out, time.Now())
+		case errors.As(err, &untrusted) && waitsForApproval(untrusted.Status, untrusted.Body):
+			// The member has not been approved here yet either, which is
+			// how two instances meet; that this one waits there is all its
+			// answer is taken for.
+			m.noteAnswer(in.RelayID, untrusted.Status, untrusted.Body, time.Now())
 		}
 		return out, code, err
 	}

@@ -298,10 +298,24 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s's answer is not signed by its key", target)
 		}
 		if c.trusts != nil && !c.trusts(target, result.Key) {
-			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s is not approved on this instance", target)
+			return nil, http.StatusBadGateway, &UntrustedAnswer{Target: target, Status: result.Status, Body: result.Body}
 		}
 		return result.Body, result.Status, nil
 	}
+}
+
+// UntrustedAnswer is the error for an answer target signed with the key its
+// id is made from but that is not approved here. It carries the answer, which
+// the caller may read only for what cannot hurt it, such as that target has
+// this instance waiting for approval.
+type UntrustedAnswer struct {
+	Target string
+	Status int
+	Body   []byte
+}
+
+func (e *UntrustedAnswer) Error() string {
+	return "relay: " + e.Target + " is not approved on this instance"
 }
 
 // run is the reconnect loop: one session at a time until Close.

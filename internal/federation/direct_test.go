@@ -13,6 +13,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
@@ -172,5 +173,32 @@ func TestADirectAnswerCountsOnlyFromAnApprovedKey(t *testing.T) {
 	callee.SetGroup(secret, officeID, nil)
 	if _, _, err := caller.callDirect(context.Background(), srv.URL, officeID, http.MethodGet, "/api/tasks", nil); err == nil {
 		t.Error("an unsigned answer was taken")
+	}
+}
+
+// TestAnInstanceHearsItWaitsBeforeApprovingTheOther: two instances meet, and
+// neither has approved the other yet. The other one's answer that this one
+// waits for approval there still reaches the Pairing card, though nothing
+// else in an answer from an instance not approved here counts.
+func TestAnInstanceHearsItWaitsBeforeApprovingTheOther(t *testing.T) {
+	secret := []byte("0123456789abcdef")
+	callee, officeID := directCallee(t, secret)
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		callee.ServeDirect(w, r, callee.Guard(func(context.Context, relay.ProxyCall) (int, []byte) {
+			return http.StatusOK, []byte(`{"secret":"x"}`)
+		}))
+	}))
+	defer srv.Close()
+
+	caller := newManager(t)
+	key := memberKeyOf(71)
+	caller.SetGroup(secret, idOf(key, relay.KindInstance), key)
+	caller.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: officeID, URL: srv.URL}}})
+	body, _, err := caller.Proxy(context.Background(), officeID, http.MethodGet, "/api/auth", nil)
+	if err == nil || body != nil {
+		t.Fatalf("an answer from an instance not approved here = %q %v, want none", body, err)
+	}
+	if !caller.AwaitingApproval(time.Now()) {
+		t.Error("the other instance said this one waits for approval there, and the card does not show it")
 	}
 }

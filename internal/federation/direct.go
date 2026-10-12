@@ -195,7 +195,7 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s's answer is not signed by its key", target)
 	}
 	if !m.TrustsAnswer(target, result.Key) {
-		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s is not approved on this instance", target)
+		return nil, http.StatusBadGateway, &relay.UntrustedAnswer{Target: target, Status: result.Status, Body: result.Body}
 	}
 	return result.Body, result.Status, nil
 }
