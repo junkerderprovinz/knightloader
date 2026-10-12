@@ -3751,11 +3751,21 @@ export async function startMaintenance(action: 'check' | 'compact' | 'analyze'):
 }
 
 /** Which build this is and what quit and restart do here. */
+/** A library compiled into the server (buildinfo.Module). */
+export interface BuiltModule {
+  path: string;
+  version: string;
+  /** go.mod replaces it with a fork, and the version is the fork's. */
+  fork?: boolean;
+}
+
 export interface DeploymentInfo {
   deployment: string;
   canQuit: boolean;
   canRestart: boolean;
   note: string;
+  /** The libraries the Updates card lists beside the programs, null when the build carries none of them. */
+  engines: BuiltModule[] | null;
 }
 
 export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {
