@@ -55,7 +55,7 @@ export const RELEASES: Release[] = [
       { id: 'folder-vessel', to: ['/'], text: 'whatsnew.change.vessel', names: { name: 'disk.title' } },
       {
         id: 'transfer-flow',
-        to: ['/', '/downloads'],
+        to: ['/'],
         text: 'whatsnew.change.transferFlow',
         names: { name: 'overview.flow.title' },
       },

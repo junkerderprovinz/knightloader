@@ -9,7 +9,7 @@ import { I18nProvider, type TranslationKey } from '../../lib/i18n';
 import { interpolate } from '../../lib/interpolate';
 import { en } from '../../lib/locales/en';
 import { flowOf, type Flow } from '../../lib/transferFlow';
-import { TransferFlow, TransferFlowStrip } from './TransferFlow';
+import { TransferFlow } from './TransferFlow';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -167,25 +167,5 @@ describe('the line from the hoster to the disk', () => {
     expect(wide().querySelectorAll('[data-folder]')).toHaveLength(1);
     expect(host.textContent).toContain('Nothing is loading right now.');
     expect(wide().getAttribute('aria-label')).toBe('From hoster to disk: Nothing is loading right now.');
-  });
-});
-
-describe('the strip in the head bar', () => {
-  const strip = () => host.querySelector('svg[role="img"]')!;
-
-  it('shows the same ways on one line, with the packets of the summed speed', async () => {
-    const both = flow(task({}), task({ id: 'b', url: 'https://other.example/b.zip', connection: 'p1', speed: 3 * MIB }));
-    await draw(<TransferFlowStrip title="From hoster to disk" flow={both} />);
-    expect(strip().getAttribute('data-state')).toBe('loading');
-    expect(strip().querySelectorAll('[data-route]')).toHaveLength(2);
-    expect(strip().querySelectorAll('[data-line="moving"]')).toHaveLength(2);
-    expect(strip().getAttribute('aria-label')).toContain('other.example');
-  });
-
-  it('rests on a dashed line when nothing is loading', async () => {
-    await draw(<TransferFlowStrip title="From hoster to disk" flow={flow()} />);
-    expect(strip().getAttribute('data-state')).toBe('idle');
-    expect(strip().querySelectorAll('[data-line="still"]')).toHaveLength(1);
-    expect(strip().querySelector('[data-packets]')).toBeNull();
   });
 });
