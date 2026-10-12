@@ -1787,6 +1787,7 @@ export const ro: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Valoarea proprie --sub-langs a yt-dlp, de ex. en,de. Gol înseamnă en implicit.',
   'settings.resolvers.subtitleAuto': 'Preia și subtitrările generate automat atunci când nu există o pistă manuală',
   'settings.resolvers.outputTitle': 'Nume fișier de ieșire',
+  'settings.resolvers.filesTitle': 'Liste de redare și nume de fișiere',
   'settings.resolvers.outputHint': 'Șablonul propriu -o al yt-dlp. Gol folosește șablonul implicit %(title)s.%(ext)s. Poate include subfoldere, de ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenturi',

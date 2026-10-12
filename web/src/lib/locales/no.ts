@@ -1785,6 +1785,7 @@ export const no: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlps eget --sub-langs-verdi, f.eks. en,de. Tomt gir en som standard.',
   'settings.resolvers.subtitleAuto': 'Hent også automatisk genererte undertekster når det ikke finnes et manuelt spor',
   'settings.resolvers.outputTitle': 'Filnavn for utdata',
+  'settings.resolvers.filesTitle': 'Spillelister og filnavn',
   'settings.resolvers.outputHint': 'yt-dlps egen -o-mal. Tomt bruker den innebygde %(title)s.%(ext)s. Kan inneholde undermapper, f.eks. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

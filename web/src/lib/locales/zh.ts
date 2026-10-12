@@ -1779,6 +1779,7 @@ export const zh: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp 自身的 --sub-langs 值,例如 en,de。留空默认使用 en。',
   'settings.resolvers.subtitleAuto': '在没有手动字幕轨道时,也获取自动生成的字幕',
   'settings.resolvers.outputTitle': '输出文件名',
+  'settings.resolvers.filesTitle': '播放列表和文件名',
   'settings.resolvers.outputHint': 'yt-dlp 自身的 -o 模板。留空使用内置的 %(title)s.%(ext)s。可以包含子文件夹,例如 %(uploader)s/%(title)s.%(ext)s。',
 
   'settings.nav.torrents': '种子',

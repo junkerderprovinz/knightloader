@@ -1783,6 +1783,7 @@ export const sk: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Vlastná hodnota --sub-langs pre yt-dlp, napr. en,de. Prázdne znamená predvolené en.',
   'settings.resolvers.subtitleAuto': 'Sťahovať aj automaticky generované titulky, keď neexistuje ručná stopa',
   'settings.resolvers.outputTitle': 'Názov výstupného súboru',
+  'settings.resolvers.filesTitle': 'Playlisty a názvy súborov',
   'settings.resolvers.outputHint': 'Vlastná šablóna -o pre yt-dlp. Prázdne použije vstavanú %(title)s.%(ext)s. Môže obsahovať podpriečinky, napr. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenty',

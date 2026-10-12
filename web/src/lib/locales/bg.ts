@@ -1784,6 +1784,7 @@ export const bg: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Собствената стойност --sub-langs на yt-dlp, напр. en,de. Празно означава en по подразбиране.',
   'settings.resolvers.subtitleAuto': 'Изтегляне и на автоматично генерирани субтитри, когато няма ръчна писта',
   'settings.resolvers.outputTitle': 'Име на изходния файл',
+  'settings.resolvers.filesTitle': 'Плейлисти и имена на файлове',
   'settings.resolvers.outputHint': 'Собственият шаблон -o на yt-dlp. Празно използва вградения %(title)s.%(ext)s. Може да съдържа подпапки, напр. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Торенти',

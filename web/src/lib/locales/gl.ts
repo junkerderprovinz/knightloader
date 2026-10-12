@@ -1782,6 +1782,7 @@ export const gl: Dict = {
   'settings.resolvers.subtitleLangsHint': 'O valor --sub-langs propio de yt-dlp, p. ex. en,de. Baleiro significa en por defecto.',
   'settings.resolvers.subtitleAuto': 'Obter tamén os subtítulos xerados automaticamente cando non existe unha pista manual',
   'settings.resolvers.outputTitle': 'Nome do ficheiro de saída',
+  'settings.resolvers.filesTitle': 'Listas de reprodución e nomes de ficheiro',
   'settings.resolvers.outputHint': 'O modelo -o propio de yt-dlp. Baleiro usa o incorporado %(title)s.%(ext)s. Pode incluír subcartafoles, p. ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',

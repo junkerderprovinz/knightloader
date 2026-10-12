@@ -1783,6 +1783,7 @@ export const eu: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp-ren berezko --sub-langs balioa, adib. en,de. Hutsik badago, en izango da lehenetsia.',
   'settings.resolvers.subtitleAuto': 'Eskuz jarritako pistarik ez dagoenean, automatikoki sortutako azpitituluak ere eskuratu',
   'settings.resolvers.outputTitle': 'Irteerako fitxategiaren izena',
+  'settings.resolvers.filesTitle': 'Erreprodukzio-zerrendak eta fitxategi-izenak',
   'settings.resolvers.outputHint': 'yt-dlp-ren berezko -o txantiloia. Hutsik badago, txertatutako %(title)s.%(ext)s erabiltzen da. Azpikarpetak izan ditzake, adib. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrentak',

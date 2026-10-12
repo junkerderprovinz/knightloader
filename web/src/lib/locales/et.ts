@@ -1782,6 +1782,7 @@ export const et: Dict = {
   'settings.resolvers.subtitleLangsHint': 'yt-dlp enda --sub-langs väärtus, nt en,de. Tühi tähendab vaikimisi en.',
   'settings.resolvers.subtitleAuto': 'Hangi ka automaatselt loodud subtiitrid, kui käsitsi lisatud rada puudub',
   'settings.resolvers.outputTitle': 'Väljundfaili nimi',
+  'settings.resolvers.filesTitle': 'Esitusloendid ja failinimed',
   'settings.resolvers.outputHint': 'yt-dlp enda -o mall. Tühi kasutab sisseehitatud %(title)s.%(ext)s. Võib sisaldada alamkaustu, nt %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrendid',

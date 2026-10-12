@@ -1783,6 +1783,7 @@ export const hu: Dict = {
   'settings.resolvers.subtitleLangsHint': 'A yt-dlp saját --sub-langs értéke, pl. en,de. Üresen alapértelmezés szerint en.',
   'settings.resolvers.subtitleAuto': 'Az automatikusan generált feliratok lekérése is, ha nincs kézi felirat',
   'settings.resolvers.outputTitle': 'Kimeneti fájlnév',
+  'settings.resolvers.filesTitle': 'Lejátszási listák és fájlnevek',
   'settings.resolvers.outputHint': 'A yt-dlp saját -o sablonja. Üresen a beépített %(title)s.%(ext)s-t használja. Tartalmazhat alkönyvtárakat is, pl. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrentek',

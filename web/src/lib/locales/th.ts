@@ -1781,6 +1781,7 @@ export const th: Dict = {
   'settings.resolvers.subtitleLangsHint': 'ค่า --sub-langs ของ yt-dlp เอง เช่น en,de ปล่อยว่างไว้จะใช้ en เป็นค่าเริ่มต้น',
   'settings.resolvers.subtitleAuto': 'ดึงคำบรรยายที่สร้างอัตโนมัติมาด้วย เมื่อไม่มีแทร็กที่ใส่ด้วยมือ',
   'settings.resolvers.outputTitle': 'ชื่อไฟล์ผลลัพธ์',
+  'settings.resolvers.filesTitle': 'เพลย์ลิสต์และชื่อไฟล์',
   'settings.resolvers.outputHint': 'เทมเพลต -o ของ yt-dlp เอง ปล่อยว่างไว้จะใช้เทมเพลตในตัว %(title)s.%(ext)s สามารถมีโฟลเดอร์ย่อยได้ เช่น %(uploader)s/%(title)s.%(ext)s',
 
   'settings.nav.torrents': 'ทอร์เรนต์',

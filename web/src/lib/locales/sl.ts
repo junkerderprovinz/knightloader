@@ -1783,6 +1783,7 @@ export const sl: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Lastna vrednost --sub-langs za yt-dlp, npr. en,de. Prazno pomeni privzeto en.',
   'settings.resolvers.subtitleAuto': 'Pridobi tudi samodejno ustvarjene podnapise, kadar ni ročne sledi',
   'settings.resolvers.outputTitle': 'Ime izhodne datoteke',
+  'settings.resolvers.filesTitle': 'Seznami predvajanja in imena datotek',
   'settings.resolvers.outputHint': 'Lastna predloga -o za yt-dlp. Prazno uporabi vgrajeno %(title)s.%(ext)s. Lahko vključuje podmape, npr. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenti',

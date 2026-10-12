@@ -1776,6 +1776,7 @@ export const pl: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Własna wartość --sub-langs dla yt-dlp, np. en,de. Puste oznacza domyślnie en.',
   'settings.resolvers.subtitleAuto': 'Pobieraj też napisy generowane automatycznie, gdy nie ma ręcznej ścieżki',
   'settings.resolvers.outputTitle': 'Nazwa pliku wyjściowego',
+  'settings.resolvers.filesTitle': 'Playlisty i nazwy plików',
   'settings.resolvers.outputHint': 'Własny szablon -o dla yt-dlp. Puste używa wbudowanego %(title)s.%(ext)s. Może zawierać podfoldery, np. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenty',

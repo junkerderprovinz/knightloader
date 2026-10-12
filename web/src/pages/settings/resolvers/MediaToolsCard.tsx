@@ -180,7 +180,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.resolvers.toolsHint')}>{t('settings.resolvers.toolsTitle')}</SectionTitle>
-      <ModuleToggle id="ytdlp" />
+      <ModuleToggle id="ytdlp" hint={t('settings.resolvers.about')} />
 
       <div className="glim-well p-0">
         <ul className="flex flex-col">

@@ -1784,6 +1784,7 @@ export const uk: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Власне значення --sub-langs для yt-dlp, напр. en,de. Порожньо означає en за замовчуванням.',
   'settings.resolvers.subtitleAuto': 'Також отримувати автоматично створені субтитри, якщо немає ручної доріжки',
   'settings.resolvers.outputTitle': "Ім'я вихідного файлу",
+  'settings.resolvers.filesTitle': 'Плейлисти та імена файлів',
   'settings.resolvers.outputHint': 'Власний шаблон -o для yt-dlp. Порожньо використовує вбудований %(title)s.%(ext)s. Може містити підпапки, напр. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Торренти',

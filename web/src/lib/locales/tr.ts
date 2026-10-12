@@ -1782,6 +1782,7 @@ export const tr: Dict = {
   'settings.resolvers.subtitleLangsHint': "yt-dlp'nin kendi --sub-langs değeri, örn. en,de. Boş bırakılırsa varsayılan olarak en kullanılır.",
   'settings.resolvers.subtitleAuto': 'Elle eklenmiş bir altyazı yokken otomatik oluşturulan altyazıları da getir',
   'settings.resolvers.outputTitle': 'Çıktı dosya adı',
+  'settings.resolvers.filesTitle': 'Çalma listeleri ve dosya adları',
   'settings.resolvers.outputHint': "yt-dlp'nin kendi -o şablonu. Boş bırakılırsa yerleşik %(title)s.%(ext)s kullanılır. Alt klasörler içerebilir, örn. %(uploader)s/%(title)s.%(ext)s.",
 
   'settings.nav.torrents': 'Torrentler',

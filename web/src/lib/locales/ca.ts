@@ -1782,6 +1782,7 @@ export const ca: Dict = {
   'settings.resolvers.subtitleLangsHint': 'El valor --sub-langs propi de yt-dlp, p. ex. en,de. Buit vol dir en per defecte.',
   'settings.resolvers.subtitleAuto': 'Obtén també els subtítols generats automàticament quan no hi ha cap pista manual',
   'settings.resolvers.outputTitle': 'Nom del fitxer de sortida',
+  'settings.resolvers.filesTitle': 'Llistes de reproducció i noms de fitxer',
   'settings.resolvers.outputHint': 'La plantilla -o pròpia de yt-dlp. Buit fa servir la integrada %(title)s.%(ext)s. Pot incloure subcarpetes, p. ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrents',
