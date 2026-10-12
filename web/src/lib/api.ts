@@ -1201,6 +1201,24 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
 export const hosterIconURL = (host: string, base = '/api'): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
 
+/** hosterIconsURL asks for the site icons of several hosts in one request. */
+export const hosterIconsURL = (hosts: string[], base = '/api'): string =>
+  withBase(`${base}/hosters/icons?${hosts.map((h) => `host=${encodeURIComponent(h)}`).join('&')}`);
+
+/**
+ * HosterIconBatch is what /hosters/icons answers. Every host asked for is in
+ * one part: an icon as a data: URL, one too large to come inline, one without
+ * an icon, or one still being fetched, to be asked for again after
+ * retryAfter seconds.
+ */
+export interface HosterIconBatch {
+  icons: Record<string, string>;
+  large: string[];
+  none: string[];
+  pending: string[];
+  retryAfter: number;
+}
+
 export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
     method: 'POST',

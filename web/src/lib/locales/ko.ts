@@ -3605,7 +3605,7 @@ export const ko: Dict = {
   'whatsnew.change.queueState': '“{play}” 및 “{pause}” 버튼은 대기열이 무엇을 하고 있는지 보여 줍니다. 채워진 버튼이 현재 상태이고, 다른 버튼이 누를 버튼입니다.',
   'whatsnew.change.listBar': '목록 위에 버튼 세 개가 있습니다: “{filter}”, “{sort}”, “{search}”.',
   'whatsnew.change.listRows': '행은 카드 제목과 같은 선에서 시작하고, 행의 버튼은 포인터가 행 위에 있는 동안 표시됩니다.',
-  'whatsnew.change.accountPicker': '새 Debrid 계정, 캡차 계정 또는 호스터 계정은 각자의 로고가 있는 타일에서 고릅니다.',
+  'whatsnew.change.accountPicker': '새 Debrid 계정, 캡차 계정 또는 호스터 계정은 각자의 로고가 있는 타일에서 고릅니다. 한 화면의 로고가 한꺼번에 불러와지고, 로고가 없는 호스터는 색을 입힌 타일에 첫 글자를 보여 줍니다.',
   'whatsnew.change.accountRows': '계정을 클릭하면 열리고, 우클릭하면 메뉴가 열립니다.',
   'whatsnew.change.settingsSearch': '페이지 맨 위에서 한 번 더 위로 스크롤하거나 “/”를 누르면 모든 설정을 대상으로 한 검색이 나타납니다. 입력하는 동안 입력란의 색조가 바뀌고 돋보기가 켜집니다.',
   'whatsnew.change.displayCard': '“{name}” 카드에는 “{lang}”, “{theme}”, “{shape}”, “{motion}”, “{rows}” 항목이 한데 모여 있습니다.',

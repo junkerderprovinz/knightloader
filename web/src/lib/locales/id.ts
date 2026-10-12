@@ -3618,7 +3618,7 @@ export const id: Dict = {
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan antrean: tombol yang terisi adalah keadaannya, yang satunya adalah tombol untuk ditekan.',
   'whatsnew.change.listBar': 'Ada tiga tombol di atas daftar: “{filter}”, “{sort}”, dan “{search}”.',
   'whatsnew.change.listRows': 'Baris dimulai sejajar dengan judul kartu, dan tombol sebuah baris terlihat selama penunjuk berada di atasnya.',
-  'whatsnew.change.accountPicker': 'Kamu memilih akun debrid, captcha, atau hoster yang baru dari ubin, masing-masing dengan logonya.',
+  'whatsnew.change.accountPicker': 'Kamu memilih akun debrid, captcha, atau hoster yang baru dari ubin, masing-masing dengan logonya. Logo satu layar penuh dimuat bersamaan, dan hoster tanpa logo menampilkan huruf pertamanya di ubin berwarna.',
   'whatsnew.change.accountRows': 'Klik pada sebuah akun membukanya, dan klik kanan membuka menunya.',
   'whatsnew.change.settingsSearch': 'Pencarian di seluruh pengaturan muncul saat kamu menggulir ke atas sekali lagi di bagian atas halaman, atau menekan “/”. Saat kamu mengetik di dalamnya, kotak berganti warna dan kaca pembesarnya menyala.',
   'whatsnew.change.displayCard': '“{name}” memuat “{lang}”, “{theme}”, “{shape}”, “{motion}”, dan “{rows}” dalam satu kartu.',

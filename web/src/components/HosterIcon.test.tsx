@@ -39,7 +39,6 @@ beforeEach(() => {
   inView = true;
   retryAfter = '5';
   vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
-  URL.createObjectURL = vi.fn(() => 'blob:icon');
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -56,23 +55,38 @@ afterEach(() => {
 const img = () => host.querySelector('img');
 
 /**
- * answers stubs fetch with one status per request, the last one repeating. A
- * 202 carries the instance's Retry-After unless a test sets retryAfter.
+ * answers stubs fetch with one status per request, the last one repeating,
+ * which every host of that request's batch gets: 200 for an icon, 204 for
+ * none and 202 for one still being fetched, with the instance's pause unless
+ * a test sets retryAfter.
  */
 function answers(...statuses: number[]) {
-  const fetch = vi.fn(async () => {
+  const fetch = vi.fn(async (url: string) => {
     const status = statuses.length > 1 ? statuses.shift()! : statuses[0];
-    return {
-      status,
-      headers: new Headers(status === 202 && retryAfter ? { 'Retry-After': retryAfter } : {}),
-      blob: async () => new Blob(status === 200 ? ['icon'] : []),
-    } as Response;
+    const hosts = new URL(url, 'http://kl').searchParams.getAll('host');
+    const batch = {
+      icons: status === 200 ? Object.fromEntries(hosts.map((h) => [h, ICON])) : {},
+      large: [],
+      none: status === 204 ? hosts : [],
+      pending: status === 202 ? hosts : [],
+      retryAfter: Number(retryAfter) || 0,
+    };
+    return new Response(JSON.stringify(batch), { status: 200 });
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;
 }
 
-const settle = () => act(() => vi.advanceTimersByTimeAsync(0));
+const ICON = 'data:image/png;base64,aWNvbg==';
+
+/**
+ * settle lets a row that has come into view ask, and then the hosts asked
+ * together go out as one batch.
+ */
+async function settle() {
+  await act(() => vi.advanceTimersByTimeAsync(0));
+  await act(() => vi.advanceTimersByTimeAsync(20));
+}
 
 /**
  * wait lets time pass a second per act, so React renders the ask a timer
@@ -116,8 +130,8 @@ it('draws the icon the instance has', async () => {
   const fetch = answers(200);
   act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
   await settle();
-  expect(fetch).toHaveBeenCalledWith('/api/hosters/icon?host=rapidgator.net');
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(fetch).toHaveBeenCalledWith('/api/hosters/icons?host=rapidgator.net');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('takes a 204 as no icon and does not ask again', async () => {
@@ -148,8 +162,9 @@ it('shows a monogram while the instance fetches the icon and asks again later', 
   expect(host.textContent).toBe('k');
 
   await act(() => vi.advanceTimersByTimeAsync(5000));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('waits as long as the instance asks before asking again', async () => {
@@ -159,11 +174,13 @@ it('waits as long as the instance asks before asking again', async () => {
   act(() => root.render(<HosterIcon host="uploady.io" />));
   await settle();
 
-  await act(() => vi.advanceTimersByTimeAsync(19_999));
+  await act(() => vi.advanceTimersByTimeAsync(19_900));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(1);
-  await act(() => vi.advanceTimersByTimeAsync(1));
+  await act(() => vi.advanceTimersByTimeAsync(100));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('keeps asking while a long queue of icons drains on the instance', async () => {
@@ -175,7 +192,7 @@ it('keeps asking while a long queue of icons drains on the instance', async () =
 
   await wait(RETRY_GIVE_UP_MS);
   expect(fetch).toHaveBeenCalledTimes(21);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks less often the longer an icon takes and gives up in the end', async () => {
@@ -204,8 +221,9 @@ it('asks again after the instance did not answer at all', async () => {
   expect(host.textContent).toBe('m');
 
   await act(() => vi.advanceTimersByTimeAsync(RETRY_DEFAULT_MS));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks only once the row is scrolled into view', async () => {
@@ -219,7 +237,7 @@ it('asks only once the row is scrolled into view', async () => {
 
   act(() => observers.forEach((fire) => fire()));
   await settle();
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks only for public dotted names', () => {
@@ -267,4 +285,35 @@ it('draws the monogram for hosts that cannot have an icon without asking the ins
   }
   expect(host.textContent).toBe('2');
   expect(fetch).not.toHaveBeenCalled();
+});
+
+it('asks for the icons of a screen of rows together', async () => {
+  vi.useFakeTimers();
+  const fetch = answers(200);
+  act(() =>
+    root.render(
+      <>
+        {Array.from({ length: 70 }, (_, i) => (
+          <HosterIcon key={i} host={`host${i}.com`} />
+        ))}
+      </>,
+    ),
+  );
+  await settle();
+  // Two batches, the second for what the first had no room for.
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(host.querySelectorAll('img')).toHaveLength(70);
+});
+
+it('loads an icon too large for the batch from its own address', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () =>
+      new Response(JSON.stringify({ icons: {}, large: ['pixeldrain.com'], none: [], pending: [], retryAfter: 5 }), { status: 200 }),
+    ),
+  );
+  act(() => root.render(<HosterIcon host="pixeldrain.com" />));
+  await settle();
+  expect(img()?.getAttribute('src')).toBe('/api/hosters/icon?host=pixeldrain.com');
 });

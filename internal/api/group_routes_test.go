@@ -216,6 +216,7 @@ var groupRefused = []string{
 	"DELETE /api/captcha/{id}/unanswerable",
 	"GET /api/captcha/{id}/widget",
 	"GET /api/hosters/icon",
+	"GET /api/hosters/icons",
 	"GET /api/browser-extension/version",
 	"GET /api/browser-extension.xpi",
 	"GET /api/browser-extension.zip",

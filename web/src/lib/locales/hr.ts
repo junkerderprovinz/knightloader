@@ -3632,7 +3632,7 @@ export const hr: Dict = {
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazuju što red radi: ispunjeni gumb je njegovo stanje, a drugi se pritišće.',
   'whatsnew.change.listBar': 'Iznad popisa stoje tri gumba: „{filter}”, „{sort}” i „{search}”.',
   'whatsnew.change.listRows': 'Retci počinju poravnati s naslovom kartice, a gumbi retka vide se dok je pokazivač na njemu.',
-  'whatsnew.change.accountPicker': 'Novi debrid račun, račun captche ili račun hostera biraš među pločicama, svaka sa svojim logotipom.',
+  'whatsnew.change.accountPicker': 'Novi debrid račun, račun captche ili račun hostera biraš među pločicama, svaka sa svojim logotipom. Logotipi cijelog zaslona učitavaju se zajedno, a hoster bez logotipa pokazuje svoje početno slovo na obojenoj pločici.',
   'whatsnew.change.accountRows': 'Klik na račun otvara ga, a desni klik otvara njegov izbornik.',
   'whatsnew.change.settingsSearch': 'Pretraga svih postavki pojavi se kad na vrhu stranice još jednom skroluješ prema gore ili pritisneš „/”. Dok tipkaš u njoj, polje mijenja nijansu, a povećalo zasvijetli.',
   'whatsnew.change.displayCard': '„{name}” okuplja „{lang}”, „{theme}”, „{shape}”, „{motion}” i „{rows}” na jednoj kartici.',

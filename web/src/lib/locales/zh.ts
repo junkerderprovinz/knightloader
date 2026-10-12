@@ -3600,7 +3600,7 @@ export const zh: Dict = {
   'whatsnew.change.queueState': '“{play}”和“{pause}”显示队列正在做什么：填充的那个按钮是它的状态，另一个是可以按的按钮。',
   'whatsnew.change.listBar': '列表上方有三个按钮：“{filter}”、“{sort}”和“{search}”。',
   'whatsnew.change.listRows': '各行与卡片标题对齐开始，指针停在某一行上时会显示这一行的按钮。',
-  'whatsnew.change.accountPicker': '新的 Debrid 账户、验证码账户或网盘账号从带有各自徽标的磁贴中选择。',
+  'whatsnew.change.accountPicker': '新的 Debrid 账户、验证码账户或网盘账号从带有各自徽标的磁贴中选择。整屏的徽标会一起加载，没有徽标的网盘会在带颜色的磁贴上显示首字母。',
   'whatsnew.change.accountRows': '点击账户即可打开它，右键点击可打开它的菜单。',
   'whatsnew.change.settingsSearch': '在页面顶部再向上滚动一次，或按“/”，就会出现覆盖所有设置的搜索。你在其中输入时，输入框会变换色调，放大镜会亮起。',
   'whatsnew.change.displayCard': '“{name}”把“{lang}”、“{theme}”、“{shape}”、“{motion}”和“{rows}”放在同一张卡片里。',

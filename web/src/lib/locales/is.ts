@@ -3614,7 +3614,7 @@ export const is: Dict = {
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ sýna hvað biðröðin er að gera: fyllti hnappurinn er staða hennar, hinn er sá sem þú ýtir á.',
   'whatsnew.change.listBar': 'Þrír hnappar eru fyrir ofan listann: „{filter}“, „{sort}“ og „{search}“.',
   'whatsnew.change.listRows': 'Línurnar byrja í beinni línu við titil spjaldsins og hnappar línu birtast á meðan bendillinn er yfir henni.',
-  'whatsnew.change.accountPicker': 'Þú velur nýjan debrid-, captcha- eða hýsingarreikning úr flísum sem hver er með sínu merki.',
+  'whatsnew.change.accountPicker': 'Þú velur nýjan debrid-, captcha- eða hýsingarreikning úr flísum sem hver er með sínu merki. Merki heils skjás hlaðast saman, og hýsing án merkis sýnir fyrsta stafinn sinn á litaðri flís.',
   'whatsnew.change.accountRows': 'Smellur á reikning opnar hann og hægrismellur opnar valmynd hans.',
   'whatsnew.change.settingsSearch': 'Leit í öllum stillingum birtist þegar þú flettir einu sinni enn upp efst á síðu eða ýtir á „/“. Á meðan þú skrifar í hana breytir reiturinn um lit og stækkunarglerið lýsist upp.',
   'whatsnew.change.displayCard': '„{name}“ safnar „{lang}“, „{theme}“, „{shape}“, „{motion}“ og „{rows}“ á eitt spjald.',

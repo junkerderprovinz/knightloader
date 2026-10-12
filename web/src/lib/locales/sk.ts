@@ -3628,7 +3628,7 @@ export const sk: Dict = {
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazujú, čo front robí: vyplnené tlačidlo je jeho stav, to druhé sa stláča.',
   'whatsnew.change.listBar': 'Nad zoznamom sú tri tlačidlá: „{filter}“, „{sort}“ a „{search}“.',
   'whatsnew.change.listRows': 'Riadky začínajú zarovnané s nadpisom karty a tlačidlá riadka je vidieť, kým je na ňom ukazovateľ.',
-  'whatsnew.change.accountPicker': 'Nový debrid účet, účet captchy alebo účet hostera vyberieš z dlaždíc, každá má svoje logo.',
+  'whatsnew.change.accountPicker': 'Nový debrid účet, účet captchy alebo účet hostera vyberieš z dlaždíc, každá má svoje logo. Logá celej obrazovky sa načítajú naraz a hoster bez loga ukáže svoje prvé písmeno na zafarbenej dlaždici.',
   'whatsnew.change.accountRows': 'Kliknutie na účet ho otvorí a kliknutie pravým tlačidlom otvorí jeho ponuku.',
   'whatsnew.change.settingsSearch': 'Vyhľadávanie vo všetkých nastaveniach sa objaví, keď hore na stránke ešte raz posunieš nahor alebo stlačíš „/“. Kým doň píšeš, pole zmení odtieň a lupa sa rozsvieti.',
   'whatsnew.change.displayCard': '„{name}“ združuje „{lang}“, „{theme}“, „{shape}“, „{motion}“ a „{rows}“ na jednej karte.',

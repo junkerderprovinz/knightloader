@@ -3614,7 +3614,7 @@ export const ja: Dict = {
   'whatsnew.change.queueState': '「{play}」と「{pause}」はキューの状態を示します。塗りつぶされているほうが現在の状態で、もう一方が押すボタンです。',
   'whatsnew.change.listBar': 'リストの上に 3 つのボタンがあります: 「{filter}」「{sort}」「{search}」。',
   'whatsnew.change.listRows': '行はカードのタイトルとそろった位置から始まり、行のボタンはポインターが行の上にある間だけ表示されます。',
-  'whatsnew.change.accountPicker': '新しい Debrid アカウント、キャプチャアカウント、ホスターのアカウントは、それぞれのロゴが付いたタイルから選びます。',
+  'whatsnew.change.accountPicker': '新しい Debrid アカウント、キャプチャアカウント、ホスターのアカウントは、それぞれのロゴが付いたタイルから選びます。画面いっぱいのロゴはまとめて読み込まれ、ロゴのないホスターは色付きのタイルに頭文字を表示します。',
   'whatsnew.change.accountRows': 'アカウントをクリックすると開き、右クリックするとメニューが開きます。',
   'whatsnew.change.settingsSearch': 'ページの一番上でもう一度上にスクロールするか「/」を押すと、すべての設定を対象にした検索が表示されます。入力している間は、欄の色合いが変わり、虫眼鏡が光ります。',
   'whatsnew.change.displayCard': '「{name}」には「{lang}」「{theme}」「{shape}」「{motion}」「{rows}」が 1 枚のカードにまとまっています。',
