@@ -3597,6 +3597,7 @@ export const ca: Dict = {
   'whatsnew.change.seedingLine': 'La corba de velocitat té una segona línia per al que els teus torrents pugen mentre fan seed.',
   'whatsnew.change.seedingAlways': 'Les corbes de velocitat sempre mostren la línia de seed i el seu nom a sota. Quan no surt res, la línia queda plana a la vora inferior.',
   'whatsnew.change.lineColours': 'A «{name}» pots triar un color per a la línia de baixada i un per a la línia de seed a les corbes de velocitat.',
+  'whatsnew.change.captchaRefresh': 'A la finestra «{name}», «{refresh}» té l\'aspecte dels botons del costat, perquè vegis que també ho és.',
   'whatsnew.change.mergeFiles': 'Desactiva «{name}» per mantenir el vídeo, l’àudio i els subtítols com a fitxers separats.',
   'whatsnew.change.ruleSwitch': 'Les regles es dibuixen com el camí que fa un enllaç d’exemple a través seu: quina regla l’atrapa i on va a parar.',
   'whatsnew.change.trackMerge': '«{name}» dibuixa a tota la targeta què acaba dins d’un fitxer de vídeo amb els ajustos actuals i segueix els interruptors de sota. Amb «{rainbow}» activat, cada pista té el seu color.',

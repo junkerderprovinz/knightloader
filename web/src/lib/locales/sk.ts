@@ -3619,6 +3619,7 @@ export const sk: Dict = {
   'whatsnew.change.seedingLine': 'Krivka rýchlosti má druhú čiaru pre to, čo tvoje torrenty nahrávajú pri seedovaní.',
   'whatsnew.change.seedingAlways': 'Krivky rýchlosti vždy ukazujú čiaru seedovania a jej názov pod sebou. Keď nič neodchádza, čiara leží rovno pri spodnom okraji.',
   'whatsnew.change.lineColours': 'V časti „{name}“ vyberieš farbu pre čiaru sťahovania a jednu pre čiaru seedovania v krivkách rýchlosti.',
+  'whatsnew.change.captchaRefresh': 'V okne „{name}“ vyzerá „{refresh}“ ako tlačidlá vedľa neho, takže spoznáš, že je to tlačidlo.',
   'whatsnew.change.mergeFiles': 'Vypni „{name}“, aby video, zvuk a titulky zostali samostatné súbory.',
   'whatsnew.change.ruleSwitch': 'Pravidlá sú nakreslené ako cesta, ktorou nimi prejde ukážkový odkaz: ktoré pravidlo ho zachytí a kde skončí.',
   'whatsnew.change.trackMerge': '„{name}“ nakreslí cez celú kartu, čo s aktuálnymi nastaveniami skončí vo videosúbore, a riadi sa prepínačmi pod ňou. Keď je zapnutý „{rainbow}“, má každá stopa vlastnú farbu.',

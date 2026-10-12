@@ -3599,6 +3599,7 @@ export const fr: Dict = {
   'whatsnew.change.seedingLine': 'La courbe de vitesse a une deuxième ligne pour ce que vos torrents envoient pendant le partage.',
   'whatsnew.change.seedingAlways': 'Les courbes de vitesse montrent toujours la ligne de partage et son nom en dessous. Quand rien ne sort, la ligne reste à plat le long du bord inférieur.',
   'whatsnew.change.lineColours': 'Dans « {name} », vous pouvez choisir une couleur pour la ligne de téléchargement et une autre pour la ligne de partage des courbes de vitesse.',
+  'whatsnew.change.captchaRefresh': 'Dans la fenêtre « {name} », « {refresh} » ressemble aux boutons voisins, pour que vous voyiez que c’en est un.',
   'whatsnew.change.mergeFiles': 'Désactivez « {name} » pour garder la vidéo, l’audio et les sous-titres en fichiers séparés.',
   'whatsnew.change.ruleSwitch': 'Les règles sont dessinées comme le chemin qu’un lien d’exemple suit à travers elles : quelle règle l’attrape et où il arrive.',
   'whatsnew.change.trackMerge': '« {name} » dessine sur toute la carte ce qui arrive dans un fichier vidéo avec les réglages actuels et suit les interrupteurs en dessous. Quand le « {rainbow} » est activé, chaque piste a sa propre couleur.',

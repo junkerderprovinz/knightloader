@@ -3609,6 +3609,7 @@ export const id: Dict = {
   'whatsnew.change.seedingLine': 'Kurva kecepatan punya garis kedua untuk apa yang diunggah torrent kamu saat melakukan seed.',
   'whatsnew.change.seedingAlways': 'Kurva kecepatan selalu menampilkan garis seeding dan namanya di bawahnya. Saat tidak ada yang keluar, garis itu datar di tepi bawah.',
   'whatsnew.change.lineColours': 'Di “{name}” kamu bisa memilih satu warna untuk garis unduhan dan satu untuk garis seeding di kurva kecepatan.',
+  'whatsnew.change.captchaRefresh': 'Di jendela “{name}”, “{refresh}” tampak seperti tombol di sebelahnya, jadi kamu tahu itu tombol.',
   'whatsnew.change.mergeFiles': 'Matikan “{name}” agar video, audio, dan subtitle tetap jadi file terpisah.',
   'whatsnew.change.ruleSwitch': 'Aturan digambar sebagai jalan yang ditempuh sebuah tautan contoh melewatinya: aturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.trackMerge': '“{name}” menggambar di seluruh kartu apa yang masuk ke berkas video dengan pengaturan saat ini, dan mengikuti sakelar di bawahnya. Saat “{rainbow}” aktif, setiap trek punya warnanya sendiri.',

@@ -3608,6 +3608,7 @@ export const sl: Dict = {
   'whatsnew.change.seedingLine': 'Krivulja hitrosti ima drugo črto za to, kar tvoji torrenti pošiljajo med sejanjem.',
   'whatsnew.change.seedingAlways': 'Krivulje hitrosti vedno kažejo črto sejanja in njeno ime pod seboj. Ko nič ne odhaja, črta leži ravno ob spodnjem robu.',
   'whatsnew.change.lineColours': 'V razdelku »{name}« izbereš barvo za črto prenosa in eno za črto sejanja na krivuljah hitrosti.',
+  'whatsnew.change.captchaRefresh': 'V oknu »{name}« je »{refresh}« videti kot gumbi ob njem, zato je jasno, da je gumb.',
   'whatsnew.change.mergeFiles': 'Izklopi »{name}«, da video, zvok in podnapisi ostanejo ločene datoteke.',
   'whatsnew.change.ruleSwitch': 'Pravila so narisana kot pot, ki jo vzorčna povezava opravi skoznje: katero pravilo jo ujame in kje pristane.',
   'whatsnew.change.trackMerge': '»{name}« nariše čez celotno kartico, kaj s trenutnimi nastavitvami pristane v videodatoteki, in sledi stikalom pod njo. Ko je vklopljen »{rainbow}«, ima vsaka sled svojo barvo.',

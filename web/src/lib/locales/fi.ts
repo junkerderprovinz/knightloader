@@ -3611,6 +3611,7 @@ export const fi: Dict = {
   'whatsnew.change.seedingLine': 'Nopeuskäyrässä on toinen viiva sille, mitä torrenttisi lähettävät jakaessaan.',
   'whatsnew.change.seedingAlways': 'Nopeuskäyrät näyttävät jakamisen viivan ja sen nimen alapuolellaan aina. Kun mitään ei lähde, viiva kulkee suorana alareunassa.',
   'whatsnew.change.lineColours': 'Kohdassa ”{name}” valitset värin latauksen viivalle ja toisen jakamisen viivalle nopeuskäyrissä.',
+  'whatsnew.change.captchaRefresh': 'Ikkunassa ”{name}” ”{refresh}” näyttää samalta kuin sen vieressä olevat painikkeet, joten sen tunnistaa painikkeeksi.',
   'whatsnew.change.mergeFiles': 'Kytke ”{name}” pois, jos haluat pitää videon, äänen ja tekstitykset erillisinä tiedostoina.',
   'whatsnew.change.ruleSwitch': 'Säännöt on piirretty reittinä, jonka näytelinkki kulkee niiden läpi: mikä sääntö nappaa sen ja minne se päätyy.',
   'whatsnew.change.trackMerge': '”{name}” piirtää koko kortin leveydeltä, mitä videotiedostoon päätyy nykyisillä asetuksilla, ja seuraa alla olevia kytkimiä. Kun ”{rainbow}” on päällä, jokaisella raidalla on oma värinsä.',

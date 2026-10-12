@@ -3595,6 +3595,7 @@ export const da: Dict = {
   'whatsnew.change.seedingLine': 'Hastighedskurven har en ekstra linje for det, dine torrents uploader, mens de seeder.',
   'whatsnew.change.seedingAlways': 'Hastighedskurverne viser altid seeding-linjen og dens navn under dem. Når intet går ud, ligger linjen fladt langs bunden.',
   'whatsnew.change.lineColours': 'Under „{name}“ vælger du en farve til download-linjen og en til seeding-linjen i hastighedskurverne.',
+  'whatsnew.change.captchaRefresh': 'I vinduet „{name}“ ligner „{refresh}“ knapperne ved siden af, så du kan se, at det er en knap.',
   'whatsnew.change.mergeFiles': 'Slå „{name}“ fra for at beholde video, lyd og undertekster som separate filer.',
   'whatsnew.change.ruleSwitch': 'Reglerne er tegnet som den vej, et eksempellink tager gennem dem: hvilken regel der fanger det, og hvor det lander.',
   'whatsnew.change.trackMerge': '„{name}“ tegner over hele kortet, hvad der ender i en videofil med de aktuelle indstillinger, og følger kontakterne under det. Når „{rainbow}“ er slået til, har hvert spor sin egen farve.',

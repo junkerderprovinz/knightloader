@@ -3612,6 +3612,7 @@ export const no: Dict = {
   'whatsnew.change.seedingLine': 'Hastighetskurven har en ekstra linje for det torrentene dine laster opp mens de seeder.',
   'whatsnew.change.seedingAlways': 'Hastighetskurvene viser alltid seeding-linjen og navnet under dem. Når ingenting går ut, ligger linjen flatt langs bunnen.',
   'whatsnew.change.lineColours': 'Under «{name}» velger du en farge for nedlastingslinjen og en for seeding-linjen i hastighetskurvene.',
+  'whatsnew.change.captchaRefresh': 'I vinduet «{name}» ser «{refresh}» ut som knappene ved siden av, så du ser at det er en knapp.',
   'whatsnew.change.mergeFiles': 'Slå av «{name}» for å beholde video, lyd og undertekster som separate filer.',
   'whatsnew.change.ruleSwitch': 'Reglene er tegnet som veien ei eksempellenke tar gjennom dem: hvilken regel som fanger den, og hvor den lander.',
   'whatsnew.change.trackMerge': '«{name}» tegner over hele kortet hva som havner i ei videofil med de gjeldende innstillingene, og følger bryterne under. Når «{rainbow}» er på, har hvert spor sin egen farge.',

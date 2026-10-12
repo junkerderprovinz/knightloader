@@ -3592,6 +3592,7 @@ export const nl: Dict = {
   'whatsnew.change.seedingLine': 'De snelheidscurve heeft een tweede lijn voor wat je torrents uploaden terwijl ze seeden.',
   'whatsnew.change.seedingAlways': 'De snelheidscurves tonen de seedlijn en haar naam eronder altijd. Als er niets uitgaat, ligt de lijn plat langs de onderrand.',
   'whatsnew.change.lineColours': 'Onder “{name}” kies je een kleur voor de downloadlijn en een voor de seedlijn in de snelheidscurves.',
+  'whatsnew.change.captchaRefresh': 'In het venster “{name}” ziet “{refresh}” eruit als de knoppen ernaast, zodat je ziet dat het een knop is.',
   'whatsnew.change.mergeFiles': 'Zet “{name}” uit om video, audio en ondertitels als losse bestanden te houden.',
   'whatsnew.change.ruleSwitch': 'De regels zijn getekend als de weg die een voorbeeldlink erdoorheen aflegt: welke regel hem vangt en waar hij terechtkomt.',
   'whatsnew.change.trackMerge': '“{name}” tekent over de hele kaart wat er met de huidige instellingen in een videobestand terechtkomt en volgt de schakelaars eronder. Als “{rainbow}” aan staat, heeft elk spoor een eigen kleur.',

@@ -3853,6 +3853,7 @@ export const en = {
   'whatsnew.change.seedingLine': 'The speed curve has a second line for what your torrents upload while they seed.',
   'whatsnew.change.seedingAlways': 'The speed curves always show the seeding line and its name below them. While nothing goes out, the line lies flat along the bottom.',
   'whatsnew.change.lineColours': 'Under "{name}" you can pick a colour for the download line and one for the seeding line in the speed curves.',
+  'whatsnew.change.captchaRefresh': 'In the "{name}" window, "{refresh}" looks like the buttons beside it, so you can tell it is one.',
   'whatsnew.change.mergeFiles': 'Switch off "{name}" to keep video, audio and subtitles as separate files.',
   'whatsnew.change.ruleSwitch': 'The rules show the way a sample link takes through them: which rule catches it and where it lands.',
   'whatsnew.change.trackMerge': '"{name}" draws what ends up in a video file with the current settings, across the whole card, and follows the switches below it. In "{rainbow}" every track has a colour of its own.',

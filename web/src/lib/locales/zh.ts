@@ -3591,6 +3591,7 @@ export const zh: Dict = {
   'whatsnew.change.seedingLine': '速度曲线多了第二条线，显示你的种子在做种时上传的量。',
   'whatsnew.change.seedingAlways': '速度曲线始终显示做种线及其下方的名称。没有任何上传时，这条线平躺在底边。',
   'whatsnew.change.lineColours': '在“{name}”中，你可以分别为速度曲线的下载线和做种线选择颜色。',
+  'whatsnew.change.captchaRefresh': '在“{name}”窗口中，“{refresh}”的样子和旁边的按钮一样，一看就知道是按钮。',
   'whatsnew.change.mergeFiles': '关闭“{name}”即可把视频、音频和字幕保留为独立文件。',
   'whatsnew.change.ruleSwitch': '规则被画成一个样本链接穿过它们的路线：哪条规则接住它，它又落在哪里。',
   'whatsnew.change.trackMerge': '“{name}”在整张卡片上画出按当前设置进入视频文件的内容，并跟随下方的开关变化。开启“{rainbow}”时，每条轨道都有自己的颜色。',

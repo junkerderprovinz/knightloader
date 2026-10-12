@@ -3601,6 +3601,7 @@ export const et: Dict = {
   'whatsnew.change.seedingLine': 'Kiiruskõveral on teine joon selle jaoks, mida su torrentid levitamise ajal üles laadivad.',
   'whatsnew.change.seedingAlways': 'Kiiruskõverad näitavad levitamise joont ja selle nime all alati. Kui midagi välja ei lähe, jookseb joon sirgelt alumises servas.',
   'whatsnew.change.lineColours': 'Jaotises „{name}“ saad valida värvi allalaadimise joonele ja teise levitamise joonele kiiruskõverates.',
+  'whatsnew.change.captchaRefresh': 'Aknas „{name}“ näeb „{refresh}“ välja nagu kõrvalolevad nupud, nii et on näha, et see on nupp.',
   'whatsnew.change.mergeFiles': 'Lülita „{name}“ välja, kui video, heli ja subtiitrid peavad jääma eraldi failideks.',
   'whatsnew.change.ruleSwitch': 'Reeglid on joonistatud teekonnana, mille näidislink nendest läbib: milline reegel selle kinni püüab ja kuhu see jõuab.',
   'whatsnew.change.trackMerge': '„{name}“ joonistab üle kogu kaardi, mis praeguste seadetega videofaili jõuab, ja järgib all olevaid lüliteid. Kui „{rainbow}“ on sees, on igal rajal oma värv.',

@@ -3611,6 +3611,7 @@ export const lt: Dict = {
   'whatsnew.change.seedingLine': 'Greičio kreivė turi antrą liniją tam, ką tavo torrentai įkelia sėdami.',
   'whatsnew.change.seedingAlways': 'Greičio kreivės visada rodo sėjimo liniją ir jos pavadinimą apačioje. Kai niekas neišeina, linija guli lygiai prie apatinio krašto.',
   'whatsnew.change.lineColours': 'Skiltyje „{name}“ gali pasirinkti spalvą atsisiuntimo linijai ir kitą sėjimo linijai greičio kreivėse.',
+  'whatsnew.change.captchaRefresh': 'Lange „{name}“ „{refresh}“ atrodo kaip šalia esantys mygtukai, todėl matyti, kad tai mygtukas.',
   'whatsnew.change.mergeFiles': 'Išjunk „{name}“, kad vaizdas, garsas ir subtitrai liktų atskiri failai.',
   'whatsnew.change.ruleSwitch': 'Taisyklės nupieštos kaip kelias, kurį pavyzdinė nuoroda nueina per jas: kuri taisyklė ją pagauna ir kur ji atsiduria.',
   'whatsnew.change.trackMerge': '„{name}“ per visą kortelę nupiešia, kas su dabartiniais nustatymais patenka į vaizdo failą, ir seka apačioje esančius jungiklius. Kai įjungtas „{rainbow}“, kiekvienas takelis turi savo spalvą.',

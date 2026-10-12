@@ -19,7 +19,7 @@ import {
   type TestCaptchaResult,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconCaptchaTimer, IconClose } from '../lib/icons';
+import { IconCaptchaTimer, IconClose, IconRefresh } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -466,7 +466,13 @@ export function CaptchaModal() {
             disabled={busy}
           />
           {/* Refresh neither answers nor cancels, so it sits between them. */}
-          <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
+          <Button
+            data-new="captcha-refresh"
+            kind="secondary"
+            icon={<IconRefresh width={16} height={16} />}
+            onClick={handleRefresh}
+            disabled={busy}
+          >
             {t('captcha.refresh')}
           </Button>
           {showContinue && (
