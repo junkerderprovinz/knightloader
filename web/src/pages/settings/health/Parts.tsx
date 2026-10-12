@@ -12,7 +12,7 @@ export function PartsCard({ hue, report }: { hue: number; report: HealthReport }
   const { t } = useT();
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="health-parts" className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.health.partsHint')}>{t('settings.health.parts')}</SectionTitle>
 
       <ul className="flex flex-col gap-4">
