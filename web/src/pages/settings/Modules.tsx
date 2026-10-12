@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Card, HintBubble, SectionTitle } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
+import { isDesktop } from '../../lib/desktop';
 import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 import { useFeatures } from './context';
@@ -27,7 +28,12 @@ export function Modules() {
   return (
     <div className="flex flex-col gap-10">
       <Group hue={0} title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
-      <Group hue={1} title={tx('settings.modules.sectionDesktop')} rows={desktop} />
+      {/* Sitting at the desktop app, its own rows are not someone else's build. */}
+      <Group
+        hue={1}
+        title={tx(isDesktop() ? 'settings.modules.sectionDesktopApp' : 'settings.modules.sectionDesktop')}
+        rows={desktop}
+      />
       <Group hue={2} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
     </div>
   );
@@ -134,7 +140,13 @@ function StateChip({ m }: { m: Feature }) {
   const { tx } = useTx();
   return (
     <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
-      {tx(m.verdict === 'desktop' ? 'settings.modules.desktopOnly' : 'settings.modules.notBuilt')}
+      {tx(
+        m.verdict !== 'desktop'
+          ? 'settings.modules.notBuilt'
+          : isDesktop()
+            ? 'settings.modules.desktopHere'
+            : 'settings.modules.desktopOnly',
+      )}
     </span>
   );
 }
