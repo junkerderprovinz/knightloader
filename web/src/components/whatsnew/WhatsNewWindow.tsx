@@ -71,6 +71,8 @@ export function WhatsNewWindow({
     <Modal
       title={title}
       height="capped"
+      // Release notes run to long lines and lists, which a question window's width breaks up.
+      wide
       onClose={onClose}
       footer={
         <>
