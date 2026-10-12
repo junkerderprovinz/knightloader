@@ -164,8 +164,8 @@ service fetches are not affected: they come over HTTP from the service.
 
 An `.nzb` is fetched from your own Usenet servers, or by a debrid service that
 has Usenet access: TorBox or Premiumize.me. Which goes first is the order of
-their rows under Accounts, Priority order. Your own servers rank first until
-you move them.
+their rows under Accounts, Download priority order. Your own servers rank
+first until you move them.
 
 ### Your own Usenet servers
 

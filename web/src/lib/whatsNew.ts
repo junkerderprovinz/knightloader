@@ -136,16 +136,10 @@ export const RELEASES: Release[] = [
         names: { name: 'accounts.routing.priorityTitle' },
       },
       {
-        id: 'priority-drag',
+        id: 'captcha-priority',
         to: ACCOUNTS,
-        text: 'whatsnew.change.priorityDrag',
-        names: { name: 'accounts.routing.priorityTitle' },
-      },
-      {
-        id: 'captcha-cards',
-        to: ACCOUNTS,
-        text: 'whatsnew.change.captchaCards',
-        names: { name: 'settings.captcha.orderTitle', when: 'settings.captcha.whenTitle' },
+        text: 'whatsnew.change.captchaPriority',
+        names: { name: 'settings.captcha.orderTitle', download: 'accounts.routing.priorityTitle' },
       },
       { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
       {
@@ -236,7 +230,6 @@ export const RELEASES: Release[] = [
       },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'rule-switch', to: ['/settings/rules'], text: 'whatsnew.change.ruleSwitch' },
-      { id: 'captcha-chain', to: ['/accounts'], text: 'whatsnew.change.captchaChain' },
       {
         id: 'track-merge',
         to: ['/settings/resolvers'],

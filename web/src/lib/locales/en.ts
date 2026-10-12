@@ -1552,10 +1552,9 @@ export const en = {
   'accounts.credentialFromEnv':
     'Set by the container’s {env} environment variable. Remove it there to change this.',
   'accounts.captcha.title': 'Captcha accounts',
-  'accounts.captcha.hint':
-    'A captcha account is your key for a paid service that answers a captcha before you are asked. Each service needs its own key, and none of these keys unlocks a download. Which captcha accounts are tried, in what order and when, is set in the cards below.',
+  'accounts.captcha.hint': 'A captcha account is your key for a paid service that answers a captcha before you are asked. Each service needs its own key, and none of these keys unlocks a download. In what order and when they are tried is set in "{order}".',
   'accounts.captcha.empty': 'No captcha accounts yet',
-  'accounts.captcha.emptyHint': 'Add your key for a captcha service here, then switch it on in the captcha account order below.',
+  'accounts.captcha.emptyHint': 'Connect your key for a captcha service, and it shows in "{order}" right away.',
   'accounts.captcha.pick': 'Choose a captcha account',
   'accounts.server.title': 'Own servers',
   'accounts.server.hint': 'A login for a server you run yourself, such as a seedbox over FTP, a NAS over SFTP or a Nextcloud over WebDAV. KnightLoader uses it for every ftp://, ftps://, sftp://, webdav:// and webdavs:// link to that server, and fetches an https:// link to it over WebDAV. The login is looked up by the server’s hostname, so the password never goes into the link. Public FTP servers need no login.',
@@ -1640,7 +1639,7 @@ export const en = {
   'accounts.verifying': 'Verifying…',
   'accounts.whereToFind': 'Where do I get this?',
   'accounts.hostsRefreshed': 'Host list refreshed {when}',
-  'accounts.routing.priorityTitle': 'Priority order',
+  'accounts.routing.priorityTitle': 'Download priority order',
   'accounts.routing.orderHint': 'Which backend is asked first when more than one can fetch the same link. Drag a row to move it.\n\nThe order only decides between backends that can take the link at all. A filehoster link never goes to Direct download or the plain HTTP fallback, wherever they stand, since either would only save the hoster’s page.',
   'accounts.routing.orderHintTorrents': 'Magnet links and .torrent files go either to the built-in torrent client or to a debrid service that takes torrents, whichever is higher in the list.',
   'accounts.routing.priorityEmpty': 'No backends are registered yet.',
@@ -1737,16 +1736,9 @@ export const en = {
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
-  'settings.captcha.orderTitle': 'Captcha account order',
-  'settings.captcha.orderHint':
-    'Every enabled captcha account below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
-  'settings.captcha.orderEmpty': 'No captcha account is enabled, so every captcha comes straight to you.',
-  'settings.captcha.enableSolver': 'Try {service} automatically',
-  'settings.captcha.set': 'Key set',
-  'settings.captcha.notSet': 'No key set',
-  'settings.captcha.off': 'Switched off',
-  'settings.captcha.offHint':
-    'The key is set, but the account is switched off on the Accounts page, so it gets no captchas, not even a test captcha.',
+  'settings.captcha.orderTitle': 'Captcha priority order',
+  'settings.captcha.orderHint': 'Every connected captcha account that is switched on is tried in this order, top to bottom. If there is none, or every one of them fails or declines, you are asked directly. You switch an account off under "{accounts}".',
+  'settings.captcha.orderEmpty': 'No captcha account is connected, so every captcha comes straight to you.',
   'settings.captcha.whenTitle': 'When captcha accounts start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
   'settings.captcha.onlyUnwatchedHint':
@@ -3811,10 +3803,6 @@ export const en = {
   'picture.intake.file': 'Files and containers',
   'picture.intake.account': 'Debrid account',
   'picture.day.since': 'Measured since {time}',
-  'picture.captcha.you': 'You',
-  'picture.captcha.where': 'Captcha window and phone app',
-  'picture.captcha.wait': 'Up to {n} s for your answer',
-  'picture.captcha.atOnce': 'Captcha accounts start at once',
   'picture.rules.noSample': 'Enter a link above to see the way it takes',
   'picture.rules.sampleHint': 'The first sample under "{name}" further down. You set its source page, size and package there.',
   'picture.tracks.metadata': 'Metadata',
@@ -3852,7 +3840,7 @@ export const en = {
   'whatsnew.change.instanceCards': 'Every instance is a compact card, with a picture of the group above.',
   'whatsnew.change.handover': 'In the picture of the group, a packet travels along the line when links go to another instance or arrive from a device of the group. A dashed line runs through the relay.',
   'whatsnew.change.accountsAdd': 'One button adds every kind of account: "{name}".',
-  'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture: who is asked first and who next.',
+  'whatsnew.change.priorityFlow': '"{name}" draws the order as a picture with a line on how to use it: drag a name to move it, or use the arrow keys on its grip.',
   'whatsnew.change.pairingSteps': 'Three pictures show how pairing works.',
   'whatsnew.change.pairingGroup': 'One card lists every device of your group and how KnightLoader reaches it.',
   'whatsnew.change.relayServe': 'The relay card offers "{name}" as a choice of its own.',
@@ -3867,7 +3855,6 @@ export const en = {
   'whatsnew.change.dayCurve':
     '"{name}" draws today as a curve: the planned speed limit as an area and the measured speed as a line.',
   'whatsnew.change.ruleSwitch': 'The rules show the way a sample link takes through them: which rule catches it and where it lands.',
-  'whatsnew.change.captchaChain': 'A picture shows who a captcha goes to: you first, then the captcha accounts in your order.',
   'whatsnew.change.trackMerge': '"{name}" draws what ends up in a video file with the current settings, across the whole card, and follows the switches below it. In "{rainbow}" every track has a colour of its own.',
   'whatsnew.change.selftestPulse': 'The self-test is drawn as a pulse, with one bead per check in the colour of its answer.',
   'whatsnew.change.infoTile': '"{name}" says who makes KnightLoader, lists every version and shows where to get help.',
@@ -3885,8 +3872,6 @@ export const en = {
   'whatsnew.change.rowPick': 'A click or tap picks a row: Ctrl adds more, and Shift picks a whole range.',
   'whatsnew.change.intakeGlyphs': '"{cnl}" and "{watch}" carry the same glyphs as the picture in "{intake}".',
   'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account.',
-  'whatsnew.change.priorityDrag': 'The order in "{name}" is the picture itself: drag a name to move it, or use the arrow keys on its grip.',
-  'whatsnew.change.captchaCards': '"{name}" and "{when}" moved here from the captcha settings, with the picture and the test.',
   'whatsnew.change.fillSurface': 'Every fill level sloshes gently and unevenly at its surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
   'whatsnew.change.updatesCard': '"{name}" lists every tool KnightLoader brings along, one row each with its version and where it comes from, and updates KnightLoader and yt-dlp.',
@@ -3912,6 +3897,9 @@ export const en = {
   'test.confirmed': 'Confirmed',
   'test.unconfirmed': 'Not confirmed',
   'whatsnew.change.volumeControls': '"{name}" keeps its choices in one row under the chart, each only as wide as its labels.',
+  'accounts.routing.priorityIntro': 'The picture is the order: a link goes to the backend at the top first, then on down. Drag a name to move it.',
+  'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the captcha account at the top first, then on down. Drag a name to move it.',
+  'whatsnew.change.captchaPriority': '"{name}" orders your connected captcha accounts the way "{download}" orders the backends. When they start and the test captcha are in it too.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

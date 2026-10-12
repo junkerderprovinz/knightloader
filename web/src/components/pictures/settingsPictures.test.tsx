@@ -4,15 +4,13 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Account, CatalogueService, Settings } from '../../lib/api';
+import type { Settings } from '../../lib/api';
 import { I18nProvider } from '../../lib/i18n';
 import { ToastProvider } from '../../lib/toast';
-import { CaptchaCards } from '../../pages/settings/accounts/CaptchaCards';
 import { SettingsProvider, type SettingsDraft } from '../../pages/settings/context';
 import { SelfTestPulseCard } from '../../pages/settings/health/SelfTestPulse';
 import { Rules } from '../../pages/settings/Rules';
 import type { LinkReport, Rule } from '../RuleEditor';
-import { CaptchaChain, type ChainSolver } from './CaptchaChain';
 import { Pulse, type PulseCheck } from './Pulse';
 import { RuleSwitch, wayOf, type Landing } from './RuleSwitch';
 import { TrackMerge, type MediaTrack } from './TrackMerge';
@@ -56,79 +54,6 @@ afterEach(() => {
 const draw = (picture: ReactNode) => act(async () => root.render(<I18nProvider>{picture}</I18nProvider>));
 const label = () => host.querySelector('svg')!.getAttribute('aria-label');
 const moving = (el: Element) => el.querySelectorAll('animate, animateMotion, animateTransform').length;
-
-describe('the captcha chain', () => {
-  const solvers: ChainSolver[] = [
-    { id: 'capsolver', name: 'CapSolver', place: 1 },
-    { id: '2captcha', name: '2Captcha', place: 2, skipped: 'No key set' },
-    { id: '9kw', name: '9kw', place: 0 },
-  ];
-  const station = (id: string) => host.querySelector(`[data-station="${id}"]`)!;
-  const lit = (id: string) => station(id).querySelector('circle[fill="var(--accent)"]') !== null;
-  const chain = (props: Partial<Parameters<typeof CaptchaChain>[0]> = {}) => (
-    <CaptchaChain solvers={solvers} wait={60} off={false} label="Captcha account order" {...props} />
-  );
-
-  it('sends a captcha to you first and then to the accounts in their order', async () => {
-    await draw(chain());
-    expect(label()).toBe(
-      'Captcha account order: You, Up to 60 s for your answer, 1. CapSolver, 2. 2Captcha (No key set)',
-    );
-    expect([...host.querySelectorAll('[data-station]')].map((s) => s.getAttribute('data-station'))).toEqual([
-      'you',
-      'wait',
-      'capsolver',
-      '2captcha',
-      '9kw',
-    ]);
-    expect(lit('you')).toBe(true);
-    expect(lit('capsolver')).toBe(true);
-  });
-
-  it('leaves an account without a key and one that is switched off grey, and says why', async () => {
-    await draw(chain());
-    expect(lit('2captcha')).toBe(false);
-    expect(station('2captcha').textContent).toContain('No key set');
-    expect(lit('9kw')).toBe(false);
-    expect(station('9kw').textContent).toBe('9kwOff');
-  });
-
-  it('shows the configured wait in the ring', async () => {
-    await draw(chain({ wait: 240 }));
-    expect(station('wait').getAttribute('data-state')).toBe('on');
-    expect(station('wait').querySelector('text')!.textContent).toBe('240');
-    expect(station('wait').textContent).toContain('Up to 240 s for your answer');
-  });
-
-  it('draws the ring switched off when the accounts start at once', async () => {
-    await draw(chain({ wait: null }));
-    expect(station('wait').getAttribute('data-state')).toBe('off');
-    expect(station('wait').querySelector('text')).toBeNull();
-    expect(station('wait').textContent).toBe('Captcha accounts start at once');
-  });
-
-  it('has no ring while no account is in the order', async () => {
-    await draw(chain({ solvers: solvers.map((s) => ({ ...s, place: 0 })) }));
-    expect(host.querySelector('[data-station="wait"]')).toBeNull();
-    expect(label()).toBe('Captcha account order: You');
-  });
-
-  it('stands grey when captchas are switched off', async () => {
-    await draw(chain({ off: true }));
-    expect(host.querySelector('svg')!.getAttribute('data-state')).toBe('off');
-    expect(label()).toBe('Captcha account order: Off');
-    expect(host.querySelector('circle[fill="var(--accent)"]')).toBeNull();
-  });
-
-  it('runs the ring down while the captcha waits for you, and passes an account that takes nothing', async () => {
-    letMove();
-    await draw(chain());
-    expect(station('wait').querySelector('animate[attributeName="stroke-dashoffset"]')).not.toBeNull();
-    expect(moving(station('capsolver'))).toBeGreaterThan(0);
-    expect(moving(station('2captcha'))).toBe(0);
-    expect(host.querySelector('animateMotion')).not.toBeNull();
-  });
-});
 
 describe('the way of a link through the rules', () => {
   const rule = (reject = false): Rule => ({ name: '', conditions: [], action: reject ? { reject: true } : {} });
@@ -511,7 +436,6 @@ describe('the pulse of the self-test', () => {
 describe('the pictures on their pages', () => {
   const reply = (body: unknown, status = 200) =>
     new Response(JSON.stringify(body), { status, headers: { 'Content-Type': 'application/json' } });
-  const module = (id: string, enabled: boolean) => ({ id, verdict: 'shipped', page: id, enabled, switch: 'setting', parked: false });
   let answers: Record<string, () => unknown>;
 
   beforeEach(() => {
@@ -556,37 +480,6 @@ describe('the pictures on their pages', () => {
     );
   };
   const settle = () => act(async () => void (await new Promise((done) => setTimeout(done, 0))));
-
-  describe('the captcha cards', () => {
-    const solver = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'captchaSolver', whereUrl: '' });
-    const cfg = { captchaSolverOrder: ['capsolver', '2captcha'], captchaSolverOnlyUnwatched: true, captchaSolverWait: 90 };
-
-    const catalogue = [solver('2captcha', '2Captcha'), solver('9kw', '9kw.eu'), solver('capsolver', 'CapSolver')] as CatalogueService[];
-    const accounts = [{ service: 'capsolver', account: '', configured: true, enabled: true }] as Account[];
-    const cards = <CaptchaCards hue={0} accounts={accounts} catalogue={catalogue} />;
-
-    it('draws the chain from the order, the keys and the wait that are set', async () => {
-      await draw(on(cfg, [module('captcha', true)], cards));
-      await settle();
-      const chain = host.querySelector('[data-new="captcha-chain"]')!;
-      expect(chain.getAttribute('aria-label')).toBe(
-        'Captcha account order: You, Up to 90 s for your answer, 1. CapSolver, 2. 2Captcha (No key set)',
-      );
-      expect(chain.querySelector('[data-station="9kw"]')!.textContent).toBe('9kw.euOff');
-    });
-
-    it('says the accounts start at once when they do not wait for somebody watching', async () => {
-      await draw(on({ ...cfg, captchaSolverOnlyUnwatched: false }, [module('captcha', true)], cards));
-      await settle();
-      expect(host.querySelector('[data-station="wait"]')!.textContent).toBe('Captcha accounts start at once');
-    });
-
-    it('stands the chain grey while the captcha module is switched off', async () => {
-      await draw(on(cfg, [module('captcha', false)], cards));
-      await settle();
-      expect(host.querySelector('[data-new="captcha-chain"]')!.getAttribute('data-state')).toBe('off');
-    });
-  });
 
   describe('the self-test card on the health page', () => {
     const result = (id: string, status: string) => ({ id, status, code: `${id}.ok`, at: '2026-10-01T10:00:00Z' });

@@ -323,10 +323,12 @@ describe('the priority order card', () => {
   it('draws only the picture, with the names beside its stations as the rows to order', async () => {
     await showCard();
     expect(host.querySelector('[aria-label="View"]')).toBeNull();
-    const list = host.querySelector('ol[aria-label="Priority order"]')!;
+    const list = host.querySelector('ol[aria-label="Download priority order"]')!;
     expect(list.parentElement!.querySelector(':scope > svg')!.getAttribute('aria-hidden')).toBe('true');
     expect(order()).toEqual(['torbox', 'jd', 'direct']);
     expect(host.textContent).toContain('Automatic');
+    // What the picture is and how it is used stands under the title.
+    expect(host.textContent).toContain('Drag a name to move it.');
   });
 
   it('saves the order a row is dragged into', async () => {
