@@ -197,7 +197,7 @@ export const eu: Dict = {
   'pairing.show': 'Erakutsi esaldia',
   'pairing.passwordLabel': 'Saioa hasteko pasahitza',
   'pairing.passwordTip': 'Hitzek taldeko instantzia guztiak irekitzen dituzte, beraz berriro erakusteko beti eskatzen da pasahitza.',
-  'pairing.wordsNeedPassword': 'Hitz hauek taldeko instantzia guztiak irekitzen dituzte, beraz KnightLoaderrek saioa hasteko pasahitza ezarri arte ez ditu berriro erakusten.',
+  'pairing.wordsWithoutPassword': 'Pasahitzik gabe, orri hau ireki dezakeen edonork ikus ditzake hitz hauek. Ezarri bat {page} atalean, eta zuk bakarrik ikusiko dituzu.',
   'pairing.passwordWrong': 'Hori ez da saioa hasteko pasahitza.',
   'pairing.viaRelay': 'Bitartekariaren bidez',
   'pairing.leave': 'Utzi taldea',

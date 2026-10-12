@@ -197,7 +197,7 @@ export const zh: Dict = {
   'pairing.show': '显示口令',
   'pairing.passwordLabel': '登录密码',
   'pairing.passwordTip': '这些单词能打开组内的每台实例，所以再次显示它们时总是需要输入密码。',
-  'pairing.wordsNeedPassword': '这些单词能打开组内的每台实例，所以只有设置了登录密码，KnightLoader 才会再次显示它们。',
+  'pairing.wordsWithoutPassword': '没有密码时，任何能打开此页面的人都能看到这些单词。在 {page} 中设置密码后，就只有你能看到它们。',
   'pairing.passwordWrong': '这不是登录密码。',
   'pairing.viaRelay': '经中继',
   'pairing.leave': '退出组',

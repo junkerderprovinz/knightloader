@@ -199,7 +199,7 @@ export const he: Dict = {
   'pairing.show': 'הצג ביטוי',
   'pairing.passwordLabel': 'סיסמת כניסה',
   'pairing.passwordTip': 'המילים פותחות כל מופע בקבוצה, ולכן הצגתן מחדש תמיד דורשת את הסיסמה.',
-  'pairing.wordsNeedPassword': 'המילים האלה פותחות כל מופע בקבוצה, ולכן KnightLoader מציג אותן שוב רק אחרי שהוגדרה סיסמת כניסה.',
+  'pairing.wordsWithoutPassword': 'בלי סיסמה, כל מי שיכול לפתוח את הדף הזה יכול לראות את המילים האלה. הגדר סיסמה תחת {page}, ורק אתה תראה אותן.',
   'pairing.passwordWrong': 'זו אינה סיסמת הכניסה.',
   'pairing.viaRelay': 'דרך ממסר',
   'pairing.leave': 'עזוב את הקבוצה',

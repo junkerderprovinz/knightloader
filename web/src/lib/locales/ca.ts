@@ -197,7 +197,7 @@ export const ca: Dict = {
   'pairing.show': 'Mostra la frase',
   'pairing.passwordLabel': "Contrasenya d'accés",
   'pairing.passwordTip': 'Les paraules obren totes les instàncies del grup, per això tornar-les a mostrar sempre demana la contrasenya.',
-  'pairing.wordsNeedPassword': 'Aquestes paraules obren totes les instàncies del grup, per això KnightLoader només les torna a mostrar quan hi ha una contrasenya d’accés.',
+  'pairing.wordsWithoutPassword': 'Sense contrasenya, qualsevol que pugui obrir aquesta pàgina pot veure aquestes paraules. Defineix-ne una a {page} i només les veuràs tu.',
   'pairing.passwordWrong': "Aquesta no és la contrasenya d'accés.",
   'pairing.viaRelay': 'Via repetidor',
   'pairing.leave': 'Surt del grup',

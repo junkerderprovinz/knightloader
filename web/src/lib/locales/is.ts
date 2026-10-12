@@ -197,7 +197,7 @@ export const is: Dict = {
   'pairing.show': 'Sýna setningu',
   'pairing.passwordLabel': 'Innskráningarlykilorð',
   'pairing.passwordTip': 'Orðin opna öll tilvik í hópnum, svo alltaf er beðið um lykilorðið þegar þau eru sýnd aftur.',
-  'pairing.wordsNeedPassword': 'Þessi orð opna öll tilvik í hópnum, svo KnightLoader sýnir þau aðeins aftur þegar innskráningarlykilorð hefur verið sett.',
+  'pairing.wordsWithoutPassword': 'Án lykilorðs getur hver sem opnar þessa síðu séð þessi orð. Settu lykilorð undir {page} og þá sérð aðeins þú þau.',
   'pairing.passwordWrong': 'Þetta er ekki innskráningarlykilorðið.',
   'pairing.viaRelay': 'Um relay',
   'pairing.leave': 'Yfirgefa hópinn',

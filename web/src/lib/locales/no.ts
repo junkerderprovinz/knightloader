@@ -199,7 +199,7 @@ export const no: Dict = {
   'pairing.show': 'Vis frase',
   'pairing.passwordLabel': 'Innloggingspassord',
   'pairing.passwordTip': 'Ordene åpner alle instansene i gruppen, så du må alltid oppgi passordet for å vise dem igjen.',
-  'pairing.wordsNeedPassword': 'Disse ordene åpner alle instansene i gruppen, så KnightLoader viser dem først igjen når et innloggingspassord er satt.',
+  'pairing.wordsWithoutPassword': 'Uten passord kan alle som kan åpne denne siden, se disse ordene. Sett et under {page}, så er det bare du som ser dem.',
   'pairing.passwordWrong': 'Det er ikke innloggingspassordet.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Forlat gruppen',

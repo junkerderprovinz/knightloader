@@ -222,7 +222,7 @@ export const de: Dict = {
   'pairing.show': 'Phrase zeigen',
   'pairing.passwordLabel': 'Anmeldepasswort',
   'pairing.passwordTip': 'Die Wörter öffnen jede Instanz der Gruppe, deshalb fragt das erneute Anzeigen immer nach dem Passwort.',
-  'pairing.wordsNeedPassword': 'Diese Wörter öffnen jede Instanz der Gruppe, deshalb zeigt KnightLoader sie erst wieder an, wenn ein Anmeldepasswort gesetzt ist.',
+  'pairing.wordsWithoutPassword': 'Ohne Passwort kann jeder, der diese Seite öffnen kann, diese Wörter sehen. Setz unter {page} ein Passwort, dann siehst nur du sie.',
   'pairing.passwordWrong': 'Das ist nicht das Anmeldepasswort.',
   'pairing.viaRelay': 'Über Relay',
   'pairing.leave': 'Gruppe verlassen',

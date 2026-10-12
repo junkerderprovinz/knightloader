@@ -191,7 +191,7 @@ export const pl: Dict = {
   'pairing.show': 'Pokaż frazę',
   'pairing.passwordLabel': 'Hasło logowania',
   'pairing.passwordTip': 'Słowa otwierają każdą instancję w grupie, dlatego ich ponowne pokazanie zawsze wymaga hasła.',
-  'pairing.wordsNeedPassword': 'Te słowa otwierają każdą instancję w grupie, dlatego KnightLoader pokazuje je ponownie dopiero po ustawieniu hasła logowania.',
+  'pairing.wordsWithoutPassword': 'Bez hasła każdy, kto może otworzyć tę stronę, widzi te słowa. Ustaw hasło w sekcji {page}, a zobaczysz je tylko ty.',
   'pairing.passwordWrong': 'To nie jest hasło logowania.',
   'pairing.viaRelay': 'Przez relay',
   'pairing.leave': 'Opuść grupę',

@@ -191,7 +191,7 @@ export const nl: Dict = {
   'pairing.show': 'Frase tonen',
   'pairing.passwordLabel': 'Inlogwachtwoord',
   'pairing.passwordTip': 'De woorden openen elke instantie in de groep, daarom vraagt opnieuw tonen altijd om het wachtwoord.',
-  'pairing.wordsNeedPassword': 'Deze woorden openen elke instantie in de groep, daarom toont KnightLoader ze pas opnieuw als er een inlogwachtwoord is ingesteld.',
+  'pairing.wordsWithoutPassword': 'Zonder wachtwoord kan iedereen die deze pagina kan openen deze woorden zien. Stel er een in onder {page}, dan zie alleen jij ze.',
   'pairing.passwordWrong': 'Dat is niet het inlogwachtwoord.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Groep verlaten',

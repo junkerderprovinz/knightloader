@@ -197,7 +197,7 @@ export const hu: Dict = {
   'pairing.show': 'Jelmondat megjelenítése',
   'pairing.passwordLabel': 'Bejelentkezési jelszó',
   'pairing.passwordTip': 'A szavak a csoport minden példányát megnyitják, ezért az újbóli megjelenítésükhöz mindig kell a jelszó.',
-  'pairing.wordsNeedPassword': 'Ezek a szavak a csoport minden példányát megnyitják, ezért a KnightLoader csak akkor mutatja meg őket újra, ha be van állítva bejelentkezési jelszó.',
+  'pairing.wordsWithoutPassword': 'Jelszó nélkül bárki láthatja ezeket a szavakat, aki meg tudja nyitni ezt az oldalt. Állítson be jelszót itt: {page}, és csak Ön látja majd őket.',
   'pairing.passwordWrong': 'Ez nem a bejelentkezési jelszó.',
   'pairing.viaRelay': 'Relayen keresztül',
   'pairing.leave': 'Csoport elhagyása',

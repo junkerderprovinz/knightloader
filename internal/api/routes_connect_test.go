@@ -158,8 +158,8 @@ func TestConnectNamesTheProjectRelayInEveryMode(t *testing.T) {
 }
 
 // TestPairingWorksWithoutALoginPassword checks that an instance with no
-// password can generate and enter the phrase, but shows it only the once:
-// whoever reaches the port could otherwise read every member's key.
+// password can generate, enter and show the phrase again without asking for
+// one.
 func TestPairingWorksWithoutALoginPassword(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
@@ -179,10 +179,10 @@ func TestPairingWorksWithoutALoginPassword(t *testing.T) {
 		t.Fatalf("join answered %d: %s", code, body)
 	}
 	code, body = postJSON(t, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
-	var shown struct{ Phrase, Code string }
+	var shown struct{ Phrase string }
 	_ = json.Unmarshal(body, &shown)
-	if code != http.StatusForbidden || shown.Code != "passwordNotSet" || shown.Phrase != "" {
-		t.Fatalf("reveal answered %d %s, want 403 passwordNotSet without the phrase", code, body)
+	if code != http.StatusOK || shown.Phrase != minted.Phrase {
+		t.Fatalf("reveal answered %d %s, want 200 with the phrase made", code, body)
 	}
 	if info := connectInfoOf(t, "", srv.URL); info.PasswordSet || !info.Active {
 		t.Fatalf("passwordSet %v active %v, want no password and a group", info.PasswordSet, info.Active)

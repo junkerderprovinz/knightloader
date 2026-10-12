@@ -197,7 +197,7 @@ export const da: Dict = {
   'pairing.show': 'Vis sætning',
   'pairing.passwordLabel': 'Login-adgangskode',
   'pairing.passwordTip': 'Ordene åbner alle instanser i gruppen, så når de skal vises igen, bliver du altid bedt om adgangskoden.',
-  'pairing.wordsNeedPassword': 'Disse ord åbner alle instanser i gruppen, så KnightLoader viser dem først igen, når der er sat en login-adgangskode.',
+  'pairing.wordsWithoutPassword': 'Uden adgangskode kan alle, der kan åbne denne side, se disse ord. Sæt en under {page}, så er det kun dig, der ser dem.',
   'pairing.passwordWrong': 'Det er ikke login-adgangskoden.',
   'pairing.viaRelay': 'Via videresender',
   'pairing.leave': 'Forlad gruppen',

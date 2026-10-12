@@ -197,7 +197,7 @@ export const fi: Dict = {
   'pairing.show': 'Näytä lause',
   'pairing.passwordLabel': 'Kirjautumissalasana',
   'pairing.passwordTip': 'Sanat avaavat ryhmän jokaisen instanssin, joten niiden näyttäminen uudelleen kysyy aina salasanaa.',
-  'pairing.wordsNeedPassword': 'Nämä sanat avaavat ryhmän jokaisen instanssin, joten KnightLoader näyttää ne uudelleen vasta, kun kirjautumissalasana on asetettu.',
+  'pairing.wordsWithoutPassword': 'Ilman salasanaa kuka tahansa, joka voi avata tämän sivun, näkee nämä sanat. Aseta salasana kohdassa {page}, niin vain sinä näet ne.',
   'pairing.passwordWrong': 'Tuo ei ole kirjautumissalasana.',
   'pairing.viaRelay': 'Releen kautta',
   'pairing.leave': 'Poistu ryhmästä',

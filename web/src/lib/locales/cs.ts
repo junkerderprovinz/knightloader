@@ -197,7 +197,7 @@ export const cs: Dict = {
   'pairing.show': 'Zobrazit frázi',
   'pairing.passwordLabel': 'Přihlašovací heslo',
   'pairing.passwordTip': 'Slova otevírají každou instanci ve skupině, proto jejich opětovné zobrazení vždy vyžaduje heslo.',
-  'pairing.wordsNeedPassword': 'Tato slova otevírají každou instanci ve skupině, proto je KnightLoader znovu ukáže až po nastavení přihlašovacího hesla.',
+  'pairing.wordsWithoutPassword': 'Bez hesla může tato slova vidět kdokoli, kdo otevře tuto stránku. Nastavte heslo v sekci {page} a uvidíte je jen vy.',
   'pairing.passwordWrong': 'To není přihlašovací heslo.',
   'pairing.viaRelay': 'Přes přeposílač',
   'pairing.leave': 'Opustit skupinu',

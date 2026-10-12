@@ -197,7 +197,7 @@ export const sr: Dict = {
   'pairing.show': 'Прикажи фразу',
   'pairing.passwordLabel': 'Лозинка за пријаву',
   'pairing.passwordTip': 'Речи отварају сваку инстанцу у групи, па поновни приказ увек тражи лозинку.',
-  'pairing.wordsNeedPassword': 'Ове речи отварају сваку инстанцу у групи, па их KnightLoader поново приказује тек када је постављена лозинка за пријаву.',
+  'pairing.wordsWithoutPassword': 'Без лозинке ове речи може да види свако ко може да отвори ову страницу. Постави лозинку у одељку {page} и видећеш их само ти.',
   'pairing.passwordWrong': 'То није лозинка за пријаву.',
   'pairing.viaRelay': 'Преко релеја',
   'pairing.leave': 'Напусти групу',

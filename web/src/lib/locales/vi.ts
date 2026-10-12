@@ -197,7 +197,7 @@ export const vi: Dict = {
   'pairing.show': 'Hiện cụm từ',
   'pairing.passwordLabel': 'Mật khẩu đăng nhập',
   'pairing.passwordTip': 'Các từ này mở được mọi phiên bản trong nhóm, nên muốn hiện lại chúng luôn phải nhập mật khẩu.',
-  'pairing.wordsNeedPassword': 'Các từ này mở được mọi phiên bản trong nhóm, nên KnightLoader chỉ hiện lại chúng khi đã đặt mật khẩu đăng nhập.',
+  'pairing.wordsWithoutPassword': 'Khi chưa có mật khẩu, bất kỳ ai mở được trang này đều thấy các từ này. Hãy đặt mật khẩu trong {page}, khi đó chỉ bạn mới thấy chúng.',
   'pairing.passwordWrong': 'Đó không phải mật khẩu đăng nhập.',
   'pairing.viaRelay': 'Qua relay',
   'pairing.leave': 'Rời nhóm',

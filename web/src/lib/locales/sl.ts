@@ -197,7 +197,7 @@ export const sl: Dict = {
   'pairing.show': 'Pokaži frazo',
   'pairing.passwordLabel': 'Geslo za prijavo',
   'pairing.passwordTip': 'Besede odprejo vsako instanco v skupini, zato ponovni prikaz vedno zahteva geslo.',
-  'pairing.wordsNeedPassword': 'Te besede odprejo vsako instanco v skupini, zato jih KnightLoader znova pokaže šele, ko je nastavljeno geslo za prijavo.',
+  'pairing.wordsWithoutPassword': 'Brez gesla lahko te besede vidi vsak, ki lahko odpre to stran. Nastavi geslo v razdelku {page} in potem jih vidiš samo ti.',
   'pairing.passwordWrong': 'To ni geslo za prijavo.',
   'pairing.viaRelay': 'Prek relaya',
   'pairing.leave': 'Zapusti skupino',

@@ -197,7 +197,7 @@ export const ro: Dict = {
   'pairing.show': 'Arată fraza',
   'pairing.passwordLabel': 'Parola de autentificare',
   'pairing.passwordTip': 'Cuvintele deschid fiecare instanță din grup, așa că afișarea lor din nou cere mereu parola.',
-  'pairing.wordsNeedPassword': 'Aceste cuvinte deschid fiecare instanță din grup, așa că KnightLoader le arată din nou doar după ce este setată o parolă de autentificare.',
+  'pairing.wordsWithoutPassword': 'Fără parolă, oricine poate deschide această pagină poate vedea aceste cuvinte. Setează o parolă în {page} și doar tu le vei vedea.',
   'pairing.passwordWrong': 'Aceea nu este parola de autentificare.',
   'pairing.viaRelay': 'Prin relay',
   'pairing.leave': 'Părăsește grupul',

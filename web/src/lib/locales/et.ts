@@ -197,7 +197,7 @@ export const et: Dict = {
   'pairing.show': 'Näita fraasi',
   'pairing.passwordLabel': 'Sisselogimisparool',
   'pairing.passwordTip': 'Sõnad avavad grupi iga eksemplari, seega küsib nende uuesti näitamine alati parooli.',
-  'pairing.wordsNeedPassword': 'Need sõnad avavad grupi iga eksemplari, seega näitab KnightLoader neid uuesti alles siis, kui sisselogimisparool on määratud.',
+  'pairing.wordsWithoutPassword': 'Ilma paroolita näeb neid sõnu igaüks, kes saab selle lehe avada. Määra parool jaotises {page} ja siis näed neid ainult sina.',
   'pairing.passwordWrong': 'See ei ole sisselogimisparool.',
   'pairing.viaRelay': 'Edastaja kaudu',
   'pairing.leave': 'Lahku grupist',

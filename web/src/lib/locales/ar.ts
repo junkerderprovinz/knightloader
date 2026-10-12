@@ -199,7 +199,7 @@ export const ar: Dict = {
   'pairing.show': 'إظهار العبارة',
   'pairing.passwordLabel': 'كلمة مرور تسجيل الدخول',
   'pairing.passwordTip': 'تفتح الكلمات كل مثيل في المجموعة، لذلك يطلب إظهارها مرة أخرى كلمة المرور دائمًا.',
-  'pairing.wordsNeedPassword': 'تفتح هذه الكلمات كل مثيل في المجموعة، لذلك لا يعرضها KnightLoader مرة أخرى إلا بعد تعيين كلمة مرور لتسجيل الدخول.',
+  'pairing.wordsWithoutPassword': 'من دون كلمة مرور يستطيع أي شخص يفتح هذه الصفحة رؤية هذه الكلمات. عيّن كلمة مرور في {page} ولن يراها أحد غيرك.',
   'pairing.passwordWrong': 'هذه ليست كلمة مرور تسجيل الدخول.',
   'pairing.viaRelay': 'عبر المُرحِّل',
   'pairing.leave': 'مغادرة المجموعة',

@@ -90,7 +90,6 @@ export function refusalText(t: T, e: unknown): string {
   if (e instanceof ApiError) {
     if (e.code === 'passwordWrong') return t('pairing.passwordWrong');
     if (e.code === 'phraseExists') return t('pairing.errExists');
-    if (e.code === 'passwordNotSet') return t('pairing.wordsNeedPassword');
   }
   return e instanceof Error && e.message ? e.message : t('pairing.actionError');
 }
@@ -568,24 +567,26 @@ export function PhraseCard({
     </div>
   );
 
-  // Without a password the words are not shown again at all, except in the
-  // desktop window, which nobody else can reach.
-  const wordsLocked = !group.passwordSet && !isDesktop();
-  const wordsNeedPassword = (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm leading-relaxed text-carbon-text">{t('pairing.wordsNeedPassword')}</p>
-      <div className="flex justify-end">
-        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
-          {t('settings.setPassword')}
-        </Button>
-      </div>
+  // Nobody else reaches the desktop window, so only a browser is told who
+  // else can read the words.
+  const wordsOpen = !group.passwordSet && !isDesktop() && (
+    <div
+      className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5"
+      data-testid="words-open"
+    >
+      <p className="min-w-0 flex-[1_1_16rem] text-sm leading-relaxed text-carbon-text">
+        {t('pairing.wordsWithoutPassword', { page: t('settings.nav.access') })}
+      </p>
+      <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+        {t('settings.setPassword')}
+      </Button>
     </div>
   );
 
   const openWords = () => {
     setShown('words');
     // Without a password there is nothing to enter before the words show.
-    if (!phrase && !group.passwordSet && !wordsLocked) void show();
+    if (!phrase && !group.passwordSet) void show();
   };
   const closeShown = () => {
     setShown(null);
@@ -660,11 +661,12 @@ export function PhraseCard({
         }
       >
         {phrase ? (
-          <WordGrid phrase={phrase} qr={qr} bare t={t} />
+          <div className="flex flex-col gap-4">
+            {wordsOpen}
+            <WordGrid phrase={phrase} qr={qr} bare t={t} />
+          </div>
         ) : group.passwordSet ? (
           passwordPrompt
-        ) : wordsLocked ? (
-          wordsNeedPassword
         ) : null}
       </Modal>
     ) : shown === 'enter' ? (

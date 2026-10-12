@@ -7,7 +7,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 )
 
-// passwordFirst refuses what hands out a stored secret or erases files for
+// passwordFirst refuses what hands out stored passwords or erases files for
 // good while no password is set, and reports whether the request may go on.
 // Without a password the guard lets in whoever reaches the port; with one, it
 // has already asked for a session or a token. The desktop build opens no port,
