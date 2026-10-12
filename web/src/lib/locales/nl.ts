@@ -3610,7 +3610,7 @@ export const nl: Dict = {
   'whatsnew.change.releaseNotes': '“{name}” opent een breed venster dat laat zien wat deze versie heeft gebracht en elke wijziging opsomt die de stippen markeren.',
   'whatsnew.change.rowPick': 'Een klik of tik kiest een rij: Ctrl voegt er meer toe en Shift kiest een heel bereik.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” en “{watch}” dragen dezelfde symbolen als de afbeelding bij “{intake}”.',
-  'whatsnew.change.accountKinds': '“{name}” opent een grote tegel voor elk soort account.',
+  'whatsnew.change.accountKinds': '“{name}” opent een grote tegel voor elk soort account, onder elkaar in de volgorde van de kaarten op deze pagina.',
   'whatsnew.change.fillSurface': 'Elk vulniveau golft zacht en ongelijkmatig aan zijn oppervlak: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
   'whatsnew.change.windowCard': 'In de desktopapp bepaalt “{name}” hoe het venster en zijn pictogram in het systeemvak zich gedragen.',
   'whatsnew.change.updatesCard': '“{name}” somt elk hulpmiddel op dat KnightLoader meebrengt, één regel per hulpmiddel met versie en herkomst, en werkt KnightLoader en yt-dlp bij.',

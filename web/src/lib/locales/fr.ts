@@ -3617,7 +3617,7 @@ export const fr: Dict = {
   'whatsnew.change.releaseNotes': '« {name} » ouvre une fenêtre large qui montre ce que cette version a apporté et liste chaque changement que les points signalent.',
   'whatsnew.change.rowPick': 'Un clic ou un appui choisit une ligne : Ctrl en ajoute d’autres, et Maj choisit toute une plage.',
   'whatsnew.change.intakeGlyphs': '« {cnl} » et « {watch} » portent les mêmes symboles que l’image de « {intake} ».',
-  'whatsnew.change.accountKinds': '« {name} » ouvre une grande tuile pour chaque type de compte.',
+  'whatsnew.change.accountKinds': '« {name} » ouvre une grande tuile pour chaque type de compte, les unes sous les autres dans l’ordre des cartes de cette page.',
   'whatsnew.change.fillSurface': 'Chaque niveau de remplissage ondule doucement et de façon irrégulière à sa surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
   'whatsnew.change.windowCard': 'Dans l’application de bureau, « {name} » règle le comportement de la fenêtre et de son icône dans la zone de notification.',
   'whatsnew.change.updatesCard': '« {name} » liste chaque outil que KnightLoader apporte, une ligne par outil avec sa version et son origine, et met à jour KnightLoader et yt-dlp.',

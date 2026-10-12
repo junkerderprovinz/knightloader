@@ -3629,7 +3629,7 @@ export const fi: Dict = {
   'whatsnew.change.releaseNotes': '”{name}” avaa leveän ikkunan, joka näyttää, mitä tämä versio toi, ja luettelee jokaisen muutoksen, jonka pisteet merkitsevät.',
   'whatsnew.change.rowPick': 'Napsautus tai napautus valitsee rivin: Ctrl lisää muita ja Vaihto valitsee koko välin.',
   'whatsnew.change.intakeGlyphs': '”{cnl}” ja ”{watch}” käyttävät samoja symboleita kuin kohdan ”{intake}” kuva.',
-  'whatsnew.change.accountKinds': '”{name}” avaa suuren ruudun jokaiselle tilityypille.',
+  'whatsnew.change.accountKinds': '”{name}” avaa suuren ruudun jokaiselle tilityypille, allekkain tämän sivun korttien järjestyksessä.',
   'whatsnew.change.fillSurface': 'Jokainen täyttötaso läikehtii pinnaltaan pehmeästi ja epätasaisesti: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
   'whatsnew.change.windowCard': 'Työpöytäsovelluksessa ”{name}” määrää, miten ikkuna ja sen ilmoitusalueen kuvake toimivat.',
   'whatsnew.change.updatesCard': '”{name}” luettelee jokaisen työkalun, jonka KnightLoader tuo mukanaan, yksi rivi kullekin version ja alkuperän kanssa, ja päivittää KnightLoaderin ja yt-dlp:n.',

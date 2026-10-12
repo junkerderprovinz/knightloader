@@ -3613,7 +3613,7 @@ export const da: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ åbner et bredt vindue, der viser, hvad denne version har bragt, og lister hver ændring, som prikkerne markerer.',
   'whatsnew.change.rowPick': 'Et klik eller tryk vælger en række: Ctrl tilføjer flere, og Skift vælger et helt område.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ og „{watch}“ har de samme symboler som billedet i „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ åbner en stor flise for hver slags konto.',
+  'whatsnew.change.accountKinds': '„{name}“ åbner en stor flise for hver slags konto, den ene under den anden i rækkefølgen af kortene på denne side.',
   'whatsnew.change.fillSurface': 'Hvert fyldniveau bølger blidt og uregelmæssigt i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
   'whatsnew.change.windowCard': 'I desktopappen bestemmer „{name}“, hvordan vinduet og dets ikon i meddelelsesområdet opfører sig.',
   'whatsnew.change.updatesCard': '„{name}“ lister hvert værktøj, KnightLoader har med, en række pr. værktøj med version og oprindelse, og opdaterer KnightLoader og yt-dlp.',

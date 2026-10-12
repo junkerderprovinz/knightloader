@@ -3625,7 +3625,7 @@ export const th: Dict = {
   'whatsnew.change.releaseNotes': '“{name}” เปิดหน้าต่างกว้างที่แสดงสิ่งที่เวอร์ชันนี้นำมา และแสดงรายการการเปลี่ยนแปลงทุกอย่างที่จุดทำเครื่องหมายไว้',
   'whatsnew.change.rowPick': 'คลิกหรือแตะเพื่อเลือกแถว Ctrl ใช้เพิ่มแถว และ Shift ใช้เลือกทั้งช่วง',
   'whatsnew.change.intakeGlyphs': '“{cnl}” และ “{watch}” ใช้สัญลักษณ์เดียวกับภาพใน “{intake}”',
-  'whatsnew.change.accountKinds': '“{name}” เปิดไทล์ขนาดใหญ่สำหรับบัญชีแต่ละประเภท',
+  'whatsnew.change.accountKinds': '“{name}” เปิดไทล์ขนาดใหญ่สำหรับบัญชีแต่ละประเภท เรียงลงมาตามลำดับการ์ดในหน้านี้',
   'whatsnew.change.fillSurface': 'ระดับการเติมทุกระดับกระเพื่อมเบา ๆ และไม่สม่ำเสมอที่ผิวของมัน ได้แก่โฟลเดอร์ใต้ “{name}” “{volume}” และทราฟฟิกของบัญชี',
   'whatsnew.change.windowCard': 'ในแอปเดสก์ท็อป “{name}” กำหนดว่าหน้าต่างและไอคอนในพื้นที่แจ้งเตือนทำงานอย่างไร',
   'whatsnew.change.updatesCard': '“{name}” แสดงรายการเครื่องมือทุกตัวที่ KnightLoader นำมาด้วย แถวละหนึ่งเครื่องมือพร้อมเวอร์ชันและที่มา และอัปเดต KnightLoader กับ yt-dlp',

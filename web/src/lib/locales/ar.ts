@@ -3624,7 +3624,7 @@ export const ar: Dict = {
   'whatsnew.change.releaseNotes': '«{name}» يفتح نافذة واسعة تعرض ما جاء به هذا الإصدار وتسرد كل تغيير تشير إليه النقاط.',
   'whatsnew.change.rowPick': 'نقرة أو لمسة تختار صفًّا: Ctrl يضيف صفوفًا أخرى، وShift يختار نطاقًا كاملًا.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» و«{watch}» يحملان الرموز نفسها التي في صورة «{intake}».',
-  'whatsnew.change.accountKinds': '«{name}» يفتح بلاطة كبيرة لكل نوع من الحسابات.',
+  'whatsnew.change.accountKinds': '«{name}» يفتح بلاطة كبيرة لكل نوع من الحسابات، واحدة تحت الأخرى بترتيب البطاقات في هذه الصفحة.',
   'whatsnew.change.fillSurface': 'كل مستوى امتلاء يتمايل برفق وبشكل غير منتظم عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
   'whatsnew.change.windowCard': 'في تطبيق سطح المكتب تحدد «{name}» كيف تتصرف النافذة وأيقونتها في منطقة الإشعارات.',
   'whatsnew.change.updatesCard': '«{name}» يسرد كل أداة يأتي بها KnightLoader، في صف لكل أداة مع إصدارها ومصدرها، ويحدّث KnightLoader و yt-dlp.',

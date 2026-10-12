@@ -3628,7 +3628,7 @@ export const bg: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ отваря широк прозорец, който показва какво е донесла тази версия и изброява всяка промяна, отбелязана с точките.',
   'whatsnew.change.rowPick': 'Клик или докосване избира ред: Ctrl добавя още, а Shift избира цял диапазон.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ и „{watch}“ носят същите символи като изображението в „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ отваря голяма плочка за всеки вид акаунт.',
+  'whatsnew.change.accountKinds': '„{name}“ отваря голяма плочка за всеки вид акаунт, една под друга в реда на картите на тази страница.',
   'whatsnew.change.fillSurface': 'Всяко ниво на запълване леко и неравномерно се полюшва на повърхността си: папките под „{name}“, „{volume}“ и трафикът на един акаунт.',
   'whatsnew.change.windowCard': 'В настолното приложение „{name}“ определя как се държат прозорецът и иконата му в областта за уведомления.',
   'whatsnew.change.updatesCard': '„{name}“ изброява всеки инструмент, който KnightLoader носи със себе си, по един ред с версия и произход, и актуализира KnightLoader и yt-dlp.',

@@ -3623,7 +3623,7 @@ export const ja: Dict = {
   'whatsnew.change.releaseNotes': '「{name}」では、このバージョンで加わった内容と、点で示されたすべての変更の一覧を、幅の広いウィンドウで確認できます。',
   'whatsnew.change.rowPick': '行はクリックかタップで選べ、Ctrl で行を追加し、Shift で範囲をまとめて選びます。',
   'whatsnew.change.intakeGlyphs': '「{cnl}」と「{watch}」には「{intake}」の絵と同じアイコンが付いています。',
-  'whatsnew.change.accountKinds': '「{name}」を押すと、アカウントの種類ごとに大きなタイルが開きます。',
+  'whatsnew.change.accountKinds': '「{name}」を押すと、アカウントの種類ごとに大きなタイルが、このページのカードと同じ順番で縦に並んで開きます。',
   'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、表面がゆっくり不規則に揺れます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
   'whatsnew.change.windowCard': 'デスクトップアプリでは「{name}」で、ウィンドウと通知領域のアイコンの動きを決めます。',
   'whatsnew.change.updatesCard': '「{name}」には、KnightLoader に同梱されているすべてのツールが、バージョンと入手元とともに 1 行ずつ並び、KnightLoader と yt-dlp の更新もここで行えます。',

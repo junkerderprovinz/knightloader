@@ -3619,7 +3619,7 @@ export const et: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ avab laia akna, mis näitab, mida see versioon tõi, ja loetleb iga muudatuse, mida punktid märgivad.',
   'whatsnew.change.rowPick': 'Klõps või puudutus valib rea: Ctrl lisab veel ridu ja Shift valib terve vahemiku.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ ja „{watch}“ kannavad samu sümboleid nagu pilt jaotises „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ avab iga kontoliigi jaoks suure paani.',
+  'whatsnew.change.accountKinds': '„{name}“ avab iga kontoliigi jaoks suure paani, üksteise all selle lehe kaartide järjekorras.',
   'whatsnew.change.fillSurface': 'Iga täitetase loksub pinnal õrnalt ja ebaühtlaselt: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
   'whatsnew.change.windowCard': 'Töölauarakenduses määrab „{name}“, kuidas aken ja selle ikoon teavitusalal käituvad.',
   'whatsnew.change.updatesCard': '„{name}“ loetleb iga tööriista, mille KnightLoader kaasa toob, igaühe kohta üks rida versiooni ja päritoluga, ning uuendab KnightLoaderit ja yt-dlp-d.',
