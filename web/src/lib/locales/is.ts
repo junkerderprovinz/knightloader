@@ -3623,7 +3623,7 @@ export const is: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ opnar breiðan glugga sem sýnir hvað þessi útgáfa hefur fært og telur upp hverja breytingu sem punktarnir merkja.',
   'whatsnew.change.rowPick': 'Smellur eða snerting velur línu: Ctrl bætir fleirum við og Shift velur heilt bil.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ og „{watch}“ bera sömu tákn og myndin í „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ opnar stóra flís fyrir hverja gerð reiknings.',
+  'whatsnew.change.accountKinds': '„{name}“ opnar stóra flís fyrir hverja gerð reiknings, hverja undir annarri í röð spjaldanna á þessari síðu.',
   'whatsnew.change.fillSurface': 'Hvert fyllingarstig bylgjast mjúklega og ójafnt á yfirborði sínu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
   'whatsnew.change.windowCard': 'Í skjáborðsforritinu ræður „{name}“ hvernig glugginn og tákn hans á tilkynningasvæðinu haga sér.',
   'whatsnew.change.updatesCard': '„{name}“ telur upp hvert tól sem KnightLoader hefur með sér, eina línu fyrir hvert með útgáfu og uppruna, og uppfærir KnightLoader og yt-dlp.',

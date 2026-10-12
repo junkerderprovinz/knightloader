@@ -3619,7 +3619,7 @@ export const es: Dict = {
   'whatsnew.change.releaseNotes': '«{name}» abre una ventana ancha que muestra lo que trajo esta versión y lista cada cambio que marcan los puntos.',
   'whatsnew.change.rowPick': 'Un clic o un toque elige una fila: Ctrl añade más y Mayús elige todo un rango.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» y «{watch}» llevan los mismos símbolos que la imagen de «{intake}».',
-  'whatsnew.change.accountKinds': '«{name}» abre un mosaico grande para cada tipo de cuenta.',
+  'whatsnew.change.accountKinds': '«{name}» abre un mosaico grande para cada tipo de cuenta, uno debajo de otro en el orden de las tarjetas de esta página.',
   'whatsnew.change.fillSurface': 'Cada nivel de llenado se mece con suavidad y de forma irregular en su superficie: las carpetas bajo «{name}», «{volume}» y el tráfico de una cuenta.',
   'whatsnew.change.windowCard': 'En la aplicación de escritorio, «{name}» decide cómo se comportan la ventana y su icono en el área de notificación.',
   'whatsnew.change.updatesCard': '«{name}» lista cada herramienta que trae KnightLoader, una fila por herramienta con su versión y su origen, y actualiza KnightLoader y yt-dlp.',

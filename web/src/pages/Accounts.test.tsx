@@ -49,7 +49,7 @@ async function addKind(kind: string) {
   await act(async () => tile.click());
 }
 
-// jsdom has no SMIL clock for the captcha chain's picture to hold.
+// jsdom has no SMIL clock for the priority pictures to hold.
 Object.assign(SVGSVGElement.prototype, { pauseAnimations() {}, unpauseAnimations() {}, setCurrentTime() {} });
 
 beforeEach(() => {

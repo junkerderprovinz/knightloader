@@ -3615,7 +3615,7 @@ export const ca: Dict = {
   'whatsnew.change.releaseNotes': '«{name}» obre una finestra ampla que mostra què ha portat aquesta versió i llista tots els canvis que marquen els punts.',
   'whatsnew.change.rowPick': 'Un clic o un toc tria una fila: Ctrl n’afegeix més i Maj tria tot un interval.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» i «{watch}» porten els mateixos símbols que la imatge de «{intake}».',
-  'whatsnew.change.accountKinds': '«{name}» obre un mosaic gran per a cada tipus de compte.',
+  'whatsnew.change.accountKinds': '«{name}» obre un mosaic gran per a cada tipus de compte, l’un sota l’altre en l’ordre de les targetes d’aquesta pàgina.',
   'whatsnew.change.fillSurface': 'Cada nivell d’ompliment es belluga suaument i de manera irregular a la superfície: les carpetes sota «{name}», «{volume}» i el trànsit d’un compte.',
   'whatsnew.change.windowCard': 'A l’aplicació d’escriptori, «{name}» decideix com es comporten la finestra i la seva icona a l’àrea de notificació.',
   'whatsnew.change.updatesCard': '«{name}» llista cada eina que porta KnightLoader, una fila per eina amb la versió i l’origen, i actualitza KnightLoader i yt-dlp.',

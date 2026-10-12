@@ -3629,7 +3629,7 @@ export const lt: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ atveria platų langą, kuris parodo, ką atnešė ši versija, ir išvardija kiekvieną pakeitimą, pažymėtą taškais.',
   'whatsnew.change.rowPick': 'Spustelėjimas ar bakstelėjimas pasirenka eilutę: Ctrl prideda daugiau, o Shift pasirenka visą intervalą.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ ir „{watch}“ turi tuos pačius simbolius kaip paveikslėlis skiltyje „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ atveria didelę plytelę kiekvienai paskyros rūšiai.',
+  'whatsnew.change.accountKinds': '„{name}“ atveria didelę plytelę kiekvienai paskyros rūšiai, vieną po kita šio puslapio kortelių tvarka.',
   'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis švelniai ir netolygiai banguoja savo paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
   'whatsnew.change.windowCard': 'Darbalaukio programoje „{name}“ nustato, kaip elgiasi langas ir jo piktograma pranešimų srityje.',
   'whatsnew.change.updatesCard': '„{name}“ išvardija kiekvieną įrankį, kurį KnightLoader atsineša, po vieną eilutę kiekvienam su versija ir kilme, ir atnaujina KnightLoader bei yt-dlp.',

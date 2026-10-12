@@ -3628,7 +3628,7 @@ export const hi: Dict = {
   'whatsnew.change.releaseNotes': '“{name}” एक चौड़ी विंडो खोलता है, जो दिखाती है कि इस संस्करण में क्या आया और बिंदुओं से चिह्नित हर बदलाव की सूची देती है।',
   'whatsnew.change.rowPick': 'क्लिक या टैप से पंक्ति चुनी जाती है: Ctrl से और पंक्तियाँ जुड़ती हैं, और Shift से पूरी रेंज चुनी जाती है।',
   'whatsnew.change.intakeGlyphs': '“{cnl}” और “{watch}” पर वही चिह्न हैं जो “{intake}” के चित्र में हैं।',
-  'whatsnew.change.accountKinds': '“{name}” हर तरह के खाते के लिए एक बड़ी टाइल खोलता है।',
+  'whatsnew.change.accountKinds': '“{name}” हर तरह के खाते के लिए एक बड़ी टाइल खोलता है, एक के नीचे एक, इस पेज के कार्डों के क्रम में।',
   'whatsnew.change.fillSurface': 'भराव का हर स्तर अपनी सतह पर धीरे और असमान रूप से हिलता है: “{name}” के अंतर्गत फ़ोल्डर, “{volume}” और किसी खाते का ट्रैफ़िक।',
   'whatsnew.change.windowCard': 'डेस्कटॉप ऐप में “{name}” तय करता है कि विंडो और सूचना क्षेत्र में उसका चिह्न कैसे व्यवहार करें।',
   'whatsnew.change.updatesCard': '“{name}” में KnightLoader के साथ आने वाला हर टूल सूचीबद्ध है, हर टूल की एक पंक्ति जिसमें उसका संस्करण और स्रोत है, और वह KnightLoader और yt-dlp को अपडेट करता है।',

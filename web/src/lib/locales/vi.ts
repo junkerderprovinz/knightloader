@@ -3627,7 +3627,7 @@ export const vi: Dict = {
   'whatsnew.change.releaseNotes': '“{name}” mở một cửa sổ rộng cho biết phiên bản này đã mang lại gì và liệt kê mọi thay đổi mà các chấm đánh dấu.',
   'whatsnew.change.rowPick': 'Bấm hoặc chạm để chọn một hàng: Ctrl thêm hàng khác, còn Shift chọn cả một dải.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” và “{watch}” mang cùng biểu tượng với hình trong “{intake}”.',
-  'whatsnew.change.accountKinds': '“{name}” mở một ô lớn cho từng loại tài khoản.',
+  'whatsnew.change.accountKinds': '“{name}” mở một ô lớn cho từng loại tài khoản, xếp chồng từ trên xuống theo thứ tự các thẻ trên trang này.',
   'whatsnew.change.fillSurface': 'Mỗi mức lấp đầy nhấp nhô nhẹ nhàng và không đều ở bề mặt của nó: các thư mục dưới “{name}”, “{volume}” và lưu lượng của một tài khoản.',
   'whatsnew.change.windowCard': 'Trong ứng dụng máy tính, “{name}” quyết định cửa sổ và biểu tượng của nó ở khu thông báo hoạt động thế nào.',
   'whatsnew.change.updatesCard': '“{name}” liệt kê mọi công cụ mà KnightLoader mang theo, mỗi công cụ một dòng kèm phiên bản và nguồn gốc, và cập nhật KnightLoader cùng yt-dlp.',

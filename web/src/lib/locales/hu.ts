@@ -3629,7 +3629,7 @@ export const hu: Dict = {
   'whatsnew.change.releaseNotes': 'A(z) „{name}” egy széles ablakot nyit, amely megmutatja, mit hozott ez a verzió, és felsorolja a pontokkal jelölt összes változást.',
   'whatsnew.change.rowPick': 'Kattintással vagy koppintással kijelölsz egy sort: a Ctrl továbbiakat ad hozzá, a Shift pedig egy egész tartományt jelöl ki.',
   'whatsnew.change.intakeGlyphs': 'A(z) „{cnl}” és a(z) „{watch}” ugyanazokat a jeleket viseli, mint a(z) „{intake}” képe.',
-  'whatsnew.change.accountKinds': 'A(z) „{name}” minden fióktípushoz nagy csempét nyit.',
+  'whatsnew.change.accountKinds': 'A(z) „{name}” minden fióktípushoz nagy csempét nyit, egymás alatt, az oldal kártyáinak sorrendjében.',
   'whatsnew.change.fillSurface': 'Minden töltöttségi szint finoman és egyenetlenül hullámzik a felszínén: a(z) „{name}” alatti mappák, a(z) „{volume}” és egy fiók forgalma.',
   'whatsnew.change.windowCard': 'Az asztali alkalmazásban a(z) „{name}” szabja meg, hogyan viselkedik az ablak és az értesítési területen lévő ikonja.',
   'whatsnew.change.updatesCard': 'A(z) „{name}” felsorol minden eszközt, amelyet a KnightLoader magával hoz, eszközönként egy sorban a verzióval és a származással, és frissíti a KnightLoadert és a yt-dlp-t.',

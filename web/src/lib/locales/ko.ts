@@ -3614,7 +3614,7 @@ export const ko: Dict = {
   'whatsnew.change.releaseNotes': '“{name}”는 넓은 창을 열어 이 버전에서 달라진 점을 보여 주고, 점으로 표시된 모든 변경을 나열합니다.',
   'whatsnew.change.rowPick': '클릭하거나 탭하면 행이 선택되고, Ctrl로 행을 더 추가하며 Shift로 범위 전체를 선택합니다.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” 및 “{watch}” 버튼에는 “{intake}” 그림과 같은 아이콘이 있습니다.',
-  'whatsnew.change.accountKinds': '“{name}” 버튼은 계정 종류마다 큰 타일을 엽니다.',
+  'whatsnew.change.accountKinds': '“{name}” 버튼은 계정 종류마다 큰 타일을 이 페이지 카드 순서대로 위아래로 엽니다.',
   'whatsnew.change.fillSurface': '채움 수준은 모두 표면에서 부드럽고 불규칙하게 출렁입니다. “{name}” 아래의 폴더, “{volume}”, 계정의 트래픽이 해당됩니다.',
   'whatsnew.change.windowCard': '데스크톱 앱에서는 “{name}” 카드에서 창과 알림 영역 아이콘의 동작을 정합니다.',
   'whatsnew.change.updatesCard': '“{name}”는 KnightLoader에 함께 들어 있는 모든 도구를 도구마다 한 줄로 버전과 출처와 함께 나열하고, KnightLoader와 yt-dlp를 업데이트합니다.',

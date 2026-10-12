@@ -3627,7 +3627,7 @@ export const sv: Dict = {
   'whatsnew.change.releaseNotes': '”{name}” öppnar ett brett fönster som visar vad den här versionen har gett och listar varje ändring som prickarna markerar.',
   'whatsnew.change.rowPick': 'Ett klick eller tryck väljer en rad: Ctrl lägger till fler och Skift väljer ett helt intervall.',
   'whatsnew.change.intakeGlyphs': '”{cnl}” och ”{watch}” har samma symboler som bilden i ”{intake}”.',
-  'whatsnew.change.accountKinds': '”{name}” öppnar en stor bricka för varje slags konto.',
+  'whatsnew.change.accountKinds': '”{name}” öppnar en stor bricka för varje slags konto, under varandra i samma ordning som korten på den här sidan.',
   'whatsnew.change.fillSurface': 'Varje fyllnadsnivå vaggar mjukt och ojämnt i ytan: mapparna under ”{name}”, ”{volume}” och ett kontos trafik.',
   'whatsnew.change.windowCard': 'I skrivbordsappen bestämmer ”{name}” hur fönstret och dess ikon i meddelandefältet beter sig.',
   'whatsnew.change.updatesCard': '”{name}” listar varje verktyg som KnightLoader har med sig, en rad per verktyg med version och ursprung, och uppdaterar KnightLoader och yt-dlp.',

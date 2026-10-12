@@ -3644,7 +3644,7 @@ export const he: Dict = {
   'whatsnew.change.releaseNotes': '„{name}” פותח חלון רחב שמראה מה הגרסה הזאת הביאה ומפרט כל שינוי שהנקודות מסמנות.',
   'whatsnew.change.rowPick': 'לחיצה או הקשה בוחרת שורה: Ctrl מוסיף עוד שורות, ואילו Shift בוחר טווח שלם.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” ו„{watch}” נושאים את אותם סמלים כמו התמונה ב„{intake}”.',
-  'whatsnew.change.accountKinds': '„{name}” פותח אריח גדול לכל סוג של חשבון.',
+  'whatsnew.change.accountKinds': '„{name}” פותח אריח גדול לכל סוג של חשבון, אחד מתחת לשני בסדר הכרטיסים בעמוד הזה.',
   'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנדנד ברכות ובצורה לא אחידה על פני השטח שלו: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
   'whatsnew.change.windowCard': 'באפליקציית שולחן העבודה, „{name}” קובע איך מתנהגים החלון והסמל שלו באזור ההתראות.',
   'whatsnew.change.updatesCard': '„{name}” מפרט כל כלי ש-KnightLoader מביא איתו, שורה לכל כלי עם הגרסה והמקור שלו, ומעדכן את KnightLoader ואת yt-dlp.',

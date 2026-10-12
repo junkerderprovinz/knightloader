@@ -3636,7 +3636,7 @@ export const ro: Dict = {
   'whatsnew.change.releaseNotes': '„{name}” deschide o fereastră largă care arată ce a adus această versiune și listează fiecare schimbare marcată de puncte.',
   'whatsnew.change.rowPick': 'Un clic sau o atingere alege un rând: Ctrl adaugă altele, iar Shift alege un interval întreg.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” și „{watch}” poartă aceleași simboluri ca imaginea din „{intake}”.',
-  'whatsnew.change.accountKinds': '„{name}” deschide o dală mare pentru fiecare fel de cont.',
+  'whatsnew.change.accountKinds': '„{name}” deschide o dală mare pentru fiecare fel de cont, una sub alta în ordinea cardurilor de pe această pagină.',
   'whatsnew.change.fillSurface': 'Fiecare nivel de umplere se leagănă lin și neuniform la suprafață: folderele din „{name}”, „{volume}” și traficul unui cont.',
   'whatsnew.change.windowCard': 'În aplicația desktop, „{name}” stabilește cum se poartă fereastra și pictograma ei din zona de notificare.',
   'whatsnew.change.updatesCard': '„{name}” listează fiecare instrument pe care îl aduce KnightLoader, câte un rând pentru fiecare, cu versiunea și proveniența, și actualizează KnightLoader și yt-dlp.',

@@ -395,11 +395,11 @@ export function Accounts() {
       </PageActions>
 
       {/* The kind leads on to the window that kind already has, the services
-          to pick from or the form, so each is still added in one place. */}
+          to pick from or the form, so each is still added in one place. The
+          tiles follow the cards on this page, top to bottom. */}
       {picking && (
         <Modal
           title={t('accounts.newAccount')}
-          wide
           onClose={() => setPicking(false)}
           footer={
             <>

@@ -3616,7 +3616,7 @@ export const fa: Dict = {
   'whatsnew.change.releaseNotes': '«{name}» پنجره‌ای پهن باز می‌کند که نشان می‌دهد این نسخه چه چیزی آورده و هر تغییری را که نقطه‌ها علامت زده‌اند فهرست می‌کند.',
   'whatsnew.change.rowPick': 'یک کلیک یا لمس ردیفی را انتخاب می‌کند: Ctrl ردیف‌های دیگری اضافه می‌کند و Shift یک بازهٔ کامل را برمی‌گزیند.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» و «{watch}» همان نمادهای تصویر «{intake}» را دارند.',
-  'whatsnew.change.accountKinds': '«{name}» برای هر نوع حساب یک کاشی بزرگ باز می‌کند.',
+  'whatsnew.change.accountKinds': '«{name}» برای هر نوع حساب یک کاشی بزرگ باز می‌کند، یکی زیر دیگری به ترتیب کارت‌های این صفحه.',
   'whatsnew.change.fillSurface': 'هر سطح پُری روی سطح خود نرم و نامنظم موج می‌زند: پوشه‌های زیر «{name}»، «{volume}» و ترافیک یک حساب.',
   'whatsnew.change.windowCard': 'در برنامهٔ دسکتاپ، «{name}» تعیین می‌کند پنجره و نشانه‌اش در ناحیهٔ اعلان چطور رفتار کنند.',
   'whatsnew.change.updatesCard': '«{name}» هر ابزاری را که KnightLoader با خود می‌آورد فهرست می‌کند، برای هر کدام یک ردیف با نسخه و منبع، و KnightLoader و yt-dlp را به‌روز می‌کند.',

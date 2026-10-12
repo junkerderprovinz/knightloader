@@ -3609,7 +3609,7 @@ export const zh: Dict = {
   'whatsnew.change.releaseNotes': '“{name}”会打开一个宽窗口，显示这个版本带来了什么，并列出圆点标记的每一项更改。',
   'whatsnew.change.rowPick': '点击或轻点即可选中一行：按住 Ctrl 可再选几行，按住 Shift 可选中一整段。',
   'whatsnew.change.intakeGlyphs': '“{cnl}”和“{watch}”用的是与“{intake}”中图片相同的图标。',
-  'whatsnew.change.accountKinds': '“{name}”会为每种账户打开一个大磁贴。',
+  'whatsnew.change.accountKinds': '“{name}”会为每种账户打开一个大磁贴，按本页卡片的顺序从上到下排列。',
   'whatsnew.change.fillSurface': '每个填充水平的表面都会轻柔而不规则地起伏：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
   'whatsnew.change.windowCard': '在桌面应用中，“{name}”决定窗口及其通知区域图标的行为。',
   'whatsnew.change.updatesCard': '“{name}”列出 KnightLoader 自带的每个工具，每个工具一行，附带版本和来源，并更新 KnightLoader 和 yt-dlp。',

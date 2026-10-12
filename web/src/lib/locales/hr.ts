@@ -3641,7 +3641,7 @@ export const hr: Dict = {
   'whatsnew.change.releaseNotes': '„{name}” otvara široki prozor koji prikazuje što je donijela ova verzija i navodi svaku promjenu koju označavaju točke.',
   'whatsnew.change.rowPick': 'Klik ili dodir odabire redak: Ctrl dodaje još redaka, a Shift odabire cijeli raspon.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” i „{watch}” nose iste simbole kao slika u odjeljku „{intake}”.',
-  'whatsnew.change.accountKinds': '„{name}” otvara veliku pločicu za svaku vrstu računa.',
+  'whatsnew.change.accountKinds': '„{name}” otvara veliku pločicu za svaku vrstu računa, jednu ispod druge redoslijedom kartica na ovoj stranici.',
   'whatsnew.change.fillSurface': 'Svaka razina popunjenosti nježno i neravnomjerno se njiše na svojoj površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
   'whatsnew.change.windowCard': 'U desktop aplikaciji „{name}” određuje kako se ponašaju prozor i njegova ikona u području obavijesti.',
   'whatsnew.change.updatesCard': '„{name}” navodi svaki alat koji KnightLoader donosi sa sobom, po jedan redak s verzijom i podrijetlom, te ažurira KnightLoader i yt-dlp.',

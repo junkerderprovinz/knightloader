@@ -3618,7 +3618,7 @@ export const pt: Dict = {
   'whatsnew.change.releaseNotes': '«{name}» abre uma janela larga que mostra o que esta versão trouxe e lista cada alteração que os pontos assinalam.',
   'whatsnew.change.rowPick': 'Um clique ou toque escolhe uma linha: Ctrl junta mais e Shift escolhe um intervalo inteiro.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» e «{watch}» têm os mesmos símbolos que a imagem em «{intake}».',
-  'whatsnew.change.accountKinds': '«{name}» abre um mosaico grande para cada tipo de conta.',
+  'whatsnew.change.accountKinds': '«{name}» abre um mosaico grande para cada tipo de conta, uns por baixo dos outros na ordem dos cartões desta página.',
   'whatsnew.change.fillSurface': 'Cada nível de preenchimento ondula com suavidade e de forma irregular à superfície: as pastas em «{name}», «{volume}» e o tráfego de uma conta.',
   'whatsnew.change.windowCard': 'Na aplicação de ambiente de trabalho, «{name}» define como se comportam a janela e o seu ícone na área de notificação.',
   'whatsnew.change.updatesCard': '«{name}» lista cada ferramenta que o KnightLoader traz consigo, uma linha por ferramenta com a versão e a origem, e atualiza o KnightLoader e o yt-dlp.',

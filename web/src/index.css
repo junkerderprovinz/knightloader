@@ -2376,9 +2376,11 @@ body {
 }
 
 /* A picker of kinds (KindPicker): the brand tile a size up, with a corner of
-   a card rather than a pill, since a tile this tall reads as a card. */
+   a card rather than a pill, since a tile this tall reads as a card. The
+   kinds stand one below the other, so they read top to bottom in the order
+   of the cards they add to. */
 .glim-kind-pick {
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  grid-template-columns: 1fr;
   gap: 0.75rem;
 }
 .glim-kind-pick .glim-readme-btn-unit {

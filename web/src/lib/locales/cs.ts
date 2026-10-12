@@ -3637,7 +3637,7 @@ export const cs: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ otevře široké okno, které ukáže, co tato verze přinesla, a vypíše každou změnu označenou tečkami.',
   'whatsnew.change.rowPick': 'Kliknutí nebo klepnutí vybere řádek: Ctrl přidá další a Shift vybere celý rozsah.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ a „{watch}“ mají stejné symboly jako obrázek v části „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ otevře velkou dlaždici pro každý druh účtu.',
+  'whatsnew.change.accountKinds': '„{name}“ otevře velkou dlaždici pro každý druh účtu, jednu pod druhou v pořadí karet na této stránce.',
   'whatsnew.change.fillSurface': 'Každá hladina plnění se na povrchu jemně a nerovnoměrně vlní: složky pod „{name}“, „{volume}“ a provoz účtu.',
   'whatsnew.change.windowCard': 'V desktopové aplikaci „{name}“ určuje, jak se chová okno a jeho ikona v oznamovací oblasti.',
   'whatsnew.change.updatesCard': '„{name}“ vypíše každý nástroj, který KnightLoader obsahuje, na jednom řádku s verzí a původem, a aktualizuje KnightLoader a yt-dlp.',

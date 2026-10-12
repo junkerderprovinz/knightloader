@@ -3618,7 +3618,7 @@ export const lv: Dict = {
   'whatsnew.change.releaseNotes': '„{name}“ atver platu logu, kas parāda, ko šī versija ir atnesusi, un uzskaita katru izmaiņu, ko atzīmē punkti.',
   'whatsnew.change.rowPick': 'Klikšķis vai pieskāriens atlasa rindu: Ctrl pievieno vēl, bet Shift atlasa visu diapazonu.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ un „{watch}“ ir tie paši simboli, kas attēlā sadaļā „{intake}“.',
-  'whatsnew.change.accountKinds': '„{name}“ atver lielu flīzi katram konta veidam.',
+  'whatsnew.change.accountKinds': '„{name}“ atver lielu flīzi katram konta veidam, vienu zem otras šīs lapas kartīšu secībā.',
   'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis maigi un nevienmērīgi viļņojas savā virsmā: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
   'whatsnew.change.windowCard': 'Darbvirsmas lietotnē „{name}“ nosaka, kā uzvedas logs un tā ikona paziņojumu apgabalā.',
   'whatsnew.change.updatesCard': '„{name}“ uzskaita katru rīku, ko KnightLoader nes līdzi, pa vienai rindai katram ar versiju un izcelsmi, un atjaunina KnightLoader un yt-dlp.',

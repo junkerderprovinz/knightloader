@@ -3627,7 +3627,7 @@ export const ms: Dict = {
   'whatsnew.change.releaseNotes': '“{name}” membuka tetingkap lebar yang menunjukkan apa yang dibawa versi ini dan menyenaraikan setiap perubahan yang ditandai titik.',
   'whatsnew.change.rowPick': 'Klik atau ketik memilih baris: Ctrl menambah lagi, dan Shift memilih satu julat penuh.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” dan “{watch}” membawa simbol yang sama seperti gambar dalam “{intake}”.',
-  'whatsnew.change.accountKinds': '“{name}” membuka jubin besar untuk setiap jenis akaun.',
+  'whatsnew.change.accountKinds': '“{name}” membuka jubin besar untuk setiap jenis akaun, satu di bawah yang lain mengikut susunan kad di halaman ini.',
   'whatsnew.change.fillSurface': 'Setiap paras isi bergoyang perlahan dan tidak sekata di permukaannya: folder di bawah “{name}”, “{volume}” dan trafik sesebuah akaun.',
   'whatsnew.change.windowCard': 'Dalam aplikasi desktop, “{name}” menetapkan kelakuan tetingkap dan ikonnya di kawasan pemberitahuan.',
   'whatsnew.change.updatesCard': '“{name}” menyenaraikan setiap alat yang dibawa KnightLoader, satu baris setiap alat dengan versi dan asalnya, dan mengemas kini KnightLoader dan yt-dlp.',

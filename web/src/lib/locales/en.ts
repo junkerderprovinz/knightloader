@@ -3871,7 +3871,7 @@ export const en = {
   'whatsnew.change.releaseNotes': '"{name}" opens a wide window that shows what this version brought and lists every change the dots mark.',
   'whatsnew.change.rowPick': 'A click or tap picks a row: Ctrl adds more, and Shift picks a whole range.',
   'whatsnew.change.intakeGlyphs': '"{cnl}" and "{watch}" carry the same glyphs as the picture in "{intake}".',
-  'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account.',
+  'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account, one below the other in the order of the cards on this page.',
   'whatsnew.change.fillSurface': 'Every fill level sloshes gently and unevenly at its surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
   'whatsnew.change.updatesCard': '"{name}" lists every tool KnightLoader brings along, one row each with its version and where it comes from, and updates KnightLoader and yt-dlp.',
