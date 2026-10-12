@@ -3,11 +3,9 @@ package federation
 import (
 	"bytes"
 	"context"
-	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"net/http"
-	"strings"
 	"sync"
 	"time"
 
@@ -42,14 +40,6 @@ var ErrNoSuchPending = errors.New("federation: no device with that id waits for 
 // the key does not make for the kind it names.
 var ErrKindMismatch = errors.New("federation: that id is not the one the key makes for the kind of device named")
 
-// Fingerprint is how a person compares a member key: the start of its hash in
-// four groups.
-func Fingerprint(key []byte) string {
-	sum := sha256.Sum256(key)
-	h := hex.EncodeToString(sum[:8])
-	return strings.Join([]string{h[0:4], h[4:8], h[8:12], h[12:16]}, " ")
-}
-
 // PendingMembers lists the members that wait for approval here.
 func (m *Manager) PendingMembers() []Pending {
 	m.group.mu.Lock()
@@ -57,7 +47,7 @@ func (m *Manager) PendingMembers() []Pending {
 	var out []Pending
 	for id, pin := range m.group.state.Keys {
 		if !pin.Approved {
-			out = append(out, Pending{ID: id, Kind: pin.Kind, Key: bytes.Clone(pin.Key), Fingerprint: Fingerprint(pin.Key)})
+			out = append(out, Pending{ID: id, Kind: pin.Kind, Key: bytes.Clone(pin.Key), Fingerprint: relay.Fingerprint(pin.Key)})
 		}
 	}
 	return out

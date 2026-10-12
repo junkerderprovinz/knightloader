@@ -224,6 +224,8 @@ export const ko: Dict = {
   'pairing.pendingTip': '이 기기들은 12개 단어를 입력했지만, 승인하기 전에는 그룹에서 아무것도 할 수 없습니다. 알아보는 기기만 승인하세요. 결정은 그룹의 모든 인스턴스에 적용됩니다.',
   'pairing.pendingInstance': '인스턴스',
   'pairing.fingerprint': '키 {fingerprint}',
+  'pairing.ownKey': '이 인스턴스의 키: {fingerprint}',
+  'pairing.ownKeyTip': '이 인스턴스가 다른 인스턴스에서 승인을 기다리면 그쪽에 이 키로 표시됩니다. 두 키가 같을 때만 승인하세요.',
   'pairing.approve': '승인',
   'pairing.refuse': '거부',
   'pairing.refuseTitle': '{name} 거부',

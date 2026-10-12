@@ -224,6 +224,8 @@ export const sl: Dict = {
   'pairing.pendingTip': 'Te naprave so vnesle dvanajst besed, vendar v skupini ne morejo ničesar, dokler jih ne odobriš. Odobri samo naprave, ki jih prepoznaš. Tvoja odločitev velja na vsaki instanci skupine.',
   'pairing.pendingInstance': 'Instanca',
   'pairing.fingerprint': 'Ključ {fingerprint}',
+  'pairing.ownKey': 'Ključ te instance: {fingerprint}',
+  'pairing.ownKeyTip': 'Ko ta instanca čaka na odobritev na drugi, jo ta prikaže s tem ključem. Odobri jo samo, če se ključa ujemata.',
   'pairing.approve': 'Odobri',
   'pairing.refuse': 'Zavrni',
   'pairing.refuseTitle': 'Zavrni {name}',

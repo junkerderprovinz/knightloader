@@ -218,6 +218,8 @@ export const es: Dict = {
   'pairing.pendingTip': 'Estos dispositivos introdujeron las doce palabras, pero no pueden hacer nada en el grupo hasta que los apruebes. Aprueba solo los dispositivos que reconozcas. Tu decisión vale en todas las instancias del grupo.',
   'pairing.pendingInstance': 'Instancia',
   'pairing.fingerprint': 'Clave {fingerprint}',
+  'pairing.ownKey': 'Clave de esta instancia: {fingerprint}',
+  'pairing.ownKeyTip': 'Cuando esta instancia espera aprobación en otra, esa otra la muestra con esta clave. Apruébala solo si las dos claves coinciden.',
   'pairing.approve': 'Aprobar',
   'pairing.refuse': 'Rechazar',
   'pairing.refuseTitle': 'Rechazar {name}',

@@ -224,6 +224,8 @@ export const ms: Dict = {
   'pairing.pendingTip': 'Peranti ini telah memasukkan dua belas perkataan, tetapi tidak dapat berbuat apa-apa dalam kumpulan sehingga anda meluluskannya. Luluskan hanya peranti yang anda kenali. Keputusan anda terpakai pada setiap instance dalam kumpulan.',
   'pairing.pendingInstance': 'Instance',
   'pairing.fingerprint': 'Kunci {fingerprint}',
+  'pairing.ownKey': 'Kunci instance ini: {fingerprint}',
+  'pairing.ownKeyTip': 'Apabila instance ini menunggu kelulusan pada instance lain, instance itu memaparkannya dengan kunci ini. Luluskannya hanya jika kedua-dua kunci sepadan.',
   'pairing.approve': 'Luluskan',
   'pairing.refuse': 'Tolak',
   'pairing.refuseTitle': 'Tolak {name}',

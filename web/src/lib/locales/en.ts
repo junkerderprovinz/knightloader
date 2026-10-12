@@ -272,6 +272,8 @@ export const en = {
   'pairing.pendingTip': "These devices entered the twelve words but can't do anything in the group until you approve them. Only approve devices you recognize. Your decision applies on every instance in the group.",
   'pairing.pendingInstance': 'Instance',
   'pairing.fingerprint': 'Key {fingerprint}',
+  'pairing.ownKey': "This instance's key: {fingerprint}",
+  'pairing.ownKeyTip': 'When this instance waits for approval on another one, that one shows it with this key. Only approve it if the two keys match.',
   'pairing.approve': 'Approve',
   'pairing.refuse': 'Refuse',
   'pairing.refuseTitle': 'Refuse {name}',

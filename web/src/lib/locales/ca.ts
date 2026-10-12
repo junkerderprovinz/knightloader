@@ -224,6 +224,8 @@ export const ca: Dict = {
   'pairing.pendingTip': 'Aquests dispositius han introduït les dotze paraules, però no poden fer res al grup fins que no els aprovis. Aprova només dispositius que reconeguis. La teva decisió val a totes les instàncies del grup.',
   'pairing.pendingInstance': 'Instància',
   'pairing.fingerprint': 'Clau {fingerprint}',
+  'pairing.ownKey': 'Clau d’aquesta instància: {fingerprint}',
+  'pairing.ownKeyTip': 'Quan aquesta instància espera aprovació en una altra, l’altra la mostra amb aquesta clau. Aprova-la només si les dues claus coincideixen.',
   'pairing.approve': 'Aprova',
   'pairing.refuse': 'Rebutja',
   'pairing.refuseTitle': 'Rebutja {name}',

@@ -226,6 +226,8 @@ export const no: Dict = {
   'pairing.pendingTip': 'Disse enhetene har skrevet inn de tolv ordene, men kan ikke gjøre noe i gruppen før du godkjenner dem. Godkjenn bare enheter du kjenner igjen. Avgjørelsen din gjelder på hver instans i gruppen.',
   'pairing.pendingInstance': 'Instans',
   'pairing.fingerprint': 'Nøkkel {fingerprint}',
+  'pairing.ownKey': 'Nøkkelen til denne instansen: {fingerprint}',
+  'pairing.ownKeyTip': 'Når denne instansen venter på godkjenning på en annen, viser den andre den med denne nøkkelen. Godkjenn den bare hvis de to nøklene er like.',
   'pairing.approve': 'Godkjenn',
   'pairing.refuse': 'Avvis',
   'pairing.refuseTitle': 'Avvis {name}',

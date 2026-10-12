@@ -224,6 +224,8 @@ export const hu: Dict = {
   'pairing.pendingTip': 'Ezek az eszközök megadták a tizenkét szót, de amíg jóvá nem hagyod őket, semmit sem tehetnek a csoportban. Csak olyan eszközt hagyj jóvá, amelyet felismersz. A döntésed a csoport minden példányán érvényes.',
   'pairing.pendingInstance': 'Példány',
   'pairing.fingerprint': 'Kulcs {fingerprint}',
+  'pairing.ownKey': 'Ennek a példánynak a kulcsa: {fingerprint}',
+  'pairing.ownKeyTip': 'Ha ez a példány egy másikon jóváhagyásra vár, a másik ezzel a kulccsal mutatja. Csak akkor hagyd jóvá, ha a két kulcs egyezik.',
   'pairing.approve': 'Jóváhagyás',
   'pairing.refuse': 'Elutasítás',
   'pairing.refuseTitle': '{name} elutasítása',

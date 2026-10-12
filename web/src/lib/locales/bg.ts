@@ -224,6 +224,8 @@ export const bg: Dict = {
   'pairing.pendingTip': 'Тези устройства са въвели дванадесетте думи, но не могат да правят нищо в групата, докато не ги одобриш. Одобрявай само устройства, които познаваш. Решението ти важи за всяка инстанция в групата.',
   'pairing.pendingInstance': 'Инстанция',
   'pairing.fingerprint': 'Ключ {fingerprint}',
+  'pairing.ownKey': 'Ключ на тази инстанция: {fingerprint}',
+  'pairing.ownKeyTip': 'Когато тази инстанция чака одобрение на друга, другата я показва с този ключ. Одобри я само ако двата ключа съвпадат.',
   'pairing.approve': 'Одобри',
   'pairing.refuse': 'Откажи',
   'pairing.refuseTitle': 'Откажи {name}',

@@ -224,6 +224,8 @@ export const eu: Dict = {
   'pairing.pendingTip': 'Gailu hauek hamabi hitzak sartu dituzte, baina ezin dute ezer egin taldean zuk onartu arte. Onartu ezagutzen dituzun gailuak bakarrik. Zure erabakia taldeko instantzia guztietan da baliozkoa.',
   'pairing.pendingInstance': 'Instantzia',
   'pairing.fingerprint': 'Gakoa {fingerprint}',
+  'pairing.ownKey': 'Instantzia honen gakoa: {fingerprint}',
+  'pairing.ownKeyTip': 'Instantzia hau beste batean onarpenaren zain dagoenean, besteak gako honekin erakusten du. Onartu bi gakoak berdinak badira bakarrik.',
   'pairing.approve': 'Onartu',
   'pairing.refuse': 'Ukatu',
   'pairing.refuseTitle': 'Ukatu {name}',

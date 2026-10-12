@@ -224,6 +224,8 @@ export const fi: Dict = {
   'pairing.pendingTip': 'Nämä laitteet ovat syöttäneet kaksitoista sanaa, mutta ne eivät voi tehdä ryhmässä mitään ennen kuin hyväksyt ne. Hyväksy vain laitteet, jotka tunnistat. Päätöksesi pätee ryhmän jokaisessa instanssissa.',
   'pairing.pendingInstance': 'Instanssi',
   'pairing.fingerprint': 'Avain {fingerprint}',
+  'pairing.ownKey': 'Tämän instanssin avain: {fingerprint}',
+  'pairing.ownKeyTip': 'Kun tämä instanssi odottaa hyväksyntää toisessa, toinen näyttää sen tällä avaimella. Hyväksy se vain, jos avaimet ovat samat.',
   'pairing.approve': 'Hyväksy',
   'pairing.refuse': 'Hylkää',
   'pairing.refuseTitle': 'Hylkää {name}',

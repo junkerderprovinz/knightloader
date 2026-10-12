@@ -4047,6 +4047,9 @@ export interface ConnectInfo {
   /** Whether another instance said lately that this one waits for approval
    *  there. */
   awaiting: boolean;
+  /** This instance's own key as the others list it while it waits for
+   *  approval there, '' outside a group. */
+  fingerprint: string;
 }
 
 /** A device whose key is pinned here but nobody approved yet. */

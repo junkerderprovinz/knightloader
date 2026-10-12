@@ -12,6 +12,7 @@ package api
 
 import (
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -72,6 +73,9 @@ type ConnectInfo struct {
 	// one waits for approval there.
 	Pending  []pendingDevice `json:"pending"`
 	Awaiting bool            `json:"awaiting"`
+	// Fingerprint is this instance's own key as the others list it while it
+	// waits for approval there, "" outside a group.
+	Fingerprint string `json:"fingerprint"`
 }
 
 type pendingDevice struct {
@@ -532,6 +536,7 @@ func connectInfo(a *app.App) ConnectInfo {
 		MemberSeen:      !st.MemberSeenAt.IsZero(),
 		Pending:         pending,
 		Awaiting:        a.Federation.AwaitingApproval(now),
+		Fingerprint:     ownFingerprint(a),
 	}
 }
 
@@ -573,4 +578,14 @@ func passOn(a *app.App, skip, method, path string, body []byte) {
 			log.Printf("connect: could not pass %s %s on to %s: status %d, %v", method, path, m.Name, status, err)
 		}
 	}
+}
+
+// ownFingerprint is the fingerprint of the key this instance signs its calls
+// to the group with, "" outside a group.
+func ownFingerprint(a *app.App) string {
+	member := memberKey(a)
+	if member == nil {
+		return ""
+	}
+	return relay.Fingerprint(member.Public().(ed25519.PublicKey))
 }

@@ -796,6 +796,12 @@ export function PhraseCard({
               />
             ))}
           </ul>
+          {group.fingerprint && (
+            <p className="flex items-center gap-1.5 text-xs text-carbon-textMuted" data-testid="own-key">
+              <span className="glim-num">{t('pairing.ownKey', { fingerprint: group.fingerprint })}</span>
+              <InfoBubble tip={t('pairing.ownKeyTip')} />
+            </p>
+          )}
           {stage === 'new' ? (
             <WaitRow text={t('pairing.waitNext')} />
           ) : stage !== 'paired' ? (

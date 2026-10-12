@@ -224,6 +224,8 @@ export const id: Dict = {
   'pairing.pendingTip': 'Perangkat ini sudah memasukkan dua belas kata, tetapi tidak bisa melakukan apa pun di grup sampai Anda menyetujuinya. Setujui hanya perangkat yang Anda kenali. Keputusan Anda berlaku di setiap instance dalam grup.',
   'pairing.pendingInstance': 'Instance',
   'pairing.fingerprint': 'Kunci {fingerprint}',
+  'pairing.ownKey': 'Kunci instance ini: {fingerprint}',
+  'pairing.ownKeyTip': 'Saat instance ini menunggu persetujuan di instance lain, instance itu menampilkannya dengan kunci ini. Setujui hanya jika kedua kunci sama.',
   'pairing.approve': 'Setujui',
   'pairing.refuse': 'Tolak',
   'pairing.refuseTitle': 'Tolak {name}',

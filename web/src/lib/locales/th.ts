@@ -224,6 +224,8 @@ export const th: Dict = {
   'pairing.pendingTip': 'อุปกรณ์เหล่านี้ป้อนคำสิบสองคำแล้ว แต่จะทำอะไรในกลุ่มไม่ได้จนกว่าคุณจะอนุมัติ อนุมัติเฉพาะอุปกรณ์ที่คุณรู้จัก การตัดสินใจของคุณมีผลกับทุกอินสแตนซ์ในกลุ่ม',
   'pairing.pendingInstance': 'อินสแตนซ์',
   'pairing.fingerprint': 'คีย์ {fingerprint}',
+  'pairing.ownKey': 'คีย์ของอินสแตนซ์นี้: {fingerprint}',
+  'pairing.ownKeyTip': 'เมื่ออินสแตนซ์นี้รอการอนุมัติบนอินสแตนซ์อื่น อินสแตนซ์นั้นจะแสดงด้วยคีย์นี้ อนุมัติเฉพาะเมื่อคีย์ทั้งสองตรงกัน',
   'pairing.approve': 'อนุมัติ',
   'pairing.refuse': 'ปฏิเสธ',
   'pairing.refuseTitle': 'ปฏิเสธ {name}',

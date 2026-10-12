@@ -218,6 +218,8 @@ export const nl: Dict = {
   'pairing.pendingTip': 'Deze apparaten hebben de twaalf woorden ingevoerd, maar kunnen niets in de groep doen tot je ze goedkeurt. Keur alleen apparaten goed die je herkent. Je besluit geldt op elke instantie van de groep.',
   'pairing.pendingInstance': 'Instantie',
   'pairing.fingerprint': 'Sleutel {fingerprint}',
+  'pairing.ownKey': 'Sleutel van deze instantie: {fingerprint}',
+  'pairing.ownKeyTip': 'Als deze instantie op een andere wacht op goedkeuring, toont die andere haar met deze sleutel. Keur haar alleen goed als beide sleutels gelijk zijn.',
   'pairing.approve': 'Goedkeuren',
   'pairing.refuse': 'Weigeren',
   'pairing.refuseTitle': '{name} weigeren',

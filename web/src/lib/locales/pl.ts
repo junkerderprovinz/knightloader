@@ -218,6 +218,8 @@ export const pl: Dict = {
   'pairing.pendingTip': 'Te urządzenia wpisały dwanaście słów, ale nie mogą nic zrobić w grupie, dopóki ich nie zatwierdzisz. Zatwierdzaj tylko urządzenia, które rozpoznajesz. Twoja decyzja obowiązuje na każdej instancji grupy.',
   'pairing.pendingInstance': 'Instancja',
   'pairing.fingerprint': 'Klucz {fingerprint}',
+  'pairing.ownKey': 'Klucz tej instancji: {fingerprint}',
+  'pairing.ownKeyTip': 'Gdy ta instancja czeka na zatwierdzenie na innej, tamta pokazuje ją z tym kluczem. Zatwierdź ją tylko wtedy, gdy oba klucze się zgadzają.',
   'pairing.approve': 'Zatwierdź',
   'pairing.refuse': 'Odrzuć',
   'pairing.refuseTitle': 'Odrzuć {name}',

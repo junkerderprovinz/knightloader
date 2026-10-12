@@ -224,6 +224,8 @@ export const sv: Dict = {
   'pairing.pendingTip': 'De här enheterna har angett de tolv orden men kan inte göra något i gruppen förrän du godkänner dem. Godkänn bara enheter du känner igen. Ditt beslut gäller på varje instans i gruppen.',
   'pairing.pendingInstance': 'Instans',
   'pairing.fingerprint': 'Nyckel {fingerprint}',
+  'pairing.ownKey': 'Den här instansens nyckel: {fingerprint}',
+  'pairing.ownKeyTip': 'När den här instansen väntar på godkännande på en annan visar den andra den med den här nyckeln. Godkänn den bara om nycklarna stämmer överens.',
   'pairing.approve': 'Godkänn',
   'pairing.refuse': 'Neka',
   'pairing.refuseTitle': 'Neka {name}',

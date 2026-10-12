@@ -23,7 +23,7 @@ func TestANewDeviceIsRefusedUntilApproved(t *testing.T) {
 		}
 	}
 	pending := m.PendingMembers()
-	if len(pending) != 1 || pending[0].ID != phoneID || pending[0].Kind != relay.KindMobile || pending[0].Fingerprint != Fingerprint(phone.Public().(ed25519.PublicKey)) {
+	if len(pending) != 1 || pending[0].ID != phoneID || pending[0].Kind != relay.KindMobile || pending[0].Fingerprint != relay.Fingerprint(phone.Public().(ed25519.PublicKey)) {
 		t.Fatalf("pending = %+v, want the phone with its kind and fingerprint", pending)
 	}
 	key, kind, err := m.Approve(phoneID, nil, "")

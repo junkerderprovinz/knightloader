@@ -391,3 +391,13 @@ func TestAHelloProvesOnlyTheIDItsKeyMakes(t *testing.T) {
 		}
 	}
 }
+
+// vectorFingerprint is the vector key's fingerprint, which the app and the
+// extension show for their own key in the same form.
+const vectorFingerprint = "b600 306c fa76 723f"
+
+func TestTheFingerprintVectorStaysTheSame(t *testing.T) {
+	if got := Fingerprint(ed25519.NewKeyFromSeed(vectorSeed).Public().(ed25519.PublicKey)); got != vectorFingerprint {
+		t.Errorf("fingerprint = %q, want %q; the app and the extension show their keys in another form", got, vectorFingerprint)
+	}
+}
