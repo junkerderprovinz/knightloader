@@ -9,6 +9,9 @@ const FLOOR = 35.5;
 const INSIDE = 'M7.5 3V31a4.5 4.5 0 0 0 4.5 4.5h10a4.5 4.5 0 0 0 4.5-4.5V3z';
 // One wave is 12 wide, so sliding the surface by 12 loops without a seam.
 const SURFACE_LINE = 'M-6 0q3 -1.6 6 0t6 0 6 0 6 0 6 0 6 0 6 0 6 0V40H-6z';
+// A longer, flatter wave a little higher behind it, which slides the other
+// way. It starts far enough out to cover the vessel after sliding by its 16.
+const BACK_LINE = 'M-24 -.7q4 -1.2 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0V40H-24z';
 // Where the liquid rests in a vessel with no brim to measure against.
 const UNMEASURED = 27;
 
@@ -78,10 +81,13 @@ export function Vessel({
                   fill="freeze"
                 />
               )}
-              {/* The surface drifts for as long as it is shown, on the motion
-                  engine's dial (glim-liquid in index.css), which the motion
+              {/* The surface sloshes for as long as it is shown, on the motion
+                  engine's dials (glim-liquid in index.css), which the motion
                   setting and a request for less motion both stop. */}
-              <path d={SURFACE_LINE} fill={PAINT[tone]} className="glim-liquid" />
+              <g className="glim-liquid-tilt">
+                <path d={BACK_LINE} fill={PAINT[tone]} fillOpacity=".45" className="glim-liquid-back" />
+                <path d={SURFACE_LINE} fill={PAINT[tone]} className="glim-liquid" />
+              </g>
             </g>
           </g>
         </g>
