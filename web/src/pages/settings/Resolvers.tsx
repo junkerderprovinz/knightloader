@@ -519,104 +519,37 @@ export function Resolvers() {
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
 
-        {/* A table while the card has room for its columns. Below that each
-            hoster is a block of its own, name and bin on the first line and
-            the switches wrapping under it, each named beside it, since the
-            column heads are gone. 56rem clears the narrowest the table can
-            be drawn in any of the 42 languages, 861px in Norwegian, whose
-            column heads are the longest. Above it the pickers give up their
-            width with an ellipsis before the table scrolls (Dropdown's
-            `shrink`). */}
-        <div className="glim-well @container overflow-x-auto p-0">
+        {/* One block per site, its five variants one under the other with the
+            pickers at the line's end. Five columns do not fit a phone, and in
+            a table the pickers would have to cut their labels short. */}
+        <div className="glim-well p-0">
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
           ) : (
-            <table
-              className="w-full border-collapse text-sm @max-[56rem]:block"
-              aria-label={t('settings.resolvers.variantDefaults')}
-            >
-              <thead className="@max-[56rem]:hidden">
-                <tr className="text-start text-xs text-carbon-textMuted">
-                  <th className="px-4 py-3 text-start font-medium">{t('settings.resolvers.presetHost')}</th>
-                  {YTDLP_VARIANT_KINDS.map((kind) => (
-                    <th key={kind} className="px-2 py-3 text-start font-medium">
-                      {t(VARIANT_KEYS[kind])}
-                    </th>
-                  ))}
-                  <th className="w-10 px-2 py-3">
-                    <span className="sr-only">{t('settings.resolvers.presetRemove')}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-carbon-border/40 @max-[56rem]:block">
-                {presetRows.map(([host, preset], i) => {
-                  const pickers = presetPickers({
-                    preset,
-                    menus: hostPresetMenus(menus, hostMenus[host]),
-                    t,
-                    onChange: (fields) => writePreset(host, fields),
-                  });
-                  // The video and audio columns carry their format pickers beside
-                  // the switch, so a row reads as what each variant starts with.
-                  const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
-                    video: [pickers.video.format, pickers.video.quality],
-                    audio: [pickers.audio.format, pickers.audio.bitrate],
-                  };
-                  return (
-                    <tr
-                      key={host}
-                      className="transition-colors hover:bg-carbon-hover @max-[56rem]:flex @max-[56rem]:flex-wrap
-                        @max-[56rem]:items-center @max-[56rem]:gap-x-4 @max-[56rem]:gap-y-3 @max-[56rem]:px-4
-                        @max-[56rem]:py-3"
-                    >
+            <ul className="flex flex-col divide-y divide-carbon-border/40" aria-label={t('settings.resolvers.variantDefaults')}>
+              {presetRows.map(([host, preset], i) => {
+                const pickers = presetPickers({
+                  preset,
+                  menus: hostPresetMenus(menus, hostMenus[host]),
+                  t,
+                  onChange: (fields) => writePreset(host, fields),
+                });
+                const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
+                  video: [pickers.video.format, pickers.video.quality],
+                  audio: [pickers.audio.format, pickers.audio.bitrate],
+                };
+                return (
+                  <li key={host}>
+                    <div role="group" aria-label={host} className="flex flex-col gap-3 px-4 py-3">
                       {/* Read-only, since the host is the lookup key; remove the
-                          row and add another instead. Stacked, it fills the
-                          first line but for the gap and the bin. */}
-                      <td
-                        className="px-4 py-3 font-medium text-carbon-text
-                          @max-[56rem]:basis-[calc(100%-var(--btn-h)-1rem)] @max-[56rem]:p-0"
-                      >
-                        <span className="flex items-center gap-1">
-                          <span className="max-w-32 break-words @max-[56rem]:max-w-none">{host}</span>
+                          site and add it again instead. */}
+                      <div className="flex items-center gap-2">
+                        <span className="flex min-w-0 flex-1 items-center gap-1 text-sm font-medium text-carbon-text">
+                          <span className="min-w-0 break-words">{host}</span>
                           {hostMenus[host]?.known === false && (
                             <InfoBubble tip={t('settings.resolvers.presetFormatsUnknown', { host })} />
                           )}
                         </span>
-                      </td>
-                      {/* Hued by column, since each switch is its own question. */}
-                      {YTDLP_VARIANT_KINDS.map((kind, k) => (
-                        <td key={kind} className="px-2 py-3 @max-[56rem]:order-last @max-[56rem]:p-0">
-                          <div className="flex items-center gap-2">
-                            {/* The name shows only while the column heads are
-                                gone, and a press on it flips the switch. */}
-                            <label className="flex items-center gap-2">
-                              <Toggle
-                                checked={preset.variants.includes(kind)}
-                                onChange={() => toggleVariant(host, kind)}
-                                label={`${t(VARIANT_KEYS[kind])} · ${host}`}
-                                hideLabel
-                                hue={k}
-                              />
-                              <span aria-hidden className="hidden text-xs text-carbon-textSub @max-[56rem]:inline">
-                                {t(VARIANT_KEYS[kind])}
-                              </span>
-                            </label>
-                            {/* Named with the host, as the switch is, for a screen reader. */}
-                            {qualities.length > 0 &&
-                              pairs[kind]?.map(
-                                (p) =>
-                                  p && (
-                                    <VariantDropdown
-                                      key={p.label}
-                                      picker={{ ...p, label: `${p.label} · ${host}` }}
-                                      width="shrink"
-                                    />
-                                  ),
-                              )}
-                          </div>
-                        </td>
-                      ))}
-                      <td className="px-2 py-3 text-end @max-[56rem]:p-0">
                         <IconBadge
                           hue={i}
                           icon={<IconTrash width={16} height={16} />}
@@ -624,12 +557,41 @@ export function Resolvers() {
                           aria-label={`${t('settings.resolvers.presetRemove')} · ${host}`}
                           onClick={() => removePreset(host)}
                         />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                      <ul className="flex flex-col gap-2">
+                        {/* Hued by variant, since each switch is its own question. */}
+                        {YTDLP_VARIANT_KINDS.map((kind, k) => (
+                          <li key={kind} className="flex min-h-[var(--btn-h)] flex-wrap items-center gap-x-4 gap-y-2">
+                            <Toggle
+                              checked={preset.variants.includes(kind)}
+                              onChange={() => toggleVariant(host, kind)}
+                              label={t(VARIANT_KEYS[kind])}
+                              hue={k}
+                            />
+                            {qualities.length > 0 && pairs[kind] && (
+                              <span className="ms-auto flex flex-wrap justify-end gap-2">
+                                {/* Named with the host for a screen reader, which
+                                    reads a picker's name without its block. */}
+                                {pairs[kind].map(
+                                  (p) =>
+                                    p && (
+                                      <VariantDropdown
+                                        key={p.label}
+                                        picker={{ ...p, label: `${p.label} · ${host}` }}
+                                        width="widest"
+                                      />
+                                    ),
+                                )}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
 
