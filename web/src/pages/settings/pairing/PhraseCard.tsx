@@ -19,6 +19,7 @@ import {
 } from '../../../lib/api';
 import { basePath } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
+import { isDesktop } from '../../../lib/desktop';
 import { useT } from '../../../lib/i18n';
 import { IconCheckDrawn, IconClose, IconCopy, IconEye, IconPencil, IconRefresh, IconSignOut, IconWarning } from '../../../lib/icons';
 import { useShake } from '../../../lib/useShake';
@@ -66,6 +67,7 @@ export function refusalText(t: T, e: unknown): string {
   if (e instanceof ApiError) {
     if (e.code === 'passwordWrong') return t('pairing.passwordWrong');
     if (e.code === 'phraseExists') return t('pairing.errExists');
+    if (e.code === 'passwordNotSet') return t('pairing.wordsNeedPassword');
   }
   return e instanceof Error && e.message ? e.message : t('pairing.actionError');
 }
@@ -287,10 +289,24 @@ export function PhraseCard({
     </div>
   );
 
+  // Without a password the words are not shown again at all, except in the
+  // desktop window, which nobody else can reach.
+  const wordsLocked = !group.passwordSet && !isDesktop();
+  const wordsNeedPassword = (
+    <div className="flex flex-col gap-3">
+      <p className="text-sm leading-relaxed text-carbon-text">{t('pairing.wordsNeedPassword')}</p>
+      <div className="flex justify-end">
+        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+          {t('settings.setPassword')}
+        </Button>
+      </div>
+    </div>
+  );
+
   const openWords = () => {
     setShown('words');
     // Without a password there is nothing to enter before the words show.
-    if (!phrase && !group.passwordSet) void show();
+    if (!phrase && !group.passwordSet && !wordsLocked) void show();
   };
   const closeShown = () => {
     setShown(null);
@@ -371,6 +387,8 @@ export function PhraseCard({
           </>
         ) : group.passwordSet ? (
           passwordPrompt
+        ) : wordsLocked ? (
+          wordsNeedPassword
         ) : null}
       </Modal>
     ) : shown === 'enter' ? (

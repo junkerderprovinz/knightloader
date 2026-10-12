@@ -6,6 +6,7 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"net/http/httptest"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -88,7 +89,17 @@ func TestRemovedRowsComeBack(t *testing.T) {
 // pressed it finds out at the next transfer.
 func TestErasingTheFilesOffersNoUndo(t *testing.T) {
 	t.Parallel()
-	srv, a := testServer(t)
+	// Erasing files needs a password set. The bare mux has no session guard,
+	// so the call needs no sign-in.
+	a := testApp(t)
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	reg := newRegistry()
+	registerBulk(reg, a)
+	mux := http.NewServeMux()
+	reg.attach(mux, http.NotFoundHandler())
+	srv := httptest.NewServer(mux)
 	defer srv.Close()
 
 	created := stage(t, a, "https://host.example/one.bin")

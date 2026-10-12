@@ -19,6 +19,8 @@
 // survive.
 import { gcm } from '@noble/ciphers/aes.js';
 import { getRandomBytes } from 'expo-crypto';
+import { encodeBody } from './base64';
+import { memberPublicKey, signCall } from './memberKey';
 
 /** Mirrors relay.ProxyCall. */
 export interface ProxyCall {
@@ -26,14 +28,18 @@ export interface ProxyCall {
   path: string;
   /** Base64, as the Go side's []byte field is on the wire. */
   body?: string;
-  authorization?: string;
   /** The request id and the Unix time the call was sealed at, inside the seal
    *  so a relay cannot send a captured call again later. sealCall sets both. */
   id?: string;
   sent?: number;
-  /** This phone's relay id, so an instance can turn away a phone removed
-   *  from the group. */
+  /** This phone's relay id. It counts only signed by the key the instance
+   *  pinned to it (memberKey.ts). */
   from?: string;
+  /** 'mobile', and the public key and signature, all base64 like any Go
+   *  []byte. A phone that cannot keep a key sends none of them. */
+  kind?: string;
+  key?: string;
+  sig?: string;
 }
 
 /** Mirrors relay.ProxyResult. */
@@ -41,6 +47,10 @@ export interface ProxyResult {
   status: number;
   /** Base64, as above. */
   body?: string;
+  /** The answering instance's public key and its signature over the answer,
+   *  base64 (memberKey.ts verifyResult). */
+  key?: string;
+  sig?: string;
 }
 
 /**
@@ -186,6 +196,30 @@ function open(key: Uint8Array, aad: Uint8Array, sealedB64: string): Uint8Array |
 export function sealCall(key: Uint8Array, requestId: string, target: string, call: ProxyCall): string {
   const stamped = { ...call, id: requestId, sent: call.sent ?? Math.floor(Date.now() / 1000) };
   return seal(key, requestAAD(requestId, target), utf8(JSON.stringify(stamped)));
+}
+
+/** sealSignedCall is sealCall with the call signed by the member key seed
+ *  makes, in the name of from. Mirrors relay.SealSignedCall. body is the text
+ *  the call carries. */
+export function sealSignedCall(
+  key: Uint8Array,
+  seed: Uint8Array,
+  requestId: string,
+  target: string,
+  call: { method: string; path: string; body?: string; from: string },
+): string {
+  const fields = { ...call, id: requestId, kind: 'mobile', sent: Math.floor(Date.now() / 1000) };
+  const sig = signCall(seed, target, fields);
+  return sealCall(key, requestId, target, {
+    method: call.method,
+    path: call.path,
+    ...(call.body ? { body: encodeBody(call.body) } : {}),
+    from: call.from,
+    kind: fields.kind,
+    sent: fields.sent,
+    key: toBase64(memberPublicKey(seed)),
+    sig: toBase64(sig),
+  });
 }
 
 /** openCall opens an inbound call. Mirrors relay.OpenCall. */

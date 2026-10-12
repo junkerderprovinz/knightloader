@@ -8,6 +8,7 @@ import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { chosenDeviceName, modelName, setDeviceName } from '../api/deviceName';
+import { ownFingerprint } from '../storage/relayIdentity';
 import { useAppearance } from '../theme/AppearanceContext';
 import { useConfirm, useMotion, useShake } from '../theme/MotionContext';
 import { MOTION_LEVELS, stormTap, type Motion } from '../theme/motion';
@@ -168,6 +169,12 @@ export default function SettingsScreen({
   const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
   const following = !anyOverride;
   const [nameDraft, setNameDraft] = useState(chosenDeviceName);
+  // The owner compares it with the key an instance shows beside this phone
+  // while it waits for approval there.
+  const [keyPrint, setKeyPrint] = useState<string | null>(null);
+  useEffect(() => {
+    void ownFingerprint().then(setKeyPrint);
+  }, []);
 
   /**
    * The hidden fourth motion level (GlimStone 1.17.0; theme/motion.ts's
@@ -368,6 +375,12 @@ export default function SettingsScreen({
           autoCorrect={false}
           returnKeyType="done"
         />
+        {keyPrint && (
+          <View style={[styles.axisLabelGroup, styles.afterControls]}>
+            <Text style={[styles.aboutVersions, { color: c.textMuted }]}>{t('settings.deviceKey', { fingerprint: keyPrint })}</Text>
+            <InfoTip text={t('settings.deviceKeyHint')} />
+          </View>
+        )}
       </NotchCard>
 
       <NotchCard title={t('settings.appearance')} hue={1}>

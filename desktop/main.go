@@ -48,7 +48,11 @@ func main() {
 		log.Fatalf("data dir: %v", err)
 	}
 
-	a, err := app.New(dataDir)
+	key, err := loadAppKey(osKeyStore{}, dataDir)
+	if err != nil {
+		log.Fatalf("start: %v", err)
+	}
+	a, err := app.NewWithKey(dataDir, key)
 	if err != nil {
 		log.Fatalf("start: %v", err)
 	}

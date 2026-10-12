@@ -10,6 +10,7 @@ the Accounts page. None of them is required.
 | `KL_ADDR` | `:8749` | listen address |
 | `KL_BASE_PATH` | | path the interface and the API are served under behind a reverse proxy, e.g. `/kl` for `https://example.com/kl/`. Unset means the root, or the prefix a proxy sends in `X-Forwarded-Prefix`; see [Behind a reverse proxy](installing.md#behind-a-reverse-proxy) |
 | `KL_DATA` | user config dir | data directory (database, settings, accounts, session key) |
+| `KL_APP_KEY` | | 64 hexadecimal characters, made once with `openssl rand -hex 32`. The password is then hashed with Argon2id peppered with it, and the secrets in the data directory and the backup archive are sealed with it, so a copy of the data directory alone opens nothing. Without it everything is stored as before. Keep it: KnightLoader does not start on a sealed data directory without the same key. See [App key](installing.md#app-key) |
 | `KL_YTDLP` | `yt-dlp` (PATH) | path to the yt-dlp binary; media links route through it when present. A copy fetched by the Updates card under Settings, General ("keeping yt-dlp current") or by its daily update is started ahead of this one, and that card says so and offers to remove it again |
 | `KL_TORBOX` | | TorBox API key. The Accounts page is the better place: it stores the key encrypted and applies it without a restart |
 | `KL_ALLDEBRID` | | AllDebrid API key, as above |
@@ -34,19 +35,32 @@ list of services, and where each one issues its key, is
 
 ## Trusted proxies
 
-After eight failed sign-ins from one address, KnightLoader makes that address
-wait half a minute. Passwords and two-factor codes share one count, passkeys
+KnightLoader takes five failed sign-ins a minute from one address and refuses
+the next until the first of them is a minute old. The right password is
+refused too while the address waits, and a wrong password gets the same answer
+however close it was. Passwords and two-factor codes share one count, passkeys
 and reset codes have one each. Behind a reverse proxy every request arrives
 from the proxy, so one person guessing makes everybody wait.
 
-**Trusted proxies** under Settings > Access, beside the password, fixes that.
+**Trusted proxies** under Settings > Security, beside the password, fixes that.
 Enter the proxy's address, one IP address or CIDR range per line, such as
-`172.17.0.1` or `10.0.0.0/8`. For a request from one of them, KnightLoader
+`172.18.0.5` or `10.10.0.0/28`. For a request from one of them, KnightLoader
 counts the right-most address in `X-Forwarded-For` that is not itself a
 trusted proxy. List only proxies you run: every machine on the list can put
 any address it likes into that header, and with it guess without ever being
-made to wait. Empty, the default, means every request counts for the address
-it connected from.
+made to wait. A range must cover your proxies and no one who signs in. If
+KnightLoader's port is also published directly, leave out the gateway of its
+Docker network, because a visitor on that port can arrive from the gateway.
+KnightLoader refuses a range wider than `/28` for IPv4 or `/124` for IPv6,
+sixteen addresses either way, so a whole home network such as a `/24` never
+counts as a proxy. A wider range an
+earlier version took stays in the list, is not used, and is named under the
+field until you change it.
+Empty, the default, means every request counts for the address it connected
+from. An IPv6 caller counts by its `/64`, since one connection usually gets
+that many addresses, and a whole `/48` together gets 20 failed sign-ins a
+minute. At most two password checks run at once, and the rest wait. The relay an instance serves under Pairing reads the same
+list for its own count of failed handshakes.
 
 ## A forgotten password
 
@@ -70,8 +84,16 @@ It has twelve characters, so wrong guesses do not use it up, and nobody can
 keep you from resetting by guessing. The new password switches two-factor
 authentication off, removes every passkey and every API token, signs out every
 other browser and replaces the key sessions are signed with, so a copy of
-`auth.json` taken earlier opens nothing either. Devices paired with the
-connection phrase stay paired. Settings that run something, such as event
+`auth.json` taken earlier opens nothing either. An instance in a pairing group
+leaves it: it gets new connection words that nobody else holds, a relay key
+entered by hand is removed, and every phone, browser extension and other
+instance has to pair again with the new words, which Settings > Pairing shows
+once you are signed in. For 30 days it tells the devices that still hold the
+old words that it was reset, in an answer signed with its old key, and on a
+relay it serves itself the old words reach this instance and nobody else (see
+[Connecting](connecting.md)). The page after the reset lists what
+was removed.
+Settings that run something, such as event
 programs, scripts and the end-of-queue action, are left as they are: if
 somebody else may have had access, look through them.
 
@@ -80,6 +102,7 @@ page, in the log file nor in a diagnostics bundle. Somebody who only reaches
 the web interface cannot reset anything.
 
 Anybody who can read the container log or the service's output can reset the
-password and take the instance over. That includes access that is otherwise
+password and take the instance over. That is root on the host, anybody who can
+use the Docker socket, even only to read from it, and access that is otherwise
 read-only: a log viewer such as Dozzle, or a log shipper and everybody who
 reads what it collects. Keep that access to people who may own this instance.

@@ -62,10 +62,10 @@ async function writePhrase(phrase) {
   return normalised;
 }
 
-/** Leaves the group, dropping the phrase, the member id and the default target. */
+/** Leaves the group, dropping the phrase, the member key, and with it the member id, and the default target. */
 async function forgetGroup() {
   await secretStore('readwrite', (s) => {
-    s.delete('member');
+    s.delete('memberKey');
     return s.delete('phrase');
   });
   await chrome.storage.local.remove(['phrase', 'defaultInstance']);
@@ -95,7 +95,7 @@ async function writeDefaultTarget(instanceId) {
  * A fresh relay id for every session. The relay takes a second join under an
  * id it already holds for a reconnect and drops the first socket, and the
  * popup, the options page and a send often have sessions open at once. The
- * group recognises the browser by readMemberId instead.
+ * group recognises the browser by its member id instead (readMember).
  */
 function sessionInstanceId() {
   const bytes = crypto.getRandomValues(new Uint8Array(20));
@@ -103,21 +103,39 @@ function sessionInstanceId() {
 }
 
 /**
- * The id the group knows this browser by across sessions, sealed into every
- * announce and call. An instance lists the browser once under it and turns it
- * away once removed. It is minted on first use, in the same transaction that
- * looks for it, so two sessions starting together agree on one.
+ * The member key this browser signs its calls with, and the id the group
+ * knows it by, made from the key (relayMemberId): "browser-" and the hex of
+ * the key's SHA-256. It is sealed into every announce and call, and an
+ * instance lists the browser once under it, turns it away once removed and
+ * takes a call under it only when that key signed it. The private half never
+ * leaves WebCrypto. A browser without Ed25519 in WebCrypto gets null and calls
+ * unsigned, which every instance refuses with a reason.
  */
-function readMemberId() {
-  return secretStore('readwrite', (s) => {
-    const out = {};
-    const got = s.get('member');
-    got.onsuccess = () => {
-      out.result = typeof got.result === 'string' ? got.result : sessionInstanceId();
-      if (out.result !== got.result) s.put(out.result, 'member');
+async function readMember() {
+  let kept = await secretStore('readonly', (s) => s.get('memberKey'));
+  if (!(kept && kept.privateKey && kept.publicKey)) {
+    let pair;
+    try {
+      pair = await crypto.subtle.generateKey({ name: 'Ed25519' }, false, ['sign', 'verify']);
+    } catch {
+      return null;
+    }
+    const made = {
+      privateKey: pair.privateKey,
+      publicKey: new Uint8Array(await crypto.subtle.exportKey('raw', pair.publicKey)),
     };
-    return out;
-  });
+    // Two sessions starting together each made a key; the first one stored
+    // wins and both sign with it.
+    await secretStore('readwrite', (s) => {
+      const got = s.get('memberKey');
+      got.onsuccess = () => {
+        if (!(got.result && got.result.privateKey)) s.put(made, 'memberKey');
+      };
+      return got;
+    });
+    kept = (await secretStore('readonly', (s) => s.get('memberKey'))) ?? made;
+  }
+  return { id: await relayMemberId('extension', kept.publicKey), key: kept };
 }
 
 /**
@@ -133,13 +151,15 @@ async function withGroup(work) {
     throw err;
   }
   const { key, frameKey } = await keysFromPhrase(phrase);
+  const member = await readMember();
   return relaySession(
     {
       url: DEFAULT_RELAY_URL,
       key,
       frameKey,
       selfId: sessionInstanceId(),
-      memberId: await readMemberId(),
+      memberId: member?.id,
+      memberKey: member?.key,
       // A plain label rather than anything identifying the browser.
       selfName: 'Browser',
       // An instance took this browser out of the group. It starts over like a
@@ -158,8 +178,8 @@ async function groupInstances() {
 
 /**
  * groupStatus is the group plus what each instance is doing, asked in parallel
- * over one relay session through routes a member may reach (relayForwardable
- * in internal/api/routes_relay.go). An instance that does not answer gets
+ * over one relay session through routes a member may reach (groupRoutes in
+ * internal/api/group_routes.go). An instance that does not answer gets
  * `status: null`, so its card can say offline.
  *
  * The web address is asked for inside the encrypted frame rather than
@@ -167,9 +187,12 @@ async function groupInstances() {
  */
 async function groupStatus() {
   return withGroup(async ({ siblings, call }) => {
-    const read = async (id, path) => {
+    const read = async (id, path, refused) => {
       const res = await call(id, 'GET', path).catch(() => null);
-      if (!res || res.status < 200 || res.status >= 300) return null;
+      if (!res || res.status < 200 || res.status >= 300) {
+        if (res && refused) refused.key = refusalKey(res);
+        return null;
+      }
       try {
         return JSON.parse(res.body);
       } catch {
@@ -178,13 +201,15 @@ async function groupStatus() {
     };
     return Promise.all(
       siblings.map(async (s) => {
+        const refused = {};
         const [queue, counters, remote] = await Promise.all([
-          read(s.instanceId, '/api/queue'),
+          read(s.instanceId, '/api/queue', refused),
           read(s.instanceId, '/api/queue/counters'),
           read(s.instanceId, '/api/remote-access'),
         ]);
-        // Connected to the relay but not serving, which differs from idle.
-        if (!queue && !counters) return { ...s, status: null };
+        // Connected to the relay but not serving, which differs from idle. An
+        // instance that turned this browser away says why.
+        if (!queue && !counters) return { ...s, status: null, refusal: refused.key };
         return { ...s, status: { queue, counters, webUrl: bestWebUrl(remote) } };
       }),
     );
@@ -201,6 +226,38 @@ function bestWebUrl(remote) {
   const usable = list.filter((a) => a && a.url && !a.loopback);
   const domain = usable.find((a) => a.domain);
   return (domain ?? usable[0])?.url ?? '';
+}
+
+/**
+ * The refusals an instance answers a browser with when it will not take its
+ * key (internal/federation/members.go) or a call a member may not make
+ * (internal/api/group_routes.go), each with its sentence.
+ * check-member-refusals.mjs holds this map to the server's codes.
+ */
+const REFUSAL_KEYS = {
+  memberPending: 'refusal.memberPending',
+  memberKeyChanged: 'refusal.memberKeyChanged',
+  memberUnsigned: 'refusal.memberUnsigned',
+  memberBusy: 'refusal.memberBusy',
+  groupFull: 'refusal.groupFull',
+  groupJoinsBusy: 'refusal.groupJoinsBusy',
+  memberNotPinned: 'refusal.memberNotPinned',
+  ownLoginNeeded: 'refusal.ownLoginNeeded',
+};
+
+/** refusalKey is the catalogue key for why an instance refused a call: its
+ *  own sentence where the code is in REFUSAL_KEYS, else the plain one. An
+ *  instance that was reset answers the old words with a plain 410 "reset"
+ *  (internal/api/retired_group.go). */
+function refusalKey(res) {
+  if (res.status === 410 && res.body === 'reset') return 'refusal.groupReset';
+  try {
+    const code = JSON.parse(res.body)?.code;
+    if (typeof code === 'string' && Object.hasOwn(REFUSAL_KEYS, code)) return REFUSAL_KEYS[code];
+  } catch {
+    // A plain-text refusal.
+  }
+  return 'send.refused';
 }
 
 /** What an instance is called in a list, falling back to the start of its id so

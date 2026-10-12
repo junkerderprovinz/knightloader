@@ -2,6 +2,7 @@ package store
 
 import (
 	"database/sql"
+	"errors"
 	"fmt"
 	"maps"
 	"path/filepath"
@@ -419,6 +420,34 @@ func TestAFailedMigrationLeavesAFreshDatabaseUntouched(t *testing.T) {
 	}
 	if v := versionOf(t, db); v != len(migrations) {
 		t.Errorf("schema version is %d after the second run, want %d", v, len(migrations))
+	}
+}
+
+// A database a newer build migrated further, as after going back to an older
+// image, is refused and left as it was, so the newer build still finds it as
+// it wrote it.
+func TestAnOlderBuildRefusesADatabaseANewerOneWrote(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "tasks.db")
+	s, err := Open(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := s.db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, len(migrations)+1)); err != nil {
+		t.Fatal(err)
+	}
+	s.Close()
+
+	again, err := Open(path)
+	if err == nil {
+		again.Close()
+		t.Fatal("a database from a newer build was opened")
+	}
+	if !errors.Is(err, ErrNewerSchema) {
+		t.Errorf("the refusal is %v, want ErrNewerSchema", err)
+	}
+	db := openRaw(t, path)
+	if v := versionOf(t, db); v != len(migrations)+1 {
+		t.Errorf("the refused database is at schema version %d, want %d as the newer build left it", v, len(migrations)+1)
 	}
 }
 

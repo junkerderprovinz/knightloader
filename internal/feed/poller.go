@@ -13,6 +13,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 )
 
@@ -175,14 +176,14 @@ func (p *poller) poll() {
 	if err := p.load(); err != nil {
 		// With an unreadable memory the poll would look like a first run and
 		// stage the whole feed, so it is skipped.
-		log.Printf("feed %s was not polled: %v", p.url, err)
+		log.Print(core.RedactText(fmt.Sprintf("feed %s was not polled: %v", p.url, err)))
 		p.notePoll(err)
 		return
 	}
 	sub, filt := p.config()
 	f, err := p.fetch()
 	if err != nil {
-		log.Printf("feed %s was not read: %v", p.url, err)
+		log.Print(core.RedactText(fmt.Sprintf("feed %s was not read: %v", p.url, err)))
 		p.notePoll(err)
 		return
 	}
@@ -289,7 +290,7 @@ func (p *poller) pick(f Feed, sub Subscription, filt *regexp.Regexp) []Job {
 // forever. The cost of seeding is that an entry published between setup and
 // the first fetch is never staged.
 func (p *poller) seed(f Feed) {
-	log.Printf("feed %s: %d entries already there are marked as seen, so only what appears from now on is added", p.url, len(f.Items))
+	log.Print(core.RedactText(fmt.Sprintf("feed %s: %d entries already there are marked as seen, so only what appears from now on is added", p.url, len(f.Items))))
 }
 
 // remember records every entry in the document, filtered or not, and drops
@@ -329,7 +330,7 @@ func (p *poller) remember(f Feed) {
 	if err := p.state.SetSeen(p.url, next); err != nil {
 		// The memory still works in this process, but after a restart the feed
 		// would be seeded again.
-		log.Printf("feed %s: what it has already added could not be written down, so a restart would treat this feed as new again: %v", p.url, err)
+		log.Print(core.RedactText(fmt.Sprintf("feed %s: what it has already added could not be written down, so a restart would treat this feed as new again: %v", p.url, err)))
 	}
 }
 

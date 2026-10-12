@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 
-import { fetchTasks, setEnabled, type Task } from './api';
+import { ApiError, fetchTasks, runCleanup, setEnabled, type Task } from './api';
 
 const reply = (body: unknown) =>
   new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
@@ -61,5 +61,36 @@ describe('a peer on an older build', () => {
     await setEnabled(['a'], true);
     await setEnabled(['a'], false, '/api/instances/old');
     expect(calls).toEqual(['/api/tasks/enabled', '/api/instances/old/tasks/enabled']);
+  });
+});
+
+describe('a cleanup', () => {
+  it('sends back the digest of the preview it confirms', async () => {
+    let sent: { url: string; body: unknown } | null = null;
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (url: string, init?: RequestInit) => {
+        sent = { url, body: JSON.parse(String(init?.body)) };
+        return reply({ ids: ['a'], count: 1 });
+      }),
+    );
+    await runCleanup('offline', 'd1g3st', true);
+    expect(sent).toEqual({ url: '/api/cleanup/offline', body: { digest: 'd1g3st', files: true } });
+  });
+
+  it('fails with the code the dialog words when the class changed', async () => {
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(
+        async () =>
+          new Response(JSON.stringify({ error: 'changed', code: 'cleanupChanged' }), {
+            status: 409,
+            headers: { 'Content-Type': 'application/json' },
+          }),
+      ),
+    );
+    const err = await runCleanup('offline', 'old').catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(ApiError);
+    expect((err as ApiError).code).toBe('cleanupChanged');
   });
 });

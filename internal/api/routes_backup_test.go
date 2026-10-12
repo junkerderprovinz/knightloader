@@ -3,7 +3,9 @@ package api
 import (
 	"archive/zip"
 	"bytes"
+	"database/sql"
 	"encoding/json"
+	"fmt"
 	"io"
 	"mime/multipart"
 	"net/http"
@@ -16,11 +18,17 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/store"
 )
 
 func backupServer(t *testing.T) (*app.App, *httptest.Server) {
 	t.Helper()
 	a := testApp(t)
+	// A backup carries every password in the settings, so one is set. The
+	// bare mux has no session guard, so the tests need no sign-in.
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
 	reg := newRegistry()
 	registerBackup(reg, a)
 	mux := http.NewServeMux()
@@ -270,4 +278,75 @@ func postMultipartFile(t *testing.T, url, field, filename string, data []byte) (
 	defer resp.Body.Close()
 	body, _ := io.ReadAll(resp.Body)
 	return resp.StatusCode, body
+}
+
+// A backup whose database a newer build has migrated is refused with a code
+// the interface words, instead of being staged and failing every start after.
+func TestARestoreFromANewerSchemaIsRefusedWithItsCode(t *testing.T) {
+	t.Parallel()
+	_, srv := backupServer(t)
+	_, archive := downloadArchive(t, srv.URL)
+
+	zr, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	zw := zip.NewWriter(&out)
+	for _, f := range zr.File {
+		rc, err := f.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+		data, err := io.ReadAll(rc)
+		rc.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		if f.Name == "knightloader.db" {
+			data = newerSchema(t, data)
+		}
+		w, err := zw.Create(f.Name)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if _, err := w.Write(data); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+
+	status, body := postMultipartFile(t, srv.URL+"/api/system/restore", "file", "backup.zip", out.Bytes())
+	var refusal struct {
+		Code string `json:"code"`
+	}
+	_ = json.Unmarshal(body, &refusal)
+	if status != http.StatusBadRequest || refusal.Code != "restore.newerSchema" {
+		t.Errorf("restore = %d %s, want 400 with code restore.newerSchema", status, body)
+	}
+}
+
+// newerSchema returns the database file raw with a schema version past the
+// one this build knows.
+func newerSchema(t *testing.T, raw []byte) []byte {
+	t.Helper()
+	path := filepath.Join(t.TempDir(), "knightloader.db")
+	if err := os.WriteFile(path, raw, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	db, err := sql.Open("sqlite", path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, store.SchemaVersion()+1)); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	out, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return out
 }

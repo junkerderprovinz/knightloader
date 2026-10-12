@@ -2,15 +2,16 @@
 // the button stands: on the Pairing page's member list and on an instance's
 // card.
 import { useState } from 'react';
-import { removeApp, removeInstance, removeMember } from '../lib/api';
+import { refuseDevice, removeApp, removeInstance, removeMember } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { IconClose, IconTrash } from '../lib/icons';
 import { useToast } from '../lib/toast';
 import { Button, Modal } from './ui';
 
 /** What the removal window is about: a phone or extension of the group, an
- *  instance of the group, or an instance added by its address. */
-export type Removal = { kind: 'app' | 'member' | 'peer'; id: string; name: string };
+ *  instance of the group, an instance added by its address, or a device that
+ *  waits for approval and is about to be refused. */
+export type Removal = { kind: 'app' | 'member' | 'peer' | 'refuse'; id: string; name: string };
 
 export function RemovalWindow({
   removal,
@@ -32,6 +33,8 @@ export function RemovalWindow({
     try {
       if (removal.kind === 'app') {
         await removeApp(removal.id);
+      } else if (removal.kind === 'refuse') {
+        await refuseDevice(removal.id);
       } else if (removal.kind === 'member') {
         await removeMember(removal.id);
       } else {
@@ -48,9 +51,10 @@ export function RemovalWindow({
     }
   }
 
+  const refuse = removal.kind === 'refuse';
   return (
     <Modal
-      title={t('instances.removeTitle', { name: removal.name })}
+      title={refuse ? t('pairing.refuseTitle', { name: removal.name }) : t('instances.removeTitle', { name: removal.name })}
       onClose={onClose}
       footer={
         <>
@@ -59,7 +63,7 @@ export function RemovalWindow({
             kind="primary"
             labelled
             icon={<IconTrash />}
-            title={t('instances.remove')}
+            title={refuse ? t('pairing.refuse') : t('instances.remove')}
             disabled={busy}
             shake={shake}
             onClick={() => void remove()}
@@ -68,11 +72,13 @@ export function RemovalWindow({
       }
     >
       <p className="text-sm text-carbon-textSub">
-        {removal.kind === 'app'
-          ? t('instances.removeAppConfirm', { name: removal.name })
-          : removal.kind === 'member'
-            ? t('instances.removeMemberConfirm', { name: removal.name })
-            : t('instances.removePeerConfirm', { name: removal.name })}
+        {refuse
+          ? t('pairing.refuseConfirm', { name: removal.name })
+          : removal.kind === 'app'
+            ? t('instances.removeAppConfirm', { name: removal.name })
+            : removal.kind === 'member'
+              ? t('instances.removeMemberConfirm', { name: removal.name })
+              : t('instances.removePeerConfirm', { name: removal.name })}
       </p>
     </Modal>
   );

@@ -12,6 +12,7 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
@@ -31,7 +32,13 @@ func registerFederation(reg *Registry, a *app.App) {
 				writeJSON(w, []federation.Instance{})
 				return
 			}
-			writeJSON(w, a.Federation.List())
+			list := a.Federation.List()
+			if !seesCredentials(r) {
+				for i := range list {
+					list[i].URL = core.RedactURL(list[i].URL)
+				}
+			}
+			writeJSON(w, list)
 		})
 	reg.Add(http.MethodPost, "/api/instances", "register a peer instance and report whether it answered",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -160,19 +167,13 @@ func addsLinks(method, target string) bool {
 }
 
 // announceArrivals tells the open pages when a member of the group has handed
-// links to this instance. A phone and an extension say who they are in the
-// call and a member on this network is named by its transport; an instance
-// calling over the relay is not named by anything, so its links arrive
-// unannounced.
+// links to this instance. It runs behind the group's guard, so the member a
+// call names is the one whose pinned key signed it.
 func announceArrivals(a *app.App, serve relay.ProxyHandler) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 		status, out := serve(ctx, call)
-		from := call.From
-		if from == "" {
-			from = federation.Sender(ctx)
-		}
-		if from != "" && addsLinks(call.Method, call.Path) && status/100 == 2 {
-			a.Hub.Broadcast("handover", handover{Peer: from})
+		if call.From != "" && addsLinks(call.Method, call.Path) && status/100 == 2 {
+			a.Hub.Broadcast("handover", handover{Peer: call.From})
 		}
 		return status, out
 	}

@@ -9,6 +9,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/subtle"
 	"encoding/hex"
 	"encoding/json"
@@ -17,6 +18,8 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"sync"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
@@ -54,6 +57,30 @@ func registerRelay(reg *Registry, a *app.App) {
 	srv.Admit = func(key string) bool {
 		return a.Settings.Get().RelayServe && servesKey(a, key)
 	}
+	// The group left at a reset keeps its relay key for its devices to hear
+	// that, and for nothing else: on it they reach this instance alone.
+	srv.Confine = func(key string) string {
+		g, ok := retiredOf(a, time.Now())
+		if !ok || subtle.ConstantTimeCompare([]byte(key), []byte(g.Key)) != 1 {
+			return ""
+		}
+		return idOf(a, g.member())
+	}
+	// A hello proves an id only to the relay it names. This one goes by the
+	// name a connection reached it under, when that is a name this instance
+	// answers on, and by its known domains, which stay right behind a proxy
+	// that rewrites the Host header.
+	srv.Names = func(r *http.Request) []string {
+		var names []string
+		if hostAllowed(a, r.Host) {
+			names = append(names, relay.RelayHost(r.Host))
+		}
+		for _, d := range a.Settings.Get().KnownDomains {
+			names = append(names, relay.RelayHost(d))
+		}
+		return names
+	}
+	srv.TrustedProxies = trustedProxies(a)
 	reg.AddOpen(http.MethodGet, "/relay/connect",
 		"the relay socket, when this instance is serving one - authorised by the relay key in the first frame, never by a session",
 		func(w http.ResponseWriter, r *http.Request) {
@@ -77,7 +104,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, "not ready", http.StatusServiceUnavailable)
 				return
 			}
-			a.Federation.ServeDirect(w, r, announceArrivals(a, relayProxyHandler(serve, a.Federation.Removed)))
+			a.Federation.ServeDirect(w, r, a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -139,14 +166,35 @@ func registerRelay(reg *Registry, a *app.App) {
 				return
 			}
 			if body.Key != nil {
+				before, _ := a.Accounts.Get(relay.AccountService)
 				if err := a.Accounts.Set(relay.AccountService, *body.Key); err != nil {
 					http.Error(w, err.Error(), http.StatusInternalServerError)
 					return
+				}
+				if before != *body.Key && groupSecret(a) == nil {
+					if err := enterManualGroup(a, *body.Key != ""); err != nil {
+						http.Error(w, err.Error(), http.StatusInternalServerError)
+						return
+					}
 				}
 			}
 			applyRelay(a)
 			writeJSON(w, relayConfigOf(a, srv))
 		})
+}
+
+// enterManualGroup starts the group a hand-entered relay key makes, or leaves
+// it when joined is false. Its instances sign their calls and approve each
+// other as in a group reached by the words, under a member key of its own.
+func enterManualGroup(a *app.App, joined bool) error {
+	if err := a.Accounts.Set(relay.MemberAccountService, ""); err != nil {
+		return err
+	}
+	at := time.Time{}
+	if joined {
+		at = time.Now()
+	}
+	return a.Federation.SetJoined(at)
 }
 
 // servesKey reports whether the relay this instance serves admits key: the
@@ -159,6 +207,9 @@ func servesKey(a *app.App, key string) bool {
 	}
 	if secret := groupSecret(a); secret != nil {
 		served = append(served, relay.DeriveKey(secret))
+	}
+	if g, ok := retiredOf(a, time.Now()); ok {
+		served = append(served, g.Key)
 	}
 	ok := false
 	for _, s := range served {
@@ -251,6 +302,7 @@ func relayTarget(a *app.App) (url, key string, frameKey []byte) {
 // caller; the client keeps retrying in the background.
 func applyRelay(a *app.App) {
 	applyGroup(a)
+	applyRetired(a)
 	relayURL, key, frameKey := relayTarget(a)
 	serve := a.SelfServeHandler()
 	if relayURL == "" || key == "" || serve == nil {
@@ -258,19 +310,20 @@ func applyRelay(a *app.App) {
 		return
 	}
 
-	cfg := a.Settings.Get()
+	member := memberKey(a)
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      relayURL,
 		Key:      key,
 		FrameKey: frameKey,
 		Self: relay.Announce{
-			InstanceID: cfg.InstanceID,
+			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
 			Deployment: buildinfo.Deployment,
 			Address:    groupAddress(a),
 		},
-		Serve:  announceArrivals(a, relayProxyHandler(serve, a.Federation.Removed)),
-		Replay: a.Federation.Replay(),
+		Member: member,
+		Trusts: a.Federation.TrustsAnswer,
+		Serve:  a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
 	})
 	if err != nil {
 		log.Printf("relay: could not configure the client: %v", err)
@@ -284,8 +337,51 @@ func applyRelay(a *app.App) {
 // applyGroup hands the stored group secret to the direct transport, which
 // works whichever relay is chosen, none included.
 func applyGroup(a *app.App) {
-	a.Federation.SetGroup(groupSecret(a), a.Settings.Get().InstanceID)
+	member := memberKey(a)
+	a.Federation.SetGroup(groupSecret(a), idOf(a, member), member)
 }
+
+// memberMu keeps two callers from minting two member keys at once.
+var memberMu sync.Mutex
+
+// memberKey is the key this instance signs its calls to the group with, nil
+// outside a group. A group reached by a hand-entered relay key signs the same
+// way as one reached by the words. The key is minted here the first time it is
+// needed.
+func memberKey(a *app.App) ed25519.PrivateKey {
+	if manual, _ := a.Accounts.Get(relay.AccountService); groupSecret(a) == nil && manual == "" {
+		return nil
+	}
+	memberMu.Lock()
+	defer memberMu.Unlock()
+	if stored, err := a.Accounts.Get(relay.MemberAccountService); err == nil && stored != "" {
+		if seed, err := hex.DecodeString(stored); err == nil && len(seed) == ed25519.SeedSize {
+			return ed25519.NewKeyFromSeed(seed)
+		}
+		log.Printf("relay: the stored member key is malformed, minting a new one; the group pins it as a new key")
+	}
+	seed, err := relay.NewMemberSeed()
+	if err == nil {
+		err = a.Accounts.Set(relay.MemberAccountService, hex.EncodeToString(seed))
+	}
+	if err != nil {
+		log.Printf("relay: no member key, the group refuses this instance's calls until one can be made: %v", err)
+		return nil
+	}
+	return ed25519.NewKeyFromSeed(seed)
+}
+
+// idOf is the id this instance goes by with member: the one the key makes
+// (relay.MemberID), or its own instance id without one.
+func idOf(a *app.App, member ed25519.PrivateKey) string {
+	if member == nil {
+		return a.Settings.Get().InstanceID
+	}
+	return relay.MemberID(relay.KindInstance, member.Public().(ed25519.PublicKey))
+}
+
+// groupID is the id the group knows this instance by.
+func groupID(a *app.App) string { return idOf(a, memberKey(a)) }
 
 // groupSecret is the stored connection secret of this instance's phrase
 // group, nil outside a group or when the stored value is malformed.
@@ -306,22 +402,13 @@ func groupSecret(a *app.App) []byte {
 //
 // The relay only joins sockets presenting the same group key, derived from the
 // connection phrase, so the sender has proved group membership and the request
-// is marked authenticated. Whoever holds the phrase can join the group anyway.
-// In return the reachable surface is limited here by relayForwardable, so a
-// sibling cannot read accounts, change the password, mint a token or ask for
-// the phrase.
-func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.ProxyHandler {
+// is marked as coming from the group. Whoever holds the phrase can join the
+// group anyway. In return guard holds the call to groupRoutes, so a member
+// cannot read accounts, change the password, mint a token or ask for the
+// phrase. Who the sender is, and whether it was taken out, is the guard's to
+// decide (federation.Manager.Guard) before this runs.
+func relayProxyHandler(serve http.Handler) relay.ProxyHandler {
 	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
-		// A phone taken out of the group learns it from this answer and drops
-		// its connections to the group.
-		if call.From != "" && removed(call.From) {
-			return http.StatusGone, []byte("removed")
-		}
-		if !relayForwardable(call.Method, call.Path) {
-			// An allowlist, so a route added later is not exposed to peers
-			// until somebody adds it.
-			return http.StatusForbidden, []byte("route not proxied")
-		}
 		var body io.Reader
 		if len(call.Body) > 0 {
 			body = bytes.NewReader(call.Body)
@@ -333,10 +420,6 @@ func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.P
 		httpReq = httpReq.WithContext(context.WithValue(httpReq.Context(), relayGroupKey, true))
 		if len(call.Body) > 0 {
 			httpReq.Header.Set("Content-Type", "application/json")
-		}
-		// Set rather than added, so the frame is the header's only source.
-		if call.Authorization != "" {
-			httpReq.Header.Set("Authorization", call.Authorization)
 		}
 		rec := newRelayRecorder()
 		// There is no net/http server here to recover a panicking handler, and
@@ -357,109 +440,6 @@ func relayProxyHandler(serve http.Handler, removed func(id string) bool) relay.P
 		}()
 		return status, out
 	}
-}
-
-// relayForwardable is the list of what a group sibling may reach on this
-// instance. It is wider than the browser's outbound filter on
-// /api/instances/{name}/{rest...}, because the phone app is a group member too
-// and asks things a browser never asks a peer.
-//
-// The task, link and queue routes take any method, since showing a sibling's
-// downloads without being able to stop them would be half a connection. So do
-// the captcha routes: a captcha holds a download up, and the phone answers or
-// skips it, loads a widget challenge's page, and says when that will not
-// load. The rest is read-only apart from the appearance fields and the
-// clipboard watchers. Settings, accounts, tokens, scripts and the phrase are
-// not on the list.
-func relayForwardable(method, path string) bool {
-	// The decision is about the route, not its query arguments.
-	if i := strings.IndexByte(path, '?'); i >= 0 {
-		path = path[:i]
-	}
-	const prefix = "/api/"
-	if !strings.HasPrefix(path, prefix) {
-		return false
-	}
-	rest := path[len(prefix):]
-
-	if rest == "links" || rest == "tasks" || rest == "queue" ||
-		strings.HasPrefix(rest, "tasks/") || strings.HasPrefix(rest, "queue/") {
-		return true
-	}
-	if relayCaptchaRoute(method, rest) {
-		return true
-	}
-	// Taking a phone out of the group reaches every instance of it, passed on
-	// by the instance the removal started on; taking an instance out reaches
-	// that instance, which then leaves.
-	if method == http.MethodDelete && (strings.HasPrefix(rest, "connect/apps/") || strings.HasPrefix(rest, "connect/members/")) {
-		return true
-	}
-	if relayClipWatchRoute(method, rest) {
-		return true
-	}
-	// Setting the appearance fields is less than a phrase holder can
-	// already do through the queue.
-	if method == http.MethodPost && rest == "appearance" {
-		return true
-	}
-	// Reads a companion needs: whether a password is wanted, the group's
-	// instances, the look, the addresses this instance answers on, and the
-	// unpackings its rows show. The addresses travel inside the encrypted
-	// frame, so the relay operator never learns them.
-	if method == http.MethodGet {
-		return rest == "auth" || rest == "instances" || rest == "appearance" || rest == "remote-access" ||
-			rest == "extract"
-	}
-	return false
-}
-
-// relayCaptchaRoute reports whether rest is one of the captcha calls the phone
-// makes: the list, a refresh, answering or skipping one challenge, its widget
-// page and the phone's report that the page will not load. The web UI's own
-// widget page and its report stay off. Matched by shape rather than by
-// prefix, so a route added under /api/captcha later is not forwarded until it
-// is named here.
-func relayCaptchaRoute(method, rest string) bool {
-	switch rest {
-	case "captcha":
-		return method == http.MethodGet
-	case "captcha/refresh":
-		return method == http.MethodPost
-	}
-	parts := strings.SplitN(rest, "/", 3)
-	if len(parts) != 3 || parts[0] != "captcha" || parts[1] == "" {
-		return false
-	}
-	switch parts[2] {
-	case "answer", "skip":
-		return method == http.MethodPost
-	case "widget/phone":
-		return method == http.MethodGet
-	case "unanswerable/phone":
-		return method == http.MethodPost || method == http.MethodDelete
-	}
-	return false
-}
-
-// relayClipWatchRoute reports whether rest is one of the clipboard watcher
-// calls: the extension renews and drops its lease through the relay, and the
-// members list and stop one another's watchers.
-func relayClipWatchRoute(method, rest string) bool {
-	if rest == "clipboard-watchers" {
-		return method == http.MethodGet
-	}
-	parts := strings.Split(rest, "/")
-	if parts[0] != "clipboard-watchers" || len(parts) < 2 || parts[1] == "" {
-		return false
-	}
-	switch len(parts) {
-	case 2:
-		return method == http.MethodPut || method == http.MethodDelete
-	case 3:
-		return parts[2] == "stop" && method == http.MethodPost
-	}
-	return false
 }
 
 // relayAnswerMax bounds what one relayed call answers. No member reads more

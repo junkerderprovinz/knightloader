@@ -122,7 +122,7 @@ func registerLinks(reg *Registry, a *app.App) {
 			if created == nil {
 				created = []*core.Task{} // an empty result is [] for clients, never null
 			}
-			writeJSON(w, created)
+			writeJSON(w, shownTasks(r, created))
 		})
 
 	// A browser sees held links on the task stream; this is for other clients.
@@ -182,6 +182,11 @@ func registerLinks(reg *Registry, a *app.App) {
 			skipped := a.SkippedLinks()
 			if skipped == nil {
 				skipped = []app.SkippedLink{}
+			}
+			if !seesCredentials(r) {
+				for i, s := range skipped {
+					skipped[i] = s.WithoutCredentials()
+				}
 			}
 			writeJSON(w, skipped)
 		})

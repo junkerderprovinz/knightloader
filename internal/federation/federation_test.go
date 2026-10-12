@@ -22,7 +22,6 @@ type fakeRelay struct {
 
 	target, method, path string
 	body                 []byte
-	auth                 string
 
 	resp   []byte
 	status int
@@ -38,9 +37,8 @@ func (f *fakeRelay) Siblings() []relay.Announce { return f.sibs }
 
 func (f *fakeRelay) Connected() bool { return !f.down }
 
-func (f *fakeRelay) Proxy(_ context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+func (f *fakeRelay) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	f.target, f.method, f.path, f.body = target, method, path, body
-	f.auth = authorization
 	return f.resp, f.status, f.err
 }
 
@@ -65,7 +63,7 @@ type fakeLocal struct{ members []discovery.Peer }
 
 func (f *fakeLocal) Members() []discovery.Peer { return f.members }
 
-func (f *fakeLocal) SetGroup(func(discovery.Peer) string, func(discovery.Peer) bool) {}
+func (f *fakeLocal) SetGroup(string, func(discovery.Peer) string, func(discovery.Peer) bool) {}
 
 func newManager(t *testing.T) *Manager {
 	t.Helper()
@@ -430,11 +428,11 @@ func TestRelayConnectedDistinguishesUnreachableFromAbsent(t *testing.T) {
 	}
 }
 
-// TestBothTransportsCarryTheirPeerCredential checks that each transport looks
-// the token up under the key it addresses the peer by: the pairing name over
-// HTTP, the InstanceID over the relay. Without the latter, a
-// password-protected relay peer refuses every call (#26).
-func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
+// TestOnlyAStoredPeerIsCalledWithACredential: a stored peer gets the token
+// filed under its name, while a member of the group gets none over the relay,
+// even with one filed under its id. Whoever took the member's place on the
+// relay would otherwise read a token that opens the member to anybody.
+func TestOnlyAStoredPeerIsCalledWithACredential(t *testing.T) {
 	m, err := Load(t.TempDir())
 	if err != nil {
 		t.Fatal(err)
@@ -447,14 +445,17 @@ func TestBothTransportsCarryTheirPeerCredential(t *testing.T) {
 		"Laptop": "a-display-name-is-not-an-address",
 	})
 
-	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}}
-	m.SetRelay(rt)
-
-	if _, _, err := m.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil); err != nil {
-		t.Fatalf("relay proxy: %v", err)
-	}
-	if rt.auth != "Bearer secret-for-the-relay-peer" {
-		t.Errorf("relay call carried %q, want the credential filed under the instance id; without it a password-protected relay peer answers 401 forever", rt.auth)
+	var toMember []string
+	member := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		toMember = append(toMember, r.Header.Get("Authorization"))
+		http.Error(w, "forbidden", http.StatusForbidden)
+	}))
+	defer member.Close()
+	m.SetGroup(make([]byte, 16), officeID, nil)
+	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, Name: "Laptop", URL: member.URL}}})
+	_, _, _ = m.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
+	if len(toMember) != 1 || toMember[0] != "" {
+		t.Errorf("the member was called with %q, want one call without a credential", toMember)
 	}
 
 	var seen string
@@ -494,7 +495,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 		t.Fatal(err)
 	}
 	m.SetPeerTokens(staticTokens{"nas": "secret-the-nas-issued"})
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: "nas", Name: "nas", URL: "http://192.168.1.66:8749"}}})
 	rt := &fakeRelay{sibs: []relay.Announce{{InstanceID: "nas", Name: "nas"}}}
 	m.SetRelay(rt)
@@ -515,7 +516,7 @@ func TestAMemberCannotTakeAStoredPeersName(t *testing.T) {
 
 func TestAMemberIsListedOnlyUnderAnInstanceID(t *testing.T) {
 	m := newManager(t)
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{
 		{ID: "cellar", Name: "Cellar", URL: "http://192.168.1.66:8749"},
 		{ID: nasID, Name: "NAS", URL: "http://192.168.1.5:8749"},
@@ -552,7 +553,7 @@ func TestAStoredPeerIsNeverReplacedByAMember(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	m.SetGroup(make([]byte, 16), officeID)
+	m.SetGroup(make([]byte, 16), officeID, nil)
 	m.SetDiscovery(&fakeLocal{members: []discovery.Peer{{ID: bravoID, URL: "http://192.168.1.66:8749"}}})
 	m.SetRelay(&fakeRelay{sibs: []relay.Announce{{InstanceID: bravoID, Name: "Laptop"}}})
 

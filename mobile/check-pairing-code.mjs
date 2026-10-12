@@ -100,7 +100,7 @@ for (const address of [
     '../api/pairingCode': { readPairingCode },
     '../api/deviceName': { deviceName: () => 'Phone' },
     '../api/sha256': { toHex: () => '' },
-    '../storage/relayIdentity': { relayIdentity: async () => 'phone' },
+    '../storage/relayIdentity': { memberOptions: async () => ({ selfId: 'phone', memberSeed: null }) },
     '../storage/connections': { addConnection: async () => {}, listConnections: async () => [], setActiveConnectionId: async () => {} },
     '../theme/AppearanceContext': { useAppearance: () => ({ c: {}, accent: '', corners: {} }) },
     '../theme/MotionContext': { useShake: () => ({ style: {}, shake() {} }) },

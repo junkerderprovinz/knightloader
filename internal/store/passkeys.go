@@ -6,6 +6,7 @@ import (
 	"encoding/hex"
 	"errors"
 	"fmt"
+	"os"
 	"time"
 )
 
@@ -178,6 +179,43 @@ func (s *Store) DeletePasskey(id string) error {
 		return fmt.Errorf("store: DeletePasskey: %w", err)
 	}
 	return nil
+}
+
+// ReplacePasskeysFrom makes the passkeys here exactly those of the database at
+// path, the store a restore is about to replace. A passkey is a way in, so a
+// restored database keeps the ones registered on the running server rather than
+// the ones the backup brought along. No file at path leaves none.
+func (s *Store) ReplacePasskeysFrom(path string) error {
+	if _, err := os.Stat(path); errors.Is(err, os.ErrNotExist) {
+		if _, err := s.db.Exec(`DELETE FROM passkeys`); err != nil {
+			return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+		}
+		return nil
+	}
+	// ATTACH cannot run inside a transaction; the single connection keeps the
+	// attachment for the statements below.
+	if _, err := s.db.Exec(`ATTACH DATABASE ? AS source`, path); err != nil {
+		return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+	}
+	defer s.db.Exec(`DETACH DATABASE source`) //nolint:errcheck // the connection closes with the store
+	var n int
+	if err := s.db.QueryRow(`SELECT count(*) FROM source.sqlite_master WHERE type = 'table' AND name = 'passkeys'`).Scan(&n); err != nil {
+		return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+	}
+	tx, err := s.db.Begin()
+	if err != nil {
+		return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+	}
+	defer tx.Rollback()
+	if _, err := tx.Exec(`DELETE FROM main.passkeys`); err != nil {
+		return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+	}
+	if n > 0 {
+		if _, err := tx.Exec(`INSERT INTO main.passkeys (` + passkeyCols + `) SELECT ` + passkeyCols + ` FROM source.passkeys`); err != nil {
+			return fmt.Errorf("store: ReplacePasskeysFrom: %w", err)
+		}
+	}
+	return tx.Commit()
 }
 
 // DeleteAllPasskeys removes every credential and reports how many there were.

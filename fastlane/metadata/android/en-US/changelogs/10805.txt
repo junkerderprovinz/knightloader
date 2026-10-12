@@ -1,1 +1,0 @@
-Usenet downloads no longer hang in Verifying, and the browser extension is on Firefox Add-ons.

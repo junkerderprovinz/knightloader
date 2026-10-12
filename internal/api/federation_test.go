@@ -159,7 +159,7 @@ func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
 	}
 
 	arrived := dialWS(t, "ws"+strings.TrimPrefix(bSrv.URL, "http"))
-	serve := announceArrivals(bApp, relayProxyHandler(Handler(bApp), bApp.Federation.Removed))
+	serve := announceArrivals(bApp, relayProxyHandler(Handler(bApp)))
 	add := relay.ProxyCall{Method: http.MethodPost, Path: "/api/links", Body: links}
 	if status, answer := serve(context.Background(), add); status/100 != 2 {
 		t.Fatalf("links from an unnamed member answered %d: %s", status, answer)
@@ -245,7 +245,7 @@ type relayOnlyPeer struct {
 func (r *relayOnlyPeer) Siblings() []relay.Announce { return r.sibs }
 func (r *relayOnlyPeer) Connected() bool            { return true }
 func (r *relayOnlyPeer) Close() error               { return nil }
-func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte, _ string) ([]byte, int, error) {
+func (r *relayOnlyPeer) Proxy(_ context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	r.gotPath = path
 	r.gotBody = body
 	r.gotBoth = target == desktopID && method == http.MethodPost
@@ -415,6 +415,7 @@ func TestAPeersUnpackingsAreForwardedReadOnly(t *testing.T) {
 
 	call := func(method, rest string) int {
 		req, _ := http.NewRequest(method, srv.URL+"/api/instances/cellar/"+rest, strings.NewReader(`{}`))
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

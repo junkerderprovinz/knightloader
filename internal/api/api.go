@@ -79,8 +79,7 @@ func caller(a *app.App, r *http.Request) (tok *apitoken.Token, ok bool) {
 	}
 	// A sibling on the relay already holds the group key, derived from the
 	// connection phrase that reaches every instance in the group, so a second
-	// credential would protect nothing. relayProxyHandler limits such calls to
-	// the task and link routes.
+	// credential would protect nothing. guard holds such calls to groupRoutes.
 	if fromRelayGroup(r) {
 		return nil, true
 	}
@@ -178,6 +177,14 @@ func cookiePath(r *http.Request) string {
 // for requireScope to check against the route.
 func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Before the open routes, which a member reaches only when they are
+		// on its list too.
+		if fromRelayGroup(r) {
+			if reg.admitGroup(a, w, r) {
+				next.ServeHTTP(w, r)
+			}
+			return
+		}
 		if reg.open(r.URL.Path) {
 			next.ServeHTTP(w, r)
 			return
@@ -209,10 +216,20 @@ func guard(a *app.App, reg *Registry, next http.Handler) http.Handler {
 // visitor's browser. The UI is served from the same origin as the API, so no
 // cross-origin access is ever needed. A site that points its own domain at
 // this address passes here; knownHost is what stops it.
+//
+// Sec-Fetch-Site is set by the browser itself and no page can change it, so it
+// still says cross-site where a privacy setting has dropped the Origin. Only
+// that value is refused: what a browser counts as one site for a bare LAN
+// address is not worth betting an install on, and a client that sends no such
+// header is not a browser.
 func sameOrigin(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if origin := r.Header.Get("Origin"); origin != "" && !originMatchesHost(origin, r.Host) {
 			http.Error(w, "cross-origin requests are not allowed", http.StatusForbidden)
+			return
+		}
+		if changesState(r.Method) && r.Header.Get("Sec-Fetch-Site") == "cross-site" {
+			http.Error(w, "cross-site requests are not allowed", http.StatusForbidden)
 			return
 		}
 		next.ServeHTTP(w, r)
@@ -239,7 +256,7 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 	// The guard let the request in before the upgrade; a reset in between
 	// has dropped every stream and must not miss this one.
 	if err := a.Auth.Mint(stillAdmitted(a, r), func() error {
-		openStream(a, c, narrowToken(r))
+		openStream(a, c, !seesCredentials(r))
 		return nil
 	}); err != nil {
 		c.Close(websocket.StatusPolicyViolation, "unauthorized")
@@ -264,7 +281,7 @@ func serveWS(a *app.App, w http.ResponseWriter, r *http.Request) {
 func OpenStream(a *app.App, c hub.Conn) { openStream(a, c, false) }
 
 // openStream is OpenStream for a stream that gets only the redacted form of
-// what the settings hide when restricted is set.
+// what the settings hide and of the tasks' credentials when restricted is set.
 func openStream(a *app.App, c hub.Conn, restricted bool) {
 	if restricted {
 		a.Hub.AddRestricted(c)
@@ -275,7 +292,14 @@ func openStream(a *app.App, c hub.Conn, restricted bool) {
 	// event sent after Add cannot overtake the older snapshot. The activity
 	// snapshot gives a reconnecting client the current counters instead of
 	// whatever its last broadcast said.
-	a.Hub.SendTo(c, "snapshot", a.Tasks())
+	tasks := a.Tasks()
+	if restricted {
+		for i, t := range tasks {
+			shown := t.WithoutCredentials()
+			tasks[i] = &shown
+		}
+	}
+	a.Hub.SendTo(c, "snapshot", tasks)
 	a.Hub.SendTo(c, "activitySnapshot", a.ActivitySnapshot())
 }
 

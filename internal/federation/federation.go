@@ -72,9 +72,9 @@ type RelayTransport interface {
 	// Siblings is the instances the relay makes visible now; empty while the
 	// relay is unreachable.
 	Siblings() []relay.Announce
-	// Proxy calls one sibling by instance ID. authorization is the
-	// Authorization header value the target should see, or "".
-	Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error)
+	// Proxy calls one sibling by instance ID and returns its answer once the
+	// sibling's key signed it.
+	Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error)
 	// Connected reports whether the socket to the relay is up. Siblings alone
 	// cannot tell an unreachable relay from one where nobody else is on the
 	// key.
@@ -98,6 +98,9 @@ type Manager struct {
 	list map[string]Instance // by name
 	rt   RelayTransport      // nil while no relay is configured
 	pt   PeerTokens          // nil means peers are called unauthenticated
+	// retired is the connection to the group this instance left at a
+	// password reset, nil when there is none (see SetRetired).
+	retired RelayTransport
 
 	local  LocalNetwork // nil where discovery does not run
 	keys   *groupKeys   // nil outside a phrase group
@@ -105,19 +108,29 @@ type Manager struct {
 
 	group  *groupFile
 	replay *relay.ReplayGuard
-	slots  chan struct{}
+	limits *memberLimits
+	// awaiting is when each member last answered that this instance waits
+	// for approval there, heard which members served a call from it, and
+	// greeted when Greet last called each.
+	awaiting map[string]time.Time
+	heard    map[string]bool
+	greeted  map[string]time.Time
 }
 
 // Load reads instances.json and group.json from dir; a missing file is an
-// empty list and no group.
+// empty list and no group, and a damaged group.json is an error.
 func Load(dir string) (*Manager, error) {
+	group, err := loadGroupFile(filepath.Join(dir, "group.json"))
+	if err != nil {
+		return nil, err
+	}
 	m := &Manager{
 		path:   filepath.Join(dir, "instances.json"),
 		hc:     httpx.New(httpx.Options{Timeout: peerTimeout}),
 		list:   map[string]Instance{},
-		group:  loadGroupFile(filepath.Join(dir, "group.json")),
+		group:  group,
 		replay: relay.NewReplayGuard(),
-		slots:  make(chan struct{}, maxDirectCalls),
+		limits: newMemberLimits(),
 	}
 	if b, err := os.ReadFile(m.path); err == nil {
 		var arr []Instance
@@ -149,6 +162,33 @@ func (m *Manager) SetRelay(rt RelayTransport) {
 	if prev != nil {
 		_ = prev.Close()
 	}
+}
+
+// SetRetired installs the relay connection an instance keeps to the group it
+// left at a password reset, or clears it with nil, and closes the one it
+// replaces. The connection closes by itself at until.
+func (m *Manager) SetRetired(rt RelayTransport, until time.Time) {
+	m.mu.Lock()
+	prev := m.retired
+	m.retired = rt
+	m.mu.Unlock()
+	if prev != nil {
+		_ = prev.Close()
+	}
+	if rt == nil {
+		return
+	}
+	time.AfterFunc(time.Until(until), func() {
+		m.mu.Lock()
+		current := m.retired == rt
+		if current {
+			m.retired = nil
+		}
+		m.mu.Unlock()
+		if current {
+			_ = rt.Close()
+		}
+	})
 }
 
 // PeerTokens supplies the credential a call to one peer must carry. It is a
@@ -312,29 +352,28 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	if !ok {
 		return nil, http.StatusNotFound, fmt.Errorf("federation: unknown instance %q", name)
 	}
-	// The token is looked up under the key of the transport the peer is
-	// reached by, as the pairing exchange files it (routes_pairing.go): the
-	// InstanceID for a member, the stored name for a stored peer.
-	bearer := func(key string) string {
-		if tok := m.tokenFor(key); tok != "" {
-			return "Bearer " + tok
-		}
-		return ""
-	}
+	// A member of the group is called with no credential: its key signs
+	// the call, and an answer counts only once the member's key signed it
+	// in turn, so a stranger holding the words that takes the member's place
+	// learns nothing it could use and cannot answer for it.
 	if in.RelayID != "" {
-		auth := bearer(in.RelayID)
-		// A member on this network is asked directly, and the relay carries
-		// the call when that fails or the member is elsewhere. rt is set
-		// whenever viaRelay is, since both came from the same snapshot.
-		if in.directURL != "" {
-			out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body, auth)
-			if err == nil || !in.viaRelay {
-				return out, code, err
-			}
+		out, code, err := m.proxyMember(ctx, in, rt, method, path, body)
+		var untrusted *relay.UntrustedAnswer
+		switch {
+		case err == nil:
+			m.noteAnswer(in.RelayID, code, out, time.Now())
+		case errors.As(err, &untrusted) && waitsForApproval(untrusted.Status, untrusted.Body):
+			// The member has not been approved here yet either, which is
+			// how two instances meet; that this one waits there is all its
+			// answer is taken for.
+			m.noteAnswer(in.RelayID, untrusted.Status, untrusted.Body, time.Now())
 		}
-		return rt.Proxy(ctx, in.RelayID, method, path, body, auth)
+		return out, code, err
 	}
-	auth := bearer(in.Name)
+	auth := ""
+	if tok := m.tokenFor(in.Name); tok != "" {
+		auth = "Bearer " + tok
+	}
 	var rd io.Reader
 	if len(body) > 0 {
 		rd = bytes.NewReader(body)
@@ -356,6 +395,19 @@ func (m *Manager) Proxy(ctx context.Context, name, method, path string, body []b
 	defer resp.Body.Close()
 	b, _ := io.ReadAll(io.LimitReader(resp.Body, 32<<20))
 	return b, resp.StatusCode, nil
+}
+
+// proxyMember calls a member of the group: directly when it is on this
+// network, and through the relay when that fails or the member is elsewhere.
+// rt is set whenever viaRelay is, since both came from the same snapshot.
+func (m *Manager) proxyMember(ctx context.Context, in Instance, rt RelayTransport, method, path string, body []byte) ([]byte, int, error) {
+	if in.directURL != "" {
+		out, code, err := m.callDirect(ctx, in.directURL, in.RelayID, method, path, body)
+		if err == nil || !in.viaRelay {
+			return out, code, err
+		}
+	}
+	return rt.Proxy(ctx, in.RelayID, method, path, body)
 }
 
 // ErrUnauthorized is what Ping reports when a peer answered but refused the

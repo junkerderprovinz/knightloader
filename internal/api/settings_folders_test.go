@@ -146,3 +146,67 @@ func TestAPatchIsNotRefusedForACategoryFolderItDoesNotName(t *testing.T) {
 		t.Errorf("a patch sending the category with the unusable folder answered %d, want it refused", code)
 	}
 }
+
+// No folder a save names may lie in the data folder, where a download would
+// land beside auth.json, tokens.json and settings.json. Its built-in download
+// folder is the one exception.
+func TestAFolderInTheDataFolderIsRefusedByEverySave(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	inside := filepath.Join(a.DataDir, "tools")
+
+	for _, field := range []string{"downloadDir", "workDir", "watchDir", "extractTo", "extractMoveTo"} {
+		code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{%q:%q}`, field, inside))
+		var body struct {
+			Field string `json:"field"`
+			Code  string `json:"code"`
+		}
+		_ = json.Unmarshal([]byte(msg), &body)
+		if code != http.StatusBadRequest || body.Field != field || body.Code != "pathProblem.dataFolder" {
+			t.Errorf("%s in the data folder answered %d %s, want pathProblem.dataFolder", field, code, msg)
+		}
+	}
+	cats := fmt.Sprintf(`{"categories":[{"id":"filme","name":"Filme","dir":%q}]}`, inside)
+	if code, _, msg := patchSettings(t, srv.URL, cats); code != http.StatusBadRequest {
+		t.Errorf("a category folder in the data folder answered %d %s, want it refused", code, msg)
+	}
+	whole := a.Settings.Get()
+	whole.DownloadDir = a.DataDir
+	if code, _, _ := putSettings(t, srv.URL, whole); code != http.StatusBadRequest {
+		t.Errorf("a whole settings document with the data folder as download folder answered %d, want it refused", code)
+	}
+	if got := a.Settings.Get().DownloadDir; got == inside || got == a.DataDir {
+		t.Errorf("the refused folder %q was stored", got)
+	}
+
+	builtIn := filepath.Join(a.DataDir, settings.DownloadsDirName, "Filme")
+	if code, _, msg := patchSettings(t, srv.URL, fmt.Sprintf(`{"downloadDir":%q}`, builtIn)); code != http.StatusOK {
+		t.Errorf("a folder in the built-in download folder answered %d %s", code, msg)
+	}
+}
+
+// A package name that would move its folder into the data folder is refused
+// with the code the rename window words, and the name it is about.
+func TestARenameIntoTheDataFolderIsRefusedWithItsCode(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	s := a.Settings.Get()
+	s.DownloadDir, s.SubfolderByPackage = filepath.Dir(a.DataDir), true
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	created := stage(t, a, "https://host.example/film.mkv")
+
+	name := filepath.Base(a.DataDir)
+	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/tasks/package/rename", map[string]any{"ids": ids(created), "name": name})
+	var refusal struct {
+		Code   string            `json:"code"`
+		Params map[string]string `json:"params"`
+	}
+	_ = json.Unmarshal(body, &refusal)
+	if code != http.StatusBadRequest || refusal.Code != "dataFolder" || refusal.Params["name"] != name {
+		t.Errorf("renaming the package after the data folder answered %d %s, want 400 with code dataFolder and the name", code, body)
+	}
+}

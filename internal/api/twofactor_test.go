@@ -23,7 +23,8 @@ func armTwoFactor(t *testing.T, a *app.App, password string) (totpSecret string,
 	if err != nil {
 		t.Fatal(err)
 	}
-	code, err := secret.TOTPCode(sec, time.Now())
+	// The code of the step before, which leaves the present one to the test.
+	code, err := secret.TOTPCode(sec, time.Now().Add(-30*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -170,11 +171,11 @@ func TestTheLoginThrottleMakesGuessingSixDigitsPointless(t *testing.T) {
 
 	client := &http.Client{Jar: newJar(t)}
 	var last int
-	for i := 0; i < loginFailBurst+1; i++ {
+	for i := 0; i < loginFailLimit+1; i++ {
 		last, _ = loginWith(t, client, srv.URL, "a-good-password", "000000")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route still answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route still answered %d, want 429", loginFailLimit+1, last)
 	}
 	// The throttle refuses a correct code too while it is in force; letting
 	// one through would tell an attacker when a guess was right.
@@ -341,7 +342,8 @@ func TestTheEnrolmentRunsEndToEndOverHTTP(t *testing.T) {
 	if resp.StatusCode == http.StatusOK {
 		t.Error("the factor came off without a valid code")
 	}
-	off, err := secret.TOTPCode(begun.Secret, time.Now())
+	// The next step's, since this one's confirmed the enrolment.
+	off, err := secret.TOTPCode(begun.Secret, time.Now().Add(30*time.Second))
 	if err != nil {
 		t.Fatal(err)
 	}

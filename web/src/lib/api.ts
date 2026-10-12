@@ -819,6 +819,12 @@ export interface AuthState {
    *  needs from the login answer. */
   twoFactor?: boolean;
   recoveryLeft?: number;
+  /** Whether the server seals its secrets with KL_APP_KEY; absent like the
+   *  two above. */
+  appKey?: boolean;
+  /** When the copies of the files from before the app key are deleted, while
+   *  they are still in the data folder. */
+  appKeyCopiesUntil?: string;
 }
 
 /**
@@ -918,6 +924,8 @@ export interface BulkResult {
   undo?: string;
   /** How long the undo token stays valid, in milliseconds. The server owns the window. */
   undoMs?: number;
+  /** What a cleanup preview showed, as runCleanup has to send it back. */
+  digest?: string;
 }
 
 /**
@@ -1484,15 +1492,13 @@ export const undoDelete = async (token: string, base = '/api') =>
 export const cleanupPreview = async (cls: CleanupClass) =>
   json<BulkResult>(await ok(await fetch(`/api/cleanup/${encodeURIComponent(cls)}`)));
 
-/** runCleanup removes everything in a class and reports what it removed. */
-export const runCleanup = async (cls: CleanupClass, withFiles = false) =>
-  json<BulkResult>(
-    await ok(
-      await fetch(`/api/cleanup/${encodeURIComponent(cls)}${withFiles ? '?files=1' : ''}`, {
-        method: 'POST',
-      }),
-    ),
-  );
+/**
+ * runCleanup removes everything in a class, as long as it still selects what the
+ * preview with this digest showed. Otherwise it fails with the code
+ * cleanupChanged and removes nothing.
+ */
+export const runCleanup = async (cls: CleanupClass, digest: string, withFiles = false) =>
+  json<BulkResult>(await ok(await post(`/api/cleanup/${encodeURIComponent(cls)}`, { digest, files: withFiles })));
 
 /**
  * fetchSkipped lists the links that were folded into one already in the list,
@@ -2890,13 +2896,25 @@ export async function askForResetCode(): Promise<ResetCodePlace> {
   return json<ResetCodePlace>(await post('/api/auth/reset', {}));
 }
 
+/** What a password reset took away. Every other session ends as well. */
+export interface ResetRemoved {
+  twoFactor: boolean;
+  passkeys: number;
+  tokens: number;
+  /** The instance left its pairing group for a new one with new words. */
+  group: boolean;
+}
+
 /**
  * resetPassword sets a new password with the reset code and signs this
  * browser in. A code that is wrong, used up or too old is refused with the
  * code `codeRejected`, and too many attempts with status 429.
  */
-export async function resetPassword(code: string, password: string): Promise<AuthState> {
-  return json<AuthState>(await post('/api/auth/reset/finish', { code, password }));
+export async function resetPassword(
+  code: string,
+  password: string,
+): Promise<AuthState & { removed?: ResetRemoved }> {
+  return json<AuthState & { removed?: ResetRemoved }>(await post('/api/auth/reset/finish', { code, password }));
 }
 
 /** What POST /api/auth/2fa/begin hands back: shown once, armed by nothing. */
@@ -4057,6 +4075,25 @@ export interface ConnectInfo {
   joinedAgo: number;
   /** Whether another instance has shown up in the group since. */
   memberSeen: boolean;
+  /** Devices that entered the words and wait for approval here. */
+  pending: PendingDevice[];
+  /** Whether another instance said lately that this one waits for approval
+   *  there. */
+  awaiting: boolean;
+  /** This instance's own key as the others list it while it waits for
+   *  approval there, '' outside a group. */
+  fingerprint: string;
+}
+
+/** A device whose key is pinned here but nobody approved yet. */
+export interface PendingDevice {
+  id: string;
+  /** What it announced itself as, '' when it is not connected. */
+  name: string;
+  /** 'instance', 'mobile' or 'extension', as the device signs. */
+  kind: string;
+  /** The start of its key's hash, for comparing by eye. */
+  fingerprint: string;
 }
 
 export interface GroupMember {
@@ -4150,16 +4187,40 @@ export async function revealConnect(password: string): Promise<{ phrase: string;
 }
 
 /** removeApp takes a phone or browser extension out of the group on every
- *  instance of it; the phrase entered again brings it back as a new member. */
+ *  instance of it; the phrase entered again brings it back as a new device
+ *  that waits for approval. */
 export async function removeApp(id: string): Promise<void> {
   const r = await fetch(`/api/connect/apps/${encodeURIComponent(id)}`, { method: 'DELETE' });
   if (!r.ok) throw new Error(await r.text());
 }
 
-/** removeMember takes another instance out of the group: it forgets the
- *  phrase and comes back when the phrase is entered there again. */
+/** removeMember takes another instance out of the group on every instance of
+ *  it. It forgets the phrase, and entered there again the phrase brings it
+ *  back as a new device that waits for approval. */
 export async function removeMember(id: string): Promise<void> {
   const r = await fetch(`/api/connect/members/${encodeURIComponent(id)}`, { method: 'DELETE' });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** approveDevice lets a device that entered the words act in the group, on
+ *  every instance of it. */
+export async function approveDevice(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/approve`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
+  if (!r.ok) throw new Error(await r.text());
+}
+
+/** refuseDevice turns such a device away on every instance; its key is
+ *  revoked there for good. */
+export async function refuseDevice(id: string): Promise<void> {
+  const r = await fetch(`/api/connect/devices/${encodeURIComponent(id)}/refuse`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: '{}',
+  });
   if (!r.ok) throw new Error(await r.text());
 }
 

@@ -7,9 +7,12 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"sync"
 	"sync/atomic"
 	"testing"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
 const resetPassword = "a-new-long-password"
@@ -108,7 +111,7 @@ func TestAnOldCopyOfAuthJSONSignsNothingAfterAReset(t *testing.T) {
 	}
 	copied.Epoch = g.Epoch()
 	forged := t.TempDir()
-	if err := writeState(filepath.Join(forged, "auth.json"), copied); err != nil {
+	if err := writeState(filepath.Join(forged, "auth.json"), copied, nil); err != nil {
 		t.Fatal(err)
 	}
 	thief, err := Open(forged)
@@ -272,11 +275,11 @@ func TestAPasswordBcryptWouldRefuseKeepsTheCode(t *testing.T) {
 
 func TestAResetCountsCharactersNotBytes(t *testing.T) {
 	g, _, code := askedFor(t)
-	if err := finish(g, code, "äöüßäöü"); !errors.Is(err, ErrTooShort) {
-		t.Fatalf("seven characters in fourteen bytes = %v, want ErrTooShort", err)
+	if err := finish(g, code, "äöüßäöüéäöü"); !errors.Is(err, ErrTooShort) {
+		t.Fatalf("eleven characters in twenty-two bytes = %v, want ErrTooShort", err)
 	}
-	if err := finish(g, code, "äöüßäöüé"); err != nil {
-		t.Fatalf("eight characters were refused: %v", err)
+	if err := finish(g, code, "äöüßäöüéäöüß"); err != nil {
+		t.Fatalf("twelve characters were refused: %v", err)
 	}
 }
 
@@ -416,6 +419,110 @@ func TestAChangeCheckedAgainstAResetPasswordIsRefused(t *testing.T) {
 	if !g.Check(resetPassword) {
 		t.Error("the change checked before the reset replaced the reset password")
 	}
+}
+
+// TestSignOutsDuringAResetLeaveTheNewPasswordOnDisk: a sign-out writes
+// auth.json too, and one that read the state before the reset must not write
+// it back over the reset, or cut the file short so the next start reads no
+// password.
+func TestSignOutsDuringAResetLeaveTheNewPasswordOnDisk(t *testing.T) {
+	for _, withKey := range []bool{false, true} {
+		name := "without an app key"
+		var key *appkey.Key
+		if withKey {
+			name, key = "with an app key", newKey(t)
+		}
+		t.Run(name, func(t *testing.T) {
+			t.Parallel()
+			template := lockedFile(t, key)
+			var oldBack, refused, open atomic.Int32
+			rounds := make(chan int)
+			var workers sync.WaitGroup
+			for range 8 {
+				workers.Go(func() {
+					for range rounds {
+						dir := t.TempDir()
+						if err := os.WriteFile(filepath.Join(dir, FileName), template, 0o600); err != nil {
+							t.Error(err)
+							return
+						}
+						resetWhileSigningOut(t, dir, key)
+						g, err := OpenWithKey(dir, key)
+						switch {
+						case err != nil:
+							refused.Add(1)
+						case !g.Enabled():
+							open.Add(1)
+						case g.Check("correct-horse") || !g.Check(resetPassword):
+							oldBack.Add(1)
+						}
+					}
+				})
+			}
+			for i := range 300 {
+				rounds <- i
+			}
+			close(rounds)
+			workers.Wait()
+			if oldBack.Load()+refused.Load()+open.Load() > 0 {
+				t.Errorf("of 300 resets, %d brought the old password back, %d left a file that refuses to start, %d left no password",
+					oldBack.Load(), refused.Load(), open.Load())
+			}
+		})
+	}
+}
+
+// lockedFile is auth.json with the password correct-horse, sealed under key
+// when there is one.
+func lockedFile(t *testing.T, key *appkey.Key) []byte {
+	t.Helper()
+	dir := t.TempDir()
+	g, err := OpenWithKey(dir, key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := g.SetPassword("", "correct-horse"); err != nil {
+		t.Fatal(err)
+	}
+	b, err := os.ReadFile(filepath.Join(dir, FileName))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
+
+// resetWhileSigningOut resets the password in dir while four browsers sign
+// in and out again as fast as they can.
+func resetWhileSigningOut(t *testing.T, dir string, key *appkey.Key) {
+	g, err := OpenWithKey(dir, key)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	code, err := g.StartReset()
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	done := make(chan struct{})
+	var browsers sync.WaitGroup
+	for range 4 {
+		browsers.Go(func() {
+			for {
+				select {
+				case <-done:
+					return
+				default:
+				}
+				_ = g.Revoke(g.Issue())
+			}
+		})
+	}
+	if _, err := g.FinishReset(code, resetPassword, nil); err != nil {
+		t.Error(err)
+	}
+	close(done)
+	browsers.Wait()
 }
 
 // TestNothingIsMintedWhileAResetEndsTheOtherCredentials: a token or passkey

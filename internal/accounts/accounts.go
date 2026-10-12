@@ -1,6 +1,7 @@
 // Package accounts is an encrypted-at-rest store for premium and debrid
 // credentials. Secrets are sealed with AES-256-GCM under a per-install key
-// kept in the data dir, and the file on disk holds only ciphertext.
+// kept in the data dir, itself sealed with the app key when there is one, and
+// the file on disk holds only ciphertext.
 //
 // A secret stored before Credential existed decrypts to a bare string and is
 // read back as an API key on every read (see decodeCredential). The file is
@@ -25,6 +26,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
 // Credential is one stored account's secret. The service's catalogue Kind
@@ -92,22 +95,13 @@ type Store struct {
 	mu   sync.Mutex
 	key  []byte
 	data map[string]string // accountKey -> base64(nonce || ciphertext)
+	// appKey seals key on disk; nil keeps .keyring as the bare 32 bytes.
+	appKey *appkey.Key
 }
 
-// Open loads (or initialises) the store rooted at dir.
+// Open loads (or initialises) the store rooted at dir, without an app key.
 func Open(dir string) (*Store, error) {
-	s := &Store{
-		keyPath: filepath.Join(dir, ".keyring"),
-		dbPath:  filepath.Join(dir, "accounts.json"),
-		data:    map[string]string{},
-	}
-	if err := s.loadKey(); err != nil {
-		return nil, err
-	}
-	if err := s.load(); err != nil {
-		return nil, err
-	}
-	return s, nil
+	return OpenWithKey(dir, nil)
 }
 
 // load reads accounts.json. A file that cannot be parsed is set aside under a
@@ -140,9 +134,15 @@ func (s *Store) load() error {
 }
 
 func (s *Store) loadKey() error {
-	b, err := os.ReadFile(s.keyPath)
+	b, sealed, err := s.readKeyring()
+	if sealed && err != nil {
+		return err
+	}
 	if err == nil && len(b) == 32 {
 		s.key = b
+		if s.appKey != nil && !sealed {
+			return s.writeKeyring(b)
+		}
 		return nil
 	}
 	if !errors.Is(err, fs.ErrNotExist) {
@@ -163,7 +163,7 @@ func (s *Store) loadKey() error {
 	if _, err := rand.Read(k); err != nil {
 		return err
 	}
-	if err := os.WriteFile(s.keyPath, k, 0o600); err != nil {
+	if err := s.writeKeyring(k); err != nil {
 		return err
 	}
 	s.key = k

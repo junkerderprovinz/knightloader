@@ -1718,7 +1718,7 @@ export function TaskProperties({
       const e = await refusal(r);
       // refusal falls back to the bare status, which says nothing to a reader.
       const said = e.message === String(r.status) ? '' : e.message;
-      toast(renameRefusal(e, t) ?? (said || t('list.optionsFailed')), 'fail');
+      toast(renameRefusal(e, t) ?? taskRefusal(e, t) ?? (said || t('list.optionsFailed')), 'fail');
       setShake((n) => n + 1);
       return;
     }

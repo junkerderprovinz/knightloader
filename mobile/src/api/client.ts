@@ -19,48 +19,13 @@ import { relayClientFor } from './relayClient';
 import { fromHex } from './sha256';
 import type { InstanceAppearance } from '../theme/appearance';
 import type { CardSwitches } from './taskState';
-import { relayIdentity, resetRelayIdentity } from '../storage/relayIdentity';
+import { memberOptions, resetRelayIdentity } from '../storage/relayIdentity';
 import { removeGroupConnections } from '../storage/connections';
 import { deviceName } from './deviceName';
 import type { TranslationKey } from '../i18n/en';
+import { ApiError, errorText, refusedCall } from './refusal';
 
-export class ApiError extends Error {
-  constructor(
-    message: string,
-    public status: number,
-    /** Names the reason where the server sent one, so it can be translated. */
-    public code?: string
-  ) {
-    super(message);
-  }
-}
-
-// refusal reads a refused call. A refusal the interface can translate comes as
-// {error, code}; the message is then the sentence, not the envelope.
-function refusal(body: string, status: number): ApiError {
-  try {
-    const p = JSON.parse(body) as { error?: unknown; code?: unknown };
-    if (p && typeof p.error === 'string') {
-      return new ApiError(p.error, status, typeof p.code === 'string' ? p.code : undefined);
-    }
-  } catch {
-    // Plain text.
-  }
-  return new ApiError(body, status);
-}
-
-// The refusals this app words itself. The rest show the server's sentence.
-const REFUSALS: Partial<Record<string, TranslationKey>> = {
-  federationOff: 'error.federationOff',
-  addAgain: 'error.addAgain',
-};
-
-/** errorText is what a failed call shows: translated where the code is known. */
-export function errorText(t: (key: TranslationKey) => string, e: unknown): string {
-  const key = e instanceof ApiError && e.code ? REFUSALS[e.code] : undefined;
-  if (key) return t(key);
-  return e instanceof Error ? e.message : String(e);
-}
+export { ApiError, errorText } from './refusal';
 
 // Every call takes a connection and a base path prefix. base is '/api' for the
 // connection's own instance; a peer's routes proxy through the connected server
@@ -83,14 +48,7 @@ export async function request<T>(conn: ServerConnection, base: string, path: str
     : await httpRequest(conn, base + path, init);
 
   if (status < 200 || status >= 300) {
-    // A direct connection signs in with an API token, and the instance drops
-    // every token when its password is changed or reset. This app has nowhere
-    // to enter a new one, so the connection is made again from the phrase. A
-    // peer's 401 comes through another base and keeps its own words.
-    if (status === 401 && !isRelayConnection(conn) && base === '/api') {
-      throw new ApiError(body || statusText, status, 'addAgain');
-    }
-    throw refusal(body || statusText, status);
+    throw refusedCall(!isRelayConnection(conn), base, status, body || statusText);
   }
   if (status === 204 || body === '') return undefined as T;
   return JSON.parse(body) as T;
@@ -102,9 +60,8 @@ interface RawResponse {
   statusText: string;
 }
 
-async function httpRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
-  const base = isRelayConnection(conn) ? '' : conn.baseUrl;
-  const res = await fetch(`${base}${path}`, {
+async function httpRequest(conn: DirectConnection, path: string, init?: RequestInit): Promise<RawResponse> {
+  const res = await fetch(`${conn.baseUrl}${path}`, {
     ...init,
     headers: {
       'Content-Type': 'application/json',
@@ -124,27 +81,22 @@ export function onRemovedFromGroup(handler: () => void): void {
 }
 
 // A relay call is the same request, addressed to an instance id instead of a
-// host. The token travels in the frame's own authorization field rather than a
-// header, because the frame is all there is - see relay.ProxyRequest.
+// host. It carries no token: the phone's member key signs it, and the instance
+// it reaches signs the answer, which relayClient.ts checks.
 async function relayRequest(conn: ServerConnection, path: string, init?: RequestInit): Promise<RawResponse> {
   if (!isRelayConnection(conn) || !conn.relayFrameKey) throw new Error('relayRequest called with an unusable connection');
   const client = relayClientFor({
     url: conn.relayUrl,
     key: conn.relayKey,
     frameKey: fromHex(conn.relayFrameKey),
-    selfId: await relayIdentity(),
+    ...(await memberOptions()),
     selfName: deviceName(),
   });
   const body = typeof init?.body === 'string' ? init.body : undefined;
-  const r = await client.proxy(
-    conn.instanceId,
-    init?.method ?? 'GET',
-    path,
-    body,
-    conn.token ? `Bearer ${conn.token}` : undefined,
-  );
-  // A transport failure throws out of proxy() and never reaches here, so
-  // anything with a status is genuinely the instance's own answer.
+  const r = await client.proxy(conn.instanceId, init?.method ?? 'GET', path, body);
+  // A transport failure or an answer the instance did not sign throws out of
+  // proxy() and never reaches here, so anything with a status is the
+  // instance's own answer.
   if (r.status === 410 && r.body === 'removed') {
     // Every connection into the group goes, and a new relay id makes the
     // next scan of the phrase a new phone rather than the removed one.
@@ -337,8 +289,8 @@ export async function setQueueHalted(conn: ServerConnection, halted: boolean, ba
  * POST /api/queue/stop, `StopAll`, which stops every transfer in flight and
  * halts the queue behind them, as the web interface's stop button does.
  *
- * Relay-forwardable like every other queue route (`queue/` prefix, see
- * routes_relay.go).
+ * Reachable over the relay like every other queue route (groupRoutes in
+ * internal/api/group_routes.go).
  */
 export async function stopAll(conn: ServerConnection, base = '/api'): Promise<QueueState> {
   const res = await request<{ queue: QueueState }>(conn, base, '/queue/stop', {
@@ -568,8 +520,8 @@ function poll<T>(
 
 // The captcha calls the web UI's CaptchaModal makes, on the same routes
 // (internal/api/routes_captcha.go). Over the relay they reach an instance that
-// forwards them (relayCaptchaRoute); an older one refuses them with a 403, see
-// captchaErrorText.
+// lets a group member call them (groupRoutes); an older one refuses them with
+// a 403, see captchaErrorText.
 
 /** Every captcha waiting on the connected instance, read from its cache. The
  *  read counts as watching the kinds this phone can answer, so with "only when

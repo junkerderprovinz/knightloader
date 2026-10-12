@@ -5,6 +5,8 @@ import (
 	"bytes"
 	"database/sql"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -415,4 +417,32 @@ func sqliteEmptyFileHeader(t *testing.T, unusedPathForSchema string) []byte {
 		t.Fatal(err)
 	}
 	return b
+}
+
+// A database a newer build has migrated further would keep every start from
+// opening the store once it is put in place, so it is refused at upload.
+func TestStageRejectsADatabaseFromANewerSchema(t *testing.T) {
+	dbPath := filepath.Join(t.TempDir(), "knightloader.db")
+	buildDB(t, dbPath)
+	snap := snapshotDB(t, dbPath)
+	db, err := sql.Open("sqlite", snap)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := db.Exec(fmt.Sprintf(`PRAGMA user_version = %d`, store.SchemaVersion()+1)); err != nil {
+		t.Fatal(err)
+	}
+	db.Close()
+	var archive bytes.Buffer
+	if err := Build(&archive, testManifest(), testSettingsJSON(t), snap); err != nil {
+		t.Fatal(err)
+	}
+
+	dataDir := t.TempDir()
+	if _, err := Stage(dataDir, archive.Bytes(), "v1.2.3"); !errors.Is(err, store.ErrNewerSchema) {
+		t.Fatalf("Stage = %v, want the newer schema refused", err)
+	}
+	if _, err := os.Stat(filepath.Join(dataDir, pendingDirName)); !os.IsNotExist(err) {
+		t.Errorf("a restore was staged anyway: %v", err)
+	}
 }

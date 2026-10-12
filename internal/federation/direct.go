@@ -10,6 +10,7 @@ package federation
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"crypto/hmac"
 	"crypto/rand"
 	"crypto/sha256"
@@ -18,6 +19,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
 	"strconv"
 	"strings"
@@ -38,8 +40,6 @@ const (
 	// maxDirectCall caps a direct call as it arrives, before anything in it is
 	// checked. Adding links is the largest call a member makes.
 	maxDirectCall = 1 << 20
-	// maxDirectCalls is how many direct calls are served at once.
-	maxDirectCalls = 16
 )
 
 // directReadTimeout bounds how long a call's body may take to arrive. A
@@ -51,14 +51,16 @@ type LocalNetwork interface {
 	// Members is the members of this instance's group announcing on this
 	// network.
 	Members() []discovery.Peer
-	// SetGroup tags this instance's announces with sign and accepts an
-	// announce as a member's when isMember says so; nil for both leaves.
-	SetGroup(sign func(discovery.Peer) string, isMember func(discovery.Peer) bool)
+	// SetGroup announces this instance under id, tagged with sign, and
+	// accepts an announce as a member's when isMember says so; nil for both
+	// leaves.
+	SetGroup(id string, sign func(discovery.Peer) string, isMember func(discovery.Peer) bool)
 }
 
 type groupKeys struct {
 	frameKey []byte
 	peerAuth []byte
+	member   ed25519.PrivateKey
 }
 
 // SetDiscovery installs the service members are found through, and hands it
@@ -66,45 +68,42 @@ type groupKeys struct {
 func (m *Manager) SetDiscovery(ln LocalNetwork) {
 	m.mu.Lock()
 	m.local = ln
-	keys := m.keys
+	keys, selfID := m.keys, m.selfID
 	m.mu.Unlock()
-	configureLocal(ln, keys)
+	configureLocal(ln, selfID, keys)
 }
 
 // SetGroup puts this instance into the group secret belongs to, or takes it
 // out of any with a nil secret, for the direct transport. selfID is the id
-// this instance answers direct calls under.
-func (m *Manager) SetGroup(secret []byte, selfID string) {
+// this instance answers direct calls under, and member the key it signs its
+// calls with.
+func (m *Manager) SetGroup(secret []byte, selfID string, member ed25519.PrivateKey) {
 	var keys *groupKeys
 	if len(secret) > 0 {
-		keys = &groupKeys{frameKey: relay.DeriveFrameKey(secret), peerAuth: relay.DerivePeerAuthKey(secret)}
+		keys = &groupKeys{frameKey: relay.DeriveFrameKey(secret), peerAuth: relay.DerivePeerAuthKey(secret), member: member}
 	}
 	m.mu.Lock()
 	m.keys, m.selfID = keys, selfID
 	ln := m.local
 	m.mu.Unlock()
-	configureLocal(ln, keys)
+	configureLocal(ln, selfID, keys)
 }
 
-func configureLocal(ln LocalNetwork, keys *groupKeys) {
+func configureLocal(ln LocalNetwork, selfID string, keys *groupKeys) {
 	if ln == nil {
 		return
 	}
 	if keys == nil {
-		ln.SetGroup(nil, nil)
+		ln.SetGroup("", nil, nil)
 		return
 	}
-	ln.SetGroup(func(p discovery.Peer) string { return announceTag(keys.peerAuth, p) }, func(p discovery.Peer) bool {
+	ln.SetGroup(selfID, func(p discovery.Peer) string { return announceTag(keys.peerAuth, p) }, func(p discovery.Peer) bool {
 		if d := time.Since(time.Unix(p.Sent, 0)); d > relay.ClockSkew || d < -relay.ClockSkew {
 			return false
 		}
 		return hmac.Equal([]byte(p.Tag), []byte(announceTag(keys.peerAuth, p)))
 	})
 }
-
-// Replay is the guard every call into this instance passes, over the relay
-// and directly, so a call captured on one path cannot run on the other.
-func (m *Manager) Replay() *relay.ReplayGuard { return m.replay }
 
 // announceTag signs everything an announce claims, its time included, so a
 // device on the network can neither point members at an address of its
@@ -134,8 +133,9 @@ func (m *Manager) localMembers() []discovery.Peer {
 	return ln.Members()
 }
 
-// callDirect makes one sealed, signed call to a member at url.
-func (m *Manager) callDirect(ctx context.Context, url, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+// callDirect makes one sealed, signed call to a member at url and returns the
+// answer once the member's key signed it and that key is approved here.
+func (m *Manager) callDirect(ctx context.Context, url, target, method, path string, body []byte) ([]byte, int, error) {
 	m.mu.Lock()
 	keys, self := m.keys, m.selfID
 	m.mu.Unlock()
@@ -147,9 +147,12 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 		return nil, http.StatusInternalServerError, err
 	}
 	id := hex.EncodeToString(raw)
-	sealed, err := relay.SealCall(keys.frameKey, id, target, relay.ProxyCall{
-		Method: method, Path: path, Body: body, Authorization: authorization,
-	})
+	call := relay.ProxyCall{Method: method, Path: path, Body: body}
+	if keys.member != nil {
+		call.From, call.Kind = self, relay.KindInstance
+	}
+	call = relay.SignCall(keys.member, id, target, call)
+	sealed, err := relay.SealCall(keys.frameKey, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -188,23 +191,19 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	if err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s answered unreadably: %w", target, err)
 	}
+	if !relay.VerifyResult(id, target, sealed, result) {
+		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s's answer is not signed by its key", target)
+	}
+	if !m.TrustsAnswer(target, result.Key) {
+		return nil, http.StatusBadGateway, &relay.UntrustedAnswer{Target: target, Status: result.Status, Body: result.Body}
+	}
 	return result.Body, result.Status, nil
-}
-
-type senderKey struct{}
-
-// Sender is the member a direct call came from, "" for a call that arrived
-// any other way. A call over the relay names no instance, so only a member on
-// this network can be told apart.
-func Sender(ctx context.Context) string {
-	id, _ := ctx.Value(senderKey{}).(string)
-	return id
 }
 
 // ServeDirect answers a member's direct call with serve. Outside a group it
 // answers like an instance without the feature. A call that is unsigned,
-// stale, replayed, addressed to another instance or does not open is refused
-// without saying which, since the reason would only help a guesser.
+// stale, addressed to another instance, does not open or that serve drops is
+// refused without saying which, since the reason would only help a guesser.
 func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve relay.ProxyHandler) {
 	m.mu.Lock()
 	keys, self := m.keys, m.selfID
@@ -225,20 +224,13 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
 	}
-	// The body is read under its own deadline and checked before a slot is
-	// taken, so a stranger sending slowly holds neither a slot nor the
-	// connection.
+	// The body is read under its own deadline, so a stranger sending slowly
+	// holds the connection no longer than that. How many calls run at once is
+	// counted per member key, by the guard serve passes through.
 	_ = http.NewResponseController(w).SetReadDeadline(time.Now().Add(directReadTimeout))
 	body, err := io.ReadAll(http.MaxBytesReader(w, r.Body, maxDirectCall))
 	if err != nil || !hmac.Equal([]byte(r.Header.Get(headerSignature)), []byte(directSignature(keys.peerAuth, sender, unix, body))) {
 		http.Error(w, "forbidden", http.StatusForbidden)
-		return
-	}
-	select {
-	case m.slots <- struct{}{}:
-		defer func() { <-m.slots }()
-	default:
-		http.Error(w, "busy", http.StatusServiceUnavailable)
 		return
 	}
 	var req relay.ProxyRequest
@@ -247,12 +239,30 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 		return
 	}
 	call, err := relay.OpenCall(keys.frameKey, req.RequestID, self, req.Sealed)
-	if err != nil || !m.replay.Admit(call) {
+	var status int
+	var out []byte
+	switch {
+	case errors.Is(err, relay.ErrSignature):
+		status, out = http.StatusForbidden, relay.SignatureRefused
+	case err != nil:
 		http.Error(w, "forbidden", http.StatusForbidden)
 		return
+	default:
+		source := r.RemoteAddr
+		if host, _, err := net.SplitHostPort(source); err == nil {
+			source = host
+		}
+		status, out = serve(relay.WithSource(r.Context(), "direct\x00"+source), call)
+		if status == relay.StatusDrop {
+			http.Error(w, "forbidden", http.StatusForbidden)
+			return
+		}
 	}
-	status, out := serve(context.WithValue(r.Context(), senderKey{}, sender), call)
-	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, relay.ProxyResult{Status: status, Body: out})
+	result := relay.ProxyResult{Status: status, Body: out}
+	if keys.member != nil {
+		result = relay.SignResult(keys.member, req.RequestID, self, req.Sealed, result)
+	}
+	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, result)
 	if err != nil {
 		http.Error(w, "internal error", http.StatusInternalServerError)
 		return

@@ -29,6 +29,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/clipwatch"
 	"github.com/junkerderprovinz/knightloader/internal/cnl"
@@ -144,6 +145,10 @@ type App struct {
 	// DataDir is the directory New was given. Backup and restore need the
 	// directory itself, since internal/backup stages a restore beside it.
 	DataDir string
+
+	// AppKey seals the secrets in DataDir and the backup archive; nil leaves
+	// them unsealed (see app_appkey.go).
+	AppKey *appkey.Key
 
 	// RequestExit is how the quit, restart and restore routes ask whatever
 	// embeds this App to stop the process; App owns no server or signal loop.
@@ -299,6 +304,10 @@ type App struct {
 	saved map[string]uint64
 	shown map[string]uint64
 
+	// folders keeps the dispatcher's answers about which folders lead into
+	// the data folder (see dataFolderOfLocked).
+	folders folderVerdicts
+
 	mu sync.Mutex
 	// halted stops the dispatcher from handing anything new to a backend.
 	// Running downloads keep running: this is a queue switch, not a kill
@@ -439,12 +448,23 @@ type App struct {
 	imports accountImports
 }
 
+// New opens the app in dataDir without an app key.
 func New(dataDir string) (*App, error) {
-	st, err := store.Open(filepath.Join(dataDir, "knightloader.db"))
+	return NewWithKey(dataDir, nil)
+}
+
+// NewWithKey opens the app in dataDir, sealing its secrets with key when key
+// is not nil.
+func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
+	noteKeyFailures(dataDir, key)
+	if err := keepCopiesBeforeSealing(dataDir, key); err != nil {
+		return nil, err
+	}
+	st, err := store.OpenWithKey(filepath.Join(dataDir, "knightloader.db"), key)
 	if err != nil {
 		return nil, err
 	}
-	cfg, err := settings.Load(dataDir)
+	cfg, err := settings.LoadWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -462,7 +482,8 @@ func New(dataDir string) (*App, error) {
 		Federation: fed,
 		ClipWatch:  clipwatch.Open(filepath.Join(dataDir, "clipwatch.json"), time.Now()),
 		DataDir:    dataDir,
-		dlDir:      filepath.Join(dataDir, "downloads"),
+		AppKey:     key,
+		dlDir:      filepath.Join(dataDir, settings.DownloadsDirName),
 		Throttle:   throttle.New(),
 		tasks:      map[string]*core.Task{},
 		saved:      map[string]uint64{},
@@ -490,7 +511,7 @@ func New(dataDir string) (*App, error) {
 	// one is registered unconditionally.
 	a.Registry.Register(torrent.Resolver{})
 
-	eng, err := engine.Open(filepath.Join(dataDir, "downloads"), filepath.Join(dataDir, "transfers"), a.engineUpdate)
+	eng, err := engine.Open(filepath.Join(dataDir, settings.DownloadsDirName), filepath.Join(dataDir, "transfers"), a.engineUpdate)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -559,14 +580,14 @@ func New(dataDir string) (*App, error) {
 		a.proxy = px
 	}
 
-	acc, err := accounts.Open(dataDir)
+	acc, err := accounts.OpenWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
 	}
 	a.Accounts = acc
 
-	guard, err := auth.Open(dataDir)
+	guard, err := auth.OpenWithKey(dataDir, key)
 	if err != nil {
 		st.Close()
 		return nil, err
@@ -718,6 +739,9 @@ func New(dataDir string) (*App, error) {
 	// Spawned so the boot does not wait on yt-dlp calls.
 	a.spawn(a.backfillYtdlpProbes)
 	a.startUsenet()
+	if key != nil {
+		a.spawn(a.sweepKeyCopies)
+	}
 	return a, nil
 }
 
@@ -867,6 +891,7 @@ func (a *App) Close() error {
 	// Leave the relay and stop announcing on the network.
 	if a.Federation != nil {
 		a.Federation.SetRelay(nil)
+		a.Federation.SetRetired(nil, time.Time{})
 	}
 	a.smu.Lock()
 	disc := a.discovery
@@ -1013,6 +1038,37 @@ func (a *App) defaultDir() string {
 	}
 	return a.dlDir
 }
+
+// InsideDownloadFolders reports whether dir lies in the download folder or in
+// a category's folder, the places downloads go without anybody picking one.
+// A template counts by its fixed part, and a ".." anywhere in it is outside,
+// since a placeholder in front of one decides where it climbs to.
+func (a *App) InsideDownloadFolders(dir string) bool {
+	dir = strings.TrimSpace(dir)
+	if dir == "" {
+		return true
+	}
+	if !filepath.IsAbs(dir) || slices.Contains(strings.FieldsFunc(dir, isSlash), "..") {
+		return false
+	}
+	roots := []string{a.defaultDir()}
+	for _, c := range a.Settings.Get().Categories {
+		roots = append(roots, strings.TrimSpace(c.Dir))
+	}
+	want := filepath.Clean(settings.FixedPrefix(dir))
+	for _, root := range roots {
+		if root == "" || !filepath.IsAbs(root) {
+			continue
+		}
+		rel, err := filepath.Rel(filepath.Clean(settings.FixedPrefix(root)), want)
+		if err == nil && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			return true
+		}
+	}
+	return false
+}
+
+func isSlash(r rune) bool { return r == '/' || r == '\\' }
 
 // sanitizeSegment turns a package name into something safe to use as one path
 // segment on any platform.

@@ -304,7 +304,7 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 				c = &x
 			}
 			a.mu.Unlock()
-			return moveOptions(c, a.Settings.Get())
+			return a.moveOptions(c, a.Settings.Get())
 		}
 		a.ytdlpRuns = yb
 	}

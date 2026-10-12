@@ -7,6 +7,7 @@ package relay
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
@@ -175,6 +176,10 @@ func hostileRelay(t *testing.T, frames ...[]byte) string {
 			return
 		}
 		defer func() { _ = c.CloseNow() }()
+		challenge := frameOf(TypeChallenge, Challenge{Nonce: make([]byte, challengeSize)})
+		if err := c.Write(r.Context(), websocket.MessageText, challenge); err != nil {
+			return
+		}
 		if _, _, err := c.Read(r.Context()); err != nil {
 			return
 		}
@@ -376,7 +381,8 @@ func TestTheLargestClientHelloFitsTheLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
-	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire})
+	proof := ProveID(ed25519.NewKeyFromSeed(vectorSeed), KindExtension, strings.Repeat("k", 64), strings.Repeat("r", 253), wire.InstanceID, make([]byte, challengeSize))
+	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire, Proof: proof})
 	if err != nil {
 		t.Fatalf("encode: %v", err)
 	}

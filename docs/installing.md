@@ -27,6 +27,42 @@ read it, as an octal mask such as `000`, `002` or `022`. `PUID` and `PGID` are
 not read: the image runs as a fixed user, and `--user` is how you choose
 another one. Settings, Diagnostics shows which user and mask are in force.
 
+### App key
+
+`KL_APP_KEY` makes the secrets in the data folder useless without it. The login
+password is hashed with Argon2id and peppered with the key. The session key,
+the second factor and its recovery codes, the key that seals the stored
+accounts, every password, token and command line in `settings.json`, and the
+archive and download passwords stored with each download are sealed with it,
+and so is the backup you download from Settings. Somebody who
+copies the appdata folder, through a backup plugin for instance, gets nothing
+they can use.
+
+Generate a value once and keep it with your other passwords:
+
+```sh
+openssl rand -hex 32
+```
+
+Pass it as `-e KL_APP_KEY=<the 64 characters>`, or on Unraid add a variable
+named `KL_APP_KEY` to the template, and restart. The value has to stay the same
+from then on. KnightLoader refuses to start on a data folder sealed with a
+different key, or with none, instead of overwriting it.
+
+An install that ran without the key seals its files at the first start with
+it. It copies them to a `before-app-key-<date>` folder in the data folder first,
+so a sealing that goes wrong can be undone by hand. The copies are as readable
+as the files were, so KnightLoader deletes the folder itself once it has run
+for seven days without a value failing to seal or open; each such failure, a
+start with the wrong key included, starts the seven days over. Until then the
+Security page says when the folder goes. The password itself moves to Argon2id
+the next time you sign in. Without the variable nothing changes, and Settings, Security shows a
+hint.
+
+A sealed backup ends in `.zip.sealed` and restores only on an instance with the
+same key; anywhere else the restore says which key it needs. Backups made
+before the key still restore.
+
 ### Behind a reverse proxy
 
 KnightLoader works on a host name of its own, such as `https://kl.example.com`,
@@ -148,6 +184,14 @@ The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 - ffmpeg on `PATH`, for merging video with its audio and for converting.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
+
+The desktop app makes its own [app key](#app-key) at the first start and keeps
+it in the operating system's credential store (Windows Credential Manager, the
+macOS Keychain, the Secret Service on Linux) as `app-key` under `KnightLoader`.
+Its data folder and its backups then open only with that key. To move them to
+another computer, copy the value and, before KnightLoader first starts there,
+store it under the same name or set it as `KL_APP_KEY`. Without a usable
+credential store the app runs without a key, as before.
 
 While a download is running, or its files are being checked, unpacked or moved,
 the desktop app keeps the computer from going to sleep, and once nothing is

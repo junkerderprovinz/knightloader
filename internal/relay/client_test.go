@@ -1,7 +1,9 @@
 package relay
 
 import (
+	"bytes"
 	"context"
+	"crypto/ed25519"
 	"encoding/json"
 	"net"
 	"net/http"
@@ -20,14 +22,23 @@ const testBackoff = 20 * time.Millisecond
 // through the real DeriveFrameKey so the tests follow any change to it.
 var testFrameKey = DeriveFrameKey([]byte("relay package tests"))
 
-// Instance ids in the shape instances mint them, since a client drops an
-// instance's announce under any other.
+// The member keys of the instances in these tests, and the ids they make. A
+// client drops an instance's announce under an id of any other shape, and
+// takes an answer only when the target's key signed it.
 var (
-	alphaID   = strings.Repeat("a", 40)
-	bravoID   = strings.Repeat("b", 40)
-	charlieID = strings.Repeat("c", 40)
-	nasID     = strings.Repeat("d", 40)
+	alphaKey   = memberKeyFrom('a')
+	bravoKey   = memberKeyFrom('b')
+	charlieKey = memberKeyFrom('c')
+	alphaID    = MemberID(KindInstance, alphaKey.Public().(ed25519.PublicKey))
+	bravoID    = MemberID(KindInstance, bravoKey.Public().(ed25519.PublicKey))
+	charlieID  = MemberID(KindInstance, charlieKey.Public().(ed25519.PublicKey))
+	nasID      = strings.Repeat("d", 40)
+	memberKeys = map[string]ed25519.PrivateKey{alphaID: alphaKey, bravoID: bravoKey, charlieID: charlieKey}
 )
+
+func memberKeyFrom(b byte) ed25519.PrivateKey {
+	return ed25519.NewKeyFromSeed(bytes.Repeat([]byte{b}, ed25519.SeedSize))
+}
 
 // sealFor, sealResultFor, openFrom and openResultFrom seal and open payloads
 // for the hand-rolled peers, keeping the additional data in one place.
@@ -130,6 +141,7 @@ func startClient(t *testing.T, addr, key, id string, serve ProxyHandler) *Client
 		Key:      key,
 		FrameKey: testFrameKey,
 		Self:     Announce{InstanceID: id, Name: id, Deployment: "desktop"},
+		Member:   memberKeys[id],
 		Serve:    serve,
 	})
 	if err != nil {
@@ -206,7 +218,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	done := make(chan result, 1)
 	go func() {
-		body, status, err := alpha.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`), "")
+		body, status, err := alpha.Proxy(context.Background(), bravoID, http.MethodPost, "/api/links", []byte(`{"url":"x"}`))
 		done <- result{body, status, err}
 	}()
 
@@ -226,7 +238,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
 		RequestID: req.RequestID,
-		Sealed:    sealResultFor(t, req.RequestID, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)}),
+		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, req.Sealed, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
 	})
 
 	got := <-done
@@ -268,10 +280,8 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 			readFrame(t, bravo, TypeAnnounce)
 
-			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{
-				RequestID: "r1", Target: alphaID,
-				Sealed: sealFor(t, "r1", alphaID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}),
-			})
+			sealed := sealFor(t, "r1", alphaID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks"})
+			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: sealed})
 			var resp ProxyResponse
 			if err := readFrame(t, bravo, TypeProxyResponse).Into(&resp); err != nil {
 				t.Fatalf("proxy-response: %v", err)
@@ -283,15 +293,25 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			if res.Status != tc.wantStatus || string(res.Body) != tc.wantBody {
 				t.Errorf("got %+v, want status %d body %q", res, tc.wantStatus, tc.wantBody)
 			}
+			if !VerifyResult("r1", alphaID, sealed, res) {
+				t.Error("alpha's answer is not signed by its member key")
+			}
 		})
 	}
 }
 
+// TestACallSentAgainOrLateIsNotRun has a handler use a ReplayGuard the way
+// federation.Manager.Guard does, and checks that a call it drops gets no
+// answer at all.
 func TestACallSentAgainOrLateIsNotRun(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	var mu sync.Mutex
 	var ran []string
+	guard := NewReplayGuard()
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, func(_ context.Context, call ProxyCall) (int, []byte) {
+		if !guard.Admit(call) {
+			return StatusDrop, nil
+		}
 		mu.Lock()
 		ran = append(ran, call.ID)
 		mu.Unlock()
@@ -301,14 +321,22 @@ func TestACallSentAgainOrLateIsNotRun(t *testing.T) {
 	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 	readFrame(t, bravo, TypeAnnounce)
 
-	call := ProxyCall{Method: http.MethodPost, Path: "/api/queue/pause"}
-	first := ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: sealFor(t, "r1", alphaID, call)}
+	member := ed25519.NewKeyFromSeed([]byte(strings.Repeat("m", ed25519.SeedSize)))
+	signed := func(id string, call ProxyCall) []byte {
+		sealed, err := SealSignedCall(testFrameKey, member, id, alphaID, call)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return sealed
+	}
+	call := ProxyCall{Method: http.MethodPost, Path: "/api/queue/pause", From: bravoID, Kind: KindInstance}
+	first := ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: signed("r1", call)}
 	late := call
 	late.Sent = time.Now().Add(-10 * time.Minute).Unix()
 	writeFrame(t, bravo, TypeProxyRequest, first)
 	writeFrame(t, bravo, TypeProxyRequest, first)
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: alphaID, Sealed: sealFor(t, "r2", alphaID, late)})
-	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: alphaID, Sealed: sealFor(t, "r3", alphaID, call)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: alphaID, Sealed: signed("r2", late)})
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r3", Target: alphaID, Sealed: signed("r3", call)})
 
 	// Each call is answered on its own goroutine, so the answers to r1 and
 	// r3 may come in either order.
@@ -356,21 +384,22 @@ func TestReplayGuardAdmitsACallOnceWithinTheSkew(t *testing.T) {
 	g := NewReplayGuard()
 	now := time.Unix(1_800_000_000, 0)
 	g.now = func() time.Time { return now }
-	call := ProxyCall{ID: "a", Sent: now.Unix()}
+	key := keyNumber(1)
+	call := ProxyCall{ID: "a", Sent: now.Unix(), Key: key}
 	if !g.Admit(call) || g.Admit(call) {
 		t.Fatal("a fresh call must pass once and only once")
 	}
 	for name, c := range map[string]ProxyCall{
-		"old":       {ID: "b", Sent: now.Add(-ClockSkew - time.Second).Unix()},
-		"future":    {ID: "c", Sent: now.Add(ClockSkew + time.Second).Unix()},
-		"unstamped": {ID: "", Sent: now.Unix()},
+		"old":       {ID: "b", Sent: now.Add(-ClockSkew - time.Second).Unix(), Key: key},
+		"future":    {ID: "c", Sent: now.Add(ClockSkew + time.Second).Unix(), Key: key},
+		"unstamped": {ID: "", Sent: now.Unix(), Key: key},
 	} {
 		if g.Admit(c) {
 			t.Errorf("an %s call was admitted", name)
 		}
 	}
 	now = now.Add(3 * ClockSkew)
-	if !g.Admit(ProxyCall{ID: "d", Sent: now.Unix()}) || len(g.seen) != 1 {
+	if !g.Admit(ProxyCall{ID: "d", Sent: now.Unix(), Key: key}) || g.Len() != 1 {
 		t.Fatalf("remembered %d ids, want only the one from inside the window", len(g.seen))
 	}
 }
@@ -412,7 +441,7 @@ func TestProxyFailsFastRatherThanWaiting(t *testing.T) {
 			}
 
 			began := time.Now()
-			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil, "")
+			_, _, err := alpha.Proxy(context.Background(), tc.target, http.MethodGet, "/api/tasks", nil)
 			if err == nil {
 				t.Fatal("the call succeeded, want it to fail")
 			}
@@ -468,7 +497,7 @@ func TestCallInFlightFailsWhenTheConnectionDies(t *testing.T) {
 
 	failed := make(chan error, 1)
 	go func() {
-		_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil, "")
+		_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
 		failed <- err
 	}()
 	// bravo receives the call and never answers it.
@@ -530,6 +559,31 @@ func TestConnectURL(t *testing.T) {
 	}
 }
 
+// TestRelayHost: the relay a hello's proof names. The app's port is held to
+// these rows by mobile/check-relay-url.mjs.
+func TestRelayHost(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"a dialled address", "wss://relay.example.com/relay/connect", "relay.example.com"},
+		{"the port goes", "ws://192.168.20.30:8760/relay/connect", "192.168.20.30"},
+		{"in lower case", "https://Relay.Example.COM", "relay.example.com"},
+		{"without the dot of a full name", "https://relay.example.com./kl", "relay.example.com"},
+		{"an IPv6 literal without its brackets", "ws://[::1]:8760/relay/connect", "::1"},
+		{"a bare host", "relay.example.com", "relay.example.com"},
+		{"a bare host and a port", "127.0.0.1:8760", "127.0.0.1"},
+		{"whitespace from a setting", "  https://relay.example.com  ", "relay.example.com"},
+		{"empty", "", ""},
+	}
+	for _, tc := range tests {
+		if got := RelayHost(tc.in); got != tc.want {
+			t.Errorf("%s: RelayHost(%q) = %q, want %q", tc.name, tc.in, got, tc.want)
+		}
+	}
+}
+
 func TestNewClientRejectsMisconfiguration(t *testing.T) {
 	valid := ClientOptions{
 		URL:      "https://relay.example.com",
@@ -558,5 +612,57 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 	}
 	if _, err := NewClient(valid); err != nil {
 		t.Fatalf("a valid configuration was rejected: %v", err)
+	}
+}
+
+// TestAnAnswerNotSignedByTheTargetIsNoAnswer: bravo is on the relay, and
+// somebody else holding the words answers alpha's calls to it, sealed under the
+// frame key, as one who took bravo's place on the relay would. Neither an
+// unsigned answer, one signed by another key, bravo's own answer to another
+// call nor its answer to alpha's call altered on the way reaches alpha's
+// caller, and a "removed" least of all.
+func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
+	addr, _ := relayOn(t, "127.0.0.1:0")
+	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
+	bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
+	readFrame(t, bravo, TypeAnnounce)
+	waitFor(t, "alpha to see bravo", func() bool { return len(alpha.Siblings()) == 1 })
+
+	removed := ProxyResult{Status: http.StatusGone, Body: []byte("removed")}
+	// Whoever holds the words can call bravo under the request id of alpha's
+	// call and get bravo's signed answer to that call instead.
+	another := sealFor(t, "another", bravoID, SignCall(charlieKey, "another", bravoID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: charlieID, Kind: KindInstance}))
+	// Or change what alpha's call asks and keep its id, key and signature,
+	// which bravo refuses with a signed answer of its own.
+	altered := func(id string, sealed []byte) []byte {
+		call := openFrom(t, id, bravoID, sealed)
+		call.Body = []byte(`{"urls":["https://example.com/other"]}`)
+		return mustSeal(t, id, bravoID, call)
+	}
+	for name, answer := range map[string]func(requestID string, sealed []byte) ProxyResult{
+		"unsigned": func(string, []byte) ProxyResult { return removed },
+		"signed by a stranger": func(id string, sealed []byte) ProxyResult {
+			return SignResult(charlieKey, id, bravoID, sealed, removed)
+		},
+		"signed by bravo for another call": func(id string, _ []byte) ProxyResult { return SignResult(bravoKey, id, bravoID, another, removed) },
+		"signed by bravo for the call altered on the way": func(id string, sealed []byte) ProxyResult {
+			return SignResult(bravoKey, id, bravoID, altered(id, sealed), ProxyResult{Status: http.StatusForbidden, Body: SignatureRefused})
+		},
+		"signed by bravo": func(id string, sealed []byte) ProxyResult { return SignResult(bravoKey, id, bravoID, sealed, removed) },
+	} {
+		done := make(chan error, 1)
+		go func() {
+			_, _, err := alpha.Proxy(context.Background(), bravoID, http.MethodGet, "/api/tasks", nil)
+			done <- err
+		}()
+		var req ProxyRequest
+		if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
+			t.Fatal(err)
+		}
+		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID, req.Sealed))})
+		err := <-done
+		if want := name == "signed by bravo"; (err == nil) != want {
+			t.Errorf("an answer %s: err %v, want it taken %v", name, err, want)
+		}
 	}
 }

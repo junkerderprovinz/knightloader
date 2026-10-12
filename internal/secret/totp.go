@@ -119,20 +119,28 @@ func totpAt(key []byte, counter uint64) string {
 // step of clock skew either side.
 //
 // The comparison is constant-time. That matters less for a six-digit code than
-// for a password, but a timing oracle on the FIRST digits would let an attacker
+// for a password, but a timing oracle on the first digits would let an attacker
 // find each digit independently, which turns a million guesses into sixty.
 func ValidTOTP(secret, code string, t time.Time) bool {
+	_, ok := MatchTOTP(secret, code, t)
+	return ok
+}
+
+// MatchTOTP is ValidTOTP that also returns the time step the code belongs to,
+// so a caller can refuse the same code a second time.
+func MatchTOTP(secret, code string, t time.Time) (uint64, bool) {
 	code = strings.TrimSpace(code)
 	// Some apps, and some people, put a space in the middle.
 	code = strings.ReplaceAll(code, " ", "")
 	if len(code) != totpDigits {
-		return false
+		return 0, false
 	}
 	key, err := decodeSecret(secret)
 	if err != nil || len(key) == 0 {
-		return false
+		return 0, false
 	}
 	step := totpStep(t)
+	var matched uint64
 	ok := false
 	for d := -totpSkew; d <= totpSkew; d++ {
 		c := step
@@ -146,12 +154,12 @@ func ValidTOTP(secret, code string, t time.Time) bool {
 			c += uint64(d)
 		}
 		// No early return: every window is compared, so the time taken does not
-		// reveal WHICH window matched.
+		// reveal which window matched.
 		if subtle.ConstantTimeCompare([]byte(totpAt(key, c)), []byte(code)) == 1 {
-			ok = true
+			matched, ok = c, true
 		}
 	}
-	return ok
+	return matched, ok
 }
 
 // TOTPURI builds the otpauth:// URI an authenticator app scans. The issuer

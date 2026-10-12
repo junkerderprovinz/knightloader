@@ -109,7 +109,8 @@ phrase** under "Already have a phrase?", which leaves the empty group and
 opens the window for the words.
 
 Every instance tells its group where its web interface is: its first known
-domain (the addresses under **Settings → Pairing**), else its address on its
+domain (the addresses you type under **Settings → Pairing**; a name a request
+arrived on is never added there), else its address on its
 network, such as `192.168.20.86:8749`. The address travels in the announce
 members already send, sealed on the relay and signed on the network. An
 instance drops it from an announce that comes from outside the group. The Instances page shows it under each
@@ -147,7 +148,7 @@ secret under its own domain, `SHA-256("knightloader/relay/frame-key/v1" ||
 secret)`, and every proxy frame is sealed with AES-256-GCM under it. The relay
 sees which instance a frame is addressed to and which request it answers,
 because it routes on those, and nothing else: not the path, not the body, not
-the API token a phone attaches. The two domains are what makes this work: the
+who is asking. The two domains are what makes this work: the
 relay is handed the group key in every hello frame, so a frame key derived
 from *that* would be one it already holds.
 
@@ -164,7 +165,64 @@ secret to derive from and the frame key comes from the relay key itself. That
 still seals the traffic against anything sitting *between* you and the relay
 (a reverse proxy, a TLS terminator, a captured log), but not against the relay
 operator, who is handed that key. That trade fits the case it exists for:
-somebody hosting the relay themselves.
+somebody hosting the relay themselves. The instances on such a key sign their
+calls and approve each other just as a group made with the words does.
+
+**Every member signs its own calls.** The words are shared, so a sealed frame
+only proves that its sender holds them. On top of that, every instance, the
+Android app and the browser extension make an Ed25519 key of their own when
+they join a group, and sign every call with it, inside the seal. A member's id
+is made from its key: the hex of the key's SHA-256, after `phone-` for the
+app and `browser-` for the extension, and its first 40 hex digits for an
+instance. An instance takes a call only when the id it names is the one its
+key makes, so nobody holding the words can sign in under another device's id,
+not even one that has not called yet, and the owner never approves a stranger
+under a known name. The shapes differ by kind, so no device can be listed,
+approved, refused or removed under an instance's id, and no instance under a
+device's. A call without a signature is refused with a message that says so:
+a phone or a browser that cannot make a key, or still runs a build from
+before keys, is told to update. An instance remembers each member's key the
+first time it signs a call there.
+
+Limits count per key, so one member cannot use up another's share. Each key
+can have 16 calls waiting on an instance at once. An instance takes at most 64
+new keys an hour, no more than 2 of them through one relay connection or one
+address on your network, and keeps 64 in all, of which at most 16 wait for
+approval. Once the hour's 64 are taken, or 16 keys wait, new keys wait until
+there is room again, and a key that waits for approval is never dropped to
+make room for another: refuse the ones you do not know on the Pairing card.
+When the list is full, a phone's or a browser's key that was approved and has
+not been used for 30 days makes room. Approving counts as use, on every
+instance the approval reaches, and an instance's key never makes room. A
+request id is used up
+only for the key that sent it, and only once the instance knows that key, so
+nobody can block a member's calls by sending their ids first or by filling the
+record with keys of their own.
+
+**A new device waits for approval.** A phone, a browser or another instance
+that enters the words is listed under **Waiting for approval** on the Pairing
+card of every instance it reaches, with its name, its kind and the start of
+its key's hash, and can do nothing in the group until somebody approves it
+there with **Approve**. The name is whatever the device announced, so compare
+the key instead: every device shows its own in the same four groups, an
+instance on its Pairing card, the Android app under Settings, This device,
+and the extension on its options page under Group. Without a login password that is whoever opens the
+page. The approval, or **Refuse**, reaches the other instances of the group,
+so one decision is enough. The device itself says that it waits and where to
+approve it: the app and the extension with a message, an instance with a line
+on its own Pairing card, even before its owner approved the other instance. Instances approve each other both ways: an instance
+that enters the words of a group waits for approval on the instances already
+there, and they wait on its Pairing card for its owner's approval in turn.
+While the Pairing card is open, an instance calls the others it sees in the
+group, so each lists the other as waiting as soon as both cards are open.
+
+**Removing a device**, or refusing it, takes back its key on every instance
+the decision reaches, and that key is never accepted there again. Like an
+approval, a removal is made on one instance's Pairing page and passed on to
+the others. A removed phone or browser cannot use its old id again either. An
+instance that was removed forgets the words. Whoever still has the words can
+come back with a new key, and so under a new id, but only as a new device that
+waits for approval.
 
 The **Relay** card under the phrase card picks the relay: **Project relay**,
 **Own relay**, **Instance as relay** or **No relay**, with a badge that says
@@ -189,16 +247,32 @@ each other there, but nothing outside it reaches them. The Android app and
 the browser extension always come through a relay, so they need one.
 
 **A login password is recommended, not required.** Without one the phrase
-card says that anyone who can open this web interface can see the twelve
-words and so control every instance in the group, with a button to the
+card says that anyone who can open this web interface can control it, and
+through it the downloads of every instance in the group, with a button to the
 Security page, where the password is set. The note can be closed, and stays
-closed in that browser. With a password set, **showing the phrase again**
+closed in that browser. Without a password the words are shown once, when the
+group is made, and not again until a password is set; only the desktop app's
+own window, which nobody else can reach, shows them without one. With a password set, **showing the phrase again**
 asks for it once more. A live session is not enough: it may have been opened
 hours ago on a screen nobody is sitting at, and what is behind that button is
 not this instance's password but the key to every instance in the group.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
+
+**A password reset leaves the group too.** The instance gets new twelve words
+that nobody else holds, so every phone, browser extension and other instance
+pairs again with them. For 30 days after the reset it stays on the old group's
+relay key and answers every call made with the old words with "this instance
+was reset", which the app and the extension show as a sentence telling you to
+pair again with the new words. It signs that answer with the key it had in
+the old group, so nobody else holding the old words can send it. On a relay
+the instance serves, a connection announces the instance's id on the old key
+only when it proves that key. It keeps only
+that key and the two keys derived from the old words for this, never the
+words themselves, and runs nothing such a call asks for. If the instance
+serves the relay itself, the old relay key reaches only this instance there,
+so the old words cannot be used to meet anybody else on it. See [A forgotten password](configuration.md#a-forgotten-password).
 
 ## When neither can reach the other: the relay
 
@@ -273,14 +347,60 @@ which is what retired the pairing code: whoever can present the group key
 could have joined the group and been handed one anyway.
 
 That makes the reachable surface the thing to bound, and it is an allowlist
-rather than a property each route happens to have. A sibling may read and
-drive **tasks, links and the queue**, answer or skip the captchas holding them
-up, load a widget captcha's page for the phone and say when it will not load,
-and may read whether a password is set,
+of routes rather than a property each route happens to have. A sibling may
+read and drive **tasks, links and the queue**, answer or skip the captchas
+holding them up, load a widget captcha's page for the phone and say when it
+will not load, and may read whether a password is set,
 who else is in the group, and the instance's own accent and corner shape. It
 cannot read the settings or the accounts, change the password, mint an API
 token, or ask for the phrase back. A route added later is outside the list
-until somebody puts it in.
+until somebody puts it in. Anything off the list answers 403 with the code
+`ownLoginNeeded`, which the web interface and the app turn into "sign in on
+that instance's own web interface"; a path no route serves answers 404.
+
+Some things stay with the instance's owner even on the allowed routes. A
+member picks a download folder only inside the download folder or a
+category's folder, removes rows but never erases the files behind them, and
+reads the tasks without their archive and download passwords, without a
+sign-in or a passkey inside a link, and with each tracker cut to its host.
+Approving, refusing and removing a device start on an instance's own Pairing
+page. The other instances take such a decision only from an instance that
+signs with an approved key, so a phone or the extension cannot approve,
+remove or make an instance leave. Leaving the group is done on the instance's
+own page alone. A phone or extension that was removed drops the whole group
+the next time it calls an instance that knows.
+
+**A group call carries no token, and its answer is signed.** A phone, the
+extension or another instance calling a member sends no API token: its own
+key signs the call. The instance that answers signs the answer with its key
+too, and the caller takes it only when that key is the one the instance's id
+is made from, and, on another instance, only once that instance was approved
+there. The signature covers the call it answers, by a hash of that call as it
+arrived, sealed, so an answer the instance gave to somebody else's call, or to
+this call changed on the way, counts for nobody else, and an instance answers "removed" only to a call
+signed by the key the removed id is made from. Whoever holds the words can
+seal an answer, but cannot sign one, so nobody who takes an instance's place
+on the relay or on your network can answer for it, tell a phone it was
+removed or reset, or read a credential from the calls. On the relay, a
+connection takes over an id that is already connected only when its hello
+proves the key behind that id, which is how an instance or a phone whose old
+socket the relay still holds gets back in. The relay opens every connection
+with random bytes of its own that the proof signs, so a hello somebody saw
+proves nothing on another connection. A standalone relay has to run the same
+release as the instances for this.
+
+The proof also names the relay the device dialled, by its host name without
+the port, and a relay takes it only under a name of its own. So a relay a
+device dials with the same key cannot pass another relay's random bytes on to
+it and use the proof there. An instance that serves the relay goes by the name
+a connection reached it under, when it answers on that name, and by its known
+domains. The standalone relay in this repository, `knightloader-relay`, goes
+by the address the instances dial it at, set in `KL_RELAY_PUBLIC_URL` such as
+`https://relay.example.com` (several separated by commas), and by the names in
+`KL_RELAY_DOMAIN`. With neither set it goes by the Host header
+each connection arrives with, which whoever opens the connection writes, so a
+relay that can be reached from outside your network needs one of the two.
+Behind a reverse proxy, set `KL_RELAY_PUBLIC_URL`.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached
@@ -314,7 +434,7 @@ and cannot be explained.
   one. One saved with an `http://` address does not, since the app permits no
   cleartext traffic: its card says it has to be added again with the twelve
   words. Those builds took the address
-  typed in, scanned from the Access tab's QR or found with **Find on this
+  typed in, scanned from the QR code the Security page showed then or found with **Find on this
   network**, plus a token where the instance had a password.
 
   Find on this network, in those builds, asks every address on the phone's own
@@ -472,6 +592,21 @@ that may manage tokens can only issue ones with rights it holds itself. A call
 a token forwards to another instance is checked here, against the right it
 would need on this instance, before it leaves; forwarding needs no right of its
 own, so a token that may only add can add links on a peer too.
+
+A call that changes something and carries a body sends it as JSON, with
+`Content-Type: application/json`; any other body is answered with 415, so
+`curl` needs `-H 'Content-Type: application/json'` next to `-d`. A form on
+another website can only post the other kinds, which is what this closes. The
+uploads take a multipart form, and the SABnzbd and qBittorrent doors take what
+Sonarr and Radarr send, each with its own credential. A request the browser
+marks as started by another site (`Sec-Fetch-Site: cross-site`) gets a 403 on
+every route.
+
+Without a password set, the API is open to whoever reaches the port, apart
+from four things: downloading a backup, exporting the settings with their
+passwords, showing the twelve words again and deleting downloaded files.
+Those answer 403 with the code `passwordNotSet` until a password is set. The
+desktop app opens no port, so its window can do all four without one.
 
 The rights are kept in `token-scopes.json` beside `tokens.json` in the data
 directory. A token stays as narrow as it was even after going back to a

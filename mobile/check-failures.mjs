@@ -74,6 +74,25 @@ expect(
   'KnightLoader is not allowed to access /config/cookies.txt.',
 );
 
+const inData = explainFailure(t, {
+  error: "not downloaded: /data/tools is inside KnightLoader's data folder; choose a folder outside it",
+  errorCode: 'dataFolder',
+  errorParams: { path: '/data/tools' },
+});
+expect(
+  'a data folder refusal is worded with the folder it names',
+  inData?.line,
+  "/data/tools is in KnightLoader's data folder, and downloads may not go there.",
+);
+expect('and says where to choose another', inData?.next, en['failure.dataFolder.next']);
+const { de } = await import(pathToFileURL(join(here, 'src', 'i18n', 'de.ts')).href);
+const tDe = (key, vars = {}) => Object.entries(vars).reduce((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), de[key]);
+expect(
+  'and in German',
+  explainFailure(tDe, { error: 'x', errorCode: 'dataFolder', errorParams: { path: '/data/tools' } })?.line,
+  '/data/tools liegt im Datenordner von KnightLoader, und dort dürfen keine Downloads hin.',
+);
+
 const go = readFileSync(join(here, '..', 'internal', 'core', 'errorcode.go'), 'utf8');
 const codes = [...go.matchAll(/ErrorCode = "(\w+)"/g)].map((m) => m[1]);
 if (codes.length < 20) problems.push(`found only ${codes.length} codes in internal/core/errorcode.go`);

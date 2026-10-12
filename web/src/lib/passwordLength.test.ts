@@ -5,11 +5,12 @@ import { lengthProblem, refusedLength } from './passwordLength';
 
 describe('the length of a password', () => {
   it.each([
-    ['seven letters', 'abcdefg', 'short'],
-    ['seven letters that take fourteen bytes', 'äöüßäöü', 'short'],
-    ['seven Japanese characters in twenty-one bytes', '日本語のパスワ', 'short'],
-    ['eight letters', 'abcdefgh', undefined],
-    ['eight letters that take sixteen bytes', 'äöüßäöüé', undefined],
+    ['eight letters', 'abcdefgh', 'short'],
+    ['eleven letters', 'abcdefghijk', 'short'],
+    ['eleven letters that take twenty-two bytes', 'äöüßäöüéäöü', 'short'],
+    ['eleven Japanese characters in thirty-three bytes', '日本語のパスワードです', 'short'],
+    ['twelve letters', 'abcdefghijkl', undefined],
+    ['twelve letters that take twenty-four bytes', 'äöüßäöüéäöüß', undefined],
     ['72 bytes', 'a'.repeat(72), undefined],
     ['73 bytes', 'a'.repeat(73), 'long'],
     ['37 letters that take 74 bytes', 'ä'.repeat(37), 'long'],

@@ -7,6 +7,7 @@ import {
   FieldGroup,
   IconBadge,
   IconTile,
+  InfoBubble,
   LabelBadge,
   Modal,
   PasswordInput,
@@ -29,6 +30,7 @@ import {
   setPassword,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
+import { isDesktop } from '../../lib/desktop';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
@@ -42,6 +44,7 @@ import {
 } from '../../lib/icons';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
 import { useToast } from '../../lib/toast';
+import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
 import { ListArea, RowRefusal } from './controls';
 import { ModuleToggle } from './ModuleToggle';
@@ -137,7 +140,7 @@ export function PasswordCard({
   const locked = auth?.enabled ?? false;
 
   return (
-      <Card hue={0} className="flex flex-col gap-5">
+      <Card hue={0} className="flex flex-col gap-5" data-new="password-reset">
         {/* The status stays visible; why a password matters is in the title's hint. */}
         <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}
@@ -180,6 +183,19 @@ export function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
+        {/* The desktop keeps its key in the credential store, so the template
+            the hint talks about is a container's. */}
+        {auth?.appKey === false && !isDesktop() && (
+          <span className="flex items-center text-sm text-statusWarn">
+            {t('settings.appKeyMissing')}
+            <InfoBubble tip={t('settings.appKeyMissingHint')} />
+          </span>
+        )}
+        {auth?.appKeyCopiesUntil && (
+          <span className="text-sm text-carbon-textSub">
+            {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
+          </span>
+        )}
         <TrustedProxiesField />
       </Card>
   );
@@ -193,8 +209,9 @@ export function PasswordCard({
 function TrustedProxiesField() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const unused = unusedProxyRanges(cfg.trustedProxies);
   return (
-    <div className="flex flex-col gap-1.5">
+    <div className="flex flex-col gap-1.5" data-new="trusted-proxies">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>
         <ListArea
           rows={3}
@@ -203,6 +220,11 @@ function TrustedProxiesField() {
           onLines={(trustedProxies) => patch({ trustedProxies })}
         />
       </Field>
+      {unused.length > 0 && (
+        <p className="text-xs text-statusWarn">
+          {t('settings.access.trustedProxiesUnused', { entries: unused.join(', ') })}
+        </p>
+      )}
       <RowRefusal field="trustedProxies" className="pb-0" />
     </div>
   );

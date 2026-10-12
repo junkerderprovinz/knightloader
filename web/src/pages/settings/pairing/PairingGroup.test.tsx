@@ -8,6 +8,13 @@ import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { PairingGroup } from './PairingGroup';
 
+// The desktop window is the one place without a password that shows the words again.
+const shell = vi.hoisted(() => ({ desktop: false }));
+vi.mock('../../../lib/desktop', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('../../../lib/desktop')>()),
+  isDesktop: () => shell.desktop,
+}));
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let root: Root;
@@ -24,6 +31,7 @@ afterEach(() => {
   host.remove();
   vi.unstubAllGlobals();
   localStorage.clear();
+  shell.desktop = false;
 });
 
 const base: ConnectInfo = {
@@ -41,6 +49,9 @@ const base: ConnectInfo = {
   apps: [],
   joinedAgo: 0,
   memberSeen: false,
+  pending: [],
+  awaiting: false,
+  fingerprint: '',
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}, onRefresh: () => void = () => {}) {
@@ -221,6 +232,7 @@ describe('PairingGroup', () => {
   });
 
   it('shows all twelve words in a window with Copy beside Close', async () => {
+    shell.desktop = true;
     answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
@@ -234,6 +246,7 @@ describe('PairingGroup', () => {
   });
 
   it('keeps the words across a poll of the same group and drops them once the group changes', async () => {
+    shell.desktop = true;
     const calls = answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
@@ -248,6 +261,15 @@ describe('PairingGroup', () => {
     await act(async () => button('Show phrase').click());
     expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
     expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
+  });
+
+  it('asks a browser for a password instead of showing the words without one', async () => {
+    const calls = answer({ phrase: WORDS });
+    draw({ joinedAgo: 75, passwordSet: false });
+    await act(async () => tile('Nothing entered over there yet?').click());
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
+    expect(dialog()!.textContent).toContain('only shows them again once a login password is set');
+    expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(0);
   });
 
   it('lists this instance, the other instances and every phone, one row each', () => {
@@ -316,7 +338,24 @@ describe('PairingGroup', () => {
     expect(dialog()).toBeNull();
   });
 
-  it('leaves the relay to the relay card and ends this instance\'s row with the stage', () => {
+  it('takes another instance out of the group only after the window says it waits for approval to come back', async () => {
+    const calls = answer([]);
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      members: [{ id: 'b', name: 'office', direct: false, relay: true }],
+    });
+    await act(async () => host.querySelector<HTMLButtonElement>('[aria-label="Remove office"]')!.click());
+    expect(dialog()?.textContent).toContain('waits for approval');
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Remove')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('DELETE /api/connect/members/b');
+    expect(dialog()).toBeNull();
+  });
+
+  it("leaves the relay to the relay card and ends this instance's row with the stage", () => {
     for (const connected of [true, false]) {
       draw({ joinedAgo: 12, connected });
       expect(host.textContent).not.toMatch(/Connected|Not connected|No relay/);
@@ -344,5 +383,51 @@ describe('PairingGroup', () => {
     draw({ joinedAgo: 500, memberSeen: true, apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] });
     expect(stage()).toBe('paired');
     expect(host.textContent).toContain('Pixel 8');
+  });
+
+  it('lists a device waiting for approval once, with its kind and fingerprint, and approves it', async () => {
+    const calls = answer({});
+    draw({
+      joinedAgo: 500,
+      memberSeen: true,
+      apps: [{ id: 'p', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
+      pending: [{ id: 'p', name: 'Pixel 8', kind: 'mobile', fingerprint: '3fa2 9c01 77be 0d45' }],
+    });
+    const pending = host.querySelector('[data-testid="pending"]')!;
+    expect(pending.textContent).toContain('Waiting for approval');
+    expect(pending.textContent).toContain('Android app');
+    expect(pending.textContent).toContain('Key 3fa2 9c01 77be 0d45');
+    expect(host.querySelector('[data-testid="members"]')!.textContent).not.toContain('Pixel 8');
+    const actions = [...pending.querySelectorAll('button')].map((b) => b.textContent);
+    expect(actions).toEqual(['Refuse', 'Approve']);
+
+    await act(async () => [...pending.querySelectorAll('button')].find((b) => b.textContent === 'Approve')!.click());
+    expect(calls).toContain('POST /api/connect/devices/p/approve');
+  });
+
+  it('refuses a waiting device only after the window asks', async () => {
+    const calls = answer({});
+    draw({ joinedAgo: 500, memberSeen: true, pending: [{ id: 'x', name: '', kind: 'instance', fingerprint: 'aaaa bbbb cccc dddd' }] });
+    const pending = host.querySelector('[data-testid="pending"]')!;
+    await act(async () => [...pending.querySelectorAll('button')].find((b) => b.textContent === 'Refuse')!.click());
+    expect(dialog()?.textContent).toContain('twelve words');
+    expect(calls.some((c) => c.includes('/refuse'))).toBe(false);
+    const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Refuse')!;
+    await act(async () => confirm.click());
+    expect(calls).toContain('POST /api/connect/devices/x/refuse');
+  });
+
+  it('shows its own key so the owner can compare it with the one another instance lists', () => {
+    draw({ joinedAgo: 500, memberSeen: true, fingerprint: '31f3 3d37 07b2 209f' });
+    expect(host.querySelector('[data-testid="own-key"]')?.textContent).toContain("This instance's key: 31f3 3d37 07b2 209f");
+    draw({ active: false, joinedAgo: 0, fingerprint: '' });
+    expect(host.querySelector('[data-testid="own-key"]')).toBeNull();
+  });
+
+  it('says where to approve this instance while another one keeps it waiting', () => {
+    draw({ joinedAgo: 500, memberSeen: true, awaiting: true });
+    expect(host.textContent).toContain('waiting for approval from the others in the group');
+    draw({ joinedAgo: 500, memberSeen: true, awaiting: false });
+    expect(host.textContent).not.toContain('waiting for approval from the others in the group');
   });
 });

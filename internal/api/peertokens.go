@@ -4,7 +4,7 @@ package api
 // each other one during pairing.
 //
 // A peer token is a normal apitoken: named after the peer, revocable from the
-// Access tab and hashed on the issuing instance. The receiving side keeps it
+// Security page and hashed on the issuing instance. The receiving side keeps it
 // sealed in internal/accounts rather than in instances.json, which is a
 // plaintext file of public identity.
 //
@@ -108,7 +108,7 @@ func (p peerIdentity) canonical() string {
 
 func (p peerIdentity) empty() bool { return p.Name == "" && p.RelayID == "" }
 
-// peerTokenName is what a minted peer token is called on the Access tab. It is
+// peerTokenName is what a minted peer token is called on the Security page. It is
 // not unique, so tokens are always addressed by ID.
 func peerTokenName(peer string) string { return "peer: " + peer }
 

@@ -166,10 +166,29 @@ export const RELEASES: Release[] = [
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
       { id: 'pairing-group', to: ['/settings/pairing'], text: 'whatsnew.change.pairingGroup' },
       {
+        id: 'pairing-approval',
+        to: ['/settings/pairing'],
+        text: 'whatsnew.change.pairingApproval',
+        names: { name: 'pairing.pendingTitle' },
+      },
+      { id: 'pairing-own-key', to: ['/settings/pairing'], text: 'whatsnew.change.pairingOwnKey' },
+      {
         id: 'relay-serve',
         to: ['/settings/pairing'],
         text: 'whatsnew.change.relayServe',
         names: { name: 'relay.serve' },
+      },
+      {
+        id: 'password-reset',
+        to: ['/settings/access'],
+        text: 'whatsnew.change.passwordReset',
+        names: { name: 'auth.forgot' },
+      },
+      {
+        id: 'trusted-proxies',
+        to: ['/settings/access'],
+        text: 'whatsnew.change.trustedProxies',
+        names: { name: 'settings.access.trustedProxies' },
       },
       { id: 'after-download', to: ['/settings/archives'], text: 'whatsnew.change.afterDownload' },
       {

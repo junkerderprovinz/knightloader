@@ -12,11 +12,13 @@ package relay
 
 import (
 	"context"
+	"crypto/ed25519"
 	"crypto/rand"
 	"encoding/hex"
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
@@ -63,9 +65,11 @@ const pingInterval = 30 * time.Second
 const pingTimeout = 10 * time.Second
 
 // ProxyHandler answers one call a sibling made to this instance's REST API,
-// returning the status and body to send back. It receives the opened
-// ProxyCall rather than the wire frame, so it cannot trust a routing field the
-// relay was free to write.
+// returning the status and body to send back, or StatusDrop to send nothing.
+// It receives the opened ProxyCall rather than the wire frame, so it cannot
+// trust a routing field the relay was free to write. Whether the call is new
+// is the handler's to decide (see ReplayGuard), since only it knows whose key
+// signed it.
 type ProxyHandler func(ctx context.Context, call ProxyCall) (status int, body []byte)
 
 // ClientOptions configures a Client. URL, Key, FrameKey and Self.InstanceID
@@ -82,13 +86,17 @@ type ClientOptions struct {
 	FrameKey []byte
 	// Self is what siblings see on their Instances page.
 	Self Announce
+	// Member is this instance's member key. Every call it makes and every
+	// answer it gives is signed with it, as Self.InstanceID, and its hello
+	// proves that id; nil leaves all three unsigned.
+	Member ed25519.PrivateKey
+	// Trusts reports whether an answer signed by key may count as target's,
+	// beyond the key making target's id, which Proxy checks itself. nil
+	// trusts every such answer.
+	Trusts func(target string, key ed25519.PublicKey) bool
 	// Serve answers calls siblings make to this instance. With a nil Serve
 	// every inbound call gets 501 instead of timing out.
 	Serve ProxyHandler
-	// Replay admits the calls Serve gets. nil gives the client a guard of its
-	// own; an instance that also takes direct calls passes the guard those go
-	// through.
-	Replay *ReplayGuard
 	// OnChange fires when a sibling arrives or leaves and when the connection
 	// comes up or goes down. It runs on the client's goroutine and must not
 	// block.
@@ -103,13 +111,16 @@ type ClientOptions struct {
 // caller waiting for the relay.
 type Client struct {
 	url string
-	key string
+	// relayHost is what the hello names as the relay it is meant for.
+	relayHost string
+	key       string
 	// frameKey seals and opens every proxy frame. Unlike key it never leaves
 	// the process.
 	frameKey []byte
 	self     Announce
+	member   ed25519.PrivateKey
+	trusts   func(target string, key ed25519.PublicKey) bool
 	serve    ProxyHandler
-	replay   *ReplayGuard
 	onChange func()
 
 	// minBackoff and maxBackoff default to the package constants; tests
@@ -147,17 +158,15 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	if len(opts.FrameKey) != 32 {
 		return nil, fmt.Errorf("relay: frame key is %d bytes, want 32", len(opts.FrameKey))
 	}
-	replay := opts.Replay
-	if replay == nil {
-		replay = NewReplayGuard()
-	}
 	return &Client{
 		url:        connect,
+		relayHost:  RelayHost(connect),
 		key:        opts.Key,
 		frameKey:   opts.FrameKey,
 		self:       opts.Self,
+		member:     opts.Member,
+		trusts:     opts.Trusts,
 		serve:      opts.Serve,
-		replay:     replay,
 		onChange:   opts.OnChange,
 		minBackoff: minBackoff,
 		maxBackoff: maxBackoff,
@@ -230,8 +239,10 @@ func (c *Client) Siblings() []Announce {
 // An error means no answer came from the sibling: the relay or the sibling is
 // not connected, or nobody replied in time. A reply the sibling produced is
 // returned with its status however bad, so a caller can tell "your other
-// instance said no" from "your other instance is gone".
-func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte, authorization string) ([]byte, int, error) {
+// instance said no" from "your other instance is gone". An answer counts only
+// once it is signed by the key target's id is made from, and Trusts takes
+// that key.
+func (c *Client) Proxy(ctx context.Context, target, method, path string, body []byte) ([]byte, int, error) {
 	id, err := requestID()
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
@@ -255,9 +266,12 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 
 	ctx, cancel := context.WithTimeout(ctx, proxyTimeout)
 	defer cancel()
-	sealed, err := SealCall(c.frameKey, id, target, ProxyCall{
-		Method: method, Path: path, Body: body, Authorization: authorization,
-	})
+	call := ProxyCall{Method: method, Path: path, Body: body}
+	if c.member != nil {
+		call.From, call.Kind = c.self.InstanceID, KindInstance
+	}
+	call = SignCall(c.member, id, target, call)
+	sealed, err := SealCall(c.frameKey, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -282,8 +296,30 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 			// in flight. Neither is a reply.
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s answered unreadably: %w", target, err)
 		}
+		// Whoever holds the words can seal an answer, but only the target can
+		// sign one, and it signs it for this call alone.
+		if !VerifyResult(id, target, sealed, result) {
+			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s's answer is not signed by its key", target)
+		}
+		if c.trusts != nil && !c.trusts(target, result.Key) {
+			return nil, http.StatusBadGateway, &UntrustedAnswer{Target: target, Status: result.Status, Body: result.Body}
+		}
 		return result.Body, result.Status, nil
 	}
+}
+
+// UntrustedAnswer is the error for an answer target signed with the key its
+// id is made from but that is not approved here. It carries the answer, which
+// the caller may read only for what cannot hurt it, such as that target has
+// this instance waiting for approval.
+type UntrustedAnswer struct {
+	Target string
+	Status int
+	Body   []byte
+}
+
+func (e *UntrustedAnswer) Error() string {
+	return "relay: " + e.Target + " is not approved on this instance"
 }
 
 // run is the reconnect loop: one session at a time until Close.
@@ -357,8 +393,16 @@ func (c *Client) session() {
 		log.Printf("relay: this instance's announce could not be sealed, not connecting: %v", err)
 		return
 	}
+	challenge, err := readChallenge(ctx, conn)
+	if err != nil {
+		return
+	}
 	helloCtx, helloCancel := context.WithTimeout(ctx, writeTimeout)
-	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, Hello{Key: c.key, Announce: self}))
+	hello := Hello{Key: c.key, Announce: self}
+	if c.member != nil {
+		hello.Proof = ProveID(c.member, KindInstance, c.key, c.relayHost, c.self.InstanceID, challenge)
+	}
+	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, hello))
 	helloCancel()
 	if err != nil {
 		return
@@ -375,6 +419,23 @@ func (c *Client) session() {
 		}
 		c.handle(ctx, conn, frame)
 	}
+}
+
+// readChallenge reads the first frame a relay sends, the challenge this
+// connection's hello signs.
+func readChallenge(ctx context.Context, conn *websocket.Conn) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, helloTimeout)
+	defer cancel()
+	_, frame, err := conn.Read(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var ch Challenge
+	env, err := Decode(frame)
+	if err != nil || env.Type != TypeChallenge || env.Into(&ch) != nil || len(ch.Nonce) != challengeSize {
+		return nil, errors.New("relay: the first frame is not a challenge")
+	}
+	return ch.Nonce, nil
 }
 
 // keepalive pings the relay and closes the socket when a ping fails, which
@@ -447,7 +508,7 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 		c.deliver(resp)
 	case TypeProxyRequest:
 		var req ProxyRequest
-		if env.Into(&req) != nil || req.RequestID == "" {
+		if env.intoStrict(&req) != nil || req.RequestID == "" {
 			return
 		}
 		// Answering runs a real API call, and the read loop has to stay free
@@ -459,18 +520,32 @@ func (c *Client) handle(ctx context.Context, conn *websocket.Conn, frame []byte)
 // answer runs one inbound call and sends the result back. A frame that does
 // not open is dropped without a reply: its sender is on this relay key without
 // this group's secret, or the frame was rewritten, and an error reply would
-// only confirm that the key was accepted. Nor does one that is old or ran
-// before get a reply, which is a relay sending a captured frame again.
+// only confirm that the key was accepted. Nor does one Serve drops, such as a
+// relay sending a captured frame again. A call that opens but carries a broken
+// signature is answered with the reason.
 func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequest) {
 	call, err := OpenCall(c.frameKey, req.RequestID, c.self.InstanceID, req.Sealed)
-	if err != nil || !c.replay.Admit(call) {
-		return
-	}
 	result := ProxyResult{Status: http.StatusNotImplemented}
-	if c.serve != nil {
+	switch {
+	case errors.Is(err, ErrSignature):
+		// Only a member can seal this, so it learns nothing from the answer
+		// and gets one instead of a timeout.
+		result = ProxyResult{Status: http.StatusForbidden, Body: SignatureRefused}
+	case err != nil:
+		return
+	case c.serve != nil:
 		serveCtx, cancel := context.WithTimeout(ctx, proxyTimeout)
+		if req.Sender != "" {
+			serveCtx = WithSource(serveCtx, "relay\x00"+req.Sender)
+		}
 		result.Status, result.Body = c.serve(serveCtx, call)
 		cancel()
+		if result.Status == StatusDrop {
+			return
+		}
+	}
+	if c.member != nil {
+		result = SignResult(c.member, req.RequestID, c.self.InstanceID, req.Sealed, result)
 	}
 	sealed, err := SealResult(c.frameKey, req.RequestID, result)
 	if err != nil {
@@ -576,4 +651,25 @@ func connectURL(raw string) (string, error) {
 	}
 	u.Path, u.RawPath = p, ""
 	return u.String(), nil
+}
+
+// RelayHost is the name a hello's proof gives the relay it is meant for: the
+// host of address, a URL or a bare host with or without a port, in lower case
+// and without the port, the brackets of an IPv6 literal or the dot of a fully
+// qualified name. The port is left out because a reverse proxy in front of a
+// relay listens on another one than the relay itself.
+func RelayHost(address string) string {
+	address = strings.TrimSpace(address)
+	if !strings.Contains(address, "://") {
+		address = "http://" + address
+	}
+	u, err := url.Parse(address)
+	if err != nil {
+		return ""
+	}
+	host := u.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	return strings.ToLower(strings.TrimSuffix(strings.Trim(host, "[]"), "."))
 }

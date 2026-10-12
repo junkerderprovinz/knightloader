@@ -13,6 +13,7 @@ import {
 } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
+import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
 import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
@@ -50,6 +51,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   // Off by default: a settings export is a file people send, and a missing
   // password after import is visible and easy to fix.
   const [withSecrets, setWithSecrets] = useState(false);
+  // Both carry every stored password, which the server keeps back until a
+  // login password is set.
+  const locked = usePasswordFirst();
 
   const [pending, setPending] = useState<{ doc: SettingsExportDoc; rows: TransferRow[] } | null>(null);
   const [busy, setBusy] = useState(false);
@@ -69,7 +73,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       setPendingFile(null);
     } catch (e) {
       // The window stays open so the pressed button can shake.
-      toast(t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
+      const refusal = e instanceof ApiError ? RESTORE_REFUSAL[e.code ?? ''] : undefined;
+      const message = refusal
+        ? t(refusal)
+        : t('settings.system.restoreFailed', { error: String(e).replace(/^Error:\s*/, '') });
+      toast(message, 'fail');
       setRestoreShake((n) => n + 1);
     } finally {
       setRestoring(false);
@@ -141,7 +149,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <input
           ref={archiveInput}
           type="file"
-          accept="application/zip,.zip"
+          accept="application/zip,.zip,.sealed"
           className="hidden"
           onChange={(e) => {
             const f = e.target.files?.[0];
@@ -154,6 +162,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           <Button
             kind="secondary"
             icon={<IconDownload width={16} height={16} />}
+            disabled={locked}
             onClick={() => {
               window.location.href = withBase(BACKUP_DOWNLOAD_URL);
             }}
@@ -173,6 +182,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         {restoreStatus && (
           <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
         )}
+        {locked && (
+          <span className="text-sm text-carbon-textSub">
+            {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
+          </span>
+        )}
       </SubCard>
 
       <SubCard label={t('settings.transfer.settingsLabel')} hint={t('settings.transfer.settingsText')} className="gap-3">
@@ -180,8 +194,9 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
         <ToggleRow
           label={t('settings.transfer.withSecrets')}
           hint={t('settings.transfer.withSecretsHint')}
-          checked={withSecrets}
+          checked={withSecrets && !locked}
           onChange={setWithSecrets}
+          disabled={locked}
         />
 
         <input
@@ -202,7 +217,7 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
             icon={<IconDownload width={16} height={16} />}
             onClick={() => {
               // Opened rather than fetched, so the browser owns the save dialog.
-              window.location.href = settingsExportURL(withSecrets);
+              window.location.href = settingsExportURL(withSecrets && !locked);
             }}
           >
             {t('settings.transfer.export')}
@@ -269,11 +284,22 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           }
         >
           <p className="text-sm text-carbon-text">{t('settings.system.restoreConfirmBody', { name: pendingFile.name })}</p>
+          <p className="mt-2 text-sm text-carbon-text">{t('settings.system.restoreKeepsLogin')}</p>
         </Modal>
       )}
     </Card>
   );
 }
+
+/** The restore refusals that say what to do rather than what failed. */
+const RESTORE_REFUSAL: Record<
+  string,
+  'settings.system.restoreKeyMissing' | 'settings.system.restoreKeyWrong' | 'settings.system.restoreNewerSchema'
+> = {
+  'restore.appKeyMissing': 'settings.system.restoreKeyMissing',
+  'restore.appKeyWrong': 'settings.system.restoreKeyWrong',
+  'restore.newerSchema': 'settings.system.restoreNewerSchema',
+};
 
 /**
  * Labels for the incomplete-row codes the server sends. An unknown code falls

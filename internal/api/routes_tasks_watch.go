@@ -89,10 +89,11 @@ func watchTag(tasks []watchTask) string {
 	return hex.EncodeToString(sum[:8])
 }
 
-// serveTaskWatch answers GET /api/tasks/watch from the list tasks returns.
+// serveTaskWatch answers GET /api/tasks/watch from the list tasks returns, as
+// the caller may see it.
 func serveTaskWatch(tasks func() []*core.Task) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		all := tasks()
+		all := shownTasks(r, tasks())
 		handedOver := app.HandedOver(all)
 		roots := app.MirrorRoots(all)
 		list := watchList{Tasks: make([]watchTask, 0, len(all))}

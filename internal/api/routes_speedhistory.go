@@ -12,7 +12,7 @@ package api
 // are in the answer, so a client that wants the last sixty buckets takes them
 // itself.
 //
-// On neither forwarding list (routes_federation.go, routes_relay.go), since a
+// On neither forwarding list (routes_federation.go, group_routes.go), since a
 // peer's ring describes the peer's traffic. Scoped to a peer, the shell meter
 // gets no seed and draws its own window from that peer's task stream.
 

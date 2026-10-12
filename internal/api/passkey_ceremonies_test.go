@@ -68,7 +68,7 @@ func TestStartingSignInsCountsAgainstTheThrottle(t *testing.T) {
 		t.Fatal(err)
 	}
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		req, _ := http.NewRequest(http.MethodPost, srv.URL+"/api/auth/passkey/login/begin", nil)
 		req.Host = "localhost"
 		resp, err := http.DefaultClient.Do(req)
@@ -79,6 +79,6 @@ func TestStartingSignInsCountsAgainstTheThrottle(t *testing.T) {
 		last = resp.StatusCode
 	}
 	if last != http.StatusTooManyRequests {
-		t.Errorf("sign-in start %d answered %d, want 429", loginFailBurst+1, last)
+		t.Errorf("sign-in start %d answered %d, want 429", loginFailLimit+1, last)
 	}
 }

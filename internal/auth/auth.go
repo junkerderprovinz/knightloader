@@ -15,8 +15,8 @@ import (
 	"crypto/subtle"
 	"encoding/base64"
 	"encoding/hex"
-	"encoding/json"
 	"errors"
+	"maps"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -25,7 +25,7 @@ import (
 	"time"
 	"unicode/utf8"
 
-	"golang.org/x/crypto/bcrypt"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
 
 // SessionTTL is how long a login lasts.
@@ -38,15 +38,16 @@ var (
 	// ErrWrongPassword is returned when the supplied password does not match.
 	ErrWrongPassword = errors.New("wrong password")
 	// ErrTooShort rejects a password that is not worth having.
-	ErrTooShort = errors.New("the password must be at least 8 characters")
+	ErrTooShort = errors.New("the password must be at least 12 characters")
 	// ErrTooLong rejects a password bcrypt cannot hash whole.
 	ErrTooLong = errors.New("the password must be at most 72 bytes")
 )
 
 const (
 	// minPasswordChars counts characters, so a password in another alphabet
-	// is held to the same length as one in English.
-	minPasswordChars = 8
+	// is held to the same length as one in English. Only a new password is
+	// measured, so one set under a lower minimum keeps signing in.
+	minPasswordChars = 12
 	// maxPasswordBytes is bcrypt's limit, which counts bytes.
 	maxPasswordBytes = 72
 )
@@ -63,7 +64,7 @@ func checkLength(password string) error {
 }
 
 type stored struct {
-	Hash string `json:"hash"` // bcrypt, empty = no password set
+	Hash string `json:"hash"` // bcrypt, or Argon2id with an app key; empty = no password set
 	Key  string `json:"key"`  // hex, signs session cookies
 	// TOTP is the base32 authenticator secret, written only once a code from
 	// it has been confirmed. Empty means no second factor.
@@ -94,6 +95,11 @@ type Guard struct {
 	epoch    uint64
 	revoked  map[string]int64
 	pending  *pending // never written to the file
+	// totpUsed is the newest time step a code was accepted for. A code is
+	// valid for three steps, and one seen over a shoulder or in a proxy's
+	// log must not open a second session in that time. Kept in memory, so a
+	// restart forgets it, which costs at most those three steps.
+	totpUsed uint64
 	// The live reset code and when it was minted, in memory only.
 	reset       resetCode
 	resetMinted time.Time
@@ -101,11 +107,18 @@ type Guard struct {
 	// process, so a session is only issued for the state a password was
 	// checked against (see Credentials).
 	gen uint64
+	// appKey seals the file and peppers the password; nil keeps the file
+	// plain and the hash bcrypt.
+	appKey *appkey.Key
 
 	// minting is held for writing while a reset, a password change or a
 	// sign-out everywhere ends the credentials, and for reading by everything
 	// that creates one outside this package; see Mint.
 	minting sync.RWMutex
+	// writing is held from taking the state to its write in auth.json, so a
+	// slow write of an older state cannot land over a newer one. It is taken
+	// after minting and before mu.
+	writing sync.Mutex
 }
 
 // ErrStale refuses to mint a credential for a caller whose own credential
@@ -120,30 +133,9 @@ type Credentials struct {
 	TwoFactor bool
 }
 
-// Open loads (or creates) the lock state in dir.
+// Open loads (or creates) the lock state in dir, without an app key.
 func Open(dir string) (*Guard, error) {
-	g := &Guard{path: filepath.Join(dir, "auth.json")}
-	if b, err := os.ReadFile(g.path); err == nil {
-		var s stored
-		if err := json.Unmarshal(b, &s); err == nil {
-			g.hash = []byte(s.Hash)
-			g.key, _ = hex.DecodeString(s.Key)
-			g.totp = s.TOTP
-			g.recovery = s.Recovery
-			g.epoch = s.Epoch
-			g.revoked = s.Revoked
-		}
-	}
-	if len(g.key) == 0 {
-		g.key = make([]byte, 32)
-		if _, err := rand.Read(g.key); err != nil {
-			return nil, err
-		}
-		if err := g.flush(); err != nil {
-			return nil, err
-		}
-	}
-	return g, nil
+	return OpenWithKey(dir, nil)
 }
 
 // Enabled reports whether a password is required.
@@ -183,7 +175,7 @@ func (g *Guard) changeFrom(c Credentials, next string, alsoEnd func()) (Credenti
 			return Credentials{}, err
 		}
 		var err error
-		if h, err = bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost); err != nil {
+		if h, err = hashPassword(g.appKey, next); err != nil {
 			return Credentials{}, err
 		}
 	}
@@ -231,7 +223,11 @@ func (g *Guard) CheckPassword(password string) (Credentials, bool) {
 	if len(h) == 0 {
 		return c, false
 	}
-	return c, bcrypt.CompareHashAndPassword(h, []byte(password)) == nil
+	if !verifyPassword(g.appKey, password, h) {
+		return c, false
+	}
+	g.upgradeHash(password, h)
+	return c, true
 }
 
 // Current is the present state, for a sign-in that proves something other than
@@ -418,6 +414,8 @@ func signWith(key []byte, msg string) []byte {
 }
 
 func (g *Guard) flush() error {
+	g.writing.Lock()
+	defer g.writing.Unlock()
 	g.mu.RLock()
 	s := stored{
 		Hash:     string(g.hash),
@@ -425,16 +423,48 @@ func (g *Guard) flush() error {
 		TOTP:     g.totp,
 		Recovery: g.recovery,
 		Epoch:    g.epoch,
-		Revoked:  g.revoked,
+		// A copy, since a sign-out adds to the list while this one is encoded.
+		Revoked: maps.Clone(g.revoked),
 	}
 	g.mu.RUnlock()
-	return writeState(g.path, s)
+	return writeState(g.path, s, g.appKey)
 }
 
-func writeState(path string, s stored) error {
-	b, err := json.MarshalIndent(s, "", "  ")
+func writeState(path string, s stored, key *appkey.Key) error {
+	b, err := encodeStored(s, key)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(path, b, 0o600)
+	return writeAtomic(path, b)
+}
+
+// writeAtomic replaces path with b so that a crash at any point leaves the old
+// file or the new one: a file cut short would read as no password at all.
+func writeAtomic(path string, b []byte) error {
+	f, err := os.CreateTemp(filepath.Dir(path), "."+filepath.Base(path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	_, err = f.Write(b)
+	if err == nil {
+		err = f.Sync()
+	}
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Rename(tmp, path)
+	}
+	if err != nil {
+		os.Remove(tmp)
+		return err
+	}
+	// The rename lives in the folder. Windows cannot sync a folder, and there
+	// the rename is durable without it.
+	if d, err := os.Open(filepath.Dir(path)); err == nil {
+		_ = d.Sync()
+		d.Close()
+	}
+	return nil
 }

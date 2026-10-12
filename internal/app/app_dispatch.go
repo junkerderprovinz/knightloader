@@ -928,6 +928,23 @@ func (a *App) dispatchLocked() {
 			settled = append(settled, a.copyLocked(t))
 			continue
 		}
+		// The folder is final only here, with the template, the category and
+		// the package level applied, and a setting checks no more than its
+		// fixed part. None of it may lead into the data folder.
+		refusal, known := a.dataFolderOfLocked(dir, a.workDirFor(t))
+		if !known {
+			waiting[id] = core.WaitingDisk
+			rest = append(rest, id)
+			continue
+		}
+		if refusal != nil {
+			t.Status = core.StatusError
+			t.Reason = core.ReasonUnknown
+			code, params := diskCode(refusal)
+			t.SetError("not downloaded: "+refusal.Error(), code, params)
+			settled = append(settled, a.copyLocked(t))
+			continue
+		}
 		be := a.backendFor(t.Resolver)
 		// One collision policy for both the skip check and the engine.
 		// CollisionFor resolves the category's rule; ParsePolicy alone would

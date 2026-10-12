@@ -14,7 +14,7 @@ package api
 // the echo with what the browser sent.
 //
 // None of the routes is forwarded to peers (routes_federation.go,
-// routes_relay.go), since the answer describes this machine's disks, clock and
+// group_routes.go), since the answer describes this machine's disks, clock and
 // proxy. The results carry account labels, often email addresses, so they must
 // not go into the diagnostics bundle, which is meant for public bug reports.
 

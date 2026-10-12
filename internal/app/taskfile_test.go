@@ -7,7 +7,9 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strconv"
 	"strings"
 	"sync"
@@ -212,6 +214,103 @@ func TestRemovingWithFilesDeletesTheFileTheTaskRecorded(t *testing.T) {
 	}
 	if !fileExists(theirs) {
 		t.Error("the file under the task's name was deleted, and it was never the task's")
+	}
+}
+
+// sharedFileTasks records one file on two tasks under two spellings of its
+// path and removes the first with its files.
+func sharedFileTasks(t *testing.T, a *App, mine, theirs string) {
+	t.Helper()
+	a.mu.Lock()
+	a.tasks["1"] = &core.Task{
+		ID: "1", URL: "https://elsewhere.example/film.mkv", Name: "film.mkv", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: 2048, File: mine,
+	}
+	a.tasks["2"] = &core.Task{
+		ID: "2", URL: "https://elsewhere.example/mirror/film.mkv", Name: "film.mkv", Resolver: "elsewhere",
+		Status: core.StatusDone, Enabled: true, Size: 2048, File: theirs,
+	}
+	a.mu.Unlock()
+	a.Remove("1", true)
+}
+
+// A folder reached through a symlink, or a bind mount, holds the same file
+// under another path. The other task's file is the same one and stays.
+func TestRemovingWithFilesSparesTheFileAnotherTaskReachesThroughALink(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	real := filepath.Join(dir, "real")
+	file := fileBytes(t, filepath.Join(real, "film.mkv"), 2048)
+	link := filepath.Join(dir, "link")
+	if err := os.Symlink(real, link); err != nil {
+		// Windows lets a symlink be made only with a privilege, and a
+		// junction, which is the same to Go, without one.
+		if out, jerr := exec.Command("cmd", "/c", "mklink", "/J", link, real).CombinedOutput(); runtime.GOOS != "windows" || jerr != nil {
+			t.Skipf("this system cannot make a link: %v %s", err, out)
+		}
+	}
+
+	sharedFileTasks(t, a, filepath.Join(link, "film.mkv"), file)
+
+	if !fileExists(file) {
+		t.Error("the file another task recorded through the real folder was deleted")
+	}
+}
+
+// On a disk that ignores case, two spellings of one path are one file.
+func TestRemovingWithFilesSparesTheFileAnotherTaskSpellsDifferently(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	file := fileBytes(t, filepath.Join(dir, "Film.mkv"), 2048)
+	other := filepath.Join(dir, "film.mkv")
+	if !fileExists(other) {
+		t.Skip("this disk tells case apart, so the two spellings are two files")
+	}
+
+	sharedFileTasks(t, a, other, file)
+
+	if !fileExists(file) {
+		t.Error("the file another task recorded under another spelling was deleted")
+	}
+}
+
+// An unpacked volume another row still claims under another spelling stays
+// when the archive settings delete what was unpacked.
+func TestAVolumeAnotherRowSpellsDifferentlyIsNotDisposable(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	file := fileBytes(t, filepath.Join(dir, "Set.rar"), 2048)
+	other := filepath.Join(dir, "set.rar")
+	if !fileExists(other) {
+		t.Skip("this disk tells case apart, so the two spellings are two files")
+	}
+	a.mu.Lock()
+	for id, f := range map[string]string{"1": file, "2": other} {
+		a.tasks[id] = &core.Task{ID: id, URL: "https://elsewhere.example/" + id + "/set.rar", Name: "set.rar",
+			Status: core.StatusDone, Enabled: true, Size: 2048, File: f}
+	}
+	a.mu.Unlock()
+
+	if got := a.disposable([]string{file}); len(got) != 0 {
+		t.Errorf("a volume two rows claim is disposable: %v", got)
+	}
+}
+
+// Two names that only differ in case are two files on a disk that tells case
+// apart, and the removed task's own file goes.
+func TestRemovingWithFilesDeletesItsFileBesideOneSpelledDifferently(t *testing.T) {
+	a, _, dir := delegatedFileApp(t)
+	mine := fileBytes(t, filepath.Join(dir, "film.mkv"), 2048)
+	theirs := filepath.Join(dir, "Film.mkv")
+	if fileExists(theirs) {
+		t.Skip("this disk ignores case, so the two spellings are one file")
+	}
+	fileBytes(t, theirs, 2048)
+
+	sharedFileTasks(t, a, mine, theirs)
+
+	if fileExists(mine) {
+		t.Error("the task's own file survived a removal with files")
+	}
+	if !fileExists(theirs) {
+		t.Error("the other task's file was deleted")
 	}
 }
 

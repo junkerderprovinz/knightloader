@@ -37,6 +37,7 @@ func TestTheInstancesOwnBucketsAreNotInterfaceState(t *testing.T) {
 	call := func(method, key, token string, body io.Reader) (int, string) {
 		req, _ := http.NewRequest(method, srv.URL+"/api/uistate?key="+key, body)
 		req.Header.Set("Authorization", "Bearer "+token)
+		req.Header.Set("Content-Type", "application/json")
 		resp, err := http.DefaultClient.Do(req)
 		if err != nil {
 			t.Fatal(err)

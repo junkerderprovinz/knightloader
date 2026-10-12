@@ -370,7 +370,7 @@ func TestAFolderThatDoesNotFitHereFailsOnlyItself(t *testing.T) {
 		ids = append(ids, it.ID)
 	}
 	check := func(preview settings.Settings, patch map[string]json.RawMessage) error {
-		return settings.CheckFolders(preview, func(key string) bool { _, ok := patch[key]; return ok })
+		return settings.CheckFolders(a.DataDir, preview, func(key string) bool { _, ok := patch[key]; return ok })
 	}
 	rep, err := a.ApplyJDImport(p.Token, ids, check)
 	if err != nil {

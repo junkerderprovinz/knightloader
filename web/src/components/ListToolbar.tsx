@@ -4,6 +4,7 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react';
 import { PriorityGlyph } from '../lib/icons';
 import {
+  ApiError,
   type ApiOptions,
   type BulkResult,
   type CleanupClass,
@@ -25,6 +26,7 @@ import {
   queueMove,
   queuePriority,
   recheckTasks,
+  refusal,
   restartTasks,
   resumeTasks,
   runCleanup,
@@ -44,6 +46,7 @@ import { happened } from '../lib/countdown';
 import { useDialogMute, type DialogId } from '../lib/dialogmute';
 import { useToast } from '../lib/toast';
 import { taskRefusal } from '../lib/taskRefusal';
+import { passwordPath, usePasswordFirst } from '../lib/passwordFirst';
 import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
@@ -319,7 +322,9 @@ function ConfirmRemove({
   onConfirm: (withFiles: boolean) => void;
 }) {
   const { t } = useT();
-  const files = allowFiles && weight.files > 0;
+  const locked = usePasswordFirst();
+  const files = allowFiles && !locked && weight.files > 0;
+  const why = allowFiles && locked && weight.files > 0 ? t('remove.filesNeedPassword', { path: passwordPath(t) }) : note;
 
   return (
     <Modal
@@ -358,7 +363,7 @@ function ConfirmRemove({
               ? t('remove.filesGone', { files: weight.files, bytes: fmtBytes(weight.bytes) })
               : t('remove.filesKept')}
         </p>
-        {note && <p className="text-carbon-textMuted">{note}</p>}
+        {why && <p className="text-carbon-textMuted">{why}</p>}
       </div>
     </Modal>
   );
@@ -418,7 +423,8 @@ export function TaskOptionsDialog({
       base,
     );
     if (!r.ok) {
-      setError(await r.text());
+      const e = await refusal(r);
+      setError(taskRefusal(e, t) ?? e.message);
       return;
     }
     onClose();
@@ -530,7 +536,7 @@ export function useRemoval({
         );
         onDone();
       } catch (e) {
-        toast(t('list.failed', { error: message(e) }), 'fail');
+        toast(taskRefusal(e, t) ?? t('list.failed', { error: message(e) }), 'fail');
       }
     },
     [base, drawn, onDone, t, toast, undoRemoval],
@@ -714,7 +720,7 @@ export function useCleanup(all: Task[]) {
   const { toast } = useToast();
   const dialogs = useDialogMute();
   const [classes, setClasses] = useState<CleanupClass[] | null>(null);
-  const [confirm, setConfirm] = useState<{ cls: CleanupClass; ids: string[] } | null>(null);
+  const [confirm, setConfirm] = useState<{ cls: CleanupClass; ids: string[]; digest: string } | null>(null);
 
   const load = useCallback(async (): Promise<CleanupClass[]> => {
     const list = await cleanupClasses();
@@ -724,13 +730,19 @@ export function useCleanup(all: Task[]) {
 
   // Declared before preview(), which calls it when the dialog is muted.
   const run = useCallback(
-    async (cls: CleanupClass, withFiles: boolean): Promise<void> => {
+    async (cls: CleanupClass, digest: string, withFiles: boolean): Promise<void> => {
       setConfirm(null);
       try {
-        const r = await runCleanup(cls, withFiles);
+        const r = await runCleanup(cls, digest, withFiles);
         toast(t('remove.done', { n: r.count }), 'ok');
       } catch (e) {
-        toast(t('cleanup.failed', { error: message(e) }), 'fail');
+        // The class took on or lost links since the preview, so what was
+        // confirmed is not what would go. Nothing was removed.
+        if (e instanceof ApiError && e.code === 'cleanupChanged') {
+          toast(t('cleanup.changed', { what: classLabel(cls, t) }), 'info');
+          return;
+        }
+        toast(taskRefusal(e, t) ?? t('cleanup.failed', { error: message(e) }), 'fail');
       }
     },
     [t, toast],
@@ -747,10 +759,10 @@ export function useCleanup(all: Task[]) {
         }
         // Muted, it runs without files, the conservative answer.
         if (dialogs.isMuted('cleanup')) {
-          void run(cls, false);
+          void run(cls, r.digest ?? '', false);
           return;
         }
-        setConfirm({ cls, ids: r.ids });
+        setConfirm({ cls, ids: r.ids, digest: r.digest ?? '' });
       } catch (e) {
         toast(t('cleanup.failed', { error: message(e) }), 'fail');
       }
@@ -767,7 +779,7 @@ export function useCleanup(all: Task[]) {
       note={KEEPS_FILES.has(confirm.cls) ? t('cleanup.finishedKeepsFiles') : undefined}
       mute="cleanup"
       onCancel={() => setConfirm(null)}
-      onConfirm={(withFiles) => void run(confirm.cls, withFiles)}
+      onConfirm={(withFiles) => void run(confirm.cls, confirm.digest, withFiles)}
     />
   );
 
