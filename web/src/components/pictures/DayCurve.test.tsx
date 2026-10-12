@@ -86,9 +86,17 @@ describe("the day's record", () => {
   it("stands on today's clock, without what was measured before midnight", () => {
     // Three samples of five minutes, the first of them closing at midnight.
     const from = new Date(2026, 9, 6, 23, 55).toISOString();
-    expect(todayOf({ samples: [100, 200, 300], step: 300, from }, noon)).toEqual([
-      { at: 5, speed: 200 },
-      { at: 10, speed: 300 },
+    expect(todayOf({ samples: [100, 200, 300], samplesUp: [1, 2, 3], step: 300, from }, noon)).toEqual([
+      { at: 5, speed: 200, up: 2 },
+      { at: 10, speed: 300, up: 3 },
+    ]);
+  });
+
+  it('reads a record without upload as nothing sent', () => {
+    const from = new Date(2026, 9, 7, 0, 0).toISOString();
+    expect(todayOf({ samples: [100, 200], step: 300, from }, noon)).toEqual([
+      { at: 5, speed: 100, up: 0 },
+      { at: 10, speed: 200, up: 0 },
     ]);
   });
 
@@ -164,6 +172,18 @@ describe('the curve of the day', () => {
     expect(host.querySelector('[role="img"]')!.getAttribute('aria-label')).toMatch(
       /^Schedules, Wed: 00:00-06:00 Pause, 06:00-12:00 .*2.*MiB\/s.*, Speed 10:00: .*2.*MiB\/s/,
     );
+  });
+
+  it('draws the upload beside the speed, and names it, only on a day that had some', async () => {
+    await draw();
+    expect(host.querySelector('[data-upload]')).toBeNull();
+    expect(host.querySelector('[data-upload-key]')).toBeNull();
+
+    await draw({ points: points.map((p) => ({ ...p, up: MIB })) });
+    expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(
+      'M360.0 75.00H365.0L365.0 75.00H370.0M595.0 75.00H600.0',
+    );
+    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Seeding');
   });
 
   it('draws the plan of a timetable that is set aside faintly, and the measured line as ever', async () => {

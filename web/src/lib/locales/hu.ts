@@ -2519,6 +2519,9 @@ export const hu: Dict = {
   'overview.speedWindow': 'A görbe időablaka',
   'overview.speedWindow.minute': 'Utolsó perc',
   'overview.speedWindow.hour': 'Utolsó óra',
+  'speed.legend.download': 'Letöltés',
+  'speed.legend.seeding': 'Seedelés',
+  'speed.legend.hint': 'A szürke vonal azt mutatja, mit töltenek fel a torrentjeid másoknak, miközben letöltődnek vagy seedelnek. Csak akkor jelenik meg, amikor valami kimegy. A KnightLoader ugyanúgy rögzíti, mint a letöltési görbét, így egy újraindítás ezt is törli.',
   'overview.speedGraphHint': 'A példány maga rögzíti ezt a görbét: másodpercenként egy mérési értéket az utolsó két percre, tíz másodpercenként egyet az utolsó órára. Ezért az oldal újratöltése után már kitöltve jelenik meg, ahelyett hogy laposan indulna. A rögzítés csak a memóriában él: ha újraindítod a KnightLoadert, üres lesz, a görbe megint egyenes vonalként indul, és futás közben töltődik fel. Amíg sebességkorlát van érvényben, egy piros vonal jelöli, az értékkel a bal oldalon. Ha a korlát jóval a mostani sebesség fölött van, a vonal szaggatott, és a felső szélen marad, hogy egy lassú letöltés ne lapuljon laposra.',
   'settings.diagnostics.speedSamples': 'Rögzített sebességértékek',
   'settings.diagnostics.speedSamplesHint': 'Hány értékből rajzolódik éppen az Áttekintés sebességgörbéje, ahhoz mérve, amennyit legfeljebb megtart: elöl a két perces rögzítés, utána az egyórás. Ha mindkettőnél nulla áll, semmi nem rögzít, és az Áttekintés görbéje lapos marad, amíg ez nincs orvosolva. A rögzítés minden újraindítás után üresen kezdődik, és soha nem íródik a lemezre.',
@@ -3622,6 +3625,7 @@ export const hu: Dict = {
   'whatsnew.change.waysIn': 'Egy kép a teljes kártyán mutatja azt az összes utat, amelyen egy link a linkgyűjtőbe jut, és egy útra kattintva megnyílik a beállítása. Ha a „{rainbow}” be van kapcsolva, minden útnak saját színe van.',
   'whatsnew.change.dayCurve':
     'A(z) „{name}” görbeként rajzolja meg a mai napot: a tervezett sebességkorlátot területként, a mért sebességet vonalként.',
+  'whatsnew.change.seedingLine': 'A sebességgörbén van egy második vonal is arról, mit töltenek fel a torrentjeid seedelés közben.',
   'whatsnew.change.ruleSwitch': 'A szabályok úgy jelennek meg, mint az az út, amelyet egy mintahivatkozás megtesz rajtuk: melyik szabály kapja el, és hová érkezik.',
   'whatsnew.change.captchaChain': 'Egy kép mutatja, kihez kerül egy captcha: először hozzád, aztán a captcha-fiókokhoz a te sorrendedben.',
   'whatsnew.change.trackMerge': 'A(z) „{name}” a teljes kártyán megrajzolja, mi kerül a videófájlba a jelenlegi beállításokkal, és követi az alatta lévő kapcsolókat. Ha a „{rainbow}” be van kapcsolva, minden sávnak saját színe van.',

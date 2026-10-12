@@ -2773,6 +2773,9 @@ export const de: Dict = {
   'overview.speedWindow': 'Zeitfenster der Kurve',
   'overview.speedWindow.minute': 'Letzte Minute',
   'overview.speedWindow.hour': 'Letzte Stunde',
+  'speed.legend.download': 'Download',
+  'speed.legend.seeding': 'Seeden',
+  'speed.legend.hint': 'Die graue Linie zeigt, was deine Torrents an andere hochladen, während sie laden oder seeden. Sie erscheint nur, solange etwas rausgeht. KnightLoader zeichnet sie genauso auf wie die Download-Kurve, ein Neustart leert sie also auch.',
   'overview.speedGraphHint': 'Die Instanz zeichnet diese Kurve selbst auf: einen Messwert pro Sekunde für die letzten zwei Minuten, einen alle zehn Sekunden für die letzte Stunde. Darum ist sie nach dem Neuladen der Seite schon gefüllt, statt flach anzufangen. Die Aufzeichnung liegt nur im Arbeitsspeicher: Startest du KnightLoader neu, ist sie leer, die Kurve fängt wieder als flache Linie an und füllt sich im Lauf der Zeit. Solange ein Geschwindigkeitslimit gilt, markiert es eine rote Linie, links mit dem Wert. Liegt das Limit weit über der aktuellen Geschwindigkeit, ist die Linie gestrichelt und bleibt am oberen Rand, damit ein langsamer Download nicht plattgedrückt wird.',
   'settings.diagnostics.speedSamples': 'Aufgezeichnete Geschwindigkeitswerte',
   'settings.diagnostics.speedSamplesHint': 'Aus wie vielen Messwerten die Geschwindigkeitskurve auf der Übersicht gerade gezeichnet wird, gemessen an dem, was sie höchstens behält: zuerst die Aufzeichnung über zwei Minuten, dann die über eine Stunde. Steht bei beiden null, zeichnet nichts auf, und die Kurve auf der Übersicht bleibt flach, bis das behoben ist. Nach jedem Neustart beginnt die Aufzeichnung leer, auf die Platte wird sie nie geschrieben.',
@@ -3624,6 +3627,7 @@ export const de: Dict = {
   'whatsnew.change.waysIn': 'Ein Bild über die ganze Karte zeigt jeden Weg, auf dem ein Link in den Linksammler kommt, und ein Klick auf einen Weg öffnet seine Einstellung. Im „{rainbow}“ hat jeder Weg seine eigene Farbe.',
   'whatsnew.change.dayCurve':
     '„{name}“ zeichnet den heutigen Tag als Kurve: das geplante Geschwindigkeitslimit als Fläche und die gemessene Geschwindigkeit als Linie.',
+  'whatsnew.change.seedingLine': 'Die Geschwindigkeitskurve hat eine zweite Linie für das, was deine Torrents beim Seeden hochladen.',
   'whatsnew.change.ruleSwitch': 'Die Regeln zeigen den Weg, den ein Beispiel-Link durch sie nimmt: welche Regel ihn fängt und wo er landet.',
   'whatsnew.change.captchaChain': 'Ein Bild zeigt, an wen ein Captcha geht: zuerst an dich, dann an die Captcha-Konten in deiner Reihenfolge.',
   'whatsnew.change.trackMerge': '„{name}“ zeichnet über die ganze Karte, was mit den aktuellen Einstellungen in einer Videodatei landet, und folgt den Schaltern darunter. Im „{rainbow}“ hat jede Spur ihre eigene Farbe.',

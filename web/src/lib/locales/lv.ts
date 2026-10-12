@@ -2510,6 +2510,9 @@ export const lv: Dict = {
   'overview.speedWindow': 'Līknes laika logs',
   'overview.speedWindow.minute': 'Pēdējā minūte',
   'overview.speedWindow.hour': 'Pēdējā stunda',
+  'speed.legend.download': 'Lejupielāde',
+  'speed.legend.seeding': 'Sēšana',
+  'speed.legend.hint': 'Pelēkā līnija rāda, ko tavi torenti augšupielādē citiem, kamēr tie lejupielādējas vai sēj. Tā parādās tikai tad, kad kaut kas iziet. KnightLoader to ieraksta tieši tāpat kā lejupielādes līkni, tāpēc restartēšana notīra arī to.',
   'overview.speedGraphHint': 'Instance šo līkni pieraksta pati: viens mērījums sekundē pēdējām divām minūtēm, viens ik pēc desmit sekundēm pēdējai stundai. Tāpēc pēc lapas pārlādēšanas tā ir jau piepildīta, nevis sākas plakana. Pieraksts glabājas tikai operatīvajā atmiņā: ja KnightLoader restartē, tas ir tukšs, līkne atkal sākas kā plakana līnija un piepildās darbības gaitā. Kamēr ir spēkā ātruma ierobežojums, to iezīmē sarkana līnija ar vērtību kreisajā pusē. Ja ierobežojums ir krietni virs pašreizējā ātruma, līnija ir raustīta un paliek pie augšējās malas, lai lēna lejupielāde netiktu saspiesta plakana.',
   'settings.diagnostics.speedSamples': 'Pierakstītie ātruma mērījumi',
   'settings.diagnostics.speedSamplesHint': 'No cik mērījumiem ātruma līkne Pārskata lapā tiek zīmēta tieši tagad, salīdzinot ar to, cik daudz tā vispār patur: vispirms divu minūšu pieraksts, tad vienas stundas pieraksts. Ja abos ir nulle, nekas netiek pierakstīts, un līkne Pārskatā paliks plakana, līdz tas ir novērsts. Pēc katras restartēšanas pieraksts sākas tukšs, un diskā to neraksta nekad.',
@@ -3611,6 +3614,7 @@ export const lv: Dict = {
   'whatsnew.change.waysIn': 'Attēls pāri visai kartītei parāda katru ceļu, pa kuru saite nonāk saišu savācējā, un klikšķis uz ceļa atver tā iestatījumu. Kad „{rainbow}“ ir ieslēgts, katram ceļam ir sava krāsa.',
   'whatsnew.change.dayCurve':
     '„{name}“ uzzīmē šodienu kā līkni: plānoto ātruma ierobežojumu kā laukumu un izmērīto ātrumu kā līniju.',
+  'whatsnew.change.seedingLine': 'Ātruma līknei ir otra līnija tam, ko tavi torenti augšupielādē, kamēr sēj.',
   'whatsnew.change.ruleSwitch': 'Noteikumi ir uzzīmēti kā ceļš, ko parauga saite veic cauri tiem: kurš noteikums to noķer un kur tā nonāk.',
   'whatsnew.change.captchaChain': 'Attēls rāda, pie kā nonāk captcha: vispirms pie tevis, pēc tam pie captcha kontiem tavā secībā.',
   'whatsnew.change.trackMerge': '„{name}“ pāri visai kartītei uzzīmē, kas ar pašreizējiem iestatījumiem nonāk video failā, un seko slēdžiem zem tās. Kad „{rainbow}“ ir ieslēgts, katram celiņam ir sava krāsa.',

@@ -2519,6 +2519,9 @@ export const vi: Dict = {
   'overview.speedWindow': 'Khung thời gian của đường tốc độ',
   'overview.speedWindow.minute': 'Một phút gần nhất',
   'overview.speedWindow.hour': 'Một giờ gần nhất',
+  'speed.legend.download': 'Tải xuống',
+  'speed.legend.seeding': 'Seed',
+  'speed.legend.hint': 'Đường màu xám cho thấy các torrent của bạn tải lên cho người khác những gì trong khi đang tải xuống hoặc seed. Đường này chỉ hiện khi có dữ liệu đi ra. KnightLoader ghi lại nó giống hệt đường tải xuống, nên khởi động lại cũng xóa nó.',
   'overview.speedGraphHint': 'Thực thể tự ghi lại đường này: mỗi giây một giá trị đo cho hai phút gần nhất, mười giây một giá trị cho một giờ gần nhất. Vì vậy sau khi tải lại trang, đường tốc độ đã có sẵn dữ liệu thay vì bắt đầu bằng một vạch phẳng. Bản ghi chỉ nằm trong bộ nhớ: khởi động lại KnightLoader thì nó rỗng, đường tốc độ lại bắt đầu là một vạch phẳng rồi đầy dần theo thời gian chạy. Khi có giới hạn tốc độ, một đường màu đỏ đánh dấu nó, kèm giá trị ở bên trái. Nếu giới hạn cao hơn nhiều so với tốc độ hiện tại, đường này thành nét đứt và nằm ở mép trên, để một lượt tải chậm không bị ép dẹt.',
   'settings.diagnostics.speedSamples': 'Giá trị tốc độ đã ghi lại',
   'settings.diagnostics.speedSamplesHint': 'Đường tốc độ trên trang Tổng quan hiện đang được vẽ từ bao nhiêu giá trị đo, so với mức nhiều nhất mà nó giữ lại: trước là bản ghi hai phút, sau là bản ghi một giờ. Nếu cả hai đều bằng không thì không có gì đang được ghi, và đường tốc độ trên trang Tổng quan sẽ vẫn phẳng cho tới khi việc đó được sửa. Sau mỗi lần khởi động lại, bản ghi bắt đầu lại từ rỗng, và nó không bao giờ được ghi xuống đĩa.',
@@ -3620,6 +3623,7 @@ export const vi: Dict = {
   'whatsnew.change.waysIn': 'Một hình ảnh trải khắp thẻ cho thấy mọi lối mà một liên kết đi vào bộ thu liên kết, và nhấp vào một lối sẽ mở cài đặt của nó. Khi “{rainbow}” bật, mỗi lối có một màu riêng.',
   'whatsnew.change.dayCurve':
     '“{name}” vẽ ngày hôm nay thành một đường cong: giới hạn tốc độ dự kiến là một vùng và tốc độ đo được là một đường.',
+  'whatsnew.change.seedingLine': 'Đường tốc độ có thêm một đường thứ hai cho những gì các torrent của bạn tải lên khi seed.',
   'whatsnew.change.ruleSwitch': 'Các quy tắc được vẽ thành đường đi của một liên kết mẫu qua chúng: quy tắc nào bắt nó và nó dừng ở đâu.',
   'whatsnew.change.captchaChain': 'Một hình cho thấy captcha đến với ai: đến bạn trước, rồi đến các tài khoản captcha theo thứ tự của bạn.',
   'whatsnew.change.trackMerge': '“{name}” vẽ trên cả thẻ những gì nằm trong tệp video với cài đặt hiện tại, và đi theo các công tắc bên dưới. Khi “{rainbow}” bật, mỗi rãnh có một màu riêng.',

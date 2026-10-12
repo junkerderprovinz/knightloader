@@ -2519,6 +2519,9 @@ export const sv: Dict = {
   'overview.speedWindow': 'Kurvans tidsfönster',
   'overview.speedWindow.minute': 'Senaste minuten',
   'overview.speedWindow.hour': 'Senaste timmen',
+  'speed.legend.download': 'Nedladdning',
+  'speed.legend.seeding': 'Delning',
+  'speed.legend.hint': 'Den grå linjen visar vad dina torrenter laddar upp till andra medan de laddas ner eller delar. Den syns bara när något går ut. KnightLoader registrerar den precis som nedladdningskurvan, så en omstart rensar den också.',
   'overview.speedGraphHint': 'Instansen registrerar den här kurvan själv: ett mätvärde per sekund för de senaste två minuterna, ett var tionde sekund för den senaste timmen. Därför är den redan fylld när du laddar om sidan, i stället för att börja platt. Mätvärdena ligger bara i arbetsminnet: startar du om KnightLoader är de borta, kurvan börjar som en platt linje igen och fylls på efter hand. Så länge en hastighetsgräns gäller markeras den av en röd linje, med värdet till vänster. Ligger gränsen långt över den aktuella hastigheten är linjen streckad och stannar vid överkanten, så att en långsam nedladdning inte trycks platt.',
   'settings.diagnostics.speedSamples': 'Registrerade hastighetsvärden',
   'settings.diagnostics.speedSamplesHint': 'Ur hur många mätvärden hastighetskurvan på Översikt ritas just nu, mätt mot det mesta den behåller: först registreringen över två minuter, sedan den över en timme. Står det noll på båda registreras ingenting, och kurvan på Översikt förblir platt tills det är åtgärdat. Efter varje omstart börjar registreringen tom, och den skrivs aldrig till disken.',
@@ -3620,6 +3623,7 @@ export const sv: Dict = {
   'whatsnew.change.waysIn': 'En bild över hela kortet visar varje väg som en länk tar in i länksamlaren, och ett klick på en väg öppnar dess inställning. När ”{rainbow}” är på har varje väg sin egen färg.',
   'whatsnew.change.dayCurve':
     '”{name}” ritar dagens dygn som en kurva: den planerade hastighetsgränsen som en yta och den uppmätta hastigheten som en linje.',
+  'whatsnew.change.seedingLine': 'Hastighetskurvan har en andra linje för det dina torrenter laddar upp medan de delar.',
   'whatsnew.change.ruleSwitch': 'Reglerna är ritade som den väg en exempellänk tar genom dem: vilken regel som fångar den och var den hamnar.',
   'whatsnew.change.captchaChain': 'En bild visar vem en captcha går till: först till dig, sedan till captcha-kontona i din ordning.',
   'whatsnew.change.trackMerge': '”{name}” ritar över hela kortet vad som hamnar i en videofil med de aktuella inställningarna och följer reglagen under. När ”{rainbow}” är på har varje spår sin egen färg.',

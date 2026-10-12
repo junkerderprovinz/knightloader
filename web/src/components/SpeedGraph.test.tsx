@@ -4,7 +4,7 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fmtSpeed } from '../lib/format';
-import { ceilingOf, limitMark, meterWindow, Plot, spanLabel } from './SpeedGraph';
+import { ceilingOf, limitMark, meterWindow, Plot, sends, spanLabel, UPLOAD_INK } from './SpeedGraph';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -96,13 +96,13 @@ describe('Plot', () => {
     vi.unstubAllGlobals();
   });
 
-  function draw(samples: number[], limit: number) {
-    const ceiling = ceilingOf(samples, limit);
+  function draw(samples: number[], limit: number, upload = samples.map(() => 0)) {
+    const ceiling = ceilingOf(samples.concat(upload), limit);
     act(() =>
       root.render(
         <svg viewBox="0 0 300 100">
           <Plot
-            win={{ samples, step: 1, newestAt: 0 }}
+            win={{ samples, upload, step: 1, newestAt: 0 }}
             span={samples.length}
             w={300}
             h={100}
@@ -152,5 +152,35 @@ describe('Plot', () => {
   it('takes the line away when the limit is lifted', () => {
     draw([MIB, 2 * MIB, 2 * MIB], 2 * MIB);
     expect(draw([MIB, 2 * MIB, 2 * MIB], 0)).toBeNull();
+  });
+
+  const uploadLine = () => host.querySelector('[data-upload-line]');
+
+  it('draws no upload line while nothing is sent', () => {
+    draw([MIB, 2 * MIB, 2 * MIB], 0);
+    expect(uploadLine()).toBeNull();
+  });
+
+  it('draws the upload as a line of its own colour beside the download', () => {
+    draw([MIB, 2 * MIB, 2 * MIB], 0, [MIB / 2, MIB / 2, MIB]);
+    const line = uploadLine();
+    expect(line).not.toBeNull();
+    expect(line!.getAttribute('stroke')).toBe(UPLOAD_INK);
+    expect(line!.getAttribute('fill')).toBe('none');
+    expect(line!.getAttribute('d')).not.toBe(host.querySelector('.kl-curve-line')!.getAttribute('d'));
+  });
+
+  it('draws a seeding box that downloads nothing', () => {
+    draw([0, 0, 0], 0, [MIB, MIB, MIB]);
+    expect(uploadLine()).not.toBeNull();
+  });
+});
+
+describe('sends', () => {
+  const win = (upload: number[]) => ({ samples: upload.map(() => MIB), upload, step: 1, newestAt: 0 });
+
+  it('shows the upload and its legend only for a window that sent something', () => {
+    expect(sends(win([0, 0, 0]))).toBe(false);
+    expect(sends(win([0, 1, 0]))).toBe(true);
   });
 });

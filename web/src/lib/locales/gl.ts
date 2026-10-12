@@ -2516,6 +2516,9 @@ export const gl: Dict = {
   'overview.speedWindow': 'Xanela de tempo da curva',
   'overview.speedWindow.minute': 'Último minuto',
   'overview.speedWindow.hour': 'Última hora',
+  'speed.legend.download': 'Descarga',
+  'speed.legend.seeding': 'Seed',
+  'speed.legend.hint': 'A liña gris mostra o que os teus torrents soben a outras persoas mentres se descargan ou fan seed. Só aparece mentres sae algo. KnightLoader rexístraa igual ca a curva de descarga, así que un reinicio tamén a borra.',
   'overview.speedGraphHint': 'A instancia rexistra esta curva por si mesma: unha mostra por segundo para os últimos dous minutos, unha cada dez segundos para a última hora. Por iso, ao recargar a páxina, xa aparece chea en vez de empezar plana. O rexistro está só na memoria: se reinicias KnightLoader queda baleiro, a curva volve empezar como unha liña plana e vaise enchendo co tempo. Mentres se aplica un límite de velocidade, unha liña vermella márcao, co valor á esquerda. Se o límite está moi por riba da velocidade actual, a liña é descontinua e queda no bordo superior, para que unha descarga lenta non quede esmagada.',
   'settings.diagnostics.speedSamples': 'Mostras de velocidade rexistradas',
   'settings.diagnostics.speedSamplesHint': 'Con cantas mostras se está a debuxar agora mesmo a curva de velocidade da páxina Resumo, fronte ao máximo que conserva: primeiro o rexistro de dous minutos, despois o dunha hora. Se nos dous pon cero, non se está rexistrando nada, e a curva do Resumo quedará plana ata que iso se arranxe. Despois de cada reinicio o rexistro comeza baleiro, e no disco non se escribe nunca.',
@@ -3618,6 +3621,7 @@ export const gl: Dict = {
   'whatsnew.change.waysIn': 'Unha imaxe sobre toda a tarxeta mostra cada vía pola que unha ligazón chega ao colector de ligazóns, e un clic nunha vía abre o seu axuste. Con «{rainbow}» activado, cada vía ten a súa propia cor.',
   'whatsnew.change.dayCurve':
     '«{name}» debuxa o día de hoxe como unha curva: o límite de velocidade previsto como unha área e a velocidade medida como unha liña.',
+  'whatsnew.change.seedingLine': 'A curva de velocidade ten unha segunda liña para o que os teus torrents soben mentres fan seed.',
   'whatsnew.change.ruleSwitch': 'As regras debúxanse como o camiño que fai unha ligazón de mostra a través delas: que regra a atrapa e onde acaba.',
   'whatsnew.change.captchaChain': 'Unha imaxe amosa a quen vai un captcha: primeiro a ti, despois ás contas de captcha na túa orde.',
   'whatsnew.change.trackMerge': '«{name}» debuxa en toda a tarxeta o que acaba dentro dun ficheiro de vídeo cos axustes actuais e segue os interruptores de abaixo. Con «{rainbow}» activado, cada pista ten a súa propia cor.',

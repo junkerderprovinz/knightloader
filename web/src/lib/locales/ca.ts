@@ -2505,6 +2505,9 @@ export const ca: Dict = {
   'overview.speedWindow': 'Finestra de temps de la corba',
   'overview.speedWindow.minute': 'Últim minut',
   'overview.speedWindow.hour': 'Última hora',
+  'speed.legend.download': 'Baixada',
+  'speed.legend.seeding': 'Seed',
+  'speed.legend.hint': 'La línia grisa mostra el que els teus torrents pugen a altres persones mentre es baixen o fan seed. Només apareix mentre surt alguna cosa. KnightLoader la registra igual que la corba de baixada, així que un reinici també l’esborra.',
   'overview.speedGraphHint': 'La instància registra aquesta corba ella mateixa: un valor per segon per als últims dos minuts, un cada deu segons per a l’última hora. Per això, en recarregar la pàgina, ja surt plena en comptes de començar plana. El registre només és a la memòria: si reinicies KnightLoader, queda buit, la corba torna a començar com una línia plana i s’omple a mesura que passa el temps. Mentre s’aplica un límit de velocitat, una línia vermella el marca, amb el valor a l’esquerra. Si el límit és molt per sobre de la velocitat actual, la línia és discontínua i es queda a la vora superior, perquè una baixada lenta no quedi aixafada.',
   'settings.diagnostics.speedSamples': 'Valors de velocitat registrats',
   'settings.diagnostics.speedSamplesHint': 'Amb quants valors es dibuixa ara mateix la corba de velocitat de la pàgina Resum, comparat amb el màxim que en guarda: primer el registre de dos minuts, després el d’una hora. Si tots dos són zero, no s’està registrant res, i la corba del Resum es quedarà plana fins que això no s’arregli. Després de cada reinici el registre comença buit, i no s’escriu mai al disc.',
@@ -3608,6 +3611,7 @@ export const ca: Dict = {
   'whatsnew.change.waysIn': 'Una imatge sobre tota la targeta mostra totes les maneres en què un enllaç arriba al recol·lector d’enllaços, i un clic en una manera n’obre l’ajust. Amb «{rainbow}» activat, cada manera té el seu color.',
   'whatsnew.change.dayCurve':
     '«{name}» dibuixa el dia d’avui com una corba: el límit de velocitat previst com una àrea i la velocitat mesurada com una línia.',
+  'whatsnew.change.seedingLine': 'La corba de velocitat té una segona línia per al que els teus torrents pugen mentre fan seed.',
   'whatsnew.change.ruleSwitch': 'Les regles es dibuixen com el camí que fa un enllaç d’exemple a través seu: quina regla l’atrapa i on va a parar.',
   'whatsnew.change.captchaChain': 'Una imatge mostra a qui va un captcha: primer a tu, després als comptes de captcha en el teu ordre.',
   'whatsnew.change.trackMerge': '«{name}» dibuixa a tota la targeta què acaba dins d’un fitxer de vídeo amb els ajustos actuals i segueix els interruptors de sota. Amb «{rainbow}» activat, cada pista té el seu color.',

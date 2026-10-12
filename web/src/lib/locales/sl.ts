@@ -2518,6 +2518,9 @@ export const sl: Dict = {
   'overview.speedWindow': 'Časovno okno krivulje',
   'overview.speedWindow.minute': 'Zadnja minuta',
   'overview.speedWindow.hour': 'Zadnja ura',
+  'speed.legend.download': 'Prenos',
+  'speed.legend.seeding': 'Sejanje',
+  'speed.legend.hint': 'Siva črta kaže, kaj tvoji torrenti pošiljajo drugim, medtem ko se prenašajo ali sejejo. Prikaže se le, ko nekaj odhaja. KnightLoader jo beleži enako kot krivuljo prenosa, zato jo ponovni zagon prav tako izbriše.',
   'overview.speedGraphHint': 'Instanca to krivuljo beleži sama: ena meritev na sekundo za zadnji dve minuti, ena vsakih deset sekund za zadnjo uro. Zato je po ponovnem nalaganju strani že polna, namesto da bi se začela ravna. Zapis je samo v delovnem pomnilniku: če znova zaženeš KnightLoader, je prazen, krivulja se spet začne kot ravna črta in se med tekom napolni. Dokler velja omejitev hitrosti, jo označuje rdeča črta z vrednostjo na levi. Če je omejitev precej nad trenutno hitrostjo, je črta črtkana in ostane ob zgornjem robu, da se počasen prenos ne splošči.',
   'settings.diagnostics.speedSamples': 'Zabeležene meritve hitrosti',
   'settings.diagnostics.speedSamplesHint': 'Iz koliko meritev je krivulja hitrosti na Pregledu trenutno narisana, glede na to, kar največ obdrži: najprej dvominutni zapis, nato enourni. Če je pri obeh nič, se ne beleži nič, in krivulja na Pregledu ostane ravna, dokler to ni odpravljeno. Po vsakem ponovnem zagonu se zapis začne prazen, na disk se nikoli ne zapiše.',
@@ -3619,6 +3622,7 @@ export const sl: Dict = {
   'whatsnew.change.waysIn': 'Slika čez celotno kartico pokaže vsako pot, po kateri povezava pride v zbiralnik povezav, klik na pot pa odpre njeno nastavitev. Ko je vklopljen »{rainbow}«, ima vsaka pot svojo barvo.',
   'whatsnew.change.dayCurve':
     '»{name}« nariše današnji dan kot krivuljo: načrtovano omejitev hitrosti kot ploskev in izmerjeno hitrost kot črto.',
+  'whatsnew.change.seedingLine': 'Krivulja hitrosti ima drugo črto za to, kar tvoji torrenti pošiljajo med sejanjem.',
   'whatsnew.change.ruleSwitch': 'Pravila so narisana kot pot, ki jo vzorčna povezava opravi skoznje: katero pravilo jo ujame in kje pristane.',
   'whatsnew.change.captchaChain': 'Slika kaže, h komu gre captcha: najprej k tebi, nato k računom captch v tvojem vrstnem redu.',
   'whatsnew.change.trackMerge': '»{name}« nariše čez celotno kartico, kaj s trenutnimi nastavitvami pristane v videodatoteki, in sledi stikalom pod njo. Ko je vklopljen »{rainbow}«, ima vsaka sled svojo barvo.',

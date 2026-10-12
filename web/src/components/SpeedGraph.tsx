@@ -52,6 +52,18 @@ export function useMeterWindow(): [number, (seconds: number) => void] {
   return [seconds, setStored];
 }
 
+/**
+ * The upload line's ink. Every hue can be the accent, in a preset or as a
+ * rainbow card's own, so only a grey is sure to stand apart from the download
+ * line in every colour mode. The day curve draws its upload in the same one.
+ */
+export const UPLOAD_INK = 'var(--carbon-text-muted)';
+
+/** sends reports whether anything was uploaded in a window, which is when the upload line and its legend show. */
+export function sends(win: SpeedWindow): boolean {
+  return win.upload.some((v) => v > 0);
+}
+
 // The top of the plot never drops below this, so a blip near idle does not fill
 // the box and a small transfer looks small.
 const FLOOR = 64 * 1024;
@@ -321,8 +333,10 @@ export function Plot(props: PlotProps) {
   // The sample on the right edge once a step has run. While gliding, the
   // newest one is still past the edge and only shapes the tangent there.
   const anchor = win.samples.length - (glide ? 2 : 1);
-  // Idle means nothing on screen, not a current speed of zero.
-  const busy = anchor >= 1 && win.samples.slice(0, anchor + 1).some((v) => v > 0);
+  // Idle means nothing on screen in either direction, not a current speed of zero.
+  const busy =
+    anchor >= 1 &&
+    (win.samples.slice(0, anchor + 1).some((v) => v > 0) || win.upload.slice(0, anchor + 1).some((v) => v > 0));
   return (
     <>
       <line
@@ -349,9 +363,9 @@ function IdleLimit({ limit, ceiling, w, h, pad }: PlotProps) {
 }
 
 /**
- * Curve draws the filled area and the line. While motion is allowed it glides
- * left between samples and eases its ceiling; otherwise it moves once per
- * sample.
+ * Curve draws the filled area and the line, and the upload as a second line
+ * while the window has any. While motion is allowed it glides left between
+ * samples and eases its ceiling; otherwise it moves once per sample.
  */
 function Curve({
   win,
@@ -370,6 +384,10 @@ function Curve({
   const geo = useMemo(
     () => geometry(win.samples, anchor, w, h, pad, dx, ceiling),
     [win.samples, anchor, w, h, pad, dx, ceiling],
+  );
+  const upload = useMemo(
+    () => (sends(win) ? geometry(win.upload, anchor, w, h, pad, dx, ceiling).line : ''),
+    [win, anchor, w, h, pad, dx, ceiling],
   );
 
   const mover = useRef<SVGGElement>(null);
@@ -439,6 +457,20 @@ function Curve({
       <g clipPath={`url(#${id}box)`}>
         <g ref={mover}>
           <path d={geo.area} fill={`url(#${id}wash)`} />
+          {/* Under the download line, which stays the one to read where the
+              two meet. */}
+          {upload && (
+            <path
+              data-upload-line=""
+              d={upload}
+              fill="none"
+              stroke={UPLOAD_INK}
+              strokeWidth={stroke}
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              vectorEffect="non-scaling-stroke"
+            />
+          )}
           {/* --accent-ink for strokes, since the plain accent is too pale on
               the light theme; the wash keeps --accent. */}
           <path
@@ -472,17 +504,42 @@ export function spanLabel(seconds: number): string {
 }
 
 /**
+ * SpeedLegend names the two lines. It shows only while the upload line does,
+ * so a box without torrents keeps its plain curve.
+ */
+export function SpeedLegend() {
+  const { t } = useT();
+  return (
+    <span data-speed-legend="" className="flex items-center gap-3 whitespace-nowrap text-meta leading-none text-carbon-textMuted">
+      <span className="inline-flex items-center gap-1">
+        <span className="h-0.5 w-3 rounded-[var(--radius-pill)] bg-accentInk" />
+        {t('speed.legend.download')}
+      </span>
+      <span className="inline-flex items-center gap-1">
+        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: UPLOAD_INK }} />
+        {t('speed.legend.seeding')}
+      </span>
+      <InfoBubble tip={t('speed.legend.hint')} />
+    </span>
+  );
+}
+
+/**
  * SpeedGraph draws this instance's download speed over the last minute or hour
- * as the Overview page's hero. Idle shows a flat hairline. It always uses scope
- * '', since the Overview page reads only the local instance.
+ * as the Overview page's hero, and beside it what the torrents upload. Idle
+ * shows a flat hairline. It always uses scope '', since the Overview page
+ * reads only the local instance.
  */
 export function SpeedGraph({
   value,
+  upload = 0,
   height = 96,
   points = 60,
   limit = 0,
 }: {
   value: number;
+  /** What the torrents send now, in bytes per second. */
+  upload?: number;
   height?: number;
   points?: number;
   /** The speed limit in bytes per second, or 0; the page already has settings. */
@@ -496,9 +553,9 @@ export function SpeedGraph({
   const scale: SpeedScale = stored === 'hour' ? 'hour' : 'minute';
   const span = scale === 'hour' ? HOUR_POINTS : points;
 
-  const win = useSpeedWindow('', value, span + OFFSTAGE, scale);
+  const win = useSpeedWindow('', value, upload, span + OFFSTAGE, scale);
   const inForce = useLimitInForce('');
-  const ceiling = useMemo(() => ceilingOf(win.samples, inForce), [win.samples, inForce]);
+  const ceiling = useMemo(() => ceilingOf(win.samples.concat(win.upload), inForce), [win, inForce]);
   // Drawn in pixels, so the limit's figure is not stretched with the plot.
   const svg = useRef<SVGSVGElement>(null);
   const { w } = usePixelBox(svg);
@@ -508,7 +565,7 @@ export function SpeedGraph({
        exactly 1337 KiB/s this plot runs on the hidden motion level. It only
        sets two custom properties, so motion "off" and reduced motion still
        win, and the reader's data-motion setting is left alone. */
-    <div className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
+    <div data-new="seeding-line" className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
       {/* The ceiling above the plot, in every state, with the window chooser
           on the same line (GlimStone 1.6.0). */}
       <div className="flex items-center justify-between gap-3">
@@ -543,8 +600,9 @@ export function SpeedGraph({
       </svg>
       {/* Both ends of the time axis, oldest on the left. The plot does not
           mirror in a right-to-left language, so neither do its labels. */}
-      <div dir="ltr" className="flex justify-between">
+      <div dir="ltr" className="flex items-center justify-between gap-3">
         <span className="glim-num text-meta leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
+        {sends(win) && <SpeedLegend />}
         <span className="glim-num text-meta leading-none text-carbon-textMuted">0s</span>
       </div>
     </div>
@@ -580,13 +638,22 @@ function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: numb
  * '' is seeded, since /api/stats/speed is not forwarded, so a peer's curve
  * starts empty and grows in from the right.
  */
-export function SpeedMeter({ value, instance = '' }: { value: number; instance?: string }) {
+export function SpeedMeter({
+  value,
+  upload = 0,
+  instance = '',
+}: {
+  value: number;
+  /** What the torrents send now, in bytes per second. */
+  upload?: number;
+  instance?: string;
+}) {
   const [seconds] = useMeterWindow();
   const scale: SpeedScale = seconds > FINE_SPAN_S ? 'hour' : 'minute';
   const points = seconds / stepOf(scale);
-  const win = useSpeedWindow(instance, value, points + OFFSTAGE, scale);
+  const win = useSpeedWindow(instance, value, upload, points + OFFSTAGE, scale);
   const inForce = useLimitInForce(instance);
-  const ceiling = useMemo(() => ceilingOf(win.samples, inForce), [win.samples, inForce]);
+  const ceiling = useMemo(() => ceilingOf(win.samples.concat(win.upload), inForce), [win, inForce]);
   const svg = useRef<SVGSVGElement>(null);
   const { w, h } = usePixelBox(svg);
 
@@ -618,8 +685,9 @@ export function SpeedMeter({ value, instance = '' }: { value: number; instance?:
       >
         <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limit={inForce} />
       </svg>
-      <span className="flex justify-between text-meta leading-none text-carbon-textMuted">
+      <span className="flex items-center justify-between gap-3 text-meta leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>
+        {sends(win) && <SpeedLegend />}
         <span className="glim-num">0s</span>
       </span>
     </span>
