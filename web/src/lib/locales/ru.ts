@@ -283,7 +283,7 @@ export const ru: Dict = {
   'relay.containerCert': 'С собственным доменом он сам получает свой сертификат.',
   'relay.instanceName': 'Экземпляр KnightLoader',
   'relay.instanceSub': 'Роль Relay может выполнять любой подключённый экземпляр, если он доступен снаружи.',
-  'relay.serve': 'Работать как Relay',
+  'relay.serve': 'Экземпляр как Relay',
   'relay.serveHint': 'Включите это на экземпляре, доступном извне. Он будет отвечать другим экземплярам вашей группы по адресу /relay/connect на своём собственном адресе.',
   'relay.serveClients': 'Подключено сейчас: {count}',
   'relay.instanceCert': 'Тогда Relay работает по адресу /relay/connect на его адресе, за тем же самым обратным прокси и сертификатом.',

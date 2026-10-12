@@ -289,7 +289,7 @@ export const ms: Dict = {
   'relay.containerCert': 'Dengan domain sendiri, ia mendapatkan sijilnya sendiri.',
   'relay.instanceName': 'Instans KnightLoader',
   'relay.instanceSub': 'Mana-mana instans yang bersambung boleh berfungsi sebagai relay, selagi ia boleh dicapai dari luar.',
-  'relay.serve': 'Berkhidmat sebagai relay',
+  'relay.serve': 'Instans sebagai relay',
   'relay.serveHint': 'Hidupkan ini pada instans yang boleh dicapai dari luar. Ia kemudian akan menjawab instans lain dalam kumpulan anda di /relay/connect pada alamatnya sendiri.',
   'relay.serveClients': 'Bersambung sekarang: {count}',
   'relay.instanceCert': 'Relay itu kemudian berjalan di /relay/connect pada alamatnya, di belakang reverse proxy dan sijil yang sama.',

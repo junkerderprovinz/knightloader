@@ -283,7 +283,7 @@ export const it: Dict = {
   'relay.containerCert': 'Con un proprio dominio ottiene da solo il suo certificato.',
   'relay.instanceName': 'Istanza KnightLoader',
   'relay.instanceSub': "Qualsiasi istanza connessa può fungere da relay, purché sia raggiungibile dall'esterno.",
-  'relay.serve': 'Funge da relay',
+  'relay.serve': 'Istanza come relay',
   'relay.serveHint': "Attivalo sull'istanza raggiungibile dall'esterno. Da quel momento risponde alle altre istanze del tuo gruppo su /relay/connect al proprio indirizzo.",
   'relay.serveClients': 'Connesse ora: {count}',
   'relay.instanceCert': 'Il relay gira poi su /relay/connect al suo indirizzo, dietro lo stesso reverse proxy e certificato.',

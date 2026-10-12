@@ -289,7 +289,7 @@ export const hr: Dict = {
   'relay.containerCert': 'Sa svojom domenom sam dohvaća svoj certifikat.',
   'relay.instanceName': 'KnightLoader instanca',
   'relay.instanceSub': 'Kao relej može poslužiti bilo koja povezana instanca, sve dok je dostupna izvana.',
-  'relay.serve': 'Djeluj kao relej',
+  'relay.serve': 'Instanca kao relej',
   'relay.serveHint': 'Uključite ovo na instanci koja je dostupna izvana. Ona zatim odgovara drugim instancama vaše skupine na /relay/connect, na vlastitoj adresi.',
   'relay.serveClients': 'Trenutačno povezano: {count}',
   'relay.instanceCert': 'Relej tada radi na /relay/connect na njezinoj adresi, iza istog obrnutog proxyja i certifikata.',

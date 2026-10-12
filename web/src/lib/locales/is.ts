@@ -289,7 +289,7 @@ export const is: Dict = {
   'relay.containerCert': 'Með eigin léni sækir hann sér sjálfur vottorðið sitt.',
   'relay.instanceName': 'KnightLoader-tilvik',
   'relay.instanceSub': 'Sérhvert tengt tilvik getur þjónað sem relay, svo framarlega sem það er aðgengilegt utan frá.',
-  'relay.serve': 'Þjóna sem relay',
+  'relay.serve': 'Tilvik sem relay',
   'relay.serveHint': 'Kveiktu á þessu á tilvikinu sem er aðgengilegt utan frá. Það svarar þá hinum tilvikum hópsins þíns á /relay/connect á eigin vistfangi.',
   'relay.serveClients': 'Tengd núna: {count}',
   'relay.instanceCert': 'Relayið keyrir þá á /relay/connect á vistfangi þess, á bak við sama öfuga milliþjón og vottorð.',

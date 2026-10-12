@@ -283,7 +283,7 @@ export const fr: Dict = {
   'relay.containerCert': 'Avec son propre domaine, il récupère lui-même son certificat.',
   'relay.instanceName': 'Instance KnightLoader',
   'relay.instanceSub': "N'importe quelle instance connectée peut servir de relais, du moment qu'elle est joignable depuis l'extérieur.",
-  'relay.serve': 'Servir de relais',
+  'relay.serve': 'Instance comme relais',
   'relay.serveHint': "Activez ceci sur l'instance joignable depuis l'extérieur. Elle répond alors aux autres instances de votre groupe sur /relay/connect, à sa propre adresse.",
   'relay.serveClients': 'Connectées en ce moment : {count}',
   'relay.instanceCert': 'Le relais tourne alors sur /relay/connect à son adresse, derrière le même proxy inverse et le même certificat.',

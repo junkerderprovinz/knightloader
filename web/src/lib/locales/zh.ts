@@ -289,7 +289,7 @@ export const zh: Dict = {
   'relay.containerCert': '有自己的域名时，它会自己获取证书。',
   'relay.instanceName': 'KnightLoader 实例',
   'relay.instanceSub': '任何已连接的实例都可以充当中继，只要它能从外部访问。',
-  'relay.serve': '作为中继运行',
+  'relay.serve': '实例作为中继',
   'relay.serveHint': '在能从外部访问的那台实例上打开这个开关。之后它会在自己的地址上，通过 /relay/connect 响应你组里的其他实例。',
   'relay.serveClients': '当前已连接：{count}',
   'relay.instanceCert': '之后中继会在它的地址上以 /relay/connect 运行，处在同一个反向代理和证书后面。',

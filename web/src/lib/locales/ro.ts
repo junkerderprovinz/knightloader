@@ -289,7 +289,7 @@ export const ro: Dict = {
   'relay.containerCert': 'Cu propriul domeniu, își obține singur certificatul.',
   'relay.instanceName': 'Instanță KnightLoader',
   'relay.instanceSub': 'Orice instanță conectată poate servi drept relay, atâta timp cât e accesibilă din exterior.',
-  'relay.serve': 'Servește ca relay',
+  'relay.serve': 'Instanța ca relay',
   'relay.serveHint': 'Activează asta pe instanța accesibilă din exterior. Ea va răspunde apoi celorlalte instanțe din grupul tău la /relay/connect, pe propria adresă.',
   'relay.serveClients': 'Conectate acum: {count}',
   'relay.instanceCert': 'Relay-ul rulează atunci la /relay/connect pe adresa ei, în spatele aceluiași proxy invers și certificat.',

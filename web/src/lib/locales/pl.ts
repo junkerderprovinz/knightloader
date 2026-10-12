@@ -283,7 +283,7 @@ export const pl: Dict = {
   'relay.containerCert': 'Z własną domeną sam pobiera swój certyfikat.',
   'relay.instanceName': 'Instancja KnightLoader',
   'relay.instanceSub': 'Rolę relaya może pełnić dowolna połączona instancja, o ile jest osiągalna z zewnątrz.',
-  'relay.serve': 'Działaj jako relay',
+  'relay.serve': 'Instancja jako relay',
   'relay.serveHint': 'Włącz to na instancji osiągalnej z zewnątrz. Będzie ona wtedy odpowiadać innym instancjom twojej grupy pod /relay/connect na własnym adresie.',
   'relay.serveClients': 'Połączone teraz: {count}',
   'relay.instanceCert': 'Relay działa wtedy pod /relay/connect na jej adresie, za tym samym reverse proxy i certyfikatem.',

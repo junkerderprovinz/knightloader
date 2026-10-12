@@ -289,7 +289,7 @@ export const gl: Dict = {
   'relay.containerCert': 'Co seu propio dominio, consegue o seu certificado el só.',
   'relay.instanceName': 'Instancia de KnightLoader',
   'relay.instanceSub': 'Calquera instancia conectada pode servir de relé, sempre que sexa accesible desde fóra.',
-  'relay.serve': 'Actuar como relé',
+  'relay.serve': 'Instancia como relé',
   'relay.serveHint': 'Activa isto na instancia que é accesible desde fóra. A partir de aí responde ás outras instancias do teu grupo en /relay/connect, no seu propio enderezo.',
   'relay.serveClients': 'Conectadas agora mesmo: {count}',
   'relay.instanceCert': 'O relé pasa entón a funcionar en /relay/connect no seu enderezo, detrás do mesmo proxy inverso e certificado.',

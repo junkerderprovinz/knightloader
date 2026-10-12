@@ -289,7 +289,7 @@ export const ja: Dict = {
   'relay.containerCert': '独自ドメインがあれば、証明書は自分で取得します。',
   'relay.instanceName': 'KnightLoaderインスタンス',
   'relay.instanceSub': '接続済みのインスタンスならどれでもリレーとして機能できます。外部から到達可能であることが条件です。',
-  'relay.serve': 'リレーとして機能させる',
+  'relay.serve': 'インスタンスをリレーに',
   'relay.serveHint': '外部から到達可能なインスタンスでこれをオンにしてください。以後、そのインスタンスは自分のアドレスの/relay/connectでグループの他のインスタンスに応答します。',
   'relay.serveClients': '現在の接続数: {count}',
   'relay.instanceCert': 'リレーはその後、そのアドレスの/relay/connectで、同じリバースプロキシと証明書の背後で動作します。',

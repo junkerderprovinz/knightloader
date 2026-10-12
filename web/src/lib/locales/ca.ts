@@ -289,7 +289,7 @@ export const ca: Dict = {
   'relay.containerCert': 'Amb el seu propi domini, obté el seu certificat ell mateix.',
   'relay.instanceName': 'Instància de KnightLoader',
   'relay.instanceSub': 'Qualsevol instància connectada pot servir de repetidor, sempre que sigui accessible des de fora.',
-  'relay.serve': 'Actua com a repetidor',
+  'relay.serve': 'Instància com a repetidor',
   'relay.serveHint': 'Activa això a la instància accessible des de fora. Llavors respondrà a les altres instàncies del teu grup a /relay/connect a la seva pròpia adreça.',
   'relay.serveClients': 'Connectades ara mateix: {count}',
   'relay.instanceCert': 'El repetidor llavors funciona a /relay/connect a la seva adreça, darrere el mateix proxy invers i certificat.',
