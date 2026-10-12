@@ -955,9 +955,9 @@ function CredentialDialog({
 const LOGIN_ROW = 'login:';
 
 /**
- * What a row takes, for the rows whose name does not say it. A debrid
- * service's row needs no bubble. The torrent row gets one because the debrid
- * services above it may take its links.
+ * What a row takes. A debrid service's row shares one sentence with its name
+ * in it. The torrent row says that the debrid services above it may take its
+ * links.
  */
 const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   jd: 'accounts.routing.tip.jd',
@@ -1001,6 +1001,7 @@ function RoutingSection({
     return byId.get(id)?.label ?? resolverLabel(id, t);
   };
   const tipFor = (id: string) => {
+    if (byId.get(id)?.group === 'debrid') return t('accounts.routing.tip.debrid', { name: labelFor(id) });
     const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
     return tip && t(tip);
   };
@@ -1036,14 +1037,16 @@ ${t('accounts.routing.orderHintTorrents')}`}
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
           <>
-            <PriorityLadder
-              ids={priority.map((r) => r.id)}
-              title={title}
-              labelFor={labelFor}
-              tipFor={tipFor}
-              busy={busy}
-              onReorder={store}
-            />
+            <div data-new="priority-tips">
+              <PriorityLadder
+                ids={priority.map((r) => r.id)}
+                title={title}
+                labelFor={labelFor}
+                tipFor={tipFor}
+                busy={busy}
+                onReorder={store}
+              />
+            </div>
             <div className="flex items-center gap-2">
               <Button
                 kind="secondary"
