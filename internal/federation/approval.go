@@ -95,7 +95,10 @@ func (m *Manager) Approve(id string, key []byte, kind string) ([]byte, string, e
 	if pin.Approved {
 		return pin.Key, pin.Kind, nil
 	}
+	// Approving counts as use, so a key approved elsewhere and passed on
+	// here is not taken for idle before the device first calls.
 	pin.Approved = true
+	pin.Used = time.Now()
 	st.Keys[id] = pin
 	return pin.Key, pin.Kind, m.group.flushLocked()
 }
