@@ -286,6 +286,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       also: ['settings.look.updatesCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
     },
+    // One row per part, named by the part itself.
+    { title: 'settings.look.builtInTitle', hint: 'settings.look.builtInHint', rows: [] },
     // The archive and "settings only" share one card as its two sub-cards.
     {
       title: 'settings.transfer.cardTitle',

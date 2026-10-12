@@ -3619,7 +3619,7 @@ export const fr: Dict = {
   'whatsnew.change.accountKinds': '« {name} » ouvre une grande tuile pour chaque type de compte, les unes sous les autres dans l’ordre des cartes de cette page.',
   'whatsnew.change.fillSurface': 'Chaque niveau de remplissage ondule doucement et de façon irrégulière à sa surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
   'whatsnew.change.windowCard': 'Dans l’application de bureau, « {name} » règle le comportement de la fenêtre et de son icône dans la zone de notification.',
-  'whatsnew.change.updatesCard': '« {name} » liste chaque outil que KnightLoader apporte, une ligne par outil avec sa version et son origine, et met à jour KnightLoader et yt-dlp.',
+  'whatsnew.change.updatesCard': '« {name} » réunit KnightLoader et yt-dlp, chacun sur sa propre sous-carte avec sa version, sa provenance et ses mises à jour.',
   'whatsnew.change.mirrorPolicy': 'Dans « {name} », une liste déroulante à côté de son libellé décide quand deux liens comptent comme le même fichier.',
   'whatsnew.change.videoCard': 'La carte « {name} » fixe la qualité dans laquelle une vidéo est chargée, avec la liste déroulante à côté de son libellé.',
   'whatsnew.change.filesCard': '« {name} » a sa propre carte : playlists entières et noms des fichiers.',
@@ -3646,4 +3646,7 @@ export const fr: Dict = {
   'settings.captcha.orderIntro': 'L’image est l’ordre : un captcha va d’abord au compte captcha du haut, puis aux suivants. Faites glisser un nom pour le déplacer.',
   'whatsnew.change.captchaPriority': '« {name} » range vos comptes captcha connectés comme « {download} » range les backends. Le moment où ils démarrent et le captcha de test s’y trouvent aussi.',
   'whatsnew.change.searchBox': 'Chaque champ de recherche ressemble à celui des Paramètres et fonctionne de même : pendant la saisie, le champ change de teinte et la loupe s’allume, et Échap ou la croix le vide.',
+  'settings.look.builtInTitle': 'Composants intégrés',
+  'settings.look.builtInHint': 'Ce que KnightLoader apporte ou fait tourner à côté de lui, chaque élément avec sa version et sa provenance. Ces éléments viennent avec KnightLoader ou l’image du conteneur, ou se mettent à jour d’eux-mêmes : il n’y a donc rien à mettre à jour ici.',
+  'whatsnew.change.builtIn': '« {name} » liste chaque élément fourni avec KnightLoader, avec sa version et sa provenance. Ce qui se met à jour reste dans « {updates} ».',
 };

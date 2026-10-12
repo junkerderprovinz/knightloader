@@ -3615,7 +3615,7 @@ export const da: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ åbner en stor flise for hver slags konto, den ene under den anden i rækkefølgen af kortene på denne side.',
   'whatsnew.change.fillSurface': 'Hvert fyldniveau bølger blidt og uregelmæssigt i overfladen: mapperne under „{name}“, „{volume}“ og en kontos trafik.',
   'whatsnew.change.windowCard': 'I desktopappen bestemmer „{name}“, hvordan vinduet og dets ikon i meddelelsesområdet opfører sig.',
-  'whatsnew.change.updatesCard': '„{name}“ lister hvert værktøj, KnightLoader har med, en række pr. værktøj med version og oprindelse, og opdaterer KnightLoader og yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ rummer KnightLoader og yt-dlp, hver på sit eget underkort med version, oprindelse og opdateringer.',
   'whatsnew.change.mirrorPolicy': 'I „{name}“ afgør en rulleliste ved siden af etiketten, hvornår to links tæller som den samme fil.',
   'whatsnew.change.videoCard': 'Kortet „{name}“ bestemmer, i hvilken kvalitet en video hentes, med rullelisten ved siden af etiketten.',
   'whatsnew.change.filesCard': '„{name}“ har sit eget kort: hele playlister og hvordan filerne navngives.',
@@ -3642,4 +3642,7 @@ export const da: Dict = {
   'settings.captcha.orderIntro': 'Billedet er rækkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedad. Træk et navn for at flytte det.',
   'whatsnew.change.captchaPriority': '„{name}“ ordner dine tilsluttede captcha-konti, som „{download}“ ordner backends. Hvornår de starter og test-captchaen står der også.',
   'whatsnew.change.searchBox': 'Hvert søgefelt ser ud og virker som det i Indstillinger: mens du skriver, skifter feltet nuance, og forstørrelsesglasset lyser, og Escape eller krydset tømmer det.',
+  'settings.look.builtInTitle': 'Indbyggede komponenter',
+  'settings.look.builtInHint': 'Det, KnightLoader har med eller kører ved siden af sig, hver med sin version og sin oprindelse. Disse dele følger med KnightLoader eller containerimaget eller opdaterer sig selv, så her er intet at opdatere.',
+  'whatsnew.change.builtIn': '„{name}“ viser hver del, der følger med KnightLoader, med version og oprindelse. Det, der kan opdateres, bliver på „{updates}“.',
 };

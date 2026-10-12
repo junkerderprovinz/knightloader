@@ -3620,7 +3620,7 @@ export const pt: Dict = {
   'whatsnew.change.accountKinds': '«{name}» abre um mosaico grande para cada tipo de conta, uns por baixo dos outros na ordem dos cartões desta página.',
   'whatsnew.change.fillSurface': 'Cada nível de preenchimento ondula com suavidade e de forma irregular à superfície: as pastas em «{name}», «{volume}» e o tráfego de uma conta.',
   'whatsnew.change.windowCard': 'Na aplicação de ambiente de trabalho, «{name}» define como se comportam a janela e o seu ícone na área de notificação.',
-  'whatsnew.change.updatesCard': '«{name}» lista cada ferramenta que o KnightLoader traz consigo, uma linha por ferramenta com a versão e a origem, e atualiza o KnightLoader e o yt-dlp.',
+  'whatsnew.change.updatesCard': '«{name}» tem o KnightLoader e o yt-dlp, cada um no seu próprio subcartão com a versão, a origem e as atualizações.',
   'whatsnew.change.mirrorPolicy': 'Em «{name}» uma lista pendente junto à etiqueta decide quando dois links contam como o mesmo ficheiro.',
   'whatsnew.change.videoCard': 'O cartão «{name}» define a qualidade em que um vídeo é carregado, com a lista pendente junto à etiqueta.',
   'whatsnew.change.filesCard': '«{name}» tem um cartão próprio: listas de reprodução inteiras e o nome dos ficheiros.',
@@ -3647,4 +3647,7 @@ export const pt: Dict = {
   'settings.captcha.orderIntro': 'A imagem é a ordem: um captcha vai primeiro para a conta de captcha do topo e depois para as de baixo. Arrasta um nome para o mover.',
   'whatsnew.change.captchaPriority': '«{name}» ordena as tuas contas de captcha ligadas como «{download}» ordena os backends. Quando começam e o captcha de teste também lá estão.',
   'whatsnew.change.searchBox': 'Cada campo de pesquisa tem o aspeto e o funcionamento do das Definições: enquanto escreves, a caixa muda de tom e a lupa acende-se, e Escape ou a cruz esvaziam-no.',
+  'settings.look.builtInTitle': 'Componentes integrados',
+  'settings.look.builtInHint': 'O que o KnightLoader traz consigo ou corre ao seu lado, cada parte com a sua versão e a sua origem. Estas partes vêm com o KnightLoader ou com a imagem do contentor, ou atualizam-se sozinhas, por isso aqui não há nada para atualizar.',
+  'whatsnew.change.builtIn': '«{name}» lista cada parte que vem com o KnightLoader, com a versão e a origem. O que se pode atualizar fica em «{updates}».',
 };

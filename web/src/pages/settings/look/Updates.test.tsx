@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { SettingsProvider, type SettingsDraft } from '../context';
-import { UpdatesCard, moduleVersion } from './Updates';
+import { BuiltInCard, UpdatesCard, moduleVersion } from './Updates';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -74,6 +74,7 @@ async function draw(cfg: Partial<Settings> = {}) {
         <MemoryRouter>
           <SettingsProvider draft={draft} features={{ features: { modules: [], pages: [] }, toggle: async () => {} }}>
             <UpdatesCard hue={0} />
+            <BuiltInCard hue={1} />
           </SettingsProvider>
         </MemoryRouter>
       </I18nProvider>,
@@ -90,6 +91,10 @@ const button = (within: HTMLElement, words: string) =>
 const switches = (within: HTMLElement) =>
   [...within.querySelectorAll('[role="switch"]')].map((s) => s.getAttribute('aria-label'));
 
+/** The card titled `title`. */
+const card = (title: string) =>
+  [...host.querySelectorAll<HTMLElement>('.glim-card')].find((c) => c.textContent?.startsWith(title))!;
+
 describe('the Updates card', () => {
   it('lists every tool KnightLoader brings, each with its version and where it comes from', async () => {
     await draw();
@@ -104,6 +109,15 @@ describe('the Updates card', () => {
     expect(group('Gopeed').textContent).toContain('5111a4c');
     expect(group('Gopeed').textContent).toContain('Built into KnightLoader from its own fork');
     expect(group('SQLite').textContent).toContain('1.60.1');
+  });
+
+  it('holds only what updates on its own, each on a sub-card, and the rest on a card without controls', async () => {
+    await draw();
+    const names = (c: HTMLElement) => [...c.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
+    expect(names(card('Updates'))).toEqual(['KnightLoader', 'yt-dlp']);
+    expect(card('Updates').querySelectorAll('.glim-subcard')).toHaveLength(2);
+    expect(names(card('Built-in components'))).toEqual(['ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']);
+    expect(card('Built-in components').querySelector('button:not([aria-haspopup]), [role="switch"]')).toBeNull();
   });
 
   it('offers update controls only for the tools KnightLoader updates', async () => {

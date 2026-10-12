@@ -3646,7 +3646,7 @@ export const he: Dict = {
   'whatsnew.change.accountKinds': '„{name}” פותח אריח גדול לכל סוג של חשבון, אחד מתחת לשני בסדר הכרטיסים בעמוד הזה.',
   'whatsnew.change.fillSurface': 'כל מפלס מילוי מתנדנד ברכות ובצורה לא אחידה על פני השטח שלו: התיקיות תחת „{name}”, „{volume}” והתעבורה של חשבון.',
   'whatsnew.change.windowCard': 'באפליקציית שולחן העבודה, „{name}” קובע איך מתנהגים החלון והסמל שלו באזור ההתראות.',
-  'whatsnew.change.updatesCard': '„{name}” מפרט כל כלי ש-KnightLoader מביא איתו, שורה לכל כלי עם הגרסה והמקור שלו, ומעדכן את KnightLoader ואת yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}” מכיל את KnightLoader ואת yt-dlp, כל אחד בכרטיס משנה משלו עם הגרסה, המקור והעדכונים שלו.',
   'whatsnew.change.mirrorPolicy': 'ב„{name}” רשימה נפתחת ליד התווית שלו קובעת מתי שני קישורים נחשבים לאותו קובץ.',
   'whatsnew.change.videoCard': 'הכרטיס „{name}” קובע באיזו איכות סרטון נטען, עם הרשימה הנפתחת ליד התווית שלו.',
   'whatsnew.change.filesCard': 'ל„{name}” יש כרטיס משלו: רשימות השמעה שלמות ואיך הקבצים נקראים.',
@@ -3673,4 +3673,7 @@ export const he: Dict = {
   'settings.captcha.orderIntro': 'התמונה היא הסדר: קאפצ׳ה הולכת קודם לחשבון הקאפצ׳ה העליון ואז הלאה למטה. גרור שם כדי להזיז אותו.',
   'whatsnew.change.captchaPriority': '„{name}” מסדר את חשבונות הקאפצ׳ה המחוברים שלך כמו ש„{download}” מסדר את השרתים. גם מתי הם מתחילים וגם קאפצ׳ת הבדיקה נמצאים שם.',
   'whatsnew.change.searchBox': 'כל שדה חיפוש נראה ועובד כמו זה שבהגדרות: בזמן ההקלדה התיבה מחליפה גוון וזכוכית המגדלת נדלקת, ו־Escape או האיקס מרוקנים אותו.',
+  'settings.look.builtInTitle': 'רכיבים מובנים',
+  'settings.look.builtInHint': 'מה ש־KnightLoader מביא איתו או מריץ לצידו, כל אחד עם הגרסה והמקור שלו. החלקים האלה מגיעים עם KnightLoader או עם תמונת הקונטיינר, או מתעדכנים בעצמם, ולכן אין כאן מה לעדכן.',
+  'whatsnew.change.builtIn': '„{name}” מפרט כל חלק שמגיע עם KnightLoader, עם הגרסה והמקור שלו. מה שאפשר לעדכן נשאר ב„{updates}”.',
 };

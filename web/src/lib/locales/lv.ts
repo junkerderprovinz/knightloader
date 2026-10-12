@@ -3620,7 +3620,7 @@ export const lv: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ atver lielu flīzi katram konta veidam, vienu zem otras šīs lapas kartīšu secībā.',
   'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis maigi un nevienmērīgi viļņojas savā virsmā: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
   'whatsnew.change.windowCard': 'Darbvirsmas lietotnē „{name}“ nosaka, kā uzvedas logs un tā ikona paziņojumu apgabalā.',
-  'whatsnew.change.updatesCard': '„{name}“ uzskaita katru rīku, ko KnightLoader nes līdzi, pa vienai rindai katram ar versiju un izcelsmi, un atjaunina KnightLoader un yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ ietver KnightLoader un yt-dlp, katru savā apakškartītē ar versiju, izcelsmi un atjauninājumiem.',
   'whatsnew.change.mirrorPolicy': 'Sadaļā „{name}“ nolaižamais saraksts blakus tās nosaukumam nosaka, kad divas saites uzskata par vienu un to pašu failu.',
   'whatsnew.change.videoCard': 'Kartīte „{name}“ nosaka, kādā kvalitātē video tiek ielādēts, ar nolaižamo sarakstu blakus tās nosaukumam.',
   'whatsnew.change.filesCard': '„{name}“ ir sava kartīte: veseli atskaņošanas saraksti un failu nosaukumi.',
@@ -3647,4 +3647,7 @@ export const lv: Dict = {
   'settings.captcha.orderIntro': 'Attēls ir secība: captcha vispirms nonāk pie augšējā captcha konta, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
   'whatsnew.change.captchaPriority': '„{name}“ sakārto tavus pievienotos captcha kontus tāpat, kā „{download}“ sakārto aizmugursistēmas. Tur ir arī tas, kad tie sāk, un testa captcha.',
   'whatsnew.change.searchBox': 'Katrs meklēšanas lauks izskatās un darbojas kā tas iestatījumos: kamēr raksti, lauks maina toni un lupa iedegas, un Escape vai krustiņš to iztukšo.',
+  'settings.look.builtInTitle': 'Iebūvētie komponenti',
+  'settings.look.builtInHint': 'Tas, ko KnightLoader atnes līdzi vai darbina sev blakus, katrs ar savu versiju un izcelsmi. Šīs daļas nāk kopā ar KnightLoader vai konteinera attēlu, vai atjaunina sevi pašas, tāpēc šeit nav ko atjaunināt.',
+  'whatsnew.change.builtIn': '„{name}“ uzskaita katru daļu, kas nāk kopā ar KnightLoader, ar versiju un izcelsmi. To, ko var atjaunināt, atradīsi kartītē „{updates}“.',
 };

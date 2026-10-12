@@ -3625,7 +3625,7 @@ export const is: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ opnar stóra flís fyrir hverja gerð reiknings, hverja undir annarri í röð spjaldanna á þessari síðu.',
   'whatsnew.change.fillSurface': 'Hvert fyllingarstig bylgjast mjúklega og ójafnt á yfirborði sínu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
   'whatsnew.change.windowCard': 'Í skjáborðsforritinu ræður „{name}“ hvernig glugginn og tákn hans á tilkynningasvæðinu haga sér.',
-  'whatsnew.change.updatesCard': '„{name}“ telur upp hvert tól sem KnightLoader hefur með sér, eina línu fyrir hvert með útgáfu og uppruna, og uppfærir KnightLoader og yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ geymir KnightLoader og yt-dlp, hvort á sínu undirspjaldi með útgáfu, uppruna og uppfærslum.',
   'whatsnew.change.mirrorPolicy': 'Í „{name}“ ákveður fellilisti við hliðina á heiti þess hvenær tveir tenglar teljast sama skráin.',
   'whatsnew.change.videoCard': 'Spjaldið „{name}“ ákveður í hvaða gæðum myndskeið er sótt, með fellilistanum við hliðina á heiti þess.',
   'whatsnew.change.filesCard': '„{name}“ hefur sitt eigið spjald: heilir spilunarlistar og hvernig skrár eru nefndar.',
@@ -3652,4 +3652,7 @@ export const is: Dict = {
   'settings.captcha.orderIntro': 'Myndin er röðin: captcha fer fyrst til captcha-reikningsins efst og svo niður. Dragðu nafn til að færa það.',
   'whatsnew.change.captchaPriority': '„{name}“ raðar tengdu captcha-reikningunum þínum eins og „{download}“ raðar bakendum. Hvenær þeir byrja og prufu-captcha eru þar líka.',
   'whatsnew.change.searchBox': 'Hver leitarreitur lítur út og virkar eins og sá í Stillingum: á meðan þú skrifar skiptir reiturinn um lit og stækkunarglerið lýsist upp, og Escape eða krossinn tæmir hann.',
+  'settings.look.builtInTitle': 'Innbyggðir hlutar',
+  'settings.look.builtInHint': 'Það sem KnightLoader tekur með sér eða keyrir við hlið sér, hvert með sína útgáfu og uppruna. Þessir hlutar koma með KnightLoader eða gámamyndinni, eða uppfæra sig sjálfir, svo hér er ekkert að uppfæra.',
+  'whatsnew.change.builtIn': '„{name}“ telur upp hvern hluta sem fylgir KnightLoader, með útgáfu og uppruna. Það sem má uppfæra er áfram á „{updates}“.',
 };

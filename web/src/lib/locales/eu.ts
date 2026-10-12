@@ -3626,7 +3626,7 @@ export const eu: Dict = {
   'whatsnew.change.accountKinds': '«{name}» botoiak lauza handi bat irekitzen du kontu mota bakoitzeko, bata bestearen azpian orri honetako txartelen ordenan.',
   'whatsnew.change.fillSurface': 'Betetze-maila bakoitzak leunki eta irregularki dantzatzen du bere gainazalean: «{name}» azpiko karpetek, «{volume}» eta kontu baten trafikoak.',
   'whatsnew.change.windowCard': 'Mahaigaineko aplikazioan, «{name}» atalak leihoa eta jakinarazpen-eremuko ikonoa nola portatzen diren erabakitzen du.',
-  'whatsnew.change.updatesCard': '«{name}» atalak KnightLoaderrek ekartzen dituen tresna guztiak zerrendatzen ditu, tresna bakoitzeko lerro bat bertsioarekin eta jatorriarekin, eta KnightLoader eta yt-dlp eguneratzen ditu.',
+  'whatsnew.change.updatesCard': '«{name}» txartelak KnightLoader eta yt-dlp ditu, bakoitza bere azpitxartelean, bertsio, jatorri eta eguneraketekin.',
   'whatsnew.change.mirrorPolicy': '«{name}» atalean, etiketaren ondoko zerrenda zabalgarri batek erabakitzen du noiz diren bi esteka fitxategi bera.',
   'whatsnew.change.videoCard': '«{name}» txartelak bideo bat zer kalitatetan kargatzen den zehazten du, etiketaren ondoko zerrenda zabalgarriarekin.',
   'whatsnew.change.filesCard': '«{name}» atalak txartel propioa du: erreprodukzio-zerrenda osoak eta fitxategien izenak.',
@@ -3653,4 +3653,7 @@ export const eu: Dict = {
   'settings.captcha.orderIntro': 'Irudia da ordena: captcha bat goiko captcha kontura doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
   'whatsnew.change.captchaPriority': '«{name}» txartelak zure captcha kontu konektatuak ordenatzen ditu, «{download}» txartelak backendak ordenatzen dituen bezala. Noiz hasten diren eta proba-captcha ere bertan daude.',
   'whatsnew.change.searchBox': 'Bilaketa-eremu orok Ezarpenetakoaren itxura eta funtzionamendua du: idazten duzun bitartean, koadroak tonua aldatzen du eta lupa pizten da, eta Escape-k edo gurutzeak hustu egiten dute.',
+  'settings.look.builtInTitle': 'Osagai integratuak',
+  'settings.look.builtInHint': 'KnightLoaderrek berarekin dakarrena edo bere ondoan exekutatzen duena, bakoitza bere bertsio eta jatorriarekin. Zati hauek KnightLoaderrekin edo edukiontziaren irudiarekin datoz, edo beren kabuz eguneratzen dira, beraz hemen ez dago ezer eguneratzeko.',
+  'whatsnew.change.builtIn': '«{name}» txartelak KnightLoaderrekin datorren zati bakoitza zerrendatzen du, bertsio eta jatorriarekin. Egunera daitekeena «{updates}» txartelean geratzen da.',
 };

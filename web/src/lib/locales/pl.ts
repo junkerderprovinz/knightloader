@@ -3614,7 +3614,7 @@ export const pl: Dict = {
   'whatsnew.change.accountKinds': '„{name}” otwiera duży kafelek dla każdego rodzaju konta, jeden pod drugim w kolejności kart na tej stronie.',
   'whatsnew.change.fillSurface': 'Każdy poziom wypełnienia łagodnie i nierówno faluje na swojej powierzchni: foldery pod „{name}”, „{volume}” i ruch konta.',
   'whatsnew.change.windowCard': 'W aplikacji desktopowej „{name}” określa, jak zachowują się okno i jego ikona w obszarze powiadomień.',
-  'whatsnew.change.updatesCard': '„{name}” wymienia każde narzędzie, które KnightLoader ma ze sobą, po jednym wierszu na narzędzie z wersją i pochodzeniem, i aktualizuje KnightLoadera oraz yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}” mieści KnightLoadera i yt-dlp, każdy na własnej podkarcie z wersją, pochodzeniem i aktualizacjami.',
   'whatsnew.change.mirrorPolicy': 'W „{name}” lista rozwijana obok etykiety decyduje, kiedy dwa linki liczą się jako ten sam plik.',
   'whatsnew.change.videoCard': 'Karta „{name}” ustala jakość, w jakiej ładuje się wideo, za pomocą listy rozwijanej obok etykiety.',
   'whatsnew.change.filesCard': '„{name}” ma własną kartę: całe playlisty i nazwy plików.',
@@ -3641,4 +3641,7 @@ export const pl: Dict = {
   'settings.captcha.orderIntro': 'Obrazek to kolejność: captcha trafia najpierw do konta captcha na samej górze, potem niżej. Przeciągnij nazwę, aby ją przesunąć.',
   'whatsnew.change.captchaPriority': '„{name}” porządkuje twoje połączone konta captcha tak, jak „{download}” porządkuje backendy. Jest tam też to, kiedy startują, i testowa captcha.',
   'whatsnew.change.searchBox': 'Każde pole wyszukiwania wygląda i działa jak to w Ustawieniach: podczas pisania pole zmienia odcień i zapala się lupa, a Escape lub krzyżyk je czyści.',
+  'settings.look.builtInTitle': 'Wbudowane składniki',
+  'settings.look.builtInHint': 'To, co KnightLoader przynosi ze sobą lub uruchamia obok siebie, każda część z wersją i pochodzeniem. Te części przychodzą z KnightLoaderem albo z obrazem kontenera, albo aktualizują się same, więc tutaj nie ma czego aktualizować.',
+  'whatsnew.change.builtIn': '„{name}” wymienia każdą część, która przychodzi z KnightLoaderem, z wersją i pochodzeniem. To, co da się aktualizować, zostaje na „{updates}”.',
 };

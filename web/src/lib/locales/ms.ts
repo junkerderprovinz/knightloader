@@ -3629,7 +3629,7 @@ export const ms: Dict = {
   'whatsnew.change.accountKinds': '“{name}” membuka jubin besar untuk setiap jenis akaun, satu di bawah yang lain mengikut susunan kad di halaman ini.',
   'whatsnew.change.fillSurface': 'Setiap paras isi bergoyang perlahan dan tidak sekata di permukaannya: folder di bawah “{name}”, “{volume}” dan trafik sesebuah akaun.',
   'whatsnew.change.windowCard': 'Dalam aplikasi desktop, “{name}” menetapkan kelakuan tetingkap dan ikonnya di kawasan pemberitahuan.',
-  'whatsnew.change.updatesCard': '“{name}” menyenaraikan setiap alat yang dibawa KnightLoader, satu baris setiap alat dengan versi dan asalnya, dan mengemas kini KnightLoader dan yt-dlp.',
+  'whatsnew.change.updatesCard': '“{name}” memuatkan KnightLoader dan yt-dlp, setiap satu pada subkadnya sendiri dengan versi, asal dan kemas kininya.',
   'whatsnew.change.mirrorPolicy': 'Dalam “{name}” senarai juntai bawah di sebelah labelnya menentukan bila dua pautan dikira sebagai fail yang sama.',
   'whatsnew.change.videoCard': 'Kad “{name}” menentukan kualiti video dimuatkan, dengan senarai juntai bawah di sebelah labelnya.',
   'whatsnew.change.filesCard': '“{name}” mempunyai kadnya sendiri: senarai main penuh dan cara fail dinamakan.',
@@ -3656,4 +3656,7 @@ export const ms: Dict = {
   'settings.captcha.orderIntro': 'Gambar ini ialah susunannya: captcha pergi dahulu ke akaun captcha di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” menyusun akaun captcha anda yang disambungkan seperti “{download}” menyusun bahagian belakang. Bila ia bermula dan captcha ujian juga ada di situ.',
   'whatsnew.change.searchBox': 'Setiap medan carian kelihatan dan berfungsi seperti yang dalam Tetapan: semasa anda menaip, kotak bertukar warna dan kanta pembesar menyala, dan Escape atau pangkah mengosongkannya.',
+  'settings.look.builtInTitle': 'Komponen terbina dalam',
+  'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sisinya, setiap satu dengan versi dan asalnya. Bahagian ini datang bersama KnightLoader atau imej bekas, atau mengemas kini dirinya sendiri, jadi tiada apa yang perlu dikemas kini di sini.',
+  'whatsnew.change.builtIn': '“{name}” menyenaraikan setiap bahagian yang datang bersama KnightLoader, dengan versi dan asalnya. Yang boleh dikemas kini kekal dalam “{updates}”.',
 };

@@ -3625,7 +3625,7 @@ export const ja: Dict = {
   'whatsnew.change.accountKinds': '「{name}」を押すと、アカウントの種類ごとに大きなタイルが、このページのカードと同じ順番で縦に並んで開きます。',
   'whatsnew.change.fillSurface': '満ち具合を示すものはどれも、表面がゆっくり不規則に揺れます。「{name}」のフォルダー、「{volume}」、アカウントの通信量が対象です。',
   'whatsnew.change.windowCard': 'デスクトップアプリでは「{name}」で、ウィンドウと通知領域のアイコンの動きを決めます。',
-  'whatsnew.change.updatesCard': '「{name}」には、KnightLoader に同梱されているすべてのツールが、バージョンと入手元とともに 1 行ずつ並び、KnightLoader と yt-dlp の更新もここで行えます。',
+  'whatsnew.change.updatesCard': '「{name}」には KnightLoader と yt-dlp がそれぞれ専用のサブカードで並び、バージョン、入手元、更新がまとまっています。',
   'whatsnew.change.mirrorPolicy': '「{name}」では、ラベルの横にあるドロップダウンで、2 つのリンクを同じファイルとみなす条件を選びます。',
   'whatsnew.change.videoCard': '「{name}」カードでは、ラベルの横にあるドロップダウンで、動画を読み込む画質を決めます。',
   'whatsnew.change.filesCard': '「{name}」は独立したカードになり、プレイリスト全体の取得とファイル名の付け方を設定します。',
@@ -3652,4 +3652,7 @@ export const ja: Dict = {
   'settings.captcha.orderIntro': '図がそのまま順番です。キャプチャはまず一番上のキャプチャアカウントに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
   'whatsnew.change.captchaPriority': '「{name}」は、接続済みのキャプチャアカウントを「{download}」がバックエンドを並べるのと同じように並べます。開始のタイミングとテスト用キャプチャもここにあります。',
   'whatsnew.change.searchBox': 'どの検索欄も設定の検索欄と同じ見た目と動きになりました。入力中は欄の色合いが変わって虫眼鏡が光り、Escape か × で空になります。',
+  'settings.look.builtInTitle': '組み込みコンポーネント',
+  'settings.look.builtInHint': 'KnightLoader が同梱している、または隣で動かしているもので、それぞれのバージョンと入手元を示します。これらは KnightLoader かコンテナイメージに含まれているか、自分で更新されるため、ここで更新するものはありません。',
+  'whatsnew.change.builtIn': '「{name}」は KnightLoader に含まれる部分を、バージョンと入手元とともにすべて一覧にします。更新できるものは「{updates}」に残ります。',
 };
