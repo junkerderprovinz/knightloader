@@ -2097,6 +2097,8 @@ body {
 .glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
 .glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
 .glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
+/* F-Droid's blue from the README's button. */
+.glim-tile-fdroid  { --tile: #1976d2; --tile-ink: #ffffff; } /* 4.6:1 */
 .glim-tile-docker  { --tile: #1d63ed; --tile-ink: #ffffff; } /* 5.2:1 */
 .glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
