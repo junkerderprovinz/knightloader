@@ -3628,7 +3628,7 @@ export const vi: Dict = {
   'whatsnew.change.phoneBar': 'Trên điện thoại, thanh dưới giữ bốn trang, và chỗ cuối cùng của nó mở mọi thứ còn lại.',
   'whatsnew.change.queueState': '“{play}” và “{pause}” cho thấy hàng đợi đang làm gì: nút được tô kín là trạng thái của nó, nút còn lại là nút để bấm.',
   'whatsnew.change.listBar': 'Có ba nút phía trên danh sách: “{filter}”, “{sort}” và “{search}”.',
-  'whatsnew.change.listRows': 'Các nút của một hàng hiện ra khi con trỏ ở trên hàng.',
+  'whatsnew.change.listRows': 'Các hàng bắt đầu thẳng hàng với tiêu đề của thẻ, và các nút của một hàng hiện ra khi con trỏ ở trên hàng.',
   'whatsnew.change.accountPicker': 'Bạn chọn tài khoản debrid, tài khoản captcha hoặc tài khoản nhà lưu trữ mới từ các ô, mỗi ô có logo riêng.',
   'whatsnew.change.accountRows': 'Nhấp vào một tài khoản sẽ mở nó, và nhấp chuột phải sẽ mở menu của nó.',
   'whatsnew.change.settingsSearch': 'Ô tìm kiếm trong mọi cài đặt hiện ra khi bạn cuộn lên thêm một lần nữa ở đầu trang, hoặc nhấn “/”. Khi bạn gõ vào đó, ô đổi sắc độ và kính lúp sáng lên.',

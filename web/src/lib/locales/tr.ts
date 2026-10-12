@@ -3627,7 +3627,7 @@ export const tr: Dict = {
   'whatsnew.change.phoneBar': 'Telefonda alt çubuk dört sayfa tutar, son yeri de geri kalan her şeyi açar.',
   'whatsnew.change.queueState': '“{play}” ve “{pause}” kuyruğun ne yaptığını gösterir: dolu olan düğme kuyruğun durumudur, öteki ise basılacak olandır.',
   'whatsnew.change.listBar': 'Listenin üstünde üç düğme durur: “{filter}”, “{sort}” ve “{search}”.',
-  'whatsnew.change.listRows': 'Bir satırın düğmeleri imleç üzerindeyken görünür.',
+  'whatsnew.change.listRows': 'Satırlar kartın başlığıyla aynı hizada başlar ve bir satırın düğmeleri imleç üzerindeyken görünür.',
   'whatsnew.change.accountPicker': 'Yeni bir debrid, captcha ya da hoster hesabını, her biri kendi logosunu taşıyan kutucuklardan seçersin.',
   'whatsnew.change.accountRows': 'Bir hesaba tıklamak onu açar, sağ tıklamak da menüsünü açar.',
   'whatsnew.change.settingsSearch': 'Bir sayfanın en üstünde bir kez daha yukarı kaydırdığında ya da “/” tuşuna bastığında tüm ayarlarda bir arama belirir. Ona yazarken kutu tonunu değiştirir ve büyüteç yanar.',

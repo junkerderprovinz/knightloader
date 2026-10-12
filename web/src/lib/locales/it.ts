@@ -3612,7 +3612,7 @@ export const it: Dict = {
   'whatsnew.change.phoneBar': 'Su un telefono la barra inferiore tiene quattro pagine, e il suo ultimo posto apre tutto il resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostrano che cosa fa la coda: il pulsante pieno è il suo stato, l’altro è quello da premere.',
   'whatsnew.change.listBar': 'Sopra l’elenco ci sono tre pulsanti: «{filter}», «{sort}» e «{search}».',
-  'whatsnew.change.listRows': 'I pulsanti di una riga compaiono finché il puntatore è su di essa.',
+  'whatsnew.change.listRows': 'Le righe iniziano allineate al titolo della scheda, e i pulsanti di una riga compaiono finché il puntatore è su di essa.',
   'whatsnew.change.accountPicker': 'Scegli un nuovo account debrid, captcha o hoster tra riquadri, ciascuno con il suo logo.',
   'whatsnew.change.accountRows': 'Un clic su un account lo apre, e un clic destro apre il suo menu.',
   'whatsnew.change.settingsSearch': 'Una ricerca in tutte le impostazioni compare quando scorri ancora una volta verso l’alto in cima a una pagina, o quando premi «/». Mentre scrivi, il campo cambia tonalità e la lente si illumina.',

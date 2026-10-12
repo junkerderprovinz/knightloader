@@ -3874,7 +3874,7 @@ export const en = {
   'whatsnew.change.phoneBar': 'On a phone the bottom bar keeps four pages, and its last place opens everything else.',
   'whatsnew.change.queueState': '"{play}" and "{pause}" show what the queue is doing: the filled one is its state, the other is the one to press.',
   'whatsnew.change.listBar': 'Three buttons stand above the list: "{filter}", "{sort}" and "{search}".',
-  'whatsnew.change.listRows': 'The buttons of a row show while the pointer is on it.',
+  'whatsnew.change.listRows': "The rows start in line with the card's title, and the buttons of a row show while the pointer is on it.",
   'whatsnew.change.accountPicker': 'You pick a new debrid, captcha or hoster account from tiles, each with its logo.',
   'whatsnew.change.accountRows': 'A click on an account opens it, and a right-click opens its menu.',
   'whatsnew.change.settingsSearch': 'A search over all settings appears when you scroll up once more at the top of a page, or press "/". While you type in it, the box changes its shade and the magnifier lights up.',

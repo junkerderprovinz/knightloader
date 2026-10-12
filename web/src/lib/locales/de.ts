@@ -3632,7 +3632,7 @@ export const de: Dict = {
   'whatsnew.change.phoneBar': 'Auf dem Handy behält die untere Leiste vier Seiten, und ihr letzter Platz öffnet alles Weitere.',
   'whatsnew.change.queueState': '„{play}“ und „{pause}“ zeigen, was die Warteschlange tut: Der gefüllte Knopf ist ihr Zustand, den anderen drückst du.',
   'whatsnew.change.listBar': 'Über der Liste stehen drei Knöpfe: „{filter}“, „{sort}“ und „{search}“.',
-  'whatsnew.change.listRows': 'Die Knöpfe einer Zeile erscheinen, solange der Zeiger auf ihr steht.',
+  'whatsnew.change.listRows': 'Die Zeilen beginnen bündig mit dem Titel der Karte, und die Knöpfe einer Zeile erscheinen, solange der Zeiger auf ihr steht.',
   'whatsnew.change.accountPicker': 'Ein neues Debrid-, Captcha- oder Hoster-Konto wählst du aus Kacheln, jede mit ihrem Logo.',
   'whatsnew.change.accountRows': 'Ein Klick auf ein Konto öffnet es, ein Rechtsklick öffnet sein Menü.',
   'whatsnew.change.settingsSearch': 'Eine Suche über alle Einstellungen erscheint, wenn du oben auf einer Seite noch einmal nach oben scrollst oder „/“ drückst. Während du darin tippst, ändert das Feld seinen Farbton und die Lupe leuchtet auf.',

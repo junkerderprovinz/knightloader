@@ -3625,7 +3625,7 @@ export const eu: Dict = {
   'whatsnew.change.phoneBar': 'Telefonoan beheko barrak lau orri gordetzen ditu, eta bere azken lekuak gainerako guztia irekitzen du.',
   'whatsnew.change.queueState': '«{play}» eta «{pause}» botoiek ilara zertan ari den erakusten dute: betetako botoia haren egoera da, bestea sakatzekoa.',
   'whatsnew.change.listBar': 'Zerrendaren gainean hiru botoi daude: «{filter}», «{sort}» eta «{search}».',
-  'whatsnew.change.listRows': 'Errenkadaren botoiak erakuslea gainean dagoen bitartean agertzen dira.',
+  'whatsnew.change.listRows': 'Errenkadak txartelaren izenburuarekin lerrokatuta hasten dira, eta errenkadaren botoiak erakuslea gainean dagoen bitartean agertzen dira.',
   'whatsnew.change.accountPicker': 'Debrid, captcha edo ostalari-kontu berri bat lauzetatik aukeratzen duzu, bakoitza bere logoarekin.',
   'whatsnew.change.accountRows': 'Kontu batean klik eginez gero ireki egiten da, eta eskuineko klikak haren menua irekitzen du.',
   'whatsnew.change.settingsSearch': 'Ezarpen guztien bilaketa bat agertzen da orriaren goialdean beste behin gorantz egiten duzunean edo «/» sakatzen duzunean. Bertan idazten duzun bitartean, eremuak kolorea aldatzen du eta lupa argitzen da.',

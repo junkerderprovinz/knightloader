@@ -3611,7 +3611,7 @@ export const nl: Dict = {
   'whatsnew.change.phoneBar': 'Op een telefoon houdt de onderbalk vier pagina’s, en de laatste plek opent al het andere.',
   'whatsnew.change.queueState': '“{play}” en “{pause}” laten zien wat de wachtrij doet: de gevulde knop is de toestand, de andere is de knop om in te drukken.',
   'whatsnew.change.listBar': 'Boven de lijst staan drie knoppen: “{filter}”, “{sort}” en “{search}”.',
-  'whatsnew.change.listRows': 'De knoppen van een rij verschijnen zolang de aanwijzer erop staat.',
+  'whatsnew.change.listRows': 'De rijen beginnen gelijk met de titel van de kaart, en de knoppen van een rij verschijnen zolang de aanwijzer erop staat.',
   'whatsnew.change.accountPicker': 'Een nieuw debrid-, captcha- of hosteraccount kies je uit tegels, elk met zijn logo.',
   'whatsnew.change.accountRows': 'Een klik op een account opent het, en een rechtsklik opent het menu ervan.',
   'whatsnew.change.settingsSearch': 'Een zoekfunctie voor alle instellingen verschijnt als je bovenaan een pagina nog een keer omhoog scrolt of op “/” drukt. Terwijl je erin typt, verandert het veld van tint en licht het vergrootglas op.',

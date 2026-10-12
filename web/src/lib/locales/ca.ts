@@ -3616,7 +3616,7 @@ export const ca: Dict = {
   'whatsnew.change.phoneBar': 'En un telèfon, la barra inferior conserva quatre pàgines, i el seu últim lloc obre tota la resta.',
   'whatsnew.change.queueState': '«{play}» i «{pause}» mostren què fa la cua: el botó ple n’és l’estat, l’altre és el que es prem.',
   'whatsnew.change.listBar': 'Hi ha tres botons damunt de la llista: «{filter}», «{sort}» i «{search}».',
-  'whatsnew.change.listRows': 'Els botons d’una fila apareixen mentre el punter hi és a sobre.',
+  'whatsnew.change.listRows': 'Les files comencen alineades amb el títol de la targeta, i els botons d’una fila apareixen mentre el punter hi és a sobre.',
   'whatsnew.change.accountPicker': 'Tries un compte nou de debrid, de captcha o d’allotjador entre mosaics, cadascun amb el seu logotip.',
   'whatsnew.change.accountRows': 'Un clic en un compte l’obre, i un clic dret n’obre el menú.',
   'whatsnew.change.settingsSearch': 'Apareix una cerca en tots els ajustos quan tornes a desplaçar-te cap amunt a dalt d’una pàgina, o quan prems «/». Mentre hi escrius, el camp canvia de to i la lupa s’il·lumina.',

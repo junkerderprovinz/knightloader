@@ -3627,7 +3627,7 @@ export const sl: Dict = {
   'whatsnew.change.phoneBar': 'Na telefonu spodnja vrstica obdrži štiri strani, njeno zadnje mesto pa odpre vse ostalo.',
   'whatsnew.change.queueState': '»{play}« in »{pause}« kažeta, kaj počne vrsta: zapolnjeni gumb je njeno stanje, drugega pritisneš.',
   'whatsnew.change.listBar': 'Nad seznamom so trije gumbi: »{filter}«, »{sort}« in »{search}«.',
-  'whatsnew.change.listRows': 'Gumbi vrstice so vidni, dokler je kazalec na njej.',
+  'whatsnew.change.listRows': 'Vrstice se začnejo poravnano z naslovom kartice, gumbi vrstice pa so vidni, dokler je kazalec na njej.',
   'whatsnew.change.accountPicker': 'Nov račun debrid, račun captch ali račun hosterja izbereš med ploščicami, vsaka ima svoj logotip.',
   'whatsnew.change.accountRows': 'Klik na račun ga odpre, desni klik pa odpre njegov meni.',
   'whatsnew.change.settingsSearch': 'Iskanje po vseh nastavitvah se pojavi, ko na vrhu strani še enkrat podrsaš navzgor ali pritisneš »/«. Medtem ko tipkaš vanj, polje spremeni odtenek in lupa zasveti.',

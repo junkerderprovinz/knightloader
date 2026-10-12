@@ -3619,7 +3619,7 @@ export const pt: Dict = {
   'whatsnew.change.phoneBar': 'Num telefone, a barra inferior mantém quatro páginas, e o seu último lugar abre tudo o resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostram o que a fila está a fazer: o botão preenchido é o estado dela, o outro é o que se prime.',
   'whatsnew.change.listBar': 'Há três botões por cima da lista: «{filter}», «{sort}» e «{search}».',
-  'whatsnew.change.listRows': 'Os botões de uma linha aparecem enquanto o ponteiro está sobre ela.',
+  'whatsnew.change.listRows': 'As linhas começam alinhadas com o título do cartão, e os botões de uma linha aparecem enquanto o ponteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolhes uma nova conta debrid, de captcha ou de hoster entre mosaicos, cada um com o seu logótipo.',
   'whatsnew.change.accountRows': 'Um clique numa conta abre-a, e um clique direito abre o menu dela.',
   'whatsnew.change.settingsSearch': 'Aparece uma pesquisa em todas as definições quando deslizas mais uma vez para cima no topo de uma página, ou quando carregas em «/». Enquanto escreves nela, o campo muda de tom e a lupa acende-se.',
