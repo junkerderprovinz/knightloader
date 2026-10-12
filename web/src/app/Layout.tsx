@@ -28,6 +28,7 @@ import { onUpdateReady, useTrayWords } from '../lib/desktop';
 import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { setListCards } from '../lib/listCards';
+import { uploadOf } from '../lib/speedHistory';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
 import { useTasks } from '../lib/useTasks';
@@ -99,8 +100,8 @@ function useAppearance() {
 
 /**
  * ShellSpeed is the shell bar's speed curve, summed over the running tasks of
- * the shell's scope. Its own component, so a websocket frame redraws the curve
- * and not the whole bar.
+ * the shell's scope, with what its torrents upload. Its own component, so a
+ * websocket frame redraws the curve and not the whole bar.
  */
 function ShellSpeed({ instance }: { instance: string }) {
   const tasks = useTasks(instance);
@@ -110,7 +111,7 @@ function ShellSpeed({ instance }: { instance: string }) {
   }
   // The history is seeded only for the local instance, since /api/stats/speed
   // is not forwarded; a peer's curve starts live.
-  return <SpeedMeter value={speed} instance={instance} />;
+  return <SpeedMeter value={speed} upload={uploadOf(Object.values(tasks))} instance={instance} />;
 }
 
 /**

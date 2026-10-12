@@ -2507,6 +2507,9 @@ export const fr: Dict = {
   'overview.speedWindow': 'Fenêtre de temps de la courbe',
   'overview.speedWindow.minute': 'Dernière minute',
   'overview.speedWindow.hour': 'Dernière heure',
+  'speed.legend.download': 'Téléchargement',
+  'speed.legend.seeding': 'Partage',
+  'speed.legend.hint': 'La ligne grise montre ce que vos torrents envoient aux autres pendant qu’ils se téléchargent ou sont partagés. Elle n’apparaît que lorsque quelque chose sort. KnightLoader l’enregistre comme la courbe de téléchargement, donc un redémarrage l’efface aussi.',
   'overview.speedGraphHint': 'L’instance enregistre cette courbe elle-même : une mesure par seconde pour les deux dernières minutes, une toutes les dix secondes pour la dernière heure. C’est pourquoi elle est déjà remplie après un rechargement de la page, au lieu de commencer à plat. L’enregistrement ne tient qu’en mémoire vive : si vous redémarrez KnightLoader, il est vide, la courbe repart comme une ligne plate et se remplit au fil du temps. Tant qu’une limite de vitesse s’applique, une ligne rouge la marque, avec la valeur à gauche. Si la limite est bien au-dessus de la vitesse actuelle, la ligne est en pointillés et reste sur le bord supérieur, pour qu’un téléchargement lent ne soit pas écrasé.',
   'settings.diagnostics.speedSamples': 'Mesures de vitesse enregistrées',
   'settings.diagnostics.speedSamplesHint': 'À partir de combien de mesures la courbe de vitesse de la Vue d’ensemble est dessinée en ce moment, rapporté à ce qu’elle garde au maximum : d’abord l’enregistrement sur deux minutes, ensuite celui sur une heure. Si les deux sont à zéro, rien n’enregistre, et la courbe de la Vue d’ensemble restera plate jusqu’à ce que ce soit corrigé. Après chaque redémarrage, l’enregistrement repart à vide, et il n’est jamais écrit sur le disque.',
@@ -3610,6 +3613,7 @@ export const fr: Dict = {
   'whatsnew.change.waysIn': 'Une image sur toute la carte montre chaque voie par laquelle un lien arrive dans le collecteur de liens, et un clic sur une voie ouvre son réglage. Quand le « {rainbow} » est activé, chaque voie a sa propre couleur.',
   'whatsnew.change.dayCurve':
     '« {name} » dessine la journée en cours sous forme de courbe : la limite de vitesse prévue en surface et la vitesse mesurée en ligne.',
+  'whatsnew.change.seedingLine': 'La courbe de vitesse a une deuxième ligne pour ce que vos torrents envoient pendant le partage.',
   'whatsnew.change.ruleSwitch': 'Les règles sont dessinées comme le chemin qu’un lien d’exemple suit à travers elles : quelle règle l’attrape et où il arrive.',
   'whatsnew.change.captchaChain': 'Une image montre à qui va un captcha : à vous d’abord, puis aux comptes captcha dans votre ordre.',
   'whatsnew.change.trackMerge': '« {name} » dessine sur toute la carte ce qui arrive dans un fichier vidéo avec les réglages actuels et suit les interrupteurs en dessous. Quand le « {rainbow} » est activé, chaque piste a sa propre couleur.',

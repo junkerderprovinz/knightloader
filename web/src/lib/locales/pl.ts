@@ -2504,6 +2504,9 @@ export const pl: Dict = {
   'overview.speedWindow': 'Okno czasowe krzywej',
   'overview.speedWindow.minute': 'Ostatnia minuta',
   'overview.speedWindow.hour': 'Ostatnia godzina',
+  'speed.legend.download': 'Pobieranie',
+  'speed.legend.seeding': 'Seedowanie',
+  'speed.legend.hint': 'Szara linia pokazuje, co twoje torrenty wysyłają innym, kiedy się pobierają albo seedują. Pojawia się tylko wtedy, gdy coś wychodzi. KnightLoader zapisuje ją tak samo jak krzywą pobierania, więc restart czyści także ją.',
   'overview.speedGraphHint': 'Instancja sama zapisuje tę krzywą: jeden pomiar na sekundę dla ostatnich dwóch minut, jeden co dziesięć sekund dla ostatniej godziny. Dlatego po przeładowaniu strony jest już wypełniona, zamiast zaczynać płasko. Zapis leży tylko w pamięci: gdy uruchomisz KnightLoader ponownie, jest pusty, krzywa znów zaczyna jako płaska linia i wypełnia się z biegiem czasu. Dopóki obowiązuje limit prędkości, zaznacza go czerwona linia z wartością po lewej. Gdy limit jest dużo wyżej niż obecna prędkość, linia jest przerywana i zostaje przy górnej krawędzi, żeby wolne pobieranie nie zostało spłaszczone.',
   'settings.diagnostics.speedSamples': 'Zapisane pomiary prędkości',
   'settings.diagnostics.speedSamplesHint': 'Z ilu pomiarów jest w tej chwili rysowana krzywa prędkości na stronie Przegląd, wobec tego, ile ich najwyżej zachowuje: najpierw zapis z dwóch minut, potem ten z godziny. Jeśli przy obu stoi zero, nic nie zapisuje, a krzywa na stronie Przegląd zostanie płaska, dopóki to się nie naprawi. Po każdym ponownym uruchomieniu zapis zaczyna się pusty, a na dysk nie trafia nigdy.',
@@ -3605,6 +3608,7 @@ export const pl: Dict = {
   'whatsnew.change.waysIn': 'Obraz na całej karcie pokazuje każdą drogę, którą link trafia do kolektora linków, a kliknięcie drogi otwiera jej ustawienie. Gdy włączony jest „{rainbow}”, każda droga ma własny kolor.',
   'whatsnew.change.dayCurve':
     '„{name}” rysuje dzisiejszy dzień jako krzywą: planowany limit prędkości jako pole, a zmierzoną prędkość jako linię.',
+  'whatsnew.change.seedingLine': 'Krzywa prędkości ma drugą linię dla tego, co twoje torrenty wysyłają podczas seedowania.',
   'whatsnew.change.ruleSwitch': 'Reguły są narysowane jako droga, którą przykładowy link przechodzi przez nie: która reguła go łapie i gdzie ląduje.',
   'whatsnew.change.captchaChain': 'Obraz pokazuje, do kogo trafia captcha: najpierw do ciebie, potem do kont captcha w twojej kolejności.',
   'whatsnew.change.trackMerge': '„{name}” rysuje na całej karcie, co przy obecnych ustawieniach trafia do pliku wideo, i podąża za przełącznikami poniżej. Gdy włączony jest „{rainbow}”, każda ścieżka ma własny kolor.',

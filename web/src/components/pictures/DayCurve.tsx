@@ -1,7 +1,8 @@
 import { useLayoutEffect, useRef } from 'react';
 import { fmtSpeed } from '../../lib/format';
 import { useT } from '../../lib/i18n';
-import type { SpeedDay } from '../../lib/speedHistory';
+import { alignedUpload, type SpeedDay } from '../../lib/speedHistory';
+import { UPLOAD_INK } from '../SpeedGraph';
 import { HUE, INK, useStill } from './scene';
 import { stretches, type WeekEntry } from './WeekBand';
 
@@ -20,10 +21,14 @@ export interface PlanStretch {
   limit: number;
 }
 
-/** One measured stretch of today: the minute it ended at and its mean speed in bytes a second. */
+/**
+ * One measured stretch of today: the minute it ended at, its mean speed and
+ * the mean the torrents sent meanwhile, in bytes a second.
+ */
 export interface DayPoint {
   at: number;
   speed: number;
+  up?: number;
 }
 
 const DAY = 24 * 60;
@@ -70,10 +75,11 @@ export function todayOf(day: SpeedDay, now: Date): DayPoint[] {
   if (!day.from) return [];
   const midnight = new Date(now.getFullYear(), now.getMonth(), now.getDate()).getTime();
   const first = new Date(day.from).getTime();
+  const up = alignedUpload(day.samplesUp, day.samples.length);
   const points: DayPoint[] = [];
   day.samples.forEach((speed, i) => {
     const end = first + (i + 1) * day.step * 1000;
-    if (end > midnight && end <= now.getTime()) points.push({ at: (end - midnight) / 60_000, speed });
+    if (end > midnight && end <= now.getTime()) points.push({ at: (end - midnight) / 60_000, speed, up: up[i] });
   });
   return points;
 }
@@ -91,7 +97,8 @@ const JOINED = 6;
 /**
  * DayCurve draws today against the timetable: the limit it asks for as an
  * area, a pause as a bar on the ground, the speed measured so far as a line
- * over both, and a hand on the present moment. `quiet` is for a timetable that
+ * over both with what the torrents uploaded beside it, and a hand on the
+ * present moment. `quiet` is for a timetable that
  * is set aside or switched off, whose plan applies to nothing.
  */
 export function DayCurve({
@@ -112,22 +119,27 @@ export function DayCurve({
 }) {
   const { t } = useT();
   const still = useStill();
-  const line = useRef<SVGPathElement>(null);
+  const line = useRef<SVGGElement>(null);
 
   const nowAt = now.getHours() * 60 + now.getMinutes();
   // The tallest thing drawn stands at the top, and its figure beside it.
-  const ceiling = Math.max(0, ...points.map((p) => p.speed), ...plan.map((s) => s.limit));
+  const ceiling = Math.max(0, ...points.map((p) => Math.max(p.speed, p.up ?? 0)), ...plan.map((s) => s.limit));
   const y = (speed: number) => (ceiling > 0 ? HEIGHT - (speed / ceiling) * HEIGHT : HEIGHT).toFixed(2);
 
   // A mean runs level over the minutes it was taken in, and steps to the next.
-  const curve = points
-    .map((p, i) => {
-      const joins = i > 0 && points[i - 1].at > p.at - JOINED;
-      const from = joins ? points[i - 1].at : Math.max(0, p.at - SAMPLE);
-      return `${joins ? 'L' : 'M'}${from.toFixed(1)} ${y(p.speed)}H${p.at.toFixed(1)}`;
-    })
-    .join('');
+  const path = (of: (p: DayPoint) => number) =>
+    points
+      .map((p, i) => {
+        const joins = i > 0 && points[i - 1].at > p.at - JOINED;
+        const from = joins ? points[i - 1].at : Math.max(0, p.at - SAMPLE);
+        return `${joins ? 'L' : 'M'}${from.toFixed(1)} ${y(of(p))}H${p.at.toFixed(1)}`;
+      })
+      .join('');
+  const curve = path((p) => p.speed);
   const measured = curve !== '';
+  // The torrents' upload, drawn only on a day that had some.
+  const seeded = points.some((p) => (p.up ?? 0) > 0);
+  const upload = seeded ? path((p) => p.up ?? 0) : '';
 
   // The line draws in once, from midnight on. A new sample extends it without drawing it again.
   useLayoutEffect(() => {
@@ -147,6 +159,7 @@ export function DayCurve({
         (s) => `${clock(s.from)}-${clock(s.to)} ${s.paused ? t('settings.schedule.action.pause') : fmtSpeed(s.limit)}`,
       ),
     ...(latest ? [`${t('columns.speed')} ${clock(Math.round(latest.at))}: ${fmtSpeed(latest.speed) || '0'}`] : []),
+    ...(latest && seeded ? [`${t('speed.legend.seeding')}: ${fmtSpeed(latest.up ?? 0) || '0'}`] : []),
   ];
   // Where the record begins. It is kept in memory, so it starts again with the server.
   const since = measured ? Math.max(0, Math.round(points[0].at) - SAMPLE) : nowAt;
@@ -199,17 +212,30 @@ export function DayCurve({
                 ))}
             </g>
             {measured && (
-              <path
-                ref={line}
-                data-measured
-                d={curve}
-                fill="none"
-                stroke={INK}
-                strokeWidth="1.75"
-                strokeLinejoin="round"
-                strokeLinecap="round"
-                vectorEffect="non-scaling-stroke"
-              />
+              <g ref={line}>
+                {upload && (
+                  <path
+                    data-upload
+                    d={upload}
+                    fill="none"
+                    stroke={UPLOAD_INK}
+                    strokeWidth="1.5"
+                    strokeLinejoin="round"
+                    strokeLinecap="round"
+                    vectorEffect="non-scaling-stroke"
+                  />
+                )}
+                <path
+                  data-measured
+                  d={curve}
+                  fill="none"
+                  stroke={INK}
+                  strokeWidth="1.75"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
+              </g>
             )}
           </svg>
           {ceiling > 0 && (
@@ -259,6 +285,12 @@ export function DayCurve({
           <span className="h-0.5 w-4 rounded-[var(--radius-pill)] bg-carbon-text" />
           {t('columns.speed')}
         </span>
+        {seeded && (
+          <span data-upload-key className="inline-flex items-center gap-1.5">
+            <span className="h-0.5 w-4 rounded-[var(--radius-pill)]" style={{ backgroundColor: UPLOAD_INK }} />
+            {t('speed.legend.seeding')}
+          </span>
+        )}
         {since > 0 && (
           <span data-since className="text-carbon-textMuted">
             {t('picture.day.since', { time: clock(since) })}

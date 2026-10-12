@@ -2529,6 +2529,9 @@ export const sk: Dict = {
   'overview.speedWindow': 'Časové okno krivky',
   'overview.speedWindow.minute': 'Posledná minúta',
   'overview.speedWindow.hour': 'Posledná hodina',
+  'speed.legend.download': 'Sťahovanie',
+  'speed.legend.seeding': 'Seedovanie',
+  'speed.legend.hint': 'Sivá čiara ukazuje, čo tvoje torrenty nahrávajú ostatným, keď sa sťahujú alebo seedujú. Objaví sa, len keď niečo odchádza. KnightLoader ju zaznamenáva rovnako ako krivku sťahovania, takže ju reštart tiež vymaže.',
   'overview.speedGraphHint': 'Túto krivku zaznamenáva inštancia sama: jednu hodnotu za sekundu pre posledné dve minúty, jednu každých desať sekúnd pre poslednú hodinu. Preto je po znovunačítaní stránky už zaplnená, namiesto toho, aby začínala naplocho. Záznam leží len v pamäti: keď KnightLoader reštartujete, je prázdny, krivka začne znova ako rovná čiara a postupne sa zapĺňa. Kým platí obmedzenie rýchlosti, označuje ho červená čiara s hodnotou vľavo. Keď je obmedzenie vysoko nad aktuálnou rýchlosťou, čiara je prerušovaná a zostáva pri hornom okraji, aby sa pomalé sťahovanie nesploštilo.',
   'settings.diagnostics.speedSamples': 'Zaznamenané hodnoty rýchlosti',
   'settings.diagnostics.speedSamplesHint': 'Z koľkých hodnôt sa práve kreslí krivka rýchlosti na Prehľade, oproti tomu, čo si najviac podrží: najprv záznam za dve minúty, potom ten za hodinu. Ak je pri oboch nula, nezaznamenáva sa nič a krivka na Prehľade zostane rovná, kým sa to nenapraví. Po každom reštarte začína záznam prázdny a na disk sa nikdy nezapisuje.',
@@ -3630,6 +3633,7 @@ export const sk: Dict = {
   'whatsnew.change.waysIn': 'Obrázok cez celú kartu ukazuje každú cestu, ktorou sa odkaz dostane do zberača odkazov, a kliknutie na cestu otvorí jej nastavenie. Keď je zapnutý „{rainbow}“, má každá cesta vlastnú farbu.',
   'whatsnew.change.dayCurve':
     '„{name}“ kreslí dnešok ako krivku: plánované obmedzenie rýchlosti ako plochu a nameranú rýchlosť ako čiaru.',
+  'whatsnew.change.seedingLine': 'Krivka rýchlosti má druhú čiaru pre to, čo tvoje torrenty nahrávajú pri seedovaní.',
   'whatsnew.change.ruleSwitch': 'Pravidlá sú nakreslené ako cesta, ktorou nimi prejde ukážkový odkaz: ktoré pravidlo ho zachytí a kde skončí.',
   'whatsnew.change.captchaChain': 'Obrázok ukazuje, ku komu captcha ide: najprv k tebe, potom k účtom captchy v tvojom poradí.',
   'whatsnew.change.trackMerge': '„{name}“ nakreslí cez celú kartu, čo s aktuálnymi nastaveniami skončí vo videosúbore, a riadi sa prepínačmi pod ňou. Keď je zapnutý „{rainbow}“, má každá stopa vlastnú farbu.',

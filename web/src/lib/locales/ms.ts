@@ -2518,6 +2518,9 @@ export const ms: Dict = {
   'overview.speedWindow': 'Tetingkap masa lengkung',
   'overview.speedWindow.minute': 'Minit terakhir',
   'overview.speedWindow.hour': 'Jam terakhir',
+  'speed.legend.download': 'Muat turun',
+  'speed.legend.seeding': 'Seeding',
+  'speed.legend.hint': 'Garis kelabu menunjukkan apa yang dimuat naik oleh torrent anda kepada orang lain semasa dimuat turun atau melakukan seed. Ia hanya muncul semasa ada sesuatu yang keluar. KnightLoader merekodkannya sama seperti lengkung muat turun, jadi mula semula turut mengosongkannya.',
   'overview.speedGraphHint': 'Instans ini merekodkan lengkung tersebut sendiri: satu bacaan sesaat untuk dua minit terakhir, satu setiap sepuluh saat untuk sejam terakhir. Sebab itu ia sudah terisi selepas halaman dimuatkan semula, bukannya bermula rata. Rekod itu hanya disimpan dalam memori: jika anda memulakan semula KnightLoader, ia kosong, lengkung itu bermula sebagai garis rata semula dan terisi sedikit demi sedikit sambil ia berjalan. Selagi had kelajuan berkuat kuasa, satu garis merah menandakannya, dengan nilainya di sebelah kiri. Jika had itu jauh di atas kelajuan semasa, garis itu menjadi putus-putus dan kekal di tepi atas, supaya muat turun yang perlahan tidak tertekan rata.',
   'settings.diagnostics.speedSamples': 'Bacaan kelajuan yang direkodkan',
   'settings.diagnostics.speedSamplesHint': 'Daripada berapa banyak bacaan lengkung kelajuan pada halaman Gambaran sedang dilukis sekarang, berbanding jumlah paling banyak yang disimpannya: rekod dua minit dahulu, kemudian rekod satu jam. Sifar pada kedua-duanya bermakna tiada apa-apa sedang merekod, dan lengkung pada Gambaran akan kekal rata sehingga itu dibetulkan. Rekod itu bermula kosong selepas setiap mula semula dan tidak pernah ditulis ke cakera.',
@@ -3620,6 +3623,7 @@ export const ms: Dict = {
   'whatsnew.change.waysIn': 'Satu gambar merentasi seluruh kad menunjukkan setiap jalan sesuatu pautan sampai ke pengumpul pautan, dan klik pada sesuatu jalan membuka tetapannya. Apabila “{rainbow}” dihidupkan, setiap jalan mempunyai warnanya sendiri.',
   'whatsnew.change.dayCurve':
     '“{name}” melukis hari ini sebagai lengkung: had kelajuan yang dirancang sebagai kawasan dan kelajuan yang diukur sebagai garisan.',
+  'whatsnew.change.seedingLine': 'Lengkung kelajuan ada garis kedua untuk apa yang dimuat naik oleh torrent anda semasa melakukan seed.',
   'whatsnew.change.ruleSwitch': 'Peraturan dilukis sebagai laluan yang diambil oleh satu pautan contoh melaluinya: peraturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.captchaChain': 'Sebuah gambar menunjukkan kepada siapa captcha pergi: kepada anda dahulu, kemudian kepada akaun captcha mengikut susunan anda.',
   'whatsnew.change.trackMerge': '“{name}” melukis merentasi seluruh kad apa yang masuk ke dalam fail video dengan tetapan semasa, dan mengikut suis di bawahnya. Apabila “{rainbow}” dihidupkan, setiap trek mempunyai warnanya sendiri.',

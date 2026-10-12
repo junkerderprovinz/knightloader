@@ -2519,6 +2519,9 @@ export const id: Dict = {
   'overview.speedWindow': 'Rentang waktu kurva',
   'overview.speedWindow.minute': 'Semenit terakhir',
   'overview.speedWindow.hour': 'Sejam terakhir',
+  'speed.legend.download': 'Unduhan',
+  'speed.legend.seeding': 'Seeding',
+  'speed.legend.hint': 'Garis abu-abu menunjukkan apa yang diunggah torrent kamu ke orang lain saat sedang diunduh atau melakukan seed. Garis ini hanya muncul saat ada yang keluar. KnightLoader mencatatnya persis seperti kurva unduhan, jadi memulai ulang juga menghapusnya.',
   'overview.speedGraphHint': 'Instans merekam kurva ini sendiri: satu nilai per detik untuk dua menit terakhir, satu setiap sepuluh detik untuk sejam terakhir. Karena itu, setelah halaman dimuat ulang kurvanya sudah terisi, bukan mulai datar. Rekamannya hanya ada di memori: kalau kamu memulai ulang KnightLoader, rekamannya kosong, kurvanya mulai lagi sebagai garis datar dan terisi seiring berjalannya waktu. Selama batas kecepatan berlaku, sebuah garis merah menandainya, dengan nilainya di kiri. Jika batasnya jauh di atas kecepatan saat ini, garisnya putus-putus dan tetap di tepi atas, supaya unduhan yang lambat tidak tergencet rata.',
   'settings.diagnostics.speedSamples': 'Nilai kecepatan yang terekam',
   'settings.diagnostics.speedSamplesHint': 'Dari berapa banyak nilai kurva kecepatan di halaman Ringkasan digambar saat ini, dibandingkan dengan jumlah terbanyak yang disimpannya: pertama rekaman dua menit, lalu rekaman satu jam. Kalau keduanya nol, tidak ada yang merekam, dan kurva di Ringkasan akan tetap datar sampai itu dibetulkan. Setelah setiap mulai ulang rekamannya dimulai kosong, dan tidak pernah ditulis ke disk.',
@@ -3620,6 +3623,7 @@ export const id: Dict = {
   'whatsnew.change.waysIn': 'Sebuah gambar yang melintasi seluruh kartu menunjukkan setiap jalan sebuah tautan sampai ke pengumpul tautan, dan klik pada sebuah jalan membuka pengaturannya. Saat “{rainbow}” aktif, setiap jalan punya warnanya sendiri.',
   'whatsnew.change.dayCurve':
     '“{name}” menggambar hari ini sebagai kurva: batas kecepatan yang direncanakan sebagai bidang dan kecepatan terukur sebagai garis.',
+  'whatsnew.change.seedingLine': 'Kurva kecepatan punya garis kedua untuk apa yang diunggah torrent kamu saat melakukan seed.',
   'whatsnew.change.ruleSwitch': 'Aturan digambar sebagai jalan yang ditempuh sebuah tautan contoh melewatinya: aturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.captchaChain': 'Sebuah gambar menunjukkan kepada siapa captcha pergi: kepadamu dulu, lalu ke akun captcha sesuai urutanmu.',
   'whatsnew.change.trackMerge': '“{name}” menggambar di seluruh kartu apa yang masuk ke berkas video dengan pengaturan saat ini, dan mengikuti sakelar di bawahnya. Saat “{rainbow}” aktif, setiap trek punya warnanya sendiri.',

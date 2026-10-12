@@ -2533,6 +2533,9 @@ export const hr: Dict = {
   'overview.speedWindow': 'Vremenski okvir krivulje',
   'overview.speedWindow.minute': 'Posljednja minuta',
   'overview.speedWindow.hour': 'Posljednji sat',
+  'speed.legend.download': 'Preuzimanje',
+  'speed.legend.seeding': 'Seedanje',
+  'speed.legend.hint': 'Siva crta pokazuje što tvoji torrenti šalju drugima dok se preuzimaju ili seedaju. Pojavljuje se samo dok nešto odlazi. KnightLoader je bilježi baš kao krivulju preuzimanja, pa je ponovno pokretanje također briše.',
   'overview.speedGraphHint': 'Instanca ovu krivulju bilježi sama: jedno mjerenje u sekundi za posljednje dvije minute, jedno svakih deset sekundi za posljednji sat. Zato je nakon ponovnog učitavanja stranice već popunjena, umjesto da počinje ravno. Zapis stoji samo u radnoj memoriji: pokreneš li KnightLoader ponovno, prazan je, krivulja opet počinje kao ravna crta i puni se tijekom rada. Dok vrijedi ograničenje brzine, crvena crta ga označava, s vrijednošću lijevo. Ako je ograničenje daleko iznad trenutne brzine, crta je isprekidana i ostaje uz gornji rub, da se sporo preuzimanje ne spljošti.',
   'settings.diagnostics.speedSamples': 'Zabilježena mjerenja brzine',
   'settings.diagnostics.speedSamplesHint': 'Iz koliko se mjerenja krivulja brzine na Pregledu upravo crta, u odnosu na ono što najviše zadržava: prvo zapis preko dvije minute, pa onaj preko jednog sata. Stoji li kod oboje nula, ništa ne bilježi, i krivulja na Pregledu ostaje ravna dok se to ne popravi. Nakon svakog ponovnog pokretanja zapis počinje prazan, a na disk se nikad ne zapisuje.',
@@ -3634,6 +3637,7 @@ export const hr: Dict = {
   'whatsnew.change.waysIn': 'Slika preko cijele kartice prikazuje svaki put kojim poveznica stiže u sakupljač poveznica, a klik na put otvara njegovu postavku. Kad je uključen „{rainbow}”, svaki put ima svoju boju.',
   'whatsnew.change.dayCurve':
     '„{name}” crta današnji dan kao krivulju: planirano ograničenje brzine kao površinu i izmjerenu brzinu kao liniju.',
+  'whatsnew.change.seedingLine': 'Krivulja brzine ima drugu crtu za ono što tvoji torrenti šalju dok seedaju.',
   'whatsnew.change.ruleSwitch': 'Pravila su nacrtana kao put kojim primjer poveznice prolazi kroz njih: koje ga pravilo hvata i gdje završava.',
   'whatsnew.change.captchaChain': 'Slika pokazuje komu captcha ide: najprije tebi, zatim računima captche tvojim redoslijedom.',
   'whatsnew.change.trackMerge': '„{name}” crta preko cijele kartice što s trenutačnim postavkama završava u videodatoteci i prati prekidače ispod. Kad je uključen „{rainbow}”, svaka traka ima svoju boju.',

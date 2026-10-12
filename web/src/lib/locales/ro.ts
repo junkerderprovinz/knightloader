@@ -2527,6 +2527,9 @@ export const ro: Dict = {
   'overview.speedWindow': 'Fereastra de timp a curbei',
   'overview.speedWindow.minute': 'Ultimul minut',
   'overview.speedWindow.hour': 'Ultima oră',
+  'speed.legend.download': 'Descărcare',
+  'speed.legend.seeding': 'Seed',
+  'speed.legend.hint': 'Linia gri arată ce încarcă torrentele tale către alții în timp ce se descarcă sau fac seed. Apare doar cât timp iese ceva. KnightLoader o înregistrează exact ca pe curba de descărcare, așa că o repornire o șterge și pe ea.',
   'overview.speedGraphHint': 'Instanța înregistrează singură această curbă: o valoare pe secundă pentru ultimele două minute, una la fiecare zece secunde pentru ultima oră. De aceea, după reîncărcarea paginii, curba este deja plină, în loc să înceapă plată. Înregistrarea stă doar în memorie: dacă repornești KnightLoader, ea rămâne goală, curba începe din nou ca o linie plată și se umple pe parcurs. Cât timp se aplică o limită de viteză, o linie roșie o marchează, cu valoarea în stânga. Dacă limita e mult peste viteza curentă, linia e punctată și rămâne la marginea de sus, ca o descărcare lentă să nu fie turtită.',
   'settings.diagnostics.speedSamples': 'Valori de viteză înregistrate',
   'settings.diagnostics.speedSamplesHint': 'Din câte valori este desenată chiar acum curba de viteză din pagina Prezentare, raportat la cât păstrează cel mult: mai întâi înregistrarea pe două minute, apoi cea pe o oră. Zero la amândouă înseamnă că nu înregistrează nimic, iar curba din Prezentare rămâne plată până când asta se rezolvă. După fiecare repornire, înregistrarea începe goală, iar pe disc nu se scrie niciodată.',
@@ -3629,6 +3632,7 @@ export const ro: Dict = {
   'whatsnew.change.waysIn': 'O imagine pe toată cartela arată fiecare cale prin care un link ajunge în colectorul de linkuri, iar un clic pe o cale îi deschide setarea. Când „{rainbow}” e pornit, fiecare cale are culoarea ei.',
   'whatsnew.change.dayCurve':
     '„{name}” desenează ziua de azi ca o curbă: limita de viteză planificată ca o suprafață și viteza măsurată ca o linie.',
+  'whatsnew.change.seedingLine': 'Curba de viteză are o a doua linie pentru ce încarcă torrentele tale cât timp fac seed.',
   'whatsnew.change.ruleSwitch': 'Regulile sunt desenate ca drumul pe care un link de exemplu îl face prin ele: ce regulă îl prinde și unde ajunge.',
   'whatsnew.change.captchaChain': 'O imagine arată la cine ajunge un captcha: întâi la tine, apoi la conturile de captcha în ordinea ta.',
   'whatsnew.change.trackMerge': '„{name}” desenează pe toată cartela ce ajunge într-un fișier video cu setările actuale și urmează comutatoarele de dedesubt. Când „{rainbow}” e pornit, fiecare pistă are culoarea ei.',

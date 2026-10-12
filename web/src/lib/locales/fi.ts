@@ -2520,6 +2520,9 @@ export const fi: Dict = {
   'overview.speedWindow': 'Käyrän aikaikkuna',
   'overview.speedWindow.minute': 'Viimeinen minuutti',
   'overview.speedWindow.hour': 'Viimeinen tunti',
+  'speed.legend.download': 'Lataus',
+  'speed.legend.seeding': 'Jakaminen',
+  'speed.legend.hint': 'Harmaa viiva näyttää, mitä torrenttisi lähettävät muille, kun niitä ladataan tai ne jakavat. Se näkyy vain, kun jotain lähtee. KnightLoader tallentaa sen samoin kuin latauskäyrän, joten uudelleenkäynnistys tyhjentää senkin.',
   'overview.speedGraphHint': 'Instanssi tallentaa tämän käyrän itse: yksi mittausarvo sekunnissa viimeisten kahden minuutin ajalta, yksi kymmenen sekunnin välein viimeisen tunnin ajalta. Siksi se on sivun uudelleenlatauksen jälkeen jo täynnä sen sijaan, että alkaisi tasaisena. Tallenne on vain keskusmuistissa: kun KnightLoader käynnistetään uudelleen, tallenne on tyhjä, käyrä alkaa taas suorana viivana ja täyttyy sitä mukaa kuin aikaa kuluu. Kun nopeusrajoitus on voimassa, punainen viiva merkitsee sen ja arvo näkyy vasemmalla. Jos rajoitus on paljon nykyistä nopeutta korkeammalla, viiva on katkoviiva ja pysyy yläreunassa, jotta hidas lataus ei litisty tasaiseksi.',
   'settings.diagnostics.speedSamples': 'Tallennetut nopeusarvot',
   'settings.diagnostics.speedSamplesHint': 'Kuinka monesta mittausarvosta Yleiskatsauksen nopeuskäyrä juuri nyt piirretään, verrattuna siihen mitä se enimmillään säilyttää: ensin kahden minuutin tallenne, sitten tunnin tallenne. Jos molemmissa on nolla, mikään ei tallenna, ja Yleiskatsauksen käyrä pysyy tasaisena, kunnes se on korjattu. Jokaisen uudelleenkäynnistyksen jälkeen tallenne alkaa tyhjänä, eikä sitä koskaan kirjoiteta levylle.',
@@ -3622,6 +3625,7 @@ export const fi: Dict = {
   'whatsnew.change.waysIn': 'Kuva koko kortin poikki näyttää jokaisen tien, jota pitkin linkki pääsee linkkikerääjään, ja tien napsautus avaa sen asetuksen. Kun ”{rainbow}” on päällä, jokaisella tiellä on oma värinsä.',
   'whatsnew.change.dayCurve':
     '”{name}” piirtää tämän päivän käyränä: suunniteltu nopeusrajoitus alueena ja mitattu nopeus viivana.',
+  'whatsnew.change.seedingLine': 'Nopeuskäyrässä on toinen viiva sille, mitä torrenttisi lähettävät jakaessaan.',
   'whatsnew.change.ruleSwitch': 'Säännöt on piirretty reittinä, jonka näytelinkki kulkee niiden läpi: mikä sääntö nappaa sen ja minne se päätyy.',
   'whatsnew.change.captchaChain': 'Kuva näyttää, kenelle captcha menee: ensin sinulle, sitten captcha-tileille järjestyksessäsi.',
   'whatsnew.change.trackMerge': '”{name}” piirtää koko kortin leveydeltä, mitä videotiedostoon päätyy nykyisillä asetuksilla, ja seuraa alla olevia kytkimiä. Kun ”{rainbow}” on päällä, jokaisella raidalla on oma värinsä.',
