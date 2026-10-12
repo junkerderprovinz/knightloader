@@ -382,7 +382,17 @@ export function Resolvers() {
           filename={ytdlp.outputTemplate.trim() || DEFAULT_TEMPLATE}
           split={embed.splitChapters ? t('picture.tracks.perChapter') : undefined}
           sidecar={embed.nfo ? 'nfo' : undefined}
+          apart={embed.separate ? t('picture.tracks.apart') : undefined}
         />
+
+        <div data-new="merge-files">
+          <ToggleRow
+            checked={!embed.separate}
+            onChange={(v) => patchEmbed({ separate: !v })}
+            label={t('settings.resolvers.mergeFiles')}
+            hint={t('settings.resolvers.mergeFilesHint')}
+          />
+        </div>
 
         <ToggleRow
           checked={embed.metadata}

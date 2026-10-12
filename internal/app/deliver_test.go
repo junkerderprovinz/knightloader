@@ -68,6 +68,39 @@ func TestAFinishedDownloadLeavesTheWorkingFolder(t *testing.T) {
 	}
 }
 
+// A video kept apart leaves its audio and subtitles beside it, and they follow
+// it out of the working folder, the task's record with them.
+func TestTheFilesBesideADownloadFollowItOut(t *testing.T) {
+	work := t.TempDir()
+	a, base := newRuleApp(t, func(s *settings.Settings, _ string) {
+		s.Extract, s.VerifyChecksums = false, false
+		s.WorkDir = work
+	})
+	folder := workdir.For(work, base)
+	stagedIn(t, folder, "film.f303.webm", "the picture")
+	audio := stagedIn(t, folder, "film.f251.webm", "the sound")
+	subs := stagedIn(t, folder, "film.de.srt", "1")
+	task := stageDone(t, a, "1", "film.f303.webm")
+	a.mu.Lock()
+	task.WorkFiles = []string{audio, subs}
+	a.mu.Unlock()
+
+	a.deliverDownload("1")
+
+	want := []string{filepath.Join(base, "film.f251.webm"), filepath.Join(base, "film.de.srt")}
+	for _, p := range append([]string{filepath.Join(base, "film.f303.webm")}, want...) {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("%s never reached the destination: %v", p, err)
+		}
+	}
+	if got := liveTask(a, "1").WorkFiles; len(got) != 2 || got[0] != want[0] || got[1] != want[1] {
+		t.Errorf("the task records %q, want %q", got, want)
+	}
+	if !gone(t, folder) {
+		t.Error("the emptied working folder was left behind")
+	}
+}
+
 // engine.Job skips the collision policy when WorkDir is set, so WorkDir must be
 // empty without a working folder, or every download would lose its collision
 // handling.

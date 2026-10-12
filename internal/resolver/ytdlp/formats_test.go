@@ -272,7 +272,7 @@ func TestAnUnresolvedWishFallsBackToTheCap(t *testing.T) {
 	tall, short := container+"[width<=1080][height>1080]", container+"[height<=?1080]"
 	want := "bv" + tall + "+ba[ext=webm]/bv" + short + "+ba[ext=webm]/" +
 		"bv" + tall + "+ba/bv" + short + "+ba/" +
-		"b" + tall + "/b" + short + "/" + capSelector(1080)
+		"b" + tall + "/b" + short + "/" + capChoice(1080).merged()
 	if got != want {
 		t.Errorf("-f =\n  %q\nwant\n  %q", got, want)
 	}
