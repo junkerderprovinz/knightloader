@@ -124,7 +124,7 @@ describe('RelayCard', () => {
   it('offers serving the relay as a route of its own beside the other three', () => {
     draw({});
     const routes = [...host.querySelectorAll('[role="tab"]')].map((b) => b.textContent);
-    expect(routes).toEqual(['Project relay', 'Own relay', 'Serve as relay', 'No relay']);
+    expect(routes).toEqual(['Project relay', 'Own relay', 'Instance as relay', 'No relay']);
     // The two places an own relay comes from hold no switch.
     draw({ relayMode: 'own' }, { mode: 'own' });
     expect(tab('Own relay').getAttribute('aria-selected')).toBe('true');
@@ -133,7 +133,7 @@ describe('RelayCard', () => {
 
   it('shows an instance that serves the relay on that route, with who is connected to it', () => {
     draw({ relayMode: 'own', active: true }, { mode: 'own', serve: true, serveClients: 2, connected: true });
-    expect(tab('Serve as relay').getAttribute('aria-selected')).toBe('true');
+    expect(tab('Instance as relay').getAttribute('aria-selected')).toBe('true');
     expect(host.textContent).toContain('Connected right now: 2');
     expect(host.querySelector<HTMLInputElement>('#relay-address')!.placeholder).toBe('https://knightloader.example.org');
     expect(host.querySelector('[data-testid="own-relay"]')).toBeNull();
@@ -156,15 +156,15 @@ describe('RelayCard', () => {
         </I18nProvider>,
       ),
     );
-    await act(async () => tab('Serve as relay').click());
+    await act(async () => tab('Instance as relay').click());
     expect(sent[sent.length - 1]).toMatchObject({ mode: 'own', serve: true });
-    expect(tab('Serve as relay').getAttribute('aria-selected')).toBe('true');
+    expect(tab('Instance as relay').getAttribute('aria-selected')).toBe('true');
 
     await act(async () => tab('Own relay').click());
     expect(sent[sent.length - 1]).toMatchObject({ mode: 'own', serve: false });
     expect(tab('Own relay').getAttribute('aria-selected')).toBe('true');
 
-    await act(async () => tab('Serve as relay').click());
+    await act(async () => tab('Instance as relay').click());
     await act(async () => tab('Project relay').click());
     expect(sent[sent.length - 1]).toMatchObject({ mode: 'project', serve: false });
   });

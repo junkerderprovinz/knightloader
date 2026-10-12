@@ -289,7 +289,7 @@ export const hu: Dict = {
   'relay.containerCert': 'Saját domainnel maga szerzi be a tanúsítványát.',
   'relay.instanceName': 'KnightLoader-példány',
   'relay.instanceSub': 'Bármelyik kapcsolódó példány betöltheti a relay szerepét, amíg kívülről elérhető.',
-  'relay.serve': 'Szolgáljon relayként',
+  'relay.serve': 'Példány relayként',
   'relay.serveHint': 'Kapcsold be azon a példányon, amelyik kívülről elérhető. Ez ezután a saját címén, a /relay/connect alatt válaszol a csoportod többi példányának.',
   'relay.serveClients': 'Most kapcsolódva: {count}',
   'relay.instanceCert': 'A relay ezután a címén, a /relay/connect alatt fut, ugyanazon fordított proxy és tanúsítvány mögött.',

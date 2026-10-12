@@ -291,7 +291,7 @@ export const he: Dict = {
   'relay.containerCert': 'עם דומיין משלו הוא מביא את האישור שלו בעצמו.',
   'relay.instanceName': 'מופע KnightLoader',
   'relay.instanceSub': 'כל מופע מחובר יכול לשמש כממסר, כל עוד הוא נגיש מבחוץ.',
-  'relay.serve': 'שמש כממסר',
+  'relay.serve': 'מופע כממסר',
   'relay.serveHint': 'הפעל את זה במופע שנגיש מבחוץ. הוא יענה אז למופעים האחרים בקבוצה שלך בכתובת /relay/connect בכתובת שלו עצמו.',
   'relay.serveClients': 'מחוברים כרגע: {count}',
   'relay.instanceCert': 'הממסר פועל אז בכתובת /relay/connect שלו, מאחורי אותו פרוקסי הפוך ואותו אישור.',

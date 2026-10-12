@@ -291,7 +291,7 @@ export const no: Dict = {
   'relay.containerCert': 'Med sitt eget domene henter den sertifikatet sitt selv.',
   'relay.instanceName': 'KnightLoader-instans',
   'relay.instanceSub': 'Enhver tilkoblet instans kan fungere som relay, så lenge den er tilgjengelig utenfra.',
-  'relay.serve': 'Fungere som relay',
+  'relay.serve': 'Instans som relay',
   'relay.serveHint': 'Slå dette på på instansen som er tilgjengelig utenfra. Den svarer da de andre instansene i gruppen din på /relay/connect på sin egen adresse.',
   'relay.serveClients': 'Tilkoblet akkurat nå: {count}',
   'relay.instanceCert': 'Relayet kjører da på /relay/connect på adressen dens, bak samme reverse proxy og sertifikat.',

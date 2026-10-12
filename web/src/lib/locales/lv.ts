@@ -289,7 +289,7 @@ export const lv: Dict = {
   'relay.containerCert': 'Ar savu domēnu tas pats iegūst savu sertifikātu.',
   'relay.instanceName': 'KnightLoader instance',
   'relay.instanceSub': 'Par relay var kalpot jebkura savienota instance, ja vien tā ir sasniedzama no ārpuses.',
-  'relay.serve': 'Kalpot kā relay',
+  'relay.serve': 'Instance kā relay',
   'relay.serveHint': 'Ieslēdziet to instancē, kas sasniedzama no ārpuses. Tā tad atbildēs jūsu grupas pārējām instancēm adresē /relay/connect savā adresē.',
   'relay.serveClients': 'Pašlaik savienotas: {count}',
   'relay.instanceCert': 'Relay tad darbojas adresē /relay/connect tās adresē, aiz tā paša reversā starpniekservera un sertifikāta.',

@@ -289,7 +289,7 @@ export const id: Dict = {
   'relay.containerCert': 'Dengan domain sendiri, ia mengambil sertifikatnya sendiri.',
   'relay.instanceName': 'Instance KnightLoader',
   'relay.instanceSub': 'Instance mana pun yang terhubung dapat berfungsi sebagai relay, selama dapat dijangkau dari luar.',
-  'relay.serve': 'Jadikan sebagai relay',
+  'relay.serve': 'Instance sebagai relay',
   'relay.serveHint': 'Nyalakan ini pada instance yang dapat dijangkau dari luar. Instance itu kemudian menjawab instance lain di grup Anda di /relay/connect pada alamatnya sendiri.',
   'relay.serveClients': 'Terhubung saat ini: {count}',
   'relay.instanceCert': 'Relay kemudian berjalan di /relay/connect pada alamatnya, di belakang reverse proxy dan sertifikat yang sama.',

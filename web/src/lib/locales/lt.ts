@@ -289,7 +289,7 @@ export const lt: Dict = {
   'relay.containerCert': 'Turėdamas savo domeną, jis pats gauna savo sertifikatą.',
   'relay.instanceName': 'KnightLoader egzempliorius',
   'relay.instanceSub': 'Relay vaidmenį gali atlikti bet kuris prijungtas egzempliorius, jei tik jis pasiekiamas iš išorės.',
-  'relay.serve': 'Veikti kaip relay',
+  'relay.serve': 'Egzempliorius kaip relay',
   'relay.serveHint': 'Įjunkite tai egzemplioriuje, kuris pasiekiamas iš išorės. Tada jis atsakys kitiems jūsų grupės egzemplioriams adresu /relay/connect savo pačiame adrese.',
   'relay.serveClients': 'Šiuo metu prisijungę: {count}',
   'relay.instanceCert': 'Tada relay veikia adresu /relay/connect jo adrese, už to paties atvirkštinio tarpinio serverio ir sertifikato.',

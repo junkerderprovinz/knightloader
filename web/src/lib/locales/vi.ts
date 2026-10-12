@@ -289,7 +289,7 @@ export const vi: Dict = {
   'relay.containerCert': 'Với tên miền riêng, nó tự lấy chứng chỉ của mình.',
   'relay.instanceName': 'Phiên bản KnightLoader',
   'relay.instanceSub': 'Bất kỳ phiên bản nào đã kết nối cũng có thể đóng vai trò relay, miễn là có thể truy cập được từ bên ngoài.',
-  'relay.serve': 'Đóng vai trò relay',
+  'relay.serve': 'Phiên bản làm relay',
   'relay.serveHint': 'Bật tính năng này trên phiên bản có thể truy cập từ bên ngoài. Nó sẽ phản hồi các phiên bản khác trong nhóm của bạn tại /relay/connect trên địa chỉ của chính nó.',
   'relay.serveClients': 'Đang kết nối: {count}',
   'relay.instanceCert': 'Sau đó relay chạy tại /relay/connect trên địa chỉ của nó, đứng sau cùng một reverse proxy và chứng chỉ.',

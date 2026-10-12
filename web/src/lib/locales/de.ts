@@ -314,7 +314,7 @@ export const de: Dict = {
   'relay.containerCert': 'Mit eigener Domain holt er sich sein Zertifikat selbst.',
   'relay.instanceName': 'KnightLoader-Instanz',
   'relay.instanceSub': 'Eine beliebige, verbundene Instanz kann als Relay dienen. Diese muss dafür aber von außen erreichbar sein.',
-  'relay.serve': 'Als Relay dienen',
+  'relay.serve': 'Instanz als Relay',
   'relay.serveHint': 'Schalt das auf der Instanz ein, die von außen erreichbar ist. Sie beantwortet dann die anderen Instanzen deiner Gruppe unter /relay/connect an ihrer eigenen Adresse.',
   'relay.serveClients': 'Gerade verbunden: {count}',
   'relay.instanceCert': 'Das Relay läuft dann unter /relay/connect an ihrer Adresse, hinter demselben Reverse Proxy und Zertifikat.',

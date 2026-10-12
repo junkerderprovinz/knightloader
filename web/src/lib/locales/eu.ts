@@ -289,7 +289,7 @@ export const eu: Dict = {
   'relay.containerCert': 'Bere domeinu propioarekin, bere ziurtagiria bakarrik lortzen du.',
   'relay.instanceName': 'KnightLoader instantzia',
   'relay.instanceSub': 'Konektatutako edozein instantziak bitartekari gisa jardun dezake, kanpotik eskuragarri badago.',
-  'relay.serve': 'Bitartekari gisa aritu',
+  'relay.serve': 'Instantzia bitartekari gisa',
   'relay.serveHint': 'Piztu hau kanpotik eskuragarri dagoen instantzian. Ondoren, zure taldeko beste instantziei erantzungo die /relay/connect helbidean, bere helbide propioan.',
   'relay.serveClients': 'Oraintxe konektatuta: {count}',
   'relay.instanceCert': 'Bitartekariak orduan /relay/connect helbidean funtzionatzen du, alderantzizko proxy eta ziurtagiri beraren atzean.',

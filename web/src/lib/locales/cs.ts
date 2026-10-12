@@ -289,7 +289,7 @@ export const cs: Dict = {
   'relay.containerCert': 'S vlastní doménou si sám obstará certifikát.',
   'relay.instanceName': 'Instance KnightLoaderu',
   'relay.instanceSub': 'Jako přeposílač může sloužit libovolná připojená instance, pokud je dostupná zvenčí.',
-  'relay.serve': 'Sloužit jako přeposílač',
+  'relay.serve': 'Instance jako přeposílač',
   'relay.serveHint': 'Zapněte toto na instanci, která je dostupná zvenčí. Ta pak odpovídá ostatním instancím vaší skupiny na /relay/connect na své vlastní adrese.',
   'relay.serveClients': 'Právě připojeno: {count}',
   'relay.instanceCert': 'Přeposílač pak běží na /relay/connect na její adrese, za stejným reverzním proxy a certifikátem.',

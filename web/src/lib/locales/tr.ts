@@ -289,7 +289,7 @@ export const tr: Dict = {
   'relay.containerCert': 'Kendi alan adıyla sertifikasını kendisi alır.',
   'relay.instanceName': 'KnightLoader örneği',
   'relay.instanceSub': 'Bağlı herhangi bir örnek, dışarıdan erişilebilir olduğu sürece röle görevi görebilir.',
-  'relay.serve': 'Röle olarak çalış',
+  'relay.serve': 'Röle olarak örnek',
   'relay.serveHint': 'Bunu dışarıdan erişilebilen örnekte aç. O zaman grubundaki diğer örneklere kendi adresinde /relay/connect üzerinden yanıt verir.',
   'relay.serveClients': 'Şu anda bağlı: {count}',
   'relay.instanceCert': 'Röle daha sonra kendi adresinde, aynı ters proxy ve sertifikanın arkasında /relay/connect üzerinden çalışır.',

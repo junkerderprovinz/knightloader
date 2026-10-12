@@ -289,7 +289,7 @@ export const et: Dict = {
   'relay.containerCert': 'Oma domeeniga hangib see endale ise sertifikaadi.',
   'relay.instanceName': 'KnightLoaderi eksemplar',
   'relay.instanceSub': 'Edastajana võib toimida iga ühendatud eksemplar, kui see on väljastpoolt ligipääsetav.',
-  'relay.serve': 'Tegutse edastajana',
+  'relay.serve': 'Instants edastajana',
   'relay.serveHint': 'Lülita see sisse eksemplaris, mis on väljastpoolt kättesaadav. See vastab siis su grupi teistele eksemplaridele aadressil /relay/connect oma aadressil.',
   'relay.serveClients': 'Praegu ühendatud: {count}',
   'relay.instanceCert': 'Edastaja töötab siis aadressil /relay/connect selle aadressil, sama pöördproksi ja sertifikaadi taga.',

@@ -291,7 +291,7 @@ export const ar: Dict = {
   'relay.containerCert': 'بنطاقه الخاص، يجلب شهادته بنفسه.',
   'relay.instanceName': 'مثيل KnightLoader',
   'relay.instanceSub': 'يمكن لأي مثيل متصل أن يعمل كمُرحِّل، طالما كان قابلاً للوصول من الخارج.',
-  'relay.serve': 'العمل كمُرحِّل',
+  'relay.serve': 'النسخة كمُرحِّل',
   'relay.serveHint': 'فعّل هذا على المثيل الذي يمكن الوصول إليه من الخارج. عندها يستجيب لمثيلات مجموعتك الأخرى عند /relay/connect على عنوانه الخاص.',
   'relay.serveClients': 'المثيلات المتصلة الآن: {count}',
   'relay.instanceCert': 'عندها يعمل المُرحِّل عند /relay/connect على عنوانه، خلف الوكيل العكسي والشهادة نفسيهما.',

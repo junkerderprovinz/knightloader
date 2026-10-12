@@ -289,7 +289,7 @@ export const ko: Dict = {
   'relay.containerCert': '자체 도메인이 있으면 인증서를 스스로 가져옵니다.',
   'relay.instanceName': 'KnightLoader 인스턴스',
   'relay.instanceSub': '연결된 인스턴스는 외부에서 접근 가능하기만 하면 어느 것이든 릴레이 역할을 할 수 있습니다.',
-  'relay.serve': '릴레이 역할 수행',
+  'relay.serve': '인스턴스를 릴레이로',
   'relay.serveHint': '외부에서 접근 가능한 인스턴스에서 이 기능을 켜세요. 그러면 해당 인스턴스가 자신의 주소에서 /relay/connect로 그룹 내 다른 인스턴스에 응답합니다.',
   'relay.serveClients': '현재 연결됨: {count}',
   'relay.instanceCert': '그러면 릴레이는 해당 인스턴스의 주소에서 /relay/connect로, 동일한 리버스 프록시와 인증서 뒤에서 작동합니다.',

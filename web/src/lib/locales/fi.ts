@@ -289,7 +289,7 @@ export const fi: Dict = {
   'relay.containerCert': 'Omalla verkkotunnuksellaan se hakee varmenteensa itse.',
   'relay.instanceName': 'KnightLoader-instanssi',
   'relay.instanceSub': 'Mikä tahansa yhdistetty instanssi voi toimia releenä, kunhan se on tavoitettavissa ulkopuolelta.',
-  'relay.serve': 'Toimi releenä',
+  'relay.serve': 'Instanssi releenä',
   'relay.serveHint': 'Kytke tämä päälle instanssissa, joka on tavoitettavissa ulkopuolelta. Se vastaa sitten ryhmäsi muille instansseille osoitteessa /relay/connect omalla osoitteellaan.',
   'relay.serveClients': 'Yhteydessä juuri nyt: {count}',
   'relay.instanceCert': 'Rele toimii sitten osoitteessa /relay/connect sen osoitteessa, saman käänteisen välityspalvelimen ja varmenteen takana.',

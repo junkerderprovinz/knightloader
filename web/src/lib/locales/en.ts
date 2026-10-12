@@ -337,7 +337,7 @@ export const en = {
   'relay.containerCert': 'With its own domain it fetches its certificate itself.',
   'relay.instanceName': 'KnightLoader instance',
   'relay.instanceSub': 'Any connected instance can serve as the relay, as long as it is reachable from outside.',
-  'relay.serve': 'Serve as relay',
+  'relay.serve': 'Instance as relay',
   'relay.serveHint': 'Switch this on at the instance that is reachable from outside. It then answers the other instances of your group at /relay/connect on its own address.',
   'relay.serveClients': 'Connected right now: {count}',
   'relay.instanceCert': 'The relay then runs at /relay/connect on its address, behind the same reverse proxy and certificate.',

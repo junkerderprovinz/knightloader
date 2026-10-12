@@ -289,7 +289,7 @@ export const fa: Dict = {
   'relay.containerCert': 'با دامنهٔ خودش، خودش گواهی‌اش را می‌گیرد.',
   'relay.instanceName': 'نمونهٔ KnightLoader',
   'relay.instanceSub': 'هر نمونهٔ متصلی می‌تواند نقش رله را بازی کند، به شرط اینکه از بیرون در دسترس باشد.',
-  'relay.serve': 'به‌عنوان رله عمل کن',
+  'relay.serve': 'نمونه به‌عنوان رله',
   'relay.serveHint': 'این را روی نمونه‌ای که از بیرون در دسترس است روشن کن. آن‌وقت به نمونه‌های دیگر گروهت روی /relay/connect، در نشانی خودش، پاسخ می‌دهد.',
   'relay.serveClients': 'همین حالا متصل: {count}',
   'relay.instanceCert': 'رله آن‌وقت روی /relay/connect در نشانی خودش اجرا می‌شود، پشت همان پراکسی معکوس و همان گواهی.',
