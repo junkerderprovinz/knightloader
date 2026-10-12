@@ -219,14 +219,15 @@ export function Resolvers() {
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {qualities.length > 0 && (
-          <Field label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
+          <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Dropdown
               label={t('settings.resolvers.quality')}
               value={ytdlp.quality}
               onChange={(quality) => patchYtdlp({ quality })}
               options={qualities.map((q) => ({ value: q, label: capLabel(q, t) }))}
+              width="widest"
             />
-          </Field>
+          </SettingRow>
         )}
 
         {ytdlp.quality === 'custom' && (

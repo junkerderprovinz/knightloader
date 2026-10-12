@@ -1,8 +1,9 @@
-import { Card, Field, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
 import { fetchOptions } from '../../../lib/api';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 import { label, useTx } from '../tx';
 
 // What becomes of a link that is another copy of a file already in the list.
@@ -21,14 +22,15 @@ export function MirrorsCard({ hue }: { hue: number }) {
       {/* Drawn only once the server answered, since dedupe.ParsePolicy
           silently folds an unknown value onto the default. */}
       {policies.length > 0 && (
-        <Field label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
+        <SettingRow label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
           <Dropdown
             label={tx('settings.advanced.mirrorPolicy')}
             value={cfg.mirrorPolicy ?? null}
             onChange={(mirrorPolicy) => patch({ mirrorPolicy })}
             options={policies.map((id) => ({ value: id, label: label(tx, 'settings.advanced.mirror.', id) }))}
+            width="widest"
           />
-        </Field>
+        </SettingRow>
       )}
 
       {/* Not dimmed when the policy is off: it decides what becomes of a
