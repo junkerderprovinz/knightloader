@@ -1793,6 +1793,7 @@ export const ro: Dict = {
   'settings.resolvers.subtitleLangsHint': 'Valoarea proprie --sub-langs a yt-dlp, de ex. en,de. Gol înseamnă en implicit.',
   'settings.resolvers.subtitleAuto': 'Preia și subtitrările generate automat atunci când nu există o pistă manuală',
   'settings.resolvers.outputTitle': 'Nume fișier de ieșire',
+  'settings.resolvers.filesTitle': 'Liste de redare și nume de fișiere',
   'settings.resolvers.outputHint': 'Șablonul propriu -o al yt-dlp. Gol folosește șablonul implicit %(title)s.%(ext)s. Poate include subfoldere, de ex. %(uploader)s/%(title)s.%(ext)s.',
 
   'settings.nav.torrents': 'Torrenturi',
@@ -1900,7 +1901,7 @@ export const ro: Dict = {
   'settings.dialogs.hint': 'Confirmări pe care le-ai dezactivat. Activează una la loc și va întreba din nou.',
 
   'settings.resolvers.variantDefaults': 'Valori implicite pentru variante',
-  'settings.resolvers.presetsHint': 'Fiecare link yt-dlp devine cinci rânduri: video, audio, miniatură, subtitrări și descriere. Acest tabel decide pentru fiecare site pe care dintre ele le arată colectorul și cu ce format și calitate pornesc rândurile video și audio. Dacă dezactivezi o variantă, rândurile ei dispar imediat, inclusiv de la linkurile aflate deja în colector, iar dacă o activezi, revin. După ce un link este verificat, rândurile lui video și audio trec pe pista proprie a linkului care se apropie cel mai mult. Un site fără rând aici primește toate cinci la cea mai bună calitate. Calitatea și formatul audio de mai sus de pe această pagină se aplică doar rândurilor fără o alegere proprie. Rotița de la un pachet din colector deschide aceleași setări pentru hosterul acelui pachet.',
+  'settings.resolvers.presetsHint': 'Fiecare link yt-dlp devine cinci rânduri: video, audio, miniatură, subtitrări și descriere. Această listă decide pentru fiecare site pe care dintre ele le arată colectorul și cu ce format și calitate pornesc rândurile video și audio. Dacă dezactivezi o variantă, rândurile ei dispar imediat, inclusiv de la linkurile aflate deja în colector, iar dacă o activezi, revin. După ce un link este verificat, rândurile lui video și audio trec pe pista proprie a linkului care se apropie cel mai mult. Un site care nu este în această listă primește toate cinci la cea mai bună calitate. Calitatea și formatul audio de mai sus de pe această pagină se aplică doar rândurilor fără o alegere proprie. Rotița de la un pachet din colector deschide aceleași setări pentru hosterul acelui pachet.',
   'settings.module.categories': 'Categorii',
   'settings.module.feeds': 'Abonamente la fluxuri',
   'settings.module.downloadclient': 'Client de descărcare pentru Sonarr și Radarr',
@@ -2003,7 +2004,7 @@ export const ro: Dict = {
 
   'settings.advanced.mirrorsTitle': 'Copii ale aceluiași fișier',
   'settings.advanced.mirrorPolicy': 'Când două linkuri sunt același fișier',
-  'settings.advanced.mirrorPolicyHint': 'Decide care al doilea link este pliat ca fiind o copie a unuia deja aflat în listă. „Niciodată” nu pliază nimic. „Același nume de fișier” prinde aceeași lansare lipită de la cinci hosteri chiar și când aceștia nu se înțeleg asupra dimensiunii, dar contopește și două fișiere fără nicio legătură, amândouă numite setup.exe. „Același nume și aceeași dimensiune”, valoarea implicită, are nevoie ca amândouă să corespundă, deci un link a cărui dimensiune nu a aflat-o încă nimeni nu este contopit niciodată. „Aceeași sumă de control” pliază doar pe dovadă și ratează aproape tot, fiindcă o sumă de control se cunoaște rareori înainte ca fișierul să fie aici. Aceeași adresă de două ori este refuzată întotdeauna, indiferent ce alegi, iar părțile unei arhive împărțite nu sunt contopite niciodată între ele.',
+  'settings.advanced.mirrorPolicyHint': 'Decide care al doilea link este pliat ca fiind o copie a unuia deja aflat în listă. „Niciodată” nu pliază nimic. „Același nume de fișier” prinde aceeași lansare lipită de la cinci hosteri chiar și când aceștia nu se înțeleg asupra dimensiunii, dar contopește și două fișiere fără nicio legătură, amândouă numite setup.exe. „Aceeași dimensiune” este pentru hosterii care redenumesc ce stochează și contopește oricare două fișiere care se întâmplă să fie exact la fel de mari. „Același nume și aceeași dimensiune”, valoarea implicită, are nevoie ca amândouă să corespundă, deci un link a cărui dimensiune nu a aflat-o încă nimeni nu este contopit niciodată. „Același nume sau aceeași sumă de control” contopește de îndată ce una dintre cele două se potrivește. „Aceeași sumă de control” pliază doar pe dovadă și ratează aproape tot, fiindcă o sumă de control se cunoaște rareori înainte ca fișierul să fie aici. Aceeași adresă de două ori este refuzată întotdeauna, indiferent ce alegi, iar părțile unei arhive împărțite nu sunt contopite niciodată între ele.',
   'settings.advanced.mirror.off': 'Niciodată',
   'settings.advanced.mirror.filename-only': 'Același nume de fișier',
   'settings.advanced.mirror.size-only': 'Aceeași dimensiune',

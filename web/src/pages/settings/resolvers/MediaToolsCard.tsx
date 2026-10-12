@@ -36,7 +36,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
       >
         {t('settings.resolvers.toolsTitle')}
       </SectionTitle>
-      <ModuleToggle id="ytdlp" />
+      <ModuleToggle id="ytdlp" hint={t('settings.resolvers.about')} />
 
       <div className="glim-well p-0">
         <ul className="flex flex-col">
