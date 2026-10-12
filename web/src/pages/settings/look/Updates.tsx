@@ -12,29 +12,37 @@ import {
 import {
   fetchDeploymentInfo,
   fetchHealth,
+  fetchJDStatus,
   fetchMediaTools,
   fetchUpdateCheck,
   fetchYtdlpLatest,
   revertYtdlp,
   updateYtdlp,
+  type BuiltModule,
+  type DeploymentInfo,
+  type JDStatus,
   type MediaToolsStatus,
   type UpdateCheck,
   type YtdlpLatest,
 } from '../../../lib/api';
 import { IconCheck, IconClose, IconDownload, IconRefresh } from '../../../lib/icons';
-import { useT } from '../../../lib/i18n';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
-import { SubHead } from '../controls';
 
-// Every update in one card: KnightLoader's own and yt-dlp's, each with its
-// version, the same two switches under the same names and a check button that
-// shows its answer on itself. yt-dlp is the one program outside the build that
-// moves faster than KnightLoader's releases, which is why it is here at all.
+// Every tool KnightLoader brings, one row each with its version and where it
+// comes from, and the updates of the two it can update: itself and yt-dlp,
+// each with the same two switches under the same names and a check button
+// that shows its answer on itself. yt-dlp is the one program outside the build
+// that moves faster than KnightLoader's releases, which is why it is updated
+// here at all. The rest come with the image, the computer or the build, or
+// update themselves.
+
+type Translate = ReturnType<typeof useT>['t'];
 
 type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
 /** The check button's face for an answer that has come back, or for none yet. */
-function checkFace(t: ReturnType<typeof useT>['t'], checked: boolean | null, newer: boolean, known = true): Face {
+function checkFace(t: Translate, checked: boolean | null, newer: boolean, known = true): Face {
   if (checked === null || !known) return { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> };
   if (!checked) return { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' };
   if (newer) return { label: t('settings.info.updatesFound', { n: 1 }), icon: <IconDownload />, verdict: 'warn' };
@@ -75,26 +83,74 @@ function CheckButton({
   );
 }
 
-/** Version is a component's number at the end of its heading. */
-function Version({ children }: { children: ReactNode }) {
+/**
+ * ToolRow is one tool: its name and what it does, its version and where it
+ * comes from, in columns every row of the card shares. `children` are the
+ * update controls of a tool KnightLoader updates.
+ */
+function ToolRow({
+  name,
+  sub,
+  version,
+  source,
+  children,
+}: {
+  name: string;
+  sub?: string;
+  version: ReactNode;
+  source: string;
+  children?: ReactNode;
+}) {
   return (
-    <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
+    <section className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_15rem]">
+        <span className="flex min-w-0 flex-col">
+          <h3 className="text-sm text-carbon-text">{name}</h3>
+          {sub && <span className="text-subline text-carbon-textMuted">{sub}</span>}
+        </span>
+        <span dir="ltr" className="glim-num truncate text-end text-sm text-carbon-textSub @xl:text-start">
+          {version}
+        </span>
+        <span className="col-span-2 text-subline text-carbon-textMuted @xl:col-span-1">{source}</span>
+      </div>
       {children}
-    </span>
+    </section>
   );
 }
 
+/** Where a program on the server's path comes from: the image in a container, the computer otherwise. */
+const hostSource = (t: Translate, deployment: string) =>
+  t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
+
 /**
- * UpdatesCard holds every update: KnightLoader's, then yt-dlp's. `children`
- * is a further group of the card, such as quit and restart.
+ * UpdatesCard lists every tool, with the updates of KnightLoader and yt-dlp
+ * under their rows. `children` is a further group of the card, such as quit
+ * and restart.
  */
 export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
+  const [deployment, setDeployment] = useState<DeploymentInfo | null>(null);
+
+  useEffect(() => {
+    void fetchDeploymentInfo()
+      .then(setDeployment)
+      .catch(() => {});
+  }, []);
+
   return (
     <Card hue={hue} data-new="updates-card" className="flex flex-col gap-6">
       <SectionTitle hint={t('settings.look.updatesHint')}>{t('settings.look.updatesTitle')}</SectionTitle>
-      <AppUpdates />
-      <YtdlpUpdates />
+      {/* Wait for the deployment rather than flash the wrong copy. */}
+      {deployment && (
+        <div className="@container flex flex-col divide-y divide-carbon-border/40">
+          <AppUpdates deployment={deployment.deployment} />
+          <MediaTools deployment={deployment.deployment} />
+          <JDRow />
+          {(deployment.engines ?? []).map((m) => (
+            <EngineRow key={m.path} module={m} />
+          ))}
+        </div>
+      )}
       {children}
     </Card>
   );
@@ -107,10 +163,9 @@ export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNo
  * background (desktop/updates.go), and a check there also tells whether a
  * downloaded version waits for the next start.
  */
-function AppUpdates() {
+function AppUpdates({ deployment }: { deployment: string }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  const [deployment, setDeployment] = useState<string | null>(null);
   const [version, setVersion] = useState('');
   const [check, setCheck] = useState<UpdateCheck | null>(null);
   const [checking, setChecking] = useState(false);
@@ -118,9 +173,6 @@ function AppUpdates() {
   const [shake, setShake] = useState(0);
 
   useEffect(() => {
-    void fetchDeploymentInfo()
-      .then((d) => setDeployment(d.deployment))
-      .catch(() => {});
     void fetchHealth()
       .then((h) => setVersion(h.version))
       .catch(() => {});
@@ -146,19 +198,17 @@ function AppUpdates() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [deployment, cfg.autoUpdateCheck]);
 
-  // Wait for the deployment rather than flash the wrong copy.
-  if (deployment === null) return null;
   const isDesktop = deployment === 'desktop';
   const ready = check?.ready;
   const available = !!check?.checked && check.available;
   const face = checkFace(t, check ? check.checked : null, available);
 
   return (
-    <section className="flex flex-col gap-3">
-      <SubHead
-        label="KnightLoader"
-        right={<Version>{!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}</Version>}
-      />
+    <ToolRow
+      name="KnightLoader"
+      version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}
+      source={t('settings.look.toolsSource.release')}
+    >
       {!isDesktop && (
         <ToggleRow
           label={t('settings.look.updatesAuto')}
@@ -192,7 +242,7 @@ function AppUpdates() {
       <div className="flex justify-end">
         <CheckButton face={face} checking={checking} shake={shake} onCheck={() => void onCheck()} />
       </div>
-    </section>
+    </ToolRow>
   );
 }
 
@@ -222,13 +272,13 @@ function compareVersions(a: string, b: string): number | null {
 const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '');
 
 /**
- * YtdlpUpdates fetches a newer yt-dlp than the image carries when a site
- * breaks between image builds, by a button press or once a day while
- * ytdlpAutoUpdate is on. With the daily update off a fetched copy never moves
- * again, so the group warns when it has fallen behind the image's own
- * (Status.shadowed).
+ * MediaTools are the programs a media download runs. yt-dlp's row fetches a
+ * newer yt-dlp than the image carries when a site breaks between image
+ * builds, by a button press or once a day while ytdlpAutoUpdate is on. With
+ * the daily update off a fetched copy never moves again, so the row warns when
+ * it has fallen behind the image's own (Status.shadowed).
  */
-function YtdlpUpdates() {
+function MediaTools({ deployment }: { deployment: string }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -333,87 +383,162 @@ function YtdlpUpdates() {
   // An order the server could not tell stays without a colour.
   const face = checkFace(t, latest ? latest.checked : null, latest?.compare === 'newer', latest?.compare !== 'unknown');
 
+  const found = (tool?: { found: boolean; version?: string }) =>
+    tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
+
   return (
-    <section className="flex flex-col gap-3">
-      <SubHead
-        label="yt-dlp"
-        right={tools && <Version>{ytdlp?.found ? ytdlp.version : t('settings.resolvers.toolsNotFound')}</Version>}
-      />
-
-      {managedRunning && shadowed && !managedIsOlder && (
-        <p className="text-xs text-carbon-textSub">
-          {t('settings.resolvers.toolsShadowed', {
-            path: shadowed.path ?? '',
-            version: shadowed.version || t('settings.resolvers.toolsNotFound'),
-          })}
-        </p>
-      )}
-      {managedIsOlder && (
-        <p className="text-xs text-statusWarn">
-          {t('settings.resolvers.toolsShadowedOlder', {
-            current: ytdlp?.version ?? '',
-            system: shadowed?.version ?? '',
-            path: shadowed?.path ?? '',
-          })}
-        </p>
-      )}
-      {managedBroken && (
-        <p className="text-xs text-statusWarn">
-          {t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' })}
-        </p>
-      )}
-
-      <ToggleRow
-        checked={cfg.ytdlpVersionCheck}
-        onChange={(v) => patch({ ytdlpVersionCheck: v })}
-        label={t('settings.look.updatesAuto')}
-        hint={t('settings.resolvers.toolsAutoCheckHint')}
-      />
-      <ToggleRow
-        checked={cfg.ytdlpAutoUpdate}
-        onChange={(v) => patch({ ytdlpAutoUpdate: v })}
-        label={t('settings.look.updatesAutoUpdate')}
-        hint={t('settings.resolvers.toolsAutoUpdateHint')}
-      />
-
-      {/* FieldGroup, because a label would pass clicks to the first button. */}
-      <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
-        {/* What the last action came to, above the buttons until the next one.
-            The fetch came after the check, so its outcome wins. */}
-        {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
-        {!failed && fetched && (
-          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
+    <>
+      <ToolRow
+        name="yt-dlp"
+        sub={t('settings.info.ytdlpSub')}
+        version={found(ytdlp)}
+        source={managedRunning ? t('settings.look.toolsSource.fetched') : hostSource(t, deployment)}
+      >
+        {managedRunning && shadowed && !managedIsOlder && (
+          <p className="text-xs text-carbon-textSub">
+            {t('settings.resolvers.toolsShadowed', {
+              path: shadowed.path ?? '',
+              version: shadowed.version || t('settings.resolvers.toolsNotFound'),
+            })}
+          </p>
         )}
-        {!failed && !fetched && reverted && (
-          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
+        {managedIsOlder && (
+          <p className="text-xs text-statusWarn">
+            {t('settings.resolvers.toolsShadowedOlder', {
+              current: ytdlp?.version ?? '',
+              system: shadowed?.version ?? '',
+              path: shadowed?.path ?? '',
+            })}
+          </p>
         )}
-        {!failed && !fetched && !reverted && latest && (
-          <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
+        {managedBroken && (
+          <p className="text-xs text-statusWarn">
+            {t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' })}
+          </p>
         )}
 
-        {/* Revert, check, fetch: the forward action sits last. The JSX order
-            sets it, so the row mirrors in right-to-left languages. */}
-        <div className="flex flex-wrap items-center justify-end gap-3">
-          {managed && (
-            <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
-              {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
-            </Button>
+        <ToggleRow
+          checked={cfg.ytdlpVersionCheck}
+          onChange={(v) => patch({ ytdlpVersionCheck: v })}
+          label={t('settings.look.updatesAuto')}
+          hint={t('settings.resolvers.toolsAutoCheckHint')}
+        />
+        <ToggleRow
+          checked={cfg.ytdlpAutoUpdate}
+          onChange={(v) => patch({ ytdlpAutoUpdate: v })}
+          label={t('settings.look.updatesAutoUpdate')}
+          hint={t('settings.resolvers.toolsAutoUpdateHint')}
+        />
+
+        {/* FieldGroup, because a label would pass clicks to the first button. */}
+        <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
+          {/* What the last action came to, above the buttons until the next one.
+              The fetch came after the check, so its outcome wins. */}
+          {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
+          {!failed && fetched && (
+            <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
           )}
-          <CheckButton face={face} checking={checking} disabled={busy} shake={shake} onCheck={() => void onCheck()} />
-          {/* Only after a check found a tag, so nobody fetches a version they
-              were not shown. */}
-          {latest?.checked && latest.tag && (
-            <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
-              {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
-            </Button>
+          {!failed && !fetched && reverted && (
+            <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
           )}
-        </div>
-      </FieldGroup>
-    </section>
+          {!failed && !fetched && !reverted && latest && (
+            <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
+          )}
+
+          {/* Revert, check, fetch: the forward action sits last. The JSX order
+              sets it, so the row mirrors in right-to-left languages. */}
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            {managed && (
+              <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
+                {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
+              </Button>
+            )}
+            <CheckButton face={face} checking={checking} disabled={busy} shake={shake} onCheck={() => void onCheck()} />
+            {/* Only after a check found a tag, so nobody fetches a version they
+                were not shown. */}
+            {latest?.checked && latest.tag && (
+              <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
+                {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
+              </Button>
+            )}
+          </div>
+        </FieldGroup>
+      </ToolRow>
+      <ToolRow
+        name="ffmpeg"
+        sub={t('settings.info.ffmpegSub')}
+        version={found(tools?.ffmpeg)}
+        source={hostSource(t, deployment)}
+      />
+      <ToolRow
+        name="ffprobe"
+        sub={t('settings.look.tool.ffprobe')}
+        version={found(tools?.ffprobe)}
+        source={hostSource(t, deployment)}
+      />
+    </>
   );
 }
 
-function checkLine(t: ReturnType<typeof useT>['t'], latest: YtdlpLatest, current: string): string {
+/** JDRow is the headless JDownloader, which KnightLoader talks to and which updates itself. */
+function JDRow() {
+  const { t } = useT();
+  const [jd, setJd] = useState<JDStatus | null>(null);
+
+  useEffect(() => {
+    void fetchJDStatus()
+      .then(setJd)
+      .catch(() => {});
+  }, []);
+
+  let version: ReactNode = null;
+  if (jd && !jd.configured) version = t('settings.selftest.status.skipped');
+  else if (jd && !jd.reachable) version = t('health.state.failed');
+  else if (jd) version = jd.version;
+  return (
+    <ToolRow
+      name={t('health.part.jd')}
+      sub={t('settings.look.tool.jd')}
+      version={version}
+      source={t('settings.look.toolsSource.self')}
+    />
+  );
+}
+
+const ENGINES: Record<string, { name: string; sub: TranslationKey }> = {
+  'github.com/GopeedLab/gopeed': { name: 'Gopeed', sub: 'settings.look.tool.gopeed' },
+  'github.com/anacrolix/torrent': { name: 'anacrolix/torrent', sub: 'settings.look.tool.torrent' },
+  'github.com/nwaples/rardecode/v2': { name: 'rardecode', sub: 'settings.look.tool.rar' },
+  'github.com/bodgit/sevenzip': { name: 'sevenzip', sub: 'settings.look.tool.sevenzip' },
+  'github.com/dop251/goja': { name: 'goja', sub: 'settings.look.tool.goja' },
+  'modernc.org/sqlite': { name: 'SQLite', sub: 'settings.look.tool.sqlite' },
+};
+
+// A module taken at a commit rather than a release carries a pseudo-version
+// that ends in the commit's hash.
+const PSEUDO = /[-.]\d{14}-([0-9a-f]{12})$/;
+
+/** moduleVersion is a module's version as the card shows it: the release, or the short hash of the commit it was taken at. */
+export function moduleVersion(version: string): string {
+  const commit = PSEUDO.exec(version)?.[1];
+  return commit ? commit.slice(0, 7) : version.replace(/^v/, '');
+}
+
+/** EngineRow is a library built into KnightLoader, which moves with KnightLoader's own updates. */
+function EngineRow({ module: m }: { module: BuiltModule }) {
+  const { t } = useT();
+  const known = ENGINES[m.path];
+  return (
+    <ToolRow
+      name={known?.name ?? m.path}
+      sub={known && t(known.sub)}
+      version={moduleVersion(m.version)}
+      source={t(m.fork ? 'settings.look.toolsSource.fork' : 'settings.look.toolsSource.built')}
+    />
+  );
+}
+
+function checkLine(t: Translate, latest: YtdlpLatest, current: string): string {
   if (!latest.checked) return t('settings.resolvers.toolsCheckFailed', { error: latest.detail ?? '' });
   const tag = latest.tag ?? '';
   switch (latest.compare) {

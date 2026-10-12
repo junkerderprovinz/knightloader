@@ -28,6 +28,7 @@ import {
   type PresetMenus,
 } from '../../components/VariantPicker';
 import { CookieJarsCard } from './resolvers/CookieJars';
+import { fileTracks } from './resolvers/fileTracks';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconTrash } from '../../lib/icons';
 import {
@@ -58,10 +59,9 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
 
 // What buildArgs in internal/resolver/ytdlp falls back to, which no route
 // serves: a video row is merged into mkv unless a row picked its own
-// container, an empty template is this one, and no languages means English.
+// container, and an empty template is this one.
 const MERGED = 'mkv';
 const DEFAULT_TEMPLATE = '%(title)s.%(ext)s';
-const DEFAULT_SUBTITLE_LANGS = 'en';
 
 // ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
@@ -219,14 +219,15 @@ export function Resolvers() {
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {qualities.length > 0 && (
-          <Field label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
+          <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Dropdown
               label={t('settings.resolvers.quality')}
               value={ytdlp.quality}
               onChange={(quality) => patchYtdlp({ quality })}
               options={qualities.map((q) => ({ value: q, label: capLabel(q, t) }))}
+              width="widest"
             />
-          </Field>
+          </SettingRow>
         )}
 
         {ytdlp.quality === 'custom' && (
@@ -296,7 +297,7 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={5} className="flex flex-col gap-5">
+      <Card hue={5} data-new="audio-best" className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
         {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
@@ -315,7 +316,7 @@ export function Resolvers() {
           </SettingRow>
         )}
 
-        {/* "" means no --audio-quality at all. Kept while the format is "best",
+        {/* "" asks for the best quality. Kept while the format is "best",
             since a row can still pick a format that is converted. */}
         {audioBitrates.length > 0 && (
           <SettingRow label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
@@ -357,33 +358,15 @@ export function Resolvers() {
       <Card hue={6} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.resolvers.embedTitle')}</SectionTitle>
 
-        {/* The video row as these settings leave it. A custom selector picks
-            picture and sound alike, and the subtitles join only when the
-            switch below muxes them in. */}
+        {/* The video row as these settings leave it, following the switches
+            below it. */}
         <TrackMerge
           label={t('settings.resolvers.embedTitle')}
-          tracks={[
-            {
-              id: 'video',
-              name: t('columns.variant.video'),
-              value: (ytdlp.quality === 'custom' && ytdlp.customFormat.trim()) || capLabel(ytdlp.quality, t),
-              joins: true,
-            },
-            {
-              id: 'audio',
-              name: t('columns.variant.audio'),
-              value: capLabel(ytdlp.quality === 'custom' ? 'custom' : 'best', t),
-              joins: true,
-            },
-            {
-              id: 'subtitle',
-              name: t('columns.variant.subtitle'),
-              value: embed.subs ? ytdlp.subtitleLangs.trim() || DEFAULT_SUBTITLE_LANGS : t('picture.tracks.apart'),
-              joins: embed.subs,
-            },
-          ]}
+          tracks={fileTracks(ytdlp, t)}
           extension={MERGED}
           filename={ytdlp.outputTemplate.trim() || DEFAULT_TEMPLATE}
+          split={embed.splitChapters ? t('picture.tracks.perChapter') : undefined}
+          sidecar={embed.nfo ? 'nfo' : undefined}
         />
 
         <ToggleRow

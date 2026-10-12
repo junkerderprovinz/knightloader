@@ -77,11 +77,13 @@ describe('a vessel', () => {
     expect(host.querySelector('path[stroke-dasharray="2.5 2.5"]')).toBeNull();
   });
 
-  it("keeps its surface moving through the stylesheet's motion dial rather than a loop of its own", async () => {
+  it("keeps its surface moving through the stylesheet's motion dials rather than a loop of its own", async () => {
     await draw(<Vessel share={0.5} label="Used" />);
-    const surface = host.querySelector('g[clip-path] path')!;
-    expect(surface.getAttribute('class')).toBe('glim-liquid');
-    expect(surface.querySelector('animateTransform')).toBeNull();
+    const rocking = host.querySelector('g[clip-path] .glim-liquid-tilt')!;
+    const layers = [...rocking.querySelectorAll('path')].map((p) => p.getAttribute('class'));
+    // Two waves that drift against each other, so the surface sloshes instead of sliding one way.
+    expect(layers).toEqual(['glim-liquid-back', 'glim-liquid']);
+    expect(rocking.querySelector('animateTransform')).toBeNull();
   });
 });
 

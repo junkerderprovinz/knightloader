@@ -2,7 +2,8 @@
 // gate, and the timing of whatever travels. The pictures are SVG moved with
 // SMIL, so the stylesheet's motion levels cannot reach them and each picture
 // asks here whether it may move.
-import { useLayoutEffect, useRef, useSyncExternalStore, type RefObject } from 'react';
+import { useLayoutEffect, useRef, useState, useSyncExternalStore, type CSSProperties, type RefObject } from 'react';
+import { hueVars } from '../../lib/appearance';
 
 export const INK = 'var(--carbon-text)';
 export const LABEL = 'var(--carbon-text-sub)';
@@ -21,6 +22,16 @@ export const OK = 'var(--status-ok-solid)';
 export const WARN = 'var(--status-warn-solid)';
 export const FAIL = 'var(--status-fail-solid)';
 export const INFO = 'var(--status-info-solid)';
+
+/**
+ * pictureHue gives one figure of a picture a palette position of its own, for
+ * its group's className and style. Under rainbow mode the figure's lines,
+ * packets and rings take that position (.kl-pic-hue in index.css), so the
+ * figures of one picture differ in colour; otherwise it keeps its card's accent.
+ */
+export function pictureHue(i: number): { className: string; style: CSSProperties } {
+  return { className: 'kl-pic-hue', style: hueVars(i) as CSSProperties };
+}
 
 const REDUCED_MOTION = '(prefers-reduced-motion: reduce)';
 
@@ -73,6 +84,26 @@ export function useStage(take = ''): { stage: RefObject<SVGSVGElement | null>; s
     return () => watch.disconnect();
   }, [still, take]);
   return { stage, still };
+}
+
+/**
+ * useRoom is the width of the box a picture stands in, for a picture laid out
+ * at its card's width, one unit to the pixel, so it fills the card without its
+ * words growing with it. It is 0 until the box has been measured.
+ */
+export function useRoom<T extends HTMLElement>(): { box: RefObject<T | null>; room: number } {
+  const box = useRef<T>(null);
+  const [room, setRoom] = useState(0);
+  useLayoutEffect(() => {
+    const el = box.current;
+    if (!el) return;
+    const measure = () => setRoom(el.clientWidth);
+    measure();
+    const watch = new ResizeObserver(measure);
+    watch.observe(el);
+    return () => watch.disconnect();
+  }, []);
+  return { box, room };
 }
 
 const round = (n: number) => Math.round(n * 1000) / 1000;

@@ -209,10 +209,14 @@ func TestBuildArgsVariantAudioHonoursAudioBitrate(t *testing.T) {
 	}
 }
 
-func TestBuildArgsVariantAudioNoBitrateOmitsDashAudioQuality(t *testing.T) {
-	args := buildArgs("d", Options{Variant: VariantAudio})
-	if hasArg(args, "--audio-quality") {
-		t.Errorf("VariantAudio with no AudioBitrate passed --audio-quality, want none: %v", args)
+func TestBuildArgsVariantAudioWithoutBitrateConvertsAtTheBestQuality(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantAudio, AudioFormat: "mp3"})
+	if !hasArg(args, "--audio-format") {
+		t.Fatalf("an mp3 audio row should convert: %v", args)
+	}
+	got, ok := valueAfter(args, "--audio-quality")
+	if !ok || got != "0" {
+		t.Errorf("--audio-quality = %q (found=%v), want %q", got, ok, "0")
 	}
 }
 

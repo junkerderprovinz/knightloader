@@ -40,7 +40,6 @@ import { NeedsCard } from '../components/NeedsCard';
 import { OverviewHero } from '../components/OverviewHero';
 import { TransferFlow } from '../components/pictures/TransferFlow';
 import { PageAction, PageActions } from '../components/PageActions';
-import { useAddLinks } from '../components/AddLinksAction';
 import { Tabs } from '../components/Tabs';
 import { useReorder } from '../components/dragLift';
 import { IconCheck, IconDownload, IconEye, IconEyeOff, IconGrip, IconMoveDown, IconMoveUp, IconPencil } from '../lib/icons';
@@ -100,7 +99,6 @@ export function Dashboard() {
   const [stored, setStored] = useUIState<OverviewLayout | null>('overview.cards', null);
   const layout = useMemo(() => readLayout(stored), [stored]);
   const [editing, setEditing] = useState(false);
-  const addLinks = useAddLinks();
   const grid = useRef<HTMLDivElement>(null);
   const empty = useEmptyCards(grid);
 
@@ -351,9 +349,7 @@ export function Dashboard() {
           data-new="overview-customize"
           onClick={() => setEditing((on) => !on)}
         />
-        {addLinks.action}
       </PageActions>
-      {addLinks.dialog}
     </div>
   );
 }
