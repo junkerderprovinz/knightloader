@@ -20,10 +20,13 @@ import (
 
 const (
 	// maxPinned is how many member keys a group keeps pinned. Past it an
-	// approved key idle for pinIdle makes room for a new one; otherwise the
-	// new one waits until the owner refuses a waiting one on the Pairing card.
-	maxPinned = 64
-	pinIdle   = 30 * 24 * time.Hour
+	// approved device's key idle for pinIdle makes room for a new one;
+	// otherwise the new one waits until the owner takes a device out. Of them
+	// at most maxWaiting wait for approval, so keys anybody holding the words
+	// can make never fill the list and push out a device the owner approved.
+	maxPinned  = 64
+	maxWaiting = 16
+	pinIdle    = 30 * 24 * time.Hour
 	// maxNewPins is how many keys may be pinned within pinWindow, and
 	// maxNewPinsPerSource how many of them may come through one relay
 	// connection or one address on this network. A whole group pins its keys
@@ -201,6 +204,10 @@ func (m *Manager) admit(call relay.ProxyCall, source string, now time.Time) (Cal
 				"this key already speaks for another member of the group")
 		}
 	}
+	if waitingLocked(st) >= maxWaiting {
+		return Caller{}, refuse(http.StatusTooManyRequests, "groupFull",
+			"as many devices as this instance lists already wait for approval; approve or refuse one on the Pairing page first")
+	}
 	idle := ""
 	if len(st.Keys) >= maxPinned {
 		if idle = idlePinLocked(st, now); idle == "" {
@@ -318,13 +325,25 @@ var kindRefusal = refuse(http.StatusForbidden, "memberKind",
 // idlePinLocked is the approved pin nobody used for longest, once nobody used
 // it for pinIdle, so it can make room for a new one; "" when there is none. A
 // pin that waits for approval is never dropped to make room: only the owner
-// refuses it, so no new key pushes a device out of the list it waits on.
+// refuses it, so no new key pushes a device out of the list it waits on. Nor
+// is an instance's, which every answer from that instance is checked against.
 func idlePinLocked(st *GroupState, now time.Time) string {
 	idlest := ""
 	for id, pin := range st.Keys {
-		if pin.Approved && now.Sub(pin.Used) >= pinIdle && (idlest == "" || pin.Used.Before(st.Keys[idlest].Used)) {
+		if pin.Approved && pin.Kind != relay.KindInstance && now.Sub(pin.Used) >= pinIdle && (idlest == "" || pin.Used.Before(st.Keys[idlest].Used)) {
 			idlest = id
 		}
 	}
 	return idlest
+}
+
+// waitingLocked counts the pins that wait for approval.
+func waitingLocked(st *GroupState) int {
+	n := 0
+	for _, pin := range st.Keys {
+		if !pin.Approved {
+			n++
+		}
+	}
+	return n
 }

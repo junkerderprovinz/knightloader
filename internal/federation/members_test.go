@@ -270,26 +270,31 @@ func TestOneSenderCannotUseUpTheHourForTheOthers(t *testing.T) {
 	}
 }
 
-// TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey: keys made to fill the
-// group wait for the owner to refuse them. None of them pushes out another
-// device, waiting or approved, and only an approved key nobody used for
-// pinIdle makes room for a new one.
+// fillApproved pins approved phone keys, each used now, until the group holds
+// maxPinned.
+func fillApproved(m *Manager) {
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	for i := 0; len(m.group.state.Keys) < maxPinned; i++ {
+		key := memberKeyOf(byte(100 + i)).Public().(ed25519.PublicKey)
+		m.group.state.Keys[relay.MemberID(relay.KindMobile, key)] = PinnedKey{Key: key, Kind: relay.KindMobile, Approved: true, Used: time.Now()}
+	}
+}
+
+// TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey: in a group full of devices
+// the owner approved, a new key pushes out none of them, nor a device that
+// waits, until an approved device's key nobody used for pinIdle makes room.
 func TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey(t *testing.T) {
 	m, serve := guarded(t)
 	real := memberKeyOf(11)
 	realID := letIn(t, m, serve, real, relay.KindMobile)
 	waiting := memberKeyOf(12)
 	serve(context.Background(), callAs(waiting, relay.KindMobile))
-	m.group.mu.Lock()
-	for i := len(m.group.state.Keys); i < maxPinned; i++ {
-		key := memberKeyOf(byte(100 + i)).Public().(ed25519.PublicKey)
-		m.group.state.Keys[relay.MemberID(relay.KindMobile, key)] = PinnedKey{Key: key, Kind: relay.KindMobile, Used: time.Now()}
-	}
-	m.group.mu.Unlock()
+	fillApproved(m)
 
 	late := memberKeyOf(250)
 	if status, body := serve(context.Background(), callAs(late, relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
-		t.Fatalf("a new key in a group full of waiting ones = %d %s, want 429 groupFull", status, body)
+		t.Fatalf("a new key in a full group = %d %s, want 429 groupFull", status, body)
 	}
 	if status, body := serve(context.Background(), callAs(waiting, relay.KindMobile)); codeOf(body) != "memberPending" {
 		t.Errorf("the device that waited before the group filled = %d %s, want it still waiting", status, body)
@@ -308,11 +313,74 @@ func TestAFullGroupMakesRoomOnlyWithAnIdleApprovedKey(t *testing.T) {
 	}
 }
 
+// TestWaitingKeysNeverFillTheGroup: whoever holds the words makes keys that
+// wait for approval. Past maxWaiting of them a new one is refused, however
+// much room the group has, until the owner refuses one.
+func TestWaitingKeysNeverFillTheGroup(t *testing.T) {
+	m, serve := guarded(t)
+	for n := range maxWaiting {
+		from := relay.WithSource(context.Background(), "relay\x00conn"+strconv.Itoa(n))
+		if _, body := serve(from, callAs(memberKeyOf(byte(n)), relay.KindMobile)); codeOf(body) != "memberPending" {
+			t.Fatalf("key %d = %s, want it pinned and waiting", n, body)
+		}
+	}
+	other := relay.WithSource(context.Background(), "relay\x00another")
+	if status, body := serve(other, callAs(memberKeyOf(200), relay.KindMobile)); status != http.StatusTooManyRequests || codeOf(body) != "groupFull" {
+		t.Fatalf("a key past the waiting ones = %d %s, want 429 groupFull", status, body)
+	}
+	if err := m.Refuse(idOf(memberKeyOf(0), relay.KindMobile), time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if _, body := serve(other, callAs(memberKeyOf(200), relay.KindMobile)); codeOf(body) != "memberPending" {
+		t.Errorf("a key once the owner refused a waiting one = %s, want it pinned and waiting", body)
+	}
+}
+
+// TestAnApprovalPassedOnIsNotIdle: a phone approved on another instance is
+// pinned here before it ever calls. That approval counts as use, so a new key
+// in a full group does not push the phone out.
+func TestAnApprovalPassedOnIsNotIdle(t *testing.T) {
+	m, serve := guarded(t)
+	phone := memberKeyOf(11)
+	phoneID := idOf(phone, relay.KindMobile)
+	if _, _, err := m.Approve(phoneID, phone.Public().(ed25519.PublicKey), relay.KindMobile); err != nil {
+		t.Fatal(err)
+	}
+	fillApproved(m)
+	if status, body := serve(context.Background(), callAs(memberKeyOf(250), relay.KindMobile)); codeOf(body) != "groupFull" {
+		t.Errorf("a new key in a full group = %d %s, want 429 groupFull", status, body)
+	}
+	if status, _ := serve(context.Background(), callAs(phone, relay.KindMobile)); status != http.StatusOK {
+		t.Errorf("the phone approved elsewhere = %d, want it served", status)
+	}
+}
+
+// TestAnIdleInstanceIsNeverPushedOut: an instance can stay quiet for a month,
+// and every answer from it is checked against its pinned key, so a new key in
+// a full group never takes its place.
+func TestAnIdleInstanceIsNeverPushedOut(t *testing.T) {
+	m, serve := guarded(t)
+	office := memberKeyOf(12)
+	officeID := letIn(t, m, serve, office, relay.KindInstance)
+	m.group.mu.Lock()
+	pin := m.group.state.Keys[officeID]
+	pin.Used = time.Now().Add(-2 * pinIdle)
+	m.group.state.Keys[officeID] = pin
+	m.group.mu.Unlock()
+	fillApproved(m)
+	if status, body := serve(context.Background(), callAs(memberKeyOf(250), relay.KindMobile)); codeOf(body) != "groupFull" {
+		t.Errorf("a new key in a full group = %d %s, want 429 groupFull", status, body)
+	}
+	if !m.TrustsAnswer(officeID, office.Public().(ed25519.PublicKey)) {
+		t.Error("the idle instance was pushed out of the group")
+	}
+}
+
 // TestAFullHourPushesNoWaitingDeviceOut: whoever holds the words opens one
 // relay connection after another and pins as many keys through each as it
-// may, and keeps on after the owner refused the first lot. A real phone that
-// came before them stays listed for the owner, and new keys wait for the next
-// hour instead of taking its place.
+// may, and keeps on while the owner refuses them. A real phone that came
+// before them stays listed for the owner, and new keys wait for the next hour
+// instead of taking its place.
 func TestAFullHourPushesNoWaitingDeviceOut(t *testing.T) {
 	m, serve := guarded(t)
 	real := memberKeyOf(250)
@@ -326,18 +394,24 @@ func TestAFullHourPushesNoWaitingDeviceOut(t *testing.T) {
 		_, body := serve(from, callAs(memberKeyOf(byte(n)), relay.KindMobile))
 		return body
 	}
+	refuseMinted := func() {
+		for _, p := range m.PendingMembers() {
+			if p.ID != realID {
+				if err := m.Refuse(p.ID, time.Now()); err != nil {
+					t.Fatal(err)
+				}
+			}
+		}
+	}
 	for n := range maxNewPins - 1 {
+		if len(m.PendingMembers()) == maxWaiting {
+			refuseMinted()
+		}
 		if body := mint(n); codeOf(body) != "memberPending" {
 			t.Fatalf("minted key %d = %s, want it pinned while the hour has room", n, body)
 		}
 	}
-	for _, p := range m.PendingMembers() {
-		if p.ID != realID {
-			if err := m.Refuse(p.ID, time.Now()); err != nil {
-				t.Fatal(err)
-			}
-		}
-	}
+	refuseMinted()
 	if body := mint(maxNewPins); codeOf(body) != "groupJoinsBusy" {
 		t.Errorf("a key minted once the hour was used up = %s, want 429 groupJoinsBusy", body)
 	}
