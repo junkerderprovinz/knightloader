@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Outlet, useLocation } from 'react-router-dom';
 import { Sidebar } from '../components/Sidebar';
 import { QueueBar } from '../components/QueueBar';
@@ -13,7 +13,6 @@ import { IdleActionBanner } from '../components/IdleActionBanner';
 import { OnboardingWizard } from '../components/OnboardingWizard';
 import { WhatsNew } from '../components/whatsnew/WhatsNew';
 import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
-import { TransferFlowStrip } from '../components/pictures/TransferFlow';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
@@ -32,7 +31,6 @@ import { setListCards } from '../lib/listCards';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
 import { useTasks } from '../lib/useTasks';
-import { useTransferFlow } from '../lib/useTransferFlow';
 import { useT } from '../lib/i18n';
 
 // Global completion toasts: watch the local task stream and notify when a
@@ -116,26 +114,6 @@ function ShellSpeed({ instance }: { instance: string }) {
 }
 
 /**
- * ShellFlow is the way the running downloads take, as one line under the
- * shell bar's buttons. A component of its own for the reason ShellSpeed is.
- *
- * It takes the room the row of buttons leaves in the card's height and no
- * more. The volume meter needs the same room once a cap is set, and a bar
- * that has wrapped has none, so the line stands back in both cases.
- */
-function ShellFlow({ instance, base }: { instance: string; base: string }) {
-  const { t } = useT();
-  const tasks = useTasks(instance);
-  const list = useMemo(() => Object.values(tasks), [tasks]);
-  const flow = useTransferFlow(list, base, instance === '');
-  return (
-    <span className="-mt-1 hidden sm:[&:not(:has(+*))]:block">
-      <TransferFlowStrip flow={flow} title={t('overview.flow.title')} />
-    </span>
-  );
-}
-
-/**
  * The download page's head card with the transport controls and the speed
  * curve. It sits above the keyed page div, which remounts on navigation, so
  * the controls keep their state; outside Downloads it is hidden rather than
@@ -152,7 +130,7 @@ function ShellFlow({ instance, base }: { instance: string; base: string }) {
  */
 function ShellBar({ visible }: { visible: boolean }) {
   const { t } = useT();
-  const { instance, base } = useInstanceScope();
+  const { instance } = useInstanceScope();
   // The settings and volume routes are not forwarded to peers.
   const local = instance === '';
   return (
@@ -181,8 +159,6 @@ function ShellBar({ visible }: { visible: boolean }) {
           <QueueBar />
           {local && <QuickSettings />}
         </div>
-        {/* Only while the bar is on show, so nothing is polled for a picture nobody sees. */}
-        {visible && <ShellFlow instance={instance} base={base} />}
         {local && <VolumeMeter />}
       </div>
 
