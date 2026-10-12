@@ -367,9 +367,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rainbowRotate',
         'settings.rainbowPaletteLabel',
         'settings.accentReset',
+        'settings.lines.download',
+        'settings.lines.seeding',
       ],
       body: [
         'settings.accentHint',
+        'settings.lines.downloadHint',
+        'settings.lines.seedingHint',
         // The accent's (i) while rainbow mode owns the colours.
         'settings.accentRainbowOwns',
         'settings.rainbowHint',

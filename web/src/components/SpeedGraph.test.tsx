@@ -4,7 +4,8 @@ import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fmtSpeed } from '../lib/format';
-import { ceilingOf, limitMark, meterWindow, Plot, sends, spanLabel, UPLOAD_INK } from './SpeedGraph';
+import { SEEDING_INK } from '../lib/speedLines';
+import { ceilingOf, limitMark, meterWindow, Plot, spanLabel } from './SpeedGraph';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -156,16 +157,22 @@ describe('Plot', () => {
 
   const uploadLine = () => host.querySelector('[data-upload-line]');
 
-  it('draws no upload line while nothing is sent', () => {
+  it('draws the upload line along the ground while nothing is sent', () => {
     draw([MIB, 2 * MIB, 2 * MIB], 0);
-    expect(uploadLine()).toBeNull();
+    expect(uploadLine()!.getAttribute('d')).toMatch(/^M[\d.]+,97\.00C/);
+  });
+
+  it('draws the upload line on an idle box too', () => {
+    draw([0, 0, 0], 0);
+    expect(host.querySelector('.kl-curve-line')).toBeNull();
+    expect(uploadLine()!.getAttribute('stroke')).toBe(SEEDING_INK);
   });
 
   it('draws the upload as a line of its own colour beside the download', () => {
     draw([MIB, 2 * MIB, 2 * MIB], 0, [MIB / 2, MIB / 2, MIB]);
     const line = uploadLine();
     expect(line).not.toBeNull();
-    expect(line!.getAttribute('stroke')).toBe(UPLOAD_INK);
+    expect(line!.getAttribute('stroke')).toBe(SEEDING_INK);
     expect(line!.getAttribute('fill')).toBe('none');
     expect(line!.getAttribute('d')).not.toBe(host.querySelector('.kl-curve-line')!.getAttribute('d'));
   });
@@ -176,11 +183,3 @@ describe('Plot', () => {
   });
 });
 
-describe('sends', () => {
-  const win = (upload: number[]) => ({ samples: upload.map(() => MIB), upload, step: 1, newestAt: 0 });
-
-  it('shows the upload and its legend only for a window that sent something', () => {
-    expect(sends(win([0, 0, 0]))).toBe(false);
-    expect(sends(win([0, 1, 0]))).toBe(true);
-  });
-});

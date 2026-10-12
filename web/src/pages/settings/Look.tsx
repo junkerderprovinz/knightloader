@@ -59,6 +59,7 @@ import {
   stormTap,
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
+import { applySpeedLines, lineColours, linesFromSettings } from '../../lib/speedLines';
 import { useDraft } from './context';
 import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
@@ -103,7 +104,17 @@ function accentSlot(hex: string): number {
 const SLOTS_KEY = 'kl-accent-slots';
 
 /** The appearance fields this page saves on every change. */
-const LOOK_KEYS = ['shape', 'accent', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'] as const;
+const LOOK_KEYS = [
+  'shape',
+  'accent',
+  'rainbow',
+  'rainbowReactive',
+  'rainbowRotate',
+  'rainbowSeed',
+  'rainbowPalette',
+  'downloadLine',
+  'seedingLine',
+] as const;
 
 /** The shape picker's words. Soft's key says what the shape is rather than
  *  repeating the English word, so a translation starts from the meaning. */
@@ -266,6 +277,53 @@ function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onC
 }
 
 /**
+ * LineRow picks the colour of one line of the speed graphs from the accent
+ * circles. A mixed colour is worn by the circle nearest to it, so the row needs
+ * no memory of its own; pressing the chosen circle opens the picker, and the
+ * reset goes back to the default.
+ */
+function LineRow({
+  label,
+  hint,
+  colour,
+  onPick,
+}: {
+  label: string;
+  hint: string;
+  /** The colour the line is drawn in, the default filled in. */
+  colour: string;
+  /** Stores a colour, or '' for the default. */
+  onPick: (hex: string) => void;
+}) {
+  const { t } = useT();
+  const slot = accentSlot(colour);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+        {label}
+        <InfoBubble tip={hint} />
+      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {ACCENTS.map((a, i) => {
+          const shown = i === slot ? colour : a.hex;
+          return (
+            <RingSwatch
+              key={a.hex}
+              color={shown}
+              label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+              selected={i === slot}
+              onPick={() => onPick(shown)}
+              onEdit={(el) => openColorPickerPopover(el, shown, onPick)}
+            />
+          );
+        })}
+        <ResetBadge label={t('settings.accentReset')} onClick={() => onPick('')} />
+      </div>
+    </div>
+  );
+}
+
+/**
  * Which half of the page is drawn: the General tab or the Aussehen tab. One
  * component, because both halves share the draft, the accent memory, the
  * palette and the save error.
@@ -337,6 +395,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
+    applySpeedLines(linesFromSettings(cfg), cfg.accent);
     applyRainbow(rainbow);
     applyDisco(disco);
     applyMotion(motion);
@@ -350,6 +409,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.rainbowSeed,
     // The palette is an array, so the effect depends on its contents.
     cfg.rainbowPalette?.join(),
+    cfg.downloadLine,
+    cfg.seedingLine,
     motion,
     disco,
   ]);
@@ -375,6 +436,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         rainbowRotate: cfg.rainbowRotate,
         rainbowSeed: cfg.rainbowSeed,
         rainbowPalette: cfg.rainbowPalette,
+        downloadLine: cfg.downloadLine,
+        seedingLine: cfg.seedingLine,
       })
         .then(() => toast(t('settings.saved'), 'ok'))
         // Only a toast: the debounced save has no button to shake.
@@ -392,9 +455,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.rainbowRotate,
     cfg.rainbowSeed,
     cfg.rainbowPalette?.join(),
+    cfg.downloadLine,
+    cfg.seedingLine,
   ]);
 
   const accentLive = live(cfg.accent);
+  const lines = lineColours(linesFromSettings(cfg), cfg.accent);
 
   // Mirrored into a ref so each writer sees the last write at once; the picker
   // fires on every drag frame.
@@ -646,6 +712,22 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
               }}
             />
           </div>
+        </div>
+
+        {/* The speed graphs' two lines, each from the same circles. */}
+        <div data-new="line-colours" className="flex flex-col gap-3">
+          <LineRow
+            label={t('settings.lines.download')}
+            hint={t('settings.lines.downloadHint')}
+            colour={lines.download}
+            onPick={(hex) => patch({ downloadLine: hex })}
+          />
+          <LineRow
+            label={t('settings.lines.seeding')}
+            hint={t('settings.lines.seedingHint')}
+            colour={lines.seeding}
+            onPick={(hex) => patch({ seedingLine: hex })}
+          />
         </div>
 
         <div className="flex flex-col gap-3">

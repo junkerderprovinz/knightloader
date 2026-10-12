@@ -12,6 +12,7 @@ import { applyStoredTheme } from './lib/theme';
 import { applyStoredLanguage } from './lib/i18n';
 import { applyCachedAppearance, readCachedDisco } from './lib/appearance';
 import { applyDisco } from './lib/disco';
+import { applyCachedSpeedLines } from './lib/speedLines';
 import { sendApiCallsUnderBase, settleUnderBase, withBase } from './lib/basePath';
 
 // Before anything fetches or routes.
@@ -23,6 +24,7 @@ settleUnderBase();
 applyStoredTheme();
 applyStoredLanguage();
 applyCachedAppearance();
+applyCachedSpeedLines();
 applyDisco(readCachedDisco());
 
 createRoot(document.getElementById('root')!).render(
