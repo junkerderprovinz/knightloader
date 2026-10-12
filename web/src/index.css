@@ -2282,6 +2282,26 @@ body {
   text-overflow: ellipsis;
 }
 
+/* A picker of kinds (KindPicker): the brand tile a size up, with a corner of
+   a card rather than a pill, since a tile this tall reads as a card. */
+.glim-kind-pick {
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 16rem), 1fr));
+  gap: 0.75rem;
+}
+.glim-kind-pick .glim-readme-btn-unit {
+  border-radius: var(--radius-card);
+}
+.glim-kind-pick .glim-readme-btn {
+  height: 4.5rem;
+}
+.glim-kind-pick .glim-readme-btn-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.glim-kind-pick .glim-readme-btn-text {
+  gap: 0.25rem;
+}
+
 .glim-readme-btn-hint {
   position: absolute;
   top: 50%;

@@ -34,10 +34,19 @@ class OffScreen {
 const button = (text: string) =>
   [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
 
-/** addKind presses the floating action and picks a kind from its list. */
+/** The kinds the add window offers, by name, in the order of its tiles. */
+const kindTiles = () =>
+  [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] [data-new="account-kinds"] button')].map(
+    (b) => b.querySelector('.glim-readme-btn-name')!.textContent,
+  );
+
+/** addKind presses the floating action and picks a kind's tile in its window. */
 async function addKind(kind: string) {
   await act(async () => button('Add an account').click());
-  await act(async () => button(kind).click());
+  const tile = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] [data-new="account-kinds"] button')].find(
+    (b) => b.querySelector('.glim-readme-btn-name')!.textContent === kind,
+  )!;
+  await act(async () => tile.click());
 }
 
 beforeEach(() => {
@@ -362,7 +371,7 @@ function stubCatalogue(catalogue: unknown[]) {
 
 const windowTitle = () => document.querySelector('[role="dialog"] h2')?.textContent;
 
-it('adds every kind of account from one floating action, listed in the order of the cards', async () => {
+it('adds every kind of account from one floating action, a tile each in the order of the cards', async () => {
   stubCatalogue(services);
   await act(async () => root.render(page));
 
@@ -371,16 +380,27 @@ it('adds every kind of account from one floating action, listed in the order of 
   expect(adders[0].closest('.glim-card')).toBeNull();
 
   await act(async () => adders[0].click());
-  const kinds = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
-  expect(kinds).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Own server', 'Captcha account']);
+  expect(windowTitle()).toContain('Add an account');
+  expect(kindTiles()).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Own server', 'Captcha account']);
+  // Each tile says in its second line what the kind is for.
+  const server = document.querySelector('[role="dialog"] button[aria-label^="Own server"]')!;
+  expect(server.getAttribute('aria-label')).toBe('Own server FTP, SFTP or WebDAV');
 });
 
 it('offers no own server where the instance has no such service', async () => {
   stubCatalogue(services.filter((s) => s.group !== 'remoteServer'));
   await act(async () => root.render(page));
   await act(async () => button('Add an account').click());
-  const kinds = [...document.querySelectorAll('[role="menu"] [role="menuitem"]')].map((i) => i.textContent);
-  expect(kinds).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Captcha account']);
+  expect(kindTiles()).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Captcha account']);
+});
+
+it('closes the kinds and opens the window of the kind picked', async () => {
+  stubCatalogue(services);
+  await act(async () => root.render(page));
+  await addKind('Captcha account');
+  expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
+  expect(document.querySelector('[data-new="account-kinds"]')).toBeNull();
+  expect(document.querySelector('[data-new="account-picker"]')?.textContent).toContain('CapSolver');
 });
 
 it('opens the list of services for the picked kind, and a new account leads back to it', async () => {
