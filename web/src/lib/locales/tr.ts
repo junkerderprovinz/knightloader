@@ -351,8 +351,6 @@ export const tr: Dict = {
   'settings.lockOn': 'Bir parola ayarlı.',
   'settings.lockOff': 'Parola ayarlanmadı.',
   'settings.lockHint': 'Bu örneğe erişebilen herkese karşı korur: aynı ağda, bir alan adı üzerinden veya bir aktarıcı (relay) üzerinden. Bir kez ayarlandığında, bu örnek açılmadan önce girilmesi gerekir, herkes için, bir sonraki ziyaretinizde siz de dahil. Parola olmadan, adresi bulan herkes her indirmeyi görebilir ve kendi indirmelerini ekleyebilir, duraklatabilir veya silebilir.',
-  'settings.appKeyMissing': 'Uygulama anahtarı ayarlanmadı.',
-  'settings.appKeyMissingHint': 'Uygulama anahtarı olmadan veri klasörünün bir kopyasına sahip olan herkes kayıtlı parolaları okuyabilir ve oturum açabilir. Eklemek için openssl rand -hex 32 komutunu bir kez çalıştırın, sonucu kapsayıcı şablonuna KL_APP_KEY değişkeni olarak girin ve yeniden başlatın. KnightLoader bundan sonra sırlarını bu anahtarla mühürler ve eski dosyaları veri klasöründeki before-app-key klasöründe saklar. KnightLoader bu klasörü hatasız geçen yedi günün ardından kendisi siler. Anahtarı güvenli bir yerde saklayın: o olmadan ne veri klasörü ne de bundan sonra alınan yedekler açılabilir.',
   'settings.appKeyCopies': 'Veri klasöründe uygulama anahtarından önceki dosyaların bir kopyası hâlâ duruyor. KnightLoader bunu {date} sonrasında siler.',
   'settings.passwordCurrent': 'Mevcut parola',
   'settings.passwordNew': 'Yeni parola',
@@ -3655,4 +3653,8 @@ export const tr: Dict = {
   'settings.health.noReason': 'Bu parça bir neden belirtmedi. Tanılama sayfasındaki günlük daha fazlasını söyleyebilir.',
   'settings.health.openLog': 'Günlüğü aç',
   'whatsnew.change.healthReason': '“{name}” içinde arızası olan bir parça nedenini söyler, günlüğe yazıyorsa bir düğme oradaki satırlarını açar.',
+  'settings.appKeyTitle': 'Uygulama anahtarı',
+  'settings.appKeyManual': 'Kılavuzda uygulama anahtarı',
+  'settings.appKeyHint': 'Uygulama anahtarı olmadan da her şey çalışır. Anahtarla KnightLoader kayıtlı parolaları ve anahtarları mühürler, böylece veri klasörünün bir kopyası hiçbir şeyi açmaz. Masaüstü uygulaması kendi anahtarını oluşturur ve bilgisayarın kimlik bilgisi deposunda saklar. Bir kapsayıcıda openssl rand -hex 32 komutunu bir kez çalıştır, sonucu şablona KL_APP_KEY değişkeni olarak koy ve yeniden başlat. Anahtarı güvenli bir yerde sakla: o olmadan ne veri klasörü ne de o andan sonra alınan bir yedek açılabilir.',
+  'whatsnew.change.appKey': '“{name}”, uygulama anahtarını bir (i) arkasında açıklar ve kılavuza giden yolu gösterir. Anahtar olmadan da her şey çalışır.',
 };

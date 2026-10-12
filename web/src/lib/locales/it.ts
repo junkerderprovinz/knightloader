@@ -343,8 +343,6 @@ export const it: Dict = {
   'settings.lockOn': 'La password è impostata.',
   'settings.lockOff': 'Nessuna password impostata.',
   'settings.lockHint': 'Protegge questa istanza da chiunque possa raggiungerla: sulla stessa rete, tramite un dominio o tramite un relay. Una volta impostata, deve essere inserita prima che questa istanza si apra, per chiunque, compreso te stesso alla prossima visita. Senza password, chiunque trovi l\'indirizzo può vedere ogni download e aggiungere, mettere in pausa o eliminare i propri.',
-  'settings.appKeyMissing': 'Nessuna chiave dell’app impostata.',
-  'settings.appKeyMissingHint': 'Senza una chiave dell’app, chiunque abbia una copia della cartella dei dati può leggere le password salvate e accedere. Per aggiungerne una, esegui una volta openssl rand -hex 32, inserisci il risultato nel template del container come variabile KL_APP_KEY e riavvia. KnightLoader sigilla poi i suoi segreti con questa chiave e conserva i vecchi file in una cartella before-app-key dentro la cartella dei dati. KnightLoader elimina da solo quella cartella dopo sette giorni senza errori. Conserva la chiave in un posto sicuro: senza di essa non si possono aprire né la cartella dei dati né i backup creati da quel momento.',
   'settings.appKeyCopies': 'Nella cartella dei dati c’è ancora una copia dei file di prima della chiave dell’app. KnightLoader la elimina dopo il {date}.',
   'settings.passwordCurrent': 'Password attuale',
   'settings.passwordNew': 'Nuova password',
@@ -3640,4 +3638,8 @@ export const it: Dict = {
   'settings.health.noReason': 'Questa parte non dà un motivo. Il registro nella pagina Diagnostica forse dice di più.',
   'settings.health.openLog': 'Apri il registro',
   'whatsnew.change.healthReason': 'Una parte di «{name}» con un guasto dice perché, e dove scrive nel registro un pulsante ne apre le righe lì.',
+  'settings.appKeyTitle': 'Chiave dell’app',
+  'settings.appKeyManual': 'La chiave dell’app nel manuale',
+  'settings.appKeyHint': 'Tutto funziona anche senza chiave dell’app. Con una chiave, KnightLoader sigilla le password e le chiavi salvate, così una copia della cartella dei dati non apre nulla. L’app desktop crea la propria chiave e la tiene nell’archivio credenziali del computer. In un container, esegui una volta openssl rand -hex 32, metti il risultato nel modello come variabile KL_APP_KEY e riavvia. Conserva la chiave in un posto sicuro: senza di essa non si aprono né la cartella dei dati né un backup fatto da allora.',
+  'whatsnew.change.appKey': '«{name}» spiega la chiave dell’app dietro una (i), con la strada per il manuale. Tutto funziona anche senza.',
 };

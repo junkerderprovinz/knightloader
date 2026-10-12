@@ -351,8 +351,6 @@ export const ca: Dict = {
   'settings.lockOn': 'Hi ha una contrasenya definida.',
   'settings.lockOff': 'No hi ha cap contrasenya definida.',
   'settings.lockHint': 'Protegeix aquesta instància de qualsevol que hi pugui accedir: a la mateixa xarxa, mitjançant un domini o mitjançant un relay. Un cop establerta, cal introduir-la abans que aquesta instància s\'obri, per a tothom, inclòs tu mateix la propera vegada. Sense contrasenya, qualsevol que trobi l\'adreça pot veure totes les baixades i afegir, pausar o suprimir les seves.',
-  'settings.appKeyMissing': 'No hi ha cap clau d’aplicació definida.',
-  'settings.appKeyMissingHint': 'Sense una clau d’aplicació, qualsevol persona amb una còpia de la carpeta de dades pot llegir les contrasenyes desades i iniciar la sessió. Per afegir-ne una, executa una vegada openssl rand -hex 32, posa el resultat a la plantilla del contenidor com a variable KL_APP_KEY i reinicia. Aleshores KnightLoader segella els seus secrets amb aquesta clau i desa els fitxers antics en una carpeta before-app-key dins de la carpeta de dades. KnightLoader esborra aquesta carpeta tot sol després de set dies sense errors. Guarda la clau en un lloc segur: sense ella no es poden obrir ni la carpeta de dades ni les còpies de seguretat fetes a partir d’aleshores.',
   'settings.appKeyCopies': 'Encara hi ha una còpia dels fitxers d’abans de la clau d’aplicació a la carpeta de dades. KnightLoader l’esborra després del {date}.',
   'settings.passwordCurrent': 'Contrasenya actual',
   'settings.passwordNew': 'Contrasenya nova',
@@ -3644,4 +3642,8 @@ export const ca: Dict = {
   'settings.health.noReason': 'Aquesta part no dona cap motiu. El registre de la pàgina Diagnòstic potser en diu més.',
   'settings.health.openLog': 'Obre el registre',
   'whatsnew.change.healthReason': 'Una part de «{name}» amb un error diu per què, i on escriu al registre un botó n’obre les línies.',
+  'settings.appKeyTitle': 'Clau de l’aplicació',
+  'settings.appKeyManual': 'La clau de l’aplicació al manual',
+  'settings.appKeyHint': 'Tot funciona sense clau de l’aplicació. Amb una, KnightLoader segella les contrasenyes i claus desades, de manera que una còpia de la carpeta de dades no obre res. L’aplicació d’escriptori crea la seva pròpia clau i la desa al magatzem de credencials de l’ordinador. En un contenidor, executa una vegada openssl rand -hex 32, posa el resultat a la plantilla com a variable KL_APP_KEY i reinicia. Guarda la clau en un lloc segur: sense ella no es pot obrir ni la carpeta de dades ni cap còpia de seguretat feta a partir de llavors.',
+  'whatsnew.change.appKey': '«{name}» explica la clau de l’aplicació darrere d’una (i), amb el camí al manual. Tot funciona sense.',
 };

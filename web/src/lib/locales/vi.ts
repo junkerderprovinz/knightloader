@@ -351,8 +351,6 @@ export const vi: Dict = {
   'settings.lockOn': 'Đã đặt mật khẩu.',
   'settings.lockOff': 'Chưa đặt mật khẩu.',
   'settings.lockHint': 'Bảo vệ phiên bản này khỏi bất kỳ ai có thể truy cập tới nó: trên cùng mạng, qua một tên miền, hoặc qua một relay. Sau khi thiết lập, mật khẩu phải được nhập trước khi phiên bản này mở ra, đối với bất kỳ ai, kể cả chính bạn ở lần truy cập tiếp theo. Không có mật khẩu, bất kỳ ai tìm thấy địa chỉ đều có thể xem mọi lượt tải xuống, và thêm, tạm dừng hoặc xoá lượt tải của riêng họ.',
-  'settings.appKeyMissing': 'Chưa đặt khóa ứng dụng.',
-  'settings.appKeyMissingHint': 'Khi không có khóa ứng dụng, bất kỳ ai có bản sao thư mục dữ liệu đều đọc được các mật khẩu đã lưu và đăng nhập được. Để thêm khóa, hãy chạy openssl rand -hex 32 một lần, đưa kết quả vào mẫu container dưới dạng biến KL_APP_KEY rồi khởi động lại. Sau đó KnightLoader niêm phong các bí mật của nó bằng khóa này và giữ các tệp cũ trong thư mục before-app-key bên trong thư mục dữ liệu. KnightLoader tự xóa thư mục đó sau bảy ngày không có lỗi. Hãy cất khóa ở nơi an toàn: thiếu nó thì không mở được thư mục dữ liệu lẫn các bản sao lưu tạo từ đó về sau.',
   'settings.appKeyCopies': 'Thư mục dữ liệu vẫn còn một bản sao các tệp từ trước khi có khóa ứng dụng. KnightLoader sẽ xóa nó sau {date}.',
   'settings.passwordCurrent': 'Mật khẩu hiện tại',
   'settings.passwordNew': 'Mật khẩu mới',
@@ -3656,4 +3654,8 @@ export const vi: Dict = {
   'settings.health.noReason': 'Phần này không đưa ra lý do. Nhật ký ở trang Chẩn đoán có thể cho biết thêm.',
   'settings.health.openLog': 'Mở nhật ký',
   'whatsnew.change.healthReason': 'Một phần trong “{name}” bị lỗi sẽ cho biết lý do, và nếu nó ghi vào nhật ký thì một nút sẽ mở các dòng của nó ở đó.',
+  'settings.appKeyTitle': 'Khóa ứng dụng',
+  'settings.appKeyManual': 'Khóa ứng dụng trong hướng dẫn',
+  'settings.appKeyHint': 'Mọi thứ vẫn chạy khi không có khóa ứng dụng. Có khóa, KnightLoader niêm phong các mật khẩu và khóa đã lưu, nên bản sao thư mục dữ liệu không mở được gì. Ứng dụng máy tính tự tạo khóa riêng và giữ nó trong kho thông tin đăng nhập của máy. Trong container, hãy chạy openssl rand -hex 32 một lần, đưa kết quả vào mẫu dưới dạng biến KL_APP_KEY rồi khởi động lại. Hãy cất khóa ở nơi an toàn: không có nó thì không mở được thư mục dữ liệu lẫn bản sao lưu tạo từ đó về sau.',
+  'whatsnew.change.appKey': '“{name}” giải thích khóa ứng dụng sau dấu (i), kèm đường dẫn đến hướng dẫn. Mọi thứ vẫn chạy khi không có nó.',
 };

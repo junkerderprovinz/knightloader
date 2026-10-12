@@ -351,8 +351,6 @@ export const ro: Dict = {
   'settings.lockOn': 'Este setată o parolă.',
   'settings.lockOff': 'Nicio parolă setată.',
   'settings.lockHint': 'Protejează această instanță de oricine o poate accesa: în aceeași rețea, printr-un domeniu sau printr-un releu. Odată setată, trebuie introdusă înainte ca această instanță să se deschidă, pentru oricine, inclusiv pentru tine data viitoare. Fără parolă, oricine găsește adresa poate vedea fiecare descărcare și poate adăuga, pune pe pauză sau șterge propriile descărcări.',
-  'settings.appKeyMissing': 'Nu este setată nicio cheie a aplicației.',
-  'settings.appKeyMissingHint': 'Fără o cheie a aplicației, oricine are o copie a dosarului de date poate citi parolele salvate și se poate autentifica. Ca să adaugi una, rulează o dată openssl rand -hex 32, pune rezultatul în șablonul containerului ca variabila KL_APP_KEY și repornește. Apoi KnightLoader își sigilează secretele cu această cheie și păstrează fișierele vechi într-un dosar before-app-key din dosarul de date. KnightLoader șterge singur acel dosar după șapte zile fără erori. Păstrează cheia într-un loc sigur: fără ea nu se mai pot deschide nici dosarul de date, nici copiile de rezervă făcute de atunci încolo.',
   'settings.appKeyCopies': 'În dosarul de date există încă o copie a fișierelor de dinainte de cheia aplicației. KnightLoader o șterge după {date}.',
   'settings.passwordCurrent': 'Parola actuală',
   'settings.passwordNew': 'Parolă nouă',
@@ -3665,4 +3663,8 @@ export const ro: Dict = {
   'settings.health.noReason': 'Această parte nu dă niciun motiv. Jurnalul de pe pagina Diagnoză poate spune mai mult.',
   'settings.health.openLog': 'Deschide jurnalul',
   'whatsnew.change.healthReason': 'O parte din „{name}” care are o eroare spune de ce, iar acolo unde scrie în jurnal, un buton îi deschide rândurile.',
+  'settings.appKeyTitle': 'Cheia aplicației',
+  'settings.appKeyManual': 'Cheia aplicației în manual',
+  'settings.appKeyHint': 'Totul funcționează și fără cheia aplicației. Cu una, KnightLoader sigilează parolele și cheile salvate, așa că o copie a dosarului de date nu deschide nimic. Aplicația desktop își face propria cheie și o ține în depozitul de acreditări al computerului. Într-un container, rulează o dată openssl rand -hex 32, pune rezultatul în șablon ca variabila KL_APP_KEY și repornește. Păstrează cheia într-un loc sigur: fără ea nu se pot deschide nici dosarul de date, nici o copie de rezervă făcută de atunci.',
+  'whatsnew.change.appKey': '„{name}” explică cheia aplicației în spatele unui (i), cu drumul spre manual. Totul funcționează și fără ea.',
 };

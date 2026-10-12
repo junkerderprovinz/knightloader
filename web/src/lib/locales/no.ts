@@ -353,8 +353,6 @@ export const no: Dict = {
   'settings.lockOn': 'Et passord er satt.',
   'settings.lockOff': 'Ingen passord angitt.',
   'settings.lockHint': 'Beskytter denne instansen mot alle som kan nå den: på samme nettverk, via et domene eller via et relé. Når det er satt, må det tastes inn før denne instansen i det hele tatt åpner, for alle, også deg selv neste gang. Uten passord kan alle som finner adressen se hver nedlasting, og legge til, pause eller slette sine egne.',
-  'settings.appKeyMissing': 'Ingen app-nøkkel angitt.',
-  'settings.appKeyMissingHint': 'Uten en app-nøkkel kan alle med en kopi av datamappen lese de lagrede passordene og logge inn. For å legge til en kjører du openssl rand -hex 32 én gang, setter resultatet inn i container-malen som variabelen KL_APP_KEY og starter på nytt. KnightLoader forsegler deretter hemmelighetene sine med nøkkelen og legger de gamle filene i en mappe before-app-key inne i datamappen. KnightLoader sletter den mappen selv etter sju dager uten feil. Ta godt vare på nøkkelen: uten den kan verken datamappen eller sikkerhetskopier laget etter dette åpnes.',
   'settings.appKeyCopies': 'Det ligger fortsatt en kopi av filene fra før app-nøkkelen i datamappen. KnightLoader sletter den etter {date}.',
   'settings.passwordCurrent': 'Nåværende passord',
   'settings.passwordNew': 'Nytt passord',
@@ -3659,4 +3657,8 @@ export const no: Dict = {
   'settings.health.noReason': 'Denne delen oppgir ingen grunn. Loggen på siden Diagnose sier kanskje mer.',
   'settings.health.openLog': 'Åpne loggen',
   'whatsnew.change.healthReason': 'En del i «{name}» som har en feil, sier hvorfor, og der den skriver til loggen, åpner en knapp linjene dens der.',
+  'settings.appKeyTitle': 'Appnøkkel',
+  'settings.appKeyManual': 'Appnøkkelen i håndboken',
+  'settings.appKeyHint': 'Alt virker uten appnøkkel. Med en nøkkel forsegler KnightLoader de lagrede passordene og nøklene, så en kopi av datamappen åpner ingenting. Skrivebordsappen lager sin egen nøkkel og holder den i datamaskinens lager for påloggingsinformasjon. I en container kjører du openssl rand -hex 32 én gang, legger resultatet inn i malen som variabelen KL_APP_KEY og starter på nytt. Ta vare på nøkkelen: uten den kan verken datamappen eller en sikkerhetskopi laget fra da av åpnes.',
+  'whatsnew.change.appKey': '«{name}» forklarer appnøkkelen bak en (i), med veien til håndboken. Alt virker uten den.',
 };

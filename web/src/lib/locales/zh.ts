@@ -351,8 +351,6 @@ export const zh: Dict = {
   'settings.lockOn': '已设置密码。',
   'settings.lockOff': '未设置密码。',
   'settings.lockHint': '保护此实例，防止任何能够访问到它的人: 无论是同一网络内、通过域名，还是通过中继（relay）。一旦设置，必须先输入密码，此实例才会打开, 对任何人都是如此，包括你自己下次访问时。没有密码，任何找到地址的人都能看到每一个下载任务，并添加、暂停或删除自己的下载。',
-  'settings.appKeyMissing': '未设置应用密钥。',
-  'settings.appKeyMissingHint': '没有应用密钥时，任何拿到数据文件夹副本的人都能读取保存的密码并登录。要添加密钥，请运行一次 openssl rand -hex 32，把结果作为变量 KL_APP_KEY 填入容器模板，然后重新启动。之后 KnightLoader 会用这个密钥封存它的机密，并把原来的文件保留在数据文件夹内的 before-app-key 文件夹中。连续七天没有错误后，KnightLoader 会自行删除该文件夹。请妥善保管密钥：没有它，数据文件夹和此后创建的备份都无法打开。',
   'settings.appKeyCopies': '数据文件夹中仍有设置应用密钥之前的文件副本。KnightLoader 会在 {date} 之后删除它。',
   'settings.passwordCurrent': '当前密码',
   'settings.passwordNew': '新密码',
@@ -3638,4 +3636,8 @@ export const zh: Dict = {
   'settings.health.noReason': '这个部分没有给出原因。“诊断”页面上的日志也许会说明更多。',
   'settings.health.openLog': '打开日志',
   'whatsnew.change.healthReason': '“{name}”中出现故障的部分会说明原因；若它会写入日志，一个按钮可在日志中打开相应的行。',
+  'settings.appKeyTitle': '应用密钥',
+  'settings.appKeyManual': '手册中的应用密钥',
+  'settings.appKeyHint': '没有应用密钥也一切正常。有了密钥，KnightLoader 会封存已保存的密码和密钥，复制数据文件夹也打不开任何东西。桌面应用会自己生成密钥，并保存在电脑的凭据存储中。在容器中，运行一次 openssl rand -hex 32，把结果作为变量 KL_APP_KEY 填入模板，然后重启。请妥善保管密钥：没有它，数据文件夹和此后创建的备份都无法打开。',
+  'whatsnew.change.appKey': '“{name}”在 (i) 中说明应用密钥，并提供前往手册的链接。没有它也一切正常。',
 };

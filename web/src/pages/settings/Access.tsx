@@ -9,6 +9,7 @@ import {
   IconTile,
   InfoBubble,
   LabelBadge,
+  LinkBadge,
   Modal,
   PasswordInput,
   SectionTitle,
@@ -30,7 +31,6 @@ import {
   setPassword,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
-import { isDesktop } from '../../lib/desktop';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
@@ -60,6 +60,9 @@ import {
   type TokenPreset,
 } from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
+
+// The manual's section on the app key, which says how to make one and move it.
+const APP_KEY_MANUAL = 'https://junkerderprovinz.github.io/knightloader/installing/#app-key';
 
 export function Access() {
   /**
@@ -183,14 +186,15 @@ export function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
-        {/* The desktop keeps its key in the credential store, so the template
-            the hint talks about is a container's. */}
-        {auth?.appKey === false && !isDesktop() && (
-          <span className="flex items-center text-sm text-statusWarn">
-            {t('settings.appKeyMissing')}
-            <InfoBubble tip={t('settings.appKeyMissingHint')} />
+        {/* Everything works without an app key, so it is a name with its
+            explanation behind the (i) rather than a warning or a state. */}
+        <span data-new="app-key" className="flex flex-wrap items-center gap-2 text-sm text-carbon-textSub">
+          <span className="inline-flex items-center">
+            {t('settings.appKeyTitle')}
+            <InfoBubble tip={t('settings.appKeyHint')} />
           </span>
-        )}
+          <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
+        </span>
         {auth?.appKeyCopiesUntil && (
           <span className="text-sm text-carbon-textSub">
             {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}

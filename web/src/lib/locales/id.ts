@@ -351,8 +351,6 @@ export const id: Dict = {
   'settings.lockOn': 'Kata sandi sudah diatur.',
   'settings.lockOff': 'Tidak ada kata sandi yang diatur.',
   'settings.lockHint': 'Melindungi instance ini dari siapa pun yang bisa menjangkaunya - di jaringan yang sama, melalui domain, atau melalui relay. Setelah diatur, kata sandi harus dimasukkan sebelum instance ini terbuka sama sekali - untuk siapa pun, termasuk Anda sendiri pada kunjungan berikutnya. Tanpa kata sandi, siapa pun yang menemukan alamatnya bisa melihat setiap unduhan, dan menambah, menjeda, atau menghapus miliknya sendiri.',
-  'settings.appKeyMissing': 'Kunci aplikasi belum diatur.',
-  'settings.appKeyMissingHint': 'Tanpa kunci aplikasi, siapa pun yang punya salinan folder data bisa membaca kata sandi yang tersimpan dan masuk. Untuk menambahkannya, jalankan openssl rand -hex 32 sekali, masukkan hasilnya ke templat kontainer sebagai variabel KL_APP_KEY, lalu mulai ulang. Setelah itu KnightLoader menyegel rahasianya dengan kunci tersebut dan menyimpan file lama di folder before-app-key di dalam folder data. KnightLoader menghapus folder itu sendiri setelah tujuh hari tanpa kesalahan. Simpan kunci di tempat aman: tanpanya, folder data maupun cadangan yang dibuat sesudahnya tidak bisa dibuka.',
   'settings.appKeyCopies': 'Salinan file dari sebelum ada kunci aplikasi masih ada di folder data. KnightLoader menghapusnya setelah {date}.',
   'settings.passwordCurrent': 'Kata sandi saat ini',
   'settings.passwordNew': 'Kata sandi baru',
@@ -3656,4 +3654,8 @@ export const id: Dict = {
   'settings.health.noReason': 'Bagian ini tidak memberi alasan. Log di halaman Diagnostik mungkin menyebut lebih banyak.',
   'settings.health.openLog': 'Buka log',
   'whatsnew.change.healthReason': 'Bagian di “{name}” yang bermasalah menyebut alasannya, dan jika ia menulis ke log, sebuah tombol membuka barisnya di sana.',
+  'settings.appKeyTitle': 'Kunci aplikasi',
+  'settings.appKeyManual': 'Kunci aplikasi di panduan',
+  'settings.appKeyHint': 'Semuanya tetap jalan tanpa kunci aplikasi. Dengan kunci, KnightLoader menyegel kata sandi dan kunci yang tersimpan, sehingga salinan folder data tidak membuka apa pun. Aplikasi desktop membuat kuncinya sendiri dan menyimpannya di penyimpanan kredensial komputer. Di kontainer, jalankan openssl rand -hex 32 sekali, masukkan hasilnya ke template sebagai variabel KL_APP_KEY, lalu mulai ulang. Simpan kunci di tempat aman: tanpanya, folder data maupun cadangan yang dibuat sejak itu tidak bisa dibuka.',
+  'whatsnew.change.appKey': '“{name}” menjelaskan kunci aplikasi di balik tanda (i), dengan jalan ke panduan. Semuanya berjalan tanpanya.',
 };

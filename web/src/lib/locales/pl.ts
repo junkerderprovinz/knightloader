@@ -343,8 +343,6 @@ export const pl: Dict = {
   'settings.lockOn': 'Hasło jest ustawione.',
   'settings.lockOff': 'Nie ustawiono hasła.',
   'settings.lockHint': 'Chroni tę instancję przed każdym, kto może się do niej dostać: w tej samej sieci, przez domenę lub przez przekaźnik (relay). Po ustawieniu trzeba je podać, zanim ta instancja w ogóle się otworzy, dla każdego, także dla ciebie przy następnej wizycie. Bez hasła każdy, kto znajdzie adres, może zobaczyć każde pobieranie oraz dodawać, wstrzymywać lub usuwać własne.',
-  'settings.appKeyMissing': 'Nie ustawiono klucza aplikacji.',
-  'settings.appKeyMissingHint': 'Bez klucza aplikacji każdy, kto ma kopię folderu danych, może odczytać zapisane hasła i się zalogować. Aby go dodać, uruchom raz openssl rand -hex 32, wpisz wynik w szablonie kontenera jako zmienną KL_APP_KEY i uruchom ponownie. KnightLoader zapieczętuje wtedy swoje sekrety tym kluczem, a stare pliki zostawi w folderze before-app-key w folderze danych. KnightLoader sam usuwa ten folder po siedmiu dniach bez błędów. Przechowuj klucz w bezpiecznym miejscu: bez niego nie da się otworzyć ani folderu danych, ani kopii zapasowych zrobionych później.',
   'settings.appKeyCopies': 'W folderze danych wciąż jest kopia plików sprzed klucza aplikacji. KnightLoader usunie ją po {date}.',
   'settings.passwordCurrent': 'Obecne hasło',
   'settings.passwordNew': 'Nowe hasło',
@@ -3641,4 +3639,8 @@ export const pl: Dict = {
   'settings.health.noReason': 'Ta część nie podała powodu. Dziennik na stronie Diagnostyka może powiedzieć więcej.',
   'settings.health.openLog': 'Otwórz dziennik',
   'whatsnew.change.healthReason': 'Część w „{name}”, która ma usterkę, mówi dlaczego, a tam, gdzie pisze do dziennika, przycisk otwiera jej wiersze.',
+  'settings.appKeyTitle': 'Klucz aplikacji',
+  'settings.appKeyManual': 'Klucz aplikacji w podręczniku',
+  'settings.appKeyHint': 'Wszystko działa bez klucza aplikacji. Z kluczem KnightLoader pieczętuje zapisane hasła i klucze, więc kopia folderu danych niczego nie otwiera. Aplikacja na komputer tworzy własny klucz i trzyma go w magazynie poświadczeń komputera. W kontenerze uruchom raz openssl rand -hex 32, wpisz wynik do szablonu jako zmienną KL_APP_KEY i uruchom ponownie. Przechowuj klucz w bezpiecznym miejscu: bez niego nie otworzysz ani folderu danych, ani kopii zapasowej zrobionej od tego czasu.',
+  'whatsnew.change.appKey': '„{name}” wyjaśnia klucz aplikacji pod (i), z drogą do podręcznika. Wszystko działa bez niego.',
 };

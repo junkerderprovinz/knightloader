@@ -351,8 +351,6 @@ export const gl: Dict = {
   'settings.lockOn': 'Hai un contrasinal definido.',
   'settings.lockOff': 'Non hai contrasinal establecido.',
   'settings.lockHint': 'Protexe esta instancia de calquera que poida acceder a ela: na mesma rede, mediante un dominio ou mediante un relay. Unha vez establecido, hai que introducilo antes de que esta instancia sequera se abra, para calquera, incluído ti mesmo a próxima vez. Sen contrasinal, calquera que atope o enderezo pode ver cada descarga, e engadir, pausar ou eliminar as súas propias.',
-  'settings.appKeyMissing': 'Non hai ningunha clave da aplicación definida.',
-  'settings.appKeyMissingHint': 'Sen unha clave da aplicación, calquera persoa cunha copia do cartafol de datos pode ler os contrasinais gardados e iniciar sesión. Para engadir unha, executa unha vez openssl rand -hex 32, pon o resultado no modelo do contedor como a variable KL_APP_KEY e reinicia. Despois KnightLoader sela os seus segredos con ela e garda os ficheiros antigos nun cartafol before-app-key dentro do cartafol de datos. KnightLoader borra ese cartafol por si mesmo despois de sete días sen erros. Garda a clave nun lugar seguro: sen ela non se poden abrir nin o cartafol de datos nin as copias de seguridade feitas a partir de entón.',
   'settings.appKeyCopies': 'Aínda hai unha copia dos ficheiros de antes da clave da aplicación no cartafol de datos. KnightLoader bórraa despois do {date}.',
   'settings.passwordCurrent': 'Contrasinal actual',
   'settings.passwordNew': 'Contrasinal novo',
@@ -3654,4 +3652,8 @@ export const gl: Dict = {
   'settings.health.noReason': 'Esta parte non dá ningún motivo. O rexistro da páxina Diagnóstico quizais diga máis.',
   'settings.health.openLog': 'Abrir o rexistro',
   'whatsnew.change.healthReason': 'Unha parte de «{name}» cun fallo di por que, e onde escribe no rexistro un botón abre alí as súas liñas.',
+  'settings.appKeyTitle': 'Chave da aplicación',
+  'settings.appKeyManual': 'A chave da aplicación no manual',
+  'settings.appKeyHint': 'Todo funciona sen chave da aplicación. Cunha, KnightLoader sela os contrasinais e chaves gardados, así que unha copia do cartafol de datos non abre nada. A aplicación de escritorio crea a súa propia chave e gárdaa no almacén de credenciais do ordenador. Nun contedor, executa unha vez openssl rand -hex 32, pon o resultado no modelo como a variable KL_APP_KEY e reinicia. Garda a chave nun lugar seguro: sen ela non se poden abrir nin o cartafol de datos nin unha copia de seguranza feita desde entón.',
+  'whatsnew.change.appKey': '«{name}» explica a chave da aplicación detrás dun (i), co camiño ao manual. Todo funciona sen ela.',
 };

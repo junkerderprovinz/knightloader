@@ -343,8 +343,6 @@ export const es: Dict = {
   'settings.lockOn': 'Hay una contraseña configurada.',
   'settings.lockOff': 'No hay contraseña establecida.',
   'settings.lockHint': 'Protege esta instancia de cualquiera que pueda alcanzarla: en la misma red, a través de un dominio o de un relay. Una vez establecida, debe introducirse antes de que esta instancia se abra siquiera, para cualquiera, incluido tú mismo la próxima vez. Sin contraseña, cualquiera que encuentre la dirección puede ver todas las descargas, y añadir, pausar o eliminar las suyas propias.',
-  'settings.appKeyMissing': 'No hay ninguna clave de aplicación definida.',
-  'settings.appKeyMissingHint': 'Sin una clave de aplicación, cualquiera con una copia de la carpeta de datos puede leer las contraseñas guardadas e iniciar sesión. Para añadir una, ejecute una vez openssl rand -hex 32, ponga el resultado en la plantilla del contenedor como la variable KL_APP_KEY y reinicie. Después, KnightLoader sella sus secretos con ella y guarda los archivos antiguos en una carpeta before-app-key dentro de la carpeta de datos. KnightLoader borra esa carpeta por sí mismo tras siete días sin errores. Guarde la clave en un lugar seguro: sin ella no se pueden abrir ni la carpeta de datos ni las copias de seguridad hechas a partir de entonces.',
   'settings.appKeyCopies': 'Todavía hay una copia de los archivos de antes de la clave de aplicación en la carpeta de datos. KnightLoader la borra después del {date}.',
   'settings.passwordCurrent': 'Contraseña actual',
   'settings.passwordNew': 'Nueva contraseña',
@@ -3648,4 +3646,8 @@ export const es: Dict = {
   'settings.health.noReason': 'Esta parte no da ningún motivo. El registro de la página Diagnóstico quizá diga más.',
   'settings.health.openLog': 'Abrir el registro',
   'whatsnew.change.healthReason': 'Una parte de «{name}» con un fallo dice por qué, y donde escribe en el registro un botón abre sus líneas allí.',
+  'settings.appKeyTitle': 'Clave de la aplicación',
+  'settings.appKeyManual': 'La clave de la aplicación en el manual',
+  'settings.appKeyHint': 'Todo funciona sin clave de la aplicación. Con una, KnightLoader sella las contraseñas y claves guardadas, así que una copia de la carpeta de datos no abre nada. La aplicación de escritorio crea su propia clave y la guarda en el almacén de credenciales del ordenador. En un contenedor, ejecuta una vez openssl rand -hex 32, pon el resultado en la plantilla como la variable KL_APP_KEY y reinicia. Guarda la clave en un lugar seguro: sin ella no se pueden abrir ni la carpeta de datos ni una copia de seguridad hecha desde entonces.',
+  'whatsnew.change.appKey': '«{name}» explica la clave de la aplicación tras un (i), con el camino al manual. Todo funciona sin ella.',
 };

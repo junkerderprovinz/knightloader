@@ -351,8 +351,6 @@ export const sk: Dict = {
   'settings.lockOn': 'Heslo je nastavené.',
   'settings.lockOff': 'Heslo nie je nastavené.',
   'settings.lockHint': 'Chráni túto inštánciu pred kýmkoľvek, kto sa k nej dostane: v tej istej sieti, cez doménu alebo cez relay. Po nastavení sa musí zadať skôr, než sa táto inštancia vôbec otvorí, pre kohokoľvek, vrátane vás pri ďalšej návšteve. Bez hesla môže ktokoľvek, kto nájde adresu, vidieť každé sťahovanie a pridávať, pozastavovať alebo mazať vlastné.',
-  'settings.appKeyMissing': 'Nie je nastavený kľúč aplikácie.',
-  'settings.appKeyMissingHint': 'Bez kľúča aplikácie môže ktokoľvek s kópiou dátového priečinka prečítať uložené heslá a prihlásiť sa. Ak ho chceš pridať, spusti raz openssl rand -hex 32, vlož výsledok do šablóny kontajnera ako premennú KL_APP_KEY a reštartuj. KnightLoader potom svoje tajomstvá zapečatí týmto kľúčom a staré súbory nechá v priečinku before-app-key v dátovom priečinku. KnightLoader ten priečinok zmaže sám po siedmich dňoch bez chýb. Kľúč si ulož na bezpečné miesto: bez neho sa nedá otvoriť dátový priečinok ani zálohy vytvorené odvtedy.',
   'settings.appKeyCopies': 'V dátovom priečinku je ešte kópia súborov spred kľúča aplikácie. KnightLoader ju zmaže po {date}.',
   'settings.passwordCurrent': 'Súčasné heslo',
   'settings.passwordNew': 'Nové heslo',
@@ -3666,4 +3664,8 @@ export const sk: Dict = {
   'settings.health.noReason': 'Táto časť neuvádza dôvod. Protokol na stránke Diagnostika možno povie viac.',
   'settings.health.openLog': 'Otvoriť protokol',
   'whatsnew.change.healthReason': 'Časť v „{name}“, ktorá má chybu, povie prečo, a kde píše do protokolu, tlačidlo tam otvorí jej riadky.',
+  'settings.appKeyTitle': 'Kľúč aplikácie',
+  'settings.appKeyManual': 'Kľúč aplikácie v príručke',
+  'settings.appKeyHint': 'Všetko funguje aj bez kľúča aplikácie. S ním KnightLoader zapečatí uložené heslá a kľúče, takže kópia dátového priečinka nič neotvorí. Desktopová aplikácia si vytvorí vlastný kľúč a uloží ho do úložiska prihlasovacích údajov počítača. V kontajneri raz spusti openssl rand -hex 32, výsledok vlož do šablóny ako premennú KL_APP_KEY a reštartuj. Kľúč dobre uschovaj: bez neho sa nedá otvoriť dátový priečinok ani záloha vytvorená odvtedy.',
+  'whatsnew.change.appKey': '„{name}“ vysvetľuje kľúč aplikácie za (i), s cestou do príručky. Všetko funguje aj bez neho.',
 };
