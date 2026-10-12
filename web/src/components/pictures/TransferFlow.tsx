@@ -1,4 +1,4 @@
-import type { ComponentType, ReactNode, SVGProps } from 'react';
+import { useEffect, useLayoutEffect, useRef, type ComponentType, type ReactNode, type RefObject, type SVGProps } from 'react';
 import type { Settings } from '../../lib/api';
 import { fmtRate, fmtTotal } from '../../lib/format';
 import { useT } from '../../lib/i18n';
@@ -7,7 +7,7 @@ import { density, type Flow, type FlowFolder, type FlowRoute, type FlowSource } 
 import { floorMarks, floorTone } from '../DiskSpaceTile';
 import { HosterIcon } from '../HosterIcon';
 import { FILL, GROUND, HUE, QUIET, SURFACE, TRAVEL, useStage } from './scene';
-import { Vessel } from './Vessel';
+import { splash, Vessel } from './Vessel';
 
 type Glyph = ComponentType<SVGProps<SVGSVGElement>>;
 
@@ -73,17 +73,28 @@ const GAP = [0, 112, 70, 44, 28, 18];
 const fixed = (n: number) => n.toFixed(3);
 
 /**
- * Packets are what travels on a line that carries data: one leaves every
- * `GAP` units, and all of them keep the shared speed, so a faster line is a
- * denser one. The still frame stands them where a moment of that would.
+ * packetTimes is when the packets on a line leave, in seconds: one every
+ * `every`, each taking `crossing` to arrive, `count` of them on a loop of
+ * `loop`. Null for a line nothing moves on.
  */
-function Packets({ line, speed, still, size }: { line: Run; speed: number; still: boolean; size: number }) {
+function packetTimes(line: Run, speed: number) {
   const step = density(speed);
   if (step === 0) return null;
   const every = GAP[step] / TRAVEL;
   const crossing = line.length / TRAVEL;
   const count = Math.max(1, Math.ceil(crossing / every));
-  const loop = count * every;
+  return { every, crossing, count, loop: count * every };
+}
+
+/**
+ * Packets are what travels on a line that carries data: one leaves every
+ * `GAP` units, and all of them keep the shared speed, so a faster line is a
+ * denser one. The still frame stands them where a moment of that would.
+ */
+function Packets({ line, speed, still, size }: { line: Run; speed: number; still: boolean; size: number }) {
+  const time = packetTimes(line, speed);
+  if (!time) return null;
+  const { every, crossing, count, loop } = time;
   const share = Math.min(1, crossing / loop);
 
   if (still) {
@@ -129,10 +140,23 @@ function Packets({ line, speed, still, size }: { line: Run; speed: number; still
  * Line is one line of the picture: drawn through while data moves on it,
  * dashed and at rest while it waits. `fine` draws it for the strip.
  */
-function Line({ line, speed, still, fine = false }: { line: Run; speed: number; still: boolean; fine?: boolean }) {
+function Line({
+  line,
+  speed,
+  still,
+  to,
+  fine = false,
+}: {
+  line: Run;
+  speed: number;
+  still: boolean;
+  /** The figure the line ends at. */
+  to: string;
+  fine?: boolean;
+}) {
   const moving = speed > 0;
   return (
-    <g data-line={moving ? 'moving' : 'still'}>
+    <g data-line={moving ? 'moving' : 'still'} data-to={to}>
       <path
         d={line.d}
         fill="none"
@@ -218,6 +242,59 @@ export function flowWords(flow: Flow, t: ReturnType<typeof useT>['t']): string {
     .join('; ');
 }
 
+/** A line into a folder: its first packet lands `crossing` seconds in, and one more every `every`. */
+interface Landing {
+  folder: string;
+  crossing: number;
+  every: number;
+}
+
+/** landed says whether a packet lands after `from` and by `to`, both read off the picture's clock. */
+function landed({ crossing, every }: Landing, from: number, to: number): boolean {
+  const landings = (t: number) => Math.floor((t - crossing) / every);
+  return to >= crossing && landings(to) > landings(from);
+}
+
+// Seconds a vessel's splash settles before a packet can start the next one,
+// so a dense line keeps the liquid lively without shaking it.
+const SETTLE = 0.8;
+
+/**
+ * useSplashes makes a vessel splash as each packet lands in it. The packets
+ * run on the picture's SMIL clock, which useStage holds until the picture is
+ * seen, so landings are counted on that clock from frame to frame rather than
+ * on timers that would run ahead of it.
+ */
+function useSplashes(stage: RefObject<SVGSVGElement | null>, landings: Landing[], still: boolean) {
+  const current = useRef(landings);
+  useLayoutEffect(() => {
+    current.current = landings;
+  });
+  const moving = landings.length > 0;
+  useEffect(() => {
+    const svg = stage.current;
+    if (still || !moving || !svg) return;
+    const splashed = new Map<string, number>();
+    let last = svg.getCurrentTime();
+    let frame = requestAnimationFrame(function tick() {
+      const now = svg.getCurrentTime();
+      if (now < last) splashed.clear();
+      for (const l of current.current) {
+        if (!landed(l, last, now) || now - (splashed.get(l.folder) ?? -Infinity) < SETTLE) continue;
+        const vessel = [...svg.querySelectorAll('[data-folder]')]
+          .find((f) => f.getAttribute('data-folder') === l.folder)
+          ?.querySelector('svg');
+        if (!vessel) continue;
+        splashed.set(l.folder, now);
+        splash(vessel);
+      }
+      last = now;
+      frame = requestAnimationFrame(tick);
+    });
+    return () => cancelAnimationFrame(frame);
+  }, [stage, still, moving]);
+}
+
 function Stage({
   arrangement: a,
   flow,
@@ -259,6 +336,18 @@ function Stage({
   });
   flow.folders.forEach((f, i) => reaches.set(f.id, [a.folder - 30, folderY(i)]));
 
+  const drawn = flow.links.flatMap((l) => {
+    const from = leaves.get(l.from);
+    const to = reaches.get(l.to);
+    if (!from || !to) return [];
+    return [{ link: l, line: straight(l) ? run(from, pass, to) : run(from, to) }];
+  });
+  const landings = drawn.flatMap(({ link, line }) => {
+    const time = link.to.startsWith('f:') ? packetTimes(line, link.speed) : null;
+    return time ? [{ folder: link.to, crossing: time.crossing, every: time.every }] : [];
+  });
+  useSplashes(stage, landings, still);
+
   return (
     <svg
       ref={stage}
@@ -270,12 +359,9 @@ function Stage({
     >
       {idle && <Rest a={a} y={height / 2} folder={flow.folders.length > 0} />}
 
-      {flow.links.map((l) => {
-        const from = leaves.get(l.from);
-        const to = reaches.get(l.to);
-        if (!from || !to) return null;
-        return <Line key={`${l.from}\n${l.to}`} line={straight(l) ? run(from, pass, to) : run(from, to)} speed={l.speed} still={still} />;
-      })}
+      {drawn.map(({ link: l, line }) => (
+        <Line key={`${l.from}\n${l.to}`} line={line} speed={l.speed} still={still} to={l.to} />
+      ))}
 
       {flow.sources.map((s, i) => (
         <SourceFigure key={s.id} source={s} x={a.source} y={sourceY(i)} caption={a.caption} />

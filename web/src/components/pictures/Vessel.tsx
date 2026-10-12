@@ -16,6 +16,9 @@ const BACK = 'M-20 -.5H54V45H-20z';
 // hump crosses the middle. Both rest squashed flat.
 const CREST = 'M-5 .6V-1H0C.9 -.55 2.7 -.03 6 0V.6z';
 const HUMP = 'M11 .6V0C13 0 14.5 -1 17 -1S21 0 23 0V.6z';
+// The ripple a splash sends from the left wall to the right one.
+const RIPPLE = 'M7.5 .6V0C9 0 9.6 -1 10.5 -1S12 0 13.5 0V.6z';
+const SPLASH = 'glim-slosh-splash';
 // Each is [x, radius]. The stylesheet times each by its place among its
 // kind, so their order here is part of the animation.
 const BUBBLES = [
@@ -103,15 +106,21 @@ export function Vessel({
               {/* The liquid sloshes for as long as it is shown, on the motion
                   engine's dials (glim-slosh in index.css), which the motion
                   setting and a request for less motion both stop. */}
-              <path d={BACK} fill={PAINT[tone]} fillOpacity=".45" className="glim-slosh-back" />
-              <g className="glim-slosh">
-                <path d={BODY} fill={PAINT[tone]} />
-                <path d={HUMP} fill={PAINT[tone]} className="glim-slosh-hump" />
-                <g transform="translate(7.5 0)">
-                  <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-left" />
-                </g>
-                <g transform="translate(26.5 0) scale(-1 1)">
-                  <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-right" />
+              {/* A splash rocks the whole liquid on top of its slosh and
+                  rests level, so a vessel nothing lands in never shows it. */}
+              <g className="glim-slosh-splash-tilt">
+                <path d={BACK} fill={PAINT[tone]} fillOpacity=".45" className="glim-slosh-back" />
+                <g className="glim-slosh">
+                  <path d={BODY} fill={PAINT[tone]} />
+                  <path d={HUMP} fill={PAINT[tone]} className="glim-slosh-hump" />
+                  <path d={RIPPLE} fill={PAINT[tone]} className="glim-slosh-splash-ripple" />
+                  <g transform="translate(7.5 0)">
+                    <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-left" />
+                    <path d={CREST} fill={PAINT[tone]} className="glim-slosh-splash-crest" />
+                  </g>
+                  <g transform="translate(26.5 0) scale(-1 1)">
+                    <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-right" />
+                  </g>
                 </g>
               </g>
               <g fill={BUBBLE}>
@@ -153,6 +162,18 @@ export function Vessel({
       ))}
     </span>
   );
+}
+
+/**
+ * splash makes the liquid in a vessel's svg kick up at its left wall, where
+ * the transfer flow's packets come in, and settle back into its slosh. A
+ * splash still running starts over rather than adding to itself.
+ */
+export function splash(vessel: SVGSVGElement) {
+  vessel.classList.remove(SPLASH);
+  // Reading the layout applies the removal, so the class added back starts a new animation.
+  void vessel.getBoundingClientRect();
+  vessel.classList.add(SPLASH);
 }
 
 // The line itself is too thin to point at, so a taller strip over it carries

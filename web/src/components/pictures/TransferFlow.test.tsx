@@ -26,7 +26,7 @@ function reducedMotion(reduced: boolean) {
 beforeEach(() => {
   reducedMotion(true);
   // jsdom has no SMIL clock and no way to see what is on screen.
-  Object.assign(SVGSVGElement.prototype, { pauseAnimations() {}, unpauseAnimations() {}, setCurrentTime() {} });
+  Object.assign(SVGSVGElement.prototype, { pauseAnimations() {}, unpauseAnimations() {}, setCurrentTime() {}, getCurrentTime: () => 0 });
   vi.stubGlobal(
     'IntersectionObserver',
     class {
@@ -71,6 +71,7 @@ const task = (over: Partial<Task>): Task =>
 const disk: DiskReport = {
   volumes: [
     { dir: '/downloads', measured: '/downloads', exists: true, known: true, free: 40 * GIB, used: 60 * GIB, total: 100 * GIB, queued: 0, tasks: 0, role: 'downloads' },
+    { dir: '/media', measured: '/media', exists: true, known: true, free: 10 * GIB, used: 10 * GIB, total: 20 * GIB, queued: 0, tasks: 0, role: 'category' },
   ],
   truncated: false,
   sampledAt: '',
@@ -167,5 +168,85 @@ describe('the line from the hoster to the disk', () => {
     expect(wide().querySelectorAll('[data-folder]')).toHaveLength(1);
     expect(host.textContent).toContain('Nothing is loading right now.');
     expect(wide().getAttribute('aria-label')).toBe('From hoster to disk: Nothing is loading right now.');
+  });
+});
+
+describe('a packet landing in a folder', () => {
+  let clock = 0;
+  let frames: FrameRequestCallback[] = [];
+
+  /** Moves the picture's clock to `at` seconds and runs one frame on it. */
+  const frame = (at: number) => {
+    clock = at;
+    const due = frames;
+    frames = [];
+    for (const f of due) f(0);
+  };
+
+  beforeEach(() => {
+    reducedMotion(false);
+    clock = 0;
+    frames = [];
+    Object.assign(SVGSVGElement.prototype, { getCurrentTime: () => clock });
+    vi.stubGlobal('requestAnimationFrame', (f: FrameRequestCallback) => frames.push(f));
+    vi.stubGlobal('cancelAnimationFrame', () => {});
+  });
+
+  const vessel = (dir: string) => wide().querySelector(`[data-folder="f:${dir}"] svg`)!;
+  const splashing = (dir: string) => vessel(dir).classList.contains('glim-slosh-splash');
+
+  /** When the first packet on the line into `dir` lands, and how far apart the next ones follow. */
+  function landings(dir: string) {
+    const line = wide().querySelector(`[data-line="moving"][data-to="f:${dir}"]`)!;
+    const motion = line.querySelector('animateMotion')!;
+    const loop = parseFloat(motion.getAttribute('dur')!);
+    const share = Number(motion.getAttribute('keyTimes')!.split(';')[1]);
+    return { first: share * loop, every: loop / packets(line) };
+  }
+
+  const two = () =>
+    flow(
+      task({ dir: '/downloads', speed: 200 * 1024 }),
+      task({ id: 'b', url: 'https://slow.example/b.zip', connection: 'p1', dir: '/media', speed: 0 }),
+    );
+
+  it('splashes the vessel the packet lands in, as it lands', async () => {
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={two()} />);
+    const { first, every } = landings('/downloads');
+    // Far enough apart that each packet gets a splash of its own.
+    expect(every).toBeGreaterThanOrEqual(1);
+
+    frame(first - 0.05);
+    expect(splashing('/downloads')).toBe(false);
+    frame(first + 0.01);
+    expect(splashing('/downloads')).toBe(true);
+    expect(splashing('/media')).toBe(false);
+
+    vessel('/downloads').classList.remove('glim-slosh-splash');
+    frame(first + every / 2);
+    expect(splashing('/downloads')).toBe(false);
+    frame(first + every + 0.01);
+    expect(splashing('/downloads')).toBe(true);
+  });
+
+  it('lets a splash settle before the next packet starts another', async () => {
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ dir: '/downloads', speed: 40 * MIB }))} />);
+    const { first, every } = landings('/downloads');
+    expect(every).toBeLessThan(0.5);
+
+    frame(first + 0.01);
+    expect(splashing('/downloads')).toBe(true);
+    vessel('/downloads').classList.remove('glim-slosh-splash');
+    frame(first + every + 0.01);
+    expect(splashing('/downloads')).toBe(false);
+    frame(first + Math.ceil(1 / every) * every + 0.01);
+    expect(splashing('/downloads')).toBe(true);
+  });
+
+  it('never splashes with motion off', async () => {
+    reducedMotion(true);
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ dir: '/downloads' }))} />);
+    expect(frames).toHaveLength(0);
+    expect(wide().querySelector('.glim-slosh-splash')).toBeNull();
   });
 });
