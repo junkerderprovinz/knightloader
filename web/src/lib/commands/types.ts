@@ -66,8 +66,8 @@ export interface CommandContext {
   };
   /** The page's file-picker trigger. A no-op where no page has published one. */
   openFilePicker: () => void;
-  /** The page's search-panel toggle. A no-op where no page has published one. */
-  toggleSearch: () => void;
+  /** Puts the caret in the page's search field. A no-op where no page has published one. */
+  focusSearch: () => void;
   /** The page's rename window. A no-op where no page has published one. */
   rename: (selection: readonly string[]) => void;
   /** The same t() the page itself renders with, for a run() that builds a toast sentence. */
@@ -159,7 +159,7 @@ export function useCommandContext(surface: CommandSurface): CommandContext {
       removeSelected: page?.removal ? page.removal.removeNow : () => {},
       cleanup: page?.cleanup ? { classes: page.cleanup.classes, preview: page.cleanup.preview } : NO_CLEANUP,
       openFilePicker: page?.openFilePicker ?? (() => {}),
-      toggleSearch: page?.toggleSearch ?? (() => {}),
+      focusSearch: page?.focusSearch ?? (() => {}),
       rename: page?.rename ?? (() => {}),
       t,
       toast,

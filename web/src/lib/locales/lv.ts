@@ -3650,6 +3650,7 @@ export const lv: Dict = {
   'settings.captcha.orderIntro': 'Attēls ir secība: captcha vispirms nonāk pie augšējā captcha konta, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
   'whatsnew.change.captchaPriority': '„{name}“ sakārto tavus pievienotos captcha kontus tāpat, kā „{download}“ sakārto aizmugursistēmas. Tur ir arī tas, kad tie sāk, un testa captcha.',
   'whatsnew.change.searchBox': 'Katrs meklēšanas lauks izskatās un darbojas kā tas iestatījumos: kamēr raksti, lauks maina toni un lupa iedegas, un Escape vai krustiņš to iztukšo.',
+  'whatsnew.change.searchFields': 'Katra meklēšana ir lauks, kurā vari rakstīt uzreiz, bez pogas, kas to vispirms atvērtu: sadaļās „{downloads}“, „{collector}“ un „{advanced}“ un logos, kur izvēlies kontu vai mitinātāju.',
   'settings.look.builtInTitle': 'Iebūvētie komponenti',
   'settings.look.builtInHint': 'Tas, ko KnightLoader atnes līdzi vai darbina sev blakus, katrs ar savu versiju un izcelsmi. Šīs daļas nāk kopā ar KnightLoader vai konteinera attēlu, vai atjaunina sevi pašas, tāpēc šeit nav ko atjaunināt.',
   'whatsnew.change.builtIn': '„{name}“ uzskaita katru daļu, kas nāk kopā ar KnightLoader, ar versiju un izcelsmi. To, ko var atjaunināt, atradīsi kartītē „{updates}“.',

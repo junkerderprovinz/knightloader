@@ -67,8 +67,6 @@ export function Collector() {
   // (lib/listNarrowing.ts).
   const narrowing = useListNarrowing('collector', COLLECTOR_FILTERS);
   const { search, filters } = narrowing;
-  // Whether the Search button has been turned into its field (ListBar.tsx).
-  const [searchOpen, setSearchOpen] = useState(false);
   const rowRef = useRef<HTMLDivElement>(null);
   // The list's own scroll box, reset when a saved view cuts the list short.
   const listScroll = useRef<HTMLDivElement>(null);
@@ -127,7 +125,6 @@ export function Collector() {
     narrowed ? `${filtered.length}/${collected.length}` : '',
     anyNarrowing,
     views.map((v) => v.name).join('\n'),
-    searchOpen || search.text !== '',
   ].join('|');
   // Downloads.tsx's fold order, less the cause chips this list does not have.
   const fold = useRowFit(rowRef, 4, rowContent);
@@ -336,8 +333,6 @@ export function Collector() {
           sorts={[sort]}
           search={search}
           onSearch={narrowing.setSearch}
-          searchOpen={searchOpen}
-          onSearchOpen={setSearchOpen}
         >
           {/* Left of the spacer, which nothing else here uses. */}
           <div className="shrink-0">

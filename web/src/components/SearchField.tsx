@@ -1,6 +1,7 @@
 // The search box with a category picker, since a hoster's domain appears in
 // every URL and a plain substring match over name and URL finds everything.
 // The query's meaning lives in lib/searchQuery.ts.
+import type { Ref } from 'react';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Dropdown } from './Dropdown';
 import { SearchBox } from './SearchBox';
@@ -21,10 +22,12 @@ const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
 export function SearchField({
   value,
   onChange,
+  inputRef,
   className = '',
 }: {
   value: SearchQuery;
   onChange: (next: SearchQuery) => void;
+  inputRef?: Ref<HTMLInputElement>;
   className?: string;
 }) {
   const { t } = useT();
@@ -32,6 +35,7 @@ export function SearchField({
     <SearchBox
       value={value.text}
       onChange={(text) => onChange({ ...value, text })}
+      inputRef={inputRef}
       label={t('search.placeholder')}
       // One bubble for the picker and the syntax, not two identical (i)s.
       hint={`${t('search.hint')} ${t('search.syntax')}`}

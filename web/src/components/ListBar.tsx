@@ -1,11 +1,11 @@
-// Filter, Sort and Search: the three buttons that end the row above a list's
-// card (GlimStone, "Lists"). Filter opens the quick filters and whatever else
-// the page narrows its list by, Sort offers what a click on a column header
-// does, and Search turns into its field. The page hands in what stands before
-// them and folds it when the row runs short (lib/rowFit.ts).
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type RefObject } from 'react';
+// Filter, Sort and the search field end the row above a list's card
+// (GlimStone, "Lists"). Filter opens the quick filters and whatever else the
+// page narrows its list by, Sort offers what a click on a column header does,
+// and the field is the one every search in the app uses. The page hands in
+// what stands before them and folds it when the row runs short (lib/rowFit.ts).
+import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { useT } from '../lib/i18n';
-import { IconClose, IconFilter, IconSearch, IconSort } from '../lib/icons';
+import { IconClose, IconFilter, IconSort } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
 import type { QuickFilter, QuickFilterId } from './ListToolbar';
 import { SearchField, type SearchQuery } from './SearchField';
@@ -83,9 +83,9 @@ function useRoomBelow(open: boolean, box: RefObject<HTMLElement | null>): number
 }
 
 /**
- * Marked wraps one of the three buttons and puts a dot on its corner while the
- * button holds something: a filter that is on, a sort, a search text. The
- * buttons themselves keep one weight.
+ * Marked wraps one of the two buttons and puts a dot on its corner while the
+ * button holds something: a filter that is on, or a sort. The buttons
+ * themselves keep one weight.
  */
 function Marked({
   on,
@@ -123,16 +123,15 @@ export function ListBar({
   sorts,
   search,
   onSearch,
-  searchOpen,
-  onSearchOpen,
+  searchRef,
 }: {
   /** The row the page measures with useRowFit. */
   rowRef: RefObject<HTMLDivElement | null>;
-  /** The three buttons as glyphs, for a row short of room for their words. */
+  /** The two buttons as glyphs, for a row short of room for their words. */
   glyphs: boolean;
   /** The row scrolls sideways, on a phone. What opens then opens under it. */
   scrolls: boolean;
-  /** What stands before the three buttons. */
+  /** What stands before the buttons and the field. */
   children: ReactNode;
   /** The quick filters on offer, each with how many rows it matches. */
   filters: { f: QuickFilter; n: number }[];
@@ -148,9 +147,8 @@ export function ListBar({
   sorts: ListSort[];
   search: SearchQuery;
   onSearch: (next: SearchQuery) => void;
-  /** Whether the search was opened by hand. A search with text shows its field anyway. */
-  searchOpen: boolean;
-  onSearchOpen: (open: boolean) => void;
+  /** The field's input, for a shortcut that puts the caret in it. */
+  searchRef?: Ref<HTMLInputElement>;
 }) {
   const { t } = useT();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -158,18 +156,9 @@ export function ListBar({
   const filterRoom = useRoomBelow(filterOpen, bar);
   const filterBox = useRef<HTMLDivElement>(null);
   const filterPanel = useRef<HTMLDivElement>(null);
-  const searchBox = useRef<HTMLDivElement>(null);
-  const searchButton = useRef<HTMLDivElement>(null);
   const sortMenu = useContextMenu();
 
   useDismiss(filterOpen, () => setFilterOpen(false), filterBox, filterPanel);
-  // A field holding text stays, so a forgotten query cannot hide behind a button.
-  useDismiss(searchOpen && !search.text, () => onSearchOpen(false), searchBox, searchButton);
-
-  const searching = searchOpen || search.text !== '';
-  useEffect(() => {
-    if (searchOpen) searchBox.current?.querySelector('input')?.focus();
-  }, [searchOpen]);
 
   // One card sorts from the menu itself. Several get an entry each, named by
   // the card, with its own menu behind it.
@@ -216,31 +205,17 @@ export function ListBar({
           />
         </Marked>
 
-        {searching && !scrolls ? (
-          <div ref={searchBox} className="shrink-0">
-            <SearchField value={search} onChange={onSearch} className="w-80" />
+        {!scrolls && (
+          <div data-new="search-fields" className="shrink-0">
+            <SearchField value={search} onChange={onSearch} inputRef={searchRef} className="w-80" />
           </div>
-        ) : (
-          <Marked on={search.text !== ''} boxRef={searchButton}>
-            <IconBadge
-              labelled={!glyphs}
-              hue={2}
-              icon={<IconSearch width={16} height={16} />}
-              // The badge's own name rather than the field's placeholder;
-              // web/check-placeholder-as-label.mjs keeps it so.
-              title={t('search.toggle')}
-              aria-label={t('search.toggle')}
-              aria-expanded={searching}
-              onClick={() => onSearchOpen(!searchOpen)}
-            />
-          </Marked>
         )}
       </div>
 
       {/* Under the row rather than inside it: a row that scrolls would clip it. */}
-      {searching && scrolls && (
-        <div ref={searchBox} className="mt-2">
-          <SearchField value={search} onChange={onSearch} className="w-full" />
+      {scrolls && (
+        <div className="mt-2">
+          <SearchField value={search} onChange={onSearch} inputRef={searchRef} className="w-full" />
         </div>
       )}
 

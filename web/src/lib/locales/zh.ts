@@ -3641,6 +3641,7 @@ export const zh: Dict = {
   'settings.captcha.orderIntro': '这张图就是顺序：验证码先交给最上面的验证码账户，再依次往下。拖动名称即可移动它。',
   'whatsnew.change.captchaPriority': '“{name}”像“{download}”排列后端那样排列你已连接的验证码账户。它们何时开始和测试验证码也在这里。',
   'whatsnew.change.searchBox': '每个搜索框的外观和用法都与设置里的一样：输入时框体变色、放大镜亮起，按 Escape 或点叉号即可清空。',
+  'whatsnew.change.searchFields': '每个搜索都是可以直接输入的输入框，不必先点按钮打开：在“{downloads}”“{collector}”“{advanced}”中，以及选择账户或网盘的窗口里都是如此。',
   'settings.look.builtInTitle': '内置组件',
   'settings.look.builtInHint': 'KnightLoader 自带或在旁运行的部分，每项都注明版本和来源。这些部分随 KnightLoader 或容器镜像提供，或会自行更新，因此这里没有需要更新的内容。',
   'whatsnew.change.builtIn': '“{name}”列出 KnightLoader 自带的每个部分，并注明版本和来源。可以更新的内容仍在“{updates}”中。',

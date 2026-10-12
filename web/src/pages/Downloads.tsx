@@ -91,8 +91,7 @@ export function Downloads() {
   // is their one writer and passes the pieces down.
   const narrowing = useListNarrowing('downloads', DOWNLOAD_FILTERS);
   const { search, filters } = narrowing;
-  // Whether the Search button has been turned into its field (ListBar.tsx).
-  const [searchOpen, setSearchOpen] = useState(false);
+  const searchInput = useRef<HTMLInputElement>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // The row a card should scroll to, with the request's nonce so a second jump
@@ -311,7 +310,7 @@ export function Downloads() {
         setSelection: setSelected,
         removal,
         cleanup,
-        toggleSearch: () => setSearchOpen((v) => !v),
+        focusSearch: () => searchInput.current?.focus(),
         rename: rename.fromKeyboard,
       }),
       [removal, cleanup, rename.fromKeyboard],
@@ -386,7 +385,6 @@ export function Downloads() {
     selected.size,
     narrowed ? `${filtered.length}/${list.length}` : '',
     views.map((v) => v.name).join('\n'),
-    searchOpen || search.text !== '',
     causes.map((c) => `${c.key}${c.count}`).join(),
     counts.running > 0,
     list.some((x) => x.status === 'paused'),
@@ -488,8 +486,7 @@ export function Downloads() {
           sorts={sorts}
           search={search}
           onSearch={narrowing.setSearch}
-          searchOpen={searchOpen}
-          onSearchOpen={setSearchOpen}
+          searchRef={searchInput}
         >
           {/* Left of the spacer, which nothing else here uses. */}
           <div className="shrink-0">

@@ -3659,6 +3659,7 @@ export const vi: Dict = {
   'settings.captcha.orderIntro': 'Hình chính là thứ tự: một captcha đến tài khoản captcha trên cùng trước, rồi lần lượt xuống dưới. Kéo một tên để di chuyển nó.',
   'whatsnew.change.captchaPriority': '“{name}” sắp xếp các tài khoản captcha đã kết nối giống như “{download}” sắp xếp các backend. Thời điểm chúng bắt đầu và captcha thử cũng nằm ở đó.',
   'whatsnew.change.searchBox': 'Mọi ô tìm kiếm đều trông và hoạt động như ô trong Cài đặt: khi bạn gõ, ô đổi sắc màu và kính lúp sáng lên, còn Escape hoặc dấu chéo sẽ xóa trống ô.',
+  'whatsnew.change.searchFields': 'Mọi ô tìm kiếm đều là trường bạn có thể gõ ngay, không cần nút mở trước: trong “{downloads}”, “{collector}” và “{advanced}”, cùng các cửa sổ nơi bạn chọn tài khoản hoặc hoster.',
   'settings.look.builtInTitle': 'Thành phần tích hợp',
   'settings.look.builtInHint': 'Những gì KnightLoader mang theo hoặc chạy bên cạnh, mỗi phần kèm phiên bản và nguồn gốc. Các phần này đi cùng KnightLoader hoặc ảnh container, hoặc tự cập nhật, nên ở đây không có gì để cập nhật.',
   'whatsnew.change.builtIn': '“{name}” liệt kê mọi phần đi kèm KnightLoader, kèm phiên bản và nguồn gốc. Những gì cập nhật được vẫn nằm ở “{updates}”.',

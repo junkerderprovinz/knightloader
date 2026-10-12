@@ -3668,6 +3668,7 @@ export const ro: Dict = {
   'settings.captcha.orderIntro': 'Imaginea este ordinea: un captcha merge întâi la contul de captcha de sus, apoi mai jos. Trage un nume ca să-l muți.',
   'whatsnew.change.captchaPriority': '„{name}” ordonează conturile tale de captcha conectate așa cum „{download}” ordonează backendurile. Tot acolo sunt momentul în care pornesc și captcha-ul de test.',
   'whatsnew.change.searchBox': 'Fiecare câmp de căutare arată și funcționează ca cel din Setări: cât scrii, câmpul își schimbă nuanța și lupa se aprinde, iar Escape sau crucea îl golesc.',
+  'whatsnew.change.searchFields': 'Fiecare căutare e un câmp în care poți scrie imediat, fără un buton care să-l deschidă întâi: în „{downloads}”, „{collector}” și „{advanced}”, și în ferestrele în care alegi un cont sau un hoster.',
   'settings.look.builtInTitle': 'Componente încorporate',
   'settings.look.builtInHint': 'Ce aduce KnightLoader cu el sau rulează lângă el, fiecare cu versiunea și proveniența sa. Aceste părți vin cu KnightLoader sau cu imaginea containerului, ori se actualizează singure, așa că aici nu ai nimic de actualizat.',
   'whatsnew.change.builtIn': '„{name}” enumeră fiecare parte care vine cu KnightLoader, cu versiunea și proveniența ei. Ce se poate actualiza rămâne pe „{updates}”.',

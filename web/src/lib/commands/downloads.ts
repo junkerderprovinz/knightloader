@@ -144,8 +144,9 @@ export const downloadsCommands: Command[] = [
     run: (ctx) => ctx.cleanup.preview('finished'),
   },
   {
+    // The id stays as it is, since stored shortcut overrides are keyed by it.
     id: 'downloads.toggleSearch',
-    // The search badge's name, not the empty field's placeholder
+    // A name of its own, not the empty field's placeholder
     // (check-placeholder-as-label.mjs).
     labelKey: 'search.toggle',
     icon: IconSearch,
@@ -154,7 +155,7 @@ export const downloadsCommands: Command[] = [
     defaultShortcut: 'mod+f',
     enabled: () => true,
     visible: () => true,
-    run: (ctx) => ctx.toggleSearch(),
+    run: (ctx) => ctx.focusSearch(),
   },
   {
     id: 'downloads.moveTop',

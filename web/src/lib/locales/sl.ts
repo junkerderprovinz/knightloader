@@ -3658,6 +3658,7 @@ export const sl: Dict = {
   'settings.captcha.orderIntro': 'Slika je vrstni red: captcha gre najprej k računu captch na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
   'whatsnew.change.captchaPriority': '»{name}« razvrsti tvoje povezane račune captch tako, kot »{download}« razvrsti zaledja. Tam sta tudi, kdaj začnejo, in preizkusna captcha.',
   'whatsnew.change.searchBox': 'Vsako iskalno polje je videti in deluje kot tisto v Nastavitvah: med tipkanjem polje spremeni odtenek in povečevalno steklo zasveti, Escape ali križec pa ga izpraznita.',
+  'whatsnew.change.searchFields': 'Vsako iskanje je polje, v katero lahko takoj tipkaš, brez gumba, ki bi ga najprej odprl: v »{downloads}«, »{collector}« in »{advanced}« ter v oknih, kjer izbereš račun ali gostitelja.',
   'settings.look.builtInTitle': 'Vgrajeni sestavni deli',
   'settings.look.builtInHint': 'Kar KnightLoader prinese s seboj ali poganja ob sebi, vsak del s svojo različico in izvorom. Ti deli pridejo s KnightLoaderjem ali s sliko vsebnika ali se posodabljajo sami, zato tu ni ničesar za posodobiti.',
   'whatsnew.change.builtIn': '»{name}« našteje vsak del, ki pride s KnightLoaderjem, z različico in izvorom. Kar je mogoče posodobiti, ostane na »{updates}«.',

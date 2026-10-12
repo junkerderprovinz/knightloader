@@ -3659,6 +3659,7 @@ export const sv: Dict = {
   'settings.captcha.orderIntro': 'Bilden är ordningen: en captcha går först till captcha-kontot högst upp och sedan vidare nedåt. Dra ett namn för att flytta det.',
   'whatsnew.change.captchaPriority': '”{name}” ordnar dina anslutna captcha-konton så som ”{download}” ordnar bakändarna. När de startar och test-captchan finns där också.',
   'whatsnew.change.searchBox': 'Varje sökfält ser ut och fungerar som det i Inställningar: medan du skriver byter rutan nyans och förstoringsglaset lyser, och Escape eller krysset tömmer det.',
+  'whatsnew.change.searchFields': 'Varje sökning är ett fält du kan skriva i direkt, utan en knapp som först öppnar det: i ”{downloads}”, ”{collector}” och ”{advanced}” och i fönstren där du väljer ett konto eller en hoster.',
   'settings.look.builtInTitle': 'Inbyggda komponenter',
   'settings.look.builtInHint': 'Det KnightLoader har med sig eller kör bredvid sig, var och en med sin version och sitt ursprung. De här delarna följer med KnightLoader eller containeravbilden, eller uppdaterar sig själva, så här finns inget att uppdatera.',
   'whatsnew.change.builtIn': '”{name}” listar varje del som följer med KnightLoader, med version och ursprung. Det som går att uppdatera ligger kvar på ”{updates}”.',
