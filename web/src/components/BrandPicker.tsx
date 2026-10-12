@@ -5,7 +5,7 @@
 // it, so the three windows look the same. The tile is ReadmeButton's markup
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead.
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { IconClose, IconSearch } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
@@ -66,6 +66,47 @@ export function BrandPicker({
             <span className="glim-readme-btn-text">
               <span className="glim-readme-btn-name">{b.name}</span>
               {b.sub && <span className="glim-readme-btn-sub">{b.sub}</span>}
+            </span>
+          </button>
+          <span className="glim-readme-btn-sheen" aria-hidden />
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+/** One kind of thing a picker of kinds offers. */
+export interface Kind {
+  id: string;
+  name: string;
+  /** What the kind is for, in a few words, always in view. */
+  sub: string;
+  icon: ReactNode;
+}
+
+/**
+ * KindPicker is the step before a picker of brands, where there is a kind of
+ * thing to choose first: the same tile a size up, a glyph in place of the
+ * logo, and the second line held in view, since a handful of kinds is read
+ * rather than searched.
+ */
+export function KindPicker({ kinds, onPick }: { kinds: Kind[]; onPick: (id: string) => void }) {
+  return (
+    <ul data-new="account-kinds" className="glim-provider-pick glim-kind-pick">
+      {kinds.map((k) => (
+        <li key={k.id} className="glim-readme-btn-unit glim-readme-btn-unit--note group glim-tile-house">
+          <button
+            type="button"
+            onClick={() => onPick(k.id)}
+            aria-label={`${k.name} ${k.sub}`}
+            className="glim-readme-btn glim-brand-tile"
+          >
+            <span className="glim-readme-btn-mark glim-house-mark" aria-hidden>
+              {k.icon}
+            </span>
+            <span className="glim-readme-btn-text">
+              <span className="glim-readme-btn-name">{k.name}</span>
+              <span className="glim-readme-btn-sub">{k.sub}</span>
             </span>
           </button>
           <span className="glim-readme-btn-sheen" aria-hidden />

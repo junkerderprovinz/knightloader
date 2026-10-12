@@ -5,8 +5,8 @@
 // section follows the catalogue's Group field, and every card draws an
 // AccountTable. The Allow free downloads switch comes under them, since whether
 // a link may be fetched for free is a question of which accounts there are.
-// Adding is the page's one floating action, which lists the kinds in the
-// cards' order; no card carries an add button of its own.
+// Adding is the page's one floating action, which opens a window with a tile
+// per kind in the cards' order; no card carries an add button of its own.
 import {
   useCallback,
   useEffect,
@@ -56,7 +56,6 @@ import {
   Toggle,
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
-import type { MenuItem } from '../components/ContextMenu';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { SubHead } from './settings/controls';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
@@ -72,11 +71,20 @@ import {
   IconExternalLink,
   IconGlobe,
   IconFleet,
+  IconKey,
   IconAdd,
   IconRefresh,
   IconTrash,
 } from '../lib/icons';
-import { BrandPicker, PickerSearch, brandMatches, siteOf, type Brand } from '../components/BrandPicker';
+import {
+  BrandPicker,
+  KindPicker,
+  PickerSearch,
+  brandMatches,
+  siteOf,
+  type Brand,
+  type Kind,
+} from '../components/BrandPicker';
 import { PriorityFlow, nameBand } from '../components/pictures/PriorityFlow';
 
 // Reads what the background account-health refresher stored; expiry and
@@ -138,6 +146,7 @@ export function Accounts() {
   // The two cards that keep their own windows open the add one when the
   // floating action asks for it.
   const [adding, setAdding] = useState<'usenet' | 'hoster' | null>(null);
+  const [picking, setPicking] = useState(false);
   const hoster = useHosterLogins(setLoginHosts);
 
   const load = useCallback(async () => {
@@ -247,30 +256,45 @@ export function Accounts() {
 
   // Every empty card sends the reader to the floating action by its name.
   const addPointer = t('accounts.addPointer', { button: t('accounts.newAccount') });
-  const kinds: MenuItem[] = [
+  const kinds: (Kind & { open: () => void })[] = [
     {
       id: 'debrid',
-      label: t('accounts.kind.debrid'),
+      name: t('accounts.kind.debrid'),
+      sub: t('accounts.kind.debridSub'),
       icon: <IconAccounts />,
-      onSelect: () => setDialog({ mode: 'new', group: 'debrid' }),
+      open: () => setDialog({ mode: 'new', group: 'debrid' }),
     },
-    { id: 'usenet', label: t('accounts.kind.usenet'), icon: <IconGlobe />, onSelect: () => setAdding('usenet') },
-    { id: 'hoster', label: t('accounts.kind.hoster'), icon: <IconAccounts />, onSelect: () => setAdding('hoster') },
+    {
+      id: 'usenet',
+      name: t('accounts.kind.usenet'),
+      sub: t('accounts.kind.usenetSub'),
+      icon: <IconGlobe />,
+      open: () => setAdding('usenet'),
+    },
+    {
+      id: 'hoster',
+      name: t('accounts.kind.hoster'),
+      sub: t('accounts.kind.hosterSub'),
+      icon: <IconKey />,
+      open: () => setAdding('hoster'),
+    },
     ...(serverService
       ? [
           {
             id: 'server',
-            label: t('accounts.kind.server'),
+            name: t('accounts.kind.server'),
+            sub: t('accounts.kind.serverSub'),
             icon: <IconFleet />,
-            onSelect: () => setDialog({ mode: 'server', service: serverService, host: null }),
+            open: () => setDialog({ mode: 'server', service: serverService, host: null }),
           },
         ]
       : []),
     {
       id: 'captcha',
-      label: t('accounts.kind.captcha'),
+      name: t('accounts.kind.captcha'),
+      sub: t('accounts.kind.captchaSub'),
       icon: <IconCaptcha />,
-      onSelect: () => setDialog({ mode: 'new', group: 'captchaSolver' }),
+      open: () => setDialog({ mode: 'new', group: 'captchaSolver' }),
     },
   ];
 
@@ -361,10 +385,40 @@ export function Accounts() {
           primary
           icon={<IconAdd />}
           label={t('accounts.newAccount')}
-          menu={[{ id: 'kinds', items: kinds }]}
+          onClick={() => setPicking(true)}
           data-new="accounts-add"
         />
       </PageActions>
+
+      {/* The kind leads on to the window that kind already has, the services
+          to pick from or the form, so each is still added in one place. */}
+      {picking && (
+        <Modal
+          title={t('accounts.newAccount')}
+          wide
+          onClose={() => setPicking(false)}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setPicking(false)}
+              />
+            </>
+          }
+        >
+          <KindPicker
+            kinds={kinds}
+            onPick={(id) => {
+              setPicking(false);
+              kinds.find((k) => k.id === id)?.open();
+            }}
+          />
+        </Modal>
+      )}
 
       {/* The windows below belong to a card, so they wear its colour. */}
       {dialog?.mode === 'server' && (
