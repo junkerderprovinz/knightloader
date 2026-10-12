@@ -264,14 +264,25 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
-      // Quit and restart are the card's second group, under a heading of their own.
+      // KnightLoader and yt-dlp share the two switch labels. Quit and restart
+      // are the card's last group, under a heading of their own.
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
+        { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
         { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
       ],
-      // The container build uses its own sentence for the update hint.
-      body: ['settings.look.updatesAutoUpdateContainerHint'],
+      // The container build uses its own sentence for the update hint, and
+      // yt-dlp's switches carry their own hints.
+      body: [
+        'settings.look.updatesAutoUpdateContainerHint',
+        'settings.resolvers.toolsAutoCheckHint',
+        'settings.resolvers.toolsAutoUpdateHint',
+        'settings.resolvers.toolsShadowed',
+        'settings.resolvers.toolsShadowedOlder',
+        'settings.resolvers.toolsManagedBroken',
+      ],
+      also: ['settings.look.updatesCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
     },
     // The archive and "settings only" share one card as its two sub-cards.
     {
@@ -684,20 +695,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.resolvers.toolsTitle',
       hint: 'settings.resolvers.toolsHint',
-      rows: [
-        { key: 'settings.module.ytdlp' },
-        { key: 'settings.resolvers.toolsAutoUpdate', hint: 'settings.resolvers.toolsAutoUpdateHint' },
-        { key: 'settings.resolvers.toolsAutoCheck', hint: 'settings.resolvers.toolsAutoCheckHint' },
-        { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
-      ],
-      body: [
-        'settings.resolvers.toolsYtdlpMissingHint',
-        'settings.resolvers.toolsFfmpegMissingHint',
-        'settings.resolvers.toolsShadowed',
-        'settings.resolvers.toolsShadowedOlder',
-        'settings.resolvers.toolsManagedBroken',
-      ],
-      also: ['settings.resolvers.toolsCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
+      rows: [{ key: 'settings.module.ytdlp' }],
+      body: ['settings.resolvers.toolsYtdlpMissingHint', 'settings.resolvers.toolsFfmpegMissingHint'],
     },
     {
       title: 'settings.resolvers.quality',
@@ -1263,7 +1262,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.about.version',
       hint: 'settings.info.versionHint',
       rows: [],
-      also: ['settings.look.updatesCheck'],
+      also: ['settings.look.updatesReleaseNotes'],
       body: ['settings.info.glimstoneSub', 'settings.info.ytdlpSub', 'settings.info.ffmpegSub'],
     },
     {

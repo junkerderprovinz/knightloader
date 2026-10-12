@@ -1,26 +1,9 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../lib/i18n';
-import { Button, Card, InfoBubble, LinkBadge, SectionTitle, type ButtonVerdict } from '../../components/ui';
-import {
-  fetchDeploymentInfo,
-  fetchHealth,
-  fetchMediaTools,
-  fetchUpdateCheck,
-  fetchYtdlpLatest,
-  type MediaToolsStatus,
-  type UpdateCheck,
-  type YtdlpLatest,
-} from '../../lib/api';
+import { Button, Card, SectionTitle } from '../../components/ui';
+import { fetchHealth, fetchMediaTools, type MediaToolsStatus } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
-import {
-  IconCheck,
-  IconClose,
-  IconDiagnostics,
-  IconDownload,
-  IconGithub,
-  IconInfo,
-  IconRefresh,
-} from '../../lib/icons';
+import { IconDiagnostics, IconGithub, IconInfo } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
 import { IconBitcoin, IconPayPal } from '../../components/donateMarks';
 import { BrandMark, ReadmeButton } from '../../components/ReadmeButton';
@@ -159,65 +142,31 @@ function VersionNumber({ version, page }: { version: string; page: string }) {
   );
 }
 
-/**
- * One thing the app is made of: its name, what it is, and its number at the
- * end. `aside` is a badge in front of the number, such as the way to a newer
- * release.
- */
-function VersionRow({
-  name,
-  sub,
-  aside,
-  children,
-}: {
-  name: string;
-  sub?: ReactNode;
-  aside?: ReactNode;
-  children: ReactNode;
-}) {
+/** One thing the app is made of: its name, what it is, and its number at the end. */
+function VersionRow({ name, sub, children }: { name: string; sub?: ReactNode; children: ReactNode }) {
   return (
     <li className="flex items-center justify-between gap-4">
       <span className="flex min-w-0 flex-col">
         <span className="text-sm text-carbon-text">{name}</span>
         {sub && <span className="flex items-center text-subline text-carbon-textMuted">{sub}</span>}
       </span>
-      <span className="flex shrink-0 items-center gap-3">
-        {aside}
-        <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
-          {children}
-        </span>
+      <span dir="ltr" className="glim-num shrink-0 text-sm text-carbon-textSub">
+        {children}
       </span>
     </li>
   );
 }
 
-/** What the update check found, by component. `app` is null when it could not run. */
-interface Checked {
-  app: UpdateCheck | null;
-  ytdlp: YtdlpLatest | null;
-}
-
-/** updateCount is how many of the listed components have a newer release. */
-function updateCount(found: Checked): number {
-  return (found.app?.available ? 1 : 0) + (found.ytdlp?.checked && found.ytdlp.compare === 'newer' ? 1 : 0);
-}
-
 /**
  * Versions lists every version the app is made of, each read from where it
  * runs: the server's own stamp, the design language's copied file and the
- * media tools as the server found them. "Check for updates" asks GitHub about
- * KnightLoader and yt-dlp at once and shows the answer on itself, and a row
- * with a newer release says so and leads to it.
+ * media tools as the server found them. Looking for newer ones is the General
+ * page's Updates card, which the badge leads to.
  */
 function Versions({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
-  const [desktop, setDesktop] = useState(false);
-  const [found, setFound] = useState<Checked | null>(null);
-  const [checking, setChecking] = useState(false);
-  // The failure counter of the check button, so a repeated failure shakes it again.
-  const [shake, setShake] = useState(0);
 
   useEffect(() => {
     fetchHealth()
@@ -226,71 +175,21 @@ function Versions({ hue }: { hue: number }) {
     fetchMediaTools()
       .then(setTools)
       .catch(() => {});
-    fetchDeploymentInfo()
-      .then((d) => setDesktop(d.deployment === 'desktop'))
-      .catch(() => {});
   }, []);
 
-  async function onCheck() {
-    setChecking(true);
-    // yt-dlp is asked about only where one runs, and its answer never fails the
-    // check: the app's own release is what the button is named for.
-    const [app, ytdlp] = await Promise.allSettled([
-      fetchUpdateCheck(),
-      tools?.ytdlp.found ? fetchYtdlpLatest() : Promise.resolve(null),
-    ]);
-    const next: Checked = {
-      app: app.status === 'fulfilled' && app.value.checked ? app.value : null,
-      ytdlp: ytdlp.status === 'fulfilled' ? ytdlp.value : null,
-    };
-    setFound(next);
-    if (!next.app) setShake((n) => n + 1);
-    setChecking(false);
-  }
-
-  const updates = found ? updateCount(found) : 0;
-  // The button changes its word and its glyph with the answer, like any button
-  // that tests something.
-  const face: { label: string; icon: ReactNode; verdict?: ButtonVerdict } = !found
-    ? { label: t('settings.look.updatesCheck'), icon: <IconRefresh /> }
-    : !found.app
-      ? { label: t('settings.info.checkFailed'), icon: <IconClose />, verdict: 'fail' }
-      : updates > 0
-        ? { label: t('settings.info.updatesFound', { n: updates }), icon: <IconDownload />, verdict: 'warn' }
-        : { label: t('settings.info.upToDate'), icon: <IconCheck />, verdict: 'ok' };
-
-  const app = found?.app;
-  // A downloaded version outranks the offer of it: it only waits for a restart.
-  const appNews = app?.ready
-    ? t('settings.look.updatesReady', { version: app.ready })
-    : app?.available
-      ? t('settings.look.updatesAvailable', { version: app.latest ?? '' })
-      : '';
   const ytdlp = tools?.ytdlp;
-  const ytdlpNews =
-    found?.ytdlp?.checked && found.ytdlp.compare === 'newer'
-      ? t('settings.look.updatesAvailable', { version: found.ytdlp.tag ?? '' })
-      : '';
   const missing = t('settings.diagnostics.toolsMissing');
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle hint={t('settings.info.versionHint')}>{t('settings.about.version')}</SectionTitle>
+      <SectionTitle
+        hint={t('settings.info.versionHint')}
+        right={<PageBadge page="look" title={t('settings.nav.look')} />}
+      >
+        {t('settings.about.version')}
+      </SectionTitle>
       <ul className="flex flex-col gap-3">
-        <VersionRow
-          name="KnightLoader"
-          sub={
-            appNews && (
-              <>
-                {appNews}
-                {app?.available && !app.ready && !desktop && (
-                  <InfoBubble tip={t('settings.look.updatesContainerHint')} />
-                )}
-              </>
-            )
-          }
-          aside={app?.available && app.url && <LinkBadge href={app.url} title={t('settings.look.updatesReleaseNotes')} />}
-        >
+        <VersionRow name="KnightLoader">
           {/* No stamp yet, or 'dev' for an untagged build: the working title stands in. */}
           {!version || version === 'dev' ? (
             t('nav.workingTitle')
@@ -301,13 +200,8 @@ function Versions({ hue }: { hue: number }) {
         <VersionRow name="GlimStone" sub={t('settings.info.glimstoneSub')}>
           <VersionNumber version={GLIMSTONE_VERSION} page={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION)} />
         </VersionRow>
-        {/* Program names need no translation. A newer yt-dlp is fetched on the
-            Resolvers page, so its row leads there. */}
-        <VersionRow
-          name="yt-dlp"
-          sub={ytdlpNews || t('settings.info.ytdlpSub')}
-          aside={ytdlpNews && <PageBadge page="resolvers" title={t('settings.nav.resolvers')} />}
-        >
+        {/* Program names need no translation. */}
+        <VersionRow name="yt-dlp" sub={t('settings.info.ytdlpSub')}>
           {ytdlp?.version ? <VersionNumber version={ytdlp.version} page={ytdlpPage(ytdlp.version)} /> : tools && missing}
         </VersionRow>
         <VersionRow name="ffmpeg" sub={t('settings.info.ffmpegSub')}>
@@ -320,19 +214,6 @@ function Versions({ hue }: { hue: number }) {
         <Button kind="secondary" icon={<IconInfo />} data-new="release-notes" onClick={() => openWhatsNew('notes')}>
           {t('settings.look.updatesReleaseNotes')}
         </Button>
-        <Button
-          kind="secondary"
-          icon={checking ? <IconRefresh /> : face.icon}
-          verdict={checking ? undefined : face.verdict}
-          shake={shake}
-          disabled={checking}
-          onClick={() => void onCheck()}
-        >
-          {checking ? t('settings.look.updatesChecking') : face.label}
-        </Button>
-        <span role="status" className="sr-only">
-          {found && !checking ? face.label : ''}
-        </span>
       </div>
     </Card>
   );

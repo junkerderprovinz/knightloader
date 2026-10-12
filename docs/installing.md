@@ -143,8 +143,8 @@ The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 - Java, on `PATH` or under `JAVA_HOME`, for the private JDownloader. Without
   it, file hoster links have no catch-all. Pointing `KL_JD` at a JDownloader
   that runs elsewhere works too.
-- yt-dlp for video sites. The Resolvers settings page can fetch a copy and
-  keep it current.
+- yt-dlp for video sites. The Updates card under Settings, General can fetch
+  a copy and keep it current.
 - ffmpeg on `PATH`, for merging video with its audio and for converting.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.
