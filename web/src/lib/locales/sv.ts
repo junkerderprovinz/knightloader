@@ -2280,7 +2280,6 @@ export const sv: Dict = {
 
   'settings.search.placeholder': 'Sök i alla inställningar…',
   'settings.search.hint': 'Söker i inställningarnas alla avsnitt: avsnittsnamnen, kortens rubriker, texten bredvid varje reglage och förklaringarna bakom (i). Väljer du ett resultat öppnas det avsnittet och raden markeras. Det söker inte i värdena du har ställt in: det fältet finns på sidan Avancerat.',
-  'settings.search.clear': 'Rensa sökningen',
   'settings.search.noMatch': 'Inget matchar.',
   'settings.search.results': 'Sökresultat',
   'settings.search.countOne': '1 träff',
@@ -3656,4 +3655,5 @@ export const sv: Dict = {
   'accounts.routing.priorityIntro': 'Bilden är ordningen: en länk går först till bakänden högst upp och sedan vidare nedåt. Dra ett namn för att flytta det.',
   'settings.captcha.orderIntro': 'Bilden är ordningen: en captcha går först till captcha-kontot högst upp och sedan vidare nedåt. Dra ett namn för att flytta det.',
   'whatsnew.change.captchaPriority': '”{name}” ordnar dina anslutna captcha-konton så som ”{download}” ordnar bakändarna. När de startar och test-captchan finns där också.',
+  'whatsnew.change.searchBox': 'Varje sökfält ser ut och fungerar som det i Inställningar: medan du skriver byter rutan nyans och förstoringsglaset lyser, och Escape eller krysset tömmer det.',
 };

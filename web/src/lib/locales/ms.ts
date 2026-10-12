@@ -2279,7 +2279,6 @@ export const ms: Dict = {
 
   'settings.search.placeholder': 'Cari semua tetapan…',
   'settings.search.hint': 'Mencari dalam setiap bahagian tetapan: nama bahagian, tajuk kad, label di sebelah setiap kawalan dan penerangan di sebalik ikon (i). Memilih satu hasil akan membuka bahagian itu dan menandakan barisnya. Ia tidak mencari nilai yang anda tetapkan: kotak untuk itu ada pada halaman Lanjutan.',
-  'settings.search.clear': 'Kosongkan carian',
   'settings.search.noMatch': 'Tiada apa-apa yang sepadan.',
   'settings.search.results': 'Hasil carian',
   'settings.search.countOne': '1 padanan',
@@ -3656,4 +3655,5 @@ export const ms: Dict = {
   'accounts.routing.priorityIntro': 'Gambar ini ialah susunannya: pautan pergi dahulu ke bahagian belakang di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
   'settings.captcha.orderIntro': 'Gambar ini ialah susunannya: captcha pergi dahulu ke akaun captcha di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” menyusun akaun captcha anda yang disambungkan seperti “{download}” menyusun bahagian belakang. Bila ia bermula dan captcha ujian juga ada di situ.',
+  'whatsnew.change.searchBox': 'Setiap medan carian kelihatan dan berfungsi seperti yang dalam Tetapan: semasa anda menaip, kotak bertukar warna dan kanta pembesar menyala, dan Escape atau pangkah mengosongkannya.',
 };

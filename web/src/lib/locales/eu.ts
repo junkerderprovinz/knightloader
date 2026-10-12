@@ -2275,7 +2275,6 @@ export const eu: Dict = {
 
   'settings.search.placeholder': 'Bilatu ezarpen guztietan…',
   'settings.search.hint': 'Ezarpenen atal guztietan bilatzen du: atalen izenak, txartelen izenburuak, kontrol bakoitzaren ondoko testua eta (i) ikurraren atzeko azalpenak. Emaitza bat hautatzean atal hori irekitzen da eta errenkada nabarmentzen. Ezarritako balioetan ez du bilatzen: horretarako Aurreratua orriko eremua dago.',
-  'settings.search.clear': 'Garbitu bilaketa',
   'settings.search.noMatch': 'Ez dago bat datorren ezer.',
   'settings.search.results': 'Bilaketaren emaitzak',
   'settings.search.countOne': '1 emaitza',
@@ -3653,4 +3652,5 @@ export const eu: Dict = {
   'accounts.routing.priorityIntro': 'Irudia da ordena: esteka bat goiko backendera doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
   'settings.captcha.orderIntro': 'Irudia da ordena: captcha bat goiko captcha kontura doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
   'whatsnew.change.captchaPriority': '«{name}» txartelak zure captcha kontu konektatuak ordenatzen ditu, «{download}» txartelak backendak ordenatzen dituen bezala. Noiz hasten diren eta proba-captcha ere bertan daude.',
+  'whatsnew.change.searchBox': 'Bilaketa-eremu orok Ezarpenetakoaren itxura eta funtzionamendua du: idazten duzun bitartean, koadroak tonua aldatzen du eta lupa pizten da, eta Escape-k edo gurutzeak hustu egiten dute.',
 };

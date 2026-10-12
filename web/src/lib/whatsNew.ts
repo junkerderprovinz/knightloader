@@ -142,6 +142,9 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.captcha.orderTitle', download: 'accounts.routing.priorityTitle' },
       },
       { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
+      // Drawn in every window and list that is searched, and listed with the
+      // first page that has one in view.
+      { id: 'search-box', to: ['/settings', ...LISTS, ...ACCOUNTS], text: 'whatsnew.change.searchBox' },
       {
         id: 'display-card',
         to: ['/settings/appearance'],

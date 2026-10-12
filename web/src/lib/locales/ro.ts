@@ -2289,7 +2289,6 @@ export const ro: Dict = {
 
   'settings.search.placeholder': 'Caută în toate setările…',
   'settings.search.hint': 'Caută în toate secțiunile setărilor: numele secțiunilor, titlurile cardurilor, eticheta de lângă fiecare element de control și explicațiile din spatele lui (i). Dacă alegi un rezultat, se deschide acea secțiune și se marchează rândul. Nu caută în valorile pe care le-ai stabilit: câmpul acela se află pe pagina Avansat.',
-  'settings.search.clear': 'Șterge căutarea',
   'settings.search.noMatch': 'Nimic nu se potrivește.',
   'settings.search.results': 'Rezultatele căutării',
   'settings.search.countOne': '1 potrivire',
@@ -3665,4 +3664,5 @@ export const ro: Dict = {
   'accounts.routing.priorityIntro': 'Imaginea este ordinea: un link merge întâi la backendul de sus, apoi mai jos. Trage un nume ca să-l muți.',
   'settings.captcha.orderIntro': 'Imaginea este ordinea: un captcha merge întâi la contul de captcha de sus, apoi mai jos. Trage un nume ca să-l muți.',
   'whatsnew.change.captchaPriority': '„{name}” ordonează conturile tale de captcha conectate așa cum „{download}” ordonează backendurile. Tot acolo sunt momentul în care pornesc și captcha-ul de test.',
+  'whatsnew.change.searchBox': 'Fiecare câmp de căutare arată și funcționează ca cel din Setări: cât scrii, câmpul își schimbă nuanța și lupa se aprinde, iar Escape sau crucea îl golesc.',
 };

@@ -2276,7 +2276,6 @@ export const lv: Dict = {
   'archive.failedToast': 'Arhīvu {name} neizdevās izpakot.',
   'settings.search.placeholder': 'Meklēt visos iestatījumos…',
   'settings.search.hint': 'Meklē visās iestatījumu sadaļās: sadaļu nosaukumos, kartīšu virsrakstos, uzrakstos blakus katrai vadīklai un skaidrojumos aiz (i). Izvēlies rezultātu, un attiecīgā sadaļa atveras un rinda tiek iezīmēta. Uzstādītās vērtības tas nemeklē: tam ir savs lauks lapā Papildu.',
-  'settings.search.clear': 'Notīrīt meklēšanu',
   'settings.search.noMatch': 'Nekas neatbilst.',
   'settings.search.results': 'Meklēšanas rezultāti',
   'settings.search.countOne': '1 atbilsme',
@@ -3647,4 +3646,5 @@ export const lv: Dict = {
   'accounts.routing.priorityIntro': 'Attēls ir secība: saite vispirms nonāk pie augšējās aizmugursistēmas, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
   'settings.captcha.orderIntro': 'Attēls ir secība: captcha vispirms nonāk pie augšējā captcha konta, tad tālāk uz leju. Velc nosaukumu, lai to pārvietotu.',
   'whatsnew.change.captchaPriority': '„{name}“ sakārto tavus pievienotos captcha kontus tāpat, kā „{download}“ sakārto aizmugursistēmas. Tur ir arī tas, kad tie sāk, un testa captcha.',
+  'whatsnew.change.searchBox': 'Katrs meklēšanas lauks izskatās un darbojas kā tas iestatījumos: kamēr raksti, lauks maina toni un lupa iedegas, un Escape vai krustiņš to iztukšo.',
 };

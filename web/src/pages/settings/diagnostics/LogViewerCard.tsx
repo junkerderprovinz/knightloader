@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
-import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
+import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
+import { SearchBox } from '../../../components/SearchBox';
 import { useLogTail } from './useLogTail';
 
 /**
@@ -40,15 +41,13 @@ export function LogViewerCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="flex min-w-[12rem] flex-1 items-center gap-1.5">
-          <TextInput
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('settings.diagnostics.logSearch')}
-            aria-label={t('settings.diagnostics.logSearch')}
-          />
-          <InfoBubble tip={t('settings.diagnostics.logSearchHint')} label={t('settings.diagnostics.logSearch')} />
-        </span>
+        <SearchBox
+          value={query}
+          onChange={setQuery}
+          label={t('settings.diagnostics.logSearch')}
+          hint={t('settings.diagnostics.logSearchHint')}
+          className="min-w-[12rem] flex-1"
+        />
 
         <span className="flex items-center gap-1.5">
           <Dropdown

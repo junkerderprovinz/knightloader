@@ -2280,7 +2280,6 @@ export const vi: Dict = {
 
   'settings.search.placeholder': 'Tìm trong toàn bộ cài đặt…',
   'settings.search.hint': 'Tìm trong mọi mục cài đặt: tên mục, tiêu đề thẻ, phần chữ bên cạnh mỗi điều khiển và các giải thích phía sau biểu tượng (i). Chọn một kết quả thì mục đó mở ra và hàng tương ứng được đánh dấu. Nó không tìm trong các giá trị bạn đã đặt: ô làm việc đó nằm ở trang Nâng cao.',
-  'settings.search.clear': 'Xóa tìm kiếm',
   'settings.search.noMatch': 'Không có gì khớp.',
   'settings.search.results': 'Kết quả tìm kiếm',
   'settings.search.countOne': '1 kết quả',
@@ -3656,4 +3655,5 @@ export const vi: Dict = {
   'accounts.routing.priorityIntro': 'Hình chính là thứ tự: một liên kết đến backend trên cùng trước, rồi lần lượt xuống dưới. Kéo một tên để di chuyển nó.',
   'settings.captcha.orderIntro': 'Hình chính là thứ tự: một captcha đến tài khoản captcha trên cùng trước, rồi lần lượt xuống dưới. Kéo một tên để di chuyển nó.',
   'whatsnew.change.captchaPriority': '“{name}” sắp xếp các tài khoản captcha đã kết nối giống như “{download}” sắp xếp các backend. Thời điểm chúng bắt đầu và captcha thử cũng nằm ở đó.',
+  'whatsnew.change.searchBox': 'Mọi ô tìm kiếm đều trông và hoạt động như ô trong Cài đặt: khi bạn gõ, ô đổi sắc màu và kính lúp sáng lên, còn Escape hoặc dấu chéo sẽ xóa trống ô.',
 };

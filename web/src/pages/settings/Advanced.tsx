@@ -14,6 +14,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
+import { SearchBox } from '../../components/SearchBox';
 import { IconRefresh, IconSearch } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
@@ -207,20 +208,17 @@ export function Advanced() {
           {/* A badge that opens into the field and stays open while it holds
               text, so an active filter is never hidden. */}
           {searchOpen || query ? (
-            <div className="min-w-0 sm:max-w-xs">
-              <TextInput
-                autoFocus={searchOpen}
-                type="search"
-                spellCheck={false}
-                value={query}
-                placeholder={tx('settings.advanced.search')}
-                aria-label={tx('settings.advanced.search')}
-                onChange={(e) => setQuery(e.target.value)}
-                onBlur={() => {
-                  if (!query) setSearchOpen(false);
-                }}
-              />
-            </div>
+            <SearchBox
+              autoFocus={searchOpen}
+              spellCheck={false}
+              value={query}
+              label={tx('settings.advanced.search')}
+              onChange={setQuery}
+              onBlur={() => {
+                if (!query) setSearchOpen(false);
+              }}
+              className="min-w-0 sm:w-80"
+            />
           ) : (
             <IconBadge
               icon={<IconSearch width={16} height={16} />}

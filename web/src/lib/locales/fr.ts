@@ -2268,7 +2268,6 @@ export const fr: Dict = {
 
   'settings.search.placeholder': 'Rechercher dans tous les paramètres…',
   'settings.search.hint': 'Fouille toutes les sections des paramètres : les noms de section, les titres de carte, le libellé à côté de chaque commande et les explications derrière le (i). Choisir un résultat ouvre cette section et met la ligne en évidence. Cela ne fouille pas les valeurs que vous avez réglées : ce champ-là se trouve sur la page Avancé.',
-  'settings.search.clear': 'Effacer la recherche',
   'settings.search.noMatch': 'Rien ne correspond.',
   'settings.search.results': 'Résultats de la recherche',
   'settings.search.countOne': '1 correspondance',
@@ -3646,4 +3645,5 @@ export const fr: Dict = {
   'accounts.routing.priorityIntro': 'L’image est l’ordre : un lien va d’abord au backend du haut, puis aux suivants. Faites glisser un nom pour le déplacer.',
   'settings.captcha.orderIntro': 'L’image est l’ordre : un captcha va d’abord au compte captcha du haut, puis aux suivants. Faites glisser un nom pour le déplacer.',
   'whatsnew.change.captchaPriority': '« {name} » range vos comptes captcha connectés comme « {download} » range les backends. Le moment où ils démarrent et le captcha de test s’y trouvent aussi.',
+  'whatsnew.change.searchBox': 'Chaque champ de recherche ressemble à celui des Paramètres et fonctionne de même : pendant la saisie, le champ change de teinte et la loupe s’allume, et Échap ou la croix le vide.',
 };

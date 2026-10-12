@@ -2270,7 +2270,6 @@ export const pt: Dict = {
 
   'settings.search.placeholder': 'Procurar em todas as definições…',
   'settings.search.hint': 'Procura em todas as secções das definições: os nomes das secções, os títulos dos cartões, a legenda ao lado de cada controlo e as explicações por trás do (i). Ao escolheres um resultado, essa secção abre-se e a linha fica marcada. Não procura nos valores que definiste: essa caixa está na página Avançado.',
-  'settings.search.clear': 'Limpar a procura',
   'settings.search.noMatch': 'Nada corresponde.',
   'settings.search.results': 'Resultados da procura',
   'settings.search.countOne': '1 correspondência',
@@ -3647,4 +3646,5 @@ export const pt: Dict = {
   'accounts.routing.priorityIntro': 'A imagem é a ordem: uma ligação vai primeiro para o backend do topo e depois para os de baixo. Arrasta um nome para o mover.',
   'settings.captcha.orderIntro': 'A imagem é a ordem: um captcha vai primeiro para a conta de captcha do topo e depois para as de baixo. Arrasta um nome para o mover.',
   'whatsnew.change.captchaPriority': '«{name}» ordena as tuas contas de captcha ligadas como «{download}» ordena os backends. Quando começam e o captcha de teste também lá estão.',
+  'whatsnew.change.searchBox': 'Cada campo de pesquisa tem o aspeto e o funcionamento do das Definições: enquanto escreves, a caixa muda de tom e a lupa acende-se, e Escape ou a cruz esvaziam-no.',
 };

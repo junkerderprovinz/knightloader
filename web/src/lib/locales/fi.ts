@@ -2280,7 +2280,6 @@ export const fi: Dict = {
 
   'settings.search.placeholder': 'Hae kaikista asetuksista…',
   'settings.search.hint': 'Hakee asetusten kaikista osioista: osioiden nimistä, korttien otsikoista, kunkin säätimen vieressä olevasta tekstistä ja (i)-kuvakkeen takana olevista selityksistä. Kun valitset tuloksen, kyseinen osio avautuu ja rivi korostetaan. Asettamiasi arvoja se ei hae: siihen on oma kenttänsä Lisäasetukset-sivulla.',
-  'settings.search.clear': 'Tyhjennä haku',
   'settings.search.noMatch': 'Mikään ei osu.',
   'settings.search.results': 'Hakutulokset',
   'settings.search.countOne': '1 osuma',
@@ -3658,4 +3657,5 @@ export const fi: Dict = {
   'accounts.routing.priorityIntro': 'Kuva on järjestys: linkki menee ensin ylimmälle taustapalvelulle ja sitten alaspäin. Siirrä nimeä vetämällä.',
   'settings.captcha.orderIntro': 'Kuva on järjestys: captcha menee ensin ylimmälle captcha-tilille ja sitten alaspäin. Siirrä nimeä vetämällä.',
   'whatsnew.change.captchaPriority': '”{name}” järjestää yhdistetyt captcha-tilisi samalla tavalla kuin ”{download}” järjestää taustapalvelut. Siinä ovat myös niiden aloitushetki ja testicaptcha.',
+  'whatsnew.change.searchBox': 'Jokainen hakukenttä näyttää ja toimii kuin Asetusten kenttä: kun kirjoitat, kentän sävy vaihtuu ja suurennuslasi syttyy, ja Escape tai risti tyhjentää sen.',
 };

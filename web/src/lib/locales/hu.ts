@@ -2280,7 +2280,6 @@ export const hu: Dict = {
 
   'settings.search.placeholder': 'Keresés minden beállításban…',
   'settings.search.hint': 'A beállítások minden szakaszában keres: a szakasznevekben, a kártyacímekben, a vezérlők melletti feliratokban és az (i) mögötti magyarázatokban. Ha kiválasztasz egy találatot, megnyitjuk a szakaszt, és kiemeljük a sort. A beállított értékekben nem keres: arra a Haladó oldal mezője való.',
-  'settings.search.clear': 'Keresés törlése',
   'settings.search.noMatch': 'Semmi nem illik rá.',
   'settings.search.results': 'Keresési találatok',
   'settings.search.countOne': '1 találat',
@@ -3658,4 +3657,5 @@ export const hu: Dict = {
   'accounts.routing.priorityIntro': 'A kép maga a sorrend: a link először a legfelső háttérrendszerhez kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
   'settings.captcha.orderIntro': 'A kép maga a sorrend: a captcha először a legfelső captcha-fiókhoz kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
   'whatsnew.change.captchaPriority': 'A(z) „{name}” úgy rendezi a csatlakoztatott captcha-fiókjaidat, ahogy a(z) „{download}” a háttérrendszereket. Az is itt van, mikor indulnak, és a próba-captcha is.',
+  'whatsnew.change.searchBox': 'Minden keresőmező úgy néz ki és úgy működik, mint a Beállításokban: gépelés közben a mező árnyalata megváltozik és a nagyító felvillan, az Escape vagy az X pedig kiüríti.',
 };

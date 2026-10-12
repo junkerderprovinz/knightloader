@@ -2280,7 +2280,6 @@ export const ja: Dict = {
 
   'settings.search.placeholder': 'すべての設定を検索…',
   'settings.search.hint': '設定のすべてのセクションを検索します。セクション名、カードの見出し、各項目の横のラベル、そして (i) の後ろにある説明です。結果を選ぶとそのセクションが開き、その行が強調されます。設定した値そのものは検索しません。そのための欄は詳細のページにあります。',
-  'settings.search.clear': '検索をクリア',
   'settings.search.noMatch': '一致するものがありません。',
   'settings.search.results': '検索結果',
   'settings.search.countOne': '一致 1 件',
@@ -3652,4 +3651,5 @@ export const ja: Dict = {
   'accounts.routing.priorityIntro': '図がそのまま順番です。リンクはまず一番上のバックエンドに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
   'settings.captcha.orderIntro': '図がそのまま順番です。キャプチャはまず一番上のキャプチャアカウントに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
   'whatsnew.change.captchaPriority': '「{name}」は、接続済みのキャプチャアカウントを「{download}」がバックエンドを並べるのと同じように並べます。開始のタイミングとテスト用キャプチャもここにあります。',
+  'whatsnew.change.searchBox': 'どの検索欄も設定の検索欄と同じ見た目と動きになりました。入力中は欄の色合いが変わって虫眼鏡が光り、Escape か × で空になります。',
 };

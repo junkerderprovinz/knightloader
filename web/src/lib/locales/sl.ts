@@ -2280,7 +2280,6 @@ export const sl: Dict = {
 
   'settings.search.placeholder': 'Preišči vse nastavitve…',
   'settings.search.hint': 'Preišče vse razdelke nastavitev: imena razdelkov, naslove kartic, napis ob vsakem kontrolniku in razlage za (i). Ko izbereš zadetek, se ta razdelek odpre in vrstica se označi. Nastavljenih vrednosti ne preiskuje: za to je polje na strani Napredno.',
-  'settings.search.clear': 'Počisti iskanje',
   'settings.search.noMatch': 'Nič se ne ujema.',
   'settings.search.results': 'Zadetki iskanja',
   'settings.search.countOne': '1 zadetek',
@@ -3655,4 +3654,5 @@ export const sl: Dict = {
   'accounts.routing.priorityIntro': 'Slika je vrstni red: povezava gre najprej k zaledju na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
   'settings.captcha.orderIntro': 'Slika je vrstni red: captcha gre najprej k računu captch na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
   'whatsnew.change.captchaPriority': '»{name}« razvrsti tvoje povezane račune captch tako, kot »{download}« razvrsti zaledja. Tam sta tudi, kdaj začnejo, in preizkusna captcha.',
+  'whatsnew.change.searchBox': 'Vsako iskalno polje je videti in deluje kot tisto v Nastavitvah: med tipkanjem polje spremeni odtenek in povečevalno steklo zasveti, Escape ali križec pa ga izpraznita.',
 };

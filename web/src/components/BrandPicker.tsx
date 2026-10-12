@@ -7,8 +7,9 @@
 // pay for: a brand's name is cut with an ellipsis instead.
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
-import { IconClose, IconSearch } from '../lib/icons';
+import { IconSearch } from '../lib/icons';
 import { HosterIcon } from './HosterIcon';
+import { SearchBox } from './SearchBox';
 import { IconBadge } from './ui';
 
 export interface Brand {
@@ -118,8 +119,8 @@ export function KindPicker({ kinds, onPick }: { kinds: Kind[]; onPick: (id: stri
 
 /**
  * PickerSearch is the search of a picker's window: a button that turns into
- * its field when pressed. `open` starts it as the field, for a list too long
- * to pick from without typing.
+ * the shared search field when pressed. `open` starts it as the field, for a
+ * list too long to pick from without typing.
  */
 export function PickerSearch({
   value,
@@ -144,36 +145,5 @@ export function PickerSearch({
       <IconBadge labelled icon={<IconSearch width={16} height={16} />} title={t('search.toggle')} onClick={() => setShown(true)} />
     );
   }
-  return (
-    <div
-      className="flex h-[var(--btn-h)] w-56 max-w-full items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2
-        pe-1 ps-2.5 transition-shadow has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]"
-    >
-      <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
-      <input
-        ref={input}
-        type="search"
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        placeholder={placeholder}
-        aria-label={placeholder}
-        className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
-          placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
-      />
-      {value && (
-        <button
-          type="button"
-          aria-label={t('search.clear')}
-          onClick={() => {
-            onChange('');
-            input.current?.focus();
-          }}
-          className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
-            text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
-        >
-          <IconClose width={12} height={12} />
-        </button>
-      )}
-    </div>
-  );
+  return <SearchBox inputRef={input} value={value} onChange={onChange} label={placeholder} className="w-56 max-w-full" />;
 }

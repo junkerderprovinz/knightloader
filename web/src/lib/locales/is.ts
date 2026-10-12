@@ -2277,7 +2277,6 @@ export const is: Dict = {
 
   'settings.search.placeholder': 'Leita í öllum stillingum…',
   'settings.search.hint': 'Leitar í hverjum kafla stillinganna: heitum kaflanna, titlum spjaldanna, textanum við hverja stýringu og skýringunum á bak við (i). Veljir þú niðurstöðu opnast sá kafli og línan er merkt. Gildin sem þú hefur stillt eru ekki leituð: reiturinn fyrir þau er á Ítarlegt-síðunni.',
-  'settings.search.clear': 'Hreinsa leitina',
   'settings.search.noMatch': 'Ekkert passar.',
   'settings.search.results': 'Leitarniðurstöður',
   'settings.search.countOne': '1 niðurstaða',
@@ -3652,4 +3651,5 @@ export const is: Dict = {
   'accounts.routing.priorityIntro': 'Myndin er röðin: tengill fer fyrst til bakendans efst og svo niður. Dragðu nafn til að færa það.',
   'settings.captcha.orderIntro': 'Myndin er röðin: captcha fer fyrst til captcha-reikningsins efst og svo niður. Dragðu nafn til að færa það.',
   'whatsnew.change.captchaPriority': '„{name}“ raðar tengdu captcha-reikningunum þínum eins og „{download}“ raðar bakendum. Hvenær þeir byrja og prufu-captcha eru þar líka.',
+  'whatsnew.change.searchBox': 'Hver leitarreitur lítur út og virkar eins og sá í Stillingum: á meðan þú skrifar skiptir reiturinn um lit og stækkunarglerið lýsist upp, og Escape eða krossinn tæmir hann.',
 };

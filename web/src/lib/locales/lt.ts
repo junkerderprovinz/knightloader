@@ -2281,7 +2281,6 @@ export const lt: Dict = {
 
   'settings.search.placeholder': 'Ieškoti visuose nustatymuose…',
   'settings.search.hint': 'Ieško visose nustatymų skiltyse: skilčių pavadinimuose, kortelių antraštėse, užraše prie kiekvieno valdiklio ir paaiškinimuose už (i). Pasirinkus rezultatą, ta skiltis atveriama, o eilutė pažymima. Nustatytų reikšmių jis neieško: tam skirtas laukelis yra puslapyje Išplėstiniai.',
-  'settings.search.clear': 'Išvalyti paiešką',
   'settings.search.noMatch': 'Niekas neatitinka.',
   'settings.search.results': 'Paieškos rezultatai',
   'settings.search.countOne': '1 atitikmuo',
@@ -3658,4 +3657,5 @@ export const lt: Dict = {
   'accounts.routing.priorityIntro': 'Paveikslas ir yra tvarka: nuoroda pirmiausia keliauja į viršutinę sistemą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
   'settings.captcha.orderIntro': 'Paveikslas ir yra tvarka: captcha pirmiausia keliauja į viršutinę captcha paskyrą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
   'whatsnew.change.captchaPriority': '„{name}“ rikiuoja tavo prijungtas captcha paskyras taip, kaip „{download}“ rikiuoja sistemas. Ten yra ir tai, kada jos pradeda, ir bandomoji captcha.',
+  'whatsnew.change.searchBox': 'Kiekvienas paieškos laukas atrodo ir veikia kaip tas nustatymuose: kol rašai, laukas pakeičia atspalvį ir užsidega didinamasis stiklas, o Escape arba kryželis jį išvalo.',
 };
