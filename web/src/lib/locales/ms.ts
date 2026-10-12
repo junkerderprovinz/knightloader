@@ -3628,7 +3628,7 @@ export const ms: Dict = {
   'whatsnew.change.pairingApproval': 'Telefon, pelayar atau instance lain yang memasukkan dua belas perkataan menunggu di bawah “{name}” sehingga anda meluluskannya.',
   'whatsnew.change.pairingOwnKey': 'Senarai kumpulan anda menunjukkan kunci instance ini, supaya anda boleh membandingkannya apabila instance lain perlu meluluskan instance ini.',
   'whatsnew.change.passwordReset': '“{name}” pada skrin log masuk menetapkan kata laluan baharu dengan kod yang ditulis oleh KnightLoader ke log atau folder datanya.',
-  'whatsnew.change.trustedProxies': 'Jika ada proksi songsang di hadapannya, masukkan alamatnya di bawah “{name}”, supaya seorang yang meneka kata laluan tidak membuat semua orang menunggu.',
+  'whatsnew.change.trustedProxies': 'Sebaik sahaja permintaan masuk melalui proksi songsang, “{name}” muncul. Masukkan alamat proksi di situ, supaya seorang yang meneka kata laluan tidak membuat semua orang menunggu.',
   'whatsnew.change.audioBest': 'Kadar bit audio “{best}” meminta pengekod memberikan kualiti terbaiknya setiap kali trek ditukar, dalam “{name}” dan dalam “{defaults}”.',
   'whatsnew.change.addLinksHome': '“{name}” kini hanya ada dalam pengumpul pautan, di sebelah kotak tempat anda menampal pautan.',
   'whatsnew.change.healthParts': 'Dalam “{name}” setiap keadaan berada di hujung barisnya, jadi keadaan tersusun lurus.',

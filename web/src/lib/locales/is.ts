@@ -3624,7 +3624,7 @@ export const is: Dict = {
   'whatsnew.change.pairingApproval': 'Sími, vafri eða annað tilvik sem slær inn orðin tólf bíður undir „{name}“ þar til þú samþykkir það.',
   'whatsnew.change.pairingOwnKey': 'Listinn yfir hópinn þinn sýnir lykil þessa tilviks, svo þú getir borið hann saman þegar annað tilvik á að samþykkja þetta.',
   'whatsnew.change.passwordReset': '„{name}“ á innskráningarskjánum setur nýtt lykilorð með kóða sem KnightLoader skrifar í annálinn sinn eða gagnamöppuna sína.',
-  'whatsnew.change.trustedProxies': 'Ef öfugur milliþjónn stendur fyrir framan, sláðu vistfang hans inn undir „{name}“, svo einn sem giskar á lykilorðið láti ekki alla bíða.',
+  'whatsnew.change.trustedProxies': 'Um leið og beiðnir berast í gegnum öfugan milliþjón birtist „{name}“. Skráðu vistfang milliþjónsins þar, svo einn sem giskar á lykilorðið láti ekki alla bíða.',
   'whatsnew.change.audioBest': 'Hljóðbitahraðinn „{best}“ biður kóðarann um bestu gæði sín í hvert skipti sem rás er umbreytt, í „{name}“ og í „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ er nú aðeins í tenglasafnaranum, við hliðina á reitnum sem þú límir tengla í.',
   'whatsnew.change.healthParts': 'Í „{name}“ er hvert ástand aftast í línunni sinni, svo ástandin raðast hvert undir annað.',

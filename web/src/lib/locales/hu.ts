@@ -3630,7 +3630,7 @@ export const hu: Dict = {
   'whatsnew.change.pairingApproval': 'A telefon, böngésző vagy másik példány, amely megadja a tizenkét szót, a(z) „{name}” alatt vár, amíg jóvá nem hagyod.',
   'whatsnew.change.pairingOwnKey': 'A csoportod listája mutatja ennek a példánynak a kulcsát, hogy összevethesd, amikor egy másik példánynak kell jóváhagynia ezt.',
   'whatsnew.change.passwordReset': 'A bejelentkezési képernyő „{name}” lehetősége új jelszót állít be egy kóddal, amelyet a KnightLoader a naplójába vagy az adatmappájába ír.',
-  'whatsnew.change.trustedProxies': 'Ha fordított proxy áll előtte, add meg a címét a(z) „{name}” alatt, hogy egyetlen, jelszót találgató ember ne várakoztasson mindenkit.',
+  'whatsnew.change.trustedProxies': 'Amint a kérések fordított proxyn keresztül érkeznek, megjelenik a(z) „{name}”. Írd be oda a proxy címét, hogy egyetlen jelszót találgató ember ne várakoztasson mindenkit.',
   'whatsnew.change.audioBest': 'A(z) „{best}” hangbitráta a kódolótól a legjobb minőségét kéri, valahányszor egy sávot átalakítanak, a(z) „{name}” és a(z) „{defaults}” részben.',
   'whatsnew.change.addLinksHome': 'A(z) „{name}” most már csak a linkgyűjtőben van, a mező mellett, ahová a linkeket beilleszted.',
   'whatsnew.change.healthParts': 'A(z) „{name}” részben minden állapot a sora végén áll, így az állapotok egymás alatt sorakoznak.',

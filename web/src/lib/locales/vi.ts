@@ -3628,7 +3628,7 @@ export const vi: Dict = {
   'whatsnew.change.pairingApproval': 'Điện thoại, trình duyệt hoặc phiên bản khác đã nhập mười hai từ sẽ chờ trong “{name}” cho tới khi bạn duyệt.',
   'whatsnew.change.pairingOwnKey': 'Danh sách nhóm của bạn hiện khóa của phiên bản này, để bạn so sánh khi một phiên bản khác cần duyệt phiên bản này.',
   'whatsnew.change.passwordReset': '“{name}” trên màn hình đăng nhập đặt mật khẩu mới bằng một mã mà KnightLoader ghi vào nhật ký hoặc thư mục dữ liệu của nó.',
-  'whatsnew.change.trustedProxies': 'Nếu phía trước có proxy ngược, hãy nhập địa chỉ của nó trong “{name}”, để một người đoán mật khẩu không bắt mọi người phải chờ.',
+  'whatsnew.change.trustedProxies': 'Khi các yêu cầu đến qua một reverse proxy, “{name}” sẽ hiện ra. Hãy nhập địa chỉ của proxy ở đó, để một người đoán mật khẩu không bắt mọi người phải chờ.',
   'whatsnew.change.audioBest': 'Bitrate âm thanh “{best}” yêu cầu bộ mã hóa cho chất lượng tốt nhất của nó mỗi khi một bản được chuyển đổi, trong “{name}” và trong “{defaults}”.',
   'whatsnew.change.addLinksHome': '“{name}” giờ chỉ có trong bộ thu liên kết, cạnh ô bạn dán liên kết vào.',
   'whatsnew.change.healthParts': 'Trong “{name}”, mỗi trạng thái nằm ở cuối dòng của nó, nên các trạng thái thẳng hàng với nhau.',

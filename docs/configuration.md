@@ -43,10 +43,12 @@ and reset codes have one each. Behind a reverse proxy every request arrives
 from the proxy, so one person guessing makes everybody wait.
 
 **Trusted proxies** under Settings > Security, beside the password, fixes that.
-Enter the proxy's address, one IP address or CIDR range per line, such as
-`172.18.0.5` or `10.10.0.0/28`. For a request from one of them, KnightLoader
-counts the right-most address in `X-Forwarded-For` that is not itself a
-trusted proxy. List only proxies you run: every machine on the list can put
+The field shows once a request has come in through a proxy within the last day
+(with `X-Forwarded-For`, `Forwarded` or `X-Real-IP`), and stays while it
+holds entries. Enter the proxy's address, one IP address or CIDR range per
+line, such as `172.18.0.5` or `10.10.0.0/28`. For a request from one of them,
+KnightLoader counts the right-most address in `X-Forwarded-For` that is not
+itself a trusted proxy. List only proxies you run: every machine on the list can put
 any address it likes into that header, and with it guess without ever being
 made to wait. A range must cover your proxies and no one who signs in. If
 KnightLoader's port is also published directly, leave out the gateway of its

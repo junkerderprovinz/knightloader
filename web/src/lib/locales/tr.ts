@@ -3627,7 +3627,7 @@ export const tr: Dict = {
   'whatsnew.change.pairingApproval': 'On iki kelimeyi giren bir telefon, tarayıcı ya da başka bir örnek, sen onaylayana kadar “{name}” altında bekler.',
   'whatsnew.change.pairingOwnKey': 'Grubunun listesi bu örneğin anahtarını gösterir; böylece başka bir örneğin bunu onaylaması gerektiğinde karşılaştırabilirsin.',
   'whatsnew.change.passwordReset': 'Giriş ekranındaki “{name}”, KnightLoader’ın günlüğüne ya da veri klasörüne yazdığı bir kodla yeni bir parola belirler.',
-  'whatsnew.change.trustedProxies': 'Önünde bir ters vekil sunucu varsa adresini “{name}” altına gir; böylece parolayı tahmin eden tek bir kişi herkesi bekletmez.',
+  'whatsnew.change.trustedProxies': 'İstekler bir ters vekil sunucu üzerinden gelmeye başlayınca “{name}” görünür. Oraya vekil sunucunun adresini gir ki parolayı tahmin eden tek bir kişi herkesi bekletmesin.',
   'whatsnew.change.audioBest': '“{best}” ses bit hızı, bir iz dönüştürüldüğünde her seferinde kodlayıcıdan en iyi kalitesini ister; “{name}” içinde de “{defaults}” içinde de.',
   'whatsnew.change.addLinksHome': '“{name}” artık yalnızca bağlantı toplayıcıda, bağlantıları yapıştırdığın kutunun yanında.',
   'whatsnew.change.healthParts': '“{name}” içinde her durum satırının sonunda durur, böylece durumlar alt alta hizalanır.',

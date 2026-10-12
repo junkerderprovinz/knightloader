@@ -3630,7 +3630,7 @@ export const lt: Dict = {
   'whatsnew.change.pairingApproval': 'Telefonas, naršyklė ar kitas egzempliorius, įvedęs dvylika žodžių, laukia skiltyje „{name}“, kol jį patvirtinsi.',
   'whatsnew.change.pairingOwnKey': 'Tavo grupės sąraše rodomas šio egzemplioriaus raktas, kad galėtum jį palyginti, kai kitas egzempliorius turės patvirtinti šį.',
   'whatsnew.change.passwordReset': 'Prisijungimo ekrane „{name}“ nustato naują slaptažodį su kodu, kurį KnightLoader įrašo į savo žurnalą arba duomenų aplanką.',
-  'whatsnew.change.trustedProxies': 'Jei priekyje stovi atvirkštinis tarpinis serveris, įvesk jo adresą skiltyje „{name}“, kad vienas slaptažodį spėliojantis žmogus neverstų laukti visų.',
+  'whatsnew.change.trustedProxies': 'Kai užklausos ateina per atvirkštinį tarpinį serverį, atsiranda „{name}“. Įrašyk ten tarpinio serverio adresą, kad vienas slaptažodį spėliojantis žmogus neverstų visų laukti.',
   'whatsnew.change.audioBest': 'Garso pralaidumas „{best}“ prašo iš koduotuvo geriausios kokybės kiekvieną kartą, kai takelis konvertuojamas, skiltyje „{name}“ ir skiltyje „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ dabar yra tik nuorodų rinkiklyje, šalia laukelio, į kurį įklijuoji nuorodas.',
   'whatsnew.change.healthParts': 'Skiltyje „{name}“ kiekviena būsena yra savo eilutės gale, todėl būsenos išsilygiuoja viena po kita.',

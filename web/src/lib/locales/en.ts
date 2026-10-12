@@ -3872,7 +3872,7 @@ export const en = {
   'whatsnew.change.pairingApproval': 'A phone, a browser or another instance that enters the twelve words waits under "{name}" until you approve it.',
   'whatsnew.change.pairingOwnKey': 'The list of your group shows this instance\'s key, so you can compare it when another instance is asked to approve this one.',
   'whatsnew.change.passwordReset': '"{name}" on the sign-in screen sets a new password with a code that KnightLoader writes to its log or its data folder.',
-  'whatsnew.change.trustedProxies': 'Behind a reverse proxy, enter its address under "{name}", so one person guessing the password does not make everybody wait.',
+  'whatsnew.change.trustedProxies': 'Once requests come in through a reverse proxy, "{name}" appears. Enter the proxy\'s address there, so one person guessing the password does not make everybody wait.',
   'whatsnew.change.audioBest': 'The audio bitrate "{best}" asks the encoder for its best quality whenever a track is converted, in "{name}" and in "{defaults}".',
   'whatsnew.change.addLinksHome': '"{name}" is now only in the link collector, beside the box you paste links into.',
   'whatsnew.change.healthParts': 'In "{name}" every state stands at the end of its row, so the states line up.',

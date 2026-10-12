@@ -57,7 +57,7 @@ describe('TokensSection', () => {
 });
 
 describe('Access', () => {
-  async function renderWithAuth(auth: object) {
+  async function renderWithAuth(auth: object, trustedProxies: string[] = []) {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
@@ -67,7 +67,8 @@ describe('Access', () => {
     );
     const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
     const draft = {
-      cfg: { trustedProxies: [] },
+      cfg: { trustedProxies },
+      saved: { trustedProxies },
       patch: () => {},
       fieldError: () => undefined,
       showRefusalsAt: () => () => {},
@@ -97,5 +98,20 @@ describe('Access', () => {
   it('says when the copies from before the app key go', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
     expect(host.textContent).toContain('A copy of the files from before the app key is still in the data folder.');
+  });
+
+  it('leaves the trusted proxies out while no request comes through a proxy', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: false });
+    expect(host.textContent).not.toContain('Trusted proxies');
+  });
+
+  it('offers the trusted proxies once requests come through a proxy', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: true });
+    expect(host.textContent).toContain('Trusted proxies');
+  });
+
+  it('keeps the trusted proxies in view while the list has entries', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: false }, ['10.0.0.2']);
+    expect(host.textContent).toContain('Trusted proxies');
   });
 });

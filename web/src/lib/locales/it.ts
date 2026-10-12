@@ -3612,7 +3612,7 @@ export const it: Dict = {
   'whatsnew.change.pairingApproval': 'Un telefono, un browser o un’altra istanza che inserisce le dodici parole attende in «{name}» finché non lo approvi.',
   'whatsnew.change.pairingOwnKey': 'L’elenco del tuo gruppo mostra la chiave di questa istanza, così puoi confrontarla quando un’altra istanza deve approvare questa.',
   'whatsnew.change.passwordReset': '«{name}» nella schermata di accesso imposta una nuova password con un codice che KnightLoader scrive nel suo log o nella sua cartella dei dati.',
-  'whatsnew.change.trustedProxies': 'Se davanti c’è un reverse proxy, inserisci il suo indirizzo in «{name}», così una sola persona che indovina la password non fa aspettare tutti.',
+  'whatsnew.change.trustedProxies': 'Appena le richieste arrivano tramite un reverse proxy, compare «{name}». Inserisci lì l’indirizzo del proxy, così una sola persona che tenta la password non fa aspettare tutti.',
   'whatsnew.change.audioBest': 'Il bitrate audio «{best}» chiede all’encoder la sua migliore qualità ogni volta che una traccia viene convertita, in «{name}» e in «{defaults}».',
   'whatsnew.change.addLinksHome': '«{name}» ora è solo nel raccoglitore di link, accanto al campo in cui incolli i link.',
   'whatsnew.change.healthParts': 'In «{name}» ogni stato sta in fondo alla sua riga, così gli stati risultano allineati.',

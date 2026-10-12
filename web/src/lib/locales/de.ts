@@ -3631,7 +3631,7 @@ export const de: Dict = {
   'whatsnew.change.pairingApproval': 'Ein Handy, ein Browser oder eine andere Instanz, die die zwölf Wörter eingibt, wartet unter „{name}“, bis du sie freigibst.',
   'whatsnew.change.pairingOwnKey': 'Die Liste deiner Gruppe zeigt den Schlüssel dieser Instanz, damit du ihn vergleichen kannst, wenn eine andere Instanz diese freigeben soll.',
   'whatsnew.change.passwordReset': '„{name}“ auf dem Anmeldebildschirm setzt ein neues Passwort mit einem Code, den KnightLoader in sein Log oder seinen Datenordner schreibt.',
-  'whatsnew.change.trustedProxies': 'Steht ein Reverse-Proxy davor, trag seine Adresse unter „{name}“ ein, damit eine Person, die das Passwort rät, nicht alle warten lässt.',
+  'whatsnew.change.trustedProxies': 'Sobald Anfragen über einen Reverse-Proxy kommen, erscheint „{name}“. Trag dort die Adresse des Proxys ein, damit eine Person, die das Passwort rät, nicht alle warten lässt.',
   'whatsnew.change.audioBest': 'Die Audio-Bitrate „{best}“ verlangt vom Encoder seine beste Qualität, wenn eine Spur umgewandelt wird, in „{name}“ und in „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ gibt es nur noch im Linksammler, neben dem Feld, in das du Links einfügst.',
   'whatsnew.change.healthParts': 'In „{name}“ steht jeder Zustand am Ende seiner Zeile, sodass die Zustände untereinander stehen.',

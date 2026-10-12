@@ -3638,7 +3638,7 @@ export const sk: Dict = {
   'whatsnew.change.pairingApproval': 'Telefón, prehliadač alebo iná inštancia, ktorá zadá dvanásť slov, čaká v časti „{name}“, kým ju neschváliš.',
   'whatsnew.change.pairingOwnKey': 'Zoznam tvojej skupiny ukazuje kľúč tejto inštancie, aby si ho mohol porovnať, keď má túto inštanciu schváliť iná.',
   'whatsnew.change.passwordReset': '„{name}“ na prihlasovacej obrazovke nastaví nové heslo pomocou kódu, ktorý KnightLoader zapíše do svojho logu alebo do svojho priečinka s údajmi.',
-  'whatsnew.change.trustedProxies': 'Ak pred ním stojí reverzné proxy, zadaj jeho adresu v časti „{name}“, aby jeden človek, ktorý háda heslo, nenechal čakať všetkých.',
+  'whatsnew.change.trustedProxies': 'Hneď ako požiadavky prichádzajú cez reverznú proxy, objaví sa „{name}“. Zadaj tam adresu proxy, aby jeden človek, ktorý háda heslo, nenechal čakať všetkých.',
   'whatsnew.change.audioBest': 'Zvukový dátový tok „{best}“ žiada od kodéra jeho najlepšiu kvalitu pri každom prevode stopy, v „{name}“ aj v „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ je odteraz len v zberači odkazov, vedľa poľa, do ktorého vkladáš odkazy.',
   'whatsnew.change.healthParts': 'V „{name}“ stojí každý stav na konci svojho riadka, takže sú stavy zarovnané pod sebou.',

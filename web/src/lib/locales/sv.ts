@@ -3628,7 +3628,7 @@ export const sv: Dict = {
   'whatsnew.change.pairingApproval': 'En telefon, en webbläsare eller en annan instans som anger de tolv orden väntar under ”{name}” tills du godkänner den.',
   'whatsnew.change.pairingOwnKey': 'Listan över din grupp visar den här instansens nyckel, så att du kan jämföra den när en annan instans ska godkänna den här.',
   'whatsnew.change.passwordReset': '”{name}” på inloggningsskärmen sätter ett nytt lösenord med en kod som KnightLoader skriver i sin logg eller sin datamapp.',
-  'whatsnew.change.trustedProxies': 'Står en omvänd proxy framför, ange dess adress under ”{name}”, så att en person som gissar lösenordet inte får alla att vänta.',
+  'whatsnew.change.trustedProxies': 'När förfrågningar kommer via en omvänd proxy dyker ”{name}” upp. Ange proxyns adress där, så att en person som gissar lösenordet inte får alla att vänta.',
   'whatsnew.change.audioBest': 'Ljudbithastigheten ”{best}” ber kodaren om dess bästa kvalitet varje gång ett spår konverteras, i ”{name}” och i ”{defaults}”.',
   'whatsnew.change.addLinksHome': '”{name}” finns nu bara i länksamlaren, bredvid fältet där du klistrar in länkar.',
   'whatsnew.change.healthParts': 'I ”{name}” står varje tillstånd i slutet av sin rad, så tillstånden hamnar rakt under varandra.',

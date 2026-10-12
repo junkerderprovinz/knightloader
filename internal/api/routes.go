@@ -143,6 +143,10 @@ type Registry struct {
 	// guess it.
 	passwordGate *loginGate
 
+	// proxied is when a request last came through a reverse proxy, which
+	// decides whether the Security page offers the trusted proxies.
+	proxied *proxySeen
+
 	openOnce   sync.Once
 	openExact  map[string]bool
 	openPrefix []string
@@ -153,7 +157,7 @@ type Registry struct {
 }
 
 func newRegistry() *Registry {
-	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate(nil)}
+	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate(nil), proxied: &proxySeen{}}
 }
 
 // Add registers a route that needs a session once a password is set.
