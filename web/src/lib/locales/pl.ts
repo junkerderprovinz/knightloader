@@ -1392,6 +1392,7 @@ export const pl: Dict = {
   'captcha.resolvedElsewhere': 'Captcha dla {host} została rozwiązana gdzie indziej.',
 
   'settings.captcha.orderTitle': 'Kolejność priorytetów captcha',
+  'settings.captcha.moduleLink': 'Włączanie i wyłączanie: {page}',
   'settings.captcha.orderHint': 'Każde połączone i włączone konto captcha jest próbowane w tej kolejności, od góry do dołu. Jeśli nie ma żadnego albo wszystkie zawiodą lub odmówią, zostaniesz zapytany bezpośrednio. Konto wyłączasz w „{accounts}”.',
   'settings.captcha.orderEmpty': 'Żadne konto captcha nie jest połączone, więc każda captcha trafia prosto do ciebie.',
   'collector.options': 'Opcje',
@@ -3594,6 +3595,7 @@ export const pl: Dict = {
   'whatsnew.change.captchaRefresh': 'W oknie „{name}” przycisk „{refresh}” wygląda jak przyciski obok, więc widać, że to przycisk.',
   'whatsnew.change.priorityTips': 'Każdy wiersz w sekcji „{name}” ma (i), które mówi, czym zajmuje się tamtejszy backend, także przy usługach debrid.',
   'whatsnew.change.jdState': 'Stan backendu JDownloader nie jest już na karcie „{free}”. Znajdziesz go w sekcji „{parts}” na stronie {health}, a jego rewizję w sekcji „{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Przełącznik „{module}” nie jest już wierszem w sekcji „{name}”. Link na górze karty prowadzi do niego na stronę {modules}.',
   'whatsnew.change.mergeFiles': 'Wyłącz „{name}”, żeby obraz, dźwięk i napisy zostały osobnymi plikami.',
   'whatsnew.change.ruleSwitch': 'Reguły są narysowane jako droga, którą przykładowy link przechodzi przez nie: która reguła go łapie i gdzie ląduje.',
   'whatsnew.change.trackMerge': '„{name}” rysuje na całej karcie, co przy obecnych ustawieniach trafia do pliku wideo, i podąża za przełącznikami poniżej. Gdy włączony jest „{rainbow}”, każda ścieżka ma własny kolor.',

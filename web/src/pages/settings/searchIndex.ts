@@ -403,7 +403,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.captcha.orderTitle',
       hint: 'settings.captcha.orderHint',
       rows: [
-        { key: 'settings.module.captcha' },
         { key: 'settings.captcha.whenTitle' },
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
@@ -411,8 +410,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
         { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
-      // The hint sends the reader to the captcha accounts card by its name.
-      also: ['accounts.captcha.title'],
+      // The hint sends the reader to the captcha accounts card by its name,
+      // and the badge at the title's end to the module's switch.
+      also: ['accounts.captcha.title', 'settings.captcha.moduleLink'],
       body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty'],
     },
     {

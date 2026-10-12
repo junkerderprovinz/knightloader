@@ -1399,6 +1399,7 @@ export const tr: Dict = {
   'captcha.resolvedElsewhere': '{host} için bir captcha başka bir yerde çözüldü.',
 
   'settings.captcha.orderTitle': 'Captcha öncelik sırası',
+  'settings.captcha.moduleLink': 'Açma ve kapatma: {page}',
   'settings.captcha.orderHint': 'Bağlı ve açık olan her captcha hesabı bu sırayla, yukarıdan aşağıya denenir. Hiç yoksa ya da hepsi başarısız olur veya reddederse, doğrudan sana sorulur. Bir hesabı “{accounts}” altında kapatırsın.',
   'settings.captcha.orderEmpty': 'Bağlı bir captcha hesabı yok, bu yüzden her captcha doğrudan sana gelir.',
   'collector.options': 'Seçenekler',
@@ -3608,6 +3609,7 @@ export const tr: Dict = {
   'whatsnew.change.captchaRefresh': '“{name}” penceresinde “{refresh}” yanındaki düğmeler gibi görünür, böylece düğme olduğu anlaşılır.',
   'whatsnew.change.priorityTips': '“{name}” içindeki her satırda, oradaki arka ucun neyi üstlendiğini söyleyen bir (i) var; debrid hizmetlerinde de.',
   'whatsnew.change.jdState': 'JDownloader arka ucunun durumu artık “{free}” kartında değil. Onu {health} sayfasında “{parts}” altında, revizyonunu da “{builtIn}” altında bulursun.',
+  'whatsnew.change.captchaSwitch': '“{module}” anahtarı artık “{name}” içinde bir satır değil. Kartın üstündeki bağlantı seni {modules} sayfasında ona götürür.',
   'whatsnew.change.mergeFiles': 'Video, ses ve altyazıları ayrı dosyalar olarak tutmak için “{name}” seçeneğini kapat.',
   'whatsnew.change.ruleSwitch': 'Kurallar, örnek bir bağlantının aralarından geçtiği yol olarak çizilir: hangi kural onu yakalar ve nereye varır.',
   'whatsnew.change.trackMerge': '“{name}”, geçerli ayarlarla bir video dosyasına neyin gireceğini kartın tamamına çizer ve altındaki anahtarları izler. “{rainbow}” açıkken her izin kendi rengi olur.',

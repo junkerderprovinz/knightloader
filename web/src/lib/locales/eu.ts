@@ -1400,6 +1400,7 @@ export const eu: Dict = {
   'captcha.resolvedElsewhere': '{host}(r)en captcha beste nonbait ebatzi da.',
 
   'settings.captcha.orderTitle': 'Captchen lehentasun-ordena',
+  'settings.captcha.moduleLink': 'Piztu eta itzali: {page}',
   'settings.captcha.orderHint': 'Konektatuta eta piztuta dagoen captcha kontu bakoitza ordena honetan probatzen da, goitik behera. Bat ere ez badago, edo denek huts egiten badute edo ezesten badute, zuzenean galdetuko zaizu. Kontu bat «{accounts}» atalean itzaltzen da.',
   'settings.captcha.orderEmpty': 'Ez dago captcha konturik konektatuta, beraz captcha guztiak zuzenean iristen zaizkizu.',
   'collector.options': 'Aukerak',
@@ -3606,6 +3607,7 @@ export const eu: Dict = {
   'whatsnew.change.captchaRefresh': '«{name}» leihoan, «{refresh}» ondoko botoien itxura du, botoia dela ikus dezazun.',
   'whatsnew.change.priorityTips': '«{name}» ataleko errenkada bakoitzak (i) bat du, bertako backendak zer hartzen duen esaten duena, debrid zerbitzuetan ere bai.',
   'whatsnew.change.jdState': 'JDownloader backendaren egoera ez dago jada «{free}» txartelean. {health} orriko «{parts}» atalean aurkituko duzu, eta haren berrikuspena «{builtIn}» atalean.',
+  'whatsnew.change.captchaSwitch': '«{module}» etengailua ez da jada «{name}» ataleko errenkada bat. Txartelaren goiko estekak {modules} orrira eramaten zaitu.',
   'whatsnew.change.mergeFiles': 'Desaktibatu «{name}» bideoa, audioa eta azpitituluak fitxategi bereizi gisa gordetzeko.',
   'whatsnew.change.ruleSwitch': 'Arauak lagin-esteka batek haietan zehar egiten duen bide gisa marrazten dira: zein arauk harrapatzen duen eta non amaitzen den.',
   'whatsnew.change.trackMerge': '«{name}» atalak txartel osoan marrazten du uneko ezarpenekin zer amaitzen den bideo-fitxategi batean, eta azpiko etengailuei jarraitzen die. «{rainbow}» aktibatuta dagoenean, pista bakoitzak bere kolorea du.',

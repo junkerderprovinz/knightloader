@@ -1735,6 +1735,7 @@ export const en = {
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
   'settings.captcha.orderTitle': 'Captcha priority order',
+  'settings.captcha.moduleLink': 'On and off under {page}',
   'settings.captcha.orderHint': 'Every connected captcha account that is switched on is tried in this order, top to bottom. If there is none, or every one of them fails or declines, you are asked directly. You switch an account off under "{accounts}".',
   'settings.captcha.orderEmpty': 'No captcha account is connected, so every captcha comes straight to you.',
   'settings.captcha.whenTitle': 'When captcha accounts start',
@@ -3853,6 +3854,7 @@ export const en = {
   'whatsnew.change.captchaRefresh': 'In the "{name}" window, "{refresh}" looks like the buttons beside it, so you can tell it is one.',
   'whatsnew.change.priorityTips': 'Every row of "{name}" has an (i) that says what the backend there takes, the debrid services too.',
   'whatsnew.change.jdState': 'The state of the JDownloader backend is no longer on the "{free}" card. You find it under "{parts}" on the {health} page, and its revision under "{builtIn}".',
+  'whatsnew.change.captchaSwitch': 'The "{module}" switch is no longer a row on "{name}". The link at the top of the card leads to it on the {modules} page.',
   'whatsnew.change.mergeFiles': 'Switch off "{name}" to keep video, audio and subtitles as separate files.',
   'whatsnew.change.ruleSwitch': 'The rules show the way a sample link takes through them: which rule catches it and where it lands.',
   'whatsnew.change.trackMerge': '"{name}" draws what ends up in a video file with the current settings, across the whole card, and follows the switches below it. In "{rainbow}" every track has a colour of its own.',

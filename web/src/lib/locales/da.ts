@@ -1399,6 +1399,7 @@ export const da: Dict = {
   'captcha.resolvedElsewhere': 'En captcha for {host} blev løst et andet sted.',
 
   'settings.captcha.orderTitle': 'Prioritetsrækkefølge for captchas',
+  'settings.captcha.moduleLink': 'Til og fra under {page}',
   'settings.captcha.orderHint': 'Hver tilsluttet captcha-konto, der er slået til, afprøves i denne rækkefølge, oppefra og ned. Er der ingen, eller slår de alle fejl eller afviser, bliver du spurgt direkte. Du slår en konto fra under „{accounts}“.',
   'settings.captcha.orderEmpty': 'Ingen captcha-konto er tilsluttet, så hver captcha kommer direkte til dig.',
   'collector.options': 'Valgmuligheder',
@@ -3595,6 +3596,7 @@ export const da: Dict = {
   'whatsnew.change.captchaRefresh': 'I vinduet „{name}“ ligner „{refresh}“ knapperne ved siden af, så du kan se, at det er en knap.',
   'whatsnew.change.priorityTips': 'Hver række i „{name}“ har et (i), der fortæller, hvad backenden der tager, også for debrid-tjenesterne.',
   'whatsnew.change.jdState': 'JDownloader-backendens tilstand står ikke længere på kortet „{free}“. Du finder den under „{parts}“ på siden {health}, og dens revision under „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Kontakten „{module}“ er ikke længere en række i „{name}“. Linket øverst på kortet fører dig til den på siden {modules}.',
   'whatsnew.change.mergeFiles': 'Slå „{name}“ fra for at beholde video, lyd og undertekster som separate filer.',
   'whatsnew.change.ruleSwitch': 'Reglerne er tegnet som den vej, et eksempellink tager gennem dem: hvilken regel der fanger det, og hvor det lander.',
   'whatsnew.change.trackMerge': '„{name}“ tegner over hele kortet, hvad der ender i en videofil med de aktuelle indstillinger, og følger kontakterne under det. Når „{rainbow}“ er slået til, har hvert spor sin egen farve.',

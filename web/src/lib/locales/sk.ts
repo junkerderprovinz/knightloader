@@ -1399,6 +1399,7 @@ export const sk: Dict = {
   'captcha.resolvedElsewhere': 'Captcha pre {host} bola vyriešená inde.',
 
   'settings.captcha.orderTitle': 'Poradie priority captch',
+  'settings.captcha.moduleLink': 'Zapnúť a vypnúť v {page}',
   'settings.captcha.orderHint': 'Každý pripojený a zapnutý účet captchy sa skúsi v tomto poradí, zhora nadol. Ak žiadny nie je, alebo ak všetky zlyhajú či odmietnu, budeš opýtaný priamo. Účet vypneš v „{accounts}“.',
   'settings.captcha.orderEmpty': 'Žiadny účet captchy nie je pripojený, takže každá captcha príde rovno k tebe.',
   'collector.options': 'Možnosti',
@@ -3619,6 +3620,7 @@ export const sk: Dict = {
   'whatsnew.change.captchaRefresh': 'V okne „{name}“ vyzerá „{refresh}“ ako tlačidlá vedľa neho, takže spoznáš, že je to tlačidlo.',
   'whatsnew.change.priorityTips': 'Každý riadok v časti „{name}“ má (i), ktoré hovorí, čo tam backend preberá, aj pri debrid službách.',
   'whatsnew.change.jdState': 'Stav backendu JDownloader už nie je na karte „{free}“. Nájdeš ho v časti „{parts}“ na stránke {health} a jeho revíziu v časti „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Prepínač „{module}“ už nie je riadkom v časti „{name}“. Odkaz hore na karte ťa k nemu dovedie na stránku {modules}.',
   'whatsnew.change.mergeFiles': 'Vypni „{name}“, aby video, zvuk a titulky zostali samostatné súbory.',
   'whatsnew.change.ruleSwitch': 'Pravidlá sú nakreslené ako cesta, ktorou nimi prejde ukážkový odkaz: ktoré pravidlo ho zachytí a kde skončí.',
   'whatsnew.change.trackMerge': '„{name}“ nakreslí cez celú kartu, čo s aktuálnymi nastaveniami skončí vo videosúbore, a riadi sa prepínačmi pod ňou. Keď je zapnutý „{rainbow}“, má každá stopa vlastnú farbu.',

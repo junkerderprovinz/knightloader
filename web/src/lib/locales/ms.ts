@@ -1399,6 +1399,7 @@ export const ms: Dict = {
   'captcha.resolvedElsewhere': 'Captcha untuk {host} telah diselesaikan di tempat lain.',
 
   'settings.captcha.orderTitle': 'Susunan keutamaan captcha',
+  'settings.captcha.moduleLink': 'Hidup dan mati di {page}',
   'settings.captcha.orderHint': 'Setiap akaun captcha yang disambungkan dan dihidupkan dicuba mengikut susunan ini, dari atas ke bawah. Jika tiada, atau semuanya gagal atau menolak, anda akan ditanya secara terus. Anda mematikan akaun di “{accounts}”.',
   'settings.captcha.orderEmpty': 'Tiada akaun captcha yang disambungkan, jadi setiap captcha terus datang kepada anda.',
   'collector.options': 'Pilihan',
@@ -3609,6 +3610,7 @@ export const ms: Dict = {
   'whatsnew.change.captchaRefresh': 'Dalam tetingkap “{name}”, “{refresh}” kelihatan seperti butang di sebelahnya, jadi anda tahu ia butang.',
   'whatsnew.change.priorityTips': 'Setiap baris dalam “{name}” ada (i) yang menyatakan apa yang diambil oleh backend di situ, termasuk perkhidmatan debrid.',
   'whatsnew.change.jdState': 'Keadaan backend JDownloader tidak lagi pada kad “{free}”. Anda menemuinya di bawah “{parts}” pada halaman {health}, dan semakannya di bawah “{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Suis “{module}” bukan lagi satu baris dalam “{name}”. Pautan di atas kad membawa anda kepadanya di halaman {modules}.',
   'whatsnew.change.mergeFiles': 'Matikan “{name}” untuk menyimpan video, audio dan sari kata sebagai fail berasingan.',
   'whatsnew.change.ruleSwitch': 'Peraturan dilukis sebagai laluan yang diambil oleh satu pautan contoh melaluinya: peraturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.trackMerge': '“{name}” melukis merentasi seluruh kad apa yang masuk ke dalam fail video dengan tetapan semasa, dan mengikut suis di bawahnya. Apabila “{rainbow}” dihidupkan, setiap trek mempunyai warnanya sendiri.',

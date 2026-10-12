@@ -5,9 +5,9 @@ import { useToast } from '../../../lib/toast';
 import { NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
 import { TestButton } from '../../../components/TestButton';
-import { useDraft } from '../context';
+import { useDraft, useFeatures } from '../context';
 import { SettingRow, SubHead } from '../controls';
-import { ModuleToggle } from '../ModuleToggle';
+import { ModulesPageBadge } from '../ModuleToggle';
 
 // The captcha priority card orders the connected captcha accounts the way the
 // download priority card beside it orders the backends, and holds when they
@@ -58,6 +58,8 @@ export function CaptchaPriorityCard({
 }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  const { features } = useFeatures();
+  const captcha = features.modules.find((m) => m.id === 'captcha' && m.verdict === 'shipped');
 
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = connectedSolvers(order, accounts, catalogue);
@@ -74,6 +76,17 @@ export function CaptchaPriorityCard({
       title={title}
       hint={t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') })}
       intro={t('settings.captcha.orderIntro')}
+      // The switch itself stands on the Modules page, and this leads there.
+      right={
+        captcha && (
+          <span data-new="captcha-switch">
+            <ModulesPageBadge
+              m={captcha}
+              title={t('settings.captcha.moduleLink', { page: t('settings.nav.modules') })}
+            />
+          </span>
+        )
+      }
     >
       {solvers.length === 0 ? (
         <p className="text-sm text-carbon-textMuted">{t('settings.captcha.orderEmpty')}</p>
@@ -86,7 +99,6 @@ export function CaptchaPriorityCard({
           onReorder={reorder}
         />
       )}
-      <ModuleToggle id="captcha" />
 
       {/* Nothing reads these while no captcha account is connected. */}
       {solvers.length > 0 && (

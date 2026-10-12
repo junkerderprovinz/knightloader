@@ -1399,6 +1399,7 @@ export const zh: Dict = {
   'captcha.resolvedElsewhere': '{host} 的验证码已在别处解决。',
 
   'settings.captcha.orderTitle': '验证码优先级顺序',
+  'settings.captcha.moduleLink': '在 {page} 中开关',
   'settings.captcha.orderHint': '每个已连接并开启的验证码账户都按这个顺序从上到下尝试。如果一个都没有，或全部失败或拒绝，就会直接询问你。要关闭某个账户，请到“{accounts}”。',
   'settings.captcha.orderEmpty': '没有连接任何验证码账户，所以每个验证码都会直接交给你。',
   'collector.options': '选项',
@@ -3591,6 +3592,7 @@ export const zh: Dict = {
   'whatsnew.change.captchaRefresh': '在“{name}”窗口中，“{refresh}”的样子和旁边的按钮一样，一看就知道是按钮。',
   'whatsnew.change.priorityTips': '“{name}”中的每一行都有一个 (i)，说明那里的后端负责什么，debrid 服务也有。',
   'whatsnew.change.jdState': 'JDownloader 后端的状态不再显示在“{free}”卡片上。你可以在 {health} 页面的“{parts}”中找到它，它的修订号在“{builtIn}”中。',
+  'whatsnew.change.captchaSwitch': '“{module}”开关不再是“{name}”中的一行。卡片顶部的链接会带你到 {modules} 页面上的这个开关。',
   'whatsnew.change.mergeFiles': '关闭“{name}”即可把视频、音频和字幕保留为独立文件。',
   'whatsnew.change.ruleSwitch': '规则被画成一个样本链接穿过它们的路线：哪条规则接住它，它又落在哪里。',
   'whatsnew.change.trackMerge': '“{name}”在整张卡片上画出按当前设置进入视频文件的内容，并跟随下方的开关变化。开启“{rainbow}”时，每条轨道都有自己的颜色。',

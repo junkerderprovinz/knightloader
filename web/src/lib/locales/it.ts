@@ -1391,6 +1391,7 @@ export const it: Dict = {
   'captcha.resolvedElsewhere': 'Un captcha per {host} è stato risolto altrove.',
 
   'settings.captcha.orderTitle': 'Ordine di priorità dei captcha',
+  'settings.captcha.moduleLink': 'Accendi e spegni in {page}',
   'settings.captcha.orderHint': 'Ogni account captcha collegato e acceso viene provato in quest’ordine, dall’alto verso il basso. Se non ce n’è nessuno, o se tutti falliscono o rifiutano, ti viene chiesto direttamente. Un account si spegne in «{accounts}».',
   'settings.captcha.orderEmpty': 'Nessun account captcha è collegato, quindi ogni captcha arriva direttamente a te.',
   'collector.options': 'Opzioni',
@@ -3593,6 +3594,7 @@ export const it: Dict = {
   'whatsnew.change.captchaRefresh': 'Nella finestra «{name}», «{refresh}» ha l’aspetto dei pulsanti accanto, così si vede che è un pulsante.',
   'whatsnew.change.priorityTips': 'Ogni riga di «{name}» ha una (i) che dice cosa prende il backend di quella riga, anche per i servizi debrid.',
   'whatsnew.change.jdState': 'Lo stato del backend JDownloader non è più nella scheda «{free}». Lo trovi in «{parts}» nella pagina {health}, e la sua revisione in «{builtIn}».',
+  'whatsnew.change.captchaSwitch': 'L’interruttore «{module}» non è più una riga di «{name}». Il link in cima alla scheda ti porta a lui nella pagina {modules}.',
   'whatsnew.change.mergeFiles': 'Disattiva «{name}» per tenere video, audio e sottotitoli come file separati.',
   'whatsnew.change.ruleSwitch': 'Le regole sono disegnate come il percorso che un link di esempio fa attraverso di esse: quale regola lo prende e dove arriva.',
   'whatsnew.change.trackMerge': '«{name}» disegna su tutta la scheda cosa finisce in un file video con le impostazioni attuali e segue gli interruttori qui sotto. Con «{rainbow}» attiva, ogni traccia ha un colore proprio.',

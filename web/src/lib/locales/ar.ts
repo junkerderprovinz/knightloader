@@ -1401,6 +1401,7 @@ export const ar: Dict = {
   'captcha.resolvedElsewhere': 'تم حل كابتشا {host} في مكان آخر.',
 
   'settings.captcha.orderTitle': 'ترتيب أولوية الكابتشا',
+  'settings.captcha.moduleLink': 'التشغيل والإيقاف في {page}',
   'settings.captcha.orderHint': 'يُجرَّب كل حساب كابتشا متصل ومفعّل بهذا الترتيب، من الأعلى إلى الأسفل. إذا لم يوجد أي منها، أو فشلت جميعها أو رفضت، تُسأل مباشرة. توقف حسابًا من «{accounts}».',
   'settings.captcha.orderEmpty': 'لا يوجد حساب كابتشا متصل، لذا تصلك كل كابتشا مباشرة.',
   'collector.options': 'خيارات',
@@ -3606,6 +3607,7 @@ export const ar: Dict = {
   'whatsnew.change.captchaRefresh': 'في نافذة «{name}» يبدو «{refresh}» مثل الأزرار المجاورة له، فتعرف أنه زر.',
   'whatsnew.change.priorityTips': 'لكل صف في «{name}» علامة (i) تقول ما يتولاه الخلفي هناك، وخدمات debrid أيضًا.',
   'whatsnew.change.jdState': 'لم تعد حالة خلفية JDownloader على بطاقة «{free}». تجدها تحت «{parts}» في صفحة {health}، ومراجعتها تحت «{builtIn}».',
+  'whatsnew.change.captchaSwitch': 'لم يعد مفتاح «{module}» صفًا في «{name}». الرابط أعلى البطاقة يقودك إليه في صفحة {modules}.',
   'whatsnew.change.mergeFiles': 'أوقف «{name}» لتبقى ملفات الفيديو والصوت والترجمات منفصلة.',
   'whatsnew.change.ruleSwitch': 'تُرسم القواعد على هيئة الطريق الذي يسلكه رابط تجريبي خلالها: أي قاعدة تلتقطه وأين ينتهي.',
   'whatsnew.change.trackMerge': '«{name}» يرسم على البطاقة كلها ما ينتهي داخل ملف الفيديو بالإعدادات الحالية، ويتبع المفاتيح تحتها. عندما يكون «{rainbow}» مفعّلاً يكون لكل مسار لونه الخاص.',

@@ -1400,6 +1400,7 @@ export const hi: Dict = {
   'captcha.resolvedElsewhere': '{host} के लिए कैप्चा कहीं और हल हो गया।',
 
   'settings.captcha.orderTitle': 'कैप्चा प्राथमिकता क्रम',
+  'settings.captcha.moduleLink': '{page} में चालू और बंद',
   'settings.captcha.orderHint': 'हर जुड़ा हुआ और चालू कैप्चा खाता इसी क्रम में, ऊपर से नीचे आज़माया जाता है। अगर कोई नहीं है, या सभी विफल या इनकार करते हैं, तो सीधे आपसे पूछा जाता है। किसी खाते को आप “{accounts}” में बंद करते हैं।',
   'settings.captcha.orderEmpty': 'कोई कैप्चा खाता जुड़ा नहीं है, इसलिए हर कैप्चा सीधे आपके पास आता है।',
   'collector.options': 'विकल्प',
@@ -3610,6 +3611,7 @@ export const hi: Dict = {
   'whatsnew.change.captchaRefresh': '“{name}” विंडो में “{refresh}” अपने पास के बटनों जैसा दिखता है, ताकि आप पहचान सकें कि यह भी बटन है।',
   'whatsnew.change.priorityTips': '“{name}” की हर पंक्ति में एक (i) है जो बताता है कि वहाँ का बैकएंड क्या संभालता है, debrid सेवाओं के लिए भी।',
   'whatsnew.change.jdState': 'JDownloader बैकएंड की स्थिति अब “{free}” कार्ड पर नहीं है। यह {health} पेज पर “{parts}” में मिलती है, और इसका रिविज़न “{builtIn}” में।',
+  'whatsnew.change.captchaSwitch': '“{module}” स्विच अब “{name}” में एक पंक्ति नहीं है। कार्ड के ऊपर का लिंक आपको {modules} पेज पर उस तक ले जाता है।',
   'whatsnew.change.mergeFiles': 'वीडियो, ऑडियो और सबटाइटल को अलग फ़ाइलों में रखने के लिए “{name}” बंद करें।',
   'whatsnew.change.ruleSwitch': 'नियम उस रास्ते के रूप में दिखते हैं जो कोई नमूना लिंक उनसे होकर तय करता है: कौन-सा नियम उसे पकड़ता है और वह कहाँ पहुँचता है।',
   'whatsnew.change.trackMerge': '“{name}” पूरे कार्ड पर दिखाता है कि मौजूदा सेटिंग्स के साथ वीडियो फ़ाइल में क्या जाता है, और नीचे के स्विच के साथ बदलता है। “{rainbow}” चालू होने पर हर ट्रैक का अपना रंग होता है।',

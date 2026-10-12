@@ -150,6 +150,12 @@ export const RELEASES: Release[] = [
         names: { name: 'accounts.routing.priorityTitle' },
       },
       {
+        id: 'captcha-switch',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.captchaSwitch',
+        names: { name: 'settings.captcha.orderTitle', module: 'settings.module.captcha', modules: 'settings.nav.modules' },
+      },
+      {
         id: 'captcha-priority',
         to: ACCOUNTS,
         text: 'whatsnew.change.captchaPriority',

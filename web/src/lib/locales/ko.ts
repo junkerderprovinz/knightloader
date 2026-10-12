@@ -1399,6 +1399,7 @@ export const ko: Dict = {
   'captcha.resolvedElsewhere': '{host}의 캡차가 다른 곳에서 해결되었습니다.',
 
   'settings.captcha.orderTitle': '캡차 우선순위',
+  'settings.captcha.moduleLink': '켜기와 끄기는 {page}에서',
   'settings.captcha.orderHint': '연결되어 켜져 있는 캡차 계정은 이 순서대로 위에서 아래로 시도됩니다. 하나도 없거나 모두 실패하거나 거부하면 직접 질문을 받습니다. 계정은 “{accounts}”에서 끕니다.',
   'settings.captcha.orderEmpty': '연결된 캡차 계정이 없어서 모든 캡차가 바로 당신에게 옵니다.',
   'collector.options': '옵션',
@@ -3596,6 +3597,7 @@ export const ko: Dict = {
   'whatsnew.change.captchaRefresh': '“{name}” 창에서 “{refresh}”가 옆의 버튼과 같은 모양이라 버튼임을 알아볼 수 있습니다.',
   'whatsnew.change.priorityTips': '“{name}”의 모든 행에 그 백엔드가 무엇을 맡는지 알려 주는 (i)가 있습니다. debrid 서비스도 마찬가지입니다.',
   'whatsnew.change.jdState': 'JDownloader 백엔드의 상태는 더 이상 “{free}” 카드에 없습니다. {health} 페이지의 “{parts}”에서 볼 수 있고, 리비전은 “{builtIn}”에 있습니다.',
+  'whatsnew.change.captchaSwitch': '“{module}” 스위치는 더 이상 “{name}”의 한 줄이 아닙니다. 카드 위쪽의 링크가 {modules} 페이지의 스위치로 데려갑니다.',
   'whatsnew.change.mergeFiles': '영상, 오디오, 자막을 별도 파일로 두려면 “{name}”을 끄세요.',
   'whatsnew.change.ruleSwitch': '규칙은 샘플 링크가 규칙들을 지나는 경로로 그려집니다. 어느 규칙이 잡고 어디에 도착하는지 보입니다.',
   'whatsnew.change.trackMerge': '“{name}”는 현재 설정으로 동영상 파일에 무엇이 들어가는지 카드 전체에 그리고, 아래의 스위치를 따릅니다. “{rainbow}”에서는 트랙마다 고유한 색이 있습니다.',
