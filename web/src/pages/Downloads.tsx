@@ -19,8 +19,6 @@ import {
 } from '../components/TaskList';
 import { ListBar } from '../components/ListBar';
 import { usePackageMenu } from '../components/PackageActions';
-import { useAddLinks } from '../components/AddLinksAction';
-import { PageActions } from '../components/PageActions';
 import {
   DOWNLOAD_FILTERS,
   ListMenu,
@@ -102,7 +100,6 @@ export function Downloads() {
   const [revealRow, setRevealRow] = useState<{ key: string; card: ListCard } | undefined>(undefined);
   const { toast } = useToast();
   const menu = useContextMenu();
-  const addLinks = useAddLinks();
   // The clean-up menu opens under a badge; `menu` above opens at the pointer.
   const cleanupMenu = useContextMenu();
   // The priorities the server implements and where the stop mark sits, for the
@@ -751,12 +748,6 @@ export function Downloads() {
       {/* The dialog of this page's useCleanup(), also raised by the "clear
           finished" command. */}
       {cleanup.dialog}
-
-      {/* What the list holds starts as links, so adding them is the page's
-          floating action. Links are staged on this instance, so the list of
-          another one does not offer it. */}
-      {instance === '' && <PageActions>{addLinks.action}</PageActions>}
-      {addLinks.dialog}
     </div>
   );
 }
