@@ -1,10 +1,14 @@
 package app
 
-// The speed record: this instance's aggregate download speed since the process
-// started, kept in memory so the Overview page draws a curve that already has a
-// shape. A browser-side buffer starts from zero on every reload or suspended
+// The speed record: this instance's aggregate download and upload speed since
+// the process started, kept in memory so the Overview page draws a curve that
+// already has a shape. A browser-side buffer starts from zero on every reload or suspended
 // tab; the process is the one observer that was watching all along, and the
 // shell's meter and the page's graph can seed from the same numbers.
+//
+// Upload is what the built-in torrent client sends while it downloads or
+// seeds. It rides in the same slots as the download, so both lines share one
+// clock and one gap fill.
 //
 // It is memory only. Persisting a reading a second, on stores that are often an
 // SD card, is not worth it for a live figure. After a restart the curve is flat
@@ -53,7 +57,8 @@ const (
 // Recent seeds the live curve exactly; Hour is the shape of the last hour. Both
 // are oldest first and always present, empty rather than null. Neither is
 // padded to capacity, since zeros would claim the instance was idle before it
-// booted.
+// booted. RecentUp and HourUp are the upload over the same slots, as long as
+// their download twins.
 //
 // It lives here rather than in internal/api because App.SpeedHistory returns it.
 type SpeedHistory struct {
@@ -63,6 +68,8 @@ type SpeedHistory struct {
 	Hour       []int64 `json:"hour"`       // bytes/s, mean over each step
 	HourStep   int     `json:"hourStep"`   // seconds, 10
 	HourCap    int     `json:"hourCap"`    // 360
+	RecentUp   []int64 `json:"recentUp"`   // bytes/s sent, one per second
+	HourUp     []int64 `json:"hourUp"`     // bytes/s sent, mean over each step
 	// RecordingSince is when the oldest sample held in either ring was taken,
 	// absent when nothing has been recorded. It tells a quiet instance from one
 	// that had not started yet.
@@ -73,20 +80,26 @@ type SpeedHistory struct {
 // SpeedDay is what GET /api/stats/speed/day answers: the last day in buckets
 // of five minutes, each the mean of its readings, oldest first.
 type SpeedDay struct {
-	Samples []int64 `json:"samples"` // bytes/s
-	Step    int     `json:"step"`    // seconds, 300
-	Cap     int     `json:"cap"`     // 288
+	Samples   []int64 `json:"samples"`   // bytes/s
+	SamplesUp []int64 `json:"samplesUp"` // bytes/s sent, as long as Samples
+	Step      int     `json:"step"`      // seconds, 300
+	Cap       int     `json:"cap"`       // 288
 	// From is when the oldest bucket opened, absent while none has closed.
 	// Bucket i covers the Step seconds from From plus i steps.
 	From      *time.Time `json:"from,omitempty"`
 	SampledAt time.Time  `json:"sampledAt"`
 }
 
+// speedReading is one reading of both directions, in bytes a second.
+type speedReading struct {
+	down, up int64
+}
+
 // speedRing is a fixed-capacity ring of readings, oldest overwritten first. A
 // fixed array written in place allocates nothing per sample.
 type speedRing struct {
 	mu     sync.Mutex
-	slots  []int64
+	slots  []speedReading
 	next   int // where the next sample goes
 	filled int // how many of the slots have ever been written, capped at len
 	// first is when the oldest sample still held was taken. It is derived from
@@ -97,11 +110,11 @@ type speedRing struct {
 }
 
 func newSpeedRing(slots int, step time.Duration) *speedRing {
-	return &speedRing{slots: make([]int64, slots), step: step}
+	return &speedRing{slots: make([]speedReading, slots), step: step}
 }
 
 // push records one reading, taken at at.
-func (r *speedRing) push(v int64, at time.Time) {
+func (r *speedRing) push(v speedReading, at time.Time) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	r.slots[r.next] = v
@@ -112,18 +125,22 @@ func (r *speedRing) push(v int64, at time.Time) {
 	r.first = at.Add(-time.Duration(r.filled-1) * r.step)
 }
 
-// snapshot copies out what the ring holds, oldest first, with the stamp of the
-// oldest entry; the zero time means the ring is empty. The slice is never nil,
-// so it encodes as [] on the first load after a restart.
-func (r *speedRing) snapshot() ([]int64, time.Time) {
+// snapshot copies out what the ring holds, oldest first, as download and
+// upload, with the stamp of the oldest entry; the zero time means the ring is
+// empty. The slices are never nil, so they encode as [] on the first load
+// after a restart.
+func (r *speedRing) snapshot() (down, up []int64, first time.Time) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	out := make([]int64, 0, r.filled)
+	down = make([]int64, 0, r.filled)
+	up = make([]int64, 0, r.filled)
 	start := (r.next - r.filled + len(r.slots)) % len(r.slots)
 	for i := 0; i < r.filled; i++ {
-		out = append(out, r.slots[(start+i)%len(r.slots)])
+		v := r.slots[(start+i)%len(r.slots)]
+		down = append(down, v.down)
+		up = append(up, v.up)
 	}
-	return out, r.first
+	return down, up, r.first
 }
 
 // speedHistoryState is one App's pair of rings plus the sampler's bookkeeping.
@@ -134,10 +151,10 @@ type speedHistoryState struct {
 
 	// bucket, daySum, dayCount and last belong to the sampler goroutine alone;
 	// routes only read the rings, which lock themselves.
-	bucket   []int64   // the fine readings since the last coarse bucket closed
-	daySum   int64     // the readings since the last day bucket closed, added up
-	dayCount int       // and how many they are
-	last     time.Time // wall clock of the last fine write, for the gap check
+	bucket   []speedReading // the fine readings since the last coarse bucket closed
+	daySum   speedReading   // the readings since the last day bucket closed, added up
+	dayCount int            // and how many they are
+	last     time.Time      // wall clock of the last fine write, for the gap check
 }
 
 func newSpeedHistoryState() *speedHistoryState {
@@ -145,7 +162,7 @@ func newSpeedHistoryState() *speedHistoryState {
 		fine:   newSpeedRing(speedFineSlots, speedFineStep),
 		coarse: newSpeedRing(speedCoarseSlots, speedCoarseStep),
 		day:    newSpeedRing(speedDaySlots, speedDayStep),
-		bucket: make([]int64, 0, speedCoarseEvery),
+		bucket: make([]speedReading, 0, speedCoarseEvery),
 	}
 }
 
@@ -194,6 +211,21 @@ func (a *App) SpeedNow() int64 {
 	return total
 }
 
+// UploadNow is what the built-in torrent client sends right now: the sum of
+// UploadSpeed over the torrents that download or seed, the rule the browser
+// sums by.
+func (a *App) UploadNow() int64 {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	var total int64
+	for _, t := range a.tasks {
+		if t.Status == core.StatusRunning || t.Seeding {
+			total += t.UploadSpeed
+		}
+	}
+	return total
+}
+
 // sampleSpeedLoop writes one reading a second for the life of the process. It
 // runs under a.spawn and stops with a.ctx.
 func (a *App) sampleSpeedLoop() {
@@ -208,7 +240,7 @@ func (a *App) sampleSpeedLoop() {
 		case <-a.ctx.Done():
 			return
 		case now := <-tick.C:
-			st.sample(a.SpeedNow(), now)
+			st.sample(a.SpeedNow(), a.UploadNow(), now)
 		}
 	}
 }
@@ -216,9 +248,9 @@ func (a *App) sampleSpeedLoop() {
 // sample records one reading taken at now, filling in whatever the ticker
 // missed first. It is a method on the state so tests can drive their own state
 // with fabricated times instead of racing the live sampler.
-func (st *speedHistoryState) sample(v int64, now time.Time) {
+func (st *speedHistoryState) sample(down, up int64, now time.Time) {
 	st.fillSpeedGap(now)
-	st.recordFine(v, now)
+	st.recordFine(speedReading{down: down, up: up}, now)
 	st.last = now
 }
 
@@ -243,16 +275,16 @@ func (st *speedHistoryState) fillSpeedGap(now time.Time) {
 
 	fine := min(missed, speedFineSlots)
 	for i := fine; i >= 1; i-- {
-		st.fine.push(0, now.Add(-time.Duration(i)*speedFineStep))
+		st.fine.push(speedReading{}, now.Add(-time.Duration(i)*speedFineStep))
 	}
 	// A half-built bucket spanning the gap would describe neither side.
 	st.bucket = st.bucket[:0]
 
 	coarse := min(int(elapsed/speedCoarseStep), speedCoarseSlots)
 	for i := coarse; i >= 1; i-- {
-		st.coarse.push(0, now.Add(-time.Duration(i)*speedCoarseStep))
+		st.coarse.push(speedReading{}, now.Add(-time.Duration(i)*speedCoarseStep))
 	}
-	st.recordDay(0, min(missed, speedDaySlots*speedDayEvery), now.Add(-speedFineStep))
+	st.recordDay(speedReading{}, min(missed, speedDaySlots*speedDayEvery), now.Add(-speedFineStep))
 
 	log.Printf("speed history: filled %d missed samples as idle after a %ds gap "+
 		"(the process was suspended, or the clock moved)", fine, int(elapsed.Seconds()))
@@ -260,18 +292,20 @@ func (st *speedHistoryState) fillSpeedGap(now time.Time) {
 
 // recordFine puts one reading into the fine ring and, every tenth one, closes a
 // coarse bucket with the mean of the ten.
-func (st *speedHistoryState) recordFine(v int64, at time.Time) {
+func (st *speedHistoryState) recordFine(v speedReading, at time.Time) {
 	st.fine.push(v, at)
 	st.recordDay(v, 1, at)
 	st.bucket = append(st.bucket, v)
 	if len(st.bucket) < speedCoarseEvery {
 		return
 	}
-	var sum int64
+	var sum speedReading
 	for _, s := range st.bucket {
-		sum += s
+		sum.down += s.down
+		sum.up += s.up
 	}
-	st.coarse.push(sum/int64(len(st.bucket)), at)
+	n := int64(len(st.bucket))
+	st.coarse.push(speedReading{down: sum.down / n, up: sum.up / n}, at)
 	st.bucket = st.bucket[:0]
 }
 
@@ -279,25 +313,28 @@ func (st *speedHistoryState) recordFine(v int64, at time.Time) {
 // open bucket and closes every bucket they fill. A gap is counted in rather
 // than dropped: the ring places its buckets by their number, so a lost partial
 // one would move every later bucket on the clock.
-func (st *speedHistoryState) recordDay(v int64, n int, at time.Time) {
+func (st *speedHistoryState) recordDay(v speedReading, n int, at time.Time) {
 	for n > 0 {
 		take := min(n, speedDayEvery-st.dayCount)
-		st.daySum += v * int64(take)
+		st.daySum.down += v.down * int64(take)
+		st.daySum.up += v.up * int64(take)
 		st.dayCount += take
 		n -= take
 		if st.dayCount < speedDayEvery {
 			return
 		}
-		st.day.push(st.daySum/int64(speedDayEvery), at.Add(-time.Duration(n)*speedFineStep))
-		st.daySum, st.dayCount = 0, 0
+		mean := speedReading{down: st.daySum.down / int64(speedDayEvery), up: st.daySum.up / int64(speedDayEvery)}
+		st.day.push(mean, at.Add(-time.Duration(n)*speedFineStep))
+		st.daySum, st.dayCount = speedReading{}, 0
 	}
 }
 
 // SpeedDay is the snapshot GET /api/stats/speed/day serves.
 func (a *App) SpeedDay() SpeedDay {
-	samples, closed := a.speedHistoryFor().day.snapshot()
+	samples, up, closed := a.speedHistoryFor().day.snapshot()
 	out := SpeedDay{
 		Samples:   samples,
+		SamplesUp: up,
 		Step:      int(speedDayStep / time.Second),
 		Cap:       speedDaySlots,
 		SampledAt: time.Now().UTC(),
@@ -314,8 +351,8 @@ func (a *App) SpeedDay() SpeedDay {
 // diagnostics bundle counts.
 func (a *App) SpeedHistory() SpeedHistory {
 	st := a.speedHistoryFor()
-	recent, recentFrom := st.fine.snapshot()
-	hour, hourFrom := st.coarse.snapshot()
+	recent, recentUp, recentFrom := st.fine.snapshot()
+	hour, hourUp, hourFrom := st.coarse.snapshot()
 
 	out := SpeedHistory{
 		Recent:     recent,
@@ -324,6 +361,8 @@ func (a *App) SpeedHistory() SpeedHistory {
 		Hour:       hour,
 		HourStep:   int(speedCoarseStep / time.Second),
 		HourCap:    speedCoarseSlots,
+		RecentUp:   recentUp,
+		HourUp:     hourUp,
 		SampledAt:  time.Now().UTC(),
 	}
 	// The older of the two edges, ignoring an empty ring.

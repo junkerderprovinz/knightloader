@@ -64,7 +64,7 @@ func TestTheSpeedRecordIsNeverNullAndDeclaresItsOwnBounds(t *testing.T) {
 	if err := json.Unmarshal(body, &raw); err != nil {
 		t.Fatalf("unparseable answer: %v (%s)", err, body)
 	}
-	for _, field := range []string{"recent", "hour"} {
+	for _, field := range []string{"recent", "hour", "recentUp", "hourUp"} {
 		v, ok := raw[field]
 		if !ok {
 			t.Fatalf("no %q in the answer: %v", field, raw)
@@ -178,8 +178,10 @@ func TestTheDayRecordIsAnEmptyListBeforeItsFirstBucket(t *testing.T) {
 	if err := json.NewDecoder(resp.Body).Decode(&raw); err != nil {
 		t.Fatal(err)
 	}
-	if got := string(raw["samples"]); got != "[]" {
-		t.Errorf("samples = %s, want []", got)
+	for _, field := range []string{"samples", "samplesUp"} {
+		if got := string(raw[field]); got != "[]" {
+			t.Errorf("%s = %s, want []", field, got)
+		}
 	}
 	if got := string(raw["step"]); got != "300" {
 		t.Errorf("step = %s, want 300", got)

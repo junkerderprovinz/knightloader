@@ -1346,7 +1346,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	}
 	// A stopped task keeps its bytes but not a speed or a live note.
 	if stale {
-		t.Speed = 0
+		t.Speed, t.UploadSpeed = 0, 0
 	} else {
 		t.Speed = u.Speed
 	}
