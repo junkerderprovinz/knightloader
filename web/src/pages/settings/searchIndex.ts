@@ -48,6 +48,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     // The rows are the modules the server sent, which vary per deployment.
     { title: 'settings.modules.sectionShipped', hint: 'settings.modules.fixedAtBuild', rows: [] },
     { title: 'settings.modules.sectionDesktop', rows: [] },
+    // The same card's title in the desktop app.
+    { title: 'settings.modules.sectionDesktopApp', rows: [] },
     { title: 'settings.modules.sectionNotBuilt', rows: [] },
   ],
 
@@ -317,6 +319,18 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   // The `{appearance && …}` half of the same component.
   appearance: [
+    // Drawn in the desktop app only. The switches carry the tray menu's own words.
+    {
+      title: 'settings.window.title',
+      hint: 'settings.window.hint',
+      rows: [
+        { key: 'tray.startHidden', hint: 'settings.window.startHiddenHint' },
+        { key: 'tray.closeToTray', hint: 'settings.window.closeToTrayHint' },
+        { key: 'tray.minimiseToTray', hint: 'settings.window.minimiseToTrayHint' },
+        { key: 'tray.captcha', hint: 'settings.window.captchaHint' },
+      ],
+      body: ['settings.window.noTray', 'tray.raiseOff', 'tray.raiseFront', 'tray.raiseFocus'],
+    },
     {
       title: 'settings.look.displayTitle',
       rows: [

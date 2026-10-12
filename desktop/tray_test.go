@@ -343,6 +343,36 @@ func TestTheMenuTicksWhatIsSaved(t *testing.T) {
 	}
 }
 
+func TestTheAppearancePageReadsWhatIsSaved(t *testing.T) {
+	tr := newTestTray(t)
+	tr.cfg.OnClose = CloseTray
+	tr.trayAvailable = true
+	want := WindowPrefs{OnClose: CloseTray, OnMinimize: MinimizeTaskbar, RaiseOnAttention: RaiseOff, TrayAvailable: true}
+	if got := tr.Prefs(); got != want {
+		t.Errorf("Prefs() = %+v, want %+v", got, want)
+	}
+}
+
+func TestAChoiceOnTheAppearancePageReachesTheMenuAndTheNextStart(t *testing.T) {
+	tr := newTestTray(t)
+	_, tr.items = tr.buildMenu()
+
+	got := tr.SetPrefs(WindowPrefs{StartHidden: true, OnClose: CloseTray, OnMinimize: "bogus", RaiseOnAttention: RaiseFront})
+	if !got.StartHidden || got.OnClose != CloseTray || got.OnMinimize != MinimizeTaskbar || got.RaiseOnAttention != RaiseFront {
+		t.Errorf("SetPrefs kept %+v", got)
+	}
+	if !tr.items.startHidden.Checked() || !tr.items.closeToTray.Checked() || tr.items.minimiseToTray.Checked() {
+		t.Error("the menu's ticks did not follow the page")
+	}
+	if tr.items.raiseOff.Checked() || !tr.items.raiseFront.Checked() || tr.items.raiseFocus.Checked() {
+		t.Error("the captcha level ticked is not the one picked on the page")
+	}
+	next := loadConfig(tr.cfgPath)
+	if !next.StartHidden || next.OnClose != CloseTray || next.RaiseOnAttention != RaiseFront {
+		t.Errorf("the next start would read %+v", next)
+	}
+}
+
 func TestTheTrayWindowComesBackAtTheSizeItWasGiven(t *testing.T) {
 	tr := newTestTray(t)
 	if w, h := tr.overviewSize(); w != overviewWidth || h != overviewHeight {

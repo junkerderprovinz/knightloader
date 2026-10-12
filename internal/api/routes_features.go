@@ -397,23 +397,33 @@ func featureList(a *app.App, base string) []Feature {
 			line{text: "off; no event starts a script, and a script already running finishes", code: "scriptingOff"},
 			countDetail(enabledScripts(a), "scriptsEnabled", "script enabled", "scripts enabled"))),
 		keepAwakeFeature(s),
-		withReason(Feature{
-			ID: "tray", Verdict: VerdictDesktop, Page: "",
-			Switch: SwitchNone,
+		desktopFeature("tray", line{
+			text: "the icon sits in the notification area or the menu bar, and what it does is set on the Appearance page",
+			code: "trayDesktop",
 		}, line{
 			text: "a tray icon needs a desktop session, which the container build does not have; " +
 				"the browser tab's title and icon carry the same information there",
 			code: "tray",
 		}),
-		withReason(Feature{
-			ID: "windowpolicy", Verdict: VerdictDesktop, Page: "",
-			Switch: SwitchNone,
+		desktopFeature("windowpolicy", line{
+			text: "what closing or minimising the window does is set on the Appearance page and kept on this machine",
+			code: "windowpolicyDesktop",
 		}, line{
 			text: "what closing or minimising the window does is a property of one installation on one machine, " +
 				"so it is not served from here at all",
 			code: "windowpolicy",
 		}),
 	}
+}
+
+// desktopFeature is a row only the desktop app has and nothing switches. In
+// the desktop app it leads to the Appearance page, where its behaviour is set,
+// and says so; elsewhere it says why the build has none of it.
+func desktopFeature(id string, here, elsewhere line) Feature {
+	if buildinfo.Deployment == "desktop" {
+		return withReason(Feature{ID: id, Verdict: VerdictDesktop, Page: "appearance", Switch: SwitchNone}, here)
+	}
+	return withReason(Feature{ID: id, Verdict: VerdictDesktop, Switch: SwitchNone}, elsewhere)
 }
 
 // keepAwakeFeature has a switch only in the desktop build, the one that asks

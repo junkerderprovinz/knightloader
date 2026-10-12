@@ -28,8 +28,8 @@ const raisePulse = 300 * time.Millisecond
 // clicks, window events, the hub writer and the page all reach it, so every
 // field goes through mu.
 //
-// The pages call SetWords and ShowMain as main.Tray.SetWords and
-// main.Tray.ShowMain.
+// The pages call SetWords, ShowMain, Prefs and SetPrefs as main.Tray.SetWords
+// and so on.
 type Tray struct {
 	mu  sync.Mutex
 	cfg Config
@@ -353,6 +353,68 @@ func (t *Tray) SetWords(words TrayWords) {
 	t.relabel()
 }
 
+// WindowPrefs is the window's and the tray icon's behaviour as the Appearance
+// page shows it, and whether this desktop has a tray to hide the window in.
+type WindowPrefs struct {
+	StartHidden      bool   `json:"startHidden"`
+	OnClose          string `json:"onClose"`
+	OnMinimize       string `json:"onMinimize"`
+	RaiseOnAttention string `json:"raiseOnAttention"`
+	TrayAvailable    bool   `json:"trayAvailable"`
+}
+
+// Prefs returns the behaviour for the Appearance page.
+func (t *Tray) Prefs() WindowPrefs {
+	t.mu.Lock()
+	defer t.mu.Unlock()
+	return t.prefsLocked()
+}
+
+func (t *Tray) prefsLocked() WindowPrefs {
+	return WindowPrefs{
+		StartHidden:      t.cfg.StartHidden,
+		OnClose:          t.cfg.OnClose,
+		OnMinimize:       t.cfg.OnMinimize,
+		RaiseOnAttention: t.cfg.RaiseOnAttention,
+		TrayAvailable:    t.trayAvailable,
+	}
+}
+
+// SetPrefs takes the behaviour picked on the Appearance page, keeps it in
+// desktop.json and ticks the menu to match. It returns what was kept, with a
+// value this build does not know set back to its default.
+func (t *Tray) SetPrefs(p WindowPrefs) WindowPrefs {
+	t.mutate(func(c *Config) {
+		c.StartHidden = p.StartHidden
+		c.OnClose = p.OnClose
+		c.OnMinimize = p.OnMinimize
+		c.RaiseOnAttention = p.RaiseOnAttention
+		*c = c.sanitize()
+	})
+	t.retick()
+	return t.Prefs()
+}
+
+// retick puts the menu's ticks in step with the preferences and tells the
+// pages, so a change made in the menu shows on the Appearance page and one
+// made there shows in the menu.
+func (t *Tray) retick() {
+	t.mu.Lock()
+	items := t.items
+	cfg := t.cfg
+	prefs := t.prefsLocked()
+	t.mu.Unlock()
+	if items != nil {
+		items.startHidden.SetChecked(cfg.StartHidden)
+		items.closeToTray.SetChecked(cfg.OnClose == CloseTray)
+		items.minimiseToTray.SetChecked(cfg.OnMinimize == MinimizeTray)
+		items.raiseOff.SetChecked(cfg.RaiseOnAttention == RaiseOff)
+		items.raiseFront.SetChecked(cfg.RaiseOnAttention == RaiseFront)
+		items.raiseFocus.SetChecked(cfg.RaiseOnAttention == RaiseFocus)
+	}
+	t.emit("windowPrefs", prefs)
+}
+
 // relabel puts the current words on the menu.
 func (t *Tray) relabel() {
 	t.mu.Lock()
@@ -504,30 +566,30 @@ func (t *Tray) buildMenu() (*application.Menu, *trayItems) {
 
 	items.startHidden = menu.AddCheckbox(words.StartHidden, cfg.StartHidden)
 	items.startHidden.OnClick(func(*application.Context) {
-		cfg := t.mutate(func(c *Config) { c.StartHidden = !c.StartHidden })
-		items.startHidden.SetChecked(cfg.StartHidden)
+		t.mutate(func(c *Config) { c.StartHidden = !c.StartHidden })
+		t.retick()
 	})
 	items.closeToTray = menu.AddCheckbox(words.CloseToTray, cfg.OnClose == CloseTray)
 	items.closeToTray.OnClick(func(*application.Context) {
-		cfg := t.mutate(func(c *Config) {
+		t.mutate(func(c *Config) {
 			if c.OnClose == CloseTray {
 				c.OnClose = CloseExit
 			} else {
 				c.OnClose = CloseTray
 			}
 		})
-		items.closeToTray.SetChecked(cfg.OnClose == CloseTray)
+		t.retick()
 	})
 	items.minimiseToTray = menu.AddCheckbox(words.MinimiseToTray, cfg.OnMinimize == MinimizeTray)
 	items.minimiseToTray.OnClick(func(*application.Context) {
-		cfg := t.mutate(func(c *Config) {
+		t.mutate(func(c *Config) {
 			if c.OnMinimize == MinimizeTray {
 				c.OnMinimize = MinimizeTaskbar
 			} else {
 				c.OnMinimize = MinimizeTray
 			}
 		})
-		items.minimiseToTray.SetChecked(cfg.OnMinimize == MinimizeTray)
+		t.retick()
 	})
 	menu.AddSeparator()
 
@@ -537,6 +599,7 @@ func (t *Tray) buildMenu() (*application.Menu, *trayItems) {
 	level := func(label, value string) *application.MenuItem {
 		return raise.AddRadio(label, cfg.RaiseOnAttention == value).OnClick(func(*application.Context) {
 			t.mutate(func(c *Config) { c.RaiseOnAttention = value })
+			t.retick()
 		})
 	}
 	items.raiseOff = level(words.RaiseOff, RaiseOff)

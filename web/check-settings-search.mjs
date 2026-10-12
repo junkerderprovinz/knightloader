@@ -46,6 +46,7 @@ const FILE_PAGES = [
   // One component, two rail entries, split by `{appearance && (` / `{general && (`.
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
   { file: 'src/pages/settings/look/', pages: ['look'] },
+  { file: 'src/pages/settings/appearance/', pages: ['appearance'] },
   // The Info tile: the Version, Help and About cards.
   { file: 'src/pages/settings/Help.tsx', pages: ['help'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },

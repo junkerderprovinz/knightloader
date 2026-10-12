@@ -64,6 +64,7 @@ import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
 import { UpdatesCard } from './look/Updates';
+import { WindowCard } from './appearance/WindowCard';
 import { SettingsTransfer } from './look/SettingsTransfer';
 import { JDImportCard } from './look/JDImport';
 
@@ -757,6 +758,9 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         </div>
       </Card>
       )}
+
+      {/* A browser tab has no window or tray icon of its own to set. */}
+      {appearance && isDesktop() && <WindowCard hue={3} />}
 
       {general && <NotificationsCard hue={0} />}
 
