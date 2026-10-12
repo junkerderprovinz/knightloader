@@ -224,6 +224,9 @@ func TestTheOldKeyOnAServedRelayReachesOnlyThisInstance(t *testing.T) {
 		if err != nil {
 			t.Fatal(err)
 		}
+		if env.Type == relay.TypeChallenge {
+			continue
+		}
 		if env.Type == relay.TypeAnnounce {
 			var seen relay.Announce
 			if env.Into(&seen) == nil && seen.InstanceID == "phone-listening" {

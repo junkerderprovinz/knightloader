@@ -92,9 +92,9 @@ const forged = new Uint8Array(cryptoSign(null, port.resultMessage(fields.id, ins
 if (port.verifyResult(fields.id, instanceId, asked, 410, removed, port.memberPublicKey(forgerSeed), forged)) {
   problems.push('an answer signed by another key than the one the target\x27s id is made from verifies');
 }
-const helloAt = Number(goTest.match(/vectorHelloAt\s*=\s*time\.Unix\((\d+), 0\)/)?.[1]);
+const challenge = new Uint8Array(fromB64(want('vectorChallenge')));
 const relayKey = goTest.match(/vectorRelayKey\s*=\s*"([^"]+)"/)?.[1];
-const hello = b64(port.proveId(seed, relayKey, want('vectorPhoneID'), helloAt));
+const hello = b64(port.proveId(seed, relayKey, want('vectorPhoneID'), challenge));
 if (hello !== want('vectorHelloSig')) problems.push(`the hello proof is ${hello}, the server checks for ${want('vectorHelloSig')}`);
 
 if (problems.length) {

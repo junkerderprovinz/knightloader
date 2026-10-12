@@ -209,6 +209,7 @@ func TestBehindAProxyOneCallerCannotLockOutTheOthers(t *testing.T) {
 		if err != nil {
 			t.Fatalf("stranger's dial %d: %v", i, err)
 		}
+		readFrame(t, c, TypeChallenge)
 		writeFrame(t, c, TypeHello, Hello{Key: "too-short", Announce: Announce{InstanceID: bravoID}})
 		ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
 		_, _, _ = c.Read(ctx)

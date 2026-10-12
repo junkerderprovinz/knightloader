@@ -49,7 +49,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"time"
 )
 
 type sourceKey struct{}
@@ -107,7 +106,7 @@ func MemberID(kind string, key []byte) string {
 const (
 	callDomain   = "knightloader/relay/member-call/v2\x00"
 	resultDomain = "knightloader/relay/member-result/v2\x00"
-	helloDomain  = "knightloader/relay/member-hello/v1\x00"
+	helloDomain  = "knightloader/relay/member-hello/v2\x00"
 )
 
 // ErrSignature is returned for a call that opens but whose signature does not
@@ -181,43 +180,38 @@ func verifyCall(target string, c ProxyCall) bool {
 
 // IDProof shows that a connection holds the key its announced id is made
 // from. Only a connection that shows it takes the place of one already
-// connected under that id.
+// connected under that id. It signs the challenge the relay sent on that
+// connection, so a hello somebody saw proves nothing on another one.
 type IDProof struct {
 	Kind string `json:"kind"`
 	Key  []byte `json:"key"`
-	Sent int64  `json:"sent"`
 	Sig  []byte `json:"sig"`
 }
 
 // HelloMessage is what a member signs to prove that id is its own on the
-// relay key key.
-func HelloMessage(key, id, kind string, sent int64) []byte {
-	return signedMessage(helloDomain, uint64(sent), []byte(key), []byte(id), []byte(kind)) //nolint:gosec // G115: the bits of the time are signed as they are
+// relay key key, on the connection the relay sent challenge on.
+func HelloMessage(key, id, kind string, challenge []byte) []byte {
+	return signedMessage(helloDomain, 0, []byte(key), []byte(id), []byte(kind), challenge)
 }
 
 // ProveID signs the proof that member, a member of kind, holds id on the relay
-// key key at now.
-func ProveID(member ed25519.PrivateKey, kind, key, id string, now time.Time) *IDProof {
-	sent := now.Unix()
+// key key, for the connection the relay sent challenge on.
+func ProveID(member ed25519.PrivateKey, kind, key, id string, challenge []byte) *IDProof {
 	return &IDProof{
 		Kind: kind,
 		Key:  member.Public().(ed25519.PublicKey),
-		Sent: sent,
-		Sig:  ed25519.Sign(member, HelloMessage(key, id, kind, sent)),
+		Sig:  ed25519.Sign(member, HelloMessage(key, id, kind, challenge)),
 	}
 }
 
-// proves reports whether h shows, at now, the key its announced id is made
-// from.
-func (h Hello) proves(now time.Time) bool {
+// proves reports whether h shows the key its announced id is made from, on the
+// connection the relay sent challenge on.
+func (h Hello) proves(challenge []byte) bool {
 	p := h.Proof
 	if p == nil || MemberID(p.Kind, p.Key) != h.Announce.InstanceID || len(p.Sig) != ed25519.SignatureSize {
 		return false
 	}
-	if d := now.Sub(time.Unix(p.Sent, 0)); d > ClockSkew || d < -ClockSkew {
-		return false
-	}
-	return ed25519.Verify(p.Key, HelloMessage(h.Key, h.Announce.InstanceID, p.Kind, p.Sent), p.Sig)
+	return ed25519.Verify(p.Key, HelloMessage(h.Key, h.Announce.InstanceID, p.Kind, challenge), p.Sig)
 }
 
 // RefusalBody is the answer body of a refused call, in the {error, code} shape

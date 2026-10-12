@@ -162,7 +162,11 @@ func TestTheServedRelayBelievesOnlyTheTrustedProxies(t *testing.T) {
 			hello, _ := relay.Encode(relay.TypeHello, relay.Hello{Key: "not-this-relays-key"})
 			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 			_ = c.Write(ctx, websocket.MessageText, hello)
-			_, _, _ = c.Read(ctx)
+			for {
+				if _, _, err := c.Read(ctx); err != nil {
+					break
+				}
+			}
 			cancel()
 			_ = c.CloseNow()
 		}

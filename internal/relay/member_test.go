@@ -302,23 +302,30 @@ func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
 var (
 	vectorResult   = ProxyResult{Status: 410, Body: []byte("removed")}
 	vectorRelayKey = "relay-key-of-the-vector-0123456789"
-	vectorHelloAt  = time.Unix(1760000000, 0)
+	// vectorChallenge is the challenge the vector hello answers, in base64.
+	vectorChallenge = "XFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFw="
 )
 
 const (
 	vectorResultSig = "n977hIEXYvfFiEvycZjLyc6/KCb2IGAUXJe51ZyHqbFAbQYp+PWhBzOVDQsjjYUyDPFpXlenbBdTGMDBuapbBg=="
-	vectorHelloSig  = "+1C0rC/DE5gVfSmrxD2m4B3aQidpo9XF85UMapPZxmvXPI1mHTWaSlnyFUl1Zl8qnDnPyxv+0PfMjIX/ufNAAg=="
+	vectorHelloSig  = "vIshHdbAJQWFYoDinfE3ip4WFg11J4hsA7194C9+mS8w8HK58oRwEsCg4NubHVA/C+tYThl57pRl25tQNKHsBA=="
 )
+
+// decoded is the bytes of base64 text s.
+func decoded(t *testing.T, s string) []byte {
+	t.Helper()
+	b, err := base64.StdEncoding.DecodeString(s)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return b
+}
 
 // vectorSignedCall is the vector call with the signature it carries.
 func vectorSignedCall(t *testing.T) ProxyCall {
 	t.Helper()
 	call := vectorCall
-	sig, err := base64.StdEncoding.DecodeString(vectorSig)
-	if err != nil {
-		t.Fatal(err)
-	}
-	call.Sig = sig
+	call.Sig = decoded(t, vectorSig)
 	return call
 }
 
@@ -328,7 +335,7 @@ func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
 	if got := base64.StdEncoding.EncodeToString(signed.Sig); got != vectorResultSig {
 		t.Errorf("answer signature = %s, want %s; the app and the extension check the old message", got, vectorResultSig)
 	}
-	proof := ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, vectorHelloAt)
+	proof := ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, decoded(t, vectorChallenge))
 	if got := base64.StdEncoding.EncodeToString(proof.Sig); got != vectorHelloSig {
 		t.Errorf("hello signature = %s, want %s; the app proves its id with the old message", got, vectorHelloSig)
 	}
@@ -364,22 +371,22 @@ func TestAnAnswerCountsOnlySignedByTheTargetsKey(t *testing.T) {
 
 func TestAHelloProvesOnlyTheIDItsKeyMakes(t *testing.T) {
 	member := ed25519.NewKeyFromSeed(vectorSeed)
-	now := time.Now()
+	challenge := decoded(t, vectorChallenge)
 	hello := func(id string, p *IDProof) Hello {
 		return Hello{Key: vectorRelayKey, Announce: Announce{InstanceID: id}, Proof: p}
 	}
-	if !hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, now)).proves(now) {
+	if !hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, challenge)).proves(challenge) {
 		t.Fatal("a phone's proof of its own id does not hold")
 	}
 	other := MemberID(KindMobile, keyNumber(7))
 	for name, h := range map[string]Hello{
 		"without a proof":         hello(vectorPhoneID, nil),
-		"for another id":          hello(other, ProveID(member, KindMobile, vectorRelayKey, other, now)),
-		"on another relay key":    hello(vectorPhoneID, ProveID(member, KindMobile, "another-relay-key-0123456789abcdef", vectorPhoneID, now)),
-		"made long ago":           hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, now.Add(-time.Hour))),
-		"under another kind's id": hello(vectorInstanceID, ProveID(member, KindMobile, vectorRelayKey, vectorInstanceID, now)),
+		"for another id":          hello(other, ProveID(member, KindMobile, vectorRelayKey, other, challenge)),
+		"on another relay key":    hello(vectorPhoneID, ProveID(member, KindMobile, "another-relay-key-0123456789abcdef", vectorPhoneID, challenge)),
+		"for another connection":  hello(vectorPhoneID, ProveID(member, KindMobile, vectorRelayKey, vectorPhoneID, make([]byte, challengeSize))),
+		"under another kind's id": hello(vectorInstanceID, ProveID(member, KindMobile, vectorRelayKey, vectorInstanceID, challenge)),
 	} {
-		if h.proves(now) {
+		if h.proves(challenge) {
 			t.Errorf("a hello %s proves its id", name)
 		}
 	}

@@ -26,7 +26,7 @@ export interface SignedFields {
 
 const CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
 const RESULT_DOMAIN = 'knightloader/relay/member-result/v2\x00';
-const HELLO_DOMAIN = 'knightloader/relay/member-hello/v1\x00';
+const HELLO_DOMAIN = 'knightloader/relay/member-hello/v2\x00';
 
 /** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
 function uint64(n: number): number[] {
@@ -67,9 +67,10 @@ export function resultMessage(requestId: string, from: string, call: AnsweredCal
   return signedMessage(RESULT_DOMAIN, status, [requestId, from, call.from, Array.from(call.sig), body]);
 }
 
-/** Mirrors relay.HelloMessage. */
-export function helloMessage(relayKey: string, id: string, kind: string, sent: number): Uint8Array {
-  return signedMessage(HELLO_DOMAIN, sent, [relayKey, id, kind]);
+/** Mirrors relay.HelloMessage. challenge is what the relay sent first on the
+ *  connection the hello goes out on. */
+export function helloMessage(relayKey: string, id: string, kind: string, challenge: Uint8Array): Uint8Array {
+  return signedMessage(HELLO_DOMAIN, 0, [relayKey, id, kind, Array.from(challenge)]);
 }
 
 /** The public half of the member key a 32-byte seed makes. */
@@ -94,9 +95,10 @@ export function signCall(seed: Uint8Array, target: string, call: SignedFields): 
 
 /** Mirrors relay.ProveID: the signature with which this phone proves on the
  *  relay key relayKey that id is its own, so the relay lets it take the place
- *  of a connection it left behind. */
-export function proveId(seed: Uint8Array, relayKey: string, id: string, sent: number): Uint8Array {
-  return ed25519.sign(helloMessage(relayKey, id, 'mobile', sent), seed);
+ *  of a connection it left behind. It holds only on the connection the relay
+ *  sent challenge on. */
+export function proveId(seed: Uint8Array, relayKey: string, id: string, challenge: Uint8Array): Uint8Array {
+  return ed25519.sign(helloMessage(relayKey, id, 'mobile', challenge), seed);
 }
 
 /** Mirrors relay.VerifyResult: whether an answer to call, this phone's own
