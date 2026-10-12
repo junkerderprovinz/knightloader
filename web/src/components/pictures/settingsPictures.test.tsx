@@ -433,6 +433,19 @@ describe('the tracks of a video', () => {
     expect(host.querySelector('[data-filename]')!.textContent).toBe('%(uploader)s/%(title)s.%(ext)s');
   });
 
+  it('ends every track that is a file in a file of its own when nothing is merged', async () => {
+    const all: MediaTrack[] = [...tracks, { id: 'metadata', name: 'Tags', value: 'Title' }];
+    await draw(picture(all, '%(title)s.%(ext)s', { apart: 'each in a file of its own' }));
+    expect(host.querySelector('[data-file]')!.getAttribute('data-file')).toBe('video');
+    expect([...host.querySelectorAll('[data-apart]')].map((g) => g.getAttribute('data-apart'))).toEqual(['audio', 'subtitle']);
+    const ways = all.map((tr) => track(tr.id).querySelector('path')!.getAttribute('d'));
+    // Each file on its own line, and the tags into the video's.
+    expect(ways).toEqual(['M20 113L66 38H250L292 38', 'M20 113L66 88H250L292 88', 'M20 113L66 138H250L292 138', 'M20 113L66 188H250L292 38']);
+    expect(label()).toBe(
+      'Quality: Video Up to 1080p, Audio Best available, Subtitles en,de, Tags Title, each in a file of its own, %(title)s.%(ext)s',
+    );
+  });
+
   it('sends one parcel per track', async () => {
     letMove();
     await draw(picture());

@@ -2287,6 +2287,9 @@ export const de: Dict = {
   'settings.advanced.retryTitle': 'Wiederholungen je Fehlerart',
   'settings.resolvers.audioTitle': 'Ton',
   'settings.resolvers.subtitlesTitle': 'Untertitel',
+  'settings.resolvers.mergeFiles': 'Zu einer Datei zusammenführen',
+  'settings.resolvers.mergeFilesHint': 'Ist das an, landen Video, Ton, Untertitel und Cover in einer MKV- oder MP4-Datei. Ist es aus, lässt yt-dlp sie als einzelne Dateien nebeneinander liegen: Video und Ton mit ihrer eigenen Endung, Untertitel als .srt und das Cover als .jpg. Tags und Kapitel kommen trotzdem in jede Datei. KnightLoader merkt sich alle Dateien, und wenn du den Download samt Dateien entfernst, verschwinden alle.',
+  'picture.tracks.apart': 'jede in einer eigenen Datei',
   'settings.resolvers.embedTitle': 'In der Datei',
   'settings.resolvers.measureTitle': 'Fertige Datei prüfen',
   'settings.resolvers.liveTitle': 'Livestreams',
@@ -3628,6 +3631,7 @@ export const de: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ zeichnet den heutigen Tag als Kurve: das geplante Geschwindigkeitslimit als Fläche und die gemessene Geschwindigkeit als Linie.',
   'whatsnew.change.seedingLine': 'Die Geschwindigkeitskurve hat eine zweite Linie für das, was deine Torrents beim Seeden hochladen.',
+  'whatsnew.change.mergeFiles': 'Schalte „{name}“ aus, wenn Video, Ton und Untertitel getrennte Dateien bleiben sollen.',
   'whatsnew.change.ruleSwitch': 'Die Regeln zeigen den Weg, den ein Beispiel-Link durch sie nimmt: welche Regel ihn fängt und wo er landet.',
   'whatsnew.change.captchaChain': 'Ein Bild zeigt, an wen ein Captcha geht: zuerst an dich, dann an die Captcha-Konten in deiner Reihenfolge.',
   'whatsnew.change.trackMerge': '„{name}“ zeichnet über die ganze Karte, was mit den aktuellen Einstellungen in einer Videodatei landet, und folgt den Schaltern darunter. Im „{rainbow}“ hat jede Spur ihre eigene Farbe.',

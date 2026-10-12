@@ -2080,6 +2080,9 @@ export const eu: Dict = {
   'settings.advanced.retryTitle': 'Errepikapenak huts mota bakoitzeko',
   'settings.resolvers.audioTitle': 'Audioa',
   'settings.resolvers.subtitlesTitle': 'Azpitituluak',
+  'settings.resolvers.mergeFiles': 'Fitxategi bakar batean batu',
+  'settings.resolvers.mergeFilesHint': 'Aktibatuta badago, bideoa, audioa, azpitituluak eta azala MKV edo MP4 fitxategi bakar batera doaz. Desaktibatuta badago, yt-dlp-k fitxategi bereizi gisa uzten ditu bata bestearen ondoan: bideoa eta audioa bakoitza bere luzapenarekin, azpitituluak .srt gisa eta azala .jpg gisa. Etiketak eta kapituluak fitxategi bakoitzera doaz hala ere. KnightLoaderrek fitxategi guztien jarraipena egiten du, beraz deskarga bere fitxategiekin kentzen baduzu, denak joaten dira.',
+  'picture.tracks.apart': 'bakoitza bere fitxategian',
   'settings.resolvers.embedTitle': 'Fitxategiaren barruan',
   'settings.resolvers.measureTitle': 'Amaitutako fitxategia egiaztatzea',
   'settings.resolvers.liveTitle': 'Zuzeneko emanaldiak',
@@ -3621,6 +3624,7 @@ export const eu: Dict = {
   'whatsnew.change.dayCurve':
     '«{name}» atalak gaurko eguna kurba gisa marrazten du: aurreikusitako abiadura-muga azalera gisa eta neurtutako abiadura lerro gisa.',
   'whatsnew.change.seedingLine': 'Abiadura-kurbak bigarren lerro bat du zure torrentek seed egiten duten bitartean igotzen dutenarentzat.',
+  'whatsnew.change.mergeFiles': 'Desaktibatu «{name}» bideoa, audioa eta azpitituluak fitxategi bereizi gisa gordetzeko.',
   'whatsnew.change.ruleSwitch': 'Arauak lagin-esteka batek haietan zehar egiten duen bide gisa marrazten dira: zein arauk harrapatzen duen eta non amaitzen den.',
   'whatsnew.change.captchaChain': 'Irudi batek erakusten du captcha bat norengana doan: lehenik zuregana, gero captcha kontuetara zure hurrenkeran.',
   'whatsnew.change.trackMerge': '«{name}» atalak txartel osoan marrazten du uneko ezarpenekin zer amaitzen den bideo-fitxategi batean, eta azpiko etengailuei jarraitzen die. «{rainbow}» aktibatuta dagoenean, pista bakoitzak bere kolorea du.',

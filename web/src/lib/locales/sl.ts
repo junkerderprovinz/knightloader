@@ -2080,6 +2080,9 @@ export const sl: Dict = {
   'settings.advanced.retryTitle': 'Ponovni poskusi po vrsti napake',
   'settings.resolvers.audioTitle': 'Zvok',
   'settings.resolvers.subtitlesTitle': 'Podnapisi',
+  'settings.resolvers.mergeFiles': 'Združi v eno datoteko',
+  'settings.resolvers.mergeFilesHint': 'Ko je vklopljeno, gredo video, zvok, podnapisi in naslovnica v eno datoteko MKV ali MP4. Ko je izklopljeno, jih yt-dlp pusti kot ločene datoteke drugo ob drugi: video in zvok vsak s svojo končnico, podnapise kot .srt in naslovnico kot .jpg. Oznake in poglavja gredo vseeno v vsako datoteko. KnightLoader sledi vsem datotekam, zato ko odstraniš prenos skupaj z datotekami, izginejo vse.',
+  'picture.tracks.apart': 'vsaka v svoji datoteki',
   'settings.resolvers.embedTitle': 'V datoteki',
   'settings.resolvers.measureTitle': 'Preverjanje končane datoteke',
   'settings.resolvers.liveTitle': 'Pretoki v živo',
@@ -3623,6 +3626,7 @@ export const sl: Dict = {
   'whatsnew.change.dayCurve':
     '»{name}« nariše današnji dan kot krivuljo: načrtovano omejitev hitrosti kot ploskev in izmerjeno hitrost kot črto.',
   'whatsnew.change.seedingLine': 'Krivulja hitrosti ima drugo črto za to, kar tvoji torrenti pošiljajo med sejanjem.',
+  'whatsnew.change.mergeFiles': 'Izklopi »{name}«, da video, zvok in podnapisi ostanejo ločene datoteke.',
   'whatsnew.change.ruleSwitch': 'Pravila so narisana kot pot, ki jo vzorčna povezava opravi skoznje: katero pravilo jo ujame in kje pristane.',
   'whatsnew.change.captchaChain': 'Slika kaže, h komu gre captcha: najprej k tebi, nato k računom captch v tvojem vrstnem redu.',
   'whatsnew.change.trackMerge': '»{name}« nariše čez celotno kartico, kaj s trenutnimi nastavitvami pristane v videodatoteki, in sledi stikalom pod njo. Ko je vklopljen »{rainbow}«, ima vsaka sled svojo barvo.',

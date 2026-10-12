@@ -2079,6 +2079,9 @@ export const vi: Dict = {
   'settings.advanced.retryTitle': 'Thử lại theo loại lỗi',
   'settings.resolvers.audioTitle': 'Âm thanh',
   'settings.resolvers.subtitlesTitle': 'Phụ đề',
+  'settings.resolvers.mergeFiles': 'Gộp thành một tệp',
+  'settings.resolvers.mergeFilesHint': 'Khi bật, video, âm thanh, phụ đề và ảnh bìa được đưa vào một tệp MKV hoặc MP4. Khi tắt, yt-dlp giữ chúng thành các tệp riêng nằm cạnh nhau: video và âm thanh mỗi thứ có phần mở rộng riêng, phụ đề là .srt và ảnh bìa là .jpg. Thẻ và chương vẫn được ghi vào từng tệp. KnightLoader theo dõi mọi tệp, nên khi bạn xóa bản tải xuống cùng các tệp của nó, tất cả đều bị xóa.',
+  'picture.tracks.apart': 'mỗi thứ trong một tệp riêng',
   'settings.resolvers.embedTitle': 'Bên trong tệp',
   'settings.resolvers.measureTitle': 'Kiểm tra tệp đã hoàn tất',
   'settings.resolvers.liveTitle': 'Livestream',
@@ -3624,6 +3627,7 @@ export const vi: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” vẽ ngày hôm nay thành một đường cong: giới hạn tốc độ dự kiến là một vùng và tốc độ đo được là một đường.',
   'whatsnew.change.seedingLine': 'Đường tốc độ có thêm một đường thứ hai cho những gì các torrent của bạn tải lên khi seed.',
+  'whatsnew.change.mergeFiles': 'Tắt “{name}” để giữ video, âm thanh và phụ đề thành các tệp riêng.',
   'whatsnew.change.ruleSwitch': 'Các quy tắc được vẽ thành đường đi của một liên kết mẫu qua chúng: quy tắc nào bắt nó và nó dừng ở đâu.',
   'whatsnew.change.captchaChain': 'Một hình cho thấy captcha đến với ai: đến bạn trước, rồi đến các tài khoản captcha theo thứ tự của bạn.',
   'whatsnew.change.trackMerge': '“{name}” vẽ trên cả thẻ những gì nằm trong tệp video với cài đặt hiện tại, và đi theo các công tắc bên dưới. Khi “{rainbow}” bật, mỗi rãnh có một màu riêng.',

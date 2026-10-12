@@ -2089,6 +2089,9 @@ export const sr: Dict = {
   'settings.advanced.retryTitle': 'Понављања по врсти грешке',
   'settings.resolvers.audioTitle': 'Звук',
   'settings.resolvers.subtitlesTitle': 'Титлови',
+  'settings.resolvers.mergeFiles': 'Споји у једну датотеку',
+  'settings.resolvers.mergeFilesHint': 'Када је укључено, видео, звук, титлови и омот иду у једну MKV или MP4 датотеку. Када је искључено, yt-dlp их оставља као засебне датотеке једну поред друге: видео и звук сваки са својим наставком, титлове као .srt и омот као .jpg. Ознаке и поглавља и даље иду у сваку датотеку. KnightLoader прати све датотеке, па када уклониш преузимање заједно са датотекама, нестану све.',
+  'picture.tracks.apart': 'свака у својој датотеци',
   'settings.resolvers.embedTitle': 'У самој датотеци',
   'settings.resolvers.measureTitle': 'Провера готове датотеке',
   'settings.resolvers.liveTitle': 'Преноси уживо',
@@ -3638,6 +3641,7 @@ export const sr: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ црта данашњи дан као криву: планирано ограничење брзине као површину и измерену брзину као линију.',
   'whatsnew.change.seedingLine': 'Крива брзине има другу линију за оно што твоји торенти шаљу док сидују.',
+  'whatsnew.change.mergeFiles': 'Искључи „{name}“ да видео, звук и титлови остану засебне датотеке.',
   'whatsnew.change.ruleSwitch': 'Правила су нацртана као пут којим пример везе пролази кроз њих: које правило је хвата и где завршава.',
   'whatsnew.change.captchaChain': 'Слика показује коме captcha иде: прво теби, затим captcha налозима твојим редоследом.',
   'whatsnew.change.trackMerge': '„{name}“ црта преко целе картице шта са тренутним подешавањима завршава у видео-датотеци и прати прекидаче испод. Кад је укључен „{rainbow}“, свака трака има своју боју.',

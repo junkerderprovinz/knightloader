@@ -2089,6 +2089,9 @@ export const sk: Dict = {
   'settings.advanced.retryTitle': 'Opakovania podľa druhu chyby',
   'settings.resolvers.audioTitle': 'Zvuk',
   'settings.resolvers.subtitlesTitle': 'Titulky',
+  'settings.resolvers.mergeFiles': 'Zlúčiť do jedného súboru',
+  'settings.resolvers.mergeFilesHint': 'Keď je to zapnuté, video, zvuk, titulky a obal idú do jedného súboru MKV alebo MP4. Keď je to vypnuté, yt-dlp ich nechá ako samostatné súbory vedľa seba: video a zvuk každý s vlastnou príponou, titulky ako .srt a obal ako .jpg. Značky a kapitoly sa aj tak zapíšu do každého súboru. KnightLoader sleduje všetky súbory, takže keď odstrániš sťahovanie aj so súbormi, zmiznú všetky.',
+  'picture.tracks.apart': 'každá vo vlastnom súbore',
   'settings.resolvers.embedTitle': 'V samotnom súbore',
   'settings.resolvers.measureTitle': 'Kontrola hotového súboru',
   'settings.resolvers.liveTitle': 'Livestreamy',
@@ -3634,6 +3637,7 @@ export const sk: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ kreslí dnešok ako krivku: plánované obmedzenie rýchlosti ako plochu a nameranú rýchlosť ako čiaru.',
   'whatsnew.change.seedingLine': 'Krivka rýchlosti má druhú čiaru pre to, čo tvoje torrenty nahrávajú pri seedovaní.',
+  'whatsnew.change.mergeFiles': 'Vypni „{name}“, aby video, zvuk a titulky zostali samostatné súbory.',
   'whatsnew.change.ruleSwitch': 'Pravidlá sú nakreslené ako cesta, ktorou nimi prejde ukážkový odkaz: ktoré pravidlo ho zachytí a kde skončí.',
   'whatsnew.change.captchaChain': 'Obrázok ukazuje, ku komu captcha ide: najprv k tebe, potom k účtom captchy v tvojom poradí.',
   'whatsnew.change.trackMerge': '„{name}“ nakreslí cez celú kartu, čo s aktuálnymi nastaveniami skončí vo videosúbore, a riadi sa prepínačmi pod ňou. Keď je zapnutý „{rainbow}“, má každá stopa vlastnú farbu.',

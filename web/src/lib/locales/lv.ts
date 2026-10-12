@@ -2080,6 +2080,9 @@ export const lv: Dict = {
   'settings.advanced.retryTitle': 'Atkārtojumi katram kļūdas veidam',
   'settings.resolvers.audioTitle': 'Audio',
   'settings.resolvers.subtitlesTitle': 'Subtitri',
+  'settings.resolvers.mergeFiles': 'Apvienot vienā failā',
+  'settings.resolvers.mergeFilesHint': 'Kad ieslēgts, video, audio, subtitri un vāciņš nonāk vienā MKV vai MP4 failā. Kad izslēgts, yt-dlp tos atstāj kā atsevišķus failus blakus: video un audio katru ar savu paplašinājumu, subtitrus kā .srt un vāciņu kā .jpg. Birkas un nodaļas tik un tā tiek ierakstītas katrā failā. KnightLoader seko visiem failiem, tāpēc, ja noņem lejupielādi kopā ar failiem, pazūd visi.',
+  'picture.tracks.apart': 'katrs savā failā',
   'settings.resolvers.embedTitle': 'Faila iekšpusē',
   'settings.resolvers.measureTitle': 'Pabeigtā faila pārbaude',
   'settings.resolvers.liveTitle': 'Tiešraides',
@@ -3615,6 +3618,7 @@ export const lv: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ uzzīmē šodienu kā līkni: plānoto ātruma ierobežojumu kā laukumu un izmērīto ātrumu kā līniju.',
   'whatsnew.change.seedingLine': 'Ātruma līknei ir otra līnija tam, ko tavi torenti augšupielādē, kamēr sēj.',
+  'whatsnew.change.mergeFiles': 'Izslēdz „{name}“, lai video, audio un subtitri paliktu atsevišķi faili.',
   'whatsnew.change.ruleSwitch': 'Noteikumi ir uzzīmēti kā ceļš, ko parauga saite veic cauri tiem: kurš noteikums to noķer un kur tā nonāk.',
   'whatsnew.change.captchaChain': 'Attēls rāda, pie kā nonāk captcha: vispirms pie tevis, pēc tam pie captcha kontiem tavā secībā.',
   'whatsnew.change.trackMerge': '„{name}“ pāri visai kartītei uzzīmē, kas ar pašreizējiem iestatījumiem nonāk video failā, un seko slēdžiem zem tās. Kad „{rainbow}“ ir ieslēgts, katram celiņam ir sava krāsa.',

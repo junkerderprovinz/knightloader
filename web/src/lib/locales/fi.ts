@@ -2079,6 +2079,9 @@ export const fi: Dict = {
   'settings.advanced.retryTitle': 'Uudelleenyritykset virhetyyppiä kohti',
   'settings.resolvers.audioTitle': 'Ääni',
   'settings.resolvers.subtitlesTitle': 'Tekstitykset',
+  'settings.resolvers.mergeFiles': 'Yhdistä yhdeksi tiedostoksi',
+  'settings.resolvers.mergeFilesHint': 'Kun tämä on päällä, video, ääni, tekstitykset ja kansikuva menevät yhteen MKV- tai MP4-tiedostoon. Kun tämä on pois päältä, yt-dlp jättää ne erillisiksi tiedostoiksi rinnakkain: video ja ääni omilla päätteillään, tekstitykset .srt-tiedostoina ja kansikuva .jpg-tiedostona. Tunnisteet ja luvut menevät silti jokaiseen tiedostoon. KnightLoader pitää kirjaa kaikista tiedostoista, joten kun poistat latauksen tiedostoineen, kaikki lähtevät.',
+  'picture.tracks.apart': 'kukin omassa tiedostossaan',
   'settings.resolvers.embedTitle': 'Tiedoston sisällä',
   'settings.resolvers.measureTitle': 'Valmiin tiedoston tarkistus',
   'settings.resolvers.liveTitle': 'Livelähetykset',
@@ -3626,6 +3629,7 @@ export const fi: Dict = {
   'whatsnew.change.dayCurve':
     '”{name}” piirtää tämän päivän käyränä: suunniteltu nopeusrajoitus alueena ja mitattu nopeus viivana.',
   'whatsnew.change.seedingLine': 'Nopeuskäyrässä on toinen viiva sille, mitä torrenttisi lähettävät jakaessaan.',
+  'whatsnew.change.mergeFiles': 'Kytke ”{name}” pois, jos haluat pitää videon, äänen ja tekstitykset erillisinä tiedostoina.',
   'whatsnew.change.ruleSwitch': 'Säännöt on piirretty reittinä, jonka näytelinkki kulkee niiden läpi: mikä sääntö nappaa sen ja minne se päätyy.',
   'whatsnew.change.captchaChain': 'Kuva näyttää, kenelle captcha menee: ensin sinulle, sitten captcha-tileille järjestyksessäsi.',
   'whatsnew.change.trackMerge': '”{name}” piirtää koko kortin leveydeltä, mitä videotiedostoon päätyy nykyisillä asetuksilla, ja seuraa alla olevia kytkimiä. Kun ”{rainbow}” on päällä, jokaisella raidalla on oma värinsä.',

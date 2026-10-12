@@ -766,6 +766,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.resolvers.embedTitle',
       rows: [
+        { key: 'settings.resolvers.mergeFiles', hint: 'settings.resolvers.mergeFilesHint' },
         { key: 'settings.resolvers.embedMetadata', hint: 'settings.resolvers.embedMetadataHint' },
         { key: 'settings.resolvers.embedThumbnail', hint: 'settings.resolvers.embedThumbnailHint' },
         { key: 'settings.resolvers.embedChapters', hint: 'settings.resolvers.embedChaptersHint' },

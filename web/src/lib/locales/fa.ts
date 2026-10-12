@@ -2079,6 +2079,9 @@ export const fa: Dict = {
   'settings.advanced.retryTitle': 'تلاش دوباره برای هر نوع خطا',
   'settings.resolvers.audioTitle': 'صدا',
   'settings.resolvers.subtitlesTitle': 'زیرنویس‌ها',
+  'settings.resolvers.mergeFiles': 'ادغام در یک فایل',
+  'settings.resolvers.mergeFilesHint': 'وقتی روشن است، ویدیو، صدا، زیرنویس‌ها و کاور در یک فایل MKV یا MP4 قرار می‌گیرند. وقتی خاموش است، yt-dlp آن‌ها را به‌صورت فایل‌های جدا کنار هم نگه می‌دارد: ویدیو و صدا هر کدام با پسوند خودشان، زیرنویس‌ها به‌صورت .srt و کاور به‌صورت .jpg. برچسب‌ها و فصل‌ها همچنان در هر فایل نوشته می‌شوند. KnightLoader همه فایل‌ها را دنبال می‌کند، پس اگر دانلود را همراه فایل‌هایش حذف کنی، همه پاک می‌شوند.',
+  'picture.tracks.apart': 'هر کدام در فایل خودش',
   'settings.resolvers.embedTitle': 'داخل فایل',
   'settings.resolvers.measureTitle': 'بررسی فایل تمام‌شده',
   'settings.resolvers.liveTitle': 'پخش‌های زنده',
@@ -3613,6 +3616,7 @@ export const fa: Dict = {
   'whatsnew.change.dayCurve':
     '«{name}» امروز را به شکل یک منحنی می‌کشد: محدودیت سرعت برنامه‌ریزی‌شده به شکل سطح و سرعت اندازه‌گیری‌شده به شکل خط.',
   'whatsnew.change.seedingLine': 'منحنی سرعت یک خط دوم دارد برای آنچه تورنت‌های تو هنگام سید آپلود می‌کنند.',
+  'whatsnew.change.mergeFiles': '«{name}» را خاموش کن تا ویدیو، صدا و زیرنویس‌ها فایل‌های جدا بمانند.',
   'whatsnew.change.ruleSwitch': 'قاعده‌ها به شکل مسیری کشیده می‌شوند که یک پیوند نمونه از میانشان می‌پیماید: کدام قاعده آن را می‌گیرد و کجا فرود می‌آید.',
   'whatsnew.change.captchaChain': 'یک تصویر نشان می‌دهد کپچا پیش چه کسی می‌رود: اول پیش تو، بعد پیش حساب‌های کپچا به ترتیب تو.',
   'whatsnew.change.trackMerge': '«{name}» روی کل کارت می‌کشد که با تنظیمات فعلی چه چیزی در فایل ویدیو قرار می‌گیرد و از کلیدهای زیرش پیروی می‌کند. وقتی «{rainbow}» روشن است، هر ترک رنگ خودش را دارد.',

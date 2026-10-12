@@ -2596,6 +2596,9 @@ export const en = {
   'settings.advanced.retryTitle': 'Retries per failure',
   'settings.resolvers.audioTitle': 'Audio',
   'settings.resolvers.subtitlesTitle': 'Subtitles',
+  'settings.resolvers.mergeFiles': 'Merge into one file',
+  'settings.resolvers.mergeFilesHint': 'When this is on, video, audio, subtitles and the cover go into one MKV or MP4 file. When it is off, yt-dlp keeps them as separate files side by side: video and audio each with their own extension, subtitles as .srt and the cover as .jpg. Tags and chapters still go into each file. KnightLoader keeps track of every file, so removing the download with its files removes all of them.',
+  'picture.tracks.apart': 'each in a file of its own',
   'settings.resolvers.embedTitle': 'Inside the file',
   'settings.resolvers.measureTitle': 'Checking the finished file',
   'settings.resolvers.liveTitle': 'Livestreams',
@@ -3870,6 +3873,7 @@ export const en = {
   'whatsnew.change.dayCurve':
     '"{name}" draws today as a curve: the planned speed limit as an area and the measured speed as a line.',
   'whatsnew.change.seedingLine': 'The speed curve has a second line for what your torrents upload while they seed.',
+  'whatsnew.change.mergeFiles': 'Switch off "{name}" to keep video, audio and subtitles as separate files.',
   'whatsnew.change.ruleSwitch': 'The rules show the way a sample link takes through them: which rule catches it and where it lands.',
   'whatsnew.change.captchaChain': 'A picture shows who a captcha goes to: you first, then the captcha accounts in your order.',
   'whatsnew.change.trackMerge': '"{name}" draws what ends up in a video file with the current settings, across the whole card, and follows the switches below it. In "{rainbow}" every track has a colour of its own.',

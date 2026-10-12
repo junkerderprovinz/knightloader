@@ -2082,6 +2082,9 @@ export const no: Dict = {
   'settings.advanced.retryTitle': 'Nye forsøk per feiltype',
   'settings.resolvers.audioTitle': 'Lyd',
   'settings.resolvers.subtitlesTitle': 'Undertekster',
+  'settings.resolvers.mergeFiles': 'Slå sammen til én fil',
+  'settings.resolvers.mergeFilesHint': 'Når dette er på, havner video, lyd, undertekster og cover i én MKV- eller MP4-fil. Når det er av, beholder yt-dlp dem som separate filer side om side: video og lyd med hver sin filtype, undertekster som .srt og coveret som .jpg. Tagger og kapitler havner likevel i hver fil. KnightLoader holder styr på alle filene, så hvis du fjerner nedlastingen med filene, forsvinner alle.',
+  'picture.tracks.apart': 'hver i sin egen fil',
   'settings.resolvers.embedTitle': 'Inne i fila',
   'settings.resolvers.measureTitle': 'Sjekk av den ferdige fila',
   'settings.resolvers.liveTitle': 'Livestrømmer',
@@ -3627,6 +3630,7 @@ export const no: Dict = {
   'whatsnew.change.dayCurve':
     '«{name}» tegner dagen i dag som en kurve: den planlagte hastighetsgrensen som en flate og den målte hastigheten som en linje.',
   'whatsnew.change.seedingLine': 'Hastighetskurven har en ekstra linje for det torrentene dine laster opp mens de seeder.',
+  'whatsnew.change.mergeFiles': 'Slå av «{name}» for å beholde video, lyd og undertekster som separate filer.',
   'whatsnew.change.ruleSwitch': 'Reglene er tegnet som veien ei eksempellenke tar gjennom dem: hvilken regel som fanger den, og hvor den lander.',
   'whatsnew.change.captchaChain': 'Et bilde viser hvem en captcha går til: først til deg, deretter til captcha-kontoene i din rekkefølge.',
   'whatsnew.change.trackMerge': '«{name}» tegner over hele kortet hva som havner i ei videofil med de gjeldende innstillingene, og følger bryterne under. Når «{rainbow}» er på, har hvert spor sin egen farge.',

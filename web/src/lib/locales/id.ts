@@ -2079,6 +2079,9 @@ export const id: Dict = {
   'settings.advanced.retryTitle': 'Percobaan ulang per jenis kegagalan',
   'settings.resolvers.audioTitle': 'Audio',
   'settings.resolvers.subtitlesTitle': 'Subtitel',
+  'settings.resolvers.mergeFiles': 'Gabungkan jadi satu file',
+  'settings.resolvers.mergeFilesHint': 'Saat aktif, video, audio, subtitle, dan sampul masuk ke satu file MKV atau MP4. Saat nonaktif, yt-dlp membiarkannya sebagai file terpisah berdampingan: video dan audio dengan ekstensinya masing-masing, subtitle sebagai .srt, dan sampul sebagai .jpg. Tag dan bab tetap masuk ke setiap file. KnightLoader mencatat semua file, jadi kalau kamu menghapus unduhan beserta file-filenya, semuanya ikut terhapus.',
+  'picture.tracks.apart': 'masing-masing dalam filenya sendiri',
   'settings.resolvers.embedTitle': 'Di dalam berkas',
   'settings.resolvers.measureTitle': 'Memeriksa berkas yang selesai',
   'settings.resolvers.liveTitle': 'Livestream',
@@ -3624,6 +3627,7 @@ export const id: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” menggambar hari ini sebagai kurva: batas kecepatan yang direncanakan sebagai bidang dan kecepatan terukur sebagai garis.',
   'whatsnew.change.seedingLine': 'Kurva kecepatan punya garis kedua untuk apa yang diunggah torrent kamu saat melakukan seed.',
+  'whatsnew.change.mergeFiles': 'Matikan “{name}” agar video, audio, dan subtitle tetap jadi file terpisah.',
   'whatsnew.change.ruleSwitch': 'Aturan digambar sebagai jalan yang ditempuh sebuah tautan contoh melewatinya: aturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.captchaChain': 'Sebuah gambar menunjukkan kepada siapa captcha pergi: kepadamu dulu, lalu ke akun captcha sesuai urutanmu.',
   'whatsnew.change.trackMerge': '“{name}” menggambar di seluruh kartu apa yang masuk ke berkas video dengan pengaturan saat ini, dan mengikuti sakelar di bawahnya. Saat “{rainbow}” aktif, setiap trek punya warnanya sendiri.',

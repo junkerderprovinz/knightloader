@@ -2080,6 +2080,9 @@ export const hi: Dict = {
   'settings.advanced.retryTitle': 'हर विफलता पर पुनःप्रयास',
   'settings.resolvers.audioTitle': 'ऑडियो',
   'settings.resolvers.subtitlesTitle': 'सबटाइटल',
+  'settings.resolvers.mergeFiles': 'एक फ़ाइल में मिलाएँ',
+  'settings.resolvers.mergeFilesHint': 'चालू होने पर वीडियो, ऑडियो, सबटाइटल और कवर एक MKV या MP4 फ़ाइल में जाते हैं। बंद होने पर yt-dlp इन्हें अलग-अलग फ़ाइलों के रूप में साथ-साथ रखता है: वीडियो और ऑडियो अपने-अपने एक्सटेंशन के साथ, सबटाइटल .srt के रूप में और कवर .jpg के रूप में। टैग और चैप्टर फिर भी हर फ़ाइल में जाते हैं। KnightLoader सभी फ़ाइलों का हिसाब रखता है, इसलिए डाउनलोड को उसकी फ़ाइलों समेत हटाने पर सब हट जाती हैं।',
+  'picture.tracks.apart': 'हर एक अपनी अलग फ़ाइल में',
   'settings.resolvers.embedTitle': 'फ़ाइल के भीतर',
   'settings.resolvers.measureTitle': 'पूरी हुई फ़ाइल की जाँच',
   'settings.resolvers.liveTitle': 'लाइवस्ट्रीम',
@@ -3625,6 +3628,7 @@ export const hi: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” आज के दिन को एक वक्र के रूप में दिखाता है: नियोजित गति सीमा एक क्षेत्र के रूप में और मापी गई गति एक रेखा के रूप में।',
   'whatsnew.change.seedingLine': 'गति वक्र में एक दूसरी रेखा है, जो दिखाती है कि आपके टॉरेंट सीड करते समय क्या अपलोड करते हैं।',
+  'whatsnew.change.mergeFiles': 'वीडियो, ऑडियो और सबटाइटल को अलग फ़ाइलों में रखने के लिए “{name}” बंद करें।',
   'whatsnew.change.ruleSwitch': 'नियम उस रास्ते के रूप में दिखते हैं जो कोई नमूना लिंक उनसे होकर तय करता है: कौन-सा नियम उसे पकड़ता है और वह कहाँ पहुँचता है।',
   'whatsnew.change.captchaChain': 'एक चित्र दिखाता है कि कैप्चा किसके पास जाता है: पहले आपके पास, फिर आपके क्रम में कैप्चा खातों के पास।',
   'whatsnew.change.trackMerge': '“{name}” पूरे कार्ड पर दिखाता है कि मौजूदा सेटिंग्स के साथ वीडियो फ़ाइल में क्या जाता है, और नीचे के स्विच के साथ बदलता है। “{rainbow}” चालू होने पर हर ट्रैक का अपना रंग होता है।',

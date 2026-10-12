@@ -2078,6 +2078,9 @@ export const et: Dict = {
   'settings.advanced.retryTitle': 'Kordused vealiigi kohta',
   'settings.resolvers.audioTitle': 'Heli',
   'settings.resolvers.subtitlesTitle': 'Subtiitrid',
+  'settings.resolvers.mergeFiles': 'Ühenda üheks failiks',
+  'settings.resolvers.mergeFilesHint': 'Kui see on sees, lähevad video, heli, subtiitrid ja kaanepilt ühte MKV- või MP4-faili. Kui see on väljas, jätab yt-dlp need eraldi failideks kõrvuti: video ja heli kumbki oma laiendiga, subtiitrid .srt ja kaanepilt .jpg failina. Sildid ja peatükid lähevad ikka igasse faili. KnightLoader peab kõigil failidel silma peal, nii et kui eemaldad allalaadimise koos failidega, kaovad kõik.',
+  'picture.tracks.apart': 'igaüks oma failis',
   'settings.resolvers.embedTitle': 'Faili sees',
   'settings.resolvers.measureTitle': 'Valmis faili kontroll',
   'settings.resolvers.liveTitle': 'Otseülekanded',
@@ -3616,6 +3619,7 @@ export const et: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ joonistab tänase päeva kõverana: kavandatud kiiruspiirang pinnana ja mõõdetud kiirus joonena.',
   'whatsnew.change.seedingLine': 'Kiiruskõveral on teine joon selle jaoks, mida su torrentid levitamise ajal üles laadivad.',
+  'whatsnew.change.mergeFiles': 'Lülita „{name}“ välja, kui video, heli ja subtiitrid peavad jääma eraldi failideks.',
   'whatsnew.change.ruleSwitch': 'Reeglid on joonistatud teekonnana, mille näidislink nendest läbib: milline reegel selle kinni püüab ja kuhu see jõuab.',
   'whatsnew.change.captchaChain': 'Pilt näitab, kelleni captcha jõuab: kõigepealt sinuni, seejärel captcha kontodeni sinu järjekorras.',
   'whatsnew.change.trackMerge': '„{name}“ joonistab üle kogu kaardi, mis praeguste seadetega videofaili jõuab, ja järgib all olevaid lüliteid. Kui „{rainbow}“ on sees, on igal rajal oma värv.',
