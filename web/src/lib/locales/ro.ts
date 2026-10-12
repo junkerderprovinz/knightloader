@@ -3668,4 +3668,5 @@ export const ro: Dict = {
   'settings.look.builtInTitle': 'Componente încorporate',
   'settings.look.builtInHint': 'Ce aduce KnightLoader cu el sau rulează lângă el, fiecare cu versiunea și proveniența sa. Aceste părți vin cu KnightLoader sau cu imaginea containerului, ori se actualizează singure, așa că aici nu ai nimic de actualizat.',
   'whatsnew.change.builtIn': '„{name}” enumeră fiecare parte care vine cu KnightLoader, cu versiunea și proveniența ei. Ce se poate actualiza rămâne pe „{updates}”.',
+  'whatsnew.change.settingRows': 'Fiecare listă derulantă și fiecare câmp de introducere din Setări stă lângă numele său, la capătul cardului.',
 };

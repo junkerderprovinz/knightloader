@@ -3658,4 +3658,5 @@ export const sl: Dict = {
   'settings.look.builtInTitle': 'Vgrajeni sestavni deli',
   'settings.look.builtInHint': 'Kar KnightLoader prinese s seboj ali poganja ob sebi, vsak del s svojo različico in izvorom. Ti deli pridejo s KnightLoaderjem ali s sliko vsebnika ali se posodabljajo sami, zato tu ni ničesar za posodobiti.',
   'whatsnew.change.builtIn': '»{name}« našteje vsak del, ki pride s KnightLoaderjem, z različico in izvorom. Kar je mogoče posodobiti, ostane na »{updates}«.',
+  'whatsnew.change.settingRows': 'Vsak spustni seznam in vsako vnosno polje v Nastavitvah stoji ob svojem imenu, na koncu svoje kartice.',
 };

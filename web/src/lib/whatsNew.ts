@@ -231,6 +231,8 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.waysIn',
         names: { rainbow: 'settings.rainbow' },
       },
+      // Every settings page has such rows, and the crawler's depth is the one shown.
+      { id: 'setting-rows', to: ['/settings/collector'], text: 'whatsnew.change.settingRows' },
       {
         id: 'mirror-policy',
         to: ['/settings/collector'],

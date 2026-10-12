@@ -1,4 +1,4 @@
-import { Card, Field, NumberInput, SectionTitle } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
@@ -63,7 +63,11 @@ export function CollisionCard({ hue }: { hue: number }) {
       {/* Only "keep both" counts attempts, so the box is absent otherwise and
           comes back with its number unchanged. */}
       {renaming && (
-        <Field label={t('settings.downloads.collisionAttempts')} hint={t('settings.downloads.collisionAttemptsHint')}>
+        <SettingRow
+          control="short"
+          label={t('settings.downloads.collisionAttempts')}
+          hint={t('settings.downloads.collisionAttemptsHint')}
+        >
           <NumberInput
             value={attempts}
             min={0}
@@ -73,7 +77,7 @@ export function CollisionCard({ hue }: { hue: number }) {
             // 1000, not "no limit".
             onValue={(v) => patch({ collisionMaxAttempts: Math.max(0, Math.min(1000, Math.round(v) || 0)) })}
           />
-        </Field>
+        </SettingRow>
       )}
 
       {trustModes.length > 0 && (

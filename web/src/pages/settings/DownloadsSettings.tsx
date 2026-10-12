@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
+import { Card, NumberInput, SectionTitle, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { fetchOptions } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -44,7 +44,8 @@ export function DownloadsSettings() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.downloads.locationTitle')}</SectionTitle>
-        <Field
+        <SettingRow
+          control="long"
           label={t('settings.downloadDir')}
           hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
         >
@@ -55,7 +56,7 @@ export function DownloadsSettings() {
             placeholder="/downloads"
             onValue={(downloadDir) => patch({ downloadDir })}
           />
-        </Field>
+        </SettingRow>
         <ToggleRow
           checked={cfg.subfolderByPackage}
           onChange={(v) => patch({ subfolderByPackage: v })}
@@ -63,7 +64,7 @@ export function DownloadsSettings() {
         />
         {/* The hint names no variables, because a template here would scatter
             the parts of a multi-volume archive across folders. */}
-        <Field label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
+        <SettingRow control="long" label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
           <SettingPathInput
             field="workDir"
             value={cfg.workDir}
@@ -71,7 +72,7 @@ export function DownloadsSettings() {
             title={t('settings.downloads.workDir')}
             onValue={(workDir) => patch({ workDir })}
           />
-        </Field>
+        </SettingRow>
         <FolderCheck />
       </Card>
 
@@ -81,7 +82,7 @@ export function DownloadsSettings() {
         <SectionTitle>{t('settings.downloads.limitsTitle')}</SectionTitle>
         {/* Read together: two downloads on one host with eight connections
             each open sixteen. */}
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+        <div className="flex flex-col gap-4">
           <MaxConcurrentField value={cfg.maxConcurrent} onValue={(maxConcurrent) => patch({ maxConcurrent })} />
           <MaxPerHostField value={cfg.maxPerHost} onValue={(maxPerHost) => patch({ maxPerHost })} />
           <ChunksField value={cfg.chunks} onValue={(chunks) => patch({ chunks })} />
@@ -93,11 +94,11 @@ export function DownloadsSettings() {
           label={t('settings.multiSource')}
           hint={t('settings.multiSourceHint')}
         />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-4">
           <SpeedLimitField value={cfg.speedLimit} onValue={(speedLimit) => patch({ speedLimit })} />
-          <Field label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
+          <SettingRow control="short" label={t('settings.maxRetries')} hint={t('settings.maxRetriesHint')}>
             <NumberInput value={cfg.maxRetries} min={0} max={20} onValue={(v) => patch({ maxRetries: v })} />
-          </Field>
+          </SettingRow>
         </div>
         {modes.length > 0 && (
           <SettingRow label={t('settings.resumeOnStart')} hint={t('settings.resumeOnStartHint')}>
@@ -114,23 +115,23 @@ export function DownloadsSettings() {
           </SettingRow>
         )}
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('settings.keepFinishedDays')} hint={t('settings.keepFinishedDaysHint')}>
+        <div className="flex flex-col gap-4">
+          <SettingRow control="short" label={t('settings.keepFinishedDays')} hint={t('settings.keepFinishedDaysHint')}>
             <NumberInput
               value={cfg.keepFinishedDays}
               min={0}
               max={3650}
               onValue={(v) => patch({ keepFinishedDays: Math.max(0, v) })}
             />
-          </Field>
-          <Field label={t('settings.historyMax')} hint={t('settings.historyMaxHint')}>
+          </SettingRow>
+          <SettingRow control="short" label={t('settings.historyMax')} hint={t('settings.historyMaxHint')}>
             <NumberInput
               value={cfg.historyMax}
               min={0}
               max={1000000}
               onValue={(v) => patch({ historyMax: Math.max(0, v) })}
             />
-          </Field>
+          </SettingRow>
         </div>
 
         <div className="flex flex-col gap-3">

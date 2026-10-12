@@ -1,8 +1,9 @@
 import { DiskVolumeRow } from '../../../components/DiskSpaceTile';
-import { Card, Field, NumberInput, SectionTitle } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { downloadsVolume, spaceHint, useDiskSpace } from '../../../lib/useDiskSpace';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // The three disk floors decide whether a download may start and whether a
 // running one goes back to the queue. Each is off at 0 and stays editable even
@@ -48,7 +49,11 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
 
       {/* Per file and dispatch pass: free space minus what the pass promised
           must cover the remaining bytes plus this reserve. The hint says so. */}
-      <Field label={t('settings.downloads.diskReserve')} hint={t('settings.downloads.diskReserveHint')}>
+      <SettingRow
+        control="short"
+        label={t('settings.downloads.diskReserve')}
+        hint={t('settings.downloads.diskReserveHint')}
+      >
         <NumberInput
           value={toGiB(cfg.diskReserve)}
           min={0}
@@ -56,12 +61,16 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
           step={STEP_GIB}
           onValue={(v) => patch({ diskReserve: fromGiB(v) })}
         />
-      </Field>
+      </SettingRow>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="flex flex-col gap-4">
         {/* min is the stop floor. The server raises this box rather than
             lowering the stop floor, which protects a nearly full volume. */}
-        <Field label={t('settings.downloads.diskLowSpace')} hint={t('settings.downloads.diskLowSpaceHint')}>
+        <SettingRow
+          control="short"
+          label={t('settings.downloads.diskLowSpace')}
+          hint={t('settings.downloads.diskLowSpaceHint')}
+        >
           <NumberInput
             value={toGiB(cfg.diskLowSpace)}
             min={lowFloorGiB}
@@ -69,11 +78,15 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
             step={STEP_GIB}
             onValue={(v) => patch({ diskLowSpace: fromGiB(v) })}
           />
-        </Field>
+        </SettingRow>
 
         {/* The watcher reads this one every fifteen seconds, and a transfer
             that cannot resume loses its bytes when it is held back. */}
-        <Field label={t('settings.downloads.diskCriticalSpace')} hint={t('settings.downloads.diskCriticalSpaceHint')}>
+        <SettingRow
+          control="short"
+          label={t('settings.downloads.diskCriticalSpace')}
+          hint={t('settings.downloads.diskCriticalSpaceHint')}
+        >
           <NumberInput
             value={toGiB(cfg.diskCriticalSpace)}
             min={0}
@@ -81,7 +94,7 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
             step={STEP_GIB}
             onValue={(v) => patch({ diskCriticalSpace: fromGiB(v) })}
           />
-        </Field>
+        </SettingRow>
       </div>
     </Card>
   );

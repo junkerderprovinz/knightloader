@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  Field,
-  FieldGroup,
-  IconBadge,
-  SectionTitle,
-  TextInput,
-  UnitNumberInput,
-} from '../../components/ui';
+import { Button, Card, FieldGroup, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
@@ -515,12 +506,12 @@ function CategoryRow({
         <Sheet title={title || t('settings.categories.name')} hue={index} wide onClose={onToggle}>
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.categories.name')} hint={t('settings.categories.nameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.categories.name')} hint={t('settings.categories.nameHint')}>
               <TextInput value={cat.name ?? ''} onChange={(e) => onChange({ ...cat, name: e.target.value })} />
-            </Field>
+            </SettingRow>
             {/* The placeholder previews the derived key. */}
-            <Field label={t('settings.categories.id')} hint={t('settings.categories.idHint')}>
+            <SettingRow control="long" label={t('settings.categories.id')} hint={t('settings.categories.idHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -528,12 +519,13 @@ function CategoryRow({
                 placeholder={derived}
                 onChange={(e) => onChange({ ...cat, id: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {/* The shared chooser browses the server and keeps a <jd:...> tail.
               `title`, or the dialog would read "Download folder". */}
-          <Field
+          <SettingRow
+            control="long"
             label={t('settings.categories.dir')}
             hint={`${t('settings.categories.dirHint')} ${t('settings.pathVars')}`}
           >
@@ -542,7 +534,7 @@ function CategoryRow({
               title={t('settings.categories.dir')}
               onValue={(dir) => onChange({ ...cat, dir })}
             />
-          </Field>
+          </SettingRow>
 
           {/* The server's ladder plus "no opinion"; ValidateCategories refuses
               anything outside -3..3. */}
@@ -624,13 +616,17 @@ function CategoryRow({
             />
           </SettingRow>
 
-          <Field label={t('settings.categories.speedLimit')} hint={t('settings.categories.speedLimitHint')}>
+          <SettingRow
+            control="short"
+            label={t('settings.categories.speedLimit')}
+            hint={t('settings.categories.speedLimitHint')}
+          >
             <UnitNumberInput
               value={cat.speedLimit ?? 0}
               units={RATE_UNITS}
               onValue={(speedLimit) => onChange({ ...cat, speedLimit })}
             />
-          </Field>
+          </SettingRow>
 
           {/* The media hook called once a package filed here is in place, by
               id. A select, since the list comes from another page. */}

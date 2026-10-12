@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   NumberInput,
@@ -428,7 +427,7 @@ function FeedRow({
 
       {open && (
         <Sheet title={row.url || t('settings.feeds.url')} hue={index} wide onClose={onToggle}>
-          <Field label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
+          <SettingRow control="long" label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
             {stored ? (
               // Read only rather than absent, so the address can still be copied.
               <TextInput
@@ -466,13 +465,13 @@ function FeedRow({
                 }}
               />
             )}
-          </Field>
+          </SettingRow>
           {verdict === 'duplicate' && <p className="text-xs text-statusWarn">{t('settings.feeds.duplicate')}</p>}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-4">
             {/* 0 takes the server's quarter of an hour; other values are cut
                 into 1..10080 as feed.Sanitize does. */}
-            <Field label={t('settings.feeds.interval')} hint={t('settings.feeds.intervalHint')}>
+            <SettingRow control="short" label={t('settings.feeds.interval')} hint={t('settings.feeds.intervalHint')}>
               <NumberInput
                 value={row.intervalMinutes}
                 min={0}
@@ -480,8 +479,8 @@ function FeedRow({
                 step={1}
                 onValue={(v) => onChange({ ...row, intervalMinutes: clampInterval(v) })}
               />
-            </Field>
-            <Field label={t('settings.feeds.filter')} hint={t('settings.feeds.filterHint')}>
+            </SettingRow>
+            <SettingRow control="long" label={t('settings.feeds.filter')} hint={t('settings.feeds.filterHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -502,19 +501,19 @@ function FeedRow({
                   }
                 }}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {/* PathInput, since the folder may be a template. It is checked only
               when an entry arrives, and a failure there drops the priority too,
               since both are written in one call. */}
-          <Field label={t('settings.feeds.dir')} hint={t('settings.feeds.dirHint')}>
+          <SettingRow control="long" label={t('settings.feeds.dir')} hint={t('settings.feeds.dirHint')}>
             <PathInput
               value={row.dir ?? ''}
               title={t('settings.feeds.dir')}
               onValue={(dir) => onChange(dir.trim() === '' ? without(row, 'dir') : { ...row, dir })}
             />
-          </Field>
+          </SettingRow>
 
           {priorities.length > 0 && (
             <SettingRow label={t('settings.feeds.priority')} hint={t('settings.feeds.priorityHint')}>

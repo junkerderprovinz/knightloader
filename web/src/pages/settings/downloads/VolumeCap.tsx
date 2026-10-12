@@ -1,4 +1,4 @@
-import { Card, Field, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { VolumeUsageRow } from '../../../components/VolumeMeter';
 import { RATE_UNITS } from '../../../lib/format';
@@ -40,26 +40,26 @@ export function VolumeCapCard({ hue }: { hue: number }) {
 
       <VolumeUsageRow />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.volume.cap')} hint={t('settings.volume.capHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="short" label={t('settings.volume.cap')} hint={t('settings.volume.capHint')}>
           <NumberInput
             value={toGB(cfg.volumeCap)}
             min={0}
             step={STEP_GB}
             onValue={(v) => patch({ volumeCap: fromGB(v) })}
           />
-        </Field>
+        </SettingRow>
 
         {/* The server clamps to 1..31 and restarts a period set for the 31st
             on the last day of a short month. */}
-        <Field label={t('settings.volume.resetDay')} hint={t('settings.volume.resetDayHint')}>
+        <SettingRow control="short" label={t('settings.volume.resetDay')} hint={t('settings.volume.resetDayHint')}>
           <NumberInput
             value={cfg.volumeCapResetDay}
             min={1}
             max={31}
             onValue={(v) => patch({ volumeCapResetDay: Math.min(31, Math.max(1, Math.round(v))) })}
           />
-        </Field>
+        </SettingRow>
       </div>
 
       <SettingRow label={t('settings.volume.action')} hint={t('settings.volume.actionHint')}>
@@ -76,7 +76,7 @@ export function VolumeCapCard({ hue }: { hue: number }) {
       </SettingRow>
 
       {cfg.volumeCapAction === 'throttle' && (
-        <Field label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>
+        <SettingRow control="short" label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>
           {/* The speed limit's field. Its floor of 0 is what a fresh install
               stores. */}
           <UnitNumberInput
@@ -84,7 +84,7 @@ export function VolumeCapCard({ hue }: { hue: number }) {
             units={RATE_UNITS}
             onValue={(volumeCapThrottle) => patch({ volumeCapThrottle })}
           />
-        </Field>
+        </SettingRow>
       )}
     </Card>
   );

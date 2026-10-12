@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   InfoBubble,
@@ -231,7 +230,11 @@ export function Resolvers() {
         )}
 
         {ytdlp.quality === 'custom' && (
-          <Field label={t('settings.resolvers.customFormat')} hint={t('settings.resolvers.customFormatHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.resolvers.customFormat')}
+            hint={t('settings.resolvers.customFormatHint')}
+          >
             <TextInput
               dir="ltr"
               value={ytdlp.customFormat}
@@ -239,7 +242,7 @@ export function Resolvers() {
               spellCheck={false}
               onChange={(e) => patchYtdlp({ customFormat: e.target.value })}
             />
-          </Field>
+          </SettingRow>
         )}
       </Card>
 
@@ -254,7 +257,11 @@ export function Resolvers() {
 
         {/* Music mode's naming, on the audio card, applies only while this
             field is empty. */}
-        <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.outputTitle')}
+          hint={t('settings.resolvers.outputHint')}
+        >
           <TextInput
             dir="ltr"
             value={ytdlp.outputTemplate}
@@ -262,7 +269,7 @@ export function Resolvers() {
             spellCheck={false}
             onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
           />
-        </Field>
+        </SettingRow>
       </Card>
 
       {/* Whether a subtitle row exists is set per hoster in the presets; this
@@ -270,7 +277,11 @@ export function Resolvers() {
           languages, so muxed tracks and .srt files agree. */}
       <Card hue={4} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.subtitlesTitle')}</SectionTitle>
-        <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.subtitleLangs')}
+          hint={t('settings.resolvers.subtitleLangsHint')}
+        >
           <TextInput
             dir="ltr"
             value={ytdlp.subtitleLangs}
@@ -278,7 +289,7 @@ export function Resolvers() {
             spellCheck={false}
             onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
           />
-        </Field>
+        </SettingRow>
         <ToggleRow
           checked={ytdlp.subtitleAuto}
           onChange={(v) => patchYtdlp({ subtitleAuto: v })}
@@ -335,7 +346,11 @@ export function Resolvers() {
 
         {/* Free text: the available languages vary per source. The server keeps
             only letters, digits and hyphens. */}
-        <Field label={t('settings.resolvers.audioLang')} hint={t('settings.resolvers.audioLangHint')}>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.audioLang')}
+          hint={t('settings.resolvers.audioLangHint')}
+        >
           <TextInput
             dir="ltr"
             value={ytdlp.audioLang}
@@ -343,7 +358,7 @@ export function Resolvers() {
             spellCheck={false}
             onChange={(e) => patchYtdlp({ audioLang: e.target.value })}
           />
-        </Field>
+        </SettingRow>
 
         {/* Music mode writes metadata on the audio row whatever the embed card
             says, or the tags it fills in would never be written. */}
@@ -431,7 +446,8 @@ export function Resolvers() {
             1..100, 0 included, onto 90, so onValue clamps typed input too. */}
         {measure.enabled && (
           <>
-            <Field
+            <SettingRow
+              control="short"
               label={t('settings.resolvers.measureShortPercent')}
               hint={t('settings.resolvers.measureShortPercentHint')}
             >
@@ -442,7 +458,7 @@ export function Resolvers() {
                 step={1}
                 onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
               />
-            </Field>
+            </SettingRow>
 
             <ToggleRow
               checked={measure.failOnShort}
@@ -477,7 +493,11 @@ export function Resolvers() {
               hint={t('settings.resolvers.liveFromStartHint')}
               hue={1}
             />
-            <Field label={t('settings.resolvers.liveMaxMinutes')} hint={t('settings.resolvers.liveMaxMinutesHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.resolvers.liveMaxMinutes')}
+              hint={t('settings.resolvers.liveMaxMinutesHint')}
+            >
               <NumberInput
                 value={live.maxMinutes}
                 min={0}
@@ -485,15 +505,19 @@ export function Resolvers() {
                 step={1}
                 onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
               />
-            </Field>
-            <Field label={t('settings.resolvers.liveMaxMB')} hint={t('settings.resolvers.liveMaxMBHint')}>
+            </SettingRow>
+            <SettingRow
+              control="short"
+              label={t('settings.resolvers.liveMaxMB')}
+              hint={t('settings.resolvers.liveMaxMBHint')}
+            >
               <NumberInput
                 value={live.maxMB}
                 min={0}
                 step={1}
                 onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
               />
-            </Field>
+            </SettingRow>
           </>
         )}
       </Card>

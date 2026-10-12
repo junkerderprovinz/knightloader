@@ -22,7 +22,7 @@ import { useT } from '../../lib/i18n';
 import { useResource } from '../../lib/useResource';
 import { useTasks } from '../../lib/useTasks';
 import { useDraft, useFeatures } from './context';
-import { ListArea, NeutralSwitch, RowRefusal, Sheet } from './controls';
+import { ListArea, NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
 import { requestJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -401,18 +401,18 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr_6rem]">
-        <Field label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="fit" label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
           <Dropdown
             label={t('settings.connections.type')}
             value={row.type}
             onChange={(v) => onChange({ type: v })}
             options={KINDS.map((k) => ({ value: k, label: kindLabel(t, k) }))}
           />
-        </Field>
+        </SettingRow>
         {!inert && (
           <>
-            <Field label={t('settings.connections.host')}>
+            <SettingRow control="long" label={t('settings.connections.host')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -420,15 +420,15 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 placeholder="proxy.example.org"
                 onChange={(e) => onChange({ host: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.connections.port')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.connections.port')}>
               <NumberInput
                 value={row.port ?? 0}
                 min={1}
                 max={65535}
                 onValue={(v) => onChange({ port: v })}
               />
-            </Field>
+            </SettingRow>
           </>
         )}
       </div>
@@ -438,8 +438,9 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
       )}
 
       {!inert && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
+        <div className="flex flex-col gap-4">
+          <SettingRow
+            control="long"
             label={t('settings.connections.username')}
             hint={
               socks4
@@ -454,9 +455,13 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
               value={row.username ?? ''}
               onChange={(e) => onChange({ username: e.target.value })}
             />
-          </Field>
+          </SettingRow>
           {!socks4 && (
-            <Field label={t('settings.connections.password')} hint={t('settings.connections.passwordHint')}>
+            <SettingRow
+              control="long"
+              label={t('settings.connections.password')}
+              hint={t('settings.connections.passwordHint')}
+            >
               <TextInput
                 type="password"
                 dir="ltr"
@@ -466,12 +471,12 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 placeholder={row.hasPassword ? t('settings.connections.passwordStored') : ''}
                 onChange={(e) => onChange({ password: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_10rem]">
+      <div className="flex flex-col gap-4">
         <Field label={t('settings.connections.filter')} hint={t('settings.connections.filterHint')}>
           <ListArea
             dir="ltr"
@@ -481,14 +486,14 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
             onLines={(filter) => onChange({ filter })}
           />
         </Field>
-        <Field label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>
+        <SettingRow control="short" label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>
           <NumberInput
             value={row.maxDownloads ?? 0}
             min={0}
             max={64}
             onValue={(v) => onChange({ maxDownloads: Math.max(0, v) })}
           />
-        </Field>
+        </SettingRow>
       </div>
     </>
   );
@@ -521,7 +526,11 @@ function TestPanel({ row }: { row: Connection }) {
       )}
       <div className="flex flex-wrap items-end gap-3">
         <div className="min-w-0 flex-[1_1_12rem]">
-          <Field label={t('settings.connections.testTarget')} hint={t('settings.connections.testTargetHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.connections.testTarget')}
+            hint={t('settings.connections.testTargetHint')}
+          >
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -529,7 +538,7 @@ function TestPanel({ row }: { row: Connection }) {
               placeholder="example.org"
               onChange={(e) => setTarget(e.target.value)}
             />
-          </Field>
+          </SettingRow>
         </div>
         <TestButton
           label={t('settings.connections.test')}

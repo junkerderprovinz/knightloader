@@ -3643,4 +3643,5 @@ export const it: Dict = {
   'settings.look.builtInTitle': 'Componenti integrati',
   'settings.look.builtInHint': 'Ciò che KnightLoader porta con sé o fa girare accanto a sé, ciascuno con la sua versione e la sua provenienza. Queste parti arrivano con KnightLoader o con l’immagine del container, o si aggiornano da sole, quindi qui non c’è niente da aggiornare.',
   'whatsnew.change.builtIn': '«{name}» elenca ogni parte che arriva con KnightLoader, con la sua versione e la sua provenienza. Ciò che si aggiorna resta in «{updates}».',
+  'whatsnew.change.settingRows': 'Ogni menu a discesa e ogni campo di inserimento nelle Impostazioni sta accanto al suo nome, in fondo alla sua scheda.',
 };

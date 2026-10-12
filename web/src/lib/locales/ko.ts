@@ -3646,4 +3646,5 @@ export const ko: Dict = {
   'settings.look.builtInTitle': '내장 구성 요소',
   'settings.look.builtInHint': 'KnightLoader가 함께 가져오거나 옆에서 실행하는 것들로, 각각의 버전과 출처를 보여 줍니다. 이 부분들은 KnightLoader나 컨테이너 이미지와 함께 오거나 스스로 업데이트되므로 여기서 업데이트할 것은 없습니다.',
   'whatsnew.change.builtIn': '“{name}”은 KnightLoader와 함께 오는 모든 부분을 버전과 출처와 함께 나열합니다. 업데이트할 수 있는 것은 “{updates}”에 그대로 있습니다.',
+  'whatsnew.change.settingRows': '설정의 모든 드롭다운과 입력 칸은 이름 옆, 카드 끝에 놓입니다.',
 };

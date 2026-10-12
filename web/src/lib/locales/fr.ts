@@ -3649,4 +3649,5 @@ export const fr: Dict = {
   'settings.look.builtInTitle': 'Composants intégrés',
   'settings.look.builtInHint': 'Ce que KnightLoader apporte ou fait tourner à côté de lui, chaque élément avec sa version et sa provenance. Ces éléments viennent avec KnightLoader ou l’image du conteneur, ou se mettent à jour d’eux-mêmes : il n’y a donc rien à mettre à jour ici.',
   'whatsnew.change.builtIn': '« {name} » liste chaque élément fourni avec KnightLoader, avec sa version et sa provenance. Ce qui se met à jour reste dans « {updates} ».',
+  'whatsnew.change.settingRows': 'Chaque liste déroulante et chaque champ de saisie des Paramètres se trouve à côté de son nom, au bout de sa carte.',
 };

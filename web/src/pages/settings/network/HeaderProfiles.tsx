@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
+import { Button, Card, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
 import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -11,6 +11,7 @@ import {
   type HeaderProfile,
   type HeaderProfileLine,
 } from '../../../lib/api';
+import { SettingRow } from '../controls';
 
 // Header profiles hold a person's own request headers for one site, such as a
 // session cookie, a Referer or Basic auth. The values are sealed and never come
@@ -200,8 +201,12 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             </>
           }
         >
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.headerProfiles.name')} hint={t('settings.headerProfiles.nameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="long"
+              label={t('settings.headerProfiles.name')}
+              hint={t('settings.headerProfiles.nameHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -212,8 +217,12 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.headerProfiles.origin')} hint={t('settings.headerProfiles.originHint')}>
+            </SettingRow>
+            <SettingRow
+              control="long"
+              label={t('settings.headerProfiles.origin')}
+              hint={t('settings.headerProfiles.originHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -221,21 +230,22 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 placeholder="https://forum.example.org"
                 onChange={(e) => setDraft({ ...draft, origin: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <div className="flex flex-col gap-2">
             {draft.lines.map((line, i) => (
               <div key={i} className="grid grid-cols-[minmax(0,12rem)_1fr_auto] items-end gap-2">
-                <Field label={t('settings.headerProfiles.headerName')}>
+                <SettingRow control="long" label={t('settings.headerProfiles.headerName')}>
                   <TextInput
                     dir="ltr"
                     spellCheck={false}
                     value={line.name}
                     onChange={(e) => patchLine(i, { name: e.target.value })}
                   />
-                </Field>
-                <Field
+                </SettingRow>
+                <SettingRow
+                  control="long"
                   label={line.stored ? t('settings.headerProfiles.valueStored') : t('settings.headerProfiles.headerValue')}
                   hint={line.stored ? t('settings.headerProfiles.valueStoredHint') : undefined}
                 >
@@ -246,7 +256,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                     // Typing turns a kept line into a real value.
                     onChange={(e) => patchLine(i, { value: e.target.value, stored: false })}
                   />
-                </Field>
+                </SettingRow>
                 <IconBadge
                   icon={<IconTrash width={16} height={16} />}
                   hue={i}

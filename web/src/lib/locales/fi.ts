@@ -3661,4 +3661,5 @@ export const fi: Dict = {
   'settings.look.builtInTitle': 'Sisäänrakennetut osat',
   'settings.look.builtInHint': 'Mitä KnightLoader tuo mukanaan tai ajaa rinnallaan, kukin versionsa ja alkuperänsä kanssa. Nämä osat tulevat KnightLoaderin tai konttikuvan mukana tai päivittävät itsensä, joten täällä ei ole mitään päivitettävää.',
   'whatsnew.change.builtIn': '”{name}” luettelee jokaisen osan, joka tulee KnightLoaderin mukana, versioineen ja alkuperineen. Päivitettävät jäävät korttiin ”{updates}”.',
+  'whatsnew.change.settingRows': 'Jokainen pudotusvalikko ja syöttökenttä Asetuksissa on nimensä vieressä, korttinsa lopussa.',
 };

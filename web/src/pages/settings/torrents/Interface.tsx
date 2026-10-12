@@ -1,7 +1,8 @@
 import { useEffect, useState } from 'react';
 import { Dropdown } from '../../../components/Dropdown';
-import { Field } from '../../../components/ui';
+import {  } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
+import { SettingRow } from '../controls';
 
 /** engine.NetInterface and its json tags. */
 interface NetInterface {
@@ -61,9 +62,9 @@ export function InterfaceField({ value, onValue }: { value: string; onValue: (na
 
   return (
     <div className="flex flex-col gap-1.5">
-      <Field label={t('settings.torrents.interface')} hint={t('settings.torrents.interfaceHint')}>
+      <SettingRow control="fit" label={t('settings.torrents.interface')} hint={t('settings.torrents.interfaceHint')}>
         <Dropdown label={t('settings.torrents.interface')} value={value} options={options} onChange={onValue} />
-      </Field>
+      </SettingRow>
       {value &&
         list &&
         (current?.up ? (

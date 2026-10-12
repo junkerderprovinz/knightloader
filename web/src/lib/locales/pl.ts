@@ -3644,4 +3644,5 @@ export const pl: Dict = {
   'settings.look.builtInTitle': 'Wbudowane składniki',
   'settings.look.builtInHint': 'To, co KnightLoader przynosi ze sobą lub uruchamia obok siebie, każda część z wersją i pochodzeniem. Te części przychodzą z KnightLoaderem albo z obrazem kontenera, albo aktualizują się same, więc tutaj nie ma czego aktualizować.',
   'whatsnew.change.builtIn': '„{name}” wymienia każdą część, która przychodzi z KnightLoaderem, z wersją i pochodzeniem. To, co da się aktualizować, zostaje na „{updates}”.',
+  'whatsnew.change.settingRows': 'Każda lista rozwijana i każde pole wprowadzania w Ustawieniach stoi obok swojej nazwy, na końcu swojej karty.',
 };

@@ -4,7 +4,6 @@ import {
   Button,
   Card,
   ErrorCard,
-  Field,
   IconBadge,
   InfoBubble,
   LoadingCard,
@@ -35,7 +34,7 @@ import { rejectionReason } from '../../lib/rejectionReason';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
-import { NeutralSwitch, RowRefusal, Sheet } from './controls';
+import { NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
 import { usePendingJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -370,21 +369,22 @@ function RuleCards() {
         ) : view === 'picture' ? (
           <>
             {/* Most rules read the file name, which a link does not say by itself. */}
-            <div className="grid gap-3 sm:grid-cols-2">
-              <Field
+            <div className="flex flex-col gap-3">
+              <SettingRow
+                control="long"
                 label={t('settings.rules.testUrl')}
                 hint={t('picture.rules.sampleHint', { name: t('settings.rules.testTitle') })}
               >
                 <TextInput dir="ltr" value={sample.url} spellCheck={false} onChange={(e) => sampleField({ url: e.target.value })} />
-              </Field>
-              <Field label={t('settings.rules.testFilename')}>
+              </SettingRow>
+              <SettingRow control="long" label={t('settings.rules.testFilename')}>
                 <TextInput
                   dir="ltr"
                   value={sample.filename}
                   spellCheck={false}
                   onChange={(e) => sampleField({ filename: e.target.value })}
                 />
-              </Field>
+              </SettingRow>
             </div>
             <RuleSwitch
               label={t('settings.rules.listTitle')}

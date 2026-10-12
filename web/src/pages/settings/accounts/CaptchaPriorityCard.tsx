@@ -102,7 +102,7 @@ export function CaptchaPriorityCard({
           {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
               not be typed digit by digit. */}
           {cfg.captchaSolverOnlyUnwatched && (
-            <SettingRow label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
+            <SettingRow control="short" label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
               <NumberInput
                 value={cfg.captchaSolverWait}
                 min={MIN_WAIT}

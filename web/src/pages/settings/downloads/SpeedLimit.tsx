@@ -1,7 +1,8 @@
-import { Field, UnitNumberInput } from '../../../components/ui';
+import { UnitNumberInput } from '../../../components/ui';
 import { RATE_UNITS } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
 import { isLeet } from '../../../lib/leet';
+import { SettingRow } from '../controls';
 
 /**
  * SpeedLimitField is the global download limit as the Downloads settings page
@@ -12,7 +13,7 @@ import { isLeet } from '../../../lib/leet';
 export function SpeedLimitField({ value, onValue }: { value: number; onValue: (bytes: number) => void }) {
   const { t } = useT();
   return (
-    <Field label={t('settings.globalSpeedLimit')} hint={t('settings.speedHint')}>
+    <SettingRow control="short" label={t('settings.globalSpeedLimit')} hint={t('settings.speedHint')}>
       <span className="flex items-center gap-2">
         <span className="min-w-0 flex-1">
           <UnitNumberInput value={value} units={RATE_UNITS} onValue={onValue} />
@@ -25,6 +26,6 @@ export function SpeedLimitField({ value, onValue }: { value: number; onValue: (b
           <span className="shrink-0 text-meta leading-none text-carbon-textMuted">{t('settings.motion.storm')}</span>
         )}
       </span>
-    </Field>
+    </SettingRow>
   );
 }

@@ -54,31 +54,48 @@ export function OpenPageRow({ label, to }: { label: string; to: string }) {
 
 type Hint = ComponentProps<typeof HintBubble>['hint'];
 
+/** How wide a SettingRow's one field is: as wide as it draws itself, a number's width, or a line of text's. */
+export type RowControl = 'fit' | 'short' | 'long';
+
+const CONTROL_WIDTH: Record<RowControl, string> = {
+  fit: '',
+  short: 'w-40 max-w-full',
+  long: 'w-80 max-w-full',
+};
+
 /**
  * SettingRow is one setting on a line: its name at the start, with the
  * explanation behind an (i), and its control at the end. A selector goes in as
  * a direct child, since it measures the row to know when it has to wrap; where
  * the row is too narrow for both, the control moves under the name and keeps
  * the row's end.
+ *
+ * `control` is for one dropdown or input field: the row becomes its <label>,
+ * so the name is the field's name too, and the field takes a width that fits
+ * beside the name. Every dropdown and input of a settings card stands this
+ * way (check-setting-rows.mjs); a list or a text area keeps its name above it.
  */
 export function SettingRow({
   label,
   hint,
+  control,
   children,
 }: {
   label: string;
   hint?: Hint;
+  control?: RowControl;
   children: ReactNode;
 }) {
+  const Row = control ? 'label' : 'div';
   return (
-    <div className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+    <Row className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
       {/* data-glim-label is where the settings search scrolls to, as on ToggleRow. */}
       <span data-glim-label={label} className="flex min-w-0 flex-[1_1_12.5rem] items-center gap-1.5 text-sm text-carbon-text">
         {label}
         <HintBubble hint={hint} />
       </span>
-      {children}
-    </div>
+      {control && control !== 'fit' ? <span className={CONTROL_WIDTH[control]}>{children}</span> : children}
+    </Row>
   );
 }
 

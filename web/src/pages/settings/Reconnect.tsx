@@ -294,7 +294,7 @@ function CommandFields({ rc, write }: FieldProps) {
   const refused = useRefusal('command');
   return (
     <>
-      <Field label={t('settings.reconnect.command')} hint={t('settings.reconnect.commandHint')}>
+      <SettingRow control="long" label={t('settings.reconnect.command')} hint={t('settings.reconnect.commandHint')}>
         <TextInput
           {...refused.mark}
           dir="ltr"
@@ -304,7 +304,7 @@ function CommandFields({ rc, write }: FieldProps) {
           onChange={(e) => write({ command: e.target.value })}
         />
         {refused.line}
-      </Field>
+      </SettingRow>
       <Field label={t('settings.reconnect.args')} hint={t('settings.reconnect.argsHint')}>
         <LinesArea rows={3} lines={rc.args} placeholder="--router%%router%%" onLines={(v) => write({ args: v })} />
       </Field>
@@ -316,7 +316,8 @@ function UPnPFields({ rc, write }: FieldProps) {
   const { t } = useT();
   return (
     <>
-      <Field
+      <SettingRow
+        control="long"
         label={t('settings.reconnect.upnpLocation')}
         hint={[t('settings.reconnect.upnpState'), t('settings.reconnect.upnpLocationHint')]}
       >
@@ -327,7 +328,7 @@ function UPnPFields({ rc, write }: FieldProps) {
           placeholder="http://192.168.1.1:5000/rootDesc.xml"
           onChange={(e) => write({ upnpLocation: e.target.value })}
         />
-      </Field>
+      </SettingRow>
     </>
   );
 }
@@ -338,8 +339,12 @@ function ScriptFields({ rc, write }: FieldProps) {
   const scriptRefused = useRefusal('script');
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.interpreter')} hint={t('settings.reconnect.interpreterHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow
+          control="long"
+          label={t('settings.reconnect.interpreter')}
+          hint={t('settings.reconnect.interpreterHint')}
+        >
           <TextInput
             {...interpreterRefused.mark}
             dir="ltr"
@@ -349,7 +354,7 @@ function ScriptFields({ rc, write }: FieldProps) {
             onChange={(e) => write({ interpreter: e.target.value })}
           />
           {interpreterRefused.line}
-        </Field>
+        </SettingRow>
         <Field
           label={t('settings.reconnect.interpreterArgs')}
           hint={t('settings.reconnect.interpreterArgsHint')}
@@ -424,7 +429,7 @@ function RouterFields({ rc, write }: FieldProps) {
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
           {/* The button sits outside the Field, whose label would pass it clicks. */}
-          <Field label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
+          <SettingRow control="long" label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
             <TextInput
               {...routerRefused.mark}
               dir="ltr"
@@ -434,7 +439,7 @@ function RouterFields({ rc, write }: FieldProps) {
               onChange={(e) => write({ router: e.target.value })}
             />
             {routerRefused.line}
-          </Field>
+          </SettingRow>
         </div>
         <Button
           kind="secondary"
@@ -448,8 +453,8 @@ function RouterFields({ rc, write }: FieldProps) {
       {found && <StateLine tone="muted">{found}</StateLine>}
       {failed && <StateLine tone="warn">{failed}</StateLine>}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.username')} hint={t('settings.reconnect.usernameHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="long" label={t('settings.reconnect.username')} hint={t('settings.reconnect.usernameHint')}>
           <TextInput
             dir="ltr"
             autoComplete="off"
@@ -457,8 +462,8 @@ function RouterFields({ rc, write }: FieldProps) {
             value={rc.username ?? ''}
             onChange={(e) => write({ username: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.reconnect.password')} hint={t('settings.reconnect.passwordHint')}>
+        </SettingRow>
+        <SettingRow control="long" label={t('settings.reconnect.password')} hint={t('settings.reconnect.passwordHint')}>
           <TextInput
             type="password"
             dir="ltr"
@@ -467,7 +472,7 @@ function RouterFields({ rc, write }: FieldProps) {
             placeholder={stored ? t('settings.reconnect.passwordStored') : ''}
             onChange={(e) => write({ password: e.target.value })}
           />
-        </Field>
+        </SettingRow>
       </div>
     </>
   );
@@ -601,16 +606,20 @@ function RequestRow({
           </>
         }
       >
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
-          <Field label={t('settings.reconnect.requestMethod')}>
+        <div className="flex flex-col gap-4">
+          <SettingRow control="fit" label={t('settings.reconnect.requestMethod')}>
             <Dropdown
               label={t('settings.reconnect.requestMethod')}
               value={(row.method || 'GET').toUpperCase()}
               onChange={(v) => onChange({ method: v })}
               options={VERBS.map((v) => ({ value: v, label: v }))}
             />
-          </Field>
-          <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
+          </SettingRow>
+          <SettingRow
+            control="long"
+            label={t('settings.reconnect.requestUrl')}
+            hint={t('settings.reconnect.requestUrlHint')}
+          >
             <TextInput
               {...urlRefused.mark}
               dir="ltr"
@@ -620,7 +629,7 @@ function RequestRow({
               onChange={(e) => onChange({ url: e.target.value })}
             />
             {urlRefused.line}
-          </Field>
+          </SettingRow>
         </div>
 
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -784,7 +793,7 @@ function CheckFields({ rc, write }: FieldProps) {
 
   return (
     <>
-      <Field label={t('settings.reconnect.checkUrl')} hint={t('settings.reconnect.checkUrlHint')}>
+      <SettingRow control="long" label={t('settings.reconnect.checkUrl')} hint={t('settings.reconnect.checkUrlHint')}>
         <TextInput
           {...refused.mark}
           dir="ltr"
@@ -794,7 +803,7 @@ function CheckFields({ rc, write }: FieldProps) {
           onChange={(e) => write({ checkUrl: e.target.value })}
         />
         {refused.line}
-      </Field>
+      </SettingRow>
 
       {/* No preset is selected while the URL is somebody's own. */}
       <SettingRow label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
@@ -810,25 +819,33 @@ function CheckFields({ rc, write }: FieldProps) {
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.reconnect.interval')} hint={t('settings.reconnect.intervalHint')}>
+          <SettingRow
+            control="short"
+            label={t('settings.reconnect.interval')}
+            hint={t('settings.reconnect.intervalHint')}
+          >
             <NumberInput
               value={interval}
               min={INTERVAL.lo}
               max={INTERVAL.hi}
               onValue={(v) => write({ intervalSeconds: v })}
             />
-          </Field>
+          </SettingRow>
           <Clamped value={interval} band={INTERVAL} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.reconnect.timeout')} hint={t('settings.reconnect.timeoutHint')}>
+          <SettingRow
+            control="short"
+            label={t('settings.reconnect.timeout')}
+            hint={t('settings.reconnect.timeoutHint')}
+          >
             <NumberInput
               value={timeout}
               min={TIMEOUT.lo}
               max={TIMEOUT.hi}
               onValue={(v) => write({ timeoutSeconds: v })}
             />
-          </Field>
+          </SettingRow>
           <Clamped value={timeout} band={TIMEOUT} />
         </div>
       </div>

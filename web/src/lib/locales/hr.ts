@@ -3673,4 +3673,5 @@ export const hr: Dict = {
   'settings.look.builtInTitle': 'Ugrađene komponente',
   'settings.look.builtInHint': 'Ono što KnightLoader donosi sa sobom ili pokreće uz sebe, svaki dio sa svojom verzijom i podrijetlom. Ti dijelovi dolaze s KnightLoaderom ili sa slikom spremnika, ili se sami ažuriraju, pa ovdje nema što ažurirati.',
   'whatsnew.change.builtIn': '„{name}” navodi svaki dio koji dolazi s KnightLoaderom, s verzijom i podrijetlom. Ono što se može ažurirati ostaje na „{updates}”.',
+  'whatsnew.change.settingRows': 'Svaki padajući izbornik i svako polje za unos u Postavkama stoji uz svoj naziv, na kraju svoje kartice.',
 };

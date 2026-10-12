@@ -1,4 +1,4 @@
-import { Card, Field, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, InfoBubble, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
 import { WaysIn } from '../../../components/pictures/WaysIn';
 import { fetchInstances } from '../../../lib/api';
@@ -10,7 +10,7 @@ import { useClipboardWatchTarget } from '../../../lib/useClipboardWatch';
 import { useWatchSwitch } from '../../../components/WatchElsewhere';
 import { useDraft, useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
-import { SettingPathInput } from '../controls';
+import { SettingPathInput, SettingRow } from '../controls';
 import { useWays } from './ways';
 
 /**
@@ -73,14 +73,18 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
             onChange={flip}
           />
           {targets.length > 1 && (
-            <Field label={t('intake.clipboardWatchTarget')} hint={t('intake.clipboardWatchTargetHint')}>
+            <SettingRow
+              control="fit"
+              label={t('intake.clipboardWatchTarget')}
+              hint={t('intake.clipboardWatchTargetHint')}
+            >
               <Dropdown
                 label={t('intake.clipboardWatchTarget')}
                 value={target}
                 onChange={setTarget}
                 options={targets}
               />
-            </Field>
+            </SettingRow>
           )}
         </>
       ) : (

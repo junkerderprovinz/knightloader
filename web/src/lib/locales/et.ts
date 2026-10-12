@@ -3651,4 +3651,5 @@ export const et: Dict = {
   'settings.look.builtInTitle': 'Sisseehitatud osad',
   'settings.look.builtInHint': 'See, mida KnightLoader kaasa toob või enda kõrval käitab, igaüks oma versiooni ja päritoluga. Need osad tulevad koos KnightLoaderi või konteineri tõmmisega või uuendavad end ise, seega pole siin midagi uuendada.',
   'whatsnew.change.builtIn': '„{name}“ loetleb iga osa, mis tuleb koos KnightLoaderiga, koos versiooni ja päritoluga. Mida saab uuendada, jääb kaardile „{updates}“.',
+  'whatsnew.change.settingRows': 'Iga ripploend ja sisestusväli seadetes on oma nime kõrval, oma kaardi lõpus.',
 };

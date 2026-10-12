@@ -3647,4 +3647,5 @@ export const ca: Dict = {
   'settings.look.builtInTitle': 'Components integrats',
   'settings.look.builtInHint': 'El que KnightLoader porta amb ell o fa funcionar al seu costat, cadascun amb la seva versió i d’on ve. Aquestes parts vénen amb KnightLoader o amb la imatge del contenidor, o s’actualitzen soles, així que aquí no hi ha res a actualitzar.',
   'whatsnew.change.builtIn': '«{name}» llista cada part que ve amb KnightLoader, amb la seva versió i d’on ve. El que es pot actualitzar es queda a «{updates}».',
+  'whatsnew.change.settingRows': 'Cada desplegable i cada camp d’entrada de Configuració és al costat del seu nom, al final de la seva targeta.',
 };

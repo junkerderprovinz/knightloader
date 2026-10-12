@@ -182,8 +182,8 @@ export function Archives() {
         {/* Flush left under the switch, and absent while it is off. */}
         {unpacking && (
         <div className="flex flex-col gap-5">
-          <Field
-            layout="row"
+          <SettingRow
+            control="long"
             label={t('settings.archives.destination')}
             hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
           >
@@ -195,7 +195,7 @@ export function Archives() {
               title={t('settings.archives.destination')}
               onValue={(extractTo) => patch({ extractTo })}
             />
-          </Field>
+          </SettingRow>
 
           {collecting && (
             <ToggleRow
@@ -211,8 +211,8 @@ export function Archives() {
               absolute by its fixed head (fixedPrefix), so a value with no fixed
               part is refused on save, and the path is not probed until a move
               tries it. It applies with an empty destination too. */}
-          <Field
-            layout="row"
+          <SettingRow
+            control="long"
             label={t('settings.archives.moveTo')}
             hint={`${t('settings.archives.moveToHint')} ${t('settings.pathVars')}`}
           >
@@ -223,7 +223,7 @@ export function Archives() {
               title={t('settings.archives.moveTo')}
               onValue={(extractMoveTo) => patch({ extractMoveTo })}
             />
-          </Field>
+          </SettingRow>
 
           {options && options.archiveCollisions.length > 0 && (
             <SettingRow label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
@@ -277,7 +277,8 @@ export function Archives() {
           )}
 
           {disposal === 'trash' && (
-            <Field
+            <SettingRow
+              control="short"
               label={t('settings.archives.retention')}
               hint={t('settings.archives.retentionHint', {
                 folder: options?.archiveTrashFolder ?? '',
@@ -289,7 +290,7 @@ export function Archives() {
                 max={365}
                 onValue={(v) => patch({ trashRetentionDays: v })}
               />
-            </Field>
+            </SettingRow>
           )}
 
           {/* Absent while the archive is kept, since swept files go the same

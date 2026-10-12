@@ -1,10 +1,11 @@
 import { useCallback, useState } from 'react';
-import { Button, Card, Field, InfoBubble, NumberInput, SectionTitle } from '../../../components/ui';
+import { Button, Card, InfoBubble, NumberInput, SectionTitle } from '../../../components/ui';
 import { appAddress } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
 import { useDraft, useFeatures } from '../context';
 import { Reading } from '../health/Reading';
+import { SettingRow } from '../controls';
 import { ModuleToggle } from '../ModuleToggle';
 
 /** Mirrors settings.DebridDrive. lib/api.ts's Settings does not name it, as with `torrent`. */
@@ -59,7 +60,11 @@ export function DriveCard({ hue }: { hue: number }) {
 
       <ModuleToggle id="debriddrive" hue={0} hint={t('settings.accounts.driveHint')} />
 
-      <Field label={t('settings.accounts.driveRefresh')} hint={t('settings.accounts.driveRefreshHint')}>
+      <SettingRow
+        control="short"
+        label={t('settings.accounts.driveRefresh')}
+        hint={t('settings.accounts.driveRefreshHint')}
+      >
         <div className="flex items-center gap-2">
           <NumberInput
             value={drive.refreshMinutes}
@@ -69,7 +74,7 @@ export function DriveCard({ hue }: { hue: number }) {
           />
           <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{t('settings.accounts.driveRefreshUnit')}</span>
         </div>
-      </Field>
+      </SettingRow>
 
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Reading label={t('settings.accounts.driveAddress')} hint={t('settings.accounts.driveAddressHint')} value={address} />
