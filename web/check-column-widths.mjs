@@ -21,10 +21,9 @@
 // (Chromium, the page tall enough for <main> to show its 10px scrollbar):
 //
 //   card            934 at 1280px, 1094 at 1440px, 1574 at 1920px
-//   furniture       136: the row's padding, 20px at its start, where the
-//                   selection mark stands, and 12px at its end, and the 104px
-//                   track for the row's three action badges at the tallest
-//                   row height; the track is 80px at the default one
+//   furniture       120: the row's padding, 8px at either end, and the
+//                   104px track for the row's three action badges at the
+//                   tallest row height; the track is 80px at the default one
 //
 // The widest content of the other default columns, in the app's font at 12px,
 // the size every cell is set in, with the cell's 16px of padding. These are
@@ -143,7 +142,7 @@ const WIDEST_ROW = 294; // widest one-line video row there can be (lt)
 const ETA_FLOOR = 75; // "19h 58min" + the cell's padding
 const CARD_1280 = 934;
 const CARD_1440 = 1094;
-const FURNITURE = 136; // row padding + the actions track
+const FURNITURE = 120; // row padding + the actions track
 
 const problems = [];
 

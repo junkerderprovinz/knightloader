@@ -108,10 +108,10 @@ export type Translate = (key: TranslationKey, vars?: Record<string, string | num
 
 /**
  * A row's padding at its two ends, the header's included, since every row
- * lays its cells on the same tracks. The start is the wider one: the selection
- * mark stands in it, clear of the first cell.
+ * lays its cells on the same tracks. With the cell's own 8px it puts the first
+ * cell's text on the card's inner padding, in line with the title above it.
  */
-export const ROW_EDGES = 'ps-5 pe-3';
+export const ROW_EDGES = 'px-2';
 
 /** The name cell's own leading padding. */
 const CELL_PAD = 8;

@@ -3630,7 +3630,7 @@ export const hu: Dict = {
   'whatsnew.change.phoneBar': 'Telefonon az alsó sáv négy oldalt tart meg, az utolsó helye pedig minden mást megnyit.',
   'whatsnew.change.queueState': 'A(z) „{play}” és a(z) „{pause}” megmutatja, mit csinál a sor: a kitöltött gomb az állapota, a másik az, amelyiket megnyomod.',
   'whatsnew.change.listBar': 'A lista fölött három gomb áll: „{filter}”, „{sort}” és „{search}”.',
-  'whatsnew.change.listRows': 'A sor gombjai addig látszanak, amíg a mutató rajta van.',
+  'whatsnew.change.listRows': 'A sorok a kártya címével egy vonalban kezdődnek, és a sor gombjai addig látszanak, amíg a mutató rajta van.',
   'whatsnew.change.accountPicker': 'Új debrid fiókot, captcha-fiókot vagy tárhelyfiókot csempékből választasz, mindegyiken ott a logója.',
   'whatsnew.change.accountRows': 'Egy fiókra kattintva megnyílik a fiók, jobb kattintásra pedig a menüje.',
   'whatsnew.change.settingsSearch': 'Az összes beállításban kereső jelenik meg, ha az oldal tetején még egyszer felgörgetsz, vagy megnyomod a „/” billentyűt. Amíg gépelsz benne, a mező árnyalata megváltozik, a nagyító pedig kigyullad.',

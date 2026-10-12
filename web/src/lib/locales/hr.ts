@@ -3642,7 +3642,7 @@ export const hr: Dict = {
   'whatsnew.change.phoneBar': 'Na telefonu donja traka zadržava četiri stranice, a njezino zadnje mjesto otvara sve ostalo.',
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazuju što red radi: ispunjeni gumb je njegovo stanje, a drugi se pritišće.',
   'whatsnew.change.listBar': 'Iznad popisa stoje tri gumba: „{filter}”, „{sort}” i „{search}”.',
-  'whatsnew.change.listRows': 'Gumbi retka vide se dok je pokazivač na njemu.',
+  'whatsnew.change.listRows': 'Retci počinju poravnati s naslovom kartice, a gumbi retka vide se dok je pokazivač na njemu.',
   'whatsnew.change.accountPicker': 'Novi debrid račun, račun captche ili račun hostera biraš među pločicama, svaka sa svojim logotipom.',
   'whatsnew.change.accountRows': 'Klik na račun otvara ga, a desni klik otvara njegov izbornik.',
   'whatsnew.change.settingsSearch': 'Pretraga svih postavki pojavi se kad na vrhu stranice još jednom skroluješ prema gore ili pritisneš „/”. Dok tipkaš u njoj, polje mijenja nijansu, a povećalo zasvijetli.',

@@ -3637,7 +3637,7 @@ export const ro: Dict = {
   'whatsnew.change.phoneBar': 'Pe telefon, bara inferioară păstrează patru pagini, iar ultimul ei loc deschide tot restul.',
   'whatsnew.change.queueState': '„{play}” și „{pause}” arată ce face coada: butonul plin este starea ei, celălalt este cel de apăsat.',
   'whatsnew.change.listBar': 'Deasupra listei stau trei butoane: „{filter}”, „{sort}” și „{search}”.',
-  'whatsnew.change.listRows': 'Butoanele unui rând apar cât timp cursorul este pe el.',
+  'whatsnew.change.listRows': 'Rândurile încep aliniate cu titlul cardului, iar butoanele unui rând apar cât timp cursorul este pe el.',
   'whatsnew.change.accountPicker': 'Alegi un cont nou de debrid, de captcha sau de hoster dintre dale, fiecare cu sigla ei.',
   'whatsnew.change.accountRows': 'Un clic pe un cont îl deschide, iar un clic dreapta îi deschide meniul.',
   'whatsnew.change.settingsSearch': 'O căutare în toate setările apare când derulezi încă o dată în sus la începutul unei pagini sau când apeși „/”. Cât timp scrii în ea, câmpul își schimbă nuanța, iar lupa se aprinde.',

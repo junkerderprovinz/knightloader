@@ -3626,7 +3626,7 @@ export const gl: Dict = {
   'whatsnew.change.phoneBar': 'Nun teléfono, a barra inferior conserva catro páxinas, e o seu último lugar abre todo o demais.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» amosan que fai a cola: o botón recheo é o seu estado, o outro é o que se preme.',
   'whatsnew.change.listBar': 'Hai tres botóns enriba da lista: «{filter}», «{sort}» e «{search}».',
-  'whatsnew.change.listRows': 'Os botóns dunha fila aparecen mentres o punteiro está sobre ela.',
+  'whatsnew.change.listRows': 'As filas comezan aliñadas co título da tarxeta, e os botóns dunha fila aparecen mentres o punteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolles unha conta nova de debrid, de captcha ou de aloxador entre mosaicos, cada un co seu logotipo.',
   'whatsnew.change.accountRows': 'Un clic nunha conta ábrea, e un clic dereito abre o seu menú.',
   'whatsnew.change.settingsSearch': 'Aparece unha busca en todos os axustes cando te desprazas cara arriba unha vez máis ao principio dunha páxina, ou cando premes «/». Mentres escribes nela, o campo cambia de ton e a lupa ilumínase.',

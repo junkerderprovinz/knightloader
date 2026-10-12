@@ -3614,7 +3614,7 @@ export const da: Dict = {
   'whatsnew.change.phoneBar': 'På en telefon beholder bundpanelet fire sider, og dets sidste plads åbner alt det andet.',
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ viser, hvad køen laver: Den udfyldte knap er dens tilstand, den anden er den, du trykker på.',
   'whatsnew.change.listBar': 'Over listen står tre knapper: „{filter}“, „{sort}“ og „{search}“.',
-  'whatsnew.change.listRows': 'En rækkes knapper vises, så længe markøren er på den.',
+  'whatsnew.change.listRows': 'Rækkerne starter på linje med kortets titel, og en rækkes knapper vises, så længe markøren er på den.',
   'whatsnew.change.accountPicker': 'Du vælger en ny debrid-, captcha- eller hosterkonto blandt fliser, hver med sit logo.',
   'whatsnew.change.accountRows': 'Et klik på en konto åbner den, og et højreklik åbner dens menu.',
   'whatsnew.change.settingsSearch': 'En søgning i alle indstillinger dukker op, når du ruller op endnu en gang øverst på en side eller trykker „/“. Mens du skriver i den, skifter feltet nuance, og forstørrelsesglasset lyser op.',

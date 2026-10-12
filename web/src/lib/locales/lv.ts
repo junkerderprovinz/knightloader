@@ -3619,7 +3619,7 @@ export const lv: Dict = {
   'whatsnew.change.phoneBar': 'Telefonā apakšjosla patur četras lapas, un tās pēdējā vieta atver visu pārējo.',
   'whatsnew.change.queueState': '„{play}“ un „{pause}“ rāda, ko dara rinda: aizpildītā poga ir tās stāvoklis, otra ir tā, ko nospiest.',
   'whatsnew.change.listBar': 'Virs saraksta ir trīs pogas: „{filter}“, „{sort}“ un „{search}“.',
-  'whatsnew.change.listRows': 'Rindas pogas ir redzamas, kamēr rādītājs ir uz tās.',
+  'whatsnew.change.listRows': 'Rindas sākas vienā līnijā ar kartītes virsrakstu, un rindas pogas ir redzamas, kamēr rādītājs ir uz tās.',
   'whatsnew.change.accountPicker': 'Jaunu debrid, captcha vai hostera kontu tu izvēlies no flīzēm, un katrai ir savs logotips.',
   'whatsnew.change.accountRows': 'Klikšķis uz konta to atver, un labais klikšķis atver tā izvēlni.',
   'whatsnew.change.settingsSearch': 'Meklēšana visos iestatījumos parādās, kad lapas augšdaļā vēlreiz ritini uz augšu vai nospied „/“. Kamēr tajā raksti, lauks maina nokrāsu un lupa iedegas.',

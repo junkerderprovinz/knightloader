@@ -3628,7 +3628,7 @@ export const sv: Dict = {
   'whatsnew.change.phoneBar': 'På en telefon behåller det nedre fältet fyra sidor, och dess sista plats öppnar allt annat.',
   'whatsnew.change.queueState': '”{play}” och ”{pause}” visar vad kön gör: den fyllda knappen är köns tillstånd, den andra är den du trycker på.',
   'whatsnew.change.listBar': 'Ovanför listan finns tre knappar: ”{filter}”, ”{sort}” och ”{search}”.',
-  'whatsnew.change.listRows': 'En rads knappar visas så länge pekaren är på den.',
+  'whatsnew.change.listRows': 'Raderna börjar i linje med kortets rubrik, och en rads knappar visas så länge pekaren är på den.',
   'whatsnew.change.accountPicker': 'Du väljer ett nytt debrid-, captcha- eller hosterkonto bland brickor, var och en med sin logotyp.',
   'whatsnew.change.accountRows': 'Ett klick på ett konto öppnar det, och ett högerklick öppnar dess meny.',
   'whatsnew.change.settingsSearch': 'En sökning i alla inställningar visas när du rullar upp en gång till högst upp på en sida eller trycker på ”/”. Medan du skriver i den byter fältet nyans och förstoringsglaset tänds.',

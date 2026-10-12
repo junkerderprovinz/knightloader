@@ -3638,7 +3638,7 @@ export const cs: Dict = {
   'whatsnew.change.phoneBar': 'Na telefonu si spodní panel nechává čtyři stránky a jeho poslední místo otevírá všechno ostatní.',
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazují, co fronta dělá: vyplněné tlačítko je její stav, to druhé se mačká.',
   'whatsnew.change.listBar': 'Nad seznamem jsou tři tlačítka: „{filter}“, „{sort}“ a „{search}“.',
-  'whatsnew.change.listRows': 'Tlačítka řádku jsou vidět, dokud je na něm ukazatel.',
+  'whatsnew.change.listRows': 'Řádky začínají zarovnané s nadpisem karty a tlačítka řádku jsou vidět, dokud je na něm ukazatel.',
   'whatsnew.change.accountPicker': 'Nový účet debrid, účet captchy nebo účet hosteru vybereš z dlaždic, každá má své logo.',
   'whatsnew.change.accountRows': 'Kliknutí na účet ho otevře a kliknutí pravým tlačítkem otevře jeho nabídku.',
   'whatsnew.change.settingsSearch': 'Hledání ve všech nastaveních se objeví, když nahoře na stránce ještě jednou posuneš nahoru nebo stiskneš „/“. Zatímco do něj píšeš, pole změní odstín a lupa se rozsvítí.',

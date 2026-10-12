@@ -3630,7 +3630,7 @@ export const fi: Dict = {
   'whatsnew.change.phoneBar': 'Puhelimessa alapalkissa on neljä sivua, ja sen viimeinen paikka avaa kaiken muun.',
   'whatsnew.change.queueState': '”{play}” ja ”{pause}” näyttävät, mitä jono tekee: täytetty painike on jonon tila, toinen on se, jota painetaan.',
   'whatsnew.change.listBar': 'Luettelon yläpuolella on kolme painiketta: ”{filter}”, ”{sort}” ja ”{search}”.',
-  'whatsnew.change.listRows': 'Rivin painikkeet näkyvät niin kauan kuin osoitin on rivin päällä.',
+  'whatsnew.change.listRows': 'Rivit alkavat samasta kohdasta kuin kortin otsikko, ja rivin painikkeet näkyvät niin kauan kuin osoitin on rivin päällä.',
   'whatsnew.change.accountPicker': 'Valitset uuden debrid-, captcha- tai isännöijätilin ruuduista, joissa jokaisessa on oma logonsa.',
   'whatsnew.change.accountRows': 'Tilin napsautus avaa sen, ja napsautus hiiren oikealla avaa sen valikon.',
   'whatsnew.change.settingsSearch': 'Haku kaikista asetuksista ilmestyy, kun vierität sivun yläreunassa vielä kerran ylös tai painat ”/”. Kun kirjoitat siihen, kenttä vaihtaa sävyään ja suurennuslasi syttyy.',
