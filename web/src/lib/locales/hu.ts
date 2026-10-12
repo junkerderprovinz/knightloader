@@ -1400,6 +1400,7 @@ export const hu: Dict = {
   'captcha.resolvedElsewhere': 'A(z) {host} captcháját máshol oldották meg.',
 
   'settings.captcha.orderTitle': 'Captcha prioritási sorrend',
+  'settings.captcha.moduleLink': 'Be- és kikapcsolás: {page}',
   'settings.captcha.orderHint': 'Minden csatlakoztatott és bekapcsolt captcha-fiókot ebben a sorrendben próbál ki, felülről lefelé. Ha nincs ilyen, vagy mind hibázik vagy elutasítja, közvetlenül téged kérdez meg. Egy fiókot a(z) „{accounts}” résznél kapcsolhatsz ki.',
   'settings.captcha.orderEmpty': 'Nincs csatlakoztatott captcha-fiók, így minden captcha közvetlenül hozzád érkezik.',
   'collector.options': 'Lehetőségek',
@@ -3611,6 +3612,7 @@ export const hu: Dict = {
   'whatsnew.change.captchaRefresh': 'A(z) „{name}” ablakban a(z) „{refresh}” úgy néz ki, mint a mellette lévő gombok, így látszik, hogy ez is gomb.',
   'whatsnew.change.priorityTips': 'A(z) „{name}” minden sorában van egy (i), amely megmondja, mit vállal az ottani háttérszolgáltatás, a debrid szolgáltatásoknál is.',
   'whatsnew.change.jdState': 'A JDownloader háttérszolgáltatás állapota már nem a(z) „{free}” kártyán van. A(z) {health} oldalon a(z) „{parts}” alatt találod, a revízióját pedig a(z) „{builtIn}” alatt.',
+  'whatsnew.change.captchaSwitch': 'A(z) „{module}” kapcsoló már nem egy sor a(z) „{name}” alatt. A kártya tetején lévő hivatkozás elvisz hozzá a(z) {modules} oldalon.',
   'whatsnew.change.mergeFiles': 'Kapcsold ki a(z) „{name}” lehetőséget, ha a videót, a hangot és a feliratokat külön fájlokban akarod tartani.',
   'whatsnew.change.ruleSwitch': 'A szabályok úgy jelennek meg, mint az az út, amelyet egy mintahivatkozás megtesz rajtuk: melyik szabály kapja el, és hová érkezik.',
   'whatsnew.change.trackMerge': 'A(z) „{name}” a teljes kártyán megrajzolja, mi kerül a videófájlba a jelenlegi beállításokkal, és követi az alatta lévő kapcsolókat. Ha a „{rainbow}” be van kapcsolva, minden sávnak saját színe van.',

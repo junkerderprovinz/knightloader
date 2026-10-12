@@ -1399,6 +1399,7 @@ export const th: Dict = {
   'captcha.resolvedElsewhere': 'แคปช่าสำหรับ {host} ได้รับการแก้ไขที่อื่นแล้ว',
 
   'settings.captcha.orderTitle': 'ลำดับความสำคัญของแคปช่า',
+  'settings.captcha.moduleLink': 'เปิดและปิดที่ {page}',
   'settings.captcha.orderHint': 'บัญชีแคปช่าที่เชื่อมต่อและเปิดอยู่แต่ละบัญชีจะถูกลองตามลำดับนี้ จากบนลงล่าง หากไม่มีเลย หรือทุกบัญชีล้มเหลวหรือปฏิเสธ คุณจะถูกถามโดยตรง ปิดบัญชีได้ที่ “{accounts}”',
   'settings.captcha.orderEmpty': 'ไม่มีบัญชีแคปช่าที่เชื่อมต่ออยู่ แคปช่าทุกอันจึงมาถึงคุณโดยตรง',
   'collector.options': 'ตัวเลือก',
@@ -3607,6 +3608,7 @@ export const th: Dict = {
   'whatsnew.change.captchaRefresh': 'ในหน้าต่าง “{name}” ปุ่ม “{refresh}” มีหน้าตาเหมือนปุ่มข้างๆ คุณจึงรู้ว่าเป็นปุ่ม',
   'whatsnew.change.priorityTips': 'ทุกแถวใน “{name}” มี (i) ที่บอกว่าแบ็กเอนด์ตรงนั้นรับอะไร รวมถึงบริการ debrid ด้วย',
   'whatsnew.change.jdState': 'สถานะของแบ็กเอนด์ JDownloader ไม่อยู่บนการ์ด “{free}” แล้ว คุณดูได้ที่ “{parts}” ในหน้า {health} และดูรุ่นได้ที่ “{builtIn}”',
+  'whatsnew.change.captchaSwitch': 'สวิตช์ “{module}” ไม่ได้เป็นแถวใน “{name}” แล้ว ลิงก์ที่ด้านบนของการ์ดพาคุณไปที่สวิตช์นั้นในหน้า {modules}',
   'whatsnew.change.mergeFiles': 'ปิด “{name}” เพื่อเก็บวิดีโอ เสียง และคำบรรยายเป็นไฟล์แยกกัน',
   'whatsnew.change.ruleSwitch': 'กฎถูกวาดเป็นเส้นทางที่ลิงก์ตัวอย่างวิ่งผ่าน: กฎใดรับมันไว้และมันไปลงที่ใด',
   'whatsnew.change.trackMerge': '“{name}” วาดทั่วทั้งการ์ดว่าอะไรจะอยู่ในไฟล์วิดีโอด้วยการตั้งค่าปัจจุบัน และเปลี่ยนตามสวิตช์ด้านล่าง เมื่อเปิด “{rainbow}” แต่ละแทร็กจะมีสีของตัวเอง',

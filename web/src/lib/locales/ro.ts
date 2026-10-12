@@ -1401,6 +1401,7 @@ export const ro: Dict = {
   'captcha.resolvedElsewhere': 'O captcha pentru {host} a fost rezolvată în altă parte.',
 
   'settings.captcha.orderTitle': 'Ordinea de prioritate a captcha-urilor',
+  'settings.captcha.moduleLink': 'Pornit și oprit în {page}',
   'settings.captcha.orderHint': 'Fiecare cont de captcha conectat și pornit este încercat în această ordine, de sus în jos. Dacă nu există niciunul, sau toate eșuează ori refuză, ești întrebat direct. Un cont se oprește în „{accounts}”.',
   'settings.captcha.orderEmpty': 'Niciun cont de captcha nu este conectat, așa că fiecare captcha vine direct la tine.',
   'collector.options': 'Opțiuni',
@@ -3618,6 +3619,7 @@ export const ro: Dict = {
   'whatsnew.change.captchaRefresh': 'În fereastra „{name}”, „{refresh}” arată ca butoanele de lângă el, ca să se vadă că e un buton.',
   'whatsnew.change.priorityTips': 'Fiecare rând din „{name}” are un (i) care spune ce preia backendul de acolo, inclusiv serviciile debrid.',
   'whatsnew.change.jdState': 'Starea backendului JDownloader nu mai e pe cardul „{free}”. O găsești la „{parts}” pe pagina {health}, iar revizia lui la „{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Comutatorul „{module}” nu mai e un rând în „{name}”. Linkul din partea de sus a cardului te duce la el pe pagina {modules}.',
   'whatsnew.change.mergeFiles': 'Oprește „{name}” ca video, audio și subtitrările să rămână fișiere separate.',
   'whatsnew.change.ruleSwitch': 'Regulile sunt desenate ca drumul pe care un link de exemplu îl face prin ele: ce regulă îl prinde și unde ajunge.',
   'whatsnew.change.trackMerge': '„{name}” desenează pe toată cartela ce ajunge într-un fișier video cu setările actuale și urmează comutatoarele de dedesubt. Când „{rainbow}” e pornit, fiecare pistă are culoarea ei.',

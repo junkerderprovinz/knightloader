@@ -1400,6 +1400,7 @@ export const lv: Dict = {
   'captcha.resolvedElsewhere': '{host} captcha tika atrisināta citur.',
 
   'settings.captcha.orderTitle': 'Captcha prioritātes secība',
+  'settings.captcha.moduleLink': 'Ieslēgt un izslēgt: {page}',
   'settings.captcha.orderHint': 'Katrs pievienotais un ieslēgtais captcha konts tiek pamēģināts šajā secībā, no augšas uz leju. Ja neviena nav vai visi neizdodas vai atsakās, tev jautā tieši. Kontu izslēdz sadaļā „{accounts}“.',
   'settings.captcha.orderEmpty': 'Neviens captcha konts nav pievienots, tāpēc katra captcha nonāk tieši pie tevis.',
   'collector.options': 'Opcijas',
@@ -3600,6 +3601,7 @@ export const lv: Dict = {
   'whatsnew.change.captchaRefresh': 'Logā „{name}“ „{refresh}“ izskatās kā blakus esošās pogas, tāpēc redzams, ka tā ir poga.',
   'whatsnew.change.priorityTips': 'Katrai rindai sadaļā „{name}“ ir (i), kas pasaka, ko tur esošā aizmugursistēma uzņemas, arī debrid pakalpojumiem.',
   'whatsnew.change.jdState': 'JDownloader aizmugursistēmas stāvoklis vairs nav kartītē „{free}“. Tu to atradīsi lapas {health} sadaļā „{parts}“, bet tās revīziju sadaļā „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Slēdzis „{module}“ vairs nav rinda sadaļā „{name}“. Saite kartītes augšā aizved pie tā lapā {modules}.',
   'whatsnew.change.mergeFiles': 'Izslēdz „{name}“, lai video, audio un subtitri paliktu atsevišķi faili.',
   'whatsnew.change.ruleSwitch': 'Noteikumi ir uzzīmēti kā ceļš, ko parauga saite veic cauri tiem: kurš noteikums to noķer un kur tā nonāk.',
   'whatsnew.change.trackMerge': '„{name}“ pāri visai kartītei uzzīmē, kas ar pašreizējiem iestatījumiem nonāk video failā, un seko slēdžiem zem tās. Kad „{rainbow}“ ir ieslēgts, katram celiņam ir sava krāsa.',

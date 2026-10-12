@@ -1399,6 +1399,7 @@ export const is: Dict = {
   'captcha.resolvedElsewhere': 'Captcha fyrir {host} var leyst annars staðar.',
 
   'settings.captcha.orderTitle': 'Forgangsröð captcha',
+  'settings.captcha.moduleLink': 'Kveikt og slökkt undir {page}',
   'settings.captcha.orderHint': 'Hver tengdur captcha-reikningur sem er kveikt á er reyndur í þessari röð, ofan frá og niður. Ef enginn er til, eða allir mistakast eða hafna, ert þú spurð(ur) beint. Þú slekkur á reikningi undir „{accounts}“.',
   'settings.captcha.orderEmpty': 'Enginn captcha-reikningur er tengdur, svo hvert captcha kemur beint til þín.',
   'collector.options': 'Valkostir',
@@ -3605,6 +3606,7 @@ export const is: Dict = {
   'whatsnew.change.captchaRefresh': 'Í glugganum „{name}“ lítur „{refresh}“ út eins og hnapparnir við hliðina, svo þú sérð að það er hnappur.',
   'whatsnew.change.priorityTips': 'Hver lína í „{name}“ er með (i) sem segir hvað bakvinnslan þar tekur, debrid-þjónusturnar líka.',
   'whatsnew.change.jdState': 'Staða JDownloader-bakvinnslunnar er ekki lengur á spjaldinu „{free}“. Þú finnur hana undir „{parts}“ á síðunni {health} og útgáfu hennar undir „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Rofinn „{module}“ er ekki lengur lína í „{name}“. Tengillinn efst á spjaldinu leiðir þig að honum á síðunni {modules}.',
   'whatsnew.change.mergeFiles': 'Slökktu á „{name}“ til að halda mynd, hljóði og skjátextum sem aðskildum skrám.',
   'whatsnew.change.ruleSwitch': 'Reglurnar eru teiknaðar sem leiðin sem sýnistengill fer í gegnum þær: hvaða regla grípur hann og hvar hann lendir.',
   'whatsnew.change.trackMerge': '„{name}“ teiknar yfir allt spjaldið hvað endar í myndskeiðsskrá með núverandi stillingum og fylgir rofunum fyrir neðan. Þegar „{rainbow}“ er í gangi hefur hver rás sinn lit.',

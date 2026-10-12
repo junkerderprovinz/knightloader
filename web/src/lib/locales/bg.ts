@@ -1400,6 +1400,7 @@ export const bg: Dict = {
   'captcha.resolvedElsewhere': 'Captcha за {host} беше решена другаде.',
 
   'settings.captcha.orderTitle': 'Ред на приоритет за captcha',
+  'settings.captcha.moduleLink': 'Вкл. и изкл. в {page}',
   'settings.captcha.orderHint': 'Всеки свързан и включен captcha акаунт се пробва в този ред, отгоре надолу. Ако няма такъв, или всички се провалят или откажат, ще бъдеш попитан направо. Изключваш акаунт в „{accounts}“.',
   'settings.captcha.orderEmpty': 'Няма свързан captcha акаунт, затова всяка captcha идва направо при теб.',
   'collector.options': 'Опции',
@@ -3610,6 +3611,7 @@ export const bg: Dict = {
   'whatsnew.change.captchaRefresh': 'В прозореца „{name}“ „{refresh}“ изглежда като бутоните до него, за да личи, че е бутон.',
   'whatsnew.change.priorityTips': 'Всеки ред в „{name}“ има (i), което казва какво поема бекендът там, включително debrid услугите.',
   'whatsnew.change.jdState': 'Състоянието на JDownloader бекенда вече не е на картата „{free}“. Намираш го в „{parts}“ на страницата {health}, а ревизията му в „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Превключвателят „{module}“ вече не е ред в „{name}“. Връзката горе на картата води до него на страницата {modules}.',
   'whatsnew.change.mergeFiles': 'Изключи „{name}“, за да останат видеото, звукът и субтитрите отделни файлове.',
   'whatsnew.change.ruleSwitch': 'Правилата са нарисувани като пътя, който една примерна връзка изминава през тях: кое правило я хваща и къде попада.',
   'whatsnew.change.trackMerge': '„{name}“ рисува през цялата карта какво попада във видеофайла с текущите настройки и следва превключвателите под нея. Когато „{rainbow}“ е включен, всяка писта има свой цвят.',

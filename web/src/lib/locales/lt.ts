@@ -1400,6 +1400,7 @@ export const lt: Dict = {
   'captcha.resolvedElsewhere': '{host} captcha buvo išspręsta kitur.',
 
   'settings.captcha.orderTitle': 'Captcha prioriteto tvarka',
+  'settings.captcha.moduleLink': 'Įjungti ir išjungti: {page}',
   'settings.captcha.orderHint': 'Kiekviena prijungta ir įjungta captcha paskyra bandoma šia tvarka, iš viršaus žemyn. Jei nėra nė vienos arba visos nepavyksta ar atsisako, tavęs klausiama tiesiogiai. Paskyrą išjungi skiltyje „{accounts}“.',
   'settings.captcha.orderEmpty': 'Nėra prijungtos captcha paskyros, todėl kiekviena captcha ateina tiesiai tau.',
   'collector.options': 'Parinktys',
@@ -3611,6 +3612,7 @@ export const lt: Dict = {
   'whatsnew.change.captchaRefresh': 'Lange „{name}“ „{refresh}“ atrodo kaip šalia esantys mygtukai, todėl matyti, kad tai mygtukas.',
   'whatsnew.change.priorityTips': 'Kiekviena eilutė skiltyje „{name}“ turi (i), kuris sako, ką ten esanti posistemė perima, taip pat ir debrid paslaugoms.',
   'whatsnew.change.jdState': 'JDownloader posistemės būsena nebėra kortelėje „{free}“. Ją rasi puslapio {health} skiltyje „{parts}“, o jos versiją skiltyje „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Jungiklis „{module}“ nebėra eilutė skiltyje „{name}“. Nuoroda kortelės viršuje nuveda prie jo puslapyje {modules}.',
   'whatsnew.change.mergeFiles': 'Išjunk „{name}“, kad vaizdas, garsas ir subtitrai liktų atskiri failai.',
   'whatsnew.change.ruleSwitch': 'Taisyklės nupieštos kaip kelias, kurį pavyzdinė nuoroda nueina per jas: kuri taisyklė ją pagauna ir kur ji atsiduria.',
   'whatsnew.change.trackMerge': '„{name}“ per visą kortelę nupiešia, kas su dabartiniais nustatymais patenka į vaizdo failą, ir seka apačioje esančius jungiklius. Kai įjungtas „{rainbow}“, kiekvienas takelis turi savo spalvą.',

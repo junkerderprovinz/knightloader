@@ -1399,6 +1399,7 @@ export const fi: Dict = {
   'captcha.resolvedElsewhere': 'Kohteen {host} captcha ratkaistiin muualla.',
 
   'settings.captcha.orderTitle': 'Captchojen prioriteettijärjestys',
+  'settings.captcha.moduleLink': 'Päälle ja pois: {page}',
   'settings.captcha.orderHint': 'Jokaista yhdistettyä ja päällä olevaa captcha-tiliä kokeillaan tässä järjestyksessä, ylhäältä alas. Jos yhtään ei ole, tai jos kaikki epäonnistuvat tai kieltäytyvät, sinulta kysytään suoraan. Tilin kytket pois kohdassa ”{accounts}”.',
   'settings.captcha.orderEmpty': 'Yhtään captcha-tiliä ei ole yhdistetty, joten jokainen captcha tulee suoraan sinulle.',
   'collector.options': 'Valinnat',
@@ -3611,6 +3612,7 @@ export const fi: Dict = {
   'whatsnew.change.captchaRefresh': 'Ikkunassa ”{name}” ”{refresh}” näyttää samalta kuin sen vieressä olevat painikkeet, joten sen tunnistaa painikkeeksi.',
   'whatsnew.change.priorityTips': 'Jokaisella kohdan ”{name}” rivillä on (i), joka kertoo, mitä siinä oleva taustapalvelu ottaa, myös debrid-palveluilla.',
   'whatsnew.change.jdState': 'JDownloader-taustapalvelun tila ei ole enää kortilla ”{free}”. Löydät sen sivun {health} kohdasta ”{parts}” ja sen revision kohdasta ”{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Kytkin ”{module}” ei ole enää rivi kohdassa ”{name}”. Kortin yläreunan linkki vie sen luo sivulle {modules}.',
   'whatsnew.change.mergeFiles': 'Kytke ”{name}” pois, jos haluat pitää videon, äänen ja tekstitykset erillisinä tiedostoina.',
   'whatsnew.change.ruleSwitch': 'Säännöt on piirretty reittinä, jonka näytelinkki kulkee niiden läpi: mikä sääntö nappaa sen ja minne se päätyy.',
   'whatsnew.change.trackMerge': '”{name}” piirtää koko kortin leveydeltä, mitä videotiedostoon päätyy nykyisillä asetuksilla, ja seuraa alla olevia kytkimiä. Kun ”{rainbow}” on päällä, jokaisella raidalla on oma värinsä.',

@@ -1399,6 +1399,7 @@ export const hr: Dict = {
   'captcha.resolvedElsewhere': 'Captcha za {host} riješena je negdje drugdje.',
 
   'settings.captcha.orderTitle': 'Redoslijed prioriteta captchi',
+  'settings.captcha.moduleLink': 'Uključi i isključi pod {page}',
   'settings.captcha.orderHint': 'Svaki povezani i uključeni račun captche isprobava se ovim redoslijedom, odozgo prema dolje. Ako ga nema, ili svi ne uspiju ili odbiju, bit ćeš upitan izravno. Račun isključuješ pod „{accounts}”.',
   'settings.captcha.orderEmpty': 'Nijedan račun captche nije povezan, pa svaka captcha dolazi izravno tebi.',
   'collector.options': 'Mogućnosti',
@@ -3623,6 +3624,7 @@ export const hr: Dict = {
   'whatsnew.change.captchaRefresh': 'U prozoru „{name}” „{refresh}” izgleda kao gumbi pokraj njega, pa se vidi da je i to gumb.',
   'whatsnew.change.priorityTips': 'Svaki redak u „{name}” ima (i) koji kaže što tamošnji backend preuzima, i za debrid usluge.',
   'whatsnew.change.jdState': 'Stanje JDownloader backenda više nije na kartici „{free}”. Naći ćeš ga pod „{parts}” na stranici {health}, a njegovu reviziju pod „{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Prekidač „{module}” više nije redak u „{name}”. Poveznica na vrhu kartice vodi te do njega na stranici {modules}.',
   'whatsnew.change.mergeFiles': 'Isključi „{name}” da video, zvuk i titlovi ostanu zasebne datoteke.',
   'whatsnew.change.ruleSwitch': 'Pravila su nacrtana kao put kojim primjer poveznice prolazi kroz njih: koje ga pravilo hvata i gdje završava.',
   'whatsnew.change.trackMerge': '„{name}” crta preko cijele kartice što s trenutačnim postavkama završava u videodatoteci i prati prekidače ispod. Kad je uključen „{rainbow}”, svaka traka ima svoju boju.',

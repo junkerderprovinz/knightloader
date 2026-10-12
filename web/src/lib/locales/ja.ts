@@ -1399,6 +1399,7 @@ export const ja: Dict = {
   'captcha.resolvedElsewhere': '{host} のキャプチャは他の場所で解決されました。',
 
   'settings.captcha.orderTitle': 'キャプチャの優先順位',
+  'settings.captcha.moduleLink': 'オンとオフは {page} で',
   'settings.captcha.orderHint': '接続済みでオンになっているキャプチャアカウントは、この順番で上から下へ試されます。ひとつもない場合、またはすべて失敗もしくは辞退した場合は、直接あなたに聞きます。アカウントをオフにするのは「{accounts}」です。',
   'settings.captcha.orderEmpty': '接続済みのキャプチャアカウントがないため、キャプチャはすべて直接あなたに届きます。',
   'collector.options': 'オプション',
@@ -3605,6 +3606,7 @@ export const ja: Dict = {
   'whatsnew.change.captchaRefresh': '「{name}」ウィンドウの「{refresh}」が隣のボタンと同じ見た目になり、ボタンだとわかるようになりました。',
   'whatsnew.change.priorityTips': '「{name}」の各行に、そこにあるバックエンドが何を引き受けるかを説明する (i) が付きました。Debrid サービスの行も同じです。',
   'whatsnew.change.jdState': 'JDownloader バックエンドの状態は「{free}」カードから移りました。{health} ページの「{parts}」で確認でき、リビジョンは「{builtIn}」にあります。',
+  'whatsnew.change.captchaSwitch': '「{module}」のスイッチは「{name}」の行から外れました。カード上部のリンクから {modules} ページのスイッチへ移動できます。',
   'whatsnew.change.mergeFiles': '「{name}」をオフにすると、映像、音声、字幕を別々のファイルのまま残せます。',
   'whatsnew.change.ruleSwitch': 'ルールは、サンプルのリンクがたどる経路として描かれます。どのルールが受け止め、どこに着くかが分かります。',
   'whatsnew.change.trackMerge': '「{name}」は、現在の設定で動画ファイルに入るものをカード全体に描き、下のスイッチに合わせて変わります。「{rainbow}」では、トラックごとに色が異なります。',

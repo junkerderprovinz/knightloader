@@ -1535,6 +1535,7 @@ export const de: Dict = {
   'captcha.testSolverWrong': '{solver} hat das Test-Captcha falsch gelöst: Da stand {want}, nicht {given}.',
 
   'settings.captcha.orderTitle': 'Prioritätsreihenfolge Captchas',
+  'settings.captcha.moduleLink': 'Ein und aus unter {page}',
   'settings.captcha.orderHint': 'Jedes verbundene Captcha-Konto, das eingeschaltet ist, wird in dieser Reihenfolge versucht, von oben nach unten. Ist keins da, oder scheitern oder verzichten alle, wirst du direkt gefragt. Ausschalten kannst du ein Konto unter „{accounts}“.',
   'settings.captcha.orderEmpty': 'Kein Captcha-Konto ist verbunden, also kommt jedes Captcha direkt zu dir.',
   'settings.captcha.whenTitle': 'Wann die Captcha-Konten starten',
@@ -3612,6 +3613,7 @@ export const de: Dict = {
   'whatsnew.change.captchaRefresh': 'Im Fenster „{name}“ sieht „{refresh}“ aus wie die Knöpfe daneben, damit du erkennst, dass es einer ist.',
   'whatsnew.change.priorityTips': 'Jede Zeile in „{name}“ hat ein (i), das sagt, was das Backend dort übernimmt, auch bei den Debrid-Diensten.',
   'whatsnew.change.jdState': 'Der Zustand des JDownloader-Backends steht nicht mehr auf der Karte „{free}“. Du findest ihn unter „{parts}“ auf der Seite {health}, seine Revision unter „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Der Schalter „{module}“ ist keine Zeile mehr auf „{name}“. Der Link oben an der Karte führt dich zu ihm auf die Seite {modules}.',
   'whatsnew.change.mergeFiles': 'Schalte „{name}“ aus, wenn Video, Ton und Untertitel getrennte Dateien bleiben sollen.',
   'whatsnew.change.ruleSwitch': 'Die Regeln zeigen den Weg, den ein Beispiel-Link durch sie nimmt: welche Regel ihn fängt und wo er landet.',
   'whatsnew.change.trackMerge': '„{name}“ zeichnet über die ganze Karte, was mit den aktuellen Einstellungen in einer Videodatei landet, und folgt den Schaltern darunter. Im „{rainbow}“ hat jede Spur ihre eigene Farbe.',

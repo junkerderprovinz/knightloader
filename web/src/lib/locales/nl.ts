@@ -1391,6 +1391,7 @@ export const nl: Dict = {
   'captcha.resolvedElsewhere': 'Een captcha voor {host} is elders opgelost.',
 
   'settings.captcha.orderTitle': "Prioriteitsvolgorde captcha's",
+  'settings.captcha.moduleLink': 'Aan en uit onder {page}',
   'settings.captcha.orderHint': 'Elk gekoppeld captcha-account dat aanstaat, wordt in deze volgorde geprobeerd, van boven naar beneden. Is er geen, of mislukken of weigeren ze allemaal, dan word je rechtstreeks gevraagd. Een account zet je uit onder “{accounts}”.',
   'settings.captcha.orderEmpty': 'Er is geen captcha-account gekoppeld, dus elke captcha komt rechtstreeks bij jou.',
   'collector.options': 'Opties',
@@ -3592,6 +3593,7 @@ export const nl: Dict = {
   'whatsnew.change.captchaRefresh': 'In het venster “{name}” ziet “{refresh}” eruit als de knoppen ernaast, zodat je ziet dat het een knop is.',
   'whatsnew.change.priorityTips': 'Elke rij van “{name}” heeft een (i) die zegt wat de backend daar oppakt, ook bij de debriddiensten.',
   'whatsnew.change.jdState': 'De toestand van de JDownloader-backend staat niet meer op de kaart “{free}”. Je vindt hem onder “{parts}” op de pagina {health}, en zijn revisie onder “{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'De schakelaar “{module}” is geen rij meer in “{name}”. De link boven aan de kaart brengt je ernaartoe op de pagina {modules}.',
   'whatsnew.change.mergeFiles': 'Zet “{name}” uit om video, audio en ondertitels als losse bestanden te houden.',
   'whatsnew.change.ruleSwitch': 'De regels zijn getekend als de weg die een voorbeeldlink erdoorheen aflegt: welke regel hem vangt en waar hij terechtkomt.',
   'whatsnew.change.trackMerge': '“{name}” tekent over de hele kaart wat er met de huidige instellingen in een videobestand terechtkomt en volgt de schakelaars eronder. Als “{rainbow}” aan staat, heeft elk spoor een eigen kleur.',

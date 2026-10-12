@@ -1399,6 +1399,7 @@ export const vi: Dict = {
   'captcha.resolvedElsewhere': 'Captcha cho {host} đã được giải ở nơi khác.',
 
   'settings.captcha.orderTitle': 'Thứ tự ưu tiên captcha',
+  'settings.captcha.moduleLink': 'Bật và tắt trong {page}',
   'settings.captcha.orderHint': 'Mỗi tài khoản captcha đã kết nối và đang bật sẽ được thử theo thứ tự này, từ trên xuống dưới. Nếu không có tài khoản nào, hoặc tất cả đều thất bại hay từ chối, bạn sẽ được hỏi trực tiếp. Bạn tắt một tài khoản trong “{accounts}”.',
   'settings.captcha.orderEmpty': 'Chưa có tài khoản captcha nào được kết nối, nên mọi captcha đều đến thẳng với bạn.',
   'collector.options': 'Tùy chọn',
@@ -3609,6 +3610,7 @@ export const vi: Dict = {
   'whatsnew.change.captchaRefresh': 'Trong cửa sổ “{name}”, “{refresh}” trông giống các nút bên cạnh, nên bạn nhận ra đó là nút.',
   'whatsnew.change.priorityTips': 'Mỗi hàng trong “{name}” có một (i) cho biết backend ở đó đảm nhận gì, kể cả các dịch vụ debrid.',
   'whatsnew.change.jdState': 'Trạng thái của backend JDownloader không còn nằm trên thẻ “{free}”. Bạn tìm thấy nó trong “{parts}” ở trang {health}, và bản sửa đổi của nó trong “{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Công tắc “{module}” không còn là một hàng trong “{name}”. Liên kết ở đầu thẻ đưa bạn đến nó trên trang {modules}.',
   'whatsnew.change.mergeFiles': 'Tắt “{name}” để giữ video, âm thanh và phụ đề thành các tệp riêng.',
   'whatsnew.change.ruleSwitch': 'Các quy tắc được vẽ thành đường đi của một liên kết mẫu qua chúng: quy tắc nào bắt nó và nó dừng ở đâu.',
   'whatsnew.change.trackMerge': '“{name}” vẽ trên cả thẻ những gì nằm trong tệp video với cài đặt hiện tại, và đi theo các công tắc bên dưới. Khi “{rainbow}” bật, mỗi rãnh có một màu riêng.',

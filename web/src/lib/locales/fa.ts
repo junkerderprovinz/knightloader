@@ -1399,6 +1399,7 @@ export const fa: Dict = {
   'captcha.resolvedElsewhere': 'کپچای {host} در جای دیگری حل شد.',
 
   'settings.captcha.orderTitle': 'ترتیب اولویت کپچا',
+  'settings.captcha.moduleLink': 'روشن و خاموش در {page}',
   'settings.captcha.orderHint': 'هر حساب کپچای متصل و روشن به همین ترتیب از بالا به پایین امتحان می‌شود. اگر هیچ‌کدام نباشد، یا همه شکست بخورند یا امتناع کنند، مستقیم از تو پرسیده می‌شود. یک حساب را در «{accounts}» خاموش می‌کنی.',
   'settings.captcha.orderEmpty': 'هیچ حساب کپچایی متصل نیست، پس هر کپچا مستقیم به خودت می‌رسد.',
   'collector.options': 'گزینه‌ها',
@@ -3598,6 +3599,7 @@ export const fa: Dict = {
   'whatsnew.change.captchaRefresh': 'در پنجره «{name}»، «{refresh}» شبیه دکمه‌های کنارش است تا معلوم باشد که دکمه است.',
   'whatsnew.change.priorityTips': 'هر ردیف در «{name}» یک (i) دارد که می‌گوید بک‌اند آنجا چه چیزی را برعهده می‌گیرد، سرویس‌های debrid هم.',
   'whatsnew.change.jdState': 'وضعیت بک‌اند JDownloader دیگر روی کارت «{free}» نیست. آن را زیر «{parts}» در صفحه {health} پیدا می‌کنی، و ویرایشش را زیر «{builtIn}».',
+  'whatsnew.change.captchaSwitch': 'کلید «{module}» دیگر یک ردیف در «{name}» نیست. پیوند بالای کارت تو را به آن در صفحه {modules} می‌برد.',
   'whatsnew.change.mergeFiles': '«{name}» را خاموش کن تا ویدیو، صدا و زیرنویس‌ها فایل‌های جدا بمانند.',
   'whatsnew.change.ruleSwitch': 'قاعده‌ها به شکل مسیری کشیده می‌شوند که یک پیوند نمونه از میانشان می‌پیماید: کدام قاعده آن را می‌گیرد و کجا فرود می‌آید.',
   'whatsnew.change.trackMerge': '«{name}» روی کل کارت می‌کشد که با تنظیمات فعلی چه چیزی در فایل ویدیو قرار می‌گیرد و از کلیدهای زیرش پیروی می‌کند. وقتی «{rainbow}» روشن است، هر ترک رنگ خودش را دارد.',

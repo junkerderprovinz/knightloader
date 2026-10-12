@@ -1399,6 +1399,7 @@ export const gl: Dict = {
   'captcha.resolvedElsewhere': 'Un captcha para {host} resolveuse noutro lugar.',
 
   'settings.captcha.orderTitle': 'Orde de prioridade de captchas',
+  'settings.captcha.moduleLink': 'Activar e desactivar en {page}',
   'settings.captcha.orderHint': 'Cada conta de captcha conectada e activada próbase nesta orde, de arriba a abaixo. Se non hai ningunha, ou se todas fallan ou rexeitan, pregúntaseche directamente. Unha conta desactívase en «{accounts}».',
   'settings.captcha.orderEmpty': 'Non hai ningunha conta de captcha conectada, así que cada captcha chégache directamente.',
   'collector.options': 'Opcións',
@@ -3607,6 +3608,7 @@ export const gl: Dict = {
   'whatsnew.change.captchaRefresh': 'Na xanela «{name}», «{refresh}» parécese aos botóns do lado, para que vexas que tamén o é.',
   'whatsnew.change.priorityTips': 'Cada fila de «{name}» ten un (i) que di que colle o backend desa fila, tamén os servizos debrid.',
   'whatsnew.change.jdState': 'O estado do backend de JDownloader xa non está na tarxeta «{free}». Atópalo en «{parts}» na páxina {health}, e a súa revisión en «{builtIn}».',
+  'whatsnew.change.captchaSwitch': 'O interruptor «{module}» xa non é unha fila de «{name}». A ligazón da parte de arriba da tarxeta lévate a el na páxina {modules}.',
   'whatsnew.change.mergeFiles': 'Desactiva «{name}» para manter o vídeo, o audio e os subtítulos como ficheiros separados.',
   'whatsnew.change.ruleSwitch': 'As regras debúxanse como o camiño que fai unha ligazón de mostra a través delas: que regra a atrapa e onde acaba.',
   'whatsnew.change.trackMerge': '«{name}» debuxa en toda a tarxeta o que acaba dentro dun ficheiro de vídeo cos axustes actuais e segue os interruptores de abaixo. Con «{rainbow}» activado, cada pista ten a súa propia cor.',

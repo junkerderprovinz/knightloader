@@ -1399,6 +1399,7 @@ export const id: Dict = {
   'captcha.resolvedElsewhere': 'Captcha untuk {host} diselesaikan di tempat lain.',
 
   'settings.captcha.orderTitle': 'Urutan prioritas captcha',
+  'settings.captcha.moduleLink': 'Nyala dan mati di {page}',
   'settings.captcha.orderHint': 'Setiap akun captcha yang terhubung dan menyala dicoba dalam urutan ini, dari atas ke bawah. Jika tidak ada, atau semuanya gagal atau menolak, kamu ditanya langsung. Kamu mematikan akun di “{accounts}”.',
   'settings.captcha.orderEmpty': 'Tidak ada akun captcha yang terhubung, jadi setiap captcha langsung datang kepadamu.',
   'collector.options': 'Opsi',
@@ -3609,6 +3610,7 @@ export const id: Dict = {
   'whatsnew.change.captchaRefresh': 'Di jendela “{name}”, “{refresh}” tampak seperti tombol di sebelahnya, jadi kamu tahu itu tombol.',
   'whatsnew.change.priorityTips': 'Setiap baris di “{name}” punya (i) yang menjelaskan apa yang ditangani backend di sana, termasuk layanan debrid.',
   'whatsnew.change.jdState': 'Status backend JDownloader tidak lagi ada di kartu “{free}”. Kamu menemukannya di “{parts}” pada halaman {health}, dan revisinya di “{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'Sakelar “{module}” tidak lagi menjadi baris di “{name}”. Tautan di atas kartu membawamu ke sakelar itu di halaman {modules}.',
   'whatsnew.change.mergeFiles': 'Matikan “{name}” agar video, audio, dan subtitle tetap jadi file terpisah.',
   'whatsnew.change.ruleSwitch': 'Aturan digambar sebagai jalan yang ditempuh sebuah tautan contoh melewatinya: aturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.trackMerge': '“{name}” menggambar di seluruh kartu apa yang masuk ke berkas video dengan pengaturan saat ini, dan mengikuti sakelar di bawahnya. Saat “{rainbow}” aktif, setiap trek punya warnanya sendiri.',

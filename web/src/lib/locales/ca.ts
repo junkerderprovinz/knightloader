@@ -1399,6 +1399,7 @@ export const ca: Dict = {
   'captcha.resolvedElsewhere': 'Un captcha per a {host} s’ha resolt en un altre lloc.',
 
   'settings.captcha.orderTitle': 'Ordre de prioritat de captchas',
+  'settings.captcha.moduleLink': 'Activa i desactiva a {page}',
   'settings.captcha.orderHint': 'Cada compte de captcha connectat i activat es prova en aquest ordre, de dalt a baix. Si no n’hi ha cap, o si tots fallen o declinen, se’t pregunta directament. Un compte es desactiva a «{accounts}».',
   'settings.captcha.orderEmpty': 'No hi ha cap compte de captcha connectat, així que cada captcha et ve directament a tu.',
   'collector.options': 'Opcions',
@@ -3597,6 +3598,7 @@ export const ca: Dict = {
   'whatsnew.change.captchaRefresh': 'A la finestra «{name}», «{refresh}» té l\'aspecte dels botons del costat, perquè vegis que també ho és.',
   'whatsnew.change.priorityTips': 'Cada fila de «{name}» té una (i) que diu què agafa el backend d\'aquella fila, també els serveis debrid.',
   'whatsnew.change.jdState': 'L\'estat del backend de JDownloader ja no és a la targeta «{free}». El trobaràs a «{parts}» de la pàgina {health}, i la seva revisió a «{builtIn}».',
+  'whatsnew.change.captchaSwitch': 'L\'interruptor «{module}» ja no és una fila de «{name}». L\'enllaç a dalt de la targeta t\'hi porta a la pàgina {modules}.',
   'whatsnew.change.mergeFiles': 'Desactiva «{name}» per mantenir el vídeo, l’àudio i els subtítols com a fitxers separats.',
   'whatsnew.change.ruleSwitch': 'Les regles es dibuixen com el camí que fa un enllaç d’exemple a través seu: quina regla l’atrapa i on va a parar.',
   'whatsnew.change.trackMerge': '«{name}» dibuixa a tota la targeta què acaba dins d’un fitxer de vídeo amb els ajustos actuals i segueix els interruptors de sota. Amb «{rainbow}» activat, cada pista té el seu color.',

@@ -1399,6 +1399,7 @@ export const et: Dict = {
   'captcha.resolvedElsewhere': '{host} captcha lahendati mujal.',
 
   'settings.captcha.orderTitle': 'Captchade prioriteetide järjekord',
+  'settings.captcha.moduleLink': 'Sisse ja välja jaotises {page}',
   'settings.captcha.orderHint': 'Iga ühendatud ja sisse lülitatud captcha kontot proovitakse selles järjekorras, ülevalt alla. Kui ühtegi pole või kõik ebaõnnestuvad või keelduvad, küsitakse sinult otse. Konto lülitad välja jaotises „{accounts}“.',
   'settings.captcha.orderEmpty': 'Ühtegi captcha kontot pole ühendatud, nii et iga captcha tuleb otse sulle.',
   'collector.options': 'Valikud',
@@ -3601,6 +3602,7 @@ export const et: Dict = {
   'whatsnew.change.captchaRefresh': 'Aknas „{name}“ näeb „{refresh}“ välja nagu kõrvalolevad nupud, nii et on näha, et see on nupp.',
   'whatsnew.change.priorityTips': 'Igal real jaotises „{name}“ on (i), mis ütleb, mida seal olev taustteenus võtab, ka debrid-teenustel.',
   'whatsnew.change.jdState': 'JDownloaderi taustteenuse olek pole enam kaardil „{free}“. Leiad selle lehel {health} jaotises „{parts}“ ja selle revisjoni jaotises „{builtIn}“.',
+  'whatsnew.change.captchaSwitch': 'Lüliti „{module}“ pole enam rida jaotises „{name}“. Kaardi ülaosas olev link viib sind selle juurde lehel {modules}.',
   'whatsnew.change.mergeFiles': 'Lülita „{name}“ välja, kui video, heli ja subtiitrid peavad jääma eraldi failideks.',
   'whatsnew.change.ruleSwitch': 'Reeglid on joonistatud teekonnana, mille näidislink nendest läbib: milline reegel selle kinni püüab ja kuhu see jõuab.',
   'whatsnew.change.trackMerge': '„{name}“ joonistab üle kogu kaardi, mis praeguste seadetega videofaili jõuab, ja järgib all olevaid lüliteid. Kui „{rainbow}“ on sees, on igal rajal oma värv.',

@@ -1399,6 +1399,7 @@ export const sl: Dict = {
   'captcha.resolvedElsewhere': 'Captcha za {host} je bila rešena drugje.',
 
   'settings.captcha.orderTitle': 'Vrstni red prednosti captch',
+  'settings.captcha.moduleLink': 'Vklop in izklop: {page}',
   'settings.captcha.orderHint': 'Vsak povezan in vklopljen račun captch se preizkusi v tem vrstnem redu, od zgoraj navzdol. Če ga ni, ali če vsi odpovejo ali odklonijo, boš vprašan neposredno. Račun izklopiš pod »{accounts}«.',
   'settings.captcha.orderEmpty': 'Noben račun captch ni povezan, zato vsaka captcha pride neposredno k tebi.',
   'collector.options': 'Možnosti',
@@ -3608,6 +3609,7 @@ export const sl: Dict = {
   'whatsnew.change.captchaRefresh': 'V oknu »{name}« je »{refresh}« videti kot gumbi ob njem, zato je jasno, da je gumb.',
   'whatsnew.change.priorityTips': 'Vsaka vrstica v »{name}« ima (i), ki pove, kaj tamkajšnje zaledje prevzame, tudi pri storitvah debrid.',
   'whatsnew.change.jdState': 'Stanje zaledja JDownloader ni več na kartici »{free}«. Najdeš ga pod »{parts}« na strani {health}, njegovo revizijo pa pod »{builtIn}«.',
+  'whatsnew.change.captchaSwitch': 'Stikalo »{module}« ni več vrstica v »{name}«. Povezava na vrhu kartice te pripelje do njega na strani {modules}.',
   'whatsnew.change.mergeFiles': 'Izklopi »{name}«, da video, zvok in podnapisi ostanejo ločene datoteke.',
   'whatsnew.change.ruleSwitch': 'Pravila so narisana kot pot, ki jo vzorčna povezava opravi skoznje: katero pravilo jo ujame in kje pristane.',
   'whatsnew.change.trackMerge': '»{name}« nariše čez celotno kartico, kaj s trenutnimi nastavitvami pristane v videodatoteki, in sledi stikalom pod njo. Ko je vklopljen »{rainbow}«, ima vsaka sled svojo barvo.',

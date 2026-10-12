@@ -83,9 +83,10 @@ describe('the captcha priority card', () => {
     expect(rows()).toEqual(['capsolver', '2captcha']);
   });
 
-  it('carries the Captcha module switch, when the accounts start and the test', async () => {
+  it('leads to the Captcha module switch and carries when the accounts start and the test', async () => {
     await drawCard([]);
-    expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).not.toBeNull();
+    expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).toBeNull();
+    expect(host.querySelector('a[href="/settings/modules"]')?.textContent).toBe('On and off under Modules');
     expect(host.textContent).toContain('When captcha accounts start');
     expect(host.textContent).toContain('Send one to the captcha accounts too');
   });

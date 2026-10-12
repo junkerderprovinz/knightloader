@@ -1401,6 +1401,7 @@ export const he: Dict = {
   'captcha.resolvedElsewhere': 'הקאפצ׳ה עבור {host} נפתרה במקום אחר.',
 
   'settings.captcha.orderTitle': 'סדר עדיפויות לקאפצ׳ות',
+  'settings.captcha.moduleLink': 'הפעלה וכיבוי ב{page}',
   'settings.captcha.orderHint': 'כל חשבון קאפצ׳ה מחובר ומופעל מנוסה בסדר הזה, מלמעלה למטה. אם אין אף אחד, או שכולם נכשלים או מסרבים, נשאלת ישירות. מכבים חשבון תחת „{accounts}”.',
   'settings.captcha.orderEmpty': 'אין חשבון קאפצ׳ה מחובר, ולכן כל קאפצ׳ה מגיעה ישר אליך.',
   'collector.options': 'אפשרויות',
@@ -3626,6 +3627,7 @@ export const he: Dict = {
   'whatsnew.change.captchaRefresh': 'בחלון „{name}”, „{refresh}” נראה כמו הכפתורים שלידו, כך שרואים שזה כפתור.',
   'whatsnew.change.priorityTips': 'לכל שורה ב„{name}” יש (i) שאומר מה ה-backend שם מקבל, גם לשירותי ה-debrid.',
   'whatsnew.change.jdState': 'המצב של ה-backend של JDownloader כבר לא נמצא בכרטיס „{free}”. תמצא אותו תחת „{parts}” בעמוד {health}, ואת הגרסה שלו תחת „{builtIn}”.',
+  'whatsnew.change.captchaSwitch': 'המתג „{module}” כבר אינו שורה ב„{name}”. הקישור בראש הכרטיס מוביל אליו בעמוד {modules}.',
   'whatsnew.change.mergeFiles': 'כבה את „{name}” כדי שהווידאו, השמע והכתוביות יישארו קבצים נפרדים.',
   'whatsnew.change.ruleSwitch': 'הכללים מצוירים כדרך שקישור לדוגמה עובר דרכם: איזה כלל תופס אותו ואיפה הוא נוחת.',
   'whatsnew.change.trackMerge': '„{name}” מצייר לרוחב כל הכרטיס מה נכנס לקובץ וידאו עם ההגדרות הנוכחיות, ועוקב אחרי המתגים שמתחתיו. כש„{rainbow}” פועל, לכל רצועה יש צבע משלה.',

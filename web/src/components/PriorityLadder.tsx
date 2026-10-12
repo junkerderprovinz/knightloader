@@ -108,13 +108,14 @@ export function PriorityLadder({
 /**
  * PriorityCard is the frame both priority cards share: the title, a line on
  * what the picture is and how to use it, the ladder, and under it whatever
- * belongs to that order.
+ * belongs to that order. `right` ends the title's line.
  */
 export function PriorityCard({
   hue,
   title,
   hint,
   intro,
+  right,
   'data-new': mark,
   children,
 }: {
@@ -122,12 +123,15 @@ export function PriorityCard({
   title: string;
   hint: string;
   intro: string;
+  right?: ReactNode;
   'data-new'?: string;
   children: ReactNode;
 }) {
   return (
     <Card hue={hue} data-new={mark} className="flex flex-col gap-3">
-      <SectionTitle hint={hint}>{title}</SectionTitle>
+      <SectionTitle hint={hint} right={right}>
+        {title}
+      </SectionTitle>
       <p className="text-sm text-carbon-textSub">{intro}</p>
       {children}
     </Card>
