@@ -1,1 +1,0 @@
-The server's container image opens .dlc files itself, like the desktop apps.
