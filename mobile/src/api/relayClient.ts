@@ -1,6 +1,6 @@
 import { base64Decode, base64Encode, bytesToUtf8, encodeBody } from './base64';
 import { getRandomBytes } from 'expo-crypto';
-import { memberPublicKey, proveId, verifyResult, type AnsweredCall } from './memberKey';
+import { memberPublicKey, proveId, verifyResult } from './memberKey';
 import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult, sealSignedCall } from './relayFrame';
 
 // This app's client for internal/relay's wire protocol, the second way it can
@@ -71,9 +71,9 @@ export function connectURL(raw: string): string | null {
 
 interface Pending {
   // The instance asked, whose key has to have signed the answer, and the call
-  // as it went out, which the answer has to name.
+  // as it went out, sealed, which the answer has to name.
   target: string;
-  call: AnsweredCall;
+  sealed: number[];
   resolve: (r: RelayProxyResult) => void;
   reject: (e: Error) => void;
   timer: ReturnType<typeof setTimeout>;
@@ -191,7 +191,7 @@ export class RelayClient {
         this.pending.delete(requestId);
         reject(new Error('relay: the instance did not answer in time'));
       }, PROXY_TIMEOUT_MS);
-      const pending: Pending = { target, call: { from: this.opts.selfId, sig: new Uint8Array() }, resolve, reject, timer };
+      const pending: Pending = { target, sealed: [], resolve, reject, timer };
       this.pending.set(requestId, pending);
 
       try {
@@ -200,14 +200,12 @@ export class RelayClient {
         // is being asked. See relayFrame.ts.
         let sealed: string;
         if (this.opts.memberSeed) {
-          const signed = sealSignedCall(this.opts.frameKey, this.opts.memberSeed, requestId, target, {
+          sealed = sealSignedCall(this.opts.frameKey, this.opts.memberSeed, requestId, target, {
             method,
             path,
             body,
             from: this.opts.selfId,
           });
-          sealed = signed.sealed;
-          pending.call = { from: this.opts.selfId, sig: signed.sig };
         } else {
           sealed = sealCall(this.opts.frameKey, requestId, target, {
             method,
@@ -216,6 +214,7 @@ export class RelayClient {
             from: this.opts.selfId,
           });
         }
+        pending.sealed = base64Decode(sealed);
         this.send(T_PROXY_REQUEST, { requestId, target, sealed });
       } catch (err) {
         clearTimeout(timer);
@@ -437,7 +436,7 @@ export class RelayClient {
         const body = typeof result.body === 'string' ? base64Decode(result.body) : [];
         const key = new Uint8Array(typeof result.key === 'string' ? base64Decode(result.key) : []);
         const sig = new Uint8Array(typeof result.sig === 'string' ? base64Decode(result.sig) : []);
-        if (!verifyResult(data.requestId, p.target, p.call, status, body, key, sig)) {
+        if (!verifyResult(data.requestId, p.target, p.sealed, status, body, key, sig)) {
           p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
           return;
         }

@@ -69,22 +69,23 @@ for (const [kind, name] of [['instance', 'vectorInstanceID'], ['mobile', 'vector
   if (!want(name) || id !== want(name)) problems.push(`the ${kind} id is ${id}, the server makes ${want(name)}`);
 }
 
-// The answer the vector key signs to the vector call, which the phone takes
-// only as it stands and only for that call, and the proof of its id it gives
+// The answer the vector key signs to the call that arrived as the vector's
+// sealed bytes, which the phone takes only as it stands and only for that
+// call as it was sent, and the proof of its id it gives
 // the relay in its hello.
 const fromB64 = (s) => Array.from(Buffer.from(s ?? '', 'base64'));
 const instanceId = want('vectorInstanceID');
 const resultSig = new Uint8Array(fromB64(want('vectorResultSig')));
 const removed = Array.from(Buffer.from('removed'));
 const pub = port.memberPublicKey(seed);
-const asked = { from: fields.from, sig: new Uint8Array(fromB64(sig)) };
+const asked = fromB64(want('vectorSealedCall'));
 if (!port.verifyResult(fields.id, instanceId, asked, 410, removed, pub, resultSig)) {
   problems.push('the server\'s signed answer does not verify; resultMessage differs from relay.ResultMessage');
 }
 if (port.verifyResult(fields.id, instanceId, asked, 200, removed, pub, resultSig)) problems.push('an answer whose status was changed still verifies');
-const otherCall = { from: fields.from, sig: new Uint8Array(64).fill(1) };
-if (port.verifyResult(fields.id, instanceId, otherCall, 410, removed, pub, resultSig)) {
-  problems.push('an answer the instance gave to another call under the same request id verifies');
+const altered = asked.map((b, i) => (i === asked.length - 1 ? b ^ 1 : b));
+if (port.verifyResult(fields.id, instanceId, altered, 410, removed, pub, resultSig)) {
+  problems.push('an answer the instance gave to a call altered on the way verifies');
 }
 const forgerSeed = new Uint8Array(32).fill(9);
 const forgerKey = createPrivateKey({ key: Buffer.concat([Buffer.from('302e020100300506032b657004220420', 'hex'), forgerSeed]), format: 'der', type: 'pkcs8' });
