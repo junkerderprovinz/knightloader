@@ -208,6 +208,42 @@ describe('Instances', () => {
     expect(card('Pixel 8').className).not.toContain('outline-accent');
   });
 
+  it('leaves a device that waits for approval to the Pairing card', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [
+          { id: 'id-laptop', name: 'Laptop', direct: true, relay: false },
+          { id: 'id-new', name: 'Newcomer', direct: true, relay: false },
+        ],
+        apps: [
+          { id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 },
+          { id: 'p2', name: 'Stranger phone', deployment: 'mobile', connected: true, lastSeen: 1 },
+          { id: 'b2', name: 'Stranger browser', deployment: 'extension', connected: true, lastSeen: 1 },
+        ],
+        pending: [
+          { id: 'id-new', name: 'Newcomer', kind: 'instance', fingerprint: 'aaaa bbbb cccc dddd' },
+          { id: 'p2', name: 'Stranger phone', kind: 'mobile', fingerprint: 'eeee ffff 0000 1111' },
+          { id: 'b2', name: 'Stranger browser', kind: 'extension', fingerprint: '2222 3333 4444 5555' },
+        ],
+      },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-new', url: '', relayId: 'id-new', displayName: 'Newcomer' },
+      ],
+    );
+    await draw();
+    expect([...host.querySelectorAll('[data-nk]')].filter((c) => !c.closest('svg')).map((c) => c.getAttribute('data-nk'))).toEqual([
+      'self',
+      'member:id-laptop',
+      'app:p1',
+    ]);
+    const nodes = [...host.querySelectorAll('[data-testid="group-net"] svg.wide g[data-nk]')].map((g) => g.getAttribute('data-nk'));
+    expect(nodes).toEqual(['member:id-laptop', 'app:p1', 'self']);
+    expect(host.textContent).not.toMatch(/Newcomer|Stranger/);
+  });
+
   it('opens the rest about an instance in a window', async () => {
     serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
     await draw();

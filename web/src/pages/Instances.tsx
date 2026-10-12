@@ -157,7 +157,11 @@ export function Instances({
     }
   }
 
-  const apps = group?.apps ?? [];
+  // A device waiting for approval stands only on the Pairing card, where it
+  // can be approved or refused, until it is part of the group.
+  const waiting = new Set((group?.pending ?? []).map((d) => d.id));
+  const apps = (group?.apps ?? []).filter((a) => !waiting.has(a.id));
+  const shown = (peers ?? []).filter((p) => !p.relayId || !waiting.has(p.relayId));
 
   // A group member carries the key the Pairing page gives it, so the two
   // pages name one thing one way.
@@ -169,7 +173,7 @@ export function Instances({
     return member ? (member.direct ? t('pairing.direct') : t('pairing.viaRelay')) : '';
   };
   entryNamed.current = (peer) => {
-    const instance = (peers ?? []).find((p) => p.name === peer || p.relayId === peer);
+    const instance = shown.find((p) => p.name === peer || p.relayId === peer);
     if (instance) return entryOf(instance);
     return apps.some((a) => a.id === peer) ? `app:${peer}` : null;
   };
@@ -177,7 +181,7 @@ export function Instances({
     setAnswers((a) => (a[entry] === online ? a : { ...a, [entry]: online }));
 
   const nodes: NetNode[] = [
-    ...(peers ?? []).map(
+    ...shown.map(
       (p): NetNode => ({
         key: entryOf(p),
         kind: 'instance',
@@ -248,7 +252,7 @@ export function Instances({
           isSelf={ownName !== ''}
           onOpen={() => navigate('/downloads')}
         />
-        {(peers ?? []).map((p, i) => {
+        {shown.map((p, i) => {
           // A group member's own announced address, a stored peer's the one
           // it was added with. Without one, Open shows its downloads here.
           const address = (p.relayId ? p.address : p.url) ?? '';
@@ -278,7 +282,7 @@ export function Instances({
             key={a.id}
             entry={`app:${a.id}`}
             hot={net.hot === `app:${a.id}`}
-            hue={selfHue + 1 + (peers?.length ?? 0) + i}
+            hue={selfHue + 1 + shown.length + i}
             name={a.name || a.id}
             deployment={a.deployment}
             connected={a.connected}
