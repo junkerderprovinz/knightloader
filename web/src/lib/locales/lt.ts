@@ -197,7 +197,7 @@ export const lt: Dict = {
   'pairing.show': 'Rodyti frazę',
   'pairing.passwordLabel': 'Prisijungimo slaptažodis',
   'pairing.passwordTip': 'Žodžiai atveria kiekvieną grupės egzempliorių, todėl norint juos parodyti dar kartą visada prašoma slaptažodžio.',
-  'pairing.wordsNeedPassword': 'Šie žodžiai atveria kiekvieną grupės egzempliorių, todėl KnightLoader juos vėl parodo tik nustačius prisijungimo slaptažodį.',
+  'pairing.wordsWithoutPassword': 'Be slaptažodžio šiuos žodžius gali matyti bet kas, galintis atidaryti šį puslapį. Nustatyk slaptažodį skiltyje {page} ir juos matysi tik tu.',
   'pairing.passwordWrong': 'Tai nėra prisijungimo slaptažodis.',
   'pairing.viaRelay': 'Per relay',
   'pairing.leave': 'Palikti grupę',

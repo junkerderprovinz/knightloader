@@ -197,7 +197,7 @@ export const hi: Dict = {
   'pairing.show': 'वाक्यांश दिखाएँ',
   'pairing.passwordLabel': 'लॉगिन पासवर्ड',
   'pairing.passwordTip': 'ये शब्द समूह के हर इंस्टेंस को खोलते हैं, इसलिए इन्हें दोबारा दिखाने पर हमेशा पासवर्ड पूछा जाता है।',
-  'pairing.wordsNeedPassword': 'ये शब्द समूह के हर इंस्टेंस को खोलते हैं, इसलिए KnightLoader इन्हें दोबारा तभी दिखाता है जब लॉगिन पासवर्ड सेट हो।',
+  'pairing.wordsWithoutPassword': 'पासवर्ड के बिना, इस पेज को खोल सकने वाला कोई भी व्यक्ति ये शब्द देख सकता है। {page} में पासवर्ड सेट करें, फिर इन्हें सिर्फ़ आप देख पाएँगे।',
   'pairing.passwordWrong': 'यह लॉगिन पासवर्ड नहीं है।',
   'pairing.viaRelay': 'रिले के ज़रिए',
   'pairing.leave': 'समूह छोड़ें',

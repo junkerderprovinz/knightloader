@@ -8,7 +8,7 @@ import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { PhraseCard } from './PhraseCard';
 
-// The desktop window is the one place without a password that shows the words again.
+// Nobody else reaches the desktop window, so it shows the words without the warning a browser gets.
 const shell = vi.hoisted(() => ({ desktop: false }));
 vi.mock('../../../lib/desktop', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../../lib/desktop')>()),
@@ -235,13 +235,24 @@ describe('PhraseCard', () => {
     expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
   });
 
-  it('asks a browser for a password instead of showing the words without one', async () => {
+  it('shows a browser the words without a password and warns who else can read them', async () => {
     const calls = answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
-    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(0);
-    expect(dialog()!.textContent).toContain('only shows them again once a login password is set');
-    expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(0);
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
+    expect(dialog()!.querySelector('[data-testid="words-open"]')!.textContent).toContain(
+      'anyone who can open this page can see these words',
+    );
+    expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
+  });
+
+  it('leaves the warning out of the desktop window', async () => {
+    shell.desktop = true;
+    answer({ phrase: WORDS });
+    draw({ joinedAgo: 75, passwordSet: false });
+    await act(async () => tile('Nothing entered over there yet?').click());
+    expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
+    expect(dialog()!.querySelector('[data-testid="words-open"]')).toBeNull();
   });
 
   it('lists this instance, the other instances and every phone, one row each', () => {

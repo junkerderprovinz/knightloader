@@ -197,7 +197,7 @@ export const ja: Dict = {
   'pairing.show': 'フレーズを表示',
   'pairing.passwordLabel': 'ログインパスワード',
   'pairing.passwordTip': 'この単語でグループ内のすべてのインスタンスを開けるため、再表示するときは毎回パスワードが必要です。',
-  'pairing.wordsNeedPassword': 'この単語でグループ内のすべてのインスタンスを開けるため、KnightLoader はログインパスワードが設定されるまで再表示しません。',
+  'pairing.wordsWithoutPassword': 'パスワードがないと、このページを開ける人なら誰でもこれらの単語を見られます。{page} でパスワードを設定すると、あなただけが見られるようになります。',
   'pairing.passwordWrong': 'それはログインパスワードではありません。',
   'pairing.viaRelay': 'リレー経由',
   'pairing.leave': 'グループを抜ける',

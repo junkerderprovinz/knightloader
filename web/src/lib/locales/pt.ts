@@ -191,7 +191,7 @@ export const pt: Dict = {
   'pairing.show': 'Mostrar frase',
   'pairing.passwordLabel': 'Palavra-passe de início de sessão',
   'pairing.passwordTip': 'As palavras abrem todas as instâncias do grupo, por isso mostrá-las de novo pede sempre a palavra-passe.',
-  'pairing.wordsNeedPassword': 'Estas palavras abrem todas as instâncias do grupo, por isso o KnightLoader só as volta a mostrar depois de definida uma palavra-passe de início de sessão.',
+  'pairing.wordsWithoutPassword': 'Sem palavra-passe, qualquer pessoa que consiga abrir esta página pode ver estas palavras. Defina uma em {page} para que só você as veja.',
   'pairing.passwordWrong': 'Essa não é a palavra-passe de início de sessão.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Sair do grupo',

@@ -32,12 +32,11 @@ func sendJSON(t *testing.T, c *http.Client, method, url string, body any) (int, 
 	return resp.StatusCode, refusal.Code, out
 }
 
-// TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles: an instance
-// without a password answers whoever reaches its port. The task list is open
-// to them by design, but the passwords in a backup or an export, the twelve
-// words that open every member of the group and files that cannot come back
-// wait until a password is set.
-func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
+// TestWithoutAPasswordNoStoredPasswordsOrFilesGo: an instance without a
+// password answers whoever reaches its port. The task list and the twelve
+// words are open to them, but the passwords in a backup or an export and
+// files that cannot come back wait until a password is set.
+func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
@@ -66,7 +65,6 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
 		{http.MethodGet, "/api/settings/export?secrets=include", nil},
-		{http.MethodPost, "/api/connect/reveal", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},
 		{http.MethodPost, "/api/cleanup/offline", cleanup(c)},
@@ -83,6 +81,11 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 	// What gives nothing away and takes nothing for good stays open.
 	if code, _, _ := sendJSON(t, c, http.MethodGet, srv.URL+"/api/settings/export", nil); code != http.StatusOK {
 		t.Errorf("an export without passwords answered %d, want 200", code)
+	}
+	var shown struct{ Phrase string }
+	code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
+	if err := json.Unmarshal(body, &shown); code != http.StatusOK || err != nil || shown.Phrase == "" {
+		t.Errorf("showing the twelve words again answered %d %.80s, want 200 with the phrase", code, body)
 	}
 	if code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/tasks/delete", map[string]any{"ids": []string{task.ID}}); code != http.StatusOK {
 		t.Errorf("taking a row off the list answered %d: %s", code, body)

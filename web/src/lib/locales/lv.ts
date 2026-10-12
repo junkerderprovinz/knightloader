@@ -197,7 +197,7 @@ export const lv: Dict = {
   'pairing.show': 'Rādīt frāzi',
   'pairing.passwordLabel': 'Pieteikšanās parole',
   'pairing.passwordTip': 'Vārdi atver katru grupas instanci, tāpēc, lai tos parādītu vēlreiz, vienmēr tiek prasīta parole.',
-  'pairing.wordsNeedPassword': 'Šie vārdi atver katru grupas instanci, tāpēc KnightLoader tos parāda vēlreiz tikai tad, kad ir iestatīta pieteikšanās parole.',
+  'pairing.wordsWithoutPassword': 'Bez paroles šos vārdus var redzēt ikviens, kurš var atvērt šo lapu. Iestati paroli sadaļā {page}, un tos redzēsi tikai tu.',
   'pairing.passwordWrong': 'Tā nav pieteikšanās parole.',
   'pairing.viaRelay': 'Caur relay',
   'pairing.leave': 'Pamest grupu',

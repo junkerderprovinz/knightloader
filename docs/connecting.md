@@ -247,12 +247,14 @@ the browser extension always come through a relay, so they need one.
 card says that anyone who can open this web interface can control it, and
 through it the downloads of every instance in the group, with a button to the
 Security page, where the password is set. The note can be closed, and stays
-closed in that browser. Without a password the words are shown once, when the
-group is made, and not again until a password is set; only the desktop app's
-own window, which nobody else can reach, shows them without one. With a password set, **showing the phrase again**
-asks for it once more. A live session is not enough: it may have been opened
-hours ago on a screen nobody is sitting at, and what is behind that button is
-not this instance's password but the key to every instance in the group.
+closed in that browser. Without a password **showing the phrase again** opens
+the words straight away, with a warning above them that anyone who can open the
+page can see them and a button to the Security page. The desktop app's own
+window, which nobody else can reach, shows them without that warning. With a
+password set, **showing the phrase again** asks for it once more. A live
+session is not enough: it may have been opened hours ago on a screen nobody is
+sitting at, and what is behind that button is not this instance's password but
+the key to every instance in the group.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.
@@ -600,10 +602,10 @@ marks as started by another site (`Sec-Fetch-Site: cross-site`) gets a 403 on
 every route.
 
 Without a password set, the API is open to whoever reaches the port, apart
-from four things: downloading a backup, exporting the settings with their
-passwords, showing the twelve words again and deleting downloaded files.
-Those answer 403 with the code `passwordNotSet` until a password is set. The
-desktop app opens no port, so its window can do all four without one.
+from three things: downloading a backup, exporting the settings with their
+passwords and deleting downloaded files. Those answer 403 with the code
+`passwordNotSet` until a password is set. The desktop app opens no port, so
+its window can do all three without one.
 
 The rights are kept in `token-scopes.json` beside `tokens.json` in the data
 directory. A token stays as narrow as it was even after going back to a

@@ -197,7 +197,7 @@ export const ko: Dict = {
   'pairing.show': '문구 표시',
   'pairing.passwordLabel': '로그인 비밀번호',
   'pairing.passwordTip': '이 단어로 그룹의 모든 인스턴스를 열 수 있으므로, 다시 표시할 때마다 비밀번호를 묻습니다.',
-  'pairing.wordsNeedPassword': '이 단어로 그룹의 모든 인스턴스를 열 수 있으므로, KnightLoader는 로그인 비밀번호가 설정된 뒤에만 다시 보여 줍니다.',
+  'pairing.wordsWithoutPassword': '비밀번호가 없으면 이 페이지를 열 수 있는 사람은 누구나 이 단어를 볼 수 있습니다. {page}에서 비밀번호를 설정하면 본인만 볼 수 있습니다.',
   'pairing.passwordWrong': '로그인 비밀번호가 아닙니다.',
   'pairing.viaRelay': '릴레이 경유',
   'pairing.leave': '그룹 나가기',

@@ -191,7 +191,7 @@ export const es: Dict = {
   'pairing.show': 'Mostrar frase',
   'pairing.passwordLabel': 'Contraseña de acceso',
   'pairing.passwordTip': 'Las palabras abren todas las instancias del grupo, por eso volver a mostrarlas siempre pide la contraseña.',
-  'pairing.wordsNeedPassword': 'Estas palabras abren todas las instancias del grupo, por eso KnightLoader solo vuelve a mostrarlas cuando hay una contraseña de acceso.',
+  'pairing.wordsWithoutPassword': 'Sin contraseña, cualquiera que pueda abrir esta página puede ver estas palabras. Establezca una en {page} y solo usted las verá.',
   'pairing.passwordWrong': 'Esa no es la contraseña de acceso.',
   'pairing.viaRelay': 'Vía repetidor',
   'pairing.leave': 'Salir del grupo',

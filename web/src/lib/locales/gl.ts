@@ -197,7 +197,7 @@ export const gl: Dict = {
   'pairing.show': 'Amosar frase',
   'pairing.passwordLabel': 'Contrasinal de acceso',
   'pairing.passwordTip': 'As palabras abren todas as instancias do grupo, así que amosalas de novo sempre pide o contrasinal.',
-  'pairing.wordsNeedPassword': 'Estas palabras abren todas as instancias do grupo, por iso KnightLoader só as volve amosar cando hai un contrasinal de acceso.',
+  'pairing.wordsWithoutPassword': 'Sen contrasinal, calquera que poida abrir esta páxina pode ver estas palabras. Define un en {page} e só ti as verás.',
   'pairing.passwordWrong': 'Ese non é o contrasinal de acceso.',
   'pairing.viaRelay': 'Vía relé',
   'pairing.leave': 'Deixar o grupo',

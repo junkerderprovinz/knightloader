@@ -191,7 +191,7 @@ export const fr: Dict = {
   'pairing.show': 'Afficher la phrase',
   'pairing.passwordLabel': 'Mot de passe de connexion',
   'pairing.passwordTip': 'Les mots ouvrent chaque instance du groupe : les afficher à nouveau demande donc toujours le mot de passe.',
-  'pairing.wordsNeedPassword': 'Ces mots ouvrent chaque instance du groupe : KnightLoader ne les affiche donc à nouveau qu’une fois un mot de passe de connexion défini.',
+  'pairing.wordsWithoutPassword': 'Sans mot de passe, toute personne qui peut ouvrir cette page peut voir ces mots. Définissez-en un dans {page} et vous seul les verrez.',
   'pairing.passwordWrong': "Ce n'est pas le mot de passe de connexion.",
   'pairing.viaRelay': 'Via le relais',
   'pairing.leave': 'Quitter le groupe',

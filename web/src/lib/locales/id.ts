@@ -197,7 +197,7 @@ export const id: Dict = {
   'pairing.show': 'Tampilkan frasa',
   'pairing.passwordLabel': 'Kata sandi login',
   'pairing.passwordTip': 'Kata-kata ini membuka setiap instance dalam grup, jadi menampilkannya lagi selalu meminta kata sandi.',
-  'pairing.wordsNeedPassword': 'Kata-kata ini membuka setiap instance dalam grup, jadi KnightLoader baru menampilkannya lagi setelah kata sandi login disetel.',
+  'pairing.wordsWithoutPassword': 'Tanpa kata sandi, siapa pun yang bisa membuka halaman ini bisa melihat kata-kata ini. Atur kata sandi di {page}, maka hanya kamu yang bisa melihatnya.',
   'pairing.passwordWrong': 'Itu bukan kata sandi login.',
   'pairing.viaRelay': 'Melalui relay',
   'pairing.leave': 'Tinggalkan grup',

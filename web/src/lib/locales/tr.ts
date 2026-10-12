@@ -197,7 +197,7 @@ export const tr: Dict = {
   'pairing.show': 'İfadeyi göster',
   'pairing.passwordLabel': 'Giriş parolası',
   'pairing.passwordTip': 'Kelimeler gruptaki her örneği açar, bu yüzden onları yeniden göstermek her zaman parola ister.',
-  'pairing.wordsNeedPassword': 'Bu kelimeler gruptaki her örneği açar, bu yüzden KnightLoader onları ancak bir giriş parolası ayarlandıktan sonra yeniden gösterir.',
+  'pairing.wordsWithoutPassword': 'Parola olmadan bu sayfayı açabilen herkes bu kelimeleri görebilir. {page} bölümünden bir parola belirleyin, böylece onları yalnızca siz görürsünüz.',
   'pairing.passwordWrong': 'Bu, giriş parolası değil.',
   'pairing.viaRelay': 'Röle üzerinden',
   'pairing.leave': 'Gruptan ayrıl',

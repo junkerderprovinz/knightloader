@@ -197,7 +197,7 @@ export const ms: Dict = {
   'pairing.show': 'Tunjukkan frasa',
   'pairing.passwordLabel': 'Kata laluan log masuk',
   'pairing.passwordTip': 'Perkataan ini membuka setiap instans dalam kumpulan, jadi menunjukkannya semula sentiasa memerlukan kata laluan.',
-  'pairing.wordsNeedPassword': 'Perkataan ini membuka setiap instans dalam kumpulan, jadi KnightLoader hanya menunjukkannya semula selepas kata laluan log masuk ditetapkan.',
+  'pairing.wordsWithoutPassword': 'Tanpa kata laluan, sesiapa yang boleh membuka halaman ini boleh melihat perkataan ini. Tetapkan kata laluan di {page} dan hanya anda yang dapat melihatnya.',
   'pairing.passwordWrong': 'Itu bukan kata laluan log masuk.',
   'pairing.viaRelay': 'Melalui relay',
   'pairing.leave': 'Tinggalkan kumpulan',

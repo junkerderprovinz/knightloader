@@ -245,7 +245,7 @@ export const en = {
   'pairing.show': 'Show phrase',
   'pairing.passwordLabel': 'Login password',
   'pairing.passwordTip': 'The words open every instance in the group, so showing them again always asks for the password.',
-  'pairing.wordsNeedPassword': 'These words open every instance in the group, so KnightLoader only shows them again once a login password is set.',
+  'pairing.wordsWithoutPassword': 'Without a password, anyone who can open this page can see these words. Set one under {page} and only you will see them.',
   'pairing.passwordWrong': 'That is not the login password.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Leave group',
