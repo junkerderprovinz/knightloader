@@ -3652,4 +3652,5 @@ export const ko: Dict = {
   'test.sent': '전송됨',
   'test.confirmed': '확인됨',
   'test.unconfirmed': '확인되지 않음',
+  'whatsnew.change.volumeControls': '“{name}”의 선택 항목은 차트 아래 한 줄에 놓이고, 각각 레이블에 필요한 너비만 차지합니다.',
 };

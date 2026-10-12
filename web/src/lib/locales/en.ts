@@ -3911,6 +3911,7 @@ export const en = {
   'test.sent': 'Sent',
   'test.confirmed': 'Confirmed',
   'test.unconfirmed': 'Not confirmed',
+  'whatsnew.change.volumeControls': '"{name}" keeps its choices in one row under the chart, each only as wide as its labels.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

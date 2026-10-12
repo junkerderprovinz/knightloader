@@ -3647,4 +3647,5 @@ export const zh: Dict = {
   'test.sent': '已发送',
   'test.confirmed': '已确认',
   'test.unconfirmed': '未确认',
+  'whatsnew.change.volumeControls': '“{name}”的选项排成图表下方的一行，每个选项只占其标签所需的宽度。',
 };

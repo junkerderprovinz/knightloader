@@ -3665,4 +3665,5 @@ export const sv: Dict = {
   'test.sent': 'Skickat',
   'test.confirmed': 'Bekräftat',
   'test.unconfirmed': 'Inte bekräftat',
+  'whatsnew.change.volumeControls': '”{name}” har sina val på en rad under diagrammet, vart och ett bara så brett som sina etiketter.',
 };

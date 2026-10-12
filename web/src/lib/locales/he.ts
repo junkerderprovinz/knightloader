@@ -3682,4 +3682,5 @@ export const he: Dict = {
   'test.sent': 'נשלח',
   'test.confirmed': 'אושר',
   'test.unconfirmed': 'לא אושר',
+  'whatsnew.change.volumeControls': '„{name}” מציג את הבחירות שלו בשורה אחת מתחת לתרשים, כל אחת ברוחב התוויות שלה בלבד.',
 };

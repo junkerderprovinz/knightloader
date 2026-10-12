@@ -3645,4 +3645,5 @@ export const ru: Dict = {
   'test.sent': 'Отправлено',
   'test.confirmed': 'Подтверждено',
   'test.unconfirmed': 'Не подтверждено',
+  'whatsnew.change.volumeControls': 'У «{name}» все переключатели стоят в одну строку под графиком, и каждый шириной ровно по своим подписям.',
 };

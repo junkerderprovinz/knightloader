@@ -3664,4 +3664,5 @@ export const sl: Dict = {
   'test.sent': 'Poslano',
   'test.confirmed': 'Potrjeno',
   'test.unconfirmed': 'Ni potrjeno',
+  'whatsnew.change.volumeControls': '»{name}« ima svoje izbire v eni vrstici pod grafom, vsako le tako široko kot njene oznake.',
 };

@@ -3653,4 +3653,5 @@ export const ca: Dict = {
   'test.sent': 'Enviat',
   'test.confirmed': 'Confirmat',
   'test.unconfirmed': 'Sense confirmar',
+  'whatsnew.change.volumeControls': '«{name}» té les seves opcions en una fila sota el gràfic, cadascuna només tan ampla com les seves etiquetes.',
 };

@@ -3661,4 +3661,5 @@ export const ja: Dict = {
   'test.sent': '送信済み',
   'test.confirmed': '確認済み',
   'test.unconfirmed': '未確認',
+  'whatsnew.change.volumeControls': '「{name}」の選択肢はグラフの下に一列に並び、それぞれラベルに必要な幅だけを取ります。',
 };

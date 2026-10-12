@@ -3665,4 +3665,5 @@ export const vi: Dict = {
   'test.sent': 'Đã gửi',
   'test.confirmed': 'Đã xác nhận',
   'test.unconfirmed': 'Chưa xác nhận',
+  'whatsnew.change.volumeControls': '“{name}” đặt các lựa chọn trên một hàng dưới biểu đồ, mỗi lựa chọn chỉ rộng bằng nhãn của nó.',
 };

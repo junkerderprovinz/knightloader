@@ -3669,4 +3669,5 @@ export const de: Dict = {
   'test.sent': 'Gesendet',
   'test.confirmed': 'Bestätigt',
   'test.unconfirmed': 'Nicht bestätigt',
+  'whatsnew.change.volumeControls': '„{name}“ hat seine Auswahl in einer Zeile unter dem Diagramm, jede nur so breit wie ihre Beschriftungen.',
 };

@@ -3667,4 +3667,5 @@ export const lt: Dict = {
   'test.sent': 'Išsiųsta',
   'test.confirmed': 'Patvirtinta',
   'test.unconfirmed': 'Nepatvirtinta',
+  'whatsnew.change.volumeControls': '„{name}“ pasirinkimai stovi vienoje eilutėje po diagrama, kiekvienas tik tokio pločio, kokio reikia jo užrašams.',
 };

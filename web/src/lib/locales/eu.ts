@@ -3662,4 +3662,5 @@ export const eu: Dict = {
   'test.sent': 'Bidalita',
   'test.confirmed': 'Berretsita',
   'test.unconfirmed': 'Berretsi gabe',
+  'whatsnew.change.volumeControls': '«{name}» txartelak bere aukerak errenkada bakarrean ditu grafikoaren azpian, bakoitza bere etiketak bezain zabal.',
 };

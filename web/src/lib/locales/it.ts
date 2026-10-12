@@ -3649,4 +3649,5 @@ export const it: Dict = {
   'test.sent': 'Inviato',
   'test.confirmed': 'Confermato',
   'test.unconfirmed': 'Non confermato',
+  'whatsnew.change.volumeControls': '«{name}» tiene le sue scelte in una riga sotto il grafico, ognuna larga solo quanto le sue etichette.',
 };

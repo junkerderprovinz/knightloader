@@ -3666,4 +3666,5 @@ export const hi: Dict = {
   'test.sent': 'भेजा गया',
   'test.confirmed': 'पुष्टि हुई',
   'test.unconfirmed': 'पुष्टि नहीं हुई',
+  'whatsnew.change.volumeControls': '“{name}” अपने विकल्प चार्ट के नीचे एक ही पंक्ति में रखता है, हर एक बस अपने लेबल जितना चौड़ा।',
 };

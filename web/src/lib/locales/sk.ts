@@ -3675,4 +3675,5 @@ export const sk: Dict = {
   'test.sent': 'Odoslané',
   'test.confirmed': 'Potvrdené',
   'test.unconfirmed': 'Nepotvrdené',
+  'whatsnew.change.volumeControls': '„{name}“ má svoje voľby v jednom riadku pod grafom, každú len takú širokú ako jej popisy.',
 };

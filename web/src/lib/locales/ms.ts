@@ -3665,4 +3665,5 @@ export const ms: Dict = {
   'test.sent': 'Dihantar',
   'test.confirmed': 'Disahkan',
   'test.unconfirmed': 'Belum disahkan',
+  'whatsnew.change.volumeControls': '“{name}” meletakkan pilihannya dalam satu baris di bawah carta, setiap satu hanya selebar labelnya.',
 };

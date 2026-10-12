@@ -3657,4 +3657,5 @@ export const et: Dict = {
   'test.sent': 'Saadetud',
   'test.confirmed': 'Kinnitatud',
   'test.unconfirmed': 'Kinnitamata',
+  'whatsnew.change.volumeControls': '„{name}“ hoiab oma valikuid ühes reas graafiku all, igaüks ainult nii lai kui tema sildid.',
 };

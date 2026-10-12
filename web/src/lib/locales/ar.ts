@@ -3662,4 +3662,5 @@ export const ar: Dict = {
   'test.sent': 'تم الإرسال',
   'test.confirmed': 'تم التأكيد',
   'test.unconfirmed': 'غير مؤكَّد',
+  'whatsnew.change.volumeControls': 'تضع «{name}» خياراتها في صف واحد تحت المخطط، وكل منها بعرض تسمياته فقط.',
 };

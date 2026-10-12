@@ -3667,4 +3667,5 @@ export const el: Dict = {
   'test.sent': 'Στάλθηκε',
   'test.confirmed': 'Επιβεβαιώθηκε',
   'test.unconfirmed': 'Δεν επιβεβαιώθηκε',
+  'whatsnew.change.volumeControls': 'Το «{name}» έχει τις επιλογές του σε μία σειρά κάτω από το διάγραμμα, καθεμία μόνο τόσο φαρδιά όσο οι ετικέτες της.',
 };

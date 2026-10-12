@@ -3679,4 +3679,5 @@ export const sr: Dict = {
   'test.sent': 'Послато',
   'test.confirmed': 'Потврђено',
   'test.unconfirmed': 'Није потврђено',
+  'whatsnew.change.volumeControls': '„{name}“ држи своје изборе у једном реду испод графикона, сваки само онолико широк колико његове ознаке.',
 };
