@@ -279,6 +279,7 @@ function PhoneCard() {
         {/* Built so F-Droid can take it, and not listed there yet. */}
         <ReadmeButton
           brand="fdroid"
+          data-new="fdroid"
           parts={[{ name: 'F-Droid', href: APP_URLS.fdroid }]}
           mark={<BrandMark svg={FDROID_SVG} />}
           soonLabel={soon}

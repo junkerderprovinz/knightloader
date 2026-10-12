@@ -3571,6 +3571,7 @@ export function TaskListCard({
                 ref={stripRef}
                 className="relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
+                data-new="row-pick"
                 aria-multiselectable="true"
                 aria-label={title}
                 tabIndex={keys.stripTabIndex}

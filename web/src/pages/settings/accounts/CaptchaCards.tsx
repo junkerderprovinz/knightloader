@@ -85,7 +85,7 @@ export function CaptchaCards({
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-1">
+      <Card hue={hue} data-new="captcha-cards" className="flex flex-col gap-1">
         <SectionTitle hint={t('settings.captcha.orderHint')}>{t('settings.captcha.orderTitle')}</SectionTitle>
         <ModuleToggle id="captcha" />
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{t('settings.captcha.orderEmpty')}</p>}

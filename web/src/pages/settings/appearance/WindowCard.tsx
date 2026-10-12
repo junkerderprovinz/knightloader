@@ -51,7 +51,7 @@ export function WindowCard({ hue }: { hue: number }) {
   const noTray = !prefs.trayAvailable;
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
+    <Card hue={hue} data-new="window-card" className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.window.hint')}>{t('settings.window.title')}</SectionTitle>
       {noTray && <p className="text-sm text-carbon-textSub">{t('settings.window.noTray')}</p>}
       <ToggleRow

@@ -15,7 +15,7 @@ export function MirrorsCard({ hue }: { hue: number }) {
   const policies = options?.mirrorPolicies ?? [];
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="mirror-policy" className="flex flex-col gap-5">
       <SectionTitle>{tx('settings.advanced.mirrorsTitle')}</SectionTitle>
 
       {/* Drawn only once the server answered, since dedupe.ParsePolicy
