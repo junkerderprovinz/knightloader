@@ -49,6 +49,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"slices"
 	"strings"
 )
 
@@ -116,7 +117,7 @@ func Fingerprint(key []byte) string {
 const (
 	callDomain   = "knightloader/relay/member-call/v2\x00"
 	resultDomain = "knightloader/relay/member-result/v3\x00"
-	helloDomain  = "knightloader/relay/member-hello/v2\x00"
+	helloDomain  = "knightloader/relay/member-hello/v3\x00"
 )
 
 // ErrSignature is returned for a call that opens but whose signature does not
@@ -193,37 +194,44 @@ func verifyCall(target string, c ProxyCall) bool {
 // IDProof shows that a connection holds the key its announced id is made
 // from. Only a connection that shows it takes the place of one already
 // connected under that id. It signs the challenge the relay sent on that
-// connection, so a hello somebody saw proves nothing on another one.
+// connection, so a hello somebody saw proves nothing on another one, and it
+// names the relay the member dialled (RelayHost), so another relay that passes
+// on its own challenge gets a proof it cannot use.
 type IDProof struct {
-	Kind string `json:"kind"`
-	Key  []byte `json:"key"`
-	Sig  []byte `json:"sig"`
+	Kind  string `json:"kind"`
+	Relay string `json:"relay"`
+	Key   []byte `json:"key"`
+	Sig   []byte `json:"sig"`
 }
 
 // HelloMessage is what a member signs to prove that id is its own on the
-// relay key key, on the connection the relay sent challenge on.
-func HelloMessage(key, id, kind string, challenge []byte) []byte {
-	return signedMessage(helloDomain, 0, []byte(key), []byte(id), []byte(kind), challenge)
+// relay key key, at the relay it reached under the host name relay, on the
+// connection that relay sent challenge on.
+func HelloMessage(key, relay, id, kind string, challenge []byte) []byte {
+	return signedMessage(helloDomain, 0, []byte(key), []byte(relay), []byte(id), []byte(kind), challenge)
 }
 
 // ProveID signs the proof that member, a member of kind, holds id on the relay
-// key key, for the connection the relay sent challenge on.
-func ProveID(member ed25519.PrivateKey, kind, key, id string, challenge []byte) *IDProof {
+// key key, for the connection on which the relay it reached as relay sent
+// challenge.
+func ProveID(member ed25519.PrivateKey, kind, key, relay, id string, challenge []byte) *IDProof {
 	return &IDProof{
-		Kind: kind,
-		Key:  member.Public().(ed25519.PublicKey),
-		Sig:  ed25519.Sign(member, HelloMessage(key, id, kind, challenge)),
+		Kind:  kind,
+		Relay: relay,
+		Key:   member.Public().(ed25519.PublicKey),
+		Sig:   ed25519.Sign(member, HelloMessage(key, relay, id, kind, challenge)),
 	}
 }
 
 // proves reports whether h shows the key its announced id is made from, on the
-// connection the relay sent challenge on.
-func (h Hello) proves(challenge []byte) bool {
+// connection the relay sent challenge on, to a relay going by one of names.
+func (h Hello) proves(challenge []byte, names []string) bool {
 	p := h.Proof
-	if p == nil || MemberID(p.Kind, p.Key) != h.Announce.InstanceID || len(p.Sig) != ed25519.SignatureSize {
+	if p == nil || MemberID(p.Kind, p.Key) != h.Announce.InstanceID || len(p.Sig) != ed25519.SignatureSize ||
+		p.Relay == "" || !slices.Contains(names, p.Relay) {
 		return false
 	}
-	return ed25519.Verify(p.Key, HelloMessage(h.Key, h.Announce.InstanceID, p.Kind, challenge), p.Sig)
+	return ed25519.Verify(p.Key, HelloMessage(h.Key, p.Relay, h.Announce.InstanceID, p.Kind, challenge), p.Sig)
 }
 
 // RefusalBody is the answer body of a refused call, in the {error, code} shape

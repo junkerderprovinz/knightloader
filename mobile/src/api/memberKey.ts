@@ -26,7 +26,7 @@ export interface SignedFields {
 
 const CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
 const RESULT_DOMAIN = 'knightloader/relay/member-result/v3\x00';
-const HELLO_DOMAIN = 'knightloader/relay/member-hello/v2\x00';
+const HELLO_DOMAIN = 'knightloader/relay/member-hello/v3\x00';
 
 /** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
 function uint64(n: number): number[] {
@@ -61,10 +61,11 @@ export function resultMessage(requestId: string, from: string, sealedCall: numbe
   return signedMessage(RESULT_DOMAIN, status, [requestId, from, Array.from(sha256(new Uint8Array(sealedCall))), body]);
 }
 
-/** Mirrors relay.HelloMessage. challenge is what the relay sent first on the
+/** Mirrors relay.HelloMessage. relay is the relay the phone dialled, as
+ *  relayHost names it, and challenge what that relay sent first on the
  *  connection the hello goes out on. */
-export function helloMessage(relayKey: string, id: string, kind: string, challenge: Uint8Array): Uint8Array {
-  return signedMessage(HELLO_DOMAIN, 0, [relayKey, id, kind, Array.from(challenge)]);
+export function helloMessage(relayKey: string, relay: string, id: string, kind: string, challenge: Uint8Array): Uint8Array {
+  return signedMessage(HELLO_DOMAIN, 0, [relayKey, relay, id, kind, Array.from(challenge)]);
 }
 
 /** The public half of the member key a 32-byte seed makes. */
@@ -96,10 +97,10 @@ export function signCall(seed: Uint8Array, target: string, call: SignedFields): 
 
 /** Mirrors relay.ProveID: the signature with which this phone proves on the
  *  relay key relayKey that id is its own, so the relay lets it take the place
- *  of a connection it left behind. It holds only on the connection the relay
- *  sent challenge on. */
-export function proveId(seed: Uint8Array, relayKey: string, id: string, challenge: Uint8Array): Uint8Array {
-  return ed25519.sign(helloMessage(relayKey, id, 'mobile', challenge), seed);
+ *  of a connection it left behind. It holds only at the relay it names, on the
+ *  connection that relay sent challenge on. */
+export function proveId(seed: Uint8Array, relayKey: string, relay: string, id: string, challenge: Uint8Array): Uint8Array {
+  return ed25519.sign(helloMessage(relayKey, relay, id, 'mobile', challenge), seed);
 }
 
 /** Mirrors relay.VerifyResult: whether an answer to this phone's own call,

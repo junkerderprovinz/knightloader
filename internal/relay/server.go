@@ -147,6 +147,14 @@ type Server struct {
 	// joined the key under an answer that no longer holds are dropped then.
 	Confine func(key string) string
 
+	// Names gives, for the request a connection arrives with, the host names
+	// (RelayHost) this relay goes by, one of which a hello's proof has to name.
+	// It gets the request so a relay that knows its names only by rule can
+	// judge the Host header. nil takes the Host header as it is, which
+	// whoever opens the connection writes, so only a relay that sets Names
+	// keeps another relay from passing its challenge on to a member.
+	Names func(r *http.Request) []string
+
 	// TrustedProxies lists the reverse proxies whose X-Forwarded-For names
 	// the caller for the handshake throttle. nil trusts none. A function for
 	// the same reason as Admit.
@@ -186,6 +194,14 @@ func (cl *client) sees(other *client) bool {
 // sees everybody and must still not reach a device kept away from it.
 func (cl *client) meets(other *client) bool {
 	return cl.sees(other) && other.sees(cl)
+}
+
+// names is what a hello's proof on r may name as its relay.
+func (s *Server) names(r *http.Request) []string {
+	if s.Names == nil {
+		return []string{RelayHost(r.Host)}
+	}
+	return s.Names(r)
 }
 
 // admits reports whether key may connect. Admit is read without the lock
@@ -616,7 +632,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.limiter.succeed(addr)
-	if err := s.Join(hello.Key, c, hello.Announce, hello.proves(challenge)); err != nil {
+	if err := s.Join(hello.Key, c, hello.Announce, hello.proves(challenge, s.names(r))); err != nil {
 		c.Close(websocket.StatusPolicyViolation, err.Error())
 		return
 	}

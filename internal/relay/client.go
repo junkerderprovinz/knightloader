@@ -18,6 +18,7 @@ import (
 	"errors"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"sort"
@@ -110,7 +111,9 @@ type ClientOptions struct {
 // caller waiting for the relay.
 type Client struct {
 	url string
-	key string
+	// relayHost is what the hello names as the relay it is meant for.
+	relayHost string
+	key       string
 	// frameKey seals and opens every proxy frame. Unlike key it never leaves
 	// the process.
 	frameKey []byte
@@ -157,6 +160,7 @@ func NewClient(opts ClientOptions) (*Client, error) {
 	}
 	return &Client{
 		url:        connect,
+		relayHost:  RelayHost(connect),
 		key:        opts.Key,
 		frameKey:   opts.FrameKey,
 		self:       opts.Self,
@@ -396,7 +400,7 @@ func (c *Client) session() {
 	helloCtx, helloCancel := context.WithTimeout(ctx, writeTimeout)
 	hello := Hello{Key: c.key, Announce: self}
 	if c.member != nil {
-		hello.Proof = ProveID(c.member, KindInstance, c.key, c.self.InstanceID, challenge)
+		hello.Proof = ProveID(c.member, KindInstance, c.key, c.relayHost, c.self.InstanceID, challenge)
 	}
 	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, hello))
 	helloCancel()
@@ -647,4 +651,25 @@ func connectURL(raw string) (string, error) {
 	}
 	u.Path, u.RawPath = p, ""
 	return u.String(), nil
+}
+
+// RelayHost is the name a hello's proof gives the relay it is meant for: the
+// host of address, a URL or a bare host with or without a port, in lower case
+// and without the port, the brackets of an IPv6 literal or the dot of a fully
+// qualified name. The port is left out because a reverse proxy in front of a
+// relay listens on another one than the relay itself.
+func RelayHost(address string) string {
+	address = strings.TrimSpace(address)
+	if !strings.Contains(address, "://") {
+		address = "http://" + address
+	}
+	u, err := url.Parse(address)
+	if err != nil {
+		return ""
+	}
+	host := u.Host
+	if h, _, err := net.SplitHostPort(host); err == nil {
+		host = h
+	}
+	return strings.ToLower(strings.TrimSuffix(strings.Trim(host, "[]"), "."))
 }

@@ -22,6 +22,14 @@
 // for a proxy container on a Docker network, and a range only when the proxy
 // is the sole thing in it: anybody else inside could otherwise pick the
 // address the throttle counts.
+//
+// KL_RELAY_PUBLIC_URL is the address instances dial the relay at, such as
+// https://relay.example.com, or several separated by commas. A hello proves an
+// instance's id only to the relay it names, so another relay the instance
+// dials with the same key cannot pass this one's challenge on to it. The names
+// in KL_RELAY_DOMAIN count too. With neither set the relay goes by the Host
+// header each connection arrives with, which whoever opens the connection
+// writes, so a relay reachable from outside sets one of the two.
 package main
 
 import (
@@ -79,6 +87,20 @@ func main() {
 		log.Fatalf("KL_RELAY_TRUSTED_PROXIES: %v", err)
 	}
 	r.TrustedProxies = func() []netip.Prefix { return trusted }
+
+	// KL_RELAY_DOMAIN is a comma-separated list because the relay address is
+	// compiled into released builds, so after a move the old name still needs
+	// a certificate until nothing dials it.
+	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
+	names, err := relayNames(os.Getenv("KL_RELAY_PUBLIC_URL"), domains)
+	if err != nil {
+		log.Fatalf("KL_RELAY_PUBLIC_URL: %v", err)
+	}
+	if len(names) > 0 {
+		r.Names = func(*http.Request) []string { return names }
+	} else {
+		log.Printf("neither KL_RELAY_PUBLIC_URL nor KL_RELAY_DOMAIN is set, so a hello is checked against the Host header it arrives with")
+	}
 	// The request path sweeps too, but only while traffic arrives. The timer
 	// keeps the 61 minute retention promised in extension/PRIVACY.md on a
 	// quiet relay.
@@ -95,10 +117,6 @@ func main() {
 	})
 	mux.Handle("GET /relay/connect", r)
 
-	// KL_RELAY_DOMAIN is a comma-separated list because the relay address is
-	// compiled into released builds, so after a move the old name still needs
-	// a certificate until nothing dials it.
-	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
 	domain := ""
 	if len(domains) > 0 {
 		domain = domains[0]
@@ -216,6 +234,23 @@ func splitNames(v string) []string {
 		}
 	}
 	return out
+}
+
+// relayNames is what a hello may name as this relay: the host of each address
+// in the comma-separated KL_RELAY_PUBLIC_URL, and each name in domains.
+func relayNames(publicURL string, domains []string) ([]string, error) {
+	var names []string
+	for _, address := range splitNames(publicURL) {
+		name := relay.RelayHost(address)
+		if name == "" {
+			return nil, fmt.Errorf("%q names no host", address)
+		}
+		names = append(names, name)
+	}
+	for _, d := range domains {
+		names = append(names, relay.RelayHost(d))
+	}
+	return names, nil
 }
 
 // trustedProxies reads the comma-separated addresses and CIDR ranges of the

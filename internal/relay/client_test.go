@@ -559,6 +559,31 @@ func TestConnectURL(t *testing.T) {
 	}
 }
 
+// TestRelayHost: the relay a hello's proof names. The app's port is held to
+// these rows by mobile/check-relay-url.mjs.
+func TestRelayHost(t *testing.T) {
+	tests := []struct {
+		name string
+		in   string
+		want string
+	}{
+		{"a dialled address", "wss://relay.example.com/relay/connect", "relay.example.com"},
+		{"the port goes", "ws://192.168.20.30:8760/relay/connect", "192.168.20.30"},
+		{"in lower case", "https://Relay.Example.COM", "relay.example.com"},
+		{"without the dot of a full name", "https://relay.example.com./kl", "relay.example.com"},
+		{"an IPv6 literal without its brackets", "ws://[::1]:8760/relay/connect", "::1"},
+		{"a bare host", "relay.example.com", "relay.example.com"},
+		{"a bare host and a port", "127.0.0.1:8760", "127.0.0.1"},
+		{"whitespace from a setting", "  https://relay.example.com  ", "relay.example.com"},
+		{"empty", "", ""},
+	}
+	for _, tc := range tests {
+		if got := RelayHost(tc.in); got != tc.want {
+			t.Errorf("%s: RelayHost(%q) = %q, want %q", tc.name, tc.in, got, tc.want)
+		}
+	}
+}
+
 func TestNewClientRejectsMisconfiguration(t *testing.T) {
 	valid := ClientOptions{
 		URL:      "https://relay.example.com",

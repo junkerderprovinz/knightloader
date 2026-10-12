@@ -92,3 +92,19 @@ func TestTrustedProxiesReadsAddressesAndRanges(t *testing.T) {
 		t.Error("a host name was taken for a trusted proxy")
 	}
 }
+
+func TestTheRelayGoesByItsPublicAddressAndItsDomains(t *testing.T) {
+	got, err := relayNames(" https://Relay.Example.com/relay/connect, wss://old.example.com:8443 ", []string{"relay.example.org"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"relay.example.com", "old.example.com", "relay.example.org"}; !slices.Equal(got, want) {
+		t.Errorf("relayNames = %v, want %v", got, want)
+	}
+	if got, _ := relayNames("", nil); len(got) != 0 {
+		t.Errorf("with nothing set the relay goes by %v, want the Host header", got)
+	}
+	if _, err := relayNames("https://", nil); err == nil {
+		t.Error("an address without a host was taken")
+	}
+}

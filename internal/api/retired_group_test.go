@@ -185,6 +185,7 @@ func TestTheOldKeyOnAServedRelayReachesOnlyThisInstance(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %s", code, body)
 	}
 	_, oldKey, _ := relayTarget(a)
+	oldID := groupID(a)
 	if _, err := renewGroup(a); err != nil {
 		t.Fatal(err)
 	}
@@ -238,6 +239,20 @@ func TestTheOldKeyOnAServedRelayReachesOnlyThisInstance(t *testing.T) {
 		if env.Type != relay.TypeProxyResponse || env.Into(&resp) != nil || resp.Error == "" {
 			t.Fatalf("a call to another holder of the old key got %s, want the relay's refusal", raw)
 		}
-		return
+		break
+	}
+
+	// The instance itself is on the old key, under the id it had in the old
+	// group, which takes the proof of its key to the relay it dialled.
+	phone := dial("phone-after-the-reset")
+	for {
+		_, raw, err := phone.Read(ctx)
+		if err != nil {
+			t.Fatalf("the instance never arrived on the old key: %v", err)
+		}
+		var seen relay.Announce
+		if env, err := relay.Decode(raw); err == nil && env.Type == relay.TypeAnnounce && env.Into(&seen) == nil && seen.InstanceID == oldID {
+			return
+		}
 	}
 }
