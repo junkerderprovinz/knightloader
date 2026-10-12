@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
@@ -16,7 +17,9 @@ export function LogViewerCard({ hue }: { hue: number }) {
   const { t } = useT();
   const [follow, setFollow] = useState(false);
   const [query, setQuery] = useState('');
-  const [source, setSource] = useState('');
+  // A part on the health page in trouble opens the log at its own lines.
+  const [params] = useSearchParams();
+  const [source, setSource] = useState(params.get('log') ?? '');
   const [task, setTask] = useState('');
   const { lines, dropped, capacity, sources, loading, failed, reload } = useLogTail(follow);
 

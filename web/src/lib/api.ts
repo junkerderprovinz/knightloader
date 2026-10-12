@@ -1669,6 +1669,8 @@ export interface HealthSubsystem {
   detail?: string;
   /** The id of a remedy sentence (health.remedy.<id>). */
   remedy?: string;
+  /** The log source with this part's lines, on a degraded or failed part that writes to the log. */
+  log?: string;
   /** When this row last changed state, RFC3339. Absent until a state has been
    *  seen twice, since the first reading cannot know when it started. */
   since?: string;

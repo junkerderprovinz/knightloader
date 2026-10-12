@@ -1087,17 +1087,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.health.partsHint',
       // Every row is built from server ids, so none can be indexed.
       rows: [],
-    },
-    {
-      title: 'settings.health.tasks',
-      hint: 'settings.health.tasksHint',
-      rows: [
-        { key: 'settings.health.running' },
-        { key: 'settings.health.waiting' },
-        { key: 'settings.health.failed' },
-      ],
-      also: ['settings.health.waitingWhy', 'settings.health.failedWhy'],
-      body: ['settings.health.nothingWaiting', 'settings.health.nothingFailed', 'settings.health.diskWhere'],
+      also: ['settings.health.openLog'],
+      body: ['settings.health.noReason'],
     },
     {
       title: 'settings.module.metrics',

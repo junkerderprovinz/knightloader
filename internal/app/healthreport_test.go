@@ -11,6 +11,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/core"
+	"github.com/junkerderprovinz/knightloader/internal/logring"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -389,8 +390,8 @@ func TestAHaltedQueueIsNeverAFailure(t *testing.T) {
 		{Quiet: true},
 		{Halted: true, Quiet: true},
 	} {
-		if got := queueSubsystem(q); got.State != StateDegraded {
-			t.Errorf("queue %+v reads %q, want %q", q, got.State, StateDegraded)
+		if got := queueSubsystem(q); got.State != StateDegraded || got.Remedy == "" {
+			t.Errorf("queue %+v reads %q with remedy %q, want %q and why", q, got.State, got.Remedy, StateDegraded)
 		}
 	}
 	if got := queueSubsystem(QueueState{}); got.State != StateOK {
@@ -436,5 +437,30 @@ func TestTheStoreRowAnswersFromTheDatabaseItself(t *testing.T) {
 	}
 	if strings.TrimSpace(got.Detail) == "" {
 		t.Error("the failure carries no detail")
+	}
+}
+
+// A part points at its lines in the log by a source the log page offers,
+// or the link would open a filter that matches nothing.
+func TestAPartPointsAtALogSourceThatExists(t *testing.T) {
+	known := map[string]bool{}
+	for _, s := range logring.Sources() {
+		known[s] = true
+	}
+	for id, source := range subsystemLog {
+		if !known[source] {
+			t.Errorf("%s points at the log source %q, which logring does not offer", id, source)
+		}
+	}
+}
+
+// Only a row in trouble leads to the log.
+func TestOnlyARowInTroubleCarriesItsLogSource(t *testing.T) {
+	a := newHealthApp(t)
+	for _, row := range a.HealthReport().Subsystems {
+		trouble := row.State == StateDegraded || row.State == StateFailed
+		if !trouble && row.Log != "" {
+			t.Errorf("%s reads %q and still carries the log source %q", row.ID, row.State, row.Log)
+		}
 	}
 }

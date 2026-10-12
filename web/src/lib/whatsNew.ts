@@ -283,6 +283,12 @@ export const RELEASES: Release[] = [
       },
       { id: 'selftest-pulse', to: ['/settings/health'], text: 'whatsnew.change.selftestPulse' },
       {
+        id: 'health-reason',
+        to: ['/settings/health'],
+        text: 'whatsnew.change.healthReason',
+        names: { name: 'settings.health.parts' },
+      },
+      {
         id: 'health-parts',
         to: ['/settings/health'],
         text: 'whatsnew.change.healthParts',
