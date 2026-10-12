@@ -106,6 +106,8 @@
       #joinForm { display: flex; flex-direction: column; gap: 10px; margin: 0; }
       #phrase { width: 100%; }
       #refreshGroup { margin-top: 16px; }
+      #ownKey { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; color: var(--carbon-text-muted); font-size: var(--text-dense); font-variant-numeric: tabular-nums; }
+      #ownKey[hidden] { display: none; }
       #refreshGroup:disabled { opacity: 0.55; cursor: default; }
       /* The info glyph inside a heading badge takes the badge's ink. */
       .glim-section-badge .glim-info-icon { color: currentColor; }
@@ -274,6 +276,7 @@
       </form>
       <div id="status"></div>
       <div id="list"></div>
+      <p id="ownKey" hidden></p>
       <button id="refreshGroup" class="secondary" type="button" hidden>Refresh</button>
     </section>
 

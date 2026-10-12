@@ -11,7 +11,8 @@
 // member-call vector of internal/relay/member_test.go, the tenth the ids that
 // vector's key makes, and the eleventh takes an answer only signed by the
 // key its instance's id is made from and only for the call it answers. The
-// twelfth holds that check to the answer vector the Go side signs.
+// twelfth holds that check to the answer vector the Go side signs, and the
+// thirteenth the fingerprint to the one the Go side shows.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -423,6 +424,12 @@ if (!(await verifyVector('req-7', vectorInstance, vectorAsked, vectorAnswer))) {
 if (await verifyVector('req-7', vectorInstance, anotherCall, vectorAnswer)) {
   failures.push('the vector answer verifies for another call than the one it was given to');
 }
+
+// 13. The options page shows the browser's own key as an instance shows it
+//     beside the browser while it waits for approval.
+const wantPrint = goMember.match(/vectorFingerprint\s*=\s*"([^"]+)"/)?.[1];
+const gotPrint = await vm.runInContext(`((key) => relayFingerprint(key))`, ctx)(new Uint8Array(vectorKey));
+if (!wantPrint || gotPrint !== wantPrint) failures.push(`the fingerprint of the vector key is ${gotPrint}, the server shows ${wantPrint}`);
 
 if (failures.length) {
   console.error('The extension’s relay port fails its checks:\n');

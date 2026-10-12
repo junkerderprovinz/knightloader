@@ -125,6 +125,17 @@ async function relayMemberId(kind, publicKey) {
   return (kind === 'mobile' ? 'phone-' : 'browser-') + hash;
 }
 
+/**
+ * relayFingerprint mirrors relay.Fingerprint: how a person compares a member
+ * key, the start of its SHA-256 in four groups.
+ */
+async function relayFingerprint(publicKey) {
+  const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', publicKey)), (b) =>
+    b.toString(16).padStart(2, '0'),
+  ).join('');
+  return [hash.slice(0, 4), hash.slice(4, 8), hash.slice(8, 12), hash.slice(12, 16)].join(' ');
+}
+
 const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
 const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v2\x00';
 
