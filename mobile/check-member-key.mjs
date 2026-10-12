@@ -92,6 +92,11 @@ const forged = new Uint8Array(cryptoSign(null, port.resultMessage(fields.id, ins
 if (port.verifyResult(fields.id, instanceId, asked, 410, removed, port.memberPublicKey(forgerSeed), forged)) {
   problems.push('an answer signed by another key than the one the target\x27s id is made from verifies');
 }
+// The fingerprint the settings screen shows has to read as the instance shows
+// the phone's key while it waits for approval.
+if (port.fingerprint(pub) !== want('vectorFingerprint')) {
+  problems.push(`the fingerprint is ${port.fingerprint(pub)}, the server shows ${want('vectorFingerprint')}`);
+}
 const challenge = new Uint8Array(fromB64(want('vectorChallenge')));
 const relayKey = goTest.match(/vectorRelayKey\s*=\s*"([^"]+)"/)?.[1];
 const hello = b64(port.proveId(seed, relayKey, want('vectorPhoneID'), challenge));

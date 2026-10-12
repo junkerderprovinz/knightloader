@@ -1,7 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { getRandomBytes } from 'expo-crypto';
 import { fromHex } from '../api/sha256';
-import { memberId, memberPublicKey } from '../api/memberKey';
+import { fingerprint, memberId, memberPublicKey } from '../api/memberKey';
 
 // This device's own id on a relay, and the member key it signs its calls with.
 //
@@ -78,4 +78,11 @@ export async function resetRelayIdentity(): Promise<void> {
 export async function memberOptions(): Promise<{ selfId: string; memberSeed: Uint8Array | null }> {
   const { id, seed } = await relayIdentity();
   return { selfId: id, memberSeed: seed };
+}
+
+/** The fingerprint of this device's member key, which an instance shows beside
+ *  it while it waits for approval; null where the keychain holds no key. */
+export async function ownFingerprint(): Promise<string | null> {
+  const { seed } = await relayIdentity();
+  return seed ? fingerprint(memberPublicKey(seed)) : null;
 }

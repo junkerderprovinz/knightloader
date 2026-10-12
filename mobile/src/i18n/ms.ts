@@ -351,6 +351,8 @@ export const ms: Dict = {
   'settings.device': 'Peranti ini',
   'settings.deviceName': 'Nama peranti',
   'settings.deviceHint': 'Nama telefon ini pada halaman Tika bagi setiap tika dalam kumpulan anda. Biarkan kosong untuk menggunakan model peranti.',
+  'settings.deviceKey': 'Kunci telefon ini: {fingerprint}',
+  'settings.deviceKeyHint': 'Apabila telefon ini menunggu kelulusan pada sesuatu instans, instans itu memaparkannya dengan kunci ini. Luluskannya hanya jika kedua-dua kunci sepadan.',
   'group.removedTitle': 'Dialih keluar daripada kumpulan',
   'group.removedBody': 'Satu tika mengalih keluar peranti ini daripada kumpulan. Imbas frasa itu semula untuk menyambungkannya.',
   'group.removedLater': 'Kemudian',

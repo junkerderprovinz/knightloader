@@ -350,6 +350,8 @@ export const zh: Dict = {
   'settings.device': '此设备',
   'settings.deviceName': '设备名称',
   'settings.deviceHint': '这部手机在你的组里每个实例的“实例”页面上显示的名称。留空则使用设备型号。',
+  'settings.deviceKey': '这部手机的密钥：{fingerprint}',
+  'settings.deviceKeyHint': '当这部手机在某个实例上等待批准时，该实例会用这个密钥显示它。只有两个密钥一致时才批准。',
   'group.removedTitle': '已从组中移除',
   'group.removedBody': '有实例把这台设备移出了组。请重新扫描词语以重新连接。',
   'group.removedLater': '稍后',

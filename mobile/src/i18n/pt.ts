@@ -351,6 +351,8 @@ export const pt: Dict = {
   'settings.device': 'Este dispositivo',
   'settings.deviceName': 'Nome do dispositivo',
   'settings.deviceHint': 'Nome com que este telemóvel aparece na página Instâncias de cada instância do teu grupo. Deixa em branco para usar o modelo do dispositivo.',
+  'settings.deviceKey': 'Chave deste telemóvel: {fingerprint}',
+  'settings.deviceKeyHint': 'Quando este telemóvel aguarda aprovação numa instância, a instância mostra-o com esta chave. Aprova-o apenas se as duas chaves coincidirem.',
   'group.removedTitle': 'Removido do grupo',
   'group.removedBody': 'Uma instância removeu este dispositivo do grupo. Lê a frase outra vez para o ligar.',
   'group.removedLater': 'Mais tarde',

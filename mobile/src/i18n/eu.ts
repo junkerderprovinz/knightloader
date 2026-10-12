@@ -351,6 +351,8 @@ export const eu: Dict = {
   'settings.device': 'Gailu hau',
   'settings.deviceName': 'Gailuaren izena',
   'settings.deviceHint': 'Zure taldeko instantzia bakoitzaren «Instantziak» orrian telefono honek duen izena. Utzi hutsik gailuaren modeloa erabiltzeko.',
+  'settings.deviceKey': 'Telefono honen gakoa: {fingerprint}',
+  'settings.deviceKeyHint': 'Telefono hau instantzia batean onarpenaren zain dagoenean, instantziak gako honekin erakusten du. Onartu bi gakoak berdinak badira bakarrik.',
   'group.removedTitle': 'Taldetik kenduta',
   'group.removedBody': 'Instantzia batek gailu hau taldetik kendu du. Eskaneatu esaldia berriro konektatzeko.',
   'group.removedLater': 'Geroago',

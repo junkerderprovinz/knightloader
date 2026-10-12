@@ -351,6 +351,8 @@ export const it: Dict = {
   'settings.device': 'Questo dispositivo',
   'settings.deviceName': 'Nome del dispositivo',
   'settings.deviceHint': 'Il nome con cui questo telefono compare nella pagina Istanze di ogni istanza del tuo gruppo. Lascialo vuoto per usare il modello del dispositivo.',
+  'settings.deviceKey': 'Chiave di questo telefono: {fingerprint}',
+  'settings.deviceKeyHint': 'Quando questo telefono attende l’approvazione su un’istanza, l’istanza lo mostra con questa chiave. Approvalo solo se le due chiavi coincidono.',
   'group.removedTitle': 'Rimosso dal gruppo',
   'group.removedBody': 'Un\'istanza ha rimosso questo dispositivo dal gruppo. Scansiona di nuovo la frase per ricollegarlo.',
   'group.removedLater': 'Più tardi',

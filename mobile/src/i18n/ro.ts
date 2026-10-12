@@ -351,6 +351,8 @@ export const ro: Dict = {
   'settings.device': 'Acest dispozitiv',
   'settings.deviceName': 'Numele dispozitivului',
   'settings.deviceHint': 'Numele sub care apare acest telefon pe pagina Instanțe a fiecărei instanțe din grupul tău. Lasă necompletat pentru a folosi modelul dispozitivului.',
+  'settings.deviceKey': 'Cheia acestui telefon: {fingerprint}',
+  'settings.deviceKeyHint': 'Când acest telefon așteaptă aprobarea pe o instanță, instanța îl afișează cu această cheie. Aprobă-l doar dacă cele două chei se potrivesc.',
   'group.removedTitle': 'Eliminat din grup',
   'group.removedBody': 'O instanță a scos acest dispozitiv din grup. Scanează din nou fraza pentru a-l reconecta.',
   'group.removedLater': 'Mai târziu',

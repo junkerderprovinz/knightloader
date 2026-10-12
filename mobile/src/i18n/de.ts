@@ -191,6 +191,8 @@ export const de: Dict = {
   'settings.device': 'Dieses Gerät',
   'settings.deviceName': 'Gerätename',
   'settings.deviceHint': 'So heißt dieses Handy auf der Seite „Instanzen“ jeder Instanz deiner Gruppe. Bleibt das Feld leer, steht dort das Gerätemodell.',
+  'settings.deviceKey': 'Schlüssel dieses Handys: {fingerprint}',
+  'settings.deviceKeyHint': 'Wartet dieses Handy auf einer Instanz auf Freigabe, zeigt die Instanz es mit diesem Schlüssel an. Gib es nur frei, wenn beide Schlüssel gleich sind.',
   'group.removedTitle': 'Aus der Gruppe entfernt',
   'group.removedBody': 'Eine Instanz hat dieses Gerät aus der Gruppe entfernt. Scanne die Phrase erneut, um es wieder zu verbinden.',
   'group.removedLater': 'Später',

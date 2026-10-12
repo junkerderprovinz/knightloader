@@ -351,6 +351,8 @@ export const et: Dict = {
   'settings.device': 'See seade',
   'settings.deviceName': 'Seadme nimi',
   'settings.deviceHint': 'Kuidas seda telefoni näidatakse sinu grupi iga eksemplari lehel „Eksemplarid”. Jäta tühjaks, et kasutada seadme mudelit.',
+  'settings.deviceKey': 'Selle telefoni võti: {fingerprint}',
+  'settings.deviceKeyHint': 'Kui see telefon ootab eksemplaris kinnitust, näitab eksemplar seda selle võtmega. Kinnita see ainult siis, kui mõlemad võtmed on samad.',
   'group.removedTitle': 'Grupist eemaldatud',
   'group.removedBody': 'Üks eksemplar eemaldas selle seadme grupist. Ühendamiseks skanni fraas uuesti.',
   'group.removedLater': 'Hiljem',

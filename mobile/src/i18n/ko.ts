@@ -350,6 +350,8 @@ export const ko: Dict = {
   'settings.device': '이 기기',
   'settings.deviceName': '기기 이름',
   'settings.deviceHint': '그룹에 있는 각 인스턴스의 인스턴스 페이지에 이 휴대전화가 표시되는 이름입니다. 비워 두면 기기 모델명이 사용됩니다.',
+  'settings.deviceKey': '이 휴대전화의 키: {fingerprint}',
+  'settings.deviceKeyHint': '이 휴대전화가 인스턴스에서 승인을 기다리면 그 인스턴스에 이 키로 표시됩니다. 두 키가 같을 때만 승인하세요.',
   'group.removedTitle': '그룹에서 제거됨',
   'group.removedBody': '한 인스턴스가 이 기기를 그룹에서 제거했습니다. 다시 연결하려면 문구를 다시 스캔하세요.',
   'group.removedLater': '나중에',

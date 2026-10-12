@@ -351,6 +351,8 @@ export const ar: Dict = {
   'settings.device': 'هذا الجهاز',
   'settings.deviceName': 'اسم الجهاز',
   'settings.deviceHint': 'الاسم الذي يظهر به هذا الهاتف في صفحة «النُسخ» لدى كل نسخة في مجموعتك. اتركه فارغًا لاستخدام طراز الجهاز.',
+  'settings.deviceKey': 'مفتاح هذا الهاتف: {fingerprint}',
+  'settings.deviceKeyHint': 'عندما ينتظر هذا الهاتف الموافقة على إحدى النسخ، تعرضه النسخة بهذا المفتاح. لا توافق عليه إلا إذا تطابق المفتاحان.',
   'group.removedTitle': 'أُزيل من المجموعة',
   'group.removedBody': 'أزالت إحدى النسخ هذا الجهاز من المجموعة. امسح العبارة مرة أخرى لتوصيله.',
   'group.removedLater': 'لاحقًا',

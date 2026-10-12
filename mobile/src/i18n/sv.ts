@@ -351,6 +351,8 @@ export const sv: Dict = {
   'settings.device': 'Den här enheten',
   'settings.deviceName': 'Enhetsnamn',
   'settings.deviceHint': 'Namnet den här telefonen visas med på sidan Instanser hos varje instans i din grupp. Lämna tomt för att använda enhetsmodellen.',
+  'settings.deviceKey': 'Den här telefonens nyckel: {fingerprint}',
+  'settings.deviceKeyHint': 'När den här telefonen väntar på godkännande på en instans visar instansen den med den här nyckeln. Godkänn den bara om nycklarna stämmer överens.',
   'group.removedTitle': 'Borttagen från gruppen',
   'group.removedBody': 'En instans tog bort den här enheten från gruppen. Skanna frasen igen för att ansluta den.',
   'group.removedLater': 'Senare',

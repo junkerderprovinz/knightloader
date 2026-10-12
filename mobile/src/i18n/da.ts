@@ -351,6 +351,8 @@ export const da: Dict = {
   'settings.device': 'Denne enhed',
   'settings.deviceName': 'Enhedsnavn',
   'settings.deviceHint': 'Det navn, denne telefon har på siden Instanser hos hver instans i din gruppe. Lad det stå tomt for at bruge enhedsmodellen.',
+  'settings.deviceKey': 'Nøgle til denne telefon: {fingerprint}',
+  'settings.deviceKeyHint': 'Når denne telefon venter på godkendelse på en instans, viser instansen den med denne nøgle. Godkend den kun, hvis de to nøgler er ens.',
   'group.removedTitle': 'Fjernet fra gruppen',
   'group.removedBody': 'En instans fjernede denne enhed fra gruppen. Skan sætningen igen for at forbinde den.',
   'group.removedLater': 'Senere',

@@ -351,6 +351,8 @@ export const ca: Dict = {
   'settings.device': 'Aquest dispositiu',
   'settings.deviceName': 'Nom del dispositiu',
   'settings.deviceHint': 'Com es diu aquest telèfon a la pàgina «Instàncies» de cada instància del teu grup. Deixa-ho buit per utilitzar el model del dispositiu.',
+  'settings.deviceKey': 'Clau d’aquest telèfon: {fingerprint}',
+  'settings.deviceKeyHint': 'Quan aquest telèfon espera aprovació en una instància, la instància el mostra amb aquesta clau. Aprova’l només si les dues claus coincideixen.',
   'group.removedTitle': 'Eliminat del grup',
   'group.removedBody': 'Una instància ha tret aquest dispositiu del grup. Escaneja la frase de nou per connectar-lo.',
   'group.removedLater': 'Més tard',

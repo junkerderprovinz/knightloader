@@ -351,6 +351,8 @@ export const fr: Dict = {
   'settings.device': 'Cet appareil',
   'settings.deviceName': 'Nom de l\'appareil',
   'settings.deviceHint': 'Le nom sous lequel ce téléphone apparaît sur la page Instances de chaque instance de votre groupe. Laissez ce champ vide pour utiliser le modèle de l\'appareil.',
+  'settings.deviceKey': 'Clé de ce téléphone : {fingerprint}',
+  'settings.deviceKeyHint': 'Quand ce téléphone attend une approbation sur une instance, celle-ci l’affiche avec cette clé. Ne l’approuvez que si les deux clés sont identiques.',
   'group.removedTitle': 'Retiré du groupe',
   'group.removedBody': 'Une instance a retiré cet appareil du groupe. Scannez de nouveau la phrase pour le reconnecter.',
   'group.removedLater': 'Plus tard',

@@ -351,6 +351,8 @@ export const id: Dict = {
   'settings.device': 'Perangkat ini',
   'settings.deviceName': 'Nama perangkat',
   'settings.deviceHint': 'Nama ponsel ini yang ditampilkan di halaman Instans pada setiap instans di grup Anda. Biarkan kosong untuk memakai model perangkat.',
+  'settings.deviceKey': 'Kunci ponsel ini: {fingerprint}',
+  'settings.deviceKeyHint': 'Saat ponsel ini menunggu persetujuan di sebuah instans, instans itu menampilkannya dengan kunci ini. Setujui hanya jika kedua kunci sama.',
   'group.removedTitle': 'Dihapus dari grup',
   'group.removedBody': 'Sebuah instans mengeluarkan perangkat ini dari grup. Pindai frasa lagi untuk menghubungkannya.',
   'group.removedLater': 'Nanti',

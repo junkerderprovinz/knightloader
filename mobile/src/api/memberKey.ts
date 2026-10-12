@@ -88,6 +88,13 @@ export function memberId(kind: 'instance' | 'mobile' | 'extension', publicKey: U
   return kind === 'instance' ? hash.slice(0, 40) : ID_PREFIX[kind] + hash;
 }
 
+/** Mirrors relay.Fingerprint: how a person compares a member key, the start of
+ *  its hash in four groups. */
+export function fingerprint(publicKey: Uint8Array): string {
+  const h = toHex(sha256(publicKey));
+  return [h.slice(0, 4), h.slice(4, 8), h.slice(8, 12), h.slice(12, 16)].join(' ');
+}
+
 /** Signs a call for target with the member key seed makes. */
 export function signCall(seed: Uint8Array, target: string, call: SignedFields): Uint8Array {
   return ed25519.sign(callMessage(target, call), seed);

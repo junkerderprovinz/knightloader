@@ -351,6 +351,8 @@ export const vi: Dict = {
   'settings.device': 'Thiết bị này',
   'settings.deviceName': 'Tên thiết bị',
   'settings.deviceHint': 'Tên mà điện thoại này hiển thị trên trang Phiên bản của mỗi phiên bản trong nhóm của bạn. Để trống để dùng tên model thiết bị.',
+  'settings.deviceKey': 'Khóa của điện thoại này: {fingerprint}',
+  'settings.deviceKeyHint': 'Khi điện thoại này chờ duyệt trên một phiên bản, phiên bản đó hiển thị nó với khóa này. Chỉ duyệt khi hai khóa trùng nhau.',
   'group.removedTitle': 'Đã bị xóa khỏi nhóm',
   'group.removedBody': 'Một phiên bản đã đưa thiết bị này ra khỏi nhóm. Quét lại cụm từ để kết nối lại.',
   'group.removedLater': 'Để sau',

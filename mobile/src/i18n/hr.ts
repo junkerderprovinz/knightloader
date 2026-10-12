@@ -351,6 +351,8 @@ export const hr: Dict = {
   'settings.device': 'Ovaj uređaj',
   'settings.deviceName': 'Naziv uređaja',
   'settings.deviceHint': 'Naziv pod kojim se ovaj telefon prikazuje na stranici Instance svake instance u tvojoj skupini. Ostavi prazno da se koristi model uređaja.',
+  'settings.deviceKey': 'Ključ ovog telefona: {fingerprint}',
+  'settings.deviceKeyHint': 'Kad ovaj telefon čeka odobrenje na instanci, instanca ga prikazuje s ovim ključem. Odobri ga samo ako se oba ključa podudaraju.',
   'group.removedTitle': 'Uklonjeno iz skupine',
   'group.removedBody': 'Neka je instanca uklonila ovaj uređaj iz skupine. Ponovno skeniraj frazu da ga povežeš.',
   'group.removedLater': 'Kasnije',

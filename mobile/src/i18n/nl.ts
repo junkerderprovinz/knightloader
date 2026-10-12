@@ -351,6 +351,8 @@ export const nl: Dict = {
   'settings.device': 'Dit apparaat',
   'settings.deviceName': 'Apparaatnaam',
   'settings.deviceHint': 'De naam waaronder deze telefoon verschijnt op de pagina Instanties van elke instantie in je groep. Laat dit leeg om het apparaatmodel te gebruiken.',
+  'settings.deviceKey': 'Sleutel van deze telefoon: {fingerprint}',
+  'settings.deviceKeyHint': 'Als deze telefoon op een instantie wacht op goedkeuring, toont de instantie hem met deze sleutel. Keur hem alleen goed als beide sleutels gelijk zijn.',
   'group.removedTitle': 'Verwijderd uit de groep',
   'group.removedBody': 'Een instantie heeft dit apparaat uit de groep verwijderd. Scan de zin opnieuw om het weer te verbinden.',
   'group.removedLater': 'Straks',

@@ -351,6 +351,8 @@ export const lt: Dict = {
   'settings.device': 'Šis įrenginys',
   'settings.deviceName': 'Įrenginio pavadinimas',
   'settings.deviceHint': 'Tokiu vardu šis telefonas rodomas kiekvieno tavo grupės egzemplioriaus puslapyje „Egzemplioriai“. Palik tuščią, jei nori naudoti įrenginio modelį.',
+  'settings.deviceKey': 'Šio telefono raktas: {fingerprint}',
+  'settings.deviceKeyHint': 'Kai šis telefonas laukia patvirtinimo egzemplioriuje, egzempliorius jį rodo su šiuo raktu. Patvirtink jį tik tada, jei abu raktai sutampa.',
   'group.removedTitle': 'Pašalinta iš grupės',
   'group.removedBody': 'Egzempliorius pašalino šį įrenginį iš grupės. Nuskaityk frazę dar kartą, kad jį vėl prijungtum.',
   'group.removedLater': 'Vėliau',
