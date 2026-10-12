@@ -3606,6 +3606,7 @@ export const sk: Dict = {
   'whatsnew.change.relayServe': 'Karta relay ponúka „{name}“ ako samostatnú voľbu.',
   'whatsnew.change.afterDownload': 'Obrázok ukazuje stanice, ktorými sťahovanie prejde, keď dorazí.',
   'whatsnew.change.transferFlow': 'Nová karta „{name}“ ukazuje cestu bežiacich sťahovaní: od hostera cez proxy alebo účet do cieľového priečinka.',
+  'whatsnew.change.arrivalSplash': 'V časti „{name}“ sa nádoba priečinka zhupne zakaždým, keď do nej dopadne balíček.',
   'whatsnew.change.pieceMap': 'Panel s detailom sťahovania ukazuje súbor ako pás, ktorý sa plní, so značkou za každé pripojenie, ktoré doň zapisuje.',
   'whatsnew.change.weekBand': '„{name}“ kreslí celý týždeň ako pás.',
   'whatsnew.change.reconnectScene': 'Obrázok ukazuje, ako KnightLoader žiada router o novú adresu.',

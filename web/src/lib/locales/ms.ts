@@ -3595,6 +3595,7 @@ export const ms: Dict = {
   'whatsnew.change.relayServe': 'Kad relay menawarkan “{name}” sebagai pilihan tersendiri.',
   'whatsnew.change.afterDownload': 'Sebuah gambar menunjukkan stesen yang dilalui muat turun selepas ia tiba.',
   'whatsnew.change.transferFlow': 'Kad baharu, “{name}”, menunjukkan laluan muat turun yang sedang berjalan: dari hos, melalui proksi atau akaun, ke folder sasaran.',
+  'whatsnew.change.arrivalSplash': 'Dalam “{name}”, bekas sesebuah folder berkocak setiap kali paket mendarat di dalamnya.',
   'whatsnew.change.pieceMap': 'Panel butiran sesuatu muat turun menunjukkan failnya sebagai jalur yang terisi, dengan penanda bagi setiap sambungan yang sedang menulis ke dalamnya.',
   'whatsnew.change.weekBand': '“{name}” melukis seluruh minggu sebagai satu jalur.',
   'whatsnew.change.reconnectScene': 'Sebuah gambar menunjukkan cara KnightLoader meminta alamat baharu daripada penghala.',

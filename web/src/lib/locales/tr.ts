@@ -3595,6 +3595,7 @@ export const tr: Dict = {
   'whatsnew.change.relayServe': 'Röle kartı “{name}” seçeneğini ayrı bir seçim olarak sunar.',
   'whatsnew.change.afterDownload': 'Bir resim, bir indirmenin ulaştıktan sonra geçtiği durakları gösterir.',
   'whatsnew.change.transferFlow': 'Yeni bir kart, “{name}”, süren indirmelerin yolunu gösterir: sunucudan, bir vekil sunucu ya da hesap üzerinden hedef klasöre.',
+  'whatsnew.change.arrivalSplash': '“{name}” içinde, bir klasörün kabı içine her paket düştüğünde çalkalanır.',
   'whatsnew.change.pieceMap': 'Bir indirmenin ayrıntı paneli, dosyayı dolan bir bant olarak ve ona yazan her bağlantı için bir işaretle gösterir.',
   'whatsnew.change.weekBand': '“{name}” bütün haftayı bir şerit olarak çizer.',
   'whatsnew.change.reconnectScene': 'Bir resim, KnightLoader’ın yönlendiriciden nasıl yeni bir adres istediğini gösterir.',

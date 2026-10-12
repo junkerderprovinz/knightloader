@@ -3597,6 +3597,7 @@ export const hi: Dict = {
   'whatsnew.change.relayServe': 'रिले कार्ड “{name}” को एक अलग विकल्प के रूप में देता है।',
   'whatsnew.change.afterDownload': 'एक चित्र वे पड़ाव दिखाता है जिनसे कोई डाउनलोड पहुँचने के बाद गुज़रता है।',
   'whatsnew.change.transferFlow': 'नया कार्ड “{name}” चल रहे डाउनलोड का रास्ता दिखाता है: होस्ट से, प्रॉक्सी या खाते से होकर, लक्ष्य फ़ोल्डर तक।',
+  'whatsnew.change.arrivalSplash': '“{name}” में हर बार कोई पैकेट किसी फ़ोल्डर के पात्र में पहुँचता है, तो पात्र छलकता है।',
   'whatsnew.change.pieceMap': 'डाउनलोड का विवरण पैनल उसकी फ़ाइल को भरती हुई पट्टी के रूप में दिखाता है, जिसमें लिख रहे हर कनेक्शन के लिए एक निशान है।',
   'whatsnew.change.weekBand': '“{name}” पूरे सप्ताह को एक पट्टी के रूप में दिखाता है।',
   'whatsnew.change.reconnectScene': 'एक चित्र दिखाता है कि KnightLoader राउटर से नया पता कैसे माँगता है।',

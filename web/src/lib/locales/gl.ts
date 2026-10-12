@@ -3594,6 +3594,7 @@ export const gl: Dict = {
   'whatsnew.change.relayServe': 'A tarxeta do relé ofrece «{name}» como unha opción propia.',
   'whatsnew.change.afterDownload': 'Unha imaxe amosa as estacións polas que pasa unha descarga unha vez que chegou.',
   'whatsnew.change.transferFlow': 'Unha tarxeta nova, «{name}», amosa o camiño que seguen as descargas en curso: do servidor, por un proxy ou unha conta, ata o cartafol de destino.',
+  'whatsnew.change.arrivalSplash': 'En «{name}», o recipiente dun cartafol axítase cada vez que cae nel un paquete.',
   'whatsnew.change.pieceMap': 'O panel de detalle dunha descarga amosa o ficheiro como unha banda que se enche, cunha marca por cada conexión que escribe nel.',
   'whatsnew.change.weekBand': '«{name}» debuxa toda a semana como unha banda.',
   'whatsnew.change.reconnectScene': 'Unha imaxe amosa como KnightLoader lle pide ao router un enderezo novo.',

@@ -3595,6 +3595,7 @@ export const sl: Dict = {
   'whatsnew.change.relayServe': 'Kartica relaya ponuja »{name}« kot samostojno izbiro.',
   'whatsnew.change.afterDownload': 'Slika kaže postaje, skozi katere gre prenos, ko prispe.',
   'whatsnew.change.transferFlow': 'Nova kartica »{name}« kaže pot prenosov, ki tečejo: od gostitelja prek posredniškega strežnika ali računa do ciljne mape.',
+  'whatsnew.change.arrivalSplash': 'V »{name}« posoda mape zapljuska vsakič, ko vanjo pristane paket.',
   'whatsnew.change.pieceMap': 'Plošča s podrobnostmi prenosa kaže datoteko kot trak, ki se polni, z oznako za vsako povezavo, ki vanjo piše.',
   'whatsnew.change.weekBand': '»{name}« nariše ves teden kot trak.',
   'whatsnew.change.reconnectScene': 'Slika kaže, kako KnightLoader usmerjevalnik prosi za nov naslov.',

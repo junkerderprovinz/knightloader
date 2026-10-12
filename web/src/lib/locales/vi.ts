@@ -3596,6 +3596,7 @@ export const vi: Dict = {
   'whatsnew.change.relayServe': 'Thẻ relay có “{name}” như một lựa chọn riêng.',
   'whatsnew.change.afterDownload': 'Một hình cho thấy các trạm mà một lượt tải đi qua sau khi tải về.',
   'whatsnew.change.transferFlow': 'Một thẻ mới, “{name}”, cho thấy con đường của các lượt tải đang chạy: từ máy chủ, qua proxy hoặc tài khoản, vào thư mục đích.',
+  'whatsnew.change.arrivalSplash': 'Trong “{name}”, chiếc bình của một thư mục gợn sóng mỗi khi có một gói rơi vào.',
   'whatsnew.change.pieceMap': 'Bảng chi tiết của một lượt tải hiển thị tệp như một dải đang đầy dần, với một dấu cho mỗi kết nối đang ghi vào đó.',
   'whatsnew.change.weekBand': '“{name}” vẽ cả tuần thành một dải.',
   'whatsnew.change.reconnectScene': 'Một hình cho thấy KnightLoader xin bộ định tuyến một địa chỉ mới như thế nào.',

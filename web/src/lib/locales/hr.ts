@@ -3610,6 +3610,7 @@ export const hr: Dict = {
   'whatsnew.change.relayServe': 'Kartica releja nudi „{name}” kao zaseban izbor.',
   'whatsnew.change.afterDownload': 'Slika pokazuje stanice kroz koje preuzimanje prolazi kad stigne.',
   'whatsnew.change.transferFlow': 'Nova kartica „{name}” prikazuje put aktivnih preuzimanja: od poslužitelja, preko proxyja ili računa, do odredišne mape.',
+  'whatsnew.change.arrivalSplash': 'U „{name}” posuda mape zapljuska svaki put kad u nju padne paket.',
   'whatsnew.change.pieceMap': 'Ploča s detaljima preuzimanja prikazuje datoteku kao traku koja se puni, s oznakom za svaku vezu koja u nju piše.',
   'whatsnew.change.weekBand': '„{name}” crta cijeli tjedan kao traku.',
   'whatsnew.change.reconnectScene': 'Slika pokazuje kako KnightLoader od usmjerivača traži novu adresu.',

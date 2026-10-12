@@ -3592,6 +3592,7 @@ export const eu: Dict = {
   'whatsnew.change.relayServe': 'Bitartekariaren txartelak «{name}» aukera bereizi gisa eskaintzen du.',
   'whatsnew.change.afterDownload': 'Irudi batek erakusten du deskarga batek zer geltoki igarotzen dituen iritsi ondoren.',
   'whatsnew.change.transferFlow': '«{name}» txartel berriak martxan dauden deskargen bidea erakusten du: ostalaritik, proxy edo kontu baten bidez, helmugako karpetara.',
+  'whatsnew.change.arrivalSplash': '«{name}» atalean, karpeta baten ontzia astintzen da pakete bat bertan erortzen den bakoitzean.',
   'whatsnew.change.pieceMap': 'Deskarga baten xehetasun panelak fitxategia betetzen den banda gisa erakusten du, bertan idazten ari den konexio bakoitzeko marka batekin.',
   'whatsnew.change.weekBand': '«{name}» atalak aste osoa banda gisa marrazten du.',
   'whatsnew.change.reconnectScene': 'Irudi batek erakusten du KnightLoaderrek nola eskatzen dion helbide berri bat bideratzaileari.',

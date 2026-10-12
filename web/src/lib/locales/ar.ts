@@ -3594,6 +3594,7 @@ export const ar: Dict = {
   'whatsnew.change.relayServe': 'بطاقة المُرحِّل تعرض «{name}» كخيار مستقل.',
   'whatsnew.change.afterDownload': 'صورة تبيّن المحطات التي يمر بها التنزيل بعد وصوله.',
   'whatsnew.change.transferFlow': 'بطاقة جديدة، «{name}»، تُظهر المسار الذي تسلكه التنزيلات الجارية: من المستضيف، عبر وكيل أو حساب، إلى مجلد الوجهة.',
+  'whatsnew.change.arrivalSplash': 'في «{name}» يتماوج وعاء المجلد في كل مرة تصل فيها حزمة إليه.',
   'whatsnew.change.pieceMap': 'لوحة تفاصيل التنزيل تُظهر ملفه كشريط يمتلئ، مع علامة لكل اتصال يكتب فيه.',
   'whatsnew.change.weekBand': 'ترسم «{name}» الأسبوع كله على هيئة شريط.',
   'whatsnew.change.reconnectScene': 'صورة تبيّن كيف يطلب KnightLoader من الموجّه عنوانًا جديدًا.',

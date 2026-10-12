@@ -3597,6 +3597,7 @@ export const hu: Dict = {
   'whatsnew.change.relayServe': 'A relay kártyája a(z) „{name}” lehetőséget külön választásként kínálja.',
   'whatsnew.change.afterDownload': 'Egy kép mutatja az állomásokat, amelyeken egy letöltés áthalad, miután megérkezett.',
   'whatsnew.change.transferFlow': 'Az új „{name}” kártya megmutatja a futó letöltések útját: a tárhelytől proxyn vagy fiókon át a célmappáig.',
+  'whatsnew.change.arrivalSplash': 'A(z) „{name}” részben egy mappa edénye minden alkalommal meglöttyen, amikor csomag érkezik bele.',
   'whatsnew.change.pieceMap': 'A letöltés részletpanelje a fájlt megtelő sávként mutatja, jelölővel minden kapcsolatnál, amely éppen ír bele.',
   'whatsnew.change.weekBand': 'A(z) „{name}” az egész hetet egyetlen sávként rajzolja meg.',
   'whatsnew.change.reconnectScene': 'Egy kép mutatja, hogyan kér a KnightLoader új címet a routertől.',

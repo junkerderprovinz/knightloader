@@ -3581,6 +3581,7 @@ export const pl: Dict = {
   'whatsnew.change.relayServe': 'Karta relaya oferuje „{name}” jako osobny wybór.',
   'whatsnew.change.afterDownload': 'Obraz pokazuje stacje, przez które przechodzi pobieranie, gdy już dotrze.',
   'whatsnew.change.transferFlow': 'Nowa karta „{name}” pokazuje drogę trwających pobierań: od hostera, przez proxy lub konto, do folderu docelowego.',
+  'whatsnew.change.arrivalSplash': 'W sekcji „{name}” naczynie folderu chlupocze za każdym razem, gdy wpada do niego pakiet.',
   'whatsnew.change.pieceMap': 'Panel szczegółów pobierania pokazuje plik jako pasek, który się wypełnia, ze znacznikiem dla każdego połączenia, które do niego zapisuje.',
   'whatsnew.change.weekBand': '„{name}” rysuje cały tydzień jako pas.',
   'whatsnew.change.reconnectScene': 'Obraz pokazuje, jak KnightLoader prosi router o nowy adres.',

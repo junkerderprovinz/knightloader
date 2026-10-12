@@ -3599,6 +3599,7 @@ export const de: Dict = {
   'whatsnew.change.relayServe': 'Die Relay-Karte bietet „{name}“ als eigene Wahl an.',
   'whatsnew.change.afterDownload': 'Ein Bild zeigt die Stationen, die ein Download durchläuft, sobald er angekommen ist.',
   'whatsnew.change.transferFlow': 'Die neue Karte „{name}“ zeigt den Weg deiner laufenden Downloads: vom Hoster über einen Proxy oder ein Konto in den Zielordner.',
+  'whatsnew.change.arrivalSplash': 'In „{name}“ schwappt das Gefäß eines Ordners jedes Mal, wenn ein Paket darin landet.',
   'whatsnew.change.pieceMap': 'Der Detailbereich eines Downloads zeigt die Datei als Band, das sich füllt, mit einer Marke für jede Verbindung, die gerade schreibt.',
   'whatsnew.change.weekBand': '„{name}“ zeichnet die ganze Woche als Band.',
   'whatsnew.change.reconnectScene': 'Ein Bild zeigt, wie KnightLoader den Router um eine neue Adresse bittet.',

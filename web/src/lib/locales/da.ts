@@ -3582,6 +3582,7 @@ export const da: Dict = {
   'whatsnew.change.relayServe': 'Kortet for videresenderen har „{name}“ som et valg for sig.',
   'whatsnew.change.afterDownload': 'Et billede viser de stationer, en download passerer, når den er ankommet.',
   'whatsnew.change.transferFlow': 'Et nyt kort, „{name}“, viser den vej dine kørende downloads tager: fra værten, via en proxy eller en konto, til målmappen.',
+  'whatsnew.change.arrivalSplash': 'I „{name}“ skvulper en mappes beholder, hver gang en pakke lander i den.',
   'whatsnew.change.pieceMap': 'Detaljepanelet for en download viser filen som et bånd, der fyldes, med et mærke for hver forbindelse, der skriver til den.',
   'whatsnew.change.weekBand': '„{name}“ tegner hele ugen som et bånd.',
   'whatsnew.change.reconnectScene': 'Et billede viser, hvordan KnightLoader beder routeren om en ny adresse.',

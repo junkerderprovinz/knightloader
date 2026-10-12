@@ -66,6 +66,12 @@ export const RELEASES: Release[] = [
         names: { name: 'overview.flow.title' },
       },
       {
+        id: 'arrival-splash',
+        to: ['/'],
+        text: 'whatsnew.change.arrivalSplash',
+        names: { name: 'overview.flow.title' },
+      },
+      {
         id: 'volume-controls',
         to: ['/'],
         text: 'whatsnew.change.volumeControls',

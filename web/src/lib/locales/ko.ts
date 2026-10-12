@@ -3584,6 +3584,7 @@ export const ko: Dict = {
   'whatsnew.change.relayServe': '릴레이 카드에서 “{name}” 항목을 별도의 선택지로 고를 수 있습니다.',
   'whatsnew.change.afterDownload': '다운로드가 도착한 뒤 거치는 단계를 그림으로 보여 줍니다.',
   'whatsnew.change.transferFlow': '새 카드 “{name}”이(가) 실행 중인 다운로드의 경로를 보여 줍니다. 호스트에서 프록시나 계정을 거쳐 대상 폴더까지입니다.',
+  'whatsnew.change.arrivalSplash': '“{name}”에서 패킷이 들어올 때마다 폴더의 그릇이 출렁입니다.',
   'whatsnew.change.pieceMap': '다운로드의 상세 패널이 파일을 채워지는 띠로 보여 주고, 쓰고 있는 연결마다 표시를 세웁니다.',
   'whatsnew.change.weekBand': '“{name}” 카드는 한 주 전체를 띠로 그립니다.',
   'whatsnew.change.reconnectScene': 'KnightLoader가 공유기에 새 주소를 요청하는 과정을 그림으로 보여 줍니다.',

@@ -3840,6 +3840,7 @@ export const en = {
   'whatsnew.change.relayServe': 'The relay card offers "{name}" as a choice of its own.',
   'whatsnew.change.afterDownload': 'A picture shows the stations a download passes once it has arrived.',
   'whatsnew.change.transferFlow': 'A new card, "{name}", shows the path your running downloads take: from the hoster, through a proxy or an account, into the target folder.',
+  'whatsnew.change.arrivalSplash': 'In "{name}", a folder\'s vessel sloshes each time a packet lands in it.',
   'whatsnew.change.pieceMap': 'The detail panel of a download shows its file as a band that fills, with a marker for every connection that is writing to it.',
   'whatsnew.change.weekBand': '"{name}" draws the whole week as a band.',
   'whatsnew.change.reconnectScene': 'A picture shows how KnightLoader asks the router for a new address.',

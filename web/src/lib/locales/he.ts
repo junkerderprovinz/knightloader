@@ -3614,6 +3614,7 @@ export const he: Dict = {
   'whatsnew.change.relayServe': 'כרטיס הממסר מציע את „{name}” כבחירה נפרדת.',
   'whatsnew.change.afterDownload': 'תמונה מראה את התחנות שהורדה עוברת אחרי שהגיעה.',
   'whatsnew.change.transferFlow': 'כרטיס חדש, „{name}”, מראה את הדרך של ההורדות הפעילות: מהמארח, דרך פרוקסי או חשבון, אל תיקיית היעד.',
+  'whatsnew.change.arrivalSplash': 'ב„{name}”, כלי הקיבול של תיקייה מתנדנד בכל פעם שחבילה נוחתת בו.',
   'whatsnew.change.pieceMap': 'לוח הפרטים של הורדה מראה את הקובץ כרצועה שמתמלאת, עם סמן לכל חיבור שכותב אליו.',
   'whatsnew.change.weekBand': '„{name}” מצייר את כל השבוע כרצועה.',
   'whatsnew.change.reconnectScene': 'תמונה מראה איך KnightLoader מבקש מהנתב כתובת חדשה.',

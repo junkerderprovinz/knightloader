@@ -3585,6 +3585,7 @@ export const fa: Dict = {
   'whatsnew.change.relayServe': 'کارت رله «{name}» را به‌صورت گزینه‌ای جدا عرضه می‌کند.',
   'whatsnew.change.afterDownload': 'یک تصویر ایستگاه‌هایی را نشان می‌دهد که دانلود پس از رسیدن از آن‌ها می‌گذرد.',
   'whatsnew.change.transferFlow': 'کارت تازهٔ «{name}» مسیر دانلودهای در حال اجرا را نشان می‌دهد: از میزبان، از راه پراکسی یا حساب، تا پوشهٔ مقصد.',
+  'whatsnew.change.arrivalSplash': 'در «{name}» هر بار که بسته‌ای در ظرف یک پوشه می‌نشیند، ظرف موج برمی‌دارد.',
   'whatsnew.change.pieceMap': 'پنل جزئیات یک دانلود فایل آن را مانند نواری نشان می‌دهد که پر می‌شود، با یک نشانگر برای هر اتصالی که در آن می‌نویسد.',
   'whatsnew.change.weekBand': '«{name}» کل هفته را به شکل یک نوار می‌کشد.',
   'whatsnew.change.reconnectScene': 'یک تصویر نشان می‌دهد KnightLoader چطور از روتر نشانی تازه می‌خواهد.',

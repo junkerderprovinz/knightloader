@@ -3596,6 +3596,7 @@ export const id: Dict = {
   'whatsnew.change.relayServe': 'Kartu relay menawarkan “{name}” sebagai pilihan tersendiri.',
   'whatsnew.change.afterDownload': 'Sebuah gambar menunjukkan stasiun yang dilewati unduhan setelah tiba.',
   'whatsnew.change.transferFlow': 'Kartu baru, “{name}”, menunjukkan jalur unduhan yang sedang berjalan: dari host, lewat proxy atau akun, ke folder tujuan.',
+  'whatsnew.change.arrivalSplash': 'Di “{name}”, bejana sebuah folder beriak setiap kali paket mendarat di dalamnya.',
   'whatsnew.change.pieceMap': 'Panel detail sebuah unduhan menampilkan berkasnya sebagai pita yang terisi, dengan penanda untuk setiap koneksi yang sedang menulis ke dalamnya.',
   'whatsnew.change.weekBand': '“{name}” menggambar seluruh minggu sebagai satu pita.',
   'whatsnew.change.reconnectScene': 'Sebuah gambar menunjukkan cara KnightLoader meminta alamat baru kepada router.',

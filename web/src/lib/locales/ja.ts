@@ -3593,6 +3593,7 @@ export const ja: Dict = {
   'whatsnew.change.relayServe': 'リレーのカードで、「{name}」を独立した選択肢として選べます。',
   'whatsnew.change.afterDownload': 'ダウンロードが届いたあとに通る工程を絵で示します。',
   'whatsnew.change.transferFlow': '新しいカード「{name}」が、実行中のダウンロードの経路を示します。ホストから、プロキシやアカウントを通って、書き込み先フォルダーまでです。',
+  'whatsnew.change.arrivalSplash': '「{name}」で、パケットが届くたびにフォルダーの容器の中身が揺れます。',
   'whatsnew.change.pieceMap': 'ダウンロードの詳細パネルが、ファイルを埋まっていく帯として示し、書き込み中の接続ごとに印を立てます。',
   'whatsnew.change.weekBand': '「{name}」は 1 週間全体を帯で描きます。',
   'whatsnew.change.reconnectScene': 'KnightLoader がルーターに新しいアドレスを求める様子を絵で示します。',
