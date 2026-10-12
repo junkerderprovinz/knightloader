@@ -224,6 +224,8 @@ export const fa: Dict = {
   'pairing.pendingTip': 'این دستگاه‌ها دوازده کلمه را وارد کرده‌اند، اما تا تأییدشان نکنی در گروه هیچ کاری نمی‌توانند بکنند. فقط دستگاه‌هایی را تأیید کن که می‌شناسی. تصمیمت روی همهٔ نمونه‌های گروه اعمال می‌شود.',
   'pairing.pendingInstance': 'نمونه',
   'pairing.fingerprint': 'کلید {fingerprint}',
+  'pairing.ownKey': 'کلید این نمونه: {fingerprint}',
+  'pairing.ownKeyTip': 'وقتی این نمونه روی نمونهٔ دیگری منتظر تأیید است، آن نمونه آن را با همین کلید نشان می‌دهد. فقط وقتی تأییدش کن که دو کلید یکی باشند.',
   'pairing.approve': 'تأیید',
   'pairing.refuse': 'رد',
   'pairing.refuseTitle': 'رد {name}',

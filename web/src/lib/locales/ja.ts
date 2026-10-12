@@ -224,6 +224,8 @@ export const ja: Dict = {
   'pairing.pendingTip': 'これらのデバイスは 12 個の単語を入力しましたが、承認されるまでグループ内では何もできません。見覚えのあるデバイスだけを承認してください。決定はグループのすべてのインスタンスに適用されます。',
   'pairing.pendingInstance': 'インスタンス',
   'pairing.fingerprint': '鍵 {fingerprint}',
+  'pairing.ownKey': 'このインスタンスの鍵: {fingerprint}',
+  'pairing.ownKeyTip': 'このインスタンスが別のインスタンスで承認を待っているとき、そちらではこの鍵で表示されます。2 つの鍵が一致する場合にだけ承認してください。',
   'pairing.approve': '承認',
   'pairing.refuse': '拒否',
   'pairing.refuseTitle': '{name} を拒否',

@@ -224,6 +224,8 @@ export const is: Dict = {
   'pairing.pendingTip': 'Þessi tæki slógu inn orðin tólf en geta ekkert gert í hópnum fyrr en þú samþykkir þau. Samþykktu aðeins tæki sem þú þekkir. Ákvörðun þín gildir á hverju tilviki í hópnum.',
   'pairing.pendingInstance': 'Tilvik',
   'pairing.fingerprint': 'Lykill {fingerprint}',
+  'pairing.ownKey': 'Lykill þessa tilviks: {fingerprint}',
+  'pairing.ownKeyTip': 'Þegar þetta tilvik bíður samþykkis á öðru sýnir hitt það með þessum lykli. Samþykktu það aðeins ef lyklarnir tveir eru eins.',
   'pairing.approve': 'Samþykkja',
   'pairing.refuse': 'Hafna',
   'pairing.refuseTitle': 'Hafna {name}',

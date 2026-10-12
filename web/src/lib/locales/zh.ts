@@ -224,6 +224,8 @@ export const zh: Dict = {
   'pairing.pendingTip': '这些设备已输入十二个词，但在你批准之前无法在组内做任何事。只批准你认得的设备。你的决定对组内每个实例都有效。',
   'pairing.pendingInstance': '实例',
   'pairing.fingerprint': '密钥 {fingerprint}',
+  'pairing.ownKey': '此实例的密钥：{fingerprint}',
+  'pairing.ownKeyTip': '当此实例在另一个实例上等待批准时，那个实例会用这个密钥显示它。只有两个密钥一致时才批准。',
   'pairing.approve': '批准',
   'pairing.refuse': '拒绝',
   'pairing.refuseTitle': '拒绝 {name}',

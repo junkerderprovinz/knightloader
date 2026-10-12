@@ -156,6 +156,13 @@ func TestTwoInstancesSignTheirCallsAndNobodyElseSpeaksForThem(t *testing.T) {
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
+	// Each owner compares the key listed as waiting with the one the other
+	// instance shows as its own.
+	for _, p := range connectInfoOf(t, secondToken, second.URL).Pending {
+		if own := connectInfoOf(t, firstToken, first.URL).Fingerprint; p.ID == firstID && (own == "" || p.Fingerprint != own) {
+			t.Errorf("the second lists the first with key %q, and the first shows its own as %q", p.Fingerprint, own)
+		}
+	}
 	// An instance acts on another's answers only once it approved it.
 	if code, body := call(t, secondToken, http.MethodGet, second.URL+"/api/instances/"+firstID+"/tasks", nil); code == http.StatusOK || code == http.StatusForbidden {
 		t.Fatalf("the second instance asking the first it has not approved = %d %s, want no answer taken", code, body)

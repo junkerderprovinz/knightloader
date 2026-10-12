@@ -224,6 +224,8 @@ export const ro: Dict = {
   'pairing.pendingTip': 'Aceste dispozitive au introdus cele douăsprezece cuvinte, dar nu pot face nimic în grup până nu le aprobi. Aprobă doar dispozitivele pe care le recunoști. Decizia ta se aplică pe fiecare instanță din grup.',
   'pairing.pendingInstance': 'Instanță',
   'pairing.fingerprint': 'Cheie {fingerprint}',
+  'pairing.ownKey': 'Cheia acestei instanțe: {fingerprint}',
+  'pairing.ownKeyTip': 'Când această instanță așteaptă aprobarea pe alta, cealaltă o afișează cu această cheie. Aprob-o doar dacă cele două chei se potrivesc.',
   'pairing.approve': 'Aprobă',
   'pairing.refuse': 'Refuză',
   'pairing.refuseTitle': 'Refuză {name}',

@@ -224,6 +224,8 @@ export const lt: Dict = {
   'pairing.pendingTip': 'Šie įrenginiai įvedė dvylika žodžių, bet grupėje nieko negali daryti, kol jų nepatvirtinsite. Tvirtinkite tik atpažįstamus įrenginius. Jūsų sprendimas galioja kiekviename grupės egzemplioriuje.',
   'pairing.pendingInstance': 'Egzempliorius',
   'pairing.fingerprint': 'Raktas {fingerprint}',
+  'pairing.ownKey': 'Šio egzemplioriaus raktas: {fingerprint}',
+  'pairing.ownKeyTip': 'Kai šis egzempliorius laukia patvirtinimo kitame, tas jį rodo su šiuo raktu. Patvirtinkite jį tik tada, jei abu raktai sutampa.',
   'pairing.approve': 'Patvirtinti',
   'pairing.refuse': 'Atmesti',
   'pairing.refuseTitle': 'Atmesti {name}',

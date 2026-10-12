@@ -226,6 +226,8 @@ export const he: Dict = {
   'pairing.pendingTip': 'המכשירים האלה הזינו את שתים עשרה המילים, אבל לא יכולים לעשות דבר בקבוצה עד שתאשר אותם. אשר רק מכשירים שאתה מכיר. ההחלטה שלך חלה על כל מופע בקבוצה.',
   'pairing.pendingInstance': 'מופע',
   'pairing.fingerprint': 'מפתח {fingerprint}',
+  'pairing.ownKey': 'המפתח של המופע הזה: {fingerprint}',
+  'pairing.ownKeyTip': 'כשהמופע הזה ממתין לאישור במופע אחר, המופע האחר מציג אותו עם המפתח הזה. אשר אותו רק אם שני המפתחות זהים.',
   'pairing.approve': 'אישור',
   'pairing.refuse': 'דחייה',
   'pairing.refuseTitle': 'דחיית {name}',

@@ -224,6 +224,8 @@ export const gl: Dict = {
   'pairing.pendingTip': 'Estes dispositivos introduciron as doce palabras, pero non poden facer nada no grupo ata que os aprobes. Aproba só dispositivos que recoñezas. A túa decisión vale en todas as instancias do grupo.',
   'pairing.pendingInstance': 'Instancia',
   'pairing.fingerprint': 'Chave {fingerprint}',
+  'pairing.ownKey': 'Chave desta instancia: {fingerprint}',
+  'pairing.ownKeyTip': 'Cando esta instancia agarda aprobación noutra, esa outra móstraa con esta chave. Apróbaa só se as dúas chaves coinciden.',
   'pairing.approve': 'Aprobar',
   'pairing.refuse': 'Rexeitar',
   'pairing.refuseTitle': 'Rexeitar {name}',

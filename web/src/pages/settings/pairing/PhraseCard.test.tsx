@@ -50,6 +50,7 @@ const base: ConnectInfo = {
   memberSeen: false,
   pending: [],
   awaiting: false,
+  fingerprint: '',
 };
 
 function draw(group: Partial<ConnectInfo>, onGroup: (g: ConnectInfo) => void = () => {}) {
@@ -364,6 +365,13 @@ describe('PhraseCard', () => {
     const confirm = [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Refuse')!;
     await act(async () => confirm.click());
     expect(calls).toContain('POST /api/connect/devices/x/refuse');
+  });
+
+  it('shows its own key so the owner can compare it with the one another instance lists', () => {
+    draw({ joinedAgo: 500, memberSeen: true, fingerprint: '31f3 3d37 07b2 209f' });
+    expect(host.querySelector('[data-testid="own-key"]')?.textContent).toContain("This instance's key: 31f3 3d37 07b2 209f");
+    draw({ active: false, joinedAgo: 0, fingerprint: '' });
+    expect(host.querySelector('[data-testid="own-key"]')).toBeNull();
   });
 
   it('says where to approve this instance while another one keeps it waiting', () => {

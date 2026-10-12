@@ -224,6 +224,8 @@ export const et: Dict = {
   'pairing.pendingTip': 'Need seadmed sisestasid kaksteist sõna, kuid ei saa grupis midagi teha enne, kui sa need kinnitad. Kinnita ainult seadmeid, mida tunned. Sinu otsus kehtib grupi igas eksemplaris.',
   'pairing.pendingInstance': 'Eksemplar',
   'pairing.fingerprint': 'Võti {fingerprint}',
+  'pairing.ownKey': 'Selle eksemplari võti: {fingerprint}',
+  'pairing.ownKeyTip': 'Kui see eksemplar ootab teises kinnitust, näitab teine seda selle võtmega. Kinnita see ainult siis, kui mõlemad võtmed on samad.',
   'pairing.approve': 'Kinnita',
   'pairing.refuse': 'Keeldu',
   'pairing.refuseTitle': 'Keeldu: {name}',

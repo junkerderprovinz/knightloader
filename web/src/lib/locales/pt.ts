@@ -218,6 +218,8 @@ export const pt: Dict = {
   'pairing.pendingTip': 'Estes dispositivos introduziram as doze palavras, mas não podem fazer nada no grupo até os aprovar. Aprove apenas dispositivos que reconheça. A sua decisão vale em todas as instâncias do grupo.',
   'pairing.pendingInstance': 'Instância',
   'pairing.fingerprint': 'Chave {fingerprint}',
+  'pairing.ownKey': 'Chave desta instância: {fingerprint}',
+  'pairing.ownKeyTip': 'Quando esta instância aguarda aprovação noutra, essa mostra-a com esta chave. Aprove-a apenas se as duas chaves coincidirem.',
   'pairing.approve': 'Aprovar',
   'pairing.refuse': 'Recusar',
   'pairing.refuseTitle': 'Recusar {name}',

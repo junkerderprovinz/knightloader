@@ -49,6 +49,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type sourceKey struct{}
@@ -99,6 +100,15 @@ func MemberID(kind string, key []byte) string {
 		return "browser-" + hex.EncodeToString(sum[:])
 	}
 	return ""
+}
+
+// Fingerprint is how a person compares a member key: the start of its hash in
+// four groups. Each device shows its own, and an instance shows it beside a
+// device that waits for approval.
+func Fingerprint(key []byte) string {
+	sum := sha256.Sum256(key)
+	h := hex.EncodeToString(sum[:8])
+	return strings.Join([]string{h[0:4], h[4:8], h[8:12], h[12:16]}, " ")
 }
 
 // The domains that open every signed message, so a member key's signature over

@@ -226,6 +226,8 @@ export const ar: Dict = {
   'pairing.pendingTip': 'أدخلت هذه الأجهزة الكلمات الاثنتي عشرة، لكنها لا تستطيع فعل أي شيء في المجموعة حتى توافق عليها. لا توافق إلا على الأجهزة التي تعرفها. يسري قرارك على كل نسخة في المجموعة.',
   'pairing.pendingInstance': 'نسخة',
   'pairing.fingerprint': 'المفتاح {fingerprint}',
+  'pairing.ownKey': 'مفتاح هذه النسخة: {fingerprint}',
+  'pairing.ownKeyTip': 'عندما تنتظر هذه النسخة الموافقة على نسخة أخرى، تعرضها تلك النسخة بهذا المفتاح. لا توافق عليها إلا إذا تطابق المفتاحان.',
   'pairing.approve': 'موافقة',
   'pairing.refuse': 'رفض',
   'pairing.refuseTitle': 'رفض {name}',

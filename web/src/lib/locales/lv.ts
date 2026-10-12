@@ -224,6 +224,8 @@ export const lv: Dict = {
   'pairing.pendingTip': 'Šīs ierīces ievadīja divpadsmit vārdus, taču grupā neko nevar darīt, kamēr jūs tās neapstiprināt. Apstipriniet tikai ierīces, kuras atpazīstat. Jūsu lēmums ir spēkā katrā grupas instancē.',
   'pairing.pendingInstance': 'Instance',
   'pairing.fingerprint': 'Atslēga {fingerprint}',
+  'pairing.ownKey': 'Šīs instances atslēga: {fingerprint}',
+  'pairing.ownKeyTip': 'Kad šī instance gaida apstiprinājumu citā, tā to rāda ar šo atslēgu. Apstipriniet to tikai tad, ja abas atslēgas sakrīt.',
   'pairing.approve': 'Apstiprināt',
   'pairing.refuse': 'Noraidīt',
   'pairing.refuseTitle': 'Noraidīt {name}',

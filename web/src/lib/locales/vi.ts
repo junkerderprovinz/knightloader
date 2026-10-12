@@ -224,6 +224,8 @@ export const vi: Dict = {
   'pairing.pendingTip': 'Các thiết bị này đã nhập mười hai từ nhưng không thể làm gì trong nhóm cho đến khi bạn duyệt. Chỉ duyệt những thiết bị bạn nhận ra. Quyết định của bạn áp dụng trên mọi phiên bản trong nhóm.',
   'pairing.pendingInstance': 'Phiên bản',
   'pairing.fingerprint': 'Khóa {fingerprint}',
+  'pairing.ownKey': 'Khóa của phiên bản này: {fingerprint}',
+  'pairing.ownKeyTip': 'Khi phiên bản này chờ duyệt trên một phiên bản khác, phiên bản đó hiển thị nó với khóa này. Chỉ duyệt khi hai khóa trùng nhau.',
   'pairing.approve': 'Duyệt',
   'pairing.refuse': 'Từ chối',
   'pairing.refuseTitle': 'Từ chối {name}',
