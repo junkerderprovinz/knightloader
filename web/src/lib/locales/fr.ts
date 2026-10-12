@@ -224,7 +224,6 @@ export const fr: Dict = {
   'pairing.show': 'Afficher la phrase',
   'pairing.passwordLabel': 'Mot de passe de connexion',
   'pairing.passwordTip': 'Les mots ouvrent chaque instance du groupe : les afficher à nouveau demande donc toujours le mot de passe.',
-  'pairing.wordsNeedPassword': 'Ces mots ouvrent chaque instance du groupe : KnightLoader ne les affiche donc à nouveau qu’une fois un mot de passe de connexion défini.',
   'pairing.passwordWrong': "Ce n'est pas le mot de passe de connexion.",
   'pairing.viaRelay': 'Via le relais',
   'pairing.leave': 'Quitter le groupe',
@@ -3650,4 +3649,6 @@ export const fr: Dict = {
   'settings.look.builtInHint': 'Ce que KnightLoader apporte ou fait tourner à côté de lui, chaque élément avec sa version et sa provenance. Ces éléments viennent avec KnightLoader ou l’image du conteneur, ou se mettent à jour d’eux-mêmes : il n’y a donc rien à mettre à jour ici.',
   'whatsnew.change.builtIn': '« {name} » liste chaque élément fourni avec KnightLoader, avec sa version et sa provenance. Ce qui se met à jour reste dans « {updates} ».',
   'whatsnew.change.settingRows': 'Chaque liste déroulante et chaque champ de saisie des Paramètres se trouve à côté de son nom, au bout de sa carte.',
+  'pairing.wordsNoPassword': 'Cette instance n’a pas de mot de passe de connexion : toute personne qui atteint cette page peut lire ces mots. Définissez un mot de passe dans Sécurité.',
+  'whatsnew.change.wordsAgain': '« {name} » affiche à nouveau les douze mots, même sans mot de passe. Tant qu’aucun n’est défini, la fenêtre avertit que toute personne qui atteint cette page peut les lire.',
 };

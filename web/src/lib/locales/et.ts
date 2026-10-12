@@ -230,7 +230,6 @@ export const et: Dict = {
   'pairing.show': 'Näita fraasi',
   'pairing.passwordLabel': 'Sisselogimisparool',
   'pairing.passwordTip': 'Sõnad avavad grupi iga eksemplari, seega küsib nende uuesti näitamine alati parooli.',
-  'pairing.wordsNeedPassword': 'Need sõnad avavad grupi iga eksemplari, seega näitab KnightLoader neid uuesti alles siis, kui sisselogimisparool on määratud.',
   'pairing.passwordWrong': 'See ei ole sisselogimisparool.',
   'pairing.viaRelay': 'Edastaja kaudu',
   'pairing.leave': 'Lahku grupist',
@@ -3652,4 +3651,6 @@ export const et: Dict = {
   'settings.look.builtInHint': 'See, mida KnightLoader kaasa toob või enda kõrval käitab, igaüks oma versiooni ja päritoluga. Need osad tulevad koos KnightLoaderi või konteineri tõmmisega või uuendavad end ise, seega pole siin midagi uuendada.',
   'whatsnew.change.builtIn': '„{name}“ loetleb iga osa, mis tuleb koos KnightLoaderiga, koos versiooni ja päritoluga. Mida saab uuendada, jääb kaardile „{updates}“.',
   'whatsnew.change.settingRows': 'Iga ripploend ja sisestusväli seadetes on oma nime kõrval, oma kaardi lõpus.',
+  'pairing.wordsNoPassword': 'Sellel eksemplaril pole sisselogimisparooli, nii et igaüks, kes selle leheni jõuab, saab neid sõnu lugeda. Määra parool jaotises Turvalisus.',
+  'whatsnew.change.wordsAgain': '„{name}“ näitab kaksteist sõna uuesti ka ilma paroolita. Kuni parooli pole, hoiatab aken, et igaüks, kes selle leheni jõuab, saab neid lugeda.',
 };

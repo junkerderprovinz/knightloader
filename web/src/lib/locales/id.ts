@@ -230,7 +230,6 @@ export const id: Dict = {
   'pairing.show': 'Tampilkan frasa',
   'pairing.passwordLabel': 'Kata sandi login',
   'pairing.passwordTip': 'Kata-kata ini membuka setiap instance dalam grup, jadi menampilkannya lagi selalu meminta kata sandi.',
-  'pairing.wordsNeedPassword': 'Kata-kata ini membuka setiap instance dalam grup, jadi KnightLoader baru menampilkannya lagi setelah kata sandi login disetel.',
   'pairing.passwordWrong': 'Itu bukan kata sandi login.',
   'pairing.viaRelay': 'Melalui relay',
   'pairing.leave': 'Tinggalkan grup',
@@ -3660,4 +3659,6 @@ export const id: Dict = {
   'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sampingnya, masing-masing dengan versi dan asalnya. Bagian-bagian ini datang bersama KnightLoader atau image kontainer, atau memperbarui dirinya sendiri, jadi tidak ada yang perlu diperbarui di sini.',
   'whatsnew.change.builtIn': '“{name}” mencantumkan setiap bagian yang datang bersama KnightLoader, beserta versi dan asalnya. Yang bisa diperbarui tetap di “{updates}”.',
   'whatsnew.change.settingRows': 'Setiap dropdown dan kolom isian di Pengaturan berada di samping namanya, di ujung kartunya.',
+  'pairing.wordsNoPassword': 'Instans ini tidak punya kata sandi masuk, jadi siapa pun yang mencapai halaman ini bisa membaca kata-kata ini. Atur kata sandi di Keamanan.',
+  'whatsnew.change.wordsAgain': '“{name}” menampilkan dua belas kata lagi, juga tanpa kata sandi. Selama belum ada kata sandi, jendela memperingatkan bahwa siapa pun yang mencapai halaman ini bisa membacanya.',
 };

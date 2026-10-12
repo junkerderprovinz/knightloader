@@ -230,7 +230,6 @@ export const lt: Dict = {
   'pairing.show': 'Rodyti frazę',
   'pairing.passwordLabel': 'Prisijungimo slaptažodis',
   'pairing.passwordTip': 'Žodžiai atveria kiekvieną grupės egzempliorių, todėl norint juos parodyti dar kartą visada prašoma slaptažodžio.',
-  'pairing.wordsNeedPassword': 'Šie žodžiai atveria kiekvieną grupės egzempliorių, todėl KnightLoader juos vėl parodo tik nustačius prisijungimo slaptažodį.',
   'pairing.passwordWrong': 'Tai nėra prisijungimo slaptažodis.',
   'pairing.viaRelay': 'Per relay',
   'pairing.leave': 'Palikti grupę',
@@ -3662,4 +3661,6 @@ export const lt: Dict = {
   'settings.look.builtInHint': 'Tai, ką KnightLoader atsineša arba paleidžia šalia savęs, kiekviena dalis su savo versija ir kilme. Šios dalys ateina su KnightLoader arba konteinerio atvaizdu, arba atsinaujina pačios, todėl čia nėra ko atnaujinti.',
   'whatsnew.change.builtIn': '„{name}“ išvardija kiekvieną dalį, kuri ateina su KnightLoader, su versija ir kilme. Tai, ką galima atnaujinti, lieka kortelėje „{updates}“.',
   'whatsnew.change.settingRows': 'Kiekvienas išskleidžiamasis sąrašas ir įvesties laukas nustatymuose stovi šalia savo pavadinimo, kortelės gale.',
+  'pairing.wordsNoPassword': 'Šis egzempliorius neturi prisijungimo slaptažodžio, todėl šiuos žodžius gali perskaityti bet kas, pasiekęs šį puslapį. Nustatyk slaptažodį skiltyje Sauga.',
+  'whatsnew.change.wordsAgain': '„{name}“ vėl parodo dvylika žodžių ir be slaptažodžio. Kol jis nenustatytas, langas įspėja, kad juos gali perskaityti bet kas, pasiekęs šį puslapį.',
 };

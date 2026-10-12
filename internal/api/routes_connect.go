@@ -197,17 +197,15 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/reveal",
-		"show this instance's connection phrase again - refused while no login password is set, and with one it has to be entered again, because the phrase reaches every instance in the group",
+		"show this instance's connection phrase again - with a login password it has to be entered again, because the phrase reaches every instance in the group",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Password string `json:"password"`
 			}
 			// The body is optional; without a password there is nothing to
-			// enter again.
+			// enter again. An instance without one answers whoever reaches its
+			// port anyway, and the page that shows the words says so.
 			_ = decodeBody(r, &body)
-			if !passwordFirst(a, w, "showing the twelve words again, which open every instance in the group") {
-				return
-			}
 
 			// A session is not enough: it may have been left open on an
 			// unattended screen, and the phrase unlocks every instance in the

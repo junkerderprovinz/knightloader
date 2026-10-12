@@ -224,7 +224,6 @@ export const pl: Dict = {
   'pairing.show': 'Pokaż frazę',
   'pairing.passwordLabel': 'Hasło logowania',
   'pairing.passwordTip': 'Słowa otwierają każdą instancję w grupie, dlatego ich ponowne pokazanie zawsze wymaga hasła.',
-  'pairing.wordsNeedPassword': 'Te słowa otwierają każdą instancję w grupie, dlatego KnightLoader pokazuje je ponownie dopiero po ustawieniu hasła logowania.',
   'pairing.passwordWrong': 'To nie jest hasło logowania.',
   'pairing.viaRelay': 'Przez relay',
   'pairing.leave': 'Opuść grupę',
@@ -3645,4 +3644,6 @@ export const pl: Dict = {
   'settings.look.builtInHint': 'To, co KnightLoader przynosi ze sobą lub uruchamia obok siebie, każda część z wersją i pochodzeniem. Te części przychodzą z KnightLoaderem albo z obrazem kontenera, albo aktualizują się same, więc tutaj nie ma czego aktualizować.',
   'whatsnew.change.builtIn': '„{name}” wymienia każdą część, która przychodzi z KnightLoaderem, z wersją i pochodzeniem. To, co da się aktualizować, zostaje na „{updates}”.',
   'whatsnew.change.settingRows': 'Każda lista rozwijana i każde pole wprowadzania w Ustawieniach stoi obok swojej nazwy, na końcu swojej karty.',
+  'pairing.wordsNoPassword': 'Ta instancja nie ma hasła logowania, więc każdy, kto dotrze do tej strony, może przeczytać te słowa. Ustaw hasło w Zabezpieczeniach.',
+  'whatsnew.change.wordsAgain': '„{name}” znów pokazuje dwanaście słów także bez hasła. Dopóki żadne nie jest ustawione, okno ostrzega, że może je przeczytać każdy, kto dotrze do tej strony.',
 };

@@ -230,7 +230,6 @@ export const cs: Dict = {
   'pairing.show': 'Zobrazit frázi',
   'pairing.passwordLabel': 'Přihlašovací heslo',
   'pairing.passwordTip': 'Slova otevírají každou instanci ve skupině, proto jejich opětovné zobrazení vždy vyžaduje heslo.',
-  'pairing.wordsNeedPassword': 'Tato slova otevírají každou instanci ve skupině, proto je KnightLoader znovu ukáže až po nastavení přihlašovacího hesla.',
   'pairing.passwordWrong': 'To není přihlašovací heslo.',
   'pairing.viaRelay': 'Přes přeposílač',
   'pairing.leave': 'Opustit skupinu',
@@ -3670,4 +3669,6 @@ export const cs: Dict = {
   'settings.look.builtInHint': 'Co KnightLoader přináší nebo spouští vedle sebe, každá část se svou verzí a původem. Tyto části přicházejí s KnightLoaderem nebo s obrazem kontejneru, nebo se aktualizují samy, takže tu není co aktualizovat.',
   'whatsnew.change.builtIn': '„{name}“ uvádí každou část, kterou KnightLoader přináší, s její verzí a původem. Co jde aktualizovat, zůstává v „{updates}“.',
   'whatsnew.change.settingRows': 'Každý rozbalovací seznam a každé vstupní pole v Nastavení stojí vedle svého názvu, na konci své karty.',
+  'pairing.wordsNoPassword': 'Tato instance nemá přihlašovací heslo, takže tato slova si může přečíst každý, kdo se dostane na tuto stránku. Nastav heslo v Zabezpečení.',
+  'whatsnew.change.wordsAgain': '„{name}“ ukáže dvanáct slov znovu i bez hesla. Dokud žádné není nastavené, okno varuje, že je může přečíst každý, kdo se dostane na tuto stránku.',
 };

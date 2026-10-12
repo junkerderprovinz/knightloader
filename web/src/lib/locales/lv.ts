@@ -230,7 +230,6 @@ export const lv: Dict = {
   'pairing.show': 'Rādīt frāzi',
   'pairing.passwordLabel': 'Pieteikšanās parole',
   'pairing.passwordTip': 'Vārdi atver katru grupas instanci, tāpēc, lai tos parādītu vēlreiz, vienmēr tiek prasīta parole.',
-  'pairing.wordsNeedPassword': 'Šie vārdi atver katru grupas instanci, tāpēc KnightLoader tos parāda vēlreiz tikai tad, kad ir iestatīta pieteikšanās parole.',
   'pairing.passwordWrong': 'Tā nav pieteikšanās parole.',
   'pairing.viaRelay': 'Caur relay',
   'pairing.leave': 'Pamest grupu',
@@ -3651,4 +3650,6 @@ export const lv: Dict = {
   'settings.look.builtInHint': 'Tas, ko KnightLoader atnes līdzi vai darbina sev blakus, katrs ar savu versiju un izcelsmi. Šīs daļas nāk kopā ar KnightLoader vai konteinera attēlu, vai atjaunina sevi pašas, tāpēc šeit nav ko atjaunināt.',
   'whatsnew.change.builtIn': '„{name}“ uzskaita katru daļu, kas nāk kopā ar KnightLoader, ar versiju un izcelsmi. To, ko var atjaunināt, atradīsi kartītē „{updates}“.',
   'whatsnew.change.settingRows': 'Katrs nolaižamais saraksts un ievades lauks iestatījumos atrodas blakus savam nosaukumam, kartītes galā.',
+  'pairing.wordsNoPassword': 'Šai instancei nav pieteikšanās paroles, tāpēc ikviens, kurš sasniedz šo lapu, var izlasīt šos vārdus. Iestati paroli sadaļā Drošība.',
+  'whatsnew.change.wordsAgain': '„{name}“ atkal parāda divpadsmit vārdus arī bez paroles. Kamēr tā nav iestatīta, logs brīdina, ka tos var izlasīt ikviens, kurš sasniedz šo lapu.',
 };

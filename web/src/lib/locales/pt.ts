@@ -224,7 +224,6 @@ export const pt: Dict = {
   'pairing.show': 'Mostrar frase',
   'pairing.passwordLabel': 'Palavra-passe de início de sessão',
   'pairing.passwordTip': 'As palavras abrem todas as instâncias do grupo, por isso mostrá-las de novo pede sempre a palavra-passe.',
-  'pairing.wordsNeedPassword': 'Estas palavras abrem todas as instâncias do grupo, por isso o KnightLoader só as volta a mostrar depois de definida uma palavra-passe de início de sessão.',
   'pairing.passwordWrong': 'Essa não é a palavra-passe de início de sessão.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Sair do grupo',
@@ -3651,4 +3650,6 @@ export const pt: Dict = {
   'settings.look.builtInHint': 'O que o KnightLoader traz consigo ou corre ao seu lado, cada parte com a sua versão e a sua origem. Estas partes vêm com o KnightLoader ou com a imagem do contentor, ou atualizam-se sozinhas, por isso aqui não há nada para atualizar.',
   'whatsnew.change.builtIn': '«{name}» lista cada parte que vem com o KnightLoader, com a versão e a origem. O que se pode atualizar fica em «{updates}».',
   'whatsnew.change.settingRows': 'Cada lista pendente e cada campo de entrada das Definições fica ao lado do seu nome, no fim do seu cartão.',
+  'pairing.wordsNoPassword': 'Esta instância não tem palavra-passe de início de sessão, por isso qualquer pessoa que chegue a esta página pode ler estas palavras. Define uma palavra-passe em Segurança.',
+  'whatsnew.change.wordsAgain': '«{name}» volta a mostrar as doze palavras também sem palavra-passe. Enquanto nenhuma estiver definida, a janela avisa que qualquer pessoa que chegue a esta página as pode ler.',
 };

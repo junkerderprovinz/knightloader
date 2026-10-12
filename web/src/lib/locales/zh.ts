@@ -230,7 +230,6 @@ export const zh: Dict = {
   'pairing.show': '显示口令',
   'pairing.passwordLabel': '登录密码',
   'pairing.passwordTip': '这些单词能打开组内的每台实例，所以再次显示它们时总是需要输入密码。',
-  'pairing.wordsNeedPassword': '这些单词能打开组内的每台实例，所以只有设置了登录密码，KnightLoader 才会再次显示它们。',
   'pairing.passwordWrong': '这不是登录密码。',
   'pairing.viaRelay': '经中继',
   'pairing.leave': '退出组',
@@ -3642,4 +3641,6 @@ export const zh: Dict = {
   'settings.look.builtInHint': 'KnightLoader 自带或在旁运行的部分，每项都注明版本和来源。这些部分随 KnightLoader 或容器镜像提供，或会自行更新，因此这里没有需要更新的内容。',
   'whatsnew.change.builtIn': '“{name}”列出 KnightLoader 自带的每个部分，并注明版本和来源。可以更新的内容仍在“{updates}”中。',
   'whatsnew.change.settingRows': '设置中的每个下拉框和输入框都位于其名称旁边，靠在卡片的末端。',
+  'pairing.wordsNoPassword': '此实例没有登录密码，所以任何能打开此页面的人都能看到这些单词。请在“安全”中设置密码。',
+  'whatsnew.change.wordsAgain': '“{name}”即使没有密码也会再次显示这十二个单词。在未设置密码时，窗口会提醒任何能打开此页面的人都能看到它们。',
 };

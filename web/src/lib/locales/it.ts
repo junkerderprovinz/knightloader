@@ -224,7 +224,6 @@ export const it: Dict = {
   'pairing.show': 'Mostra frase',
   'pairing.passwordLabel': 'Password di accesso',
   'pairing.passwordTip': 'Le parole aprono ogni istanza del gruppo, quindi per mostrarle di nuovo viene sempre chiesta la password.',
-  'pairing.wordsNeedPassword': 'Queste parole aprono ogni istanza del gruppo, quindi KnightLoader le mostra di nuovo solo quando è impostata una password di accesso.',
   'pairing.passwordWrong': 'Questa non è la password di accesso.',
   'pairing.viaRelay': 'Tramite relay',
   'pairing.leave': 'Lascia il gruppo',
@@ -3644,4 +3643,6 @@ export const it: Dict = {
   'settings.look.builtInHint': 'Ciò che KnightLoader porta con sé o fa girare accanto a sé, ciascuno con la sua versione e la sua provenienza. Queste parti arrivano con KnightLoader o con l’immagine del container, o si aggiornano da sole, quindi qui non c’è niente da aggiornare.',
   'whatsnew.change.builtIn': '«{name}» elenca ogni parte che arriva con KnightLoader, con la sua versione e la sua provenienza. Ciò che si aggiorna resta in «{updates}».',
   'whatsnew.change.settingRows': 'Ogni menu a discesa e ogni campo di inserimento nelle Impostazioni sta accanto al suo nome, in fondo alla sua scheda.',
+  'pairing.wordsNoPassword': 'Questa istanza non ha una password di accesso, quindi chiunque raggiunga questa pagina può leggere queste parole. Imposta una password in Sicurezza.',
+  'whatsnew.change.wordsAgain': '«{name}» mostra di nuovo le dodici parole anche senza password. Finché non ne è impostata una, la finestra avverte che chiunque raggiunga questa pagina può leggerle.',
 };

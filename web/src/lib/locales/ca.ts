@@ -230,7 +230,6 @@ export const ca: Dict = {
   'pairing.show': 'Mostra la frase',
   'pairing.passwordLabel': "Contrasenya d'accés",
   'pairing.passwordTip': 'Les paraules obren totes les instàncies del grup, per això tornar-les a mostrar sempre demana la contrasenya.',
-  'pairing.wordsNeedPassword': 'Aquestes paraules obren totes les instàncies del grup, per això KnightLoader només les torna a mostrar quan hi ha una contrasenya d’accés.',
   'pairing.passwordWrong': "Aquesta no és la contrasenya d'accés.",
   'pairing.viaRelay': 'Via repetidor',
   'pairing.leave': 'Surt del grup',
@@ -3648,4 +3647,6 @@ export const ca: Dict = {
   'settings.look.builtInHint': 'El que KnightLoader porta amb ell o fa funcionar al seu costat, cadascun amb la seva versió i d’on ve. Aquestes parts vénen amb KnightLoader o amb la imatge del contenidor, o s’actualitzen soles, així que aquí no hi ha res a actualitzar.',
   'whatsnew.change.builtIn': '«{name}» llista cada part que ve amb KnightLoader, amb la seva versió i d’on ve. El que es pot actualitzar es queda a «{updates}».',
   'whatsnew.change.settingRows': 'Cada desplegable i cada camp d’entrada de Configuració és al costat del seu nom, al final de la seva targeta.',
+  'pairing.wordsNoPassword': 'Aquesta instància no té contrasenya d’inici de sessió, així que qualsevol que arribi a aquesta pàgina pot llegir aquestes paraules. Posa una contrasenya a Seguretat.',
+  'whatsnew.change.wordsAgain': '«{name}» torna a mostrar les dotze paraules també sense contrasenya. Mentre no n’hi hagi cap, la finestra avisa que qualsevol que arribi a aquesta pàgina les pot llegir.',
 };

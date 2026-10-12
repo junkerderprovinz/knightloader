@@ -278,7 +278,6 @@ export const en = {
   'pairing.show': 'Show phrase',
   'pairing.passwordLabel': 'Login password',
   'pairing.passwordTip': 'The words open every instance in the group, so showing them again always asks for the password.',
-  'pairing.wordsNeedPassword': 'These words open every instance in the group, so KnightLoader only shows them again once a login password is set.',
   'pairing.passwordWrong': 'That is not the login password.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Leave group',
@@ -3904,6 +3903,8 @@ export const en = {
   'settings.look.builtInHint': 'What KnightLoader brings along or runs beside it, each with its version and where it comes from. These parts come with KnightLoader or the container image, or update themselves, so there is nothing to update here.',
   'whatsnew.change.builtIn': '"{name}" lists every part that comes with KnightLoader, each with its version and where it comes from. What can be updated stays on "{updates}".',
   'whatsnew.change.settingRows': 'Every dropdown and input field in Settings stands beside its name, at the end of its card.',
+  'pairing.wordsNoPassword': 'This instance has no login password, so anyone who can reach this page can read these words. Set a password under Security.',
+  'whatsnew.change.wordsAgain': '"{name}" shows the twelve words again without a password too. While none is set, the window warns that anyone who reaches this page can read them.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -230,7 +230,6 @@ export const tr: Dict = {
   'pairing.show': 'İfadeyi göster',
   'pairing.passwordLabel': 'Giriş parolası',
   'pairing.passwordTip': 'Kelimeler gruptaki her örneği açar, bu yüzden onları yeniden göstermek her zaman parola ister.',
-  'pairing.wordsNeedPassword': 'Bu kelimeler gruptaki her örneği açar, bu yüzden KnightLoader onları ancak bir giriş parolası ayarlandıktan sonra yeniden gösterir.',
   'pairing.passwordWrong': 'Bu, giriş parolası değil.',
   'pairing.viaRelay': 'Röle üzerinden',
   'pairing.leave': 'Gruptan ayrıl',
@@ -3659,4 +3658,6 @@ export const tr: Dict = {
   'settings.look.builtInHint': 'KnightLoader’ın yanında getirdiği ya da yanında çalıştırdığı şeyler, her biri sürümü ve kaynağıyla. Bu parçalar KnightLoader ya da kapsayıcı imajıyla gelir veya kendilerini günceller, bu yüzden burada güncellenecek bir şey yok.',
   'whatsnew.change.builtIn': '“{name}”, KnightLoader ile gelen her parçayı sürümü ve kaynağıyla listeler. Güncellenebilenler “{updates}” üzerinde kalır.',
   'whatsnew.change.settingRows': 'Ayarlar’daki her açılır liste ve her giriş alanı adının yanında, kartının sonunda durur.',
+  'pairing.wordsNoPassword': 'Bu örneğin giriş parolası yok, bu yüzden bu sayfaya ulaşan herkes bu sözcükleri okuyabilir. Güvenlik altında bir parola belirle.',
+  'whatsnew.change.wordsAgain': '“{name}”, on iki sözcüğü parola olmadan da yeniden gösterir. Parola belirlenmediği sürece pencere, bu sayfaya ulaşan herkesin onları okuyabileceği konusunda uyarır.',
 };

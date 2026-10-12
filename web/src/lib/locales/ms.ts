@@ -230,7 +230,6 @@ export const ms: Dict = {
   'pairing.show': 'Tunjukkan frasa',
   'pairing.passwordLabel': 'Kata laluan log masuk',
   'pairing.passwordTip': 'Perkataan ini membuka setiap instans dalam kumpulan, jadi menunjukkannya semula sentiasa memerlukan kata laluan.',
-  'pairing.wordsNeedPassword': 'Perkataan ini membuka setiap instans dalam kumpulan, jadi KnightLoader hanya menunjukkannya semula selepas kata laluan log masuk ditetapkan.',
   'pairing.passwordWrong': 'Itu bukan kata laluan log masuk.',
   'pairing.viaRelay': 'Melalui relay',
   'pairing.leave': 'Tinggalkan kumpulan',
@@ -3660,4 +3659,6 @@ export const ms: Dict = {
   'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sisinya, setiap satu dengan versi dan asalnya. Bahagian ini datang bersama KnightLoader atau imej bekas, atau mengemas kini dirinya sendiri, jadi tiada apa yang perlu dikemas kini di sini.',
   'whatsnew.change.builtIn': '“{name}” menyenaraikan setiap bahagian yang datang bersama KnightLoader, dengan versi dan asalnya. Yang boleh dikemas kini kekal dalam “{updates}”.',
   'whatsnew.change.settingRows': 'Setiap senarai juntai dan medan input dalam Tetapan terletak di sebelah namanya, di hujung kadnya.',
+  'pairing.wordsNoPassword': 'Tika ini tiada kata laluan log masuk, jadi sesiapa yang sampai ke halaman ini boleh membaca perkataan ini. Tetapkan kata laluan di bawah Keselamatan.',
+  'whatsnew.change.wordsAgain': '“{name}” menunjukkan dua belas perkataan sekali lagi walaupun tanpa kata laluan. Selagi tiada yang ditetapkan, tetingkap memberi amaran bahawa sesiapa yang sampai ke halaman ini boleh membacanya.',
 };

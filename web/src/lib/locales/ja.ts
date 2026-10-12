@@ -230,7 +230,6 @@ export const ja: Dict = {
   'pairing.show': 'フレーズを表示',
   'pairing.passwordLabel': 'ログインパスワード',
   'pairing.passwordTip': 'この単語でグループ内のすべてのインスタンスを開けるため、再表示するときは毎回パスワードが必要です。',
-  'pairing.wordsNeedPassword': 'この単語でグループ内のすべてのインスタンスを開けるため、KnightLoader はログインパスワードが設定されるまで再表示しません。',
   'pairing.passwordWrong': 'それはログインパスワードではありません。',
   'pairing.viaRelay': 'リレー経由',
   'pairing.leave': 'グループを抜ける',
@@ -3656,4 +3655,6 @@ export const ja: Dict = {
   'settings.look.builtInHint': 'KnightLoader が同梱している、または隣で動かしているもので、それぞれのバージョンと入手元を示します。これらは KnightLoader かコンテナイメージに含まれているか、自分で更新されるため、ここで更新するものはありません。',
   'whatsnew.change.builtIn': '「{name}」は KnightLoader に含まれる部分を、バージョンと入手元とともにすべて一覧にします。更新できるものは「{updates}」に残ります。',
   'whatsnew.change.settingRows': '設定のドロップダウンと入力欄は、どれも名前の横、カードの端に並びます。',
+  'pairing.wordsNoPassword': 'このインスタンスにはログインパスワードがないため、このページにたどり着いた人は誰でもこれらの単語を読めます。セキュリティでパスワードを設定してください。',
+  'whatsnew.change.wordsAgain': '「{name}」はパスワードがなくても 12 個の単語をもう一度表示します。パスワードが未設定の間は、このページにたどり着いた人なら誰でも読めることをウィンドウが警告します。',
 };
