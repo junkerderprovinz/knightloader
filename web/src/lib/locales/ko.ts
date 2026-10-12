@@ -719,8 +719,6 @@ export const ko: Dict = {
   'settings.modules.reason.captchaJDOff': '캡차는 JDownloader에서만 오는데, JDownloader가 꺼져 있습니다. 먼저 다시 켜세요.',
   'settings.modules.reason.tray': '트레이 아이콘에는 데스크톱 세션이 필요한데, 컨테이너 빌드에는 그것이 없습니다. 그곳에서는 브라우저 탭의 제목과 아이콘이 같은 것을 보여 줍니다.',
   'settings.modules.reason.windowpolicy': '창을 닫거나 최소화할 때의 동작은 한 기기의 한 설치에 속한 것이므로, 이 인스턴스는 그것을 제공하지 않습니다.',
-  'settings.modules.reason.updaterDesktop': '일반 페이지에서 “자동으로 업데이트”가 켜져 있는 동안 앱은 하루에 한 번 더 새로운 릴리스를 찾아 백그라운드에서 다운로드하고, 릴리스의 체크섬으로 확인한 뒤 다음에 앱을 열 때 시작합니다.',
-  'settings.modules.reason.updaterContainer': '컨테이너는 내부에서 스스로를 교체할 수 없습니다. 일반 페이지의 업데이트 확인은 더 새로운 릴리스가 있다는 것을 알려 주고 링크를 걸어 줄 뿐입니다. 업데이트하려면 이것을 배포한 방식 그대로 새 이미지를 받으세요(docker pull, Unraid Community Applications, Watchtower 등).',
   'settings.modules.switchFailed': '그 스위치는 거절되었습니다: {reason}',
   'settings.modules.configureFirst': '아직 켤 것이 없습니다. 먼저 {page}에서 설정하세요. 그다음부터는 여기 스위치가 설정을 잃지 않고 멈추고 다시 시작합니다.',
 
@@ -742,7 +740,6 @@ export const ko: Dict = {
   'settings.module.scripting': '이벤트 스크립트',
   'settings.module.tray': '알림 영역에 아이콘 두기',
   'settings.module.windowpolicy': '창 동작',
-  'settings.module.updater': '앱 내 업데이트',
 
   'settings.advanced.search': '이름이나 값으로 거르기',
   'settings.advanced.allSettings': '모든 설정',

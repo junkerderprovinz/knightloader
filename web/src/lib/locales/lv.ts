@@ -720,8 +720,6 @@ export const lv: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha nāk tikai no JDownloader, un tas ir izslēgts. Vispirms ieslēdz to atkal.',
   'settings.modules.reason.tray': 'Ikonai paplātē vajadzīga darbvirsmas sesija, un konteinera būvējumam tās nav. Tur to pašu parāda pārlūka cilnes virsraksts un ikona.',
   'settings.modules.reason.windowpolicy': 'Tas, ko dara loga aizvēršana vai minimizēšana, pieder vienai instalācijai vienā datorā, tāpēc šī instance to nepiedāvā.',
-  'settings.modules.reason.updaterDesktop': 'Kamēr lapā Vispārīgi ir ieslēgts „Atjaunināt automātiski“, lietotne reizi dienā meklē jaunāku versiju, lejupielādē to fonā, pārbauda to ar laidiena kontrolsummām un startē nākamajā reizē, kad atvērsi lietotni.',
-  'settings.modules.reason.updaterContainer': 'Konteiners nevar sevi aizstāt no iekšpuses. Atjauninājumu pārbaude lapā Vispārīgi tikai pasaka, ka ir jaunāka versija, un dod uz to saiti. Lai atjauninātu, lejupielādē jauno konteinera attēlu tāpat, kā izvietoji šo (docker pull, Unraid Community Applications, Watchtower un tā tālāk).',
   'settings.modules.switchFailed': 'Šis slēdzis tika atteikts: {reason}',
   'settings.modules.configureFirst': 'Vēl nav ko ieslēgt. Vispirms iestatiet to lapā {page}; pēc tam slēdzis šeit to aptur un palaiž no jauna, nezaudējot iestatīto.',
 
@@ -743,7 +741,6 @@ export const lv: Dict = {
   'settings.module.scripting': 'Notikumu skripti',
   'settings.module.tray': 'Ikona paziņojumu apgabalā',
   'settings.module.windowpolicy': 'Logu uzvedība',
-  'settings.module.updater': 'Atjauninājumi lietotnē',
 
   'settings.advanced.search': 'Filtrēt pēc nosaukuma vai vērtības',
   'settings.advanced.allSettings': 'Visi iestatījumi',

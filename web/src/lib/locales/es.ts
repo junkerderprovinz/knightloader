@@ -711,8 +711,6 @@ export const es: Dict = {
   'settings.modules.reason.captchaJDOff': 'Los captchas solo vienen de JDownloader, que está apagado. Vuelve a encenderlo primero.',
   'settings.modules.reason.tray': 'Un icono en la bandeja necesita una sesión de escritorio, y la compilación para contenedor no la tiene. Allí, el título y el icono de la pestaña del navegador muestran lo mismo.',
   'settings.modules.reason.windowpolicy': 'Lo que hace cerrar o minimizar la ventana pertenece a una instalación en una máquina concreta, así que esta instancia no lo ofrece.',
-  'settings.modules.reason.updaterDesktop': 'Mientras «Actualizar automáticamente» esté activado en la página General, la app busca una versión más reciente una vez al día, la descarga en segundo plano, la comprueba con las sumas de verificación de la versión publicada y la inicia la próxima vez que la abras.',
-  'settings.modules.reason.updaterContainer': 'Un contenedor no puede reemplazarse a sí mismo desde dentro. La comprobación de actualizaciones de la página General solo te dice que existe una versión más reciente y la enlaza. Para actualizar, descarga la imagen nueva de la misma forma en que desplegaste esta (docker pull, Unraid Community Applications, Watchtower, etc.).',
   'settings.modules.switchFailed': 'Ese interruptor fue rechazado: {reason}',
   'settings.modules.configureFirst': 'Todavía no hay nada que encender. Configúralo primero en {page}; después el interruptor de aquí lo para y lo vuelve a arrancar sin perder lo que pusiste.',
 
@@ -734,7 +732,6 @@ export const es: Dict = {
   'settings.module.scripting': 'Scripts de eventos',
   'settings.module.tray': 'Icono en el área de notificación',
   'settings.module.windowpolicy': 'Comportamiento de las ventanas',
-  'settings.module.updater': 'Actualizaciones dentro de la app',
 
   'settings.advanced.search': 'Filtrar por nombre o valor',
   'settings.advanced.allSettings': 'Todos los ajustes',

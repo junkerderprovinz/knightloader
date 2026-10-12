@@ -722,8 +722,6 @@ export const no: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchaer kommer bare fra JDownloader, og den er slått av. Slå den på igjen først.',
   'settings.modules.reason.tray': 'Et ikon i systemkurven krever en skrivebordsøkt, og det har ikke container-bygget. Der viser tittelen og ikonet i nettleserfanen det samme.',
   'settings.modules.reason.windowpolicy': 'Hva det gjør å lukke eller minimere vinduet, hører til én installasjon på én maskin, så denne instansen leverer det ikke.',
-  'settings.modules.reason.updaterDesktop': 'Så lenge «Oppdater automatisk» er på på siden Generelt, ser appen etter en nyere utgivelse én gang om dagen, laster den ned i bakgrunnen, sjekker den mot utgivelsens sjekksummer og starter den neste gang du åpner appen.',
-  'settings.modules.reason.updaterContainer': 'En container kan ikke erstatte seg selv innenfra. Oppdateringssjekken på siden Generelt forteller deg bare at det finnes en nyere utgivelse, og lenker til den. For å oppdatere henter du det nye imaget slik du rullet ut dette (docker pull, Unraid Community Applications, Watchtower og så videre).',
   'settings.modules.switchFailed': 'Den bryteren ble avvist: {reason}',
   'settings.modules.configureFirst': 'Det er ennå ingenting å slå på. Sett dette opp på {page} først; deretter stopper og starter bryteren her det på nytt uten å miste det du har satt opp.',
 
@@ -745,7 +743,6 @@ export const no: Dict = {
   'settings.module.scripting': 'Hendelsesskript',
   'settings.module.tray': 'Ikon i varslingsområdet',
   'settings.module.windowpolicy': 'Vindusoppførsel',
-  'settings.module.updater': 'Oppdateringer i appen',
 
   'settings.advanced.search': 'Filtrer på navn eller verdi',
   'settings.advanced.allSettings': 'Alle innstillinger',

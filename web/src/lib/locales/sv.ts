@@ -719,8 +719,6 @@ export const sv: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchor kommer bara från JDownloader, som är avstängd. Slå på den igen först.',
   'settings.modules.reason.tray': 'En ikon i aktivitetsfältet kräver en skrivbordssession, och det har containerbygget inte. Där visar webbläsarflikens titel och ikon samma sak.',
   'settings.modules.reason.windowpolicy': 'Vad det gör att stänga eller minimera fönstret hör till en installation på en maskin, så den här instansen levererar det inte.',
-  'settings.modules.reason.updaterDesktop': 'Så länge ”Uppdatera automatiskt” är på på sidan Allmänt letar appen efter en nyare utgåva en gång om dagen, laddar ner den i bakgrunden, kontrollerar den mot utgåvans kontrollsummor och startar den nästa gång du öppnar appen.',
-  'settings.modules.reason.updaterContainer': 'En container kan inte ersätta sig själv inifrån. Uppdateringskontrollen på sidan Allmänt talar bara om att det finns en nyare utgåva och länkar till den. För att uppdatera hämtar du den nya avbildningen på samma sätt som du driftsatte den här (docker pull, Unraid Community Applications, Watchtower och så vidare).',
   'settings.modules.switchFailed': 'Den brytaren nekades: {reason}',
   'settings.modules.configureFirst': 'Det finns inget att slå på än. Ställ in det på {page} först; därefter stoppar och startar brytaren här om det utan att tappa det du ställt in.',
 
@@ -742,7 +740,6 @@ export const sv: Dict = {
   'settings.module.scripting': 'Händelseskript',
   'settings.module.tray': 'Ikon i meddelandefältet',
   'settings.module.windowpolicy': 'Fönsterbeteende',
-  'settings.module.updater': 'Uppdateringar i appen',
 
   'settings.advanced.search': 'Filtrera på namn eller värde',
   'settings.advanced.allSettings': 'Alla inställningar',

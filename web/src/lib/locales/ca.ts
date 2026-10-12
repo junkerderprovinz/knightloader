@@ -719,8 +719,6 @@ export const ca: Dict = {
   'settings.modules.reason.captchaJDOff': 'Els captchas només vénen del JDownloader, que està apagat. Torna’l a encendre primer.',
   'settings.modules.reason.tray': 'Una icona a la safata necessita una sessió d’escriptori, i la compilació per a contenidor no en té. Allà, el títol i la icona de la pestanya del navegador mostren el mateix.',
   'settings.modules.reason.windowpolicy': 'El que fa tancar o minimitzar la finestra pertany a una instal·lació en una màquina concreta, així que aquesta instància no ho ofereix.',
-  'settings.modules.reason.updaterDesktop': 'Mentre «Actualitza automàticament» estigui activat a la pàgina General, l’aplicació busca una versió més nova un cop al dia, la baixa en segon pla, la comprova amb les sumes de verificació de la versió publicada i l’inicia la propera vegada que l’obris.',
-  'settings.modules.reason.updaterContainer': 'Un contenidor no es pot reemplaçar a si mateix des de dins. La comprovació d’actualitzacions de la pàgina General només et diu que hi ha una versió més nova i hi enllaça. Per actualitzar, baixa la imatge nova tal com vas desplegar aquesta (docker pull, Unraid Community Applications, Watchtower, etc.).',
   'settings.modules.switchFailed': 'Aquest interruptor s’ha rebutjat: {reason}',
   'settings.modules.configureFirst': 'Encara no hi ha res per encendre. Configureu-ho primer a {page}; després l’interruptor d’aquí l’atura i el torna a engegar sense perdre el que hàgiu posat.',
 
@@ -742,7 +740,6 @@ export const ca: Dict = {
   'settings.module.scripting': 'Scripts d’esdeveniments',
   'settings.module.tray': 'Icona a l\'àrea de notificació',
   'settings.module.windowpolicy': 'Comportament de les finestres',
-  'settings.module.updater': 'Actualitzacions dins l’aplicació',
 
   'settings.advanced.search': 'Filtra per nom o valor',
   'settings.advanced.allSettings': 'Tots els ajustos',

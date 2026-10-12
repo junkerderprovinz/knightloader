@@ -65,9 +65,8 @@ import {
   stormTap,
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
-import { useDraft, useFeatures } from './context';
+import { useDraft } from './context';
 import { SettingRow, SubHead } from './controls';
-import { ModulesPageBadge } from './ModuleToggle';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
 import { SettingsTransfer } from './look/SettingsTransfer';
@@ -941,7 +940,6 @@ function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { cfg, patch } = useDraft();
   // Updating from inside the app is the In-app updates module; its row says
   // why neither build switches it.
-  const updater = useFeatures().features.modules.find((m) => m.id === 'updater');
   const [deployment, setDeployment] = useState<string | null>(null);
   const [check, setCheck] = useState<UpdateCheckT | null>(null);
   const [checking, setChecking] = useState(false);
@@ -1012,9 +1010,6 @@ function UpdateCard({ hue, children }: { hue: number; children?: ReactNode }) {
         checked={isDesktop && cfg.autoUpdate}
         disabled={!isDesktop}
         onChange={(v) => patch({ autoUpdate: v })}
-        // The module's row has no switch of its own, so the badge names the
-        // page rather than claiming this switch is there as well.
-        aside={updater && <ModulesPageBadge m={updater} title={t('settings.nav.modules')} />}
       />
       {/* A downloaded version outranks the offer of it: it only waits for a
           restart. */}

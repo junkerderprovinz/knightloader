@@ -873,8 +873,6 @@ export const en = {
   'settings.modules.reason.captchaJDOff': 'Captchas come only from JDownloader, which is switched off. Switch it back on first.',
   'settings.modules.reason.tray': "An icon in the notification area needs a desktop session, which the container build does not have. There, the browser tab's title and icon show the same.",
   'settings.modules.reason.windowpolicy': 'What closing or minimising the window does belongs to one installation on one machine, so this instance does not serve it.',
-  'settings.modules.reason.updaterDesktop': 'While "Update automatically" on the General page is on, the app looks for a newer release once a day, downloads it in the background, checks it against the release\'s checksums and starts it the next time you open the app.',
-  'settings.modules.reason.updaterContainer': 'A container cannot replace itself from the inside. The update check on the General page only tells you that a newer release exists and links to it. To update, pull the new image the way you deployed this one (docker pull, Unraid Community Applications, Watchtower and so on).',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
@@ -897,7 +895,6 @@ export const en = {
   'settings.module.scripting': 'Event scripts',
   'settings.module.tray': 'Icon in the notification area',
   'settings.module.windowpolicy': 'Window behaviour',
-  'settings.module.updater': 'In-app updates',
 
   'settings.advanced.search': 'Filter by name or value',
   'settings.advanced.allSettings': 'All settings',

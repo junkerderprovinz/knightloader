@@ -721,8 +721,6 @@ export const ar: Dict = {
   'settings.modules.reason.captchaJDOff': 'الكابتشا لا تأتي إلا من JDownloader، وهو مطفأ. شغّله من جديد أولًا.',
   'settings.modules.reason.tray': 'أيقونة شريط النظام تحتاج إلى جلسة سطح مكتب، وبناء الحاوية لا يملكها. وهناك يعرض عنوان تبويب المتصفح وأيقونته الشيء نفسه.',
   'settings.modules.reason.windowpolicy': 'ما يفعله إغلاق النافذة أو تصغيرها يخصّ تثبيتًا واحدًا على جهاز واحد، لذلك لا تقدّمه هذه النسخة.',
-  'settings.modules.reason.updaterDesktop': 'ما دام «التحديث تلقائيًا» مفعّلًا في صفحة «عام»، يبحث التطبيق مرة في اليوم عن إصدار أحدث، وينزّله في الخلفية، ويتحقق منه بمجاميع التحقق الخاصة بالإصدار، ثم يشغّله في المرة القادمة التي تفتحه فيها.',
-  'settings.modules.reason.updaterContainer': 'لا تستطيع الحاوية أن تستبدل نفسها من الداخل. التحقق من التحديثات في صفحة «عام» يخبرك فقط بوجود إصدار أحدث ويضع رابطًا إليه. وللتحديث اسحب الصورة الجديدة بالطريقة التي نشرت بها هذه (docker pull، أو Unraid Community Applications، أو Watchtower وغيرها).',
   'settings.modules.switchFailed': 'رُفض هذا المفتاح: {reason}',
   'settings.modules.configureFirst': 'لا شيء لتشغيله بعد. اضبط هذا في {page} أولًا؛ بعدها يوقفه المفتاح هنا ويعيد تشغيله دون فقد ما ضبطته.',
 
@@ -744,7 +742,6 @@ export const ar: Dict = {
   'settings.module.scripting': 'نصوص الأحداث',
   'settings.module.tray': 'أيقونة في منطقة الإشعارات',
   'settings.module.windowpolicy': 'سلوك النوافذ',
-  'settings.module.updater': 'التحديثات داخل التطبيق',
 
   'settings.advanced.search': 'رشّح بالاسم أو القيمة',
   'settings.advanced.allSettings': 'كل الإعدادات',

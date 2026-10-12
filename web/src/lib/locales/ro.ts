@@ -721,8 +721,6 @@ export const ro: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha-urile vin doar de la JDownloader, care este dezactivat. Pornește-l mai întâi din nou.',
   'settings.modules.reason.tray': 'O pictogramă în bara de sistem are nevoie de o sesiune desktop, pe care build-ul pentru container nu o are. Acolo, titlul și pictograma filei din browser arată același lucru.',
   'settings.modules.reason.windowpolicy': 'Ce face închiderea sau minimizarea ferestrei ține de o singură instalare pe o singură mașină, așa că această instanță nu o oferă.',
-  'settings.modules.reason.updaterDesktop': 'Cât timp „Actualizează automat” este activat pe pagina General, aplicația caută o dată pe zi o versiune mai nouă, o descarcă în fundal, o verifică după sumele de control ale versiunii publicate și o pornește data viitoare când o deschizi.',
-  'settings.modules.reason.updaterContainer': 'Un container nu se poate înlocui singur din interior. Verificarea actualizărilor de pe pagina General doar îți spune că există o versiune mai nouă și trimite la ea. Ca să actualizezi, adu imaginea nouă la fel cum ai implementat-o pe aceasta (docker pull, Unraid Community Applications, Watchtower și așa mai departe).',
   'settings.modules.switchFailed': 'Comutatorul a fost refuzat: {reason}',
   'settings.modules.configureFirst': 'Încă nu e nimic de pornit. Configurează mai întâi în {page}; după aceea comutatorul de aici îl oprește și îl repornește fără să piardă ce ai stabilit.',
 
@@ -744,7 +742,6 @@ export const ro: Dict = {
   'settings.module.scripting': 'Scripturi de evenimente',
   'settings.module.tray': 'Pictogramă în zona de notificare',
   'settings.module.windowpolicy': 'Comportamentul ferestrelor',
-  'settings.module.updater': 'Actualizări în aplicație',
 
   'settings.advanced.search': 'Filtrează după nume sau valoare',
   'settings.advanced.allSettings': 'Toate setările',

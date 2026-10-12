@@ -720,8 +720,6 @@ export const lt: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha ateina tik iš JDownloader, o jis išjungtas. Pirmiausia vėl jį įjunk.',
   'settings.modules.reason.tray': 'Piktogramai dėkle reikia darbalaukio sesijos, o konteinerio laida jos neturi. Ten tą patį rodo naršyklės kortelės pavadinimas ir piktograma.',
   'settings.modules.reason.windowpolicy': 'Tai, ką daro lango uždarymas ar sumažinimas, priklauso vienam diegimui viename kompiuteryje, todėl šis egzempliorius to neteikia.',
-  'settings.modules.reason.updaterDesktop': 'Kol puslapyje Bendra įjungta „Atnaujinti automatiškai“, programa kartą per dieną ieško naujesnės versijos, atsisiunčia ją fone, patikrina pagal leidimo kontrolines sumas ir paleidžia kitą kartą ją atidarius.',
-  'settings.modules.reason.updaterContainer': 'Konteineris negali pakeisti savęs iš vidaus. Naujinimų tikrinimas puslapyje Bendra tik pasako, kad yra naujesnė versija, ir pateikia nuorodą į ją. Kad atnaujintum, parsisiųsk naują atvaizdą taip, kaip įdiegei šį (docker pull, Unraid Community Applications, Watchtower ir t. t.).',
   'settings.modules.switchFailed': 'Jungiklis buvo atmestas: {reason}',
   'settings.modules.configureFirst': 'Kol kas nėra ko įjungti. Pirmiausia tai sutvarkykite puslapyje {page}; po to jungiklis čia jį sustabdo ir vėl paleidžia neprarasdamas to, ką nustatėte.',
 
@@ -743,7 +741,6 @@ export const lt: Dict = {
   'settings.module.scripting': 'Įvykių scenarijai',
   'settings.module.tray': 'Piktograma pranešimų srityje',
   'settings.module.windowpolicy': 'Langų elgsena',
-  'settings.module.updater': 'Atnaujinimai programoje',
 
   'settings.advanced.search': 'Filtruoti pagal pavadinimą ar reikšmę',
   'settings.advanced.allSettings': 'Visi nustatymai',

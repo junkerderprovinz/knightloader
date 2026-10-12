@@ -719,8 +719,6 @@ export const vi: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha chỉ đến từ JDownloader, mà JDownloader đang tắt. Hãy bật lại nó trước.',
   'settings.modules.reason.tray': 'Biểu tượng khay cần một phiên desktop, mà bản container thì không có. Ở đó, tiêu đề và biểu tượng của thẻ trình duyệt hiển thị cùng thông tin.',
   'settings.modules.reason.windowpolicy': 'Việc đóng hay thu nhỏ cửa sổ sẽ làm gì là chuyện của một bản cài trên một máy, nên thực thể này không cung cấp nó.',
-  'settings.modules.reason.updaterDesktop': 'Khi “Tự động cập nhật” ở trang Chung đang bật, ứng dụng tìm bản phát hành mới hơn mỗi ngày một lần, tải xuống ở chế độ nền, kiểm tra bằng checksum của bản phát hành và chạy nó vào lần tới bạn mở ứng dụng.',
-  'settings.modules.reason.updaterContainer': 'Một container không thể tự thay thế chính nó từ bên trong. Lượt kiểm tra cập nhật ở trang Chung chỉ cho bạn biết có bản phát hành mới hơn và dẫn liên kết tới đó. Để cập nhật, hãy kéo image mới theo cách bạn đã triển khai container này (docker pull, Unraid Community Applications, Watchtower, v.v.).',
   'settings.modules.switchFailed': 'Công tắc đó bị từ chối: {reason}',
   'settings.modules.configureFirst': 'Chưa có gì để bật. Hãy thiết lập ở {page} trước; sau đó công tắc ở đây sẽ dừng và chạy lại mà không mất những gì bạn đã đặt.',
 
@@ -742,7 +740,6 @@ export const vi: Dict = {
   'settings.module.scripting': 'Kịch bản sự kiện',
   'settings.module.tray': 'Biểu tượng ở khu thông báo',
   'settings.module.windowpolicy': 'Hành vi cửa sổ',
-  'settings.module.updater': 'Cập nhật trong ứng dụng',
 
   'settings.advanced.search': 'Lọc theo tên hoặc giá trị',
   'settings.advanced.allSettings': 'Tất cả cài đặt',

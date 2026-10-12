@@ -720,8 +720,6 @@ export const hu: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchák csak a JDownloadertől jönnek, és az ki van kapcsolva. Előbb kapcsold vissza.',
   'settings.modules.reason.tray': 'A tálcaikonhoz asztali munkamenet kell, a konténeres buildben pedig nincs ilyen. Ott a böngészőlap címe és ikonja mutatja ugyanezt.',
   'settings.modules.reason.windowpolicy': 'Hogy mit tesz az ablak bezárása vagy kis méretre állítása, az egy gépen lévő egy telepítéshez tartozik, ezért ez a példány nem szolgálja ki.',
-  'settings.modules.reason.updaterDesktop': 'Amíg az Általános oldalon be van kapcsolva az „Automatikus frissítés”, az alkalmazás naponta egyszer újabb kiadást keres, a háttérben letölti, ellenőrzi a kiadás ellenőrzőösszegeivel, és a következő megnyitáskor elindítja.',
-  'settings.modules.reason.updaterContainer': 'Egy konténer nem tudja belülről lecserélni önmagát. Az Általános oldal frissítéskeresése csak annyit mond, hogy van újabb kiadás, és belinkeli. A frissítéshez húzd le az új image-et úgy, ahogy ezt telepítetted (docker pull, Unraid Community Applications, Watchtower és így tovább).',
   'settings.modules.switchFailed': 'A kapcsolót elutasította: {reason}',
   'settings.modules.configureFirst': 'Még nincs mit bekapcsolni. Előbb állítsd be a(z) {page} oldalon; utána az itteni kapcsoló leállítja és újraindítja anélkül, hogy a beállított elveszne.',
 
@@ -743,7 +741,6 @@ export const hu: Dict = {
   'settings.module.scripting': 'Eseményszkriptek',
   'settings.module.tray': 'Ikon az értesítési területen',
   'settings.module.windowpolicy': 'Ablakviselkedés',
-  'settings.module.updater': 'Alkalmazáson belüli frissítések',
 
   'settings.advanced.search': 'Szűrés név vagy érték szerint',
   'settings.advanced.allSettings': 'Minden beállítás',

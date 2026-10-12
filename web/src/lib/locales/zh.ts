@@ -719,8 +719,6 @@ export const zh: Dict = {
   'settings.modules.reason.captchaJDOff': '验证码只来自 JDownloader，而它已经关闭。请先把它重新打开。',
   'settings.modules.reason.tray': '托盘图标需要桌面会话，而容器版没有。在容器版里，浏览器标签页的标题和图标会显示同样的信息。',
   'settings.modules.reason.windowpolicy': '关闭或最小化窗口时会发生什么，属于某一台机器上的某一个安装，所以这个实例不提供它。',
-  'settings.modules.reason.updaterDesktop': '只要“常规”页面上的“自动更新”处于开启状态，应用每天会查找一次更新的版本，在后台下载，用该版本的校验和进行核对，并在你下次打开应用时启动。',
-  'settings.modules.reason.updaterContainer': '容器无法从内部替换自己。“常规”页面上的更新检查只会告诉你有更新的版本，并附上链接。要更新，请按你部署这个容器的方式拉取新镜像（docker pull、Unraid Community Applications、Watchtower 等）。',
   'settings.modules.switchFailed': '该开关被拒绝：{reason}',
   'settings.modules.configureFirst': '还没有可以打开的东西。请先在 {page} 里设置好；之后这里的开关就能停下再启动它，而不会丢掉你设的内容。',
 
@@ -742,7 +740,6 @@ export const zh: Dict = {
   'settings.module.scripting': '事件脚本',
   'settings.module.tray': '在通知区域放图标',
   'settings.module.windowpolicy': '窗口行为',
-  'settings.module.updater': '应用内更新',
 
   'settings.advanced.search': '按名称或值筛选',
   'settings.advanced.allSettings': '所有设置',
