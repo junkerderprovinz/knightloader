@@ -73,6 +73,13 @@ export const RELEASES: Release[] = [
       },
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       { id: 'seeding-line', to: ['/'], text: 'whatsnew.change.seedingLine' },
+      { id: 'seeding-always', to: ['/', '/downloads'], text: 'whatsnew.change.seedingAlways' },
+      {
+        id: 'line-colours',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.lineColours',
+        names: { name: 'settings.colours' },
+      },
       // Drawn on every page of a narrow window, and listed with the first of them.
       { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },
       { id: 'page-actions', to: ['/'], text: 'whatsnew.change.pageActions' },

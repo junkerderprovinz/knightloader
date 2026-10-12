@@ -351,6 +351,8 @@ const GROUPS: Record<string, TransferGroup> = {
   rainbowRotate: 'look',
   rainbowSeed: 'look',
   rainbowPalette: 'look',
+  downloadLine: 'look',
+  seedingLine: 'look',
   buttonLabels: 'look',
   sidebarLabels: 'look',
   tabLabels: 'look',

@@ -29,6 +29,7 @@ import { applyDisco } from '../lib/disco';
 import { InstanceProvider, useInstanceScope } from '../lib/instance';
 import { setListCards } from '../lib/listCards';
 import { uploadOf } from '../lib/speedHistory';
+import { applySpeedLines, linesFromSettings } from '../lib/speedLines';
 import { useToast } from '../lib/toast';
 import { useExtractionToasts } from '../lib/useExtractionToasts';
 import { useTasks } from '../lib/useTasks';
@@ -80,6 +81,7 @@ function useAppearance() {
         const rainbow = rainbowFromSettings(s);
         applyShape(s.shape);
         applyAccent(s.accent);
+        applySpeedLines(linesFromSettings(s), s.accent);
         applyRainbow(rainbow);
         // A running walk takes up the server's palette where it is.
         applyDisco(readCachedDisco());

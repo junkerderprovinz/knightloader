@@ -646,6 +646,9 @@ export interface Settings {
   rainbowRotate: boolean;
   rainbowSeed: number;
   rainbowPalette: string[] | null;
+  /** The speed graphs' two lines as #rrggbb, empty for the defaults (lib/speedLines.ts). */
+  downloadLine: string;
+  seedingLine: string;
 
   /** Hides the sidebar's "Konten" entry; the settings tab still reaches the page. */
   hideAccountsFromSidebar: boolean;

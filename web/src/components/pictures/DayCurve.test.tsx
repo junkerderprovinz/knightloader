@@ -174,10 +174,12 @@ describe('the curve of the day', () => {
     );
   });
 
-  it('draws the upload beside the speed, and names it, only on a day that had some', async () => {
+  it('draws the upload beside the speed and names it, along the ground on a day without any', async () => {
     await draw();
-    expect(host.querySelector('[data-upload]')).toBeNull();
-    expect(host.querySelector('[data-upload-key]')).toBeNull();
+    expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(
+      'M360.0 100.00H365.0L365.0 100.00H370.0M595.0 100.00H600.0',
+    );
+    expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Seeding');
 
     await draw({ points: points.map((p) => ({ ...p, up: MIB })) });
     expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(

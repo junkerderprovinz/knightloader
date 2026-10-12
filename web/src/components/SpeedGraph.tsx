@@ -15,6 +15,7 @@ import { isLeet } from '../lib/leet';
 import { useLimitInForce } from '../lib/limitInForce';
 import { useUIState } from '../lib/uistate';
 import { stepOf, useSpeedWindow, type SpeedScale, type SpeedWindow } from '../lib/speedHistory';
+import { DOWNLOAD_INK, SEEDING_INK } from '../lib/speedLines';
 import { InfoBubble } from './ui';
 import { Tabs } from './Tabs';
 
@@ -50,18 +51,6 @@ export function useMeterWindow(): [number, (seconds: number) => void] {
   const [stored, setStored] = useUIState<unknown>('shell.speedWindow', METER_WINDOW.fallback);
   const seconds = typeof stored === 'number' && Number.isFinite(stored) ? meterWindow(stored) : METER_WINDOW.fallback;
   return [seconds, setStored];
-}
-
-/**
- * The upload line's ink. Every hue can be the accent, in a preset or as a
- * rainbow card's own, so only a grey is sure to stand apart from the download
- * line in every colour mode. The day curve draws its upload in the same one.
- */
-export const UPLOAD_INK = 'var(--carbon-text-muted)';
-
-/** sends reports whether anything was uploaded in a window, which is when the upload line and its legend show. */
-export function sends(win: SpeedWindow): boolean {
-  return win.upload.some((v) => v > 0);
 }
 
 // The top of the plot never drops below this, so a blip near idle does not fill
@@ -326,6 +315,8 @@ interface PlotProps {
 /**
  * Plot is everything inside a speed svg: the zero line, the curve once
  * anything on screen is above it, and the limit line while a limit applies.
+ * The seeding line is always there, flat along the zero line while nothing
+ * goes out.
  */
 export function Plot(props: PlotProps) {
   const glide = useSyncExternalStore(subscribeGlide, glideAllowed, () => false);
@@ -348,7 +339,24 @@ export function Plot(props: PlotProps) {
         strokeWidth="1"
         vectorEffect="non-scaling-stroke"
       />
-      {busy ? <Curve {...props} anchor={anchor} glide={glide} /> : props.limit > 0 && <IdleLimit {...props} />}
+      {busy ? (
+        <Curve {...props} anchor={anchor} glide={glide} />
+      ) : (
+        <>
+          <line
+            data-upload-line=""
+            x1="0"
+            y1={h - pad}
+            x2={w}
+            y2={h - pad}
+            stroke={SEEDING_INK}
+            strokeWidth={props.stroke}
+            strokeLinecap="round"
+            vectorEffect="non-scaling-stroke"
+          />
+          {props.limit > 0 && <IdleLimit {...props} />}
+        </>
+      )}
     </>
   );
 }
@@ -363,9 +371,9 @@ function IdleLimit({ limit, ceiling, w, h, pad }: PlotProps) {
 }
 
 /**
- * Curve draws the filled area and the line, and the upload as a second line
- * while the window has any. While motion is allowed it glides left between
- * samples and eases its ceiling; otherwise it moves once per sample.
+ * Curve draws the filled area and the line, and the upload as a second line.
+ * While motion is allowed it glides left between samples and eases its
+ * ceiling; otherwise it moves once per sample.
  */
 function Curve({
   win,
@@ -386,8 +394,8 @@ function Curve({
     [win.samples, anchor, w, h, pad, dx, ceiling],
   );
   const upload = useMemo(
-    () => (sends(win) ? geometry(win.upload, anchor, w, h, pad, dx, ceiling).line : ''),
-    [win, anchor, w, h, pad, dx, ceiling],
+    () => geometry(win.upload, anchor, w, h, pad, dx, ceiling).line,
+    [win.upload, anchor, w, h, pad, dx, ceiling],
   );
 
   const mover = useRef<SVGGElement>(null);
@@ -444,10 +452,11 @@ function Curve({
   return (
     <>
       <defs>
-        {/* In user space, so place() can pin it to the box by moving y1. */}
+        {/* In user space, so place() can pin it to the box by moving y1. In
+            the download line's colour, so the two never disagree. */}
         <linearGradient ref={wash} id={`${id}wash`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y2={h - pad}>
-          <stop offset="0" stopColor="var(--accent)" stopOpacity="0.42" />
-          <stop offset="1" stopColor="var(--accent)" stopOpacity="0.14" />
+          <stop offset="0" stopColor={DOWNLOAD_INK} stopOpacity="0.42" />
+          <stop offset="1" stopColor={DOWNLOAD_INK} stopOpacity="0.14" />
         </linearGradient>
         <clipPath id={`${id}box`}>
           <rect width={w} height={h} />
@@ -459,24 +468,20 @@ function Curve({
           <path d={geo.area} fill={`url(#${id}wash)`} />
           {/* Under the download line, which stays the one to read where the
               two meet. */}
-          {upload && (
-            <path
-              data-upload-line=""
-              d={upload}
-              fill="none"
-              stroke={UPLOAD_INK}
-              strokeWidth={stroke}
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              vectorEffect="non-scaling-stroke"
-            />
-          )}
-          {/* --accent-ink for strokes, since the plain accent is too pale on
-              the light theme; the wash keeps --accent. */}
+          <path
+            data-upload-line=""
+            d={upload}
+            fill="none"
+            stroke={SEEDING_INK}
+            strokeWidth={stroke}
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            vectorEffect="non-scaling-stroke"
+          />
           <path
             d={geo.line}
             fill="none"
-            stroke="var(--accent-ink)"
+            stroke={DOWNLOAD_INK}
             strokeWidth={stroke}
             strokeLinecap="round"
             strokeLinejoin="round"
@@ -503,23 +508,24 @@ export function spanLabel(seconds: number): string {
   return `-${Math.round(seconds / 360) / 10}h`;
 }
 
-/**
- * SpeedLegend names the two lines. It shows only while the upload line does,
- * so a box without torrents keeps its plain curve.
- */
+/** SpeedLegend names the two lines, which are both always drawn. */
 export function SpeedLegend() {
   const { t } = useT();
   return (
-    <span data-speed-legend="" className="flex items-center gap-3 whitespace-nowrap text-meta leading-none text-carbon-textMuted">
+    <span
+      data-speed-legend=""
+      data-new="seeding-always"
+      className="flex items-center gap-3 whitespace-nowrap text-meta leading-none text-carbon-textMuted"
+    >
       <span className="inline-flex items-center gap-1">
-        <span className="h-0.5 w-3 rounded-[var(--radius-pill)] bg-accentInk" />
+        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: DOWNLOAD_INK }} />
         {t('speed.legend.download')}
       </span>
       <span className="inline-flex items-center gap-1">
-        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: UPLOAD_INK }} />
+        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: SEEDING_INK }} />
         {t('speed.legend.seeding')}
       </span>
-      <InfoBubble tip={t('speed.legend.hint')} />
+      <InfoBubble tip={t('speed.legend.hint', { page: t('settings.nav.appearance') })} />
     </span>
   );
 }
@@ -602,7 +608,7 @@ export function SpeedGraph({
           mirror in a right-to-left language, so neither do its labels. */}
       <div dir="ltr" className="flex items-center justify-between gap-3">
         <span className="glim-num text-meta leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
-        {sends(win) && <SpeedLegend />}
+        <SpeedLegend />
         <span className="glim-num text-meta leading-none text-carbon-textMuted">0s</span>
       </div>
     </div>
@@ -687,7 +693,7 @@ export function SpeedMeter({
       </svg>
       <span className="flex items-center justify-between gap-3 text-meta leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>
-        {sends(win) && <SpeedLegend />}
+        <SpeedLegend />
         <span className="glim-num">0s</span>
       </span>
     </span>

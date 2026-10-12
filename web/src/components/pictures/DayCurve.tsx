@@ -2,8 +2,8 @@ import { useLayoutEffect, useRef } from 'react';
 import { fmtSpeed } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { alignedUpload, type SpeedDay } from '../../lib/speedHistory';
-import { UPLOAD_INK } from '../SpeedGraph';
-import { HUE, INK, useStill } from './scene';
+import { DOWNLOAD_INK, SEEDING_INK } from '../../lib/speedLines';
+import { INK, useStill } from './scene';
 import { stretches, type WeekEntry } from './WeekBand';
 
 /** What the plan needs of a schedule: the band's fields and the limit of a speed window. */
@@ -137,9 +137,8 @@ export function DayCurve({
       .join('');
   const curve = path((p) => p.speed);
   const measured = curve !== '';
-  // The torrents' upload, drawn only on a day that had some.
-  const seeded = points.some((p) => (p.up ?? 0) > 0);
-  const upload = seeded ? path((p) => p.up ?? 0) : '';
+  // The torrents' upload, along the ground while they send nothing.
+  const upload = path((p) => p.up ?? 0);
 
   // The line draws in once, from midnight on. A new sample extends it without drawing it again.
   useLayoutEffect(() => {
@@ -159,7 +158,7 @@ export function DayCurve({
         (s) => `${clock(s.from)}-${clock(s.to)} ${s.paused ? t('settings.schedule.action.pause') : fmtSpeed(s.limit)}`,
       ),
     ...(latest ? [`${t('columns.speed')} ${clock(Math.round(latest.at))}: ${fmtSpeed(latest.speed) || '0'}`] : []),
-    ...(latest && seeded ? [`${t('speed.legend.seeding')}: ${fmtSpeed(latest.up ?? 0) || '0'}`] : []),
+    ...(latest ? [`${t('speed.legend.seeding')}: ${fmtSpeed(latest.up ?? 0) || '0'}`] : []),
   ];
   // Where the record begins. It is kept in memory, so it starts again with the server.
   const since = measured ? Math.max(0, Math.round(points[0].at) - SAMPLE) : nowAt;
@@ -196,15 +195,17 @@ export function DayCurve({
             aria-hidden
           >
             <g className={faint}>
+              {/* In the text's ink, since the measured line takes the accent
+                  by default and runs along the limit while it holds. */}
               {plan
                 .filter((s) => s.limit > 0 && !s.paused)
                 .map((s) => (
                   <g key={s.from} data-plan="limit" data-from={s.from} data-to={s.to}>
-                    <path d={`M${s.from} ${HEIGHT}V${y(s.limit)}H${s.to}V${HEIGHT}z`} fill={HUE} fillOpacity=".22" />
+                    <path d={`M${s.from} ${HEIGHT}V${y(s.limit)}H${s.to}V${HEIGHT}z`} fill={INK} fillOpacity=".16" />
                     <path
                       d={`M${s.from} ${y(s.limit)}H${s.to}`}
                       fill="none"
-                      stroke={HUE}
+                      stroke={INK}
                       strokeWidth="1.5"
                       vectorEffect="non-scaling-stroke"
                     />
@@ -213,23 +214,21 @@ export function DayCurve({
             </g>
             {measured && (
               <g ref={line}>
-                {upload && (
-                  <path
-                    data-upload
-                    d={upload}
-                    fill="none"
-                    stroke={UPLOAD_INK}
-                    strokeWidth="1.5"
-                    strokeLinejoin="round"
-                    strokeLinecap="round"
-                    vectorEffect="non-scaling-stroke"
-                  />
-                )}
+                <path
+                  data-upload
+                  d={upload}
+                  fill="none"
+                  stroke={SEEDING_INK}
+                  strokeWidth="1.5"
+                  strokeLinejoin="round"
+                  strokeLinecap="round"
+                  vectorEffect="non-scaling-stroke"
+                />
                 <path
                   data-measured
                   d={curve}
                   fill="none"
-                  stroke={INK}
+                  stroke={DOWNLOAD_INK}
                   strokeWidth="1.75"
                   strokeLinejoin="round"
                   strokeLinecap="round"
@@ -275,22 +274,20 @@ export function DayCurve({
           <span
             className="h-2.5 w-4 rounded-[var(--radius-control)] border-t-[1.5px]"
             style={{
-              borderColor: HUE,
-              backgroundColor: `color-mix(in srgb, ${HUE} 22%, transparent)`,
+              borderColor: INK,
+              backgroundColor: `color-mix(in srgb, ${INK} 16%, transparent)`,
             }}
           />
           {t('settings.schedule.limit')}
         </span>
         <span className="inline-flex items-center gap-1.5">
-          <span className="h-0.5 w-4 rounded-[var(--radius-pill)] bg-carbon-text" />
-          {t('columns.speed')}
+          <span className="h-0.5 w-4 rounded-[var(--radius-pill)]" style={{ backgroundColor: DOWNLOAD_INK }} />
+          {t('speed.legend.download')}
         </span>
-        {seeded && (
-          <span data-upload-key className="inline-flex items-center gap-1.5">
-            <span className="h-0.5 w-4 rounded-[var(--radius-pill)]" style={{ backgroundColor: UPLOAD_INK }} />
-            {t('speed.legend.seeding')}
-          </span>
-        )}
+        <span data-upload-key className="inline-flex items-center gap-1.5">
+          <span className="h-0.5 w-4 rounded-[var(--radius-pill)]" style={{ backgroundColor: SEEDING_INK }} />
+          {t('speed.legend.seeding')}
+        </span>
         {since > 0 && (
           <span data-since className="text-carbon-textMuted">
             {t('picture.day.since', { time: clock(since) })}

@@ -348,6 +348,13 @@ type Settings struct {
 	// RainbowPalette overrides the eight built-in hues. Empty means the default.
 	RainbowPalette []string `json:"rainbowPalette"`
 
+	// DownloadLine and SeedingLine are the colours of the two lines in the
+	// speed graphs, as #rrggbb. Empty means the accent for the download line
+	// and, for the seeding line, the preset hue farthest from the accent, so
+	// the two stay apart whatever the accent is.
+	DownloadLine string `json:"downloadLine"`
+	SeedingLine  string `json:"seedingLine"`
+
 	// HideAccountsFromSidebar removes the sidebar's "Konten" nav item, for
 	// someone who only ever reaches accounts through the identical settings
 	// tab. Both render the same page, so hiding one costs nothing but a click.

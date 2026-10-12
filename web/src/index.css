@@ -314,6 +314,11 @@
      shows the same colour. Custom properties resolve where they are declared,
      so this stays :root's accent. */
   --accent-fixed:      var(--accent);
+  /* The speed graphs' download and seeding lines until lib/speedLines.ts
+     sets the colours chosen: the accent, and the blue that stands across
+     the wheel from the built-in gold. */
+  --line-download:     color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  --line-seeding:      color-mix(in srgb, #1D99F3 var(--ink-mix), black);
 
   /* Carbon's support tones, shared with the siblings. Paused reuses neutral. */
   --status-info-text:    #FCC419;
