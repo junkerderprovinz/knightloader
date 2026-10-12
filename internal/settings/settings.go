@@ -608,13 +608,14 @@ type Settings struct {
 	// there is no path field.
 	LogFile LogFile `json:"logFile"`
 
-	// CaptchaSolverOrder is which automatic captcha-solving services
-	// (internal/accounts.Catalogue ids, see captchaSolverIDs) to try, and in
-	// what order, before a captcha is shown to a human. Membership and order
-	// live in the one list, the way the accounts page's resolver priority does:
-	// an id absent from it is not tried, rather than a separate bool per
-	// service that could disagree with where the service sits in the order.
-	// Empty is what a fresh install has, straight to the prompt modal.
+	// CaptchaSolverOrder is the order the automatic captcha-solving services
+	// (internal/accounts.Catalogue ids, see captchaSolverIDs) are tried in
+	// before a captcha is shown to a human. It orders and does not choose, the
+	// way the accounts page's resolver priority does: every service with a key
+	// whose account is switched on is tried, the ones listed here first and in
+	// this order, the rest after them in catalogue order. Switching a service
+	// off is its account's switch, so there is no second switch here to
+	// disagree with it.
 	//
 	// An id here with no matching credential is skipped when tried, and neither
 	// half implies the other, see sanitizeCaptcha. This is the non-secret half:
