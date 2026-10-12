@@ -3619,7 +3619,7 @@ export const ar: Dict = {
   'whatsnew.change.rowPick': 'نقرة أو لمسة تختار صفًّا: Ctrl يضيف صفوفًا أخرى، وShift يختار نطاقًا كاملًا.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» و«{watch}» يحملان الرموز نفسها التي في صورة «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» يفتح بلاطة كبيرة لكل نوع من الحسابات، واحدة تحت الأخرى بترتيب البطاقات في هذه الصفحة.',
-  'whatsnew.change.fillSurface': 'كل مستوى امتلاء يتمايل برفق وبشكل غير منتظم عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
+  'whatsnew.change.fillSurface': 'كل مستوى امتلاء يترجرج، وتصعد فيه فقاعات تنفجر عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
   'whatsnew.change.windowCard': 'في تطبيق سطح المكتب تحدد «{name}» كيف تتصرف النافذة وأيقونتها في منطقة الإشعارات.',
   'whatsnew.change.updatesCard': 'تضم «{name}» KnightLoader وyt-dlp، كلًّا على بطاقة فرعية خاصة به مع إصداره ومصدره وتحديثاته.',
   'whatsnew.change.mirrorPolicy': 'في «{name}» تحدد قائمة منسدلة بجانب عنوانها متى يُعدّ رابطان الملفَّ نفسه.',

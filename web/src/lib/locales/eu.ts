@@ -3619,7 +3619,7 @@ export const eu: Dict = {
   'whatsnew.change.rowPick': 'Klik edo ukitu batek errenkada bat aukeratzen du: Ctrl-k gehiago gehitzen ditu, eta Maius-ek tarte oso bat aukeratzen du.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» eta «{watch}» botoiek «{intake}» ataleko irudiaren ikur berak dituzte.',
   'whatsnew.change.accountKinds': '«{name}» botoiak lauza handi bat irekitzen du kontu mota bakoitzeko, bata bestearen azpian orri honetako txartelen ordenan.',
-  'whatsnew.change.fillSurface': 'Betetze-maila bakoitzak leunki eta irregularki dantzatzen du bere gainazalean: «{name}» azpiko karpetek, «{volume}» eta kontu baten trafikoak.',
+  'whatsnew.change.fillSurface': 'Betetze-maila bakoitza kulunkatzen da, eta burbuilak igotzen dira barruan eta gainazalean lehertzen: «{name}» azpiko karpetak, «{volume}» eta kontu baten trafikoa.',
   'whatsnew.change.windowCard': 'Mahaigaineko aplikazioan, «{name}» atalak leihoa eta jakinarazpen-eremuko ikonoa nola portatzen diren erabakitzen du.',
   'whatsnew.change.updatesCard': '«{name}» txartelak KnightLoader eta yt-dlp ditu, bakoitza bere azpitxartelean, bertsio, jatorri eta eguneraketekin.',
   'whatsnew.change.mirrorPolicy': '«{name}» atalean, etiketaren ondoko zerrenda zabalgarri batek erabakitzen du noiz diren bi esteka fitxategi bera.',

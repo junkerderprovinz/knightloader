@@ -3632,7 +3632,7 @@ export const sk: Dict = {
   'whatsnew.change.rowPick': 'Kliknutie alebo ťuknutie vyberie riadok: Ctrl pridá ďalšie a Shift vyberie celý rozsah.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ a „{watch}“ majú rovnaké symboly ako obrázok v časti „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ otvorí veľkú dlaždicu pre každý druh účtu, jednu pod druhou v poradí kariet na tejto stránke.',
-  'whatsnew.change.fillSurface': 'Každá hladina plnenia sa na povrchu jemne a nerovnomerne vlní: priečinky pod „{name}“, „{volume}“ a prevádzka účtu.',
+  'whatsnew.change.fillSurface': 'Každá hladina plnenia čľapká a stúpajú v nej bublinky, ktoré na povrchu praskajú: priečinky pod „{name}“, „{volume}“ a prevádzka účtu.',
   'whatsnew.change.windowCard': 'V desktopovej aplikácii „{name}“ určuje, ako sa správa okno a jeho ikona v oblasti oznámení.',
   'whatsnew.change.updatesCard': '„{name}“ obsahuje KnightLoader a yt-dlp, každý na vlastnej podkarte so svojou verziou, pôvodom a aktualizáciami.',
   'whatsnew.change.mirrorPolicy': 'V „{name}“ rozbaľovací zoznam vedľa popisu určuje, kedy sa dva odkazy rátajú ako ten istý súbor.',

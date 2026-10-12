@@ -3613,7 +3613,7 @@ export const lv: Dict = {
   'whatsnew.change.rowPick': 'Klikšķis vai pieskāriens atlasa rindu: Ctrl pievieno vēl, bet Shift atlasa visu diapazonu.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ un „{watch}“ ir tie paši simboli, kas attēlā sadaļā „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ atver lielu flīzi katram konta veidam, vienu zem otras šīs lapas kartīšu secībā.',
-  'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis maigi un nevienmērīgi viļņojas savā virsmā: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
+  'whatsnew.change.fillSurface': 'Katrs piepildījuma līmenis šļakstās, un tajā ceļas burbulīši, kas pārplīst virspusē: mapes sadaļā „{name}“, „{volume}“ un konta datplūsma.',
   'whatsnew.change.windowCard': 'Darbvirsmas lietotnē „{name}“ nosaka, kā uzvedas logs un tā ikona paziņojumu apgabalā.',
   'whatsnew.change.updatesCard': '„{name}“ ietver KnightLoader un yt-dlp, katru savā apakškartītē ar versiju, izcelsmi un atjauninājumiem.',
   'whatsnew.change.mirrorPolicy': 'Sadaļā „{name}“ nolaižamais saraksts blakus tās nosaukumam nosaka, kad divas saites uzskata par vienu un to pašu failu.',

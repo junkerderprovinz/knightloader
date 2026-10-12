@@ -3606,7 +3606,7 @@ export const it: Dict = {
   'whatsnew.change.rowPick': 'Un clic o un tocco sceglie una riga: Ctrl ne aggiunge altre e Maiusc sceglie un intero intervallo.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» e «{watch}» portano gli stessi simboli dell’immagine in «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» apre un riquadro grande per ogni tipo di account, uno sotto l’altro nell’ordine delle schede di questa pagina.',
-  'whatsnew.change.fillSurface': 'Ogni livello di riempimento ondeggia piano e in modo irregolare in superficie: le cartelle sotto «{name}», «{volume}» e il traffico di un account.',
+  'whatsnew.change.fillSurface': 'Ogni livello di riempimento sciaborda, e al suo interno salgono bolle che scoppiano in superficie: le cartelle sotto «{name}», «{volume}» e il traffico di un account.',
   'whatsnew.change.windowCard': 'Nell’app desktop, «{name}» decide come si comportano la finestra e la sua icona nell’area di notifica.',
   'whatsnew.change.updatesCard': '«{name}» contiene KnightLoader e yt-dlp, ciascuno su una propria sottoscheda con versione, provenienza e aggiornamenti.',
   'whatsnew.change.mirrorPolicy': 'In «{name}» un menu a tendina accanto all’etichetta decide quando due link contano come lo stesso file.',

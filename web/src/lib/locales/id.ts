@@ -3622,7 +3622,7 @@ export const id: Dict = {
   'whatsnew.change.rowPick': 'Klik atau ketuk untuk memilih baris: Ctrl menambah baris lain, dan Shift memilih satu rentang penuh.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” dan “{watch}” memakai simbol yang sama dengan gambar di “{intake}”.',
   'whatsnew.change.accountKinds': '“{name}” membuka ubin besar untuk setiap jenis akun, berurutan ke bawah sesuai urutan kartu di halaman ini.',
-  'whatsnew.change.fillSurface': 'Setiap tingkat isi bergoyang pelan dan tak beraturan di permukaannya: folder di bawah “{name}”, “{volume}”, dan lalu lintas sebuah akun.',
+  'whatsnew.change.fillSurface': 'Setiap tingkat isi bergolak, dan gelembung naik di dalamnya lalu pecah di permukaan: folder di bawah “{name}”, “{volume}”, dan lalu lintas sebuah akun.',
   'whatsnew.change.windowCard': 'Di aplikasi desktop, “{name}” mengatur perilaku jendela dan ikonnya di area notifikasi.',
   'whatsnew.change.updatesCard': '“{name}” memuat KnightLoader dan yt-dlp, masing-masing di subkartunya sendiri dengan versi, asal, dan pembaruannya.',
   'whatsnew.change.mirrorPolicy': 'Di “{name}” daftar tarik-turun di samping labelnya menentukan kapan dua tautan dihitung sebagai berkas yang sama.',

@@ -3614,7 +3614,7 @@ export const es: Dict = {
   'whatsnew.change.rowPick': 'Un clic o un toque elige una fila: Ctrl añade más y Mayús elige todo un rango.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» y «{watch}» llevan los mismos símbolos que la imagen de «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» abre un mosaico grande para cada tipo de cuenta, uno debajo de otro en el orden de las tarjetas de esta página.',
-  'whatsnew.change.fillSurface': 'Cada nivel de llenado se mece con suavidad y de forma irregular en su superficie: las carpetas bajo «{name}», «{volume}» y el tráfico de una cuenta.',
+  'whatsnew.change.fillSurface': 'Cada nivel de llenado se agita, y en él suben burbujas que estallan en la superficie: las carpetas bajo «{name}», «{volume}» y el tráfico de una cuenta.',
   'whatsnew.change.windowCard': 'En la aplicación de escritorio, «{name}» decide cómo se comportan la ventana y su icono en el área de notificación.',
   'whatsnew.change.updatesCard': '«{name}» tiene KnightLoader y yt-dlp, cada uno en su propia subtarjeta con su versión, su origen y sus actualizaciones.',
   'whatsnew.change.mirrorPolicy': 'En «{name}» una lista desplegable junto a su etiqueta decide cuándo dos enlaces cuentan como el mismo archivo.',

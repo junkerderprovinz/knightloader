@@ -3610,7 +3610,7 @@ export const ca: Dict = {
   'whatsnew.change.rowPick': 'Un clic o un toc tria una fila: Ctrl n’afegeix més i Maj tria tot un interval.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» i «{watch}» porten els mateixos símbols que la imatge de «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» obre un mosaic gran per a cada tipus de compte, l’un sota l’altre en l’ordre de les targetes d’aquesta pàgina.',
-  'whatsnew.change.fillSurface': 'Cada nivell d’ompliment es belluga suaument i de manera irregular a la superfície: les carpetes sota «{name}», «{volume}» i el trànsit d’un compte.',
+  'whatsnew.change.fillSurface': 'Cada nivell d’ompliment s’agita, i hi pugen bombolles que esclaten a la superfície: les carpetes sota «{name}», «{volume}» i el trànsit d’un compte.',
   'whatsnew.change.windowCard': 'A l’aplicació d’escriptori, «{name}» decideix com es comporten la finestra i la seva icona a l’àrea de notificació.',
   'whatsnew.change.updatesCard': '«{name}» té KnightLoader i yt-dlp, cadascun en una subtargeta pròpia amb la seva versió, d’on ve i les seves actualitzacions.',
   'whatsnew.change.mirrorPolicy': 'A «{name}» una llista desplegable al costat de l’etiqueta decideix quan dos enllaços compten com el mateix fitxer.',

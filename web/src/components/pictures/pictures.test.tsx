@@ -77,13 +77,45 @@ describe('a vessel', () => {
     expect(host.querySelector('path[stroke-dasharray="2.5 2.5"]')).toBeNull();
   });
 
-  it("keeps its surface moving through the stylesheet's motion dials rather than a loop of its own", async () => {
+  it("keeps its liquid sloshing through the stylesheet's motion dials rather than a loop of its own", async () => {
     await draw(<Vessel share={0.5} label="Used" />);
-    const rocking = host.querySelector('g[clip-path] .glim-liquid-tilt')!;
-    const layers = [...rocking.querySelectorAll('path')].map((p) => p.getAttribute('class'));
-    // Two waves that drift against each other, so the surface sloshes instead of sliding one way.
-    expect(layers).toEqual(['glim-liquid-back', 'glim-liquid']);
-    expect(rocking.querySelector('animateTransform')).toBeNull();
+    const liquid = host.querySelector('g[clip-path] .glim-slosh')!;
+    expect(liquid.previousElementSibling!.getAttribute('class')).toBe('glim-slosh-back');
+    expect(liquid.querySelectorAll('.glim-slosh-crest-left')).toHaveLength(1);
+    expect(liquid.querySelectorAll('.glim-slosh-crest-right')).toHaveLength(1);
+    expect(liquid.querySelectorAll('.glim-slosh-hump')).toHaveLength(1);
+    expect(liquid.querySelector('animateTransform')).toBeNull();
+  });
+
+  it('gives the stylesheet the depth its bubbles rise through', async () => {
+    await draw(<Vessel share={0.5} label="Used" />);
+    const svg = host.querySelector<SVGSVGElement>('svg')!;
+    expect(Number(svg.style.getPropertyValue('--liquid-depth'))).toBeCloseTo(0.5 * 27.5, 1);
+    await draw(<Vessel share={null} label="Volume" />);
+    expect(Number(svg.style.getPropertyValue('--liquid-depth'))).toBeGreaterThan(0);
+  });
+
+  it('lets bubbles rise and some of them pop with a ring and three droplets', async () => {
+    await draw(<Vessel share={0.5} label="Used" />);
+    const level = host.querySelector('g[clip-path] > g')!;
+    // The stylesheet times bubbles and pops by their place, so each kind stands
+    // alone in its group.
+    const bubbles = level.querySelectorAll('.glim-slosh-bubble');
+    expect(bubbles).toHaveLength(3);
+    expect(new Set([...bubbles].map((b) => b.parentElement))).toHaveProperty('size', 1);
+    const pops = level.querySelectorAll('.glim-slosh-pop');
+    expect(pops).toHaveLength(3);
+    expect(new Set([...pops].map((p) => p.parentElement))).toHaveProperty('size', 1);
+    for (const pop of pops) {
+      const parts = [...pop.children].map((c) => c.getAttribute('class'));
+      expect(parts).toEqual([
+        'glim-slosh-pop-bubble',
+        'glim-slosh-pop-ring',
+        'glim-slosh-pop-drop',
+        'glim-slosh-pop-drop',
+        'glim-slosh-pop-drop',
+      ]);
+    }
   });
 });
 
@@ -91,18 +123,27 @@ describe('a bar that shows a level', () => {
   it('ends its fill in a liquid surface and draws no front edge', async () => {
     await draw(<ProgressBar active level percent={40} />);
     const fill = host.querySelector<HTMLElement>('.kl-bar-fill')!;
-    expect(fill.classList.contains('glim-liquid-edge')).toBe(true);
+    expect(fill.classList.contains('glim-slosh-edge')).toBe(true);
     expect(host.querySelector('.kl-bar-edge')).toBeNull();
+  });
+
+  it('carries the bubbles that pop past its end inside the fill', async () => {
+    await draw(<ProgressBar active level percent={40} />);
+    const pops = host.querySelectorAll('.glim-slosh-pop-bar');
+    expect(pops).toHaveLength(2);
+    for (const pop of pops) expect(pop.parentElement!.classList.contains('glim-slosh-edge')).toBe(true);
   });
 
   it('shows no surface while it is empty', async () => {
     await draw(<ProgressBar active level percent={0} />);
-    expect(host.querySelector('.glim-liquid-edge')).toBeNull();
+    expect(host.querySelector('.glim-slosh-edge')).toBeNull();
+    expect(host.querySelector('.glim-slosh-pop-bar')).toBeNull();
   });
 
   it('leaves a transfer its pulsing edge', async () => {
     await draw(<ProgressBar active moving percent={40} />);
-    expect(host.querySelector('.glim-liquid-edge')).toBeNull();
+    expect(host.querySelector('.glim-slosh-edge')).toBeNull();
+    expect(host.querySelector('.glim-slosh-pop-bar')).toBeNull();
     expect(host.querySelector('.kl-bar-edge-live')).not.toBeNull();
   });
 });

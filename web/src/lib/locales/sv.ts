@@ -3622,7 +3622,7 @@ export const sv: Dict = {
   'whatsnew.change.rowPick': 'Ett klick eller tryck väljer en rad: Ctrl lägger till fler och Skift väljer ett helt intervall.',
   'whatsnew.change.intakeGlyphs': '”{cnl}” och ”{watch}” har samma symboler som bilden i ”{intake}”.',
   'whatsnew.change.accountKinds': '”{name}” öppnar en stor bricka för varje slags konto, under varandra i samma ordning som korten på den här sidan.',
-  'whatsnew.change.fillSurface': 'Varje fyllnadsnivå vaggar mjukt och ojämnt i ytan: mapparna under ”{name}”, ”{volume}” och ett kontos trafik.',
+  'whatsnew.change.fillSurface': 'Varje fyllnadsnivå skvalpar, och bubblor stiger i den och spricker vid ytan: mapparna under ”{name}”, ”{volume}” och ett kontos trafik.',
   'whatsnew.change.windowCard': 'I skrivbordsappen bestämmer ”{name}” hur fönstret och dess ikon i meddelandefältet beter sig.',
   'whatsnew.change.updatesCard': '”{name}” rymmer KnightLoader och yt-dlp, var och en på ett eget underkort med version, ursprung och uppdateringar.',
   'whatsnew.change.mirrorPolicy': 'I ”{name}” avgör en listruta bredvid etiketten när två länkar räknas som samma fil.',

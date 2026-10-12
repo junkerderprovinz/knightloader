@@ -3621,7 +3621,7 @@ export const tr: Dict = {
   'whatsnew.change.rowPick': 'Bir tıklama ya da dokunma bir satırı seçer: Ctrl başka satırlar ekler, Shift ise bütün bir aralığı seçer.',
   'whatsnew.change.intakeGlyphs': '“{cnl}” ve “{watch}”, “{intake}” içindeki resimle aynı simgeleri taşır.',
   'whatsnew.change.accountKinds': '“{name}”, her hesap türü için büyük bir kutucuk açar; kutucuklar bu sayfadaki kartların sırasıyla alt alta durur.',
-  'whatsnew.change.fillSurface': 'Her doluluk düzeyi yüzeyinde yumuşak ve düzensiz biçimde dalgalanır: “{name}” altındaki klasörler, “{volume}” ve bir hesabın trafiği.',
+  'whatsnew.change.fillSurface': 'Her doluluk düzeyi çalkalanır, içinde kabarcıklar yükselir ve yüzeyde patlar: “{name}” altındaki klasörler, “{volume}” ve bir hesabın trafiği.',
   'whatsnew.change.windowCard': 'Masaüstü uygulamasında “{name}”, pencerenin ve bildirim alanındaki simgesinin nasıl davrandığını belirler.',
   'whatsnew.change.updatesCard': '“{name}”, KnightLoader’ı ve yt-dlp’yi her biri kendi alt kartında sürümü, kaynağı ve güncellemeleriyle birlikte tutar.',
   'whatsnew.change.mirrorPolicy': '“{name}” içinde etiketin yanındaki açılır liste, iki bağlantının ne zaman aynı dosya sayılacağını belirler.',

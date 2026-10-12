@@ -3612,7 +3612,7 @@ export const fr: Dict = {
   'whatsnew.change.rowPick': 'Un clic ou un appui choisit une ligne : Ctrl en ajoute d’autres, et Maj choisit toute une plage.',
   'whatsnew.change.intakeGlyphs': '« {cnl} » et « {watch} » portent les mêmes symboles que l’image de « {intake} ».',
   'whatsnew.change.accountKinds': '« {name} » ouvre une grande tuile pour chaque type de compte, les unes sous les autres dans l’ordre des cartes de cette page.',
-  'whatsnew.change.fillSurface': 'Chaque niveau de remplissage ondule doucement et de façon irrégulière à sa surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
+  'whatsnew.change.fillSurface': 'Chaque niveau de remplissage clapote, et des bulles y montent puis éclatent à la surface : les dossiers sous « {name} », « {volume} » et le trafic d’un compte.',
   'whatsnew.change.windowCard': 'Dans l’application de bureau, « {name} » règle le comportement de la fenêtre et de son icône dans la zone de notification.',
   'whatsnew.change.updatesCard': '« {name} » réunit KnightLoader et yt-dlp, chacun sur sa propre sous-carte avec sa version, sa provenance et ses mises à jour.',
   'whatsnew.change.mirrorPolicy': 'Dans « {name} », une liste déroulante à côté de son libellé décide quand deux liens comptent comme le même fichier.',

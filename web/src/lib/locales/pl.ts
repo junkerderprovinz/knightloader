@@ -3607,7 +3607,7 @@ export const pl: Dict = {
   'whatsnew.change.rowPick': 'Kliknięcie lub dotknięcie wybiera wiersz: Ctrl dodaje kolejne, a Shift wybiera cały zakres.',
   'whatsnew.change.intakeGlyphs': '„{cnl}” i „{watch}” mają te same symbole co obraz w sekcji „{intake}”.',
   'whatsnew.change.accountKinds': '„{name}” otwiera duży kafelek dla każdego rodzaju konta, jeden pod drugim w kolejności kart na tej stronie.',
-  'whatsnew.change.fillSurface': 'Każdy poziom wypełnienia łagodnie i nierówno faluje na swojej powierzchni: foldery pod „{name}”, „{volume}” i ruch konta.',
+  'whatsnew.change.fillSurface': 'Każdy poziom wypełnienia chlupocze, a w nim unoszą się bąbelki, które pękają na powierzchni: foldery pod „{name}”, „{volume}” i ruch konta.',
   'whatsnew.change.windowCard': 'W aplikacji desktopowej „{name}” określa, jak zachowują się okno i jego ikona w obszarze powiadomień.',
   'whatsnew.change.updatesCard': '„{name}” mieści KnightLoadera i yt-dlp, każdy na własnej podkarcie z wersją, pochodzeniem i aktualizacjami.',
   'whatsnew.change.mirrorPolicy': 'W „{name}” lista rozwijana obok etykiety decyduje, kiedy dwa linki liczą się jako ten sam plik.',

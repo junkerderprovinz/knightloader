@@ -3620,7 +3620,7 @@ export const gl: Dict = {
   'whatsnew.change.rowPick': 'Un clic ou un toque escolle unha fila: Ctrl engade máis e Maiús escolle todo un intervalo.',
   'whatsnew.change.intakeGlyphs': '«{cnl}» e «{watch}» levan os mesmos símbolos que a imaxe de «{intake}».',
   'whatsnew.change.accountKinds': '«{name}» abre un mosaico grande para cada tipo de conta, un debaixo doutro na orde das tarxetas desta páxina.',
-  'whatsnew.change.fillSurface': 'Cada nivel de énchedura bambea con suavidade e de forma irregular na súa superficie: os cartafoles baixo «{name}», «{volume}» e o tráfico dunha conta.',
+  'whatsnew.change.fillSurface': 'Cada nivel de énchedura axítase, e nel soben burbullas que estoupan na superficie: os cartafoles baixo «{name}», «{volume}» e o tráfico dunha conta.',
   'whatsnew.change.windowCard': 'Na aplicación de escritorio, «{name}» decide como se comportan a xanela e a súa icona na área de notificación.',
   'whatsnew.change.updatesCard': '«{name}» ten KnightLoader e yt-dlp, cada un na súa propia subtarxeta coa súa versión, a súa orixe e as súas actualizacións.',
   'whatsnew.change.mirrorPolicy': 'En «{name}» unha lista despregable xunto á súa etiqueta decide cando dúas ligazóns contan como o mesmo ficheiro.',

@@ -3624,7 +3624,7 @@ export const lt: Dict = {
   'whatsnew.change.rowPick': 'Spustelėjimas ar bakstelėjimas pasirenka eilutę: Ctrl prideda daugiau, o Shift pasirenka visą intervalą.',
   'whatsnew.change.intakeGlyphs': '„{cnl}“ ir „{watch}“ turi tuos pačius simbolius kaip paveikslėlis skiltyje „{intake}“.',
   'whatsnew.change.accountKinds': '„{name}“ atveria didelę plytelę kiekvienai paskyros rūšiai, vieną po kita šio puslapio kortelių tvarka.',
-  'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis švelniai ir netolygiai banguoja savo paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
+  'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis tekšnoja, o jame kyla burbuliukai, kurie sprogsta paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
   'whatsnew.change.windowCard': 'Darbalaukio programoje „{name}“ nustato, kaip elgiasi langas ir jo piktograma pranešimų srityje.',
   'whatsnew.change.updatesCard': '„{name}“ turi KnightLoader ir yt-dlp, kiekvieną savoje pokortelėje su versija, kilme ir atnaujinimais.',
   'whatsnew.change.mirrorPolicy': 'Skiltyje „{name}“ išskleidžiamasis sąrašas šalia jos pavadinimo nusprendžia, kada dvi nuorodos laikomos tuo pačiu failu.',

@@ -3621,7 +3621,7 @@ export const sl: Dict = {
   'whatsnew.change.rowPick': 'Klik ali dotik izbere vrstico: Ctrl doda še druge, Shift pa izbere celoten obseg.',
   'whatsnew.change.intakeGlyphs': '»{cnl}« in »{watch}« nosita enake simbole kot slika v razdelku »{intake}«.',
   'whatsnew.change.accountKinds': '»{name}« odpre veliko ploščico za vsako vrsto računa, eno pod drugo v vrstnem redu kartic na tej strani.',
-  'whatsnew.change.fillSurface': 'Vsaka raven napolnjenosti se na površini nežno in neenakomerno valovi: mape pod »{name}«, »{volume}« in promet računa.',
+  'whatsnew.change.fillSurface': 'Vsaka raven napolnjenosti pljuska, v njej pa se dvigajo mehurčki, ki na površini počijo: mape pod »{name}«, »{volume}« in promet računa.',
   'whatsnew.change.windowCard': 'V namizni aplikaciji »{name}« določa, kako se vedeta okno in njegova ikona v obvestilnem območju.',
   'whatsnew.change.updatesCard': '»{name}« vsebuje KnightLoader in yt-dlp, vsakega na svoji podkartici z različico, izvorom in posodobitvami.',
   'whatsnew.change.mirrorPolicy': 'V »{name}« spustni seznam ob oznaki določa, kdaj dve povezavi štejeta kot ista datoteka.',
