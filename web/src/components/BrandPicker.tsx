@@ -92,7 +92,7 @@ export interface Kind {
  */
 export function KindPicker({ kinds, onPick }: { kinds: Kind[]; onPick: (id: string) => void }) {
   return (
-    <ul data-new="account-kinds" className="glim-provider-pick glim-kind-pick">
+    <ul className="glim-provider-pick glim-kind-pick">
       {kinds.map((k) => (
         <li key={k.id} className="glim-readme-btn-unit glim-readme-btn-unit--note group glim-tile-house">
           <button

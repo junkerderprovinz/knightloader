@@ -36,14 +36,14 @@ const button = (text: string) =>
 
 /** The kinds the add window offers, by name, in the order of its tiles. */
 const kindTiles = () =>
-  [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] [data-new="account-kinds"] button')].map(
+  [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] .glim-kind-pick button')].map(
     (b) => b.querySelector('.glim-readme-btn-name')!.textContent,
   );
 
 /** addKind presses the floating action and picks a kind's tile in its window. */
 async function addKind(kind: string) {
   await act(async () => button('Add an account').click());
-  const tile = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] [data-new="account-kinds"] button')].find(
+  const tile = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] .glim-kind-pick button')].find(
     (b) => b.querySelector('.glim-readme-btn-name')!.textContent === kind,
   )!;
   await act(async () => tile.click());
@@ -399,7 +399,7 @@ it('closes the kinds and opens the window of the kind picked', async () => {
   await act(async () => root.render(page));
   await addKind('Captcha account');
   expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
-  expect(document.querySelector('[data-new="account-kinds"]')).toBeNull();
+  expect(document.querySelector('.glim-kind-pick')).toBeNull();
   expect(document.querySelector('[data-new="account-picker"]')?.textContent).toContain('CapSolver');
 });
 
