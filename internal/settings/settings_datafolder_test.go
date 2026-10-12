@@ -8,7 +8,6 @@ import (
 	"runtime"
 	"strings"
 	"testing"
-	"time"
 )
 
 // linkTo makes link lead to dir: a symlink, or on Windows without the
@@ -240,8 +239,8 @@ func TestTheGuardNoticesAFolderAboveTurnedIntoALink(t *testing.T) {
 }
 
 // TestTheGuardLooksAtEachFolderOnce: an archive of thousands of entries in a
-// few folders is checked file by file. Walking every entry's path up the tree
-// takes many times as long as looking at each folder once.
+// few folders is checked file by file, and the walk up the tree runs once per
+// folder, not once per file.
 func TestTheGuardLooksAtEachFolderOnce(t *testing.T) {
 	data := dataFolder(t)
 	out := t.TempDir()
@@ -251,23 +250,24 @@ func TestTheGuardLooksAtEachFolderOnce(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	path := func(i int) string {
-		return filepath.Join(out, "d"+string(rune('a'+i%folders)), "sub", "f"+strings.Repeat("x", i%7)+string(rune('0'+i%10))+".txt")
-	}
-	start := time.Now()
-	for i := range files {
-		InsideData(data, path(i))
-	}
-	walked := time.Since(start)
 	g := NewDataGuard(data)
-	start = time.Now()
+	walked := map[string]int{}
+	g.walk = func(dataDir, path string) bool {
+		walked[path]++
+		return InsideData(dataDir, path)
+	}
 	for i := range files {
-		if g.Inside(path(i)) {
-			t.Fatalf("%s counts as inside the data folder", path(i))
+		path := filepath.Join(out, "d"+string(rune('a'+i%folders)), "sub", "f"+strings.Repeat("x", i%7)+string(rune('0'+i%10))+".txt")
+		if g.Inside(path) {
+			t.Fatalf("%s counts as inside the data folder", path)
 		}
 	}
-	guarded := time.Since(start)
-	if guarded*3 > walked {
-		t.Errorf("the guard took %s for %d files, walking each took %s; want it several times faster", guarded, files, walked)
+	if len(walked) != folders {
+		t.Errorf("the guard walked %d paths for %d files in %d folders, want each folder once", len(walked), files, folders)
+	}
+	for path, n := range walked {
+		if n != 1 {
+			t.Errorf("the guard walked %s %d times, want once", path, n)
+		}
 	}
 }

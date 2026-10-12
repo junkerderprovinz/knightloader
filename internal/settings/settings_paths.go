@@ -328,6 +328,8 @@ type DataGuard struct {
 	dataDir string
 	mu      sync.Mutex
 	dirs    map[string]guardedDir
+	// walk is InsideData; a test counts the walks through it.
+	walk func(dataDir, path string) bool
 }
 
 type guardedDir struct {
@@ -337,7 +339,7 @@ type guardedDir struct {
 
 // NewDataGuard returns a guard for dataDir that has looked at nothing.
 func NewDataGuard(dataDir string) *DataGuard {
-	return &DataGuard{dataDir: dataDir, dirs: map[string]guardedDir{}}
+	return &DataGuard{dataDir: dataDir, dirs: map[string]guardedDir{}, walk: InsideData}
 }
 
 // Inside is InsideData(dataDir, path).
@@ -350,12 +352,12 @@ func (g *DataGuard) Inside(path string) bool {
 	// built-in download folder, whose answers do not follow from the folder
 	// above, get the full walk.
 	if _, err := os.Lstat(clean); err == nil || sameName(clean, g.dataDir) || sameName(clean, filepath.Join(g.dataDir, DownloadsDirName)) {
-		return InsideData(g.dataDir, clean)
+		return g.walk(g.dataDir, clean)
 	}
 	dir := filepath.Dir(clean)
 	fi, err := os.Stat(dir)
 	if err != nil {
-		return InsideData(g.dataDir, clean)
+		return g.walk(g.dataDir, clean)
 	}
 	// On Windows a folder's identity is read by its name only when it is first
 	// compared. Read now, it stays the folder that was judged, rather than
@@ -367,7 +369,7 @@ func (g *DataGuard) Inside(path string) bool {
 	if ok && os.SameFile(known.fi, fi) {
 		return known.inside
 	}
-	inside := InsideData(g.dataDir, dir)
+	inside := g.walk(g.dataDir, dir)
 	g.mu.Lock()
 	g.dirs[dir] = guardedDir{fi: fi, inside: inside}
 	g.mu.Unlock()
