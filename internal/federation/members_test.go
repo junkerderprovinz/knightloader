@@ -173,6 +173,20 @@ func TestTakingADeviceOutRevokesItsKeyForGood(t *testing.T) {
 	}
 }
 
+// TestOnlyTheRemovedDevicesOwnKeyHearsItIsOut: a device that hears "removed"
+// forgets its group, so a call naming a removed id under a key that does not
+// make it never gets that answer signed.
+func TestOnlyTheRemovedDevicesOwnKeyHearsItIsOut(t *testing.T) {
+	m, serve := guarded(t)
+	gone := letIn(t, m, serve, memberKeyOf(13), relay.KindMobile)
+	if err := m.RemoveApp(gone, time.Now()); err != nil {
+		t.Fatal(err)
+	}
+	if status, body := serve(context.Background(), signedCall(memberKeyOf(14), gone, relay.KindMobile)); status == http.StatusGone || codeOf(body) != "memberKind" {
+		t.Errorf("another key under the removed id = %d %s, want 403 memberKind", status, body)
+	}
+}
+
 func TestAnInstanceIsNotTakenOutAsAPhoneAndComesBackOnlyForApproval(t *testing.T) {
 	m, serve := guarded(t)
 	old := memberKeyOf(7)

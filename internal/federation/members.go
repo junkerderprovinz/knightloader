@@ -166,18 +166,20 @@ func (m *Manager) admit(call relay.ProxyCall, source string, now time.Time) (Cal
 	if !call.Signed() {
 		return Caller{}, unsignedRefusal
 	}
-	m.group.mu.Lock()
-	defer m.group.mu.Unlock()
-	st := &m.group.state
-	_, removed := st.Removed[call.From]
-	if _, gone := st.Revoked[hex.EncodeToString(call.Key)]; gone || removed {
-		return Caller{}, removedRefusal
-	}
 	if call.From == "" {
 		return Caller{}, refuse(http.StatusForbidden, "memberUnnamed", "a signed call has to name the member it comes from")
 	}
 	if !claimFits(call.From, call.Kind, call.Key) {
 		return Caller{}, kindRefusal
+	}
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	st := &m.group.state
+	// Only a call whose key makes the id it names hears that the id is out,
+	// since a device that hears it forgets its group.
+	_, removed := st.Removed[call.From]
+	if _, gone := st.Revoked[hex.EncodeToString(call.Key)]; gone || removed {
+		return Caller{}, removedRefusal
 	}
 	if pin, ok := st.Keys[call.From]; ok {
 		if !m.replay.Admit(call) {
