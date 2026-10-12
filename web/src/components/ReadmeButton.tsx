@@ -21,6 +21,7 @@ const TILES = {
   linux: 'glim-tile-linux',
   android: 'glim-tile-android',
   play: 'glim-tile-play',
+  fdroid: 'glim-tile-fdroid',
   docker: 'glim-tile-docker',
   unraid: 'glim-tile-unraid',
   zip: 'glim-tile-zip',

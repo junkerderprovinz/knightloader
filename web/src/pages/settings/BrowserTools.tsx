@@ -12,6 +12,7 @@ import { qrMatrix } from '../../lib/qrmatrix';
 import { openWindow } from '../../lib/windowStack';
 import {
   ANDROID_SVG,
+  FDROID_SVG,
   APPLE_SVG,
   DOCKER_SVG,
   KNIGHTLOADER_LIT_SVG,
@@ -273,6 +274,13 @@ function PhoneCard() {
           brand="play"
           parts={[{ name: t('settings.browsertools.storeAndroid'), href: APP_URLS.play }]}
           mark={<BrandMark svg={PLAY_SVG} />}
+          soonLabel={soon}
+        />
+        {/* Built so F-Droid can take it, and not listed there yet. */}
+        <ReadmeButton
+          brand="fdroid"
+          parts={[{ name: 'F-Droid', href: APP_URLS.fdroid }]}
+          mark={<BrandMark svg={FDROID_SVG} />}
           soonLabel={soon}
         />
         <ApkButton />
@@ -581,6 +589,7 @@ const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
   play: '',
+  fdroid: '',
   apk: `${REPO_URL}/releases/download/v${APP_VERSION}/knightloader-v${APP_VERSION}-android.apk`,
 };
 
