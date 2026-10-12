@@ -3,6 +3,7 @@ import { connectWS, fetchVolumeUsage, type VolumeUsage } from '../lib/api';
 import { fmtDate, fmtGB } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { Vessel } from './pictures/Vessel';
+import { SloshPops } from './ProgressBar';
 import { InfoBubble } from './ui';
 
 /**
@@ -120,14 +121,16 @@ export function VolumeMeter() {
         aria-valuenow={filled}
         aria-label={t('volume.meter')}
       >
-        {/* The fill's end is a liquid's surface; see .glim-liquid-edge. */}
+        {/* The fill's end is a liquid's surface; see .glim-slosh-edge. */}
         <span
-          className={`block h-full transition-[width] duration-500 ease-out ${filled > 0 ? 'glim-liquid-edge' : ''}`}
+          className={`block h-full transition-[width] duration-500 ease-out ${filled > 0 ? 'glim-slosh-edge' : ''}`}
           style={{
             width: `${filled}%`,
             background: usage.reached ? 'var(--status-fail-solid)' : 'var(--accent)',
           }}
-        />
+        >
+          {filled > 0 && <SloshPops />}
+        </span>
       </span>
     </span>
   );

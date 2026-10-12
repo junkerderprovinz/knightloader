@@ -1,4 +1,4 @@
-import { useId } from 'react';
+import { useId, type CSSProperties } from 'react';
 import { useTooltip } from '../ui';
 import { FAIL, FILL, LABEL, QUIET, WARN, useStage } from './scene';
 
@@ -7,11 +7,29 @@ import { FAIL, FILL, LABEL, QUIET, WARN, useStage } from './scene';
 const BRIM = 8;
 const FLOOR = 35.5;
 const INSIDE = 'M7.5 3V31a4.5 4.5 0 0 0 4.5 4.5h10a4.5 4.5 0 0 0 4.5-4.5V3z';
-// One wave is 12 wide, so sliding the surface by 12 loops without a seam.
-const SURFACE_LINE = 'M-6 0q3 -1.6 6 0t6 0 6 0 6 0 6 0 6 0 6 0 6 0V40H-6z';
-// A longer, flatter wave a little higher behind it, which slides the other
-// way. It starts far enough out to cover the vessel after sliding by its 16.
-const BACK_LINE = 'M-24 -.7q4 -1.2 8 0t8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0 8 0V40H-24z';
+// The liquid reaches well past the walls, so it still fills the vessel while
+// it tilts. The back layer stands a little higher and shows where the front
+// one has swung away from it.
+const BODY = 'M-20 0H54V45H-20z';
+const BACK = 'M-20 -.5H54V45H-20z';
+// A crest stands at a wall and runs up it as the stylesheet stretches it; the
+// hump crosses the middle. Both rest squashed flat.
+const CREST = 'M-5 .6V-1H0C.9 -.55 2.7 -.03 6 0V.6z';
+const HUMP = 'M11 .6V0C13 0 14.5 -1 17 -1S21 0 23 0V.6z';
+// Each is [x, radius]. The stylesheet times each by its place among its
+// kind, so their order here is part of the animation.
+const BUBBLES = [
+  [10.5, 0.5],
+  [16.5, 0.45],
+  [24.5, 0.7],
+];
+const POPS = [
+  [13.5, 0.7],
+  [19, 0.6],
+  [21, 0.65],
+];
+// White in every theme: it only needs to be lighter than the liquid.
+const BUBBLE = '#fff';
 // Where the liquid rests in a vessel with no brim to measure against.
 const UNMEASURED = 27;
 
@@ -60,6 +78,7 @@ export function Vessel({
         aria-valuemin={measured ? 0 : undefined}
         aria-valuemax={measured ? 100 : undefined}
         aria-valuenow={measured ? Math.round(Math.max(0, Math.min(1, share)) * 100) : undefined}
+        style={{ '--liquid-depth': (FLOOR - level).toFixed(2) } as CSSProperties}
       >
         <clipPath id={clip}>
           <path d={INSIDE} />
@@ -81,12 +100,35 @@ export function Vessel({
                   fill="freeze"
                 />
               )}
-              {/* The surface sloshes for as long as it is shown, on the motion
-                  engine's dials (glim-liquid in index.css), which the motion
+              {/* The liquid sloshes for as long as it is shown, on the motion
+                  engine's dials (glim-slosh in index.css), which the motion
                   setting and a request for less motion both stop. */}
-              <g className="glim-liquid-tilt">
-                <path d={BACK_LINE} fill={PAINT[tone]} fillOpacity=".45" className="glim-liquid-back" />
-                <path d={SURFACE_LINE} fill={PAINT[tone]} className="glim-liquid" />
+              <path d={BACK} fill={PAINT[tone]} fillOpacity=".45" className="glim-slosh-back" />
+              <g className="glim-slosh">
+                <path d={BODY} fill={PAINT[tone]} />
+                <path d={HUMP} fill={PAINT[tone]} className="glim-slosh-hump" />
+                <g transform="translate(7.5 0)">
+                  <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-left" />
+                </g>
+                <g transform="translate(26.5 0) scale(-1 1)">
+                  <path d={CREST} fill={PAINT[tone]} className="glim-slosh-crest glim-slosh-crest-right" />
+                </g>
+              </g>
+              <g fill={BUBBLE}>
+                {BUBBLES.map(([cx, r]) => (
+                  <circle key={cx} className="glim-slosh-bubble" cx={cx} cy="0" r={r} />
+                ))}
+              </g>
+              <g>
+                {POPS.map(([cx, r]) => (
+                  <g key={cx} className="glim-slosh-pop">
+                    <circle className="glim-slosh-pop-bubble" cx={cx} cy="0" r={r} fill={BUBBLE} stroke={PAINT[tone]} strokeWidth=".25" />
+                    <circle className="glim-slosh-pop-ring" cx={cx} cy="0" r={r} fill="none" stroke={PAINT[tone]} strokeWidth=".22" />
+                    {[0, 1, 2].map((d) => (
+                      <circle key={d} className="glim-slosh-pop-drop" cx={cx} cy="0" r=".3" fill={PAINT[tone]} />
+                    ))}
+                  </g>
+                ))}
               </g>
             </g>
           </g>
