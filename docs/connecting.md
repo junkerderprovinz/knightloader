@@ -187,11 +187,14 @@ first time it signs a call there.
 Limits count per key, so one member cannot use up another's share. Each key
 can have 16 calls waiting on an instance at once. An instance takes at most 64
 new keys an hour, no more than 2 of them through one relay connection or one
-address on your network, and keeps 64 in all. Once the hour's 64 are taken,
-new keys wait for the next hour, and a key that waits for approval is never
-dropped to make room for another: refuse the ones you do not know on the
-Pairing card. When the list is full, an approved key that has not been used
-for 30 days makes room. A request id is used up
+address on your network, and keeps 64 in all, of which at most 16 wait for
+approval. Once the hour's 64 are taken, or 16 keys wait, new keys wait until
+there is room again, and a key that waits for approval is never dropped to
+make room for another: refuse the ones you do not know on the Pairing card.
+When the list is full, a phone's or a browser's key that was approved and has
+not been used for 30 days makes room. Approving counts as use, on every
+instance the approval reaches, and an instance's key never makes room. A
+request id is used up
 only for the key that sent it, and only once the instance knows that key, so
 nobody can block a member's calls by sending their ids first or by filling the
 record with keys of their own.
@@ -200,11 +203,14 @@ record with keys of their own.
 that enters the words is listed under **Waiting for approval** on the Pairing
 card of every instance it reaches, with its name, its kind and the start of
 its key's hash, and can do nothing in the group until somebody approves it
-there with **Approve**. Without a login password that is whoever opens the
+there with **Approve**. The name is whatever the device announced, so compare
+the key instead: every device shows its own in the same four groups, an
+instance on its Pairing card, the Android app under Settings, This device,
+and the extension on its options page under Group. Without a login password that is whoever opens the
 page. The approval, or **Refuse**, reaches the other instances of the group,
 so one decision is enough. The device itself says that it waits and where to
 approve it: the app and the extension with a message, an instance with a line
-on its own Pairing card. Instances approve each other both ways: an instance
+on its own Pairing card, even before its owner approved the other instance. Instances approve each other both ways: an instance
 that enters the words of a group waits for approval on the instances already
 there, and they wait on its Pairing card for its owner's approval in turn.
 While the Pairing card is open, an instance calls the others it sees in the
@@ -257,7 +263,9 @@ pairs again with them. For 30 days after the reset it stays on the old group's
 relay key and answers every call made with the old words with "this instance
 was reset", which the app and the extension show as a sentence telling you to
 pair again with the new words. It signs that answer with the key it had in
-the old group, so nobody else holding the old words can send it. It keeps only
+the old group, so nobody else holding the old words can send it. On a relay
+the instance serves, a connection announces the instance's id on the old key
+only when it proves that key. It keeps only
 that key and the two keys derived from the old words for this, never the
 words themselves, and runs nothing such a call asks for. If the instance
 serves the relay itself, the old relay key reaches only this instance there,
@@ -364,12 +372,19 @@ extension or another instance calling a member sends no API token: its own
 key signs the call. The instance that answers signs the answer with its key
 too, and the caller takes it only when that key is the one the instance's id
 is made from, and, on another instance, only once that instance was approved
-there. Whoever holds the words can seal an answer, but cannot sign one, so
-nobody who takes an instance's place on the relay or on your network can
-answer for it, tell a phone it was removed or reset, or read a credential
-from the calls. On the relay, a connection takes over an id that is already
-connected only when its hello proves the key behind that id, which is how an
-instance or a phone whose old socket the relay still holds gets back in.
+there. The signature covers the call it answers, by the id that call spoke
+for and its signature, so an answer the instance gave to somebody else's call
+counts for nobody else, and an instance answers "removed" only to a call
+signed by the key the removed id is made from. Whoever holds the words can
+seal an answer, but cannot sign one, so nobody who takes an instance's place
+on the relay or on your network can answer for it, tell a phone it was
+removed or reset, or read a credential from the calls. On the relay, a
+connection takes over an id that is already connected only when its hello
+proves the key behind that id, which is how an instance or a phone whose old
+socket the relay still holds gets back in. The relay opens every connection
+with random bytes of its own that the proof signs, so a hello somebody saw
+proves nothing on another connection. A standalone relay has to run the same
+release as the instances for this.
 
 A relay peer is never written to disk. It exists for as long as the relay sees
 it, and one remembered across a restart would be a peer that cannot be reached

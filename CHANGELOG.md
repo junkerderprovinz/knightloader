@@ -186,8 +186,31 @@ release's tag.
 - **The standalone relay trusts only a proxy on its own host** when
   `KL_RELAY_TRUSTED_PROXIES` is not set. A proxy in another container or on
   another machine has to be named there by its address.
+- **An instance's signed answer counts only for the call it answers.**
+  Somebody holding the twelve words could call an instance under a phone's
+  request id and hand the phone that answer, a "removed" that made it leave
+  its group included. The answer now names the call it belongs to, and an
+  instance answers "removed" only to the key of the device that was removed.
+- **A hello seen once can no longer push an instance off the relay.** The relay
+  opens every connection with a challenge the hello has to sign, so a hello
+  sent again on another connection proves nothing. Run a standalone relay on
+  this release together with the instances, since an older relay sends no
+  challenge.
+- **The old words of a reset instance reach only that instance,** even while
+  it is offline. Nobody else on the old key can announce its id to meet the
+  other devices still holding those words.
+- **A device approved on another instance is no longer pushed out of a full
+  group.** Approving counts as use, at most 16 devices wait for approval at
+  once, and an instance is never dropped to make room.
 ### Added
 
+- **Every device shows its own key.** The Pairing card shows this instance's
+  key, the Android app shows the phone's under Settings, This device, and the
+  extension shows the browser's on its options page, in the same four groups
+  the Pairing card lists a waiting device with. A device names itself, so
+  compare the keys before you approve one.
+- **An instance says it waits for approval as soon as the other one answers,**
+  not only after you approved the other instance in turn.
 - **Devices learn when an instance was reset.** For 30 days after a password
   reset, the phone and the extension say that the instance was reset and that
   they need its new twelve words, instead of losing it without a word. Only
