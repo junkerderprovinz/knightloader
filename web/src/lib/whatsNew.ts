@@ -144,6 +144,12 @@ export const RELEASES: Release[] = [
         names: { name: 'accounts.routing.priorityTitle' },
       },
       {
+        id: 'priority-tips',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.priorityTips',
+        names: { name: 'accounts.routing.priorityTitle' },
+      },
+      {
         id: 'captcha-priority',
         to: ACCOUNTS,
         text: 'whatsnew.change.captchaPriority',
