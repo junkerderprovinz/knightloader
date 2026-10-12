@@ -7,7 +7,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { SettingsProvider, type SettingsDraft } from '../context';
-import { UpdatesCard } from './Updates';
+import { UpdatesCard, moduleVersion } from './Updates';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -26,7 +26,17 @@ beforeEach(() => {
       ffmpeg: { found: true, version: '8.1.2' },
       ffprobe: { found: true, version: '8.1.2' },
     },
-    '/api/system/deployment': { deployment: 'container', canQuit: false, canRestart: false, note: '' },
+    '/api/system/deployment': {
+      deployment: 'container',
+      canQuit: false,
+      canRestart: false,
+      note: '',
+      engines: [
+        { path: 'github.com/GopeedLab/gopeed', version: 'v0.0.0-20261005140626-5111a4c57695', fork: true },
+        { path: 'modernc.org/sqlite', version: 'v1.60.1' },
+      ],
+    },
+    '/api/resolvers/jd': { configured: true, reachable: true, version: 50123 },
     '/api/system/update-check': { checked: true, available: false, current: 'v1.8.4' },
     '/api/mediatools/ytdlp/latest': { checked: true, tag: '2026.08.19', compare: 'same' },
   };
@@ -81,10 +91,32 @@ const switches = (within: HTMLElement) =>
   [...within.querySelectorAll('[role="switch"]')].map((s) => s.getAttribute('aria-label'));
 
 describe('the Updates card', () => {
-  it('holds KnightLoader and yt-dlp, each with its version', async () => {
+  it('lists every tool KnightLoader brings, each with its version and where it comes from', async () => {
     await draw();
+    const rows = [...host.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
+    expect(rows).toEqual(['KnightLoader', 'yt-dlp', 'ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']);
     expect(group('KnightLoader').textContent).toContain('1.8.4');
     expect(group('yt-dlp').textContent).toContain('2026.08.19');
+    expect(group('ffmpeg').textContent).toContain('8.1.2');
+    expect(group('ffmpeg').textContent).toContain('Comes with the container image');
+    expect(group('JDownloader backend').textContent).toContain('50123');
+    expect(group('JDownloader backend').textContent).toContain('Updates itself');
+    expect(group('Gopeed').textContent).toContain('5111a4c');
+    expect(group('Gopeed').textContent).toContain('Built into KnightLoader from its own fork');
+    expect(group('SQLite').textContent).toContain('1.60.1');
+  });
+
+  it('offers update controls only for the tools KnightLoader updates', async () => {
+    await draw();
+    for (const name of ['ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']) {
+      expect(group(name).querySelector('button, [role="switch"]'), name).toBeNull();
+    }
+  });
+
+  it('says where a JDownloader backend that is not set up stands', async () => {
+    answers['/api/resolvers/jd'] = { configured: false, reachable: false };
+    await draw();
+    expect(group('JDownloader backend').textContent).toContain('Not set up');
   });
 
   it('names the same two switches the same for both', async () => {
@@ -135,5 +167,16 @@ describe('the Updates card', () => {
     await draw({ autoUpdateCheck: true, ytdlpVersionCheck: true });
     expect(asked).toContain('/api/system/update-check');
     expect(asked).toContain('/api/mediatools/ytdlp/latest');
+  });
+});
+
+describe('the version of a built-in library', () => {
+  it('drops the v of a release', () => {
+    expect(moduleVersion('v1.60.1')).toBe('1.60.1');
+  });
+
+  it('names the commit a module was taken at without a release', () => {
+    expect(moduleVersion('v0.0.0-20261009133625-a4bedf5f6000')).toBe('a4bedf5');
+    expect(moduleVersion('v1.61.1-0.20260823090931-70072f1a7460')).toBe('70072f1');
   });
 });
