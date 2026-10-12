@@ -375,10 +375,14 @@ func (c *Client) session() {
 		log.Printf("relay: this instance's announce could not be sealed, not connecting: %v", err)
 		return
 	}
+	challenge, err := readChallenge(ctx, conn)
+	if err != nil {
+		return
+	}
 	helloCtx, helloCancel := context.WithTimeout(ctx, writeTimeout)
 	hello := Hello{Key: c.key, Announce: self}
 	if c.member != nil {
-		hello.Proof = ProveID(c.member, KindInstance, c.key, c.self.InstanceID, time.Now())
+		hello.Proof = ProveID(c.member, KindInstance, c.key, c.self.InstanceID, challenge)
 	}
 	err = writeFrameTo(helloCtx, conn, frameOf(TypeHello, hello))
 	helloCancel()
@@ -397,6 +401,23 @@ func (c *Client) session() {
 		}
 		c.handle(ctx, conn, frame)
 	}
+}
+
+// readChallenge reads the first frame a relay sends, the challenge this
+// connection's hello signs.
+func readChallenge(ctx context.Context, conn *websocket.Conn) ([]byte, error) {
+	ctx, cancel := context.WithTimeout(ctx, helloTimeout)
+	defer cancel()
+	_, frame, err := conn.Read(ctx)
+	if err != nil {
+		return nil, err
+	}
+	var ch Challenge
+	env, err := Decode(frame)
+	if err != nil || env.Type != TypeChallenge || env.Into(&ch) != nil || len(ch.Nonce) != challengeSize {
+		return nil, errors.New("relay: the first frame is not a challenge")
+	}
+	return ch.Nonce, nil
 }
 
 // keepalive pings the relay and closes the socket when a ping fails, which

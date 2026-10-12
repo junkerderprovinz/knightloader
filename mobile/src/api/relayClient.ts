@@ -41,6 +41,7 @@ const STABLE_SESSION_MS = 30_000;
 const PROXY_TIMEOUT_MS = 15_000;
 
 // Frame type discriminators - relay.TypeHello and friends.
+const T_CHALLENGE = 'challenge';
 const T_HELLO = 'hello';
 const T_ANNOUNCE = 'announce';
 const T_PRESENCE = 'presence';
@@ -270,48 +271,8 @@ export class RelayClient {
     socket.onopen = () => {
       if (this.socket !== socket) return;
       this.openedAt = Date.now();
-      this.open = true;
       this.sibs = [];
-      // Hello has to be the first frame: the relay reads exactly one, on its
-      // own deadline, before it joins this socket to anything.
-      try {
-        // The proof lets this socket take the place of one the relay still
-        // holds for this phone after a dropped connection, which nobody
-        // without the phone's key can.
-        const sent = Math.floor(Date.now() / 1000);
-        const seed = this.opts.memberSeed;
-        this.send(T_HELLO, {
-          key: this.opts.key,
-          ...(seed
-            ? {
-                proof: {
-                  kind: 'mobile',
-                  key: base64Encode(Array.from(memberPublicKey(seed))),
-                  sent,
-                  sig: base64Encode(Array.from(proveId(seed, this.opts.key, this.opts.selfId, sent))),
-                },
-              }
-            : {}),
-          announce: {
-            instanceId: this.opts.selfId,
-            // Everything but the id goes into the seal, under the frame key
-            // the relay does not hold (see relay.Identity). The device name and
-            // the 'mobile' marker give the phone its own card on every
-            // instance's Instances page, and the client flag keeps it off the
-            // list of instances to call, where it would answer 501 to
-            // everything.
-            sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
-              name: this.opts.selfName,
-              deployment: 'mobile',
-              client: true,
-            }),
-          },
-        });
-      } catch {
-        socket.close();
-        return;
-      }
-      this.emitChange();
+      // The relay speaks first, with the challenge the hello signs (handle).
     };
 
     socket.onmessage = (event) => {
@@ -348,6 +309,50 @@ export class RelayClient {
     };
   }
 
+  /** hello introduces this socket once the relay sent the challenge its
+   *  proof signs. */
+  private hello(challenge: Uint8Array): void {
+    // Hello has to be the first frame: the relay reads exactly one, on its
+    // own deadline, before it joins this socket to anything.
+    try {
+      // The proof lets this socket take the place of one the relay still
+      // holds for this phone after a dropped connection, which nobody
+      // without the phone's key can.
+      const seed = this.opts.memberSeed;
+      this.send(T_HELLO, {
+        key: this.opts.key,
+        ...(seed
+          ? {
+              proof: {
+                kind: 'mobile',
+                key: base64Encode(Array.from(memberPublicKey(seed))),
+                sig: base64Encode(Array.from(proveId(seed, this.opts.key, this.opts.selfId, challenge))),
+              },
+            }
+          : {}),
+        announce: {
+          instanceId: this.opts.selfId,
+          // Everything but the id goes into the seal, under the frame key
+          // the relay does not hold (see relay.Identity). The device name and
+          // the 'mobile' marker give the phone its own card on every
+          // instance's Instances page, and the client flag keeps it off the
+          // list of instances to call, where it would answer 501 to
+          // everything.
+          sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
+            name: this.opts.selfName,
+            deployment: 'mobile',
+            client: true,
+          }),
+        },
+      });
+    } catch {
+      this.socket?.close();
+      return;
+    }
+    this.open = true;
+    this.emitChange();
+  }
+
   private handle(raw: string): void {
     let env: { type?: string; data?: any };
     try {
@@ -357,6 +362,16 @@ export class RelayClient {
     }
     const data = env.data ?? {};
     switch (env.type) {
+      case T_CHALLENGE: {
+        if (this.open || typeof data.nonce !== 'string') return;
+        const nonce = new Uint8Array(base64Decode(data.nonce));
+        if (nonce.length !== 32) {
+          this.socket?.close();
+          return;
+        }
+        this.hello(nonce);
+        return;
+      }
       case T_ANNOUNCE: {
         if (typeof data.instanceId !== 'string' || !data.instanceId) return;
         // As in relay.openAnnounce, only a seal that opens names a sibling. The

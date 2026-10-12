@@ -16,6 +16,7 @@ package relay
 
 import (
 	"context"
+	"crypto/rand"
 	"errors"
 	"net/http"
 	"net/netip"
@@ -37,6 +38,9 @@ const writeTimeout = 5 * time.Second
 // helloTimeout bounds how long a connection may stay open without having said
 // who it is, so a socket that goes quiet cannot hold a goroutine forever.
 const helloTimeout = 10 * time.Second
+
+// challengeSize is how many random bytes the challenge a hello signs has.
+const challengeSize = 32
 
 // helloLimit caps what a connection may send before its hello is checked. A
 // hello is a key, an instance id and a short sealed identity, so a larger
@@ -559,6 +563,19 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 	c.SetReadLimit(helloLimit)
 
+	challenge := make([]byte, challengeSize)
+	if _, err := rand.Read(challenge); err != nil {
+		c.Close(websocket.StatusInternalError, "the relay has no randomness for a challenge")
+		return
+	}
+	writeCtx, cancel := context.WithTimeout(r.Context(), writeTimeout)
+	err = c.Write(writeCtx, websocket.MessageText, frameOf(TypeChallenge, Challenge{Nonce: challenge}))
+	cancel()
+	if err != nil {
+		_ = c.CloseNow()
+		return
+	}
+
 	hello, err := readHello(r.Context(), c)
 	if err != nil {
 		s.limiter.fail(addr)
@@ -573,7 +590,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	s.limiter.succeed(addr)
-	if err := s.Join(hello.Key, c, hello.Announce, hello.proves(time.Now())); err != nil {
+	if err := s.Join(hello.Key, c, hello.Announce, hello.proves(challenge)); err != nil {
 		c.Close(websocket.StatusPolicyViolation, err.Error())
 		return
 	}

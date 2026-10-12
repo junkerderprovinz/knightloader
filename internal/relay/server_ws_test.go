@@ -25,6 +25,7 @@ func TestAnOversizedFrameBeforeTheHelloIsRefused(t *testing.T) {
 		t.Fatalf("dial: %v", err)
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
+	readFrame(t, c, TypeChallenge)
 
 	frame, _ := Encode(TypeHello, Hello{Key: strings.Repeat("k", 5<<10), Announce: Announce{InstanceID: alphaID}})
 	_ = c.Write(ctx, websocket.MessageText, frame)
@@ -92,6 +93,7 @@ func dialInstance(t *testing.T, url, key, id string) *websocket.Conn {
 		t.Fatalf("dial %s as %s: %v", url, id, err)
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
+	readFrame(t, c, TypeChallenge)
 	writeFrame(t, c, TypeHello, Hello{
 		Key:      key,
 		Announce: Announce{InstanceID: id, Name: id, Deployment: "container"},
@@ -227,6 +229,7 @@ func TestConnectionWithoutAKeyIsRejected(t *testing.T) {
 		t.Fatalf("dial: %v", err)
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
+	readFrame(t, c, TypeChallenge)
 
 	writeFrame(t, c, TypeHello, Hello{Announce: Announce{InstanceID: alphaID}})
 	if _, _, err := c.Read(ctx); err == nil {
@@ -250,6 +253,7 @@ func TestConnectionWithATooShortKeyIsRejected(t *testing.T) {
 		t.Fatalf("dial: %v", err)
 	}
 	t.Cleanup(func() { _ = c.CloseNow() })
+	readFrame(t, c, TypeChallenge)
 
 	writeFrame(t, c, TypeHello, Hello{Key: "too-short", Announce: Announce{InstanceID: alphaID}})
 	if _, _, err := c.Read(ctx); err == nil {
@@ -298,4 +302,48 @@ func TestNoSpellingOfTheSenderFieldOutlivesTheRelaysStamp(t *testing.T) {
 	if req.RequestID != "r2" || req.Sender != alphaID {
 		t.Errorf("bravo was handed %s from %q, want only r2, from %q", req.RequestID, req.Sender, alphaID)
 	}
+}
+
+// TestAHelloPlayedBackOnAnotherConnectionTakesNoPlace: whoever saw an
+// instance's hello, the relay's operator or anybody on a plain ws:// link,
+// sends it again on a connection of their own. It proved the id on the
+// connection it was made for and proves nothing on this one, so the instance
+// keeps its place and its calls.
+func TestAHelloPlayedBackOnAnotherConnectionTakesNoPlace(t *testing.T) {
+	srv := httptest.NewServer(New())
+	t.Cleanup(srv.Close)
+	url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+	const key = "shared-relay-test-key-0123456789ab"
+	dial := func() *websocket.Conn {
+		ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+		defer cancel()
+		c, _, err := websocket.Dial(ctx, url, nil)
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = c.CloseNow() })
+		return c
+	}
+
+	alpha := dial()
+	var ch Challenge
+	if err := readFrame(t, alpha, TypeChallenge).Into(&ch); err != nil {
+		t.Fatal(err)
+	}
+	hello := Hello{Key: key, Announce: Announce{InstanceID: alphaID}, Proof: ProveID(alphaKey, KindInstance, key, alphaID, ch.Nonce)}
+	writeFrame(t, alpha, TypeHello, hello)
+	bravo := dialInstance(t, url, key, bravoID)
+	readFrame(t, bravo, TypeAnnounce)
+	readFrame(t, alpha, TypeAnnounce)
+
+	thief := dial()
+	readFrame(t, thief, TypeChallenge)
+	writeFrame(t, thief, TypeHello, hello)
+	ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+	defer cancel()
+	if _, _, err := thief.Read(ctx); websocket.CloseStatus(err) != websocket.StatusPolicyViolation {
+		t.Fatalf("a hello played back on another connection got %v, want it turned away", err)
+	}
+	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID})
+	readFrame(t, alpha, TypeProxyRequest)
 }

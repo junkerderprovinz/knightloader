@@ -24,6 +24,9 @@ import (
 // The frame types. Anything else on the socket is ignored rather than treated
 // as an error, see Server.Route.
 const (
+	// TypeChallenge is sent by the relay only, first on every connection: what
+	// a hello's IDProof signs.
+	TypeChallenge = "challenge"
 	// TypeHello is the first frame a client sends and the only one carrying the
 	// relay key.
 	TypeHello = "hello"
@@ -49,6 +52,11 @@ const AccountService = "relay"
 type Envelope struct {
 	Type string          `json:"type"`
 	Data json.RawMessage `json:"data,omitempty"`
+}
+
+// Challenge is random bytes the relay draws for one connection.
+type Challenge struct {
+	Nonce []byte `json:"nonce"`
 }
 
 // Hello authenticates and identifies a connection in one frame.
