@@ -3463,16 +3463,6 @@ export const en = {
   'health.remedy.feeds.failing': 'At least one subscription\'s last fetch failed. Which one and why is on the Downloads page beside the feed, and in the log lines on the Diagnostics page.',
   'health.remedy.relay.down': 'A relay address is stored and the connection is not up. This instance keeps retrying by itself and everything local works as usual; only reaching it from outside does not.',
   'health.remedy.captcha.waiting': 'A backend has stopped to ask a human. Nothing behind it moves until somebody answers.',
-  'settings.health.tasks': 'Downloads right now',
-  'settings.health.tasksHint': 'A snapshot of the list as it stands, not a tally over time, so none of these numbers says how often anything has failed. "Failed" counts the rows sitting in the list with an error on them: it falls when you clear them and when the list is tidied up after the days you set, and it climbs again when something new goes wrong.',
-  'settings.health.diskWhere': 'The Downloads page shows how much room the target folders have.',
-  'settings.health.running': 'Running',
-  'settings.health.waiting': 'Waiting',
-  'settings.health.failed': 'Failed',
-  'settings.health.waitingWhy': 'Why they are waiting',
-  'settings.health.failedWhy': 'What went wrong',
-  'settings.health.nothingWaiting': 'Nothing is being held back.',
-  'settings.health.nothingFailed': 'Nothing in the list has failed.',
   'settings.health.scrapeHint': 'Opens a second address that gives the same figures as plain text, in the format Prometheus and the tools built like it read. It is fetched, never sent: nothing leaves this machine unless your own monitoring comes here and asks for it. While this is off the address does not exist at all and answers 404, the same as any address this app does not have. On an instance with a password the fetch needs one of your API tokens, and every collector can be told to send one. A collector sends no origin header and therefore gets through; a browser tab on another address does send one and is refused when it does not match this instance\'s own address. The text carries your target folders\' paths, so put it where you would put the folder names themselves.',
   'settings.health.scrapeUrl': 'Metrics address',
   'settings.health.scrapeCopy': 'Copy address',
@@ -3905,6 +3895,11 @@ export const en = {
   'whatsnew.change.settingRows': 'Every dropdown and input field in Settings stands beside its name, at the end of its card.',
   'pairing.wordsNoPassword': 'This instance has no login password, so anyone who can reach this page can read these words. Set a password under Security.',
   'whatsnew.change.wordsAgain': '"{name}" shows the twelve words again without a password too. While none is set, the window warns that anyone who reaches this page can read them.',
+  'health.remedy.queue.halted': 'The queue is stopped, so nothing new starts. Start it again on the Downloads page.',
+  'health.remedy.queue.quiet': 'A schedule holds the queue for now. It starts again by itself when that time is over.',
+  'settings.health.noReason': 'This part gave no reason. The log on the Diagnostics page may say more.',
+  'settings.health.openLog': 'Open the log',
+  'whatsnew.change.healthReason': 'A part in "{name}" that has a fault says why, and where it writes to the log a button opens its lines there.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

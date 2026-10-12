@@ -5,12 +5,11 @@ import { OverallCard } from './health/Overall';
 import { PartsCard } from './health/Parts';
 import { ScrapeCard } from './health/Scrape';
 import { SelfTestPulseCard } from './health/SelfTestPulse';
-import { TasksCard } from './health/Tasks';
 
 /**
  * Health shows the state of this instance: the self-test as a pulse, every
- * part that can fail on its own, the queue by why tasks wait or failed, and
- * the metrics switch. It reads one polled report and is not part of the
+ * part that can fail on its own with why it is not fine, and the metrics
+ * switch. It reads one polled report and is not part of the
  * settings draft, since nothing here is saved.
  */
 export function Health() {
@@ -29,8 +28,7 @@ export function Health() {
       <OverallCard hue={0} report={report} />
       <SelfTestPulseCard hue={1} />
       <PartsCard hue={2} report={report} />
-      <TasksCard hue={3} report={report} />
-      <ScrapeCard hue={4} />
+      <ScrapeCard hue={3} />
     </div>
   );
 }
