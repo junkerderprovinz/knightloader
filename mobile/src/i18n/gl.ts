@@ -351,6 +351,8 @@ export const gl: Dict = {
   'settings.device': 'Este dispositivo',
   'settings.deviceName': 'Nome do dispositivo',
   'settings.deviceHint': 'Como se chama este teléfono na páxina Instancias de cada instancia do teu grupo. Déixao baleiro para usar o modelo do dispositivo.',
+  'settings.deviceKey': 'Chave deste teléfono: {fingerprint}',
+  'settings.deviceKeyHint': 'Cando este teléfono agarda aprobación nunha instancia, a instancia móstrao con esta chave. Apróbao só se as dúas chaves coinciden.',
   'group.removedTitle': 'Eliminado do grupo',
   'group.removedBody': 'Unha instancia sacou este dispositivo do grupo. Escanea a frase de novo para conectalo.',
   'group.removedLater': 'Máis tarde',

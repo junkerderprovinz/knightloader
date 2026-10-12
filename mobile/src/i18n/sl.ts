@@ -351,6 +351,8 @@ export const sl: Dict = {
   'settings.device': 'Ta naprava',
   'settings.deviceName': 'Ime naprave',
   'settings.deviceHint': 'Ime, pod katerim se ta telefon prikaže na strani Primerki vsakega primerka v tvoji skupini. Pusti prazno, če želiš uporabiti model naprave.',
+  'settings.deviceKey': 'Ključ tega telefona: {fingerprint}',
+  'settings.deviceKeyHint': 'Ko ta telefon čaka na odobritev na primerku, ga primerek prikaže s tem ključem. Odobri ga samo, če se ključa ujemata.',
   'group.removedTitle': 'Odstranjeno iz skupine',
   'group.removedBody': 'Neki primerek je odstranil to napravo iz skupine. Znova skeniraj frazo, da jo povežeš.',
   'group.removedLater': 'Pozneje',

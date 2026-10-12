@@ -351,6 +351,8 @@ export const is: Dict = {
   'settings.device': 'Þetta tæki',
   'settings.deviceName': 'Nafn tækis',
   'settings.deviceHint': 'Þetta er nafnið sem þessi sími birtist undir á síðunni Tilvik hjá hverju tilviki í hópnum þínum. Skildu það eftir autt til að nota tækjagerðina.',
+  'settings.deviceKey': 'Lykill þessa síma: {fingerprint}',
+  'settings.deviceKeyHint': 'Þegar þessi sími bíður samþykkis á tilviki sýnir tilvikið hann með þessum lykli. Samþykktu hann aðeins ef lyklarnir tveir eru eins.',
   'group.removedTitle': 'Fjarlægt úr hópnum',
   'group.removedBody': 'Tilvik fjarlægði þetta tæki úr hópnum. Skannaðu setninguna aftur til að tengja það.',
   'group.removedLater': 'Seinna',

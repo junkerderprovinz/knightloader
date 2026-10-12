@@ -351,6 +351,8 @@ export const he: Dict = {
   'settings.device': 'המכשיר הזה',
   'settings.deviceName': 'שם המכשיר',
   'settings.deviceHint': 'השם שבו הטלפון הזה מופיע בעמוד „מופעים” של כל מופע בקבוצה שלך. השאר ריק כדי להשתמש בדגם המכשיר.',
+  'settings.deviceKey': 'המפתח של הטלפון הזה: {fingerprint}',
+  'settings.deviceKeyHint': 'כשהטלפון הזה ממתין לאישור במופע, המופע מציג אותו עם המפתח הזה. אשרו אותו רק אם שני המפתחות זהים.',
   'group.removedTitle': 'הוסר מהקבוצה',
   'group.removedBody': 'מופע הסיר את המכשיר הזה מהקבוצה. סרקו את הביטוי שוב כדי לחבר אותו.',
   'group.removedLater': 'מאוחר יותר',

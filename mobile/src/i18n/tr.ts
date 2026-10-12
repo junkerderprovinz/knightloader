@@ -351,6 +351,8 @@ export const tr: Dict = {
   'settings.device': 'Bu cihaz',
   'settings.deviceName': 'Cihaz adı',
   'settings.deviceHint': 'Bu telefonun, grubundaki her örneğin Örnekler sayfasında göründüğü ad. Cihaz modelini kullanmak için boş bırak.',
+  'settings.deviceKey': 'Bu telefonun anahtarı: {fingerprint}',
+  'settings.deviceKeyHint': 'Bu telefon bir örnekte onay beklerken örnek onu bu anahtarla gösterir. Yalnızca iki anahtar aynıysa onayla.',
   'group.removedTitle': 'Gruptan çıkarıldı',
   'group.removedBody': 'Bir örnek bu cihazı gruptan çıkardı. Yeniden bağlamak için ifadeyi tekrar tara.',
   'group.removedLater': 'Sonra',

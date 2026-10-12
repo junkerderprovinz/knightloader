@@ -351,6 +351,8 @@ export const hu: Dict = {
   'settings.device': 'Ez az eszköz',
   'settings.deviceName': 'Eszköz neve',
   'settings.deviceHint': 'Ezen a néven jelenik meg ez a telefon a csoportod minden példányának Példányok oldalán. Hagyd üresen, ha az eszköz modelljét szeretnéd használni.',
+  'settings.deviceKey': 'Ennek a telefonnak a kulcsa: {fingerprint}',
+  'settings.deviceKeyHint': 'Ha ez a telefon egy példányon jóváhagyásra vár, a példány ezzel a kulccsal mutatja. Csak akkor hagyd jóvá, ha a két kulcs egyezik.',
   'group.removedTitle': 'Eltávolítva a csoportból',
   'group.removedBody': 'Egy példány eltávolította ezt az eszközt a csoportból. Csatlakoztatásához olvasd be újra a jelmondatot.',
   'group.removedLater': 'Később',

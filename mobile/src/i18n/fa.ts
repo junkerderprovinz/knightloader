@@ -351,6 +351,8 @@ export const fa: Dict = {
   'settings.device': 'این دستگاه',
   'settings.deviceName': 'نام دستگاه',
   'settings.deviceHint': 'نامی که این تلفن در صفحهٔ «نمونه‌ها»ی هر نمونه از گروه شما دارد. برای استفاده از مدل دستگاه، آن را خالی بگذارید.',
+  'settings.deviceKey': 'کلید این تلفن: {fingerprint}',
+  'settings.deviceKeyHint': 'وقتی این تلفن روی یک نمونه منتظر تأیید است، آن نمونه آن را با همین کلید نشان می‌دهد. فقط وقتی تأییدش کنید که دو کلید یکی باشند.',
   'group.removedTitle': 'از گروه حذف شد',
   'group.removedBody': 'یک نمونه این دستگاه را از گروه حذف کرد. برای اتصال دوباره، عبارت را دوباره پویش کنید.',
   'group.removedLater': 'بعداً',

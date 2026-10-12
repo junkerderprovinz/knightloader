@@ -350,6 +350,8 @@ export const ja: Dict = {
   'settings.device': 'この端末',
   'settings.deviceName': 'デバイス名',
   'settings.deviceHint': 'グループ内の各インスタンスの「インスタンス」ページにこのスマートフォンが表示される名前です。空欄にすると端末のモデル名が使われます。',
+  'settings.deviceKey': 'このスマートフォンの鍵: {fingerprint}',
+  'settings.deviceKeyHint': 'このスマートフォンがインスタンスで承認を待っているとき、インスタンスではこの鍵で表示されます。2 つの鍵が一致する場合にだけ承認してください。',
   'group.removedTitle': 'グループから削除されました',
   'group.removedBody': 'インスタンスがこの端末をグループから削除しました。再接続するにはフレーズをもう一度スキャンしてください。',
   'group.removedLater': '後で',

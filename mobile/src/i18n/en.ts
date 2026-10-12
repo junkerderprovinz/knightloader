@@ -192,6 +192,8 @@ export const en = {
   'settings.device': 'This device',
   'settings.deviceName': 'Device name',
   'settings.deviceHint': 'What this phone is called on the Instances page of every instance in your group. Leave it empty to use the device model.',
+  'settings.deviceKey': "This phone's key: {fingerprint}",
+  'settings.deviceKeyHint': 'When this phone waits for approval on an instance, the instance shows it with this key. Only approve it if the two keys match.',
   'group.removedTitle': 'Removed from the group',
   'group.removedBody': 'An instance took this device out of the group. Scan the phrase again to connect it.',
   'group.removedLater': 'Later',

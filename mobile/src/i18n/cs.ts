@@ -351,6 +351,8 @@ export const cs: Dict = {
   'settings.device': 'Toto zařízení',
   'settings.deviceName': 'Název zařízení',
   'settings.deviceHint': 'Jak se toto zařízení jmenuje na stránce Instance u každé instance ve tvé skupině. Necháš-li pole prázdné, použije se model zařízení.',
+  'settings.deviceKey': 'Klíč tohoto telefonu: {fingerprint}',
+  'settings.deviceKeyHint': 'Když tento telefon čeká na schválení na instanci, instance ho zobrazuje s tímto klíčem. Schval ho, jen pokud se oba klíče shodují.',
   'group.removedTitle': 'Odebráno ze skupiny',
   'group.removedBody': 'Nějaká instance odebrala toto zařízení ze skupiny. Naskenuj frázi znovu, abys ho znovu připojil.',
   'group.removedLater': 'Později',

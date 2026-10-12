@@ -351,6 +351,8 @@ export const fi: Dict = {
   'settings.device': 'Tämä laite',
   'settings.deviceName': 'Laitteen nimi',
   'settings.deviceHint': 'Millä nimellä tämä puhelin näkyy ryhmäsi jokaisen instanssin Instanssit-sivulla. Jätä tyhjäksi, jos haluat käyttää laitteen mallia.',
+  'settings.deviceKey': 'Tämän puhelimen avain: {fingerprint}',
+  'settings.deviceKeyHint': 'Kun tämä puhelin odottaa hyväksyntää instanssissa, instanssi näyttää sen tällä avaimella. Hyväksy se vain, jos avaimet ovat samat.',
   'group.removedTitle': 'Poistettu ryhmästä',
   'group.removedBody': 'Eräs instanssi poisti tämän laitteen ryhmästä. Skannaa lause uudelleen yhdistääksesi sen.',
   'group.removedLater': 'Myöhemmin',

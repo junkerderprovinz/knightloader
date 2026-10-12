@@ -351,6 +351,8 @@ export const pl: Dict = {
   'settings.device': 'To urządzenie',
   'settings.deviceName': 'Nazwa urządzenia',
   'settings.deviceHint': 'Nazwa, pod jaką ten telefon widnieje na stronie Instancje każdej instancji w Twojej grupie. Zostaw puste, aby użyć modelu urządzenia.',
+  'settings.deviceKey': 'Klucz tego telefonu: {fingerprint}',
+  'settings.deviceKeyHint': 'Gdy ten telefon czeka na zatwierdzenie na instancji, instancja pokazuje go z tym kluczem. Zatwierdź go tylko wtedy, gdy oba klucze się zgadzają.',
   'group.removedTitle': 'Usunięto z grupy',
   'group.removedBody': 'Jakaś instancja usunęła to urządzenie z grupy. Zeskanuj frazę ponownie, aby je połączyć.',
   'group.removedLater': 'Później',

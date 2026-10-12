@@ -351,6 +351,8 @@ export const sk: Dict = {
   'settings.device': 'Toto zariadenie',
   'settings.deviceName': 'Názov zariadenia',
   'settings.deviceHint': 'Pod týmto názvom sa tento telefón zobrazuje na stránke Inštancie každej inštancie vo tvojej skupine. Nechaj prázdne, ak chceš použiť model zariadenia.',
+  'settings.deviceKey': 'Kľúč tohto telefónu: {fingerprint}',
+  'settings.deviceKeyHint': 'Keď tento telefón čaká na schválenie na inštancii, inštancia ho zobrazuje s týmto kľúčom. Schváľ ho, len ak sa oba kľúče zhodujú.',
   'group.removedTitle': 'Odstránené zo skupiny',
   'group.removedBody': 'Nejaká inštancia odstránila toto zariadenie zo skupiny. Naskenuj frázu znova, aby si ho znova pripojil.',
   'group.removedLater': 'Neskôr',

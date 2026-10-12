@@ -351,6 +351,8 @@ export const lv: Dict = {
   'settings.device': 'Šī ierīce',
   'settings.deviceName': 'Ierīces nosaukums',
   'settings.deviceHint': 'Ar šo nosaukumu šis tālrunis parādās katras tavas grupas instances lapā „Instances”. Atstāj tukšu, lai izmantotu ierīces modeli.',
+  'settings.deviceKey': 'Šī tālruņa atslēga: {fingerprint}',
+  'settings.deviceKeyHint': 'Kad šis tālrunis gaida apstiprinājumu instancē, instance to rāda ar šo atslēgu. Apstiprini to tikai tad, ja abas atslēgas sakrīt.',
   'group.removedTitle': 'Noņemts no grupas',
   'group.removedBody': 'Kāda instance izņēma šo ierīci no grupas. Skenē frāzi vēlreiz, lai to savienotu.',
   'group.removedLater': 'Vēlāk',
