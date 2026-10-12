@@ -380,13 +380,13 @@ function Report({ hue }: { hue: number }) {
           mark={<BrandMark svg={MAIL_SVG} />}
           markClass="glim-house-mark"
         />
-        {/* The manual is this app's own writing, so its button is a house
-            button too, and its book opens as the envelope does. */}
+        {/* The manual wears the README's docs button, its book and its
+            yellow, and the book opens as the envelope does. */}
         <ReadmeButton
-          brand="house"
+          brand="docs"
           parts={[{ name: t('settings.info.manual'), sub: t('settings.info.manualOpen'), href: MANUAL_URL }]}
           mark={<BrandMark svg={MANUAL_SVG} />}
-          markClass="glim-house-mark"
+          markClass="glim-docs-mark"
         />
         {/* The file goes with an issue on GitHub, so it lights up beside it. */}
         <ReadmeButton

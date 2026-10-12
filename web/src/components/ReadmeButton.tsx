@@ -30,6 +30,7 @@ const TILES = {
   bitcoin: 'glim-tile-bitcoin',
   coffee: 'glim-tile-coffee',
   house: 'glim-tile-house',
+  docs: 'glim-tile-docs',
   knightloader: 'kl-tile-knightloader',
   parleyport: 'kl-tile-parleyport',
   chrome: 'kl-tile-chrome',

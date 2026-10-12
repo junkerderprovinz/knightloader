@@ -213,10 +213,20 @@ describe('the Info tile', () => {
     const pair = (name: string) =>
       [...card('Help').querySelectorAll('.glim-readme-btn')]
         .find((b) => b.textContent?.includes(name))!
-        .querySelectorAll('.glim-house-mark svg');
+        .querySelectorAll('.glim-readme-btn-mark svg');
     for (const name of ['Manual', 'Email']) {
       expect([...pair(name)].map((svg) => svg.getAttribute('class'))).toEqual(['glim-mark-rest', 'glim-mark-hover']);
     }
+  });
+
+  it("wears the README's docs button on the manual: its yellow and its closed book", async () => {
+    await draw();
+    const manual = [...card('Help').querySelectorAll('a')].find((a) => a.textContent?.includes('Manual'))!;
+    expect(manual.closest('.glim-tile-docs')).not.toBeNull();
+    expect(manual.querySelector('.glim-readme-btn-mark')!.classList.contains('glim-docs-mark')).toBe(true);
+    const book = manual.querySelector('svg.glim-mark-rest')!;
+    expect(book.getAttribute('viewBox')).toBe('-32 0 512 512');
+    expect(book.querySelector('path')!.getAttribute('d')).toMatch(/^M96 0C43 0 0 43 0 96/);
   });
 
   it('draws the marks of the Help card at one size, each across its whole box', async () => {
@@ -229,7 +239,7 @@ describe('the Info tile', () => {
     // GitHub, the envelope shut and open, the book shut and open, the bug: each
     // box is the longer side of its ink. An ordinary glyph keeps a quarter of
     // its box as air, so GitHub's 24 would stand in a box of 32.
-    expect(sides).toEqual([24, 14, 20, 14, 14, 13.9]);
+    expect(sides).toEqual([24, 14, 20, 512, 14, 13.9]);
   });
 
   it('downloads the diagnostics bundle as the bug report', async () => {
