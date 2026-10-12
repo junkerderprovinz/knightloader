@@ -120,8 +120,9 @@ export function VolumeMeter() {
         aria-valuenow={filled}
         aria-label={t('volume.meter')}
       >
+        {/* The fill's end is a liquid's surface; see .glim-liquid-edge. */}
         <span
-          className="block h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out"
+          className={`block h-full transition-[width] duration-500 ease-out ${filled > 0 ? 'glim-liquid-edge' : ''}`}
           style={{
             width: `${filled}%`,
             background: usage.reached ? 'var(--status-fail-solid)' : 'var(--accent)',

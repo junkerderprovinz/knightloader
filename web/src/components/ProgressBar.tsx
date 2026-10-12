@@ -8,6 +8,7 @@ export function ProgressBar({
   moving = false,
   tone = 'accent',
   striped = false,
+  level = false,
 }: {
   percent: number;
   active: boolean;
@@ -27,6 +28,11 @@ export function ProgressBar({
    * stays the row's, so the texture is what tells it from a download.
    */
   striped?: boolean;
+  /**
+   * A fill level, such as a quota, rather than a transfer: the fill's end is a
+   * liquid's surface that moves gently, and it has no front edge to pulse.
+   */
+  level?: boolean;
 }) {
   if (!active) return null;
   const isIndet = indeterminate === true;
@@ -49,14 +55,16 @@ export function ProgressBar({
         />
       ) : (
         <div
-          className={`kl-bar-fill relative h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out${stripes}`}
+          className={`kl-bar-fill relative h-full transition-[width] duration-500 ease-out${stripes} ${
+            level ? (clamped > 0 ? 'glim-liquid-edge' : '') : 'rounded-[var(--radius-pill)]'
+          }`}
           style={{ width: `${clamped}%`, backgroundColor: fill }}
         >
           {/* The front edge tells a moving download from a stalled one at the
               same percentage. It is drawn wherever there is a fill and pulses
               on glim-pulse only while `moving`. index.css hides it when the
               fill is narrower than the edge. */}
-          {clamped > 0 && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
+          {clamped > 0 && !level && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
         </div>
       )}
     </div>

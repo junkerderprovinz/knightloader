@@ -92,7 +92,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
       <span className="flex items-center gap-2">
         {/* The bar takes the leftover room so the figures align. */}
         <span className="min-w-0 flex-1">
-          <ProgressBar active percent={(used / limit) * 100} />
+          <ProgressBar active level percent={(used / limit) * 100} />
         </span>
         <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftOf', { left: fmtGB(limit - used), total: fmtGB(limit) })}
@@ -106,7 +106,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
     return (
       <span className="flex items-center gap-2">
         <span className="min-w-0 flex-1">
-          <ProgressBar active percent={usedPct} />
+          <ProgressBar active level percent={usedPct} />
         </span>
         <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftPercent', { n: Math.floor(100 - usedPct) })}
