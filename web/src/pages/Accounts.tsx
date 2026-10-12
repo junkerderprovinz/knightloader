@@ -15,12 +15,10 @@ import {
   type AccountCredential,
   type CatalogueService,
   type CredentialField,
-  type JDStatus,
   type ResolverInfo,
   type VerifyResult,
   fetchAccounts,
   fetchAccountCatalogue,
-  fetchJDStatus,
   fetchResolverPriority,
   removeAccountCredential,
   saveAccountCredential,
@@ -53,7 +51,6 @@ import {
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
-import { SubHead } from './settings/controls';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
@@ -947,9 +944,8 @@ function CredentialDialog({
   );
 }
 
-// Routing: the resolver priority order and the JD sidecar's status. Neither is
-// an account: the order belongs to the registry (internal/resolver), and the
-// sidecar is configured by KL_JD without a credential.
+// Routing: the resolver priority order, which is no account: it belongs to the
+// registry (internal/resolver).
 
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
@@ -980,7 +976,6 @@ function RoutingSection({
   const { t } = useT();
   const { toast } = useToast();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
-  const [jd, setJd] = useState<JDStatus | null>(null);
   const [busy, setBusy] = useState(false);
 
   // Re-read whenever the configured services or the switched-on hoster logins
@@ -989,7 +984,6 @@ function RoutingSection({
   useEffect(() => {
     let live = true;
     void fetchResolverPriority().then((p) => live && setPriority(p));
-    void fetchJDStatus().then((s) => live && setJd(s));
     return () => {
       live = false;
     };
@@ -1063,24 +1057,10 @@ ${t('accounts.routing.orderHintTorrents')}`}
 
       {captcha}
 
-      {/* Whether a link may be loaded for free, and the state of the backend
-          that would load it. */}
+      {/* The state of the backend that loads for free is on the Health page,
+          and its revision on the card of built-in parts. */}
       <div className="sm:col-span-2">
-        <FreeDownloadsCard hue={7}>
-          <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
-          {jd === null ? (
-            <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-          ) : !jd.configured ? (
-            <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
-          ) : jd.reachable ? (
-            <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
-              {t('accounts.routing.jdUnreachable')}
-              {jd.detail && <InfoBubble tip={jd.detail} />}
-            </span>
-          )}
-        </FreeDownloadsCard>
+        <FreeDownloadsCard hue={7} />
       </div>
     </div>
   );

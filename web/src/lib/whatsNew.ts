@@ -310,6 +310,17 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.health.parts' },
       },
       {
+        id: 'jd-state',
+        to: ['/settings/health', '/settings/look'],
+        text: 'whatsnew.change.jdState',
+        names: {
+          free: 'settings.accounts.freeTitle',
+          parts: 'settings.health.parts',
+          health: 'settings.nav.health',
+          builtIn: 'settings.look.builtInTitle',
+        },
+      },
+      {
         id: 'health-parts',
         to: ['/settings/health'],
         text: 'whatsnew.change.healthParts',

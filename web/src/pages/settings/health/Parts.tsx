@@ -24,7 +24,13 @@ export function PartsCard({ hue, report }: { hue: number; report: HealthReport }
             {/* The state at the row's end, so the states of all parts stand in one column. */}
             <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
               {/* A part this build has no label for shows its raw id. */}
-              <span className="min-w-0 text-sm text-carbon-text">{healthLabel(t, 'health.part.', s.id)}</span>
+              <span className="min-w-0 text-sm text-carbon-text">
+                {s.id === 'jd' ? (
+                  <span data-new="jd-state">{healthLabel(t, 'health.part.', s.id)}</span>
+                ) : (
+                  healthLabel(t, 'health.part.', s.id)
+                )}
+              </span>
               <span className="ms-auto">
                 <LabelBadge tone={healthTone(s.state)} label={healthLabel(t, 'health.state.', s.state)} />
               </span>
