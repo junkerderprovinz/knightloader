@@ -720,8 +720,6 @@ export const hi: Dict = {
   'settings.modules.reason.captchaJDOff': 'कैप्चा सिर्फ़ JDownloader से आते हैं, जो बंद है। पहले उसे फिर से चालू करें।',
   'settings.modules.reason.tray': 'ट्रे चिह्न को डेस्कटॉप सत्र चाहिए, जो कंटेनर बिल्ड में नहीं होता। वहाँ ब्राउज़र टैब का शीर्षक और चिह्न यही दिखाते हैं।',
   'settings.modules.reason.windowpolicy': 'विंडो बंद करने या छोटा करने पर क्या होता है, यह एक मशीन पर एक इंस्टॉलेशन से जुड़ा है, इसलिए यह इंस्टेंस इसे नहीं देता।',
-  'settings.modules.reason.updaterDesktop': 'जब तक सामान्य पेज पर “अपने आप अपडेट करें” चालू है, ऐप दिन में एक बार नया रिलीज़ खोजता है, उसे बैकग्राउंड में डाउनलोड करता है, रिलीज़ के चेकसम से उसकी जांच करता है और अगली बार ऐप खोलने पर उसे शुरू करता है।',
-  'settings.modules.reason.updaterContainer': 'कंटेनर अंदर से ख़ुद को नहीं बदल सकता। सामान्य पेज पर अपडेट जाँच सिर्फ़ बताती है कि नई रिलीज़ मौजूद है और उसका लिंक देती है। अपडेट करने के लिए नई इमेज उसी तरीक़े से खींचें जिससे आपने यह वाली डिप्लॉय की थी (docker pull, Unraid Community Applications, Watchtower वगैरह)।',
   'settings.modules.switchFailed': 'वह स्विच अस्वीकार हुआ: {reason}',
   'settings.modules.configureFirst': 'अभी चालू करने को कुछ नहीं है। पहले इसे {page} पर सेट करें; उसके बाद यहाँ का स्विच उसे रोकता और फिर चालू करता है, बिना आपकी सेटिंग खोए।',
 
@@ -743,7 +741,6 @@ export const hi: Dict = {
   'settings.module.scripting': 'घटना स्क्रिप्ट',
   'settings.module.tray': 'सूचना क्षेत्र में चिह्न',
   'settings.module.windowpolicy': 'विंडो व्यवहार',
-  'settings.module.updater': 'ऐप के भीतर अपडेट',
 
   'settings.advanced.search': 'नाम या मान से छाँटें',
   'settings.advanced.allSettings': 'सभी सेटिंग्स',

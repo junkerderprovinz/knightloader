@@ -712,8 +712,6 @@ export const pl: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captche pochodzą tylko z JDownloadera, a ten jest wyłączony. Najpierw włącz go z powrotem.',
   'settings.modules.reason.tray': 'Ikona w zasobniku wymaga sesji pulpitu, a wersja kontenerowa jej nie ma. Tam to samo pokazują tytuł i ikona karty przeglądarki.',
   'settings.modules.reason.windowpolicy': 'To, co robi zamknięcie albo zminimalizowanie okna, należy do jednej instalacji na jednej maszynie, więc ta instancja tego nie udostępnia.',
-  'settings.modules.reason.updaterDesktop': 'Dopóki na stronie Ogólne włączone jest „Aktualizuj automatycznie”, aplikacja raz dziennie szuka nowszego wydania, pobiera je w tle, sprawdza je sumami kontrolnymi wydania i uruchamia przy następnym otwarciu.',
-  'settings.modules.reason.updaterContainer': 'Kontener nie może zastąpić się sam od środka. Sprawdzanie aktualizacji na stronie Ogólne tylko informuje, że jest nowsze wydanie, i podaje do niego link. Aby zaktualizować, pobierz nowy obraz tak, jak wdrożyłeś ten (docker pull, Unraid Community Applications, Watchtower i tak dalej).',
   'settings.modules.switchFailed': 'Ten przełącznik odrzucono: {reason}',
   'settings.modules.configureFirst': 'Nie ma jeszcze czego włączać. Skonfiguruj to najpierw na {page}; potem przełącznik tutaj zatrzymuje to i uruchamia ponownie, nie tracąc tego, co ustawiłeś.',
 
@@ -735,7 +733,6 @@ export const pl: Dict = {
   'settings.module.scripting': 'Skrypty zdarzeń',
   'settings.module.tray': 'Ikona w obszarze powiadomień',
   'settings.module.windowpolicy': 'Zachowanie okien',
-  'settings.module.updater': 'Aktualizacje w aplikacji',
 
   'settings.advanced.search': 'Filtruj po nazwie lub wartości',
   'settings.advanced.allSettings': 'Wszystkie ustawienia',

@@ -719,8 +719,6 @@ export const fi: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchat tulevat vain JDownloaderilta, joka on kytketty pois. Kytke se ensin takaisin päälle.',
   'settings.modules.reason.tray': 'Ilmaisinalueen kuvake tarvitsee työpöytäistunnon, jota konttikäännöksessä ei ole. Siellä selainvälilehden otsikko ja kuvake näyttävät saman.',
   'settings.modules.reason.windowpolicy': 'Se, mitä ikkunan sulkeminen tai pienentäminen tekee, kuuluu yhdelle asennukselle yhdellä koneella, joten tämä instanssi ei tarjoa sitä.',
-  'settings.modules.reason.updaterDesktop': 'Kun ”Päivitä automaattisesti” on päällä Yleiset-sivulla, sovellus etsii uudempaa versiota kerran päivässä, lataa sen taustalla, tarkistaa sen julkaisun tarkistussummilla ja käynnistää sen, kun avaat sovelluksen seuraavan kerran.',
-  'settings.modules.reason.updaterContainer': 'Kontti ei voi korvata itseään sisältä käsin. Yleiset-sivun päivitystarkistus vain kertoo, että uudempi versio on olemassa, ja linkittää siihen. Päivitä hakemalla uusi image samalla tavalla kuin otit tämän käyttöön (docker pull, Unraid Community Applications, Watchtower ja niin edelleen).',
   'settings.modules.switchFailed': 'Kytkin hylättiin: {reason}',
   'settings.modules.configureFirst': 'Mitään ei ole vielä kytkettävänä. Määritä tämä ensin sivulla {page}; sen jälkeen täkäläinen kytkin pysäyttää ja käynnistää sen uudelleen menettämättä asettamaasi.',
 
@@ -742,7 +740,6 @@ export const fi: Dict = {
   'settings.module.scripting': 'Tapahtumaskriptit',
   'settings.module.tray': 'Kuvake ilmoitusalueella',
   'settings.module.windowpolicy': 'Ikkunoiden käyttäytyminen',
-  'settings.module.updater': 'Päivitykset sovelluksessa',
 
   'settings.advanced.search': 'Suodata nimen tai arvon mukaan',
   'settings.advanced.allSettings': 'Kaikki asetukset',

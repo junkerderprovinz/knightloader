@@ -719,8 +719,6 @@ export const th: Dict = {
   'settings.modules.reason.captchaJDOff': 'แคปช่ามาจาก JDownloader เท่านั้น ซึ่งตอนนี้ปิดอยู่ เปิดกลับมาก่อน',
   'settings.modules.reason.tray': 'ไอคอนถาดระบบต้องใช้เซสชันเดสก์ท็อป ซึ่งบิลด์คอนเทนเนอร์ไม่มี ในบิลด์นั้น ชื่อและไอคอนของแท็บเบราว์เซอร์จะแสดงข้อมูลเดียวกัน',
   'settings.modules.reason.windowpolicy': 'การปิดหรือย่อหน้าต่างแล้วเกิดอะไรขึ้น เป็นเรื่องของการติดตั้งหนึ่งชุดบนเครื่องหนึ่งเครื่อง อินสแตนซ์นี้จึงไม่ได้ให้ส่วนนี้',
-  'settings.modules.reason.updaterDesktop': 'ตราบใดที่เปิด “อัปเดตอัตโนมัติ” ในหน้าทั่วไป แอปจะหาเวอร์ชันใหม่กว่าวันละครั้ง ดาวน์โหลดไว้เบื้องหลัง ตรวจสอบกับเช็กซัมของรุ่นนั้น และเริ่มใช้งานเมื่อคุณเปิดแอปครั้งถัดไป',
-  'settings.modules.reason.updaterContainer': 'คอนเทนเนอร์แทนที่ตัวเองจากภายในไม่ได้ การตรวจหาอัปเดตในหน้าทั่วไปจะบอกเพียงว่ามีเวอร์ชันใหม่กว่าและให้ลิงก์ไปหา หากต้องการอัปเดต ให้ดึงอิมเมจใหม่ด้วยวิธีเดียวกับที่คุณติดตั้งตัวนี้ไว้ (docker pull, Unraid Community Applications, Watchtower และอื่น ๆ)',
   'settings.modules.switchFailed': 'สวิตช์นั้นถูกปฏิเสธ: {reason}',
   'settings.modules.configureFirst': 'ยังไม่มีอะไรให้เปิด ตั้งค่าที่ {page} ก่อน จากนั้นสวิตช์ตรงนี้จะหยุดและเริ่มใหม่ให้โดยไม่ทำสิ่งที่คุณตั้งไว้หาย',
 
@@ -742,7 +740,6 @@ export const th: Dict = {
   'settings.module.scripting': 'สคริปต์เหตุการณ์',
   'settings.module.tray': 'ไอคอนในพื้นที่แจ้งเตือน',
   'settings.module.windowpolicy': 'พฤติกรรมหน้าต่าง',
-  'settings.module.updater': 'อัปเดตในแอป',
 
   'settings.advanced.search': 'กรองตามชื่อหรือค่า',
   'settings.advanced.allSettings': 'การตั้งค่าทั้งหมด',

@@ -719,8 +719,6 @@ export const sl: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captche prihajajo samo iz JDownloaderja, ta pa je izklopljen. Najprej ga spet vklopi.',
   'settings.modules.reason.tray': 'Ikona v pladnju potrebuje namizno sejo, ki je vsebniška izdaja nima. Tam isto pokažeta naslov in ikona zavihka brskalnika.',
   'settings.modules.reason.windowpolicy': 'Kaj stori zapiranje ali pomanjšanje okna, spada k eni namestitvi na enem računalniku, zato ta instanca tega ne ponuja.',
-  'settings.modules.reason.updaterDesktop': 'Dokler je na strani Splošno vklopljeno »Samodejno posodabljaj«, aplikacija enkrat na dan poišče novejšo izdajo, jo prenese v ozadju, jo preveri s kontrolnimi vsotami izdaje in jo zažene, ko jo naslednjič odpreš.',
-  'settings.modules.reason.updaterContainer': 'Vsebnik se ne more zamenjati od znotraj. Preverjanje posodobitev na strani Splošno ti samo pove, da obstaja novejša izdaja, in poveže nanjo. Za posodobitev prenesi novo sliko tako, kot si namestil to (docker pull, Unraid Community Applications, Watchtower in podobno).',
   'settings.modules.switchFailed': 'To stikalo je bilo zavrnjeno: {reason}',
   'settings.modules.configureFirst': 'Zaenkrat ni ničesar za vklopiti. Najprej to nastavite na {page}; potem stikalo tukaj to ustavi in znova zažene, ne da bi izgubilo nastavljeno.',
 
@@ -742,7 +740,6 @@ export const sl: Dict = {
   'settings.module.scripting': 'Skripti dogodkov',
   'settings.module.tray': 'Ikona v obvestilnem območju',
   'settings.module.windowpolicy': 'Vedenje oken',
-  'settings.module.updater': 'Posodobitve v aplikaciji',
 
   'settings.advanced.search': 'Filtriraj po imenu ali vrednosti',
   'settings.advanced.allSettings': 'Vse nastavitve',

@@ -413,10 +413,6 @@ func featureList(a *app.App, base string) []Feature {
 				"so it is not served from here at all",
 			code: "windowpolicy",
 		}),
-		withReason(Feature{
-			ID: "updater", Verdict: updaterVerdict(), Page: "look",
-			Switch: SwitchNone,
-		}, updaterReason()),
 	}
 }
 
@@ -435,32 +431,6 @@ func keepAwakeFeature(s settings.Settings) Feature {
 	})
 }
 
-// updaterVerdict depends on the deployment: both builds can check for a newer
-// release, but only the desktop build can update itself, since a container
-// cannot replace itself from the inside.
-func updaterVerdict() FeatureVerdict {
-	if buildinfo.Deployment == "desktop" {
-		return VerdictDesktop
-	}
-	return VerdictNotBuilt
-}
-
-func updaterReason() line {
-	if buildinfo.Deployment == "desktop" {
-		return line{
-			text: "while \"Update automatically\" on the General page is on, the app looks for a newer release once a day, downloads it in the background, " +
-				"checks it against the release's checksums and starts it the next time you open the app",
-			code: "updaterDesktop",
-		}
-	}
-	return line{
-		text: "a container cannot replace itself from the inside, so the update check on the General page only tells you a newer release exists " +
-			"and points at it; to update, pull the new image the way you deployed this one " +
-			"(docker pull, Unraid Community Applications, Watchtower, ...), which your deployment already does for you or lets you do",
-		code: "updaterContainer",
-	}
-}
-
 // featurePages is the sub-page list, in rail order. Pages without a module row
 // (appearance, accounts, shortcuts, diagnostics, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
@@ -470,7 +440,7 @@ func featurePages() []FeaturePage {
 	return []FeaturePage{
 		// The General page keeps the id "look" so bookmarked addresses and the
 		// stored page order still resolve.
-		{ID: "look", Modules: []string{"updater"}},
+		{ID: "look"},
 		{ID: "appearance"},
 		{ID: "modules"},
 		{ID: "accounts", Modules: []string{"debriddrive"}},

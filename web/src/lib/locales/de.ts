@@ -783,8 +783,6 @@ export const de: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchas kommen nur vom JDownloader, und der ist ausgeschaltet. Schalte ihn zuerst wieder ein.',
   'settings.modules.reason.tray': 'Ein Symbol im Infobereich braucht eine Desktop-Sitzung, und die hat der Container-Build nicht. Dort zeigen Titel und Symbol des Browser-Tabs dasselbe.',
   'settings.modules.reason.windowpolicy': 'Was Schließen oder Minimieren des Fensters bewirkt, gehört zu einer Installation auf einem Rechner, deshalb liefert diese Instanz es nicht aus.',
-  'settings.modules.reason.updaterDesktop': 'Solange „Automatisch aktualisieren“ auf der Seite Allgemein an ist, sucht die App einmal am Tag nach einer neueren Version, lädt sie im Hintergrund herunter, prüft sie mit den Prüfsummen des Releases und startet sie beim nächsten Öffnen.',
-  'settings.modules.reason.updaterContainer': 'Ein Container kann sich nicht von innen ersetzen. Die Update-Prüfung auf der Seite Allgemein sagt dir nur, dass es eine neuere Version gibt, und verlinkt sie. Zum Aktualisieren ziehst du das neue Image so, wie du dieses bereitgestellt hast (docker pull, Unraid Community Applications, Watchtower und so weiter).',
   'settings.modules.reason.keepawake': 'Nur die Desktop-App kann einen Rechner wach halten. Der Rechner, auf dem ein Container läuft, entscheidet selbst, wann er schläft.',
   'settings.modules.switchFailed': 'Der Schalter wurde abgelehnt: {reason}',
   'settings.modules.configureFirst': 'Es gibt noch nichts einzuschalten. Richte das zuerst auf {page} ein. Danach kannst du es mit diesem Schalter anhalten und neu starten, ohne das Eingerichtete zu verlieren.',
@@ -807,7 +805,6 @@ export const de: Dict = {
   'settings.module.scripting': 'Ereignis-Skripte',
   'settings.module.tray': 'Symbol im Infobereich',
   'settings.module.windowpolicy': 'Fensterverhalten',
-  'settings.module.updater': 'Updates in der App',
 
   'settings.advanced.search': 'Nach Name oder Wert filtern',
   'settings.advanced.allSettings': 'Alle Einstellungen',

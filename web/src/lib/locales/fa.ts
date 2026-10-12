@@ -719,8 +719,6 @@ export const fa: Dict = {
   'settings.modules.reason.captchaJDOff': 'کپچاها فقط از JDownloader می‌آیند، که خاموش است. اول دوباره روشنش کن.',
   'settings.modules.reason.tray': 'نماد سینی به یک نشست دسکتاپ نیاز دارد، و ساخت کانتینری چنین نشستی ندارد. آنجا عنوان و نماد زبانهٔ مرورگر همین را نشان می‌دهند.',
   'settings.modules.reason.windowpolicy': 'اینکه بستن یا کوچک کردن پنجره چه کاری می‌کند به یک نصب روی یک دستگاه تعلق دارد، پس این نمونه آن را ارائه نمی‌دهد.',
-  'settings.modules.reason.updaterDesktop': 'تا وقتی «به‌روزرسانی خودکار» در صفحهٔ عمومی روشن است، برنامه روزی یک بار دنبال انتشار تازه‌تری می‌گردد، آن را در پس‌زمینه دانلود می‌کند، با چک‌سام‌های انتشار بررسی‌اش می‌کند و دفعهٔ بعد که برنامه را باز کنی اجرایش می‌کند.',
-  'settings.modules.reason.updaterContainer': 'کانتینر نمی‌تواند خودش را از درون جایگزین کند. بررسی به‌روزرسانی در صفحهٔ عمومی فقط به تو می‌گوید که انتشار تازه‌تری هست و به آن پیوند می‌دهد. برای به‌روزرسانی، ایمیج تازه را به همان روشی بکش که این یکی را مستقر کرده‌ای (docker pull، Unraid Community Applications، Watchtower و مانند آن).',
   'settings.modules.switchFailed': 'آن کلید رد شد: {reason}',
   'settings.modules.configureFirst': 'هنوز چیزی برای روشن کردن نیست. اول این را در {page} برپا کنید؛ پس از آن کلید اینجا آن را متوقف و دوباره اجرا می‌کند بی‌آنکه آنچه تنظیم کرده‌اید از دست برود.',
 
@@ -742,7 +740,6 @@ export const fa: Dict = {
   'settings.module.scripting': 'اسکریپت‌های رویداد',
   'settings.module.tray': 'نشانه در ناحیهٔ اعلان',
   'settings.module.windowpolicy': 'رفتار پنجره‌ها',
-  'settings.module.updater': 'به‌روزرسانی درون برنامه',
 
   'settings.advanced.search': 'پالایش بر پایهٔ نام یا مقدار',
   'settings.advanced.allSettings': 'همه تنظیمات',

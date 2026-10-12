@@ -719,8 +719,6 @@ export const hr: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captche dolaze samo iz JDownloadera, a on je isključen. Najprije ga ponovno uključi.',
   'settings.modules.reason.tray': 'Ikona u traci treba sesiju radne površine, a nju verzija za kontejner nema. Ondje isto prikazuju naslov i ikona kartice preglednika.',
   'settings.modules.reason.windowpolicy': 'Što čini zatvaranje ili minimiziranje prozora pripada jednoj instalaciji na jednom računalu, pa to ova instanca ne nudi.',
-  'settings.modules.reason.updaterDesktop': 'Dok je na stranici Općenito uključeno „Ažuriraj automatski”, aplikacija jednom dnevno traži novije izdanje, preuzima ga u pozadini, provjerava ga kontrolnim zbrojevima izdanja i pokreće ga kad je sljedeći put otvoriš.',
-  'settings.modules.reason.updaterContainer': 'Kontejner ne može sam sebe zamijeniti iznutra. Provjera ažuriranja na stranici Općenito samo ti kaže da postoji novije izdanje i vodi do njega. Za ažuriranje povuci novu sliku onako kako si postavio ovu (docker pull, Unraid Community Applications, Watchtower i tako dalje).',
   'settings.modules.switchFailed': 'Prekidač je odbijen: {reason}',
   'settings.modules.configureFirst': 'Zasad nema što uključiti. Postavite to najprije na {page}; nakon toga prekidač ovdje to zaustavlja i ponovno pokreće bez gubitka onoga što ste postavili.',
 
@@ -742,7 +740,6 @@ export const hr: Dict = {
   'settings.module.scripting': 'Skripte događaja',
   'settings.module.tray': 'Ikona u području obavijesti',
   'settings.module.windowpolicy': 'Ponašanje prozora',
-  'settings.module.updater': 'Ažuriranja u aplikaciji',
 
   'settings.advanced.search': 'Filtriraj po imenu ili vrijednosti',
   'settings.advanced.allSettings': 'Sve postavke',

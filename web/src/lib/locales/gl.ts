@@ -719,8 +719,6 @@ export const gl: Dict = {
   'settings.modules.reason.captchaJDOff': 'Os captchas só veñen de JDownloader, que está desactivado. Actívao de novo primeiro.',
   'settings.modules.reason.tray': 'Unha icona na bandexa precisa unha sesión de escritorio, e a build para contedor non a ten. Alí, o título e a icona da lapela do navegador amosan o mesmo.',
   'settings.modules.reason.windowpolicy': 'O que fai pechar ou minimizar a xanela pertence a unha instalación nunha máquina concreta, así que esta instancia non o ofrece.',
-  'settings.modules.reason.updaterDesktop': 'Mentres «Actualizar automaticamente» estea activado na páxina Xeral, a aplicación busca unha versión máis nova unha vez ao día, descárgaa en segundo plano, compróbaa coas sumas de verificación da versión publicada e iníciaa a próxima vez que a abras.',
-  'settings.modules.reason.updaterContainer': 'Un contedor non se pode substituír a si mesmo desde dentro. A comprobación de actualizacións da páxina Xeral só che di que existe unha versión máis nova e enlaza con ela. Para actualizar, descarga a imaxe nova do mesmo xeito que despregaches esta (docker pull, Unraid Community Applications, Watchtower e demais).',
   'settings.modules.switchFailed': 'Ese interruptor foi rexeitado: {reason}',
   'settings.modules.configureFirst': 'Aínda non hai nada que acender. Configúrao primeiro en {page}; despois o interruptor de aquí párao e vólveo arrincar sen perder o que puxeches.',
 
@@ -742,7 +740,6 @@ export const gl: Dict = {
   'settings.module.scripting': 'Scripts de eventos',
   'settings.module.tray': 'Icona na área de notificación',
   'settings.module.windowpolicy': 'Comportamento das xanelas',
-  'settings.module.updater': 'Actualizacións na aplicación',
 
   'settings.advanced.search': 'Filtrar por nome ou valor',
   'settings.advanced.allSettings': 'Todos os axustes',

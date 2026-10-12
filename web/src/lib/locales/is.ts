@@ -719,8 +719,6 @@ export const is: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha koma aðeins frá JDownloader, og slökkt er á honum. Kveiktu fyrst á honum aftur.',
   'settings.modules.reason.tray': 'Táknmynd í bakka þarf skjáborðslotu, og hana hefur gámasmíðin ekki. Þar sýna titill og tákn vafraflipans það sama.',
   'settings.modules.reason.windowpolicy': 'Hvað gerist þegar glugganum er lokað eða hann lágmarkaður tilheyrir einni uppsetningu á einni vél, svo þetta tilvik veitir það ekki.',
-  'settings.modules.reason.updaterDesktop': 'Á meðan kveikt er á „Uppfæra sjálfkrafa“ á síðunni Almennt leitar forritið að nýrri útgáfu einu sinni á dag, sækir hana í bakgrunni, ber hana saman við gátsummur útgáfunnar og ræsir hana næst þegar þú opnar forritið.',
-  'settings.modules.reason.updaterContainer': 'Gámur getur ekki skipt sjálfum sér út innan frá. Uppfærsluathugunin á síðunni Almennt segir þér aðeins að nýrri útgáfa sé til og tengir á hana. Til að uppfæra sækirðu nýju gámamyndina á sama hátt og þú settir þessa upp (docker pull, Unraid Community Applications, Watchtower og svo framvegis).',
   'settings.modules.switchFailed': 'Rofanum var hafnað: {reason}',
   'settings.modules.configureFirst': 'Það er ekkert til að kveikja á enn. Settu þetta upp á {page} fyrst; eftir það stöðvar rofinn hér það og ræsir aftur án þess að tapa því sem þú stilltir.',
 
@@ -742,7 +740,6 @@ export const is: Dict = {
   'settings.module.scripting': 'Atburðaskriftur',
   'settings.module.tray': 'Tákn á tilkynningasvæði',
   'settings.module.windowpolicy': 'Hegðun glugga',
-  'settings.module.updater': 'Uppfærslur í forritinu',
 
   'settings.advanced.search': 'Sía eftir heiti eða gildi',
   'settings.advanced.allSettings': 'Allar stillingar',

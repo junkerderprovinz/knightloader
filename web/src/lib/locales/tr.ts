@@ -719,8 +719,6 @@ export const tr: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchalar yalnızca JDownloader’dan gelir ve o kapalı. Önce onu yeniden aç.',
   'settings.modules.reason.tray': 'Bir tepsi simgesi masaüstü oturumu ister, konteyner yapısında ise böyle bir oturum yok. Orada tarayıcı sekmesinin başlığı ve simgesi aynı şeyi gösterir.',
   'settings.modules.reason.windowpolicy': 'Pencereyi kapatmanın ya da simge durumuna küçültmenin ne yapacağı tek bir makinedeki tek bir kuruluma aittir, bu yüzden bu örnek bunu sunmaz.',
-  'settings.modules.reason.updaterDesktop': 'Genel sayfasında “Otomatik güncelle” açık olduğu sürece uygulama günde bir kez daha yeni bir sürüm arar, arka planda indirir, sürümün sağlama toplamlarıyla doğrular ve uygulamayı bir sonraki açışında başlatır.',
-  'settings.modules.reason.updaterContainer': 'Bir konteyner kendini içeriden değiştiremez. Genel sayfasındaki güncelleme kontrolü sana yalnızca daha yeni bir sürüm olduğunu söyler ve ona bağlantı verir. Güncellemek için yeni imajı, bunu nasıl dağıttıysan öyle çek (docker pull, Unraid Community Applications, Watchtower vb.).',
   'settings.modules.switchFailed': 'Bu anahtar reddedildi: {reason}',
   'settings.modules.configureFirst': 'Henüz açılacak bir şey yok. Bunu önce {page} sayfasında kurun; ondan sonra buradaki anahtar, kurduğunuzu kaybetmeden onu durdurup yeniden başlatır.',
 
@@ -742,7 +740,6 @@ export const tr: Dict = {
   'settings.module.scripting': 'Olay betikleri',
   'settings.module.tray': 'Bildirim alanında simge',
   'settings.module.windowpolicy': 'Pencere davranışı',
-  'settings.module.updater': 'Uygulama içi güncellemeler',
 
   'settings.advanced.search': 'Ada ya da değere göre süz',
   'settings.advanced.allSettings': 'Tüm ayarlar',

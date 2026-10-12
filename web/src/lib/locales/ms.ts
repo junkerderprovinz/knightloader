@@ -719,8 +719,6 @@ export const ms: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha hanya datang daripada JDownloader, yang sedang dimatikan. Hidupkannya semula dahulu.',
   'settings.modules.reason.tray': 'Ikon dulang memerlukan sesi desktop, dan binaan bekas tidak mempunyainya. Di sana, tajuk dan ikon tab pelayar menunjukkan perkara yang sama.',
   'settings.modules.reason.windowpolicy': 'Apa yang berlaku apabila tetingkap ditutup atau diminimumkan ialah urusan satu pemasangan pada satu mesin, jadi instans ini tidak menyediakannya.',
-  'settings.modules.reason.updaterDesktop': 'Selagi “Kemas kini secara automatik” dihidupkan pada halaman Umum, aplikasi mencari keluaran yang lebih baharu sekali sehari, memuat turunnya di latar belakang, menyemaknya dengan checksum keluaran dan memulakannya apabila anda membuka aplikasi pada kali seterusnya.',
-  'settings.modules.reason.updaterContainer': 'Bekas tidak boleh menggantikan dirinya dari dalam. Semakan kemas kini pada halaman Umum hanya memberitahu anda bahawa keluaran yang lebih baharu wujud dan memautkannya. Untuk mengemas kini, tarik imej baharu mengikut cara anda menggunakan yang ini (docker pull, Unraid Community Applications, Watchtower dan sebagainya).',
   'settings.modules.switchFailed': 'Suis itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada apa-apa untuk dihidupkan. Sediakan dahulu di {page}; selepas itu suis di sini menghentikan dan memulakannya semula tanpa hilang apa yang anda tetapkan.',
 
@@ -742,7 +740,6 @@ export const ms: Dict = {
   'settings.module.scripting': 'Skrip peristiwa',
   'settings.module.tray': 'Ikon di kawasan pemberitahuan',
   'settings.module.windowpolicy': 'Kelakuan tetingkap',
-  'settings.module.updater': 'Kemas kini dalam aplikasi',
 
   'settings.advanced.search': 'Tapis mengikut nama atau nilai',
   'settings.advanced.allSettings': 'Semua tetapan',

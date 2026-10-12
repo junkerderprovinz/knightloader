@@ -719,8 +719,6 @@ export const id: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha hanya datang dari JDownloader, yang sedang dimatikan. Nyalakan lagi dulu.',
   'settings.modules.reason.tray': 'Ikon baki butuh sesi desktop, dan build kontainer tidak punya itu. Di sana, judul dan ikon tab peramban menampilkan hal yang sama.',
   'settings.modules.reason.windowpolicy': 'Apa yang terjadi saat jendela ditutup atau diminimalkan adalah urusan satu pemasangan di satu mesin, jadi instans ini tidak menyediakannya.',
-  'settings.modules.reason.updaterDesktop': 'Selama “Perbarui otomatis” di halaman Umum menyala, aplikasi mencari rilis yang lebih baru sekali sehari, mengunduhnya di latar belakang, memeriksanya dengan checksum rilis, lalu menjalankannya saat kamu membuka aplikasi berikutnya.',
-  'settings.modules.reason.updaterContainer': 'Kontainer tidak bisa mengganti dirinya sendiri dari dalam. Pemeriksaan pembaruan di halaman Umum hanya memberitahumu bahwa ada rilis yang lebih baru dan menautkannya. Untuk memperbarui, tarik image baru dengan cara yang sama seperti saat kamu memasang yang ini (docker pull, Unraid Community Applications, Watchtower, dan sebagainya).',
   'settings.modules.switchFailed': 'Sakelar itu ditolak: {reason}',
   'settings.modules.configureFirst': 'Belum ada yang bisa dinyalakan. Siapkan dulu di {page}; setelah itu sakelar di sini menghentikan dan menjalankannya lagi tanpa kehilangan apa yang Anda atur.',
 
@@ -742,7 +740,6 @@ export const id: Dict = {
   'settings.module.scripting': 'Skrip peristiwa',
   'settings.module.tray': 'Ikon di area notifikasi',
   'settings.module.windowpolicy': 'Perilaku jendela',
-  'settings.module.updater': 'Pembaruan dalam aplikasi',
 
   'settings.advanced.search': 'Saring menurut nama atau nilai',
   'settings.advanced.allSettings': 'Semua pengaturan',

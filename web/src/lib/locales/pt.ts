@@ -711,8 +711,6 @@ export const pt: Dict = {
   'settings.modules.reason.captchaJDOff': 'Os captchas só vêm do JDownloader, que está desligado. Volta a ligá-lo primeiro.',
   'settings.modules.reason.tray': 'Um ícone na área de notificação precisa de uma sessão de ambiente de trabalho, que a compilação para contentor não tem. Aí, o título e o ícone do separador do navegador mostram o mesmo.',
   'settings.modules.reason.windowpolicy': 'O que fechar ou minimizar a janela faz pertence a uma instalação numa máquina concreta, por isso esta instância não o disponibiliza.',
-  'settings.modules.reason.updaterDesktop': 'Enquanto «Atualizar automaticamente» estiver ligado na página Geral, a aplicação procura uma versão mais recente uma vez por dia, transfere-a em segundo plano, verifica-a com as somas de verificação da versão publicada e arranca-a da próxima vez que a abrires.',
-  'settings.modules.reason.updaterContainer': 'Um contentor não se consegue substituir a si próprio a partir de dentro. A verificação de atualizações na página Geral só te diz que existe uma versão mais recente e dá a ligação para ela. Para atualizar, obtém a imagem nova da forma como implementaste esta (docker pull, Unraid Community Applications, Watchtower e por aí fora).',
   'settings.modules.switchFailed': 'Esse interruptor foi recusado: {reason}',
   'settings.modules.configureFirst': 'Ainda não há nada para ligar. Configure isto primeiro em {page}; depois disso o interruptor daqui pára-o e volta a arrancá-lo sem perder o que definiu.',
 
@@ -734,7 +732,6 @@ export const pt: Dict = {
   'settings.module.scripting': 'Scripts de eventos',
   'settings.module.tray': 'Ícone na área de notificação',
   'settings.module.windowpolicy': 'Comportamento das janelas',
-  'settings.module.updater': 'Atualizações na aplicação',
 
   'settings.advanced.search': 'Filtrar por nome ou valor',
   'settings.advanced.allSettings': 'Todas as definições',

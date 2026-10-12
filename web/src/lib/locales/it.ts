@@ -711,8 +711,6 @@ export const it: Dict = {
   'settings.modules.reason.captchaJDOff': 'I captcha arrivano solo da JDownloader, che è spento. Prima riaccendilo.',
   'settings.modules.reason.tray': 'Un’icona nella barra ha bisogno di una sessione desktop, che la build per container non ha. Lì, il titolo e l’icona della scheda del browser mostrano la stessa cosa.',
   'settings.modules.reason.windowpolicy': 'Cosa succede chiudendo o riducendo a icona la finestra riguarda una singola installazione su una singola macchina, quindi questa istanza non lo fornisce.',
-  'settings.modules.reason.updaterDesktop': 'Finché «Aggiorna automaticamente» è attivo nella pagina Generale, l’app cerca una versione più recente una volta al giorno, la scarica in background, la verifica con i checksum della release e la avvia alla prossima apertura.',
-  'settings.modules.reason.updaterContainer': 'Un container non può sostituirsi da solo dall’interno. Il controllo degli aggiornamenti nella pagina Generale ti dice solo che esiste una versione più recente e ne dà il link. Per aggiornare, scarica la nuova immagine nel modo in cui hai distribuito questa (docker pull, Unraid Community Applications, Watchtower e così via).',
   'settings.modules.switchFailed': 'L’interruttore è stato rifiutato: {reason}',
   'settings.modules.configureFirst': 'Non c’è ancora niente da accendere. Configuralo prima in {page}; dopo, l’interruttore qui lo ferma e lo riavvia senza perdere quello che hai impostato.',
 
@@ -734,7 +732,6 @@ export const it: Dict = {
   'settings.module.scripting': 'Script di eventi',
   'settings.module.tray': 'Icona nell\'area di notifica',
   'settings.module.windowpolicy': 'Comportamento delle finestre',
-  'settings.module.updater': 'Aggiornamenti nell’app',
 
   'settings.advanced.search': 'Filtra per nome o valore',
   'settings.advanced.allSettings': 'Tutte le impostazioni',

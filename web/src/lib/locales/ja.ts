@@ -719,8 +719,6 @@ export const ja: Dict = {
   'settings.modules.reason.captchaJDOff': 'キャプチャは JDownloader からしか来ませんが、その JDownloader がオフになっています。先にオンに戻してください。',
   'settings.modules.reason.tray': 'トレイアイコンにはデスクトップのセッションが必要ですが、コンテナ版にはそれがありません。コンテナ版では、ブラウザーのタブのタイトルとアイコンが同じ情報を表示します。',
   'settings.modules.reason.windowpolicy': 'ウィンドウを閉じたり最小化したりしたときの動作は、1 台のマシン上の 1 つのインストールに属するものなので、このインスタンスはそれを提供しません。',
-  'settings.modules.reason.updaterDesktop': '一般のページで「自動的にアップデート」がオンの間、アプリは 1 日 1 回新しいリリースを探してバックグラウンドでダウンロードし、リリースのチェックサムで確認して、次にアプリを開いたときに起動します。',
-  'settings.modules.reason.updaterContainer': 'コンテナは内側から自分自身を置き換えられません。一般のページの更新確認は、新しいリリースがあることを知らせてリンクを示すだけです。更新するには、このコンテナをデプロイしたときと同じ方法で新しいイメージを取得してください（docker pull、Unraid Community Applications、Watchtower など）。',
   'settings.modules.switchFailed': 'そのスイッチは拒否されました: {reason}',
   'settings.modules.configureFirst': 'まだオンにできるものがありません。先に {page} で設定してください。そのあとは、ここのスイッチが設定を失わずに停止と再開を行います。',
 
@@ -742,7 +740,6 @@ export const ja: Dict = {
   'settings.module.scripting': 'イベントスクリプト',
   'settings.module.tray': '通知領域にアイコンを置く',
   'settings.module.windowpolicy': 'ウィンドウの挙動',
-  'settings.module.updater': 'アプリ内更新',
 
   'settings.advanced.search': '名前か値で絞り込む',
   'settings.advanced.allSettings': 'すべての設定',

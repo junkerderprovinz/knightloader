@@ -721,8 +721,6 @@ export const he: Dict = {
   'settings.modules.reason.captchaJDOff': 'קאפצ׳ות מגיעות רק מ-JDownloader, והוא כבוי. הפעל אותו קודם מחדש.',
   'settings.modules.reason.tray': 'סמל במגש צריך סשן שולחן עבודה, ובבניית הקונטיינר אין כזה. שם הכותרת והסמל של לשונית הדפדפן מראים את אותו הדבר.',
   'settings.modules.reason.windowpolicy': 'מה שסגירה או מזעור של החלון עושים שייך להתקנה אחת במכונה אחת, ולכן המופע הזה לא מספק את זה.',
-  'settings.modules.reason.updaterDesktop': 'כל עוד „עדכון אוטומטי” פועל בעמוד כללי, האפליקציה מחפשת גרסה חדשה יותר פעם ביום, מורידה אותה ברקע, בודקת אותה מול סכומי הביקורת של הגרסה ומפעילה אותה בפעם הבאה שתפתח אותה.',
-  'settings.modules.reason.updaterContainer': 'קונטיינר לא יכול להחליף את עצמו מבפנים. בדיקת העדכונים בעמוד כללי רק אומרת לך שיש גרסה חדשה יותר ומקשרת אליה. כדי לעדכן, משוך את האימג׳ החדש באותה דרך שבה פרסת את הנוכחי (docker pull, Unraid Community Applications, Watchtower וכן הלאה).',
   'settings.modules.switchFailed': 'המתג נדחה: {reason}',
   'settings.modules.configureFirst': 'עדיין אין מה להדליק. הגדר את זה קודם ב{page}; אחרי כן המתג כאן עוצר ומפעיל אותו מחדש בלי לאבד את מה שהגדרת.',
 
@@ -744,7 +742,6 @@ export const he: Dict = {
   'settings.module.scripting': 'סקריפטים לאירועים',
   'settings.module.tray': 'סמל באזור ההתראות',
   'settings.module.windowpolicy': 'התנהגות חלונות',
-  'settings.module.updater': 'עדכונים בתוך היישום',
 
   'settings.advanced.search': 'סינון לפי שם או ערך',
   'settings.advanced.allSettings': 'כל ההגדרות',

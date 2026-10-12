@@ -719,8 +719,6 @@ export const et: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchad tulevad ainult JDownloaderilt, mis on välja lülitatud. Lülita see kõigepealt uuesti sisse.',
   'settings.modules.reason.tray': 'Salveikoon vajab töölauaseanssi, mida konteineri järgul ei ole. Seal näitavad sama brauseri vahekaardi pealkiri ja ikoon.',
   'settings.modules.reason.windowpolicy': 'See, mida akna sulgemine või minimeerimine teeb, kuulub ühele paigaldusele ühes masinas, seega see eksemplar seda ei paku.',
-  'settings.modules.reason.updaterDesktop': 'Kuni „Uuenda automaatselt“ on lehel Üldine sees, otsib rakendus kord päevas uuemat väljalaset, laadib selle taustal alla, kontrollib seda väljalaske kontrollsummadega ja käivitab selle järgmisel korral, kui rakenduse avad.',
-  'settings.modules.reason.updaterContainer': 'Konteiner ei saa end seestpoolt välja vahetada. Uuenduste kontroll lehel Üldine ütleb sulle ainult, et uuem väljalase on olemas, ja annab sellele lingi. Uuendamiseks tõmba uus tõmmis samal viisil, nagu selle paigaldasid (docker pull, Unraid Community Applications, Watchtower jne).',
   'settings.modules.switchFailed': 'See lüliti lükati tagasi: {reason}',
   'settings.modules.configureFirst': 'Veel pole midagi sisse lülitada. Seadista see kõigepealt lehel {page}; pärast seda peatab ja käivitab siinne lüliti selle uuesti, kaotamata seatut.',
 
@@ -742,7 +740,6 @@ export const et: Dict = {
   'settings.module.scripting': 'Sündmusskriptid',
   'settings.module.tray': 'Ikoon teavitusalal',
   'settings.module.windowpolicy': 'Akende käitumine',
-  'settings.module.updater': 'Uuendused rakenduses',
 
   'settings.advanced.search': 'Filtreeri nime või väärtuse järgi',
   'settings.advanced.allSettings': 'Kõik seaded',

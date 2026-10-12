@@ -720,8 +720,6 @@ export const uk: Dict = {
   'settings.modules.reason.captchaJDOff': 'Капчі надходять лише від JDownloader, а його вимкнено. Спершу ввімкніть його знову.',
   'settings.modules.reason.tray': 'Значку в лотку потрібен сеанс робочого столу, а контейнерна збірка його не має. Там те саме показують заголовок і значок вкладки браузера.',
   'settings.modules.reason.windowpolicy': 'Що відбувається під час закриття чи згортання вікна, стосується однієї інсталяції на одній машині, тож цей екземпляр цього налаштування не віддає.',
-  'settings.modules.reason.updaterDesktop': 'Поки на сторінці «Загальне» ввімкнено «Оновлювати автоматично», застосунок раз на день шукає новішу версію, завантажує її у фоні, перевіряє за контрольними сумами релізу і запускає під час наступного відкриття.',
-  'settings.modules.reason.updaterContainer': 'Контейнер не може замінити себе зсередини. Перевірка оновлень на сторінці «Загальне» лише повідомляє, що є новіша версія, і дає на неї посилання. Щоб оновитися, завантажте новий образ так само, як розгортали цей (docker pull, Unraid Community Applications, Watchtower тощо).',
   'settings.modules.switchFailed': 'Перемикач відхилено: {reason}',
   'settings.modules.configureFirst': 'Вмикати ще нічого. Спершу налаштуйте це на {page}; після цього перемикач тут зупиняє і знову запускає модуль, не втрачаючи заданого.',
 
@@ -743,7 +741,6 @@ export const uk: Dict = {
   'settings.module.scripting': 'Скрипти подій',
   'settings.module.tray': 'Значок в області сповіщень',
   'settings.module.windowpolicy': 'Поведінка вікон',
-  'settings.module.updater': 'Оновлення в застосунку',
 
   'settings.advanced.search': 'Фільтр за назвою або значенням',
   'settings.advanced.allSettings': 'Усі налаштування',

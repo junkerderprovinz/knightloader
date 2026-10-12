@@ -711,8 +711,6 @@ export const nl: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha’s komen alleen van JDownloader, en die staat uit. Zet hem eerst weer aan.',
   'settings.modules.reason.tray': 'Een systeemvakpictogram heeft een desktopsessie nodig, en die heeft de containerbuild niet. Daar tonen de titel en het pictogram van het browsertabblad hetzelfde.',
   'settings.modules.reason.windowpolicy': 'Wat het sluiten of minimaliseren van het venster doet, hoort bij één installatie op één machine, dus deze instantie levert het niet.',
-  'settings.modules.reason.updaterDesktop': 'Zolang “Automatisch bijwerken” op de pagina Algemeen aan staat, zoekt de app één keer per dag naar een nieuwere release, downloadt die op de achtergrond, controleert hem met de checksums van de release en start hem de volgende keer dat je de app opent.',
-  'settings.modules.reason.updaterContainer': 'Een container kan zichzelf niet van binnenuit vervangen. De updatecontrole op de pagina Algemeen meldt alleen dat er een nieuwere release is en linkt ernaar. Om bij te werken haal je het nieuwe image op zoals je dit hebt uitgerold (docker pull, Unraid Community Applications, Watchtower enzovoort).',
   'settings.modules.switchFailed': 'Die schakelaar werd geweigerd: {reason}',
   'settings.modules.configureFirst': 'Er valt nog niets aan te zetten. Stel dit eerst in op {page}; daarna stopt en herstart de schakelaar hier het zonder te verliezen wat je hebt ingesteld.',
 
@@ -734,7 +732,6 @@ export const nl: Dict = {
   'settings.module.scripting': 'Gebeurtenisscripts',
   'settings.module.tray': 'Pictogram in het systeemvak',
   'settings.module.windowpolicy': 'Venstergedrag',
-  'settings.module.updater': 'Updates in de app',
 
   'settings.advanced.search': 'Filteren op naam of waarde',
   'settings.advanced.allSettings': 'Alle instellingen',

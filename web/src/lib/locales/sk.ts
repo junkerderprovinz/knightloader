@@ -719,8 +719,6 @@ export const sk: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchy prichádzajú len z JDownloadera a ten je vypnutý. Najprv ho znova zapni.',
   'settings.modules.reason.tray': 'Ikona v oznamovacej oblasti potrebuje reláciu pracovnej plochy a tú kontajnerová verzia nemá. Tam to isté ukazujú názov a ikona karty prehliadača.',
   'settings.modules.reason.windowpolicy': 'Čo urobí zatvorenie alebo minimalizovanie okna, patrí k jednej inštalácii na jednom stroji, preto to táto inštancia neponúka.',
-  'settings.modules.reason.updaterDesktop': 'Kým je na stránke Všeobecné zapnuté „Aktualizovať automaticky“, aplikácia raz denne hľadá novšie vydanie, stiahne ho na pozadí, overí ho podľa kontrolných súčtov vydania a spustí ho pri ďalšom otvorení.',
-  'settings.modules.reason.updaterContainer': 'Kontajner sa nemôže sám nahradiť zvnútra. Kontrola aktualizácií na stránke Všeobecné ti len povie, že existuje novšie vydanie, a odkáže naň. Na aktualizáciu stiahni nový obraz tak, ako si nasadil tento (docker pull, Unraid Community Applications, Watchtower a podobne).',
   'settings.modules.switchFailed': 'Prepínač bol odmietnutý: {reason}',
   'settings.modules.configureFirst': 'Zatiaľ nie je čo zapínať. Nastavte to najprv na {page}; potom to prepínač tu zastaví a znova spustí bez toho, aby sa stratilo, čo ste nastavili.',
 
@@ -742,7 +740,6 @@ export const sk: Dict = {
   'settings.module.scripting': 'Skripty udalostí',
   'settings.module.tray': 'Ikona v oblasti oznámení',
   'settings.module.windowpolicy': 'Správanie okien',
-  'settings.module.updater': 'Aktualizácie v aplikácii',
 
   'settings.advanced.search': 'Filtrovať podľa mena alebo hodnoty',
   'settings.advanced.allSettings': 'Všetky nastavenia',

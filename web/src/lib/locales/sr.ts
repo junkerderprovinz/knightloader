@@ -719,8 +719,6 @@ export const sr: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captcha стижу само од JDownloader-а, а он је искључен. Прво га поново укључи.',
   'settings.modules.reason.tray': 'Икони у системској траци треба сесија радне површине, а контејнерско издање је нема. Тамо исто показују наслов и икона картице прегледача.',
   'settings.modules.reason.windowpolicy': 'Шта ради затварање или умањивање прозора тиче се једне инсталације на једном рачунару, па га ова инстанца не испоручује.',
-  'settings.modules.reason.updaterDesktop': 'Док је на страници Опште укључено „Ажурирај аутоматски”, апликација једном дневно тражи новије издање, преузима га у позадини, проверава га контролним збировима издања и покреће га кад је следећи пут отвориш.',
-  'settings.modules.reason.updaterContainer': 'Контејнер не може сам себе да замени изнутра. Провера ажурирања на страници Опште само ти каже да постоји новија верзија и даје везу до ње. Да би ажурирао, повуци нову слику на исти начин на који си поставио ову (docker pull, Unraid Community Applications, Watchtower и тако даље).',
   'settings.modules.switchFailed': 'Прекидач је одбијен: {reason}',
   'settings.modules.configureFirst': 'Још нема шта да се укључи. Прво то подесите на {page}; после тога прекидач овде га зауставља и поново покреће без губитка онога што сте подесили.',
 
@@ -742,7 +740,6 @@ export const sr: Dict = {
   'settings.module.scripting': 'Скрипте догађаја',
   'settings.module.tray': 'Икона у области обавештења',
   'settings.module.windowpolicy': 'Понашање прозора',
-  'settings.module.updater': 'Ажурирања у апликацији',
 
   'settings.advanced.search': 'Филтрирај по имену или вредности',
   'settings.advanced.allSettings': 'Сва подешавања',

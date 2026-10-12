@@ -711,8 +711,6 @@ export const fr: Dict = {
   'settings.modules.reason.captchaJDOff': 'Les captchas ne viennent que de JDownloader, qui est désactivé. Réactivez-le d’abord.',
   'settings.modules.reason.tray': 'Une icône dans la zone de notification a besoin d’une session de bureau, ce que la version conteneur n’a pas. Là, le titre et l’icône de l’onglet du navigateur indiquent la même chose.',
   'settings.modules.reason.windowpolicy': 'Ce que font la fermeture ou la réduction de la fenêtre dépend d’une installation sur une machine donnée : cette instance ne le fournit donc pas.',
-  'settings.modules.reason.updaterDesktop': 'Tant que « Mettre à jour automatiquement » est activé sur la page Général, l’application cherche une version plus récente une fois par jour, la télécharge en arrière-plan, la vérifie avec les sommes de contrôle de la version publiée et la lance à la prochaine ouverture.',
-  'settings.modules.reason.updaterContainer': 'Un conteneur ne peut pas se remplacer lui-même de l’intérieur. La vérification des mises à jour sur la page Général vous indique seulement qu’une version plus récente existe et donne son lien. Pour mettre à jour, récupérez la nouvelle image de la même façon que vous avez déployé celle-ci (docker pull, Unraid Community Applications, Watchtower, etc.).',
   'settings.modules.switchFailed': 'Cet interrupteur a été refusé : {reason}',
   'settings.modules.configureFirst': 'Il n’y a encore rien à activer. Configurez d’abord cela sur {page} ; ensuite l’interrupteur d’ici l’arrête et le relance sans perdre vos réglages.',
 
@@ -734,7 +732,6 @@ export const fr: Dict = {
   'settings.module.scripting': 'Scripts d’événement',
   'settings.module.tray': 'Icône dans la zone de notification',
   'settings.module.windowpolicy': 'Comportement des fenêtres',
-  'settings.module.updater': 'Mises à jour dans l’application',
 
   'settings.advanced.search': 'Filtrer par nom ou valeur',
   'settings.advanced.allSettings': 'Tous les paramètres',

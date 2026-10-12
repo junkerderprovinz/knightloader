@@ -720,8 +720,6 @@ export const eu: Dict = {
   'settings.modules.reason.captchaJDOff': 'Captchak JDownloaderretik bakarrik datoz, eta itzalita dago. Piztu berriro lehenik.',
   'settings.modules.reason.tray': 'Erretiluko ikono batek mahaigaineko saio bat behar du, eta edukiontzirako bertsioak ez du halakorik. Han, nabigatzaile-fitxaren izenburuak eta ikonoak gauza bera erakusten dute.',
   'settings.modules.reason.windowpolicy': 'Leihoa ixteak edo minimizatzeak zer egiten duen makina bateko instalazio bakar bati dagokio, beraz instantzia honek ez du hori eskaintzen.',
-  'settings.modules.reason.updaterDesktop': '«Eguneratu automatikoki» Orokorra orrian piztuta dagoen bitartean, aplikazioak egunean behin bertsio berriago bat bilatzen du, atzeko planoan deskargatzen du, argitalpenaren egiaztapen-baturekin egiaztatzen du eta aplikazioa irekitzen duzun hurrengo aldian abiarazten du.',
-  'settings.modules.reason.updaterContainer': 'Edukiontzi batek ezin du bere burua barrutik ordezkatu. Orokorra orriko eguneratze-egiaztapenak bertsio berriago bat dagoela esaten dizu eta hartara estekatzen du, besterik ez. Eguneratzeko, ekarri irudi berria hau zabaldu zenuen modu berean (docker pull, Unraid Community Applications, Watchtower eta abar).',
   'settings.modules.switchFailed': 'Etengailu hori ukatu da: {reason}',
   'settings.modules.configureFirst': 'Oraindik ez dago ezer pizteko. Ezarri hau lehenik {page} orrian; ondoren hemengo etengailuak gelditu eta berriro abiaraziko du, ezarritakoa galdu gabe.',
 
@@ -743,7 +741,6 @@ export const eu: Dict = {
   'settings.module.scripting': 'Gertaeren script-ak',
   'settings.module.tray': 'Ikonoa jakinarazpen-eremuan',
   'settings.module.windowpolicy': 'Leihoen portaera',
-  'settings.module.updater': 'Aplikazio barruko eguneratzeak',
 
   'settings.advanced.search': 'Iragazi izenaren edo balioaren arabera',
   'settings.advanced.allSettings': 'Ezarpen guztiak',
