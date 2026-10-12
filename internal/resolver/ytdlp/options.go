@@ -100,6 +100,11 @@ type Embed struct {
 	// NFO writes a Kodi/Jellyfin/Plex <movie> NFO next to the finished file,
 	// built from yt-dlp's info json (see nfo.go).
 	NFO bool `json:"nfo"`
+	// Separate keeps a video row's streams apart: the video and the audio as
+	// files of their own, with the subtitles and the cover beside them, where
+	// otherwise all of it is merged into one file (see apartArgs). Its zero
+	// value merges, so a settings file from before it reads as merging.
+	Separate bool `json:"separate"`
 }
 
 // Measure re-reads the finished file with ffprobe, records runtime,

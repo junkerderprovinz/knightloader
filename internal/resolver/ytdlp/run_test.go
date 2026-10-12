@@ -43,14 +43,14 @@ func runHelperMain(mode string) {
 }
 
 // helperOutDir returns the directory of the plain -o template, skipping the
-// "thumbnail:" one music mode adds.
+// "thumbnail:" and "subtitle:" ones music mode and kept streams add.
 func helperOutDir() string {
 	for i, a := range os.Args {
 		if a != "-o" || i+1 >= len(os.Args) {
 			continue
 		}
 		v := os.Args[i+1]
-		if strings.HasPrefix(v, "thumbnail:") {
+		if strings.HasPrefix(v, "thumbnail:") || strings.HasPrefix(v, "subtitle:") {
 			continue
 		}
 		if j := strings.LastIndexAny(v, `/\`); j >= 0 {
@@ -86,6 +86,33 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + audio)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(audio) + `"}`)
 		fmt.Printf("[Merger] Merging formats into \"%s\"\n", final)
+	case "apart":
+		// A video and its audio downloaded as two files, both webm, each with
+		// its own info json, then the subtitles and the cover beside them,
+		// converted as the row asked.
+		video := filepath.Join(dir, "A Video.f303.webm")
+		audio := filepath.Join(dir, "A Video.f251.webm")
+		for _, stream := range []string{video, audio} {
+			info := strings.TrimSuffix(stream, ".webm") + ".info.json"
+			_ = os.WriteFile(info, []byte(helperInfoJSON), 0o644)
+			fmt.Println("[info] Writing video metadata as JSON to: " + info)
+			_ = os.WriteFile(stream, []byte("stream bytes"), 0o644)
+			fmt.Println("[download] Destination: " + stream)
+			fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(stream) + `"}`)
+		}
+		vtt := filepath.Join(dir, "A Video.de.vtt")
+		_ = os.WriteFile(vtt, []byte("WEBVTT\n"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + vtt)
+		_ = os.WriteFile(strings.TrimSuffix(vtt, ".vtt")+".srt", []byte("1\n"), 0o644)
+		_ = os.Remove(vtt)
+		fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
+		webp := filepath.Join(dir, "A Video.webp")
+		_ = os.WriteFile(webp, []byte("webp"), 0o644)
+		fmt.Println("[info] Writing video thumbnail 41 to: " + webp)
+		_ = os.WriteFile(filepath.Join(dir, "A Video.jpg"), []byte("jpeg bytes"), 0o644)
+		_ = os.Remove(webp)
+		fmt.Printf("[ThumbnailsConvertor] Converting thumbnail \"%s\" to jpg\n", webp)
+		fmt.Println("Deleting original file " + webp + " (pass -k to keep)")
 	case "nosubs":
 		// A language the source lacks: exit 0 without a word.
 	case "subs":
@@ -295,6 +322,40 @@ func TestRunWritesTheNFOBesideTheFileAndTakesTheInfoJSONAwayAgain(t *testing.T) 
 	// Nobody asked for the info json itself.
 	if _, err := os.Stat(filepath.Join(dir, "A Video.info.json")); !os.IsNotExist(err) {
 		t.Errorf("the info json survived the download (stat err = %v)", err)
+	}
+}
+
+// A video kept apart finishes on its video, and the task keeps every other
+// file the run left: the audio, the subtitles under their srt name and the
+// cover as jpg. The info json of each stream is taken away again.
+func TestRunKeepsTrackOfEveryFileOfAVideoKeptApart(t *testing.T) {
+	dir, rec := runFake(t, "apart:full", Options{Embed: Embed{Separate: true, Subs: true, Thumbnail: true, NFO: true}})
+
+	got := rec.last()
+	if got.Status != core.StatusDone {
+		t.Fatalf("last update = %+v, want Done", got)
+	}
+	if want := filepath.Join(dir, "A Video.f303.webm"); got.File != want {
+		t.Errorf("File = %q, want the video %q", got.File, want)
+	}
+	want := []string{
+		filepath.Join(dir, "A Video.f251.webm"),
+		filepath.Join(dir, "A Video.de.srt"),
+		filepath.Join(dir, "A Video.jpg"),
+	}
+	if !slices.Equal(got.OtherFiles, want) {
+		t.Errorf("OtherFiles = %q, want %q", got.OtherFiles, want)
+	}
+	for _, gone := range []string{"A Video.f303.info.json", "A Video.f251.info.json"} {
+		if _, err := os.Stat(filepath.Join(dir, gone)); !os.IsNotExist(err) {
+			t.Errorf("%s survived the download (stat err = %v)", gone, err)
+		}
+	}
+	// The row keeps the video's name while the audio comes in.
+	for _, u := range rec.all() {
+		if strings.Contains(u.Name, "f251") {
+			t.Fatalf("an update named the row after the audio: %+v", u)
+		}
 	}
 }
 
