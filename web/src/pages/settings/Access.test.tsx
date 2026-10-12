@@ -57,7 +57,13 @@ describe('TokensSection', () => {
 });
 
 describe('Access', () => {
-  async function renderWithAuth(auth: object) {
+  // PasswordCard reads /api/auth once, so another answer needs a fresh mount.
+  function remount() {
+    act(() => root.unmount());
+    root = createRoot(host);
+  }
+
+  async function renderWithAuth(auth: object, trustedProxies: string[] = []) {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
@@ -67,7 +73,7 @@ describe('Access', () => {
     );
     const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
     const draft = {
-      cfg: { trustedProxies: [] },
+      cfg: { trustedProxies },
       patch: () => {},
       fieldError: () => undefined,
       showRefusalsAt: () => () => {},
@@ -83,15 +89,25 @@ describe('Access', () => {
     );
   }
 
-  it('says when the server runs without an app key', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
-    expect(host.textContent).toContain('No app key is set.');
+  it('names the app key only beside its info bubble, with or without one', async () => {
+    for (const appKey of [false, true]) {
+      remount();
+      await renderWithAuth({ enabled: true, authenticated: true, appKey });
+      const label = [...host.querySelectorAll('span')].find((s) => s.textContent === 'App key')!;
+      expect(label.className).not.toContain('statusWarn');
+      expect(host.textContent).not.toContain('from before the app key');
+    }
   });
 
-  it('says nothing about the app key once one is set', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
-    expect(host.textContent).not.toContain('No app key is set.');
-    expect(host.textContent).not.toContain('from before the app key');
+  it('shows the trusted proxies field only behind a proxy or with entries', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true });
+    expect(host.textContent).not.toContain('Trusted proxies');
+    remount();
+    await renderWithAuth({ enabled: true, authenticated: true, behindProxy: true });
+    expect(host.textContent).toContain('Trusted proxies');
+    remount();
+    await renderWithAuth({ enabled: true, authenticated: true }, ['172.18.0.5']);
+    expect(host.textContent).toContain('Trusted proxies');
   });
 
   it('says when the copies from before the app key go', async () => {

@@ -796,6 +796,9 @@ export interface AuthState {
   /** When the copies of the files from before the app key are deleted, while
    *  they are still in the data folder. */
   appKeyCopiesUntil?: string;
+  /** Whether a request came through a reverse proxy lately, which is when
+   *  the trusted proxies field is worth showing. */
+  behindProxy?: boolean;
 }
 
 /**

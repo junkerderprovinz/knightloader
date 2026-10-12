@@ -30,7 +30,6 @@ import {
   setPassword,
 } from '../../lib/api';
 import { copyToClipboard } from '../../lib/clipboard';
-import { isDesktop } from '../../lib/desktop';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
@@ -184,20 +183,18 @@ export function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
-        {/* The desktop keeps its key in the credential store, so the template
-            the hint talks about is a container's. */}
-        {auth?.appKey === false && !isDesktop() && (
-          <span className="flex items-center text-sm text-statusWarn">
-            {t('settings.appKeyMissing')}
-            <InfoBubble tip={t('settings.appKeyMissingHint')} />
-          </span>
-        )}
+        {/* Everything works without an app key, so it gets no status here,
+            only the bubble that says how to add one. */}
+        <span className="flex items-center text-sm text-carbon-textSub">
+          {t('settings.appKey')}
+          <InfoBubble tip={t('settings.appKeyHint')} />
+        </span>
         {auth?.appKeyCopiesUntil && (
           <span className="text-sm text-carbon-textSub">
             {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
           </span>
         )}
-        <TrustedProxiesField />
+        <TrustedProxiesField behindProxy={auth?.behindProxy ?? false} />
       </Card>
   );
 }
@@ -205,12 +202,17 @@ export function PasswordCard({
 /**
  * TrustedProxiesField names the reverse proxies whose X-Forwarded-For the
  * sign-in throttle reads. It saves with the settings, not with the password's
- * button.
+ * button, and shows only once a proxy is in front or the list has entries.
  */
-function TrustedProxiesField() {
+function TrustedProxiesField({ behindProxy }: { behindProxy: boolean }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
+  // Once shown, the field stays while its last line is deleted.
+  const [kept, setKept] = useState(false);
+  const wanted = behindProxy || cfg.trustedProxies.length > 0;
+  if (wanted && !kept) setKept(true);
   const unused = unusedProxyRanges(cfg.trustedProxies);
+  if (!wanted && !kept) return null;
   return (
     <div className="flex flex-col gap-1.5">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>

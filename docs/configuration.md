@@ -43,6 +43,9 @@ and reset codes have one each. Behind a reverse proxy every request arrives
 from the proxy, so one person guessing makes everybody wait.
 
 **Trusted proxies** under Settings > Security, beside the password, fixes that.
+The field shows up once a request has come through a proxy in the last day,
+told by its `X-Forwarded-For`, `Forwarded` or `X-Real-IP` header, and stays
+while the list has entries.
 Enter the proxy's address, one IP address or CIDR range per line, such as
 `172.18.0.5` or `10.10.0.0/28`. For a request from one of them, KnightLoader
 counts the right-most address in `X-Forwarded-For` that is not itself a

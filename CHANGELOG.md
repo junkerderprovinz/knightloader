@@ -68,11 +68,11 @@ release's tag.
 - **Trusted proxies under Settings, Security.** Behind a reverse proxy, the
   sign-in limit counts every visitor by the address the proxy reports, so one
   person guessing at the password no longer makes everybody wait. The relay
-  an instance serves reads the same list. It is empty by default, and the
-  manual says when to fill it in. A range has to cover your proxies and none
-  of your visitors, so one wider than a /28 (IPv4) or a /124 (IPv6) is
-  refused. The standalone relay takes the list from
-  `KL_RELAY_TRUSTED_PROXIES`.
+  an instance serves reads the same list. The field shows up once requests
+  come through a proxy. It starts out empty, and the manual says when to fill
+  it in. A range has to cover your proxies and none of your visitors, so one
+  wider than a /28 (IPv4) or a /124 (IPv6) is refused. The standalone relay
+  takes the list from `KL_RELAY_TRUSTED_PROXIES`.
 - **The sign-in limit counts an IPv6 visitor by its /64,** the block one
   connection usually gets, so moving to another address of the same network
   does not start a fresh count.
@@ -421,8 +421,9 @@ release's tag.
   sealed with it. An existing install seals its files at the next start and
   keeps a copy of them first, which it deletes after seven days without an
   error; the Security page says when. The password moves over at the next
-  sign-in. Without the variable nothing changes, and Settings > Security
-  says how to add one. The desktop apps make their key themselves and keep it
+  sign-in. Without the variable everything works as before, and an info
+  bubble on the Security page explains the key and how to add one. The
+  desktop apps make their key themselves and keep it
   in the system's credential store.
 - **Backups are encrypted with the app key.** A downloaded backup then opens
   only on an instance with the same key, and a restore without it says which
