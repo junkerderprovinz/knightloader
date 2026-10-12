@@ -275,6 +275,7 @@
      one theme or the other). The true colour is the lit tile's fill; see
      .glim-brand-tile. Values from GlimStone's reference/tokens.css. */
   --brand-coffee:  #ffdd00;
+  --brand-docs:    #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
@@ -367,6 +368,7 @@
 
     /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
     --brand-coffee:  #8a6d00;
+    --brand-docs:    #8a6d00;
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
@@ -437,6 +439,7 @@
   --carbon-border:     #d1d1d1;
 
   --brand-coffee:  #8a6d00;
+  --brand-docs:    #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
@@ -2050,6 +2053,8 @@ body {
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
 .glim-house-mark { color: var(--accent-glyph); }
+/* The manual's book, in the yellow of the README's docs button. */
+.glim-docs-mark { color: var(--brand-docs); }
 
 /* A tile carrying a brand mark (GlimStone's "Brand tiles"): the README buttons
    and the coin tiles. Under the pointer it fills with the brand's own colour
@@ -2082,11 +2087,11 @@ body {
 .glim-mark-hover { display: none; }
 /* The house marks open: the envelope and the manual's book show their open
    drawing on the focus as well, and under a finger, where nothing hovers. */
-.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-rest { display: none; }
-.glim-brand-tile:focus-visible .glim-house-mark .glim-mark-hover { display: block; }
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
 @media (hover: none) {
-  .glim-brand-tile:active .glim-house-mark .glim-mark-rest { display: none; }
-  .glim-brand-tile:active .glim-house-mark .glim-mark-hover { display: block; }
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
 }
 
 /* The brands' tile colours: the true colour and the ink that holds on it,
@@ -2109,6 +2114,8 @@ body {
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+/* The README's docs button, the coffee button's yellow. 13.4:1. */
+.glim-tile-docs    { --tile: #ffdd00; --tile-ink: #161616; }
 /* The logo's gold, for the bookmarklet that carries it. 10.1:1. */
 .kl-tile-knightloader { --tile: #e6bc59; --tile-ink: #161616; }
 /* ParleyPort's logo shares the gold. 10.1:1. */
