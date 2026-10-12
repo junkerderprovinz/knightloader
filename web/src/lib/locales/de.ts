@@ -2480,7 +2480,6 @@ export const de: Dict = {
   'archive.failedToast': 'Entpacken von {name} ist fehlgeschlagen.',
   'settings.search.placeholder': 'Alle Einstellungen durchsuchen…',
   'settings.search.hint': 'Durchsucht alle Bereiche der Einstellungen: die Bereichsnamen, die Kartentitel, die Beschriftung neben jedem Bedienelement und die Erklärungen hinter dem (i). Wählst du ein Ergebnis, wird der Bereich geöffnet und die Zeile hervorgehoben. Die eingestellten Werte durchsucht es nicht: dafür gibt es das Feld im Tab Erweitert.',
-  'settings.search.clear': 'Suche löschen',
   'settings.search.noMatch': 'Nichts passt.',
   'settings.search.results': 'Suchergebnisse',
   'settings.search.countOne': '1 Treffer',
@@ -3659,4 +3658,5 @@ export const de: Dict = {
   'accounts.routing.priorityIntro': 'Das Bild ist die Reihenfolge: Ein Link geht zuerst an das Backend ganz oben, dann weiter nach unten. Zieh einen Namen an eine andere Stelle, um ihn zu verschieben.',
   'settings.captcha.orderIntro': 'Das Bild ist die Reihenfolge: Ein Captcha geht zuerst an das Captcha-Konto ganz oben, dann weiter nach unten. Zieh einen Namen an eine andere Stelle, um ihn zu verschieben.',
   'whatsnew.change.captchaPriority': '„{name}“ ordnet deine verbundenen Captcha-Konten so, wie „{download}“ die Backends ordnet. Wann sie starten und das Test-Captcha stehen mit drin.',
+  'whatsnew.change.searchBox': 'Jedes Suchfeld sieht aus und funktioniert wie das in den Einstellungen: Während du tippst, ändert das Feld seinen Farbton und die Lupe leuchtet, und Escape oder das Kreuz leert es.',
 };

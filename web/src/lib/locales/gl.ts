@@ -2277,7 +2277,6 @@ export const gl: Dict = {
 
   'settings.search.placeholder': 'Buscar en todos os axustes…',
   'settings.search.hint': 'Busca en todas as seccións dos axustes: os nomes das seccións, os títulos das tarxetas, o texto ao lado de cada control e as explicacións que hai detrás do (i). Ao escoller un resultado, ábrese esa sección e márcase a fila. Non busca nos valores que tes postos: ese campo está na páxina Avanzado.',
-  'settings.search.clear': 'Limpar a busca',
   'settings.search.noMatch': 'Non coincide nada.',
   'settings.search.results': 'Resultados da busca',
   'settings.search.countOne': '1 coincidencia',
@@ -3654,4 +3653,5 @@ export const gl: Dict = {
   'accounts.routing.priorityIntro': 'A imaxe é a orde: unha ligazón vai primeiro ao backend de arriba de todo e despois cara abaixo. Arrastra un nome para movelo.',
   'settings.captcha.orderIntro': 'A imaxe é a orde: un captcha vai primeiro á conta de captcha de arriba de todo e despois cara abaixo. Arrastra un nome para movelo.',
   'whatsnew.change.captchaPriority': '«{name}» ordena as túas contas de captcha conectadas como «{download}» ordena os backends. Cando comezan e o captcha de proba tamén están aí.',
+  'whatsnew.change.searchBox': 'Cada campo de busca ten o aspecto e o funcionamento do de Axustes: mentres escribes, a caixa cambia de ton e a lupa acéndese, e Escape ou a cruz baleirano.',
 };

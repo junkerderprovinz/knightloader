@@ -2271,7 +2271,6 @@ export const da: Dict = {
   'archive.failedToast': 'Udpakning af {name} mislykkedes.',
   'settings.search.placeholder': 'Søg i alle indstillinger…',
   'settings.search.hint': 'Søger i alle indstillingsafsnit: navnene på afsnittene, titlerne på kortene, teksten ved siden af hver kontrol og forklaringerne bag (i). Vælger du et resultat, bliver afsnittet åbnet og rækken fremhævet. Den søger ikke i de værdier, du har sat: det felt findes på siden Avanceret.',
-  'settings.search.clear': 'Ryd søgningen',
   'settings.search.noMatch': 'Intet passer.',
   'settings.search.results': 'Søgeresultater',
   'settings.search.countOne': '1 træf',
@@ -3642,4 +3641,5 @@ export const da: Dict = {
   'accounts.routing.priorityIntro': 'Billedet er rækkefølgen: et link går først til backenden øverst og så videre nedad. Træk et navn for at flytte det.',
   'settings.captcha.orderIntro': 'Billedet er rækkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedad. Træk et navn for at flytte det.',
   'whatsnew.change.captchaPriority': '„{name}“ ordner dine tilsluttede captcha-konti, som „{download}“ ordner backends. Hvornår de starter og test-captchaen står der også.',
+  'whatsnew.change.searchBox': 'Hvert søgefelt ser ud og virker som det i Indstillinger: mens du skriver, skifter feltet nuance, og forstørrelsesglasset lyser, og Escape eller krydset tømmer det.',
 };

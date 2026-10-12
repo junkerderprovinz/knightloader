@@ -2268,7 +2268,6 @@ export const nl: Dict = {
   'archive.failedToast': 'Het uitpakken van {name} is mislukt.',
   'settings.search.placeholder': 'Alle instellingen doorzoeken…',
   'settings.search.hint': 'Doorzoekt elk onderdeel van de instellingen: de namen van de onderdelen, de titels van de kaarten, het opschrift naast elk bedieningselement en de uitleg achter de (i). Kies je een resultaat, dan gaat dat onderdeel open en wordt de rij gemarkeerd. Het doorzoekt niet de waarden die je hebt ingesteld: daarvoor is het veld op de pagina Geavanceerd.',
-  'settings.search.clear': 'Zoekopdracht wissen',
   'settings.search.noMatch': 'Niets komt overeen.',
   'settings.search.results': 'Zoekresultaten',
   'settings.search.countOne': '1 treffer',
@@ -3639,4 +3638,5 @@ export const nl: Dict = {
   'accounts.routing.priorityIntro': 'De afbeelding is de volgorde: een link gaat eerst naar de backend bovenaan en dan verder omlaag. Sleep een naam om hem te verplaatsen.',
   'settings.captcha.orderIntro': 'De afbeelding is de volgorde: een captcha gaat eerst naar het captcha-account bovenaan en dan verder omlaag. Sleep een naam om hem te verplaatsen.',
   'whatsnew.change.captchaPriority': '“{name}” zet je gekoppelde captcha-accounts op volgorde zoals “{download}” de backends. Wanneer ze beginnen en de testcaptcha staan er ook in.',
+  'whatsnew.change.searchBox': 'Elk zoekveld ziet eruit en werkt zoals dat in Instellingen: terwijl je typt, verandert het vak van tint en licht het vergrootglas op, en Escape of het kruisje maakt het leeg.',
 };

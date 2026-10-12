@@ -2280,7 +2280,6 @@ export const id: Dict = {
 
   'settings.search.placeholder': 'Cari di semua pengaturan…',
   'settings.search.hint': 'Mencari di setiap bagian pengaturan: nama bagian, judul kartu, keterangan di sebelah setiap kontrol, dan penjelasan di balik (i). Memilih sebuah hasil membuka bagian itu dan menandai barisnya. Ia tidak mencari nilai yang sudah kamu setel: kotak untuk itu ada di halaman Lanjutan.',
-  'settings.search.clear': 'Bersihkan pencarian',
   'settings.search.noMatch': 'Tidak ada yang cocok.',
   'settings.search.results': 'Hasil pencarian',
   'settings.search.countOne': '1 kecocokan',
@@ -3656,4 +3655,5 @@ export const id: Dict = {
   'accounts.routing.priorityIntro': 'Gambar ini adalah urutannya: tautan masuk dulu ke backend paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
   'settings.captcha.orderIntro': 'Gambar ini adalah urutannya: captcha masuk dulu ke akun captcha paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” mengurutkan akun captcha yang terhubung seperti “{download}” mengurutkan backend. Kapan mereka mulai dan captcha uji juga ada di sana.',
+  'whatsnew.change.searchBox': 'Setiap kolom pencarian tampak dan bekerja seperti yang di Pengaturan: saat kamu mengetik, kotaknya berganti warna dan kaca pembesar menyala, dan Escape atau tanda silang mengosongkannya.',
 };

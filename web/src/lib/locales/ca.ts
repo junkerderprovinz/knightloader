@@ -2271,7 +2271,6 @@ export const ca: Dict = {
   'archive.failedToast': 'L’extracció de {name} ha fallat.',
   'settings.search.placeholder': 'Cerca a tota la configuració…',
   'settings.search.hint': 'Cerca a tots els apartats de la configuració: els noms dels apartats, els títols de les targetes, el text del costat de cada control i les explicacions que hi ha darrere de la (i). Si tries un resultat, s’obre aquell apartat i es marca la fila. No cerca els valors que has posat: per a això hi ha el camp de la pàgina Avançat.',
-  'settings.search.clear': 'Neteja la cerca',
   'settings.search.noMatch': 'No hi ha res que hi encaixi.',
   'settings.search.results': 'Resultats de la cerca',
   'settings.search.countOne': '1 coincidència',
@@ -3644,4 +3643,5 @@ export const ca: Dict = {
   'accounts.routing.priorityIntro': 'La imatge és l’ordre: un enllaç va primer al backend de dalt de tot i després als de sota. Arrossega un nom per moure’l.',
   'settings.captcha.orderIntro': 'La imatge és l’ordre: un captcha va primer al compte de captcha de dalt de tot i després als de sota. Arrossega un nom per moure’l.',
   'whatsnew.change.captchaPriority': '«{name}» ordena els teus comptes de captcha connectats com «{download}» ordena els backends. També hi ha quan comencen i el captcha de prova.',
+  'whatsnew.change.searchBox': 'Cada camp de cerca té l’aspecte i el funcionament del de Configuració: mentre escrius, la caixa canvia de to i la lupa s’encén, i Escape o la creu el buiden.',
 };

@@ -2279,7 +2279,6 @@ export const tr: Dict = {
 
   'settings.search.placeholder': 'Tüm ayarlarda ara…',
   'settings.search.hint': 'Ayarların bütün bölümlerinde arar: bölüm adlarında, kart başlıklarında, her denetimin yanındaki yazıda ve (i) arkasındaki açıklamalarda. Bir sonucu seçersen o bölüm açılır ve satır işaretlenir. Ayarladığın değerlerde aramaz: onun kutusu Gelişmiş sayfasındadır.',
-  'settings.search.clear': 'Aramayı temizle',
   'settings.search.noMatch': 'Eşleşen bir şey yok.',
   'settings.search.results': 'Arama sonuçları',
   'settings.search.countOne': '1 eşleşme',
@@ -3655,4 +3654,5 @@ export const tr: Dict = {
   'accounts.routing.priorityIntro': 'Resim sıranın kendisidir: bir bağlantı önce en üstteki arka uca gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
   'settings.captcha.orderIntro': 'Resim sıranın kendisidir: bir captcha önce en üstteki captcha hesabına gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
   'whatsnew.change.captchaPriority': '“{name}”, bağlı captcha hesaplarını “{download}” arka uçları nasıl sıralıyorsa öyle sıralar. Ne zaman başladıkları ve deneme captchası da burada.',
+  'whatsnew.change.searchBox': 'Her arama alanı Ayarlar’daki gibi görünür ve çalışır: yazarken kutunun tonu değişir ve büyüteç yanar, Escape ya da çarpı ise onu boşaltır.',
 };

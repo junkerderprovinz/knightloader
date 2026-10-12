@@ -2294,7 +2294,6 @@ export const hr: Dict = {
 
   'settings.search.placeholder': 'Pretraži sve postavke…',
   'settings.search.hint': 'Pretražuje sve odjeljke postavki: nazive odjeljaka, naslove kartica, natpis pokraj svakog upravljačkog elementa i objašnjenja iza (i). Odabereš li rezultat, otvara se taj odjeljak i redak se označi. Postavljene vrijednosti ne pretražuje: to polje je na stranici Napredno.',
-  'settings.search.clear': 'Očisti pretragu',
   'settings.search.noMatch': 'Ništa ne odgovara.',
   'settings.search.results': 'Rezultati pretrage',
   'settings.search.countOne': '1 pogodak',
@@ -3670,4 +3669,5 @@ export const hr: Dict = {
   'accounts.routing.priorityIntro': 'Slika je redoslijed: poveznica ide prvo do pozadine na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
   'settings.captcha.orderIntro': 'Slika je redoslijed: captcha ide prvo računu captche na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
   'whatsnew.change.captchaPriority': '„{name}” slaže tvoje povezane račune captche onako kako „{download}” slaže pozadine. U njoj su i kada počinju i probna captcha.',
+  'whatsnew.change.searchBox': 'Svako polje za pretraživanje izgleda i radi kao ono u Postavkama: dok tipkaš, polje mijenja nijansu i povećalo zasvijetli, a Escape ili križić ga prazne.',
 };

@@ -2788,7 +2788,6 @@ export const en = {
   'archive.failedToast': 'Unpacking {name} failed.',
   'settings.search.placeholder': 'Search all settings…',
   'settings.search.hint': 'Searches every settings section: the section names, the card titles, the caption beside each control and the explanations behind the (i). Picking a result opens that section and marks the row. It does not search the values you have set: that box is on the Advanced page.',
-  'settings.search.clear': 'Clear the search',
   'settings.search.noMatch': 'Nothing matches.',
   'settings.search.results': 'Search results',
   'settings.search.countOne': '1 match',
@@ -3900,6 +3899,7 @@ export const en = {
   'accounts.routing.priorityIntro': 'The picture is the order: a link goes to the backend at the top first, then on down. Drag a name to move it.',
   'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the captcha account at the top first, then on down. Drag a name to move it.',
   'whatsnew.change.captchaPriority': '"{name}" orders your connected captcha accounts the way "{download}" orders the backends. When they start and the test captcha are in it too.',
+  'whatsnew.change.searchBox': 'Every search field looks and works like the one in Settings: the box changes its shade and the magnifier lights up while you type, and Escape or the cross empties it.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

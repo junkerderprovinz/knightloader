@@ -2276,7 +2276,6 @@ export const ko: Dict = {
   'archive.failedToast': '{name}의 압축 풀기가 실패했습니다.',
   'settings.search.placeholder': '모든 설정 검색…',
   'settings.search.hint': '설정의 모든 구역을 검색합니다. 구역 이름, 카드 제목, 각 조작 항목 옆의 설명, 그리고 (i) 뒤의 설명까지입니다. 결과를 고르면 그 구역이 열리고 해당 행이 표시됩니다. 설정해 둔 값은 검색하지 않습니다. 그 칸은 고급 페이지에 있습니다.',
-  'settings.search.clear': '검색 지우기',
   'settings.search.noMatch': '맞는 것이 없습니다.',
   'settings.search.results': '검색 결과',
   'settings.search.countOne': '1개 일치',
@@ -3643,4 +3642,5 @@ export const ko: Dict = {
   'accounts.routing.priorityIntro': '그림이 곧 순서입니다. 링크는 맨 위의 백엔드로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
   'settings.captcha.orderIntro': '그림이 곧 순서입니다. 캡차는 맨 위의 캡차 계정으로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
   'whatsnew.change.captchaPriority': '“{name}”은 “{download}”이 백엔드를 정렬하는 방식으로 연결된 캡차 계정을 정렬합니다. 시작 시점과 테스트 캡차도 여기에 있습니다.',
+  'whatsnew.change.searchBox': '모든 검색 칸이 설정의 검색 칸과 같은 모양과 동작을 합니다. 입력하는 동안 칸의 색조가 바뀌고 돋보기에 불이 들어오며, Escape나 X로 비울 수 있습니다.',
 };

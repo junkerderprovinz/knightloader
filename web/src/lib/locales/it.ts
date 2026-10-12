@@ -2269,7 +2269,6 @@ export const it: Dict = {
   'archive.failedToast': 'L’estrazione di {name} è fallita.',
   'settings.search.placeholder': 'Cerca in tutte le impostazioni…',
   'settings.search.hint': 'Cerca in ogni sezione delle impostazioni: i nomi delle sezioni, i titoli delle schede, la scritta accanto a ogni controllo e le spiegazioni dietro la (i). Scegliendo un risultato si apre quella sezione e la riga viene evidenziata. Non cerca nei valori che hai impostato: per quelli c’è il campo nella pagina Avanzate.',
-  'settings.search.clear': 'Cancella la ricerca',
   'settings.search.noMatch': 'Non corrisponde nulla.',
   'settings.search.results': 'Risultati della ricerca',
   'settings.search.countOne': '1 corrispondenza',
@@ -3640,4 +3639,5 @@ export const it: Dict = {
   'accounts.routing.priorityIntro': 'L’immagine è l’ordine: un link va prima al backend in cima, poi a quelli sotto. Trascina un nome per spostarlo.',
   'settings.captcha.orderIntro': 'L’immagine è l’ordine: un captcha va prima all’account captcha in cima, poi a quelli sotto. Trascina un nome per spostarlo.',
   'whatsnew.change.captchaPriority': '«{name}» ordina i tuoi account captcha collegati come «{download}» ordina i backend. Anche quando partono e il captcha di prova stanno lì.',
+  'whatsnew.change.searchBox': 'Ogni campo di ricerca ha l’aspetto e il funzionamento di quello nelle Impostazioni: mentre scrivi, la casella cambia tonalità e la lente si illumina, ed Esc o la croce la svuotano.',
 };

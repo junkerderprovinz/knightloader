@@ -2271,7 +2271,6 @@ export const zh: Dict = {
   'archive.failedToast': '解压 {name} 失败了。',
   'settings.search.placeholder': '搜索所有设置…',
   'settings.search.hint': '搜索设置里的每一个部分：部分名称、卡片标题、每个控件旁边的标签，以及 (i) 后面的解释。选中一个结果，就会打开那个部分并把那一行标出来。它不搜索你设定的值：那个框在“高级”页上。',
-  'settings.search.clear': '清除搜索',
   'settings.search.noMatch': '没有匹配项。',
   'settings.search.results': '搜索结果',
   'settings.search.countOne': '1 个匹配项',
@@ -3638,4 +3637,5 @@ export const zh: Dict = {
   'accounts.routing.priorityIntro': '这张图就是顺序：链接先交给最上面的后端，再依次往下。拖动名称即可移动它。',
   'settings.captcha.orderIntro': '这张图就是顺序：验证码先交给最上面的验证码账户，再依次往下。拖动名称即可移动它。',
   'whatsnew.change.captchaPriority': '“{name}”像“{download}”排列后端那样排列你已连接的验证码账户。它们何时开始和测试验证码也在这里。',
+  'whatsnew.change.searchBox': '每个搜索框的外观和用法都与设置里的一样：输入时框体变色、放大镜亮起，按 Escape 或点叉号即可清空。',
 };

@@ -2270,7 +2270,6 @@ export const pl: Dict = {
   'archive.failedToast': 'Rozpakowywanie {name} się nie udało.',
   'settings.search.placeholder': 'Przeszukaj wszystkie ustawienia…',
   'settings.search.hint': 'Przeszukuje wszystkie sekcje ustawień: nazwy sekcji, tytuły kart, podpis przy każdym elemencie sterującym i objaśnienia pod (i). Wybranie wyniku otwiera daną sekcję i podświetla wiersz. Nie przeszukuje ustawionych przez ciebie wartości: to pole jest na stronie Zaawansowane.',
-  'settings.search.clear': 'Wyczyść wyszukiwanie',
   'settings.search.noMatch': 'Nic nie pasuje.',
   'settings.search.results': 'Wyniki wyszukiwania',
   'settings.search.countOne': '1 trafienie',
@@ -3641,4 +3640,5 @@ export const pl: Dict = {
   'accounts.routing.priorityIntro': 'Obrazek to kolejność: link trafia najpierw do backendu na samej górze, potem niżej. Przeciągnij nazwę, aby ją przesunąć.',
   'settings.captcha.orderIntro': 'Obrazek to kolejność: captcha trafia najpierw do konta captcha na samej górze, potem niżej. Przeciągnij nazwę, aby ją przesunąć.',
   'whatsnew.change.captchaPriority': '„{name}” porządkuje twoje połączone konta captcha tak, jak „{download}” porządkuje backendy. Jest tam też to, kiedy startują, i testowa captcha.',
+  'whatsnew.change.searchBox': 'Każde pole wyszukiwania wygląda i działa jak to w Ustawieniach: podczas pisania pole zmienia odcień i zapala się lupa, a Escape lub krzyżyk je czyści.',
 };

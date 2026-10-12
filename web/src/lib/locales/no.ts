@@ -2282,7 +2282,6 @@ export const no: Dict = {
 
   'settings.search.placeholder': 'Søk i alle innstillinger…',
   'settings.search.hint': 'Søker i alle områdene i innstillingene: områdenavnene, korttitlene, teksten ved siden av hvert felt og forklaringene bak (i). Velger du et treff, åpnes det området, og raden markeres. Det søker ikke i verdiene du har satt: feltet til det står på siden Avansert.',
-  'settings.search.clear': 'Tøm søket',
   'settings.search.noMatch': 'Ingenting passer.',
   'settings.search.results': 'Søkeresultater',
   'settings.search.countOne': '1 treff',
@@ -3659,4 +3658,5 @@ export const no: Dict = {
   'accounts.routing.priorityIntro': 'Bildet er rekkefølgen: en lenke går først til bakenden øverst og så videre nedover. Dra et navn for å flytte det.',
   'settings.captcha.orderIntro': 'Bildet er rekkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedover. Dra et navn for å flytte det.',
   'whatsnew.change.captchaPriority': '«{name}» ordner de tilkoblede captcha-kontoene dine slik «{download}» ordner bakendene. Når de starter og test-captchaen står der også.',
+  'whatsnew.change.searchBox': 'Hvert søkefelt ser ut og virker som det i Innstillinger: mens du skriver, skifter feltet nyanse og forstørrelsesglasset lyser, og Escape eller krysset tømmer det.',
 };

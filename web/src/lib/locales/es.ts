@@ -2271,7 +2271,6 @@ export const es: Dict = {
 
   'settings.search.placeholder': 'Buscar en todos los ajustes…',
   'settings.search.hint': 'Busca en todas las secciones de los ajustes: los nombres de las secciones, los títulos de las tarjetas, la etiqueta que hay junto a cada control y las explicaciones que hay detrás de la (i). Al elegir un resultado se abre esa sección y se marca la fila. No busca en los valores que has puesto tú: ese campo está en la página Avanzado.',
-  'settings.search.clear': 'Borrar la búsqueda',
   'settings.search.noMatch': 'No coincide nada.',
   'settings.search.results': 'Resultados de la búsqueda',
   'settings.search.countOne': '1 coincidencia',
@@ -3648,4 +3647,5 @@ export const es: Dict = {
   'accounts.routing.priorityIntro': 'La imagen es el orden: un enlace va primero al backend de arriba del todo y luego hacia abajo. Arrastra un nombre para moverlo.',
   'settings.captcha.orderIntro': 'La imagen es el orden: un captcha va primero a la cuenta de captcha de arriba del todo y luego hacia abajo. Arrastra un nombre para moverlo.',
   'whatsnew.change.captchaPriority': '«{name}» ordena tus cuentas de captcha conectadas como «{download}» ordena los backends. Cuándo empiezan y el captcha de prueba también están ahí.',
+  'whatsnew.change.searchBox': 'Cada campo de búsqueda se ve y funciona como el de Ajustes: mientras escribes, la caja cambia de tono y la lupa se ilumina, y Escape o la cruz lo vacían.',
 };

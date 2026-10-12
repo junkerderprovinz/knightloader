@@ -2273,7 +2273,6 @@ export const et: Dict = {
 
   'settings.search.placeholder': 'Otsi kõigist seadetest…',
   'settings.search.hint': 'Otsib läbi kõik seadete jaotised: jaotiste nimed, kaartide pealkirjad, iga juhtelemendi kõrval oleva sildi ja (i) taga olevad selgitused. Kui valid tulemuse, avatakse see jaotis ja rida tõstetakse esile. Seatud väärtusi ta läbi ei otsi: selleks on väli lehel Täpsem.',
-  'settings.search.clear': 'Tühjenda otsing',
   'settings.search.noMatch': 'Midagi ei sobi.',
   'settings.search.results': 'Otsingutulemused',
   'settings.search.countOne': '1 vaste',
@@ -3648,4 +3647,5 @@ export const et: Dict = {
   'accounts.routing.priorityIntro': 'Pilt ongi järjekord: link läheb kõigepealt ülemisele taustateenusele ja siis allapoole. Nime liigutamiseks lohista seda.',
   'settings.captcha.orderIntro': 'Pilt ongi järjekord: captcha läheb kõigepealt ülemisele captcha kontole ja siis allapoole. Nime liigutamiseks lohista seda.',
   'whatsnew.change.captchaPriority': '„{name}“ järjestab sinu ühendatud captcha kontod samamoodi, nagu „{download}“ järjestab taustateenused. Seal on ka see, millal nad alustavad, ja proovicaptcha.',
+  'whatsnew.change.searchBox': 'Iga otsinguväli näeb välja ja töötab nagu see seadetes: trükkimise ajal muutub välja toon ja luup süttib ning Escape või rist tühjendab selle.',
 };

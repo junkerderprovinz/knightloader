@@ -2290,7 +2290,6 @@ export const sk: Dict = {
 
   'settings.search.placeholder': 'Hľadať vo všetkých nastaveniach…',
   'settings.search.hint': 'Prehľadá všetky časti nastavení: názvy častí, názvy kariet, popis vedľa každého ovládacieho prvku a vysvetlenia pod (i). Keď vyberieš výsledok, otvorí sa tá časť a riadok sa zvýrazní. Hodnoty, ktoré si nastavil, neprehľadáva: na to je políčko na stránke Pokročilé.',
-  'settings.search.clear': 'Vymazať hľadanie',
   'settings.search.noMatch': 'Nič nezodpovedá.',
   'settings.search.results': 'Výsledky hľadania',
   'settings.search.countOne': '1 zhoda',
@@ -3666,4 +3665,5 @@ export const sk: Dict = {
   'accounts.routing.priorityIntro': 'Obrázok je poradie: odkaz ide najprv k backendu úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
   'settings.captcha.orderIntro': 'Obrázok je poradie: captcha ide najprv k účtu captchy úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
   'whatsnew.change.captchaPriority': '„{name}“ radí tvoje pripojené účty captchy tak, ako „{download}“ radí backendy. Je v nej aj to, kedy začínajú, a testovacia captcha.',
+  'whatsnew.change.searchBox': 'Každé vyhľadávacie pole vyzerá a funguje ako to v Nastaveniach: kým píšeš, pole zmení odtieň a lupa sa rozsvieti, a Escape alebo krížik ho vyprázdni.',
 };
