@@ -1327,41 +1327,118 @@ body {
   from { rotate: calc(var(--motion-wiggle-angle) * -1); }
   to   { rotate: var(--motion-wiggle-angle); }
 }
-/* The surface of a fill level sloshes: it drifts one wave along, falls back a
-   little now and then, and rises and settles on the way. Every loop ends one
-   wave from where it began, so it has no seam. A vessel lays a longer wave
-   behind it that drifts the other way and rocks the two together, on periods
-   that do not line up, so the movement never repeats in step. A lying bar's
-   surface is its end, so there the wave runs along the edge. */
-@keyframes glim-liquid {
-  from { translate: 0 0; }
-  23%  { translate: calc(var(--liquid-wave) * -.42) calc(var(--motion-liquid-bob) * -1); }
-  41%  { translate: calc(var(--liquid-wave) * -.27) calc(var(--motion-liquid-bob) * -.35); }
-  67%  { translate: calc(var(--liquid-wave) * -.81) calc(var(--motion-liquid-bob) * -.8); }
-  84%  { translate: calc(var(--liquid-wave) * -.66) calc(var(--motion-liquid-bob) * -.2); }
-  to   { translate: calc(var(--liquid-wave) * -1) 0; }
-}
-@keyframes glim-liquid-back {
-  from { translate: 0 0; }
-  31%  { translate: calc(var(--liquid-wave) * .48) calc(var(--motion-liquid-bob) * .6); }
-  52%  { translate: calc(var(--liquid-wave) * .36) calc(var(--motion-liquid-bob) * -.5); }
-  78%  { translate: calc(var(--liquid-wave) * .9) calc(var(--motion-liquid-bob) * .3); }
-  to   { translate: var(--liquid-wave) 0; }
-}
-@keyframes glim-liquid-tilt {
+/* A fill level sloshes. In a vessel the body of the liquid tilts, and the
+   surface runs up the wall it tilts toward in a crest that peaks just after
+   the tilt and drains as the liquid swings back. A small hump crosses the
+   middle on the way between the walls, and a paler back layer lags the front
+   a little. On a lying bar the surface is the fill's end, which surges out
+   leaning forward and draws back. Every part runs on one duration, so a crest
+   rises exactly while the liquid tilts toward its wall. */
+@keyframes glim-slosh-tilt {
   from { rotate: 0deg; }
-  20%  { rotate: calc(var(--motion-liquid-tilt) * -1); }
-  45%  { rotate: calc(var(--motion-liquid-tilt) * .55); }
-  70%  { rotate: calc(var(--motion-liquid-tilt) * -.3); }
-  88%  { rotate: var(--motion-liquid-tilt); }
+  25%  { rotate: var(--motion-slosh-tilt); }
+  50%  { rotate: 0deg; }
+  75%  { rotate: calc(var(--motion-slosh-tilt) * -1); }
   to   { rotate: 0deg; }
 }
-@keyframes glim-liquid-edge {
-  from { translate: 0 0; }
-  27%  { translate: var(--motion-liquid-bob) calc(var(--liquid-wave) * .45); }
-  46%  { translate: calc(var(--motion-liquid-bob) * .3) calc(var(--liquid-wave) * .3); }
-  72%  { translate: calc(var(--motion-liquid-bob) * .8) calc(var(--liquid-wave) * .85); }
-  to   { translate: 0 var(--liquid-wave); }
+@keyframes glim-slosh-crest-left {
+  from  { scale: 1 0; }
+  12.5% { scale: 1 0; }
+  28%   { scale: 1 var(--motion-slosh-run); }
+  52%   { scale: 1 0; }
+  to    { scale: 1 0; }
+}
+@keyframes glim-slosh-crest-right {
+  from  { scale: 1 0; }
+  62.5% { scale: 1 0; }
+  78%   { scale: 1 var(--motion-slosh-run); }
+  to    { scale: 1 0; }
+}
+@keyframes glim-slosh-hump {
+  from { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+  10%  { translate: -2px 0; scale: 1 0; }
+  40%  { translate: -2px 0; scale: 1 0; }
+  50%  { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+  60%  { translate: 2px 0; scale: 1 0; }
+  90%  { translate: 2px 0; scale: 1 0; }
+  to   { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+}
+@keyframes glim-slosh-surge {
+  from { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+  25%  { translate: calc((-100% + var(--motion-slosh-surge) * .15) * var(--liquid-dir)) 0; transform: skewX(calc(var(--motion-slosh-lean) * .5 * var(--liquid-dir))); }
+  50%  { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+  75%  { translate: calc((-100% + var(--motion-slosh-surge)) * var(--liquid-dir)) 0; transform: skewX(calc(var(--motion-slosh-lean) * -1 * var(--liquid-dir))); }
+  to   { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+}
+/* A bubble starts at its share of the depth and fades just below the
+   surface. The vessel sets --liquid-depth on its svg, the floor's distance
+   below the surface as a plain number, so bubbles rise at one speed at any
+   level. */
+@keyframes glim-slosh-bubble {
+  from { translate: 0 calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * 1px); opacity: 0; }
+  15%  { opacity: var(--motion-slosh-bubble-opacity); }
+  50%  { translate: var(--bubble-sway, 0px) calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * .5px); }
+  82%  { opacity: var(--motion-slosh-bubble-opacity); }
+  to   { translate: 0 1.8px; opacity: 0; }
+}
+/* A bar's bubbles drift toward its end, one tile per loop. */
+@keyframes glim-slosh-fizz {
+  to { background-position: 40px 0, 40px 0, 40px 0, 26px 0, 26px 0; }
+}
+/* A popping bubble rises like the others and goes on through the surface into
+   the air above it, swells a little and bursts into a thin ring and three
+   droplets in the liquid's colour, which shows on the empty part of the
+   vessel in every theme. Its parts share one duration and delay through
+   --pop-dur and --pop-delay on its group, so they stay in step. */
+@keyframes glim-slosh-pop {
+  from    { translate: 0 calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * 1px); }
+  45%     { translate: var(--bubble-sway, 0px) calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * .45px); }
+  72%     { translate: 0 0; }
+  80%     { translate: calc(var(--bubble-sway, 0px) * -.5) calc(var(--motion-slosh-pop-lift) * -.8px); }
+  86%, to { translate: 0 calc(var(--motion-slosh-pop-lift) * -1px); }
+}
+@keyframes glim-slosh-pop-bubble {
+  from    { opacity: 0; scale: 1; }
+  12%     { opacity: var(--motion-slosh-bubble-opacity); }
+  70%     { opacity: var(--motion-slosh-bubble-opacity); scale: 1; }
+  76%     { opacity: 1; scale: 1.1; }
+  86%     { opacity: 1; scale: 1.15; }
+  89%     { opacity: 0; scale: var(--motion-slosh-pop-swell); }
+  to      { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-ring {
+  from, 86% { opacity: 0; scale: 1; }
+  87%       { opacity: .9; scale: 1.3; }
+  93%       { opacity: 0; scale: var(--motion-slosh-pop-ring); }
+  to        { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-drop {
+  from, 86% { opacity: 0; translate: 0 0; }
+  87%       { opacity: 1; }
+  94%       { opacity: 0; translate: calc(var(--drop-x) * var(--motion-slosh-pop-spray)) calc(var(--drop-y) * var(--motion-slosh-pop-spray)); }
+  to        { opacity: 0; translate: 0 0; }
+}
+/* On a bar a popping bubble runs a few pixels past the fill's end and bursts
+   there, inside the track, which clips it on a full bar. */
+@keyframes glim-slosh-pop-bar {
+  from    { translate: 0 0; }
+  82%     { translate: calc((100cqi - 3px) * var(--liquid-dir)) 0; }
+  90%, to { translate: calc((100cqi + var(--motion-slosh-pop-reach)) * var(--liquid-dir)) 0; }
+}
+@keyframes glim-slosh-pop-bar-bubble {
+  from    { opacity: 0; scale: 1; }
+  10%     { opacity: var(--motion-slosh-bubble-opacity); }
+  80%     { opacity: var(--motion-slosh-bubble-opacity); scale: 1; }
+  84%     { opacity: 1; scale: 1.15; }
+  90%     { opacity: 1; scale: 1.2; }
+  93%     { opacity: 0; scale: var(--motion-slosh-pop-swell); }
+  to      { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-bar-ring {
+  from, 90% { opacity: 0; scale: 1; }
+  91%       { opacity: .9; scale: 1.3; }
+  97%       { opacity: 0; scale: var(--motion-slosh-pop-ring); }
+  to        { opacity: 0; scale: 1; }
 }
 
 /* A floating window arrives: the scrim fades up and the card rises a little
@@ -1431,12 +1508,25 @@ body {
     --motion-control-dur: 150ms;
     /* The sheen that crosses a README button once under the pointer. */
     --motion-button-sheen-dur: 800ms;
-    /* The surface of a fill level: the time one wave takes to drift past,
-       how far the surface rises and settles on the way, and how far a
-       vessel's surface rocks to either side. */
-    --motion-liquid-dur: 4.5s;
-    --motion-liquid-bob: .5px;
-    --motion-liquid-tilt: 2.5deg;
+    /* A fill level's slosh: one swing to each wall and back, how far the
+       liquid tilts, how high a crest runs up the wall and the hump rises as
+       multiples of their drawn height, how far a bar's end surges and leans,
+       the time a bubble takes per unit of depth and how strongly it shows,
+       and how far a popping bubble lifts above the surface, swells, rings,
+       sprays its droplets and runs past a bar's end. */
+    --motion-slosh-dur: 3.6s;
+    --motion-slosh-tilt: 5deg;
+    --motion-slosh-run: 3.2;
+    --motion-slosh-hump: .9;
+    --motion-slosh-surge: 5px;
+    --motion-slosh-lean: 12deg;
+    --motion-slosh-bubble-pace: .35s;
+    --motion-slosh-bubble-opacity: .7;
+    --motion-slosh-pop-lift: 3.6;
+    --motion-slosh-pop-swell: 1.5;
+    --motion-slosh-pop-ring: 3.4;
+    --motion-slosh-pop-spray: 1.3;
+    --motion-slosh-pop-reach: 5px;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
   }
@@ -1484,9 +1574,19 @@ body {
     --motion-label-squash: 1;
     --motion-control-dur: 80ms;
     --motion-button-sheen-dur: 1100ms;
-    --motion-liquid-dur: 7s;
-    --motion-liquid-bob: .25px;
-    --motion-liquid-tilt: 1.2deg;
+    --motion-slosh-dur: 5s;
+    --motion-slosh-tilt: 3deg;
+    --motion-slosh-run: 2.2;
+    --motion-slosh-hump: .6;
+    --motion-slosh-surge: 3.5px;
+    --motion-slosh-lean: 8deg;
+    --motion-slosh-bubble-pace: .5s;
+    --motion-slosh-bubble-opacity: .55;
+    --motion-slosh-pop-lift: 3;
+    --motion-slosh-pop-swell: 1.4;
+    --motion-slosh-pop-ring: 3;
+    --motion-slosh-pop-spray: 1.1;
+    --motion-slosh-pop-reach: 4px;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
   }
@@ -1539,9 +1639,19 @@ body {
     --motion-control-dur: 0s;
     --motion-button-sheen-dur: 0s;
     /* Long rather than 0, and stopped by the rule below. */
-    --motion-liquid-dur: 60s;
-    --motion-liquid-bob: 0px;
-    --motion-liquid-tilt: 0deg;
+    --motion-slosh-dur: 60s;
+    --motion-slosh-tilt: 0deg;
+    --motion-slosh-run: 0;
+    --motion-slosh-hump: 0;
+    --motion-slosh-surge: 0px;
+    --motion-slosh-lean: 0deg;
+    --motion-slosh-bubble-pace: 6s;
+    --motion-slosh-bubble-opacity: 0;
+    --motion-slosh-pop-lift: 0;
+    --motion-slosh-pop-swell: 1;
+    --motion-slosh-pop-ring: 1;
+    --motion-slosh-pop-spray: 0;
+    --motion-slosh-pop-reach: 0px;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
   }
@@ -1574,28 +1684,119 @@ body {
   .glim-drag-armed > :not(.glim-drag-lift) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
-  /* Eased, so the surface slows where it turns back. The back wave and the
-     rocking take longer than the front wave by odd factors, so the three
-     never meet the same way twice in a row. */
-  .glim-liquid {
-    animation: glim-liquid var(--motion-liquid-dur) ease-in-out infinite;
+  .glim-slosh {
+    animation: glim-slosh-tilt var(--motion-slosh-dur) ease-in-out infinite;
   }
-  .glim-liquid-back {
-    animation: glim-liquid-back calc(var(--motion-liquid-dur) * 1.43) ease-in-out infinite;
+  /* The same swing a twenty-fifth of a loop later. */
+  .glim-slosh-back {
+    animation: glim-slosh-tilt var(--motion-slosh-dur) ease-in-out calc(var(--motion-slosh-dur) * -.96) infinite;
   }
-  .glim-liquid-tilt {
-    animation: glim-liquid-tilt calc(var(--motion-liquid-dur) * 2.17) ease-in-out infinite;
+  .glim-slosh-crest-left {
+    animation: glim-slosh-crest-left var(--motion-slosh-dur) ease-in-out infinite;
   }
-  .glim-liquid-edge::after {
-    animation: glim-liquid-edge var(--motion-liquid-dur) ease-in-out infinite;
+  .glim-slosh-crest-right {
+    animation: glim-slosh-crest-right var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  .glim-slosh-hump {
+    animation: glim-slosh-hump var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  .glim-slosh-edge::after {
+    animation: glim-slosh-surge var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  /* Each bubble starts at its own depth, takes its own time and sways to its
+     own side, so they never rise in a row. A shallow level still gives a
+     bubble long enough to be seen. */
+  .glim-slosh-bubble {
+    animation: glim-slosh-bubble 2s linear infinite;
+  }
+  .glim-slosh-bubble:nth-child(1) {
+    --bubble-from: .95;
+    --bubble-sway: .4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .95 * var(--motion-slosh-bubble-pace)));
+  }
+  .glim-slosh-bubble:nth-child(2) {
+    --bubble-from: .6;
+    --bubble-sway: -.4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .66 * var(--motion-slosh-bubble-pace)));
+    animation-delay: calc(var(--liquid-depth, 10) * .66 * var(--motion-slosh-bubble-pace) * -.25);
+  }
+  .glim-slosh-bubble:nth-child(3) {
+    --bubble-from: .85;
+    --bubble-sway: .4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .722 * var(--motion-slosh-bubble-pace)));
+    animation-delay: calc(var(--liquid-depth, 10) * .722 * var(--motion-slosh-bubble-pace) * -.6);
+  }
+  .glim-slosh-edge::before {
+    opacity: var(--motion-slosh-bubble-opacity);
+    animation: glim-slosh-fizz calc(var(--motion-slosh-bubble-pace) * 30) linear infinite;
+  }
+  [dir='rtl'] .glim-slosh-edge::before {
+    animation-direction: reverse;
+  }
+  .glim-slosh-pop {
+    animation: glim-slosh-pop var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bubble {
+    animation: glim-slosh-pop-bubble var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-ring {
+    animation: glim-slosh-pop-ring var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-drop {
+    animation: glim-slosh-pop-drop var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop:nth-child(1) {
+    --bubble-from: .8;
+    --bubble-sway: -.4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.17 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.17 * var(--motion-slosh-bubble-pace) * -.5);
+  }
+  .glim-slosh-pop:nth-child(2) {
+    --bubble-from: .9;
+    --bubble-sway: .4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.069 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.069 * var(--motion-slosh-bubble-pace) * -.75);
+  }
+  .glim-slosh-pop:nth-child(3) {
+    --bubble-from: .9;
+    --bubble-sway: -.4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.046 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.046 * var(--motion-slosh-bubble-pace) * -.15);
+  }
+  .glim-slosh-pop-bar {
+    animation: glim-slosh-pop-bar var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar::before {
+    animation: glim-slosh-pop-bar-bubble var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar::after {
+    animation: glim-slosh-pop-bar-ring var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar:nth-child(1) {
+    --pop-dur: calc(var(--motion-slosh-bubble-pace) * 12.6);
+    --pop-delay: calc(var(--motion-slosh-bubble-pace) * -1.26);
+  }
+  .glim-slosh-pop-bar:nth-child(2) {
+    --pop-dur: calc(var(--motion-slosh-bubble-pace) * 16.1);
+    --pop-delay: calc(var(--motion-slosh-bubble-pace) * -9.66);
   }
 
   /* A level at "off" holds its surface still, as under reduced motion, where
      the rules above are never read. */
-  :root[data-motion="off"] .glim-liquid,
-  :root[data-motion="off"] .glim-liquid-back,
-  :root[data-motion="off"] .glim-liquid-tilt,
-  :root[data-motion="off"] .glim-liquid-edge::after {
+  :root[data-motion="off"] .glim-slosh,
+  :root[data-motion="off"] .glim-slosh-back,
+  :root[data-motion="off"] .glim-slosh-crest,
+  :root[data-motion="off"] .glim-slosh-hump,
+  :root[data-motion="off"] .glim-slosh-bubble,
+  :root[data-motion="off"] .glim-slosh-edge::before,
+  :root[data-motion="off"] .glim-slosh-edge::after,
+  :root[data-motion="off"] .glim-slosh-pop,
+  :root[data-motion="off"] .glim-slosh-pop-bubble,
+  :root[data-motion="off"] .glim-slosh-pop-ring,
+  :root[data-motion="off"] .glim-slosh-pop-drop,
+  :root[data-motion="off"] .glim-slosh-pop-bar,
+  :root[data-motion="off"] .glim-slosh-pop-bar::before,
+  :root[data-motion="off"] .glim-slosh-pop-bar::after {
     animation: none;
   }
   /* The pulse at "off": a static dot, as under reduced motion. */
@@ -1883,9 +2084,19 @@ body {
      not livelier. */
   --motion-control-dur: 150ms;
   --motion-button-sheen-dur: 550ms;
-  --motion-liquid-dur: 2.6s;
-  --motion-liquid-bob: 1px;
-  --motion-liquid-tilt: 4.5deg;
+  --motion-slosh-dur: 2.6s;
+  --motion-slosh-tilt: 7.5deg;
+  --motion-slosh-run: 4.5;
+  --motion-slosh-hump: 1.3;
+  --motion-slosh-surge: 7px;
+  --motion-slosh-lean: 18deg;
+  --motion-slosh-bubble-pace: .25s;
+  --motion-slosh-bubble-opacity: .85;
+  --motion-slosh-pop-lift: 4.4;
+  --motion-slosh-pop-swell: 1.6;
+  --motion-slosh-pop-ring: 3.8;
+  --motion-slosh-pop-spray: 1.5;
+  --motion-slosh-pop-reach: 7px;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
 }
@@ -2682,41 +2893,127 @@ body {
   }
 }
 
-/* The end of a fill level drawn as a bar (ProgressBar's `level`, the shell's
-   volume meter) is a liquid's surface: a strip in the fill's own colour past
-   its end, cut to a wave and one wave taller than the bar, so it can drift
-   along the edge. The bar's track rounds and clips it, so the fill itself has
-   square ends. */
-.glim-liquid-edge {
-  --liquid-wave: 8px;
-  position: relative;
+/* A fill level that sloshes. In a vessel (pictures/Vessel.tsx) the liquid
+   tilts about the middle, 17 units in. The crests and the hump rest at zero
+   height and the bubbles and pops hidden, so a still frame shows a flat
+   surface. */
+.glim-slosh,
+.glim-slosh-back {
+  transform-origin: 17px 0;
 }
-.glim-liquid-edge::after {
+.glim-slosh-crest,
+.glim-slosh-hump {
+  scale: 1 0;
+}
+.glim-slosh-bubble,
+.glim-slosh-pop-bubble,
+.glim-slosh-pop-ring,
+.glim-slosh-pop-drop {
+  opacity: 0;
+}
+.glim-slosh-pop-bubble,
+.glim-slosh-pop-ring,
+.glim-slosh-pop-drop {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Where the three droplets of a pop fly, before the spray dial scales it. */
+.glim-slosh-pop-drop:nth-child(3) {
+  --drop-x: -1.6px;
+  --drop-y: -1.4px;
+}
+.glim-slosh-pop-drop:nth-child(4) {
+  --drop-x: 1.7px;
+  --drop-y: -1.1px;
+}
+.glim-slosh-pop-drop:nth-child(5) {
+  --drop-x: .3px;
+  --drop-y: -2px;
+}
+
+/* On a bar (ProgressBar's `level`, the shell's volume meter) the surface is
+   the fill's end: a rounded strip in the fill's colour waits under the end and
+   surges out, and the bubbles are white dots on two strips of tiles that fade
+   before the end. --liquid-dir turns both round under a right-to-left script.
+   The fill is a size container so a popping bubble's 100cqi measures it, and
+   the track rounds and clips whatever passes the end.
+
+   White rather than a token for the reason the transfer edge above is. */
+.glim-slosh-edge {
+  --liquid-dir: 1;
+  position: relative;
+  container-type: inline-size;
+}
+[dir='rtl'] .glim-slosh-edge {
+  --liquid-dir: -1;
+}
+.glim-slosh-edge::after {
   content: '';
   position: absolute;
-  top: calc(var(--liquid-wave) * -1);
-  bottom: 0;
+  inset-block: 0;
   inset-inline-start: 100%;
-  width: 4px;
+  width: calc(var(--motion-slosh-surge, 0px) + 2px);
+  border-radius: 0 999px 999px 0;
   background-color: inherit;
-  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 8'%3E%3Cpath d='M0 0h2q2 2 0 4t0 4H0z'/%3E%3C/svg%3E")
-    0 0 / 4px var(--liquid-wave) repeat-y;
+  translate: calc(-100% * var(--liquid-dir)) 0;
   pointer-events: none;
 }
-[dir='rtl'] .glim-liquid-edge::after {
-  scale: -1 1;
+[dir='rtl'] .glim-slosh-edge::after {
+  border-radius: 999px 0 0 999px;
 }
-/* A vessel's surface (pictures/Vessel.tsx): the front wave is 12 units long
-   and the one behind it 16. The surface rocks about the middle of the
-   vessel, which stands 17 units in. */
-.glim-liquid {
-  --liquid-wave: 12px;
+.glim-slosh-edge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.1px at 6px 30%, #fff 55%, transparent),
+    radial-gradient(circle .9px at 19px 70%, #fff 55%, transparent),
+    radial-gradient(circle 1.3px at 31px 45%, #fff 55%, transparent),
+    radial-gradient(circle .8px at 9px 55%, #fff 55%, transparent),
+    radial-gradient(circle 1px at 20px 25%, #fff 55%, transparent);
+  background-size: 40px 100%, 40px 100%, 40px 100%, 26px 100%, 26px 100%;
+  background-repeat: repeat-x;
+  mask: linear-gradient(to left, transparent, #000 10px);
+  opacity: 0;
+  pointer-events: none;
 }
-.glim-liquid-back {
-  --liquid-wave: 16px;
+[dir='rtl'] .glim-slosh-edge::before {
+  mask: linear-gradient(to right, transparent, #000 10px);
 }
-.glim-liquid-tilt {
-  transform-origin: 17px 0;
+/* A popping bubble on a bar. The span has no size of its own and only lends
+   the fill's colour to the bubble's rim and the ring. */
+.glim-slosh-pop-bar {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 0;
+  width: 0;
+  height: 0;
+  background-color: inherit;
+  pointer-events: none;
+}
+.glim-slosh-pop-bar::before,
+.glim-slosh-pop-bar::after {
+  content: '';
+  position: absolute;
+  left: -1.5px;
+  top: -1.5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: inherit;
+  opacity: 0;
+}
+.glim-slosh-pop-bar::before {
+  background-image: radial-gradient(circle closest-side, #fff 60%, transparent 68%);
+}
+.glim-slosh-pop-bar::after {
+  mask: radial-gradient(circle closest-side, transparent 58%, #000 64% 86%, transparent 94%);
+}
+.glim-slosh-pop-bar:nth-child(1) {
+  top: 35%;
+}
+.glim-slosh-pop-bar:nth-child(2) {
+  top: 65%;
 }
 
 /* An archive being unpacked draws its bar in the row's own colour, striped.
