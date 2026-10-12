@@ -13,7 +13,6 @@ import {
   useRef,
   useState,
   type KeyboardEventHandler,
-  type PointerEventHandler,
 } from 'react';
 import {
   type Account,
@@ -78,8 +77,7 @@ import {
   IconTrash,
 } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, siteOf, type Brand } from '../components/BrandPicker';
-import { PictureSwitch, usePictureView } from '../components/pictures/PictureSwitch';
-import { PriorityFlow } from '../components/pictures/PriorityFlow';
+import { PriorityFlow, nameBand } from '../components/pictures/PriorityFlow';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -909,7 +907,6 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   const { t } = useT();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
   const [jd, setJd] = useState<JDStatus | null>(null);
-  const [view, setView] = usePictureView('accounts.priorityView');
 
   // Re-read whenever the configured services or the switched-on hoster logins
   // change: saving a debrid key registers a resolver at once, and each login
@@ -932,21 +929,13 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
       <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle
-          hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}
-          right={priority !== null && priority.length > 0 && <PictureSwitch view={view} onView={setView} />}
-        >
+        <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
         {priority === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
         ) : priority.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
-        ) : view === 'picture' ? (
-          <PriorityFlow
-            backends={priority.map((r) => ({ id: r.id, name: labelFor(r.id) }))}
-            label={t('accounts.routing.priorityTitle')}
-          />
         ) : (
           <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
         )}
@@ -981,12 +970,10 @@ function LadderGrip({
   label,
   disabled,
   onKeyDown,
-  onPointerDown,
 }: {
   label: string;
   disabled: boolean;
   onKeyDown: KeyboardEventHandler<HTMLButtonElement>;
-  onPointerDown: PointerEventHandler<HTMLButtonElement>;
 }) {
   return (
     <button
@@ -997,7 +984,6 @@ function LadderGrip({
         outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
         active:cursor-grabbing disabled:cursor-default"
       onKeyDown={onKeyDown}
-      onPointerDown={onPointerDown}
     >
       <IconGrip width={14} height={16} />
     </button>
@@ -1017,10 +1003,11 @@ function LadderName({ id, label }: { id: string; label: string }) {
 }
 
 /**
- * PriorityLadder orders the resolvers by drag or, with the grip focused, by
- * arrow keys. Every drop saves at once and redraws from the server's answer.
- * "Automatisch" clears the stored order, so it follows the ladder as it
- * changes instead of freezing today's.
+ * PriorityLadder is the priority picture with its names as rows that order the
+ * resolvers: a row moves by drag, or with its grip focused by the arrow keys.
+ * Every drop saves at once and redraws from the server's answer. "Automatisch"
+ * clears the stored order, so it follows the ladder as it changes instead of
+ * freezing today's.
  */
 function PriorityLadder({
   rows,
@@ -1052,10 +1039,11 @@ function PriorityLadder({
     }
   }
 
-  // Only the grip starts a drag, so a mouse arms it by moving; the rows are
-  // measured one by one, since a login row is taller than a service row.
+  const resting = pending ?? rows.map((r) => r.id);
+  // The whole row is pressed to move it, so a mouse arms the drag by moving
+  // and a click on a row's (i) still opens its bubble.
   const drag = useReorder({
-    ids: pending ?? rows.map((r) => r.id),
+    ids: resting,
     container: list,
     attr: 'data-ladder-id',
     axis: 'y',
@@ -1066,6 +1054,7 @@ function PriorityLadder({
 
   const byId = new Map(rows.map((r) => [r.id, r] as const));
   const shown = drag.order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
+  const title = t('accounts.routing.priorityTitle');
 
   /** moved moves `id` to position `to`, clamped, and returns the new order or null. */
   function moved(id: string, to: number): string[] | null {
@@ -1081,39 +1070,47 @@ function PriorityLadder({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* The list is the rows' offsetParent, the layout a drag measures in.
-          While a row is held the others wiggle (glim-drag-armed). */}
-      <ol ref={list} className={`relative flex flex-col gap-1.5 ${drag.held !== null ? 'glim-drag-armed' : ''}`}>
-        {shown.map((r, i) => {
-          const look = drag.look(r.id);
-          const carried = look === LIFT || look === SETTLE;
-          return (
-            <li
-              key={r.id}
-              data-ladder-id={r.id}
-              // A carried row floats over the others, so it takes a ground of
-              // its own. select-none keeps a drag from selecting the names.
-              className={`flex select-none items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm
-                text-carbon-textSub ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
-            >
-              {/* A real button, so the arrow keys move the row. */}
-              <LadderGrip
-                label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-                disabled={busy}
-                onKeyDown={(e) => {
-                  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                  e.preventDefault();
-                  const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
-                  if (next) void store(next);
-                }}
+      {/* The stations follow the resting order, so a drag in flight moves the
+          names past them without starting the picture over at every step. */}
+      <PriorityFlow backends={resting.map((id) => ({ id, name: labelFor(id) }))} label={title}>
+        {/* The list is the rows' offsetParent, the layout a drag measures in.
+            While a row is held the others wiggle (glim-drag-armed). */}
+        <ol
+          ref={list}
+          aria-label={title}
+          style={nameBand(resting.length)}
+          className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
+        >
+          {shown.map((r, i) => {
+            const look = drag.look(r.id);
+            const carried = look === LIFT || look === SETTLE;
+            return (
+              <li
+                key={r.id}
+                data-ladder-id={r.id}
+                // A carried row floats over the others, so it takes a ground of
+                // its own. select-none keeps a drag from selecting the names.
+                className={`flex min-h-0 flex-1 cursor-grab select-none items-center gap-1 rounded-[var(--radius-control)]
+                  pe-1 text-sm text-carbon-textSub active:cursor-grabbing ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
                 onPointerDown={(e) => drag.press(e, r.id)}
-              />
-              <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-              <LadderName id={r.id} label={labelFor(r.id)} />
-            </li>
-          );
-        })}
-      </ol>
+              >
+                {/* A real button, so the arrow keys move the row. */}
+                <LadderGrip
+                  label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
+                  disabled={busy}
+                  onKeyDown={(e) => {
+                    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+                    e.preventDefault();
+                    const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
+                    if (next) void store(next);
+                  }}
+                />
+                <LadderName id={r.id} label={labelFor(r.id)} />
+              </li>
+            );
+          })}
+        </ol>
+      </PriorityFlow>
       <div className="flex items-center gap-2">
         <Button
           kind="secondary"

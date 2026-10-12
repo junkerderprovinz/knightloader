@@ -234,8 +234,10 @@ describe('the priority flow', () => {
 describe('the priority order card', () => {
   const reply = (body: unknown) =>
     new Response(JSON.stringify(body), { status: 200, headers: { 'Content-Type': 'application/json' } });
+  let saved: unknown[];
 
   beforeEach(() => {
+    saved = [];
     vi.stubGlobal(
       'WebSocket',
       class {
@@ -252,11 +254,17 @@ describe('the priority order card', () => {
     vi.stubGlobal('ResizeObserver', unobserved);
     vi.stubGlobal(
       'fetch',
-      vi.fn(async (url: string) => {
+      vi.fn(async (url: string, init?: RequestInit) => {
+        if (url === '/api/resolvers/priority' && init?.method === 'POST') {
+          const { order } = JSON.parse(String(init.body)) as { order: string[] };
+          saved.push(order);
+          return reply(order.map((id, i) => ({ id, prio: order.length - i })));
+        }
         if (url === '/api/resolvers/priority') {
           return reply([
-            { id: 'torbox', prio: 2 },
-            { id: 'jd', prio: 1 },
+            { id: 'torbox', prio: 3 },
+            { id: 'jd', prio: 2 },
+            { id: 'direct', prio: 1 },
           ]);
         }
         if (url === '/api/settings') return reply({ premiumOnly: false });
@@ -266,28 +274,48 @@ describe('the priority order card', () => {
     );
   });
 
-  it('shows the flow first and keeps the draggable list behind the selector', async () => {
-    await draw(
+  const showCard = () =>
+    draw(
       <ToastProvider>
         <MemoryRouter>
           <Accounts />
         </MemoryRouter>
       </ToastProvider>,
     );
-    expect(host.querySelector('[role="img"]')!.getAttribute('aria-label')).toBe(
-      'Priority order: 1. TorBox, 2. JDownloader',
+  const order = () => [...host.querySelectorAll('[data-ladder-id]')].map((row) => row.getAttribute('data-ladder-id'));
+  const row = (id: string) => host.querySelector<HTMLElement>(`[data-ladder-id="${id}"]`)!;
+  const pointer = (type: string, target: EventTarget, y: number) =>
+    target.dispatchEvent(
+      new PointerEvent(type, { bubbles: true, button: 0, isPrimary: true, pointerId: 1, pointerType: 'mouse', clientY: y }),
     );
-    expect(host.querySelector('[data-ladder-id]')).toBeNull();
 
-    const list = [...host.querySelectorAll<HTMLElement>('[aria-label="View"] [role="tab"]')].find(
-      (tab) => tab.textContent === 'List',
-    )!;
-    await act(async () => list.click());
-    expect([...host.querySelectorAll('[data-ladder-id]')].map((row) => row.getAttribute('data-ladder-id'))).toEqual([
-      'torbox',
-      'jd',
-    ]);
+  it('draws only the picture, with the names beside its stations as the rows to order', async () => {
+    await showCard();
+    expect(host.querySelector('[aria-label="View"]')).toBeNull();
+    const list = host.querySelector('ol[aria-label="Priority order"]')!;
+    expect(list.parentElement!.querySelector(':scope > svg')!.getAttribute('aria-hidden')).toBe('true');
+    expect(order()).toEqual(['torbox', 'jd', 'direct']);
     expect(host.textContent).toContain('Automatic');
+  });
+
+  it('saves the order a row is dragged into', async () => {
+    await showCard();
+    // The first move lifts the row, the next carries it below the others.
+    await act(async () => pointer('pointerdown', row('torbox'), 0));
+    await act(async () => pointer('pointermove', document, 40));
+    await act(async () => pointer('pointermove', document, 120));
+    await act(async () => pointer('pointerup', document, 120));
+    expect(saved).toEqual([['jd', 'direct', 'torbox']]);
+  });
+
+  it('moves a row with the arrow keys on its grip', async () => {
+    await showCard();
+    const grip = row('jd').querySelector('button')!;
+    await act(async () => {
+      grip.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: 'ArrowUp' }));
+    });
+    expect(saved).toEqual([['jd', 'torbox', 'direct']]);
+    expect(order()).toEqual(['jd', 'torbox', 'direct']);
   });
 });
 
