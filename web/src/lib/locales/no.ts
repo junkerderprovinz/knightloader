@@ -3621,7 +3621,7 @@ export const no: Dict = {
   'whatsnew.change.queueState': '«{play}» og «{pause}» viser hva køen gjør: Den fylte knappen er tilstanden, den andre er den du trykker på.',
   'whatsnew.change.listBar': 'Over lista står tre knapper: «{filter}», «{sort}» og «{search}».',
   'whatsnew.change.listRows': 'Radene starter på linje med kortets tittel, og knappene på en rad vises så lenge pekeren er på den.',
-  'whatsnew.change.accountPicker': 'Du velger en ny debrid-, captcha- eller hosterkonto blant fliser, hver med sin logo.',
+  'whatsnew.change.accountPicker': 'Du velger en ny debrid-, captcha- eller hosterkonto blant fliser, hver med sin logo. Logoene på en hel skjerm lastes sammen, og en hoster uten logo viser forbokstaven sin på en farget flis.',
   'whatsnew.change.accountRows': 'Et klikk på en konto åpner den, og et høyreklikk åpner menyen dens.',
   'whatsnew.change.settingsSearch': 'Et søk i alle innstillinger dukker opp når du ruller opp en gang til øverst på en side, eller trykker «/». Mens du skriver i det, skifter feltet nyanse og forstørrelsesglasset lyser opp.',
   'whatsnew.change.displayCard': '«{name}» samler «{lang}», «{theme}», «{shape}», «{motion}» og «{rows}» i ett kort.',

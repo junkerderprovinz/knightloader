@@ -3610,7 +3610,7 @@ export const es: Dict = {
   'whatsnew.change.queueState': '«{play}» y «{pause}» muestran qué hace la cola: el botón relleno es su estado, el otro es el que se pulsa.',
   'whatsnew.change.listBar': 'Hay tres botones sobre la lista: «{filter}», «{sort}» y «{search}».',
   'whatsnew.change.listRows': 'Las filas empiezan alineadas con el título de la tarjeta, y los botones de una fila aparecen mientras el puntero está sobre ella.',
-  'whatsnew.change.accountPicker': 'Eliges una cuenta nueva de debrid, de captcha o de hoster entre mosaicos, cada uno con su logotipo.',
+  'whatsnew.change.accountPicker': 'Eliges una cuenta nueva de debrid, de captcha o de hoster entre mosaicos, cada uno con su logotipo. Los logotipos de toda una pantalla se cargan juntos, y un hoster sin logotipo muestra su primera letra sobre un mosaico teñido.',
   'whatsnew.change.accountRows': 'Un clic en una cuenta la abre, y un clic derecho abre su menú.',
   'whatsnew.change.settingsSearch': 'Aparece una búsqueda en todos los ajustes cuando te desplazas hacia arriba una vez más al principio de una página, o cuando pulsas «/». Mientras escribes en ella, el campo cambia de tono y la lupa se ilumina.',
   'whatsnew.change.displayCard': '«{name}» reúne «{lang}», «{theme}», «{shape}», «{motion}» y «{rows}» en una sola tarjeta.',

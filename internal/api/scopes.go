@@ -157,6 +157,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/hosterauth/logins/enabled": apitoken.ScopeAdmin,
 	"POST /api/hosterauth/logins/remove":  apitoken.ScopeAdmin,
 	"GET /api/hosters/icon":               apitoken.ScopeRead,
+	"GET /api/hosters/icons":              apitoken.ScopeRead,
 	"GET /api/hostheaders":                apitoken.ScopeAdmin,
 	"POST /api/hostheaders":               apitoken.ScopeAdmin,
 	"DELETE /api/hostheaders/{id}":        apitoken.ScopeAdmin,

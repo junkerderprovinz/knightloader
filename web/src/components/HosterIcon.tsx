@@ -1,14 +1,14 @@
 import { useEffect, useRef, useState } from 'react';
-import { hosterIconURL } from '../lib/api';
+import { type HosterIconBatch, hosterIconURL, hosterIconsURL } from '../lib/api';
+import { hueVars } from '../lib/appearance';
 import { serviceMark } from '../lib/serviceMarks';
 
 /**
- * While the instance is still fetching an icon it answers 202 with a
- * Retry-After and fetches in the background, eight sites at a time, so a cold
- * list of a few hundred hosters takes minutes to drain. A row asks again after
- * the pause the instance names, growing to RETRY_MAX_PAUSE_MS, and gives up
- * once it has waited RETRY_GIVE_UP_MS. A host without an icon gets a 204 and
- * is not asked again.
+ * While the instance is still fetching an icon it says so with a pause to wait
+ * and fetches in the background, a few dozen sites at a time, so a cold list
+ * of a few hundred hosters takes a while to drain. A row asks again after the
+ * pause the instance names, growing to RETRY_MAX_PAUSE_MS, and gives up once
+ * it has waited RETRY_GIVE_UP_MS. A host without an icon is not asked again.
  */
 export const RETRY_DEFAULT_MS = 5000;
 export const RETRY_MAX_PAUSE_MS = 30_000;
@@ -75,22 +75,26 @@ export function mayHaveSiteIcon(host: string): boolean {
 }
 
 /**
- * An icon is an object URL, null for a host without one, or, while the
- * instance has no answer yet, the milliseconds to wait before asking again.
+ * An icon is the address an <img> shows, null for a host without one, or,
+ * while the instance has no answer yet, the milliseconds to wait before asking
+ * again.
  */
 type Icon = string | null | number;
 
 const icons = new Map<string, Promise<Icon>>();
 
 /**
- * askForIcon makes one request per host however many rows show it. A settled
- * answer is kept for the life of the page; an unsettled one is dropped, so the
- * next ask goes to the instance again.
+ * askForIcon asks once per host however many rows show it. A settled answer
+ * is kept for the life of the page; an unsettled one is dropped, so the next
+ * ask goes to the instance again.
  */
 function askForIcon(host: string): Promise<Icon> {
   let icon = icons.get(host);
   if (!icon) {
-    icon = fetchIcon(host);
+    icon = new Promise<Icon>((resolve) => {
+      waiting.set(host, resolve);
+      if (!gathering) gathering = window.setTimeout(sendBatch, GATHER_MS);
+    });
     icons.set(host, icon);
     void icon.then((settled) => {
       if (typeof settled === 'number') icons.delete(host);
@@ -99,18 +103,46 @@ function askForIcon(host: string): Promise<Icon> {
   return icon;
 }
 
-async function fetchIcon(host: string): Promise<Icon> {
+/**
+ * The hosts asked for within GATHER_MS go to the instance together, at most
+ * BATCH to a request. A browser opens six connections to the instance, so a
+ * request per tile would queue a screen of tiles, and every other request the
+ * page makes, behind each other.
+ */
+const GATHER_MS = 16;
+const BATCH = 64;
+const waiting = new Map<string, (icon: Icon) => void>();
+let gathering = 0;
+
+function sendBatch() {
+  gathering = 0;
+  const hosts = [...waiting.keys()];
+  for (let at = 0; at < hosts.length; at += BATCH) {
+    const part = hosts.slice(at, at + BATCH);
+    const answer = part.map((h) => [h, waiting.get(h)!] as const);
+    void fetchIcons(part).then((found) => answer.forEach(([h, resolve]) => resolve(found(h))));
+  }
+  waiting.clear();
+}
+
+/** fetchIcons is a batch's answer per host. */
+async function fetchIcons(hosts: string[]): Promise<(host: string) => Icon> {
   try {
-    const r = await fetch(hosterIconURL(host));
-    if (r.status === 202) {
-      const seconds = Number(r.headers.get('Retry-After'));
-      return seconds > 0 ? seconds * 1000 : RETRY_DEFAULT_MS;
-    }
-    const body = r.status === 200 ? await r.blob() : null;
-    return body?.size ? URL.createObjectURL(body) : null;
+    const r = await fetch(hosterIconsURL(hosts));
+    if (!r.ok) throw new Error(String(r.status));
+    const batch = (await r.json()) as HosterIconBatch;
+    const pause = batch.retryAfter > 0 ? batch.retryAfter * 1000 : RETRY_DEFAULT_MS;
+    return (host) => {
+      if (batch.icons[host]) return batch.icons[host];
+      // Too large to come inline, so the <img> loads it from the single route.
+      if (batch.large.includes(host)) return hosterIconURL(host);
+      if (batch.pending.includes(host)) return pause;
+      // A host the instance left out of a long batch is asked again.
+      return batch.none.includes(host) ? null : RETRY_DEFAULT_MS;
+    };
   } catch {
-    // The instance did not answer; that is worth another try, like a 202.
-    return RETRY_DEFAULT_MS;
+    // The instance did not answer; that is worth another try, like a pending icon.
+    return () => RETRY_DEFAULT_MS;
   }
 }
 
@@ -153,13 +185,17 @@ function SiteIcon({ host, box }: { host: string; box: { width: number; height: n
   const [src, setSrc] = useState<string | null>();
   const waited = useRef(0);
 
-  // Only rows scrolled into view ask, which a long hoster list needs.
+  // Only rows in view or about to scroll into it ask, which a long hoster
+  // list needs.
   useEffect(() => {
-    const seen = new IntersectionObserver((entries) => {
-      if (!entries.some((e) => e.isIntersecting)) return;
-      seen.disconnect();
-      setInView(true);
-    });
+    const seen = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        seen.disconnect();
+        setInView(true);
+      },
+      { rootMargin: '200px' },
+    );
     seen.observe(self.current!);
     return () => seen.disconnect();
   }, []);
@@ -204,13 +240,20 @@ function SiteIcon({ host, box }: { host: string; box: { width: number; height: n
   );
 }
 
+/**
+ * Monogram stands in for a logo: the site's first letter on a tile tinted with
+ * a colour of the palette picked by the name, so a list of hosters without
+ * icons still reads as a set of marks, each host always in the same colour.
+ */
 function Monogram({ host, box }: { host: string; box: { width: number; height: number } }) {
+  let sum = 0;
+  for (const c of host) sum = (sum * 31 + c.charCodeAt(0)) >>> 0;
   return (
     <span
       aria-hidden
-      style={box}
+      style={{ ...box, ...hueVars(sum), fontSize: Math.max(9, Math.round(box.height * 0.55)) }}
       className="inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)]
-        bg-carbon-surface3 text-meta font-semibold uppercase text-carbon-textMuted"
+        bg-[var(--item-hue-soft)] font-semibold uppercase leading-none text-carbon-text"
     >
       {host.charAt(0) || '?'}
     </span>

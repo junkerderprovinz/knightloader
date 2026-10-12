@@ -3610,7 +3610,7 @@ export const et: Dict = {
   'whatsnew.change.queueState': '„{play}“ ja „{pause}“ näitavad, mida järjekord teeb: täidetud nupp on selle olek, teine on see, mida vajutada.',
   'whatsnew.change.listBar': 'Loendi kohal on kolm nuppu: „{filter}“, „{sort}“ ja „{search}“.',
   'whatsnew.change.listRows': 'Read algavad kaardi pealkirjaga ühelt joonelt ja rea nupud on näha seni, kuni kursor on rea kohal.',
-  'whatsnew.change.accountPicker': 'Uue debrid-, captcha- või hosteri konto valid paanide seast, millest igaühel on oma logo.',
+  'whatsnew.change.accountPicker': 'Uue debrid-, captcha- või hosteri konto valid paanide seast, millest igaühel on oma logo. Terve ekraani logod laaditakse korraga ja logota hoster näitab oma esitähte toonitud paanil.',
   'whatsnew.change.accountRows': 'Klõps kontol avab selle ja paremklõps avab selle menüü.',
   'whatsnew.change.settingsSearch': 'Otsing kõigis seadetes ilmub, kui kerid lehe ülaservas veel kord ülespoole või vajutad „/“. Kui sa sinna kirjutad, muudab väli tooni ja suurendusklaas süttib.',
   'whatsnew.change.displayCard': '„{name}“ koondab ühele kaardile valikud „{lang}“, „{theme}“, „{shape}“, „{motion}“ ja „{rows}“.',

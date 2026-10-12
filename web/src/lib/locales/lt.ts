@@ -3620,7 +3620,7 @@ export const lt: Dict = {
   'whatsnew.change.queueState': '„{play}“ ir „{pause}“ rodo, ką daro eilė: užpildytas mygtukas yra jos būsena, kitas yra tas, kurį reikia paspausti.',
   'whatsnew.change.listBar': 'Virš sąrašo yra trys mygtukai: „{filter}“, „{sort}“ ir „{search}“.',
   'whatsnew.change.listRows': 'Eilutės prasideda lygiai su kortelės pavadinimu, o eilutės mygtukai rodomi, kol žymeklis yra ant jos.',
-  'whatsnew.change.accountPicker': 'Naują debrid, captcha ar hosterio paskyrą renkiesi iš plytelių, kurių kiekviena turi savo logotipą.',
+  'whatsnew.change.accountPicker': 'Naują debrid, captcha ar hosterio paskyrą renkiesi iš plytelių, kurių kiekviena turi savo logotipą. Viso ekrano logotipai įkeliami kartu, o hosteris be logotipo rodo savo pirmąją raidę spalvotoje plytelėje.',
   'whatsnew.change.accountRows': 'Spustelėjimas ant paskyros ją atveria, o spustelėjimas dešiniuoju klavišu atveria jos meniu.',
   'whatsnew.change.settingsSearch': 'Visų nustatymų paieška atsiranda, kai puslapio viršuje dar kartą paslinki aukštyn arba paspaudi „/“. Kol joje rašai, laukelis keičia atspalvį, o didinamasis stiklas įsižiebia.',
   'whatsnew.change.displayCard': '„{name}“ vienoje kortelėje sutelkia „{lang}“, „{theme}“, „{shape}“, „{motion}“ ir „{rows}“.',

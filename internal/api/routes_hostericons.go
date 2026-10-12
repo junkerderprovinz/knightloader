@@ -1,18 +1,43 @@
 package api
 
 // The site icon beside a hoster row (app_hostericons.go owns the fetching and
-// the cache). One route, GET only. Neither answer short of an icon is an error
-// status, because a browser logs each one as a failed load: a host without an
-// icon gets a 204, and one the instance is still fetching gets a 202.
+// the cache), one host at a time or many at once. Neither answer of the single
+// route short of an icon is an error status, because a browser logs each one
+// as a failed load: a host without an icon gets a 204, and one the instance is
+// still fetching gets a 202.
 
 import (
 	"crypto/sha256"
+	"encoding/base64"
 	"encoding/hex"
 	"errors"
 	"net/http"
+	"slices"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
 )
+
+// iconBatchMax is how many hosts one batch may ask for, a screenful of picker
+// tiles and then some.
+const iconBatchMax = 64
+
+// iconInlineMax is the largest icon a batch carries inline. A larger one is
+// left to the single route, so one oversized apple-touch-icon does not swell
+// the answer for the whole screen.
+const iconInlineMax = 32 << 10
+
+// iconBatch is a batch's answer. Every host asked for is in exactly one part:
+// Icons as a data: URL, which an <img> shows and a browser will not open as a
+// page, so an SVG's script never runs; Large for the single route; None
+// without an icon; Pending still being fetched, to be asked again after
+// RetryAfter seconds.
+type iconBatch struct {
+	Icons      map[string]string `json:"icons"`
+	Large      []string          `json:"large"`
+	None       []string          `json:"none"`
+	Pending    []string          `json:"pending"`
+	RetryAfter int               `json:"retryAfter"`
+}
 
 // iconCSP applies to every icon. An SVG can carry script, which an <img> never
 // runs but a direct visit to the icon URL would, on the instance's own origin.
@@ -21,6 +46,39 @@ const iconCSP = "default-src 'none'; style-src 'unsafe-inline'; sandbox"
 func registerHosterIcons(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/hosters/icon", "one host's own site icon, fetched by this instance and cached on disk",
 		hosterIconHandler(a.HosterIcon))
+	// A picker shows a screenful of hosters at once, and a browser opens six
+	// connections to the instance, so one request per icon queues the page
+	// behind its own decoration.
+	reg.Add(http.MethodGet, "/api/hosters/icons", "the site icons of up to 64 hosts in one answer, small ones inline",
+		hosterIconsHandler(a.HosterIcon))
+}
+
+// hosterIconsHandler answers a batch of ?host= parameters from lookup. Hosts
+// past iconBatchMax are left out, and the page asks for them again.
+func hosterIconsHandler(lookup func(host string) ([]byte, string, error)) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		hosts := slices.Compact(slices.Sorted(slices.Values(r.URL.Query()["host"])))
+		if len(hosts) > iconBatchMax {
+			hosts = hosts[:iconBatchMax]
+		}
+		out := iconBatch{Icons: map[string]string{}, Large: []string{}, None: []string{}, Pending: []string{}, RetryAfter: 5}
+		for _, host := range hosts {
+			body, ct, err := lookup(host)
+			switch {
+			case errors.Is(err, app.ErrIconPending):
+				out.Pending = append(out.Pending, host)
+			case err != nil:
+				out.None = append(out.None, host)
+			case len(body) > iconInlineMax:
+				out.Large = append(out.Large, host)
+			default:
+				out.Icons[host] = "data:" + ct + ";base64," + base64.StdEncoding.EncodeToString(body)
+			}
+		}
+		// The answer changes as pending icons arrive.
+		w.Header().Set("Cache-Control", "no-store")
+		writeJSON(w, out)
+	}
 }
 
 // hosterIconHandler answers from lookup, which is App.HosterIcon outside tests.

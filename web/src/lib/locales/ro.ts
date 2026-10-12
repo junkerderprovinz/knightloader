@@ -3627,7 +3627,7 @@ export const ro: Dict = {
   'whatsnew.change.queueState': '„{play}” și „{pause}” arată ce face coada: butonul plin este starea ei, celălalt este cel de apăsat.',
   'whatsnew.change.listBar': 'Deasupra listei stau trei butoane: „{filter}”, „{sort}” și „{search}”.',
   'whatsnew.change.listRows': 'Rândurile încep aliniate cu titlul cardului, iar butoanele unui rând apar cât timp cursorul este pe el.',
-  'whatsnew.change.accountPicker': 'Alegi un cont nou de debrid, de captcha sau de hoster dintre dale, fiecare cu sigla ei.',
+  'whatsnew.change.accountPicker': 'Alegi un cont nou de debrid, de captcha sau de hoster dintre dale, fiecare cu sigla ei. Siglele unui ecran întreg se încarcă împreună, iar un hoster fără siglă își arată prima literă pe o dală colorată.',
   'whatsnew.change.accountRows': 'Un clic pe un cont îl deschide, iar un clic dreapta îi deschide meniul.',
   'whatsnew.change.settingsSearch': 'O căutare în toate setările apare când derulezi încă o dată în sus la începutul unei pagini sau când apeși „/”. Cât timp scrii în ea, câmpul își schimbă nuanța, iar lupa se aprinde.',
   'whatsnew.change.displayCard': '„{name}” adună „{lang}”, „{theme}”, „{shape}”, „{motion}” și „{rows}” într-un singur card.',
