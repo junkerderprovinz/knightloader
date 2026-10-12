@@ -232,7 +232,6 @@ export const he: Dict = {
   'pairing.show': 'הצג ביטוי',
   'pairing.passwordLabel': 'סיסמת כניסה',
   'pairing.passwordTip': 'המילים פותחות כל מופע בקבוצה, ולכן הצגתן מחדש תמיד דורשת את הסיסמה.',
-  'pairing.wordsNeedPassword': 'המילים האלה פותחות כל מופע בקבוצה, ולכן KnightLoader מציג אותן שוב רק אחרי שהוגדרה סיסמת כניסה.',
   'pairing.passwordWrong': 'זו אינה סיסמת הכניסה.',
   'pairing.viaRelay': 'דרך ממסר',
   'pairing.leave': 'עזוב את הקבוצה',
@@ -3677,4 +3676,6 @@ export const he: Dict = {
   'settings.look.builtInHint': 'מה ש־KnightLoader מביא איתו או מריץ לצידו, כל אחד עם הגרסה והמקור שלו. החלקים האלה מגיעים עם KnightLoader או עם תמונת הקונטיינר, או מתעדכנים בעצמם, ולכן אין כאן מה לעדכן.',
   'whatsnew.change.builtIn': '„{name}” מפרט כל חלק שמגיע עם KnightLoader, עם הגרסה והמקור שלו. מה שאפשר לעדכן נשאר ב„{updates}”.',
   'whatsnew.change.settingRows': 'כל רשימה נפתחת וכל שדה קלט בהגדרות עומדים ליד השם שלהם, בקצה הכרטיס שלהם.',
+  'pairing.wordsNoPassword': 'למופע הזה אין סיסמת כניסה, כך שכל מי שמגיע לעמוד הזה יכול לקרוא את המילים האלה. הגדר סיסמה תחת אבטחה.',
+  'whatsnew.change.wordsAgain': '„{name}” מציג שוב את שתים־עשרה המילים גם בלי סיסמה. כל עוד לא הוגדרה סיסמה, החלון מזהיר שכל מי שמגיע לעמוד הזה יכול לקרוא אותן.',
 };

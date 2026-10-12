@@ -232,7 +232,6 @@ export const no: Dict = {
   'pairing.show': 'Vis frase',
   'pairing.passwordLabel': 'Innloggingspassord',
   'pairing.passwordTip': 'Ordene åpner alle instansene i gruppen, så du må alltid oppgi passordet for å vise dem igjen.',
-  'pairing.wordsNeedPassword': 'Disse ordene åpner alle instansene i gruppen, så KnightLoader viser dem først igjen når et innloggingspassord er satt.',
   'pairing.passwordWrong': 'Det er ikke innloggingspassordet.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Forlat gruppen',
@@ -3663,4 +3662,6 @@ export const no: Dict = {
   'settings.look.builtInHint': 'Det KnightLoader har med seg eller kjører ved siden av seg, hver med sin versjon og opprinnelse. Disse delene følger med KnightLoader eller containerbildet, eller oppdaterer seg selv, så her er det ingenting å oppdatere.',
   'whatsnew.change.builtIn': '«{name}» viser hver del som følger med KnightLoader, med versjon og opprinnelse. Det som kan oppdateres, blir værende på «{updates}».',
   'whatsnew.change.settingRows': 'Hver nedtrekksliste og hvert inndatafelt i Innstillinger står ved siden av navnet sitt, i enden av kortet.',
+  'pairing.wordsNoPassword': 'Denne instansen har ikke noe innloggingspassord, så alle som når denne siden, kan lese disse ordene. Sett et passord under Sikkerhet.',
+  'whatsnew.change.wordsAgain': '«{name}» viser de tolv ordene igjen, også uten passord. Så lenge det ikke er satt noe, advarer vinduet om at alle som når denne siden, kan lese dem.',
 };

@@ -230,7 +230,6 @@ export const is: Dict = {
   'pairing.show': 'Sýna setningu',
   'pairing.passwordLabel': 'Innskráningarlykilorð',
   'pairing.passwordTip': 'Orðin opna öll tilvik í hópnum, svo alltaf er beðið um lykilorðið þegar þau eru sýnd aftur.',
-  'pairing.wordsNeedPassword': 'Þessi orð opna öll tilvik í hópnum, svo KnightLoader sýnir þau aðeins aftur þegar innskráningarlykilorð hefur verið sett.',
   'pairing.passwordWrong': 'Þetta er ekki innskráningarlykilorðið.',
   'pairing.viaRelay': 'Um relay',
   'pairing.leave': 'Yfirgefa hópinn',
@@ -3656,4 +3655,6 @@ export const is: Dict = {
   'settings.look.builtInHint': 'Það sem KnightLoader tekur með sér eða keyrir við hlið sér, hvert með sína útgáfu og uppruna. Þessir hlutar koma með KnightLoader eða gámamyndinni, eða uppfæra sig sjálfir, svo hér er ekkert að uppfæra.',
   'whatsnew.change.builtIn': '„{name}“ telur upp hvern hluta sem fylgir KnightLoader, með útgáfu og uppruna. Það sem má uppfæra er áfram á „{updates}“.',
   'whatsnew.change.settingRows': 'Hver fellilisti og hver innsláttarreitur í Stillingum stendur við hlið nafnsins síns, við enda spjaldsins.',
+  'pairing.wordsNoPassword': 'Þetta tilvik hefur ekkert innskráningarlykilorð, svo hver sem kemst á þessa síðu getur lesið þessi orð. Settu lykilorð undir Öryggi.',
+  'whatsnew.change.wordsAgain': '„{name}“ sýnir orðin tólf aftur, líka án lykilorðs. Á meðan ekkert er sett varar glugginn við því að hver sem kemst á þessa síðu getur lesið þau.',
 };

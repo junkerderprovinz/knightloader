@@ -224,7 +224,6 @@ export const nl: Dict = {
   'pairing.show': 'Frase tonen',
   'pairing.passwordLabel': 'Inlogwachtwoord',
   'pairing.passwordTip': 'De woorden openen elke instantie in de groep, daarom vraagt opnieuw tonen altijd om het wachtwoord.',
-  'pairing.wordsNeedPassword': 'Deze woorden openen elke instantie in de groep, daarom toont KnightLoader ze pas opnieuw als er een inlogwachtwoord is ingesteld.',
   'pairing.passwordWrong': 'Dat is niet het inlogwachtwoord.',
   'pairing.viaRelay': 'Via relay',
   'pairing.leave': 'Groep verlaten',
@@ -3643,4 +3642,6 @@ export const nl: Dict = {
   'settings.look.builtInHint': 'Wat KnightLoader meebrengt of naast zich laat draaien, elk met zijn versie en herkomst. Deze onderdelen komen met KnightLoader of het containerimage, of werken zichzelf bij, dus hier valt niets bij te werken.',
   'whatsnew.change.builtIn': '“{name}” toont elk onderdeel dat met KnightLoader meekomt, met versie en herkomst. Wat bijgewerkt kan worden, blijft op “{updates}”.',
   'whatsnew.change.settingRows': 'Elke keuzelijst en elk invoerveld in Instellingen staat naast zijn naam, aan het eind van zijn kaart.',
+  'pairing.wordsNoPassword': 'Deze instantie heeft geen inlogwachtwoord, dus iedereen die deze pagina bereikt, kan deze woorden lezen. Stel een wachtwoord in onder Beveiliging.',
+  'whatsnew.change.wordsAgain': '“{name}” toont de twaalf woorden ook zonder wachtwoord opnieuw. Zolang er geen is ingesteld, waarschuwt het venster dat iedereen die deze pagina bereikt ze kan lezen.',
 };

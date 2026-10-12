@@ -34,9 +34,8 @@ func sendJSON(t *testing.T, c *http.Client, method, url string, body any) (int, 
 
 // TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles: an instance
 // without a password answers whoever reaches its port. The task list is open
-// to them by design, but the passwords in a backup or an export, the twelve
-// words that open every member of the group and files that cannot come back
-// wait until a password is set.
+// to them by design, but the passwords in a backup or an export and files that
+// cannot come back wait until a password is set.
 func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -66,7 +65,6 @@ func TestWithoutAPasswordNothingHandsOutSecretsOrErasesFiles(t *testing.T) {
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
 		{http.MethodGet, "/api/settings/export?secrets=include", nil},
-		{http.MethodPost, "/api/connect/reveal", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},
 		{http.MethodPost, "/api/cleanup/offline", cleanup(c)},

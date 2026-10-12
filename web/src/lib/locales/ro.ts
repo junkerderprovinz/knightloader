@@ -230,7 +230,6 @@ export const ro: Dict = {
   'pairing.show': 'Arată fraza',
   'pairing.passwordLabel': 'Parola de autentificare',
   'pairing.passwordTip': 'Cuvintele deschid fiecare instanță din grup, așa că afișarea lor din nou cere mereu parola.',
-  'pairing.wordsNeedPassword': 'Aceste cuvinte deschid fiecare instanță din grup, așa că KnightLoader le arată din nou doar după ce este setată o parolă de autentificare.',
   'pairing.passwordWrong': 'Aceea nu este parola de autentificare.',
   'pairing.viaRelay': 'Prin relay',
   'pairing.leave': 'Părăsește grupul',
@@ -3669,4 +3668,6 @@ export const ro: Dict = {
   'settings.look.builtInHint': 'Ce aduce KnightLoader cu el sau rulează lângă el, fiecare cu versiunea și proveniența sa. Aceste părți vin cu KnightLoader sau cu imaginea containerului, ori se actualizează singure, așa că aici nu ai nimic de actualizat.',
   'whatsnew.change.builtIn': '„{name}” enumeră fiecare parte care vine cu KnightLoader, cu versiunea și proveniența ei. Ce se poate actualiza rămâne pe „{updates}”.',
   'whatsnew.change.settingRows': 'Fiecare listă derulantă și fiecare câmp de introducere din Setări stă lângă numele său, la capătul cardului.',
+  'pairing.wordsNoPassword': 'Această instanță nu are parolă de autentificare, așa că oricine ajunge la această pagină poate citi aceste cuvinte. Setează o parolă în Securitate.',
+  'whatsnew.change.wordsAgain': '„{name}” arată din nou cele douăsprezece cuvinte și fără parolă. Cât timp nu e setată niciuna, fereastra avertizează că oricine ajunge la această pagină le poate citi.',
 };

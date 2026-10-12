@@ -230,7 +230,6 @@ export const eu: Dict = {
   'pairing.show': 'Erakutsi esaldia',
   'pairing.passwordLabel': 'Saioa hasteko pasahitza',
   'pairing.passwordTip': 'Hitzek taldeko instantzia guztiak irekitzen dituzte, beraz berriro erakusteko beti eskatzen da pasahitza.',
-  'pairing.wordsNeedPassword': 'Hitz hauek taldeko instantzia guztiak irekitzen dituzte, beraz KnightLoaderrek saioa hasteko pasahitza ezarri arte ez ditu berriro erakusten.',
   'pairing.passwordWrong': 'Hori ez da saioa hasteko pasahitza.',
   'pairing.viaRelay': 'Bitartekariaren bidez',
   'pairing.leave': 'Utzi taldea',
@@ -3657,4 +3656,6 @@ export const eu: Dict = {
   'settings.look.builtInHint': 'KnightLoaderrek berarekin dakarrena edo bere ondoan exekutatzen duena, bakoitza bere bertsio eta jatorriarekin. Zati hauek KnightLoaderrekin edo edukiontziaren irudiarekin datoz, edo beren kabuz eguneratzen dira, beraz hemen ez dago ezer eguneratzeko.',
   'whatsnew.change.builtIn': '«{name}» txartelak KnightLoaderrekin datorren zati bakoitza zerrendatzen du, bertsio eta jatorriarekin. Egunera daitekeena «{updates}» txartelean geratzen da.',
   'whatsnew.change.settingRows': 'Ezarpenetako goitibehera-zerrenda eta sarrera-eremu bakoitza bere izenaren ondoan dago, bere txartelaren amaieran.',
+  'pairing.wordsNoPassword': 'Instantzia honek ez du saio-hasierako pasahitzik, beraz orri honetara iristen den edonork irakur ditzake hitz hauek. Ezarri pasahitz bat Segurtasunean.',
+  'whatsnew.change.wordsAgain': '«{name}» botoiak hamabi hitzak berriro erakusten ditu pasahitzik gabe ere. Pasahitzik ez dagoen bitartean, leihoak ohartarazten du orri honetara iristen den edonork irakur ditzakeela.',
 };

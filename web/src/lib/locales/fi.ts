@@ -230,7 +230,6 @@ export const fi: Dict = {
   'pairing.show': 'Näytä lause',
   'pairing.passwordLabel': 'Kirjautumissalasana',
   'pairing.passwordTip': 'Sanat avaavat ryhmän jokaisen instanssin, joten niiden näyttäminen uudelleen kysyy aina salasanaa.',
-  'pairing.wordsNeedPassword': 'Nämä sanat avaavat ryhmän jokaisen instanssin, joten KnightLoader näyttää ne uudelleen vasta, kun kirjautumissalasana on asetettu.',
   'pairing.passwordWrong': 'Tuo ei ole kirjautumissalasana.',
   'pairing.viaRelay': 'Releen kautta',
   'pairing.leave': 'Poistu ryhmästä',
@@ -3662,4 +3661,6 @@ export const fi: Dict = {
   'settings.look.builtInHint': 'Mitä KnightLoader tuo mukanaan tai ajaa rinnallaan, kukin versionsa ja alkuperänsä kanssa. Nämä osat tulevat KnightLoaderin tai konttikuvan mukana tai päivittävät itsensä, joten täällä ei ole mitään päivitettävää.',
   'whatsnew.change.builtIn': '”{name}” luettelee jokaisen osan, joka tulee KnightLoaderin mukana, versioineen ja alkuperineen. Päivitettävät jäävät korttiin ”{updates}”.',
   'whatsnew.change.settingRows': 'Jokainen pudotusvalikko ja syöttökenttä Asetuksissa on nimensä vieressä, korttinsa lopussa.',
+  'pairing.wordsNoPassword': 'Tällä instanssilla ei ole kirjautumissalasanaa, joten kuka tahansa tälle sivulle pääsevä voi lukea nämä sanat. Aseta salasana kohdassa Turvallisuus.',
+  'whatsnew.change.wordsAgain': '”{name}” näyttää kaksitoista sanaa uudelleen myös ilman salasanaa. Niin kauan kuin salasanaa ei ole, ikkuna varoittaa, että kuka tahansa tälle sivulle pääsevä voi lukea ne.',
 };

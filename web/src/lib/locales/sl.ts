@@ -230,7 +230,6 @@ export const sl: Dict = {
   'pairing.show': 'Pokaži frazo',
   'pairing.passwordLabel': 'Geslo za prijavo',
   'pairing.passwordTip': 'Besede odprejo vsako instanco v skupini, zato ponovni prikaz vedno zahteva geslo.',
-  'pairing.wordsNeedPassword': 'Te besede odprejo vsako instanco v skupini, zato jih KnightLoader znova pokaže šele, ko je nastavljeno geslo za prijavo.',
   'pairing.passwordWrong': 'To ni geslo za prijavo.',
   'pairing.viaRelay': 'Prek relaya',
   'pairing.leave': 'Zapusti skupino',
@@ -3659,4 +3658,6 @@ export const sl: Dict = {
   'settings.look.builtInHint': 'Kar KnightLoader prinese s seboj ali poganja ob sebi, vsak del s svojo različico in izvorom. Ti deli pridejo s KnightLoaderjem ali s sliko vsebnika ali se posodabljajo sami, zato tu ni ničesar za posodobiti.',
   'whatsnew.change.builtIn': '»{name}« našteje vsak del, ki pride s KnightLoaderjem, z različico in izvorom. Kar je mogoče posodobiti, ostane na »{updates}«.',
   'whatsnew.change.settingRows': 'Vsak spustni seznam in vsako vnosno polje v Nastavitvah stoji ob svojem imenu, na koncu svoje kartice.',
+  'pairing.wordsNoPassword': 'Ta primerek nima gesla za prijavo, zato lahko te besede prebere vsak, ki pride do te strani. Nastavi geslo pod Varnost.',
+  'whatsnew.change.wordsAgain': '»{name}« znova pokaže dvanajst besed tudi brez gesla. Dokler ni nastavljeno, okno opozarja, da jih lahko prebere vsak, ki pride do te strani.',
 };

@@ -230,7 +230,6 @@ export const ko: Dict = {
   'pairing.show': '문구 표시',
   'pairing.passwordLabel': '로그인 비밀번호',
   'pairing.passwordTip': '이 단어로 그룹의 모든 인스턴스를 열 수 있으므로, 다시 표시할 때마다 비밀번호를 묻습니다.',
-  'pairing.wordsNeedPassword': '이 단어로 그룹의 모든 인스턴스를 열 수 있으므로, KnightLoader는 로그인 비밀번호가 설정된 뒤에만 다시 보여 줍니다.',
   'pairing.passwordWrong': '로그인 비밀번호가 아닙니다.',
   'pairing.viaRelay': '릴레이 경유',
   'pairing.leave': '그룹 나가기',
@@ -3647,4 +3646,6 @@ export const ko: Dict = {
   'settings.look.builtInHint': 'KnightLoader가 함께 가져오거나 옆에서 실행하는 것들로, 각각의 버전과 출처를 보여 줍니다. 이 부분들은 KnightLoader나 컨테이너 이미지와 함께 오거나 스스로 업데이트되므로 여기서 업데이트할 것은 없습니다.',
   'whatsnew.change.builtIn': '“{name}”은 KnightLoader와 함께 오는 모든 부분을 버전과 출처와 함께 나열합니다. 업데이트할 수 있는 것은 “{updates}”에 그대로 있습니다.',
   'whatsnew.change.settingRows': '설정의 모든 드롭다운과 입력 칸은 이름 옆, 카드 끝에 놓입니다.',
+  'pairing.wordsNoPassword': '이 인스턴스에는 로그인 비밀번호가 없어서 이 페이지에 들어올 수 있는 누구나 이 단어들을 읽을 수 있습니다. 보안에서 비밀번호를 설정하세요.',
+  'whatsnew.change.wordsAgain': '“{name}”은 비밀번호가 없어도 열두 단어를 다시 보여 줍니다. 비밀번호가 설정되지 않은 동안 창은 이 페이지에 들어올 수 있는 누구나 단어를 읽을 수 있다고 경고합니다.',
 };

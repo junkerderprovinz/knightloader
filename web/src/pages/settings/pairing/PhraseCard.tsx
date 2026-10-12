@@ -67,7 +67,6 @@ export function refusalText(t: T, e: unknown): string {
   if (e instanceof ApiError) {
     if (e.code === 'passwordWrong') return t('pairing.passwordWrong');
     if (e.code === 'phraseExists') return t('pairing.errExists');
-    if (e.code === 'passwordNotSet') return t('pairing.wordsNeedPassword');
   }
   return e instanceof Error && e.message ? e.message : t('pairing.actionError');
 }
@@ -289,24 +288,25 @@ export function PhraseCard({
     </div>
   );
 
-  // Without a password the words are not shown again at all, except in the
-  // desktop window, which nobody else can reach.
-  const wordsLocked = !group.passwordSet && !isDesktop();
-  const wordsNeedPassword = (
-    <div className="flex flex-col gap-3">
-      <p className="text-sm leading-relaxed text-carbon-text">{t('pairing.wordsNeedPassword')}</p>
-      <div className="flex justify-end">
-        <Button kind="secondary" onClick={() => navigate('/settings/access')}>
-          {t('settings.setPassword')}
-        </Button>
-      </div>
+  // Without a password the words show as well, and the window says who else
+  // can read them. The desktop window is the exception, since nobody else can
+  // reach it.
+  const wordsOpen = !group.passwordSet && !isDesktop() && (
+    <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
+      <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
+        <IconWarning />
+      </span>
+      <p className="min-w-0 flex-[1_1_18rem] text-subline leading-relaxed text-carbon-text">{t('pairing.wordsNoPassword')}</p>
+      <Button kind="secondary" onClick={() => navigate('/settings/access')}>
+        {t('settings.setPassword')}
+      </Button>
     </div>
   );
 
   const openWords = () => {
     setShown('words');
     // Without a password there is nothing to enter before the words show.
-    if (!phrase && !group.passwordSet && !wordsLocked) void show();
+    if (!phrase && !group.passwordSet) void show();
   };
   const closeShown = () => {
     setShown(null);
@@ -339,7 +339,7 @@ export function PhraseCard({
   );
 
   const foot = (
-    <div className="flex flex-wrap items-center justify-end gap-2.5">
+    <div data-new="words-again" className="flex flex-wrap items-center justify-end gap-2.5">
       <Button kind="secondary" icon={<IconEye />} onClick={openWords} disabled={busy}>
         {t('pairing.show')}
       </Button>
@@ -382,13 +382,12 @@ export function PhraseCard({
       >
         {phrase ? (
           <>
+            {wordsOpen}
             <WordGrid phrase={phrase} qr={qr} bare t={t} />
             <NextStep t={t} />
           </>
         ) : group.passwordSet ? (
           passwordPrompt
-        ) : wordsLocked ? (
-          wordsNeedPassword
         ) : null}
       </Modal>
     ) : shown === 'enter' ? (

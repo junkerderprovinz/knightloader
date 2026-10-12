@@ -230,7 +230,6 @@ export const hu: Dict = {
   'pairing.show': 'Jelmondat megjelenítése',
   'pairing.passwordLabel': 'Bejelentkezési jelszó',
   'pairing.passwordTip': 'A szavak a csoport minden példányát megnyitják, ezért az újbóli megjelenítésükhöz mindig kell a jelszó.',
-  'pairing.wordsNeedPassword': 'Ezek a szavak a csoport minden példányát megnyitják, ezért a KnightLoader csak akkor mutatja meg őket újra, ha be van állítva bejelentkezési jelszó.',
   'pairing.passwordWrong': 'Ez nem a bejelentkezési jelszó.',
   'pairing.viaRelay': 'Relayen keresztül',
   'pairing.leave': 'Csoport elhagyása',
@@ -3662,4 +3661,6 @@ export const hu: Dict = {
   'settings.look.builtInHint': 'Amit a KnightLoader magával hoz vagy maga mellett futtat, mindegyik a verziójával és az eredetével. Ezek a részek a KnightLoaderrel vagy a konténer lemezképével érkeznek, vagy maguktól frissülnek, ezért itt nincs mit frissíteni.',
   'whatsnew.change.builtIn': 'A(z) „{name}” felsorol minden részt, ami a KnightLoaderrel érkezik, a verziójával és az eredetével. Ami frissíthető, az a(z) „{updates}” kártyán marad.',
   'whatsnew.change.settingRows': 'A Beállításokban minden legördülő lista és beviteli mező a neve mellett áll, a kártyája végén.',
+  'pairing.wordsNoPassword': 'Ennek a példánynak nincs bejelentkezési jelszava, ezért bárki elolvashatja ezeket a szavakat, aki eléri ezt az oldalt. Állíts be jelszót a Biztonság alatt.',
+  'whatsnew.change.wordsAgain': 'A(z) „{name}” jelszó nélkül is újra megmutatja a tizenkét szót. Amíg nincs jelszó, az ablak figyelmeztet, hogy bárki elolvashatja őket, aki eléri ezt az oldalt.',
 };

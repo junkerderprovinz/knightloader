@@ -188,6 +188,12 @@ export const RELEASES: Release[] = [
       },
       { id: 'pairing-own-key', to: ['/settings/pairing'], text: 'whatsnew.change.pairingOwnKey' },
       {
+        id: 'words-again',
+        to: ['/settings/pairing'],
+        text: 'whatsnew.change.wordsAgain',
+        names: { name: 'pairing.show' },
+      },
+      {
         id: 'relay-serve',
         to: ['/settings/pairing'],
         text: 'whatsnew.change.relayServe',

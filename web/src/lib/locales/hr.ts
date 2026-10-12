@@ -230,7 +230,6 @@ export const hr: Dict = {
   'pairing.show': 'Prikaži frazu',
   'pairing.passwordLabel': 'Lozinka za prijavu',
   'pairing.passwordTip': 'Riječi otvaraju svaku instancu u skupini, pa njihovo ponovno prikazivanje uvijek traži lozinku.',
-  'pairing.wordsNeedPassword': 'Ove riječi otvaraju svaku instancu u skupini, pa ih KnightLoader ponovno prikazuje tek kad je postavljena lozinka za prijavu.',
   'pairing.passwordWrong': 'To nije lozinka za prijavu.',
   'pairing.viaRelay': 'Preko releja',
   'pairing.leave': 'Napusti skupinu',
@@ -3674,4 +3673,6 @@ export const hr: Dict = {
   'settings.look.builtInHint': 'Ono što KnightLoader donosi sa sobom ili pokreće uz sebe, svaki dio sa svojom verzijom i podrijetlom. Ti dijelovi dolaze s KnightLoaderom ili sa slikom spremnika, ili se sami ažuriraju, pa ovdje nema što ažurirati.',
   'whatsnew.change.builtIn': '„{name}” navodi svaki dio koji dolazi s KnightLoaderom, s verzijom i podrijetlom. Ono što se može ažurirati ostaje na „{updates}”.',
   'whatsnew.change.settingRows': 'Svaki padajući izbornik i svako polje za unos u Postavkama stoji uz svoj naziv, na kraju svoje kartice.',
+  'pairing.wordsNoPassword': 'Ova instanca nema lozinku za prijavu, pa svatko tko dođe do ove stranice može pročitati ove riječi. Postavi lozinku pod Sigurnost.',
+  'whatsnew.change.wordsAgain': '„{name}” ponovno prikazuje dvanaest riječi i bez lozinke. Dok nije postavljena, prozor upozorava da ih može pročitati svatko tko dođe do ove stranice.',
 };

@@ -230,7 +230,6 @@ export const sv: Dict = {
   'pairing.show': 'Visa fras',
   'pairing.passwordLabel': 'Inloggningslösenord',
   'pairing.passwordTip': 'Orden öppnar varje instans i gruppen, så för att visa dem igen krävs alltid lösenordet.',
-  'pairing.wordsNeedPassword': 'De här orden öppnar varje instans i gruppen, så KnightLoader visar dem igen först när ett inloggningslösenord är satt.',
   'pairing.passwordWrong': 'Det är inte inloggningslösenordet.',
   'pairing.viaRelay': 'Via relä',
   'pairing.leave': 'Lämna gruppen',
@@ -3660,4 +3659,6 @@ export const sv: Dict = {
   'settings.look.builtInHint': 'Det KnightLoader har med sig eller kör bredvid sig, var och en med sin version och sitt ursprung. De här delarna följer med KnightLoader eller containeravbilden, eller uppdaterar sig själva, så här finns inget att uppdatera.',
   'whatsnew.change.builtIn': '”{name}” listar varje del som följer med KnightLoader, med version och ursprung. Det som går att uppdatera ligger kvar på ”{updates}”.',
   'whatsnew.change.settingRows': 'Varje rullgardinslista och varje inmatningsfält i Inställningar står bredvid sitt namn, i slutet av sitt kort.',
+  'pairing.wordsNoPassword': 'Den här instansen har inget inloggningslösenord, så alla som når den här sidan kan läsa orden. Ange ett lösenord under Säkerhet.',
+  'whatsnew.change.wordsAgain': '”{name}” visar de tolv orden igen även utan lösenord. Så länge inget är angivet varnar fönstret för att alla som når den här sidan kan läsa dem.',
 };

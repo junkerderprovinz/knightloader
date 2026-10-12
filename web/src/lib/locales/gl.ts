@@ -230,7 +230,6 @@ export const gl: Dict = {
   'pairing.show': 'Amosar frase',
   'pairing.passwordLabel': 'Contrasinal de acceso',
   'pairing.passwordTip': 'As palabras abren todas as instancias do grupo, así que amosalas de novo sempre pide o contrasinal.',
-  'pairing.wordsNeedPassword': 'Estas palabras abren todas as instancias do grupo, por iso KnightLoader só as volve amosar cando hai un contrasinal de acceso.',
   'pairing.passwordWrong': 'Ese non é o contrasinal de acceso.',
   'pairing.viaRelay': 'Vía relé',
   'pairing.leave': 'Deixar o grupo',
@@ -3658,4 +3657,6 @@ export const gl: Dict = {
   'settings.look.builtInHint': 'O que KnightLoader trae consigo ou executa ao seu carón, cada parte coa súa versión e a súa orixe. Estas partes veñen con KnightLoader ou coa imaxe do contedor, ou actualízanse soas, así que aquí non hai nada que actualizar.',
   'whatsnew.change.builtIn': '«{name}» lista cada parte que vén con KnightLoader, coa súa versión e a súa orixe. O que se pode actualizar segue en «{updates}».',
   'whatsnew.change.settingRows': 'Cada despregable e cada campo de entrada de Axustes está ao carón do seu nome, ao final da súa tarxeta.',
+  'pairing.wordsNoPassword': 'Esta instancia non ten contrasinal de inicio de sesión, así que calquera que chegue a esta páxina pode ler estas palabras. Pon un contrasinal en Seguranza.',
+  'whatsnew.change.wordsAgain': '«{name}» volve amosar as doce palabras tamén sen contrasinal. Mentres non haxa ningún, a xanela avisa de que calquera que chegue a esta páxina pode lelas.',
 };

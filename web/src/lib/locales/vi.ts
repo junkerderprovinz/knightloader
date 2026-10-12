@@ -230,7 +230,6 @@ export const vi: Dict = {
   'pairing.show': 'Hiện cụm từ',
   'pairing.passwordLabel': 'Mật khẩu đăng nhập',
   'pairing.passwordTip': 'Các từ này mở được mọi phiên bản trong nhóm, nên muốn hiện lại chúng luôn phải nhập mật khẩu.',
-  'pairing.wordsNeedPassword': 'Các từ này mở được mọi phiên bản trong nhóm, nên KnightLoader chỉ hiện lại chúng khi đã đặt mật khẩu đăng nhập.',
   'pairing.passwordWrong': 'Đó không phải mật khẩu đăng nhập.',
   'pairing.viaRelay': 'Qua relay',
   'pairing.leave': 'Rời nhóm',
@@ -3660,4 +3659,6 @@ export const vi: Dict = {
   'settings.look.builtInHint': 'Những gì KnightLoader mang theo hoặc chạy bên cạnh, mỗi phần kèm phiên bản và nguồn gốc. Các phần này đi cùng KnightLoader hoặc ảnh container, hoặc tự cập nhật, nên ở đây không có gì để cập nhật.',
   'whatsnew.change.builtIn': '“{name}” liệt kê mọi phần đi kèm KnightLoader, kèm phiên bản và nguồn gốc. Những gì cập nhật được vẫn nằm ở “{updates}”.',
   'whatsnew.change.settingRows': 'Mỗi danh sách thả xuống và ô nhập trong Cài đặt đều nằm cạnh tên của nó, ở cuối thẻ.',
+  'pairing.wordsNoPassword': 'Phiên bản này chưa có mật khẩu đăng nhập, nên bất kỳ ai vào được trang này đều đọc được các từ này. Hãy đặt mật khẩu trong Bảo mật.',
+  'whatsnew.change.wordsAgain': '“{name}” hiện lại mười hai từ kể cả khi không có mật khẩu. Khi chưa đặt mật khẩu, cửa sổ cảnh báo rằng bất kỳ ai vào được trang này đều đọc được chúng.',
 };
