@@ -3619,7 +3619,7 @@ export const pt: Dict = {
   'whatsnew.change.pairingApproval': 'Um telemóvel, um navegador ou outra instância que introduza as doze palavras espera em «{name}» até o aprovares.',
   'whatsnew.change.pairingOwnKey': 'A lista do teu grupo mostra a chave desta instância, para a poderes comparar quando outra instância tiver de aprovar esta.',
   'whatsnew.change.passwordReset': '«{name}» no ecrã de início de sessão define uma nova palavra-passe com um código que o KnightLoader escreve no seu registo ou na sua pasta de dados.',
-  'whatsnew.change.trustedProxies': 'Se houver um proxy inverso à frente, introduz o endereço dele em «{name}», para que uma só pessoa a adivinhar a palavra-passe não faça todos esperar.',
+  'whatsnew.change.trustedProxies': 'Assim que os pedidos chegam através de um proxy inverso, aparece «{name}». Escreve lá o endereço do proxy, para que uma só pessoa a adivinhar a palavra-passe não faça todos esperar.',
   'whatsnew.change.audioBest': 'A taxa de bits de áudio «{best}» pede ao codificador a sua melhor qualidade sempre que uma faixa é convertida, em «{name}» e em «{defaults}».',
   'whatsnew.change.addLinksHome': '«{name}» agora só existe no coletor de links, junto ao campo onde colas links.',
   'whatsnew.change.healthParts': 'Em «{name}» cada estado fica no fim da sua linha, por isso os estados ficam alinhados.',

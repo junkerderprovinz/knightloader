@@ -3611,7 +3611,7 @@ export const nl: Dict = {
   'whatsnew.change.pairingApproval': 'Een telefoon, een browser of een andere instantie die de twaalf woorden invoert, wacht onder “{name}” tot je hem goedkeurt.',
   'whatsnew.change.pairingOwnKey': 'De lijst van je groep toont de sleutel van deze instantie, zodat je die kunt vergelijken als een andere instantie deze moet goedkeuren.',
   'whatsnew.change.passwordReset': '“{name}” op het aanmeldscherm stelt een nieuw wachtwoord in met een code die KnightLoader naar zijn log of zijn gegevensmap schrijft.',
-  'whatsnew.change.trustedProxies': 'Staat er een reverse proxy voor, vul dan zijn adres in onder “{name}”, zodat één persoon die het wachtwoord raadt niet iedereen laat wachten.',
+  'whatsnew.change.trustedProxies': 'Zodra verzoeken via een reverse proxy binnenkomen, verschijnt “{name}”. Vul daar het adres van de proxy in, zodat één persoon die het wachtwoord raadt niet iedereen laat wachten.',
   'whatsnew.change.audioBest': 'De audiobitrate “{best}” vraagt de encoder om zijn beste kwaliteit telkens als een spoor wordt omgezet, in “{name}” en in “{defaults}”.',
   'whatsnew.change.addLinksHome': '“{name}” staat nu alleen nog in de linkverzamelaar, naast het veld waarin je links plakt.',
   'whatsnew.change.healthParts': 'In “{name}” staat elke toestand aan het eind van zijn regel, zodat de toestanden netjes onder elkaar staan.',

@@ -196,7 +196,7 @@ export function PasswordCard({
             {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
           </span>
         )}
-        <TrustedProxiesField />
+        <TrustedProxiesField proxied={auth?.proxied ?? false} />
       </Card>
   );
 }
@@ -204,12 +204,14 @@ export function PasswordCard({
 /**
  * TrustedProxiesField names the reverse proxies whose X-Forwarded-For the
  * sign-in throttle reads. It saves with the settings, not with the password's
- * button.
+ * button. It shows while requests come in through a proxy, or while the saved
+ * list has entries, which may still matter after the proxy went quiet.
  */
-function TrustedProxiesField() {
+function TrustedProxiesField({ proxied }: { proxied: boolean }) {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, saved, patch } = useDraft();
   const unused = unusedProxyRanges(cfg.trustedProxies);
+  if (!proxied && (saved.trustedProxies ?? []).length === 0) return null;
   return (
     <div className="flex flex-col gap-1.5" data-new="trusted-proxies">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>

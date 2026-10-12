@@ -3625,7 +3625,7 @@ export const eu: Dict = {
   'whatsnew.change.pairingApproval': 'Hamabi hitzak sartzen dituen telefono, nabigatzaile edo beste instantzia bat «{name}» atalean zain geratzen da zuk onartu arte.',
   'whatsnew.change.pairingOwnKey': 'Zure taldearen zerrendak instantzia honen gakoa erakusten du, beste instantzia batek hau onartu behar duenean alderatu ahal izateko.',
   'whatsnew.change.passwordReset': 'Saio-hasierako pantailako «{name}» aukerak pasahitz berri bat ezartzen du, KnightLoaderrek bere erregistroan edo datu-karpetan idazten duen kode batekin.',
-  'whatsnew.change.trustedProxies': 'Aurrean alderantzizko proxy bat badago, idatzi haren helbidea «{name}» atalean, pasahitza asmatzen saiatzen den pertsona batek denak itxaron ez ditzan.',
+  'whatsnew.change.trustedProxies': 'Eskaerak alderantzizko proxy baten bidez iristen direnean, «{name}» agertzen da. Idatzi han proxyaren helbidea, pasahitza asmatzen ari den pertsona batek denak itxaron ez ditzan.',
   'whatsnew.change.audioBest': '«{best}» audio bit-emariak kodetzaileari bere kalitate onena eskatzen dio pista bat bihurtzen den bakoitzean, «{name}» atalean eta «{defaults}» atalean.',
   'whatsnew.change.addLinksHome': '«{name}» orain esteka biltzailean bakarrik dago, estekak itsasten dituzun eremuaren ondoan.',
   'whatsnew.change.healthParts': '«{name}» atalean egoera bakoitza bere lerroaren amaieran dago, eta horrela egoerak lerrokatuta geratzen dira.',

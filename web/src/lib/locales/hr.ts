@@ -3642,7 +3642,7 @@ export const hr: Dict = {
   'whatsnew.change.pairingApproval': 'Telefon, preglednik ili druga instanca koja unese dvanaest riječi čeka pod „{name}” dok je ne odobriš.',
   'whatsnew.change.pairingOwnKey': 'Popis tvoje skupine prikazuje ključ ove instance, da ga možeš usporediti kad ovu instancu treba odobriti neka druga.',
   'whatsnew.change.passwordReset': '„{name}” na zaslonu za prijavu postavlja novu lozinku pomoću koda koji KnightLoader zapisuje u svoj zapisnik ili svoju mapu s podacima.',
-  'whatsnew.change.trustedProxies': 'Ako ispred stoji obrnuti proxy, unesi njegovu adresu pod „{name}”, da jedna osoba koja pogađa lozinku ne natjera sve da čekaju.',
+  'whatsnew.change.trustedProxies': 'Čim zahtjevi stižu preko obrnutog proxyja, pojavi se „{name}”. Ondje upiši adresu proxyja, da jedna osoba koja pogađa lozinku ne tjera sve da čekaju.',
   'whatsnew.change.audioBest': 'Audio bitrate „{best}” traži od enkodera njegovu najbolju kvalitetu svaki put kad se zapis pretvara, u „{name}” i u „{defaults}”.',
   'whatsnew.change.addLinksHome': '„{name}” sada postoji samo u sakupljaču poveznica, pokraj polja u koje lijepiš poveznice.',
   'whatsnew.change.healthParts': 'U „{name}” svako stanje stoji na kraju svog retka, pa su stanja poravnana jedno ispod drugog.',

@@ -3637,7 +3637,7 @@ export const ro: Dict = {
   'whatsnew.change.pairingApproval': 'Un telefon, un browser sau o altă instanță care introduce cele douăsprezece cuvinte așteaptă la „{name}” până o aprobi.',
   'whatsnew.change.pairingOwnKey': 'Lista grupului tău arată cheia acestei instanțe, ca s-o poți compara când o altă instanță trebuie s-o aprobe pe aceasta.',
   'whatsnew.change.passwordReset': '„{name}” pe ecranul de autentificare setează o parolă nouă cu un cod pe care KnightLoader îl scrie în jurnalul său sau în dosarul său de date.',
-  'whatsnew.change.trustedProxies': 'Dacă în față stă un proxy invers, introdu adresa lui la „{name}”, ca o singură persoană care ghicește parola să nu-i facă pe toți să aștepte.',
+  'whatsnew.change.trustedProxies': 'De îndată ce cererile vin printr-un proxy invers, apare „{name}”. Introdu acolo adresa proxy-ului, ca o singură persoană care ghicește parola să nu-i facă pe toți să aștepte.',
   'whatsnew.change.audioBest': 'Bitrate-ul audio „{best}” cere codificatorului cea mai bună calitate de fiecare dată când o pistă este convertită, în „{name}” și în „{defaults}”.',
   'whatsnew.change.addLinksHome': '„{name}” există acum doar în colectorul de linkuri, lângă câmpul în care lipești linkuri.',
   'whatsnew.change.healthParts': 'În „{name}” fiecare stare stă la capătul rândului ei, așa că stările rămân aliniate.',

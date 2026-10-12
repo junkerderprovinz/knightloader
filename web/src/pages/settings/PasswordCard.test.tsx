@@ -50,6 +50,7 @@ afterEach(() => {
 async function open() {
   const draft = {
     cfg: { trustedProxies: [] },
+    saved: { trustedProxies: [] },
     patch: () => {},
     fieldError: () => undefined,
     showRefusalsAt: () => () => {},

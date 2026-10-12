@@ -3616,7 +3616,7 @@ export const ca: Dict = {
   'whatsnew.change.pairingApproval': 'Un telèfon, un navegador o una altra instància que introdueix les dotze paraules espera a «{name}» fins que l’aprovis.',
   'whatsnew.change.pairingOwnKey': 'La llista del teu grup mostra la clau d’aquesta instància, perquè la puguis comparar quan una altra instància hagi d’aprovar aquesta.',
   'whatsnew.change.passwordReset': '«{name}» a la pantalla d’inici de sessió estableix una contrasenya nova amb un codi que KnightLoader escriu al seu registre o a la seva carpeta de dades.',
-  'whatsnew.change.trustedProxies': 'Si hi ha un proxy invers al davant, introdueix-ne l’adreça a «{name}», perquè una sola persona que endevina la contrasenya no faci esperar tothom.',
+  'whatsnew.change.trustedProxies': 'Quan les peticions arriben per un servidor intermediari invers, apareix «{name}». Escriu-hi l’adreça de l’intermediari, perquè una sola persona que endevina la contrasenya no faci esperar tothom.',
   'whatsnew.change.audioBest': 'La taxa de bits d’àudio «{best}» demana al codificador la seva millor qualitat cada vegada que es converteix una pista, a «{name}» i a «{defaults}».',
   'whatsnew.change.addLinksHome': '«{name}» ara només és al recol·lector d’enllaços, al costat del camp on enganxes enllaços.',
   'whatsnew.change.healthParts': 'A «{name}» cada estat és al final de la seva fila, així que els estats queden alineats.',

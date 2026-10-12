@@ -3624,7 +3624,7 @@ export const ja: Dict = {
   'whatsnew.change.pairingApproval': '12 個の単語を入力したスマートフォン、ブラウザー、ほかのインスタンスは、承認されるまで「{name}」で待ちます。',
   'whatsnew.change.pairingOwnKey': 'グループの一覧にこのインスタンスの鍵が表示されます。ほかのインスタンスがこのインスタンスを承認するときに見比べられます。',
   'whatsnew.change.passwordReset': 'サインイン画面の「{name}」から、KnightLoader がログまたはデータフォルダーに書き出すコードを使って新しいパスワードを設定できます。',
-  'whatsnew.change.trustedProxies': 'リバースプロキシの後ろで動かす場合は、そのアドレスを「{name}」に入力してください。パスワードを推測する 1 人のせいで全員が待たされることがなくなります。',
+  'whatsnew.change.trustedProxies': 'リクエストがリバースプロキシ経由で届くようになると「{name}」が現れます。そこにプロキシのアドレスを入れれば、パスワードを推測している一人のせいで全員が待たされることはありません。',
   'whatsnew.change.audioBest': '音声ビットレートの「{best}」は、トラックを変換するたびにエンコーダーに最高品質を求めます。「{name}」と「{defaults}」で使えます。',
   'whatsnew.change.addLinksHome': '「{name}」は、リンクを貼り付ける欄の横にある、リンクコレクターだけに置かれるようになりました。',
   'whatsnew.change.healthParts': '「{name}」では、各状態が行の右端にそろうので、状態が縦に並びます。',

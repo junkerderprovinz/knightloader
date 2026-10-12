@@ -3619,7 +3619,7 @@ export const lv: Dict = {
   'whatsnew.change.pairingApproval': 'Tālrunis, pārlūks vai cita instance, kas ievada divpadsmit vārdus, gaida sadaļā „{name}“, līdz tu to apstiprini.',
   'whatsnew.change.pairingOwnKey': 'Tavas grupas sarakstā redzama šīs instances atslēga, lai tu to varētu salīdzināt, kad šī instance jāapstiprina citai.',
   'whatsnew.change.passwordReset': '„{name}“ pieteikšanās ekrānā iestata jaunu paroli ar kodu, ko KnightLoader ieraksta savā žurnālā vai datu mapē.',
-  'whatsnew.change.trustedProxies': 'Ja priekšā ir reversais starpniekserveris, ievadi tā adresi sadaļā „{name}“, lai viens paroles minētājs neliktu gaidīt visiem.',
+  'whatsnew.change.trustedProxies': 'Tiklīdz pieprasījumi nāk caur reverso starpniekserveri, parādās „{name}“. Ieraksti tur starpniekservera adresi, lai viens cilvēks, kas min paroli, neliktu gaidīt visiem.',
   'whatsnew.change.audioBest': 'Audio bitu ātrums „{best}“ lūdz kodētājam tā labāko kvalitāti ikreiz, kad celiņš tiek konvertēts, sadaļā „{name}“ un sadaļā „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ tagad ir tikai saišu savācējā, blakus laukam, kurā ielīmē saites.',
   'whatsnew.change.healthParts': 'Sadaļā „{name}“ katrs stāvoklis atrodas savas rindas beigās, tāpēc stāvokļi izlīdzinās cits zem cita.',

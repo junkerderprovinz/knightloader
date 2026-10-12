@@ -3628,7 +3628,7 @@ export const id: Dict = {
   'whatsnew.change.pairingApproval': 'Ponsel, browser, atau instance lain yang memasukkan dua belas kata menunggu di “{name}” sampai kamu menyetujuinya.',
   'whatsnew.change.pairingOwnKey': 'Daftar grupmu menampilkan kunci instance ini, supaya kamu bisa membandingkannya saat instance lain perlu menyetujui instance ini.',
   'whatsnew.change.passwordReset': '“{name}” di layar masuk menetapkan kata sandi baru dengan kode yang ditulis KnightLoader ke log atau folder datanya.',
-  'whatsnew.change.trustedProxies': 'Kalau ada reverse proxy di depannya, masukkan alamatnya di “{name}”, supaya satu orang yang menebak kata sandi tidak membuat semua orang menunggu.',
+  'whatsnew.change.trustedProxies': 'Begitu permintaan datang lewat reverse proxy, “{name}” muncul. Masukkan alamat proxy di sana, agar satu orang yang menebak kata sandi tidak membuat semua orang menunggu.',
   'whatsnew.change.audioBest': 'Bitrate audio “{best}” meminta enkoder memberikan kualitas terbaiknya setiap kali sebuah trek dikonversi, di “{name}” dan di “{defaults}”.',
   'whatsnew.change.addLinksHome': '“{name}” sekarang hanya ada di pengumpul tautan, di samping kotak tempat kamu menempel tautan.',
   'whatsnew.change.healthParts': 'Di “{name}” setiap status berada di ujung barisnya, jadi status-statusnya sejajar.',

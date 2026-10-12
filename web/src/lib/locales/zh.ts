@@ -3610,7 +3610,7 @@ export const zh: Dict = {
   'whatsnew.change.pairingApproval': '输入了十二个词的手机、浏览器或其他实例会在“{name}”里等待，直到你批准。',
   'whatsnew.change.pairingOwnKey': '组列表会显示这个实例的密钥，当别的实例需要批准这个实例时，你可以拿来对照。',
   'whatsnew.change.passwordReset': '登录界面上的“{name}”可以用 KnightLoader 写进日志或数据文件夹的代码设置新密码。',
-  'whatsnew.change.trustedProxies': '如果前面有反向代理，请把它的地址填进“{name}”，这样一个人猜密码就不会让所有人都等。',
+  'whatsnew.change.trustedProxies': '一旦有请求经由反向代理到达，就会出现“{name}”。在其中填写代理的地址，这样一个猜密码的人就不会让所有人都等待。',
   'whatsnew.change.audioBest': '音频比特率“{best}”会在每次转换音轨时向编码器要求最佳质量，在“{name}”和“{defaults}”中都是如此。',
   'whatsnew.change.addLinksHome': '“{name}”现在只在链接收集器里，就在你粘贴链接的输入框旁边。',
   'whatsnew.change.healthParts': '在“{name}”中，每个状态都在所在行的末尾，所以状态上下对齐。',

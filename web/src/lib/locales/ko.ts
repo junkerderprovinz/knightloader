@@ -3615,7 +3615,7 @@ export const ko: Dict = {
   'whatsnew.change.pairingApproval': '12개 단어를 입력한 휴대폰, 브라우저, 다른 인스턴스는 승인할 때까지 “{name}”에서 기다립니다.',
   'whatsnew.change.pairingOwnKey': '그룹 목록에 이 인스턴스의 키가 표시되므로, 다른 인스턴스가 이 인스턴스를 승인해야 할 때 비교할 수 있습니다.',
   'whatsnew.change.passwordReset': '로그인 화면의 “{name}”은 KnightLoader가 로그나 데이터 폴더에 기록하는 코드로 새 암호를 설정합니다.',
-  'whatsnew.change.trustedProxies': '앞에 리버스 프록시가 있다면 그 주소를 “{name}”에 입력하세요. 암호를 추측하는 한 사람 때문에 모두가 기다리지 않게 됩니다.',
+  'whatsnew.change.trustedProxies': '요청이 리버스 프록시를 거쳐 들어오면 “{name}”이 나타납니다. 거기에 프록시 주소를 넣으면 비밀번호를 추측하는 한 사람 때문에 모두가 기다리는 일이 없습니다.',
   'whatsnew.change.audioBest': '오디오 비트레이트 “{best}”는 트랙을 변환할 때마다 인코더에 최고 품질을 요청합니다. “{name}”과 “{defaults}”에서 모두 그렇습니다.',
   'whatsnew.change.addLinksHome': '“{name}”는 이제 링크를 붙여 넣는 입력란 옆, 링크 수집기에만 있습니다.',
   'whatsnew.change.healthParts': '“{name}”에서는 각 상태가 행의 끝에 있어서 상태가 세로로 나란히 정렬됩니다.',

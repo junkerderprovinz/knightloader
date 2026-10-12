@@ -3626,7 +3626,7 @@ export const gl: Dict = {
   'whatsnew.change.pairingApproval': 'Un teléfono, un navegador ou outra instancia que introduce as doce palabras agarda en «{name}» ata que o aprobes.',
   'whatsnew.change.pairingOwnKey': 'A lista do teu grupo mostra a chave desta instancia, para que a poidas comparar cando outra instancia teña que aprobar esta.',
   'whatsnew.change.passwordReset': '«{name}» na pantalla de inicio de sesión establece un contrasinal novo cun código que KnightLoader escribe no seu rexistro ou no seu cartafol de datos.',
-  'whatsnew.change.trustedProxies': 'Se hai un proxy inverso diante, introduce o seu enderezo en «{name}», para que unha soa persoa que adiviña o contrasinal non faga agardar a todos.',
+  'whatsnew.change.trustedProxies': 'En canto as peticións chegan a través dun proxy inverso, aparece «{name}». Escribe alí o enderezo do proxy, para que unha soa persoa que adiviña o contrasinal non faga agardar a todos.',
   'whatsnew.change.audioBest': 'A taxa de bits de audio «{best}» pídelle ao codificador a súa mellor calidade sempre que se converte unha pista, en «{name}» e en «{defaults}».',
   'whatsnew.change.addLinksHome': '«{name}» agora só está no colector de ligazóns, xunto ao campo onde pegas ligazóns.',
   'whatsnew.change.healthParts': 'En «{name}» cada estado queda ao final da súa fila, así que os estados quedan aliñados.',

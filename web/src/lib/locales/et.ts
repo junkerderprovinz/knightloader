@@ -3620,7 +3620,7 @@ export const et: Dict = {
   'whatsnew.change.pairingApproval': 'Telefon, brauser või muu eksemplar, mis sisestab kaksteist sõna, ootab jaotises „{name}“, kuni sa selle kinnitad.',
   'whatsnew.change.pairingOwnKey': 'Sinu grupi loend näitab selle eksemplari võtit, et saaksid seda võrrelda, kui mõni teine eksemplar peab selle kinnitama.',
   'whatsnew.change.passwordReset': '„{name}“ sisselogimisekraanil seab uue parooli koodiga, mille KnightLoader kirjutab oma logisse või andmekausta.',
-  'whatsnew.change.trustedProxies': 'Kui ees on pöördproksi, sisesta selle aadress jaotisesse „{name}“, et üks parooli arvav inimene ei paneks kõiki ootama.',
+  'whatsnew.change.trustedProxies': 'Kui päringud tulevad pöördproksi kaudu, ilmub „{name}“. Sisesta sinna proksi aadress, et üks parooli arvav inimene ei paneks kõiki ootama.',
   'whatsnew.change.audioBest': 'Heli bitikiirus „{best}“ palub kodeerijalt tema parimat kvaliteeti iga kord, kui rada teisendatakse, jaotises „{name}“ ja jaotises „{defaults}“.',
   'whatsnew.change.addLinksHome': '„{name}“ on nüüd ainult linkide kogujas, välja kõrval, kuhu linke kleebid.',
   'whatsnew.change.healthParts': 'Jaotises „{name}“ on iga olek oma rea lõpus, nii et olekud jäävad üksteise alla.',

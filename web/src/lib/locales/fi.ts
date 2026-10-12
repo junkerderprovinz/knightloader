@@ -3630,7 +3630,7 @@ export const fi: Dict = {
   'whatsnew.change.pairingApproval': 'Puhelin, selain tai toinen instanssi, joka syöttää kaksitoista sanaa, odottaa kohdassa ”{name}”, kunnes hyväksyt sen.',
   'whatsnew.change.pairingOwnKey': 'Ryhmäsi luettelo näyttää tämän instanssin avaimen, jotta voit verrata sitä, kun toisen instanssin pitää hyväksyä tämä.',
   'whatsnew.change.passwordReset': 'Kirjautumisnäkymän ”{name}” asettaa uuden salasanan koodilla, jonka KnightLoader kirjoittaa lokiinsa tai datakansioonsa.',
-  'whatsnew.change.trustedProxies': 'Jos edessä on käänteinen välityspalvelin, syötä sen osoite kohtaan ”{name}”, jotta yksi salasanaa arvaava ei pane kaikkia odottamaan.',
+  'whatsnew.change.trustedProxies': 'Kun pyynnöt tulevat käänteisen välityspalvelimen kautta, ”{name}” tulee näkyviin. Kirjoita siihen välityspalvelimen osoite, jotta yksi salasanaa arvaava ei pakota kaikkia odottamaan.',
   'whatsnew.change.audioBest': 'Äänen bittinopeus ”{best}” pyytää enkooderilta sen parasta laatua aina, kun raita muunnetaan, kohdassa ”{name}” ja kohdassa ”{defaults}”.',
   'whatsnew.change.addLinksHome': '”{name}” on nyt vain linkkikerääjässä, linkkien liittämiskentän vieressä.',
   'whatsnew.change.healthParts': 'Kohdassa ”{name}” jokainen tila on rivinsä lopussa, joten tilat asettuvat allekkain.',

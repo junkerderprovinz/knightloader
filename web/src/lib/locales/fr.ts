@@ -3618,7 +3618,7 @@ export const fr: Dict = {
   'whatsnew.change.pairingApproval': 'Un téléphone, un navigateur ou une autre instance qui saisit les douze mots attend sous « {name} » jusqu’à ce que vous l’approuviez.',
   'whatsnew.change.pairingOwnKey': 'La liste de votre groupe affiche la clé de cette instance, pour que vous puissiez la comparer quand une autre instance doit approuver celle-ci.',
   'whatsnew.change.passwordReset': '« {name} » sur l’écran de connexion définit un nouveau mot de passe avec un code que KnightLoader écrit dans son journal ou dans son dossier de données.',
-  'whatsnew.change.trustedProxies': 'Derrière un proxy inverse, saisissez son adresse sous « {name} », pour qu’une seule personne qui devine le mot de passe ne fasse pas attendre tout le monde.',
+  'whatsnew.change.trustedProxies': 'Dès que des requêtes arrivent par un proxy inverse, « {name} » apparaît. Saisissez-y l’adresse du proxy, pour qu’une seule personne qui devine le mot de passe ne fasse pas attendre tout le monde.',
   'whatsnew.change.audioBest': 'Le débit audio « {best} » demande à l’encodeur sa meilleure qualité chaque fois qu’une piste est convertie, dans « {name} » et dans « {defaults} ».',
   'whatsnew.change.addLinksHome': '« {name} » n’existe plus que dans le collecteur de liens, à côté du champ où vous collez des liens.',
   'whatsnew.change.healthParts': 'Dans « {name} », chaque état se place à la fin de sa ligne, si bien que les états sont alignés.',
