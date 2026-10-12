@@ -372,9 +372,9 @@ extension or another instance calling a member sends no API token: its own
 key signs the call. The instance that answers signs the answer with its key
 too, and the caller takes it only when that key is the one the instance's id
 is made from, and, on another instance, only once that instance was approved
-there. The signature covers the call it answers, by the id that call spoke
-for and its signature, so an answer the instance gave to somebody else's call
-counts for nobody else, and an instance answers "removed" only to a call
+there. The signature covers the call it answers, by a hash of that call as it
+arrived, sealed, so an answer the instance gave to somebody else's call, or to
+this call changed on the way, counts for nobody else, and an instance answers "removed" only to a call
 signed by the key the removed id is made from. Whoever holds the words can
 seal an answer, but cannot sign one, so nobody who takes an instance's place
 on the relay or on your network can answer for it, tell a phone it was

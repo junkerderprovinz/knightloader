@@ -297,17 +297,20 @@ func TestACallIsServedWithTheConnectionThatSentIt(t *testing.T) {
 }
 
 // The answer and the hello the vector seed signs, which the app's and the
-// extension's ports check and make. The answer is to the vector call as its
-// signature stands.
+// extension's ports check and make. The answer is to the call that arrived as
+// vectorSealedCall.
 var (
 	vectorResult   = ProxyResult{Status: 410, Body: []byte("removed")}
 	vectorRelayKey = "relay-key-of-the-vector-0123456789"
 	// vectorChallenge is the challenge the vector hello answers, in base64.
 	vectorChallenge = "XFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFxcXFw="
+	// vectorSealedCall stands for a call as it arrived sealed, in base64. The
+	// answer names it by the hash of these bytes alone, so any bytes serve.
+	vectorSealedCall = "MzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMzMw=="
 )
 
 const (
-	vectorResultSig = "n977hIEXYvfFiEvycZjLyc6/KCb2IGAUXJe51ZyHqbFAbQYp+PWhBzOVDQsjjYUyDPFpXlenbBdTGMDBuapbBg=="
+	vectorResultSig = "efDaJoYEIIwKg5Z98dMHRSb3VtLTEx/lrphppJjTcHvDTTdEHRa9WZuRGNfTzdqgIXFzVed4Hq/TdRjWFncHBQ=="
 	vectorHelloSig  = "vIshHdbAJQWFYoDinfE3ip4WFg11J4hsA7194C9+mS8w8HK58oRwEsCg4NubHVA/C+tYThl57pRl25tQNKHsBA=="
 )
 
@@ -321,17 +324,9 @@ func decoded(t *testing.T, s string) []byte {
 	return b
 }
 
-// vectorSignedCall is the vector call with the signature it carries.
-func vectorSignedCall(t *testing.T) ProxyCall {
-	t.Helper()
-	call := vectorCall
-	call.Sig = decoded(t, vectorSig)
-	return call
-}
-
 func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
 	member := ed25519.NewKeyFromSeed(vectorSeed)
-	signed := SignResult(member, vectorCall.ID, vectorInstanceID, vectorSignedCall(t), vectorResult)
+	signed := SignResult(member, vectorCall.ID, vectorInstanceID, decoded(t, vectorSealedCall), vectorResult)
 	if got := base64.StdEncoding.EncodeToString(signed.Sig); got != vectorResultSig {
 		t.Errorf("answer signature = %s, want %s; the app and the extension check the old message", got, vectorResultSig)
 	}
@@ -347,21 +342,23 @@ func TestTheAnswerAndHelloVectorsStayTheSame(t *testing.T) {
 func TestAnAnswerCountsOnlySignedByTheTargetsKey(t *testing.T) {
 	target := ed25519.NewKeyFromSeed(vectorSeed)
 	forger := ed25519.NewKeyFromSeed(bytes.Repeat([]byte{9}, ed25519.SeedSize))
-	call := vectorSignedCall(t)
+	call := decoded(t, vectorSealedCall)
+	alteredCall := bytes.Clone(call)
+	alteredCall[len(alteredCall)-1] ^= 1
 	signed := SignResult(target, "r1", vectorInstanceID, call, vectorResult)
 	if !VerifyResult("r1", vectorInstanceID, call, signed) {
 		t.Fatal("the target's own answer does not verify")
 	}
-	altered := signed
-	altered.Status = http.StatusOK
+	restated := signed
+	restated.Status = http.StatusOK
 	for name, r := range map[string]ProxyResult{
 		"unsigned":                vectorResult,
 		"signed by another key":   SignResult(forger, "r1", vectorInstanceID, call, vectorResult),
-		"with its status changed": altered,
+		"with its status changed": restated,
 		"from another target":     SignResult(forger, "r1", MemberID(KindInstance, forger.Public().(ed25519.PublicKey)), call, vectorResult),
 		"to another request":      SignResult(target, "r2", vectorInstanceID, call, vectorResult),
-		"to another caller":       SignResult(target, "r1", vectorInstanceID, ProxyCall{From: vectorBrowserID, Sig: call.Sig}, vectorResult),
-		"to another call":         SignResult(target, "r1", vectorInstanceID, ProxyCall{From: call.From, Sig: bytes.Repeat([]byte{1}, ed25519.SignatureSize)}, vectorResult),
+		"to another call":         SignResult(target, "r1", vectorInstanceID, []byte("another call"), vectorResult),
+		"to the call altered":     SignResult(target, "r1", vectorInstanceID, alteredCall, vectorResult),
 	} {
 		if VerifyResult("r1", vectorInstanceID, call, r) {
 			t.Errorf("an answer %s verifies as the target's", name)

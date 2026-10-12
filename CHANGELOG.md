@@ -366,8 +366,8 @@ release's tag.
   another machine has to be named there by its address.
 - **An instance's signed answer counts only for the call it answers.**
   Somebody holding the twelve words could call an instance under a phone's
-  request id and hand the phone that answer, a "removed" that made it leave
-  its group included. The answer now names the call it belongs to, and an
+  request id, or change what a phone's call asks, and hand the phone that
+  answer, a "removed" that made it leave its group included. The answer now names the call it belongs to, and an
   instance answers "removed" only to the key of the device that was removed.
 - **A hello seen once can no longer push an instance off the relay.** The relay
   opens every connection with a challenge the hello has to sign, so a hello

@@ -238,7 +238,7 @@ func TestClientProxiesToASibling(t *testing.T) {
 	}
 	writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{
 		RequestID: req.RequestID,
-		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, call, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
+		Sealed:    sealResultFor(t, req.RequestID, SignResult(bravoKey, req.RequestID, bravoID, req.Sealed, ProxyResult{Status: 201, Body: []byte(`{"added":1}`)})),
 	})
 
 	got := <-done
@@ -280,10 +280,8 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			bravo := dialInstance(t, "ws://"+addr+connectPath, "shared-relay-test-key-0123456789ab", bravoID)
 			readFrame(t, bravo, TypeAnnounce)
 
-			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{
-				RequestID: "r1", Target: alphaID,
-				Sealed: sealFor(t, "r1", alphaID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks"}),
-			})
+			sealed := sealFor(t, "r1", alphaID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks"})
+			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID, Sealed: sealed})
 			var resp ProxyResponse
 			if err := readFrame(t, bravo, TypeProxyResponse).Into(&resp); err != nil {
 				t.Fatalf("proxy-response: %v", err)
@@ -295,7 +293,7 @@ func TestClientAnswersASiblingsCall(t *testing.T) {
 			if res.Status != tc.wantStatus || string(res.Body) != tc.wantBody {
 				t.Errorf("got %+v, want status %d body %q", res, tc.wantStatus, tc.wantBody)
 			}
-			if !VerifyResult("r1", alphaID, ProxyCall{}, res) {
+			if !VerifyResult("r1", alphaID, sealed, res) {
 				t.Error("alpha's answer is not signed by its member key")
 			}
 		})
@@ -595,8 +593,9 @@ func TestNewClientRejectsMisconfiguration(t *testing.T) {
 // TestAnAnswerNotSignedByTheTargetIsNoAnswer: bravo is on the relay, and
 // somebody else holding the words answers alpha's calls to it, sealed under the
 // frame key, as one who took bravo's place on the relay would. Neither an
-// unsigned answer, one signed by another key nor bravo's own answer to another
-// call reaches alpha's caller, and a "removed" least of all.
+// unsigned answer, one signed by another key, bravo's own answer to another
+// call nor its answer to alpha's call altered on the way reaches alpha's
+// caller, and a "removed" least of all.
 func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 	addr, _ := relayOn(t, "127.0.0.1:0")
 	alpha := startClient(t, addr, "shared-relay-test-key-0123456789ab", alphaID, nil)
@@ -607,12 +606,24 @@ func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 	removed := ProxyResult{Status: http.StatusGone, Body: []byte("removed")}
 	// Whoever holds the words can call bravo under the request id of alpha's
 	// call and get bravo's signed answer to that call instead.
-	another := SignCall(charlieKey, "", bravoID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: charlieID, Kind: KindInstance})
-	for name, answer := range map[string]func(requestID string, call ProxyCall) ProxyResult{
-		"unsigned":                         func(string, ProxyCall) ProxyResult { return removed },
-		"signed by a stranger":             func(id string, call ProxyCall) ProxyResult { return SignResult(charlieKey, id, bravoID, call, removed) },
-		"signed by bravo for another call": func(id string, _ ProxyCall) ProxyResult { return SignResult(bravoKey, id, bravoID, another, removed) },
-		"signed by bravo":                  func(id string, call ProxyCall) ProxyResult { return SignResult(bravoKey, id, bravoID, call, removed) },
+	another := sealFor(t, "another", bravoID, SignCall(charlieKey, "another", bravoID, ProxyCall{Method: http.MethodGet, Path: "/api/tasks", From: charlieID, Kind: KindInstance}))
+	// Or change what alpha's call asks and keep its id, key and signature,
+	// which bravo refuses with a signed answer of its own.
+	altered := func(id string, sealed []byte) []byte {
+		call := openFrom(t, id, bravoID, sealed)
+		call.Body = []byte(`{"urls":["https://example.com/other"]}`)
+		return mustSeal(t, id, bravoID, call)
+	}
+	for name, answer := range map[string]func(requestID string, sealed []byte) ProxyResult{
+		"unsigned": func(string, []byte) ProxyResult { return removed },
+		"signed by a stranger": func(id string, sealed []byte) ProxyResult {
+			return SignResult(charlieKey, id, bravoID, sealed, removed)
+		},
+		"signed by bravo for another call": func(id string, _ []byte) ProxyResult { return SignResult(bravoKey, id, bravoID, another, removed) },
+		"signed by bravo for the call altered on the way": func(id string, sealed []byte) ProxyResult {
+			return SignResult(bravoKey, id, bravoID, altered(id, sealed), ProxyResult{Status: http.StatusForbidden, Body: SignatureRefused})
+		},
+		"signed by bravo": func(id string, sealed []byte) ProxyResult { return SignResult(bravoKey, id, bravoID, sealed, removed) },
 	} {
 		done := make(chan error, 1)
 		go func() {
@@ -623,7 +634,7 @@ func TestAnAnswerNotSignedByTheTargetIsNoAnswer(t *testing.T) {
 		if err := readFrame(t, bravo, TypeProxyRequest).Into(&req); err != nil {
 			t.Fatal(err)
 		}
-		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID, openFrom(t, req.RequestID, bravoID, req.Sealed)))})
+		writeFrame(t, bravo, TypeProxyResponse, ProxyResponse{RequestID: req.RequestID, Sealed: sealResultFor(t, req.RequestID, answer(req.RequestID, req.Sealed))})
 		err := <-done
 		if want := name == "signed by bravo"; (err == nil) != want {
 			t.Errorf("an answer %s: err %v, want it taken %v", name, err, want)

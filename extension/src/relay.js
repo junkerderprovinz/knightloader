@@ -137,7 +137,7 @@ async function relayFingerprint(publicKey) {
 }
 
 const RELAY_CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
-const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v2\x00';
+const RELAY_RESULT_DOMAIN = 'knightloader/relay/member-result/v3\x00';
 
 /** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
 function relayUint64(n) {
@@ -174,27 +174,29 @@ function relayCallMessage(target, call) {
 
 /**
  * relayResultMessage mirrors relay.ResultMessage: what instance from signs when
- * it answers call, sent under requestId. call is { from, sig } as the call went
- * out, sig empty for an unsigned one; body is the answer's raw bytes.
+ * it answers the call that went out sealed as the bytes sealedCall under
+ * requestId. The call is named by the hash of those bytes; body is the
+ * answer's raw bytes.
  */
-function relayResultMessage(requestId, from, call, status, body) {
-  return relaySignedMessage(RELAY_RESULT_DOMAIN, status, [requestId, from, call.from, call.sig, body]);
+async function relayResultMessage(requestId, from, sealedCall, status, body) {
+  const call = new Uint8Array(await crypto.subtle.digest('SHA-256', sealedCall));
+  return relaySignedMessage(RELAY_RESULT_DOMAIN, status, [requestId, from, call, body]);
 }
 
 /**
  * relayVerifyResult mirrors relay.VerifyResult: whether an opened answer to
- * call, this browser's own call sent under requestId, is target's, signed by
- * the key target's instance id is made from. Anybody holding the words can
- * seal an answer, a "removed" included, but only the target can sign one, and
- * it signs it for one call.
+ * this browser's own call, sent sealed as sealedCall under requestId, is
+ * target's, signed by the key target's instance id is made from. Anybody
+ * holding the words can seal an answer, a "removed" included, but only the
+ * target can sign one, and it signs it for one call as it arrived.
  */
-async function relayVerifyResult(requestId, target, call, result) {
+async function relayVerifyResult(requestId, target, sealedCall, result) {
   try {
     const key = relayFromBase64(result.key || '');
     const sig = relayFromBase64(result.sig || '');
     if (key.length !== 32 || sig.length !== 64 || (await relayMemberId('instance', key)) !== target) return false;
     const body = result.body ? relayFromBase64(result.body) : new Uint8Array();
-    const message = relayResultMessage(requestId, target, call, result.status, body);
+    const message = await relayResultMessage(requestId, target, sealedCall, result.status, body);
     const pub = await crypto.subtle.importKey('raw', key, 'Ed25519', false, ['verify']);
     return await crypto.subtle.verify('Ed25519', pub, sig, message);
   } catch {
@@ -210,8 +212,8 @@ async function relayVerifyResult(requestId, target, call, result) {
  * relay.SealSignedCall signs it: the instance pinned that key to the member id
  * and takes the id from nobody else.
  *
- * It resolves with the sealed call and with { from, sig } as the call went out,
- * which the answer has to name (relayVerifyResult).
+ * It resolves with the sealed call, in base64, and as the bytes the answer has
+ * to name (relayVerifyResult).
  */
 async function relaySealCall(frameKey, requestId, target, method, path, body, from, member) {
   const call = { method, path, body: body || '', id: requestId, sent: Math.floor(Date.now() / 1000), from: from || '', kind: 'extension' };
@@ -236,7 +238,7 @@ async function relaySealCall(frameKey, requestId, target, method, path, body, fr
       }),
     ),
   );
-  return { sealed, asked: { from: call.from, sig } };
+  return { sealed, asked: relayFromBase64(sealed) };
 }
 
 /**
