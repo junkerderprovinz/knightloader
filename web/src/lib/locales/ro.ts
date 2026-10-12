@@ -2100,6 +2100,9 @@ export const ro: Dict = {
   'settings.resolvers.subtitlesTitle': 'Subtitrări',
   'settings.resolvers.subtitleStrict': 'Consideră eroare un rând de subtitrări care nu a produs niciun fișier',
   'settings.resolvers.subtitleStrictHint': 'O sursă care nu duce limba pe care ai cerut-o spune asta printr-o avertizare, iar acest backend rulează yt-dlp cu avertizările oprite. Deci sarcina se încheie curat și se așază pe verde peste un dosar gol, fără ca ceva să îți spună că limba nu a fost niciodată de găsit. Cu asta pornit, un rând de subtitrări care nu a scris nimic trece pe roșu și numește limbile pe care le-a cerut. Implicit oprit, fiindcă pornirea lui face să eșueze rânduri pe care o instalare existentă le bifează pe verde de luni de zile.',
+  'settings.resolvers.mergeFiles': 'Unește într-un singur fișier',
+  'settings.resolvers.mergeFilesHint': 'Când e pornit, video, audio, subtitrările și coperta intră într-un singur fișier MKV sau MP4. Când e oprit, yt-dlp le păstrează ca fișiere separate, unul lângă altul: video și audio fiecare cu extensia lui, subtitrările ca .srt și coperta ca .jpg. Etichetele și capitolele intră totuși în fiecare fișier. KnightLoader ține evidența tuturor fișierelor, așa că dacă elimini descărcarea împreună cu fișierele ei, dispar toate.',
+  'picture.tracks.apart': 'fiecare în fișierul lui',
   'settings.resolvers.embedTitle': 'În interiorul fișierului',
   'settings.resolvers.embedMetadata': 'Scrie în fișier titlul, cine a încărcat și data',
   'settings.resolvers.embedMetadataHint': 'Pune titlul, cine a încărcat, data și descrierea sursei în blocul de etichete al containerului. Este primul lucru pe care îl citesc Jellyfin și Plex când lângă fișier nu există niciun NFO. Doar rândurile video și audio: miniatura, subtitrările și descrierea sunt fișiere separate prin proiectare, iar scrierea de etichete în ele ar fi o contradicție.',
@@ -3633,6 +3636,7 @@ export const ro: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}” desenează ziua de azi ca o curbă: limita de viteză planificată ca o suprafață și viteza măsurată ca o linie.',
   'whatsnew.change.seedingLine': 'Curba de viteză are o a doua linie pentru ce încarcă torrentele tale cât timp fac seed.',
+  'whatsnew.change.mergeFiles': 'Oprește „{name}” ca video, audio și subtitrările să rămână fișiere separate.',
   'whatsnew.change.ruleSwitch': 'Regulile sunt desenate ca drumul pe care un link de exemplu îl face prin ele: ce regulă îl prinde și unde ajunge.',
   'whatsnew.change.captchaChain': 'O imagine arată la cine ajunge un captcha: întâi la tine, apoi la conturile de captcha în ordinea ta.',
   'whatsnew.change.trackMerge': '„{name}” desenează pe toată cartela ce ajunge într-un fișier video cu setările actuale și urmează comutatoarele de dedesubt. Când „{rainbow}” e pornit, fiecare pistă are culoarea ei.',

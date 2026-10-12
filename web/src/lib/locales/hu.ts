@@ -2080,6 +2080,9 @@ export const hu: Dict = {
   'settings.advanced.retryTitle': 'Újrapróbálkozások hibafajtánként',
   'settings.resolvers.audioTitle': 'Hang',
   'settings.resolvers.subtitlesTitle': 'Feliratok',
+  'settings.resolvers.mergeFiles': 'Egyesítés egy fájlba',
+  'settings.resolvers.mergeFilesHint': 'Ha be van kapcsolva, a videó, a hang, a feliratok és a borító egyetlen MKV vagy MP4 fájlba kerül. Ha ki van kapcsolva, a yt-dlp külön fájlokként hagyja őket egymás mellett: a videót és a hangot a saját kiterjesztésével, a feliratokat .srt, a borítót .jpg fájlként. A címkék és a fejezetek így is minden fájlba bekerülnek. A KnightLoader minden fájlt számon tart, így ha a letöltést a fájljaival együtt eltávolítod, mind törlődik.',
+  'picture.tracks.apart': 'mindegyik külön fájlban',
   'settings.resolvers.embedTitle': 'A fájlon belül',
   'settings.resolvers.measureTitle': 'A kész fájl ellenőrzése',
   'settings.resolvers.liveTitle': 'Livestreamek',
@@ -3626,6 +3629,7 @@ export const hu: Dict = {
   'whatsnew.change.dayCurve':
     'A(z) „{name}” görbeként rajzolja meg a mai napot: a tervezett sebességkorlátot területként, a mért sebességet vonalként.',
   'whatsnew.change.seedingLine': 'A sebességgörbén van egy második vonal is arról, mit töltenek fel a torrentjeid seedelés közben.',
+  'whatsnew.change.mergeFiles': 'Kapcsold ki a(z) „{name}” lehetőséget, ha a videót, a hangot és a feliratokat külön fájlokban akarod tartani.',
   'whatsnew.change.ruleSwitch': 'A szabályok úgy jelennek meg, mint az az út, amelyet egy mintahivatkozás megtesz rajtuk: melyik szabály kapja el, és hová érkezik.',
   'whatsnew.change.captchaChain': 'Egy kép mutatja, kihez kerül egy captcha: először hozzád, aztán a captcha-fiókokhoz a te sorrendedben.',
   'whatsnew.change.trackMerge': 'A(z) „{name}” a teljes kártyán megrajzolja, mi kerül a videófájlba a jelenlegi beállításokkal, és követi az alatta lévő kapcsolókat. Ha a „{rainbow}” be van kapcsolva, minden sávnak saját színe van.',

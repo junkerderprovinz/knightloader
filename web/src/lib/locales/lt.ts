@@ -2080,6 +2080,9 @@ export const lt: Dict = {
   'settings.advanced.retryTitle': 'Pakartojimai pagal klaidos rūšį',
   'settings.resolvers.audioTitle': 'Garsas',
   'settings.resolvers.subtitlesTitle': 'Subtitrai',
+  'settings.resolvers.mergeFiles': 'Sujungti į vieną failą',
+  'settings.resolvers.mergeFilesHint': 'Kai įjungta, vaizdas, garsas, subtitrai ir viršelis patenka į vieną MKV arba MP4 failą. Kai išjungta, yt-dlp palieka juos atskirais failais vienas šalia kito: vaizdą ir garsą su savo plėtiniais, subtitrus kaip .srt, o viršelį kaip .jpg. Žymos ir skyriai vis tiek įrašomi į kiekvieną failą. KnightLoader seka visus failus, todėl pašalinus atsisiuntimą kartu su failais, dingsta visi.',
+  'picture.tracks.apart': 'kiekvienas savo faile',
   'settings.resolvers.embedTitle': 'Failo viduje',
   'settings.resolvers.measureTitle': 'Baigto failo tikrinimas',
   'settings.resolvers.liveTitle': 'Tiesioginės transliacijos',
@@ -3626,6 +3629,7 @@ export const lt: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ nupiešia šiandieną kaip kreivę: suplanuotą greičio ribą kaip plotą ir išmatuotą greitį kaip liniją.',
   'whatsnew.change.seedingLine': 'Greičio kreivė turi antrą liniją tam, ką tavo torrentai įkelia sėdami.',
+  'whatsnew.change.mergeFiles': 'Išjunk „{name}“, kad vaizdas, garsas ir subtitrai liktų atskiri failai.',
   'whatsnew.change.ruleSwitch': 'Taisyklės nupieštos kaip kelias, kurį pavyzdinė nuoroda nueina per jas: kuri taisyklė ją pagauna ir kur ji atsiduria.',
   'whatsnew.change.captchaChain': 'Paveikslėlis rodo, kam atitenka captcha: pirmiausia tau, paskui captcha paskyroms tavo nustatyta tvarka.',
   'whatsnew.change.trackMerge': '„{name}“ per visą kortelę nupiešia, kas su dabartiniais nustatymais patenka į vaizdo failą, ir seka apačioje esančius jungiklius. Kai įjungtas „{rainbow}“, kiekvienas takelis turi savo spalvą.',

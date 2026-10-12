@@ -2079,6 +2079,9 @@ export const ca: Dict = {
   'settings.advanced.retryTitle': 'Reintents per tipus de fallada',
   'settings.resolvers.audioTitle': 'Àudio',
   'settings.resolvers.subtitlesTitle': 'Subtítols',
+  'settings.resolvers.mergeFiles': 'Combina en un sol fitxer',
+  'settings.resolvers.mergeFilesHint': 'Si està activat, el vídeo, l’àudio, els subtítols i la portada van a un sol fitxer MKV o MP4. Si està desactivat, yt-dlp els deixa com a fitxers separats l’un al costat de l’altre: el vídeo i l’àudio amb la seva pròpia extensió, els subtítols com a .srt i la portada com a .jpg. Les etiquetes i els capítols continuen anant a cada fitxer. KnightLoader segueix tots els fitxers, així que si treus la baixada amb els seus fitxers, se’n van tots.',
+  'picture.tracks.apart': 'cadascuna en un fitxer propi',
   'settings.resolvers.embedTitle': 'Dins del fitxer',
   'settings.resolvers.measureTitle': 'Comprovació del fitxer acabat',
   'settings.resolvers.liveTitle': 'Emissions en directe',
@@ -3612,6 +3615,7 @@ export const ca: Dict = {
   'whatsnew.change.dayCurve':
     '«{name}» dibuixa el dia d’avui com una corba: el límit de velocitat previst com una àrea i la velocitat mesurada com una línia.',
   'whatsnew.change.seedingLine': 'La corba de velocitat té una segona línia per al que els teus torrents pugen mentre fan seed.',
+  'whatsnew.change.mergeFiles': 'Desactiva «{name}» per mantenir el vídeo, l’àudio i els subtítols com a fitxers separats.',
   'whatsnew.change.ruleSwitch': 'Les regles es dibuixen com el camí que fa un enllaç d’exemple a través seu: quina regla l’atrapa i on va a parar.',
   'whatsnew.change.captchaChain': 'Una imatge mostra a qui va un captcha: primer a tu, després als comptes de captcha en el teu ordre.',
   'whatsnew.change.trackMerge': '«{name}» dibuixa a tota la targeta què acaba dins d’un fitxer de vídeo amb els ajustos actuals i segueix els interruptors de sota. Amb «{rainbow}» activat, cada pista té el seu color.',

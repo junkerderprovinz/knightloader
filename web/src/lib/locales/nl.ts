@@ -2072,6 +2072,9 @@ export const nl: Dict = {
   'settings.advanced.retryTitle': 'Nieuwe pogingen per soort fout',
   'settings.resolvers.audioTitle': 'Audio',
   'settings.resolvers.subtitlesTitle': 'Ondertitels',
+  'settings.resolvers.mergeFiles': 'Samenvoegen tot één bestand',
+  'settings.resolvers.mergeFilesHint': 'Staat dit aan, dan gaan video, audio, ondertitels en de cover in één MKV- of MP4-bestand. Staat het uit, dan houdt yt-dlp ze als losse bestanden naast elkaar: video en audio elk met hun eigen extensie, ondertitels als .srt en de cover als .jpg. Tags en hoofdstukken gaan nog steeds in elk bestand. KnightLoader houdt alle bestanden bij, dus als je de download met zijn bestanden verwijdert, gaan ze allemaal weg.',
+  'picture.tracks.apart': 'elk in een eigen bestand',
   'settings.resolvers.embedTitle': 'In het bestand',
   'settings.resolvers.measureTitle': 'Het afgeronde bestand controleren',
   'settings.resolvers.liveTitle': 'Livestreams',
@@ -3607,6 +3610,7 @@ export const nl: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” tekent vandaag als een curve: de geplande snelheidslimiet als vlak en de gemeten snelheid als lijn.',
   'whatsnew.change.seedingLine': 'De snelheidscurve heeft een tweede lijn voor wat je torrents uploaden terwijl ze seeden.',
+  'whatsnew.change.mergeFiles': 'Zet “{name}” uit om video, audio en ondertitels als losse bestanden te houden.',
   'whatsnew.change.ruleSwitch': 'De regels zijn getekend als de weg die een voorbeeldlink erdoorheen aflegt: welke regel hem vangt en waar hij terechtkomt.',
   'whatsnew.change.captchaChain': 'Een afbeelding toont naar wie een captcha gaat: eerst naar jou, daarna naar de captcha-accounts in jouw volgorde.',
   'whatsnew.change.trackMerge': '“{name}” tekent over de hele kaart wat er met de huidige instellingen in een videobestand terechtkomt en volgt de schakelaars eronder. Als “{rainbow}” aan staat, heeft elk spoor een eigen kleur.',

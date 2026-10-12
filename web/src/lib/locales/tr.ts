@@ -2079,6 +2079,9 @@ export const tr: Dict = {
   'settings.advanced.retryTitle': 'Hata türü başına yeniden denemeler',
   'settings.resolvers.audioTitle': 'Ses',
   'settings.resolvers.subtitlesTitle': 'Altyazılar',
+  'settings.resolvers.mergeFiles': 'Tek dosyada birleştir',
+  'settings.resolvers.mergeFilesHint': 'Açıkken video, ses, altyazılar ve kapak tek bir MKV ya da MP4 dosyasına girer. Kapalıyken yt-dlp bunları yan yana ayrı dosyalar olarak bırakır: video ve ses kendi uzantılarıyla, altyazılar .srt, kapak .jpg olarak. Etiketler ve bölümler yine her dosyaya yazılır. KnightLoader tüm dosyaları takip eder, bu yüzden indirmeyi dosyalarıyla birlikte kaldırırsan hepsi gider.',
+  'picture.tracks.apart': 'her biri kendi dosyasında',
   'settings.resolvers.embedTitle': 'Dosyanın içinde',
   'settings.resolvers.measureTitle': 'Bitmiş dosyanın denetimi',
   'settings.resolvers.liveTitle': 'Canlı yayınlar',
@@ -3623,6 +3626,7 @@ export const tr: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” bugünü bir eğri olarak çizer: planlanan hız sınırı bir alan, ölçülen hız bir çizgi olarak.',
   'whatsnew.change.seedingLine': 'Hız eğrisinde, torrentlerinin seed ederken yüklediği için ikinci bir çizgi var.',
+  'whatsnew.change.mergeFiles': 'Video, ses ve altyazıları ayrı dosyalar olarak tutmak için “{name}” seçeneğini kapat.',
   'whatsnew.change.ruleSwitch': 'Kurallar, örnek bir bağlantının aralarından geçtiği yol olarak çizilir: hangi kural onu yakalar ve nereye varır.',
   'whatsnew.change.captchaChain': 'Bir resim, bir captchanın kime gittiğini gösterir: önce sana, sonra senin sıranla captcha hesaplarına.',
   'whatsnew.change.trackMerge': '“{name}”, geçerli ayarlarla bir video dosyasına neyin gireceğini kartın tamamına çizer ve altındaki anahtarları izler. “{rainbow}” açıkken her izin kendi rengi olur.',

@@ -2072,6 +2072,9 @@ export const pt: Dict = {
   'settings.advanced.retryTitle': 'Novas tentativas por tipo de falha',
   'settings.resolvers.audioTitle': 'Áudio',
   'settings.resolvers.subtitlesTitle': 'Legendas',
+  'settings.resolvers.mergeFiles': 'Juntar num só ficheiro',
+  'settings.resolvers.mergeFilesHint': 'Quando está ligado, o vídeo, o áudio, as legendas e a capa vão para um só ficheiro MKV ou MP4. Quando está desligado, o yt-dlp mantém-nos como ficheiros separados lado a lado: o vídeo e o áudio cada um com a sua extensão, as legendas como .srt e a capa como .jpg. As etiquetas e os capítulos continuam a ir para cada ficheiro. O KnightLoader acompanha todos os ficheiros, por isso, se removeres a transferência com os seus ficheiros, vão-se todos.',
+  'picture.tracks.apart': 'cada uma no seu próprio ficheiro',
   'settings.resolvers.embedTitle': 'Dentro do ficheiro',
   'settings.resolvers.measureTitle': 'Verificar o ficheiro terminado',
   'settings.resolvers.liveTitle': 'Livestreams',
@@ -3615,6 +3618,7 @@ export const pt: Dict = {
   'whatsnew.change.dayCurve':
     '«{name}» desenha o dia de hoje como uma curva: o limite de velocidade previsto como uma área e a velocidade medida como uma linha.',
   'whatsnew.change.seedingLine': 'A curva de velocidade tem uma segunda linha para o que os teus torrents enviam enquanto fazem seed.',
+  'whatsnew.change.mergeFiles': 'Desliga «{name}» para manter o vídeo, o áudio e as legendas como ficheiros separados.',
   'whatsnew.change.ruleSwitch': 'As regras são desenhadas como o caminho que um link de exemplo faz através delas: que regra o apanha e onde vai parar.',
   'whatsnew.change.captchaChain': 'Uma imagem mostra a quem vai um captcha: primeiro a ti, depois às contas de captcha pela tua ordem.',
   'whatsnew.change.trackMerge': '«{name}» desenha em todo o cartão o que acaba dentro de um ficheiro de vídeo com as definições atuais e segue os interruptores por baixo. Com «{rainbow}» ativo, cada faixa tem a sua própria cor.',

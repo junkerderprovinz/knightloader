@@ -239,6 +239,12 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.resolvers.embedTitle', rainbow: 'settings.rainbow' },
       },
       {
+        id: 'merge-files',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.mergeFiles',
+        names: { name: 'settings.resolvers.mergeFiles' },
+      },
+      {
         id: 'video-card',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.videoCard',

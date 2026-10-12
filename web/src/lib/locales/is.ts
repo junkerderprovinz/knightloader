@@ -2079,6 +2079,9 @@ export const is: Dict = {
   'settings.advanced.retryTitle': 'Endurtilraunir eftir tegund bilunar',
   'settings.resolvers.audioTitle': 'Hljóð',
   'settings.resolvers.subtitlesTitle': 'Skjátextar',
+  'settings.resolvers.mergeFiles': 'Sameina í eina skrá',
+  'settings.resolvers.mergeFilesHint': 'Þegar kveikt er á þessu fara mynd, hljóð, skjátextar og forsíðumynd í eina MKV- eða MP4-skrá. Þegar slökkt er á þessu heldur yt-dlp þeim sem aðskildum skrám hlið við hlið: mynd og hljóð hvort með sína endingu, skjátextar sem .srt og forsíðumyndin sem .jpg. Merki og kaflar fara samt í hverja skrá. KnightLoader heldur utan um allar skrárnar, svo ef þú fjarlægir niðurhalið með skránum fara þær allar.',
+  'picture.tracks.apart': 'hvert í sinni eigin skrá',
   'settings.resolvers.embedTitle': 'Inni í skránni',
   'settings.resolvers.measureTitle': 'Athugun á fullkláruðu skránni',
   'settings.resolvers.liveTitle': 'Beinar útsendingar',
@@ -3620,6 +3623,7 @@ export const is: Dict = {
   'whatsnew.change.dayCurve':
     '„{name}“ teiknar daginn í dag sem feril: áætluðu hraðatakmörkin sem flöt og mælda hraðann sem línu.',
   'whatsnew.change.seedingLine': 'Hraðaferillinn hefur aðra línu fyrir það sem straumarnir þínir senda á meðan þeir sá.',
+  'whatsnew.change.mergeFiles': 'Slökktu á „{name}“ til að halda mynd, hljóði og skjátextum sem aðskildum skrám.',
   'whatsnew.change.ruleSwitch': 'Reglurnar eru teiknaðar sem leiðin sem sýnistengill fer í gegnum þær: hvaða regla grípur hann og hvar hann lendir.',
   'whatsnew.change.captchaChain': 'Mynd sýnir til hvers captcha fer: fyrst til þín, síðan til captcha-reikninganna í þinni röð.',
   'whatsnew.change.trackMerge': '„{name}“ teiknar yfir allt spjaldið hvað endar í myndskeiðsskrá með núverandi stillingum og fylgir rofunum fyrir neðan. Þegar „{rainbow}“ er í gangi hefur hver rás sinn lit.',

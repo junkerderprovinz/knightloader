@@ -2079,6 +2079,9 @@ export const ms: Dict = {
   'settings.advanced.retryTitle': 'Cubaan semula bagi setiap jenis kegagalan',
   'settings.resolvers.audioTitle': 'Audio',
   'settings.resolvers.subtitlesTitle': 'Sari kata',
+  'settings.resolvers.mergeFiles': 'Gabungkan dalam satu fail',
+  'settings.resolvers.mergeFilesHint': 'Apabila dihidupkan, video, audio, sari kata dan kulit masuk ke dalam satu fail MKV atau MP4. Apabila dimatikan, yt-dlp menyimpannya sebagai fail berasingan bersebelahan: video dan audio masing-masing dengan sambungannya sendiri, sari kata sebagai .srt dan kulit sebagai .jpg. Tag dan bab tetap masuk ke setiap fail. KnightLoader menjejak semua fail, jadi jika anda membuang muat turun bersama failnya, semuanya turut dibuang.',
+  'picture.tracks.apart': 'setiap satu dalam failnya sendiri',
   'settings.resolvers.embedTitle': 'Di dalam fail',
   'settings.resolvers.measureTitle': 'Menyemak fail yang siap',
   'settings.resolvers.liveTitle': 'Livestream',
@@ -3624,6 +3627,7 @@ export const ms: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” melukis hari ini sebagai lengkung: had kelajuan yang dirancang sebagai kawasan dan kelajuan yang diukur sebagai garisan.',
   'whatsnew.change.seedingLine': 'Lengkung kelajuan ada garis kedua untuk apa yang dimuat naik oleh torrent anda semasa melakukan seed.',
+  'whatsnew.change.mergeFiles': 'Matikan “{name}” untuk menyimpan video, audio dan sari kata sebagai fail berasingan.',
   'whatsnew.change.ruleSwitch': 'Peraturan dilukis sebagai laluan yang diambil oleh satu pautan contoh melaluinya: peraturan mana yang menangkapnya dan di mana ia mendarat.',
   'whatsnew.change.captchaChain': 'Sebuah gambar menunjukkan kepada siapa captcha pergi: kepada anda dahulu, kemudian kepada akaun captcha mengikut susunan anda.',
   'whatsnew.change.trackMerge': '“{name}” melukis merentasi seluruh kad apa yang masuk ke dalam fail video dengan tetapan semasa, dan mengikut suis di bawahnya. Apabila “{rainbow}” dihidupkan, setiap trek mempunyai warnanya sendiri.',

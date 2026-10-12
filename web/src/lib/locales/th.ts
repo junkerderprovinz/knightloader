@@ -2078,6 +2078,9 @@ export const th: Dict = {
   'settings.advanced.retryTitle': 'การลองใหม่ต่อความล้มเหลวแต่ละแบบ',
   'settings.resolvers.audioTitle': 'เสียง',
   'settings.resolvers.subtitlesTitle': 'คำบรรยาย',
+  'settings.resolvers.mergeFiles': 'รวมเป็นไฟล์เดียว',
+  'settings.resolvers.mergeFilesHint': 'เมื่อเปิด วิดีโอ เสียง คำบรรยาย และภาพปกจะอยู่ในไฟล์ MKV หรือ MP4 ไฟล์เดียว เมื่อปิด yt-dlp จะเก็บไว้เป็นไฟล์แยกวางคู่กัน วิดีโอและเสียงใช้นามสกุลของตัวเอง คำบรรยายเป็น .srt และภาพปกเป็น .jpg แท็กและบทยังคงเขียนลงในทุกไฟล์ KnightLoader ติดตามทุกไฟล์ ดังนั้นถ้าคุณลบการดาวน์โหลดพร้อมไฟล์ ไฟล์ทั้งหมดจะถูกลบไปด้วย',
+  'picture.tracks.apart': 'แต่ละอย่างอยู่ในไฟล์ของตัวเอง',
   'settings.resolvers.embedTitle': 'ในตัวไฟล์',
   'settings.resolvers.measureTitle': 'การตรวจไฟล์ที่เสร็จแล้ว',
   'settings.resolvers.liveTitle': 'ไลฟ์สตรีม',
@@ -3622,6 +3625,7 @@ export const th: Dict = {
   'whatsnew.change.dayCurve':
     '“{name}” วาดวันนี้เป็นเส้นโค้ง: ขีดจำกัดความเร็วที่วางแผนไว้เป็นพื้นที่ และความเร็วที่วัดได้เป็นเส้น',
   'whatsnew.change.seedingLine': 'เส้นโค้งความเร็วมีเส้นที่สองสำหรับสิ่งที่ทอร์เรนต์ของคุณอัปโหลดขณะซีด',
+  'whatsnew.change.mergeFiles': 'ปิด “{name}” เพื่อเก็บวิดีโอ เสียง และคำบรรยายเป็นไฟล์แยกกัน',
   'whatsnew.change.ruleSwitch': 'กฎถูกวาดเป็นเส้นทางที่ลิงก์ตัวอย่างวิ่งผ่าน: กฎใดรับมันไว้และมันไปลงที่ใด',
   'whatsnew.change.captchaChain': 'ภาพแสดงว่าแคปช่าไปถึงใคร: ถึงคุณก่อน แล้วจึงถึงบัญชีแคปช่าตามลำดับของคุณ',
   'whatsnew.change.trackMerge': '“{name}” วาดทั่วทั้งการ์ดว่าอะไรจะอยู่ในไฟล์วิดีโอด้วยการตั้งค่าปัจจุบัน และเปลี่ยนตามสวิตช์ด้านล่าง เมื่อเปิด “{rainbow}” แต่ละแทร็กจะมีสีของตัวเอง',

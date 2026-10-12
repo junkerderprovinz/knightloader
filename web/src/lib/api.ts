@@ -2250,6 +2250,8 @@ export interface YtdlpEmbed {
   splitChapters: boolean;
   /** Not a yt-dlp flag: KnightLoader writes the NFO itself. */
   nfo: boolean;
+  /** Keeps a video row's streams as files of their own; false merges them into one. */
+  separate: boolean;
 }
 
 /** Mirrors ytdlp.Measure: the ffprobe pass over a finished media file. */
