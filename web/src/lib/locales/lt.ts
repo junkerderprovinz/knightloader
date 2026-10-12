@@ -351,8 +351,6 @@ export const lt: Dict = {
   'settings.lockOn': 'Slaptažodis nustatytas.',
   'settings.lockOff': 'Slaptažodis nenustatytas.',
   'settings.lockHint': 'Apsaugo šį egzempliorių nuo bet ko, kas gali jį pasiekti: tame pačiame tinkle, per domeną ar per relę. Kai slaptažodis nustatytas, jį reikia įvesti prieš atsidarant šiam egzemplioriui, visiems, įskaitant jus patį kitą kartą. Be slaptažodžio bet kas, radęs adresą, gali matyti kiekvieną atsisiuntimą ir pridėti, pristabdyti ar ištrinti savuosius.',
-  'settings.appKeyMissing': 'Programos raktas nenustatytas.',
-  'settings.appKeyMissingHint': 'Be programos rakto bet kas, turintis duomenų aplanko kopiją, gali perskaityti išsaugotus slaptažodžius ir prisijungti. Norėdamas jį pridėti, vieną kartą paleisk openssl rand -hex 32, įrašyk rezultatą į konteinerio šabloną kaip kintamąjį KL_APP_KEY ir paleisk iš naujo. Tada KnightLoader užantspauduoja savo paslaptis šiuo raktu, o senus failus palieka aplanke before-app-key duomenų aplanke. KnightLoader pats ištrina tą aplanką po septynių dienų be klaidų. Laikyk raktą saugioje vietoje: be jo nepavyks atidaryti nei duomenų aplanko, nei po to sukurtų atsarginių kopijų.',
   'settings.appKeyCopies': 'Duomenų aplanke dar yra failų, buvusių prieš programos raktą, kopija. KnightLoader ją ištrins po {date}.',
   'settings.passwordCurrent': 'Dabartinis slaptažodis',
   'settings.passwordNew': 'Naujas slaptažodis',
@@ -3658,4 +3656,8 @@ export const lt: Dict = {
   'settings.health.noReason': 'Ši dalis nenurodė priežasties. Žurnalas puslapyje Diagnostika gal pasakys daugiau.',
   'settings.health.openLog': 'Atverti žurnalą',
   'whatsnew.change.healthReason': '„{name}“ dalis su gedimu pasako kodėl, o jei ji rašo į žurnalą, mygtukas ten atveria jos eilutes.',
+  'settings.appKeyTitle': 'Programos raktas',
+  'settings.appKeyManual': 'Programos raktas vadove',
+  'settings.appKeyHint': 'Viskas veikia ir be programos rakto. Su raktu KnightLoader užantspauduoja išsaugotus slaptažodžius ir raktus, todėl duomenų aplanko kopija nieko neatveria. Darbalaukio programa pasidaro savo raktą ir laiko jį kompiuterio prisijungimo duomenų saugykloje. Konteineryje vieną kartą paleisk openssl rand -hex 32, rezultatą įrašyk į šabloną kaip kintamąjį KL_APP_KEY ir paleisk iš naujo. Laikyk raktą saugioje vietoje: be jo neatsidarys nei duomenų aplankas, nei nuo tada padaryta atsarginė kopija.',
+  'whatsnew.change.appKey': '„{name}“ paaiškina programos raktą už (i), kartu su keliu į vadovą. Viskas veikia ir be jo.',
 };

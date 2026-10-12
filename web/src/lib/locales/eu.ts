@@ -351,8 +351,6 @@ export const eu: Dict = {
   'settings.lockOn': 'Pasahitza ezarrita dago.',
   'settings.lockOff': 'Ez dago pasahitzik ezarrita.',
   'settings.lockHint': 'Instantzia hau babesten du hura eskura dezakeen edonorengandik: sare berean, domeinu baten bidez edo erretransmisio baten bidez. Behin ezarrita, instantzia hau irekiaren aurretik sartu behar da, edonorentzat, baita zuretzat ere hurrengoan. Pasahitzik gabe, helbidea aurkitzen duen edonork ikus dezake deskarga oro, eta bereak gehitu, pausatu edo ezaba ditzake.',
-  'settings.appKeyMissing': 'Ez dago aplikazio-gakorik ezarrita.',
-  'settings.appKeyMissingHint': 'Aplikazio-gakorik gabe, datu-karpetaren kopia bat duen edonork irakur ditzake gordetako pasahitzak eta saioa has dezake. Bat gehitzeko, exekutatu behin openssl rand -hex 32, jarri emaitza edukiontziaren txantiloian KL_APP_KEY aldagai gisa eta berrabiarazi. Orduan KnightLoaderrek gako horrekin zigilatzen ditu bere sekretuak eta fitxategi zaharrak before-app-key karpeta batean gordetzen ditu datu-karpetaren barruan. KnightLoaderrek berak ezabatzen du karpeta hori zazpi egun akatsik gabe igaro ondoren. Gorde gakoa leku seguru batean: hura gabe ezin dira ireki ez datu-karpeta ez handik aurrera egindako babeskopiak.',
   'settings.appKeyCopies': 'Aplikazio-gakoa baino lehenagoko fitxategien kopia bat dago oraindik datu-karpetan. KnightLoaderrek {date} ondoren ezabatuko du.',
   'settings.passwordCurrent': 'Uneko pasahitza',
   'settings.passwordNew': 'Pasahitz berria',
@@ -3653,4 +3651,8 @@ export const eu: Dict = {
   'settings.health.noReason': 'Zati honek ez du arrazoirik ematen. Diagnostikoa orriko erregistroak gehiago esan dezake.',
   'settings.health.openLog': 'Ireki erregistroa',
   'whatsnew.change.healthReason': '«{name}» ataleko akatsa duen zati batek zergatia esaten du, eta erregistroan idazten duenean botoi batek bere lerroak irekitzen ditu han.',
+  'settings.appKeyTitle': 'Aplikazioaren gakoa',
+  'settings.appKeyManual': 'Aplikazioaren gakoa eskuliburuan',
+  'settings.appKeyHint': 'Dena dabil aplikazioaren gakorik gabe. Batekin, KnightLoaderrek gordetako pasahitzak eta gakoak zigilatzen ditu, eta datu-karpetaren kopia batek ez du ezer irekitzen. Mahaigaineko aplikazioak bere gakoa sortzen du eta ordenagailuaren kredentzial-biltegian gordetzen du. Edukiontzi batean, exekutatu behin openssl rand -hex 32, jarri emaitza txantiloian KL_APP_KEY aldagai gisa eta berrabiarazi. Gorde gakoa leku seguru batean: hura gabe ezin dira ireki ez datu-karpeta ez handik aurrera egindako babeskopiarik.',
+  'whatsnew.change.appKey': '«{name}» atalak aplikazioaren gakoa azaltzen du (i) baten atzean, eskulibururako bidearekin. Dena dabil hura gabe.',
 };

@@ -351,8 +351,6 @@ export const sv: Dict = {
   'settings.lockOn': 'Ett lösenord är satt.',
   'settings.lockOff': 'Inget lösenord angivet.',
   'settings.lockHint': 'Skyddar den här instansen mot alla som kan nå den: på samma nätverk, via en domän eller via ett relä. När det väl är angivet måste det anges innan den här instansen ens öppnas, för alla, även dig själv nästa gång. Utan lösenord kan vem som helst som hittar adressen se varje nedladdning och lägga till, pausa eller ta bort sina egna.',
-  'settings.appKeyMissing': 'Ingen appnyckel angiven.',
-  'settings.appKeyMissingHint': 'Utan en appnyckel kan vem som helst med en kopia av datamappen läsa de sparade lösenorden och logga in. Lägg till en genom att köra openssl rand -hex 32 en gång, lägga in resultatet i containermallen som variabeln KL_APP_KEY och starta om. KnightLoader förseglar sedan sina hemligheter med nyckeln och sparar de gamla filerna i en mapp before-app-key i datamappen. KnightLoader tar själv bort den mappen efter sju dagar utan fel. Förvara nyckeln säkert: utan den går varken datamappen eller säkerhetskopior som görs därefter att öppna.',
   'settings.appKeyCopies': 'Det finns fortfarande en kopia av filerna från före appnyckeln i datamappen. KnightLoader tar bort den efter {date}.',
   'settings.passwordCurrent': 'Nuvarande lösenord',
   'settings.passwordNew': 'Nytt lösenord',
@@ -3656,4 +3654,8 @@ export const sv: Dict = {
   'settings.health.noReason': 'Den här delen anger ingen orsak. Loggen på sidan Diagnostik säger kanske mer.',
   'settings.health.openLog': 'Öppna loggen',
   'whatsnew.change.healthReason': 'En del i ”{name}” som har ett fel säger varför, och där den skriver till loggen öppnar en knapp dess rader där.',
+  'settings.appKeyTitle': 'Appnyckel',
+  'settings.appKeyManual': 'Appnyckeln i handboken',
+  'settings.appKeyHint': 'Allt fungerar utan appnyckel. Med en förseglar KnightLoader de sparade lösenorden och nycklarna, så en kopia av datamappen öppnar ingenting. Skrivbordsappen skapar sin egen nyckel och förvarar den i datorns lager för inloggningsuppgifter. I en container kör du openssl rand -hex 32 en gång, lägger in resultatet i mallen som variabeln KL_APP_KEY och startar om. Förvara nyckeln säkert: utan den går varken datamappen eller en säkerhetskopia gjord från och med då att öppna.',
+  'whatsnew.change.appKey': '”{name}” förklarar appnyckeln bakom ett (i), med vägen till handboken. Allt fungerar utan den.',
 };

@@ -351,8 +351,6 @@ export const fi: Dict = {
   'settings.lockOn': 'Salasana on asetettu.',
   'settings.lockOff': 'Salasanaa ei ole asetettu.',
   'settings.lockHint': 'Suojaa tätä instanssia kaikilta, jotka pääsevät siihen käsiksi: samassa verkossa, verkkotunnuksen kautta tai releen kautta. Kun salasana on asetettu, se on syötettävä ennen kuin tämä instanssi ylipäätään avautuu, kaikille, myös sinulle itsellesi seuraavalla kerralla. Ilman salasanaa kuka tahansa osoitteen löytävä näkee jokaisen latauksen ja voi lisätä, keskeyttää tai poistaa omiaan.',
-  'settings.appKeyMissing': 'Sovellusavainta ei ole asetettu.',
-  'settings.appKeyMissingHint': 'Ilman sovellusavainta kuka tahansa, jolla on kopio datakansiosta, voi lukea tallennetut salasanat ja kirjautua sisään. Lisää avain ajamalla kerran openssl rand -hex 32, laittamalla tulos kontin malliin muuttujaksi KL_APP_KEY ja käynnistämällä uudelleen. KnightLoader sinetöi sen jälkeen salaisuutensa avaimella ja säilyttää vanhat tiedostot datakansion sisällä kansiossa before-app-key. KnightLoader poistaa kansion itse seitsemän virheettömän päivän jälkeen. Säilytä avain turvassa: ilman sitä ei voi avata datakansiota eikä sen jälkeen tehtyjä varmuuskopioita.',
   'settings.appKeyCopies': 'Datakansiossa on vielä kopio sovellusavainta edeltävistä tiedostoista. KnightLoader poistaa sen ajankohdan {date} jälkeen.',
   'settings.passwordCurrent': 'Nykyinen salasana',
   'settings.passwordNew': 'Uusi salasana',
@@ -3658,4 +3656,8 @@ export const fi: Dict = {
   'settings.health.noReason': 'Tämä osa ei kerro syytä. Diagnostiikka-sivun loki voi kertoa enemmän.',
   'settings.health.openLog': 'Avaa loki',
   'whatsnew.change.healthReason': 'Osa kohdassa ”{name}”, jossa on vika, kertoo syyn, ja jos se kirjoittaa lokiin, painike avaa sen rivit siellä.',
+  'settings.appKeyTitle': 'Sovellusavain',
+  'settings.appKeyManual': 'Sovellusavain käyttöoppaassa',
+  'settings.appKeyHint': 'Kaikki toimii ilman sovellusavaintakin. Avaimen kanssa KnightLoader sinetöi tallennetut salasanat ja avaimet, joten datakansion kopio ei avaa mitään. Työpöytäsovellus tekee oman avaimensa ja säilyttää sitä tietokoneen tunnistetietovarastossa. Kontissa aja kerran openssl rand -hex 32, laita tulos malliin muuttujaksi KL_APP_KEY ja käynnistä uudelleen. Säilytä avain turvassa: ilman sitä ei avaudu datakansio eikä sen jälkeen tehty varmuuskopio.',
+  'whatsnew.change.appKey': '”{name}” selittää sovellusavaimen (i):n takana ja näyttää tien käyttöoppaaseen. Kaikki toimii ilman sitäkin.',
 };

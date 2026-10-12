@@ -84,14 +84,16 @@ describe('Access', () => {
     );
   }
 
-  it('says when the server runs without an app key', async () => {
+  it('names the app key without a warning when there is none', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
-    expect(host.textContent).toContain('No app key is set.');
+    const line = host.querySelector('[data-new="app-key"]')!;
+    expect(line.textContent).toContain('App key');
+    expect(line.className).not.toMatch(/statusWarn/);
+    expect(line.querySelector('a[href*="#app-key"]')).not.toBeNull();
   });
 
-  it('says nothing about the app key once one is set', async () => {
+  it('says nothing about old copies once the key has been in use long enough', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
-    expect(host.textContent).not.toContain('No app key is set.');
     expect(host.textContent).not.toContain('from before the app key');
   });
 

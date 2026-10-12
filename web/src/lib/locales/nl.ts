@@ -343,8 +343,6 @@ export const nl: Dict = {
   'settings.lockOn': 'Er is een wachtwoord ingesteld.',
   'settings.lockOff': 'Geen wachtwoord ingesteld.',
   'settings.lockHint': 'Beschermt deze instantie tegen iedereen die haar kan bereiken: op hetzelfde netwerk, via een domein of via een relay. Eenmaal ingesteld, moet het worden ingevoerd voordat deze instantie überhaupt opent, voor iedereen, ook voor jezelf bij het volgende bezoek. Zonder wachtwoord kan iedereen die het adres vindt elke download zien, en eigen downloads toevoegen, pauzeren of verwijderen.',
-  'settings.appKeyMissing': 'Geen app-sleutel ingesteld.',
-  'settings.appKeyMissingHint': 'Zonder app-sleutel kan iedereen met een kopie van de datamap de opgeslagen wachtwoorden lezen en inloggen. Voer om er een toe te voegen eenmalig openssl rand -hex 32 uit, zet het resultaat in de containertemplate als de variabele KL_APP_KEY en start opnieuw. KnightLoader verzegelt daarna zijn geheimen met die sleutel en bewaart de oude bestanden in een map before-app-key in de datamap. KnightLoader verwijdert die map zelf na zeven dagen zonder fouten. Bewaar de sleutel op een veilige plek: zonder sleutel zijn de datamap en elke back-up die je daarna maakt niet meer te openen.',
   'settings.appKeyCopies': 'Er staat nog een kopie van de bestanden van vóór de app-sleutel in de datamap. KnightLoader verwijdert die na {date}.',
   'settings.passwordCurrent': 'Huidig wachtwoord',
   'settings.passwordNew': 'Nieuw wachtwoord',
@@ -3639,4 +3637,8 @@ export const nl: Dict = {
   'settings.health.noReason': 'Dit onderdeel geeft geen reden. Het logboek op de pagina Diagnose zegt misschien meer.',
   'settings.health.openLog': 'Logboek openen',
   'whatsnew.change.healthReason': 'Een onderdeel in “{name}” met een fout zegt waarom, en waar het naar het logboek schrijft opent een knop daar zijn regels.',
+  'settings.appKeyTitle': 'App-sleutel',
+  'settings.appKeyManual': 'App-sleutel in de handleiding',
+  'settings.appKeyHint': 'Alles werkt zonder app-sleutel. Met een sleutel verzegelt KnightLoader de opgeslagen wachtwoorden en sleutels, zodat een kopie van de datamap niets opent. De desktop-app maakt zelf een sleutel en bewaart die in de opslag voor inloggegevens van de computer. In een container voer je één keer openssl rand -hex 32 uit, zet je het resultaat in de template als de variabele KL_APP_KEY en start je opnieuw. Bewaar de sleutel op een veilige plek: zonder sleutel gaan de datamap en elke back-up die je daarna maakt niet meer open.',
+  'whatsnew.change.appKey': '“{name}” legt de app-sleutel uit achter een (i), met de weg naar de handleiding. Alles werkt zonder.',
 };

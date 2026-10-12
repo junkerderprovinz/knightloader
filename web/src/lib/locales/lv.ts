@@ -351,8 +351,6 @@ export const lv: Dict = {
   'settings.lockOn': 'Parole ir iestatīta.',
   'settings.lockOff': 'Parole nav iestatīta.',
   'settings.lockHint': 'Aizsargā šo instanci no ikviena, kas var to sasniegt: tajā pašā tīklā, izmantojot domēnu vai releju. Kad parole ir iestatīta, tā jāievada, pirms šī instance vispār atveras - jebkuram, arī jums pašam nākamajā reizē. Bez paroles ikviens, kas atrod adresi, var redzēt katru lejupielādi un pievienot, apturēt vai dzēst savas.',
-  'settings.appKeyMissing': 'Lietotnes atslēga nav iestatīta.',
-  'settings.appKeyMissingHint': 'Bez lietotnes atslēgas ikviens, kam ir datu mapes kopija, var izlasīt saglabātās paroles un pieteikties. Lai to pievienotu, vienreiz palaid openssl rand -hex 32, ieraksti rezultātu konteinera veidnē kā mainīgo KL_APP_KEY un restartē. Pēc tam KnightLoader aizzīmogo savus noslēpumus ar šo atslēgu un vecos failus saglabā mapē before-app-key datu mapē. KnightLoader pats izdzēš šo mapi pēc septiņām dienām bez kļūdām. Glabā atslēgu drošā vietā: bez tās nevar atvērt ne datu mapi, ne pēc tam izveidotās rezerves kopijas.',
   'settings.appKeyCopies': 'Datu mapē joprojām ir to failu kopija, kas bija pirms lietotnes atslēgas. KnightLoader to izdzēsīs pēc {date}.',
   'settings.passwordCurrent': 'Pašreizējā parole',
   'settings.passwordNew': 'Jaunā parole',
@@ -3647,4 +3645,8 @@ export const lv: Dict = {
   'settings.health.noReason': 'Šī daļa nenorāda iemeslu. Žurnāls lapā Diagnostika varbūt pateiks vairāk.',
   'settings.health.openLog': 'Atvērt žurnālu',
   'whatsnew.change.healthReason': 'Daļa sadaļā „{name}“, kurai ir kļūda, pasaka, kāpēc, un, ja tā raksta žurnālā, poga tur atver tās rindas.',
+  'settings.appKeyTitle': 'Lietotnes atslēga',
+  'settings.appKeyManual': 'Lietotnes atslēga rokasgrāmatā',
+  'settings.appKeyHint': 'Viss darbojas arī bez lietotnes atslēgas. Ar to KnightLoader aizzīmogo saglabātās paroles un atslēgas, tāpēc datu mapes kopija neko neatver. Darbvirsmas lietotne izveido savu atslēgu un glabā to datora akreditācijas datu krātuvē. Konteinerā vienreiz palaid openssl rand -hex 32, ieliec rezultātu veidnē kā mainīgo KL_APP_KEY un restartē. Glabā atslēgu drošā vietā: bez tās nevar atvērt ne datu mapi, ne kopš tā laika izveidotu dublējumu.',
+  'whatsnew.change.appKey': '„{name}“ skaidro lietotnes atslēgu aiz (i), ar ceļu uz rokasgrāmatu. Viss darbojas arī bez tās.',
 };

@@ -343,8 +343,6 @@ export const fr: Dict = {
   'settings.lockOn': 'Un mot de passe est défini.',
   'settings.lockOff': 'Aucun mot de passe défini.',
   'settings.lockHint': 'Protège cette instance de quiconque peut l\'atteindre: sur le même réseau, via un domaine ou via un relay. Une fois défini, il doit être saisi avant même que cette instance s\'ouvre, pour tout le monde, y compris pour vous-même la prochaine fois. Sans mot de passe, quiconque trouve l\'adresse peut voir chaque téléchargement, et ajouter, mettre en pause ou supprimer les siens.',
-  'settings.appKeyMissing': 'Aucune clé d’application définie.',
-  'settings.appKeyMissingHint': 'Sans clé d’application, toute personne disposant d’une copie du dossier de données peut lire les mots de passe enregistrés et se connecter. Pour en ajouter une, exécutez une fois openssl rand -hex 32, placez le résultat dans le modèle du conteneur comme variable KL_APP_KEY et redémarrez. KnightLoader scelle alors ses secrets avec cette clé et conserve les anciens fichiers dans un dossier before-app-key à l’intérieur du dossier de données. KnightLoader supprime lui-même ce dossier après sept jours sans erreur. Gardez la clé en lieu sûr : sans elle, ni le dossier de données ni les sauvegardes créées ensuite ne peuvent être ouverts.',
   'settings.appKeyCopies': 'Une copie des fichiers d’avant la clé d’application se trouve encore dans le dossier de données. KnightLoader la supprime après le {date}.',
   'settings.passwordCurrent': 'Mot de passe actuel',
   'settings.passwordNew': 'Nouveau mot de passe',
@@ -3646,4 +3644,8 @@ export const fr: Dict = {
   'settings.health.noReason': 'Cet élément ne donne aucune raison. Le journal de la page Diagnostic en dit peut-être plus.',
   'settings.health.openLog': 'Ouvrir le journal',
   'whatsnew.change.healthReason': 'Un élément de « {name} » en défaut dit pourquoi, et s’il écrit dans le journal, un bouton y ouvre ses lignes.',
+  'settings.appKeyTitle': 'Clé d’application',
+  'settings.appKeyManual': 'La clé d’application dans le manuel',
+  'settings.appKeyHint': 'Tout fonctionne sans clé d’application. Avec une clé, KnightLoader scelle les mots de passe et clés enregistrés : une copie du dossier de données n’ouvre alors rien. L’application de bureau crée sa propre clé et la garde dans le magasin d’identifiants de l’ordinateur. Dans un conteneur, exécutez une fois openssl rand -hex 32, mettez le résultat dans le modèle comme variable KL_APP_KEY et redémarrez. Conservez la clé en lieu sûr : sans elle, ni le dossier de données ni une sauvegarde faite depuis ne s’ouvrent.',
+  'whatsnew.change.appKey': '« {name} » explique la clé d’application derrière un (i), avec le chemin vers le manuel. Tout fonctionne sans elle.',
 };

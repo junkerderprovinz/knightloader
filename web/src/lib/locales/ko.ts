@@ -351,8 +351,6 @@ export const ko: Dict = {
   'settings.lockOn': '비밀번호가 설정되어 있습니다.',
   'settings.lockOff': '설정된 비밀번호가 없습니다.',
   'settings.lockHint': '이 인스턴스에 접근할 수 있는 모든 사람으로부터 보호합니다. 같은 네트워크에서든, 도메인을 통해서든, 릴레이를 통해서든 마찬가지입니다. 한 번 설정하면, 이 인스턴스가 열리기 전에 누구나, 다음 방문 시의 본인을 포함해, 입력해야 합니다. 비밀번호가 없으면 주소를 찾은 누구나 모든 다운로드를 보고, 자신의 다운로드를 추가·일시정지·삭제할 수 있습니다.',
-  'settings.appKeyMissing': '앱 키가 설정되지 않았습니다.',
-  'settings.appKeyMissingHint': '앱 키가 없으면 데이터 폴더의 사본을 가진 사람은 누구나 저장된 비밀번호를 읽고 로그인할 수 있습니다. 추가하려면 openssl rand -hex 32를 한 번 실행하고, 그 결과를 컨테이너 템플릿에 KL_APP_KEY 변수로 넣은 뒤 다시 시작하세요. 그러면 KnightLoader가 이 키로 비밀 정보를 봉인하고, 기존 파일은 데이터 폴더 안의 before-app-key 폴더에 남겨 둡니다. 오류 없이 7일이 지나면 KnightLoader가 그 폴더를 직접 삭제합니다. 키는 안전한 곳에 보관하세요. 키가 없으면 데이터 폴더도, 그 이후에 만든 백업도 열 수 없습니다.',
   'settings.appKeyCopies': '앱 키를 설정하기 전 파일의 사본이 아직 데이터 폴더에 있습니다. KnightLoader가 {date} 이후에 삭제합니다.',
   'settings.passwordCurrent': '현재 암호',
   'settings.passwordNew': '새 암호',
@@ -3643,4 +3641,8 @@ export const ko: Dict = {
   'settings.health.noReason': '이 부분은 이유를 알려 주지 않았습니다. 진단 페이지의 로그에 더 나와 있을 수 있습니다.',
   'settings.health.openLog': '로그 열기',
   'whatsnew.change.healthReason': '“{name}”에서 문제가 있는 부분은 이유를 알려 주고, 로그에 기록하는 부분은 버튼으로 해당 줄을 엽니다.',
+  'settings.appKeyTitle': '앱 키',
+  'settings.appKeyManual': '설명서의 앱 키',
+  'settings.appKeyHint': '앱 키가 없어도 모든 것이 동작합니다. 키가 있으면 KnightLoader가 저장된 비밀번호와 키를 봉인하므로 데이터 폴더를 복사해도 아무것도 열리지 않습니다. 데스크톱 앱은 자체 키를 만들어 컴퓨터의 자격 증명 저장소에 보관합니다. 컨테이너에서는 openssl rand -hex 32를 한 번 실행하고 결과를 템플릿에 KL_APP_KEY 변수로 넣은 뒤 다시 시작하세요. 키는 안전한 곳에 보관하세요. 키가 없으면 데이터 폴더도, 그 뒤에 만든 백업도 열 수 없습니다.',
+  'whatsnew.change.appKey': '“{name}”이 (i) 뒤에서 앱 키를 설명하고 설명서로 가는 길을 보여 줍니다. 키가 없어도 모든 것이 동작합니다.',
 };

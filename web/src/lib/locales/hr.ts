@@ -351,8 +351,6 @@ export const hr: Dict = {
   'settings.lockOn': 'Lozinka je postavljena.',
   'settings.lockOff': 'Nije postavljena lozinka.',
   'settings.lockHint': 'Štiti ovu instancu od svakoga tko joj može pristupiti, na istoj mreži, putem domene ili putem relaya. Kad je jednom postavljena, mora se unijeti prije nego što se ova instanca uopće otvori, za svakoga, uključujući i vas idući put. Bez lozinke, svatko tko pronađe adresu može vidjeti svako preuzimanje i dodati, pauzirati ili izbrisati vlastita.',
-  'settings.appKeyMissing': 'Ključ aplikacije nije postavljen.',
-  'settings.appKeyMissingHint': 'Bez ključa aplikacije svatko s kopijom podatkovne mape može pročitati spremljene lozinke i prijaviti se. Da ga dodaš, jednom pokreni openssl rand -hex 32, upiši rezultat u predložak spremnika kao varijablu KL_APP_KEY i ponovno pokreni. KnightLoader tada svoje tajne zapečati tim ključem, a stare datoteke ostavi u mapi before-app-key unutar podatkovne mape. KnightLoader sam briše tu mapu nakon sedam dana bez pogrešaka. Čuvaj ključ na sigurnom: bez njega se ne mogu otvoriti ni podatkovna mapa ni sigurnosne kopije napravljene nakon toga.',
   'settings.appKeyCopies': 'U podatkovnoj mapi još je kopija datoteka od prije ključa aplikacije. KnightLoader je briše nakon {date}.',
   'settings.passwordCurrent': 'Trenutna lozinka',
   'settings.passwordNew': 'Nova lozinka',
@@ -3670,4 +3668,8 @@ export const hr: Dict = {
   'settings.health.noReason': 'Ovaj dio ne navodi razlog. Zapisnik na stranici Dijagnostika možda kaže više.',
   'settings.health.openLog': 'Otvori zapisnik',
   'whatsnew.change.healthReason': 'Dio u „{name}” koji ima grešku kaže zašto, a gdje piše u zapisnik, gumb ondje otvara njegove retke.',
+  'settings.appKeyTitle': 'Ključ aplikacije',
+  'settings.appKeyManual': 'Ključ aplikacije u priručniku',
+  'settings.appKeyHint': 'Sve radi i bez ključa aplikacije. S njim KnightLoader zapečati spremljene lozinke i ključeve, pa kopija mape s podacima ne otvara ništa. Aplikacija za radnu površinu stvara vlastiti ključ i čuva ga u spremištu vjerodajnica računala. U spremniku jednom pokreni openssl rand -hex 32, rezultat stavi u predložak kao varijablu KL_APP_KEY i ponovno pokreni. Ključ čuvaj na sigurnom: bez njega se ne mogu otvoriti ni mapa s podacima ni sigurnosna kopija napravljena od tada.',
+  'whatsnew.change.appKey': '„{name}” objašnjava ključ aplikacije iza (i), s putem do priručnika. Sve radi i bez njega.',
 };

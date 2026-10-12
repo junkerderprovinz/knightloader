@@ -205,6 +205,7 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.passwordReset',
         names: { name: 'auth.forgot' },
       },
+      { id: 'app-key', to: ['/settings/access'], text: 'whatsnew.change.appKey', names: { name: 'auth.password' } },
       {
         id: 'trusted-proxies',
         to: ['/settings/access'],

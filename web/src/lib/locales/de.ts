@@ -377,8 +377,6 @@ export const de: Dict = {
   'settings.lockOn': 'Passwort ist eingerichtet.',
   'settings.lockOff': 'Kein Passwort gesetzt.',
   'settings.lockHint': 'Schützt diese Instanz vor jedem, der sie erreichen kann: im selben Netzwerk, über eine Domain oder über ein Relay. Ist ein Passwort gesetzt, muss es jeder eingeben, bevor sich diese Instanz überhaupt öffnet, auch du bei deinem nächsten Besuch. Ohne Passwort kann jeder, der die Adresse findet, jeden Download sehen und eigene hinzufügen, pausieren oder löschen.',
-  'settings.appKeyMissing': 'Kein App-Schlüssel gesetzt.',
-  'settings.appKeyMissingHint': 'Ohne App-Schlüssel kann jeder mit einer Kopie des Datenordners die gespeicherten Passwörter lesen und sich anmelden. Zum Einrichten führst du einmal openssl rand -hex 32 aus, trägst das Ergebnis im Container-Template als Variable KL_APP_KEY ein und startest neu. KnightLoader versiegelt seine Geheimnisse dann damit und legt die alten Dateien in einem Ordner before-app-key im Datenordner ab. Diesen Ordner löscht KnightLoader nach sieben Tagen ohne Fehler selbst. Bewahr den Schlüssel gut auf: Ohne ihn lassen sich weder der Datenordner noch eine ab dann erstellte Sicherung öffnen.',
   'settings.appKeyCopies': 'Eine Kopie der Dateien von vor dem App-Schlüssel liegt noch im Datenordner. KnightLoader löscht sie nach dem {date}.',
   'settings.passwordCurrent': 'Aktuelles Passwort',
   'settings.passwordNew': 'Neues Passwort',
@@ -3659,4 +3657,8 @@ export const de: Dict = {
   'settings.health.noReason': 'Dieser Teil nennt keinen Grund. Das Protokoll auf der Seite Diagnose sagt vielleicht mehr.',
   'settings.health.openLog': 'Protokoll öffnen',
   'whatsnew.change.healthReason': 'Ein Teil in „{name}“, der einen Fehler hat, sagt, warum, und wo er ins Protokoll schreibt, öffnet ein Knopf seine Zeilen dort.',
+  'settings.appKeyTitle': 'App-Schlüssel',
+  'settings.appKeyManual': 'App-Schlüssel im Handbuch',
+  'settings.appKeyHint': 'Ohne App-Schlüssel funktioniert alles. Mit einem versiegelt KnightLoader die gespeicherten Passwörter und Schlüssel, sodass eine Kopie des Datenordners nichts öffnet. Die Desktop-App erzeugt ihren eigenen Schlüssel und legt ihn im Anmeldespeicher des Computers ab. In einem Container führst du einmal openssl rand -hex 32 aus, trägst das Ergebnis als Variable KL_APP_KEY in die Vorlage ein und startest neu. Bewahr den Schlüssel sicher auf: Ohne ihn lassen sich weder der Datenordner noch ein ab dann erstelltes Backup öffnen.',
+  'whatsnew.change.appKey': '„{name}“ erklärt den App-Schlüssel hinter einem (i), mit dem Weg ins Handbuch. Ohne ihn funktioniert alles.',
 };

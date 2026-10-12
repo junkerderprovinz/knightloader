@@ -351,8 +351,6 @@ export const sl: Dict = {
   'settings.lockOn': 'Geslo je nastavljeno.',
   'settings.lockOff': 'Geslo ni nastavljeno.',
   'settings.lockHint': 'Ščiti to instanco pred vsakomer, ki jo lahko doseže: v istem omrežju, prek domene ali prek releja. Ko je geslo nastavljeno, ga je treba vnesti, preden se ta instanca sploh odpre, za vsakogar, tudi zase ob naslednjem obisku. Brez gesla lahko vsak, ki najde naslov, vidi vsak prenos ter dodaja, ustavlja ali briše svoje.',
-  'settings.appKeyMissing': 'Ključ aplikacije ni nastavljen.',
-  'settings.appKeyMissingHint': 'Brez ključa aplikacije lahko kdorkoli s kopijo podatkovne mape prebere shranjena gesla in se prijavi. Če ga želiš dodati, enkrat zaženi openssl rand -hex 32, rezultat vpiši v predlogo vsebnika kot spremenljivko KL_APP_KEY in znova zaženi. KnightLoader nato svoje skrivnosti zapečati s tem ključem, stare datoteke pa shrani v mapo before-app-key v podatkovni mapi. KnightLoader to mapo sam izbriše po sedmih dneh brez napak. Ključ hrani na varnem: brez njega ni mogoče odpreti niti podatkovne mape niti varnostnih kopij, narejenih od takrat naprej.',
   'settings.appKeyCopies': 'V podatkovni mapi je še kopija datotek iz časa pred ključem aplikacije. KnightLoader jo izbriše po {date}.',
   'settings.passwordCurrent': 'Trenutno geslo',
   'settings.passwordNew': 'Novo geslo',
@@ -3655,4 +3653,8 @@ export const sl: Dict = {
   'settings.health.noReason': 'Ta del ne navaja razloga. Dnevnik na strani Diagnostika morda pove več.',
   'settings.health.openLog': 'Odpri dnevnik',
   'whatsnew.change.healthReason': 'Del v »{name}«, ki ima napako, pove zakaj, in kjer piše v dnevnik, gumb tam odpre njegove vrstice.',
+  'settings.appKeyTitle': 'Ključ aplikacije',
+  'settings.appKeyManual': 'Ključ aplikacije v priročniku',
+  'settings.appKeyHint': 'Vse deluje tudi brez ključa aplikacije. S ključem KnightLoader zapečati shranjena gesla in ključe, tako da kopija podatkovne mape ne odpre ničesar. Namizna aplikacija ustvari svoj ključ in ga hrani v shrambi poverilnic računalnika. V vsebniku enkrat zaženi openssl rand -hex 32, rezultat vstavi v predlogo kot spremenljivko KL_APP_KEY in znova zaženi. Ključ hrani na varnem: brez njega se ne odpreta ne podatkovna mapa ne varnostna kopija, narejena od takrat.',
+  'whatsnew.change.appKey': '»{name}« razloži ključ aplikacije za (i), s potjo do priročnika. Vse deluje tudi brez njega.',
 };

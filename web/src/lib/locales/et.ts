@@ -351,8 +351,6 @@ export const et: Dict = {
   'settings.lockOn': 'Parool on määratud.',
   'settings.lockOff': 'Parooli pole määratud.',
   'settings.lockHint': 'Kaitseb seda eksemplari kõigi eest, kes seda saavad kätte: samas võrgus, domeeni kaudu või relee kaudu. Kui parool on määratud, tuleb see enne selle eksemplari avanemist sisestada, kõigi jaoks, ka sinu enda jaoks järgmisel korral. Ilma paroolita näeb igaüks, kes aadressi leiab, iga allalaadimist ning saab lisada, peatada või kustutada omaenda omi.',
-  'settings.appKeyMissing': 'Rakenduse võtit pole määratud.',
-  'settings.appKeyMissingHint': 'Ilma rakenduse võtmeta saab igaüks, kellel on andmekausta koopia, lugeda salvestatud paroole ja sisse logida. Võtme lisamiseks käivita üks kord openssl rand -hex 32, pane tulemus konteineri malli muutujaks KL_APP_KEY ja taaskäivita. Seejärel pitseerib KnightLoader oma saladused selle võtmega ja hoiab vanu faile andmekausta sees kaustas before-app-key. KnightLoader kustutab selle kausta ise pärast seitset veata päeva. Hoia võtit kindlas kohas: ilma selleta ei saa avada ei andmekausta ega pärast seda tehtud varukoopiaid.',
   'settings.appKeyCopies': 'Andmekaustas on veel koopia failidest, mis olid enne rakenduse võtit. KnightLoader kustutab selle pärast {date}.',
   'settings.passwordCurrent': 'Praegune parool',
   'settings.passwordNew': 'Uus parool',
@@ -3648,4 +3646,8 @@ export const et: Dict = {
   'settings.health.noReason': 'See osa ei nimeta põhjust. Logi lehel Diagnostika võib öelda rohkem.',
   'settings.health.openLog': 'Ava logi',
   'whatsnew.change.healthReason': 'Vigane osa jaotises „{name}“ ütleb, miks, ja kui see kirjutab logisse, avab nupp seal tema read.',
+  'settings.appKeyTitle': 'Rakenduse võti',
+  'settings.appKeyManual': 'Rakenduse võti juhendis',
+  'settings.appKeyHint': 'Kõik töötab ka ilma rakenduse võtmeta. Võtmega pitseerib KnightLoader salvestatud paroolid ja võtmed, nii et andmekausta koopia ei ava midagi. Töölauarakendus teeb endale ise võtme ja hoiab seda arvuti mandaadihoidlas. Konteineris käivita üks kord openssl rand -hex 32, pane tulemus mallis muutujaks KL_APP_KEY ja taaskäivita. Hoia võtit kindlas kohas: ilma selleta ei saa avada ei andmekausta ega sellest ajast tehtud varukoopiat.',
+  'whatsnew.change.appKey': '„{name}“ selgitab rakenduse võtit (i) taga koos teega juhendisse. Kõik töötab ka ilma selleta.',
 };

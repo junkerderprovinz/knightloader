@@ -343,8 +343,6 @@ export const pt: Dict = {
   'settings.lockOn': 'Há uma palavra-passe definida.',
   'settings.lockOff': 'Nenhuma palavra-passe definida.',
   'settings.lockHint': 'Protege esta instância de qualquer pessoa que a possa alcançar: na mesma rede, através de um domínio ou de um relay. Depois de definida, tem de ser introduzida antes de esta instância sequer abrir, para qualquer pessoa, incluindo você da próxima vez. Sem palavra-passe, qualquer pessoa que encontre o endereço pode ver todos os downloads, e adicionar, pausar ou eliminar os seus próprios.',
-  'settings.appKeyMissing': 'Nenhuma chave da aplicação definida.',
-  'settings.appKeyMissingHint': 'Sem uma chave da aplicação, qualquer pessoa com uma cópia da pasta de dados consegue ler as palavras-passe guardadas e iniciar sessão. Para adicionar uma, execute uma vez openssl rand -hex 32, coloque o resultado no modelo do contentor como a variável KL_APP_KEY e reinicie. O KnightLoader passa então a selar os seus segredos com ela e guarda os ficheiros antigos numa pasta before-app-key dentro da pasta de dados. O KnightLoader apaga essa pasta sozinho ao fim de sete dias sem erros. Guarde a chave num local seguro: sem ela, não é possível abrir a pasta de dados nem as cópias de segurança feitas a partir daí.',
   'settings.appKeyCopies': 'Ainda existe na pasta de dados uma cópia dos ficheiros de antes da chave da aplicação. O KnightLoader apaga-a depois de {date}.',
   'settings.passwordCurrent': 'Palavra-passe atual',
   'settings.passwordNew': 'Nova palavra-passe',
@@ -3647,4 +3645,8 @@ export const pt: Dict = {
   'settings.health.noReason': 'Esta parte não deu nenhum motivo. O registo na página Diagnóstico talvez diga mais.',
   'settings.health.openLog': 'Abrir o registo',
   'whatsnew.change.healthReason': 'Uma parte de «{name}» com uma falha diz porquê, e onde escreve no registo um botão abre lá as suas linhas.',
+  'settings.appKeyTitle': 'Chave da aplicação',
+  'settings.appKeyManual': 'A chave da aplicação no manual',
+  'settings.appKeyHint': 'Tudo funciona sem chave da aplicação. Com uma, o KnightLoader sela as palavras-passe e chaves guardadas, por isso uma cópia da pasta de dados não abre nada. A aplicação de computador cria a sua própria chave e guarda-a no armazenamento de credenciais do computador. Num contentor, corre uma vez openssl rand -hex 32, coloca o resultado no modelo como a variável KL_APP_KEY e reinicia. Guarda a chave num sítio seguro: sem ela não se abre nem a pasta de dados nem uma cópia de segurança feita a partir daí.',
+  'whatsnew.change.appKey': '«{name}» explica a chave da aplicação atrás de um (i), com o caminho para o manual. Tudo funciona sem ela.',
 };

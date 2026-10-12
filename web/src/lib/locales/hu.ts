@@ -351,8 +351,6 @@ export const hu: Dict = {
   'settings.lockOn': 'Van beállított jelszó.',
   'settings.lockOff': 'Nincs jelszó beállítva.',
   'settings.lockHint': 'Megvédi ezt a példányt mindenkitől, aki el tudja érni: ugyanazon a hálózaton, egy domainen vagy egy relén keresztül. Ha be van állítva, meg kell adni, mielőtt ez a példány egyáltalán megnyílna, mindenki számára, beleértve téged is a következő látogatáskor. Jelszó nélkül bárki, aki megtalálja a címet, láthat minden letöltést, és hozzáadhatja, szüneteltetheti vagy törölheti a sajátjait.',
-  'settings.appKeyMissing': 'Nincs beállítva alkalmazáskulcs.',
-  'settings.appKeyMissingHint': 'Alkalmazáskulcs nélkül bárki, akinek megvan az adatmappa másolata, elolvashatja a tárolt jelszavakat és bejelentkezhet. Kulcs hozzáadásához futtassa egyszer az openssl rand -hex 32 parancsot, írja be az eredményt a konténer sablonjába KL_APP_KEY változóként, és indítsa újra. Ezután a KnightLoader ezzel a kulccsal pecsételi le a titkait, a régi fájlokat pedig egy before-app-key mappában hagyja az adatmappán belül. A KnightLoader hét hiba nélküli nap után maga törli ezt a mappát. Tartsa biztonságos helyen a kulcsot: nélküle sem az adatmappa, sem az ezután készült biztonsági mentések nem nyithatók meg.',
   'settings.appKeyCopies': 'Az adatmappában még megvan a fájlok alkalmazáskulcs előtti másolata. A KnightLoader {date} után törli.',
   'settings.passwordCurrent': 'Jelenlegi jelszó',
   'settings.passwordNew': 'Új jelszó',
@@ -3658,4 +3656,8 @@ export const hu: Dict = {
   'settings.health.noReason': 'Ez a rész nem ad okot. A Diagnosztika oldal naplója talán többet mond.',
   'settings.health.openLog': 'Napló megnyitása',
   'whatsnew.change.healthReason': 'A(z) „{name}” hibás része megmondja, miért, és ha a naplóba ír, egy gomb ott megnyitja a sorait.',
+  'settings.appKeyTitle': 'Alkalmazáskulcs',
+  'settings.appKeyManual': 'Az alkalmazáskulcs a kézikönyvben',
+  'settings.appKeyHint': 'Alkalmazáskulcs nélkül is minden működik. Kulccsal a KnightLoader lepecsételi a tárolt jelszavakat és kulcsokat, így az adatmappa másolata semmit sem nyit meg. Az asztali alkalmazás maga készíti el a kulcsát, és a számítógép hitelesítőadat-tárában tartja. Konténerben futtasd le egyszer az openssl rand -hex 32 parancsot, az eredményt tedd be a sablonba KL_APP_KEY változóként, és indítsd újra. Tartsd biztonságos helyen a kulcsot: nélküle sem az adatmappa, sem az onnantól készült biztonsági mentés nem nyitható meg.',
+  'whatsnew.change.appKey': 'A(z) „{name}” egy (i) mögött magyarázza el az alkalmazáskulcsot, a kézikönyvhöz vezető úttal. Nélküle is minden működik.',
 };
