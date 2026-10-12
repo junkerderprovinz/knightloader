@@ -4,10 +4,10 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Settings } from '../../lib/api';
+import type { Account, CatalogueService, Settings } from '../../lib/api';
 import { I18nProvider } from '../../lib/i18n';
 import { ToastProvider } from '../../lib/toast';
-import { Captcha } from '../../pages/settings/Captcha';
+import { CaptchaCards } from '../../pages/settings/accounts/CaptchaCards';
 import { SettingsProvider, type SettingsDraft } from '../../pages/settings/context';
 import { SelfTestPulseCard } from '../../pages/settings/health/SelfTestPulse';
 import { Rules } from '../../pages/settings/Rules';
@@ -526,17 +526,16 @@ describe('the pictures on their pages', () => {
   };
   const settle = () => act(async () => void (await new Promise((done) => setTimeout(done, 0))));
 
-  describe('the captcha page', () => {
+  describe('the captcha cards', () => {
     const solver = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'captchaSolver', whereUrl: '' });
     const cfg = { captchaSolverOrder: ['capsolver', '2captcha'], captchaSolverOnlyUnwatched: true, captchaSolverWait: 90 };
 
-    beforeEach(() => {
-      answers['GET /api/accounts/catalogue'] = () => [solver('2captcha', '2Captcha'), solver('9kw', '9kw.eu'), solver('capsolver', 'CapSolver')];
-      answers['GET /api/accounts'] = () => [{ service: 'capsolver', account: '', configured: true, enabled: true }];
-    });
+    const catalogue = [solver('2captcha', '2Captcha'), solver('9kw', '9kw.eu'), solver('capsolver', 'CapSolver')] as CatalogueService[];
+    const accounts = [{ service: 'capsolver', account: '', configured: true, enabled: true }] as Account[];
+    const cards = <CaptchaCards hue={0} accounts={accounts} catalogue={catalogue} />;
 
     it('draws the chain from the order, the keys and the wait that are set', async () => {
-      await draw(on(cfg, [module('captcha', true)], <Captcha />));
+      await draw(on(cfg, [module('captcha', true)], cards));
       await settle();
       const chain = host.querySelector('[data-new="captcha-chain"]')!;
       expect(chain.getAttribute('aria-label')).toBe(
@@ -546,13 +545,13 @@ describe('the pictures on their pages', () => {
     });
 
     it('says the accounts start at once when they do not wait for somebody watching', async () => {
-      await draw(on({ ...cfg, captchaSolverOnlyUnwatched: false }, [module('captcha', true)], <Captcha />));
+      await draw(on({ ...cfg, captchaSolverOnlyUnwatched: false }, [module('captcha', true)], cards));
       await settle();
       expect(host.querySelector('[data-station="wait"]')!.textContent).toBe('Captcha accounts start at once');
     });
 
     it('stands the chain grey while the captcha module is switched off', async () => {
-      await draw(on(cfg, [module('captcha', false)], <Captcha />));
+      await draw(on(cfg, [module('captcha', false)], cards));
       await settle();
       expect(host.querySelector('[data-new="captcha-chain"]')!.getAttribute('data-state')).toBe('off');
     });

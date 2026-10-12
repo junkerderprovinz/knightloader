@@ -377,6 +377,26 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
+    // The solver rows are named by the server.
+    {
+      title: 'settings.captcha.orderTitle',
+      hint: 'settings.captcha.orderHint',
+      // The test captcha is the card's second group, under a heading of its own.
+      rows: [
+        { key: 'settings.module.captcha' },
+        { key: 'settings.captcha.testTitle' },
+        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
+        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
+      ],
+      body: ['settings.captcha.orderEmpty'],
+    },
+    {
+      title: 'settings.captcha.whenTitle',
+      rows: [
+        { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
+        { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
+      ],
+    },
     {
       title: 'settings.module.debriddrive',
       rows: [
@@ -841,29 +861,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: ['settings.torrents.qbitTest'],
       // The (i) inside the test button.
       body: ['settings.torrents.qbitTestHint'],
-    },
-  ],
-
-  captcha: [
-    // The solver rows are named by the server.
-    {
-      title: 'settings.captcha.orderTitle',
-      hint: 'settings.captcha.orderHint',
-      // The test captcha is the card's second group, under a heading of its own.
-      rows: [
-        { key: 'settings.module.captcha' },
-        { key: 'settings.captcha.testTitle' },
-        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
-        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
-      ],
-      body: ['settings.captcha.orderEmpty'],
-    },
-    {
-      title: 'settings.captcha.whenTitle',
-      rows: [
-        { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
-        { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
-      ],
     },
   ],
 

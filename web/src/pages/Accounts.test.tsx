@@ -49,6 +49,9 @@ async function addKind(kind: string) {
   await act(async () => tile.click());
 }
 
+// jsdom has no SMIL clock for the captcha chain's picture to hold.
+Object.assign(SVGSVGElement.prototype, { pauseAnimations() {}, unpauseAnimations() {}, setCurrentTime() {} });
+
 beforeEach(() => {
   patched = [];
   // A desktop width, where the floating action shows its words.
@@ -64,6 +67,7 @@ beforeEach(() => {
         return reply(body);
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       // The accounts, the catalogue, the hoster logins and the routing cards
       // all read as empty.
       return reply([]);
@@ -102,6 +106,7 @@ it('lists a stored captcha account in its own section, apart from the debrid acc
         ]);
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -160,6 +165,7 @@ it('lists a multihoster login kept for JDownloader with the hoster accounts, not
         return reply([{ host: 'leechall.io', username: 'knight', status: 'active', enabled: true, multihoster: true }]);
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -205,6 +211,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
         ]);
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -258,6 +265,7 @@ it('saves an own server only under a name a host can have', async () => {
         return new Response(null, { status: 204 });
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -316,6 +324,7 @@ it('lists the own Usenet servers in their own section and saves a switch without
       }
       if (url === '/api/usenet/servers') return reply([server]);
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -364,6 +373,7 @@ function stubCatalogue(catalogue: unknown[]) {
       if (url === '/api/accounts/catalogue') return reply(catalogue);
       if (url === '/api/hosterauth/hosts') return reply([{ id: 'rapidgator.net', label: 'rapidgator.net' }]);
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -468,6 +478,7 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
         ]);
       }
       if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
       return reply([]);
     }),
   );
@@ -486,4 +497,29 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
 
   await act(async () => row.querySelector('td:nth-child(3)')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
   expect(windowTitle()).toContain('TorBox');
+});
+
+it('orders the captcha accounts beside their keys and saves the order without a settings draft', async () => {
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string, init?: RequestInit) => {
+      if (url === '/api/accounts/catalogue') return reply(services);
+      if (url === '/api/settings' && init?.method === 'PATCH') {
+        const body = JSON.parse(String(init.body));
+        patched.push(body);
+        return reply({ premiumOnly: false, captchaSolverOrder: null, ...body });
+      }
+      if (url === '/api/settings') return reply({ premiumOnly: false, captchaSolverOrder: null });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  expect(host.textContent).toContain('Captcha account order');
+
+  const solver = host.querySelector<HTMLButtonElement>('[role="switch"][aria-label="Try CapSolver automatically"]')!;
+  await act(async () => solver.click());
+  // Edits are gathered for a moment before they go out.
+  await act(async () => void (await new Promise((done) => setTimeout(done, 700))));
+  expect(patched).toEqual([{ captchaSolverOrder: ['capsolver'] }]);
 });

@@ -6,7 +6,6 @@ import { Appearance } from './Appearance';
 import { Archives } from './Archives';
 import { Automation } from './Automation';
 import { BrowserTools } from './BrowserTools';
-import { Captcha } from './Captcha';
 import { CollectorSettings } from './CollectorSettings';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
@@ -43,7 +42,6 @@ const PAGES: Record<string, () => ReactNode> = {
   network: () => <Network />,
   resolvers: () => <Resolvers />,
   torrents: () => <Torrents />,
-  captcha: () => <Captcha />,
   automation: () => <Automation />,
   // The settings tab renders the sidebar's own Konten page with one extra
   // toggle; the same holds for instances below.

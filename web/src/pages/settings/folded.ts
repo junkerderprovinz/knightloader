@@ -11,6 +11,8 @@ const FOLDED: Record<string, string> = {
   connections: 'network',
   reconnect: 'network',
   categories: 'rules',
+  // The captcha accounts' order and when they start stand beside their keys.
+  captcha: 'accounts',
 };
 
 /** pageId returns the page a possibly folded id is drawn on. */

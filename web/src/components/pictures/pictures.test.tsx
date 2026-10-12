@@ -297,6 +297,7 @@ describe('the priority order card', () => {
         }
         if (url === '/api/settings') return reply({ premiumOnly: false });
         if (url.startsWith('/api/uistate')) return reply({});
+        if (url === '/api/features') return reply({ modules: [], pages: [] });
         return reply([]);
       }),
     );
