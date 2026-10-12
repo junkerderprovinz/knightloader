@@ -78,11 +78,10 @@ export function Vessel({
                   fill="freeze"
                 />
               )}
-              <path d={SURFACE_LINE} fill={PAINT[tone]}>
-                {!still && (
-                  <animateTransform attributeName="transform" type="translate" values="0 0;-12 0" dur="1.3s" repeatCount="2" />
-                )}
-              </path>
+              {/* The surface drifts for as long as it is shown, on the motion
+                  engine's dial (glim-liquid in index.css), which the motion
+                  setting and a request for less motion both stop. */}
+              <path d={SURFACE_LINE} fill={PAINT[tone]} className="glim-liquid" />
             </g>
           </g>
         </g>

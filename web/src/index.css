@@ -1315,6 +1315,20 @@ body {
   from { rotate: calc(var(--motion-wiggle-angle) * -1); }
   to   { rotate: var(--motion-wiggle-angle); }
 }
+/* The surface of a fill level drifts by one wave, which loops without a seam,
+   and rises a little on the way. A vessel's surface lies across it; a lying
+   bar's surface is its end, so there the wave runs along the edge. Linear,
+   since an eased drift would stop at every seam. */
+@keyframes glim-liquid {
+  from { translate: 0 0; }
+  50%  { translate: calc(var(--liquid-wave) * -.5) calc(var(--motion-liquid-bob) * -1); }
+  to   { translate: calc(var(--liquid-wave) * -1) 0; }
+}
+@keyframes glim-liquid-edge {
+  from { translate: 0 0; }
+  50%  { translate: var(--motion-liquid-bob) calc(var(--liquid-wave) * .5); }
+  to   { translate: 0 var(--liquid-wave); }
+}
 
 /* A floating window arrives: the scrim fades up and the card rises a little
    and settles. It ends at `transform: none` and never scales, since a
@@ -1383,6 +1397,10 @@ body {
     --motion-control-dur: 150ms;
     /* The sheen that crosses a README button once under the pointer. */
     --motion-button-sheen-dur: 800ms;
+    /* The surface of a fill level: the time one wave takes to drift past,
+       and how far the surface rises and settles on the way. */
+    --motion-liquid-dur: 4.5s;
+    --motion-liquid-bob: .5px;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
   }
@@ -1430,6 +1448,8 @@ body {
     --motion-label-squash: 1;
     --motion-control-dur: 80ms;
     --motion-button-sheen-dur: 1100ms;
+    --motion-liquid-dur: 7s;
+    --motion-liquid-bob: .25px;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
   }
@@ -1481,6 +1501,9 @@ body {
     /* Every colour, shadow and opacity change lands at once. */
     --motion-control-dur: 0s;
     --motion-button-sheen-dur: 0s;
+    /* Long rather than 0, and stopped by the rule below. */
+    --motion-liquid-dur: 60s;
+    --motion-liquid-bob: 0px;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
   }
@@ -1513,7 +1536,19 @@ body {
   .glim-drag-armed > :not(.glim-drag-lift) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
+  .glim-liquid {
+    animation: glim-liquid var(--motion-liquid-dur) linear infinite;
+  }
+  .glim-liquid-edge::after {
+    animation: glim-liquid-edge var(--motion-liquid-dur) linear infinite;
+  }
 
+  /* A level at "off" holds its surface still, as under reduced motion, where
+     the rules above are never read. */
+  :root[data-motion="off"] .glim-liquid,
+  :root[data-motion="off"] .glim-liquid-edge::after {
+    animation: none;
+  }
   /* The pulse at "off": a static dot, as under reduced motion. */
   :root[data-motion="off"] .glim-live {
     animation: none;
@@ -1799,6 +1834,8 @@ body {
      not livelier. */
   --motion-control-dur: 150ms;
   --motion-button-sheen-dur: 550ms;
+  --motion-liquid-dur: 2.6s;
+  --motion-liquid-bob: 1px;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
 }
@@ -2587,6 +2624,35 @@ body {
   .kl-bar-edge {
     display: none;
   }
+}
+
+/* The end of a fill level drawn as a bar (ProgressBar's `level`, the shell's
+   volume meter) is a liquid's surface: a strip in the fill's own colour past
+   its end, cut to a wave and one wave taller than the bar, so it can drift
+   along the edge. The bar's track rounds and clips it, so the fill itself has
+   square ends. */
+.glim-liquid-edge {
+  --liquid-wave: 8px;
+  position: relative;
+}
+.glim-liquid-edge::after {
+  content: '';
+  position: absolute;
+  top: calc(var(--liquid-wave) * -1);
+  bottom: 0;
+  inset-inline-start: 100%;
+  width: 4px;
+  background-color: inherit;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 4 8'%3E%3Cpath d='M0 0h2q2 2 0 4t0 4H0z'/%3E%3C/svg%3E")
+    0 0 / 4px var(--liquid-wave) repeat-y;
+  pointer-events: none;
+}
+[dir='rtl'] .glim-liquid-edge::after {
+  scale: -1 1;
+}
+/* A vessel's surface (pictures/Vessel.tsx), whose wave is 12 units long. */
+.glim-liquid {
+  --liquid-wave: 12px;
 }
 
 /* An archive being unpacked draws its bar in the row's own colour, striped.

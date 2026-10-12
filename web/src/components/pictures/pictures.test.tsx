@@ -10,6 +10,7 @@ import { IconPlay } from '../../lib/icons';
 import { ToastProvider } from '../../lib/toast';
 import { Accounts } from '../../pages/Accounts';
 import { DiskVolumeRow } from '../DiskSpaceTile';
+import { ProgressBar } from '../ProgressBar';
 import { AfterDownload, type AfterDownloadSteps } from './AfterDownload';
 import { PriorityFlow } from './PriorityFlow';
 import { ReconnectScene } from './ReconnectScene';
@@ -74,6 +75,33 @@ describe('a vessel', () => {
     expect(host.querySelector('[role="progressbar"]')).toBeNull();
     expect(host.querySelector('[role="img"]')!.getAttribute('aria-label')).toBe('Volume');
     expect(host.querySelector('path[stroke-dasharray="2.5 2.5"]')).toBeNull();
+  });
+
+  it("keeps its surface moving through the stylesheet's motion dial rather than a loop of its own", async () => {
+    await draw(<Vessel share={0.5} label="Used" />);
+    const surface = host.querySelector('g[clip-path] path')!;
+    expect(surface.getAttribute('class')).toBe('glim-liquid');
+    expect(surface.querySelector('animateTransform')).toBeNull();
+  });
+});
+
+describe('a bar that shows a level', () => {
+  it('ends its fill in a liquid surface and draws no front edge', async () => {
+    await draw(<ProgressBar active level percent={40} />);
+    const fill = host.querySelector<HTMLElement>('.kl-bar-fill')!;
+    expect(fill.classList.contains('glim-liquid-edge')).toBe(true);
+    expect(host.querySelector('.kl-bar-edge')).toBeNull();
+  });
+
+  it('shows no surface while it is empty', async () => {
+    await draw(<ProgressBar active level percent={0} />);
+    expect(host.querySelector('.glim-liquid-edge')).toBeNull();
+  });
+
+  it('leaves a transfer its pulsing edge', async () => {
+    await draw(<ProgressBar active moving percent={40} />);
+    expect(host.querySelector('.glim-liquid-edge')).toBeNull();
+    expect(host.querySelector('.kl-bar-edge-live')).not.toBeNull();
   });
 });
 
