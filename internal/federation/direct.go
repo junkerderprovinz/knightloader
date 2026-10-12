@@ -151,7 +151,8 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	if keys.member != nil {
 		call.From, call.Kind = self, relay.KindInstance
 	}
-	sealed, err := relay.SealSignedCall(keys.frameKey, keys.member, id, target, call)
+	call = relay.SignCall(keys.member, id, target, call)
+	sealed, err := relay.SealCall(keys.frameKey, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -190,7 +191,7 @@ func (m *Manager) callDirect(ctx context.Context, url, target, method, path stri
 	if err != nil {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s answered unreadably: %w", target, err)
 	}
-	if !relay.VerifyResult(id, target, result) {
+	if !relay.VerifyResult(id, target, call, result) {
 		return nil, http.StatusBadGateway, fmt.Errorf("federation: %s's answer is not signed by its key", target)
 	}
 	if !m.TrustsAnswer(target, result.Key) {
@@ -259,7 +260,7 @@ func (m *Manager) ServeDirect(w http.ResponseWriter, r *http.Request, serve rela
 	}
 	result := relay.ProxyResult{Status: status, Body: out}
 	if keys.member != nil {
-		result = relay.SignResult(keys.member, req.RequestID, self, result)
+		result = relay.SignResult(keys.member, req.RequestID, self, call, result)
 	}
 	sealed, err := relay.SealResult(keys.frameKey, req.RequestID, result)
 	if err != nil {

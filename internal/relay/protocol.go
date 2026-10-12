@@ -345,35 +345,48 @@ func responseAAD(requestID string) string {
 	return "proxy-response\x00" + requestID
 }
 
-// SealCall seals one call for the wire, stamped with requestID and, unless
-// Sent is set, the current time. It is exported so the mobile app's
-// TypeScript port can be tested against it.
-func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
-	return SealSignedCall(key, nil, requestID, target, call)
-}
-
-// SealSignedCall is SealCall with the call signed by member, the caller's
-// member key, once its id and time are stamped. call.From and call.Kind have
-// to be set by then. A nil member seals the call unsigned.
-func SealSignedCall(key []byte, member ed25519.PrivateKey, requestID, target string, call ProxyCall) ([]byte, error) {
+// stamp is call with requestID and, unless Sent is set, the current time.
+func stamp(requestID string, call ProxyCall) ProxyCall {
 	call.ID = requestID
 	if call.Sent == 0 {
 		call.Sent = time.Now().Unix()
 	}
-	call.Key, call.Sig = nil, nil
-	if member != nil {
-		call.Key = member.Public().(ed25519.PublicKey)
-		call.Sig = ed25519.Sign(member, CallMessage(target, call))
-	}
-	plain, err := json.Marshal(call)
+	return call
+}
+
+// SealCall seals one call for the wire, stamped with requestID and, unless
+// Sent is set, the current time. It is exported so the mobile app's
+// TypeScript port can be tested against it.
+func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	plain, err := json.Marshal(stamp(requestID, call))
 	if err != nil {
 		return nil, err
 	}
 	return seal(key, requestAAD(requestID, target), plain)
 }
 
+// SignCall stamps call as SealCall does and signs it for target with member,
+// the caller's member key; call.From and call.Kind have to be set. A nil
+// member leaves it unsigned. The caller keeps what it returns to check the
+// answer against (VerifyResult).
+func SignCall(member ed25519.PrivateKey, requestID, target string, call ProxyCall) ProxyCall {
+	call = stamp(requestID, call)
+	call.Key, call.Sig = nil, nil
+	if member != nil {
+		call.Key = member.Public().(ed25519.PublicKey)
+		call.Sig = ed25519.Sign(member, CallMessage(target, call))
+	}
+	return call
+}
+
+// SealSignedCall seals the call SignCall makes.
+func SealSignedCall(key []byte, member ed25519.PrivateKey, requestID, target string, call ProxyCall) ([]byte, error) {
+	return SealCall(key, requestID, target, SignCall(member, requestID, target, call))
+}
+
 // OpenCall reverses SealCall and SealSignedCall. A signed call whose signature
-// does not hold opens to ErrSignature.
+// does not hold opens to ErrSignature, with the call as it came, which the
+// refusal is signed for.
 func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, error) {
 	plain, err := open(key, requestAAD(requestID, target), sealed)
 	if err != nil {
@@ -387,7 +400,7 @@ func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, e
 		return ProxyCall{}, ErrSealed
 	}
 	if !verifyCall(target, call) {
-		return ProxyCall{}, ErrSignature
+		return call, ErrSignature
 	}
 	return call, nil
 }

@@ -25,7 +25,7 @@ export interface SignedFields {
 }
 
 const CALL_DOMAIN = 'knightloader/relay/member-call/v2\x00';
-const RESULT_DOMAIN = 'knightloader/relay/member-result/v1\x00';
+const RESULT_DOMAIN = 'knightloader/relay/member-result/v2\x00';
 const HELLO_DOMAIN = 'knightloader/relay/member-hello/v1\x00';
 
 /** Eight bytes, big-endian. Lengths, statuses and the time stay far below 2^53. */
@@ -54,10 +54,17 @@ export function callMessage(target: string, call: SignedFields): Uint8Array {
   return signedMessage(CALL_DOMAIN, call.sent, [call.id, target, call.method, call.path, call.body ?? '', call.from, call.kind]);
 }
 
+/** The call an answer is to, as this phone sent it: the id it spoke for and
+ *  its signature, which is empty for an unsigned call. */
+export interface AnsweredCall {
+  from: string;
+  sig: Uint8Array;
+}
+
 /** Mirrors relay.ResultMessage: what instance from signs when it answers
- *  requestId. body is the answer's raw bytes. */
-export function resultMessage(requestId: string, from: string, status: number, body: number[]): Uint8Array {
-  return signedMessage(RESULT_DOMAIN, status, [requestId, from, body]);
+ *  call, sent under requestId. body is the answer's raw bytes. */
+export function resultMessage(requestId: string, from: string, call: AnsweredCall, status: number, body: number[]): Uint8Array {
+  return signedMessage(RESULT_DOMAIN, status, [requestId, from, call.from, Array.from(call.sig), body]);
 }
 
 /** Mirrors relay.HelloMessage. */
@@ -92,11 +99,13 @@ export function proveId(seed: Uint8Array, relayKey: string, id: string, sent: nu
   return ed25519.sign(helloMessage(relayKey, id, 'mobile', sent), seed);
 }
 
-/** Mirrors relay.VerifyResult: whether an answer to requestId is target's,
- *  signed by the key target's instance id is made from. */
+/** Mirrors relay.VerifyResult: whether an answer to call, this phone's own
+ *  call sent under requestId, is target's, signed by the key target's
+ *  instance id is made from. */
 export function verifyResult(
   requestId: string,
   target: string,
+  call: AnsweredCall,
   status: number,
   body: number[],
   key: Uint8Array,
@@ -104,7 +113,7 @@ export function verifyResult(
 ): boolean {
   if (key.length !== 32 || sig.length !== 64 || memberId('instance', key) !== target) return false;
   try {
-    return ed25519.verify(sig, resultMessage(requestId, target, status, body), key);
+    return ed25519.verify(sig, resultMessage(requestId, target, call, status, body), key);
   } catch {
     return false;
   }

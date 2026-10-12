@@ -266,7 +266,8 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 	if c.member != nil {
 		call.From, call.Kind = c.self.InstanceID, KindInstance
 	}
-	sealed, err := SealSignedCall(c.frameKey, c.member, id, target, call)
+	call = SignCall(c.member, id, target, call)
+	sealed, err := SealCall(c.frameKey, id, target, call)
 	if err != nil {
 		return nil, http.StatusInternalServerError, err
 	}
@@ -292,8 +293,8 @@ func (c *Client) Proxy(ctx context.Context, target, method, path string, body []
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s answered unreadably: %w", target, err)
 		}
 		// Whoever holds the words can seal an answer, but only the target can
-		// sign one.
-		if !VerifyResult(id, target, result) {
+		// sign one, and it signs it for this call alone.
+		if !VerifyResult(id, target, call, result) {
 			return nil, http.StatusBadGateway, fmt.Errorf("relay: %s's answer is not signed by its key", target)
 		}
 		if c.trusts != nil && !c.trusts(target, result.Key) {
@@ -505,7 +506,7 @@ func (c *Client) answer(ctx context.Context, conn *websocket.Conn, req ProxyRequ
 		}
 	}
 	if c.member != nil {
-		result = SignResult(c.member, req.RequestID, c.self.InstanceID, result)
+		result = SignResult(c.member, req.RequestID, c.self.InstanceID, call, result)
 	}
 	sealed, err := SealResult(c.frameKey, req.RequestID, result)
 	if err != nil {
