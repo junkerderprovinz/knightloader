@@ -381,7 +381,7 @@ func TestTheLargestClientHelloFitsTheLimit(t *testing.T) {
 	if err != nil {
 		t.Fatalf("sealAnnounce: %v", err)
 	}
-	proof := ProveID(ed25519.NewKeyFromSeed(vectorSeed), KindExtension, strings.Repeat("k", 64), wire.InstanceID, make([]byte, challengeSize))
+	proof := ProveID(ed25519.NewKeyFromSeed(vectorSeed), KindExtension, strings.Repeat("k", 64), strings.Repeat("r", 253), wire.InstanceID, make([]byte, challengeSize))
 	frame, err := Encode(TypeHello, Hello{Key: strings.Repeat("k", 64), Announce: wire, Proof: proof})
 	if err != nil {
 		t.Fatalf("encode: %v", err)

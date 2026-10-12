@@ -374,6 +374,11 @@ release's tag.
   sent again on another connection proves nothing. Run a standalone relay on
   this release together with the instances, since an older relay sends no
   challenge.
+- **A hello names the relay it is meant for,** so another relay that an
+  instance or a phone dials with the same key cannot pass on its challenge and
+  use the answer elsewhere. The standalone relay goes by the address set in
+  the new `KL_RELAY_PUBLIC_URL` and by the names in `KL_RELAY_DOMAIN`. Set
+  `KL_RELAY_PUBLIC_URL` on a relay behind a reverse proxy.
 - **The old words of a reset instance reach only that instance,** even while
   it is offline. Nobody else on the old key can announce its id to meet the
   other devices still holding those words.

@@ -3,6 +3,7 @@ package relay
 import (
 	"context"
 	"encoding/json"
+	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
@@ -330,7 +331,7 @@ func TestAHelloPlayedBackOnAnotherConnectionTakesNoPlace(t *testing.T) {
 	if err := readFrame(t, alpha, TypeChallenge).Into(&ch); err != nil {
 		t.Fatal(err)
 	}
-	hello := Hello{Key: key, Announce: Announce{InstanceID: alphaID}, Proof: ProveID(alphaKey, KindInstance, key, alphaID, ch.Nonce)}
+	hello := Hello{Key: key, Announce: Announce{InstanceID: alphaID}, Proof: ProveID(alphaKey, KindInstance, key, RelayHost(url), alphaID, ch.Nonce)}
 	writeFrame(t, alpha, TypeHello, hello)
 	bravo := dialInstance(t, url, key, bravoID)
 	readFrame(t, bravo, TypeAnnounce)
@@ -346,4 +347,68 @@ func TestAHelloPlayedBackOnAnotherConnectionTakesNoPlace(t *testing.T) {
 	}
 	writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID})
 	readFrame(t, alpha, TypeProxyRequest)
+}
+
+// TestAHelloSignedForAnotherRelayTakesNoPlace: a relay the instance dialled
+// with the same key opens a connection here, passes this relay's challenge on
+// to the instance and hands back the hello the instance signed. The proof
+// names the relay the instance dialled, so here it proves nothing and the
+// instance keeps its place. Without Names the relay goes by the Host header the
+// connection arrived with.
+func TestAHelloSignedForAnotherRelayTakesNoPlace(t *testing.T) {
+	const key = "shared-relay-test-key-0123456789ab"
+	for _, tc := range []struct {
+		name      string
+		names     func(*http.Request) []string
+		signedFor func(url string) string
+		takes     bool
+	}{
+		{"for this relay by its name", func(*http.Request) []string { return []string{"relay.example.com"} }, func(string) string { return "relay.example.com" }, true},
+		{"for another relay", func(*http.Request) []string { return []string{"relay.example.com"} }, func(string) string { return "other-relay.example.net" }, false},
+		{"for the host it was dialled at", nil, RelayHost, true},
+		{"for another relay than the host it was dialled at", nil, func(string) string { return "other-relay.example.net" }, false},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			relaySrv := New()
+			relaySrv.Names = tc.names
+			srv := httptest.NewServer(relaySrv)
+			t.Cleanup(srv.Close)
+			url := "ws" + strings.TrimPrefix(srv.URL, "http") + "/relay/connect"
+			dialAs := func(signedFor string) *websocket.Conn {
+				ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+				defer cancel()
+				c, _, err := websocket.Dial(ctx, url, nil)
+				if err != nil {
+					t.Fatal(err)
+				}
+				t.Cleanup(func() { _ = c.CloseNow() })
+				var ch Challenge
+				if err := readFrame(t, c, TypeChallenge).Into(&ch); err != nil {
+					t.Fatal(err)
+				}
+				writeFrame(t, c, TypeHello, Hello{Key: key, Announce: Announce{InstanceID: alphaID}, Proof: ProveID(alphaKey, KindInstance, key, signedFor, alphaID, ch.Nonce)})
+				return c
+			}
+
+			alpha := dialAs(tc.signedFor(url))
+			bravo := dialInstance(t, url, key, bravoID)
+			readFrame(t, bravo, TypeAnnounce)
+			readFrame(t, alpha, TypeAnnounce)
+
+			next := dialAs(tc.signedFor(url))
+			if !tc.takes {
+				ctx, cancel := context.WithTimeout(context.Background(), wsTimeout)
+				defer cancel()
+				if _, _, err := next.Read(ctx); websocket.CloseStatus(err) != websocket.StatusPolicyViolation {
+					t.Fatalf("a hello signed for another relay got %v, want it turned away", err)
+				}
+				writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID})
+				readFrame(t, alpha, TypeProxyRequest)
+				return
+			}
+			readFrame(t, next, TypeAnnounce)
+			writeFrame(t, bravo, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: alphaID})
+			readFrame(t, next, TypeProxyRequest)
+		})
+	}
 }

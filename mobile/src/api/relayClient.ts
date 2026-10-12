@@ -69,6 +69,24 @@ export function connectURL(raw: string): string | null {
   return `${scheme}://${host}${path.endsWith('/connect') ? path : `${path}/relay/connect`}`;
 }
 
+/**
+ * relayHost mirrors relay.RelayHost: the name the hello's proof gives the relay
+ * it is meant for, the host of address in lower case and without the port, the
+ * brackets of an IPv6 literal or the dot of a fully qualified name. A relay
+ * takes the proof only under a name of its own, so another relay cannot pass
+ * its challenge on to this phone.
+ */
+export function relayHost(address: string): string {
+  const trimmed = address.trim();
+  const m = (trimmed.includes('://') ? trimmed : `http://${trimmed}`).match(/^[^:]*:\/\/([^/?#]*)/);
+  if (!m) return '';
+  let host = m[1].slice(m[1].lastIndexOf('@') + 1);
+  const bracketed = host.match(/^\[([^\]]*)\](?::\d*)?$/);
+  if (bracketed) host = bracketed[1];
+  else if (host.split(':').length === 2) host = host.slice(0, host.indexOf(':'));
+  return host.replace(/\.$/, '').toLowerCase();
+}
+
 interface Pending {
   // The instance asked, whose key has to have signed the answer, and the call
   // as it went out, sealed, which the answer has to name.
@@ -318,14 +336,16 @@ export class RelayClient {
       // holds for this phone after a dropped connection, which nobody
       // without the phone's key can.
       const seed = this.opts.memberSeed;
+      const relay = relayHost(this.opts.url);
       this.send(T_HELLO, {
         key: this.opts.key,
         ...(seed
           ? {
               proof: {
                 kind: 'mobile',
+                relay,
                 key: base64Encode(Array.from(memberPublicKey(seed))),
-                sig: base64Encode(Array.from(proveId(seed, this.opts.key, this.opts.selfId, challenge))),
+                sig: base64Encode(Array.from(proveId(seed, this.opts.key, relay, this.opts.selfId, challenge))),
               },
             }
           : {}),

@@ -100,7 +100,7 @@ if (port.fingerprint(pub) !== want('vectorFingerprint')) {
 }
 const challenge = new Uint8Array(fromB64(want('vectorChallenge')));
 const relayKey = goTest.match(/vectorRelayKey\s*=\s*"([^"]+)"/)?.[1];
-const hello = b64(port.proveId(seed, relayKey, want('vectorPhoneID'), challenge));
+const hello = b64(port.proveId(seed, relayKey, want('vectorRelayHost'), want('vectorPhoneID'), challenge));
 if (hello !== want('vectorHelloSig')) problems.push(`the hello proof is ${hello}, the server checks for ${want('vectorHelloSig')}`);
 
 if (problems.length) {
