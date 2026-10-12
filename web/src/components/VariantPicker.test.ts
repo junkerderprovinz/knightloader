@@ -4,6 +4,7 @@ import {
   aacNamed,
   audioPickers,
   audioSummary,
+  bitrateLabel,
   formatLabel,
   hostPresetMenus,
   presetPickers,
@@ -66,6 +67,12 @@ describe('aac', () => {
     expect(p.format.options).toEqual(['best', 'aac', 'opus']);
     expect(p.bitrate?.value).toBe('129');
     expect(p.bitrate?.options).toEqual(['', '129', '49']);
+  });
+});
+
+describe('bitrate names', () => {
+  it('names no bitrate like the best video quality, since it asks for the best', () => {
+    expect(bitrateLabel('', t)).toBe('settings.resolvers.quality.best');
   });
 });
 

@@ -34,8 +34,8 @@ type Options struct {
 	// VideoPick it has no settings key.
 	AudioTrack string `json:"-"`
 	// AudioBitrate is the --audio-quality target in kbit/s ("192"), read only
-	// for VariantAudio. Empty passes no flag; it has no effect on a "best"
-	// extract, which copies the source stream.
+	// for VariantAudio. Empty asks for the best quality, --audio-quality 0. It
+	// has no effect on a "best" extract, which copies the source stream.
 	AudioBitrate string `json:"audioBitrate"`
 	// SubtitleLangs is the --sub-langs value (codes, a pattern like "en.*",
 	// or "all"); empty means DefaultSubtitleLangs. The subtitle row and
@@ -191,7 +191,7 @@ func validAudioFormat(f string) bool {
 }
 
 // AudioBitrates lists the --audio-quality targets offered on the audio row, in
-// menu order. "" leaves yt-dlp's own default.
+// menu order. "" is the best quality the encoder gives.
 func AudioBitrates() []string {
 	return []string{"", "64", "96", "128", "160", "192", "256", "320"}
 }
