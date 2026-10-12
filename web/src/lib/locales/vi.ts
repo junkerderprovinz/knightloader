@@ -3641,7 +3641,7 @@ export const vi: Dict = {
   'whatsnew.change.accountKinds': '“{name}” mở một ô lớn cho từng loại tài khoản.',
   'whatsnew.change.priorityDrag': 'Thứ tự trong “{name}” chính là hình: kéo một tên để di chuyển, hoặc dùng phím mũi tên trên tay nắm của nó.',
   'whatsnew.change.captchaCards': '“{name}” và “{when}” đã chuyển về đây từ phần cài đặt captcha, cùng với hình và bài kiểm tra.',
-  'whatsnew.change.fillSurface': 'Mỗi mức lấp đầy nhấp nhô nhẹ nhàng và không đều ở bề mặt của nó: các thư mục dưới “{name}”, “{volume}” và lưu lượng của một tài khoản.',
+  'whatsnew.change.fillSurface': 'Mỗi mức lấp đầy sóng sánh, bọt khí nổi lên bên trong và vỡ trên bề mặt: các thư mục dưới “{name}”, “{volume}” và lưu lượng của một tài khoản.',
   'whatsnew.change.windowCard': 'Trong ứng dụng máy tính, “{name}” quyết định cửa sổ và biểu tượng của nó ở khu thông báo hoạt động thế nào.',
   'whatsnew.change.updatesCard': '“{name}” liệt kê mọi công cụ mà KnightLoader mang theo, mỗi công cụ một dòng kèm phiên bản và nguồn gốc, và cập nhật KnightLoader cùng yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Trong “{name}”, một danh sách thả xuống cạnh nhãn quyết định khi nào hai liên kết được tính là cùng một tệp.',

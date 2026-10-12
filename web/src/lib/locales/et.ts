@@ -3633,7 +3633,7 @@ export const et: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ avab iga kontoliigi jaoks suure paani.',
   'whatsnew.change.priorityDrag': 'Järjekord jaotises „{name}“ ongi pilt: lohista nime, et seda liigutada, või kasuta selle pidemel nooleklahve.',
   'whatsnew.change.captchaCards': '„{name}“ ja „{when}“ kolisid siia captcha seadetest koos pildi ja testiga.',
-  'whatsnew.change.fillSurface': 'Iga täitetase loksub pinnal õrnalt ja ebaühtlaselt: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
+  'whatsnew.change.fillSurface': 'Iga täitetase loksub ning selles tõusevad mullid, mis pinnal lõhkevad: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
   'whatsnew.change.windowCard': 'Töölauarakenduses määrab „{name}“, kuidas aken ja selle ikoon teavitusalal käituvad.',
   'whatsnew.change.updatesCard': '„{name}“ loetleb iga tööriista, mille KnightLoader kaasa toob, igaühe kohta üks rida versiooni ja päritoluga, ning uuendab KnightLoaderit ja yt-dlp-d.',
   'whatsnew.change.mirrorPolicy': 'Jaotises „{name}“ otsustab sildi kõrval olev rippmenüü, millal kaks linki loetakse samaks failiks.',

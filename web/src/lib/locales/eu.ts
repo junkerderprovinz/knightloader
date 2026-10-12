@@ -3638,7 +3638,7 @@ export const eu: Dict = {
   'whatsnew.change.accountKinds': '«{name}» botoiak lauza handi bat irekitzen du kontu mota bakoitzeko.',
   'whatsnew.change.priorityDrag': '«{name}» ataleko ordena irudia bera da: arrastatu izen bat lekuz aldatzeko, edo erabili gezi-teklak haren heldulekuan.',
   'whatsnew.change.captchaCards': '«{name}» eta «{when}» captcha ezarpenetatik hona ekarri dira, irudia eta proba barne.',
-  'whatsnew.change.fillSurface': 'Betetze-maila bakoitzak leunki eta irregularki dantzatzen du bere gainazalean: «{name}» azpiko karpetek, «{volume}» eta kontu baten trafikoak.',
+  'whatsnew.change.fillSurface': 'Betetze-maila bakoitza kulunkatzen da, eta burbuilak igotzen dira barruan eta gainazalean lehertzen: «{name}» azpiko karpetak, «{volume}» eta kontu baten trafikoa.',
   'whatsnew.change.windowCard': 'Mahaigaineko aplikazioan, «{name}» atalak leihoa eta jakinarazpen-eremuko ikonoa nola portatzen diren erabakitzen du.',
   'whatsnew.change.updatesCard': '«{name}» atalak KnightLoaderrek ekartzen dituen tresna guztiak zerrendatzen ditu, tresna bakoitzeko lerro bat bertsioarekin eta jatorriarekin, eta KnightLoader eta yt-dlp eguneratzen ditu.',
   'whatsnew.change.mirrorPolicy': '«{name}» atalean, etiketaren ondoko zerrenda zabalgarri batek erabakitzen du noiz diren bi esteka fitxategi bera.',

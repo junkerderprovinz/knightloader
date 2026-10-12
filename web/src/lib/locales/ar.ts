@@ -3638,7 +3638,7 @@ export const ar: Dict = {
   'whatsnew.change.accountKinds': '«{name}» يفتح بلاطة كبيرة لكل نوع من الحسابات.',
   'whatsnew.change.priorityDrag': 'الترتيب في «{name}» هو الصورة نفسها: اسحب اسمًا لتنقله، أو استخدم مفاتيح الأسهم على مقبضه.',
   'whatsnew.change.captchaCards': 'انتقلت «{name}» و«{when}» إلى هنا من إعدادات الكابتشا، ومعهما الصورة والاختبار.',
-  'whatsnew.change.fillSurface': 'كل مستوى امتلاء يتمايل برفق وبشكل غير منتظم عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
+  'whatsnew.change.fillSurface': 'كل مستوى امتلاء يترجرج، وتصعد فيه فقاعات تنفجر عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
   'whatsnew.change.windowCard': 'في تطبيق سطح المكتب تحدد «{name}» كيف تتصرف النافذة وأيقونتها في منطقة الإشعارات.',
   'whatsnew.change.updatesCard': '«{name}» يسرد كل أداة يأتي بها KnightLoader، في صف لكل أداة مع إصدارها ومصدرها، ويحدّث KnightLoader و yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'في «{name}» تحدد قائمة منسدلة بجانب عنوانها متى يُعدّ رابطان الملفَّ نفسه.',

@@ -3644,7 +3644,7 @@ export const no: Dict = {
   'whatsnew.change.accountKinds': '«{name}» åpner en stor flis for hver slags konto.',
   'whatsnew.change.priorityDrag': 'Rekkefølgen i «{name}» er selve bildet: dra et navn for å flytte det, eller bruk piltastene på håndtaket.',
   'whatsnew.change.captchaCards': '«{name}» og «{when}» er flyttet hit fra captcha-innstillingene sammen med bildet og testen.',
-  'whatsnew.change.fillSurface': 'Hvert fyllnivå bølger mykt og ujevnt i overflaten: mappene under «{name}», «{volume}» og trafikken til en konto.',
+  'whatsnew.change.fillSurface': 'Hvert fyllnivå skvulper, og bobler stiger opp i det og sprekker i overflaten: mappene under «{name}», «{volume}» og trafikken til en konto.',
   'whatsnew.change.windowCard': 'I skrivebordsappen bestemmer «{name}» hvordan vinduet og ikonet i varslingsområdet oppfører seg.',
   'whatsnew.change.updatesCard': '«{name}» lister hvert verktøy KnightLoader har med seg, én rad per verktøy med versjon og opprinnelse, og oppdaterer KnightLoader og yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'I «{name}» avgjør en nedtrekksliste ved siden av etiketten når to lenker regnes som samme fil.',

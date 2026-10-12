@@ -3637,7 +3637,7 @@ export const is: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ opnar stóra flís fyrir hverja gerð reiknings.',
   'whatsnew.change.priorityDrag': 'Röðin í „{name}“ er sjálf myndin: dragðu nafn til að færa það eða notaðu örvalyklana á handfangi þess.',
   'whatsnew.change.captchaCards': '„{name}“ og „{when}“ fluttust hingað úr captcha-stillingunum ásamt myndinni og prófinu.',
-  'whatsnew.change.fillSurface': 'Hvert fyllingarstig bylgjast mjúklega og ójafnt á yfirborði sínu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
+  'whatsnew.change.fillSurface': 'Hvert fyllingarstig gutlar, og loftbólur stíga upp í því og springa á yfirborðinu: möppurnar undir „{name}“, „{volume}“ og umferð reiknings.',
   'whatsnew.change.windowCard': 'Í skjáborðsforritinu ræður „{name}“ hvernig glugginn og tákn hans á tilkynningasvæðinu haga sér.',
   'whatsnew.change.updatesCard': '„{name}“ telur upp hvert tól sem KnightLoader hefur með sér, eina línu fyrir hvert með útgáfu og uppruna, og uppfærir KnightLoader og yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Í „{name}“ ákveður fellilisti við hliðina á heiti þess hvenær tveir tenglar teljast sama skráin.',

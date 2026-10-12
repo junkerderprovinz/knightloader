@@ -3633,7 +3633,7 @@ export const es: Dict = {
   'whatsnew.change.accountKinds': '«{name}» abre un mosaico grande para cada tipo de cuenta.',
   'whatsnew.change.priorityDrag': 'El orden de «{name}» es la propia imagen: arrastra un nombre para moverlo o usa las flechas sobre su asa.',
   'whatsnew.change.captchaCards': '«{name}» y «{when}» se han mudado aquí desde los ajustes de captcha, con la imagen y la prueba.',
-  'whatsnew.change.fillSurface': 'Cada nivel de llenado se mece con suavidad y de forma irregular en su superficie: las carpetas bajo «{name}», «{volume}» y el tráfico de una cuenta.',
+  'whatsnew.change.fillSurface': 'Cada nivel de llenado se agita, y en él suben burbujas que estallan en la superficie: las carpetas bajo «{name}», «{volume}» y el tráfico de una cuenta.',
   'whatsnew.change.windowCard': 'En la aplicación de escritorio, «{name}» decide cómo se comportan la ventana y su icono en el área de notificación.',
   'whatsnew.change.updatesCard': '«{name}» lista cada herramienta que trae KnightLoader, una fila por herramienta con su versión y su origen, y actualiza KnightLoader y yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'En «{name}» una lista desplegable junto a su etiqueta decide cuándo dos enlaces cuentan como el mismo archivo.',

@@ -3650,7 +3650,7 @@ export const ro: Dict = {
   'whatsnew.change.accountKinds': '„{name}” deschide o dală mare pentru fiecare fel de cont.',
   'whatsnew.change.priorityDrag': 'Ordinea din „{name}” este chiar imaginea: trage un nume ca să-l muți sau folosește săgețile pe mânerul lui.',
   'whatsnew.change.captchaCards': '„{name}” și „{when}” s-au mutat aici din setările captcha, împreună cu imaginea și testul.',
-  'whatsnew.change.fillSurface': 'Fiecare nivel de umplere se leagănă lin și neuniform la suprafață: folderele din „{name}”, „{volume}” și traficul unui cont.',
+  'whatsnew.change.fillSurface': 'Fiecare nivel de umplere clipocește, iar în el urcă bule care se sparg la suprafață: folderele din „{name}”, „{volume}” și traficul unui cont.',
   'whatsnew.change.windowCard': 'În aplicația desktop, „{name}” stabilește cum se poartă fereastra și pictograma ei din zona de notificare.',
   'whatsnew.change.updatesCard': '„{name}” listează fiecare instrument pe care îl aduce KnightLoader, câte un rând pentru fiecare, cu versiunea și proveniența, și actualizează KnightLoader și yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'În „{name}” o listă derulantă de lângă etichetă decide când două linkuri contează ca același fișier.',

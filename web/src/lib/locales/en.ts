@@ -3887,7 +3887,7 @@ export const en = {
   'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account.',
   'whatsnew.change.priorityDrag': 'The order in "{name}" is the picture itself: drag a name to move it, or use the arrow keys on its grip.',
   'whatsnew.change.captchaCards': '"{name}" and "{when}" moved here from the captcha settings, with the picture and the test.',
-  'whatsnew.change.fillSurface': 'Every fill level sloshes gently and unevenly at its surface: the folders under "{name}", "{volume}" and the traffic of an account.',
+  'whatsnew.change.fillSurface': 'Every fill level sloshes, and bubbles rise in it and pop at the surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
   'whatsnew.change.updatesCard': '"{name}" lists every tool KnightLoader brings along, one row each with its version and where it comes from, and updates KnightLoader and yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'In "{name}" a dropdown beside its label decides when two links count as the same file.',

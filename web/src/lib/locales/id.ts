@@ -3641,7 +3641,7 @@ export const id: Dict = {
   'whatsnew.change.accountKinds': '“{name}” membuka ubin besar untuk setiap jenis akun.',
   'whatsnew.change.priorityDrag': 'Urutan di “{name}” adalah gambar itu sendiri: seret nama untuk memindahkannya, atau gunakan tombol panah pada pegangannya.',
   'whatsnew.change.captchaCards': '“{name}” dan “{when}” pindah ke sini dari pengaturan captcha, bersama gambar dan ujinya.',
-  'whatsnew.change.fillSurface': 'Setiap tingkat isi bergoyang pelan dan tak beraturan di permukaannya: folder di bawah “{name}”, “{volume}”, dan lalu lintas sebuah akun.',
+  'whatsnew.change.fillSurface': 'Setiap tingkat isi bergolak, dan gelembung naik di dalamnya lalu pecah di permukaan: folder di bawah “{name}”, “{volume}”, dan lalu lintas sebuah akun.',
   'whatsnew.change.windowCard': 'Di aplikasi desktop, “{name}” mengatur perilaku jendela dan ikonnya di area notifikasi.',
   'whatsnew.change.updatesCard': '“{name}” mencantumkan setiap alat yang dibawa KnightLoader, satu baris per alat dengan versi dan asalnya, dan memperbarui KnightLoader dan yt-dlp.',
   'whatsnew.change.mirrorPolicy': 'Di “{name}” daftar tarik-turun di samping labelnya menentukan kapan dua tautan dihitung sebagai berkas yang sama.',
