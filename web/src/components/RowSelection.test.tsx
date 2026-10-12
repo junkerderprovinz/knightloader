@@ -12,6 +12,8 @@ globalThis.ResizeObserver ??= class {
   unobserve() {}
   disconnect() {}
 };
+// jsdom has no pointer capture, and a press that never travels holds none.
+Element.prototype.hasPointerCapture ??= () => false;
 
 let root: Root;
 let host: HTMLDivElement;
@@ -78,49 +80,81 @@ async function show(): Promise<void> {
   await act(async () => root.render(<List />));
 }
 
-const linkMark = (id: string) => host.querySelector<HTMLButtonElement>(`[data-task-id="${id}"] > [role="checkbox"]`)!;
-const packageMark = (name: string) =>
-  host.querySelector<HTMLButtonElement>(`[data-package-row="${name}"] > [role="checkbox"]`)!;
-const press = (el: HTMLElement, shiftKey = false) =>
+const link = (id: string) => host.querySelector<HTMLElement>(`[data-task-id="${id}"]`)!;
+const folder = (name: string) => host.querySelector<HTMLElement>(`[data-package-row="${name}"]`)!;
+
+/** A press let go where it went down, by a mouse with the given keys held or by a finger. */
+const press = (el: HTMLElement, init: PointerEventInit = {}) =>
   act(async () => {
-    el.dispatchEvent(new MouseEvent('click', { bubbles: true, shiftKey }));
+    const at = { bubbles: true, button: 0, isPrimary: true, pointerId: 1, pointerType: 'mouse', ...init };
+    el.dispatchEvent(new PointerEvent('pointerdown', at));
+    el.dispatchEvent(new PointerEvent('pointerup', at));
+  });
+const tap = (el: HTMLElement) => press(el, { pointerType: 'touch' });
+const key = (el: HTMLElement, name: string) =>
+  act(async () => {
+    el.dispatchEvent(new KeyboardEvent('keydown', { bubbles: true, key: name }));
   });
 const picked = () =>
   [...host.querySelectorAll('[data-task-id][aria-selected="true"]')].map((r) => r.getAttribute('data-task-id'));
 
-describe("a list row's selection mark", () => {
-  it('adds its row to the marking and takes it out again', async () => {
+describe('picking rows in the list', () => {
+  it('draws no checkbox on any row', async () => {
     await show();
-    await press(linkMark('a'));
-    await press(linkMark('c'));
+    expect(host.querySelector('[role="checkbox"]')).toBeNull();
+    expect(link('a').getAttribute('aria-selected')).toBe('false');
+  });
+
+  it('picks the clicked row alone and fills it', async () => {
+    await show();
+    await press(link('a'));
+    await press(link('c'));
+    expect(picked()).toEqual(['c']);
+    expect(link('c').classList.contains('glim-row-selected')).toBe(true);
+    expect(link('a').classList.contains('glim-row-selected')).toBe(false);
+  });
+
+  it('adds a row with Ctrl held and takes it out again', async () => {
+    await show();
+    await press(link('a'));
+    await press(link('c'), { ctrlKey: true });
     expect(picked()).toEqual(['a', 'c']);
-    expect(linkMark('a').getAttribute('aria-checked')).toBe('true');
-    expect(linkMark('b').getAttribute('aria-checked')).toBe('false');
-    await press(linkMark('a'));
+    await press(link('a'), { ctrlKey: true });
     expect(picked()).toEqual(['c']);
   });
 
-  it('picks every row up to it on a Shift-click', async () => {
+  it('picks every row up to the clicked one with Shift held', async () => {
     await show();
-    await press(linkMark('a'));
-    await press(linkMark('c'), true);
+    await press(link('a'));
+    await press(link('c'), { shiftKey: true });
     expect(picked()).toEqual(['a', 'b', 'c']);
   });
 
   it('picks all the links of a package from its header', async () => {
     await show();
-    await press(packageMark('Films'));
+    await press(folder('Films'));
     expect(picked()).toEqual(['a', 'b', 'c']);
-    expect(packageMark('Films').getAttribute('aria-checked')).toBe('true');
-    expect(packageMark('Music').getAttribute('aria-checked')).toBe('false');
+    expect(folder('Films').getAttribute('aria-selected')).toBe('true');
+    expect(folder('Music').getAttribute('aria-selected')).toBe('false');
   });
 
-  it('shows on every row once something is picked', async () => {
+  it('flips a tapped row in and out of the marking, so a finger can pick several', async () => {
     await show();
-    const strip = host.querySelector('[role="tree"]')!;
-    expect(strip.classList.contains('glim-selecting')).toBe(false);
-    await press(linkMark('b'));
-    expect(strip.classList.contains('glim-selecting')).toBe(true);
+    await tap(link('a'));
+    await tap(link('c'));
+    expect(picked()).toEqual(['a', 'c']);
+    await tap(link('a'));
+    expect(picked()).toEqual(['c']);
+  });
+
+  it('flips the focused row with Space', async () => {
+    await show();
+    await key(link('b'), ' ');
+    expect(picked()).toEqual(['b']);
+    await key(link('d'), ' ');
+    expect(picked()).toEqual(['b', 'd']);
+    await key(link('b'), ' ');
+    expect(picked()).toEqual(['d']);
   });
 });
 

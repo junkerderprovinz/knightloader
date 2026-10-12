@@ -446,7 +446,6 @@ export const en = {
   'select.reduceRemove': 'Only remove the rows on screen',
   'select.reduceRemoveAria': '{n} of the rows about to go are not visible. Click to remove only the rows on screen.',
   'select.reduced': '{n} row(s) dropped from the selection.',
-  'select.mark': 'Select',
   'settings.removePassword': 'Remove password',
 
   'common.cancel': 'Cancel',

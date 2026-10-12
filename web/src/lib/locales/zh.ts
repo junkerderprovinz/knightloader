@@ -2405,7 +2405,6 @@ export const zh: Dict = {
   'select.reduceRemove': '只移除可见的行',
   'select.reduceRemoveAria': '将要移除的行里有 {n} 个不可见。点击可只移除可见的行。',
   'select.reduced': '已从选择中移出 {n} 行。',
-  'select.mark': '选择',
   'remove.doneHidden': '已移除 {n} 个下载。其中 {hidden} 个你没看见。',
   'settings.dbmaint.title': '数据库维护',
   'settings.dbmaint.hint': '任务列表、下载历史和界面状态都放在同一个 SQLite 文件里。删除行只会在文件内部腾出空间，从不把空间还给磁盘，所以几年下来，这个文件常常是里面内容的好几倍大。检查会读取每一页，说出文件是不是还完好。收缩会按文件真正的大小重新写一遍。两者都在运行中的数据库上进行，进行期间会挡住其他所有写入。',

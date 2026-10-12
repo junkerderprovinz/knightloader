@@ -2408,7 +2408,6 @@ export const pt: Dict = {
   'select.reduceRemove': 'Remover só as linhas visíveis',
   'select.reduceRemoveAria': '{n} das linhas que vão sair não estão visíveis. Clica para remover só as visíveis.',
   'select.reduced': '{n} linha(s) retirada(s) da seleção.',
-  'select.mark': 'Selecionar',
   'remove.doneHidden': '{n} download(s) removidos. {hidden} deles nem estavam à vista.',
   'settings.dbmaint.title': 'Manutenção da base de dados',
   'settings.dbmaint.hint': 'A lista de tarefas, o histórico de transferências e o estado da interface estão todos juntos num único ficheiro SQLite. As linhas apagadas libertam espaço dentro desse ficheiro, mas nunca o devolvem ao disco. Ao fim de alguns anos, o ficheiro fica muitas vezes com um tamanho várias vezes maior do que aquilo que tem lá dentro. A verificação lê cada página e diz se o ficheiro ainda está intacto. A compactação reescreve o ficheiro com o seu tamanho real. Ambas trabalham sobre a base de dados em funcionamento e, enquanto correm, suspendem todos os outros acessos de escrita.',

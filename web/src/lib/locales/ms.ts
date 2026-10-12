@@ -2418,7 +2418,6 @@ export const ms: Dict = {
   'select.reduceRemove': 'Buang hanya baris yang kelihatan',
   'select.reduceRemoveAria': '{n} daripada baris yang bakal dibuang tidak kelihatan. Klik untuk membuang hanya baris yang kelihatan.',
   'select.reduced': '{n} baris dikeluarkan dari pilihan.',
-  'select.mark': 'Pilih',
   'remove.doneHidden': '{n} muat turun dibuang. {hidden} daripadanya tidak anda lihat.',
   'settings.dbmaint.title': 'Penyelenggaraan pangkalan data',
   'settings.dbmaint.hint': 'Senarai tugas, sejarah muat turun dan keadaan antara muka semuanya terletak dalam satu fail SQLite. Baris yang dipadam membebaskan ruang di dalam fail itu, tetapi tidak pernah mengembalikannya kepada cakera. Selepas beberapa tahun, fail itu selalunya berkali ganda lebih besar daripada isinya. Semakan membaca setiap halaman dan memberitahu sama ada fail itu masih utuh. Pemadatan menulisnya semula pada saiznya yang sebenar. Kedua-duanya berjalan pada pangkalan data yang sedang hidup dan menahan setiap tulisan lain selama ia berjalan.',

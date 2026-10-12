@@ -2433,7 +2433,6 @@ export const hr: Dict = {
   'select.reduceRemove': 'Ukloni samo vidljive retke',
   'select.reduceRemoveAria': '{n} redaka koji odlaze nije vidljivo. Klikni da ukloniš samo vidljive.',
   'select.reduced': '{n} redak(a) maknuto iz odabira.',
-  'select.mark': 'Odaberi',
   'remove.doneHidden': 'Uklonjeno {n} preuzimanja. {hidden} od njih nije bilo vidljivo.',
   'settings.dbmaint.title': 'Održavanje baze podataka',
   'settings.dbmaint.hint': 'Popis zadataka, povijest preuzimanja i stanje sučelja stoje zajedno u jednoj SQLite datoteci. Obrisani redci oslobađaju prostor unutar datoteke, ali ga nikad ne vraćaju disku. Nakon nekoliko godina datoteka je zato često višestruko veća od svog sadržaja. Provjera čita svaku stranicu i kaže je li datoteka još čitava. Zbijanje je ispisuje nanovo na njezinu pravu veličinu. Oboje radi na živoj bazi podataka i dotle zadržava svaki drugi upis u nju.',

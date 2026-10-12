@@ -2419,7 +2419,6 @@ export const id: Dict = {
   'select.reduceRemove': 'Hapus hanya baris yang terlihat',
   'select.reduceRemoveAria': '{n} dari baris yang akan hilang tidak terlihat. Klik untuk menghapus hanya baris yang terlihat.',
   'select.reduced': '{n} baris dikeluarkan dari pilihan.',
-  'select.mark': 'Pilih',
   'remove.doneHidden': '{n} unduhan dihapus. {hidden} di antaranya tidak kamu lihat.',
   'settings.dbmaint.title': 'Perawatan basis data',
   'settings.dbmaint.hint': 'Daftar tugas, riwayat unduhan dan keadaan antarmuka semuanya berada dalam satu berkas SQLite. Baris yang dihapus membebaskan ruang di dalam berkas itu, tapi tidak pernah mengembalikannya ke disk. Karena itu, setelah beberapa tahun berkasnya sering kali beberapa kali lebih besar daripada isinya. Pemeriksaan membaca setiap halaman dan mengatakan apakah berkasnya masih utuh. Pemadatan menulisnya ulang pada ukuran yang sebenarnya. Keduanya berjalan pada basis data yang sedang aktif dan selama itu menahan setiap penulisan lain.',

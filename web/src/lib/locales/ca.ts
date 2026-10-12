@@ -2405,7 +2405,6 @@ export const ca: Dict = {
   'select.reduceRemove': 'Treu només les files visibles',
   'select.reduceRemoveAria': '{n} de les files que es trauran no són visibles. Fes clic per treure només les visibles.',
   'select.reduced': 'S\'han tret {n} fila(es) de la selecció.',
-  'select.mark': 'Selecciona',
   'remove.doneHidden': 'S\'han tret {n} baixades. {hidden} d\'aquestes no les tenies a la pantalla.',
   'settings.dbmaint.title': 'Manteniment de la base de dades',
   'settings.dbmaint.hint': 'La llista de tasques, l’historial de baixades i l’estat de la interfície són tots dins d’un mateix fitxer SQLite. Les files esborrades alliberen espai dins del fitxer, però no el tornen mai al disc. Per això, al cap d’uns quants anys, el fitxer sovint ocupa diverses vegades el que hi ha a dins. La comprovació llegeix cada pàgina i diu si el fitxer encara és sencer. Compactar el torna a escriure a la seva mida real. Totes dues coses treballen sobre la base de dades en marxa i, mentre duren, aturen qualsevol altra escriptura.',

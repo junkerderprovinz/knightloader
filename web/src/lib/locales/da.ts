@@ -2405,7 +2405,6 @@ export const da: Dict = {
   'select.reduceRemove': 'Fjern kun de synlige rækker',
   'select.reduceRemoveAria': '{n} af de rækker, der er på vej væk, er ikke synlige. Klik for kun at fjerne de synlige.',
   'select.reduced': '{n} række(r) taget ud af markeringen.',
-  'select.mark': 'Vælg',
   'remove.doneHidden': 'Fjernede {n} download(s). {hidden} af dem fik du ikke at se.',
   'settings.dbmaint.title': 'Databasevedligeholdelse',
   'settings.dbmaint.hint': 'Opgavelisten, downloadhistorikken og grænsefladens tilstand ligger samlet i én SQLite-fil. Slettede rækker frigiver plads inde i filen, men aldrig tilbage til disken. Efter et par år er filen derfor tit mange gange så stor som det, der står i den. Tjekket læser hver side og siger, om filen stadig er hel. Komprimeringen skriver den om i dens virkelige størrelse. Begge dele kører på den kørende database og holder imens alle andre skrivninger tilbage.',

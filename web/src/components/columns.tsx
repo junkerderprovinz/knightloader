@@ -275,47 +275,7 @@ export function Tip({
 }
 
 /**
- * SelectionMark is the round mark a row is picked with (GlimStone, "Switches"):
- * grey at rest, filled with the accent and ticked once its row is chosen. In a
- * row that owns a rainbow position the accent is that position's hue.
- * `.glim-select-mark` in index.css places it and decides when it shows.
- */
-export function SelectionMark({
-  checked,
-  onPick,
-  label,
-  tabIndex,
-}: {
-  checked: boolean;
-  /** `range` is a Shift-click, which picks everything up to this row. */
-  onPick: (range: boolean) => void;
-  label: string;
-  /** Whether this is the roving tab stop, where the row keeps one. */
-  tabIndex?: number;
-}) {
-  return (
-    <button
-      type="button"
-      role="checkbox"
-      aria-checked={checked}
-      aria-label={label}
-      tabIndex={tabIndex}
-      onClick={(e) => onPick(e.shiftKey)}
-      className={`glim-select-mark grid h-4 w-4 place-items-center rounded-[var(--radius-pill)] transition-colors ${
-        checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3 text-transparent hover:bg-carbon-hoverRaised'
-      }`}
-    >
-      <IconCheck width={10} height={10} />
-    </button>
-  );
-}
-
-/**
- * The per-link on/off switch, a switch and not a checkbox because the checkbox
- * one cell to its left means "selected" and the two would otherwise be the same
- * mark twice in the same row.
- *
- * It shows what the server last said, never what was just clicked: the value
+ * The per-link on/off switch. It shows what the server last said, never what was just clicked: the value
  * comes back over the websocket a moment later, and a control that reports
  * success locally while the request failed is how a link somebody switched off
  * downloads anyway.

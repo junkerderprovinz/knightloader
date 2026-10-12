@@ -2402,7 +2402,6 @@ export const nl: Dict = {
   'select.reduceRemove': 'Alleen de zichtbare rijen verwijderen',
   'select.reduceRemoveAria': '{n} van de rijen die weggaan zijn niet zichtbaar. Klik om alleen de zichtbare te verwijderen.',
   'select.reduced': '{n} rij(en) uit de selectie gehaald.',
-  'select.mark': 'Selecteren',
   'remove.doneHidden': '{n} download(s) verwijderd. {hidden} daarvan heb je niet gezien.',
   'settings.dbmaint.title': 'Databaseonderhoud',
   'settings.dbmaint.hint': 'De takenlijst, de downloadgeschiedenis en de toestand van de interface liggen samen in één SQLite-bestand. Verwijderde rijen geven ruimte vrij binnen dat bestand, maar nooit terug aan de schijf. Na een paar jaar is het bestand daardoor vaak een veelvoud van wat erin staat. De controle leest elke pagina en zegt of het bestand nog heel is. Het compacteren schrijft het op zijn echte grootte opnieuw. Beide draaien op de lopende database en houden zolang elke andere schrijfactie tegen.',

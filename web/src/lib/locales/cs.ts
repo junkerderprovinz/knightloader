@@ -2429,7 +2429,6 @@ export const cs: Dict = {
   'select.reduceRemove': 'Odebrat jen viditelné řádky',
   'select.reduceRemoveAria': '{n} řádků, které mají jít pryč, není vidět. Klikni, aby se odebraly jen ty viditelné.',
   'select.reduced': 'Z výběru odebráno řádků: {n}',
-  'select.mark': 'Vybrat',
   'remove.doneHidden': 'Odebráno {n} stahování. {hidden} z toho nebylo vidět.',
   'settings.dbmaint.title': 'Údržba databáze',
   'settings.dbmaint.hint': 'Seznam úloh, historie stahování i stav rozhraní leží pohromadě v jednom souboru SQLite. Smazané řádky uvolní místo uvnitř toho souboru, ale nikdy ho nevrátí disku. Po pár letech je proto soubor často několikanásobkem toho, co je v něm. Kontrola přečte každou stránku a řekne, jestli je soubor ještě celý. Zhuštění ho přepíše na jeho skutečnou velikost. Obojí běží nad živou databází a po tu dobu zdrží každý jiný zápis do ní.',

@@ -2421,7 +2421,6 @@ export const no: Dict = {
   'select.reduceRemove': 'Fjern bare de synlige radene',
   'select.reduceRemoveAria': '{n} av radene som blir fjernet, er ikke synlige. Klikk for å fjerne bare de synlige.',
   'select.reduced': '{n} rad(er) tatt ut av utvalget.',
-  'select.mark': 'Velg',
   'remove.doneHidden': 'Fjernet {n} nedlasting(er). {hidden} av dem så du ikke.',
 
   'settings.dbmaint.title': 'Databasevedlikehold',

@@ -2429,7 +2429,6 @@ export const sk: Dict = {
   'select.reduceRemove': 'Odstrániť len viditeľné riadky',
   'select.reduceRemoveAria': '{n} z riadkov, ktoré teraz zmiznú, nie je vidieť. Klikni, aby sa odstránili len tie viditeľné.',
   'select.reduced': 'Odobraných {n} riadkov z výberu.',
-  'select.mark': 'Vybrať',
   'remove.doneHidden': 'Odstránených {n} sťahovaní. {hidden} z nich si nevidel.',
   'settings.dbmaint.title': 'Údržba databázy',
   'settings.dbmaint.hint': 'Zoznam úloh, história sťahovania a stav rozhrania ležia spolu v jednom súbore SQLite. Zmazané riadky uvoľnia miesto vnútri súboru, ale nikdy nie späť na disk. Po pár rokoch je preto súbor často niekoľkonásobne väčší než jeho obsah. Kontrola prečíta každú stránku a povie, či je súbor ešte celý. Zhutnenie ho prepíše na jeho skutočnú veľkosť. Oboje beží na živej databáze a dovtedy zadrží každý iný zápis.',

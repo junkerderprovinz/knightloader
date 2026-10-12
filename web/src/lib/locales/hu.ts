@@ -2419,7 +2419,6 @@ export const hu: Dict = {
   'select.reduceRemove': 'Csak a látható sorok eltávolítása',
   'select.reduceRemoveAria': 'Az eltávolítandó sorok közül {n} nem látszik. Kattints, hogy csak a láthatókat távolítsd el.',
   'select.reduced': '{n} sor kikerült a kijelölésből.',
-  'select.mark': 'Kijelölés',
   'remove.doneHidden': '{n} letöltés eltávolítva. Ebből {hidden} nem is látszott.',
   'settings.dbmaint.title': 'Adatbázis-karbantartás',
   'settings.dbmaint.hint': 'A feladatlista, a letöltési előzmények és a felület állapota együtt, egyetlen SQLite-fájlban van. A törölt sorok a fájlon belül szabadítanak fel helyet, a lemeznek soha nem adják vissza. Néhány év után a fájl ezért gyakran a tartalmának többszöröse. Az ellenőrzés minden lapot elolvas, és megmondja, hogy a fájl ép-e még. A zsugorítás a valódi méretére írja újra. Mindkettő az élő adatbázison fut, és addig minden más írást feltart.',

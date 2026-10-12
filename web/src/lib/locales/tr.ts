@@ -2418,7 +2418,6 @@ export const tr: Dict = {
   'select.reduceRemove': 'Yalnızca görünen satırları kaldır',
   'select.reduceRemoveAria': 'Kaldırılacak satırların {n} tanesi görünmüyor. Yalnızca görünenleri kaldırmak için tıkla.',
   'select.reduced': '{n} satır seçimden çıkarıldı.',
-  'select.mark': 'Seç',
   'remove.doneHidden': '{n} indirme kaldırıldı. {hidden} tanesini görmedin.',
   'settings.dbmaint.title': 'Veritabanı bakımı',
   'settings.dbmaint.hint': 'Görev listesi, indirme geçmişi ve arayüz durumu tek bir SQLite dosyasında birlikte durur. Silinen satırlar dosyanın içinde yer boşaltır, ama bu yeri hiçbir zaman diske geri vermez. Birkaç yıl sonra dosya bu yüzden çoğu zaman içindekinin birkaç katı büyüklükte olur. Denetim her sayfayı okur ve dosyanın hâlâ sağlam olup olmadığını söyler. Sıkıştırma onu gerçek boyutunda yeniden yazar. İkisi de çalışan veritabanının üzerinde çalışır ve o sürece başka her yazma işlemini bekletir.',

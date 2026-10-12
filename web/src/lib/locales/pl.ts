@@ -2404,7 +2404,6 @@ export const pl: Dict = {
   'select.reduceRemove': 'Usuń tylko widoczne wiersze',
   'select.reduceRemoveAria': '{n} wierszy, które zostaną usunięte, jest niewidocznych. Kliknij, aby usunąć tylko widoczne.',
   'select.reduced': 'Usunięto {n} wiersz(y) z zaznaczenia.',
-  'select.mark': 'Zaznacz',
   'remove.doneHidden': 'Usunięto {n} pobierań. {hidden} z nich nie widziałeś.',
   'settings.dbmaint.title': 'Konserwacja bazy danych',
   'settings.dbmaint.hint': 'Lista zadań, historia pobrań i stan interfejsu leżą razem w jednym pliku SQLite. Skasowane wiersze zwalniają miejsce wewnątrz pliku, ale nigdy nie oddają go dyskowi. Po kilku latach plik bywa więc wielokrotnie większy niż to, co w nim siedzi. Sprawdzenie czyta każdą stronę i mówi, czy plik jest jeszcze nienaruszony. Kompaktowanie zapisuje go na nowo w jego prawdziwym rozmiarze. Jedno i drugie pracuje na działającej bazie danych i wstrzymuje na ten czas każdy inny zapis.',

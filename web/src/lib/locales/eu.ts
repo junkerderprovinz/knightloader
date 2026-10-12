@@ -2414,7 +2414,6 @@ export const eu: Dict = {
   'select.reduceRemove': 'Kendu ikusgai dauden errenkadak bakarrik',
   'select.reduceRemoveAria': 'Joango diren errenkadetatik {n} ez daude ikusgai. Egin klik ikusgai daudenak bakarrik kentzeko.',
   'select.reduced': '{n} errenkada hautapenetik kendu dira.',
-  'select.mark': 'Hautatu',
   'remove.doneHidden': '{n} deskarga kendu dira. Horietatik {hidden} ez dituzu ikusi.',
   'settings.dbmaint.title': 'Datu-basearen mantentze-lanak',
   'settings.dbmaint.hint': 'Zereginen zerrenda, deskargen historia eta interfazearen egoera SQLite fitxategi bakar batean daude. Ezabatutako errenkadek fitxategiaren barruan uzten dute lekua libre, baina inoiz ez diote diskoari itzultzen. Urte batzuen buruan, beraz, fitxategia sarritan bere edukia baino askoz handiagoa da. Egiaztapenak orrialde bakoitza irakurtzen du eta fitxategia oraindik osorik dagoen ala ez esaten du. Trinkotzeak bere benetako tamainara berridazten du. Biak martxan dagoen datu-basearen gainean exekutatzen dira eta beste idazketa oro atxikitzen dute bitartean.',

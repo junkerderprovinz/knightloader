@@ -2415,7 +2415,6 @@ export const is: Dict = {
   'select.reduceRemove': 'Fjarlægja aðeins sýnilegu línurnar',
   'select.reduceRemoveAria': '{n} af línunum sem fara eru ekki sýnilegar. Smelltu til að fjarlægja aðeins þær sýnilegu.',
   'select.reduced': '{n} línur teknar úr valinu.',
-  'select.mark': 'Velja',
   'remove.doneHidden': '{n} niðurhöl fjarlægð. {hidden} þeirra sástu ekki.',
   'settings.dbmaint.title': 'Viðhald gagnagrunns',
   'settings.dbmaint.hint': 'Verkefnalistinn, niðurhalsferillinn og staða viðmótsins liggja öll saman í einni SQLite-skrá. Eyddar raðir gefa laust pláss innan skrárinnar, en aldrei til baka á diskinn. Eftir nokkur ár er skráin því oft margfalt stærri en innihald hennar. Athugunin les hverja síðu og segir hvort skráin sé enn heil. Þéttingin skrifar hana upp á nýtt í sinni raunverulegu stærð. Hvort tveggja keyrir á gagnagrunninum í gangi og heldur á meðan aftur hverri annarri skrift.',

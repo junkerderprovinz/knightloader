@@ -2410,7 +2410,6 @@ export const lv: Dict = {
   'select.reduceRemove': 'Noņemt tikai redzamās rindas',
   'select.reduceRemoveAria': '{n} no rindām, kas tiks noņemtas, nav redzamas. Noklikšķini, lai noņemtu tikai redzamās.',
   'select.reduced': 'No atlases izņemtas {n} rindas.',
-  'select.mark': 'Atlasīt',
   'remove.doneHidden': 'Noņemtas {n} lejupielādes. {hidden} no tām tu neredzēji.',
   'settings.dbmaint.title': 'Datubāzes apkope',
   'settings.dbmaint.hint': 'Uzdevumu saraksts, lejupielāžu vēsture un saskarnes stāvoklis atrodas kopā vienā SQLite failā. Dzēstās rindas atbrīvo vietu faila iekšienē, bet nekad neatdod to atpakaļ diskam. Pēc dažiem gadiem fails tāpēc mēdz būt vairākkārt lielāks nekā tā saturs. Pārbaude izlasa katru lappusi un pasaka, vai fails vēl ir vesels. Sablīvēšana pārraksta to tā īstajā izmērā. Abas darbojas ar dzīvo datubāzi un uz to laiku aiztur katru citu rakstīšanu.',
