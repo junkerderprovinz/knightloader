@@ -54,6 +54,12 @@ export const RELEASES: Release[] = [
       },
       { id: 'folder-vessel', to: ['/'], text: 'whatsnew.change.vessel', names: { name: 'disk.title' } },
       {
+        id: 'fill-surface',
+        to: ['/'],
+        text: 'whatsnew.change.fillSurface',
+        names: { name: 'disk.title', volume: 'volume.meter' },
+      },
+      {
         id: 'transfer-flow',
         to: ['/'],
         text: 'whatsnew.change.transferFlow',
@@ -76,11 +82,18 @@ export const RELEASES: Release[] = [
         names: { filter: 'list.filter', sort: 'list.sort', search: 'search.toggle' },
       },
       { id: 'list-rows', to: LISTS, text: 'whatsnew.change.listRows' },
+      { id: 'row-pick', to: LISTS, text: 'whatsnew.change.rowPick' },
       {
         id: 'collector-options',
         to: ['/collector'],
         text: 'whatsnew.change.collectorOptions',
         names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', name: 'collector.options' },
+      },
+      {
+        id: 'intake-glyphs',
+        to: ['/collector'],
+        text: 'whatsnew.change.intakeGlyphs',
+        names: { cnl: 'settings.module.cnl', watch: 'intake.clipboardWatch', intake: 'settings.sectionLinkIntake' },
       },
       {
         id: 'collector-filter',
@@ -96,6 +109,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.accountsAdd',
         names: { name: 'accounts.newAccount' },
       },
+      {
+        id: 'account-kinds',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.accountKinds',
+        names: { name: 'accounts.newAccount' },
+      },
       { id: 'account-picker', to: ACCOUNTS, text: 'whatsnew.change.accountPicker' },
       { id: 'account-rows', to: ACCOUNTS, text: 'whatsnew.change.accountRows' },
       {
@@ -103,6 +122,18 @@ export const RELEASES: Release[] = [
         to: ACCOUNTS,
         text: 'whatsnew.change.priorityFlow',
         names: { name: 'accounts.routing.priorityTitle' },
+      },
+      {
+        id: 'priority-drag',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.priorityDrag',
+        names: { name: 'accounts.routing.priorityTitle' },
+      },
+      {
+        id: 'captcha-cards',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.captchaCards',
+        names: { name: 'settings.captcha.orderTitle', when: 'settings.captcha.whenTitle' },
       },
       { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
       {
@@ -117,6 +148,19 @@ export const RELEASES: Release[] = [
           motion: 'settings.motion.title',
           rows: 'settings.rowHeight.title',
         },
+      },
+      // Drawn only in the desktop app, and its sentence says so.
+      {
+        id: 'window-card',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.windowCard',
+        names: { name: 'settings.window.title' },
+      },
+      {
+        id: 'updates-card',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.updatesCard',
+        names: { name: 'settings.look.updatesTitle' },
       },
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
@@ -148,6 +192,12 @@ export const RELEASES: Release[] = [
       },
       { id: 'reconnect-scene', to: ['/settings/reconnect'], text: 'whatsnew.change.reconnectScene' },
       { id: 'ways-in', to: ['/settings/collector'], text: 'whatsnew.change.waysIn' },
+      {
+        id: 'mirror-policy',
+        to: ['/settings/collector'],
+        text: 'whatsnew.change.mirrorPolicy',
+        names: { name: 'settings.advanced.mirrorsTitle' },
+      },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'rule-switch', to: ['/settings/rules'], text: 'whatsnew.change.ruleSwitch' },
       { id: 'captcha-chain', to: ['/accounts'], text: 'whatsnew.change.captchaChain' },
@@ -157,8 +207,32 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.trackMerge',
         names: { name: 'settings.resolvers.quality' },
       },
+      {
+        id: 'video-card',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.videoCard',
+        names: { name: 'columns.variant.video' },
+      },
+      {
+        id: 'files-card',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.filesCard',
+        names: { name: 'settings.resolvers.filesTitle' },
+      },
+      {
+        id: 'variant-blocks',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.variantBlocks',
+        names: { name: 'settings.resolvers.variantDefaults' },
+      },
       { id: 'selftest-pulse', to: ['/settings/health'], text: 'whatsnew.change.selftestPulse' },
       { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
+      {
+        id: 'fdroid',
+        to: ['/settings/browsertools'],
+        text: 'whatsnew.change.fdroid',
+        names: { soon: 'settings.browsertools.soon' },
+      },
       {
         id: 'info-tile',
         to: ['/settings/help'],
@@ -170,6 +244,12 @@ export const RELEASES: Release[] = [
         to: ['/settings/help'],
         text: 'whatsnew.change.releaseNotes',
         names: { name: 'settings.look.updatesReleaseNotes' },
+      },
+      {
+        id: 'manual-button',
+        to: ['/settings/help'],
+        text: 'whatsnew.change.manualButton',
+        names: { name: 'settings.info.manual' },
       },
     ],
   },

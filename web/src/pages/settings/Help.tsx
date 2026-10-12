@@ -265,6 +265,7 @@ function Report({ hue }: { hue: number }) {
             yellow, and the book opens as the envelope does. */}
         <ReadmeButton
           brand="docs"
+          data-new="manual-button"
           parts={[{ name: t('settings.info.manual'), sub: t('settings.info.manualOpen'), href: MANUAL_URL }]}
           mark={<BrandMark svg={MANUAL_SVG} />}
           markClass="glim-docs-mark"

@@ -91,7 +91,7 @@ function Version({ children }: { children: ReactNode }) {
 export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
   return (
-    <Card hue={hue} className="flex flex-col gap-6">
+    <Card hue={hue} data-new="updates-card" className="flex flex-col gap-6">
       <SectionTitle hint={t('settings.look.updatesHint')}>{t('settings.look.updatesTitle')}</SectionTitle>
       <AppUpdates />
       <YtdlpUpdates />

@@ -56,6 +56,7 @@ export function LinkIntakeButtons({ hue }: { hue: number }) {
       <IconBadge
         labelled
         active={watch}
+        data-new="intake-glyphs"
         hue={hue + 1}
         icon={<IconCopy width={16} height={16} />}
         title={t('intake.clipboardWatch')}

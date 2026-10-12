@@ -215,7 +215,7 @@ export function Resolvers() {
 
       {/* Named like the video variant, whose quality it sets where a row has
           no choice of its own. */}
-      <Card hue={2} className="flex flex-col gap-5">
+      <Card hue={2} data-new="video-card" className="flex flex-col gap-5">
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {qualities.length > 0 && (
@@ -242,7 +242,7 @@ export function Resolvers() {
         )}
       </Card>
 
-      <Card hue={3} className="flex flex-col gap-5">
+      <Card hue={3} data-new="files-card" className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.filesTitle')}</SectionTitle>
 
         <ToggleRow
@@ -518,7 +518,7 @@ export function Resolvers() {
       {/* Its own file, since the jar form is shared with a failed download. */}
       <CookieJarsCard hue={9} />
 
-      <Card hue={10} className="flex flex-col gap-5">
+      <Card hue={10} data-new="variant-blocks" className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.presetsHint')}>
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>

@@ -1092,6 +1092,7 @@ function PriorityLadder({
         <ol
           ref={list}
           aria-label={title}
+          data-new="priority-drag"
           style={nameBand(resting.length)}
           className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
         >

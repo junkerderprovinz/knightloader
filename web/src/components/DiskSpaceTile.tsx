@@ -153,7 +153,7 @@ export function DiskSpaceTile({ settings, hue }: { settings: Settings | null; hu
   return (
     // A Card, because SectionTitle's badge positions against .glim-card. The
     // hue on it recolours the whole subtree.
-    <Card hue={hue} className="flex flex-col gap-3">
+    <Card hue={hue} data-new="fill-surface" className="flex flex-col gap-3">
       <SectionTitle hint={spaceHint(t, report)}>{t('disk.title')}</SectionTitle>
       <div className="glim-well divide-y divide-carbon-border/60 p-0">
         {volumes.map((v, i) => (
