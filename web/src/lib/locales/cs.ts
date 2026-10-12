@@ -3606,6 +3606,7 @@ export const cs: Dict = {
   'whatsnew.change.relayServe': 'Karta přeposílače nabízí „{name}“ jako samostatnou volbu.',
   'whatsnew.change.afterDownload': 'Obrázek ukazuje stanice, kterými stahování projde, jakmile dorazí.',
   'whatsnew.change.transferFlow': 'Nová karta „{name}“ ukazuje cestu běžících stahování: od hosteru přes proxy nebo účet do cílové složky.',
+  'whatsnew.change.arrivalSplash': 'V části „{name}“ se nádoba složky zhoupne pokaždé, když do ní dopadne balíček.',
   'whatsnew.change.pieceMap': 'Panel s detailem stahování ukazuje soubor jako pás, který se plní, se značkou za každé spojení, které do něj zapisuje.',
   'whatsnew.change.weekBand': '„{name}“ kreslí celý týden jako pás.',
   'whatsnew.change.reconnectScene': 'Obrázek ukazuje, jak KnightLoader žádá router o novou adresu.',

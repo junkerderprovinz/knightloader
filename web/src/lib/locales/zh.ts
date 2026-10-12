@@ -3579,6 +3579,7 @@ export const zh: Dict = {
   'whatsnew.change.relayServe': '中继卡片把“{name}”列为单独的一项。',
   'whatsnew.change.afterDownload': '一幅图展示下载到达后经过的各个站点。',
   'whatsnew.change.transferFlow': '新卡片“{name}”显示正在运行的下载所走的路线：从主机，经代理或账户，到目标文件夹。',
+  'whatsnew.change.arrivalSplash': '在“{name}”中，每当有数据包落入，文件夹的容器就会晃动一下。',
   'whatsnew.change.pieceMap': '下载的详情面板把文件显示为一条逐渐填满的带子，每个正在写入的连接都有一个标记。',
   'whatsnew.change.weekBand': '“{name}”把整周画成一条带。',
   'whatsnew.change.reconnectScene': '一幅图展示 KnightLoader 如何向路由器请求新地址。',

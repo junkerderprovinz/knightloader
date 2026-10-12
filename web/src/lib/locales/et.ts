@@ -3588,6 +3588,7 @@ export const et: Dict = {
   'whatsnew.change.relayServe': 'Edastaja kaart pakub valikut „{name}“ eraldi valikuna.',
   'whatsnew.change.afterDownload': 'Pilt näitab jaamu, mille allalaadimine pärast kohalejõudmist läbib.',
   'whatsnew.change.transferFlow': 'Uus kaart „{name}“ näitab käimasolevate allalaadimiste teed: majutajast puhverserveri või konto kaudu sihtkausta.',
+  'whatsnew.change.arrivalSplash': 'Jaotises „{name}“ loksub kausta anum iga kord, kui sinna jõuab pakett.',
   'whatsnew.change.pieceMap': 'Allalaadimise üksikasjade paneel näitab faili täituva ribana, kus iga kirjutava ühenduse kohal on märk.',
   'whatsnew.change.weekBand': '„{name}“ joonistab terve nädala ühe ribana.',
   'whatsnew.change.reconnectScene': 'Pilt näitab, kuidas KnightLoader küsib ruuterilt uut aadressi.',

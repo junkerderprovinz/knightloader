@@ -473,7 +473,7 @@ function FolderFigure({
   const v = folder.volume;
   const measured = v !== null && v.known && v.total > 0;
   return (
-    <g data-folder={folder.id}>
+    <g data-folder={folder.id} data-new="arrival-splash">
       <foreignObject x={x - 22} y={y - FOLDER.half} width="44" height="52">
         {measured ? (
           <Vessel share={v.used / v.total} label={folder.name} tone={floorTone(v, cfg)} marks={floorMarks(v, cfg, t)} />

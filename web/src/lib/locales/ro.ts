@@ -3604,6 +3604,7 @@ export const ro: Dict = {
   'whatsnew.change.relayServe': 'Cardul relayului oferă „{name}” ca alegere separată.',
   'whatsnew.change.afterDownload': 'O imagine arată stațiile prin care trece o descărcare după ce a sosit.',
   'whatsnew.change.transferFlow': 'Un card nou, „{name}”, arată drumul descărcărilor în curs: de la gazdă, printr-un proxy sau un cont, până în dosarul de destinație.',
+  'whatsnew.change.arrivalSplash': 'În „{name}”, vasul unui dosar se clatină de fiecare dată când un pachet ajunge în el.',
   'whatsnew.change.pieceMap': 'Panoul de detalii al unei descărcări arată fișierul ca o bandă care se umple, cu un marcaj pentru fiecare conexiune care scrie în el.',
   'whatsnew.change.weekBand': '„{name}” desenează toată săptămâna ca o bandă.',
   'whatsnew.change.reconnectScene': 'O imagine arată cum îi cere KnightLoader routerului o adresă nouă.',

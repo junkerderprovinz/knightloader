@@ -3588,6 +3588,7 @@ export const es: Dict = {
   'whatsnew.change.relayServe': 'La tarjeta del repetidor ofrece «{name}» como una opción propia.',
   'whatsnew.change.afterDownload': 'Una imagen muestra las estaciones por las que pasa una descarga una vez que ha llegado.',
   'whatsnew.change.transferFlow': 'Una tarjeta nueva, «{name}», muestra el camino que siguen las descargas en curso: del hoster, por un proxy o una cuenta, hasta la carpeta de destino.',
+  'whatsnew.change.arrivalSplash': 'En «{name}», el recipiente de una carpeta se agita cada vez que cae en él un paquete.',
   'whatsnew.change.pieceMap': 'El panel de detalle de una descarga muestra el archivo como una banda que se llena, con una marca por cada conexión que escribe en él.',
   'whatsnew.change.weekBand': '«{name}» dibuja toda la semana como una banda.',
   'whatsnew.change.reconnectScene': 'Una imagen muestra cómo KnightLoader pide al router una dirección nueva.',

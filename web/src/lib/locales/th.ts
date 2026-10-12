@@ -3594,6 +3594,7 @@ export const th: Dict = {
   'whatsnew.change.relayServe': 'การ์ดรีเลย์มี “{name}” เป็นตัวเลือกแยกต่างหาก',
   'whatsnew.change.afterDownload': 'ภาพแสดงสถานีที่การดาวน์โหลดผ่านหลังจากมาถึงแล้ว',
   'whatsnew.change.transferFlow': 'การ์ดใหม่ “{name}” แสดงเส้นทางของการดาวน์โหลดที่กำลังทำงาน: จากโฮสต์ ผ่านพร็อกซีหรือบัญชี ไปยังโฟลเดอร์ปลายทาง',
+  'whatsnew.change.arrivalSplash': 'ใน “{name}” ภาชนะของโฟลเดอร์จะกระเพื่อมทุกครั้งที่มีแพ็กเก็ตตกลงไป',
   'whatsnew.change.pieceMap': 'แผงรายละเอียดของการดาวน์โหลดแสดงไฟล์เป็นแถบที่ค่อย ๆ เต็ม พร้อมเครื่องหมายสำหรับทุกการเชื่อมต่อที่กำลังเขียนลงไป',
   'whatsnew.change.weekBand': '“{name}” วาดทั้งสัปดาห์เป็นแถบเดียว',
   'whatsnew.change.reconnectScene': 'ภาพแสดงว่า KnightLoader ขอที่อยู่ใหม่จากเราเตอร์อย่างไร',

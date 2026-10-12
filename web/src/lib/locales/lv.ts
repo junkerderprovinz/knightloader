@@ -3587,6 +3587,7 @@ export const lv: Dict = {
   'whatsnew.change.relayServe': 'Relay kartīte piedāvā „{name}“ kā atsevišķu izvēli.',
   'whatsnew.change.afterDownload': 'Attēls rāda pieturas, kurām lejupielāde iziet cauri, kad tā ir pienākusi.',
   'whatsnew.change.transferFlow': 'Jauna kartīte „{name}“ rāda notiekošo lejupielāžu ceļu: no glabātāja caur starpniekserveri vai kontu līdz mērķa mapei.',
+  'whatsnew.change.arrivalSplash': 'Sadaļā „{name}“ mapes trauks šļakstās katru reizi, kad tajā nonāk pakete.',
   'whatsnew.change.pieceMap': 'Lejupielādes detaļu panelis rāda failu kā joslu, kas piepildās, ar atzīmi katram savienojumam, kas tajā raksta.',
   'whatsnew.change.weekBand': '„{name}“ uzzīmē visu nedēļu kā joslu.',
   'whatsnew.change.reconnectScene': 'Attēls rāda, kā KnightLoader lūdz maršrutētājam jaunu adresi.',

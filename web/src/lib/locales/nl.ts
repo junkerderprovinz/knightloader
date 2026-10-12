@@ -3579,6 +3579,7 @@ export const nl: Dict = {
   'whatsnew.change.relayServe': 'De relaykaart biedt “{name}” als aparte keuze.',
   'whatsnew.change.afterDownload': 'Een afbeelding toont de stations die een download doorloopt zodra hij binnen is.',
   'whatsnew.change.transferFlow': 'Een nieuwe kaart, “{name}”, laat de weg van je lopende downloads zien: van de host, via een proxy of een account, naar de doelmap.',
+  'whatsnew.change.arrivalSplash': 'In “{name}” klotst het vat van een map telkens als er een pakket in landt.',
   'whatsnew.change.pieceMap': 'Het detailpaneel van een download toont het bestand als een band die zich vult, met een markering voor elke verbinding die erin schrijft.',
   'whatsnew.change.weekBand': '“{name}” tekent de hele week als een band.',
   'whatsnew.change.reconnectScene': 'Een afbeelding laat zien hoe KnightLoader de router om een nieuw adres vraagt.',

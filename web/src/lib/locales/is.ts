@@ -3592,6 +3592,7 @@ export const is: Dict = {
   'whatsnew.change.relayServe': 'Relay-spjaldið býður „{name}“ sem sérstakan valkost.',
   'whatsnew.change.afterDownload': 'Mynd sýnir stöðvarnar sem niðurhal fer um þegar það er komið.',
   'whatsnew.change.transferFlow': 'Nýtt spjald, „{name}“, sýnir leiðina sem niðurhöl í gangi fara: frá hýsli, um milliþjón eða reikning, í áfangamöppuna.',
+  'whatsnew.change.arrivalSplash': 'Í „{name}“ gusar í íláti möppu í hvert sinn sem pakki lendir í því.',
   'whatsnew.change.pieceMap': 'Upplýsingaspjald niðurhals sýnir skrána sem borða sem fyllist, með merki fyrir hverja tengingu sem skrifar í hana.',
   'whatsnew.change.weekBand': '„{name}“ teiknar alla vikuna sem borða.',
   'whatsnew.change.reconnectScene': 'Mynd sýnir hvernig KnightLoader biður beininn um nýtt vistfang.',

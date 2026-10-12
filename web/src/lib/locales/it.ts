@@ -3580,6 +3580,7 @@ export const it: Dict = {
   'whatsnew.change.relayServe': 'La scheda del relay offre «{name}» come scelta a sé.',
   'whatsnew.change.afterDownload': 'Un’immagine mostra le tappe che un download attraversa una volta arrivato.',
   'whatsnew.change.transferFlow': "Una nuova scheda, «{name}», mostra il percorso dei download in corso: dall'host, tramite un proxy o un account, fino alla cartella di destinazione.",
+  'whatsnew.change.arrivalSplash': 'In «{name}», il recipiente di una cartella ondeggia ogni volta che ci arriva un pacchetto.',
   'whatsnew.change.pieceMap': 'Il pannello di dettaglio di un download mostra il file come una banda che si riempie, con un segno per ogni connessione che vi scrive.',
   'whatsnew.change.weekBand': '«{name}» disegna l’intera settimana come una fascia.',
   'whatsnew.change.reconnectScene': 'Un’immagine mostra come KnightLoader chiede al router un nuovo indirizzo.',

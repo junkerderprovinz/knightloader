@@ -3586,6 +3586,7 @@ export const pt: Dict = {
   'whatsnew.change.relayServe': 'O cartão do relay oferece «{name}» como uma escolha própria.',
   'whatsnew.change.afterDownload': 'Uma imagem mostra as estações por onde passa uma transferência depois de chegar.',
   'whatsnew.change.transferFlow': 'Um novo cartão, «{name}», mostra o caminho das transferências em curso: do host, por um proxy ou uma conta, até à pasta de destino.',
+  'whatsnew.change.arrivalSplash': 'Em «{name}», o recipiente de uma pasta agita-se sempre que um pacote cai nele.',
   'whatsnew.change.pieceMap': 'O painel de detalhe de uma transferência mostra o ficheiro como uma faixa que se enche, com uma marca por cada ligação que nele escreve.',
   'whatsnew.change.weekBand': '«{name}» desenha a semana inteira como uma faixa.',
   'whatsnew.change.reconnectScene': 'Uma imagem mostra como o KnightLoader pede ao router um endereço novo.',

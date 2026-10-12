@@ -3597,6 +3597,7 @@ export const lt: Dict = {
   'whatsnew.change.relayServe': 'Relay kortelė siūlo „{name}“ kaip atskirą pasirinkimą.',
   'whatsnew.change.afterDownload': 'Paveikslėlis rodo stoteles, kurias atsisiuntimas praeina, kai jau yra atkeliavęs.',
   'whatsnew.change.transferFlow': 'Nauja kortelė „{name}“ rodo vykstančių atsisiuntimų kelią: nuo talpyklos per tarpinį serverį arba paskyrą iki paskirties aplanko.',
+  'whatsnew.change.arrivalSplash': 'Skiltyje „{name}“ aplanko indas sūpteli kaskart, kai į jį nusileidžia paketas.',
   'whatsnew.change.pieceMap': 'Atsisiuntimo informacijos skydelis rodo failą kaip besipildančią juostą su žyme kiekvienai į jį rašančiai jungčiai.',
   'whatsnew.change.weekBand': '„{name}“ nupiešia visą savaitę kaip juostą.',
   'whatsnew.change.reconnectScene': 'Paveikslėlis rodo, kaip KnightLoader prašo maršrutizatoriaus naujo adreso.',

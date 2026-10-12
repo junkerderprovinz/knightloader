@@ -3596,6 +3596,7 @@ export const sv: Dict = {
   'whatsnew.change.relayServe': 'Reläkortet har ”{name}” som ett eget val.',
   'whatsnew.change.afterDownload': 'En bild visar de stationer en nedladdning passerar när den har kommit fram.',
   'whatsnew.change.transferFlow': 'Ett nytt kort, ”{name}”, visar vägen dina pågående nedladdningar tar: från värden, via en proxy eller ett konto, till målmappen.',
+  'whatsnew.change.arrivalSplash': 'I ”{name}” skvalpar en mapps kärl varje gång ett paket landar i det.',
   'whatsnew.change.pieceMap': 'Detaljpanelen för en nedladdning visar filen som ett band som fylls, med ett märke för varje anslutning som skriver till den.',
   'whatsnew.change.weekBand': '”{name}” ritar hela veckan som ett band.',
   'whatsnew.change.reconnectScene': 'En bild visar hur KnightLoader ber routern om en ny adress.',

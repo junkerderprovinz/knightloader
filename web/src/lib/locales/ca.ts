@@ -3583,6 +3583,7 @@ export const ca: Dict = {
   'whatsnew.change.relayServe': 'La targeta del repetidor ofereix «{name}» com una opció pròpia.',
   'whatsnew.change.afterDownload': 'Una imatge mostra les estacions per on passa una baixada un cop ha arribat.',
   'whatsnew.change.transferFlow': "Una targeta nova, «{name}», mostra el camí que segueixen les baixades en curs: de l'amfitrió, per un servidor intermediari o un compte, fins a la carpeta de destinació.",
+  'whatsnew.change.arrivalSplash': 'A «{name}», el recipient d\'una carpeta s\'agita cada cop que hi arriba un paquet.',
   'whatsnew.change.pieceMap': "El tauler de detall d'una baixada mostra el fitxer com una banda que s'omple, amb una marca per cada connexió que hi escriu.",
   'whatsnew.change.weekBand': '«{name}» dibuixa tota la setmana com una banda.',
   'whatsnew.change.reconnectScene': 'Una imatge mostra com KnightLoader demana al router una adreça nova.',

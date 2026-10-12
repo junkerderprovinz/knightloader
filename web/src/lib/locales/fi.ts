@@ -3598,6 +3598,7 @@ export const fi: Dict = {
   'whatsnew.change.relayServe': 'Releen kortissa ”{name}” on oma valintansa.',
   'whatsnew.change.afterDownload': 'Kuva näyttää asemat, joiden kautta lataus kulkee saavuttuaan perille.',
   'whatsnew.change.transferFlow': 'Uusi kortti ”{name}” näyttää käynnissä olevien latausten reitin: palvelusta välityspalvelimen tai tilin kautta kohdekansioon.',
+  'whatsnew.change.arrivalSplash': 'Kohdassa ”{name}” kansion astia läikähtää aina, kun siihen putoaa paketti.',
   'whatsnew.change.pieceMap': 'Latauksen tietopaneeli näyttää tiedoston täyttyvänä nauhana, jossa on merkki jokaiselle siihen kirjoittavalle yhteydelle.',
   'whatsnew.change.weekBand': '”{name}” piirtää koko viikon nauhana.',
   'whatsnew.change.reconnectScene': 'Kuva näyttää, miten KnightLoader pyytää reitittimeltä uutta osoitetta.',
