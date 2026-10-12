@@ -3655,4 +3655,5 @@ export const fr: Dict = {
   'test.sent': 'Envoyé',
   'test.confirmed': 'Confirmé',
   'test.unconfirmed': 'Non confirmé',
+  'whatsnew.change.volumeControls': '« {name} » réunit ses choix sur une ligne sous le graphique, chacun aussi large que ses libellés, sans plus.',
 };

@@ -3654,4 +3654,5 @@ export const fa: Dict = {
   'test.sent': 'ارسال شد',
   'test.confirmed': 'تأیید شد',
   'test.unconfirmed': 'تأیید نشد',
+  'whatsnew.change.volumeControls': '«{name}» گزینه‌هایش را در یک ردیف زیر نمودار نگه می‌دارد و هر کدام فقط به اندازهٔ برچسب‌هایش پهن است.',
 };

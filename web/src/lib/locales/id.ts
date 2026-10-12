@@ -3665,4 +3665,5 @@ export const id: Dict = {
   'test.sent': 'Terkirim',
   'test.confirmed': 'Dikonfirmasi',
   'test.unconfirmed': 'Belum dikonfirmasi',
+  'whatsnew.change.volumeControls': '“{name}” menaruh pilihannya dalam satu baris di bawah grafik, masing-masing hanya selebar labelnya.',
 };

@@ -3666,4 +3666,5 @@ export const bg: Dict = {
   'test.sent': 'Изпратено',
   'test.confirmed': 'Потвърдено',
   'test.unconfirmed': 'Непотвърдено',
+  'whatsnew.change.volumeControls': '„{name}“ държи изборите си в един ред под графиката, всеки само толкова широк, колкото надписите му.',
 };

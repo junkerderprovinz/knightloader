@@ -3651,4 +3651,5 @@ export const da: Dict = {
   'test.sent': 'Sendt',
   'test.confirmed': 'Bekræftet',
   'test.unconfirmed': 'Ikke bekræftet',
+  'whatsnew.change.volumeControls': '„{name}“ har sine valg på én række under diagrammet, hvert kun så bredt som sine tekster.',
 };

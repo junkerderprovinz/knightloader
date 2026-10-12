@@ -3650,4 +3650,5 @@ export const pl: Dict = {
   'test.sent': 'Wysłano',
   'test.confirmed': 'Potwierdzono',
   'test.unconfirmed': 'Nie potwierdzono',
+  'whatsnew.change.volumeControls': '„{name}” trzyma swoje wybory w jednym wierszu pod wykresem, każdy tylko tak szeroki jak jego etykiety.',
 };

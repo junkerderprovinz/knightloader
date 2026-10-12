@@ -3648,4 +3648,5 @@ export const nl: Dict = {
   'test.sent': 'Verzonden',
   'test.confirmed': 'Bevestigd',
   'test.unconfirmed': 'Niet bevestigd',
+  'whatsnew.change.volumeControls': '“{name}” zet zijn keuzes op één rij onder de grafiek, elk maar zo breed als de labels.',
 };

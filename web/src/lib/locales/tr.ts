@@ -3664,4 +3664,5 @@ export const tr: Dict = {
   'test.sent': 'Gönderildi',
   'test.confirmed': 'Onaylandı',
   'test.unconfirmed': 'Onaylanmadı',
+  'whatsnew.change.volumeControls': '“{name}” seçeneklerini grafiğin altında tek satırda tutar, her biri yalnızca etiketleri kadar geniştir.',
 };

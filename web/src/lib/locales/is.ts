@@ -3661,4 +3661,5 @@ export const is: Dict = {
   'test.sent': 'Sent',
   'test.confirmed': 'Staðfest',
   'test.unconfirmed': 'Ekki staðfest',
+  'whatsnew.change.volumeControls': '„{name}“ hefur valkostina sína í einni röð undir grafinu, hvern aðeins jafnbreiðan og merkin hans.',
 };

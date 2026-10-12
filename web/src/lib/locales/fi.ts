@@ -3667,4 +3667,5 @@ export const fi: Dict = {
   'test.sent': 'Lähetetty',
   'test.confirmed': 'Vahvistettu',
   'test.unconfirmed': 'Ei vahvistettu',
+  'whatsnew.change.volumeControls': '”{name}” pitää valintansa yhdellä rivillä kaavion alla, kukin vain niin leveänä kuin sen nimet.',
 };

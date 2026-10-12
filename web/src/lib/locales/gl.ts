@@ -3663,4 +3663,5 @@ export const gl: Dict = {
   'test.sent': 'Enviado',
   'test.confirmed': 'Confirmado',
   'test.unconfirmed': 'Sen confirmar',
+  'whatsnew.change.volumeControls': '«{name}» ten as súas opcións nunha fila baixo o gráfico, cada unha só tan ancha como as súas etiquetas.',
 };

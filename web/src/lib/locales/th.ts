@@ -3663,4 +3663,5 @@ export const th: Dict = {
   'test.sent': 'ส่งแล้ว',
   'test.confirmed': 'ยืนยันแล้ว',
   'test.unconfirmed': 'ยังไม่ยืนยัน',
+  'whatsnew.change.volumeControls': '“{name}” วางตัวเลือกไว้ในแถวเดียวใต้แผนภูมิ แต่ละตัวกว้างเท่าที่ป้ายกำกับต้องการเท่านั้น',
 };

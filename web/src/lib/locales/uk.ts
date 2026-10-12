@@ -3666,4 +3666,5 @@ export const uk: Dict = {
   'test.sent': 'Надіслано',
   'test.confirmed': 'Підтверджено',
   'test.unconfirmed': 'Не підтверджено',
+  'whatsnew.change.volumeControls': 'У «{name}» усі перемикачі стоять в один рядок під графіком, і кожен завширшки рівно за своїми підписами.',
 };

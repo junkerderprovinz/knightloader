@@ -3667,4 +3667,5 @@ export const hu: Dict = {
   'test.sent': 'Elküldve',
   'test.confirmed': 'Megerősítve',
   'test.unconfirmed': 'Nincs megerősítve',
+  'whatsnew.change.volumeControls': 'A(z) „{name}” a választóit egy sorban tartja a diagram alatt, mindegyiket csak olyan szélesen, mint a feliratai.',
 };

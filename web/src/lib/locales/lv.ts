@@ -3656,4 +3656,5 @@ export const lv: Dict = {
   'test.sent': 'Nosūtīts',
   'test.confirmed': 'Apstiprināts',
   'test.unconfirmed': 'Nav apstiprināts',
+  'whatsnew.change.volumeControls': '„{name}“ izvēles ir vienā rindā zem diagrammas, katra tikai tik plata kā tās nosaukumi.',
 };

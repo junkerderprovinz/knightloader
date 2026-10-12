@@ -65,6 +65,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.transferFlow',
         names: { name: 'overview.flow.title' },
       },
+      {
+        id: 'volume-controls',
+        to: ['/'],
+        text: 'whatsnew.change.volumeControls',
+        names: { name: 'volume.title' },
+      },
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       // Drawn on every page of a narrow window, and listed with the first of them.
       { id: 'phone-bar', to: ['/'], text: 'whatsnew.change.phoneBar' },

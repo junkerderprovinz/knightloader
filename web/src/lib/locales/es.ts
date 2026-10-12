@@ -3657,4 +3657,5 @@ export const es: Dict = {
   'test.sent': 'Enviado',
   'test.confirmed': 'Confirmado',
   'test.unconfirmed': 'Sin confirmar',
+  'whatsnew.change.volumeControls': '«{name}» tiene sus opciones en una fila bajo el gráfico, cada una solo tan ancha como sus etiquetas.',
 };

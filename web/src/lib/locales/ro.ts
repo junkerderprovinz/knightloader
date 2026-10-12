@@ -3674,4 +3674,5 @@ export const ro: Dict = {
   'test.sent': 'Trimis',
   'test.confirmed': 'Confirmat',
   'test.unconfirmed': 'Neconfirmat',
+  'whatsnew.change.volumeControls': '„{name}” își ține opțiunile pe un singur rând sub grafic, fiecare doar cât de lată îi sunt etichetele.',
 };
