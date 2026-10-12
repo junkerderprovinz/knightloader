@@ -16,6 +16,7 @@ import (
 	"errors"
 	"log"
 	"os"
+	"slices"
 	"sync"
 	"time"
 
@@ -172,16 +173,19 @@ func captchaSolverFor(id string, cred accounts.Credential) captchaAccount {
 	return nil
 }
 
-// captchaSolvers returns the configured automatic solvers that have a stored
-// credential, in CaptchaSolverOrder. Entries without a credential, or whose
-// account is switched off on the Accounts page, are skipped.
+// captchaSolvers returns every automatic solver with a stored credential whose
+// account is switched on, the ones in CaptchaSolverOrder first and in its
+// order, the others after them in catalogue order.
 func (a *App) captchaSolvers() []paidSolver {
 	order := a.Settings.Get().CaptchaSolverOrder
-	if len(order) == 0 {
-		return nil
+	ids := slices.Clone(order)
+	for _, svc := range accounts.Catalogue {
+		if svc.Group == accounts.GroupCaptchaSolver && !slices.Contains(order, svc.ID) {
+			ids = append(ids, svc.ID)
+		}
 	}
-	out := make([]paidSolver, 0, len(order))
-	for _, id := range order {
+	var out []paidSolver
+	for _, id := range ids {
 		svc, ok := accounts.Lookup(id)
 		if !ok || !a.accountEnabled(id, "") {
 			continue
