@@ -120,10 +120,16 @@ func (m *Manager) Refuse(id string, now time.Time) error {
 // stand for this instance.
 const awaitWindow = 2 * time.Minute
 
+// waitsForApproval reports whether an answer says the caller waits for
+// approval at the instance that gave it.
+func waitsForApproval(status int, body []byte) bool {
+	return status == http.StatusForbidden && bytes.Contains(body, []byte(`"memberPending"`))
+}
+
 // noteAnswer records whether a member just told this instance that it waits
 // for approval there.
 func (m *Manager) noteAnswer(member string, status int, body []byte, now time.Time) {
-	pending := status == http.StatusForbidden && bytes.Contains(body, []byte(`"memberPending"`))
+	pending := waitsForApproval(status, body)
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	if pending {
