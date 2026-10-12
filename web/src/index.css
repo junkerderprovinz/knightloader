@@ -1318,18 +1318,40 @@ body {
   from { rotate: calc(var(--motion-wiggle-angle) * -1); }
   to   { rotate: var(--motion-wiggle-angle); }
 }
-/* The surface of a fill level drifts by one wave, which loops without a seam,
-   and rises a little on the way. A vessel's surface lies across it; a lying
-   bar's surface is its end, so there the wave runs along the edge. Linear,
-   since an eased drift would stop at every seam. */
+/* The surface of a fill level sloshes: it drifts one wave along, falls back a
+   little now and then, and rises and settles on the way. Every loop ends one
+   wave from where it began, so it has no seam. A vessel lays a longer wave
+   behind it that drifts the other way and rocks the two together, on periods
+   that do not line up, so the movement never repeats in step. A lying bar's
+   surface is its end, so there the wave runs along the edge. */
 @keyframes glim-liquid {
   from { translate: 0 0; }
-  50%  { translate: calc(var(--liquid-wave) * -.5) calc(var(--motion-liquid-bob) * -1); }
+  23%  { translate: calc(var(--liquid-wave) * -.42) calc(var(--motion-liquid-bob) * -1); }
+  41%  { translate: calc(var(--liquid-wave) * -.27) calc(var(--motion-liquid-bob) * -.35); }
+  67%  { translate: calc(var(--liquid-wave) * -.81) calc(var(--motion-liquid-bob) * -.8); }
+  84%  { translate: calc(var(--liquid-wave) * -.66) calc(var(--motion-liquid-bob) * -.2); }
   to   { translate: calc(var(--liquid-wave) * -1) 0; }
+}
+@keyframes glim-liquid-back {
+  from { translate: 0 0; }
+  31%  { translate: calc(var(--liquid-wave) * .48) calc(var(--motion-liquid-bob) * .6); }
+  52%  { translate: calc(var(--liquid-wave) * .36) calc(var(--motion-liquid-bob) * -.5); }
+  78%  { translate: calc(var(--liquid-wave) * .9) calc(var(--motion-liquid-bob) * .3); }
+  to   { translate: var(--liquid-wave) 0; }
+}
+@keyframes glim-liquid-tilt {
+  from { rotate: 0deg; }
+  20%  { rotate: calc(var(--motion-liquid-tilt) * -1); }
+  45%  { rotate: calc(var(--motion-liquid-tilt) * .55); }
+  70%  { rotate: calc(var(--motion-liquid-tilt) * -.3); }
+  88%  { rotate: var(--motion-liquid-tilt); }
+  to   { rotate: 0deg; }
 }
 @keyframes glim-liquid-edge {
   from { translate: 0 0; }
-  50%  { translate: var(--motion-liquid-bob) calc(var(--liquid-wave) * .5); }
+  27%  { translate: var(--motion-liquid-bob) calc(var(--liquid-wave) * .45); }
+  46%  { translate: calc(var(--motion-liquid-bob) * .3) calc(var(--liquid-wave) * .3); }
+  72%  { translate: calc(var(--motion-liquid-bob) * .8) calc(var(--liquid-wave) * .85); }
   to   { translate: 0 var(--liquid-wave); }
 }
 
@@ -1401,9 +1423,11 @@ body {
     /* The sheen that crosses a README button once under the pointer. */
     --motion-button-sheen-dur: 800ms;
     /* The surface of a fill level: the time one wave takes to drift past,
-       and how far the surface rises and settles on the way. */
+       how far the surface rises and settles on the way, and how far a
+       vessel's surface rocks to either side. */
     --motion-liquid-dur: 4.5s;
     --motion-liquid-bob: .5px;
+    --motion-liquid-tilt: 2.5deg;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
   }
@@ -1453,6 +1477,7 @@ body {
     --motion-button-sheen-dur: 1100ms;
     --motion-liquid-dur: 7s;
     --motion-liquid-bob: .25px;
+    --motion-liquid-tilt: 1.2deg;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
   }
@@ -1507,6 +1532,7 @@ body {
     /* Long rather than 0, and stopped by the rule below. */
     --motion-liquid-dur: 60s;
     --motion-liquid-bob: 0px;
+    --motion-liquid-tilt: 0deg;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
   }
@@ -1539,16 +1565,27 @@ body {
   .glim-drag-armed > :not(.glim-drag-lift) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
+  /* Eased, so the surface slows where it turns back. The back wave and the
+     rocking take longer than the front wave by odd factors, so the three
+     never meet the same way twice in a row. */
   .glim-liquid {
-    animation: glim-liquid var(--motion-liquid-dur) linear infinite;
+    animation: glim-liquid var(--motion-liquid-dur) ease-in-out infinite;
+  }
+  .glim-liquid-back {
+    animation: glim-liquid-back calc(var(--motion-liquid-dur) * 1.43) ease-in-out infinite;
+  }
+  .glim-liquid-tilt {
+    animation: glim-liquid-tilt calc(var(--motion-liquid-dur) * 2.17) ease-in-out infinite;
   }
   .glim-liquid-edge::after {
-    animation: glim-liquid-edge var(--motion-liquid-dur) linear infinite;
+    animation: glim-liquid-edge var(--motion-liquid-dur) ease-in-out infinite;
   }
 
   /* A level at "off" holds its surface still, as under reduced motion, where
      the rules above are never read. */
   :root[data-motion="off"] .glim-liquid,
+  :root[data-motion="off"] .glim-liquid-back,
+  :root[data-motion="off"] .glim-liquid-tilt,
   :root[data-motion="off"] .glim-liquid-edge::after {
     animation: none;
   }
@@ -1839,6 +1876,7 @@ body {
   --motion-button-sheen-dur: 550ms;
   --motion-liquid-dur: 2.6s;
   --motion-liquid-bob: 1px;
+  --motion-liquid-tilt: 4.5deg;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
 }
@@ -2659,9 +2697,17 @@ body {
 [dir='rtl'] .glim-liquid-edge::after {
   scale: -1 1;
 }
-/* A vessel's surface (pictures/Vessel.tsx), whose wave is 12 units long. */
+/* A vessel's surface (pictures/Vessel.tsx): the front wave is 12 units long
+   and the one behind it 16. The surface rocks about the middle of the
+   vessel, which stands 17 units in. */
 .glim-liquid {
   --liquid-wave: 12px;
+}
+.glim-liquid-back {
+  --liquid-wave: 16px;
+}
+.glim-liquid-tilt {
+  transform-origin: 17px 0;
 }
 
 /* An archive being unpacked draws its bar in the row's own colour, striped.
