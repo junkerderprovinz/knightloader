@@ -599,3 +599,21 @@ func TestAConfinedKeyReachesOnlyItsInstance(t *testing.T) {
 	next(t, retired, "the instance was not told the phone left")
 	nothing(t, other, "a device heard of another device leaving")
 }
+
+// TestNobodyAnnouncesAConfinedInstanceUnproven: while the instance a key is
+// kept to is away, whoever holds the key announces its id to see and reach
+// everybody else on it. Without the instance's proof that is refused, and the
+// instance itself still gets in.
+func TestNobodyAnnouncesAConfinedInstanceUnproven(t *testing.T) {
+	s := New()
+	s.Confine = func(string) string { return "retired" }
+	phone := join(t, s, "old-key", "phone")
+	if err := s.Join("old-key", newFakeConn(), Announce{InstanceID: "retired"}, false); err == nil {
+		t.Fatal("an unproven announce of the instance the key is kept to was let in")
+	}
+	nothing(t, phone, "a device heard of a connection that was turned away")
+	if err := s.Join("old-key", newFakeConn(), Announce{InstanceID: "retired"}, true); err != nil {
+		t.Fatalf("the instance itself was turned away: %v", err)
+	}
+	next(t, phone, "the device was not told about the instance")
+}
