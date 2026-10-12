@@ -13,6 +13,23 @@
 // it, it serves plain HTTP on KL_RELAY_ADDR for a local test or a proxy in
 // front. The relay key is a credential, so anything reachable from outside a
 // trusted network needs one of the two.
+//
+// KL_RELAY_TRUSTED_PROXIES lists the proxies, by address or CIDR range and
+// separated by commas, whose X-Forwarded-For names the caller for the
+// handshake throttle. Unset trusts loopback alone, which fits a proxy on the
+// same host; "none" trusts no proxy. A proxy in another container or on
+// another machine has to be named, such as KL_RELAY_TRUSTED_PROXIES=172.18.0.5
+// for a proxy container on a Docker network, and a range only when the proxy
+// is the sole thing in it: anybody else inside could otherwise pick the
+// address the throttle counts.
+//
+// KL_RELAY_PUBLIC_URL is the address instances dial the relay at, such as
+// https://relay.example.com, or several separated by commas. A hello proves an
+// instance's id only to the relay it names, so another relay the instance
+// dials with the same key cannot pass this one's challenge on to it. The names
+// in KL_RELAY_DOMAIN count too. With neither set the relay goes by the Host
+// header each connection arrives with, which whoever opens the connection
+// writes, so a relay reachable from outside sets one of the two.
 package main
 
 import (
@@ -26,6 +43,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"os/signal"
 	"strings"
@@ -64,6 +82,25 @@ func main() {
 	addr := env("KL_RELAY_ADDR", ":8760")
 
 	r := relay.New()
+	trusted, err := trustedProxies(os.Getenv("KL_RELAY_TRUSTED_PROXIES"))
+	if err != nil {
+		log.Fatalf("KL_RELAY_TRUSTED_PROXIES: %v", err)
+	}
+	r.TrustedProxies = func() []netip.Prefix { return trusted }
+
+	// KL_RELAY_DOMAIN is a comma-separated list because the relay address is
+	// compiled into released builds, so after a move the old name still needs
+	// a certificate until nothing dials it.
+	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
+	names, err := relayNames(os.Getenv("KL_RELAY_PUBLIC_URL"), domains)
+	if err != nil {
+		log.Fatalf("KL_RELAY_PUBLIC_URL: %v", err)
+	}
+	if len(names) > 0 {
+		r.Names = func(*http.Request) []string { return names }
+	} else {
+		log.Printf("neither KL_RELAY_PUBLIC_URL nor KL_RELAY_DOMAIN is set, so a hello is checked against the Host header it arrives with")
+	}
 	// The request path sweeps too, but only while traffic arrives. The timer
 	// keeps the 61 minute retention promised in extension/PRIVACY.md on a
 	// quiet relay.
@@ -80,10 +117,6 @@ func main() {
 	})
 	mux.Handle("GET /relay/connect", r)
 
-	// KL_RELAY_DOMAIN is a comma-separated list because the relay address is
-	// compiled into released builds, so after a move the old name still needs
-	// a certificate until nothing dials it.
-	domains := splitNames(os.Getenv("KL_RELAY_DOMAIN"))
 	domain := ""
 	if len(domains) > 0 {
 		domain = domains[0]
@@ -201,6 +234,48 @@ func splitNames(v string) []string {
 		}
 	}
 	return out
+}
+
+// relayNames is what a hello may name as this relay: the host of each address
+// in the comma-separated KL_RELAY_PUBLIC_URL, and each name in domains.
+func relayNames(publicURL string, domains []string) ([]string, error) {
+	var names []string
+	for _, address := range splitNames(publicURL) {
+		name := relay.RelayHost(address)
+		if name == "" {
+			return nil, fmt.Errorf("%q names no host", address)
+		}
+		names = append(names, name)
+	}
+	for _, d := range domains {
+		names = append(names, relay.RelayHost(d))
+	}
+	return names, nil
+}
+
+// trustedProxies reads the comma-separated addresses and CIDR ranges of the
+// reverse proxies in front of the relay. Unset means loopback, where a proxy
+// on the relay's own host sits; "none" trusts no proxy.
+func trustedProxies(v string) ([]netip.Prefix, error) {
+	if strings.TrimSpace(v) == "" {
+		return []netip.Prefix{netip.MustParsePrefix("127.0.0.0/8"), netip.MustParsePrefix("::1/128")}, nil
+	}
+	if strings.TrimSpace(v) == "none" {
+		return nil, nil
+	}
+	var out []netip.Prefix
+	for _, s := range splitNames(v) {
+		p, err := netip.ParsePrefix(s)
+		if err != nil {
+			a, aerr := netip.ParseAddr(s)
+			if aerr != nil {
+				return nil, fmt.Errorf("%q is neither an IP address nor a CIDR range", s)
+			}
+			p = netip.PrefixFrom(a.Unmap(), a.Unmap().BitLen())
+		}
+		out = append(out, p.Masked())
+	}
+	return out, nil
 }
 
 func env(k, def string) string {

@@ -563,7 +563,7 @@ func nzoIDOf(t *testing.T, add map[string]any) string {
 }
 
 // TestDownloadClientWorksWithAnAddAndReadToken walks Sonarr's whole round with
-// the preset the Access page offers for it. Its cleanup of a finished grab
+// the preset the Security page offers for it. Its cleanup of a finished grab
 // forgets the grab, and the downloads stay, since the token cannot control.
 func TestDownloadClientWorksWithAnAddAndReadToken(t *testing.T) {
 	t.Parallel()

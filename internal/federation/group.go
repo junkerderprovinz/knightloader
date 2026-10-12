@@ -1,8 +1,12 @@
 package federation
 
 import (
+	"encoding/hex"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"os"
+	"path/filepath"
 	"sort"
 	"sync"
 	"time"
@@ -30,13 +34,31 @@ type GroupState struct {
 	// MemberSeenAt is when another instance or a phone of the group was first
 	// there after JoinedAt, zero until one has been.
 	MemberSeenAt time.Time `json:"memberSeenAt"`
-	// Apps is every phone seen in the group, by appID, so one that has
-	// gone away still has a card saying when it was last there.
+	// Apps is every phone and browser seen in the group, by appID, so one
+	// that has gone away still has a card saying when it was last there.
 	Apps map[string]KnownApp `json:"apps,omitempty"`
-	// Removed is every phone taken out of the group, by appID and when.
-	// Its calls are turned away; scanning the phrase again gives the app a
-	// new id, so it comes back as a new phone.
+	// Removed is every phone and browser taken out of the group, by appID
+	// and when. Its calls are turned away; scanning the phrase again gives the
+	// app a new id, so it comes back as a new device. An instance's id is
+	// never in it.
 	Removed map[string]time.Time `json:"removed,omitempty"`
+	// Keys is the member key pinned to every member id that signed a call
+	// here, and Revoked every key taken out of the group, by its hex, with
+	// when. See relay/member.go.
+	Keys    map[string]PinnedKey `json:"keys,omitempty"`
+	Revoked map[string]time.Time `json:"revoked,omitempty"`
+}
+
+// PinnedKey is the key a member signs with, pinned on its first signed call.
+type PinnedKey struct {
+	Key  []byte `json:"key"`
+	Kind string `json:"kind"`
+	// Used is when the key last signed a call here, kept to within
+	// lastSeenStep.
+	Used time.Time `json:"used"`
+	// Approved is whether somebody at an instance let the member in. A key
+	// that is pinned but not approved is refused.
+	Approved bool `json:"approved"`
 }
 
 // KnownApp is a phone or a browser extension that joined the group with the
@@ -60,7 +82,7 @@ type App struct {
 
 // clientDeployments are the clients that join a group without being an
 // instance: the Android app and the browser extension.
-var clientDeployments = map[string]bool{"mobile": true, "extension": true}
+var clientDeployments = map[string]bool{relay.KindMobile: true, relay.KindExtension: true}
 
 // lastSeenStep is how far a connected phone's last-seen time may lag before
 // it is written again, so an open page does not rewrite the file on every
@@ -72,25 +94,61 @@ const lastSeenStep = time.Minute
 // the cap the phone seen longest ago makes room.
 const maxApps = 32
 
-func loadGroupFile(path string) *groupFile {
+// loadGroupFile reads path. A file that is there but does not read is an
+// error rather than an empty group, which would drop every approval, removal
+// and revoked key and let in again whoever they kept out.
+func loadGroupFile(path string) (*groupFile, error) {
 	g := &groupFile{path: path}
-	if b, err := os.ReadFile(path); err == nil {
-		_ = json.Unmarshal(b, &g.state)
+	b, err := os.ReadFile(path)
+	switch {
+	case errors.Is(err, os.ErrNotExist):
+		return g, nil
+	case err != nil:
+		return nil, err
 	}
-	return g
+	if err := json.Unmarshal(b, &g.state); err != nil {
+		return nil, fmt.Errorf("federation: %s is damaged; move it aside to start the group over: %w", path, err)
+	}
+	return g, nil
 }
 
+// flushLocked replaces the file through a synced temporary file in the same
+// folder, so a crash leaves the old state or the new one and never a cut-off
+// file.
 func (g *groupFile) flushLocked() error {
 	b, err := json.Marshal(g.state)
 	if err != nil {
 		return err
 	}
-	return os.WriteFile(g.path, b, 0o600)
+	f, err := os.CreateTemp(filepath.Dir(g.path), "."+filepath.Base(g.path)+".tmp-*")
+	if err != nil {
+		return err
+	}
+	tmp := f.Name()
+	_, err = f.Write(b)
+	if err == nil {
+		err = f.Sync()
+	}
+	if cerr := f.Close(); err == nil {
+		err = cerr
+	}
+	if err == nil {
+		err = os.Rename(tmp, g.path)
+	}
+	if err != nil {
+		os.Remove(tmp)
+	}
+	return err
 }
 
 // SetJoined records that this instance entered a group at at, or left its
-// group when at is zero. Nobody has been seen in the group that follows.
+// group when at is zero. Nobody has been seen in the group that follows, and
+// every member that signs in has to be approved here, the instances that were
+// there before this one included.
 func (m *Manager) SetJoined(at time.Time) error {
+	m.mu.Lock()
+	m.awaiting, m.heard, m.greeted = nil, nil, nil
+	m.mu.Unlock()
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	m.group.state = GroupState{JoinedAt: at}
@@ -110,8 +168,10 @@ func (m *Manager) Members() []Instance {
 	return out
 }
 
-// Apps returns every phone of the group, connected ones first, and records
-// the ones connected at now.
+// Apps returns every phone and browser of the group, connected ones first,
+// and records the ones connected at now. A card is kept only under an id
+// shaped like the ones its kind mints, so no announce puts one under an
+// instance's id.
 func (m *Manager) Apps(now time.Time) ([]App, error) {
 	m.mu.Lock()
 	rt := m.rt
@@ -119,9 +179,9 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	connected := map[string]relay.Announce{}
 	if rt != nil {
 		for _, sib := range rt.Siblings() {
-			if sib.Client && clientDeployments[sib.Deployment] {
+			if id := appID(sib); sib.Client && clientDeployments[sib.Deployment] && kindOfID(id) == sib.Deployment {
 				sib.Name = relay.ClipName(sib.Name)
-				connected[appID(sib)] = sib
+				connected[id] = sib
 			}
 		}
 	}
@@ -132,6 +192,12 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	var err error
 	if !st.JoinedAt.IsZero() {
 		dirty := false
+		for id, known := range st.Apps {
+			if kindOfID(id) != deploymentOf(known) {
+				delete(st.Apps, id)
+				dirty = true
+			}
+		}
 		for id, sib := range connected {
 			if _, gone := st.Removed[id]; gone {
 				continue
@@ -155,12 +221,7 @@ func (m *Manager) Apps(now time.Time) ([]App, error) {
 	out := make([]App, 0, len(st.Apps))
 	for id, known := range st.Apps {
 		_, on := connected[id]
-		deployment := known.Deployment
-		if deployment == "" {
-			// An entry stored without a kind is a phone's.
-			deployment = "mobile"
-		}
-		out = append(out, App{ID: id, Name: known.Name, Deployment: deployment, Connected: on, LastSeen: known.LastSeen})
+		out = append(out, App{ID: id, Name: known.Name, Deployment: deploymentOf(known), Connected: on, LastSeen: known.LastSeen})
 	}
 	sort.Slice(out, func(i, j int) bool {
 		if out[i].Connected != out[j].Connected {
@@ -183,6 +244,15 @@ func appID(sib relay.Announce) string {
 	return sib.InstanceID
 }
 
+// deploymentOf is the kind of device a card is for. One stored without a kind
+// is a phone's.
+func deploymentOf(known KnownApp) string {
+	if known.Deployment == "" {
+		return relay.KindMobile
+	}
+	return known.Deployment
+}
+
 func forgetStalestApp(apps map[string]KnownApp) {
 	stalest := ""
 	for id, known := range apps {
@@ -193,9 +263,18 @@ func forgetStalestApp(apps map[string]KnownApp) {
 	delete(apps, stalest)
 }
 
-// RemoveApp takes phone id out of the group at now: its card goes and its
-// calls are turned away from then on.
+// ErrIsInstance is what RemoveApp answers for an id that is not shaped like a
+// phone's or a browser's. An instance leaves through RemoveMember instead.
+var ErrIsInstance = errors.New("federation: that id belongs to an instance of the group, not to a phone or a browser")
+
+// RemoveApp takes phone or browser id out of the group at now: its card goes,
+// its pinned key is revoked and its calls are turned away from then on. The id
+// decides the kind, never a card or a key under it, so nothing a device says
+// about itself can have an instance taken out this way.
 func (m *Manager) RemoveApp(id string, now time.Time) error {
+	if kind := kindOfID(id); kind != relay.KindMobile && kind != relay.KindExtension {
+		return ErrIsInstance
+	}
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()
 	st := &m.group.state
@@ -207,10 +286,54 @@ func (m *Manager) RemoveApp(id string, now time.Time) error {
 		st.Removed = map[string]time.Time{}
 	}
 	st.Removed[id] = now
+	revokeLocked(st, id, now)
 	return m.group.flushLocked()
 }
 
-// Removed reports whether phone id was taken out of the group.
+// ErrNotInstance is what RemoveMember answers for a phone or a browser, which
+// leave through RemoveApp instead.
+var ErrNotInstance = errors.New("federation: that id belongs to a phone or a browser of the group, not to an instance")
+
+// RemoveMember revokes the key pinned to instance id at now. Its id stays
+// free, so the instance can enter the phrase again and join under a new key;
+// the old key never speaks here again.
+func (m *Manager) RemoveMember(id string, now time.Time) error {
+	if !relay.ValidInstanceID(id) {
+		return ErrNotInstance
+	}
+	m.group.mu.Lock()
+	defer m.group.mu.Unlock()
+	if !revokeLocked(&m.group.state, id, now) {
+		return nil
+	}
+	return m.group.flushLocked()
+}
+
+// revokeLocked moves the key pinned to id onto the revoked list and reports
+// whether there was one.
+func revokeLocked(st *GroupState, id string, now time.Time) bool {
+	pin, ok := st.Keys[id]
+	if !ok {
+		return false
+	}
+	delete(st.Keys, id)
+	if st.Revoked == nil {
+		st.Revoked = map[string]time.Time{}
+	}
+	if len(st.Revoked) >= maxRevoked {
+		oldest := ""
+		for key, at := range st.Revoked {
+			if oldest == "" || at.Before(st.Revoked[oldest]) {
+				oldest = key
+			}
+		}
+		delete(st.Revoked, oldest)
+	}
+	st.Revoked[hex.EncodeToString(pin.Key)] = now
+	return true
+}
+
+// Removed reports whether phone or browser id was taken out of the group.
 func (m *Manager) Removed(id string) bool {
 	m.group.mu.Lock()
 	defer m.group.mu.Unlock()

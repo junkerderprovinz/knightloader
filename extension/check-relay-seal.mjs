@@ -4,10 +4,15 @@
 //
 // The vector matches internal/relay/announce_seal_test.go. Its nonce is a fixed
 // run of 0x07 so it is reproducible; nothing in production uses a fixed nonce.
-// src/relay.js is loaded as is, so the shipped code is what gets checked. The
-// last three checks hold a session to the order the relay sent its frames in,
+// src/relay.js is loaded as is, so the shipped code is what gets checked. Checks
+// six to eight hold a session to the order the relay sent its frames in,
 // to taking a peer's identity only from a seal that opens and to keeping the
-// browser's member id inside the seals.
+// browser's member id inside the seals. The ninth holds a signed call to the
+// member-call vector of internal/relay/member_test.go, the tenth the ids that
+// vector's key makes, and the eleventh takes an answer only signed by the
+// key its instance's id is made from and only for the call it answers. The
+// twelfth holds that check to the answer vector the Go side signs, and the
+// thirteenth the fingerprint to the one the Go side shows.
 
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -105,7 +110,7 @@ if (r.movedOpens) {
 //    instance refuses it as a possible replay (relay.OpenCall, ReplayGuard).
 const call = await vm.runInContext(
   `(async (key) => {
-     const sealed = await relaySealCall(key, 'req-9', 'alpha', 'POST', '/api/links', '{"urls":[]}');
+     const { sealed } = await relaySealCall(key, 'req-9', 'alpha', 'POST', '/api/links', '{"urls":[]}');
      const plain = await relayOpen(key, relayRequestAAD('req-9', 'alpha'), sealed);
      return plain ? JSON.parse(relayFromUtf8(plain)) : null;
    })`,
@@ -215,23 +220,48 @@ if (!bare) {
   failures.push(`an unsealed announce was listed with the identity it claims in plaintext: ${JSON.stringify(bare)}`);
 }
 
+// The instance the sessions below call. Its answers are signed by its member
+// key, whose id it goes by, as a real instance's are.
+const targetPair = await webcrypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
+const targetPublic = new Uint8Array(await webcrypto.subtle.exportKey('raw', targetPair.publicKey));
+const targetId = await vm.runInContext(`((key) => relayMemberId('instance', key))`, ctx)(targetPublic);
+// sealedOf is the call the session sent as the instance gets it, sealed, which
+// an answer to it names.
+const sealedOf = (a) => new Uint8Array(Buffer.from(a.sealed, 'base64'));
+const signedAnswer = async (requestId, sealed, result, signer = targetPair.privateKey, publicKey = targetPublic) => {
+  const body = result.body ? new Uint8Array(Buffer.from(result.body, 'base64')) : new Uint8Array();
+  const message = await vm.runInContext(`((id, target, sealed, status, body) => relayResultMessage(id, target, sealed, status, body))`, ctx)(
+    requestId,
+    targetId,
+    sealed,
+    result.status,
+    body,
+  );
+  const sig = Buffer.from(await webcrypto.subtle.sign('Ed25519', signer, message)).toString('base64');
+  return { ...result, key: Buffer.from(publicKey).toString('base64'), sig };
+};
+let asked = null;
+const answerWith = (result) => (socket, frame) => {
+  if (frame.type !== 'proxy-request') return;
+  asked = frame.data;
+  const sealed = sealedOf(frame.data);
+  Promise.resolve(typeof result === 'function' ? result(frame.data.requestId, sealed) : signedAnswer(frame.data.requestId, sealed, result))
+    .then((r) =>
+      vm.runInContext(`((key, id, r) => relaySeal(key, relayResponseAAD(id), relayUtf8(JSON.stringify(r))))`, ctx)(frameKey, frame.data.requestId, r),
+    )
+    .then((sealed) =>
+      socket.onmessage?.({ data: JSON.stringify({ type: 'proxy-response', data: { requestId: frame.data.requestId, sealed } }) }),
+    );
+};
+
 // 8. The browser's lasting member id rides inside the seals: in the announce,
 //    so an instance lists the browser once, and as a call's `from`, so one that
 //    removed the browser can turn it away. The relay sees neither.
-const member = 'b'.repeat(40);
-let asked = null;
-FakeSocket.answer = (socket, frame) => {
-  if (frame.type !== 'proxy-request') return;
-  asked = frame.data;
-  vm.runInContext(
-    `((key, id) => relaySeal(key, relayResponseAAD(id), relayUtf8(JSON.stringify({ status: 200 }))))`,
-    ctx,
-  )(frameKey, frame.data.requestId).then((sealed) =>
-    socket.onmessage?.({ data: JSON.stringify({ type: 'proxy-response', data: { requestId: frame.data.requestId, sealed } }) }),
-  );
-};
+const member = 'browser-' + 'b'.repeat(32);
+FakeSocket.answer = answerWith({ status: 200 });
 sent.length = 0;
-await vm.runInContext(`((opts) => relaySession(opts, ({ call }) => call('f'.repeat(40), 'GET', '/api/queue')))`, ctx)({
+await vm.runInContext(`((opts) => relaySession({ ...opts, target: undefined }, ({ call }) => call(opts.target, 'GET', '/api/queue')))`, ctx)({
+  target: targetId,
   url: 'ws://relay.invalid/relay/connect',
   key: 'a-key-long-enough-for-the-relay',
   frameKey,
@@ -254,6 +284,153 @@ const askedCall = asked
     )(frameKey, asked)
   : null;
 if (askedCall?.from !== member) failures.push(`a call goes out from ${JSON.stringify(askedCall?.from)}, want the member id, or a removed browser is never turned away`);
+
+// 9. A signed call carries the key and a signature over relay.CallMessage, or
+//    the instance refuses it. The message is held to the Go vector in
+//    internal/relay/member_test.go: its seed, signed here, gives its signature.
+const goMember = readFileSync(join(here, '..', 'internal', 'relay', 'member_test.go'), 'utf8');
+const vectorSig = goMember.match(/vectorSig\s*=\s*"([^"]+)"/)?.[1];
+const pkcs8 = new Uint8Array([...Buffer.from('302e020100300506032b657004220420', 'hex'), ...new Uint8Array(32).fill(0x2a)]);
+const vectorPrivate = await webcrypto.subtle.importKey('pkcs8', pkcs8, 'Ed25519', false, ['sign']);
+const vectorMessage = vm.runInContext(`((target, call) => relayCallMessage(target, call))`, ctx)('office', {
+  id: 'req-7',
+  method: 'POST',
+  path: '/api/links',
+  body: '{"urls":["https://example.com/a"]}',
+  from: 'phone-member',
+  kind: 'mobile',
+  sent: 1760000000,
+});
+const vectorSigned = Buffer.from(await webcrypto.subtle.sign('Ed25519', vectorPrivate, vectorMessage)).toString('base64');
+if (!vectorSig || vectorSigned !== vectorSig) {
+  failures.push(`the vector call signs to ${vectorSigned}, the server checks for ${vectorSig}; relayCallMessage differs from relay.CallMessage`);
+}
+
+const pair = await webcrypto.subtle.generateKey('Ed25519', false, ['sign', 'verify']);
+const memberKey = { privateKey: pair.privateKey, publicKey: new Uint8Array(await webcrypto.subtle.exportKey('raw', pair.publicKey)) };
+asked = null;
+FakeSocket.answer = answerWith({ status: 200 });
+await vm.runInContext(`((opts) => relaySession({ ...opts, target: undefined }, ({ call }) => call(opts.target, 'POST', '/api/links', '{"links":"x"}')))`, ctx)({
+  target: targetId,
+  url: 'ws://relay.invalid/relay/connect',
+  key: 'a-key-long-enough-for-the-relay',
+  frameKey,
+  selfId: 'd'.repeat(40),
+  memberId: member,
+  memberKey,
+  selfName: 'Browser',
+});
+FakeSocket.answer = null;
+const signingHello = [...sent].reverse().map((raw) => JSON.parse(raw)).find((f) => f.type === 'hello')?.data?.announce;
+const signingIdentity = signingHello
+  ? await vm.runInContext(
+      `((key, id, blob) => relayOpen(key, relayAnnounceAAD(id), blob).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, signingHello.instanceId, signingHello.sealed)
+  : null;
+if (signingIdentity?.member !== member || 'signs' in signingIdentity) {
+  failures.push(`a browser with a member key announces ${JSON.stringify(signingIdentity)}, want its member id and nothing else about its key`);
+}
+const signed = asked
+  ? await vm.runInContext(
+      `((key, a) => relayOpen(key, relayRequestAAD(a.requestId, a.target), a.sealed).then(p => p && JSON.parse(relayFromUtf8(p))))`,
+      ctx,
+    )(frameKey, asked)
+  : null;
+if (!signed?.sig || !signed.key || signed.kind !== 'extension' || signed.from !== member) {
+  failures.push(`a call with a member key went out as ${JSON.stringify(signed)}, want it signed as the extension under the member id`);
+} else {
+  const message = vm.runInContext(`((target, call) => relayCallMessage(target, call))`, ctx)(asked.target, {
+    id: signed.id,
+    method: signed.method,
+    path: signed.path,
+    body: Buffer.from(signed.body ?? '', 'base64').toString('utf8'),
+    from: signed.from,
+    kind: signed.kind,
+    sent: signed.sent,
+  });
+  const holds = await webcrypto.subtle.verify('Ed25519', pair.publicKey, Buffer.from(signed.sig, 'base64'), message);
+  if (!holds) failures.push('the signature on a call the session sent does not hold over the call it came with');
+  if (Buffer.from(signed.key, 'base64').toString('base64') !== Buffer.from(memberKey.publicKey).toString('base64')) {
+    failures.push('a signed call presents another key than the one it was signed with');
+  }
+}
+
+// 10. The browser's member id is made from its key the way the server makes
+//     it, or every instance refuses its calls as naming another id.
+const vectorKey = Buffer.from(goMember.match(/vectorKey\s*=\s*"([^"]+)"/)?.[1] ?? '', 'base64');
+for (const [kind, name] of [['instance', 'vectorInstanceID'], ['mobile', 'vectorPhoneID'], ['extension', 'vectorBrowserID']]) {
+  const want = goMember.match(new RegExp(`${name}\\s*=\\s*"([^"]+)"`))?.[1];
+  const got = await vm.runInContext(`((kind, key) => relayMemberId(kind, key))`, ctx)(kind, new Uint8Array(vectorKey));
+  if (!want || got !== want) failures.push(`the ${kind} id of the vector key is ${got}, the server makes ${want}`);
+}
+
+// 11. Anybody holding the words can seal an answer, a "removed" that makes the
+//     browser forget its group included. Only one signed by the key the
+//     target's id is made from counts.
+const removedBody = Buffer.from('removed').toString('base64');
+const otherPair = await webcrypto.subtle.generateKey('Ed25519', true, ['sign', 'verify']);
+const otherPublic = new Uint8Array(await webcrypto.subtle.exportKey('raw', otherPair.publicKey));
+const anotherCall = new Uint8Array(Buffer.from('another call'));
+// The call as somebody holding the words altered it on the way, which the
+// target refuses with an answer of its own.
+const altered = (sealed) => sealed.map((b, i) => (i === sealed.length - 1 ? b ^ 1 : b));
+const refusedBody = Buffer.from('{"error":"the signature on this call does not match the key it came with","code":"memberSignature"}').toString('base64');
+for (const [name, answer, taken] of [
+  ['unsigned', async () => ({ status: 410, body: removedBody }), false],
+  ['signed by another key', (id, sealed) => signedAnswer(id, sealed, { status: 410, body: removedBody }, otherPair.privateKey, otherPublic), false],
+  ['signed by the target for another call', (id) => signedAnswer(id, anotherCall, { status: 410, body: removedBody }), false],
+  ['signed by the target for the call altered on the way', (id, sealed) => signedAnswer(id, altered(sealed), { status: 403, body: refusedBody }), false],
+  ['signed by the target', (id, sealed) => signedAnswer(id, sealed, { status: 410, body: removedBody }), true],
+]) {
+  let removedCalled = false;
+  FakeSocket.answer = answerWith(answer);
+  const outcome = await vm
+    .runInContext(`((opts) => relaySession({ ...opts, target: undefined }, ({ call }) => call(opts.target, 'GET', '/api/queue')))`, ctx)({
+      target: targetId,
+      url: 'ws://relay.invalid/relay/connect',
+      key: 'a-key-long-enough-for-the-relay',
+      frameKey,
+      selfId: 'd'.repeat(40),
+      memberId: member,
+      selfName: 'Browser',
+      onRemoved: async () => {
+        removedCalled = true;
+      },
+    })
+    .then(
+      () => 'taken',
+      () => 'refused',
+    );
+  FakeSocket.answer = null;
+  if ((outcome === 'taken') !== taken || removedCalled !== taken) {
+    failures.push(`an answer ${name} was ${outcome}${removedCalled ? ' and made the browser leave its group' : ''}`);
+  }
+}
+
+// 12. The answer the vector key signs to the vector's sealed call verifies as
+//     the Go side signs it, and only for that call.
+const vectorAnswer = {
+  status: 410,
+  body: removedBody,
+  key: vectorKey.toString('base64'),
+  sig: goMember.match(/vectorResultSig\s*=\s*"([^"]+)"/)?.[1] ?? '',
+};
+const vectorAsked = new Uint8Array(Buffer.from(goMember.match(/vectorSealedCall\s*=\s*"([^"]+)"/)?.[1] ?? '', 'base64'));
+const verifyVector = vm.runInContext(`((id, target, call, result) => relayVerifyResult(id, target, call, result))`, ctx);
+const vectorInstance = goMember.match(/vectorInstanceID\s*=\s*"([^"]+)"/)?.[1];
+if (!(await verifyVector('req-7', vectorInstance, vectorAsked, vectorAnswer))) {
+  failures.push('the server’s signed vector answer does not verify; relayResultMessage differs from relay.ResultMessage');
+}
+if (await verifyVector('req-7', vectorInstance, anotherCall, vectorAnswer)) {
+  failures.push('the vector answer verifies for another call than the one it was given to');
+}
+
+// 13. The options page shows the browser's own key as an instance shows it
+//     beside the browser while it waits for approval.
+const wantPrint = goMember.match(/vectorFingerprint\s*=\s*"([^"]+)"/)?.[1];
+const gotPrint = await vm.runInContext(`((key) => relayFingerprint(key))`, ctx)(new Uint8Array(vectorKey));
+if (!wantPrint || gotPrint !== wantPrint) failures.push(`the fingerprint of the vector key is ${gotPrint}, the server shows ${wantPrint}`);
 
 if (failures.length) {
   console.error('The extension’s relay port fails its checks:\n');

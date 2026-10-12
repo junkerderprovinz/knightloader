@@ -3,6 +3,7 @@ package api
 import (
 	"bytes"
 	"context"
+	"crypto/ed25519"
 	"encoding/hex"
 	"encoding/json"
 	"io"
@@ -22,7 +23,7 @@ import (
 // Member ids in the shape instances mint them, the only one a member is
 // listed under.
 var (
-	siblingID = strings.Repeat("5", 40)
+	siblingID = idAs("sibling", relay.KindInstance)
 	officeID  = strings.Repeat("0", 40)
 	desktopID = strings.Repeat("d", 40)
 )
@@ -213,6 +214,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
 		Self:     relay.Announce{InstanceID: siblingID, Name: "Sibling", Deployment: "container"},
+		Member:   keyOf("sibling"),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -246,6 +248,20 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay", list)
 	}
 
+	// Both ways the owner approves the other side first. A hand-entered relay
+	// key makes a group whose members sign and are approved like one reached
+	// by the words.
+	selfID := groupID(a)
+	if _, _, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil); err == nil {
+		t.Fatal("the sibling's answer was taken before the sibling was approved here")
+	}
+	if _, status, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil); err != nil || status != http.StatusForbidden {
+		t.Fatalf("the sibling before it was approved = %d %v, want 403", status, err)
+	}
+	if _, _, err := a.Federation.Approve(siblingID, nil, ""); err != nil {
+		t.Fatal(err)
+	}
+
 	// Outbound, addressed by the sibling's InstanceID.
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
@@ -257,8 +273,7 @@ func TestRelayConnectsAndProxiesBothDirections(t *testing.T) {
 
 	// Inbound: the sibling reaches the app's real API through
 	// relayProxyHandler.
-	selfID := a.Settings.Get().InstanceID
-	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil, "")
+	inBody, inStatus, err := sibling.Proxy(context.Background(), selfID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("sibling proxy into the app: %v", err)
 	}
@@ -349,15 +364,14 @@ func TestChangingInstanceNameReconnectsTheRelayClient(t *testing.T) {
 	waitForSiblingName("Renamed Instance")
 }
 
-// TestRelayProxyHonoursTheAuthorizationField runs relay calls against the real
-// Handler, since what matters is whether the auth guard believes the
-// forwarded credential, not only whether the header is copied.
-func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
+// TestARelayCallNeedsNoToken runs relay calls against the real Handler: a
+// member of the group carries no credential, with or without a password.
+func TestARelayCallNeedsNoToken(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := asMember(t, a)
 
-	if status, body := serve(context.Background(), relay.ProxyCall{
+	if status, body := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Fatalf("unprotected instance answered %d (%s), want 200", status, body)
@@ -369,94 +383,24 @@ func TestRelayProxyHonoursTheAuthorizationField(t *testing.T) {
 
 	// A sibling without a token gets through, because reaching this handler
 	// already took the group key.
-	if status, body := serve(context.Background(), relay.ProxyCall{
+	if status, body := serve(relay.ProxyCall{
 		Method: http.MethodGet, Path: "/api/tasks",
 	}); status != http.StatusOK {
 		t.Errorf("a group sibling with no token = %d (%s), want 200; the relay socket is the credential", status, body)
 	}
-
-	// A stale token must not fail harder than no token.
-	if status, _ := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks",
-		Authorization: "Bearer not-a-real-token",
-	}); status != http.StatusOK {
-		t.Errorf("a group sibling with a stale token = %d, want 200", status)
-	}
-
-	_, secret, err := a.APITokens.Create("phone")
-	if err != nil {
-		t.Fatal(err)
-	}
-	status, body := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks",
-		Authorization: "Bearer " + secret,
-	})
-	if status != http.StatusOK {
-		t.Fatalf("a real API token = %d (%s), want 200", status, body)
-	}
-	var tasks []any
-	if err := json.Unmarshal(body, &tasks); err != nil {
-		t.Errorf("authenticated relay call answered unparseable JSON: %v (%s)", err, body)
-	}
 }
 
-// TestRelayProxyRefusesEverythingButTasksAndLinks checks that group membership
-// reaches only the allowlisted routes rather than the whole API.
-func TestRelayProxyRefusesEverythingButTasksAndLinks(t *testing.T) {
+// The relay builds a frame without payload as a request with no body, which
+// the one writable read a member has must take without a panic.
+func TestABodylessRelayCallDoesNotPanic(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := asMember(t, a)
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
-	get := func(path string) int {
-		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: path})
-		return status
-	}
-
-	for _, allowed := range []string{
-		"/api/tasks", "/api/links", "/api/queue", "/api/tasks/7", "/api/queue/move",
-		"/api/tasks?state=active", "/api/auth", "/api/instances", "/api/appearance",
-		"/api/remote-access",
-	} {
-		if status := get(allowed); status == http.StatusForbidden {
-			t.Errorf("%s = 403, but a group member needs it", allowed)
-		}
-	}
-
-	// Hoster logins and paths, the password, standing credentials and the
-	// phrase itself.
-	for _, refused := range []string{
-		"/api/settings", "/api/accounts", "/api/auth/password", "/api/tokens",
-		"/api/connect", "/api/connect/reveal", "/api/scripts", "/api/relay/config",
-	} {
-		if status := get(refused); status != http.StatusForbidden {
-			t.Errorf("%s = %d, want 403; a group sibling must not reach this", refused, status)
-		}
-	}
-
-	for _, path := range []string{"/api/auth", "/api/instances", "/api/remote-access"} {
-		status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: path})
-		if status != http.StatusForbidden {
-			t.Errorf("POST %s = %d, want 403; these are readable, not writable", path, status)
-		}
-	}
-
-	// The one writable exception. The call is bodyless, as the relay builds it
-	// for a frame without payload, which must not panic.
-	if status, _ := serve(context.Background(), relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden {
-		t.Error("POST /api/appearance = 403, but the app has to be able to set the palette")
-	} else if status == http.StatusInternalServerError {
-		t.Errorf("POST /api/appearance = 500; a bodyless relay call must not reach a panic")
-	}
-
-	for _, path := range []string{"/api/settings", "/api/accounts", "/api/relay/config"} {
-		for _, method := range []string{http.MethodPost, http.MethodPatch, http.MethodPut, http.MethodDelete} {
-			status, _ := serve(context.Background(), relay.ProxyCall{Method: method, Path: path})
-			if status != http.StatusForbidden {
-				t.Errorf("%s %s = %d, want 403", method, path, status)
-			}
-		}
+	if status, body := serve(relay.ProxyCall{Method: http.MethodPost, Path: "/api/appearance"}); status == http.StatusForbidden || status == http.StatusInternalServerError {
+		t.Errorf("POST /api/appearance = %d (%s), want the palette settable without a panic", status, body)
 	}
 }
 
@@ -467,13 +411,13 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 	jd, solvedWith := fakeJDWithHCaptcha(t)
 	t.Setenv("KL_JD", jd.URL)
 	a := testApp(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := asMember(t, a)
 	// With a password set, a call the relay did not vouch for is a 401.
 	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
 		t.Fatal(err)
 	}
 	call := func(method, path, body string) (int, []byte) {
-		return serve(context.Background(), relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
+		return serve(relay.ProxyCall{Method: method, Path: path, Body: []byte(body)})
 	}
 	type listed struct {
 		ID string `json:"id"`
@@ -542,8 +486,8 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 		{http.MethodPost, "/api/captcha/solvers"},
 		{http.MethodPost, "/api/captchas/c1/answer"},
 	} {
-		if status, _ := call(c.method, c.path, `{}`); status != http.StatusForbidden {
-			t.Errorf("%s %s = %d, want 403; only the calls the app makes are forwarded", c.method, c.path, status)
+		if status, _ := call(c.method, c.path, `{}`); status != http.StatusForbidden && status != http.StatusNotFound {
+			t.Errorf("%s %s = %d, want 403 or 404; only the calls the app makes are forwarded", c.method, c.path, status)
 		}
 	}
 }
@@ -551,13 +495,14 @@ func TestTheAppCanAnswerCaptchasOverTheRelay(t *testing.T) {
 // fixedSibling is a second relay client standing in for another instance, so a
 // test can prove a relay carried something rather than only that a socket
 // opened.
-func fixedSibling(t *testing.T, url, key, id string) *relay.Client {
+func fixedSibling(t *testing.T, url, key, label string) *relay.Client {
 	t.Helper()
 	c, err := relay.NewClient(relay.ClientOptions{
 		URL:      url,
 		Key:      key,
 		FrameKey: relay.FrameKeyFromRelayKey(key),
-		Self:     relay.Announce{InstanceID: id, Name: "Sibling", Deployment: "desktop"},
+		Self:     relay.Announce{InstanceID: idAs(label, relay.KindInstance), Name: "Sibling", Deployment: "desktop"},
+		Member:   keyOf(label),
 		Serve: func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
 			return http.StatusOK, []byte(`{"from":"sibling"}`)
 		},
@@ -584,7 +529,7 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v, want serve=true", code, put)
 	}
 
-	fixedSibling(t, srv.URL, key, siblingID)
+	fixedSibling(t, srv.URL, key, "sibling")
 
 	var list []struct {
 		Name        string `json:"name"`
@@ -606,6 +551,9 @@ func TestServingARelayFromInsideAnInstance(t *testing.T) {
 		t.Fatalf("GET /api/instances = %+v, want the sibling visible through the relay this instance is serving", list)
 	}
 
+	if _, _, err := a.Federation.Approve(siblingID, keyOf("sibling").Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
 	body, status, err := a.Federation.Proxy(context.Background(), siblingID, http.MethodGet, "/api/tasks", nil)
 	if err != nil {
 		t.Fatalf("proxy to the sibling through our own relay: %v", err)
@@ -633,7 +581,7 @@ func TestAServedRelayAdmitsOnlyTheKeyTheInstanceStores(t *testing.T) {
 		t.Fatalf("PUT /api/relay/config = %d %+v", code, put)
 	}
 
-	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger-1")
+	stranger := fixedSibling(t, srv.URL, "some-other-relay-key-entirely-0123456789", "stranger")
 
 	// Long enough for a connection or a retry to succeed. The relay's count is
 	// what shows admission: the client counts itself connected as soon as its
@@ -750,17 +698,17 @@ func TestTheServeSwitchIsLeftAloneWhenTheRequestOmitsIt(t *testing.T) {
 // stopping one is not forwarded.
 func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
 	t.Parallel()
-	if !relayForwardable(http.MethodGet, "/api/extract") {
+	if !groupReaches(t, http.MethodGet, "/api/extract") {
 		t.Error("GET /api/extract is not forwarded, but the app's rows show it")
 	}
 	for _, method := range []string{http.MethodPost, http.MethodPut, http.MethodPatch, http.MethodDelete} {
-		if relayForwardable(method, "/api/extract") {
+		if groupReaches(t, method, "/api/extract") {
 			t.Errorf("%s /api/extract is forwarded, want only GET", method)
 		}
 	}
 	for _, path := range []string{"/api/extract/start", "/api/extract/j1/abort"} {
 		for _, method := range []string{http.MethodGet, http.MethodPost} {
-			if relayForwardable(method, path) {
+			if groupReaches(t, method, path) {
 				t.Errorf("%s %s is forwarded; a group sibling must not start or stop an unpacking", method, path)
 			}
 		}
@@ -770,57 +718,19 @@ func TestRelayForwardsOnlyTheReadOfTheUnpackings(t *testing.T) {
 func TestRelayProxyTurnsAwayARemovedPhone(t *testing.T) {
 	t.Parallel()
 	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
+	serve := a.Federation.Guard(relayProxyHandler(Handler(a)))
 	if err := a.Federation.SetJoined(time.Now()); err != nil {
 		t.Fatal(err)
 	}
-	if err := a.Federation.RemoveApp("phone-gone", time.Now()); err != nil {
+	if err := a.Federation.RemoveApp(idAs("phone-gone", relay.KindMobile), time.Now()); err != nil {
 		t.Fatal(err)
 	}
 
-	if status, body := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks", From: "phone-gone",
-	}); status != http.StatusGone {
+	if status, body := signedAs(serve, idAs("phone-gone", relay.KindMobile), relay.KindMobile, keyOf("phone-gone"))(http.MethodGet, "/api/tasks"); status != http.StatusGone {
 		t.Fatalf("the removed phone = %d (%s), want 410", status, body)
 	}
-	if status, body := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodGet, Path: "/api/tasks", From: "phone-kept",
-	}); status != http.StatusOK {
+	if status, body := signedMember(t, a, "phone-kept", relay.KindMobile)(http.MethodGet, "/api/tasks"); status != http.StatusOK {
 		t.Fatalf("another phone = %d (%s), want 200", status, body)
-	}
-	if status, _ := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodDelete, Path: "/api/connect/apps/phone-other",
-	}); status != http.StatusNoContent {
-		t.Fatalf("a removal passed on by a sibling = %d, want 204", status)
-	}
-	if !a.Federation.Removed("phone-other") {
-		t.Fatal("the removal passed on by a sibling was not recorded")
-	}
-}
-
-func TestASiblingCanTakeThisInstanceOutOfTheGroup(t *testing.T) {
-	t.Parallel()
-	_, a := testServer(t)
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
-	if err := a.Accounts.Set(relay.SeedAccountService, strings.Repeat("ab", 16)); err != nil {
-		t.Fatal(err)
-	}
-	self := a.Settings.Get().InstanceID
-
-	if status, _ := serve(context.Background(), relay.ProxyCall{
-		Method: http.MethodDelete, Path: "/api/connect/members/" + self,
-	}); status != http.StatusNoContent {
-		t.Fatalf("a sibling removing this instance = %d, want 204", status)
-	}
-	deadline := time.Now().Add(5 * time.Second)
-	for {
-		if secret, _ := a.Accounts.Get(relay.SeedAccountService); secret == "" {
-			break
-		}
-		if time.Now().After(deadline) {
-			t.Fatal("the instance kept its phrase after a sibling took it out of the group")
-		}
-		time.Sleep(20 * time.Millisecond)
 	}
 }
 
@@ -838,8 +748,7 @@ func TestARelayedAnswerStopsAtWhatAMemberCanRead(t *testing.T) {
 	if err := os.Truncate(filepath.Join(base, "film.mkv"), 2*relayAnswerMax); err != nil {
 		t.Fatal(err)
 	}
-	serve := relayProxyHandler(Handler(a), a.Federation.Removed)
-	status, body := serve(context.Background(), relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
+	status, body := asMember(t, a)(relay.ProxyCall{Method: http.MethodGet, Path: "/api/tasks/" + id + "/file"})
 	if status == http.StatusOK || len(body) > relayAnswerMax {
 		t.Fatalf("a relayed %d MiB file answered %d with %d MiB, want a refusal within %d MiB",
 			2*relayAnswerMax>>20, status, len(body)>>20, relayAnswerMax>>20)

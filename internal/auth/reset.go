@@ -16,8 +16,6 @@ import (
 	"errors"
 	"strings"
 	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 const (
@@ -109,6 +107,15 @@ func (g *Guard) ResetPending() bool {
 	return g.reset.live(time.Now())
 }
 
+// ResetCodeMatches reports whether typed is the live reset code, in constant
+// time, so a caller can let the right code past a throttle and stop the rest
+// in front of it.
+func (g *Guard) ResetCodeMatches(typed string) bool {
+	g.mu.RLock()
+	defer g.mu.RUnlock()
+	return g.reset.matches(typed, time.Now())
+}
+
 // CancelReset drops a code that could not be shown, so the next request mints
 // one instead of waiting out a code nobody can read.
 func (g *Guard) CancelReset() {
@@ -148,7 +155,7 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 	}
 	// Hashed only for a code that was right, so the route cannot be made to
 	// spend a bcrypt per request.
-	h, err := bcrypt.GenerateFromPassword([]byte(next), bcrypt.DefaultCost)
+	h, err := hashPassword(g.appKey, next)
 	if err != nil {
 		return Credentials{}, err
 	}
@@ -159,14 +166,28 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 
 	g.minting.Lock()
 	defer g.minting.Unlock()
+	c, err := g.commitReset(code, h, key)
+	if err != nil {
+		return Credentials{}, err
+	}
+	if alsoEnd != nil {
+		alsoEnd()
+	}
+	return c, nil
+}
+
+// commitReset writes the reset state and then takes it on in memory, both
+// under writing, so no write of the state from before can land after it.
+func (g *Guard) commitReset(code string, h, key []byte) (Credentials, error) {
+	g.writing.Lock()
+	defer g.writing.Unlock()
 	g.mu.Lock()
+	defer g.mu.Unlock()
 	// Another request may have used the code while this one hashed.
 	if !g.reset.matches(code, time.Now()) {
-		g.mu.Unlock()
 		return Credentials{}, ErrCodeRejected
 	}
-	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}); err != nil {
-		g.mu.Unlock()
+	if err := writeState(g.path, stored{Hash: string(h), Key: hex.EncodeToString(key), Epoch: g.epoch + 1}, g.appKey); err != nil {
 		return Credentials{}, err
 	}
 	g.hash = h
@@ -177,11 +198,5 @@ func (g *Guard) FinishReset(code, next string, alsoEnd func()) (Credentials, err
 	g.endSessionsLocked()
 	g.reset = resetCode{}
 	g.gen++
-	c := Credentials{gen: g.gen, enabled: true}
-	g.mu.Unlock()
-
-	if alsoEnd != nil {
-		alsoEnd()
-	}
-	return c, nil
+	return Credentials{gen: g.gen, enabled: true}, nil
 }

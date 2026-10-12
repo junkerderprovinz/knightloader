@@ -45,6 +45,7 @@
       "settings.aboutGithub",
       "settings.motion.storm",
       "downloads.torrentsTitle",
+      "settings.motion",
       "settings.theme.system"
     ],
     "el": [
@@ -103,7 +104,8 @@
       "downloads.torrentsTitle",
       "notify.channelCaptcha",
       "settings.notifications",
-      "settings.appsExtensionSub"
+      "settings.appsExtensionSub",
+      "settings.motion"
     ],
     "gl": [
       "captcha.screenTitle",
@@ -276,6 +278,7 @@
       "settings.aboutGithub",
       "settings.motion.storm",
       "downloads.torrentsTitle",
+      "settings.motion",
       "settings.theme.system"
     ],
     "th": [

@@ -3,8 +3,10 @@ package auth
 import (
 	"encoding/base64"
 	"errors"
+	"path/filepath"
 	"strconv"
 	"strings"
+	"sync"
 	"testing"
 	"time"
 )
@@ -95,6 +97,39 @@ func TestSessionsIssuedInTheSameSecondAreSignedOutApart(t *testing.T) {
 	}
 }
 
+// TestParallelSignOutsWriteTheListSafely: each sign-out writes the list while
+// the others add to it, which the race detector, or the runtime itself on a
+// map, catches when the file is written from the live list.
+func TestParallelSignOutsWriteTheListSafely(t *testing.T) {
+	g, dir := locked(t)
+	exp := time.Now().Add(time.Hour).Unix()
+	sessions := make([]string, 64)
+	for i := range sessions {
+		sessions[i] = sessionUntil(g, exp+int64(i))
+	}
+	var wg sync.WaitGroup
+	for _, s := range sessions {
+		wg.Go(func() {
+			if err := g.Revoke(s); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	wg.Wait()
+	reopened, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, s := range sessions {
+		if g.Valid(s) {
+			t.Fatal("a session signed out in parallel with others is still valid")
+		}
+		if reopened.Valid(s) {
+			t.Fatal("a session signed out in parallel with others is valid again after a restart")
+		}
+	}
+}
+
 func TestRevokeAllEndsEverySession(t *testing.T) {
 	g, dir := locked(t)
 	s := g.Issue()
@@ -149,8 +184,8 @@ func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
 		password string
 		want     error
 	}{
-		{"äöüßäöü", ErrTooShort},
-		{"日本語のパスワ", ErrTooShort},
+		{"äöüßäöüéäöü", ErrTooShort},
+		{"日本語のパスワードです", ErrTooShort},
 		{strings.Repeat("a", 73), ErrTooLong},
 		{strings.Repeat("ä", 37), ErrTooLong},
 	} {
@@ -159,7 +194,33 @@ func TestAPasswordIsMeasuredInCharactersAndBcryptsBytes(t *testing.T) {
 				c.password, len([]rune(c.password)), len(c.password), err, c.want)
 		}
 	}
-	if err := g.SetPassword("", "äöüßäöüé"); err != nil {
-		t.Errorf("eight characters were refused: %v", err)
+	if err := g.SetPassword("", "äöüßäöüéäöüß"); err != nil {
+		t.Errorf("twelve characters were refused: %v", err)
+	}
+}
+
+// TestAPasswordSetUnderTheOldMinimumStillSignsIn: the length counts for a new
+// password only, so an owner with an eight character one is not locked out.
+func TestAPasswordSetUnderTheOldMinimumStillSignsIn(t *testing.T) {
+	dir := t.TempDir()
+	h, err := hashPassword(nil, "eightchr")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := writeState(filepath.Join(dir, FileName), stored{Hash: string(h), Key: strings.Repeat("ab", 32)}, nil); err != nil {
+		t.Fatal(err)
+	}
+	g, err := Open(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !g.Check("eightchr") {
+		t.Fatal("a password set under the old minimum no longer signs in")
+	}
+	if err := g.SetPassword("eightchr", "ninechars"); !errors.Is(err, ErrTooShort) {
+		t.Errorf("a new password of nine characters = %v, want ErrTooShort", err)
+	}
+	if err := g.SetPassword("eightchr", "twelve-chars"); err != nil {
+		t.Errorf("changing it to twelve characters: %v", err)
 	}
 }

@@ -3,26 +3,33 @@ package api
 import (
 	"bytes"
 	"encoding/json"
+	"fmt"
 	"io"
 	"net/http"
+	"net/http/httptest"
+	"os"
+	"path/filepath"
 	"sync"
 	"sync/atomic"
 	"testing"
+	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/apitoken"
+	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/auth"
 )
 
 // TestParallelGuessesStillMeetTheThrottle: an attacker who has the password
 // sends a burst of code guesses at once. Every one of them must count before
 // the first answer comes back, or the burst gets as many guesses as bcrypt
-// can check rather than loginFailBurst.
+// can check rather than loginFailLimit.
 func TestParallelGuessesStillMeetTheThrottle(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
 	armTwoFactor(t, a, "a-good-password")
 
-	const burst = 4 * loginFailBurst
+	const burst = 4 * loginFailLimit
 	codes := make(chan int, burst)
 	var start, done sync.WaitGroup
 	start.Add(1)
@@ -51,12 +58,64 @@ func TestParallelGuessesStillMeetTheThrottle(t *testing.T) {
 			checked++
 		}
 	}
-	if checked > loginFailBurst {
-		t.Errorf("%d of %d parallel guesses were checked, want at most %d", checked, burst, loginFailBurst)
+	if checked > loginFailLimit {
+		t.Errorf("%d of %d parallel guesses were checked, want at most %d", checked, burst, loginFailLimit)
 	}
 }
 
-// TestRevealSharesTheLoginThrottle: the phrase route asks for the password
+// TestFiveFailedSignInsAMinute: the sixth wrong password within a minute is
+// refused unchecked, and the client may try again once the first has left
+// the window.
+func TestFiveFailedSignInsAMinute(t *testing.T) {
+	t.Parallel()
+	srv, a := testServer(t)
+	defer srv.Close()
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	for i := range 5 {
+		if code := login(t, http.DefaultClient, srv.URL, "not-the-password"); code != http.StatusUnauthorized {
+			t.Fatalf("wrong password %d answered %d, want 401", i+1, code)
+		}
+	}
+	if code := login(t, http.DefaultClient, srv.URL, "a-good-password"); code != http.StatusTooManyRequests {
+		t.Fatalf("the right password after five wrong ones answered %d, want 429", code)
+	}
+}
+
+// TestTheThrottleWindowSlides: a failure stops counting a minute after it
+// happened, not a minute after the last one.
+func TestTheThrottleWindowSlides(t *testing.T) {
+	t.Parallel()
+	g := newLoginGate(nil)
+	now := time.Unix(1_700_000_000, 0)
+	g.now = func() time.Time { return now }
+	r := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+
+	for i := range loginFailLimit {
+		if !g.try(r) {
+			t.Fatalf("attempt %d was refused", i+1)
+		}
+		now = now.Add(10 * time.Second)
+	}
+	if g.try(r) {
+		t.Fatalf("attempt %d within %v was let through", loginFailLimit+1, loginFailWindow)
+	}
+	// 50 seconds have passed; the first failure leaves the window at 60.
+	now = now.Add(9 * time.Second)
+	if g.try(r) {
+		t.Fatal("an attempt was let through before the first failure left the window")
+	}
+	now = now.Add(time.Second)
+	if !g.try(r) {
+		t.Fatal("an attempt was refused after the first failure left the window")
+	}
+	if g.try(r) {
+		t.Fatal("two attempts were let through when one failure had left the window")
+	}
+}
+
+// TestRevealSharesTheLoginThrottle:the phrase route asks for the password
 // again, so it must not be a way to guess the password the login throttles.
 func TestRevealSharesTheLoginThrottle(t *testing.T) {
 	t.Parallel()
@@ -77,11 +136,11 @@ func TestRevealSharesTheLoginThrottle(t *testing.T) {
 		return resp.StatusCode
 	}
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last = reveal("not-the-password")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong passwords the phrase route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong passwords the phrase route answered %d, want 429", loginFailLimit+1, last)
 	}
 	if code := login(t, http.DefaultClient, srv.URL, "a-good-password"); code != http.StatusTooManyRequests {
 		t.Errorf("the login answered %d right after the phrase route ran out of attempts, want 429", code)
@@ -176,5 +235,84 @@ func TestABodySentWithATokenStopsAtTheCeiling(t *testing.T) {
 		if sent := body.sent.Load(); sent > 2*maxJSONBody {
 			t.Errorf("%s took %d MiB of the body, the ceiling is %d MiB", route, sent>>20, maxJSONBody>>20)
 		}
+	}
+}
+
+// TestAClosedBucketCostsNoPasswordCheck: with an app key every check is an
+// Argon2id run of 19 MiB, so a caller the gate has stopped must not get one.
+// A bcrypt hash from before the key shows it: the first check of the right
+// password replaces it in auth.json.
+func TestAClosedBucketCostsNoPasswordCheck(t *testing.T) {
+	dir := t.TempDir()
+	plain, err := app.New(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := plain.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
+	plain.Close()
+	a, err := app.NewWithKey(dir, newAppKey(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	srv := httptest.NewServer(Handler(a))
+	t.Cleanup(srv.Close)
+	trustLoopback(t, a)
+	file := func() []byte {
+		b, err := os.ReadFile(filepath.Join(dir, auth.FileName))
+		if err != nil {
+			t.Fatal(err)
+		}
+		return b
+	}
+
+	for range loginFailLimit {
+		loginFrom(t, srv.URL, "not-the-password", "203.0.113.5")
+	}
+	before := file()
+	if got := loginFrom(t, srv.URL, "a-good-password", "203.0.113.5"); got != http.StatusTooManyRequests {
+		t.Fatalf("the right password from a closed bucket answered %d, want 429", got)
+	}
+	if !bytes.Equal(file(), before) {
+		t.Error("the right password from a closed bucket was checked")
+	}
+	if got := loginFrom(t, srv.URL, "a-good-password", "203.0.113.6"); got != http.StatusOK {
+		t.Fatalf("the right password from another caller answered %d", got)
+	}
+	if bytes.Equal(file(), before) {
+		t.Fatal("a check of the right password left auth.json as it was, so this test proves nothing")
+	}
+}
+
+// TestAnIPv6NetworkCannotMintFreshAllowances: each /64 has an allowance of its
+// own, and whoever holds a /48 holds 65536 of them. The /48 as a whole stops
+// at loginNetworkLimit, while another network is not held up by it.
+func TestAnIPv6NetworkCannotMintFreshAllowances(t *testing.T) {
+	t.Parallel()
+	g := newLoginGate(nil)
+	from := func(addr string) *http.Request {
+		r := httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)
+		r.RemoteAddr = "[" + addr + "]:443"
+		return r
+	}
+	let := 0
+	for sub := range 1000 {
+		r := from(fmt.Sprintf("2001:db8:7:%x::1", sub))
+		for range loginFailLimit {
+			if g.try(r) {
+				let++
+			}
+		}
+	}
+	if let > loginNetworkLimit {
+		t.Errorf("one /48 had %d guesses within the window, want at most %d", let, loginNetworkLimit)
+	}
+	if !g.try(from("2001:db8:8::1")) {
+		t.Error("a caller from another /48 was refused")
+	}
+	if !g.try(httptest.NewRequest(http.MethodPost, "/api/auth/login", nil)) {
+		t.Error("an IPv4 caller was refused")
 	}
 }

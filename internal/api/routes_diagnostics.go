@@ -35,9 +35,10 @@ type Diagnostics struct {
 	// and mediatools stores no credential.
 	MediaTools mediatools.Status `json:"mediaTools"`
 
-	// Settings is what GET /api/settings sends, with the archive passwords also
-	// cleared. Settings.Redacted keeps them because the Archives page shows
-	// them to their owner; ArchivePasswordCount keeps the useful fact.
+	// Settings is what GET /api/settings sends, scrubbed of what that page
+	// shows its owner: the archive passwords, which are cleared, and the
+	// addresses, bodies and scripts that may hold a token (see
+	// settings.Settings.Scrubbed). ArchivePasswordCount keeps the useful fact.
 	Settings             settings.Settings `json:"settings"`
 	ArchivePasswordCount int               `json:"archivePasswordCount"`
 
@@ -102,7 +103,7 @@ func registerDiagnostics(reg *Registry, a *app.App) {
 }
 
 func buildDiagnostics(a *app.App) Diagnostics {
-	redacted := a.Settings.Get().Redacted()
+	redacted := a.Settings.Get().Redacted().Scrubbed()
 	count := len(redacted.ArchivePasswords)
 	redacted.ArchivePasswords = nil
 	// The same snapshots GET /api/stats/speed and the maintenance page use, so

@@ -1,5 +1,7 @@
-import { decodeBody, encodeBody } from './base64';
-import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult } from './relayFrame';
+import { base64Decode, base64Encode, bytesToUtf8, encodeBody } from './base64';
+import { getRandomBytes } from 'expo-crypto';
+import { memberPublicKey, proveId, verifyResult } from './memberKey';
+import { openCall, openIdentity, openResult, sealCall, sealIdentity, sealResult, sealSignedCall } from './relayFrame';
 
 // This app's client for internal/relay's wire protocol, the second way it can
 // reach an instance: one behind a NAT with no port forwarding and no reverse
@@ -39,6 +41,7 @@ const STABLE_SESSION_MS = 30_000;
 const PROXY_TIMEOUT_MS = 15_000;
 
 // Frame type discriminators - relay.TypeHello and friends.
+const T_CHALLENGE = 'challenge';
 const T_HELLO = 'hello';
 const T_ANNOUNCE = 'announce';
 const T_PRESENCE = 'presence';
@@ -66,7 +69,29 @@ export function connectURL(raw: string): string | null {
   return `${scheme}://${host}${path.endsWith('/connect') ? path : `${path}/relay/connect`}`;
 }
 
+/**
+ * relayHost mirrors relay.RelayHost: the name the hello's proof gives the relay
+ * it is meant for, the host of address in lower case and without the port, the
+ * brackets of an IPv6 literal or the dot of a fully qualified name. A relay
+ * takes the proof only under a name of its own, so another relay cannot pass
+ * its challenge on to this phone.
+ */
+export function relayHost(address: string): string {
+  const trimmed = address.trim();
+  const m = (trimmed.includes('://') ? trimmed : `http://${trimmed}`).match(/^[^:]*:\/\/([^/?#]*)/);
+  if (!m) return '';
+  let host = m[1].slice(m[1].lastIndexOf('@') + 1);
+  const bracketed = host.match(/^\[([^\]]*)\](?::\d*)?$/);
+  if (bracketed) host = bracketed[1];
+  else if (host.split(':').length === 2) host = host.slice(0, host.indexOf(':'));
+  return host.replace(/\.$/, '').toLowerCase();
+}
+
 interface Pending {
+  // The instance asked, whose key has to have signed the answer, and the call
+  // as it went out, sealed, which the answer has to name.
+  target: string;
+  sealed: number[];
   resolve: (r: RelayProxyResult) => void;
   reject: (e: Error) => void;
   timer: ReturnType<typeof setTimeout>;
@@ -86,6 +111,9 @@ export interface RelayClientOptions {
   frameKey: Uint8Array;
   /** This device's stable id on the relay. See storage/relayIdentity.ts. */
   selfId: string;
+  /** The seed of this device's member key, which signs every call as selfId;
+   *  null sends them unsigned. */
+  memberSeed: Uint8Array | null;
   /** What siblings would call this device, if they listed it; they do not. */
   selfName: string;
 }
@@ -106,7 +134,6 @@ export class RelayClient {
   private openedAt = 0;
   private sibs: RelaySibling[] = [];
   private pending = new Map<string, Pending>();
-  private seq = 0;
   // A set, not a single callback: one client is shared by every connection
   // through the same relay (see relayClientFor), and the connect screen
   // watches the same client a saved connection is already using. A lone
@@ -164,41 +191,49 @@ export class RelayClient {
    * connected, the target is not, or nobody replied in time. An answer the
    * target produced resolves however bad its status, because "your instance
    * said no" and "your instance is gone" are different outcomes, as in the Go
-   * client's Proxy.
+   * client's Proxy. An answer counts only signed by the key target's id is
+   * made from: anybody holding the words can seal one, a "removed" that makes
+   * this phone leave its group included, but only the target can sign it.
    */
-  async proxy(target: string, method: string, path: string, body?: string, authorization?: string): Promise<RelayProxyResult> {
+  async proxy(target: string, method: string, path: string, body?: string): Promise<RelayProxyResult> {
     if (!this.open) await this.waitForConnection();
     return new Promise<RelayProxyResult>((resolve, reject) => {
       if (!this.open || !this.socket) {
         reject(new Error('relay: not connected'));
         return;
       }
-      // Unique per client instance and never reused, which is all the relay
-      // needs: it matches a response to a request only within this one
-      // connection's pending set.
-      const requestId = `${Date.now().toString(36)}-${(this.seq++).toString(36)}`;
+      // Random rather than counted: an instance runs each id once per key, and
+      // an id somebody else can predict is one they can send first.
+      const requestId = Array.from(getRandomBytes(16), (b) => b.toString(16).padStart(2, '0')).join('');
       const timer = setTimeout(() => {
         this.pending.delete(requestId);
         reject(new Error('relay: the instance did not answer in time'));
       }, PROXY_TIMEOUT_MS);
-      this.pending.set(requestId, { resolve, reject, timer });
+      const pending: Pending = { target, sealed: [], resolve, reject, timer };
+      this.pending.set(requestId, pending);
 
       try {
         // Everything except the two routing fields goes inside the seal, so
         // the relay sees which instance the frame is for and nothing about what
-        // is being asked, the bearer token below included: that is the one
-        // field here that keeps working for whoever reads it. See relayFrame.ts.
-        this.send(T_PROXY_REQUEST, {
-          requestId,
-          target,
-          sealed: sealCall(this.opts.frameKey, requestId, target, {
+        // is being asked. See relayFrame.ts.
+        let sealed: string;
+        if (this.opts.memberSeed) {
+          sealed = sealSignedCall(this.opts.frameKey, this.opts.memberSeed, requestId, target, {
+            method,
+            path,
+            body,
+            from: this.opts.selfId,
+          });
+        } else {
+          sealed = sealCall(this.opts.frameKey, requestId, target, {
             method,
             path,
             ...(body ? { body: encodeBody(body) } : {}),
-            ...(authorization ? { authorization } : {}),
             from: this.opts.selfId,
-          }),
-        });
+          });
+        }
+        pending.sealed = base64Decode(sealed);
+        this.send(T_PROXY_REQUEST, { requestId, target, sealed });
       } catch (err) {
         clearTimeout(timer);
         this.pending.delete(requestId);
@@ -253,33 +288,8 @@ export class RelayClient {
     socket.onopen = () => {
       if (this.socket !== socket) return;
       this.openedAt = Date.now();
-      this.open = true;
       this.sibs = [];
-      // Hello has to be the first frame: the relay reads exactly one, on its
-      // own deadline, before it joins this socket to anything.
-      try {
-        this.send(T_HELLO, {
-          key: this.opts.key,
-          announce: {
-            instanceId: this.opts.selfId,
-            // Everything but the id goes into the seal, under the frame key
-            // the relay does not hold (see relay.Identity). The device name and
-            // the 'mobile' marker give the phone its own card on every
-            // instance's Instances page, and the client flag keeps it off the
-            // list of instances to call, where it would answer 501 to
-            // everything.
-            sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
-              name: this.opts.selfName,
-              deployment: 'mobile',
-              client: true,
-            }),
-          },
-        });
-      } catch {
-        socket.close();
-        return;
-      }
-      this.emitChange();
+      // The relay speaks first, with the challenge the hello signs (handle).
     };
 
     socket.onmessage = (event) => {
@@ -316,6 +326,52 @@ export class RelayClient {
     };
   }
 
+  /** hello introduces this socket once the relay sent the challenge its
+   *  proof signs. */
+  private hello(challenge: Uint8Array): void {
+    // Hello has to be the first frame: the relay reads exactly one, on its
+    // own deadline, before it joins this socket to anything.
+    try {
+      // The proof lets this socket take the place of one the relay still
+      // holds for this phone after a dropped connection, which nobody
+      // without the phone's key can.
+      const seed = this.opts.memberSeed;
+      const relay = relayHost(this.opts.url);
+      this.send(T_HELLO, {
+        key: this.opts.key,
+        ...(seed
+          ? {
+              proof: {
+                kind: 'mobile',
+                relay,
+                key: base64Encode(Array.from(memberPublicKey(seed))),
+                sig: base64Encode(Array.from(proveId(seed, this.opts.key, relay, this.opts.selfId, challenge))),
+              },
+            }
+          : {}),
+        announce: {
+          instanceId: this.opts.selfId,
+          // Everything but the id goes into the seal, under the frame key
+          // the relay does not hold (see relay.Identity). The device name and
+          // the 'mobile' marker give the phone its own card on every
+          // instance's Instances page, and the client flag keeps it off the
+          // list of instances to call, where it would answer 501 to
+          // everything.
+          sealed: sealIdentity(this.opts.frameKey, this.opts.selfId, {
+            name: this.opts.selfName,
+            deployment: 'mobile',
+            client: true,
+          }),
+        },
+      });
+    } catch {
+      this.socket?.close();
+      return;
+    }
+    this.open = true;
+    this.emitChange();
+  }
+
   private handle(raw: string): void {
     let env: { type?: string; data?: any };
     try {
@@ -325,6 +381,16 @@ export class RelayClient {
     }
     const data = env.data ?? {};
     switch (env.type) {
+      case T_CHALLENGE: {
+        if (this.open || typeof data.nonce !== 'string') return;
+        const nonce = new Uint8Array(base64Decode(data.nonce));
+        if (nonce.length !== 32) {
+          this.socket?.close();
+          return;
+        }
+        this.hello(nonce);
+        return;
+      }
       case T_ANNOUNCE: {
         if (typeof data.instanceId !== 'string' || !data.instanceId) return;
         // As in relay.openAnnounce, only a seal that opens names a sibling. The
@@ -386,10 +452,15 @@ export class RelayClient {
           p.reject(new Error('relay: the instance answered unreadably'));
           return;
         }
-        p.resolve({
-          status: typeof result.status === 'number' ? result.status : 0,
-          body: typeof result.body === 'string' && result.body ? decodeBody(result.body) : '',
-        });
+        const status = typeof result.status === 'number' ? result.status : 0;
+        const body = typeof result.body === 'string' ? base64Decode(result.body) : [];
+        const key = new Uint8Array(typeof result.key === 'string' ? base64Decode(result.key) : []);
+        const sig = new Uint8Array(typeof result.sig === 'string' ? base64Decode(result.sig) : []);
+        if (!verifyResult(data.requestId, p.target, p.sealed, status, body, key, sig)) {
+          p.reject(new Error('relay: the answer is not signed by the instance it claims to come from'));
+          return;
+        }
+        p.resolve({ status, body: bytesToUtf8(body) });
         return;
       }
       case T_PROXY_REQUEST: {

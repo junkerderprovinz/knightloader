@@ -3,6 +3,8 @@ package main
 import (
 	"bytes"
 	"net/http"
+	"net/netip"
+	"slices"
 	"strings"
 	"testing"
 
@@ -56,5 +58,53 @@ func TestUnknownFlagOrArgumentIsRefused(t *testing.T) {
 		if !strings.Contains(errOut.String(), "-version") {
 			t.Errorf("parseArgs(%q) printed no usage: %q", args, errOut.String())
 		}
+	}
+}
+
+func TestTrustedProxiesReadsAddressesAndRanges(t *testing.T) {
+	got, err := trustedProxies(" 172.17.0.1, 10.0.0.0/8 ,::1")
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []netip.Prefix{
+		netip.MustParsePrefix("172.17.0.1/32"),
+		netip.MustParsePrefix("10.0.0.0/8"),
+		netip.MustParsePrefix("::1/128"),
+	}
+	if !slices.Equal(got, want) {
+		t.Errorf("trustedProxies = %v, want %v", got, want)
+	}
+	if got, _ := trustedProxies("none"); got != nil {
+		t.Errorf(`trustedProxies("none") = %v, want none`, got)
+	}
+	unset, _ := trustedProxies("")
+	for _, addr := range []string{"127.0.0.1", "::1"} {
+		if !slices.ContainsFunc(unset, func(p netip.Prefix) bool { return p.Contains(netip.MustParseAddr(addr)) }) {
+			t.Errorf("unset does not trust %s on the relay's own host", addr)
+		}
+	}
+	for _, addr := range []string{"10.0.0.7", "172.17.0.2", "192.168.1.20", "fd00::7"} {
+		if slices.ContainsFunc(unset, func(p netip.Prefix) bool { return p.Contains(netip.MustParseAddr(addr)) }) {
+			t.Errorf("unset trusts %s, so any machine on that network picks the address the throttle counts", addr)
+		}
+	}
+	if _, err := trustedProxies("proxy.lan"); err == nil {
+		t.Error("a host name was taken for a trusted proxy")
+	}
+}
+
+func TestTheRelayGoesByItsPublicAddressAndItsDomains(t *testing.T) {
+	got, err := relayNames(" https://Relay.Example.com/relay/connect, wss://old.example.com:8443 ", []string{"relay.example.org"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := []string{"relay.example.com", "old.example.com", "relay.example.org"}; !slices.Equal(got, want) {
+		t.Errorf("relayNames = %v, want %v", got, want)
+	}
+	if got, _ := relayNames("", nil); len(got) != 0 {
+		t.Errorf("with nothing set the relay goes by %v, want the Host header", got)
+	}
+	if _, err := relayNames("https://", nil); err == nil {
+		t.Error("an address without a host was taken")
 	}
 }

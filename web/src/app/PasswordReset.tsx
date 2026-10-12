@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { ApiError, askForResetCode, resetPassword, type AuthState, type ResetCodePlace } from '../lib/api';
+import {
+  ApiError,
+  askForResetCode,
+  resetPassword,
+  type AuthState,
+  type ResetCodePlace,
+  type ResetRemoved,
+} from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Button, Field, PasswordInput, TextInput } from '../components/ui';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../lib/passwordLength';
@@ -52,6 +59,9 @@ export function PasswordReset({
   const [failure, setFailure] = useState<Failure>('');
   const [shake, setShake] = useState(0);
   const [busy, setBusy] = useState(false);
+  // The answer to a reset that went through, held until the reader has seen
+  // what it removed.
+  const [done, setDone] = useState<(AuthState & { removed?: ResetRemoved }) | null>(null);
 
   function fail(f: Failure) {
     setFailure(f);
@@ -67,7 +77,7 @@ export function PasswordReset({
     setBusy(true);
     setFailure('');
     try {
-      onDone(await resetPassword(code, password));
+      setDone(await resetPassword(code, password));
     } catch (err) {
       const status = err instanceof ApiError ? err.status : undefined;
       if (status === 401) {
@@ -90,6 +100,8 @@ export function PasswordReset({
       setBusy(false);
     }
   }
+
+  if (done) return <ResetDone removed={done.removed} onContinue={() => onDone(done)} />;
 
   const where = [
     t(WHERE[place.place], { file: place.file ?? '' }),
@@ -144,5 +156,32 @@ export function PasswordReset({
         </Button>
       </div>
     </form>
+  );
+}
+
+/** ResetDone lists what the reset took away before the app opens. */
+function ResetDone({ removed, onContinue }: { removed?: ResetRemoved; onContinue: () => void }) {
+  const { t } = useT();
+  const lines = [
+    removed?.twoFactor && t('auth.reset.removed.twoFactor'),
+    removed?.passkeys ? t('auth.reset.removed.passkeys', { count: removed.passkeys }) : '',
+    removed?.tokens ? t('auth.reset.removed.tokens', { count: removed.tokens }) : '',
+    t('auth.reset.removed.sessions'),
+    removed?.group && t('auth.reset.removed.group'),
+  ].filter((line): line is string => Boolean(line));
+  return (
+    <div role="status" className="flex flex-col gap-4 text-sm text-carbon-text">
+      <p>{t('auth.reset.done')}</p>
+      <ul className="flex list-disc flex-col gap-2 ps-5 text-carbon-textSub">
+        {lines.map((line) => (
+          <li key={line}>{line}</li>
+        ))}
+      </ul>
+      <div className="flex justify-end">
+        <Button autoFocus onClick={onContinue}>
+          {t('auth.reset.continue')}
+        </Button>
+      </div>
+    </div>
   );
 }

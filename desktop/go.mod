@@ -13,6 +13,7 @@ require (
 	github.com/coder/websocket v1.8.15
 	github.com/junkerderprovinz/knightloader v0.0.0
 	github.com/wailsapp/wails/v3 v3.0.0-beta.28
+	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/sys v0.49.0
 )
 
@@ -54,6 +55,7 @@ require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cloudflare/circl v1.6.3 // indirect
 	github.com/cyphar/filepath-securejoin v0.6.1 // indirect
+	github.com/danieljoos/wincred v1.2.3 // indirect
 	github.com/davecgh/go-spew v1.1.2-0.20180830191138-d8f796af33cc // indirect
 	github.com/dlclark/regexp2/v2 v2.8.1 // indirect
 	github.com/dop251/goja v0.0.0-20261009133625-a4bedf5f6000 // indirect

@@ -1,0 +1,1 @@
+Passwort-Reset über das Log, ein eigener Schlüssel für jedes Gerät und Freigabe für neue, ein App-Schlüssel für gespeicherte Geheimnisse, par2-Reparatur für Usenet und viele Sicherheitsverbesserungen. Nach dem Update koppelst du Handy und Browser neu.

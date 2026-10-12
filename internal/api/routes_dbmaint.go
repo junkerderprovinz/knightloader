@@ -12,7 +12,7 @@ package api
 // hands the work to app.StartMaintenance, answers 202 with the state as it
 // stands, and the page polls the GET while running is non-empty.
 //
-// On neither forwarding list (routes_relay.go): a peer able to POST here could
+// On neither forwarding list (group_routes.go): a peer able to POST here could
 // freeze every write on this box for ten minutes, and the GET carries this
 // machine's own data-directory paths, which drawn under a peer's list would
 // name the wrong machine's disk. Those paths stay out of the diagnostics

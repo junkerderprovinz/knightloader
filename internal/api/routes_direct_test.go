@@ -2,6 +2,7 @@ package api
 
 import (
 	"bytes"
+	"crypto/ed25519"
 	"encoding/json"
 	"io"
 	"net/http"
@@ -14,6 +15,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // fakeNetwork stands in for the multicast service: it hands out the announces
@@ -26,7 +28,7 @@ type fakeNetwork struct {
 	isMember func(discovery.Peer) bool
 }
 
-func (f *fakeNetwork) SetGroup(sign func(discovery.Peer) string, isMember func(discovery.Peer) bool) {
+func (f *fakeNetwork) SetGroup(_ string, sign func(discovery.Peer) string, isMember func(discovery.Peer) bool) {
 	f.mu.Lock()
 	f.sign, f.isMember = sign, isMember
 	f.mu.Unlock()
@@ -73,19 +75,41 @@ func TestMembersOnOneNetworkTalkWithoutARelay(t *testing.T) {
 
 	net := &fakeNetwork{}
 	firstApp.Federation.SetDiscovery(net)
-	secondID := secondApp.Settings.Get().InstanceID
+	secondID := groupID(secondApp)
 	// Both hold the same keys, so the second instance's announce is tagged
 	// with the tag the first one computes.
 	net.heard = []discovery.Peer{announce(t, second, net, secondID), {ID: "id-stranger", Name: "Stranger", URL: "http://192.168.1.99:8749", Sent: time.Now().Unix(), Tag: "forged"}}
+	// The second instance hears the first too, so its Pairing card names it.
+	seen := &fakeNetwork{}
+	secondApp.Federation.SetDiscovery(seen)
+	seen.heard = []discovery.Peer{announce(t, first, seen, groupID(firstApp))}
 
 	info := connectInfoOf(t, firstToken, first.URL)
 	if len(info.Members) != 1 || info.Members[0].ID != secondID || !info.Members[0].Direct {
 		t.Fatalf("members = %+v, want the second instance, reached directly", info.Members)
 	}
 
+	// The first instance's owner approves the second, and the second's owner
+	// approves the first, as every instance approves the others it meets in
+	// its group.
+	firstID := groupID(firstApp)
+	if _, _, err := firstApp.Federation.Approve(secondID, memberKey(secondApp).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	if code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil); code != http.StatusForbidden || refusalCode(body) != "memberPending" {
+		t.Fatalf("the second instance's downloads before it approved the first answered %d: %s, want 403 memberPending", code, body)
+	}
+	if code, body := call(t, secondToken, http.MethodPost, second.URL+"/api/connect/devices/"+firstID+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the first instance on the second = %d %s", code, body)
+	}
 	code, body := call(t, firstToken, http.MethodGet, first.URL+"/api/instances/"+secondID+"/tasks", nil)
 	if code != http.StatusOK || !strings.HasPrefix(strings.TrimSpace(string(body)), "[") {
 		t.Fatalf("the second instance's downloads answered %d: %s", code, body)
+	}
+	// The direct call was signed like one over the relay.
+	st, _ := secondApp.Federation.Group(false, time.Now())
+	if pin, ok := st.Keys[groupID(firstApp)]; !ok || pin.Kind != relay.KindInstance {
+		t.Fatalf("the second instance pinned %+v, want the first instance's key", st.Keys)
 	}
 }
 
@@ -96,9 +120,10 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	t.Parallel()
 	srv, a, token := pairingServer(t)
 	activate(t, token, srv.URL)
-	self := a.Settings.Get().InstanceID
+	self := groupID(a)
 
 	forged, _ := http.NewRequest(http.MethodPost, srv.URL+federation.DirectPath, strings.NewReader(`{"requestId":"r1","target":"`+self+`"}`))
+	forged.Header.Set("Content-Type", "application/json")
 	forged.Header.Set("X-Knightloader-Peer", "id-stranger")
 	forged.Header.Set("X-Knightloader-Target", self)
 	forged.Header.Set("X-Knightloader-Time", strconv.FormatInt(time.Now().Unix(), 10))
@@ -139,6 +164,18 @@ func TestADirectCallNeedsTheGroupsSignature(t *testing.T) {
 	net := &fakeNetwork{}
 	callerApp.Federation.SetDiscovery(net)
 	net.heard = []discovery.Peer{announce(t, tap, net, self)}
+	// The caller entered the words of a group that was there already, so it
+	// waits for approval here first. Its own owner approved this one.
+	if _, _, err := callerApp.Federation.Approve(self, memberKey(a).Public().(ed25519.PublicKey), relay.KindInstance); err != nil {
+		t.Fatal(err)
+	}
+	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusForbidden {
+		t.Fatalf("the new member's first direct call answered %d: %s, want 403 until it is approved", code, body)
+	}
+	if code, body := call(t, token, http.MethodPost, srv.URL+"/api/connect/devices/"+groupID(callerApp)+"/approve", nil); code != http.StatusNoContent {
+		t.Fatalf("approving the caller answered %d: %s", code, body)
+	}
+	captured = nil
 	if code, body := call(t, callerToken, http.MethodGet, caller.URL+"/api/instances/"+self+"/tasks", nil); code != http.StatusOK {
 		t.Fatalf("the member's direct call answered %d: %s", code, body)
 	}

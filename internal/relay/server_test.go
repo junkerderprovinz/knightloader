@@ -82,7 +82,9 @@ func announceOf(t *testing.T, env Envelope, msg string) Announce {
 func join(t *testing.T, s *Server, key, id string) *fakeConn {
 	t.Helper()
 	c := newFakeConn()
-	s.Join(key, c, Announce{InstanceID: id, Name: id, Deployment: "container"})
+	if err := s.Join(key, c, Announce{InstanceID: id, Name: id, Deployment: "container"}, true); err != nil {
+		t.Fatalf("join %s: %v", id, err)
+	}
 	t.Cleanup(func() { s.Leave(c) })
 	return c
 }
@@ -234,7 +236,7 @@ func TestFullQueueDropsOnlyThatConnection(t *testing.T) {
 	s := New()
 	stuck := newFakeConn()
 	stuck.block = make(chan struct{})
-	s.Join("key-1", stuck, Announce{InstanceID: "stuck"})
+	_ = s.Join("key-1", stuck, Announce{InstanceID: "stuck"}, false)
 	healthy := join(t, s, "key-1", "healthy")
 	next(t, healthy, "no sibling announce")
 
@@ -413,11 +415,11 @@ func TestTooManyInFlightRequestsAreRefused(t *testing.T) {
 func TestKeyGroupSizeIsCapped(t *testing.T) {
 	s := New()
 	for i := 0; i < maxClientsPerKey; i++ {
-		if !s.Join("key-1", newFakeConn(), Announce{InstanceID: fmt.Sprintf("i%d", i)}) {
+		if s.Join("key-1", newFakeConn(), Announce{InstanceID: fmt.Sprintf("i%d", i)}, false) != nil {
 			t.Fatalf("join %d was refused before the cap was reached", i)
 		}
 	}
-	if s.Join("key-1", newFakeConn(), Announce{InstanceID: "one-too-many"}) {
+	if s.Join("key-1", newFakeConn(), Announce{InstanceID: "one-too-many"}, false) == nil {
 		t.Error("a connection past maxClientsPerKey was admitted")
 	}
 	if s.Len() != maxClientsPerKey {
@@ -537,4 +539,105 @@ func TestEnvelopeShapeIsStable(t *testing.T) {
 			}
 		})
 	}
+}
+
+// TestAnIDIsTakenOverOnlyWithItsKey: somebody announcing an id that is already
+// connected would get its calls. Only a connection whose hello proved the key
+// behind the id takes its place.
+func TestAnIDIsTakenOverOnlyWithItsKey(t *testing.T) {
+	s := New()
+	sib := join(t, s, "key-1", "watcher")
+	first := join(t, s, "key-1", "alpha")
+	next(t, sib, "no arrival announce")
+	next(t, first, "no sibling announce")
+
+	if err := s.Join("key-1", newFakeConn(), Announce{InstanceID: "alpha"}, false); err == nil {
+		t.Fatal("a connection that proved nothing took alpha's place")
+	}
+	send(t, s, sib, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "alpha"})
+	if got := next(t, first, "the request did not reach alpha"); got.Type != TypeProxyRequest {
+		t.Fatalf("alpha got a %q frame, want the proxy-request", got.Type)
+	}
+}
+
+// TestAConfinedKeyReachesOnlyItsInstance: a key the relay admits for one
+// instance alone, such as the one of the group an instance left at a reset,
+// lets the devices that still hold it reach that instance, and neither see nor
+// call each other.
+func TestAConfinedKeyReachesOnlyItsInstance(t *testing.T) {
+	s := New()
+	s.Confine = func(key string) string {
+		if key == "old-key" {
+			return "retired"
+		}
+		return ""
+	}
+	retired := join(t, s, "old-key", "retired")
+	phone := join(t, s, "old-key", "phone")
+	if got := announceOf(t, next(t, phone, "the phone was not told about the instance"), "announce"); got.InstanceID != "retired" {
+		t.Fatalf("the phone was introduced to %q, want the retired instance", got.InstanceID)
+	}
+	next(t, retired, "the instance was not told about the phone")
+	other := join(t, s, "old-key", "other")
+	next(t, other, "the newcomer was not told about the instance")
+	next(t, retired, "the instance was not told about the newcomer")
+	nothing(t, other, "a device on the key learnt of another device")
+	nothing(t, phone, "a device on the key learnt of a newcomer")
+
+	send(t, s, other, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "phone"})
+	var resp ProxyResponse
+	if env := next(t, other, "the call to another device was not refused"); env.Type != TypeProxyResponse || env.Into(&resp) != nil || resp.Error == "" {
+		t.Fatalf("a device calling another got %+v, want the relay's refusal", resp)
+	}
+	nothing(t, phone, "a device was reached through a confined key")
+	send(t, s, other, TypeProxyRequest, ProxyRequest{RequestID: "r2", Target: "retired"})
+	if got := next(t, retired, "the call to the instance did not arrive"); got.Type != TypeProxyRequest {
+		t.Fatalf("the instance got a %q frame, want the call", got.Type)
+	}
+
+	s.Leave(phone)
+	next(t, retired, "the instance was not told the phone left")
+	nothing(t, other, "a device heard of another device leaving")
+}
+
+// TestAConnectionFromBeforeTheResetCannotReachALaterDevice: a device that was
+// on a group's key before a reset kept the key to one instance joined while
+// it was open. It must not reach a phone that joins the confined key
+// afterwards, and it is closed so it comes back confined.
+func TestAConnectionFromBeforeTheResetCannotReachALaterDevice(t *testing.T) {
+	s := New()
+	var kept atomic.Value
+	kept.Store("")
+	s.Confine = func(string) string { return kept.Load().(string) }
+	old := join(t, s, "old-key", "old")
+
+	// The instance stays on the key it left at the reset, which keeps the key
+	// to it from then on.
+	kept.Store("retired")
+	join(t, s, "old-key", "retired")
+	phone := join(t, s, "old-key", "phone")
+	if got := announceOf(t, next(t, phone, "the phone was not told about the instance"), "announce"); got.InstanceID != "retired" {
+		t.Fatalf("the phone was introduced to %q, want the retired instance", got.InstanceID)
+	}
+	send(t, s, old, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "phone"})
+	nothing(t, phone, "a connection from before the reset reached a phone that joined after it")
+	waitFor(t, "the connection from before the reset to be closed", old.closed.Load)
+}
+
+// TestNobodyAnnouncesAConfinedInstanceUnproven: while the instance a key is
+// kept to is away, whoever holds the key announces its id to see and reach
+// everybody else on it. Without the instance's proof that is refused, and the
+// instance itself still gets in.
+func TestNobodyAnnouncesAConfinedInstanceUnproven(t *testing.T) {
+	s := New()
+	s.Confine = func(string) string { return "retired" }
+	phone := join(t, s, "old-key", "phone")
+	if err := s.Join("old-key", newFakeConn(), Announce{InstanceID: "retired"}, false); err == nil {
+		t.Fatal("an unproven announce of the instance the key is kept to was let in")
+	}
+	nothing(t, phone, "a device heard of a connection that was turned away")
+	if err := s.Join("old-key", newFakeConn(), Announce{InstanceID: "retired"}, true); err != nil {
+		t.Fatalf("the instance itself was turned away: %v", err)
+	}
+	next(t, phone, "the device was not told about the instance")
 }

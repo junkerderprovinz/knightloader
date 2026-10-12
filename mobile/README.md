@@ -48,7 +48,7 @@ is `https://`, but the app no longer makes one. One saved with an `http://`
 address cannot work, because the app permits no cleartext traffic; its card
 says it has to be added again with the twelve words. Those builds took the
 server's address and an API token
-from the web UI's Access tab (`POST /api/tokens`, see
+from the web UI's Security page (`POST /api/tokens`, see
 `internal/api/routes_tokens.go`). The app only uses Read, Add and Control, so a
 Custom token with those three was enough. Such a connection sends its token as
 `Authorization: Bearer <token>` on every request, the same header a script
@@ -86,11 +86,13 @@ than choices:
   the group key is the credential: a request arriving that way came off a
   socket the relay only joins to connections presenting the same key, so the
   instance accepts it. This is what the phrase bought. What it admits is an
-  allowlist, not the whole API (`relayForwardable` in
-  `internal/api/routes_relay.go`): tasks, links, the queue and the captchas
+  allowlist, not the whole API (`groupRoutes` in
+  `internal/api/group_routes.go`): tasks, links, the queue and the captchas
   holding it up, the instance's look to read and to set, plus reading the auth
   state, the peer list and the addresses the instance answers on. Not the
-  settings, not the accounts, not the phrase itself.
+  settings, not the accounts, not the phrase itself, and no archive or
+  download password in the task list. A refusal carries the code
+  `ownLoginNeeded`, which the app words as "sign in on its own web interface".
 - **The phrase is the whole federation's admission ticket.** Every instance in
   the group is reachable by anything holding it, which is worth knowing before
   putting one on a device that gets lost. Leaving the group on that phone does
@@ -213,7 +215,7 @@ names only the widget kind cannot. With "Only when nobody is watching" on, the
 instance holds the captcha accounts back for those alone. A card
 shows what the captcha accounts are doing (`solverStatus`), and leaves out the
 explanation that assumes you can answer when the phone cannot. An instance forwards these
-routes over the relay (`relayCaptchaRoute` in `internal/api/routes_relay.go`);
+routes over the relay (`groupRoutes` in `internal/api/group_routes.go`);
 an older one refuses them with a 403, which the screen words as "update
 KnightLoader there". The overview counts the captchas on every saved instance
 from the `captchas` field of `/api/queue/counters`, which it reads anyway, so

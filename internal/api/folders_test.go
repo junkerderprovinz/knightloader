@@ -638,7 +638,7 @@ func TestCreatingAFolderNeedsASessionAndStaysOnThisMachine(t *testing.T) {
 	if reg.open("/api/folders") {
 		t.Error("the folder routes answer without a session")
 	}
-	if relayForwardable(http.MethodPost, "/api/folders") {
+	if groupReaches(t, http.MethodPost, "/api/folders") {
 		t.Error("POST /api/folders is forwardable to a peer, where it would create folders on the peer's disk")
 	}
 }

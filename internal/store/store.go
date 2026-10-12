@@ -5,11 +5,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strings"
 	"sync/atomic"
 	"time"
 
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	_ "modernc.org/sqlite"
 )
@@ -22,6 +24,9 @@ type Store struct {
 	path string
 	// historyRev counts the writes to the history (see HistoryRevision).
 	historyRev atomic.Uint64
+	// appKey seals the task passwords at rest (see sealed.go); nil stores
+	// them as they are.
+	appKey *appkey.Key
 }
 
 // migrations run in order, exactly once each. The database records how far it
@@ -241,6 +246,12 @@ var migrations = []string{
 	`ALTER TABLE tasks ADD COLUMN browser_file INTEGER NOT NULL DEFAULT 0`,
 }
 
+// ErrNewerSchema is the refusal to open a database a newer build has written.
+var ErrNewerSchema = errors.New("store: this database was written by a newer KnightLoader")
+
+// SchemaVersion is the schema version this build brings a database to.
+func SchemaVersion() int { return len(migrations) }
+
 func Open(path string) (*Store, error) {
 	db, err := sql.Open("sqlite", path)
 	if err != nil {
@@ -284,10 +295,19 @@ func (s *Store) Ping(ctx context.Context) error {
 // existing one takes each pending step together with its version stamp, so a
 // step that ran is never run again: a second ALTER TABLE ADD COLUMN fails and
 // would keep the store from opening.
+//
+// A database a newer build has migrated further is refused. This build would
+// read and write it without the columns it does not know, and the newer build
+// would then find rows it never wrote.
 func migrate(db *sql.DB, steps []string) error {
 	var version int
 	if err := db.QueryRow(`PRAGMA user_version`).Scan(&version); err != nil {
 		return fmt.Errorf("store: read schema version: %w", err)
+	}
+	if version > len(steps) {
+		return fmt.Errorf("%w: it is at schema version %d and this build knows %d; "+
+			"start the newer KnightLoader again, or restore a backup made by this version",
+			ErrNewerSchema, version, len(steps))
 	}
 	if version == 0 {
 		return applySteps(db, steps, 0, len(steps))
@@ -431,15 +451,23 @@ func (s *Store) Save(t *core.Task) error {
 		}
 		serviceJob = string(b)
 	}
-	_, err := s.db.Exec(
+	password, err := s.sealPassword(t.Password)
+	if err != nil {
+		return err
+	}
+	downloadPassword, err := s.sealPassword(t.DownloadPassword)
+	if err != nil {
+		return err
+	}
+	_, err = s.db.Exec(
 		`INSERT OR REPLACE INTO tasks (`+columns+`)
 		 VALUES (`+placeholders+`)`,
 		t.ID, t.URL, t.Name, t.Package, t.Resolver, t.Size, t.Loaded, t.Speed,
 		string(t.Status), t.Error, t.CreatedAt.UnixMilli(),
-		t.Dir, t.Password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
+		t.Dir, password, string(t.Online), t.Retries, nextTry, t.Priority, t.Position,
 		t.Checksum, t.Comment, t.Chunks, autoExtract, matched,
 		finishedAt, t.Enabled, t.Skipped, t.SkipReason, t.Forced,
-		t.DownloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
+		downloadPassword, t.ExpectedHash, t.Connection, t.Host, t.Source, t.MirrorOf,
 		resumable, t.Filename, t.Variant, t.ManualPackage,
 		string(t.Reason), string(t.Origin), changedAt, t.ArchivePart, torrentFiles,
 		t.InfoHash, trackers, string(t.Mode),
@@ -502,6 +530,7 @@ func (s *Store) All() ([]*core.Task, error) {
 			&t.Uploaded, &t.Ratio, &t.SeedSeconds, &t.SeedingOver, &t.SeedMark.Ratio, &t.SeedMark.SeedSeconds, &workFiles, &t.BrowserFile); err != nil {
 			return nil, err
 		}
+		s.openPasswords(t)
 		t.Status = core.Status(status)
 		t.ErrorCode = core.ErrorCode(errorCode)
 		t.Unpack = core.UnpackResult(unpack)

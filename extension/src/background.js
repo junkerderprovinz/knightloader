@@ -224,7 +224,7 @@ async function deliver(target, payload) {
     if (res.status >= 200 && res.status < 300) {
       flashBadge('✓', '#24a148', 'send.delivered');
     } else {
-      notifyCnl('send.refused');
+      notifyCnl(refusalKey(res));
     }
   } catch {
     notifyCnl('send.relayFailed');
@@ -523,7 +523,7 @@ async function deliverClip(links) {
     });
     if (!res) notifyCnl('send.noneOnline');
     else if (res.status >= 200 && res.status < 300) flashBadge('✓', '#24a148', 'send.delivered');
-    else notifyCnl('send.refused');
+    else notifyCnl(refusalKey(res));
   } catch {
     notifyCnl('send.relayFailed');
   }

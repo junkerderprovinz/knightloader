@@ -21,6 +21,7 @@ const REFUSALS: Partial<Record<string, TranslationKey>> = {
   exists: 'rename.exists',
   busy: 'rename.busy',
   folderExists: 'rename.folderExists',
+  dataFolder: 'rename.dataFolder',
   notMoved: 'rename.notMoved',
 };
 

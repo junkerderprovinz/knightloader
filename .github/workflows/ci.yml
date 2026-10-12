@@ -72,19 +72,27 @@ jobs:
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
             # The crypto window's list and the clipboard link rule are held to
-            # the web UI's.
+            # the web UI's, the signed call to internal/relay's vector and the
+            # refusals to the server's codes.
             extension:
               - 'extension/**'
+              - 'internal/relay/member_test.go'
+              - 'internal/relay/member.go'
+              - 'internal/federation/members.go'
               - 'web/src/lib/donate.ts'
               - 'web/src/lib/clipboardWatch.ts'
               - '.github/workflows/ci.yml'
-            # check-relay-url.mjs and check-pairing-code.mjs read their cases
-            # from internal/relay's tests, and check-failures.mjs the failure
-            # codes.
+            # check-relay-url.mjs, check-pairing-code.mjs and
+            # check-member-key.mjs read their cases from internal/relay's
+            # tests, check-failures.mjs the failure codes and
+            # check-member-refusals.mjs the refusals.
             mobile:
               - 'mobile/**'
               - 'web/src/lib/donate.ts'
               - 'internal/relay/client_test.go'
+              - 'internal/relay/member_test.go'
+              - 'internal/relay/member.go'
+              - 'internal/federation/members.go'
               - 'internal/relay/key_test.go'
               - 'internal/core/errorcode.go'
               - '.github/workflows/ci.yml'
@@ -389,6 +397,9 @@ jobs:
       - name: Relay frame parity
         run: node extension/check-relay-seal.mjs
 
+      - name: Member refusals
+        run: node extension/check-member-refusals.mjs
+
       - name: Refusals
         run: node extension/check-refusals.mjs
 
@@ -518,6 +529,15 @@ jobs:
 
       - name: Relay addresses
         run: node check-relay-url.mjs
+
+      - name: Member key
+        run: node check-member-key.mjs
+
+      - name: Member refusals
+        run: node check-member-refusals.mjs
+
+      - name: Refused calls
+        run: node check-refusals.mjs
 
       - name: Pairing codes
         run: node check-pairing-code.mjs

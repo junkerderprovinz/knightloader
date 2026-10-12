@@ -20,6 +20,7 @@ import (
 
 	"github.com/junkerderprovinz/knightloader/internal/api"
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/auth"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/bridge"
@@ -74,8 +75,15 @@ func main() {
 
 	dataDir := env("KL_DATA", defaultDataDir())
 
+	// A key that does not parse stops the start rather than running without
+	// one, which would refuse every file it sealed.
+	key, err := appkey.FromEnv()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if *resetTwoFactor {
-		runResetTwoFactor(dataDir)
+		runResetTwoFactor(dataDir, key)
 		return
 	}
 
@@ -130,9 +138,12 @@ func main() {
 		cancel()
 	}
 
-	a, err := app.New(dataDir)
+	a, err := app.NewWithKey(dataDir, key)
 	if err != nil {
 		log.Fatalf("start: %v", err)
+	}
+	if key == nil {
+		log.Printf("no %s is set, so the passwords and keys in %s are not sealed; the Security page in Settings says how to add one", appkey.EnvVar, dataDir)
 	}
 	defer a.Close()
 	// app.New armed the optional log file. Records are written unbuffered, so
@@ -264,8 +275,8 @@ func newServer(h http.Handler) *http.Server {
 // session key. It grants nothing new: whoever can run this binary against the
 // data directory can already delete that file. It opens nothing else, and since
 // a running server also holds auth.json it asks for a restart.
-func runResetTwoFactor(dataDir string) {
-	g, err := auth.Open(dataDir)
+func runResetTwoFactor(dataDir string, key *appkey.Key) {
+	g, err := auth.OpenWithKey(dataDir, key)
 	if err != nil {
 		log.Fatalf("reset-2fa: %v", err)
 	}

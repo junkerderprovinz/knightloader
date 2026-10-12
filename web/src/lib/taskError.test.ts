@@ -106,3 +106,21 @@ it('has words for every code the server sends', () => {
     expect(explainFailure(t, { error: 'x', errorCode: code })?.line, code).not.toBe(en['failure.unknown.line']);
   }
 });
+
+// A download, an unpacking or a rename the data folder guard refused reaches
+// the row in the reader's language with the folder it names, not as the
+// server's English sentence.
+it('words a data folder refusal in the reader\'s language', async () => {
+  const { de } = await import('./locales/de');
+  const refusal = {
+    error: 'not downloaded: /data/tools is inside KnightLoader\'s data folder; choose a folder outside it',
+    errorCode: 'dataFolder',
+    errorParams: { path: '/data/tools' },
+  };
+  const english = explainFailure(t, refusal);
+  expect(english?.line).toBe("/data/tools is in KnightLoader's data folder, and downloads may not go there.");
+  expect(english?.next).toBe(en['failure.dataFolder.next']);
+  const tDe = (key: TranslationKey, vars: Record<string, string | number> = {}): string =>
+    Object.entries(vars).reduce<string>((s, [k, v]) => s.replaceAll(`{${k}}`, String(v)), de[key]);
+  expect(explainFailure(tDe, refusal)?.line).toBe('/data/tools liegt im Datenordner von KnightLoader, und dort dürfen keine Downloads hin.');
+});

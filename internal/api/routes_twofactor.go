@@ -36,25 +36,25 @@ import (
 // sharing this one would let an attack on the password take the owner's
 // working passkey away with it.
 const (
-	// loginFailBurst is how many failures are free. Enough that somebody
-	// mistyping a code twice and then reaching for the recovery sheet never
-	// meets this; few enough that the guessing rate below is what it is.
-	loginFailBurst = 8
-	// loginCoolOff is how long the door stays shut once the burst is used up.
-	// Eight tries per half-minute is under a thousand an hour against a
-	// million codes, which is decades, while a locked-out owner waits half a
+	// loginFailLimit failures within loginFailWindow are allowed per client.
+	// Five a minute is 7200 a day against a million codes, so a code guessed
+	// in time takes months, while somebody who mistypes waits at most a
 	// minute. A hard lock would hand an attacker a way to keep the operator
 	// out, which on this app is the same damage as getting in.
-	loginCoolOff = 30 * time.Second
+	loginFailLimit  = 5
+	loginFailWindow = time.Minute
+	// loginNetworkLimit failures within loginFailWindow are allowed per IPv6
+	// /48 as a whole. Its /64s count one by one as well, and whoever holds a
+	// /48 holds 65536 of them, each with a fresh allowance otherwise.
+	loginNetworkLimit = 4 * loginFailLimit
 	// loginGateMax bounds the map. This route answers without a session, so the
 	// number of keys is chosen by whoever calls it.
 	loginGateMax = 512
 )
 
 type loginFails struct {
-	count int
-	until time.Time
-	seen  time.Time
+	// at holds the times of the failures within the window, oldest first.
+	at []time.Time
 }
 
 type loginGate struct {
@@ -62,10 +62,11 @@ type loginGate struct {
 	fails map[string]*loginFails
 	// trusted lists the proxies whose X-Forwarded-For counts; nil trusts none.
 	trusted func() []netip.Prefix
+	now     func() time.Time
 }
 
 func newLoginGate(trusted func() []netip.Prefix) *loginGate {
-	return &loginGate{fails: map[string]*loginFails{}, trusted: trusted}
+	return &loginGate{fails: map[string]*loginFails{}, trusted: trusted, now: time.Now}
 }
 
 // trustedProxies is the setting of that name, read on every request so a
@@ -83,7 +84,7 @@ func (g *loginGate) key(r *http.Request) string {
 	return loginClientKey(r, trusted)
 }
 
-// loginClientKey is the caller's address without its port.
+// loginClientKey is the caller's bucket (see bucketOf).
 //
 // Behind a reverse proxy every caller arrives as the proxy, so the whole
 // instance shares one bucket unless the proxy is in trusted. Then the caller
@@ -98,8 +99,11 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 		host = r.RemoteAddr
 	}
 	peer, err := netip.ParseAddr(host)
-	if err != nil || !inPrefixes(trusted, peer) {
+	if err != nil {
 		return host
+	}
+	if !inPrefixes(trusted, peer) {
+		return bucketOf(peer)
 	}
 	var hops []string
 	for _, v := range r.Header.Values("X-Forwarded-For") {
@@ -118,7 +122,7 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 			addr = ap.Addr()
 		}
 		if !inPrefixes(trusted, addr) {
-			return addr.Unmap().String()
+			return bucketOf(addr)
 		}
 	}
 	// Proxies of ours all the way: the left-most is as far as the trail goes.
@@ -126,6 +130,18 @@ func loginClientKey(r *http.Request, trusted []netip.Prefix) string {
 		return strings.TrimSpace(hops[0])
 	}
 	return host
+}
+
+// bucketOf is the key for a caller at a: the address itself for IPv4, and its
+// /64 for IPv6, the least a single connection is given, so that one guesser
+// cannot take a fresh bucket from every address of their own network.
+func bucketOf(a netip.Addr) string {
+	a = a.Unmap()
+	if a.Is4() {
+		return a.String()
+	}
+	p, _ := a.WithZone("").Prefix(64)
+	return p.String()
 }
 
 func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
@@ -138,35 +154,60 @@ func inPrefixes(prefixes []netip.Prefix, a netip.Addr) bool {
 	return false
 }
 
-// try takes one attempt from the caller's allowance and reports whether there
-// was one left. The attempt counts as a failure from the start and pass wipes
+// networkOf is the key the IPv6 /48 around bucket key counts under, and ""
+// for an IPv4 caller.
+func networkOf(key string) string {
+	p, err := netip.ParsePrefix(key)
+	if err != nil || !p.Addr().Is6() {
+		return ""
+	}
+	wide, _ := p.Addr().Prefix(48)
+	return "net " + wide.String()
+}
+
+// try takes one attempt from the caller's allowance, and from its network's,
+// and reports whether there was one left in both. The attempt counts as a failure from the start and pass wipes
 // it on success: deciding and counting in one step under the lock is what
 // stops a burst of parallel requests from all passing the check before the
 // first of them has been counted.
 //
-// A caller inside a cool-off is refused even with the right answer; letting
-// one through would tell an attacker when a guess was right.
+// A caller who has used up the window is refused even with the right answer;
+// letting one through would tell an attacker when a guess was right.
 func (g *loginGate) try(r *http.Request) bool {
 	key := g.key(r)
-	now := time.Now()
+	now := g.now()
 	g.mu.Lock()
 	defer g.mu.Unlock()
 	g.sweep(now)
-	f := g.fails[key]
-	if f == nil {
-		f = &loginFails{}
-		g.fails[key] = f
+	limits := map[string]int{key: loginFailLimit}
+	if network := networkOf(key); network != "" {
+		limits[network] = loginNetworkLimit
 	}
-	if now.Before(f.until) {
-		return false
+	for k, most := range limits {
+		if f := g.fails[k]; f != nil {
+			if f.forget(now); len(f.at) >= most {
+				return false
+			}
+		}
 	}
-	f.seen = now
-	f.count++
-	if f.count >= loginFailBurst {
-		f.until = now.Add(loginCoolOff)
-		f.count = loginFailBurst
+	for k := range limits {
+		f := g.fails[k]
+		if f == nil {
+			f = &loginFails{}
+			g.fails[k] = f
+		}
+		f.at = append(f.at, now)
 	}
 	return true
+}
+
+// forget drops the failures that have left the window.
+func (f *loginFails) forget(now time.Time) {
+	keep := 0
+	for keep < len(f.at) && now.Sub(f.at[keep]) >= loginFailWindow {
+		keep++
+	}
+	f.at = f.at[keep:]
 }
 
 // release gives back an attempt try took for a request that turned out not to
@@ -176,13 +217,10 @@ func (g *loginGate) release(r *http.Request) {
 	key := g.key(r)
 	g.mu.Lock()
 	defer g.mu.Unlock()
-	f := g.fails[key]
-	if f == nil || f.count == 0 {
-		return
-	}
-	f.count--
-	if f.count < loginFailBurst {
-		f.until = time.Time{}
+	for _, k := range []string{key, networkOf(key)} {
+		if f := g.fails[k]; f != nil && len(f.at) > 0 {
+			f.at = f.at[:len(f.at)-1]
+		}
 	}
 }
 
@@ -195,19 +233,20 @@ func (g *loginGate) pass(r *http.Request) {
 	delete(g.fails, key)
 }
 
-// sweep drops records nothing has touched for a while, and the oldest one if
-// the map is still full after that. Called with the lock held.
+// sweep drops records with no failure left in the window, and the one with
+// the oldest last failure if the map is still full after that. Called with
+// the lock held.
 func (g *loginGate) sweep(now time.Time) {
 	for k, f := range g.fails {
-		if now.Sub(f.seen) > 10*time.Minute && now.After(f.until) {
+		if f.forget(now); len(f.at) == 0 {
 			delete(g.fails, k)
 		}
 	}
 	for len(g.fails) >= loginGateMax {
 		oldestKey, oldest := "", time.Time{}
 		for k, f := range g.fails {
-			if oldest.IsZero() || f.seen.Before(oldest) {
-				oldestKey, oldest = k, f.seen
+			if last := f.at[len(f.at)-1]; oldest.IsZero() || last.Before(oldest) {
+				oldestKey, oldest = k, last
 			}
 		}
 		delete(g.fails, oldestKey)

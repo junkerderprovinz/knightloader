@@ -602,7 +602,6 @@ func registerPasskeys(reg *Registry, a *app.App) {
 			}
 			gate.pass(r)
 			setSession(w, r, tok)
-			learnDomain(a, reg, r)
 			writeJSON(w, map[string]any{"enabled": true, "authenticated": true})
 		})
 

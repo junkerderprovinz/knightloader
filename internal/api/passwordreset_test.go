@@ -349,11 +349,11 @@ func TestWrongResetCodesMeetAThrottleOfTheirOwn(t *testing.T) {
 	srv, _, _ := resetServer(t)
 
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailLimit+1, last)
 	}
 	if status := login(t, &http.Client{Jar: newJar(t)}, srv.URL, resetOldPassword); status != http.StatusOK {
 		t.Errorf("the password answered %d after the reset ran out of attempts, want 200", status)
@@ -368,15 +368,29 @@ func TestTheRightCodeGetsPastAClosedGate(t *testing.T) {
 	srv, _, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last, _ = finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong codes the route answered %d, want 429", loginFailLimit+1, last)
 	}
 
 	if status, body := finishReset(t, http.DefaultClient, srv.URL, code, resetNewPassword); status != http.StatusOK {
 		t.Errorf("the right code answered %d behind a closed gate: %s", status, body)
+	}
+}
+
+// TestAClosedGateLooksAtNothingButTheRightCode: past the limit a wrong code
+// is answered by the gate alone, whatever else the request holds.
+func TestAClosedGateLooksAtNothingButTheRightCode(t *testing.T) {
+	srv, _, out := resetServer(t)
+	askForCode(t, srv.URL, out)
+	for range loginFailLimit {
+		finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", resetNewPassword)
+	}
+
+	if status, body := finishReset(t, http.DefaultClient, srv.URL, "2222-2222-2222", "short"); status != http.StatusTooManyRequests {
+		t.Errorf("a wrong code behind a closed gate answered %d: %s, want 429 before the password is looked at", status, body)
 	}
 }
 
@@ -613,11 +627,11 @@ func TestNoStreamOpenedDuringAResetSurvivesIt(t *testing.T) {
 func TestAThrottledPasswordLeavesTheResetOpen(t *testing.T) {
 	srv, _, out := resetServer(t)
 	var last int
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		last = login(t, http.DefaultClient, srv.URL, "not-the-password")
 	}
 	if last != http.StatusTooManyRequests {
-		t.Fatalf("after %d wrong passwords the login answered %d, want 429", loginFailBurst+1, last)
+		t.Fatalf("after %d wrong passwords the login answered %d, want 429", loginFailLimit+1, last)
 	}
 
 	code := askForCode(t, srv.URL, out)
@@ -630,7 +644,7 @@ func TestAPasswordThatIsTooShortCostsNeitherTheCodeNorAnAttempt(t *testing.T) {
 	srv, _, out := resetServer(t)
 	code := askForCode(t, srv.URL, out)
 
-	for range loginFailBurst + 1 {
+	for range loginFailLimit + 1 {
 		if status, body := finishReset(t, http.DefaultClient, srv.URL, code, "short"); status != http.StatusBadRequest {
 			t.Fatalf("a short password answered %d: %s", status, body)
 		}
@@ -896,7 +910,7 @@ func TestTheCodeFileIsWrittenAnewAndRemovedOnceUsed(t *testing.T) {
 // this machine.
 func TestTheResetIsNotReachableOverTheRelay(t *testing.T) {
 	for _, path := range []string{"/api/auth/reset", "/api/auth/reset/finish"} {
-		if relayForwardable(http.MethodPost, path) {
+		if groupReaches(t, http.MethodPost, path) {
 			t.Errorf("POST %s is forwarded to a group sibling", path)
 		}
 	}

@@ -1,1 +1,0 @@
-Usenet downloads from your own servers are checked and repaired with par2, and the app shows Verifying and Repairing while that runs.

@@ -169,10 +169,9 @@ export interface DirectConnection {
  * Reached through a relay both ends dial out to, for the case where nothing on
  * this phone's network can open a connection to the instance.
  *
- * It carries a token too, and sends it along, but the instance does not read
- * it on a relay call: a frame sealed under the group's key is let in on that
- * alone (caller in internal/api/api.go), and relayForwardable limits what it
- * can reach.
+ * It carries no token: the phone's member key signs every call, and the
+ * instance takes it as a member's, held to the routes a member may reach
+ * (groupRoutes in internal/api/group_routes.go).
  */
 export interface RelayConnection {
   kind: 'relay';
@@ -195,7 +194,6 @@ export interface RelayConnection {
    */
   relayFrameKey?: string;
   instanceId: string; // which sibling on that key this connection is for
-  token: string; // API token for that instance; '' when it has no password
 }
 
 export type ServerConnection = DirectConnection | RelayConnection;

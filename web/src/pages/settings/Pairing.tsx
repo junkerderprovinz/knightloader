@@ -13,9 +13,9 @@ export function Pairing() {
 
 // IdentityCard holds an optional name and the addresses this instance is known
 // by. Its address on the network it finds itself, and that one is only shown.
-// A domain is recorded when somebody signs in through it (routes_remote.go's
-// learnDomain); the box covers a domain nobody has signed in through yet, which
-// an instance without a password needs before it answers on that name at all.
+// The domains are only what the owner typed: the first one is the address the
+// group is told, and a name taken from a request's Host header could be
+// anybody's.
 export function IdentityCard({ found }: { found: string }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();

@@ -366,6 +366,10 @@ func TestImportRefusesADocumentFromANewerBuild(t *testing.T) {
 func TestExportOmitsSecretsUnlessAskedFor(t *testing.T) {
 	t.Parallel()
 	a, srv := transferServer(t)
+	// Passwords leave only once one is set; the bare mux asks for no sign-in.
+	if err := a.Auth.SetPassword("", "a-good-password"); err != nil {
+		t.Fatal(err)
+	}
 	s := a.Settings.Get()
 	s.ArchivePasswords = []string{"hunter2"}
 	s.Reconnect = reconnect.Config{

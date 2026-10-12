@@ -17,7 +17,7 @@ import (
 func registerTasks(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/tasks", "every task, oldest first",
 		func(w http.ResponseWriter, r *http.Request) {
-			writeJSON(w, a.Tasks())
+			writeJSON(w, shownTasks(r, a.Tasks()))
 		})
 	reg.Add(http.MethodGet, "/api/tasks/watch", "what a background watch compares between two looks: each task's state without its progress, or only the tag when ?tag= names the list as it still is",
 		serveTaskWatch(a.Tasks))
@@ -220,9 +220,13 @@ func registerTasks(reg *Registry, a *app.App) {
 		})
 	reg.Add(http.MethodDelete, "/api/tasks/{id}", "remove one task; ?files=1 also deletes what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
+			files := r.URL.Query().Get("files") == "1"
+			if files && !passwordFirst(a, w, "deleting downloaded files") {
+				return
+			}
 			// Through the bulk path, which takes along the set-aside rows of a
 			// yt-dlp link whose last shown row this was.
-			a.RemoveTasks([]string{r.PathValue("id")}, r.URL.Query().Get("files") == "1")
+			a.RemoveTasks([]string{r.PathValue("id")}, files)
 			w.WriteHeader(http.StatusNoContent)
 		})
 }

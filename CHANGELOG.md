@@ -214,42 +214,54 @@ release's tag.
   the tracker it has left,** where the tracker went on counting KnightLoader
   as a peer of it.
 
-## [1.8.5] - 2026-10-11
+## [1.9.0] - 2026-10-12
 
 ### Added
 
+- **Every device shows its own key.** The Pairing card shows this instance's
+  key, the Android app shows the phone's under Settings, This device, and the
+  extension shows the browser's on its options page, in the same four groups
+  the Pairing card lists a waiting device with. A device names itself, so
+  compare the keys before you approve one.
+- **An instance says it waits for approval as soon as the other one answers,**
+  not only after you approved the other instance in turn.
+- **Devices learn when an instance was reset.** For 30 days after a password
+  reset, the phone and the extension say that the instance was reset and that
+  they need its new twelve words, instead of losing it without a word. Only
+  the instance itself can send that notice, and on a relay it serves, the old
+  words reach that instance and nobody else.
+- **Forgot password? on the sign-in page.** KnightLoader writes a code where
+  only somebody with access to the machine can read it: the container log (on
+  Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started
+  from a terminal or as a service, or the file `password-reset-code.txt` in the
+  data folder for the desktop app. That code and a new password sign you in. A
+  code is valid for 10 minutes. The reset switches two-factor authentication
+  off, removes every passkey and API token, signs out every other browser and
+  replaces the key sessions are signed with. Event programs and scripts stay
+  as they are. Anybody who can read the container log can do this, and the
+  manual says who that includes.
+- **A reset takes the instance out of its pairing group.** It gets twelve new
+  words that nobody else holds, a relay key entered by hand is removed, and
+  every phone, browser extension and other instance pairs again with the new
+  words. The page after the reset lists what was removed.
+- **Trusted proxies under Settings, Security.** Behind a reverse proxy, the
+  sign-in limit counts every visitor by the address the proxy reports, so one
+  person guessing at the password no longer makes everybody wait. The relay
+  an instance serves reads the same list. It is empty by default, and the
+  manual says when to fill it in. A range has to cover your proxies and none
+  of your visitors, so one wider than a /28 (IPv4) or a /124 (IPv6) is
+  refused. The standalone relay takes the list from
+  `KL_RELAY_TRUSTED_PROXIES`.
+- **The sign-in limit counts an IPv6 visitor by its /64,** the block one
+  connection usually gets, so moving to another address of the same network
+  does not start a fresh count.
 - **The extension is on Firefox Add-ons.** The Firefox button in the README and
   on Settings > Apps opens the listing, with the steps to add and pin it, and
   the manual names it beside the Chrome and Edge stores.
-
-### Fixed
-
-- **A Usenet release whose files finished very quickly could stay in
-  Verifying for good,** and one already known to be lost could fetch its
-  remaining parts anyway. The files of a release start only after the queue
-  has recorded which files belong to it.
-
-## [1.8.4] - 2026-10-08
-
-### Fixed
-
-- **The container image opens `.dlc` files itself.** The 1.8.3 image was built
-  with a key it could not use and handed every DLC to the JDownloader backend.
-  The desktop apps were not affected.
-
-## [1.8.3] - 2026-10-08
-
-### Added
-
 - **KnightLoader opens `.dlc` files itself.** A DLC you upload, drop into a
   watched folder or get from a site's Click'n'Load button is read on the spot,
   and its links are staged the way those of an RSDF or CCF are. One that does
   not open is handed on as before, and the log says why.
-
-## [1.8.2] - 2026-10-06
-
-### Added
-
 - **Usenet downloads from your own servers are checked and repaired with par2.**
   Once every file of a release is here, KnightLoader checks it against its par2
   files and rebuilds the blocks of missing articles, so a release with gaps no
@@ -262,46 +274,78 @@ release's tag.
   recovery files can rebuild goes to your next account or fails as soon as
   that is certain, before the rest of it is downloaded.
 
-## [1.8.1] - 2026-10-06
+### Changed
+
+- **The motion setting is called Animation** in the web interface and the
+  Android app, in every language.
+- **Five failed sign-ins a minute.** After five wrong passwords or codes from
+  one address within a minute, KnightLoader makes that address wait until the
+  first of them is a minute old. It allowed eight and then half a minute.
+- **Removing the password deletes every passkey,** as it already switched
+  two-factor authentication off, so no old passkey opens the instance again
+  once a new password is set. The hint under New password says so.
+- **A browser whose session has ended returns to the sign-in page,** after a
+  reset, a changed password or a sign-out everywhere, instead of showing load
+  errors.
+- **The two-factor info says that a password reset from the log switches
+  two-factor authentication off.**
 
 ### Fixed
 
+- **The extension says "1 file", not "1 files".** The status line on an
+  instance card used the plural for every count, and in languages with more
+  plural forms, such as Russian, Polish or Arabic, the same form stood after 2
+  and after 5. It uses the form each language's plural rules ask for.
+- **A damaged group file no longer opens an empty group.** It is written so a
+  crash leaves the old or the new one, and an instance that finds it cut off
+  stops with a message instead of forgetting every approval and removal.
+- **Unpacking a large archive is quick again,** and a download folder on a
+  network share that hangs no longer stalls the whole instance.
+- **Android: a connection by address whose token was revoked** says that the
+  instance's password was changed or reset and that the connection has to be
+  made again with the twelve words, where it showed "unauthorized".
+- **The sign-in page says to wait after too many attempts,** where it said
+  "Wrong password." even when the password was right. A refused passkey
+  sign-in says the same.
+- **"At least 12 characters" counts characters, not bytes,** so a password in
+  another alphabet is held to the same length as one in English. A password
+  over 72 bytes, the most the hash takes, gets its own message on the
+  settings card and the reset form instead of an English error.
+- **A backup from a newer KnightLoader is refused when you upload it,** with a
+  message that says to update first. It was accepted and then kept the
+  instance from starting.
+- **A Usenet release whose files finished very quickly could stay in
+  Verifying for good,** and one already known to be lost could fetch its
+  remaining parts anyway. The files of a release start only after the queue
+  has recorded which files belong to it.
 - **A forged Usenet article could crash KnightLoader.** An article whose yEnc
   header named an absurd size made KnightLoader try to reserve that much memory
   and crash. When the `.nzb` listed no article sizes, the same header could
   also grow the download's file on disk to that size. A server that sent an
   article or a reply line without end could fill the memory the same way. All
   of these now count as a damaged article, and the next server is asked for it.
-
 - **An `.nzb` that left out articles finished with a hole.** When an `.nzb`
   skipped some of a file's articles, the file was finished with zeros where
   they belonged and reported as completed to Sonarr and Radarr. Those articles
   now count as missing, so the release goes on to your next account or fails
   with the reason.
-
 - **Progress after a restart was wrong for large Usenet downloads.** A download
   above about 3 GB that carried on after a restart showed no progress, or
   progress that jumped, and a wrong time left.
-
 - **A download removed or paused just as it starts stays stopped.** Removing a
   selection, or removing or pausing a single download right as it started,
   could leave its transfer running. It then wrote the whole file with no row in
   the list, even when you had asked for the files to be deleted.
-
 - **Restarting a download no longer deletes another download's file.** If you
   deleted a finished file by hand and another download with the same name then
   landed at that path, restarting the first one deleted the second one's file.
-
 - **Undo after removing a download that is being unpacked keeps it finished.**
   It came back as waiting, its archive was deleted, and the download started
   over.
-
 - **A finished or failed download brought back with Undo no longer blocks its
   link.** Pasting the link again was silently skipped until the next restart.
-
 - **A failed download brought back with Undo gets the retry it shows.** If the
   retry fell due while the row was removed, it never came.
-
 - **A download paused or removed before it started kept downloading in the
   background.** While a start waited for further sources, or when the "skip"
   rule found the file already there, the server's first answer went on being
@@ -309,27 +353,22 @@ release's tag.
   copy was never deleted, and each time it used the file's full traffic.
   KnightLoader now stops the copy and deletes it. A pause stops it straight
   away instead of once the wait for further sources is over.
-
 - **On Windows, a paused live recording kept recording.** Pausing a live
   yt-dlp recording, renaming its package or removing it without its files
   stopped yt-dlp after 30 seconds but left ffmpeg writing into the file, which
   on a 24/7 stream never ends. A Resume then started a second recording into
   the same file. ffmpeg now stops with yt-dlp.
-
 - **A paused download whose package was renamed started over after a
   restart.** Its partial file was deleted and it downloaded again from the
   first byte. It now carries on where it stopped, in the renamed folder.
-
 - **Several sources for one file could open more connections than a second
   debrid account allows.** Every source gets as many connections as the
   download's own link, so the service could refuse them or flag the account.
   An account that allows fewer connections for the hoster is no longer asked
   to unlock the file.
-
 - **Restarting KnightLoader no longer waits for a player paused on the debrid
   drive.** A media server that stopped reading from an rclone mount of the
   drive held a restart up for five seconds.
-
 - **The browser extension filled the Instances page with Browser cards.** Each
   time the extension talked to the group it counted as a new browser, so a
   browser in daily use left card after card behind, and once the list held 32
@@ -337,43 +376,35 @@ release's tag.
   browser out either: it stayed in the group and could keep sending links. The
   extension now keeps one ID while it is in the group, and a browser you remove
   leaves the group. Cards left over from before can be removed by hand.
-
 - **The JDownloader import ticked Packagizer rules whose folder exists only on
   JDownloader's machine.** A rule that sends downloads to a folder that cannot
   be used here, such as `/output/...` from a JDownloader container or a Linux
   path on Windows, arrives unticked with a note, the way JDownloader's own
   download folder already did.
-
 - **The JDownloader import report counted rejected links as waiting in the
   link collector.** Links that a filter rule or the download history rejected
   get a line of their own.
-
 - **The drop folder renamed files ending in `.opening` that it had not set
   aside itself.** Only a container it parked while opening it gets its name
   back.
-
 - **Feed entries and the files on a crawled page could point into the local
   network.** A link that leads further inside the network than the feed or
   page it came from, such as a LAN or cloud metadata address, is left out and
   named in the log.
-
 - **The Android app asked about battery optimisation or notifications a
   second time.** Flipping a switch on the Notifications card in Settings could
   undo the record that the app had already asked, so the one-time question
   came up again the next time the watch started.
-
 - **A "Captcha waiting" notification on Android stayed up after the app
   stopped watching.** When you switched every notification off or removed the
   connection it belonged to, the notification stayed in the shade, and tapping
   it opened nothing. The app now removes it.
-
 - **The QR scanner in the Android app did not notice the camera being allowed
   in Android's settings.** After you refused the camera twice, the button sent
   you to settings, but coming back with the camera allowed still showed the
   request until you closed and reopened the scanner. The scanner now opens
   when you come back, and once Android has stopped asking, the button says
   "Open settings".
-
 - **Connect after scanning a pairing code searched the wrong relay.** If the
   code named the instance's own relay and the instance had not answered within
   a few seconds, pressing Connect searched the project relay instead and
@@ -382,22 +413,224 @@ release's tag.
 
 ### Security
 
+- **The phone, the extension and the other instances of a group reach only
+  the routes on a list.** Everything else answers that you have to sign in on
+  that instance's own web interface, and the web interface, the Android app
+  and the browser extension say so in your language. A path that does not exist answers 404.
+- **A group member no longer sees archive or download passwords,** a sign-in
+  or passkey inside a link, or a private tracker's passkey. API tokens without
+  the Admin right get the same redacted task list, on the live stream too.
+- **Group members and API tokens without the Admin right no longer see a
+  sign-in or passkey in any link.** That covers a task named after its link
+  because the link names no file, an error that quotes a link, the phone's
+  watch list, folded links and the download history.
+- **With an app key, settings.json also seals the addresses of event targets
+  and feeds,** an event target's body, and the reconnect requests and script,
+  the same way it seals passwords.
+- **The diagnostics bundle and the log no longer carry tokens from links.**
+  The bundle shows event targets and feeds by host only and hides the
+  reconnect requests and script. Log lines drop the sign-in and API keys from
+  any link they quote.
+- **A group member picks a download folder only inside your download folder
+  or a category's folder, and can remove rows but not erase the files behind
+  them.**
+- **Another website can no longer change anything through your browser.** A
+  call that changes something and carries a body has to be sent as JSON, and
+  a request your browser marks as started by another site is refused. Scripts
+  that post with `curl -d` need `-H 'Content-Type: application/json'`. Uploads
+  and the doors for Sonarr and Radarr take what they always took.
+- **Without a password, backups, passwords, the twelve words and your files
+  stay put.** Downloading a backup, exporting the settings with their
+  passwords, showing the twelve words again and deleting downloaded files need
+  a login password first. The desktop app's own window still does all four
+  without one.
+- **KnightLoader no longer takes a domain from a sign-in.** The address it
+  tells its group is only ever one you typed under Settings > Pairing > Known
+  domains, never the name a request happened to arrive on. Domains it noted
+  before stay listed until you remove them.
+- **Nothing lands in the data folder any more.** A download, an unpacking, a
+  move or a rename that would write next to `auth.json`, `tokens.json` and
+  `settings.json` is refused, whether the folder was typed in the settings, set
+  for one download, built from a template or a package name, or reached through
+  a link. The built-in `downloads` folder inside it still works. The row, the
+  rename window and the Android app say why in your language.
+- **Clean up removes only what its preview showed.** If the links in a class
+  changed between the preview and your confirmation, such as a download that
+  finished in between, nothing is removed and the message says to look again.
+  `POST /api/cleanup/{class}` now takes the `digest` from the preview in a JSON
+  body, with `files` beside it.
+- **An older KnightLoader no longer starts on a database a newer one wrote,**
+  as after going back to an older image. It stops with a message that says
+  which version to run, instead of reading and writing a schema it does not
+  know.
+- **A restored backup brings no passkeys and no database code along.** The
+  passkeys registered on the running server stay, so a backup made before a
+  passkey was removed cannot bring it back. Triggers and views in an uploaded
+  database are removed before it is put in place.
+- **Removing a download with its files no longer deletes another download's
+  file that has a second path.** A path through a symlink, a junction or a bind
+  mount, or one spelled in another case on a disk that ignores case, counts as
+  the same file, and so does one the disk cannot answer for.
+- **Every member of a group signs its own calls.** Instances, the Android app
+  and the browser extension each make a key of their own when they join, and
+  an instance remembers it on the member's first signed call. After that no
+  other key is taken in that member's name. A call without a signature is
+  refused, and a phone or a browser that cannot sign is told to update. The
+  devices of a group paired with an earlier version are approved once, like
+  new ones, so update every instance and device of a group together.
+- **A new device has to be approved.** A phone, a browser or an instance that
+  enters the twelve words waits under **Waiting for approval** on the Pairing
+  card, with its kind and key fingerprint, until somebody approves or refuses
+  it there. The decision reaches every instance of the group, and the waiting
+  device says where to approve it. Instances approve each other both ways:
+  one that enters the words waits on the instances already there, and they
+  wait on its Pairing card in turn, each listed as soon as the cards are open.
+- **Nobody can sign in under another device's id.** Every instance, phone and
+  browser makes its id from its own key, and an instance takes a call only
+  under the id its key makes. Somebody holding the twelve words can no longer
+  wait under a new phone's or a new instance's name to be approved in its
+  place. The ids of the three kinds differ in shape, so a browser announcing an
+  instance's id gets no card, and refusing or removing a device never takes an
+  instance out.
+- **Answers within a group are signed, and calls carry no token.** The phone,
+  the extension and the instances send no API token to another member any
+  more, and take an answer only when the instance that gives it signed it with
+  its own key. An instance also uses another's answers only once you approved
+  that instance on its Pairing card. Somebody who takes an instance's place on
+  the relay or on your network can no longer read a token from the calls or
+  tell a phone that it was removed. On the relay, a new connection takes over
+  an id already connected only when it proves the key behind that id.
+- **A removed device stays out.** Play links a removed phone asked for stop working with the
+  removal, and the sign-in status a group member can read no longer shows
+  whether two-factor sign-in is on.
+- **A removal that arrives during a password reset no longer takes the
+  instance out of the new group the reset made.** Refusing an instance this
+  one has no key of no longer bans its id for good, and a key pinned under the
+  wrong kind of device can be removed again.
+- **Removing or refusing a device takes back its key for good.** It can come
+  back only as a new device, which waits for approval again. A removal made on
+  your Pairing page reaches every instance of the group, and an instance you
+  take out forgets the twelve words. The instances take approvals and removals
+  only from another instance with an approved key, so a phone or the
+  extension cannot remove anybody or make an instance leave.
+- **One member can no longer crowd out the others.** How many calls wait at
+  once and which request ids are used up are counted per key by the instance
+  itself, and only for keys it knows, so calls made up by somebody with the
+  twelve words no longer hold up the whole group. How many new devices join
+  in an hour is counted per relay connection too. Once the hour is full, new
+  devices wait for the next one, and a device waiting for approval is never
+  pushed off the Pairing card to make room; you refuse the ones you do not
+  know there.
+- **The relay writes every call it passes on afresh, with the sender it
+  knows,** and drops one that names a field twice or in another spelling, so a
+  sender cannot pass itself off as another connection.
+- **API tokens without the Admin right no longer see tracker passkeys through
+  the qBittorrent bridge.** A magnet link's trackers keep only their host there.
+- **More kinds of tokens in links stay out of logs and member views:** a
+  Newznab feed's key, access and auth tokens, `key` and `tp` arguments,
+  signed S3 addresses, the tokens of Telegram bots and of Discord and Slack
+  webhooks, and the keys in TorrentLeech feeds and download links. A magnet
+  link's sources and web seeds keep only their host, like its trackers, and a
+  link passed inside another link, as a redirect takes one, is redacted the
+  same way. Feed and crawler log lines are redacted too.
+- **A trusted proxy range can be at most `/28` for IPv4 or `/124` for IPv6,**
+  sixteen addresses either way, so a home network can no longer be named a
+  proxy. A wider range saved earlier is shown under the field as not used,
+  instead of being dropped without a word.
+- **Guessing passwords costs the server less.** At most two password checks
+  run at once, and a whole IPv6 `/48` shares one count of failed sign-ins on
+  top of the one per `/64`.
+- **The standalone relay trusts only a proxy on its own host** when
+  `KL_RELAY_TRUSTED_PROXIES` is not set. A proxy in another container or on
+  another machine has to be named there by its address.
+- **An instance's signed answer counts only for the call it answers.**
+  Somebody holding the twelve words could call an instance under a phone's
+  request id, or change what a phone's call asks, and hand the phone that
+  answer, a "removed" that made it leave its group included. The answer now names the call it belongs to, and an
+  instance answers "removed" only to the key of the device that was removed.
+- **A hello seen once can no longer push an instance off the relay.** The relay
+  opens every connection with a challenge the hello has to sign, so a hello
+  sent again on another connection proves nothing. Run a standalone relay on
+  this release together with the instances, since an older relay sends no
+  challenge.
+- **A hello names the relay it is meant for,** so another relay that an
+  instance or a phone dials with the same key cannot pass on its challenge and
+  use the answer elsewhere. The standalone relay goes by the address set in
+  the new `KL_RELAY_PUBLIC_URL` and by the names in `KL_RELAY_DOMAIN`. Set
+  `KL_RELAY_PUBLIC_URL` on a relay behind a reverse proxy.
+- **The old words of a reset instance reach only that instance,** even while
+  it is offline. Nobody else on the old key can announce its id to meet the
+  other devices still holding those words.
+- **A device approved on another instance is no longer pushed out of a full
+  group.** Approving counts as use, at most 16 devices wait for approval at
+  once, and an instance is never dropped to make room.
+- **An authenticator code signs in once.** The same code, or an older one, is
+  refused for the rest of the time it would otherwise still be valid.
+- **A changed password and a sign-out everywhere close the live updates** of
+  every open page, as a reset does. The page you changed the password on
+  picks them up again with its new session.
+- **Nothing started with a session outlasts its end.** A token, a passkey, a
+  second factor or a pairing group set up by a session that a reset or a
+  password change ends in the meantime is refused, and a sign-in checked
+  against the old password gets no session.
+- **Behind a reverse proxy that serves https, the session cookie is marked
+  Secure,** so the browser never sends it over plain HTTP. The same goes for
+  the qBittorrent login Sonarr and Radarr use.
+- **The relay an instance serves no longer believes `X-Forwarded-For` from
+  every address on the local network,** only from the trusted proxies, so a
+  device there cannot dodge the limit on failed handshakes.
+- **A new password needs at least 12 characters.** A shorter one set before
+  keeps working until you change it.
+- **Signing out during a password reset can no longer bring the old password
+  back,** and two sign-outs at the same moment no longer stop KnightLoader.
+  `auth.json` is written whole or not at all, one write at a time.
+- **KnightLoader no longer starts on a damaged `auth.json`.** It read as no
+  password, so the instance was open to anybody. It now stops and says to
+  restore the file from a backup, or to remove it and set a password again.
+- **The code that turns on two-factor authentication cannot sign in
+  afterwards.**
+- **Wrong reset codes meet the limit before anything else is checked.** The
+  right code still always gets through.
+- **The page after a reset lists only what was removed.** A token or the
+  pairing group that could not be removed is no longer counted.
+- **An app key keeps a copied data folder useless.** Set `KL_APP_KEY` once
+  (`openssl rand -hex 32`) and the password is hashed with Argon2id and
+  peppered with it, while the session key, the second factor, the recovery
+  codes, the key to the stored accounts, the passwords and tokens in
+  settings.json and the archive and download passwords of each download are
+  sealed with it. An existing install seals its files at the next start and
+  keeps a copy of them first, which it deletes after seven days without an
+  error; the Security page says when. The password moves over at the next
+  sign-in. Without the variable nothing changes, and Settings > Security
+  says how to add one. The desktop apps make their key themselves and keep it
+  in the system's credential store.
+- **Backups are encrypted with the app key.** A downloaded backup then opens
+  only on an instance with the same key, and a restore without it says which
+  key it needs. Backups made before still restore.
+- **No download, unpacking, move or rename writes into KnightLoader's data
+  folder from a folder above it.** A download, category, extraction or move
+  folder that holds the data folder, such as `C:\Users\you` or `D:\`, is
+  refused like one inside it, and every file an archive unpacks, a move puts
+  in place or a rename names is checked where it lands, links on the way
+  included. A link to a folder inside the data folder is refused too.
+- **Sealing the download passwords leaves no plain copy in the database
+  file.** The first start with an app key wipes the space the old values held
+  and rebuilds the file.
+- **A restore runs nothing the uploaded database brings along.** Triggers and
+  views are removed however their type is spelled, before anything in the
+  file is changed.
 - **Signing out ends every copy of the session cookie.** A copy taken before
   the sign-out worked again once its last character was changed.
-
 - **Play links end with the token that asked for them.** Revoking a phone's
   token, changing the password or signing out everywhere ends the play links
   handed out before. They used to keep working for up to twelve hours.
-
 - **A body sent with an API token stops at 16 MiB** when it adds links or
   changes downloads, the same ceiling as without a token. The instance used to
   read all of it into memory first.
-
 - **A file asked for through the group is refused rather than read into
   memory.** A group member, or a token on another instance, could make an
   instance load a whole finished file into memory before it answered, and no
   member can receive an answer that large anyway.
-
 - **Another website could trick you into adding a link.** On an instance
   without a password, a site that knew the instance's address could load the
   page the bookmarklet opens, hidden behind a button of its own, so a click on

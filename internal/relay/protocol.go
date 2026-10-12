@@ -11,7 +11,12 @@ package relay
 // single frame whose length the relay can see, not a stream.
 
 import (
+	"bytes"
+	"crypto/ed25519"
 	"encoding/json"
+	"errors"
+	"reflect"
+	"strings"
 	"time"
 	"unicode/utf8"
 )
@@ -19,6 +24,9 @@ import (
 // The frame types. Anything else on the socket is ignored rather than treated
 // as an error, see Server.Route.
 const (
+	// TypeChallenge is sent by the relay only, first on every connection: what
+	// a hello's IDProof signs.
+	TypeChallenge = "challenge"
 	// TypeHello is the first frame a client sends and the only one carrying the
 	// relay key.
 	TypeHello = "hello"
@@ -46,6 +54,11 @@ type Envelope struct {
 	Data json.RawMessage `json:"data,omitempty"`
 }
 
+// Challenge is random bytes the relay draws for one connection.
+type Challenge struct {
+	Nonce []byte `json:"nonce"`
+}
+
 // Hello authenticates and identifies a connection in one frame.
 //
 // The key rides the first frame rather than the URL because a reverse proxy in
@@ -55,6 +68,9 @@ type Envelope struct {
 type Hello struct {
 	Key      string   `json:"key"`
 	Announce Announce `json:"announce"`
+	// Proof shows the key the announced id is made from, which a connection
+	// needs to take the place of another one under that id.
+	Proof *IDProof `json:"proof,omitempty"`
 }
 
 // Announce is one instance introducing itself to everyone else on its key.
@@ -187,9 +203,10 @@ func openAnnounce(frameKey []byte, a Announce) Announce {
 	return out
 }
 
-// ValidInstanceID reports whether id has the shape every instance mints for
-// itself: 20 random bytes as lowercase hex. Stored peer names are at most 32
-// characters, so a member listed under such an id cannot take one.
+// ValidInstanceID reports whether id has the shape of an instance's id: 20
+// bytes as lowercase hex, made from its member key in a group (MemberID) and
+// random outside one. Stored peer names are at most 32 characters, so a member
+// listed under such an id cannot take one.
 func ValidInstanceID(id string) bool {
 	if len(id) != 40 {
 		return false
@@ -202,10 +219,10 @@ func ValidInstanceID(id string) bool {
 	return true
 }
 
-// maxClientIDBytes bounds the id of a client such as the phone, which mints
-// its own in another shape. It is only used as a map key, so it only has to
-// stay small.
-const maxClientIDBytes = 64
+// maxClientIDBytes bounds the id of a client such as the phone, which has an
+// id of another shape, the longest being a browser's MemberID. It is only used
+// as a map key, so it only has to stay small.
+const maxClientIDBytes = 72
 
 // listable reports whether an opened announce can be kept as a sibling. An
 // instance is addressed by its id, so the id has to be shaped like one.
@@ -265,6 +282,11 @@ type ProxyRequest struct {
 	// Target as additional data, so a relay cannot redirect it to another
 	// instance and have it open.
 	Sealed []byte `json:"sealed,omitempty"`
+	// Sender is the id the sending connection announced, written by the relay
+	// over whatever the sender put there. It is not sealed, so the receiver
+	// only spreads its limits by it (see WithSource) and trusts it with
+	// nothing else.
+	Sender string `json:"sender,omitempty"`
 }
 
 // ProxyCall is what a ProxyRequest asks once opened: the same (method, path,
@@ -274,23 +296,22 @@ type ProxyCall struct {
 	Method string `json:"method"`
 	Path   string `json:"path"`
 	Body   []byte `json:"body,omitempty"`
-	// Authorization becomes the Authorization header of the replayed request.
-	// Only the mobile app sets it, because the relay is its only channel to
-	// the target; instance-to-instance calls leave it empty. It is one named
-	// field rather than a header map so a caller cannot set Host,
-	// X-Forwarded-For or a cookie on a request the target replays against its
-	// own handler. Being a reusable credential, it is the main reason calls
-	// are sealed.
-	Authorization string `json:"authorization,omitempty"`
 	// ID and Sent are the request id and the Unix time the call was sealed
 	// at. They travel inside the seal, where a relay cannot change them, so
 	// the receiver can refuse a frame it has run before or one that is old.
 	ID   string `json:"id"`
 	Sent int64  `json:"sent"`
-	// From is the phone app's relay id, or the extension's Member id, so an
-	// instance can turn away a client removed from the group. Instances leave
-	// it empty.
+	// From is the member id the call speaks for: the phone app's relay id,
+	// the extension's Member id, or a signing instance's InstanceID. Only a
+	// signature from the key pinned to it makes it count (see member.go). An
+	// instance that does not sign leaves it empty.
 	From string `json:"from,omitempty"`
+	// Kind is KindInstance, KindMobile or KindExtension, pinned with the key.
+	Kind string `json:"kind,omitempty"`
+	// Key is the public half of the caller's member key and Sig its signature
+	// over CallMessage. A release before member keys sends neither.
+	Key []byte `json:"key,omitempty"`
+	Sig []byte `json:"sig,omitempty"`
 }
 
 // ProxyResponse is the wire form of the answer to one ProxyRequest.
@@ -312,6 +333,11 @@ type ProxyResponse struct {
 type ProxyResult struct {
 	Status int    `json:"status"`
 	Body   []byte `json:"body,omitempty"`
+	// Key and Sig are the answering member's public key and its signature
+	// over ResultMessage, which the caller checks before it acts on the
+	// answer (VerifyResult).
+	Key []byte `json:"key,omitempty"`
+	Sig []byte `json:"sig,omitempty"`
 }
 
 // requestAAD and responseAAD bind each direction's sealed blob to the routing
@@ -327,22 +353,48 @@ func responseAAD(requestID string) string {
 	return "proxy-response\x00" + requestID
 }
 
-// SealCall seals one call for the wire, stamped with requestID and, unless
-// Sent is set, the current time. It is exported so the mobile app's
-// TypeScript port can be tested against it.
-func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+// stamp is call with requestID and, unless Sent is set, the current time.
+func stamp(requestID string, call ProxyCall) ProxyCall {
 	call.ID = requestID
 	if call.Sent == 0 {
 		call.Sent = time.Now().Unix()
 	}
-	plain, err := json.Marshal(call)
+	return call
+}
+
+// SealCall seals one call for the wire, stamped with requestID and, unless
+// Sent is set, the current time. It is exported so the mobile app's
+// TypeScript port can be tested against it.
+func SealCall(key []byte, requestID, target string, call ProxyCall) ([]byte, error) {
+	plain, err := json.Marshal(stamp(requestID, call))
 	if err != nil {
 		return nil, err
 	}
 	return seal(key, requestAAD(requestID, target), plain)
 }
 
-// OpenCall reverses SealCall.
+// SignCall stamps call as SealCall does and signs it for target with member,
+// the caller's member key; call.From and call.Kind have to be set. A nil
+// member leaves it unsigned. The caller keeps what it returns to check the
+// answer against (VerifyResult).
+func SignCall(member ed25519.PrivateKey, requestID, target string, call ProxyCall) ProxyCall {
+	call = stamp(requestID, call)
+	call.Key, call.Sig = nil, nil
+	if member != nil {
+		call.Key = member.Public().(ed25519.PublicKey)
+		call.Sig = ed25519.Sign(member, CallMessage(target, call))
+	}
+	return call
+}
+
+// SealSignedCall seals the call SignCall makes.
+func SealSignedCall(key []byte, member ed25519.PrivateKey, requestID, target string, call ProxyCall) ([]byte, error) {
+	return SealCall(key, requestID, target, SignCall(member, requestID, target, call))
+}
+
+// OpenCall reverses SealCall and SealSignedCall. A signed call whose signature
+// does not hold opens to ErrSignature, with the call as it came, which the
+// refusal is signed for.
 func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, error) {
 	plain, err := open(key, requestAAD(requestID, target), sealed)
 	if err != nil {
@@ -354,6 +406,9 @@ func OpenCall(key []byte, requestID, target string, sealed []byte) (ProxyCall, e
 		// another id, so the caller treats it like any other blob that fails
 		// to open.
 		return ProxyCall{}, ErrSealed
+	}
+	if !verifyCall(target, call) {
+		return call, ErrSignature
 	}
 	return call, nil
 }
@@ -403,4 +458,53 @@ func Decode(frame []byte) (Envelope, error) {
 // Into unmarshals the payload of an already-decoded frame.
 func (e Envelope) Into(v any) error {
 	return json.Unmarshal(e.Data, v)
+}
+
+// errLooseKey refuses a payload whose keys could be read two ways.
+var errLooseKey = errors.New("relay: a frame names a field twice or in another spelling")
+
+// intoStrict is Into for a payload whose fields one side checks and another
+// acts on. encoding/json matches a key without regard to case, Unicode
+// folding included ("ſender" reads as "sender"), and lets the last of two
+// equal keys win, so it refuses a payload with a key that is not spelled
+// exactly as one of v's, or that comes twice. Keys of no field are let
+// through, for a newer sender.
+func (e Envelope) intoStrict(v any) error {
+	known := jsonKeys(reflect.TypeOf(v).Elem())
+	dec := json.NewDecoder(bytes.NewReader(e.Data))
+	if tok, err := dec.Token(); err != nil || tok != json.Delim('{') {
+		return errLooseKey
+	}
+	seen := map[string]bool{}
+	for dec.More() {
+		tok, err := dec.Token()
+		key, ok := tok.(string)
+		if err != nil || !ok || seen[key] {
+			return errLooseKey
+		}
+		seen[key] = true
+		for _, k := range known {
+			if key != k && strings.EqualFold(key, k) {
+				return errLooseKey
+			}
+		}
+		var skip json.RawMessage
+		if err := dec.Decode(&skip); err != nil {
+			return errLooseKey
+		}
+	}
+	return e.Into(v)
+}
+
+// jsonKeys is the JSON names of struct type t's fields.
+func jsonKeys(t reflect.Type) []string {
+	keys := make([]string, 0, t.NumField())
+	for i := range t.NumField() {
+		name, _, _ := strings.Cut(t.Field(i).Tag.Get("json"), ",")
+		if name == "" {
+			name = t.Field(i).Name
+		}
+		keys = append(keys, name)
+	}
+	return keys
 }

@@ -72,8 +72,8 @@ func deliverable(t *core.Task) bool {
 // with the task's category rule applied. It is read again here rather than
 // passed down, because the category may have changed since the download
 // started. A nil task, whose row was removed during extraction, gets the
-// instance policy.
-func moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
+// instance policy. Nothing is moved into the data folder.
+func (a *App) moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
 	category := ""
 	if t != nil {
 		category = t.Category
@@ -83,6 +83,7 @@ func moveOptions(t *core.Task, cfg settings.Settings) workdir.Options {
 		MaxAttempts: cfg.CollisionMaxAttempts,
 		// Emptied working folders are removed so they do not pile up.
 		PruneSourceDir: true,
+		Barred:         a.barFiles(),
 	}
 }
 
@@ -117,7 +118,7 @@ func (a *App) deliverDownload(id string) {
 	if _, err := os.Lstat(src); err != nil {
 		return
 	}
-	res, err := workdir.Move(a.ctx, src, dest, moveOptions(&c, a.Settings.Get()))
+	res, err := workdir.Move(a.ctx, src, dest, a.moveOptions(&c, a.Settings.Get()))
 	a.recordDelivery(id, src, res.Path, err)
 }
 
@@ -289,12 +290,15 @@ func (a *App) deliverExtraction(jobID string, out *extract.Outcome) delivery {
 	if plan.Deliver == "" || sameDir(out.Dir, plan.Deliver) {
 		return delivery{}
 	}
+	if inData := a.dataFolderOf(plan.Deliver); inData != nil {
+		return delivery{Err: fmt.Errorf("the unpacked content was left in %s: %w", out.Dir, inData)}
+	}
 	// A single compressed stream ("dump.sql.gz") unpacks beside its archive, so
 	// out.Dir is a shared folder and moving it would take everything else too.
 	if sameDir(out.Dir, filepath.Dir(archive)) {
 		return delivery{Err: fmt.Errorf("%s unpacked beside its own archive rather than into a folder of its own, so its content was left there instead of being moved to %s", filepath.Base(archive), plan.Deliver)}
 	}
-	o := moveOptions(t, cfg)
+	o := a.moveOptions(t, cfg)
 	if plan.Contents {
 		rep, err := workdir.MoveContents(a.ctx, out.Dir, plan.Deliver, o)
 		d := delivery{Entries: rep.Moved, Err: err}

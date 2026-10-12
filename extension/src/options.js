@@ -13,6 +13,7 @@ const phraseInput = document.getElementById('phrase');
 const joinBtn = document.getElementById('join');
 const leaveBtn = document.getElementById('leave');
 const refreshBtn = document.getElementById('refreshGroup');
+const ownKeyEl = document.getElementById('ownKey');
 const languageHeadingEl = document.getElementById('languageHeading');
 const languageBox = document.getElementById('languageBox');
 const cnlHeadingEl = document.getElementById('cnlHeading');
@@ -572,7 +573,9 @@ async function renderGroup() {
   refreshBtn.hidden = !joined;
   joinBtn.textContent = joined ? t('options.reconnect') : t('options.join');
   list.innerHTML = '';
+  ownKeyEl.hidden = true;
   if (!joined) return;
+  void showOwnKey();
 
   const loading = document.createElement('div');
   loading.className = 'empty';
@@ -624,6 +627,23 @@ async function renderGroup() {
   ]);
   staggerRows(rosterArrivals, cards);
   list.append(...cards.map(([, card]) => card));
+  // A browser waiting for approval sees every instance as offline, so the
+  // reason is said once above the list.
+  const refusal = siblings.find((s) => s.refusal && s.refusal !== 'send.refused')?.refusal;
+  if (refusal) say(t(refusal), false, true);
+}
+
+/**
+ * showOwnKey shows this browser's key the way an instance shows it beside the
+ * browser while it waits for approval there, so the owner can compare them.
+ */
+async function showOwnKey() {
+  if (!(await readPhrase())) return;
+  const member = await readMember();
+  if (!member) return;
+  ownKeyEl.textContent = t('options.ownKey', { fingerprint: await relayFingerprint(member.key.publicKey) });
+  ownKeyEl.appendChild(glimInfoIcon(t('options.ownKeyTip')));
+  ownKeyEl.hidden = false;
 }
 
 /** When each instance's card first came in, kept across redraws (staggerRows). */

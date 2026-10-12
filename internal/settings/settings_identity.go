@@ -5,7 +5,7 @@ package settings
 // instance names itself to another one (routes_pairing.go's pairingSelf), and
 // the external hostnames it is known to be reachable through, either because a
 // request arrived on one (routes_remote.go remembers it) or because somebody
-// typed it on the Access tab before this instance was ever visited through it.
+// typed it on the Pairing page before this instance was ever visited through it.
 //
 // Settings fields rather than something computed fresh: a domain seen once has
 // to stay listed even when every later request arrives over the LAN IP, a name

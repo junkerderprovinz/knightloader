@@ -43,6 +43,9 @@ func registerSettingsTransfer(reg *Registry, a *app.App) {
 
 func exportSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 	includeSecrets := r.URL.Query().Get("secrets") == secretsIncludeParam
+	if includeSecrets && !passwordFirst(a, w, "exporting the settings with their passwords") {
+		return
+	}
 	now := time.Now()
 	doc, err := settings.Portable(a.Settings.Get(), includeSecrets, buildinfo.Version, buildinfo.Deployment, now)
 	if err != nil {
@@ -167,11 +170,11 @@ func importSettings(w http.ResponseWriter, r *http.Request, a *app.App) {
 			http.Error(w, err.Error(), http.StatusBadRequest)
 			return
 		}
-		if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+		if err := settings.CheckFolders(a.DataDir, preview, patched(patch)); err != nil {
 			writeValidationError(w, err)
 			return
 		}
-		if err := validateRows(preview, patched(patch)); err != nil {
+		if err := validateRows(a.DataDir, preview, patched(patch)); err != nil {
 			writeValidationError(w, err)
 			return
 		}

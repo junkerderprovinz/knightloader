@@ -59,8 +59,8 @@ const (
 
 // Peer is one instance seen on the local network.
 type Peer struct {
-	// ID is the announcing instance's InstanceID, the same one the relay
-	// uses.
+	// ID is the announcing instance's InstanceID, or in a group the id its
+	// member key makes, the same one the relay routes on.
 	ID string `json:"id"`
 	// Name is what to show; it falls back to the ID.
 	Name string `json:"name"`
@@ -92,6 +92,7 @@ type Service struct {
 	// members holds the announces that passed isMember, apart from peers, so
 	// a stranger announcing a member's id cannot replace its address.
 	members  map[string]Peer
+	groupID  string
 	sign     func(Peer) string
 	isMember func(Peer) bool
 
@@ -116,20 +117,27 @@ func (s *Service) SetSelf(self Peer) {
 	s.mu.Unlock()
 }
 
-// SetGroup makes every announce carry the tag sign computes for it, and
-// files an announce that isMember accepts as a member. nil for both leaves
-// the group, which forgets every member at once.
-func (s *Service) SetGroup(sign func(Peer) string, isMember func(Peer) bool) {
+// SetGroup makes every announce go out under id, the one this instance has in
+// its group, with the tag sign computes for it, and files an announce that
+// isMember accepts as a member. nil for both leaves the group, which forgets
+// every member at once.
+func (s *Service) SetGroup(id string, sign func(Peer) string, isMember func(Peer) bool) {
 	s.mu.Lock()
-	s.sign, s.isMember = sign, isMember
+	s.groupID, s.sign, s.isMember = id, sign, isMember
 	s.members = map[string]Peer{}
 	s.mu.Unlock()
 }
 
+// currentSelf is what this instance announces now and what tags it, nil
+// outside a group.
 func (s *Service) currentSelf() (Peer, func(Peer) string) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	return s.self, s.sign
+	self := s.self
+	if s.sign != nil && s.groupID != "" {
+		self.ID = s.groupID
+	}
+	return self, s.sign
 }
 
 // New builds a Service that will announce self. With an empty URL, as on the

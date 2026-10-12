@@ -121,7 +121,7 @@ func (a *App) planRenameLocked(ids []string, name string) (*renamePlan, error) {
 	cfg := a.Settings.Get()
 	category := p.members[0].Category
 	p.policy = collide.ParsePolicy(cfg.CollisionFor(category))
-	p.moveOpts = moveOptions(&core.Task{Category: category}, cfg)
+	p.moveOpts = a.moveOptions(&core.Task{Category: category}, cfg)
 	if err := a.packageFoldersLocked(p); err != nil {
 		return nil, err
 	}
@@ -129,6 +129,13 @@ func (a *App) planRenameLocked(ids []string, name string) (*renamePlan, error) {
 		return nil, err
 	}
 	return p, nil
+}
+
+// refuseDataFolder turns down a name that would put a file or a package's
+// folder in dir, which lies in the data folder.
+func refuseDataFolder(name, dir string) error {
+	cause := &dataFolderError{dir: dir}
+	return &RenameRefusal{Code: "dataFolder", Name: name, text: renameErrorPrefix + cause.Error(), err: cause}
 }
 
 // refuseBusy turns a rename of pkg down until what holds its files is done.
@@ -154,6 +161,9 @@ func (a *App) packageFoldersLocked(p *renamePlan) error {
 		to := filepath.Clean(a.dirFor(&renamed))
 		if from == to || byFrom[from] != nil {
 			continue
+		}
+		if a.dataFolderOf(to) != nil {
+			return refuseDataFolder(p.name, to)
 		}
 		f := &packageFolder{from: from, to: to}
 		byFrom[from] = f
@@ -206,6 +216,9 @@ func (a *App) unpackFoldersLocked(p *renamePlan) error {
 		to := unpackRoot(a.expandFolder(&renamed, cfg.ExtractTo), &renamed, cfg.ExtractSubfolder)
 		if from == "" || to == "" || sameDir(from, to) || seen[from] {
 			continue
+		}
+		if a.dataFolderOf(to) != nil {
+			return refuseDataFolder(p.name, to)
 		}
 		if fi, err := os.Stat(from); err != nil || !fi.IsDir() {
 			continue
@@ -611,7 +624,7 @@ func (a *App) moveFolders(folders []*packageFolder) (relocation, error) {
 			// this was left behind by a download removed while it ran, within
 			// the day the sweep gives it: the working folder is this app's
 			// own, so what is in the way there is replaced.
-			rep, err := workdir.MoveContents(a.ctx, work, workTo, workdir.Options{Policy: collide.Overwrite, PruneSourceDir: true})
+			rep, err := workdir.MoveContents(a.ctx, work, workTo, workdir.Options{Policy: collide.Overwrite, PruneSourceDir: true, Barred: a.barFiles()})
 			if err != nil && rep.Moved == 0 {
 				return fail(work, workTo, err)
 			}
@@ -637,7 +650,7 @@ func (a *App) moveFolders(folders []*packageFolder) (relocation, error) {
 // turned into a copy, which would take as long as the folder is large and
 // leave the held file behind.
 func (a *App) moveFolder(from, to string) error {
-	res, err := workdir.MoveAs(a.ctx, from, to, workdir.Options{OnlyAcrossDisks: true})
+	res, err := workdir.MoveAs(a.ctx, from, to, workdir.Options{OnlyAcrossDisks: true, Barred: a.barFiles()})
 	if res.Path != to {
 		if err == nil {
 			err = errors.New("the folder was not moved")

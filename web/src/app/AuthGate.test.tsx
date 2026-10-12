@@ -164,7 +164,40 @@ describe('a forgotten password on the sign-in screen', () => {
     await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
 
     expect(posts('/api/auth/reset/finish').map((c) => c.body)).toEqual([{ code: 'abcd-efgh-jkmn', password: NEW_PASSWORD }]);
+    expect(host.textContent).not.toContain('the app');
+    await press(en['auth.reset.continue']);
     expect(host.textContent).toBe('the app');
+  });
+
+  it('lists what the reset removed before the app opens', async () => {
+    answers['/api/auth/reset/finish'] = answer({
+      ...SIGNED_IN,
+      removed: { twoFactor: true, passkeys: 2, tokens: 3, group: true },
+    });
+    await forgot();
+
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
+
+    const listed = [...host.querySelectorAll('li')].map((li) => li.textContent);
+    expect(listed).toEqual([
+      en['auth.reset.removed.twoFactor'],
+      en['auth.reset.removed.passkeys'].replace('{count}', '2'),
+      en['auth.reset.removed.tokens'].replace('{count}', '3'),
+      en['auth.reset.removed.sessions'],
+      en['auth.reset.removed.group'],
+    ]);
+  });
+
+  it('leaves out what the reset found nothing of', async () => {
+    answers['/api/auth/reset/finish'] = answer({
+      ...SIGNED_IN,
+      removed: { twoFactor: false, passkeys: 0, tokens: 0, group: false },
+    });
+    await forgot();
+
+    await fillAndSubmit('abcd-efgh-jkmn', NEW_PASSWORD);
+
+    expect([...host.querySelectorAll('li')].map((li) => li.textContent)).toEqual([en['auth.reset.removed.sessions']]);
   });
 
   it('sends nothing while the two passwords differ', async () => {

@@ -38,12 +38,12 @@ func registerSettings(reg *Registry, a *app.App) {
 			}
 			// Refuse a folder we cannot use instead of accepting it and
 			// downloading somewhere else.
-			if err := settings.CheckFolders(s, nil); err != nil {
+			if err := settings.CheckFolders(a.DataDir, s, nil); err != nil {
 				writeValidationError(w, err)
 				return
 			}
 			// Refused with the reason rather than silently dropped by sanitize.
-			if err := validateRows(s, nil); err != nil {
+			if err := validateRows(a.DataDir, s, nil); err != nil {
 				writeValidationError(w, err)
 				return
 			}
@@ -101,11 +101,11 @@ func registerSettings(reg *Registry, a *app.App) {
 			}
 			// Only the folders the patch names, so a stored folder that went
 			// missing does not refuse an edit somewhere else.
-			if err := settings.CheckFolders(preview, patched(patch)); err != nil {
+			if err := settings.CheckFolders(a.DataDir, preview, patched(patch)); err != nil {
 				writeValidationError(w, err)
 				return
 			}
-			if err := validateRows(preview, patched(patch)); err != nil {
+			if err := validateRows(a.DataDir, preview, patched(patch)); err != nil {
 				writeValidationError(w, err)
 				return
 			}
@@ -197,6 +197,11 @@ func writeValidationError(w http.ResponseWriter, err error) {
 		out["params"] = map[string]any{"dir": pp.Dir}
 		out["field"] = pp.Field
 	}
+	var wide *settings.ProxyRangeTooWide
+	if errors.As(err, &wide) {
+		out["code"] = "access.proxyRangeTooWide"
+		out["params"] = map[string]any{"entry": wide.Entry, "bits": wide.Bits}
+	}
 	var fe *settings.FieldError
 	if errors.As(err, &fe) {
 		out["field"] = fe.Field
@@ -249,7 +254,7 @@ func patched(patch map[string]json.RawMessage) func(key string) bool {
 // the lists it sends, so a stored row that went bad, such as a reconnect
 // switched back on after its check URL was cleared, does not refuse a change
 // of theme. A check across two lists runs when either is sent.
-func validateRows(s settings.Settings, named func(key string) bool) error {
+func validateRows(dataDir string, s settings.Settings, named func(key string) bool) error {
 	sent := func(keys ...string) bool {
 		if named == nil {
 			return true
@@ -345,7 +350,7 @@ func validateRows(s settings.Settings, named func(key string) bool) error {
 	// share is offline does not refuse a change of theme either.
 	if sent("categories") {
 		for i, c := range s.Categories {
-			if err := settings.Validate("the folder", c.Dir); err != nil {
+			if err := settings.Validate(dataDir, "the folder", c.Dir); err != nil {
 				return &settings.FieldError{Field: fmt.Sprintf("categories.%d", i),
 					Err: fmt.Errorf("category %d (%s): %w", i+1, categoryLabel(c, i), err)}
 			}

@@ -35,6 +35,8 @@ import (
 	"os"
 	"strings"
 	"sync"
+
+	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
 // Capacity is how many lines the default ring keeps. A diagnostics bundle is
@@ -210,15 +212,24 @@ func init() {
 // Explorer or a shortcut it has no stderr handle at all, so every console write
 // fails. io.MultiWriter stops at the first error, and with the console in front
 // the ring and the log file would never see a line.
+//
+// Every address in a line loses its sign-in and secret arguments here
+// (core.RedactText), so a feed, a crawl or an HTTP client error that quotes a
+// link cannot put an indexer key or a passkey into the log file, the console
+// or the diagnostics bundle, whichever call site logged it.
 type tee struct {
 	ring    io.Writer
 	console io.Writer
 }
 
 func (t tee) Write(p []byte) (int, error) {
-	n, err := t.ring.Write(p)
-	_, _ = t.console.Write(p)
-	return n, err
+	line := []byte(core.RedactText(string(p)))
+	_, err := t.ring.Write(line)
+	_, _ = t.console.Write(line)
+	if err != nil {
+		return 0, err
+	}
+	return len(p), nil
 }
 
 // Lines returns the process's recent log lines, oldest first.

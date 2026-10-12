@@ -63,6 +63,18 @@ func TestARefusedSaveNamesItsField(t *testing.T) {
 			field: "trustedProxies",
 		},
 		{
+			name:  "a trusted range wider than a /16",
+			patch: `{"trustedProxies":["10.0.0.0/8"]}`,
+			field: "trustedProxies",
+			code:  "access.proxyRangeTooWide",
+		},
+		{
+			name:  "a trusted IPv6 range wider than a /124",
+			patch: `{"trustedProxies":["2001:db8::/64"]}`,
+			field: "trustedProxies",
+			code:  "access.proxyRangeTooWide",
+		},
+		{
 			name:  "a feed that is not on the web",
 			patch: `{"feeds":[{"url":"https://feeds.example/rss"},{"url":"ftp://feeds.example/rss"}]}`,
 			field: "feeds.1",

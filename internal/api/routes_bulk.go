@@ -5,6 +5,7 @@ package api
 // which is slow enough to look broken and can fail halfway.
 
 import (
+	"errors"
 	"net/http"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -25,6 +26,9 @@ type bulkResult struct {
 	// than hardcoded in the browser so the button is up for exactly as long as
 	// the server still holds the rows.
 	UndoMs int64 `json:"undoMs,omitempty"`
+	// Digest is set by a cleanup preview only: what the removal sends back
+	// to be sure it takes what was shown.
+	Digest string `json:"digest,omitempty"`
 }
 
 func bulkDone(w http.ResponseWriter, ids []string) {
@@ -121,6 +125,9 @@ func registerBulk(reg *Registry, a *app.App) {
 			if !decodeJSON(w, r, &body) || !requireIDs(w, body.Ids) {
 				return
 			}
+			if body.Files && !passwordFirst(a, w, "deleting downloaded files") {
+				return
+			}
 			// Not bulkDone: removing rows asks nothing first when no files are
 			// involved, and the selection can include rows a filter is hiding,
 			// so the answer has to carry enough to offer the undo.
@@ -147,18 +154,35 @@ func registerBulk(reg *Registry, a *app.App) {
 			// 404 would be reported as a broken button.
 			bulkDone(w, a.UndoRemove(body.Token))
 		})
-	reg.Add(http.MethodGet, "/api/cleanup/{class}", "which tasks a cleanup class would take, without taking them",
+	reg.Add(http.MethodGet, "/api/cleanup/{class}", "which tasks a cleanup class would take, without taking them, with the digest the removal has to send back",
 		func(w http.ResponseWriter, r *http.Request) {
 			ids, err := a.CleanupPreview(app.CleanupClass(r.PathValue("class")))
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return
 			}
-			bulkDone(w, ids)
+			if ids == nil {
+				ids = []string{}
+			}
+			writeJSON(w, bulkResult{Ids: ids, Count: len(ids), Digest: app.CleanupDigest(ids)})
 		})
-	reg.Add(http.MethodPost, "/api/cleanup/{class}", "remove every task in a cleanup class; files=1 also erases what was downloaded",
+	reg.Add(http.MethodPost, "/api/cleanup/{class}", "remove every task in a cleanup class, as long as it still selects what the preview with this digest showed; files:true also erases what was downloaded",
 		func(w http.ResponseWriter, r *http.Request) {
-			ids, err := a.Cleanup(app.CleanupClass(r.PathValue("class")), r.URL.Query().Get("files") == "1")
+			var body struct {
+				Digest string `json:"digest"`
+				Files  bool   `json:"files"`
+			}
+			if !decodeJSON(w, r, &body) {
+				return
+			}
+			if body.Files && !passwordFirst(a, w, "deleting downloaded files") {
+				return
+			}
+			ids, err := a.Cleanup(app.CleanupClass(r.PathValue("class")), body.Files, body.Digest)
+			if errors.Is(err, app.ErrCleanupChanged) {
+				writeRefusal(w, http.StatusConflict, "cleanupChanged", err.Error(), nil)
+				return
+			}
 			if err != nil {
 				http.Error(w, err.Error(), http.StatusBadRequest)
 				return

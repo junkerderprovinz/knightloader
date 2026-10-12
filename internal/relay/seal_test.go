@@ -12,10 +12,10 @@ import (
 func TestSealedCallRoundTrips(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	want := ProxyCall{
-		Method:        http.MethodPost,
-		Path:          "/api/links",
-		Body:          []byte(`{"url":"https://example.invalid/holiday-photos.zip"}`),
-		Authorization: "Bearer a-real-looking-token",
+		Method: http.MethodPost,
+		Path:   "/api/links",
+		Body:   []byte(`{"url":"https://example.invalid/holiday-photos.zip"}`),
+		From:   "phone-a-real-looking-member",
 	}
 	sealed, err := SealCall(key, "r1", "bravo", want)
 	if err != nil {
@@ -25,7 +25,7 @@ func TestSealedCallRoundTrips(t *testing.T) {
 	if err != nil {
 		t.Fatalf("open: %v", err)
 	}
-	if got.Method != want.Method || got.Path != want.Path || got.Authorization != want.Authorization {
+	if got.Method != want.Method || got.Path != want.Path || got.From != want.From {
 		t.Errorf("opened %+v, want %+v", got, want)
 	}
 	if !bytes.Equal(got.Body, want.Body) {
@@ -41,10 +41,10 @@ func TestSealedCallRoundTrips(t *testing.T) {
 func TestSealedFrameHidesItsContents(t *testing.T) {
 	key := DeriveFrameKey([]byte("a secret"))
 	sealed, err := SealCall(key, "r1", "bravo", ProxyCall{
-		Method:        http.MethodPost,
-		Path:          "/api/links",
-		Body:          []byte(`{"url":"https://example.invalid/holiday-photos.zip"}`),
-		Authorization: "Bearer a-real-looking-token",
+		Method: http.MethodPost,
+		Path:   "/api/links",
+		Body:   []byte(`{"url":"https://example.invalid/holiday-photos.zip"}`),
+		From:   "phone-a-real-looking-member",
 	})
 	if err != nil {
 		t.Fatalf("seal: %v", err)
@@ -53,8 +53,7 @@ func TestSealedFrameHidesItsContents(t *testing.T) {
 		"/api/links",
 		"holiday-photos",
 		"example.invalid",
-		"Bearer",
-		"a-real-looking-token",
+		"a-real-looking-member",
 		http.MethodPost,
 	} {
 		if bytes.Contains(sealed, []byte(secret)) {
