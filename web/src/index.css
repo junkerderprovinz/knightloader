@@ -1440,6 +1440,28 @@ body {
   97%       { opacity: 0; scale: var(--motion-slosh-pop-ring); }
   to        { opacity: 0; scale: 1; }
 }
+/* A packet of the transfer flow lands in a vessel from the left. The liquid
+   kicks up that wall, rocks back over the middle and settles in two smaller
+   swings, on top of its slosh. A crest shoots up the left wall and a ripple
+   runs across to the right one, flattening as it goes. */
+@keyframes glim-slosh-splash-tilt {
+  from { rotate: 0deg; }
+  12%  { rotate: var(--motion-slosh-splash-tilt); }
+  34%  { rotate: calc(var(--motion-slosh-splash-tilt) * -.45); }
+  58%  { rotate: calc(var(--motion-slosh-splash-tilt) * .18); }
+  80%  { rotate: calc(var(--motion-slosh-splash-tilt) * -.05); }
+  to   { rotate: 0deg; }
+}
+@keyframes glim-slosh-splash-crest {
+  from    { scale: 1 0; }
+  14%     { scale: 1 var(--motion-slosh-splash-run); }
+  40%, to { scale: 1 0; }
+}
+@keyframes glim-slosh-splash-ripple {
+  from, 8% { translate: 0 0; scale: 1 0; }
+  22%      { translate: 3px 0; scale: 1 var(--motion-slosh-splash-ripple); }
+  70%, to  { translate: 14px 0; scale: 1 0; }
+}
 
 /* A floating window arrives: the scrim fades up and the card rises a little
    and settles. It ends at `transform: none` and never scales, since a
@@ -1527,6 +1549,13 @@ body {
     --motion-slosh-pop-ring: 3.4;
     --motion-slosh-pop-spray: 1.3;
     --motion-slosh-pop-reach: 5px;
+    /* A packet landing in a vessel: how long the splash takes to settle, how
+       far it rocks the liquid, and how high its crest and ripple rise as
+       multiples of their drawn height. */
+    --motion-slosh-splash-dur: .9s;
+    --motion-slosh-splash-tilt: 7deg;
+    --motion-slosh-splash-run: 3.4;
+    --motion-slosh-splash-ripple: 1.5;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
   }
@@ -1587,6 +1616,10 @@ body {
     --motion-slosh-pop-ring: 3;
     --motion-slosh-pop-spray: 1.1;
     --motion-slosh-pop-reach: 4px;
+    --motion-slosh-splash-dur: 1.1s;
+    --motion-slosh-splash-tilt: 4deg;
+    --motion-slosh-splash-run: 2.2;
+    --motion-slosh-splash-ripple: 1;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
   }
@@ -1652,6 +1685,10 @@ body {
     --motion-slosh-pop-ring: 1;
     --motion-slosh-pop-spray: 0;
     --motion-slosh-pop-reach: 0px;
+    --motion-slosh-splash-dur: 60s;
+    --motion-slosh-splash-tilt: 0deg;
+    --motion-slosh-splash-run: 0;
+    --motion-slosh-splash-ripple: 0;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
   }
@@ -1780,6 +1817,17 @@ body {
     --pop-dur: calc(var(--motion-slosh-bubble-pace) * 16.1);
     --pop-delay: calc(var(--motion-slosh-bubble-pace) * -9.66);
   }
+  /* The transfer flow sets glim-slosh-splash on a vessel's svg as a packet
+     lands in it, and sets it afresh for the next one. */
+  .glim-slosh-splash .glim-slosh-splash-tilt {
+    animation: glim-slosh-splash-tilt var(--motion-slosh-splash-dur) ease-in-out;
+  }
+  .glim-slosh-splash .glim-slosh-splash-crest {
+    animation: glim-slosh-splash-crest var(--motion-slosh-splash-dur) ease-out;
+  }
+  .glim-slosh-splash .glim-slosh-splash-ripple {
+    animation: glim-slosh-splash-ripple var(--motion-slosh-splash-dur) ease-out;
+  }
 
   /* A level at "off" holds its surface still, as under reduced motion, where
      the rules above are never read. */
@@ -1796,7 +1844,10 @@ body {
   :root[data-motion="off"] .glim-slosh-pop-drop,
   :root[data-motion="off"] .glim-slosh-pop-bar,
   :root[data-motion="off"] .glim-slosh-pop-bar::before,
-  :root[data-motion="off"] .glim-slosh-pop-bar::after {
+  :root[data-motion="off"] .glim-slosh-pop-bar::after,
+  :root[data-motion="off"] .glim-slosh-splash-tilt,
+  :root[data-motion="off"] .glim-slosh-splash-crest,
+  :root[data-motion="off"] .glim-slosh-splash-ripple {
     animation: none;
   }
   /* The pulse at "off": a static dot, as under reduced motion. */
@@ -2097,6 +2148,10 @@ body {
   --motion-slosh-pop-ring: 3.8;
   --motion-slosh-pop-spray: 1.5;
   --motion-slosh-pop-reach: 7px;
+  --motion-slosh-splash-dur: .75s;
+  --motion-slosh-splash-tilt: 10deg;
+  --motion-slosh-splash-run: 4.8;
+  --motion-slosh-splash-ripple: 2;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
 }
@@ -2896,15 +2951,18 @@ body {
 }
 
 /* A fill level that sloshes. In a vessel (pictures/Vessel.tsx) the liquid
-   tilts about the middle, 17 units in. The crests and the hump rest at zero
-   height and the bubbles and pops hidden, so a still frame shows a flat
-   surface. */
+   tilts about the middle, 17 units in. The crests, the hump and a splash's
+   ripple rest at zero height and the bubbles and pops hidden, so a still
+   frame shows a flat surface. */
 .glim-slosh,
-.glim-slosh-back {
+.glim-slosh-back,
+.glim-slosh-splash-tilt {
   transform-origin: 17px 0;
 }
 .glim-slosh-crest,
-.glim-slosh-hump {
+.glim-slosh-hump,
+.glim-slosh-splash-crest,
+.glim-slosh-splash-ripple {
   scale: 1 0;
 }
 .glim-slosh-bubble,
