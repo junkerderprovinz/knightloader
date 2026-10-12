@@ -195,7 +195,7 @@ func (a *App) StopSeeding(ids []string) []string {
 		if t.Seeding {
 			t.SeedingEnded = now
 		}
-		t.Seeding, t.SeedingOver, t.Peers, t.Seeds = false, true, 0, 0
+		t.Seeding, t.SeedingOver, t.Peers, t.Seeds, t.UploadSpeed = false, true, 0, 0, 0
 		copies = append(copies, a.copyLocked(t))
 		touched = append(touched, id)
 	}

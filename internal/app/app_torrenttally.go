@@ -190,7 +190,8 @@ func isBuiltInTorrent(t *core.Task) bool {
 }
 
 // tallyTorrentLocked counts what one engine update adds to a torrent's
-// figures, before the update is written onto the task. Caller holds a.mu.
+// figures, before the update is written onto the task, and puts the upload
+// rate it yields on the task. Caller holds a.mu.
 func (a *App) tallyTorrentLocked(t *core.Task, u core.Update, now time.Time) {
 	if !isBuiltInTorrent(t) {
 		return
@@ -202,6 +203,7 @@ func (a *App) tallyTorrentLocked(t *core.Task, u core.Update, now time.Time) {
 	if u.Torrent != nil {
 		up = u.Torrent.Uploaded - t.Uploaded
 		a.tally.readUpload(t.ID, u.Torrent.Uploaded, now)
+		t.UploadSpeed = a.tally.uploadRate(t.ID, now)
 	}
 	a.tally.add(now, down, up)
 }
