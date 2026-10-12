@@ -1,5 +1,5 @@
 import { IconBadge } from './ui';
-import { IconBrowser, IconPaste } from '../lib/icons';
+import { IconCopy, IconLink } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -43,7 +43,7 @@ export function LinkIntakeButtons({ hue }: { hue: number }) {
           labelled
           active={row.enabled}
           hue={hue}
-          icon={<IconBrowser width={16} height={16} />}
+          icon={<IconLink width={16} height={16} />}
           title={t('settings.module.cnl')}
           aria-label={t('settings.module.cnl')}
           // What it takes, then the live reading, such as the address it
@@ -57,7 +57,7 @@ export function LinkIntakeButtons({ hue }: { hue: number }) {
         labelled
         active={watch}
         hue={hue + 1}
-        icon={<IconPaste width={16} height={16} />}
+        icon={<IconCopy width={16} height={16} />}
         title={t('intake.clipboardWatch')}
         aria-label={t('intake.clipboardWatch')}
         hint={
