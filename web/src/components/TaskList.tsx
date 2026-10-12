@@ -109,7 +109,6 @@ import {
   PriorityTag,
   ROW_EDGES,
   RowMarks,
-  SelectionMark,
   TWISTY_STEP,
   type CellContext,
   type ColumnDef,
@@ -519,14 +518,6 @@ function TaskRow({
       } relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
-      {selection && (
-        <SelectionMark
-          checked={selection.ids.has(task.id)}
-          label={ctx.t('select.mark')}
-          tabIndex={current ? 0 : -1}
-          onPick={(range) => dnd.pick(unit, range)}
-        />
-      )}
       {columns.map((col) => {
         const node = col.render(task, ctx);
         return (
@@ -987,7 +978,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
 // Anything that is itself a control keeps its own click. Everything else on a
 // package header folds it, which is what people try first and what JDownloader
 // does.
-const CONTROL = 'button, a, input, select, textarea, [role="switch"], [role="checkbox"], .glim-info';
+const CONTROL = 'button, a, input, select, textarea, [role="switch"], .glim-info';
 
 // PackageRow is the folder header: a plain block inside the list card, not a
 // nested card. Its totals are over every link in the package, folded or not: a
@@ -1104,14 +1095,6 @@ function PackageRow({
         divider ? 'border-t border-carbon-border/60' : ''
       } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
-      {selection && (
-        <SelectionMark
-          checked={!!allSelected}
-          label={ctx.t('select.mark')}
-          tabIndex={current ? 0 : -1}
-          onPick={(range) => dnd.pick(unit, range)}
-        />
-      )}
       {columns.map((col) => (
         <div
           key={col.id}
@@ -1195,15 +1178,15 @@ interface RowDnD {
    *  running. Every link row and every folder header spreads this into its own
    *  style; see TaskListCard's previewOffsets for where the numbers come from. */
   slide: (unit: RowDragKey) => CSSProperties;
-  /** A press on the row's selection mark: it adds the row to the marking or
-   *  takes it out, as a Ctrl-click does, and with `range` picks up to it, as a
-   *  Shift-click does. */
-  pick: (unit: RowDragKey, range: boolean) => void;
 }
 
 /** The three fields TaskListCard's own selectUnit reads off a press. */
 type SelectMods = { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
 const PLAIN: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
+// A tap adds its row to the marking or takes it out, as a Ctrl-click does: a
+// finger has no modifier keys, and a tap that replaced the marking would leave
+// a phone no way to pick two rows.
+const TOGGLE: SelectMods = { ctrlKey: true, metaKey: false, shiftKey: false };
 
 /**
  * A press that has not finished being one thing or another yet. `mode` is
@@ -2630,7 +2613,8 @@ export function TaskListCard({
    * which arms a move of the row, or of the marking the row is in. A hold let
    * go where it armed opens the row's menu instead (see land), since a long
    * press is how a touch screen asks for one, and so does a hold on rows that
-   * cannot move (see armHold).
+   * cannot move (see armHold). A tap marks the row or takes it out of the
+   * marking (see finishGesture).
    */
   function holdRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
     const g: Gesture = {
@@ -2967,12 +2951,15 @@ export function TaskListCard({
     if (!g.live) {
       // A press that never travelled. On a marked row that is the deferred
       // collapse, see (4) above; on an unmarked one the press already did the
-      // marking and there is nothing left to do. A finger let go or scrolling
-      // before its hold armed was a tap or a scroll, neither of which marks.
-      // One let go after a refused hold armed asked for the row's menu.
+      // marking and there is nothing left to do. A finger let go before its
+      // hold armed was a tap, which flips the row in the marking; a finger that
+      // scrolled never gets here, the browser having cancelled it. One let go
+      // after a refused hold armed asked for the row's menu.
       if (g.refused) {
         if (commit) openMenu(g);
-      } else if (g.mode === 'move' && !g.touch) {
+      } else if (g.touch) {
+        if (commit) selectFromUnit(g.unit, TOGGLE);
+      } else if (g.mode === 'move') {
         selectFromUnit(g.unit, PLAIN);
       }
       return;
@@ -3283,7 +3270,6 @@ export function TaskListCard({
       const dy = movingRows.has(key) ? undefined : rowOffsets.get(key);
       return dy === undefined ? NO_SLIDE : { translate: `0px ${dy}px` };
     },
-    pick: (unit, range) => selectFromUnit(unit, { ctrlKey: !range, metaKey: false, shiftKey: range }),
   };
 
   const template = gridTemplate(layout);
@@ -3583,9 +3569,7 @@ export function TaskListCard({
                   on a row's link or icon. */}
               <div
                 ref={stripRef}
-                className={`relative overflow-x-clip [-webkit-touch-callout:none] ${
-                  chosen.length > 0 ? 'glim-selecting' : ''
-                }`}
+                className="relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
                 aria-multiselectable="true"
                 aria-label={title}

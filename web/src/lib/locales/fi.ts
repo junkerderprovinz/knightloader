@@ -2419,7 +2419,6 @@ export const fi: Dict = {
   'select.reduceRemove': 'Poista vain näkyvät rivit',
   'select.reduceRemoveAria': 'Poistuvista riveistä {n} ei ole näkyvissä. Napsauta, niin poistetaan vain näkyvät rivit.',
   'select.reduced': '{n} riviä otettiin pois valinnasta.',
-  'select.mark': 'Valitse',
   'remove.doneHidden': 'Poistettiin {n} latausta. {hidden} niistä jäi näkemättä.',
 
   'settings.dbmaint.title': 'Tietokannan ylläpito',

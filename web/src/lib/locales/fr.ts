@@ -2407,7 +2407,6 @@ export const fr: Dict = {
   'select.reduceRemove': 'Ne retirer que les lignes visibles',
   'select.reduceRemoveAria': '{n} des lignes qui vont partir ne sont pas visibles. Cliquez pour ne retirer que les lignes visibles.',
   'select.reduced': '{n} ligne(s) retirée(s) de la sélection.',
-  'select.mark': 'Sélectionner',
   'remove.doneHidden': '{n} téléchargement(s) retiré(s). {hidden} d’entre eux n’étaient pas visibles.',
   'settings.dbmaint.title': 'Maintenance de la base de données',
   'settings.dbmaint.hint': 'La liste des tâches, l’historique des téléchargements et l’état de l’interface tiennent tous dans un seul fichier SQLite. Les lignes supprimées libèrent de la place à l’intérieur de ce fichier, mais ne la rendent jamais au disque. Au bout de quelques années, le fichier fait donc souvent plusieurs fois la taille de ce qu’il contient. La vérification lit chaque page et dit si le fichier est encore intact. Le compactage le réécrit à sa taille réelle. Les deux travaillent sur la base de données en marche et bloquent pendant ce temps toute autre écriture.',

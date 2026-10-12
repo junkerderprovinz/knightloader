@@ -2403,7 +2403,6 @@ export const it: Dict = {
   'select.reduceRemove': 'Rimuovi solo le righe visibili',
   'select.reduceRemoveAria': '{n} delle righe che stanno per andarsene non sono visibili. Clicca per rimuovere solo quelle visibili.',
   'select.reduced': 'Selezione ridotta di {n} riga/righe.',
-  'select.mark': 'Seleziona',
   'remove.doneHidden': 'Rimossi {n} download. {hidden} di questi non li hai visti.',
   'settings.dbmaint.title': 'Manutenzione del database',
   'settings.dbmaint.hint': 'L’elenco delle attività, la cronologia dei download e lo stato dell’interfaccia stanno insieme in un unico file SQLite. Le righe cancellate liberano spazio dentro il file, ma non lo restituiscono mai al disco. Dopo qualche anno il file è spesso molte volte più grande di quello che contiene. La verifica legge ogni pagina e dice se il file è ancora integro. La compattazione lo riscrive alla sua dimensione reale. Entrambe lavorano sul database in funzione e nel frattempo bloccano ogni altra scrittura.',

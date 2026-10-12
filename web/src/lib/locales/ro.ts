@@ -2427,7 +2427,6 @@ export const ro: Dict = {
   'select.reduceRemove': 'Elimină doar rândurile care se văd',
   'select.reduceRemoveAria': '{n} dintre rândurile care vor fi eliminate nu sunt vizibile. Dă clic pentru a elimina doar rândurile care se văd.',
   'select.reduced': '{n} rând(uri) scoase din selecție.',
-  'select.mark': 'Selectează',
   'remove.doneHidden': '{n} descărcări eliminate. Pe {hidden} dintre ele nu le-ai văzut.',
   'settings.dbmaint.title': 'Întreținerea bazei de date',
   'settings.dbmaint.hint': 'Lista de sarcini, istoricul descărcărilor și starea interfeței stau împreună într-un singur fișier SQLite. Rândurile șterse eliberează spațiu în interiorul fișierului, dar niciodată înapoi pe disc. După câțiva ani, fișierul ajunge de câteva ori mai mare decât ce se află în el. Verificarea citește fiecare pagină și spune dacă fișierul este încă întreg. Compactarea îl rescrie la dimensiunea lui reală. Amândouă lucrează pe baza de date vie și, cât timp rulează, orice altă scriere așteaptă.',

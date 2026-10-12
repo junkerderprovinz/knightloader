@@ -2416,7 +2416,6 @@ export const gl: Dict = {
   'select.reduceRemove': 'Quitar só as filas visibles',
   'select.reduceRemoveAria': '{n} das filas que van marchar non están visibles. Fai clic para quitar só as visibles.',
   'select.reduced': '{n} fila(s) sacada(s) da selección.',
-  'select.mark': 'Seleccionar',
   'remove.doneHidden': 'Quitáronse {n} descargas, e {hidden} delas non estaban á vista.',
   'settings.dbmaint.title': 'Mantemento da base de datos',
   'settings.dbmaint.hint': 'A lista de tarefas, o historial de descargas e o estado da interface están xuntos nun só ficheiro SQLite. As filas borradas liberan espazo dentro dese ficheiro, pero nunca llo devolven ao disco, así que ao cabo duns anos o ficheiro adoita ocupar varias veces o que hai dentro del. A comprobación le cada páxina e di se o ficheiro segue intacto. A compactación reescríbeo co seu tamaño real. As dúas traballan sobre a base de datos en marcha e, mentres duran, reteñen calquera outra escritura.',

@@ -2420,7 +2420,6 @@ export const lt: Dict = {
   'select.reduceRemove': 'Šalinti tik matomas eilutes',
   'select.reduceRemoveAria': '{n} eilučių, kurios tuoj bus pašalintos, nematoma. Spustelėk, kad būtų pašalintos tik matomos eilutės.',
   'select.reduced': 'Iš žymėjimo išimta {n} eilučių.',
-  'select.mark': 'Pasirinkti',
   'remove.doneHidden': 'Pašalinta {n} atsiuntimų. {hidden} iš jų nematei.',
   'settings.dbmaint.title': 'Duomenų bazės priežiūra',
   'settings.dbmaint.hint': 'Užduočių sąrašas, atsisiuntimų istorija ir sąsajos būsena guli kartu viename SQLite faile. Ištrintos eilutės atlaisvina vietos failo viduje, bet niekada negrąžina jos diskui. Todėl po kelerių metų failas dažnai būna kelis kartus didesnis už tai, kas jame yra. Patikra perskaito kiekvieną puslapį ir pasako, ar failas dar sveikas. Suglaudinimas perrašo jį tikruoju jo dydžiu. Abu veiksmai dirba su veikiančia duomenų baze ir tol sulaiko bet kokį kitą rašymą.',

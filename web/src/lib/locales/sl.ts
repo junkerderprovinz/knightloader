@@ -2418,7 +2418,6 @@ export const sl: Dict = {
   'select.reduceRemove': 'Odstrani samo vidne vrstice',
   'select.reduceRemoveAria': '{n} vrstic, ki bodo odstranjene, ni vidnih. Klikni, da se odstranijo samo vidne vrstice.',
   'select.reduced': 'Iz izbora odstranjenih {n} vrstic.',
-  'select.mark': 'Izberi',
   'remove.doneHidden': 'Odstranjenih {n} prenosov. {hidden} od njih nisi videl.',
   'settings.dbmaint.title': 'Vzdrževanje podatkovne baze',
   'settings.dbmaint.hint': 'Seznam opravil, zgodovina prenosov in stanje vmesnika ležijo skupaj v eni datoteki SQLite. Izbrisane vrstice sprostijo prostor znotraj datoteke, nikoli pa ga ne vrnejo disku. Po nekaj letih je datoteka zato pogosto večkratnik svoje vsebine. Preverjanje prebere vsako stran in pove, ali je datoteka še cela. Strnjevanje jo znova zapiše na njeno pravo velikost. Oboje teče na delujoči podatkovni bazi in medtem zadržuje vsak drug pisalni dostop.',

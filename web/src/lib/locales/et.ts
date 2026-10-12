@@ -2410,7 +2410,6 @@ export const et: Dict = {
   'select.reduceRemove': 'Eemalda ainult nähtavad read',
   'select.reduceRemoveAria': 'Eemaldatavatest ridadest ei ole {n} nähtaval. Klõpsa, et eemaldada ainult nähtavad.',
   'select.reduced': 'Valikust võeti välja {n} rida.',
-  'select.mark': 'Vali',
   'remove.doneHidden': 'Eemaldati {n} allalaadimist. Neist {hidden} jäi sul nägemata.',
   'settings.dbmaint.title': 'Andmebaasi hooldus',
   'settings.dbmaint.hint': 'Ülesannete loend, allalaadimiste ajalugu ja liidese olek on koos ühes SQLite\'i failis. Kustutatud read vabastavad ruumi faili sees, aga ei anna seda kunagi kettale tagasi. Paari aasta pärast on fail seetõttu tihti mitu korda suurem kui tema sisu. Kontroll loeb läbi iga lehe ja ütleb, kas fail on veel terve. Tihendamine kirjutab selle ümber tema tegelikus suuruses. Mõlemad käivad töötava andmebaasi kallal ja hoiavad seni kinni iga teise kirjutuse.',

@@ -2419,7 +2419,6 @@ export const vi: Dict = {
   'select.reduceRemove': 'Chỉ bỏ những hàng đang hiện',
   'select.reduceRemoveAria': '{n} trong số các hàng sắp bị bỏ đang không hiện. Bấm để chỉ bỏ những hàng bạn đang thấy.',
   'select.reduced': 'Đã lấy {n} hàng ra khỏi phần đã chọn.',
-  'select.mark': 'Chọn',
   'remove.doneHidden': 'Đã bỏ {n} tải xuống. {hidden} trong số đó bạn không nhìn thấy.',
   'settings.dbmaint.title': 'Bảo trì cơ sở dữ liệu',
   'settings.dbmaint.hint': 'Danh sách tác vụ, lịch sử tải xuống và trạng thái giao diện nằm chung trong một tệp SQLite. Các hàng bị xóa trả chỗ lại cho bên trong tệp, nhưng không bao giờ trả về cho đĩa. Sau vài năm, tệp thường lớn gấp nhiều lần những gì nằm trong nó. Lượt kiểm tra đọc từng trang và cho biết tệp còn lành lặn hay không. Việc dồn nén ghi lại tệp theo đúng kích thước thật của nó. Cả hai đều chạy trên cơ sở dữ liệu đang hoạt động và giữ mọi lượt ghi khác lại trong suốt thời gian đó.',

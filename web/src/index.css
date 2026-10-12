@@ -840,7 +840,8 @@ body {
    utility, because the rainbow wash is an inset shadow painted above the
    background; the wash has to live in the same property at a higher
    specificity. No line runs down the row's edge: what is picked is filled
-   (GlimStone rule 5), and the selection mark at the row's start says which. */
+   (GlimStone rule 5), and the fill alone says which, with aria-selected
+   saying it to a screen reader. */
 .glim-row-selected,
 /* Listed with :hover so the row's hover utility cannot take the wash away. */
 .glim-row-selected:hover {
@@ -848,23 +849,6 @@ body {
 }
 [data-rainbow] .glim-tint.glim-row-selected {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
-}
-
-/* The selection mark of a list row (GlimStone, "Switches") stands in the
-   gutter before the row's first cell. It shows while the pointer or the focus
-   is on its row and once something in the list is picked. A touch screen has
-   no hover, so there a tap on a row brings the marks in. */
-.glim-select-mark {
-  position: absolute;
-  inset-inline-start: 4px;
-  top: 50%;
-  translate: 0 -50%;
-  opacity: 0;
-  transition: opacity var(--motion-control-dur, 0ms) ease;
-}
-:is(:hover, :focus-within) > .glim-select-mark,
-.glim-selecting .glim-select-mark {
-  opacity: 1;
 }
 
 /* A list row's buttons come in while the pointer is over the row or the focus

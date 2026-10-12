@@ -423,7 +423,6 @@ export const de: Dict = {
   'select.reduceRemove': 'Nur die sichtbaren Zeilen entfernen',
   'select.reduceRemoveAria': '{n} der Zeilen, die weggehen, sind nicht sichtbar. Klick, um nur die sichtbaren zu entfernen.',
   'select.reduced': '{n} Zeile(n) aus der Auswahl genommen.',
-  'select.mark': 'Auswählen',
   'settings.removePassword': 'Passwort entfernen',
 
   'common.cancel': 'Abbrechen',

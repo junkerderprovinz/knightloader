@@ -2419,7 +2419,6 @@ export const sv: Dict = {
   'select.reduceRemove': 'Ta bort bara de synliga raderna',
   'select.reduceRemoveAria': '{n} av raderna som ska bort är inte synliga. Klicka för att bara ta bort de synliga.',
   'select.reduced': '{n} rad(er) togs ur markeringen.',
-  'select.mark': 'Välj',
   'remove.doneHidden': 'Tog bort {n} nedladdning(ar). {hidden} av dem såg du inte.',
   'settings.dbmaint.title': 'Databasunderhåll',
   'settings.dbmaint.hint': 'Uppgiftslistan, nedladdningshistoriken och gränssnittets tillstånd ligger tillsammans i en enda SQLite-fil. Raderade rader ger tillbaka plats inuti filen, men aldrig till disken. Efter några år är filen därför ofta flera gånger så stor som sitt innehåll. Kontrollen läser varje sida och säger om filen fortfarande är hel. Komprimeringen skriver om den i dess verkliga storlek. Båda arbetar mot den databas som körs, och håller under tiden tillbaka varje annan skrivning.',
