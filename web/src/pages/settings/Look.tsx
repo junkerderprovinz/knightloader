@@ -63,7 +63,7 @@ import { useDraft } from './context';
 import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
-import { UpdatesCard } from './look/Updates';
+import { BuiltInCard, UpdatesCard } from './look/Updates';
 import { WindowCard } from './appearance/WindowCard';
 import { SettingsTransfer } from './look/SettingsTransfer';
 import { JDImportCard } from './look/JDImport';
@@ -766,7 +766,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
       {general && <MutedDialogsCard hue={1} />}
       {general && <SystemCards hue={2} />}
-      {general && <JDImportCard hue={4} />}
+      {general && <JDImportCard hue={5} />}
     </div>
   );
 }
@@ -797,11 +797,11 @@ function MutedDialogsCard({ hue }: { hue: number }) {
 }
 
 /**
- * SystemCards holds the update card, with quit and restart as its second
- * group, and the transfer card, on `hue` and the one after it. Lifecycle does
- * the deployment fetch alone, so a slow /api/deployment hides neither card;
- * it and the transfer card share `shuttingDown`, since a restore can restart
- * the server.
+ * SystemCards holds the update card, with quit and restart as its last group,
+ * the card of built-in parts and the transfer card, on `hue` and the two after
+ * it. Lifecycle does the deployment fetch alone, so a slow /api/deployment
+ * hides no card; it and the transfer card share `shuttingDown`, since a
+ * restore can restart the server.
  */
 function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
@@ -810,7 +810,8 @@ function SystemCards({ hue }: { hue: number }) {
       <UpdatesCard hue={hue}>
         <Lifecycle shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
       </UpdatesCard>
-      <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
+      <BuiltInCard hue={hue + 1} />
+      <SettingsTransfer hue={hue + 2} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }

@@ -3629,7 +3629,7 @@ export const vi: Dict = {
   'whatsnew.change.accountKinds': '“{name}” mở một ô lớn cho từng loại tài khoản, xếp chồng từ trên xuống theo thứ tự các thẻ trên trang này.',
   'whatsnew.change.fillSurface': 'Mỗi mức lấp đầy nhấp nhô nhẹ nhàng và không đều ở bề mặt của nó: các thư mục dưới “{name}”, “{volume}” và lưu lượng của một tài khoản.',
   'whatsnew.change.windowCard': 'Trong ứng dụng máy tính, “{name}” quyết định cửa sổ và biểu tượng của nó ở khu thông báo hoạt động thế nào.',
-  'whatsnew.change.updatesCard': '“{name}” liệt kê mọi công cụ mà KnightLoader mang theo, mỗi công cụ một dòng kèm phiên bản và nguồn gốc, và cập nhật KnightLoader cùng yt-dlp.',
+  'whatsnew.change.updatesCard': '“{name}” chứa KnightLoader và yt-dlp, mỗi cái trên một thẻ con riêng kèm phiên bản, nguồn gốc và bản cập nhật.',
   'whatsnew.change.mirrorPolicy': 'Trong “{name}”, một danh sách thả xuống cạnh nhãn quyết định khi nào hai liên kết được tính là cùng một tệp.',
   'whatsnew.change.videoCard': 'Thẻ “{name}” đặt chất lượng mà video được tải về, bằng danh sách thả xuống cạnh nhãn.',
   'whatsnew.change.filesCard': '“{name}” có thẻ riêng: cả danh sách phát và cách đặt tên tệp.',
@@ -3656,4 +3656,7 @@ export const vi: Dict = {
   'settings.captcha.orderIntro': 'Hình chính là thứ tự: một captcha đến tài khoản captcha trên cùng trước, rồi lần lượt xuống dưới. Kéo một tên để di chuyển nó.',
   'whatsnew.change.captchaPriority': '“{name}” sắp xếp các tài khoản captcha đã kết nối giống như “{download}” sắp xếp các backend. Thời điểm chúng bắt đầu và captcha thử cũng nằm ở đó.',
   'whatsnew.change.searchBox': 'Mọi ô tìm kiếm đều trông và hoạt động như ô trong Cài đặt: khi bạn gõ, ô đổi sắc màu và kính lúp sáng lên, còn Escape hoặc dấu chéo sẽ xóa trống ô.',
+  'settings.look.builtInTitle': 'Thành phần tích hợp',
+  'settings.look.builtInHint': 'Những gì KnightLoader mang theo hoặc chạy bên cạnh, mỗi phần kèm phiên bản và nguồn gốc. Các phần này đi cùng KnightLoader hoặc ảnh container, hoặc tự cập nhật, nên ở đây không có gì để cập nhật.',
+  'whatsnew.change.builtIn': '“{name}” liệt kê mọi phần đi kèm KnightLoader, kèm phiên bản và nguồn gốc. Những gì cập nhật được vẫn nằm ở “{updates}”.',
 };

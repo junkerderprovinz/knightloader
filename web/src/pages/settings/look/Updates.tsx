@@ -28,14 +28,16 @@ import {
 import { IconCheck, IconClose, IconDownload, IconRefresh } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
+import { SubCard } from '../controls';
 
-// Every tool KnightLoader brings, one row each with its version and where it
-// comes from, and the updates of the two it can update: itself and yt-dlp,
-// each with the same two switches under the same names and a check button
-// that shows its answer on itself. yt-dlp is the one program outside the build
-// that moves faster than KnightLoader's releases, which is why it is updated
-// here at all. The rest come with the image, the computer or the build, or
-// update themselves.
+// Two cards. Updates holds what can be updated on its own, KnightLoader and
+// yt-dlp, each a sub-card with its version, where it comes from, the same two
+// switches under the same names and a check button that shows its answer on
+// itself. yt-dlp is the one program outside the build that moves faster than
+// KnightLoader's releases, which is why it is updated here at all. The other
+// card lists the rest, one row each with its version and where it comes from:
+// they come with the image, the computer or the build, or update themselves,
+// so there is nothing to press.
 
 type Translate = ReturnType<typeof useT>['t'];
 
@@ -84,23 +86,10 @@ function CheckButton({
 }
 
 /**
- * ToolRow is one tool: its name and what it does, its version and where it
- * comes from, in columns every row of the card shares. `children` are the
- * update controls of a tool KnightLoader updates.
+ * ToolRow is one built-in part: its name and what it does, its version and
+ * where it comes from, in columns every row of the card shares.
  */
-function ToolRow({
-  name,
-  sub,
-  version,
-  source,
-  children,
-}: {
-  name: string;
-  sub?: string;
-  version: ReactNode;
-  source: string;
-  children?: ReactNode;
-}) {
+function ToolRow({ name, sub, version, source }: { name: string; sub?: string; version: ReactNode; source: string }) {
   return (
     <section className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_15rem]">
@@ -113,9 +102,56 @@ function ToolRow({
         </span>
         <span className="col-span-2 text-subline text-carbon-textMuted @xl:col-span-1">{source}</span>
       </div>
-      {children}
     </section>
   );
+}
+
+/**
+ * ToolCard is a part KnightLoader updates, as a sub-card: its name, its
+ * version and where it comes from at the heading's end, and its update
+ * controls under them.
+ */
+function ToolCard({
+  name,
+  sub,
+  version,
+  source,
+  children,
+}: {
+  name: string;
+  sub?: string;
+  version: ReactNode;
+  source: string;
+  children: ReactNode;
+}) {
+  return (
+    <SubCard
+      label={name}
+      hint={sub}
+      className="gap-3"
+      right={
+        <span className="flex flex-col items-end">
+          <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
+            {version}
+          </span>
+          <span className="text-subline text-carbon-textMuted">{source}</span>
+        </span>
+      }
+    >
+      {children}
+    </SubCard>
+  );
+}
+
+/** useDeployment is how this instance runs, null until the server has said. */
+function useDeployment(): DeploymentInfo | null {
+  const [deployment, setDeployment] = useState<DeploymentInfo | null>(null);
+  useEffect(() => {
+    void fetchDeploymentInfo()
+      .then(setDeployment)
+      .catch(() => {});
+  }, []);
+  return deployment;
 }
 
 /** Where a program on the server's path comes from: the image in a container, the computer otherwise. */
@@ -123,35 +159,69 @@ const hostSource = (t: Translate, deployment: string) =>
   t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
 
 /**
- * UpdatesCard lists every tool, with the updates of KnightLoader and yt-dlp
- * under their rows. `children` is a further group of the card, such as quit
- * and restart.
+ * UpdatesCard holds the updates of KnightLoader and yt-dlp, each a sub-card.
+ * `children` is a further group of the card, such as quit and restart.
  */
 export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
-  const [deployment, setDeployment] = useState<DeploymentInfo | null>(null);
-
-  useEffect(() => {
-    void fetchDeploymentInfo()
-      .then(setDeployment)
-      .catch(() => {});
-  }, []);
+  const deployment = useDeployment();
 
   return (
-    <Card hue={hue} data-new="updates-card" className="flex flex-col gap-6">
+    <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.look.updatesHint')}>{t('settings.look.updatesTitle')}</SectionTitle>
       {/* Wait for the deployment rather than flash the wrong copy. */}
       {deployment && (
-        <div className="@container flex flex-col divide-y divide-carbon-border/40">
+        <>
           <AppUpdates deployment={deployment.deployment} />
-          <MediaTools deployment={deployment.deployment} />
+          <YtdlpUpdates deployment={deployment.deployment} />
+        </>
+      )}
+      {children}
+    </Card>
+  );
+}
+
+/**
+ * BuiltInCard lists every part KnightLoader brings or runs beside it and does
+ * not update on its own, each with its version and where it comes from.
+ */
+export function BuiltInCard({ hue }: { hue: number }) {
+  const { t } = useT();
+  const deployment = useDeployment();
+  const [tools, setTools] = useState<MediaToolsStatus | null>(null);
+
+  useEffect(() => {
+    void fetchMediaTools()
+      .then(setTools)
+      .catch(() => {});
+  }, []);
+
+  const found = (tool?: { found: boolean; version?: string }) =>
+    tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
+
+  return (
+    <Card hue={hue} data-new="built-in" className="flex flex-col gap-6">
+      <SectionTitle hint={t('settings.look.builtInHint')}>{t('settings.look.builtInTitle')}</SectionTitle>
+      {deployment && (
+        <div className="@container flex flex-col divide-y divide-carbon-border/40">
+          <ToolRow
+            name="ffmpeg"
+            sub={t('settings.info.ffmpegSub')}
+            version={found(tools?.ffmpeg)}
+            source={hostSource(t, deployment.deployment)}
+          />
+          <ToolRow
+            name="ffprobe"
+            sub={t('settings.look.tool.ffprobe')}
+            version={found(tools?.ffprobe)}
+            source={hostSource(t, deployment.deployment)}
+          />
           <JDRow />
           {(deployment.engines ?? []).map((m) => (
             <EngineRow key={m.path} module={m} />
           ))}
         </div>
       )}
-      {children}
     </Card>
   );
 }
@@ -204,7 +274,7 @@ function AppUpdates({ deployment }: { deployment: string }) {
   const face = checkFace(t, check ? check.checked : null, available);
 
   return (
-    <ToolRow
+    <ToolCard
       name="KnightLoader"
       version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}
       source={t('settings.look.toolsSource.release')}
@@ -242,7 +312,7 @@ function AppUpdates({ deployment }: { deployment: string }) {
       <div className="flex justify-end">
         <CheckButton face={face} checking={checking} shake={shake} onCheck={() => void onCheck()} />
       </div>
-    </ToolRow>
+    </ToolCard>
   );
 }
 
@@ -272,13 +342,13 @@ function compareVersions(a: string, b: string): number | null {
 const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '');
 
 /**
- * MediaTools are the programs a media download runs. yt-dlp's row fetches a
- * newer yt-dlp than the image carries when a site breaks between image
- * builds, by a button press or once a day while ytdlpAutoUpdate is on. With
- * the daily update off a fetched copy never moves again, so the row warns when
- * it has fallen behind the image's own (Status.shadowed).
+ * YtdlpUpdates fetches a newer yt-dlp than the image carries when a site
+ * breaks between image builds, by a button press or once a day while
+ * ytdlpAutoUpdate is on. With the daily update off a fetched copy never moves
+ * again, so the sub-card warns when it has fallen behind the image's own
+ * (Status.shadowed).
  */
-function MediaTools({ deployment }: { deployment: string }) {
+function YtdlpUpdates({ deployment }: { deployment: string }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -387,96 +457,82 @@ function MediaTools({ deployment }: { deployment: string }) {
     tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
 
   return (
-    <>
-      <ToolRow
-        name="yt-dlp"
-        sub={t('settings.info.ytdlpSub')}
-        version={found(ytdlp)}
-        source={managedRunning ? t('settings.look.toolsSource.fetched') : hostSource(t, deployment)}
-      >
-        {managedRunning && shadowed && !managedIsOlder && (
-          <p className="text-xs text-carbon-textSub">
-            {t('settings.resolvers.toolsShadowed', {
-              path: shadowed.path ?? '',
-              version: shadowed.version || t('settings.resolvers.toolsNotFound'),
-            })}
-          </p>
-        )}
-        {managedIsOlder && (
-          <p className="text-xs text-statusWarn">
-            {t('settings.resolvers.toolsShadowedOlder', {
-              current: ytdlp?.version ?? '',
-              system: shadowed?.version ?? '',
-              path: shadowed?.path ?? '',
-            })}
-          </p>
-        )}
-        {managedBroken && (
-          <p className="text-xs text-statusWarn">
-            {t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' })}
-          </p>
-        )}
+    <ToolCard
+      name="yt-dlp"
+      sub={t('settings.info.ytdlpSub')}
+      version={found(ytdlp)}
+      source={managedRunning ? t('settings.look.toolsSource.fetched') : hostSource(t, deployment)}
+    >
+      {managedRunning && shadowed && !managedIsOlder && (
+        <p className="text-xs text-carbon-textSub">
+          {t('settings.resolvers.toolsShadowed', {
+            path: shadowed.path ?? '',
+            version: shadowed.version || t('settings.resolvers.toolsNotFound'),
+          })}
+        </p>
+      )}
+      {managedIsOlder && (
+        <p className="text-xs text-statusWarn">
+          {t('settings.resolvers.toolsShadowedOlder', {
+            current: ytdlp?.version ?? '',
+            system: shadowed?.version ?? '',
+            path: shadowed?.path ?? '',
+          })}
+        </p>
+      )}
+      {managedBroken && (
+        <p className="text-xs text-statusWarn">
+          {t('settings.resolvers.toolsManagedBroken', { path: tools?.managedPath ?? '' })}
+        </p>
+      )}
 
-        <ToggleRow
-          checked={cfg.ytdlpVersionCheck}
-          onChange={(v) => patch({ ytdlpVersionCheck: v })}
-          label={t('settings.look.updatesAuto')}
-          hint={t('settings.resolvers.toolsAutoCheckHint')}
-        />
-        <ToggleRow
-          checked={cfg.ytdlpAutoUpdate}
-          onChange={(v) => patch({ ytdlpAutoUpdate: v })}
-          label={t('settings.look.updatesAutoUpdate')}
-          hint={t('settings.resolvers.toolsAutoUpdateHint')}
-        />
-
-        {/* FieldGroup, because a label would pass clicks to the first button. */}
-        <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
-          {/* What the last action came to, above the buttons until the next one.
-              The fetch came after the check, so its outcome wins. */}
-          {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
-          {!failed && fetched && (
-            <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
-          )}
-          {!failed && !fetched && reverted && (
-            <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
-          )}
-          {!failed && !fetched && !reverted && latest && (
-            <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
-          )}
-
-          {/* Revert, check, fetch: the forward action sits last. The JSX order
-              sets it, so the row mirrors in right-to-left languages. */}
-          <div className="flex flex-wrap items-center justify-end gap-3">
-            {managed && (
-              <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
-                {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
-              </Button>
-            )}
-            <CheckButton face={face} checking={checking} disabled={busy} shake={shake} onCheck={() => void onCheck()} />
-            {/* Only after a check found a tag, so nobody fetches a version they
-                were not shown. */}
-            {latest?.checked && latest.tag && (
-              <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
-                {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
-              </Button>
-            )}
-          </div>
-        </FieldGroup>
-      </ToolRow>
-      <ToolRow
-        name="ffmpeg"
-        sub={t('settings.info.ffmpegSub')}
-        version={found(tools?.ffmpeg)}
-        source={hostSource(t, deployment)}
+      <ToggleRow
+        checked={cfg.ytdlpVersionCheck}
+        onChange={(v) => patch({ ytdlpVersionCheck: v })}
+        label={t('settings.look.updatesAuto')}
+        hint={t('settings.resolvers.toolsAutoCheckHint')}
       />
-      <ToolRow
-        name="ffprobe"
-        sub={t('settings.look.tool.ffprobe')}
-        version={found(tools?.ffprobe)}
-        source={hostSource(t, deployment)}
+      <ToggleRow
+        checked={cfg.ytdlpAutoUpdate}
+        onChange={(v) => patch({ ytdlpAutoUpdate: v })}
+        label={t('settings.look.updatesAutoUpdate')}
+        hint={t('settings.resolvers.toolsAutoUpdateHint')}
       />
-    </>
+
+      {/* FieldGroup, because a label would pass clicks to the first button. */}
+      <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
+        {/* What the last action came to, above the buttons until the next one.
+            The fetch came after the check, so its outcome wins. */}
+        {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
+        {!failed && fetched && (
+          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
+        )}
+        {!failed && !fetched && reverted && (
+          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
+        )}
+        {!failed && !fetched && !reverted && latest && (
+          <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
+        )}
+
+        {/* Revert, check, fetch: the forward action sits last. The JSX order
+            sets it, so the row mirrors in right-to-left languages. */}
+        <div className="flex flex-wrap items-center justify-end gap-3">
+          {managed && (
+            <Button kind="ghost" disabled={busy} onClick={() => void onRevert()}>
+              {reverting ? t('settings.resolvers.toolsReverting') : t('settings.resolvers.toolsRevert')}
+            </Button>
+          )}
+          <CheckButton face={face} checking={checking} disabled={busy} shake={shake} onCheck={() => void onCheck()} />
+          {/* Only after a check found a tag, so nobody fetches a version they
+              were not shown. */}
+          {latest?.checked && latest.tag && (
+            <Button kind="secondary" disabled={busy} onClick={() => void onFetch()}>
+              {fetching ? t('settings.resolvers.toolsFetching') : t('settings.resolvers.toolsFetch')}
+            </Button>
+          )}
+        </div>
+      </FieldGroup>
+    </ToolCard>
   );
 }
 

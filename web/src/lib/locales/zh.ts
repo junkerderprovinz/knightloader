@@ -3611,7 +3611,7 @@ export const zh: Dict = {
   'whatsnew.change.accountKinds': '“{name}”会为每种账户打开一个大磁贴，按本页卡片的顺序从上到下排列。',
   'whatsnew.change.fillSurface': '每个填充水平的表面都会轻柔而不规则地起伏：“{name}”下的文件夹、“{volume}”，以及账户的流量。',
   'whatsnew.change.windowCard': '在桌面应用中，“{name}”决定窗口及其通知区域图标的行为。',
-  'whatsnew.change.updatesCard': '“{name}”列出 KnightLoader 自带的每个工具，每个工具一行，附带版本和来源，并更新 KnightLoader 和 yt-dlp。',
+  'whatsnew.change.updatesCard': '“{name}”包含 KnightLoader 和 yt-dlp，各自在单独的子卡片上，附有版本、来源和更新。',
   'whatsnew.change.mirrorPolicy': '在“{name}”中，标签旁边的下拉列表决定两个链接何时算作同一个文件。',
   'whatsnew.change.videoCard': '“{name}”卡片通过标签旁边的下拉列表，决定视频以什么画质加载。',
   'whatsnew.change.filesCard': '“{name}”有了自己的卡片：整个播放列表和文件命名。',
@@ -3638,4 +3638,7 @@ export const zh: Dict = {
   'settings.captcha.orderIntro': '这张图就是顺序：验证码先交给最上面的验证码账户，再依次往下。拖动名称即可移动它。',
   'whatsnew.change.captchaPriority': '“{name}”像“{download}”排列后端那样排列你已连接的验证码账户。它们何时开始和测试验证码也在这里。',
   'whatsnew.change.searchBox': '每个搜索框的外观和用法都与设置里的一样：输入时框体变色、放大镜亮起，按 Escape 或点叉号即可清空。',
+  'settings.look.builtInTitle': '内置组件',
+  'settings.look.builtInHint': 'KnightLoader 自带或在旁运行的部分，每项都注明版本和来源。这些部分随 KnightLoader 或容器镜像提供，或会自行更新，因此这里没有需要更新的内容。',
+  'whatsnew.change.builtIn': '“{name}”列出 KnightLoader 自带的每个部分，并注明版本和来源。可以更新的内容仍在“{updates}”中。',
 };

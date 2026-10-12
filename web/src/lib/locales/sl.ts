@@ -3628,7 +3628,7 @@ export const sl: Dict = {
   'whatsnew.change.accountKinds': '»{name}« odpre veliko ploščico za vsako vrsto računa, eno pod drugo v vrstnem redu kartic na tej strani.',
   'whatsnew.change.fillSurface': 'Vsaka raven napolnjenosti se na površini nežno in neenakomerno valovi: mape pod »{name}«, »{volume}« in promet računa.',
   'whatsnew.change.windowCard': 'V namizni aplikaciji »{name}« določa, kako se vedeta okno in njegova ikona v obvestilnem območju.',
-  'whatsnew.change.updatesCard': '»{name}« našteje vsako orodje, ki ga KnightLoader prinese s seboj, po eno vrstico na orodje z različico in izvorom, ter posodobi KnightLoader in yt-dlp.',
+  'whatsnew.change.updatesCard': '»{name}« vsebuje KnightLoader in yt-dlp, vsakega na svoji podkartici z različico, izvorom in posodobitvami.',
   'whatsnew.change.mirrorPolicy': 'V »{name}« spustni seznam ob oznaki določa, kdaj dve povezavi štejeta kot ista datoteka.',
   'whatsnew.change.videoCard': 'Kartica »{name}« določa kakovost, v kateri se video naloži, s spustnim seznamom ob oznaki.',
   'whatsnew.change.filesCard': '»{name}« ima svojo kartico: celotni seznami predvajanja in imena datotek.',
@@ -3655,4 +3655,7 @@ export const sl: Dict = {
   'settings.captcha.orderIntro': 'Slika je vrstni red: captcha gre najprej k računu captch na vrhu, nato navzdol. Povleci ime, da ga premakneš.',
   'whatsnew.change.captchaPriority': '»{name}« razvrsti tvoje povezane račune captch tako, kot »{download}« razvrsti zaledja. Tam sta tudi, kdaj začnejo, in preizkusna captcha.',
   'whatsnew.change.searchBox': 'Vsako iskalno polje je videti in deluje kot tisto v Nastavitvah: med tipkanjem polje spremeni odtenek in povečevalno steklo zasveti, Escape ali križec pa ga izpraznita.',
+  'settings.look.builtInTitle': 'Vgrajeni sestavni deli',
+  'settings.look.builtInHint': 'Kar KnightLoader prinese s seboj ali poganja ob sebi, vsak del s svojo različico in izvorom. Ti deli pridejo s KnightLoaderjem ali s sliko vsebnika ali se posodabljajo sami, zato tu ni ničesar za posodobiti.',
+  'whatsnew.change.builtIn': '»{name}« našteje vsak del, ki pride s KnightLoaderjem, z različico in izvorom. Kar je mogoče posodobiti, ostane na »{updates}«.',
 };

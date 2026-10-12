@@ -171,6 +171,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.updatesCard',
         names: { name: 'settings.look.updatesTitle' },
       },
+      {
+        id: 'built-in',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.builtIn',
+        names: { name: 'settings.look.builtInTitle', updates: 'settings.look.updatesTitle' },
+      },
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
       { id: 'pairing-group', to: ['/settings/pairing'], text: 'whatsnew.change.pairingGroup' },

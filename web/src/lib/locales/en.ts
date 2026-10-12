@@ -3873,7 +3873,7 @@ export const en = {
   'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account, one below the other in the order of the cards on this page.',
   'whatsnew.change.fillSurface': 'Every fill level sloshes gently and unevenly at its surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
-  'whatsnew.change.updatesCard': '"{name}" lists every tool KnightLoader brings along, one row each with its version and where it comes from, and updates KnightLoader and yt-dlp.',
+  'whatsnew.change.updatesCard': '"{name}" holds KnightLoader and yt-dlp, each on a sub-card of its own with its version, where it comes from and its updates.',
   'whatsnew.change.mirrorPolicy': 'In "{name}" a dropdown beside its label decides when two links count as the same file.',
   'whatsnew.change.videoCard': 'The card "{name}" sets the quality a video is loaded in, with the dropdown beside its label.',
   'whatsnew.change.filesCard': '"{name}" has a card of its own: whole playlists and how files are named.',
@@ -3900,6 +3900,9 @@ export const en = {
   'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the captcha account at the top first, then on down. Drag a name to move it.',
   'whatsnew.change.captchaPriority': '"{name}" orders your connected captcha accounts the way "{download}" orders the backends. When they start and the test captcha are in it too.',
   'whatsnew.change.searchBox': 'Every search field looks and works like the one in Settings: the box changes its shade and the magnifier lights up while you type, and Escape or the cross empties it.',
+  'settings.look.builtInTitle': 'Built-in components',
+  'settings.look.builtInHint': 'What KnightLoader brings along or runs beside it, each with its version and where it comes from. These parts come with KnightLoader or the container image, or update themselves, so there is nothing to update here.',
+  'whatsnew.change.builtIn': '"{name}" lists every part that comes with KnightLoader, each with its version and where it comes from. What can be updated stays on "{updates}".',
 } as const;
 
 export type TranslationKey = keyof typeof en;

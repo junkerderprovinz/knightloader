@@ -3631,7 +3631,7 @@ export const fi: Dict = {
   'whatsnew.change.accountKinds': '”{name}” avaa suuren ruudun jokaiselle tilityypille, allekkain tämän sivun korttien järjestyksessä.',
   'whatsnew.change.fillSurface': 'Jokainen täyttötaso läikehtii pinnaltaan pehmeästi ja epätasaisesti: kansiot kohdassa ”{name}”, ”{volume}” ja tilin liikenne.',
   'whatsnew.change.windowCard': 'Työpöytäsovelluksessa ”{name}” määrää, miten ikkuna ja sen ilmoitusalueen kuvake toimivat.',
-  'whatsnew.change.updatesCard': '”{name}” luettelee jokaisen työkalun, jonka KnightLoader tuo mukanaan, yksi rivi kullekin version ja alkuperän kanssa, ja päivittää KnightLoaderin ja yt-dlp:n.',
+  'whatsnew.change.updatesCard': '”{name}” sisältää KnightLoaderin ja yt-dlp:n, kumpikin omalla alakortillaan versioineen, alkuperineen ja päivityksineen.',
   'whatsnew.change.mirrorPolicy': 'Kohdassa ”{name}” otsikon vieressä oleva pudotusvalikko päättää, milloin kaksi linkkiä lasketaan samaksi tiedostoksi.',
   'whatsnew.change.videoCard': 'Kortti ”{name}” määrää, millä laadulla video ladataan, otsikon vieressä olevalla pudotusvalikolla.',
   'whatsnew.change.filesCard': '”{name}” on oma korttinsa: kokonaiset soittolistat ja tiedostojen nimet.',
@@ -3658,4 +3658,7 @@ export const fi: Dict = {
   'settings.captcha.orderIntro': 'Kuva on järjestys: captcha menee ensin ylimmälle captcha-tilille ja sitten alaspäin. Siirrä nimeä vetämällä.',
   'whatsnew.change.captchaPriority': '”{name}” järjestää yhdistetyt captcha-tilisi samalla tavalla kuin ”{download}” järjestää taustapalvelut. Siinä ovat myös niiden aloitushetki ja testicaptcha.',
   'whatsnew.change.searchBox': 'Jokainen hakukenttä näyttää ja toimii kuin Asetusten kenttä: kun kirjoitat, kentän sävy vaihtuu ja suurennuslasi syttyy, ja Escape tai risti tyhjentää sen.',
+  'settings.look.builtInTitle': 'Sisäänrakennetut osat',
+  'settings.look.builtInHint': 'Mitä KnightLoader tuo mukanaan tai ajaa rinnallaan, kukin versionsa ja alkuperänsä kanssa. Nämä osat tulevat KnightLoaderin tai konttikuvan mukana tai päivittävät itsensä, joten täällä ei ole mitään päivitettävää.',
+  'whatsnew.change.builtIn': '”{name}” luettelee jokaisen osan, joka tulee KnightLoaderin mukana, versioineen ja alkuperineen. Päivitettävät jäävät korttiin ”{updates}”.',
 };

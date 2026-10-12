@@ -3631,7 +3631,7 @@ export const lt: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ atveria didelę plytelę kiekvienai paskyros rūšiai, vieną po kita šio puslapio kortelių tvarka.',
   'whatsnew.change.fillSurface': 'Kiekvienas užpildymo lygis švelniai ir netolygiai banguoja savo paviršiuje: aplankai skiltyje „{name}“, „{volume}“ ir paskyros srautas.',
   'whatsnew.change.windowCard': 'Darbalaukio programoje „{name}“ nustato, kaip elgiasi langas ir jo piktograma pranešimų srityje.',
-  'whatsnew.change.updatesCard': '„{name}“ išvardija kiekvieną įrankį, kurį KnightLoader atsineša, po vieną eilutę kiekvienam su versija ir kilme, ir atnaujina KnightLoader bei yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ turi KnightLoader ir yt-dlp, kiekvieną savoje pokortelėje su versija, kilme ir atnaujinimais.',
   'whatsnew.change.mirrorPolicy': 'Skiltyje „{name}“ išskleidžiamasis sąrašas šalia jos pavadinimo nusprendžia, kada dvi nuorodos laikomos tuo pačiu failu.',
   'whatsnew.change.videoCard': 'Kortelė „{name}“ nustato, kokia kokybe įkeliamas vaizdo įrašas, išskleidžiamuoju sąrašu šalia jos pavadinimo.',
   'whatsnew.change.filesCard': '„{name}“ turi savo kortelę: visi grojaraščiai ir failų pavadinimai.',
@@ -3658,4 +3658,7 @@ export const lt: Dict = {
   'settings.captcha.orderIntro': 'Paveikslas ir yra tvarka: captcha pirmiausia keliauja į viršutinę captcha paskyrą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
   'whatsnew.change.captchaPriority': '„{name}“ rikiuoja tavo prijungtas captcha paskyras taip, kaip „{download}“ rikiuoja sistemas. Ten yra ir tai, kada jos pradeda, ir bandomoji captcha.',
   'whatsnew.change.searchBox': 'Kiekvienas paieškos laukas atrodo ir veikia kaip tas nustatymuose: kol rašai, laukas pakeičia atspalvį ir užsidega didinamasis stiklas, o Escape arba kryželis jį išvalo.',
+  'settings.look.builtInTitle': 'Įtaisytieji komponentai',
+  'settings.look.builtInHint': 'Tai, ką KnightLoader atsineša arba paleidžia šalia savęs, kiekviena dalis su savo versija ir kilme. Šios dalys ateina su KnightLoader arba konteinerio atvaizdu, arba atsinaujina pačios, todėl čia nėra ko atnaujinti.',
+  'whatsnew.change.builtIn': '„{name}“ išvardija kiekvieną dalį, kuri ateina su KnightLoader, su versija ir kilme. Tai, ką galima atnaujinti, lieka kortelėje „{updates}“.',
 };

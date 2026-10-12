@@ -3612,7 +3612,7 @@ export const nl: Dict = {
   'whatsnew.change.accountKinds': '“{name}” opent een grote tegel voor elk soort account, onder elkaar in de volgorde van de kaarten op deze pagina.',
   'whatsnew.change.fillSurface': 'Elk vulniveau golft zacht en ongelijkmatig aan zijn oppervlak: de mappen onder “{name}”, “{volume}” en het verkeer van een account.',
   'whatsnew.change.windowCard': 'In de desktopapp bepaalt “{name}” hoe het venster en zijn pictogram in het systeemvak zich gedragen.',
-  'whatsnew.change.updatesCard': '“{name}” somt elk hulpmiddel op dat KnightLoader meebrengt, één regel per hulpmiddel met versie en herkomst, en werkt KnightLoader en yt-dlp bij.',
+  'whatsnew.change.updatesCard': '“{name}” bevat KnightLoader en yt-dlp, elk op een eigen subkaart met versie, herkomst en updates.',
   'whatsnew.change.mirrorPolicy': 'In “{name}” bepaalt een vervolgkeuzelijst naast het label wanneer twee links als hetzelfde bestand tellen.',
   'whatsnew.change.videoCard': 'De kaart “{name}” bepaalt in welke kwaliteit een video wordt geladen, met de vervolgkeuzelijst naast het label.',
   'whatsnew.change.filesCard': '“{name}” heeft een eigen kaart: hele afspeellijsten en hoe bestanden heten.',
@@ -3639,4 +3639,7 @@ export const nl: Dict = {
   'settings.captcha.orderIntro': 'De afbeelding is de volgorde: een captcha gaat eerst naar het captcha-account bovenaan en dan verder omlaag. Sleep een naam om hem te verplaatsen.',
   'whatsnew.change.captchaPriority': '“{name}” zet je gekoppelde captcha-accounts op volgorde zoals “{download}” de backends. Wanneer ze beginnen en de testcaptcha staan er ook in.',
   'whatsnew.change.searchBox': 'Elk zoekveld ziet eruit en werkt zoals dat in Instellingen: terwijl je typt, verandert het vak van tint en licht het vergrootglas op, en Escape of het kruisje maakt het leeg.',
+  'settings.look.builtInTitle': 'Ingebouwde onderdelen',
+  'settings.look.builtInHint': 'Wat KnightLoader meebrengt of naast zich laat draaien, elk met zijn versie en herkomst. Deze onderdelen komen met KnightLoader of het containerimage, of werken zichzelf bij, dus hier valt niets bij te werken.',
+  'whatsnew.change.builtIn': '“{name}” toont elk onderdeel dat met KnightLoader meekomt, met versie en herkomst. Wat bijgewerkt kan worden, blijft op “{updates}”.',
 };

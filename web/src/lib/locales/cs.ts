@@ -3639,7 +3639,7 @@ export const cs: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ otevře velkou dlaždici pro každý druh účtu, jednu pod druhou v pořadí karet na této stránce.',
   'whatsnew.change.fillSurface': 'Každá hladina plnění se na povrchu jemně a nerovnoměrně vlní: složky pod „{name}“, „{volume}“ a provoz účtu.',
   'whatsnew.change.windowCard': 'V desktopové aplikaci „{name}“ určuje, jak se chová okno a jeho ikona v oznamovací oblasti.',
-  'whatsnew.change.updatesCard': '„{name}“ vypíše každý nástroj, který KnightLoader obsahuje, na jednom řádku s verzí a původem, a aktualizuje KnightLoader a yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ obsahuje KnightLoader a yt-dlp, každý na vlastní podkartě se svou verzí, původem a aktualizacemi.',
   'whatsnew.change.mirrorPolicy': 'V „{name}“ rozbalovací nabídka vedle popisku určuje, kdy dva odkazy znamenají stejný soubor.',
   'whatsnew.change.videoCard': 'Karta „{name}“ nastavuje kvalitu, ve které se video stáhne, pomocí rozbalovací nabídky vedle popisku.',
   'whatsnew.change.filesCard': '„{name}“ má vlastní kartu: celé playlisty a pojmenování souborů.',
@@ -3666,4 +3666,7 @@ export const cs: Dict = {
   'settings.captcha.orderIntro': 'Obrázek je pořadí: captcha jde nejdřív k účtu captchy úplně nahoře a pak dál dolů. Jméno přesuneš přetažením.',
   'whatsnew.change.captchaPriority': '„{name}“ řadí tvé připojené účty captchy tak, jako „{download}“ řadí backendy. Je v ní i to, kdy začínají, a testovací captcha.',
   'whatsnew.change.searchBox': 'Každé vyhledávací pole vypadá a funguje jako to v Nastavení: když píšeš, pole změní odstín a lupa se rozsvítí, a Escape nebo křížek ho vyprázdní.',
+  'settings.look.builtInTitle': 'Vestavěné součásti',
+  'settings.look.builtInHint': 'Co KnightLoader přináší nebo spouští vedle sebe, každá část se svou verzí a původem. Tyto části přicházejí s KnightLoaderem nebo s obrazem kontejneru, nebo se aktualizují samy, takže tu není co aktualizovat.',
+  'whatsnew.change.builtIn': '„{name}“ uvádí každou část, kterou KnightLoader přináší, s její verzí a původem. Co jde aktualizovat, zůstává v „{updates}“.',
 };

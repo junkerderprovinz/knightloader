@@ -3626,7 +3626,7 @@ export const ar: Dict = {
   'whatsnew.change.accountKinds': '«{name}» يفتح بلاطة كبيرة لكل نوع من الحسابات، واحدة تحت الأخرى بترتيب البطاقات في هذه الصفحة.',
   'whatsnew.change.fillSurface': 'كل مستوى امتلاء يتمايل برفق وبشكل غير منتظم عند سطحه: المجلدات تحت «{name}» و«{volume}» وحركة بيانات الحساب.',
   'whatsnew.change.windowCard': 'في تطبيق سطح المكتب تحدد «{name}» كيف تتصرف النافذة وأيقونتها في منطقة الإشعارات.',
-  'whatsnew.change.updatesCard': '«{name}» يسرد كل أداة يأتي بها KnightLoader، في صف لكل أداة مع إصدارها ومصدرها، ويحدّث KnightLoader و yt-dlp.',
+  'whatsnew.change.updatesCard': 'تضم «{name}» KnightLoader وyt-dlp، كلًّا على بطاقة فرعية خاصة به مع إصداره ومصدره وتحديثاته.',
   'whatsnew.change.mirrorPolicy': 'في «{name}» تحدد قائمة منسدلة بجانب عنوانها متى يُعدّ رابطان الملفَّ نفسه.',
   'whatsnew.change.videoCard': 'تحدد بطاقة «{name}» الجودة التي يُحمَّل بها الفيديو، عبر القائمة المنسدلة بجانب عنوانها.',
   'whatsnew.change.filesCard': 'صار لـ«{name}» بطاقة خاصة: قوائم التشغيل الكاملة وطريقة تسمية الملفات.',
@@ -3653,4 +3653,7 @@ export const ar: Dict = {
   'settings.captcha.orderIntro': 'الصورة هي الترتيب: تذهب الكابتشا أولًا إلى حساب الكابتشا في الأعلى، ثم إلى ما تحته. اسحب اسمًا لتنقله.',
   'whatsnew.change.captchaPriority': 'ترتّب «{name}» حسابات الكابتشا المتصلة كما ترتّب «{download}» الواجهات الخلفية. وفيها أيضًا متى تبدأ والكابتشا التجريبية.',
   'whatsnew.change.searchBox': 'كل حقل بحث يبدو ويعمل مثل الحقل في الإعدادات: يتغير لون المربع وتضيء العدسة أثناء الكتابة، ويفرغه مفتاح Escape أو علامة الإغلاق.',
+  'settings.look.builtInTitle': 'المكونات المدمجة',
+  'settings.look.builtInHint': 'ما يحمله KnightLoader معه أو يشغّله بجانبه، ولكل منها إصداره ومصدره. تأتي هذه الأجزاء مع KnightLoader أو مع صورة الحاوية، أو تحدّث نفسها، لذا لا شيء لتحديثه هنا.',
+  'whatsnew.change.builtIn': 'تسرد «{name}» كل جزء يأتي مع KnightLoader، مع إصداره ومصدره. ما يمكن تحديثه يبقى في «{updates}».',
 };

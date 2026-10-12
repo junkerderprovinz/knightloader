@@ -3643,7 +3643,7 @@ export const hr: Dict = {
   'whatsnew.change.accountKinds': '„{name}” otvara veliku pločicu za svaku vrstu računa, jednu ispod druge redoslijedom kartica na ovoj stranici.',
   'whatsnew.change.fillSurface': 'Svaka razina popunjenosti nježno i neravnomjerno se njiše na svojoj površini: mape pod „{name}”, „{volume}” i promet jednog računa.',
   'whatsnew.change.windowCard': 'U desktop aplikaciji „{name}” određuje kako se ponašaju prozor i njegova ikona u području obavijesti.',
-  'whatsnew.change.updatesCard': '„{name}” navodi svaki alat koji KnightLoader donosi sa sobom, po jedan redak s verzijom i podrijetlom, te ažurira KnightLoader i yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}” sadrži KnightLoader i yt-dlp, svaki na vlastitoj potkartici sa svojom verzijom, podrijetlom i ažuriranjima.',
   'whatsnew.change.mirrorPolicy': 'U „{name}” padajući popis pokraj oznake određuje kada se dvije poveznice smatraju istom datotekom.',
   'whatsnew.change.videoCard': 'Kartica „{name}” određuje u kojoj se kvaliteti video učitava, padajućim popisom pokraj oznake.',
   'whatsnew.change.filesCard': '„{name}” ima vlastitu karticu: cijeli popisi za reprodukciju i nazivi datoteka.',
@@ -3670,4 +3670,7 @@ export const hr: Dict = {
   'settings.captcha.orderIntro': 'Slika je redoslijed: captcha ide prvo računu captche na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
   'whatsnew.change.captchaPriority': '„{name}” slaže tvoje povezane račune captche onako kako „{download}” slaže pozadine. U njoj su i kada počinju i probna captcha.',
   'whatsnew.change.searchBox': 'Svako polje za pretraživanje izgleda i radi kao ono u Postavkama: dok tipkaš, polje mijenja nijansu i povećalo zasvijetli, a Escape ili križić ga prazne.',
+  'settings.look.builtInTitle': 'Ugrađene komponente',
+  'settings.look.builtInHint': 'Ono što KnightLoader donosi sa sobom ili pokreće uz sebe, svaki dio sa svojom verzijom i podrijetlom. Ti dijelovi dolaze s KnightLoaderom ili sa slikom spremnika, ili se sami ažuriraju, pa ovdje nema što ažurirati.',
+  'whatsnew.change.builtIn': '„{name}” navodi svaki dio koji dolazi s KnightLoaderom, s verzijom i podrijetlom. Ono što se može ažurirati ostaje na „{updates}”.',
 };

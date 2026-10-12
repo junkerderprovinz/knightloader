@@ -3621,7 +3621,7 @@ export const et: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ avab iga kontoliigi jaoks suure paani, üksteise all selle lehe kaartide järjekorras.',
   'whatsnew.change.fillSurface': 'Iga täitetase loksub pinnal õrnalt ja ebaühtlaselt: kaustad jaotises „{name}“, „{volume}“ ja konto andmemaht.',
   'whatsnew.change.windowCard': 'Töölauarakenduses määrab „{name}“, kuidas aken ja selle ikoon teavitusalal käituvad.',
-  'whatsnew.change.updatesCard': '„{name}“ loetleb iga tööriista, mille KnightLoader kaasa toob, igaühe kohta üks rida versiooni ja päritoluga, ning uuendab KnightLoaderit ja yt-dlp-d.',
+  'whatsnew.change.updatesCard': '„{name}“ sisaldab KnightLoaderit ja yt-dlp-d, kumbki oma alamkaardil koos versiooni, päritolu ja uuendustega.',
   'whatsnew.change.mirrorPolicy': 'Jaotises „{name}“ otsustab sildi kõrval olev rippmenüü, millal kaks linki loetakse samaks failiks.',
   'whatsnew.change.videoCard': 'Kaart „{name}“ määrab, mis kvaliteediga video laaditakse, sildi kõrval oleva rippmenüüga.',
   'whatsnew.change.filesCard': '„{name}“ on nüüd eraldi kaart: terved esitusloendid ja failide nimed.',
@@ -3648,4 +3648,7 @@ export const et: Dict = {
   'settings.captcha.orderIntro': 'Pilt ongi järjekord: captcha läheb kõigepealt ülemisele captcha kontole ja siis allapoole. Nime liigutamiseks lohista seda.',
   'whatsnew.change.captchaPriority': '„{name}“ järjestab sinu ühendatud captcha kontod samamoodi, nagu „{download}“ järjestab taustateenused. Seal on ka see, millal nad alustavad, ja proovicaptcha.',
   'whatsnew.change.searchBox': 'Iga otsinguväli näeb välja ja töötab nagu see seadetes: trükkimise ajal muutub välja toon ja luup süttib ning Escape või rist tühjendab selle.',
+  'settings.look.builtInTitle': 'Sisseehitatud osad',
+  'settings.look.builtInHint': 'See, mida KnightLoader kaasa toob või enda kõrval käitab, igaüks oma versiooni ja päritoluga. Need osad tulevad koos KnightLoaderi või konteineri tõmmisega või uuendavad end ise, seega pole siin midagi uuendada.',
+  'whatsnew.change.builtIn': '„{name}“ loetleb iga osa, mis tuleb koos KnightLoaderiga, koos versiooni ja päritoluga. Mida saab uuendada, jääb kaardile „{updates}“.',
 };

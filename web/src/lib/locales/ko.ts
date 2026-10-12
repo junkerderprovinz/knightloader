@@ -3616,7 +3616,7 @@ export const ko: Dict = {
   'whatsnew.change.accountKinds': '“{name}” 버튼은 계정 종류마다 큰 타일을 이 페이지 카드 순서대로 위아래로 엽니다.',
   'whatsnew.change.fillSurface': '채움 수준은 모두 표면에서 부드럽고 불규칙하게 출렁입니다. “{name}” 아래의 폴더, “{volume}”, 계정의 트래픽이 해당됩니다.',
   'whatsnew.change.windowCard': '데스크톱 앱에서는 “{name}” 카드에서 창과 알림 영역 아이콘의 동작을 정합니다.',
-  'whatsnew.change.updatesCard': '“{name}”는 KnightLoader에 함께 들어 있는 모든 도구를 도구마다 한 줄로 버전과 출처와 함께 나열하고, KnightLoader와 yt-dlp를 업데이트합니다.',
+  'whatsnew.change.updatesCard': '“{name}”에는 KnightLoader와 yt-dlp가 각자의 하위 카드에 버전, 출처, 업데이트와 함께 들어 있습니다.',
   'whatsnew.change.mirrorPolicy': '“{name}” 카드에서는 라벨 옆의 드롭다운에서 두 링크를 같은 파일로 볼 조건을 고릅니다.',
   'whatsnew.change.videoCard': '“{name}” 카드는 라벨 옆의 드롭다운으로 동영상을 불러올 화질을 정합니다.',
   'whatsnew.change.filesCard': '“{name}” 항목은 별도 카드가 되어 재생목록 전체 받기와 파일 이름 규칙을 담고 있습니다.',
@@ -3643,4 +3643,7 @@ export const ko: Dict = {
   'settings.captcha.orderIntro': '그림이 곧 순서입니다. 캡차는 맨 위의 캡차 계정으로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
   'whatsnew.change.captchaPriority': '“{name}”은 “{download}”이 백엔드를 정렬하는 방식으로 연결된 캡차 계정을 정렬합니다. 시작 시점과 테스트 캡차도 여기에 있습니다.',
   'whatsnew.change.searchBox': '모든 검색 칸이 설정의 검색 칸과 같은 모양과 동작을 합니다. 입력하는 동안 칸의 색조가 바뀌고 돋보기에 불이 들어오며, Escape나 X로 비울 수 있습니다.',
+  'settings.look.builtInTitle': '내장 구성 요소',
+  'settings.look.builtInHint': 'KnightLoader가 함께 가져오거나 옆에서 실행하는 것들로, 각각의 버전과 출처를 보여 줍니다. 이 부분들은 KnightLoader나 컨테이너 이미지와 함께 오거나 스스로 업데이트되므로 여기서 업데이트할 것은 없습니다.',
+  'whatsnew.change.builtIn': '“{name}”은 KnightLoader와 함께 오는 모든 부분을 버전과 출처와 함께 나열합니다. 업데이트할 수 있는 것은 “{updates}”에 그대로 있습니다.',
 };

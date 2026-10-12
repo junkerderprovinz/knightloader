@@ -3639,7 +3639,7 @@ export const sk: Dict = {
   'whatsnew.change.accountKinds': '„{name}“ otvorí veľkú dlaždicu pre každý druh účtu, jednu pod druhou v poradí kariet na tejto stránke.',
   'whatsnew.change.fillSurface': 'Každá hladina plnenia sa na povrchu jemne a nerovnomerne vlní: priečinky pod „{name}“, „{volume}“ a prevádzka účtu.',
   'whatsnew.change.windowCard': 'V desktopovej aplikácii „{name}“ určuje, ako sa správa okno a jeho ikona v oblasti oznámení.',
-  'whatsnew.change.updatesCard': '„{name}“ vypíše každý nástroj, ktorý KnightLoader prináša so sebou, na jednom riadku s verziou a pôvodom, a aktualizuje KnightLoader a yt-dlp.',
+  'whatsnew.change.updatesCard': '„{name}“ obsahuje KnightLoader a yt-dlp, každý na vlastnej podkarte so svojou verziou, pôvodom a aktualizáciami.',
   'whatsnew.change.mirrorPolicy': 'V „{name}“ rozbaľovací zoznam vedľa popisu určuje, kedy sa dva odkazy rátajú ako ten istý súbor.',
   'whatsnew.change.videoCard': 'Karta „{name}“ nastavuje kvalitu, v ktorej sa video načíta, rozbaľovacím zoznamom vedľa popisu.',
   'whatsnew.change.filesCard': '„{name}“ má vlastnú kartu: celé playlisty a pomenovanie súborov.',
@@ -3666,4 +3666,7 @@ export const sk: Dict = {
   'settings.captcha.orderIntro': 'Obrázok je poradie: captcha ide najprv k účtu captchy úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
   'whatsnew.change.captchaPriority': '„{name}“ radí tvoje pripojené účty captchy tak, ako „{download}“ radí backendy. Je v nej aj to, kedy začínajú, a testovacia captcha.',
   'whatsnew.change.searchBox': 'Každé vyhľadávacie pole vyzerá a funguje ako to v Nastaveniach: kým píšeš, pole zmení odtieň a lupa sa rozsvieti, a Escape alebo krížik ho vyprázdni.',
+  'settings.look.builtInTitle': 'Vstavané súčasti',
+  'settings.look.builtInHint': 'Čo KnightLoader prináša alebo spúšťa vedľa seba, každá časť so svojou verziou a pôvodom. Tieto časti prichádzajú s KnightLoaderom alebo s obrazom kontajnera, alebo sa aktualizujú samy, takže tu nie je čo aktualizovať.',
+  'whatsnew.change.builtIn': '„{name}“ uvádza každú časť, ktorú KnightLoader prináša, s jej verziou a pôvodom. Čo sa dá aktualizovať, zostáva v „{updates}“.',
 };

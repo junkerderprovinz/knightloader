@@ -3631,7 +3631,7 @@ export const hu: Dict = {
   'whatsnew.change.accountKinds': 'A(z) „{name}” minden fióktípushoz nagy csempét nyit, egymás alatt, az oldal kártyáinak sorrendjében.',
   'whatsnew.change.fillSurface': 'Minden töltöttségi szint finoman és egyenetlenül hullámzik a felszínén: a(z) „{name}” alatti mappák, a(z) „{volume}” és egy fiók forgalma.',
   'whatsnew.change.windowCard': 'Az asztali alkalmazásban a(z) „{name}” szabja meg, hogyan viselkedik az ablak és az értesítési területen lévő ikonja.',
-  'whatsnew.change.updatesCard': 'A(z) „{name}” felsorol minden eszközt, amelyet a KnightLoader magával hoz, eszközönként egy sorban a verzióval és a származással, és frissíti a KnightLoadert és a yt-dlp-t.',
+  'whatsnew.change.updatesCard': 'A(z) „{name}” a KnightLoadert és a yt-dlp-t tartalmazza, mindkettőt saját alkártyán a verziójával, eredetével és frissítéseivel.',
   'whatsnew.change.mirrorPolicy': 'A(z) „{name}” részben a felirata melletti legördülő lista dönti el, mikor számít két link ugyanannak a fájlnak.',
   'whatsnew.change.videoCard': 'A(z) „{name}” kártya állítja be, milyen minőségben töltődik be egy videó, a felirata melletti legördülő listával.',
   'whatsnew.change.filesCard': 'A(z) „{name}” saját kártyát kapott: teljes lejátszási listák és a fájlok elnevezése.',
@@ -3658,4 +3658,7 @@ export const hu: Dict = {
   'settings.captcha.orderIntro': 'A kép maga a sorrend: a captcha először a legfelső captcha-fiókhoz kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
   'whatsnew.change.captchaPriority': 'A(z) „{name}” úgy rendezi a csatlakoztatott captcha-fiókjaidat, ahogy a(z) „{download}” a háttérrendszereket. Az is itt van, mikor indulnak, és a próba-captcha is.',
   'whatsnew.change.searchBox': 'Minden keresőmező úgy néz ki és úgy működik, mint a Beállításokban: gépelés közben a mező árnyalata megváltozik és a nagyító felvillan, az Escape vagy az X pedig kiüríti.',
+  'settings.look.builtInTitle': 'Beépített összetevők',
+  'settings.look.builtInHint': 'Amit a KnightLoader magával hoz vagy maga mellett futtat, mindegyik a verziójával és az eredetével. Ezek a részek a KnightLoaderrel vagy a konténer lemezképével érkeznek, vagy maguktól frissülnek, ezért itt nincs mit frissíteni.',
+  'whatsnew.change.builtIn': 'A(z) „{name}” felsorol minden részt, ami a KnightLoaderrel érkezik, a verziójával és az eredetével. Ami frissíthető, az a(z) „{updates}” kártyán marad.',
 };

@@ -3629,7 +3629,7 @@ export const id: Dict = {
   'whatsnew.change.accountKinds': '“{name}” membuka ubin besar untuk setiap jenis akun, berurutan ke bawah sesuai urutan kartu di halaman ini.',
   'whatsnew.change.fillSurface': 'Setiap tingkat isi bergoyang pelan dan tak beraturan di permukaannya: folder di bawah “{name}”, “{volume}”, dan lalu lintas sebuah akun.',
   'whatsnew.change.windowCard': 'Di aplikasi desktop, “{name}” mengatur perilaku jendela dan ikonnya di area notifikasi.',
-  'whatsnew.change.updatesCard': '“{name}” mencantumkan setiap alat yang dibawa KnightLoader, satu baris per alat dengan versi dan asalnya, dan memperbarui KnightLoader dan yt-dlp.',
+  'whatsnew.change.updatesCard': '“{name}” memuat KnightLoader dan yt-dlp, masing-masing di subkartunya sendiri dengan versi, asal, dan pembaruannya.',
   'whatsnew.change.mirrorPolicy': 'Di “{name}” daftar tarik-turun di samping labelnya menentukan kapan dua tautan dihitung sebagai berkas yang sama.',
   'whatsnew.change.videoCard': 'Kartu “{name}” menentukan kualitas video saat dimuat, lewat daftar tarik-turun di samping labelnya.',
   'whatsnew.change.filesCard': '“{name}” punya kartu sendiri: seluruh playlist dan cara berkas diberi nama.',
@@ -3656,4 +3656,7 @@ export const id: Dict = {
   'settings.captcha.orderIntro': 'Gambar ini adalah urutannya: captcha masuk dulu ke akun captcha paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” mengurutkan akun captcha yang terhubung seperti “{download}” mengurutkan backend. Kapan mereka mulai dan captcha uji juga ada di sana.',
   'whatsnew.change.searchBox': 'Setiap kolom pencarian tampak dan bekerja seperti yang di Pengaturan: saat kamu mengetik, kotaknya berganti warna dan kaca pembesar menyala, dan Escape atau tanda silang mengosongkannya.',
+  'settings.look.builtInTitle': 'Komponen bawaan',
+  'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sampingnya, masing-masing dengan versi dan asalnya. Bagian-bagian ini datang bersama KnightLoader atau image kontainer, atau memperbarui dirinya sendiri, jadi tidak ada yang perlu diperbarui di sini.',
+  'whatsnew.change.builtIn': '“{name}” mencantumkan setiap bagian yang datang bersama KnightLoader, beserta versi dan asalnya. Yang bisa diperbarui tetap di “{updates}”.',
 };

@@ -3628,7 +3628,7 @@ export const tr: Dict = {
   'whatsnew.change.accountKinds': '“{name}”, her hesap türü için büyük bir kutucuk açar; kutucuklar bu sayfadaki kartların sırasıyla alt alta durur.',
   'whatsnew.change.fillSurface': 'Her doluluk düzeyi yüzeyinde yumuşak ve düzensiz biçimde dalgalanır: “{name}” altındaki klasörler, “{volume}” ve bir hesabın trafiği.',
   'whatsnew.change.windowCard': 'Masaüstü uygulamasında “{name}”, pencerenin ve bildirim alanındaki simgesinin nasıl davrandığını belirler.',
-  'whatsnew.change.updatesCard': '“{name}”, KnightLoader’ın beraberinde getirdiği her aracı sürümü ve kaynağıyla birlikte araç başına bir satır olarak listeler ve KnightLoader ile yt-dlp’yi günceller.',
+  'whatsnew.change.updatesCard': '“{name}”, KnightLoader’ı ve yt-dlp’yi her biri kendi alt kartında sürümü, kaynağı ve güncellemeleriyle birlikte tutar.',
   'whatsnew.change.mirrorPolicy': '“{name}” içinde etiketin yanındaki açılır liste, iki bağlantının ne zaman aynı dosya sayılacağını belirler.',
   'whatsnew.change.videoCard': '“{name}” kartı, bir videonun hangi kalitede yükleneceğini etiketin yanındaki açılır listeyle belirler.',
   'whatsnew.change.filesCard': '“{name}” artık kendi kartında: oynatma listelerinin tamamı ve dosyaların adları.',
@@ -3655,4 +3655,7 @@ export const tr: Dict = {
   'settings.captcha.orderIntro': 'Resim sıranın kendisidir: bir captcha önce en üstteki captcha hesabına gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
   'whatsnew.change.captchaPriority': '“{name}”, bağlı captcha hesaplarını “{download}” arka uçları nasıl sıralıyorsa öyle sıralar. Ne zaman başladıkları ve deneme captchası da burada.',
   'whatsnew.change.searchBox': 'Her arama alanı Ayarlar’daki gibi görünür ve çalışır: yazarken kutunun tonu değişir ve büyüteç yanar, Escape ya da çarpı ise onu boşaltır.',
+  'settings.look.builtInTitle': 'Yerleşik bileşenler',
+  'settings.look.builtInHint': 'KnightLoader’ın yanında getirdiği ya da yanında çalıştırdığı şeyler, her biri sürümü ve kaynağıyla. Bu parçalar KnightLoader ya da kapsayıcı imajıyla gelir veya kendilerini günceller, bu yüzden burada güncellenecek bir şey yok.',
+  'whatsnew.change.builtIn': '“{name}”, KnightLoader ile gelen her parçayı sürümü ve kaynağıyla listeler. Güncellenebilenler “{updates}” üzerinde kalır.',
 };
