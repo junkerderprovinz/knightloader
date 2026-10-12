@@ -114,6 +114,7 @@ func registerSystem(reg *Registry, a *app.App) {
 				if until, ok := a.KeyCopiesUntil(); ok {
 					out["appKeyCopiesUntil"] = until
 				}
+				out["behindProxy"] = reg.proxySeen.recently()
 			}
 			writeJSON(w, out)
 		})

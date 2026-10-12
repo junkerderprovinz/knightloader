@@ -143,6 +143,8 @@ type Registry struct {
 	// guess it.
 	passwordGate *loginGate
 
+	proxySeen *proxySeen
+
 	openOnce   sync.Once
 	openExact  map[string]bool
 	openPrefix []string
@@ -153,7 +155,12 @@ type Registry struct {
 }
 
 func newRegistry() *Registry {
-	return &Registry{seen: map[string]bool{}, refreshDiscovery: func() {}, passwordGate: newLoginGate(nil)}
+	return &Registry{
+		seen:             map[string]bool{},
+		refreshDiscovery: func() {},
+		passwordGate:     newLoginGate(nil),
+		proxySeen:        newProxySeen(),
+	}
 }
 
 // Add registers a route that needs a session once a password is set.

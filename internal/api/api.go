@@ -34,7 +34,7 @@ func Handler(a *app.App) http.Handler {
 
 	mux := http.NewServeMux()
 	reg.attach(mux, spaHandler())
-	h := withBasePath(knownHost(a, sameOrigin(guard(a, reg, mux))))
+	h := withBasePath(reg.proxySeen.note(knownHost(a, sameOrigin(guard(a, reg, mux)))))
 
 	// A relay-proxied call is answered by this same handler, so it cannot drift
 	// from what a browser or an API token gets. Wiring the relay and the peer
