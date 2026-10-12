@@ -768,7 +768,6 @@ export const en = {
   'settings.nav.rules': 'Rules & categories',
   'settings.nav.network': 'Network',
   'settings.nav.accounts': 'Accounts',
-  'settings.nav.captcha': 'Captcha',
   'settings.nav.automation': 'Automation',
   'settings.nav.look': 'General',
   'settings.nav.appearance': 'Appearance',
@@ -1505,9 +1504,9 @@ export const en = {
     'Set by the container’s {env} environment variable. Remove it there to change this.',
   'accounts.captcha.title': 'Captcha accounts',
   'accounts.captcha.hint':
-    'A captcha account is your key for a paid service that answers a captcha before you are asked. Each service needs its own key, and none of these keys unlocks a download. Which captcha accounts are tried, in what order and when, is set under Settings, Captcha.',
+    'A captcha account is your key for a paid service that answers a captcha before you are asked. Each service needs its own key, and none of these keys unlocks a download. Which captcha accounts are tried, in what order and when, is set in the cards below.',
   'accounts.captcha.empty': 'No captcha accounts yet',
-  'accounts.captcha.emptyHint': 'Add your key for a captcha service here, then switch it on in the captcha account order under Settings, Captcha.',
+  'accounts.captcha.emptyHint': 'Add your key for a captcha service here, then switch it on in the captcha account order below.',
   'accounts.captcha.pick': 'Choose a captcha account',
   'accounts.server.title': 'Own servers',
   'accounts.server.hint': 'A login for a server you run yourself, such as a seedbox over FTP, a NAS over SFTP or a Nextcloud over WebDAV. KnightLoader uses it for every ftp://, ftps://, sftp://, webdav:// and webdavs:// link to that server, and fetches an https:// link to it over WebDAV. The login is looked up by the server’s hostname, so the password never goes into the link. Public FTP servers need no login.',
@@ -1689,20 +1688,16 @@ export const en = {
 
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
-  'settings.captcha.title': 'Captcha',
   'settings.captcha.orderTitle': 'Captcha account order',
   'settings.captcha.orderHint':
     'Every enabled captcha account below is tried in the order shown, top to bottom. If none are enabled, or every one of them fails or declines, you are asked directly.',
   'settings.captcha.orderEmpty': 'No captcha account is enabled, so every captcha comes straight to you.',
   'settings.captcha.enableSolver': 'Try {service} automatically',
-  'settings.captcha.moveUp': 'Move up',
-  'settings.captcha.moveDown': 'Move down',
   'settings.captcha.set': 'Key set',
   'settings.captcha.notSet': 'No key set',
   'settings.captcha.off': 'Switched off',
   'settings.captcha.offHint':
     'The key is set, but the account is switched off on the Accounts page, so it gets no captchas, not even a test captcha.',
-  'settings.captcha.keys': 'Keys under Accounts',
   'settings.captcha.whenTitle': 'When captcha accounts start',
   'settings.captcha.onlyUnwatched': 'Only when nobody is watching',
   'settings.captcha.onlyUnwatchedHint':

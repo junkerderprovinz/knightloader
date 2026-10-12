@@ -150,7 +150,7 @@ export const RELEASES: Release[] = [
       { id: 'ways-in', to: ['/settings/collector'], text: 'whatsnew.change.waysIn' },
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'rule-switch', to: ['/settings/rules'], text: 'whatsnew.change.ruleSwitch' },
-      { id: 'captcha-chain', to: ['/settings/captcha'], text: 'whatsnew.change.captchaChain' },
+      { id: 'captcha-chain', to: ['/accounts'], text: 'whatsnew.change.captchaChain' },
       {
         id: 'track-merge',
         to: ['/settings/resolvers'],
@@ -158,7 +158,7 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.resolvers.quality' },
       },
       { id: 'selftest-pulse', to: ['/settings/health'], text: 'whatsnew.change.selftestPulse' },
-      { id: 'test-button', to: ['/settings/captcha'], text: 'whatsnew.change.testButton' },
+      { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
       {
         id: 'info-tile',
         to: ['/settings/help'],

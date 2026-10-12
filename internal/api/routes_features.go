@@ -432,7 +432,7 @@ func keepAwakeFeature(s settings.Settings) Feature {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (appearance, accounts, shortcuts, diagnostics, help, browsertools) hold
+// (look, appearance, shortcuts, diagnostics, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
 // JDownloader is switched only on the modules page, since the accounts page
 // holds the logins it uses and not the backend itself.
@@ -443,7 +443,8 @@ func featurePages() []FeaturePage {
 		{ID: "look"},
 		{ID: "appearance"},
 		{ID: "modules"},
-		{ID: "accounts", Modules: []string{"debriddrive"}},
+		// The captcha accounts' order and when they start stand beside their keys.
+		{ID: "accounts", Modules: []string{"debriddrive", "captcha"}},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -461,7 +462,6 @@ func featurePages() []FeaturePage {
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
-		{ID: "captcha", Modules: []string{"captcha"}},
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
@@ -956,7 +956,7 @@ func ytdlpFeature(a *app.App, s settings.Settings) Feature {
 // captchaFeature follows the JD row: JD is the only source of challenges
 // (internal/captcha.JDSource), so switching JD off silences this too.
 func captchaFeature(a *app.App, s settings.Settings) Feature {
-	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "captcha"}
+	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "accounts"}
 	if !a.ContainerBackendConfigured() {
 		f.Switch = SwitchNone
 		return withReason(f, line{

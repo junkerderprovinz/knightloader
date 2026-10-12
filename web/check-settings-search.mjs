@@ -75,7 +75,6 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/torrents/', pages: ['torrents'] },
-  { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
   { file: 'src/pages/settings/Automation.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/automation/', pages: ['automation'] },
   { file: 'src/pages/settings/Schedule.tsx', pages: ['automation'] },
@@ -104,6 +103,10 @@ const EXCLUDED = new Map([
     'the whole-page LoadingCard four settings pages show while their own fetch is in flight. Page furniture, on no card at all',
   ],
   ['settings.rules.testRunning', "the same, for the Rules page's dry run"],
+  [
+    'accounts.routing.dragHandle',
+    "the accessible name of a row's grip in the captcha account order, which names the row's service. The card's title already leads there",
+  ],
   [
     'settings.system.shuttingDownTitle',
     'the card that replaces the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',

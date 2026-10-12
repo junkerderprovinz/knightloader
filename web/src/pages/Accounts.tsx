@@ -7,13 +7,7 @@
 // a link may be fetched for free is a question of which accounts there are.
 // Adding is the page's one floating action, which opens a window with a tile
 // per kind in the cards' order; no card carries an add button of its own.
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEventHandler,
-} from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import {
   type Account,
   type AccountCredential,
@@ -59,15 +53,17 @@ import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { SubHead } from './settings/controls';
 import { LIFT, SETTLE, useReorder } from '../components/dragLift';
+import { RowGrip, moveTo } from '../components/RowGrip';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
 import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
+import { CaptchaCards } from './settings/accounts/CaptchaCards';
+import { LiveSettings } from './settings/accounts/LiveSettings';
 import {
   IconAccounts,
   IconCaptcha,
   IconBack,
   IconClose,
-  IconGrip,
   IconExternalLink,
   IconGlobe,
   IconFleet,
@@ -357,8 +353,7 @@ export function Accounts() {
       )}
 
       {/* A solver's key unlocks no link, so these rows have no import and
-          nothing to renew; the order they are tried in stays on the captcha
-          settings page, which reads the keys from here. */}
+          nothing to renew. The order they are tried in follows below. */}
       <Card hue={4} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
@@ -372,6 +367,11 @@ export function Accounts() {
           />
         )}
       </Card>
+
+      {/* Outside the settings shell, so the captcha cards save as they go. */}
+      <LiveSettings>
+        <CaptchaCards hue={5} accounts={accounts} catalogue={catalogue} />
+      </LiveSettings>
 
       {/* The signature, so RoutingSection looks again only when the set of
           services or switched-on logins changes, not on every poll. */}
@@ -982,7 +982,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={5} className="flex flex-col gap-3">
+      <Card hue={7} className="flex flex-col gap-3">
         <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
           {t('accounts.routing.priorityTitle')}
         </SectionTitle>
@@ -997,7 +997,7 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
 
       {/* Whether a link may be loaded for free, and the state of the backend
           that would load it. */}
-      <FreeDownloadsCard hue={6}>
+      <FreeDownloadsCard hue={8}>
         <SubHead label={t('settings.module.jd')} hint={t('accounts.routing.jdHint')} />
         {jd === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
@@ -1013,34 +1013,6 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
         )}
       </FreeDownloadsCard>
     </div>
-  );
-}
-
-/**
- * LadderGrip is the ladder's drag grip. It carries an aria-label but no
- * tooltip, which would follow the pointer down every row.
- */
-function LadderGrip({
-  label,
-  disabled,
-  onKeyDown,
-}: {
-  label: string;
-  disabled: boolean;
-  onKeyDown: KeyboardEventHandler<HTMLButtonElement>;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-label={label}
-      className="shrink-0 cursor-grab touch-none rounded-[var(--radius-pill)] px-1 py-0.5 text-carbon-textMuted
-        outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
-        active:cursor-grabbing disabled:cursor-default"
-      onKeyDown={onKeyDown}
-    >
-      <IconGrip width={14} height={16} />
-    </button>
   );
 }
 
@@ -1110,18 +1082,6 @@ function PriorityLadder({
   const shown = drag.order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
   const title = t('accounts.routing.priorityTitle');
 
-  /** moved moves `id` to position `to`, clamped, and returns the new order or null. */
-  function moved(id: string, to: number): string[] | null {
-    const ids = [...drag.order];
-    const from = ids.indexOf(id);
-    if (from < 0) return null;
-    const at = Math.max(0, Math.min(ids.length - 1, to));
-    if (at === from) return null;
-    ids.splice(from, 1);
-    ids.splice(at, 0, id);
-    return ids;
-  }
-
   return (
     <div className="flex flex-col gap-3">
       {/* The stations follow the resting order, so a drag in flight moves the
@@ -1135,7 +1095,7 @@ function PriorityLadder({
           style={nameBand(resting.length)}
           className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
         >
-          {shown.map((r, i) => {
+          {shown.map((r) => {
             const look = drag.look(r.id);
             const carried = look === LIFT || look === SETTLE;
             return (
@@ -1148,14 +1108,11 @@ function PriorityLadder({
                   pe-1 text-sm text-carbon-textSub active:cursor-grabbing ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
                 onPointerDown={(e) => drag.press(e, r.id)}
               >
-                {/* A real button, so the arrow keys move the row. */}
-                <LadderGrip
+                <RowGrip
                   label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
                   disabled={busy}
-                  onKeyDown={(e) => {
-                    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                    e.preventDefault();
-                    const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
+                  onMove={(by) => {
+                    const next = moveTo(drag.order, r.id, by);
                     if (next) void store(next);
                   }}
                 />

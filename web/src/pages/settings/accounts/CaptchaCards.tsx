@@ -1,89 +1,70 @@
-import { useCallback, useEffect, useState } from 'react';
-import {
-  type Account,
-  ApiError,
-  type CatalogueService,
-  createTestCaptcha,
-  fetchAccountCatalogue,
-  fetchAccounts,
-} from '../../lib/api';
-import { type TranslationKey, useT } from '../../lib/i18n';
-import { useToast } from '../../lib/toast';
-import {
-  Card,
-  ErrorCard,
-  Field,
-  IconBadge,
-  InfoBubble,
-  LinkBadge,
-  LoadingCard,
-  NumberInput,
-  PageHeader,
-  SectionTitle,
-  ToggleRow,
-  type ButtonVerdict,
-} from '../../components/ui';
-import { HosterIcon } from '../../components/HosterIcon';
-import { CaptchaChain, type ChainSolver } from '../../components/pictures/CaptchaChain';
-import { TestButton } from '../../components/TestButton';
-import { IconMoveDown, IconMoveUp } from '../../lib/icons';
-import { useDraft, useFeatures } from './context';
-import { NeutralSwitch, SubHead } from './controls';
-import { ModuleToggle, PageBadge } from './ModuleToggle';
+import { useRef, type ReactNode } from 'react';
+import { type Account, ApiError, type CatalogueService, createTestCaptcha } from '../../../lib/api';
+import { type TranslationKey, useT } from '../../../lib/i18n';
+import { useToast } from '../../../lib/toast';
+import { Card, Field, InfoBubble, LinkBadge, NumberInput, SectionTitle, ToggleRow, type ButtonVerdict } from '../../../components/ui';
+import { HosterIcon } from '../../../components/HosterIcon';
+import { CaptchaChain, type ChainSolver } from '../../../components/pictures/CaptchaChain';
+import { LIFT, SETTLE, useReorder } from '../../../components/dragLift';
+import { RowGrip, moveTo } from '../../../components/RowGrip';
+import { TestButton } from '../../../components/TestButton';
+import { useDraft, useFeatures } from '../context';
+import { NeutralSwitch, SubHead } from '../controls';
+import { ModuleToggle } from '../ModuleToggle';
 
-// The captcha page orders the solvers and says whether they wait for somebody
-// watching. The order lives in the settings draft: an id in captchaSolverOrder
-// is tried in that position, an absent one never. The solvers' keys are
-// accounts and are kept on the Accounts page; this page only reads whether one
-// is set.
+// The captcha cards order the captcha accounts and say whether they wait for
+// somebody watching. They stand on the Accounts page beside the accounts whose
+// keys they read. The order lives in the settings: an id in captchaSolverOrder
+// is tried in that position, an absent one never.
 
 // Copies of the bounds in internal/settings/settings_captcha.go, which no route
 // serves.
 const MIN_WAIT = 10;
 const MAX_WAIT = 600;
 
-export function Captcha() {
+/**
+ * CaptchaCards draws the order card on `hue` and the card on when the accounts
+ * start on the one after it. `accounts` and `catalogue` are the Accounts
+ * page's own, so a key saved there shows here at once.
+ */
+export function CaptchaCards({
+  hue,
+  accounts,
+  catalogue,
+}: {
+  hue: number;
+  accounts: Account[];
+  catalogue: CatalogueService[];
+}) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
   const { features } = useFeatures();
-
-  const [accounts, setAccounts] = useState<Account[] | null>(null);
-  const [catalogue, setCatalogue] = useState<CatalogueService[]>([]);
-  const [loadError, setLoadError] = useState(false);
-
-  const load = useCallback(async () => {
-    try {
-      const [a, c] = await Promise.all([fetchAccounts(), fetchAccountCatalogue()]);
-      setAccounts(a);
-      setCatalogue(c);
-      setLoadError(false);
-    } catch {
-      setLoadError(true);
-    }
-  }, []);
-
-  useEffect(() => {
-    void load();
-  }, [load]);
-
-  if (accounts === null) {
-    return loadError ? (
-      <ErrorCard message={t('common.loadFailed')} retry={() => void load()} retryLabel={t('common.retry')} />
-    ) : (
-      <LoadingCard label={t('common.loading')} />
-    );
-  }
+  const list = useRef<HTMLUListElement>(null);
 
   const order = cfg.captchaSolverOrder ?? [];
+  const setOrder = (next: string[]) => patch({ captchaSolverOrder: next.length > 0 ? next : null });
+  // Only the grip starts a drag, so a mouse arms it by moving; the switch and
+  // the link in a row keep their own clicks.
+  const drag = useReorder({
+    ids: order,
+    container: list,
+    attr: 'data-solver-id',
+    axis: 'y',
+    arm: 'move',
+    enabled: true,
+    onReorder: setOrder,
+  });
+
   const solvers = catalogue.filter((s) => s.group === 'captchaSolver');
   // Enabled solvers in the chosen order, then the others in catalogue order,
   // so switching one off moves it to the bottom.
-  const rows = [
+  const enabled = drag.order.map((id) => solvers.find((s) => s.id === id)).filter((s): s is CatalogueService => Boolean(s));
+  const rows = [...enabled, ...solvers.filter((s) => !order.includes(s.id))];
+
+  const chain: ChainSolver[] = [
     ...order.map((id) => solvers.find((s) => s.id === id)).filter((s): s is CatalogueService => Boolean(s)),
     ...solvers.filter((s) => !order.includes(s.id)),
-  ];
-
-  const chain: ChainSolver[] = rows.map((svc) => {
+  ].map((svc) => {
     const state = keyState(svc.id, accounts);
     return {
       id: svc.id,
@@ -94,10 +75,6 @@ export function Captcha() {
   });
   const switchedOff = features.modules.some((m) => m.id === 'captcha' && !m.enabled);
 
-  function setOrder(next: string[]) {
-    patch({ captchaSolverOrder: next.length > 0 ? next : null });
-  }
-
   function setEnabled(id: string, on: boolean) {
     if (on) {
       if (!order.includes(id)) setOrder([...order, id]);
@@ -106,20 +83,9 @@ export function Captcha() {
     }
   }
 
-  function move(id: string, by: number) {
-    const i = order.indexOf(id);
-    const to = i + by;
-    if (i < 0 || to < 0 || to >= order.length) return;
-    const next = [...order];
-    [next[i], next[to]] = [next[to], next[i]];
-    setOrder(next);
-  }
-
   return (
-    <div className="flex flex-col gap-10">
-      <PageHeader title={t('settings.captcha.title')} />
-
-      <Card hue={0} className="flex flex-col gap-1">
+    <>
+      <Card hue={hue} className="flex flex-col gap-1">
         <SectionTitle hint={t('settings.captcha.orderHint')}>{t('settings.captcha.orderTitle')}</SectionTitle>
         <ModuleToggle id="captcha" />
         {order.length === 0 && <p className="py-2 text-sm text-carbon-textSub">{t('settings.captcha.orderEmpty')}</p>}
@@ -128,21 +94,38 @@ export function Captcha() {
             where the card is too narrow for both. */}
         <div className="@container">
           <div className="flex flex-col gap-x-8 gap-y-4 @[46rem]:flex-row @[46rem]:items-start">
-            <ul className="flex min-w-0 flex-1 flex-col">
-              {rows.map((svc, i) => (
-                <SolverRow
-                  key={svc.id}
-                  svc={svc}
-                  hue={i}
-                  enabled={order.includes(svc.id)}
-                  position={order.indexOf(svc.id)}
-                  count={order.length}
-                  last={i === rows.length - 1}
-                  state={keyState(svc.id, accounts)}
-                  onToggle={(on) => setEnabled(svc.id, on)}
-                  onMove={(by) => move(svc.id, by)}
-                />
-              ))}
+            {/* The list is the rows' offsetParent, the layout a drag measures
+                in. While a row is held the others wiggle (glim-drag-armed). */}
+            <ul ref={list} className={`relative flex min-w-0 flex-1 flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}>
+              {rows.map((svc, i) => {
+                const on = order.includes(svc.id);
+                const look = on ? drag.look(svc.id) : '';
+                return (
+                  <SolverRow
+                    key={svc.id}
+                    svc={svc}
+                    hue={i}
+                    enabled={on}
+                    last={i === rows.length - 1}
+                    state={keyState(svc.id, accounts)}
+                    onToggle={(next) => setEnabled(svc.id, next)}
+                    look={look}
+                    grip={
+                      on && (
+                        <RowGrip
+                          label={t('accounts.routing.dragHandle', { name: svc.label })}
+                          disabled={false}
+                          onMove={(by) => {
+                            const next = moveTo(order, svc.id, by);
+                            if (next) setOrder(next);
+                          }}
+                          onPointerDown={(e) => drag.press(e, svc.id)}
+                        />
+                      )
+                    }
+                  />
+                );
+              })}
             </ul>
             <div className="w-full shrink-0 @[46rem]:w-[18rem]">
               <CaptchaChain
@@ -154,15 +137,12 @@ export function Captcha() {
             </div>
           </div>
         </div>
-        <div className="pt-2">
-          <PageBadge page="accounts" title={t('settings.captcha.keys')} />
-        </div>
         <TestCaptcha solvers={canTakeATest(order, accounts)} />
       </Card>
 
       {/* Absent while no solver is enabled, since nothing reads these then. */}
       {order.length > 0 && (
-        <Card hue={1} className="flex flex-col gap-5">
+        <Card hue={hue + 1} className="flex flex-col gap-5">
           <SectionTitle>{t('settings.captcha.whenTitle')}</SectionTitle>
           <ToggleRow
             hue={0}
@@ -186,15 +166,14 @@ export function Captcha() {
           )}
         </Card>
       )}
-
-    </div>
+    </>
   );
 }
 
 /**
  * canTakeATest reports whether one of the solvers in order would get a test
- * captcha: it needs a key and must not be switched off on the Accounts page,
- * as the instance's captchaSolvers decides.
+ * captcha: it needs a key and must not be switched off among the captcha
+ * accounts, as the instance's captchaSolvers decides.
  */
 export function canTakeATest(order: string[], accounts: Account[]): boolean {
   return order.some((id) => keyState(id, accounts) === 'set');
@@ -203,8 +182,8 @@ export function canTakeATest(order: string[], accounts: Account[]): boolean {
 type KeyState = 'set' | 'off' | 'notSet';
 
 /**
- * keyState says how the solver's account stands on the Accounts page. A key
- * on a switched-off account counts as off, since the instance hands that
+ * keyState says how the solver's account stands among the captcha accounts.
+ * A key on a switched-off account counts as off, since the instance hands that
  * account nothing.
  */
 export function keyState(id: string, accounts: Account[]): KeyState {
@@ -275,33 +254,40 @@ export function SolverRow({
   svc,
   hue,
   enabled,
-  position,
-  count,
   last,
   state,
   onToggle,
-  onMove,
+  look = '',
+  grip,
 }: {
   svc: CatalogueService;
   /** Position in the full solver list, for the hue. */
   hue: number;
   enabled: boolean;
-  /** Index within the enabled/order list, -1 when not enabled. */
-  position: number;
-  count: number;
   last: boolean;
   state: KeyState;
   onToggle: (on: boolean) => void;
-  onMove: (by: number) => void;
+  /** The drag class of an enabled row; see useReorder. */
+  look?: string;
+  /** The grip that moves an enabled row, absent on one that is switched off. */
+  grip?: ReactNode;
 }) {
   const { t } = useT();
+  const carried = look === LIFT || look === SETTLE;
 
   return (
-    <li className={last ? '' : 'border-b border-carbon-border/60'}>
+    <li
+      data-solver-id={enabled ? svc.id : undefined}
+      // A carried row floats over the others, so it takes a ground of its own.
+      className={`select-none rounded-[var(--radius-control)] ${last ? '' : 'border-b border-carbon-border/60'} ${
+        carried ? 'bg-carbon-surface2' : ''
+      } ${look}`}
+    >
       {/* Neither the name nor its link can be cut short, so where the card is
-          too narrow the key status and the actions wrap onto a line of their
-          own. */}
+          too narrow the key status wraps onto a line of its own. */}
       <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
+        {/* A switched-off row keeps the grip's room, so the switches stand in one column. */}
+        <span className="flex w-6 shrink-0 justify-center">{grip}</span>
         <NeutralSwitch on={enabled} onChange={onToggle} name={t('settings.captcha.enableSolver', { service: svc.label })} hue={hue} />
 
         <div className="flex flex-1 flex-wrap items-center gap-x-2 gap-y-1">
@@ -319,33 +305,6 @@ export function SolverRow({
             {t(KEY_STATE[state])}
             {state === 'off' && <InfoBubble tip={t('settings.captcha.offHint')} />}
           </span>
-
-          {/* `labelled` on every badge, so the actions follow the Beschriftung
-              setting like toolbar actions. */}
-          <div className="flex flex-wrap items-center justify-end gap-0.5">
-            {enabled && (
-              <>
-                <IconBadge
-                  labelled
-                  icon={<IconMoveUp width={16} height={16} />}
-                  hue={hue}
-                  title={t('settings.captcha.moveUp')}
-                  aria-label={t('settings.captcha.moveUp')}
-                  disabled={position <= 0}
-                  onClick={() => onMove(-1)}
-                />
-                <IconBadge
-                  labelled
-                  icon={<IconMoveDown width={16} height={16} />}
-                  hue={hue}
-                  title={t('settings.captcha.moveDown')}
-                  aria-label={t('settings.captcha.moveDown')}
-                  disabled={position < 0 || position >= count - 1}
-                  onClick={() => onMove(1)}
-                />
-              </>
-            )}
-          </div>
         </div>
       </div>
     </li>

@@ -364,7 +364,7 @@ and cannot be explained.
   While the app watches, the instance
   counts you as watching for the captchas the app can answer, which is every
   kind except a captcha service KnightLoader does not know. With **Only when
-  nobody is watching** switched on on the Captcha settings page, the captcha
+  nobody is watching** switched on on the Accounts page, the captcha
   accounts wait for your answer on those first, and a captcha the app cannot
   answer does not wait for it. Nor does a widget captcha that will not load in
   the app, until Refresh loads it after all. The card
