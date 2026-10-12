@@ -14,9 +14,8 @@ export interface CommandPageContext {
   /** Opens the Collector's file picker, the same one AddLinksForm's folder
    *  badge opens, so a shortcut can reach it. */
   openFilePicker?: () => void;
-  /** Toggles the Downloads page's search panel, the same call as its search
-   *  badge. The Collector has no such panel. */
-  toggleSearch?: () => void;
+  /** Puts the caret in the Downloads page's search field. */
+  focusSearch?: () => void;
   /** Opens the rename window the list's menu opens, for what has the
    *  keyboard or else a selection of one link (ListToolbar's useRename). */
   rename?: (selection: readonly string[]) => void;

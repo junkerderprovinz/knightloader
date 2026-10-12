@@ -5,12 +5,9 @@
 // it, so the three windows look the same. The tile is ReadmeButton's markup
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead.
-import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { useT } from '../lib/i18n';
-import { IconSearch } from '../lib/icons';
+import type { ReactNode } from 'react';
 import { HosterIcon } from './HosterIcon';
 import { SearchBox } from './SearchBox';
-import { IconBadge } from './ui';
 
 export interface Brand {
   id: string;
@@ -118,32 +115,21 @@ export function KindPicker({ kinds, onPick }: { kinds: Kind[]; onPick: (id: stri
 }
 
 /**
- * PickerSearch is the search of a picker's window: a button that turns into
- * the shared search field when pressed. `open` starts it as the field, for a
- * list too long to pick from without typing.
+ * PickerSearch is the search of a picker's window, the shared field with the
+ * caret already in it, so typing narrows the tiles at once.
  */
 export function PickerSearch({
   value,
   onChange,
   placeholder,
-  open = false,
 }: {
   value: string;
   onChange: (next: string) => void;
   placeholder: string;
-  open?: boolean;
 }) {
-  const { t } = useT();
-  const [shown, setShown] = useState(open);
-  const input = useRef<HTMLInputElement>(null);
-  useEffect(() => {
-    if (shown) input.current?.focus();
-  }, [shown]);
-
-  if (!shown) {
-    return (
-      <IconBadge labelled icon={<IconSearch width={16} height={16} />} title={t('search.toggle')} onClick={() => setShown(true)} />
-    );
-  }
-  return <SearchBox inputRef={input} value={value} onChange={onChange} label={placeholder} className="w-56 max-w-full" />;
+  return (
+    <div data-new="search-fields" className="w-56 max-w-full">
+      <SearchBox autoFocus value={value} onChange={onChange} label={placeholder} />
+    </div>
+  );
 }

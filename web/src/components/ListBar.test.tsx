@@ -76,7 +76,6 @@ async function show(facets?: { panel: ReactNode; active: boolean }): Promise<voi
     const row = useRef<HTMLDivElement>(null);
     const [filters, setFilters] = useState<Set<QuickFilterId>>(new Set());
     const [search, setSearch] = useState<SearchQuery>(EMPTY_SEARCH);
-    const [open, setOpen] = useState(false);
     const sort = useListSort('Downloads');
     const shown = TASKS.filter((x) => matchesQuickFilters(x, filters) && matchesSearch(x, search));
     return (
@@ -97,8 +96,6 @@ async function show(facets?: { panel: ReactNode; active: boolean }): Promise<voi
           sorts={[sort]}
           search={search}
           onSearch={setSearch}
-          searchOpen={open}
-          onSearchOpen={setOpen}
         >
           <span data-spacer />
         </ListBar>
@@ -194,7 +191,7 @@ describe('the Sort button', () => {
   });
 });
 
-describe('the Search button', () => {
+describe('the search field', () => {
   const field = () => host.querySelector<HTMLInputElement>('input[type="search"]');
   const type = (text: string) =>
     act(async () => {
@@ -202,34 +199,20 @@ describe('the Search button', () => {
       set.call(field(), text);
       field()!.dispatchEvent(new Event('input', { bubbles: true }));
     });
-  const pressOutside = () =>
-    act(async () => {
-      document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
-    });
 
-  it('turns into the search field, with the caret in it', async () => {
+  it('stands in the row from the start, with no button to open it', async () => {
     await show();
-    expect(field()).toBeNull();
-    await press(button('Search'));
     expect(field()).not.toBeNull();
-    expect(document.activeElement).toBe(field());
     expect(button('Search')).toBeUndefined();
   });
 
-  it('comes back after a press outside an empty field', async () => {
+  it('narrows the list and keeps its text after a press outside', async () => {
     await show();
-    await press(button('Search'));
-    await pressOutside();
-    expect(field()).toBeNull();
-    expect(button('Search')).toBeDefined();
-  });
-
-  it('keeps the field while it holds a search', async () => {
-    await show();
-    await press(button('Search'));
     await type('large');
     expect(rows()).toEqual(['large']);
-    await pressOutside();
+    await act(async () => {
+      document.body.dispatchEvent(new MouseEvent('mousedown', { bubbles: true }));
+    });
     expect(field()?.value).toBe('large');
   });
 });

@@ -65,9 +65,31 @@ const sources = import.meta.glob(['../components/**/*.tsx', '../pages/**/*.tsx',
   eager: true,
 }) as Record<string, string>;
 
-it('is the only search field the interface draws', () => {
-  const own = Object.entries(sources)
-    .filter(([path, text]) => !path.endsWith('/SearchBox.tsx') && /type="search"/.test(text))
-    .map(([path]) => path);
-  expect(own).toEqual([]);
+const others = Object.entries(sources).filter(([path]) => !path.endsWith('/SearchBox.tsx'));
+
+describe('the one search field', () => {
+  it('is the only search input the interface draws', () => {
+    const own = others.filter(([, text]) => /type="search"/.test(text)).map(([path]) => path);
+    expect(own).toEqual([]);
+  });
+
+  it('is never drawn as a plain input named for a search', () => {
+    const plain = others
+      .filter(([, text]) => [...text.matchAll(/<(?:input|TextInput)\b[\s\S]*?\/>/g)].some((m) => /search/i.test(m[0])))
+      .map(([path]) => path);
+    expect(plain).toEqual([]);
+  });
+
+  it('stands as a field and never behind a Search button', () => {
+    const buttons = others
+      .filter(
+        ([, text]) =>
+          /'search\.toggle'/.test(text) ||
+          [...text.matchAll(/icon=\{<IconSearch\b/g)].some((m) =>
+            /(?:title|aria-label|label)=\{t?x?\('[^']*search/i.test(text.slice(m.index! - 300, m.index! + 300)),
+          ),
+      )
+      .map(([path]) => path);
+    expect(buttons).toEqual([]);
+  });
 });

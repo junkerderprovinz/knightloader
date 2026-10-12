@@ -336,7 +336,7 @@ function HosterLoginDialog({
       height={picked ? 'content' : 'capped'}
       right={
         // Open from the start: nobody picks one of several hundred hosters by eye.
-        !picked && <PickerSearch open value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />
+        !picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />
       }
       onClose={onClose}
       footer={

@@ -3656,6 +3656,7 @@ export const eu: Dict = {
   'settings.captcha.orderIntro': 'Irudia da ordena: captcha bat goiko captcha kontura doa lehenik, eta gero beherantz. Arrastatu izen bat lekuz aldatzeko.',
   'whatsnew.change.captchaPriority': '«{name}» txartelak zure captcha kontu konektatuak ordenatzen ditu, «{download}» txartelak backendak ordenatzen dituen bezala. Noiz hasten diren eta proba-captcha ere bertan daude.',
   'whatsnew.change.searchBox': 'Bilaketa-eremu orok Ezarpenetakoaren itxura eta funtzionamendua du: idazten duzun bitartean, koadroak tonua aldatzen du eta lupa pizten da, eta Escape-k edo gurutzeak hustu egiten dute.',
+  'whatsnew.change.searchFields': 'Bilaketa bakoitza berehala idatz dezakezun eremua da, lehenik irekitzen duen botoirik gabe: «{downloads}», «{collector}» eta «{advanced}» ataletan, eta kontu edo ostalari bat aukeratzen duzun leihoetan.',
   'settings.look.builtInTitle': 'Osagai integratuak',
   'settings.look.builtInHint': 'KnightLoaderrek berarekin dakarrena edo bere ondoan exekutatzen duena, bakoitza bere bertsio eta jatorriarekin. Zati hauek KnightLoaderrekin edo edukiontziaren irudiarekin datoz, edo beren kabuz eguneratzen dira, beraz hemen ez dago ezer eguneratzeko.',
   'whatsnew.change.builtIn': '«{name}» txartelak KnightLoaderrekin datorren zati bakoitza zerrendatzen du, bertsio eta jatorriarekin. Egunera daitekeena «{updates}» txartelean geratzen da.',

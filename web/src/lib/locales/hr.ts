@@ -3673,6 +3673,7 @@ export const hr: Dict = {
   'settings.captcha.orderIntro': 'Slika je redoslijed: captcha ide prvo računu captche na vrhu, a zatim prema dolje. Povuci ime da ga premjestiš.',
   'whatsnew.change.captchaPriority': '„{name}” slaže tvoje povezane račune captche onako kako „{download}” slaže pozadine. U njoj su i kada počinju i probna captcha.',
   'whatsnew.change.searchBox': 'Svako polje za pretraživanje izgleda i radi kao ono u Postavkama: dok tipkaš, polje mijenja nijansu i povećalo zasvijetli, a Escape ili križić ga prazne.',
+  'whatsnew.change.searchFields': 'Svako pretraživanje je polje u koje možeš odmah tipkati, bez gumba koji ga prvo otvara: u „{downloads}”, „{collector}” i „{advanced}” te u prozorima u kojima biraš račun ili hoster.',
   'settings.look.builtInTitle': 'Ugrađene komponente',
   'settings.look.builtInHint': 'Ono što KnightLoader donosi sa sobom ili pokreće uz sebe, svaki dio sa svojom verzijom i podrijetlom. Ti dijelovi dolaze s KnightLoaderom ili sa slikom spremnika, ili se sami ažuriraju, pa ovdje nema što ažurirati.',
   'whatsnew.change.builtIn': '„{name}” navodi svaki dio koji dolazi s KnightLoaderom, s verzijom i podrijetlom. Ono što se može ažurirati ostaje na „{updates}”.',

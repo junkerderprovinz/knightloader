@@ -3658,6 +3658,7 @@ export const tr: Dict = {
   'settings.captcha.orderIntro': 'Resim sıranın kendisidir: bir captcha önce en üstteki captcha hesabına gider, sonra aşağı iner. Bir adı taşımak için sürükle.',
   'whatsnew.change.captchaPriority': '“{name}”, bağlı captcha hesaplarını “{download}” arka uçları nasıl sıralıyorsa öyle sıralar. Ne zaman başladıkları ve deneme captchası da burada.',
   'whatsnew.change.searchBox': 'Her arama alanı Ayarlar’daki gibi görünür ve çalışır: yazarken kutunun tonu değişir ve büyüteç yanar, Escape ya da çarpı ise onu boşaltır.',
+  'whatsnew.change.searchFields': 'Her arama, önce bir düğmeyle açman gerekmeden hemen yazabileceğin bir alandır: “{downloads}”, “{collector}” ve “{advanced}” içinde ve hesap ya da barındırıcı seçtiğin pencerelerde.',
   'settings.look.builtInTitle': 'Yerleşik bileşenler',
   'settings.look.builtInHint': 'KnightLoader’ın yanında getirdiği ya da yanında çalıştırdığı şeyler, her biri sürümü ve kaynağıyla. Bu parçalar KnightLoader ya da kapsayıcı imajıyla gelir veya kendilerini günceller, bu yüzden burada güncellenecek bir şey yok.',
   'whatsnew.change.builtIn': '“{name}”, KnightLoader ile gelen her parçayı sürümü ve kaynağıyla listeler. Güncellenebilenler “{updates}” üzerinde kalır.',

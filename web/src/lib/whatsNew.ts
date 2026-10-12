@@ -166,6 +166,12 @@ export const RELEASES: Release[] = [
       // first page that has one in view.
       { id: 'search-box', to: ['/settings', ...LISTS, ...ACCOUNTS], text: 'whatsnew.change.searchBox' },
       {
+        id: 'search-fields',
+        to: [...LISTS, '/settings/advanced', ...ACCOUNTS],
+        text: 'whatsnew.change.searchFields',
+        names: { downloads: 'nav.downloads', collector: 'nav.collector', advanced: 'settings.nav.advanced' },
+      },
+      {
         id: 'display-card',
         to: ['/settings/appearance'],
         text: 'whatsnew.change.displayCard',

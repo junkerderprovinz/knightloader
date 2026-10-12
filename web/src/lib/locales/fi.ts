@@ -3661,6 +3661,7 @@ export const fi: Dict = {
   'settings.captcha.orderIntro': 'Kuva on järjestys: captcha menee ensin ylimmälle captcha-tilille ja sitten alaspäin. Siirrä nimeä vetämällä.',
   'whatsnew.change.captchaPriority': '”{name}” järjestää yhdistetyt captcha-tilisi samalla tavalla kuin ”{download}” järjestää taustapalvelut. Siinä ovat myös niiden aloitushetki ja testicaptcha.',
   'whatsnew.change.searchBox': 'Jokainen hakukenttä näyttää ja toimii kuin Asetusten kenttä: kun kirjoitat, kentän sävy vaihtuu ja suurennuslasi syttyy, ja Escape tai risti tyhjentää sen.',
+  'whatsnew.change.searchFields': 'Jokainen haku on kenttä, johon voit kirjoittaa heti ilman painiketta, joka avaisi sen ensin: kohdissa ”{downloads}”, ”{collector}” ja ”{advanced}” sekä ikkunoissa, joissa valitset tilin tai palveluntarjoajan.',
   'settings.look.builtInTitle': 'Sisäänrakennetut osat',
   'settings.look.builtInHint': 'Mitä KnightLoader tuo mukanaan tai ajaa rinnallaan, kukin versionsa ja alkuperänsä kanssa. Nämä osat tulevat KnightLoaderin tai konttikuvan mukana tai päivittävät itsensä, joten täällä ei ole mitään päivitettävää.',
   'whatsnew.change.builtIn': '”{name}” luettelee jokaisen osan, joka tulee KnightLoaderin mukana, versioineen ja alkuperineen. Päivitettävät jäävät korttiin ”{updates}”.',

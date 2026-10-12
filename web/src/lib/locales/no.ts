@@ -3662,6 +3662,7 @@ export const no: Dict = {
   'settings.captcha.orderIntro': 'Bildet er rekkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedover. Dra et navn for å flytte det.',
   'whatsnew.change.captchaPriority': '«{name}» ordner de tilkoblede captcha-kontoene dine slik «{download}» ordner bakendene. Når de starter og test-captchaen står der også.',
   'whatsnew.change.searchBox': 'Hvert søkefelt ser ut og virker som det i Innstillinger: mens du skriver, skifter feltet nyanse og forstørrelsesglasset lyser, og Escape eller krysset tømmer det.',
+  'whatsnew.change.searchFields': 'Hvert søk er et felt du kan skrive i med en gang, uten en knapp som må åpne det først: i «{downloads}», «{collector}» og «{advanced}», og i vinduene der du velger en konto eller en hoster.',
   'settings.look.builtInTitle': 'Innebygde komponenter',
   'settings.look.builtInHint': 'Det KnightLoader har med seg eller kjører ved siden av seg, hver med sin versjon og opprinnelse. Disse delene følger med KnightLoader eller containerbildet, eller oppdaterer seg selv, så her er det ingenting å oppdatere.',
   'whatsnew.change.builtIn': '«{name}» viser hver del som følger med KnightLoader, med versjon og opprinnelse. Det som kan oppdateres, blir værende på «{updates}».',

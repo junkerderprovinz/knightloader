@@ -15,7 +15,7 @@ import {
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
 import { SearchBox } from '../../components/SearchBox';
-import { IconRefresh, IconSearch } from '../../lib/icons';
+import { IconRefresh } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
@@ -94,7 +94,6 @@ export function Advanced() {
   // Until the lists arrive, or when they do not, those rows are text fields.
   const [options, setOptions] = useState<ApiOptions | null>(null);
   const [query, setQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   // Debounced, since the filter re-renders every visible editor.
   const [needle, setNeedle] = useState('');
   const [onlyModified, setOnlyModified] = useState(false);
@@ -205,28 +204,9 @@ export function Advanced() {
             <span className="text-xs text-statusWarn">{tx('settings.advanced.defaultsUnavailable')}</span>
           )}
           <span className="flex-1" />
-          {/* A badge that opens into the field and stays open while it holds
-              text, so an active filter is never hidden. */}
-          {searchOpen || query ? (
-            <SearchBox
-              autoFocus={searchOpen}
-              spellCheck={false}
-              value={query}
-              label={tx('settings.advanced.search')}
-              onChange={setQuery}
-              onBlur={() => {
-                if (!query) setSearchOpen(false);
-              }}
-              className="min-w-0 sm:w-80"
-            />
-          ) : (
-            <IconBadge
-              icon={<IconSearch width={16} height={16} />}
-              title={tx('settings.advanced.search')}
-              aria-label={tx('settings.advanced.search')}
-              onClick={() => setSearchOpen(true)}
-            />
-          )}
+          <div data-new="search-fields" className="min-w-0 sm:w-80">
+            <SearchBox spellCheck={false} value={query} label={tx('settings.advanced.search')} onChange={setQuery} />
+          </div>
         </div>
 
         <Card hue={1} padding="none">

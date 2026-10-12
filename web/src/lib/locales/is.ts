@@ -3655,6 +3655,7 @@ export const is: Dict = {
   'settings.captcha.orderIntro': 'Myndin er röðin: captcha fer fyrst til captcha-reikningsins efst og svo niður. Dragðu nafn til að færa það.',
   'whatsnew.change.captchaPriority': '„{name}“ raðar tengdu captcha-reikningunum þínum eins og „{download}“ raðar bakendum. Hvenær þeir byrja og prufu-captcha eru þar líka.',
   'whatsnew.change.searchBox': 'Hver leitarreitur lítur út og virkar eins og sá í Stillingum: á meðan þú skrifar skiptir reiturinn um lit og stækkunarglerið lýsist upp, og Escape eða krossinn tæmir hann.',
+  'whatsnew.change.searchFields': 'Hver leit er reitur sem þú getur skrifað í strax, án hnapps sem þarf fyrst að opna hann: í „{downloads}“, „{collector}“ og „{advanced}“, og í gluggunum þar sem þú velur aðgang eða hýsingu.',
   'settings.look.builtInTitle': 'Innbyggðir hlutar',
   'settings.look.builtInHint': 'Það sem KnightLoader tekur með sér eða keyrir við hlið sér, hvert með sína útgáfu og uppruna. Þessir hlutar koma með KnightLoader eða gámamyndinni, eða uppfæra sig sjálfir, svo hér er ekkert að uppfæra.',
   'whatsnew.change.builtIn': '„{name}“ telur upp hvern hluta sem fylgir KnightLoader, með útgáfu og uppruna. Það sem má uppfæra er áfram á „{updates}“.',

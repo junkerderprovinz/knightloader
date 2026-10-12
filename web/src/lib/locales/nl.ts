@@ -3642,6 +3642,7 @@ export const nl: Dict = {
   'settings.captcha.orderIntro': 'De afbeelding is de volgorde: een captcha gaat eerst naar het captcha-account bovenaan en dan verder omlaag. Sleep een naam om hem te verplaatsen.',
   'whatsnew.change.captchaPriority': '“{name}” zet je gekoppelde captcha-accounts op volgorde zoals “{download}” de backends. Wanneer ze beginnen en de testcaptcha staan er ook in.',
   'whatsnew.change.searchBox': 'Elk zoekveld ziet eruit en werkt zoals dat in Instellingen: terwijl je typt, verandert het vak van tint en licht het vergrootglas op, en Escape of het kruisje maakt het leeg.',
+  'whatsnew.change.searchFields': 'Elke zoekopdracht is een veld waarin je meteen kunt typen, zonder knop die het eerst opent: in “{downloads}”, “{collector}” en “{advanced}”, en in de vensters waarin je een account of een hoster kiest.',
   'settings.look.builtInTitle': 'Ingebouwde onderdelen',
   'settings.look.builtInHint': 'Wat KnightLoader meebrengt of naast zich laat draaien, elk met zijn versie en herkomst. Deze onderdelen komen met KnightLoader of het containerimage, of werken zichzelf bij, dus hier valt niets bij te werken.',
   'whatsnew.change.builtIn': '“{name}” toont elk onderdeel dat met KnightLoader meekomt, met versie en herkomst. Wat bijgewerkt kan worden, blijft op “{updates}”.',
