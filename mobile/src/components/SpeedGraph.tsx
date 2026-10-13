@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { Fragment, useEffect, useRef, useState } from 'react';
 import { StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import { useAppearance } from '../theme/AppearanceContext';
 import { ACCENTS } from '../theme/appearance';
@@ -11,10 +11,12 @@ import {
   ceilingOf,
   curve,
   GRACE_TICKS,
+  labelTops,
   limitMark,
   reading,
   seedingDefault,
   spanLabel,
+  washOf,
   type Lane,
   type LimitMark,
   type Point,
@@ -22,17 +24,17 @@ import {
 
 /**
  * The download speed, and what the torrents upload, over the last half minute
- * as the web interface's Downloads page draws them: a filled curve for the
- * download, a line for seeding, the ceiling and the current rate above the
- * plot, the window and a legend below it.
+ * as the web interface's Downloads page draws them: a filled curve for each in
+ * its own colour, the ceiling and the current rate above the plot, the window
+ * and a legend below it.
  *
  * Curves from plain views, as short rotated strokes and thin columns, because
  * this app has no react-native-svg and a native module for one graph would
  * mean a new prebuild.
  *
- * A speed limit inside the scale is a red line with its figure, as on the web.
- * A limit the scale leaves out is named in the legend instead of being pinned
- * to the top edge, where it would read as a download running at the limit.
+ * The download and upload limits are marked at the right edge as on the web:
+ * inside the scale a red line with its figure, above it the figure and a
+ * chevron pointing up on the top edge.
  */
 
 // The web meter's default window: one sample a second for half a minute.
@@ -47,6 +49,10 @@ const PAD = 4;
 const STEPS = 3;
 
 const STROKE = 1.5;
+
+// How strongly a filled curve's area shows, light enough that the download's
+// still reads through the seeding's laid over it.
+const WASH = 0.26;
 
 /** The server's record of the last two minutes, oldest first. */
 export interface SpeedSeed {
@@ -88,62 +94,85 @@ function Stroke({ points, color }: { points: Point[]; color: string }) {
 function Wash({ points, color, base }: { points: Point[]; color: string; base: number }) {
   return (
     // Faded as one layer, so the overlap between columns does not darken.
-    <View
-      style={[StyleSheet.absoluteFill, { opacity: 0.26 }]}
-      needsOffscreenAlphaCompositing
-      pointerEvents="none"
-    >
-      {points.slice(1).map((q, i) => {
-        const p = points[i];
-        const top = (p.y + q.y) / 2;
-        return (
-          <View
-            key={i}
-            style={{
-              position: 'absolute',
-              left: p.x,
-              width: q.x - p.x + 0.5,
-              top,
-              height: Math.max(0, base - top),
-              backgroundColor: color,
-            }}
-          />
-        );
-      })}
+    <View style={[StyleSheet.absoluteFill, { opacity: WASH }]} needsOffscreenAlphaCompositing pointerEvents="none">
+      {washOf(points, base).map((col, i) => (
+        <View key={i} style={{ position: 'absolute', ...col, backgroundColor: color }} />
+      ))}
     </View>
   );
 }
 
+// The figure beside a limit's mark is this tall, and the glyph at the right
+// edge this wide on each side.
+const LABEL_LINE = TYPE.caption + 2;
+const GLYPH = 4;
+
+/** One limit as LimitMarks draws it. */
+interface Marked {
+  limit: number;
+  mark: LimitMark;
+  ink: string;
+  name: string;
+}
+
 /**
- * LimitLine is the limit across the plot. The figure sits over the line where
- * there is room and under it otherwise, on the card's own ground so a curve
- * behind it does not cut through the digits.
+ * LimitMarks draws each limit set as a red line across the plot, with a notch
+ * and the figure at the right edge in its curve's colour. A limit above the
+ * scale keeps only the mark, on the top edge with a chevron pointing up. The
+ * figures sit on the card's own ground so a curve behind them does not cut
+ * through the digits.
  */
-function LimitLine({ limit, mark, height }: { limit: number; mark: LimitMark; height: number }) {
+function LimitMarks({ marks, height }: { marks: Marked[]; height: number }) {
   const { c } = useAppearance();
-  const { bottom, labelAbove } = mark;
-  return (
-    <>
-      <View style={[styles.limit, { bottom, backgroundColor: c.statusFailSolid }]} pointerEvents="none" />
+  const tops = labelTops(marks.map((m) => m.mark.y), height, LABEL_LINE);
+  return marks.map(({ limit, mark, ink, name }, i) => (
+    <Fragment key={name}>
+      {!mark.over && (
+        <View style={[styles.limit, { top: mark.y, backgroundColor: c.statusFailSolid }]} pointerEvents="none" />
+      )}
+      <View
+        style={[styles.glyph, mark.over ? { top: mark.y, ...chevron(ink) } : { top: mark.y - GLYPH, ...notch(ink) }]}
+        pointerEvents="none"
+      />
       <Text
-        style={[
-          styles.limitLabel,
-          { color: c.statusFailText, backgroundColor: c.surface },
-          labelAbove ? { bottom: bottom + 1 } : { top: height - bottom + 1 },
-        ]}
+        style={[styles.limitLabel, { top: tops[i], color: ink, backgroundColor: c.surface }]}
         numberOfLines={1}
+        accessibilityLabel={name}
       >
         {fmtSpeed(limit)}
       </Text>
-    </>
-  );
+    </Fragment>
+  ));
 }
 
+// Triangles from borders, since the app draws without svg: one pointing left
+// at the line, and one pointing up out of the plot.
+const notch = (ink: string) => ({
+  borderTopWidth: GLYPH,
+  borderBottomWidth: GLYPH,
+  borderRightWidth: GLYPH,
+  borderTopColor: 'transparent',
+  borderBottomColor: 'transparent',
+  borderRightColor: ink,
+});
+
+const chevron = (ink: string) => ({
+  borderLeftWidth: GLYPH,
+  borderRightWidth: GLYPH,
+  borderBottomWidth: GLYPH,
+  borderLeftColor: 'transparent',
+  borderRightColor: 'transparent',
+  borderBottomColor: ink,
+});
+
+/** Key names one curve, its swatch in the look of a filled curve. */
 function Key({ color, label }: { color: string; label: string }) {
   const { c } = useAppearance();
   return (
     <View style={styles.key}>
-      <View style={[styles.swatch, { backgroundColor: color }]} />
+      <View style={[styles.swatch, { borderTopColor: color }]}>
+        <View style={[StyleSheet.absoluteFill, { backgroundColor: color, opacity: WASH }]} />
+      </View>
       <Text style={[styles.tick, { color: c.textMuted }]} numberOfLines={1}>
         {label}
       </Text>
@@ -156,6 +185,7 @@ export default function SpeedGraph({
   upload,
   height = 56,
   limit = 0,
+  uploadLimit = 0,
   seed,
 }: {
   speed: number;
@@ -164,6 +194,8 @@ export default function SpeedGraph({
   height?: number;
   /** The speed limit in force in bytes/s, 0 for none. */
   limit?: number;
+  /** The torrents' upload limit in bytes/s, 0 for none. */
+  uploadLimit?: number;
   /** Reads the server's record, so the curve does not start from nothing. */
   seed?: () => Promise<SpeedSeed>;
 }) {
@@ -214,14 +246,20 @@ export default function SpeedGraph({
 
   const down = history.down;
   const up = seeding ? history.up : [];
-  const ceiling = ceilingOf(down.concat(up), limit);
-  const mark = limitMark(limit, ceiling, height, PAD, TYPE.caption);
+  const ceiling = ceilingOf(down.concat(up), limit, uploadLimit);
   const busy = busyOf(down, up);
   const base = height - PAD;
 
   const downInk = accentInk;
   const upHex = seedingDefault(accent, ACCENTS.map((a) => a.hex));
   const upInk = dark ? upHex : inkFor(upHex);
+  const marks = [
+    { limit, ink: downInk, name: t('speed.limit.download', { speed: fmtSpeed(limit) }) },
+    { limit: uploadLimit, ink: upInk, name: t('speed.limit.upload', { speed: fmtSpeed(uploadLimit) }) },
+  ].flatMap((m) => {
+    const mark = limitMark(m.limit, ceiling, height, PAD);
+    return mark ? [{ ...m, mark }] : [];
+  });
 
   const downLine = busy && w > 0 ? curve(down, w, height, PAD, SPAN, ceiling, STEPS) : [];
   const upLine = busy && w > 0 && seeding ? curve(up, w, height, PAD, SPAN, ceiling, STEPS) : [];
@@ -248,6 +286,9 @@ export default function SpeedGraph({
         {busy ? (
           <>
             <Wash points={downLine} color={downInk} base={base} />
+            {/* Over the download's wash, which still shows through it where the
+                two overlap. */}
+            <Wash points={upLine} color={upInk} base={base} />
             {/* Under the download line, which stays the one to read where the
                 two meet. */}
             <Stroke points={upLine} color={upInk} />
@@ -260,7 +301,7 @@ export default function SpeedGraph({
             />
           )
         )}
-        {mark && <LimitLine limit={limit} mark={mark} height={height} />}
+        <LimitMarks marks={marks} height={height} />
       </View>
       {/* The time axis, oldest on the left, with the legend between its ends. */}
       <View style={styles.row}>
@@ -268,9 +309,6 @@ export default function SpeedGraph({
         <View style={styles.legend}>
           <Key color={downInk} label={t('speed.legend.download')} />
           {seeding && <Key color={upInk} label={t('speed.legend.seeding')} />}
-          {limit > 0 && !mark && (
-            <Key color={c.statusFailSolid} label={`${t('speed.legend.limit')} ${fmtSpeed(limit)}`} />
-          )}
         </View>
         <Text style={[styles.tick, NUM, { color: c.textMuted }]}>0s</Text>
       </View>
@@ -296,14 +334,15 @@ const styles = StyleSheet.create({
     rowGap: 2,
   },
   key: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  swatch: { width: 12, height: 2, borderRadius: 1 },
+  swatch: { width: 12, height: 8, borderTopWidth: STROKE },
   limit: { position: 'absolute', left: 0, right: 0, height: 1 },
+  glyph: { position: 'absolute', right: 0, width: 0, height: 0 },
   limitLabel: {
     position: 'absolute',
-    left: 4,
+    right: 2 * GLYPH + 3,
     paddingHorizontal: 2,
     fontSize: TYPE.caption,
-    lineHeight: TYPE.caption + 2,
+    lineHeight: LABEL_LINE,
     fontVariant: ['tabular-nums'],
   },
 });

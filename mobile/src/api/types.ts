@@ -245,6 +245,8 @@ export interface QueueState {
   running: number;
   /** The global speed limit in force in bytes/s, 0 for none. An older server leaves it out. */
   limit?: number;
+  /** The torrents' upload cap in bytes/s, 0 for none. An older server leaves it out. */
+  uploadLimit?: number;
 }
 
 // Mirrors internal/captcha's Challenge and its payloads, the same shapes the

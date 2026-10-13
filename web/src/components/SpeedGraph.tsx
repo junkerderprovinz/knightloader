@@ -12,7 +12,7 @@ import {
 import { fmtRate, fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
 import { isLeet } from '../lib/leet';
-import { useLimitInForce } from '../lib/limitInForce';
+import { useLimitInForce, useUploadLimit } from '../lib/limitInForce';
 import { useUIState } from '../lib/uistate';
 import { stepOf, useSpeedWindow, type SpeedScale, type SpeedWindow } from '../lib/speedHistory';
 import { DOWNLOAD_INK, SEEDING_INK } from '../lib/speedLines';
@@ -68,91 +68,166 @@ const REACH = 4;
 
 /**
  * ceilingOf is the top of the plot: the window's peak, so every sample fits,
- * raised to take in the speed limit in force with room above it. A limit
- * beyond REACH is left out while anything moves; idle has no curve to
- * flatten, so there the limit sets the scale.
+ * raised to take in each limit given with room above it. A limit beyond REACH
+ * is left out while anything moves; idle has no curve to flatten, so there
+ * the limits set the scale.
  */
-export function ceilingOf(samples: readonly number[], limit = 0): number {
+export function ceilingOf(samples: readonly number[], ...limits: number[]): number {
   const peak = Math.max(0, ...samples);
   const top = Math.max(FLOOR, peak);
-  if (limit <= 0) return top;
-  const room = limit * HEADROOM;
-  if (peak > 0 && room > REACH * top) return top;
-  return Math.max(top, room);
+  let ceiling = top;
+  for (const limit of limits) {
+    const room = limit * HEADROOM;
+    if (limit > 0 && !(peak > 0 && room > REACH * top)) ceiling = Math.max(ceiling, room);
+  }
+  return ceiling;
 }
 
-// The limit's figure: its size, and its gap from the line.
+/** The two limits the graphs mark, in bytes per second, 0 for none. */
+export interface Limits {
+  download: number;
+  upload: number;
+}
+
+const KINDS = ['download', 'upload'] as const;
+
+// A limit's figure: its size, and its gap from the line.
 const LABEL_SIZE = 12;
 const LABEL_GAP = 3;
 
-/** Where the limit line sits against the ceiling the plot is drawn to. */
+// Half the height of the glyph at the right edge, and how far the figure stays
+// from that edge so the two never touch.
+const GLYPH = 4;
+const LABEL_X = 2 * GLYPH + 3;
+
+// Drawn from the right edge at the limit's height: a notch pointing at the
+// line, or a chevron pointing up out of the plot.
+const NOTCH = `M0 ${-GLYPH}L${-GLYPH} 0L0 ${GLYPH}Z`;
+const CHEVRON = `M${-2 * GLYPH} ${GLYPH}L${-GLYPH} 0L0 ${GLYPH}Z`;
+
+/** Where a limit's mark sits against the ceiling the plot is drawn to. */
 export interface LimitMark {
   y: number;
-  /** The limit is above the plot's top, so no line is drawn and the legend names it. */
+  /** The limit is above the plot's top, so the mark sits on the top edge and no line is drawn. */
   over: boolean;
-  /** No room for the figure above the line, so it goes under it. */
-  labelBelow: boolean;
 }
 
 /**
- * limitMark places the limit line in a box whose plot runs from top to base.
- * The y lands on a half pixel, which is where a one pixel line is sharp in a
- * viewBox drawn in pixels.
+ * limitMark places a limit in a box whose plot runs from top to base. The y
+ * lands on a half pixel, which is where a one pixel line is sharp in a viewBox
+ * drawn in pixels.
  */
 export function limitMark(limit: number, ceiling: number, top: number, base: number): LimitMark {
   const over = limit > ceiling;
   const exact = over ? top : base - (limit / ceiling) * (base - top);
-  const y = Math.floor(exact) + 0.5;
-  return { y, over, labelBelow: y - LABEL_GAP - LABEL_SIZE < 0 };
+  return { y: Math.floor(exact) + 0.5, over };
 }
 
 /**
- * applyMark moves a drawn LimitLine. It is set by hand rather than by props, so
- * the glide can move it every frame without a render.
+ * labelTops places the marks' figures in a box h tall: each above its line
+ * where there is room and under it otherwise, and one that would cover an
+ * earlier one moved below that, or above it where the box ends.
  */
-function applyMark(g: SVGGElement, m: LimitMark): void {
-  g.setAttribute('transform', `translate(0 ${m.y})`);
-  // A line pinned to the top edge would read as a download running at the limit.
-  if (m.over) g.setAttribute('visibility', 'hidden');
-  else g.removeAttribute('visibility');
-  const label = g.children[1];
-  label.setAttribute('y', String(m.labelBelow ? LABEL_GAP + LABEL_SIZE : -LABEL_GAP));
+export function labelTops(ys: readonly number[], h: number): number[] {
+  const tops: number[] = [];
+  for (const y of ys) {
+    let top = y - LABEL_GAP - LABEL_SIZE;
+    if (top < 0) top = y + LABEL_GAP;
+    for (const other of tops) {
+      if (Math.abs(top - other) <= LABEL_SIZE) {
+        const below = other + LABEL_SIZE + 1;
+        const above = other - LABEL_SIZE - 1;
+        top = below + LABEL_SIZE > h && above >= 0 ? above : below;
+      }
+    }
+    tops.push(top);
+  }
+  return tops;
+}
+
+/** useLimits is the two limits an instance scope has set, kept as one value while neither changes. */
+function useLimits(instance: string): Limits {
+  const download = useLimitInForce(instance);
+  const upload = useUploadLimit(instance);
+  return useMemo(() => ({ download, upload }), [download, upload]);
+}
+
+/** marksOf is where each limit sits, in KINDS order, null for one not set. */
+function marksOf(limits: Limits, ceiling: number, top: number, base: number): (LimitMark | null)[] {
+  return KINDS.map((k) => (limits[k] > 0 ? limitMark(limits[k], ceiling, top, base) : null));
 }
 
 /**
- * LimitLine is the speed limit in force as a red line across the plot with its
- * figure at the start, as JDownloader draws it. Its place is left to applyMark.
+ * applyMarks moves the drawn LimitMarks. They are set by hand rather than by
+ * props, so the glide can move them every frame without a render.
  */
-function LimitLine({ limit, w, mark }: { limit: number; w: number; mark: RefObject<SVGGElement | null> }) {
-  return (
-    <g ref={mark} data-limit-line="">
-      <line
-        x1="0"
-        x2={w}
-        y1="0"
-        y2="0"
-        stroke="var(--status-fail-solid)"
-        strokeWidth="1"
-        vectorEffect="non-scaling-stroke"
-      />
-      {/* The halo in the card's own colour keeps the figure legible where the
-          curve runs under it. The plot does not mirror in a right-to-left
-          language, so neither does the figure. */}
-      <text
-        x="4"
-        direction="ltr"
-        fontSize={LABEL_SIZE}
-        fill="var(--status-fail-text)"
-        stroke="var(--carbon-surface)"
-        strokeWidth="3"
-        strokeLinejoin="round"
-        paintOrder="stroke"
-        className="glim-num"
+function applyMarks(gs: readonly (SVGGElement | null)[], marks: readonly (LimitMark | null)[], h: number): void {
+  const shown = marks.flatMap((m, i) => {
+    const g = gs[i];
+    return m && g ? [{ g, m }] : [];
+  });
+  const tops = labelTops(shown.map(({ m }) => m.y), h);
+  shown.forEach(({ g, m }, i) => {
+    g.setAttribute('transform', `translate(0 ${m.y})`);
+    const [line, glyph, label] = [g.children[1], g.children[2], g.children[3]];
+    // A line pinned to the top edge would read as a transfer running at the limit.
+    if (m.over) line.setAttribute('visibility', 'hidden');
+    else line.removeAttribute('visibility');
+    glyph.setAttribute('d', m.over ? CHEVRON : NOTCH);
+    label.setAttribute('y', String(tops[i] + LABEL_SIZE - m.y));
+  });
+}
+
+/**
+ * LimitMarks draws each limit set as a red line across the plot, as JDownloader
+ * draws it, with a mark and the figure at the right edge in its curve's colour.
+ * Their place is left to applyMarks.
+ */
+function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: RefObject<(SVGGElement | null)[]> }) {
+  const { t } = useT();
+  return KINDS.map((kind, i) => {
+    const limit = limits[kind];
+    if (limit <= 0) return null;
+    const ink = kind === 'download' ? DOWNLOAD_INK : SEEDING_INK;
+    return (
+      <g
+        key={kind}
+        ref={(el) => {
+          marks.current[i] = el;
+        }}
+        data-limit-mark={kind}
       >
-        {fmtSpeed(limit)}
-      </text>
-    </g>
-  );
+        <title>{t(`speed.limit.${kind}`, { speed: fmtSpeed(limit) })}</title>
+        <line
+          x1="0"
+          x2={w}
+          y1="0"
+          y2="0"
+          stroke="var(--status-fail-solid)"
+          strokeWidth="1"
+          vectorEffect="non-scaling-stroke"
+        />
+        <path transform={`translate(${w} 0)`} d={NOTCH} fill={ink} />
+        {/* The halo in the card's own colour keeps the figure legible where a
+            curve runs under it. The plot does not mirror in a right-to-left
+            language, so neither does the figure. */}
+        <text
+          x={w - LABEL_X}
+          direction="ltr"
+          textAnchor="end"
+          fontSize={LABEL_SIZE}
+          fill={ink}
+          stroke="var(--carbon-surface)"
+          strokeWidth="3"
+          strokeLinejoin="round"
+          paintOrder="stroke"
+          className="glim-num"
+        >
+          {fmtSpeed(limit)}
+        </text>
+      </g>
+    );
+  });
 }
 
 // Samples fetched beyond the span on screen. While the curve glides, the two
@@ -247,8 +322,7 @@ interface Frame {
   top: number;
   base: number;
   ceiling: number;
-  /** The speed limit in force, 0 for none. */
-  limit: number;
+  limits: Limits;
 }
 
 /** The glide's own state, carried from frame to frame. */
@@ -268,7 +342,7 @@ interface Glide {
 function place(
   f: Frame,
   g: Glide,
-  els: { mover: SVGGElement; wash: SVGLinearGradientElement; mark: SVGGElement | null },
+  els: { mover: SVGGElement; washes: SVGLinearGradientElement[]; marks: (SVGGElement | null)[] },
   now: number,
 ): void {
   // How far the step has run: 0 as the newest sample arrives, 1 a step later.
@@ -286,18 +360,18 @@ function place(
   const k = f.ceiling / g.eased;
 
   const moved = `translate(${(f.dx * (1 - p)).toFixed(2)} ${f.base}) scale(1 ${k.toFixed(4)}) translate(0 ${-f.base})`;
-  // The wash is pinned to the box, not to the stretched curve, so its shade
-  // holds still while the ceiling moves.
+  // The washes are pinned to the box, not to the stretched curves, so their
+  // shade holds still while the ceiling moves.
   const washTop = (f.base - (f.base - f.top) / k).toFixed(4);
-  // The limit line follows the eased ceiling too, or it would jump while the
-  // curve under it is still stretching.
-  const mark = els.mark && f.limit > 0 ? limitMark(f.limit, g.eased, f.top, f.base) : null;
-  const drawn = `${moved}|${washTop}|${mark ? `${mark.y}${mark.over}${mark.labelBelow}` : ''}`;
+  // The limit marks follow the eased ceiling too, or they would jump while
+  // the curves under them are still stretching.
+  const marks = marksOf(f.limits, g.eased, f.top, f.base);
+  const drawn = `${moved}|${washTop}|${marks.map((m) => (m ? `${m.y}${m.over}` : '')).join('|')}`;
   if (drawn === g.drawn) return;
   g.drawn = drawn;
   els.mover.setAttribute('transform', moved);
-  els.wash.setAttribute('y1', washTop);
-  if (els.mark && mark) applyMark(els.mark, mark);
+  for (const wash of els.washes) wash.setAttribute('y1', washTop);
+  applyMarks(els.marks, marks, f.base + f.top);
 }
 
 interface PlotProps {
@@ -309,13 +383,12 @@ interface PlotProps {
   pad: number;
   ceiling: number;
   stroke: number;
-  /** The speed limit in force, 0 for none. */
-  limit: number;
+  limits: Limits;
 }
 
 /**
- * Plot is everything inside a speed svg: the zero line, the curve once
- * anything on screen is above it, and the limit line while a limit applies.
+ * Plot is everything inside a speed svg: the zero line, the curves once
+ * anything on screen is above it, and a mark for each limit set.
  * The seeding line is always there, flat along the zero line while nothing
  * goes out.
  */
@@ -355,26 +428,27 @@ export function Plot(props: PlotProps) {
             strokeLinecap="round"
             vectorEffect="non-scaling-stroke"
           />
-          {props.limit > 0 && <IdleLimit {...props} />}
+          <IdleLimits {...props} />
         </>
       )}
     </>
   );
 }
 
-/** IdleLimit is the limit line with no curve to glide with, placed once per change. */
-function IdleLimit({ limit, ceiling, w, h, pad }: PlotProps) {
-  const mark = useRef<SVGGElement>(null);
+/** IdleLimits are the limit marks with no curve to glide with, placed once per change. */
+function IdleLimits({ limits, ceiling, w, h, pad }: PlotProps) {
+  const marks = useRef<(SVGGElement | null)[]>([]);
+  const { download, upload } = limits;
   useLayoutEffect(() => {
-    if (mark.current) applyMark(mark.current, limitMark(limit, ceiling, pad, h - pad));
-  }, [limit, ceiling, h, pad]);
-  return <LimitLine limit={limit} w={w} mark={mark} />;
+    applyMarks(marks.current, marksOf({ download, upload }, ceiling, pad, h - pad), h);
+  }, [download, upload, ceiling, h, pad]);
+  return <LimitMarks limits={limits} w={w} marks={marks} />;
 }
 
 /**
- * Curve draws the filled area and the line, and the upload as a second line.
- * While motion is allowed it glides left between samples and eases its
- * ceiling; otherwise it moves once per sample.
+ * Curve draws the download and the upload each as a line over an area filled
+ * in its own colour. While motion is allowed it glides left between samples
+ * and eases its ceiling; otherwise it moves once per sample.
  */
 function Curve({
   win,
@@ -384,7 +458,7 @@ function Curve({
   pad,
   ceiling,
   stroke,
-  limit,
+  limits,
   anchor,
   glide,
 }: PlotProps & { anchor: number; glide: boolean }) {
@@ -395,25 +469,32 @@ function Curve({
     [win.samples, anchor, w, h, pad, dx, ceiling],
   );
   const upload = useMemo(
-    () => geometry(win.upload, anchor, w, h, pad, dx, ceiling).line,
+    () => geometry(win.upload, anchor, w, h, pad, dx, ceiling),
     [win.upload, anchor, w, h, pad, dx, ceiling],
   );
 
   const mover = useRef<SVGGElement>(null);
   const wash = useRef<SVGLinearGradientElement>(null);
-  const mark = useRef<SVGGElement>(null);
+  const seedWash = useRef<SVGLinearGradientElement>(null);
+  const marks = useRef<(SVGGElement | null)[]>([]);
   const frame = useRef<Frame | null>(null);
   const state = useRef<Glide>({ eased: ceiling, at: 0, drawn: '' });
 
   const draw = useCallback((now: number) => {
     const f = frame.current;
-    if (f && mover.current && wash.current) {
-      place(f, state.current, { mover: mover.current, wash: wash.current, mark: mark.current }, now);
+    if (f && mover.current && wash.current && seedWash.current) {
+      place(
+        f,
+        state.current,
+        { mover: mover.current, washes: [wash.current, seedWash.current], marks: marks.current },
+        now,
+      );
     }
   }, []);
 
   // Before paint, so a new sample and the offset that hides its arrival land
   // in the same frame.
+  const { download, upload: uploadLimit } = limits;
   useLayoutEffect(() => {
     frame.current = {
       geo,
@@ -424,10 +505,10 @@ function Curve({
       top: pad,
       base: h - pad,
       ceiling,
-      limit,
+      limits: { download, upload: uploadLimit },
     };
     draw(performance.now());
-  }, [draw, geo, glide, win.newestAt, win.step, dx, h, pad, ceiling, limit]);
+  }, [draw, geo, glide, win.newestAt, win.step, dx, h, pad, ceiling, download, uploadLimit]);
 
   useEffect(() => {
     const svg = mover.current?.ownerSVGElement;
@@ -453,11 +534,15 @@ function Curve({
   return (
     <>
       <defs>
-        {/* In user space, so place() can pin it to the box by moving y1. In
-            the download line's colour, so the two never disagree. */}
+        {/* In user space, so place() can pin them to the box by moving y1.
+            Each in its own line's colour, so a line and its area never disagree. */}
         <linearGradient ref={wash} id={`${id}wash`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y2={h - pad}>
           <stop offset="0" stopColor={DOWNLOAD_INK} stopOpacity="0.42" />
           <stop offset="1" stopColor={DOWNLOAD_INK} stopOpacity="0.14" />
+        </linearGradient>
+        <linearGradient ref={seedWash} id={`${id}seed`} gradientUnits="userSpaceOnUse" x1="0" x2="0" y2={h - pad}>
+          <stop offset="0" stopColor={SEEDING_INK} stopOpacity="0.42" />
+          <stop offset="1" stopColor={SEEDING_INK} stopOpacity="0.14" />
         </linearGradient>
         <clipPath id={`${id}box`}>
           <rect width={w} height={h} />
@@ -467,11 +552,14 @@ function Curve({
       <g clipPath={`url(#${id}box)`}>
         <g ref={mover}>
           <path d={geo.area} fill={`url(#${id}wash)`} />
+          {/* Over the download's area, which still shows through it where the
+              two overlap, and under both lines. */}
+          <path data-upload-area="" d={upload.area} fill={`url(#${id}seed)`} />
           {/* Under the download line, which stays the one to read where the
               two meet. */}
           <path
             data-upload-line=""
-            d={upload}
+            d={upload.line}
             fill="none"
             stroke={SEEDING_INK}
             strokeWidth={stroke}
@@ -491,8 +579,8 @@ function Curve({
           />
         </g>
       </g>
-      {/* Over the curve, which may run up against it. */}
-      {limit > 0 && <LimitLine limit={limit} w={w} mark={mark} />}
+      {/* Over the curves, which may run up against them. */}
+      <LimitMarks limits={limits} w={w} marks={marks} />
     </>
   );
 }
@@ -509,17 +597,21 @@ export function spanLabel(seconds: number): string {
   return `-${Math.round(seconds / 360) / 10}h`;
 }
 
-/** outOfScale is the limit in force when the plot's scale leaves it out, else 0. */
-export function outOfScale(limit: number, ceiling: number): number {
-  return limit > ceiling ? limit : 0;
-}
+// A legend key in the look of a filled curve: its line on top, its area below.
+const areaKey = (ink: string) => ({
+  borderColor: ink,
+  backgroundColor: `color-mix(in srgb, ${ink} 28%, transparent)`,
+});
 
 /**
- * SpeedLegend names the two lines, which are both always drawn, and a speed
- * limit the scale leaves out, which has no line of its own.
+ * SpeedLegend names the two curves, which are both always drawn. The plot is
+ * hidden from screen readers, so the limits it marks are read out here.
  */
-export function SpeedLegend({ limit = 0 }: { limit?: number }) {
+export function SpeedLegend({ limits }: { limits: Limits }) {
   const { t } = useT();
+  const marked = KINDS.filter((k) => limits[k] > 0).map((k) =>
+    t(`speed.limit.${k}`, { speed: fmtSpeed(limits[k]) }),
+  );
   return (
     <span
       data-speed-legend=""
@@ -527,19 +619,14 @@ export function SpeedLegend({ limit = 0 }: { limit?: number }) {
       className="flex items-center gap-3 whitespace-nowrap text-meta leading-none text-carbon-textMuted"
     >
       <span className="inline-flex items-center gap-1">
-        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: DOWNLOAD_INK }} />
+        <span className="h-2 w-3 border-t-[1.5px]" style={areaKey(DOWNLOAD_INK)} />
         {t('speed.legend.download')}
       </span>
       <span className="inline-flex items-center gap-1">
-        <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: SEEDING_INK }} />
+        <span className="h-2 w-3 border-t-[1.5px]" style={areaKey(SEEDING_INK)} />
         {t('speed.legend.seeding')}
       </span>
-      {limit > 0 && (
-        <span data-speed-limit="" className="glim-num inline-flex items-center gap-1">
-          <span className="h-0.5 w-3 rounded-[var(--radius-pill)] bg-statusFailSolid" />
-          {t('settings.schedule.limit')} {fmtSpeed(limit)}
-        </span>
-      )}
+      {marked.length > 0 && <span className="sr-only">{marked.join(', ')}</span>}
       <InfoBubble tip={t('speed.legend.hint', { page: t('settings.nav.appearance') })} />
     </span>
   );
@@ -575,9 +662,12 @@ export function SpeedGraph({
   const span = scale === 'hour' ? HOUR_POINTS : points;
 
   const win = useSpeedWindow('', value, upload, span + OFFSTAGE, scale);
-  const inForce = useLimitInForce('');
-  const ceiling = useMemo(() => ceilingOf(win.samples.concat(win.upload), inForce), [win, inForce]);
-  // Drawn in pixels, so the limit's figure is not stretched with the plot.
+  const limits = useLimits('');
+  const ceiling = useMemo(
+    () => ceilingOf(win.samples.concat(win.upload), limits.download, limits.upload),
+    [win, limits],
+  );
+  // Drawn in pixels, so the limits' figures are not stretched with the plot.
   const svg = useRef<SVGSVGElement>(null);
   const { w } = usePixelBox(svg);
 
@@ -616,15 +706,15 @@ export function SpeedGraph({
         className="block w-full"
         style={{ height }}
         aria-hidden
-        data-new="limit-legend"
+        data-new="limit-marks"
       >
-        <Plot win={win} span={span} w={w} h={height} pad={6} ceiling={ceiling} stroke={1.75} limit={inForce} />
+        <Plot win={win} span={span} w={w} h={height} pad={6} ceiling={ceiling} stroke={1.75} limits={limits} />
       </svg>
       {/* Both ends of the time axis, oldest on the left. The plot does not
           mirror in a right-to-left language, so neither do its labels. */}
       <div dir="ltr" className="flex items-center justify-between gap-3">
         <span className="glim-num text-meta leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
-        <SpeedLegend limit={outOfScale(inForce, ceiling)} />
+        <SpeedLegend limits={limits} />
         <span className="glim-num text-meta leading-none text-carbon-textMuted">0s</span>
       </div>
     </div>
@@ -674,8 +764,11 @@ export function SpeedMeter({
   const scale: SpeedScale = seconds > FINE_SPAN_S ? 'hour' : 'minute';
   const points = seconds / stepOf(scale);
   const win = useSpeedWindow(instance, value, upload, points + OFFSTAGE, scale);
-  const inForce = useLimitInForce(instance);
-  const ceiling = useMemo(() => ceilingOf(win.samples.concat(win.upload), inForce), [win, inForce]);
+  const limits = useLimits(instance);
+  const ceiling = useMemo(
+    () => ceilingOf(win.samples.concat(win.upload), limits.download, limits.upload),
+    [win, limits],
+  );
   const svg = useRef<SVGSVGElement>(null);
   const { w, h } = usePixelBox(svg);
 
@@ -704,13 +797,13 @@ export function SpeedMeter({
         className="h-0 w-full flex-auto"
         aria-hidden
         focusable="false"
-        data-new="limit-legend"
+        data-new="limit-marks"
       >
-        <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limit={inForce} />
+        <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limits={limits} />
       </svg>
       <span className="flex items-center justify-between gap-3 text-meta leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>
-        <SpeedLegend limit={outOfScale(inForce, ceiling)} />
+        <SpeedLegend limits={limits} />
         <span className="glim-num">0s</span>
       </span>
     </span>

@@ -1,8 +1,9 @@
 // The speed graph on the Downloads screen draws by the web interface's rules:
-// the same ceiling, the same seeding sum, the same window label. A speed limit
-// is a line only where it falls inside the scale; one far above a slow
-// download stays out of the plot, since a line on the top edge, where the
-// peak ends, reads as a download running at the limit.
+// the same ceiling, the same seeding sum, the same window label. A limit is a
+// line only where it falls inside the scale; one far above a slow transfer
+// keeps only its mark on the top edge, since a line there, where the peak
+// ends, reads as a transfer running at the limit. Two figures never cover
+// each other.
 //
 // src/components/speedPlot.ts imports nothing at run time, so node strips its
 // types and these checks call the real functions.
@@ -12,9 +13,19 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const here = dirname(fileURLToPath(import.meta.url));
-const { busyOf, ceilingOf, curve, GRACE_TICKS, limitMark, reading, seedingDefault, spanLabel, uploadOf } = await import(
-  pathToFileURL(join(here, 'src', 'components', 'speedPlot.ts')).href
-);
+const {
+  busyOf,
+  ceilingOf,
+  curve,
+  GRACE_TICKS,
+  labelTops,
+  limitMark,
+  reading,
+  seedingDefault,
+  spanLabel,
+  uploadOf,
+  washOf,
+} = await import(pathToFileURL(join(here, 'src', 'components', 'speedPlot.ts')).href);
 
 const problems = [];
 const expect = (what, got, want) => {
@@ -44,31 +55,39 @@ check('an idle box lets the limit set the scale', ceilingOf([0, 0, 0], 100 * MIB
   const samples = new Array(31).fill(MIB);
   const top = ceilingOf(samples, 30 * MIB);
   expect('a limit far above a steady download stays out of the scale', top, MIB);
-  expect('and draws no line at the top edge', limitMark(30 * MIB, top, H, PAD, LABEL), null);
+  expect('and sits on the top edge with no line', limitMark(30 * MIB, top, H, PAD), { y: PAD, over: true });
 }
 
 {
   const top = ceilingOf([4 * MIB, 5 * MIB], 5 * MIB);
-  const m = limitMark(5 * MIB, top, H, PAD, LABEL);
-  check('a limit inside the scale gets a line', m !== null);
-  if (m) {
-    check(`the line sits inside the plot, got bottom ${m.bottom}`, m.bottom > PAD && m.bottom < H - PAD);
-    expect('with no room above it the figure goes under the line', m.labelAbove, false);
-  }
+  const m = limitMark(5 * MIB, top, H, PAD);
+  check('a limit inside the scale gets a line', m !== null && !m.over);
+  if (m) check(`the line sits inside the plot, got y ${m.y}`, m.y > PAD && m.y < H - PAD);
 }
 
-{
-  const m = limitMark(MIB, 4 * MIB, H, PAD, LABEL);
-  expect('a low limit stands a quarter of the way up', m && m.bottom, PAD + 12);
-  expect('with its figure over the line', m && m.labelAbove, true);
-}
+expect('a low limit stands a quarter of the way up', limitMark(MIB, 4 * MIB, H, PAD), { y: H - PAD - 12, over: false });
 
 {
   const top = ceilingOf([0, 0, 0], 5 * MIB);
-  check('an idle box draws its limit inside the plot', limitMark(5 * MIB, top, H, PAD, LABEL) !== null);
+  expect('an idle box draws its limit inside the plot', limitMark(5 * MIB, top, H, PAD)?.over, false);
 }
 
-expect('no limit, no line', limitMark(0, MIB, H, PAD, LABEL), null);
+expect('no limit, no mark', limitMark(0, MIB, H, PAD), null);
+
+check('both limits within reach count towards the ceiling', ceilingOf([MIB], 2 * MIB, 3 * MIB) > 3 * MIB);
+expect('a far upload limit stays out while a near download limit counts', ceilingOf([MIB], 2 * MIB, 100 * MIB), 2.4 * MIB);
+
+expect('a figure goes over its line where there is room', labelTops([30], H, LABEL), [30 - 2 - LABEL]);
+expect('and under it at the top edge', labelTops([PAD], H, LABEL), [PAD + 2]);
+for (const ys of [
+  [PAD, PAD],
+  [30, 31],
+  [H - PAD, H - PAD],
+]) {
+  const [a, b] = labelTops(ys, H, LABEL);
+  check(`two figures at ${ys} stay clear of each other, got ${a} and ${b}`, Math.abs(a - b) > LABEL);
+  check(`two figures at ${ys} stay in the plot, got ${a} and ${b}`, Math.min(a, b) >= 0 && Math.max(a, b) + LABEL <= H);
+}
 
 expect(
   'the upload counts while a torrent downloads or seeds',
@@ -114,6 +133,11 @@ expect('the default gold accent gets the blue seeding line', seedingDefault('#FC
     pts.every((p) => p.y >= PAD - 1e-9 && p.y <= H - PAD + 1e-9),
   );
   expect('fewer than two samples draw nothing', curve([MIB], w, H, PAD, 30, top, 3), []);
+
+  const cols = washOf(pts, H - PAD);
+  expect('one column per piece', cols.length, pts.length - 1);
+  check('every column reaches down to the ground', cols.every((c) => Math.abs(c.top + c.height - (H - PAD)) < 1e-9));
+  check('the columns leave no gap between them', cols.every((c, i) => i === 0 || cols[i - 1].left + cols[i - 1].width >= c.left));
 }
 
 if (problems.length) {
@@ -121,4 +145,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: speed graph scale, limit line, seeding sum and curve');
+console.log('ok: speed graph scale, limit marks, seeding sum, curve and its fill');

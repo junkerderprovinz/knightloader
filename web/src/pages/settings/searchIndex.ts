@@ -370,7 +370,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.colours',
-      // The heading over the two speed graph lines.
+      // The heading over the colours of the two speed graphs.
       rows: [{ key: 'settings.lines.title' }],
       // The other rows are captions beside a bare Toggle, with no anchor.
       also: [

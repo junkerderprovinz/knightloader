@@ -812,6 +812,8 @@ export interface QueueState {
    *  window or quiet mode applied but not the volume cap. A peer on an older
    *  build leaves it out. */
   limit?: number;
+  /** The torrents' upload cap in bytes/s, 0 for none; an older build leaves it out. */
+  uploadLimit?: number;
 }
 
 export interface AuthState {

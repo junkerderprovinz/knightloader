@@ -928,6 +928,9 @@ type QueueState struct {
 	// put in its place. The volume cap's throttle is left out, since it has
 	// its own push ("volume") and would change this without a broadcast.
 	Limit int64 `json:"limit"`
+	// UploadLimit is the torrents' upload cap in bytes per second, 0 for none,
+	// which the speed graphs mark beside the download limit.
+	UploadLimit int64 `json:"uploadLimit"`
 }
 
 // Queue reports the master switch.
@@ -935,11 +938,12 @@ func (a *App) Queue() QueueState {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return QueueState{
-		Halted:   a.halted,
-		StopMark: a.stopMark,
-		Running:  len(a.active),
-		Quiet:    a.quiet.inForce,
-		Limit:    a.limitInForceLocked(),
+		Halted:      a.halted,
+		StopMark:    a.stopMark,
+		Running:     len(a.active),
+		Quiet:       a.quiet.inForce,
+		Limit:       a.limitInForceLocked(),
+		UploadLimit: int64(a.Settings.Get().Torrent.UploadLimitKiBs) * 1024,
 	}
 }
 
