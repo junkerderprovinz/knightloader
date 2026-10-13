@@ -80,7 +80,7 @@ const SCENES = [
     ready: 'text=Open movies',
     caption: 'Rules sort your links <em>as they come in</em>',
     // The sample matches fixtures/rules/preview.json. The page then scrolls to
-    // the rule list, so the test box and the categories fit below it.
+    // the rule list, so the test box fits below it.
     async act(page) {
       await page.getByPlaceholder('Link URL').fill('https://files.example/d/7f3k2/tears_of_steel_1080p.mkv');
       const name = page.getByPlaceholder('File name');
