@@ -23,211 +23,177 @@ Raise both files to the new number before tagging. `release.yml` refuses a tag
 that either file disagrees with, and `web/check-version-sources.mjs` fails CI
 while the two files name different versions.
 
-Android decides upgrade order by `versionCode`, not by the version name. The
-release build works it out from the version as
-`major * 10000 + minor * 100 + patch`, so 1.4.0 is 10400, and nobody has to
-raise it by hand.
+Android decides upgrade order by `versionCode`, not by the version name.
+`mobile/app.json` carries it next to the version, worked out as
+`major * 10000 + minor * 100 + patch`, so 2.0.0 is 20000. It lives in the file
+because F-Droid builds from the tag and reads both from there, and
+`release.yml` refuses a tag whose `versionCode` does not match its version.
 
 The copy of the extension most people run does not come from the release. The
 App page in Settings serves a zip built from the copy embedded in whatever
 server binary is running, so that one always matches the server. The zip on the
-release is for a store submission and for a fixed download. Firefox Add-ons
-gets a version only when the Firefox Add-ons workflow is run by hand on the
-release's tag.
+release is a fixed download. Once a release is out and is the newest one,
+`stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
+Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.0.0] - 2026-10-14
 
 ### Added
 
-- **The main action of a page floats at its lower right corner.** Add links on
-  the Overview and on Downloads, Start all on the Link collector, Add account
-  on Accounts and Pairing on Instances stay in reach while the page scrolls.
-  Add account lists every kind of account, so the cards no longer carry an add
-  button each.
 - **The Overview opens with what is going on.** A line at the top says what is
-  loading and how long it will take, and a "Needs you" card collects what only
-  you can settle, such as a captcha or an account that stopped working.
-  Customize arranges the cards and hides the ones you do not use.
-- **Pictures for what is easier seen than read.** A vessel shows how full each
-  target folder is, a row of stations shows what happens to a download once it
-  has arrived, and a flow shows the order in which accounts are asked. The
-  week's schedule is a band, a reconnect is a scene, and a ring shows how close
-  a torrent is to its seeding goal. Every picture reads the app's own state and
-  holds still when motion is off.
-- **Pairing shows the group.** The Pairing tab explains its three steps in
-  pictures and lists every device of the group with the way it is reached.
-  On Instances each device is a compact card under a picture of the group,
-  and the rest about it opens in a window.
-- **After an update, dots mark what changed.** A glowing dot stands at each
-  change, and every link that leads to one says how many changes lie that way.
-  A click hides a dot, and what you have seen follows you between browsers.
-  The release notes of the running version open once after an update and stay
-  reachable from the Version card and the event list.
-- **An Info tile closes the settings.** It holds About, every version with a
-  button that checks for updates, and Help with the manual and a bug report
-  that downloads as a file.
+  loading and how long it will take, a "Needs you" card collects what only you
+  can settle, such as a captcha or a failed download, and Customize moves and
+  hides the cards.
 - **From hoster to disk.** A card on the Overview shows where the running
-  downloads load from, what carries them (direct, a proxy or a debrid account)
-  and the folder they land in. Packets run along each line and their density
-  follows the speed; a line that waits is dashed. The same picture stands as
-  one line in the head bar of Downloads.
+  downloads come from, what carries them (direct, a proxy or a debrid account)
+  and the folder they land in. Packets run along each line at the speed of the
+  downloads, a line that waits is dashed, and a folder's fill level sloshes
+  when a packet lands in it.
+- **Seeding in the speed graphs.** The graphs in the web interface and in the
+  Android app draw what your torrents upload as a second graph that is always
+  shown, flat while nothing goes out. A seeding torrent shows its upload rate
+  in the Speed column, and Settings, Appearance, Colours sets the colour of
+  both graphs. The server records the upload beside the download speed.
+- **Pictures on the settings pages.** Rules show which rule catches a sample
+  link and where it lands, Network draws the routes out of the instance with a
+  test that turns each line green or red, and the link collector shows every
+  way a link comes in. The week's schedule and today's speed against it, a
+  reconnect, a torrent's seeding goal, what goes into a video file, the steps
+  after a download and the self-test are drawn too, and every picture holds
+  still when animation is off.
+- **The server keeps a day of download speed** as five minute means in memory,
+  for today's curve. The record starts again with the server.
 - **The pieces of a file.** The detail panel shows a download as a band of
-  pieces: the written ranges of an HTTP download with a marker for every
-  connection, the articles of a Usenet file, and the blocks a par2 check found
+  pieces: the written ranges of an HTTP download with a marker for each
+  connection, the articles of a Usenet file and the blocks a par2 check found
   damaged.
-- **Pictures on the settings pages.** Rules draws the way a sample link takes
-  through the rule list, Network the routes out of the instance with a test
-  that turns each line green or red, and Link collector every way a link
-  comes in. Captcha shows who a captcha goes to and in which order, Resolvers
-  what a video file is put together from, Automation today's speed against
-  the timetable, and Health the self-test as beads on a pulse line.
-- **A handover shows in the picture of the group.** A parcel travels along the
-  line when links go to another instance or arrive from a device of the
-  group. A line through the relay is dashed.
+- **After an update, dots mark what changed.** A dot stands at each change and
+  on every link that leads there, a click hides it, and what you have seen
+  follows you between browsers. The release notes of the running version open
+  once after an update and stay reachable from the Version card.
 - **The theme has a third choice, System.** It follows the device and changes
   with it, in the web interface and in the Android app. A browser that has not
   been here before starts with it.
-- **The server keeps a day of download speed** as five minute means in memory,
-  for the day's curve. The record starts again with the server.
-- **Forgot password? on the sign-in page.** KnightLoader writes a code where
-  only somebody with access to the machine can read it: the container log (on
-  Unraid: Docker tab, KnightLoader icon, Logs), the output of a server started
-  from a terminal or as a service, or the file `password-reset-code.txt` in the
-  data folder for the desktop app. That code and a new password sign you in. A
-  code is valid for 10 minutes. The reset switches two-factor authentication
-  off, removes every passkey and API token, signs out every other browser and
-  replaces the key sessions are signed with. Event programs and scripts stay
-  as they are.
-- **Trusted proxies under Settings > Access.** Behind a reverse proxy, the
-  sign-in throttle counts every visitor by the address the proxy reports, so
-  one person guessing at the password no longer makes everybody wait. It is
-  empty by default, and the manual says when to fill it in.
+- **yt-dlp can keep a video's streams apart.** Switch off "Merge into one file"
+  under Settings, Resolvers to keep video, audio and subtitles as separate
+  files. Audio converted without a set bitrate gets the encoder's best
+  quality, and the empty choice is called best.
+- **The Updates card lists every part KnightLoader brings** with its version
+  and where it comes from: KnightLoader and yt-dlp with their updates, ffmpeg,
+  ffprobe, the JDownloader backend and the built-in libraries.
+- **Health says why a part has a fault,** and where the part writes to the log
+  a button opens its lines there. A stopped queue says whether it was stopped
+  by hand or by a schedule.
 
 ### Changed
 
-- **Filter, Sort and Search stand above the lists as three buttons.** The
-  quick filters open under Filter, Sort offers every sortable column in both
-  directions, and Search turns into its field. Sorting by a click on a column
-  head works as before.
-- **Rows show their buttons when you point at them.** The buttons of a list
-  row appear while the pointer or the focus is on the row and stay visible on
-  touch screens. A round mark at the start of a row picks it, and a
-  Shift-click picks the range.
-- **Settings that used to unfold open in a window.** Connections, rules,
-  categories, host rules, feeds, schedules, event targets, event programs,
-  scripts, header profiles and media hooks are edited in a window of their
-  own, so a page keeps its place while you work on one row.
-- **Settings pages are shorter.** A selector stands compact at the end of its
-  row, several one-row cards joined the card they belong to, and Appearance
-  opens with one Display card for language, design, corners, motion and row
-  height. On a phone a row whose control does not fit beside its name stacks.
-- **A button that tests something shows the answer on itself.** It turns green
-  or red with a word, and the reason stands above it, for connection tests,
-  feeds, event targets, media hooks, captcha services, the port mapping, the
-  folder check and the self-test.
-- **One filled button per view.** Only the floating action of a page and the
-  main button of a window carry the accent colour. Every other button is
-  plain, so the next step is the one that stands out.
-- **The settings search appears when you ask for it.** It shows on a second
+- **The web interface follows GlimStone 3.4.0.** Glyphs come from GlimStone's
+  shared list, so a meaning has the same drawing as in the other GlimStone
+  apps, and only the main action of a view carries the accent colour.
+- **The main action of a page floats at its lower right corner:** Customize on
+  the Overview, Start all in the link collector, Add an account on Accounts and
+  Pairing on Instances. Add links sits in the link collector beside the box
+  you paste links into.
+- **Filter, Sort and Search stand above the lists as three buttons.** The quick
+  filters open under Filter, Sort offers every sortable column in both
+  directions, and Search turns into its field. Every search field looks and
+  works like the settings search.
+- **Rows are picked by a click or tap.** Ctrl adds more and Shift picks a range,
+  and the buttons of a row appear while the pointer or the focus is on it and
+  stay visible on touch screens.
+- **The link collector's filters open from the Filter button.** Host, file type
+  and package moved into the Filter window. Click'n'Load and the clipboard
+  watch are buttons on the add-links card, filled while on, and the options of
+  a batch of links open in a window.
+- **Table cells are a size larger** and a column head is no longer cut: in a
+  language whose word is longer than the column, the column starts as wide as
+  its head.
+- **Play and Pause in the head bar show the queue's state.** The filled one is
+  what the queue is doing.
+- **Accounts are added from one window.** "Add an account" shows a large tile
+  for each kind of account, and debrid, captcha and hoster services are picked
+  from tiles with their logos. Over 400 hoster logos come with KnightLoader;
+  only a hoster without one is fetched from its site, and one with none shows
+  its first letter. A click on an account opens it and a right click opens its
+  menu.
+- **Priority pictures on the Accounts page.** "Download priority order" and
+  "Captcha priority order" draw every connected account in the order it is
+  asked, and a name is moved by dragging it or with the arrow keys on its
+  grip. An account whose check failed keeps its place, dimmed and with the
+  reason. Free downloads stand above both cards.
+- **Every captcha account with a key is tried,** in the stored order first.
+  Each account has its own switch on the Accounts page, and one switched off
+  before the update stays off.
+- **The Instances page shows the group.** Every device is a compact card with
+  its state and its kind side by side on its name's line, under a picture of
+  the group in which a parcel travels when links go to another instance or
+  arrive from a device of the group. Phones and extensions wear the
+  KnightLoader mark, and a device that waits for approval appears once you
+  approve it.
+- **The Pairing tab explains itself.** Three pictures show how pairing works, a
+  card lists every device of the group and how it is reached, and Known
+  addresses lists the address the instance found on its network. The relay
+  card offers "Instance as relay" as a choice of its own.
+- **Settings are reorganised.** Dropdowns and fields stand beside their names,
+  rows such as rules, categories, feeds or schedules open in a window, and a
+  button that tests something shows its answer on itself in green or red.
+  Appearance holds one Display card for language, theme, corners, animation
+  and row height, the Sidebar card and, in the desktop app, the window, the
+  tray icon and keep awake. The debrid drive has a page of its own, the
+  captcha order is on Accounts, and the updates are on General.
+- **Info closes the settings** with Version, Help and About, and the help
+  chapters moved into the manual. The settings search appears on a second
   upward push at the top of a settings page or with the `/` key.
-- **Table cells are a size larger.** The download and collector tables use the
-  12px size of the rest of the interface, and the Status and Variant columns
-  are a little wider by default.
-- **Debrid, captcha and hoster accounts are picked from tiles with their
-  logos.** The services stand in one window with a search, and the form of the
-  chosen one opens in the same window with Back and Save. An account's whole
-  row opens it, and a right click opens its menu.
-- **The phone layout's bottom bar keeps four places.** Instances, Accounts, the
-  event list and Sign out open from More, and the bar's words shrink before
-  one is cut. In a narrow window a dialog stands on the bottom edge with its
-  buttons in reach.
-- **Play and Pause in the head bar show the queue's state.** Play is filled
-  while the queue runs and Pause is shown engaged while it is halted, where
-  the bar used to fill the button to press.
-- **Downloads are counted the same way everywhere.** The Overview, the
-  sidebar's badge and the tray window take their figures from one place: a
-  paused download and a retry that is coming count as waiting, and Failed
-  counts only what will not be tried again.
-- **The options of a batch of links open in a window.** The Options button
-  under the form is marked while an option is set.
-- **The desktop card on the Apps page names its release** and offers that
-  release's files.
-- **Glyphs come from GlimStone's shared list.** A meaning has the same drawing
-  here as in the other GlimStone apps, and every glyph fills the same share of
-  its box, where a stop square used to be a third smaller than the pause bars
-  beside it.
-- **The collector's filters open from the Filter button.** Host, file type and
-  package moved from their card into the Filter window above the link list,
-  so the page's top row is two low cards and the list starts higher.
-  Click'n'Load and the clipboard watch are two buttons on the add-links card,
-  filled while on.
-- **The properties panel names what is selected.** A package selected whole is
-  renamed in the panel, and every other name is listed with a rename button of
-  its own.
-- **A column head is no longer cut.** In a language whose word is longer than
-  the column, the column starts as wide as its head. The progress column is
-  wider by default.
-- **The link collector has one name** throughout the German and English
-  interface.
-- **Each language keeps one form of address** and its own words for
-  password, proxy, log and reset in the sign-in and security texts.
-- **Instances stand on the page as cards of their own.** The tile that led to
-  pairing is gone; the floating Pairing action leads there.
-- **Pairing lists what it knows.** "Known domains" is "Known addresses" and
-  shows the address the instance found on its network above the field. "Serve
-  as relay" is a choice of its own in the relay card.
-- **The Info page holds three cards,** Version, Help and About. The help
-  chapters moved into the manual, which the Manual button opens; its book
-  opens under the pointer, and the Help card's marks are one size.
-- **The stations of "After the download" lead to their settings** on a click
-  or with Enter.
-- **Under rainbow every selector has a colour of its own,** counted in the
-  order the selectors stand on the page.
-- **The web UI follows GlimStone 3.4.0.**
-- **A browser whose session has ended returns to the sign-in page,** after a
-  reset, a changed password or a sign-out everywhere, instead of showing load
-  errors.
-- **A changed password and a sign-out everywhere close the live updates** of
-  every open page, as a reset does. The page you changed the password on
-  picks them up again with its new session.
-- **Removing the password deletes every passkey,** as it already switched
-  two-factor authentication off, so no old passkey opens the instance again
-  once a new password is set. The hint under New password says so.
-- **The two-factor info says that a password reset from the log switches
-  two-factor authentication off.**
+- **The phone layout's bottom bar keeps four places** and opens the rest from
+  More, and a dialog in a narrow window stands on the bottom edge.
+- **The Android app draws its speed graph like the web interface,** seeding
+  included. The theme choices carry glyphs and the language entry is a button.
+- **A speed limit is a mark at the right edge of the speed graphs,** neutral
+  and with a limit glyph, where a red line used to cross the plot. The live
+  figures take the colour of their graph, and a limit above the scale sits at
+  the top edge with an arrow.
 - **Sizes and speeds count in thousands.** The web interface, the Android app,
   the browser extension and the server's messages show kB, MB and GB in place
   of KiB, MiB and GiB, and every limit is typed in the same units, so a limit
-  of 30 MB/s is 30 million bytes a second and reads 30 MB/s everywhere. A
-  torrent upload limit saved by an earlier version keeps its exact speed.
-- **Speed limits are marks at the right edge of the speed graphs.** The red
-  line across the plot is gone. The mark and its figure stay, in the colour of
-  the graph.
+  of 30 MB/s is 30 million bytes a second. A limit set as 10 MiB/s reads
+  10.49 MB/s for the same number of bytes. The size cap of a live recording and
+  the size of the log file count 1,000,000 bytes per MB.
+- **`torrent.uploadLimitKiBs` is `torrent.uploadLimit` in bytes per second.**
+  Settings files and exports from an earlier version keep their exact limit; a
+  script that sets the limit through the API needs the new name.
+- **Downloads are counted the same way everywhere.** The Overview, the
+  sidebar's badge and the tray window take their figures from one place: a
+  paused download or a coming retry counts as waiting, and Failed counts only
+  what will not be tried again.
+- **A Usenet job on your own servers starts at once** instead of at the next
+  round.
+- **The properties panel names what is selected.** A package selected whole is
+  renamed in the panel, and every other name is listed with a rename button of
+  its own.
+- **The desktop card on the Apps page names its release** and offers that
+  release's files.
+- **Every new text is in all 42 languages** of the web interface and the
+  Android app, and the link collector has one name throughout the German and
+  English interface.
 
 ### Fixed
 
-- **Android: a connection by address whose token was revoked** says it has to
-  be added again with the twelve words, where it showed "unauthorized".
-- **Behind a reverse proxy that serves https, the session cookie is marked
-  Secure,** so the browser never sends it over plain HTTP. The same goes for
-  the qBittorrent login Sonarr and Radarr use.
-- **The sign-in page says to wait after too many attempts,** where it said
-  "Wrong password." even when the password was right. A refused passkey
-  sign-in says the same.
-- **"At least 8 characters" counts characters, not bytes,** so a password in
-  another alphabet is held to the same length as one in English. A password
-  over 72 bytes, the most the hash takes, gets its own message on the
-  settings card and the reset form instead of an English error.
-- **A torrent removed while its first tracker announce was still out tells
-  the tracker it has left,** where the tracker went on counting KnightLoader
-  as a peer of it.
+- **A torrent removed while its first tracker announce was still out tells the
+  tracker it has left,** where the tracker went on counting KnightLoader as a
+  peer of it.
+- **The files yt-dlp keeps beside a finished download,** such as further
+  subtitle languages, move out of the working folder with it, and KnightLoader
+  only keeps track of files inside that download's folder.
+- **The Network settings page no longer crashes** when its picture redraws
+  after a route test.
 
 ### Removed
 
 - **The import from a debrid account.** The Import column on the Accounts page
   is gone, and KnightLoader no longer picks up downloads you add on the
-  service's own website. "Keep downloads on the debrid service" now only
-  decides about the torrents KnightLoader sends there.
+  service's own website. An imported download still waiting after the update
+  is marked failed with a hint to add its link again. "Keep downloads on the
+  debrid service" only decides about the torrents KnightLoader sends there.
 
 ## [1.9.0] - 2026-10-13
 
