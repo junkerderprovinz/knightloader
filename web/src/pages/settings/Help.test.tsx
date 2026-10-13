@@ -109,16 +109,13 @@ describe('the Info tile', () => {
     expect(row('KnightLoader').textContent).toContain('1.8.4');
     expect(link('KnightLoader')).toBe('https://github.com/junkerderprovinz/knightloader/releases/tag/v1.8.4');
     expect(link('GlimStone')).toMatch(/^https:\/\/github\.com\/junkerderprovinz\/glimstone\/releases\/tag\/v\d+\.\d+\.\d+$/);
-    expect(link('yt-dlp')).toBe('https://github.com/yt-dlp/yt-dlp/releases/tag/2026.08.19');
-    expect(row('ffmpeg').textContent).toContain('8.1.2');
-    expect(row('ffmpeg').querySelector('a')).toBeNull();
   });
 
-  it('says a media tool is not found instead of leaving its number empty', async () => {
-    answers['/api/mediatools'] = { ytdlp: { found: false }, ffmpeg: { found: false }, ffprobe: { found: false } };
+  it('leaves the programs KnightLoader starts to the General page', async () => {
     await draw();
-    expect(row('yt-dlp').textContent).toContain('not found');
-    expect(row('ffmpeg').textContent).toContain('not found');
+    const names = [...card('Version').querySelectorAll('li')].map((li) => li.firstElementChild?.firstElementChild?.textContent);
+    expect(names).toEqual(['KnightLoader', 'GlimStone']);
+    expect(asked).not.toContain('/api/mediatools');
   });
 
   it('links a branch build to the release it was cut from', async () => {

@@ -37,6 +37,17 @@ const LISTS = ['/downloads', '/collector'];
 /** Newest first. Only the newest release an update passes is marked. */
 export const RELEASES: Release[] = [
   {
+    after: '2.0.0',
+    changes: [
+      {
+        id: 'jd-update',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.jdUpdate',
+        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
+      },
+    ],
+  },
+  {
     after: '1.9.0',
     changes: [
       { id: 'overview-head', to: ['/'], text: 'whatsnew.change.overviewHead', names: { name: 'nav.overview' } },
