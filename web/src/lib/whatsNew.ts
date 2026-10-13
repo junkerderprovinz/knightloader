@@ -382,6 +382,17 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.healthParts',
         names: { name: 'settings.health.parts' },
       },
+      {
+        id: 'state-card-gone',
+        to: ['/settings/health'],
+        text: 'whatsnew.change.stateCardGone',
+        names: {
+          health: 'settings.nav.health',
+          parts: 'settings.health.parts',
+          version: 'settings.about.version',
+          info: 'settings.nav.help',
+        },
+      },
       { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
       // Drawn in the captcha window, which a test captcha on the Accounts page opens.
       {

@@ -1,7 +1,6 @@
 import { ErrorCard, LoadingCard } from '../../components/ui';
 import { useT } from '../../lib/i18n';
 import { useHealthReport } from '../../lib/useHealthReport';
-import { OverallCard } from './health/Overall';
 import { PartsCard } from './health/Parts';
 import { ScrapeCard } from './health/Scrape';
 import { SelfTestPulseCard } from './health/SelfTestPulse';
@@ -24,11 +23,10 @@ export function Health() {
   if (!report) return <LoadingCard label={t('common.loading')} />;
 
   return (
-    <div className="flex flex-col gap-10">
-      <OverallCard hue={0} report={report} />
-      <SelfTestPulseCard hue={1} />
-      <PartsCard hue={2} report={report} />
-      <ScrapeCard hue={3} />
+    <div data-new="state-card-gone" className="flex flex-col gap-10">
+      <SelfTestPulseCard hue={0} />
+      <PartsCard hue={1} report={report} />
+      <ScrapeCard hue={2} />
     </div>
   );
 }

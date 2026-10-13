@@ -1070,22 +1070,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   health: [
     {
-      title: 'settings.health.title',
-      hint: 'settings.health.titleHint',
-      rows: [
-        { key: 'settings.health.version' },
-        { key: 'settings.health.uptime', hint: 'settings.health.uptimeHint' },
-        { key: 'settings.health.startedAt' },
-      ],
-      // The card's badge is a state looked up from a server id.
-      body: [
-        // A `tip=`, which the check script does not scan.
-        'settings.health.oldHealthHint',
-        'settings.health.sampled',
-        'settings.health.loadFailed',
-      ],
-    },
-    {
       title: 'settings.selftest.title',
       hint: 'settings.selftest.hint',
       // The beads are named by the checks the server planned.
@@ -1098,7 +1082,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // Every row is built from server ids, so none can be indexed.
       rows: [],
       also: ['settings.health.openLog'],
-      body: ['settings.health.noReason'],
+      body: ['settings.health.noReason', 'settings.health.loadFailed'],
     },
     {
       title: 'settings.module.metrics',
