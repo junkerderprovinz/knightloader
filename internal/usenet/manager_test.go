@@ -777,6 +777,62 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 	}
 }
 
+func TestAJobIsFollowedAsSoonAsAServiceTakesIt(t *testing.T) {
+	svc := &slowUpload{
+		fakeService: &fakeService{slot: "own", status: Status{Phase: PhaseReady, Files: []File{{ID: "0", Name: "show.mkv"}}}},
+		uploading:   make(chan struct{}, 1),
+		release:     make(chan struct{}),
+	}
+	staged := make(chan string, 2)
+	m := New(Options{
+		Dir: t.TempDir(),
+		Stage: func(j Job, _ []File) ([]string, func(), error) {
+			staged <- j.Name
+			return []string{j.ID + "-task"}, nil, nil
+		},
+		Finished: func(Job) bool { return false },
+		// Far beyond the test, so only a wake-up can start the next round.
+		Interval: time.Hour,
+	})
+	m.SetServices([]Service{svc})
+	earlier, err := m.Add(Job{Name: "earlier"}, []byte(sampleNZB))
+	if err != nil {
+		t.Fatal(err)
+	}
+	m.update(earlier.ID, func(j *Job) {
+		j.State, j.Service, j.Label, j.Remote, j.Taken = StateFetching, "own", "Fake own", "own-0", time.Now()
+	})
+	if _, err := m.Add(Job{Name: "later"}, []byte(sampleNZB)); err != nil {
+		t.Fatal(err)
+	}
+
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		m.Run(ctx)
+		close(done)
+	}()
+	defer func() {
+		cancel()
+		<-done
+	}()
+	<-svc.uploading
+	// The follow loop's first round is over once it has staged the job it
+	// found, and the next one waits for the hour or for a wake-up.
+	if name := <-staged; name != "earlier" {
+		t.Fatalf("staged %q first, want the job already at the service", name)
+	}
+	close(svc.release)
+	select {
+	case name := <-staged:
+		if name != "later" {
+			t.Fatalf("staged %q, want the job just taken", name)
+		}
+	case <-time.After(10 * time.Second):
+		t.Fatal("the job just taken waits for the next tick")
+	}
+}
+
 func TestAnUploadUnderWayAtShutdownIsKept(t *testing.T) {
 	svc := &slowUpload{
 		fakeService: &fakeService{slot: "torbox", status: Status{Phase: PhaseFetching}},
