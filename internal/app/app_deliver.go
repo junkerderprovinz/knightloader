@@ -62,10 +62,9 @@ func (a *App) stagedDirFor(t *core.Task) string {
 // deliverable reports whether this app can move t's finished file itself. A
 // download fetched on another machine has no local file. A multi-file torrent
 // writes into a folder named after the torrent, which the task does not know,
-// so torrents are written to their destination directly, and so is a download
-// imported from a debrid account, which may hold several files as well.
+// so torrents are written to their destination directly.
 func deliverable(t *core.Task) bool {
-	return t != nil && filesAreLocal(t) && t.InfoHash == "" && !importedTask(t)
+	return t != nil && filesAreLocal(t) && t.InfoHash == ""
 }
 
 // moveOptions returns the collision policy for a move: the download's own,

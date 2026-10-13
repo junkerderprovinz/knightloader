@@ -443,9 +443,6 @@ type App struct {
 	// serviceRuns holds what each account's torrent backend is fetching, so a
 	// rewire's new backend carries on with it (app_debridtorrents.go).
 	serviceRuns serviceRuns
-	// imports follows the debrid accounts for what is added to them outside
-	// this instance (app_debridimport.go).
-	imports accountImports
 }
 
 // New opens the app in dataDir without an app key.
@@ -708,8 +705,6 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// hands links over the moment it starts, and an unseeded set would let a
 	// listed link in twice.
 	a.applyFeeds(cfg.Get())
-	// The same holds for the import from the debrid accounts.
-	a.startAccountImports()
 	// Targets may fire on queue.idle, which is reported within two seconds.
 	a.applyEventTargets(cfg.Get())
 	a.applyEventPrograms(cfg.Get())

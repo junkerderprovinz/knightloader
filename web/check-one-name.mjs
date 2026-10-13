@@ -132,15 +132,10 @@ for (const book of ['web en', 'web de']) {
 }
 
 // The module switch and its priority row are the same client.
-const SWITCH_NAMED_IN = [['accounts.importHint', 'settings.torrents.keepOnService']];
 for (const book of ['web en', 'web de']) {
   const module = books[book].get('settings.module.torrents');
   const row = books[book].get('resolver.torrent');
   if (module !== row) problems.push(`${book}: the module is "${module}" but its priority row is "${row}"`);
-  for (const [hint, toggle] of SWITCH_NAMED_IN) {
-    const name = books[book].get(toggle);
-    if (!books[book].get(hint)?.includes(name)) problems.push(`${book} ${hint}: does not name the switch "${name}"`);
-  }
 }
 
 if (problems.length > 0) {

@@ -13,6 +13,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
+	"github.com/junkerderprovinz/knightloader/internal/usenet"
 )
 
 // fakeCrawler stands in for the HTML crawler and records what it was asked to
@@ -425,5 +426,17 @@ func TestAFeedEntryFurtherInsideTheNetworkThanItsFeedIsLeftOut(t *testing.T) {
 			got = append(got, task.URL)
 		}
 		t.Fatalf("staged %q, want only the public entry", got)
+	}
+}
+
+// A feed entry naming a file of an NZB on an account would fetch it from
+// there, so it becomes no task at all: not in the collector, and not in the
+// holding area, from which a restore would set it free.
+func TestAFeedEntryCannotNameAFileOnTheAccount(t *testing.T) {
+	a := newCrawlApp(t, false)
+	link := usenet.FileLink("torbox", "USERS-NZB", usenet.File{ID: "1", Name: "film.mkv"})
+	a.stageFeedJob(feed.Job{URL: link, Package: "Feed", Source: "https://feed.example/rss"})
+	for _, task := range a.Tasks() {
+		t.Errorf("the feed staged %s (held %v)", task.URL, task.Skipped)
 	}
 }

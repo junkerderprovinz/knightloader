@@ -288,12 +288,9 @@ func (r Resolver) Info() resolver.Info {
 	return resolver.Info{ID: resolver.SlotID(r.ServiceID, r.Account), Prio: r.Prio}
 }
 
-// Match claims a hoster link the service supports, a torrent when it takes
-// torrents, and a download imported from this very account.
+// Match claims a hoster link the service supports, and a torrent when it
+// takes torrents.
 func (r Resolver) Match(raw string) bool {
-	if slot, _, ok := ParseJobLink(raw); ok {
-		return slot == r.Info().ID
-	}
 	if r.Torrents && (torrent.Resolver{}).Match(raw) {
 		return true
 	}
@@ -306,11 +303,8 @@ func (r Resolver) Match(raw string) bool {
 
 // Resolve checks a torrent the way the built-in client does, so a malformed
 // one is refused before it reaches the service, and passes a hoster link on
-// as it is. An imported download keeps the name it was staged with.
+// as it is.
 func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
-	if _, _, ok := ParseJobLink(req.URL); ok {
-		return resolver.Result{DirectURL: req.URL}, nil
-	}
 	if r.Torrents && torrent.IsURI(req.URL) {
 		return (torrent.Resolver{}).Resolve(ctx, req)
 	}
@@ -325,13 +319,12 @@ func (r Resolver) Check(ctx context.Context, urls []string) ([]core.Availability
 	if !ok {
 		return resolver.Answers(nil, len(urls)), nil
 	}
-	// A torrent or an imported download is no hoster link, and one in the
-	// batch can make a service refuse all of it, so it stays uncheckable as a
-	// torrent is with the built-in client.
+	// A torrent is no hoster link, and one in the batch can make a service
+	// refuse all of it, so it stays uncheckable as with the built-in client.
 	var links []string
 	var at []int
 	for i, u := range urls {
-		if _, _, imported := ParseJobLink(u); !imported && !torrent.IsURI(u) {
+		if !torrent.IsURI(u) {
 			links = append(links, u)
 			at = append(at, i)
 		}

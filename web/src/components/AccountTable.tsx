@@ -3,7 +3,7 @@
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
-import { IconBadge, InfoBubble, Toggle, useTooltip } from './ui';
+import { IconBadge, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
@@ -38,11 +38,6 @@ export interface AccountRow {
   expiry?: string;
   traffic?: AccountTraffic;
   onToggle: (enabled: boolean) => void;
-  /**
-   * The switch for picking up what is added on the service's own website.
-   * Absent for an account whose service cannot list its downloads.
-   */
-  importing?: { on: boolean; onChange: (on: boolean) => void };
   /** Extra entries for this row's own menu, on top of Edit and Remove. */
   menu?: MenuGroup[];
   onEdit: () => void;
@@ -134,19 +129,8 @@ function UnknownTraffic() {
   );
 }
 
-/**
- * AccountTable draws one card's accounts. `importColumn` adds the switch for
- * the import from each service's website, which only debrid services have.
- */
-export function AccountTable({
-  rows,
-  label,
-  importColumn = false,
-}: {
-  rows: AccountRow[];
-  label: string;
-  importColumn?: boolean;
-}) {
+/** AccountTable draws one card's accounts. */
+export function AccountTable({ rows, label }: { rows: AccountRow[]; label: string }) {
   const { t } = useT();
   const menu = useContextMenu();
   // By key, because polling replaces the row objects; held here so only one
@@ -158,10 +142,7 @@ export function AccountTable({
     // relative keeps the sr-only header cell inside this scroller. Placed
     // against the page, it would widen the whole page on a phone.
     <div data-new="account-rows" className="glim-well relative overflow-x-auto p-0">
-      <table
-        className={`w-full border-collapse text-sm ${importColumn ? 'min-w-[50rem]' : 'min-w-[46rem]'}`}
-        aria-label={label}
-      >
+      <table className="w-full min-w-[46rem] border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">
             <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
@@ -170,14 +151,6 @@ export function AccountTable({
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.tier')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
             <th className="w-52 px-2 py-3 text-start font-medium">{t('accounts.col.traffic')}</th>
-            {importColumn && (
-              <th className="w-24 ps-5 pe-2 py-3 text-start font-medium">
-                <span className="inline-flex items-center">
-                  {t('accounts.col.import')}
-                  <InfoBubble tip={t('accounts.importHint')} />
-                </span>
-              </th>
-            )}
             <th className="w-10 px-2 py-3">
               <span className="sr-only">{t('accounts.rowActions')}</span>
             </th>
@@ -222,20 +195,6 @@ export function AccountTable({
               <td className="px-2 py-3 text-carbon-textSub">
                 <TrafficCell traffic={row.traffic} />
               </td>
-              {importColumn && (
-                <td className="ps-5 pe-2 py-3">
-                  {row.importing ? (
-                    <Toggle
-                      checked={row.importing.on}
-                      onChange={row.importing.onChange}
-                      label={t('accounts.importAccount', { account: row.label })}
-                      hideLabel
-                    />
-                  ) : (
-                    <span className="text-carbon-textMuted">-</span>
-                  )}
-                </td>
-              )}
               <td className="px-2 py-3 text-end">
                 <span className="glim-row-actions inline-flex">
                   <IconBadge

@@ -1,6 +1,6 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { IconForward } from '../../lib/icons';
 import { useLabelMode } from '../../lib/labelModes';
@@ -132,6 +132,31 @@ export function ModulesPageBadge({ m, title, onFollow }: { m: Feature; title?: s
         onFollow?.();
       }}
     />
+  );
+}
+
+/**
+ * ModulesPageButton is ModulesPageBadge for a row of buttons, where a badge
+ * would stand apart from its neighbours.
+ */
+export function ModulesPageButton({ m, label }: { m: Feature; label: string }) {
+  const navigate = useNavigate();
+  const Glyph = pageGlyph('modules');
+  return (
+    <Button
+      kind="secondary"
+      icon={Glyph && <Glyph />}
+      onClick={() => {
+        requestJump({
+          page: 'modules',
+          title: moduleSection(m.verdict),
+          label: `settings.module.${m.id}` as TranslationKey,
+        });
+        navigate('/settings/modules');
+      }}
+    >
+      {label}
+    </Button>
   );
 }
 

@@ -180,6 +180,12 @@ describe('Instances', () => {
     expect(kindName(card('cellar'))).toBe('Server');
     // A phone has no details, so its mark is no button.
     expect(kindOf(card('Pixel 8'))!.querySelector('button')).toBeNull();
+    // Both badges share the name's line, which never wraps them under it.
+    for (const name of ['Pixel 8', 'cellar']) {
+      const line = card(name).querySelector('[data-new="instance-badges"]')!.parentElement!;
+      expect(line.textContent, name).toContain(name);
+      expect(line.className, name).not.toContain('flex-wrap');
+    }
   });
 
   it('says on each card how the instance is reached', async () => {

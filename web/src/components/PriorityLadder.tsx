@@ -68,9 +68,12 @@ export function PriorityLadder({
     // names past them without starting the picture over at every step.
     <PriorityFlow backends={resting.map((id) => ({ id, name: labelFor(id) }))} label={title} glyph={glyph}>
       {/* The list is the rows' offsetParent, the layout a drag measures in.
-          While a row is held the others wiggle (glim-drag-armed). */}
+          While a row is held the others wiggle (glim-drag-armed). It does not
+          mirror, as the picture does not, so a name stays beside its station. */}
       <ol
         ref={list}
+        data-new="priority-names"
+        dir="ltr"
         aria-label={title}
         style={nameBand(resting.length)}
         className={`flex flex-col ${drag.held !== null ? 'glim-drag-armed' : ''}`}
@@ -87,9 +90,22 @@ export function PriorityLadder({
               // A carried row floats over the others, so it takes a ground of
               // its own. select-none keeps a drag from selecting the names.
               className={`flex min-h-0 flex-1 cursor-grab select-none items-center gap-1 rounded-[var(--radius-control)]
-                pe-1 text-sm text-carbon-textSub active:cursor-grabbing ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
+                ps-1.5 pe-1 text-carbon-textSub active:cursor-grabbing ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
               onPointerDown={(e) => drag.press(e, id)}
             >
+              {/* The name comes first, right beside its station, in the type
+                  the other pictures name a station in. It takes a second line
+                  rather than lose its end on a narrow card. */}
+              <span className="flex min-w-0 flex-1 items-center">
+                <span
+                  dir="auto"
+                  className={`line-clamp-2 break-words text-[13px] leading-[15px] text-carbon-text ${trouble ? 'opacity-55' : ''}`}
+                >
+                  {labelFor(id)}
+                </span>
+                {trouble && <Trouble reason={trouble} />}
+                {tip && <InfoBubble tip={tip} />}
+              </span>
               <RowGrip
                 label={t('accounts.routing.dragHandle', { name: labelFor(id) })}
                 disabled={busy}
@@ -98,11 +114,6 @@ export function PriorityLadder({
                   if (next) void store(next);
                 }}
               />
-              <span className="flex min-w-0 items-center">
-                <span className={`truncate text-carbon-text ${trouble ? 'opacity-55' : ''}`}>{labelFor(id)}</span>
-                {trouble && <Trouble reason={trouble} />}
-                {tip && <InfoBubble tip={tip} />}
-              </span>
             </li>
           );
         })}

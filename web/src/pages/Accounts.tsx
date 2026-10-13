@@ -24,7 +24,6 @@ import {
   saveAccountCredential,
   saveResolverPriority,
   setAccountEnabled,
-  setAccountImport,
   testAccount,
   verifyAccountCredential,
 } from '../lib/api';
@@ -186,16 +185,6 @@ export function Accounts() {
     }
   }
 
-  async function onImport(a: Account, on: boolean) {
-    setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, import: on } : x)) ?? cur);
-    try {
-      await setAccountImport(a.service, a.account, on);
-    } catch {
-      toast(t('common.loadFailed'), 'fail');
-      await load();
-    }
-  }
-
   // Confirmed first, since the key cannot be put back.
   async function doRemove(a: Account) {
     setConfirming(null);
@@ -242,7 +231,6 @@ export function Accounts() {
     refreshing,
     onRefresh,
     onToggle,
-    onImport,
     onRemove: (a: Account) => setConfirming(a),
     onEdit,
   };
@@ -296,12 +284,12 @@ export function Accounts() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
-      <Card hue={0} className="flex flex-col gap-3">
+      <Card hue={0} data-new="import-gone" className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} importColumn {...tableProps} />
+          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
@@ -490,7 +478,6 @@ interface TableActions {
   refreshing: ReadonlySet<string>;
   onRefresh: (a: Account) => void;
   onToggle: (a: Account, enabled: boolean) => void;
-  onImport: (a: Account, on: boolean) => void;
   onRemove: (a: Account) => void;
   onEdit: (a: Account) => void;
 }
@@ -498,20 +485,17 @@ interface TableActions {
 function AccountsTable({
   label,
   rows,
-  importColumn = false,
   catalogue,
   refreshing,
   onRefresh,
   onToggle,
-  onImport,
   onRemove,
   onEdit,
-}: TableActions & { label: string; rows: Account[]; importColumn?: boolean }) {
+}: TableActions & { label: string; rows: Account[] }) {
   const { t } = useT();
   return (
     <AccountTable
       label={label}
-      importColumn={importColumn}
       rows={rows.map((a): AccountRow => {
         const svc = catalogue.get(a.service);
         // An own server's row is its hostname. KnightLoader has no way to check
@@ -531,7 +515,6 @@ function AccountsTable({
           expiry: a.expiry,
           traffic: a.traffic,
           onToggle: (v) => onToggle(a, v),
-          importing: a.canImport ? { on: a.import, onChange: (v) => onImport(a, v) } : undefined,
           onEdit: () => onEdit(a),
           // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),

@@ -398,7 +398,7 @@ func (a *App) UndoRemove(token string) []string {
 	b, _ := v.(*bin)
 	// A browser may sit in front of several instances (routes_federation.go),
 	// so a token issued by another instance is not found here. The window is
-	// judged under a.mu, as the deletion of an imported download judges it
+	// judged under a.mu, as the deletion of a finished Usenet job judges it
 	// (see undoableUntilLocked), so the two never both go ahead.
 	if !ok || b == nil || b.app != a || !time.Now().Before(b.until) {
 		a.mu.Unlock()

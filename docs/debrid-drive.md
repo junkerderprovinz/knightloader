@@ -4,10 +4,9 @@ The debrid drive shows what is on your debrid accounts as a read-only network
 drive. Mount it with rclone, point Plex or Jellyfin at the mount, and they
 stream straight from the service. Nothing is downloaded to your disk first.
 
-TorBox, Real-Debrid, AllDebrid, Premiumize.me and Debrid-Link can be shown,
-the same services whose downloads the [import](getting-links-in.md#from-your-debrid-account)
-can read. The other services keep no list of your downloads, so they have
-nothing to show.
+TorBox, Real-Debrid, AllDebrid, Premiumize.me and Debrid-Link can be shown.
+The other services keep no list of your downloads, so they have nothing to
+show.
 
 ## What it looks like
 

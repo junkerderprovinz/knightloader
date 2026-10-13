@@ -5,7 +5,7 @@ import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { hueVars } from '../lib/appearance';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, IconBadge, LabelBadge, Modal, useTooltip } from './ui';
+import { Button, LabelBadge, Modal, useTooltip } from './ui';
 import {
   IconBrowser,
   IconClose,
@@ -157,11 +157,12 @@ function Tile({
       <div className="flex items-stretch">
         <div className="flex shrink-0 items-center ps-4">{mark}</div>
         <div className="flex min-w-0 flex-1 flex-col gap-4 p-7 max-sm:p-5">
-          {/* The state moves under the name when both do not fit on one line. */}
-          <div className="flex flex-wrap items-center gap-2.5">
+          {/* The badges keep the name's line at every width, and the name is
+              cut short for them. */}
+          <div className="flex items-center gap-2.5">
             <span className="min-w-0 truncate font-semibold text-carbon-text">{name}</span>
-            {eyebrow && <span className="glim-eyebrow shrink-0">{eyebrow}</span>}
-            <span className="flex-1" />
+            {eyebrow && <span className="glim-eyebrow min-w-0 truncate">{eyebrow}</span>}
+            <span className="min-w-0 flex-1" />
             {state}
           </div>
           {said.length > 0 && (
@@ -193,47 +194,68 @@ function CardLogo() {
   return <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />;
 }
 
+// The kind's badge is a square of the state pill's height, corner and quiet
+// ground, so the two read as one pair.
+const KIND_BADGE = `inline-grid h-[22px] w-[22px] shrink-0 place-items-center rounded-[min(6px,var(--radius-pill))]
+  bg-carbon-surface3 text-carbon-textSub`;
+
 /**
  * KindMark stands beside the state and shows what kind of instance a card is,
  * named in its bubble. On a card with a details window it opens that window;
- * elsewhere it only names the kind. It takes the button's square but only the
- * pill's height in the line, so the line keeps its height.
+ * elsewhere it only names the kind.
  */
 function KindMark({ kind, onOpen }: { kind: string; onOpen?: () => void }) {
   const { t } = useT();
   const Glyph = KIND_GLYPHS[kind];
   const label = KINDS[kind] ? t(KINDS[kind]) : '';
-  const tip = useTooltip<HTMLSpanElement>(label);
   if (!Glyph || !label) return null;
-  const glyph = <Glyph width={16} height={16} />;
-  if (onOpen) {
-    return (
-      <span data-new="instance-kind" className="-my-[5px] inline-flex">
-        <IconBadge quiet icon={glyph} title={label} onClick={onOpen} />
-      </span>
-    );
-  }
+  const glyph = <Glyph width={14} height={14} />;
+  return onOpen ? (
+    <KindButton label={label} onOpen={onOpen}>
+      {glyph}
+    </KindButton>
+  ) : (
+    <KindSign label={label}>{glyph}</KindSign>
+  );
+}
+
+function KindSign({ label, children }: { label: string; children: ReactNode }) {
+  const tip = useTooltip<HTMLSpanElement>(label);
   return (
     <>
-      <span
-        data-new="instance-kind"
-        {...tip.triggerProps}
-        role="img"
-        aria-label={label}
-        className="-my-[5px] inline-grid h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 place-items-center
-          rounded-[var(--radius-pill)] text-carbon-textSub"
-      >
-        {glyph}
+      <span data-new="instance-kind" {...tip.triggerProps} role="img" aria-label={label} className={KIND_BADGE}>
+        {children}
       </span>
       {tip.node}
     </>
   );
 }
 
-/** The state pill with the kind's mark before it. */
+function KindButton({ label, onOpen, children }: { label: string; onOpen: () => void; children: ReactNode }) {
+  const tip = useTooltip<HTMLButtonElement>(label);
+  // A button has its own role and tab stop, which the bubble's must not replace.
+  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
+  return (
+    <span data-new="instance-kind" className="inline-flex">
+      <button
+        type="button"
+        {...hover}
+        aria-label={label}
+        onClick={onOpen}
+        className={`${KIND_BADGE} outline-none transition-colors hover:bg-carbon-hover hover:text-carbon-text
+          focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]`}
+      >
+        {children}
+      </button>
+      {tip.node}
+    </span>
+  );
+}
+
+/** The state pill with the kind's badge before it. */
 function StateWithKind({ kind, onOpen, children }: { kind?: string; onOpen?: () => void; children: ReactNode }) {
   return (
-    <span className="flex shrink-0 items-center gap-1">
+    <span data-new="instance-badges" className="flex shrink-0 items-center gap-1.5">
       {kind && <KindMark kind={kind} onOpen={onOpen} />}
       {children}
     </span>

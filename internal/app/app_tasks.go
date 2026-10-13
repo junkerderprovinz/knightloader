@@ -1167,7 +1167,6 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 			}
 		}
 		ytdlp.Discard(id, work, a.usedByOther)
-		a.dropImported(t)
 	}
 	if usenetJob != "" {
 		// Without this download, what is left of the release may be ready for its check.

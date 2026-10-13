@@ -304,7 +304,7 @@ type RepairProgress struct {
 }
 
 // ServiceJob is the job a debrid service holds for a task while the files come
-// here: a torrent it fetched, or a download imported from the account.
+// here: the torrent it fetched.
 type ServiceJob struct {
 	// Slot is the account holding the job (resolver.SlotID).
 	Slot string `json:"slot"`

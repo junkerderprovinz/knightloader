@@ -78,6 +78,13 @@ describe('the captcha priority card', () => {
     expect(grip('9kw.eu')).toBeNull();
   });
 
+  it('names each station right beside it, ahead of the grip', async () => {
+    await drawCard(['capsolver', '2captcha']);
+    const first = host.querySelector('[data-ladder-id="capsolver"]')!;
+    expect(first.firstElementChild!.textContent).toBe('CapSolver');
+    expect(first.lastElementChild).toBe(grip('CapSolver'));
+  });
+
   it('puts a connected account the order leaves out after the ones it names', async () => {
     await drawCard(['capsolver']);
     expect(rows()).toEqual(['capsolver', '2captcha']);
@@ -86,7 +93,13 @@ describe('the captcha priority card', () => {
   it('leads to the Captcha module switch and carries when the accounts start and the test', async () => {
     await drawCard([]);
     expect(host.querySelector('[role="switch"][aria-label="Captcha"]')).toBeNull();
-    expect(host.querySelector('a[href="/settings/modules"]')?.textContent).toBe('On and off under Modules');
+    // The way to the switch ends the row of test buttons, a button like them.
+    const row = [...host.querySelectorAll('button')].filter((b) => b.closest('.flex-wrap'));
+    expect(row.map((b) => b.textContent)).toEqual([
+      'Send a test captcha',
+      'Send one to the captcha accounts too',
+      'On and off under Modules',
+    ]);
     expect(host.textContent).toContain('When captcha accounts start');
     expect(host.textContent).toContain('Send one to the captcha accounts too');
   });

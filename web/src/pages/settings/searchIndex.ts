@@ -417,9 +417,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
       // The hint sends the reader to the captcha accounts card by its name,
-      // the badge at the title's end to the module's switch, and the card
-      // without an account to the button that adds one.
-      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'accounts.newAccount'],
+      // the button that ends the test row to the module's switch on the
+      // Modules page, and the card without an account to the button that adds
+      // one.
+      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'settings.nav.modules', 'accounts.newAccount'],
       body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'accounts.addPointer'],
     },
     // The fields are in the window a server row opens, so they lead to the card.

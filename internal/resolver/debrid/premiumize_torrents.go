@@ -288,8 +288,7 @@ func (p *Premiumize) DeleteTorrent(ctx context.Context, id string) error {
 
 // List reads every transfer on the account: torrents, usenet and web
 // downloads alike, since TorrentStatus fetches any of them. A transfer names
-// its source only through a proxy link, so none carries an info hash, and the
-// import waits for a second look before it takes one.
+// its source only through a proxy link, so none carries an info hash.
 func (p *Premiumize) List(ctx context.Context) ([]Listed, bool, error) {
 	list, _, err := p.transfers(ctx, false)
 	if err != nil {

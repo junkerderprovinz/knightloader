@@ -730,17 +730,10 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 		uploading:   make(chan struct{}, 1),
 		release:     make(chan struct{}),
 	}
-	heard := make(chan string, 1)
 	m := New(Options{
 		Dir:      t.TempDir(),
 		Stage:    func(Job, []File) ([]string, func(), error) { return nil, nil, nil },
 		Finished: func(Job) bool { return false },
-		Taken: func(_, remote string) {
-			select {
-			case heard <- remote:
-			default:
-			}
-		},
 		Interval: 10 * time.Millisecond,
 	})
 	m.SetServices([]Service{svc})
@@ -767,13 +760,15 @@ func TestAQueuedDownloadsNewIDIsHeardWhileAnUploadHangs(t *testing.T) {
 		<-done
 	}()
 	<-svc.uploading
-	select {
-	case remote := <-heard:
-		if remote != "88" {
-			t.Errorf("heard %q, want the id the queued download started under", remote)
+	deadline := time.Now().Add(5 * time.Second)
+	for {
+		if j, _ := m.Get(queued.ID); j.Remote == "88" {
+			break
 		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("the queued download's new id was not heard while another NZB was uploading")
+		if time.Now().After(deadline) {
+			t.Fatal("the queued download's new id was not heard while another NZB was uploading")
+		}
+		time.Sleep(5 * time.Millisecond)
 	}
 }
 

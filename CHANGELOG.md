@@ -214,6 +214,13 @@ release's tag.
   the tracker it has left,** where the tracker went on counting KnightLoader
   as a peer of it.
 
+### Removed
+
+- **The import from a debrid account.** The Import column on the Accounts page
+  is gone, and KnightLoader no longer picks up downloads you add on the
+  service's own website. "Keep downloads on the debrid service" now only
+  decides about the torrents KnightLoader sends there.
+
 ## [1.9.0] - 2026-10-13
 
 ### Added

@@ -21,7 +21,7 @@ func (a *App) newDebridDrive() *debriddrive.Drive {
 }
 
 // driveAccounts is every account the debrid drive shows: the wired ones whose
-// service can list what is on them, the same ones the import can follow.
+// service can list what is on them.
 func (a *App) driveAccounts() []debriddrive.Account {
 	a.bmu.RLock()
 	defer a.bmu.RUnlock()
