@@ -151,9 +151,6 @@ type Options struct {
 	// Pending hears how many jobs are waiting for an account or being
 	// fetched, each time that number changes. Nil for none.
 	Pending func(n int)
-	// Taken hears the account each NZB went to and the id the job goes by
-	// there, and again when the service gives it another. Nil for none.
-	Taken func(slot, remote string)
 	// Interval is the pause between two rounds of each of Run's loops,
 	// Backoff the first wait after a service declined. Zero means five
 	// seconds and a minute.
@@ -419,8 +416,8 @@ func (m *Manager) Kick() {
 }
 
 // Run works the jobs until ctx is cancelled. The taken jobs are followed apart
-// from the uploads, so a long run of them cannot keep the account import from
-// hearing a queued download's new id in time.
+// from the uploads, so a long run of them cannot keep a queued download's new
+// id from being heard in time.
 func (m *Manager) Run(ctx context.Context) {
 	followed := make(chan struct{})
 	go func() {
@@ -574,11 +571,6 @@ func (m *Manager) noteSubmitLocked(slot string) {
 
 // submitted records what one submit came back with.
 func (m *Manager) submitted(id string, svc Service, remote string, err error) {
-	// Heard even for a job cancelled during the upload: the service holds it
-	// until the delete below reaches it.
-	if err == nil {
-		m.taken(svc.Slot(), remote)
-	}
 	m.mu.Lock()
 	defer m.mu.Unlock()
 	j, ok := m.jobs[id]
@@ -739,8 +731,6 @@ func (m *Manager) callsHeld(slot string) bool {
 // observe applies one reading of a fetching job. found is false when the
 // service's answer did not list it.
 func (m *Manager) observe(id string, st Status, found bool) {
-	var slot, renamed string
-	defer func() { m.taken(slot, renamed) }()
 	m.mu.Lock()
 	j, ok := m.jobs[id]
 	if !ok || j.State != StateFetching {
@@ -762,7 +752,6 @@ func (m *Manager) observe(id string, st Status, found bool) {
 	j.missing = time.Time{}
 	if st.ID != "" && st.ID != j.Remote {
 		j.Remote = st.ID
-		slot, renamed = j.Service, st.ID
 		m.saveLocked()
 	}
 	switch st.Phase {
@@ -779,13 +768,6 @@ func (m *Manager) observe(id string, st Status, found bool) {
 	m.mu.Unlock()
 	if st.Phase == PhaseReady {
 		m.stage(id, st.Files)
-	}
-}
-
-// taken passes a job's id at its account on to Options.Taken.
-func (m *Manager) taken(slot, remote string) {
-	if m.o.Taken != nil && remote != "" {
-		m.o.Taken(slot, remote)
 	}
 }
 

@@ -324,28 +324,3 @@ func TestProgressKeepsATorrentOnTheService(t *testing.T) {
 		})
 	}
 }
-
-func TestAnImportedTorrentIsNeverGivenUpOnForWantOfProgress(t *testing.T) {
-	for _, svc := range seedboxServices {
-		t.Run(svc.name, func(t *testing.T) {
-			s := newSeedbox(stuckAt(10))
-			b, up := newTestBackend(t, svc.start(t, s), &partRecorder{})
-			b.StallMinutes = func(string) int { return 1 }
-			b.minute = 10 * time.Millisecond
-
-			b.Download("t1", JobLink("fake", svc.job), nil, 1)
-			time.Sleep(200 * time.Millisecond)
-			b.Remove("t1", false)
-			time.Sleep(50 * time.Millisecond)
-
-			if _, deletes := s.counts(); deletes != 0 {
-				t.Errorf("the user's own job was deleted %d times", deletes)
-			}
-			for _, u := range up.all() {
-				if u.Status == core.StatusError {
-					t.Errorf("the imported download was given up on: %+v", u)
-				}
-			}
-		})
-	}
-}

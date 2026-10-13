@@ -749,10 +749,6 @@ export interface Account {
   /** RFC3339; empty until the health refresher has fetched it. */
   expiry?: string;
   trafficLeft?: string;
-  /** Whether the service can list the account's downloads for the import. */
-  canImport: boolean;
-  /** Whether what the user adds on the service's website is imported. */
-  import: boolean;
 }
 
 /** One account's traffic allowance, mirroring app.TrafficState. */
@@ -2044,12 +2040,6 @@ export async function setAccountLabel(service: string, account: string, label: s
 // setAccountEnabled switches an account off as if its credential were missing.
 export async function setAccountEnabled(service: string, account: string, enabled: boolean): Promise<void> {
   await ok(await post('/api/accounts/enabled', { service, account, enabled }));
-}
-
-// setAccountImport switches whether what the user adds on the account's own
-// website is picked up.
-export async function setAccountImport(service: string, account: string, on: boolean): Promise<void> {
-  await ok(await post('/api/accounts/import', { service, account, import: on }));
 }
 
 // testAccount re-checks a stored account, the per-row "Refresh".

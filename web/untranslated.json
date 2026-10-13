@@ -59,7 +59,6 @@
       "task.retry.compactNoMax"
     ],
     "cs": [
-      "accounts.col.import",
       "activity.usenet",
       "health.part.ytdlp",
       "settings.dbmaint.settingsSize",
@@ -467,7 +466,6 @@
       "task.retry.compactNoMax"
     ],
     "ms": [
-      "accounts.col.import",
       "activity.usenet",
       "events.kind.captcha",
       "health.part.relay",
@@ -550,7 +548,6 @@
       "task.tooltip.swarmDetail"
     ],
     "pl": [
-      "accounts.col.import",
       "activity.usenet",
       "events.kind.captcha",
       "health.part.ytdlp",
@@ -635,7 +632,6 @@
       "task.retry.compactNoMax"
     ],
     "sk": [
-      "accounts.col.import",
       "activity.usenet",
       "health.part.relay",
       "health.part.ytdlp",

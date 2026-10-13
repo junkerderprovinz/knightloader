@@ -1,15 +1,14 @@
 // The ways a link reaches the collector, read from what the instance has set
 // up: the module switches, the clipboard watch of this browser, the group's
-// apps, the other instances and the accounts that import. internal/app's
-// origins and docs/getting-links-in.md name the entrances. Two are left out:
-// the move over from JDownloader, which happens once, and the API, which is an
-// address and nothing that is set up.
+// apps and the other instances. internal/app's origins and
+// docs/getting-links-in.md name the entrances. Two are left out: the move over
+// from JDownloader, which happens once, and the API, which is an address and
+// nothing that is set up.
 import { useNavigate } from 'react-router-dom';
 import type { Way } from '../../../components/pictures/WaysIn';
-import { fetchAccounts, fetchConnect, type Instance } from '../../../lib/api';
+import { fetchConnect, type Instance } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
-  IconAccounts,
   IconApp,
   IconBrowser,
   IconCopy,
@@ -46,7 +45,6 @@ const PLACES: Record<string, Place> = {
   bookmarklet: { page: 'browsertools', title: 'settings.browsertools.bookmarkletTitle' },
   phone: { page: 'browsertools', title: 'settings.browsertools.phoneTitle' },
   instances: { page: 'instances', title: 'settings.module.federation' },
-  account: '/accounts',
   downloadclient: { page: 'access', title: 'settings.access.tokens.title', label: 'settings.module.downloadclient' },
 };
 
@@ -63,7 +61,6 @@ export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]
   const navigate = useNavigate();
   const { features } = useFeatures();
   const { data: group } = useResource(fetchConnect);
-  const { data: accounts } = useResource(fetchAccounts);
 
   const ways: Way[] = [
     { id: 'paste', name: t('collector.add'), glyph: IconPaste, state: 'on' },
@@ -121,15 +118,6 @@ export function useWays(watch: boolean, peers: Instance[] | null): { ways: Way[]
       detail: names(others),
     });
   }
-
-  const importing = (accounts ?? []).filter((a) => a.canImport && a.import);
-  ways.push({
-    id: 'account',
-    name: t('picture.intake.account'),
-    glyph: IconAccounts,
-    state: importing.length > 0 ? 'on' : (accounts ?? []).some((a) => a.canImport) ? 'off' : 'unset',
-    detail: importing.map((a) => a.label || a.service).join(', '),
-  });
 
   const client = shipped('downloadclient');
   if (client) {

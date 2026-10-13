@@ -109,10 +109,9 @@ type Torrent struct {
 	// link the link filter refuses, and none is ever added as an extra.
 	BannedTrackers []string `json:"bannedTrackers"`
 
-	// KeepOnService leaves on a debrid account what KnightLoader fetched from
-	// it: a torrent once its files are here, and a download imported from the
-	// account also when its task is removed. Off, both are deleted there, so
-	// they do not pile up against the account's limits.
+	// KeepOnService leaves a torrent on the debrid account once its files are
+	// here. Off, it is deleted there, so torrents do not pile up against the
+	// account's limits.
 	KeepOnService bool `json:"keepOnService"`
 	// DebridCachedOnly hands a torrent to a debrid service only when the
 	// service has it cached already, and to the built-in client otherwise,

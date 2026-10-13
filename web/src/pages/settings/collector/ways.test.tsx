@@ -46,11 +46,11 @@ function Probe({ watch }: { watch: boolean }) {
   return null;
 }
 
-async function mount(modules: Feature[], answers: { apps?: unknown[]; accounts?: unknown[] } = {}, watch = false) {
+async function mount(modules: Feature[], answers: { apps?: unknown[] } = {}, watch = false) {
   vi.stubGlobal(
     'fetch',
-    vi.fn(async (url: string) => {
-      const body = url === '/api/connect' ? { members: [], apps: answers.apps ?? [] } : (answers.accounts ?? []);
+    vi.fn(async () => {
+      const body = { members: [], apps: answers.apps ?? [] };
       return new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } });
     }),
   );
@@ -89,7 +89,7 @@ describe('the ways into the collector', () => {
 
   it('leave out a way this build does not have', async () => {
     await mount([feature('cnl', { verdict: 'not-built' })]);
-    expect(seen.ways.map((w) => w.id)).toEqual(['paste', 'file', 'clipboard', 'extension', 'bookmarklet', 'phone', 'account']);
+    expect(seen.ways.map((w) => w.id)).toEqual(['paste', 'file', 'clipboard', 'extension', 'bookmarklet', 'phone']);
   });
 
   it('follow the clipboard watch of this browser', async () => {
@@ -115,22 +115,14 @@ describe('the ways into the collector', () => {
     expect([state('phone'), state('extension')]).toEqual(['unset', 'unset']);
   });
 
-  it('count the other instances while the module is on, and an account that imports', async () => {
-    await mount([feature('federation', { enabled: true })], {
-      accounts: [
-        { label: 'TorBox', service: 'torbox', canImport: true, import: true },
-        { label: 'Rapidgator', service: 'rapidgator', canImport: false, import: false },
-      ],
-    });
+  it('count the other instances while the module is on', async () => {
+    await mount([feature('federation', { enabled: true })]);
     expect(seen.ways.find((w) => w.id === 'instances')).toMatchObject({ state: 'on', detail: 'nas' });
-    expect(seen.ways.find((w) => w.id === 'account')).toMatchObject({ state: 'on', detail: 'TorBox' });
   });
 
-  it('count the instances as off with their module, and an account that could import as off', async () => {
-    await mount([feature('federation')], {
-      accounts: [{ label: 'TorBox', service: 'torbox', canImport: true, import: false }],
-    });
-    expect([state('instances'), state('account')]).toEqual(['off', 'off']);
+  it('count the instances as off with their module', async () => {
+    await mount([feature('federation')]);
+    expect(state('instances')).toBe('off');
   });
 
   it('go to the row a way is set up in', async () => {
@@ -142,8 +134,5 @@ describe('the ways into the collector', () => {
       title: 'settings.access.tokens.title',
       label: 'settings.module.downloadclient',
     });
-
-    act(() => seen.open('account'));
-    expect(seen.at).toBe('/accounts');
   });
 });

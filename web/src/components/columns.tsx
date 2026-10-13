@@ -32,7 +32,6 @@ import {
   IconPower,
   IconRefresh,
   IconStopMark,
-  IconUpload,
   IconWarning,
   PriorityGlyph,
 } from '../lib/icons';
@@ -1403,15 +1402,14 @@ const seeding = (t: Task): boolean => rowState(t) === 'seeding';
 const shownRate = (t: Task): number => (seeding(t) ? (t.uploadSpeed ?? 0) : t.speed);
 
 /**
- * UploadRate is the speed cell of a seeding torrent. The glyph is the one the
- * status pill gives a seeding row, so the figure does not read as a download.
- * A seed nobody takes from shows 0 B/s, which says it is still offered.
+ * UploadRate is the speed cell of a seeding torrent. The status pill beside it
+ * already says the row seeds, and the bubble names the figure an upload. A
+ * seed nobody takes from shows 0 B/s, which says it is still offered.
  */
 function UploadRate({ rate, t }: { rate: number; t: Translate }) {
   const text = fmtRate(rate);
   return (
-    <span data-new="seed-upload" className="inline-flex max-w-full items-center gap-0.5 align-middle">
-      <IconUpload tight width={10} height={10} aria-hidden className="shrink-0 text-statusInfo" />
+    <span data-new="seed-rate" className="inline-flex max-w-full align-middle">
       <Tip tip={`${t('overview.torrents.up')} ${text}`} className="truncate">
         {text}
       </Tip>

@@ -7,7 +7,8 @@ import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder
 import { TestButton } from '../../../components/TestButton';
 import { useDraft, useFeatures } from '../context';
 import { SettingRow, SubHead } from '../controls';
-import { ModulesPageBadge } from '../ModuleToggle';
+import type { Feature } from '../features';
+import { ModulesPageButton } from '../ModuleToggle';
 
 // The captcha priority card orders the connected captcha accounts the way the
 // download priority card beside it orders the backends, and holds when they
@@ -88,17 +89,6 @@ export function CaptchaPriorityCard({
       title={title}
       hint={t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') })}
       intro={t('settings.captcha.orderIntro')}
-      // The switch itself stands on the Modules page, and this leads there.
-      right={
-        captcha && (
-          <span data-new="captcha-switch">
-            <ModulesPageBadge
-              m={captcha}
-              title={t('settings.captcha.moduleLink', { page: t('settings.nav.modules') })}
-            />
-          </span>
-        )
-      }
     >
       <div data-new="priority-accounts">
         {solvers.length === 0 ? (
@@ -146,7 +136,7 @@ export function CaptchaPriorityCard({
           )}
         </div>
       )}
-      <TestCaptcha solvers={solvers.length > 0} />
+      <TestCaptcha solvers={solvers.length > 0} captcha={captcha} />
     </PriorityCard>
   );
 }
@@ -167,9 +157,9 @@ export function testRefusal(e: unknown): TranslationKey {
  * like a real one; how the answer compared comes back as a toast from
  * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
  * to them only from the second button, which shows while one of them could
- * take it.
+ * take it. The row ends with the way to the module's switch, `captcha`.
  */
-function TestCaptcha({ solvers }: { solvers: boolean }) {
+function TestCaptcha({ solvers, captcha }: { solvers: boolean; captcha?: Feature }) {
   const { t } = useT();
   const { toast } = useToast();
   const words = { ok: t('test.sent'), fail: t('test.failed') };
@@ -197,6 +187,12 @@ function TestCaptcha({ solvers }: { solvers: boolean }) {
             words={words}
             run={send(true)}
           />
+        )}
+        {/* The switch itself stands on the Modules page, and this leads there. */}
+        {captcha && (
+          <span data-new="captcha-modules" className="inline-flex">
+            <ModulesPageButton m={captcha} label={t('settings.captcha.moduleLink', { page: t('settings.nav.modules') })} />
+          </span>
         )}
       </div>
     </div>

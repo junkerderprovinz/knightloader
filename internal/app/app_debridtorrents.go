@@ -256,7 +256,6 @@ func (a *App) torrentsVia(slot string, svc debrid.TorrentService, links backend,
 	tb.Keep = func() bool { return a.Settings.Get().Torrent.KeepOnService }
 	tb.CachedOnly = a.cachedOnly
 	tb.StallMinutes = a.stallMinutes
-	tb.Added = func(job string) { a.claimImported(slot, job) }
 	// An account set up again after the restart finds the probes it left.
 	a.spawn(tb.DropProbes)
 	return tb
@@ -290,8 +289,7 @@ func (a *App) stallMinutes(taskID string) int {
 
 // torrentRules is the file rules of a torrent's category, which choose its
 // files on a debrid service as they do in the built-in client (see
-// torrentJobLocked). A download imported from an account is not a torrent
-// this instance was handed, and fetches what the account holds.
+// torrentJobLocked).
 func (a *App) torrentRules(taskID string) (func(string, int64) bool, error) {
 	a.mu.Lock()
 	t := a.tasks[taskID]

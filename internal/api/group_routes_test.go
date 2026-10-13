@@ -71,7 +71,6 @@ var groupRefused = []string{
 	"POST /api/accounts",
 	"GET /api/accounts/catalogue",
 	"POST /api/accounts/enabled",
-	"POST /api/accounts/import",
 	"POST /api/accounts/label",
 	"POST /api/accounts/test",
 	"POST /api/accounts/verify",

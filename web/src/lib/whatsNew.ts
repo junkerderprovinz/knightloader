@@ -82,9 +82,9 @@ export const RELEASES: Release[] = [
       { id: 'seeding-always', to: ['/', '/downloads'], text: 'whatsnew.change.seedingAlways' },
       { id: 'limit-legend', to: ['/'], text: 'whatsnew.change.limitLegend' },
       {
-        id: 'seed-upload',
+        id: 'seed-rate',
         to: ['/downloads'],
-        text: 'whatsnew.change.seedUpload',
+        text: 'whatsnew.change.seedRate',
         names: { name: 'downloads.torrentsTitle', column: 'columns.speed' },
       },
       {
@@ -143,6 +143,12 @@ export const RELEASES: Release[] = [
       { id: 'instance-cards', to: INSTANCES, text: 'whatsnew.change.instanceCards' },
       { id: 'net-handover', to: INSTANCES, text: 'whatsnew.change.handover' },
       { id: 'instance-kind', to: INSTANCES, text: 'whatsnew.change.instanceKind', names: { name: 'instances.title' } },
+      {
+        id: 'instance-badges',
+        to: INSTANCES,
+        text: 'whatsnew.change.instanceBadges',
+        names: { name: 'instances.title' },
+      },
       { id: 'app-logo', to: INSTANCES, text: 'whatsnew.change.appLogo', names: { name: 'instances.title' } },
       {
         id: 'accounts-add',
@@ -158,6 +164,7 @@ export const RELEASES: Release[] = [
       },
       { id: 'account-picker', to: ACCOUNTS, text: 'whatsnew.change.accountPicker' },
       { id: 'account-rows', to: ACCOUNTS, text: 'whatsnew.change.accountRows' },
+      { id: 'import-gone', to: ACCOUNTS, text: 'whatsnew.change.importGone', names: { name: 'accounts.debrid.title' } },
       {
         id: 'priority-flow',
         to: ACCOUNTS,
@@ -171,9 +178,9 @@ export const RELEASES: Release[] = [
         names: { name: 'accounts.routing.priorityTitle' },
       },
       {
-        id: 'captcha-switch',
+        id: 'captcha-modules',
         to: ACCOUNTS,
-        text: 'whatsnew.change.captchaSwitch',
+        text: 'whatsnew.change.captchaModules',
         names: { name: 'settings.captcha.orderTitle', module: 'settings.module.captcha', modules: 'settings.nav.modules' },
       },
       {
@@ -181,6 +188,12 @@ export const RELEASES: Release[] = [
         to: ACCOUNTS,
         text: 'whatsnew.change.captchaPriority',
         names: { name: 'settings.captcha.orderTitle', download: 'accounts.routing.priorityTitle' },
+      },
+      {
+        id: 'priority-names',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.priorityNames',
+        names: { download: 'accounts.routing.priorityTitle', captcha: 'settings.captcha.orderTitle' },
       },
       {
         id: 'priority-accounts',

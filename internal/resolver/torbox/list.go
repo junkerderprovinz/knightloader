@@ -1,9 +1,9 @@
 package torbox
 
-// The downloads on a TorBox account for the import from the account: its
-// torrents, and its web and usenet downloads, which Torrents fetches like a
-// torrent once they are imported. A torrent's job id is TorBox's number as it
-// is; the other two carry their kind in front, "web/123" and "usenet/45".
+// The downloads on a TorBox account, as the debrid drive lists and reads
+// them: its torrents, and its web and usenet downloads, which Torrents reads
+// like a torrent. A torrent's job id is TorBox's number as it is; the other
+// two carry their kind in front, "web/123" and "usenet/45".
 
 import (
 	"bytes"
@@ -23,13 +23,6 @@ const (
 	webPrefix    = "web/"
 	usenetPrefix = "usenet/"
 )
-
-// webJob is the job id of a web download.
-func webJob(id int64) string { return webPrefix + strconv.FormatInt(id, 10) }
-
-// UsenetJob is the job id the import lists a usenet download under, given
-// TorBox's own id for it.
-func UsenetJob(id string) string { return usenetPrefix + id }
 
 // jobKind splits a job id into its kind's prefix, "" for a torrent, and
 // TorBox's number.
@@ -51,8 +44,7 @@ func jobKind(job string) (string, int64, error) {
 // listLimit is how many entries one mylist call answers with at most.
 const listLimit = 1000
 
-// listed is what the import reads of a mylist entry, which the three kinds
-// share.
+// listed is what List reads of a mylist entry, which the three kinds share.
 type listed struct {
 	ID        int64  `json:"id"`
 	Hash      string `json:"hash"`

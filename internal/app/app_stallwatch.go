@@ -213,11 +213,9 @@ func (a *App) stallRestartDueLocked(t *core.Task, cfg settings.Settings) bool {
 		return false
 	}
 	// Never a torrent: a stalled torrent has no peers, and the restart deletes
-	// the partial data before handing the same magnet to the same swarm. Nor a
-	// download imported from a debrid account, whose files come one after
-	// another like a torrent's and would all be deleted. The mark is still
-	// written.
-	if t.Resolver == "torrent" || t.InfoHash != "" || importedTask(t) {
+	// the partial data before handing the same magnet to the same swarm. The
+	// mark is still written.
+	if t.Resolver == "torrent" || t.InfoHash != "" {
 		return false
 	}
 	limit := cfg.StallMaxRestarts
