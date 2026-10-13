@@ -56,7 +56,7 @@ const CAPTIONS = {
 // The order on the store page. `lift` is a card of the capture, in capture
 // pixels, drawn floating in front of the phone.
 const SHOTS = [
-  { name: 'connections', lift: { x: 42, y: 305, w: 996, h: 403 } },
+  { name: 'connections', lift: { x: 42, y: 305, w: 996, h: 449 } },
   { name: 'downloads' },
   { name: 'add' },
   { name: 'connect' },
@@ -65,7 +65,7 @@ const SHOTS = [
 
 // Height of the status bar in a capture, which the phone redraws with room
 // for its rounded corners.
-const STATUS_H = 63;
+const STATUS_H = 102;
 
 // The wall behind the README's Android picture: the services KnightLoader
 // downloads through, row by row, best known first. Every second row is shifted
