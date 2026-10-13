@@ -48,7 +48,7 @@ func runTorBox(t *testing.T, c *Client) (*engineStub, core.Update, []core.Update
 	var mu sync.Mutex
 	var all []core.Update
 	settled := make(chan core.Update, 1)
-	b := debrid.NewTorrentBackend(NewTorrents(c), NewBackend(c, nil, nil), eng, debrid.NewRuns("torbox"), func(_ string, u core.Update) {
+	b := debrid.NewTorrentBackend(NewTorrents(c), NewBackend(c, nil, NewHandovers(), nil), eng, debrid.NewRuns("torbox"), func(_ string, u core.Update) {
 		mu.Lock()
 		all = append(all, u)
 		mu.Unlock()

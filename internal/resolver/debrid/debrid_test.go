@@ -166,7 +166,7 @@ func TestBackendHandsOffToEngine(t *testing.T) {
 
 	fe := &fakeEngine{got: make(chan handoff, 1)}
 	names := make(chan string, 8)
-	b := NewBackend(rd, fe, func(_ string, u core.Update) {
+	b := NewBackend(rd, fe, NewHandovers(), func(_ string, u core.Update) {
 		if u.Name != "" {
 			names <- u.Name
 		}
@@ -220,7 +220,7 @@ func hangingServer(t *testing.T) (*httptest.Server, <-chan struct{}) {
 func TestBackendReportsAnUnlockThatRanOutOfTime(t *testing.T) {
 	srv, _ := hangingServer(t)
 	updates := make(chan core.Update, 8)
-	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, NewHandovers(), func(_ string, u core.Update) { updates <- u })
 	b.timeout = 100 * time.Millisecond
 
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
@@ -256,7 +256,7 @@ func (refusingService) Unlock(context.Context, string) (Direct, error) {
 
 func TestBackendReportsARefusalWithTheServicesName(t *testing.T) {
 	updates := make(chan core.Update, 8)
-	b := NewBackend(refusingService{}, &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+	b := NewBackend(refusingService{}, &fakeEngine{got: make(chan handoff, 1)}, NewHandovers(), func(_ string, u core.Update) { updates <- u })
 
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
 	giveUp := time.After(10 * time.Second)
@@ -281,7 +281,7 @@ func TestBackendReportsARefusalWithTheServicesName(t *testing.T) {
 func TestBackendReportsNoErrorForAPausedUnlock(t *testing.T) {
 	srv, arrived := hangingServer(t)
 	updates := make(chan core.Update, 8)
-	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, func(_ string, u core.Update) { updates <- u })
+	b := NewBackend(multiupAt(srv.URL), &fakeEngine{got: make(chan handoff, 1)}, NewHandovers(), func(_ string, u core.Update) { updates <- u })
 
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
 	select {
@@ -342,7 +342,7 @@ func (s *heldService) Unlock(ctx context.Context, _ string) (Direct, error) {
 func TestAResumedUnlockCanBePausedAgain(t *testing.T) {
 	svc := &heldService{held: make(chan chan struct{}, 2)}
 	fe := &fakeEngine{got: make(chan handoff, 2)}
-	b := NewBackend(svc, fe, func(string, core.Update) {})
+	b := NewBackend(svc, fe, NewHandovers(), func(string, core.Update) {})
 
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
 	first := <-svc.held
@@ -378,7 +378,7 @@ func TestAResumedUnlockCanBePausedAgain(t *testing.T) {
 func TestAPauseAfterTheAnswerArrivedKeepsTheTaskOutOfTheEngine(t *testing.T) {
 	svc := &heldService{held: make(chan chan struct{}, 1), answered: true}
 	fe := &fakeEngine{got: make(chan handoff, 1)}
-	b := NewBackend(svc, fe, func(string, core.Update) {})
+	b := NewBackend(svc, fe, NewHandovers(), func(string, core.Update) {})
 
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
 	release := <-svc.held
@@ -493,7 +493,7 @@ func (s *countingService) Unlock(context.Context, string) (Direct, error) {
 // back to the service, which unlocks the same hoster link again for the rest.
 func TestTheEngineCanAskTheServiceForAFreshLink(t *testing.T) {
 	fe := &fakeEngine{got: make(chan handoff, 1)}
-	b := NewBackend(&countingService{}, fe, func(string, core.Update) {})
+	b := NewBackend(&countingService{}, fe, NewHandovers(), func(string, core.Update) {})
 	b.Download("t1", "https://rapidgator.net/file/x", nil, 1)
 
 	var h handoff

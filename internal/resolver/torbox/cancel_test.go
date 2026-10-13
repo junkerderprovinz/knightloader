@@ -94,7 +94,7 @@ func TestStoppingAnUnlockUnderWayIsNotAFailure(t *testing.T) {
 				h := &heldTorBox{hold: call, held: make(chan chan struct{}, 1)}
 				got := &statuses{}
 				eng := &fakeEngine{got: make(chan string, 1)}
-				b := NewBackend(heldClient(h), eng, got.add)
+				b := NewBackend(heldClient(h), eng, NewHandovers(), got.add)
 				b.Download("t1", "https://rapidgator.net/file/abc", nil, 0)
 
 				release := <-h.held
@@ -119,7 +119,7 @@ func TestStoppingAnUnlockUnderWayIsNotAFailure(t *testing.T) {
 func TestAPauseAsTheLinkArrivesKeepsTheTaskOutOfTheEngine(t *testing.T) {
 	h := &heldTorBox{hold: "/api/webdl/requestdl", answered: true, held: make(chan chan struct{}, 1)}
 	eng := &fakeEngine{got: make(chan string, 1)}
-	b := NewBackend(heldClient(h), eng, func(string, core.Update) {})
+	b := NewBackend(heldClient(h), eng, NewHandovers(), func(string, core.Update) {})
 	b.Download("t1", "https://rapidgator.net/file/abc", nil, 0)
 
 	release := <-h.held
@@ -134,7 +134,7 @@ func TestAPauseAsTheLinkArrivesKeepsTheTaskOutOfTheEngine(t *testing.T) {
 func TestAResumedTorBoxUnlockCanBePausedAgain(t *testing.T) {
 	h := &heldTorBox{hold: "/api/webdl/createwebdownload", held: make(chan chan struct{}, 2)}
 	eng := &fakeEngine{got: make(chan string, 1)}
-	b := NewBackend(heldClient(h), eng, func(string, core.Update) {})
+	b := NewBackend(heldClient(h), eng, NewHandovers(), func(string, core.Update) {})
 	b.Download("t1", "https://rapidgator.net/file/abc", nil, 0)
 
 	first := <-h.held
@@ -148,4 +148,37 @@ func TestAResumedTorBoxUnlockCanBePausedAgain(t *testing.T) {
 	close(second)
 
 	noHandover(t, eng)
+}
+
+// removingEngine also reports which transfer it was told to remove.
+type removingEngine struct {
+	fakeEngine
+	removed chan string
+}
+
+func (e *removingEngine) Remove(taskID string, _ bool) { e.removed <- taskID }
+
+// A rewire builds the account's backend anew over the same hand-overs. The new
+// one still removes a transfer the old one handed to the engine, which would
+// otherwise go on downloading after its task is gone.
+func TestARebuiltBackendRemovesWhatTheOldOneHandedOn(t *testing.T) {
+	h := &heldTorBox{held: make(chan chan struct{}, 1)}
+	eng := &removingEngine{fakeEngine: fakeEngine{got: make(chan string, 1)}, removed: make(chan string, 1)}
+	handovers := NewHandovers()
+	NewBackend(heldClient(h), eng, handovers, func(string, core.Update) {}).Download("t1", "https://rapidgator.net/file/abc", nil, 0)
+	select {
+	case <-eng.got:
+	case <-time.After(2 * time.Second):
+		t.Fatal("the link was never handed to the engine")
+	}
+
+	NewBackend(heldClient(h), eng, handovers, func(string, core.Update) {}).Remove("t1", false)
+	select {
+	case id := <-eng.removed:
+		if id != "t1" {
+			t.Errorf("the engine was told to remove %q, want t1", id)
+		}
+	case <-time.After(2 * time.Second):
+		t.Fatal("the removal never reached the engine")
+	}
 }

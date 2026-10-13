@@ -52,8 +52,10 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
+	"github.com/junkerderprovinz/knightloader/internal/resolver/torbox"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 	"github.com/junkerderprovinz/knightloader/internal/rules"
@@ -443,6 +445,11 @@ type App struct {
 	// serviceRuns holds what each account's torrent backend is fetching, so a
 	// rewire's new backend carries on with it (app_debridtorrents.go).
 	serviceRuns serviceRuns
+	// debridHandovers and torboxHandovers hold which links each account's
+	// backend has handed to the engine, so a rewire's new backend can still
+	// pause and remove them (app_accounts.go).
+	debridHandovers perSlot[debrid.Handovers]
+	torboxHandovers perSlot[torbox.Handovers]
 }
 
 // New opens the app in dataDir without an app key.

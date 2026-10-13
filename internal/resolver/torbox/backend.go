@@ -30,6 +30,14 @@ type Backend struct {
 
 	onUpdate func(taskID string, u core.Update)
 
+	*Handovers
+}
+
+// Handovers is every link one account's backend is unlocking or has handed to
+// the engine, by task. It outlives the backend: a rewire builds a new backend
+// for the account, and a pause or a removal still has to reach the transfers
+// the old one handed on.
+type Handovers struct {
 	mu     sync.Mutex
 	cancel map[string]context.CancelFunc
 	link   map[string]string // original hoster link, for resume
@@ -40,15 +48,18 @@ type Backend struct {
 	conns map[string]int
 }
 
-func NewBackend(c *Client, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
-	return &Backend{
-		c: c, eng: eng, onUpdate: onUpdate,
+func NewHandovers() *Handovers {
+	return &Handovers{
 		cancel: map[string]context.CancelFunc{},
 		link:   map[string]string{},
 		handed: map[string]bool{},
 		jobID:  map[string]int64{},
 		conns:  map[string]int{},
 	}
+}
+
+func NewBackend(c *Client, eng Downloader, h *Handovers, onUpdate func(taskID string, u core.Update)) *Backend {
+	return &Backend{c: c, eng: eng, onUpdate: onUpdate, Handovers: h}
 }
 
 func (b *Backend) Download(taskID, link string, _ map[string]string, conns int) {

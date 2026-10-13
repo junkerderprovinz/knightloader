@@ -108,6 +108,14 @@ type Backend struct {
 	// timeout bounds one unlock, waits for a login or a pacer slot included.
 	timeout time.Duration
 
+	*Handovers
+}
+
+// Handovers is every link one account's backend is unlocking or has handed to
+// the engine, by task. It outlives the backend, as Runs does: a rewire builds
+// a new backend for the account, and a pause or a removal still has to reach
+// the transfers the old one handed on.
+type Handovers struct {
 	mu     sync.Mutex
 	runs   map[string]*unlockRun
 	link   map[string]string
@@ -115,18 +123,24 @@ type Backend struct {
 	conns  map[string]int
 }
 
+func NewHandovers() *Handovers {
+	return &Handovers{
+		runs:   map[string]*unlockRun{},
+		link:   map[string]string{},
+		handed: map[string]bool{},
+		conns:  map[string]int{},
+	}
+}
+
 // unlockRun is one unlock of a task. A pointer, so a run that ends after a
 // Resume started the next one can tell the entry is no longer its own.
 type unlockRun struct{ cancel context.CancelFunc }
 
-func NewBackend(svc Service, eng Downloader, onUpdate func(taskID string, u core.Update)) *Backend {
+func NewBackend(svc Service, eng Downloader, h *Handovers, onUpdate func(taskID string, u core.Update)) *Backend {
 	return &Backend{
 		svc: svc, eng: eng, onUpdate: onUpdate,
-		timeout: 2 * time.Minute,
-		runs:    map[string]*unlockRun{},
-		link:    map[string]string{},
-		handed:  map[string]bool{},
-		conns:   map[string]int{},
+		timeout:   2 * time.Minute,
+		Handovers: h,
 	}
 }
 
