@@ -569,6 +569,12 @@ jobs:
       - name: Background watch
         run: node check-watch.mjs
 
+      - name: Speed graph
+        run: node check-speed-graph.mjs
+
+      - name: Language button
+        run: node check-language-button.mjs
+
   # Compiles and tests the desktop module on every relevant push, since
   # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is
   # the tag the release build uses; without it Wails wants GTK 4.
