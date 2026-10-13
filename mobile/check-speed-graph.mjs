@@ -2,13 +2,16 @@
 // the same ceiling, the same seeding sum, the same window label. A limit is
 // only a mark at the right edge, never a line across the plot: at its height
 // inside the scale, or on the top edge with a chevron for one far above a slow
-// transfer. Two figures never cover each other.
+// transfer. Two figures never cover each other. The marks are muted and carry a
+// limit sign, while the live rates above the plot wear their curves' colours.
+// Readings taken while the server's record is on its way never reach the
+// window, so the record and the live tail meet without a notch or a repeat.
 //
 // src/components/speedPlot.ts imports nothing at run time, so node strips its
 // types and these checks call the real functions.
 //
 // Run by hand and by CI, from mobile/: `node check-speed-graph.mjs`
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 
@@ -20,9 +23,12 @@ const {
   GRACE_TICKS,
   labelTops,
   limitMark,
+  newFeed,
   reading,
+  seedFeed,
   seedingDefault,
   spanLabel,
+  tick,
   uploadOf,
   washOf,
 } = await import(pathToFileURL(join(here, 'src', 'components', 'speedPlot.ts')).href);
@@ -80,6 +86,45 @@ expect('no limit, no mark', limitMark(0, MB, H, PAD), null);
   const graph = readFileSync(join(here, 'src', 'components', 'SpeedGraph.tsx'), 'utf8');
   check('the graph draws no line across the plot for a limit', !graph.includes('statusFailSolid'));
   check('the graph still draws a mark for each limit', graph.includes('<LimitMarks marks={marks}'));
+
+  const marks = graph.slice(graph.indexOf('function LimitMarks'), graph.indexOf('const notch'));
+  check('the limit marks are drawn in the muted ink', marks.includes('const ink = c.textMuted'));
+  check('the limit marks take no curve colour', !/downInk|upInk|accentInk/.test(marks));
+  check('each limit figure carries the limit sign', marks.includes('<SpeedLimit color={ink}'));
+  check('the limit sign is in the assets', existsSync(join(here, 'assets', 'speed-limit.png')));
+  const badge = readFileSync(join(here, 'src', 'components', 'IconBadge.tsx'), 'utf8');
+  check('the limit sign is a tinted bitmap', badge.includes("require('../../assets/speed-limit.png')"));
+
+  const rates = graph.slice(graph.indexOf('<View style={styles.rates}>'), graph.indexOf('<View style={[styles.plot'));
+  check('the live download rate is in the download colour', /color: downInk \}\]}[^>]*>\s*\{fmtSpeed\(speed\)\}/.test(rates));
+  check('the live upload rate is in the seeding colour', /color: upInk \}\]}[^>]*>\s*\{fmtSpeed\(upload\)\}/.test(rates));
+}
+
+{
+  // Two ticks before the record arrives, both zero since the task list has not
+  // either, then the record, then the live readings.
+  const f = newFeed(true);
+  check('a tick while the record is on its way is not taken', !tick(f, 0, 0, 30));
+  check('nor is a real reading', !tick(f, 900, 40, 30));
+  expect('the window waits empty for the record', f.samples, { down: [], up: [] });
+  seedFeed(f, { down: [500, 600, 700], up: [10, 20, 30] }, 30);
+  tick(f, 0, 0, 30);
+  tick(f, 800, 50, 30);
+  expect('the record and the live tail meet without a zero or a repeat', f.samples, {
+    down: [500, 600, 700, 700, 800],
+    up: [10, 20, 30, 30, 50],
+  });
+
+  const long = Array.from({ length: 120 }, (_, i) => i + 1);
+  const g = newFeed(true);
+  seedFeed(g, { down: long, up: long }, 30);
+  expect('a record longer than the window keeps its newest samples', g.samples.down, long.slice(-31));
+
+  const h = newFeed(false);
+  tick(h, 5, 1, 30);
+  check('without a record to wait for, the first tick is taken', h.samples.down.length === 1);
+  for (let i = 0; i < 40; i++) tick(h, 5, 1, 30);
+  expect('the window keeps one sample more than its span', h.samples.down.length, 31);
 }
 
 check('both limits within reach count towards the ceiling', ceilingOf([MB], 2 * MB, 3 * MB) > 3 * MB);
@@ -153,4 +198,4 @@ if (problems.length) {
   for (const p of problems) console.error(`  ${p}`);
   process.exit(1);
 }
-console.log('ok: speed graph scale, limit marks, seeding sum, curve and its fill');
+console.log('ok: speed graph scale, limit marks, live rates, seeding sum, seed seam, curve and its fill');

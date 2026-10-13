@@ -115,6 +115,50 @@ export function reading(lane: Lane, value: number): number {
   return lane.carry;
 }
 
+/** Samples in both directions, oldest first: the server's record or the window on screen. */
+export interface Samples {
+  down: number[];
+  up: number[];
+}
+
+/**
+ * Feed turns live readings into the samples on screen. While the server's
+ * record is on its way it takes none: the record holds those seconds already,
+ * and a reading from before the task list arrived would be a zero at the seam.
+ */
+export interface Feed {
+  samples: Samples;
+  lanes: { down: Lane; up: Lane };
+  waiting: boolean;
+}
+
+export function newFeed(waiting: boolean): Feed {
+  return {
+    samples: { down: [], up: [] },
+    lanes: { down: { grace: GRACE_TICKS, carry: 0 }, up: { grace: GRACE_TICKS, carry: 0 } },
+    waiting,
+  };
+}
+
+/** tick takes one step's readings into the feed, keeping `span + 1` samples, and reports whether it took them. */
+export function tick(f: Feed, down: number, up: number, span: number): boolean {
+  if (f.waiting) return false;
+  const d = reading(f.lanes.down, down);
+  const u = reading(f.lanes.up, up);
+  f.samples = { down: [...f.samples.down, d].slice(-(span + 1)), up: [...f.samples.up, u].slice(-(span + 1)) };
+  return true;
+}
+
+/** seedFeed starts the window from the server's record and lets the live readings follow it. */
+export function seedFeed(f: Feed, record: Samples, span: number): void {
+  f.samples = { down: record.down.slice(-(span + 1)), up: record.up.slice(-(span + 1)) };
+  f.lanes = {
+    down: { grace: GRACE_TICKS, carry: record.down[record.down.length - 1] ?? 0 },
+    up: { grace: GRACE_TICKS, carry: record.up[record.up.length - 1] ?? 0 },
+  };
+  f.waiting = false;
+}
+
 /**
  * busyOf tells a plot with a curve to draw from an idle one: idle means nothing
  * on screen in either direction, not a current speed of zero.

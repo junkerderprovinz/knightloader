@@ -543,6 +543,12 @@ export function MotionStorm({ color, size = GLYPH_BOX }: { color: string; size?:
   return <Drawn source={require('../../assets/motion-storm.png')} color={color} size={size} />;
 }
 
+/** SpeedLimit marks a limit's figure on the speed graph: a sign's ring round a
+ *  gauge needle. The glyph list has no limit, so it is a drawing of its own. */
+export function SpeedLimit({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/speed-limit.png')} color={color} size={size} />;
+}
+
 /**
  * Disable and enable: the power mark, a ring open at the top with a stem
  * through the opening, the glyph the web interface puts on the same two verbs.
