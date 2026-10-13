@@ -3600,6 +3600,7 @@ export const is: Dict = {
   'whatsnew.change.listBar': 'Þrír hnappar eru fyrir ofan listann: „{filter}“, „{sort}“ og „{search}“.',
   'whatsnew.change.listRows': 'Línurnar byrja í beinni línu við titil spjaldsins og hnappar línu birtast á meðan bendillinn er yfir henni.',
   'whatsnew.change.accountPicker': 'Þú velur nýjan debrid-, captcha- eða hýsingarreikning úr flísum sem hver er með sínu merki. Merki heils skjás hlaðast saman, og hýsing án merkis sýnir fyrsta stafinn sinn á litaðri flís.',
+  'whatsnew.change.hosterLogos': 'Flestar hýsingar í valinu sýna merkið sitt strax, því merkin fylgja KnightLoader. Aðeins hýsing án merkis sækir enn táknmynd sína á eigin vef.',
   'whatsnew.change.accountRows': 'Smellur á reikning opnar hann og hægrismellur opnar valmynd hans.',
   'whatsnew.change.importGone': '„{name}“ er ekki lengur með dálkinn „Flytja inn“. KnightLoader sækir ekki lengur niðurhal sem þú bætir við á vefsíðu debrid-þjónustunnar.',
   'whatsnew.change.settingsSearch': 'Leit í öllum stillingum birtist þegar þú flettir einu sinni enn upp efst á síðu eða ýtir á „/“. Á meðan þú skrifar í hana breytir reiturinn um lit og stækkunarglerið lýsist upp.',

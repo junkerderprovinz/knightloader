@@ -3847,6 +3847,7 @@ export const en = {
   'whatsnew.change.listBar': 'Three buttons stand above the list: "{filter}", "{sort}" and "{search}".',
   'whatsnew.change.listRows': "The rows start in line with the card's title, and the buttons of a row show while the pointer is on it.",
   'whatsnew.change.accountPicker': 'You pick a new debrid, captcha or hoster account from tiles, each with its logo. The logos of a whole screen load together, and a hoster without one shows its first letter on a tinted tile.',
+  'whatsnew.change.hosterLogos': 'Most hosters in the picker show their logo straight away, because the logos come with KnightLoader. Only a hoster without one still gets its icon from its own site.',
   'whatsnew.change.accountRows': 'A click on an account opens it, and a right-click opens its menu.',
   'whatsnew.change.importGone': '"{name}" no longer has an Import column. KnightLoader does not pick up downloads you add on the debrid service\'s website any more.',
   'whatsnew.change.settingsSearch': 'A search over all settings appears when you scroll up once more at the top of a page, or press "/". While you type in it, the box changes its shade and the magnifier lights up.',

@@ -3603,6 +3603,7 @@ export const tr: Dict = {
   'whatsnew.change.listBar': 'Listenin üstünde üç düğme durur: “{filter}”, “{sort}” ve “{search}”.',
   'whatsnew.change.listRows': 'Satırlar kartın başlığıyla aynı hizada başlar ve bir satırın düğmeleri imleç üzerindeyken görünür.',
   'whatsnew.change.accountPicker': 'Yeni bir debrid, captcha ya da hoster hesabını, her biri kendi logosunu taşıyan kutucuklardan seçersin. Bir ekranın tüm logoları birlikte yüklenir, logosu olmayan bir hoster ise baş harfini renkli bir kutucukta gösterir.',
+  'whatsnew.change.hosterLogos': 'Seçicideki hosterların çoğu logosunu hemen gösterir, çünkü logolar KnightLoader ile birlikte gelir. Yalnızca logosu olmayan bir hoster simgesini hâlâ kendi sitesinden alır.',
   'whatsnew.change.accountRows': 'Bir hesaba tıklamak onu açar, sağ tıklamak da menüsünü açar.',
   'whatsnew.change.importGone': '“{name}” içinde artık “İçe aktarma” sütunu yok. KnightLoader, debrid hizmetinin web sitesinde eklediğin indirmeleri artık almıyor.',
   'whatsnew.change.settingsSearch': 'Bir sayfanın en üstünde bir kez daha yukarı kaydırdığında ya da “/” tuşuna bastığında tüm ayarlarda bir arama belirir. Ona yazarken kutu tonunu değiştirir ve büyüteç yanar.',

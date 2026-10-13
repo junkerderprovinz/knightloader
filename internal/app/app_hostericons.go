@@ -1,12 +1,10 @@
 package app
 
-// The site icon beside a hoster in the accounts list. Hoster logos are not
-// bundled: there are hundreds, they are other people's trademarks and they go
-// stale when a site redesigns. Only the captcha services, whose sites give this
-// fetch nothing, have marks in the page (web/src/lib/serviceMarks.ts). Each
-// instance fetches the icon from the site itself, once, and keeps it on disk,
-// a miss included, so the list of someone's hoster accounts is never handed to
-// a third-party icon service.
+// The site icon beside a hoster that has no logo in the page. Most hosters and
+// the captcha services ship one (web/src/lib/serviceMarks.ts), and the page
+// asks here only for the rest. Each instance fetches the icon from the site
+// itself, once, and keeps it on disk, a miss included, so the list of
+// someone's hoster accounts is never handed to a third-party icon service.
 //
 // Candidates are the front page's own <link rel="icon"> hrefs, which may be on
 // another host (alldebrid.com keeps its icon on a CDN), the icons its web app

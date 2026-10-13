@@ -3603,6 +3603,7 @@ export const sl: Dict = {
   'whatsnew.change.listBar': 'Nad seznamom so trije gumbi: »{filter}«, »{sort}« in »{search}«.',
   'whatsnew.change.listRows': 'Vrstice se začnejo poravnano z naslovom kartice, gumbi vrstice pa so vidni, dokler je kazalec na njej.',
   'whatsnew.change.accountPicker': 'Nov račun debrid, račun captch ali račun hosterja izbereš med ploščicami, vsaka ima svoj logotip. Logotipi celega zaslona se naložijo skupaj, hoster brez logotipa pa pokaže svojo začetnico na obarvani ploščici.',
+  'whatsnew.change.hosterLogos': 'Večina hosterjev v izbiri takoj pokaže svoj logotip, ker logotipi pridejo s KnightLoaderjem. Le hoster brez logotipa še vedno vzame ikono s svoje strani.',
   'whatsnew.change.accountRows': 'Klik na račun ga odpre, desni klik pa odpre njegov meni.',
   'whatsnew.change.importGone': '»{name}« nima več stolpca »Uvoz«. KnightLoader ne prevzema več prenosov, ki jih dodaš na spletnem mestu storitve debrid.',
   'whatsnew.change.settingsSearch': 'Iskanje po vseh nastavitvah se pojavi, ko na vrhu strani še enkrat podrsaš navzgor ali pritisneš »/«. Medtem ko tipkaš vanj, polje spremeni odtenek in lupa zasveti.',

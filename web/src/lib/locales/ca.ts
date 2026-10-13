@@ -3592,6 +3592,7 @@ export const ca: Dict = {
   'whatsnew.change.listBar': 'Hi ha tres botons damunt de la llista: «{filter}», «{sort}» i «{search}».',
   'whatsnew.change.listRows': 'Les files comencen alineades amb el títol de la targeta, i els botons d’una fila apareixen mentre el punter hi és a sobre.',
   'whatsnew.change.accountPicker': 'Tries un compte nou de debrid, de captcha o d’allotjador entre mosaics, cadascun amb el seu logotip. Els logotips de tota una pantalla es carreguen junts, i un allotjador sense logotip mostra la seva primera lletra sobre un mosaic tenyit.',
+  'whatsnew.change.hosterLogos': 'La majoria d’allotjadors del selector mostren el logotip de seguida, perquè els logotips venen amb KnightLoader. Només un allotjador sense logotip encara agafa la icona del seu propi lloc.',
   'whatsnew.change.accountRows': 'Un clic en un compte l’obre, i un clic dret n’obre el menú.',
   'whatsnew.change.importGone': '«{name}» ja no té cap columna «Importació». KnightLoader ja no recull les baixades que afegeixes al web del servei debrid.',
   'whatsnew.change.settingsSearch': 'Apareix una cerca en tots els ajustos quan tornes a desplaçar-te cap amunt a dalt d’una pàgina, o quan prems «/». Mentre hi escrius, el camp canvia de to i la lupa s’il·lumina.',

@@ -3606,6 +3606,7 @@ export const fi: Dict = {
   'whatsnew.change.listBar': 'Luettelon yläpuolella on kolme painiketta: ”{filter}”, ”{sort}” ja ”{search}”.',
   'whatsnew.change.listRows': 'Rivit alkavat samasta kohdasta kuin kortin otsikko, ja rivin painikkeet näkyvät niin kauan kuin osoitin on rivin päällä.',
   'whatsnew.change.accountPicker': 'Valitset uuden debrid-, captcha- tai isännöijätilin ruuduista, joissa jokaisessa on oma logonsa. Koko näytöllisen logot latautuvat yhdessä, ja isännöijä ilman logoa näyttää alkukirjaimensa sävytetyssä ruudussa.',
+  'whatsnew.change.hosterLogos': 'Useimmat valinnan isännöijät näyttävät logonsa heti, koska logot tulevat KnightLoaderin mukana. Vain logoton isännöijä hakee kuvakkeensa yhä omalta sivustoltaan.',
   'whatsnew.change.accountRows': 'Tilin napsautus avaa sen, ja napsautus hiiren oikealla avaa sen valikon.',
   'whatsnew.change.importGone': '”{name}” ei enää sisällä saraketta ”Tuonti”. KnightLoader ei enää poimi latauksia, jotka lisäät debrid-palvelun verkkosivustolla.',
   'whatsnew.change.settingsSearch': 'Haku kaikista asetuksista ilmestyy, kun vierität sivun yläreunassa vielä kerran ylös tai painat ”/”. Kun kirjoitat siihen, kenttä vaihtaa sävyään ja suurennuslasi syttyy.',
