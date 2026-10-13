@@ -3433,6 +3433,8 @@ export const th: Dict = {
   'failure.dataFolder.next': 'เลือกโฟลเดอร์ที่อยู่นอกโฟลเดอร์ข้อมูล ในการตั้งค่าหรือสำหรับการดาวน์โหลดนี้ แล้วลองอีกครั้ง',
   'failure.holdsDataFolder.line': 'โฟลเดอร์ข้อมูลของ KnightLoader อยู่ภายใน {path} จึงห้ามนำการดาวน์โหลดไปไว้ที่นั่น',
   'failure.holdsDataFolder.next': 'เลือกโฟลเดอร์ที่ไม่มีโฟลเดอร์ข้อมูลอยู่ข้างใน ในการตั้งค่าหรือสำหรับการดาวน์โหลดนี้ แล้วลองอีกครั้ง',
+  'failure.debridImport.line': 'นำเข้าจากบัญชี debrid ซึ่ง 2.0 ไม่ทำแล้ว',
+  'failure.debridImport.next': 'เพิ่มลิงก์ใหม่อีกครั้ง',
   'failure.captcha.line': 'โฮสต์ต้องการให้แก้แคปช่า',
   'failure.captcha.next': 'ตอบแคปช่าเมื่อมันขึ้นมา หรือเพิ่มบัญชีแคปช่าในหน้าบัญชี',
   'failure.cancelled.line': 'การดาวน์โหลดถูกหยุดก่อนจะเสร็จ',

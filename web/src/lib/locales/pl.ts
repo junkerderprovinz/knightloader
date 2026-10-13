@@ -3420,6 +3420,8 @@ export const pl: Dict = {
   'failure.dataFolder.next': 'Wybierz folder poza folderem danych, w ustawieniach albo dla tego pobierania, i spróbuj ponownie.',
   'failure.holdsDataFolder.line': 'Folder danych KnightLoadera leży wewnątrz {path}, więc pobierane pliki nie mogą tam trafiać.',
   'failure.holdsDataFolder.next': 'Wybierz folder, który nie zawiera folderu danych, w ustawieniach albo dla tego pobierania, i spróbuj ponownie.',
+  'failure.debridImport.line': 'Zaimportowano z konta debrid, czego wersja 2.0 już nie robi.',
+  'failure.debridImport.next': 'Dodaj link ponownie.',
   'failure.captcha.line': 'Hoster chce rozwiązania captchy.',
   'failure.captcha.next': 'Odpowiedz na captchę, gdy się pojawi, albo dodaj konto captcha na stronie Konta.',
   'failure.cancelled.line': 'Pobieranie zostało zatrzymane przed końcem.',

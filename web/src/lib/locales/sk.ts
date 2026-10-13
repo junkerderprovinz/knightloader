@@ -3445,6 +3445,8 @@ export const sk: Dict = {
   'failure.dataFolder.next': 'Zvoľ priečinok mimo dátového priečinka, v nastaveniach alebo pre toto sťahovanie, a skús to znova.',
   'failure.holdsDataFolder.line': 'Dátový priečinok KnightLoadera leží vnútri {path}, a preto tam sťahovanie nesmie.',
   'failure.holdsDataFolder.next': 'Zvoľ priečinok, ktorý neobsahuje dátový priečinok, v nastaveniach alebo pre toto sťahovanie, a skús to znova.',
+  'failure.debridImport.line': 'Importované z debrid účtu, čo verzia 2.0 už nerobí.',
+  'failure.debridImport.next': 'Pridaj odkaz znova.',
   'failure.captcha.line': 'Hoster chce vyriešiť captchu.',
   'failure.captcha.next': 'Odpovedz na captchu, keď sa objaví, alebo pridaj účet captchy na stránke Účty.',
   'failure.cancelled.line': 'Sťahovanie sa zastavilo skôr, než skončilo.',

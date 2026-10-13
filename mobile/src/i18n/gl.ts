@@ -311,6 +311,8 @@ export const gl: Dict = {
   'failure.dataFolder.next': 'Escolle na interface web un cartafol fóra do cartafol de datos e téntao de novo.',
   'failure.holdsDataFolder.line': 'O cartafol de datos de KnightLoader está dentro de {path}, así que as descargas non poden ir aí.',
   'failure.holdsDataFolder.next': 'Escolle na interface web un cartafol que non conteña o cartafol de datos e téntao de novo.',
+  'failure.debridImport.line': 'Importado da conta debrid, algo que a 2.0 xa non fai.',
+  'failure.debridImport.next': 'Engade a ligazón de novo.',
   'failure.captcha.line': 'O aloxador quere que se resolva un captcha.',
   'failure.captcha.next': 'Responde o captcha na pantalla Captchas, ou engade unha conta de captcha na interface web.',
   'failure.cancelled.line': 'A descarga detívose antes de rematar.',

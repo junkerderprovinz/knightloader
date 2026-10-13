@@ -700,6 +700,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// The finished torrents seed on as they did before the restart. A halt
 	// does not stop seeding, so the schedule has no say in it.
 	a.resumeSeeding()
+	a.settleRetiredImport()
 	// idleAction would otherwise see an empty queue and arm its countdown.
 	a.idleAction.Start()
 	// Feeds come up after a.dupes is seeded, unlike drop folders: a poller

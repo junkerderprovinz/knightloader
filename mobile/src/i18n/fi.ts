@@ -311,6 +311,8 @@ export const fi: Dict = {
   'failure.dataFolder.next': 'Valitse verkkokäyttöliittymässä kansio datakansion ulkopuolelta ja yritä uudelleen.',
   'failure.holdsDataFolder.line': 'KnightLoaderin datakansio on kansion {path} sisällä, joten latauksia ei saa viedä sinne.',
   'failure.holdsDataFolder.next': 'Valitse verkkokäyttöliittymässä kansio, joka ei sisällä datakansiota, ja yritä uudelleen.',
+  'failure.debridImport.line': 'Tuotu debrid-tililtä, mitä 2.0 ei enää tee.',
+  'failure.debridImport.next': 'Lisää linkki uudelleen.',
   'failure.captcha.line': 'Hosteri haluaa, että captcha ratkaistaan.',
   'failure.captcha.next': 'Vastaa captchaan Captchat-näkymässä tai lisää captcha-tili verkkokäyttöliittymässä.',
   'failure.cancelled.line': 'Lataus pysäytettiin ennen kuin se valmistui.',

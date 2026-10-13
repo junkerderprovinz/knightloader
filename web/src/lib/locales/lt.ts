@@ -3436,6 +3436,8 @@ export const lt: Dict = {
   'failure.dataFolder.next': 'Pasirink aplanką už duomenų aplanko ribų, nustatymuose arba šiam atsisiuntimui, ir bandyk dar kartą.',
   'failure.holdsDataFolder.line': 'KnightLoader duomenų aplankas yra {path} viduje, todėl atsisiuntimai ten negali patekti.',
   'failure.holdsDataFolder.next': 'Pasirink aplanką, kuriame nėra duomenų aplanko, nustatymuose arba šiam atsisiuntimui, ir bandyk dar kartą.',
+  'failure.debridImport.line': 'Importuota iš debrid paskyros, ko 2.0 nebedaro.',
+  'failure.debridImport.next': 'Pridėk nuorodą iš naujo.',
   'failure.captcha.line': 'Talpykla nori, kad būtų išspręsta captcha.',
   'failure.captcha.next': 'Atsakyk į captcha, kai ji pasirodys, arba pridėk captcha paskyrą puslapyje Paskyros.',
   'failure.cancelled.line': 'Atsisiuntimas sustabdytas nepasibaigęs.',

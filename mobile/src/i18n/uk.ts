@@ -311,6 +311,8 @@ export const uk: Dict = {
   'failure.dataFolder.next': 'Виберіть у вебінтерфейсі теку поза текою даних і спробуйте ще раз.',
   'failure.holdsDataFolder.line': 'Тека даних KnightLoader лежить усередині {path}, тож завантаженням туди не можна.',
   'failure.holdsDataFolder.next': 'Виберіть у вебінтерфейсі теку, яка не містить теки даних, і спробуйте ще раз.',
+  'failure.debridImport.line': 'Імпортовано з debrid-акаунта, а версія 2.0 цього більше не робить.',
+  'failure.debridImport.next': 'Додайте посилання знову.',
   'failure.captcha.line': 'Хостер хоче, щоб розв’язали капчу.',
   'failure.captcha.next': 'Дайте відповідь на капчу на екрані «Капчі» або додайте обліковий запис капчі у вебінтерфейсі.',
   'failure.cancelled.line': 'Завантаження зупинили, перш ніж воно завершилося.',

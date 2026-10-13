@@ -3427,6 +3427,8 @@ export const et: Dict = {
   'failure.dataFolder.next': 'Vali kaust väljaspool andmekausta, seadetes või selle allalaadimise jaoks, ja proovi uuesti.',
   'failure.holdsDataFolder.line': 'KnightLoaderi andmekaust asub kaustas {path}, seega ei tohi allalaadimised sinna minna.',
   'failure.holdsDataFolder.next': 'Vali kaust, mis ei sisalda andmekausta, seadetes või selle allalaadimise jaoks, ja proovi uuesti.',
+  'failure.debridImport.line': 'Imporditud debrid-kontolt, mida 2.0 enam ei tee.',
+  'failure.debridImport.next': 'Lisa link uuesti.',
   'failure.captcha.line': 'Hoster tahab, et captcha saaks lahendatud.',
   'failure.captcha.next': 'Vasta captchale, kui see ilmub, või lisa captcha konto lehel Kontod.',
   'failure.cancelled.line': 'Allalaadimine peatati enne, kui see valmis sai.',

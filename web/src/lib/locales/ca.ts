@@ -3422,6 +3422,8 @@ export const ca: Dict = {
   'failure.dataFolder.next': 'Tria una carpeta fora de la carpeta de dades, a la configuració o per a aquesta baixada, i torna-ho a provar.',
   'failure.holdsDataFolder.line': 'La carpeta de dades de KnightLoader és dins de {path}, així que les baixades no hi poden anar.',
   'failure.holdsDataFolder.next': 'Tria una carpeta que no contingui la carpeta de dades, a la configuració o per a aquesta baixada, i torna-ho a provar.',
+  'failure.debridImport.line': 'Importat del compte debrid, cosa que la 2.0 ja no fa.',
+  'failure.debridImport.next': 'Torna a afegir l’enllaç.',
   'failure.captcha.line': 'L’allotjador vol que es resolgui un captcha.',
   'failure.captcha.next': 'Respon el captcha quan aparegui, o afegeix un compte de captcha a la pàgina Comptes.',
   'failure.cancelled.line': 'La baixada s’ha aturat abans d’acabar.',

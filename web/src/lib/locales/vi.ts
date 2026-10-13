@@ -3435,6 +3435,8 @@ export const vi: Dict = {
   'failure.dataFolder.next': 'Hãy chọn một thư mục bên ngoài thư mục dữ liệu, trong cài đặt hoặc cho lượt tải này, rồi thử lại.',
   'failure.holdsDataFolder.line': 'Thư mục dữ liệu của KnightLoader nằm bên trong {path}, nên các lượt tải không được đặt ở đó.',
   'failure.holdsDataFolder.next': 'Hãy chọn một thư mục không chứa thư mục dữ liệu, trong cài đặt hoặc cho lượt tải này, rồi thử lại.',
+  'failure.debridImport.line': 'Được nhập từ tài khoản debrid, việc mà bản 2.0 không còn làm nữa.',
+  'failure.debridImport.next': 'Thêm lại liên kết.',
   'failure.captcha.line': 'Hoster muốn giải một captcha.',
   'failure.captcha.next': 'Trả lời captcha khi nó hiện lên, hoặc thêm một tài khoản captcha ở trang Tài khoản.',
   'failure.cancelled.line': 'Lượt tải đã bị dừng trước khi xong.',

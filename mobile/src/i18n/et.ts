@@ -311,6 +311,8 @@ export const et: Dict = {
   'failure.dataFolder.next': 'Vali veebiliideses kaust väljaspool andmekausta ja proovi uuesti.',
   'failure.holdsDataFolder.line': 'KnightLoaderi andmekaust asub kaustas {path}, seega ei tohi allalaadimised sinna minna.',
   'failure.holdsDataFolder.next': 'Vali veebiliideses kaust, mis ei sisalda andmekausta, ja proovi uuesti.',
+  'failure.debridImport.line': 'Imporditud debrid-kontolt, mida 2.0 enam ei tee.',
+  'failure.debridImport.next': 'Lisa link uuesti.',
   'failure.captcha.line': 'Hoster tahab, et captcha saaks lahendatud.',
   'failure.captcha.next': 'Vasta captchale vaates Captchad või lisa veebiliideses captcha konto.',
   'failure.cancelled.line': 'Allalaadimine peatati enne, kui see valmis sai.',

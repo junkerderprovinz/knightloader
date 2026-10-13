@@ -3434,6 +3434,8 @@ export const sl: Dict = {
   'failure.dataFolder.next': 'Izberi mapo zunaj mape s podatki, v nastavitvah ali za ta prenos, in poskusi znova.',
   'failure.holdsDataFolder.line': 'Mapa s podatki KnightLoaderja je znotraj {path}, zato prenosi tja ne smejo.',
   'failure.holdsDataFolder.next': 'Izberi mapo, ki ne vsebuje mape s podatki, v nastavitvah ali za ta prenos, in poskusi znova.',
+  'failure.debridImport.line': 'Uvoženo z računa debrid, česar 2.0 ne počne več.',
+  'failure.debridImport.next': 'Znova dodaj povezavo.',
   'failure.captcha.line': 'Gostitelj zahteva rešeno captcho.',
   'failure.captcha.next': 'Odgovori na captcho, ko se pojavi, ali dodaj račun captch na strani Računi.',
   'failure.cancelled.line': 'Prenos je bil ustavljen, preden se je končal.',

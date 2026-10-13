@@ -3418,6 +3418,8 @@ export const zh: Dict = {
   'failure.dataFolder.next': '请在设置里或为这个下载选一个数据文件夹之外的文件夹，然后再试一次。',
   'failure.holdsDataFolder.line': 'KnightLoader 的数据文件夹位于 {path} 里，所以下载不能放在那里。',
   'failure.holdsDataFolder.next': '请在设置里或为这个下载选一个不包含数据文件夹的文件夹，然后再试一次。',
+  'failure.debridImport.line': '从 debrid 账户导入，2.0 已不再这样做。',
+  'failure.debridImport.next': '请重新添加这个链接。',
   'failure.captcha.line': '网盘要求先完成验证码。',
   'failure.captcha.next': '验证码出现时回答它，或者在“账户”页面添加一个验证码账户。',
   'failure.cancelled.line': '下载在完成之前被停止了。',

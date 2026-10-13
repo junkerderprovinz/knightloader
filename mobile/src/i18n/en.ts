@@ -273,6 +273,8 @@ export const en = {
   'failure.dataFolder.next': 'Choose a folder outside the data folder in the web UI, then try again.',
   'failure.holdsDataFolder.line': "KnightLoader's data folder is inside {path}, so downloads may not go there.",
   'failure.holdsDataFolder.next': 'Choose a folder that does not contain the data folder in the web UI, then try again.',
+  'failure.debridImport.line': 'Imported from the debrid account, which 2.0 no longer does.',
+  'failure.debridImport.next': 'Add the link again.',
   'failure.captcha.line': 'The host wants a captcha solved.',
   'failure.captcha.next': 'Answer the captcha on the Captchas screen, or add a captcha account in the web UI.',
   'failure.cancelled.line': 'The download was stopped before it finished.',

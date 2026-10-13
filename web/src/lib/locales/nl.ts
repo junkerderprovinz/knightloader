@@ -3418,6 +3418,8 @@ export const nl: Dict = {
   'failure.dataFolder.next': 'Kies een map buiten de datamap, in de instellingen of voor deze download, en probeer het opnieuw.',
   'failure.holdsDataFolder.line': 'De datamap van KnightLoader staat in {path}, dus daar mogen geen downloads heen.',
   'failure.holdsDataFolder.next': 'Kies een map waar de datamap niet in staat, in de instellingen of voor deze download, en probeer het opnieuw.',
+  'failure.debridImport.line': 'Geïmporteerd uit het debrid-account, wat 2.0 niet meer doet.',
+  'failure.debridImport.next': 'Voeg de link opnieuw toe.',
   'failure.captcha.line': 'De hoster wil dat er een captcha wordt opgelost.',
   'failure.captcha.next': 'Beantwoord de captcha zodra hij verschijnt, of voeg een captcha-account toe op de pagina Accounts.',
   'failure.cancelled.line': 'De download is gestopt voordat hij klaar was.',

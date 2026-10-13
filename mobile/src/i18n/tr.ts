@@ -311,6 +311,8 @@ export const tr: Dict = {
   'failure.dataFolder.next': 'Web arayüzünde veri klasörünün dışında bir klasör seç, sonra yeniden dene.',
   'failure.holdsDataFolder.line': 'KnightLoader veri klasörü {path} içinde, bu yüzden indirmeler oraya gidemez.',
   'failure.holdsDataFolder.next': 'Web arayüzünde veri klasörünü içermeyen bir klasör seç, sonra yeniden dene.',
+  'failure.debridImport.line': 'Debrid hesabından içe aktarıldı; 2.0 bunu artık yapmıyor.',
+  'failure.debridImport.next': 'Bağlantıyı yeniden ekle.',
   'failure.captcha.line': 'Hoster bir captcha çözülmesini istiyor.',
   'failure.captcha.next': 'Captchayı Captchalar ekranında yanıtla ya da web arayüzünde bir captcha hesabı ekle.',
   'failure.cancelled.line': 'İndirme bitmeden durduruldu.',

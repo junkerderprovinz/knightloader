@@ -3423,6 +3423,8 @@ export const ko: Dict = {
   'failure.dataFolder.next': '설정이나 이 다운로드에서 데이터 폴더 밖의 폴더를 고른 다음 다시 시도하세요.',
   'failure.holdsDataFolder.line': 'KnightLoader 데이터 폴더가 {path} 안에 있으므로, 다운로드는 그곳에 둘 수 없습니다.',
   'failure.holdsDataFolder.next': '설정이나 이 다운로드에서 데이터 폴더를 포함하지 않는 폴더를 고른 다음 다시 시도하세요.',
+  'failure.debridImport.line': 'debrid 계정에서 가져온 항목이며, 2.0에서는 더 이상 가져오지 않습니다.',
+  'failure.debridImport.next': '링크를 다시 추가하세요.',
   'failure.captcha.line': '호스터가 캡차를 풀라고 요구합니다.',
   'failure.captcha.next': '캡차가 뜨면 답하거나, 계정 페이지에서 캡차 계정을 추가하세요.',
   'failure.cancelled.line': '다운로드가 끝나기 전에 중지되었습니다.',
