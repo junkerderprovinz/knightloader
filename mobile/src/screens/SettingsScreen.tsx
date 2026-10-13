@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, I18nManager, Linking, Platform, StyleSheet, View } from 'react-native';
+import { Animated, Linking, Platform, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
@@ -192,7 +192,9 @@ export default function SettingsScreen({
   // outranks (GlimStone 2.1.0), so the note saying so goes with it.
   const systemInCharge = motionReduced && motion !== 'storm';
   const [override, setOverride] = useState<string | null>(null);
-  const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
+  // The theme is left out: it is the phone's own, and choosing one takes nothing
+  // over from the instance.
+  const anyOverride = overridden.accent || overridden.shape || overridden.rainbow;
   const following = !anyOverride;
   const [nameDraft, setNameDraft] = useState(chosenDeviceName);
   // The owner compares it with the key an instance shows beside this phone
@@ -415,6 +417,23 @@ export default function SettingsScreen({
       </NotchCard>
 
       <NotchCard title={t('settings.appearance')} hue={1}>
+        {/* Above the switch and never dimmed by it: no instance carries a
+            theme, so following one leaves this choice alone. */}
+        <View style={styles.options}>
+          <Text style={[styles.axisLabel, styles.firstAxisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
+          {/* "System" is no choice of this phone's: the theme then follows the
+              device, and changes with it while the app is open. */}
+          <WellSelector
+            options={[
+              { value: 'light', label: t('settings.theme.light'), glyph: Sun },
+              { value: 'dark', label: t('settings.theme.dark'), glyph: Moon },
+              { value: 'system', label: t('settings.theme.system'), glyph: ThemeSystem },
+            ]}
+            value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
+            onPick={(v) => setTheme(v === 'system' ? undefined : v)}
+          />
+        </View>
+
         {/* A switch rather than a link that appears once something is
             overridden: following the instance is a state, and a state gets the
             control every state in this family gets. Off snapshots the current
@@ -444,19 +463,6 @@ export default function SettingsScreen({
             instance's look, and a press takes it over on this phone, which
             flips the switch above off. */}
         <View style={[styles.options, following && styles.dimmed]}>
-          <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
-          {/* "System" is no choice of this phone's: the theme then follows the
-              device, and changes with it while the app is open. */}
-          <WellSelector
-            options={[
-              { value: 'light', label: t('settings.theme.light'), glyph: Sun },
-              { value: 'dark', label: t('settings.theme.dark'), glyph: Moon },
-              { value: 'system', label: t('settings.theme.system'), glyph: ThemeSystem },
-            ]}
-            value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
-            onPick={(v) => setTheme(v === 'system' ? undefined : v)}
-          />
-
           <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>
           <WellSelector
             options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
@@ -1148,10 +1154,13 @@ const styles = StyleSheet.create({
   // as the same entry.
   flag: { fontSize: 20, width: 30 },
   languageName: { flex: 1, fontSize: TYPE.body, fontWeight: '600' },
-  // The back triangle turned round, pointing at the page the button opens.
-  chevron: { transform: [{ scaleX: I18nManager.isRTL ? 1 : -1 }] },
+  // The back triangle turned round in either direction, since Android already
+  // mirrors its border triangle in a right-to-left layout.
+  chevron: { transform: [{ scaleX: -1 }] },
   hint: { fontSize: TYPE.caption, lineHeight: 16, marginBottom: 8 },
   axisLabel: { fontSize: TYPE.caption, marginTop: 12, marginBottom: 6, letterSpacing: 0.6 },
+  // The card's own padding is the space over its first line.
+  firstAxisLabel: { marginTop: 0 },
   // The inline variant drops the stacked spacing: in a row the label is beside
   // its control, not above it.
   axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },
