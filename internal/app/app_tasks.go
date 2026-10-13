@@ -35,11 +35,17 @@ import (
 // share a creation time, and the order has to hold between two calls for the
 // background watch's tag to match.
 func (a *App) Tasks() []*core.Task {
+	now := time.Now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	out := make([]*core.Task, 0, len(a.tasks))
 	for _, t := range a.tasks {
 		c := *t
+		// The task keeps the last rate it was given, which stands after a
+		// torrent's readings stop.
+		if c.UploadSpeed != 0 {
+			c.UploadSpeed = a.tally.uploadRate(c.ID, now)
+		}
 		// An undispatched task has no mode yet, but "free or premium" is asked
 		// while it waits. It is derived on the copy only, since the JD hoster
 		// list arrives after boot and changes; dispatch writes the real value.

@@ -449,6 +449,11 @@ func TestUploadNowCountsOnlyTorrentsThatDownloadOrSeed(t *testing.T) {
 	a.tasks["seed"] = &core.Task{ID: "seed", Status: core.StatusDone, Seeding: true, UploadSpeed: 40}
 	a.tasks["stopped"] = &core.Task{ID: "stopped", Status: core.StatusDone, UploadSpeed: 900}
 	a.tasks["paused"] = &core.Task{ID: "paused", Status: core.StatusPaused, UploadSpeed: 800}
+	now := time.Now()
+	for id, t := range a.tasks {
+		a.tally.readUpload(id, 0, now.Add(-time.Second))
+		a.tally.readUpload(id, t.UploadSpeed, now)
+	}
 	a.mu.Unlock()
 
 	if got := a.UploadNow(); got != 140 {
