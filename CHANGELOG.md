@@ -35,7 +35,7 @@ release is for a store submission and for a fixed download. Firefox Add-ons
 gets a version only when the Firefox Add-ons workflow is run by hand on the
 release's tag.
 
-## [1.9.0] - 2026-10-12
+## [1.9.0] - 2026-10-13
 
 ### Added
 
