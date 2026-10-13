@@ -3615,6 +3615,7 @@ export const is: Dict = {
   'whatsnew.change.infoTile': '„{name}“ segir hver býr til KnightLoader, sýnir hverja útgáfu og sýnir hvar þú færð hjálp.',
   'whatsnew.change.phoneBar': 'Í síma heldur neðri stikan fjórum síðum og síðasta sæti hennar opnar allt annað.',
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ sýna hvað biðröðin er að gera: fyllti hnappurinn er staða hennar, hinn er sá sem þú ýtir á.',
+  'whatsnew.change.quickRows': '„{name}“ er breiðara, svo hver reitur, fellilisti og rofi stendur í sömu línu og heiti hans. Hvað gerist þegar biðröðin er tóm velur þú þar úr fellilista.',
   'whatsnew.change.listBar': 'Þrír hnappar eru fyrir ofan listann: „{filter}“, „{sort}“ og „{search}“.',
   'whatsnew.change.listRows': 'Línurnar byrja í beinni línu við titil spjaldsins og hnappar línu birtast á meðan bendillinn er yfir henni.',
   'whatsnew.change.accountPicker': 'Þú velur nýjan debrid-, captcha- eða hýsingarreikning úr flísum sem hver er með sínu merki. Merki heils skjás hlaðast saman, og hýsing án merkis sýnir fyrsta stafinn sinn á litaðri flís.',

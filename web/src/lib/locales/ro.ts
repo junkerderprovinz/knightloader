@@ -3628,6 +3628,7 @@ export const ro: Dict = {
   'whatsnew.change.infoTile': '„{name}” spune cine face KnightLoader, enumeră fiecare versiune și arată unde găsești ajutor.',
   'whatsnew.change.phoneBar': 'Pe telefon, bara inferioară păstrează patru pagini, iar ultimul ei loc deschide tot restul.',
   'whatsnew.change.queueState': '„{play}” și „{pause}” arată ce face coada: butonul plin este starea ei, celălalt este cel de apăsat.',
+  'whatsnew.change.quickRows': '„{name}” e mai lat, așa că fiecare câmp, listă derulantă și comutator stă pe același rând cu numele său. Ce se întâmplă când coada e goală alegi acolo dintr-o listă derulantă.',
   'whatsnew.change.listBar': 'Deasupra listei stau trei butoane: „{filter}”, „{sort}” și „{search}”.',
   'whatsnew.change.listRows': 'Rândurile încep aliniate cu titlul cardului, iar butoanele unui rând apar cât timp cursorul este pe el.',
   'whatsnew.change.accountPicker': 'Alegi un cont nou de debrid, de captcha sau de hoster dintre dale, fiecare cu sigla ei. Siglele unui ecran întreg se încarcă împreună, iar un hoster fără siglă își arată prima literă pe o dală colorată.',

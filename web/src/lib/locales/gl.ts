@@ -3617,6 +3617,7 @@ export const gl: Dict = {
   'whatsnew.change.infoTile': '«{name}» di quen fai KnightLoader, enumera cada versión e amosa onde conseguir axuda.',
   'whatsnew.change.phoneBar': 'Nun teléfono, a barra inferior conserva catro páxinas, e o seu último lugar abre todo o demais.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» amosan que fai a cola: o botón recheo é o seu estado, o outro é o que se preme.',
+  'whatsnew.change.quickRows': '«{name}» é máis ancho, así que cada campo, despregable e interruptor queda na mesma liña ca o seu nome. O que pasa cando a cola está baleira escólleo alí nun despregable.',
   'whatsnew.change.listBar': 'Hai tres botóns enriba da lista: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'As filas comezan aliñadas co título da tarxeta, e os botóns dunha fila aparecen mentres o punteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolles unha conta nova de debrid, de captcha ou de aloxador entre mosaicos, cada un co seu logotipo. Os logotipos de toda unha pantalla cárganse xuntos, e un aloxador sen logotipo amosa a súa primeira letra sobre un mosaico tinguido.',

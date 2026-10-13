@@ -3605,6 +3605,7 @@ export const da: Dict = {
   'whatsnew.change.infoTile': '„{name}“ siger, hvem der laver KnightLoader, viser hver version og viser, hvor du får hjælp.',
   'whatsnew.change.phoneBar': 'På en telefon beholder bundpanelet fire sider, og dets sidste plads åbner alt det andet.',
   'whatsnew.change.queueState': '„{play}“ og „{pause}“ viser, hvad køen laver: Den udfyldte knap er dens tilstand, den anden er den, du trykker på.',
+  'whatsnew.change.quickRows': '„{name}“ er bredere, så hvert felt, hver rulleliste og hver kontakt står på samme linje som sit navn. Hvad der sker, når køen er tom, vælger du der i en rulleliste.',
   'whatsnew.change.listBar': 'Over listen står tre knapper: „{filter}“, „{sort}“ og „{search}“.',
   'whatsnew.change.listRows': 'Rækkerne starter på linje med kortets titel, og en rækkes knapper vises, så længe markøren er på den.',
   'whatsnew.change.accountPicker': 'Du vælger en ny debrid-, captcha- eller hosterkonto blandt fliser, hver med sit logo. Logoerne på en hel skærm indlæses samlet, og en hoster uden logo viser sit første bogstav på en farvet flise.',

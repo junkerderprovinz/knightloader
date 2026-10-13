@@ -3604,6 +3604,7 @@ export const pl: Dict = {
   'whatsnew.change.infoTile': '„{name}” mówi, kto tworzy KnightLoader, wymienia każdą wersję i pokazuje, gdzie uzyskać pomoc.',
   'whatsnew.change.phoneBar': 'Na telefonie panel dolny zachowuje cztery strony, a jego ostatnie miejsce otwiera całą resztę.',
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazują, co robi kolejka: wypełniony przycisk to jej stan, a drugi jest do naciśnięcia.',
+  'whatsnew.change.quickRows': '„{name}” jest szersze, więc każde pole, lista rozwijana i przełącznik stoi w tym samym wierszu co jego nazwa. To, co dzieje się przy pustej kolejce, wybierasz tam z listy rozwijanej.',
   'whatsnew.change.listBar': 'Nad listą są trzy przyciski: „{filter}”, „{sort}” i „{search}”.',
   'whatsnew.change.listRows': 'Wiersze zaczynają się w jednej linii z tytułem karty, a przyciski wiersza widać, dopóki wskaźnik jest nad nim.',
   'whatsnew.change.accountPicker': 'Nowe konto debrid, captcha albo hostera wybierasz z kafelków, każdy ze swoim logo. Loga całego ekranu ładują się razem, a hoster bez logo pokazuje swoją pierwszą literę na zabarwionym kafelku.',

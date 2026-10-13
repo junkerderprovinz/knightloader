@@ -3618,6 +3618,7 @@ export const sl: Dict = {
   'whatsnew.change.infoTile': '»{name}« pove, kdo dela KnightLoader, našteje vsako različico in pokaže, kje dobiš pomoč.',
   'whatsnew.change.phoneBar': 'Na telefonu spodnja vrstica obdrži štiri strani, njeno zadnje mesto pa odpre vse ostalo.',
   'whatsnew.change.queueState': '»{play}« in »{pause}« kažeta, kaj počne vrsta: zapolnjeni gumb je njeno stanje, drugega pritisneš.',
+  'whatsnew.change.quickRows': '»{name}« je širše, zato vsako polje, spustni seznam in stikalo stoji v isti vrstici kot njegovo ime. Kaj se zgodi, ko je vrsta prazna, tam izbereš na spustnem seznamu.',
   'whatsnew.change.listBar': 'Nad seznamom so trije gumbi: »{filter}«, »{sort}« in »{search}«.',
   'whatsnew.change.listRows': 'Vrstice se začnejo poravnano z naslovom kartice, gumbi vrstice pa so vidni, dokler je kazalec na njej.',
   'whatsnew.change.accountPicker': 'Nov račun debrid, račun captch ali račun hosterja izbereš med ploščicami, vsaka ima svoj logotip. Logotipi celega zaslona se naložijo skupaj, hoster brez logotipa pa pokaže svojo začetnico na obarvani ploščici.',

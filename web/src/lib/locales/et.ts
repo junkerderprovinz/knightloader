@@ -3611,6 +3611,7 @@ export const et: Dict = {
   'whatsnew.change.infoTile': '„{name}“ ütleb, kes KnightLoaderit teeb, loetleb kõik versioonid ja näitab, kust abi saab.',
   'whatsnew.change.phoneBar': 'Telefonis hoiab alumine riba nelja lehte ja selle viimane koht avab kõik ülejäänu.',
   'whatsnew.change.queueState': '„{play}“ ja „{pause}“ näitavad, mida järjekord teeb: täidetud nupp on selle olek, teine on see, mida vajutada.',
+  'whatsnew.change.quickRows': '„{name}“ on laiem, nii et iga väli, rippmenüü ja lüliti on oma nimega samal real. Mis juhtub, kui järjekord on tühi, valid seal rippmenüüst.',
   'whatsnew.change.listBar': 'Loendi kohal on kolm nuppu: „{filter}“, „{sort}“ ja „{search}“.',
   'whatsnew.change.listRows': 'Read algavad kaardi pealkirjaga ühelt joonelt ja rea nupud on näha seni, kuni kursor on rea kohal.',
   'whatsnew.change.accountPicker': 'Uue debrid-, captcha- või hosteri konto valid paanide seast, millest igaühel on oma logo. Terve ekraani logod laaditakse korraga ja logota hoster näitab oma esitähte toonitud paanil.',

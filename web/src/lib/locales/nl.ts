@@ -3602,6 +3602,7 @@ export const nl: Dict = {
   'whatsnew.change.infoTile': '“{name}” zegt wie KnightLoader maakt, toont elke versie en laat zien waar je hulp vindt.',
   'whatsnew.change.phoneBar': 'Op een telefoon houdt de onderbalk vier pagina’s, en de laatste plek opent al het andere.',
   'whatsnew.change.queueState': '“{play}” en “{pause}” laten zien wat de wachtrij doet: de gevulde knop is de toestand, de andere is de knop om in te drukken.',
+  'whatsnew.change.quickRows': '“{name}” is breder, zodat elk veld, elke keuzelijst en elke schakelaar op dezelfde regel staat als zijn naam. Wat er gebeurt als de wachtrij leeg is, kies je daar in een keuzelijst.',
   'whatsnew.change.listBar': 'Boven de lijst staan drie knoppen: “{filter}”, “{sort}” en “{search}”.',
   'whatsnew.change.listRows': 'De rijen beginnen gelijk met de titel van de kaart, en de knoppen van een rij verschijnen zolang de aanwijzer erop staat.',
   'whatsnew.change.accountPicker': 'Een nieuw debrid-, captcha- of hosteraccount kies je uit tegels, elk met zijn logo. De logo’s van een heel scherm laden samen, en een hoster zonder logo toont zijn eerste letter op een gekleurde tegel.',

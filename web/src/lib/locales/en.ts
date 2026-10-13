@@ -3863,6 +3863,7 @@ export const en = {
   'whatsnew.change.infoTile': '"{name}" says who makes KnightLoader, lists every version and shows where to get help.',
   'whatsnew.change.phoneBar': 'On a phone the bottom bar keeps four pages, and its last place opens everything else.',
   'whatsnew.change.queueState': '"{play}" and "{pause}" show what the queue is doing: the filled one is its state, the other is the one to press.',
+  'whatsnew.change.quickRows': '"{name}" is wider, so each field, dropdown and switch stands on the same line as its name. What happens when the queue is empty is picked from a dropdown there.',
   'whatsnew.change.listBar': 'Three buttons stand above the list: "{filter}", "{sort}" and "{search}".',
   'whatsnew.change.listRows': "The rows start in line with the card's title, and the buttons of a row show while the pointer is on it.",
   'whatsnew.change.accountPicker': 'You pick a new debrid, captcha or hoster account from tiles, each with its logo. The logos of a whole screen load together, and a hoster without one shows its first letter on a tinted tile.',

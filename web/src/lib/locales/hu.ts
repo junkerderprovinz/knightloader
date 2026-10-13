@@ -3621,6 +3621,7 @@ export const hu: Dict = {
   'whatsnew.change.infoTile': 'A(z) „{name}” megmondja, ki készíti a KnightLoadert, felsorol minden verziót, és megmutatja, hol kapsz segítséget.',
   'whatsnew.change.phoneBar': 'Telefonon az alsó sáv négy oldalt tart meg, az utolsó helye pedig minden mást megnyit.',
   'whatsnew.change.queueState': 'A(z) „{play}” és a(z) „{pause}” megmutatja, mit csinál a sor: a kitöltött gomb az állapota, a másik az, amelyiket megnyomod.',
+  'whatsnew.change.quickRows': 'A(z) „{name}” szélesebb, így minden mező, legördülő lista és kapcsoló a nevével egy sorban áll. Hogy mi történjen, ha üres a sor, ott egy legördülő listából választod ki.',
   'whatsnew.change.listBar': 'A lista fölött három gomb áll: „{filter}”, „{sort}” és „{search}”.',
   'whatsnew.change.listRows': 'A sorok a kártya címével egy vonalban kezdődnek, és a sor gombjai addig látszanak, amíg a mutató rajta van.',
   'whatsnew.change.accountPicker': 'Új debrid fiókot, captcha-fiókot vagy tárhelyfiókot csempékből választasz, mindegyiken ott a logója. Egy teljes képernyőnyi logó együtt töltődik be, a logó nélküli tárhely pedig a kezdőbetűjét mutatja egy színezett csempén.',

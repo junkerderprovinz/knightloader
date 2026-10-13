@@ -3619,6 +3619,7 @@ export const id: Dict = {
   'whatsnew.change.infoTile': '“{name}” mengatakan siapa yang membuat KnightLoader, mencantumkan setiap versi, dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Di ponsel, bilah bawah menyimpan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan antrean: tombol yang terisi adalah keadaannya, yang satunya adalah tombol untuk ditekan.',
+  'whatsnew.change.quickRows': '“{name}” lebih lebar, jadi setiap kolom, menu tarik-turun, dan sakelar berada di baris yang sama dengan namanya. Apa yang terjadi saat antrean kosong kamu pilih di sana dari menu tarik-turun.',
   'whatsnew.change.listBar': 'Ada tiga tombol di atas daftar: “{filter}”, “{sort}”, dan “{search}”.',
   'whatsnew.change.listRows': 'Baris dimulai sejajar dengan judul kartu, dan tombol sebuah baris terlihat selama penunjuk berada di atasnya.',
   'whatsnew.change.accountPicker': 'Kamu memilih akun debrid, captcha, atau hoster yang baru dari ubin, masing-masing dengan logonya. Logo satu layar penuh dimuat bersamaan, dan hoster tanpa logo menampilkan huruf pertamanya di ubin berwarna.',

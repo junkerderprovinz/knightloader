@@ -3615,6 +3615,7 @@ export const ja: Dict = {
   'whatsnew.change.infoTile': '「{name}」には、KnightLoader の作者、すべてのバージョン、ヘルプの入手先があります。',
   'whatsnew.change.phoneBar': 'スマートフォンでは、ボトムバーに 4 つのページが残り、最後の枠からそれ以外のすべてを開けます。',
   'whatsnew.change.queueState': '「{play}」と「{pause}」はキューの状態を示します。塗りつぶされているほうが現在の状態で、もう一方が押すボタンです。',
+  'whatsnew.change.quickRows': '「{name}」の幅が広がり、入力欄、ドロップダウン、スイッチがそれぞれ名前と同じ行に並びます。キューが空になったときの動作は、そこでドロップダウンから選びます。',
   'whatsnew.change.listBar': 'リストの上に 3 つのボタンがあります: 「{filter}」「{sort}」「{search}」。',
   'whatsnew.change.listRows': '行はカードのタイトルとそろった位置から始まり、行のボタンはポインターが行の上にある間だけ表示されます。',
   'whatsnew.change.accountPicker': '新しい Debrid アカウント、キャプチャアカウント、ホスターのアカウントは、それぞれのロゴが付いたタイルから選びます。画面いっぱいのロゴはまとめて読み込まれ、ロゴのないホスターは色付きのタイルに頭文字を表示します。',

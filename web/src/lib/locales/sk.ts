@@ -3629,6 +3629,7 @@ export const sk: Dict = {
   'whatsnew.change.infoTile': '„{name}“ hovorí, kto KnightLoader robí, vypisuje každú verziu a ukazuje, kde nájdeš pomoc.',
   'whatsnew.change.phoneBar': 'Na telefóne si spodný panel necháva štyri stránky a jeho posledné miesto otvára všetko ostatné.',
   'whatsnew.change.queueState': '„{play}“ a „{pause}“ ukazujú, čo front robí: vyplnené tlačidlo je jeho stav, to druhé sa stláča.',
+  'whatsnew.change.quickRows': '„{name}“ je širšie, takže každé pole, rozbaľovací zoznam aj prepínač stojí v rovnakom riadku ako jeho názov. Čo sa stane, keď je front prázdny, tam vyberieš zo zoznamu.',
   'whatsnew.change.listBar': 'Nad zoznamom sú tri tlačidlá: „{filter}“, „{sort}“ a „{search}“.',
   'whatsnew.change.listRows': 'Riadky začínajú zarovnané s nadpisom karty a tlačidlá riadka je vidieť, kým je na ňom ukazovateľ.',
   'whatsnew.change.accountPicker': 'Nový debrid účet, účet captchy alebo účet hostera vyberieš z dlaždíc, každá má svoje logo. Logá celej obrazovky sa načítajú naraz a hoster bez loga ukáže svoje prvé písmeno na zafarbenej dlaždici.',

@@ -3607,6 +3607,7 @@ export const ca: Dict = {
   'whatsnew.change.infoTile': '«{name}» diu qui fa KnightLoader, enumera cada versió i mostra on trobar ajuda.',
   'whatsnew.change.phoneBar': 'En un telèfon, la barra inferior conserva quatre pàgines, i el seu últim lloc obre tota la resta.',
   'whatsnew.change.queueState': '«{play}» i «{pause}» mostren què fa la cua: el botó ple n’és l’estat, l’altre és el que es prem.',
+  'whatsnew.change.quickRows': '«{name}» és més ample, de manera que cada camp, desplegable i interruptor queda a la mateixa línia que el seu nom. El que passa quan la cua és buida ho tries allà en un desplegable.',
   'whatsnew.change.listBar': 'Hi ha tres botons damunt de la llista: «{filter}», «{sort}» i «{search}».',
   'whatsnew.change.listRows': 'Les files comencen alineades amb el títol de la targeta, i els botons d’una fila apareixen mentre el punter hi és a sobre.',
   'whatsnew.change.accountPicker': 'Tries un compte nou de debrid, de captcha o d’allotjador entre mosaics, cadascun amb el seu logotip. Els logotips de tota una pantalla es carreguen junts, i un allotjador sense logotip mostra la seva primera lletra sobre un mosaic tenyit.',
