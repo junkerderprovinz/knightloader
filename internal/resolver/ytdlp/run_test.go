@@ -477,7 +477,7 @@ func TestRunStopsALiveRecordingAtItsSizeLimit(t *testing.T) {
 	if got.Status != core.StatusDone {
 		t.Fatalf("last update = %+v, want Done - a recording that hit its cap is finished, not failed", got)
 	}
-	if !strings.Contains(got.Note, "1 MiB limit") {
+	if !strings.Contains(got.Note, "1 MB limit") {
 		t.Errorf("note = %q, want it to name the limit that stopped the recording", got.Note)
 	}
 	var sawRecording bool
@@ -502,7 +502,7 @@ func TestRunStillMeasuresARecordingThatHitItsCap(t *testing.T) {
 	if got.Status != core.StatusDone {
 		t.Fatalf("last update = %+v, want Done", got)
 	}
-	if !strings.Contains(got.Note, "1 MiB limit") {
+	if !strings.Contains(got.Note, "1 MB limit") {
 		t.Errorf("note = %q, want the limit that stopped it", got.Note)
 	}
 	if !strings.Contains(got.Note, "1920x1080") {

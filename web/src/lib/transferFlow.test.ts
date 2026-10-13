@@ -7,7 +7,7 @@ import { interpolate } from './interpolate';
 import { en } from './locales/en';
 import { FLOW_ROWS, density, flowOf, type FlowContext } from './transferFlow';
 
-const MIB = 1024 * 1024;
+const MB = 1_000_000;
 
 const t = ((key: TranslationKey, vars?: Record<string, string | number>) => interpolate(en[key], vars)) as Parameters<
   typeof flowOf
@@ -23,7 +23,7 @@ const task = (over: Partial<Task>): Task =>
     status: 'running',
     size: 100,
     loaded: 0,
-    speed: MIB,
+    speed: MB,
     enabled: true,
     createdAt: '2026-10-10T10:00:00Z',
     ...over,
@@ -64,8 +64,8 @@ describe('the way of a download', () => {
     expect(f.routes.map((r) => [r.kind, r.name])).toEqual([['direct', 'Direct']]);
     expect(f.folders.map((d) => [d.name, d.volume?.dir])).toEqual([['downloads', '/downloads']]);
     expect(f.links.map((l) => [l.from, l.to, l.speed])).toEqual([
-      ['s:files.example', 'r:direct', MIB],
-      ['r:direct', 'f:/downloads', MIB],
+      ['s:files.example', 'r:direct', MB],
+      ['r:direct', 'f:/downloads', MB],
     ]);
   });
 
@@ -110,16 +110,16 @@ describe('the way of a download', () => {
 describe('the lines of the picture', () => {
   it('add up the downloads that share them', () => {
     const f = flow(
-      task({ id: 'a', connection: 'direct', speed: MIB }),
-      task({ id: 'b', connection: 'direct', speed: 2 * MIB }),
-      task({ id: 'c', url: 'https://other.example/c.zip', connection: 'direct', speed: 4 * MIB }),
+      task({ id: 'a', connection: 'direct', speed: MB }),
+      task({ id: 'b', connection: 'direct', speed: 2 * MB }),
+      task({ id: 'c', url: 'https://other.example/c.zip', connection: 'direct', speed: 4 * MB }),
     );
     expect(f.sources.map((s) => [s.name, s.speed])).toEqual([
-      ['other.example', 4 * MIB],
-      ['files.example', 3 * MIB],
+      ['other.example', 4 * MB],
+      ['files.example', 3 * MB],
     ]);
-    expect(f.links.find((l) => l.from === 'r:direct')!.speed).toBe(7 * MIB);
-    expect(f.speed).toBe(7 * MIB);
+    expect(f.links.find((l) => l.from === 'r:direct')!.speed).toBe(7 * MB);
+    expect(f.speed).toBe(7 * MB);
   });
 
   it('keep a download that waits or is stalled, at no speed', () => {
@@ -136,12 +136,12 @@ describe('the lines of the picture', () => {
 
   it('draw the slowest sources as one once a column is full', () => {
     const hosts = ['a.example', 'b.example', 'c.example', 'd.example', 'e.example', 'f.example'];
-    const f = flow(...hosts.map((h, i) => task({ id: h, url: `https://${h}/x`, connection: 'direct', speed: (hosts.length - i) * MIB })));
+    const f = flow(...hosts.map((h, i) => task({ id: h, url: `https://${h}/x`, connection: 'direct', speed: (hosts.length - i) * MB })));
     expect(f.sources).toHaveLength(FLOW_ROWS);
     expect(names(f.sources)).toEqual(['a.example', 'b.example', 'c.example', '3 more']);
-    expect(f.sources[3].speed).toBe(6 * MIB);
+    expect(f.sources[3].speed).toBe(6 * MB);
     // The three share one line into the connection.
-    expect(f.links.filter((l) => l.from === 's:+').map((l) => l.speed)).toEqual([6 * MIB]);
+    expect(f.links.filter((l) => l.from === 's:+').map((l) => l.speed)).toEqual([6 * MB]);
     expect(f.paths).toHaveLength(hosts.length);
   });
 });
@@ -165,7 +165,7 @@ describe('the density of packets', () => {
   });
 
   it('rises with the speed in fixed steps', () => {
-    const steps = [64 * 1024, 512 * 1024, 4 * MIB, 16 * MIB, 64 * MIB].map(density);
+    const steps = [64_000, 500_000, 4 * MB, 16 * MB, 64 * MB].map(density);
     expect(steps).toEqual([1, 2, 3, 4, 5]);
   });
 });

@@ -105,7 +105,7 @@ const (
 
 // maxFile caps one settings file. JDownloader's own files are kilobytes; a
 // download list zip is read entry by entry under maxEntryBytes instead.
-const maxFile = 32 << 20
+const maxFile = 32_000_000
 
 // Read finds the cfg folder inside fsys and reads every file it knows. fsys
 // may be the cfg folder itself, the JDownloader folder above it, or a zip
@@ -220,7 +220,7 @@ func (c *Config) readFile(fsys fs.FS, dir, name string) ([]byte, bool) {
 		return nil, false
 	}
 	if len(b) > maxFile {
-		c.problem(name, fmt.Errorf("it is larger than %d MiB", maxFile>>20))
+		c.problem(name, fmt.Errorf("it is larger than %d MB", maxFile/1_000_000))
 		return nil, false
 	}
 	c.Found = append(c.Found, name)

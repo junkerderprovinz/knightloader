@@ -24,24 +24,24 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const MIB = 1024 * 1024;
+const MB = 1_000_000;
 // A Wednesday.
 const WED = 3;
 const noon = new Date(2026, 9, 7, 12, 0);
 
 describe('the plan of a day', () => {
   const night: PlanEntry = { days: [WED], start: '00:00', end: '06:00', action: 'pause' };
-  const work: PlanEntry = { days: [WED], start: '08:00', end: '18:00', action: 'limit', limit: 2 * MIB };
+  const work: PlanEntry = { days: [WED], start: '08:00', end: '18:00', action: 'limit', limit: 2 * MB };
 
   it('is the limit set by hand while no window is open', () => {
-    expect(planOf([], WED, MIB)).toEqual([{ from: 0, to: 1440, paused: false, limit: MIB }]);
+    expect(planOf([], WED, MB)).toEqual([{ from: 0, to: 1440, paused: false, limit: MB }]);
   });
 
   it('cuts the day where a window opens or closes', () => {
     expect(planOf([night, work], WED, 0)).toEqual([
       { from: 0, to: 360, paused: true, limit: 0 },
       { from: 360, to: 480, paused: false, limit: 0 },
-      { from: 480, to: 1080, paused: false, limit: 2 * MIB },
+      { from: 480, to: 1080, paused: false, limit: 2 * MB },
       { from: 1080, to: 1440, paused: false, limit: 0 },
     ]);
   });
@@ -50,14 +50,14 @@ describe('the plan of a day', () => {
     const lunch: PlanEntry = { days: [WED], start: '12:00', end: '13:00', action: 'limit', limit: 0 };
     const all: PlanEntry = { days: [WED], start: '00:00', end: '23:59', action: 'pause' };
     const open: PlanEntry = { days: [WED], start: '09:00', end: '10:00', action: 'resume' };
-    const plan = planOf([all, work, lunch, open], WED, MIB);
+    const plan = planOf([all, work, lunch, open], WED, MB);
     const at = (minute: number) => plan.find((s) => s.from <= minute && minute < s.to)!;
     // A limit inside a pause leaves the pause alone, and a resume leaves the limit.
-    expect(at(8 * 60 + 30)).toMatchObject({ paused: true, limit: 2 * MIB });
-    expect(at(9 * 60 + 30)).toMatchObject({ paused: false, limit: 2 * MIB });
+    expect(at(8 * 60 + 30)).toMatchObject({ paused: true, limit: 2 * MB });
+    expect(at(9 * 60 + 30)).toMatchObject({ paused: false, limit: 2 * MB });
     // A limit of none over a limit lifts it for its hour.
     expect(at(12 * 60 + 30)).toMatchObject({ paused: true, limit: 0 });
-    expect(at(23 * 60 + 59)).toMatchObject({ paused: false, limit: MIB });
+    expect(at(23 * 60 + 59)).toMatchObject({ paused: false, limit: MB });
   });
 
   it("carries the tail of yesterday's night into the morning", () => {
@@ -76,9 +76,9 @@ describe('the plan of a day', () => {
   it('puts the quiet limit in place of every other while a quiet window is open', () => {
     const hush: PlanEntry = { days: [WED], start: '08:00', end: '09:00', action: 'quiet' };
     const at = (plan: PlanStretch[]) => plan.find((s) => s.from === 480)!.limit;
-    expect(at(planOf([work, hush], WED, 0, MIB / 2))).toBe(MIB / 2);
+    expect(at(planOf([work, hush], WED, 0, MB / 2))).toBe(MB / 2);
     // Without a quiet limit the mode changes nothing about speed.
-    expect(at(planOf([work, hush], WED, 0))).toBe(2 * MIB);
+    expect(at(planOf([work, hush], WED, 0))).toBe(2 * MB);
   });
 });
 
@@ -108,13 +108,13 @@ describe("the day's record", () => {
 describe('the curve of the day', () => {
   const plan: PlanStretch[] = [
     { from: 0, to: 360, paused: true, limit: 0 },
-    { from: 360, to: 720, paused: false, limit: 2 * MIB },
+    { from: 360, to: 720, paused: false, limit: 2 * MB },
     { from: 720, to: 1440, paused: false, limit: 0 },
   ];
   const points: DayPoint[] = [
-    { at: 365, speed: MIB },
-    { at: 370, speed: 4 * MIB },
-    { at: 600, speed: 2 * MIB },
+    { at: 365, speed: MB },
+    { at: 370, speed: 4 * MB },
+    { at: 600, speed: 2 * MB },
   ];
   const draw = (over: Partial<Parameters<typeof DayCurve>[0]> = {}) =>
     act(async () =>
@@ -130,7 +130,7 @@ describe('the curve of the day', () => {
     const areas = host.querySelectorAll('[data-plan="limit"]');
     expect(areas).toHaveLength(1);
     expect([areas[0].getAttribute('data-from'), areas[0].getAttribute('data-to')]).toEqual(['360', '720']);
-    // The tallest reading, 4 MiB/s, is the top of the plot, so 2 MiB/s stands at half its height.
+    // The tallest reading, 4 MB/s, is the top of the plot, so 2 MB/s stands at half its height.
     expect(areas[0].querySelector('path')!.getAttribute('d')).toBe('M360 100V50.00H720V100z');
     expect(host.querySelector('[data-ceiling]')!.textContent).toContain('4');
   });
@@ -157,7 +157,7 @@ describe('the curve of the day', () => {
   it('says when the record begins, unless it holds the whole day', async () => {
     await draw();
     expect(host.querySelector('[data-since]')!.textContent).toBe('Measured since 06:00');
-    await draw({ points: [{ at: 5, speed: MIB }] });
+    await draw({ points: [{ at: 5, speed: MB }] });
     expect(host.querySelector('[data-since]')).toBeNull();
   });
 
@@ -170,7 +170,7 @@ describe('the curve of the day', () => {
   it('says in words what the day asks for and what was measured last', async () => {
     await draw();
     expect(host.querySelector('[role="img"]')!.getAttribute('aria-label')).toMatch(
-      /^Schedules, Wed: 00:00-06:00 Pause, 06:00-12:00 .*2.*MiB\/s.*, Speed 10:00: .*2.*MiB\/s/,
+      /^Schedules, Wed: 00:00-06:00 Pause, 06:00-12:00 .*2.*MB\/s.*, Speed 10:00: .*2.*MB\/s/,
     );
   });
 
@@ -181,7 +181,7 @@ describe('the curve of the day', () => {
     );
     expect(host.querySelector('[data-upload-key]')!.textContent).toBe('Seeding');
 
-    await draw({ points: points.map((p) => ({ ...p, up: MIB })) });
+    await draw({ points: points.map((p) => ({ ...p, up: MB })) });
     expect(host.querySelector('[data-upload]')!.getAttribute('d')).toBe(
       'M360.0 75.00H365.0L365.0 75.00H370.0M595.0 75.00H600.0',
     );

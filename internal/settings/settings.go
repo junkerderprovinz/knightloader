@@ -954,6 +954,7 @@ func migrate(raw []byte, n Settings) Settings {
 	n = migrateAutoStart(raw, n)
 	n = migrateStall(raw, n)
 	n = migrateLabels(raw, n)
+	n = migrateUploadLimit(raw, n)
 	return n
 }
 

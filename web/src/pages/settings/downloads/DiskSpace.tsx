@@ -10,19 +10,19 @@ import { SettingRow } from '../controls';
 // where the platform cannot report free space, since the settings travel with
 // the instance.
 
-// GiB in the boxes, bytes on the wire, binary like every byte count in the app.
-const GIB = 1024 ** 3;
+// GB in the boxes, bytes on the wire, decimal like every byte count in the app.
+const GB = 1e9;
 
 // Rounded for display only, so opening the page does not rewrite the draft.
-const toGiB = (b: number) => Math.round((b / GIB) * 100) / 100;
+const toGB = (b: number) => Math.round((b / GB) * 100) / 100;
 // clampDiskBytes reads a negative as 0, so none is sent.
-const fromGiB = (v: number) => Math.max(0, Math.round(v * GIB));
+const fromGB = (v: number) => Math.max(0, Math.round(v * GB));
 
-// The server's maxDiskBytes (1 << 50) in GiB.
-const MAX_GIB = 1024 * 1024;
+// The server's maxDiskBytes, a petabyte, in GB.
+const MAX_GB = 1e6;
 
-// Half a GiB, also the reserve's shipped value.
-const STEP_GIB = 0.5;
+// Half a GB, also the reserve's shipped value.
+const STEP_GB = 0.5;
 
 export function DiskSpaceCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -30,7 +30,7 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
 
   // sanitizeDiskSpace raises the start floor to the stop floor, or the watcher
   // and the dispatcher would stop and restart a transfer every fifteen seconds.
-  const lowFloorGiB = toGiB(cfg.diskCriticalSpace);
+  const lowFloorGB = toGB(cfg.diskCriticalSpace);
 
   // Only the download folder; the Overview tile shows the others.
   const report = useDiskSpace();
@@ -55,11 +55,11 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
         hint={t('settings.downloads.diskReserveHint')}
       >
         <NumberInput
-          value={toGiB(cfg.diskReserve)}
+          value={toGB(cfg.diskReserve)}
           min={0}
-          max={MAX_GIB}
-          step={STEP_GIB}
-          onValue={(v) => patch({ diskReserve: fromGiB(v) })}
+          max={MAX_GB}
+          step={STEP_GB}
+          onValue={(v) => patch({ diskReserve: fromGB(v) })}
         />
       </SettingRow>
 
@@ -72,11 +72,11 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
           hint={t('settings.downloads.diskLowSpaceHint')}
         >
           <NumberInput
-            value={toGiB(cfg.diskLowSpace)}
-            min={lowFloorGiB}
-            max={MAX_GIB}
-            step={STEP_GIB}
-            onValue={(v) => patch({ diskLowSpace: fromGiB(v) })}
+            value={toGB(cfg.diskLowSpace)}
+            min={lowFloorGB}
+            max={MAX_GB}
+            step={STEP_GB}
+            onValue={(v) => patch({ diskLowSpace: fromGB(v) })}
           />
         </SettingRow>
 
@@ -88,11 +88,11 @@ export function DiskSpaceCard({ hue }: { hue: number }) {
           hint={t('settings.downloads.diskCriticalSpaceHint')}
         >
           <NumberInput
-            value={toGiB(cfg.diskCriticalSpace)}
+            value={toGB(cfg.diskCriticalSpace)}
             min={0}
-            max={MAX_GIB}
-            step={STEP_GIB}
-            onValue={(v) => patch({ diskCriticalSpace: fromGiB(v) })}
+            max={MAX_GB}
+            step={STEP_GB}
+            onValue={(v) => patch({ diskCriticalSpace: fromGB(v) })}
           />
         </SettingRow>
       </div>

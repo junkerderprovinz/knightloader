@@ -67,7 +67,7 @@ interface QuickRow {
 }
 
 /** The settings type leaves the torrent block out, as the Torrents page notes. */
-type TorrentBlock = { torrent?: Record<string, unknown> & { uploadLimitKiBs?: number } };
+type TorrentBlock = { torrent?: Record<string, unknown> & { uploadLimit?: number } };
 
 // What people reach for while downloads run comes first: how fast and how many,
 // then the timetable and what happens once the queue is empty, then the two
@@ -88,9 +88,9 @@ const ROWS: QuickRow[] = [
       const torrent = (cfg as TorrentBlock).torrent ?? {};
       return (
         <UploadLimitField
-          value={torrent.uploadLimitKiBs ?? 0}
-          onValue={(uploadLimitKiBs) =>
-            patch({ torrent: { ...torrent, uploadLimitKiBs } } as unknown as Partial<Settings>)
+          value={torrent.uploadLimit ?? 0}
+          onValue={(uploadLimit) =>
+            patch({ torrent: { ...torrent, uploadLimit } } as unknown as Partial<Settings>)
           }
         />
       );

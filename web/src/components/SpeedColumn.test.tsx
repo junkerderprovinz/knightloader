@@ -56,8 +56,8 @@ function header(items: Task[]) {
 const uploadRate = (out: HTMLElement) => out.querySelector('[data-new="seed-rate"]');
 
 it('shows what a seeding torrent uploads, with no glyph in front', () => {
-  const out = cell(torrent({ seeding: true, uploadSpeed: 2048 }));
-  expect(uploadRate(out)?.textContent).toBe('2.0 KiB/s');
+  const out = cell(torrent({ seeding: true, uploadSpeed: 2000 }));
+  expect(uploadRate(out)?.textContent).toBe('2.0 kB/s');
   expect(out.querySelector('svg')).toBeNull();
 });
 
@@ -66,23 +66,23 @@ it('shows 0 B/s for a seed nobody takes from', () => {
 });
 
 it('shows nothing for a finished torrent that no longer seeds', () => {
-  const out = cell(torrent({ seedingOver: true, uploadSpeed: 2048 }));
+  const out = cell(torrent({ seedingOver: true, uploadSpeed: 2000 }));
   expect(out.textContent).toBe('');
   expect(uploadRate(out)).toBeNull();
 });
 
 it('keeps the download speed for a torrent still downloading', () => {
-  const out = cell(torrent({ status: 'running', loaded: 10, speed: 4096, uploadSpeed: 2048 }));
-  expect(out.textContent).toContain('4.0 KiB/s');
+  const out = cell(torrent({ status: 'running', loaded: 10, speed: 4000, uploadSpeed: 2000 }));
+  expect(out.textContent).toContain('4.0 kB/s');
   expect(uploadRate(out)).toBeNull();
 });
 
 it('sums the uploads of a package that only seeds', () => {
   const out = header([
-    torrent({ id: 'a', seeding: true, uploadSpeed: 1024 }),
-    torrent({ id: 'b', seeding: true, uploadSpeed: 1024 }),
+    torrent({ id: 'a', seeding: true, uploadSpeed: 1000 }),
+    torrent({ id: 'b', seeding: true, uploadSpeed: 1000 }),
   ]);
-  expect(uploadRate(out)?.textContent).toBe('2.0 KiB/s');
+  expect(uploadRate(out)?.textContent).toBe('2.0 kB/s');
 });
 
 it('sorts seeding rows by their upload', () => {

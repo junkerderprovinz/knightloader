@@ -15,7 +15,7 @@ import { Tabs } from '../../components/Tabs';
 import { TestButton } from '../../components/TestButton';
 import { fetchTorrentOverview, type TorrentFileRules } from '../../lib/api';
 import { happened } from '../../lib/countdown';
-import { fmtDate } from '../../lib/format';
+import { SIZE_UNITS, fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ListArea, RowRefusal, SettingRow, SubCard } from './controls';
@@ -35,7 +35,7 @@ import { UploadLimitField } from './torrents/UploadLimit';
 interface TorrentSettings {
   seedRatioTarget: number;
   seedDurationSeconds: number;
-  uploadLimitKiBs: number;
+  uploadLimit: number;
   port: number;
   dhtEnabled: boolean;
   pexEnabled: boolean;
@@ -73,7 +73,7 @@ const REDACTED = '********';
 const DEFAULTS: TorrentSettings = {
   seedRatioTarget: 1,
   seedDurationSeconds: 2 * 60 * 60,
-  uploadLimitKiBs: 0,
+  uploadLimit: 0,
   port: 0,
   dhtEnabled: true,
   pexEnabled: true,
@@ -94,15 +94,6 @@ const DEFAULTS: TorrentSettings = {
 
 // A day, as settings.maxDebridStallMinutes caps it.
 const DEBRID_STALL_MAX = 24 * 60;
-
-const KIB = 1024;
-
-// A file size is entered like a speed, without the "/s".
-const SIZE_UNITS = [
-  { label: 'KiB', factor: KIB, step: 256 * KIB },
-  { label: 'MiB', factor: KIB ** 2, step: KIB ** 2 },
-  { label: 'GiB', factor: KIB ** 3, step: KIB ** 3 },
-] as const;
 
 function readTorrent(cfg: unknown): TorrentSettings {
   const tr = (cfg as { torrent?: Partial<TorrentSettings> }).torrent ?? {};
@@ -181,7 +172,7 @@ export function Torrents() {
           </SettingRow>
         </div>
         {/* How fast it is given back stands with how much. */}
-        <UploadLimitField value={tr.uploadLimitKiBs} onValue={(uploadLimitKiBs) => write({ uploadLimitKiBs })} />
+        <UploadLimitField value={tr.uploadLimit} onValue={(uploadLimit) => write({ uploadLimit })} />
       </Card>
 
       <Card hue={1} className="flex flex-col gap-5">
@@ -352,8 +343,8 @@ export function FileSelectionFields({
   const { t } = useT();
   return (
     <>
-      {/* Stored in bytes, so a sample of 40 MiB is as easy to write as an
-          .nfo of 3 KiB. */}
+      {/* Stored in bytes, so a sample of 40 MB is as easy to write as an
+          .nfo of 3 kB. */}
       <SettingRow
         control="short"
         label={t('settings.torrents.minFileSize')}

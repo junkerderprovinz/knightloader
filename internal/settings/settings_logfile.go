@@ -63,7 +63,7 @@ const (
 	// maxLogMB is a typo guard rather than a policy. A gigabyte in one file is
 	// already past what any editor opens comfortably, and the likeliest way to
 	// end up above it is somebody typing a byte count into a box labelled MB.
-	maxLogMB = 1024
+	maxLogMB = 1000
 
 	// maxLogKeep bounds what the whole feature can occupy at
 	// maxLogMB * (maxLogKeep + 1). Twenty generations is an archive; past it is
@@ -112,5 +112,5 @@ func (l LogFile) Sanitized() LogFile {
 // that the conversion happens in one place rather than at every call site that
 // wants to hand the figure to internal/logring.
 func (l LogFile) MaxBytes() int64 {
-	return int64(l.Sanitized().MaxMB) << 20
+	return int64(l.Sanitized().MaxMB) * 1_000_000
 }

@@ -14,7 +14,7 @@ export function SpeedLimitField({ value, onValue }: { value: number; onValue: (b
   const { t } = useT();
   return (
     <SettingRow control="short" label={t('settings.globalSpeedLimit')} hint={t('settings.speedHint')}>
-      <span className="flex items-center gap-2">
+      <span data-new="decimal-units" className="flex items-center gap-2">
         <span className="min-w-0 flex-1">
           <UnitNumberInput value={value} units={RATE_UNITS} onValue={onValue} />
         </span>

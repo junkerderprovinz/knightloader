@@ -1,5 +1,5 @@
 // A value set into right-to-left text is laid out by the Bidi algorithm along
-// with the words around it, so "2.7 GiB" in an Arabic line reads "GiB 2.7". An
+// with the words around it, so "2.7 GB" in an Arabic line reads "GB 2.7". An
 // isolate keeps its order, and only a right-to-left language needs one, the
 // same rule as the web UI's lib/bidi.ts.
 

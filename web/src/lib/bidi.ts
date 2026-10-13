@@ -1,5 +1,5 @@
 // A value set into right-to-left text is laid out by the Bidi algorithm along
-// with the words around it, so "2.7 GiB" reads "GiB 2.7" and "< 0.1 GB" turns
+// with the words around it, so "2.7 GB" reads "GB 2.7" and "< 0.1 GB" turns
 // into "GB 0.1 >". An isolate keeps its order, and only right-to-left pages
 // need one: in a left-to-right page these marks would change nothing.
 

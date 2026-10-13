@@ -55,10 +55,10 @@ export function useMeterWindow(): [number, (seconds: number) => void] {
 
 // The top of the plot never drops below this, so a blip near idle does not fill
 // the box and a small transfer looks small.
-const FLOOR = 64 * 1024;
+const FLOOR = 64_000;
 
 // The top of the plot sits this far above a speed limit it takes in, so the
-// line has room for its figure above it.
+// mark has room for its figure above it.
 const HEADROOM = 1.2;
 
 // A limit more than this many times the window's peak stays out of the scale.
@@ -91,7 +91,7 @@ export interface Limits {
 
 const KINDS = ['download', 'upload'] as const;
 
-// A limit's figure: its size, and its gap from the line.
+// A limit's figure: its size, and its gap from the limit's height.
 const LABEL_SIZE = 12;
 const LABEL_GAP = 3;
 
@@ -100,31 +100,27 @@ const LABEL_GAP = 3;
 const GLYPH = 4;
 const LABEL_X = 2 * GLYPH + 3;
 
-// Drawn from the right edge at the limit's height: a notch pointing at the
-// line, or a chevron pointing up out of the plot.
+// Drawn from the right edge at the limit's height: a notch pointing into the
+// plot, or a chevron pointing up out of it.
 const NOTCH = `M0 ${-GLYPH}L${-GLYPH} 0L0 ${GLYPH}Z`;
 const CHEVRON = `M${-2 * GLYPH} ${GLYPH}L${-GLYPH} 0L0 ${GLYPH}Z`;
 
 /** Where a limit's mark sits against the ceiling the plot is drawn to. */
 export interface LimitMark {
   y: number;
-  /** The limit is above the plot's top, so the mark sits on the top edge and no line is drawn. */
+  /** The limit is above the plot's top, so the mark sits on the top edge with a chevron. */
   over: boolean;
 }
 
-/**
- * limitMark places a limit in a box whose plot runs from top to base. The y
- * lands on a half pixel, which is where a one pixel line is sharp in a viewBox
- * drawn in pixels.
- */
+/** limitMark places a limit in a box whose plot runs from top to base, on a whole pixel. */
 export function limitMark(limit: number, ceiling: number, top: number, base: number): LimitMark {
   const over = limit > ceiling;
   const exact = over ? top : base - (limit / ceiling) * (base - top);
-  return { y: Math.floor(exact) + 0.5, over };
+  return { y: Math.round(exact), over };
 }
 
 /**
- * labelTops places the marks' figures in a box h tall: each above its line
+ * labelTops places the marks' figures in a box h tall: each above its mark
  * where there is room and under it otherwise, and one that would cover an
  * earlier one moved below that, or above it where the box ends.
  */
@@ -169,19 +165,16 @@ function applyMarks(gs: readonly (SVGGElement | null)[], marks: readonly (LimitM
   const tops = labelTops(shown.map(({ m }) => m.y), h);
   shown.forEach(({ g, m }, i) => {
     g.setAttribute('transform', `translate(0 ${m.y})`);
-    const [line, glyph, label] = [g.children[1], g.children[2], g.children[3]];
-    // A line pinned to the top edge would read as a transfer running at the limit.
-    if (m.over) line.setAttribute('visibility', 'hidden');
-    else line.removeAttribute('visibility');
+    const [glyph, label] = [g.children[1], g.children[2]];
     glyph.setAttribute('d', m.over ? CHEVRON : NOTCH);
     label.setAttribute('y', String(tops[i] + LABEL_SIZE - m.y));
   });
 }
 
 /**
- * LimitMarks draws each limit set as a red line across the plot, as JDownloader
- * draws it, with a mark and the figure at the right edge in its curve's colour.
- * Their place is left to applyMarks.
+ * LimitMarks draws each limit set as a mark and its figure at the right edge in
+ * its curve's colour, with no line across the plot, which two limits and two
+ * curves would crowd. Their place is left to applyMarks.
  */
 function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: RefObject<(SVGGElement | null)[]> }) {
   const { t } = useT();
@@ -198,15 +191,6 @@ function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: Re
         data-limit-mark={kind}
       >
         <title>{t(`speed.limit.${kind}`, { speed: fmtSpeed(limit) })}</title>
-        <line
-          x1="0"
-          x2={w}
-          y1="0"
-          y2="0"
-          stroke="var(--status-fail-solid)"
-          strokeWidth="1"
-          vectorEffect="non-scaling-stroke"
-        />
         <path transform={`translate(${w} 0)`} d={NOTCH} fill={ink} />
         {/* The halo in the card's own colour keeps the figure legible where a
             curve runs under it. The plot does not mirror in a right-to-left
@@ -673,7 +657,7 @@ export function SpeedGraph({
 
   return (
     /* kl-storm-curve is the 1337 easter egg (docs/easter-eggs.md): at a limit of
-       exactly 1337 KiB/s this plot runs on the hidden motion level. It only
+       exactly 1337 kB/s this plot runs on the hidden motion level. It only
        sets two custom properties, so motion "off" and reduced motion still
        win, and the reader's data-motion setting is left alone. */
     <div data-new="seeding-line" className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
@@ -706,7 +690,7 @@ export function SpeedGraph({
         className="block w-full"
         style={{ height }}
         aria-hidden
-        data-new="limit-marks"
+        data-new="limit-markers"
       >
         <Plot win={win} span={span} w={w} h={height} pad={6} ceiling={ceiling} stroke={1.75} limits={limits} />
       </svg>
@@ -797,7 +781,7 @@ export function SpeedMeter({
         className="h-0 w-full flex-auto"
         aria-hidden
         focusable="false"
-        data-new="limit-marks"
+        data-new="limit-markers"
       >
         <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limits={limits} />
       </svg>

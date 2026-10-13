@@ -70,7 +70,7 @@ export interface FlowContext {
 /** How many nodes a column shows before the slowest are drawn as one. */
 export const FLOW_ROWS = 4;
 
-const MIB = 1024 * 1024;
+const MB = 1_000_000;
 
 /**
  * density is how closely packets follow each other on a line, 1 to 5, and 0
@@ -79,10 +79,10 @@ const MIB = 1024 * 1024;
  */
 export function density(speed: number): number {
   if (speed <= 0) return 0;
-  if (speed < MIB / 8) return 1;
-  if (speed < MIB) return 2;
-  if (speed < 8 * MIB) return 3;
-  if (speed < 32 * MIB) return 4;
+  if (speed < MB / 8) return 1;
+  if (speed < MB) return 2;
+  if (speed < 8 * MB) return 3;
+  if (speed < 32 * MB) return 4;
   return 5;
 }
 

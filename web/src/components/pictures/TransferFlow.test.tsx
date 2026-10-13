@@ -13,8 +13,8 @@ import { TransferFlow } from './TransferFlow';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const MIB = 1024 * 1024;
-const GIB = 1024 * MIB;
+const MB = 1_000_000;
+const GB = 1000 * MB;
 
 let root: Root;
 let host: HTMLDivElement;
@@ -61,7 +61,7 @@ const task = (over: Partial<Task>): Task =>
     status: 'running',
     size: 100,
     loaded: 0,
-    speed: MIB,
+    speed: MB,
     enabled: true,
     connection: 'direct',
     createdAt: '2026-10-10T10:00:00Z',
@@ -70,8 +70,8 @@ const task = (over: Partial<Task>): Task =>
 
 const disk: DiskReport = {
   volumes: [
-    { dir: '/downloads', measured: '/downloads', exists: true, known: true, free: 40 * GIB, used: 60 * GIB, total: 100 * GIB, queued: 0, tasks: 0, role: 'downloads' },
-    { dir: '/media', measured: '/media', exists: true, known: true, free: 10 * GIB, used: 10 * GIB, total: 20 * GIB, queued: 0, tasks: 0, role: 'category' },
+    { dir: '/downloads', measured: '/downloads', exists: true, known: true, free: 40 * GB, used: 60 * GB, total: 100 * GB, queued: 0, tasks: 0, role: 'downloads' },
+    { dir: '/media', measured: '/media', exists: true, known: true, free: 10 * GB, used: 10 * GB, total: 20 * GB, queued: 0, tasks: 0, role: 'category' },
   ],
   truncated: false,
   sampledAt: '',
@@ -81,7 +81,7 @@ const connections = new Map<string, Connection>([
   ['p1', { id: 'p1', type: 'socks5', host: '10.0.0.2', port: 1080, enabled: true, order: 1 }],
 ]);
 const flow = (...tasks: Task[]): Flow => flowOf(tasks, { connections, services: [], disk }, t);
-const cfg = { diskLowSpace: 20 * GIB, diskCriticalSpace: 5 * GIB } as Settings;
+const cfg = { diskLowSpace: 20 * GB, diskCriticalSpace: 5 * GB } as Settings;
 
 /** The wide arrangement; the narrow one draws the same from the same flow. */
 const wide = () => host.querySelector('svg[role="img"]')!;
@@ -110,9 +110,9 @@ describe('the line from the hoster to the disk', () => {
   });
 
   it('puts more packets on a faster line', async () => {
-    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ speed: 200 * 1024 }))} />);
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ speed: 200 * 1000 }))} />);
     const slow = packets(lines('moving')[0]);
-    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ speed: 40 * MIB }))} />);
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ speed: 40 * MB }))} />);
     expect(packets(lines('moving')[0])).toBeGreaterThan(slow);
   });
 
@@ -151,12 +151,12 @@ describe('the line from the hoster to the disk', () => {
       <TransferFlow
         title="From hoster to disk"
         cfg={cfg}
-        flow={flow(task({ speed: 2 * MIB }), task({ id: 'b', url: 'magnet:?xt=urn:btih:abc', resolver: 'torrent', connection: undefined, speed: 0 }))}
+        flow={flow(task({ speed: 2 * MB }), task({ id: 'b', url: 'magnet:?xt=urn:btih:abc', resolver: 'torrent', connection: undefined, speed: 0 }))}
       />,
     );
     const words = wide().getAttribute('aria-label')!.replace(/[⁦-⁩]/g, '');
     expect(words).toBe(
-      'From hoster to disk: files.example over Direct into downloads: 2.0 MiB/s; Peers into downloads: Standing still',
+      'From hoster to disk: files.example over Direct into downloads: 2.0 MB/s; Peers into downloads: Standing still',
     );
   });
 
@@ -206,7 +206,7 @@ describe('a packet landing in a folder', () => {
 
   const two = () =>
     flow(
-      task({ dir: '/downloads', speed: 200 * 1024 }),
+      task({ dir: '/downloads', speed: 200 * 1000 }),
       task({ id: 'b', url: 'https://slow.example/b.zip', connection: 'p1', dir: '/media', speed: 0 }),
     );
 
@@ -230,7 +230,7 @@ describe('a packet landing in a folder', () => {
   });
 
   it('lets a splash settle before the next packet starts another', async () => {
-    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ dir: '/downloads', speed: 40 * MIB }))} />);
+    await draw(<TransferFlow title="From hoster to disk" cfg={cfg} flow={flow(task({ dir: '/downloads', speed: 40 * MB }))} />);
     const { first, every } = landings('/downloads');
     expect(every).toBeLessThan(0.5);
 

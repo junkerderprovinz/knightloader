@@ -5,10 +5,10 @@
 
 // The top of the plot never drops below this, so a blip near idle does not fill
 // the box and a small transfer looks small.
-const FLOOR = 64 * 1024;
+const FLOOR = 64_000;
 
 // The top of the plot sits this far above a speed limit it takes in, so the
-// line has room for its figure above it.
+// mark has room for its figure above it.
 const HEADROOM = 1.2;
 
 // A limit more than this many times the window's peak stays out of the scale,
@@ -34,12 +34,9 @@ export function ceilingOf(samples: readonly number[], ...limits: number[]): numb
 
 /** Where a limit's mark sits in a plot `height` tall with `pad` above and below. */
 export interface LimitMark {
-  /** The line's distance from the top edge. */
+  /** The limit's distance from the top edge. */
   y: number;
-  /**
-   * The limit is above the scale, so the mark sits on the top edge and no line
-   * is drawn: one there would read as a transfer running at the limit.
-   */
+  /** The limit is above the scale, so the mark sits on the top edge with a chevron. */
   over: boolean;
 }
 
@@ -50,12 +47,12 @@ export function limitMark(limit: number, ceiling: number, height: number, pad: n
   return { y: height - pad - Math.round((limit / ceiling) * (height - 2 * pad)), over: false };
 }
 
-// The gap between a limit's line and its figure.
+// The gap between a limit's height and its figure.
 const LABEL_GAP = 2;
 
 /**
  * labelTops places the marks' figures, each `size` tall, in a plot `height`
- * tall: above its line where there is room and under it otherwise, and one
+ * tall: above its mark where there is room and under it otherwise, and one
  * that would cover an earlier one moved below that, or above it where the
  * plot ends.
  */

@@ -520,7 +520,7 @@ export interface Settings {
 
   /**
    * Bytes kept free beyond what a download still has to fetch. Defaults to
-   * 0.5 GiB; 0 is off. The server clamps rather than refuses.
+   * 0.5 GB; 0 is off. The server clamps rather than refuses.
    */
   diskReserve: number;
   /** Free bytes under which no new download starts. 0 is off. Raised to
@@ -2286,7 +2286,7 @@ export interface YtdlpLive {
   fromStart: boolean;
   /** Minutes of recording, 0 for no limit. */
   maxMinutes: number;
-  /** MiB, 0 for no limit. */
+  /** MB, 0 for no limit. */
   maxMB: number;
 }
 

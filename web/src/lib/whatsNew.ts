@@ -80,7 +80,8 @@ export const RELEASES: Release[] = [
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       { id: 'seeding-line', to: ['/'], text: 'whatsnew.change.seedingLine' },
       { id: 'seeding-always', to: ['/', '/downloads'], text: 'whatsnew.change.seedingAlways' },
-      { id: 'limit-marks', to: ['/', '/downloads'], text: 'whatsnew.change.limitMarks' },
+      { id: 'limit-markers', to: ['/', '/downloads'], text: 'whatsnew.change.limitMarkers' },
+      { id: 'decimal-units', to: ['/settings/downloads'], text: 'whatsnew.change.decimalUnits' },
       {
         id: 'seed-rate',
         to: ['/downloads'],

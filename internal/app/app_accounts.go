@@ -953,7 +953,7 @@ func fmtTrafficLeft(t TrafficState) string {
 		if remaining < 0 {
 			remaining = 0
 		}
-		return fmtBinaryBytes(remaining)
+		return fmtBytes(remaining)
 	}
 	// Services that meter in percent show what is left, rounded down so 99.6%
 	// spent reads "0 %".
@@ -967,17 +967,17 @@ func fmtTrafficLeft(t TrafficState) string {
 	return ""
 }
 
-// fmtBinaryBytes matches web/src/lib/format.ts's fmtBytes (binary units, one
+// fmtBytes matches web/src/lib/format.ts's fmtBytes (decimal units, one
 // decimal below 10), so byte figures read the same wherever they are formatted.
-func fmtBinaryBytes(n int64) string {
+func fmtBytes(n int64) string {
 	if n <= 0 {
 		return "0 B"
 	}
-	units := [...]string{"B", "KiB", "MiB", "GiB", "TiB"}
+	units := [...]string{"B", "kB", "MB", "GB", "TB"}
 	v := float64(n)
 	i := 0
-	for v >= 1024 && i < len(units)-1 {
-		v /= 1024
+	for v >= 1000 && i < len(units)-1 {
+		v /= 1000
 		i++
 	}
 	if v < 10 && i > 0 {

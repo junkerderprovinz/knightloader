@@ -169,26 +169,28 @@ export const categoryLabel = (t: Translate, id: string) => named(t, 'settings.ru
 export const variableLabel = (t: Translate, id: string) => named(t, 'settings.rules.var.', id);
 
 // The engine takes plain bytes, so sizes like "700 MB" are parsed here.
+// Decimal like fmtBytes; a binary unit typed out, such as GiB, keeps its own
+// meaning.
 const SIZE_UNITS: Record<string, number> = {
   '': 1,
   b: 1,
-  k: 1024,
-  kb: 1024,
+  k: 1000,
+  kb: 1000,
   kib: 1024,
-  m: 1024 ** 2,
-  mb: 1024 ** 2,
+  m: 1000 ** 2,
+  mb: 1000 ** 2,
   mib: 1024 ** 2,
-  g: 1024 ** 3,
-  gb: 1024 ** 3,
+  g: 1000 ** 3,
+  gb: 1000 ** 3,
   gib: 1024 ** 3,
-  t: 1024 ** 4,
-  tb: 1024 ** 4,
+  t: 1000 ** 4,
+  tb: 1000 ** 4,
   tib: 1024 ** 4,
 };
 
 /**
- * parseSize reads "700 MB", "1.5GiB", "1,5 gb" or a bare byte count, all
- * 1024-based like fmtBytes. It returns null for anything else, since reading
+ * parseSize reads "700 MB", "1.5GB", "1,5 gb" or a bare byte count. It
+ * returns null for anything else, since reading
  * garbage as 0 would make "at least 700 MB" match every file.
  */
 export function parseSize(text: string): number | null {
@@ -205,9 +207,9 @@ export function parseSize(text: string): number | null {
 export function formatSize(n: number | undefined): string {
   if (!n) return '';
   const units: [string, number][] = [
-    ['GiB', 1024 ** 3],
-    ['MiB', 1024 ** 2],
-    ['KiB', 1024],
+    ['GB', 1000 ** 3],
+    ['MB', 1000 ** 2],
+    ['kB', 1000],
   ];
   for (const [label, factor] of units) {
     if (n >= factor && n % factor === 0) return `${n / factor} ${label}`;

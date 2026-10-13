@@ -90,9 +90,9 @@ const (
 	// a low speed limit can take minutes.
 	idleTimeout = 60 * time.Second
 	// MaxArticle bounds one article's body in memory. Posted articles run to a
-	// few MiB, and a server sending far more would otherwise fill the memory,
+	// few MB, and a server sending far more would otherwise fill the memory,
 	// once per connection.
-	MaxArticle = 16 << 20
+	MaxArticle = 16_000_000
 	// maxLine bounds a status line, which RFC 3977 keeps to 512 bytes.
 	maxLine = 4 << 10
 )
@@ -266,7 +266,7 @@ func (c *conn) body(ctx context.Context, id string, cp Copier) ([]byte, error) {
 	}
 	// The rest stays unread, so the connection is closed with this error.
 	if b.Len() > MaxArticle {
-		return nil, fmt.Errorf("%w: article %s is larger than %d MiB", yenc.ErrFormat, id, MaxArticle>>20)
+		return nil, fmt.Errorf("%w: article %s is larger than %d MB", yenc.ErrFormat, id, MaxArticle/1_000_000)
 	}
 	return b.Bytes(), nil
 }

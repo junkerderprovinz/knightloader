@@ -943,7 +943,7 @@ func (a *App) Queue() QueueState {
 		Running:     len(a.active),
 		Quiet:       a.quiet.inForce,
 		Limit:       a.limitInForceLocked(),
-		UploadLimit: int64(a.Settings.Get().Torrent.UploadLimitKiBs) * 1024,
+		UploadLimit: a.Settings.Get().Torrent.UploadLimit,
 	}
 }
 

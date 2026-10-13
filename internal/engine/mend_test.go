@@ -233,7 +233,7 @@ func TestMissingRangesTheServerKeepsRefusingFailTheTask(t *testing.T) {
 	if last.Status != core.StatusError {
 		t.Fatalf("the task ended %q, want a failure", last.Status)
 	}
-	if !strings.Contains(last.Err, "0.5 MiB never arrived") || !strings.Contains(last.Err, "HTTP 403") {
+	if !strings.Contains(last.Err, "0.5 MB never arrived") || !strings.Contains(last.Err, "HTTP 403") {
 		t.Errorf("the failure reads %q, want the missing size and the server's answer", last.Err)
 	}
 	if last.File != file {
@@ -259,7 +259,7 @@ func TestAFreshLinkToAnotherFileIsNotSplicedIn(t *testing.T) {
 	if last.Status != core.StatusError {
 		t.Fatalf("the task ended %q, want a failure", last.Status)
 	}
-	if !strings.Contains(last.Err, "not the 1.0 MiB this download began with") {
+	if !strings.Contains(last.Err, "not the 1.0 MB this download began with") {
 		t.Errorf("the failure reads %q, want the size that did not match", last.Err)
 	}
 	got, _ := os.ReadFile(file)

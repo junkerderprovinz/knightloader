@@ -135,7 +135,7 @@ describe('the band of a file', () => {
   it('carries its words as the name of the picture', async () => {
     await draw(<PieceBand map={bytes} label={words(bytes)} />);
     expect(host.querySelector('[role="img"]')!.getAttribute('aria-label')).toBe(
-      '400 B of 1000 B written. Connections writing: 2',
+      '400 B of 1.0 kB written. Connections writing: 2',
     );
   });
 });
