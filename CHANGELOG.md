@@ -78,9 +78,11 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   under Settings, Resolvers to keep video, audio and subtitles as separate
   files. Audio converted without a set bitrate gets the encoder's best
   quality, and the empty choice is called best.
-- **The Updates card lists every part KnightLoader brings** with its version
-  and where it comes from: KnightLoader and yt-dlp with their updates, ffmpeg,
-  ffprobe, the JDownloader backend and the built-in libraries.
+- **The Updates card lists every part KnightLoader brings** with its version.
+  KnightLoader, yt-dlp and the JDownloader backend each get a card with their
+  updates, so JDownloader, which still updates itself, can also be checked and
+  updated by hand. ffmpeg, ffprobe and the built-in libraries show where they
+  come from, and an info bubble beside each part says what it does.
 - **Health says why a part has a fault,** and where the part writes to the log
   a button opens its lines there. A stopped queue says whether it was stopped
   by hand or by a schedule.
@@ -193,6 +195,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **The browser extension clears its "waiting for approval" note once the
   browser is approved,** where Refresh kept it above an instance that was
   already connected.
+- **A JDownloader that restarted to install an update stops with
+  KnightLoader,** where the container killed it without letting it save and the
+  desktop app left it running after KnightLoader quit.
 
 ### Removed
 
