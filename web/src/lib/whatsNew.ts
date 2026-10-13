@@ -164,6 +164,7 @@ export const RELEASES: Release[] = [
         names: { name: 'accounts.newAccount' },
       },
       { id: 'account-picker', to: ACCOUNTS, text: 'whatsnew.change.accountPicker' },
+      { id: 'hoster-logos', to: ACCOUNTS, text: 'whatsnew.change.hosterLogos' },
       { id: 'account-rows', to: ACCOUNTS, text: 'whatsnew.change.accountRows' },
       { id: 'import-gone', to: ACCOUNTS, text: 'whatsnew.change.importGone', names: { name: 'accounts.debrid.title' } },
       {

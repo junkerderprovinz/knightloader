@@ -3604,6 +3604,7 @@ export const ms: Dict = {
   'whatsnew.change.listBar': 'Terdapat tiga butang di atas senarai: “{filter}”, “{sort}” dan “{search}”.',
   'whatsnew.change.listRows': 'Baris bermula sebaris dengan tajuk kad, dan butang sesuatu baris kelihatan selagi penuding berada di atasnya.',
   'whatsnew.change.accountPicker': 'Anda memilih akaun debrid, captcha atau hoster yang baharu daripada jubin, setiap satu dengan logonya. Logo bagi satu skrin penuh dimuatkan bersama, dan hoster tanpa logo menunjukkan huruf pertamanya pada jubin berwarna.',
+  'whatsnew.change.hosterLogos': 'Kebanyakan hoster dalam pemilih memaparkan logonya serta-merta, kerana logo itu disertakan bersama KnightLoader. Hanya hoster tanpa logo yang masih mengambil ikonnya dari lamannya sendiri.',
   'whatsnew.change.accountRows': 'Satu klik pada akaun membukanya, dan klik kanan membuka menunya.',
   'whatsnew.change.importGone': '“{name}” tidak lagi mempunyai lajur Import. KnightLoader tidak lagi mengambil muat turun yang anda tambah di laman web perkhidmatan debrid.',
   'whatsnew.change.settingsSearch': 'Carian merentas semua tetapan muncul apabila anda menggulung ke atas sekali lagi di bahagian atas halaman, atau menekan “/”. Semasa anda menaip di dalamnya, kotak bertukar warna dan kanta pembesar menyala.',

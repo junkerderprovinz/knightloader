@@ -3613,6 +3613,7 @@ export const ro: Dict = {
   'whatsnew.change.listBar': 'Deasupra listei stau trei butoane: „{filter}”, „{sort}” și „{search}”.',
   'whatsnew.change.listRows': 'Rândurile încep aliniate cu titlul cardului, iar butoanele unui rând apar cât timp cursorul este pe el.',
   'whatsnew.change.accountPicker': 'Alegi un cont nou de debrid, de captcha sau de hoster dintre dale, fiecare cu sigla ei. Siglele unui ecran întreg se încarcă împreună, iar un hoster fără siglă își arată prima literă pe o dală colorată.',
+  'whatsnew.change.hosterLogos': 'Majoritatea hosterelor din selector își arată sigla imediat, pentru că siglele vin odată cu KnightLoader. Doar un hoster fără siglă își ia în continuare pictograma de pe propriul site.',
   'whatsnew.change.accountRows': 'Un clic pe un cont îl deschide, iar un clic dreapta îi deschide meniul.',
   'whatsnew.change.importGone': '„{name}” nu mai are o coloană „Importare”. KnightLoader nu mai preia descărcările pe care le adaugi pe site-ul serviciului debrid.',
   'whatsnew.change.settingsSearch': 'O căutare în toate setările apare când derulezi încă o dată în sus la începutul unei pagini sau când apeși „/”. Cât timp scrii în ea, câmpul își schimbă nuanța, iar lupa se aprinde.',

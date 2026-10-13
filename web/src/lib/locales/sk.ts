@@ -3614,6 +3614,7 @@ export const sk: Dict = {
   'whatsnew.change.listBar': 'Nad zoznamom sú tri tlačidlá: „{filter}“, „{sort}“ a „{search}“.',
   'whatsnew.change.listRows': 'Riadky začínajú zarovnané s nadpisom karty a tlačidlá riadka je vidieť, kým je na ňom ukazovateľ.',
   'whatsnew.change.accountPicker': 'Nový debrid účet, účet captchy alebo účet hostera vyberieš z dlaždíc, každá má svoje logo. Logá celej obrazovky sa načítajú naraz a hoster bez loga ukáže svoje prvé písmeno na zafarbenej dlaždici.',
+  'whatsnew.change.hosterLogos': 'Väčšina hosterov vo výbere ukáže svoje logo hneď, lebo logá sú súčasťou KnightLoadera. Len hoster bez loga si stále berie ikonu zo svojej vlastnej stránky.',
   'whatsnew.change.accountRows': 'Kliknutie na účet ho otvorí a kliknutie pravým tlačidlom otvorí jeho ponuku.',
   'whatsnew.change.importGone': '„{name}“ už nemá stĺpec „Import“. KnightLoader už neprevezme sťahovania, ktoré pridáš na webe debrid služby.',
   'whatsnew.change.settingsSearch': 'Vyhľadávanie vo všetkých nastaveniach sa objaví, keď hore na stránke ešte raz posunieš nahor alebo stlačíš „/“. Kým doň píšeš, pole zmení odtieň a lupa sa rozsvieti.',

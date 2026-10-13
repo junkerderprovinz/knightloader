@@ -3601,6 +3601,7 @@ export const eu: Dict = {
   'whatsnew.change.listBar': 'Zerrendaren gainean hiru botoi daude: «{filter}», «{sort}» eta «{search}».',
   'whatsnew.change.listRows': 'Errenkadak txartelaren izenburuarekin lerrokatuta hasten dira, eta errenkadaren botoiak erakuslea gainean dagoen bitartean agertzen dira.',
   'whatsnew.change.accountPicker': 'Debrid, captcha edo ostalari-kontu berri bat lauzetatik aukeratzen duzu, bakoitza bere logoarekin. Pantaila oso bateko logoak batera kargatzen dira, eta logorik gabeko ostalari batek bere lehen letra erakusten du lauza tindatu batean.',
+  'whatsnew.change.hosterLogos': 'Hautatzaileko ostalari gehienek beren logoa berehala erakusten dute, logoak KnightLoaderrekin datozelako. Logorik gabeko ostalariak bakarrik hartzen du oraindik ikonoa bere webgunetik.',
   'whatsnew.change.accountRows': 'Kontu batean klik eginez gero ireki egiten da, eta eskuineko klikak haren menua irekitzen du.',
   'whatsnew.change.importGone': '«{name}» orrian ez dago jada «Inportazioa» zutaberik. KnightLoaderrek ez ditu jada debrid zerbitzuaren webgunean gehitzen dituzun deskargak hartzen.',
   'whatsnew.change.settingsSearch': 'Ezarpen guztien bilaketa bat agertzen da orriaren goialdean beste behin gorantz egiten duzunean edo «/» sakatzen duzunean. Bertan idazten duzun bitartean, eremuak kolorea aldatzen du eta lupa argitzen da.',

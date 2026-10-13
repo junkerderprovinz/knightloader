@@ -3591,6 +3591,7 @@ export const ko: Dict = {
   'whatsnew.change.listBar': '목록 위에 버튼 세 개가 있습니다: “{filter}”, “{sort}”, “{search}”.',
   'whatsnew.change.listRows': '행은 카드 제목과 같은 선에서 시작하고, 행의 버튼은 포인터가 행 위에 있는 동안 표시됩니다.',
   'whatsnew.change.accountPicker': '새 Debrid 계정, 캡차 계정 또는 호스터 계정은 각자의 로고가 있는 타일에서 고릅니다. 한 화면의 로고가 한꺼번에 불러와지고, 로고가 없는 호스터는 색을 입힌 타일에 첫 글자를 보여 줍니다.',
+  'whatsnew.change.hosterLogos': '선택 화면의 대부분의 호스터는 로고가 바로 보입니다. 로고가 KnightLoader에 함께 들어 있기 때문입니다. 로고가 없는 호스터만 여전히 자기 사이트에서 아이콘을 가져옵니다.',
   'whatsnew.change.accountRows': '계정을 클릭하면 열리고, 우클릭하면 메뉴가 열립니다.',
   'whatsnew.change.importGone': '“{name}”에는 더 이상 “가져오기” 열이 없습니다. KnightLoader는 Debrid 서비스 웹사이트에서 추가한 다운로드를 더 이상 가져오지 않습니다.',
   'whatsnew.change.settingsSearch': '페이지 맨 위에서 한 번 더 위로 스크롤하거나 “/”를 누르면 모든 설정을 대상으로 한 검색이 나타납니다. 입력하는 동안 입력란의 색조가 바뀌고 돋보기가 켜집니다.',
