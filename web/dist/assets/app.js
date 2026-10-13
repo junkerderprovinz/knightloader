@@ -172,7 +172,7 @@ The order only decides between backends that can take the link at all. A filehos
 - **Seeding in the speed graphs.** The graphs in the web interface and in the Android app draw what your torrents upload as a second graph, and a seeding torrent shows its upload rate in the Speed column. Settings, Appearance, Colours sets the colour of both graphs.
 - **Pictures on the settings pages.** Rules show which rule catches a sample link, Network draws the routes out of the instance with a test that turns each line green or red, and the link collector shows every way a link comes in. The week's schedule and today's speed against it, a reconnect, a torrent's seeding goal, what goes into a video file, the steps after a download and the self-test are drawn too, and every picture holds still when animation is off.
 - **The pieces of a file.** The detail panel shows a download as a band of pieces: the written ranges of an HTTP download with a marker for each connection, the articles of a Usenet file and the blocks a par2 check found damaged.
-- **After an update, dots mark what changed.** A dot stands at each change and on every link that leads there, a click hides it, and what you have seen follows you between browsers. The release notes open once after an update and stay on the Version card.
+- **After an update, dots mark what changed.** A dot stands at each change and on every link that leads there, a click hides it, one button marks everything as seen or shows it all again, and what you have seen follows you between browsers. The release notes open once after an update and stay on the Version card.
 - **The theme has a third choice, System,** which follows the device, in the web interface and in the Android app.
 - **yt-dlp can keep a video's streams apart.** Switch off "Merge into one file" under Settings, Resolvers to keep video, audio and subtitles as separate files. Audio converted without a set bitrate gets the encoder's best quality.
 - **The Updates card lists every part KnightLoader brings** with its version and where it comes from: KnightLoader and yt-dlp with their updates, ffmpeg, ffprobe, the JDownloader backend and the built-in libraries.
@@ -180,7 +180,7 @@ The order only decides between backends that can take the link at all. A filehos
 
 ## 🎨 Design
 
-- **A new look built on GlimStone 3.4.0.** Glyphs, type, cards and colours follow the shared GlimStone design, and only the main action of a view carries the accent colour.
+- **A new look built on GlimStone 3.5.1.** Glyphs, type, cards and colours follow the shared GlimStone design, and only the main action of a view carries the accent colour. Pages, settings included, use the full width of the window.
 - **The main action of a page floats at its lower right:** Customize on the Overview, Start all in the link collector, Add an account on Accounts and Pairing on Instances. Add links sits in the link collector beside the box you paste into.
 - **Lists have Filter, Sort and Search above them.** A click or tap picks a row, Ctrl adds more and Shift picks a range, and a row shows its buttons while you point at it. The link collector's filters by host, file type and package are in the Filter window.
 - **Play and Pause in the head bar show the queue's state.** The filled one is what the queue is doing.
