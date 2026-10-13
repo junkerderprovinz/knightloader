@@ -3,7 +3,7 @@ import { useT } from '../lib/i18n';
 import type { GlyphProps } from '../lib/glyphs';
 import { IconWarning } from '../lib/icons';
 import { LIFT, SETTLE, useReorder } from './dragLift';
-import { PriorityFlow, nameBand } from './pictures/PriorityFlow';
+import { PriorityFlow, entryBand, nameBand } from './pictures/PriorityFlow';
 import { RowGrip, moveTo } from './RowGrip';
 import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 
@@ -18,6 +18,7 @@ import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 export function PriorityLadder({
   ids,
   title,
+  entry,
   labelFor,
   tipFor,
   troubleFor,
@@ -28,6 +29,8 @@ export function PriorityLadder({
   ids: string[];
   /** The card's title, which names the picture and the list. */
   title: string;
+  /** The name of what comes in at the top, beside its glyph. */
+  entry: string;
   labelFor: (id: string) => string;
   /** What a row takes, for a row whose name does not say it. */
   tipFor?: (id: string) => string | undefined;
@@ -67,6 +70,11 @@ export function PriorityLadder({
     // The stations follow the resting order, so a drag in flight moves the
     // names past them without starting the picture over at every step.
     <PriorityFlow backends={resting.map((id) => ({ id, name: labelFor(id) }))} label={title} glyph={glyph}>
+      <p data-new="priority-start-names" dir="ltr" style={entryBand(resting.length)} className="flex items-center ps-1.5">
+        <span dir="auto" className="line-clamp-2 break-words text-[13px] leading-[15px] text-carbon-text">
+          {entry}
+        </span>
+      </p>
       {/* The list is the rows' offsetParent, the layout a drag measures in.
           While a row is held the others wiggle (glim-drag-armed). It does not
           mirror, as the picture does not, so a name stays beside its station. */}

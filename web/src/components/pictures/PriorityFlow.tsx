@@ -28,6 +28,18 @@ export function nameBand(count: number): CSSProperties {
   };
 }
 
+/** entryBand places a name beside the glyph at the top, as nameBand places one beside a station. */
+export function entryBand(count: number): CSSProperties {
+  const height = heightFor(count);
+  return {
+    position: 'absolute',
+    top: share(ENTRY - PITCH / 2, height),
+    height: share(PITCH, height),
+    left: share(LANE + RADIUS + 4, WIDTH),
+    right: 0,
+  };
+}
+
 /**
  * PriorityFlow shows the order backends are asked in: a link comes in at the
  * top and is offered to each backend in turn, first to the one that stands

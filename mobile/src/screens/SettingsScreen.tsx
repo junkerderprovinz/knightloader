@@ -34,16 +34,27 @@ import IconBadge, {
   BraveMark,
   ChromeMark,
   CoffeeArt,
+  CornerLeaf,
+  CornerRound,
+  CornerSoft,
+  CornerSquare,
   DockerMark,
   EdgeMark,
   FirefoxMark,
   Github,
   LinuxMark,
   MailMark,
+  Moon,
+  MotionOff,
+  MotionStorm,
+  MotionSubtle,
+  MotionWild,
   OperaMark,
   ParleyPortMark,
   Paste,
   PayPal,
+  Sun,
+  ThemeSystem,
   Trash,
   UnraidMark,
   VivaldiMark,
@@ -112,6 +123,20 @@ const SHAPE_LABELS: Record<Shape, TranslationKey> = {
   soft: 'settings.corners.slightlyRounded',
   square: 'settings.corners.square',
   leaf: 'settings.corners.leaf',
+};
+
+const SHAPE_GLYPHS: Record<Shape, typeof CornerRound> = {
+  round: CornerRound,
+  soft: CornerSoft,
+  square: CornerSquare,
+  leaf: CornerLeaf,
+};
+
+const MOTION_GLYPHS: Record<Motion, typeof MotionOff> = {
+  off: MotionOff,
+  subtle: MotionSubtle,
+  wild: MotionWild,
+  storm: MotionStorm,
 };
 
 /**
@@ -233,7 +258,7 @@ export default function SettingsScreen({
    * the interface.
    */
   const motionOptions = (stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map(
-    (m) => ({ value: m, label: t(`settings.motion.${m}`) }),
+    (m) => ({ value: m, label: t(`settings.motion.${m}`), glyph: MOTION_GLYPHS[m] }),
   );
   /** Which colour the picker is open on, or null. One piece of state for both
    *  rows: only one picker can be open, so only one of them can be the subject
@@ -424,9 +449,9 @@ export default function SettingsScreen({
               device, and changes with it while the app is open. */}
           <WellSelector
             options={[
-              { value: 'light', label: t('settings.theme.light') },
-              { value: 'dark', label: t('settings.theme.dark') },
-              { value: 'system', label: t('settings.theme.system') },
+              { value: 'light', label: t('settings.theme.light'), glyph: Sun },
+              { value: 'dark', label: t('settings.theme.dark'), glyph: Moon },
+              { value: 'system', label: t('settings.theme.system'), glyph: ThemeSystem },
             ]}
             value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
             onPick={(v) => setTheme(v === 'system' ? undefined : v)}
@@ -437,6 +462,7 @@ export default function SettingsScreen({
             options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
               value: s,
               label: t(SHAPE_LABELS[s]),
+              glyph: SHAPE_GLYPHS[s],
             }))}
             value={shape}
             onPick={(v) => {

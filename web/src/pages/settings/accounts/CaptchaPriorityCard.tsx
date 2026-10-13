@@ -102,6 +102,7 @@ export function CaptchaPriorityCard({
           <PriorityLadder
             ids={solvers.map((s) => s.id)}
             title={title}
+            entry={t('settings.captcha.orderEntry')}
             labelFor={(id) => labelOf.get(id) ?? id}
             troubleFor={troubleFor}
             glyph={IconCaptcha}

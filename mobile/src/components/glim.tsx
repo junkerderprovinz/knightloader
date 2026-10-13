@@ -5,6 +5,7 @@ import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip, Tip } from './InfoTip';
+import { boxForInk } from './IconBadge';
 import { Arrive } from './Moving';
 import { Text } from './Text';
 
@@ -84,19 +85,24 @@ export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
   );
 }
 
+const SEGMENT_GLYPH = boxForInk(TYPE.dense);
+
 /** The one horizontal selector: a groove one surface deeper, equal segments,
  *  and only the chosen segment is a badge. No per-segment borders.
  *
  *  The groove spans the card it sits in and the segments share its width. A
  *  groove sized to its words stops short of the card's edge and reads as a
  *  control that ran out of options, and down a card of stacked selectors the
- *  ragged edge is the first thing the eye finds. */
+ *  ragged edge is the first thing the eye finds.
+ *
+ *  An option's `glyph` stands before its label with its ink as tall as the
+ *  label's letters, so the two read as one name. */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
 }) {
@@ -111,6 +117,8 @@ export function WellSelector<T extends string>({
         // The positions are this control's own 0-based sequence, not the
         // page's.
         const fill = (hueAt(i) ?? accent) as string;
+        const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
+        const Glyph = o.glyph;
         return (
           <TouchableOpacity
             key={o.value}
@@ -125,14 +133,17 @@ export function WellSelector<T extends string>({
                 darker than the accent, and reusing accentContrast puts white
                 text on a pale mint segment. A label longer than its share
                 shrinks rather than being cut off. */}
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}
-              style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}
-            >
-              {o.label}
-            </Text>
+            <View style={styles.segmentName}>
+              {Glyph && <Glyph color={ink} size={SEGMENT_GLYPH} />}
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                style={[styles.segmentText, { color: ink }]}
+              >
+                {o.label}
+              </Text>
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -391,7 +402,8 @@ const styles = StyleSheet.create({
   notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
   well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'stretch' },
   segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: 6, alignItems: 'center' },
-  segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
+  segmentName: { flexDirection: 'row', alignItems: 'center', gap: 5, maxWidth: '100%' },
+  segmentText: { flexShrink: 1, fontSize: TYPE.dense, fontWeight: '500' },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
   track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },

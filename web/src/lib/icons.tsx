@@ -34,17 +34,6 @@ export const IconGlobe = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
-/** Follow the device: a disc that is half dark and half light. */
-export const IconThemeSystem = (p: GlyphProps) => (
-  <svg {...glyph([2.75, 2.75, 14.5, 14.5], p)}>
-    <path
-      fillRule="evenodd"
-      clipRule="evenodd"
-      d="M10 2.75a7.25 7.25 0 1 1 0 14.5 7.25 7.25 0 0 1 0-14.5Zm0 1.5a5.75 5.75 0 0 0 0 11.5Z"
-    />
-  </svg>
-);
-
 /** The stop mark: a flag where the queue stops. A pennant, so it is not
  *  mistaken for IconStop's square. */
 export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (

@@ -1080,6 +1080,7 @@ ${t('accounts.routing.orderHintTorrents')}`}
                   <PriorityLadder
                     ids={ids}
                     title={title}
+                    entry={t('accounts.routing.priorityEntry')}
                     labelFor={labelFor}
                     tipFor={tipFor}
                     troubleFor={troubleFor}

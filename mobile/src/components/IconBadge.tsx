@@ -474,16 +474,73 @@ export function Trash({ color, size = GLYPH_BOX }: { color: string; size?: numbe
  * real one rather than a disc painted in whatever colour is behind it.
  */
 export function Gear({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
-  // A bitmap is sized by shrinking its frame, like the viewfinder's corner
-  // marks, because there are no units inside it to scale. With the ink reaching
-  // the canvas edge, `contain` would draw it to the full box while every
-  // hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
+  return <Drawn source={require('../../assets/cog.png')} color={color} size={size} />;
+}
+
+/**
+ * A glyph kept as a white bitmap trimmed to its ink, tinted with `color`.
+ *
+ * A bitmap is sized by shrinking its frame, like the viewfinder's corner
+ * marks, because there are no units inside it to scale. With the ink reaching
+ * the canvas edge, `contain` would draw it to the full box while every
+ * hand-drawn glyph beside it draws to GLYPH_EXTENT of one.
+ */
+function Drawn({ source, color, size }: { source: number; color: string; size: number }) {
   const frame = (size * GLYPH_EXTENT) / GLYPH_BOX;
   return (
     <View style={{ width: size, height: size, alignItems: 'center', justifyContent: 'center' }}>
-      <Tinted source={require('../../assets/cog.png')} color={color} style={{ width: frame, height: frame }} />
+      <Tinted source={source} color={color} style={{ width: frame, height: frame }} />
     </View>
   );
+}
+
+/* The Look settings' glyphs: GlimStone's IconMoon, IconSun, IconThemeSystem
+ * and its corner and motion sets, rendered from the web interface's copy of
+ * its glyph list (web/scripts/glyphs.json). Curves and carved gaps are more
+ * than Views can draw, hence bitmaps. */
+
+export function Moon({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/moon.png')} color={color} size={size} />;
+}
+
+export function Sun({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/sun.png')} color={color} size={size} />;
+}
+
+export function ThemeSystem({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/theme-system.png')} color={color} size={size} />;
+}
+
+export function CornerRound({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/corner-round.png')} color={color} size={size} />;
+}
+
+export function CornerSoft({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/corner-soft.png')} color={color} size={size} />;
+}
+
+export function CornerSquare({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/corner-square.png')} color={color} size={size} />;
+}
+
+export function CornerLeaf({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/corner-leaf.png')} color={color} size={size} />;
+}
+
+export function MotionOff({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/motion-off.png')} color={color} size={size} />;
+}
+
+export function MotionSubtle({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/motion-subtle.png')} color={color} size={size} />;
+}
+
+export function MotionWild({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/motion-wild.png')} color={color} size={size} />;
+}
+
+export function MotionStorm({ color, size = GLYPH_BOX }: { color: string; size?: number }) {
+  return <Drawn source={require('../../assets/motion-storm.png')} color={color} size={size} />;
 }
 
 /**
