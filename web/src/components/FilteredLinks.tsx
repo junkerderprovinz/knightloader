@@ -7,7 +7,7 @@ import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
 import { Button, InfoBubble } from './ui';
 import { Tip } from './columns';
-import { IconRetry, IconTrash } from '../lib/icons';
+import { IconRefresh, IconTrash } from '../lib/icons';
 
 /**
  * FilteredLinks is the holding area for links a filter rule refused, torrents
@@ -62,7 +62,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         <Button
           kind="ghost"
           className="px-2.5 text-xs"
-          icon={<IconRetry width={14} height={14} />}
+          icon={<IconRefresh width={14} height={14} />}
           disabled={busy}
           onClick={() => restore(held.map((h) => h.id))}
         >
@@ -83,7 +83,7 @@ export function FilteredLinks({ held }: { held: Task[] }) {
         {shown.map((h) => {
           const reason = rejectionReason(t, h.skipCode, h.skipParams, h.skipReason);
           return (
-            <div key={h.id} className="flex items-baseline gap-3 px-4 py-1 text-xs">
+            <div key={h.id} className="glim-row flex items-baseline gap-3 px-4 py-1 text-xs">
               {/* The rule first, since it is what gets edited. */}
               <Tip tip={heldBy(t, h)} className="max-w-[22%] shrink-0 truncate text-carbon-text">
                 {heldBy(t, h)}
@@ -99,14 +99,11 @@ export function FilteredLinks({ held }: { held: Task[] }) {
                 <InfoBubble tip={t('collector.filtered.originTitle')} />
               </span>
               <span className="glim-num shrink-0 text-carbon-textMuted">{fmtDate(h.createdAt)}</span>
-              <Button
-                kind="ghost"
-                className="shrink-0 px-2 text-xs"
-                disabled={busy}
-                onClick={() => restore([h.id])}
-              >
-                {t('collector.filtered.restore')}
-              </Button>
+              <span className="glim-row-actions shrink-0">
+                <Button kind="ghost" className="px-2 text-xs" disabled={busy} onClick={() => restore([h.id])}>
+                  {t('collector.filtered.restore')}
+                </Button>
+              </span>
             </div>
           );
         })}

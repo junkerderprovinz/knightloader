@@ -10,7 +10,7 @@
 // renderers into the list component would leave the registry describing columns
 // it cannot draw, which is the drift the registry exists to prevent.
 
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useState, type ReactNode } from 'react';
 import {
   fetchOptions,
   priorityChoices,
@@ -22,7 +22,7 @@ import {
   type Task,
 } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
-import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -30,7 +30,7 @@ import {
   IconBolt,
   IconCheck,
   IconPower,
-  IconRetry,
+  IconRefresh,
   IconStopMark,
   IconWarning,
   PriorityGlyph,
@@ -105,6 +105,13 @@ export type Translate = (key: TranslationKey, vars?: Record<string, string | num
 // for them, because the indent and the column's own minimum width are one
 // decision: a floor that does not include the indent is a floor for a name that
 // is no longer there.
+
+/**
+ * A row's padding at its two ends, the header's included, since every row
+ * lays its cells on the same tracks. With the cell's own 8px it puts the first
+ * cell's text on the card's inner padding, in line with the title above it.
+ */
+export const ROW_EDGES = 'px-2';
 
 /** The name cell's own leading padding. */
 const CELL_PAD = 8;
@@ -267,48 +274,8 @@ export function Tip({
   );
 }
 
-/** The selection mark: a filled square, as everywhere else in GlimStone. */
-export function Checkbox({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: () => void;
-  label?: string;
-}) {
-  // The house bubble, never the OS balloon; see Tip above. A glyph-only control
-  // needs a tooltip unconditionally, since there is no other way to know what
-  // it does.
-  const tip = useTooltip<HTMLButtonElement>(label);
-  const { role: _role, tabIndex: _tabIndex, ...hover } = tip.triggerProps;
-  return (
-    <>
-      <button
-        type="button"
-        role="checkbox"
-        aria-checked={checked}
-        aria-label={label}
-        {...(label ? hover : undefined)}
-        onClick={onChange}
-        className={`grid h-4.5 w-4.5 shrink-0 place-items-center rounded-[var(--radius-control)] transition-colors ${
-          checked ? 'bg-accent text-accentContrast' : 'bg-carbon-surface3/60 text-transparent hover:bg-carbon-surface3'
-        }`}
-        style={{ height: '1.125rem', width: '1.125rem' }}
-      >
-        <IconCheck width={12} height={12} />
-      </button>
-      {label && tip.node}
-    </>
-  );
-}
-
 /**
- * The per-link on/off switch, a switch and not a checkbox because the checkbox
- * one cell to its left means "selected" and the two would otherwise be the same
- * mark twice in the same row.
- *
- * It shows what the server last said, never what was just clicked: the value
+ * The per-link on/off switch. It shows what the server last said, never what was just clicked: the value
  * comes back over the websocket a moment later, and a control that reports
  * success locally while the request failed is how a link somebody switched off
  * downloads anyway.
@@ -717,14 +684,14 @@ export function PriorityTag({ value, names, t }: { value: number; names: Map<num
     // is the accent and down is muted: a raised link is the one somebody wants
     // to spot in a long list.
     //
-    // --accent-ink, not --accent: a colour on a `background` is --accent, a
-    // colour on `color`, `fill` or `stroke` against the page is --accent-ink.
-    // This glyph is drawn in the text colour on the card's own ground, where
-    // the flat accent is Sunflower on white in the light theme.
+    // --accent-glyph, not --accent: a colour on a `background` is --accent,
+    // while a glyph drawn against the page takes the ink, which a rainbow row
+    // turns to its own hue. On the card's own ground the flat accent is
+    // Sunflower on white in the light theme.
     <Tip
       tip={label}
       label={label}
-      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accentInk' : 'text-carbon-textMuted'}`}
+      className={`inline-flex shrink-0 leading-none ${value > 0 ? 'text-accentGlyph' : 'text-carbon-textMuted'}`}
     >
       <PriorityGlyph steps={value} />
     </Tip>
@@ -754,15 +721,15 @@ export const PARKED = 'kl-parked';
  */
 export function RowMarks({ items, ctx }: { items: Task[]; ctx: CellContext }) {
   const { t, stopMark, switchShown } = ctx;
-  // The two that change what the queue does next take --accent-ink, as a
+  // The two that change what the queue does next take --accent-glyph, as a
   // raised priority does; a disabled row stays in the quiet ink.
   const marks: { id: string; label: string; icon: ReactNode; ink: string }[] = [];
   // The server clears the mark as its download finishes, which on a peer's
   // list only the row itself reports.
   if (stopMark && items.some((x) => x.id === stopMark && x.status !== 'done'))
-    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentInk' });
+    marks.push({ id: 'stop', label: t('queue.stopMarkOn'), icon: <IconStopMark />, ink: 'text-accentGlyph' });
   if (items.every((x) => !!x.forced))
-    marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentInk' });
+    marks.push({ id: 'forced', label: t('task.forced'), icon: <IconBolt />, ink: 'text-accentGlyph' });
   if (!switchShown && items.every((x) => !x.enabled))
     marks.push({ id: 'off', label: t('task.waiting.disabled'), icon: <IconPower />, ink: 'text-carbon-textSub' });
   return marks.map((m) => (
@@ -829,7 +796,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
         <FailureAdvice task={task} base={base} reasonLabel={reason} onClose={() => setWhyOpen(false)} />
       )}
       {failure && (
-        <div className={`mt-0.5 flex items-center gap-1.5 text-[11px] ${parked}`}>
+        <div className={`mt-0.5 flex items-center gap-1.5 text-meta ${parked}`}>
           {/* The typed cause leads the line as a tag rather than a second
               sentence: a column reading "disk full" four times is one fact
               about this box, where four hoster sentences that each mean it are
@@ -881,7 +848,7 @@ function NameCell({ task, ctx }: { task: Task; ctx: CellContext }) {
               waiting rather than activity. */}
           {retrying && (
             <Tip tip={t('task.retryPending')} label={t('task.retryPending')} className="shrink-0 text-carbon-textMuted">
-              <IconRetry width={11} height={11} />
+              <IconRefresh width={11} height={11} />
             </Tip>
           )}
         </div>
@@ -930,7 +897,7 @@ export function ProgressCell({
           striped={unpack !== undefined}
         />
       </div>
-      <span className="glim-num w-9 shrink-0 text-end text-[11px] text-carbon-textMuted">{fmtPct(p)}</span>
+      <span className="glim-num w-9 shrink-0 text-end text-meta text-carbon-textMuted">{fmtPct(p)}</span>
     </div>
   );
 }
@@ -991,7 +958,7 @@ function AvailCell({ task, t }: { task: Task; t: Translate }) {
   return (
     <span className={STATUS_LINE}>
       {dot}
-      <Tip tip={t('task.waiting.premium')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+      <Tip tip={t('task.waiting.premium')} className="min-w-0 truncate text-meta text-carbon-textMuted">
         {t('task.waiting.premium')}
       </Tip>
     </span>
@@ -1058,7 +1025,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
           status. Muted and truncating, since it is a sentence from somebody
           else's program and may be long. */}
       {task.note && (
-        <Tip tip={task.note} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+        <Tip tip={task.note} className="min-w-0 truncate text-meta text-carbon-textMuted">
           {task.note}
         </Tip>
       )}
@@ -1080,7 +1047,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         // space they get, so the ellipsis needs somewhere to lead.
         <Tip
           tip={t(task.waiting === 'spare' ? 'task.waiting.spareHint' : (waitingKey[task.waiting] ?? 'task.waiting.slot'))}
-          className="min-w-0 truncate text-[11px] text-carbon-textMuted"
+          className="min-w-0 truncate text-meta text-carbon-textMuted"
         >
           {t(waitingKey[task.waiting] ?? 'task.waiting.slot')}
         </Tip>
@@ -1103,7 +1070,7 @@ function StatusCell({ task, t, unpack }: { task: Task; t: Translate; unpack: Unp
         <Tip
           tip={t('task.checksumFail')}
           label={t('task.checksumFail')}
-          className="shrink-0 text-[11px] font-semibold text-statusFail"
+          className="shrink-0 text-meta font-semibold text-statusFail"
         >
           !
         </Tip>
@@ -1121,7 +1088,7 @@ function RemoteNote({ task, remote, t }: { task: Task; remote: RemoteFetch; t: T
   const hint = [t('task.remoteHint', { service, percent })];
   if (remote.seeds) hint.push(t('task.remoteSeeds', { n: remote.seeds }));
   return (
-    <Tip tip={hint.join(' ')} className="min-w-0 truncate text-[11px] text-carbon-textMuted">
+    <Tip tip={hint.join(' ')} className="min-w-0 truncate text-meta text-carbon-textMuted">
       {line}
     </Tip>
   );
@@ -1213,11 +1180,11 @@ function UnpackStatus({
     <Tip tip={detail} className={STATUS_LINE}>
       <UnpackPill state={state} percent={percent} />
       {tally && (
-        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{`${tally.done}/${tally.total}`}</span>
+        <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{`${tally.done}/${tally.total}`}</span>
       )}
       {/* flex-1 from a zero basis: the cause takes what the word leaves and
           never squeezes the word itself. */}
-      {failure && <span className="min-w-0 flex-1 truncate text-[11px] text-carbon-textMuted">{failure.line}</span>}
+      {failure && <span className="min-w-0 flex-1 truncate text-meta text-carbon-textMuted">{failure.line}</span>}
     </Tip>
   );
 }
@@ -1240,7 +1207,7 @@ function ConnectionCell({ task, t, base }: { task: Task; t: Translate; base: str
   const label = useConnectionLabel(task, t, base);
   if (!label) return null;
   return (
-    <Tip dir="ltr" tip={label.hint} className="block truncate text-[11px] text-carbon-textMuted">
+    <Tip dir="ltr" tip={label.hint} className="block truncate text-meta text-carbon-textMuted">
       {label.text}
     </Tip>
   );
@@ -1407,7 +1374,7 @@ function PackageStatusCell({ items, ctx }: { items: Task[]; ctx: CellContext }) 
       <Tip
         tip={label}
         label={label}
-        className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-statusFail"
+        className="inline-flex shrink-0 items-center gap-0.5 text-meta font-medium text-statusFail"
       >
         <IconWarning width={13} height={13} className="shrink-0" />
         <span className="glim-num">{failed}</span>
@@ -1428,6 +1395,27 @@ function etaSeconds(t: Task): number {
 const cmpText = (a: string, b: string): number => a.localeCompare(b);
 
 const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((s, x) => s + pick(x), 0);
+
+const seeding = (t: Task): boolean => rowState(t) === 'seeding';
+
+/** The rate the speed column shows: what a seeding torrent sends, what anything else receives. */
+const shownRate = (t: Task): number => (seeding(t) ? (t.uploadSpeed ?? 0) : t.speed);
+
+/**
+ * UploadRate is the speed cell of a seeding torrent. The status pill beside it
+ * already says the row seeds, and the bubble names the figure an upload. A
+ * seed nobody takes from shows 0 B/s, which says it is still offered.
+ */
+function UploadRate({ rate, t }: { rate: number; t: Translate }) {
+  const text = fmtRate(rate);
+  return (
+    <span data-new="seed-rate" className="inline-flex max-w-full align-middle">
+      <Tip tip={`${t('overview.torrents.up')} ${text}`} className="truncate">
+        {text}
+      </Tip>
+    </span>
+  );
+}
 
 /** Same signal as RowTooltipContent's isTorrent: internal/resolver/torrent's Info().ID. */
 const isTorrentTask = (t: Task): boolean => t.resolver === 'torrent';
@@ -1571,7 +1559,7 @@ function VarianteCell({ task, ctx }: { task: Task; ctx: CellContext }) {
     // Wrapping rather than shrinking: somebody who narrows this column past
     // what two pickers need gets them on two lines, which is readable, instead
     // of two boxes with one letter in each, which is not.
-    <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-[11px] text-carbon-textMuted">
+    <span className="flex min-w-0 flex-wrap items-center gap-1.5 text-meta text-carbon-textMuted">
       <span className="shrink-0">{label}</span>
       {pair && <VariantDropdown picker={pair[0]} busy={busy} shake={shakeFirst} />}
       {pair?.[1] && <VariantDropdown picker={pair[1]} busy={busy} shake={shakeSecond} />}
@@ -1591,7 +1579,7 @@ function VariantSummary({ task, kind, sub, label }: { task: Task; kind: string; 
   if (kind === 'video') picked = videoSummary(sub, t);
   if (kind === 'audio') picked = audioSummary(sub, task.audioBitrate ?? '', t);
   return (
-    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-[11px] text-carbon-textMuted">
+    <Tip tip={picked ? `${label} ${picked}` : label} className="block min-w-0 truncate text-meta text-carbon-textMuted">
       {label}
       {picked && <span className="text-carbon-textSub"> {picked}</span>}
     </Tip>
@@ -1648,7 +1636,8 @@ export const COLUMNS: ColumnDef[] = [
   {
     id: 'progress',
     labelKey: 'columns.progress',
-    width: 128,
+    // The percentage and the padding take 60px, and the bar gets the rest.
+    width: 160,
     minWidth: 110,
     align: 'start',
     hideable: true,
@@ -1691,9 +1680,18 @@ export const COLUMNS: ColumnDef[] = [
     align: 'end',
     numeric: true,
     hideable: true,
-    compare: (a, b) => a.speed - b.speed,
-    render: (task) => fmtSpeed(task.speed),
-    aggregate: (items) => fmtSpeed(sum(items, (x) => (x.status === 'running' ? x.speed : 0))),
+    compare: (a, b) => shownRate(a) - shownRate(b),
+    render: (task, ctx) => (seeding(task) ? <UploadRate rate={task.uploadSpeed ?? 0} t={ctx.t} /> : fmtSpeed(task.speed)),
+    // A package that only seeds shows what it sends, like its rows.
+    aggregate: (items, ctx) => {
+      const down = sum(items, (x) => (x.status === 'running' ? x.speed : 0));
+      const seeds = items.filter(seeding);
+      return down > 0 || seeds.length === 0 ? (
+        fmtSpeed(down)
+      ) : (
+        <UploadRate rate={sum(seeds, (x) => x.uploadSpeed ?? 0)} t={ctx.t} />
+      );
+    },
   },
   {
     id: 'eta',
@@ -1718,7 +1716,7 @@ export const COLUMNS: ColumnDef[] = [
     // Two lists, two honest meanings for one stored column; see CellContext's
     // own `profile`.
     labelByProfile: { collector: 'columns.availability' },
-    width: 136,
+    width: 144,
     minWidth: 90,
     align: 'center',
     hideable: true,
@@ -1838,16 +1836,16 @@ export const COLUMNS: ColumnDef[] = [
     id: 'variant',
     labelKey: 'columns.variant',
     // Sized for the row every yt-dlp package has, the video row with its
-    // format and quality pickers. 231 carries it on one line in English and
+    // format and quality pickers. 234 carries it on one line in English and
     // German, the widest pick included; in a language with a longer word for
-    // Auto (287 in Lithuanian) the quality picker wraps, which it can since the
+    // Auto (293 in Lithuanian) the quality picker wraps, which it can since the
     // pickers are shrink-0 and the cell flex-wrap. Measurements are in
     // check-column-widths.mjs.
     //
     // minWidth is about the widest single control, because a picker cannot
     // shrink and the cell clips rather than squeezes it: the widest measured is
     // the Persian bitrate picker at 320 kbit/s, 144px with the padding.
-    width: 231,
+    width: 234,
     minWidth: 144,
     // The download list shows one line of text instead of the pickers, and it
     // truncates into its tooltip, so neither the pickers' width nor their floor
@@ -2098,7 +2096,58 @@ function mergeHidden(profile: ListProfile, stored: ColumnLayout | null | undefin
   return hidden;
 }
 
-export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null | undefined): ResolvedLayout {
+/** The type a column head's word is set in, which useHeadWidths measures in. */
+export const HEAD_LABEL = 'text-meta font-semibold uppercase tracking-wide';
+
+/** The padding of a head's button on both sides of its word. */
+const HEAD_PAD = 16;
+
+/**
+ * useHeadWidths is the width each column's head needs to show its word whole
+ * in the reader's language. A default width is one number for 42 languages,
+ * sized for what the cells hold: the speed column's 88px carry "1000 MB/s",
+ * and its German head, "Geschwindigkeit", needs 133. A default wide enough for
+ * the longest head would take that room from the name in every language.
+ * Empty until measured, and where nothing is laid out.
+ */
+export function useHeadWidths(profile: ListProfile): Partial<Record<ColumnId, number>> {
+  const { t } = useT();
+  const [heads, setHeads] = useState<Partial<Record<ColumnId, number>>>({});
+  useLayoutEffect(() => {
+    let live = true;
+    const measure = () => {
+      const probe = document.createElement('span');
+      probe.className = `${HEAD_LABEL} invisible absolute whitespace-nowrap`;
+      document.body.append(probe);
+      const next: Partial<Record<ColumnId, number>> = {};
+      for (const c of COLUMNS) {
+        probe.textContent = t(c.labelByProfile?.[profile] ?? c.labelKey);
+        const width = probe.getBoundingClientRect().width;
+        if (width > 0) next[c.id] = Math.ceil(width) + HEAD_PAD;
+      }
+      probe.remove();
+      if (live) setHeads((was) => (JSON.stringify(was) === JSON.stringify(next) ? was : next));
+    };
+    measure();
+    // The words are set in a web font, which can arrive after the first pass.
+    void document.fonts?.ready.then(() => live && measure());
+    return () => {
+      live = false;
+    };
+  }, [t, profile]);
+  return heads;
+}
+
+/**
+ * resolveLayout is a stored layout as this build draws it. `heads` raises a
+ * column's default width to what its head needs (useHeadWidths); a width
+ * somebody dragged stays as dragged.
+ */
+export function resolveLayout(
+  profile: ListProfile,
+  stored: ColumnLayout | null | undefined,
+  heads: Partial<Record<ColumnId, number>> = {},
+): ResolvedLayout {
   // A layout from before the stamp takes this build's order once; everything
   // that is genuinely a preference (which columns are off, how wide they are)
   // comes along unchanged. See LAYOUT_VERSION.
@@ -2119,7 +2168,8 @@ export function resolveLayout(profile: ListProfile, stored: ColumnLayout | null 
     // A width somebody dragged first, then this list's own default, then the
     // shared one. The per-list default is only a starting point: it is read
     // before anything is stored, and the store already keeps widths per list.
-    return Math.max(minWidthOf(id), Math.round(widths[id] ?? def.widthByProfile?.[profile] ?? def.width));
+    const own = Math.max(def.widthByProfile?.[profile] ?? def.width, heads[id] ?? 0);
+    return Math.max(minWidthOf(id), Math.round(widths[id] ?? own));
   };
   const visible = order.filter((c) => !hidden.has(c.id));
   return { order, visible, hidden, widths, widthOf, minWidthOf };

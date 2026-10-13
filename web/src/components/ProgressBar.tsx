@@ -1,3 +1,17 @@
+/**
+ * SloshPops are the bubbles that pop past the end of a fill level drawn as a
+ * bar, inside the element that carries glim-slosh-edge. index.css times them
+ * by their place, one rule for each of the two.
+ */
+export function SloshPops() {
+  return (
+    <>
+      <span className="glim-slosh-pop-bar" />
+      <span className="glim-slosh-pop-bar" />
+    </>
+  );
+}
+
 // A progress track at --radius-pill, so it follows the shape setting like
 // badges and buttons. At h-5 it stays below an IconBadge, 24px in a list row,
 // so the badges and not the bar set the row's height.
@@ -8,6 +22,7 @@ export function ProgressBar({
   moving = false,
   tone = 'accent',
   striped = false,
+  level = false,
 }: {
   percent: number;
   active: boolean;
@@ -27,6 +42,11 @@ export function ProgressBar({
    * stays the row's, so the texture is what tells it from a download.
    */
   striped?: boolean;
+  /**
+   * A fill level, such as a quota, rather than a transfer: the fill's end is a
+   * liquid's surface that sloshes, and it has no front edge to pulse.
+   */
+  level?: boolean;
 }) {
   if (!active) return null;
   const isIndet = indeterminate === true;
@@ -49,14 +69,17 @@ export function ProgressBar({
         />
       ) : (
         <div
-          className={`kl-bar-fill relative h-full rounded-[var(--radius-pill)] transition-[width] duration-500 ease-out${stripes}`}
+          className={`kl-bar-fill relative h-full transition-[width] duration-500 ease-out${stripes} ${
+            level ? (clamped > 0 ? 'glim-slosh-edge' : '') : 'rounded-[var(--radius-pill)]'
+          }`}
           style={{ width: `${clamped}%`, backgroundColor: fill }}
         >
           {/* The front edge tells a moving download from a stalled one at the
               same percentage. It is drawn wherever there is a fill and pulses
               on glim-pulse only while `moving`. index.css hides it when the
               fill is narrower than the edge. */}
-          {clamped > 0 && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
+          {clamped > 0 && !level && <span className={`kl-bar-edge${moving ? ' kl-bar-edge-live' : ''}`} />}
+          {clamped > 0 && level && <SloshPops />}
         </div>
       )}
     </div>

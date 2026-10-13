@@ -10,7 +10,7 @@ import {
   type EventProgramStatus,
 } from '../../lib/eventprograms';
 import type { Placeholder } from '../../lib/eventtargets';
-import { IconPlus } from '../../lib/icons';
+import { IconAdd } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
 import { useDraft } from './context';
@@ -60,7 +60,7 @@ export function EventProgramsCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.eventPrograms.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.eventPrograms.add')}
           </Button>
         }
@@ -74,7 +74,7 @@ export function EventProgramsCard({ hue }: { hue: number }) {
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.eventPrograms.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.eventPrograms.emptyHint')}</span>
+            <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.eventPrograms.emptyHint')}</span>
           </p>
         ) : (
           <ul className="flex flex-col">

@@ -67,27 +67,29 @@ import {
   type MenuItem,
 } from './ContextMenu';
 import {
-  IconArrowDown,
-  IconArrowUp,
   IconBolt,
-  IconBottom,
   IconCheck,
-  IconChevronDown,
-  IconChevronUp,
+  IconClearSelection,
   IconClose,
-  IconEdit,
+  IconCollapse,
+  IconExpand,
+  IconFirst,
   IconFolder,
   IconKey,
+  IconLatest,
   IconMore,
+  IconMoveDown,
+  IconMoveUp,
   IconPause,
+  IconPencil,
   IconPlay,
   IconPower,
   IconPriority,
-  IconRetry,
+  IconRefresh,
   IconSearch,
+  IconSelectAll,
   IconStop,
   IconStopMark,
-  IconTop,
   IconTrash,
   IconTrashFiles,
   IconUpload,
@@ -250,6 +252,17 @@ export const COLLECTOR_FILTERS: QuickFilterId[] = [
 export function matchesQuickFilters(t: Task, active: Set<QuickFilterId>): boolean {
   if (active.size === 0) return true;
   return QUICK_FILTERS.some((f) => active.has(f.id) && f.match(t));
+}
+
+/**
+ * narrowedTitle names a list's card after the one quick filter that narrows
+ * it, as the card under a row of category tiles is named after the chosen
+ * tile. With none or several the card keeps its own name.
+ */
+export function narrowedTitle(active: ReadonlySet<QuickFilterId>, t: (key: TranslationKey) => string, own: string): string {
+  if (active.size !== 1) return own;
+  const filter = QUICK_FILTERS.find((f) => active.has(f.id));
+  return filter ? t(filter.label) : own;
 }
 
 interface Weight {
@@ -649,7 +662,14 @@ export function useRename({
     );
   }
 
-  return { openLink, openPackage, fromKeyboard, shortcut: binding ? formatShortcut(binding, t) : undefined, dialog };
+  return {
+    openLink,
+    openPackage,
+    fromKeyboard,
+    members,
+    shortcut: binding ? formatShortcut(binding, t) : undefined,
+    dialog,
+  };
 }
 
 export type Rename = ReturnType<typeof useRename>;
@@ -898,15 +918,15 @@ export function queueMenuGroup({
     queueGroup.items.push({
       id: 'move',
       label: t('menu.move'),
-      icon: <IconTop width={14} height={14} />,
+      icon: <IconFirst width={14} height={14} />,
       submenu: [
         {
           id: 'steps',
           items: [
-            { id: 'top', label: t('task.moveTop'), icon: <IconTop width={14} height={14} />, onSelect: step('top') },
-            { id: 'up', label: t('task.moveUp'), icon: <IconArrowUp width={14} height={14} />, onSelect: step('up') },
-            { id: 'down', label: t('task.moveDown'), icon: <IconArrowDown width={14} height={14} />, onSelect: step('down') },
-            { id: 'bottom', label: t('task.moveBottom'), icon: <IconBottom width={14} height={14} />, onSelect: step('bottom') },
+            { id: 'top', label: t('task.moveTop'), icon: <IconFirst width={14} height={14} />, onSelect: step('top') },
+            { id: 'up', label: t('task.moveUp'), icon: <IconMoveUp width={14} height={14} />, onSelect: step('up') },
+            { id: 'down', label: t('task.moveDown'), icon: <IconMoveDown width={14} height={14} />, onSelect: step('down') },
+            { id: 'bottom', label: t('task.moveBottom'), icon: <IconLatest width={14} height={14} />, onSelect: step('bottom') },
           ],
         },
       ],
@@ -1058,7 +1078,7 @@ function taskMenuGroups({
     transport.items.push({
       id: 'restart',
       label: t('task.restart'),
-      icon: <IconRetry width={14} height={14} />,
+      icon: <IconRefresh width={14} height={14} />,
       onSelect: guard(async () => ok(await restartTasks(ids, base))),
     });
   transport.items.push({
@@ -1259,7 +1279,7 @@ export function ListMenu({
           {
             id: 'fold',
             label: t(isFolded ? 'task.expand' : 'task.collapse'),
-            icon: isFolded ? <IconChevronDown /> : <IconChevronUp />,
+            icon: isFolded ? <IconExpand /> : <IconCollapse />,
             onSelect: () => (isFolded ? list.onExpand([name]) : list.onCollapse([name])),
           },
         ],
@@ -1274,7 +1294,7 @@ export function ListMenu({
         whole.push({
           id: 'selectAll',
           label: t('select.all'),
-          icon: <IconCheck width={14} height={14} />,
+          icon: <IconSelectAll width={14} height={14} />,
           onSelect: list.onSelectAll,
         });
       if (selected.size > 0)
@@ -1282,9 +1302,7 @@ export function ListMenu({
           id: 'selectNone',
           label: t('select.none'),
           detail: String(selected.size),
-          // A cross, not a struck-through tick: the row above sets the
-          // selection and the two have to be told apart at a glance.
-          icon: <IconClose />,
+          icon: <IconClearSelection />,
           onSelect: list.onSelectNone,
         });
       groups.push({ id: 'select', items: whole });
@@ -1299,7 +1317,7 @@ export function ListMenu({
           id: 'collapseAll',
           label: t('menu.collapseAll'),
           detail: String(open.length),
-          icon: <IconChevronUp />,
+          icon: <IconCollapse />,
           onSelect: () => list.onCollapse(open),
         });
       if (folded.length > 0)
@@ -1307,7 +1325,7 @@ export function ListMenu({
           id: 'expandAll',
           label: t('menu.expandAll'),
           detail: String(folded.length),
-          icon: <IconChevronDown />,
+          icon: <IconExpand />,
           onSelect: () => list.onExpand(folded),
         });
       groups.push({ id: 'foldAll', items: fold });
@@ -1335,7 +1353,7 @@ export function ListMenu({
         id: 'rename',
         label: t('rename.menu'),
         detail: rename?.shortcut,
-        icon: <IconEdit />,
+        icon: <IconPencil />,
         onSelect: renameThis,
       });
     organise.push({

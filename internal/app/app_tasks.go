@@ -35,11 +35,17 @@ import (
 // share a creation time, and the order has to hold between two calls for the
 // background watch's tag to match.
 func (a *App) Tasks() []*core.Task {
+	now := time.Now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	out := make([]*core.Task, 0, len(a.tasks))
 	for _, t := range a.tasks {
 		c := *t
+		// The task keeps the last rate it was given, which stands after a
+		// torrent's readings stop.
+		if c.UploadSpeed != 0 {
+			c.UploadSpeed = a.tally.uploadRate(c.ID, now)
+		}
 		// An undispatched task has no mode yet, but "free or premium" is asked
 		// while it waits. It is derived on the copy only, since the JD hoster
 		// list arrives after boot and changes; dispatch writes the real value.
@@ -1102,6 +1108,20 @@ func (a *App) Remove(id string, deleteFiles bool) {
 	}
 }
 
+// downloadFolders are the folders t's files may be in: its own and its working
+// folder, and every download and category folder, since the folder a task
+// resolves to follows its name, package and category, which can change after
+// its files were written.
+func (a *App) downloadFolders(t *core.Task) []string {
+	out := []string{a.dirFor(t), a.workDirFor(t), settings.FixedPrefix(a.defaultDir())}
+	for _, c := range a.Settings.Get().Categories {
+		if dir := strings.TrimSpace(c.Dir); dir != "" {
+			out = append(out, settings.FixedPrefix(dir))
+		}
+	}
+	return out
+}
+
 // removeTask is Remove without waking the auto-confirm countdowns, so a caller
 // removing many rows wakes them once. It reports whether the row was in the
 // collector, the only place a countdown looks.
@@ -1113,12 +1133,13 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 	var landed torrentLeftover
 	var usenetPart, remotePart string
 	var work []string
+	var workFolders []string
 	var taken bool
 	if t != nil && deleteFiles {
 		own = a.ownFileLocked(t)
 		usenetPart = a.usenetPartLocked(t)
 		remotePart = a.partFileLocked(t)
-		work = t.WorkFiles
+		work, workFolders = t.WorkFiles, a.downloadFolders(t)
 		// A file deleted by hand frees its path for the next download of the
 		// name, and the backend still deletes by the record it kept for t.
 		taken = a.usedByOtherLocked(id, t.File)
@@ -1166,8 +1187,7 @@ func (a *App) removeTask(id string, deleteFiles bool) (collected bool) {
 				log.Printf("could not delete %s: %v%s", remotePart, err, taskTag(id))
 			}
 		}
-		ytdlp.Discard(id, work, a.usedByOther)
-		a.dropImported(t)
+		ytdlp.Discard(id, workFolders, work, a.usedByOther)
 	}
 	if usenetJob != "" {
 		// Without this download, what is left of the release may be ready for its check.

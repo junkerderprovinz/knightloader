@@ -1,9 +1,10 @@
-import { Card, FieldGroup, SectionTitle, ToggleRow } from '../../../components/ui';
-import { Tabs } from '../../../components/Tabs';
+import { Card, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Dropdown } from '../../../components/Dropdown';
 import { fetchOptions } from '../../../lib/api';
 import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
-import { choices, useTx } from '../tx';
+import { SettingRow } from '../controls';
+import { label, useTx } from '../tx';
 
 // What becomes of a link that is another copy of a file already in the list.
 
@@ -15,26 +16,21 @@ export function MirrorsCard({ hue }: { hue: number }) {
   const policies = options?.mirrorPolicies ?? [];
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="mirror-policy" className="flex flex-col gap-5">
       <SectionTitle>{tx('settings.advanced.mirrorsTitle')}</SectionTitle>
 
-      {/* FieldGroup, because a Field's label would pass a click on the
-          caption to the first tab. Drawn only once the server answered, since
-          dedupe.ParsePolicy silently folds an unknown value onto the default. */}
+      {/* Drawn only once the server answered, since dedupe.ParsePolicy
+          silently folds an unknown value onto the default. */}
       {policies.length > 0 && (
-        <FieldGroup
-          layout="row"
-          label={tx('settings.advanced.mirrorPolicy')}
-          hint={tx('settings.advanced.mirrorPolicyHint')}
-        >
-          <Tabs
-            variant="well"
+        <SettingRow label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
+          <Dropdown
             label={tx('settings.advanced.mirrorPolicy')}
-            active={cfg.mirrorPolicy ?? ''}
-            onSelect={(mirrorPolicy) => patch({ mirrorPolicy })}
-            items={choices(tx, 'settings.advanced.mirror.', policies)}
+            value={cfg.mirrorPolicy ?? null}
+            onChange={(mirrorPolicy) => patch({ mirrorPolicy })}
+            options={policies.map((id) => ({ value: id, label: label(tx, 'settings.advanced.mirror.', id) }))}
+            width="widest"
           />
-        </FieldGroup>
+        </SettingRow>
       )}
 
       {/* Not dimmed when the policy is off: it decides what becomes of a

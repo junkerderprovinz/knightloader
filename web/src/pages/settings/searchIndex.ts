@@ -47,7 +47,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   modules: [
     // The rows are the modules the server sent, which vary per deployment.
     { title: 'settings.modules.sectionShipped', hint: 'settings.modules.fixedAtBuild', rows: [] },
-    { title: 'settings.modules.sectionDesktop', rows: [] },
     { title: 'settings.modules.sectionNotBuilt', rows: [] },
   ],
 
@@ -71,6 +70,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.downloads.autoConfirmDelay', hint: 'settings.downloads.autoConfirmDelayHint' },
         { key: 'settings.downloads.onDupes', hint: 'settings.downloads.onDupesHint' },
+        { key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' },
         { key: 'settings.downloads.addAtTop', hint: 'settings.downloads.addAtTopHint' },
       ],
       // What the countdown row reads while its switch is off.
@@ -96,32 +96,53 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.advanced.rejectDownloaded', hint: 'settings.advanced.rejectDownloadedHint' },
       ],
     },
-    {
-      title: 'settings.advanced.offlineTitle',
-      rows: [{ key: 'settings.advanced.onOffline', hint: 'settings.advanced.onOfflineHint' }],
-    },
   ],
 
   downloads: [
     {
       title: 'settings.downloads.locationTitle',
+      // The folder check is the card's second group, under a heading of its own.
       rows: [
         { key: 'settings.downloadDir', hint: 'settings.downloadDirHint' },
         { key: 'settings.subfolderByPackage' },
         { key: 'settings.downloads.workDir', hint: 'settings.downloads.workDirHint' },
+        { key: 'settings.owner.checkTitle', hint: 'settings.owner.checkHint' },
       ],
-      // The download folder's hint is two keys glued together at the call site.
-      body: ['settings.pathVars'],
+      // The check draws no captioned rows, so its button and the role names go here.
+      also: [
+        'settings.owner.run',
+        'settings.owner.role.downloads',
+        'settings.owner.role.work',
+        'settings.owner.role.category',
+        'settings.owner.role.watch',
+      ],
+      // The download folder's hint is two keys glued together at the call
+      // site. The check's sentences are where words like "chown" live.
+      body: [
+        'settings.pathVars',
+        'settings.owner.never',
+        'settings.owner.checkedAt',
+        'settings.owner.checkFailed',
+        'settings.owner.v.ok',
+        'settings.owner.v.ownerMismatch',
+        'settings.owner.v.groupUnreadable',
+        'settings.owner.v.dirUnreadable',
+        'settings.owner.v.notWritable',
+        'settings.owner.v.missing',
+        'settings.owner.v.unknown',
+        'settings.owner.fix.user',
+        'settings.owner.fix.chown',
+        'settings.owner.fix.mask',
+        'settings.owner.fix.recreate',
+        'settings.owner.fix.past',
+      ],
     },
     {
       title: 'settings.advanced.reclaimTitle',
-      rows: [{ key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' }],
-    },
-    {
-      title: 'settings.downloads.collisionTitle',
       rows: [
         { key: 'settings.downloads.collision', hint: 'settings.downloads.collisionHint' },
         { key: 'settings.downloads.collisionAttempts', hint: 'settings.downloads.collisionAttemptsHint' },
+        { key: 'settings.advanced.reclaimTrust', hint: 'settings.advanced.reclaimTrustHint' },
       ],
     },
     {
@@ -181,37 +202,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.feeds.status', hint: 'settings.feeds.lastPolledHint' },
         { key: 'settings.feeds.testResult', hint: 'settings.feeds.testHint' },
       ],
-    },
-    // The folder check draws no captioned rows, so the role names go in `also`
-    // and the sentences, where words like "chown" live, in `body`.
-    {
-      title: 'settings.owner.checkTitle',
-      hint: 'settings.owner.checkHint',
-      rows: [],
-      also: [
-        'settings.owner.run',
-        'settings.owner.role.downloads',
-        'settings.owner.role.work',
-        'settings.owner.role.category',
-        'settings.owner.role.watch',
-      ],
-      body: [
-        'settings.owner.never',
-        'settings.owner.checkedAt',
-        'settings.owner.checkFailed',
-        'settings.owner.v.ok',
-        'settings.owner.v.ownerMismatch',
-        'settings.owner.v.groupUnreadable',
-        'settings.owner.v.dirUnreadable',
-        'settings.owner.v.notWritable',
-        'settings.owner.v.missing',
-        'settings.owner.v.unknown',
-        'settings.owner.fix.user',
-        'settings.owner.fix.chown',
-        'settings.owner.fix.mask',
-        'settings.owner.fix.recreate',
-        'settings.owner.fix.past',
-      ],
+      also: ['settings.feeds.test'],
     },
     {
       title: 'downloads.listTitle',
@@ -224,12 +215,28 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   archives: [
     {
+      title: 'settings.archives.journey',
+      hint: 'settings.archives.journeyHint',
+      rows: [],
+      // The names the hint is filled with: the stations and the switches they follow.
+      body: [
+        'status.verifying',
+        'settings.module.checksums',
+        'settings.nav.downloads',
+        'status.repairing',
+        'picture.journey.move',
+        'settings.downloads.workDir',
+        'picture.journey.cleanup',
+      ],
+    },
+    {
       title: 'settings.module.extraction',
       rows: [
         { key: 'settings.archives.destination', hint: 'settings.archives.destinationHint' },
         { key: 'settings.archives.subfolder', hint: 'settings.archives.subfolderHint' },
         { key: 'settings.archives.moveTo', hint: 'settings.archives.moveToHint' },
         { key: 'settings.archives.collision', hint: 'settings.archives.collisionHint' },
+        { key: 'settings.archivePasswords', hint: 'settings.archivePasswordsHint' },
       ],
       body: ['settings.pathVars'],
     },
@@ -240,10 +247,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.archives.retention', hint: 'settings.archives.retentionHint' },
         { key: 'settings.archives.infoFiles', hint: 'settings.archives.infoFilesHint' },
       ],
-    },
-    {
-      title: 'settings.archivePasswords',
-      rows: [{ key: 'settings.archivePasswords', hint: 'settings.archivePasswordsHint' }],
     },
   ],
 
@@ -260,63 +263,116 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
+      // KnightLoader and yt-dlp share the two switch labels. Quit and restart
+      // are the card's last group, under a heading of their own.
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
+        { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
+        { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
       ],
-      // The container build uses its own sentence for the update hint.
-      body: ['settings.look.updatesAutoUpdateContainerHint'],
+      // The container build uses its own sentence for the update hint, and
+      // yt-dlp's switches carry their own hints.
+      body: [
+        'settings.look.updatesAutoUpdateContainerHint',
+        'settings.resolvers.toolsAutoCheckHint',
+        'settings.resolvers.toolsAutoUpdateHint',
+        'settings.resolvers.toolsShadowed',
+        'settings.resolvers.toolsShadowedOlder',
+        'settings.resolvers.toolsManagedBroken',
+      ],
+      also: ['settings.look.updatesCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
     },
-    { title: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable', rows: [] },
-    // The archive and "settings only" share one card, so the old card titles
-    // are `also` entries and a search for backup still lands here.
+    // One row per part, named by the part itself.
+    { title: 'settings.look.builtInTitle', hint: 'settings.look.builtInHint', rows: [] },
+    // The archive and "settings only" share one card as its two sub-cards.
     {
       title: 'settings.transfer.cardTitle',
       hint: 'settings.transfer.cardHint',
-      rows: [{ key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' }],
-      // Row headings and buttons, with no anchor of their own.
+      rows: [
+        { key: 'settings.transfer.archiveLabel', hint: 'settings.transfer.archiveText' },
+        { key: 'settings.transfer.settingsLabel', hint: 'settings.transfer.settingsText' },
+        { key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' },
+      ],
+      // Buttons, with no anchor of their own.
       also: [
-        'settings.transfer.archiveLabel',
-        'settings.transfer.settingsLabel',
         'settings.system.backupButton',
         'settings.system.restoreButton',
         'settings.transfer.export',
         'settings.transfer.import',
       ],
-      body: ['settings.transfer.archiveText', 'settings.transfer.settingsText'],
       // The import preview's strings stay out: its dialog exists only once a
       // file is chosen.
     },
     {
       title: 'settings.jdimport.cardTitle',
       hint: 'settings.jdimport.cardHint',
-      rows: [{ key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' }],
-      also: ['settings.jdimport.uploadLabel', 'settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
-      body: ['settings.jdimport.uploadText'],
+      rows: [
+        { key: 'settings.jdimport.uploadLabel', hint: 'settings.jdimport.uploadText' },
+        { key: 'settings.jdimport.pathLabel', hint: 'settings.jdimport.pathHint' },
+      ],
+      also: ['settings.jdimport.uploadButton', 'settings.jdimport.readButton'],
       // The preview's strings stay out: its dialog exists only once a folder is read.
     },
-    // Drawn by Help.tsx at the foot of this page.
-    { title: 'settings.about.title', rows: [] },
   ],
 
   // The `{appearance && …}` half of the same component.
   appearance: [
-    { title: 'lang.label', rows: [] },
-    { title: 'settings.shape', hint: 'settings.shapeHint', rows: [] },
+    // The window's switches carry the tray menu's own words. A browser tab
+    // draws the card with a sentence in their place and the keep awake switch.
+    {
+      title: 'settings.window.title',
+      hint: 'settings.window.hint',
+      rows: [
+        { key: 'tray.startHidden', hint: 'settings.window.startHiddenHint' },
+        { key: 'tray.closeToTray', hint: 'settings.window.closeToTrayHint' },
+        { key: 'tray.minimiseToTray', hint: 'settings.window.minimiseToTrayHint' },
+        { key: 'tray.captcha', hint: 'settings.window.captchaHint' },
+        { key: 'settings.module.keepawake', hint: 'settings.downloads.keepAwakeHint' },
+      ],
+      body: [
+        'settings.window.noTray',
+        'settings.window.desktopOnly',
+        'tray.raiseOff',
+        'tray.raiseFront',
+        'tray.raiseFocus',
+        'settings.downloads.keepAwakeContainerHint',
+      ],
+    },
+    {
+      title: 'settings.look.displayTitle',
+      rows: [
+        { key: 'lang.label' },
+        { key: 'settings.theme', hint: 'settings.themeHint' },
+        { key: 'settings.shape', hint: 'settings.shapeHint' },
+        { key: 'settings.motion.title', hint: 'settings.motion.hint' },
+        { key: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint' },
+      ],
+      // The choice the theme's hint is filled with.
+      body: ['theme.system'],
+    },
     {
       title: 'settings.labels',
       hint: 'settings.labelsHint',
-      rows: [],
-      // Each row's caption sits over a bare selector, with no anchor.
-      also: ['settings.labels.buttons', 'settings.labels.sidebar', 'settings.labels.tabs', 'settings.labels.bottombar'],
-      body: ['settings.axisSidebarHint', 'settings.axisBottombarHint'],
+      rows: [
+        { key: 'settings.labels.buttons' },
+        { key: 'settings.labels.sidebar', hint: 'settings.axisSidebarHint' },
+        { key: 'settings.labels.tabs' },
+        { key: 'settings.labels.bottombar', hint: 'settings.axisBottombarHint' },
+      ],
     },
-    { title: 'settings.motion.title', hint: 'settings.motion.hint', rows: [] },
-    { title: 'settings.rowHeight.title', hint: 'settings.rowHeight.hint', rows: [] },
+    {
+      title: 'settings.sidebar.title',
+      rows: [
+        { key: 'settings.sidebar.accounts', hint: 'settings.sidebar.accountsHint' },
+        { key: 'settings.sidebar.instances', hint: 'settings.sidebar.instancesHint' },
+      ],
+    },
     {
       title: 'settings.colours',
-      rows: [],
-      // Every row here is a caption beside a bare Toggle, with no anchor.
+      // The heading over the colours of the two speed graphs.
+      rows: [{ key: 'settings.lines.title' }],
+      // The other rows are captions beside a bare Toggle, with no anchor.
       also: [
         'settings.accent',
         'settings.rainbow',
@@ -325,9 +381,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rainbowRotate',
         'settings.rainbowPaletteLabel',
         'settings.accentReset',
+        'settings.lines.download',
+        'settings.lines.seeding',
       ],
       body: [
         'settings.accentHint',
+        'settings.lines.downloadHint',
+        'settings.lines.seedingHint',
         // The accent's (i) while rainbow mode owns the colours.
         'settings.accentRainbowOwns',
         'settings.rainbowHint',
@@ -336,27 +396,32 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rainbowPaletteHint',
       ],
     },
-    { title: 'settings.theme', rows: [] },
   ],
 
   accounts: [
     {
-      title: 'settings.accounts.setupTitle',
-      rows: [{ key: 'settings.accounts.showInSidebar', hint: 'settings.accounts.showInSidebarHint' }],
-    },
-    {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
+    // The solver rows are named by the server. When the accounts start and
+    // the test captcha are the card's groups under the picture.
     {
-      title: 'settings.module.debriddrive',
+      title: 'settings.captcha.orderTitle',
+      hint: 'settings.captcha.orderHint',
       rows: [
-        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
-        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
-        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
+        { key: 'settings.captcha.whenTitle' },
+        { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
+        { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
+        { key: 'settings.captcha.testTitle' },
+        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
+        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
-      also: ['common.copy', 'common.copied'],
-      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
+      // The hint sends the reader to the captcha accounts card by its name,
+      // the button that ends the test row to the module's switch on the
+      // Modules page, and the card without an account to the button that adds
+      // one.
+      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'settings.nav.modules', 'accounts.newAccount'],
+      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'accounts.addPointer'],
     },
     // The fields are in the window a server row opens, so they lead to the card.
     {
@@ -373,6 +438,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'accounts.usenet.level',
         'accounts.usenet.retention',
         'accounts.usenet.optional',
+        'accounts.usenet.test',
       ],
       body: [
         'accounts.usenet.emptyHint',
@@ -388,20 +454,30 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  instances: [
+  // The drive's switch is the card's title, so it has no row of its own.
+  debriddrive: [
     {
-      title: 'settings.instances.setupTitle',
+      title: 'settings.module.debriddrive',
       rows: [
-        { key: 'settings.module.federation' },
-        { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
+        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
+        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
+        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
       ],
+      also: ['common.copy', 'common.copied'],
+      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
     },
+  ],
+
+  instances: [
+    // The module's switch is the card's title, so it has no row of its own.
+    { title: 'settings.module.federation', rows: [] },
     // The page drawn below that card.
     {
       title: 'instances.foundTitle',
       hint: 'instances.foundHint',
       rows: [],
-      body: ['instances.pairLead'],
+      // The page's floating action.
+      also: ['pairing.title'],
     },
   ],
 
@@ -410,7 +486,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'pairing.phraseTitle',
       hint: 'pairing.phraseHint',
       rows: [],
-      // The two tiles, the word fields, the words' window and a member's badges.
+      // The two tiles, the word fields, the words' window and the sub-card
+      // of a group without a relay.
       also: [
         'pairing.create',
         'pairing.enter',
@@ -418,36 +495,53 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'pairing.enterLabel',
         'pairing.enterLabelOther',
         'pairing.wordsLabel',
-        'pairing.direct',
-        'pairing.byAddress',
-        'pairing.viaRelay',
+        'pairing.otherNetTitle',
       ],
-      // The sentence above the step cards and its (i), and the (i) of the two
-      // windows a group nobody has come to opens.
+      // The rest of the card's (i), and the (i) of the two windows a group
+      // nobody has come to opens.
       body: ['pairing.lead', 'pairing.keyNote', 'pairing.wordsTip', 'pairing.twoBody'],
     },
     {
-      title: 'relay.title',
-      hint: 'relay.hint',
-      rows: [{ key: 'relay.serve', hint: 'relay.serveHint' }],
-      // The route picker, the state badge in the header and the facts line.
-      also: [
-        'relay.project',
-        'relay.own',
-        'relay.off',
-        'relay.noGroup',
-        'instances.connected',
-        'instances.notConnected',
-        'relay.needLabel',
-      ],
-      body: ['relay.lead'],
+      title: 'instances.title',
+      hint: 'pairing.groupHint',
+      rows: [],
+      // How a member of the group is reached.
+      also: ['pairing.direct', 'pairing.byAddress', 'pairing.viaRelay'],
     },
     {
       title: 'settings.access.identity.title',
       rows: [
         { key: 'settings.access.identity.nameLabel', hint: 'settings.access.identity.nameHint' },
-        { key: 'settings.access.identity.domainsLabel', hint: 'settings.access.identity.domainsHint' },
+        { key: 'settings.access.identity.addressesLabel', hint: 'settings.access.identity.addressesHint' },
       ],
+      // What stands beside the address the instance found itself.
+      also: ['settings.access.identity.addressFound'],
+    },
+    {
+      title: 'relay.title',
+      hint: 'relay.hint',
+      rows: [{ key: 'relay.addressLabel', hint: 'relay.addressTip' }],
+      // The route picker, the state in the header, the window behind the
+      // button beside it, the facts line and the sub-cards.
+      also: [
+        'pairing.relayCheckOpen',
+        'relay.containerName',
+        'relay.instanceName',
+        'relay.project',
+        'relay.own',
+        'relay.serve',
+        'relay.off',
+        'relay.noGroup',
+        'instances.connected',
+        'instances.notConnected',
+        'relay.seesTitle',
+        'relay.seesLabel',
+        'relay.notSeesLabel',
+        'relay.needLabel',
+      ],
+      // The rest of the card's (i), the (i) of serving the relay and the (i)
+      // of what to check.
+      body: ['relay.lead', 'relay.serveHint', 'pairing.relayCheckTip'],
     },
   ],
 
@@ -460,6 +554,9 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.passwordNew', hint: 'settings.passwordHint' },
         { key: 'settings.access.trustedProxies', hint: 'settings.access.trustedProxiesHint' },
       ],
+      // The app key is a name with its (i), and no control.
+      also: ['settings.appKeyTitle'],
+      body: ['settings.appKeyHint'],
     },
     {
       title: 'auth.twoFactor.title',
@@ -513,7 +610,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     {
       title: 'settings.rules.listTitle',
-      rows: [],
+      // The sample fields above the picture of the list.
+      rows: [{ key: 'settings.rules.testUrl', hint: 'picture.rules.sampleHint' }, { key: 'settings.rules.testFilename' }],
       // The rule editor's fields carry aria-labels and exist only while a rule
       // is open.
       also: [
@@ -564,6 +662,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.connections.testTarget', hint: 'settings.connections.testTargetHint' },
         { key: 'settings.connections.importLabel', hint: 'settings.connections.importHint' },
       ],
+      also: ['settings.connections.test'],
       // The user name's (i) on a SOCKS4 row.
       body: ['settings.connections.stateSocks4'],
     },
@@ -580,15 +679,15 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.reconnect.router', hint: 'settings.reconnect.routerHint' },
         { key: 'settings.reconnect.username', hint: 'settings.reconnect.usernameHint' },
         { key: 'settings.reconnect.password', hint: 'settings.reconnect.passwordHint' },
+        // The requests' own heading inside the card.
+        { key: 'settings.reconnect.requests', hint: 'settings.reconnect.requestsHint' },
         { key: 'settings.reconnect.requestMethod' },
         { key: 'settings.reconnect.requestUrl', hint: 'settings.reconnect.requestUrlHint' },
         { key: 'settings.reconnect.requestHeaders', hint: 'settings.reconnect.requestHeadersHint' },
         { key: 'settings.reconnect.requestBody', hint: 'settings.reconnect.requestBodyHint' },
         { key: 'settings.reconnect.importLabel', hint: 'settings.reconnect.importHint' },
       ],
-      // The method's sub-heading belongs to this card.
-      also: ['settings.reconnect.requests'],
-      body: ['settings.reconnect.requestsHint', 'settings.reconnect.upnpState'],
+      body: ['settings.reconnect.upnpState'],
     },
     {
       title: 'settings.reconnect.checkTitle',
@@ -642,28 +741,21 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.resolvers.toolsTitle',
       hint: 'settings.resolvers.toolsHint',
-      rows: [
-        { key: 'settings.module.ytdlp' },
-        { key: 'settings.resolvers.toolsAutoUpdate', hint: 'settings.resolvers.toolsAutoUpdateHint' },
-        { key: 'settings.resolvers.toolsAutoCheck', hint: 'settings.resolvers.toolsAutoCheckHint' },
-        { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
-      ],
-      body: [
-        'settings.resolvers.toolsYtdlpMissingHint',
-        'settings.resolvers.toolsFfmpegMissingHint',
-        'settings.resolvers.toolsShadowed',
-        'settings.resolvers.toolsShadowedOlder',
-        'settings.resolvers.toolsManagedBroken',
-      ],
-      also: ['settings.resolvers.toolsCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
+      rows: [{ key: 'settings.module.ytdlp', hint: 'settings.resolvers.about' }],
+      body: ['settings.resolvers.toolsYtdlpMissingHint', 'settings.resolvers.toolsFfmpegMissingHint'],
     },
     {
-      title: 'settings.resolvers.quality',
-      hint: 'settings.resolvers.about',
+      title: 'columns.variant.video',
       rows: [
         { key: 'settings.resolvers.quality', hint: 'settings.resolvers.qualityHint' },
         { key: 'settings.resolvers.customFormat', hint: 'settings.resolvers.customFormatHint' },
+      ],
+    },
+    {
+      title: 'settings.resolvers.filesTitle',
+      rows: [
         { key: 'settings.resolvers.playlist' },
+        { key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' },
       ],
     },
     {
@@ -673,10 +765,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resolvers.subtitleAuto' },
         { key: 'settings.resolvers.subtitleStrict', hint: 'settings.resolvers.subtitleStrictHint' },
       ],
-    },
-    {
-      title: 'settings.resolvers.outputTitle',
-      rows: [{ key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' }],
     },
     {
       title: 'settings.resolvers.audioTitle',
@@ -690,6 +778,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.resolvers.embedTitle',
       rows: [
+        { key: 'settings.resolvers.mergeFiles', hint: 'settings.resolvers.mergeFilesHint' },
         { key: 'settings.resolvers.embedMetadata', hint: 'settings.resolvers.embedMetadataHint' },
         { key: 'settings.resolvers.embedThumbnail', hint: 'settings.resolvers.embedThumbnailHint' },
         { key: 'settings.resolvers.embedChapters', hint: 'settings.resolvers.embedChaptersHint' },
@@ -742,11 +831,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.module.torrents' },
         { key: 'settings.torrents.seedRatio', hint: 'settings.torrents.seedRatioHint' },
         { key: 'settings.torrents.seedDuration', hint: 'settings.torrents.seedDurationHint' },
+        { key: 'settings.torrents.uploadLimit', hint: 'settings.torrents.uploadLimitHint' },
       ],
-    },
-    {
-      title: 'settings.torrents.transferTitle',
-      rows: [{ key: 'settings.torrents.uploadLimit', hint: 'settings.torrents.uploadLimitHint' }],
     },
     {
       title: 'settings.torrents.portTitle',
@@ -754,6 +840,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.torrents.port', hint: 'settings.torrents.portHint' },
         { key: 'settings.torrents.interface', hint: 'settings.torrents.interfaceHint' },
       ],
+      also: ['settings.torrents.portMapButton'],
       // The port's further paragraphs, and the (i) inside the mapping button.
       body: [
         'settings.torrents.clientApplyHint',
@@ -808,30 +895,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  captcha: [
-    // The solver rows are named by the server.
-    {
-      title: 'settings.captcha.orderTitle',
-      hint: 'settings.captcha.orderHint',
-      rows: [{ key: 'settings.module.captcha' }],
-      body: ['settings.captcha.orderEmpty'],
-    },
-    {
-      title: 'settings.captcha.whenTitle',
-      rows: [
-        { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
-        { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
-      ],
-    },
-    {
-      title: 'settings.captcha.testTitle',
-      rows: [
-        { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
-        { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
-      ],
-    },
-  ],
-
   automation: [
     {
       title: 'settings.schedule.statusTitle',
@@ -860,7 +923,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.downloads.idleTitle',
       rows: [
-        { key: 'settings.module.keepawake', hint: 'settings.downloads.keepAwakeHint' },
         { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
         { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
         { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },
@@ -887,7 +949,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.downloads.idleArmHint',
         'settings.downloads.idleCommandSecretHint',
         'settings.downloads.idleCommandStored',
-        'settings.downloads.keepAwakeContainerHint',
       ],
     },
     {
@@ -1003,43 +1064,26 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.scripts.timeout', hint: 'settings.scripts.timeoutHint' },
         { key: 'settings.scripts.code' },
       ],
+      also: ['settings.scripts.run'],
       body: ['settings.scripts.empty', 'settings.scripts.emptyHint'],
     },
   ],
 
   health: [
     {
-      title: 'settings.health.title',
-      hint: 'settings.health.titleHint',
-      rows: [
-        { key: 'settings.health.version' },
-        { key: 'settings.health.uptime', hint: 'settings.health.uptimeHint' },
-        { key: 'settings.health.startedAt' },
-      ],
-      // The card's badge is a state looked up from a server id.
-      body: [
-        // A `tip=`, which the check script does not scan.
-        'settings.health.oldHealthHint',
-        'settings.health.sampled',
-        'settings.health.loadFailed',
-      ],
+      title: 'settings.selftest.title',
+      hint: 'settings.selftest.hint',
+      // The beads are named by the checks the server planned.
+      rows: [],
+      body: ['settings.selftest.never'],
     },
     {
       title: 'settings.health.parts',
       hint: 'settings.health.partsHint',
       // Every row is built from server ids, so none can be indexed.
       rows: [],
-    },
-    {
-      title: 'settings.health.tasks',
-      hint: 'settings.health.tasksHint',
-      rows: [
-        { key: 'settings.health.running' },
-        { key: 'settings.health.waiting' },
-        { key: 'settings.health.failed' },
-      ],
-      also: ['settings.health.waitingWhy', 'settings.health.failedWhy'],
-      body: ['settings.health.nothingWaiting', 'settings.health.nothingFailed', 'settings.health.diskWhere'],
+      also: ['settings.health.openLog'],
+      body: ['settings.health.noReason', 'settings.health.loadFailed'],
     },
     {
       title: 'settings.module.metrics',
@@ -1213,17 +1257,28 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   help: [
-    { title: 'settings.help.intake.title', rows: [], body: ['settings.help.intake.body'] },
-    { title: 'settings.help.collector.title', rows: [], body: ['settings.help.collector.body'] },
-    { title: 'settings.help.rules.title', rows: [], body: ['settings.help.rules.body'] },
-    { title: 'settings.help.queue.title', rows: [], body: ['settings.help.queue.body'] },
-    { title: 'settings.help.limits.title', rows: [], body: ['settings.help.limits.body'] },
-    { title: 'settings.help.captcha.title', rows: [], body: ['settings.help.captcha.body'] },
-    { title: 'settings.help.after.title', rows: [], body: ['settings.help.after.body'] },
-    { title: 'settings.help.schedule.title', rows: [], body: ['settings.help.schedule.body'] },
-    { title: 'settings.help.instances.title', rows: [], body: ['settings.help.instances.body'] },
-    { title: 'settings.help.access.title', rows: [], body: ['settings.help.access.body'] },
-    { title: 'settings.help.advanced.title', rows: [], body: ['settings.help.advanced.body'] },
+    // The Info tile's three cards. Their buttons carry no caption to scroll
+    // to, so they are `also` entries.
+    {
+      title: 'settings.about.version',
+      hint: 'settings.info.versionHint',
+      rows: [],
+      also: ['settings.look.updatesReleaseNotes'],
+      body: ['settings.info.glimstoneSub', 'settings.info.ytdlpSub', 'settings.info.ffmpegSub'],
+    },
+    {
+      title: 'settings.info.helpTitle',
+      hint: 'settings.info.helpHint',
+      rows: [],
+      also: ['settings.about.github', 'settings.about.mail', 'settings.info.manual', 'settings.info.bugReport'],
+      body: ['settings.about.report'],
+    },
+    {
+      title: 'settings.about.title',
+      rows: [],
+      also: ['settings.about.coffeeButton', 'settings.about.paypal', 'settings.about.crypto'],
+      body: ['settings.about.body', 'settings.about.coffee'],
+    },
   ],
 
   browsertools: [
@@ -1288,11 +1343,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   shortcuts: [
-    // The command palette already searches the command names, so only the
-    // card titles are here.
-    { title: 'settings.nav.shortcuts', hint: 'settings.shortcuts.subtitle', rows: [] },
-    // The list keys are not commands, so this card is the only place they are
-    // written down; its table is left alone.
-    { title: 'settings.shortcuts.listTitle', hint: 'settings.shortcuts.listHint', rows: [] },
+    // The command palette already searches the command names, and the groups'
+    // titles come from the commands, so the one card with a title of its own
+    // is here. It also answers for what the page is for and for the reset that
+    // stands at the head of the first group.
+    {
+      title: 'settings.shortcuts.listTitle',
+      hint: 'settings.shortcuts.listHint',
+      rows: [],
+      also: ['settings.shortcuts.resetAll'],
+      body: ['settings.shortcuts.subtitle'],
+    },
   ],
 };

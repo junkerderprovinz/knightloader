@@ -1,7 +1,8 @@
-import { Field, UnitNumberInput } from '../../../components/ui';
+import { UnitNumberInput } from '../../../components/ui';
 import { RATE_UNITS } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
 import { isLeet } from '../../../lib/leet';
+import { SettingRow } from '../controls';
 
 /**
  * SpeedLimitField is the global download limit as the Downloads settings page
@@ -12,8 +13,8 @@ import { isLeet } from '../../../lib/leet';
 export function SpeedLimitField({ value, onValue }: { value: number; onValue: (bytes: number) => void }) {
   const { t } = useT();
   return (
-    <Field label={t('settings.globalSpeedLimit')} hint={t('settings.speedHint')}>
-      <span className="flex items-center gap-2">
+    <SettingRow control="short" label={t('settings.globalSpeedLimit')} hint={t('settings.speedHint')}>
+      <span data-new="decimal-units" className="flex items-center gap-2">
         <span className="min-w-0 flex-1">
           <UnitNumberInput value={value} units={RATE_UNITS} onValue={onValue} />
         </span>
@@ -22,9 +23,9 @@ export function SpeedLimitField({ value, onValue }: { value: number; onValue: (b
             beside the number rather than under it, where it would read as a
             validation message. */}
         {isLeet(value) && (
-          <span className="shrink-0 text-[11px] leading-none text-carbon-textMuted">{t('settings.motion.storm')}</span>
+          <span className="shrink-0 text-meta leading-none text-carbon-textMuted">{t('settings.motion.storm')}</span>
         )}
       </span>
-    </Field>
+    </SettingRow>
   );
 }

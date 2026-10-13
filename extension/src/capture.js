@@ -167,7 +167,7 @@ function takeoverVerdict(item, rules, now = Date.now(), bypassUntil = 0) {
     const name = downloadName(item).toLowerCase();
     if (!types.some((ext) => name.endsWith('.' + ext))) return { take: false, why: 'type' };
   }
-  const min = Number(rules.minSizeMb) * 1024 * 1024;
+  const min = Number(rules.minSizeMb) * 1e6;
   if (min > 0) {
     const size = Number(item.totalBytes) > 0 ? Number(item.totalBytes) : Number(item.fileSize);
     if (!(size >= min)) return { take: false, why: 'size' };

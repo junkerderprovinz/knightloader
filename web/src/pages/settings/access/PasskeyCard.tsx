@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   IconBadge,
   IconTile,
   Modal,
@@ -22,8 +21,9 @@ import {
 } from '../../../lib/api';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconClose, IconEdit, IconKey, IconPlus, IconTrash } from '../../../lib/icons';
+import { IconAdd, IconClose, IconKey, IconPencil, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
+import { SettingRow } from '../controls';
 
 /** The refusals worded here. Any other shows the server's sentence. */
 const REFUSALS: Partial<Record<string, TranslationKey>> = {
@@ -165,13 +165,13 @@ export function PasskeyCard({
         {keys.length > 0 && (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {keys.map((p) => (
-              <div key={p.id} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
+              <div key={p.id} className="glim-row flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
                 <IconTile icon={<IconKey width={16} height={16} />} hue={hue} />
                 <div className="min-w-0 flex-1">
                   <div className="truncate text-sm text-carbon-text">{p.name}</div>
                   {/* The two facts are joined in markup, and neither string
                       ends in a full stop, since the second one is optional. */}
-                  <div className="text-[11px] text-carbon-textMuted">
+                  <div className="text-meta text-carbon-textMuted">
                     {p.usableHere
                       ? t('auth.passkey.usableHere')
                       : t('auth.passkey.otherAddress', { host: p.rpId })}
@@ -191,7 +191,7 @@ export function PasskeyCard({
                 <IconBadge
                   labelled
                   hue={hue}
-                  icon={<IconEdit width={16} height={16} />}
+                  icon={<IconPencil width={16} height={16} />}
                   disabled={busy}
                   title={t('auth.passkey.rename')}
                   aria-label={t('auth.passkey.rename')}
@@ -223,8 +223,7 @@ export function PasskeyCard({
             <Button
               shake={shake}
               kind="secondary"
-              hue={hue}
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               disabled={busy}
               onClick={() => setAdding(true)}
             >
@@ -235,7 +234,7 @@ export function PasskeyCard({
 
         {adding && (
           <div className="flex flex-col gap-3">
-            <Field label={t('auth.passkey.nameLabel')} hint={t('auth.passkey.nameHint')}>
+            <SettingRow control="long" label={t('auth.passkey.nameLabel')} hint={t('auth.passkey.nameHint')}>
               <TextInput
                 autoFocus
                 value={name}
@@ -245,7 +244,7 @@ export function PasskeyCard({
                   if (e.key === 'Enter' && !busy) void add();
                 }}
               />
-            </Field>
+            </SettingRow>
             <div className="flex items-center gap-3">
               <span className="flex-1" />
               <Button
@@ -260,7 +259,7 @@ export function PasskeyCard({
               </Button>
               <Button
                 shake={shake}
-                kind="primary"
+                kind="secondary"
                 disabled={busy}
                 onClick={() => void add()}
               >
@@ -296,7 +295,7 @@ export function PasskeyCard({
             </>
           }
         >
-          <Field label={t('auth.passkey.nameLabel')}>
+          <SettingRow control="long" label={t('auth.passkey.nameLabel')}>
             <TextInput
               autoFocus
               value={renameTo}
@@ -305,7 +304,7 @@ export function PasskeyCard({
                 if (e.key === 'Enter' && renameTo.trim() !== '' && !busy) void saveName();
               }}
             />
-          </Field>
+          </SettingRow>
         </Modal>
       )}
 

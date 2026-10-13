@@ -1,35 +1,22 @@
-// The settings tab shows the same page as the sidebar's Instanzen entry, with
-// one card on top that hides that entry. The wrapper spaces its children itself
-// because the page's sr-only header is positioned absolutely and takes no row.
+// The settings tile of the Instanzen page: the module's switch above the whole
+// page, whether or not the page also stands in the sidebar; that switch is on
+// the Aussehen page with the rest of the sidebar. The wrapper spaces its
+// children itself because the page's sr-only header is positioned absolutely
+// and takes no row.
 import { Instances } from '../Instances';
-import { Card, SectionTitle, ToggleRow } from '../../components/ui';
+import { Card, SectionTitle } from '../../components/ui';
 import { useT } from '../../lib/i18n';
-import { setHidden } from '../../lib/sidebarPrefs';
-import { useDraft } from './context';
 import { ModuleToggle } from './ModuleToggle';
 
 export function InstancesTab() {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
-
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.instances.setupTitle')}</SectionTitle>
-        <ModuleToggle id="federation" hue={0} />
-        <ToggleRow
-          hue={1}
-          label={t('settings.instances.showInSidebar')}
-          hint={t('settings.instances.showInSidebarHint')}
-          checked={!cfg.hideInstancesFromSidebar}
-          onChange={(v) => {
-            patch({ hideInstancesFromSidebar: !v });
-            // The sidebar follows at once instead of after the autosave.
-            setHidden('instances', !v);
-          }}
-        />
+        <SectionTitle>{t('settings.module.federation')}</SectionTitle>
+        <ModuleToggle id="federation" />
       </Card>
-      <Instances />
+      <Instances firstHue={1} />
     </div>
   );
 }

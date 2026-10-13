@@ -53,3 +53,20 @@ exist fails the build.
 `scripts/screenshots/shoot.mjs` draws the README's screenshots from made-up
 sample data, in both themes. Run `npm install` and
 `npx playwright install chromium` in that folder once, then `node shoot.mjs`.
+
+## Hoster logos
+
+The page ships a logo for most hosters in `web/public/hosters`, and an
+instance fetches an icon from the site only for a hoster without one. To
+refresh the set, collect the logos into a folder as `<domain>.png`, look
+through them for blank images and logos of the wrong brand, and run this in
+`web`:
+
+```sh
+npm i --no-save sharp
+node scripts/gen-hoster-logos.mjs <folder>
+```
+
+It rewrites the folder and `src/lib/hosterLogos.ts`, puts a plate behind a logo
+that would vanish on one of the themes, and leaves out an image that turns up
+under unrelated domains, since that is a hosting script's default.

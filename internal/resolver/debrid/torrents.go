@@ -213,12 +213,9 @@ func NewRuns(slot string) *Runs {
 // Restore takes up the job a task held before a restart. The task's next
 // Download carries on with it from the first file that is not here yet.
 func (rs *Runs) Restore(taskID, link string, j core.ServiceJob) {
-	_, _, imported := ParseJobLink(link)
-	r := &torrentRun{link: link, job: j.ID, imported: imported, held: !imported && !j.Owned, probe: j.Probe, next: j.Done, partial: j.Partial}
-	if !imported {
-		if _, name, _, err := sourceOf(link); err == nil {
-			r.name = name
-		}
+	r := &torrentRun{link: link, job: j.ID, held: !j.Owned, probe: j.Probe, next: j.Done, partial: j.Partial}
+	if _, name, _, err := sourceOf(link); err == nil {
+		r.name = name
 	}
 	rs.mu.Lock()
 	defer rs.mu.Unlock()
@@ -307,9 +304,6 @@ type TorrentBackend struct {
 	// the task's torrent before the job is deleted there and the torrent goes
 	// on to the next backend, 0 for no limit.
 	StallMinutes func(taskID string) int
-	// Added is told the id of every job this backend adds to the account, so
-	// the import from the account knows the job for one of its own.
-	Added func(job string)
 
 	poll, pollMax, gap, cacheWait time.Duration
 	// minute is what StallMinutes counts in.
@@ -334,10 +328,6 @@ type torrentRun struct {
 	// held says the account had the job before this task asked for it, so it
 	// is never deleted here.
 	held bool
-	// imported is a download added to the account outside this instance,
-	// whose JobLink names the job. Nothing else holds it, so it is never added
-	// again, and whether it is deleted when the task goes is the app's call.
-	imported bool
 	// probe says the job was added to see whether the service has the torrent
 	// cached, and has not been ready yet.
 	probe  bool
@@ -365,15 +355,14 @@ func (b *TorrentBackend) Service() TorrentService { return b.svc }
 // Download starts a torrent, or carries on with the one the task already
 // holds here: after a failure, or with the job a restart restored.
 func (b *TorrentBackend) Download(taskID, link string, headers map[string]string, conns int) {
-	_, job, imported := ParseJobLink(link)
-	if !imported && !torrent.IsURI(link) {
+	if !torrent.IsURI(link) {
 		b.links.Download(taskID, link, headers, conns)
 		return
 	}
 	b.runs.mu.Lock()
 	r := b.runs.byTask[taskID]
 	if r == nil || r.done || r.link != link {
-		r = &torrentRun{link: link, job: job, imported: imported}
+		r = &torrentRun{link: link}
 		b.runs.byTask[taskID] = r
 	}
 	r.conns = conns
@@ -557,10 +546,9 @@ func (r *torrentRun) settle() {
 }
 
 // ours reports whether this instance added the job, so it deletes the job
-// when the task gives it up. An imported job is deleted once its files are
-// here, as a finished torrent is, but a removal leaves it to the app.
+// when the task gives it up.
 func (r *torrentRun) ours() bool {
-	return !r.held && !r.imported
+	return !r.held
 }
 
 func (b *TorrentBackend) run(ctx context.Context, taskID string, r *torrentRun) {
@@ -669,9 +657,6 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 		}
 		return "", false
 	}
-	if b.Added != nil {
-		b.Added(job)
-	}
 	b.runs.mu.Lock()
 	kept := b.runs.byTask[taskID] == r
 	if kept {
@@ -772,7 +757,7 @@ func (b *TorrentBackend) finder() func(context.Context, string) (string, error) 
 // for the task's StallMinutes, go on to the next backend.
 func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun, job string) (TorrentJob, bool) {
 	b.runs.mu.Lock()
-	probe, imported := r.probe, r.imported
+	probe := r.probe
 	b.runs.mu.Unlock()
 	start := time.Now()
 	misses := 0
@@ -825,7 +810,7 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 			b.refuse(ctx, taskID, r, "only a cached torrent may go to a debrid service, and this one did not have it ready when it was added")
 			return TorrentJob{}, false
 		}
-		minutes := b.stallMinutes(taskID, imported)
+		minutes := b.stallMinutes(taskID)
 		stall := time.Duration(minutes) * b.minute
 		// A service that has the whole torrent is moving it to where it
 		// hands it out, which it reports no progress for.
@@ -850,10 +835,8 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 	}
 }
 
-// stallMinutes is the task's StallMinutes, or 0 for a download imported from
-// the account, which is the user's job there and never given up on here.
-func (b *TorrentBackend) stallMinutes(taskID string, imported bool) int {
-	if imported || b.StallMinutes == nil {
+func (b *TorrentBackend) stallMinutes(taskID string) int {
+	if b.StallMinutes == nil {
 		return 0
 	}
 	return b.StallMinutes(taskID)
@@ -1018,17 +1001,11 @@ func (b *TorrentBackend) finish(ctx context.Context, taskID string, r *torrentRu
 
 // refuse hands the task to the next backend: the service will not fetch this
 // torrent, so waiting and asking again would not help. The job, if there is
-// one, is of no further use. An imported download has no next backend, so it
-// fails where it is and stays on the account for the user to look at.
+// one, is of no further use.
 func (b *TorrentBackend) refuse(ctx context.Context, taskID string, r *torrentRun, reason string) {
 	b.runs.mu.Lock()
 	if !b.live(ctx, taskID, r) {
 		b.runs.mu.Unlock()
-		return
-	}
-	if r.imported {
-		b.runs.mu.Unlock()
-		b.fail(ctx, taskID, errors.New(reason))
 		return
 	}
 	job, ours := r.job, r.ours()

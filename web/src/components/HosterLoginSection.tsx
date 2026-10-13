@@ -3,7 +3,8 @@
 // JD's hoster plugin performs the login; JD's own UI is never shown. The table
 // is AccountTable, shared with the debrid card; this file adds the JD status
 // badge and the host picker. The picker offers no debrid service: KnightLoader
-// speaks to each of those itself.
+// speaks to each of those itself. The page's floating action opens the picker
+// through `adding`.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -17,16 +18,15 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
+import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
-import { IconAccounts, IconChevronStart, IconClose, IconPlus, IconSearch, IconTrash } from '../lib/icons';
-import { HosterIcon } from './HosterIcon';
+import { IconAccounts, IconBack, IconClose, IconTrash } from '../lib/icons';
+import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
+import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
 const POLL_MS = 8000;
-
-type Dialog = { mode: 'new' } | { mode: 'edit'; login: HosterLogin };
 
 /** HosterLogins is the logins and the host list. */
 export interface HosterLogins {
@@ -120,9 +120,21 @@ function hosterLoginRow(
 }
 
 /** HosterLoginSection is the hoster card. */
-export function HosterLoginSection({ data }: { data: HosterLogins }) {
+export function HosterLoginSection({
+  data,
+  emptyPointer,
+  adding,
+  onAddClose,
+}: {
+  data: HosterLogins;
+  /** The sentence of the empty card that names the page's add action. */
+  emptyPointer: string;
+  /** The page asked for the window that adds a login. */
+  adding: boolean;
+  onAddClose: () => void;
+}) {
   const { t } = useT();
-  const [dialog, setDialog] = useState<Dialog | null>(null);
+  const [editing, setEditing] = useState<HosterLogin | null>(null);
   // The login awaiting removal confirmation.
   const [confirming, setConfirming] = useState<HosterLogin | null>(null);
 
@@ -137,42 +149,31 @@ export function HosterLoginSection({ data }: { data: HosterLogins }) {
           rows={rows.map((row) =>
             hosterLoginRow(row, {
               onToggle: (v) => void data.toggle(row, v),
-              onEdit: () => setDialog({ mode: 'edit', login: row }),
+              onEdit: () => setEditing(row),
               onRemove: () => setConfirming(row),
             }),
           )}
         />
       )}
 
-      {hasRows ? (
-        <Button
-          kind="secondary"
-          hue={2}
-          icon={<IconPlus width={16} height={16} />}
-          className="self-start"
-          onClick={() => setDialog({ mode: 'new' })}
-        >
-          {t('accounts.newAccount')}
-        </Button>
-      ) : (
+      {!hasRows && (
         <EmptyState
           nested
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
-          action={
-            <Button kind="secondary" hue={2} icon={<IconPlus width={16} height={16} />} onClick={() => setDialog({ mode: 'new' })}>
-              {t('accounts.newAccount')}
-            </Button>
-          }
+          hint={emptyPointer}
         />
       )}
 
-      {dialog && (
+      {(editing || adding) && (
         <HosterLoginDialog
           hosts={data.hosts}
           existing={rows}
-          editing={dialog.mode === 'edit' ? dialog.login : undefined}
-          onClose={() => setDialog(null)}
+          editing={editing ?? undefined}
+          onClose={() => {
+            setEditing(null);
+            onAddClose();
+          }}
           onSaved={data.load}
         />
       )}
@@ -239,21 +240,21 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
     case 'off':
       // Not "queued": JD does not have a switched-off login at all.
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-carbon-textMuted" />
           {t('accounts.hoster.status.off')}
         </span>
       );
     case 'active':
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
           {t('accounts.hoster.status.active')}
         </span>
       );
     case 'rejected':
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
           {t('accounts.hoster.status.rejected')}
           {detail && <InfoBubble tip={detail} />}
@@ -263,7 +264,7 @@ function HosterLoginStatusBadge({ login }: { login: HosterLogin }) {
       // 'queued' covers both "not yet confirmed" and "not yet validated" by JD;
       // the detail text says which.
       return (
-        <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+        <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
           <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
           {t('accounts.hoster.status.queued')}
           {detail && <InfoBubble tip={detail} />}
@@ -300,7 +301,7 @@ function HosterLoginDialog({
   const [saving, setSaving] = useState(false);
 
   const configured = new Set(existing.map((e) => e.host));
-  const filtered = hosts.filter((h) => !configured.has(h.id) && h.label.toLowerCase().includes(query.trim().toLowerCase()));
+  const brands: Brand[] = hosts.filter((h) => !configured.has(h.id)).map((h) => ({ id: h.id, name: h.label, host: h.id }));
 
   async function doSave() {
     if (!picked) return;
@@ -328,13 +329,37 @@ function HosterLoginDialog({
   return (
     <Modal
       title={title}
+      // While adding, the window says what the card it fills is for.
+      hint={editing ? undefined : t('accounts.hoster.hint')}
       hue={2}
+      // The picker's window, which the form of the picked hoster stays in, and
+      // an edit opens the same form in the same window.
+      wide
+      height={picked ? 'content' : 'capped'}
+      holdHeight={!picked && query !== ''}
+      right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
       onClose={onClose}
       footer={
         picked ? (
           <>
+            {/* A new login's form leads back to the list it was picked from;
+                an edit stays on its host and offers the way out. */}
+            {editing ? (
+              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+            ) : (
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconBack className="rtl:-scale-x-100" />}
+                title={t('onboarding.back')}
+                onClick={() => {
+                  // The list comes back whole, so the window can measure the height its search holds.
+                  setPicked(null);
+                  setQuery('');
+                }}
+              />
+            )}
             <span className="flex-1" />
-            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             <Button onClick={() => void doSave()} disabled={saving || !canSave}>
               {saving ? t('accounts.saving') : t('accounts.save')}
             </Button>
@@ -348,56 +373,21 @@ function HosterLoginDialog({
       }
     >
       {!picked ? (
-        <div className="flex flex-col gap-3">
-          <div className="flex h-[var(--btn-h)] items-center gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 px-3">
-            <IconSearch width={15} height={15} className="shrink-0 text-carbon-textMuted" />
-            <input
-              autoFocus
-              value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder={t('accounts.hoster.searchHosts')}
-              aria-label={t('accounts.hoster.searchHosts')}
-              className="min-w-0 flex-1 bg-transparent text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
-            />
-          </div>
-          <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-            {filtered.length === 0 && (
-              <p className="px-2 py-3 text-center text-sm text-carbon-textMuted">{t('accounts.noServicesFound')}</p>
-            )}
-            {filtered.map((h) => (
-              <button
-                key={h.id}
-                type="button"
-                onClick={() => setPicked(h)}
-                className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
-              >
-                {/* Lazy, so only rows scrolled into view fetch their icon. */}
-                <HosterIcon host={h.id} />
-                <span className="text-sm text-carbon-text">{h.label}</span>
-              </button>
-            ))}
-          </div>
+        <div data-new="hoster-logos">
+          <BrandPicker
+            brands={brands.filter((b) => brandMatches(b, query))}
+            none={t('accounts.noServicesFound')}
+            onPick={(id) => setPicked(hosts.find((h) => h.id === id) ?? null)}
+          />
         </div>
       ) : (
-        <div className="flex flex-col gap-4">
-          {/* Only while adding from this list; an edit stays on its host. */}
-          {!editing && (
-            <Button
-              kind="secondary"
-              labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
-              title={t('accounts.changeAccount')}
-              onClick={() => setPicked(null)}
-              className="self-start"
-            />
-          )}
-
-          <Field label={t('accounts.usernameField')}>
+        <div data-new="picker-form" className="flex flex-col gap-4">
+          <SettingRow control="long" label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
-          </Field>
-          <Field label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
+          </SettingRow>
+          <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </Field>
+          </SettingRow>
         </div>
       )}
     </Modal>

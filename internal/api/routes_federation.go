@@ -4,6 +4,7 @@ package api
 // forwarding task operations to one.
 
 import (
+	"context"
 	"errors"
 	"io"
 	"net/http"
@@ -13,6 +14,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/app"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
+	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
 // refuseFederationOff answers every call that would reach a peer while the
@@ -131,13 +133,48 @@ func registerFederation(reg *Registry, a *app.App) {
 			if clipLeaseCall(r.Method, rest) && r.URL.Query().Get("pause") != "" {
 				target += "?pause=1"
 			}
-			resp, code, err := a.Federation.Proxy(r.Context(), r.PathValue("name"), r.Method, target, body)
+			name := r.PathValue("name")
+			resp, code, err := a.Federation.Proxy(r.Context(), name, r.Method, target, body)
 			if err != nil {
 				http.Error(w, err.Error(), code)
 				return
+			}
+			if addsLinks(r.Method, target) && code/100 == 2 {
+				a.Hub.Broadcast("handover", handover{Peer: name, Out: true})
 			}
 			w.Header().Set("Content-Type", "application/json")
 			w.WriteHeader(code)
 			_, _ = w.Write(resp)
 		})
+}
+
+// handover is the hub's "handover" message: links have gone from this instance
+// to another, or come in from a member of its group. The picture of the group
+// sends a parcel along that member's line.
+type handover struct {
+	// Peer is who the links went to or came from, as GET /api/instances names
+	// an instance and GET /api/connect a phone or a browser extension.
+	Peer string `json:"peer"`
+	// Out is true for links this instance sent.
+	Out bool `json:"out"`
+}
+
+// addsLinks reports whether a call hands links over, as opposed to reading or
+// steering what is already there.
+func addsLinks(method, target string) bool {
+	route, _, _ := strings.Cut(target, "?")
+	return method == http.MethodPost && route == "/api/links"
+}
+
+// announceArrivals tells the open pages when a member of the group has handed
+// links to this instance. It runs behind the group's guard, so the member a
+// call names is the one whose pinned key signed it.
+func announceArrivals(a *app.App, serve relay.ProxyHandler) relay.ProxyHandler {
+	return func(ctx context.Context, call relay.ProxyCall) (int, []byte) {
+		status, out := serve(ctx, call)
+		if call.From != "" && addsLinks(call.Method, call.Path) && status/100 == 2 {
+			a.Hub.Broadcast("handover", handover{Peer: call.From})
+		}
+		return status, out
+	}
 }

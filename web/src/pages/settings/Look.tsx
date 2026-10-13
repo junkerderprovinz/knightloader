@@ -1,21 +1,45 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
-import { Button, Card, ErrorCard, InfoBubble, LinkBadge, Modal, SectionTitle, Toggle, ToggleRow, useTooltip } from '../../components/ui';
-import { About } from './Help';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import {
+  Button,
+  Card,
+  ErrorCard,
+  InfoBubble,
+  Modal,
+  SectionTitle,
+  Toggle,
+  ToggleRow,
+  useTooltip,
+} from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
+import { setHidden } from '../../lib/sidebarPrefs';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
   type DeploymentInfo,
   fetchDeploymentInfo,
-  fetchUpdateCheck,
   requestQuit,
   requestRestart,
-  type UpdateCheck as UpdateCheckT,
 } from '../../lib/api';
-import { IconClose, IconMoon, IconRetry, IconSignOut, IconSun } from '../../lib/icons';
+import {
+  IconClose,
+  IconCornerLeaf,
+  IconCornerRound,
+  IconCornerSoft,
+  IconCornerSquare,
+  IconMoon,
+  IconMotionOff,
+  IconMotionStorm,
+  IconMotionSubtle,
+  IconMotionWild,
+  IconRefresh,
+  IconSignOut,
+  IconSun,
+  IconThemeSystem,
+} from '../../lib/icons';
+import type { GlyphProps } from '../../lib/glyphs';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
-import { getTheme, onThemeChange, setTheme } from '../../lib/theme';
+import { getTheme, onThemeChange, setTheme, type Theme } from '../../lib/theme';
 import { isDesktop } from '../../lib/desktop';
 import { LABEL_AXES, LABEL_MODES, LABEL_SETTING, asLabelMode, setLabelMode, useLabelMode, type LabelAxis, type LabelMode } from '../../lib/labelModes';
 import { useT, type TranslationKey } from '../../lib/i18n';
@@ -45,10 +69,13 @@ import {
   stormTap,
 } from '../../lib/appearance';
 import { applyDisco, discoTap } from '../../lib/disco';
-import { useDraft, useFeatures } from './context';
-import { ModulesPageBadge } from './ModuleToggle';
+import { applySpeedLines, lineColours, linesFromSettings } from '../../lib/speedLines';
+import { useDraft } from './context';
+import { SettingRow, SubHead } from './controls';
 import { same } from './paths';
 import { NotificationsCard } from './look/Notifications';
+import { BuiltInCard, UpdatesCard } from './look/Updates';
+import { BrowserWindowCard, WindowCard } from './appearance/WindowCard';
 import { SettingsTransfer } from './look/SettingsTransfer';
 import { JDImportCard } from './look/JDImport';
 
@@ -87,7 +114,17 @@ function accentSlot(hex: string): number {
 const SLOTS_KEY = 'kl-accent-slots';
 
 /** The appearance fields this page saves on every change. */
-const LOOK_KEYS = ['shape', 'accent', 'rainbow', 'rainbowReactive', 'rainbowRotate', 'rainbowSeed', 'rainbowPalette'] as const;
+const LOOK_KEYS = [
+  'shape',
+  'accent',
+  'rainbow',
+  'rainbowReactive',
+  'rainbowRotate',
+  'rainbowSeed',
+  'rainbowPalette',
+  'downloadLine',
+  'seedingLine',
+] as const;
 
 /** The shape picker's words. Soft's key says what the shape is rather than
  *  repeating the English word, so a translation starts from the meaning. */
@@ -96,6 +133,20 @@ const SHAPE_LABELS: Record<Shape, TranslationKey> = {
   soft: 'settings.shape.slightlyRounded',
   square: 'settings.shape.square',
   leaf: 'settings.shape.leaf',
+};
+
+const SHAPE_GLYPHS: Record<Shape, (p: GlyphProps) => ReactNode> = {
+  round: IconCornerRound,
+  soft: IconCornerSoft,
+  square: IconCornerSquare,
+  leaf: IconCornerLeaf,
+};
+
+const MOTION_GLYPHS: Record<Motion, (p: GlyphProps) => ReactNode> = {
+  off: IconMotionOff,
+  subtle: IconMotionSubtle,
+  wild: IconMotionWild,
+  storm: IconMotionStorm,
 };
 
 const LABEL_AXIS_NAMES: Record<LabelAxis, TranslationKey> = {
@@ -242,10 +293,57 @@ function ResetBadge({ label, dim, onClick }: { label: string; dim?: boolean; onC
         }`}
         {...tipHoverProps}
       >
-        <IconRetry width={16} height={16} />
+        <IconRefresh width={16} height={16} />
       </button>
       {tip.node}
     </>
+  );
+}
+
+/**
+ * LineRow picks the colour of one line of the speed graphs from the accent
+ * circles. A mixed colour is worn by the circle nearest to it, so the row needs
+ * no memory of its own; pressing the chosen circle opens the picker, and the
+ * reset goes back to the default.
+ */
+function LineRow({
+  label,
+  hint,
+  colour,
+  onPick,
+}: {
+  label: string;
+  hint: string;
+  /** The colour the line is drawn in, the default filled in. */
+  colour: string;
+  /** Stores a colour, or '' for the default. */
+  onPick: (hex: string) => void;
+}) {
+  const { t } = useT();
+  const slot = accentSlot(colour);
+  return (
+    <div className="flex flex-wrap items-center justify-between gap-3">
+      <span className="flex shrink-0 items-center gap-1.5 text-sm text-carbon-text">
+        {label}
+        <InfoBubble tip={hint} />
+      </span>
+      <div className="flex flex-wrap items-center gap-2">
+        {ACCENTS.map((a, i) => {
+          const shown = i === slot ? colour : a.hex;
+          return (
+            <RingSwatch
+              key={a.hex}
+              color={shown}
+              label={shown.toLowerCase() !== a.hex.toLowerCase() ? shown.toUpperCase() : a.name}
+              selected={i === slot}
+              onPick={() => onPick(shown)}
+              onEdit={(el) => openColorPickerPopover(el, shown, onPick)}
+            />
+          );
+        })}
+        <ResetBadge label={t('settings.accentReset')} onClick={() => onPick('')} />
+      </div>
+    </div>
   );
 }
 
@@ -263,8 +361,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
   const { cfg, saved, patch, patchNow } = useDraft();
   const { toast } = useToast();
 
-  // Language and light/dark are per-browser (lib/theme.ts, LanguagePicker.tsx)
-  // and save themselves.
+  // Language and theme are per-browser (lib/theme.ts, LanguagePicker.tsx) and
+  // save themselves.
   const [theme, setThemeState] = useState(getTheme);
   useEffect(() => onThemeChange(setThemeState), []);
 
@@ -321,6 +419,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     const rainbow = rainbowFromSettings(cfg);
     applyShape(cfg.shape);
     applyAccent(cfg.accent);
+    applySpeedLines(linesFromSettings(cfg), cfg.accent);
     applyRainbow(rainbow);
     applyDisco(disco);
     applyMotion(motion);
@@ -334,6 +433,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.rainbowSeed,
     // The palette is an array, so the effect depends on its contents.
     cfg.rainbowPalette?.join(),
+    cfg.downloadLine,
+    cfg.seedingLine,
     motion,
     disco,
   ]);
@@ -359,6 +460,8 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
         rainbowRotate: cfg.rainbowRotate,
         rainbowSeed: cfg.rainbowSeed,
         rainbowPalette: cfg.rainbowPalette,
+        downloadLine: cfg.downloadLine,
+        seedingLine: cfg.seedingLine,
       })
         .then(() => toast(t('settings.saved'), 'ok'))
         // Only a toast: the debounced save has no button to shake.
@@ -376,9 +479,12 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
     cfg.rainbowRotate,
     cfg.rainbowSeed,
     cfg.rainbowPalette?.join(),
+    cfg.downloadLine,
+    cfg.seedingLine,
   ]);
 
   const accentLive = live(cfg.accent);
+  const lines = lineColours(linesFromSettings(cfg), cfg.accent);
 
   // Mirrored into a ref so each writer sees the last write at once; the picker
   // fires on every drag frame.
@@ -436,136 +542,182 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
 
   return (
     <div className="flex flex-col gap-10">
-      {/* Each card title is a notch badge with its own rainbow position. The
-          language comes first on this tab, with the other things that decide
-          how the app looks to the person using it; its trigger is a field, as
-          tall as one. */}
+      {/* What decides how the app looks to the person using it, one row each
+          with its selector at the row's end. The language comes first, and its
+          trigger is a field, as tall as one. */}
       {appearance && (
-      <Card hue={3} className="flex flex-col gap-3">
-        <SectionTitle>{t('lang.label')}</SectionTitle>
-        {/* standalone: OnboardingWizard mounts a second instance at the same
-            time (see LanguagePicker.tsx). */}
-        <LanguagePicker
-          direction="down"
-          standalone
-          className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
-        />
-      </Card>
-      )}
-
-      {appearance && (
-      <Card hue={0} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.shapeHint')}>
-          {t('settings.shape')}
-        </SectionTitle>
-        {/* The well variant of Tabs: one padded track, equal segments, no glyphs.
-            The leaf joins it only while it has just been found or is in force. */}
-        <Tabs
-          label={t('settings.shape')}
-          variant="well"
-          active={cfg.shape}
-          onSelect={(id) => {
-            // Taps on a chosen square count toward the hidden shape.
-            const found = leafTap(leafTaps.current, id, cfg.shape);
-            if (found) setLeafFound(true);
-            patch({ shape: found ?? (id as Shape) });
-          }}
-          items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
-            id: s,
-            label: t(SHAPE_LABELS[s]),
-          }))}
-        />
+      <Card hue={0} data-new="display-card" className="flex flex-col gap-4">
+        <SectionTitle>{t('settings.look.displayTitle')}</SectionTitle>
+        <SettingRow label={t('lang.label')}>
+          {/* standalone: OnboardingWizard mounts a second instance at the same
+              time (see LanguagePicker.tsx). */}
+          <LanguagePicker
+            direction="down"
+            standalone
+            className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
+          />
+        </SettingRow>
+        {/* One group, so the three selectors with glyphs share one dot for
+            what changed in them. */}
+        <div data-new="look-glyphs" className="flex flex-col gap-4">
+          <SettingRow label={t('settings.theme')} hint={t('settings.themeHint', { system: t('theme.system') })}>
+            <Tabs
+              label={t('settings.theme')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={theme}
+              onSelect={(id) => setTheme(id as Theme)}
+              items={[
+                { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
+                { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
+                { id: 'system', label: t('theme.system'), icon: <IconThemeSystem width={16} height={16} /> },
+              ]}
+            />
+          </SettingRow>
+          {/* The leaf joins the shapes only while it has just been found or is
+              in force. */}
+          <SettingRow label={t('settings.shape')} hint={t('settings.shapeHint')}>
+            <Tabs
+              label={t('settings.shape')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={cfg.shape}
+              onSelect={(id) => {
+                // Taps on a chosen square count toward the hidden shape.
+                const found = leafTap(leafTaps.current, id, cfg.shape);
+                if (found) setLeafFound(true);
+                patch({ shape: found ?? (id as Shape) });
+              }}
+              items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => {
+                const Glyph = SHAPE_GLYPHS[s];
+                return { id: s, label: t(SHAPE_LABELS[s]), icon: <Glyph width={16} height={16} /> };
+              })}
+            />
+          </SettingRow>
+          {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
+              level joins the list only while it has just been found or is in
+              force. */}
+          <SettingRow label={t('settings.motion.title')} hint={t('settings.motion.hint')}>
+            <Tabs
+              label={t('settings.motion.title')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={motion}
+              onSelect={(id) => {
+                // A tap on the active segment, which a picker would otherwise
+                // swallow, counts toward the hidden level.
+                const found = stormTap(stormTaps.current, id, motion);
+                const next = found ?? (id as Motion);
+                if (found) setStormFound(true);
+                setMotion(next);
+                applyMotion(next);
+                cacheMotionIntensity(next);
+              }}
+              items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => {
+                const Glyph = MOTION_GLYPHS[m];
+                return { id: m, label: t(`settings.motion.${m}` as never), icon: <Glyph width={16} height={16} /> };
+              })}
+            />
+          </SettingRow>
+        </div>
+        {/* How tall a row of the download and collector lists is, per browser
+            like the motion level (lib/rowHeight.ts). */}
+        <SettingRow label={t('settings.rowHeight.title')} hint={t('settings.rowHeight.hint')}>
+          <Tabs
+            label={t('settings.rowHeight.title')}
+            variant="well"
+            size="sm"
+            inline
+            hug
+            active={rowHeight}
+            onSelect={(id) => setRowHeight(id as RowHeight)}
+            items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
+          />
+        </SettingRow>
       </Card>
       )}
 
       {/* How much of each kind of control is drawn, one selector per kind. It
           writes through the store as well as the draft, since the sidebar
-          renders outside this page's provider (lib/labelModes.ts). */}
+          renders outside this page's provider (lib/labelModes.ts). The sidebar
+          draws as the rail or as the bar, never both, so each of those two
+          rows does nothing at the other width and says so. */}
       {appearance && (
-      <Card hue={9} className="flex flex-col gap-3">
+      <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle hint={t('settings.labelsHint')}>
           {t('settings.labels')}
         </SectionTitle>
-        <div className="flex flex-col gap-4">
-          {labelAxes.map((axis, i) => (
-            <div key={axis} className="flex flex-col gap-1">
-              <span className="flex items-center gap-1 text-xs text-carbon-textSub">
-                {t(LABEL_AXIS_NAMES[axis])}
-                {/* The sidebar draws as the rail or as the bar, never both, so
-                    each of those two rows does nothing at the other width and
-                    says so. */}
-                {axis === 'sidebar' && <InfoBubble tip={t('settings.axisSidebarHint')} />}
-                {axis === 'bottombar' && <InfoBubble tip={t('settings.axisBottombarHint')} />}
-              </span>
-              <Tabs
-                label={t(LABEL_AXIS_NAMES[axis])}
-                variant="well"
-                // One colour further along per row, so no two rows open on
-                // the same colour and the card still reads as one group.
-                hueOffset={i}
-                active={labelModes[axis]}
-                onSelect={(id) => {
-                  const next = asLabelMode(id);
-                  setLabelMode(axis, next);
-                  patch({ [LABEL_SETTING[axis]]: next });
-                }}
-                items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
-              />
-            </div>
-          ))}
-        </div>
+        {labelAxes.map((axis) => (
+          <SettingRow
+            key={axis}
+            label={t(LABEL_AXIS_NAMES[axis])}
+            hint={
+              axis === 'sidebar'
+                ? t('settings.axisSidebarHint')
+                : axis === 'bottombar'
+                  ? t('settings.axisBottombarHint')
+                  : undefined
+            }
+          >
+            <Tabs
+              label={t(LABEL_AXIS_NAMES[axis])}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              active={labelModes[axis]}
+              onSelect={(id) => {
+                const next = asLabelMode(id);
+                setLabelMode(axis, next);
+                patch({ [LABEL_SETTING[axis]]: next });
+              }}
+              items={LABEL_MODES.map((m) => ({ id: m, label: t(LABEL_MODE_NAMES[m]) }))}
+            />
+          </SettingRow>
+        ))}
       </Card>
       )}
 
-      {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
-          level joins the list only while it has just been found or is in
-          force. */}
+      {/* Which pages stand in the sidebar besides Settings, where they are
+          set up either way. The sidebar follows at once instead of after the
+          autosave. */}
       {appearance && (
-      <Card hue={8} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.motion.hint')}>
-          {t('settings.motion.title')}
-        </SectionTitle>
-        <Tabs
-          label={t('settings.motion.title')}
-          variant="well"
-          active={motion}
-          onSelect={(id) => {
-            // A tap on the active segment, which a picker would otherwise
-            // swallow, counts toward the hidden level.
-            const found = stormTap(stormTaps.current, id, motion);
-            const next = found ?? (id as Motion);
-            if (found) setStormFound(true);
-            setMotion(next);
-            applyMotion(next);
-            cacheMotionIntensity(next);
-          }}
-          items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => ({
-            id: m,
-            label: t(`settings.motion.${m}` as never),
-          }))}
-        />
-      </Card>
-      )}
-
-      {/* How tall a row of the download and collector lists is, per browser
-          like the motion level (lib/rowHeight.ts). */}
-      {appearance && (
-      <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.rowHeight.hint')}>
-          {t('settings.rowHeight.title')}
-        </SectionTitle>
-        <Tabs
-          label={t('settings.rowHeight.title')}
-          variant="well"
-          active={rowHeight}
-          onSelect={(id) => setRowHeight(id as RowHeight)}
-          items={ROW_HEIGHTS.map((h) => ({ id: h, label: t(`settings.rowHeight.${h}` as TranslationKey) }))}
-        />
-      </Card>
+        <Card hue={2} data-new="sidebar-card" className="flex flex-col gap-4">
+          <SectionTitle>{t('settings.sidebar.title')}</SectionTitle>
+          <ToggleRow
+            hue={0}
+            label={t('settings.sidebar.accounts')}
+            hint={t('settings.sidebar.accountsHint')}
+            checked={!cfg.hideAccountsFromSidebar}
+            onChange={(v) => {
+              patch({ hideAccountsFromSidebar: !v });
+              setHidden('accounts', !v);
+            }}
+          />
+          <ToggleRow
+            hue={1}
+            label={t('settings.sidebar.instances')}
+            hint={t('settings.sidebar.instancesHint')}
+            checked={!cfg.hideInstancesFromSidebar}
+            onChange={(v) => {
+              patch({ hideInstancesFromSidebar: !v });
+              setHidden('instances', !v);
+            }}
+          />
+        </Card>
       )}
 
       {appearance && (
-      <Card hue={1} className="flex flex-col gap-4">
+      <Card hue={3} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.colours')}</SectionTitle>
 
         {/* Label on the left, circles on the right. While rainbow mode is on
@@ -729,34 +881,35 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           </div>
           )}
         </div>
+
+        {/* The speed graphs' two lines, each from the same circles, under a
+            heading of their own: they colour one picture, not the app. */}
+        <section data-new="line-section" className="flex flex-col gap-3 pt-2">
+          <SubHead label={t('settings.lines.title')} />
+          <LineRow
+            label={t('settings.lines.download')}
+            hint={t('settings.lines.downloadHint')}
+            colour={lines.download}
+            onPick={(hex) => patch({ downloadLine: hex })}
+          />
+          <LineRow
+            label={t('settings.lines.seeding')}
+            hint={t('settings.lines.seedingHint')}
+            colour={lines.seeding}
+            onPick={(hex) => patch({ seedingLine: hex })}
+          />
+        </section>
       </Card>
       )}
+
+      {/* A browser tab has no window or tray icon of its own to set. */}
+      {appearance && (isDesktop() ? <WindowCard hue={4} /> : <BrowserWindowCard hue={4} />)}
 
       {general && <NotificationsCard hue={0} />}
 
-      {appearance && (
-      <Card hue={4} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.theme')}</SectionTitle>
-        <Tabs
-          label={t('settings.theme')}
-          variant="well"
-          labelled
-          active={theme}
-          onSelect={(id) => setTheme(id as 'dark' | 'light')}
-          items={[
-            { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
-            { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
-          ]}
-        />
-      </Card>
-      )}
-
       {general && <MutedDialogsCard hue={1} />}
-      {general && <UpdateCard hue={2} />}
-      {general && <SystemCards hue={3} />}
+      {general && <SystemCards hue={2} />}
       {general && <JDImportCard hue={5} />}
-      {/* Last on the General tab, where a version and a contact are looked for. */}
-      {general && <About hue={6} />}
     </div>
   );
 }
@@ -787,23 +940,31 @@ function MutedDialogsCard({ hue }: { hue: number }) {
 }
 
 /**
- * SystemCards holds quit and restart and the transfer card, on `hue` and the
- * one after it. LifecycleCard does the deployment fetch alone, so a slow
- * /api/deployment never hides the transfer card; both share `shuttingDown`,
- * since a restore can restart the server.
+ * SystemCards holds the update card, with quit and restart as its last group,
+ * the card of built-in parts and the transfer card, on `hue` and the two after
+ * it. Lifecycle does the deployment fetch alone, so a slow /api/deployment
+ * hides no card; it and the transfer card share `shuttingDown`, since a
+ * restore can restart the server.
  */
 function SystemCards({ hue }: { hue: number }) {
   const [shuttingDown, setShuttingDown] = useState(false);
   return (
     <>
-      <LifecycleCard hue={hue} shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
-      <SettingsTransfer hue={hue + 1} onShutdown={() => setShuttingDown(true)} />
+      <UpdatesCard hue={hue}>
+        <Lifecycle shuttingDown={shuttingDown} onShutdown={() => setShuttingDown(true)} />
+      </UpdatesCard>
+      <BuiltInCard hue={hue + 1} />
+      <SettingsTransfer hue={hue + 2} onShutdown={() => setShuttingDown(true)} />
     </>
   );
 }
 
-/** LifecycleCard loads on its own, so a failed deployment fetch drops only this card. */
-function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttingDown: boolean; onShutdown: () => void }) {
+/**
+ * Lifecycle is quit and restart, a group of the update card under its own
+ * small heading, since two buttons are no card. It loads on its own, so a
+ * failed deployment fetch drops only this group.
+ */
+function Lifecycle({ shuttingDown, onShutdown }: { shuttingDown: boolean; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const { data, failed, loading, reload } = useResource<DeploymentInfo>(fetchDeploymentInfo);
@@ -834,54 +995,48 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
   // Nothing while loading, like UpdateCard.
   if (loading) return null;
   if (failed || !data) {
-    return <ErrorCard message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
+    return <ErrorCard nested message={t('settings.system.loadFailed')} retry={reload} retryLabel="↻" />;
   }
 
   if (shuttingDown) {
     return (
-      <Card hue={hue} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.system.shuttingDownTitle')}</SectionTitle>
+      <>
+        <SubHead label={t('settings.system.shuttingDownTitle')} />
         <p className="text-sm text-carbon-text">{t('settings.system.shuttingDown')}</p>
-      </Card>
+      </>
     );
   }
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-3">
-        {/* The note comes from translated keys by deployment, since the server
-            sends it in English; an unavailable reason wins. */}
-        <SectionTitle
-          hint={
-            !data.canQuit || !data.canRestart
-              ? t('settings.system.unavailable')
-              : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
-          }
+      {/* The note comes from translated keys by deployment, since the server
+          sends it in English; an unavailable reason wins. */}
+      <SubHead
+        label={t('settings.system.lifecycleTitle')}
+        hint={
+          !data.canQuit || !data.canRestart
+            ? t('settings.system.unavailable')
+            : t(data.deployment === 'desktop' ? 'settings.system.lifecycleNoteDesktop' : 'settings.system.lifecycleNoteContainer')
+        }
+      />
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          kind="secondary"
+          icon={<IconSignOut width={16} height={16} />}
+          disabled={!data.canQuit || acting}
+          onClick={() => setConfirmAction('quit')}
         >
-          {t('settings.system.lifecycleTitle')}
-        </SectionTitle>
-        <div className="flex flex-wrap items-center gap-3">
-          {/* hue overrides kind's colour, so both buttons look alike. */}
-          <Button
-            hue={hue}
-            kind="primary"
-            icon={<IconSignOut width={16} height={16} />}
-            disabled={!data.canQuit || acting}
-            onClick={() => setConfirmAction('quit')}
-          >
-            {t('settings.system.quit')}
-          </Button>
-          <Button
-            hue={hue}
-            kind="primary"
-            icon={<IconRetry width={16} height={16} />}
-            disabled={!data.canRestart || acting}
-            onClick={() => setConfirmAction('restart')}
-          >
-            {t('settings.system.restart')}
-          </Button>
-        </div>
-      </Card>
+          {t('settings.system.quit')}
+        </Button>
+        <Button
+          kind="secondary"
+          icon={<IconRefresh width={16} height={16} />}
+          disabled={!data.canRestart || acting}
+          onClick={() => setConfirmAction('restart')}
+        >
+          {t('settings.system.restart')}
+        </Button>
+      </div>
 
       {confirmAction && (
         <Modal
@@ -913,101 +1068,6 @@ function LifecycleCard({ hue, shuttingDown, onShutdown }: { hue: number; shuttin
         </Modal>
       )}
     </>
-  );
-}
-
-/**
- * UpdateCard checks GitHub for a newer release on request, and a container
- * also once on mount while its auto-check switch is on (off by default). A
- * container is pointed at the release. The desktop build updates itself in the
- * background (desktop/updates.go), and a check there also tells whether a
- * downloaded version waits for the next start.
- */
-function UpdateCard({ hue }: { hue: number }) {
-  const { t } = useT();
-  const { cfg, patch } = useDraft();
-  // Updating from inside the app is the In-app updates module; its row says
-  // why neither build switches it.
-  const updater = useFeatures().features.modules.find((m) => m.id === 'updater');
-  const [deployment, setDeployment] = useState<string | null>(null);
-  const [check, setCheck] = useState<UpdateCheckT | null>(null);
-  const [checking, setChecking] = useState(false);
-
-  useEffect(() => {
-    void fetchDeploymentInfo()
-      .then((d) => setDeployment(d.deployment))
-      .catch(() => {});
-  }, []);
-
-  const onCheck = useCallback(async () => {
-    setChecking(true);
-    try {
-      setCheck(await fetchUpdateCheck());
-    } catch {
-      setCheck({ checked: false, available: false, current: '' });
-    } finally {
-      setChecking(false);
-    }
-  }, []);
-
-  // Auto-check once, when the switch's value arrives, on a container only:
-  // the desktop build asks GitHub on its own.
-  useEffect(() => {
-    if (deployment === 'container' && cfg.autoUpdateCheck) void onCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fires once
-    // when deployment/autoUpdateCheck first resolve, not on every cfg change.
-  }, [deployment, cfg.autoUpdateCheck]);
-
-  // Wait for the deployment rather than flash the wrong copy.
-  if (deployment === null) return null;
-  const isDesktop = deployment === 'desktop';
-  const ready = check?.ready;
-
-  return (
-    <Card hue={hue} className="flex flex-col gap-3">
-      <SectionTitle hint={t('settings.look.updatesHint')}>
-        {t('settings.look.updatesTitle')}
-      </SectionTitle>
-      {!isDesktop && (
-        <ToggleRow
-          label={t('settings.look.updatesAuto')}
-          hint={t('settings.look.updatesAutoHint')}
-          checked={cfg.autoUpdateCheck}
-          onChange={(v) => patch({ autoUpdateCheck: v })}
-        />
-      )}
-      {/* Shown on both builds; a container cannot replace itself, so there the
-          row is disabled and says why. */}
-      <ToggleRow
-        label={t('settings.look.updatesAutoUpdate')}
-        hint={isDesktop ? t('settings.look.updatesAutoUpdateHint') : t('settings.look.updatesAutoUpdateContainerHint')}
-        checked={isDesktop && cfg.autoUpdate}
-        disabled={!isDesktop}
-        onChange={(v) => patch({ autoUpdate: v })}
-        // The module's row has no switch of its own, so the badge names the
-        // page rather than claiming this switch is there as well.
-        aside={updater && <ModulesPageBadge m={updater} title={t('settings.nav.modules')} />}
-      />
-      <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" onClick={() => void onCheck()} disabled={checking}>
-          {checking ? t('settings.look.updatesChecking') : t('settings.look.updatesCheck')}
-        </Button>
-        {check && !check.checked && <span className="text-sm text-statusFail">{t('settings.look.updatesFailed')}</span>}
-        {ready && <span className="text-sm text-statusOk">{t('settings.look.updatesReady', { version: ready })}</span>}
-        {!ready && check && check.checked && !check.available && (
-          <span className="text-sm text-statusOk">{t('settings.look.updatesCurrent', { version: check.current })}</span>
-        )}
-        {!ready && check && check.checked && check.available && (
-          <span className="inline-flex items-center text-sm font-medium text-carbon-text">
-            {t('settings.look.updatesAvailable', { version: check.latest ?? '' })}
-            {!isDesktop && <InfoBubble tip={t('settings.look.updatesContainerHint')} />}
-          </span>
-        )}
-        {check && check.checked && check.available && check.url && (
-          <LinkBadge href={check.url} title={t('settings.look.updatesReleaseNotes')} />
-        )}
-      </div>
-    </Card>
   );
 }
 

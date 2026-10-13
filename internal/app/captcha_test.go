@@ -1116,3 +1116,39 @@ func TestCaptchaSolversReadsOrderAndCredentials(t *testing.T) {
 		t.Fatalf("captchaSolvers()[1] = %T, want *captcha.TwoCaptchaSolver", got[1].Solver)
 	}
 }
+
+// A solver with a key is tried whether or not the order names it: the order
+// only says who goes first, and the ones it leaves out follow in catalogue
+// order.
+func TestCaptchaSolversTryAKeyTheOrderLeavesOut(t *testing.T) {
+	a := newCaptchaTestApp(t)
+	for _, id := range []string{"2captcha", "anticaptcha"} {
+		if err := a.Accounts.SetCredential(id, "", accounts.Credential{APIKey: "fake-" + id + "-key"}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	got := a.captchaSolvers()
+	if len(got) != 2 || got[0].label != "2Captcha" || got[1].label != "Anti-Captcha" {
+		t.Fatalf("captchaSolvers with no order = %v, want 2Captcha then Anti-Captcha in catalogue order", labels(got))
+	}
+
+	if _, err := a.ApplySettings(settings.Settings{
+		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(),
+		CaptchaSolverOrder: []string{"anticaptcha"},
+	}); err != nil {
+		t.Fatal(err)
+	}
+	got = a.captchaSolvers()
+	if len(got) != 2 || got[0].label != "Anti-Captcha" || got[1].label != "2Captcha" {
+		t.Fatalf("captchaSolvers with Anti-Captcha ordered first = %v, want Anti-Captcha then 2Captcha", labels(got))
+	}
+}
+
+func labels(solvers []paidSolver) []string {
+	out := make([]string, len(solvers))
+	for i, s := range solvers {
+		out[i] = s.label
+	}
+	return out
+}

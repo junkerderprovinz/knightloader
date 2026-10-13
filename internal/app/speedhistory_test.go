@@ -94,10 +94,10 @@ func TestACoarseBucketIsTheMeanOfItsTenFineSamples(t *testing.T) {
 	// 1000 and the first is 0, so each of the three answers is distinguishable.
 	readings := []int64{0, 0, 0, 0, 0, 0, 0, 0, 0, 1000}
 	for i, v := range readings {
-		st.sample(v, speedTestBase.Add(time.Duration(i+1)*time.Second))
+		st.sample(v, 0, speedTestBase.Add(time.Duration(i+1)*time.Second))
 	}
 
-	hour, _ := st.coarse.snapshot()
+	hour, _, _ := st.coarse.snapshot()
 	if len(hour) != 1 {
 		t.Fatalf("ten one second readings closed %d ten second buckets, want exactly 1", len(hour))
 	}
@@ -107,7 +107,7 @@ func TestACoarseBucketIsTheMeanOfItsTenFineSamples(t *testing.T) {
 	}
 	// The fine ring still holds all ten unaveraged: the two resolutions are two
 	// answers, not one answer computed twice.
-	if recent, _ := st.fine.snapshot(); len(recent) != 10 || recent[9] != 1000 {
+	if recent, _, _ := st.fine.snapshot(); len(recent) != 10 || recent[9] != 1000 {
 		t.Errorf("the fine ring holds %v, want all ten readings with 1000 last", recent)
 	}
 }
@@ -121,10 +121,10 @@ func TestTheFineRingIsBoundedByConstruction(t *testing.T) {
 	const extra = 10
 	total := speedFineSlots + extra
 	for i := 1; i <= total; i++ {
-		st.sample(int64(i), speedTestBase.Add(time.Duration(i)*time.Second))
+		st.sample(int64(i), 0, speedTestBase.Add(time.Duration(i)*time.Second))
 	}
 
-	recent, since := st.fine.snapshot()
+	recent, _, since := st.fine.snapshot()
 	if len(recent) != speedFineSlots {
 		t.Fatalf("%d readings into a %d slot ring left %d", total, speedFineSlots, len(recent))
 	}
@@ -155,11 +155,11 @@ func TestTheFineRingIsBoundedByConstruction(t *testing.T) {
 // scheduler rather than the traffic.
 func TestOrdinaryTickerLatenessIsNotTreatedAsAGap(t *testing.T) {
 	st := newSpeedHistoryState()
-	st.sample(1000, speedTestBase.Add(time.Second))
+	st.sample(1000, 0, speedTestBase.Add(time.Second))
 	// Three steps between the two readings: late, and still within tolerance.
-	st.sample(2000, speedTestBase.Add(4*time.Second))
+	st.sample(2000, 0, speedTestBase.Add(4*time.Second))
 
-	recent, _ := st.fine.snapshot()
+	recent, _, _ := st.fine.snapshot()
 	if len(recent) != 2 {
 		t.Fatalf("a three second stretch produced %d readings (%v), want the 2 that were taken; "+
 			"ordinary lateness is not an outage", len(recent), recent)
@@ -172,12 +172,12 @@ func TestOrdinaryTickerLatenessIsNotTreatedAsAGap(t *testing.T) {
 // sit next to each other and the hour view draws a line straight across it.
 func TestASuspendedProcessGetsZerosAndNotAStraightLine(t *testing.T) {
 	st := newSpeedHistoryState()
-	st.sample(5_000_000, speedTestBase.Add(time.Second))
+	st.sample(5_000_000, 0, speedTestBase.Add(time.Second))
 
 	// Four hours later the lid opens and the ticker fires once.
-	st.sample(6_000_000, speedTestBase.Add(4*time.Hour))
+	st.sample(6_000_000, 0, speedTestBase.Add(4*time.Hour))
 
-	recent, _ := st.fine.snapshot()
+	recent, _, _ := st.fine.snapshot()
 	if len(recent) != speedFineSlots {
 		t.Fatalf("the fine ring holds %d readings after a four hour gap, want the full %d; "+
 			"anything less means the missing steps were not written", len(recent), speedFineSlots)
@@ -194,7 +194,7 @@ func TestASuspendedProcessGetsZerosAndNotAStraightLine(t *testing.T) {
 
 	// The hour ring is longer than the gap is deep, so all of it is idle and the
 	// 5 MB/s from before the suspend is nowhere in it.
-	hour, _ := st.coarse.snapshot()
+	hour, _, _ := st.coarse.snapshot()
 	if len(hour) != speedCoarseSlots {
 		t.Fatalf("the hour ring holds %d buckets after a four hour gap, want the full %d",
 			len(hour), speedCoarseSlots)
@@ -211,14 +211,14 @@ func TestASuspendedProcessGetsZerosAndNotAStraightLine(t *testing.T) {
 func TestAGapDoesNotAverageAcrossItself(t *testing.T) {
 	st := newSpeedHistoryState()
 	for i := 1; i <= 3; i++ {
-		st.sample(9_000_000, speedTestBase.Add(time.Duration(i)*time.Second))
+		st.sample(9_000_000, 0, speedTestBase.Add(time.Duration(i)*time.Second))
 	}
 	woke := speedTestBase.Add(4 * time.Hour)
 	for i := 0; i < 10; i++ {
-		st.sample(1_000, woke.Add(time.Duration(i)*time.Second))
+		st.sample(1_000, 0, woke.Add(time.Duration(i)*time.Second))
 	}
 
-	hour, _ := st.coarse.snapshot()
+	hour, _, _ := st.coarse.snapshot()
 	if len(hour) == 0 {
 		t.Fatal("no hour buckets at all after ten readings past the wake")
 	}
@@ -233,7 +233,7 @@ func TestAGapDoesNotAverageAcrossItself(t *testing.T) {
 // after a restart.
 func TestAnEmptyRecordCrossesTheWireAsArraysAndNotNull(t *testing.T) {
 	st := newSpeedHistoryState()
-	recent, since := st.fine.snapshot()
+	recent, _, since := st.fine.snapshot()
 	if recent == nil {
 		t.Fatal("an empty fine ring snapshots as a nil slice, which marshals as null")
 	}
@@ -244,7 +244,7 @@ func TestAnEmptyRecordCrossesTheWireAsArraysAndNotNull(t *testing.T) {
 		t.Errorf("an empty fine ring reports a start of %v; nothing has been recorded", since)
 	}
 
-	hour, _ := st.coarse.snapshot()
+	hour, _, _ := st.coarse.snapshot()
 	out, err := json.Marshal(SpeedHistory{Recent: recent, Hour: hour})
 	if err != nil {
 		t.Fatal(err)
@@ -294,5 +294,197 @@ func TestSpeedHistoryDeclaresItsOwnBounds(t *testing.T) {
 	}
 	if got.SampledAt.IsZero() {
 		t.Error("no sampledAt, so nothing can say how old the answer is")
+	}
+}
+
+// A day bucket is five minutes of readings, and its mean is what the day curve
+// draws against the planned limit.
+func TestADayBucketIsTheMeanOfItsFiveMinutes(t *testing.T) {
+	st := newSpeedHistoryState()
+
+	// One busy minute in five: the mean is a fifth of the busy reading.
+	for i := 1; i <= speedDayEvery; i++ {
+		v := int64(0)
+		if i > 240 {
+			v = 5000
+		}
+		st.sample(v, 0, speedTestBase.Add(time.Duration(i)*time.Second))
+	}
+
+	day, _, closed := st.day.snapshot()
+	if len(day) != 1 || day[0] != 1000 {
+		t.Fatalf("five minutes of readings left the day ring at %v, want one bucket of 1000", day)
+	}
+	if want := speedTestBase.Add(speedDayStep); !closed.Equal(want) {
+		t.Errorf("the bucket is stamped %v, want %v, the moment it closed", closed, want)
+	}
+}
+
+// The day ring places its buckets by their number, so the readings a suspend
+// swallowed have to be counted in or everything after it moves on the clock.
+func TestASuspendKeepsTheDayBucketsOnTheClock(t *testing.T) {
+	st := newSpeedHistoryState()
+	for i := 1; i <= 120; i++ {
+		st.sample(3000, 0, speedTestBase.Add(time.Duration(i)*time.Second))
+	}
+	// Two minutes in, the machine sleeps for twenty and then carries on.
+	woke := speedTestBase.Add(22 * time.Minute)
+	for i := 0; i < 180; i++ {
+		st.sample(600, 0, woke.Add(time.Duration(i)*time.Second))
+	}
+
+	day, _, closed := st.day.snapshot()
+	// 120 readings of 3000 and 180 idle ones, three idle buckets, and none of
+	// the readings after the wake yet: the fifth bucket is still open.
+	want := []int64{1200, 0, 0, 0}
+	if len(day) != len(want) {
+		t.Fatalf("the day ring holds %v, want %v", day, want)
+	}
+	for i := range want {
+		if day[i] != want[i] {
+			t.Fatalf("the day ring holds %v, want %v", day, want)
+		}
+	}
+	if first := speedTestBase.Add(speedDayStep); !closed.Equal(first) {
+		t.Errorf("the oldest bucket is stamped %v, want %v", closed, first)
+	}
+}
+
+// A day is 288 buckets however long the instance has run.
+func TestTheDayRingHoldsOneDay(t *testing.T) {
+	st := newSpeedHistoryState()
+	st.sample(1, 0, speedTestBase.Add(time.Second))
+	st.sample(1, 0, speedTestBase.Add(30*time.Hour))
+
+	day, _, _ := st.day.snapshot()
+	if len(day) != speedDaySlots {
+		t.Fatalf("thirty hours left %d buckets in the day ring, want %d", len(day), speedDaySlots)
+	}
+}
+
+// SpeedDay says when its oldest bucket opened, which is what puts the curve on
+// the clock, and says nothing while there is no bucket.
+func TestSpeedDayDatesItsOldestBucket(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+
+	got := a.SpeedDay()
+	if got.Samples == nil || len(got.Samples) != 0 || got.From != nil {
+		t.Fatalf("a fresh instance answers %+v, want no samples as an empty list and no start", got)
+	}
+	if got.Step != 300 || got.Cap != speedDaySlots {
+		t.Errorf("the day record describes itself as %d s x %d, want 300 s x %d", got.Step, got.Cap, speedDaySlots)
+	}
+
+	closed := time.Now().Truncate(time.Second)
+	a.speedHistoryFor().day.push(speedReading{down: 4096}, closed)
+	got = a.SpeedDay()
+	if len(got.Samples) != 1 || got.Samples[0] != 4096 {
+		t.Fatalf("samples = %v, want the one bucket", got.Samples)
+	}
+	if got.From == nil || !got.From.Equal(closed.Add(-speedDayStep)) {
+		t.Errorf("from = %v, want %v, five minutes before the bucket closed", got.From, closed.Add(-speedDayStep))
+	}
+}
+
+// The upload rides in the same slots as the download, so every resolution
+// averages it the same way and the two lines stay on one clock.
+func TestUploadIsAveragedAlongsideTheDownload(t *testing.T) {
+	st := newSpeedHistoryState()
+	for i := 1; i <= speedDayEvery; i++ {
+		up := int64(0)
+		if i%10 == 0 {
+			up = 3000
+		}
+		st.sample(5000, up, speedTestBase.Add(time.Duration(i)*time.Second))
+	}
+
+	recent, recentUp, _ := st.fine.snapshot()
+	if len(recentUp) != len(recent) || recentUp[len(recentUp)-1] != 3000 {
+		t.Errorf("the fine ring holds %d download and %v upload readings, want as many of each with 3000 last",
+			len(recent), recentUp)
+	}
+	hour, hourUp, _ := st.coarse.snapshot()
+	if len(hourUp) != len(hour) || hourUp[0] != 300 || hour[0] != 5000 {
+		t.Errorf("the first hour bucket is %d down and %v up, want 5000 and a mean of 300", hour[0], hourUp)
+	}
+	day, dayUp, _ := st.day.snapshot()
+	if len(day) != 1 || len(dayUp) != 1 || dayUp[0] != 300 {
+		t.Errorf("the day ring holds %v down and %v up, want one bucket with an upload mean of 300", day, dayUp)
+	}
+}
+
+// A suspend is idle in both directions; the upload from before it must not
+// stand across the gap.
+func TestASuspendFillsTheUploadWithZerosToo(t *testing.T) {
+	st := newSpeedHistoryState()
+	st.sample(0, 7000, speedTestBase.Add(time.Second))
+	st.sample(0, 8000, speedTestBase.Add(time.Hour))
+
+	_, up, _ := st.fine.snapshot()
+	for i, v := range up[:len(up)-1] {
+		if v != 0 {
+			t.Fatalf("upload reading %d is %d after an hour's gap, want zero", i, v)
+		}
+	}
+	if up[len(up)-1] != 8000 {
+		t.Errorf("the newest upload reading is %d, want the 8000 taken on wake", up[len(up)-1])
+	}
+}
+
+// A torrent sends only while it downloads or seeds. The reading on one that
+// stopped is history, and adding it would draw a line that never falls.
+func TestUploadNowCountsOnlyTorrentsThatDownloadOrSeed(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+
+	a.mu.Lock()
+	a.tasks["leech"] = &core.Task{ID: "leech", Status: core.StatusRunning, UploadSpeed: 100}
+	a.tasks["seed"] = &core.Task{ID: "seed", Status: core.StatusDone, Seeding: true, UploadSpeed: 40}
+	a.tasks["stopped"] = &core.Task{ID: "stopped", Status: core.StatusDone, UploadSpeed: 900}
+	a.tasks["paused"] = &core.Task{ID: "paused", Status: core.StatusPaused, UploadSpeed: 800}
+	now := time.Now()
+	for id, t := range a.tasks {
+		a.tally.readUpload(id, 0, now.Add(-time.Second))
+		a.tally.readUpload(id, t.UploadSpeed, now)
+	}
+	a.mu.Unlock()
+
+	if got := a.UploadNow(); got != 140 {
+		t.Errorf("UploadNow = %d, want 140, the torrent downloading and the one seeding", got)
+	}
+}
+
+// The task carries the rate the tally reads from two upload totals, which is
+// what the browser sums for the live end of the line.
+func TestATorrentUpdatePutsItsUploadRateOnTheTask(t *testing.T) {
+	a, err := New(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { a.Close() })
+	task := &core.Task{ID: "t1", Resolver: "torrent", Status: core.StatusDone, Seeding: true, Uploaded: 1000}
+	a.mu.Lock()
+	a.tasks[task.ID] = task
+	a.mu.Unlock()
+
+	a.onUpdate(task.ID, core.Update{Status: core.StatusDone, Torrent: &core.TorrentStats{Uploaded: 1000, Seeding: true}})
+	time.Sleep(20 * time.Millisecond)
+	a.onUpdate(task.ID, core.Update{Status: core.StatusDone, Torrent: &core.TorrentStats{Uploaded: 9000, Seeding: true}})
+
+	a.mu.Lock()
+	got := task.UploadSpeed
+	a.mu.Unlock()
+	if got <= 0 {
+		t.Fatalf("UploadSpeed = %d after 8000 bytes went out, want a rate above zero", got)
+	}
+	if now := a.UploadNow(); now != got {
+		t.Errorf("UploadNow = %d, want the task's %d", now, got)
 	}
 }

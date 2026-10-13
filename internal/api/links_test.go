@@ -288,10 +288,9 @@ func TestAPasteIsStillAPaste(t *testing.T) {
 	}
 }
 
-// A link naming a job on one of the user's debrid accounts, or a file of an
-// .nzb sent there, is made by the import and the Usenet queue. Taken from any
-// caller with the add right, it would fetch whatever job the caller guessed,
-// and removing the task would delete the job on the account.
+// A link naming a file of an .nzb sent to one of the user's debrid accounts is
+// made by the Usenet queue. Taken from any caller with the add right, it would
+// fetch whatever job the caller guessed.
 func TestAnAddCannotNameAJobOnAnAccount(t *testing.T) {
 	t.Parallel()
 	srv, a := linkServer(t)
@@ -303,7 +302,7 @@ func TestAnAddCannotNameAJobOnAnAccount(t *testing.T) {
 	}
 
 	code, raw := postJSON(t, http.MethodPost, srv.URL+"/api/links", map[string]any{
-		"links": "debrid://realdebrid/USERS-OWN\nusenet://torbox/7/1/film.mkv\nhttps://host.example/one.bin",
+		"links": "usenet://torbox/7/1/film.mkv\nhttps://host.example/one.bin",
 	})
 	if code != http.StatusOK {
 		t.Fatalf("answered %d: %s", code, raw)

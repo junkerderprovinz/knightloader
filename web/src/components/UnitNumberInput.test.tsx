@@ -8,8 +8,8 @@ import { UnitNumberInput, type FieldUnit } from './ui';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const KIB = 1024;
-const MIB = 1024 * KIB;
+const KB = 1000;
+const MB = 1000 * KB;
 
 let root: Root;
 let host: HTMLDivElement;
@@ -60,71 +60,88 @@ function press(key: string) {
 describe('UnitNumberInput', () => {
   it('keeps the unit while a number is typed and moves to a larger one on Enter', () => {
     act(() => root.render(<Limit start={0} />));
-    expect(shown()).toBe('0 KiB/s');
+    expect(shown()).toBe('0 kB/s');
 
     type('1337');
-    expect(shown()).toBe('1337 KiB/s');
-    expect(latest()).toBe(1337 * KIB);
+    expect(shown()).toBe('1337 kB/s');
+    expect(latest()).toBe(1337 * KB);
 
     press('Enter');
-    expect(shown()).toBe('1.31 MiB/s');
-    expect(latest()).toBe(1337 * KIB);
+    expect(shown()).toBe('1.34 MB/s');
+    expect(latest()).toBe(1337 * KB);
   });
 
   it('crosses the unit boundary when stepped either way', () => {
-    act(() => root.render(<Limit start={768 * KIB} />));
+    act(() => root.render(<Limit start={750 * KB} />));
     press('ArrowUp');
-    expect(shown()).toBe('1 MiB/s');
-    expect(latest()).toBe(MIB);
+    expect(shown()).toBe('1 MB/s');
+    expect(latest()).toBe(MB);
 
     press('ArrowDown');
-    expect(shown()).toBe('768 KiB/s');
-    expect(latest()).toBe(768 * KIB);
+    expect(shown()).toBe('750 kB/s');
+    expect(latest()).toBe(750 * KB);
   });
 
   it('steps a typed value to the next whole step of its unit', () => {
-    act(() => root.render(<Limit start={2 * MIB} />));
+    act(() => root.render(<Limit start={2 * MB} />));
     type('1.3');
-    expect(latest()).toBe(Math.round(1.3 * MIB));
+    expect(latest()).toBe(Math.round(1.3 * MB));
     press('ArrowUp');
-    expect(shown()).toBe('2 MiB/s');
+    expect(shown()).toBe('2 MB/s');
 
     type('1.3');
     press('ArrowDown');
-    expect(shown()).toBe('1 MiB/s');
+    expect(shown()).toBe('1 MB/s');
   });
 
   it('sends nothing for text that is not a number and shows the value again on leaving', () => {
-    act(() => root.render(<Limit start={2 * MIB} />));
+    act(() => root.render(<Limit start={2 * MB} />));
     act(() => field().focus());
     type('fast');
     expect(sent).toEqual([]);
     expect(field().value).toBe('fast');
 
     act(() => field().blur());
-    expect(shown()).toBe('2 MiB/s');
+    expect(shown()).toBe('2 MB/s');
   });
 
   it('never steps below zero', () => {
     act(() => root.render(<Limit start={0} />));
     press('ArrowDown');
     expect(sent).toEqual([]);
-    expect(shown()).toBe('0 KiB/s');
+    expect(shown()).toBe('0 kB/s');
   });
 
   it('reads a unit typed after the number, in any case and with or without a space', () => {
     act(() => root.render(<Limit start={0} />));
     type('500k');
-    expect(latest()).toBe(500 * KIB);
+    expect(latest()).toBe(500 * KB);
     type('2m');
-    expect(latest()).toBe(2 * MIB);
-    expect(shown()).toBe('2 MiB/s');
-    type('1.5 MiB');
-    expect(latest()).toBe(1.5 * MIB);
-    type('3 GiB/s');
-    expect(latest()).toBe(3 * 1024 * MIB);
+    expect(latest()).toBe(2 * MB);
+    expect(shown()).toBe('2 MB/s');
+    type('1.5 MB');
+    expect(latest()).toBe(1.5 * MB);
+    type('3 GB/s');
+    expect(latest()).toBe(3 * 1000 * MB);
     type('640 KB/s');
-    expect(latest()).toBe(640 * KIB);
+    expect(latest()).toBe(640 * KB);
+  });
+
+  it('takes a limit typed in MB/s as that many million bytes a second', () => {
+    act(() => root.render(<Limit start={0} />));
+    type('30 MB/s');
+    expect(latest()).toBe(30_000_000);
+    press('Enter');
+    expect(field().value).toBe('30');
+    expect(shown()).toBe('30 MB/s');
+  });
+
+  it('reads a binary spelling as the decimal unit beside it', () => {
+    act(() => root.render(<Limit start={0} />));
+    type('2 MiB/s');
+    expect(latest()).toBe(2 * MB);
+    type('500 KiB');
+    expect(latest()).toBe(500 * KB);
   });
 
   it('moves to the unit the typed value named once it lets go', () => {
@@ -132,11 +149,11 @@ describe('UnitNumberInput', () => {
     type('3M');
     press('Enter');
     expect(field().value).toBe('3');
-    expect(shown()).toBe('3 MiB/s');
+    expect(shown()).toBe('3 MB/s');
   });
 
   it('sends nothing for a unit the field does not have', () => {
-    act(() => root.render(<Limit start={2 * MIB} />));
+    act(() => root.render(<Limit start={2 * MB} />));
     type('5 h');
     type('5 ms');
     expect(sent).toEqual([]);

@@ -6,13 +6,13 @@ import { resolverLabel } from '../lib/resolverLabels';
 import {
   IconArchive,
   IconCheck,
-  IconClock,
   IconCollector,
-  IconDownloads,
+  IconDownload,
   IconKey,
   IconPause,
+  IconQueued,
   IconShield,
-  IconShieldCheck,
+  IconShieldOn,
   IconUpload,
   IconWarning,
 } from '../lib/icons';
@@ -69,12 +69,12 @@ const toneText: Record<Tone, string> = {
 // leeching shares downloading's, since it is a download.
 const statusGlyph: Record<RowState, Glyph> = {
   collected: IconCollector,
-  queued: IconClock,
-  running: IconDownloads,
-  leeching: IconDownloads,
+  queued: IconQueued,
+  running: IconDownload,
+  leeching: IconDownload,
   paused: IconPause,
   extracting: IconArchive,
-  verifying: IconShieldCheck,
+  verifying: IconShieldOn,
   repairing: IconShield,
   seeding: IconUpload,
   done: IconCheck,
@@ -90,7 +90,7 @@ const statusGlyph: Record<RowState, Glyph> = {
 function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; label: string; fits?: boolean }) {
   return (
     <span
-      className={`inline-flex min-w-0 items-center gap-1.5 text-[11px] font-medium ${fits ? '' : 'shrink-0'} ${toneText[tone]}`}
+      className={`inline-flex min-w-0 items-center gap-1.5 text-meta font-medium ${fits ? '' : 'shrink-0'} ${toneText[tone]}`}
     >
       <Glyph width={13} height={13} className="shrink-0" />
       <span className="truncate">{label}</span>
@@ -101,7 +101,7 @@ function Pill({ tone, glyph: Glyph, label, fits }: { tone: Tone; glyph: Glyph; l
 export function StatusPill({ status }: { status: RowState }) {
   const { t } = useT();
   const s = statusTone[status] ?? statusTone.queued;
-  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconClock} label={t(s.key)} />;
+  return <Pill tone={s.tone} glyph={statusGlyph[status] ?? IconQueued} label={t(s.key)} />;
 }
 
 /**
@@ -200,7 +200,7 @@ export function RepairPill({ repair }: { repair: RepairProgress }) {
 export function ResolverBadge({ resolver, mode }: { resolver: string; mode?: Task['mode'] }) {
   const { t } = useT();
   return (
-    <span className="text-[11px] text-carbon-textMuted">
+    <span className="text-meta text-carbon-textMuted">
       {resolverLabel(resolver, t)}
       {mode ? ` · ${t(mode === 'premium' ? 'task.mode.premium' : 'task.mode.free')}` : ''}
     </span>

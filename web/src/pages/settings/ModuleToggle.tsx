@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react';
-import { Link } from 'react-router-dom';
-import { linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
+import { Link, useNavigate } from 'react-router-dom';
+import { Button, linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
-import { IconChevronEnd } from '../../lib/icons';
+import { IconForward } from '../../lib/icons';
 import { useLabelMode } from '../../lib/labelModes';
 import { useShake } from '../../lib/useShake';
 import { useToast } from '../../lib/toast';
@@ -109,9 +109,7 @@ export function ModuleToggle({
  * title the settings search finds that card by.
  */
 export function moduleSection(verdict: FeatureVerdict): TranslationKey {
-  if (verdict === 'shipped') return 'settings.modules.sectionShipped';
-  if (verdict === 'desktop') return 'settings.modules.sectionDesktop';
-  return 'settings.modules.sectionNotBuilt';
+  return verdict === 'shipped' ? 'settings.modules.sectionShipped' : 'settings.modules.sectionNotBuilt';
 }
 
 /**
@@ -138,6 +136,31 @@ export function ModulesPageBadge({ m, title, onFollow }: { m: Feature; title?: s
 }
 
 /**
+ * ModulesPageButton is ModulesPageBadge for a row of buttons, where a badge
+ * would stand apart from its neighbours.
+ */
+export function ModulesPageButton({ m, label }: { m: Feature; label: string }) {
+  const navigate = useNavigate();
+  const Glyph = pageGlyph('modules');
+  return (
+    <Button
+      kind="secondary"
+      icon={Glyph && <Glyph />}
+      onClick={() => {
+        requestJump({
+          page: 'modules',
+          title: moduleSection(m.verdict),
+          label: `settings.module.${m.id}` as TranslationKey,
+        });
+        navigate('/settings/modules');
+      }}
+    >
+      {label}
+    </Button>
+  );
+}
+
+/**
  * PageBadge leads to another settings page, a badge because everything
  * clickable is one (GlimStone rule 13). It wears that page's rail glyph and
  * follows the label engine the way LinkBadge does; where the words are hidden,
@@ -158,14 +181,16 @@ export function PageBadge({ page, title, onFollow }: { page: string; title: stri
         onClick={onFollow}
         aria-label={showText ? undefined : title}
         {...tipHoverProps}
-        className={linkBadgeClass(showText)}
+        // Never wider than its row: on a phone a long page name is cut short
+        // instead of running out of the card.
+        className={`${linkBadgeClass(showText)} max-w-full`}
       >
         {labelMode !== 'text' && (
           <span className="glim-btn-glyph">
-            {Glyph ? <Glyph aria-hidden /> : <IconChevronEnd aria-hidden className="rtl:-scale-x-100" />}
+            {Glyph ? <Glyph aria-hidden /> : <IconForward aria-hidden className="rtl:-scale-x-100" />}
           </span>
         )}
-        {showText && <span className="whitespace-nowrap">{title}</span>}
+        {showText && <span className="min-w-0 truncate">{title}</span>}
       </Link>
       {tip.node}
     </>

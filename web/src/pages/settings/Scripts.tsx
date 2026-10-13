@@ -1,7 +1,20 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
-import { Button, Card, EmptyState, ErrorCard, Field, IconBadge, LoadingCard, NumberInput, SectionTitle, TextInput } from '../../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  ErrorCard,
+  Field,
+  IconBadge,
+  LoadingCard,
+  NumberInput,
+  SectionTitle,
+  TextInput,
+  type ButtonVerdict,
+} from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
-import { NeutralSwitch } from './controls';
+import { TestButton } from '../../components/TestButton';
+import { NeutralSwitch, SettingRow, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
 import {
@@ -23,7 +36,7 @@ import { useResource } from '../../lib/useResource';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useTriggerLabel } from '../../lib/triggers';
-import { IconCode, IconPlay, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconCode, IconPlay, IconTrash } from '../../lib/icons';
 
 /**
  * ScriptsCard edits the event scripts run by internal/script, with syntax
@@ -53,11 +66,12 @@ function inputOf(s: Script): ScriptInput {
   return { name: s.name, trigger: s.trigger, enabled: s.enabled, code: s.code, timeoutMs: s.timeoutMs };
 }
 
-function toRows(list: Script[]): Row[] {
+/** toRows keys a script by the key its row was created under, where it has one. */
+function toRows(list: Script[], keys: Map<string, string>): Row[] {
   return list
     .slice()
     .sort((a, b) => (a.name || a.id).localeCompare(b.name || b.id))
-    .map((s) => ({ key: s.id, saved: s, draft: inputOf(s) }));
+    .map((s) => ({ key: keys.get(s.id) ?? s.id, saved: s, draft: inputOf(s) }));
 }
 
 export function ScriptsCard({ hue }: { hue: number }) {
@@ -66,8 +80,14 @@ export function ScriptsCard({ hue }: { hue: number }) {
   const [rows, setRows] = useState<Row[] | null>(null);
   const [openKey, setOpenKey] = useState('');
 
+  // A new row keeps its key once it is stored, so the window it is edited in
+  // stays open through its first save.
+  const keys = useRef(new Map<string, string>());
+
+  // A row not stored yet is in no answer of the server, so it is kept.
   useEffect(() => {
-    if (loaded) setRows(toRows(loaded));
+    if (!loaded) return;
+    setRows((prev) => [...(prev ?? []).filter((r) => r.saved === null), ...toRows(loaded, keys.current)]);
   }, [loaded]);
 
   // From the server's trigger registry (fetchScriptTriggers), never empty.
@@ -93,10 +113,10 @@ export function ScriptsCard({ hue }: { hue: number }) {
   };
 
   const handleSaved = useCallback((oldKey: string, script: Script) => {
+    keys.current.set(script.id, oldKey);
     setRows((prev) =>
-      prev ? prev.map((r) => (r.key === oldKey ? { key: script.id, saved: script, draft: inputOf(script) } : r)) : prev,
+      prev ? prev.map((r) => (r.key === oldKey ? { ...r, saved: script, draft: inputOf(script) } : r)) : prev,
     );
-    setOpenKey(script.id);
     // No reload of the list, which would drop other rows' unsaved drafts.
     setLoaded((prev) => {
       if (!prev) return prev;
@@ -120,7 +140,7 @@ export function ScriptsCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.scripts.add')}
           </Button>
         }
@@ -176,16 +196,17 @@ function ScriptRow({
   const [draft, setDraft] = useState<ScriptInput>(row.draft);
   const [saving, setSaving] = useState(false);
   const [removing, setRemoving] = useState(false);
-  const [running, setRunning] = useState(false);
   const [runResult, setRunResult] = useState<ScriptRunResult | null>(null);
-  // One counter per control, so a refusal shakes the button that was pressed.
+  // The failure counter of the trash badge, so a repeated refusal shakes it again.
   const [removeShake, setRemoveShake] = useState(0);
-  const [runShake, setRunShake] = useState(0);
 
   const dirty = row.saved === null || !same(draft, inputOf(row.saved));
   // A new row counts as dirty at once; touched keeps the autosave from
   // creating an empty script before anything is typed.
   const touched = useRef(false);
+  // The draft the server last refused, so the autosave does not send it again
+  // and again; the next edit tries anew.
+  const refused = useRef('');
   const update = (fields: Partial<ScriptInput>) => {
     touched.current = true;
     setDraft((d) => ({ ...d, ...fields }));
@@ -194,11 +215,15 @@ function ScriptRow({
   async function onSave() {
     if (saving) return;
     setSaving(true);
+    const sent = draft;
     try {
-      const script = row.saved ? await updateScript(row.saved.id, draft) : await createScript(draft);
+      const script = row.saved ? await updateScript(row.saved.id, sent) : await createScript(sent);
       onSaved(row.key, script);
+      // What the server stored, unless something was typed while the save was out.
+      setDraft((d) => (same(d, sent) ? inputOf(script) : d));
       toast(t('settings.saved'), 'ok');
     } catch (e) {
+      refused.current = JSON.stringify(sent);
       // Only a toast: the debounced save has no button to shake.
       toast(t('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
     } finally {
@@ -210,7 +235,8 @@ function ScriptRow({
   // since a keystroke may be mid-line in code.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!touched.current || !dirty) return;
+    // Waits out a save in flight; an edit made meanwhile is sent once it is back.
+    if (!touched.current || !dirty || saving || refused.current === JSON.stringify(draft)) return;
     if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       saveTimer.current = null;
@@ -223,7 +249,7 @@ function ScriptRow({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft]);
+  }, [draft, saving]);
 
   async function onRemove() {
     if (!row.saved) {
@@ -242,24 +268,23 @@ function ScriptRow({
     }
   }
 
-  async function onRun() {
-    if (!row.saved) return;
-    setRunning(true);
+  async function onRun(): Promise<ButtonVerdict | null> {
+    if (!row.saved) return null;
     setRunResult(null);
     try {
-      setRunResult(await runScript(row.saved.id));
+      const result = await runScript(row.saved.id);
+      setRunResult(result);
+      return result.ok ? 'ok' : 'fail';
     } catch (e) {
-      // The run could not start. A verdict about the script is runResult below.
+      // The run could not start. What the script itself did is runResult below.
       toast(t('settings.scripts.runFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
-      setRunShake((n) => n + 1);
-    } finally {
-      setRunning(false);
+      return 'fail';
     }
   }
 
   const triggerLabel = useTriggerLabel();
   const title = draft.name.trim() || t('settings.scripts.unnamed', { n: index + 1 });
-  const runDisabled = running || !row.saved || dirty;
+  const runDisabled = !row.saved || dirty;
   const runHint = !row.saved ? t('settings.scripts.runNeedsSaveHint') : dirty ? t('settings.scripts.runDirtyHint') : undefined;
 
   return (
@@ -271,17 +296,17 @@ function ScriptRow({
           name={t('settings.scripts.use')}
           hue={index}
         />
-        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
+        <button type="button" onClick={onToggle} aria-haspopup="dialog" className="flex min-w-0 items-center gap-3 text-start">
           <span className="min-w-0 flex-1">
             <span className="flex items-center gap-2">
               <span className="truncate text-sm text-carbon-text">{title}</span>
               {dirty && (
-                <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusInfoBg px-1.5 py-0.5 text-[11px] text-statusInfo">
+                <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusInfoBg px-1.5 py-0.5 text-meta text-statusInfo">
                   {t('settings.scripts.unsaved')}
                 </span>
               )}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {triggerLabel(draft.trigger)}
               {/* No "last run" line: internal/script keeps no run history. */}
             </span>
@@ -304,24 +329,24 @@ function ScriptRow({
       </div>
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <Field label={t('settings.scripts.name')}>
+        <Sheet title={title} hue={index} wide onClose={onToggle}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.scripts.name')}>
               <TextInput
                 value={draft.name}
                 placeholder={t('settings.scripts.namePlaceholder')}
                 onChange={(e) => update({ name: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
+            </SettingRow>
+            <SettingRow control="fit" label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
               <TriggerSelect
                 label={t('settings.scripts.trigger')}
                 value={draft.trigger}
                 options={triggers}
                 onChange={(t) => update({ trigger: t })}
               />
-            </Field>
-            <Field label={t('settings.scripts.timeout')} hint={t('settings.scripts.timeoutHint')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.scripts.timeout')} hint={t('settings.scripts.timeoutHint')}>
               <div className="flex items-center gap-2">
                 <NumberInput
                   dir="ltr"
@@ -333,7 +358,7 @@ function ScriptRow({
                 />
                 <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{t('settings.scripts.timeoutUnit')}</span>
               </div>
-            </Field>
+            </SettingRow>
           </div>
 
           {/* The placeholder uses the house pulse and the editor fades in, so
@@ -346,25 +371,11 @@ function ScriptRow({
             </Suspense>
           </Field>
 
-          <div className="flex flex-wrap items-center gap-3">
-            <span className="flex-1" />
-            <Button
-              shake={runShake}
-              kind="secondary"
-              icon={<IconPlay width={16} height={16} />}
-              disabled={runDisabled}
-              hint={running ? undefined : runHint}
-              onClick={() => void onRun()}
-            >
-              {running ? t('settings.scripts.running') : t('settings.scripts.run')}
-            </Button>
-          </div>
-
-          {/* The run's verdict stays inline, even when the news is bad; a run
-              that could not start is handled in onRun. */}
+          {/* What the run did, above its button until the next one; the button
+              holds the answer. */}
           {runResult && (
             <div className="glim-well flex flex-col gap-1.5 p-3 text-xs">
-              <p className={runResult.ok ? 'text-statusOk' : 'text-statusFail'}>
+              <p className="text-carbon-textSub">
                 {runResult.ok
                   ? t('settings.scripts.ranIn', { duration: fmtUnit(runResult.durationMs, 'ms') })
                   : runResult.timedOut
@@ -373,15 +384,28 @@ function ScriptRow({
               </p>
               {runResult.output && runResult.output.length > 0 && (
                 <>
-                  <span className="text-[11px] text-carbon-textMuted">{t('settings.scripts.output')}</span>
-                  <pre dir="ltr" className="glim-well overflow-x-auto whitespace-pre-wrap p-2 text-[11px] text-carbon-textSub">
+                  <span className="text-meta text-carbon-textMuted">{t('settings.scripts.output')}</span>
+                  <pre dir="ltr" className="overflow-x-auto whitespace-pre-wrap text-meta text-carbon-textSub">
                     {runResult.output.join('\n')}
                   </pre>
                 </>
               )}
             </div>
           )}
-        </div>
+
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <TestButton
+              label={t('settings.scripts.run')}
+              busyLabel={t('settings.scripts.running')}
+              icon={<IconPlay />}
+              words={{ ok: t('test.passed'), fail: t('test.failed') }}
+              disabled={runDisabled}
+              hint={runHint}
+              run={onRun}
+              resetKey={JSON.stringify(draft)}
+            />
+          </div>
+        </Sheet>
       )}
     </li>
   );

@@ -5,6 +5,7 @@ import { usePress } from '../theme/MotionContext';
 import { BRAND, BTN_H_KEY, TYPE, inkFor, type Brand } from '../theme/tokens';
 import { useT } from '../i18n/I18nContext';
 import { InfoTip, Tip } from './InfoTip';
+import { boxForInk } from './IconBadge';
 import { Arrive } from './Moving';
 import { Text } from './Text';
 
@@ -84,25 +85,65 @@ export function NotchLabel({ title, hue }: { title: string; hue?: number }) {
   );
 }
 
+const SEGMENT_GLYPH = boxForInk(TYPE.dense);
+const SEGMENT_GAP = 5;
+const SEGMENT_PAD = 6;
+
 /** The one horizontal selector: a groove one surface deeper, equal segments,
  *  and only the chosen segment is a badge. No per-segment borders.
  *
  *  The groove spans the card it sits in and the segments share its width. A
  *  groove sized to its words stops short of the card's edge and reads as a
  *  control that ran out of options, and down a card of stacked selectors the
- *  ragged edge is the first thing the eye finds. */
+ *  ragged edge is the first thing the eye finds.
+ *
+ *  An option's `glyph` stands before its label with its ink as tall as the
+ *  label's letters, so the two read as one name. It is decoration, and where
+ *  the widest label and a glyph do not fit one segment, as on a narrow phone
+ *  or at a large font scale, every glyph goes and the labels keep the room. */
 export function WellSelector<T extends string>({
   options,
   value,
   onPick,
 }: {
-  options: { value: T; label: string }[];
+  options: { value: T; label: string; glyph?: (p: { color: string; size?: number }) => ReactNode }[];
   value: T;
   onPick: (v: T) => void;
 }) {
   const { c, accent, accentContrast, corners, hueAt } = useAppearance();
+  const glyphed = options.some((o) => o.glyph);
+  // A segment's width inside its padding, and each label's own width at the
+  // font scale in force, keyed by the label so a new language measures again.
+  const [room, setRoom] = useState(0);
+  const [widths, setWidths] = useState<Record<string, number>>({});
+  const labelWidths = options.map((o) => widths[o.label]);
+  const measured = room > 0 && labelWidths.every((w) => w !== undefined);
+  const showGlyphs = glyphed && (!measured || Math.max(...labelWidths) + SEGMENT_GLYPH + SEGMENT_GAP <= room);
   return (
     <View style={[styles.well, { backgroundColor: c.surface2, ...corners.pill }]}>
+      {glyphed && (
+        // The labels at full width, out of sight, so their width is known
+        // before a segment squeezes them.
+        <View
+          style={styles.measure}
+          pointerEvents="none"
+          importantForAccessibility="no-hide-descendants"
+          accessibilityElementsHidden
+        >
+          {options.map((o) => (
+            <Text
+              key={o.value}
+              style={styles.segmentText}
+              onLayout={(e) => {
+                const w = e.nativeEvent.layout.width;
+                setWidths((p) => (p[o.label] === w ? p : { ...p, [o.label]: w }));
+              }}
+            >
+              {o.label}
+            </Text>
+          ))}
+        </View>
+      )}
       {options.map((o, i) => {
         const on = o.value === value;
         // Each segment owns a palette position. The design language names a
@@ -111,10 +152,13 @@ export function WellSelector<T extends string>({
         // The positions are this control's own 0-based sequence, not the
         // page's.
         const fill = (hueAt(i) ?? accent) as string;
+        const ink = on ? contrastFor(fill, accentContrast) : c.textSub;
+        const Glyph = showGlyphs ? o.glyph : undefined;
         return (
           <TouchableOpacity
             key={o.value}
             onPress={() => onPick(o.value)}
+            onLayout={i === 0 ? (e) => setRoom(e.nativeEvent.layout.width - 2 * SEGMENT_PAD) : undefined}
             /* The segment takes the groove's radius, so in round the groove is
                a pill with a pill inside it. Its 3 points of padding are far
                too few to keep a square corner inside a pill's arc. */
@@ -125,14 +169,17 @@ export function WellSelector<T extends string>({
                 darker than the accent, and reusing accentContrast puts white
                 text on a pale mint segment. A label longer than its share
                 shrinks rather than being cut off. */}
-            <Text
-              numberOfLines={1}
-              adjustsFontSizeToFit
-              minimumFontScale={0.7}
-              style={[styles.segmentText, { color: on ? contrastFor(fill, accentContrast) : c.textSub }]}
-            >
-              {o.label}
-            </Text>
+            <View style={styles.segmentName}>
+              {Glyph && <Glyph color={ink} size={SEGMENT_GLYPH} />}
+              <Text
+                numberOfLines={1}
+                adjustsFontSizeToFit
+                minimumFontScale={0.7}
+                style={[styles.segmentText, { color: ink }]}
+              >
+                {o.label}
+              </Text>
+            </View>
           </TouchableOpacity>
         );
       })}
@@ -390,8 +437,11 @@ const styles = StyleSheet.create({
   // padding.
   notchText: { fontSize: TYPE.dense, lineHeight: 16, fontWeight: '500', textTransform: 'uppercase', letterSpacing: 1.2 },
   well: { flexDirection: 'row', padding: 3, gap: 2, alignSelf: 'stretch' },
-  segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: 6, alignItems: 'center' },
-  segmentText: { fontSize: TYPE.dense, fontWeight: '500' },
+  segment: { flex: 1, minWidth: 0, paddingVertical: 7, paddingHorizontal: SEGMENT_PAD, alignItems: 'center' },
+  segmentName: { flexDirection: 'row', alignItems: 'center', gap: SEGMENT_GAP, maxWidth: '100%' },
+  // Wide enough that no label wraps while it is measured.
+  measure: { position: 'absolute', top: 0, left: 0, width: 4000, flexDirection: 'row', opacity: 0 },
+  segmentText: { flexShrink: 1, fontSize: TYPE.dense, fontWeight: '500' },
   // No borderRadius here: it comes from the shape engine at render time, and a
   // value baked into the stylesheet cannot follow a setting.
   track: { width: 36, height: 20, padding: 2, justifyContent: 'center' },

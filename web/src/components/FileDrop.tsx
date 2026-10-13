@@ -65,14 +65,29 @@ function ContainerHandedProgress({
         <Tip dir="ltr" tip={file} className="min-w-0 flex-1 truncate text-xs text-carbon-textSub">
           {file}
         </Tip>
-        <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
+        <span className="glim-num shrink-0 text-meta text-carbon-textMuted">{fmtElapsed(elapsed)}</span>
       </div>
       <ProgressBar active percent={0} indeterminate />
     </div>
   );
 }
 
-/** What Collector.tsx reaches through the ref, for AddLinksForm's picker
+/**
+ * newestContainerLink is when a link from a container file last landed, in
+ * epoch milliseconds, or 0. It ends the "handed to JDownloader" bar, read from
+ * the task list its caller already holds rather than a second subscription.
+ */
+export function newestContainerLink(tasks: Record<string, Task>): number {
+  let newest = 0;
+  for (const id in tasks) {
+    if (tasks[id].origin !== 'container') continue;
+    const at = Date.parse(tasks[id].createdAt);
+    if (Number.isFinite(at) && at > newest) newest = at;
+  }
+  return newest;
+}
+
+/** What the form's owner reaches through the ref, for AddLinksForm's picker
  *  button and paste box drops. */
 export interface FileDropHandle {
   openPicker: () => void;
@@ -223,7 +238,7 @@ function TorrentTreeCard({
           </p>
         </div>
         {pending.tree.private && (
-          <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-2 py-0.5 text-[11px] text-carbon-textSub">
+          <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface3 px-2 py-0.5 text-meta text-carbon-textSub">
             {t('torrent.tree.private')}
           </span>
         )}
@@ -256,7 +271,7 @@ function TorrentTreeCard({
         <Button kind="ghost" onClick={onCancel} disabled={busy}>
           {t('torrent.tree.cancel')}
         </Button>
-        <Button kind="primary" onClick={onConfirm} disabled={busy || selectedCount === 0}>
+        <Button kind="secondary" onClick={onConfirm} disabled={busy || selectedCount === 0}>
           {busy ? t('torrent.staging') : t('torrent.tree.add')}
         </Button>
       </div>

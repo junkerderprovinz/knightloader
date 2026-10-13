@@ -14,8 +14,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"io/fs"
 	"log"
 	"os"
+	"path/filepath"
+	"slices"
 	"sync"
 	"time"
 
@@ -172,25 +175,66 @@ func captchaSolverFor(id string, cred accounts.Credential) captchaAccount {
 	return nil
 }
 
-// captchaSolvers returns the configured automatic solvers that have a stored
-// credential, in CaptchaSolverOrder. Entries without a credential, or whose
-// account is switched off on the Accounts page, are skipped.
+// captchaSolvers returns every automatic solver with a stored credential whose
+// account is switched on, the ones in CaptchaSolverOrder first and in its
+// order, the others after them in catalogue order. A solver takes the first of
+// its accounts in routedAccounts' order, so one stored under a name works as
+// well as the unnamed one the Accounts page writes.
 func (a *App) captchaSolvers() []paidSolver {
 	order := a.Settings.Get().CaptchaSolverOrder
-	if len(order) == 0 {
-		return nil
+	ids := slices.Clone(order)
+	for _, svc := range accounts.Catalogue {
+		if svc.Group == accounts.GroupCaptchaSolver && !slices.Contains(order, svc.ID) {
+			ids = append(ids, svc.ID)
+		}
 	}
-	out := make([]paidSolver, 0, len(order))
-	for _, id := range order {
+	var out []paidSolver
+	for _, id := range ids {
 		svc, ok := accounts.Lookup(id)
-		if !ok || !a.accountEnabled(id, "") {
+		if !ok {
 			continue
 		}
-		if s := captchaSolverFor(id, a.credentialFor(svc, "")); s != nil {
-			out = append(out, paidSolver{svc.Label, s})
+		for _, acct := range a.routedAccounts(id) {
+			if s := captchaSolverFor(id, acct.cred); s != nil {
+				out = append(out, paidSolver{svc.Label, s})
+				break
+			}
 		}
 	}
 	return out
+}
+
+// captchaOrderMarker is written beside the settings once the solver accounts
+// have been checked against the order an earlier version went by, so the
+// check runs on the first start of this version and never again.
+const captchaOrderMarker = "captcha-order-checked"
+
+// switchOffUnorderedSolvers carries 1.9's choice of solvers over: there a
+// solver was tried only while it stood in CaptchaSolverOrder, here every
+// switched-on account with a key is. On the first start it switches off every
+// solver account with a credential whose service the order leaves out. A
+// fresh install has no credentials yet.
+func (a *App) switchOffUnorderedSolvers() {
+	marker := filepath.Join(a.DataDir, captchaOrderMarker)
+	if _, err := os.Stat(marker); !errors.Is(err, fs.ErrNotExist) {
+		return
+	}
+	order := a.Settings.Get().CaptchaSolverOrder
+	for _, svc := range accounts.Catalogue {
+		if svc.Group != accounts.GroupCaptchaSolver || slices.Contains(order, svc.ID) {
+			continue
+		}
+		for _, account := range append([]string{""}, a.Accounts.AccountIDs(svc.ID)...) {
+			if a.credentialFor(svc, account).IsZero() || !a.accountEnabled(svc.ID, account) {
+				continue
+			}
+			a.setAccountEnabledQuiet(svc.ID, account, false)
+			log.Printf("captcha: switched %s%s off, since the version before tried only the solvers in its order", svc.Label, accountSuffix(account))
+		}
+	}
+	if err := os.WriteFile(marker, nil, 0o600); err != nil {
+		log.Printf("captcha: could not note that the solver accounts were checked, so the check runs again at the next start: %v", err)
+	}
 }
 
 // trySolveCaptchaAutomatically hands c to the configured solvers. It runs

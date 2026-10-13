@@ -36,7 +36,7 @@ const sourcesWait = 45 * time.Second
 // multiSourceMin is the smallest file worth more than one source. Below it
 // the unlocks and the checks take longer than they can save. A var so the
 // tests need not serve that much.
-var multiSourceMin int64 = 64 << 20
+var multiSourceMin int64 = 64_000_000
 
 // sampleLen is how much of the file each check compares.
 const sampleLen = 64 << 10
@@ -86,7 +86,7 @@ func (e *Engine) vetSources(ctx context.Context, j Job, res *base.Resource) []st
 		return nil
 	}
 	if own.size != res.Size {
-		log.Printf("not spreading task %s over more sources: its own link reports %s, not %s", j.TaskID, mib(own.size), mib(res.Size))
+		log.Printf("not spreading task %s over more sources: its own link reports %s, not %s", j.TaskID, mb(own.size), mb(res.Size))
 		return nil
 	}
 	verdicts := make([]error, len(links))
@@ -125,7 +125,7 @@ func keptToOwnLink(j Job, res *base.Resource) string {
 	case !res.Range:
 		return "its server does not send it in parts"
 	case res.Size < multiSourceMin:
-		return fmt.Sprintf("it is under %s", mib(multiSourceMin))
+		return fmt.Sprintf("it is under %s", mb(multiSourceMin))
 	}
 	for k := range j.Headers {
 		if !strings.EqualFold(k, "User-Agent") {
@@ -144,7 +144,7 @@ func sampleOffsets(size int64) []int64 {
 // differs reports why q is not the file p is, or nil when it is.
 func (p probe) differs(q probe) error {
 	if q.size != p.size {
-		return fmt.Errorf("it reports %s, not %s", mib(q.size), mib(p.size))
+		return fmt.Errorf("it reports %s, not %s", mb(q.size), mb(p.size))
 	}
 	// An ETag is the server's own name for its copy, so two servers may give
 	// one file different ones. Only the same host is held to it.

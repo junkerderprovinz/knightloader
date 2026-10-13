@@ -348,6 +348,13 @@ type Settings struct {
 	// RainbowPalette overrides the eight built-in hues. Empty means the default.
 	RainbowPalette []string `json:"rainbowPalette"`
 
+	// DownloadLine and SeedingLine are the colours of the two lines in the
+	// speed graphs, as #rrggbb. Empty means the accent for the download line
+	// and, for the seeding line, the preset hue farthest from the accent, so
+	// the two stay apart whatever the accent is.
+	DownloadLine string `json:"downloadLine"`
+	SeedingLine  string `json:"seedingLine"`
+
 	// HideAccountsFromSidebar removes the sidebar's "Konten" nav item, for
 	// someone who only ever reaches accounts through the identical settings
 	// tab. Both render the same page, so hiding one costs nothing but a click.
@@ -608,13 +615,14 @@ type Settings struct {
 	// there is no path field.
 	LogFile LogFile `json:"logFile"`
 
-	// CaptchaSolverOrder is which automatic captcha-solving services
-	// (internal/accounts.Catalogue ids, see captchaSolverIDs) to try, and in
-	// what order, before a captcha is shown to a human. Membership and order
-	// live in the one list, the way the accounts page's resolver priority does:
-	// an id absent from it is not tried, rather than a separate bool per
-	// service that could disagree with where the service sits in the order.
-	// Empty is what a fresh install has, straight to the prompt modal.
+	// CaptchaSolverOrder is the order the automatic captcha-solving services
+	// (internal/accounts.Catalogue ids, see captchaSolverIDs) are tried in
+	// before a captcha is shown to a human. It orders and does not choose, the
+	// way the accounts page's resolver priority does: every service with a key
+	// whose account is switched on is tried, the ones listed here first and in
+	// this order, the rest after them in catalogue order. Switching a service
+	// off is its account's switch, so there is no second switch here to
+	// disagree with it.
 	//
 	// An id here with no matching credential is skipped when tried, and neither
 	// half implies the other, see sanitizeCaptcha. This is the non-secret half:
@@ -946,6 +954,7 @@ func migrate(raw []byte, n Settings) Settings {
 	n = migrateAutoStart(raw, n)
 	n = migrateStall(raw, n)
 	n = migrateLabels(raw, n)
+	n = migrateUploadLimit(raw, n)
 	return n
 }
 

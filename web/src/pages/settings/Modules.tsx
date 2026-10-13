@@ -13,22 +13,22 @@ import { label, moduleDetail, moduleReason, switchRefusal, useTx } from './tx';
 /**
  * Modules lists what this build contains, with a switch on every module the
  * build has. The verdicts are separated by section rather than by hue, since
- * the accent means activity and nearly every row is simply enabled.
+ * the accent means activity and nearly every row is simply enabled. A module
+ * only the desktop build switches is left out elsewhere: its page says so
+ * beside the switch it cannot offer.
  */
 export function Modules() {
   const { tx } = useTx();
   const { features } = useFeatures();
 
   const shipped = features.modules.filter((m) => m.verdict === 'shipped');
-  const desktop = features.modules.filter((m) => m.verdict === 'desktop');
   // An unknown verdict from a newer server lands here instead of vanishing.
   const absent = features.modules.filter((m) => m.verdict !== 'shipped' && m.verdict !== 'desktop');
 
   return (
     <div className="flex flex-col gap-10">
       <Group hue={0} title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
-      <Group hue={1} title={tx('settings.modules.sectionDesktop')} rows={desktop} />
-      <Group hue={2} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
+      <Group hue={1} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
     </div>
   );
 }
@@ -92,8 +92,9 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
         <HintBubble hint={[reason ?? '', moduleDetail(tx, m) ?? '']} />
       </div>
 
-      {/* Wraps under the name where the row runs out of width. */}
-      <div className="ms-auto flex items-center gap-3">
+      {/* Wraps under the name where the row runs out of width, and the switch
+          under the badge where the two do not fit one line either. */}
+      <div className="ms-auto flex max-w-full flex-wrap items-center justify-end gap-x-3 gap-y-2">
         {page && (
           <PageBadge
             page={page}
@@ -104,7 +105,7 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
         {shipped ? (
           <NeutralSwitch on={m.enabled} disabled={busy || blocked} name={name} onChange={onToggle} hue={hue} />
         ) : (
-          <StateChip m={m} />
+          <StateChip />
         )}
       </div>
     </div>
@@ -126,14 +127,14 @@ function jumpToSwitch(id: string, page: string) {
 }
 
 /**
- * StateChip names why a module is not in this build in one neutral word. A
+ * StateChip says in one neutral word that a module is not in this build. A
  * missing subsystem is a scope decision, not a fault, so it gets no status hue.
  */
-function StateChip({ m }: { m: Feature }) {
+function StateChip() {
   const { tx } = useTx();
   return (
-    <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-[11px] font-medium text-carbon-textSub">
-      {tx(m.verdict === 'desktop' ? 'settings.modules.desktopOnly' : 'settings.modules.notBuilt')}
+    <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
+      {tx('settings.modules.notBuilt')}
     </span>
   );
 }

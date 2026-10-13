@@ -4,10 +4,9 @@ The debrid drive shows what is on your debrid accounts as a read-only network
 drive. Mount it with rclone, point Plex or Jellyfin at the mount, and they
 stream straight from the service. Nothing is downloaded to your disk first.
 
-TorBox, Real-Debrid, AllDebrid, Premiumize.me and Debrid-Link can be shown,
-the same services whose downloads the [import](getting-links-in.md#from-your-debrid-account)
-can read. The other services keep no list of your downloads, so they have
-nothing to show.
+TorBox, Real-Debrid, AllDebrid, Premiumize.me and Debrid-Link can be shown.
+The other services keep no list of your downloads, so they have nothing to
+show.
 
 ## What it looks like
 
@@ -47,8 +46,8 @@ until its files are there.
 
 ## Switching it on
 
-1. Open **Settings → Accounts**. The **Debrid drive** card is below the
-   accounts. Switch it on there or on the Modules page; it is one switch.
+1. Open **Settings → Debrid drive** and switch it on there or on the
+   Modules page; it is one switch.
 2. Create an API token that can read under **Settings → Security → API
    tokens**. **Read only** is all the drive needs, and it is the right preset
    for it: the token goes into a config file on another machine.
@@ -64,7 +63,7 @@ and would get past a second factor.
 
 ## rclone
 
-The card on the Accounts page shows the configuration with your address filled
+**Settings → Debrid drive** shows the configuration with your address filled
 in:
 
 ```ini

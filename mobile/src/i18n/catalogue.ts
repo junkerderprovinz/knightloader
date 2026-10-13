@@ -70,6 +70,15 @@ const CATALOGUE: LanguageDef[] = [
 export const LANGUAGES: LanguageDef[] = CATALOGUE.filter((l) => AVAILABLE.includes(l.code));
 
 /**
+ * languageOf is the name and flag the settings button shows for a language,
+ * both from one catalogue entry. A code the app does not list shows as itself.
+ */
+export function languageOf(code: string): { label: string; flag: string } {
+  const l = LANGUAGES.find((x) => x.code === code);
+  return { label: l?.label ?? code, flag: flagEmoji(l?.flag ?? '') };
+}
+
+/**
  * flagEmoji turns a catalogue `flag` region into the emoji flag for it.
  *
  * Emoji rather than images because the web UI's flag-icons CSS has no React

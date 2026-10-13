@@ -21,6 +21,7 @@ const TILES = {
   linux: 'glim-tile-linux',
   android: 'glim-tile-android',
   play: 'glim-tile-play',
+  fdroid: 'glim-tile-fdroid',
   docker: 'glim-tile-docker',
   unraid: 'glim-tile-unraid',
   zip: 'glim-tile-zip',
@@ -29,6 +30,7 @@ const TILES = {
   bitcoin: 'glim-tile-bitcoin',
   coffee: 'glim-tile-coffee',
   house: 'glim-tile-house',
+  docs: 'glim-tile-docs',
   knightloader: 'kl-tile-knightloader',
   parleyport: 'kl-tile-parleyport',
   chrome: 'kl-tile-chrome',
@@ -63,6 +65,7 @@ export function ReadmeButton({
   confirm = 0,
   soonLabel,
   onLinkClick = followExternal,
+  'data-new': news,
 }: {
   /** The brand whose colour the unit lights up in. */
   brand: keyof typeof TILES;
@@ -86,6 +89,8 @@ export function ReadmeButton({
   soonLabel?: string;
   /** Runs on a click on a part's link; the desktop build opens it in the system browser. */
   onLinkClick?: (e: MouseEvent<HTMLAnchorElement>) => void;
+  /** The change this unit is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
 }) {
   const ref = useConfirm<HTMLDivElement>(confirm);
   const soon = !parts[0].href && !parts[0].onClick && !parts[0].bookmarklet;
@@ -107,7 +112,7 @@ export function ReadmeButton({
   if (soon) unit.push('glim-readme-btn-soon');
 
   return (
-    <div ref={ref} className={unit.join(' ')}>
+    <div ref={ref} data-new={news} className={unit.join(' ')}>
       {parts.map((part, i) => {
         const sub = soon ? soonLabel : part.sub;
         const label = sub ? `${part.name} ${sub}` : part.name;

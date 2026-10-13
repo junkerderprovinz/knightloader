@@ -298,3 +298,13 @@ func TestQueueStateReportsTheLimitInForce(t *testing.T) {
 		t.Errorf("the queue reports %d with the turtle on, want the quiet %d", got, quietTurtle)
 	}
 }
+
+// The speed graphs mark the torrents' upload cap from the queue state as well.
+func TestQueueStateReportsTheUploadLimit(t *testing.T) {
+	s := loudAndQuiet()
+	s.Torrent.UploadLimit = 500_000
+	a := newTurtleApp(t, s)
+	if got := a.Queue().UploadLimit; got != 500_000 {
+		t.Errorf("the queue reports an upload limit of %d, want %d", got, 500_000)
+	}
+}

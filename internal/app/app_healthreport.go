@@ -94,7 +94,20 @@ const (
 	remedyFeedsFailing    = "feeds.failing"
 	remedyRelayDown       = "relay.down"
 	remedyCaptchaWaiting  = "captcha.waiting"
+	remedyQueueHalted     = "queue.halted"
+	remedyQueueQuiet      = "queue.quiet"
 )
+
+// subsystemLog is the log source (logring.Sources) a part writes its troubles
+// to, for the parts that write any. A row that is degraded or failed carries
+// it, so the page can open the log at those lines.
+var subsystemLog = map[string]string{
+	SubsystemJD:       "JD",
+	SubsystemAccounts: "account health",
+	SubsystemFeeds:    "feed",
+	SubsystemRelay:    "relay",
+	SubsystemCaptcha:  "captcha",
+}
 
 // Subsystem is one part of this instance at one moment.
 type Subsystem struct {
@@ -109,6 +122,10 @@ type Subsystem struct {
 
 	// Remedy is a remedy id, or empty.
 	Remedy string `json:"remedy,omitempty"`
+
+	// Log is the log source with this part's lines, on a degraded or failed
+	// row of a part that writes to the log.
+	Log string `json:"log,omitempty"`
 
 	// Since is when the row last changed state, kept across probes. It is
 	// absent until a change has been observed, since the first reading cannot
@@ -251,6 +268,9 @@ func (a *App) HealthReport() HealthReport {
 			// A missing row would read as a part that does not exist.
 			row = Subsystem{ID: id, State: StateUnknown}
 		}
+		if row.State == StateDegraded || row.State == StateFailed {
+			row.Log = subsystemLog[id]
+		}
 		rows = append(rows, row)
 	}
 	a.stampSince(rows)
@@ -357,11 +377,14 @@ func (a *App) storeSubsystem() Subsystem {
 }
 
 // queueSubsystem reports the master switch. A stopped queue is a choice or a
-// schedule window, so it is degraded, never failed.
+// schedule window, so it is degraded, never failed, and its remedy says which.
 func queueSubsystem(q QueueState) Subsystem {
 	row := Subsystem{ID: SubsystemQueue, State: StateOK}
-	if q.Halted || q.Quiet {
-		row.State = StateDegraded
+	switch {
+	case q.Halted:
+		row.State, row.Remedy = StateDegraded, remedyQueueHalted
+	case q.Quiet:
+		row.State, row.Remedy = StateDegraded, remedyQueueQuiet
 	}
 	return row
 }

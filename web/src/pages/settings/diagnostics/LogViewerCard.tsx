@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
-import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, TextInput, ToggleRow, useTooltip } from '../../../components/ui';
+import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
+import { SearchToggle } from '../../../components/SearchToggle';
 import { useLogTail } from './useLogTail';
 
 /**
@@ -15,7 +17,9 @@ export function LogViewerCard({ hue }: { hue: number }) {
   const { t } = useT();
   const [follow, setFollow] = useState(false);
   const [query, setQuery] = useState('');
-  const [source, setSource] = useState('');
+  // A part on the health page in trouble opens the log at its own lines.
+  const [params] = useSearchParams();
+  const [source, setSource] = useState(params.get('log') ?? '');
   const [task, setTask] = useState('');
   const { lines, dropped, capacity, sources, loading, failed, reload } = useLogTail(follow);
 
@@ -40,15 +44,13 @@ export function LogViewerCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       <div className="flex flex-wrap items-center gap-3">
-        <span className="flex min-w-[12rem] flex-1 items-center gap-1.5">
-          <TextInput
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('settings.diagnostics.logSearch')}
-            aria-label={t('settings.diagnostics.logSearch')}
-          />
-          <InfoBubble tip={t('settings.diagnostics.logSearchHint')} label={t('settings.diagnostics.logSearch')} />
-        </span>
+        <SearchToggle
+          value={query}
+          onChange={setQuery}
+          label={t('settings.diagnostics.logSearch')}
+          hint={t('settings.diagnostics.logSearchHint')}
+          className="min-w-[12rem] flex-1"
+        />
 
         <span className="flex items-center gap-1.5">
           <Dropdown
@@ -84,7 +86,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
           <button
             type="button"
             onClick={() => setTask('')}
-            className="rounded-[var(--radius-pill)] px-2 py-1 text-[11px] text-carbon-textMuted
+            className="rounded-[var(--radius-pill)] px-2 py-1 text-meta text-carbon-textMuted
               transition-colors hover:bg-carbon-hover hover:text-carbon-text"
           >
             {t('settings.diagnostics.logTaskClear')}
@@ -98,7 +100,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
         </span>
       )}
 
-      <span className="text-[11px] text-carbon-textMuted">
+      <span className="text-meta text-carbon-textMuted">
         {t('settings.diagnostics.logMatches', { shown: shown.length, total: lines.length })}
       </span>
 
@@ -113,7 +115,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
           ref={box}
           dir="ltr"
           className="max-h-96 overflow-auto whitespace-pre-wrap break-all rounded-[var(--radius-control)]
-            bg-carbon-surface2 p-4 font-mono text-[11px] leading-relaxed text-carbon-textSub"
+            bg-carbon-surface2 p-4 font-mono text-meta leading-relaxed text-carbon-textSub"
         >
           {shown.map((line) => (
             <Row key={line.seq} line={line} onTask={setTask} chipLabel={t('settings.diagnostics.logTaskChip')} />

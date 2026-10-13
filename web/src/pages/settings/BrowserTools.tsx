@@ -12,6 +12,7 @@ import { qrMatrix } from '../../lib/qrmatrix';
 import { openWindow } from '../../lib/windowStack';
 import {
   ANDROID_SVG,
+  FDROID_SVG,
   APPLE_SVG,
   DOCKER_SVG,
   KNIGHTLOADER_LIT_SVG,
@@ -275,6 +276,14 @@ function PhoneCard() {
           mark={<BrandMark svg={PLAY_SVG} />}
           soonLabel={soon}
         />
+        {/* Built so F-Droid can take it, and not listed there yet. */}
+        <ReadmeButton
+          brand="fdroid"
+          data-new="fdroid"
+          parts={[{ name: 'F-Droid', href: APP_URLS.fdroid }]}
+          mark={<BrandMark svg={FDROID_SVG} />}
+          soonLabel={soon}
+        />
         <ApkButton />
       </div>
       {(canInstall || iOS) && (
@@ -287,7 +296,7 @@ function PhoneCard() {
           </span>
           {canInstall && (
             <div>
-              <Button kind="secondary" hue={0} onClick={() => void promptInstall()}>
+              <Button kind="secondary" onClick={() => void promptInstall()}>
                 {t('settings.browsertools.install')}
               </Button>
             </div>
@@ -402,19 +411,27 @@ function QrWindow({
  * DesktopCard offers the desktop app to a reader in a container or a browser.
  * The Windows and Linux buttons give the build for this computer's
  * architecture, x64 where the browser does not tell, and the segment beside
- * each the other one.
+ * each the other one. Where this instance runs a release, the buttons give the
+ * desktop app of that release and the card names it; a build between two
+ * releases offers the newest, whose number it cannot know.
  */
 function DesktopCard() {
   const { t } = useT();
   const [arch, setArch] = useState<Arch>('x64');
+  const [version, setVersion] = useState('');
   useEffect(() => {
     void visitorArch().then((found) => found && setArch(found));
+    void fetchHealth()
+      .then((h) => setVersion(h.version))
+      .catch(() => {});
   }, []);
   const other: Arch = arch === 'x64' ? 'arm64' : 'x64';
+  const tag = releaseTag(version);
+  const release = RELEASE.test(tag) ? tag : '';
   // The build for this computer first, the other architecture as its segment.
   const parts = (os: DesktopOS, name: string): [ReadmePart, ReadmePart] => [
-    { name, sub: ARCH_LABEL[arch], href: desktopZip(desktopSlug(os, arch)) },
-    { name, sub: ARCH_LABEL[other], href: desktopZip(desktopSlug(os, other)) },
+    { name, sub: ARCH_LABEL[arch], href: desktopZip(desktopSlug(os, arch), release) },
+    { name, sub: ARCH_LABEL[other], href: desktopZip(desktopSlug(os, other), release) },
   ];
 
   return (
@@ -429,6 +446,7 @@ function DesktopCard() {
       >
         {t('settings.browsertools.desktopTitle')}
       </SectionTitle>
+      {release && <ReleaseVersion version={release.slice(1)} />}
       <div className="glim-readme-btn-rows">
         <ReadmeButton
           brand="windows"
@@ -438,7 +456,7 @@ function DesktopCard() {
         />
         <ReadmeButton
           brand="apple"
-          parts={[{ name: 'macOS', sub: 'Universal', href: desktopZip('macos-universal') }]}
+          parts={[{ name: 'macOS', sub: 'Universal', href: desktopZip('macos-universal', release) }]}
           mark={<BrandMark svg={APPLE_SVG} />}
         />
         <ReadmeButton brand="linux" parts={parts('linux', 'Linux')} mark={<BrandMark svg={LINUX_SVG} />} />
@@ -468,7 +486,7 @@ function ServerCard() {
   // The source of the running version where it is a release, the newest
   // otherwise.
   const tag = releaseTag(version);
-  const zip = /^v\d+\.\d+\.\d+$/.test(tag)
+  const zip = RELEASE.test(tag)
     ? `${REPO_URL}/archive/refs/tags/${tag}.zip`
     : `${REPO_URL}/archive/refs/heads/main.zip`;
 
@@ -500,7 +518,7 @@ function ServerCard() {
           hint={
             <>
               <span className="block">{t('settings.browsertools.dockerHint')}</span>
-              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+              <code dir="ltr" className="mt-1.5 block font-mono text-meta [overflow-wrap:anywhere]">
                 {command}
               </code>
             </>
@@ -527,7 +545,7 @@ function ServerCard() {
           hint={
             <>
               <span className="block">{t('settings.browsertools.parleyportHint')}</span>
-              <code dir="ltr" className="mt-1.5 block font-mono text-[11px] [overflow-wrap:anywhere]">
+              <code dir="ltr" className="mt-1.5 block font-mono text-meta [overflow-wrap:anywhere]">
                 {RELAY_RUN_COMMAND}
               </code>
             </>
@@ -572,17 +590,23 @@ const APP_VERSION = __MOBILE_VERSION__;
 
 const APP_URLS = {
   play: '',
+  fdroid: '',
   apk: `${REPO_URL}/releases/download/v${APP_VERSION}/knightloader-v${APP_VERSION}-android.apk`,
 };
 
 const UNRAID_CA_URL = '';
 
+/** A tag that names a published release, as against a preview or branch stamp. */
+const RELEASE = /^v\d+\.\d+\.\d+$/;
+
 /**
- * desktopZip is the desktop bundle release.yml attaches to every release,
- * under the name without a version that /releases/latest/download/ can find.
+ * desktopZip is the desktop bundle release.yml attaches to every release under
+ * a name without a version: that of the release tagged `release`, or of the
+ * newest one where there is no tag to name.
  */
-function desktopZip(slug: DesktopSlug): string {
-  return `${REPO_URL}/releases/latest/download/knightloader-${slug}.zip`;
+function desktopZip(slug: DesktopSlug, release: string): string {
+  const from = release ? `download/${release}` : 'latest/download';
+  return `${REPO_URL}/releases/${from}/knightloader-${slug}.zip`;
 }
 
 /** The README's docker run on one line, in the reader's own time zone. */
@@ -603,7 +627,7 @@ function dockerRun(): string {
  */
 function ReleaseVersion({ version }: { version: string }) {
   const notch = `glim-num absolute end-5 top-0 z-10 -translate-y-1/2 rounded-[var(--radius-pill)] bg-carbon-surface2
-    px-2.5 py-[3px] text-[11px] leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
+    px-2.5 py-[3px] text-meta leading-[15px] text-carbon-textMuted shadow-[var(--elevation)]`;
   if (!/^\d+\.\d+\.\d+$/.test(version)) return <span className={notch}>v{version}</span>;
   return (
     <a

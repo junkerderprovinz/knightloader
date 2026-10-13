@@ -1,8 +1,144 @@
-import type { ComponentProps, CSSProperties, TextareaHTMLAttributes } from 'react';
+import {
+  type ComponentProps,
+  type CSSProperties,
+  type ReactNode,
+  type TextareaHTMLAttributes,
+} from 'react';
 import { PathInput } from '../../components/FolderPicker';
-import { TextArea } from '../../components/ui';
+import { Button, HintBubble, Modal, TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
+import { IconClose } from '../../lib/icons';
+import { useT } from '../../lib/i18n';
 import { useFieldError } from './context';
+
+type Hint = ComponentProps<typeof HintBubble>['hint'];
+
+/** How wide a SettingRow's one field is: as wide as it draws itself, a number's width, or a line of text's. */
+export type RowControl = 'fit' | 'short' | 'long';
+
+const CONTROL_WIDTH: Record<RowControl, string> = {
+  fit: '',
+  short: 'w-40 max-w-full',
+  long: 'w-80 max-w-full',
+};
+
+/**
+ * SettingRow is one setting on a line: its name at the start, with the
+ * explanation behind an (i), and its control at the end. A selector goes in as
+ * a direct child, since it measures the row to know when it has to wrap; where
+ * the row is too narrow for both, the control moves under the name and keeps
+ * the row's end.
+ *
+ * `control` is for one dropdown or input field: the row becomes its <label>,
+ * so the name is the field's name too, and the field takes a width that fits
+ * beside the name. Every dropdown and input of a settings card stands this
+ * way (check-setting-rows.mjs); a list or a text area keeps its name above it.
+ */
+export function SettingRow({
+  label,
+  hint,
+  control,
+  children,
+}: {
+  label: string;
+  hint?: Hint;
+  control?: RowControl;
+  children: ReactNode;
+}) {
+  const Row = control ? 'label' : 'div';
+  return (
+    <Row className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+      {/* data-glim-label is where the settings search scrolls to, as on ToggleRow. */}
+      <span data-glim-label={label} className="flex min-w-0 flex-[1_1_12.5rem] items-center gap-1.5 text-sm text-carbon-text">
+        {label}
+        <HintBubble hint={hint} />
+      </span>
+      {control && control !== 'fit' ? <span className={CONTROL_WIDTH[control]}>{children}</span> : children}
+    </Row>
+  );
+}
+
+/**
+ * SubHead is the small heading of a group inside a card, with its explanation
+ * behind an (i) and room for an action at its end. A card has one notch badge,
+ * so a second group in it is named by this instead.
+ */
+export function SubHead({ label, hint, right }: { label: string; hint?: Hint; right?: ReactNode }) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
+      {/* data-glim-label is where the settings search scrolls to. */}
+      <h3 data-glim-label={label} className="glim-eyebrow flex items-center gap-1.5 font-semibold leading-4">
+        {label}
+        <HintBubble hint={hint} />
+      </h3>
+      {right && <span className="ms-auto flex flex-wrap items-center justify-end gap-2">{right}</span>}
+    </div>
+  );
+}
+
+/**
+ * SubCard groups rows inside a card under a small heading: flat, one step up
+ * the surface ramp, at the card radius (`.glim-subcard` in index.css). It sets
+ * a group apart without hiding it behind a fold.
+ */
+export function SubCard({
+  label,
+  hint,
+  right,
+  className = 'gap-4',
+  children,
+}: {
+  label: string;
+  hint?: Hint;
+  /** An action at the heading's end, such as the button that adds a row. */
+  right?: ReactNode;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <section className={`glim-subcard flex flex-col px-4 pb-4 pt-3 ${className}`}>
+      <SubHead label={label} hint={hint} right={right} />
+      {children}
+    </section>
+  );
+}
+
+/**
+ * Sheet is the window a list row opens in place of unfolding: the row's
+ * settings over the page, with Close as its one answer, since every field in
+ * it saves itself.
+ */
+export function Sheet({
+  title,
+  hint,
+  hue,
+  wide = false,
+  onClose,
+  children,
+}: {
+  title: string;
+  hint?: string;
+  hue?: number;
+  wide?: boolean;
+  onClose: () => void;
+  children: ReactNode;
+}) {
+  const { t } = useT();
+  return (
+    <Modal
+      title={title}
+      hint={hint}
+      hue={hue}
+      height="capped"
+      wide={wide}
+      onClose={onClose}
+      // Filled, since it is the window's one button and a bare word would not read as one.
+      footer={<Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}
+    >
+      {children}
+    </Modal>
+  );
+}
 
 /**
  * SettingPathInput is PathInput for a folder setting, with the server's
@@ -41,7 +177,8 @@ export function ListArea({
 
 /**
  * RowRefusal is the server's refusal of one row of a settings list, such as
- * "connections.2". It goes under the row's line, so a folded row shows it too.
+ * "connections.2". It goes under the row's line, where the list shows it while
+ * the row's window is closed.
  */
 export function RowRefusal({
   field,

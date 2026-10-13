@@ -1,32 +1,35 @@
-import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
   Field,
-  FieldGroup,
   IconBadge,
   InfoBubble,
+  Modal,
   NumberInput,
   SectionTitle,
   TextArea,
   TextInput,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { ReconnectScene } from '../../components/pictures/ReconnectScene';
 import { Tabs } from '../../components/Tabs';
 import {
-  IconArrowDown,
-  IconArrowUp,
+  IconAdd,
+  IconClose,
   IconCollector,
+  IconFleet,
   IconGlobe,
-  IconInstances,
+  IconMoveDown,
+  IconMoveUp,
   IconPlay,
-  IconPlus,
-  IconRetry,
+  IconRefresh,
   IconSearch,
   IconTrash,
 } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import { useDraft, useFieldError } from './context';
+import { SettingRow, SubCard, SubHead } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -164,7 +167,7 @@ const DEFAULTS: ReconnectConfig = {
 const METHODS: { id: Exclude<Method, 'none'>; icon: ReactNode }[] = [
   { id: 'command', icon: <IconPlay width={16} height={16} /> },
   { id: 'http', icon: <IconGlobe width={16} height={16} /> },
-  { id: 'upnp', icon: <IconInstances width={16} height={16} /> },
+  { id: 'upnp', icon: <IconFleet width={16} height={16} /> },
   { id: 'script', icon: <IconCollector width={16} height={16} /> },
 ];
 
@@ -192,15 +195,23 @@ export function ReconnectCards({ hue }: { hue: number }) {
   const rc = readReconnect(cfg);
   const methodRefused = useRefusal('method');
 
+  // The draft as it stands, for a write that lands after an await, such as
+  // the router lookup: built from the draft it started with, it would put back
+  // whatever was typed meanwhile.
+  const latest = useRef(cfg);
+  latest.current = cfg;
   const write = useCallback(
     (fields: Partial<ReconnectConfig>) => {
-      const next = { ...readReconnect(cfg), ...fields };
+      const next = { ...readReconnect(latest.current), ...fields };
+      latest.current = { ...latest.current, reconnect: next } as typeof cfg;
       patch({ reconnect: next } as unknown as Parameters<typeof patch>[0]);
     },
-    [cfg, patch],
+    [patch],
   );
 
   const [state, setState] = useState<ReconnectState | null>(null);
+  // The last run from this page, whose two addresses the picture shows.
+  const [moved, setMoved] = useState<RunResult | null>(null);
 
   // Polled, since a hoster limit can start a run while the page is open.
   useEffect(() => {
@@ -228,13 +239,13 @@ export function ReconnectCards({ hue }: { hue: number }) {
       <Card hue={hue} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.module.reconnect')}</SectionTitle>
         <ModuleToggle id="reconnect" />
-        {/* FieldGroup, because a Field's label would pass a click on the
-            caption to the first tab. */}
-        <FieldGroup layout="row" label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
+        <SettingRow label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
           <Tabs
             label={t('settings.reconnect.method')}
             variant="well"
             size="sm"
+            inline
+            hug
             labelled
             active={off ? null : rc.method}
             onSelect={(id) => write({ method: id as Method })}
@@ -245,8 +256,16 @@ export function ReconnectCards({ hue }: { hue: number }) {
               icon: m.icon,
             }))}
           />
-          {methodRefused.line}
-        </FieldGroup>
+        </SettingRow>
+        {methodRefused.line}
+
+        <ReconnectScene
+          method={rc.method}
+          glyph={METHODS.find((m) => m.id === rc.method)?.icon}
+          off={off}
+          from={moved?.oldIp}
+          to={moved?.newIp}
+        />
 
         {off && <StateLine tone="muted">{t('settings.reconnect.offState')}</StateLine>}
         {rc.method === 'command' && <CommandFields rc={rc} write={write} />}
@@ -265,7 +284,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
 
       <Card hue={hue + 2} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.reconnect.runTitle')}</SectionTitle>
-        <RunPanel state={state} disabled={off} />
+        <RunPanel state={state} disabled={off} onMoved={setMoved} />
       </Card>
     </>
   );
@@ -281,7 +300,7 @@ function CommandFields({ rc, write }: FieldProps) {
   const refused = useRefusal('command');
   return (
     <>
-      <Field label={t('settings.reconnect.command')} hint={t('settings.reconnect.commandHint')}>
+      <SettingRow control="long" label={t('settings.reconnect.command')} hint={t('settings.reconnect.commandHint')}>
         <TextInput
           {...refused.mark}
           dir="ltr"
@@ -291,7 +310,7 @@ function CommandFields({ rc, write }: FieldProps) {
           onChange={(e) => write({ command: e.target.value })}
         />
         {refused.line}
-      </Field>
+      </SettingRow>
       <Field label={t('settings.reconnect.args')} hint={t('settings.reconnect.argsHint')}>
         <LinesArea rows={3} lines={rc.args} placeholder="--router%%router%%" onLines={(v) => write({ args: v })} />
       </Field>
@@ -303,7 +322,8 @@ function UPnPFields({ rc, write }: FieldProps) {
   const { t } = useT();
   return (
     <>
-      <Field
+      <SettingRow
+        control="long"
         label={t('settings.reconnect.upnpLocation')}
         hint={[t('settings.reconnect.upnpState'), t('settings.reconnect.upnpLocationHint')]}
       >
@@ -314,7 +334,7 @@ function UPnPFields({ rc, write }: FieldProps) {
           placeholder="http://192.168.1.1:5000/rootDesc.xml"
           onChange={(e) => write({ upnpLocation: e.target.value })}
         />
-      </Field>
+      </SettingRow>
     </>
   );
 }
@@ -325,8 +345,12 @@ function ScriptFields({ rc, write }: FieldProps) {
   const scriptRefused = useRefusal('script');
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.interpreter')} hint={t('settings.reconnect.interpreterHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow
+          control="long"
+          label={t('settings.reconnect.interpreter')}
+          hint={t('settings.reconnect.interpreterHint')}
+        >
           <TextInput
             {...interpreterRefused.mark}
             dir="ltr"
@@ -336,7 +360,7 @@ function ScriptFields({ rc, write }: FieldProps) {
             onChange={(e) => write({ interpreter: e.target.value })}
           />
           {interpreterRefused.line}
-        </Field>
+        </SettingRow>
         <Field
           label={t('settings.reconnect.interpreterArgs')}
           hint={t('settings.reconnect.interpreterArgsHint')}
@@ -411,7 +435,7 @@ function RouterFields({ rc, write }: FieldProps) {
       <div className="flex items-end gap-3">
         <div className="min-w-0 flex-1">
           {/* The button sits outside the Field, whose label would pass it clicks. */}
-          <Field label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
+          <SettingRow control="long" label={t('settings.reconnect.router')} hint={t('settings.reconnect.routerHint')}>
             <TextInput
               {...routerRefused.mark}
               dir="ltr"
@@ -421,7 +445,7 @@ function RouterFields({ rc, write }: FieldProps) {
               onChange={(e) => write({ router: e.target.value })}
             />
             {routerRefused.line}
-          </Field>
+          </SettingRow>
         </div>
         <Button
           kind="secondary"
@@ -435,8 +459,8 @@ function RouterFields({ rc, write }: FieldProps) {
       {found && <StateLine tone="muted">{found}</StateLine>}
       {failed && <StateLine tone="warn">{failed}</StateLine>}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.username')} hint={t('settings.reconnect.usernameHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="long" label={t('settings.reconnect.username')} hint={t('settings.reconnect.usernameHint')}>
           <TextInput
             dir="ltr"
             autoComplete="off"
@@ -444,8 +468,8 @@ function RouterFields({ rc, write }: FieldProps) {
             value={rc.username ?? ''}
             onChange={(e) => write({ username: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.reconnect.password')} hint={t('settings.reconnect.passwordHint')}>
+        </SettingRow>
+        <SettingRow control="long" label={t('settings.reconnect.password')} hint={t('settings.reconnect.passwordHint')}>
           <TextInput
             type="password"
             dir="ltr"
@@ -454,7 +478,7 @@ function RouterFields({ rc, write }: FieldProps) {
             placeholder={stored ? t('settings.reconnect.passwordStored') : ''}
             onChange={(e) => write({ password: e.target.value })}
           />
-        </Field>
+        </SettingRow>
       </div>
     </>
   );
@@ -479,26 +503,24 @@ function RequestFields({ rc, write }: FieldProps) {
 
   return (
     <div className="flex flex-col gap-4">
-      <SectionTitle
+      <SubHead
+        label={t('settings.reconnect.requests')}
+        hint={t('settings.reconnect.requestsHint')}
         right={
-          <div className="flex items-center gap-2">
-            <Button kind="secondary" onClick={() => setImporting(!importing)}>
+          <>
+            <Button kind="secondary" onClick={() => setImporting(true)}>
               {t('settings.reconnect.import')}
             </Button>
-            {/* Secondary: the one primary button here is "Run it now". */}
             <Button
               kind="secondary"
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               onClick={() => write({ requests: [...rows, { method: 'GET', url: '' }] })}
             >
               {t('settings.reconnect.requestAdd')}
             </Button>
-          </div>
+          </>
         }
-      >
-        {t('settings.reconnect.requests')}
-        <InfoBubble tip={t('settings.reconnect.requestsHint')} />
-      </SectionTitle>
+      />
 
       {importing && (
         <ImportPanel
@@ -552,88 +574,93 @@ function RequestRow({
 }) {
   const { t } = useT();
   const urlRefused = useRefusal(`requests.${index}.url`);
+  const step = t('settings.reconnect.requestStep', { n: index + 1 });
   return (
-    <li className="glim-well flex flex-col gap-3 p-4">
-      <div className="flex items-center gap-3">
-        <span className="glim-num text-xs font-medium text-carbon-textSub">
-          {t('settings.reconnect.requestStep', { n: index + 1 })}
-        </span>
-        <span className="flex-1" />
-        {/* `labelled`, so the actions follow the Beschriftung setting. */}
-        <div className="flex items-center gap-1.5">
-          <IconBadge
-            labelled
-            icon={<IconArrowUp width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestUp')}
-            aria-label={t('settings.reconnect.requestUp')}
-            disabled={index === 0}
-            onClick={() => onMove(-1)}
-          />
-          <IconBadge
-            labelled
-            icon={<IconArrowDown width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestDown')}
-            aria-label={t('settings.reconnect.requestDown')}
-            disabled={last}
-            onClick={() => onMove(1)}
-          />
-          <IconBadge
-            labelled
-            icon={<IconTrash width={16} height={16} />}
-            hue={index}
-            title={t('settings.reconnect.requestRemove')}
-            aria-label={t('settings.reconnect.requestRemove')}
-            onClick={onRemove}
-          />
+    <li>
+      <SubCard
+        label={step}
+        className="gap-3"
+        right={
+          // `labelled`, so the actions follow the Beschriftung setting.
+          <>
+            <IconBadge
+              labelled
+              icon={<IconMoveUp width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestUp')}
+              aria-label={t('settings.reconnect.requestUp')}
+              disabled={index === 0}
+              onClick={() => onMove(-1)}
+            />
+            <IconBadge
+              labelled
+              icon={<IconMoveDown width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestDown')}
+              aria-label={t('settings.reconnect.requestDown')}
+              disabled={last}
+              onClick={() => onMove(1)}
+            />
+            <IconBadge
+              labelled
+              icon={<IconTrash width={16} height={16} />}
+              hue={index}
+              title={t('settings.reconnect.requestRemove')}
+              aria-label={t('settings.reconnect.requestRemove')}
+              onClick={onRemove}
+            />
+          </>
+        }
+      >
+        <div className="flex flex-col gap-4">
+          <SettingRow control="fit" label={t('settings.reconnect.requestMethod')}>
+            <Dropdown
+              label={t('settings.reconnect.requestMethod')}
+              value={(row.method || 'GET').toUpperCase()}
+              onChange={(v) => onChange({ method: v })}
+              options={VERBS.map((v) => ({ value: v, label: v }))}
+            />
+          </SettingRow>
+          <SettingRow
+            control="long"
+            label={t('settings.reconnect.requestUrl')}
+            hint={t('settings.reconnect.requestUrlHint')}
+          >
+            <TextInput
+              {...urlRefused.mark}
+              dir="ltr"
+              spellCheck={false}
+              value={row.url}
+              placeholder="http://%%router%%/login.cgi"
+              onChange={(e) => onChange({ url: e.target.value })}
+            />
+            {urlRefused.line}
+          </SettingRow>
         </div>
-      </div>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[8rem_1fr]">
-        <Field label={t('settings.reconnect.requestMethod')}>
-          <Dropdown
-            label={t('settings.reconnect.requestMethod')}
-            value={(row.method || 'GET').toUpperCase()}
-            onChange={(v) => onChange({ method: v })}
-            options={VERBS.map((v) => ({ value: v, label: v }))}
-          />
-        </Field>
-        <Field label={t('settings.reconnect.requestUrl')} hint={t('settings.reconnect.requestUrlHint')}>
-          <TextInput
-            {...urlRefused.mark}
-            dir="ltr"
-            spellCheck={false}
-            value={row.url}
-            placeholder="http://%%router%%/login.cgi"
-            onChange={(e) => onChange({ url: e.target.value })}
-          />
-          {urlRefused.line}
-        </Field>
-      </div>
-
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.reconnect.requestHeaders')} hint={t('settings.reconnect.requestHeadersHint')}>
-          <HeadersArea headers={row.headers} onHeaders={(h) => onChange({ headers: h })} />
-        </Field>
-        <Field label={t('settings.reconnect.requestBody')} hint={t('settings.reconnect.requestBodyHint')}>
-          <TextArea
-            dir="ltr"
-            rows={3}
-            spellCheck={false}
-            value={row.body ?? ''}
-            placeholder="user=%%username%%&pass=%%password%%"
-            onChange={(e) => onChange({ body: e.target.value })}
-          />
-        </Field>
-      </div>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <Field label={t('settings.reconnect.requestHeaders')} hint={t('settings.reconnect.requestHeadersHint')}>
+            <HeadersArea headers={row.headers} onHeaders={(h) => onChange({ headers: h })} />
+          </Field>
+          <Field label={t('settings.reconnect.requestBody')} hint={t('settings.reconnect.requestBodyHint')}>
+            <TextArea
+              dir="ltr"
+              rows={3}
+              spellCheck={false}
+              value={row.body ?? ''}
+              placeholder="user=%%username%%&pass=%%password%%"
+              onChange={(e) => onChange({ body: e.target.value })}
+            />
+          </Field>
+        </div>
+      </SubCard>
     </li>
   );
 }
 
 /**
- * ImportPanel reads a LiveHeader script inline, showing what mapped and every
- * refused line side by side. A script with a refused line cannot be used, since
+ * ImportPanel reads a LiveHeader script in a window, showing what mapped and
+ * every refused line side by side. A script with a refused line cannot be used, since
  * half a router script logs in without rebooting.
  */
 function ImportPanel({
@@ -672,7 +699,27 @@ function ImportPanel({
   const refused = Boolean(result?.error);
 
   return (
-    <div className="glim-well flex flex-col gap-4 p-4">
+    <Modal
+      title={t('settings.reconnect.import')}
+      height="capped"
+      wide
+      onClose={onClose}
+      footer={
+        <>
+          <Button kind="ghost" labelled icon={<IconClose />} title={t('settings.reconnect.importClose')} onClick={onClose} />
+          {/* Read or use, never both; an edit drops the result. */}
+          {result ? (
+            <Button disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
+              {t('settings.reconnect.importUse', { n: mapped.length })}
+            </Button>
+          ) : (
+            <Button disabled={busy || text.trim() === ''} onClick={read}>
+              {busy ? t('settings.reconnect.importReading') : t('settings.reconnect.importRead')}
+            </Button>
+          )}
+        </>
+      }
+    >
       <Field label={t('settings.reconnect.importLabel')} hint={t('settings.reconnect.importHint')}>
         <TextArea
           dir="ltr"
@@ -687,23 +734,6 @@ function ImportPanel({
           }}
         />
       </Field>
-
-      {/* Read or use, never both; an edit drops the result. */}
-      <div className="flex items-center gap-2">
-        <span className="flex-1" />
-        <Button kind="ghost" onClick={onClose}>
-          {t('settings.reconnect.importClose')}
-        </Button>
-        {result ? (
-          <Button disabled={refused || mapped.length === 0} onClick={() => onUse(mapped)}>
-            {t('settings.reconnect.importUse', { n: mapped.length })}
-          </Button>
-        ) : (
-          <Button disabled={busy || text.trim() === ''} onClick={read}>
-            {busy ? t('settings.reconnect.importReading') : t('settings.reconnect.importRead')}
-          </Button>
-        )}
-      </div>
 
       {failed && <StateLine tone="fail">{failed}</StateLine>}
 
@@ -754,7 +784,7 @@ function ImportPanel({
           {refused && <StateLine tone="warn">{t('settings.reconnect.importBlocked')}</StateLine>}
         </div>
       )}
-    </div>
+    </Modal>
   );
 }
 
@@ -769,7 +799,7 @@ function CheckFields({ rc, write }: FieldProps) {
 
   return (
     <>
-      <Field label={t('settings.reconnect.checkUrl')} hint={t('settings.reconnect.checkUrlHint')}>
+      <SettingRow control="long" label={t('settings.reconnect.checkUrl')} hint={t('settings.reconnect.checkUrlHint')}>
         <TextInput
           {...refused.mark}
           dir="ltr"
@@ -779,40 +809,49 @@ function CheckFields({ rc, write }: FieldProps) {
           onChange={(e) => write({ checkUrl: e.target.value })}
         />
         {refused.line}
-      </Field>
+      </SettingRow>
 
       {/* No preset is selected while the URL is somebody's own. */}
-      <FieldGroup label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
+      <SettingRow label={t('settings.reconnect.checkPresets')} hint={t('settings.reconnect.checkPresetsHint')}>
         <Tabs
           label={t('settings.reconnect.checkPresets')}
           size="sm"
+          inline
           active={preset?.id ?? null}
           onSelect={(id) => write({ checkUrl: CHECK_PRESETS.find((p) => p.id === id)?.url ?? '' })}
           items={CHECK_PRESETS.map((p) => ({ id: p.id, label: p.id, title: p.url }))}
         />
-      </FieldGroup>
+      </SettingRow>
 
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.reconnect.interval')} hint={t('settings.reconnect.intervalHint')}>
+          <SettingRow
+            control="short"
+            label={t('settings.reconnect.interval')}
+            hint={t('settings.reconnect.intervalHint')}
+          >
             <NumberInput
               value={interval}
               min={INTERVAL.lo}
               max={INTERVAL.hi}
               onValue={(v) => write({ intervalSeconds: v })}
             />
-          </Field>
+          </SettingRow>
           <Clamped value={interval} band={INTERVAL} />
         </div>
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.reconnect.timeout')} hint={t('settings.reconnect.timeoutHint')}>
+          <SettingRow
+            control="short"
+            label={t('settings.reconnect.timeout')}
+            hint={t('settings.reconnect.timeoutHint')}
+          >
             <NumberInput
               value={timeout}
               min={TIMEOUT.lo}
               max={TIMEOUT.hi}
               onValue={(v) => write({ timeoutSeconds: v })}
             />
-          </Field>
+          </SettingRow>
           <Clamped value={timeout} band={TIMEOUT} />
         </div>
       </div>
@@ -833,7 +872,15 @@ function Clamped({ value, band }: { value: number; band: { lo: number; hi: numbe
 }
 
 /** RunPanel shows the state, the run button and when reconnects happen on their own. */
-function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled: boolean }) {
+function RunPanel({
+  state,
+  disabled,
+  onMoved,
+}: {
+  state: ReconnectState | null;
+  disabled: boolean;
+  onMoved: (result: RunResult) => void;
+}) {
   const { t } = useT();
   // The state and the run use the saved configuration, which differs while
   // the form is dirty.
@@ -851,8 +898,12 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
     setNote(null);
     try {
       const res = await runReconnect();
-      if (res) setResult(res);
-      else setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
+      if (res) {
+        setResult(res);
+        onMoved(res);
+      } else {
+        setNote({ tone: 'muted', text: t('settings.reconnect.runBusy') });
+      }
     } catch (e) {
       setNote({ tone: 'fail', text: t('settings.reconnect.runFailed', { reason: String(e).replace(/^Error:\s*/, '') }) });
     } finally {
@@ -876,11 +927,7 @@ function RunPanel({ state, disabled }: { state: ReconnectState | null; disabled:
           />
         )}
         <span className="flex-1" />
-        <Button
-          onClick={run}
-          disabled={busy || disabled}
-          icon={<IconRetry width={16} height={16} />}
-        >
+        <Button kind="secondary" onClick={run} disabled={busy || disabled} icon={<IconRefresh width={16} height={16} />}>
           {running ? t('settings.reconnect.running') : t('settings.reconnect.runNow')}
         </Button>
       </div>

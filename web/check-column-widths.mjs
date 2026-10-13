@@ -21,31 +21,40 @@
 // (Chromium, the page tall enough for <main> to show its 10px scrollbar):
 //
 //   card            934 at 1280px, 1094 at 1440px, 1574 at 1920px
-//   furniture       128: the row's 12px padding on each side and the 104px
-//                   track for the row's three action badges
+//   furniture       120: the row's padding, 8px at either end, and the
+//                   104px track for the row's three action badges at the
+//                   tallest row height; the track is 80px at the default one
 //
-// The widest content of the other default columns, in the app's font with the
-// cell's 16px of padding. These are what the widths in columns.tsx round up:
+// The widest content of the other default columns, in the app's font at 12px,
+// the size every cell is set in, with the cell's 16px of padding. These are
+// what the widths in columns.tsx round up:
 //
-//   size            68  "1023 MiB", the longest a size gets
-//   speed           78  "1023 MiB/s"
+//   size            68  "1000 MB", the longest a size gets
+//   speed           78  "1000 MB/s"
 //   time left       82  "123h 45min"; 75 for "19h 58min", the widest value
 //                       under a hundred hours
-//   status         133  the widest transfer state in the 42 locales (fr)
+//   status         142  the widest transfer state in the 42 locales (fr)
 //   host           116  "rapidgator.net" behind its logo; longer hosts
 //                       truncate into their bubble
 //   progress        60  the percentage, its gap and the padding; the bar
-//                       takes the rest, 68px at the default of 128
+//                       takes the rest, 100px at the default of 160
+//
+// A head is a word per language where a width is one number, so the widths
+// here are not sized for the heads: set at 12px in capitals with their 16px of
+// padding, "Geschwindigkeit" (de) needs 133px over the speed column, "Tiempo
+// restante" (es) 128 over the time left and "Bekapcsolva" (hu) 103 over the
+// collector's switch. useHeadWidths in columns.tsx measures the reader's own
+// heads and raises a default that is narrower, for that language alone.
 //
 // The variant column, read off the live collector (seeded yt-dlp variant rows,
 // Chromium at 1600x950) in all 42 shipped locales, measuring the cell's content
 // on one line plus the cell's own 16px of padding:
 //
-//   video row       max 287.1  (lt: "Vaizdo įrašas" and two pickers reading
-//                               "Automatinis"); 230.7 in English and German,
+//   video row       max 293.1  (lt: "Vaizdo įrašas" and two pickers reading
+//                               "Automatinis"); 233.4 in English and German,
 //                               with "MP4 (H.265)" and "2160p60"
-//   audio row       max 261.3  (fa: label, "AAC (M4A)" and the bitrate picker)
-//   the other kinds max  86.8  (he)
+//   audio row       max 263.0  (fa: label, "AAC (M4A)" and the bitrate picker)
+//   the other kinds max  93.4  (he)
 //   widest single   max 143.7  (fa: the bitrate picker at 320 kbit/s and
 //   control                     padding). A picker cannot shrink (shrink-0),
 //                               so below this the cell's own overflow clips it.
@@ -57,7 +66,7 @@
 //      narrow column, clipping does not, and a picker is clipped rather than
 //      shrunk. The download list shows a line of text there that truncates
 //      into its tooltip, so its own floor can be lower.
-//   2. In the collector, 231 <= variant.width <= 288. The lower bound is the
+//   2. In the collector, 234 <= variant.width <= 294. The lower bound is the
 //      video row, which every yt-dlp package has exactly one of, on one line
 //      in English and German. In a language with a longer word for Auto its
 //      quality picker wraps under the format picker, rather than the column
@@ -128,12 +137,12 @@ const text = blankComments(readFileSync(file, 'utf8'));
 
 // Measured on the live instance. See the header.
 const WRAP_FLOOR = 144; // widest single control + the cell's padding (fa)
-const COMMON_ROW = 231; // widest one-line video row in English and German
-const WIDEST_ROW = 288; // widest one-line video row there can be (lt)
+const COMMON_ROW = 234; // widest one-line video row in English and German
+const WIDEST_ROW = 294; // widest one-line video row there can be (lt)
 const ETA_FLOOR = 75; // "19h 58min" + the cell's padding
 const CARD_1280 = 934;
 const CARD_1440 = 1094;
-const FURNITURE = 128; // row padding + the actions track
+const FURNITURE = 120; // row padding + the actions track
 
 const problems = [];
 

@@ -29,10 +29,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const src = (rel) => readFileSync(join(here, rel), 'utf8');
 
 /**
- * Which file draws which page. A file may serve two pages (Look.tsx, or
- * Help.tsx whose About card the General tab draws), and its keys count for
- * either. `titleTags` names wrapper components whose `title` prop becomes a
- * SectionTitle (Help.tsx's Topic, Modules.tsx's Group).
+ * Which file draws which page. A file may serve two pages (Look.tsx), and its
+ * keys count for either. `titleTags` names wrapper components whose `title`
+ * prop becomes a SectionTitle (Modules.tsx's Group).
  *
  * An entry ending in `/` is a directory, so a card added to it is scanned
  * without editing this table.
@@ -47,8 +46,9 @@ const FILE_PAGES = [
   // One component, two rail entries, split by `{appearance && (` / `{general && (`.
   { file: 'src/pages/settings/Look.tsx', pages: ['look', 'appearance'] },
   { file: 'src/pages/settings/look/', pages: ['look'] },
-  // The Help page's topics, plus the About card the General tab draws at its foot.
-  { file: 'src/pages/settings/Help.tsx', pages: ['help', 'look'], titleTags: ['Topic'] },
+  { file: 'src/pages/settings/appearance/', pages: ['appearance'] },
+  // The Info tile: the Version, Help and About cards.
+  { file: 'src/pages/settings/Help.tsx', pages: ['help'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
   { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.
@@ -76,7 +76,8 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/torrents/', pages: ['torrents'] },
-  { file: 'src/pages/settings/Captcha.tsx', pages: ['captcha'] },
+  { file: 'src/pages/settings/DebridDrive.tsx', pages: ['debriddrive'] },
+  { file: 'src/pages/settings/debriddrive/', pages: ['debriddrive'] },
   { file: 'src/pages/settings/Automation.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/automation/', pages: ['automation'] },
   { file: 'src/pages/settings/Schedule.tsx', pages: ['automation'] },
@@ -105,6 +106,10 @@ const EXCLUDED = new Map([
     'the whole-page LoadingCard four settings pages show while their own fetch is in flight. Page furniture, on no card at all',
   ],
   ['settings.rules.testRunning', "the same, for the Rules page's dry run"],
+  [
+    'accounts.routing.dragHandle',
+    "the accessible name of a row's grip in the captcha account order, which names the row's service. The card's title already leads there",
+  ],
   [
     'settings.system.shuttingDownTitle',
     'the card that replaces the lifecycle card while the server is restarting. A result for it would lead somewhere that only exists during a shutdown',
@@ -190,14 +195,13 @@ function sectionTitles(text) {
     const end = text.indexOf('</SectionTitle>', i);
     const children = text.slice(i + 1, end === -1 ? i + 1 : end);
     const keys = keysIn(children);
-    // A dynamic title (Help.tsx's `{title}`, Shortcuts.tsx's `{groupLabel(…)}`)
-    // has no key here. Its file names the wrapper in `titleTags` instead.
+    // A dynamic title (Shortcuts.tsx's `{groupLabel(…)}`) has no key here. Its file names the wrapper in `titleTags` instead.
     if (keys.length > 0) out.push({ at: m.index, key: keys[0] });
   }
   return out;
 }
 
-/** `<Topic … title={t('k')}` and friends - a card title one component removed. */
+/** `<Group … title={t('k')}` and friends - a card title one component removed. */
 function wrapperTitles(text, tags) {
   const out = [];
   for (const tag of tags ?? []) {

@@ -99,10 +99,13 @@ check(
 // Size and age.
 
 check('a bare comparison is a size', parseSearch('>500mb'), [
-  { kind: 'size', op: '>', bytes: 500 * 1024 ** 2, negate: false },
+  { kind: 'size', op: '>', bytes: 500 * 1000 ** 2, negate: false },
 ]);
 check('size: is the long form', parseSearch('size:<=1gb'), [
-  { kind: 'size', op: '<=', bytes: 1024 ** 3, negate: false },
+  { kind: 'size', op: '<=', bytes: 1000 ** 3, negate: false },
+]);
+check('a binary unit typed out keeps its own meaning', parseSearch('>2gib'), [
+  { kind: 'size', op: '>', bytes: 2 * 1024 ** 3, negate: false },
 ]);
 check('aelter: is older:', parseSearch('aelter:7t'), [
   { kind: 'age', olderThan: true, ms: 7 * DAY, negate: false },
@@ -113,8 +116,8 @@ check('newer: takes hours', parseSearch('newer:2h'), [
 check(
   'the size comparison actually compares',
   [
-    matchesSearch(task({ size: 700 * 1024 ** 2 }), { text: '>500mb', category: 'any' }),
-    matchesSearch(task({ size: 300 * 1024 ** 2 }), { text: '>500mb', category: 'any' }),
+    matchesSearch(task({ size: 700 * 1000 ** 2 }), { text: '>500mb', category: 'any' }),
+    matchesSearch(task({ size: 300 * 1000 ** 2 }), { text: '>500mb', category: 'any' }),
     // Nobody has measured this one yet, so it answers no rather than posing as
     // zero bytes and sweeping into every "<1gb".
     matchesSearch(task({ size: 0 }), { text: '<1gb', category: 'any' }),

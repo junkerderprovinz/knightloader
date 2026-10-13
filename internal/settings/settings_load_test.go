@@ -132,3 +132,25 @@ func TestASaveLeavesNoTemporaryFile(t *testing.T) {
 		t.Errorf("folder holds %v, want %v", names, want)
 	}
 }
+
+// A settings file written before the merge switch existed merges, as every
+// download did then; one that switched it off keeps its streams apart.
+func TestASettingsFileWithoutTheMergeSwitchMerges(t *testing.T) {
+	dir := t.TempDir()
+	writeSettings(t, dir, `{"ytdlp":{"embed":{"subs":true}}}`)
+	s, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := s.Get().Ytdlp.Embed; got.Separate || !got.Subs {
+		t.Errorf("embed = %+v, want the streams merged and the rest as stored", got)
+	}
+
+	writeSettings(t, dir, `{"ytdlp":{"embed":{"separate":true}}}`)
+	if s, err = Load(dir); err != nil {
+		t.Fatal(err)
+	}
+	if !s.Get().Ytdlp.Embed.Separate {
+		t.Error("a file that keeps the streams apart reads as merging")
+	}
+}

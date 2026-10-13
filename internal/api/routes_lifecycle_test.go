@@ -56,6 +56,28 @@ func TestDeploymentReflectsDesktop(t *testing.T) {
 	if info.Deployment != "desktop" {
 		t.Errorf("deployment = %q, want desktop", info.Deployment)
 	}
+	if info.Kind != "desktop" {
+		t.Errorf("kind = %q, want desktop", info.Kind)
+	}
+}
+
+// The server build is a container inside one and a plain server outside, and
+// the cards learn which from the kind.
+func TestDeploymentKindTellsAContainerFromAPlainServer(t *testing.T) {
+	_, srv := lifecycleServer(t)
+	buildinfo.Deployment = "container"
+
+	var info DeploymentInfo
+	if code := getJSON(t, srv.URL+"/api/system/deployment", &info); code != http.StatusOK {
+		t.Fatalf("GET deployment: %d", code)
+	}
+	want := "server"
+	if inContainer() {
+		want = "container"
+	}
+	if info.Kind != want {
+		t.Errorf("kind = %q, want %q", info.Kind, want)
+	}
 }
 
 // TestQuitAndRestartAreNotImplementedWithNoRequestExit checks that an

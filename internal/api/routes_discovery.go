@@ -25,9 +25,10 @@ type discovered struct {
 	ID   string `json:"id"`
 	Name string `json:"name"`
 	URL  string `json:"url"`
-	// Deployment is "container" or "desktop". A desktop build has no address
-	// anything could dial and never announces, so this is "container" in
-	// practice; it is carried because the announce carries it.
+	// Deployment is "container", "server" or "desktop" (instanceKind). A
+	// desktop build has no address anything could dial and never announces,
+	// so this is one of the first two in practice; it is carried because the
+	// announce carries it.
 	Deployment string `json:"deployment"`
 	// Known is true when this instance is already a stored or relay peer, by
 	// name or by address. The page shows it greyed rather than hiding it: "the
@@ -104,7 +105,7 @@ func discoverySelf(a *app.App) discovery.Peer {
 		ID:         a.Settings.Get().InstanceID,
 		Name:       name,
 		URL:        networkAddress(),
-		Deployment: buildinfo.Deployment,
+		Deployment: instanceKind(),
 		Address:    groupAddress(a),
 	}
 }

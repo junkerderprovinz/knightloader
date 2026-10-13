@@ -35,8 +35,6 @@ export function FreeDownloadsCard({ hue }: { hue: number }) {
     };
   }, []);
 
-  if (premiumOnly === null) return null;
-
   async function onChange(next: boolean) {
     setPremiumOnly(next);
     try {
@@ -50,12 +48,15 @@ export function FreeDownloadsCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle>{t('settings.accounts.freeTitle')}</SectionTitle>
-      <ToggleRow
-        label={t('settings.accounts.allowFree')}
-        hint={t('settings.accounts.allowFreeHint')}
-        checked={!premiumOnly}
-        onChange={(allow) => void onChange(!allow)}
-      />
+      {/* No switch rather than a guess at its state while the setting loads. */}
+      {premiumOnly !== null && (
+        <ToggleRow
+          label={t('settings.accounts.allowFree')}
+          hint={t('settings.accounts.allowFreeHint')}
+          checked={!premiumOnly}
+          onChange={(allow) => void onChange(!allow)}
+        />
+      )}
     </Card>
   );
 }

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   answerCaptcha,
   captchaWidgetUrl,
@@ -19,7 +19,7 @@ import {
   type TestCaptchaResult,
 } from '../lib/api';
 import { Button, InfoBubble, Modal, TextInput } from './ui';
-import { IconChevronDown, IconClock, IconClose } from '../lib/icons';
+import { IconCaptchaTimer, IconClose, IconRefresh } from '../lib/icons';
 import { isDesktop } from '../lib/desktop';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { captchaIsNew, forgetCaptcha, seedCaptchasSeen } from '../lib/notify';
@@ -71,6 +71,22 @@ function pickCurrent(challenges: Record<string, CaptchaChallenge>): CaptchaChall
     return a.id < b.id ? -1 : a.id > b.id ? 1 : 0;
   });
   return list[0];
+}
+
+// The challenge somebody picked from the overview's list. It is shown ahead of
+// the one that runs out first for as long as it waits.
+let picked: string | null = null;
+const pickListeners = new Set<() => void>();
+
+/** showCaptcha brings one waiting challenge to the front of the captcha window. */
+export function showCaptcha(id: string): void {
+  picked = id;
+  for (const l of pickListeners) l();
+}
+
+function onPick(l: () => void): () => void {
+  pickListeners.add(l);
+  return () => pickListeners.delete(l);
 }
 
 // The widget page's error details that mean the vendor was never reached, as
@@ -137,7 +153,7 @@ export function SolverStatus({
   const lines = (report.refusals ?? []).map(line);
 
   return (
-    <p className="flex items-center gap-1.5 text-[11px] text-carbon-textMuted">
+    <p className="flex items-center gap-1.5 text-meta text-carbon-textMuted">
       <span dir="auto">{text}</span>
       {(hint || lines.length > 0) && (
         <InfoBubble
@@ -177,7 +193,6 @@ export function CaptchaModal() {
   const [focused, setFocused] = useState(false);
   const [frozenRemaining, setFrozenRemaining] = useState<number | null>(null);
   const [busy, setBusy] = useState(false);
-  const [moreOpen, setMoreOpen] = useState(false);
   const [widgetStatus, setWidgetStatus] = useState<'loading' | 'ready' | 'expired' | 'error' | 'unsolvable'>(
     'loading',
   );
@@ -196,7 +211,11 @@ export function CaptchaModal() {
   const answering = useRef(new Map<string, TestCaptchaResult | null>());
   const shownHere = useRef(new Set<string>());
 
-  const current = useMemo(() => pickCurrent(challenges), [challenges]);
+  const front = useSyncExternalStore(onPick, () => picked);
+  const current = useMemo(
+    () => (front !== null ? challenges[front] : undefined) ?? pickCurrent(challenges),
+    [challenges, front],
+  );
   const moreWaiting = Math.max(0, Object.keys(challenges).length - (current ? 1 : 0));
 
   // "snapshot" arrives on every reconnect without a subscription (Hub.SendTo),
@@ -266,7 +285,6 @@ export function CaptchaModal() {
     setWidgetError(null);
     setFocused(false);
     setFrozenRemaining(null);
-    setMoreOpen(false);
     setWidgetKey((k) => k + 1);
   }, [current?.id]);
 
@@ -377,7 +395,6 @@ export function CaptchaModal() {
 
   async function handleSkip(scope: CaptchaAbortScope = 'skip-once') {
     setBusy(true);
-    setMoreOpen(false);
     try {
       await skipCaptcha(current!.id, scope);
     } catch {
@@ -434,8 +451,8 @@ export function CaptchaModal() {
         <>
           {/* The forward button ends the row, so the clock goes first. */}
           {displayRemaining !== null && (
-            <span className="inline-flex shrink-0 items-center gap-1 text-[11px] text-carbon-textMuted">
-              <IconClock width={12} height={12} />
+            <span className="inline-flex shrink-0 items-center gap-1 text-meta text-carbon-textMuted">
+              <IconCaptchaTimer width={12} height={12} />
               {fmtCountdown(displayRemaining)}
             </span>
           )}
@@ -449,7 +466,13 @@ export function CaptchaModal() {
             disabled={busy}
           />
           {/* Refresh neither answers nor cancels, so it sits between them. */}
-          <Button kind="ghost" onClick={handleRefresh} disabled={busy}>
+          <Button
+            data-new="captcha-refresh"
+            kind="secondary"
+            icon={<IconRefresh width={16} height={16} />}
+            onClick={handleRefresh}
+            disabled={busy}
+          >
             {t('captcha.refresh')}
           </Button>
           {showContinue && (
@@ -527,7 +550,7 @@ export function CaptchaModal() {
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <span className="text-[11px] text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
+            <span className="text-meta text-carbon-textMuted">{t('captcha.clickCount', { n: points.length })}</span>
             {points.length > 0 && (
               <Button kind="ghost" onClick={() => setPoints([])}>
                 {t('captcha.clickClear')}
@@ -548,7 +571,7 @@ export function CaptchaModal() {
               onLoad={() => setWidgetStatus((s) => (s === 'loading' ? 'ready' : s))}
             />
           </div>
-          {widgetStatus === 'expired' && <p className="text-[11px] text-statusFail">{t('captcha.tooLate')}</p>}
+          {widgetStatus === 'expired' && <p className="text-meta text-statusFail">{t('captcha.tooLate')}</p>}
         </div>
       )}
 
@@ -578,27 +601,16 @@ export function CaptchaModal() {
         </p>
       )}
 
-      {/* Stopping the questions for a hoster would only skip a test captcha. */}
+      {/* Stopping the questions for a hoster would only skip a test captcha.
+          Two actions are two buttons, with no fold or menu to open first. */}
       {!current.test && (
-        <div className="flex flex-col items-start gap-2">
-          <Button
-            kind="secondary"
-            icon={<IconChevronDown className={moreOpen ? 'rotate-180' : ''} />}
-            aria-expanded={moreOpen}
-            onClick={() => setMoreOpen((v) => !v)}
-          >
-            {t('captcha.moreOptions')}
+        <div className="flex flex-wrap items-center gap-2">
+          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
+            {t('captcha.blockHoster', { host: current.host || '?' })}
           </Button>
-          {moreOpen && (
-            <div className="flex flex-col items-start gap-2">
-              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-hoster')}>
-                {t('captcha.blockHoster', { host: current.host || '?' })}
-              </Button>
-              <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
-                {t('captcha.blockEverywhere')}
-              </Button>
-            </div>
-          )}
+          <Button kind="secondary" disabled={busy} onClick={() => handleSkip('blacklist-everywhere')}>
+            {t('captcha.blockEverywhere')}
+          </Button>
         </div>
       )}
     </Modal>

@@ -31,8 +31,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 )
 
-// Source is one debrid account as the drive reads it. Every client the import
-// from an account can list implements it.
+// Source is one debrid account as the drive reads it. Every client that can
+// list an account's downloads implements it.
 type Source interface {
 	debrid.Lister
 	TorrentStatus(ctx context.Context, id string) (debrid.TorrentJob, error)

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
 import { fetchVolumeCurve, type VolumeBucket, type VolumeCurve } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconDownloads } from '../lib/icons';
+import { IconDownload } from '../lib/icons';
 import { resolverLabel } from '../lib/resolverLabels';
 import { useResource } from '../lib/useResource';
 import { useShake } from '../lib/useShake';
@@ -231,29 +231,30 @@ export function VolumeCard({ hue }: { hue?: number }) {
       {data &&
         !failed &&
         (moved === 0 ? (
-          <EmptyState nested icon={<IconDownloads width={26} height={26} />} title={t('volume.empty')} />
+          <EmptyState nested icon={<IconDownload width={26} height={26} />} title={t('volume.empty')} />
         ) : (
           <VolumeGraph labels={labels} series={series} label={t('volume.title')} />
         ))}
 
-      {/* Under the figures they choose. The free value stands at the end of
-          the row under the steps. */}
-      <div className="flex flex-col gap-3">
-        <div className="flex flex-col items-end gap-2">
-          <div className="self-stretch">
-            <Tabs
-              variant="well"
-              size="sm"
-              label={t('volume.rangeLabel')}
-              // A valid count is the span in force, so no step shows as chosen beside it.
-              active={count !== null ? null : isStep(span) ? span : null}
-              onSelect={(id) => {
-                setDraft(null);
-                setStored(id);
-              }}
-              items={SPAN_STEPS.map((id) => ({ id, label: t(STEP_LABEL[id]) }))}
-            />
-          </div>
+      {/* Under the figures they choose, one row where the card is wide enough:
+          the span, the free count right after it, and how the bars split at
+          the far end. A row too narrow wraps between the groups, never inside
+          one. */}
+      <div data-new="volume-controls" className="flex flex-wrap items-center gap-x-4 gap-y-3">
+        <div className="flex flex-wrap items-center gap-2">
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            label={t('volume.rangeLabel')}
+            // A valid count is the span in force, so no step shows as chosen beside it.
+            active={count !== null ? null : isStep(span) ? span : null}
+            onSelect={(id) => {
+              setDraft(null);
+              setStored(id);
+            }}
+            items={SPAN_STEPS.map((id) => ({ id, label: t(STEP_LABEL[id]) }))}
+          />
           <div className="flex items-center gap-2">
             <InfoBubble tip={t('volume.customHint', { days: SPAN_MAX.d, months: SPAN_MAX.m, daily: SPAN_DAILY_UP_TO })} />
             <div ref={shake} className="w-20">
@@ -283,14 +284,17 @@ export function VolumeCard({ hue }: { hue?: number }) {
             />
           </div>
         </div>
-        <Tabs
-          variant="well"
-          size="sm"
-          label={t('volume.splitLabel')}
-          active={split}
-          onSelect={(id) => setSplit(id as Split)}
-          items={SPLITS.map((id) => ({ id, label: t(SPLIT_LABEL[id]) }))}
-        />
+        <div className="ms-auto">
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            label={t('volume.splitLabel')}
+            active={split}
+            onSelect={(id) => setSplit(id as Split)}
+            items={SPLITS.map((id) => ({ id, label: t(SPLIT_LABEL[id]) }))}
+          />
+        </div>
       </div>
     </Card>
   );

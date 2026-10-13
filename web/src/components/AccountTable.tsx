@@ -3,11 +3,11 @@
 import { useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import { fmtDate, fmtGB } from '../lib/format';
-import { IconBadge, InfoBubble, Toggle, useTooltip } from './ui';
+import { IconBadge, Toggle, useTooltip } from './ui';
 import { ProgressBar } from './ProgressBar';
 import { HosterIcon } from './HosterIcon';
-import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
-import { IconSettings } from '../lib/icons';
+import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu, type MenuGroup } from './ContextMenu';
+import { IconGear } from '../lib/icons';
 
 /**
  * AccountTraffic is an allowance in one of the three shapes services report:
@@ -38,11 +38,6 @@ export interface AccountRow {
   expiry?: string;
   traffic?: AccountTraffic;
   onToggle: (enabled: boolean) => void;
-  /**
-   * The switch for picking up what is added on the service's own website.
-   * Absent for an account whose service cannot list its downloads.
-   */
-  importing?: { on: boolean; onChange: (on: boolean) => void };
   /** Extra entries for this row's own menu, on top of Edit and Remove. */
   menu?: MenuGroup[];
   onEdit: () => void;
@@ -77,7 +72,7 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
       <span className="flex items-center gap-2">
         <span className="glim-num text-carbon-textSub">∞</span>
         {(traffic.used ?? 0) > 0 && (
-          <span className="glim-num whitespace-nowrap text-[11px] text-carbon-textMuted">
+          <span className="glim-num whitespace-nowrap text-meta text-carbon-textMuted">
             {t('accounts.trafficUsedTotal', { used: fmtGB(traffic.used ?? 0) })}
           </span>
         )}
@@ -92,9 +87,9 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
       <span className="flex items-center gap-2">
         {/* The bar takes the leftover room so the figures align. */}
         <span className="min-w-0 flex-1">
-          <ProgressBar active percent={(used / limit) * 100} />
+          <ProgressBar active level percent={(used / limit) * 100} />
         </span>
-        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
+        <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftOf', { left: fmtGB(limit - used), total: fmtGB(limit) })}
         </span>
       </span>
@@ -106,9 +101,9 @@ function TrafficCell({ traffic }: { traffic?: AccountTraffic }) {
     return (
       <span className="flex items-center gap-2">
         <span className="min-w-0 flex-1">
-          <ProgressBar active percent={usedPct} />
+          <ProgressBar active level percent={usedPct} />
         </span>
-        <span className="glim-num shrink-0 whitespace-nowrap text-[11px] text-carbon-textMuted">
+        <span className="glim-num shrink-0 whitespace-nowrap text-meta text-carbon-textMuted">
           {t('accounts.trafficLeftPercent', { n: Math.floor(100 - usedPct) })}
         </span>
       </span>
@@ -134,19 +129,8 @@ function UnknownTraffic() {
   );
 }
 
-/**
- * AccountTable draws one card's accounts. `importColumn` adds the switch for
- * the import from each service's website, which only debrid services have.
- */
-export function AccountTable({
-  rows,
-  label,
-  importColumn = false,
-}: {
-  rows: AccountRow[];
-  label: string;
-  importColumn?: boolean;
-}) {
+/** AccountTable draws one card's accounts. */
+export function AccountTable({ rows, label }: { rows: AccountRow[]; label: string }) {
   const { t } = useT();
   const menu = useContextMenu();
   // By key, because polling replaces the row objects; held here so only one
@@ -157,11 +141,8 @@ export function AccountTable({
   return (
     // relative keeps the sr-only header cell inside this scroller. Placed
     // against the page, it would widen the whole page on a phone.
-    <div className="glim-well relative overflow-x-auto p-0">
-      <table
-        className={`w-full border-collapse text-sm ${importColumn ? 'min-w-[50rem]' : 'min-w-[46rem]'}`}
-        aria-label={label}
-      >
+    <div data-new="account-rows" className="glim-well relative overflow-x-auto p-0">
+      <table className="w-full min-w-[46rem] border-collapse text-sm" aria-label={label}>
         <thead>
           <tr className="text-start text-xs text-carbon-textMuted">
             <th className="w-12 px-4 py-3 text-start font-medium">{t('accounts.col.enabled')}</th>
@@ -170,14 +151,6 @@ export function AccountTable({
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.tier')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.expiry')}</th>
             <th className="w-52 px-2 py-3 text-start font-medium">{t('accounts.col.traffic')}</th>
-            {importColumn && (
-              <th className="w-24 ps-5 pe-2 py-3 text-start font-medium">
-                <span className="inline-flex items-center">
-                  {t('accounts.col.import')}
-                  <InfoBubble tip={t('accounts.importHint')} />
-                </span>
-              </th>
-            )}
             <th className="w-10 px-2 py-3">
               <span className="sr-only">{t('accounts.rowActions')}</span>
             </th>
@@ -185,7 +158,21 @@ export function AccountTable({
         </thead>
         <tbody className="divide-y divide-carbon-border/40">
           {rows.map((row, i) => (
-            <tr key={row.key} className="transition-colors hover:bg-carbon-hover">
+            // The whole row opens its account, and a right click its menu
+            // (GlimStone, "Lists"). A press on one of the row's own controls
+            // is that control's alone.
+            <tr
+              key={row.key}
+              className="glim-row cursor-pointer transition-colors hover:bg-carbon-hover"
+              onClick={(e) => {
+                if (!(e.target as Element).closest('button, a, [role="switch"], [role="note"]')) row.onEdit();
+              }}
+              onContextMenu={(e) => {
+                e.preventDefault();
+                setMenuKey(row.key);
+                menu.openAt(anchorFromEvent(e));
+              }}
+            >
               <td className="px-4 py-3">
                 <Toggle
                   checked={row.enabled}
@@ -208,31 +195,21 @@ export function AccountTable({
               <td className="px-2 py-3 text-carbon-textSub">
                 <TrafficCell traffic={row.traffic} />
               </td>
-              {importColumn && (
-                <td className="ps-5 pe-2 py-3">
-                  {row.importing ? (
-                    <Toggle
-                      checked={row.importing.on}
-                      onChange={row.importing.onChange}
-                      label={t('accounts.importAccount', { account: row.label })}
-                      hideLabel
-                    />
-                  ) : (
-                    <span className="text-carbon-textMuted">-</span>
-                  )}
-                </td>
-              )}
               <td className="px-2 py-3 text-end">
-                <IconBadge
-                  hue={i}
-                  icon={<IconSettings width={16} height={16} />}
-                  title={t('accounts.rowActions')}
-                  aria-label={t('accounts.rowActions')}
-                  onClick={(e) => {
-                    setMenuKey(row.key);
-                    menu.openAt(anchorBelow(e.currentTarget));
-                  }}
-                />
+                <span className="glim-row-actions inline-flex">
+                  <IconBadge
+                    hue={i}
+                    icon={<IconGear width={16} height={16} />}
+                    title={t('accounts.rowActions')}
+                    aria-label={t('accounts.rowActions')}
+                    aria-haspopup="menu"
+                    aria-expanded={menuKey === row.key}
+                    onClick={(e) => {
+                      setMenuKey(row.key);
+                      menu.openAt(anchorBelow(e.currentTarget));
+                    }}
+                  />
+                </span>
               </td>
             </tr>
           ))}

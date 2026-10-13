@@ -64,6 +64,18 @@ describe('resolveLayout', () => {
     expect(downloads.minWidthOf('variant')).toBeLessThan(collector.minWidthOf('variant'));
     expect(downloads.widthOf('variant')).toBeGreaterThanOrEqual(downloads.minWidthOf('variant'));
   });
+
+  it('widens a default column to the width its head needs', () => {
+    const plain = resolveLayout('downloads', null);
+    const layout = resolveLayout('downloads', null, { speed: plain.widthOf('speed') + 45, size: 10 });
+    expect(layout.widthOf('speed')).toBe(plain.widthOf('speed') + 45);
+    expect(layout.widthOf('size')).toBe(plain.widthOf('size'));
+  });
+
+  it('leaves a dragged column narrower than its head', () => {
+    const layout = resolveLayout('downloads', { order: [], hidden: [], widths: { speed: 80 }, v: 3 }, { speed: 133 });
+    expect(layout.widthOf('speed')).toBe(80);
+  });
 });
 
 describe('packageUnpacking', () => {

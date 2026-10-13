@@ -117,6 +117,67 @@ func TestFederationProxy(t *testing.T) {
 	}
 }
 
+// TestLinksHandedOverAreAnnouncedToTheOpenPages checks both ends of a
+// handover: the instance that forwards links says who they went to, and the
+// one a group member hands links to says who they came from. Reading a peer's
+// list announces nothing, nor do links from a sender nothing names.
+func TestLinksHandedOverAreAnnouncedToTheOpenPages(t *testing.T) {
+	t.Parallel()
+	aSrv, aApp := testServer(t)
+	defer aSrv.Close()
+	bSrv, bApp := testServer(t)
+	defer bSrv.Close()
+	body, _ := json.Marshal(map[string]string{"name": "cellar", "url": bSrv.URL})
+	resp, err := http.Post(aSrv.URL+"/api/instances", "application/json", bytes.NewReader(body))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+
+	sent := dialWS(t, "ws"+strings.TrimPrefix(aSrv.URL, "http"))
+	handed := func(msg map[string]any) (string, bool) {
+		data, _ := msg["data"].(map[string]any)
+		peer, _ := data["peer"].(string)
+		out, _ := data["out"].(bool)
+		return peer, out
+	}
+
+	resp, err = http.Get(aSrv.URL + "/api/instances/cellar/tasks")
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	links, _ := json.Marshal(map[string]string{"links": "https://example.com/one.zip"})
+	resp, err = http.Post(aSrv.URL+"/api/instances/cellar/links", "application/json", bytes.NewReader(links))
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp.Body.Close()
+	// The read went first, so a handover it had announced would be read here.
+	if peer, out := handed(readOneOfType(t, sent, "handover")); peer != "cellar" || !out {
+		t.Errorf("forwarded links announced as peer %q, out %v, want cellar going out", peer, out)
+	}
+
+	arrived := dialWS(t, "ws"+strings.TrimPrefix(bSrv.URL, "http"))
+	serve := announceArrivals(bApp, relayProxyHandler(Handler(bApp)))
+	add := relay.ProxyCall{Method: http.MethodPost, Path: "/api/links", Body: links}
+	if status, answer := serve(context.Background(), add); status/100 != 2 {
+		t.Fatalf("links from an unnamed member answered %d: %s", status, answer)
+	}
+	add.From = "pixel"
+	add.Body, _ = json.Marshal(map[string]string{"links": "https://example.com/two.zip"})
+	if status, answer := serve(context.Background(), add); status/100 != 2 {
+		t.Fatalf("links from the phone answered %d: %s", status, answer)
+	}
+	// The unnamed call went first, so its announcement would be read here.
+	if peer, out := handed(readOneOfType(t, arrived, "handover")); peer != "pixel" || out {
+		t.Errorf("arriving links announced as peer %q, out %v, want pixel coming in", peer, out)
+	}
+	if got := len(aApp.Tasks()); got != 0 {
+		t.Errorf("the forwarding instance holds %d tasks, want none", got)
+	}
+}
+
 // The forwarded path arrives unescaped, so tasks%2F..%2Fsettings reads
 // tasks/../settings. It must not pass for a task route: the peer's mux would
 // redirect it to /api/settings and the client follow with the peer token.

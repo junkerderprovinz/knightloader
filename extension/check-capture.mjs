@@ -115,14 +115,15 @@ function load(chrome) {
   const ctx = load(makeChrome().chrome);
   const verdict = vm.runInContext('takeoverVerdict', ctx);
   const rules = { types: 'zip, .MKV', minSizeMb: 10, skip: 'skip.example', bypassKey: 'alt' };
-  const big = 50 * 1024 * 1024;
+  const big = 50e6;
   const base = { url: 'https://files.example/get/film.mkv', referrer: 'https://files.example/thread', filename: '/home/me/film.mkv', totalBytes: big };
   const cases = [
     [base, true, ''],
     [{ ...base, filename: '', url: 'https://files.example/a.zip' }, true, 'the address names the type before the browser does'],
     [{ ...base, filename: 'C:\\Users\\me\\film.MKV' }, true, 'the type list ignores case and dots'],
     [{ ...base, filename: 'notes.pdf' }, false, 'type'],
-    [{ ...base, totalBytes: 5 * 1024 * 1024 }, false, 'size'],
+    [{ ...base, totalBytes: 5e6 }, false, 'size'],
+    [{ ...base, totalBytes: 10e6 }, true, 'ten megabytes reach a minimum of 10 MB'],
     [{ ...base, totalBytes: -1, fileSize: 0 }, false, 'size'],
     [{ ...base, url: 'https://cdn.skip.example/film.mkv' }, false, 'skipped'],
     [{ ...base, referrer: 'https://skip.example/page' }, false, 'skipped'],
@@ -178,7 +179,7 @@ async function startDownload(chromium, arrives) {
     sent = link;
     return arrives ? { instanceId: 'a'.repeat(40), name: 'NAS' } : null;
   };
-  const item = { id: 7, url: 'https://files.example/get/film.mkv', referrer: 'https://files.example/thread', filename: 'film.mkv', totalBytes: 50 * 1024 * 1024 };
+  const item = { id: 7, url: 'https://files.example/get/film.mkv', referrer: 'https://files.example/thread', filename: 'film.mkv', totalBytes: 50e6 };
   let suggested = false;
   if (chromium) {
     const held = chrome.downloads.onDeterminingFilename.listeners[0]?.(item, () => { suggested = true; });

@@ -9,6 +9,7 @@ import {
   IconTile,
   InfoBubble,
   LabelBadge,
+  LinkBadge,
   Modal,
   PasswordInput,
   SectionTitle,
@@ -33,19 +34,19 @@ import { copyToClipboard } from '../../lib/clipboard';
 import { fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import {
+  IconAdd,
   IconCheck,
   IconCheckDrawn,
-  IconClipboard,
   IconClose,
+  IconCopy,
   IconKey,
-  IconPlus,
   IconTrash,
 } from '../../lib/icons';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../../lib/passwordLength';
 import { useToast } from '../../lib/toast';
 import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
-import { ListArea, RowRefusal } from './controls';
+import { ListArea, RowRefusal, SettingRow } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
@@ -59,6 +60,9 @@ import {
   type TokenPreset,
 } from './access/tokenScopes';
 import { TwoFactorCard } from './access/TwoFactorCard';
+
+// The manual's section on the app key, which says how to make one and move it.
+const APP_KEY_MANUAL = 'https://junkerderprovinz.github.io/knightloader/installing/#app-key';
 
 export function Access() {
   /**
@@ -145,7 +149,7 @@ export function PasswordCard({
           {t('auth.password')}
         </SectionTitle>
         {locked && (
-          <Field label={t('settings.passwordCurrent')}>
+          <SettingRow control="long" label={t('settings.passwordCurrent')}>
             <PasswordInput
               value={current}
               onChange={setCurrent}
@@ -153,9 +157,9 @@ export function PasswordCard({
               showLabel={t('common.showPassword')}
               hideLabel={t('common.hidePassword')}
             />
-          </Field>
+          </SettingRow>
         )}
-        <Field label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
+        <SettingRow control="long" label={t('settings.passwordNew')} hint={t('settings.passwordHint')}>
           <PasswordInput
             value={next}
             onChange={setNext}
@@ -163,12 +167,11 @@ export function PasswordCard({
             showLabel={t('common.showPassword')}
             hideLabel={t('common.hidePassword')}
           />
-        </Field>
+        </SettingRow>
         <div className="flex flex-wrap items-center gap-3">
           <Button
             shake={shake}
             kind="secondary"
-            hue={0}
             onClick={onApply}
             disabled={locked ? current === '' : next === ''}
           >
@@ -183,11 +186,14 @@ export function PasswordCard({
           </span>
           {done && <span className="text-statusOk text-sm">{t('settings.passwordSaved')}</span>}
         </div>
-        {/* Everything works without an app key, so it gets no status here,
-            only the bubble that says how to add one. */}
-        <span className="flex items-center text-sm text-carbon-textSub">
-          {t('settings.appKey')}
-          <InfoBubble tip={t('settings.appKeyHint')} />
+        {/* Everything works without an app key, so it is a name with its
+            explanation behind the (i) rather than a warning or a state. */}
+        <span data-testid="app-key" className="flex flex-wrap items-center gap-2 text-sm text-carbon-textSub">
+          <span className="inline-flex items-center">
+            {t('settings.appKeyTitle')}
+            <InfoBubble tip={t('settings.appKeyHint')} />
+          </span>
+          <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
         </span>
         {auth?.appKeyCopiesUntil && (
           <span className="text-sm text-carbon-textSub">
@@ -331,12 +337,12 @@ export function TokensSection() {
         ) : (
           <div className="flex flex-col divide-y divide-carbon-border/40">
             {tokens.map((tok) => (
-              <div key={tok.id} className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
+              <div key={tok.id} className="glim-row flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5 first:pt-0 last:pb-0">
                 {/* An inert tile marking the row, not a control. */}
                 <IconTile icon={<IconKey width={16} height={16} />} hue={5} />
                 <div className="min-w-[10rem] flex-1">
                   <div className="truncate text-sm text-carbon-text">{tok.name}</div>
-                  <div className="text-[11px] text-carbon-textMuted">
+                  <div className="text-meta text-carbon-textMuted">
                     {t('settings.access.tokens.created')} {fmtDate(tok.createdAt)}
                     {' · '}
                     {t('settings.access.tokens.lastUsed')}{' '}
@@ -367,8 +373,7 @@ export function TokensSection() {
         <div>
           <Button
             kind="secondary"
-            hue={5}
-            icon={<IconPlus width={16} height={16} />}
+            icon={<IconAdd width={16} height={16} />}
             onClick={() => setShowCreate(true)}
           >
             {t('settings.access.tokens.new')}
@@ -403,7 +408,7 @@ export function TokensSection() {
           }
         >
           <div className="flex flex-col gap-4">
-            <Field label={t('settings.access.tokens.name')}>
+            <SettingRow control="long" label={t('settings.access.tokens.name')}>
               <TextInput
                 autoFocus
                 placeholder={t('settings.access.tokens.namePlaceholder')}
@@ -413,7 +418,7 @@ export function TokensSection() {
                   if (e.key === 'Enter' && canCreate) void onCreate();
                 }}
               />
-            </Field>
+            </SettingRow>
             <TokenScopePicker scopes={scopes} onChange={setScopes} />
           </div>
         </Modal>
@@ -451,7 +456,7 @@ export function TokensSection() {
               <IconBadge
                 labelled
                 hue={5}
-                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconClipboard width={16} height={16} />}
+                icon={copied ? <IconCheckDrawn width={16} height={16} /> : <IconCopy width={16} height={16} />}
                 title={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 aria-label={copied ? t('settings.access.tokens.copied') : t('settings.access.tokens.copy')}
                 confirm={copies}

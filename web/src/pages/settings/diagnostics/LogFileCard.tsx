@@ -6,7 +6,6 @@ import { useResource } from '../../../lib/useResource';
 import {
   Card,
   ErrorCard,
-  Field,
   FieldGroup,
   InfoBubble,
   LoadingCard,
@@ -15,6 +14,7 @@ import {
   ToggleRow,
 } from '../../../components/ui';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 /**
  * LogFileCard switches the on-disk copy of the log and lists what is there. It
@@ -57,21 +57,29 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
 
       {/* The size and rotation boxes are absent while the switch is off. The
           path stays, since it tells where the log would land. */}
-      <div className={`grid grid-cols-1 gap-4 ${file.enabled ? 'sm:grid-cols-3' : ''}`}>
+      <div className="flex flex-col gap-4">
         {file.enabled && (
           <>
-            <Field label={t('settings.diagnostics.fileSize')} hint={t('settings.diagnostics.fileSizeHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.diagnostics.fileSize')}
+              hint={t('settings.diagnostics.fileSizeHint')}
+            >
               <NumberInput
                 value={file.maxMb}
                 min={1}
-                max={1024}
+                max={1000}
                 onValue={(maxMb) => patch({ logFile: { ...file, maxMb } })}
               />
-            </Field>
+            </SettingRow>
 
-            <Field label={t('settings.diagnostics.fileKeep')} hint={t('settings.diagnostics.fileKeepHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.diagnostics.fileKeep')}
+              hint={t('settings.diagnostics.fileKeepHint')}
+            >
               <NumberInput value={file.keep} min={0} max={20} onValue={(keep) => patch({ logFile: { ...file, keep } })} />
-            </Field>
+            </SettingRow>
           </>
         )}
 
@@ -121,7 +129,7 @@ function Problem({ state, capacity }: { state: LogFileState; capacity: number })
         {/* The ring size comes from the diagnostics bundle, not a copy here. */}
         <InfoBubble tip={t('settings.diagnostics.fileProblemHint', { path: state.path, n: capacity })} />
       </span>
-      <span className="text-[11px] text-carbon-textMuted">
+      <span className="text-meta text-carbon-textMuted">
         {state.freeKnown
           ? t('settings.diagnostics.fileProblemSpace', { free: fmtBytes(state.freeBytes ?? 0) })
           : t('settings.diagnostics.fileProblemSpaceUnknown')}
@@ -152,7 +160,7 @@ function Generations({ generations }: { generations: LogGeneration[] }) {
           <span className="glim-num text-carbon-text">
             {fmtBytes(g.bytes)}
           </span>
-          <span className="text-[11px] text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
+          <span className="text-meta text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
           <span className="flex-1" />
           {/* An anchor for its download attribute, drawn as a badge. */}
           <a

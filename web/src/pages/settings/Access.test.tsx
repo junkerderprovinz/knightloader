@@ -57,12 +57,6 @@ describe('TokensSection', () => {
 });
 
 describe('Access', () => {
-  // PasswordCard reads /api/auth once, so another answer needs a fresh mount.
-  function remount() {
-    act(() => root.unmount());
-    root = createRoot(host);
-  }
-
   async function renderWithAuth(auth: object, trustedProxies: string[] = []) {
     vi.stubGlobal(
       'fetch',
@@ -89,29 +83,36 @@ describe('Access', () => {
     );
   }
 
-  it('names the app key only beside its info bubble, with or without one', async () => {
-    for (const appKey of [false, true]) {
-      remount();
-      await renderWithAuth({ enabled: true, authenticated: true, appKey });
-      const label = [...host.querySelectorAll('span')].find((s) => s.textContent === 'App key')!;
-      expect(label.className).not.toContain('statusWarn');
-      expect(host.textContent).not.toContain('from before the app key');
-    }
+  it('names the app key without a warning when there is none', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
+    const line = host.querySelector('[data-testid="app-key"]')!;
+    expect(line.textContent).toContain('App key');
+    expect(line.className).not.toMatch(/statusWarn/);
+    expect(line.querySelector('a[href*="#app-key"]')).not.toBeNull();
   });
 
-  it('shows the trusted proxies field only behind a proxy or with entries', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true });
-    expect(host.textContent).not.toContain('Trusted proxies');
-    remount();
-    await renderWithAuth({ enabled: true, authenticated: true, behindProxy: true });
-    expect(host.textContent).toContain('Trusted proxies');
-    remount();
-    await renderWithAuth({ enabled: true, authenticated: true }, ['172.18.0.5']);
-    expect(host.textContent).toContain('Trusted proxies');
+  it('says nothing about old copies once the key has been in use long enough', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true });
+    expect(host.textContent).not.toContain('from before the app key');
   });
 
   it('says when the copies from before the app key go', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: true, appKeyCopiesUntil: '2026-10-18T12:00:00Z' });
     expect(host.textContent).toContain('A copy of the files from before the app key is still in the data folder.');
+  });
+
+  it('leaves the trusted proxies out while no request comes through a proxy', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false });
+    expect(host.textContent).not.toContain('Trusted proxies');
+  });
+
+  it('offers the trusted proxies once requests come through a proxy', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: true });
+    expect(host.textContent).toContain('Trusted proxies');
+  });
+
+  it('keeps the trusted proxies in view while the list has entries', async () => {
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false }, ['10.0.0.2']);
+    expect(host.textContent).toContain('Trusted proxies');
   });
 });

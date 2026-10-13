@@ -1,7 +1,7 @@
 package settings
 
-// The non-secret half of the solver order: which automatic captcha solvers to
-// try, and in what order, before a human sees the prompt modal
+// The non-secret half of the solver order: the order the automatic captcha
+// solvers are tried in before a human sees the prompt modal
 // (Settings.CaptchaSolverOrder), and whether they first wait for somebody
 // watching (CaptchaSolverOnlyUnwatched, CaptchaSolverWait). The credential
 // each id names lives in internal/accounts instead (GroupCaptchaSolver,

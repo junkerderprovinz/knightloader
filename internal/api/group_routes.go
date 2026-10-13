@@ -56,11 +56,16 @@ var groupRoutes = map[string]bool{
 	"DELETE /api/tasks/{id}":             true,
 	"GET /api/tasks/{id}/file":           true,
 	"POST /api/tasks/{id}/pause":         true,
+	"GET /api/tasks/{id}/pieces":         true,
 	"POST /api/tasks/{id}/play":          true,
 	"POST /api/tasks/{id}/resume":        true,
 	"GET /api/tasks/{id}/torrent-files":  true,
 	"POST /api/tasks/{id}/torrent-files": true,
 	"GET /api/extract":                   true,
+
+	// The speed the phone draws its meter from, a sum over every download
+	// that names none of them.
+	"GET /api/stats/speed": true,
 
 	// The queue, the master switch of that list.
 	"GET /api/queue":            true,

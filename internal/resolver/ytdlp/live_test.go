@@ -113,11 +113,11 @@ func TestLiveGuardStopsAtTheMinuteLimit(t *testing.T) {
 func TestLiveGuardStopsAtTheSizeLimit(t *testing.T) {
 	g := newLiveGuard(Live{Enabled: true, MaxMB: 100})
 	g.begin(time.Now())
-	if reason := g.exceeded(99 << 20); reason != "" {
-		t.Errorf("stopped at 99 of 100 MiB: %q", reason)
+	if reason := g.exceeded(99_999_999); reason != "" {
+		t.Errorf("stopped just short of 100 MB: %q", reason)
 	}
-	reason := g.exceeded(100 << 20)
-	if !strings.Contains(reason, "100 MiB") {
+	reason := g.exceeded(100_000_000)
+	if !strings.Contains(reason, "100 MB") {
 		t.Errorf("reason = %q, want it to name the limit and the number", reason)
 	}
 }
@@ -149,14 +149,14 @@ func TestLiveNoteSaysWhatIsHappeningInsteadOfAShareOfNothing(t *testing.T) {
 	g := newLiveGuard(Live{Enabled: true})
 	g.now = func() time.Time { return start.Add(83*time.Minute + 20*time.Second) }
 	g.begin(start)
-	note := g.note(3 << 30)
+	note := g.note(3_000_000_000)
 	if !strings.HasPrefix(note, "live recording,") {
 		t.Errorf("note = %q, want it to say what the row is", note)
 	}
 	if !strings.Contains(note, "1:23:20") {
 		t.Errorf("note = %q, want the running time", note)
 	}
-	if !strings.Contains(note, "3.0 GiB") {
+	if !strings.Contains(note, "3.0 GB") {
 		t.Errorf("note = %q, want what has arrived so far", note)
 	}
 }
@@ -178,12 +178,12 @@ func TestFormatDurationReadsLikeAClock(t *testing.T) {
 
 func TestFormatBytes(t *testing.T) {
 	cases := map[int64]string{
-		0:          "0 B",
-		512:        "512 B",
-		1536:       "1.5 KiB",
-		1 << 20:    "1.0 MiB",
-		3 << 30:    "3.0 GiB",
-		2048 << 30: "2.0 TiB",
+		0:             "0 B",
+		512:           "512 B",
+		1500:          "1.5 kB",
+		1_000_000:     "1.0 MB",
+		3_000_000_000: "3.0 GB",
+		2e12:          "2.0 TB",
 	}
 	for in, want := range cases {
 		if got := formatBytes(in); got != want {

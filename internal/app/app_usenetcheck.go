@@ -58,6 +58,10 @@ type usenetCheck struct {
 	// come so the files are not read again.
 	report *par2.Report
 	paths  []string
+	// blocks is what that verify found of each file by task: its blocks in
+	// file order, the bad ones lost. A copy, since a repair empties the
+	// report as it goes.
+	blocks map[string]core.PieceMap
 	// distrust is set once a file taken as whole from its download turned
 	// out not to be, after which every file is read.
 	distrust bool
@@ -331,6 +335,7 @@ func (a *App) checkUsenetOnce(ctx context.Context, c *usenetCheck) {
 		}
 	}
 	c.report, c.paths = rep, paths
+	c.blocks = blockMaps(set, rep, data)
 	a.mu.Unlock()
 
 	have := len(set.Recovery)
@@ -362,7 +367,7 @@ func (a *App) checkUsenetOnce(ctx context.Context, c *usenetCheck) {
 		log.Printf("usenet: %s: %v, checking every file in full", j.Name, err)
 		a.mu.Lock()
 		c.distrust, c.again = true, true
-		c.report, c.paths = nil, nil
+		c.report, c.paths, c.blocks = nil, nil, nil
 		a.mu.Unlock()
 		return
 	}
@@ -380,6 +385,34 @@ func (a *App) checkUsenetOnce(ctx context.Context, c *usenetCheck) {
 	}
 	log.Printf("usenet: %s: %d damaged blocks repaired", j.Name, damaged)
 	a.passUsenetCheck(c, j, "it was repaired", setFiles(set, rep))
+}
+
+// blockMaps reads a verify's report as one map per task whose file the set
+// names: every block of the file, the bad ones marked.
+func blockMaps(set *par2.Set, rep *par2.Report, data []checkFile) map[string]core.PieceMap {
+	out := map[string]core.PieceMap{}
+	for i, fr := range rep.Files {
+		k := indexOfPath(data, fr.Path)
+		if fr.Path == "" || k < 0 {
+			continue
+		}
+		bad := map[int]bool{}
+		for _, b := range fr.Bad {
+			bad[b] = true
+		}
+		n := len(set.Files[i].Checks)
+		out[data[k].id] = core.PieceMap{
+			Unit:  core.UnitBlocks,
+			Total: int64(n),
+			Runs: core.PieceRuns(n, func(b int) core.PieceState {
+				if bad[b] {
+					return core.PieceLost
+				}
+				return core.PieceDone
+			}),
+		}
+	}
+	return out
 }
 
 // setFiles maps the name of each file of a checked set to where it is.
@@ -583,7 +616,7 @@ func (a *App) passUsenetCheck(c *usenetCheck, j usenet.Job, why string, files ma
 	log.Printf("usenet: %s passed its par2 check: %s", j.Name, why)
 	a.mu.Lock()
 	c.outcome = usenet.CheckPassed
-	c.report, c.paths, c.shown = nil, nil, nil
+	c.report, c.paths, c.blocks, c.shown = nil, nil, nil, nil
 	clear(c.damaged)
 	a.mu.Unlock()
 	a.adoptRebuilt(j.TaskIDs, files)
@@ -695,7 +728,7 @@ func (a *App) failUsenetJob(c *usenetCheck, j usenet.Job, reason string) {
 
 	a.mu.Lock()
 	c.outcome = usenet.CheckFailed
-	c.report, c.paths, c.shown = nil, nil, nil
+	c.report, c.paths, c.blocks, c.shown = nil, nil, nil, nil
 	blamed := map[string]bool{}
 	for _, id := range under {
 		blamed[id] = true

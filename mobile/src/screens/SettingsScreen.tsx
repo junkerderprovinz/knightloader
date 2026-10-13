@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Linking, Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { Animated, Linking, Platform, StyleSheet, View } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import Constants from 'expo-constants';
 import * as Clipboard from 'expo-clipboard';
 import { useT, type TranslationKey } from '../i18n/I18nContext';
-import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
+import { languageOf } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
 import { removeAllConnections } from '../storage/connections';
 import { chosenDeviceName, modelName, setDeviceName } from '../api/deviceName';
@@ -16,6 +16,7 @@ import { ACCENTS, SHAPES, SHAPES_STORED, accentSlot, discoTap, leafTap, type Sha
 import { TYPE } from '../theme/tokens';
 import { GLIMSTONE_VERSION } from '../theme/version';
 import {
+  CardButton,
   GlimButton,
   GlimRow,
   GlimToggle,
@@ -33,16 +34,27 @@ import IconBadge, {
   BraveMark,
   ChromeMark,
   CoffeeArt,
+  CornerLeaf,
+  CornerRound,
+  CornerSoft,
+  CornerSquare,
   DockerMark,
   EdgeMark,
   FirefoxMark,
   Github,
   LinuxMark,
   MailMark,
+  Moon,
+  MotionOff,
+  MotionStorm,
+  MotionSubtle,
+  MotionWild,
   OperaMark,
   ParleyPortMark,
   Paste,
   PayPal,
+  Sun,
+  ThemeSystem,
   Trash,
   UnraidMark,
   VivaldiMark,
@@ -113,6 +125,20 @@ const SHAPE_LABELS: Record<Shape, TranslationKey> = {
   leaf: 'settings.corners.leaf',
 };
 
+const SHAPE_GLYPHS: Record<Shape, typeof CornerRound> = {
+  round: CornerRound,
+  soft: CornerSoft,
+  square: CornerSquare,
+  leaf: CornerLeaf,
+};
+
+const MOTION_GLYPHS: Record<Motion, typeof MotionOff> = {
+  off: MotionOff,
+  subtle: MotionSubtle,
+  wild: MotionWild,
+  storm: MotionStorm,
+};
+
 /**
  * The settings, drawn in the same language as the product they configure:
  * notch-titled cards instead of grey captions, well selectors instead of
@@ -166,7 +192,9 @@ export default function SettingsScreen({
   // outranks (GlimStone 2.1.0), so the note saying so goes with it.
   const systemInCharge = motionReduced && motion !== 'storm';
   const [override, setOverride] = useState<string | null>(null);
-  const anyOverride = overridden.accent || overridden.shape || overridden.theme || overridden.rainbow;
+  // The theme is left out: it is the phone's own, and choosing one takes nothing
+  // over from the instance.
+  const anyOverride = overridden.accent || overridden.shape || overridden.rainbow;
   const following = !anyOverride;
   const [nameDraft, setNameDraft] = useState(chosenDeviceName);
   // The owner compares it with the key an instance shows beside this phone
@@ -232,7 +260,7 @@ export default function SettingsScreen({
    * the interface.
    */
   const motionOptions = (stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map(
-    (m) => ({ value: m, label: t(`settings.motion.${m}`) }),
+    (m) => ({ value: m, label: t(`settings.motion.${m}`), glyph: MOTION_GLYPHS[m] }),
   );
   /** Which colour the picker is open on, or null. One piece of state for both
    *  rows: only one picker can be open, so only one of them can be the subject
@@ -310,8 +338,7 @@ export default function SettingsScreen({
 
   // Named after the language actually in effect, never after the act of
   // resolving one (GlimStone 1.4.0).
-  const currentLabel = LANGUAGES.find((l) => l.code === (override ?? lang))?.label ?? (override ?? lang);
-  const currentFlag = flagEmoji(LANGUAGES.find((l) => l.code === lang)?.flag ?? '');
+  const current = languageOf(override ?? lang);
 
   /** Whether the window asking before every connection goes is open. Removing
    *  them cannot be undone, so it asks, and the question states the stakes. */
@@ -349,17 +376,23 @@ export default function SettingsScreen({
           equal-member set the web UI's settings cards form. Without the mode
           they all resolve to the single accent. */}
       <NotchCard title={t('settings.language')} hue={0}>
-        <TouchableOpacity onPress={onOpenLanguagePicker}>
-          <GlimRow
-            label={t('settings.language')}
-            control={
-              <View style={styles.valueGroup}>
-                <Text style={styles.flag}>{currentFlag}</Text>
-                <Text style={[styles.value, { color: c.textMuted }]}>{currentLabel}</Text>
-              </View>
-            }
-          />
-        </TouchableOpacity>
+        {/* A button rather than a row: forty languages want a page of their
+            own. The notch names the setting, so the button shows only the
+            language in use, on a button's ground with a chevron towards the
+            page it opens. */}
+        <CardButton
+          style={[styles.language, { backgroundColor: c.surface2, ...corners.control }]}
+          onPress={onOpenLanguagePicker}
+          accessibilityLabel={`${t('settings.language')}: ${current.label}`}
+        >
+          <Text style={styles.flag}>{current.flag}</Text>
+          <Text style={[styles.languageName, { color: c.text }]} numberOfLines={1}>
+            {current.label}
+          </Text>
+          <View style={styles.chevron}>
+            <Back color={c.textMuted} size={14} />
+          </View>
+        </CardButton>
       </NotchCard>
 
       {/* hue={4} is the free position; the cards below keep their colours. */}
@@ -384,6 +417,23 @@ export default function SettingsScreen({
       </NotchCard>
 
       <NotchCard title={t('settings.appearance')} hue={1}>
+        {/* Above the switch and never dimmed by it: no instance carries a
+            theme, so following one leaves this choice alone. */}
+        <View style={styles.options}>
+          <Text style={[styles.axisLabel, styles.firstAxisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
+          {/* "System" is no choice of this phone's: the theme then follows the
+              device, and changes with it while the app is open. */}
+          <WellSelector
+            options={[
+              { value: 'light', label: t('settings.theme.light'), glyph: Sun },
+              { value: 'dark', label: t('settings.theme.dark'), glyph: Moon },
+              { value: 'system', label: t('settings.theme.system'), glyph: ThemeSystem },
+            ]}
+            value={overridden.theme ? (dark ? 'dark' : 'light') : 'system'}
+            onPick={(v) => setTheme(v === 'system' ? undefined : v)}
+          />
+        </View>
+
         {/* A switch rather than a link that appears once something is
             overridden: following the instance is a state, and a state gets the
             control every state in this family gets. Off snapshots the current
@@ -413,21 +463,12 @@ export default function SettingsScreen({
             instance's look, and a press takes it over on this phone, which
             flips the switch above off. */}
         <View style={[styles.options, following && styles.dimmed]}>
-          <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.theme')}</Text>
-          <WellSelector
-            options={[
-              { value: 'light', label: t('settings.theme.light') },
-              { value: 'dark', label: t('settings.theme.dark') },
-            ]}
-            value={dark ? 'dark' : 'light'}
-            onPick={(v) => setTheme(v)}
-          />
-
           <Text style={[styles.axisLabel, { color: c.textSub }]}>{t('settings.corners')}</Text>
           <WellSelector
             options={(leafFound || shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
               value: s,
               label: t(SHAPE_LABELS[s]),
+              glyph: SHAPE_GLYPHS[s],
             }))}
             value={shape}
             onPick={(v) => {
@@ -1108,11 +1149,18 @@ const styles = StyleSheet.create({
   // release, so proportional digits make the middle dot wander between builds.
   aboutVersions: { fontSize: TYPE.caption, fontVariant: ['tabular-nums'] },
   privacy: { marginTop: 6, alignSelf: 'flex-start' },
-  valueGroup: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 1 },
-  flag: { fontSize: 17 },
-  value: { fontSize: TYPE.body },
+  language: { flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 48, paddingHorizontal: 14 },
+  // The size and column the language page's own flags take, so the two read
+  // as the same entry.
+  flag: { fontSize: 20, width: 30 },
+  languageName: { flex: 1, fontSize: TYPE.body, fontWeight: '600' },
+  // The back triangle turned round in either direction, since Android already
+  // mirrors its border triangle in a right-to-left layout.
+  chevron: { transform: [{ scaleX: -1 }] },
   hint: { fontSize: TYPE.caption, lineHeight: 16, marginBottom: 8 },
   axisLabel: { fontSize: TYPE.caption, marginTop: 12, marginBottom: 6, letterSpacing: 0.6 },
+  // The card's own padding is the space over its first line.
+  firstAxisLabel: { marginTop: 0 },
   // The inline variant drops the stacked spacing: in a row the label is beside
   // its control, not above it.
   axisRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginTop: 12, marginBottom: 2 },

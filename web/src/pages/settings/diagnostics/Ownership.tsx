@@ -55,12 +55,12 @@ export function OwnershipCard({ hue }: { hue: number }) {
       )}
 
       {data.deployment === 'desktop' && (
-        <span className="text-[11px] text-carbon-textMuted">{t('settings.owner.desktopNote')}</span>
+        <span className="text-meta text-carbon-textMuted">{t('settings.owner.desktopNote')}</span>
       )}
 
       {data.deployment !== 'desktop' && asked.length > 0 && (
         <div className="flex flex-col gap-1">
-          <span className="flex items-center text-[11px] uppercase tracking-wide text-carbon-textMuted">
+          <span className="flex items-center text-meta uppercase tracking-wide text-carbon-textMuted">
             {t('settings.owner.asked')}
             <InfoBubble tip={t('settings.owner.envHow')} />
           </span>
@@ -78,7 +78,7 @@ export function OwnershipCard({ hue }: { hue: number }) {
 function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
-      <span className="text-[11px] text-carbon-textMuted">{label}</span>
+      <span className="text-meta text-carbon-textMuted">{label}</span>
       <span className="glim-num text-sm text-carbon-text" dir="ltr">
         {value}
       </span>

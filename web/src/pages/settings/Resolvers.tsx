@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   InfoBubble,
@@ -12,6 +11,8 @@ import {
   Toggle,
   ToggleRow,
 } from '../../components/ui';
+import { Dropdown } from '../../components/Dropdown';
+import { TrackMerge } from '../../components/pictures/TrackMerge';
 import { Tabs } from '../../components/Tabs';
 import {
   NO_PRESET_MENUS,
@@ -26,6 +27,7 @@ import {
   type PresetMenus,
 } from '../../components/VariantPicker';
 import { CookieJarsCard } from './resolvers/CookieJars';
+import { fileTracks } from './resolvers/fileTracks';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconTrash } from '../../lib/icons';
 import {
@@ -42,6 +44,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft, useFeatures } from './context';
+import { SettingRow } from './controls';
 import { moduleReason } from './tx';
 
 // Named like the download list's own variant labels.
@@ -52,6 +55,12 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
   subtitle: 'columns.variant.subtitle',
   description: 'columns.variant.description',
 };
+
+// What buildArgs in internal/resolver/ytdlp falls back to, which no route
+// serves: a video row is merged into mkv unless a row picked its own
+// container, and an empty template is this one.
+const MERGED = 'mkv';
+const DEFAULT_TEMPLATE = '%(title)s.%(ext)s';
 
 // ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
@@ -203,24 +212,29 @@ export function Resolvers() {
           this page. */}
       <MediaToolsCard hue={1} />
 
-      <Card hue={2} className="flex flex-col gap-5">
-        <SectionTitle hint={t('settings.resolvers.about')}>{t('settings.resolvers.quality')}</SectionTitle>
+      {/* Named like the video variant, whose quality it sets where a row has
+          no choice of its own. */}
+      <Card hue={2} data-new="video-card" className="flex flex-col gap-5">
+        <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {qualities.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
-            <Tabs
-              size="sm"
-              className="w-fit"
+          <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
+            <Dropdown
               label={t('settings.resolvers.quality')}
-              active={ytdlp.quality}
-              onSelect={(id) => patchYtdlp({ quality: id })}
-              items={qualities.map((q) => ({ id: q, label: capLabel(q, t) }))}
+              value={ytdlp.quality}
+              onChange={(quality) => patchYtdlp({ quality })}
+              options={qualities.map((q) => ({ value: q, label: capLabel(q, t) }))}
+              width="widest"
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         {ytdlp.quality === 'custom' && (
-          <Field label={t('settings.resolvers.customFormat')} hint={t('settings.resolvers.customFormatHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.resolvers.customFormat')}
+            hint={t('settings.resolvers.customFormatHint')}
+          >
             <TextInput
               dir="ltr"
               value={ytdlp.customFormat}
@@ -228,22 +242,46 @@ export function Resolvers() {
               spellCheck={false}
               onChange={(e) => patchYtdlp({ customFormat: e.target.value })}
             />
-          </Field>
+          </SettingRow>
         )}
+      </Card>
+
+      <Card hue={3} data-new="files-card" className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.resolvers.filesTitle')}</SectionTitle>
 
         <ToggleRow
           checked={ytdlp.playlist}
           onChange={(v) => patchYtdlp({ playlist: v })}
           label={t('settings.resolvers.playlist')}
         />
+
+        {/* Music mode's naming, on the audio card, applies only while this
+            field is empty. */}
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.outputTitle')}
+          hint={t('settings.resolvers.outputHint')}
+        >
+          <TextInput
+            dir="ltr"
+            value={ytdlp.outputTemplate}
+            placeholder={DEFAULT_TEMPLATE}
+            spellCheck={false}
+            onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
+          />
+        </SettingRow>
       </Card>
 
       {/* Whether a subtitle row exists is set per hoster in the presets; this
           card holds the instance-wide knobs. The embed card reuses these
           languages, so muxed tracks and .srt files agree. */}
-      <Card hue={3} className="flex flex-col gap-5">
+      <Card hue={4} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.subtitlesTitle')}</SectionTitle>
-        <Field label={t('settings.resolvers.subtitleLangs')} hint={t('settings.resolvers.subtitleLangsHint')}>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.subtitleLangs')}
+          hint={t('settings.resolvers.subtitleLangsHint')}
+        >
           <TextInput
             dir="ltr"
             value={ytdlp.subtitleLangs}
@@ -251,7 +289,7 @@ export function Resolvers() {
             spellCheck={false}
             onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
           />
-        </Field>
+        </SettingRow>
         <ToggleRow
           checked={ytdlp.subtitleAuto}
           onChange={(v) => patchYtdlp({ subtitleAuto: v })}
@@ -270,56 +308,49 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={4} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.outputTitle')}</SectionTitle>
-        <Field label={t('settings.resolvers.outputTitle')} hint={t('settings.resolvers.outputHint')}>
-          <TextInput
-            dir="ltr"
-            value={ytdlp.outputTemplate}
-            placeholder="%(title)s.%(ext)s"
-            spellCheck={false}
-            onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
-          />
-        </Field>
-      </Card>
-
-      {/* Below the output filename card, since music mode's naming applies only
-          while that field is empty. */}
-      <Card hue={5} className="flex flex-col gap-5">
+      <Card hue={5} data-new="audio-best" className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
         {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
         {audioFormats.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.audioFormat')} hint={t('settings.resolvers.audioFormatHint')}>
+          <SettingRow label={t('settings.resolvers.audioFormat')} hint={t('settings.resolvers.audioFormatHint')}>
             <Tabs
+              variant="well"
               size="sm"
-              className="w-fit"
+              inline
+              hug
               label={t('settings.resolvers.audioFormat')}
               active={ytdlp.audioFormat}
               onSelect={(id) => patchYtdlp({ audioFormat: id })}
               items={audioFormats.map((f) => ({ id: f, label: formatLabel(f, t) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
-        {/* "" means no --audio-quality at all. Kept while the format is "best",
+        {/* "" asks for the best quality. Kept while the format is "best",
             since a row can still pick a format that is converted. */}
         {audioBitrates.length > 0 && (
-          <FieldGroup label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
+          <SettingRow label={t('settings.resolvers.audioBitrate')} hint={t('settings.resolvers.audioBitrateHint')}>
             <Tabs
+              variant="well"
               size="sm"
-              className="w-fit"
+              inline
+              hug
               label={t('settings.resolvers.audioBitrate')}
               active={ytdlp.audioBitrate}
               onSelect={(id) => patchYtdlp({ audioBitrate: id })}
               items={audioBitrates.map((b) => ({ id: b, label: bitrateLabel(b, t) }))}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
 
         {/* Free text: the available languages vary per source. The server keeps
             only letters, digits and hyphens. */}
-        <Field label={t('settings.resolvers.audioLang')} hint={t('settings.resolvers.audioLangHint')}>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.audioLang')}
+          hint={t('settings.resolvers.audioLangHint')}
+        >
           <TextInput
             dir="ltr"
             value={ytdlp.audioLang}
@@ -327,7 +358,7 @@ export function Resolvers() {
             spellCheck={false}
             onChange={(e) => patchYtdlp({ audioLang: e.target.value })}
           />
-        </Field>
+        </SettingRow>
 
         {/* Music mode writes metadata on the audio row whatever the embed card
             says, or the tags it fills in would never be written. */}
@@ -341,6 +372,28 @@ export function Resolvers() {
 
       <Card hue={6} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.resolvers.embedTitle')}</SectionTitle>
+
+        {/* The video row as these settings leave it, following the switches
+            below it. */}
+        <TrackMerge
+          label={t('settings.resolvers.embedTitle')}
+          tracks={fileTracks(ytdlp, t)}
+          extension={MERGED}
+          filename={ytdlp.outputTemplate.trim() || DEFAULT_TEMPLATE}
+          split={embed.splitChapters ? t('picture.tracks.perChapter') : undefined}
+          sidecar={embed.nfo ? 'nfo' : undefined}
+          apart={embed.separate ? t('picture.tracks.apart') : undefined}
+        />
+
+        <div data-new="merge-files">
+          <ToggleRow
+            checked={!embed.separate}
+            onChange={(v) => patchEmbed({ separate: !v })}
+            label={t('settings.resolvers.mergeFiles')}
+            hint={t('settings.resolvers.mergeFilesHint')}
+          />
+        </div>
+
         <ToggleRow
           checked={embed.metadata}
           onChange={(v) => patchEmbed({ metadata: v })}
@@ -403,7 +456,8 @@ export function Resolvers() {
             1..100, 0 included, onto 90, so onValue clamps typed input too. */}
         {measure.enabled && (
           <>
-            <Field
+            <SettingRow
+              control="short"
               label={t('settings.resolvers.measureShortPercent')}
               hint={t('settings.resolvers.measureShortPercentHint')}
             >
@@ -414,7 +468,7 @@ export function Resolvers() {
                 step={1}
                 onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
               />
-            </Field>
+            </SettingRow>
 
             <ToggleRow
               checked={measure.failOnShort}
@@ -449,7 +503,11 @@ export function Resolvers() {
               hint={t('settings.resolvers.liveFromStartHint')}
               hue={1}
             />
-            <Field label={t('settings.resolvers.liveMaxMinutes')} hint={t('settings.resolvers.liveMaxMinutesHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.resolvers.liveMaxMinutes')}
+              hint={t('settings.resolvers.liveMaxMinutesHint')}
+            >
               <NumberInput
                 value={live.maxMinutes}
                 min={0}
@@ -457,15 +515,19 @@ export function Resolvers() {
                 step={1}
                 onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
               />
-            </Field>
-            <Field label={t('settings.resolvers.liveMaxMB')} hint={t('settings.resolvers.liveMaxMBHint')}>
+            </SettingRow>
+            <SettingRow
+              control="short"
+              label={t('settings.resolvers.liveMaxMB')}
+              hint={t('settings.resolvers.liveMaxMBHint')}
+            >
               <NumberInput
                 value={live.maxMB}
                 min={0}
                 step={1}
                 onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
               />
-            </Field>
+            </SettingRow>
           </>
         )}
       </Card>
@@ -473,109 +535,41 @@ export function Resolvers() {
       {/* Its own file, since the jar form is shared with a failed download. */}
       <CookieJarsCard hue={9} />
 
-      <Card hue={10} className="flex flex-col gap-5">
+      <Card hue={10} data-new="variant-blocks" className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.resolvers.presetsHint')}>
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
 
-        {/* A table while the card has room for its columns. Below that each
-            hoster is a block of its own, name and bin on the first line and
-            the switches wrapping under it, each named beside it, since the
-            column heads are gone. 56rem clears the narrowest the table can
-            be drawn in any of the 42 languages, 861px in Norwegian, whose
-            column heads are the longest. Above it the pickers give up their
-            width with an ellipsis before the table scrolls (Dropdown's
-            `shrink`). */}
-        <div className="glim-well @container overflow-x-auto p-0">
+        {/* A block per site rather than a table: five columns do not fit a
+            phone, and the pickers would have to cut their labels short. */}
+        <div className="glim-well p-0">
           {presetRows.length === 0 ? (
             <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.presetsEmpty')}</p>
           ) : (
-            <table
-              className="w-full border-collapse text-sm @max-[56rem]:block"
-              aria-label={t('settings.resolvers.variantDefaults')}
-            >
-              <thead className="@max-[56rem]:hidden">
-                <tr className="text-start text-xs text-carbon-textMuted">
-                  <th className="px-4 py-3 text-start font-medium">{t('settings.resolvers.presetHost')}</th>
-                  {YTDLP_VARIANT_KINDS.map((kind) => (
-                    <th key={kind} className="px-2 py-3 text-start font-medium">
-                      {t(VARIANT_KEYS[kind])}
-                    </th>
-                  ))}
-                  <th className="w-10 px-2 py-3">
-                    <span className="sr-only">{t('settings.resolvers.presetRemove')}</span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-carbon-border/40 @max-[56rem]:block">
-                {presetRows.map(([host, preset], i) => {
-                  const pickers = presetPickers({
-                    preset,
-                    menus: hostPresetMenus(menus, hostMenus[host]),
-                    t,
-                    onChange: (fields) => writePreset(host, fields),
-                  });
-                  // The video and audio columns carry their format pickers beside
-                  // the switch, so a row reads as what each variant starts with.
-                  const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
-                    video: [pickers.video.format, pickers.video.quality],
-                    audio: [pickers.audio.format, pickers.audio.bitrate],
-                  };
-                  return (
-                    <tr
-                      key={host}
-                      className="transition-colors hover:bg-carbon-hover @max-[56rem]:flex @max-[56rem]:flex-wrap
-                        @max-[56rem]:items-center @max-[56rem]:gap-x-4 @max-[56rem]:gap-y-3 @max-[56rem]:px-4
-                        @max-[56rem]:py-3"
-                    >
+            <ul className="flex flex-col divide-y divide-carbon-border/40" aria-label={t('settings.resolvers.variantDefaults')}>
+              {presetRows.map(([host, preset], i) => {
+                const pickers = presetPickers({
+                  preset,
+                  menus: hostPresetMenus(menus, hostMenus[host]),
+                  t,
+                  onChange: (fields) => writePreset(host, fields),
+                });
+                const pairs: Partial<Record<YtdlpVariantKind, (PickerProps | null)[]>> = {
+                  video: [pickers.video.format, pickers.video.quality],
+                  audio: [pickers.audio.format, pickers.audio.bitrate],
+                };
+                return (
+                  <li key={host}>
+                    <div role="group" aria-label={host} className="flex flex-col gap-3 px-4 py-3">
                       {/* Read-only, since the host is the lookup key; remove the
-                          row and add another instead. Stacked, it fills the
-                          first line but for the gap and the bin. */}
-                      <td
-                        className="px-4 py-3 font-medium text-carbon-text
-                          @max-[56rem]:basis-[calc(100%-var(--btn-h)-1rem)] @max-[56rem]:p-0"
-                      >
-                        <span className="flex items-center gap-1">
-                          <span className="max-w-32 break-words @max-[56rem]:max-w-none">{host}</span>
+                          site and add it again instead. */}
+                      <div className="flex items-center gap-2">
+                        <span className="flex min-w-0 flex-1 items-center gap-1 text-sm font-medium text-carbon-text">
+                          <span className="min-w-0 break-words">{host}</span>
                           {hostMenus[host]?.known === false && (
                             <InfoBubble tip={t('settings.resolvers.presetFormatsUnknown', { host })} />
                           )}
                         </span>
-                      </td>
-                      {/* Hued by column, since each switch is its own question. */}
-                      {YTDLP_VARIANT_KINDS.map((kind, k) => (
-                        <td key={kind} className="px-2 py-3 @max-[56rem]:order-last @max-[56rem]:p-0">
-                          <div className="flex items-center gap-2">
-                            {/* The name shows only while the column heads are
-                                gone, and a press on it flips the switch. */}
-                            <label className="flex items-center gap-2">
-                              <Toggle
-                                checked={preset.variants.includes(kind)}
-                                onChange={() => toggleVariant(host, kind)}
-                                label={`${t(VARIANT_KEYS[kind])} · ${host}`}
-                                hideLabel
-                                hue={k}
-                              />
-                              <span aria-hidden className="hidden text-xs text-carbon-textSub @max-[56rem]:inline">
-                                {t(VARIANT_KEYS[kind])}
-                              </span>
-                            </label>
-                            {/* Named with the host, as the switch is, for a screen reader. */}
-                            {qualities.length > 0 &&
-                              pairs[kind]?.map(
-                                (p) =>
-                                  p && (
-                                    <VariantDropdown
-                                      key={p.label}
-                                      picker={{ ...p, label: `${p.label} · ${host}` }}
-                                      width="shrink"
-                                    />
-                                  ),
-                              )}
-                          </div>
-                        </td>
-                      ))}
-                      <td className="px-2 py-3 text-end @max-[56rem]:p-0">
                         <IconBadge
                           hue={i}
                           icon={<IconTrash width={16} height={16} />}
@@ -583,12 +577,41 @@ export function Resolvers() {
                           aria-label={`${t('settings.resolvers.presetRemove')} · ${host}`}
                           onClick={() => removePreset(host)}
                         />
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+                      </div>
+                      <ul className="flex flex-col gap-2">
+                        {/* Hued by variant, since each switch is its own question. */}
+                        {YTDLP_VARIANT_KINDS.map((kind, k) => (
+                          <li key={kind} className="flex min-h-[var(--btn-h)] flex-wrap items-center gap-x-4 gap-y-2">
+                            <Toggle
+                              checked={preset.variants.includes(kind)}
+                              onChange={() => toggleVariant(host, kind)}
+                              label={t(VARIANT_KEYS[kind])}
+                              hue={k}
+                            />
+                            {qualities.length > 0 && pairs[kind] && (
+                              <span className="ms-auto flex flex-wrap justify-end gap-2">
+                                {/* Named with the host for a screen reader, which
+                                    reads a picker's name without its block. */}
+                                {pairs[kind].map(
+                                  (p) =>
+                                    p && (
+                                      <VariantDropdown
+                                        key={p.label}
+                                        picker={{ ...p, label: `${p.label} · ${host}` }}
+                                        width="widest"
+                                      />
+                                    ),
+                                )}
+                              </span>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
           )}
         </div>
 

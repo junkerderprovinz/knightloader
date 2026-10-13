@@ -15,8 +15,9 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import { countSelectorHues } from '../lib/appearance';
 import { useLabelMode, type LabelMode } from '../lib/labelModes';
-import { IconChevronDown } from '../lib/icons';
+import { IconExpand } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup, type MenuItem } from './ContextMenu';
 import { useReorder } from './dragLift';
 import { segmentLayout, type SegmentWidths } from './segmentLayout';
@@ -80,11 +81,6 @@ interface Common {
    */
   variant?: 'default' | 'well';
   /**
-   * How far along the rainbow the first tab starts, for strips stacked in one
-   * card, so no two of them open on the same colour.
-   */
-  hueOffset?: number;
-  /**
    * `vertical` is the settings rail. It is a mode of this component so the
    * rail shares the reorder gesture, roving tabindex and rainbow wiring.
    */
@@ -95,6 +91,12 @@ interface Common {
    * box.
    */
   inline?: boolean;
+  /**
+   * Lets every segment of a well hug its own label instead of taking the width
+   * of the longest, for a selector at the end of a settings row, where a row
+   * of equal segments would not fit beside the setting's name.
+   */
+  hug?: boolean;
   /**
    * Vertical only: the tabs share the strip's full height, each with a floor
    * height so a long list scrolls instead of shrinking to slivers.
@@ -226,9 +228,9 @@ export function Tabs(props: TabsProps) {
     onReorder,
     equalWidth = false,
     variant = 'default',
-    hueOffset = 0,
     orientation = 'horizontal',
     inline = false,
+    hug = false,
     fill = false,
     sidebarGround = false,
     display: asked,
@@ -239,6 +241,18 @@ export function Tabs(props: TabsProps) {
   const display: LabelMode = asked ?? (labelled ? (labelMode === 'hover' ? 'glyph' : labelMode) : 'both');
   const isWell = variant === 'well';
   const vertical = orientation === 'vertical';
+  // A strip whose tabs are links chooses a page, and each tab owns a palette
+  // position. A selector that sets a value owns one for all its segments, so
+  // the chosen one is filled with the selector's colour and two selectors in
+  // one card can be told apart. The rainbow engine counts the selectors out in
+  // the order they stand, and one that appears, leaves or moves changes the
+  // count, hence on every commit.
+  const pages = vertical || items.some((item) => item.href !== undefined);
+  useLayoutEffect(() => {
+    if (pages) return;
+    countSelectorHues();
+    return countSelectorHues;
+  });
 
   // `hover` renders the label collapsed rather than omitting it, so it grows
   // back in place without re-measuring anything.
@@ -289,7 +303,7 @@ export function Tabs(props: TabsProps) {
   const glyphRem = showIcon && items.some((i) => i.icon) ? GLYPH_REM[size] : 0;
   const pinWidth = glyphRem ? `calc(${emWidth(pinUnits)} + ${glyphRem}rem)` : emWidth(pinUnits);
   const bigWell = isWell && size === 'md';
-  const pinned = vertical || nameOnly
+  const pinned = vertical || nameOnly || hug
     ? undefined
     : bigWell
       ? `clamp(${WELL_FLOOR_PX}px, ${pinWidth}, ${WELL_CEIL_REM}rem)`
@@ -346,12 +360,15 @@ export function Tabs(props: TabsProps) {
   const contentRow = pinned !== undefined && byContent;
   const segmentFlex: CSSProperties = vertical
     ? {}
-    : pinned === undefined || contentRow
-      ? { flex: '1 0 auto' }
-      : {
-          minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
-          flex: `1 0 calc((100% - ${perRow} * ${gap}) / ${perRow})`,
-        };
+    : hug
+      ? // A label wider than the whole row wraps inside its segment.
+        { flex: '1 1 auto', minWidth: 0 }
+      : pinned === undefined || contentRow
+        ? { flex: '1 0 auto' }
+        : {
+            minWidth: room === null ? pinned : `min(${pinned}, ${room}px)`,
+            flex: `1 0 calc((100% - ${perRow} * ${gap}) / ${perRow})`,
+          };
 
   // Roving tabindex: the strip is one tab stop and the arrows move inside it.
   const roved = Math.max(
@@ -446,6 +463,7 @@ export function Tabs(props: TabsProps) {
       role={many ? 'group' : 'tablist'}
       aria-label={label}
       aria-orientation={vertical ? 'vertical' : 'horizontal'}
+      data-hue-selector={pages ? undefined : ''}
       onKeyDown={onKeyDown}
       // Horizontal strips, the well included, wrap rather than scroll, so they
       // never push the page sideways. The vertical rail scrolls; min-h-0 lets
@@ -494,7 +512,7 @@ export function Tabs(props: TabsProps) {
         const glyphless = nameOnly && !item.icon;
         // In hover mode a stacked tile has the shape of the phone's bottom bar
         // tab (GlimStone 2.3.0): 48px for a 20px glyph, a 2px gap and a caption
-        // line, with about 5px above and below. At 40px with the row's 15px
+        // line, with about 5px above and below. At 40px with the row's 14px
         // label, the label gets a 6px sliver.
         const captioned = stacked && labelOnHover;
         // A filling tile grows from zero rather than from its content, so a
@@ -502,15 +520,16 @@ export function Tabs(props: TabsProps) {
         const cls = vertical
           ? // Sized like Sidebar.tsx's navBase rows beside it.
             `${segBase} glim-nav-row glim-hue glim-hue-icon group ${on ? `glim-active ${segOn}` : sidebarGround ? SIDEBAR_OFF : segOff}
-              flex w-full min-w-0 overflow-hidden text-[15px]
+              flex w-full min-w-0 overflow-hidden text-body
               ${stacked ? `flex-col items-center justify-center gap-0.5 px-2 ${captioned ? 'py-1' : 'py-1.5'}` : 'flex-row items-center gap-3 px-3'}
               ${fill ? `${captioned ? 'min-h-12' : 'min-h-10'} grow shrink-0 basis-0` : ''}
               ${!on && item.dim ? 'opacity-60' : ''}
               ${look} ${grip}`
           : isWell
           ? // An idle segment has no fill of its own and shows the surface3
-            // groove, so its hover is the step above that (rule 21).
-            `${segBase} glim-nav-row glim-hue glim-hue-icon justify-center text-center leading-snug ${WELL_SIZE[size]}
+            // groove, so its hover is the step above that (rule 21). The
+            // chosen one is filled with the colour its selector was counted.
+            `${segBase} glim-nav-row ${pages ? '' : 'glim-hue'} justify-center text-center leading-snug ${WELL_SIZE[size]}
               ${on ? 'glim-active bg-accent text-accentContrast' : 'bg-transparent text-carbon-textSub hover:bg-carbon-hoverRaised hover:text-carbon-text'}
               flex items-center ${!on && item.dim ? 'opacity-60' : ''}`
           : `${segBase} glim-nav-row glim-hue glim-hue-icon ${on ? `glim-active ${segOn}` : segOff} ${
@@ -531,9 +550,9 @@ export function Tabs(props: TabsProps) {
             {(showLabel || glyphless) && (
               // A well segment can grow taller, so it wraps. A rail tile beside
               // its glyph takes a second line where its name needs one, split
-              // evenly. A 20px line is what the font asks for at 15px, so two
-              // lines fill the 40px every tile has without cutting a descender,
-              // and the clip reaches 3px further for the marks that Arabic and
+              // evenly. A 20px line holds the font at 14px, so two lines fill
+              // the 40px every tile has without cutting a descender, and the
+              // clip reaches 3px further for the marks that Arabic and
               // Devanagari set outside the line. Elsewhere the row height is
               // fixed, so the label truncates.
               <span
@@ -551,7 +570,7 @@ export function Tabs(props: TabsProps) {
             {item.badge !== undefined && item.badge !== null && (
               // On the filled tab the badge takes the ink colour.
               <span
-                className="glim-num rounded-[var(--radius-pill)] px-1 text-[11px] font-semibold leading-none
+                className="glim-num rounded-[var(--radius-pill)] px-1 text-meta font-semibold leading-none
                   text-carbon-textMuted [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current"
               >
                 {item.badge}
@@ -568,8 +587,10 @@ export function Tabs(props: TabsProps) {
             ? // The filled segment follows the shape setting, or its square
               // corner would poke out of the track's rounded one. Inline, since
               // two competing radius classes resolve by stylesheet order.
-              { ...hueStyle(i + hueOffset), ...segmentFlex, borderRadius: 'var(--radius-pill)' }
-            : { ...hueStyle(i + hueOffset), ...segmentFlex },
+              { ...segmentFlex, borderRadius: 'var(--radius-pill)' }
+            : // A tab of a strip that chooses a page has its own position. A
+              // selector's segments inherit the one their strip was counted.
+              { ...hueStyle(pages ? i : undefined), ...segmentFlex },
           className: cls,
           // A native link drag would fire pointercancel and end the reorder.
           draggable: reorderable ? false : undefined,
@@ -636,13 +657,13 @@ export function FoldChip({
         {!glyph && <span className="whitespace-nowrap">{label}</span>}
         {count !== undefined && (
           <span
-            className="glim-num rounded-[var(--radius-pill)] px-1 text-[11px] font-semibold leading-none
+            className="glim-num rounded-[var(--radius-pill)] px-1 text-meta font-semibold leading-none
               text-carbon-textMuted [.glim-active_&]:bg-black/15 [.glim-active_&]:text-current"
           >
             {count}
           </span>
         )}
-        <IconChevronDown />
+        <IconExpand />
       </button>
       {bubble.node}
       {menu.anchor && <ContextMenu anchor={menu.anchor} label={label} onClose={menu.close} groups={groups} />}

@@ -34,8 +34,8 @@ type Options struct {
 	// VideoPick it has no settings key.
 	AudioTrack string `json:"-"`
 	// AudioBitrate is the --audio-quality target in kbit/s ("192"), read only
-	// for VariantAudio. Empty passes no flag; it has no effect on a "best"
-	// extract, which copies the source stream.
+	// for VariantAudio. Empty asks for the best quality, --audio-quality 0. It
+	// has no effect on a "best" extract, which copies the source stream.
 	AudioBitrate string `json:"audioBitrate"`
 	// SubtitleLangs is the --sub-langs value (codes, a pattern like "en.*",
 	// or "all"); empty means DefaultSubtitleLangs. The subtitle row and
@@ -100,6 +100,11 @@ type Embed struct {
 	// NFO writes a Kodi/Jellyfin/Plex <movie> NFO next to the finished file,
 	// built from yt-dlp's info json (see nfo.go).
 	NFO bool `json:"nfo"`
+	// Separate keeps a video row's streams apart: the video and the audio as
+	// files of their own, with the subtitles and the cover beside them, where
+	// otherwise all of it is merged into one file (see apartArgs). Its zero
+	// value merges, so a settings file from before it reads as merging.
+	Separate bool `json:"separate"`
 }
 
 // Measure re-reads the finished file with ffprobe, records runtime,
@@ -132,7 +137,7 @@ type Live struct {
 	// same whenever the link is pasted; time-of-day rules belong to
 	// internal/schedule.
 	MaxMinutes int `json:"maxMinutes"`
-	// MaxMB stops the recording once this many mebibytes have arrived, 0 for
+	// MaxMB stops the recording once this many megabytes have arrived, 0 for
 	// no limit. It counts yt-dlp's downloaded_bytes, since the temp fragments
 	// on disk do not add up to that number.
 	MaxMB int `json:"maxMB"`
@@ -191,7 +196,7 @@ func validAudioFormat(f string) bool {
 }
 
 // AudioBitrates lists the --audio-quality targets offered on the audio row, in
-// menu order. "" leaves yt-dlp's own default.
+// menu order. "" is the best quality the encoder gives.
 func AudioBitrates() []string {
 	return []string{"", "64", "96", "128", "160", "192", "256", "320"}
 }

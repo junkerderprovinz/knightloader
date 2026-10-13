@@ -37,6 +37,7 @@ const WORDS: Record<string, Words> = {
   fileExists: { line: 'failure.fileExists.line', next: 'failure.fileExists.next' },
   dataFolder: { line: 'failure.dataFolder.line', next: 'failure.dataFolder.next' },
   holdsDataFolder: { line: 'failure.holdsDataFolder.line', next: 'failure.holdsDataFolder.next' },
+  debridImport: { line: 'failure.debridImport.line', next: 'failure.debridImport.next' },
   captcha: { line: 'failure.captcha.line', next: 'failure.captcha.next' },
   cancelled: { line: 'failure.cancelled.line', next: 'failure.cancelled.next' },
   botCheck: { line: 'failure.botCheck.line', next: 'failure.botCheck.next' },

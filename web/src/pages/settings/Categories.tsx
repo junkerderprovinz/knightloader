@@ -1,14 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  Button,
-  Card,
-  Field,
-  FieldGroup,
-  IconBadge,
-  SectionTitle,
-  TextInput,
-  UnitNumberInput,
-} from '../../components/ui';
+import { Button, Card, FieldGroup, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
@@ -22,11 +13,11 @@ import {
   type PriorityChoice,
 } from '../../lib/api';
 import { RATE_UNITS, fmtSpeed } from '../../lib/format';
-import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { COLLISION_LABEL } from './Archives';
 import { useDraft, useFieldError } from './context';
-import { RowRefusal } from './controls';
+import { RowRefusal, SettingRow, Sheet } from './controls';
 import { FileSelectionFields } from './Torrents';
 
 /**
@@ -186,7 +177,10 @@ export function CategoriesCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState(-1);
   // A row without a name waits here rather than in the draft (see writePending).
+  // It keeps its React key when it moves into the draft, so the window it is
+  // typed in stays open and the name box keeps the cursor.
   const [pending, setPending] = useState<Category | null>(null);
+  const [pendingUid, setPendingUid] = useState('');
 
   // An older server does not send the field.
   const cats = cfg.categories ?? [];
@@ -235,6 +229,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
       return;
     }
     setPending(emptyCategory());
+    setPendingUid(nextUid());
     setOpenRow(cats.length);
   };
 
@@ -249,7 +244,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
       return;
     }
     setPending(null);
-    write([...cats, next], [...uids, nextUid()]);
+    write([...cats, next], [...uids, pendingUid]);
     setOpenRow(cats.length);
   };
 
@@ -276,7 +271,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.categories.listHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} disabled={full} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} disabled={full} onClick={add}>
             {t('settings.categories.add')}
           </Button>
         }
@@ -292,12 +287,12 @@ export function CategoriesCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.categories.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">
+          <span className="mt-1 block text-meta text-carbon-textMuted">
             {t('settings.categories.emptyHint')}
           </span>
         </p>
       ) : (
-        <ul className="flex flex-col">
+        <ul data-new="row-window" className="flex flex-col">
           {cats.map((cat, i) => (
             <CategoryRow
               key={uids[i] ?? `row-${i}`}
@@ -318,7 +313,7 @@ export function CategoriesCard({ hue }: { hue: number }) {
           {/* Last and not movable until it has a name. */}
           {pending && (
             <CategoryRow
-              key="pending"
+              key={pendingUid}
               cat={pending}
               index={cats.length}
               last
@@ -451,12 +446,14 @@ function CategoryRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own where the card is too
+          narrow for them beside the summary. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
-          className="flex min-w-0 items-center gap-3 text-start"
+          aria-haspopup="dialog"
+          className="flex min-w-0 flex-1 basis-48 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
@@ -464,17 +461,17 @@ function CategoryRow({
               {/* A new row stands under the muted name placeholder. */}
               {title || <span className="text-carbon-textMuted">{t('settings.categories.name')}</span>}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {summarise(t, cat, priorities)}
             </span>
           </span>
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the name
             and summary truncate instead. */}
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -483,7 +480,7 @@ function CategoryRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}
@@ -501,22 +498,20 @@ function CategoryRow({
         </div>
       </div>
 
-      {/* Shown on a closed row too, since a repeated key blocks the whole save. */}
-      {duplicate && !open && (
-        <p className="pb-2.5 ps-8 text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>
-      )}
+      {/* On the row, since a repeated key blocks the whole save. */}
+      {duplicate && <p className="pb-2.5 ps-8 text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>}
       <RowRefusal field={`categories.${index}`} explained={duplicate} className="ps-8" />
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={title || t('settings.categories.name')} hue={index} wide onClose={onToggle}>
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.categories.name')} hint={t('settings.categories.nameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.categories.name')} hint={t('settings.categories.nameHint')}>
               <TextInput value={cat.name ?? ''} onChange={(e) => onChange({ ...cat, name: e.target.value })} />
-            </Field>
+            </SettingRow>
             {/* The placeholder previews the derived key. */}
-            <Field label={t('settings.categories.id')} hint={t('settings.categories.idHint')}>
+            <SettingRow control="long" label={t('settings.categories.id')} hint={t('settings.categories.idHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -524,12 +519,13 @@ function CategoryRow({
                 placeholder={derived}
                 onChange={(e) => onChange({ ...cat, id: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {/* The shared chooser browses the server and keeps a <jd:...> tail.
               `title`, or the dialog would read "Download folder". */}
-          <Field
+          <SettingRow
+            control="long"
             label={t('settings.categories.dir')}
             hint={`${t('settings.categories.dirHint')} ${t('settings.pathVars')}`}
           >
@@ -538,95 +534,99 @@ function CategoryRow({
               title={t('settings.categories.dir')}
               onValue={(dir) => onChange({ ...cat, dir })}
             />
-          </Field>
+          </SettingRow>
 
-          {/* FieldGroup, because a Field's label would pass a click on the
-              caption to the first tab. */}
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FieldGroup label={t('props.priority')} hint={t('settings.categories.priorityHint')}>
-              {/* The server's ladder plus "no opinion"; ValidateCategories
-                  refuses anything outside -3..3. */}
+          {/* The server's ladder plus "no opinion"; ValidateCategories refuses
+              anything outside -3..3. */}
+          <SettingRow label={t('props.priority')} hint={t('settings.categories.priorityHint')}>
+            <Tabs
+              variant="well"
+              size="sm"
+              inline
+              hug
+              label={t('props.priority')}
+              active={cat.priority === undefined ? INHERIT : String(cat.priority)}
+              onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
+              items={[
+                // Its own word, which the field's hint quotes.
+                { id: INHERIT, label: t('settings.categories.priorityNone') },
+                ...priorities,
+              ]}
+            />
+          </SettingRow>
+
+          {/* Three segments, since a switch cannot tell "no opinion" from
+              "keep packed". */}
+          <SettingRow label={t('props.autoExtract')} hint={t('settings.categories.extractHint')}>
+            <Tabs
+              variant="well"
+              size="sm"
+              inline
+              hug
+              label={t('props.autoExtract')}
+              active={cat.extract === undefined ? INHERIT : cat.extract ? 'on' : 'off'}
+              onSelect={(id) => setExtract(id === INHERIT ? undefined : id === 'on')}
+              items={[
+                { id: INHERIT, label: t('props.inherit') },
+                { id: 'on', label: t('props.on') },
+                { id: 'off', label: t('props.off') },
+              ]}
+            />
+          </SettingRow>
+
+          {/* The server's list, which withholds "ask me", since nobody would
+              be there to answer. */}
+          {collisions.length > 0 && (
+            <SettingRow label={t('settings.categories.collision')} hint={t('settings.categories.collisionHint')}>
               <Tabs
                 variant="well"
                 size="sm"
-                label={t('props.priority')}
-                active={cat.priority === undefined ? INHERIT : String(cat.priority)}
-                onSelect={(id) => setPriority(id === INHERIT ? undefined : Number(id))}
-                items={[
-                  // Its own word, which the field's hint quotes.
-                  { id: INHERIT, label: t('settings.categories.priorityNone') },
-                  ...priorities,
-                ]}
-              />
-            </FieldGroup>
-
-            <FieldGroup label={t('props.autoExtract')} hint={t('settings.categories.extractHint')}>
-              {/* Three segments, since a switch cannot tell "no opinion" from
-                  "keep packed". */}
-              <Tabs
-                variant="well"
-                size="sm"
-                label={t('props.autoExtract')}
-                active={cat.extract === undefined ? INHERIT : cat.extract ? 'on' : 'off'}
-                onSelect={(id) => setExtract(id === INHERIT ? undefined : id === 'on')}
-                items={[
-                  { id: INHERIT, label: t('props.inherit') },
-                  { id: 'on', label: t('props.on') },
-                  { id: 'off', label: t('props.off') },
-                ]}
-              />
-            </FieldGroup>
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.categories.speedLimit')} hint={t('settings.categories.speedLimitHint')}>
-              <UnitNumberInput
-                value={cat.speedLimit ?? 0}
-                units={RATE_UNITS}
-                onValue={(speedLimit) => onChange({ ...cat, speedLimit })}
-              />
-            </Field>
-
-            {/* The server's list, which withholds "ask me", since nobody would
-                be there to answer. */}
-            {collisions.length > 0 && (
-              <FieldGroup label={t('settings.categories.collision')} hint={t('settings.categories.collisionHint')}>
-                <Tabs
-                  variant="well"
-                  size="sm"
-                  label={t('settings.categories.collision')}
-                  active={cat.collision?.trim() ? cat.collision : INHERIT}
-                  onSelect={(id) => setCollision(id === INHERIT ? '' : id)}
-                  items={[
-                    { id: INHERIT, label: t('props.inherit') },
-                    ...collisions.map((id) => ({
-                      id,
-                      label: COLLISION_LABEL[id] ? t(COLLISION_LABEL[id]) : id,
-                    })),
-                  ]}
-                />
-              </FieldGroup>
-            )}
-          </div>
-
-          <div className="grid gap-4 sm:grid-cols-2">
-            <FieldGroup label={t('settings.categories.free')} hint={t('settings.categories.freeHint')}>
-              {/* Three segments for the reason unpacking has them. Blocked is
-                  the stored premiumOnly true. */}
-              <Tabs
-                variant="well"
-                size="sm"
-                label={t('settings.categories.free')}
-                active={cat.premiumOnly === undefined ? INHERIT : cat.premiumOnly ? 'blocked' : 'allowed'}
-                onSelect={(id) => setPremiumOnly(id === INHERIT ? undefined : id === 'blocked')}
+                inline
+                hug
+                label={t('settings.categories.collision')}
+                active={cat.collision?.trim() ? cat.collision : INHERIT}
+                onSelect={(id) => setCollision(id === INHERIT ? '' : id)}
                 items={[
                   { id: INHERIT, label: t('props.inherit') },
-                  { id: 'allowed', label: t('settings.categories.freeAllowed') },
-                  { id: 'blocked', label: t('settings.categories.freeBlocked') },
+                  ...collisions.map((id) => ({
+                    id,
+                    label: COLLISION_LABEL[id] ? t(COLLISION_LABEL[id]) : id,
+                  })),
                 ]}
               />
-            </FieldGroup>
-          </div>
+            </SettingRow>
+          )}
+
+          {/* Three segments for the reason unpacking has them. Blocked is the
+              stored premiumOnly true. */}
+          <SettingRow label={t('settings.categories.free')} hint={t('settings.categories.freeHint')}>
+            <Tabs
+              variant="well"
+              size="sm"
+              inline
+              hug
+              label={t('settings.categories.free')}
+              active={cat.premiumOnly === undefined ? INHERIT : cat.premiumOnly ? 'blocked' : 'allowed'}
+              onSelect={(id) => setPremiumOnly(id === INHERIT ? undefined : id === 'blocked')}
+              items={[
+                { id: INHERIT, label: t('props.inherit') },
+                { id: 'allowed', label: t('settings.categories.freeAllowed') },
+                { id: 'blocked', label: t('settings.categories.freeBlocked') },
+              ]}
+            />
+          </SettingRow>
+
+          <SettingRow
+            control="short"
+            label={t('settings.categories.speedLimit')}
+            hint={t('settings.categories.speedLimitHint')}
+          >
+            <UnitNumberInput
+              value={cat.speedLimit ?? 0}
+              units={RATE_UNITS}
+              onValue={(speedLimit) => onChange({ ...cat, speedLimit })}
+            />
+          </SettingRow>
 
           {/* The media hook called once a package filed here is in place, by
               id. A select, since the list comes from another page. */}
@@ -654,10 +654,12 @@ function CategoryRow({
 
           {/* Two segments rather than a switch, like the rows above: Inherit
               is "no opinion", not "off". */}
-          <FieldGroup label={t('settings.categories.torrentFiles')} hint={t('settings.categories.torrentFilesHint')}>
+          <SettingRow label={t('settings.categories.torrentFiles')} hint={t('settings.categories.torrentFilesHint')}>
             <Tabs
               variant="well"
               size="sm"
+              inline
+              hug
               label={t('settings.categories.torrentFiles')}
               active={cat.torrentFiles ? OWN : INHERIT}
               onSelect={(id) => setOwnTorrentFiles(id === OWN)}
@@ -666,7 +668,7 @@ function CategoryRow({
                 { id: OWN, label: t('settings.categories.torrentFilesOwn') },
               ]}
             />
-          </FieldGroup>
+          </SettingRow>
           {/* A refused pattern shows on the row, since the server files it
               under the category. */}
           {cat.torrentFiles && (
@@ -675,7 +677,7 @@ function CategoryRow({
               onChange={(torrentFiles) => onChange({ ...cat, torrentFiles })}
             />
           )}
-        </div>
+        </Sheet>
       )}
     </li>
   );

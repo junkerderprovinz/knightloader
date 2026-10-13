@@ -1,4 +1,5 @@
-// The global download limit in force, which the speed graphs draw as a line.
+// The global download limit in force and the torrents' upload limit, which the
+// speed graphs mark.
 //
 // The queue state carries the limit the timetable and quiet mode put in force.
 // The volume cap's throttle is folded in here, as app_volumecap.go folds it
@@ -26,6 +27,7 @@ export function foldVolumeCap(limit: number, volume: VolumeUsage | null): number
 
 interface Source {
   queue: number;
+  upload: number;
   volume: VolumeUsage | null;
   listeners: Set<() => void>;
   stop: (() => void) | undefined;
@@ -36,7 +38,7 @@ const sources = new Map<string, Source>();
 function sourceFor(instance: string): Source {
   let s = sources.get(instance);
   if (!s) {
-    s = { queue: 0, volume: null, listeners: new Set(), stop: undefined };
+    s = { queue: 0, upload: 0, volume: null, listeners: new Set(), stop: undefined };
     sources.set(instance, s);
   }
   return s;
@@ -51,6 +53,7 @@ function start(instance: string, s: Source): () => void {
   const takeQueue = (q: QueueState) => {
     if (!live) return;
     s.queue = q.limit ?? 0;
+    s.upload = q.uploadLimit ?? 0;
     emit(s);
   };
   const readQueue = () =>
@@ -93,11 +96,7 @@ function start(instance: string, s: Source): () => void {
   };
 }
 
-/**
- * useLimitInForce is the global download limit in force for an instance scope
- * ('' = this instance) in bytes/s, or 0 while none applies.
- */
-export function useLimitInForce(instance: string): number {
+function useSource(instance: string, read: (s: Source) => number): number {
   const subscribe = useCallback(
     (onChange: () => void) => {
       const s = sourceFor(instance);
@@ -113,12 +112,18 @@ export function useLimitInForce(instance: string): number {
     },
     [instance],
   );
-  return useSyncExternalStore(
-    subscribe,
-    () => {
-      const s = sourceFor(instance);
-      return foldVolumeCap(s.queue, s.volume);
-    },
-    () => 0,
-  );
+  return useSyncExternalStore(subscribe, () => read(sourceFor(instance)), () => 0);
+}
+
+/**
+ * useLimitInForce is the global download limit in force for an instance scope
+ * ('' = this instance) in bytes/s, or 0 while none applies.
+ */
+export function useLimitInForce(instance: string): number {
+  return useSource(instance, (s) => foldVolumeCap(s.queue, s.volume));
+}
+
+/** useUploadLimit is the torrents' upload limit for an instance scope in bytes/s, or 0 for none. */
+export function useUploadLimit(instance: string): number {
+  return useSource(instance, (s) => s.upload);
 }

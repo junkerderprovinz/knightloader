@@ -3,7 +3,7 @@ import type { SelfTestResult, SelfTestStatus } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { interpolate } from '../../../lib/interpolate';
 import { InfoBubble } from '../../../components/ui';
-import { IconCheck, IconClock, IconClose, IconHelp, IconWarning } from '../../../lib/icons';
+import { IconCheck, IconClose, IconHelp, IconQueued, IconWarning } from '../../../lib/icons';
 
 // Self-test rows, drawn the same way whether the server or the browser
 // answered them, with the advice behind an (i). No prop here is called `label`
@@ -30,7 +30,7 @@ export const PROXY_NAMES: Record<string, TranslationKey> = {
 };
 
 /** The status word beside a row's name. */
-const STATUS_WORDS: Record<SelfTestStatus, TranslationKey> = {
+export const STATUS_WORDS: Record<SelfTestStatus, TranslationKey> = {
   pass: 'settings.selftest.status.pass',
   warn: 'settings.selftest.status.warn',
   fail: 'settings.selftest.status.fail',
@@ -111,7 +111,7 @@ function StatusGlyph({ status }: { status: SelfTestStatus | 'pending' }) {
     case 'unknown':
       return <IconHelp {...size} className="shrink-0 text-statusInfo" />;
     case 'pending':
-      return <IconClock {...size} className="shrink-0 text-carbon-textMuted" />;
+      return <IconQueued {...size} className="shrink-0 text-carbon-textMuted" />;
     default:
       return <span className="mt-0.5 size-3 shrink-0 rounded-full border border-carbon-border" />;
   }
@@ -145,7 +145,7 @@ export function CheckRow({
       <div className="flex min-w-0 flex-1 flex-col gap-1">
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
           <span className="text-sm font-medium text-carbon-text">{name}</span>
-          <span className="glim-eyebrow text-[11px] text-carbon-textMuted">
+          <span className="glim-eyebrow text-meta text-carbon-textMuted">
             {status === 'pending' ? t('settings.selftest.pending') : t(STATUS_WORDS[status])}
           </span>
         </div>
@@ -156,7 +156,7 @@ export function CheckRow({
         {detail && (
           <span
             dir="ltr"
-            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-carbon-textMuted"
+            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-meta leading-relaxed text-carbon-textMuted"
           >
             {detail}
           </span>
@@ -188,7 +188,7 @@ export function SubRow({
         <StatusGlyph status={status} />
       </span>
       <div className="flex min-w-0 flex-1 flex-col gap-1">
-        {name && <span className="glim-eyebrow text-[11px] text-carbon-textMuted">{name}</span>}
+        {name && <span className="glim-eyebrow text-meta text-carbon-textMuted">{name}</span>}
         <span className="flex items-start gap-1 text-sm text-carbon-textSub">
           <span className="min-w-0">{sentence}</span>
           {advice && <InfoBubble tip={advice} />}
@@ -196,7 +196,7 @@ export function SubRow({
         {detail && (
           <span
             dir="ltr"
-            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-[11px] leading-relaxed text-carbon-textMuted"
+            className="max-w-full overflow-x-auto whitespace-pre-wrap break-all font-mono text-meta leading-relaxed text-carbon-textMuted"
           >
             {detail}
           </span>

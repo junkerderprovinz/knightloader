@@ -87,19 +87,20 @@ export function aggregate(all: (InstanceStats | null)[]): InstanceStats & {
 
 function bytes(n: number): string {
   if (!Number.isFinite(n) || n <= 0) return '0 B';
-  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  const units = ['B', 'kB', 'MB', 'GB', 'TB'];
   let v = n;
   let i = 0;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
+  while (v >= 1000 && i < units.length - 1) {
+    v /= 1000;
     i++;
   }
-  return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(1)} ${units[i]}`;
+  return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${units[i]}`;
 }
 
 /**
- * Binary units, the same ladder the web UI and the extension walk. The figure
- * and its unit keep their order in a right-to-left line (i18n/bidi.ts).
+ * Decimal units, the same ladder the web UI and the extension walk, rounded as
+ * the web UI rounds them: one decimal below 10, none above. The figure and its
+ * unit keep their order in a right-to-left line (i18n/bidi.ts).
  */
 export const fmtBytes = (n: number): string => ltr(bytes(n));
 

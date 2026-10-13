@@ -967,8 +967,8 @@ func TestAYtdlpDownloadRemovedWithFilesAfterARestartTakesWhatItWrote(t *testing.
 	}
 	a.mu.Lock()
 	for _, task := range []*core.Task{
-		{ID: "video", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
-		{ID: "audio", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Variant: "audio", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+		{ID: "video", URL: "https://media.example/v", Name: "A Video", Dir: dir, Resolver: "ytdlp", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
+		{ID: "audio", URL: "https://media.example/v", Name: "A Video", Dir: dir, Resolver: "ytdlp", Variant: "audio", Status: core.StatusPaused, Enabled: true, CreatedAt: time.Now()},
 	} {
 		a.tasks[task.ID] = task
 	}
@@ -1021,7 +1021,7 @@ func TestASubtitleRowRemovedWithFilesTakesEveryLanguageItWrote(t *testing.T) {
 	}
 	a.mu.Lock()
 	for _, task := range []*core.Task{
-		{ID: "subs", URL: "https://media.example/v", Name: "A Video", Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusRunning, Enabled: true, CreatedAt: time.Now()},
+		{ID: "subs", URL: "https://media.example/v", Name: "A Video", Dir: dir, Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusRunning, Enabled: true, CreatedAt: time.Now()},
 		{ID: "other", URL: "https://media.example/w", Name: "A Video.en", Resolver: "ytdlp", Variant: "subtitle", Status: core.StatusDone, Enabled: true, Size: 40, File: en, CreatedAt: time.Now()},
 	} {
 		a.tasks[task.ID] = task

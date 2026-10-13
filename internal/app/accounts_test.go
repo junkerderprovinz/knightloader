@@ -10,6 +10,7 @@ package app
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
@@ -149,5 +150,26 @@ func TestLabellingAnAccountKeepsItEnabled(t *testing.T) {
 	}
 	if got := a.accountLabel("alldebrid", ""); got != "Main" {
 		t.Fatalf("label = %q, want %q", got, "Main")
+	}
+}
+
+// A metadata file with a field this build does not know keeps its label and
+// switch, and the next write drops the field.
+func TestAccountMetadataWithAnUnknownFieldStillLoads(t *testing.T) {
+	a := newAccountsTestApp(t)
+	old := `{"realdebrid":{"enabled":false,"label":"Main","import":true}}`
+	if err := os.WriteFile(a.acctMetaPath(), []byte(old), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if a.accountEnabled("realdebrid", "") || a.accountLabel("realdebrid", "") != "Main" {
+		t.Fatal("the old file did not load")
+	}
+	a.SetAccountLabel("realdebrid", "", "Work")
+	b, err := os.ReadFile(a.acctMetaPath())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.Contains(string(b), "import") {
+		t.Errorf("the rewritten file still has the unknown field: %s", b)
 	}
 }

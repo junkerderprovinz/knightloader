@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // Copies of the bounds in internal/settings/settings_stall.go, which no route
 // serves.
@@ -55,7 +56,7 @@ export function StallCard({ hue }: { hue: number }) {
       <div className="flex flex-col gap-5">
         {/* min keeps the stepper out of 1..59, which sanitizeStall rewrites to
             60. onValue does not clamp, or 600 could not be typed. */}
-        <Field label={t('settings.stall.timeout')} hint={t('settings.stall.timeoutHint')}>
+        <SettingRow control="short" label={t('settings.stall.timeout')} hint={t('settings.stall.timeoutHint')}>
           <NumberInput
             value={cfg.stallTimeout}
             min={MIN_TIMEOUT}
@@ -63,7 +64,7 @@ export function StallCard({ hue }: { hue: number }) {
             step={60}
             onValue={(v) => patch({ stallTimeout: v })}
           />
-        </Field>
+        </SettingRow>
 
         {/* Only what the built-in engine fetches gets new connections
             (app.markStallsLocked). */}
@@ -88,7 +89,7 @@ export function StallCard({ hue }: { hue: number }) {
         {/* The server reads 0 as DefaultStallRestarts (3), so 0 stays
             reachable. Above 20 comes back as 20. */}
         {cfg.stallRestart && (
-        <Field label={t('settings.stall.maxRestarts')} hint={t('settings.stall.maxRestartsHint')}>
+        <SettingRow control="short" label={t('settings.stall.maxRestarts')} hint={t('settings.stall.maxRestartsHint')}>
           <NumberInput
             value={cfg.stallMaxRestarts}
             min={0}
@@ -96,7 +97,7 @@ export function StallCard({ hue }: { hue: number }) {
             step={1}
             onValue={(v) => patch({ stallMaxRestarts: v })}
           />
-        </Field>
+        </SettingRow>
         )}
       </div>
       )}

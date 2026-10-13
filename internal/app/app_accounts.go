@@ -195,7 +195,6 @@ func (a *App) rewireBackends() {
 			c := torbox.NewClient(acct.cred.APIKey)
 			slot := resolver.SlotID("torbox", acct.account)
 			links := torbox.NewBackend(c, eng, a.onUpdate)
-			links.Created = func(job string) { a.claimImported(slot, job) }
 			be := a.torrentsVia(slot, torbox.NewTorrents(c), links, eng)
 			newDebrid[slot] = be
 			wired[slot] = true
@@ -270,8 +269,6 @@ func (a *App) rewireBackends() {
 	// A new account may be the way down a link held for premium only was
 	// waiting for.
 	a.refreshPremiumHolds()
-	// An account switched off or removed stops being followed.
-	a.applyAccountImports()
 }
 
 // ytdlpBackend returns the app's one yt-dlp backend, set to start bin from
@@ -748,9 +745,6 @@ type acctMeta struct {
 	// accountEnabled), so accounts that never had metadata keep routing.
 	Enabled bool   `json:"enabled"`
 	Label   string `json:"label,omitempty"`
-	// Import follows the account for what is added to it outside this
-	// instance (app_debridimport.go).
-	Import bool `json:"import,omitempty"`
 }
 
 // acctMetaMu serialises read-modify-writes of account_meta.json.
@@ -959,7 +953,7 @@ func fmtTrafficLeft(t TrafficState) string {
 		if remaining < 0 {
 			remaining = 0
 		}
-		return fmtBinaryBytes(remaining)
+		return fmtBytes(remaining)
 	}
 	// Services that meter in percent show what is left, rounded down so 99.6%
 	// spent reads "0 %".
@@ -973,17 +967,17 @@ func fmtTrafficLeft(t TrafficState) string {
 	return ""
 }
 
-// fmtBinaryBytes matches web/src/lib/format.ts's fmtBytes (binary units, one
+// fmtBytes matches web/src/lib/format.ts's fmtBytes (decimal units, one
 // decimal below 10), so byte figures read the same wherever they are formatted.
-func fmtBinaryBytes(n int64) string {
+func fmtBytes(n int64) string {
 	if n <= 0 {
 		return "0 B"
 	}
-	units := [...]string{"B", "KiB", "MiB", "GiB", "TiB"}
+	units := [...]string{"B", "kB", "MB", "GB", "TB"}
 	v := float64(n)
 	i := 0
-	for v >= 1024 && i < len(units)-1 {
-		v /= 1024
+	for v >= 1000 && i < len(units)-1 {
+		v /= 1000
 		i++
 	}
 	if v < 10 && i > 0 {
@@ -1171,11 +1165,6 @@ type AccountState struct {
 	// TrafficLeft is preformatted for a plain-text column (see fmtTrafficLeft).
 	Expiry      string `json:"expiry,omitempty"`
 	TrafficLeft string `json:"trafficLeft,omitempty"`
-
-	// CanImport says whether the downloads on the account can be imported,
-	// and Import whether they are (see fillImport).
-	CanImport bool `json:"canImport"`
-	Import    bool `json:"import"`
 }
 
 // AccountStates lists every configured account, stored or from the
@@ -1219,7 +1208,6 @@ func (a *App) accountRow(svc accounts.Service, account string) (AccountState, bo
 		st.Configured = true
 	}
 	a.fillHealth(&st)
-	a.fillImport(&st, a.credentialFor(svc, account))
 	st.HostsFetchedAt = a.hostsFetchedAtField(svc.ID)
 	return st, true
 }
@@ -1244,10 +1232,8 @@ func (a *App) SetAccountCredential(service, account string, cred accounts.Creden
 	if cred.IsZero() {
 		a.deleteAccountMeta(service, account)
 	}
-	// A new credential starts without the old one's health verdict, and
-	// without what the import saw on what may be another account.
+	// A new credential starts without the old one's health verdict.
 	a.acctHealthTracker().Reset(service, account)
-	a.forgetAccountImport(service, account)
 	a.rewireBackends()
 	return nil
 }
@@ -1347,7 +1333,6 @@ func (a *App) TestAccount(service, account string) AccountState {
 		return st
 	}
 	st.Configured = true
-	a.fillImport(&st, cred)
 	if account == "" && svc.Env != "" && os.Getenv(svc.Env) != "" {
 		st.FromEnv, st.EnvVar = true, svc.Env
 	}
