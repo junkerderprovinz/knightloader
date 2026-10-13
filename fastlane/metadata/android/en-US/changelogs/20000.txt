@@ -1,0 +1,1 @@
+KnightLoader 2.0 has a new look built on GlimStone. The speed graph in the app also shows what your torrents upload while seeding, the theme can follow the device, and sizes and speeds are shown in decimal units (MB/s, GB). In the web interface the overview, accounts, instances and settings are rebuilt. Update the app together with your KnightLoader server.
