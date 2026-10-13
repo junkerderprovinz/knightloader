@@ -164,7 +164,7 @@
     {
       "id": "captcha",
       "verdict": "shipped",
-      "page": "captcha",
+      "page": "accounts",
       "enabled": true,
       "switch": "none",
       "parked": false
@@ -178,6 +178,16 @@
       "parked": false,
       "detail": "off; Sonarr and Radarr get a 404 from it, the same as for an endpoint that does not exist",
       "detailCode": "downloadclientOff"
+    },
+    {
+      "id": "debriddrive",
+      "verdict": "shipped",
+      "page": "debriddrive",
+      "enabled": false,
+      "switch": "setting",
+      "parked": false,
+      "detail": "off; the address answers 404, the same as an endpoint that does not exist",
+      "detailCode": "debriddriveOff"
     },
     {
       "id": "metrics",
@@ -201,120 +211,38 @@
       "parked": false
     },
     {
-      "id": "tray",
+      "id": "keepawake",
       "verdict": "desktop",
-      "page": "",
+      "page": "appearance",
       "enabled": false,
       "switch": "none",
       "parked": false,
-      "reason": "a tray icon needs a desktop session, which the container build does not have; the browser tab's title and icon carry the same information there",
-      "reasonCode": "tray"
-    },
-    {
-      "id": "windowpolicy",
-      "verdict": "desktop",
-      "page": "",
-      "enabled": false,
-      "switch": "none",
-      "parked": false,
-      "reason": "what closing or minimising the window does is a property of one installation on one machine, so it is not served from here at all",
-      "reasonCode": "windowpolicy"
-    },
-    {
-      "id": "updater",
-      "verdict": "not-built",
-      "page": "look",
-      "enabled": false,
-      "switch": "none",
-      "parked": false,
-      "reason": "a container cannot replace itself from the inside, so the update check on the General page only tells you a newer release exists and points at it, same as on desktop; to update, pull the new image the way you deployed this one (docker pull, Unraid Community Applications, Watchtower, ...), which your deployment already does for you or lets you do",
-      "reasonCode": "updaterContainer"
+      "reason": "only the desktop app can keep a computer awake; the machine a container runs on decides for itself when it sleeps",
+      "reasonCode": "keepawake"
     }
   ],
   "pages": [
-    {
-      "id": "look",
-      "modules": ["updater"]
-    },
-    {
-      "id": "appearance",
-      "modules": null
-    },
-    {
-      "id": "modules",
-      "modules": null
-    },
-    {
-      "id": "collector",
-      "modules": ["cnl", "watch", "crawler"]
-    },
-    {
-      "id": "downloads",
-      "modules": ["feeds", "checksums"]
-    },
-    {
-      "id": "archives",
-      "modules": ["extraction"]
-    },
-    {
-      "id": "rules",
-      "modules": ["packagizer", "linkfilter"]
-    },
-    {
-      "id": "network",
-      "modules": ["connections", "reconnect"]
-    },
-    {
-      "id": "accounts",
-      "modules": null
-    },
-    {
-      "id": "instances",
-      "modules": ["federation"]
-    },
-    {
-      "id": "resolvers",
-      "modules": ["ytdlp"]
-    },
-    {
-      "id": "torrents",
-      "modules": ["torrents"]
-    },
-    {
-      "id": "captcha",
-      "modules": ["captcha"]
-    },
-    {
-      "id": "automation",
-      "modules": ["scheduler", "eventtargets", "scripting"]
-    },
-    {
-      "id": "shortcuts",
-      "modules": null
-    },
-    {
-      "id": "access",
-      "modules": ["downloadclient"]
-    },
-    {
-      "id": "advanced",
-      "modules": null
-    },
-    {
-      "id": "health",
-      "modules": ["metrics"]
-    },
-    {
-      "id": "diagnostics",
-      "modules": null
-    },
-    {
-      "id": "help",
-      "modules": null
-    },
-    {
-      "id": "browsertools",
-      "modules": null
-    }
+    { "id": "look", "modules": null },
+    { "id": "appearance", "modules": ["keepawake"] },
+    { "id": "modules", "modules": null },
+    { "id": "accounts", "modules": ["captcha"] },
+    { "id": "collector", "modules": ["cnl", "watch", "crawler"] },
+    { "id": "downloads", "modules": ["feeds", "checksums"] },
+    { "id": "archives", "modules": ["extraction"] },
+    { "id": "rules", "modules": ["packagizer", "linkfilter"] },
+    { "id": "network", "modules": ["connections", "reconnect"] },
+    { "id": "pairing", "modules": null },
+    { "id": "instances", "modules": ["federation"] },
+    { "id": "access", "modules": ["downloadclient"] },
+    { "id": "resolvers", "modules": ["ytdlp"] },
+    { "id": "torrents", "modules": ["torrents"] },
+    { "id": "debriddrive", "modules": ["debriddrive"] },
+    { "id": "automation", "modules": ["scheduler", "eventtargets", "scripting"] },
+    { "id": "shortcuts", "modules": null },
+    { "id": "browsertools", "modules": null },
+    { "id": "advanced", "modules": null },
+    { "id": "health", "modules": ["metrics"] },
+    { "id": "diagnostics", "modules": null },
+    { "id": "help", "modules": null }
   ]
 }
