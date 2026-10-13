@@ -87,7 +87,7 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **The web interface follows GlimStone 3.4.0.** Glyphs come from GlimStone's
+- **The web interface follows GlimStone 3.5.1.** Glyphs come from GlimStone's
   shared list, so a meaning has the same drawing as in the other GlimStone
   apps, and only the main action of a view carries the accent colour.
 - **The main action of a page floats at its lower right corner:** Customize on
