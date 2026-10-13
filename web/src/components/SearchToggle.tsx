@@ -18,11 +18,10 @@ function stillInside(box: HTMLElement | null, to: EventTarget | null): boolean {
 }
 
 /**
- * SearchToggle is every search in the app but the settings bar's: the Search
- * button, which turns into the shared field (SearchBox) when pressed, with the
- * caret in it. Escape or leaving the field while it is empty turns it back
- * into the button. A field that holds text stays, so a forgotten search cannot
- * hide behind a button.
+ * SearchToggle is the search on a page: the Search button, which turns into
+ * the shared field (SearchBox) when pressed, with the caret in it. Escape or
+ * leaving the field while it is empty turns it back into the button. A field
+ * that holds text stays, so a forgotten search cannot hide behind a button.
  */
 export function SearchToggle({
   value,

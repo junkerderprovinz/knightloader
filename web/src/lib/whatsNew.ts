@@ -185,7 +185,7 @@ export const RELEASES: Release[] = [
       { id: 'search-box', to: ['/settings', ...LISTS, ...ACCOUNTS], text: 'whatsnew.change.searchBox' },
       {
         id: 'search-button',
-        to: [...LISTS, '/settings/advanced', '/settings/diagnostics', ...ACCOUNTS],
+        to: [...LISTS, '/settings/advanced', '/settings/diagnostics'],
         text: 'whatsnew.change.searchButton',
         names: {
           search: 'search.toggle',
@@ -195,6 +195,7 @@ export const RELEASES: Release[] = [
           log: 'settings.diagnostics.logTitle',
         },
       },
+      { id: 'picker-search-field', to: ACCOUNTS, text: 'whatsnew.change.pickerSearch' },
       {
         id: 'display-card',
         to: ['/settings/appearance'],

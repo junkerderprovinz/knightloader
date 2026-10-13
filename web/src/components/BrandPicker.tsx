@@ -7,7 +7,7 @@
 // pay for: a brand's name is cut with an ellipsis instead.
 import type { ReactNode } from 'react';
 import { HosterIcon } from './HosterIcon';
-import { SearchToggle } from './SearchToggle';
+import { SearchBox } from './SearchBox';
 
 export interface Brand {
   id: string;
@@ -114,7 +114,11 @@ export function KindPicker({ kinds, onPick }: { kinds: Kind[]; onPick: (id: stri
   );
 }
 
-/** PickerSearch is the search of a picker's window: the Search button, which turns into the field that narrows the tiles. */
+/**
+ * PickerSearch is the search of a picker's window, a field from the start
+ * since searching is what the window is mostly for. It takes the caret where
+ * there is a pointer; under a finger the keyboard would cover the tiles.
+ */
 export function PickerSearch({
   value,
   onChange,
@@ -124,5 +128,9 @@ export function PickerSearch({
   onChange: (next: string) => void;
   placeholder: string;
 }) {
-  return <SearchToggle value={value} onChange={onChange} label={placeholder} className="w-56 max-w-full" />;
+  return (
+    <div data-new="picker-search-field" className="w-64 max-w-full">
+      <SearchBox value={value} onChange={onChange} label={placeholder} autoFocus={!matchMedia('(hover: none)').matches} />
+    </div>
+  );
 }

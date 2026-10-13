@@ -127,10 +127,11 @@ const sources = import.meta.glob(['../components/**/*.tsx', '../pages/**/*.tsx',
 
 const others = Object.entries(sources).filter(([path]) => !path.endsWith('/SearchBox.tsx'));
 
-// The two places a field stands without a button before it: the settings bar
-// that slides in on scrolling up, and the command palette, which is nothing
-// but its field and opens with the caret in it.
-const FIELD_FIRST = ['/SettingsSearch.tsx', '/CommandPalette.tsx'];
+// The places a field stands without a button before it: the settings bar that
+// slides in on scrolling up, the command palette, which is nothing but its
+// field and opens with the caret in it, and a picker's window, which is mostly
+// searched.
+const FIELD_FIRST = ['/SettingsSearch.tsx', '/CommandPalette.tsx', '/BrandPicker.tsx'];
 
 describe('the one search field', () => {
   it('is the only search input the interface draws', () => {
@@ -145,7 +146,7 @@ describe('the one search field', () => {
     expect(plain).toEqual([]);
   });
 
-  it('stands behind the Search button everywhere but the settings bar and the command palette', () => {
+  it('stands behind the Search button everywhere but the settings bar, the command palette and the pickers', () => {
     const bare = others
       .filter(([path, text]) => /<SearchBox\b/.test(text) && !path.endsWith('/SearchToggle.tsx'))
       .map(([path]) => path)

@@ -334,6 +334,7 @@ function HosterLoginDialog({
       // The picker's window, which the form of the picked hoster stays in.
       wide={!editing}
       height={picked ? 'content' : 'capped'}
+      holdHeight={!picked && query !== ''}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
       onClose={onClose}
       footer={
@@ -349,7 +350,11 @@ function HosterLoginDialog({
                 labelled
                 icon={<IconBack className="rtl:-scale-x-100" />}
                 title={t('onboarding.back')}
-                onClick={() => setPicked(null)}
+                onClick={() => {
+                  // The list comes back whole, so the window can measure the height its search holds.
+                  setPicked(null);
+                  setQuery('');
+                }}
               />
             )}
             <span className="flex-1" />

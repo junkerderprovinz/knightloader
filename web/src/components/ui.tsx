@@ -1902,6 +1902,7 @@ export function Modal({
   hue,
   height = 'content',
   wide = false,
+  holdHeight = false,
   right,
 }: {
   title: string;
@@ -1942,6 +1943,11 @@ export function Modal({
   /** Room for a grid beside a picture, such as the twelve words and their QR
    *  code, or for a form of several columns. */
   wide?: boolean;
+  /**
+   * Keeps the height the window had before this turned on, so a picker does
+   * not shrink under its search while the tiles narrow.
+   */
+  holdHeight?: boolean;
   /** What stands at the end of the title's row, such as a picker's search. */
   right?: ReactNode;
 }) {
@@ -1952,6 +1958,11 @@ export function Modal({
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   const backdrop = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const freeHeight = useRef(0);
+  useLayoutEffect(() => {
+    if (!holdHeight) freeHeight.current = card.current!.offsetHeight;
+  });
   useEffect(() => {
     const me = backdrop.current;
     if (!me) return;
@@ -1974,8 +1985,12 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
+        ref={card}
         className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_WIDTH[height]} ${MODAL_HEIGHT[height]}`}
-        style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
+        style={{
+          ...(hue !== undefined ? (hueVars(hue) as CSSProperties) : {}),
+          ...(holdHeight ? { height: freeHeight.current } : {}),
+        }}
         role="dialog"
         aria-modal="true"
         // The heading IS the window's name, so it is pointed at rather than
