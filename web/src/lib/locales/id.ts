@@ -3662,7 +3662,7 @@ export const id: Dict = {
   'settings.captcha.orderIntro': 'Gambar ini adalah urutannya: captcha masuk dulu ke akun captcha paling atas, lalu terus ke bawah. Seret sebuah nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” mengurutkan akun captcha yang terhubung seperti “{download}” mengurutkan backend. Kapan mereka mulai dan captcha uji juga ada di sana.',
   'whatsnew.change.searchBox': 'Setiap kolom pencarian tampak dan bekerja seperti yang di Pengaturan: saat kamu mengetik, kotaknya berganti warna dan kaca pembesar menyala, dan Escape atau tanda silang mengosongkannya.',
-  'whatsnew.change.searchFields': 'Setiap pencarian adalah kolom yang bisa langsung kamu ketik, tanpa tombol yang harus membukanya dulu: di “{downloads}”, “{collector}”, dan “{advanced}”, serta di jendela tempat kamu memilih akun atau hoster.',
+  'whatsnew.change.searchButton': 'Setiap pencarian adalah tombol “{search}” yang berubah menjadi kolomnya saat kamu menekannya: di “{downloads}”, “{collector}”, dan “{advanced}”, di “{log}”, serta di jendela tempat kamu memilih akun atau hoster. Escape, atau meninggalkan kolom saat masih kosong, mengubahnya kembali menjadi tombol.',
   'settings.look.builtInTitle': 'Komponen bawaan',
   'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sampingnya, masing-masing dengan versi dan asalnya. Bagian-bagian ini datang bersama KnightLoader atau image kontainer, atau memperbarui dirinya sendiri, jadi tidak ada yang perlu diperbarui di sini.',
   'whatsnew.change.builtIn': '“{name}” mencantumkan setiap bagian yang datang bersama KnightLoader, beserta versi dan asalnya. Yang bisa diperbarui tetap di “{updates}”.',

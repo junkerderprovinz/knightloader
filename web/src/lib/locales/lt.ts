@@ -3664,7 +3664,7 @@ export const lt: Dict = {
   'settings.captcha.orderIntro': 'Paveikslas ir yra tvarka: captcha pirmiausia keliauja į viršutinę captcha paskyrą, paskui žemyn. Vilk pavadinimą, kad jį perkeltum.',
   'whatsnew.change.captchaPriority': '„{name}“ rikiuoja tavo prijungtas captcha paskyras taip, kaip „{download}“ rikiuoja sistemas. Ten yra ir tai, kada jos pradeda, ir bandomoji captcha.',
   'whatsnew.change.searchBox': 'Kiekvienas paieškos laukas atrodo ir veikia kaip tas nustatymuose: kol rašai, laukas pakeičia atspalvį ir užsidega didinamasis stiklas, o Escape arba kryželis jį išvalo.',
-  'whatsnew.change.searchFields': 'Kiekviena paieška yra laukas, į kurį gali iškart rašyti, be mygtuko, kuris jį pirma atvertų: skiltyse „{downloads}“, „{collector}“ ir „{advanced}“ bei languose, kuriuose renkiesi paskyrą ar talpintoją.',
+  'whatsnew.change.searchButton': 'Kiekviena paieška yra mygtukas „{search}“, kuris paspaudus virsta lauku: skiltyse „{downloads}“, „{collector}“ ir „{advanced}“, skiltyje „{log}“ ir languose, kuriuose renkiesi paskyrą ar talpintoją. Escape arba išėjimas iš tuščio lauko vėl paverčia jį mygtuku.',
   'settings.look.builtInTitle': 'Įtaisytieji komponentai',
   'settings.look.builtInHint': 'Tai, ką KnightLoader atsineša arba paleidžia šalia savęs, kiekviena dalis su savo versija ir kilme. Šios dalys ateina su KnightLoader arba konteinerio atvaizdu, arba atsinaujina pačios, todėl čia nėra ko atnaujinti.',
   'whatsnew.change.builtIn': '„{name}“ išvardija kiekvieną dalį, kuri ateina su KnightLoader, su versija ir kilme. Tai, ką galima atnaujinti, lieka kortelėje „{updates}“.',

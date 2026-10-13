@@ -3649,7 +3649,7 @@ export const ko: Dict = {
   'settings.captcha.orderIntro': '그림이 곧 순서입니다. 캡차는 맨 위의 캡차 계정으로 먼저 가고 그다음 아래로 내려갑니다. 이름을 끌어서 옮기세요.',
   'whatsnew.change.captchaPriority': '“{name}”은 “{download}”이 백엔드를 정렬하는 방식으로 연결된 캡차 계정을 정렬합니다. 시작 시점과 테스트 캡차도 여기에 있습니다.',
   'whatsnew.change.searchBox': '모든 검색 칸이 설정의 검색 칸과 같은 모양과 동작을 합니다. 입력하는 동안 칸의 색조가 바뀌고 돋보기에 불이 들어오며, Escape나 X로 비울 수 있습니다.',
-  'whatsnew.change.searchFields': '모든 검색은 먼저 여는 버튼 없이 바로 입력할 수 있는 칸입니다. “{downloads}”, “{collector}”, “{advanced}”와 계정이나 호스터를 고르는 창에서 그렇습니다.',
+  'whatsnew.change.searchButton': '모든 검색은 누르면 입력란으로 바뀌는 “{search}” 버튼입니다. “{downloads}”, “{collector}”, “{advanced}”, “{log}”와 계정이나 호스터를 고르는 창에서 그렇습니다. Esc를 누르거나 빈 입력란에서 벗어나면 다시 버튼이 됩니다.',
   'settings.look.builtInTitle': '내장 구성 요소',
   'settings.look.builtInHint': 'KnightLoader가 함께 가져오거나 옆에서 실행하는 것들로, 각각의 버전과 출처를 보여 줍니다. 이 부분들은 KnightLoader나 컨테이너 이미지와 함께 오거나 스스로 업데이트되므로 여기서 업데이트할 것은 없습니다.',
   'whatsnew.change.builtIn': '“{name}”은 KnightLoader와 함께 오는 모든 부분을 버전과 출처와 함께 나열합니다. 업데이트할 수 있는 것은 “{updates}”에 그대로 있습니다.',

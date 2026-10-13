@@ -39,6 +39,7 @@ import {
   type MenuTarget,
 } from '../components/ListToolbar';
 import { matchesSearch } from '../components/SearchField';
+import type { SearchHandle } from '../components/SearchToggle';
 import { claimReveal, useRevealRequest } from '../lib/reveal';
 import { selectionReach, useDrawnRows } from '../lib/selectionReach';
 import { SelectionReach } from '../components/SelectionReach';
@@ -91,7 +92,7 @@ export function Downloads() {
   // is their one writer and passes the pieces down.
   const narrowing = useListNarrowing('downloads', DOWNLOAD_FILTERS);
   const { search, filters } = narrowing;
-  const searchInput = useRef<HTMLInputElement>(null);
+  const searchHandle = useRef<SearchHandle>(null);
   const rowRef = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   // The row a card should scroll to, with the request's nonce so a second jump
@@ -310,7 +311,7 @@ export function Downloads() {
         setSelection: setSelected,
         removal,
         cleanup,
-        focusSearch: () => searchInput.current?.focus(),
+        openSearch: () => searchHandle.current?.open(),
         rename: rename.fromKeyboard,
       }),
       [removal, cleanup, rename.fromKeyboard],
@@ -486,7 +487,7 @@ export function Downloads() {
           sorts={sorts}
           search={search}
           onSearch={narrowing.setSearch}
-          searchRef={searchInput}
+          searchRef={searchHandle}
         >
           {/* Left of the spacer, which nothing else here uses. */}
           <div className="shrink-0">

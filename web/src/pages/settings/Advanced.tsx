@@ -14,7 +14,7 @@ import {
   TextInput,
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
-import { SearchBox } from '../../components/SearchBox';
+import { SearchToggle } from '../../components/SearchToggle';
 import { IconRefresh } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
@@ -204,9 +204,13 @@ export function Advanced() {
             <span className="text-xs text-statusWarn">{tx('settings.advanced.defaultsUnavailable')}</span>
           )}
           <span className="flex-1" />
-          <div data-new="search-fields" className="min-w-0 sm:w-80">
-            <SearchBox spellCheck={false} value={query} label={tx('settings.advanced.search')} onChange={setQuery} />
-          </div>
+          <SearchToggle
+            spellCheck={false}
+            value={query}
+            label={tx('settings.advanced.search')}
+            onChange={setQuery}
+            className="min-w-0 sm:w-80"
+          />
         </div>
 
         <Card hue={1} padding="none">

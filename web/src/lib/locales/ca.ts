@@ -3650,7 +3650,7 @@ export const ca: Dict = {
   'settings.captcha.orderIntro': 'La imatge és l’ordre: un captcha va primer al compte de captcha de dalt de tot i després als de sota. Arrossega un nom per moure’l.',
   'whatsnew.change.captchaPriority': '«{name}» ordena els teus comptes de captcha connectats com «{download}» ordena els backends. També hi ha quan comencen i el captcha de prova.',
   'whatsnew.change.searchBox': 'Cada camp de cerca té l’aspecte i el funcionament del de Configuració: mentre escrius, la caixa canvia de to i la lupa s’encén, i Escape o la creu el buiden.',
-  'whatsnew.change.searchFields': 'Cada cerca és un camp on pots escriure de seguida, sense cap botó que l\'obri primer: a «{downloads}», «{collector}» i «{advanced}», i a les finestres on tries un compte o un allotjament.',
+  'whatsnew.change.searchButton': 'Cada cerca és un botó «{search}» que es converteix en el seu camp quan el prems: a «{downloads}», «{collector}» i «{advanced}», a «{log}» i a les finestres on tries un compte o un allotjador. Escape, o sortir del camp quan és buit, el torna a convertir en botó.',
   'settings.look.builtInTitle': 'Components integrats',
   'settings.look.builtInHint': 'El que KnightLoader porta amb ell o fa funcionar al seu costat, cadascun amb la seva versió i d’on ve. Aquestes parts vénen amb KnightLoader o amb la imatge del contenidor, o s’actualitzen soles, així que aquí no hi ha res a actualitzar.',
   'whatsnew.change.builtIn': '«{name}» llista cada part que ve amb KnightLoader, amb la seva versió i d’on ve. El que es pot actualitzar es queda a «{updates}».',

@@ -3672,7 +3672,7 @@ export const sk: Dict = {
   'settings.captcha.orderIntro': 'Obrázok je poradie: captcha ide najprv k účtu captchy úplne hore a potom ďalej nadol. Meno presunieš potiahnutím.',
   'whatsnew.change.captchaPriority': '„{name}“ radí tvoje pripojené účty captchy tak, ako „{download}“ radí backendy. Je v nej aj to, kedy začínajú, a testovacia captcha.',
   'whatsnew.change.searchBox': 'Každé vyhľadávacie pole vyzerá a funguje ako to v Nastaveniach: kým píšeš, pole zmení odtieň a lupa sa rozsvieti, a Escape alebo krížik ho vyprázdni.',
-  'whatsnew.change.searchFields': 'Každé hľadanie je pole, do ktorého môžeš hneď písať, bez tlačidla, ktoré by ho najprv otvorilo: v „{downloads}“, „{collector}“ a „{advanced}“ a v oknách, kde vyberáš účet alebo hostiteľa.',
+  'whatsnew.change.searchButton': 'Každé hľadanie je tlačidlo „{search}“, ktoré sa po stlačení zmení na pole: v „{downloads}“, „{collector}“ a „{advanced}“, v „{log}“ a v oknách, kde vyberáš účet alebo hostiteľa. Escape alebo odchod z prázdneho poľa z neho znova urobí tlačidlo.',
   'settings.look.builtInTitle': 'Vstavané súčasti',
   'settings.look.builtInHint': 'Čo KnightLoader prináša alebo spúšťa vedľa seba, každá časť so svojou verziou a pôvodom. Tieto časti prichádzajú s KnightLoaderom alebo s obrazom kontajnera, alebo sa aktualizujú samy, takže tu nie je čo aktualizovať.',
   'whatsnew.change.builtIn': '„{name}“ uvádza každú časť, ktorú KnightLoader prináša, s jej verziou a pôvodom. Čo sa dá aktualizovať, zostáva v „{updates}“.',

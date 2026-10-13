@@ -4,7 +4,7 @@ import type { LogLine } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
-import { SearchBox } from '../../../components/SearchBox';
+import { SearchToggle } from '../../../components/SearchToggle';
 import { useLogTail } from './useLogTail';
 
 /**
@@ -44,7 +44,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
       </SectionTitle>
 
       <div className="flex flex-wrap items-center gap-3">
-        <SearchBox
+        <SearchToggle
           value={query}
           onChange={setQuery}
           label={t('settings.diagnostics.logSearch')}

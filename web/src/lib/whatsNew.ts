@@ -178,10 +178,16 @@ export const RELEASES: Release[] = [
       // first page that has one in view.
       { id: 'search-box', to: ['/settings', ...LISTS, ...ACCOUNTS], text: 'whatsnew.change.searchBox' },
       {
-        id: 'search-fields',
-        to: [...LISTS, '/settings/advanced', ...ACCOUNTS],
-        text: 'whatsnew.change.searchFields',
-        names: { downloads: 'nav.downloads', collector: 'nav.collector', advanced: 'settings.nav.advanced' },
+        id: 'search-button',
+        to: [...LISTS, '/settings/advanced', '/settings/diagnostics', ...ACCOUNTS],
+        text: 'whatsnew.change.searchButton',
+        names: {
+          search: 'search.toggle',
+          downloads: 'nav.downloads',
+          collector: 'nav.collector',
+          advanced: 'settings.nav.advanced',
+          log: 'settings.diagnostics.logTitle',
+        },
       },
       {
         id: 'display-card',

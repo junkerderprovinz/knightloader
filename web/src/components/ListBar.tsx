@@ -1,14 +1,15 @@
-// Filter, Sort and the search field end the row above a list's card
-// (GlimStone, "Lists"). Filter opens the quick filters and whatever else the
-// page narrows its list by, Sort offers what a click on a column header does,
-// and the field is the one every search in the app uses. The page hands in
-// what stands before them and folds it when the row runs short (lib/rowFit.ts).
+// Filter, Sort and Search: the three buttons that end the row above a list's
+// card (GlimStone, "Lists"). Filter opens the quick filters and whatever else
+// the page narrows its list by, Sort offers what a click on a column header
+// does, and Search turns into its field. The page hands in what stands before
+// them and folds it when the row runs short (lib/rowFit.ts).
 import { useEffect, useLayoutEffect, useRef, useState, type ReactNode, type Ref, type RefObject } from 'react';
 import { useT } from '../lib/i18n';
 import { IconClose, IconFilter, IconSort } from '../lib/icons';
 import { ContextMenu, anchorBelow, useContextMenu, type MenuGroup } from './ContextMenu';
 import type { QuickFilter, QuickFilterId } from './ListToolbar';
 import { SearchField, type SearchQuery } from './SearchField';
+import type { SearchHandle } from './SearchToggle';
 import { Tabs } from './Tabs';
 import type { ListSort } from './TaskList';
 import { IconBadge } from './ui';
@@ -127,11 +128,11 @@ export function ListBar({
 }: {
   /** The row the page measures with useRowFit. */
   rowRef: RefObject<HTMLDivElement | null>;
-  /** The two buttons as glyphs, for a row short of room for their words. */
+  /** The three buttons as glyphs, for a row short of room for their words. */
   glyphs: boolean;
   /** The row scrolls sideways, on a phone. What opens then opens under it. */
   scrolls: boolean;
-  /** What stands before the buttons and the field. */
+  /** What stands before the three buttons. */
   children: ReactNode;
   /** The quick filters on offer, each with how many rows it matches. */
   filters: { f: QuickFilter; n: number }[];
@@ -147,8 +148,8 @@ export function ListBar({
   sorts: ListSort[];
   search: SearchQuery;
   onSearch: (next: SearchQuery) => void;
-  /** The field's input, for a shortcut that puts the caret in it. */
-  searchRef?: Ref<HTMLInputElement>;
+  /** For a shortcut that opens the search and puts the caret in it. */
+  searchRef?: Ref<SearchHandle>;
 }) {
   const { t } = useT();
   const [filterOpen, setFilterOpen] = useState(false);
@@ -205,19 +206,16 @@ export function ListBar({
           />
         </Marked>
 
-        {!scrolls && (
-          <div data-new="search-fields" className="shrink-0">
-            <SearchField value={search} onChange={onSearch} inputRef={searchRef} className="w-80" />
-          </div>
-        )}
-      </div>
-
-      {/* Under the row rather than inside it: a row that scrolls would clip it. */}
-      {scrolls && (
-        <div className="mt-2">
-          <SearchField value={search} onChange={onSearch} inputRef={searchRef} className="w-full" />
+        <div className="shrink-0">
+          <SearchField
+            value={search}
+            onChange={onSearch}
+            handle={searchRef}
+            labelled={!glyphs}
+            className={scrolls ? 'w-64' : 'w-80'}
+          />
         </div>
-      )}
+      </div>
 
       {/* It scrolls inside itself and stops short of the page's foot, however
           much the page hands in. Each part is headed by its name, with the

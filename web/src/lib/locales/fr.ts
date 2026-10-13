@@ -3652,7 +3652,7 @@ export const fr: Dict = {
   'settings.captcha.orderIntro': 'L’image est l’ordre : un captcha va d’abord au compte captcha du haut, puis aux suivants. Faites glisser un nom pour le déplacer.',
   'whatsnew.change.captchaPriority': '« {name} » range vos comptes captcha connectés comme « {download} » range les backends. Le moment où ils démarrent et le captcha de test s’y trouvent aussi.',
   'whatsnew.change.searchBox': 'Chaque champ de recherche ressemble à celui des Paramètres et fonctionne de même : pendant la saisie, le champ change de teinte et la loupe s’allume, et Échap ou la croix le vide.',
-  'whatsnew.change.searchFields': 'Chaque recherche est un champ où vous pouvez taper tout de suite, sans bouton à ouvrir d’abord : dans « {downloads} », « {collector} » et « {advanced} », et dans les fenêtres où vous choisissez un compte ou un hébergeur.',
+  'whatsnew.change.searchButton': 'Chaque recherche est un bouton « {search} » qui devient son champ quand vous appuyez dessus : dans « {downloads} », « {collector} » et « {advanced} », dans « {log} » et dans les fenêtres où vous choisissez un compte ou un hébergeur. Échap, ou quitter le champ quand il est vide, le refait bouton.',
   'settings.look.builtInTitle': 'Composants intégrés',
   'settings.look.builtInHint': 'Ce que KnightLoader apporte ou fait tourner à côté de lui, chaque élément avec sa version et sa provenance. Ces éléments viennent avec KnightLoader ou l’image du conteneur, ou se mettent à jour d’eux-mêmes : il n’y a donc rien à mettre à jour ici.',
   'whatsnew.change.builtIn': '« {name} » liste chaque élément fourni avec KnightLoader, avec sa version et sa provenance. Ce qui se met à jour reste dans « {updates} ».',

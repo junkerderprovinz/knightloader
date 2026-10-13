@@ -3654,7 +3654,7 @@ export const et: Dict = {
   'settings.captcha.orderIntro': 'Pilt ongi järjekord: captcha läheb kõigepealt ülemisele captcha kontole ja siis allapoole. Nime liigutamiseks lohista seda.',
   'whatsnew.change.captchaPriority': '„{name}“ järjestab sinu ühendatud captcha kontod samamoodi, nagu „{download}“ järjestab taustateenused. Seal on ka see, millal nad alustavad, ja proovicaptcha.',
   'whatsnew.change.searchBox': 'Iga otsinguväli näeb välja ja töötab nagu see seadetes: trükkimise ajal muutub välja toon ja luup süttib ning Escape või rist tühjendab selle.',
-  'whatsnew.change.searchFields': 'Iga otsing on väli, kuhu saad kohe kirjutada, ilma nuputa, mis selle enne avaks: jaotistes „{downloads}“, „{collector}“ ja „{advanced}“ ning akendes, kus valid konto või hostingu.',
+  'whatsnew.change.searchButton': 'Iga otsing on nupp „{search}“, mis vajutades muutub väljaks: jaotistes „{downloads}“, „{collector}“ ja „{advanced}“, jaotises „{log}“ ning akendes, kus valid konto või hostija. Escape või tühjalt väljalt lahkumine muudab selle jälle nupuks.',
   'settings.look.builtInTitle': 'Sisseehitatud osad',
   'settings.look.builtInHint': 'See, mida KnightLoader kaasa toob või enda kõrval käitab, igaüks oma versiooni ja päritoluga. Need osad tulevad koos KnightLoaderi või konteineri tõmmisega või uuendavad end ise, seega pole siin midagi uuendada.',
   'whatsnew.change.builtIn': '„{name}“ loetleb iga osa, mis tuleb koos KnightLoaderiga, koos versiooni ja päritoluga. Mida saab uuendada, jääb kaardile „{updates}“.',

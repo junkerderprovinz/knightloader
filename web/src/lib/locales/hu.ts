@@ -3664,7 +3664,7 @@ export const hu: Dict = {
   'settings.captcha.orderIntro': 'A kép maga a sorrend: a captcha először a legfelső captcha-fiókhoz kerül, aztán lefelé halad. Egy nevet húzással helyezhetsz át.',
   'whatsnew.change.captchaPriority': 'A(z) „{name}” úgy rendezi a csatlakoztatott captcha-fiókjaidat, ahogy a(z) „{download}” a háttérrendszereket. Az is itt van, mikor indulnak, és a próba-captcha is.',
   'whatsnew.change.searchBox': 'Minden keresőmező úgy néz ki és úgy működik, mint a Beállításokban: gépelés közben a mező árnyalata megváltozik és a nagyító felvillan, az Escape vagy az X pedig kiüríti.',
-  'whatsnew.change.searchFields': 'Minden keresés egy mező, amelybe rögtön írhatsz, nincs gomb, amely előbb megnyitná: a(z) „{downloads}”, „{collector}” és „{advanced}” részben, valamint azokban az ablakokban, ahol fiókot vagy tárhelyet választasz.',
+  'whatsnew.change.searchButton': 'Minden keresés egy „{search}” gomb, amely megnyomásra mezővé válik: a(z) „{downloads}”, „{collector}” és „{advanced}” részben, a(z) „{log}” részben, és azokban az ablakokban, ahol fiókot vagy tárhelyet választasz. Az Esc vagy az üres mező elhagyása újra gombbá teszi.',
   'settings.look.builtInTitle': 'Beépített összetevők',
   'settings.look.builtInHint': 'Amit a KnightLoader magával hoz vagy maga mellett futtat, mindegyik a verziójával és az eredetével. Ezek a részek a KnightLoaderrel vagy a konténer lemezképével érkeznek, vagy maguktól frissülnek, ezért itt nincs mit frissíteni.',
   'whatsnew.change.builtIn': 'A(z) „{name}” felsorol minden részt, ami a KnightLoaderrel érkezik, a verziójával és az eredetével. Ami frissíthető, az a(z) „{updates}” kártyán marad.',

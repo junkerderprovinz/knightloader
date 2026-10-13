@@ -191,7 +191,7 @@ describe('the Sort button', () => {
   });
 });
 
-describe('the search field', () => {
+describe('the Search button', () => {
   const field = () => host.querySelector<HTMLInputElement>('input[type="search"]');
   const type = (text: string) =>
     act(async () => {
@@ -200,14 +200,17 @@ describe('the search field', () => {
       field()!.dispatchEvent(new Event('input', { bubbles: true }));
     });
 
-  it('stands in the row from the start, with no button to open it', async () => {
+  it('ends the row and turns into the field, with the caret in it', async () => {
     await show();
-    expect(field()).not.toBeNull();
+    expect(field()).toBeNull();
+    await press(button('Search'));
+    expect(document.activeElement).toBe(field());
     expect(button('Search')).toBeUndefined();
   });
 
   it('narrows the list and keeps its text after a press outside', async () => {
     await show();
+    await press(button('Search'));
     await type('large');
     expect(rows()).toEqual(['large']);
     await act(async () => {

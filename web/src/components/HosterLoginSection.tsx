@@ -334,10 +334,7 @@ function HosterLoginDialog({
       // The picker's window, which the form of the picked hoster stays in.
       wide={!editing}
       height={picked ? 'content' : 'capped'}
-      right={
-        // Open from the start: nobody picks one of several hundred hosters by eye.
-        !picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />
-      }
+      right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
       onClose={onClose}
       footer={
         picked ? (
