@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
@@ -195,12 +195,18 @@ export function ReconnectCards({ hue }: { hue: number }) {
   const rc = readReconnect(cfg);
   const methodRefused = useRefusal('method');
 
+  // The draft as it stands, for a write that lands after an await, such as
+  // the router lookup: built from the draft it started with, it would put back
+  // whatever was typed meanwhile.
+  const latest = useRef(cfg);
+  latest.current = cfg;
   const write = useCallback(
     (fields: Partial<ReconnectConfig>) => {
-      const next = { ...readReconnect(cfg), ...fields };
+      const next = { ...readReconnect(latest.current), ...fields };
+      latest.current = { ...latest.current, reconnect: next } as typeof cfg;
       patch({ reconnect: next } as unknown as Parameters<typeof patch>[0]);
     },
-    [cfg, patch],
+    [patch],
   );
 
   const [state, setState] = useState<ReconnectState | null>(null);

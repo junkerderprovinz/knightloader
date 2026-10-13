@@ -61,8 +61,8 @@ describe('the search field', () => {
 });
 
 describe('the Search button', () => {
-  function Toggle() {
-    const [value, setValue] = useState('');
+  function Toggle({ start = '' }: { start?: string }) {
+    const [value, setValue] = useState(start);
     return (
       <>
         <SearchToggle value={value} onChange={setValue} label="Search this list" />
@@ -108,6 +108,20 @@ describe('the Search button', () => {
     await act(async () => searchButton()!.click());
     await act(async () => host.querySelector<HTMLButtonElement>('button:not([aria-label])')!.focus());
     expect(host.querySelector('input')).toBeNull();
+  });
+
+  it('keeps the field and the caret when a search kept from before is emptied', async () => {
+    await act(async () =>
+      root.render(
+        <I18nProvider>
+          <Toggle start="large" />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => field().focus());
+    await act(async () => field().dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true })));
+    expect(field().value).toBe('');
+    expect(document.activeElement).toBe(field());
   });
 
   it('keeps the field while it holds a search', async () => {

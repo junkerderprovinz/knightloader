@@ -227,6 +227,7 @@ export function AddLinksForm({
   // one group pushed over by ms-auto. A flex-1 spacer would drop everything
   // after it to a line of its own.
   const optionsSet =
+    pkg.trim() !== '' ||
     dir.trim() !== '' ||
     priority !== null ||
     autoExtract !== 'inherit' ||

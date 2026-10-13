@@ -11,6 +11,7 @@ import {
 } from 'react';
 import { fmtRate, fmtSpeed } from '../lib/format';
 import { useT } from '../lib/i18n';
+import { IconSpeedLimit } from '../lib/icons';
 import { isLeet } from '../lib/leet';
 import { useLimitInForce, useUploadLimit } from '../lib/limitInForce';
 import { useUIState } from '../lib/uistate';
@@ -95,6 +96,16 @@ const KINDS = ['download', 'upload'] as const;
 const LABEL_SIZE = 12;
 const LABEL_GAP = 3;
 
+// The limit sign before the figure: its size, its top within the figure's
+// line, and the room between the two.
+const SIGN = 9;
+const SIGN_TOP = 3;
+const SIGN_GAP = 3;
+
+// A limit is a setting, not a reading, so its mark stays out of the curves'
+// colours: colour on the graph always means a live value.
+const LIMIT_INK = 'var(--carbon-text-muted)';
+
 // Half the height of the glyph at the right edge, and how far the figure stays
 // from that edge so the two never touch.
 const GLYPH = 4;
@@ -165,15 +176,15 @@ function applyMarks(gs: readonly (SVGGElement | null)[], marks: readonly (LimitM
   const tops = labelTops(shown.map(({ m }) => m.y), h);
   shown.forEach(({ g, m }, i) => {
     g.setAttribute('transform', `translate(0 ${m.y})`);
-    const [glyph, label] = [g.children[1], g.children[2]];
+    const [glyph, figure] = [g.children[1], g.children[2]];
     glyph.setAttribute('d', m.over ? CHEVRON : NOTCH);
-    label.setAttribute('y', String(tops[i] + LABEL_SIZE - m.y));
+    figure.setAttribute('transform', `translate(0 ${tops[i] - m.y})`);
   });
 }
 
 /**
- * LimitMarks draws each limit set as a mark and its figure at the right edge in
- * its curve's colour, with no line across the plot, which two limits and two
+ * LimitMarks draws each limit set as a mark at the right edge with the limit
+ * sign and its figure, with no line across the plot, which two limits and two
  * curves would crowd. Their place is left to applyMarks.
  */
 function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: RefObject<(SVGGElement | null)[]> }) {
@@ -181,7 +192,6 @@ function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: Re
   return KINDS.map((kind, i) => {
     const limit = limits[kind];
     if (limit <= 0) return null;
-    const ink = kind === 'download' ? DOWNLOAD_INK : SEEDING_INK;
     return (
       <g
         key={kind}
@@ -191,27 +201,61 @@ function LimitMarks({ limits, w, marks }: { limits: Limits; w: number; marks: Re
         data-limit-mark={kind}
       >
         <title>{t(`speed.limit.${kind}`, { speed: fmtSpeed(limit) })}</title>
-        <path transform={`translate(${w} 0)`} d={NOTCH} fill={ink} />
-        {/* The halo in the card's own colour keeps the figure legible where a
-            curve runs under it. The plot does not mirror in a right-to-left
-            language, so neither does the figure. */}
-        <text
-          x={w - LABEL_X}
-          direction="ltr"
-          textAnchor="end"
-          fontSize={LABEL_SIZE}
-          fill={ink}
-          stroke="var(--carbon-surface)"
-          strokeWidth="3"
-          strokeLinejoin="round"
-          paintOrder="stroke"
-          className="glim-num"
-        >
-          {fmtSpeed(limit)}
-        </text>
+        <path transform={`translate(${w} 0)`} d={NOTCH} fill={LIMIT_INK} />
+        <LimitFigure figure={fmtSpeed(limit)} end={w - LABEL_X} />
       </g>
     );
   });
+}
+
+/**
+ * LimitFigure is a limit's figure with the limit sign before it, ending at
+ * `end`. The sign is placed once the figure's width is known. The halo in the
+ * card's own colour keeps both legible where a curve runs under them. The plot
+ * does not mirror in a right-to-left language, so neither does the figure.
+ */
+function LimitFigure({ figure, end }: { figure: string; end: number }) {
+  const text = useRef<SVGTextElement>(null);
+  const [x, setX] = useState<number | null>(null);
+  useLayoutEffect(() => {
+    if (text.current) setX(end - text.current.getComputedTextLength() - SIGN_GAP - SIGN);
+  }, [figure, end]);
+  return (
+    <g>
+      {x !== null && (
+        <IconSpeedLimit
+          tight
+          x={x}
+          y={SIGN_TOP}
+          width={SIGN}
+          height={SIGN}
+          fill={LIMIT_INK}
+          stroke="var(--carbon-surface)"
+          // In the sign's own units, 14 to its 9px: the figure's halo.
+          strokeWidth="4.5"
+          strokeLinejoin="round"
+          paintOrder="stroke"
+          data-limit-sign=""
+        />
+      )}
+      <text
+        ref={text}
+        x={end}
+        y={LABEL_SIZE}
+        direction="ltr"
+        textAnchor="end"
+        fontSize={LABEL_SIZE}
+        fill={LIMIT_INK}
+        stroke="var(--carbon-surface)"
+        strokeWidth="3"
+        strokeLinejoin="round"
+        paintOrder="stroke"
+        className="glim-num"
+      >
+        {figure}
+      </text>
+    </g>
+  );
 }
 
 // Samples fetched beyond the span on screen. While the curve glides, the two
@@ -617,6 +661,26 @@ export function SpeedLegend({ limits }: { limits: Limits }) {
 }
 
 /**
+ * LiveRates are the download and upload speeds now, each in its curve's
+ * colour, so a figure in a curve's colour is always a live one.
+ */
+function LiveRates({ download, upload }: { download: number; upload: number }) {
+  const { t } = useT();
+  return (
+    <span data-live-rates="" dir="ltr" className="flex items-center gap-2.5 whitespace-nowrap">
+      <span className="glim-num text-[12px] font-semibold leading-none" style={{ color: DOWNLOAD_INK }}>
+        <span className="sr-only">{t('speed.legend.download')} </span>
+        {fmtRate(download)}
+      </span>
+      <span className="glim-num text-[12px] font-semibold leading-none" style={{ color: SEEDING_INK }}>
+        <span className="sr-only">{t('speed.legend.seeding')} </span>
+        {fmtRate(upload)}
+      </span>
+    </span>
+  );
+}
+
+/**
  * SpeedGraph draws this instance's download speed over the last minute or hour
  * as the Overview page's hero, and beside it what the torrents upload. Idle
  * shows a flat hairline. It always uses scope '', since the Overview page
@@ -663,7 +727,7 @@ export function SpeedGraph({
     <div data-new="seeding-line" className={`relative ${isLeet(limit) ? 'kl-storm-curve' : ''}`}>
       {/* The ceiling above the plot, in every state, with the window chooser
           on the same line (GlimStone 1.6.0). */}
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
         <Tabs
           inline
           label={t('overview.speedWindow')}
@@ -676,7 +740,8 @@ export function SpeedGraph({
             { id: 'hour', label: t('overview.speedWindow.hour') },
           ]}
         />
-        <span className="flex items-center gap-1.5">
+        <span className="ms-auto flex items-center gap-1.5">
+          <LiveRates download={value} upload={upload} />
           <InfoBubble tip={t('overview.speedGraphHint')} />
           <span className="glim-num text-meta leading-none text-carbon-textMuted">
             {fmtSpeed(ceiling)}
@@ -729,7 +794,7 @@ function usePixelBox(ref: RefObject<SVGSVGElement | null>): { w: number; h: numb
 /**
  * SpeedMeter is the shell-bar reading: the window the quick settings choose
  * as a curve that takes the rest of the bar's row, newest sample on its right
- * edge, with the current figure above that end and the top of the plot above
+ * edge, with the current figures above that end and the top of the plot above
  * the other. `instance` is the shell's scope, which can be a peer; only scope
  * '' is seeded, since /api/stats/speed is not forwarded, so a peer's curve
  * starts empty and grows in from the right.
@@ -768,7 +833,7 @@ export function SpeedMeter({
     <span dir="ltr" className="-my-2 flex min-h-22 min-w-0 grow basis-60 flex-col gap-0.5 self-stretch">
       <span className="flex items-end justify-between gap-3 whitespace-nowrap leading-none">
         <span className="glim-num text-meta text-carbon-textMuted">{fmtSpeed(ceiling)}</span>
-        <span className="glim-num text-[12px] font-semibold text-carbon-text">{fmtRate(value)}</span>
+        <LiveRates download={value} upload={upload} />
       </span>
       {/* h-0 with flex-auto: without a height the svg's aspect ratio would set
           the card's height from its width. flex-1 does not work here, because

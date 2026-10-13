@@ -70,7 +70,9 @@ export function DriveCard({ hue }: { hue: number }) {
             value={drive.refreshMinutes}
             min={1}
             max={REFRESH_MAX}
-            onValue={(v) => write({ refreshMinutes: Math.min(REFRESH_MAX, Math.max(1, Math.round(v))) })}
+            // No floor, so a field emptied to type a new figure is not refilled
+            // with 1. The server takes 0 for its default.
+            onValue={(v) => write({ refreshMinutes: Math.min(REFRESH_MAX, Math.round(v)) })}
           />
           <span className="glim-num shrink-0 text-xs text-carbon-textMuted">{t('settings.accounts.driveRefreshUnit')}</span>
         </div>

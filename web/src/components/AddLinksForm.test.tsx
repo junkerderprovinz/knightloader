@@ -120,6 +120,19 @@ it('asks for the options of a batch in a window and marks its button while one i
   await act(async () => toggle('Overrule a matching Packagizer rule')!.click());
 });
 
+it('marks the options button while a package name is set', async () => {
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <ToastProvider>
+          <AddLinksForm pkg="Holiday" onPkgChange={() => {}} onStaged={() => {}} onChooseFile={() => {}} onFilesDropped={() => {}} />
+        </ToastProvider>
+      </I18nProvider>,
+    ),
+  );
+  expect(host.querySelector('[data-marked]')).not.toBeNull();
+});
+
 it('sends the links in the box when Add links is pressed', async () => {
   await act(async () => root.render(<Card />));
   const box = host.querySelector('textarea')!;

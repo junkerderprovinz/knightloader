@@ -341,7 +341,7 @@ export function PhraseCard({
   );
 
   const foot = (
-    <div data-new="words-again" className="flex flex-wrap items-center justify-end gap-2.5">
+    <div className="flex flex-wrap items-center justify-end gap-2.5">
       <Button kind="secondary" icon={<IconEye />} onClick={openWords} disabled={busy}>
         {t('pairing.show')}
       </Button>

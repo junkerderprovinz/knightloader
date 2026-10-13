@@ -247,8 +247,11 @@ function RouteSpoke({
   const [toX, toY] = spoke.to;
 
   useLayoutEffect(() => {
-    if (!tested || still) return;
-    const flight = packet.current!.animate(
+    // A route whose answer has shown draws no packet, and a redrawn picture
+    // still runs this for it.
+    const node = packet.current;
+    if (!tested || still || !node) return;
+    const flight = node.animate(
       [{ transform: `translate(${fromX}px, ${fromY}px)` }, { transform: `translate(${toX}px, ${toY}px)` }],
       { duration: (Math.hypot(toX - fromX, toY - fromY) / TRAVEL) * 1000, fill: 'forwards' },
     );

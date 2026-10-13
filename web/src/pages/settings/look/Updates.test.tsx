@@ -6,6 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import type { Settings } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
+import { en } from '../../../lib/locales/en';
 import { SettingsProvider, type SettingsDraft } from '../context';
 import { BuiltInCard, UpdatesCard, moduleVersion } from './Updates';
 
@@ -169,6 +170,36 @@ describe('the Updates card', () => {
     expect(button(group('yt-dlp'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
     expect(group('yt-dlp').textContent).toContain('2026.09.30 is published, 2026.08.19 is installed.');
     expect(button(group('yt-dlp'), 'Fetch this release')).toBeDefined();
+  });
+
+  it('says the fetched copy is gone after a revert that leaves no yt-dlp behind', async () => {
+    answers['/api/mediatools'] = {
+      ytdlp: { found: true, version: '2026.09.30', source: 'managed', path: '/config/bin/yt-dlp' },
+      managed: { version: '2026.09.30' },
+      ffmpeg: { found: true, version: '8.1.2' },
+      ffprobe: { found: true, version: '8.1.2' },
+    };
+    answers['/api/mediatools/ytdlp/revert'] = {
+      ytdlp: { found: false, source: 'none' },
+      ffmpeg: { found: true, version: '8.1.2' },
+      ffprobe: { found: true, version: '8.1.2' },
+    };
+    await draw();
+    await act(async () => button(group('yt-dlp'), 'Back to the system copy').click());
+    expect(group('yt-dlp').textContent).toContain(en['settings.resolvers.toolsRevertedNone']);
+  });
+
+  it('says when the server could not tell how this instance runs, and asks again on request', async () => {
+    const deployment = answers['/api/system/deployment'];
+    delete answers['/api/system/deployment'];
+    await draw();
+    expect(card('Updates').textContent).toContain('Could not load this.');
+    expect(card('Built-in components').textContent).toContain('Could not load this.');
+
+    answers['/api/system/deployment'] = deployment;
+    await act(async () => button(card('Updates'), 'Try again').click());
+    expect(card('Updates').textContent).not.toContain('Could not load this.');
+    expect(group('KnightLoader').textContent).toContain('1.8.4');
   });
 
   it('asks GitHub on opening only where its switch is on', async () => {

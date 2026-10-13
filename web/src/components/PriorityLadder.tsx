@@ -1,4 +1,4 @@
-import { useRef, useState, type ReactNode } from 'react';
+import { useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import type { GlyphProps } from '../lib/glyphs';
 import { IconWarning } from '../lib/icons';
@@ -43,6 +43,9 @@ export function PriorityLadder({
   const { t } = useT();
   const [pending, setPending] = useState<string[] | null>(null);
   const list = useRef<HTMLOListElement>(null);
+  // The row last moved by the keyboard. Moving a row moves its element, and
+  // the browser drops the focus of an element that moves.
+  const stepped = useRef<string | null>(null);
 
   async function store(next: string[]) {
     setPending(next);
@@ -52,6 +55,15 @@ export function PriorityLadder({
       setPending(null);
     }
   }
+
+  useLayoutEffect(() => {
+    const id = stepped.current;
+    if (id === null) return;
+    if (document.activeElement === document.body) {
+      list.current?.querySelector<HTMLElement>(`[data-ladder-id="${id}"] button`)?.focus();
+    }
+    if (pending === null) stepped.current = null;
+  });
 
   const resting = pending ?? ids;
   // The whole row is pressed to move it, so a mouse arms the drag by moving
@@ -116,10 +128,12 @@ export function PriorityLadder({
               </span>
               <RowGrip
                 label={t('accounts.routing.dragHandle', { name: labelFor(id) })}
-                disabled={busy}
+                busy={busy || pending !== null}
                 onMove={(by) => {
                   const next = moveTo(drag.order, id, by);
-                  if (next) void store(next);
+                  if (!next) return;
+                  stepped.current = id;
+                  void store(next);
                 }}
               />
             </li>

@@ -30,7 +30,7 @@ beforeEach(() => {
     'fetch',
     vi.fn((url: string, init?: RequestInit) => {
       if (init?.method === 'PUT') written.push(JSON.parse(String(init.body)));
-      const answer = url === '/api/health' ? { status: 'ok', version: 'v1.9.0' } : { 'onboarding.done': true };
+      const answer = url === '/api/health' ? { status: 'ok', version: 'v2.0.0' } : { 'onboarding.done': true };
       return Promise.resolve(new Response(JSON.stringify(answer), { headers: { 'Content-Type': 'application/json' } }));
     }),
   );
@@ -53,7 +53,7 @@ it('marks an update, opens the release notes once and remembers what was seen', 
     await startWhatsNew();
   });
   expect(open).toBe('notes');
-  expect(news!.version).toBe('v1.9.0');
+  expect(news!.version).toBe('v2.0.0');
   expect(news!.unseen).toEqual(RELEASES[0].changes);
 
   await act(async () => news!.markSeen(['seed-ring', 'week-band']));
@@ -69,7 +69,7 @@ it('marks an update, opens the release notes once and remembers what was seen', 
   });
   expect(written[written.length - 1]).toMatchObject({
     'onboarding.done': true,
-    whatsNew: { version: 'v1.9.0', after: '1.8.4', seen: ['seed-ring', 'week-band'], notes: true, dots: false },
+    whatsNew: { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring', 'week-band'], notes: true, dots: false },
   });
 });
 
@@ -88,7 +88,7 @@ it('leads from the event list to the changes, with the number still unseen', asy
   );
   act(() => closeWhatsNew());
   const entry = host.querySelector('button')!;
-  expect(entry.textContent).toBe(`New in 1.9.0${news!.unseen.length}`);
+  expect(entry.textContent).toBe(`New in 2.0.0${news!.unseen.length}`);
 
   await act(async () => entry.click());
   expect(onOpen).toHaveBeenCalled();

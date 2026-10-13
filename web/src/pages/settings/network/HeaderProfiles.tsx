@@ -281,6 +281,9 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         </Modal>
       )}
 
+      {/* A refused delete has no window open to show it in. */}
+      {!draft && error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+
       {confirming && (
         <Modal
           title={t('settings.headerProfiles.delete')}

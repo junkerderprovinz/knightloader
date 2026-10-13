@@ -156,6 +156,8 @@ export function ConnectionsCard({ hue }: { hue: number }) {
   // Whatever was tested: once a route changes, the answers are stale and go.
   const testedKey = JSON.stringify(dialled.map((route) => route.probe));
   useEffect(() => {
+    // A run still out answers for what was there before.
+    runs.current++;
     setTest(UNTESTED);
     setRefusals([]);
   }, [testedKey]);
@@ -176,7 +178,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
       }),
     );
     const refused = reports.filter((report) => !report.ok);
-    setRefusals(refused.map((report) => report.detail));
+    if (run === runs.current) setRefusals(refused.map((report) => report.detail));
     return refused.length === 0 ? 'ok' : 'fail';
   }
 
