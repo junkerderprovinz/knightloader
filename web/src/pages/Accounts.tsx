@@ -55,6 +55,7 @@ import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
 import { CaptchaPriorityCard } from './settings/accounts/CaptchaPriorityCard';
 import { LiveSettings } from './settings/accounts/LiveSettings';
+import { SettingRow } from './settings/controls';
 import {
   IconAccounts,
   IconCaptcha,
@@ -811,8 +812,9 @@ function CredentialDialog({
           : undefined
       }
       hue={solver ? 4 : 0}
-      // The picker's window, which the form of the picked brand stays in.
-      wide={mode === 'new'}
+      // The picker's window, which the form of the picked brand stays in, and
+      // an edit opens the same form in the same window.
+      wide
       height={picked ? 'content' : 'capped'}
       holdHeight={!picked && query !== ''}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
@@ -868,25 +870,28 @@ function CredentialDialog({
           }}
         />
       ) : (
-        // The form keeps a reading width in the picker's wide window.
-        <div className="flex max-w-md flex-col gap-4">
+        <div data-new="picker-form" className="flex flex-col gap-4">
           {fromEnv ? (
             <p className="text-sm text-carbon-textSub">{t('accounts.credentialFromEnv', { env: editingRow?.envVar ?? '' })}</p>
           ) : (
             <>
               {!editing && hasDefault(picked.id) && (
-                <Field label={t('accounts.accountLabel')} hint={t('accounts.accountLabelHint')}>
+                <SettingRow control="long" label={t('accounts.accountLabel')} hint={t('accounts.accountLabelHint')}>
                   <TextInput
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
                     placeholder={t('accounts.accountLabelPlaceholder')}
                   />
-                </Field>
+                </SettingRow>
               )}
 
               {/* PasswordInput, so a pasted key can be revealed and read back. */}
               {picked.kind === 'apiKey' ? (
-                <Field label={t('accounts.keyLabel', { service: picked.label })} hint={t('accounts.keyHint')}>
+                <SettingRow
+                  control="long"
+                  label={t('accounts.keyLabel', { service: picked.label })}
+                  hint={t('accounts.keyHint')}
+                >
                   <PasswordInput
                     autoComplete="off"
                     value={apiKey}
@@ -894,13 +899,19 @@ function CredentialDialog({
                     showLabel={t('common.showPassword')}
                     hideLabel={t('common.hidePassword')}
                   />
-                </Field>
+                </SettingRow>
               ) : (
                 <>
-                  <Field label={t(picked.userLabel ? FIELD_LABELS[picked.userLabel] : 'accounts.usernameField')}>
+                  <SettingRow
+                    control="long"
+                    label={t(picked.userLabel ? FIELD_LABELS[picked.userLabel] : 'accounts.usernameField')}
+                  >
                     <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
-                  </Field>
-                  <Field label={t(picked.passLabel ? FIELD_LABELS[picked.passLabel] : 'accounts.passwordField')}>
+                  </SettingRow>
+                  <SettingRow
+                    control="long"
+                    label={t(picked.passLabel ? FIELD_LABELS[picked.passLabel] : 'accounts.passwordField')}
+                  >
                     <PasswordInput
                       autoComplete="new-password"
                       value={password}
@@ -908,7 +919,7 @@ function CredentialDialog({
                       showLabel={t('common.showPassword')}
                       hideLabel={t('common.hidePassword')}
                     />
-                  </Field>
+                  </SettingRow>
                 </>
               )}
 

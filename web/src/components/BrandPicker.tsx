@@ -129,7 +129,7 @@ export function PickerSearch({
   placeholder: string;
 }) {
   return (
-    <div data-new="picker-search-field" className="w-64 max-w-full">
+    <div data-new="picker-search-field" className="glim-picker-search w-64 max-w-full">
       <SearchBox value={value} onChange={onChange} label={placeholder} autoFocus={!matchMedia('(hover: none)').matches} />
     </div>
   );

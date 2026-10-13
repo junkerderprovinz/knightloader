@@ -5,7 +5,7 @@ import type { NewsTab, WhatsNew } from '../../lib/useWhatsNew';
 import { releaseNotesPage, releaseOf, routeOf, sentenceOf, type Change } from '../../lib/whatsNew';
 import { label } from '../../pages/settings/tx';
 import { Tabs } from '../Tabs';
-import { Button, LinkBadge, Modal, ToggleRow } from '../ui';
+import { Button, LinkBadge, Modal } from '../ui';
 import { ReleaseNotes } from './ReleaseNotes';
 
 const RAIL: Record<string, TranslationKey> = {
@@ -61,6 +61,7 @@ export function WhatsNewWindow({
   const title = t('whatsnew.title', { version: releaseOf(news.version) || news.version });
   const listed = news.changes.length > 0;
   const all = news.changes.map((c) => c.id);
+  const left = news.unseen.length;
 
   function go(route: string) {
     onClose();
@@ -103,28 +104,16 @@ export function WhatsNewWindow({
 
       {tab === 'changes' && listed ? (
         <>
-          <ToggleRow
-            label={t('whatsnew.dots')}
-            hint={t('whatsnew.dotsHint')}
-            checked={news.dots}
-            onChange={news.showDots}
-          />
-          <div className="flex flex-wrap justify-end gap-3">
+          {/* One button, since hiding the dots and marking everything as seen
+              are the same act. Its number is what a press acts on. */}
+          <div className="flex justify-end">
             <Button
               kind="secondary"
-              icon={<IconEye />}
-              disabled={news.seen.size === 0}
-              onClick={() => news.markSeen(all, false)}
+              icon={left > 0 ? <IconCheck /> : <IconEye />}
+              data-new="news-toggle"
+              onClick={() => news.markSeen(all, left > 0)}
             >
-              {t('whatsnew.showAll')}
-            </Button>
-            <Button
-              kind="secondary"
-              icon={<IconCheck />}
-              disabled={news.unseen.length === 0}
-              onClick={() => news.markSeen(all)}
-            >
-              {t('whatsnew.markAll')}
+              {left > 0 ? t('whatsnew.markAll', { n: left }) : t('whatsnew.showAll', { n: all.length })}
             </Button>
           </div>
           {byPage(news.changes).map((page) => (

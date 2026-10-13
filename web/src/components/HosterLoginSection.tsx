@@ -18,10 +18,11 @@ import {
 import { useT, type TranslationKey } from '../lib/i18n';
 import { en } from '../lib/locales/en';
 import { useToast } from '../lib/toast';
-import { Button, EmptyState, Field, InfoBubble, Modal, TextInput } from './ui';
+import { Button, EmptyState, InfoBubble, Modal, TextInput } from './ui';
 import { AccountTable, type AccountRow } from './AccountTable';
 import { IconAccounts, IconBack, IconClose, IconTrash } from '../lib/icons';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from './BrandPicker';
+import { SettingRow } from '../pages/settings/controls';
 
 // Faster than the 30s account health poll, since a new login moves from queued
 // to active or rejected within seconds to minutes.
@@ -331,8 +332,9 @@ function HosterLoginDialog({
       // While adding, the window says what the card it fills is for.
       hint={editing ? undefined : t('accounts.hoster.hint')}
       hue={2}
-      // The picker's window, which the form of the picked hoster stays in.
-      wide={!editing}
+      // The picker's window, which the form of the picked hoster stays in, and
+      // an edit opens the same form in the same window.
+      wide
       height={picked ? 'content' : 'capped'}
       holdHeight={!picked && query !== ''}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('accounts.hoster.searchHosts')} />}
@@ -379,14 +381,13 @@ function HosterLoginDialog({
           />
         </div>
       ) : (
-        // The form keeps a reading width in the picker's wide window.
-        <div className="flex max-w-md flex-col gap-4">
-          <Field label={t('accounts.usernameField')}>
+        <div data-new="picker-form" className="flex flex-col gap-4">
+          <SettingRow control="long" label={t('accounts.usernameField')}>
             <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
-          </Field>
-          <Field label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
+          </SettingRow>
+          <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.hoster.passwordCustody')}>
             <TextInput type="password" autoComplete="new-password" value={password} onChange={(e) => setPassword(e.target.value)} />
-          </Field>
+          </SettingRow>
         </div>
       )}
     </Modal>

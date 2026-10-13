@@ -70,10 +70,7 @@ export interface WhatsNew {
   changes: Change[];
   seen: ReadonlySet<string>;
   unseen: Change[];
-  /** Whether the dots are drawn at all. */
-  dots: boolean;
   markSeen: (ids: string[], seen?: boolean) => void;
-  showDots: (on: boolean) => void;
 }
 
 /** useWhatsNew is the running version's record, or null until startWhatsNew has settled it. */
@@ -96,7 +93,6 @@ export function useWhatsNew(): WhatsNew | null {
       changes,
       seen,
       unseen: changes.filter((c) => !seen.has(c.id)),
-      dots: record.dots !== false,
       markSeen: (ids, on = true) => {
         const next = new Set(peekUIState<NewsRecord>(NEWS_FIELD, record).seen);
         for (const id of ids) {
@@ -105,7 +101,6 @@ export function useWhatsNew(): WhatsNew | null {
         }
         write({ seen: [...next] });
       },
-      showDots: (on) => write({ dots: on }),
     };
   }, [record, running]);
 }

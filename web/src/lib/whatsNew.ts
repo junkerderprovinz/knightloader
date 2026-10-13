@@ -241,6 +241,7 @@ export const RELEASES: Release[] = [
         },
       },
       { id: 'picker-search-field', to: ACCOUNTS, text: 'whatsnew.change.pickerSearch' },
+      { id: 'picker-form', to: ACCOUNTS, text: 'whatsnew.change.pickerForm' },
       {
         id: 'display-card',
         to: ['/settings/appearance'],
@@ -336,6 +337,7 @@ export const RELEASES: Release[] = [
       },
       // Every settings page has such rows, and the crawler's depth is the one shown.
       { id: 'setting-rows', to: ['/settings/collector'], text: 'whatsnew.change.settingRows' },
+      { id: 'settings-width', to: ['/settings'], text: 'whatsnew.change.settingsWidth' },
       {
         id: 'mirror-policy',
         to: ['/settings/collector'],
@@ -445,6 +447,8 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.newsButton',
         names: { name: 'settings.about.version', notes: 'settings.look.updatesReleaseNotes', changes: 'whatsnew.changes' },
       },
+      // Drawn in the window the Version card's button opens.
+      { id: 'news-toggle', to: ['/settings/help'], text: 'whatsnew.change.newsToggle' },
       {
         id: 'manual-button',
         to: ['/settings/help'],
@@ -503,8 +507,6 @@ export interface NewsRecord {
   seen: string[];
   /** The release notes have opened by themselves for this version. */
   notes: boolean;
-  /** The switch in the list of changes that hides every dot. */
-  dots: boolean;
 }
 
 export const NEWS_FIELD = 'whatsNew';
@@ -524,9 +526,9 @@ function isRecord(v: unknown): v is NewsRecord {
 export function recordFor(stored: unknown, running: string, settled: boolean): NewsRecord {
   if (isRecord(stored) && stored.version === running) return stored;
   const updated = isRecord(stored) || settled;
-  if (!updated) return { version: running, after: '', seen: [], notes: true, dots: true };
+  if (!updated) return { version: running, after: '', seen: [], notes: true };
   const from = isRecord(stored) ? stored.version : '';
-  return { version: running, after: releaseSince(from, running)?.after ?? '', seen: [], notes: false, dots: true };
+  return { version: running, after: releaseSince(from, running)?.after ?? '', seen: [], notes: false };
 }
 
 /** changesOf is the list a record marks. */

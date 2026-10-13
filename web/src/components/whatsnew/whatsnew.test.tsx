@@ -53,9 +53,7 @@ function news(changes: Change[], seen: string[] = [], over: Partial<WhatsNew> = 
     changes,
     seen: done,
     unseen: changes.filter((c) => !done.has(c.id)),
-    dots: true,
     markSeen: vi.fn(),
-    showDots: vi.fn(),
     ...over,
   };
 }
@@ -214,11 +212,6 @@ describe('the dots', () => {
     expect(dots()).toEqual([]);
   });
 
-  it('are not drawn while the switch is off', async () => {
-    await draw('/', news([RING], [], { dots: false }));
-    expect(dots()).toEqual([]);
-  });
-
   it('stand over a window that holds the changed element', async () => {
     layOut();
     await draw(
@@ -307,13 +300,18 @@ describe('the window', () => {
     expect([...host.querySelectorAll('li')].map((li) => li.dataset.seen)).toEqual(['false', 'true']);
   });
 
-  it('marks all as seen and shows all again', async () => {
-    const shown = news([HEAD, RING], ['seed-ring']);
-    await act(async () => root.render(<Shown shown={shown} notes="" tab="changes" />));
-    await act(async () => button('Mark all as seen').click());
-    expect(shown.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring']);
-    await act(async () => button('Show all again').click());
-    expect(shown.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring'], false);
+  it('has one button that marks all as seen while one is left and shows all again once none is', async () => {
+    const left = news([HEAD, RING], ['seed-ring']);
+    await act(async () => root.render(<Shown shown={left} notes="" tab="changes" />));
+    expect(button('Show all again · 2')).toBeUndefined();
+    await act(async () => button('Mark all as seen · 1').click());
+    expect(left.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring'], true);
+
+    const done = news([HEAD, RING], ['overview-head', 'seed-ring']);
+    await act(async () => root.render(<Shown shown={done} notes="" tab="changes" />));
+    expect(button('Mark all as seen · 0')).toBeUndefined();
+    await act(async () => button('Show all again · 2').click());
+    expect(done.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring'], false);
   });
 
   it('goes to the page of a change and closes', async () => {
