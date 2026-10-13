@@ -243,12 +243,12 @@ const SIBLINGS = [
   { instanceId: 'a1', name: 'Keep', deployment: 'container' },
   { instanceId: 'b2', name: 'Gatehouse', deployment: 'desktop' },
 ];
-const GiB = 1024 ** 3;
-const MiB = 1024 ** 2;
+const GB = 1e9;
+const MB = 1e6;
 const SIBLING_API = {
   a1: {
     '/api/queue': { halted: false, running: 2 },
-    '/api/queue/counters': { files: 3, running: 2, remaining: 2.4 * GiB, speed: 38 * MiB },
+    '/api/queue/counters': { files: 3, running: 2, remaining: 2.4 * GB, speed: 38 * MB },
     '/api/remote-access': { addresses: [{ url: `http://${HOST}:${PORT}` }] },
   },
   b2: {

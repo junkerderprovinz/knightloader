@@ -29,8 +29,8 @@
 // the size every cell is set in, with the cell's 16px of padding. These are
 // what the widths in columns.tsx round up:
 //
-//   size            68  "1023 MiB", the longest a size gets
-//   speed           78  "1023 MiB/s"
+//   size            68  "1000 MB", the longest a size gets
+//   speed           78  "1000 MB/s"
 //   time left       82  "123h 45min"; 75 for "19h 58min", the widest value
 //                       under a hundred hours
 //   status         142  the widest transfer state in the 42 locales (fr)
