@@ -113,6 +113,11 @@ release's tag.
 
 ### Fixed
 
+- **An instance that reconnected to its relay quickly could not be reached.**
+  If it opened its new connection before the relay noticed the old one close,
+  and no other device of its group was connected at that moment, the relay
+  kept the new connection where nobody could find it until the instance
+  reconnected again.
 - **The extension says "1 file", not "1 files".** The status line on an
   instance card used the plural for every count, and in languages with more
   plural forms, such as Russian, Polish or Arabic, the same form stood after 2
