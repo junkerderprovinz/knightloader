@@ -372,7 +372,9 @@ export function Accounts() {
           captcha card stands outside the settings shell, so it saves as it
           goes. */}
       <RoutingSection
+        accounts={accounts}
         catalogue={catalogue}
+        emptyPointer={addPointer}
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
         captcha={
           <LiveSettings>
@@ -949,6 +951,35 @@ function CredentialDialog({
 
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
+/** The rows of backends that come with KnightLoader rather than with an account. */
+const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent'];
+
+/**
+ * connectedDebrid maps each debrid service with a connected, switched-on
+ * account to why its accounts do not work, '' while one of them does. A
+ * failed check leaves the account in the order, since it is still asked.
+ */
+function connectedDebrid(accounts: Account[], catalogue: Map<string, CatalogueService>): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const a of accounts) {
+    if (catalogue.get(a.service)?.group !== 'debrid' || !a.configured || !a.enabled) continue;
+    const failed = !!a.detail && !a.ok;
+    const before = out.get(a.service);
+    if (!failed) out.set(a.service, '');
+    else if (before === undefined) out.set(a.service, a.detail);
+  }
+  return out;
+}
+
+/**
+ * ladderOf is the order the instance reports with every connected debrid
+ * service in it. One the instance has not wired yet goes last, so the picture
+ * never leaves out an account the cards above it list.
+ */
+function ladderOf(priority: ResolverInfo[], debrid: Map<string, string>): string[] {
+  const ids = priority.map((r) => r.id);
+  return [...ids, ...[...debrid.keys()].filter((id) => !ids.includes(id))];
+}
 
 /**
  * What a row takes. A debrid service's row shares one sentence with its name
@@ -964,12 +995,17 @@ const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
 };
 
 function RoutingSection({
+  accounts,
   catalogue,
   signature,
+  emptyPointer,
   captcha,
 }: {
+  accounts: Account[];
   catalogue: CatalogueService[];
   signature: string;
+  /** The way to the floating action that adds an account, for the card without one. */
+  emptyPointer: string;
   /** The captcha priority card, which stands beside the download one. */
   captcha: ReactNode;
 }) {
@@ -1000,6 +1036,13 @@ function RoutingSection({
     return tip && t(tip);
   };
 
+  const debrid = connectedDebrid(accounts, byId);
+  const ids = priority && ladderOf(priority, debrid);
+  const troubleFor = (id: string) => {
+    const failed = debrid.get(id);
+    return failed && t('accounts.routing.checkFailed', { reason: failed });
+  };
+
   // "Automatisch" stores an empty order, which clears the stored one, so the
   // order follows the ladder as it changes instead of freezing today's.
   async function store(next: string[]) {
@@ -1025,33 +1068,44 @@ function RoutingSection({
 ${t('accounts.routing.orderHintTorrents')}`}
         intro={t('accounts.routing.priorityIntro')}
       >
-        {priority === null ? (
+        {ids === null ? (
           <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-        ) : priority.length === 0 ? (
-          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
         ) : (
-          <>
-            <div data-new="priority-tips">
-              <PriorityLadder
-                ids={priority.map((r) => r.id)}
-                title={title}
-                labelFor={labelFor}
-                tipFor={tipFor}
-                busy={busy}
-                onReorder={store}
+          <div data-new="priority-accounts" className="flex flex-col gap-3">
+            {ids.every((id) => BUILT_IN.includes(id)) ? (
+              // The built-in backends alone are no order worth setting.
+              <EmptyState
+                nested
+                icon={<IconAccounts width={26} height={26} />}
+                title={t('accounts.routing.priorityNone')}
+                hint={emptyPointer}
               />
-            </div>
-            <div className="flex items-center gap-2">
-              <Button
-                kind="secondary"
-                disabled={busy}
-                hint={t('accounts.routing.priorityAutoHint')}
-                onClick={() => void store([])}
-              >
-                {t('accounts.routing.priorityAuto')}
-              </Button>
-            </div>
-          </>
+            ) : (
+              <>
+                <div data-new="priority-tips">
+                  <PriorityLadder
+                    ids={ids}
+                    title={title}
+                    labelFor={labelFor}
+                    tipFor={tipFor}
+                    troubleFor={troubleFor}
+                    busy={busy}
+                    onReorder={store}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    kind="secondary"
+                    disabled={busy}
+                    hint={t('accounts.routing.priorityAutoHint')}
+                    onClick={() => void store([])}
+                  >
+                    {t('accounts.routing.priorityAuto')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
         )}
       </PriorityCard>
 

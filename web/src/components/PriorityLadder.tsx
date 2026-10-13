@@ -1,10 +1,11 @@
 import { useRef, useState, type ReactNode } from 'react';
 import { useT } from '../lib/i18n';
 import type { GlyphProps } from '../lib/glyphs';
+import { IconWarning } from '../lib/icons';
 import { LIFT, SETTLE, useReorder } from './dragLift';
 import { PriorityFlow, nameBand } from './pictures/PriorityFlow';
 import { RowGrip, moveTo } from './RowGrip';
-import { Card, InfoBubble, SectionTitle } from './ui';
+import { Card, InfoBubble, SectionTitle, useTooltip } from './ui';
 
 /**
  * PriorityLadder is a priority picture whose names are rows that set the
@@ -19,6 +20,7 @@ export function PriorityLadder({
   title,
   labelFor,
   tipFor,
+  troubleFor,
   glyph,
   busy = false,
   onReorder,
@@ -29,6 +31,8 @@ export function PriorityLadder({
   labelFor: (id: string) => string;
   /** What a row takes, for a row whose name does not say it. */
   tipFor?: (id: string) => string | undefined;
+  /** Why a row's account does not work, for a row that stays in the order all the same. */
+  troubleFor?: (id: string) => string | undefined;
   glyph?: (p: GlyphProps) => ReactNode;
   busy?: boolean;
   onReorder: (next: string[]) => Promise<void> | void;
@@ -75,6 +79,7 @@ export function PriorityLadder({
           const look = drag.look(id);
           const carried = look === LIFT || look === SETTLE;
           const tip = tipFor?.(id);
+          const trouble = troubleFor?.(id);
           return (
             <li
               key={id}
@@ -94,7 +99,8 @@ export function PriorityLadder({
                 }}
               />
               <span className="flex min-w-0 items-center">
-                <span className="truncate text-carbon-text">{labelFor(id)}</span>
+                <span className={`truncate text-carbon-text ${trouble ? 'opacity-55' : ''}`}>{labelFor(id)}</span>
+                {trouble && <Trouble reason={trouble} />}
                 {tip && <InfoBubble tip={tip} />}
               </span>
             </li>
@@ -102,6 +108,19 @@ export function PriorityLadder({
         })}
       </ol>
     </PriorityFlow>
+  );
+}
+
+/** Trouble is the warning beside a row whose account does not work, with the reason in its bubble. */
+function Trouble({ reason }: { reason: string }) {
+  const tip = useTooltip<HTMLSpanElement>(reason);
+  return (
+    <>
+      <span {...tip.triggerProps} aria-label={reason} className="ms-1.5 inline-flex shrink-0 text-statusWarn">
+        <IconWarning width={14} height={14} />
+      </span>
+      {tip.node}
+    </>
   );
 }
 

@@ -463,7 +463,7 @@ it('sends the reader of an empty card to the floating action by its name', async
   await act(async () => root.render(page));
   const pointer = 'To add one, use “Add an account” at the bottom of the page.';
   const empty = [...host.querySelectorAll('.glim-well')].filter((w) => w.textContent?.includes('yet'));
-  expect(empty).toHaveLength(5);
+  expect(empty).toHaveLength(6);
   for (const card of empty) expect(card.textContent).toContain(pointer);
 });
 
@@ -497,6 +497,40 @@ it('opens an account from anywhere on its row, and its menu on a right click', a
 
   await act(async () => row.querySelector('td:nth-child(3)')!.dispatchEvent(new MouseEvent('click', { bubbles: true })));
   expect(windowTitle()).toContain('TorBox');
+});
+
+it('keeps every connected debrid account in the download order, and says why one does not work', async () => {
+  const debrid = (id: string, label: string) => ({ id, label, kind: 'apiKey', group: 'debrid', whereUrl: '' });
+  const key = (service: string, ok: boolean, detail: string) => ({
+    id: service,
+    service,
+    account: '',
+    label: '',
+    enabled: true,
+    configured: true,
+    fromEnv: false,
+    ok,
+    detail,
+  });
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async (url: string) => {
+      if (url === '/api/accounts/catalogue') return reply([debrid('torbox', 'TorBox'), debrid('realdebrid', 'Real-Debrid')]);
+      if (url === '/api/accounts') return reply([key('torbox', true, 'credential accepted'), key('realdebrid', false, 'bad token')]);
+      // The instance has wired TorBox, not yet Real-Debrid.
+      if (url === '/api/resolvers/priority') return reply([{ id: 'torbox', prio: 50 }, { id: 'direct', prio: 40 }]);
+      if (url === '/api/settings') return reply({ premiumOnly: false });
+      if (url === '/api/features') return reply({ modules: [], pages: [] });
+      return reply([]);
+    }),
+  );
+  await act(async () => root.render(page));
+  const list = host.querySelector('ol[aria-label="Download priority order"]')!;
+  const rows = [...list.querySelectorAll('li')];
+  expect(rows.map((r) => r.getAttribute('data-ladder-id'))).toEqual(['torbox', 'direct', 'realdebrid']);
+  expect(rows.map((r) => r.textContent)).toEqual(['TorBox', 'Direct download', 'Real-Debrid']);
+  expect(rows[2].querySelector('[aria-label="The last check of this account failed: bad token"]')).not.toBeNull();
+  expect(rows[0].querySelector('[aria-label^="The last check"]')).toBeNull();
 });
 
 it('orders the connected captcha accounts beside the download backends and saves without a settings draft', async () => {

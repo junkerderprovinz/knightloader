@@ -173,6 +173,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.captchaPriority',
         names: { name: 'settings.captcha.orderTitle', download: 'accounts.routing.priorityTitle' },
       },
+      {
+        id: 'priority-accounts',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.priorityAccounts',
+        names: { download: 'accounts.routing.priorityTitle', captcha: 'settings.captcha.orderTitle' },
+      },
       { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
       // Drawn in every window and list that is searched, and listed with the
       // first page that has one in view.

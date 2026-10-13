@@ -2,7 +2,7 @@ import { type Account, ApiError, type CatalogueService, createTestCaptcha } from
 import { type TranslationKey, useT } from '../../../lib/i18n';
 import { IconCaptcha } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
-import { NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
+import { EmptyState, NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
 import { TestButton } from '../../../components/TestButton';
 import { useDraft, useFeatures } from '../context';
@@ -64,6 +64,11 @@ export function CaptchaPriorityCard({
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = connectedSolvers(order, accounts, catalogue);
   const labelOf = new Map(solvers.map((s) => [s.id, s.label]));
+  // A key that failed its check stays in the order, since it is still tried.
+  const troubleFor = (id: string) => {
+    const a = accounts.find((x) => x.service === id && x.account === '');
+    return a && a.detail && !a.ok ? t('accounts.routing.checkFailed', { reason: a.detail }) : undefined;
+  };
   // An account whose key is gone keeps its place, for when it comes back.
   const reorder = (next: string[]) =>
     patch({ captchaSolverOrder: [...next, ...order.filter((id) => !next.includes(id))] });
@@ -88,17 +93,25 @@ export function CaptchaPriorityCard({
         )
       }
     >
-      {solvers.length === 0 ? (
-        <p className="text-sm text-carbon-textMuted">{t('settings.captcha.orderEmpty')}</p>
-      ) : (
-        <PriorityLadder
-          ids={solvers.map((s) => s.id)}
-          title={title}
-          labelFor={(id) => labelOf.get(id) ?? id}
-          glyph={IconCaptcha}
-          onReorder={reorder}
-        />
-      )}
+      <div data-new="priority-accounts">
+        {solvers.length === 0 ? (
+          <EmptyState
+            nested
+            icon={<IconCaptcha width={26} height={26} />}
+            title={t('settings.captcha.orderEmpty')}
+            hint={t('accounts.addPointer', { button: t('accounts.newAccount') })}
+          />
+        ) : (
+          <PriorityLadder
+            ids={solvers.map((s) => s.id)}
+            title={title}
+            labelFor={(id) => labelOf.get(id) ?? id}
+            troubleFor={troubleFor}
+            glyph={IconCaptcha}
+            onReorder={reorder}
+          />
+        )}
+      </div>
 
       {/* Nothing reads these while no captcha account is connected. */}
       {solvers.length > 0 && (
