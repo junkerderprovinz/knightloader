@@ -1,6 +1,6 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../lib/i18n';
-import { Button, Card, SectionTitle } from '../../components/ui';
+import { Button, Card, HintBubble, SectionTitle } from '../../components/ui';
 import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconDiagnostics, IconGithub, IconInfo } from '../../lib/icons';
@@ -133,13 +133,13 @@ function VersionNumber({ version, page }: { version: string; page: string }) {
   );
 }
 
-/** One thing the app is made of: its name, what it is, and its number at the end. */
-function VersionRow({ name, sub, children }: { name: string; sub?: ReactNode; children: ReactNode }) {
+/** One thing the app is made of: its name with what it is behind an (i), and its number at the end. */
+function VersionRow({ name, sub, children }: { name: string; sub?: string; children: ReactNode }) {
   return (
     <li className="flex items-center justify-between gap-4">
-      <span className="flex min-w-0 flex-col">
+      <span className="flex min-w-0 items-center gap-1.5">
         <span className="text-sm text-carbon-text">{name}</span>
-        {sub && <span className="flex items-center text-subline text-carbon-textMuted">{sub}</span>}
+        <HintBubble hint={sub} />
       </span>
       <span dir="ltr" className="glim-num shrink-0 text-sm text-carbon-textSub">
         {children}

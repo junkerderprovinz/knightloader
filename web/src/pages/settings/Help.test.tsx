@@ -118,6 +118,15 @@ describe('the Info tile', () => {
     expect(asked).not.toContain('/api/mediatools');
   });
 
+  it('says what a part is behind an (i) beside its name', async () => {
+    await draw();
+    expect(row('GlimStone').querySelector('[role="note"]')?.getAttribute('aria-label')).toBe(
+      'The design language KnightLoader is built in',
+    );
+    expect(row('GlimStone').textContent).not.toContain('The design language');
+    expect(row('KnightLoader').querySelector('[role="note"]')).toBeNull();
+  });
+
   it('links a branch build to the release it was cut from', async () => {
     answers['/api/health'] = { status: 'ok', version: 'v1.8.4+redesign.59b73a6' };
     await draw();

@@ -37,17 +37,6 @@ const LISTS = ['/downloads', '/collector'];
 /** Newest first. Only the newest release an update passes is marked. */
 export const RELEASES: Release[] = [
   {
-    after: '2.0.0',
-    changes: [
-      {
-        id: 'jd-update',
-        to: ['/settings/look'],
-        text: 'whatsnew.change.jdUpdate',
-        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
-      },
-    ],
-  },
-  {
     after: '1.9.0',
     changes: [
       { id: 'overview-head', to: ['/'], text: 'whatsnew.change.overviewHead', names: { name: 'nav.overview' } },
@@ -311,6 +300,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.builtIn',
         names: { name: 'settings.look.builtInTitle', updates: 'settings.look.updatesTitle' },
       },
+      {
+        id: 'jd-update',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.jdUpdate',
+        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
+      },
       { id: 'row-window', to: ['/settings/rules'], text: 'whatsnew.change.rowWindow' },
       { id: 'pairing-steps', to: ['/settings/pairing'], text: 'whatsnew.change.pairingSteps' },
       { id: 'pairing-group', to: ['/settings/pairing'], text: 'whatsnew.change.pairingGroup' },
@@ -412,7 +407,7 @@ export const RELEASES: Release[] = [
           free: 'settings.accounts.freeTitle',
           parts: 'settings.health.parts',
           health: 'settings.nav.health',
-          builtIn: 'settings.look.builtInTitle',
+          updates: 'settings.look.updatesTitle',
         },
       },
       {

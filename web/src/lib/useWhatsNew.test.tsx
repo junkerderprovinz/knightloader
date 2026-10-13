@@ -54,12 +54,11 @@ it('marks an update, opens the release notes once and remembers what was seen', 
   });
   expect(open).toBe('notes');
   expect(news!.version).toBe('v2.0.0');
-  const marked = RELEASES.find((r) => r.after === '1.9.0')!.changes;
-  expect(news!.unseen).toEqual(marked);
+  expect(news!.unseen).toEqual(RELEASES[0].changes);
 
   await act(async () => news!.markSeen(['seed-ring', 'week-band']));
   expect(news!.seen).toEqual(new Set(['seed-ring', 'week-band']));
-  expect(news!.unseen).toHaveLength(marked.length - 2);
+  expect(news!.unseen).toHaveLength(RELEASES[0].changes.length - 2);
 
   await act(async () => {
     await flushUIState();
