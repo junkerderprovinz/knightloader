@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
+	"github.com/junkerderprovinz/knightloader/internal/realpath"
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
@@ -83,7 +84,14 @@ type Backend struct {
 	// until the task finishes, so a removal with files finds what an
 	// unfinished download left (see Remove). Each one also goes to the task
 	// as Update.WorkFile, which is what is left of the list after a restart.
-	parts map[string][]string
+	parts map[string]*taskParts
+}
+
+// taskParts is what a task's runs wrote and the folder they wrote it in, the
+// one Discard holds them to.
+type taskParts struct {
+	folder string
+	files  []string
 }
 
 // runState is one yt-dlp process of a task: cancel stops it, and ended is
@@ -111,7 +119,7 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 		bin: bin, dir: dir, onUpdate: onUpdate,
 		runs:  map[string]*runState{},
 		url:   map[string]string{},
-		parts: map[string][]string{},
+		parts: map[string]*taskParts{},
 	}
 }
 
@@ -362,7 +370,9 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			continue
 		}
 		if name, ok := finishedFile(line); ok {
-			b.remember(taskID, name)
+			if !b.ownFile(taskID, dir, out, name) {
+				continue
+			}
 			// Nothing is merged, so the first stream, the video, stays the
 			// task's file and every one after it is a further file.
 			if apart && final != "" {
@@ -376,16 +386,15 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name), WorkFile: name})
 			continue
 		}
-		if path, ok := wroteFile(line); ok {
+		if path, ok := wroteFile(line); ok && b.ownFile(taskID, dir, out, path) {
 			written = append(written, path)
-			b.remember(taskID, path)
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
 		}
 		if wroteSubtitle(line) {
 			subFiles++
 		}
 		if opts.Variant == VariantSubtitle {
-			if from, to, ok := convertedSubtitle(line); ok {
+			if from, to, ok := convertedSubtitle(line); ok && b.ownFile(taskID, dir, out, to) {
 				if final == from {
 					final = to
 				}
@@ -394,7 +403,6 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 						written[i] = to
 					}
 				}
-				b.remember(taskID, to)
 				b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: to})
 			}
 		}
@@ -1304,24 +1312,86 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	parts := b.parts[taskID]
 	delete(b.parts, taskID)
 	b.mu.Unlock()
-	Discard(taskID, parts, b.InUse)
+	if parts != nil {
+		Discard(taskID, []string{parts.folder}, parts.files, b.InUse)
+	}
 }
 
-// remember notes a file a run of taskID wrote, for Remove.
-func (b *Backend) remember(taskID, path string) {
+// ownFile reports whether path, as yt-dlp printed it, lies in out, the folder
+// this run writes to, and if so notes it for Remove under the task's folder
+// dir. The lines carry text the site chose, such as a video id, so a line can
+// name any path at all.
+func (b *Backend) ownFile(taskID, dir, out, path string) bool {
+	if !inFolder(out, path) {
+		log.Printf("yt-dlp: task %s: ignored %q, which is not in %s", taskID, path, out)
+		return false
+	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if !slices.Contains(b.parts[taskID], path) {
-		b.parts[taskID] = append(b.parts[taskID], path)
+	p := b.parts[taskID]
+	if p == nil {
+		p = &taskParts{}
+		b.parts[taskID] = p
+	}
+	p.folder = dir
+	if !slices.Contains(p.files, path) {
+		p.files = append(p.files, path)
+	}
+	return true
+}
+
+// inFolder reports whether p lies below folder once both are absolute and
+// every link on the way that exists is followed, so neither a "../" nor a
+// linked folder leads out of it.
+func inFolder(folder, p string) bool {
+	f, err := resolvePath(folder)
+	if err != nil {
+		return false
+	}
+	q, err := resolvePath(p)
+	if err != nil {
+		return false
+	}
+	rel, err := filepath.Rel(f, q)
+	if err != nil {
+		return false
+	}
+	return rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// resolvePath is p made absolute with every link resolved up to the deepest
+// part of it that exists. A file yt-dlp announces is written only after the
+// announcement, and its folder may not be there yet either.
+func resolvePath(p string) (string, error) {
+	p, err := filepath.Abs(p)
+	if err != nil {
+		return "", err
+	}
+	var rest []string
+	for at := p; ; {
+		if real, err := realpath.Resolve(at); err == nil {
+			return filepath.Join(append([]string{real}, rest...)...), nil
+		}
+		parent := filepath.Dir(at)
+		if parent == at {
+			return p, nil
+		}
+		rest = append([]string{filepath.Base(at)}, rest...)
+		at = parent
 	}
 }
 
 // Discard deletes each file an unfinished download of taskID wrote together
 // with its .part, its .ytdl progress file, its fragments and the .temp copy a
 // post-processor writes beside it. A file inUse reports as another task's
-// stays, and so do its .part and the rest.
-func Discard(taskID string, paths []string, inUse func(taskID, path string) bool) {
+// stays, and so do its .part and the rest. A path in none of folders, where the
+// task's downloads go, is never deleted, whatever put it on the list.
+func Discard(taskID string, folders, paths []string, inUse func(taskID, path string) bool) {
 	for _, p := range paths {
+		if !slices.ContainsFunc(folders, func(f string) bool { return inFolder(f, p) }) {
+			log.Printf("did not delete %q, which is not in %s (task %s)", p, strings.Join(folders, ", "), taskID)
+			continue
+		}
 		if inUse != nil && inUse(taskID, p) {
 			continue
 		}
