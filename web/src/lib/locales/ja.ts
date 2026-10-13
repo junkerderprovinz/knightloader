@@ -3432,6 +3432,8 @@ export const ja: Dict = {
   'failure.dataFolder.next': 'データフォルダーの外にあるフォルダーを、設定またはこのダウンロードで選んでから、もう一度お試しください。',
   'failure.holdsDataFolder.line': 'KnightLoader のデータフォルダーが {path} の中にあるため、ダウンロードはそこに置けません。',
   'failure.holdsDataFolder.next': 'データフォルダーを含まないフォルダーを、設定またはこのダウンロードで選んでから、もう一度お試しください。',
+  'failure.debridImport.line': 'debrid アカウントから取り込まれたものです。2.0 ではこの取り込みを行いません。',
+  'failure.debridImport.next': 'リンクを追加し直してください。',
   'failure.captcha.line': 'ホスターがキャプチャを解くよう求めています。',
   'failure.captcha.next': 'キャプチャが出たら答えるか、アカウントページでキャプチャアカウントを追加してください。',
   'failure.cancelled.line': 'ダウンロードは終わる前に止められました。',

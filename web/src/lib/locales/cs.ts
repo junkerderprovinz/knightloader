@@ -3445,6 +3445,8 @@ export const cs: Dict = {
   'failure.dataFolder.next': 'Zvol složku mimo datovou složku, v nastavení nebo pro toto stahování, a zkus to znovu.',
   'failure.holdsDataFolder.line': 'Datová složka KnightLoaderu leží uvnitř {path}, a proto tam stahování nesmí.',
   'failure.holdsDataFolder.next': 'Zvol složku, která neobsahuje datovou složku, v nastavení nebo pro toto stahování, a zkus to znovu.',
+  'failure.debridImport.line': 'Importováno z debrid účtu, což verze 2.0 už nedělá.',
+  'failure.debridImport.next': 'Přidej odkaz znovu.',
   'failure.captcha.line': 'Hoster chce vyřešit captchu.',
   'failure.captcha.next': 'Odpověz na captchu, až se objeví, nebo přidej účet captchy na stránce Účty.',
   'failure.cancelled.line': 'Stahování bylo zastaveno dřív, než skončilo.',

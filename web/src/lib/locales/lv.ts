@@ -3426,6 +3426,8 @@ export const lv: Dict = {
   'failure.dataFolder.next': 'Izvēlies mapi ārpus datu mapes, iestatījumos vai šai lejupielādei, un mēģini vēlreiz.',
   'failure.holdsDataFolder.line': 'KnightLoader datu mape atrodas {path} iekšpusē, tāpēc lejupielādes tur nedrīkst nonākt.',
   'failure.holdsDataFolder.next': 'Izvēlies mapi, kurā nav datu mapes, iestatījumos vai šai lejupielādei, un mēģini vēlreiz.',
+  'failure.debridImport.line': 'Importēts no debrid konta, ko 2.0 vairs nedara.',
+  'failure.debridImport.next': 'Pievieno saiti vēlreiz.',
   'failure.captcha.line': 'Glabātājs grib, lai atrisina captcha.',
   'failure.captcha.next': 'Atbildi uz captcha, kad tā parādās, vai pievieno captcha kontu lapā Konti.',
   'failure.cancelled.line': 'Lejupielāde tika apturēta, pirms tā beidzās.',

@@ -3453,6 +3453,8 @@ export const he: Dict = {
   'failure.dataFolder.next': 'בחר תיקייה מחוץ לתיקיית הנתונים, בהגדרות או עבור ההורדה הזו, ונסה שוב.',
   'failure.holdsDataFolder.line': 'תיקיית הנתונים של KnightLoader נמצאת בתוך {path}, ולכן אסור שהורדות יגיעו לשם.',
   'failure.holdsDataFolder.next': 'בחר תיקייה שאינה מכילה את תיקיית הנתונים, בהגדרות או עבור ההורדה הזו, ונסה שוב.',
+  'failure.debridImport.line': 'יובא מחשבון ה־debrid, דבר שגרסה 2.0 כבר לא עושה.',
+  'failure.debridImport.next': 'הוסף את הקישור שוב.',
   'failure.captcha.line': 'המארח רוצה שתפתור קאפצ׳ה.',
   'failure.captcha.next': 'ענה על הקאפצ׳ה כשהיא מופיעה, או הוסף חשבון קאפצ׳ה בעמוד החשבונות.',
   'failure.cancelled.line': 'ההורדה נעצרה לפני שהסתיימה.',

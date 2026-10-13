@@ -3435,6 +3435,8 @@ export const id: Dict = {
   'failure.dataFolder.next': 'Pilih folder di luar folder data, di pengaturan atau untuk unduhan ini, lalu coba lagi.',
   'failure.holdsDataFolder.line': 'Folder data KnightLoader ada di dalam {path}, jadi unduhan tidak boleh ke sana.',
   'failure.holdsDataFolder.next': 'Pilih folder yang tidak memuat folder data, di pengaturan atau untuk unduhan ini, lalu coba lagi.',
+  'failure.debridImport.line': 'Diimpor dari akun debrid, yang tidak lagi dilakukan 2.0.',
+  'failure.debridImport.next': 'Tambahkan tautannya lagi.',
   'failure.captcha.line': 'Hoster ingin captcha dipecahkan.',
   'failure.captcha.next': 'Jawab captcha saat muncul, atau tambahkan akun captcha di halaman Akun.',
   'failure.cancelled.line': 'Unduhan dihentikan sebelum selesai.',

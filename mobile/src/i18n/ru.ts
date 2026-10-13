@@ -311,6 +311,8 @@ export const ru: Dict = {
   'failure.dataFolder.next': 'Выберите в веб-интерфейсе папку вне папки данных и попробуйте снова.',
   'failure.holdsDataFolder.line': 'Папка данных KnightLoader находится внутри {path}, поэтому загрузкам туда нельзя.',
   'failure.holdsDataFolder.next': 'Выберите в веб-интерфейсе папку, которая не содержит папку данных, и попробуйте снова.',
+  'failure.debridImport.line': 'Импортировано из debrid-аккаунта, а версия 2.0 этого больше не делает.',
+  'failure.debridImport.next': 'Добавьте ссылку заново.',
   'failure.captcha.line': 'Хостер требует решить капчу.',
   'failure.captcha.next': 'Решите капчу на экране «Капчи» или добавьте аккаунт капчи в веб-интерфейсе.',
   'failure.cancelled.line': 'Загрузка была остановлена до завершения.',

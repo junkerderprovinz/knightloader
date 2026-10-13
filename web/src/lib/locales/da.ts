@@ -3421,6 +3421,8 @@ export const da: Dict = {
   'failure.dataFolder.next': 'Vælg en mappe uden for datamappen, i indstillingerne eller for denne download, og prøv igen.',
   'failure.holdsDataFolder.line': 'KnightLoaders datamappe ligger inde i {path}, så downloads må ikke havne der.',
   'failure.holdsDataFolder.next': 'Vælg en mappe, der ikke indeholder datamappen, i indstillingerne eller for denne download, og prøv igen.',
+  'failure.debridImport.line': 'Importeret fra debrid-kontoen, hvilket 2.0 ikke længere gør.',
+  'failure.debridImport.next': 'Tilføj linket igen.',
   'failure.captcha.line': 'Hosteren vil have løst en captcha.',
   'failure.captcha.next': 'Besvar captchaen, når den dukker op, eller tilføj en captcha-konto på siden Konti.',
   'failure.cancelled.line': 'Downloaden blev stoppet, før den var færdig.',

@@ -311,6 +311,8 @@ export const hr: Dict = {
   'failure.dataFolder.next': 'U web sučelju odaberi mapu izvan mape s podacima, pa pokušaj ponovno.',
   'failure.holdsDataFolder.line': 'Mapa s podacima KnightLoadera nalazi se unutar {path}, pa preuzimanja ne smiju ići onamo.',
   'failure.holdsDataFolder.next': 'U web sučelju odaberi mapu koja ne sadrži mapu s podacima, pa pokušaj ponovno.',
+  'failure.debridImport.line': 'Uvezeno s debrid računa, što 2.0 više ne radi.',
+  'failure.debridImport.next': 'Ponovno dodaj poveznicu.',
   'failure.captcha.line': 'Hoster traži da se riješi captcha.',
   'failure.captcha.next': 'Odgovori na captchu na zaslonu Captche ili dodaj račun captche u web sučelju.',
   'failure.cancelled.line': 'Preuzimanje je zaustavljeno prije nego što je završilo.',

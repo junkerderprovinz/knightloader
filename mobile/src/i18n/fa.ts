@@ -311,6 +311,8 @@ export const fa: Dict = {
   'failure.dataFolder.next': 'در رابط وب پوشه‌ای بیرون از پوشهٔ داده انتخاب کنید، بعد دوباره امتحان کنید.',
   'failure.holdsDataFolder.line': 'پوشهٔ دادهٔ KnightLoader داخل {path} است، پس دانلودها نباید آن‌جا بروند.',
   'failure.holdsDataFolder.next': 'در رابط وب پوشه‌ای انتخاب کنید که پوشهٔ داده را در بر نداشته باشد، بعد دوباره امتحان کنید.',
+  'failure.debridImport.line': 'از حساب debrid وارد شده است، کاری که نسخهٔ 2.0 دیگر انجام نمی‌دهد.',
+  'failure.debridImport.next': 'پیوند را دوباره اضافه کن.',
   'failure.captcha.line': 'میزبان می‌خواهد یک کپچا حل شود.',
   'failure.captcha.next': 'در صفحهٔ «کپچاها» به کپچا پاسخ دهید، یا در رابط وب یک حساب کپچا اضافه کنید.',
   'failure.cancelled.line': 'دانلود پیش از تمام شدن متوقف شد.',

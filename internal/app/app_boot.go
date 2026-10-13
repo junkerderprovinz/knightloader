@@ -31,6 +31,9 @@ import (
 // done, since the download finished, and is written back so history and
 // retention see it.
 func (a *App) reviveOnBoot(t *core.Task, resume string, queueWasLive bool) (changed, enqueue bool) {
+	if failImported(t) {
+		return true, false
+	}
 	switch t.Status {
 	case core.StatusExtracting:
 		t.Status = core.StatusDone

@@ -3431,6 +3431,8 @@ export const eu: Dict = {
   'failure.dataFolder.next': 'Aukeratu datuen karpetatik kanpoko karpeta bat, ezarpenetan edo deskarga honetarako, eta saiatu berriro.',
   'failure.holdsDataFolder.line': 'KnightLoader-en datuen karpeta {path} barruan dago, eta, beraz, deskargak ezin dira hara joan.',
   'failure.holdsDataFolder.next': 'Aukeratu datuen karpeta barnean ez duen karpeta bat, ezarpenetan edo deskarga honetarako, eta saiatu berriro.',
+  'failure.debridImport.line': 'Debrid kontutik inportatua, eta 2.0k ez du hori egiten jada.',
+  'failure.debridImport.next': 'Gehitu esteka berriro.',
   'failure.captcha.line': 'Ostalariak captcha bat ebaztea nahi du.',
   'failure.captcha.next': 'Erantzun captchari agertzen denean, edo gehitu captcha kontu bat Kontuak orrian.',
   'failure.cancelled.line': 'Deskarga gelditu egin da amaitu aurretik.',

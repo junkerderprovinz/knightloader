@@ -272,6 +272,8 @@ export const de: Dict = {
   'failure.dataFolder.next': 'Wähl in der Weboberfläche einen Ordner außerhalb des Datenordners, dann versuch es noch einmal.',
   'failure.holdsDataFolder.line': 'Der Datenordner von KnightLoader liegt in {path}, deshalb dürfen dort keine Downloads hin.',
   'failure.holdsDataFolder.next': 'Wähl in der Weboberfläche einen Ordner, der den Datenordner nicht enthält, dann versuch es noch einmal.',
+  'failure.debridImport.line': 'Vom Debrid-Konto importiert, und das macht 2.0 nicht mehr.',
+  'failure.debridImport.next': 'Füg den Link neu hinzu.',
   'failure.captcha.line': 'Der Hoster will ein Captcha gelöst haben.',
   'failure.captcha.next': 'Beantworte das Captcha unter Captchas, oder richte in der Weboberfläche ein Captcha-Konto ein.',
   'failure.cancelled.line': 'Der Download wurde gestoppt, bevor er fertig war.',

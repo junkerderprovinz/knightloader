@@ -311,6 +311,8 @@ export const el: Dict = {
   'failure.dataFolder.next': 'Επίλεξε στη διεπαφή web φάκελο έξω από τον φάκελο δεδομένων και δοκίμασε ξανά.',
   'failure.holdsDataFolder.line': 'Ο φάκελος δεδομένων του KnightLoader βρίσκεται μέσα στο {path}, οπότε εκεί δεν επιτρέπεται να πηγαίνουν λήψεις.',
   'failure.holdsDataFolder.next': 'Επίλεξε στη διεπαφή web φάκελο που δεν περιέχει τον φάκελο δεδομένων και δοκίμασε ξανά.',
+  'failure.debridImport.line': 'Εισήχθη από τον λογαριασμό debrid, κάτι που η 2.0 δεν κάνει πια.',
+  'failure.debridImport.next': 'Πρόσθεσε ξανά τον σύνδεσμο.',
   'failure.captcha.line': 'Ο hoster θέλει να λυθεί ένα captcha.',
   'failure.captcha.next': 'Απάντησε στο captcha στην οθόνη Captcha ή πρόσθεσε έναν λογαριασμό captcha στη διεπαφή web.',
   'failure.cancelled.line': 'Η λήψη σταμάτησε πριν ολοκληρωθεί.',

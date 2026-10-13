@@ -3433,6 +3433,8 @@ export const ar: Dict = {
   'failure.dataFolder.next': 'اختر مجلدًا خارج مجلد البيانات، في الإعدادات أو لهذا التنزيل، ثم حاول مرة أخرى.',
   'failure.holdsDataFolder.line': 'مجلد بيانات KnightLoader موجود داخل {path}، لذلك لا يجوز أن تذهب التنزيلات إليه.',
   'failure.holdsDataFolder.next': 'اختر مجلدًا لا يحتوي على مجلد البيانات، في الإعدادات أو لهذا التنزيل، ثم حاول مرة أخرى.',
+  'failure.debridImport.line': 'مستورد من حساب debrid، وهذا ما لم يعد الإصدار 2.0 يفعله.',
+  'failure.debridImport.next': 'أضف الرابط من جديد.',
   'failure.captcha.line': 'المستضيف يطلب حلّ كابتشا.',
   'failure.captcha.next': 'أجب عن الكابتشا حين تظهر، أو أضف حساب كابتشا في صفحة الحسابات.',
   'failure.cancelled.line': 'أُوقف التنزيل قبل أن يكتمل.',

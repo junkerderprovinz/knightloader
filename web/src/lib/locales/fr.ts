@@ -3424,6 +3424,8 @@ export const fr: Dict = {
   'failure.dataFolder.next': 'Choisissez un dossier en dehors du dossier de données, dans les paramètres ou pour ce téléchargement, puis réessayez.',
   'failure.holdsDataFolder.line': 'Le dossier de données de KnightLoader se trouve dans {path}, les téléchargements ne doivent donc pas y aller.',
   'failure.holdsDataFolder.next': 'Choisissez un dossier qui ne contient pas le dossier de données, dans les paramètres ou pour ce téléchargement, puis réessayez.',
+  'failure.debridImport.line': 'Importé depuis le compte debrid, ce que la 2.0 ne fait plus.',
+  'failure.debridImport.next': 'Ajoutez de nouveau le lien.',
   'failure.captcha.line': 'L’hébergeur demande de résoudre un captcha.',
   'failure.captcha.next': 'Répondez au captcha quand il apparaît, ou ajoutez un compte captcha sur la page Comptes.',
   'failure.cancelled.line': 'Le téléchargement a été arrêté avant la fin.',

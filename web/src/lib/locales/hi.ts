@@ -3436,6 +3436,8 @@ export const hi: Dict = {
   'failure.dataFolder.next': 'डेटा फ़ोल्डर के बाहर कोई फ़ोल्डर चुनें, सेटिंग्स में या इस डाउनलोड के लिए, फिर दोबारा कोशिश करें।',
   'failure.holdsDataFolder.line': 'KnightLoader का डेटा फ़ोल्डर {path} के अंदर है, इसलिए डाउनलोड वहाँ नहीं जा सकते।',
   'failure.holdsDataFolder.next': 'ऐसा फ़ोल्डर चुनें जिसमें डेटा फ़ोल्डर न हो, सेटिंग्स में या इस डाउनलोड के लिए, फिर दोबारा कोशिश करें।',
+  'failure.debridImport.line': 'debrid खाते से आयात किया गया, जो 2.0 अब नहीं करता।',
+  'failure.debridImport.next': 'लिंक फिर से जोड़ें।',
   'failure.captcha.line': 'होस्टर चाहता है कि एक कैप्चा हल किया जाए।',
   'failure.captcha.next': 'कैप्चा आने पर उसका जवाब दें, या खाते पेज पर कोई कैप्चा खाता जोड़ें।',
   'failure.cancelled.line': 'डाउनलोड पूरा होने से पहले रोक दिया गया।',

@@ -311,6 +311,8 @@ export const hu: Dict = {
   'failure.dataFolder.next': 'Válassz a webes felületen egy mappát az adatmappán kívül, aztán próbáld újra.',
   'failure.holdsDataFolder.line': 'A KnightLoader adatmappája ezen belül van: {path}, ezért oda letöltés nem kerülhet.',
   'failure.holdsDataFolder.next': 'Válassz a webes felületen egy mappát, amely nem tartalmazza az adatmappát, aztán próbáld újra.',
+  'failure.debridImport.line': 'A debrid fiókból importálva, amit a 2.0 már nem csinál.',
+  'failure.debridImport.next': 'Add hozzá újra a linket.',
   'failure.captcha.line': 'A tárhely egy captcha megoldását kéri.',
   'failure.captcha.next': 'Válaszolj a captchára a Captchák képernyőn, vagy adj hozzá egy captcha-fiókot a webes felületen.',
   'failure.cancelled.line': 'A letöltés a befejezés előtt leállt.',

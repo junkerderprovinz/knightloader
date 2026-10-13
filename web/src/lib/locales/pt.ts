@@ -3425,6 +3425,8 @@ export const pt: Dict = {
   'failure.dataFolder.next': 'Escolhe uma pasta fora da pasta de dados, nas definições ou para esta transferência, e tenta outra vez.',
   'failure.holdsDataFolder.line': 'A pasta de dados do KnightLoader está dentro de {path}, por isso as transferências não podem ir para lá.',
   'failure.holdsDataFolder.next': 'Escolhe uma pasta que não contenha a pasta de dados, nas definições ou para esta transferência, e tenta outra vez.',
+  'failure.debridImport.line': 'Importado da conta debrid, algo que a 2.0 já não faz.',
+  'failure.debridImport.next': 'Volta a adicionar o link.',
   'failure.captcha.line': 'O hoster quer um captcha resolvido.',
   'failure.captcha.next': 'Responde ao captcha quando aparecer, ou adiciona uma conta de captcha na página Contas.',
   'failure.cancelled.line': 'A transferência foi parada antes de terminar.',

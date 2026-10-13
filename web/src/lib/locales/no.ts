@@ -3438,6 +3438,8 @@ export const no: Dict = {
   'failure.dataFolder.next': 'Velg en mappe utenfor datamappen, i innstillingene eller for denne nedlastingen, og prøv igjen.',
   'failure.holdsDataFolder.line': 'Datamappen til KnightLoader ligger inne i {path}, så nedlastinger får ikke havne der.',
   'failure.holdsDataFolder.next': 'Velg en mappe som ikke inneholder datamappen, i innstillingene eller for denne nedlastingen, og prøv igjen.',
+  'failure.debridImport.line': 'Importert fra debrid-kontoen, noe 2.0 ikke lenger gjør.',
+  'failure.debridImport.next': 'Legg til lenka på nytt.',
   'failure.captcha.line': 'Hosteren vil ha en captcha løst.',
   'failure.captcha.next': 'Svar på captchaen når den dukker opp, eller legg til en captcha-konto på siden Kontoer.',
   'failure.cancelled.line': 'Nedlastingen ble stoppet før den var ferdig.',

@@ -3449,6 +3449,8 @@ export const sr: Dict = {
   'failure.dataFolder.next': 'Изабери фасциклу ван фасцикле са подацима, у подешавањима или за ово преузимање, па покушај поново.',
   'failure.holdsDataFolder.line': 'Фасцикла са подацима KnightLoader-а налази се унутар {path}, па преузимања тамо не смеју.',
   'failure.holdsDataFolder.next': 'Изабери фасциклу која не садржи фасциклу са подацима, у подешавањима или за ово преузимање, па покушај поново.',
+  'failure.debridImport.line': 'Увезено са debrid налога, што 2.0 више не ради.',
+  'failure.debridImport.next': 'Поново додај везу.',
   'failure.captcha.line': 'Хостер тражи да се реши captcha.',
   'failure.captcha.next': 'Одговори на captcha када се појави или додај captcha налог на страници Налози.',
   'failure.cancelled.line': 'Преузимање је заустављено пре него што је завршено.',

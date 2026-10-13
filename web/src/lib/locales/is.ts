@@ -3431,6 +3431,8 @@ export const is: Dict = {
   'failure.dataFolder.next': 'Veldu möppu utan gagnamöppunnar, í stillingunum eða fyrir þetta niðurhal, og reyndu aftur.',
   'failure.holdsDataFolder.line': 'Gagnamappa KnightLoader er inni í {path}, svo niðurhal má ekki fara þangað.',
   'failure.holdsDataFolder.next': 'Veldu möppu sem inniheldur ekki gagnamöppuna, í stillingunum eða fyrir þetta niðurhal, og reyndu aftur.',
+  'failure.debridImport.line': 'Flutt inn af debrid-reikningnum, sem 2.0 gerir ekki lengur.',
+  'failure.debridImport.next': 'Bættu tenglinum aftur við.',
   'failure.captcha.line': 'Hýsillinn vill fá captcha leyst.',
   'failure.captcha.next': 'Svaraðu captcha þegar það birtist, eða bættu við captcha-reikningi á síðunni Reikningar.',
   'failure.cancelled.line': 'Niðurhalið var stöðvað áður en því lauk.',
