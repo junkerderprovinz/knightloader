@@ -3594,6 +3594,7 @@ export const fr: Dict = {
   'whatsnew.change.listBar': 'Trois boutons se trouvent au-dessus de la liste : « {filter} », « {sort} » et « {search} ».',
   'whatsnew.change.listRows': 'Les lignes commencent à l’aplomb du titre de la carte, et les boutons d’une ligne apparaissent tant que le pointeur est dessus.',
   'whatsnew.change.accountPicker': 'Vous choisissez un nouveau compte debrid, captcha ou d’hébergeur parmi des tuiles, chacune avec son logo. Les logos de tout un écran se chargent ensemble, et un hébergeur sans logo montre sa première lettre sur une tuile teintée.',
+  'whatsnew.change.hosterLogos': 'La plupart des hébergeurs du sélecteur affichent leur logo tout de suite, car les logos sont fournis avec KnightLoader. Seul un hébergeur sans logo prend encore son icône sur son propre site.',
   'whatsnew.change.accountRows': 'Un clic sur un compte l’ouvre, et un clic droit ouvre son menu.',
   'whatsnew.change.importGone': '« {name} » n’a plus de colonne « Importation ». KnightLoader ne récupère plus les téléchargements que vous ajoutez sur le site du service debrid.',
   'whatsnew.change.settingsSearch': 'Une recherche dans tous les paramètres apparaît quand vous faites défiler encore une fois vers le haut en haut d’une page, ou quand vous appuyez sur « / ». Pendant que vous y écrivez, le champ change de teinte et la loupe s’allume.',

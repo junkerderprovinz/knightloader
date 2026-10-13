@@ -147,8 +147,9 @@ async function fetchIcons(hosts: string[]): Promise<(host: string) => Icon> {
 }
 
 /**
- * HosterIcon draws a service's bundled mark, else the host's favicon, else a
- * monogram tile of the same size, so names line up either way.
+ * HosterIcon draws the mark bundled for a host or a domain above it, else the
+ * icon the instance fetched from the site, else a monogram tile of the same
+ * size, so names line up either way.
  */
 export function HosterIcon({ host, size = 18 }: { host: string; size?: number }) {
   const clean = hostOf(host);
@@ -160,6 +161,7 @@ export function HosterIcon({ host, size = 18 }: { host: string; size?: number })
         src={mark.src}
         alt=""
         aria-hidden
+        loading="lazy"
         style={box}
         className={`inline-block shrink-0 rounded-[var(--radius-control)] object-contain ${
           mark.plate ? 'bg-white p-px' : ''

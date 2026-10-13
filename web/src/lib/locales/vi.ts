@@ -3604,6 +3604,7 @@ export const vi: Dict = {
   'whatsnew.change.listBar': 'Có ba nút phía trên danh sách: “{filter}”, “{sort}” và “{search}”.',
   'whatsnew.change.listRows': 'Các hàng bắt đầu thẳng hàng với tiêu đề của thẻ, và các nút của một hàng hiện ra khi con trỏ ở trên hàng.',
   'whatsnew.change.accountPicker': 'Bạn chọn tài khoản debrid, tài khoản captcha hoặc tài khoản nhà lưu trữ mới từ các ô, mỗi ô có logo riêng. Logo của cả một màn hình được tải cùng lúc, và nhà lưu trữ không có logo sẽ hiện chữ cái đầu trên một ô có màu.',
+  'whatsnew.change.hosterLogos': 'Phần lớn nhà lưu trữ trong danh sách chọn hiện logo ngay, vì logo đi kèm KnightLoader. Chỉ nhà lưu trữ chưa có logo mới vẫn lấy biểu tượng từ trang web của chính nó.',
   'whatsnew.change.accountRows': 'Nhấp vào một tài khoản sẽ mở nó, và nhấp chuột phải sẽ mở menu của nó.',
   'whatsnew.change.importGone': '“{name}” không còn cột “Nhập” nữa. KnightLoader không còn lấy các lượt tải bạn thêm trên trang web của dịch vụ debrid.',
   'whatsnew.change.settingsSearch': 'Ô tìm kiếm trong mọi cài đặt hiện ra khi bạn cuộn lên thêm một lần nữa ở đầu trang, hoặc nhấn “/”. Khi bạn gõ vào đó, ô đổi sắc độ và kính lúp sáng lên.',

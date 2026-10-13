@@ -3602,6 +3602,7 @@ export const gl: Dict = {
   'whatsnew.change.listBar': 'Hai tres botóns enriba da lista: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'As filas comezan aliñadas co título da tarxeta, e os botóns dunha fila aparecen mentres o punteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolles unha conta nova de debrid, de captcha ou de aloxador entre mosaicos, cada un co seu logotipo. Os logotipos de toda unha pantalla cárganse xuntos, e un aloxador sen logotipo amosa a súa primeira letra sobre un mosaico tinguido.',
+  'whatsnew.change.hosterLogos': 'A maioría dos aloxadores do selector amosan o seu logotipo ao momento, porque os logotipos veñen con KnightLoader. Só un aloxador sen logotipo segue collendo a icona do seu propio sitio.',
   'whatsnew.change.accountRows': 'Un clic nunha conta ábrea, e un clic dereito abre o seu menú.',
   'whatsnew.change.importGone': '«{name}» xa non ten unha columna «Importación». KnightLoader xa non recolle as descargas que engades no sitio web do servizo debrid.',
   'whatsnew.change.settingsSearch': 'Aparece unha busca en todos os axustes cando te desprazas cara arriba unha vez máis ao principio dunha páxina, ou cando premes «/». Mentres escribes nela, o campo cambia de ton e a lupa ilumínase.',

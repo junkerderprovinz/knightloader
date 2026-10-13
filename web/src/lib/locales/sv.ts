@@ -3604,6 +3604,7 @@ export const sv: Dict = {
   'whatsnew.change.listBar': 'Ovanför listan finns tre knappar: ”{filter}”, ”{sort}” och ”{search}”.',
   'whatsnew.change.listRows': 'Raderna börjar i linje med kortets rubrik, och en rads knappar visas så länge pekaren är på den.',
   'whatsnew.change.accountPicker': 'Du väljer ett nytt debrid-, captcha- eller hosterkonto bland brickor, var och en med sin logotyp. Logotyperna på en hel skärm laddas tillsammans, och en hoster utan logotyp visar sin första bokstav på en tonad bricka.',
+  'whatsnew.change.hosterLogos': 'De flesta hosterna i väljaren visar sin logotyp direkt, eftersom logotyperna följer med KnightLoader. Bara en hoster utan logotyp hämtar fortfarande sin ikon från sin egen webbplats.',
   'whatsnew.change.accountRows': 'Ett klick på ett konto öppnar det, och ett högerklick öppnar dess meny.',
   'whatsnew.change.importGone': '”{name}” har inte längre någon kolumn ”Importera”. KnightLoader hämtar inte längre nedladdningar som du lägger till på debrid-tjänstens webbplats.',
   'whatsnew.change.settingsSearch': 'En sökning i alla inställningar visas när du rullar upp en gång till högst upp på en sida eller trycker på ”/”. Medan du skriver i den byter fältet nyans och förstoringsglaset tänds.',

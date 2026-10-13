@@ -3588,6 +3588,7 @@ export const it: Dict = {
   'whatsnew.change.listBar': 'Sopra l’elenco ci sono tre pulsanti: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'Le righe iniziano allineate al titolo della scheda, e i pulsanti di una riga compaiono finché il puntatore è su di essa.',
   'whatsnew.change.accountPicker': 'Scegli un nuovo account debrid, captcha o hoster tra riquadri, ciascuno con il suo logo. I loghi di un’intera schermata si caricano insieme, e un hoster senza logo mostra la sua iniziale su un riquadro colorato.',
+  'whatsnew.change.hosterLogos': 'La maggior parte degli hoster nel selettore mostra subito il suo logo, perché i loghi arrivano con KnightLoader. Solo un hoster senza logo prende ancora l’icona dal proprio sito.',
   'whatsnew.change.accountRows': 'Un clic su un account lo apre, e un clic destro apre il suo menu.',
   'whatsnew.change.importGone': '«{name}» non ha più una colonna «Importazione». KnightLoader non raccoglie più i download che aggiungi sul sito del servizio debrid.',
   'whatsnew.change.settingsSearch': 'Una ricerca in tutte le impostazioni compare quando scorri ancora una volta verso l’alto in cima a una pagina, o quando premi «/». Mentre scrivi, il campo cambia tonalità e la lente si illumina.',
