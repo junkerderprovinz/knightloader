@@ -25,6 +25,9 @@ export function LiveSettings({ children }: { children: ReactNode }) {
   const [features, setFeatures] = useState<FeatureState | null>(null);
   const pending = useRef<Partial<Settings>>({});
   const timer = useRef(0);
+  // Numbers the saves, so only the newest one's reply is drawn: an older one
+  // would put back what was edited after it.
+  const saves = useRef(0);
 
   useEffect(() => {
     let live = true;
@@ -52,12 +55,14 @@ export function LiveSettings({ children }: { children: ReactNode }) {
   const save = useCallback(async () => {
     const fields = pending.current;
     pending.current = {};
+    const save = ++saves.current;
     try {
       const saved = await patchSettings(fields);
-      if (Object.keys(pending.current).length === 0) setCfg(saved);
+      if (save === saves.current && Object.keys(pending.current).length === 0) setCfg(saved);
     } catch (e) {
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
-      setCfg(await fetchSettings().catch(() => null));
+      const stored = await fetchSettings().catch(() => null);
+      if (save === saves.current) setCfg(stored);
     }
   }, [t, toast]);
 

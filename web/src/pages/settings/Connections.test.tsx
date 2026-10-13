@@ -38,9 +38,9 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function mount() {
+async function mount(connections: object[] = [proxy]) {
   const draft = {
-    cfg: { connections: [proxy] },
+    cfg: { connections },
     patch: () => {},
     fieldError: () => undefined,
     showRefusalsAt: () => () => {},
@@ -137,6 +137,23 @@ describe('the picture of the routes', () => {
     expect(test.textContent).toBe('Not connected');
     const reason = [...host.querySelectorAll('p')].find((p) => p.textContent === 'proxy.example.org:8080 could not be reached')!;
     expect(reason.compareDocumentPosition(test) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
+  it('drops the reason a test gives for a route changed while it ran', async () => {
+    let reply = (_r: Response) => {};
+    vi.stubGlobal('fetch', () => new Promise<Response>((done) => (reply = done)));
+    await mount();
+    await act(async () => named('Test').click());
+    await mount([{ ...proxy, port: 8081 }]);
+    await act(async () =>
+      reply(
+        new Response(JSON.stringify({ stage: 'dial', millis: 12, ok: false, detail: 'refused' }), {
+          headers: { 'Content-Type': 'application/json' },
+        }),
+      ),
+    );
+    expect([...host.querySelectorAll('p')].some((p) => p.textContent === 'refused')).toBe(false);
+    expect(named('Test').textContent).toBe('Test');
   });
 
   it('opens a row from its route', async () => {

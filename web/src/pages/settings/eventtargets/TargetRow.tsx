@@ -143,9 +143,9 @@ export function TargetRow({
     onChange(next);
   };
 
-  // The server's reading of the host where it has one, so the row and the
-  // status table agree.
-  const host = status?.host || hostOf(urlText);
+  // The address as typed, which is newer than the server's reading of it until
+  // the next save; the server's where the typed one has no host to show.
+  const host = hostOf(urlText) || status?.host || '';
   const ticked = row.triggers?.length ?? 0;
   const method: TargetMethod = row.method ?? 'POST';
 

@@ -222,5 +222,19 @@ describe('the picture of the routes', () => {
       });
       expect(spoke('p').getAttribute('data-state')).toBe('ok');
     });
+
+    it('redraws a tested picture with another number of routes', async () => {
+      const test: RouteTest = { run: 1, verdicts: { p: 'ok' } };
+      await draw(read({ rows: [{ ...proxy, filter: ['a.example'] }] }), test);
+      await act(async () => {
+        flights.forEach((f) => f.land());
+        await Promise.resolve();
+      });
+      expect(spoke('p').getAttribute('data-state')).toBe('ok');
+
+      await draw(read({ rows: [{ ...proxy, filter: ['a.example'] }, nas] }), test);
+      expect(spoke('p').getAttribute('data-state')).toBe('ok');
+      expect(spoke('n')).not.toBeNull();
+    });
   });
 });

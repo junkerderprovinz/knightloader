@@ -143,7 +143,7 @@ export function PasswordCard({
   const locked = auth?.enabled ?? false;
 
   return (
-      <Card hue={0} className="flex flex-col gap-5" data-new="password-reset">
+      <Card hue={0} className="flex flex-col gap-5">
         {/* The status stays visible; why a password matters is in the title's hint. */}
         <SectionTitle hint={t('settings.lockHint')}>
           {t('auth.password')}
@@ -188,7 +188,7 @@ export function PasswordCard({
         </div>
         {/* Everything works without an app key, so it is a name with its
             explanation behind the (i) rather than a warning or a state. */}
-        <span data-new="app-key" className="flex flex-wrap items-center gap-2 text-sm text-carbon-textSub">
+        <span data-testid="app-key" className="flex flex-wrap items-center gap-2 text-sm text-carbon-textSub">
           <span className="inline-flex items-center">
             {t('settings.appKeyTitle')}
             <InfoBubble tip={t('settings.appKeyHint')} />
@@ -220,7 +220,7 @@ function TrustedProxiesField({ behindProxy }: { behindProxy: boolean }) {
   const unused = unusedProxyRanges(cfg.trustedProxies);
   if (!wanted && !kept) return null;
   return (
-    <div className="flex flex-col gap-1.5" data-new="trusted-proxies">
+    <div className="flex flex-col gap-1.5">
       <Field label={t('settings.access.trustedProxies')} hint={t('settings.access.trustedProxiesHint')}>
         <ListArea
           rows={3}

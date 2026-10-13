@@ -15,6 +15,7 @@ import { WhatsNew } from '../components/whatsnew/WhatsNew';
 import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { StatusStrip } from '../components/StatusStrip';
 import { InfoBubble } from '../components/ui';
+import { PageBoundary } from './PageBoundary';
 import { connectWS, fetchSettings, type Task } from '../lib/api';
 import {
   applyAccent,
@@ -241,7 +242,9 @@ export function Layout() {
                   : `glim-page-enter glim-column-top flex w-full flex-col sm:px-6 md:px-8 ${height}`
               }
             >
-              <Outlet />
+              <PageBoundary>
+                <Outlet />
+              </PageBoundary>
             </div>
           </PageActionsProvider>
           {/* The page's floating actions, with the page's own side padding so

@@ -6,11 +6,12 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { fmtSpeed } from '../lib/format';
 import { I18nProvider } from '../lib/i18n';
 import { DOWNLOAD_INK, SEEDING_INK } from '../lib/speedLines';
-import { ceilingOf, labelTops, limitMark, meterWindow, Plot, spanLabel, SpeedLegend } from './SpeedGraph';
+import { ceilingOf, labelTops, limitMark, meterWindow, Plot, spanLabel, SpeedLegend, SpeedMeter } from './SpeedGraph';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const MB = 1_000_000;
+const MUTED = 'var(--carbon-text-muted)';
 
 describe('spanLabel', () => {
   it('writes the span in the symbols the window field writes', () => {
@@ -116,6 +117,8 @@ describe('Plot', () => {
   beforeEach(() => {
     // Reduced motion, so the curve is placed once and nothing glides.
     vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
+    // jsdom lays out no text; every figure is taken to be 40 wide.
+    Object.assign(SVGElement.prototype, { getComputedTextLength: () => 40 });
     host = document.createElement('div');
     document.body.append(host);
     root = createRoot(host);
@@ -125,6 +128,7 @@ describe('Plot', () => {
     act(() => root.unmount());
     host.remove();
     vi.unstubAllGlobals();
+    delete (SVGElement.prototype as { getComputedTextLength?: unknown }).getComputedTextLength;
   });
 
   function draw(samples: number[], limit: number, upload = samples.map(() => 0), uploadLimit = 0) {
@@ -152,12 +156,12 @@ describe('Plot', () => {
 
   const mark = (kind: 'download' | 'upload') => host.querySelector<SVGGElement>(`[data-limit-mark="${kind}"]`);
 
-  function offset(g: SVGGElement): number {
-    const m = /translate\(0 ([\d.]+)\)/.exec(g.getAttribute('transform') ?? '');
+  function offset(g: Element): number {
+    const m = /translate\(0 (-?[\d.]+)\)/.exec(g.getAttribute('transform') ?? '');
     return m ? Number(m[1]) : NaN;
   }
 
-  const figureTop = (g: SVGGElement) => offset(g) + Number(g.querySelector('text')!.getAttribute('y')) - 12;
+  const figureTop = (g: SVGGElement) => offset(g) + offset(g.children[2]);
 
   it('draws no limit mark without a limit', () => {
     expect(draw([MB, 2 * MB, 2 * MB], 0)).toBeNull();
@@ -165,26 +169,39 @@ describe('Plot', () => {
     expect(mark('upload')).toBeNull();
   });
 
-  it('marks the download limit at the right edge in the download colour, with no line across the plot', () => {
+  it('marks the download limit at the right edge in the muted ink, with no line across the plot', () => {
     const g = draw([MB, 2 * MB, 2 * MB, 2 * MB], 2 * MB);
     expect(g).not.toBeNull();
     expect(g!.querySelector('text')!.textContent).toBe(fmtSpeed(2 * MB));
-    expect(g!.querySelector('text')!.getAttribute('fill')).toBe(DOWNLOAD_INK);
+    expect(g!.querySelector('text')!.getAttribute('fill')).toBe(MUTED);
     expect(g!.querySelector('text')!.getAttribute('text-anchor')).toBe('end');
     expect(g!.querySelector('title')!.textContent).toBe(`Download limit ${fmtSpeed(2 * MB)}`);
     expect(offset(g!)).toBeGreaterThan(3);
     expect(offset(g!)).toBeLessThan(97);
     expect(g!.querySelector('path')!.getAttribute('d')).toBe('M0 -4L-4 0L0 4Z');
-    expect(g!.querySelector('path')!.getAttribute('fill')).toBe(DOWNLOAD_INK);
+    expect(g!.querySelector('path')!.getAttribute('fill')).toBe(MUTED);
     expect(g!.querySelector('line')).toBeNull();
     expect(host.querySelector('[stroke="var(--status-fail-solid)"]')).toBeNull();
   });
 
-  it('draws the upload limit the same way in the seeding colour', () => {
+  it('puts the limit sign just before the figure', () => {
+    const g = draw([MB, 2 * MB, 2 * MB, 2 * MB], 2 * MB)!;
+    const sign = g.querySelector('[data-limit-sign]')!;
+    const end = Number(g.querySelector('text')!.getAttribute('x'));
+    const width = Number(sign.getAttribute('width'));
+    // The figure takes 40 and ends at end; the sign sits a few pixels before it.
+    const gap = end - 40 - (Number(sign.getAttribute('x')) + width);
+    expect(gap).toBeGreaterThan(0);
+    expect(gap).toBeLessThan(6);
+    expect(sign.getAttribute('fill')).toBe(MUTED);
+  });
+
+  it('draws the upload limit the same way, also in the muted ink', () => {
     draw([MB, 2 * MB, 2 * MB], 0, [MB, MB, MB], MB);
     const g = mark('upload')!;
-    expect(g.querySelector('text')!.getAttribute('fill')).toBe(SEEDING_INK);
-    expect(g.querySelector('path')!.getAttribute('fill')).toBe(SEEDING_INK);
+    expect(g.querySelector('text')!.getAttribute('fill')).toBe(MUTED);
+    expect(g.querySelector('path')!.getAttribute('fill')).toBe(MUTED);
+    expect(g.querySelector('[data-limit-sign]')).not.toBeNull();
     expect(g.querySelector('title')!.textContent).toBe(`Upload limit ${fmtSpeed(MB)}`);
     expect(offset(g)).toBeGreaterThan(3);
     expect(g.querySelector('line')).toBeNull();
@@ -279,3 +296,34 @@ describe('Plot', () => {
   });
 });
 
+describe('SpeedMeter', () => {
+  it('writes the speeds now in the colours of their curves', () => {
+    vi.stubGlobal('matchMedia', () => ({ matches: true, addEventListener() {}, removeEventListener() {} }));
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        observe() {}
+        disconnect() {}
+      },
+    );
+    vi.stubGlobal('fetch', () => new Promise(() => {}));
+    const host = document.createElement('div');
+    document.body.append(host);
+    const root = createRoot(host);
+    act(() =>
+      root.render(
+        <I18nProvider>
+          <SpeedMeter value={3 * MB} upload={MB} />
+        </I18nProvider>,
+      ),
+    );
+    const [down, up] = [...host.querySelectorAll<HTMLElement>('[data-live-rates] > span')];
+    expect(down.textContent).toBe(`Download ${fmtSpeed(3 * MB)}`);
+    expect(down.style.color).toBe(DOWNLOAD_INK);
+    expect(up.textContent).toBe(`Seeding ${fmtSpeed(MB)}`);
+    expect(up.style.color).toBe(SEEDING_INK);
+    act(() => root.unmount());
+    host.remove();
+    vi.unstubAllGlobals();
+  });
+});
