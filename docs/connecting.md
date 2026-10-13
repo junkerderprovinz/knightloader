@@ -250,12 +250,14 @@ the browser extension always come through a relay, so they need one.
 card says that anyone who can open this web interface can control it, and
 through it the downloads of every instance in the group, with a button to the
 Security page, where the password is set. The note can be closed, and stays
-closed in that browser. Without a password **showing the phrase again** works
-too, and the window that shows the words warns that anyone who can reach this
-page can read them, with the way to the Security page. With a password set,
-showing the phrase again asks for it once more. A live session is not enough: it may have been opened
-hours ago on a screen nobody is sitting at, and what is behind that button is
-not this instance's password but the key to every instance in the group.
+closed in that browser. Without a password **showing the phrase again** opens
+the words straight away, with a warning above them that anyone who can open the
+page can see them and a button to the Security page. The desktop app's own
+window, which nobody else can reach, shows them without that warning. With a
+password set, **showing the phrase again** asks for it once more. A live
+session is not enough: it may have been opened hours ago on a screen nobody is
+sitting at, and what is behind that button is not this instance's password but
+the key to every instance in the group.
 
 **Leaving** forgets the secret and stops dialling. The other instances keep
 going without it; a phrase is a group, not a pairing.

@@ -66,13 +66,14 @@ func writeTo(t *testing.T, w io.Writer) {
 }
 
 // resetServer is an instance locked with resetOldPassword whose output is
-// the returned buffer.
+// the returned buffer. Its relay is off.
 func resetServer(t *testing.T) (*httptest.Server, *app.App, *output) {
 	t.Helper()
 	out := &output{}
 	writeTo(t, out)
 	srv, a := testServer(t)
 	t.Cleanup(srv.Close)
+	relayOff(t, a)
 	if err := a.Auth.SetPassword("", resetOldPassword); err != nil {
 		t.Fatal(err)
 	}

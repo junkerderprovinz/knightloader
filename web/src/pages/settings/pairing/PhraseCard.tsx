@@ -288,11 +288,13 @@ export function PhraseCard({
     </div>
   );
 
-  // Without a password the words show as well, and the window says who else
-  // can read them. The desktop window is the exception, since nobody else can
-  // reach it.
+  // Nobody else reaches the desktop window, so only a browser is told who
+  // else can read the words.
   const wordsOpen = !group.passwordSet && !isDesktop() && (
-    <div className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5">
+    <div
+      className="flex flex-wrap items-center gap-3 rounded-[var(--radius-control)] bg-statusWarnBgSoft px-3 py-2.5"
+      data-testid="words-open"
+    >
       <span className="text-statusWarn [&>svg]:h-4.5 [&>svg]:w-4.5">
         <IconWarning />
       </span>

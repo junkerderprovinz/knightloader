@@ -317,6 +317,24 @@ func TestReconnectReplacesTheDeadSocket(t *testing.T) {
 	nothing(t, first, "the request was routed to the replaced socket")
 }
 
+// An instance alone on its key that reconnects before the relay drops its dead
+// socket is still there for whoever joins the key next.
+func TestAnInstanceAloneOnItsKeyStaysReachableAfterReplacingItsSocket(t *testing.T) {
+	s := New()
+	join(t, s, "key-1", "alpha")
+	second := join(t, s, "key-1", "alpha")
+
+	phone := join(t, s, "key-1", "phone")
+	if got := announceOf(t, next(t, phone, "the device was introduced to nobody"), "sibling announce"); got.InstanceID != "alpha" {
+		t.Errorf("the device was told about %q, want alpha", got.InstanceID)
+	}
+	next(t, second, "the instance never heard of the device")
+	send(t, s, phone, TypeProxyRequest, ProxyRequest{RequestID: "r1", Target: "alpha"})
+	if got := next(t, second, "the call never reached the instance"); got.Type != TypeProxyRequest {
+		t.Fatalf("the instance got a %q frame, want the proxy-request", got.Type)
+	}
+}
+
 // TestGarbageFramesAreIgnored: a newer client may send frame types this build
 // does not know, and that must not take its connection down.
 func TestGarbageFramesAreIgnored(t *testing.T) {

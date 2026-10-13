@@ -22,6 +22,7 @@ func TestAResetLeavesThePairingGroup(t *testing.T) {
 	writeTo(t, out)
 	srv, a := testServer(t)
 	t.Cleanup(srv.Close)
+	relayOff(t, a)
 	armTwoFactor(t, a, resetOldPassword)
 	old, _, err := seedphrase.New()
 	if err != nil {

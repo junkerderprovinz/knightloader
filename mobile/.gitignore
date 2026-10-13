@@ -43,3 +43,4 @@ yarn-error.*
 /android/app/*
 # F-Droid checks that the build directory exists before it runs prebuild.
 !/android/app/.gitkeep
+/modules/*/android/build/

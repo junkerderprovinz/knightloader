@@ -8,7 +8,7 @@ import type { ConnectInfo } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
 import { PairingGroup } from './PairingGroup';
 
-// The desktop window shows the words without a password and without the warning.
+// Nobody else reaches the desktop window, so it shows the words without the warning a browser gets.
 const shell = vi.hoisted(() => ({ desktop: false }));
 vi.mock('../../../lib/desktop', async (importOriginal) => ({
   ...(await importOriginal<typeof import('../../../lib/desktop')>()),
@@ -268,17 +268,19 @@ describe('PairingGroup', () => {
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
     expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
-    expect(dialog()!.textContent).toContain('anyone who can reach this page can read these words');
+    expect(dialog()!.querySelector('[data-testid="words-open"]')!.textContent).toContain(
+      'anyone who can reach this page can read these words',
+    );
     expect(calls.filter((c) => c === 'POST /api/connect/reveal')).toHaveLength(1);
   });
 
-  it('shows the words in the desktop window without the warning', async () => {
-    answer({ phrase: WORDS });
+  it('leaves the warning out of the desktop window', async () => {
     shell.desktop = true;
+    answer({ phrase: WORDS });
     draw({ joinedAgo: 75, passwordSet: false });
     await act(async () => tile('Nothing entered over there yet?').click());
     expect(dialog()!.querySelectorAll('li[data-slot]')).toHaveLength(12);
-    expect(dialog()!.textContent).not.toContain('anyone who can reach this page');
+    expect(dialog()!.querySelector('[data-testid="words-open"]')).toBeNull();
   });
 
   it('lists this instance, the other instances and every phone, one row each', () => {
