@@ -714,22 +714,6 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           </div>
         </div>
 
-        {/* The speed graphs' two lines, each from the same circles. */}
-        <div data-new="line-colours" className="flex flex-col gap-3">
-          <LineRow
-            label={t('settings.lines.download')}
-            hint={t('settings.lines.downloadHint')}
-            colour={lines.download}
-            onPick={(hex) => patch({ downloadLine: hex })}
-          />
-          <LineRow
-            label={t('settings.lines.seeding')}
-            hint={t('settings.lines.seedingHint')}
-            colour={lines.seeding}
-            onPick={(hex) => patch({ seedingLine: hex })}
-          />
-        </div>
-
         <div className="flex flex-col gap-3">
           {/* The master switch and its two sub-switches form their own hue
               sequence. */}
@@ -838,6 +822,24 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
           </div>
           )}
         </div>
+
+        {/* The speed graphs' two lines, each from the same circles, under a
+            heading of their own: they colour one picture, not the app. */}
+        <section data-new="line-section" className="flex flex-col gap-3 pt-2">
+          <SubHead label={t('settings.lines.title')} />
+          <LineRow
+            label={t('settings.lines.download')}
+            hint={t('settings.lines.downloadHint')}
+            colour={lines.download}
+            onPick={(hex) => patch({ downloadLine: hex })}
+          />
+          <LineRow
+            label={t('settings.lines.seeding')}
+            hint={t('settings.lines.seedingHint')}
+            colour={lines.seeding}
+            onPick={(hex) => patch({ seedingLine: hex })}
+          />
+        </section>
       </Card>
       )}
 
