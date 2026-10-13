@@ -36,7 +36,7 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [2.0.0] - 2026-10-14
+## [2.0.0] - 2026-10-13
 
 ### Added
 
@@ -186,6 +186,13 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   only keeps track of files inside that download's folder.
 - **The Network settings page no longer crashes** when its picture redraws
   after a route test.
+- **A debrid or TorBox download that is paused or removed stops,** also after
+  its account was changed or its host list refreshed, where it went on
+  downloading out of sight until a restart and took part of the speed limit
+  from the downloads after it.
+- **The browser extension clears its "waiting for approval" note once the
+  browser is approved,** where Refresh kept it above an instance that was
+  already connected.
 
 ### Removed
 
