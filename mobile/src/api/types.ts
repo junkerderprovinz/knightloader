@@ -63,6 +63,8 @@ export interface Task {
   archivePart?: number;
   /** A finished torrent still uploading, a flag beside status 'done'. */
   seeding?: boolean;
+  /** What a torrent sends to its peers now, in bytes/s. */
+  uploadSpeed?: number;
   /** A finished torrent that seeds no more: it reached a seeding target, its
    *  files are gone, or somebody stopped it. */
   seedingOver?: boolean;
