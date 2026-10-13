@@ -630,7 +630,7 @@ func (f fakeDebrid) Unlock(context.Context, string) (debrid.Direct, error) {
 // to the engine through engineHandoff.
 func wireDebrid(a *App, svc fakeDebrid) {
 	a.bmu.Lock()
-	a.debrid[svc.ID()] = debrid.NewBackend(svc, engineHandoff{a.Engine, a}, a.onUpdate)
+	a.debrid[svc.ID()] = debrid.NewBackend(svc, engineHandoff{a.Engine, a}, debrid.NewHandovers(), a.onUpdate)
 	a.bmu.Unlock()
 	a.Registry.Register(debrid.Resolver{ServiceID: svc.ID(), Prio: 90, Hosts: map[string]bool{"hoster.example": true}, Svc: svc})
 }
