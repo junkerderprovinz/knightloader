@@ -41,7 +41,7 @@ func TestASiteTorBoxSwitchedOffIsReportedAsThatSiteBeingDown(t *testing.T) {
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			got := make(chan core.Update, 4)
-			b := NewBackend(refusingTorBox(t, tc.body), &fakeEngine{got: make(chan string, 1)}, func(_ string, u core.Update) {
+			b := NewBackend(refusingTorBox(t, tc.body), &fakeEngine{got: make(chan string, 1)}, NewHandovers(), func(_ string, u core.Update) {
 				if u.Status == core.StatusError {
 					got <- u
 				}

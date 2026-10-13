@@ -77,7 +77,7 @@ func TestBackendUnlockFlow(t *testing.T) {
 		}
 	}
 
-	b := NewBackend(c, fe, onUpdate)
+	b := NewBackend(c, fe, NewHandovers(), onUpdate)
 	b.Download("task1", "https://rapidgator.net/file/abc", nil, 0)
 
 	select {
@@ -130,7 +130,7 @@ func TestTheEngineCanAskTorBoxForAFreshLink(t *testing.T) {
 	c := NewClient("test-key")
 	c.base = srv.URL
 	fe := &fakeEngine{got: make(chan string, 1)}
-	b := NewBackend(c, fe, func(string, core.Update) {})
+	b := NewBackend(c, fe, NewHandovers(), func(string, core.Update) {})
 	b.Download("t1", "https://rapidgator.net/file/abc", nil, 0)
 
 	select {
@@ -187,7 +187,7 @@ func TestAWebDownloadThatCannotFinishEndsTheTask(t *testing.T) {
 			c.base = srv.URL
 
 			failed := make(chan string, 1)
-			b := NewBackend(c, &fakeEngine{got: make(chan string, 1)}, func(_ string, u core.Update) {
+			b := NewBackend(c, &fakeEngine{got: make(chan string, 1)}, NewHandovers(), func(_ string, u core.Update) {
 				if u.Status == core.StatusError {
 					select {
 					case failed <- u.Err:
