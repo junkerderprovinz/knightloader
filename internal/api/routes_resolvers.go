@@ -1,9 +1,11 @@
 package api
 
 // The resolver registry's own facts: the order configured services are tried
-// in, and the JDownloader backend's status. Neither carries a credential.
+// in, and the JDownloader backend's status and update. None carries a
+// credential.
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -57,6 +59,29 @@ func registerResolvers(reg *Registry, a *app.App) {
 			writeJSON(w, a.JDStatus())
 		})
 
+	reg.Add(http.MethodGet, "/api/jd/update",
+		"have JDownloader look for an update and say whether one is ready to install",
+		func(w http.ResponseWriter, r *http.Request) {
+			available, err := a.CheckJDUpdate(r.Context())
+			if err != nil {
+				writeJDUpdateRefusal(w, err)
+				return
+			}
+			writeJSON(w, map[string]bool{"available": available, "checked": true})
+		})
+
+	// JD is unreachable while it restarts, which GET /api/resolvers/jd shows,
+	// and reports its new revision there once it is back.
+	reg.Add(http.MethodPost, "/api/jd/update",
+		"have JDownloader restart and install its update",
+		func(w http.ResponseWriter, r *http.Request) {
+			if err := a.StartJDUpdate(); err != nil {
+				writeJDUpdateRefusal(w, err)
+				return
+			}
+			writeJSONStatus(w, http.StatusAccepted, map[string]bool{"started": true})
+		})
+
 	// The "Variante" badge's read path (TaskList.tsx's PackageGroup header):
 	// what a package's host would stage right now, saved or
 	// ytdlp.DefaultHosterPreset() when nothing is saved for it, as a new link
@@ -107,4 +132,14 @@ func registerResolvers(reg *Registry, a *app.App) {
 			}
 			w.WriteHeader(http.StatusNoContent)
 		})
+}
+
+// writeJDUpdateRefusal tells a JD that never answered from one that answered
+// and failed: the first is a setup the user can fix here, the second is JD's.
+func writeJDUpdateRefusal(w http.ResponseWriter, err error) {
+	if errors.Is(err, app.ErrJDUnreachable) {
+		writeRefusal(w, http.StatusConflict, "jdUnreachable", err.Error(), nil)
+		return
+	}
+	writeRefusal(w, http.StatusBadGateway, "jdUpdateCheckFailed", err.Error(), nil)
 }
