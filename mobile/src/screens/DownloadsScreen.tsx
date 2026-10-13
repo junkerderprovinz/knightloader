@@ -324,6 +324,7 @@ export default function DownloadsScreen({
                 speed={speed}
                 upload={upload}
                 limit={queue?.limit ?? 0}
+                uploadLimit={queue?.uploadLimit ?? 0}
                 seed={peer ? undefined : seedGraph}
               />
             </Arrive>

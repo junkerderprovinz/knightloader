@@ -17,36 +17,63 @@ const REACH = 4;
 
 /**
  * ceilingOf is the top of the plot: the window's peak, so every sample fits,
- * raised to take in the speed limit in force with room above it. A limit
- * beyond REACH is left out while anything moves; idle has no curve to flatten,
- * so there the limit sets the scale.
+ * raised to take in each limit given with room above it. A limit beyond REACH
+ * is left out while anything moves; idle has no curve to flatten, so there the
+ * limits set the scale.
  */
-export function ceilingOf(samples: readonly number[], limit = 0): number {
+export function ceilingOf(samples: readonly number[], ...limits: number[]): number {
   const peak = Math.max(0, ...samples);
   const top = Math.max(FLOOR, peak);
-  if (limit <= 0) return top;
-  const room = limit * HEADROOM;
-  if (peak > 0 && room > REACH * top) return top;
-  return Math.max(top, room);
+  let ceiling = top;
+  for (const limit of limits) {
+    const room = limit * HEADROOM;
+    if (limit > 0 && !(peak > 0 && room > REACH * top)) ceiling = Math.max(ceiling, room);
+  }
+  return ceiling;
 }
 
-/** Where the limit line sits in a plot `height` tall with `pad` above and below. */
+/** Where a limit's mark sits in a plot `height` tall with `pad` above and below. */
 export interface LimitMark {
-  /** The line's distance from the bottom edge. */
-  bottom: number;
-  /** Room for the figure over the line; otherwise it goes under it. */
-  labelAbove: boolean;
+  /** The line's distance from the top edge. */
+  y: number;
+  /**
+   * The limit is above the scale, so the mark sits on the top edge and no line
+   * is drawn: one there would read as a transfer running at the limit.
+   */
+  over: boolean;
 }
+
+/** limitMark places a limit against the ceiling, or returns null for none. */
+export function limitMark(limit: number, ceiling: number, height: number, pad: number): LimitMark | null {
+  if (limit <= 0) return null;
+  if (limit > ceiling) return { y: pad, over: true };
+  return { y: height - pad - Math.round((limit / ceiling) * (height - 2 * pad)), over: false };
+}
+
+// The gap between a limit's line and its figure.
+const LABEL_GAP = 2;
 
 /**
- * limitMark places the limit line against the ceiling, or returns null for a
- * limit above it: a line there would lie on the top edge where the peak ends
- * and read as a download running at the limit.
+ * labelTops places the marks' figures, each `size` tall, in a plot `height`
+ * tall: above its line where there is room and under it otherwise, and one
+ * that would cover an earlier one moved below that, or above it where the
+ * plot ends.
  */
-export function limitMark(limit: number, ceiling: number, height: number, pad: number, label: number): LimitMark | null {
-  if (limit <= 0 || limit > ceiling) return null;
-  const bottom = pad + Math.round((limit / ceiling) * (height - 2 * pad));
-  return { bottom, labelAbove: height - bottom - 1 >= label + 4 };
+export function labelTops(ys: readonly number[], height: number, size: number): number[] {
+  const tops: number[] = [];
+  for (const y of ys) {
+    let top = y - LABEL_GAP - size;
+    if (top < 0) top = y + LABEL_GAP;
+    for (const other of tops) {
+      if (Math.abs(top - other) <= size) {
+        const below = other + size + 1;
+        const above = other - size - 1;
+        top = below + size > height && above >= 0 ? above : below;
+      }
+    }
+    tops.push(top);
+  }
+  return tops;
 }
 
 /**
@@ -187,4 +214,25 @@ export function curve(
     }
   }
   return out;
+}
+
+/** One column of a filled curve: its left edge, width, top and height. */
+export interface Column {
+  left: number;
+  width: number;
+  top: number;
+  height: number;
+}
+
+/**
+ * washOf is the ground under a curve as columns one piece wide, each reaching
+ * from the middle of its piece down to `base`. A column runs half a point into
+ * the next, so no gap shows between two.
+ */
+export function washOf(points: readonly Point[], base: number): Column[] {
+  return points.slice(1).map((q, i) => {
+    const p = points[i];
+    const top = (p.y + q.y) / 2;
+    return { left: p.x, width: q.x - p.x + 0.5, top, height: Math.max(0, base - top) };
+  });
 }

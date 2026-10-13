@@ -1190,6 +1190,8 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	for _, fn := range hooks {
 		fn(applied)
 	}
+	// The queue state carries the upload limit, which only a save changes.
+	a.Hub.Broadcast("queue", a.Queue())
 	// Other open tabs reload their settings pages and the modules list.
 	a.Hub.Broadcast("settings", nil)
 }
