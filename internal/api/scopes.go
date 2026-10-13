@@ -169,6 +169,10 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/idle-action/check":  apitoken.ScopeAdmin,
 	"POST /api/idle-action/run":    apitoken.ScopeAdmin,
 
+	// Updating JDownloader restarts it under every running download.
+	"GET /api/jd/update":  apitoken.ScopeAdmin,
+	"POST /api/jd/update": apitoken.ScopeAdmin,
+
 	// A JDownloader import reads a folder on this machine and writes
 	// accounts, rules and settings.
 	"POST /api/jdimport/apply": apitoken.ScopeAdmin,

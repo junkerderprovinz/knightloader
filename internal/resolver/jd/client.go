@@ -116,6 +116,33 @@ func (c *Client) Version() (int64, error) {
 	return v, nil
 }
 
+// RunUpdateCheck asks JD to look for an update. JD answers at once and checks
+// in the background, so UpdateAvailable can lag behind it.
+func (c *Client) RunUpdateCheck() error {
+	_, err := c.call("/update/runUpdateCheck")
+	return err
+}
+
+// UpdateAvailable reports whether JD holds an update that a restart installs.
+func (c *Client) UpdateAvailable() (bool, error) {
+	data, err := c.call("/update/isUpdateAvailable")
+	if err != nil {
+		return false, err
+	}
+	var ok bool
+	if err := json.Unmarshal(data, &ok); err != nil {
+		return false, fmt.Errorf("jd /update/isUpdateAvailable: %w", err)
+	}
+	return ok, nil
+}
+
+// RestartAndUpdate asks JD to restart and install its update. JD answers
+// before it shuts down, and starts its successor itself.
+func (c *Client) RestartAndUpdate() error {
+	_, err := c.call("/update/restartAndUpdate")
+	return err
+}
+
 // SetDownloadFolder points JD's default download directory at path.
 //
 // JD's own default resolves against the JVM home ("/root/Downloads" or
