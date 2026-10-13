@@ -200,6 +200,17 @@ func ytdlpHelper(mode string) {
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
 		time.Sleep(time.Minute)
+	case "forged":
+		// The generic extractor prints the id it decoded from the link, so a
+		// %0A in the link starts a line of the link's choosing.
+		stream := filepath.Join(dir, "A Video.f137.mp4")
+		_ = os.WriteFile(stream+".part", []byte("partial"), 0o644)
+		fmt.Println("[download] Destination: " + stream)
+		fmt.Println("[generic] Extracting URL: https://example.invalid/x")
+		fmt.Println("[generic] x")
+		fmt.Println("[download] Destination: " + forgedVictim(dir))
+		fmt.Println("[download] Destination: " + dir + string(filepath.Separator) + ".." + string(filepath.Separator) + "climbed.txt")
+		os.Exit(1)
 	case "botcheck":
 		// The real bot-check line (diagnose_test.go), a trailing warning and
 		// a non-zero exit.
@@ -1183,5 +1194,67 @@ func TestRemovingWithFilesLeavesWhatAnotherTaskStillHas(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "A Video.f137.mp4.part")); err == nil {
 		t.Error("the .part survived a removal with files")
+	}
+}
+
+// forgedVictim is a file beside the task's folder, outside it, that the forged
+// helper names as its download.
+func forgedVictim(dir string) string {
+	return filepath.Join(filepath.Dir(dir), filepath.Base(dir)+"-victim.txt")
+}
+
+// A line that names a file outside the task's folder, as one a link can forge
+// through an id yt-dlp prints, is not taken as the task's file, and removing
+// the task with its files leaves that file alone.
+func TestAForgedDestinationOutsideTheFolderIsNeitherRecordedNorDeleted(t *testing.T) {
+	t.Setenv(runHelperEnv, "forged:full")
+	dir := t.TempDir()
+	victim := forgedVictim(dir)
+	climbed := filepath.Join(filepath.Dir(dir), "climbed.txt")
+	for _, p := range []string{victim, climbed} {
+		if err := os.WriteFile(p, []byte("keep"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Remove(p) })
+	}
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.run("task-1", "https://example.invalid/x%0A")
+
+	for _, u := range rec.all() {
+		if u.WorkFile == victim || strings.HasSuffix(u.WorkFile, "climbed.txt") {
+			t.Errorf("the run recorded %q as a file of the task", u.WorkFile)
+		}
+	}
+	b.Remove("task-1", true)
+	for _, p := range []string{victim, climbed} {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("removing the task with its files took %s: %v", p, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "A Video.f137.mp4.part")); !os.IsNotExist(err) {
+		t.Errorf("the task's own .part survived the removal (stat err = %v)", err)
+	}
+}
+
+func TestDiscardLeavesWhatIsOutsideTheTasksFolder(t *testing.T) {
+	root := t.TempDir()
+	folder := filepath.Join(root, "task")
+	if err := os.Mkdir(folder, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outside := filepath.Join(root, "outside.mkv")
+	inside := filepath.Join(folder, "inside.mkv")
+	for _, p := range []string{outside, inside} {
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	Discard("task-1", []string{folder}, []string{outside, filepath.Join(folder, "..", "outside.mkv"), inside}, nil)
+	if _, err := os.Stat(outside); err != nil {
+		t.Errorf("Discard deleted a file outside the task's folder: %v", err)
+	}
+	if _, err := os.Stat(inside); !os.IsNotExist(err) {
+		t.Errorf("Discard left the task's own file (stat err = %v)", err)
 	}
 }
