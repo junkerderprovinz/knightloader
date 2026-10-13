@@ -3609,6 +3609,7 @@ export const fr: Dict = {
   'whatsnew.change.infoTile': '« {name} » dit qui fait KnightLoader, liste chaque version et montre où trouver de l’aide.',
   'whatsnew.change.phoneBar': 'Sur un téléphone, la barre inférieure garde quatre pages, et son dernier emplacement ouvre tout le reste.',
   'whatsnew.change.queueState': '« {play} » et « {pause} » montrent ce que fait la file d’attente : le bouton plein indique son état, l’autre est celui sur lequel appuyer.',
+  'whatsnew.change.quickRows': '« {name} » est plus large, si bien que chaque champ, liste déroulante et interrupteur se trouve sur la même ligne que son nom. Ce qui se passe quand la file est vide se choisit là dans une liste déroulante.',
   'whatsnew.change.listBar': 'Trois boutons se trouvent au-dessus de la liste : « {filter} », « {sort} » et « {search} ».',
   'whatsnew.change.listRows': 'Les lignes commencent à l’aplomb du titre de la carte, et les boutons d’une ligne apparaissent tant que le pointeur est dessus.',
   'whatsnew.change.accountPicker': 'Vous choisissez un nouveau compte debrid, captcha ou d’hébergeur parmi des tuiles, chacune avec son logo. Les logos de tout un écran se chargent ensemble, et un hébergeur sans logo montre sa première lettre sur une tuile teintée.',

@@ -3619,6 +3619,7 @@ export const vi: Dict = {
   'whatsnew.change.infoTile': '“{name}” cho biết ai làm ra KnightLoader, liệt kê mọi bản phát hành và chỉ chỗ nhận trợ giúp.',
   'whatsnew.change.phoneBar': 'Trên điện thoại, thanh dưới giữ bốn trang, và chỗ cuối cùng của nó mở mọi thứ còn lại.',
   'whatsnew.change.queueState': '“{play}” và “{pause}” cho thấy hàng đợi đang làm gì: nút được tô kín là trạng thái của nó, nút còn lại là nút để bấm.',
+  'whatsnew.change.quickRows': '“{name}” rộng hơn, nên mỗi ô nhập, danh sách thả xuống và công tắc nằm cùng dòng với tên của nó. Việc gì xảy ra khi hàng đợi trống thì bạn chọn ở đó từ một danh sách thả xuống.',
   'whatsnew.change.listBar': 'Có ba nút phía trên danh sách: “{filter}”, “{sort}” và “{search}”.',
   'whatsnew.change.listRows': 'Các hàng bắt đầu thẳng hàng với tiêu đề của thẻ, và các nút của một hàng hiện ra khi con trỏ ở trên hàng.',
   'whatsnew.change.accountPicker': 'Bạn chọn tài khoản debrid, tài khoản captcha hoặc tài khoản nhà lưu trữ mới từ các ô, mỗi ô có logo riêng. Logo của cả một màn hình được tải cùng lúc, và nhà lưu trữ không có logo sẽ hiện chữ cái đầu trên một ô có màu.',

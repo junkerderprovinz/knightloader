@@ -3621,6 +3621,7 @@ export const lt: Dict = {
   'whatsnew.change.infoTile': '„{name}“ pasako, kas kuria KnightLoader, išvardija kiekvieną versiją ir parodo, kur gauti pagalbos.',
   'whatsnew.change.phoneBar': 'Telefone apatinė juosta išlaiko keturis puslapius, o paskutinė jos vieta atveria visa kita.',
   'whatsnew.change.queueState': '„{play}“ ir „{pause}“ rodo, ką daro eilė: užpildytas mygtukas yra jos būsena, kitas yra tas, kurį reikia paspausti.',
+  'whatsnew.change.quickRows': '„{name}“ yra platesnis, todėl kiekvienas laukas, išskleidžiamasis sąrašas ir jungiklis stovi toje pačioje eilutėje kaip jo pavadinimas. Kas nutinka, kai eilė tuščia, ten pasirenki iš išskleidžiamojo sąrašo.',
   'whatsnew.change.listBar': 'Virš sąrašo yra trys mygtukai: „{filter}“, „{sort}“ ir „{search}“.',
   'whatsnew.change.listRows': 'Eilutės prasideda lygiai su kortelės pavadinimu, o eilutės mygtukai rodomi, kol žymeklis yra ant jos.',
   'whatsnew.change.accountPicker': 'Naują debrid, captcha ar hosterio paskyrą renkiesi iš plytelių, kurių kiekviena turi savo logotipą. Viso ekrano logotipai įkeliami kartu, o hosteris be logotipo rodo savo pirmąją raidę spalvotoje plytelėje.',

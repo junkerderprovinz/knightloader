@@ -96,6 +96,12 @@ export const RELEASES: Release[] = [
         names: { play: 'queue.play', pause: 'queue.pause' },
       },
       {
+        id: 'quick-rows',
+        to: ['/downloads'],
+        text: 'whatsnew.change.quickRows',
+        names: { name: 'quick.title' },
+      },
+      {
         id: 'list-bar',
         to: LISTS,
         text: 'whatsnew.change.listBar',

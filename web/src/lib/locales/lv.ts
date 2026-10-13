@@ -3610,6 +3610,7 @@ export const lv: Dict = {
   'whatsnew.change.infoTile': '„{name}“ pasaka, kas veido KnightLoader, uzskaita katru versiju un parāda, kur saņemt palīdzību.',
   'whatsnew.change.phoneBar': 'Telefonā apakšjosla patur četras lapas, un tās pēdējā vieta atver visu pārējo.',
   'whatsnew.change.queueState': '„{play}“ un „{pause}“ rāda, ko dara rinda: aizpildītā poga ir tās stāvoklis, otra ir tā, ko nospiest.',
+  'whatsnew.change.quickRows': '„{name}“ ir platāks, tāpēc katrs lauks, nolaižamā izvēlne un slēdzis atrodas vienā rindā ar savu nosaukumu. Ko darīt, kad rinda ir tukša, tur izvēlies nolaižamajā izvēlnē.',
   'whatsnew.change.listBar': 'Virs saraksta ir trīs pogas: „{filter}“, „{sort}“ un „{search}“.',
   'whatsnew.change.listRows': 'Rindas sākas vienā līnijā ar kartītes virsrakstu, un rindas pogas ir redzamas, kamēr rādītājs ir uz tās.',
   'whatsnew.change.accountPicker': 'Jaunu debrid, captcha vai hostera kontu tu izvēlies no flīzēm, un katrai ir savs logotips. Visa ekrāna logotipi ielādējas kopā, un hosteris bez logotipa rāda savu pirmo burtu tonētā flīzē.',

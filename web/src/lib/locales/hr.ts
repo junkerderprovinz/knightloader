@@ -3633,6 +3633,7 @@ export const hr: Dict = {
   'whatsnew.change.infoTile': '„{name}” kaže tko izrađuje KnightLoader, navodi svaku verziju i pokazuje gdje dobiti pomoć.',
   'whatsnew.change.phoneBar': 'Na telefonu donja traka zadržava četiri stranice, a njezino zadnje mjesto otvara sve ostalo.',
   'whatsnew.change.queueState': '„{play}” i „{pause}” pokazuju što red radi: ispunjeni gumb je njegovo stanje, a drugi se pritišće.',
+  'whatsnew.change.quickRows': '„{name}” je šire, pa svako polje, padajući izbornik i prekidač stoji u istom retku kao i njegov naziv. Što se događa kad je red prazan biraš ondje s padajućeg izbornika.',
   'whatsnew.change.listBar': 'Iznad popisa stoje tri gumba: „{filter}”, „{sort}” i „{search}”.',
   'whatsnew.change.listRows': 'Retci počinju poravnati s naslovom kartice, a gumbi retka vide se dok je pokazivač na njemu.',
   'whatsnew.change.accountPicker': 'Novi debrid račun, račun captche ili račun hostera biraš među pločicama, svaka sa svojim logotipom. Logotipi cijelog zaslona učitavaju se zajedno, a hoster bez logotipa pokazuje svoje početno slovo na obojenoj pločici.',

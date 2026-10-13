@@ -3606,6 +3606,7 @@ export const ko: Dict = {
   'whatsnew.change.infoTile': '“{name}” 페이지에서는 KnightLoader를 만드는 사람, 모든 버전, 도움을 받을 곳을 볼 수 있습니다.',
   'whatsnew.change.phoneBar': '휴대폰에서는 하단 바에 네 개의 페이지가 남고, 마지막 자리에서 나머지를 모두 엽니다.',
   'whatsnew.change.queueState': '“{play}” 및 “{pause}” 버튼은 대기열이 무엇을 하고 있는지 보여 줍니다. 채워진 버튼이 현재 상태이고, 다른 버튼이 누를 버튼입니다.',
+  'whatsnew.change.quickRows': '“{name}”의 폭이 넓어져서 입력란, 드롭다운, 스위치가 모두 이름과 같은 줄에 놓입니다. 대기열이 비었을 때 할 일은 그곳의 드롭다운에서 고릅니다.',
   'whatsnew.change.listBar': '목록 위에 버튼 세 개가 있습니다: “{filter}”, “{sort}”, “{search}”.',
   'whatsnew.change.listRows': '행은 카드 제목과 같은 선에서 시작하고, 행의 버튼은 포인터가 행 위에 있는 동안 표시됩니다.',
   'whatsnew.change.accountPicker': '새 Debrid 계정, 캡차 계정 또는 호스터 계정은 각자의 로고가 있는 타일에서 고릅니다. 한 화면의 로고가 한꺼번에 불러와지고, 로고가 없는 호스터는 색을 입힌 타일에 첫 글자를 보여 줍니다.',

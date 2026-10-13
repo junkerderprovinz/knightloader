@@ -3619,6 +3619,7 @@ export const sv: Dict = {
   'whatsnew.change.infoTile': '”{name}” säger vem som gör KnightLoader, visar varje version och visar var du får hjälp.',
   'whatsnew.change.phoneBar': 'På en telefon behåller det nedre fältet fyra sidor, och dess sista plats öppnar allt annat.',
   'whatsnew.change.queueState': '”{play}” och ”{pause}” visar vad kön gör: den fyllda knappen är köns tillstånd, den andra är den du trycker på.',
+  'whatsnew.change.quickRows': '”{name}” är bredare, så varje fält, rullista och reglage står på samma rad som sitt namn. Vad som händer när kön är tom väljer du där i en rullista.',
   'whatsnew.change.listBar': 'Ovanför listan finns tre knappar: ”{filter}”, ”{sort}” och ”{search}”.',
   'whatsnew.change.listRows': 'Raderna börjar i linje med kortets rubrik, och en rads knappar visas så länge pekaren är på den.',
   'whatsnew.change.accountPicker': 'Du väljer ett nytt debrid-, captcha- eller hosterkonto bland brickor, var och en med sin logotyp. Logotyperna på en hel skärm laddas tillsammans, och en hoster utan logotyp visar sin första bokstav på en tonad bricka.',

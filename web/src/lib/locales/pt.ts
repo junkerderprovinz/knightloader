@@ -3610,6 +3610,7 @@ export const pt: Dict = {
   'whatsnew.change.infoTile': '«{name}» diz quem faz o KnightLoader, lista cada versão e mostra onde obter ajuda.',
   'whatsnew.change.phoneBar': 'Num telefone, a barra inferior mantém quatro páginas, e o seu último lugar abre tudo o resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostram o que a fila está a fazer: o botão preenchido é o estado dela, o outro é o que se prime.',
+  'whatsnew.change.quickRows': '«{name}» é mais largo, por isso cada campo, lista pendente e interruptor fica na mesma linha que o seu nome. O que acontece quando a fila fica vazia escolhes lá numa lista pendente.',
   'whatsnew.change.listBar': 'Há três botões por cima da lista: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'As linhas começam alinhadas com o título do cartão, e os botões de uma linha aparecem enquanto o ponteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolhes uma nova conta debrid, de captcha ou de hoster entre mosaicos, cada um com o seu logótipo. Os logótipos de um ecrã inteiro carregam juntos, e um hoster sem logótipo mostra a sua primeira letra num mosaico colorido.',

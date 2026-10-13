@@ -3619,6 +3619,7 @@ export const ms: Dict = {
   'whatsnew.change.infoTile': '“{name}” menyatakan siapa yang membuat KnightLoader, menyenaraikan setiap versi dan menunjukkan tempat mendapatkan bantuan.',
   'whatsnew.change.phoneBar': 'Pada telefon, bar bawah mengekalkan empat halaman, dan tempat terakhirnya membuka semua yang lain.',
   'whatsnew.change.queueState': '“{play}” dan “{pause}” menunjukkan apa yang sedang dilakukan oleh baris gilir: butang yang terisi ialah keadaannya, yang satu lagi ialah butang untuk ditekan.',
+  'whatsnew.change.quickRows': '“{name}” lebih lebar, jadi setiap medan, menu lungsur dan suis berada pada baris yang sama dengan namanya. Apa yang berlaku apabila baris gilir kosong anda pilih di situ daripada menu lungsur.',
   'whatsnew.change.listBar': 'Terdapat tiga butang di atas senarai: “{filter}”, “{sort}” dan “{search}”.',
   'whatsnew.change.listRows': 'Baris bermula sebaris dengan tajuk kad, dan butang sesuatu baris kelihatan selagi penuding berada di atasnya.',
   'whatsnew.change.accountPicker': 'Anda memilih akaun debrid, captcha atau hoster yang baharu daripada jubin, setiap satu dengan logonya. Logo bagi satu skrin penuh dimuatkan bersama, dan hoster tanpa logo menunjukkan huruf pertamanya pada jubin berwarna.',

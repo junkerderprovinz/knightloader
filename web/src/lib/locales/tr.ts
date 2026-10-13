@@ -3618,6 +3618,7 @@ export const tr: Dict = {
   'whatsnew.change.infoTile': '“{name}”, KnightLoader’ı kimin yaptığını söyler, her sürümü listeler ve nereden yardım alabileceğini gösterir.',
   'whatsnew.change.phoneBar': 'Telefonda alt çubuk dört sayfa tutar, son yeri de geri kalan her şeyi açar.',
   'whatsnew.change.queueState': '“{play}” ve “{pause}” kuyruğun ne yaptığını gösterir: dolu olan düğme kuyruğun durumudur, öteki ise basılacak olandır.',
+  'whatsnew.change.quickRows': '“{name}” daha geniş, böylece her alan, açılır liste ve anahtar kendi adıyla aynı satırda duruyor. Kuyruk boşaldığında ne olacağını orada bir açılır listeden seçiyorsun.',
   'whatsnew.change.listBar': 'Listenin üstünde üç düğme durur: “{filter}”, “{sort}” ve “{search}”.',
   'whatsnew.change.listRows': 'Satırlar kartın başlığıyla aynı hizada başlar ve bir satırın düğmeleri imleç üzerindeyken görünür.',
   'whatsnew.change.accountPicker': 'Yeni bir debrid, captcha ya da hoster hesabını, her biri kendi logosunu taşıyan kutucuklardan seçersin. Bir ekranın tüm logoları birlikte yüklenir, logosu olmayan bir hoster ise baş harfini renkli bir kutucukta gösterir.',

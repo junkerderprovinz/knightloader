@@ -3621,6 +3621,7 @@ export const fi: Dict = {
   'whatsnew.change.infoTile': '”{name}” kertoo, kuka tekee KnightLoaderia, näyttää jokaisen version ja kertoo, mistä saat apua.',
   'whatsnew.change.phoneBar': 'Puhelimessa alapalkissa on neljä sivua, ja sen viimeinen paikka avaa kaiken muun.',
   'whatsnew.change.queueState': '”{play}” ja ”{pause}” näyttävät, mitä jono tekee: täytetty painike on jonon tila, toinen on se, jota painetaan.',
+  'whatsnew.change.quickRows': '”{name}” on leveämpi, joten jokainen kenttä, pudotusvalikko ja kytkin on samalla rivillä nimensä kanssa. Sen, mitä tapahtuu jonon tyhjentyessä, valitset siellä pudotusvalikosta.',
   'whatsnew.change.listBar': 'Luettelon yläpuolella on kolme painiketta: ”{filter}”, ”{sort}” ja ”{search}”.',
   'whatsnew.change.listRows': 'Rivit alkavat samasta kohdasta kuin kortin otsikko, ja rivin painikkeet näkyvät niin kauan kuin osoitin on rivin päällä.',
   'whatsnew.change.accountPicker': 'Valitset uuden debrid-, captcha- tai isännöijätilin ruuduista, joissa jokaisessa on oma logonsa. Koko näytöllisen logot latautuvat yhdessä, ja isännöijä ilman logoa näyttää alkukirjaimensa sävytetyssä ruudussa.',

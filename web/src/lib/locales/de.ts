@@ -3622,6 +3622,7 @@ export const de: Dict = {
   'whatsnew.change.infoTile': '„{name}“ sagt, wer KnightLoader macht, listet jede Version und zeigt, wo du Hilfe bekommst.',
   'whatsnew.change.phoneBar': 'Auf dem Handy behält die untere Leiste vier Seiten, und ihr letzter Platz öffnet alles Weitere.',
   'whatsnew.change.queueState': '„{play}“ und „{pause}“ zeigen, was die Warteschlange tut: Der gefüllte Knopf ist ihr Zustand, den anderen drückst du.',
+  'whatsnew.change.quickRows': '„{name}“ ist breiter, damit jedes Feld, jede Auswahl und jeder Schalter in derselben Zeile wie sein Name steht. Was passiert, wenn die Warteschlange leer ist, wählst du dort aus einer Liste.',
   'whatsnew.change.listBar': 'Über der Liste stehen drei Knöpfe: „{filter}“, „{sort}“ und „{search}“.',
   'whatsnew.change.listRows': 'Die Zeilen beginnen bündig mit dem Titel der Karte, und die Knöpfe einer Zeile erscheinen, solange der Zeiger auf ihr steht.',
   'whatsnew.change.accountPicker': 'Ein neues Debrid-, Captcha- oder Hoster-Konto wählst du aus Kacheln, jede mit ihrem Logo. Die Logos eines ganzen Bildschirms laden gemeinsam, und ein Hoster ohne Logo zeigt seinen Anfangsbuchstaben auf einer getönten Kachel.',

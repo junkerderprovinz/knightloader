@@ -3616,6 +3616,7 @@ export const eu: Dict = {
   'whatsnew.change.infoTile': '«{name}» atalak esaten du nork egiten duen KnightLoader, bertsio guztiak zerrendatzen ditu eta laguntza non lortu erakusten du.',
   'whatsnew.change.phoneBar': 'Telefonoan beheko barrak lau orri gordetzen ditu, eta bere azken lekuak gainerako guztia irekitzen du.',
   'whatsnew.change.queueState': '«{play}» eta «{pause}» botoiek ilara zertan ari den erakusten dute: betetako botoia haren egoera da, bestea sakatzekoa.',
+  'whatsnew.change.quickRows': '«{name}» zabalagoa da, eremu, goitibeherako eta etengailu bakoitza bere izenaren lerro berean egon dadin. Ilara hutsik dagoenean zer gertatzen den goitibeherako batean aukeratzen duzu han.',
   'whatsnew.change.listBar': 'Zerrendaren gainean hiru botoi daude: «{filter}», «{sort}» eta «{search}».',
   'whatsnew.change.listRows': 'Errenkadak txartelaren izenburuarekin lerrokatuta hasten dira, eta errenkadaren botoiak erakuslea gainean dagoen bitartean agertzen dira.',
   'whatsnew.change.accountPicker': 'Debrid, captcha edo ostalari-kontu berri bat lauzetatik aukeratzen duzu, bakoitza bere logoarekin. Pantaila oso bateko logoak batera kargatzen dira, eta logorik gabeko ostalari batek bere lehen letra erakusten du lauza tindatu batean.',

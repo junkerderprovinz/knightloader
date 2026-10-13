@@ -3601,6 +3601,7 @@ export const zh: Dict = {
   'whatsnew.change.infoTile': '“{name}”说明谁在制作 KnightLoader，列出每个版本，并指出在哪里获得帮助。',
   'whatsnew.change.phoneBar': '在手机上，底栏保留四个页面，最后一个位置可以打开其余的一切。',
   'whatsnew.change.queueState': '“{play}”和“{pause}”显示队列正在做什么：填充的那个按钮是它的状态，另一个是可以按的按钮。',
+  'whatsnew.change.quickRows': '“{name}”变宽了，每个输入框、下拉菜单和开关都与名称在同一行。队列清空后要做什么，在那里从下拉菜单中选择。',
   'whatsnew.change.listBar': '列表上方有三个按钮：“{filter}”、“{sort}”和“{search}”。',
   'whatsnew.change.listRows': '各行与卡片标题对齐开始，指针停在某一行上时会显示这一行的按钮。',
   'whatsnew.change.accountPicker': '新的 Debrid 账户、验证码账户或网盘账号从带有各自徽标的磁贴中选择。整屏的徽标会一起加载，没有徽标的网盘会在带颜色的磁贴上显示首字母。',

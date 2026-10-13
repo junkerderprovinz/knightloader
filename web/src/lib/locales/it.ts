@@ -3603,6 +3603,7 @@ export const it: Dict = {
   'whatsnew.change.infoTile': '«{name}» dice chi realizza KnightLoader, elenca ogni versione e mostra dove trovare aiuto.',
   'whatsnew.change.phoneBar': 'Su un telefono la barra inferiore tiene quattro pagine, e il suo ultimo posto apre tutto il resto.',
   'whatsnew.change.queueState': '«{play}» e «{pause}» mostrano che cosa fa la coda: il pulsante pieno è il suo stato, l’altro è quello da premere.',
+  'whatsnew.change.quickRows': '“{name}” è più largo, così ogni campo, menu a tendina e interruttore sta sulla stessa riga del suo nome. Cosa succede quando la coda è vuota lo scegli lì da un menu a tendina.',
   'whatsnew.change.listBar': 'Sopra l’elenco ci sono tre pulsanti: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'Le righe iniziano allineate al titolo della scheda, e i pulsanti di una riga compaiono finché il puntatore è su di essa.',
   'whatsnew.change.accountPicker': 'Scegli un nuovo account debrid, captcha o hoster tra riquadri, ciascuno con il suo logo. I loghi di un’intera schermata si caricano insieme, e un hoster senza logo mostra la sua iniziale su un riquadro colorato.',

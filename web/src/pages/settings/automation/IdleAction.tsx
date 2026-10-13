@@ -10,6 +10,7 @@ import {
   TextInput,
   type ButtonVerdict,
 } from '../../../components/ui';
+import { Dropdown } from '../../../components/Dropdown';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
 import { idleProblemText } from '../../../components/IdleActionBanner';
@@ -93,38 +94,45 @@ export function useIdleActions(): string[] {
 /**
  * IdleActionPicker is the choice of action as this card draws it: its name at
  * the row's start and the compact selector at its end. The shell bar's quick
- * settings show the same row, so both places offer the same menu and write the
- * same value.
+ * settings show the same row with the same choices as a dropdown (`menu`),
+ * since their panel has no room beside the name for five labelled segments.
  */
 export function IdleActionPicker({
   actions,
   value,
   onValue,
-  size = 'sm',
+  menu = false,
 }: {
   actions: string[];
   value: string;
   onValue: (action: string) => void;
-  size?: 'sm' | 'md';
+  menu?: boolean;
 }) {
   const { t } = useT();
   const hint = ACTION_HINTS[value];
+  const name = t('settings.downloads.idleAction');
+  const labelOf = (id: string) => (ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id);
   return (
     <SettingRow
-      label={t('settings.downloads.idleAction')}
+      control={menu ? 'fit' : undefined}
+      label={name}
       hint={hint ? `${t('settings.downloads.idleActionHint')} ${t(hint)}` : t('settings.downloads.idleActionHint')}
     >
-      <Tabs
-        variant="well"
-        size={size}
-        inline
-        hug
-        labelled
-        label={t('settings.downloads.idleAction')}
-        active={value}
-        onSelect={onValue}
-        items={actions.map((id) => ({ id, label: ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id, icon: ACTION_ICONS[id] }))}
-      />
+      {menu ? (
+        <Dropdown label={name} value={value} onChange={onValue} options={actions.map((id) => ({ value: id, label: labelOf(id) }))} />
+      ) : (
+        <Tabs
+          variant="well"
+          size="sm"
+          inline
+          hug
+          labelled
+          label={name}
+          active={value}
+          onSelect={onValue}
+          items={actions.map((id) => ({ id, label: labelOf(id), icon: ACTION_ICONS[id] }))}
+        />
+      )}
     </SettingRow>
   );
 }
