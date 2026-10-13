@@ -3,10 +3,10 @@
 // accounts come first, the own Usenet servers below them, then hoster logins,
 // the logins for the user's own servers and the captcha solvers' keys; the
 // section follows the catalogue's Group field, and every card draws an
-// AccountTable. Under them the two priority cards stand side by side, one for
-// the download backends and one for the captcha accounts, and the Allow free
-// downloads switch comes last, since whether a link may be fetched for free is
-// a question of which accounts there are.
+// AccountTable. Under them comes the Allow free downloads switch, since whether
+// a link may be fetched for free is a question of which accounts there are, and
+// last the two priority cards side by side, one for the download backends and
+// one for the captcha accounts.
 // Adding is the page's one floating action, which opens a window with a tile
 // per kind in the cards' order; no card carries an add button of its own.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
@@ -378,7 +378,7 @@ export function Accounts() {
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
         captcha={
           <LiveSettings>
-            <CaptchaPriorityCard hue={6} accounts={accounts} catalogue={catalogue} />
+            <CaptchaPriorityCard hue={7} accounts={accounts} catalogue={catalogue} />
           </LiveSettings>
         }
       />
@@ -1064,8 +1064,14 @@ function RoutingSection({
   const title = t('accounts.routing.priorityTitle');
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* The state of the backend that loads for free is on the Health page,
+          and its revision on the card of built-in parts. */}
+      <div data-new="free-first" className="sm:col-span-2">
+        <FreeDownloadsCard hue={5} />
+      </div>
+
       <PriorityCard
-        hue={5}
+        hue={6}
         data-new="priority-flow"
         title={title}
         hint={`${t('accounts.routing.orderHint')}
@@ -1115,12 +1121,6 @@ ${t('accounts.routing.orderHintTorrents')}`}
       </PriorityCard>
 
       {captcha}
-
-      {/* The state of the backend that loads for free is on the Health page,
-          and its revision on the card of built-in parts. */}
-      <div className="sm:col-span-2">
-        <FreeDownloadsCard hue={7} />
-      </div>
     </div>
   );
 }

@@ -54,6 +54,26 @@ export const IconStopMark = (p: SVGProps<SVGSVGElement>) => (
   </svg>
 );
 
+/** A container: Docker's whale from Dashboard Icons (Apache-2.0), the mark the
+ *  Apps tab's Docker button wears, named here only for what it is. */
+export const IconContainer = (p: GlyphProps) => (
+  <svg {...glyph([-0.07, 71.3, 511.97, 369.5], p)}>
+    <path d="M501.4 212.3c-11.5-8-38-11-58.6-7-2.4-20-13.5-37.5-32.7-53l-11-8-7.7 11.5c-9.6 15-14.4 36-13 56 .5 7 2.9 19.5 10.1 30.5-6.7 4-20.7 9-38.9 9H2.3l-1 4c-3.4 20-3.4 82.5 36 130.5 29.8 36.5 74 55 132.1 55 125.9 0 219.1-60.5 262.8-170 17.3.5 54.3 0 73-37.5.5-1 1.4-3 4.8-10.5l1.9-4zM280 71.3h-52.8v50H280zm0 60h-52.8v50H280zm-62.5 0h-52.8v50h52.8zm-62.4 0h-52.8v50h52.8zm-62.5 60H39.8v50h52.8zm62.5 0h-52.8v50h52.8zm62.4 0h-52.8v50h52.8zm62.5 0h-52.8v50H280zm62.4 0h-52.8v50h52.8z" />
+  </svg>
+);
+
+/** A server run as a plain program: two rack units, each with its light and
+ *  its slot. */
+export const IconServer = (p: GlyphProps) => (
+  <svg {...glyph([1, 1.5, 12, 11], p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M2.5 1.5h9A1.5 1.5 0 0 1 13 3v1.75a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 1 4.75V3a1.5 1.5 0 0 1 1.5-1.5ZM4 3.125a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM7 3.25h3.5a.625.625 0 0 1 0 1.25H7a.625.625 0 0 1 0-1.25ZM2.5 7.75h9A1.5 1.5 0 0 1 13 9.25V11a1.5 1.5 0 0 1-1.5 1.5h-9A1.5 1.5 0 0 1 1 11V9.25a1.5 1.5 0 0 1 1.5-1.5ZM4 9.375a.75.75 0 1 0 0 1.5.75.75 0 0 0 0-1.5ZM7 9.5h3.5a.625.625 0 0 1 0 1.25H7a.625.625 0 0 1 0-1.25Z"
+    />
+  </svg>
+);
+
 /** IconShield is a plain shield for the parade in lib/toast.tsx: at 11px a
  *  detail carved into it would blur. */
 export const IconShield = (p: SVGProps<SVGSVGElement>) => (

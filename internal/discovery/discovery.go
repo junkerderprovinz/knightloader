@@ -66,7 +66,7 @@ type Peer struct {
 	Name string `json:"name"`
 	// URL is the address to reach it on, as the announcer computed it.
 	URL string `json:"url"`
-	// Deployment is "container" or "desktop" (buildinfo.Deployment).
+	// Deployment is "container", "server" or "desktop" (api.instanceKind).
 	Deployment string `json:"deployment"`
 	// Address is where a group member's web interface is, as
 	// relay.Announce.Address. Only a tagged announce carries it, since a

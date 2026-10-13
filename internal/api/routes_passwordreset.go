@@ -70,6 +70,17 @@ func inContainer() bool {
 	return os.Getenv("KUBERNETES_SERVICE_HOST") != ""
 }
 
+// instanceKind is what this instance tells the group and the Instances page it
+// is: "desktop" for the desktop app, "container" for the server in a container
+// and "server" for the server run as a plain program. buildinfo.Deployment
+// names the binary only, and both of the last two run the same one.
+func instanceKind() string {
+	if buildinfo.Deployment == "container" && !inContainer() {
+		return "server"
+	}
+	return buildinfo.Deployment
+}
+
 // resetPlace is what the sign-in screen is told about where the code is. It
 // never carries the code, and it is the same answer whether this request
 // wrote one, an earlier one is still live or the gap between two codes held

@@ -27,7 +27,7 @@ const MAX_WAIT = 600;
  * none and is left out.
  */
 export function connectedSolvers(order: string[], accounts: Account[], catalogue: CatalogueService[]): CatalogueService[] {
-  const solvers = catalogue.filter((s) => s.group === 'captchaSolver' && connected(s.id, accounts));
+  const solvers = catalogue.filter((s) => s.group === 'captchaSolver' && solverAccount(s.id, accounts));
   const place = (id: string) => {
     const at = order.indexOf(id);
     return at < 0 ? order.length : at;
@@ -38,8 +38,15 @@ export function connectedSolvers(order: string[], accounts: Account[], catalogue
     .map(({ s }) => s);
 }
 
-function connected(id: string, accounts: Account[]): boolean {
-  return accounts.some((a) => a.service === id && a.account === '' && a.configured && a.enabled);
+/**
+ * solverAccount is the account whose key the instance hands a solver's
+ * captchas to: the unnamed one, or else the first named one that is switched
+ * on, the order app.routedAccounts reads them in.
+ */
+export function solverAccount(id: string, accounts: Account[]): Account | undefined {
+  return accounts
+    .filter((a) => a.service === id && a.configured && a.enabled)
+    .sort((x, y) => (x.account < y.account ? -1 : x.account > y.account ? 1 : 0))[0];
 }
 
 /**
@@ -66,7 +73,7 @@ export function CaptchaPriorityCard({
   const labelOf = new Map(solvers.map((s) => [s.id, s.label]));
   // A key that failed its check stays in the order, since it is still tried.
   const troubleFor = (id: string) => {
-    const a = accounts.find((x) => x.service === id && x.account === '');
+    const a = solverAccount(id, accounts);
     return a && a.detail && !a.ok ? t('accounts.routing.checkFailed', { reason: a.detail }) : undefined;
   };
   // An account whose key is gone keeps its place, for when it comes back.

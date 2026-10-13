@@ -22,7 +22,7 @@ import {
   type Task,
 } from '../lib/api';
 import { DIRECT_ID, endpointOf, useConnections } from '../lib/connections';
-import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtSpeed, pct } from '../lib/format';
+import { fmtBytes, fmtDate, fmtDateFull, fmtEta, fmtPct, fmtRate, fmtSpeed, pct } from '../lib/format';
 import type { TranslationKey } from '../lib/i18n';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
@@ -32,6 +32,7 @@ import {
   IconPower,
   IconRefresh,
   IconStopMark,
+  IconUpload,
   IconWarning,
   PriorityGlyph,
 } from '../lib/icons';
@@ -1396,6 +1397,28 @@ const cmpText = (a: string, b: string): number => a.localeCompare(b);
 
 const sum = (items: Task[], pick: (t: Task) => number): number => items.reduce((s, x) => s + pick(x), 0);
 
+const seeding = (t: Task): boolean => rowState(t) === 'seeding';
+
+/** The rate the speed column shows: what a seeding torrent sends, what anything else receives. */
+const shownRate = (t: Task): number => (seeding(t) ? (t.uploadSpeed ?? 0) : t.speed);
+
+/**
+ * UploadRate is the speed cell of a seeding torrent. The glyph is the one the
+ * status pill gives a seeding row, so the figure does not read as a download.
+ * A seed nobody takes from shows 0 B/s, which says it is still offered.
+ */
+function UploadRate({ rate, t }: { rate: number; t: Translate }) {
+  const text = fmtRate(rate);
+  return (
+    <span data-new="seed-upload" className="inline-flex max-w-full items-center gap-0.5 align-middle">
+      <IconUpload tight width={10} height={10} aria-hidden className="shrink-0 text-statusInfo" />
+      <Tip tip={`${t('overview.torrents.up')} ${text}`} className="truncate">
+        {text}
+      </Tip>
+    </span>
+  );
+}
+
 /** Same signal as RowTooltipContent's isTorrent: internal/resolver/torrent's Info().ID. */
 const isTorrentTask = (t: Task): boolean => t.resolver === 'torrent';
 
@@ -1659,9 +1682,18 @@ export const COLUMNS: ColumnDef[] = [
     align: 'end',
     numeric: true,
     hideable: true,
-    compare: (a, b) => a.speed - b.speed,
-    render: (task) => fmtSpeed(task.speed),
-    aggregate: (items) => fmtSpeed(sum(items, (x) => (x.status === 'running' ? x.speed : 0))),
+    compare: (a, b) => shownRate(a) - shownRate(b),
+    render: (task, ctx) => (seeding(task) ? <UploadRate rate={task.uploadSpeed ?? 0} t={ctx.t} /> : fmtSpeed(task.speed)),
+    // A package that only seeds shows what it sends, like its rows.
+    aggregate: (items, ctx) => {
+      const down = sum(items, (x) => (x.status === 'running' ? x.speed : 0));
+      const seeds = items.filter(seeding);
+      return down > 0 || seeds.length === 0 ? (
+        fmtSpeed(down)
+      ) : (
+        <UploadRate rate={sum(seeds, (x) => x.uploadSpeed ?? 0)} t={ctx.t} />
+      );
+    },
   },
   {
     id: 'eta',

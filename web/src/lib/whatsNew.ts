@@ -80,6 +80,13 @@ export const RELEASES: Release[] = [
       { id: 'piece-map', to: ['/downloads'], text: 'whatsnew.change.pieceMap' },
       { id: 'seeding-line', to: ['/'], text: 'whatsnew.change.seedingLine' },
       { id: 'seeding-always', to: ['/', '/downloads'], text: 'whatsnew.change.seedingAlways' },
+      { id: 'limit-legend', to: ['/'], text: 'whatsnew.change.limitLegend' },
+      {
+        id: 'seed-upload',
+        to: ['/downloads'],
+        text: 'whatsnew.change.seedUpload',
+        names: { name: 'downloads.torrentsTitle', column: 'columns.speed' },
+      },
       {
         id: 'line-section',
         to: ['/settings/appearance'],
@@ -135,6 +142,8 @@ export const RELEASES: Release[] = [
       },
       { id: 'instance-cards', to: INSTANCES, text: 'whatsnew.change.instanceCards' },
       { id: 'net-handover', to: INSTANCES, text: 'whatsnew.change.handover' },
+      { id: 'instance-kind', to: INSTANCES, text: 'whatsnew.change.instanceKind', names: { name: 'instances.title' } },
+      { id: 'app-logo', to: INSTANCES, text: 'whatsnew.change.appLogo', names: { name: 'instances.title' } },
       {
         id: 'accounts-add',
         to: ACCOUNTS,
@@ -178,6 +187,16 @@ export const RELEASES: Release[] = [
         to: ACCOUNTS,
         text: 'whatsnew.change.priorityAccounts',
         names: { download: 'accounts.routing.priorityTitle', captcha: 'settings.captcha.orderTitle' },
+      },
+      {
+        id: 'free-first',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.freeFirst',
+        names: {
+          name: 'settings.accounts.freeTitle',
+          download: 'accounts.routing.priorityTitle',
+          captcha: 'settings.captcha.orderTitle',
+        },
       },
       { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.settingsSearch' },
       // Drawn in every window and list that is searched, and listed with the
@@ -415,10 +434,10 @@ export const RELEASES: Release[] = [
         names: { name: 'settings.nav.help' },
       },
       {
-        id: 'release-notes',
+        id: 'news-button',
         to: ['/settings/help'],
-        text: 'whatsnew.change.releaseNotes',
-        names: { name: 'settings.look.updatesReleaseNotes' },
+        text: 'whatsnew.change.newsButton',
+        names: { name: 'settings.about.version', notes: 'settings.look.updatesReleaseNotes', changes: 'whatsnew.changes' },
       },
       {
         id: 'manual-button',

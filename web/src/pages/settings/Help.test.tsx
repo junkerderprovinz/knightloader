@@ -5,8 +5,15 @@ import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../../lib/i18n';
-import { closeWhatsNew, useWhatsNewOpen } from '../../lib/useWhatsNew';
+import { closeWhatsNew, useWhatsNewOpen, type WhatsNew } from '../../lib/useWhatsNew';
 import { Help } from './Help';
+
+/** The running version's record the Version card reads, null until a test sets one. */
+const record = vi.hoisted(() => ({ news: null as WhatsNew | null }));
+vi.mock('../../lib/useWhatsNew', async (original) => ({
+  ...(await original<typeof import('../../lib/useWhatsNew')>()),
+  useWhatsNew: () => record.news,
+}));
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -138,7 +145,8 @@ describe('the Info tile', () => {
     expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
   });
 
-  it('opens the release notes of the running version from the Version card', async () => {
+  /** Draws the page with a probe on the window's tab, and returns a reader for it. */
+  async function drawWithProbe() {
     let open: string | null = null;
     function Probe() {
       open = useWhatsNewOpen();
@@ -154,9 +162,41 @@ describe('the Info tile', () => {
         </I18nProvider>,
       ),
     );
-    expect(open).toBeNull();
+    return () => open;
+  }
+
+  const news = (changes: number, unseen: number) =>
+    ({
+      changes: Array.from({ length: changes }, (_, i) => ({ id: `c${i}` })),
+      unseen: Array.from({ length: unseen }, (_, i) => ({ id: `c${i}` })),
+    }) as unknown as WhatsNew;
+
+  it('has one button for what this version brought, opening on the changes while any is unseen', async () => {
+    record.news = news(5, 2);
+    const open = await drawWithProbe();
+    const version = card('Version');
+    const labels = [...version.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /New|Release notes/.test(w ?? ''));
+    expect(labels).toEqual(['New · 2']);
+    await act(async () => button(version, 'New · 2').click());
+    expect(open()).toBe('changes');
+    act(() => closeWhatsNew());
+    record.news = null;
+  });
+
+  it('opens on the release notes once every change is seen, and counts them all', async () => {
+    record.news = news(5, 0);
+    const open = await drawWithProbe();
+    await act(async () => button(card('Version'), 'New · 5').click());
+    expect(open()).toBe('notes');
+    act(() => closeWhatsNew());
+    record.news = null;
+  });
+
+  it('offers the release notes alone for a version that marked no change', async () => {
+    const open = await drawWithProbe();
+    expect(open()).toBeNull();
     await act(async () => button(card('Version'), 'Release notes').click());
-    expect(open).toBe('notes');
+    expect(open()).toBe('notes');
     act(() => closeWhatsNew());
   });
 

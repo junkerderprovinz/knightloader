@@ -1,20 +1,41 @@
 import { useEffect, useState, type CSSProperties, type ReactNode } from 'react';
+import type { GlyphProps } from '../lib/glyphs';
 import logoUrl from '../assets/logo.svg';
 import { ApiError, fetchTasks, type Task } from '../lib/api';
 import { fmtDate, fmtSpeed } from '../lib/format';
 import { hueVars } from '../lib/appearance';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, LabelBadge, Modal } from './ui';
-import { IconBrowser, IconClose, IconEye, IconInfo, IconPhone, IconTrash } from '../lib/icons';
+import { Button, IconBadge, LabelBadge, Modal, useTooltip } from './ui';
+import {
+  IconBrowser,
+  IconClose,
+  IconContainer,
+  IconEye,
+  IconInfo,
+  IconPhone,
+  IconServer,
+  IconTabApp,
+  IconTrash,
+} from '../lib/icons';
 import { StatePill } from './StatePill';
 
-// What each kind of instance calls itself, keyed by buildinfo.Deployment and by
-// what the two clients announce themselves as, "mobile" and "extension".
+// What each kind of instance calls itself, keyed by what an instance reports
+// (api.instanceKind) and by what the two clients announce themselves as,
+// "mobile" and "extension".
 const KINDS: Record<string, TranslationKey> = {
   mobile: 'instances.kind.mobile',
   desktop: 'instances.kind.desktop',
   container: 'instances.kind.container',
+  server: 'instances.kind.server',
   extension: 'instances.kind.extension',
+};
+
+const KIND_GLYPHS: Record<string, (p: GlyphProps) => ReactNode> = {
+  mobile: IconPhone,
+  desktop: IconTabApp,
+  container: IconContainer,
+  server: IconServer,
+  extension: IconBrowser,
 };
 
 interface Stats {
@@ -172,13 +193,49 @@ function CardLogo() {
   return <img src={logoUrl} alt="" aria-hidden className="h-26 max-h-full w-auto" />;
 }
 
-/** A phone or a browser extension is no KnightLoader instance, so its card
- *  wears its own glyph on a tile of the mark's height. */
-function ClientMark({ deployment }: { deployment: string }) {
-  const Glyph = deployment === 'extension' ? IconBrowser : IconPhone;
+/**
+ * KindMark stands beside the state and shows what kind of instance a card is,
+ * named in its bubble. On a card with a details window it opens that window;
+ * elsewhere it only names the kind. It takes the button's square but only the
+ * pill's height in the line, so the line keeps its height.
+ */
+function KindMark({ kind, onOpen }: { kind: string; onOpen?: () => void }) {
+  const { t } = useT();
+  const Glyph = KIND_GLYPHS[kind];
+  const label = KINDS[kind] ? t(KINDS[kind]) : '';
+  const tip = useTooltip<HTMLSpanElement>(label);
+  if (!Glyph || !label) return null;
+  const glyph = <Glyph width={16} height={16} />;
+  if (onOpen) {
+    return (
+      <span data-new="instance-kind" className="-my-[5px] inline-flex">
+        <IconBadge quiet icon={glyph} title={label} onClick={onOpen} />
+      </span>
+    );
+  }
   return (
-    <span className="grid h-22 w-16 place-items-center rounded-[var(--radius-control)] bg-carbon-surface2 text-accentGlyph">
-      <Glyph width={34} height={34} />
+    <>
+      <span
+        data-new="instance-kind"
+        {...tip.triggerProps}
+        role="img"
+        aria-label={label}
+        className="-my-[5px] inline-grid h-[var(--btn-h)] w-[var(--btn-h)] shrink-0 place-items-center
+          rounded-[var(--radius-pill)] text-carbon-textSub"
+      >
+        {glyph}
+      </span>
+      {tip.node}
+    </>
+  );
+}
+
+/** The state pill with the kind's mark before it. */
+function StateWithKind({ kind, onOpen, children }: { kind?: string; onOpen?: () => void; children: ReactNode }) {
+  return (
+    <span className="flex shrink-0 items-center gap-1">
+      {kind && <KindMark kind={kind} onOpen={onOpen} />}
+      {children}
     </span>
   );
 }
@@ -221,7 +278,7 @@ export function InstanceCard({
   entry: string;
   /** A peer's displayName or name, never the raw relay address. */
   name: string;
-  /** What the instance is, "container" or "desktop", when it is known. */
+  /** What the instance is, "container", "server" or "desktop", when it is known. */
   deployment?: string;
   /** Where the instance is reached, empty when it has no address. */
   address: string;
@@ -279,7 +336,11 @@ export function InstanceCard({
         mark={<CardLogo />}
         name={name}
         eyebrow={isSelf ? t('instances.thisInstance') : undefined}
-        state={state}
+        state={
+          <StateWithKind kind={deployment} onOpen={isSelf ? undefined : () => setDetails(true)}>
+            {state}
+          </StateWithKind>
+        }
         facts={[address, kind, route ?? '']}
         figures={figures}
         actions={
@@ -339,7 +400,9 @@ export function InstanceCard({
 
 // AppCard shows a phone or browser extension that joined the group with the
 // phrase: its name, whether it is there now and when it last was. It serves no
-// downloads, so it has no figures and nothing to open.
+// downloads, so it has no figures and nothing to open. It wears the
+// KnightLoader mark like every card, since it is KnightLoader's own app, and
+// its glyph beside the state.
 export function AppCard({
   entry,
   name,
@@ -369,11 +432,17 @@ export function AppCard({
       entry={entry}
       hot={hot}
       hue={hue}
-      mark={<ClientMark deployment={deployment} />}
+      mark={
+        <span data-new="app-logo" className="flex">
+          <CardLogo />
+        </span>
+      }
       name={name}
       eyebrow={KINDS[deployment] ? t(KINDS[deployment]) : undefined}
       state={
-        <StatePill label={connected ? t('instances.connected') : t('instances.notConnected')} tone={connected ? 'ok' : 'fail'} />
+        <StateWithKind kind={deployment}>
+          <StatePill label={connected ? t('instances.connected') : t('instances.notConnected')} tone={connected ? 'ok' : 'fail'} />
+        </StateWithKind>
       }
       facts={[t('instances.lastSeen', { time: fmtDate(new Date(lastSeen * 1000).toISOString()) })]}
       actions={

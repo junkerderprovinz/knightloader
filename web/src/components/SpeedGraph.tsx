@@ -88,7 +88,7 @@ const LABEL_GAP = 3;
 /** Where the limit line sits against the ceiling the plot is drawn to. */
 export interface LimitMark {
   y: number;
-  /** The limit is above the plot's top, so the line is pinned there and dashed. */
+  /** The limit is above the plot's top, so no line is drawn and the legend names it. */
   over: boolean;
   /** No room for the figure above the line, so it goes under it. */
   labelBelow: boolean;
@@ -112,9 +112,10 @@ export function limitMark(limit: number, ceiling: number, top: number, base: num
  */
 function applyMark(g: SVGGElement, m: LimitMark): void {
   g.setAttribute('transform', `translate(0 ${m.y})`);
-  const [line, label] = Array.from(g.children);
-  if (m.over) line.setAttribute('stroke-dasharray', '4 3');
-  else line.removeAttribute('stroke-dasharray');
+  // A line pinned to the top edge would read as a download running at the limit.
+  if (m.over) g.setAttribute('visibility', 'hidden');
+  else g.removeAttribute('visibility');
+  const label = g.children[1];
   label.setAttribute('y', String(m.labelBelow ? LABEL_GAP + LABEL_SIZE : -LABEL_GAP));
 }
 
@@ -508,8 +509,16 @@ export function spanLabel(seconds: number): string {
   return `-${Math.round(seconds / 360) / 10}h`;
 }
 
-/** SpeedLegend names the two lines, which are both always drawn. */
-export function SpeedLegend() {
+/** outOfScale is the limit in force when the plot's scale leaves it out, else 0. */
+export function outOfScale(limit: number, ceiling: number): number {
+  return limit > ceiling ? limit : 0;
+}
+
+/**
+ * SpeedLegend names the two lines, which are both always drawn, and a speed
+ * limit the scale leaves out, which has no line of its own.
+ */
+export function SpeedLegend({ limit = 0 }: { limit?: number }) {
   const { t } = useT();
   return (
     <span
@@ -525,6 +534,12 @@ export function SpeedLegend() {
         <span className="h-0.5 w-3 rounded-[var(--radius-pill)]" style={{ backgroundColor: SEEDING_INK }} />
         {t('speed.legend.seeding')}
       </span>
+      {limit > 0 && (
+        <span data-speed-limit="" className="glim-num inline-flex items-center gap-1">
+          <span className="h-0.5 w-3 rounded-[var(--radius-pill)] bg-statusFailSolid" />
+          {t('settings.schedule.limit')} {fmtSpeed(limit)}
+        </span>
+      )}
       <InfoBubble tip={t('speed.legend.hint', { page: t('settings.nav.appearance') })} />
     </span>
   );
@@ -601,6 +616,7 @@ export function SpeedGraph({
         className="block w-full"
         style={{ height }}
         aria-hidden
+        data-new="limit-legend"
       >
         <Plot win={win} span={span} w={w} h={height} pad={6} ceiling={ceiling} stroke={1.75} limit={inForce} />
       </svg>
@@ -608,7 +624,7 @@ export function SpeedGraph({
           mirror in a right-to-left language, so neither do its labels. */}
       <div dir="ltr" className="flex items-center justify-between gap-3">
         <span className="glim-num text-meta leading-none text-carbon-textMuted">{spanLabel(span * win.step)}</span>
-        <SpeedLegend />
+        <SpeedLegend limit={outOfScale(inForce, ceiling)} />
         <span className="glim-num text-meta leading-none text-carbon-textMuted">0s</span>
       </div>
     </div>
@@ -688,12 +704,13 @@ export function SpeedMeter({
         className="h-0 w-full flex-auto"
         aria-hidden
         focusable="false"
+        data-new="limit-legend"
       >
         <Plot win={win} span={points} w={w} h={h} pad={3} ceiling={ceiling} stroke={1.5} limit={inForce} />
       </svg>
       <span className="flex items-center justify-between gap-3 text-meta leading-none text-carbon-textMuted">
         <span className="glim-num">{spanLabel(points * win.step)}</span>
-        <SpeedLegend />
+        <SpeedLegend limit={outOfScale(inForce, ceiling)} />
         <span className="glim-num">0s</span>
       </span>
     </span>

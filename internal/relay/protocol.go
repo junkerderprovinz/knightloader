@@ -98,7 +98,7 @@ type Announce struct {
 	// hostname. The hostname fallback is why it is sealed, since it often names
 	// the machine's owner.
 	Name string `json:"name,omitempty"`
-	// Deployment is "container" or "desktop" (buildinfo.Deployment).
+	// Deployment is "container", "server" or "desktop" (api.instanceKind).
 	Deployment string `json:"deployment,omitempty"`
 	// Client marks a connection that uses the relay without serving an API,
 	// such as the mobile app. Every connection has to announce to join a key,

@@ -17,6 +17,8 @@ import (
 type DeploymentInfo struct {
 	// Deployment is "container" or "desktop"; see buildinfo.Deployment.
 	Deployment string `json:"deployment"`
+	// Kind is what the instance cards call this instance; see instanceKind.
+	Kind string `json:"kind"`
 	// CanQuit and CanRestart report whether RequestExit is wired at all. They
 	// are separate fields so a build could offer only one without changing the
 	// response shape.
@@ -73,6 +75,7 @@ func registerLifecycle(reg *Registry, a *app.App) {
 func deploymentInfo(a *app.App) DeploymentInfo {
 	info := DeploymentInfo{
 		Deployment: buildinfo.Deployment,
+		Kind:       instanceKind(),
 		CanQuit:    a.RequestExit != nil,
 		CanRestart: a.RequestExit != nil,
 		Engines:    buildinfo.Modules(engineModules...),

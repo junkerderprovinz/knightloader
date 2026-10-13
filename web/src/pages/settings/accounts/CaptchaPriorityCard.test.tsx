@@ -9,7 +9,7 @@ import { I18nProvider } from '../../../lib/i18n';
 import { ToastProvider } from '../../../lib/toast';
 import { SettingsProvider, type SettingsDraft } from '../context';
 import type { Feature } from '../features';
-import { CaptchaPriorityCard, connectedSolvers, testRefusal } from './CaptchaPriorityCard';
+import { CaptchaPriorityCard, connectedSolvers, solverAccount, testRefusal } from './CaptchaPriorityCard';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -111,6 +111,18 @@ describe('the connected captcha accounts', () => {
   it('leave out an account without a key and one that is switched off', () => {
     const accounts = [account('2captcha', true, false), account('9kw', false, true), account('capsolver', true, true)];
     expect(connectedSolvers([], accounts, CATALOGUE).map((s) => s.id)).toEqual(['capsolver']);
+  });
+
+  it('count a key stored under a name, as the instance tries it', () => {
+    const named = { ...account('2captcha', true, true), account: 'Testkonto' };
+    expect(connectedSolvers([], [named], CATALOGUE).map((s) => s.id)).toEqual(['2captcha']);
+  });
+
+  it('take the unnamed account over a named one, and a named one only while it is switched on', () => {
+    const unnamed = account('capsolver', true, true);
+    const named = { ...account('capsolver', true, true), account: 'Testkonto' };
+    expect(solverAccount('capsolver', [named, unnamed])).toBe(unnamed);
+    expect(solverAccount('capsolver', [{ ...named, enabled: false }])).toBeUndefined();
   });
 });
 

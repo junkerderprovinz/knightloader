@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
@@ -318,7 +317,7 @@ func applyRelay(a *app.App) {
 		Self: relay.Announce{
 			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
-			Deployment: buildinfo.Deployment,
+			Deployment: instanceKind(),
 			Address:    groupAddress(a),
 		},
 		Member: member,

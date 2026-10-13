@@ -102,7 +102,7 @@ export function Instances({
       .then((s: Settings) => setOwnName(s.instanceName))
       .catch(() => {});
     fetchDeploymentInfo()
-      .then((d) => setOwnKind(d.deployment))
+      .then((d) => setOwnKind(d.kind || d.deployment))
       .catch(() => {});
     const everyFew = window.setInterval(loadFound, 5000);
     const refresh = () => {
@@ -256,6 +256,9 @@ export function Instances({
           // A group member's own announced address, a stored peer's the one
           // it was added with. Without one, Open shows its downloads here.
           const address = (p.relayId ? p.address : p.url) ?? '';
+          // A stored peer announces nothing, and only the server build has an
+          // address to be added by.
+          const kind = p.deployment ?? (p.relayId ? undefined : 'server');
           const entry = entryOf(p);
           const name = p.displayName ?? p.name;
           return (
@@ -265,7 +268,7 @@ export function Instances({
               hot={net.hot === entry}
               hue={selfHue + 1 + i}
               name={name}
-              deployment={p.deployment}
+              deployment={kind}
               address={withoutScheme(address)}
               route={routeOf(p)}
               base={`/api/instances/${encodeURIComponent(p.name)}`}

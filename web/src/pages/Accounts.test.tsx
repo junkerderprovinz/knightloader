@@ -144,6 +144,14 @@ it('offers Allow free downloads on the Accounts page itself, not only on its set
   expect(toggle).not.toBeNull();
   expect(toggle!.getAttribute('aria-checked')).toBe('true');
 
+  // It stands above both priority cards.
+  const titled = (text: string) => [...host.querySelectorAll('h2, h3')].find((h) => h.textContent?.trim() === text);
+  for (const order of ['Download priority order', 'Captcha priority order']) {
+    const heading = titled(order);
+    expect(heading, order).toBeDefined();
+    expect(toggle!.compareDocumentPosition(heading!) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  }
+
   // Switching free downloads off is premium only on, the setting as stored.
   await act(async () => toggle!.click());
   expect(patched).toEqual([{ premiumOnly: true }]);

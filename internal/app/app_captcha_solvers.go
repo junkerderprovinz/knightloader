@@ -175,7 +175,9 @@ func captchaSolverFor(id string, cred accounts.Credential) captchaAccount {
 
 // captchaSolvers returns every automatic solver with a stored credential whose
 // account is switched on, the ones in CaptchaSolverOrder first and in its
-// order, the others after them in catalogue order.
+// order, the others after them in catalogue order. A solver takes the first of
+// its accounts in routedAccounts' order, so one stored under a name works as
+// well as the unnamed one the Accounts page writes.
 func (a *App) captchaSolvers() []paidSolver {
 	order := a.Settings.Get().CaptchaSolverOrder
 	ids := slices.Clone(order)
@@ -187,11 +189,14 @@ func (a *App) captchaSolvers() []paidSolver {
 	var out []paidSolver
 	for _, id := range ids {
 		svc, ok := accounts.Lookup(id)
-		if !ok || !a.accountEnabled(id, "") {
+		if !ok {
 			continue
 		}
-		if s := captchaSolverFor(id, a.credentialFor(svc, "")); s != nil {
-			out = append(out, paidSolver{svc.Label, s})
+		for _, acct := range a.routedAccounts(id) {
+			if s := captchaSolverFor(id, acct.cred); s != nil {
+				out = append(out, paidSolver{svc.Label, s})
+				break
+			}
 		}
 	}
 	return out
