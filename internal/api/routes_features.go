@@ -380,8 +380,7 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 		}, downloadClientDetail(a, s, base)),
 		withDetail(Feature{
-			// On the Accounts page, beside the accounts it shows.
-			ID: "debriddrive", Verdict: VerdictShipped, Page: "accounts",
+			ID: "debriddrive", Verdict: VerdictShipped, Page: "debriddrive",
 			Switch: SwitchSetting, Enabled: s.DebridDrive.Enabled,
 		}, debridDriveDetail(a, s, base)),
 		withDetail(Feature{
@@ -454,7 +453,7 @@ func featurePages() []FeaturePage {
 		{ID: "appearance"},
 		{ID: "modules"},
 		// The captcha accounts' order and when they start stand beside their keys.
-		{ID: "accounts", Modules: []string{"debriddrive", "captcha"}},
+		{ID: "accounts", Modules: []string{"captcha"}},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -472,6 +471,9 @@ func featurePages() []FeaturePage {
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "resolvers", Modules: []string{"ytdlp"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
+		// A page of its own rather than a card on Accounts: it serves what is
+		// on the accounts to other programs and sets up none of them.
+		{ID: "debriddrive", Modules: []string{"debriddrive"}},
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
