@@ -254,7 +254,7 @@
   "torrent": {
     "seedRatioTarget": 1,
     "seedDurationSeconds": 7200,
-    "uploadLimitKiBs": 0,
+    "uploadLimit": 0,
     "port": 0,
     "dhtEnabled": true,
     "pexEnabled": true
