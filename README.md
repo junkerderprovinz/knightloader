@@ -164,8 +164,8 @@ The downloads, hosts and accounts in these pictures are made up.
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with the total speed, the latest downloads and three instances" width="100%">
-  <br><em>Overview: one number that matters, and what is happening under it.</em>
+  <img src=".github/assets/screenshots/knightloader-1-overview.png" alt="Overview with what needs you, the total speed, the way from hoster to disk and the latest downloads" width="100%">
+  <br><em>Overview: what needs you comes first, then the speed and where the downloads come from.</em>
 </p>
 
 <br>
@@ -206,15 +206,15 @@ The downloads, hosts and accounts in these pictures are made up.
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-7-rules.png" alt="Packagizer rules, the test box with a sample link and the categories" width="100%">
+  <img src=".github/assets/screenshots/knightloader-7-rules.png" alt="Packagizer rules in the order they run, and the test box with a sample link" width="100%">
   <br><em>Rules &amp; categories: rules sort links as they arrive, and the test box shows what they would do to one.</em>
 </p>
 
 <br>
 
 <p align="center">
-  <img src=".github/assets/screenshots/knightloader-8-app.png" alt="The Apps tab with the desktop apps, the phone app, the browser extensions and the bookmarklet" width="100%">
-  <br><em>The Apps tab: the desktop builds, the phone app, the browser extension and the bookmarklet.</em>
+  <img src=".github/assets/screenshots/knightloader-8-app.png" alt="The Apps page with the desktop apps, the phone app, the browser extensions and the bookmarklet" width="100%">
+  <br><em>The Apps page: the desktop builds, the phone app, the browser extension and the bookmarklet.</em>
 </p>
 
 <br>

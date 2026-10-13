@@ -63,7 +63,7 @@ and would get past a second factor.
 
 ## rclone
 
-The card on the Accounts page shows the configuration with your address filled
+**Settings → Debrid drive** shows the configuration with your address filled
 in:
 
 ```ini
