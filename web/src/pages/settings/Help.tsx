@@ -262,7 +262,7 @@ function Report({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-3">
       <SectionTitle hint={t('settings.info.helpHint')}>{t('settings.info.helpTitle')}</SectionTitle>
       <p className="text-sm text-carbon-textSub">{t('settings.about.report')}</p>
-      <div className="glim-readme-btn-rows kl-help-buttons">
+      <div className="glim-readme-btn-rows">
         {/* A link, so middle-click and copy-link work. */}
         <ReadmeButton
           brand="github"

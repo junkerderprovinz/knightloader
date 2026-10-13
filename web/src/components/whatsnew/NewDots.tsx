@@ -240,7 +240,7 @@ export function NewDots({ news }: { news: WhatsNew }) {
   const live = useRef(targets);
   live.current = targets;
   const { unseen } = news;
-  const on = news.dots && unseen.length > 0;
+  const on = unseen.length > 0;
 
   const placeAll = () => {
     const rtl = document.documentElement.dir === 'rtl';

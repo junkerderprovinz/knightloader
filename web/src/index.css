@@ -2358,6 +2358,14 @@ body {
     padding: 0.25rem;
     overflow-y: auto;
   }
+  /* A picker's search spans the sheet under its title, since beside the
+     title badge it would leave room for a few letters. */
+  .glim-modal-card :has(> .glim-picker-search) {
+    flex-wrap: wrap;
+  }
+  .glim-picker-search {
+    flex-basis: 100%;
+  }
 }
 
 /* The single-colour marks at rest. A published brand colour fails on one of
@@ -2504,11 +2512,12 @@ body {
 }
 
 /* The height is the README's mark, and the box is wider than tall, so a wide
-   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+   mark such as Unraid's or Docker's is not shrunk to a sliver. The start is
+   where the README's own buttons put their mark, 68.5 of 841.9 units. */
 .glim-readme-btn-mark {
   position: absolute;
   top: 50%;
-  inset-inline-start: 1.5rem;
+  inset-inline-start: 0.875rem;
   width: 2rem;
   height: 1.5625rem;
   translate: 0 -50%;
@@ -2547,7 +2556,7 @@ body {
 .glim-readme-btn-text {
   position: absolute;
   inset-block: 0;
-  inset-inline: 3.9375rem 0.625rem;
+  inset-inline: 3.3125rem 0.625rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -2631,12 +2640,29 @@ body {
 }
 
 /* A picker of brands (components/BrandPicker.tsx): the same button as a tile
-   that fills its cell of the grid, so the logos stand in columns. A brand's
-   name that is too long for its tile is cut rather than shrunk. */
+   that fills its cell of the grid, so the logos stand in columns, three across
+   a picker window and two on a phone. A brand's name that is too long for its
+   tile is cut rather than shrunk. A brand too numerous for a class of its own
+   hands its colour pair down from its list item as --provider-tile and
+   --provider-ink. */
 .glim-provider-pick {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(min(100%, 13rem), 1fr));
-  gap: 0.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.8125rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (max-width: 47.99rem) {
+  .glim-provider-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
+.glim-provider-pick .glim-readme-btn-unit {
+  display: flex;
+  --tile: var(--provider-tile, var(--accent));
+  --tile-ink: var(--provider-ink, var(--accent-contrast));
 }
 .glim-provider-pick .glim-readme-btn {
   flex: 1;
@@ -2710,15 +2736,6 @@ body {
   :root:not([data-motion="off"]) .glim-readme-btn-group:hover .glim-readme-btn-sheen::after {
     animation-duration: calc(var(--motion-button-sheen-dur) * 1.9);
   }
-}
-
-/* The Help card's buttons stand as BombVault's do, the mark 14px from the
-   edge, which leaves a name as long as "Fehlerbericht" its room. */
-.kl-help-buttons .glim-readme-btn-mark {
-  inset-inline-start: 0.875rem;
-}
-.kl-help-buttons .glim-readme-btn-text {
-  inset-inline-start: 3.3125rem;
 }
 
 /* The About card's give buttons stand a blank line of the card's text below

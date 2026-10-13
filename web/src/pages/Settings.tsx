@@ -79,8 +79,6 @@ export function SettingsPage() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
   const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
-  const here = useMatch('/settings/:page');
-  const wide = WIDE_PAGES.has(pageId(here?.params.page ?? ''));
 
   // What the server did not take of the draft. A refused value shows beside
   // its field and is not sent again until the field holds something else.
@@ -383,12 +381,13 @@ export function SettingsPage() {
 
         {/* data-settings-content scopes the search's DOM lookups to this
             column (settings/jump.ts). The padding matches app/Layout.tsx, and
-            glim-column-top keeps the first card's badge notch (index.css). */}
+            glim-column-top keeps the first card's badge notch (index.css).
+            No page caps its width: a row keeps its name and its control
+            together by giving the control a width of its own. */}
         <div
           data-settings-content
-          className={`glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto ps-2 sm:px-6 md:px-8 ${
-            wide ? '' : '[&>*]:max-w-[55rem]'
-          }`}
+          data-new="settings-width"
+          className="glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto ps-2 sm:px-6 md:px-8"
         >
           {/* Here rather than in PageHeader, which would push the rail down, and
               outside the Routes so a search and its jump survive a page change. */}
@@ -412,16 +411,6 @@ export function SettingsPage() {
     </SettingsProvider>
   );
 }
-
-/**
- * The pages that are a list or a grid of objects and use the column's whole
- * width. Every other page is a form of rows with a name at one end and a
- * control at the other, and is capped at 880px so the two stay together in a
- * wide window (GlimStone, "The content column"). The cap is on everything in
- * the column, so the search and a page's floating actions end where its cards
- * do.
- */
-const WIDE_PAGES = new Set(['accounts', 'instances', 'pairing']);
 
 /**
  * orderPages applies a saved custom order, so a removed page drops out. A page

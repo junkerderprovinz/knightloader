@@ -60,16 +60,12 @@ it('marks an update, opens the release notes once and remembers what was seen', 
   expect(news!.seen).toEqual(new Set(['seed-ring', 'week-band']));
   expect(news!.unseen).toHaveLength(RELEASES[0].changes.length - 2);
 
-  await act(async () => news!.showDots(false));
-  expect(news!.dots).toBe(false);
-  expect(news!.seen.size).toBe(2);
-
   await act(async () => {
     await flushUIState();
   });
   expect(written[written.length - 1]).toMatchObject({
     'onboarding.done': true,
-    whatsNew: { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring', 'week-band'], notes: true, dots: false },
+    whatsNew: { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring', 'week-band'], notes: true },
   });
 });
 

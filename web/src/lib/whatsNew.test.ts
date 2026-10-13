@@ -96,7 +96,6 @@ describe('the record of the running version', () => {
       after: '',
       seen: [],
       notes: true,
-      dots: true,
     });
   });
 
@@ -107,18 +106,17 @@ describe('the record of the running version', () => {
   });
 
   it('keeps what was seen while the version stays', () => {
-    const stored: NewsRecord = { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring'], notes: true, dots: false };
+    const stored: NewsRecord = { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring'], notes: true };
     expect(recordFor(stored, 'v2.0.0', true)).toBe(stored);
   });
 
   it('starts over with the next version', () => {
-    const stored: NewsRecord = { version: 'v1.9.0', after: '', seen: ['x'], notes: true, dots: false };
+    const stored: NewsRecord = { version: 'v1.9.0', after: '', seen: ['x'], notes: true };
     expect(recordFor(stored, 'v2.0.0', false)).toEqual({
       version: 'v2.0.0',
       after: '1.9.0',
       seen: [],
       notes: false,
-      dots: true,
     });
   });
 });
