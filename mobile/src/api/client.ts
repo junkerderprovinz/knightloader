@@ -226,6 +226,18 @@ export async function fetchQueue(conn: ServerConnection, base = '/api'): Promise
 }
 
 /**
+ * fetchSpeedHistory reads the instance's record of the last two minutes, one
+ * sample a second, the one the web interface seeds its speed curves from. An
+ * older server sends no upload, which reads as none sent.
+ */
+export async function fetchSpeedHistory(conn: ServerConnection): Promise<{ down: number[]; up: number[] }> {
+  const h = await request<{ recent?: unknown; recentUp?: unknown }>(conn, '/api', '/stats/speed');
+  const down = Array.isArray(h.recent) ? (h.recent as number[]) : [];
+  const up = Array.isArray(h.recentUp) && h.recentUp.length === down.length ? (h.recentUp as number[]) : down.map(() => 0);
+  return { down, up };
+}
+
+/**
  * Move collected links into the download queue.
  *
  * The collector is a staging area: a link that arrives from a container, a

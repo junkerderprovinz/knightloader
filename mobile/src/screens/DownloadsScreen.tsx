@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ActivityIndicator, StyleSheet, TouchableOpacity, View } from 'react-native';
-import { fetchListCards, fetchQueue, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
+import { fetchListCards, fetchQueue, fetchSpeedHistory, liveTasks, setQueueHalted, stopAll, type LiveTasks } from '../api/client';
 import { splitByCard, unpackingByTask, type CardSwitches } from '../api/taskState';
 import { isRelayConnection, needsAddingAgain, type ExtractJob, type Instance, type QueueState, type ServerConnection, type Task } from '../api/types';
 import { mediaKind } from '../api/media';
@@ -14,7 +14,7 @@ import { useT } from '../i18n/I18nContext';
 import IconBadge, { Back, Trash } from '../components/IconBadge';
 import { Tip } from '../components/InfoTip';
 import SpeedGraph from '../components/SpeedGraph';
-import { fmtSpeed } from '../api/stats';
+import { uploadOf } from '../components/speedPlot';
 import {
   deleteTasks,
   errorText,
@@ -90,6 +90,10 @@ export default function DownloadsScreen({
   // Summed from the task list this screen already streams, so there is no
   // second request and no second truth about the same number.
   const speed = tasks.reduce((n, t) => n + (t.speed || 0), 0);
+  const upload = uploadOf(tasks);
+  // Only the instance's own record: the route is not forwarded to a peer, whose
+  // curve starts from live samples.
+  const seedGraph = useCallback(() => fetchSpeedHistory(conn), [conn]);
   const collected = tasks.filter((x) => x.status === 'collected' && !x.variantOff);
   const queued = tasks.filter((x) => x.status !== 'collected');
   const shown = tab === 'collector' && collected.length > 0 ? 'collector' : 'downloads';
@@ -271,7 +275,6 @@ export default function DownloadsScreen({
                 <Text style={[styles.queueLabel, { color: c.textMuted }]}>
                   {queue ? (queue.halted ? t('downloads.queueHalted') : t('downloads.queueRunning')) : '-'}
                   {queue && queue.running > 0 ? ` · ${t('downloads.queueActive', { n: queue.running })}` : ''}
-                  {speed > 0 ? ` · ${fmtSpeed(speed)}` : ''}
                 </Text>
                 {/* BOTH options, always on screen, with only the one in force
                     filled - the same control the overview's own summary card
@@ -314,11 +317,15 @@ export default function DownloadsScreen({
                 )}
               </View>
 
-              {/* Shown whenever something is in the queue rather than only
-                  while bytes are moving. Testing `speed > 0` is right for an
-                  empty instance and wrong for a queue that says "running" while
-                  nothing moves, where a line flat at zero is the answer. */}
-              {(speed > 0 || queued.length > 0) && <SpeedGraph speed={speed} limit={queue?.limit ?? 0} />}
+              {/* Always drawn, as on the web's Downloads page: an idle instance
+                  shows the flat ground, which is an answer too. */}
+              <SpeedGraph
+                key={base}
+                speed={speed}
+                upload={upload}
+                limit={queue?.limit ?? 0}
+                seed={peer ? undefined : seedGraph}
+              />
             </Arrive>
 
             {/* Why the last start or stop did not take. One line, in the fail
@@ -531,8 +538,8 @@ const styles = StyleSheet.create({
   queueBar: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   queueActions: { flexDirection: 'row', gap: 8 },
   // Dense, off the scale in theme/tokens.ts, since 13 is a rung between dense
-  // and body that the table does not have. The active count and the speed are
-  // rewritten every second, so they take tabular numerals; without them the
+  // and body that the table does not have. The active count is rewritten as
+  // downloads start and end, so it takes tabular numerals; without them the
   // line shifts sideways as digits change width.
   queueLabel: { fontSize: TYPE.dense, fontVariant: ['tabular-nums'] },
   queueError: { marginBottom: 8, fontSize: TYPE.caption },
