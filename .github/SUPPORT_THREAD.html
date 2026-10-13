@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<!--
+  Unraid Community Applications support thread for KnightLoader.
+  Structure: name and claim -> banner -> buttons -> What is this? ->
+  Highlights & Features -> Requirements -> Bugs, Problems, Wishes -> Credits
+  -> disclaimer.
+  The forum drops <style> and class attributes, so sizes are attributes and the
+  buttons sit in a one-row table to stay side by side.
+  Paste into the Unraid forum editor's source view.
+  Title: [Support] junkerderprovinz - KnightLoader
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>[Support] junkerderprovinz - KnightLoader</title>
+</head>
+<body>
+
+<h1 style="text-align:center">KnightLoader</h1>
+<p style="text-align:center"><em>Downloads everything, kneels to nothing.</em></p>
+
+<p style="text-align:center">
+  <a href="https://github.com/junkerderprovinz/knightloader">
+    <img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/knightloader-banner-logo.png" alt="KnightLoader" width="100%">
+  </a>
+</p>
+
+<table>
+  <tbody>
+    <tr>
+      <td><p><a href="https://ca.unraid.net/apps?q=knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/support-buttons/install-on-unraid.svg" alt="Install on Unraid" width="240"></a></p></td>
+      <td><p><a href="https://github.com/junkerderprovinz/knightloader"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/support-buttons/view-on-github.svg" alt="View on GitHub" width="240"></a></p></td>
+      <td><p><a href="https://buymeacoffee.com/junkerderprovinz"><img src="https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/.github/assets/support-buttons/buy-me-a-coffee.svg" alt="Buy me a coffee" width="240"></a></p></td>
+    </tr>
+  </tbody>
+</table>
+
+<h2>What is this?</h2>
+<p>KnightLoader is a download manager for hosters, debrid services, torrents, Usenet, videos and
+streams. Hoster links go through the debrid service you already pay for, torrents to the
+built-in client or to a debrid service, <code>.nzb</code> files to your own Usenet servers, and
+videos and streams to <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a>. Whatever is left
+goes to a headless JDownloader that KnightLoader sets up by itself inside the container. The
+image brings yt-dlp, ffmpeg and the Java runtime along, so there is nothing to install beside
+it. The same program also runs as a desktop app for Windows, macOS and Linux, and an Android
+app and a browser extension send it links from wherever you are.</p>
+
+<h2>Highlights &amp; Features</h2>
+<ul>
+  <li>Links wait in the collector first. It checks each one and shows what will fetch it, and Packagizer rules sort them into packages and folders as they arrive</li>
+  <li>Instances, the Android app and the browser extension find each other with twelve words, across networks, without an account, a domain or a port forward. The relay can be the project's, your own <a href="https://github.com/junkerderprovinz/parleyport">ParleyPort</a>, or an instance that is reachable from outside</li>
+  <li>Torrents through the built-in client or a debrid service, and Usenet from your own servers with par2 repair or through TorBox and Premiumize.me</li>
+  <li>Sonarr and Radarr see it as qBittorrent or SABnzbd</li>
+  <li>Links come in from Click'n'Load, the browser extension, the phone's share sheet, a watched folder, and DLC, CCF and RSDF container files</li>
+  <li>When a download finishes, archives are unpacked without outside tools, checksums are checked, files land in folders built from templates, and a media library can be told to rescan</li>
+  <li>Coming from JDownloader? KnightLoader takes over your accounts, rules, archive passwords and the open download list, with a preview first</li>
+  <li>A password, two-factor authentication and passkeys under Settings, Security, and an app key that seals the secrets in the appdata folder</li>
+  <li>42 languages</li>
+  <li>Images: <code>junkerderprovinz/knightloader:latest</code> on Docker Hub and <code>ghcr.io/junkerderprovinz/knightloader:latest</code>, for amd64 and arm64</li>
+</ul>
+
+<h2>Requirements</h2>
+<ul>
+  <li>Unraid 6.10+</li>
+  <li>Keep the WebUI on your LAN until you set a password under Settings, Security: until then anyone who can reach the port can use it</li>
+  <li>An app key is optional but worth it. Run <code>openssl rand -hex 32</code> in a terminal and paste the result into the App key field (<code>KL_APP_KEY</code>). Keep it with your other passwords, because KnightLoader does not start on sealed data without the same key</li>
+  <li>The template runs the container as <code>nobody:users</code> (<code>--user 99:100</code>) with <code>UMASK</code> <code>000</code>, so the account you use over SMB can move, rename and delete what KnightLoader downloads</li>
+</ul>
+
+<h2>Bugs, Problems, Wishes</h2>
+<p>Something not working, a question or an idea? The best place for it is an issue on GitHub:
+<a href="https://github.com/junkerderprovinz/knightloader/issues">github.com/junkerderprovinz/knightloader/issues</a>.
+Everything stays in one place there, and nothing gets lost in a long thread.</p>
+<p>For a bug, whether you post it there or here, these help:</p>
+<ul>
+  <li>Unraid version (Settings → System Information)</li>
+  <li>Image tag (<code>latest</code> or a pinned version)</li>
+  <li>The file from the Bug report button under Settings, Info: the build, the settings with every password removed and the latest log lines</li>
+  <li>If the container does not start, the last lines of its log (Docker tab, KnightLoader icon, Logs)</li>
+  <li>What kind of link it was (hoster, debrid, torrent, Usenet, video) and what you expected against what happened</li>
+</ul>
+
+<h2>Credits</h2>
+<p>Downloads run on the engine of <a href="https://github.com/GopeedLab/gopeed">Gopeed</a>, videos
+and streams on <a href="https://github.com/yt-dlp/yt-dlp">yt-dlp</a> and
+<a href="https://ffmpeg.org">ffmpeg</a>, and <a href="https://jdownloader.org">JDownloader</a>
+takes the hoster links nothing else claims. The RSDF and CCF readers follow JDownloader's
+GPL-3.0 container plugins. If KnightLoader has earned a place on your server, toss a coin to
+your knight: you can <a href="https://buymeacoffee.com/junkerderprovinz">buy me a coffee</a>.</p>
+
+<hr>
+
+<p style="text-align:center"><em>Self-hosted, AGPL-3.0 licensed: you run it, you own your data and the responsibility.</em></p>
+
+</body>
+</html>

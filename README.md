@@ -343,6 +343,6 @@ If it has earned a place on your server or computer, toss a coin to your knight:
 </p>
 <!-- /give-buttons -->
 
-Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues).
+Problems, wishes or suggestions? Don't hesitate to open an [issue](https://github.com/junkerderprovinz/knightloader/issues). On Unraid there is also the [support thread](https://forums.unraid.net/topic/200895-support-junkerderprovinz-knightloader/).
 
 The code and the knight logo are licensed under [AGPL-3.0](LICENSE). The RSDF and CCF readers follow [JDownloader](https://jdownloader.org/)'s GPL-3.0 container plugins. The KnightLoader name and logo stay my trademarks, so a fork needs a name and logo of its own.
