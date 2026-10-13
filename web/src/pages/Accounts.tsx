@@ -831,6 +831,7 @@ function CredentialDialog({
       // The picker's window, which the form of the picked brand stays in.
       wide={mode === 'new'}
       height={picked ? 'content' : 'capped'}
+      holdHeight={!picked && query !== ''}
       right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={
@@ -844,7 +845,11 @@ function CredentialDialog({
                 labelled
                 icon={<IconBack className="rtl:-scale-x-100" />}
                 title={t('onboarding.back')}
-                onClick={() => setPicked(null)}
+                onClick={() => {
+                  // The list comes back whole, so the window can measure the height its search holds.
+                  setPicked(null);
+                  setQuery('');
+                }}
               />
             ) : (
               <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
