@@ -109,7 +109,7 @@ export function JDImportPreviewDialog({
     >
       <div className="flex min-w-0 flex-col gap-3">
         {preview.files.length > 0 && (
-          <span className="break-all text-[11px] text-carbon-textMuted">
+          <span className="break-all text-meta text-carbon-textMuted">
             {t('settings.jdimport.previewFiles', { files: preview.files.join(', ') })}
           </span>
         )}
@@ -129,7 +129,7 @@ export function JDImportPreviewDialog({
         </div>
 
         {picked.size === 0 && (
-          <span className="text-[11px] text-carbon-textMuted">{t('settings.transfer.nothingSelected')}</span>
+          <span className="text-meta text-carbon-textMuted">{t('settings.transfer.nothingSelected')}</span>
         )}
         {error && <span className="text-xs text-statusFail">{error}</span>}
 
@@ -140,11 +140,11 @@ export function JDImportPreviewDialog({
             if (rows.length === 0) return null;
             return (
               <div key={group} className="flex min-w-0 flex-col gap-2">
-                <span className="text-[11px] font-medium uppercase tracking-[1px] text-carbon-textMuted">
+                <span className="text-meta font-medium uppercase tracking-[1px] text-carbon-textMuted">
                   {t(GROUP_LABEL[group])}
                 </span>
                 {group === 'downloads' && (
-                  <span className="text-[11px] text-carbon-textSub">{t('settings.jdimport.downloadsHint')}</span>
+                  <span className="text-meta text-carbon-textSub">{t('settings.jdimport.downloadsHint')}</span>
                 )}
                 {rows.map((it, i) => (
                   <Row
@@ -227,14 +227,14 @@ function Row({
 }
 
 function Sub({ children }: { children: ReactNode }) {
-  return <span className="min-w-0 break-words text-[11px] text-carbon-textMuted">{children}</span>;
+  return <span className="min-w-0 break-words text-meta text-carbon-textMuted">{children}</span>;
 }
 
 /** Badge is a short marker beside the name, not a status badge. */
 function Badge({ children, warn = false, dim = '' }: { children: ReactNode; warn?: boolean; dim?: string }) {
   return (
     <span
-      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-[11px] leading-[14px] ${
+      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-meta leading-[14px] ${
         warn ? 'bg-statusWarnBg text-statusWarn' : 'bg-carbon-surface3 text-carbon-textMuted'
       } ${dim}`}
     >

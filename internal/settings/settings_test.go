@@ -127,6 +127,17 @@ func TestEachLabelSettingKeepsItsModeAndFoldsTheRest(t *testing.T) {
 	}
 }
 
+// The speed graph colours land in CSS custom properties as the accent does.
+func TestSanitizeSpeedLineColours(t *testing.T) {
+	s := sanitize(Settings{DownloadLine: " #1D99F3 ", SeedingLine: "red; background: url(http://evil/)"})
+	if s.DownloadLine != "#1D99F3" {
+		t.Errorf("a hex colour came back as %q", s.DownloadLine)
+	}
+	if s.SeedingLine != "" {
+		t.Errorf("an injection was kept as %q", s.SeedingLine)
+	}
+}
+
 // Every entry lands in a CSS custom property, so one that is not a plain hex
 // triple is not a cosmetic problem.
 func TestSanitizeRainbowPalette(t *testing.T) {

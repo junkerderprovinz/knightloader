@@ -50,7 +50,7 @@ export function ScrapeCard({ hue }: { hue: number }) {
       </div>
 
       {/* While the switch is off the address answers 404. */}
-      {!on && <span className="text-[11px] text-carbon-textMuted">{t('settings.health.scrapeOffHint')}</span>}
+      {!on && <span className="text-meta text-carbon-textMuted">{t('settings.health.scrapeOffHint')}</span>}
     </Card>
   );
 }

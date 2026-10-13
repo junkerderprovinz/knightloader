@@ -8,8 +8,11 @@ import {
   NumberInput,
   SectionTitle,
   TextInput,
+  type ButtonVerdict,
 } from '../../../components/ui';
+import { Dropdown } from '../../../components/Dropdown';
 import { Tabs } from '../../../components/Tabs';
+import { TestButton } from '../../../components/TestButton';
 import { idleProblemText } from '../../../components/IdleActionBanner';
 import {
   checkIdleCommand,
@@ -20,12 +23,11 @@ import {
   type IdleCommandCheck,
   type IdleRun,
 } from '../../../lib/api';
-import { IconClock, IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
+import { IconClose, IconCode, IconMoon, IconPause, IconPower } from '../../../lib/icons';
 import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
-import { ListArea } from '../controls';
-import { KeepAwakeRow } from './KeepAwake';
+import { ListArea, SettingRow } from '../controls';
 
 // The idle action: what happens once the wait queue has nothing left, and how
 // long the cancellable countdown runs first. The menu comes from the server,
@@ -89,40 +91,48 @@ export function useIdleActions(): string[] {
 }
 
 /**
- * IdleActionPicker is the choice of action as this card draws it. The shell
- * bar's quick settings show the same strip, so both places offer the same
- * menu and write the same value. The panel there is too narrow for the big
- * well, which would stack one action per line, so it asks for `sm`.
+ * IdleActionPicker is the choice of action as this card draws it: its name at
+ * the row's start and the compact selector at its end. The shell bar's quick
+ * settings show the same row with the same choices as a dropdown (`menu`),
+ * since their panel has no room beside the name for five labelled segments.
  */
 export function IdleActionPicker({
   actions,
   value,
   onValue,
-  size = 'md',
+  menu = false,
 }: {
   actions: string[];
   value: string;
   onValue: (action: string) => void;
-  size?: 'sm' | 'md';
+  menu?: boolean;
 }) {
   const { t } = useT();
   const hint = ACTION_HINTS[value];
+  const name = t('settings.downloads.idleAction');
+  const labelOf = (id: string) => (ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id);
   return (
-    <FieldGroup
-      layout="row"
-      label={t('settings.downloads.idleAction')}
+    <SettingRow
+      control={menu ? 'fit' : undefined}
+      label={name}
       hint={hint ? `${t('settings.downloads.idleActionHint')} ${t(hint)}` : t('settings.downloads.idleActionHint')}
     >
-      <Tabs
-        variant="well"
-        size={size}
-        labelled
-        label={t('settings.downloads.idleAction')}
-        active={value}
-        onSelect={onValue}
-        items={actions.map((id) => ({ id, label: ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id, icon: ACTION_ICONS[id] }))}
-      />
-    </FieldGroup>
+      {menu ? (
+        <Dropdown label={name} value={value} onChange={onValue} options={actions.map((id) => ({ value: id, label: labelOf(id) }))} />
+      ) : (
+        <Tabs
+          variant="well"
+          size="sm"
+          inline
+          hug
+          labelled
+          label={name}
+          active={value}
+          onSelect={onValue}
+          items={actions.map((id) => ({ id, label: labelOf(id), icon: ACTION_ICONS[id] }))}
+        />
+      )}
+    </SettingRow>
   );
 }
 
@@ -134,7 +144,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
   const actions = useIdleActions();
   const [deployment, setDeployment] = useState('');
   const [check, setCheck] = useState<IdleCommandCheck | null>(null);
-  const [checking, setChecking] = useState(false);
   const [lastRun, setLastRun] = useState<IdleRun | null>(null);
   const [running, setRunning] = useState(false);
   const [confirming, setConfirming] = useState(false);
@@ -181,15 +190,11 @@ export function IdleActionCard({ hue }: { hue: number }) {
         ? t('settings.downloads.idleDeploymentContainer')
         : undefined;
 
-  async function handleCheck() {
-    setChecking(true);
-    try {
-      setCheck(await checkIdleCommand());
-    } catch {
-      setCheck(null);
-    } finally {
-      setChecking(false);
-    }
+  async function handleCheck(): Promise<ButtonVerdict> {
+    setCheck(null);
+    const found = await checkIdleCommand();
+    setCheck(found);
+    return found.problem ? 'fail' : 'ok';
   }
 
   async function handleRun() {
@@ -212,8 +217,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={deploymentHint}>{t('settings.downloads.idleTitle')}</SectionTitle>
 
-      <KeepAwakeRow />
-
       <IdleActionPicker
         actions={actions}
         value={action}
@@ -221,7 +224,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
       />
 
       {action !== 'none' && (
-        <Field
+        <SettingRow
+          control="short"
           label={t('settings.downloads.idleCountdown')}
           hint={`${t('settings.downloads.idleCountdownHint')} ${t('settings.downloads.idleArmHint')}`}
         >
@@ -231,12 +235,13 @@ export function IdleActionCard({ hue }: { hue: number }) {
             max={DELAY.hi}
             onValue={(v) => patch({ idleAction: { ...cfg.idleAction, delaySeconds: v } })}
           />
-        </Field>
+        </SettingRow>
       )}
 
       {action === 'command' && (
         <>
-          <Field
+          <SettingRow
+            control="long"
             label={t('settings.downloads.idleCommandProgram')}
             hint={`${t('settings.downloads.idleCommandProgramHint')} ${t('settings.downloads.idleCommandSecretHint')}`}
           >
@@ -247,7 +252,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               dir="ltr"
               onChange={(e) => setCommand({ program: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           <Field label={t('settings.downloads.idleCommandArgs')} hint={t('settings.downloads.idleCommandArgsHint')}>
             <ListArea
@@ -259,7 +264,8 @@ export function IdleActionCard({ hue }: { hue: number }) {
             />
           </Field>
 
-          <Field
+          <SettingRow
+            control="short"
             label={t('settings.downloads.idleCommandTimeout')}
             hint={t('settings.downloads.idleCommandTimeoutHint')}
           >
@@ -269,22 +275,34 @@ export function IdleActionCard({ hue }: { hue: number }) {
               max={TIMEOUT.hi}
               onValue={(v) => setCommand({ timeoutSeconds: v })}
             />
-          </Field>
+          </SettingRow>
 
           <FieldGroup
             label={t('settings.downloads.idleCommandVerify')}
             hint={t('settings.downloads.idleCommandVerifyHint')}
           >
             <div className="flex flex-col gap-2">
+              {/* What the check found, above the buttons until the next one. */}
+              {check && (
+                <div className="glim-well p-3 text-xs text-carbon-textSub">
+                  {check.problem
+                    ? idleProblemText(t, check.problem, { program: probeName, deployment })
+                    : t('settings.downloads.idleCommandCheckOk', {
+                        path: check.resolvedPath ?? '',
+                        argv: (check.argv ?? []).join(' '),
+                      })}
+                </div>
+              )}
+
               <div className="flex flex-wrap gap-2">
-                <Button
-                  kind="secondary"
-                  className="w-fit"
-                  disabled={checking || dirty}
-                  onClick={() => void handleCheck()}
-                >
-                  {checking ? t('settings.downloads.idleCommandChecking') : t('settings.downloads.idleCommandCheck')}
-                </Button>
+                <TestButton
+                  label={t('settings.downloads.idleCommandCheck')}
+                  busyLabel={t('settings.downloads.idleCommandChecking')}
+                  words={{ ok: t('test.passed'), fail: t('test.failed') }}
+                  disabled={dirty}
+                  run={handleCheck}
+                  resetKey={JSON.stringify(command)}
+                />
                 {/* Only for the command action; the run route answers 409
                     otherwise. */}
                 <Button
@@ -296,23 +314,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
                   {t('settings.downloads.idleCommandRun')}
                 </Button>
               </div>
-
-              {check && (
-                <div className="glim-well flex flex-col gap-1 p-3 text-xs">
-                  {check.problem ? (
-                    <p className="text-statusWarn">
-                      {idleProblemText(t, check.problem, { program: probeName, deployment })}
-                    </p>
-                  ) : (
-                    <p className="text-carbon-textSub">
-                      {t('settings.downloads.idleCommandCheckOk', {
-                        path: check.resolvedPath ?? '',
-                        argv: (check.argv ?? []).join(' '),
-                      })}
-                    </p>
-                  )}
-                </div>
-              )}
             </div>
           </FieldGroup>
         </>

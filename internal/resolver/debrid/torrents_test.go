@@ -680,22 +680,15 @@ func newSlowAdd() *slowAdd {
 func TestAPauseWhileTheServiceTakesTheTorrentKeepsItsJob(t *testing.T) {
 	svc := newSlowAdd()
 	b, up := newTestBackend(t, svc, &partRecorder{})
-	claimed := make(chan string, 4)
-	b.Added = func(job string) { claimed <- job }
 
 	b.Download("t1", testMagnet, nil, 1)
 	<-svc.entered
 	b.Pause("t1")
 	up.until(t, core.StatusPaused)
 	close(svc.release)
-	select {
-	case job := <-claimed:
-		if job != "job1" {
-			t.Fatalf("claimed %q", job)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("the job the service made was never claimed")
-	}
+	waitFor(t, func() bool {
+		return slices.ContainsFunc(up.all(), func(u core.Update) bool { return u.Job != nil && u.Job.ID == "job1" })
+	}, "the paused task told of the job the service made")
 	b.Resume("t1")
 	up.until(t, core.StatusDone)
 
@@ -707,22 +700,12 @@ func TestAPauseWhileTheServiceTakesTheTorrentKeepsItsJob(t *testing.T) {
 func TestARemovalWhileTheServiceTakesTheTorrentDeletesItsJob(t *testing.T) {
 	svc := newSlowAdd()
 	b, _ := newTestBackend(t, svc, &partRecorder{})
-	claimed := make(chan string, 4)
-	b.Added = func(job string) { claimed <- job }
 
 	b.Download("t1", testMagnet, nil, 1)
 	<-svc.entered
 	b.Remove("t1", false)
 	close(svc.release)
 
-	select {
-	case job := <-claimed:
-		if job != "job1" {
-			t.Errorf("claimed %q", job)
-		}
-	case <-time.After(5 * time.Second):
-		t.Fatal("the job the service made was never claimed, so the import would take it for the user's")
-	}
 	waitFor(t, func() bool { return slices.Equal(svc.deletedJobs(), []string{"job1"}) }, "the job of the removed task deleted")
 }
 
@@ -841,22 +824,12 @@ func TestATorrentTheAccountListsIsFetchedFromThereAndNeverDeleted(t *testing.T) 
 func TestAnAddWhoseAnswerWentMissingCarriesOnWithTheJobItMade(t *testing.T) {
 	svc := &listedAccount{scriptedService: scriptedService{jobs: []TorrentJob{{Name: "Show", State: TorrentReady, Files: twoFiles}}}, lostAnswer: true}
 	b, up := newTestBackend(t, svc, &partRecorder{})
-	claimed := make(chan string, 4)
-	b.Added = func(job string) { claimed <- job }
 
 	b.Download("t1", testMagnet, nil, 1)
 	up.until(t, core.StatusDone)
 
 	if n := svc.addCount(); n != 1 {
 		t.Errorf("the torrent was added %d times", n)
-	}
-	select {
-	case job := <-claimed:
-		if job != "job1" {
-			t.Errorf("claimed %q", job)
-		}
-	default:
-		t.Error("the job the service made was never claimed, so the import would take it for the user's")
 	}
 	waitFor(t, func() bool { return slices.Equal(svc.deletedJobs(), []string{"job1"}) }, "the finished job deleted on the service")
 }

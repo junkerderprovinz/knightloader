@@ -37,6 +37,7 @@ import {
   ok,
   restartTasks,
   recheckTasks,
+  renamePackage,
   setPackage,
   setTaskOptions,
   refusal,
@@ -83,10 +84,13 @@ import {
   type PresetMenus,
 } from './VariantPicker';
 import { ColumnMenu } from './ColumnMenu';
-import { renameRefusal } from './RenameDialog';
+import type { MenuGroup } from './ContextMenu';
+import type { Rename } from './ListToolbar';
+import { nameFault, renameRefusal } from './RenameDialog';
 import {
   COLUMN_BY_ID,
   FOLDER_GLYPH,
+  HEAD_LABEL,
   PARKED,
   Tip,
   TREE_INDENT,
@@ -99,9 +103,11 @@ import {
   resolveLayout,
   sharedPriority,
   toStored,
+  useHeadWidths,
   usePriorityNames,
   variantKindOf,
   PriorityTag,
+  ROW_EDGES,
   RowMarks,
   TWISTY_STEP,
   type CellContext,
@@ -146,15 +152,16 @@ import {
   IconPause,
   IconPlay,
   IconTrash,
-  IconRetry,
+  IconPencil,
+  IconRefresh,
   IconFolder,
   IconFolderOpen,
   IconSearch,
-  IconSettings,
-  IconArrowUp,
-  IconArrowDown,
-  IconChevronDown,
-  IconChevronUp,
+  IconGear,
+  IconMoveUp,
+  IconMoveDown,
+  IconExpand,
+  IconCollapse,
   IconClose,
 } from '../lib/icons';
 
@@ -227,9 +234,10 @@ function drawnRows(strip: HTMLElement): HTMLElement[] {
  * gridTemplate). It paints no ground, so the row's own fill, selection tint
  * and rainbow wash run through it, and it pushes its badges to the trailing
  * edge, so the trash of every row lines up however many badges stand before
- * it.
+ * it. The badges show while the pointer or the focus is on the row, and always
+ * on a touch screen (`.glim-row-actions` in index.css).
  */
-const ACTIONS_CELL = 'flex items-center justify-end gap-1';
+const ACTIONS_CELL = 'glim-row-actions flex items-center justify-end gap-1';
 
 /**
  * Whether a parked row greys this cell (see isParked). The switch is how the
@@ -285,6 +293,63 @@ export function useCollapsedPackages(profile: ListProfile = 'downloads') {
   );
 
   return { collapsed, collapse, expand, toggle };
+}
+
+/** A card's sort as the Sort button above the list offers it (ListBar.tsx). */
+export interface ListSort {
+  /** The card's title, which names its entry where a page has several cards. */
+  title: string;
+  /** The header of the column the card is sorted by, absent in queue order. */
+  current?: string;
+  groups: MenuGroup[];
+}
+
+/**
+ * useListSort is a card's sort as a menu: the queue's own order, every column
+ * the card shows that can be sorted by, and the two directions. It reads and
+ * writes the fields TaskListCard does, so a pick here and a click on a column
+ * header are the same change.
+ */
+export function useListSort(title: string, profile: ListProfile = 'downloads', sortKey?: string): ListSort {
+  const { t } = useT();
+  const [stored] = useUIState<ColumnLayout | null>(`list.columns.${profile}`, null);
+  const [storedSort, setSort] = useUIState<SortState | null>(`list.sort.${sortKey ?? profile}`, null);
+  const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const sort = storedSort && !layout.hidden.has(storedSort.id) ? storedSort : null;
+  const header = (col: ColumnDef) => t(col.labelByProfile?.[profile] ?? col.labelKey);
+  const sortedBy = sort ? layout.visible.find((c) => c.id === sort.id) : undefined;
+
+  return {
+    title,
+    current: sortedBy && header(sortedBy),
+    groups: [
+      {
+        id: 'by',
+        items: [
+          { id: 'queue', label: t('list.sortQueue'), checked: !sort, onSelect: () => setSort(null) },
+          ...layout.visible
+            .filter((c) => c.compare)
+            .map((c) => ({
+              id: c.id,
+              label: header(c),
+              checked: sort?.id === c.id,
+              onSelect: () => setSort({ id: c.id, dir: sort?.dir ?? 'asc' }),
+            })),
+        ],
+      },
+      {
+        id: 'direction',
+        items: (['asc', 'desc'] as const).map((dir) => ({
+          id: dir,
+          label: t(dir === 'asc' ? 'list.sortAsc' : 'list.sortDesc'),
+          icon: dir === 'asc' ? <IconMoveUp /> : <IconMoveDown />,
+          checked: sort?.dir === dir,
+          disabled: !sort,
+          onSelect: () => sort && setSort({ id: sort.id, dir }),
+        })),
+      },
+    ],
+  };
 }
 
 /**
@@ -414,6 +479,7 @@ function TaskRow({
       aria-level={level}
       aria-posinset={posinset}
       aria-setsize={setsize}
+      data-new="list-rows"
       onKeyDown={onKeyDown}
       // The live drag preview slides this row with a translate rather than
       // rendering it somewhere else in the list; see TaskListCard's
@@ -447,9 +513,9 @@ function TaskRow({
       //
       // has-[:focus-visible] is the keyboard's hover, and the fill has to
       // arrive with it.
-      className={`glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
+      className={`glim-row glim-hue glim-tint select-none ${task.status === 'running' ? 'glim-active' : ''} ${dnd.look(unit)} ${
         selection?.ids.has(task.id) ? 'glim-row-selected' : ''
-      } relative grid items-center px-3 py-[var(--row-pad)] transition-colors
+      } relative grid items-center ${ROW_EDGES} py-[var(--row-pad)] transition-colors
         hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50`}
     >
       {columns.map((col) => {
@@ -500,13 +566,10 @@ function TaskRow({
         );
       })}
 
-      {/* The actions stand in a track of their own at the row's end and are
-          there on every row at rest (GlimStone rule 6): a touch screen has no
-          hover to reveal them, and an action nobody can see is one nobody knows
-          is there. Floating over the row instead, they would cover its size,
-          speed and status cells whenever they showed. The badges are quiet, so
-          forty rows do not read as a wall of tiles, and the context menu on the
-          row offers every one of these verbs too.
+      {/* The actions stand in a track of their own at the row's end. Floating
+          over the row instead, they would cover its size, speed and status
+          cells whenever they showed. The context menu on the row offers every
+          one of these verbs too.
           The badges are hued per slot rather than per row position, so a row's
           play badge is always the same hue and Recheck is always the next one,
           the same "position is the identity" rule every other badge set in this
@@ -518,7 +581,7 @@ function TaskRow({
   );
 }
 
-/** A link row's badges in the trailing track; see TaskRow for why they show at rest. */
+/** A link row's badges in the trailing track; see ACTIONS_CELL for when they show. */
 export function TaskActions({ task, base, current }: { task: Task; base: string; current: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
@@ -594,7 +657,7 @@ export function TaskActions({ task, base, current }: { task: Task; base: string;
             quiet
             hue={3}
             tabIndex={current ? 0 : -1}
-            icon={<IconRetry width={16} height={16} />}
+            icon={<IconRefresh width={16} height={16} />}
             title={t('task.restart')}
             aria-label={t('task.restart')}
             onClick={send(() => restartTasks([task.id], base))}
@@ -747,7 +810,7 @@ function PackageName({
             online ratio beside it: the package's aggregate dot in the Status
             column already says that, and saying it twice is how a package
             reads differently from its own status cell. */}
-        <span className="glim-num hidden shrink-0 whitespace-nowrap text-[11px] text-carbon-textSub @[13rem]:inline">
+        <span className="glim-num hidden shrink-0 whitespace-nowrap text-meta text-carbon-textSub @[13rem]:inline">
           {count}
         </span>
       </div>
@@ -772,7 +835,7 @@ function HosterPresetButton({ host, base, focusable }: { host: string; base: str
       <IconBadge
         hue={0}
         tabIndex={focusable ? 0 : -1}
-        icon={<IconSettings width={16} height={16} />}
+        icon={<IconGear width={16} height={16} />}
         title={label}
         aria-label={label}
         onClick={() => setOpen(true)}
@@ -915,7 +978,7 @@ function HosterPresetDialog({ host, base, onClose }: { host: string; base: strin
 // Anything that is itself a control keeps its own click. Everything else on a
 // package header folds it, which is what people try first and what JDownloader
 // does.
-const CONTROL = 'button, a, input, select, textarea, [role="switch"], [role="checkbox"], .glim-info';
+const CONTROL = 'button, a, input, select, textarea, [role="switch"], .glim-info';
 
 // PackageRow is the folder header: a plain block inside the list card, not a
 // nested card. Its totals are over every link in the package, folded or not: a
@@ -1001,6 +1064,7 @@ function PackageRow({
       aria-level={level}
       aria-posinset={posinset}
       aria-setsize={setsize}
+      data-new="list-rows"
       onKeyDown={onKeyDown}
       // Slid out of the way by a drag in flight exactly like a link row; see
       // TaskRow's identical style above and previewOffsets for the arithmetic.
@@ -1025,11 +1089,11 @@ function PackageRow({
       // glyph and the bold name set it apart, and a tinted band on every
       // package would make a long list striped. The selected state paints over
       // it with .glim-row-selected.
-      className={`relative grid cursor-pointer select-none items-center ${
+      className={`glim-row relative grid cursor-pointer select-none items-center ${
         hued ? `glim-hue glim-tint ${torrent.status === 'running' ? 'glim-active' : ''}` : ''
       } ${allSelected ? 'glim-row-selected' : ''} ${
         divider ? 'border-t border-carbon-border/60' : ''
-      } px-3 py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
+      } ${ROW_EDGES} py-[var(--row-pad)] transition-colors hover:bg-carbon-hover/50 has-[:focus-visible]:bg-carbon-hover/50 ${dnd.look(unit)}`}
     >
       {columns.map((col) => (
         <div
@@ -1065,9 +1129,8 @@ function PackageRow({
         </div>
       ))}
 
-      {/* The folder row's actions, in the same trailing track as a link row's
-          and visible at rest for the same reason. A header that is its torrent
-          carries the torrent's own.
+      {/* The folder row's actions, in the same trailing track as a link row's.
+          A header that is its torrent carries the torrent's own.
 
           The gear is for a package whose variant rows share a host
           (variantKindOf is '' for anything not yt-dlp-routed) and collector
@@ -1120,6 +1183,10 @@ interface RowDnD {
 /** The three fields TaskListCard's own selectUnit reads off a press. */
 type SelectMods = { ctrlKey: boolean; metaKey: boolean; shiftKey: boolean };
 const PLAIN: SelectMods = { ctrlKey: false, metaKey: false, shiftKey: false };
+// A tap adds its row to the marking or takes it out, as a Ctrl-click does: a
+// finger has no modifier keys, and a tap that replaced the marking would leave
+// a phone no way to pick two rows.
+const TOGGLE: SelectMods = { ctrlKey: true, metaKey: false, shiftKey: false };
 
 /**
  * A press that has not finished being one thing or another yet. `mode` is
@@ -1317,7 +1384,7 @@ function Header({
       // group/header: hovering anywhere on the header lights up every column
       // boundary at once. Per-handle hover would not do, because the handle is
       // 8px wide and invisible and nobody can hover what they are looking for.
-      className="group/header relative grid items-center border-b border-carbon-border/60 px-3 py-1 select-none"
+      className={`group/header relative grid items-center border-b border-carbon-border/60 ${ROW_EDGES} py-1 select-none`}
     >
       {layout.visible.map((col) => {
         const sorted = sort?.id === col.id ? sort.dir : null;
@@ -1341,16 +1408,15 @@ function Header({
               onDragEnd={() => setDragId(null)}
               onClick={() => sortable && onSort(col.id)}
               aria-sort={sorted === 'asc' ? 'ascending' : sorted === 'desc' ? 'descending' : undefined}
-              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 text-[11px] font-semibold uppercase
-                tracking-wide transition-colors ${
+              className={`flex min-w-0 flex-1 items-center gap-1 px-2 py-1.5 ${HEAD_LABEL} transition-colors ${
                   col.align === 'end' ? 'justify-end' : col.align === 'center' ? 'justify-center' : 'justify-start'
                 } ${sorted ? 'text-carbon-text' : 'text-carbon-textMuted hover:text-carbon-textSub'}`}
             >
               {/* One list can call a column something else; see CellContext's
                   `profile` for why that is one column and not two. */}
               <span className="truncate">{t(col.labelByProfile?.[profile] ?? col.labelKey)}</span>
-              {sorted === 'asc' && <IconArrowUp width={11} height={11} className="shrink-0" />}
-              {sorted === 'desc' && <IconArrowDown width={11} height={11} className="shrink-0" />}
+              {sorted === 'asc' && <IconMoveUp width={11} height={11} className="shrink-0" />}
+              {sorted === 'desc' && <IconMoveDown width={11} height={11} className="shrink-0" />}
             </button>
 
             {/* Double-click gives a column its built-in width back, which is the
@@ -1373,7 +1439,7 @@ function Header({
 }
 
 /** Which box was edited. Nothing else is sent; see TaskProperties. */
-type PropField = 'name' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
+type PropField = 'name' | 'package' | 'dir' | 'comment' | 'priority' | 'autoExtract' | 'resolver';
 
 /**
  * The backends the selection can be pinned to, asked of the instance its rows
@@ -1446,9 +1512,51 @@ function agree<T>(tasks: Task[], pick: (t: Task) => T): T | null {
   return tasks.every((x) => pick(x) === first) ? first : null;
 }
 
+/** One name of what is picked and the button that opens its rename window. */
+function NameLine({
+  name,
+  folder = false,
+  inset = false,
+  onRename,
+}: {
+  name: string;
+  /** A package, which stands over its links. */
+  folder?: boolean;
+  inset?: boolean;
+  onRename?: () => void;
+}) {
+  const { t } = useT();
+  return (
+    <div className={`flex min-h-[var(--btn-h)] min-w-0 items-center gap-2 ${inset ? 'ps-6' : ''}`}>
+      {folder && <IconFolder width={14} height={14} className="shrink-0 text-carbon-textMuted" />}
+      <Tip
+        tip={name}
+        className={`min-w-0 flex-1 truncate text-xs ${folder ? 'font-semibold text-carbon-text' : 'text-carbon-textSub'}`}
+      >
+        {name}
+      </Tip>
+      {onRename && (
+        <IconBadge
+          quiet
+          icon={<IconPencil width={16} height={16} />}
+          title={t('rename.menu')}
+          aria-label={`${t('rename.menu')}: ${name}`}
+          onClick={onRename}
+        />
+      )}
+    </div>
+  );
+}
+
 /**
  * TaskProperties edits what is selected, one row or forty, through the same
  * panel and the same request.
+ *
+ * It names what is picked. One link has its name in a box, and so has a
+ * package picked whole; both are saved with the rest. Names that cannot change
+ * together are listed, each with the rename window the right-click menu opens:
+ * the links of a larger selection, and a package only part of which is picked,
+ * since renaming it reaches the links that are not.
  *
  * A field is sent only if it was edited: not if it differs from what was
  * loaded, and not if it is non-empty. A selection whose rows disagree opens
@@ -1467,11 +1575,14 @@ export function TaskProperties({
   ids,
   tasks,
   base,
+  rename,
   autoFocus = false,
 }: {
   ids: string[];
   tasks: Task[];
   base: string;
+  /** The page's rename windows and its packages' members. Without it only a single link is named. */
+  rename?: Rename;
   /** Set only where the keyboard opened this panel. It renders below the list
    *  card, which on a five-thousand-row list is thousands of pixels down the
    *  page, so Enter would otherwise open a panel nobody can see. A double-click
@@ -1483,12 +1594,21 @@ export function TaskProperties({
   const priorities = usePriorities();
   const pinChoices = usePinChoices(ids, base);
 
+  const groups = useMemo(() => groupByPackage(tasks), [tasks]);
+  // The package every picked row is in, '' for rows outside any, and null when
+  // they are spread over several.
+  const pkg = groups.length === 1 ? groups[0][0] : null;
+  // Every link of that package on the page, which is what a rename reaches.
+  const members = rename && pkg ? rename.members(pkg) : [];
+  const whole = members.length > 0 && members.length === ids.length && members.every((x) => ids.includes(x.id));
+
   // Read once, at mount. The panel is remounted whenever the selection changes
   // (see the key in TaskListCard), so this is the only moment these values are
   // the ones the user is looking at; reading them again on every render would
   // pull a half-typed box back to what the server last broadcast.
   const [start] = useState(() => ({
     name: tasks.length === 1 ? tasks[0].name : '',
+    pkg: pkg ?? '',
     dir: agree(tasks, (x) => x.dir ?? ''),
     comment: agree(tasks, (x) => x.comment ?? ''),
     priority: agree(tasks, (x) => String(x.priority ?? 0)),
@@ -1497,6 +1617,7 @@ export function TaskProperties({
   }));
 
   const [name, setName] = useState(start.name);
+  const [pkgName, setPkgName] = useState(start.pkg);
   const [dir, setDir] = useState(start.dir ?? '');
   const [comment, setComment] = useState(start.comment ?? '');
   const [priority, setPriority] = useState(start.priority);
@@ -1537,6 +1658,28 @@ export function TaskProperties({
   const backends = (pinChoices ?? []).map((c) => ({ value: c.id, label: c.label || resolverLabel(c.id, t) }));
   if (pin && !backends.some((b) => b.value === pin)) backends.push({ value: pin, label: resolverLabel(pin, t) });
 
+  /** Renames the package picked whole. False when the name was refused. */
+  async function applyPackage(): Promise<boolean> {
+    const next = pkgName.trim();
+    if (next === pkg) return true;
+    const fault = nameFault(next);
+    if (fault) {
+      toast(t(fault), 'fail');
+      return false;
+    }
+    try {
+      await renamePackage(
+        members.map((x) => x.id),
+        next,
+        base,
+      );
+    } catch (e) {
+      toast(renameRefusal(e, t) ?? t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
+      return false;
+    }
+    return true;
+  }
+
   async function apply(): Promise<void> {
     const opts: TaskOptionsPatch = {};
     if (touched.has('name')) opts.name = name;
@@ -1552,6 +1695,19 @@ export function TaskProperties({
     if (touched.has('resolver') && pin !== null) opts.resolver = pin;
 
     setBusy(true);
+    // The package first: a refused name leaves the other boxes unsent, to be
+    // saved together once the name is right.
+    if (touched.has('package') && whole && !(await applyPackage())) {
+      setBusy(false);
+      setShake((n) => n + 1);
+      return;
+    }
+    if (Object.keys(opts).length === 0) {
+      setBusy(false);
+      setTouched(new Set());
+      toast(t('settings.saved'), 'ok');
+      return;
+    }
     const r = await setTaskOptions(ids, opts, base);
     setBusy(false);
     if (!r.ok) {
@@ -1591,18 +1747,59 @@ export function TaskProperties({
           {t('props.title')}
         </SectionTitle>
 
-        {/* Only over a single row, and left out rather than greyed out over
-            several: a name is an identity, not a property. Forty rows given one
-            name are forty downloads pointed at one destination, which the
-            server refuses for the same reason. */}
-        {ids.length === 1 && (
-          <Field label={t('props.name')} hint={t('props.nameHint')}>
-            <TextInput
-              value={name}
-              spellCheck={false}
-              onChange={(e) => edit('name', setName)(e.target.value)}
-            />
-          </Field>
+        {/* A box only over a single row: a name is an identity, not a
+            property. Forty rows given one name are forty downloads pointed at
+            one destination, which the server refuses for the same reason. */}
+        {(ids.length === 1 || (rename && pkg)) && (
+          <div className="grid gap-4 sm:grid-cols-2">
+            {ids.length === 1 && (
+              <Field label={t('props.name')} hint={t('props.nameHint')}>
+                <TextInput
+                  value={name}
+                  spellCheck={false}
+                  onChange={(e) => edit('name', setName)(e.target.value)}
+                />
+              </Field>
+            )}
+            {rename && pkg && whole && (
+              <Field label={t('pkg.name')} hint={t('rename.packageHint')}>
+                <TextInput
+                  value={pkgName}
+                  spellCheck={false}
+                  onChange={(e) => edit('package', setPkgName)(e.target.value)}
+                />
+              </Field>
+            )}
+            {rename && pkg && !whole && (
+              <FieldGroup label={t('pkg.name')} hint={t('rename.packageHint')}>
+                <NameLine name={pkg} folder onRename={() => rename.openPackage(pkg)} />
+              </FieldGroup>
+            )}
+          </div>
+        )}
+
+        {/* Several rows: every name, with its own rename. The packages head
+            their links only where the rows are spread over more than one,
+            since a single package stands in the row above. */}
+        {rename && ids.length > 1 && (
+          <FieldGroup label={t('props.name')} hint={t('props.namesHint')}>
+            <div className="flex max-h-48 flex-col gap-0.5 overflow-y-auto rounded-[var(--radius-control)] bg-carbon-surface2 px-3 py-2">
+              {groups.map(([group, items]) => (
+                <Fragment key={group}>
+                  {groups.length > 1 && (
+                    <NameLine
+                      name={group || t('task.ungrouped')}
+                      folder
+                      onRename={group ? () => rename.openPackage(group) : undefined}
+                    />
+                  )}
+                  {items.map((x) => (
+                    <NameLine key={x.id} name={x.name} inset={groups.length > 1} onRename={() => rename.openLink(x.id)} />
+                  ))}
+                </Fragment>
+              ))}
+            </div>
+          </FieldGroup>
         )}
 
         {/* One row, not two stacked full-width fields: the same grid-cols-2
@@ -1698,7 +1895,10 @@ export function TaskProperties({
         </div>
 
         <div className="flex items-center gap-3">
+          {/* Secondary, like every button in a card: the page's one accent is
+              its floating action. */}
           <Button
+            kind="secondary"
             shake={shake}
             disabled={touched.size === 0 || busy}
             onClick={() => void apply()}
@@ -1727,10 +1927,13 @@ export function TaskListCard({
   count,
   fold,
   edge,
+  rename,
 }: {
   groups: [string, Task[]][];
   base: string;
   selection?: Selection;
+  /** The page's rename windows, which the properties panel offers per name. */
+  rename?: Rename;
   /**
    * Which stored layout this list uses. The collector and the downloads list
    * want different columns, and one shared layout would mean switching a column
@@ -1804,7 +2007,8 @@ export function TaskListCard({
   const stripRef = useRef<HTMLDivElement>(null);
   const drag = useRef<{ id: ColumnId; startX: number; startWidth: number; width: number } | null>(null);
 
-  const layout = useMemo(() => resolveLayout(profile, stored), [profile, stored]);
+  const heads = useHeadWidths(profile);
+  const layout = useMemo(() => resolveLayout(profile, stored, heads), [profile, stored, heads]);
   const switchShown = layout.visible.some((c) => c.id === 'enabled');
   const folded = fold?.folded === true;
   const ctx = useMemo<CellContext>(
@@ -2409,7 +2613,8 @@ export function TaskListCard({
    * which arms a move of the row, or of the marking the row is in. A hold let
    * go where it armed opens the row's menu instead (see land), since a long
    * press is how a touch screen asks for one, and so does a hold on rows that
-   * cannot move (see armHold).
+   * cannot move (see armHold). A tap marks the row or takes it out of the
+   * marking (see finishGesture).
    */
   function holdRow(e: PointerEvent<HTMLElement>, unit: RowDragKey): void {
     const g: Gesture = {
@@ -2746,12 +2951,15 @@ export function TaskListCard({
     if (!g.live) {
       // A press that never travelled. On a marked row that is the deferred
       // collapse, see (4) above; on an unmarked one the press already did the
-      // marking and there is nothing left to do. A finger let go or scrolling
-      // before its hold armed was a tap or a scroll, neither of which marks.
-      // One let go after a refused hold armed asked for the row's menu.
+      // marking and there is nothing left to do. A finger let go before its
+      // hold armed was a tap, which flips the row in the marking; a finger that
+      // scrolled never gets here, the browser having cancelled it. One let go
+      // after a refused hold armed asked for the row's menu.
       if (g.refused) {
         if (commit) openMenu(g);
-      } else if (g.mode === 'move' && !g.touch) {
+      } else if (g.touch) {
+        if (commit) selectFromUnit(g.unit, TOGGLE);
+      } else if (g.mode === 'move') {
         selectFromUnit(g.unit, PLAIN);
       }
       return;
@@ -3257,7 +3465,7 @@ export function TaskListCard({
           <div className="absolute end-4 top-0 z-10 flex -translate-y-1/2 items-center gap-2">
             {edge}
             <IconBadge
-              icon={folded ? <IconChevronDown width={16} height={16} /> : <IconChevronUp width={16} height={16} />}
+              icon={folded ? <IconExpand width={16} height={16} /> : <IconCollapse width={16} height={16} />}
               title={t(folded ? 'task.expand' : 'task.collapse')}
               aria-label={t(folded ? 'task.expand' : 'task.collapse')}
               aria-expanded={!folded}
@@ -3363,6 +3571,7 @@ export function TaskListCard({
                 ref={stripRef}
                 className="relative overflow-x-clip [-webkit-touch-callout:none]"
                 role="tree"
+                data-new="row-pick"
                 aria-multiselectable="true"
                 aria-label={title}
                 tabIndex={keys.stripTabIndex}
@@ -3517,6 +3726,7 @@ export function TaskListCard({
           ids={[...chosenIds]}
           tasks={chosen}
           base={base}
+          rename={rename}
           autoFocus={propertiesAutoFocus}
         />
       )}

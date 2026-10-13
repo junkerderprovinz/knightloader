@@ -63,6 +63,8 @@ export interface Task {
   archivePart?: number;
   /** A finished torrent still uploading, a flag beside status 'done'. */
   seeding?: boolean;
+  /** What a torrent sends to its peers now, in bytes/s. */
+  uploadSpeed?: number;
   /** A finished torrent that seeds no more: it reached a seeding target, its
    *  files are gone, or somebody stopped it. */
   seedingOver?: boolean;
@@ -243,6 +245,8 @@ export interface QueueState {
   running: number;
   /** The global speed limit in force in bytes/s, 0 for none. An older server leaves it out. */
   limit?: number;
+  /** The torrents' upload cap in bytes/s, 0 for none. An older server leaves it out. */
+  uploadLimit?: number;
 }
 
 // Mirrors internal/captcha's Challenge and its payloads, the same shapes the

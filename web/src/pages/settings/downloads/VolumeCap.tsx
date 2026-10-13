@@ -1,17 +1,17 @@
-import { Card, Field, FieldGroup, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle, UnitNumberInput } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { VolumeUsageRow } from '../../../components/VolumeMeter';
 import { RATE_UNITS } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import type { VolumeCapAction } from '../../../lib/api';
 import { useDraft } from '../context';
+import { SettingRow } from '../controls';
 
 // The volume cap: how much may finish downloading in one period and what
 // happens once it has. A cap of 0 is off. The figure sums the sizes hosters
 // announced for finished downloads, not the traffic on the line.
 
-// Decimal gigabytes, because providers sell allowances decimally; the disk card
-// uses binary GiB because it reads the filesystem.
+// Gigabytes, the unit providers sell allowances in.
 const GB = 1e9;
 
 // Rounded for display only, so opening the page does not rewrite the draft.
@@ -39,40 +39,43 @@ export function VolumeCapCard({ hue }: { hue: number }) {
 
       <VolumeUsageRow />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.volume.cap')} hint={t('settings.volume.capHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="short" label={t('settings.volume.cap')} hint={t('settings.volume.capHint')}>
           <NumberInput
             value={toGB(cfg.volumeCap)}
             min={0}
             step={STEP_GB}
             onValue={(v) => patch({ volumeCap: fromGB(v) })}
           />
-        </Field>
+        </SettingRow>
 
         {/* The server clamps to 1..31 and restarts a period set for the 31st
             on the last day of a short month. */}
-        <Field label={t('settings.volume.resetDay')} hint={t('settings.volume.resetDayHint')}>
+        <SettingRow control="short" label={t('settings.volume.resetDay')} hint={t('settings.volume.resetDayHint')}>
           <NumberInput
             value={cfg.volumeCapResetDay}
             min={1}
             max={31}
             onValue={(v) => patch({ volumeCapResetDay: Math.min(31, Math.max(1, Math.round(v))) })}
           />
-        </Field>
+        </SettingRow>
       </div>
 
-      <FieldGroup layout="row" label={t('settings.volume.action')} hint={t('settings.volume.actionHint')}>
+      <SettingRow label={t('settings.volume.action')} hint={t('settings.volume.actionHint')}>
         <Tabs
           variant="well"
+          size="sm"
+          inline
+          hug
           label={t('settings.volume.action')}
           active={cfg.volumeCapAction}
           onSelect={(id) => patch({ volumeCapAction: id as VolumeCapAction })}
           items={ACTIONS.map((a) => ({ id: a.id, label: t(a.key) }))}
         />
-      </FieldGroup>
+      </SettingRow>
 
       {cfg.volumeCapAction === 'throttle' && (
-        <Field label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>
+        <SettingRow control="short" label={t('settings.volume.throttle')} hint={t('settings.volume.throttleHint')}>
           {/* The speed limit's field. Its floor of 0 is what a fresh install
               stores. */}
           <UnitNumberInput
@@ -80,7 +83,7 @@ export function VolumeCapCard({ hue }: { hue: number }) {
             units={RATE_UNITS}
             onValue={(volumeCapThrottle) => patch({ volumeCapThrottle })}
           />
-        </Field>
+        </SettingRow>
       )}
     </Card>
   );

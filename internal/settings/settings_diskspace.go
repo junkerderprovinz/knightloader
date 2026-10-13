@@ -21,13 +21,13 @@ package settings
 // needs no such knowledge: half a gigabyte keeps a filesystem out of the state
 // where it cannot write its own metadata, and goes unnoticed on any volume
 // worth downloading to.
-const DefaultDiskReserve = 512 << 20
+const DefaultDiskReserve = 500_000_000
 
 // maxDiskBytes is a petabyte, a typo guard rather than a policy. A threshold
 // larger than any volume this app will be pointed at is a queue that never
 // starts anything again, and the likeliest way to get one is typing bytes where
 // gigabytes were meant.
-const maxDiskBytes = 1 << 50
+const maxDiskBytes = 1_000_000_000_000_000
 
 func sanitizeDiskSpace(n Settings) Settings {
 	n.DiskReserve = clampDiskBytes(n.DiskReserve)

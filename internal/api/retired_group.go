@@ -19,7 +19,6 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 )
 
@@ -106,7 +105,7 @@ func applyRetired(a *app.App) {
 		Self: relay.Announce{
 			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
-			Deployment: buildinfo.Deployment,
+			Deployment: instanceKind(),
 		},
 		Member: member,
 		Serve:  retiredAnswer(g.Until),

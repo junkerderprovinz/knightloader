@@ -6,13 +6,14 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
 import { Button, EmptyState, SectionTitle, useTooltip } from './ui';
-import { BarBody, barIdle, barSegment, navBase, navHued, navInactive, NavLabel } from './Sidebar';
+import { BarBody, barIdle, barSegment, navBase, navCount, navHued, navInactive, NavLabel } from './Sidebar';
 import { hueVars } from '../lib/appearance';
 import type { CSSProperties } from 'react';
 import { Tabs, type TabDef } from './Tabs';
+import { WhatsNewEntry } from './whatsnew/WhatsNew';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useLabelMode } from '../lib/labelModes';
-import { IconBell } from '../lib/icons';
+import { IconNotifications } from '../lib/icons';
 import { fmtClock } from '../lib/format';
 import { useStagger } from '../lib/motion';
 import { TONE_DOT, useToast } from '../lib/toast';
@@ -92,7 +93,7 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   const body = (
     <>
-      <span className="glim-num shrink-0 text-[11px] leading-5 text-carbon-textMuted">
+      <span className="glim-num shrink-0 text-meta leading-5 text-carbon-textMuted">
         {fmtClock(event.at)}
       </span>
       <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] ${TONE_DOT[event.tone]}`} />
@@ -124,10 +125,12 @@ function EventRow({ event, onJump }: { event: LoggedEvent; onJump: (target: Even
 
 /**
  * EventBell is the sidebar row that opens the event panel, or with `bar` the
- * phone bar's segment. It takes a rail `hue` like every other row; the caller
- * counts it so a hidden row leaves no gap in the sequence.
+ * phone bar's segment. Where the bar keeps the bell behind its More slot,
+ * `behind` draws no segment and only stands the panel on the bar. It takes a
+ * rail `hue` like every other row; the caller counts it so a hidden row leaves
+ * no gap in the sequence.
  */
-export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) {
+export function EventBell({ hue, bar = false }: { hue: number; bar?: false | 'segment' | 'behind' }) {
   const { t } = useT();
   const { toast } = useToast();
   const navigate = useNavigate();
@@ -263,43 +266,46 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
 
   return (
-    <div ref={wrapRef} className={bar ? 'flex min-w-0 flex-1' : undefined}>
-      <button
-        type="button"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        aria-label={centred || unread > 0 ? spoken : undefined}
-        {...(tipped ? tipHoverProps : {})}
-        onClick={() => setEventsPanelOpen(!open)}
-        // Not an Item, since it navigates nowhere. text-start because a
-        // <button> centres its text where an <a> does not.
-        className={
-          bar
-            ? `${navHued} ${barSegment} ${barIdle}`
-            : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
-        }
-        style={hueVars(hue) as CSSProperties}
-      >
-        {bar ? (
-          <BarBody icon={<IconBell />} label={name} mode={mode} badge={unread} />
-        ) : (
-          <>
-            {mode !== 'text' && <IconBell />}
-            <NavLabel label={name} mode={mode} />
-            {/* Sidebar Item's badge, pinned to the corner in the centred modes so
-                the glyph stays centred. */}
-            {unread > 0 && (
-              <span
-                className={`glim-num rounded-[var(--radius-pill)] bg-carbon-surface3/60 px-1.5 py-0.5 text-[11px]
-                  font-semibold leading-none text-carbon-textSub
-                  ${centred ? 'absolute end-1 top-1' : ''}`}
-              >
-                {unread > 99 ? '99+' : unread}
-              </span>
-            )}
-          </>
-        )}
-      </button>
+    // Behind More the wrapper is a line along the bar's top edge, which is all
+    // the panel needs to stand on.
+    <div
+      ref={wrapRef}
+      className={bar === 'behind' ? 'pointer-events-none absolute inset-x-0 top-0' : bar ? 'flex min-w-0 flex-1' : undefined}
+    >
+      {bar !== 'behind' && (
+        <button
+          type="button"
+          aria-haspopup="dialog"
+          aria-expanded={open}
+          aria-label={centred || unread > 0 ? spoken : undefined}
+          {...(tipped ? tipHoverProps : {})}
+          onClick={() => setEventsPanelOpen(!open)}
+          // Not an Item, since it navigates nowhere. text-start because a
+          // <button> centres its text where an <a> does not.
+          className={
+            bar
+              ? `${navHued} ${barSegment} ${barIdle}`
+              : `${navHued} ${navBase} ${navInactive} group w-full text-start ${centred ? 'justify-center' : 'gap-3'}`
+          }
+          style={hueVars(hue) as CSSProperties}
+        >
+          {bar ? (
+            <BarBody icon={<IconNotifications />} label={name} mode={mode} badge={unread} />
+          ) : (
+            <>
+              {mode !== 'text' && <IconNotifications />}
+              <NavLabel label={name} mode={mode} />
+              {/* Sidebar Item's badge, pinned to the corner in the centred modes so
+                  the glyph stays centred. */}
+              {unread > 0 && (
+                <span className={`${navCount} ${centred ? 'absolute end-1 top-1' : ''}`}>
+                  {unread > 99 ? '99+' : unread}
+                </span>
+              )}
+            </>
+          )}
+        </button>
+      )}
       {tip.node}
 
       {open &&
@@ -320,6 +326,8 @@ export function EventBell({ hue, bar = false }: { hue: number; bar?: boolean }) 
           >
             {/* The bubble says the list starts over on every page load. */}
             <SectionTitle hint={t('events.titleHint', { max: CAPACITY })}>{name}</SectionTitle>
+
+            <WhatsNewEntry onOpen={() => setEventsPanelOpen(false)} />
 
             {(chips.length > 1 || families.size > 0) && (
               <Tabs select="many" size="sm" label={t('events.filterLabel')} items={chips} active={families} onSelect={toggleFamily} />

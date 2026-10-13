@@ -8,6 +8,8 @@ package app
 import (
 	"bytes"
 	"context"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -23,6 +25,84 @@ import (
 )
 
 const debridMagnet = "magnet:?xt=urn:btih:89abcdef0123456789abcdef0123456789abcdef&dn=Show"
+
+// fakeAccount is a debrid account that keeps every job fetching, so no task
+// gets as far as the engine.
+type fakeAccount struct {
+	mu      sync.Mutex
+	list    []debrid.Listed
+	added   int
+	deleted []string
+}
+
+func (w *fakeAccount) ID() string    { return "fakedebrid" }
+func (w *fakeAccount) Label() string { return "Fake debrid" }
+
+func (w *fakeAccount) AddTorrent(context.Context, debrid.TorrentSource) (string, bool, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.added++
+	id := fmt.Sprintf("OWN%d", w.added)
+	w.list = append(w.list, debrid.Listed{ID: id, Name: "Show", Added: time.Now()})
+	return id, false, nil
+}
+
+func (w *fakeAccount) TorrentStatus(context.Context, string) (debrid.TorrentJob, error) {
+	return debrid.TorrentJob{Name: "Show", Progress: 0.1}, nil
+}
+
+func (w *fakeAccount) addCount() int {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return w.added
+}
+
+func (w *fakeAccount) FileURL(context.Context, string, debrid.TorrentFile) (debrid.Direct, error) {
+	return debrid.Direct{}, errors.New("nothing is ready")
+}
+
+func (w *fakeAccount) DeleteTorrent(_ context.Context, id string) error {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	w.deleted = append(w.deleted, id)
+	w.list = slices.DeleteFunc(w.list, func(l debrid.Listed) bool { return l.ID == id })
+	return nil
+}
+
+func (w *fakeAccount) List(context.Context) ([]debrid.Listed, bool, error) {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return slices.Clone(w.list), true, nil
+}
+
+func (w *fakeAccount) deletedJobs() []string {
+	w.mu.Lock()
+	defer w.mu.Unlock()
+	return slices.Clone(w.deleted)
+}
+
+// openAccountApp builds an App in dir that keeps new links in the collector
+// and has site wired as the account "fakedebrid".
+func openAccountApp(t *testing.T, dir string, site *fakeAccount, keep bool) *App {
+	t.Helper()
+	a, err := newApp(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	s := settings.Defaults()
+	s.DownloadDir = t.TempDir()
+	s.Crawl = false
+	s.AutoConfirm = false
+	s.Torrent.KeepOnService = keep
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	a.bmu.Lock()
+	a.debrid["fakedebrid"] = a.torrentsVia("fakedebrid", site, &routeSpy{name: "links", events: make(chan string, 16)}, engineHandoff{a.Engine, a})
+	a.bmu.Unlock()
+	a.Registry.Register(debrid.Resolver{ServiceID: "fakedebrid", Prio: 90, Torrents: true})
+	return a
+}
 
 // torrentOrderApp has Real-Debrid take torrents beside the built-in client,
 // with the queue halted so nothing reaches the swarm, and the order given.
@@ -180,8 +260,8 @@ func TestTheFileInFlightStandsInForItsTask(t *testing.T) {
 // A rewire builds every backend anew, every six hours and on every account
 // change, while a torrent the service has not cached can take longer.
 func TestARewireLeavesTheTorrentsInFlightWithinReach(t *testing.T) {
-	site := &websiteAccount{}
-	a := openImportApp(t, t.TempDir(), site, false)
+	site := &fakeAccount{}
+	a := openAccountApp(t, t.TempDir(), site, false)
 	t.Cleanup(func() { a.Close() })
 	queueTorrent(a, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
 	waitFor(t, "the torrent on the service", func() bool { return liveTask(a, "m1").ServiceJob != nil })
@@ -250,12 +330,12 @@ func TestARetryThatCarriesOnKeepsWhatWasLoaded(t *testing.T) {
 	}
 }
 
-// appBeforeRestart is openImportApp with the queue coming up stopped on the
+// appBeforeRestart is openAccountApp with the queue coming up stopped on the
 // next start, so nothing starts there before the account is wired again, and
 // the function that closes it.
-func appBeforeRestart(t *testing.T, dir string, site *websiteAccount) (*App, func()) {
+func appBeforeRestart(t *testing.T, dir string, site *fakeAccount) (*App, func()) {
 	t.Helper()
-	a := openImportApp(t, dir, site, false)
+	a := openAccountApp(t, dir, site, false)
 	stop := sync.OnceFunc(func() { a.Close() })
 	t.Cleanup(stop)
 	s := a.Settings.Get()
@@ -268,7 +348,7 @@ func appBeforeRestart(t *testing.T, dir string, site *websiteAccount) (*App, fun
 
 func TestARestartCarriesOnWithTheJobTheServiceHolds(t *testing.T) {
 	dir := t.TempDir()
-	site := &websiteAccount{}
+	site := &fakeAccount{}
 	first, stop := appBeforeRestart(t, dir, site)
 	queueTorrent(first, &core.Task{ID: "m1", URL: debridMagnet, Status: core.StatusQueued, Enabled: true})
 	waitFor(t, "the job noted on the task", func() bool { return liveTask(first, "m1").ServiceJob != nil })
@@ -279,23 +359,23 @@ func TestARestartCarriesOnWithTheJobTheServiceHolds(t *testing.T) {
 
 // slowAdd is an account whose add answers only once the test lets it.
 type slowAdd struct {
-	*websiteAccount
+	*fakeAccount
 	asked, answer chan struct{}
 }
 
 func (s *slowAdd) AddTorrent(ctx context.Context, src debrid.TorrentSource) (string, bool, error) {
 	close(s.asked)
 	<-s.answer
-	return s.websiteAccount.AddTorrent(ctx, src)
+	return s.fakeAccount.AddTorrent(ctx, src)
 }
 
 // The service makes the job whether or not anybody still waits for its
 // answer, and only that answer ties the job to the task.
 func TestAJobAddedWhileTheAppClosesIsCarriedOn(t *testing.T) {
 	dir := t.TempDir()
-	site := &websiteAccount{}
+	site := &fakeAccount{}
 	first, stop := appBeforeRestart(t, dir, site)
-	slow := &slowAdd{websiteAccount: site, asked: make(chan struct{}), answer: make(chan struct{})}
+	slow := &slowAdd{fakeAccount: site, asked: make(chan struct{}), answer: make(chan struct{})}
 	first.bmu.Lock()
 	first.debrid["fakedebrid"] = first.torrentsVia("fakedebrid", slow, &routeSpy{name: "links", events: make(chan string, 16)}, engineHandoff{first.Engine, first})
 	first.bmu.Unlock()
@@ -325,9 +405,9 @@ func TestAJobAddedWhileTheAppClosesIsCarriedOn(t *testing.T) {
 
 // carriesOn starts the app in dir again and checks that its torrent goes on
 // with the job the first start added, and that removing the task deletes it.
-func carriesOn(t *testing.T, dir string, site *websiteAccount) {
+func carriesOn(t *testing.T, dir string, site *fakeAccount) {
 	t.Helper()
-	second := openImportApp(t, dir, site, false)
+	second := openAccountApp(t, dir, site, false)
 	t.Cleanup(func() { second.Close() })
 	second.SetHalted(false)
 	waitFor(t, "the torrent fetched again", func() bool { return liveTask(second, "m1").Remote != nil })
@@ -338,44 +418,6 @@ func carriesOn(t *testing.T, dir string, site *websiteAccount) {
 
 	second.Remove("m1", false)
 	waitFor(t, "the job deleted with the task", func() bool { return slices.Contains(site.deletedJobs(), "OWN1") })
-}
-
-func TestAnImportedDownloadIsMarkedButNeverRestarted(t *testing.T) {
-	a, _ := stallApp(t, func(s *settings.Settings) {
-		s.StallTimeout = 60
-		s.StallRestart = true
-	})
-	task := runningTask(a, "t1", 4096)
-	a.mu.Lock()
-	task.URL = debrid.JobLink("stalled", "J1")
-	a.mu.Unlock()
-
-	base := time.Now()
-	a.stallPass(base)
-	a.stallPass(base.Add(5 * time.Minute))
-
-	got := liveTask(a, "t1")
-	if got.StalledSince.IsZero() {
-		t.Error("the stalled download was not marked")
-	}
-	if got.StallRestarts != 0 {
-		t.Errorf("restarted %d times, which deletes every file of the download already here", got.StallRestarts)
-	}
-}
-
-// FetchPart writes every file of an imported download to its destination, so
-// that is where everything else has to look for it.
-func TestAnImportedDownloadIsLookedForWhereItIsWritten(t *testing.T) {
-	a := newQueueApp(t)
-	s := a.Settings.Get()
-	s.WorkDir = t.TempDir()
-	if _, err := a.ApplySettings(s); err != nil {
-		t.Fatal(err)
-	}
-	task := &core.Task{ID: "i1", URL: debrid.JobLink("realdebrid", "RD1"), Name: "Show", Resolver: "realdebrid"}
-	if got, want := a.workDirFor(task), a.dirFor(task); got != want {
-		t.Errorf("looked for in %s, written to %s", got, want)
-	}
 }
 
 func TestAFileARestartCutShortIsFetchedAgainInItsPlace(t *testing.T) {
@@ -494,8 +536,7 @@ func TestADebridTorrentArrivesThroughTheEngineUnderOneTask(t *testing.T) {
 }
 
 // A debrid torrent's files are chosen by the file rules of its category, as
-// the built-in client's are. A download imported from an account was not
-// handed to this instance as a torrent, and keeps what the account holds.
+// the built-in client's are.
 func TestADebridTorrentGoesByItsCategorysFileRules(t *testing.T) {
 	a := newQueueApp(t)
 	s := a.Settings.Get()
@@ -506,7 +547,6 @@ func TestADebridTorrentGoesByItsCategorysFileRules(t *testing.T) {
 	}
 	putTask(t, a, core.Task{ID: "films", URL: debridMagnet, Status: core.StatusCollected})
 	putTask(t, a, core.Task{ID: "album", URL: debridMagnet, Category: "music", Status: core.StatusCollected})
-	putTask(t, a, core.Task{ID: "imported", URL: debrid.JobLink("fakedebrid", "J7"), Status: core.StatusCollected})
 
 	for _, c := range []struct {
 		task, path string
@@ -525,9 +565,6 @@ func TestADebridTorrentGoesByItsCategorysFileRules(t *testing.T) {
 		if got := keep(c.path, c.size); got != c.want {
 			t.Errorf("%s keeps %s: %v, want %v", c.task, c.path, got, c.want)
 		}
-	}
-	if keep, err := a.torrentRules("imported"); keep != nil || err != nil {
-		t.Errorf("an imported download goes by file rules (%v)", err)
 	}
 }
 
@@ -559,7 +596,7 @@ func TestOnlyAnUnpinnedTorrentWaitsForTheServiceToHaveItCached(t *testing.T) {
 // fetch while the queue is stopped.
 func TestAProbeAShutdownCutShortIsDeletedAtTheNextStart(t *testing.T) {
 	dir := t.TempDir()
-	site := &websiteAccount{}
+	site := &fakeAccount{}
 	first, stop := appBeforeRestart(t, dir, site)
 	s := first.Settings.Get()
 	s.Torrent.DebridCachedOnly = true
@@ -573,7 +610,7 @@ func TestAProbeAShutdownCutShortIsDeletedAtTheNextStart(t *testing.T) {
 	})
 	stop()
 
-	second := openImportApp(t, dir, site, false)
+	second := openAccountApp(t, dir, site, false)
 	t.Cleanup(func() { second.Close() })
 	waitFor(t, "the probe deleted on the service", func() bool { return slices.Contains(site.deletedJobs(), "OWN1") })
 	waitFor(t, "the probe gone from the task", func() bool { return liveTask(second, "m1").ServiceJob == nil })

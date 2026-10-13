@@ -23,23 +23,52 @@ import { openWindow } from '../lib/windowStack';
 type ButtonKind = 'primary' | 'secondary' | 'ghost';
 
 /**
- * An accent fill hovers by opacity, and the other two kinds take the next tier
- * of the surface ramp (web/check-hover-ramp.mjs guards the surface2/surface3
- * pair). A brightness step can only move one way while the two themes need
- * opposite directions, and an accent fill is not on the ramp, so it has no tier
- * above it to step to.
+ * Every kind hovers by a colour step (GlimStone rule 21). The surface kinds
+ * take the next tier of the ramp (web/check-hover-ramp.mjs guards the
+ * surface2/surface3 pair). An accent fill is not on the ramp, so it steps
+ * toward the theme's text colour through `--accent-hover`: opacity would let
+ * the card show through, and a brightness step can only move one way while the
+ * two themes need opposite directions.
  */
 const kindClass: Record<ButtonKind, string> = {
-  primary: 'bg-accent text-accentContrast hover:opacity-90',
+  primary: 'bg-accent text-accentContrast hover:bg-accentHover',
   secondary: 'bg-carbon-surface2 text-carbon-text hover:bg-carbon-surface3',
   ghost: 'text-carbon-textSub hover:bg-carbon-hover hover:text-carbon-text',
 };
 
 /**
+ * A pressed button shows a state that is in force, the way a chosen segment
+ * does, so it is filled and has no hover step: pressing it again changes
+ * nothing. `primary` is the accent, for a state that means running; the
+ * surface kinds stand one tier above their rest.
+ */
+const pressedClass: Record<ButtonKind, string> = {
+  primary: 'glim-active bg-accent text-accentContrast',
+  secondary: 'bg-carbon-surface3 text-carbon-text',
+  ghost: 'bg-carbon-hover text-carbon-text',
+};
+
+/**
+ * The answer a button that tests something shows on itself: green once the
+ * test passed, red when it could not run, orange when it found something. It
+ * reports a state the way a status badge does, which is why it is a table of
+ * its own and not a kind: nothing here is for a button that deletes.
+ */
+export type ButtonVerdict = 'ok' | 'fail' | 'warn';
+
+const verdictClass: Record<ButtonVerdict, string> = {
+  ok: 'bg-statusOkSolid text-carbon-background hover:bg-statusOkHover',
+  fail: 'bg-statusFailSolid text-carbon-background hover:bg-statusFailHover',
+  warn: 'bg-statusWarnSolid text-carbon-background hover:bg-statusWarnHover',
+};
+
+/**
  * The button heights (GlimStone rule 19). `--btn-h` (2rem) is what a text field
- * measures, so a button in a row of fields matches it, and `--btn-h-transport`
+ * measures, so a button in a row of fields matches it, `--btn-h-key` (2.5rem,
+ * `.glim-btn-key`) is the action a page exists for, and `--btn-h-transport`
  * (3rem, `.glim-btn-transport`) belongs to the head bar's transport squares
- * alone. Both live in index.css, so nothing here writes a height of its own.
+ * alone. All three live in index.css, so nothing here writes a height of its
+ * own.
  */
 const BTN_H = 'h-[var(--btn-h)]';
 const BTN_SQUARE = 'h-[var(--btn-h)] w-[var(--btn-h)]';
@@ -67,8 +96,11 @@ export function Button({
   children,
   className = '',
   hue,
+  verdict,
   labelled,
   transport = false,
+  keyHeight = false,
+  pressed,
   title,
   hint,
   shake = 0,
@@ -78,6 +110,14 @@ export function Button({
   kind?: ButtonKind;
   icon?: ReactNode;
   hue?: number;
+  /** The answer of the test this button ran, which outranks `kind` and `hue`. */
+  verdict?: ButtonVerdict;
+  /**
+   * Makes the button one of a set that shows which state is in force, such as
+   * the head bar's Play and Pause. Left undefined everywhere else, so an
+   * action button does not become a toggle for assistive tech.
+   */
+  pressed?: boolean;
   /**
    * Opts a glyph-only button into the Beschriftung setting; see IconBadge's own
    * `labelled`. Used by the windows' way out, which has a title and no
@@ -89,6 +129,11 @@ export function Button({
    * bar's play, pause, stop and quick-settings controls and for nothing else.
    */
   transport?: boolean;
+  /**
+   * The key height (`--btn-h-key`), for the one action a page exists for;
+   * PageActions is its caller.
+   */
+  keyHeight?: boolean;
   /**
    * What the button does beyond its label, as an (i) inside the button; see
    * HintSlot. A button showing its glyph alone has no room for one, so there
@@ -110,8 +155,16 @@ export function Button({
   const body = children ?? fallback;
   const hideIcon = labelled && labelMode === 'text' && !!fallback;
   const iconOnly = !!icon && !body;
-  const hued = hue !== undefined;
+  const hued = hue !== undefined && !verdict;
   const hueCss = hued ? (hueVars(hue) as CSSProperties) : undefined;
+  const fill = verdict
+    ? verdictClass[verdict]
+    : hued
+      ? 'glim-hue bg-accent text-accentContrast hover:bg-accentHover'
+      : pressed
+        ? pressedClass[kind]
+        : kindClass[kind];
+  const ink = verdict ? 'text-carbon-background' : hued ? 'text-accentContrast' : kindInk[kind];
   const slotted = !!hint && !iconOnly;
   // A disabled button takes no pointer events, so a square's name, which is all
   // it shows, is held by a box around it; see IconBadge.
@@ -120,26 +173,29 @@ export function Button({
   // it never reaches the element, and the house bubble is the only one left.
   // Passed through, it showed the operating system's own box at the pointer
   // while the badge beside it showed the bubble at the trigger.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // A bubble only says what the button does not show: one that repeated the
+  // words standing on the button would be noise under every pointer.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : body === title ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // A <button> already has a role and a tab stop, and the "note" role would
   // tell a screen reader this is a description rather than a control.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       className={`inline-flex items-center justify-center gap-2 rounded-[var(--radius-pill)] text-sm font-medium
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98] ${
-          transport ? 'glim-btn-transport' : `${BTN_H} ${iconOnly ? 'glim-btn-icon' : 'px-3.5'}`
+        motion-safe:active:scale-[.97] ${
+          transport
+            ? 'glim-btn-transport'
+            : `${keyHeight ? 'glim-btn-key' : BTN_H} ${iconOnly ? 'glim-btn-icon' : keyHeight ? 'px-4.5' : 'px-3.5'}`
         }
-        ${hued ? 'glim-hue bg-accent text-accentContrast hover:opacity-90' : kindClass[kind]} ${className}`}
+        ${fill} ${className}`}
       style={hueCss}
       // `title` never reaches the DOM, so a glyph-only button states its name
       // here. Before the spread, so a call site's own aria-label still wins.
       aria-label={iconOnly && title ? title : undefined}
+      aria-pressed={pressed}
       {...hover}
       ref={(el) => {
         shakeRef.current = el;
@@ -156,7 +212,7 @@ export function Button({
   return (
     <>
       {slotted ? (
-        <HintSlot tip={hint} label={title} ink={hued ? 'text-accentContrast' : kindInk[kind]} end="end-3.5" hueCss={hueCss}>
+        <HintSlot tip={hint} label={title} ink={ink} end={keyHeight ? 'end-4.5' : 'end-3.5'} hueCss={hueCss}>
           {button}
         </HintSlot>
       ) : boxed ? (
@@ -164,7 +220,7 @@ export function Button({
       ) : (
         button
       )}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -257,6 +313,9 @@ const iconBadgeClass = 'bg-carbon-surface2 text-carbon-textSub hover:bg-carbon-s
  * than doing anything when pressed. A bare glyph beside a list row reads as an
  * unfinished control, while an IconBadge there would be a button that ignores
  * clicks. Every square badge in the app shares one size regardless of role.
+ *
+ * A row that carries `glim-row` fills its tile with the accent while it is
+ * hovered, focused or picked (`.glim-row-tile` in index.css).
  */
 export function IconTile({
   icon,
@@ -271,14 +330,29 @@ export function IconTile({
   return (
     <span
       aria-hidden
-      className={`glim-btn-icon flex ${BTN_SQUARE} shrink-0 items-center justify-center rounded-[var(--radius-pill)]
-        bg-carbon-surface2 text-carbon-textSub ${hued ? 'glim-tint-badge' : ''} ${className}`}
+      className={`glim-btn-icon glim-row-tile flex ${BTN_SQUARE} shrink-0 items-center justify-center
+        rounded-[var(--radius-pill)] bg-carbon-surface2 text-carbon-textSub transition-colors duration-150
+        ${hued ? 'glim-tint-badge' : ''} ${className}`}
       style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <Glyph>{icon}</Glyph>
     </span>
   );
 }
+
+type LabelTone = 'ok' | 'warn' | 'fail';
+
+const LABEL_TONE: Record<LabelTone, string> = {
+  ok: 'bg-statusOkBg text-statusOk',
+  warn: 'bg-statusWarnBg text-statusWarn',
+  fail: 'bg-statusFailBg text-statusFail',
+};
+
+const LABEL_TONE_HOVER: Record<LabelTone, string> = {
+  ok: 'hover:bg-[color-mix(in_srgb,var(--status-ok-bg),var(--status-ok-text)_12%)]',
+  warn: 'hover:bg-[color-mix(in_srgb,var(--status-warn-bg),var(--status-warn-text)_12%)]',
+  fail: 'hover:bg-[color-mix(in_srgb,var(--status-fail-bg),var(--status-fail-text)_12%)]',
+};
 
 /**
  * LabelBadge is the text-carrying member of the same family: one line of label,
@@ -297,31 +371,24 @@ export function LabelBadge({
   label: string;
   tip?: ReactNode;
   hue?: number;
-  tone?: 'ok' | 'warn' | 'fail';
+  tone?: LabelTone;
   onClick?: () => void;
 }) {
   const hued = hue !== undefined && !tone;
-  const toneClass =
-    tone === 'ok'
-      ? 'bg-statusOkBg text-statusOk'
-      : tone === 'warn'
-        ? 'bg-statusWarnBg text-statusWarn'
-        : tone === 'fail'
-          ? 'bg-statusFailBg text-statusFail'
-          : 'bg-carbon-surface2 text-carbon-textSub';
+  const toneClass = tone ? LABEL_TONE[tone] : 'bg-carbon-surface2 text-carbon-textSub';
+  // A badge that is pressed hovers by a colour step, as a button does. A wash
+  // mixes a little of its own ink into itself, so it keeps the state it
+  // reports. The neutral badge takes the next tier of the ramp, and the hue
+  // wash, an inset shadow, lies over that tier and moves with it.
+  const hoverClass = tone ? LABEL_TONE_HOVER[tone] : 'hover:bg-carbon-surface3';
   const Tag = onClick ? 'button' : 'span';
   return (
     <Tag
       {...(onClick ? { type: 'button' as const, onClick } : {})}
-      // An opacity step rather than a rung of the surface ramp: this badge
-      // wears three fills and one hover has to answer for all of them. Only the
-      // neutral one has a tier above it, the status pair would lose the state
-      // it reports, and the hue wash is an inset box-shadow a background
-      // utility sits under.
       className={`inline-flex ${BTN_H} shrink-0 items-center gap-1.5 rounded-[var(--radius-pill)] px-3
-        text-[11px] font-medium transition duration-150
+        text-meta font-medium transition duration-150
         ${hued ? 'glim-tint-badge bg-carbon-surface2 text-carbon-textSub' : toneClass}
-        ${onClick ? 'motion-safe:active:scale-[.98] hover:opacity-80' : ''}`}
+        ${onClick ? `motion-safe:active:scale-[.97] ${hoverClass}` : ''}`}
       style={hued ? (hueVars(hue) as CSSProperties) : undefined}
     >
       <span className="whitespace-nowrap">{label}</span>
@@ -406,16 +473,15 @@ export function IconBadge({
   const boxed = !!hint && !showText && !!rest.disabled;
   // The house bubble rather than the native `title`, fixed at the root so the
   // call sites pick it up without changing.
-  const tip = useTooltip<HTMLButtonElement>(
-    hint && !slotted ? <NamedHint name={title} hint={hint} /> : title,
-    !!rest.disabled,
-  );
+  // Showing its words, the badge has nothing left for a bubble to add.
+  const bubble = hint && !slotted ? <NamedHint name={title} hint={hint} /> : showText ? undefined : title;
+  const tip = useTooltip<HTMLButtonElement>(bubble, !!rest.disabled);
   // triggerProps was built for InfoBubble's otherwise-inert <div>, which needs
   // a role and a tab stop to be reachable at all. A button has both already,
   // and the "note" role would take these badges' click semantics away from a
   // screen reader.
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
-  const hover = title && !boxed ? tipHoverProps : undefined;
+  const hover = bubble && !boxed ? tipHoverProps : undefined;
   const button = (
     <button
       type="button"
@@ -425,10 +491,10 @@ export function IconBadge({
       // glyph size all fork on that.
       className={`flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
         transition duration-150 select-none disabled:opacity-35 disabled:pointer-events-none
-        motion-safe:active:scale-[.98]
+        motion-safe:active:scale-[.97]
         ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'}
         ${hued ? (toggle ? 'glim-hue' : 'glim-tint-badge') : ''} ${quiet ? 'glim-badge-quiet' : ''}
-        ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:opacity-90' : iconBadgeClass} ${className}`}
+        ${toggle && active ? 'glim-active bg-accent text-accentContrast hover:bg-accentHover' : iconBadgeClass} ${className}`}
       style={hued ? { ...(hueVars(hue) as CSSProperties), ...style } : style}
       // `title` is pulled out for the bubble and never reaches the DOM, so it
       // cannot act as the accessible name the way a native tooltip does.
@@ -449,8 +515,17 @@ export function IconBadge({
   );
   let shown: ReactNode = button;
   if (slotted) {
+    // An engaged toggle is filled, so its (i) takes the fill's ink and, under
+    // rainbow, the fill's palette position.
+    const engaged = toggle && active;
     shown = (
-      <HintSlot tip={hint} label={title} ink="text-carbon-textSub" end="end-2.5">
+      <HintSlot
+        tip={hint}
+        label={title}
+        ink={engaged ? 'text-accentContrast' : 'text-carbon-textSub'}
+        end="end-2.5"
+        hueCss={engaged && hued ? (hueVars(hue) as CSSProperties) : undefined}
+      >
         {button}
       </HintSlot>
     );
@@ -460,7 +535,7 @@ export function IconBadge({
   return (
     <>
       {shown}
-      {title && tip.node}
+      {bubble && tip.node}
     </>
   );
 }
@@ -471,7 +546,7 @@ export function IconBadge({
  */
 export function linkBadgeClass(showText: boolean): string {
   return `flex ${BTN_H} shrink-0 items-center justify-center gap-1.5 rounded-[var(--radius-pill)]
-    transition duration-150 select-none motion-safe:active:scale-[.98]
+    transition duration-150 select-none motion-safe:active:scale-[.97]
     ${showText ? 'px-2.5 text-xs font-medium' : 'glim-btn-icon'} ${iconBadgeClass}`;
 }
 
@@ -482,7 +557,7 @@ export function linkBadgeClass(showText: boolean): string {
 export function LinkBadge({ href, title, className = '' }: { href: string; title: string; className?: string }) {
   const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
-  const tip = useTooltip<HTMLAnchorElement>(title);
+  const tip = useTooltip<HTMLAnchorElement>(showText ? undefined : title);
   const { role: _tipRole, tabIndex: _tipTabIndex, ...tipHoverProps } = tip.triggerProps;
   return (
     <>
@@ -491,7 +566,7 @@ export function LinkBadge({ href, title, className = '' }: { href: string; title
         target="_blank"
         rel="noopener noreferrer"
         aria-label={showText ? undefined : title}
-        {...tipHoverProps}
+        {...(showText ? {} : tipHoverProps)}
         onClick={followExternal}
         className={`${linkBadgeClass(showText)} ${className}`}
       >
@@ -554,7 +629,7 @@ function Caption({ label, hint }: { label: string; hint?: Hint }) {
     // compares against; pages/settings/jump.ts reads the property rather than
     // building a `[data-glim-label="…"]` selector out of it, because a caption
     // may contain a quote in any of 42 languages.
-    <span data-glim-label={label} className="flex shrink-0 items-center text-xs text-carbon-textSub">
+    <span data-glim-label={label} className="flex max-w-full shrink-0 items-center text-xs text-carbon-textSub">
       {label}
       <HintBubble hint={hint} />
     </span>
@@ -580,14 +655,15 @@ export function Field({
   label: string;
   hint?: Hint;
   /** `'row'` puts the caption and the control on one line instead of stacking
-   *  them; the control gets `flex-1` so it still fills the line. */
+   *  them. The control fills the line, and moves under the caption where less
+   *  than a readable field's width is left beside it. */
   layout?: 'stack' | 'row';
   children: ReactNode;
 }) {
   return (
     <label className={layout === 'row' ? FIELD_SHELL_ROW_TEXT : FIELD_SHELL}>
       <Caption label={label} hint={hint} />
-      {layout === 'row' ? <span className="min-w-0 flex-1">{children}</span> : children}
+      {layout === 'row' ? <span className="min-w-0 flex-[1_1_16rem]">{children}</span> : children}
     </label>
   );
 }
@@ -795,7 +871,7 @@ function placeBubble(r: DOMRect, w: number, h: number): { left: number; top: num
 /** How long a hover has to hold still before the bubble opens. */
 const TOOLTIP_DELAY_MS = 400;
 
-export interface TooltipHandle<T extends HTMLElement> {
+export interface TooltipHandle<T extends Element> {
   /** Spread onto the element the tooltip is ABOUT. */
   triggerProps: {
     // RefObject<T | null>, matching what useRef<T>(null) returns under React
@@ -824,7 +900,7 @@ export interface TooltipHandle<T extends HTMLElement> {
  * `disabled` is whether the trigger is disabled; the bubble closes every time
  * it flips.
  */
-export function useTooltip<T extends HTMLElement = HTMLElement>(
+export function useTooltip<T extends Element = HTMLElement>(
   content: ReactNode,
   disabled = false,
 ): TooltipHandle<T> {
@@ -1166,7 +1242,7 @@ export function NumberInput({
 
 /** One unit a UnitNumberInput can show its value in. */
 export interface FieldUnit {
-  /** The symbol inside the field, such as `MiB/s`. */
+  /** The symbol inside the field, such as `MB/s`. */
   label: string;
   /** How many of the value's own units one of this makes. */
   factor: number;
@@ -1177,7 +1253,7 @@ export interface FieldUnit {
 /**
  * unitAt is the unit a value reads in, the largest it makes at least one of.
  * `below` asks about the values just under it, which is where a step down
- * lands: from 1 MiB/s among the KiB/s.
+ * lands: from 1 MB/s among the kB/s.
  */
 function unitAt(units: readonly FieldUnit[], value: number, below = false): FieldUnit {
   let found = units[0];
@@ -1185,7 +1261,7 @@ function unitAt(units: readonly FieldUnit[], value: number, below = false): Fiel
   return found;
 }
 
-/** stepFrom is the next whole step on that side, so a typed 1.3 MiB/s steps to 2 or to 1. */
+/** stepFrom is the next whole step on that side, so a typed 1.3 MB/s steps to 2 or to 1. */
 function stepFrom(units: readonly FieldUnit[], value: number, up: boolean): number {
   const u = unitAt(units, value, !up);
   return up ? (Math.floor(value / u.step) + 1) * u.step : (Math.ceil(value / u.step) - 1) * u.step;
@@ -1199,14 +1275,15 @@ function inUnit(value: number, u: FieldUnit): string {
 /**
  * unitNamed is the unit a suffix typed after a number names, compared without
  * case or spaces. A suffix names a unit when either begins with the other, the
- * unit also read without its binary "i": "k", "KiB" and "kb/s" all name KiB/s,
- * "m" and "minutes" name min. Units are tried smallest first.
+ * suffix also read without a binary "i", so a habit from another program still
+ * lands: "k", "KiB" and "kb/s" all name kB/s, "m" and "minutes" name min.
+ * Units are tried smallest first.
  */
 function unitNamed(units: readonly FieldUnit[], suffix: string): FieldUnit | undefined {
   const typed = suffix.toLowerCase().replace(/\s+/g, '');
   return units.find((u) => {
     const label = u.label.toLowerCase();
-    return [label, label.replace('i', '')].some((l) => l.startsWith(typed) || typed.startsWith(l));
+    return [typed, typed.replace('i', '')].some((s) => label.startsWith(s) || s.startsWith(label));
   });
 }
 
@@ -1260,7 +1337,7 @@ export function UnitNumberInput({
   const typed = draft ? readTyped(draft.text, units, draft.unit) : null;
   const text = draft?.text ?? inUnit(value, unit);
   // The symbol beside the digits follows a unit typed after them, so "2m"
-  // reads as the MiB/s it will be.
+  // reads as the MB/s it will be.
   const symbol = typed?.unit.label ?? unit.label;
   const settle = (n: number) => Math.min(max, Math.max(min, snap(n)));
 
@@ -1514,6 +1591,7 @@ export function Card({
   hover = false,
   padding = 'normal',
   hue,
+  'data-new': mark,
 }: {
   children: ReactNode;
   className?: string;
@@ -1534,9 +1612,12 @@ export function Card({
    * lands 20px right of where it should.
    */
   padding?: 'normal' | 'none';
+  /** The change this card is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
 }) {
   return (
     <div
+      data-new={mark}
       // The trailing space lives inside the string, never after the
       // interpolation: an expression glued to the class before it fuses into
       // one nonsense name and drops both.
@@ -1629,7 +1710,7 @@ export function EmptyState({
           rule is never reached. See .kl-doze in index.css. */}
       {icon && <div className="kl-doze text-carbon-textMuted/60">{icon}</div>}
       <div className="text-sm text-carbon-textSub">{title}</div>
-      {hint && <div className="text-[11px] text-carbon-textMuted">{hint}</div>}
+      {hint && <div className="text-meta text-carbon-textMuted">{hint}</div>}
       {action && <div className="mt-2">{action}</div>}
     </div>
   );
@@ -1803,10 +1884,11 @@ export function SectionTitle({
   );
 }
 
-const MODAL_SIZE = {
-  content: 'max-w-md',
-  screen: 'max-w-lg h-[calc(100dvh-7rem)]',
-  capped: 'max-w-lg max-h-[calc(100dvh-7rem)]',
+const MODAL_WIDTH = { content: 'max-w-md', screen: 'max-w-lg', capped: 'max-w-lg' } as const;
+const MODAL_HEIGHT = {
+  content: '',
+  screen: 'h-[calc(100dvh-7rem)]',
+  capped: 'max-h-[calc(100dvh-7rem)]',
 } as const;
 
 // Modal is the one overlay treatment: a dimmed page and a single raised panel.
@@ -1821,6 +1903,8 @@ export function Modal({
   hue,
   height = 'content',
   wide = false,
+  holdHeight = false,
+  right,
 }: {
   title: string;
   /** What the window is for, as the (i) in its title badge rather than a lead paragraph. */
@@ -1858,8 +1942,15 @@ export function Modal({
    */
   height?: 'content' | 'screen' | 'capped';
   /** Room for a grid beside a picture, such as the twelve words and their QR
-   *  code. It goes with the content height. */
+   *  code, or for a form of several columns. */
   wide?: boolean;
+  /**
+   * Keeps the height the window had before this turned on, so a picker does
+   * not shrink under its search while the tiles narrow.
+   */
+  holdHeight?: boolean;
+  /** What stands at the end of the title's row, such as a picker's search. */
+  right?: ReactNode;
 }) {
   const { t } = useT();
   const dialogs = useDialogMute();
@@ -1868,6 +1959,11 @@ export function Modal({
   const closeRef = useRef(onClose);
   closeRef.current = onClose;
   const backdrop = useRef<HTMLDivElement>(null);
+  const card = useRef<HTMLDivElement>(null);
+  const freeHeight = useRef(0);
+  useLayoutEffect(() => {
+    if (!holdHeight) freeHeight.current = card.current!.offsetHeight;
+  });
   useEffect(() => {
     const me = backdrop.current;
     if (!me) return;
@@ -1880,7 +1976,7 @@ export function Modal({
       // glim-modal-backdrop, not a number typed here: the darkening and the
       // blur behind a window are tokens (index.css), so every window in the
       // app changes with them.
-      className="glim-modal-backdrop fixed inset-0 z-50 grid place-items-center p-6"
+      className="glim-modal-backdrop glim-sheet fixed inset-0 z-50 grid place-items-center p-6"
       onMouseDown={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -1890,8 +1986,12 @@ export function Modal({
           every other animation in the app and stops with them under reduced
           motion. Two windows in one app must not arrive in two ways. */}
       <div
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_SIZE[height]}`}
-        style={hue !== undefined ? (hueVars(hue) as CSSProperties) : undefined}
+        ref={card}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_WIDTH[height]} ${MODAL_HEIGHT[height]}`}
+        style={{
+          ...(hue !== undefined ? (hueVars(hue) as CSSProperties) : {}),
+          ...(holdHeight ? { height: freeHeight.current } : {}),
+        }}
         role="dialog"
         aria-modal="true"
         // The heading IS the window's name, so it is pointed at rather than
@@ -1902,11 +2002,14 @@ export function Modal({
             title as a badge, so one app does not carry two heading treatments.
             SectionTitle itself rather than a copy of its markup, which is the
             drift this file exists to prevent. */}
-        <SectionTitle id={titleId} hint={hint}>
+        <SectionTitle id={titleId} hint={hint} right={right}>
           {title}
         </SectionTitle>
         {height === 'content' ? (
-          children
+          // No box of its own in a wide window, where the children are the
+          // card's rows. As a bottom sheet it is the part that scrolls
+          // (.glim-modal-body in index.css).
+          <div className="glim-modal-body">{children}</div>
         ) : (
           // The inset keeps focus rings clear of the scroll edge.
           <div className={`-m-1 flex min-h-0 flex-1 flex-col gap-5 p-1 ${height === 'capped' ? 'overflow-y-auto' : ''}`}>

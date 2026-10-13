@@ -443,9 +443,6 @@ type App struct {
 	// serviceRuns holds what each account's torrent backend is fetching, so a
 	// rewire's new backend carries on with it (app_debridtorrents.go).
 	serviceRuns serviceRuns
-	// imports follows the debrid accounts for what is added to them outside
-	// this instance (app_debridimport.go).
-	imports accountImports
 }
 
 // New opens the app in dataDir without an app key.
@@ -622,6 +619,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// After the bus and the credential store, both of which it needs.
 	a.startMediaHooks()
 
+	a.switchOffUnorderedSolvers()
 	a.rewireBackends()
 	a.applyWatchFolders(cfg.Get())
 	// At boot as well as on save, so an enabled log file is written from the
@@ -702,14 +700,13 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// The finished torrents seed on as they did before the restart. A halt
 	// does not stop seeding, so the schedule has no say in it.
 	a.resumeSeeding()
+	a.settleRetiredImport()
 	// idleAction would otherwise see an empty queue and arm its countdown.
 	a.idleAction.Start()
 	// Feeds come up after a.dupes is seeded, unlike drop folders: a poller
 	// hands links over the moment it starts, and an unseeded set would let a
 	// listed link in twice.
 	a.applyFeeds(cfg.Get())
-	// The same holds for the import from the debrid accounts.
-	a.startAccountImports()
 	// Targets may fire on queue.idle, which is reported within two seconds.
 	a.applyEventTargets(cfg.Get())
 	a.applyEventPrograms(cfg.Get())
@@ -971,7 +968,7 @@ func (a *App) endSeeding() {
 	a.mu.Lock()
 	for _, t := range a.tasks {
 		if t.Seeding {
-			t.Seeding, t.SeedingEnded = false, ended
+			t.Seeding, t.SeedingEnded, t.UploadSpeed = false, ended, 0
 			copies = append(copies, a.copyLocked(t))
 		}
 	}
@@ -1195,6 +1192,8 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	for _, fn := range hooks {
 		fn(applied)
 	}
+	// The queue state carries the upload limit, which only a save changes.
+	a.Hub.Broadcast("queue", a.Queue())
 	// Other open tabs reload their settings pages and the modules list.
 	a.Hub.Broadcast("settings", nil)
 }
@@ -1269,7 +1268,7 @@ func torrentConfig(t settings.Torrent) engine.TorrentConfig {
 		Port:        t.Port,
 		SeedRatio:   t.SeedRatioTarget,
 		SeedSeconds: t.SeedDurationSeconds,
-		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
+		UploadLimit: t.UploadLimit,
 		DisableDHT:  !t.DHTEnabled,
 		DisablePEX:  !t.PEXEnabled,
 		Interface:   t.Interface,

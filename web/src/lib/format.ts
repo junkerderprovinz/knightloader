@@ -1,15 +1,16 @@
 // Human-readable formatting for sizes, speeds, durations and dates. Every value
 // comes back ready to render anywhere: a number with its unit keeps its order
-// in right-to-left text (lib/bidi.ts).
+// in right-to-left text (lib/bidi.ts). Sizes and speeds are decimal, 1 MB being
+// 1000 kB, the way disks, lines and hosters count them.
 
 import { isolate, ltr } from './bidi';
 
 function bytes(n: number): string {
-  const u = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  const u = ['B', 'kB', 'MB', 'GB', 'TB'];
   let i = 0;
   let v = n;
-  while (v >= 1024 && i < u.length - 1) {
-    v /= 1024;
+  while (v >= 1000 && i < u.length - 1) {
+    v /= 1000;
     i++;
   }
   return `${v.toFixed(v < 10 && i > 0 ? 1 : 0)} ${u[i]}`;
@@ -28,9 +29,8 @@ export function fmtBytes(n: number): string {
 export const fmtTotal = (n: number): string => ltr(n > 0 ? bytes(n) : '0 B');
 
 /**
- * fmtGB prints an allowance in decimal gigabytes whatever its size. One unit
- * keeps accounts comparable, and decimal matches what debrid vendors
- * advertise ("400 GB", not 372 GiB).
+ * fmtGB prints an allowance in gigabytes whatever its size, so accounts read
+ * side by side compare at a glance.
  */
 export function fmtGB(n: number): string {
   if (!n || n < 0) return ltr('0 GB');
@@ -86,21 +86,24 @@ export const fmtUnit = (n: number | string, unit: string): string => ltr(`${n} $
  * these, so they all read and step alike.
  */
 export const RATE_UNITS = [
-  { label: 'KiB/s', factor: 1024, step: 256 * 1024 },
-  { label: 'MiB/s', factor: 1024 ** 2, step: 1024 ** 2 },
-  { label: 'GiB/s', factor: 1024 ** 3, step: 1024 ** 3 },
+  { label: 'kB/s', factor: 1000, step: 250_000 },
+  { label: 'MB/s', factor: 1e6, step: 1e6 },
+  { label: 'GB/s', factor: 1e9, step: 1e9 },
 ] as const;
+
+/** The units a file size is entered in, RATE_UNITS without the "/s". */
+export const SIZE_UNITS = RATE_UNITS.map((u) => ({ ...u, label: u.label.slice(0, -2) }));
 
 export type RateUnit = (typeof RATE_UNITS)[number]['label'];
 
 /**
  * splitRate turns a stored bytes-per-second limit into the number and unit a
- * person would have typed: "1.5 MiB/s" rather than "1536 KiB/s", but 900 KiB/s
- * rather than 0.88 MiB/s.
+ * person would have typed: "1.5 MB/s" rather than "1500 kB/s", but 900 kB/s
+ * rather than 0.9 MB/s.
  */
 export function splitRate(bytesPerSecond: number): { value: number; unit: RateUnit } {
   const n = Math.max(0, Math.round(bytesPerSecond));
-  if (n === 0) return { value: 0, unit: 'KiB/s' };
+  if (n === 0) return { value: 0, unit: 'kB/s' };
   let chosen: (typeof RATE_UNITS)[number] = RATE_UNITS[0];
   for (const u of RATE_UNITS) {
     if (n >= u.factor) chosen = u;

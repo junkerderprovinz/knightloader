@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { Layout } from './Layout';
 import { AuthGate } from './AuthGate';
+import { PageBoundary } from './PageBoundary';
 import { Dashboard } from '../pages/Dashboard';
 import { Collector } from '../pages/Collector';
 import { Downloads } from '../pages/Downloads';
@@ -26,6 +27,7 @@ export function AppRouter() {
         {/* Outside the router: the tab title and favicon need no route. */}
         <TabIndicator />
         <BrowserRouter basename={basePath()}>
+          <PageBoundary>
           <Routes>
             {/* Outside <Layout>: the bookmarklet and the extension open it as
                 a small window with no room for a sidebar. */}
@@ -44,6 +46,7 @@ export function AppRouter() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Route>
           </Routes>
+          </PageBoundary>
         </BrowserRouter>
       </AuthGate>
     </ToastProvider>

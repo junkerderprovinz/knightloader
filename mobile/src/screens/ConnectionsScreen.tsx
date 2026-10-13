@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from 'react';
-import { Image, StyleSheet, View } from 'react-native';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { Image, StyleSheet, View, type StyleProp, type TextStyle } from 'react-native';
 import { errorText, setQueueHalted } from '../api/client';
 import { listConnections, loadDefaultConnection, setActiveConnectionId } from '../storage/connections';
 import type { ServerConnection } from '../api/types';
@@ -17,7 +17,8 @@ import { Arrive, MovingList } from '../components/Moving';
 /**
  * The one line under an instance's name: the same four figures, in the same
  * order, as the browser extension's own instance card - state, file count,
- * bytes left, speed. The file count is always shown, zero included, so the row
+ * bytes left, speed. The speed is left to FiguresLine, which keeps it out of
+ * the ellipsis. The file count is always shown, zero included, so the row
  * cannot change height the moment a download appears.
  *
  * `undefined` means the numbers have not arrived yet, `null` means they were
@@ -37,8 +38,35 @@ function statusLine(
   else if (s.running > 0) parts.push(t('downloads.queueRunning'));
   parts.push(s.files === 1 ? t('instance.filesOne') : t('instance.files', { n: s.files }));
   if (s.remaining > 0) parts.push(`${fmtBytes(s.remaining)} ${t('instance.left')}`);
-  if (s.speed > 0) parts.push(fmtSpeed(s.speed));
   return parts.join(' · ');
+}
+
+/**
+ * A line of figures that ends in the speed. The figures give way to an
+ * ellipsis and the speed never does: in German or Finnish the line is longer
+ * than a phone's card, and the speed is the one figure somebody is watching.
+ */
+function FiguresLine({
+  style,
+  speed,
+  children,
+}: {
+  style: StyleProp<TextStyle>;
+  speed: number;
+  children: ReactNode;
+}) {
+  return (
+    <View style={styles.figures}>
+      <Text style={[style, styles.figuresRest]} numberOfLines={1}>
+        {children}
+      </Text>
+      {speed > 0 && (
+        <Text style={[style, styles.figuresSpeed]} numberOfLines={1}>
+          {` · ${fmtSpeed(speed)}`}
+        </Text>
+      )}
+    </View>
+  );
 }
 
 // The app's own mark, beside the name it belongs to.
@@ -227,16 +255,15 @@ export default function ConnectionsScreen({
                 <View style={styles.summaryTop}>
                   <View style={styles.summaryText}>
                     <Text style={[styles.summaryTitle, { color: c.text }]}>{t('overview.title')}</Text>
-                    <Text style={[styles.summaryLine, { color: c.textMuted }]} numberOfLines={1}>
+                    <FiguresLine style={[styles.summaryLine, { color: c.textMuted }]} speed={gesamt.speed}>
                       {[
                         t('overview.connected', { n: gesamt.online, total: gesamt.total }),
                         gesamt.files === 1 ? t('instance.filesOne') : t('instance.files', { n: gesamt.files }),
                         gesamt.remaining > 0 ? `${fmtBytes(gesamt.remaining)} ${t('instance.left')}` : null,
-                        gesamt.speed > 0 ? fmtSpeed(gesamt.speed) : null,
                       ]
                         .filter(Boolean)
                         .join(' · ')}
-                    </Text>
+                    </FiguresLine>
                   </View>
                   {/* Only offered when at least one instance answered: a start
                       button over a group that is entirely unreachable promises
@@ -372,7 +399,7 @@ export default function ConnectionsScreen({
                       list, so it distinguishes nothing while taking the one line
                       that could. Same four figures and the same order as the
                       extension's card. */}
-                  <Text style={[styles.rowUrl, { color: c.textMuted }]} numberOfLines={1}>
+                  <FiguresLine style={[styles.rowUrl, { color: c.textMuted }]} speed={st?.speed ?? 0}>
                     {/* Ahead of the figures and in the warn colour: a captcha
                         holds a download until somebody answers it. */}
                     {st && st.captchas > 0 ? (
@@ -384,7 +411,7 @@ export default function ConnectionsScreen({
                       </>
                     ) : null}
                     {st === null && why[item.id] ? why[item.id] : statusLine(t, st)}
-                  </Text>
+                  </FiguresLine>
                 </View>
                 {/* No delete here. A bin on every row of a list somebody taps to
                     open is a mis-tap waiting to happen, and it competes with the
@@ -503,6 +530,9 @@ const styles = StyleSheet.create({
   // File counts, bytes left and a speed, refreshed every five seconds down a
   // stacked list: both halves of the tabular-numerals rule.
   rowUrl: { fontSize: TYPE.dense, marginTop: 2, fontVariant: ['tabular-nums'] },
+  figures: { flexDirection: 'row' },
+  figuresRest: { flexShrink: 1 },
+  figuresSpeed: { flexShrink: 0 },
   // The empty state's own card. The padding is the card's; the ground and the
   // radius are applied at the call site from the resolved tokens.
   empty: { alignItems: 'center', marginTop: 48, gap: 14, paddingVertical: 28, paddingHorizontal: 24 },

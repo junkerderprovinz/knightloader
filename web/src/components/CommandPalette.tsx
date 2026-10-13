@@ -10,7 +10,8 @@ import { useCommandContext, useCommands, type Command, type CommandSurface } fro
 import { formatShortcut } from '../lib/commands/shortcuts';
 import { setCommandPaletteOpen, useCommandPaletteOpen } from '../lib/commandPaletteOpen';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconClose, IconSearch } from '../lib/icons';
+import { IconClose } from '../lib/icons';
+import { SearchBox } from './SearchBox';
 import { Button, SectionTitle } from './ui';
 // Shared with the settings search, so both rank a word the same way.
 import { score } from '../lib/rank';
@@ -155,19 +156,16 @@ export function CommandPalette() {
         <div className="px-4">
           <SectionTitle id={titleId}>{t('commands.paletteLabel')}</SectionTitle>
         </div>
-        <div className="flex items-center gap-2.5 border-b border-carbon-border/60 px-4 py-3">
-          <IconSearch width={16} height={16} className="shrink-0 text-carbon-textMuted" />
-          <input
-            ref={inputRef}
+        <div className="border-b border-carbon-border/60 px-4 py-3">
+          <SearchBox
+            inputRef={inputRef}
             value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t('commands.searchPlaceholder')}
-            aria-label={t('commands.searchPlaceholder')}
+            onChange={setQuery}
+            label={t('commands.searchPlaceholder')}
             role="combobox"
             aria-expanded="true"
             aria-controls="command-palette-list"
             aria-activedescendant={filtered[active] ? `command-palette-opt-${filtered[active].id}` : undefined}
-            className="min-w-0 flex-1 bg-transparent text-sm text-carbon-text placeholder:text-carbon-textMuted outline-none"
           />
         </div>
 
@@ -207,7 +205,7 @@ export function CommandPalette() {
                     {Icon && <Icon className="h-4 w-4 shrink-0 text-carbon-textMuted" />}
                     <span className="min-w-0 flex-1 truncate">{t(cmd.labelKey)}</span>
                     {cmd.defaultShortcut && (
-                      <span className="glim-num shrink-0 text-[11px] text-carbon-textMuted">
+                      <span className="glim-num shrink-0 text-meta text-carbon-textMuted">
                         {formatShortcut(cmd.defaultShortcut, t)}
                       </span>
                     )}

@@ -2,7 +2,6 @@ import { useEffect, useState } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   Modal,
@@ -10,9 +9,11 @@ import {
   SectionTitle,
   TextInput,
   useTooltip,
+  type ButtonVerdict,
 } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
-import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
+import { TestButton } from '../../../components/TestButton';
+import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
 import { fmtUnit } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
@@ -26,6 +27,7 @@ import {
   type MediaHook,
   type MediaHookResult,
 } from '../../../lib/api';
+import { SettingRow } from '../controls';
 
 // Media hooks are the addresses called once a package's files are in place,
 // usually a media library told to rescan. The header value is sealed and never
@@ -97,7 +99,6 @@ export function MediaHooksCard({ hue }: { hue: number }) {
   const [methods, setMethods] = useState<string[]>([]);
   const [draft, setDraft] = useState<Draft | null>(null);
   const [busy, setBusy] = useState(false);
-  const [testing, setTesting] = useState('');
   const [error, setError] = useState('');
   // The hook whose removal is being confirmed.
   const [confirming, setConfirming] = useState<MediaHook | null>(null);
@@ -168,15 +169,19 @@ export function MediaHooksCard({ hue }: { hue: number }) {
     );
   };
 
-  const test = (h: MediaHook) => {
-    setTesting(h.id);
+  // The answer is the hook's last call as the server kept it, which the row's
+  // line under the name spells out.
+  const test = async (h: MediaHook): Promise<ButtonVerdict> => {
     setError('');
-    void testMediaHook(h.id)
-      .then(
-        () => fetchMediaHooks().then(setHooks),
-        (e: unknown) => setError(String(e).replace(/^(Error|ApiError):\s*/, '')),
-      )
-      .finally(() => setTesting(''));
+    try {
+      await testMediaHook(h.id);
+      const list = await fetchMediaHooks();
+      setHooks(list);
+      return list.find((x) => x.id === h.id)?.last?.ok ? 'ok' : 'fail';
+    } catch (e: unknown) {
+      setError(String(e).replace(/^(Error|ApiError):\s*/, ''));
+      return 'fail';
+    }
   };
 
   // The last call is kept in memory, so null means none since the restart.
@@ -211,7 +216,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.mediahook.hint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} disabled={busy || draft !== null} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} disabled={busy} onClick={add}>
             {t('settings.mediahook.add')}
           </Button>
         }
@@ -219,11 +224,11 @@ export function MediaHooksCard({ hue }: { hue: number }) {
         {t('settings.mediahook.title')}
       </SectionTitle>
 
-      {hooks.length === 0 && !draft ? (
+      {hooks.length === 0 ? (
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.mediahook.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.mediahook.emptyHint')}</span>
+          <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.mediahook.emptyHint')}</span>
         </p>
       ) : (
         <ul className="flex flex-col">
@@ -231,12 +236,13 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             <li
               key={h.id}
               className={`flex flex-col gap-1 py-2.5 ${
-                i === hooks.length - 1 && !draft ? '' : 'border-b border-carbon-border/60'
+                i === hooks.length - 1 ? '' : 'border-b border-carbon-border/60'
               }`}
             >
               <div className="flex items-center gap-3">
                 <button
                   type="button"
+                  aria-haspopup="dialog"
                   className="flex min-w-0 flex-1 items-center gap-3 text-start"
                   onClick={() => {
                     setError('');
@@ -245,19 +251,20 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 >
                   <span className="shrink-0 text-sm text-carbon-text">{h.name || h.id}</span>
                   <HostLine host={h.host} url={h.url} />
-                  <span className="shrink-0 text-[11px] text-carbon-textMuted">
+                  <span className="shrink-0 text-meta text-carbon-textMuted">
                     {h.usedBy.length > 0
                       ? t('settings.mediahook.usedBy', { n: h.usedBy.length })
                       : t('settings.mediahook.usedByNone')}
                   </span>
                 </button>
-                <Button
-                  kind="ghost"
-                  disabled={busy || testing !== ''}
-                  onClick={() => test(h)}
-                >
-                  {testing === h.id ? t('settings.mediahook.testRunning') : t('settings.mediahook.test')}
-                </Button>
+                <TestButton
+                  label={t('settings.mediahook.test')}
+                  busyLabel={t('settings.mediahook.testRunning')}
+                  words={{ ok: t('test.sent'), fail: t('test.failed') }}
+                  disabled={busy}
+                  run={() => test(h)}
+                  resetKey={h.url}
+                />
                 <IconBadge
                   // A lone glyph takes half its 32px badge.
                   icon={<IconTrash width={16} height={16} />}
@@ -276,22 +283,44 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                   }}
                 />
               </div>
-              <p className="ps-0 text-[11px] text-carbon-textMuted">
+              <p className="ps-0 text-meta text-carbon-textMuted">
                 {lastLine(h.last)}
                 {lastFor(h.last) !== '' && <span className="ms-1">{lastFor(h.last)}</span>}
               </p>
               {!h.private && (
-                <p className="text-[11px] text-statusWarn">{t('settings.mediahook.goesToForeign')}</p>
+                <p className="text-meta text-statusWarn">{t('settings.mediahook.goesToForeign')}</p>
               )}
             </li>
           ))}
         </ul>
       )}
 
+      {/* A hook is edited in a window and stored whole: its address and its
+          header only make sense together, and Cancel throws the draft away. */}
       {draft && (
-        <div className="glim-well flex flex-col gap-4 p-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.mediahook.name')} hint={t('settings.mediahook.nameHint')}>
+        <Modal
+          title={draft.original || t('settings.mediahook.add')}
+          height="capped"
+          wide
+          onClose={() => (busy ? undefined : setDraft(null))}
+          footer={
+            <>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                disabled={busy}
+                onClick={() => setDraft(null)}
+              />
+              <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
+                {t('settings.mediahook.save')}
+              </Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.mediahook.name')} hint={t('settings.mediahook.nameHint')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -302,9 +331,10 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
-            </Field>
+            </SettingRow>
             {/* The (i) explains what 0 means while it is set. */}
-            <Field
+            <SettingRow
+              control="short"
               label={t('settings.mediahook.wait')}
               hint={
                 draft.waitSeconds === 0
@@ -319,10 +349,10 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 step={30}
                 onValue={(v) => setDraft({ ...draft, waitSeconds: Math.max(0, v) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
-          <Field label={t('settings.mediahook.url')} hint={t('settings.mediahook.urlHint')}>
+          <SettingRow control="long" label={t('settings.mediahook.url')} hint={t('settings.mediahook.urlHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -330,30 +360,35 @@ export function MediaHooksCard({ hue }: { hue: number }) {
               placeholder="http://jellyfin.lan:8096/Library/Refresh"
               onChange={(e) => setDraft({ ...draft, url: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           {hostOf(draft.url) !== '' && (
-            <p className="-mt-2 text-[11px] text-carbon-textMuted">
+            <p className="-mt-2 text-meta text-carbon-textMuted">
               {t('settings.mediahook.goesTo', { host: hostOf(draft.url) })}
             </p>
           )}
 
           {methods.length > 0 && (
-            <FieldGroup label={t('settings.mediahook.method')} hint={t('settings.mediahook.methodHint')}>
-              {/* The strip wraps, so no scroller goes around it. */}
+            <SettingRow label={t('settings.mediahook.method')} hint={t('settings.mediahook.methodHint')}>
               <Tabs
                 variant="well"
                 size="sm"
+                inline
+                hug
                 label={t('settings.mediahook.method')}
                 active={draft.method}
                 onSelect={(id) => setDraft({ ...draft, method: id })}
                 items={methods.map((m) => ({ id: m, label: m }))}
               />
-            </FieldGroup>
+            </SettingRow>
           )}
 
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.mediahook.headerName')} hint={t('settings.mediahook.headerNameHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="long"
+              label={t('settings.mediahook.headerName')}
+              hint={t('settings.mediahook.headerNameHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -361,8 +396,9 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 placeholder="X-Emby-Token"
                 onChange={(e) => setDraft({ ...draft, headerName: e.target.value })}
               />
-            </Field>
-            <Field
+            </SettingRow>
+            <SettingRow
+              control="long"
               label={draft.stored ? t('settings.mediahook.valueStored') : t('settings.mediahook.headerValue')}
               hint={draft.stored ? t('settings.mediahook.valueStoredHint') : t('settings.mediahook.headerValueHint')}
             >
@@ -373,7 +409,7 @@ export function MediaHooksCard({ hue }: { hue: number }) {
                 // Typing turns the kept value into a real one.
                 onChange={(e) => setDraft({ ...draft, headerValue: e.target.value, stored: false })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {draft.original !== '' && (
@@ -384,19 +420,9 @@ export function MediaHooksCard({ hue }: { hue: number }) {
             </FieldGroup>
           )}
 
-          {/* The spacer and the error come first so Save ends the row. The JSX
-              order sets it, so the row mirrors in right-to-left languages. */}
-          <div className="flex items-center gap-3">
-            <span className="flex-1" />
-            {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
-            <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button disabled={busy || draft.id.trim() === '' || draft.url.trim() === ''} onClick={save}>
-              {t('settings.mediahook.save')}
-            </Button>
-          </div>
-        </div>
+          {/* Why the save was refused, above the buttons until the next try. */}
+          {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+        </Modal>
       )}
 
       {!draft && error && <p className="text-xs text-statusWarn">{error}</p>}

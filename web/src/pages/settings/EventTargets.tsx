@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Button, Card, SectionTitle } from '../../components/ui';
-import { IconPlus } from '../../lib/icons';
+import { IconAdd } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
   fetchEventTargets,
@@ -53,10 +53,12 @@ function nextId(rows: EventTargetRow[]): string {
 }
 
 /**
- * useHealth fetches the health table once, keyed by target id. It changes only
- * when an event fires, so it is not polled.
+ * useHealth fetches the health table keyed by target id, again whenever the
+ * stored targets change: an id freed by a removal is taken by the next target
+ * added, which must not show the removed one's health. Otherwise it changes
+ * only when an event fires, so it is not polled.
  */
-function useHealth(): Record<string, EventTargetStatus> {
+function useHealth(stored: string): Record<string, EventTargetStatus> {
   const [health, setHealth] = useState<Record<string, EventTargetStatus>>({});
   useEffect(() => {
     let alive = true;
@@ -74,7 +76,7 @@ function useHealth(): Record<string, EventTargetStatus> {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [stored]);
   return health;
 }
 
@@ -99,12 +101,12 @@ function useVocabulary(): { triggers: string[]; placeholders: Placeholder[] } {
 
 export function EventTargetsCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, saved, patch } = useDraft();
   const { features } = useFeatures();
 
   // omitempty, so an older settings.json sends nothing.
   const rows = cfg.eventTargets ?? [];
-  const health = useHealth();
+  const health = useHealth(JSON.stringify(saved.eventTargets ?? []));
   const { triggers, placeholders } = useVocabulary();
 
   // Switching the module off parks the rows and clears the list. Checked with
@@ -114,6 +116,10 @@ export function EventTargetsCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
+  // A row keeps the React key it was typed under once it is stored, so the
+  // window it is edited in stays open; that key is kept by the row's id.
+  const [rowKeys, setRowKeys] = useState<Record<string, string>>({});
+  const keyOf = (id: string) => rowKeys[id] ?? id;
 
   // An emptied list goes out as [], never undefined, which the shell's diff
   // would send as a key without a value.
@@ -134,8 +140,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
     const id = nextId(rows);
     write([...rows, { ...next, id }]);
     setPending((list) => list.filter((r) => r.key !== key));
-    // The stored row is keyed by its id, so it remounts; keep it open.
-    setOpenRow(id);
+    setRowKeys((keys) => ({ ...keys, [id]: key }));
   };
 
   const total = rows.length + pending.length;
@@ -148,7 +153,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
           // A row added while the module is off would take the place of the
           // parked ones, so Add waits for the switch.
           !parked && (
-            <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
               {t('settings.eventTargets.add')}
             </Button>
           )
@@ -166,46 +171,50 @@ export function EventTargetsCard({ hue }: { hue: number }) {
             // Inside the card rather than an EmptyState, which would hide Add.
             <p className="py-6 text-center text-sm text-carbon-textSub">
               {t('settings.eventTargets.empty')}
-              <span className="mt-1 block text-[11px] text-carbon-textMuted">
+              <span className="mt-1 block text-meta text-carbon-textMuted">
                 {t('settings.eventTargets.emptyHint')}
               </span>
             </p>
           )
         ) : (
           <ul className="flex flex-col">
-            {rows.map((row, i) => (
-              <TargetRow
-                key={row.id}
-                row={row}
-                index={i}
-                last={i === total - 1}
-                stored
-                triggers={triggers}
-                placeholders={placeholders}
-                status={health[row.id]}
-                open={openRow === row.id}
-                onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
-                onChange={(next) => write(rows.map((r) => (r.id === row.id ? next : r)))}
-                onRemove={() => write(rows.filter((r) => r.id !== row.id))}
-              />
-            ))}
-            {pending.map((p, i) => (
-              <TargetRow
-                key={p.key}
-                row={p.row}
-                index={rows.length + i}
-                last={rows.length + i === total - 1}
-                stored={false}
-                triggers={triggers}
-                placeholders={placeholders}
-                open={openRow === p.key}
-                onToggle={() => setOpenRow(openRow === p.key ? '' : p.key)}
-                // Kept so collapsing a half-typed row keeps the text.
-                onChange={(next) => setPending((list) => list.map((r) => (r.key === p.key ? { ...r, row: next } : r)))}
-                onCommit={(next) => commit(p.key, next)}
-                onRemove={() => setPending((list) => list.filter((r) => r.key !== p.key))}
-              />
-            ))}
+            {/* One list, so a row that gets stored keeps its place among the
+                keys React compares. */}
+            {[
+              ...rows.map((row, i) => (
+                <TargetRow
+                  key={keyOf(row.id)}
+                  row={row}
+                  index={i}
+                  last={i === total - 1}
+                  stored
+                  triggers={triggers}
+                  placeholders={placeholders}
+                  status={health[row.id]}
+                  open={openRow === keyOf(row.id)}
+                  onToggle={() => setOpenRow(openRow === keyOf(row.id) ? '' : keyOf(row.id))}
+                  onChange={(next) => write(rows.map((r) => (r.id === row.id ? next : r)))}
+                  onRemove={() => write(rows.filter((r) => r.id !== row.id))}
+                />
+              )),
+              ...pending.map((p, i) => (
+                <TargetRow
+                  key={p.key}
+                  row={p.row}
+                  index={rows.length + i}
+                  last={rows.length + i === total - 1}
+                  stored={false}
+                  triggers={triggers}
+                  placeholders={placeholders}
+                  open={openRow === p.key}
+                  onToggle={() => setOpenRow(openRow === p.key ? '' : p.key)}
+                  // Kept so closing a half-typed row keeps the text.
+                  onChange={(next) => setPending((list) => list.map((r) => (r.key === p.key ? { ...r, row: next } : r)))}
+                  onCommit={(next) => commit(p.key, next)}
+                  onRemove={() => setPending((list) => list.filter((r) => r.key !== p.key))}
+                />
+              )),
+            ]}
           </ul>
         )}
       </div>

@@ -1,4 +1,5 @@
 {
   "onboarding.done": true,
+  "whatsNew": { "version": "2.0.0", "after": "", "seen": [], "notes": true, "dots": true },
   "list.collapsed.downloads": ["Night Sky Radio"]
 }

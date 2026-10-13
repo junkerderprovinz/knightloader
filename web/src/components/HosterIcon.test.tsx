@@ -39,7 +39,6 @@ beforeEach(() => {
   inView = true;
   retryAfter = '5';
   vi.stubGlobal('IntersectionObserver', FakeIntersectionObserver);
-  URL.createObjectURL = vi.fn(() => 'blob:icon');
   host = document.createElement('div');
   document.body.append(host);
   root = createRoot(host);
@@ -56,23 +55,38 @@ afterEach(() => {
 const img = () => host.querySelector('img');
 
 /**
- * answers stubs fetch with one status per request, the last one repeating. A
- * 202 carries the instance's Retry-After unless a test sets retryAfter.
+ * answers stubs fetch with one status per request, the last one repeating,
+ * which every host of that request's batch gets: 200 for an icon, 204 for
+ * none and 202 for one still being fetched, with the instance's pause unless
+ * a test sets retryAfter.
  */
 function answers(...statuses: number[]) {
-  const fetch = vi.fn(async () => {
+  const fetch = vi.fn(async (url: string) => {
     const status = statuses.length > 1 ? statuses.shift()! : statuses[0];
-    return {
-      status,
-      headers: new Headers(status === 202 && retryAfter ? { 'Retry-After': retryAfter } : {}),
-      blob: async () => new Blob(status === 200 ? ['icon'] : []),
-    } as Response;
+    const hosts = new URL(url, 'http://kl').searchParams.getAll('host');
+    const batch = {
+      icons: status === 200 ? Object.fromEntries(hosts.map((h) => [h, ICON])) : {},
+      large: [],
+      none: status === 204 ? hosts : [],
+      pending: status === 202 ? hosts : [],
+      retryAfter: Number(retryAfter) || 0,
+    };
+    return new Response(JSON.stringify(batch), { status: 200 });
   });
   vi.stubGlobal('fetch', fetch);
   return fetch;
 }
 
-const settle = () => act(() => vi.advanceTimersByTimeAsync(0));
+const ICON = 'data:image/png;base64,aWNvbg==';
+
+/**
+ * settle lets a row that has come into view ask, and then the hosts asked
+ * together go out as one batch.
+ */
+async function settle() {
+  await act(() => vi.advanceTimersByTimeAsync(0));
+  await act(() => vi.advanceTimersByTimeAsync(20));
+}
 
 /**
  * wait lets time pass a second per act, so React renders the ask a timer
@@ -108,16 +122,30 @@ it('knows every captcha service by the host of its catalogue link', () => {
   ]) {
     expect(serviceMark(new URL(link).hostname), link).toBeDefined();
   }
-  expect(serviceMark('rapidgator.net')).toBeUndefined();
+  expect(serviceMark('katfile.com')).toBeUndefined();
+});
+
+it('draws a hoster from its bundled logo without asking the instance', () => {
+  const fetch = answers(200);
+  act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
+  expect(img()?.getAttribute('src')).toBe('/hosters/rapidgator.net.png');
+  expect(img()?.getAttribute('loading')).toBe('lazy');
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it('takes a bundled logo from the domain above when the subdomain has none', () => {
+  expect(serviceMark('hdmusic.takefile.link')?.src).toBe(serviceMark('takefile.link')?.src);
+  expect(serviceMark('files.takefile.link')?.src).not.toBe(serviceMark('takefile.link')?.src);
+  expect(serviceMark('www.rapidgator.net')?.src).toBe(serviceMark('rapidgator.net')?.src);
 });
 
 it('draws the icon the instance has', async () => {
   vi.useFakeTimers();
   const fetch = answers(200);
-  act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
+  act(() => root.render(<HosterIcon host="https://rapidfileshare.net/file/1" />));
   await settle();
-  expect(fetch).toHaveBeenCalledWith('/api/hosters/icon?host=rapidgator.net');
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(fetch).toHaveBeenCalledWith('/api/hosters/icons?host=rapidfileshare.net');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('takes a 204 as no icon and does not ask again', async () => {
@@ -126,8 +154,8 @@ it('takes a 204 as no icon and does not ask again', async () => {
   act(() =>
     root.render(
       <>
-        <HosterIcon host="nitroflare.com" />
-        <HosterIcon host="https://nitroflare.com/view/2" />
+        <HosterIcon host="novafile.org" />
+        <HosterIcon host="https://novafile.org/view/2" />
       </>,
     ),
   );
@@ -148,22 +176,25 @@ it('shows a monogram while the instance fetches the icon and asks again later', 
   expect(host.textContent).toBe('k');
 
   await act(() => vi.advanceTimersByTimeAsync(5000));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('waits as long as the instance asks before asking again', async () => {
   vi.useFakeTimers();
   retryAfter = '20';
   const fetch = answers(202, 200);
-  act(() => root.render(<HosterIcon host="uploady.io" />));
+  act(() => root.render(<HosterIcon host="uploadgig.com" />));
   await settle();
 
-  await act(() => vi.advanceTimersByTimeAsync(19_999));
+  await act(() => vi.advanceTimersByTimeAsync(19_900));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(1);
-  await act(() => vi.advanceTimersByTimeAsync(1));
+  await act(() => vi.advanceTimersByTimeAsync(100));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('keeps asking while a long queue of icons drains on the instance', async () => {
@@ -175,13 +206,13 @@ it('keeps asking while a long queue of icons drains on the instance', async () =
 
   await wait(RETRY_GIVE_UP_MS);
   expect(fetch).toHaveBeenCalledTimes(21);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks less often the longer an icon takes and gives up in the end', async () => {
   vi.useFakeTimers();
   const fetch = answers(202);
-  act(() => root.render(<HosterIcon host="ddownload.com" />));
+  act(() => root.render(<HosterIcon host="depositfiles.com" />));
   await settle();
 
   await wait(60_000);
@@ -199,27 +230,28 @@ it('asks again after the instance did not answer at all', async () => {
   vi.useFakeTimers();
   const fetch = answers(200);
   fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-  act(() => root.render(<HosterIcon host="mega.nz" />));
+  act(() => root.render(<HosterIcon host="mixshared.com" />));
   await settle();
   expect(host.textContent).toBe('m');
 
   await act(() => vi.advanceTimersByTimeAsync(RETRY_DEFAULT_MS));
+  await settle();
   expect(fetch).toHaveBeenCalledTimes(2);
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks only once the row is scrolled into view', async () => {
   vi.useFakeTimers();
   inView = false;
   const fetch = answers(200);
-  act(() => root.render(<HosterIcon host="turbobit.net" />));
+  act(() => root.render(<HosterIcon host="tezfiles.com" />));
   await settle();
   expect(fetch).not.toHaveBeenCalled();
   expect(host.textContent).toBe('');
 
   act(() => observers.forEach((fire) => fire()));
   await settle();
-  expect(img()?.getAttribute('src')).toBe('blob:icon');
+  expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
 it('asks only for public dotted names', () => {
@@ -267,4 +299,35 @@ it('draws the monogram for hosts that cannot have an icon without asking the ins
   }
   expect(host.textContent).toBe('2');
   expect(fetch).not.toHaveBeenCalled();
+});
+
+it('asks for the icons of a screen of rows together', async () => {
+  vi.useFakeTimers();
+  const fetch = answers(200);
+  act(() =>
+    root.render(
+      <>
+        {Array.from({ length: 70 }, (_, i) => (
+          <HosterIcon key={i} host={`host${i}.com`} />
+        ))}
+      </>,
+    ),
+  );
+  await settle();
+  // Two batches, the second for what the first had no room for.
+  expect(fetch).toHaveBeenCalledTimes(2);
+  expect(host.querySelectorAll('img')).toHaveLength(70);
+});
+
+it('loads an icon too large for the batch from its own address', async () => {
+  vi.useFakeTimers();
+  vi.stubGlobal(
+    'fetch',
+    vi.fn(async () =>
+      new Response(JSON.stringify({ icons: {}, large: ['pixiv.net'], none: [], pending: [], retryAfter: 5 }), { status: 200 }),
+    ),
+  );
+  act(() => root.render(<HosterIcon host="pixiv.net" />));
+  await settle();
+  expect(img()?.getAttribute('src')).toBe('/api/hosters/icon?host=pixiv.net');
 });

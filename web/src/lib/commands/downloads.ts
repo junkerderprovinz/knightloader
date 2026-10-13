@@ -5,16 +5,16 @@
 import { pause, resume, restartTasks, moveTasks, queueMove } from '../api';
 import { MOVE_STATES, RENAME_SHORTCUT } from '../../components/ListToolbar';
 import {
-  IconArrowDown,
-  IconArrowUp,
-  IconBottom,
   IconCheck,
-  IconEdit,
+  IconFirst,
+  IconLatest,
+  IconMoveDown,
+  IconMoveUp,
   IconPause,
+  IconPencil,
   IconPlay,
-  IconRetry,
+  IconRefresh,
   IconSearch,
-  IconTop,
   IconTrash,
 } from '../icons';
 import type { Command, CommandContext } from './types';
@@ -84,7 +84,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.retryFailed',
     labelKey: 'downloads.retryFailed',
-    icon: IconRetry,
+    icon: IconRefresh,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'mod+shift+z',
@@ -120,7 +120,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.rename',
     labelKey: 'rename.menu',
-    icon: IconEdit,
+    icon: IconPencil,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: RENAME_SHORTCUT,
@@ -144,8 +144,9 @@ export const downloadsCommands: Command[] = [
     run: (ctx) => ctx.cleanup.preview('finished'),
   },
   {
+    // The id stays as it is, since stored shortcut overrides are keyed by it.
     id: 'downloads.toggleSearch',
-    // The search badge's name, not the empty field's placeholder
+    // The Search button's name, not the empty field's placeholder
     // (check-placeholder-as-label.mjs).
     labelKey: 'search.toggle',
     icon: IconSearch,
@@ -154,12 +155,12 @@ export const downloadsCommands: Command[] = [
     defaultShortcut: 'mod+f',
     enabled: () => true,
     visible: () => true,
-    run: (ctx) => ctx.toggleSearch(),
+    run: (ctx) => ctx.openSearch(),
   },
   {
     id: 'downloads.moveTop',
     labelKey: 'task.moveTop',
-    icon: IconTop,
+    icon: IconFirst,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'alt+home',
@@ -172,7 +173,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.moveUp',
     labelKey: 'task.moveUp',
-    icon: IconArrowUp,
+    icon: IconMoveUp,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'alt+up',
@@ -183,7 +184,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.moveDown',
     labelKey: 'task.moveDown',
-    icon: IconArrowDown,
+    icon: IconMoveDown,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'alt+down',
@@ -194,7 +195,7 @@ export const downloadsCommands: Command[] = [
   {
     id: 'downloads.moveBottom',
     labelKey: 'task.moveBottom',
-    icon: IconBottom,
+    icon: IconLatest,
     group: 'commands.group.downloads',
     surfaces: ['downloads'],
     defaultShortcut: 'alt+end',

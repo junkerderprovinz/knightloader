@@ -4,7 +4,7 @@ import { message } from '../lib/intake';
 import { useToast } from '../lib/toast';
 import { useT } from '../lib/i18n';
 import { Button } from './ui';
-import { IconClipboard } from '../lib/icons';
+import { IconPaste } from '../lib/icons';
 
 const CLIPBOARD_READABLE = typeof navigator !== 'undefined' && !!navigator.clipboard?.readText;
 
@@ -51,7 +51,7 @@ export function PasteFromClipboardButton({
     <Button
       kind="ghost"
       className={`px-2.5 text-xs ${className}`}
-      icon={<IconClipboard width={14} height={14} />}
+      icon={<IconPaste width={14} height={14} />}
       onClick={() => void paste()}
       disabled={busy}
     >

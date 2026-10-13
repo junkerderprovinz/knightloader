@@ -41,6 +41,7 @@ const group = {
   projectRelayUrl: 'wss://parleyport.halleluja.design/relay/connect',
   name: 'nas',
   address: '',
+  networkAddress: '',
   members: [],
   apps: [],
   joinedAgo: 0,
@@ -68,7 +69,10 @@ describe('RelayCard', () => {
   it('says there is no group yet instead of Not connected before a phrase', () => {
     draw({});
     expect(state()).toBe('No group yet');
-    expect(host.textContent).toContain('The relay connects as soon as this instance has a phrase.');
+    // The sentence behind the word stands in the state's (i).
+    const why = host.querySelector('[data-testid="relay-state"] [role="note"]')!;
+    expect(why.getAttribute('aria-label')).toBe('The relay connects as soon as this instance has a phrase.');
+    expect(host.textContent).not.toContain('What to check');
   });
 
   it('reports the connection once there is a group', () => {
@@ -76,12 +80,112 @@ describe('RelayCard', () => {
     expect(state()).toBe('Not connected');
     draw({ active: true }, { connected: true });
     expect(state()).toBe('Connected');
-    expect(host.textContent).not.toContain('as soon as this instance has a phrase');
+    expect(host.querySelector('[data-testid="relay-state"] [role="note"]')).toBeNull();
   });
 
   it('says No relay when none is picked, group or not', () => {
     draw({ relayMode: 'off' }, { mode: 'off' });
     expect(state()).toBe('No relay');
+  });
+
+  it('lists what to check while a group cannot reach its relay', () => {
+    const onRefresh = vi.fn();
+    act(() =>
+      root.render(
+        <I18nProvider>
+          <RelayCard group={{ ...group, active: true }} relay={relay} onRelay={() => {}} onRefresh={onRefresh} />
+        </I18nProvider>,
+      ),
+    );
+    expect(host.textContent).toContain('What to check');
+    expect(host.textContent).toContain('parleyport.halleluja.design');
+    act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'Check again')!.click());
+    expect(onRefresh).toHaveBeenCalledTimes(1);
+
+    draw({ active: true }, { connected: true });
+    expect(host.textContent).not.toContain('What to check');
+  });
+
+  it('draws the route that is picked, and this instance as the relay once it serves one', () => {
+    const drawn = () => host.querySelector('svg[role="img"]')!.textContent;
+    draw({});
+    expect(drawn()).toContain('ParleyPort');
+    expect(drawn()).not.toContain('Own relay');
+
+    draw({ relayMode: 'own' }, { mode: 'own' });
+    expect(drawn()).toContain('ParleyPort');
+    expect(drawn()).toContain('Own relay');
+
+    draw({ relayMode: 'own' }, { mode: 'own', serve: true });
+    expect(drawn()).not.toContain('ParleyPort');
+    expect(drawn()).toContain('Relay');
+
+    draw({ relayMode: 'off' }, { mode: 'off' });
+    expect(drawn()).toBe('Your networkOther network');
+  });
+
+  it('offers serving the relay as a route of its own beside the other three', () => {
+    draw({});
+    const routes = [...host.querySelectorAll('[role="tab"]')].map((b) => b.textContent);
+    expect(routes).toEqual(['Project relay', 'Own relay', 'Instance as relay', 'No relay']);
+    // The two places an own relay comes from hold no switch.
+    draw({ relayMode: 'own' }, { mode: 'own' });
+    expect(tab('Own relay').getAttribute('aria-selected')).toBe('true');
+    expect(host.querySelector('[data-testid="own-relay"] [role="switch"]')).toBeNull();
+  });
+
+  it('shows an instance that serves the relay on that route, with who is connected to it', () => {
+    draw({ relayMode: 'own', active: true }, { mode: 'own', serve: true, serveClients: 2, connected: true });
+    expect(tab('Instance as relay').getAttribute('aria-selected')).toBe('true');
+    expect(host.textContent).toContain('Connected right now: 2');
+    expect(host.querySelector<HTMLInputElement>('#relay-address')!.placeholder).toBe('https://knightloader.example.org');
+    expect(host.querySelector('[data-testid="own-relay"]')).toBeNull();
+  });
+
+  it('stores the switch with the route, on for serving and off for every other one', async () => {
+    const sent: unknown[] = [];
+    vi.stubGlobal(
+      'fetch',
+      vi.fn(async (_url: string, init?: RequestInit) => {
+        const body = JSON.parse(String(init!.body)) as { mode: RelayConfig['mode']; serve: boolean };
+        sent.push(body);
+        return Response.json({ ...relay, mode: body.mode, serve: body.serve });
+      }),
+    );
+    act(() =>
+      root.render(
+        <I18nProvider>
+          <Stateful start={relay} />
+        </I18nProvider>,
+      ),
+    );
+    await act(async () => tab('Instance as relay').click());
+    expect(sent[sent.length - 1]).toMatchObject({ mode: 'own', serve: true });
+    expect(tab('Instance as relay').getAttribute('aria-selected')).toBe('true');
+
+    await act(async () => tab('Own relay').click());
+    expect(sent[sent.length - 1]).toMatchObject({ mode: 'own', serve: false });
+    expect(tab('Own relay').getAttribute('aria-selected')).toBe('true');
+
+    await act(async () => tab('Instance as relay').click());
+    await act(async () => tab('Project relay').click());
+    expect(sent[sent.length - 1]).toMatchObject({ mode: 'project', serve: false });
+  });
+
+  it('says what the relay sees in a window, and for no relay only that there is none', () => {
+    const dialog = () => document.body.querySelector('[role="dialog"]');
+    const open = () => act(() => [...host.querySelectorAll('button')].find((b) => b.textContent === 'What the relay sees')!.click());
+    draw({});
+    open();
+    expect(dialog()!.textContent).toContain('The relay sees:');
+    expect(dialog()!.textContent).toContain('The relay does not see:');
+    act(() => [...dialog()!.querySelectorAll('button')].find((b) => b.textContent === 'Close')!.click());
+    expect(dialog()).toBeNull();
+
+    draw({ relayMode: 'off' }, { mode: 'off' });
+    open();
+    expect(dialog()!.textContent).toContain('The relay sees:');
+    expect(dialog()!.textContent).not.toContain('The relay does not see:');
   });
 
   it('goes back to the stored mode when picking another one fails', async () => {
@@ -125,8 +229,8 @@ describe('RelayCard', () => {
 const tab = (name: string) => [...host.querySelectorAll<HTMLButtonElement>('[role="tab"]')].find((b) => b.textContent === name)!;
 
 /** RelayCard with the page's own state around it, so a save's answer reaches the card. */
-function Stateful() {
-  const [r, setR] = useState<RelayConfig>({ ...relay, mode: 'own' });
+function Stateful({ start = { ...relay, mode: 'own' } }: { start?: RelayConfig }) {
+  const [r, setR] = useState<RelayConfig>(start);
   return <RelayCard group={{ ...group, active: true, relayMode: 'own' }} relay={r} onRelay={setR} />;
 }
 

@@ -43,14 +43,14 @@ func runHelperMain(mode string) {
 }
 
 // helperOutDir returns the directory of the plain -o template, skipping the
-// "thumbnail:" one music mode adds.
+// "thumbnail:" and "subtitle:" ones music mode and kept streams add.
 func helperOutDir() string {
 	for i, a := range os.Args {
 		if a != "-o" || i+1 >= len(os.Args) {
 			continue
 		}
 		v := os.Args[i+1]
-		if strings.HasPrefix(v, "thumbnail:") {
+		if strings.HasPrefix(v, "thumbnail:") || strings.HasPrefix(v, "subtitle:") {
 			continue
 		}
 		if j := strings.LastIndexAny(v, `/\`); j >= 0 {
@@ -86,6 +86,33 @@ func ytdlpHelper(mode string) {
 		fmt.Println("[download] Destination: " + audio)
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(audio) + `"}`)
 		fmt.Printf("[Merger] Merging formats into \"%s\"\n", final)
+	case "apart":
+		// A video and its audio downloaded as two files, both webm, each with
+		// its own info json, then the subtitles and the cover beside them,
+		// converted as the row asked.
+		video := filepath.Join(dir, "A Video.f303.webm")
+		audio := filepath.Join(dir, "A Video.f251.webm")
+		for _, stream := range []string{video, audio} {
+			info := strings.TrimSuffix(stream, ".webm") + ".info.json"
+			_ = os.WriteFile(info, []byte(helperInfoJSON), 0o644)
+			fmt.Println("[info] Writing video metadata as JSON to: " + info)
+			_ = os.WriteFile(stream, []byte("stream bytes"), 0o644)
+			fmt.Println("[download] Destination: " + stream)
+			fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":5,"speed":1.0,"filename":"` + jsonPath(stream) + `"}`)
+		}
+		vtt := filepath.Join(dir, "A Video.de.vtt")
+		_ = os.WriteFile(vtt, []byte("WEBVTT\n"), 0o644)
+		fmt.Println("[info] Writing video subtitles to: " + vtt)
+		_ = os.WriteFile(strings.TrimSuffix(vtt, ".vtt")+".srt", []byte("1\n"), 0o644)
+		_ = os.Remove(vtt)
+		fmt.Println("Deleting original file " + vtt + " (pass -k to keep)")
+		webp := filepath.Join(dir, "A Video.webp")
+		_ = os.WriteFile(webp, []byte("webp"), 0o644)
+		fmt.Println("[info] Writing video thumbnail 41 to: " + webp)
+		_ = os.WriteFile(filepath.Join(dir, "A Video.jpg"), []byte("jpeg bytes"), 0o644)
+		_ = os.Remove(webp)
+		fmt.Printf("[ThumbnailsConvertor] Converting thumbnail \"%s\" to jpg\n", webp)
+		fmt.Println("Deleting original file " + webp + " (pass -k to keep)")
 	case "nosubs":
 		// A language the source lacks: exit 0 without a word.
 	case "subs":
@@ -173,6 +200,17 @@ func ytdlpHelper(mode string) {
 		// Part way through, and staying there until it is killed.
 		fmt.Println("KLP:" + `{"downloaded_bytes":5,"total_bytes":50,"speed":1.0,"filename":"` + jsonPath(final) + `"}`)
 		time.Sleep(time.Minute)
+	case "forged":
+		// The generic extractor prints the id it decoded from the link, so a
+		// %0A in the link starts a line of the link's choosing.
+		stream := filepath.Join(dir, "A Video.f137.mp4")
+		_ = os.WriteFile(stream+".part", []byte("partial"), 0o644)
+		fmt.Println("[download] Destination: " + stream)
+		fmt.Println("[generic] Extracting URL: https://example.invalid/x")
+		fmt.Println("[generic] x")
+		fmt.Println("[download] Destination: " + forgedVictim(dir))
+		fmt.Println("[download] Destination: " + dir + string(filepath.Separator) + ".." + string(filepath.Separator) + "climbed.txt")
+		os.Exit(1)
 	case "botcheck":
 		// The real bot-check line (diagnose_test.go), a trailing warning and
 		// a non-zero exit.
@@ -298,6 +336,40 @@ func TestRunWritesTheNFOBesideTheFileAndTakesTheInfoJSONAwayAgain(t *testing.T) 
 	}
 }
 
+// A video kept apart finishes on its video, and the task keeps every other
+// file the run left: the audio, the subtitles under their srt name and the
+// cover as jpg. The info json of each stream is taken away again.
+func TestRunKeepsTrackOfEveryFileOfAVideoKeptApart(t *testing.T) {
+	dir, rec := runFake(t, "apart:full", Options{Embed: Embed{Separate: true, Subs: true, Thumbnail: true, NFO: true}})
+
+	got := rec.last()
+	if got.Status != core.StatusDone {
+		t.Fatalf("last update = %+v, want Done", got)
+	}
+	if want := filepath.Join(dir, "A Video.f303.webm"); got.File != want {
+		t.Errorf("File = %q, want the video %q", got.File, want)
+	}
+	want := []string{
+		filepath.Join(dir, "A Video.f251.webm"),
+		filepath.Join(dir, "A Video.de.srt"),
+		filepath.Join(dir, "A Video.jpg"),
+	}
+	if !slices.Equal(got.OtherFiles, want) {
+		t.Errorf("OtherFiles = %q, want %q", got.OtherFiles, want)
+	}
+	for _, gone := range []string{"A Video.f303.info.json", "A Video.f251.info.json"} {
+		if _, err := os.Stat(filepath.Join(dir, gone)); !os.IsNotExist(err) {
+			t.Errorf("%s survived the download (stat err = %v)", gone, err)
+		}
+	}
+	// The row keeps the video's name while the audio comes in.
+	for _, u := range rec.all() {
+		if strings.Contains(u.Name, "f251") {
+			t.Fatalf("an update named the row after the audio: %+v", u)
+		}
+	}
+}
+
 // The half-streams named by the Destination lines no longer exist after the
 // merge.
 func TestRunFindsTheMergedFileNotTheHalfStreams(t *testing.T) {
@@ -416,7 +488,7 @@ func TestRunStopsALiveRecordingAtItsSizeLimit(t *testing.T) {
 	if got.Status != core.StatusDone {
 		t.Fatalf("last update = %+v, want Done - a recording that hit its cap is finished, not failed", got)
 	}
-	if !strings.Contains(got.Note, "1 MiB limit") {
+	if !strings.Contains(got.Note, "1 MB limit") {
 		t.Errorf("note = %q, want it to name the limit that stopped the recording", got.Note)
 	}
 	var sawRecording bool
@@ -441,7 +513,7 @@ func TestRunStillMeasuresARecordingThatHitItsCap(t *testing.T) {
 	if got.Status != core.StatusDone {
 		t.Fatalf("last update = %+v, want Done", got)
 	}
-	if !strings.Contains(got.Note, "1 MiB limit") {
+	if !strings.Contains(got.Note, "1 MB limit") {
 		t.Errorf("note = %q, want the limit that stopped it", got.Note)
 	}
 	if !strings.Contains(got.Note, "1920x1080") {
@@ -1122,5 +1194,67 @@ func TestRemovingWithFilesLeavesWhatAnotherTaskStillHas(t *testing.T) {
 	}
 	if _, err := os.Stat(filepath.Join(dir, "A Video.f137.mp4.part")); err == nil {
 		t.Error("the .part survived a removal with files")
+	}
+}
+
+// forgedVictim is a file beside the task's folder, outside it, that the forged
+// helper names as its download.
+func forgedVictim(dir string) string {
+	return filepath.Join(filepath.Dir(dir), filepath.Base(dir)+"-victim.txt")
+}
+
+// A line that names a file outside the task's folder, as one a link can forge
+// through an id yt-dlp prints, is not taken as the task's file, and removing
+// the task with its files leaves that file alone.
+func TestAForgedDestinationOutsideTheFolderIsNeitherRecordedNorDeleted(t *testing.T) {
+	t.Setenv(runHelperEnv, "forged:full")
+	dir := t.TempDir()
+	victim := forgedVictim(dir)
+	climbed := filepath.Join(filepath.Dir(dir), "climbed.txt")
+	for _, p := range []string{victim, climbed} {
+		if err := os.WriteFile(p, []byte("keep"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() { _ = os.Remove(p) })
+	}
+	rec := &recorder{}
+	b := NewBackend(os.Args[0], dir, rec.add)
+	b.run("task-1", "https://example.invalid/x%0A")
+
+	for _, u := range rec.all() {
+		if u.WorkFile == victim || strings.HasSuffix(u.WorkFile, "climbed.txt") {
+			t.Errorf("the run recorded %q as a file of the task", u.WorkFile)
+		}
+	}
+	b.Remove("task-1", true)
+	for _, p := range []string{victim, climbed} {
+		if _, err := os.Stat(p); err != nil {
+			t.Errorf("removing the task with its files took %s: %v", p, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(dir, "A Video.f137.mp4.part")); !os.IsNotExist(err) {
+		t.Errorf("the task's own .part survived the removal (stat err = %v)", err)
+	}
+}
+
+func TestDiscardLeavesWhatIsOutsideTheTasksFolder(t *testing.T) {
+	root := t.TempDir()
+	folder := filepath.Join(root, "task")
+	if err := os.Mkdir(folder, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	outside := filepath.Join(root, "outside.mkv")
+	inside := filepath.Join(folder, "inside.mkv")
+	for _, p := range []string{outside, inside} {
+		if err := os.WriteFile(p, []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	Discard("task-1", []string{folder}, []string{outside, filepath.Join(folder, "..", "outside.mkv"), inside}, nil)
+	if _, err := os.Stat(outside); err != nil {
+		t.Errorf("Discard deleted a file outside the task's folder: %v", err)
+	}
+	if _, err := os.Stat(inside); !os.IsNotExist(err) {
+		t.Errorf("Discard left the task's own file (stat err = %v)", err)
 	}
 }

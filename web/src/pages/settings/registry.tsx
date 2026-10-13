@@ -6,8 +6,8 @@ import { Appearance } from './Appearance';
 import { Archives } from './Archives';
 import { Automation } from './Automation';
 import { BrowserTools } from './BrowserTools';
-import { Captcha } from './Captcha';
 import { CollectorSettings } from './CollectorSettings';
+import { DebridDrive } from './DebridDrive';
 import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
@@ -43,10 +43,10 @@ const PAGES: Record<string, () => ReactNode> = {
   network: () => <Network />,
   resolvers: () => <Resolvers />,
   torrents: () => <Torrents />,
-  captcha: () => <Captcha />,
+  debriddrive: () => <DebridDrive />,
   automation: () => <Automation />,
-  // The settings tab renders the sidebar's own Konten page with one extra
-  // toggle; the same holds for instances below.
+  // The sidebar's own Konten and Instanzen pages, the latter under its
+  // module's switch.
   accounts: () => <AccountsTab />,
   instances: () => <InstancesTab />,
   health: () => <Health />,

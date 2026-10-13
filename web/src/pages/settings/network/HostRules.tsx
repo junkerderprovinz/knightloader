@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
-  Field,
   FieldGroup,
   IconBadge,
   NumberInput,
@@ -11,7 +10,7 @@ import {
   ToggleRow,
 } from '../../../components/ui';
 import { Dropdown, type DropdownOption } from '../../../components/Dropdown';
-import { IconBolt, IconDownloads, IconPlus, IconRetry, IconTrash, IconWarning } from '../../../lib/icons';
+import { IconAdd, IconBolt, IconDownload, IconRefresh, IconTrash, IconWarning } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import {
   fetchAccountCatalogue,
@@ -22,6 +21,7 @@ import {
 } from '../../../lib/api';
 import { resolverLabel } from '../../../lib/resolverLabels';
 import { useDraft } from '../context';
+import { SettingRow, Sheet } from '../controls';
 
 // Per-host exceptions to the global counts: how many downloads one hoster may
 // have open, how many connections each gets, how a failure is retried, and
@@ -119,6 +119,10 @@ export function HostRulesCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
+  // A row keeps its React key when its host is typed or renamed, so the window
+  // it is edited in stays open; the key it started under is kept by host.
+  const [rowIds, setRowIds] = useState<Record<string, string>>({});
+  const idOf = (key: string) => rowIds[key] ?? storedId(key);
 
   const write = (next: Record<string, HostRule>) => patch({ hostRules: next });
 
@@ -158,7 +162,7 @@ export function HostRulesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.hostRules.titleHint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
             {t('settings.hostRules.add')}
           </Button>
         }
@@ -170,59 +174,61 @@ export function HostRulesCard({ hue }: { hue: number }) {
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.hostRules.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.hostRules.emptyHint')}</span>
+          <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.hostRules.emptyHint')}</span>
         </p>
       ) : (
         <ul className="flex flex-col">
-          {keys.map((key, i) => (
-            <HostRuleRow
-              key={storedId(key)}
-              host={key}
-              rule={rules[key] ?? {}}
-              services={services}
-              index={i}
-              last={i === rowCount - 1}
-              open={openRow === storedId(key)}
-              onToggle={() => setOpenRow(openRow === storedId(key) ? '' : storedId(key))}
-              onCommit={(typed) => {
-                const verdict = commit(key, typed, rules[key] ?? {});
-                // The row is keyed by its host, so a rename remounts it under
-                // the new name; without this the editor would close on itself.
-                if (verdict === 'ok') setOpenRow(storedId(normalizeHost(typed)));
-                return verdict;
-              }}
-              onChange={(next) => write({ ...rules, [key]: next })}
-              onRemove={() => {
-                const map = { ...rules };
-                delete map[key];
-                write(map);
-              }}
-            />
-          ))}
-          {pending.map((row, i) => (
-            <HostRuleRow
-              key={row.id}
-              host={row.host}
-              rule={row.rule}
-              services={services}
-              index={keys.length + i}
-              last={keys.length + i === rowCount - 1}
-              open={openRow === row.id}
-              onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
-              onCommit={(typed) => {
-                // Kept so collapsing a half-typed row keeps the text.
-                setPending((p) => p.map((r) => (r.id === row.id ? { ...r, host: typed } : r)));
-                const verdict = commit('', typed, row.rule);
-                if (verdict === 'ok') {
-                  setPending((p) => p.filter((r) => r.id !== row.id));
-                  setOpenRow(storedId(normalizeHost(typed)));
-                }
-                return verdict;
-              }}
-              onChange={(next) => setPending((p) => p.map((r) => (r.id === row.id ? { ...r, rule: next } : r)))}
-              onRemove={() => setPending((p) => p.filter((r) => r.id !== row.id))}
-            />
-          ))}
+          {/* One list, so a row that gets its host keeps its place among the
+              keys React compares. */}
+          {[
+            ...keys.map((key, i) => (
+              <HostRuleRow
+                key={idOf(key)}
+                host={key}
+                rule={rules[key] ?? {}}
+                services={services}
+                index={i}
+                last={i === rowCount - 1}
+                open={openRow === idOf(key)}
+                onToggle={() => setOpenRow(openRow === idOf(key) ? '' : idOf(key))}
+                onCommit={(typed) => {
+                  const verdict = commit(key, typed, rules[key] ?? {});
+                  if (verdict === 'ok') setRowIds((ids) => ({ ...ids, [normalizeHost(typed)]: idOf(key) }));
+                  return verdict;
+                }}
+                onChange={(next) => write({ ...rules, [key]: next })}
+                onRemove={() => {
+                  const map = { ...rules };
+                  delete map[key];
+                  write(map);
+                }}
+              />
+            )),
+            ...pending.map((row, i) => (
+              <HostRuleRow
+                key={row.id}
+                host={row.host}
+                rule={row.rule}
+                services={services}
+                index={keys.length + i}
+                last={keys.length + i === rowCount - 1}
+                open={openRow === row.id}
+                onToggle={() => setOpenRow(openRow === row.id ? '' : row.id)}
+                onCommit={(typed) => {
+                  // Kept so closing a half-typed row keeps the text.
+                  setPending((p) => p.map((r) => (r.id === row.id ? { ...r, host: typed } : r)));
+                  const verdict = commit('', typed, row.rule);
+                  if (verdict === 'ok') {
+                    setPending((p) => p.filter((r) => r.id !== row.id));
+                    setRowIds((ids) => ({ ...ids, [normalizeHost(typed)]: row.id }));
+                  }
+                  return verdict;
+                }}
+                onChange={(next) => setPending((p) => p.map((r) => (r.id === row.id ? { ...r, rule: next } : r)))}
+                onRemove={() => setPending((p) => p.filter((r) => r.id !== row.id))}
+              />
+            )),
+          ]}
         </ul>
       )}
     </Card>
@@ -230,9 +236,9 @@ export function HostRulesCard({ hue }: { hue: number }) {
 }
 
 /**
- * HostRuleRow shows one host, collapsed to its name and numbers, expanded to
- * every field. The typed host reaches the draft only on blur, or every prefix
- * would become a map key.
+ * HostRuleRow shows one host as its name and numbers, and every field in the
+ * window the row opens. The typed host reaches the draft only on blur, or
+ * every prefix would become a map key.
  */
 function HostRuleRow({
   host,
@@ -260,6 +266,8 @@ function HostRuleRow({
   const { t } = useT();
   const [text, setText] = useState(host);
   const [duplicate, setDuplicate] = useState(false);
+  // The stored host is the typed one tidied, so the box follows it.
+  useEffect(() => setText(host), [host]);
 
   const prefer = rule.prefer ?? '';
   const exclude = rule.exclude ?? [];
@@ -315,7 +323,7 @@ function HostRuleRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           className="flex min-w-0 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
@@ -334,9 +342,9 @@ function HostRuleRow({
           )}
           {/* The overrides behind their fields' glyphs. A zero prints nothing,
               since it means "no opinion", not "none". */}
-          <Summary value={rule.maxPerHost} icon={<IconDownloads width={12} height={12} />} />
+          <Summary value={rule.maxPerHost} icon={<IconDownload width={12} height={12} />} />
           <Summary value={rule.chunks} icon={<IconBolt width={12} height={12} />} />
-          <Summary value={never ? 0 : retry.tries} icon={<IconRetry width={12} height={12} />} />
+          <Summary value={never ? 0 : retry.tries} icon={<IconRefresh width={12} height={12} />} />
         </button>
         <div className="flex items-center gap-1.5">
           <IconBadge
@@ -353,8 +361,8 @@ function HostRuleRow({
       </div>
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          <Field label={t('settings.hostRules.pattern')} hint={t('settings.hostRules.patternHint')}>
+        <Sheet title={host || t('settings.hostRules.pattern')} hue={index} wide onClose={onToggle}>
+          <SettingRow control="long" label={t('settings.hostRules.pattern')} hint={t('settings.hostRules.patternHint')}>
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -372,15 +380,15 @@ function HostRuleRow({
                 }
               }}
             />
-          </Field>
+          </SettingRow>
           {/* Refused, since two keys that normalise the same would both be
               stored and only one consulted. */}
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
 
           {/* Half the width, as in a download's properties: a menu of a few
               service names does not need the whole line. */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="fit" label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
               <Dropdown
                 label={t('props.backend')}
                 value={prefer}
@@ -389,7 +397,7 @@ function HostRuleRow({
                 onChange={setPrefer}
                 busy={services === null}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {switchable.length > 0 && (
@@ -408,24 +416,32 @@ function HostRuleRow({
             </FieldGroup>
           )}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.hostRules.maxPerHost')} hint={t('settings.hostRules.maxPerHostHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="short"
+              label={t('settings.hostRules.maxPerHost')}
+              hint={t('settings.hostRules.maxPerHostHint')}
+            >
               <NumberInput
                 value={rule.maxPerHost ?? 0}
                 min={0}
                 max={MAX_PER_HOST}
                 onValue={(v) => onChange({ ...rule, maxPerHost: clampInt(v, MAX_PER_HOST) })}
               />
-            </Field>
+            </SettingRow>
             {/* An override, so it may exceed the global count. */}
-            <Field label={t('settings.hostRules.chunks')} hint={t('settings.hostRules.chunksHint')}>
+            <SettingRow
+              control="short"
+              label={t('settings.hostRules.chunks')}
+              hint={t('settings.hostRules.chunksHint')}
+            >
               <NumberInput
                 value={rule.chunks ?? 0}
                 min={0}
                 max={MAX_CHUNKS}
                 onValue={(v) => onChange({ ...rule, chunks: clampInt(v, MAX_CHUNKS) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <ToggleRow
@@ -466,7 +482,7 @@ function HostRuleRow({
               />
             </div>
           )}
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -493,7 +509,7 @@ function RetryNumber({
   onValue: (n: number) => void;
 }) {
   return (
-    <Field label={label} hint={hint}>
+    <SettingRow control="short" label={label} hint={hint}>
       <span className="block">
         <NumberInput value={value} min={0} max={max} onValue={(v) => onValue(clampInt(v, max))} />
         {raisedTo !== undefined && (
@@ -503,7 +519,7 @@ function RetryNumber({
           </span>
         )}
       </span>
-    </Field>
+    </SettingRow>
   );
 }
 

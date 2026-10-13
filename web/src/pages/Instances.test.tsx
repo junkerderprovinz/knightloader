@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
-import { MemoryRouter } from 'react-router-dom';
+import { MemoryRouter, useLocation } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../lib/i18n';
@@ -38,17 +38,35 @@ function serve(connect: object, instances: object[] = []) {
     '/api/settings': { instanceName: 'nas' },
     '/api/tasks': [],
   };
+  const calls: string[] = [];
   vi.stubGlobal(
     'fetch',
-    vi.fn((url: string) =>
-      Promise.resolve(
+    vi.fn((url: string, init?: RequestInit) => {
+      calls.push(`${init?.method ?? 'GET'} ${url}`);
+      return Promise.resolve(
         new Response(JSON.stringify(answers[url.split('?')[0]] ?? []), { headers: { 'Content-Type': 'application/json' } }),
-      ),
-    ),
+      );
+    }),
   );
+  return calls;
 }
 
+/** The card of the grid that carries this name; the net's nodes carry it too. */
+const card = (name: string) =>
+  [...host.querySelectorAll<HTMLElement>('[data-nk]')].find((c) => !c.closest('svg') && c.textContent?.includes(name))!;
+const buttons = (within: Element) =>
+  [...within.querySelectorAll('button')].map((b) => b.textContent || b.getAttribute('aria-label'));
+/** The kind a card's mark beside its state names. */
+const kindOf = (within: Element) => within.querySelector('[data-new="instance-kind"]');
+const kindName = (within: Element) => {
+  const mark = kindOf(within);
+  return mark?.getAttribute('aria-label') ?? mark?.querySelector('button')?.getAttribute('aria-label');
+};
+const button = (within: Element, text: string) => [...within.querySelectorAll('button')].find((b) => b.textContent === text)!;
+
 beforeEach(() => {
+  // A desktop width, where the floating action shows its words.
+  vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal(
     'WebSocket',
     class {
@@ -66,12 +84,18 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
+/** Where the router stands, for the actions that lead off the page. */
+function Where() {
+  return <span data-testid="where">{useLocation().pathname}</span>;
+}
+
 async function draw() {
   await act(async () =>
     root.render(
       <MemoryRouter>
         <I18nProvider>
           <Instances />
+          <Where />
         </I18nProvider>
       </MemoryRouter>,
     ),
@@ -79,11 +103,32 @@ async function draw() {
 }
 
 describe('Instances', () => {
-  it('stands the Pairing button in the middle of the page before there is a group', async () => {
+  it('leaves the way into pairing to the floating action before there is a group', async () => {
     serve(noGroup);
     await draw();
-    expect(host.textContent).toContain('Connect your instances and the Android app with a 12-word phrase');
-    expect(host.textContent).not.toContain('This instance');
+    // This instance alone, with no tile beside it that repeats the action.
+    expect([...host.querySelectorAll('[data-nk]')].map((c) => c.getAttribute('data-nk'))).toEqual(['self']);
+    expect(card('nas').textContent).toContain('This instance');
+    expect(host.textContent).not.toContain('Connect your instances');
+    // Nothing to draw a net of yet.
+    expect(host.querySelector('[data-testid="group-net"]')).toBeNull();
+
+    const ways = [...host.querySelectorAll('button')].filter((b) => b.textContent?.trim() === 'Pairing');
+    expect(ways).toHaveLength(1);
+    await act(async () => ways[0].click());
+    expect(host.querySelector('[data-testid="where"]')!.textContent).toBe('/settings/pairing');
+  });
+
+  it('stands every card on the page itself, the picture of the group included', async () => {
+    serve({ ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] }, [
+      { name: 'cellar', url: 'http://192.168.1.9:8749' },
+    ]);
+    await draw();
+    const picture = host.querySelector<HTMLElement>('[data-testid="group-net"]')!.closest<HTMLElement>('.glim-card')!;
+    for (const one of [picture, card('nas'), card('cellar'), card('Pixel 8')]) {
+      expect(one.classList.contains('glim-card')).toBe(true);
+      expect(one.parentElement!.closest('.glim-card')).toBeNull();
+    }
   });
 
   it('shows a card for every phone of the group, connected or not', async () => {
@@ -102,7 +147,7 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
-  it('marks every card with the glyph of its kind and gives the phone and the extension the logo', async () => {
+  it('names the kind on every card, marks it beside the state and wears the logo on every card', async () => {
     serve(
       {
         ...noGroup,
@@ -119,15 +164,153 @@ describe('Instances', () => {
       ],
     );
     await draw();
-    const card = (name: string) => [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes(name))!;
-    const kind = (name: string) => card(name).querySelector('[data-kind]')?.getAttribute('data-kind') ?? null;
-    expect(kind('Pixel 8')).toBe('mobile');
-    expect(kind('Browser')).toBe('extension');
-    expect(kind('Laptop')).toBe('desktop');
-    expect(kind('NAS')).toBe('container');
-    expect(kind('cellar')).toBeNull();
-    expect(card('Pixel 8').querySelector('[data-kind="mobile"]')?.getAttribute('aria-label')).toBe('Android app');
-    expect(card('Pixel 8').querySelector('img')).not.toBeNull();
+    expect(card('Pixel 8').textContent).toContain('Android app');
+    expect(card('Browser').textContent).toContain('Browser extension');
+    expect(card('Laptop').textContent).toContain('Desktop app');
+    expect(card('NAS').textContent).toContain('Container');
+    expect(card('cellar').textContent).not.toMatch(/Container|Desktop app|Android app/);
+    for (const name of ['nas', 'Laptop', 'NAS', 'cellar', 'Pixel 8', 'Browser']) {
+      expect(card(name).querySelector('img'), name).not.toBeNull();
+    }
+    expect(kindName(card('Pixel 8'))).toBe('Android app');
+    expect(kindName(card('Browser'))).toBe('Browser extension');
+    expect(kindName(card('Laptop'))).toBe('Desktop app');
+    expect(kindName(card('NAS'))).toBe('Container');
+    // A peer added by address is a server build that never said more.
+    expect(kindName(card('cellar'))).toBe('Server');
+    // A phone has no details, so its mark is no button.
+    expect(kindOf(card('Pixel 8'))!.querySelector('button')).toBeNull();
+    // Both badges share the name's line, which never wraps them under it.
+    for (const name of ['Pixel 8', 'cellar']) {
+      const line = card(name).querySelector('[data-new="instance-badges"]')!.parentElement!;
+      expect(line.textContent, name).toContain(name);
+      expect(line.className, name).not.toContain('flex-wrap');
+    }
+  });
+
+  it('says on each card how the instance is reached', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [
+          { id: 'id-laptop', name: 'Laptop', direct: true, relay: false },
+          { id: 'id-nas', name: 'NAS', direct: false, relay: true },
+        ],
+      },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    expect(card('Laptop').textContent).toContain('Direct');
+    expect(card('NAS').textContent).toContain('Via relay');
+    expect(card('cellar').textContent).toContain('By address');
+  });
+
+  it('draws the group as a net above the cards and lights a card with its node', async () => {
+    serve(
+      { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: false, lastSeen: 1 }] },
+      [{ name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' }],
+    );
+    await draw();
+    const wide = host.querySelector('[data-testid="group-net"] svg.wide')!;
+    const spokes = [...wide.querySelectorAll('g[data-nk]')];
+    expect(spokes.map((g) => g.getAttribute('data-nk'))).toEqual(['member:id-laptop', 'app:p1', 'self']);
+    expect(spokes[1].classList.contains('dim')).toBe(true);
+
+    act(() => {
+      spokes[0].querySelector('[role="button"]')!.dispatchEvent(new MouseEvent('pointerover', { bubbles: true }));
+    });
+    expect(card('Laptop').className).toContain('outline-accent');
+    expect(card('Pixel 8').className).not.toContain('outline-accent');
+  });
+
+  it('leaves a device that waits for approval to the Pairing card', async () => {
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [
+          { id: 'id-laptop', name: 'Laptop', direct: true, relay: false },
+          { id: 'id-new', name: 'Newcomer', direct: true, relay: false },
+        ],
+        apps: [
+          { id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 },
+          { id: 'p2', name: 'Stranger phone', deployment: 'mobile', connected: true, lastSeen: 1 },
+          { id: 'b2', name: 'Stranger browser', deployment: 'extension', connected: true, lastSeen: 1 },
+        ],
+        pending: [
+          { id: 'id-new', name: 'Newcomer', kind: 'instance', fingerprint: 'aaaa bbbb cccc dddd' },
+          { id: 'p2', name: 'Stranger phone', kind: 'mobile', fingerprint: 'eeee ffff 0000 1111' },
+          { id: 'b2', name: 'Stranger browser', kind: 'extension', fingerprint: '2222 3333 4444 5555' },
+        ],
+      },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'id-new', url: '', relayId: 'id-new', displayName: 'Newcomer' },
+      ],
+    );
+    await draw();
+    expect([...host.querySelectorAll('[data-nk]')].filter((c) => !c.closest('svg')).map((c) => c.getAttribute('data-nk'))).toEqual([
+      'self',
+      'member:id-laptop',
+      'app:p1',
+    ]);
+    const nodes = [...host.querySelectorAll('[data-testid="group-net"] svg.wide g[data-nk]')].map((g) => g.getAttribute('data-nk'));
+    expect(nodes).toEqual(['member:id-laptop', 'app:p1', 'self']);
+    expect(host.textContent).not.toMatch(/Newcomer|Stranger/);
+  });
+
+  it('opens the rest about an instance in a window', async () => {
+    serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
+    await draw();
+    expect(buttons(card('cellar'))).toEqual(['Server', 'Open', 'Details', 'Remove']);
+    // This instance has nothing more to say about itself and cannot be taken out.
+    expect(buttons(card('nas'))).toEqual(['Open']);
+
+    await act(async () => button(card('cellar'), 'Details').click());
+    const window = document.body.querySelector('[role="dialog"]')!;
+    expect(window.querySelector('h2')!.textContent).toBe('cellar');
+
+    // The kind's mark opens the same window.
+    const close = [...window.querySelectorAll('button')].find((b) => (b.textContent || b.getAttribute('aria-label')) === 'Close');
+    await act(async () => close!.click());
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    await act(async () => kindOf(card('cellar'))!.querySelector('button')!.click());
+    expect(document.body.querySelector('[role="dialog"] h2')!.textContent).toBe('cellar');
+    expect(window.textContent).toContain('192.168.1.9:8749');
+    expect(window.textContent).toContain('By address');
+  });
+
+  it('takes an instance or a phone out only after the window asks', async () => {
+    const calls = serve(
+      { ...noGroup, active: true, apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }] },
+      [
+        { name: 'id-laptop', url: '', relayId: 'id-laptop', displayName: 'Laptop' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    const window = () => document.body.querySelector('[role="dialog"]');
+    const confirm = () => button(window()!, 'Remove');
+
+    await act(async () => button(card('Laptop'), 'Remove').click());
+    expect(window()!.textContent).toContain('Laptop');
+    expect(calls.some((c) => c.startsWith('DELETE'))).toBe(false);
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/connect/members/id-laptop');
+    expect(window()).toBeNull();
+
+    await act(async () => button(card('cellar'), 'Remove').click());
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/instances/cellar');
+
+    await act(async () => button(card('Pixel 8'), 'Remove').click());
+    await act(async () => confirm().click());
+    expect(calls).toContain('DELETE /api/connect/apps/p1');
   });
 
   it('shows every instance under its address and opens a member there', async () => {
@@ -152,5 +335,52 @@ describe('Instances', () => {
     const pairing = [...host.querySelectorAll('button')].find((b) => b.textContent?.trim() === 'Pairing');
     expect(pairing).toBeDefined();
     expect(pairing!.closest('div')!.querySelector('[role="note"]')).toBeNull();
+  });
+
+  it('sends a parcel along the line of whoever the server names in a handover', async () => {
+    const sockets: { onmessage: ((e: { data: string }) => void) | null }[] = [];
+    vi.stubGlobal(
+      'WebSocket',
+      class {
+        static OPEN = 1;
+        static CONNECTING = 0;
+        readyState = 1;
+        onmessage = null;
+        constructor() {
+          sockets.push(this);
+        }
+        send() {}
+        close() {}
+      },
+    );
+    serve(
+      {
+        ...noGroup,
+        active: true,
+        members: [{ id: 'id-nas', name: 'NAS', direct: false, relay: true }],
+        apps: [{ id: 'p1', name: 'Pixel 8', deployment: 'mobile', connected: true, lastSeen: 1 }],
+      },
+      [
+        { name: 'id-nas', url: '', relayId: 'id-nas', displayName: 'NAS' },
+        { name: 'cellar', url: 'http://192.168.1.9:8749' },
+      ],
+    );
+    await draw();
+    const spoke = (key: string) => host.querySelector(`svg.wide g[data-nk="${key}"]`)!;
+    const parcels = (key: string) => spoke(key).querySelectorAll('.kl-net-parcel').length;
+    const dashed = (key: string) => spoke(key).querySelector('.kl-net-link')!.classList.contains('relay');
+    // The line says what the card says: through the relay or not.
+    expect([dashed('member:id-nas'), dashed('app:p1'), dashed('peer:cellar')]).toEqual([true, true, false]);
+
+    const hear = (data: object) =>
+      act(() => sockets.forEach((s) => s.onmessage?.({ data: JSON.stringify({ type: 'handover', data }) })));
+    hear({ peer: 'cellar', out: true });
+    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 0, 0]);
+    hear({ peer: 'p1', out: false });
+    hear({ peer: 'id-nas', out: true });
+    expect([parcels('peer:cellar'), parcels('member:id-nas'), parcels('app:p1')]).toEqual([1, 1, 1]);
+    // Somebody the page does not list has no line to travel on.
+    hear({ peer: 'stranger', out: false });
+    expect(host.querySelectorAll('svg.wide .kl-net-parcel')).toHaveLength(3);
   });
 });

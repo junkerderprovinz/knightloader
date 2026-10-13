@@ -1,7 +1,8 @@
 // The accounts page's card for the own Usenet servers. A server is a settings
 // row plus a sealed login (internal/api/routes_usenetservers.go), so it is
 // edited here through its own routes rather than the catalogue's credential
-// dialog: it has a host, a port and limits that no debrid key has.
+// dialog: it has a host, a port and limits that no debrid key has. The page's
+// floating action opens the window for a new one through `adding`.
 import { useCallback, useEffect, useState } from 'react';
 import {
   REDACTED_HEADER,
@@ -14,8 +15,9 @@ import {
 } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { IconClose, IconPlus, IconRetry, IconTrash, IconGlobe } from '../lib/icons';
+import { IconClose, IconRefresh, IconTrash, IconGlobe } from '../lib/icons';
 import { AccountTable } from './AccountTable';
+import { TestButton } from './TestButton';
 import {
   Button,
   EmptyState,
@@ -27,6 +29,7 @@ import {
   SectionTitle,
   TextInput,
   ToggleRow,
+  type ButtonVerdict,
 } from './ui';
 
 /** A server's last test on this page, kept until the page is left. */
@@ -46,7 +49,21 @@ const BLANK: UsenetServerSave = {
   password: '',
 };
 
-export function UsenetServersSection({ hue, onChanged }: { hue: number; onChanged: () => void }) {
+export function UsenetServersSection({
+  hue,
+  onChanged,
+  emptyPointer,
+  adding,
+  onAddClose,
+}: {
+  hue: number;
+  onChanged: () => void;
+  /** The sentence of the empty card that names the page's add action. */
+  emptyPointer: string;
+  /** The page asked for a new server's window. */
+  adding: boolean;
+  onAddClose: () => void;
+}) {
   const { t } = useT();
   const { toast } = useToast();
   const [rows, setRows] = useState<UsenetServerRow[] | null>(null);
@@ -110,11 +127,7 @@ export function UsenetServersSection({ hue, onChanged }: { hue: number; onChange
     }
   }
 
-  const addButton = (
-    <Button kind="secondary" hue={hue} icon={<IconPlus width={16} height={16} />} onClick={() => setEditing({ ...BLANK })}>
-      {t('accounts.usenet.add')}
-    </Button>
-  );
+  const form = editing ?? (adding ? BLANK : null);
 
   return (
     <>
@@ -126,46 +139,45 @@ export function UsenetServersSection({ hue, onChanged }: { hue: number; onChange
           nested
           icon={<IconGlobe width={26} height={26} />}
           title={t('accounts.usenet.empty')}
-          hint={t('accounts.usenet.emptyHint')}
-          action={addButton}
+          hint={`${t('accounts.usenet.emptyHint')} ${emptyPointer}`}
         />
       ) : (
-        <>
-          <AccountTable
-            label={t('accounts.usenet.title')}
-            rows={rows.map((r) => ({
-              key: r.id,
-              iconHost: r.host,
-              label: r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host,
-              enabled: r.enabled,
-              status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
-              onToggle: (v) => void onToggle(r, v),
-              onEdit: () => setEditing(asSave(r)),
-              onRemove: () => setConfirming(r),
-              menu: [
-                {
-                  id: 'actions',
-                  items: [
-                    {
-                      id: 'test',
-                      label: t('accounts.usenet.test'),
-                      icon: <IconRetry width={16} height={16} />,
-                      onSelect: () => void onTest(r),
-                    },
-                  ],
-                },
-              ],
-            }))}
-          />
-          <span className="self-start">{addButton}</span>
-        </>
+        <AccountTable
+          label={t('accounts.usenet.title')}
+          rows={rows.map((r) => ({
+            key: r.id,
+            iconHost: r.host,
+            label: r.level > 0 ? `${r.host} · ${t('accounts.usenet.levelShort', { n: r.level })}` : r.host,
+            enabled: r.enabled,
+            status: <ServerStatus checked={checked[r.id]} busy={testing.has(r.id)} />,
+            onToggle: (v) => void onToggle(r, v),
+            onEdit: () => setEditing(asSave(r)),
+            onRemove: () => setConfirming(r),
+            menu: [
+              {
+                id: 'actions',
+                items: [
+                  {
+                    id: 'test',
+                    label: t('accounts.usenet.test'),
+                    icon: <IconRefresh width={16} height={16} />,
+                    onSelect: () => void onTest(r),
+                  },
+                ],
+              },
+            ],
+          }))}
+        />
       )}
 
-      {editing && (
+      {form && (
         <ServerDialog
           hue={hue}
-          initial={editing}
-          onClose={() => setEditing(null)}
+          initial={form}
+          onClose={() => {
+            setEditing(null);
+            onAddClose();
+          }}
           onSave={async (s) => {
             await save(s);
             setChecked((c) => {
@@ -210,7 +222,7 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   const { t } = useT();
   if (busy) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
         <span aria-hidden className="glim-live h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent" />
         {t('accounts.refreshing')}
       </span>
@@ -218,7 +230,7 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   }
   if (!checked) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
         {t('accounts.unchecked')}
       </span>
@@ -226,14 +238,14 @@ function ServerStatus({ checked, busy }: { checked?: Checked; busy: boolean }) {
   }
   if (checked.ok) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
         {t('accounts.ok')}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={checked.detail} />
@@ -256,25 +268,27 @@ function ServerDialog({
   const { toast } = useToast();
   const [s, setS] = useState<UsenetServerSave>(initial);
   const [result, setResult] = useState<Checked | null>(null);
-  const [busy, setBusy] = useState<'test' | 'save' | null>(null);
+  const [saving, setSaving] = useState(false);
   const set = (patch: Partial<UsenetServerSave>) => {
     setS((cur) => ({ ...cur, ...patch }));
     setResult(null);
   };
 
-  async function onTest() {
-    setBusy('test');
+  // The button says whether the server took the login; a test that could not
+  // run at all says why in a toast.
+  async function onTest(): Promise<ButtonVerdict> {
     try {
-      setResult(await testUsenetServer(s));
+      const answer = await testUsenetServer(s);
+      setResult(answer);
+      return answer.ok ? 'ok' : 'fail';
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
-    } finally {
-      setBusy(null);
+      return 'fail';
     }
   }
 
   async function onSaveClick() {
-    setBusy('save');
+    setSaving(true);
     try {
       await onSave(s);
       toast(t('accounts.saved'), 'ok');
@@ -282,7 +296,7 @@ function ServerDialog({
     } catch (e) {
       toast(e instanceof Error ? e.message : String(e), 'fail');
     } finally {
-      setBusy(null);
+      setSaving(false);
     }
   }
 
@@ -290,17 +304,23 @@ function ServerDialog({
   return (
     <Modal
       title={initial.id ? t('accounts.usenet.editTitle', { host: initial.host }) : t('accounts.usenet.addTitle')}
+      hint={initial.id ? undefined : t('accounts.usenet.hint')}
       hue={hue}
       onClose={onClose}
       footer={
         <>
           <span className="flex-1" />
           <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
-          <Button kind="secondary" onClick={() => void onTest()} disabled={!filled || busy !== null}>
-            {busy === 'test' ? t('accounts.verifying') : t('accounts.usenet.test')}
-          </Button>
-          <Button onClick={() => void onSaveClick()} disabled={!filled || busy !== null}>
-            {busy === 'save' ? t('accounts.saving') : t('accounts.save')}
+          <TestButton
+            label={t('accounts.usenet.test')}
+            busyLabel={t('accounts.verifying')}
+            words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+            disabled={!filled || saving}
+            run={onTest}
+            resetKey={JSON.stringify(s)}
+          />
+          <Button onClick={() => void onSaveClick()} disabled={!filled || saving}>
+            {saving ? t('accounts.saving') : t('accounts.save')}
           </Button>
         </>
       }
@@ -349,10 +369,9 @@ function ServerDialog({
           checked={s.optional}
           onChange={(optional) => set({ optional })}
         />
-        {result && (
-          <p className={`text-xs ${result.ok ? 'text-statusOk' : 'text-statusFail'}`} role="status">
-            {result.ok ? t('accounts.ok') : t('accounts.verifyFailed', { detail: result.detail })}
-          </p>
+        {/* Why the server refused, above the buttons until the next test. */}
+        {result && !result.ok && (
+          <p className="text-xs text-carbon-textSub">{t('accounts.verifyFailed', { detail: result.detail })}</p>
         )}
       </div>
     </Modal>

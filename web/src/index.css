@@ -44,14 +44,21 @@
   /* The accent where the colour is read rather than filled: accent on a
      background, accentInk for color, fill and stroke against the page. */
   --color-accentInk: var(--accent-ink);
+  /* The ink for a line-drawn glyph, which takes a rainbow position where text
+     does not. */
+  --color-accentGlyph: var(--accent-glyph);
+  /* The hover step of an accent fill, which has no surface ramp to climb. */
+  --color-accentHover: var(--accent-hover);
 
   --color-statusOk: var(--status-ok-text);
   --color-statusOkBg: var(--status-ok-bg);
   --color-statusOkSolid: var(--status-ok-solid);
+  --color-statusOkHover: var(--status-ok-hover);
 
   --color-statusFail: var(--status-fail-text);
   --color-statusFailBg: var(--status-fail-bg);
   --color-statusFailSolid: var(--status-fail-solid);
+  --color-statusFailHover: var(--status-fail-hover);
 
   --color-statusWarn: var(--status-warn-text);
   --color-statusWarnBg: var(--status-warn-bg);
@@ -61,6 +68,7 @@
   /* The quiet warn wash, for a paragraph that explains rather than warns. */
   --color-statusWarnBgSoft: var(--status-warn-bg-soft);
   --color-statusWarnSolid: var(--status-warn-solid);
+  --color-statusWarnHover: var(--status-warn-hover);
 
   --color-statusInfo: var(--status-info-text);
   --color-statusInfoBg: var(--status-info-bg);
@@ -74,13 +82,21 @@
   --radius-control: 0.75rem;
   --radius-pill: 9999px;
 
-  /* A fixed type scale. --text-caption covers the plain caption, the eyebrow
-     label and the info bubble; the treatment carries the difference. A page's
-     hero figure and the brand wordmark sit outside it. */
-  --text-heading: 1.25rem;  /* 20px */
+  /* A fixed type scale of five sizes, one per role. --text-meta covers a
+     card's notch badge, the eyebrow label, the info bubble, a muted meta line
+     and a count; the treatment carries the difference. A page's hero figure
+     and the brand wordmark sit outside it. */
+  --text-status: 1.375rem;  /* 22px, the status head and a tile's one figure */
+  --text-title: 1rem;       /* 16px, an emphasised row title, a window's title */
   --text-body: 0.875rem;    /* 14px */
-  --text-dense: 0.75rem;    /* 12px */
-  --text-caption: 0.6875rem; /* 11px */
+  --text-subline: 0.8125rem; /* 13px, the text beside or under a name, a hint, a time */
+  --text-meta: 0.75rem;     /* 12px */
+
+  /* The four-step names, for the copies of GlimStone's reference files that
+     read them. */
+  --text-heading: var(--text-status);
+  --text-dense: var(--text-meta);
+  --text-caption: var(--text-meta);
 }
 
 /* Every rounded corner reads one of these three tokens, so the shape setting
@@ -123,9 +139,9 @@
 
 /* The button heights (GlimStone rule 19). --btn-h matches a text field (a
    20px line box plus 12px padding), so a button in a row of fields lines up
-   with them. --btn-h-transport is the head bar's transport squares and nothing
-   else. GlimStone's key height, one step up from --btn-h, has no button here
-   to carry it.
+   with them. --btn-h-key is the one step up, for the action a page exists
+   for, which floats in the page's corner (components/PageActions.tsx).
+   --btn-h-transport is the head bar's transport squares and nothing else.
 
    The four width stages are minimum widths chosen from the label, so a button
    keeps its width whichever label mode is active and a translation that runs
@@ -134,6 +150,8 @@
    `min-w-[var(--btn-w-sm)]`. */
 :root {
   --btn-h: 2rem;
+  /* The second height; see `.glim-btn-key`. */
+  --btn-h-key: 2.5rem;
   /* Only for the transport squares of a head bar; see `.glim-btn-transport`. */
   --btn-h-transport: 3rem;
 
@@ -171,6 +189,22 @@
   height: 1rem;
 }
 
+/* The key height, for the one control that creates what the page lists or
+   starts what it holds. Two heights read as a difference that was meant, and
+   the half-rem step is too large to pass for a rounding error. The glyph grows
+   with the box, and a key control showing its glyph alone is a square at this
+   height. The rules are GlimStone's (reference/tokens.css). */
+.glim-btn-key {
+  height: var(--btn-h-key);
+}
+.glim-btn-key .glim-btn-glyph > svg {
+  width: 1rem;
+  height: 1rem;
+}
+.glim-btn-icon.glim-btn-key {
+  width: var(--btn-h-key);
+}
+
 /* The transport squares of an app's head bar: play, pause, stop and the
    square beside them that opens the quick settings. They are the controls the
    whole app runs on and sit in a bar of their own, with no field or ordinary
@@ -200,6 +234,25 @@
   }
 }
 
+/* A page's floating actions (components/PageActions.tsx) stand in a slot at
+   the foot of the column that scrolls. The slot has no height of its own, so
+   whatever stands before a filled one keeps the room under its last row, and a
+   toast stands that much higher while a page has actions in its corner. */
+:root {
+  --page-actions-space: 0px;
+}
+:root:has(.glim-page-actions:not(:empty)) {
+  --page-actions-space: calc(var(--btn-h-key) + 0.75rem);
+}
+:has(+ .glim-page-actions:not(:empty)) {
+  padding-bottom: calc(var(--btn-h-key) + 1.5rem);
+}
+/* A floating action lies over the page's rows. The card elevation barely shows
+   under something one row tall, so it takes the shadow of a lifted row. */
+.glim-float {
+  box-shadow: var(--drag-lift-shadow), var(--hairline);
+}
+
 :root,
 [data-theme="dark"] {
   color-scheme: dark;
@@ -222,6 +275,7 @@
      one theme or the other). The true colour is the lit tile's fill; see
      .glim-brand-tile. Values from GlimStone's reference/tokens.css. */
   --brand-coffee:  #ffdd00;
+  --brand-docs:    #ffdd00;
   --brand-bitcoin: #f7931a;
   --brand-paypal:  #4fb5f0;
   --brand-github:  #ffffff;
@@ -236,7 +290,7 @@
   --brand-unraid-to:         #ff8d30;
   --brand-windows:           #2b88d8;
 
-  /* Four steps, the last still legible at 11px. */
+  /* Four steps, the last still legible at 12px. */
   --carbon-text:       #f4f4f4;
   --carbon-text-sub:   #c6c6c6;
   --carbon-text-muted: #8d8d8d;
@@ -247,15 +301,24 @@
   --accent-contrast:   #161616;
   --accent-soft:       rgba(252, 196, 25, 0.14);
   /* The accent used as ink on the page's own ground. The theme only sets
-     --ink-mix, inherited from <html>, so every --accent-ink in this file is
-     the same mix and the rainbow blocks need no light-theme twin. */
+     --ink-mix, inherited from <html>, so every --accent-ink and --accent-glyph
+     in this file is the same mix and the rainbow blocks need no light-theme
+     twin. */
   --ink-mix:           100%;
   --accent-ink:        color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  /* The same ink for a line-drawn glyph. Rainbow never colours text, so a hued
+     subtree redefines this one and leaves --accent-ink on the single accent. */
+  --accent-glyph:      color-mix(in srgb, var(--accent) var(--ink-mix), black);
   /* The theme's accent, reachable inside a rainbowed subtree where .glim-hue
      redefines --accent per row. A selection mark uses it so every selected row
      shows the same colour. Custom properties resolve where they are declared,
      so this stays :root's accent. */
   --accent-fixed:      var(--accent);
+  /* The speed graphs' download and seeding lines until lib/speedLines.ts
+     sets the colours chosen: the accent, and the blue that stands across
+     the wheel from the built-in gold. */
+  --line-download:     color-mix(in srgb, var(--accent) var(--ink-mix), black);
+  --line-seeding:      color-mix(in srgb, #1D99F3 var(--ink-mix), black);
 
   /* Carbon's support tones, shared with the siblings. Paused reuses neutral. */
   --status-info-text:    #FCC419;
@@ -270,12 +333,13 @@
   --status-fail-bg:      rgba(255, 131, 137, 0.14);
   --status-fail-solid:   #ff8389;
 
-  --status-warn-text:    #f1c21b;
-  --status-warn-bg:      rgba(241, 194, 27, 0.12);
+  /* Orange, so that yellow only means "act here" or "chosen". */
+  --status-warn-text:    #FF832B;
+  --status-warn-bg:      rgba(255, 131, 43, 0.12);
   /* The opaque twin of the line above, value from GlimStone's reference tokens. */
-  --status-warn-bg-strong: #3a2f1c;
-  --status-warn-bg-soft: rgba(241, 194, 27, 0.06);
-  --status-warn-solid:   #f1c21b;
+  --status-warn-bg-strong: #36231a;
+  --status-warn-bg-soft: rgba(255, 131, 43, 0.06);
+  --status-warn-solid:   #FF832B;
 
   --status-neutral-text: #a8a8a8;
   --status-neutral-bg:   rgba(255, 255, 255, 0.05);
@@ -309,6 +373,7 @@
 
     /* The warm marks deepened to clear 3:1 on #d1d1d1; the dark ones already do. */
     --brand-coffee:  #8a6d00;
+    --brand-docs:    #8a6d00;
     --brand-bitcoin: #a85d00;
     --brand-paypal:  #003087;
     --brand-github:  #181717;
@@ -342,13 +407,13 @@
     --status-fail-bg:      rgba(218, 30, 40, 0.10);
     --status-fail-solid:   #da1e28;
 
-    --status-warn-text:    #8E6A00;
-    --status-warn-bg:      rgba(142, 106, 0, 0.10);
+    --status-warn-text:    #ba4e00;
+    --status-warn-bg:      rgba(186, 78, 0, 0.10);
     /* A pale wash here, since an opaque chip inverts with the theme like every
        other surface. */
-    --status-warn-bg-strong: #fcf4d6;
-    --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
-    --status-warn-solid:   #b28600;
+    --status-warn-bg-strong: #fff2e8;
+    --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
+    --status-warn-solid:   #ba4e00;
 
     --status-neutral-text: #6f6f6f;
     --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -379,6 +444,7 @@
   --carbon-border:     #d1d1d1;
 
   --brand-coffee:  #8a6d00;
+  --brand-docs:    #8a6d00;
   --brand-bitcoin: #a85d00;
   --brand-paypal:  #003087;
   --brand-github:  #181717;
@@ -394,7 +460,7 @@
   --sidebar-text:      #393939;
 
   /* The accent fill keeps its colour in both themes; only its use as ink gets
-     darker, because yellow text at 11px is unreadable on white. 55% toward
+     darker, because yellow text at 12px is unreadable on white. 55% toward
      black gives Sunflower 4.95:1 on white, and every accent preset clears
      4.5:1. */
   --accent:            #FCC419;
@@ -414,11 +480,11 @@
   --status-fail-bg:      rgba(218, 30, 40, 0.10);
   --status-fail-solid:   #da1e28;
 
-  --status-warn-text:    #8E6A00;
-  --status-warn-bg:      rgba(142, 106, 0, 0.10);
-  --status-warn-bg-strong: #fcf4d6;
-  --status-warn-bg-soft: rgba(142, 106, 0, 0.05);
-  --status-warn-solid:   #b28600;
+  --status-warn-text:    #ba4e00;
+  --status-warn-bg:      rgba(186, 78, 0, 0.10);
+  --status-warn-bg-strong: #fff2e8;
+  --status-warn-bg-soft: rgba(186, 78, 0, 0.05);
+  --status-warn-solid:   #ba4e00;
 
   --status-neutral-text: #6f6f6f;
   --status-neutral-bg:   rgba(0, 0, 0, 0.045);
@@ -429,6 +495,19 @@
   --hairline: inset 0 0 0 1px rgba(0, 0, 0, .05);
   --focus-ring: rgba(142, 106, 0, .5);
 
+}
+
+/* The hover step of a filled tone that has no surface ramp of its own
+   (GlimStone rule 21): the fill mixed toward the theme's text colour, which is
+   lighter on dark and darker on light, the way the ramp moves. 15% is about
+   one step of the dark ramp, surface3 to hover-raised. Declared wherever a
+   theme is set, so --carbon-text is the one that theme defines. */
+:root,
+[data-theme] {
+  --accent-hover:      color-mix(in srgb, var(--accent) 85%, var(--carbon-text));
+  --status-ok-hover:   color-mix(in srgb, var(--status-ok-solid) 85%, var(--carbon-text));
+  --status-fail-hover: color-mix(in srgb, var(--status-fail-solid) 85%, var(--carbon-text));
+  --status-warn-hover: color-mix(in srgb, var(--status-warn-solid) 85%, var(--carbon-text));
 }
 
 /* The house font is Noto Sans, shipped with the app (the imports in main.tsx)
@@ -497,10 +576,28 @@ body {
   background-color: var(--carbon-hover-raised);
 }
 
+/* A sub-card groups rows inside a card: flat, on the well's colour and at the
+   card's radius. Fields and neutral buttons in it move one step up the ramp,
+   as fields do in a well, and their hover moves with them. */
+.glim-subcard {
+  background-color: var(--carbon-surface2);
+  border-radius: var(--radius-card);
+}
+.glim-subcard input,
+.glim-subcard textarea,
+.glim-subcard .glim-field,
+.glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet) {
+  background-color: var(--carbon-surface3);
+}
+.glim-subcard button.glim-field:hover,
+.glim-subcard :is(button, a).bg-carbon-surface2:not(.glim-badge-quiet):hover {
+  background-color: var(--carbon-hover-raised);
+}
+
 /* Eyebrow label: small, uppercase, quiet. Above hero figures, and as the tag
    that names a category beside something louder. */
 .glim-eyebrow {
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--carbon-text-muted);
@@ -523,6 +620,138 @@ body {
   -moz-appearance: textfield;
 }
 
+/* A button on a surface2 tile stands one tier up the surface ramp and hovers
+   one more, or it would have no ground of its own. Unlayered, so it wins over
+   the fill the button's kind brings. */
+.kl-raised-btn {
+  background-color: var(--carbon-surface3);
+}
+.kl-raised-btn:hover {
+  background-color: var(--carbon-hover-raised);
+}
+
+/* Illustrations (pairing/pairingArt.tsx, components/GroupNet.tsx). A picture
+   keeps its left-to-right geometry on a right-to-left page, where an anchored
+   label would otherwise grow the wrong way, and its corners follow the corner
+   setting like the rest of the interface. */
+.kl-pic {
+  direction: ltr;
+}
+.kl-pic-control {
+  rx: var(--radius-control);
+}
+.kl-pic-pill {
+  rx: var(--radius-pill);
+}
+.kl-pic-card {
+  rx: var(--radius-card);
+}
+/* A figure that owns a palette position (pictureHue in pictures/scene.ts).
+   Under rainbow mode its lines and packets take that position, at rest too,
+   since here the colours tell the figures apart. Reactive mode rests them with
+   their card and lights them while the card is pointed at or focused. */
+[data-rainbow]:not([data-rainbow='reactive']) .kl-pic-hue,
+[data-rainbow='reactive'] .glim-hue:is(:hover, :focus-within) .kl-pic-hue {
+  --accent: var(--item-hue);
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+}
+.kl-pic-lift {
+  filter: drop-shadow(0 3px 3px rgb(0 0 0 / .28));
+}
+/* SMIL sets these values frame by frame, and the app's transition set would
+   trail every one of them. */
+.glim-shape-transitions .kl-pic-timed * {
+  transition: none;
+}
+
+/* A station that leads to its setting looks like the others at rest. A ring
+   answers the pointer and the focus. */
+.kl-station-way {
+  cursor: pointer;
+  outline: none;
+}
+.kl-station-ring {
+  fill: none;
+  stroke: var(--accent-glyph);
+  stroke-width: 2;
+  opacity: 0;
+}
+.kl-station-way:is(:hover, :focus-visible) .kl-station-ring {
+  opacity: 1;
+}
+
+/* The group as a net: one arrangement for a wide box and one with every node
+   on the same side for a narrow one. */
+.kl-net {
+  container: kl-net / inline-size;
+  width: 100%;
+  max-width: 760px;
+  margin-inline: auto;
+}
+.kl-net-svg {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+.kl-net-svg.narrow {
+  display: none;
+  max-width: 400px;
+  margin-inline: auto;
+}
+@container kl-net (max-width: 559px) {
+  .kl-net-svg.wide {
+    display: none;
+  }
+  .kl-net-svg.narrow {
+    display: block;
+  }
+}
+/* With pathLength="1" on the path, one dash is the whole link, so an offset
+   from 1 to 0 draws it in. */
+.kl-net-link {
+  fill: none;
+  stroke: var(--carbon-text-muted);
+  stroke-opacity: .6;
+  stroke-width: 1.5;
+  stroke-linecap: round;
+  stroke-dasharray: 1;
+}
+/* A link that runs through the relay keeps dashes of its own. */
+.kl-net-link.relay {
+  stroke-dasharray: 5 6;
+}
+/* The ring a node answers an arriving parcel with grows from its own centre. */
+.kl-net-answer {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.kl-net-svg.picked .kl-net-spoke:not(.hot, .hub) {
+  opacity: .35;
+}
+.kl-net-node {
+  cursor: pointer;
+  outline: none;
+  transform-box: fill-box;
+  transform-origin: center;
+}
+.kl-net-spoke.dim .kl-net-node {
+  opacity: .5;
+}
+.kl-net-ring {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  opacity: 0;
+}
+.kl-net-spoke.hot .kl-net-ring,
+.kl-net-node:is(:hover, :focus-visible) .kl-net-ring {
+  opacity: 1;
+}
+.kl-net-tile {
+  fill: var(--carbon-surface3);
+}
+
 /* The info bubble, rendered at body level so nothing can clip it, and centred
    under the icon by translating it back half its own width. */
 .glim-bubble {
@@ -539,7 +768,7 @@ body {
   border-radius: var(--radius-control);
   box-shadow: var(--elevation), var(--hairline);
   padding: 7px 10px;
-  font-size: 11px;
+  font-size: var(--text-meta);
   line-height: 1.45;
   letter-spacing: normal;
   text-transform: none;
@@ -558,7 +787,14 @@ body {
    filter chips, segments, and badges belonging to them. A one-off element such
    as the primary submit button or the speed curve keeps the single accent, and
    the state hues are never rainbowed. hueStyle(i) in components/ui.tsx hands out
-   the class and the properties together. */
+   the class and the properties together.
+
+   Rainbow never colours text. A custom property containing var() is resolved
+   where it is declared, so the --accent-ink from :root arrives here already
+   computed on the single accent, and these rules leave it alone. A line-drawn
+   glyph reads --accent-glyph instead, which they do redefine, and
+   --accent-hover is restated so a filled button's hover steps from its own
+   hue. */
 [data-rainbow] .glim-hue {
   --accent: var(--item-hue);
   --accent-contrast: var(--item-hue-ink);
@@ -573,9 +809,10 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* --accent-ink resolved against :root's accent for the same reason. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --accent-hover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
+  --color-accentHover: color-mix(in srgb, var(--item-hue) 85%, var(--carbon-text));
 }
 
 /* Opt-in: the element's glyph takes the hue too, so a nav or tab bar reads as a
@@ -587,7 +824,7 @@ body {
    Normal mode and the position under a rainbow (GlimStone, "The tab-strip
    colour rule"). Reactive mode is the one that rests, with its own pair below. */
 .glim-hue-icon:not(.glim-active) svg {
-  color: var(--accent-ink);
+  color: var(--accent-glyph);
 }
 /* In Reactive mode idle icons are colourless until hovered or focused. Tabs.tsx
    and Sidebar.tsx both rely on this pair. */
@@ -596,7 +833,7 @@ body {
 }
 [data-rainbow='reactive'] .glim-hue-icon:hover:not(.glim-active) svg,
 [data-rainbow='reactive'] .glim-hue-icon:focus-within:not(.glim-active) svg {
-  color: var(--accent-ink);
+  color: var(--accent-glyph);
 }
 
 /* Opt-in: a list row shows its hue as a wash on hover, in every rainbow mode.
@@ -616,26 +853,37 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-soft);
 }
 
-/* The mark on a selected list row. A class rather than a `bg-accent/20`
+/* The wash on a selected list row. A class rather than a `bg-accent/20`
    utility, because the rainbow wash is an inset shadow painted above the
-   background; the mark has to live in the same property at a higher
-   specificity. The accent edge reads in any palette. */
+   background; the wash has to live in the same property at a higher
+   specificity. No line runs down the row's edge: what is picked is filled
+   (GlimStone rule 5), and the fill alone says which, with aria-selected
+   saying it to a screen reader. */
 .glim-row-selected,
-/* Listed with :hover so the row's hover utility cannot take the mark away. */
+/* Listed with :hover so the row's hover utility cannot take the wash away. */
 .glim-row-selected:hover {
   background-color: color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
 [data-rainbow] .glim-tint.glim-row-selected {
   box-shadow: inset 0 0 0 999px color-mix(in oklab, var(--accent-fixed) 22%, transparent);
 }
-.glim-row-selected::before {
-  content: '';
-  position: absolute;
-  inset-block: 0;
-  inset-inline-start: 0;
-  width: 3px;
-  background: var(--accent-fixed);
-  pointer-events: none;
+
+/* A list row's buttons come in while the pointer is over the row or the focus
+   is inside it, and stay where there is no hover to bring them (GlimStone
+   rule 6). They keep their room at rest, so nothing beside them moves. */
+.glim-row-actions {
+  opacity: 0;
+  transition: opacity var(--motion-control-dur, 0ms) ease;
+}
+.glim-row:is(:hover, :focus-within) .glim-row-actions,
+/* A button whose menu is open stays, though the pointer is in the menu. */
+.glim-row-actions:has([aria-expanded='true']) {
+  opacity: 1;
+}
+@media (hover: none) {
+  .glim-row-actions {
+    opacity: 1;
+  }
 }
 
 /* A carried list row (TaskList.tsx) floats over the rows it passes, so it
@@ -718,17 +966,35 @@ body {
   box-shadow: inset 0 0 0 999px var(--item-hue-badge);
 }
 
+/* The glyph tile at the start of a row (IconTile in components/ui.tsx) fills
+   with the accent while its row is hovered, focused or picked, and its glyph
+   takes the accent's ink (GlimStone, "Lists"). The row carries .glim-row, and
+   .glim-active while it is picked. Under a rainbow the tile fills with its own
+   position, which it holds as --item-hue without rebinding the accent, and the
+   wash it wore at rest gives way to the fill. */
+.glim-row:is(:hover, :focus-within) > .glim-row-tile,
+.glim-row.glim-active > .glim-row-tile {
+  background-color: var(--accent);
+  color: var(--accent-contrast);
+}
+[data-rainbow] .glim-row:is(:hover, :focus-within) > .glim-row-tile.glim-tint-badge,
+[data-rainbow] .glim-row.glim-active > .glim-row-tile.glim-tint-badge {
+  background-color: var(--item-hue);
+  color: var(--item-hue-ink);
+  box-shadow: none;
+}
+
 /* Reactive: the palette rests. Everything is quiet until it is hovered or is
    the active item, so colour still marks activity. */
 [data-rainbow='reactive'] .glim-hue {
   --accent: var(--carbon-text-muted);
   --accent-contrast: var(--carbon-bg);
   --accent-soft: transparent;
-  --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
   --color-accent: var(--carbon-text-muted);
   --color-accentContrast: var(--carbon-bg);
   --color-accentSoft: transparent;
-  --color-accentInk: var(--carbon-text-muted);
+  --color-accentGlyph: var(--carbon-text-muted);
 }
 [data-rainbow='reactive'] .glim-hue:hover,
 [data-rainbow='reactive'] .glim-hue:focus-within,
@@ -739,10 +1005,10 @@ body {
   --color-accent: var(--item-hue);
   --color-accentContrast: var(--item-hue-ink);
   --color-accentSoft: var(--item-hue-soft);
-  /* The resting rule muted the ink too and comes later at the same
-     specificity, so the ink has to be restated. */
-  --accent-ink: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
-  --color-accentInk: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  /* The resting rule muted the glyph too and comes later at the same
+     specificity, so the glyph has to be restated. */
+  --accent-glyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
+  --color-accentGlyph: color-mix(in srgb, var(--item-hue) var(--ink-mix), black);
 }
 
 /* SectionTitle's notch badge in reactive mode. The card owns the palette
@@ -778,18 +1044,24 @@ body {
 
    Ink takes the muted text step and a fill the neutral dot's grey, which is
    the lighter of the two on a light theme: a bar in the text grey outweighs
-   the live bars around it. */
+   the live bars around it. A fill's hover step takes the same grey, so
+   nothing on the row lights up under the pointer. */
 .kl-parked {
   --carbon-text: var(--carbon-text-muted);
   --carbon-text-sub: var(--carbon-text-muted);
   --accent: var(--status-neutral-solid);
   --accent-ink: var(--carbon-text-muted);
+  --accent-glyph: var(--carbon-text-muted);
+  --accent-hover: var(--status-neutral-solid);
   --status-ok-text: var(--carbon-text-muted);
   --status-ok-solid: var(--status-neutral-solid);
+  --status-ok-hover: var(--status-neutral-solid);
   --status-fail-text: var(--carbon-text-muted);
   --status-fail-solid: var(--status-neutral-solid);
+  --status-fail-hover: var(--status-neutral-solid);
   --status-warn-text: var(--carbon-text-muted);
   --status-warn-solid: var(--status-neutral-solid);
+  --status-warn-hover: var(--status-neutral-solid);
   --status-info-text: var(--carbon-text-muted);
   --status-info-solid: var(--status-neutral-solid);
   --status-neutral-text: var(--carbon-text-muted);
@@ -797,12 +1069,17 @@ body {
   --color-carbon-textSub: var(--carbon-text-muted);
   --color-accent: var(--status-neutral-solid);
   --color-accentInk: var(--carbon-text-muted);
+  --color-accentGlyph: var(--carbon-text-muted);
+  --color-accentHover: var(--status-neutral-solid);
   --color-statusOk: var(--carbon-text-muted);
   --color-statusOkSolid: var(--status-neutral-solid);
+  --color-statusOkHover: var(--status-neutral-solid);
   --color-statusFail: var(--carbon-text-muted);
   --color-statusFailSolid: var(--status-neutral-solid);
+  --color-statusFailHover: var(--status-neutral-solid);
   --color-statusWarn: var(--carbon-text-muted);
   --color-statusWarnSolid: var(--status-neutral-solid);
+  --color-statusWarnHover: var(--status-neutral-solid);
   --color-statusInfo: var(--carbon-text-muted);
   --color-statusInfoSolid: var(--status-neutral-solid);
   --color-statusNeutral: var(--carbon-text-muted);
@@ -1055,6 +1332,141 @@ body {
   from { rotate: calc(var(--motion-wiggle-angle) * -1); }
   to   { rotate: var(--motion-wiggle-angle); }
 }
+/* A fill level sloshes. In a vessel the body of the liquid tilts, and the
+   surface runs up the wall it tilts toward in a crest that peaks just after
+   the tilt and drains as the liquid swings back. A small hump crosses the
+   middle on the way between the walls, and a paler back layer lags the front
+   a little. On a lying bar the surface is the fill's end, which surges out
+   leaning forward and draws back. Every part runs on one duration, so a crest
+   rises exactly while the liquid tilts toward its wall. */
+@keyframes glim-slosh-tilt {
+  from { rotate: 0deg; }
+  25%  { rotate: var(--motion-slosh-tilt); }
+  50%  { rotate: 0deg; }
+  75%  { rotate: calc(var(--motion-slosh-tilt) * -1); }
+  to   { rotate: 0deg; }
+}
+@keyframes glim-slosh-crest-left {
+  from  { scale: 1 0; }
+  12.5% { scale: 1 0; }
+  28%   { scale: 1 var(--motion-slosh-run); }
+  52%   { scale: 1 0; }
+  to    { scale: 1 0; }
+}
+@keyframes glim-slosh-crest-right {
+  from  { scale: 1 0; }
+  62.5% { scale: 1 0; }
+  78%   { scale: 1 var(--motion-slosh-run); }
+  to    { scale: 1 0; }
+}
+@keyframes glim-slosh-hump {
+  from { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+  10%  { translate: -2px 0; scale: 1 0; }
+  40%  { translate: -2px 0; scale: 1 0; }
+  50%  { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+  60%  { translate: 2px 0; scale: 1 0; }
+  90%  { translate: 2px 0; scale: 1 0; }
+  to   { translate: 0 0; scale: 1 var(--motion-slosh-hump); }
+}
+@keyframes glim-slosh-surge {
+  from { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+  25%  { translate: calc((-100% + var(--motion-slosh-surge) * .15) * var(--liquid-dir)) 0; transform: skewX(calc(var(--motion-slosh-lean) * .5 * var(--liquid-dir))); }
+  50%  { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+  75%  { translate: calc((-100% + var(--motion-slosh-surge)) * var(--liquid-dir)) 0; transform: skewX(calc(var(--motion-slosh-lean) * -1 * var(--liquid-dir))); }
+  to   { translate: calc((-100% + var(--motion-slosh-surge) * .4) * var(--liquid-dir)) 0; transform: none; }
+}
+/* A bubble starts at its share of the depth and fades just below the
+   surface. The vessel sets --liquid-depth on its svg, the floor's distance
+   below the surface as a plain number, so bubbles rise at one speed at any
+   level. */
+@keyframes glim-slosh-bubble {
+  from { translate: 0 calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * 1px); opacity: 0; }
+  15%  { opacity: var(--motion-slosh-bubble-opacity); }
+  50%  { translate: var(--bubble-sway, 0px) calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * .5px); }
+  82%  { opacity: var(--motion-slosh-bubble-opacity); }
+  to   { translate: 0 1.8px; opacity: 0; }
+}
+/* A bar's bubbles drift toward its end, one tile per loop. */
+@keyframes glim-slosh-fizz {
+  to { background-position: 40px 0, 40px 0, 40px 0, 26px 0, 26px 0; }
+}
+/* A popping bubble rises like the others and goes on through the surface into
+   the air above it, swells a little and bursts into a thin ring and three
+   droplets in the liquid's colour, which shows on the empty part of the
+   vessel in every theme. Its parts share one duration and delay through
+   --pop-dur and --pop-delay on its group, so they stay in step. */
+@keyframes glim-slosh-pop {
+  from    { translate: 0 calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * 1px); }
+  45%     { translate: var(--bubble-sway, 0px) calc(max(var(--liquid-depth, 10) * var(--bubble-from, 1), 3) * .45px); }
+  72%     { translate: 0 0; }
+  80%     { translate: calc(var(--bubble-sway, 0px) * -.5) calc(var(--motion-slosh-pop-lift) * -.8px); }
+  86%, to { translate: 0 calc(var(--motion-slosh-pop-lift) * -1px); }
+}
+@keyframes glim-slosh-pop-bubble {
+  from    { opacity: 0; scale: 1; }
+  12%     { opacity: var(--motion-slosh-bubble-opacity); }
+  70%     { opacity: var(--motion-slosh-bubble-opacity); scale: 1; }
+  76%     { opacity: 1; scale: 1.1; }
+  86%     { opacity: 1; scale: 1.15; }
+  89%     { opacity: 0; scale: var(--motion-slosh-pop-swell); }
+  to      { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-ring {
+  from, 86% { opacity: 0; scale: 1; }
+  87%       { opacity: .9; scale: 1.3; }
+  93%       { opacity: 0; scale: var(--motion-slosh-pop-ring); }
+  to        { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-drop {
+  from, 86% { opacity: 0; translate: 0 0; }
+  87%       { opacity: 1; }
+  94%       { opacity: 0; translate: calc(var(--drop-x) * var(--motion-slosh-pop-spray)) calc(var(--drop-y) * var(--motion-slosh-pop-spray)); }
+  to        { opacity: 0; translate: 0 0; }
+}
+/* On a bar a popping bubble runs a few pixels past the fill's end and bursts
+   there, inside the track, which clips it on a full bar. */
+@keyframes glim-slosh-pop-bar {
+  from    { translate: 0 0; }
+  82%     { translate: calc((100cqi - 3px) * var(--liquid-dir)) 0; }
+  90%, to { translate: calc((100cqi + var(--motion-slosh-pop-reach)) * var(--liquid-dir)) 0; }
+}
+@keyframes glim-slosh-pop-bar-bubble {
+  from    { opacity: 0; scale: 1; }
+  10%     { opacity: var(--motion-slosh-bubble-opacity); }
+  80%     { opacity: var(--motion-slosh-bubble-opacity); scale: 1; }
+  84%     { opacity: 1; scale: 1.15; }
+  90%     { opacity: 1; scale: 1.2; }
+  93%     { opacity: 0; scale: var(--motion-slosh-pop-swell); }
+  to      { opacity: 0; scale: 1; }
+}
+@keyframes glim-slosh-pop-bar-ring {
+  from, 90% { opacity: 0; scale: 1; }
+  91%       { opacity: .9; scale: 1.3; }
+  97%       { opacity: 0; scale: var(--motion-slosh-pop-ring); }
+  to        { opacity: 0; scale: 1; }
+}
+/* A packet of the transfer flow lands in a vessel from the left. The liquid
+   kicks up that wall, rocks back over the middle and settles in two smaller
+   swings, on top of its slosh. A crest shoots up the left wall and a ripple
+   runs across to the right one, flattening as it goes. */
+@keyframes glim-slosh-splash-tilt {
+  from { rotate: 0deg; }
+  12%  { rotate: var(--motion-slosh-splash-tilt); }
+  34%  { rotate: calc(var(--motion-slosh-splash-tilt) * -.45); }
+  58%  { rotate: calc(var(--motion-slosh-splash-tilt) * .18); }
+  80%  { rotate: calc(var(--motion-slosh-splash-tilt) * -.05); }
+  to   { rotate: 0deg; }
+}
+@keyframes glim-slosh-splash-crest {
+  from    { scale: 1 0; }
+  14%     { scale: 1 var(--motion-slosh-splash-run); }
+  40%, to { scale: 1 0; }
+}
+@keyframes glim-slosh-splash-ripple {
+  from, 8% { translate: 0 0; scale: 1 0; }
+  22%      { translate: 3px 0; scale: 1 var(--motion-slosh-splash-ripple); }
+  70%, to  { translate: 14px 0; scale: 1 0; }
+}
 
 /* A floating window arrives: the scrim fades up and the card rises a little
    and settles. It ends at `transform: none` and never scales, since a
@@ -1123,6 +1535,32 @@ body {
     --motion-control-dur: 150ms;
     /* The sheen that crosses a README button once under the pointer. */
     --motion-button-sheen-dur: 800ms;
+    /* A fill level's slosh: one swing to each wall and back, how far the
+       liquid tilts, how high a crest runs up the wall and the hump rises as
+       multiples of their drawn height, how far a bar's end surges and leans,
+       the time a bubble takes per unit of depth and how strongly it shows,
+       and how far a popping bubble lifts above the surface, swells, rings,
+       sprays its droplets and runs past a bar's end. */
+    --motion-slosh-dur: 3.6s;
+    --motion-slosh-tilt: 5deg;
+    --motion-slosh-run: 3.2;
+    --motion-slosh-hump: .9;
+    --motion-slosh-surge: 5px;
+    --motion-slosh-lean: 12deg;
+    --motion-slosh-bubble-pace: .35s;
+    --motion-slosh-bubble-opacity: .7;
+    --motion-slosh-pop-lift: 3.6;
+    --motion-slosh-pop-swell: 1.5;
+    --motion-slosh-pop-ring: 3.4;
+    --motion-slosh-pop-spray: 1.3;
+    --motion-slosh-pop-reach: 5px;
+    /* A packet landing in a vessel: how long the splash takes to settle, how
+       far it rocks the liquid, and how high its crest and ripple rise as
+       multiples of their drawn height. */
+    --motion-slosh-splash-dur: .9s;
+    --motion-slosh-splash-tilt: 7deg;
+    --motion-slosh-splash-run: 3.4;
+    --motion-slosh-splash-ripple: 1.5;
     --drag-lift-scale: 1.03;
     --drag-settle-dur: 220ms;
   }
@@ -1170,6 +1608,23 @@ body {
     --motion-label-squash: 1;
     --motion-control-dur: 80ms;
     --motion-button-sheen-dur: 1100ms;
+    --motion-slosh-dur: 5s;
+    --motion-slosh-tilt: 3deg;
+    --motion-slosh-run: 2.2;
+    --motion-slosh-hump: .6;
+    --motion-slosh-surge: 3.5px;
+    --motion-slosh-lean: 8deg;
+    --motion-slosh-bubble-pace: .5s;
+    --motion-slosh-bubble-opacity: .55;
+    --motion-slosh-pop-lift: 3;
+    --motion-slosh-pop-swell: 1.4;
+    --motion-slosh-pop-ring: 3;
+    --motion-slosh-pop-spray: 1.1;
+    --motion-slosh-pop-reach: 4px;
+    --motion-slosh-splash-dur: 1.1s;
+    --motion-slosh-splash-tilt: 4deg;
+    --motion-slosh-splash-run: 2.2;
+    --motion-slosh-splash-ripple: 1;
     --drag-lift-scale: 1.015;
     --drag-settle-dur: 130ms;
   }
@@ -1221,6 +1676,24 @@ body {
     /* Every colour, shadow and opacity change lands at once. */
     --motion-control-dur: 0s;
     --motion-button-sheen-dur: 0s;
+    /* Long rather than 0, and stopped by the rule below. */
+    --motion-slosh-dur: 60s;
+    --motion-slosh-tilt: 0deg;
+    --motion-slosh-run: 0;
+    --motion-slosh-hump: 0;
+    --motion-slosh-surge: 0px;
+    --motion-slosh-lean: 0deg;
+    --motion-slosh-bubble-pace: 6s;
+    --motion-slosh-bubble-opacity: 0;
+    --motion-slosh-pop-lift: 0;
+    --motion-slosh-pop-swell: 1;
+    --motion-slosh-pop-ring: 1;
+    --motion-slosh-pop-spray: 0;
+    --motion-slosh-pop-reach: 0px;
+    --motion-slosh-splash-dur: 60s;
+    --motion-slosh-splash-tilt: 0deg;
+    --motion-slosh-splash-run: 0;
+    --motion-slosh-splash-ripple: 0;
     --drag-lift-scale: 1;
     --drag-settle-dur: 0ms;
   }
@@ -1253,7 +1726,135 @@ body {
   .glim-drag-armed > :not(.glim-drag-lift) {
     animation: glim-wiggle var(--motion-wiggle-dur) ease-in-out infinite alternate;
   }
+  .glim-slosh {
+    animation: glim-slosh-tilt var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  /* The same swing a twenty-fifth of a loop later. */
+  .glim-slosh-back {
+    animation: glim-slosh-tilt var(--motion-slosh-dur) ease-in-out calc(var(--motion-slosh-dur) * -.96) infinite;
+  }
+  .glim-slosh-crest-left {
+    animation: glim-slosh-crest-left var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  .glim-slosh-crest-right {
+    animation: glim-slosh-crest-right var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  .glim-slosh-hump {
+    animation: glim-slosh-hump var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  .glim-slosh-edge::after {
+    animation: glim-slosh-surge var(--motion-slosh-dur) ease-in-out infinite;
+  }
+  /* Each bubble starts at its own depth, takes its own time and sways to its
+     own side, so they never rise in a row. A shallow level still gives a
+     bubble long enough to be seen. */
+  .glim-slosh-bubble {
+    animation: glim-slosh-bubble 2s linear infinite;
+  }
+  .glim-slosh-bubble:nth-child(1) {
+    --bubble-from: .95;
+    --bubble-sway: .4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .95 * var(--motion-slosh-bubble-pace)));
+  }
+  .glim-slosh-bubble:nth-child(2) {
+    --bubble-from: .6;
+    --bubble-sway: -.4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .66 * var(--motion-slosh-bubble-pace)));
+    animation-delay: calc(var(--liquid-depth, 10) * .66 * var(--motion-slosh-bubble-pace) * -.25);
+  }
+  .glim-slosh-bubble:nth-child(3) {
+    --bubble-from: .85;
+    --bubble-sway: .4px;
+    animation-duration: max(1.4s, calc(var(--liquid-depth, 10) * .722 * var(--motion-slosh-bubble-pace)));
+    animation-delay: calc(var(--liquid-depth, 10) * .722 * var(--motion-slosh-bubble-pace) * -.6);
+  }
+  .glim-slosh-edge::before {
+    opacity: var(--motion-slosh-bubble-opacity);
+    animation: glim-slosh-fizz calc(var(--motion-slosh-bubble-pace) * 30) linear infinite;
+  }
+  [dir='rtl'] .glim-slosh-edge::before {
+    animation-direction: reverse;
+  }
+  .glim-slosh-pop {
+    animation: glim-slosh-pop var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bubble {
+    animation: glim-slosh-pop-bubble var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-ring {
+    animation: glim-slosh-pop-ring var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-drop {
+    animation: glim-slosh-pop-drop var(--pop-dur, 4s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop:nth-child(1) {
+    --bubble-from: .8;
+    --bubble-sway: -.4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.17 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.17 * var(--motion-slosh-bubble-pace) * -.5);
+  }
+  .glim-slosh-pop:nth-child(2) {
+    --bubble-from: .9;
+    --bubble-sway: .4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.069 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.069 * var(--motion-slosh-bubble-pace) * -.75);
+  }
+  .glim-slosh-pop:nth-child(3) {
+    --bubble-from: .9;
+    --bubble-sway: -.4px;
+    --pop-dur: max(1.8s, calc(var(--liquid-depth, 10) * 1.046 * var(--motion-slosh-bubble-pace)));
+    --pop-delay: calc(var(--liquid-depth, 10) * 1.046 * var(--motion-slosh-bubble-pace) * -.15);
+  }
+  .glim-slosh-pop-bar {
+    animation: glim-slosh-pop-bar var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar::before {
+    animation: glim-slosh-pop-bar-bubble var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar::after {
+    animation: glim-slosh-pop-bar-ring var(--pop-dur, 6s) linear var(--pop-delay, 0s) infinite;
+  }
+  .glim-slosh-pop-bar:nth-child(1) {
+    --pop-dur: calc(var(--motion-slosh-bubble-pace) * 12.6);
+    --pop-delay: calc(var(--motion-slosh-bubble-pace) * -1.26);
+  }
+  .glim-slosh-pop-bar:nth-child(2) {
+    --pop-dur: calc(var(--motion-slosh-bubble-pace) * 16.1);
+    --pop-delay: calc(var(--motion-slosh-bubble-pace) * -9.66);
+  }
+  /* The transfer flow sets glim-slosh-splash on a vessel's svg as a packet
+     lands in it, and sets it afresh for the next one. */
+  .glim-slosh-splash .glim-slosh-splash-tilt {
+    animation: glim-slosh-splash-tilt var(--motion-slosh-splash-dur) ease-in-out;
+  }
+  .glim-slosh-splash .glim-slosh-splash-crest {
+    animation: glim-slosh-splash-crest var(--motion-slosh-splash-dur) ease-out;
+  }
+  .glim-slosh-splash .glim-slosh-splash-ripple {
+    animation: glim-slosh-splash-ripple var(--motion-slosh-splash-dur) ease-out;
+  }
 
+  /* A level at "off" holds its surface still, as under reduced motion, where
+     the rules above are never read. */
+  :root[data-motion="off"] .glim-slosh,
+  :root[data-motion="off"] .glim-slosh-back,
+  :root[data-motion="off"] .glim-slosh-crest,
+  :root[data-motion="off"] .glim-slosh-hump,
+  :root[data-motion="off"] .glim-slosh-bubble,
+  :root[data-motion="off"] .glim-slosh-edge::before,
+  :root[data-motion="off"] .glim-slosh-edge::after,
+  :root[data-motion="off"] .glim-slosh-pop,
+  :root[data-motion="off"] .glim-slosh-pop-bubble,
+  :root[data-motion="off"] .glim-slosh-pop-ring,
+  :root[data-motion="off"] .glim-slosh-pop-drop,
+  :root[data-motion="off"] .glim-slosh-pop-bar,
+  :root[data-motion="off"] .glim-slosh-pop-bar::before,
+  :root[data-motion="off"] .glim-slosh-pop-bar::after,
+  :root[data-motion="off"] .glim-slosh-splash-tilt,
+  :root[data-motion="off"] .glim-slosh-splash-crest,
+  :root[data-motion="off"] .glim-slosh-splash-ripple {
+    animation: none;
+  }
   /* The pulse at "off": a static dot, as under reduced motion. */
   :root[data-motion="off"] .glim-live {
     animation: none;
@@ -1416,6 +2017,22 @@ body {
       glim-fade-in var(--motion-content-dur) ease-out both;
   }
 
+  /* The overview's ring. Its segments draw in one after another when the page
+     opens, a kind that takes a turn for the worse pulses once, and the arc of
+     a running queue follows its figure. At "off" the durations are 0, so the
+     ring stands as it is. The second class outweighs the app's one transition
+     set, which would otherwise replace the arc's. */
+  .kl-ring-seg {
+    animation: kl-ring-draw var(--motion-check-dur) ease-out backwards;
+    animation-delay: calc(var(--seg-i, 0) * var(--motion-stagger-step) * 4);
+  }
+  .kl-ring-seg.kl-ring-worse {
+    animation: kl-ring-pulse var(--motion-confirm-dur) ease-in-out;
+  }
+  .kl-ring .kl-ring-progress {
+    transition: stroke-dashoffset var(--motion-content-dur) linear;
+  }
+
   /* The progress bar's front edge breathes on glim-pulse while bytes are
      moving. .kl-bar-edge is the mark; .kl-bar-edge-live is the caller saying
      the download is moving, so finished and paused rows stay still and only the
@@ -1429,7 +2046,7 @@ body {
     opacity: 1;
   }
 
-  /* Easter egg: with the speed limit at exactly 1337 KiB/s, the speed curve's
+  /* Easter egg: with the speed limit at exactly 1337 kB/s, the speed curve's
      line breathes on the storm level's pulse. It leaves data-motion alone, and
      the "off" and reduced-motion rules still stop .kl-curve-line by name. */
   .kl-storm-curve {
@@ -1523,6 +2140,23 @@ body {
      not livelier. */
   --motion-control-dur: 150ms;
   --motion-button-sheen-dur: 550ms;
+  --motion-slosh-dur: 2.6s;
+  --motion-slosh-tilt: 7.5deg;
+  --motion-slosh-run: 4.5;
+  --motion-slosh-hump: 1.3;
+  --motion-slosh-surge: 7px;
+  --motion-slosh-lean: 18deg;
+  --motion-slosh-bubble-pace: .25s;
+  --motion-slosh-bubble-opacity: .85;
+  --motion-slosh-pop-lift: 4.4;
+  --motion-slosh-pop-swell: 1.6;
+  --motion-slosh-pop-ring: 3.8;
+  --motion-slosh-pop-spray: 1.5;
+  --motion-slosh-pop-reach: 7px;
+  --motion-slosh-splash-dur: .75s;
+  --motion-slosh-splash-tilt: 10deg;
+  --motion-slosh-splash-run: 4.8;
+  --motion-slosh-splash-ripple: 2;
   --drag-lift-scale: 1.06;
   --drag-settle-dur: 400ms;
 }
@@ -1661,7 +2295,7 @@ body {
   background-color: var(--carbon-surface2);
   color: var(--carbon-text);
   font-family: ui-monospace, "Cascadia Code", Menlo, Consolas, monospace;
-  font-size: var(--text-caption);
+  font-size: var(--text-meta);
   letter-spacing: 0.02em;
   text-transform: uppercase;
 }
@@ -1692,17 +2326,61 @@ body {
   :root { --glim-scrim-blur: 0px; }
 }
 
+/* In a narrow window a dialog is a sheet standing on the bottom edge
+   (GlimStone, "Narrow windows"): as wide as the window, with its button row
+   in reach of the thumb however long the content, so only the part between
+   the title and the buttons scrolls. The card itself must not scroll, or it
+   would cut the title badge standing over its top edge. .glim-sheet marks the
+   windows that take this form, which the command palette at the top of the
+   window does not. The width is lib/phoneLayout.ts's. */
+.glim-modal-body {
+  display: contents;
+}
+@media (max-width: 767.98px) {
+  .glim-sheet {
+    place-items: end stretch;
+    padding: 0;
+  }
+  .glim-sheet > .glim-modal-card {
+    max-width: none;
+    max-height: calc(100dvh - 3rem);
+    padding-bottom: calc(1.25rem + env(safe-area-inset-bottom));
+    border-end-start-radius: 0;
+    border-end-end-radius: 0;
+  }
+  .glim-modal-body {
+    display: flex;
+    flex-direction: column;
+    gap: 1.25rem;
+    min-height: 0;
+    /* The inset keeps focus rings clear of the scroll edge. */
+    margin: -0.25rem;
+    padding: 0.25rem;
+    overflow-y: auto;
+  }
+  /* A picker's search spans the sheet under its title, since beside the
+     title badge it would leave room for a few letters. */
+  .glim-modal-card :has(> .glim-picker-search) {
+    flex-wrap: wrap;
+  }
+  .glim-picker-search {
+    flex-basis: 100%;
+  }
+}
+
 /* The single-colour marks at rest. A published brand colour fails on one of
    the two grounds, so the marks take the theme-adjusted tokens above, and the
    house mark, on the button that reaches this app's authors, follows the
-   accent. Each sits on the mark's box, where a lit tile's ink overrides it. */
+   accent and, under rainbow, its position. Each sits on the mark's box, where a lit tile's ink overrides it. */
 .glim-android-mark { color: var(--brand-android); }
 .glim-docker-mark { color: var(--brand-docker); }
 .glim-windows-mark { color: var(--brand-windows); }
 .glim-paypal-mark { color: var(--brand-paypal); }
 .glim-bitcoin-mark { color: var(--brand-bitcoin); }
 .glim-github-mark { color: var(--brand-github); }
-.glim-house-mark { color: var(--accent-ink); }
+.glim-house-mark { color: var(--accent-glyph); }
+/* The manual's book, in the yellow of the README's docs button. */
+.glim-docs-mark { color: var(--brand-docs); }
 
 /* A tile carrying a brand mark (GlimStone's "Brand tiles"): the README buttons
    and the coin tiles. Under the pointer it fills with the brand's own colour
@@ -1733,6 +2411,14 @@ body {
 /* A mark whose layers do not survive one ink brings the brand's own
    single-colour version for the hover. */
 .glim-mark-hover { display: none; }
+/* The house marks open: the envelope and the manual's book show their open
+   drawing on the focus as well, and under a finger, where nothing hovers. */
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
+@media (hover: none) {
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-rest { display: none; }
+  .glim-brand-tile:active :is(.glim-house-mark, .glim-docs-mark) .glim-mark-hover { display: block; }
+}
 
 /* The brands' tile colours: the true colour and the ink that holds on it,
    white wherever white reaches 2:1 and near-black below that. The coins carry
@@ -1742,6 +2428,8 @@ body {
 .glim-tile-linux   { --tile: #fcc624; --tile-ink: #161616; } /* 11.4:1 */
 .glim-tile-android { --tile: #32de84; --tile-ink: #161616; } /* 10.3:1 */
 .glim-tile-play    { --tile: #01875f; --tile-ink: #ffffff; } /* 4.5:1 */
+/* F-Droid's blue from the README's button. */
+.glim-tile-fdroid  { --tile: #1976d2; --tile-ink: #ffffff; } /* 4.6:1 */
 .glim-tile-docker  { --tile: #1d63ed; --tile-ink: #ffffff; } /* 5.2:1 */
 .glim-tile-unraid  { --tile: #f15a2c; --tile-ink: #ffffff; } /* 3.4:1 */
 .glim-tile-zip     { --tile: #4d5562; --tile-ink: #ffffff; } /* 7.5:1 */
@@ -1752,6 +2440,8 @@ body {
 .glim-tile-coffee  { --tile: #ffdd00; --tile-ink: #0d0c22; }
 /* The button that reaches this app's authors follows the colour engine. */
 .glim-tile-house   { --tile: var(--accent); --tile-ink: var(--accent-contrast); }
+/* The README's docs button, the coffee button's yellow. 13.4:1. */
+.glim-tile-docs    { --tile: #ffdd00; --tile-ink: #161616; }
 /* The logo's gold, for the bookmarklet that carries it. 10.1:1. */
 .kl-tile-knightloader { --tile: #e6bc59; --tile-ink: #161616; }
 /* ParleyPort's logo shares the gold. 10.1:1. */
@@ -1822,11 +2512,12 @@ body {
 }
 
 /* The height is the README's mark, and the box is wider than tall, so a wide
-   mark such as Unraid's or Docker's is not shrunk to a sliver. */
+   mark such as Unraid's or Docker's is not shrunk to a sliver. The start is
+   where the README's own buttons put their mark, 68.5 of 841.9 units. */
 .glim-readme-btn-mark {
   position: absolute;
   top: 50%;
-  inset-inline-start: 1.5rem;
+  inset-inline-start: 0.875rem;
   width: 2rem;
   height: 1.5625rem;
   translate: 0 -50%;
@@ -1865,7 +2556,7 @@ body {
 .glim-readme-btn-text {
   position: absolute;
   inset-block: 0;
-  inset-inline: 3.9375rem 0.625rem;
+  inset-inline: 3.3125rem 0.625rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -1903,11 +2594,11 @@ body {
 
 /* Half the second line's height down, so the name alone sits in the middle. */
 .glim-readme-btn-name:not(:only-child) {
-  translate: 0 0.4375rem;
+  translate: 0 calc(var(--text-meta) * 1.15 / 2);
 }
 
 .glim-readme-btn-sub {
-  font-size: var(--text-dense);
+  font-size: var(--text-meta);
   opacity: 0;
   translate: 0 0.25rem;
 }
@@ -1946,6 +2637,61 @@ body {
     opacity: 0.9;
     translate: 0 0;
   }
+}
+
+/* A picker of brands (components/BrandPicker.tsx): the same button as a tile
+   that fills its cell of the grid, so the logos stand in columns, three across
+   a picker window and two on a phone. A brand's name that is too long for its
+   tile is cut rather than shrunk. A brand too numerous for a class of its own
+   hands its colour pair down from its list item as --provider-tile and
+   --provider-ink. */
+.glim-provider-pick {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
+  gap: 0.8125rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+@media (max-width: 47.99rem) {
+  .glim-provider-pick {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.5rem;
+  }
+}
+.glim-provider-pick .glim-readme-btn-unit {
+  display: flex;
+  --tile: var(--provider-tile, var(--accent));
+  --tile-ink: var(--provider-ink, var(--accent-contrast));
+}
+.glim-provider-pick .glim-readme-btn {
+  flex: 1;
+  width: auto;
+}
+.glim-provider-pick :is(.glim-readme-btn-name, .glim-readme-btn-sub) {
+  text-overflow: ellipsis;
+}
+
+/* A picker of kinds (KindPicker): the brand tile a size up, with a corner of
+   a card rather than a pill, since a tile this tall reads as a card. The
+   kinds stand one below the other, so they read top to bottom in the order
+   of the cards they add to. */
+.glim-kind-pick {
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+.glim-kind-pick .glim-readme-btn-unit {
+  border-radius: var(--radius-card);
+}
+.glim-kind-pick .glim-readme-btn {
+  height: 4.5rem;
+}
+.glim-kind-pick .glim-readme-btn-mark {
+  width: 1.75rem;
+  height: 1.75rem;
+}
+.glim-kind-pick .glim-readme-btn-text {
+  gap: 0.25rem;
 }
 
 .glim-readme-btn-hint {
@@ -1992,10 +2738,11 @@ body {
   }
 }
 
-/* The About card's give buttons stand a blank line of the card's text apart
-   from the sentences above and below them (GlimStone's "The About card"). */
+/* The About card's give buttons stand a blank line of the card's text below
+   the sentence above them (GlimStone's "The Info tile and the About card").
+   They end the card, and space after the last row reads as a missing row. */
 .glim-about-give {
-  margin-block: calc(var(--text-body) * 1.5);
+  margin-block-start: calc(var(--text-body) * 1.5);
 }
 
 /* Easter egg: draw and strike. Holding the sidebar wordmark draws the blade up
@@ -2151,6 +2898,16 @@ body {
   to   { transform: none; }
 }
 
+/* A ring segment growing from its start to the length its attribute gives. */
+@keyframes kl-ring-draw {
+  from { stroke-dasharray: 0 var(--ring-round); }
+}
+
+/* A ring segment swelling once. */
+@keyframes kl-ring-pulse {
+  50% { stroke-width: 11; opacity: .55; }
+}
+
 /* The doze: two blinks, the second slower, then a settle. It ends dimmed and
    slightly shorter rather than closed, since a flattened mark looks missing. */
 @keyframes kl-doze {
@@ -2213,6 +2970,132 @@ body {
   .kl-bar-edge {
     display: none;
   }
+}
+
+/* A fill level that sloshes. In a vessel (pictures/Vessel.tsx) the liquid
+   tilts about the middle, 17 units in. The crests, the hump and a splash's
+   ripple rest at zero height and the bubbles and pops hidden, so a still
+   frame shows a flat surface. */
+.glim-slosh,
+.glim-slosh-back,
+.glim-slosh-splash-tilt {
+  transform-origin: 17px 0;
+}
+.glim-slosh-crest,
+.glim-slosh-hump,
+.glim-slosh-splash-crest,
+.glim-slosh-splash-ripple {
+  scale: 1 0;
+}
+.glim-slosh-bubble,
+.glim-slosh-pop-bubble,
+.glim-slosh-pop-ring,
+.glim-slosh-pop-drop {
+  opacity: 0;
+}
+.glim-slosh-pop-bubble,
+.glim-slosh-pop-ring,
+.glim-slosh-pop-drop {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+/* Where the three droplets of a pop fly, before the spray dial scales it. */
+.glim-slosh-pop-drop:nth-child(3) {
+  --drop-x: -1.6px;
+  --drop-y: -1.4px;
+}
+.glim-slosh-pop-drop:nth-child(4) {
+  --drop-x: 1.7px;
+  --drop-y: -1.1px;
+}
+.glim-slosh-pop-drop:nth-child(5) {
+  --drop-x: .3px;
+  --drop-y: -2px;
+}
+
+/* On a bar (ProgressBar's `level`, the shell's volume meter) the surface is
+   the fill's end: a rounded strip in the fill's colour waits under the end and
+   surges out, and the bubbles are white dots on two strips of tiles that fade
+   before the end. --liquid-dir turns both round under a right-to-left script.
+   The fill is a size container so a popping bubble's 100cqi measures it, and
+   the track rounds and clips whatever passes the end.
+
+   White rather than a token for the reason the transfer edge above is. */
+.glim-slosh-edge {
+  --liquid-dir: 1;
+  position: relative;
+  container-type: inline-size;
+}
+[dir='rtl'] .glim-slosh-edge {
+  --liquid-dir: -1;
+}
+.glim-slosh-edge::after {
+  content: '';
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: 100%;
+  width: calc(var(--motion-slosh-surge, 0px) + 2px);
+  border-radius: 0 999px 999px 0;
+  background-color: inherit;
+  translate: calc(-100% * var(--liquid-dir)) 0;
+  pointer-events: none;
+}
+[dir='rtl'] .glim-slosh-edge::after {
+  border-radius: 999px 0 0 999px;
+}
+.glim-slosh-edge::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-image:
+    radial-gradient(circle 1.1px at 6px 30%, #fff 55%, transparent),
+    radial-gradient(circle .9px at 19px 70%, #fff 55%, transparent),
+    radial-gradient(circle 1.3px at 31px 45%, #fff 55%, transparent),
+    radial-gradient(circle .8px at 9px 55%, #fff 55%, transparent),
+    radial-gradient(circle 1px at 20px 25%, #fff 55%, transparent);
+  background-size: 40px 100%, 40px 100%, 40px 100%, 26px 100%, 26px 100%;
+  background-repeat: repeat-x;
+  mask: linear-gradient(to left, transparent, #000 10px);
+  opacity: 0;
+  pointer-events: none;
+}
+[dir='rtl'] .glim-slosh-edge::before {
+  mask: linear-gradient(to right, transparent, #000 10px);
+}
+/* A popping bubble on a bar. The span has no size of its own and only lends
+   the fill's colour to the bubble's rim and the ring. */
+.glim-slosh-pop-bar {
+  position: absolute;
+  top: 50%;
+  inset-inline-start: 0;
+  width: 0;
+  height: 0;
+  background-color: inherit;
+  pointer-events: none;
+}
+.glim-slosh-pop-bar::before,
+.glim-slosh-pop-bar::after {
+  content: '';
+  position: absolute;
+  left: -1.5px;
+  top: -1.5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background-color: inherit;
+  opacity: 0;
+}
+.glim-slosh-pop-bar::before {
+  background-image: radial-gradient(circle closest-side, #fff 60%, transparent 68%);
+}
+.glim-slosh-pop-bar::after {
+  mask: radial-gradient(circle closest-side, transparent 58%, #000 64% 86%, transparent 94%);
+}
+.glim-slosh-pop-bar:nth-child(1) {
+  top: 35%;
+}
+.glim-slosh-pop-bar:nth-child(2) {
+  top: 65%;
 }
 
 /* An archive being unpacked draws its bar in the row's own colour, striped.

@@ -52,15 +52,16 @@ jobs:
               - '.github/workflows/desktop.yml'
               - '.github/workflows/release.yml'
               - '.github/workflows/ci.yml'
-            # The build bakes app.json's version into web/dist, and
-            # check-version-sources.mjs reads the manifest, release.yml and the
-            # extension's version route.
+            # The build bakes app.json's version and that version's release
+            # notes into web/dist, and check-version-sources.mjs reads the
+            # manifest, release.yml and the extension's version route.
             # check-module-lines.mjs reads the module codes from the two
             # routes files, check-one-name.mjs the app's English and German,
             # and lib/taskError.test.ts the failure codes.
             web:
               - 'web/**'
               - 'mobile/app.json'
+              - '.github/release-notes/**'
               - 'mobile/src/i18n/en.ts'
               - 'mobile/src/i18n/de.ts'
               - 'extension/src/manifest.json'
@@ -120,7 +121,6 @@ jobs:
               - '.github/workflows/release.yml'
               - '.github/workflows/desktop.yml'
               - 'web/src/lib/locales/**'
-              - 'web/src/pages/settings/Help.tsx'
               - '.github/workflows/ci.yml'
             # Either side can break the queue-reach check: every Go file, and
             # every web file that decides whether a queue verb is reachable.
@@ -246,6 +246,9 @@ jobs:
 
       - name: Settings search index
         run: node check-settings-search.mjs
+
+      - name: A settings dropdown or field stands beside its name
+        run: node check-setting-rows.mjs
 
       - name: Ranking and folding
         run: node check-rank.mjs
@@ -565,6 +568,12 @@ jobs:
 
       - name: Background watch
         run: node check-watch.mjs
+
+      - name: Speed graph
+        run: node check-speed-graph.mjs
+
+      - name: Language button
+        run: node check-language-button.mjs
 
   # Compiles and tests the desktop module on every relevant push, since
   # desktop.yml only runs for releases. Packaging stays in desktop.yml. gtk3 is

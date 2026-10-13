@@ -3,9 +3,11 @@ package local
 import (
 	"fmt"
 	"os"
+	"slices"
 	"sync"
 
 	"github.com/junkerderprovinz/knightloader/internal/collide"
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/nntp"
 	"github.com/junkerderprovinz/knightloader/internal/nzb"
@@ -23,12 +25,15 @@ type download struct {
 	mu    sync.Mutex
 	m     *segMap
 	bytes int64
+	// asking holds the articles a connection is fetching, and gone those no
+	// server had in this run.
+	asking, gone map[int]bool
 }
 
 // openDownload opens the part file and its map. A map without its part file
 // is stale and starts over.
 func openDownload(part string, file nzb.File) (*download, error) {
-	d := &download{file: file, part: part, mapPath: part + mapSuffix}
+	d := &download{file: file, part: part, mapPath: part + mapSuffix, asking: map[int]bool{}, gone: map[int]bool{}}
 	if _, err := os.Stat(part); err == nil {
 		d.m = loadSegMap(d.mapPath, len(file.Segments))
 	} else {
@@ -84,6 +89,45 @@ func (d *download) pending() []int {
 	return out
 }
 
+// ask notes that a connection has started or stopped fetching article i.
+func (d *download) ask(i int, on bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	if on {
+		d.asking[i] = true
+	} else {
+		delete(d.asking, i)
+	}
+}
+
+func (d *download) noteGone(i int) {
+	d.mu.Lock()
+	d.gone[i] = true
+	d.mu.Unlock()
+}
+
+// pieces is the file article by article: written, on no server, or still to
+// come, with a head on each one being fetched.
+func (d *download) pieces() core.PieceMap {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	pm := core.PieceMap{Unit: core.UnitArticles, Total: int64(len(d.m.done))}
+	pm.Runs = core.PieceRuns(len(d.m.done), func(i int) core.PieceState {
+		switch {
+		case d.m.done[i]:
+			return core.PieceDone
+		case d.gone[i]:
+			return core.PieceLost
+		}
+		return core.PieceMissing
+	})
+	for i := range d.asking {
+		pm.Heads = append(pm.Heads, int64(i))
+	}
+	slices.Sort(pm.Heads)
+	return pm
+}
+
 // write puts article i at its offset. An article whose range does not fit the
 // file its header names is treated as damaged, and so is one naming a file
 // far larger than the .nzb lists, since that size becomes the part file's.
@@ -114,6 +158,7 @@ func (d *download) write(i int, p yenc.Part) error {
 	}
 	d.mu.Lock()
 	d.m.done[i] = true
+	delete(d.asking, i)
 	d.m.total = max(d.m.total, p.Total)
 	d.bytes += int64(len(p.Data))
 	d.mu.Unlock()

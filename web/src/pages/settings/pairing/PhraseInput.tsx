@@ -6,7 +6,7 @@
 import { useState, type ReactNode } from 'react';
 import { Button, InfoBubble, TextArea } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
-import { IconClipboard, IconLink } from '../../../lib/icons';
+import { IconLink, IconPaste } from '../../../lib/icons';
 import { PHRASE_WORDS, checkPhrase } from '../../../lib/phraseWords';
 import { WordSlots } from './WordSlots';
 
@@ -116,7 +116,7 @@ export function usePhraseEntry({ id, label, tip, bare = false, disabled = false,
     </Button>
   );
   const pasteButton = (
-    <Button kind="secondary" icon={<IconClipboard />} onClick={() => void pasteClipboard()} disabled={disabled || busy}>
+    <Button kind="secondary" icon={<IconPaste />} onClick={() => void pasteClipboard()} disabled={disabled || busy}>
       {t('pairing.paste')}
     </Button>
   );

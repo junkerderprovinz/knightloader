@@ -7,11 +7,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { en } from '../../lib/locales/en';
-import { IconClose, IconSearch } from '../../lib/icons';
+import { isEditableTarget } from '../../lib/intake';
 import { fold, scoreFolded, scoreProse } from '../../lib/rank';
 import { useToast } from '../../lib/toast';
 import { useUIState } from '../../lib/uistate';
-import { InfoBubble, useTooltip } from '../../components/ui';
+import { SearchBox } from '../../components/SearchBox';
 // A safe import cycle: orderPages is a hoisted function declaration called
 // only at render time, and a second copy would drift.
 import { orderPages } from '../Settings';
@@ -165,10 +165,6 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
-  // Passed as disabled while the clear button is absent, so the bubble closes
-  // when the button leaves: an unmounted trigger fires no mouseleave.
-  const clearTip = useTooltip<HTMLButtonElement>(t('settings.search.clear'), !query);
-  const { role: _tipRole, tabIndex: _tipTabIndex, ...clearTipProps } = clearTip.triggerProps;
 
   // Pinned while in use (open, text in the box, or focus inside), so a single
   // wheel tick cannot take it away from somebody typing.
@@ -263,6 +259,20 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     return () => cancelAnimationFrame(raf);
   }, [focusAskedAt, show]);
 
+  // `/` summons the bar from anywhere on a settings page, for somebody who
+  // knows it is there. Not while a text box has the key, and not under a window.
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key !== '/' || e.ctrlKey || e.metaKey || e.altKey || e.isComposing) return;
+      if (isEditableTarget(e.target) || document.querySelector('[aria-modal="true"]')) return;
+      e.preventDefault();
+      show();
+      requestAnimationFrame(() => inputRef.current?.focus());
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [show]);
+
   // The other half of the jump, keyed on the nonce so asking twice looks twice.
   const jump = usePendingJump();
   const jumpNonce = jump?.nonce ?? 0;
@@ -351,56 +361,30 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
     // PageHeader, where it would push the rail down.
     <div
       ref={barRef}
+      data-new="settings-search"
       onBlur={(e) => {
         // Closes only when focus leaves both the box and its list.
         if (!e.currentTarget.contains(e.relatedTarget as Node | null)) setOpen(false);
       }}
     >
-      <div
-        className="flex h-[var(--btn-h)] items-center gap-1 rounded-[var(--radius-control)] bg-carbon-surface2 pe-1 ps-2.5
-          transition-shadow has-[input:focus]:shadow-[0_0_0_2px_var(--focus-ring)]"
-      >
-        <IconSearch className="shrink-0 text-carbon-textMuted" width={15} height={15} />
-        <input
-          ref={inputRef}
-          type="search"
-          value={query}
-          role="combobox"
-          aria-expanded={showList}
-          aria-controls={listId}
-          aria-activedescendant={showList ? activeId : undefined}
-          aria-autocomplete="list"
-          placeholder={t('settings.search.placeholder')}
-          aria-label={t('settings.search.placeholder')}
-          onChange={(e) => {
-            setQuery(e.target.value);
-            setOpen(true);
-            setActive(0);
-          }}
-          onFocus={() => setOpen(true)}
-          onKeyDown={onKeyDown}
-          className="glim-focus-drawn h-full min-w-0 flex-1 bg-transparent text-sm text-carbon-text
-            placeholder:text-carbon-textMuted outline-none [&::-webkit-search-cancel-button]:hidden"
-        />
-        {query && (
-          <button
-            type="button"
-            aria-label={t('settings.search.clear')}
-            {...clearTipProps}
-            onClick={() => {
-              setQuery('');
-              setOpen(false);
-              inputRef.current?.focus();
-            }}
-            className="grid h-6 w-6 shrink-0 place-items-center rounded-[var(--radius-pill)]
-              text-carbon-textMuted transition-colors hover:bg-carbon-surface3 hover:text-carbon-text"
-          >
-            <IconClose width={13} height={13} />
-          </button>
-        )}
-        {clearTip.node}
-        <InfoBubble tip={t('settings.search.hint')} className="me-1" />
-      </div>
+      <SearchBox
+        inputRef={inputRef}
+        value={query}
+        onChange={(next) => {
+          setQuery(next);
+          setOpen(next !== '');
+          setActive(0);
+        }}
+        label={t('settings.search.placeholder')}
+        hint={t('settings.search.hint')}
+        role="combobox"
+        aria-expanded={showList}
+        aria-controls={listId}
+        aria-activedescendant={showList ? activeId : undefined}
+        aria-autocomplete="list"
+        onFocus={() => setOpen(true)}
+        onKeyDown={onKeyDown}
+      />
 
       {/* A child of the bar rather than a portal, so it moves with it. */}
       {showList && (
@@ -449,7 +433,7 @@ export function SettingsSearch({ pages }: { pages: FeaturePage[] }) {
                       <span className="w-full truncate">{item.name}</span>
                       {/* The card and the prose marker as two spans, with no
                           separator glyph to translate or mirror. */}
-                      <span className="flex w-full min-w-0 gap-2 text-[11px] text-carbon-textMuted">
+                      <span className="flex w-full min-w-0 gap-2 text-meta text-carbon-textMuted">
                         {item.tier === 'page' ? (
                           <span className="truncate">{t('settings.search.section')}</span>
                         ) : (

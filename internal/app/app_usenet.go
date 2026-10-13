@@ -71,7 +71,6 @@ func (a *App) usenetStateFor() *usenetState {
 			Done:     a.usenetDone,
 			Failed:   a.usenetJobFailed,
 			Pending:  func(n int) { a.setActivityGauge(ActivityUsenet, n) },
-			Taken:    a.claimUsenetJob,
 		})
 		st.files = usenet.NewFiles(engineHandoff{a.Engine, a}, st.jobs.Service, a.onUpdate)
 		st.own = local.NewService(filepath.Join(a.DataDir, "usenet", "own"))

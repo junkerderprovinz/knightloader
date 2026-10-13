@@ -208,6 +208,9 @@ export interface Task {
   ratio?: number;
   /** Bytes sent to the swarm. */
   uploaded?: number;
+  /** Bytes a second sent to the swarm now. It counts only while the torrent
+   *  downloads or seeds; see uploadOf in lib/speedHistory.ts. */
+  uploadSpeed?: number;
   /** A finished torrent still uploading. A flag beside status 'done' rather
    *  than a status, so the existing status mappings stay exhaustive. */
   seeding?: boolean;
@@ -270,6 +273,35 @@ export async function selectTorrentFiles(id: string, paths: string[], base = '/a
   return (
     (await json<TorrentFileView[] | null>(await post(`${base}/tasks/${id}/torrent-files`, { selectedPaths: paths }))) ?? []
   );
+}
+
+/** core.PieceRun: `len` units in a row that share a state. 'lost' is an
+ *  article no server has, or a block the par2 check found bad. */
+export interface PieceRun {
+  state: 'missing' | 'done' | 'lost' | (string & {});
+  len: number;
+}
+
+/**
+ * core.PieceMap: which parts of one file are here, counted in bytes for an
+ * HTTP download, in articles for a file from the own Usenet servers and in
+ * par2 blocks for a file its check found damaged. The runs cover `total` in
+ * file order, and each head is the unit an open connection is writing at.
+ */
+export interface PieceMap {
+  unit: 'bytes' | 'articles' | 'blocks' | (string & {});
+  total: number;
+  runs: PieceRun[];
+  heads?: number[];
+}
+
+/**
+ * fetchPieces asks which parts of a task's file are here. Null where nothing
+ * can say: a torrent, a task that is not being fetched, and the first moment
+ * after an HTTP download is asked about.
+ */
+export async function fetchPieces(id: string, base = '/api'): Promise<PieceMap | null> {
+  return json<PieceMap | null>(await fetch(`${base}/tasks/${id}/pieces`));
 }
 
 /** One RSS or Atom subscription, mirroring feed.Subscription. */
@@ -488,7 +520,7 @@ export interface Settings {
 
   /**
    * Bytes kept free beyond what a download still has to fetch. Defaults to
-   * 0.5 GiB; 0 is off. The server clamps rather than refuses.
+   * 0.5 GB; 0 is off. The server clamps rather than refuses.
    */
   diskReserve: number;
   /** Free bytes under which no new download starts. 0 is off. Raised to
@@ -614,6 +646,9 @@ export interface Settings {
   rainbowRotate: boolean;
   rainbowSeed: number;
   rainbowPalette: string[] | null;
+  /** The speed graphs' two lines as #rrggbb, empty for the defaults (lib/speedLines.ts). */
+  downloadLine: string;
+  seedingLine: string;
 
   /** Hides the sidebar's "Konten" entry; the settings tab still reaches the page. */
   hideAccountsFromSidebar: boolean;
@@ -714,10 +749,6 @@ export interface Account {
   /** RFC3339; empty until the health refresher has fetched it. */
   expiry?: string;
   trafficLeft?: string;
-  /** Whether the service can list the account's downloads for the import. */
-  canImport: boolean;
-  /** Whether what the user adds on the service's website is imported. */
-  import: boolean;
 }
 
 /** One account's traffic allowance, mirroring app.TrafficState. */
@@ -781,6 +812,8 @@ export interface QueueState {
    *  window or quiet mode applied but not the volume cap. A peer on an older
    *  build leaves it out. */
   limit?: number;
+  /** The torrents' upload cap in bytes/s, 0 for none; an older build leaves it out. */
+  uploadLimit?: number;
 }
 
 export interface AuthState {
@@ -831,8 +864,8 @@ export interface Instance {
   /** Where a group member's web interface is, as it told the group: its
    *  first known domain, else its address on its network. */
   address?: string;
-  /** What a group member announced itself as, "container" or "desktop";
-   *  absent for a stored peer. */
+  /** What a group member announced itself as, "container", "server" or
+   *  "desktop"; absent for a stored peer. */
   deployment?: string;
 }
 
@@ -1174,6 +1207,24 @@ export async function taskFileHead(id: string, base = '/api'): Promise<TaskFileH
  */
 export const hosterIconURL = (host: string, base = '/api'): string =>
   withBase(`${base}/hosters/icon?host=${encodeURIComponent(host)}`);
+
+/** hosterIconsURL asks for the site icons of several hosts in one request. */
+export const hosterIconsURL = (hosts: string[], base = '/api'): string =>
+  withBase(`${base}/hosters/icons?${hosts.map((h) => `host=${encodeURIComponent(h)}`).join('&')}`);
+
+/**
+ * HosterIconBatch is what /hosters/icons answers. Every host asked for is in
+ * one part: an icon as a data: URL, one too large to come inline, one without
+ * an icon, or one still being fetched, to be asked for again after
+ * retryAfter seconds.
+ */
+export interface HosterIconBatch {
+  icons: Record<string, string>;
+  large: string[];
+  none: string[];
+  pending: string[];
+  retryAfter: number;
+}
 
 export async function addLinks(links: string, pkg: string, base = '/api'): Promise<Task[]> {
   const r = await fetch(`${base}/links`, {
@@ -1625,6 +1676,8 @@ export interface HealthSubsystem {
   detail?: string;
   /** The id of a remedy sentence (health.remedy.<id>). */
   remedy?: string;
+  /** The log source with this part's lines, on a degraded or failed part that writes to the log. */
+  log?: string;
   /** When this row last changed state, RFC3339. Absent until a state has been
    *  seen twice, since the first reading cannot know when it started. */
   since?: string;
@@ -1991,12 +2044,6 @@ export async function setAccountEnabled(service: string, account: string, enable
   await ok(await post('/api/accounts/enabled', { service, account, enabled }));
 }
 
-// setAccountImport switches whether what the user adds on the account's own
-// website is picked up.
-export async function setAccountImport(service: string, account: string, on: boolean): Promise<void> {
-  await ok(await post('/api/accounts/import', { service, account, import: on }));
-}
-
 // testAccount re-checks a stored account, the per-row "Refresh".
 export async function testAccount(service: string, account: string): Promise<Account> {
   return json<Account>(await post('/api/accounts/test', { service, account }));
@@ -2221,6 +2268,8 @@ export interface YtdlpEmbed {
   splitChapters: boolean;
   /** Not a yt-dlp flag: KnightLoader writes the NFO itself. */
   nfo: boolean;
+  /** Keeps a video row's streams as files of their own; false merges them into one. */
+  separate: boolean;
 }
 
 /** Mirrors ytdlp.Measure: the ffprobe pass over a finished media file. */
@@ -2237,7 +2286,7 @@ export interface YtdlpLive {
   fromStart: boolean;
   /** Minutes of recording, 0 for no limit. */
   maxMinutes: number;
-  /** MiB, 0 for no limit. */
+  /** MB, 0 for no limit. */
   maxMB: number;
 }
 
@@ -3743,11 +3792,23 @@ export async function startMaintenance(action: 'check' | 'compact' | 'analyze'):
 }
 
 /** Which build this is and what quit and restart do here. */
+/** A library compiled into the server (buildinfo.Module). */
+export interface BuiltModule {
+  path: string;
+  version: string;
+  /** go.mod replaces it with a fork, and the version is the fork's. */
+  fork?: boolean;
+}
+
 export interface DeploymentInfo {
   deployment: string;
+  /** What the instance cards call this instance: "container", "server" or "desktop". */
+  kind: string;
   canQuit: boolean;
   canRestart: boolean;
   note: string;
+  /** The libraries the Updates card lists beside the programs, null when the build carries none of them. */
+  engines: BuiltModule[] | null;
 }
 
 export async function fetchDeploymentInfo(): Promise<DeploymentInfo> {
@@ -4036,6 +4097,10 @@ export interface ConnectInfo {
   name: string;
   /** Where they open it, '' when it has no address anybody else can reach. */
   address: string;
+  /** Where this instance found itself on its network, which `address` leaves
+   *  out once a known domain stands in for it. '' when nothing outside the
+   *  machine reaches it. */
+  networkAddress: string;
   /** The other instances of the group reachable now. */
   members: GroupMember[];
   /** Every phone that joined the group with the phrase. */

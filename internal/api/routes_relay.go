@@ -22,7 +22,6 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
-	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/federation"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
@@ -104,7 +103,7 @@ func registerRelay(reg *Registry, a *app.App) {
 				http.Error(w, "not ready", http.StatusServiceUnavailable)
 				return
 			}
-			a.Federation.ServeDirect(w, r, a.Federation.Guard(relayProxyHandler(serve)))
+			a.Federation.ServeDirect(w, r, a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))))
 		})
 
 	reg.Add(http.MethodGet, "/api/relay/config",
@@ -318,12 +317,12 @@ func applyRelay(a *app.App) {
 		Self: relay.Announce{
 			InstanceID: idOf(a, member),
 			Name:       instanceDisplayName(a),
-			Deployment: buildinfo.Deployment,
+			Deployment: instanceKind(),
 			Address:    groupAddress(a),
 		},
 		Member: member,
 		Trusts: a.Federation.TrustsAnswer,
-		Serve:  a.Federation.Guard(relayProxyHandler(serve)),
+		Serve:  a.Federation.Guard(announceArrivals(a, relayProxyHandler(serve))),
 	})
 	if err != nil {
 		log.Printf("relay: could not configure the client: %v", err)

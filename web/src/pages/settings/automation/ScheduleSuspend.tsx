@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Dropdown, type DropdownOption } from '../../../components/Dropdown';
-import { Field } from '../../../components/ui';
+import {  } from '../../../components/ui';
 import { resumeSchedule, suspendSchedule, type ScheduleSuspension } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
+import { SettingRow } from '../controls';
 
 // Setting every schedule aside for a while, as the schedule status card and the
 // shell bar's quick settings both offer it. The rows stay as they are; the
@@ -90,7 +91,8 @@ export function ScheduleSuspendField({
   }
 
   return (
-    <Field
+    <SettingRow
+      control="fit"
       label={t('settings.schedule.suspend')}
       hint={idle ? `${blocked} ${t('settings.schedule.suspendHint')}` : t('settings.schedule.suspendHint')}
     >
@@ -103,6 +105,6 @@ export function ScheduleSuspendField({
         busy={busy}
         shake={shake}
       />
-    </Field>
+    </SettingRow>
   );
 }

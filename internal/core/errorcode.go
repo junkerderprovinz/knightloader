@@ -69,8 +69,11 @@ const (
 	// folder, from where an archive or a package naming the folders in between
 	// would write into it. Params: "path", that folder. No Reason.
 	CodeHoldsDataFolder ErrorCode = "holdsDataFolder"
-	CodeCaptcha         ErrorCode = "captcha"   // ReasonCaptcha
-	CodeCancelled       ErrorCode = "cancelled" // ReasonCancelled
+	// CodeDebridImport is a download an earlier version imported from a debrid
+	// account, which nothing fetches any more. No Reason.
+	CodeDebridImport ErrorCode = "debridImport"
+	CodeCaptcha      ErrorCode = "captcha"   // ReasonCaptcha
+	CodeCancelled    ErrorCode = "cancelled" // ReasonCancelled
 
 	// The causes a backend names itself, one code each, as their Reasons.
 	CodeBotCheck          ErrorCode = "botCheck"

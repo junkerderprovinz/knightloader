@@ -125,7 +125,7 @@ the installed web app, its share target and the bookmarklet all include it.
 Where you name the instance yourself, include the path too: for the
 Click'n'Load bridge (`-bridge https://example.com/kl`), for another instance
 added by address on the Instances page, and as the relay address on the
-others when this one has "Serve as relay" switched on in the relay card under
+others when this one has "Instance as relay" chosen in the relay card under
 Settings, Pairing. The phone app and the browser extension reach the instance
 through the relay with the twelve words and need no address.
 
@@ -180,8 +180,8 @@ The desktop app brings no Java, yt-dlp or ffmpeg of its own:
 - Java, on `PATH` or under `JAVA_HOME`, for the private JDownloader. Without
   it, file hoster links have no catch-all. Pointing `KL_JD` at a JDownloader
   that runs elsewhere works too.
-- yt-dlp for video sites. The Resolvers settings page can fetch a copy and
-  keep it current.
+- yt-dlp for video sites. The Updates card under Settings, General can fetch
+  a copy and keep it current.
 - ffmpeg on `PATH`, for merging video with its audio and for converting.
 
 On Linux the window needs WebKitGTK: `libwebkit2gtk-4.1-0`.

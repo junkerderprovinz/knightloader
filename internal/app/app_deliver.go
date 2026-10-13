@@ -62,10 +62,9 @@ func (a *App) stagedDirFor(t *core.Task) string {
 // deliverable reports whether this app can move t's finished file itself. A
 // download fetched on another machine has no local file. A multi-file torrent
 // writes into a folder named after the torrent, which the task does not know,
-// so torrents are written to their destination directly, and so is a download
-// imported from a debrid account, which may hold several files as well.
+// so torrents are written to their destination directly.
 func deliverable(t *core.Task) bool {
-	return t != nil && filesAreLocal(t) && t.InfoHash == "" && !importedTask(t)
+	return t != nil && filesAreLocal(t) && t.InfoHash == ""
 }
 
 // moveOptions returns the collision policy for a move: the download's own,
@@ -118,8 +117,56 @@ func (a *App) deliverDownload(id string) {
 	if _, err := os.Lstat(src); err != nil {
 		return
 	}
-	res, err := workdir.Move(a.ctx, src, dest, a.moveOptions(&c, a.Settings.Get()))
+	opts := a.moveOptions(&c, a.Settings.Get())
+	res, err := workdir.Move(a.ctx, src, dest, opts)
 	a.recordDelivery(id, src, res.Path, err)
+	if err == nil {
+		a.deliverBeside(id, c.WorkFiles, work, dest, opts)
+	}
+}
+
+// deliverBeside moves the further files a finished download keeps beside its
+// own after it, the audio and subtitles of a video kept apart or the other
+// languages of a subtitle row, each into the same place under dest it had
+// under work, and keeps the task's record of where they went.
+func (a *App) deliverBeside(id string, files []string, work, dest string, opts workdir.Options) {
+	moved := map[string]string{}
+	for _, p := range files {
+		rel, err := filepath.Rel(work, p)
+		if err != nil || rel == ".." || strings.HasPrefix(rel, ".."+string(filepath.Separator)) {
+			continue
+		}
+		if _, err := os.Lstat(p); err != nil {
+			continue
+		}
+		res, err := workdir.Move(a.ctx, p, filepath.Join(dest, filepath.Dir(rel)), opts)
+		if err != nil {
+			log.Printf("task %s: %s could not be moved out of the working folder: %v", id, p, err)
+			continue
+		}
+		moved[p] = res.Path
+	}
+	if len(moved) == 0 {
+		return
+	}
+	a.mu.Lock()
+	t := a.tasks[id]
+	if t == nil {
+		a.mu.Unlock()
+		return
+	}
+	// A new slice, since copies already published share the old one.
+	kept := make([]string, len(t.WorkFiles))
+	for i, p := range t.WorkFiles {
+		kept[i] = p
+		if to, ok := moved[p]; ok {
+			kept[i] = to
+		}
+	}
+	t.WorkFiles = kept
+	c := a.copyLocked(t)
+	a.mu.Unlock()
+	a.publish(&c)
 }
 
 // recordDelivery puts a failed move on the task, or clears an earlier one when

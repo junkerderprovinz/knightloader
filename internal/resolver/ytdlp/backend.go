@@ -24,6 +24,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/nowindow"
+	"github.com/junkerderprovinz/knightloader/internal/realpath"
 	"github.com/junkerderprovinz/knightloader/internal/workdir"
 )
 
@@ -83,7 +84,14 @@ type Backend struct {
 	// until the task finishes, so a removal with files finds what an
 	// unfinished download left (see Remove). Each one also goes to the task
 	// as Update.WorkFile, which is what is left of the list after a restart.
-	parts map[string][]string
+	parts map[string]*taskParts
+}
+
+// taskParts is what a task's runs wrote and the folder they wrote it in, the
+// one Discard holds them to.
+type taskParts struct {
+	folder string
+	files  []string
 }
 
 // runState is one yt-dlp process of a task: cancel stops it, and ended is
@@ -111,7 +119,7 @@ func NewBackend(bin, dir string, onUpdate func(taskID string, u core.Update)) *B
 		bin: bin, dir: dir, onUpdate: onUpdate,
 		runs:  map[string]*runState{},
 		url:   map[string]string{},
-		parts: map[string][]string{},
+		parts: map[string]*taskParts{},
 	}
 }
 
@@ -319,21 +327,26 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	// What finish acts on: the file yt-dlp produced, the subtitle files it
 	// wrote, and whether a live limit ended the recording. written is every
 	// file it wrote beside a download, or in place of one on the thumbnail,
-	// subtitle and description rows.
+	// subtitle and description rows. others is the further streams of a video
+	// kept apart, the audio after the video.
 	var (
 		final     string
 		written   []string
+		others    []string
 		subFiles  int
 		guard     = newLiveGuard(opts.Live)
 		stoppedBy string
 	)
+	apart := opts.Variant == VariantVideo && opts.Embed.Separate
 	sc := bufio.NewScanner(stdout)
 	sc.Buffer(make([]byte, 0, 64*1024), 4*1024*1024) // progress JSON lines can be long
 	for sc.Scan() {
 		line := sc.Text()
 		if p, ok := parseProgress(line); ok {
 			u := core.Update{Status: core.StatusRunning, Loaded: p.Downloaded, Size: p.Total, Speed: p.Speed}
-			if p.Filename != "" {
+			// A video kept apart keeps the name of its video while the audio
+			// comes in.
+			if p.Filename != "" && (!apart || final == "") {
 				u.Name = filepath.Base(p.Filename)
 			}
 			if opts.Live.Enabled && p.Live {
@@ -357,21 +370,31 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 			continue
 		}
 		if name, ok := finishedFile(line); ok {
+			if !b.ownFile(taskID, dir, out, name) {
+				continue
+			}
+			// Nothing is merged, so the first stream, the video, stays the
+			// task's file and every one after it is a further file.
+			if apart && final != "" {
+				if name != final && !slices.Contains(others, name) {
+					others = append(others, name)
+				}
+				b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: name})
+				continue
+			}
 			final = name
-			b.remember(taskID, name)
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, Name: filepath.Base(name), WorkFile: name})
 			continue
 		}
-		if path, ok := wroteFile(line); ok {
+		if path, ok := wroteFile(line); ok && b.ownFile(taskID, dir, out, path) {
 			written = append(written, path)
-			b.remember(taskID, path)
 			b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: path})
 		}
 		if wroteSubtitle(line) {
 			subFiles++
 		}
 		if opts.Variant == VariantSubtitle {
-			if from, to, ok := convertedSubtitle(line); ok {
+			if from, to, ok := convertedSubtitle(line); ok && b.ownFile(taskID, dir, out, to) {
 				if final == from {
 					final = to
 				}
@@ -380,7 +403,6 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 						written[i] = to
 					}
 				}
-				b.remember(taskID, to)
 				b.onUpdate(taskID, core.Update{Status: core.StatusRunning, WorkFile: to})
 			}
 		}
@@ -396,10 +418,17 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if final == "" {
 		final = sidecarFile(opts.Variant, written)
 	}
+	done := func(note string) core.Update {
+		u := b.finish(opts, final, subFiles, note)
+		if apart && u.Status == core.StatusDone {
+			u.OtherFiles = keptApart(opts, final, others, written)
+		}
+		return u
+	}
 	if stoppedBy != "" {
 		// A recording that hit its own limit is finished, with the reason on
 		// the task.
-		return b.finish(opts, final, subFiles, stoppedBy), true
+		return done(stoppedBy), true
 	}
 	if err == nil && scanErr != nil {
 		err = scanErr
@@ -424,7 +453,39 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 	if opts.Variant == VariantSubtitle {
 		return b.placeSubtitles(taskID, out, dir, opts, final, written, subFiles), true
 	}
-	return b.finish(opts, final, subFiles, ""), true
+	return done(""), true
+}
+
+// keptApart lists what a video kept apart leaves beside its file, each where
+// it ended up: the further streams, and the subtitles and cover written for
+// them. A subtitle converted to srt is found under its new name, and what
+// yt-dlp or finish removed again, an info json or a cover's original, is left
+// out. A further stream's info json goes here, as finish removes the video's.
+func keptApart(o Options, final string, others, written []string) []string {
+	if needsInfoJSON(o) {
+		for _, s := range others {
+			_ = os.Remove(infoJSONPath(s))
+		}
+	}
+	there := func(p string) bool {
+		fi, err := os.Stat(p)
+		return err == nil && fi.Mode().IsRegular()
+	}
+	var out []string
+	for _, p := range append(slices.Clone(others), written...) {
+		if p == final {
+			continue
+		}
+		if !there(p) {
+			if p = strings.TrimSuffix(p, filepath.Ext(p)) + ".srt"; !there(p) {
+				continue
+			}
+		}
+		if !slices.Contains(out, p) {
+			out = append(out, p)
+		}
+	}
+	return out
 }
 
 // subtitleStagePrefix names the folder a subtitle row writes into before its
@@ -937,9 +998,13 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, "-f", audioSelector(o.AudioLang), "-x")
 		}
 		// yt-dlp itself ignores the quality when nothing is transcoded.
+		// Without a bitrate a conversion asks for the encoder's best variable
+		// quality, 0, where yt-dlp's own default of 5 would settle for less.
+		quality := "0"
 		if o.AudioBitrate != "" {
-			args = append(args, "--audio-quality", o.AudioBitrate+"K")
+			quality = o.AudioBitrate + "K"
 		}
+		args = append(args, "--audio-quality", quality)
 		args = append(args, embedArgs(o, false)...)
 		if o.Music {
 			args = append(args, musicArgs(dir, tmpl)...)
@@ -962,6 +1027,12 @@ func buildArgs(dir string, o Options) []string {
 	case VariantDescription:
 		args = append(args, "--skip-download", "--write-description")
 	default: // VariantVideo
+		if o.Embed.Separate {
+			args = append(args, "-f", apartSelector(o))
+			args = append(args, apartArgs(dir, tmpl, o)...)
+			tmpl = apartTemplate(tmpl)
+			break
+		}
 		if f := formatSelector(o); f != "" {
 			args = append(args, "-f", f)
 		}
@@ -1045,6 +1116,49 @@ func embedArgs(o Options, video bool) []string {
 	return args
 }
 
+// apartArgs is embedArgs for a video kept apart from its audio: tags and
+// chapters still go into each stream's file, while the subtitles and the cover
+// are written beside them, as srt and jpg like the rows of their own. Those
+// two are named by the plain template, which each stream would otherwise give
+// its own copy.
+func apartArgs(dir, tmpl string, o Options) []string {
+	var args []string
+	if o.Embed.Metadata {
+		args = append(args, "--embed-metadata")
+	}
+	if o.Embed.Chapters {
+		args = append(args, "--embed-chapters")
+	}
+	if o.Embed.Subs {
+		langs := o.SubtitleLangs
+		if langs == "" {
+			langs = DefaultSubtitleLangs
+		}
+		args = append(args, "--write-subs", "--sub-langs", langs, "--sub-format", "srt", "--convert-subs", "srt",
+			"-o", "subtitle:"+filepath.Join(dir, tmpl))
+		if o.SubtitleAuto {
+			args = append(args, "--write-auto-subs")
+		}
+	}
+	if o.Embed.Thumbnail {
+		args = append(args, "--write-thumbnail", "--convert-thumbnails", "jpg", "-o", "thumbnail:"+filepath.Join(dir, tmpl))
+	}
+	if o.Embed.SplitChapters {
+		args = append(args, "--split-chapters")
+	}
+	return args
+}
+
+// apartTemplate names each stream of a video kept apart by its format, as
+// yt-dlp names the streams it merges. A webm video and its webm audio would
+// otherwise claim one name, and yt-dlp would skip the second as downloaded.
+func apartTemplate(tmpl string) string {
+	if base, ok := strings.CutSuffix(tmpl, ".%(ext)s"); ok {
+		return base + ".f%(format_id)s.%(ext)s"
+	}
+	return tmpl + ".f%(format_id)s"
+}
+
 // musicOutputTemplate is the naming scheme music mode uses: artist folder,
 // album folder, numbered tracks. Each field falls back to something video
 // sites always provide, so no folder ends up named "NA".
@@ -1091,19 +1205,42 @@ func progressTemplateFor(o Options) string {
 // anything else without a resolution cap, including a stored QualityAudioOnly).
 // QualityCustom passes through verbatim.
 func formatSelector(o Options) string {
-	if v, ok := parseVideoFormat(o.VideoPick); ok {
-		return v.selector()
-	}
-	if w, ok := parseVideoWish(o.VideoPick); ok {
-		return w.selector()
+	if c, ok := choiceOf(o); ok {
+		return c.merged()
 	}
 	if o.Quality == QualityCustom {
 		return o.CustomFormat
 	}
-	if r, ok := ResCap(o.Quality); ok {
-		return capSelector(r)
-	}
 	return ""
+}
+
+// apartSelector is formatSelector for a video kept apart from its audio
+// (Embed.Separate). With no choice of its own it asks for what yt-dlp would
+// pick, kept apart. A custom selector is the user's own words and passes
+// through as it is; a comma in it is how yt-dlp keeps formats apart.
+func apartSelector(o Options) string {
+	if c, ok := choiceOf(o); ok {
+		return c.apart()
+	}
+	if o.Quality == QualityCustom && o.CustomFormat != "" {
+		return o.CustomFormat
+	}
+	return bestChoice.apart()
+}
+
+// choiceOf is the format choice of a picked track, a preset's format wish or a
+// resolution preset, false for none of them.
+func choiceOf(o Options) (videoChoice, bool) {
+	if v, ok := parseVideoFormat(o.VideoPick); ok {
+		return v.choice(), true
+	}
+	if w, ok := parseVideoWish(o.VideoPick); ok {
+		return w.choice(), true
+	}
+	if r, ok := ResCap(o.Quality); ok {
+		return capChoice(r), true
+	}
+	return nil, false
 }
 
 func (b *Backend) Pause(taskID string) {
@@ -1175,24 +1312,93 @@ func (b *Backend) Remove(taskID string, deleteFiles bool) {
 	parts := b.parts[taskID]
 	delete(b.parts, taskID)
 	b.mu.Unlock()
-	Discard(taskID, parts, b.InUse)
+	if parts != nil {
+		Discard(taskID, []string{parts.folder}, parts.files, b.InUse)
+	}
 }
 
-// remember notes a file a run of taskID wrote, for Remove.
-func (b *Backend) remember(taskID, path string) {
+// ownFile reports whether path, as yt-dlp printed it, lies in out, the folder
+// this run writes to, and if so notes it for Remove under the task's folder
+// dir. The lines carry text the site chose, such as a video id, so a line can
+// name any path at all.
+func (b *Backend) ownFile(taskID, dir, out, path string) bool {
+	if !inFolder(out, path) {
+		log.Printf("yt-dlp: task %s: ignored %q, which is not in %s", taskID, path, out)
+		return false
+	}
 	b.mu.Lock()
 	defer b.mu.Unlock()
-	if !slices.Contains(b.parts[taskID], path) {
-		b.parts[taskID] = append(b.parts[taskID], path)
+	p := b.parts[taskID]
+	if p == nil {
+		p = &taskParts{}
+		b.parts[taskID] = p
+	}
+	p.folder = dir
+	if !slices.Contains(p.files, path) {
+		p.files = append(p.files, path)
+	}
+	return true
+}
+
+// inFolder reports whether p lies below folder once both are absolute and
+// every link on the way that exists is followed, so neither a "../" nor a
+// linked folder leads out of it. Only the folders of p are resolved: Windows
+// names a file that is being deleted under $Extend\$Deleted, and a link as the
+// last part is removed or moved as the link itself.
+func inFolder(folder, p string) bool {
+	f, err := resolvePath(folder)
+	if err != nil {
+		return false
+	}
+	p, err = filepath.Abs(p)
+	if err != nil {
+		return false
+	}
+	parent, err := resolvePath(filepath.Dir(p))
+	if err != nil {
+		return false
+	}
+	q := filepath.Join(parent, filepath.Base(p))
+	rel, err := filepath.Rel(f, q)
+	if err != nil {
+		return false
+	}
+	return rel != "." && rel != ".." && !strings.HasPrefix(rel, ".."+string(filepath.Separator))
+}
+
+// resolvePath is p made absolute with every link resolved up to the deepest
+// part of it that exists. A file yt-dlp announces is written only after the
+// announcement, and its folder may not be there yet either.
+func resolvePath(p string) (string, error) {
+	p, err := filepath.Abs(p)
+	if err != nil {
+		return "", err
+	}
+	var rest []string
+	for at := p; ; {
+		if real, err := realpath.Resolve(at); err == nil {
+			return filepath.Join(append([]string{real}, rest...)...), nil
+		}
+		parent := filepath.Dir(at)
+		if parent == at {
+			return p, nil
+		}
+		rest = append([]string{filepath.Base(at)}, rest...)
+		at = parent
 	}
 }
 
 // Discard deletes each file an unfinished download of taskID wrote together
 // with its .part, its .ytdl progress file, its fragments and the .temp copy a
 // post-processor writes beside it. A file inUse reports as another task's
-// stays, and so do its .part and the rest.
-func Discard(taskID string, paths []string, inUse func(taskID, path string) bool) {
+// stays, and so do its .part and the rest. A path in none of folders, where the
+// task's downloads go, is never deleted, whatever put it on the list.
+func Discard(taskID string, folders, paths []string, inUse func(taskID, path string) bool) {
 	for _, p := range paths {
+		if !slices.ContainsFunc(folders, func(f string) bool { return inFolder(f, p) }) {
+			log.Printf("did not delete %q, which is not in %s (task %s)", p, strings.Join(folders, ", "), taskID)
+			continue
+		}
 		if inUse != nil && inUse(taskID, p) {
 			continue
 		}

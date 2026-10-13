@@ -24,7 +24,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/extract"
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/hostheaders"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/remotefs"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
@@ -51,10 +50,6 @@ const (
 	// OriginContainer is a .dlc/.ccf/.rsdf/.txt container, whether it was read
 	// here or opened by the JD backend on our behalf.
 	OriginContainer core.Origin = "container"
-	// OriginAccount is a download imported from a debrid account, where it
-	// was added outside this instance (app_debridimport.go). No caller can
-	// name it.
-	OriginAccount core.Origin = "account"
 	// OriginJDownloader is a link taken over from JDownloader's download list
 	// (app_jdimport.go). No caller can name it either.
 	OriginJDownloader core.Origin = "jdownloader"
@@ -97,9 +92,9 @@ type intake struct {
 	// probePlaylistEntries probes them one at a time instead.
 	playlistEntry bool
 
-	// jobLinks marks the two entrances that make links to a job on one of the
-	// user's accounts, the import from an account and the Usenet queue. Every
-	// other entrance is refused such a link (see jobLink).
+	// jobLinks marks the Usenet queue, the one entrance that makes links to a
+	// file on one of the user's accounts. Every other entrance is refused such
+	// a link (see jobLink).
 	jobLinks bool
 
 	// sizeProbes runs the probes of a batch's links whose size alone decides
@@ -927,23 +922,20 @@ func (a *App) stage(u, name string, sizeHint int64, in intake) *core.Task {
 	return staged
 }
 
-// jobLink reports whether u names a job on one of the user's accounts: a
-// download the import took over from it, or a file of an .nzb the Usenet queue
-// sent there. Such a link fetches from the account, and removing or finishing
-// an imported one deletes the job on it.
+// jobLink reports whether u names a file of an .nzb the Usenet queue sent to
+// one of the user's accounts. Such a link fetches from the account.
 func jobLink(u string) bool {
-	_, _, imported := debrid.ParseJobLink(u)
-	return imported || (usenet.Resolver{}).Match(u)
+	return (usenet.Resolver{}).Match(u)
 }
 
 // refusesJobLink reports, and logs, a link to a job on an account that arrives
 // by an entrance which did not make it. A feed entry or a script would
-// otherwise fetch any job on the account, or delete it there.
+// otherwise fetch any job on the account.
 func (a *App) refusesJobLink(u string, in intake) bool {
 	if in.jobLinks || !jobLink(u) {
 		return false
 	}
-	log.Printf("%s not added from %s: only the account import and the Usenet queue add links to a job on an account", u, in.origin)
+	log.Printf("%s not added from %s: only the Usenet queue adds links to a job on an account", u, in.origin)
 	return true
 }
 

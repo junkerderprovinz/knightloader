@@ -3,32 +3,24 @@ import type { Task } from '../lib/api';
 import { fmtEta, fmtTotal } from '../lib/format';
 import { useT } from '../lib/i18n';
 import type { ListView } from '../lib/listview';
+import type { TaskCounts } from '../lib/needs';
 import { InfoBubble, Toggle } from './ui';
 import { Tabs } from './Tabs';
 
-export interface CountsInput {
-  running: number;
-  queued: number;
-  collected?: number;
-  done: number;
-  error: number;
-}
-
 // A quiet row of figures below the speed hero. Zeros stay so the row does not
-// reflow, and only a non-zero error count is highlighted.
-export function Counters({ counts }: { counts: CountsInput }) {
+// reflow, and only a non-zero error count is highlighted. `collector` adds the
+// collector's links, which the tray window has no room for.
+export function Counters({ counts, collector = false }: { counts: TaskCounts; collector?: boolean }) {
   const { t } = useT();
   const items: { label: string; value: number; tone: string }[] = [
-    { label: t('overview.active'), value: counts.running, tone: 'text-statusInfo' },
-    { label: t('overview.queued'), value: counts.queued, tone: 'text-carbon-text' },
-    ...(counts.collected === undefined
-      ? []
-      : [{ label: t('overview.inCollector'), value: counts.collected, tone: 'text-carbon-text' }]),
+    { label: t('overview.active'), value: counts.running + counts.extracting, tone: 'text-statusInfo' },
+    { label: t('overview.queued'), value: counts.waiting, tone: 'text-carbon-text' },
+    ...(collector ? [{ label: t('overview.inCollector'), value: counts.collected, tone: 'text-carbon-text' }] : []),
     { label: t('overview.done'), value: counts.done, tone: 'text-carbon-text' },
     {
       label: t('overview.errors'),
-      value: counts.error,
-      tone: counts.error > 0 ? 'text-statusFail' : 'text-carbon-textMuted',
+      value: counts.failed,
+      tone: counts.failed > 0 ? 'text-statusFail' : 'text-carbon-textMuted',
     },
   ];
   return (
@@ -36,7 +28,7 @@ export function Counters({ counts }: { counts: CountsInput }) {
       {items.map((i) => (
         <div key={i.label} className="flex items-baseline gap-1.5">
           <span className={`glim-num text-[14px] font-semibold ${i.tone}`}>{i.value}</span>
-          <span className="text-[11px] text-carbon-textMuted">{i.label}</span>
+          <span className="text-meta text-carbon-textMuted">{i.label}</span>
         </div>
       ))}
     </div>
@@ -135,13 +127,13 @@ export function OverviewStrip({
     <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5" role="group" aria-label={t('strip.label')}>
       <span className="flex items-baseline gap-1.5">
         <span className="glim-num text-[14px] font-semibold leading-none text-carbon-text">{fmtTotal(f.loaded)}</span>
-        <span className="text-[11px] text-carbon-textMuted">{t('strip.of')}</span>
+        <span className="text-meta text-carbon-textMuted">{t('strip.of')}</span>
         <span className="glim-num text-[12px] leading-none text-carbon-textSub">{fmtTotal(f.total)}</span>
         <InfoBubble tip={t('strip.hint')} />
       </span>
 
       {eta && (
-        <span className="glim-num text-[11px] text-carbon-textMuted">
+        <span className="glim-num text-meta text-carbon-textMuted">
           {eta} {t('task.left')}
         </span>
       )}

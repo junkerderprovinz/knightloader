@@ -60,9 +60,9 @@ export function Fact({
           <button
             ref={copyButton}
             type="button"
-            className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-0.5 text-[11px]
-              font-medium text-carbon-textSub transition duration-150 hover:brightness-110
-              motion-safe:active:scale-[.98]"
+            className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-0.5 text-meta
+              font-medium text-carbon-textSub transition duration-150 hover:bg-carbon-surface3
+              motion-safe:active:scale-[.97]"
             onClick={() => {
               // navigator.clipboard does not exist on a plain-http LAN address,
               // where only lib/clipboard.ts's execCommand fallback copies.

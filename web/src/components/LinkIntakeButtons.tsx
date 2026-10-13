@@ -1,5 +1,5 @@
-import { Button } from './ui';
-import { IconBrowser, IconClipboard } from '../lib/icons';
+import { IconBadge } from './ui';
+import { IconCopy, IconLink } from '../lib/icons';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { useCnl } from '../lib/useCnl';
@@ -9,15 +9,15 @@ import { isDesktop } from '../lib/desktop';
 import { moduleDetail } from '../pages/settings/tx';
 
 /**
- * LinkIntakeButtons are the collector's switches for Click'n'Load and the
- * clipboard watch, sharing their state with the settings card. They are modes,
- * so `primary` means on and `secondary` off.
+ * LinkIntakeButtons are the add-links form's buttons for Click'n'Load and the
+ * clipboard watch, sharing their state with the settings card. Each holds its
+ * state: filled while on, and a press turns it the other way.
  *
  * The clipboard button stays visible but disabled where the browser cannot read
  * the clipboard. Click'n'Load disappears when the server has no such module,
  * since there is nothing to enable.
  */
-export function LinkIntakeButtons() {
+export function LinkIntakeButtons({ hue }: { hue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const { row, busy, set } = useCnl();
@@ -25,9 +25,9 @@ export function LinkIntakeButtons() {
 
   const cnlSwitchable = !!row && row.verdict === 'shipped' && row.switch !== 'none';
 
-  async function onCnl() {
+  async function onCnl(on: boolean) {
     try {
-      await set(!row?.enabled);
+      await set(on);
     } catch (e) {
       toast(
         t('settings.modules.switchFailed', { reason: String(e).replace(/^Error:\s*/, '') }),
@@ -39,23 +39,28 @@ export function LinkIntakeButtons() {
   return (
     <>
       {cnlSwitchable && (
-        <Button
-          kind={row.enabled ? 'primary' : 'secondary'}
-          className="px-2.5 text-xs"
-          icon={<IconBrowser width={14} height={14} />}
-          // The live reading, such as the address it listens on; the button
-          // already says its own name.
-          title={moduleDetail(t, row)}
-          onClick={() => void onCnl()}
+        <IconBadge
+          labelled
+          active={row.enabled}
+          hue={hue}
+          icon={<IconLink width={16} height={16} />}
+          title={t('settings.module.cnl')}
+          aria-label={t('settings.module.cnl')}
+          // What it takes, then the live reading, such as the address it
+          // listens on.
+          hint={[t('settings.linkIntake.cnlHint'), moduleDetail(t, row) ?? ''].filter(Boolean).join(' ')}
+          onClick={() => void onCnl(!row.enabled)}
           disabled={busy}
-        >
-          {t('settings.module.cnl')}
-        </Button>
+        />
       )}
-      <Button
-        kind={watch ? 'primary' : 'secondary'}
-        className="px-2.5 text-xs"
-        icon={<IconClipboard width={14} height={14} />}
+      <IconBadge
+        labelled
+        active={watch}
+        data-new="intake-glyphs"
+        hue={hue + 1}
+        icon={<IconCopy width={16} height={16} />}
+        title={t('intake.clipboardWatch')}
+        aria-label={t('intake.clipboardWatch')}
         hint={
           !WATCH_SUPPORTED
             ? t('intake.clipboardWatchUnavailable')
@@ -65,9 +70,7 @@ export function LinkIntakeButtons() {
         }
         onClick={() => flip(!watch)}
         disabled={!WATCH_SUPPORTED}
-      >
-        {t('intake.clipboardWatch')}
-      </Button>
+      />
       {dialog}
     </>
   );

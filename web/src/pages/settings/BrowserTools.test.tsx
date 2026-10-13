@@ -99,6 +99,34 @@ describe('BrowserTools', () => {
     expect(open).toHaveBeenCalledTimes(6);
   });
 
+  describe('in a container', () => {
+    /** The page as a container at `version` draws it, and where its macOS button leads. */
+    async function macOS(version: string): Promise<string> {
+      vi.stubGlobal(
+        'fetch',
+        vi.fn((url: string) => {
+          if (url.endsWith('/api/system/deployment')) return Promise.resolve(Response.json({ deployment: 'container' }));
+          if (url.endsWith('/api/health')) return Promise.resolve(Response.json({ status: 'ok', version }));
+          return new Promise(() => {});
+        }),
+      );
+      await act(async () => root.render(<BrowserTools />));
+      return host.querySelector<HTMLAnchorElement>('a[aria-label^="macOS"]')!.href;
+    }
+
+    it('gives the desktop app of the release it runs and names that release on the card', async () => {
+      expect(await macOS('v1.8.4')).toContain('/releases/download/v1.8.4/knightloader-macos-universal.zip');
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
+      expect(card.querySelector('a[href$="/releases/tag/v1.8.4"]')?.textContent).toBe('v1.8.4');
+    });
+
+    it('gives the newest desktop app where it runs no release, and names no number', async () => {
+      expect(await macOS('v1.8.4-12-gabc123')).toContain('/releases/latest/download/knightloader-macos-universal.zip');
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('macOS'))!;
+      expect(card.querySelector('a[href*="/releases/tag/"]')).toBeNull();
+    });
+  });
+
   describe('in the desktop app', () => {
     beforeEach(() => {
       vi.stubGlobal(
@@ -121,6 +149,16 @@ describe('BrowserTools', () => {
       const at = ['On a server', 'Phone app', 'Browser extension', 'Bookmarklet'].map((title) => text.indexOf(title));
       expect(at.every((i) => i >= 0)).toBe(true);
       expect(at).toEqual([...at].sort((a, b) => a - b));
+    });
+
+    it('lists the phone app on Google Play and F-Droid as coming, beside the APK', async () => {
+      await act(async () => root.render(<BrowserTools />));
+      const card = [...host.querySelectorAll('.glim-card')].find((c) => c.textContent?.includes('Phone app'))!;
+      const units = [...card.querySelectorAll('.glim-readme-btn')].map((b) => b.getAttribute('aria-label'));
+      expect(units.slice(0, 3)).toEqual(['Google Play Soon', 'F-Droid Soon', 'Android APK']);
+      const fdroid = card.querySelector('[aria-label="F-Droid Soon"]')!;
+      expect(fdroid.tagName).toBe('SPAN');
+      expect(fdroid.closest('.glim-tile-fdroid')).not.toBeNull();
     });
 
     it('offers ParleyPort on the server card', async () => {

@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"path/filepath"
+	"slices"
 	"strings"
 	"testing"
 )
@@ -246,5 +247,91 @@ func TestBuildArgsLiveSwitchesTheProgressTemplate(t *testing.T) {
 	}
 	if !strings.Contains(got, "%(info.is_live)s") {
 		t.Errorf("the live progress template does not ask for is_live: %q", got)
+	}
+}
+
+// Merged, the default: one -f with + between video and audio, one container,
+// and the subtitles and cover inside it.
+func TestBuildArgsMergesAVideoRowIntoOneFile(t *testing.T) {
+	args := buildArgs("d", Options{Quality: Quality1080p, Embed: Embed{Subs: true, Thumbnail: true}})
+	f, _ := valueAfter(args, "-f")
+	if !strings.Contains(f, "+ba") || strings.Contains(f, ",") {
+		t.Errorf("-f = %q, want a merge of video and audio", f)
+	}
+	for _, want := range []string{"--merge-output-format", "--embed-subs", "--embed-thumbnail"} {
+		if !hasArg(args, want) {
+			t.Errorf("merged video is missing %s: %v", want, args)
+		}
+	}
+	if got, _ := valueAfter(args, "-o"); got != filepath.Join("d", "%(title)s.%(ext)s") {
+		t.Errorf("-o = %q, want the plain template", got)
+	}
+}
+
+// Kept apart: the same choice with a comma where the + was, nothing to merge
+// into, the subtitles and cover written beside the streams, and each stream
+// named by its format so a webm video and webm audio do not collide.
+func TestBuildArgsKeepsAVideoRowApart(t *testing.T) {
+	o := Options{Quality: Quality1080p, Embed: Embed{Separate: true, Subs: true, Thumbnail: true, Metadata: true, Chapters: true}}
+	args := buildArgs("d", o)
+
+	f, _ := valueAfter(args, "-f")
+	tall, short := "[width<=1080][height>1080]", "[height<=?1080]"
+	want := "(bv" + tall + "/bv" + short + "/b" + tall + "/b" + short + "),(ba/b" + tall + "/b" + short + ")"
+	if f != want {
+		t.Errorf("-f = %q, want %q", f, want)
+	}
+	for _, gone := range []string{"--merge-output-format", "--embed-subs", "--embed-thumbnail"} {
+		if hasArg(args, gone) {
+			t.Errorf("a video kept apart still passes %s: %v", gone, args)
+		}
+	}
+	for _, want := range []string{"--write-subs", "--convert-subs", "--write-thumbnail", "--embed-metadata", "--embed-chapters"} {
+		if !hasArg(args, want) {
+			t.Errorf("a video kept apart is missing %s: %v", want, args)
+		}
+	}
+	var outs []string
+	for i, a := range args {
+		if a == "-o" {
+			outs = append(outs, args[i+1])
+		}
+	}
+	plain := filepath.Join("d", "%(title)s.%(ext)s")
+	wantOuts := []string{"subtitle:" + plain, "thumbnail:" + plain, filepath.Join("d", "%(title)s.f%(format_id)s.%(ext)s")}
+	if !slices.Equal(outs, wantOuts) {
+		t.Errorf("-o values = %q, want %q", outs, wantOuts)
+	}
+}
+
+// With no choice of its own a video kept apart asks for what yt-dlp would
+// pick, and a preset's container wish keeps its order of preference.
+func TestBuildArgsKeepsTheDefaultAndAWishApart(t *testing.T) {
+	f, _ := valueAfter(buildArgs("d", Options{Embed: Embed{Separate: true}}), "-f")
+	if f != "(bv*/b),(ba/b)" {
+		t.Errorf("-f = %q, want (bv*/b),(ba/b)", f)
+	}
+	wish := Options{VideoPick: "mp4 h264", Embed: Embed{Separate: true}}
+	f, _ = valueAfter(buildArgs("d", wish), "-f")
+	merged, _ := valueAfter(buildArgs("d", Options{VideoPick: "mp4 h264"}), "-f")
+	if !strings.HasPrefix(f, "(bv[ext=mp4]") || !strings.Contains(f, "),(ba[ext=m4a]/ba/") {
+		t.Errorf("-f = %q for a wish kept apart (merged it is %q)", f, merged)
+	}
+}
+
+// A custom selector is the user's own and goes to yt-dlp unchanged.
+func TestBuildArgsLeavesACustomSelectorAloneWhenKeptApart(t *testing.T) {
+	o := Options{Quality: QualityCustom, CustomFormat: "bv*+ba", Embed: Embed{Separate: true}}
+	if f, _ := valueAfter(buildArgs("d", o), "-f"); f != "bv*+ba" {
+		t.Errorf("-f = %q, want the custom selector as typed", f)
+	}
+}
+
+// Only the video row merges, so the switch leaves the audio row as it was.
+func TestBuildArgsKeptApartDoesNotTouchTheAudioRow(t *testing.T) {
+	merged := buildArgs("d", Options{Variant: VariantAudio})
+	apart := buildArgs("d", Options{Variant: VariantAudio, Embed: Embed{Separate: true}})
+	if !slices.Equal(merged, apart) {
+		t.Errorf("the audio row changed with the switch:\n%v\n%v", merged, apart)
 	}
 }

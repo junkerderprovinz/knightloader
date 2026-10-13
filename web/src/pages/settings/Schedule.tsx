@@ -1,37 +1,30 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import {
-  Button,
-  Card,
-  FIELD_TRIGGER,
-  Field,
-  FieldGroup,
-  IconBadge,
-  SectionTitle,
-  TextInput,
-  UnitNumberInput,
-} from '../../components/ui';
+import { Button, Card, FIELD_TRIGGER, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
+import { DayCurve, planOf, todayOf } from '../../components/pictures/DayCurve';
+import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
-  IconArrowDown,
-  IconArrowUp,
-  IconClock,
-  IconEdit,
+  IconAdd,
+  IconMoveDown,
+  IconMoveUp,
   IconPause,
+  IconPencil,
   IconPlay,
-  IconPlus,
+  IconSchedules,
   IconSliders,
   IconTrash,
 } from '../../lib/icons';
 import { fetchOptions } from '../../lib/api';
 import { RATE_UNITS, fmtRateValue, splitRate } from '../../lib/format';
 import { useT, type TranslationKey } from '../../lib/i18n';
+import { fetchSpeedDay } from '../../lib/speedHistory';
 import { useResource } from '../../lib/useResource';
 import { useToast } from '../../lib/toast';
 import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
-import { useFeatures } from './context';
-import { NeutralSwitch } from './controls';
+import { useDraft, useFeatures } from './context';
+import { NeutralSwitch, SettingRow, Sheet } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -280,6 +273,7 @@ const NEW_ROW = (): ScheduleEntry => ({
 export function ScheduleCards({ hue }: { hue: number }) {
   const { t } = useT();
   const locale = uiLocale();
+  const dayLabels = useMemo(() => shortWeekdayLabels(locale), [locale]);
   const { toast } = useToast();
 
   const { data: loaded, failed, loading, setData: setLoaded, reload } = useResource<ScheduleState>(fetchSchedule);
@@ -325,6 +319,10 @@ export function ScheduleCards({ hue }: { hue: number }) {
     const iv = setInterval(() => setNow(new Date()), 30_000);
     return () => clearInterval(iv);
   }, []);
+
+  // The day's record gains a sample every five minutes, and is read again then.
+  const { cfg } = useDraft();
+  const { data: day } = useResource(fetchSpeedDay, String(Math.floor(now.getTime() / 300_000)));
 
   const [actions, setActions] = useState<ScheduleAction[]>(KNOWN_ACTIONS);
   useEffect(() => {
@@ -488,7 +486,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
             // A window added while the module is off would take the place of
             // the parked ones, so Add waits for the switch.
             !parked && (
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.schedule.add')}
               </Button>
             )
@@ -504,29 +502,55 @@ export function ScheduleCards({ hue }: { hue: number }) {
           !parked && (
             <p className="py-6 text-center text-sm text-carbon-textSub">
               {t('settings.schedule.empty')}
-              <span className="mt-1 block text-[11px] text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
+              <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
             </p>
           )
         ) : (
-          <ul className="flex flex-col">
-            {rows.map((row, i) => (
-              <EntryRow
-                key={row.key}
-                row={row}
-                index={i}
-                last={i === rows.length - 1}
-                open={openKey === row.key}
-                onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
-                onChange={(fields) => update(row.key, fields)}
-                onMove={(by) => move(i, by)}
-                onRemove={() => remove(row.key)}
-                error={rowErrors[row.key]}
-                actions={actions}
-                now={now}
-                locale={locale}
-              />
-            ))}
-          </ul>
+          <>
+            {/* The band draws the rows as they stand on screen, so it follows an
+                edit before the save has gone out. */}
+            <WeekBand
+              entries={rows.map((r) => r.entry)}
+              dayLabels={dayLabels}
+              now={now}
+              nowLabel={fmtClock(now, locale)}
+              quiet={parked || live?.suspended === true}
+              label={t('settings.module.scheduler')}
+            />
+            {/* Whether the timetable does what was wanted: today's plan against the speed measured. */}
+            <DayCurve
+              plan={planOf(
+                rows.map((r) => r.entry),
+                now.getDay(),
+                cfg.speedLimit,
+                quietLimit(cfg),
+              )}
+              points={day ? todayOf(day, now) : []}
+              now={now}
+              dayLabel={dayLabels[now.getDay()]}
+              quiet={parked || live?.suspended === true}
+              label={`${t('settings.module.scheduler')}, ${dayLabels[now.getDay()]}`}
+            />
+            <ul className="flex flex-col">
+              {rows.map((row, i) => (
+                <EntryRow
+                  key={row.key}
+                  row={row}
+                  index={i}
+                  last={i === rows.length - 1}
+                  open={openKey === row.key}
+                  onToggle={() => setOpenKey(openKey === row.key ? '' : row.key)}
+                  onChange={(fields) => update(row.key, fields)}
+                  onMove={(by) => move(i, by)}
+                  onRemove={() => remove(row.key)}
+                  error={rowErrors[row.key]}
+                  actions={actions}
+                  now={now}
+                  locale={locale}
+                />
+              ))}
+            </ul>
+          </>
         )}
       </Card>
     </>
@@ -612,12 +636,17 @@ function StateBanner({
   );
 }
 
+/** The limit quiet mode puts in place of every other, 0 while none is set; lib/api.ts's Settings does not declare it. */
+function quietLimit(cfg: unknown): number {
+  return (cfg as { quiet?: { speedLimit?: number } }).quiet?.speedLimit ?? 0;
+}
+
 /** actionIcon returns the row's mark at 16px, the glyph size used beside text. */
 function actionIcon(action: ScheduleAction) {
   if (action === 'pause') return <IconPause width={16} height={16} />;
   if (action === 'resume') return <IconPlay width={16} height={16} />;
   if (action === 'limit') return <IconSliders width={16} height={16} />;
-  return <IconClock width={16} height={16} />;
+  return <IconSchedules width={16} height={16} />;
 }
 
 function daysSummary(days: number[], labels: string[]): string {
@@ -691,7 +720,7 @@ function EntryRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           aria-label={t('settings.schedule.edit')}
           className={`flex min-w-0 flex-1 basis-48 items-center gap-3 text-start ${entry.disabled ? 'opacity-55' : ''}`}
         >
@@ -716,16 +745,15 @@ function EntryRow({
         <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconEdit width={16} height={16} />}
+            icon={<IconPencil width={16} height={16} />}
             hue={index}
-            active={open}
             title={t('settings.schedule.edit')}
-            aria-expanded={open}
+            aria-haspopup="dialog"
             onClick={onToggle}
           />
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.schedule.moveUp')}
             aria-label={t('settings.schedule.moveUp')}
@@ -734,7 +762,7 @@ function EntryRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.schedule.moveDown')}
             aria-label={t('settings.schedule.moveDown')}
@@ -752,24 +780,24 @@ function EntryRow({
         </div>
       </div>
 
-      {/* Repeated on a collapsed row, so the reason is not hidden behind a click. */}
-      {!open && error && (
+      {/* On the row too, so the reason is not hidden behind a click. */}
+      {error && (
         <p dir="auto" className="pb-2 text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>
       )}
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={description} hue={index} wide onClose={onToggle}>
           {error && <p dir="auto" className="text-xs text-statusFail">{t('settings.schedule.rowError', { row: index + 1, error })}</p>}
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.schedule.name')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="long" label={t('settings.schedule.name')}>
               <TextInput
                 value={entry.name ?? ''}
                 placeholder={t('settings.schedule.namePlaceholder')}
                 onChange={(e) => onChange({ name: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.schedule.action')}>
+            </SettingRow>
+            <SettingRow control="fit" label={t('settings.schedule.action')}>
               <ActionSelect
                 value={entry.action}
                 actions={actions}
@@ -777,36 +805,36 @@ function EntryRow({
                 label={actionLabel}
                 caption={t('settings.schedule.action')}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <DayPicker days={entry.days} labels={labels} onChange={(days) => onChange({ days })} />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.schedule.start')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow control="short" label={t('settings.schedule.start')}>
               <TimePicker
                 label={t('settings.schedule.start')}
                 value={entry.start}
                 onChange={(start) => onChange({ start })}
               />
-            </Field>
-            <Field label={t('settings.schedule.end')} hint={t('settings.schedule.endHint')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.schedule.end')} hint={t('settings.schedule.endHint')}>
               <TimePicker
                 label={t('settings.schedule.end')}
                 value={entry.end}
                 onChange={(end) => onChange({ end })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           {entry.action === 'limit' && (
-            <Field label={t('settings.schedule.limit')}>
+            <SettingRow control="short" label={t('settings.schedule.limit')}>
               <UnitNumberInput value={entry.limit ?? 0} units={RATE_UNITS} onValue={(limit) => onChange({ limit })} />
-            </Field>
+            </SettingRow>
           )}
 
           {entry.disabled && <p className="text-xs text-carbon-textMuted">{t('settings.schedule.disabledOff')}</p>}
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -926,11 +954,13 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
       if (panel.current?.contains(target) || trigger.current?.contains(target)) return;
       close();
     };
+    // Caught on the way down and passed no further, so Escape closes the
+    // picker alone and not the window it stands in as well.
     const onKey = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        close();
-        trigger.current?.focus();
-      }
+      if (e.key !== 'Escape') return;
+      e.stopPropagation();
+      close();
+      trigger.current?.focus();
     };
     // Capturing, to see scrolls in any ancestor; the panel's own are ignored.
     const onScroll = (e: Event) => {
@@ -938,12 +968,12 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
       close();
     };
     document.addEventListener('pointerdown', onPointerDown, true);
-    document.addEventListener('keydown', onKey);
+    document.addEventListener('keydown', onKey, true);
     window.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
     return () => {
       document.removeEventListener('pointerdown', onPointerDown, true);
-      document.removeEventListener('keydown', onKey);
+      document.removeEventListener('keydown', onKey, true);
       window.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', close);
     };
@@ -967,7 +997,7 @@ function TimePicker({ value, onChange, label }: { value: string; onChange: (v: s
         className={`${FIELD_TRIGGER} glim-num flex w-full items-center gap-2 ps-3 pe-2.5 text-start text-sm`}
       >
         <span className="min-w-0 flex-1">{shown}</span>
-        <IconClock width={16} height={16} className="shrink-0 text-carbon-textSub" />
+        <IconSchedules width={16} height={16} className="shrink-0 text-carbon-textSub" />
       </button>
       {open &&
         createPortal(
@@ -1148,37 +1178,45 @@ function DayPicker({
   const mode = custom ? 'custom' : presetOf(days);
   const chosen = useMemo(() => new Set(days.map(String)), [days]);
   return (
-    <FieldGroup label={t('settings.schedule.days')} hint={t('settings.schedule.daysHint')}>
-      <Tabs
-        select="one"
-        variant="well"
-        size="sm"
-        label={t('settings.schedule.days')}
-        active={mode}
-        onSelect={(id) => {
-          const preset = DAY_PRESETS.find((p) => p.id === id);
-          setCustom(!preset);
-          if (preset) onChange(preset.days);
-        }}
-        items={[...DAY_PRESETS.map((p) => p.id), 'custom' as const].map((id) => ({
-          id,
-          label: t(`settings.schedule.preset.${id}`),
-        }))}
-      />
-      {mode === 'custom' && (
+    <>
+      <SettingRow label={t('settings.schedule.days')} hint={t('settings.schedule.daysHint')}>
         <Tabs
-          select="many"
+          select="one"
           variant="well"
           size="sm"
+          inline
+          hug
           label={t('settings.schedule.days')}
-          active={chosen}
+          active={mode}
           onSelect={(id) => {
-            const d = Number(id);
-            onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+            const preset = DAY_PRESETS.find((p) => p.id === id);
+            setCustom(!preset);
+            if (preset) onChange(preset.days);
           }}
-          items={labels.map((label, d) => ({ id: String(d), label }))}
+          items={[...DAY_PRESETS.map((p) => p.id), 'custom' as const].map((id) => ({
+            id,
+            label: t(`settings.schedule.preset.${id}`),
+          }))}
         />
+      </SettingRow>
+      {mode === 'custom' && (
+        <div className="flex justify-end">
+          <Tabs
+            select="many"
+            variant="well"
+            size="sm"
+            inline
+            hug
+            label={t('settings.schedule.days')}
+            active={chosen}
+            onSelect={(id) => {
+              const d = Number(id);
+              onChange(days.includes(d) ? days.filter((x) => x !== d) : [...days, d].sort((a, b) => a - b));
+            }}
+            items={labels.map((label, d) => ({ id: String(d), label }))}
+          />
+        </div>
       )}
-    </FieldGroup>
+    </>
   );
 }

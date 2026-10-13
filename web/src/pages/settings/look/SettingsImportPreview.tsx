@@ -86,11 +86,11 @@ export function SettingsImportPreview({
       }
     >
       <div className="flex min-w-0 flex-col gap-3">
-        <span className="text-[11px] text-carbon-textMuted">
+        <span className="text-meta text-carbon-textMuted">
           {t('settings.transfer.previewFrom', { version: doc.version, date: when })}
         </span>
         {doc.secrets === 'omitted' && (
-          <span className="text-[11px] text-carbon-textSub">{t('settings.transfer.previewSecretless')}</span>
+          <span className="text-meta text-carbon-textSub">{t('settings.transfer.previewSecretless')}</span>
         )}
 
         <div className="flex flex-wrap items-center gap-2">
@@ -110,7 +110,7 @@ export function SettingsImportPreview({
         </div>
 
         {picked.size === 0 && (
-          <span className="text-[11px] text-carbon-textMuted">{t('settings.transfer.nothingSelected')}</span>
+          <span className="text-meta text-carbon-textMuted">{t('settings.transfer.nothingSelected')}</span>
         )}
         {error && <span className="text-xs text-statusFail">{error}</span>}
 
@@ -118,7 +118,7 @@ export function SettingsImportPreview({
         <div className="flex max-h-[52vh] min-w-0 flex-col gap-4 overflow-y-auto pe-1">
           {[...grouped].map(([group, groupRows]) => (
             <div key={group} className="flex min-w-0 flex-col gap-2">
-              <span className="text-[11px] font-medium uppercase tracking-[1px] text-carbon-textMuted">
+              <span className="text-meta font-medium uppercase tracking-[1px] text-carbon-textMuted">
                 {t(GROUP_LABEL[group])}
               </span>
               {groupRows.map((row, i) => (
@@ -193,14 +193,14 @@ function Row({
           {isNewFolder && <Badge warn dim={dim}>{t('settings.transfer.newFolder')}</Badge>}
         </span>
         {/* Both sides, even when one is empty. */}
-        <span className={`min-w-0 break-all text-[11px] text-carbon-textMuted ${dim}`}>
+        <span className={`min-w-0 break-all text-meta text-carbon-textMuted ${dim}`}>
           {t('settings.transfer.colStored')}: {describe(row.stored)}
         </span>
-        <span className={`min-w-0 break-all text-[11px] text-carbon-textSub ${dim}`}>
+        <span className={`min-w-0 break-all text-meta text-carbon-textSub ${dim}`}>
           {t('settings.transfer.colFile')}: {describe(row.incoming)}
         </span>
         {row.arrives !== row.incoming && (
-          <span className={`flex min-w-0 flex-wrap items-center break-all text-[11px] text-carbon-text ${dim}`}>
+          <span className={`flex min-w-0 flex-wrap items-center break-all text-meta text-carbon-text ${dim}`}>
             {t('settings.transfer.colArrives')}: {describe(row.arrives)}
             <InfoBubble tip={t('settings.transfer.colArrivesHint')} />
           </span>
@@ -214,7 +214,7 @@ function Row({
 function Badge({ children, warn = false, dim = '' }: { children: ReactNode; warn?: boolean; dim?: string }) {
   return (
     <span
-      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-[11px] leading-[14px] ${
+      className={`rounded-[var(--radius-pill)] px-1.5 py-px text-meta leading-[14px] ${
         warn ? 'bg-statusWarnBg text-statusWarn' : 'bg-carbon-surface3 text-carbon-textMuted'
       } ${dim}`}
     >

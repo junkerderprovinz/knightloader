@@ -1,8 +1,12 @@
 package api
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"strings"
 	"testing"
 
@@ -72,5 +76,63 @@ func TestAnIconStillBeingFetchedAnswersWithoutAnErrorStatus(t *testing.T) {
 	}
 	if rec.Body.Len() != 0 {
 		t.Errorf("body = %q, want none", rec.Body.String())
+	}
+}
+
+// TestABatchOfIconsSortsEveryHostIntoOneAnswer: the picker asks for a screen
+// of hosts at once and reads each host's fate from one answer.
+func TestABatchOfIconsSortsEveryHostIntoOneAnswer(t *testing.T) {
+	t.Parallel()
+	lookup := func(host string) ([]byte, string, error) {
+		switch host {
+		case "small.example.org":
+			return []byte("png"), "image/png", nil
+		case "big.example.org":
+			return make([]byte, iconInlineMax+1), "image/png", nil
+		case "slow.example.org":
+			return nil, "", app.ErrIconPending
+		}
+		return nil, "", errors.New("no icon")
+	}
+	rec := httptest.NewRecorder()
+	target := "/api/hosters/icons?host=small.example.org&host=big.example.org&host=slow.example.org&host=dead.example.org&host=small.example.org"
+	hosterIconsHandler(lookup)(rec, httptest.NewRequest(http.MethodGet, target, nil))
+
+	var got iconBatch
+	if err := json.Unmarshal(rec.Body.Bytes(), &got); err != nil {
+		t.Fatal(err)
+	}
+	if want := "data:image/png;base64,cG5n"; got.Icons["small.example.org"] != want || len(got.Icons) != 1 {
+		t.Errorf("icons = %v, want small.example.org as %s", got.Icons, want)
+	}
+	for name, part := range map[string][]string{"large": got.Large, "pending": got.Pending, "none": got.None} {
+		if len(part) != 1 {
+			t.Errorf("%s = %v, want one host", name, part)
+		}
+	}
+	if got.RetryAfter <= 0 {
+		t.Errorf("retryAfter = %d, want a pause", got.RetryAfter)
+	}
+	if cc := rec.Header().Get("Cache-Control"); cc != "no-store" {
+		t.Errorf("Cache-Control = %q, want no-store", cc)
+	}
+}
+
+// TestABatchOfIconsStopsAtItsLimit: any host name starts a fetch, so one
+// request may not start more than a screenful.
+func TestABatchOfIconsStopsAtItsLimit(t *testing.T) {
+	t.Parallel()
+	asked := 0
+	lookup := func(string) ([]byte, string, error) {
+		asked++
+		return nil, "", app.ErrIconPending
+	}
+	q := url.Values{}
+	for i := range 3 * iconBatchMax {
+		q.Add("host", fmt.Sprintf("h%d.example.org", i))
+	}
+	hosterIconsHandler(lookup)(httptest.NewRecorder(), httptest.NewRequest(http.MethodGet, "/api/hosters/icons?"+q.Encode(), nil))
+	if asked != iconBatchMax {
+		t.Errorf("looked up %d hosts, want %d", asked, iconBatchMax)
 	}
 }

@@ -1,7 +1,18 @@
 import { useEffect, useRef, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import type { SVGProps } from 'react';
-import { Button, Card, ErrorCard, IconBadge, InfoBubble, LoadingCard, PageHeader, SectionTitle, TextInput } from '../../components/ui';
+import {
+  Button,
+  Card,
+  ErrorCard,
+  IconBadge,
+  InfoBubble,
+  LoadingCard,
+  PageHeader,
+  SectionTitle,
+  TextInput,
+} from '../../components/ui';
+import { PictureSwitch, usePictureView } from '../../components/pictures/PictureSwitch';
+import { RuleSwitch, wayOf, type Landing, type Way } from '../../components/pictures/RuleSwitch';
 import {
   RuleEditor,
   Segments,
@@ -11,18 +22,19 @@ import {
   ruleSummary,
   type Flavour,
   type Grammar,
+  type LinkReport,
   type Problem,
   type Report,
   type Rule,
   type RuleSet,
 } from '../../components/RuleEditor';
-import { IconArrowDown, IconArrowUp, IconPlus, IconTrash } from '../../lib/icons';
+import { IconAdd, IconCopy, IconMoveDown, IconMoveUp, IconTrash } from '../../lib/icons';
 import type { Category as Drawer } from '../../lib/api';
 import { rejectionReason } from '../../lib/rejectionReason';
-import { useT } from '../../lib/i18n';
+import { useT, type TranslationKey } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
-import { NeutralSwitch, RowRefusal } from './controls';
+import { NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
 import { usePendingJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -31,8 +43,10 @@ import { ModuleToggle } from './ModuleToggle';
  * lists are part of the settings draft; the grammar and dry-run routes store
  * nothing. Compile runs on every edit and its problems are drawn on the rule
  * and condition that caused them, and a test box shows what a pasted link
- * would do before anything is saved. The categories follow on the same page,
- * since a Packagizer rule naming a category that does not exist is refused.
+ * would do before anything is saved. The list is drawn as the way the first
+ * sample takes through it, with the plain list behind a selector. The
+ * categories follow on the same page, since a Packagizer rule naming a
+ * category that does not exist is refused.
  */
 
 const FIELD: Record<Flavour, 'packagizer' | 'linkFilter'> = {
@@ -54,13 +68,6 @@ interface Sample {
 }
 
 const emptySample = (): Sample => ({ url: '', filename: '', source: '', size: '', pkg: '' });
-
-const IconDuplicate = (p: SVGProps<SVGSVGElement>) => (
-  <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.4" aria-hidden {...p}>
-    <rect x="5.5" y="5.5" width="8" height="8" rx="1.6" />
-    <path d="M10.5 2.5H4a1.5 1.5 0 0 0-1.5 1.5v6.5" />
-  </svg>
-);
 
 export function Rules() {
   const { t } = useT();
@@ -87,9 +94,11 @@ function RuleCards() {
   const [previewError, setPreviewError] = useState('');
   const [notice, setNotice] = useState('');
   const fileInput = useRef<HTMLInputElement>(null);
+  const [view, setView] = usePictureView('rules.listView');
 
   const set = readSet(cfg, flavour);
   const rules = set.rules ?? [];
+  const downloadDir = (cfg as { downloadDir?: string }).downloadDir ?? '';
 
   const write = (next: RuleSet) =>
     patch({ [FIELD[flavour]]: next } as unknown as Parameters<typeof patch>[0]);
@@ -209,6 +218,16 @@ function RuleCards() {
 
   const problemsFor = (index: number): Problem[] =>
     report?.rules.find((r) => r.index === index)?.problems ?? [];
+  const nameOf = (index: number) => rules[index].name?.trim() || t('settings.rules.unnamed', { n: index + 1 });
+
+  // The picture follows the first sample of the test box. A report made for
+  // another number of rules is the one before an edit, and its positions
+  // would point at the wrong rules.
+  const sample = samples[0];
+  const sampleField = (fields: Partial<Sample>) => setSamples(samples.map((s, i) => (i === 0 ? { ...s, ...fields } : s)));
+  const sampled = sample.url.trim() !== '' || sample.filename.trim() !== '';
+  const link = sampled && report?.rules.length === rules.length ? report.links[0] : undefined;
+  const way = link ? wayOf(link, rules, Boolean(set.stopAfterMatch), flavour) : null;
 
   const move = (index: number, by: number) => {
     const to = index + by;
@@ -301,7 +320,8 @@ function RuleCards() {
       <Card hue={1} className="flex flex-col gap-4">
         <SectionTitle
           right={
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+              {rules.length > 0 && <PictureSwitch view={view} onView={setView} />}
               {/* One bubble per button, since Import and Export do different things. */}
               <Button kind="secondary" hint={t('settings.rules.importTitle')} onClick={() => fileInput.current?.click()}>
                 {t('settings.rules.import')}
@@ -309,7 +329,7 @@ function RuleCards() {
               <Button kind="secondary" hint={t('settings.rules.exportTitle')} onClick={exportJSON}>
                 {t('settings.rules.export')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.rules.add')}
               </Button>
             </div>
@@ -331,37 +351,63 @@ function RuleCards() {
           }}
         />
 
-        {notice && <p className="text-[11px] text-carbon-textSub">{notice}</p>}
+        {notice && <p className="text-meta text-carbon-textSub">{notice}</p>}
         {previewError && (
-          <p className="text-[11px] text-statusFail">{t('settings.rules.testFailed', { reason: previewError })}</p>
+          <p className="text-meta text-statusFail">{t('settings.rules.testFailed', { reason: previewError })}</p>
         )}
 
         {rules.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.rules.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">
+            <span className="mt-1 block text-meta text-carbon-textMuted">
               {flavour === 'packagizer'
                 ? t('settings.rules.emptyPackagizer')
                 : t('settings.rules.emptyFilter')}
             </span>
           </p>
+        ) : view === 'picture' ? (
+          <>
+            {/* Most rules read the file name, which a link does not say by itself. */}
+            <div className="flex flex-col gap-3">
+              <SettingRow
+                control="long"
+                label={t('settings.rules.testUrl')}
+                hint={t('picture.rules.sampleHint', { name: t('settings.rules.testTitle') })}
+              >
+                <TextInput dir="ltr" value={sample.url} spellCheck={false} onChange={(e) => sampleField({ url: e.target.value })} />
+              </SettingRow>
+              <SettingRow control="long" label={t('settings.rules.testFilename')}>
+                <TextInput
+                  dir="ltr"
+                  value={sample.filename}
+                  spellCheck={false}
+                  onChange={(e) => sampleField({ filename: e.target.value })}
+                />
+              </SettingRow>
+            </div>
+            <RuleSwitch
+              label={t('settings.rules.listTitle')}
+              rules={rules.map((rule, i) => ({ name: nameOf(i), skipped: skippedFor(t, rule, problemsFor(i)) }))}
+              way={way}
+              landing={link && way ? landingOf(t, link, way, flavour, cfg.categories ?? [], downloadDir) : null}
+              off={Boolean(set.disabled)}
+              onOpen={setOpenRule}
+            />
+          </>
         ) : (
-          <ul className="flex flex-col">
+          <ul data-new="row-window" className="flex flex-col">
             {rules.map((rule, i) => (
               <RuleRow
                 key={i}
                 rule={rule}
                 index={i}
                 last={i === rules.length - 1}
-                open={openRule === i}
                 flavour={flavour}
-                grammar={grammar}
                 problems={problemsFor(i)}
                 matched={report?.rules.find((r) => r.index === i)?.matched ?? 0}
                 samples={report?.links.length ?? 0}
-                categories={cfg.categories ?? []}
-                onToggle={() => setOpenRule(openRule === i ? -1 : i)}
+                onOpen={() => setOpenRule(i)}
                 onChange={(next) => writeRules(rules.map((r, j) => (j === i ? next : r)))}
                 onMove={(by) => move(i, by)}
                 onDuplicate={() => duplicate(i)}
@@ -370,6 +416,21 @@ function RuleCards() {
             ))}
           </ul>
         )}
+
+        {/* Here rather than in the row, so a station of the picture opens it too. */}
+        {openRule >= 0 && openRule < rules.length && (
+          <Sheet title={nameOf(openRule)} hue={openRule} wide onClose={() => setOpenRule(-1)}>
+            {problemsFor(openRule).length > 0 && <p className="text-meta text-statusFail">{t('settings.rules.notRunning')}</p>}
+            <RuleEditor
+              rule={rules[openRule]}
+              flavour={flavour}
+              grammar={grammar}
+              problems={problemsFor(openRule)}
+              categories={cfg.categories ?? []}
+              onChange={(next) => writeRules(rules.map((r, j) => (j === openRule ? next : r)))}
+            />
+          </Sheet>
+        )}
       </Card>
 
       <TestBox
@@ -377,10 +438,50 @@ function RuleCards() {
         samples={samples}
         setSamples={setSamples}
         report={report}
-        downloadDir={(cfg as { downloadDir?: string }).downloadDir ?? ''}
+        downloadDir={downloadDir}
       />
     </>
   );
+}
+
+type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
+
+/** skippedFor says why the engine never asks a rule, or nothing for a rule that runs. */
+function skippedFor(t: Translate, rule: Rule, problems: Problem[]): string | undefined {
+  if (rule.disabled) return t('settings.modules.off');
+  if (problems.length === 1) return t('settings.rules.problemOne');
+  return problems.length > 1 ? t('settings.rules.problemCount', { n: problems.length }) : undefined;
+}
+
+/**
+ * landingOf is where a sample ends up. The folder is the one a rule named,
+ * then its category's own, then the download folder, which is the order the
+ * rule editor states; a subfolder per package is not worked out here.
+ */
+function landingOf(
+  t: Translate,
+  link: LinkReport,
+  way: Way,
+  flavour: Flavour,
+  categories: Drawer[],
+  downloadDir: string,
+): Landing {
+  const unmatched = way.matched.length === 0 ? t('settings.rules.resultNone') : undefined;
+  if (flavour === 'filter') {
+    return way.rejected
+      ? {
+          kind: 'rejected',
+          title: t('settings.rules.resultRejected'),
+          note: rejectionReason(t, link.verdict.code, link.verdict.params, link.verdict.reason),
+        }
+      : { kind: 'taken', title: t('settings.rules.resultAccepted'), note: unmatched };
+  }
+  const drawer = categories.find((c) => c.id === link.effect.category);
+  return {
+    kind: 'folder',
+    title: link.effect.dir || drawer?.dir || downloadDir || t('settings.rules.folderFromSettings'),
+    note: drawer ? `${actionLabel(t, 'category')}: ${drawer.name || drawer.id}` : unmatched,
+  };
 }
 
 /**
@@ -408,14 +509,11 @@ function RuleRow({
   rule,
   index,
   last,
-  open,
   flavour,
-  grammar,
   problems,
   matched,
   samples,
-  categories,
-  onToggle,
+  onOpen,
   onChange,
   onMove,
   onDuplicate,
@@ -424,14 +522,11 @@ function RuleRow({
   rule: Rule;
   index: number;
   last: boolean;
-  open: boolean;
   flavour: Flavour;
-  grammar: Grammar;
   problems: Problem[];
   matched: number;
   samples: number;
-  categories: Drawer[];
-  onToggle: () => void;
+  onOpen: () => void;
   onChange: (next: Rule) => void;
   onMove: (by: number) => void;
   onDuplicate: () => void;
@@ -439,10 +534,13 @@ function RuleRow({
 }) {
   const { t } = useT();
   const broken = problems.length > 0;
+  const name = rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 });
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own where the card is too
+          narrow for them beside the summary. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch
           on={!rule.disabled}
           onChange={(v) => onChange({ ...rule, disabled: !v })}
@@ -451,29 +549,27 @@ function RuleRow({
         />
         <button
           type="button"
-          onClick={onToggle}
-          aria-expanded={open}
-          className="flex min-w-0 items-center gap-3 text-start"
+          onClick={onOpen}
+          aria-haspopup="dialog"
+          className="flex min-w-0 flex-1 basis-48 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
-            <span className="block truncate text-sm text-carbon-text">
-              {rule.name?.trim() || t('settings.rules.unnamed', { n: index + 1 })}
-            </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-sm text-carbon-text">{name}</span>
+            <span className="block truncate text-meta text-carbon-textMuted">
               {ruleSummary(t, rule, flavour)}
             </span>
           </span>
           {/* Shown only once there are samples, or "0 of 0" reads as broken. */}
           {samples > 0 && !broken && (
-            <span className="glim-num hidden shrink-0 text-[11px] text-carbon-textMuted sm:block">
+            <span className="glim-num hidden shrink-0 text-meta text-carbon-textMuted sm:block">
               {t('settings.rules.matchedCount', { n: matched, total: samples })}
             </span>
           )}
-          {/* Red reports the rule's state; it sits inside the expand button,
+          {/* Red reports the rule's state; it sits inside the row's button,
               whose own classes carry no status colour. */}
           {broken && (
-            <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-[11px] text-statusFail">
+            <span className="shrink-0 rounded-[var(--radius-pill)] bg-statusFailBg px-2 py-0.5 text-meta text-statusFail">
               {problems.length === 1
                 ? t('settings.rules.problemOne')
                 : t('settings.rules.problemCount', { n: problems.length })}
@@ -482,10 +578,10 @@ function RuleRow({
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the name
             and summary truncate instead. */}
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveUp')}
             aria-label={t('settings.rules.moveUp')}
@@ -494,7 +590,7 @@ function RuleRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.rules.moveDown')}
             aria-label={t('settings.rules.moveDown')}
@@ -503,7 +599,7 @@ function RuleRow({
           />
           <IconBadge
             labelled
-            icon={<IconDuplicate width={16} height={16} />}
+            icon={<IconCopy width={16} height={16} />}
             hue={index}
             title={t('settings.rules.duplicate')}
             aria-label={t('settings.rules.duplicate')}
@@ -520,26 +616,10 @@ function RuleRow({
         </div>
       </div>
 
-      {/* Shown on a closed rule too, so a broken one is found without opening
-          each. The engine drops a rule with any problem whole. */}
-      {broken && !open && (
-        <p className="pb-2.5 ps-12 text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>
-      )}
+      {/* On the row, so a broken rule is found without opening each. The
+          engine drops a rule with any problem whole. */}
+      {broken && <p className="pb-2.5 ps-12 text-meta text-statusFail">{t('settings.rules.notRunning')}</p>}
       <RowRefusal field={`${FIELD[flavour]}.rules.${index}`} className="ps-12" />
-
-      {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
-          {broken && <p className="text-[11px] text-statusFail">{t('settings.rules.notRunning')}</p>}
-          <RuleEditor
-            rule={rule}
-            flavour={flavour}
-            grammar={grammar}
-            problems={problems}
-            categories={categories}
-            onChange={onChange}
-          />
-        </div>
-      )}
     </li>
   );
 }
@@ -570,7 +650,7 @@ function TestBox({
     <Card hue={2} className="flex flex-col gap-4">
       <SectionTitle
         right={
-          <Button kind="secondary" icon={<IconPlus width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setSamples([...samples, emptySample()])}>
             {t('settings.rules.testAdd')}
           </Button>
         }
@@ -634,7 +714,7 @@ function TestBox({
               onClick={() => setSamples(samples.filter((_, j) => j !== i))}
             />
           </div>
-          <div className="flex items-center gap-3 text-[11px] text-carbon-textMuted">
+          <div className="flex items-center gap-3 text-meta text-carbon-textMuted">
             <span className="flex items-center">
               {t('settings.rules.testSource')}
               <InfoBubble tip={t('settings.rules.testSourceHint')} />
@@ -667,7 +747,7 @@ function Outcomes({
 }) {
   const { t } = useT();
   if (!report || report.links.length === 0) {
-    return <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.testEmpty')}</p>;
+    return <p className="text-meta text-carbon-textMuted">{t('settings.rules.testEmpty')}</p>;
   }
 
   return (
@@ -697,7 +777,7 @@ function Outcomes({
           <li key={i} className="glim-well flex flex-col gap-1.5 p-3 text-xs">
             <div className="flex flex-wrap items-center gap-2">
               <span
-                className={`rounded-[var(--radius-pill)] px-2 py-0.5 text-[11px] ${
+                className={`rounded-[var(--radius-pill)] px-2 py-0.5 text-meta ${
                   rejected ? 'bg-statusFailBg text-statusFail' : 'text-carbon-textSub'
                 }`}
               >
@@ -709,7 +789,7 @@ function Outcomes({
             </div>
 
             {rejected && (
-              <p className="text-[11px] text-statusFail">
+              <p className="text-meta text-statusFail">
                 {rejectionReason(t, l.verdict.code, l.verdict.params, l.verdict.reason)}
                 {/* The engine's own reason already names the rule. */}
                 {l.verdict.rule && !l.verdict.reason?.includes(l.verdict.rule)
@@ -718,7 +798,7 @@ function Outcomes({
               </p>
             )}
 
-            <p className="text-[11px] text-carbon-textSub">
+            <p className="text-meta text-carbon-textSub">
               {names.length === 0
                 ? t('settings.rules.resultNone')
                 : `${t('settings.rules.resultMatched')}: ${names.join(' → ')}`}
@@ -727,7 +807,7 @@ function Outcomes({
             {/* Shown for a link the filter rejects too: it is what the other
                 list would do. */}
             {flavour === 'packagizer' && (
-              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-[11px]">
+              <dl className="grid grid-cols-[auto_1fr] gap-x-3 gap-y-0.5 text-meta">
                 <dt className="text-carbon-textMuted">{t('settings.rules.resultPackage')}</dt>
                 <dd dir="ltr" className="truncate text-carbon-text">
                   {l.result.package || '-'}
@@ -762,7 +842,7 @@ function Outcomes({
           </li>
         );
       })}
-      {report.disabled && <li className="text-[11px] text-carbon-textMuted">{t('settings.rules.setOff')}</li>}
+      {report.disabled && <li className="text-meta text-carbon-textMuted">{t('settings.rules.setOff')}</li>}
     </ul>
   );
 }

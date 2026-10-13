@@ -13,11 +13,12 @@ import {
   type Settings,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { IconClose, IconMenu, IconRetry } from '../lib/icons';
+import { IconClose, IconMenu, IconRefresh } from '../lib/icons';
 import { useQuietMode, useToast } from '../lib/toast';
 import { openWindow } from '../lib/windowStack';
 import { IdleActionPicker } from '../pages/settings/automation/IdleAction';
 import { ScheduleSuspendField } from '../pages/settings/automation/ScheduleSuspend';
+import { SettingRow } from '../pages/settings/controls';
 import { ChunksField, MaxConcurrentField, MaxPerHostField } from '../pages/settings/downloads/Concurrency';
 import { SpeedLimitField } from '../pages/settings/downloads/SpeedLimit';
 import { UploadLimitField } from '../pages/settings/torrents/UploadLimit';
@@ -31,7 +32,7 @@ import {
 } from '../pages/settings/Reconnect';
 import { label } from '../pages/settings/tx';
 import { METER_WINDOW, meterWindow, useMeterWindow } from './SpeedGraph';
-import { Button, Field, SectionTitle, ToggleRow, UnitNumberInput, type FieldUnit } from './ui';
+import { Button, SectionTitle, ToggleRow, UnitNumberInput, type FieldUnit } from './ui';
 
 type Patch = (fields: Partial<Settings>) => void;
 type Translate = ReturnType<typeof useT>['t'];
@@ -66,7 +67,7 @@ interface QuickRow {
 }
 
 /** The settings type leaves the torrent block out, as the Torrents page notes. */
-type TorrentBlock = { torrent?: Record<string, unknown> & { uploadLimitKiBs?: number } };
+type TorrentBlock = { torrent?: Record<string, unknown> & { uploadLimit?: number } };
 
 // What people reach for while downloads run comes first: how fast and how many,
 // then the timetable and what happens once the queue is empty, then the two
@@ -87,9 +88,9 @@ const ROWS: QuickRow[] = [
       const torrent = (cfg as TorrentBlock).torrent ?? {};
       return (
         <UploadLimitField
-          value={torrent.uploadLimitKiBs ?? 0}
-          onValue={(uploadLimitKiBs) =>
-            patch({ torrent: { ...torrent, uploadLimitKiBs } } as unknown as Partial<Settings>)
+          value={torrent.uploadLimit ?? 0}
+          onValue={(uploadLimit) =>
+            patch({ torrent: { ...torrent, uploadLimit } } as unknown as Partial<Settings>)
           }
         />
       );
@@ -200,7 +201,7 @@ function IdleRow({ cfg, patch, actions, close }: { cfg: Settings; patch: Patch; 
   return (
     <div className="flex flex-col gap-2">
       <IdleActionPicker
-        size="sm"
+        menu
         actions={actions}
         value={action}
         onValue={(id) => patch({ idleAction: { ...cfg.idleAction, action: id } })}
@@ -253,7 +254,7 @@ function SpeedWindowRow() {
   const { t } = useT();
   const [seconds, setSeconds] = useMeterWindow();
   return (
-    <Field label={t('overview.speedWindow')} hint={t('quick.speedWindowHint')}>
+    <SettingRow control="short" label={t('overview.speedWindow')} hint={t('quick.speedWindowHint')}>
       <UnitNumberInput
         value={seconds}
         units={WINDOW_UNITS}
@@ -262,7 +263,7 @@ function SpeedWindowRow() {
         snap={meterWindow}
         onValue={setSeconds}
       />
-    </Field>
+    </SettingRow>
   );
 }
 
@@ -321,7 +322,7 @@ function ReconnectRow({
       {blocked?.way}
       <Button
         kind="secondary"
-        icon={<IconRetry width={16} height={16} />}
+        icon={<IconRefresh width={16} height={16} />}
         hint={blocked?.reason ?? t('quick.reconnectHint')}
         disabled={busy || blocked !== null}
         onClick={() => void run()}
@@ -576,7 +577,7 @@ export function QuickSettings() {
 
   return (
     <>
-      <span ref={wrap} className="inline-flex">
+      <span ref={wrap} data-new="quick-rows" className="inline-flex">
         {/* Sized with Play, Pause and Stop, since controls in one row share one box. */}
         <Button
           kind={open ? 'primary' : 'secondary'}
@@ -616,7 +617,9 @@ export function QuickSettings() {
               maxHeight: at?.maxHeight,
               visibility: placed ? undefined : 'hidden',
             }}
-            className="glim-card fixed flex w-[24rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
+            // Wide enough for the longest name and the widest control on one
+            // line, so every row reads as on its settings page.
+            className="glim-card fixed flex w-[36rem] max-w-[calc(100vw-1rem)] flex-col gap-5 p-5 outline-none"
           >
             <SectionTitle>{title}</SectionTitle>
             {cfg && extras && (

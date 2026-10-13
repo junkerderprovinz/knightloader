@@ -1,23 +1,24 @@
 import { useCallback, useEffect, useState } from 'react';
 import {
-  Button,
   Card,
   Field,
-  FieldGroup,
   NumberInput,
   PageHeader,
   SectionTitle,
   TextInput,
   ToggleRow,
   UnitNumberInput,
+  type ButtonVerdict,
 } from '../../components/ui';
+import { SeedGauge } from '../../components/pictures/SeedRing';
 import { Tabs } from '../../components/Tabs';
-import type { TorrentFileRules } from '../../lib/api';
+import { TestButton } from '../../components/TestButton';
+import { fetchTorrentOverview, type TorrentFileRules } from '../../lib/api';
 import { happened } from '../../lib/countdown';
-import { fmtDate } from '../../lib/format';
+import { SIZE_UNITS, fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
-import { ListArea, RowRefusal } from './controls';
+import { ListArea, RowRefusal, SettingRow, SubCard } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 import { InterfaceField } from './torrents/Interface';
 import { UploadLimitField } from './torrents/UploadLimit';
@@ -34,7 +35,7 @@ import { UploadLimitField } from './torrents/UploadLimit';
 interface TorrentSettings {
   seedRatioTarget: number;
   seedDurationSeconds: number;
-  uploadLimitKiBs: number;
+  uploadLimit: number;
   port: number;
   dhtEnabled: boolean;
   pexEnabled: boolean;
@@ -72,7 +73,7 @@ const REDACTED = '********';
 const DEFAULTS: TorrentSettings = {
   seedRatioTarget: 1,
   seedDurationSeconds: 2 * 60 * 60,
-  uploadLimitKiBs: 0,
+  uploadLimit: 0,
   port: 0,
   dhtEnabled: true,
   pexEnabled: true,
@@ -93,15 +94,6 @@ const DEFAULTS: TorrentSettings = {
 
 // A day, as settings.maxDebridStallMinutes caps it.
 const DEBRID_STALL_MAX = 24 * 60;
-
-const KIB = 1024;
-
-// A file size is entered like a speed, without the "/s".
-const SIZE_UNITS = [
-  { label: 'KiB', factor: KIB, step: 256 * KIB },
-  { label: 'MiB', factor: KIB ** 2, step: KIB ** 2 },
-  { label: 'GiB', factor: KIB ** 3, step: KIB ** 3 },
-] as const;
 
 function readTorrent(cfg: unknown): TorrentSettings {
   const tr = (cfg as { torrent?: Partial<TorrentSettings> }).torrent ?? {};
@@ -125,6 +117,20 @@ export function Torrents() {
   // Stored in seconds, shown in hours.
   const seedHours = Math.round(tr.seedDurationSeconds / 3600);
 
+  // What all torrents together have given back, which the ring holds against
+  // the target as it is typed. Read once: the overview follows it live.
+  const [ratio, setRatio] = useState(0);
+  useEffect(() => {
+    let live = true;
+    void fetchTorrentOverview().then(
+      (o) => live && setRatio(o.ratio),
+      () => undefined,
+    );
+    return () => {
+      live = false;
+    };
+  }, []);
+
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('settings.torrents.title')} />
@@ -132,8 +138,13 @@ export function Torrents() {
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.seedingTitle')}</SectionTitle>
         <ModuleToggle id="torrents" />
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field label={t('settings.torrents.seedRatio')} hint={t('settings.torrents.seedRatioHint')}>
+        <SeedGauge ratio={ratio} target={tr.seedRatioTarget} />
+        <div className="flex flex-col gap-4">
+          <SettingRow
+            control="short"
+            label={t('settings.torrents.seedRatio')}
+            hint={t('settings.torrents.seedRatioHint')}
+          >
             <NumberInput
               value={tr.seedRatioTarget}
               min={0}
@@ -141,8 +152,12 @@ export function Torrents() {
               step={0.1}
               onValue={(v) => write({ seedRatioTarget: Math.max(0, v) })}
             />
-          </Field>
-          <Field label={t('settings.torrents.seedDuration')} hint={t('settings.torrents.seedDurationHint')}>
+          </SettingRow>
+          <SettingRow
+            control="short"
+            label={t('settings.torrents.seedDuration')}
+            hint={t('settings.torrents.seedDurationHint')}
+          >
             <div className="flex items-center gap-2">
               <NumberInput
                 value={seedHours}
@@ -154,18 +169,16 @@ export function Torrents() {
                 {t('settings.torrents.seedDurationUnit')}
               </span>
             </div>
-          </Field>
+          </SettingRow>
         </div>
+        {/* How fast it is given back stands with how much. */}
+        <UploadLimitField value={tr.uploadLimit} onValue={(uploadLimit) => write({ uploadLimit })} />
       </Card>
 
       <Card hue={1} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.torrents.transferTitle')}</SectionTitle>
-        <UploadLimitField value={tr.uploadLimitKiBs} onValue={(uploadLimitKiBs) => write({ uploadLimitKiBs })} />
-      </Card>
-
-      <Card hue={2} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.portTitle')}</SectionTitle>
-        <Field
+        <SettingRow
+          control="short"
           label={t('settings.torrents.port')}
           hint={[
             t('settings.torrents.portHint'),
@@ -179,12 +192,12 @@ export function Torrents() {
             max={65535}
             onValue={(v) => write({ port: Math.max(0, Math.min(65535, v)) })}
           />
-        </Field>
+        </SettingRow>
         <PortMapPanel port={tr.port} />
         <InterfaceField value={tr.interface} onValue={(name) => write({ interface: name })} />
       </Card>
 
-      <Card hue={3} className="flex flex-col gap-4">
+      <Card hue={2} className="flex flex-col gap-4">
         <SectionTitle hint={t('settings.torrents.privateNote')}>{t('settings.torrents.networkTitle')}</SectionTitle>
         <ToggleRow
           checked={tr.dhtEnabled}
@@ -200,7 +213,7 @@ export function Torrents() {
         />
       </Card>
 
-      <Card hue={4} className="flex flex-col gap-5">
+      <Card hue={3} className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.torrents.filesHint')}>{t('settings.torrents.filesTitle')}</SectionTitle>
         <FileSelectionFields
           rules={{ minFileSize: tr.minFileSize, includeFiles: tr.includeFiles, excludeFiles: tr.excludeFiles }}
@@ -209,7 +222,7 @@ export function Torrents() {
         />
       </Card>
 
-      <Card hue={5} className="flex flex-col gap-5">
+      <Card hue={4} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.trackersTitle')}</SectionTitle>
         <LinesField
           lines={tr.extraTrackers}
@@ -219,7 +232,11 @@ export function Torrents() {
           onLines={(extraTrackers) => write({ extraTrackers })}
         />
         <div className="flex flex-col gap-1.5">
-          <Field label={t('settings.torrents.trackerList')} hint={t('settings.torrents.trackerListHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.torrents.trackerList')}
+            hint={t('settings.torrents.trackerListHint')}
+          >
             <TextInput
               type="url"
               dir="ltr"
@@ -228,7 +245,7 @@ export function Torrents() {
               value={tr.trackerListUrl}
               onChange={(e) => write({ trackerListUrl: e.target.value })}
             />
-          </Field>
+          </SettingRow>
           <RowRefusal field="torrent.trackerListUrl" className="pb-0" />
           <TrackerListStatus saved={readTorrent(saved).trackerListUrl.trim()} />
         </div>
@@ -241,7 +258,7 @@ export function Torrents() {
         />
       </Card>
 
-      <Card hue={6} className="flex flex-col gap-4">
+      <Card hue={5} className="flex flex-col gap-4">
         <SectionTitle hint={t('settings.torrents.debridHint')}>{t('settings.torrents.debridTitle')}</SectionTitle>
         <ToggleRow
           checked={tr.keepOnService}
@@ -255,7 +272,11 @@ export function Torrents() {
           label={t('settings.torrents.cachedOnly')}
           hint={t('settings.torrents.cachedOnlyHint')}
         />
-        <Field label={t('settings.torrents.debridStall')} hint={t('settings.torrents.debridStallHint')}>
+        <SettingRow
+          control="short"
+          label={t('settings.torrents.debridStall')}
+          hint={t('settings.torrents.debridStallHint')}
+        >
           <div className="flex items-center gap-2">
             <NumberInput
               value={tr.debridStallMinutes}
@@ -267,7 +288,7 @@ export function Torrents() {
               {t('settings.torrents.debridStallUnit')}
             </span>
           </div>
-        </Field>
+        </SettingRow>
         <ToggleRow
           checked={tr.seedAfterDebrid}
           onChange={(v) => write({ seedAfterDebrid: v })}
@@ -275,9 +296,12 @@ export function Torrents() {
           hint={t('settings.torrents.seedAfterDebridHint')}
         />
         {tr.seedAfterDebrid && (
-          <FieldGroup layout="row" label={t('settings.torrents.seedIn')} hint={t('settings.torrents.seedInHint')}>
+          <SettingRow label={t('settings.torrents.seedIn')} hint={t('settings.torrents.seedInHint')}>
             <Tabs
               variant="well"
+              size="sm"
+              inline
+              hug
               label={t('settings.torrents.seedIn')}
               active={tr.seedIn === 'qbittorrent' ? 'qbittorrent' : 'builtin'}
               onSelect={(seedIn) => write({ seedIn: seedIn as TorrentSettings['seedIn'] })}
@@ -286,7 +310,7 @@ export function Torrents() {
                 { id: 'qbittorrent', label: t('settings.torrents.seedIn.qbittorrent') },
               ]}
             />
-          </FieldGroup>
+          </SettingRow>
         )}
         {tr.seedAfterDebrid && tr.seedIn === 'qbittorrent' && (
           <QBittorrentFields
@@ -319,16 +343,20 @@ export function FileSelectionFields({
   const { t } = useT();
   return (
     <>
-      {/* Stored in bytes, so a sample of 40 MiB is as easy to write as an
-          .nfo of 3 KiB. */}
-      <Field label={t('settings.torrents.minFileSize')} hint={t('settings.torrents.minFileSizeHint')}>
+      {/* Stored in bytes, so a sample of 40 MB is as easy to write as an
+          .nfo of 3 kB. */}
+      <SettingRow
+        control="short"
+        label={t('settings.torrents.minFileSize')}
+        hint={t('settings.torrents.minFileSizeHint')}
+      >
         <UnitNumberInput
           value={rules.minFileSize}
           units={SIZE_UNITS}
           snap={(bytes) => Math.round(bytes)}
           onValue={(minFileSize) => onChange({ ...rules, minFileSize })}
         />
-      </Field>
+      </SettingRow>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         <LinesField
           lines={rules.includeFiles}
@@ -367,10 +395,12 @@ function QBittorrentFields({
 }) {
   const { t } = useT();
   const stored = q.password === REDACTED && q.url.trim() === savedUrl.trim();
+  // The program's name, which the selector above offers under the same word.
+  const name = t('settings.torrents.seedIn.qbittorrent');
   return (
-    <div className="flex flex-col gap-4">
+    <SubCard label={name}>
       <div className="flex flex-col gap-1.5">
-        <Field label={t('settings.torrents.qbitUrl')} hint={t('settings.torrents.qbitUrlHint')}>
+        <SettingRow control="long" label={t('settings.torrents.qbitUrl')} hint={t('settings.torrents.qbitUrlHint')}>
           <TextInput
             type="url"
             dir="ltr"
@@ -379,11 +409,15 @@ function QBittorrentFields({
             value={q.url}
             onChange={(e) => onChange({ url: e.target.value })}
           />
-        </Field>
+        </SettingRow>
         <RowRefusal field="torrent.qbittorrent.url" className="pb-0" />
       </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('settings.torrents.qbitUsername')} hint={t('settings.torrents.qbitUsernameHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitUsername')}
+          hint={t('settings.torrents.qbitUsernameHint')}
+        >
           <TextInput
             dir="ltr"
             autoComplete="off"
@@ -391,8 +425,12 @@ function QBittorrentFields({
             value={q.username}
             onChange={(e) => onChange({ username: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitPassword')} hint={t('settings.torrents.qbitPasswordHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitPassword')}
+          hint={t('settings.torrents.qbitPasswordHint')}
+        >
           <TextInput
             type="password"
             dir="ltr"
@@ -401,16 +439,24 @@ function QBittorrentFields({
             placeholder={stored ? t('settings.torrents.qbitPasswordStored') : ''}
             onChange={(e) => onChange({ password: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitCategory')} hint={t('settings.torrents.qbitCategoryHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitCategory')}
+          hint={t('settings.torrents.qbitCategoryHint')}
+        >
           <TextInput
             dir="ltr"
             spellCheck={false}
             value={q.category}
             onChange={(e) => onChange({ category: e.target.value })}
           />
-        </Field>
-        <Field label={t('settings.torrents.qbitDownloadsPath')} hint={t('settings.torrents.qbitDownloadsPathHint')}>
+        </SettingRow>
+        <SettingRow
+          control="long"
+          label={t('settings.torrents.qbitDownloadsPath')}
+          hint={t('settings.torrents.qbitDownloadsPathHint')}
+        >
           <TextInput
             dir="ltr"
             spellCheck={false}
@@ -418,10 +464,10 @@ function QBittorrentFields({
             value={q.downloadsPath}
             onChange={(e) => onChange({ downloadsPath: e.target.value })}
           />
-        </Field>
+        </SettingRow>
       </div>
       <QBittorrentTest q={q} />
-    </div>
+    </SubCard>
   );
 }
 
@@ -432,12 +478,11 @@ function QBittorrentFields({
  */
 function QBittorrentTest({ q }: { q: QBittorrentSettings }) {
   const { t } = useT();
-  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<{ version?: string; error?: string } | null>(null);
 
-  async function run() {
-    setBusy(true);
+  async function run(): Promise<ButtonVerdict> {
     setResult(null);
+    let answer: { version?: string; error?: string };
     try {
       const r = await fetch('/api/torrents/qbittorrent/test', {
         method: 'POST',
@@ -445,27 +490,33 @@ function QBittorrentTest({ q }: { q: QBittorrentSettings }) {
         body: JSON.stringify(q),
       });
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      setResult((await r.json()) as { version?: string; error?: string });
+      answer = (await r.json()) as { version?: string; error?: string };
     } catch (e) {
-      setResult({ error: String(e).replace(/^(Error|TypeError):\s*/, '') });
-    } finally {
-      setBusy(false);
+      answer = { error: String(e).replace(/^(Error|TypeError):\s*/, '') };
     }
+    setResult(answer);
+    return answer.version ? 'ok' : 'fail';
   }
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="flex flex-wrap items-center gap-3">
-        <Button kind="secondary" disabled={busy} hint={t('settings.torrents.qbitTestHint')} onClick={() => void run()}>
-          {busy ? t('settings.torrents.qbitTesting') : t('settings.torrents.qbitTest')}
-        </Button>
-      </div>
+      {/* Which version answered, or why none did; the button holds the answer. */}
       {result?.version && (
-        <p className="text-xs text-statusOk">{t('settings.torrents.qbitTestOk', { version: result.version })}</p>
+        <p className="text-xs text-carbon-textSub">{t('settings.torrents.qbitTestOk', { version: result.version })}</p>
       )}
       {result?.error && (
-        <p className="text-xs text-statusFail">{t('settings.torrents.qbitTestFailed', { error: result.error })}</p>
+        <p className="text-xs text-carbon-textSub">{t('settings.torrents.qbitTestFailed', { error: result.error })}</p>
       )}
+      <div className="flex flex-wrap items-center gap-3">
+        <TestButton
+          label={t('settings.torrents.qbitTest')}
+          busyLabel={t('settings.torrents.qbitTesting')}
+          hint={t('settings.torrents.qbitTestHint')}
+          words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+          run={run}
+          resetKey={JSON.stringify(q)}
+        />
+      </div>
     </div>
   );
 }
@@ -588,13 +639,11 @@ interface PortMapResult {
  */
 function PortMapPanel({ port }: { port: number }) {
   const { t } = useT();
-  const [busy, setBusy] = useState(false);
   const [result, setResult] = useState<PortMapResult | null>(null);
   const [unavailable, setUnavailable] = useState(false);
   const [error, setError] = useState('');
 
-  async function attempt() {
-    setBusy(true);
+  async function attempt(): Promise<ButtonVerdict | null> {
     setResult(null);
     setUnavailable(false);
     setError('');
@@ -607,14 +656,15 @@ function PortMapPanel({ port }: { port: number }) {
       // A 404 means this build has no portmap route, unlike a router refusal.
       if (r.status === 404) {
         setUnavailable(true);
-        return;
+        return null;
       }
       if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      setResult((await r.json()) as PortMapResult);
+      const answer = (await r.json()) as PortMapResult;
+      setResult(answer);
+      return answer.outcome === 'confirmed' ? 'ok' : answer.outcome === 'unconfirmed' ? 'warn' : 'fail';
     } catch (e) {
       setError(String(e).replace(/^(Error|TypeError):\s*/, ''));
-    } finally {
-      setBusy(false);
+      return 'fail';
     }
   }
 
@@ -622,35 +672,37 @@ function PortMapPanel({ port }: { port: number }) {
 
   return (
     <div className="flex flex-col gap-3">
+      {/* What the router said, above the button until the next attempt. */}
+      {unavailable && <p className="text-xs text-carbon-textMuted">{t('settings.torrents.portMapUnavailable')}</p>}
+      {error && <p className="text-xs text-carbon-textSub">{t('settings.torrents.portMapFailed', { error })}</p>}
+      {result?.outcome === 'confirmed' && (
+        <p className="text-xs text-carbon-textSub">{t('settings.torrents.portMapConfirmed', { port })}</p>
+      )}
+      {result?.outcome === 'unconfirmed' && (
+        <p className="text-xs text-carbon-textSub">{t('settings.torrents.portMapUnconfirmed')}</p>
+      )}
+      {result?.outcome === 'failed' && (
+        <p className="text-xs text-carbon-textSub">
+          {t('settings.torrents.portMapFailed', { error: result.detail ?? result.reason })}
+        </p>
+      )}
       <div className="flex flex-wrap items-center gap-3">
         {/* The (i) inside the button stays readable while it is disabled, so the
             reason goes there rather than under it. */}
-        <Button
-          kind="secondary"
-          disabled={busy || noPort}
+        <TestButton
+          label={t('settings.torrents.portMapButton')}
+          busyLabel={t('settings.torrents.portMapping')}
+          disabled={noPort}
           hint={
             noPort
               ? `${t('settings.torrents.portMapNeedsPort')} ${t('settings.torrents.portMapHint')}`
               : t('settings.torrents.portMapHint')
           }
-          onClick={() => void attempt()}
-        >
-          {busy ? t('settings.torrents.portMapping') : t('settings.torrents.portMapButton')}
-        </Button>
+          words={{ ok: t('test.confirmed'), warn: t('test.unconfirmed'), fail: t('test.failed') }}
+          run={attempt}
+          resetKey={port}
+        />
       </div>
-      {unavailable && <p className="text-xs text-carbon-textMuted">{t('settings.torrents.portMapUnavailable')}</p>}
-      {error && <p className="text-xs text-statusFail">{t('settings.torrents.portMapFailed', { error })}</p>}
-      {result?.outcome === 'confirmed' && (
-        <p className="text-xs text-statusOk">{t('settings.torrents.portMapConfirmed', { port })}</p>
-      )}
-      {result?.outcome === 'unconfirmed' && (
-        <p className="text-xs text-statusWarn">{t('settings.torrents.portMapUnconfirmed')}</p>
-      )}
-      {result?.outcome === 'failed' && (
-        <p className="text-xs text-statusFail">
-          {t('settings.torrents.portMapFailed', { error: result.detail ?? result.reason })}
-        </p>
-      )}
     </div>
   );
 }

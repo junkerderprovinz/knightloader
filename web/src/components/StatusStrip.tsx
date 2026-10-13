@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState, type ReactElement } from 'react';
 import { abortActivity, connectWS } from '../lib/api';
 import { fmtCountdown, goTimeMs, useCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { IconArchive, IconCaptcha, IconCheck, IconClose, IconDownloads, IconGlobe, IconSearch } from '../lib/icons';
+import { IconArchive, IconCaptcha, IconCheck, IconClose, IconDownload, IconGlobe, IconSearch } from '../lib/icons';
 import { Button, InfoBubble } from './ui';
 
 type Translate = ReturnType<typeof useT>['t'];
@@ -63,7 +63,7 @@ function kindIcon(kind: ActivityKind): ReactElement {
     case 'container':
       return <IconArchive {...p} />;
     case 'usenet':
-      return <IconDownloads {...p} />;
+      return <IconDownload {...p} />;
   }
 }
 
@@ -142,7 +142,7 @@ export function StatusStrip() {
         {rows.map((s) => {
           const countdown = countdownOf(s);
           return (
-            <div key={s.kind} className="flex items-center gap-2 text-[11px]">
+            <div key={s.kind} className="flex items-center gap-2 text-meta">
               <span className="h-1.5 w-1.5 shrink-0 rounded-[var(--radius-pill)] bg-accent glim-live" aria-hidden="true" />
               <span className="text-carbon-textMuted">{kindIcon(s.kind)}</span>
               <span className="text-carbon-textMuted">{t(LABEL_KEY[s.kind])}</span>

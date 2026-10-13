@@ -117,6 +117,16 @@ func sanitizePalette(p []string) []string {
 	return out
 }
 
+// hexOrEmpty keeps a colour that is a plain hex triple and drops anything
+// else to the empty default.
+func hexOrEmpty(c string) string {
+	c = strings.TrimSpace(c)
+	if !accentPattern.MatchString(c) {
+		return ""
+	}
+	return c
+}
+
 func sanitizeAppearance(n Settings) Settings {
 	switch n.Shape {
 	case ShapeRound, ShapeSoft, ShapeSquare, ShapeLeaf:
@@ -127,10 +137,9 @@ func sanitizeAppearance(n Settings) Settings {
 	n.SidebarLabels = labelMode(n.SidebarLabels)
 	n.TabLabels = labelMode(n.TabLabels)
 	n.BottomBarLabels = labelMode(n.BottomBarLabels)
-	n.Accent = strings.TrimSpace(n.Accent)
-	if n.Accent != "" && !accentPattern.MatchString(n.Accent) {
-		n.Accent = ""
-	}
+	n.Accent = hexOrEmpty(n.Accent)
+	n.DownloadLine = hexOrEmpty(n.DownloadLine)
+	n.SeedingLine = hexOrEmpty(n.SeedingLine)
 	n.RainbowPalette = sanitizePalette(n.RainbowPalette)
 	// The seed is only ever read modulo the palette length, so it is folded here
 	// and stored small enough to read at a glance in settings.json.

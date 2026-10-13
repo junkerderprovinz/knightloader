@@ -4,12 +4,14 @@ import { type Settings, connectWS, fetchSettings, patchSettings } from '../lib/a
 import { useResource } from '../lib/useResource';
 import { readUIState, useUIState } from '../lib/uistate';
 import { seedLabelModes, useLabelMode } from '../lib/labelModes';
+import { setHidden } from '../lib/sidebarPrefs';
 import { useTabletLayout } from '../lib/phoneLayout';
 import { useT } from '../lib/i18n';
 import { withBase } from '../lib/basePath';
 import { useStagger, useTabSlide } from '../lib/motion';
 import { useToast } from '../lib/toast';
 import { ErrorCard, LoadingCard, PageHeader } from '../components/ui';
+import { PageActionsProvider, PageActionsSlot } from '../components/PageActions';
 import { Tabs } from '../components/Tabs';
 import { SettingsProvider, type FeatureAccess, type SettingsDraft } from './settings/context';
 import { fetchFeatures, setFeature, type FeaturePage, type FeatureState } from './settings/features';
@@ -76,6 +78,7 @@ export function SettingsPage() {
 
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
+  const [actionSlot, setActionSlot] = useState<HTMLDivElement | null>(null);
 
   // What the server did not take of the draft. A refused value shows beside
   // its field and is not sent again until the field holds something else.
@@ -312,8 +315,14 @@ export function SettingsPage() {
         for (const [k, v] of Object.entries(kept)) if (same(doc[k], v)) merged[k] = doc[k];
         return merged as unknown as Settings;
       });
+      // Switching a module on puts its page into the sidebar once. The page's
+      // own switch takes it out again, and it then stays out.
+      if (id === 'federation' && enabled && fresh.hideInstancesFromSidebar) {
+        patch({ hideInstancesFromSidebar: false });
+        setHidden('instances', false);
+      }
     },
-    [pending, onSave, setFeatures, setSaved, answer],
+    [pending, onSave, setFeatures, setSaved, answer, patch],
   );
 
   /**
@@ -372,20 +381,31 @@ export function SettingsPage() {
 
         {/* data-settings-content scopes the search's DOM lookups to this
             column (settings/jump.ts). The padding matches app/Layout.tsx, and
-            glim-column-top keeps the first card's badge notch (index.css). */}
+            glim-column-top keeps the first card's badge notch (index.css).
+            No page caps its width: a row keeps its name and its control
+            together by giving the control a width of its own. */}
         <div
           data-settings-content
+          data-new="settings-width"
           className="glim-column-top flex min-w-0 flex-1 flex-col gap-6 overflow-y-auto ps-2 sm:px-6 md:px-8"
         >
           {/* Here rather than in PageHeader, which would push the rail down, and
               outside the Routes so a search and its jump survive a page change. */}
           <SettingsSearch pages={features.pages} />
-          <Routes>
-            <Route index element={<RememberedPage pages={features.pages} />} />
-            <Route path=":page" element={<SubPage pages={features.pages} />} />
-            {/* Anything deeper than one segment is not a page we ever made. */}
-            <Route path="*" element={<Navigate to={pagePath(FALLBACK_PAGE)} replace />} />
-          </Routes>
+          <PageActionsProvider slot={actionSlot}>
+            <Routes>
+              <Route index element={<RememberedPage pages={features.pages} />} />
+              <Route path=":page" element={<SubPage pages={features.pages} />} />
+              {/* Anything deeper than one segment is not a page we ever made. */}
+              <Route path="*" element={<Navigate to={pagePath(FALLBACK_PAGE)} replace />} />
+            </Routes>
+          </PageActionsProvider>
+          {/* A tab's floating actions, such as Accounts' own. A short tab
+              ends above the foot of the column, so the slot takes the height
+              that is left. It is as tall as the column's gap at least and
+              takes that gap back, so it adds nothing under a long tab's last
+              card and its foot is the column's. */}
+          <PageActionsSlot ref={setActionSlot} className="-mt-6 min-h-6 flex-1" />
         </div>
       </div>
     </SettingsProvider>

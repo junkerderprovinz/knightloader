@@ -1,5 +1,5 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Field, InfoBubble, SectionTitle } from '../../../components/ui';
+import { Button, Card, SectionTitle } from '../../../components/ui';
 import { PathInput } from '../../../components/FolderPicker';
 import { IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
@@ -11,7 +11,10 @@ import {
   type JDImportPreview,
   type JDImportReport,
 } from '../../../lib/api';
+import { SubCard } from '../controls';
 import { JDImportPreviewDialog, itemName, reasonText } from './JDImportPreview';
+
+type Source = 'upload' | 'path';
 
 /**
  * JDImportCard moves an install over from JDownloader 2. Its cfg folder comes
@@ -23,26 +26,28 @@ export function JDImportCard({ hue }: { hue: number }) {
   const { t } = useT();
   const fileInput = useRef<HTMLInputElement>(null);
   const [path, setPath] = useState('');
-  const [busy, setBusy] = useState(false);
+  // Which of the two ways in is reading, and how often each failed, so the
+  // button that was pressed is the one that says so.
+  const [busy, setBusy] = useState<Source | null>(null);
   const [failure, setFailure] = useState('');
-  const [shake, setShake] = useState(0);
+  const [shake, setShake] = useState<Record<Source, number>>({ upload: 0, path: 0 });
   const [preview, setPreview] = useState<JDImportPreview | null>(null);
   const [applying, setApplying] = useState(false);
   const [applyError, setApplyError] = useState('');
   const [report, setReport] = useState<{ preview: JDImportPreview; report: JDImportReport; ticked: number } | null>(null);
   const [done, setDone] = useState(0);
 
-  async function read(load: () => Promise<JDImportPreview>) {
-    setBusy(true);
+  async function read(source: Source, load: () => Promise<JDImportPreview>) {
+    setBusy(source);
     setFailure('');
     setReport(null);
     try {
       setPreview(await load());
     } catch (e) {
       setFailure(refusalText(t, e));
-      setShake((n) => n + 1);
+      setShake((n) => ({ ...n, [source]: n[source] + 1 }));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -66,11 +71,7 @@ export function JDImportCard({ hue }: { hue: number }) {
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.jdimport.cardHint')}>{t('settings.jdimport.cardTitle')}</SectionTitle>
 
-      <div className="flex flex-col gap-2">
-        <span className="flex items-center text-sm font-medium text-carbon-text">
-          {t('settings.jdimport.uploadLabel')}
-          <InfoBubble tip={t('settings.jdimport.uploadText')} />
-        </span>
+      <SubCard label={t('settings.jdimport.uploadLabel')} hint={t('settings.jdimport.uploadText')} className="gap-3">
         <input
           ref={fileInput}
           type="file"
@@ -80,39 +81,36 @@ export function JDImportCard({ hue }: { hue: number }) {
             const f = e.target.files?.[0];
             // Cleared so picking the same file again fires a change event.
             e.target.value = '';
-            if (f) void read(() => readJDImportFile(f));
+            if (f) void read('upload', () => readJDImportFile(f));
           }}
         />
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
             icon={<IconUpload width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
-            disabled={busy}
+            disabled={busy !== null}
             confirm={done}
+            shake={shake.upload}
           >
             {t('settings.jdimport.uploadButton')}
           </Button>
         </div>
-      </div>
+      </SubCard>
 
-      <div className="flex flex-col gap-2 border-t border-carbon-border/60 pt-4">
-        <Field label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')}>
-          <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
-        </Field>
+      <SubCard label={t('settings.jdimport.pathLabel')} hint={t('settings.jdimport.pathHint')} className="gap-3">
+        <PathInput value={path} onValue={setPath} title={t('settings.jdimport.pathLabel')} />
         <div className="flex flex-wrap items-center gap-3">
           <Button
-            hue={hue}
             kind="secondary"
-            onClick={() => void read(() => readJDImportPath(path.trim()))}
-            disabled={busy || path.trim() === ''}
-            shake={shake}
+            onClick={() => void read('path', () => readJDImportPath(path.trim()))}
+            disabled={busy !== null || path.trim() === ''}
+            shake={shake.path}
           >
-            {busy ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
+            {busy === 'path' ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
           </Button>
         </div>
-      </div>
+      </SubCard>
 
       {failure && <span className="text-sm text-statusFail">{failure}</span>}
       {report && <Report {...report} />}
@@ -166,7 +164,7 @@ function Report({ preview, report, ticked }: { preview: JDImportPreview; report:
       {lines.length > 0 && (
         <>
           <span className="mt-1 text-sm text-carbon-text">{t('settings.jdimport.leftBehind')}</span>
-          <ul className="flex max-h-64 min-w-0 flex-col gap-0.5 overflow-y-auto ps-4 text-[11px] text-carbon-textMuted">
+          <ul className="flex max-h-64 min-w-0 flex-col gap-0.5 overflow-y-auto ps-4 text-meta text-carbon-textMuted">
             {lines.map((line, i) => (
               <li key={i} className="list-disc break-words">
                 {line}

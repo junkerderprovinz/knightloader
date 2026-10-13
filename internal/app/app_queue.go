@@ -398,7 +398,7 @@ func (a *App) UndoRemove(token string) []string {
 	b, _ := v.(*bin)
 	// A browser may sit in front of several instances (routes_federation.go),
 	// so a token issued by another instance is not found here. The window is
-	// judged under a.mu, as the deletion of an imported download judges it
+	// judged under a.mu, as the deletion of a finished Usenet job judges it
 	// (see undoableUntilLocked), so the two never both go ahead.
 	if !ok || b == nil || b.app != a || !time.Now().Before(b.until) {
 		a.mu.Unlock()
@@ -928,6 +928,9 @@ type QueueState struct {
 	// put in its place. The volume cap's throttle is left out, since it has
 	// its own push ("volume") and would change this without a broadcast.
 	Limit int64 `json:"limit"`
+	// UploadLimit is the torrents' upload cap in bytes per second, 0 for none,
+	// which the speed graphs mark beside the download limit.
+	UploadLimit int64 `json:"uploadLimit"`
 }
 
 // Queue reports the master switch.
@@ -935,11 +938,12 @@ func (a *App) Queue() QueueState {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	return QueueState{
-		Halted:   a.halted,
-		StopMark: a.stopMark,
-		Running:  len(a.active),
-		Quiet:    a.quiet.inForce,
-		Limit:    a.limitInForceLocked(),
+		Halted:      a.halted,
+		StopMark:    a.stopMark,
+		Running:     len(a.active),
+		Quiet:       a.quiet.inForce,
+		Limit:       a.limitInForceLocked(),
+		UploadLimit: a.Settings.Get().Torrent.UploadLimit,
 	}
 }
 

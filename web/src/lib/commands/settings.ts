@@ -1,5 +1,5 @@
 import { fetchDeploymentInfo, fetchUpdateCheck } from '../api';
-import { IconRetry, IconSearch } from '../icons';
+import { IconRefresh, IconSearch } from '../icons';
 import { requestSearchFocus } from '../../pages/settings/jump';
 import type { Command } from './types';
 
@@ -24,7 +24,7 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'resolvers', labelKey: 'settings.nav.resolvers' },
   { id: 'torrents', labelKey: 'settings.nav.torrents' },
-  { id: 'captcha', labelKey: 'settings.nav.captcha' },
+  { id: 'debriddrive', labelKey: 'settings.nav.debriddrive' },
   { id: 'automation', labelKey: 'settings.nav.automation' },
   { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
@@ -67,7 +67,7 @@ export const settingsCommands: Command[] = [
   {
     id: 'settings.checkForUpdates',
     labelKey: 'settings.look.updatesCheck',
-    icon: IconRetry,
+    icon: IconRefresh,
     group: 'commands.group.settings',
     surfaces: ['global'],
     // JDownloader 2's own shortcut for checking for updates.

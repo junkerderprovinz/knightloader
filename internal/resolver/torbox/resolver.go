@@ -6,7 +6,6 @@ import (
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/debrid"
 	"github.com/junkerderprovinz/knightloader/internal/resolver/torrent"
 )
 
@@ -30,12 +29,8 @@ func (r Resolver) Info() resolver.Info {
 	return resolver.Info{ID: resolver.SlotID("torbox", r.Account), Prio: 50}
 }
 
-// Match claims a hoster link TorBox supports, a torrent when asked to, and a
-// download imported from this very account.
+// Match claims a hoster link TorBox supports, and a torrent when asked to.
 func (r Resolver) Match(raw string) bool {
-	if slot, _, ok := debrid.ParseJobLink(raw); ok {
-		return slot == r.Info().ID
-	}
 	if r.Torrents && (torrent.Resolver{}).Match(raw) {
 		return true
 	}
@@ -47,12 +42,8 @@ func (r Resolver) Match(raw string) bool {
 }
 
 // Resolve checks a torrent the way the built-in client does and passes a
-// hoster link on as it is. An imported download keeps the name it was staged
-// with.
+// hoster link on as it is.
 func (r Resolver) Resolve(ctx context.Context, req resolver.Request) (resolver.Result, error) {
-	if _, _, ok := debrid.ParseJobLink(req.URL); ok {
-		return resolver.Result{DirectURL: req.URL}, nil
-	}
 	if r.Torrents && torrent.IsURI(req.URL) {
 		return (torrent.Resolver{}).Resolve(ctx, req)
 	}

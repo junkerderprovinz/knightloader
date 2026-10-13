@@ -263,6 +263,35 @@ export function hueVars(i: number): Record<string, string> {
   };
 }
 
+const counted = new WeakMap<Element, number>();
+let countQueued = false;
+
+/**
+ * countSelectorHues hands every selector that sets a value its palette
+ * position. Such a selector marks its strip with data-hue-selector and asks
+ * for a count whenever it is drawn or leaves. The strips then count through
+ * the palette in the order they stand on the page, and those inside a window
+ * count on their own, so no page numbers its selectors by hand. The count
+ * runs once a turn, before the browser paints, and writes hueVars() onto each
+ * strip, from where the segments inherit them.
+ */
+export function countSelectorHues(): void {
+  if (countQueued) return;
+  countQueued = true;
+  queueMicrotask(() => {
+    countQueued = false;
+    const next = new Map<Element | Document, number>();
+    for (const strip of document.querySelectorAll<HTMLElement>('[data-hue-selector]')) {
+      const within = strip.closest('[aria-modal="true"]') ?? document;
+      const i = next.get(within) ?? 0;
+      next.set(within, i + 1);
+      if (counted.get(strip) === i) continue;
+      counted.set(strip, i);
+      for (const [name, value] of Object.entries(hueVars(i))) strip.style.setProperty(name, value);
+    }
+  });
+}
+
 /**
  * rainbowFromSettings maps the server's flat fields onto this module's state.
  * The parameter is structural rather than the Settings type so the file can be

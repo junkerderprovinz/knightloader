@@ -17,12 +17,13 @@ import { IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { useTriggerLabel } from '../../../lib/triggers';
 import { TargetEvents } from '../eventtargets/TargetEvents';
+import { SettingRow, Sheet } from '../controls';
 import { Placeholders } from '../eventtargets/TargetRow';
 import { ProgramHealth } from './ProgramHealth';
 
 /**
- * ProgramRow shows one event program, collapsed to its name and events,
- * expanded to the whole row. A stored program and its arguments come back
+ * ProgramRow shows one event program as its name and events, and all of it in
+ * the window the row opens. A stored program and its arguments come back
  * masked, so their boxes stay empty with a note until something is typed,
  * which then replaces the stored value, as on the idle card.
  *
@@ -83,19 +84,19 @@ export function ProgramRow({
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
       <div className="grid grid-cols-[1fr_auto] items-center gap-3 py-2.5">
-        <button type="button" onClick={onToggle} aria-expanded={open} className="flex min-w-0 items-center gap-3 text-start">
+        <button type="button" onClick={onToggle} aria-haspopup="dialog" className="flex min-w-0 items-center gap-3 text-start">
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
           <span className="min-w-0 flex-1">
             <span className="block truncate text-sm text-carbon-text">
               {row.name.trim() || <span className="text-carbon-textMuted">{t('settings.eventPrograms.name')}</span>}
             </span>
-            <span className="block truncate text-[11px] text-carbon-textMuted">
+            <span className="block truncate text-meta text-carbon-textMuted">
               {picked.length > 0 ? picked.map(triggerLabel).join(', ') : t('settings.eventPrograms.eventsNone')}
             </span>
           </span>
           {/* Only the off state is marked. */}
           {!row.enabled && (
-            <span className="hidden shrink-0 text-[11px] uppercase tracking-wider text-carbon-textMuted sm:block">
+            <span className="hidden shrink-0 text-meta uppercase tracking-wider text-carbon-textMuted sm:block">
               {t('settings.modules.off')}
             </span>
           )}
@@ -113,7 +114,7 @@ export function ProgramRow({
       </div>
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={row.name.trim() || t('settings.eventPrograms.name')} hue={index} wide onClose={onToggle}>
           <ToggleRow
             label={t('settings.eventPrograms.enabled')}
             hint={t('settings.eventPrograms.enabledHint')}
@@ -122,11 +123,19 @@ export function ProgramRow({
             hue={index}
           />
 
-          <Field label={t('settings.eventPrograms.name')} hint={t('settings.eventPrograms.nameHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.eventPrograms.name')}
+            hint={t('settings.eventPrograms.nameHint')}
+          >
             <TextInput value={row.name} onChange={(e) => onChange({ ...row, name: e.target.value })} />
-          </Field>
+          </SettingRow>
 
-          <Field label={t('settings.eventPrograms.program')} hint={t('settings.eventPrograms.programHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.eventPrograms.program')}
+            hint={t('settings.eventPrograms.programHint')}
+          >
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -134,7 +143,7 @@ export function ProgramRow({
               placeholder={programStored ? t('settings.downloads.idleCommandStored') : '/home/you/bin/after-download.sh'}
               onChange={(e) => setCommand({ program: e.target.value })}
             />
-          </Field>
+          </SettingRow>
 
           <Field label={t('settings.eventPrograms.args')} hint={t('settings.eventPrograms.argsHint')}>
             <TextArea
@@ -156,7 +165,7 @@ export function ProgramRow({
                 <code
                   key={name}
                   dir="ltr"
-                  className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-[11px] text-carbon-textSub"
+                  className="rounded-[var(--radius-pill)] bg-carbon-surface2 px-1.5 py-0.5 text-meta text-carbon-textSub"
                 >
                   {name}
                 </code>
@@ -179,8 +188,12 @@ export function ProgramRow({
             }}
           />
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-            <Field label={t('settings.eventPrograms.timeout')} hint={t('settings.eventPrograms.timeoutHint')}>
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="short"
+              label={t('settings.eventPrograms.timeout')}
+              hint={t('settings.eventPrograms.timeoutHint')}
+            >
               <NumberInput
                 dir="ltr"
                 value={command.timeoutSeconds || TIMEOUT.fallback}
@@ -189,8 +202,12 @@ export function ProgramRow({
                 step={1}
                 onValue={(v) => setCommand({ timeoutSeconds: v })}
               />
-            </Field>
-            <Field label={t('settings.eventPrograms.parallel')} hint={t('settings.eventPrograms.parallelHint')}>
+            </SettingRow>
+            <SettingRow
+              control="short"
+              label={t('settings.eventPrograms.parallel')}
+              hint={t('settings.eventPrograms.parallelHint')}
+            >
               <NumberInput
                 dir="ltr"
                 value={row.parallel > 0 ? row.parallel : DEFAULT_PARALLEL}
@@ -199,7 +216,7 @@ export function ProgramRow({
                 step={1}
                 onValue={(v) => onChange({ ...row, parallel: clampParallel(v) })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <ProgramHealth
@@ -208,7 +225,7 @@ export function ProgramRow({
             deployment={deployment}
             timeoutSeconds={command.timeoutSeconds || TIMEOUT.fallback}
           />
-        </div>
+        </Sheet>
       )}
     </li>
   );

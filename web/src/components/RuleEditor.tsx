@@ -5,7 +5,7 @@ import { useT, type TranslationKey } from '../lib/i18n';
 // file-type shorthand a condition offers.
 import type { Category as Drawer } from '../lib/api';
 import { en } from '../lib/locales/en';
-import { IconFolder, IconPlus, IconTrash } from '../lib/icons';
+import { IconAdd, IconFolder, IconTrash } from '../lib/icons';
 import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
 import { FolderPicker } from './FolderPicker';
@@ -138,6 +138,8 @@ export interface LinkReport {
     priority?: number;
     autoExtract?: boolean;
     chunks?: number;
+    /** The id of the Categories-page drawer a rule filed the link under. */
+    category?: string;
     matched?: string[];
   };
   verdict: { rejected: boolean; rule?: string; reason?: string; code?: string; params?: Record<string, string> };
@@ -167,26 +169,28 @@ export const categoryLabel = (t: Translate, id: string) => named(t, 'settings.ru
 export const variableLabel = (t: Translate, id: string) => named(t, 'settings.rules.var.', id);
 
 // The engine takes plain bytes, so sizes like "700 MB" are parsed here.
+// Decimal like fmtBytes; a binary unit typed out, such as GiB, keeps its own
+// meaning.
 const SIZE_UNITS: Record<string, number> = {
   '': 1,
   b: 1,
-  k: 1024,
-  kb: 1024,
+  k: 1000,
+  kb: 1000,
   kib: 1024,
-  m: 1024 ** 2,
-  mb: 1024 ** 2,
+  m: 1000 ** 2,
+  mb: 1000 ** 2,
   mib: 1024 ** 2,
-  g: 1024 ** 3,
-  gb: 1024 ** 3,
+  g: 1000 ** 3,
+  gb: 1000 ** 3,
   gib: 1024 ** 3,
-  t: 1024 ** 4,
-  tb: 1024 ** 4,
+  t: 1000 ** 4,
+  tb: 1000 ** 4,
   tib: 1024 ** 4,
 };
 
 /**
- * parseSize reads "700 MB", "1.5GiB", "1,5 gb" or a bare byte count, all
- * 1024-based like fmtBytes. It returns null for anything else, since reading
+ * parseSize reads "700 MB", "1.5GB", "1,5 gb" or a bare byte count. It
+ * returns null for anything else, since reading
  * garbage as 0 would make "at least 700 MB" match every file.
  */
 export function parseSize(text: string): number | null {
@@ -203,9 +207,9 @@ export function parseSize(text: string): number | null {
 export function formatSize(n: number | undefined): string {
   if (!n) return '';
   const units: [string, number][] = [
-    ['GiB', 1024 ** 3],
-    ['MiB', 1024 ** 2],
-    ['KiB', 1024],
+    ['GB', 1000 ** 3],
+    ['MB', 1000 ** 2],
+    ['kB', 1000],
   ];
   for (const [label, factor] of units) {
     if (n >= factor && n % factor === 0) return `${n / factor} ${label}`;
@@ -267,7 +271,7 @@ function VariablesMenu({
       style={{ top: pos.top, left: pos.left }}
       className="glim-card glim-fade fixed z-50 max-h-[70vh] w-[26rem] max-w-[calc(100vw-1rem)] overflow-y-auto p-1.5"
     >
-      <div className="flex items-center px-2 py-1.5 text-[11px] font-semibold text-carbon-textSub">
+      <div className="flex items-center px-2 py-1.5 text-meta font-semibold text-carbon-textSub">
         {t('settings.rules.variablesTitle')}
         {/* How <jd:source:N> differs from JDownloader's, where a JD template gets pasted. */}
         <InfoBubble
@@ -291,7 +295,7 @@ function VariablesMenu({
           <span className="glim-num text-[12px] text-carbon-text" dir="ltr">
             {v.tag}
           </span>
-          <span className="text-[11px] leading-snug text-carbon-textMuted">
+          <span className="text-meta leading-snug text-carbon-textMuted">
             {variableLabel(t, v.id)}
             {v.params?.length ? ` · ${t('settings.rules.varParams', { params: v.params.join(', ') })}` : ''}
           </span>
@@ -440,7 +444,7 @@ function SizeInput({
         }}
         onBlur={() => setTouched(false)}
       />
-      {parsed === null && <span className="text-[11px] text-statusFail">{t('settings.rules.badSize')}</span>}
+      {parsed === null && <span className="text-meta text-statusFail">{t('settings.rules.badSize')}</span>}
     </div>
   );
 }
@@ -508,7 +512,7 @@ export function RuleEditor({
         </h3>
 
         {conditions.length === 0 && (
-          <p className="text-[11px] text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
+          <p className="text-meta text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
         )}
 
         {conditions.map((c, i) => (
@@ -526,7 +530,7 @@ export function RuleEditor({
         ))}
 
         <div>
-          <Button kind="secondary" icon={<IconPlus width={14} height={14} />} onClick={addCondition}>
+          <Button kind="secondary" icon={<IconAdd width={14} height={14} />} onClick={addCondition}>
             {t('settings.rules.addCondition')}
           </Button>
         </div>
@@ -564,7 +568,7 @@ export function RuleEditor({
           {problems
             .filter((p) => !p.condition)
             .map((p, i) => (
-              <li key={i} className="text-[11px] text-statusFail">
+              <li key={i} className="text-meta text-statusFail">
                 {p.message}
               </li>
             ))}
@@ -718,7 +722,7 @@ function ConditionRow({
 
       {/* Shown on the offending condition itself. */}
       {problems.map((p, i) => (
-        <p key={i} className="text-[11px] text-statusFail">
+        <p key={i} className="text-meta text-statusFail">
           {p.message}
         </p>
       ))}

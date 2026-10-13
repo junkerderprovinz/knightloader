@@ -4,16 +4,19 @@
 // LabelBadge is the pill beside a name that reports where something stands:
 // Online, Offline, Failed. A paragraph in that pill, the explanation and the
 // fix together, stands where the eye expects a word to compare with the words
-// on the cards beside it. The badge takes `tip` for the paragraph.
+// on the cards beside it. The badge takes `tip` for the paragraph. StatePill,
+// the small tag on a card of a grid and on a row of a list, reports the same
+// way and takes `tip` too.
 //
-// Every translation key that reaches a LabelBadge's `label` is read: written
+// Every translation key that reaches the `label` of either is read: written
 // into the attribute, or into the `const` the attribute names in the same file.
 // Its English has to be short, and has to be a word rather than a sentence. A
 // short question passes, since a badge such as "How does this work?" opens an
 // explanation rather than reporting a state.
 //
 // Not seen: a label built by a helper function, such as health's
-// healthLabel(), whose keys are read nowhere here.
+// healthLabel(), or looked up in a table, such as the pairing stages in
+// pairStage.ts, whose keys are read nowhere here.
 //
 // Run: `node web/check-state-words.mjs`.
 import { readdirSync, readFileSync, statSync } from 'node:fs';
@@ -47,7 +50,7 @@ let keys = 0;
 for (const file of sources(src)) {
   const text = readFileSync(file, 'utf8');
   const where = relative(web, file).replaceAll('\\', '/');
-  for (const m of text.matchAll(/<LabelBadge\b[\s\S]*?\/>/g)) {
+  for (const m of text.matchAll(/<(?:LabelBadge|StatePill)\b[\s\S]*?\/>/g)) {
     const label = /\blabel=\{([^}]*)\}/.exec(m[0])?.[1];
     if (!label) continue;
     let source = label;

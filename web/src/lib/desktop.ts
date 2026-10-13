@@ -276,6 +276,32 @@ export function onUpdateReady(callback: (version: string) => void): () => void {
   return listen('updateReady', (version) => callback(String(version)));
 }
 
+/** How the desktop app's window and tray icon behave; WindowPrefs in desktop/tray.go. */
+export interface WindowPrefs {
+  startHidden: boolean;
+  onClose: 'exit' | 'tray';
+  onMinimize: 'taskbar' | 'tray';
+  raiseOnAttention: 'off' | 'front' | 'front-focused';
+  /** Whether this desktop has a tray to hide the window in, which only the app can tell. */
+  trayAvailable: boolean;
+}
+
+/** windowPrefs reads the window's behaviour from the desktop app. */
+export async function windowPrefs(): Promise<WindowPrefs> {
+  return (await call('main.Tray.Prefs')) as WindowPrefs;
+}
+
+/** setWindowPrefs hands the desktop app a new behaviour and answers with what it kept. */
+export async function setWindowPrefs(prefs: WindowPrefs): Promise<WindowPrefs> {
+  return (await call('main.Tray.SetPrefs', prefs)) as WindowPrefs;
+}
+
+/** onWindowPrefs calls back when the behaviour changes, such as from the tray icon's menu. */
+export function onWindowPrefs(callback: (prefs: WindowPrefs) => void): () => void {
+  if (!isDesktop()) return () => {};
+  return listen('windowPrefs', (prefs) => callback(prefs as WindowPrefs));
+}
+
 /**
  * onClipboardOutcome calls back with what the desktop app's clipboard watch
  * did with a copied text, as clipOutcome in desktop/clipwatch.go sends it.

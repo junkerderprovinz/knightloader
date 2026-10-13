@@ -1344,9 +1344,13 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Loaded > 0 {
 		t.Loaded = u.Loaded
 	}
-	// A stopped task keeps its bytes but not a speed or a live note.
+	// A stopped task keeps its bytes but not a speed or a live note. A finished
+	// torrent is never active, so its seeding readings keep the upload rate.
 	if stale {
 		t.Speed = 0
+		if u.Torrent == nil || !u.Torrent.Seeding {
+			t.UploadSpeed = 0
+		}
 	} else {
 		t.Speed = u.Speed
 	}

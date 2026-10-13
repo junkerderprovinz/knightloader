@@ -14,7 +14,8 @@ import {
   TextInput,
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
-import { IconRetry, IconSearch } from '../../lib/icons';
+import { SearchToggle } from '../../components/SearchToggle';
+import { IconRefresh } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
@@ -93,7 +94,6 @@ export function Advanced() {
   // Until the lists arrive, or when they do not, those rows are text fields.
   const [options, setOptions] = useState<ApiOptions | null>(null);
   const [query, setQuery] = useState('');
-  const [searchOpen, setSearchOpen] = useState(false);
   // Debounced, since the filter re-renders every visible editor.
   const [needle, setNeedle] = useState('');
   const [onlyModified, setOnlyModified] = useState(false);
@@ -204,31 +204,13 @@ export function Advanced() {
             <span className="text-xs text-statusWarn">{tx('settings.advanced.defaultsUnavailable')}</span>
           )}
           <span className="flex-1" />
-          {/* A badge that opens into the field and stays open while it holds
-              text, so an active filter is never hidden. */}
-          {searchOpen || query ? (
-            <div className="min-w-0 sm:max-w-xs">
-              <TextInput
-                autoFocus={searchOpen}
-                type="search"
-                spellCheck={false}
-                value={query}
-                placeholder={tx('settings.advanced.search')}
-                aria-label={tx('settings.advanced.search')}
-                onChange={(e) => setQuery(e.target.value)}
-                onBlur={() => {
-                  if (!query) setSearchOpen(false);
-                }}
-              />
-            </div>
-          ) : (
-            <IconBadge
-              icon={<IconSearch width={16} height={16} />}
-              title={tx('settings.advanced.search')}
-              aria-label={tx('settings.advanced.search')}
-              onClick={() => setSearchOpen(true)}
-            />
-          )}
+          <SearchToggle
+            spellCheck={false}
+            value={query}
+            label={tx('settings.advanced.search')}
+            onChange={setQuery}
+            className="min-w-0 sm:w-80"
+          />
         </div>
 
         <Card hue={1} padding="none">
@@ -293,7 +275,7 @@ function KeyRow({
           {secret && <InfoBubble tip={tx('settings.advanced.secret')} />}
           {row.kind === 'list' && <InfoBubble tip={tx('settings.advanced.listHint')} />}
         </span>
-        <span className="flex items-center gap-2 text-[11px] text-carbon-textMuted">
+        <span className="flex items-center gap-2 text-meta text-carbon-textMuted">
           {tx(`settings.advanced.type.${row.kind}` as `settings.advanced.type.${ValueKind}`)}
           {modified && <span className="text-carbon-textSub">· {tx('settings.advanced.modified')}</span>}
         </span>
@@ -308,7 +290,7 @@ function KeyRow({
       <div className="w-8 shrink-0">
         {modified && (
           <IconBadge
-            icon={<IconRetry width={16} height={16} />}
+            icon={<IconRefresh width={16} height={16} />}
             hue={hue}
             title={tx('settings.advanced.resetTitle')}
             aria-label={tx('settings.advanced.resetTitle')}
@@ -375,7 +357,7 @@ function ValueEditor({
               }
             }}
           />
-          {badJSON && <span className="text-[11px] text-statusFail">{tx('settings.advanced.badJson')}</span>}
+          {badJSON && <span className="text-meta text-statusFail">{tx('settings.advanced.badJson')}</span>}
         </div>
       );
     default: {

@@ -49,9 +49,9 @@ function weigh(rows: Task[]): Figures {
 
 function Item({ label, value, tone = 'text-carbon-text' }: { label: string; value: string | number; tone?: string }) {
   return (
-    <div className="flex items-baseline gap-1.5">
+    <div className="flex items-baseline gap-1.5 whitespace-nowrap">
       <span className={`glim-num text-sm font-semibold leading-none ${tone}`}>{value}</span>
-      <span className="text-[11px] text-carbon-textMuted">{label}</span>
+      <span className="text-meta text-carbon-textMuted">{label}</span>
     </div>
   );
 }
@@ -87,7 +87,10 @@ export function CollectorStats({ all, visible, selected }: { all: Task[]; visibl
             { id: 'selected', label: t('strip.selected'), badge: selected.length },
           ]}
         />
-        <div className="flex flex-col gap-2">
+        {/* What is staged in the first column and what the checks found in the
+            second, so the card is no taller than the form beside it. Stacked
+            under the form it has the width for four columns. */}
+        <div className="grid grid-flow-col grid-rows-4 auto-cols-fr gap-x-6 gap-y-2 sm:max-lg:grid-rows-2">
           <Item label={t('collector.stats.packages')} value={f.packages} />
           <Item label={t('collector.stats.links')} value={f.links} />
           <Item label={t('collector.stats.totalSize')} value={fmtTotal(f.bytes)} />

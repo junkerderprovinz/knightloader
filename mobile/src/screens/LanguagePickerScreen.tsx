@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useT } from '../i18n/I18nContext';
 import { LANGUAGES, flagEmoji } from '../i18n/catalogue';
 import { getLanguageOverride } from '../storage/languagePreference';
@@ -7,6 +7,7 @@ import { useAppearance } from '../theme/AppearanceContext';
 import { TYPE } from '../theme/tokens';
 import { Text } from '../components/Text';
 import { CardButton } from '../components/glim';
+import IconBadge, { Back, Check } from '../components/IconBadge';
 import { Arrive, MovingList } from '../components/Moving';
 
 export default function LanguagePickerScreen({ onBack }: { onBack: () => void }) {
@@ -31,10 +32,10 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
 
   return (
     <View style={[styles.container, { backgroundColor: c.bg }]}>
+      {/* The settings page's own top bar, so the way back sits where it sat
+          one step before. */}
       <View style={styles.topBar}>
-        <TouchableOpacity onPress={onBack}>
-          <Text style={[styles.back, { color: c.textMuted }]}>‹ {t('settings.title')}</Text>
-        </TouchableOpacity>
+        <IconBadge icon={<Back color={c.textSub} />} onPress={onBack} accessibilityLabel={t('settings.back')} />
         <Text style={[styles.title, { color: c.text }]}>{t('settings.language')}</Text>
       </View>
 
@@ -62,7 +63,7 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
               >
                 <Text style={styles.flag}>{item.flag}</Text>
                 <Text style={[styles.rowLabel, { color: c.text }]}>{item.label}</Text>
-                {isSelected && <Text style={[styles.check, { color: accentInk }]}>✓</Text>}
+                {isSelected && <Check color={accentInk} size={18} />}
               </CardButton>
             </Arrive>
           );
@@ -76,19 +77,16 @@ export default function LanguagePickerScreen({ onBack }: { onBack: () => void })
 // baked in here: a stylesheet is built once and cannot follow a theme change.
 const styles = StyleSheet.create({
   container: { flex: 1 },
-  topBar: { padding: 16, paddingTop: 56, gap: 4 },
-  // Off the scale in theme/tokens.ts, like every other size on this screen:
-  // 13 and 15 are rungs between dense and body that the table does not have.
-  back: { fontSize: TYPE.dense },
+  topBar: { paddingHorizontal: 16, paddingTop: 56, paddingBottom: 16, flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { fontSize: TYPE.heading, fontWeight: '600' },
   list: { paddingHorizontal: 16, paddingBottom: 32 },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    paddingVertical: 14,
+    gap: 12,
+    minHeight: 52,
     paddingHorizontal: 16,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   // A fixed width keeps every label starting on the same column, since emoji
   // flags do not all measure the same across platform fonts. The size is an
@@ -96,8 +94,4 @@ const styles = StyleSheet.create({
   // is why it stays a number while the heading beside it does not.
   flag: { fontSize: 20, width: 30 },
   rowLabel: { fontSize: TYPE.body, flex: 1 },
-  // The tick rides the row's own text size rather than a number of its own, so
-  // it sits on one line with the label and reads as part of it.
-
-  check: { fontSize: TYPE.body, fontWeight: '700' },
 });

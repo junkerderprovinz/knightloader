@@ -138,9 +138,9 @@ export function formatLabel(format: string, t: Translate): string {
   return codec ? `${formatName(container)} (${formatName(codec)})` : formatName(container);
 }
 
-/** How a bitrate reads: "160 kbit/s", and Auto for none. */
+/** How a bitrate reads: "160 kbit/s", and Best available for none, which asks for the best quality. */
 export const bitrateLabel = (b: string, t: Translate): string =>
-  b ? isolate(t('columns.variant.kbps', { kbps: Number(b) })) : t('columns.variant.auto');
+  b ? isolate(t('columns.variant.kbps', { kbps: Number(b) })) : t('settings.resolvers.quality.best');
 
 const VIDEO_TRACK = /^(\d+)p(\d*) (.+)$/;
 const CAP = /^\d+p$/;

@@ -4,7 +4,7 @@
 import { useRef, useState, type KeyboardEvent } from 'react';
 import { ContextMenu, anchorBelow, useContextMenu } from './ContextMenu';
 import { TextInput } from './ui';
-import { IconChevronDown } from '../lib/icons';
+import { IconExpand } from '../lib/icons';
 
 /** How many suggestions the menu shows; typing narrows the rest down. */
 const MAX_SHOWN = 50;
@@ -117,7 +117,7 @@ export function SuggestField({
           className="absolute inset-y-0 end-0 flex w-[var(--btn-h)] items-center justify-center text-carbon-textMuted
             transition-colors hover:text-carbon-text"
         >
-          <IconChevronDown width={14} height={14} />
+          <IconExpand width={14} height={14} />
         </button>
       )}
       {menu.anchor && (

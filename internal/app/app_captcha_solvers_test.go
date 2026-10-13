@@ -59,6 +59,30 @@ func TestCaptchaSolverSwitchedOffOnTheAccountsPageIsNotTried(t *testing.T) {
 	}
 }
 
+// A solver key stored under a name is tried like the unnamed one, once per
+// solver, and not while that account is switched off.
+func TestCaptchaSolverStoredUnderANameIsTried(t *testing.T) {
+	a, err := newApp(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = a.Close() })
+	for _, name := range []string{"Testkonto", "Zweitkonto"} {
+		if err := a.SetAccountCredential("capsolver", name, accounts.Credential{APIKey: "key-" + name}); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if got := len(a.captchaSolvers()); got != 1 {
+		t.Fatalf("two named keys of one solver yield %d solvers, want 1", got)
+	}
+	a.SetAccountEnabled("capsolver", "Testkonto", false)
+	a.SetAccountEnabled("capsolver", "Zweitkonto", false)
+	if got := len(a.captchaSolvers()); got != 0 {
+		t.Fatalf("with both named accounts switched off the solvers are %d, want 0", got)
+	}
+}
+
 // An incomplete solver credential is refused before any network call.
 func TestCheckCredentialRefusesAnIncompleteSolverLogin(t *testing.T) {
 	ok, _, err := checkCredential(context.Background(), "deathbycaptcha", accounts.Credential{Username: "user"})

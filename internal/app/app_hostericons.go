@@ -1,12 +1,10 @@
 package app
 
-// The site icon beside a hoster in the accounts list. Hoster logos are not
-// bundled: there are hundreds, they are other people's trademarks and they go
-// stale when a site redesigns. Only the captcha services, whose sites give this
-// fetch nothing, have marks in the page (web/src/lib/serviceMarks.ts). Each
-// instance fetches the icon from the site itself, once, and keeps it on disk,
-// a miss included, so the list of someone's hoster accounts is never handed to
-// a third-party icon service.
+// The site icon beside a hoster that has no logo in the page. Most hosters and
+// the captcha services ship one (web/src/lib/serviceMarks.ts), and the page
+// asks here only for the rest. Each instance fetches the icon from the site
+// itself, once, and keeps it on disk, a miss included, so the list of
+// someone's hoster accounts is never handed to a third-party icon service.
 //
 // Candidates are the front page's own <link rel="icon"> hrefs, which may be on
 // another host (alldebrid.com keeps its icon on a CDN), the icons its web app
@@ -97,15 +95,18 @@ var iconTypes = map[string]string{
 var ErrIconPending = errors.New("icon: still being fetched")
 
 // iconSlots bounds the sites fetched at once, so scrolling through a few
-// hundred hosters does not open a few hundred connections.
-var iconSlots = make(chan struct{}, 8)
+// hundred hosters does not open a few hundred connections. Most of the time in
+// a slot is spent waiting on a dead hoster, so a slot costs little and more of
+// them drain a picker's screen sooner.
+var iconSlots = make(chan struct{}, 24)
 
 // iconMaxPending bounds the fetches waiting for a slot and iconMaxKnown the
 // hosts kept in memory and on disk. Any host name starts a fetch of its own,
 // so without them a client cycling through made-up names could queue work and
-// fill memory and the disk.
+// fill memory and the disk. A pending bound of several screens lets the
+// tiles in view queue at once rather than ask again and again for a place.
 const (
-	iconMaxPending = 64
+	iconMaxPending = 256
 	iconMaxKnown   = 1024
 )
 

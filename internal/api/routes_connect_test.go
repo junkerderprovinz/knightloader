@@ -12,6 +12,8 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
+	"github.com/junkerderprovinz/knightloader/internal/discovery"
 	"github.com/junkerderprovinz/knightloader/internal/relay"
 	"github.com/junkerderprovinz/knightloader/internal/seedphrase"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
@@ -130,6 +132,49 @@ func TestConnectStartsInactive(t *testing.T) {
 	}
 	if info.Members == nil {
 		t.Error("members is null rather than an empty list")
+	}
+}
+
+// TestConnectKeepsTheNetworkAddressBesideAKnownDomain checks that the address
+// this instance found on its network is still answered once a known domain is
+// what the group is told, since the Pairing page lists it above the domains.
+func TestConnectKeepsTheNetworkAddressBesideAKnownDomain(t *testing.T) {
+	requireContainerDeployment(t)
+	ip := discovery.LocalIPv4()
+	if ip == "" {
+		t.Skip("this machine has no network address to find")
+	}
+	wide, port := buildinfo.ListensWidely, buildinfo.ListenPort
+	buildinfo.ListensWidely, buildinfo.ListenPort = true, 8749
+	t.Cleanup(func() { buildinfo.ListensWidely, buildinfo.ListenPort = wide, port })
+
+	srv, a := testServer(t)
+	defer srv.Close()
+	found := "http://" + ip + ":8749" + buildinfo.BasePath
+
+	info := connectInfoOf(t, "", srv.URL)
+	if info.NetworkAddress != found || info.Address != found {
+		t.Errorf("NetworkAddress = %q, Address = %q, want both %q", info.NetworkAddress, info.Address, found)
+	}
+
+	domains, err := json.Marshal([]string{"https://kl.example.org"})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if _, err := a.Settings.SetPartial(map[string]json.RawMessage{"knownDomains": domains}); err != nil {
+		t.Fatal(err)
+	}
+	info = connectInfoOf(t, "", srv.URL)
+	if info.Address != "https://kl.example.org" {
+		t.Errorf("Address = %q, want the known domain", info.Address)
+	}
+	if info.NetworkAddress != found {
+		t.Errorf("NetworkAddress = %q beside a known domain, want %q", info.NetworkAddress, found)
+	}
+
+	buildinfo.ListensWidely = false
+	if got := connectInfoOf(t, "", srv.URL).NetworkAddress; got != "" {
+		t.Errorf("NetworkAddress = %q for a listener nothing outside the machine reaches, want none", got)
 	}
 }
 

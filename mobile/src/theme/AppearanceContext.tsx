@@ -97,7 +97,8 @@ export interface Appearance {
   /** Turn the rainbow on or off for this app; undefined follows the instance
    *  again. The palette and the seed are never local, see below. */
   setRainbow: (on: boolean | undefined) => void;
-  /** Drop every override and follow the instance again. */
+  /** Drop every override the instance could stand in for and follow it again.
+   *  The theme stays: no instance carries one. */
   followInstance: () => void;
   /** The opposite direction: write the resolved look into the override layer,
    *  so switching "follow the instance" off changes nothing on screen and the
@@ -192,13 +193,13 @@ function sanitiseCustoms(raw: unknown): Record<string, string> | undefined {
   return Object.keys(out).length > 0 ? out : undefined;
 }
 
-/** Whether an override says anything at all. An empty one is already "follow
- *  the instance", so there is nothing to put away when the switch goes on. */
-function isEmpty(o: Override): boolean {
+/** Whether an override leaves every axis the instance leads to the instance,
+ *  so there is nothing to put away when the switch goes on. The theme is the
+ *  phone's own whichever way the switch stands, so it does not count. */
+function followsInstance(o: Override): boolean {
   return (
     o.accent === undefined &&
     o.shape === undefined &&
-    o.theme === undefined &&
     o.rainbow === undefined &&
     o.slot === undefined &&
     o.customs === undefined
@@ -390,15 +391,17 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
       // The two ends of one switch: whatever going on puts away, going off
       // brings back.
       followInstance: () => {
-        // An empty override is already following, so there is nothing to put
-        // away, and shelving it would overwrite a real look waiting there from
-        // an earlier flip.
-        if (!isEmpty(override)) shelve(override);
-        persist({});
+        // An override that already follows has nothing to put away, and
+        // shelving it would overwrite a real look waiting there from an
+        // earlier flip.
+        if (!followsInstance(override)) shelve({ ...override, theme: undefined });
+        persist({ theme: override.theme });
       },
       snapshotAsLocal: () => {
-        if (shelf && !isEmpty(shelf)) {
-          persist(shelf);
+        if (shelf && !followsInstance(shelf)) {
+          // A shelf an older version wrote can hold a theme, the system's at the
+          // time rather than a choice, so the one in force wins.
+          persist({ ...shelf, theme: override.theme });
           // Taken off the shelf rather than copied off it, or the next round
           // trip would restore this same look instead of whatever the user has
           // chosen since.
@@ -407,8 +410,9 @@ export function AppearanceProvider({ children }: { children: ReactNode }) {
         }
         // Nothing was ever put away, so the resolved look is snapshotted: it
         // hands over what is on screen, so turning the switch off changes
-        // nothing visible and leaves something to edit from.
-        persist({ accent, shape, theme: dark ? 'dark' : 'light', rainbow: rainbow.on });
+        // nothing visible and leaves something to edit from. The theme is not
+        // the instance's to give, so it stays as the device has it.
+        persist({ accent, shape, rainbow: rainbow.on, theme: override.theme });
       },
       setInstanceAppearance: setInstance,
     };

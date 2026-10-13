@@ -23,17 +23,177 @@ Raise both files to the new number before tagging. `release.yml` refuses a tag
 that either file disagrees with, and `web/check-version-sources.mjs` fails CI
 while the two files name different versions.
 
-Android decides upgrade order by `versionCode`, not by the version name. The
-release build works it out from the version as
-`major * 10000 + minor * 100 + patch`, so 1.4.0 is 10400, and nobody has to
-raise it by hand.
+Android decides upgrade order by `versionCode`, not by the version name.
+`mobile/app.json` carries it next to the version, worked out as
+`major * 10000 + minor * 100 + patch`, so 2.0.0 is 20000. It lives in the file
+because F-Droid builds from the tag and reads both from there, and
+`release.yml` refuses a tag whose `versionCode` does not match its version.
 
 The copy of the extension most people run does not come from the release. The
 App page in Settings serves a zip built from the copy embedded in whatever
 server binary is running, so that one always matches the server. The zip on the
-release is for a store submission and for a fixed download. Firefox Add-ons
-gets a version only when the Firefox Add-ons workflow is run by hand on the
-release's tag.
+release is a fixed download. Once a release is out and is the newest one,
+`stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
+Firefox Add-ons and the app to Google Play, each only when it changed.
+
+## [2.0.0] - 2026-10-14
+
+### Added
+
+- **The Overview opens with what is going on.** A line at the top says what is
+  loading and how long it will take, a "Needs you" card collects what only you
+  can settle, such as a captcha or a failed download, and Customize moves and
+  hides the cards.
+- **From hoster to disk.** A card on the Overview shows where the running
+  downloads come from, what carries them (direct, a proxy or a debrid account)
+  and the folder they land in. Packets run along each line at the speed of the
+  downloads, a line that waits is dashed, and a folder's fill level sloshes
+  when a packet lands in it.
+- **Seeding in the speed graphs.** The graphs in the web interface and in the
+  Android app draw what your torrents upload as a second graph that is always
+  shown, flat while nothing goes out. A seeding torrent shows its upload rate
+  in the Speed column, and Settings, Appearance, Colours sets the colour of
+  both graphs. The server records the upload beside the download speed.
+- **Pictures on the settings pages.** Rules show which rule catches a sample
+  link and where it lands, Network draws the routes out of the instance with a
+  test that turns each line green or red, and the link collector shows every
+  way a link comes in. The week's schedule and today's speed against it, a
+  reconnect, a torrent's seeding goal, what goes into a video file, the steps
+  after a download and the self-test are drawn too, and every picture holds
+  still when animation is off.
+- **The server keeps a day of download speed** as five minute means in memory,
+  for today's curve. The record starts again with the server.
+- **The pieces of a file.** The detail panel shows a download as a band of
+  pieces: the written ranges of an HTTP download with a marker for each
+  connection, the articles of a Usenet file and the blocks a par2 check found
+  damaged.
+- **After an update, dots mark what changed.** A dot stands at each change and
+  on every link that leads there, a click hides it, and what you have seen
+  follows you between browsers. The release notes of the running version open
+  once after an update and stay reachable from the Version card.
+- **The theme has a third choice, System.** It follows the device and changes
+  with it, in the web interface and in the Android app. A browser that has not
+  been here before starts with it.
+- **yt-dlp can keep a video's streams apart.** Switch off "Merge into one file"
+  under Settings, Resolvers to keep video, audio and subtitles as separate
+  files. Audio converted without a set bitrate gets the encoder's best
+  quality, and the empty choice is called best.
+- **The Updates card lists every part KnightLoader brings** with its version
+  and where it comes from: KnightLoader and yt-dlp with their updates, ffmpeg,
+  ffprobe, the JDownloader backend and the built-in libraries.
+- **Health says why a part has a fault,** and where the part writes to the log
+  a button opens its lines there. A stopped queue says whether it was stopped
+  by hand or by a schedule.
+
+### Changed
+
+- **The web interface follows GlimStone 3.5.1.** Glyphs come from GlimStone's
+  shared list, so a meaning has the same drawing as in the other GlimStone
+  apps, and only the main action of a view carries the accent colour.
+- **The main action of a page floats at its lower right corner:** Customize on
+  the Overview, Start all in the link collector, Add an account on Accounts and
+  Pairing on Instances. Add links sits in the link collector beside the box
+  you paste links into.
+- **Filter, Sort and Search stand above the lists as three buttons.** The quick
+  filters open under Filter, Sort offers every sortable column in both
+  directions, and Search turns into its field. Every search field looks and
+  works like the settings search.
+- **Rows are picked by a click or tap.** Ctrl adds more and Shift picks a range,
+  and the buttons of a row appear while the pointer or the focus is on it and
+  stay visible on touch screens.
+- **The link collector's filters open from the Filter button.** Host, file type
+  and package moved into the Filter window. Click'n'Load and the clipboard
+  watch are buttons on the add-links card, filled while on, and the options of
+  a batch of links open in a window.
+- **Table cells are a size larger** and a column head is no longer cut: in a
+  language whose word is longer than the column, the column starts as wide as
+  its head.
+- **Play and Pause in the head bar show the queue's state.** The filled one is
+  what the queue is doing.
+- **Accounts are added from one window.** "Add an account" shows a large tile
+  for each kind of account, and debrid, captcha and hoster services are picked
+  from tiles with their logos. Over 400 hoster logos come with KnightLoader;
+  only a hoster without one is fetched from its site, and one with none shows
+  its first letter. A click on an account opens it and a right click opens its
+  menu.
+- **Priority pictures on the Accounts page.** "Download priority order" and
+  "Captcha priority order" draw every connected account in the order it is
+  asked, and a name is moved by dragging it or with the arrow keys on its
+  grip. An account whose check failed keeps its place, dimmed and with the
+  reason. Free downloads stand above both cards.
+- **Every captcha account with a key is tried,** in the stored order first.
+  Each account has its own switch on the Accounts page, and one switched off
+  before the update stays off.
+- **The Instances page shows the group.** Every device is a compact card with
+  its state and its kind side by side on its name's line, under a picture of
+  the group in which a parcel travels when links go to another instance or
+  arrive from a device of the group. Phones and extensions wear the
+  KnightLoader mark, and a device that waits for approval appears once you
+  approve it.
+- **The Pairing tab explains itself.** Three pictures show how pairing works, a
+  card lists every device of the group and how it is reached, and Known
+  addresses lists the address the instance found on its network. The relay
+  card offers "Instance as relay" as a choice of its own.
+- **Settings are reorganised.** Dropdowns and fields stand beside their names,
+  rows such as rules, categories, feeds or schedules open in a window, and a
+  button that tests something shows its answer on itself in green or red.
+  Appearance holds one Display card for language, theme, corners, animation
+  and row height, the Sidebar card and, in the desktop app, the window, the
+  tray icon and keep awake. The debrid drive has a page of its own, the
+  captcha order is on Accounts, and the updates are on General.
+- **Info closes the settings** with Version, Help and About, and the help
+  chapters moved into the manual. The settings search appears on a second
+  upward push at the top of a settings page or with the `/` key.
+- **The phone layout's bottom bar keeps four places** and opens the rest from
+  More, and a dialog in a narrow window stands on the bottom edge.
+- **The Android app draws its speed graph like the web interface,** seeding
+  included. The theme choices carry glyphs and the language entry is a button.
+- **A speed limit is a mark at the right edge of the speed graphs,** neutral
+  and with a limit glyph, where a red line used to cross the plot. The live
+  figures take the colour of their graph, and a limit above the scale sits at
+  the top edge with an arrow.
+- **Sizes and speeds count in thousands.** The web interface, the Android app,
+  the browser extension and the server's messages show kB, MB and GB in place
+  of KiB, MiB and GiB, and every limit is typed in the same units, so a limit
+  of 30 MB/s is 30 million bytes a second. A limit set as 10 MiB/s reads
+  10.49 MB/s for the same number of bytes. The size cap of a live recording and
+  the size of the log file count 1,000,000 bytes per MB.
+- **`torrent.uploadLimitKiBs` is `torrent.uploadLimit` in bytes per second.**
+  Settings files and exports from an earlier version keep their exact limit; a
+  script that sets the limit through the API needs the new name.
+- **Downloads are counted the same way everywhere.** The Overview, the
+  sidebar's badge and the tray window take their figures from one place: a
+  paused download or a coming retry counts as waiting, and Failed counts only
+  what will not be tried again.
+- **A Usenet job on your own servers starts at once** instead of at the next
+  round.
+- **The properties panel names what is selected.** A package selected whole is
+  renamed in the panel, and every other name is listed with a rename button of
+  its own.
+- **The desktop card on the Apps page names its release** and offers that
+  release's files.
+- **Every new text is in all 42 languages** of the web interface and the
+  Android app, and the link collector has one name throughout the German and
+  English interface.
+
+### Fixed
+
+- **A torrent removed while its first tracker announce was still out tells the
+  tracker it has left,** where the tracker went on counting KnightLoader as a
+  peer of it.
+- **The files yt-dlp keeps beside a finished download,** such as further
+  subtitle languages, move out of the working folder with it, and KnightLoader
+  only keeps track of files inside that download's folder.
+- **The Network settings page no longer crashes** when its picture redraws
+  after a route test.
+
+### Removed
+
+- **The import from a debrid account.** The Import column on the Accounts page
+  is gone, and KnightLoader no longer picks up downloads you add on the
+  service's own website. An imported download still waiting after the update
+  is marked failed with a hint to add its link again. "Keep downloads on the
+  debrid service" only decides about the torrents KnightLoader sends there.
 
 ## [1.9.0] - 2026-10-13
 

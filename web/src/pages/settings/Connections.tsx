@@ -1,4 +1,5 @@
-import { useCallback, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Button,
   Card,
@@ -9,14 +10,20 @@ import {
   SectionTitle,
   TextArea,
   TextInput,
+  type ButtonVerdict,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
-import { IconArrowDown, IconArrowUp, IconClose, IconGlobe, IconPlus, IconTrash } from '../../lib/icons';
+import { Routes, TORRENT_ROUTE, routesOf, type RouteTest } from '../../components/pictures/Routes';
+import { TestButton } from '../../components/TestButton';
+import { IconAdd, IconClose, IconMoveDown, IconMoveUp, IconNetwork, IconTrash } from '../../lib/icons';
 import { useToast } from '../../lib/toast';
 import { fmtUnit } from '../../lib/format';
 import { useT } from '../../lib/i18n';
-import { useDraft } from './context';
-import { ListArea, NeutralSwitch, RowRefusal } from './controls';
+import { useResource } from '../../lib/useResource';
+import { useTasks } from '../../lib/useTasks';
+import { useDraft, useFeatures } from './context';
+import { ListArea, NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
+import { requestJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
 /**
@@ -24,7 +31,9 @@ import { ModuleToggle } from './ModuleToggle';
  * are spread across. The list lives in the settings draft, because PUT
  * /api/settings validates the rows and merges back the passwords the client
  * never sees; an empty password with `hasPassword` means "keep the stored one".
- * No row wears the accent, since nearly every row is switched on.
+ * No row wears the accent, since nearly every row is switched on. Above the
+ * list a picture draws the routes the rows add up to, and its test dials every
+ * route in use.
  */
 
 // The types the server accepts, in /api/options order. They are protocol
@@ -73,6 +82,46 @@ function readConnections(cfg: unknown): Connection[] {
   return (cfg as { connections?: Connection[] }).connections ?? [];
 }
 
+/** The interface the built-in torrent client is tied to, which the Torrents page sets; empty for none. */
+function torrentInterface(cfg: unknown): string {
+  return (cfg as { torrent?: { interface?: string } }).torrent?.interface ?? '';
+}
+
+/** Whether torrents can go out over the named interface, as the server sees it. */
+async function interfaceUp(name: string): Promise<boolean> {
+  if (!name) return false;
+  const r = await fetch('/api/torrents/interfaces');
+  if (!r.ok) throw new Error(String(r.status));
+  const { interfaces } = (await r.json()) as { interfaces: { name: string; up: boolean }[] | null };
+  return (interfaces ?? []).some((i) => i.name === name && i.up);
+}
+
+/**
+ * probe asks the server to reach a connection, and through it `target` where
+ * one is named. A test that could not be run comes back as a refusal, so every
+ * answer is a report.
+ */
+async function probe(t: Translate, entry: Connection, target: string): Promise<Report> {
+  try {
+    const r = await fetch('/api/connections/test', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ entry, target }),
+    });
+    if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
+    return (await r.json()) as Report;
+  } catch (e) {
+    return {
+      ok: false,
+      stage: 'refused',
+      detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
+      millis: 0,
+    };
+  }
+}
+
+const UNTESTED: RouteTest = { run: 0, verdicts: {} };
+
 // A client-side id for a new row, so two unsaved rows never share a React key.
 // Sanitize keeps any unique id.
 let newRowCounter = 0;
@@ -85,6 +134,62 @@ export function ConnectionsCard({ hue }: { hue: number }) {
 
   const [openRow, setOpenRow] = useState<string>('');
   const [importing, setImporting] = useState(false);
+
+  const navigate = useNavigate();
+  const { features } = useFeatures();
+  const tasks = useTasks('');
+  const ifname = features.modules.some((m) => m.id === 'torrents' && !m.enabled) ? '' : torrentInterface(cfg);
+  const { data: up } = useResource(() => interfaceUp(ifname), ifname);
+  const routes = routesOf({
+    rows,
+    enabled: !features.modules.some((m) => m.id === 'connections' && !m.enabled),
+    torrentInterface: ifname,
+    // Until the server has answered, the interface is taken to be there.
+    interfaceUp: up ?? true,
+    tasks: Object.values(tasks),
+  });
+
+  const [test, setTest] = useState(UNTESTED);
+  const [refusals, setRefusals] = useState<string[]>([]);
+  const runs = useRef(0);
+  const dialled = routes.filter((route) => route.probe);
+  // Whatever was tested: once a route changes, the answers are stale and go.
+  const testedKey = JSON.stringify(dialled.map((route) => route.probe));
+  useEffect(() => {
+    // A run still out answers for what was there before.
+    runs.current++;
+    setTest(UNTESTED);
+    setRefusals([]);
+  }, [testedKey]);
+
+  async function testRoutes(): Promise<ButtonVerdict> {
+    const run = ++runs.current;
+    setTest({ run, verdicts: {} });
+    setRefusals([]);
+    const reports = await Promise.all(
+      dialled.map(async (route) => {
+        const report = await probe(t, route.probe!.entry as Connection, route.probe!.target);
+        setTest((shown) =>
+          shown.run === run
+            ? { run, verdicts: { ...shown.verdicts, [route.id]: report.ok ? 'ok' : 'fail' } }
+            : shown,
+        );
+        return report;
+      }),
+    );
+    const refused = reports.filter((report) => !report.ok);
+    if (run === runs.current) setRefusals(refused.map((report) => report.detail));
+    return refused.length === 0 ? 'ok' : 'fail';
+  }
+
+  const pickRoute = (id: string) => {
+    if (id !== TORRENT_ROUTE) {
+      setOpenRow(id);
+      return;
+    }
+    requestJump({ page: 'torrents', title: 'settings.torrents.portTitle', label: 'settings.torrents.interface' });
+    navigate('/settings/torrents');
+  };
 
   // Positions are renumbered on every write, since the server sorts by them.
   const write = useCallback(
@@ -117,11 +222,11 @@ export function ConnectionsCard({ hue }: { hue: number }) {
       <Card hue={hue} className="flex flex-col gap-4">
         <SectionTitle
           right={
-            <div className="flex items-center gap-2">
+            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
               <Button kind="secondary" onClick={() => setImporting(true)}>
                 {t('settings.connections.import')}
               </Button>
-              <Button icon={<IconPlus width={16} height={16} />} onClick={add}>
+              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
                 {t('settings.connections.add')}
               </Button>
             </div>
@@ -131,11 +236,31 @@ export function ConnectionsCard({ hue }: { hue: number }) {
         </SectionTitle>
         <ModuleToggle id="connections" />
 
+        <Routes routes={routes} test={test} label={t('settings.module.connections')} onPick={pickRoute} />
+        {dialled.length > 0 && (
+          <div className="flex flex-col items-center gap-2">
+            {/* Why a route did not answer, in the server's words; the button and the lines hold the answer. */}
+            {refusals.map((reason) => (
+              <p key={reason} dir="auto" className="text-center text-xs text-carbon-textSub">
+                {reason}
+              </p>
+            ))}
+            <TestButton
+              label={t('settings.connections.test')}
+              busyLabel={t('settings.connections.testing')}
+              icon={<IconNetwork />}
+              words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+              run={testRoutes}
+              resetKey={testedKey}
+            />
+          </div>
+        )}
+
         {rows.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
           <p className="py-6 text-center text-sm text-carbon-textSub">
             {t('settings.connections.empty')}
-            <span className="mt-1 block text-[11px] text-carbon-textMuted">
+            <span className="mt-1 block text-meta text-carbon-textMuted">
               {t('settings.connections.emptyHint')}
             </span>
           </p>
@@ -172,7 +297,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
   );
 }
 
-/** ConnectionRow draws hairlines between rows; the open row's editor sits in a well. */
+/** ConnectionRow draws hairlines between rows; a row opens its editor in a window. */
 function ConnectionRow({
   row,
   index,
@@ -197,7 +322,9 @@ function ConnectionRow({
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
-      <div className="grid grid-cols-[auto_1fr_auto] items-center gap-3 py-2.5">
+      {/* The actions wrap onto a line of their own where the card is too
+          narrow for them beside the summary. */}
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-2 py-2.5">
         <NeutralSwitch
           on={row.enabled}
           onChange={(v) => onChange({ enabled: v })}
@@ -207,12 +334,12 @@ function ConnectionRow({
         <button
           type="button"
           onClick={onToggle}
-          aria-expanded={open}
+          aria-haspopup="dialog"
           aria-label={t('settings.connections.edit')}
-          className="flex min-w-0 items-center gap-3 text-start"
+          className="flex min-w-0 flex-1 basis-48 items-center gap-3 text-start"
         >
           <span className="glim-num w-5 shrink-0 text-xs text-carbon-textMuted">{index + 1}</span>
-          <span className="w-16 shrink-0 text-[11px] font-medium uppercase tracking-wide text-carbon-textSub">
+          <span className="w-16 shrink-0 text-meta font-medium uppercase tracking-wide text-carbon-textSub">
             {kindLabel(t, row.type)}
           </span>
           <span dir="ltr" className="min-w-0 flex-1 truncate text-sm text-carbon-text">
@@ -227,10 +354,10 @@ function ConnectionRow({
         </button>
         {/* `labelled`, so the actions follow the Beschriftung setting; the summary
             truncates instead. */}
-        <div className="flex items-center gap-1.5">
+        <div className="ms-auto flex min-w-0 flex-wrap items-center justify-end gap-1.5">
           <IconBadge
             labelled
-            icon={<IconArrowUp width={16} height={16} />}
+            icon={<IconMoveUp width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveUp')}
             aria-label={t('settings.connections.moveUp')}
@@ -239,7 +366,7 @@ function ConnectionRow({
           />
           <IconBadge
             labelled
-            icon={<IconArrowDown width={16} height={16} />}
+            icon={<IconMoveDown width={16} height={16} />}
             hue={index}
             title={t('settings.connections.moveDown')}
             aria-label={t('settings.connections.moveDown')}
@@ -260,10 +387,10 @@ function ConnectionRow({
       <RowRefusal field={`connections.${index}`} className="ps-12" />
 
       {open && (
-        <div className="glim-well mb-3 flex flex-col gap-4 p-4">
+        <Sheet title={endpointOf(row) || kindLabel(t, row.type)} hue={index} wide onClose={onToggle}>
           <Editor row={row} onChange={onChange} />
           {!inert && <TestPanel row={row} />}
-        </div>
+        </Sheet>
       )}
     </li>
   );
@@ -276,18 +403,18 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 
   return (
     <>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[10rem_1fr_6rem]">
-        <Field label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
+      <div className="flex flex-col gap-4">
+        <SettingRow control="fit" label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
           <Dropdown
             label={t('settings.connections.type')}
             value={row.type}
             onChange={(v) => onChange({ type: v })}
             options={KINDS.map((k) => ({ value: k, label: kindLabel(t, k) }))}
           />
-        </Field>
+        </SettingRow>
         {!inert && (
           <>
-            <Field label={t('settings.connections.host')}>
+            <SettingRow control="long" label={t('settings.connections.host')}>
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -295,15 +422,15 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 placeholder="proxy.example.org"
                 onChange={(e) => onChange({ host: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.connections.port')}>
+            </SettingRow>
+            <SettingRow control="short" label={t('settings.connections.port')}>
               <NumberInput
                 value={row.port ?? 0}
                 min={1}
                 max={65535}
                 onValue={(v) => onChange({ port: v })}
               />
-            </Field>
+            </SettingRow>
           </>
         )}
       </div>
@@ -313,8 +440,9 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
       )}
 
       {!inert && (
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-          <Field
+        <div className="flex flex-col gap-4">
+          <SettingRow
+            control="long"
             label={t('settings.connections.username')}
             hint={
               socks4
@@ -329,9 +457,13 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
               value={row.username ?? ''}
               onChange={(e) => onChange({ username: e.target.value })}
             />
-          </Field>
+          </SettingRow>
           {!socks4 && (
-            <Field label={t('settings.connections.password')} hint={t('settings.connections.passwordHint')}>
+            <SettingRow
+              control="long"
+              label={t('settings.connections.password')}
+              hint={t('settings.connections.passwordHint')}
+            >
               <TextInput
                 type="password"
                 dir="ltr"
@@ -341,12 +473,12 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
                 placeholder={row.hasPassword ? t('settings.connections.passwordStored') : ''}
                 onChange={(e) => onChange({ password: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           )}
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-[1fr_10rem]">
+      <div className="flex flex-col gap-4">
         <Field label={t('settings.connections.filter')} hint={t('settings.connections.filterHint')}>
           <ListArea
             dir="ltr"
@@ -356,14 +488,14 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
             onLines={(filter) => onChange({ filter })}
           />
         </Field>
-        <Field label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>
+        <SettingRow control="short" label={t('settings.connections.cap')} hint={t('settings.connections.capHint')}>
           <NumberInput
             value={row.maxDownloads ?? 0}
             min={0}
             max={64}
             onValue={(v) => onChange({ maxDownloads: Math.max(0, v) })}
           />
-        </Field>
+        </SettingRow>
       </div>
     </>
   );
@@ -376,38 +508,31 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
 function TestPanel({ row }: { row: Connection }) {
   const { t } = useT();
   const [target, setTarget] = useState('');
-  const [busy, setBusy] = useState(false);
   const [report, setReport] = useState<Report | null>(null);
 
-  async function run() {
-    setBusy(true);
+  async function run(): Promise<ButtonVerdict> {
     setReport(null);
-    try {
-      const r = await fetch('/api/connections/test', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ entry: row, target }),
-      });
-      if (!r.ok) throw new Error((await r.text()).trim() || String(r.status));
-      setReport((await r.json()) as Report);
-    } catch (e) {
-      // A transport failure is reported as a refusal to run, not as a verdict.
-      setReport({
-        ok: false,
-        stage: 'refused',
-        detail: t('settings.connections.testFailed', { error: String(e).replace(/^Error:\s*/, '') }),
-        millis: 0,
-      });
-    } finally {
-      setBusy(false);
-    }
+    const answer = await probe(t, row, target);
+    setReport(answer);
+    return answer.ok ? 'ok' : 'fail';
   }
 
   return (
     <div className="flex flex-col gap-3 border-t border-carbon-border/60 pt-4">
-      <div className="flex items-end gap-3">
-        <div className="min-w-0 flex-1">
-          <Field label={t('settings.connections.testTarget')} hint={t('settings.connections.testTargetHint')}>
+      {/* How far the probe got, in the server's words; the button holds the answer. */}
+      {report && (
+        <p className="text-xs text-carbon-textSub">
+          {report.detail}
+          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {fmtUnit(report.millis, 'ms')}</span>}
+        </p>
+      )}
+      <div className="flex flex-wrap items-end gap-3">
+        <div className="min-w-0 flex-[1_1_12rem]">
+          <SettingRow
+            control="long"
+            label={t('settings.connections.testTarget')}
+            hint={t('settings.connections.testTargetHint')}
+          >
             <TextInput
               dir="ltr"
               spellCheck={false}
@@ -415,18 +540,17 @@ function TestPanel({ row }: { row: Connection }) {
               placeholder="example.org"
               onChange={(e) => setTarget(e.target.value)}
             />
-          </Field>
+          </SettingRow>
         </div>
-        <Button kind="secondary" onClick={run} disabled={busy} icon={<IconGlobe width={16} height={16} />}>
-          {busy ? t('settings.connections.testing') : t('settings.connections.test')}
-        </Button>
+        <TestButton
+          label={t('settings.connections.test')}
+          busyLabel={t('settings.connections.testing')}
+          icon={<IconNetwork />}
+          words={{ ok: t('test.connected'), fail: t('test.notConnected') }}
+          run={run}
+          resetKey={JSON.stringify(row) + target}
+        />
       </div>
-      {report && (
-        <p className={`text-xs ${report.ok ? 'text-statusOk' : 'text-statusFail'}`}>
-          {report.detail}
-          {report.ok && report.millis > 0 && <span className="glim-num text-carbon-textMuted"> · {fmtUnit(report.millis, 'ms')}</span>}
-        </p>
-      )}
     </div>
   );
 }

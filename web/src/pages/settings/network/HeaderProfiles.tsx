@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, Field, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
-import { IconClose, IconPlus, IconTrash } from '../../../lib/icons';
+import { Button, Card, IconBadge, Modal, SectionTitle, TextInput, useTooltip } from '../../../components/ui';
+import { IconAdd, IconClose, IconTrash } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   ApiError,
@@ -11,6 +11,7 @@ import {
   type HeaderProfile,
   type HeaderProfileLine,
 } from '../../../lib/api';
+import { SettingRow } from '../controls';
 
 // Header profiles hold a person's own request headers for one site, such as a
 // session cookie, a Referer or Basic auth. The values are sealed and never come
@@ -119,7 +120,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
       <SectionTitle
         hint={t('settings.headerProfiles.hint')}
         right={
-          <Button icon={<IconPlus width={16} height={16} />} disabled={busy || draft !== null} onClick={add}>
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} disabled={busy} onClick={add}>
             {t('settings.headerProfiles.add')}
           </Button>
         }
@@ -127,11 +128,11 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         {t('settings.headerProfiles.title')}
       </SectionTitle>
 
-      {profiles.length === 0 && !draft ? (
+      {profiles.length === 0 ? (
         // Inside the card rather than an EmptyState, which would hide Add.
         <p className="py-6 text-center text-sm text-carbon-textSub">
           {t('settings.headerProfiles.empty')}
-          <span className="mt-1 block text-[11px] text-carbon-textMuted">
+          <span className="mt-1 block text-meta text-carbon-textMuted">
             {t('settings.headerProfiles.emptyHint')}
           </span>
         </p>
@@ -141,11 +142,12 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             <li
               key={p.id}
               className={`flex items-center gap-3 py-2.5 ${
-                i === profiles.length - 1 && !draft ? '' : 'border-b border-carbon-border/60'
+                i === profiles.length - 1 ? '' : 'border-b border-carbon-border/60'
               }`}
             >
               <button
                 type="button"
+                aria-haspopup="dialog"
                 className="flex min-w-0 flex-1 items-center gap-3 text-start"
                 onClick={() => {
                   setError('');
@@ -154,7 +156,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
               >
                 <span className="shrink-0 text-sm text-carbon-text">{p.id}</span>
                 <OriginLine origin={p.origin} />
-                <span className="shrink-0 text-[11px] text-carbon-textMuted">
+                <span className="shrink-0 text-meta text-carbon-textMuted">
                   {t('settings.headerProfiles.count', { n: p.headers.length })}
                 </span>
               </button>
@@ -175,10 +177,36 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
         </ul>
       )}
 
+      {/* A profile is edited in a window and stored whole: its lines only make
+          sense together, and Cancel throws the draft away. */}
       {draft && (
-        <div className="glim-well flex flex-col gap-4 p-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <Field label={t('settings.headerProfiles.name')} hint={t('settings.headerProfiles.nameHint')}>
+        <Modal
+          title={draft.original || t('settings.headerProfiles.add')}
+          height="capped"
+          wide
+          onClose={() => (busy ? undefined : setDraft(null))}
+          footer={
+            <>
+              <Button
+                kind="ghost"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                disabled={busy}
+                onClick={() => setDraft(null)}
+              />
+              <Button disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''} onClick={save}>
+                {t('settings.headerProfiles.save')}
+              </Button>
+            </>
+          }
+        >
+          <div className="flex flex-col gap-4">
+            <SettingRow
+              control="long"
+              label={t('settings.headerProfiles.name')}
+              hint={t('settings.headerProfiles.nameHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -189,8 +217,12 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 className={draft.original !== '' ? 'cursor-default opacity-70' : ''}
                 onChange={(e) => setDraft({ ...draft, id: e.target.value })}
               />
-            </Field>
-            <Field label={t('settings.headerProfiles.origin')} hint={t('settings.headerProfiles.originHint')}>
+            </SettingRow>
+            <SettingRow
+              control="long"
+              label={t('settings.headerProfiles.origin')}
+              hint={t('settings.headerProfiles.originHint')}
+            >
               <TextInput
                 dir="ltr"
                 spellCheck={false}
@@ -198,21 +230,22 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                 placeholder="https://forum.example.org"
                 onChange={(e) => setDraft({ ...draft, origin: e.target.value })}
               />
-            </Field>
+            </SettingRow>
           </div>
 
           <div className="flex flex-col gap-2">
             {draft.lines.map((line, i) => (
               <div key={i} className="grid grid-cols-[minmax(0,12rem)_1fr_auto] items-end gap-2">
-                <Field label={t('settings.headerProfiles.headerName')}>
+                <SettingRow control="long" label={t('settings.headerProfiles.headerName')}>
                   <TextInput
                     dir="ltr"
                     spellCheck={false}
                     value={line.name}
                     onChange={(e) => patchLine(i, { name: e.target.value })}
                   />
-                </Field>
-                <Field
+                </SettingRow>
+                <SettingRow
+                  control="long"
                   label={line.stored ? t('settings.headerProfiles.valueStored') : t('settings.headerProfiles.headerValue')}
                   hint={line.stored ? t('settings.headerProfiles.valueStoredHint') : undefined}
                 >
@@ -223,7 +256,7 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                     // Typing turns a kept line into a real value.
                     onChange={(e) => patchLine(i, { value: e.target.value, stored: false })}
                   />
-                </Field>
+                </SettingRow>
                 <IconBadge
                   icon={<IconTrash width={16} height={16} />}
                   hue={i}
@@ -234,31 +267,22 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
               </div>
             ))}
             <Button
+              kind="secondary"
               className="w-fit"
-              icon={<IconPlus width={16} height={16} />}
+              icon={<IconAdd width={16} height={16} />}
               onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
             >
               {t('settings.headerProfiles.addHeader')}
             </Button>
           </div>
 
-          {/* The spacer and the error come first so Save ends the row. The JSX
-              order sets it, so the row mirrors in right-to-left languages. */}
-          <div className="flex items-center gap-3">
-            <span className="flex-1" />
-            {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
-            <Button kind="ghost" disabled={busy} onClick={() => setDraft(null)}>
-              {t('common.cancel')}
-            </Button>
-            <Button
-              disabled={busy || draft.id.trim() === '' || draft.origin.trim() === ''}
-              onClick={save}
-            >
-              {t('settings.headerProfiles.save')}
-            </Button>
-          </div>
-        </div>
+          {/* Why the save was refused, above the buttons until the next try. */}
+          {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+        </Modal>
       )}
+
+      {/* A refused delete has no window open to show it in. */}
+      {!draft && error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
 
       {confirming && (
         <Modal

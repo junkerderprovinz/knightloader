@@ -3,33 +3,27 @@
 // accounts come first, the own Usenet servers below them, then hoster logins,
 // the logins for the user's own servers and the captcha solvers' keys; the
 // section follows the catalogue's Group field, and every card draws an
-// AccountTable. The Allow free downloads switch comes under them, since whether
-// a link may be fetched for free is a question of which accounts there are.
-import {
-  useCallback,
-  useEffect,
-  useRef,
-  useState,
-  type KeyboardEventHandler,
-  type PointerEventHandler,
-} from 'react';
+// AccountTable. Under them comes the Allow free downloads switch, since whether
+// a link may be fetched for free is a question of which accounts there are, and
+// last the two priority cards side by side, one for the download backends and
+// one for the captcha accounts.
+// Adding is the page's one floating action, which opens a window with a tile
+// per kind in the cards' order; no card carries an add button of its own.
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type Account,
   type AccountCredential,
   type CatalogueService,
   type CredentialField,
-  type JDStatus,
   type ResolverInfo,
   type VerifyResult,
   fetchAccounts,
   fetchAccountCatalogue,
-  fetchJDStatus,
   fetchResolverPriority,
   removeAccountCredential,
   saveAccountCredential,
   saveResolverPriority,
   setAccountEnabled,
-  setAccountImport,
   testAccount,
   verifyAccountCredential,
 } from '../lib/api';
@@ -56,22 +50,35 @@ import {
 } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
-import { LIFT, SETTLE, useReorder } from '../components/dragLift';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
+import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
+import { CaptchaPriorityCard } from './settings/accounts/CaptchaPriorityCard';
+import { LiveSettings } from './settings/accounts/LiveSettings';
+import { SettingRow } from './settings/controls';
 import {
   IconAccounts,
   IconCaptcha,
-  IconChevronStart,
+  IconBack,
   IconClose,
-  IconGrip,
   IconExternalLink,
-  IconInstances,
-  IconPlus,
-  IconRetry,
+  IconGlobe,
+  IconFleet,
+  IconKey,
+  IconAdd,
+  IconRefresh,
   IconTrash,
 } from '../lib/icons';
-import { HosterIcon } from '../components/HosterIcon';
+import {
+  BrandPicker,
+  KindPicker,
+  PickerSearch,
+  brandMatches,
+  siteOf,
+  type Brand,
+  type Kind,
+} from '../components/BrandPicker';
+import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
 
 // Reads what the background account-health refresher stored; expiry and
 // traffic change in hours.
@@ -129,6 +136,10 @@ export function Accounts() {
   // Bumped on every change to the Usenet servers, whose row on the priority
   // card comes and goes with them.
   const [usenetSaves, setUsenetSaves] = useState(0);
+  // The two cards that keep their own windows open the add one when the
+  // floating action asks for it.
+  const [adding, setAdding] = useState<'usenet' | 'hoster' | null>(null);
+  const [picking, setPicking] = useState(false);
   const hoster = useHosterLogins(setLoginHosts);
 
   const load = useCallback(async () => {
@@ -169,16 +180,6 @@ export function Accounts() {
     setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, enabled } : x)) ?? cur);
     try {
       await setAccountEnabled(a.service, a.account, enabled);
-    } catch {
-      toast(t('common.loadFailed'), 'fail');
-      await load();
-    }
-  }
-
-  async function onImport(a: Account, on: boolean) {
-    setAccounts((cur) => cur?.map((x) => (x.id === a.id ? { ...x, import: on } : x)) ?? cur);
-    try {
-      await setAccountImport(a.service, a.account, on);
     } catch {
       toast(t('common.loadFailed'), 'fail');
       await load();
@@ -231,154 +232,187 @@ export function Accounts() {
     refreshing,
     onRefresh,
     onToggle,
-    onImport,
     onRemove: (a: Account) => setConfirming(a),
     onEdit,
   };
+
+  // Every empty card sends the reader to the floating action by its name.
+  const addPointer = t('accounts.addPointer', { button: t('accounts.newAccount') });
+  const captchaOrder = t('settings.captcha.orderTitle');
+  const kinds: (Kind & { open: () => void })[] = [
+    {
+      id: 'debrid',
+      name: t('accounts.kind.debrid'),
+      sub: t('accounts.kind.debridSub'),
+      icon: <IconAccounts />,
+      open: () => setDialog({ mode: 'new', group: 'debrid' }),
+    },
+    {
+      id: 'usenet',
+      name: t('accounts.kind.usenet'),
+      sub: t('accounts.kind.usenetSub'),
+      icon: <IconGlobe />,
+      open: () => setAdding('usenet'),
+    },
+    {
+      id: 'hoster',
+      name: t('accounts.kind.hoster'),
+      sub: t('accounts.kind.hosterSub'),
+      icon: <IconKey />,
+      open: () => setAdding('hoster'),
+    },
+    ...(serverService
+      ? [
+          {
+            id: 'server',
+            name: t('accounts.kind.server'),
+            sub: t('accounts.kind.serverSub'),
+            icon: <IconFleet />,
+            open: () => setDialog({ mode: 'server', service: serverService, host: null }),
+          },
+        ]
+      : []),
+    {
+      id: 'captcha',
+      name: t('accounts.kind.captcha'),
+      sub: t('accounts.kind.captchaSub'),
+      icon: <IconCaptcha />,
+      open: () => setDialog({ mode: 'new', group: 'captchaSolver' }),
+    },
+  ];
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
-      <Card hue={0} className="flex flex-col gap-3">
+      <Card hue={0} data-new="import-gone" className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.debrid.hint')}>
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
-          <>
-            <AccountsTable
-              label={t('accounts.debrid.title')}
-              rows={debridRows}
-              importColumn
-              {...tableProps}
-            />
-            <Button
-              kind="secondary"
-              hue={0}
-              icon={<IconPlus width={16} height={16} />}
-              className="self-start"
-              onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
-            >
-              {t('accounts.newAccount')}
-            </Button>
-          </>
+          <AccountsTable label={t('accounts.debrid.title')} rows={debridRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
             icon={<IconAccounts width={26} height={26} />}
             title={t('accounts.debrid.empty')}
-            hint={t('accounts.debrid.emptyHint')}
-            action={
-              <Button
-                kind="secondary"
-                hue={0}
-                icon={<IconPlus width={16} height={16} />}
-                onClick={() => setDialog({ mode: 'new', group: 'debrid' })}
-              >
-                {t('accounts.newAccount')}
-              </Button>
-            }
+            hint={`${t('accounts.debrid.emptyHint')} ${addPointer}`}
           />
         )}
       </Card>
 
       <Card hue={1} className="flex flex-col gap-3">
-        <UsenetServersSection hue={1} onChanged={() => setUsenetSaves((n) => n + 1)} />
+        <UsenetServersSection
+          hue={1}
+          onChanged={() => setUsenetSaves((n) => n + 1)}
+          emptyPointer={addPointer}
+          adding={adding === 'usenet'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       <Card hue={2} className="flex flex-col gap-3">
         <SectionTitle hint={t('accounts.hoster.hint')}>
           {t('accounts.hoster.title')}
         </SectionTitle>
-        <HosterLoginSection data={hoster} />
+        <HosterLoginSection
+          data={hoster}
+          emptyPointer={addPointer}
+          adding={adding === 'hoster'}
+          onAddClose={() => setAdding(null)}
+        />
       </Card>
 
       {serverService && (
         <Card hue={3} className="flex flex-col gap-3">
           <SectionTitle hint={t('accounts.server.hint')}>{t('accounts.server.title')}</SectionTitle>
           {serverRows.length > 0 ? (
-            <>
-              <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
-              <Button
-                kind="secondary"
-                hue={3}
-                icon={<IconPlus width={16} height={16} />}
-                className="self-start"
-                onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
-              >
-                {t('accounts.server.add')}
-              </Button>
-            </>
+            <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
           ) : (
             <EmptyState
               nested
-              icon={<IconInstances width={26} height={26} />}
+              icon={<IconFleet width={26} height={26} />}
               title={t('accounts.server.empty')}
-              hint={t('accounts.server.emptyHint')}
-              action={
-                <Button
-                  kind="secondary"
-                  hue={3}
-                  icon={<IconPlus width={16} height={16} />}
-                  onClick={() => setDialog({ mode: 'server', service: serverService, host: null })}
-                >
-                  {t('accounts.server.add')}
-                </Button>
-              }
+              hint={`${t('accounts.server.emptyHint')} ${addPointer}`}
             />
           )}
         </Card>
       )}
 
       {/* A solver's key unlocks no link, so these rows have no import and
-          nothing to renew; the order they are tried in stays on the captcha
-          settings page, which reads the keys from here. */}
+          nothing to renew. The order they are tried in is the captcha
+          priority card below. */}
       <Card hue={4} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.captcha.hint')}>{t('accounts.captcha.title')}</SectionTitle>
+        <SectionTitle hint={t('accounts.captcha.hint', { order: captchaOrder })}>{t('accounts.captcha.title')}</SectionTitle>
         {solverRows.length > 0 ? (
-          <>
-            <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
-            <Button
-              kind="secondary"
-              hue={4}
-              icon={<IconPlus width={16} height={16} />}
-              className="self-start"
-              onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
-            >
-              {t('accounts.newAccount')}
-            </Button>
-          </>
+          <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
           <EmptyState
             nested
             icon={<IconCaptcha width={26} height={26} />}
             title={t('accounts.captcha.empty')}
-            hint={t('accounts.captcha.emptyHint')}
-            action={
-              <Button
-                kind="secondary"
-                hue={4}
-                icon={<IconPlus width={16} height={16} />}
-                onClick={() => setDialog({ mode: 'new', group: 'captchaSolver' })}
-              >
-                {t('accounts.newAccount')}
-              </Button>
-            }
+            hint={`${t('accounts.captcha.emptyHint', { order: captchaOrder })} ${addPointer}`}
           />
         )}
       </Card>
 
-      <FreeDownloadsCard hue={5} />
-
       {/* The signature, so RoutingSection looks again only when the set of
-          services or switched-on logins changes, not on every poll. */}
+          services or switched-on logins changes, not on every poll. The
+          captcha card stands outside the settings shell, so it saves as it
+          goes. */}
       <RoutingSection
+        accounts={accounts}
         catalogue={catalogue}
+        emptyPointer={addPointer}
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
+        captcha={
+          <LiveSettings>
+            <CaptchaPriorityCard hue={7} accounts={accounts} catalogue={catalogue} />
+          </LiveSettings>
+        }
       />
 
-      {/* The windows below belong to the card they were opened from, so they
-          wear its colour. */}
+      <PageActions>
+        <PageAction
+          primary
+          icon={<IconAdd />}
+          label={t('accounts.newAccount')}
+          onClick={() => setPicking(true)}
+          data-new="accounts-add"
+        />
+      </PageActions>
+
+      {/* The kind leads on to the window that kind already has, the services
+          to pick from or the form, so each is still added in one place. The
+          tiles follow the cards on this page, top to bottom. */}
+      {picking && (
+        <Modal
+          title={t('accounts.newAccount')}
+          onClose={() => setPicking(false)}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconClose />}
+                title={t('common.cancel')}
+                onClick={() => setPicking(false)}
+              />
+            </>
+          }
+        >
+          <KindPicker
+            kinds={kinds}
+            onPick={(id) => {
+              setPicking(false);
+              kinds.find((k) => k.id === id)?.open();
+            }}
+          />
+        </Modal>
+      )}
+
+      {/* The windows below belong to a card, so they wear its colour. */}
       {dialog?.mode === 'server' && (
         <ServerDialog
           service={dialog.service}
@@ -445,7 +479,6 @@ interface TableActions {
   refreshing: ReadonlySet<string>;
   onRefresh: (a: Account) => void;
   onToggle: (a: Account, enabled: boolean) => void;
-  onImport: (a: Account, on: boolean) => void;
   onRemove: (a: Account) => void;
   onEdit: (a: Account) => void;
 }
@@ -453,20 +486,17 @@ interface TableActions {
 function AccountsTable({
   label,
   rows,
-  importColumn = false,
   catalogue,
   refreshing,
   onRefresh,
   onToggle,
-  onImport,
   onRemove,
   onEdit,
-}: TableActions & { label: string; rows: Account[]; importColumn?: boolean }) {
+}: TableActions & { label: string; rows: Account[] }) {
   const { t } = useT();
   return (
     <AccountTable
       label={label}
-      importColumn={importColumn}
       rows={rows.map((a): AccountRow => {
         const svc = catalogue.get(a.service);
         // An own server's row is its hostname. KnightLoader has no way to check
@@ -486,7 +516,6 @@ function AccountsTable({
           expiry: a.expiry,
           traffic: a.traffic,
           onToggle: (v) => onToggle(a, v),
-          importing: a.canImport ? { on: a.import, onChange: (v) => onImport(a, v) } : undefined,
           onEdit: () => onEdit(a),
           // A credential from the container's environment cannot be removed here.
           onRemove: a.fromEnv ? undefined : () => onRemove(a),
@@ -499,7 +528,7 @@ function AccountsTable({
                     {
                       id: 'refresh',
                       label: t('accounts.refresh'),
-                      icon: <IconRetry width={16} height={16} />,
+                      icon: <IconRefresh width={16} height={16} />,
                       onSelect: () => onRefresh(a),
                     },
                     ...(renewable
@@ -529,7 +558,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   const { t } = useT();
   if (busy) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-carbon-textMuted">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-carbon-textMuted">
         {/* The house's live dot rather than animate-spin, so it follows the
             motion level and reduced motion. */}
         <span
@@ -543,7 +572,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   // Never checked yet differs from a failed check.
   if (!account.detail) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
         {t('accounts.unchecked')}
       </span>
@@ -551,14 +580,14 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
   }
   if (account.ok) {
     return (
-      <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusOk">
+      <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusOk">
         <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusOkSolid" />
         {t('accounts.ok')}
       </span>
     );
   }
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusFail">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusFail">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusFailSolid" />
       {t('accounts.failed')}
       <InfoBubble tip={account.detail} />
@@ -570,7 +599,7 @@ function AccountStatus({ account, busy }: { account: Account; busy: boolean }) {
 function ServerStatus() {
   const { t } = useT();
   return (
-    <span className="inline-flex items-center gap-1.5 text-[11px] font-medium text-statusNeutral">
+    <span className="inline-flex items-center gap-1.5 text-meta font-medium text-statusNeutral">
       <span className="h-1.5 w-1.5 rounded-[var(--radius-pill)] bg-statusNeutralSolid" />
       {t('accounts.unchecked')}
       <InfoBubble tip={t('accounts.server.uncheckedHint')} />
@@ -623,6 +652,7 @@ function ServerDialog({
   return (
     <Modal
       title={host ? t('accounts.editCredentialTitle', { service: host }) : t('accounts.server.add')}
+      hint={host ? undefined : t('accounts.server.hint')}
       hue={3}
       onClose={onClose}
       footer={
@@ -696,6 +726,7 @@ function CredentialDialog({
   const [verifyResult, setVerifyResult] = useState<VerifyResult | null>(null);
   const [verifying, setVerifying] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [query, setQuery] = useState('');
 
   const fromEnv = editingRow?.fromEnv ?? false;
   const hasDefault = (id: string) => accounts.some((a) => a.service === id && a.account === '');
@@ -754,16 +785,61 @@ function CredentialDialog({
       ? t('accounts.editCredentialTitle', { service: picked.label })
       : t('accounts.addAccountTitle', { service: picked.label });
 
+  // A tile's second line says where the brand lives, or that it has a key
+  // already, which stays in view.
+  const brands: Brand[] = services
+    .map((s) => {
+      const connected = hasDefault(s.id);
+      return {
+        id: s.id,
+        name: s.label,
+        host: s.whereUrl,
+        sub: connected ? t('accounts.connected') : siteOf(s.whereUrl),
+        held: connected,
+      };
+    })
+    .sort((x, y) => x.name.localeCompare(y.name));
+
   return (
     <Modal
       title={title}
-      hue={0}
+      // While adding, the window says what the card it fills is for.
+      hint={
+        mode === 'new'
+          ? solver
+            ? t('accounts.captcha.hint', { order: t('settings.captcha.orderTitle') })
+            : t('accounts.debrid.hint')
+          : undefined
+      }
+      hue={solver ? 4 : 0}
+      // The picker's window, which the form of the picked brand stays in, and
+      // an edit opens the same form in the same window.
+      wide
+      height={picked ? 'content' : 'capped'}
+      holdHeight={!picked && query !== ''}
+      right={!picked && <PickerSearch value={query} onChange={setQuery} placeholder={t('search.placeholder')} />}
       onClose={onClose}
       footer={
         picked && !fromEnv ? (
           <>
+            {/* A new account's form leads back to the list it was picked from;
+                an edit has no list behind it and offers the way out. */}
+            {mode === 'new' ? (
+              <Button
+                kind="secondary"
+                labelled
+                icon={<IconBack className="rtl:-scale-x-100" />}
+                title={t('onboarding.back')}
+                onClick={() => {
+                  // The list comes back whole, so the window can measure the height its search holds.
+                  setPicked(null);
+                  setQuery('');
+                }}
+              />
+            ) : (
+              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
+            )}
             <span className="flex-1" />
-            <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={onClose} />
             {verifyResult && !verifyResult.ok && (
               <Button kind="secondary" onClick={() => void doSave(true)} disabled={saving}>
                 {t('accounts.saveAnyway')}
@@ -784,45 +860,38 @@ function CredentialDialog({
       }
     >
       {!picked ? (
-        <ServicePicker
-          services={services}
-          hasDefault={hasDefault}
-          onPick={(s) => {
-            setPicked(s);
+        <BrandPicker
+          brands={brands.filter((b) => brandMatches(b, query))}
+          none={t('accounts.noServicesFound')}
+          onPick={(id) => {
+            setPicked(services.find((s) => s.id === id) ?? null);
             setAccountId('');
             setVerifyResult(null);
           }}
         />
       ) : (
-        <div className="flex flex-col gap-4">
-          {mode === 'new' && (
-            <Button
-              kind="secondary"
-              labelled
-              icon={<IconChevronStart className="rtl:-scale-x-100" />}
-              title={t('accounts.changeAccount')}
-              onClick={() => setPicked(null)}
-              className="self-start"
-            />
-          )}
-
+        <div data-new="picker-form" className="flex flex-col gap-4">
           {fromEnv ? (
             <p className="text-sm text-carbon-textSub">{t('accounts.credentialFromEnv', { env: editingRow?.envVar ?? '' })}</p>
           ) : (
             <>
               {!editing && hasDefault(picked.id) && (
-                <Field label={t('accounts.accountLabel')} hint={t('accounts.accountLabelHint')}>
+                <SettingRow control="long" label={t('accounts.accountLabel')} hint={t('accounts.accountLabelHint')}>
                   <TextInput
                     value={accountId}
                     onChange={(e) => setAccountId(e.target.value)}
                     placeholder={t('accounts.accountLabelPlaceholder')}
                   />
-                </Field>
+                </SettingRow>
               )}
 
               {/* PasswordInput, so a pasted key can be revealed and read back. */}
               {picked.kind === 'apiKey' ? (
-                <Field label={t('accounts.keyLabel', { service: picked.label })} hint={t('accounts.keyHint')}>
+                <SettingRow
+                  control="long"
+                  label={t('accounts.keyLabel', { service: picked.label })}
+                  hint={t('accounts.keyHint')}
+                >
                   <PasswordInput
                     autoComplete="off"
                     value={apiKey}
@@ -830,13 +899,19 @@ function CredentialDialog({
                     showLabel={t('common.showPassword')}
                     hideLabel={t('common.hidePassword')}
                   />
-                </Field>
+                </SettingRow>
               ) : (
                 <>
-                  <Field label={t(picked.userLabel ? FIELD_LABELS[picked.userLabel] : 'accounts.usernameField')}>
+                  <SettingRow
+                    control="long"
+                    label={t(picked.userLabel ? FIELD_LABELS[picked.userLabel] : 'accounts.usernameField')}
+                  >
                     <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
-                  </Field>
-                  <Field label={t(picked.passLabel ? FIELD_LABELS[picked.passLabel] : 'accounts.passwordField')}>
+                  </SettingRow>
+                  <SettingRow
+                    control="long"
+                    label={t(picked.passLabel ? FIELD_LABELS[picked.passLabel] : 'accounts.passwordField')}
+                  >
                     <PasswordInput
                       autoComplete="new-password"
                       value={password}
@@ -844,7 +919,7 @@ function CredentialDialog({
                       showLabel={t('common.showPassword')}
                       hideLabel={t('common.hidePassword')}
                     />
-                  </Field>
+                  </SettingRow>
                 </>
               )}
 
@@ -870,61 +945,45 @@ function CredentialDialog({
   );
 }
 
-function ServicePicker({
-  services,
-  hasDefault,
-  onPick,
-}: {
-  services: CatalogueService[];
-  hasDefault: (id: string) => boolean;
-  onPick: (s: CatalogueService) => void;
-}) {
-  const { t } = useT();
-  const entries = services
-    .map((s) => ({
-      key: s.id,
-      label: s.label,
-      iconHost: s.whereUrl,
-      pick: () => onPick(s),
-      connected: hasDefault(s.id),
-    }))
-    .sort((x, y) => x.label.localeCompare(y.label));
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="flex max-h-72 flex-col gap-1 overflow-y-auto">
-        {entries.map((e) => (
-          <button
-            key={e.key}
-            type="button"
-            onClick={e.pick}
-            className="flex items-center gap-3 rounded-[var(--radius-control)] px-3 py-2 text-start hover:bg-carbon-hover"
-          >
-            <span className="min-w-0 flex-1">
-              {/* The service's icon, as in the table. */}
-              <span className="flex items-center gap-2 text-sm text-carbon-text">
-                <HosterIcon host={e.iconHost} />
-                {e.label}
-              </span>
-            </span>
-            {e.connected && <span className="glim-eyebrow shrink-0">{t('accounts.connected')}</span>}
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-// Routing: the resolver priority order and the JD sidecar's status. Neither is
-// an account: the order belongs to the registry (internal/resolver), and the
-// sidecar is configured by KL_JD without a credential.
+// Routing: the resolver priority order, which is no account: it belongs to the
+// registry (internal/resolver).
 
 /** The id prefix of a hoster login's row (app.loginRowID). */
 const LOGIN_ROW = 'login:';
+/** The rows of backends that come with KnightLoader rather than with an account. */
+const BUILT_IN = ['jd', 'ytdlp', 'direct', 'torrent'];
 
 /**
- * What a row takes, for the rows whose name does not say it. A debrid
- * service's row needs no bubble. The torrent row gets one because the debrid
- * services above it may take its links.
+ * connectedDebrid maps each debrid service with a connected, switched-on
+ * account to why its accounts do not work, '' while one of them does. A
+ * failed check leaves the account in the order, since it is still asked.
+ */
+function connectedDebrid(accounts: Account[], catalogue: Map<string, CatalogueService>): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const a of accounts) {
+    if (catalogue.get(a.service)?.group !== 'debrid' || !a.configured || !a.enabled) continue;
+    const failed = !!a.detail && !a.ok;
+    const before = out.get(a.service);
+    if (!failed) out.set(a.service, '');
+    else if (before === undefined) out.set(a.service, a.detail);
+  }
+  return out;
+}
+
+/**
+ * ladderOf is the order the instance reports with every connected debrid
+ * service in it. One the instance has not wired yet goes last, so the picture
+ * never leaves out an account the cards above it list.
+ */
+function ladderOf(priority: ResolverInfo[], debrid: Map<string, string>): string[] {
+  const ids = priority.map((r) => r.id);
+  return [...ids, ...[...debrid.keys()].filter((id) => !ids.includes(id))];
+}
+
+/**
+ * What a row takes. A debrid service's row shares one sentence with its name
+ * in it. The torrent row says that the debrid services above it may take its
+ * links.
  */
 const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   jd: 'accounts.routing.tip.jd',
@@ -934,10 +993,25 @@ const ROW_TIPS: Partial<Record<string, TranslationKey>> = {
   nntp: 'accounts.routing.tip.nntp',
 };
 
-function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[]; signature: string }) {
+function RoutingSection({
+  accounts,
+  catalogue,
+  signature,
+  emptyPointer,
+  captcha,
+}: {
+  accounts: Account[];
+  catalogue: CatalogueService[];
+  signature: string;
+  /** The way to the floating action that adds an account, for the card without one. */
+  emptyPointer: string;
+  /** The captcha priority card, which stands beside the download one. */
+  captcha: ReactNode;
+}) {
   const { t } = useT();
+  const { toast } = useToast();
   const [priority, setPriority] = useState<ResolverInfo[] | null>(null);
-  const [jd, setJd] = useState<JDStatus | null>(null);
+  const [busy, setBusy] = useState(false);
 
   // Re-read whenever the configured services or the switched-on hoster logins
   // change: saving a debrid key registers a resolver at once, and each login
@@ -945,7 +1019,6 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
   useEffect(() => {
     let live = true;
     void fetchResolverPriority().then((p) => live && setPriority(p));
-    void fetchJDStatus().then((s) => live && setJd(s));
     return () => {
       live = false;
     };
@@ -956,194 +1029,93 @@ function RoutingSection({ catalogue, signature }: { catalogue: CatalogueService[
     if (id.startsWith(LOGIN_ROW)) return id.slice(LOGIN_ROW.length);
     return byId.get(id)?.label ?? resolverLabel(id, t);
   };
+  const tipFor = (id: string) => {
+    if (byId.get(id)?.group === 'debrid') return t('accounts.routing.tip.debrid', { name: labelFor(id) });
+    const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
+    return tip && t(tip);
+  };
 
-  return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <Card hue={6} className="flex flex-col gap-3">
-        <SectionTitle hint={`${t('accounts.routing.orderHint')}\n\n${t('accounts.routing.orderHintTorrents')}`}>
-          {t('accounts.routing.priorityTitle')}
-        </SectionTitle>
-        {priority === null ? (
-          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-        ) : priority.length === 0 ? (
-          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.priorityEmpty')}</p>
-        ) : (
-          <PriorityLadder rows={priority} labelFor={labelFor} onSaved={setPriority} />
-        )}
-      </Card>
+  const debrid = connectedDebrid(accounts, byId);
+  const ids = priority && ladderOf(priority, debrid);
+  const troubleFor = (id: string) => {
+    const failed = debrid.get(id);
+    return failed && t('accounts.routing.checkFailed', { reason: failed });
+  };
 
-      <Card hue={7} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.routing.jdHint')}>
-          {t('settings.module.jd')}
-        </SectionTitle>
-        {jd === null ? (
-          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
-        ) : !jd.configured ? (
-          <p className="text-sm text-carbon-textMuted">{t('accounts.routing.jdNotConfigured')}</p>
-        ) : jd.reachable ? (
-          <p className="glim-num text-sm text-statusOk">{t('accounts.routing.jdReachable', { version: jd.version ?? 0 })}</p>
-        ) : (
-          <span className="inline-flex items-center gap-1.5 text-sm text-statusFail">
-            {t('accounts.routing.jdUnreachable')}
-            {jd.detail && <InfoBubble tip={jd.detail} />}
-          </span>
-        )}
-      </Card>
-    </div>
-  );
-}
-
-/**
- * LadderGrip is the ladder's drag grip. It carries an aria-label but no
- * tooltip, which would follow the pointer down every row.
- */
-function LadderGrip({
-  label,
-  disabled,
-  onKeyDown,
-  onPointerDown,
-}: {
-  label: string;
-  disabled: boolean;
-  onKeyDown: KeyboardEventHandler<HTMLButtonElement>;
-  onPointerDown: PointerEventHandler<HTMLButtonElement>;
-}) {
-  return (
-    <button
-      type="button"
-      disabled={disabled}
-      aria-label={label}
-      className="shrink-0 cursor-grab touch-none rounded-[var(--radius-pill)] px-1 py-0.5 text-carbon-textMuted
-        outline-none transition-colors hover:text-carbon-text focus-visible:shadow-[0_0_0_2px_var(--focus-ring)]
-        active:cursor-grabbing disabled:cursor-default"
-      onKeyDown={onKeyDown}
-      onPointerDown={onPointerDown}
-    >
-      <IconGrip width={14} height={16} />
-    </button>
-  );
-}
-
-/** LadderName is a row's name, with an (i) saying what the row takes where the name does not. */
-function LadderName({ id, label }: { id: string; label: string }) {
-  const { t } = useT();
-  const tip = id.startsWith(LOGIN_ROW) ? 'accounts.routing.tip.login' : ROW_TIPS[id];
-  return (
-    <span className="flex min-w-0 items-center">
-      <span className="truncate text-carbon-text">{label}</span>
-      {tip && <InfoBubble tip={t(tip)} />}
-    </span>
-  );
-}
-
-/**
- * PriorityLadder orders the resolvers by drag or, with the grip focused, by
- * arrow keys. Every drop saves at once and redraws from the server's answer.
- * "Automatisch" clears the stored order, so it follows the ladder as it
- * changes instead of freezing today's.
- */
-function PriorityLadder({
-  rows,
-  labelFor,
-  onSaved,
-}: {
-  rows: ResolverInfo[];
-  labelFor: (id: string) => string;
-  onSaved: (rows: ResolverInfo[]) => void;
-}) {
-  const { t } = useT();
-  const { toast } = useToast();
-  const [busy, setBusy] = useState(false);
-  // The order a save is writing, drawn until the server answers, so a dropped
-  // row does not jump back to its old place and then forward again.
-  const [pending, setPending] = useState<string[] | null>(null);
-  const list = useRef<HTMLOListElement>(null);
-
+  // "Automatisch" stores an empty order, which clears the stored one, so the
+  // order follows the ladder as it changes instead of freezing today's.
   async function store(next: string[]) {
     setBusy(true);
-    if (next.length > 0) setPending(next);
     try {
-      onSaved(await saveResolverPriority(next));
+      setPriority(await saveResolverPriority(next));
     } catch (e) {
       toast(t('list.failed', { error: e instanceof Error ? e.message : String(e) }), 'fail');
     } finally {
       setBusy(false);
-      setPending(null);
     }
   }
 
-  // Only the grip starts a drag, so a mouse arms it by moving; the rows are
-  // measured one by one, since a login row is taller than a service row.
-  const drag = useReorder({
-    ids: pending ?? rows.map((r) => r.id),
-    container: list,
-    attr: 'data-ladder-id',
-    axis: 'y',
-    arm: 'move',
-    enabled: !busy,
-    onReorder: (next) => void store(next),
-  });
-
-  const byId = new Map(rows.map((r) => [r.id, r] as const));
-  const shown = drag.order.map((id) => byId.get(id)).filter((r): r is ResolverInfo => !!r);
-
-  /** moved moves `id` to position `to`, clamped, and returns the new order or null. */
-  function moved(id: string, to: number): string[] | null {
-    const ids = [...drag.order];
-    const from = ids.indexOf(id);
-    if (from < 0) return null;
-    const at = Math.max(0, Math.min(ids.length - 1, to));
-    if (at === from) return null;
-    ids.splice(from, 1);
-    ids.splice(at, 0, id);
-    return ids;
-  }
-
+  const title = t('accounts.routing.priorityTitle');
   return (
-    <div className="flex flex-col gap-3">
-      {/* The list is the rows' offsetParent, the layout a drag measures in.
-          While a row is held the others wiggle (glim-drag-armed). */}
-      <ol ref={list} className={`relative flex flex-col gap-1.5 ${drag.held !== null ? 'glim-drag-armed' : ''}`}>
-        {shown.map((r, i) => {
-          const look = drag.look(r.id);
-          const carried = look === LIFT || look === SETTLE;
-          return (
-            <li
-              key={r.id}
-              data-ladder-id={r.id}
-              // A carried row floats over the others, so it takes a ground of
-              // its own. select-none keeps a drag from selecting the names.
-              className={`flex select-none items-center gap-2 rounded-[var(--radius-control)] px-1 py-1 text-sm
-                text-carbon-textSub ${carried ? 'bg-carbon-surface2' : ''} ${look}`}
-            >
-              {/* A real button, so the arrow keys move the row. */}
-              <LadderGrip
-                label={t('accounts.routing.dragHandle', { name: labelFor(r.id) })}
-                disabled={busy}
-                onKeyDown={(e) => {
-                  if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
-                  e.preventDefault();
-                  const next = moved(r.id, i + (e.key === 'ArrowUp' ? -1 : 1));
-                  if (next) void store(next);
-                }}
-                onPointerDown={(e) => drag.press(e, r.id)}
-              />
-              <span className="glim-num w-4 shrink-0 text-carbon-textMuted">{i + 1}</span>
-              <LadderName id={r.id} label={labelFor(r.id)} />
-            </li>
-          );
-        })}
-      </ol>
-      <div className="flex items-center gap-2">
-        <Button
-          kind="secondary"
-          disabled={busy}
-          hint={t('accounts.routing.priorityAutoHint')}
-          onClick={() => void store([])}
-        >
-          {t('accounts.routing.priorityAuto')}
-        </Button>
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      {/* The state of the backend that loads for free is on the Health page,
+          and its revision on the card of built-in parts. */}
+      <div data-new="free-first" className="sm:col-span-2">
+        <FreeDownloadsCard hue={5} />
       </div>
+
+      <PriorityCard
+        hue={6}
+        data-new="priority-flow"
+        title={title}
+        hint={`${t('accounts.routing.orderHint')}
+
+${t('accounts.routing.orderHintTorrents')}`}
+        intro={t('accounts.routing.priorityIntro')}
+      >
+        {ids === null ? (
+          <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
+        ) : (
+          <div data-new="priority-accounts" className="flex flex-col gap-3">
+            {ids.every((id) => BUILT_IN.includes(id)) ? (
+              // The built-in backends alone are no order worth setting.
+              <EmptyState
+                nested
+                icon={<IconAccounts width={26} height={26} />}
+                title={t('accounts.routing.priorityNone')}
+                hint={emptyPointer}
+              />
+            ) : (
+              <>
+                <div data-new="priority-tips">
+                  <PriorityLadder
+                    ids={ids}
+                    title={title}
+                    entry={t('accounts.routing.priorityEntry')}
+                    labelFor={labelFor}
+                    tipFor={tipFor}
+                    troubleFor={troubleFor}
+                    busy={busy}
+                    onReorder={store}
+                  />
+                </div>
+                <div className="flex items-center gap-2">
+                  <Button
+                    kind="secondary"
+                    disabled={busy}
+                    hint={t('accounts.routing.priorityAutoHint')}
+                    onClick={() => void store([])}
+                  >
+                    {t('accounts.routing.priorityAuto')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+      </PriorityCard>
+
+      {captcha}
     </div>
   );
 }
