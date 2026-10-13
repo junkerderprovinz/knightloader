@@ -10,6 +10,7 @@
 function deploymentLabel(dep) {
   if (dep === 'desktop') return t('picker.deployment.desktop');
   if (dep === 'container') return t('picker.deployment.container');
+  if (dep === 'server') return t('picker.deployment.server');
   return t('picker.viaRelay');
 }
 
