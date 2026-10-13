@@ -66,7 +66,11 @@ skipped or reordered.
    serves the instance, `/test/` the test page and `/test/walkthrough.mp4` the
    video, all three through a Cloudflare tunnel because the relay holds port 443
    and the host firewall opens nothing else. Its queue is paused by a schedule
-   rather than by hand, so a restart cannot start a download. What is left to
+   rather than by hand, so a restart cannot start a download. A new browser or
+   phone waits for approval at an instance, and nobody watches this one, so a
+   timer on the host (`knightloader-review-approve`) approves every browser and
+   phone that joins within 15 seconds, with an API token that only it holds;
+   another instance asking to join is left alone. What is left to
    fill in are `<PHRASE>` and `<WEBUI_PASSWORD>`: they go into the dashboard
    fields and nowhere else, never into the repository, because the phrase is the
    key to the reviewer group.
