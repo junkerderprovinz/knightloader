@@ -36,11 +36,7 @@ func (s *layoutStore) watch(gid string) []byte {
 	now := time.Now()
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	for k, w := range s.watched {
-		if now.Sub(w.asked) > layoutWatch {
-			delete(s.watched, k)
-		}
-	}
+	s.forgetUnwatchedLocked(now)
 	w := s.watched[gid]
 	if w == nil {
 		w = &watchedLayout{}
@@ -48,6 +44,17 @@ func (s *layoutStore) watch(gid string) []byte {
 	}
 	w.asked = now
 	return w.raw
+}
+
+// forgetUnwatchedLocked drops every layout nobody has asked about for
+// layoutWatch. Put runs it too, or a closed panel would have every save
+// marshalled until the next question about any task. Caller holds s.mu.
+func (s *layoutStore) forgetUnwatchedLocked(now time.Time) {
+	for k, w := range s.watched {
+		if now.Sub(w.asked) > layoutWatch {
+			delete(s.watched, k)
+		}
+	}
 }
 
 // Pieces is which bytes of HTTP task taskID are written and where its
