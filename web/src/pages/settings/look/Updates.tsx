@@ -2,6 +2,7 @@ import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
+  ErrorCard,
   FieldGroup,
   InfoBubble,
   LinkBadge,
@@ -27,6 +28,7 @@ import {
 } from '../../../lib/api';
 import { IconCheck, IconClose, IconDownload, IconRefresh } from '../../../lib/icons';
 import { useT, type TranslationKey } from '../../../lib/i18n';
+import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
 import { SubCard } from '../controls';
 
@@ -143,15 +145,13 @@ function ToolCard({
   );
 }
 
-/** useDeployment is how this instance runs, null until the server has said. */
-function useDeployment(): DeploymentInfo | null {
-  const [deployment, setDeployment] = useState<DeploymentInfo | null>(null);
-  useEffect(() => {
-    void fetchDeploymentInfo()
-      .then(setDeployment)
-      .catch(() => {});
-  }, []);
-  return deployment;
+/**
+ * DeploymentError stands in a card whose rows wait for how this instance runs
+ * when the server did not say, with a way to ask again.
+ */
+function DeploymentError({ retry }: { retry: () => void }) {
+  const { t } = useT();
+  return <ErrorCard nested message={t('common.loadFailed')} retry={retry} retryLabel={t('common.retry')} />;
 }
 
 /** Where a program on the server's path comes from: the image in a container, the computer otherwise. */
@@ -164,12 +164,13 @@ const hostSource = (t: Translate, deployment: string) =>
  */
 export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
-  const deployment = useDeployment();
+  const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
 
   return (
     <Card hue={hue} data-new="updates-card" className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.look.updatesHint')}>{t('settings.look.updatesTitle')}</SectionTitle>
       {/* Wait for the deployment rather than flash the wrong copy. */}
+      {failed && <DeploymentError retry={reload} />}
       {deployment && (
         <>
           <AppUpdates deployment={deployment.deployment} />
@@ -187,7 +188,7 @@ export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNo
  */
 export function BuiltInCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const deployment = useDeployment();
+  const { data: deployment, failed, reload } = useResource(fetchDeploymentInfo);
   const [tools, setTools] = useState<MediaToolsStatus | null>(null);
 
   useEffect(() => {
@@ -202,6 +203,7 @@ export function BuiltInCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} data-new="built-in" className="flex flex-col gap-6">
       <SectionTitle hint={t('settings.look.builtInHint')}>{t('settings.look.builtInTitle')}</SectionTitle>
+      {failed && <DeploymentError retry={reload} />}
       {deployment && (
         <div className="@container flex flex-col divide-y divide-carbon-border/40">
           <ToolRow
@@ -361,7 +363,8 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
   // Separate outcomes, so a later check does not wipe a failed fetch.
   const [fetched, setFetched] = useState('');
   const [failed, setFailed] = useState('');
-  const [reverted, setReverted] = useState('');
+  // The path running again after a revert, '' when none is left, null before one.
+  const [reverted, setReverted] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     try {
@@ -379,7 +382,7 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
     setChecking(true);
     setFetched('');
     setFailed('');
-    setReverted('');
+    setReverted(null);
     let found: YtdlpLatest;
     try {
       found = await fetchYtdlpLatest();
@@ -403,7 +406,7 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
     setFetching(true);
     setFetched('');
     setFailed('');
-    setReverted('');
+    setReverted(null);
     try {
       const done = await updateYtdlp();
       setFetched(done.version);
@@ -422,11 +425,11 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
     setReverting(true);
     setFetched('');
     setFailed('');
-    setReverted('');
+    setReverted(null);
     try {
       const after = await revertYtdlp();
       setTools(after);
-      setReverted(after.ytdlp.path ?? '');
+      setReverted(after.ytdlp.found ? (after.ytdlp.path ?? '') : '');
       setLatest(null);
     } catch (e) {
       setFailed(errorText(e));
@@ -507,10 +510,14 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
         {!failed && fetched && (
           <p className="text-sm text-statusOk">{t('settings.resolvers.toolsFetched', { version: fetched })}</p>
         )}
-        {!failed && !fetched && reverted && (
-          <p className="text-sm text-statusOk">{t('settings.resolvers.toolsReverted', { path: reverted })}</p>
+        {!failed && !fetched && reverted !== null && (
+          <p className="text-sm text-statusOk">
+            {reverted
+              ? t('settings.resolvers.toolsReverted', { path: reverted })
+              : t('settings.resolvers.toolsRevertedNone')}
+          </p>
         )}
-        {!failed && !fetched && !reverted && latest && (
+        {!failed && !fetched && reverted === null && latest && (
           <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
         )}
 

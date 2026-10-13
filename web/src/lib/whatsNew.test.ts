@@ -101,21 +101,21 @@ describe('the record of the running version', () => {
   });
 
   it('marks the changes on an instance that was in use before it kept a record', () => {
-    const record = recordFor(undefined, 'v1.9.0', true);
-    expect(record.after).toBe('1.8.4');
+    const record = recordFor(undefined, 'v2.0.0', true);
+    expect(record.after).toBe('1.9.0');
     expect(record.notes).toBe(false);
   });
 
   it('keeps what was seen while the version stays', () => {
-    const stored: NewsRecord = { version: 'v1.9.0', after: '1.8.4', seen: ['seed-ring'], notes: true, dots: false };
-    expect(recordFor(stored, 'v1.9.0', true)).toBe(stored);
+    const stored: NewsRecord = { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring'], notes: true, dots: false };
+    expect(recordFor(stored, 'v2.0.0', true)).toBe(stored);
   });
 
   it('starts over with the next version', () => {
-    const stored: NewsRecord = { version: 'v1.8.4', after: '', seen: ['x'], notes: true, dots: false };
-    expect(recordFor(stored, 'v1.9.0', false)).toEqual({
-      version: 'v1.9.0',
-      after: '1.8.4',
+    const stored: NewsRecord = { version: 'v1.9.0', after: '', seen: ['x'], notes: true, dots: false };
+    expect(recordFor(stored, 'v2.0.0', false)).toEqual({
+      version: 'v2.0.0',
+      after: '1.9.0',
       seen: [],
       notes: false,
       dots: true,

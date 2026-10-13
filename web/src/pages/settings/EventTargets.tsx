@@ -53,10 +53,12 @@ function nextId(rows: EventTargetRow[]): string {
 }
 
 /**
- * useHealth fetches the health table once, keyed by target id. It changes only
- * when an event fires, so it is not polled.
+ * useHealth fetches the health table keyed by target id, again whenever the
+ * stored targets change: an id freed by a removal is taken by the next target
+ * added, which must not show the removed one's health. Otherwise it changes
+ * only when an event fires, so it is not polled.
  */
-function useHealth(): Record<string, EventTargetStatus> {
+function useHealth(stored: string): Record<string, EventTargetStatus> {
   const [health, setHealth] = useState<Record<string, EventTargetStatus>>({});
   useEffect(() => {
     let alive = true;
@@ -74,7 +76,7 @@ function useHealth(): Record<string, EventTargetStatus> {
     return () => {
       alive = false;
     };
-  }, []);
+  }, [stored]);
   return health;
 }
 
@@ -99,12 +101,12 @@ function useVocabulary(): { triggers: string[]; placeholders: Placeholder[] } {
 
 export function EventTargetsCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
+  const { cfg, saved, patch } = useDraft();
   const { features } = useFeatures();
 
   // omitempty, so an older settings.json sends nothing.
   const rows = cfg.eventTargets ?? [];
-  const health = useHealth();
+  const health = useHealth(JSON.stringify(saved.eventTargets ?? []));
   const { triggers, placeholders } = useVocabulary();
 
   // Switching the module off parks the rows and clears the list. Checked with

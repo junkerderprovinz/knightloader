@@ -101,3 +101,25 @@ it('does not call a preview the server no longer holds half an hour old', async 
   expect(text()).toContain(en['settings.jdimport.unknown']);
   expect(text()).not.toContain(en['settings.jdimport.expired']);
 });
+
+it('shakes the upload button, not the path button, when an uploaded zip is refused', async () => {
+  vi.mocked(readJDImportFile).mockRejectedValue(new ApiError('no zip', 'jdimport.notZip', undefined, 400));
+  await act(async () =>
+    root.render(
+      <I18nProvider>
+        <JDImportCard hue={0} />
+      </I18nProvider>,
+    ),
+  );
+  const input = host.querySelector<HTMLInputElement>('input[type=file]')!;
+  Object.defineProperty(input, 'files', { value: [new File(['zip'], 'cfg.txt')] });
+  await act(async () => input.dispatchEvent(new Event('change', { bubbles: true })));
+  const shaking = (label: string) =>
+    [...host.querySelectorAll('button')]
+      .find((b) => b.textContent === label)!
+      .className.split(' ')
+      .some((c) => c.endsWith('-shake'));
+  expect(text()).toContain(en['settings.jdimport.notZip']);
+  expect(shaking(en['settings.jdimport.uploadButton'])).toBe(true);
+  expect(shaking(en['settings.jdimport.readButton'])).toBe(false);
+});

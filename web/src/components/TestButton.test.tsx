@@ -66,6 +66,18 @@ describe('a button that tests something', () => {
     expect(button().textContent).toBe('Connected');
   });
 
+  it('drops an answer to what was there before an edit made while it ran', async () => {
+    let finish: (v: ButtonVerdict) => void = () => {};
+    const run = () => new Promise<ButtonVerdict>((resolve) => (finish = resolve));
+    render(run);
+    await press();
+    render(run, 'b');
+    await act(async () => finish('fail'));
+    expect(button().textContent).toBe('Test');
+    expect(button().className).not.toContain('bg-statusFailSolid');
+    expect([...button().classList].some((c) => c.endsWith('-shake'))).toBe(false);
+  });
+
   it('goes back to its own word once what it tested changes', async () => {
     const run = async (): Promise<ButtonVerdict> => 'ok';
     render(run);

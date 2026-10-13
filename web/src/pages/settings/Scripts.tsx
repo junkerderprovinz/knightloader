@@ -204,6 +204,9 @@ function ScriptRow({
   // A new row counts as dirty at once; touched keeps the autosave from
   // creating an empty script before anything is typed.
   const touched = useRef(false);
+  // The draft the server last refused, so the autosave does not send it again
+  // and again; the next edit tries anew.
+  const refused = useRef('');
   const update = (fields: Partial<ScriptInput>) => {
     touched.current = true;
     setDraft((d) => ({ ...d, ...fields }));
@@ -220,6 +223,7 @@ function ScriptRow({
       setDraft((d) => (same(d, sent) ? inputOf(script) : d));
       toast(t('settings.saved'), 'ok');
     } catch (e) {
+      refused.current = JSON.stringify(sent);
       // Only a toast: the debounced save has no button to shake.
       toast(t('settings.scripts.saveFailed', { error: e instanceof ScriptApiError ? e.message : String(e) }), 'fail');
     } finally {
@@ -231,7 +235,8 @@ function ScriptRow({
   // since a keystroke may be mid-line in code.
   const saveTimer = useRef<number | null>(null);
   useEffect(() => {
-    if (!touched.current || !dirty) return;
+    // Waits out a save in flight; an edit made meanwhile is sent once it is back.
+    if (!touched.current || !dirty || saving || refused.current === JSON.stringify(draft)) return;
     if (saveTimer.current !== null) window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
       saveTimer.current = null;
@@ -244,7 +249,7 @@ function ScriptRow({
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draft]);
+  }, [draft, saving]);
 
   async function onRemove() {
     if (!row.saved) {
