@@ -48,7 +48,16 @@ const SUB = 'KnightLoader on your server or your desktop';
  * screen once the page has its data, and `act` sets the scene up after that.
  */
 const SCENES = [
-  { n: 1, name: 'overview', path: '/', ready: 'text=bbb_sunflower', caption: 'What’s running, <em>at a glance</em>' },
+  {
+    n: 1,
+    name: 'overview',
+    path: '/',
+    ready: 'text=bbb_sunflower',
+    caption: 'What’s running, <em>at a glance</em>',
+    // The cards come from fixtures/uistate.json. The page scrolls past its head,
+    // so the volume card at the end fits in.
+    act: (page) => page.locator('[data-ov-card="speed"]').evaluate((el) => el.scrollIntoView({ block: 'start' })),
+  },
   {
     n: 2,
     name: 'downloads',
@@ -62,7 +71,10 @@ const SCENES = [
     path: '/downloads',
     ready: 'text=bbb_sunflower',
     caption: 'The limits you change most, <em>one click away</em>',
-    act: (page) => page.getByRole('button', { name: 'Quick settings' }).click(),
+    async act(page) {
+      await page.getByRole('button', { name: 'Quick settings' }).click();
+      await page.getByRole('button', { name: /^End-of-queue action/ }).press('Enter');
+    },
   },
   { n: 4, name: 'collector', path: '/collector', ready: 'text=Sprite Fright', caption: 'One link, <em>every version of it</em>' },
   { n: 5, name: 'appearance', path: '/settings/appearance', ready: 'text=Rainbow mode', caption: 'Corners and colours <em>are your call</em>' },
