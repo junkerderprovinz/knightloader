@@ -15,9 +15,7 @@ BUTTONS = {
     "macos": RELEASE + "knightloader-macos-universal.zip",
     "linux": RELEASE + "knightloader-linux-amd64.zip",
     "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
-    # No listing yet, so the button is drawn without a link. The Community
-    # Applications address goes here once KnightLoader is listed there.
-    "unraid": None,
+    "unraid": "https://unraid.net/community/apps?q=knightloader",
     # A browser cannot download an image, so this opens the package page, which
     # carries the pull command and every tag.
     "docker": "https://github.com/junkerderprovinz/knightloader/pkgs/container/knightloader",
