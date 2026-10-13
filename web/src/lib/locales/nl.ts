@@ -3587,6 +3587,7 @@ export const nl: Dict = {
   'whatsnew.change.listBar': 'Boven de lijst staan drie knoppen: “{filter}”, “{sort}” en “{search}”.',
   'whatsnew.change.listRows': 'De rijen beginnen gelijk met de titel van de kaart, en de knoppen van een rij verschijnen zolang de aanwijzer erop staat.',
   'whatsnew.change.accountPicker': 'Een nieuw debrid-, captcha- of hosteraccount kies je uit tegels, elk met zijn logo. De logo’s van een heel scherm laden samen, en een hoster zonder logo toont zijn eerste letter op een gekleurde tegel.',
+  'whatsnew.change.hosterLogos': 'De meeste hosters in de keuzelijst tonen hun logo meteen, omdat de logo’s met KnightLoader meekomen. Alleen een hoster zonder logo haalt zijn pictogram nog van zijn eigen site.',
   'whatsnew.change.accountRows': 'Een klik op een account opent het, en een rechtsklik opent het menu ervan.',
   'whatsnew.change.importGone': '“{name}” heeft geen kolom “Importeren” meer. KnightLoader haalt geen downloads meer op die je op de website van de debrid-dienst toevoegt.',
   'whatsnew.change.settingsSearch': 'Een zoekfunctie voor alle instellingen verschijnt als je bovenaan een pagina nog een keer omhoog scrolt of op “/” drukt. Terwijl je erin typt, verandert het veld van tint en licht het vergrootglas op.',

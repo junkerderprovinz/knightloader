@@ -3606,6 +3606,7 @@ export const hu: Dict = {
   'whatsnew.change.listBar': 'A lista fölött három gomb áll: „{filter}”, „{sort}” és „{search}”.',
   'whatsnew.change.listRows': 'A sorok a kártya címével egy vonalban kezdődnek, és a sor gombjai addig látszanak, amíg a mutató rajta van.',
   'whatsnew.change.accountPicker': 'Új debrid fiókot, captcha-fiókot vagy tárhelyfiókot csempékből választasz, mindegyiken ott a logója. Egy teljes képernyőnyi logó együtt töltődik be, a logó nélküli tárhely pedig a kezdőbetűjét mutatja egy színezett csempén.',
+  'whatsnew.change.hosterLogos': 'A választóban a legtöbb tárhely azonnal mutatja a logóját, mert a logók a KnightLoaderrel együtt érkeznek. Csak a logó nélküli tárhely ikonja jön továbbra is a saját oldaláról.',
   'whatsnew.change.accountRows': 'Egy fiókra kattintva megnyílik a fiók, jobb kattintásra pedig a menüje.',
   'whatsnew.change.importGone': 'A(z) „{name}” alatt már nincs „Importálás” oszlop. A KnightLoader már nem veszi fel azokat a letöltéseket, amelyeket a debrid szolgáltatás weboldalán adsz hozzá.',
   'whatsnew.change.settingsSearch': 'Az összes beállításban kereső jelenik meg, ha az oldal tetején még egyszer felgörgetsz, vagy megnyomod a „/” billentyűt. Amíg gépelsz benne, a mező árnyalata megváltozik, a nagyító pedig kigyullad.',

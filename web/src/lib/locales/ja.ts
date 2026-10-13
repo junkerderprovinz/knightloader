@@ -3600,6 +3600,7 @@ export const ja: Dict = {
   'whatsnew.change.listBar': 'リストの上に 3 つのボタンがあります: 「{filter}」「{sort}」「{search}」。',
   'whatsnew.change.listRows': '行はカードのタイトルとそろった位置から始まり、行のボタンはポインターが行の上にある間だけ表示されます。',
   'whatsnew.change.accountPicker': '新しい Debrid アカウント、キャプチャアカウント、ホスターのアカウントは、それぞれのロゴが付いたタイルから選びます。画面いっぱいのロゴはまとめて読み込まれ、ロゴのないホスターは色付きのタイルに頭文字を表示します。',
+  'whatsnew.change.hosterLogos': '選択画面のほとんどのホスターは、すぐにロゴが表示されます。ロゴが KnightLoader に同梱されているためです。ロゴのないホスターだけは、これまでどおりそのサイトからアイコンを取得します。',
   'whatsnew.change.accountRows': 'アカウントをクリックすると開き、右クリックするとメニューが開きます。',
   'whatsnew.change.importGone': '「{name}」に「取り込み」列はなくなりました。KnightLoader は、Debrid サービスのウェブサイトで追加したダウンロードを取り込まなくなります。',
   'whatsnew.change.settingsSearch': 'ページの一番上でもう一度上にスクロールするか「/」を押すと、すべての設定を対象にした検索が表示されます。入力している間は、欄の色合いが変わり、虫眼鏡が光ります。',

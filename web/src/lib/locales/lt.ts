@@ -3606,6 +3606,7 @@ export const lt: Dict = {
   'whatsnew.change.listBar': 'Virš sąrašo yra trys mygtukai: „{filter}“, „{sort}“ ir „{search}“.',
   'whatsnew.change.listRows': 'Eilutės prasideda lygiai su kortelės pavadinimu, o eilutės mygtukai rodomi, kol žymeklis yra ant jos.',
   'whatsnew.change.accountPicker': 'Naują debrid, captcha ar hosterio paskyrą renkiesi iš plytelių, kurių kiekviena turi savo logotipą. Viso ekrano logotipai įkeliami kartu, o hosteris be logotipo rodo savo pirmąją raidę spalvotoje plytelėje.',
+  'whatsnew.change.hosterLogos': 'Dauguma hosterių pasirinkime rodo savo logotipą iš karto, nes logotipai pateikiami kartu su KnightLoader. Tik hosteris be logotipo vis dar ima piktogramą iš savo svetainės.',
   'whatsnew.change.accountRows': 'Spustelėjimas ant paskyros ją atveria, o spustelėjimas dešiniuoju klavišu atveria jos meniu.',
   'whatsnew.change.importGone': '„{name}“ nebeturi stulpelio „Importas“. KnightLoader nebepasiima atsisiuntimų, kuriuos pridedi debrid paslaugos svetainėje.',
   'whatsnew.change.settingsSearch': 'Visų nustatymų paieška atsiranda, kai puslapio viršuje dar kartą paslinki aukštyn arba paspaudi „/“. Kol joje rašai, laukelis keičia atspalvį, o didinamasis stiklas įsižiebia.',

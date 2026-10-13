@@ -122,15 +122,29 @@ it('knows every captcha service by the host of its catalogue link', () => {
   ]) {
     expect(serviceMark(new URL(link).hostname), link).toBeDefined();
   }
-  expect(serviceMark('rapidgator.net')).toBeUndefined();
+  expect(serviceMark('katfile.com')).toBeUndefined();
+});
+
+it('draws a hoster from its bundled logo without asking the instance', () => {
+  const fetch = answers(200);
+  act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
+  expect(img()?.getAttribute('src')).toBe('/hosters/rapidgator.net.png');
+  expect(img()?.getAttribute('loading')).toBe('lazy');
+  expect(fetch).not.toHaveBeenCalled();
+});
+
+it('takes a bundled logo from the domain above when the subdomain has none', () => {
+  expect(serviceMark('hdmusic.takefile.link')?.src).toBe(serviceMark('takefile.link')?.src);
+  expect(serviceMark('files.takefile.link')?.src).not.toBe(serviceMark('takefile.link')?.src);
+  expect(serviceMark('www.rapidgator.net')?.src).toBe(serviceMark('rapidgator.net')?.src);
 });
 
 it('draws the icon the instance has', async () => {
   vi.useFakeTimers();
   const fetch = answers(200);
-  act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
+  act(() => root.render(<HosterIcon host="https://rapidfileshare.net/file/1" />));
   await settle();
-  expect(fetch).toHaveBeenCalledWith('/api/hosters/icons?host=rapidgator.net');
+  expect(fetch).toHaveBeenCalledWith('/api/hosters/icons?host=rapidfileshare.net');
   expect(img()?.getAttribute('src')).toBe(ICON);
 });
 
@@ -140,8 +154,8 @@ it('takes a 204 as no icon and does not ask again', async () => {
   act(() =>
     root.render(
       <>
-        <HosterIcon host="nitroflare.com" />
-        <HosterIcon host="https://nitroflare.com/view/2" />
+        <HosterIcon host="novafile.org" />
+        <HosterIcon host="https://novafile.org/view/2" />
       </>,
     ),
   );
@@ -171,7 +185,7 @@ it('waits as long as the instance asks before asking again', async () => {
   vi.useFakeTimers();
   retryAfter = '20';
   const fetch = answers(202, 200);
-  act(() => root.render(<HosterIcon host="uploady.io" />));
+  act(() => root.render(<HosterIcon host="uploadgig.com" />));
   await settle();
 
   await act(() => vi.advanceTimersByTimeAsync(19_900));
@@ -198,7 +212,7 @@ it('keeps asking while a long queue of icons drains on the instance', async () =
 it('asks less often the longer an icon takes and gives up in the end', async () => {
   vi.useFakeTimers();
   const fetch = answers(202);
-  act(() => root.render(<HosterIcon host="ddownload.com" />));
+  act(() => root.render(<HosterIcon host="depositfiles.com" />));
   await settle();
 
   await wait(60_000);
@@ -216,7 +230,7 @@ it('asks again after the instance did not answer at all', async () => {
   vi.useFakeTimers();
   const fetch = answers(200);
   fetch.mockRejectedValueOnce(new TypeError('Failed to fetch'));
-  act(() => root.render(<HosterIcon host="mega.nz" />));
+  act(() => root.render(<HosterIcon host="mixshared.com" />));
   await settle();
   expect(host.textContent).toBe('m');
 
@@ -230,7 +244,7 @@ it('asks only once the row is scrolled into view', async () => {
   vi.useFakeTimers();
   inView = false;
   const fetch = answers(200);
-  act(() => root.render(<HosterIcon host="turbobit.net" />));
+  act(() => root.render(<HosterIcon host="tezfiles.com" />));
   await settle();
   expect(fetch).not.toHaveBeenCalled();
   expect(host.textContent).toBe('');
@@ -310,10 +324,10 @@ it('loads an icon too large for the batch from its own address', async () => {
   vi.stubGlobal(
     'fetch',
     vi.fn(async () =>
-      new Response(JSON.stringify({ icons: {}, large: ['pixeldrain.com'], none: [], pending: [], retryAfter: 5 }), { status: 200 }),
+      new Response(JSON.stringify({ icons: {}, large: ['pixiv.net'], none: [], pending: [], retryAfter: 5 }), { status: 200 }),
     ),
   );
-  act(() => root.render(<HosterIcon host="pixeldrain.com" />));
+  act(() => root.render(<HosterIcon host="pixiv.net" />));
   await settle();
-  expect(img()?.getAttribute('src')).toBe('/api/hosters/icon?host=pixeldrain.com');
+  expect(img()?.getAttribute('src')).toBe('/api/hosters/icon?host=pixiv.net');
 });

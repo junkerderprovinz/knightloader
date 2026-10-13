@@ -371,11 +371,13 @@ function HosterLoginDialog({
       }
     >
       {!picked ? (
-        <BrandPicker
-          brands={brands.filter((b) => brandMatches(b, query))}
-          none={t('accounts.noServicesFound')}
-          onPick={(id) => setPicked(hosts.find((h) => h.id === id) ?? null)}
-        />
+        <div data-new="hoster-logos">
+          <BrandPicker
+            brands={brands.filter((b) => brandMatches(b, query))}
+            none={t('accounts.noServicesFound')}
+            onPick={(id) => setPicked(hosts.find((h) => h.id === id) ?? null)}
+          />
+        </div>
       ) : (
         // The form keeps a reading width in the picker's wide window.
         <div className="flex max-w-md flex-col gap-4">

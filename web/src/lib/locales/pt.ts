@@ -3595,6 +3595,7 @@ export const pt: Dict = {
   'whatsnew.change.listBar': 'Há três botões por cima da lista: «{filter}», «{sort}» e «{search}».',
   'whatsnew.change.listRows': 'As linhas começam alinhadas com o título do cartão, e os botões de uma linha aparecem enquanto o ponteiro está sobre ela.',
   'whatsnew.change.accountPicker': 'Escolhes uma nova conta debrid, de captcha ou de hoster entre mosaicos, cada um com o seu logótipo. Os logótipos de um ecrã inteiro carregam juntos, e um hoster sem logótipo mostra a sua primeira letra num mosaico colorido.',
+  'whatsnew.change.hosterLogos': 'A maioria dos hosters no seletor mostra o logótipo de imediato, porque os logótipos vêm com o KnightLoader. Só um hoster sem logótipo continua a ir buscar o ícone ao seu próprio site.',
   'whatsnew.change.accountRows': 'Um clique numa conta abre-a, e um clique direito abre o menu dela.',
   'whatsnew.change.importGone': '«{name}» já não tem uma coluna «Importação». O KnightLoader já não recolhe as transferências que adicionas no site do serviço debrid.',
   'whatsnew.change.settingsSearch': 'Aparece uma pesquisa em todas as definições quando deslizas mais uma vez para cima no topo de uma página, ou quando carregas em «/». Enquanto escreves nela, o campo muda de tom e a lupa acende-se.',

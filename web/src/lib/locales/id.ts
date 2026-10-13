@@ -3604,6 +3604,7 @@ export const id: Dict = {
   'whatsnew.change.listBar': 'Ada tiga tombol di atas daftar: “{filter}”, “{sort}”, dan “{search}”.',
   'whatsnew.change.listRows': 'Baris dimulai sejajar dengan judul kartu, dan tombol sebuah baris terlihat selama penunjuk berada di atasnya.',
   'whatsnew.change.accountPicker': 'Kamu memilih akun debrid, captcha, atau hoster yang baru dari ubin, masing-masing dengan logonya. Logo satu layar penuh dimuat bersamaan, dan hoster tanpa logo menampilkan huruf pertamanya di ubin berwarna.',
+  'whatsnew.change.hosterLogos': 'Sebagian besar hoster di pemilih langsung menampilkan logonya, karena logo-logonya ikut bersama KnightLoader. Hanya hoster tanpa logo yang masih mengambil ikonnya dari situsnya sendiri.',
   'whatsnew.change.accountRows': 'Klik pada sebuah akun membukanya, dan klik kanan membuka menunya.',
   'whatsnew.change.importGone': '“{name}” tidak lagi punya kolom “Impor”. KnightLoader tidak lagi mengambil unduhan yang kamu tambahkan di situs web layanan debrid.',
   'whatsnew.change.settingsSearch': 'Pencarian di seluruh pengaturan muncul saat kamu menggulir ke atas sekali lagi di bagian atas halaman, atau menekan “/”. Saat kamu mengetik di dalamnya, kotak berganti warna dan kaca pembesarnya menyala.',

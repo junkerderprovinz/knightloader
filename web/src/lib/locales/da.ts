@@ -3590,6 +3590,7 @@ export const da: Dict = {
   'whatsnew.change.listBar': 'Over listen står tre knapper: „{filter}“, „{sort}“ og „{search}“.',
   'whatsnew.change.listRows': 'Rækkerne starter på linje med kortets titel, og en rækkes knapper vises, så længe markøren er på den.',
   'whatsnew.change.accountPicker': 'Du vælger en ny debrid-, captcha- eller hosterkonto blandt fliser, hver med sit logo. Logoerne på en hel skærm indlæses samlet, og en hoster uden logo viser sit første bogstav på en farvet flise.',
+  'whatsnew.change.hosterLogos': 'De fleste hostere i vælgeren viser deres logo med det samme, fordi logoerne følger med KnightLoader. Kun en hoster uden logo henter stadig sit ikon fra sit eget websted.',
   'whatsnew.change.accountRows': 'Et klik på en konto åbner den, og et højreklik åbner dens menu.',
   'whatsnew.change.importGone': '„{name}“ har ikke længere en kolonne „Importering“. KnightLoader henter ikke længere downloads, som du tilføjer på debrid-tjenestens website.',
   'whatsnew.change.settingsSearch': 'En søgning i alle indstillinger dukker op, når du ruller op endnu en gang øverst på en side eller trykker „/“. Mens du skriver i den, skifter feltet nuance, og forstørrelsesglasset lyser op.',
