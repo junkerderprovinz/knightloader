@@ -214,7 +214,7 @@ release's tag.
   the tracker it has left,** where the tracker went on counting KnightLoader
   as a peer of it.
 
-## [1.9.0] - 2026-10-12
+## [1.9.0] - 2026-10-13
 
 ### Added
 
@@ -247,11 +247,11 @@ release's tag.
 - **Trusted proxies under Settings, Security.** Behind a reverse proxy, the
   sign-in limit counts every visitor by the address the proxy reports, so one
   person guessing at the password no longer makes everybody wait. The relay
-  an instance serves reads the same list. It is empty by default, and the
-  manual says when to fill it in. A range has to cover your proxies and none
-  of your visitors, so one wider than a /28 (IPv4) or a /124 (IPv6) is
-  refused. The standalone relay takes the list from
-  `KL_RELAY_TRUSTED_PROXIES`.
+  an instance serves reads the same list. The field shows up once requests
+  come through a proxy. It starts out empty, and the manual says when to fill
+  it in. A range has to cover your proxies and none of your visitors, so one
+  wider than a /28 (IPv4) or a /124 (IPv6) is refused. The standalone relay
+  takes the list from `KL_RELAY_TRUSTED_PROXIES`.
 - **The sign-in limit counts an IPv6 visitor by its /64,** the block one
   connection usually gets, so moving to another address of the same network
   does not start a fresh count.
@@ -292,6 +292,11 @@ release's tag.
 
 ### Fixed
 
+- **An instance that reconnected to its relay quickly could not be reached.**
+  If it opened its new connection before the relay noticed the old one close,
+  and no other device of its group was connected at that moment, the relay
+  kept the new connection where nobody could find it until the instance
+  reconnected again.
 - **The extension says "1 file", not "1 files".** The status line on an
   instance card used the plural for every count, and in languages with more
   plural forms, such as Russian, Polish or Arabic, the same form stood after 2
@@ -439,11 +444,10 @@ release's tag.
   a request your browser marks as started by another site is refused. Scripts
   that post with `curl -d` need `-H 'Content-Type: application/json'`. Uploads
   and the doors for Sonarr and Radarr take what they always took.
-- **Without a password, backups, passwords, the twelve words and your files
-  stay put.** Downloading a backup, exporting the settings with their
-  passwords, showing the twelve words again and deleting downloaded files need
-  a login password first. The desktop app's own window still does all four
-  without one.
+- **Without a password, backups, passwords and your files stay put.**
+  Downloading a backup, exporting the settings with their passwords and
+  deleting downloaded files need a login password first. The desktop app's own
+  window still does all three without one.
 - **KnightLoader no longer takes a domain from a sign-in.** The address it
   tells its group is only ever one you typed under Settings > Pairing > Known
   domains, never the name a request happened to arrive on. Domains it noted
@@ -601,8 +605,9 @@ release's tag.
   sealed with it. An existing install seals its files at the next start and
   keeps a copy of them first, which it deletes after seven days without an
   error; the Security page says when. The password moves over at the next
-  sign-in. Without the variable nothing changes, and Settings > Security
-  says how to add one. The desktop apps make their key themselves and keep it
+  sign-in. Without the variable everything works as before, and an info
+  bubble on the Security page explains the key and how to add one. The
+  desktop apps make their key themselves and keep it
   in the system's credential store.
 - **Backups are encrypted with the app key.** A downloaded backup then opens
   only on an instance with the same key, and a restore without it says which

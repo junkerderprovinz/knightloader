@@ -15,5 +15,5 @@ func TestMain(m *testing.M) {
 	testenv.VolatileSQLite()
 	testenv.NoDNS()
 	testenv.NoYtdlp()
-	os.Exit(m.Run())
+	os.Exit(testenv.RunWithoutProjectRelay(m))
 }

@@ -441,6 +441,23 @@ Then set `sdk.dir=C:/AndroidSdk` (forward slashes) in `android/local.properties`
 clean prebuild) and build with `JAVA_HOME`/`ANDROID_HOME` pointed at the
 junctions instead of the real paths.
 
+The build needs JDK 17. The native CMake step fails on newer JDKs such as 25,
+and release.yml pins Temurin 17 for the same reason. Set `JAVA_HOME` in the
+build command itself rather than relying on the machine's default, which may
+well point at a newer JDK:
+
+```powershell
+$env:JAVA_HOME = "C:\Temurin17"
+$env:ANDROID_HOME = "C:\AndroidSdk"
+$env:Path = "C:\Temurin17\bin;$env:Path"
+npx expo prebuild --platform android --clean --no-install
+Set-Content android\local.properties "sdk.dir=C:/AndroidSdk"
+cd android
+.\gradlew.bat assembleRelease
+```
+
+`gradlew --version` prints the JVM Gradle runs on; it should say 17.
+
 Also delete the CMake caches, which remember the old spaced toolchain path and
 are the reason a rebuild after fixing the above can fail identically. Two of
 them live outside `android/` and survive `expo prebuild --clean`:

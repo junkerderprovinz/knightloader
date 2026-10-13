@@ -56,8 +56,9 @@ as the files were, so KnightLoader deletes the folder itself once it has run
 for seven days without a value failing to seal or open; each such failure, a
 start with the wrong key included, starts the seven days over. Until then the
 Security page says when the folder goes. The password itself moves to Argon2id
-the next time you sign in. Without the variable nothing changes, and Settings, Security shows a
-hint.
+the next time you sign in. Without the variable everything works as before. On
+the Security page the info bubble beside **App key** says what the key does and
+how to add one.
 
 A sealed backup ends in `.zip.sealed` and restores only on an instance with the
 same key; anywhere else the restore says which key it needs. Backups made

@@ -31,7 +31,7 @@ import (
 )
 
 // ConnectInfo is what GET /api/connect answers with. It never carries the
-// phrase, which needs the password (see the reveal route).
+// phrase, which only the reveal route hands out.
 type ConnectInfo struct {
 	// Active is whether this instance has a connection secret at all.
 	Active bool `json:"active"`
@@ -197,14 +197,14 @@ func registerConnect(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/connect/reveal",
-		"show this instance's connection phrase again - with a login password it has to be entered again, because the phrase reaches every instance in the group",
+		"show this instance's connection phrase again; with a login password set it has to be entered again, because the phrase reaches every instance in the group",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Password string `json:"password"`
 			}
 			// The body is optional; without a password there is nothing to
-			// enter again. An instance without one answers whoever reaches its
-			// port anyway, and the page that shows the words says so.
+			// enter again, and the phrase card warns that anyone who opens
+			// the page can read the words.
 			_ = decodeBody(r, &body)
 
 			// A session is not enough: it may have been left open on an

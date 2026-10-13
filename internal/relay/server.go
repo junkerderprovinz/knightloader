@@ -254,10 +254,6 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 		return errJoinedTwice
 	}
 	group := s.keys[key]
-	if group == nil {
-		group = map[Conn]*client{}
-		s.keys[key] = group
-	}
 	var replaced *client
 	var stale []Conn
 	siblings := make([]*client, 0, len(group))
@@ -290,6 +286,12 @@ func (s *Server) Join(key string, c Conn, a Announce, proven bool) error {
 	var failures []pendingFailure
 	if replaced != nil {
 		_, failures = s.removeLocked(replaced.conn)
+	}
+	// Looked up again because removing the only connection on the key drops
+	// its group, and a newcomer added to that map would be invisible.
+	if group = s.keys[key]; group == nil {
+		group = map[Conn]*client{}
+		s.keys[key] = group
 	}
 	s.clients[c] = cl
 	group[c] = cl

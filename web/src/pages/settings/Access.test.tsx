@@ -68,7 +68,6 @@ describe('Access', () => {
     const features = { features: { modules: [], pages: [] }, toggle: async () => {} };
     const draft = {
       cfg: { trustedProxies },
-      saved: { trustedProxies },
       patch: () => {},
       fieldError: () => undefined,
       showRefusalsAt: () => () => {},
@@ -103,17 +102,17 @@ describe('Access', () => {
   });
 
   it('leaves the trusted proxies out while no request comes through a proxy', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: false });
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false });
     expect(host.textContent).not.toContain('Trusted proxies');
   });
 
   it('offers the trusted proxies once requests come through a proxy', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: true });
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: true });
     expect(host.textContent).toContain('Trusted proxies');
   });
 
   it('keeps the trusted proxies in view while the list has entries', async () => {
-    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, proxied: false }, ['10.0.0.2']);
+    await renderWithAuth({ enabled: true, authenticated: true, appKey: true, behindProxy: false }, ['10.0.0.2']);
     expect(host.textContent).toContain('Trusted proxies');
   });
 });

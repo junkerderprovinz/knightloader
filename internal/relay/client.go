@@ -64,6 +64,10 @@ const pingInterval = 30 * time.Second
 // dead, which turns a silently broken link into a reconnect.
 const pingTimeout = 10 * time.Second
 
+// Dial opens every Client's socket. Test binaries replace it so that no test
+// can reach the project relay (see testenv.RunWithoutProjectRelay).
+var Dial = websocket.Dial
+
 // ProxyHandler answers one call a sibling made to this instance's REST API,
 // returning the status and body to send back, or StatusDrop to send nothing.
 // It receives the opened ProxyCall rather than the wire frame, so it cannot
@@ -373,7 +377,7 @@ func (c *Client) session() {
 	}()
 
 	dialCtx, dialCancel := context.WithTimeout(ctx, dialTimeout)
-	conn, _, err := websocket.Dial(dialCtx, c.url, nil)
+	conn, _, err := Dial(dialCtx, c.url, nil)
 	dialCancel()
 	if err != nil {
 		return

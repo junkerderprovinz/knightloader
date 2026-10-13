@@ -185,10 +185,24 @@ func TestWSSubscribeWildcardReturnsToEverything(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
+	// The server applies a subscribe frame without answering it, so the test
+	// waits until it has: a visible connection that asked for test-sentinel by
+	// name counts as watching it, and one back on everything does not.
+	watching := func(want bool) {
+		t.Helper()
+		deadline := time.Now().Add(5 * time.Second)
+		for a.Hub.Watched("test-sentinel", 0) != want {
+			if time.Now().After(deadline) {
+				t.Fatalf("watching test-sentinel = %v, want %v", !want, want)
+			}
+			time.Sleep(10 * time.Millisecond)
+		}
+	}
+	send(map[string]any{"type": "visibility", "visible": true})
 	send(map[string]any{"type": "subscribe", "kinds": []string{"test-sentinel"}})
-	time.Sleep(150 * time.Millisecond)
+	watching(true)
 	send(map[string]any{"type": "subscribe", "kinds": []string{"*"}})
-	time.Sleep(150 * time.Millisecond)
+	watching(false)
 
 	a.Hub.Broadcast("queue", "back to everything")
 	got := readOneOfType(t, c, "queue")
