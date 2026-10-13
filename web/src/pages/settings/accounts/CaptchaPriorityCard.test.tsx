@@ -85,6 +85,15 @@ describe('the captcha priority card', () => {
     expect(first.lastElementChild).toBe(grip('CapSolver'));
   });
 
+  it('names the captcha glyph above the first station in the type of the rows', async () => {
+    await drawCard(['capsolver', '2captcha']);
+    const entry = host.querySelector('[data-new="priority-start-names"]')!;
+    const row = host.querySelector('[data-ladder-id="capsolver"]')!;
+    expect(entry.textContent).toBe('New captcha');
+    const type = (el: Element) => [...el.classList].filter((c) => c.startsWith('text-') || c.startsWith('leading-'));
+    expect(type(entry.firstElementChild!)).toEqual(type(row.firstElementChild!.firstElementChild!));
+  });
+
   it('puts a connected account the order leaves out after the ones it names', async () => {
     await drawCard(['capsolver']);
     expect(rows()).toEqual(['capsolver', '2captcha']);

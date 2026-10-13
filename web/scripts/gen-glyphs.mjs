@@ -1,9 +1,7 @@
 // Regenerates src/lib/glyphs.tsx from scripts/glyphs.json, GlimStone's
 // reference/glyphs.json copied unchanged: one drawing per meaning, the same in
 // every GlimStone app. Refresh the copy from GlimStone instead of editing it
-// here, or the apps that share the set drift apart. IconManual and
-// IconManualOpen at its end are BombVault's, under the names it gave them, so
-// the copy agrees with GlimStone's once that carries them.
+// here, or the apps that share the set drift apart.
 //
 //   node scripts/gen-glyphs.mjs
 //
@@ -27,7 +25,8 @@ const USED = [
   'IconLatest', 'IconFirst', 'IconMoveUp', 'IconMoveDown', 'IconExpand', 'IconCollapse',
   'IconSelectAll', 'IconClearSelection', 'IconFilter', 'IconPin', 'IconPriority', 'IconGrip',
   'IconExternalLink', 'IconWarning', 'IconBolt', 'IconShieldOn', 'IconCode', 'IconMoon',
-  'IconSun', 'IconGear', 'IconDashboard', 'IconFolder', 'IconFolderOpen', 'IconFolderAdd',
+  'IconSun', 'IconThemeSystem', 'IconCornerRound', 'IconCornerSoft', 'IconCornerSquare',
+  'IconCornerLeaf', 'IconMotionOff', 'IconMotionSubtle', 'IconMotionWild', 'IconMotionStorm', 'IconGear', 'IconDashboard', 'IconFolder', 'IconFolderOpen', 'IconFolderAdd',
   'IconArchive', 'IconFleet', 'IconCollector', 'IconAccounts', 'IconNetwork', 'IconPhone',
   'IconBrowser', 'IconApp', 'IconModules', 'IconCaptcha', 'IconGithub', 'IconTabGeneral',
   'IconTabLook', 'IconTabSecurity', 'IconTabAdvanced', 'IconTabApp', 'IconSchedules',

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useCallback, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
 import {
   Button,
   Card,
@@ -22,12 +22,21 @@ import {
 } from '../../lib/api';
 import {
   IconClose,
+  IconCornerLeaf,
+  IconCornerRound,
+  IconCornerSoft,
+  IconCornerSquare,
   IconMoon,
+  IconMotionOff,
+  IconMotionStorm,
+  IconMotionSubtle,
+  IconMotionWild,
   IconRefresh,
   IconSignOut,
   IconSun,
   IconThemeSystem,
 } from '../../lib/icons';
+import type { GlyphProps } from '../../lib/glyphs';
 import { useToast } from '../../lib/toast';
 import { MUTABLE_DIALOGS, useDialogMute } from '../../lib/dialogmute';
 import { getTheme, onThemeChange, setTheme, type Theme } from '../../lib/theme';
@@ -124,6 +133,20 @@ const SHAPE_LABELS: Record<Shape, TranslationKey> = {
   soft: 'settings.shape.slightlyRounded',
   square: 'settings.shape.square',
   leaf: 'settings.shape.leaf',
+};
+
+const SHAPE_GLYPHS: Record<Shape, (p: GlyphProps) => ReactNode> = {
+  round: IconCornerRound,
+  soft: IconCornerSoft,
+  square: IconCornerSquare,
+  leaf: IconCornerLeaf,
+};
+
+const MOTION_GLYPHS: Record<Motion, (p: GlyphProps) => ReactNode> = {
+  off: IconMotionOff,
+  subtle: IconMotionSubtle,
+  wild: IconMotionWild,
+  storm: IconMotionStorm,
 };
 
 const LABEL_AXIS_NAMES: Record<LabelAxis, TranslationKey> = {
@@ -534,72 +557,78 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
             className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
           />
         </SettingRow>
-        <SettingRow label={t('settings.theme')} hint={t('settings.themeHint', { system: t('theme.system') })}>
-          <Tabs
-            label={t('settings.theme')}
-            variant="well"
-            size="sm"
-            inline
-            hug
-            labelled
-            active={theme}
-            onSelect={(id) => setTheme(id as Theme)}
-            items={[
-              { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
-              { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
-              { id: 'system', label: t('theme.system'), icon: <IconThemeSystem width={16} height={16} /> },
-            ]}
-          />
-        </SettingRow>
-        {/* The leaf joins the shapes only while it has just been found or is
-            in force. */}
-        <SettingRow label={t('settings.shape')} hint={t('settings.shapeHint')}>
-          <Tabs
-            label={t('settings.shape')}
-            variant="well"
-            size="sm"
-            inline
-            hug
-            active={cfg.shape}
-            onSelect={(id) => {
-              // Taps on a chosen square count toward the hidden shape.
-              const found = leafTap(leafTaps.current, id, cfg.shape);
-              if (found) setLeafFound(true);
-              patch({ shape: found ?? (id as Shape) });
-            }}
-            items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => ({
-              id: s,
-              label: t(SHAPE_LABELS[s]),
-            }))}
-          />
-        </SettingRow>
-        {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
-            level joins the list only while it has just been found or is in
-            force. */}
-        <SettingRow label={t('settings.motion.title')} hint={t('settings.motion.hint')}>
-          <Tabs
-            label={t('settings.motion.title')}
-            variant="well"
-            size="sm"
-            inline
-            hug
-            active={motion}
-            onSelect={(id) => {
-              // A tap on the active segment, which a picker would otherwise
-              // swallow, counts toward the hidden level.
-              const found = stormTap(stormTaps.current, id, motion);
-              const next = found ?? (id as Motion);
-              if (found) setStormFound(true);
-              setMotion(next);
-              applyMotion(next);
-              cacheMotionIntensity(next);
-            }}
-            items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => ({
-              id: m,
-              label: t(`settings.motion.${m}` as never),
-            }))}
-          />
-        </SettingRow>
+        {/* One group, so the three selectors with glyphs share one dot for
+            what changed in them. */}
+        <div data-new="look-glyphs" className="flex flex-col gap-4">
+          <SettingRow label={t('settings.theme')} hint={t('settings.themeHint', { system: t('theme.system') })}>
+            <Tabs
+              label={t('settings.theme')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={theme}
+              onSelect={(id) => setTheme(id as Theme)}
+              items={[
+                { id: 'dark', label: t('theme.dark'), icon: <IconMoon width={16} height={16} /> },
+                { id: 'light', label: t('theme.light'), icon: <IconSun width={16} height={16} /> },
+                { id: 'system', label: t('theme.system'), icon: <IconThemeSystem width={16} height={16} /> },
+              ]}
+            />
+          </SettingRow>
+          {/* The leaf joins the shapes only while it has just been found or is
+              in force. */}
+          <SettingRow label={t('settings.shape')} hint={t('settings.shapeHint')}>
+            <Tabs
+              label={t('settings.shape')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={cfg.shape}
+              onSelect={(id) => {
+                // Taps on a chosen square count toward the hidden shape.
+                const found = leafTap(leafTaps.current, id, cfg.shape);
+                if (found) setLeafFound(true);
+                patch({ shape: found ?? (id as Shape) });
+              }}
+              items={(leafFound || cfg.shape === 'leaf' ? SHAPES_STORED : SHAPES).map((s) => {
+                const Glyph = SHAPE_GLYPHS[s];
+                return { id: s, label: t(SHAPE_LABELS[s]), icon: <Glyph width={16} height={16} /> };
+              })}
+            />
+          </SettingRow>
+          {/* Motion intensity (index.css, lib/appearance.ts). The hidden fourth
+              level joins the list only while it has just been found or is in
+              force. */}
+          <SettingRow label={t('settings.motion.title')} hint={t('settings.motion.hint')}>
+            <Tabs
+              label={t('settings.motion.title')}
+              variant="well"
+              size="sm"
+              inline
+              hug
+              labelled
+              active={motion}
+              onSelect={(id) => {
+                // A tap on the active segment, which a picker would otherwise
+                // swallow, counts toward the hidden level.
+                const found = stormTap(stormTaps.current, id, motion);
+                const next = found ?? (id as Motion);
+                if (found) setStormFound(true);
+                setMotion(next);
+                applyMotion(next);
+                cacheMotionIntensity(next);
+              }}
+              items={(stormFound || motion === 'storm' ? [...MOTION_LEVELS, 'storm' as Motion] : MOTION_LEVELS).map((m) => {
+                const Glyph = MOTION_GLYPHS[m];
+                return { id: m, label: t(`settings.motion.${m}` as never), icon: <Glyph width={16} height={16} /> };
+              })}
+            />
+          </SettingRow>
+        </div>
         {/* How tall a row of the download and collector lists is, per browser
             like the motion level (lib/rowHeight.ts). */}
         <SettingRow label={t('settings.rowHeight.title')} hint={t('settings.rowHeight.hint')}>

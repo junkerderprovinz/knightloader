@@ -196,6 +196,17 @@ export const RELEASES: Release[] = [
         names: { download: 'accounts.routing.priorityTitle', captcha: 'settings.captcha.orderTitle' },
       },
       {
+        id: 'priority-start-names',
+        to: ACCOUNTS,
+        text: 'whatsnew.change.priorityStartNames',
+        names: {
+          download: 'accounts.routing.priorityTitle',
+          link: 'accounts.routing.priorityEntry',
+          captcha: 'settings.captcha.orderTitle',
+          newCaptcha: 'settings.captcha.orderEntry',
+        },
+      },
+      {
         id: 'priority-accounts',
         to: ACCOUNTS,
         text: 'whatsnew.change.priorityAccounts',
@@ -240,6 +251,12 @@ export const RELEASES: Release[] = [
           motion: 'settings.motion.title',
           rows: 'settings.rowHeight.title',
         },
+      },
+      {
+        id: 'look-glyphs',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.lookGlyphs',
+        names: { theme: 'settings.theme', shape: 'settings.shape', motion: 'settings.motion.title' },
       },
       {
         id: 'sidebar-card',
