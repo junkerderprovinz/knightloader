@@ -175,7 +175,7 @@ The order only decides between backends that can take the link at all. A filehos
 - **After an update, dots mark what changed.** A dot stands at each change and on every link that leads there, a click hides it, one button marks everything as seen or shows it all again, and what you have seen follows you between browsers. The release notes open once after an update and stay on the Version card.
 - **The theme has a third choice, System,** which follows the device, in the web interface and in the Android app.
 - **yt-dlp can keep a video's streams apart.** Switch off "Merge into one file" under Settings, Resolvers to keep video, audio and subtitles as separate files. Audio converted without a set bitrate gets the encoder's best quality.
-- **The Updates card lists every part KnightLoader brings** with its version and where it comes from: KnightLoader and yt-dlp with their updates, ffmpeg, ffprobe, the JDownloader backend and the built-in libraries.
+- **The Updates card lists every part KnightLoader brings** with its version. KnightLoader, yt-dlp and the JDownloader backend each get a card with their updates, so JDownloader, which still updates itself, can also be checked and updated by hand. ffmpeg, ffprobe and the built-in libraries show where they come from, and an info bubble beside each part says what it does.
 - **Health says why a part has a fault** and opens its lines in the log.
 
 ## 🎨 Design
@@ -210,6 +210,7 @@ The order only decides between backends that can take the link at all. A filehos
 - **The Network settings page no longer crashes** when its picture redraws after a route test.
 - **A debrid or TorBox download that is paused or removed stops,** also after its account was changed or its host list refreshed, where it went on downloading out of sight until a restart and took part of the speed limit from the downloads after it.
 - **The browser extension clears its "waiting for approval" note once the browser is approved,** where Refresh kept it above an instance that was already connected.
+- **A JDownloader that restarted to install an update stops with KnightLoader,** where the container killed it without letting it save and the desktop app left it running after KnightLoader quit.
 
 ## 🌐 Translations
 
