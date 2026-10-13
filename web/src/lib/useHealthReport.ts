@@ -86,15 +86,3 @@ export function healthTone(state: HealthState | string): 'ok' | 'fail' | undefin
   if (state === 'failed' || state === 'degraded') return 'fail';
   return undefined;
 }
-
-/**
- * sampleAge is how old the reading is in seconds, or null. The probed rows
- * are shared for thirty seconds, so the page states the age rather than
- * presenting a live gauge.
- */
-export function sampleAge(report: HealthReport | null): number | null {
-  if (!report) return null;
-  const taken = Date.parse(report.sampledAt);
-  if (Number.isNaN(taken)) return null;
-  return Math.max(0, Math.round((Date.now() - taken) / 1000));
-}
