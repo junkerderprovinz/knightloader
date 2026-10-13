@@ -115,6 +115,7 @@ func (s *layoutStore) Put(bucket, key string, v any) error {
 				s.files[key] = done
 			}
 		}
+		s.forgetUnwatchedLocked(time.Now())
 		if w := s.watched[key]; w != nil {
 			w.raw, _ = json.Marshal(v)
 		}

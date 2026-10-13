@@ -3,7 +3,9 @@ package engine
 import (
 	"reflect"
 	"testing"
+	"time"
 
+	"github.com/GopeedLab/gopeed/pkg/download"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 )
 
@@ -136,4 +138,18 @@ func TestAMendShowsTheRangesItStillFetches(t *testing.T) {
 	e.mu.Lock()
 	delete(e.mends, "t1")
 	e.mu.Unlock()
+}
+
+// Once nobody has asked about a task for layoutWatch, its saves are no longer
+// copied, whether or not another task is asked about meanwhile.
+func TestALayoutNobodyAsksAboutIsNoLongerCopied(t *testing.T) {
+	s := &layoutStore{Storage: download.NewMemStorage(), want: map[string][]byte{}, files: map[string][]int64{}, watched: map[string]*watchedLayout{}}
+	s.watched["gid"] = &watchedLayout{asked: time.Now().Add(-layoutWatch - time.Second)}
+
+	if err := s.Put(savedLayoutBucket, "gid", savedLayout{}); err != nil {
+		t.Fatal(err)
+	}
+	if w, ok := s.watched["gid"]; ok {
+		t.Fatalf("a save copied the layout of a task nobody asked about for %s: %q", layoutWatch, w.raw)
+	}
 }
