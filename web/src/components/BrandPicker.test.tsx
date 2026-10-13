@@ -70,8 +70,10 @@ it('keeps a second line that says a state in view', () => {
   expect(tiles().map((t) => t.className.includes('glim-readme-btn-unit--note'))).toEqual([true, false]);
 });
 
-it('narrows the tiles with its field, which has the caret from the start', () => {
+it('turns its Search button into a field that narrows the tiles', () => {
   act(() => root.render(<Window onPick={() => {}} />));
+  expect(host.querySelector('input')).toBeNull();
+  act(() => host.querySelector<HTMLButtonElement>('button[aria-label="Search"]')!.click());
   expect(document.activeElement).toBe(host.querySelector('input[type="search"]'));
   type('all');
   expect(tiles()).toHaveLength(1);

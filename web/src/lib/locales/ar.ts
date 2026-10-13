@@ -3659,7 +3659,7 @@ export const ar: Dict = {
   'settings.captcha.orderIntro': 'الصورة هي الترتيب: تذهب الكابتشا أولًا إلى حساب الكابتشا في الأعلى، ثم إلى ما تحته. اسحب اسمًا لتنقله.',
   'whatsnew.change.captchaPriority': 'ترتّب «{name}» حسابات الكابتشا المتصلة كما ترتّب «{download}» الواجهات الخلفية. وفيها أيضًا متى تبدأ والكابتشا التجريبية.',
   'whatsnew.change.searchBox': 'كل حقل بحث يبدو ويعمل مثل الحقل في الإعدادات: يتغير لون المربع وتضيء العدسة أثناء الكتابة، ويفرغه مفتاح Escape أو علامة الإغلاق.',
-  'whatsnew.change.searchFields': 'كل بحث هو حقل يمكنك الكتابة فيه فورًا، دون زر يفتحه أولًا: في «{downloads}» و«{collector}» و«{advanced}»، وفي النوافذ التي تختار فيها حسابًا أو مستضيفًا.',
+  'whatsnew.change.searchButton': 'كل بحث زر «{search}» يتحول إلى حقله عند الضغط عليه: في «{downloads}» و«{collector}» و«{advanced}»، وفي «{log}»، وفي النوافذ التي تختار فيها حسابًا أو مستضيفًا. يعيده زر Escape أو مغادرة الحقل وهو فارغ إلى زر.',
   'settings.look.builtInTitle': 'المكونات المدمجة',
   'settings.look.builtInHint': 'ما يحمله KnightLoader معه أو يشغّله بجانبه، ولكل منها إصداره ومصدره. تأتي هذه الأجزاء مع KnightLoader أو مع صورة الحاوية، أو تحدّث نفسها، لذا لا شيء لتحديثه هنا.',
   'whatsnew.change.builtIn': 'تسرد «{name}» كل جزء يأتي مع KnightLoader، مع إصداره ومصدره. ما يمكن تحديثه يبقى في «{updates}».',

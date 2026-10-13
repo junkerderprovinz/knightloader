@@ -3658,7 +3658,7 @@ export const ja: Dict = {
   'settings.captcha.orderIntro': '図がそのまま順番です。キャプチャはまず一番上のキャプチャアカウントに渡り、そこから下へ進みます。名前をドラッグすると移動できます。',
   'whatsnew.change.captchaPriority': '「{name}」は、接続済みのキャプチャアカウントを「{download}」がバックエンドを並べるのと同じように並べます。開始のタイミングとテスト用キャプチャもここにあります。',
   'whatsnew.change.searchBox': 'どの検索欄も設定の検索欄と同じ見た目と動きになりました。入力中は欄の色合いが変わって虫眼鏡が光り、Escape か × で空になります。',
-  'whatsnew.change.searchFields': '検索はどれも、先にボタンで開かなくてもすぐ入力できる欄になりました。「{downloads}」「{collector}」「{advanced}」と、アカウントやホスターを選ぶウィンドウが対象です。',
+  'whatsnew.change.searchButton': '検索はどれも「{search}」ボタンで、押すと入力欄に変わります。「{downloads}」「{collector}」「{advanced}」「{log}」と、アカウントやホスターを選ぶウィンドウが対象です。Esc を押すか、空の入力欄から離れるとボタンに戻ります。',
   'settings.look.builtInTitle': '組み込みコンポーネント',
   'settings.look.builtInHint': 'KnightLoader が同梱している、または隣で動かしているもので、それぞれのバージョンと入手元を示します。これらは KnightLoader かコンテナイメージに含まれているか、自分で更新されるため、ここで更新するものはありません。',
   'whatsnew.change.builtIn': '「{name}」は KnightLoader に含まれる部分を、バージョンと入手元とともにすべて一覧にします。更新できるものは「{updates}」に残ります。',

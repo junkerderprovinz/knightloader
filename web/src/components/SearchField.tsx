@@ -4,7 +4,7 @@
 import type { Ref } from 'react';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { Dropdown } from './Dropdown';
-import { SearchBox } from './SearchBox';
+import { SearchToggle, type SearchHandle } from './SearchToggle';
 import { type SearchCategory, type SearchQuery } from '../lib/searchQuery';
 
 export { EMPTY_SEARCH, matchesSearch, type SearchCategory, type SearchQuery } from '../lib/searchQuery';
@@ -18,24 +18,28 @@ const CATEGORIES: { id: SearchCategory; label: TranslationKey }[] = [
   { id: 'url', label: 'search.url' },
 ];
 
-/** SearchField is the list search: the shared field with its category picker inside it. */
+/** SearchField is the list search: the Search button, and the field it turns into with its category picker inside. */
 export function SearchField({
   value,
   onChange,
-  inputRef,
+  handle,
+  labelled,
   className = '',
 }: {
   value: SearchQuery;
   onChange: (next: SearchQuery) => void;
-  inputRef?: Ref<HTMLInputElement>;
+  handle?: Ref<SearchHandle>;
+  labelled?: boolean;
   className?: string;
 }) {
   const { t } = useT();
   return (
-    <SearchBox
+    <SearchToggle
       value={value.text}
       onChange={(text) => onChange({ ...value, text })}
-      inputRef={inputRef}
+      handle={handle}
+      labelled={labelled}
+      hue={2}
       label={t('search.placeholder')}
       // One bubble for the picker and the syntax, not two identical (i)s.
       hint={`${t('search.hint')} ${t('search.syntax')}`}

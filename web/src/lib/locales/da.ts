@@ -3648,7 +3648,7 @@ export const da: Dict = {
   'settings.captcha.orderIntro': 'Billedet er rækkefølgen: en captcha går først til captcha-kontoen øverst og så videre nedad. Træk et navn for at flytte det.',
   'whatsnew.change.captchaPriority': '„{name}“ ordner dine tilsluttede captcha-konti, som „{download}“ ordner backends. Hvornår de starter og test-captchaen står der også.',
   'whatsnew.change.searchBox': 'Hvert søgefelt ser ud og virker som det i Indstillinger: mens du skriver, skifter feltet nuance, og forstørrelsesglasset lyser, og Escape eller krydset tømmer det.',
-  'whatsnew.change.searchFields': 'Hver søgning er et felt, du kan skrive i med det samme, uden en knap der først skal åbne det: i „{downloads}“, „{collector}“ og „{advanced}“ og i vinduerne, hvor du vælger en konto eller en hoster.',
+  'whatsnew.change.searchButton': 'Hver søgning er en „{search}“-knap, der bliver til sit felt, når du trykker på den: i „{downloads}“, „{collector}“ og „{advanced}“, i „{log}“ og i vinduerne, hvor du vælger en konto eller en hoster. Escape, eller at forlade feltet mens det er tomt, gør det til en knap igen.',
   'settings.look.builtInTitle': 'Indbyggede komponenter',
   'settings.look.builtInHint': 'Det, KnightLoader har med eller kører ved siden af sig, hver med sin version og sin oprindelse. Disse dele følger med KnightLoader eller containerimaget eller opdaterer sig selv, så her er intet at opdatere.',
   'whatsnew.change.builtIn': '„{name}“ viser hver del, der følger med KnightLoader, med version og oprindelse. Det, der kan opdateres, bliver på „{updates}“.',

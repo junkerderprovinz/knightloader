@@ -3662,7 +3662,7 @@ export const ms: Dict = {
   'settings.captcha.orderIntro': 'Gambar ini ialah susunannya: captcha pergi dahulu ke akaun captcha di atas sekali, kemudian ke bawah. Seret nama untuk memindahkannya.',
   'whatsnew.change.captchaPriority': '“{name}” menyusun akaun captcha anda yang disambungkan seperti “{download}” menyusun bahagian belakang. Bila ia bermula dan captcha ujian juga ada di situ.',
   'whatsnew.change.searchBox': 'Setiap medan carian kelihatan dan berfungsi seperti yang dalam Tetapan: semasa anda menaip, kotak bertukar warna dan kanta pembesar menyala, dan Escape atau pangkah mengosongkannya.',
-  'whatsnew.change.searchFields': 'Setiap carian ialah medan yang boleh anda taip serta-merta, tanpa butang yang perlu membukanya dahulu: di “{downloads}”, “{collector}” dan “{advanced}”, serta dalam tetingkap tempat anda memilih akaun atau hos.',
+  'whatsnew.change.searchButton': 'Setiap carian ialah butang “{search}” yang bertukar menjadi medannya apabila anda menekannya: di “{downloads}”, “{collector}” dan “{advanced}”, di “{log}” dan dalam tetingkap tempat anda memilih akaun atau hos. Escape, atau meninggalkan medan semasa ia kosong, menukarnya kembali menjadi butang.',
   'settings.look.builtInTitle': 'Komponen terbina dalam',
   'settings.look.builtInHint': 'Apa yang dibawa KnightLoader atau dijalankan di sisinya, setiap satu dengan versi dan asalnya. Bahagian ini datang bersama KnightLoader atau imej bekas, atau mengemas kini dirinya sendiri, jadi tiada apa yang perlu dikemas kini di sini.',
   'whatsnew.change.builtIn': '“{name}” menyenaraikan setiap bahagian yang datang bersama KnightLoader, dengan versi dan asalnya. Yang boleh dikemas kini kekal dalam “{updates}”.',

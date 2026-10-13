@@ -3906,7 +3906,7 @@ export const en = {
   'settings.captcha.orderIntro': 'The picture is the order: a captcha goes to the captcha account at the top first, then on down. Drag a name to move it.',
   'whatsnew.change.captchaPriority': '"{name}" orders your connected captcha accounts the way "{download}" orders the backends. When they start and the test captcha are in it too.',
   'whatsnew.change.searchBox': 'Every search field looks and works like the one in Settings: the box changes its shade and the magnifier lights up while you type, and Escape or the cross empties it.',
-  'whatsnew.change.searchFields': 'Every search is a field you can type into right away, with no button to open it first: on "{downloads}", "{collector}" and "{advanced}", and in the windows where you pick an account or a hoster.',
+  'whatsnew.change.searchButton': 'Every search is a "{search}" button that turns into its field when you press it: on "{downloads}", "{collector}" and "{advanced}", in "{log}" and in the windows where you pick an account or a hoster. Escape, or leaving the field while it is empty, turns it back into the button.',
   'settings.look.builtInTitle': 'Built-in components',
   'settings.look.builtInHint': 'What KnightLoader brings along or runs beside it, each with its version and where it comes from. These parts come with KnightLoader or the container image, or update themselves, so there is nothing to update here.',
   'whatsnew.change.builtIn': '"{name}" lists every part that comes with KnightLoader, each with its version and where it comes from. What can be updated stays on "{updates}".',

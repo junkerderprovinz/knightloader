@@ -3679,7 +3679,7 @@ export const he: Dict = {
   'settings.captcha.orderIntro': 'התמונה היא הסדר: קאפצ׳ה הולכת קודם לחשבון הקאפצ׳ה העליון ואז הלאה למטה. גרור שם כדי להזיז אותו.',
   'whatsnew.change.captchaPriority': '„{name}” מסדר את חשבונות הקאפצ׳ה המחוברים שלך כמו ש„{download}” מסדר את השרתים. גם מתי הם מתחילים וגם קאפצ׳ת הבדיקה נמצאים שם.',
   'whatsnew.change.searchBox': 'כל שדה חיפוש נראה ועובד כמו זה שבהגדרות: בזמן ההקלדה התיבה מחליפה גוון וזכוכית המגדלת נדלקת, ו־Escape או האיקס מרוקנים אותו.',
-  'whatsnew.change.searchFields': 'כל חיפוש הוא שדה שאפשר להקליד בו מיד, בלי כפתור שצריך לפתוח קודם: ב„{downloads}”, ב„{collector}” וב„{advanced}”, ובחלונות שבהם בוחרים חשבון או שירות אחסון.',
+  'whatsnew.change.searchButton': 'כל חיפוש הוא כפתור „{search}” שהופך לשדה שלו כשלוחצים עליו: ב„{downloads}”, ב„{collector}” וב„{advanced}”, ב„{log}” ובחלונות שבהם בוחרים חשבון או אחסון. Escape, או יציאה מהשדה כשהוא ריק, מחזירים אותו לכפתור.',
   'settings.look.builtInTitle': 'רכיבים מובנים',
   'settings.look.builtInHint': 'מה ש־KnightLoader מביא איתו או מריץ לצידו, כל אחד עם הגרסה והמקור שלו. החלקים האלה מגיעים עם KnightLoader או עם תמונת הקונטיינר, או מתעדכנים בעצמם, ולכן אין כאן מה לעדכן.',
   'whatsnew.change.builtIn': '„{name}” מפרט כל חלק שמגיע עם KnightLoader, עם הגרסה והמקור שלו. מה שאפשר לעדכן נשאר ב„{updates}”.',

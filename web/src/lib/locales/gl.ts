@@ -3660,7 +3660,7 @@ export const gl: Dict = {
   'settings.captcha.orderIntro': 'A imaxe é a orde: un captcha vai primeiro á conta de captcha de arriba de todo e despois cara abaixo. Arrastra un nome para movelo.',
   'whatsnew.change.captchaPriority': '«{name}» ordena as túas contas de captcha conectadas como «{download}» ordena os backends. Cando comezan e o captcha de proba tamén están aí.',
   'whatsnew.change.searchBox': 'Cada campo de busca ten o aspecto e o funcionamento do de Axustes: mentres escribes, a caixa cambia de ton e a lupa acéndese, e Escape ou a cruz baleirano.',
-  'whatsnew.change.searchFields': 'Cada busca é un campo no que podes escribir de inmediato, sen un botón que o abra antes: en «{downloads}», «{collector}» e «{advanced}», e nas xanelas onde escolles unha conta ou un aloxamento.',
+  'whatsnew.change.searchButton': 'Cada busca é un botón «{search}» que se converte no seu campo ao premelo: en «{downloads}», «{collector}» e «{advanced}», en «{log}» e nas xanelas onde escolles unha conta ou un servidor. Escape, ou saír do campo cando está baleiro, volve convertelo en botón.',
   'settings.look.builtInTitle': 'Compoñentes integrados',
   'settings.look.builtInHint': 'O que KnightLoader trae consigo ou executa ao seu carón, cada parte coa súa versión e a súa orixe. Estas partes veñen con KnightLoader ou coa imaxe do contedor, ou actualízanse soas, así que aquí non hai nada que actualizar.',
   'whatsnew.change.builtIn': '«{name}» lista cada parte que vén con KnightLoader, coa súa versión e a súa orixe. O que se pode actualizar segue en «{updates}».',

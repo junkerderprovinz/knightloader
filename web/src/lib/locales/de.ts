@@ -3665,7 +3665,7 @@ export const de: Dict = {
   'settings.captcha.orderIntro': 'Das Bild ist die Reihenfolge: Ein Captcha geht zuerst an das Captcha-Konto ganz oben, dann weiter nach unten. Zieh einen Namen an eine andere Stelle, um ihn zu verschieben.',
   'whatsnew.change.captchaPriority': '„{name}“ ordnet deine verbundenen Captcha-Konten so, wie „{download}“ die Backends ordnet. Wann sie starten und das Test-Captcha stehen mit drin.',
   'whatsnew.change.searchBox': 'Jedes Suchfeld sieht aus und funktioniert wie das in den Einstellungen: Während du tippst, ändert das Feld seinen Farbton und die Lupe leuchtet, und Escape oder das Kreuz leert es.',
-  'whatsnew.change.searchFields': 'Jede Suche ist ein Feld, in das du sofort tippen kannst, ohne dass ein Knopf es erst öffnet: in „{downloads}“, „{collector}“ und „{advanced}“ und in den Fenstern, in denen du ein Konto oder einen Hoster auswählst.',
+  'whatsnew.change.searchButton': 'Jede Suche ist ein Knopf „{search}“, der zum Feld wird, wenn du ihn drückst: in „{downloads}“, „{collector}“ und „{advanced}“, in „{log}“ und in den Fenstern, in denen du ein Konto oder einen Hoster auswählst. Escape oder ein Klick woanders macht das leere Feld wieder zum Knopf.',
   'settings.look.builtInTitle': 'Eingebaute Bestandteile',
   'settings.look.builtInHint': 'Was KnightLoader mitbringt oder neben sich laufen lässt, jeweils mit Version und Herkunft. Diese Teile kommen mit KnightLoader oder dem Container-Image oder aktualisieren sich selbst, deshalb gibt es hier nichts zu aktualisieren.',
   'whatsnew.change.builtIn': '„{name}“ listet jeden Teil auf, den KnightLoader mitbringt, jeweils mit Version und Herkunft. Was sich aktualisieren lässt, bleibt auf „{updates}“.',
