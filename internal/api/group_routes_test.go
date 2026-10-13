@@ -184,7 +184,6 @@ var groupRefused = []string{
 	"GET /api/health/detail",
 	"GET /api/metrics",
 	"GET /api/help",
-	"GET /api/stats/speed",
 	"GET /api/stats/speed/day",
 	"GET /api/stats/torrents",
 	"GET /api/stats/volume",
@@ -890,5 +889,20 @@ func TestAMemberSeesNoCredentialsInWhatItReads(t *testing.T) {
 	if !bytes.Contains(body, []byte("host.example/staged.zip")) || !bytes.Contains(body, []byte("https://tracker.example")) ||
 		!bytes.Contains(body, []byte("https://staged.host.example/")) {
 		t.Errorf("the redacted list lost what names the file, the host or the tracker: %s", body)
+	}
+}
+
+func TestAMemberReadsTheSpeedHistory(t *testing.T) {
+	t.Parallel()
+	_, _, _, member, _ := groupServer(t)
+	code, body := member(http.MethodGet, "/api/stats/speed", "")
+	if code != http.StatusOK {
+		t.Fatalf("GET /api/stats/speed answered a member %d (%s)", code, body)
+	}
+	var got struct {
+		Recent []int64 `json:"recent"`
+	}
+	if err := json.Unmarshal(body, &got); err != nil {
+		t.Fatalf("the speed history a member reads does not decode: %v (%s)", err, body)
 	}
 }
