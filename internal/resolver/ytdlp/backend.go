@@ -1342,16 +1342,23 @@ func (b *Backend) ownFile(taskID, dir, out, path string) bool {
 
 // inFolder reports whether p lies below folder once both are absolute and
 // every link on the way that exists is followed, so neither a "../" nor a
-// linked folder leads out of it.
+// linked folder leads out of it. Only the folders of p are resolved: Windows
+// names a file that is being deleted under $Extend\$Deleted, and a link as the
+// last part is removed or moved as the link itself.
 func inFolder(folder, p string) bool {
 	f, err := resolvePath(folder)
 	if err != nil {
 		return false
 	}
-	q, err := resolvePath(p)
+	p, err = filepath.Abs(p)
 	if err != nil {
 		return false
 	}
+	parent, err := resolvePath(filepath.Dir(p))
+	if err != nil {
+		return false
+	}
+	q := filepath.Join(parent, filepath.Base(p))
 	rel, err := filepath.Rel(f, q)
 	if err != nil {
 		return false
