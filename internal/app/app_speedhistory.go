@@ -213,14 +213,16 @@ func (a *App) SpeedNow() int64 {
 
 // UploadNow is what the built-in torrent client sends right now: the sum of
 // UploadSpeed over the torrents that download or seed, the rule the browser
-// sums by.
+// sums by. The rate is read from the tally rather than the task, since a
+// torrent whose readings stopped keeps its last one on the task.
 func (a *App) UploadNow() int64 {
+	now := time.Now()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	var total int64
 	for _, t := range a.tasks {
 		if t.Status == core.StatusRunning || t.Seeding {
-			total += t.UploadSpeed
+			total += a.tally.uploadRate(t.ID, now)
 		}
 	}
 	return total
