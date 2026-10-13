@@ -2212,6 +2212,22 @@ export async function fetchJDStatus(): Promise<JDStatus> {
   return json<JDStatus>(await fetch('/api/resolvers/jd'));
 }
 
+export interface JDUpdateCheck {
+  checked: boolean;
+  available: boolean;
+}
+
+/** Asks the JD sidecar whether an update of its own waits. Installs nothing. */
+export async function fetchJDUpdate(): Promise<JDUpdateCheck> {
+  return json(await fetch('/api/jd/update'));
+}
+
+/** Has the JD sidecar install its update. It restarts to do so, so fetchJDStatus
+ *  answers unreachable for a while after this returns. */
+export async function updateJD(): Promise<{ started: boolean }> {
+  return json(await fetch('/api/jd/update', { method: 'POST' }));
+}
+
 /**
  * The instance-wide yt-dlp defaults, mirroring ytdlp.Options without Variant,
  * which is decided per task. Saved through Settings.ytdlp. Values are strings

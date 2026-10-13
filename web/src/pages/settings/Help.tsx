@@ -1,7 +1,7 @@
 import { type ReactNode, useEffect, useState } from 'react';
 import { useT } from '../../lib/i18n';
 import { Button, Card, SectionTitle } from '../../components/ui';
-import { fetchHealth, fetchMediaTools, type MediaToolsStatus } from '../../lib/api';
+import { fetchHealth } from '../../lib/api';
 import { GLIMSTONE_VERSION } from '../../lib/glimstoneVersion';
 import { IconDiagnostics, IconGithub, IconInfo } from '../../lib/icons';
 import { COFFEE_BUTTON_SVG, MAIL_SVG, MANUAL_SVG } from '../../lib/appMarks';
@@ -37,7 +37,6 @@ export function Help() {
 const REPO_URL = 'https://github.com/junkerderprovinz/knightloader';
 const CONTACT_MAIL = 'hello@halleluja.design';
 const GLIMSTONE_URL = 'https://github.com/junkerderprovinz/glimstone';
-const YTDLP_URL = 'https://github.com/yt-dlp/yt-dlp';
 const MANUAL_URL = 'https://junkerderprovinz.github.io/knightloader/';
 
 /**
@@ -115,14 +114,6 @@ function releasePage(repo: string, version: string): string {
 }
 
 /**
- * ytdlpPage is the release behind a yt-dlp version. Its stable releases are
- * tagged with their date; a nightly's longer stamp is published elsewhere.
- */
-function ytdlpPage(version: string): string {
-  return /^\d{4}\.\d{2}\.\d{2}$/.test(version) ? `${YTDLP_URL}/releases/tag/${version}` : '';
-}
-
-/**
  * VersionNumber shows a version without its leading 'v', linked to its release
  * page in a new tab where it has one. The link uses the row's ink, which lifts
  * on hover, the same in every colour mode.
@@ -158,27 +149,19 @@ function VersionRow({ name, sub, children }: { name: string; sub?: ReactNode; ch
 }
 
 /**
- * Versions lists every version the app is made of, each read from where it
- * runs: the server's own stamp, the design language's copied file and the
- * media tools as the server found them. Looking for newer ones is the General
- * page's Updates card, which the badge leads to.
+ * Versions lists the versions the app is made of: the server's own stamp and
+ * the design language's copied file. The programs it starts, and looking for
+ * newer versions, are on the General page, which the badge leads to.
  */
 function Versions({ hue }: { hue: number }) {
   const { t } = useT();
   const [version, setVersion] = useState('');
-  const [tools, setTools] = useState<MediaToolsStatus | null>(null);
 
   useEffect(() => {
     fetchHealth()
       .then((h) => setVersion(h.version))
       .catch(() => {});
-    fetchMediaTools()
-      .then(setTools)
-      .catch(() => {});
   }, []);
-
-  const ytdlp = tools?.ytdlp;
-  const missing = t('settings.diagnostics.toolsMissing');
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
@@ -199,13 +182,6 @@ function Versions({ hue }: { hue: number }) {
         </VersionRow>
         <VersionRow name="GlimStone" sub={t('settings.info.glimstoneSub')}>
           <VersionNumber version={GLIMSTONE_VERSION} page={releasePage(GLIMSTONE_URL, GLIMSTONE_VERSION)} />
-        </VersionRow>
-        {/* Program names need no translation. */}
-        <VersionRow name="yt-dlp" sub={t('settings.info.ytdlpSub')}>
-          {ytdlp?.version ? <VersionNumber version={ytdlp.version} page={ytdlpPage(ytdlp.version)} /> : tools && missing}
-        </VersionRow>
-        <VersionRow name="ffmpeg" sub={t('settings.info.ffmpegSub')}>
-          {tools && (tools.ffmpeg.version || missing)}
         </VersionRow>
       </ul>
       <div className="flex flex-wrap justify-end gap-3">

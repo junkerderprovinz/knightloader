@@ -268,11 +268,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
         { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
-        { key: 'settings.resolvers.toolsActions', hint: 'settings.resolvers.toolsActionsHint' },
         { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
       ],
       // The container build uses its own sentence for the update hint, and
-      // yt-dlp's switches carry their own hints.
+      // yt-dlp's switches carry their own hints. A sub-card's (i) says what its
+      // program does and how it is updated.
       body: [
         'settings.look.updatesAutoUpdateContainerHint',
         'settings.resolvers.toolsAutoCheckHint',
@@ -280,8 +280,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.resolvers.toolsShadowed',
         'settings.resolvers.toolsShadowedOlder',
         'settings.resolvers.toolsManagedBroken',
+        'settings.resolvers.toolsActionsHint',
+        'settings.look.tool.jd',
+        'settings.look.jdUpdatesItself',
       ],
-      also: ['settings.look.updatesCheck', 'settings.resolvers.toolsFetch', 'settings.resolvers.toolsRevert'],
+      also: [
+        'settings.look.updatesCheck',
+        'settings.resolvers.toolsFetch',
+        'settings.resolvers.toolsRevert',
+        'settings.look.jdUpdate',
+      ],
     },
     // One row per part, named by the part itself.
     { title: 'settings.look.builtInTitle', hint: 'settings.look.builtInHint', rows: [] },
@@ -1264,7 +1272,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       hint: 'settings.info.versionHint',
       rows: [],
       also: ['settings.look.updatesReleaseNotes'],
-      body: ['settings.info.glimstoneSub', 'settings.info.ytdlpSub', 'settings.info.ffmpegSub'],
+      body: ['settings.info.glimstoneSub'],
     },
     {
       title: 'settings.info.helpTitle',

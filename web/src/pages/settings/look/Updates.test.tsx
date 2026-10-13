@@ -17,6 +17,8 @@ let host: HTMLDivElement;
 
 /** What the server answers, by route; a test changes a route to change the answer. */
 let answers: Record<string, unknown>;
+/** Routes the server refuses, with the status and body it refuses with. */
+let refusals: Record<string, { status: number; body: unknown }>;
 let asked: string[];
 
 beforeEach(() => {
@@ -41,11 +43,14 @@ beforeEach(() => {
     '/api/system/update-check': { checked: true, available: false, current: 'v1.8.4' },
     '/api/mediatools/ytdlp/latest': { checked: true, tag: '2026.08.19', compare: 'same' },
   };
+  refusals = {};
   asked = [];
   vi.stubGlobal(
     'fetch',
     vi.fn((url: string) => {
       asked.push(url);
+      const refused = refusals[url];
+      if (refused) return Promise.resolve(new Response(JSON.stringify(refused.body), { status: refused.status }));
       return Promise.resolve(
         url in answers
           ? new Response(JSON.stringify(answers[url]), { headers: { 'Content-Type': 'application/json' } })
@@ -97,41 +102,97 @@ const card = (title: string) =>
   [...host.querySelectorAll<HTMLElement>('.glim-card')].find((c) => c.textContent?.startsWith(title))!;
 
 describe('the Updates card', () => {
-  it('lists every tool KnightLoader brings, each with its version and where it comes from', async () => {
+  it('lists every tool KnightLoader brings, each with its version', async () => {
     await draw();
     const rows = [...host.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
-    expect(rows).toEqual(['KnightLoader', 'yt-dlp', 'ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']);
+    expect(rows).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend', 'ffmpeg', 'ffprobe', 'Gopeed', 'SQLite']);
     expect(group('KnightLoader').textContent).toContain('1.8.4');
     expect(group('yt-dlp').textContent).toContain('2026.08.19');
+    expect(group('JDownloader backend').textContent).toContain('50123');
     expect(group('ffmpeg').textContent).toContain('8.1.2');
     expect(group('ffmpeg').textContent).toContain('Comes with the container image');
-    expect(group('JDownloader backend').textContent).toContain('50123');
-    expect(group('JDownloader backend').textContent).toContain('Updates itself');
     expect(group('Gopeed').textContent).toContain('5111a4c');
     expect(group('Gopeed').textContent).toContain('Built into KnightLoader from its own fork');
     expect(group('SQLite').textContent).toContain('1.60.1');
   });
 
+  it('says what each tool does behind an (i) beside its name', async () => {
+    await draw();
+    const tip = (name: string) => group(name).querySelector('h3 [role="note"]')?.getAttribute('aria-label');
+    expect(tip('yt-dlp')).toContain('Reads video pages');
+    expect(tip('JDownloader backend')).toContain('JDownloader also updates itself');
+    expect(tip('ffmpeg')).toBe('Joins picture and sound');
+    expect(tip('SQLite')).toBe('Keeps the download list');
+    expect(group('ffmpeg').textContent).not.toContain('Joins picture and sound');
+  });
+
   it('holds only what updates on its own, each on a sub-card, and the rest on a card without controls', async () => {
     await draw();
     const names = (c: HTMLElement) => [...c.querySelectorAll('section')].map((s) => s.querySelector('h3')?.textContent);
-    expect(names(card('Updates'))).toEqual(['KnightLoader', 'yt-dlp']);
-    expect(card('Updates').querySelectorAll('.glim-subcard')).toHaveLength(2);
-    expect(names(card('Built-in components'))).toEqual(['ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']);
-    expect(card('Built-in components').querySelector('button:not([aria-haspopup]), [role="switch"]')).toBeNull();
+    expect(names(card('Updates'))).toEqual(['KnightLoader', 'yt-dlp', 'JDownloader backend']);
+    expect(card('Updates').querySelectorAll('.glim-subcard')).toHaveLength(3);
+    expect(names(card('Built-in components'))).toEqual(['ffmpeg', 'ffprobe', 'Gopeed', 'SQLite']);
+    expect(card('Built-in components').querySelector('button, [role="switch"]')).toBeNull();
   });
 
-  it('offers update controls only for the tools KnightLoader updates', async () => {
-    await draw();
-    for (const name of ['ffmpeg', 'ffprobe', 'JDownloader backend', 'Gopeed', 'SQLite']) {
-      expect(group(name).querySelector('button, [role="switch"]'), name).toBeNull();
-    }
-  });
-
-  it('says where a JDownloader backend that is not set up stands', async () => {
+  it('says where a JDownloader backend that is not set up stands, with nothing to press', async () => {
     answers['/api/resolvers/jd'] = { configured: false, reachable: false };
     await draw();
     expect(group('JDownloader backend').textContent).toContain('Not set up');
+    expect(group('JDownloader backend').querySelector('button')).toBeNull();
+  });
+
+  it('offers a JDownloader update once a check found one', async () => {
+    answers['/api/jd/update'] = { available: true, checked: true };
+    await draw();
+    expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
+    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
+    expect(button(group('JDownloader backend'), 'Updates: 1').className).toContain('bg-statusWarnSolid');
+    expect(button(group('JDownloader backend'), 'Update now')).toBeDefined();
+  });
+
+  it('says JDownloader is up to date when it has nothing waiting', async () => {
+    answers['/api/jd/update'] = { available: false, checked: true };
+    await draw();
+    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
+    expect(button(group('JDownloader backend'), 'Up to date').className).toContain('bg-statusOkSolid');
+    expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
+  });
+
+  it('says why JDownloader could not be asked', async () => {
+    refusals['/api/jd/update'] = { status: 409, body: { error: 'jd unreachable', code: 'jdUnreachable' } };
+    await draw();
+    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
+    expect(button(group('JDownloader backend'), 'Check failed').className).toContain('bg-statusFailSolid');
+    expect(group('JDownloader backend').textContent).toContain(en['health.remedy.jd.unreachable']);
+  });
+
+  it('waits for JDownloader to come back after the update and shows its new revision', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'Date'] });
+    answers['/api/jd/update'] = { available: true, checked: true };
+    await draw();
+    await act(async () => button(group('JDownloader backend'), 'Check for updates').click());
+
+    answers['/api/jd/update'] = { started: true };
+    await act(async () => button(group('JDownloader backend'), 'Update now').click());
+    expect(asked.filter((u) => u === '/api/jd/update')).toHaveLength(2);
+    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+    expect(button(group('JDownloader backend'), 'Updating').disabled).toBe(true);
+
+    // Still the old one, before it goes down.
+    await act(async () => vi.advanceTimersByTimeAsync(2_000));
+    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+
+    answers['/api/resolvers/jd'] = { configured: true, reachable: false };
+    await act(async () => vi.advanceTimersByTimeAsync(2_000));
+    expect(group('JDownloader backend').textContent).toContain(en['settings.look.jdRestarting']);
+
+    answers['/api/resolvers/jd'] = { configured: true, reachable: true, version: 50200 };
+    await act(async () => vi.advanceTimersByTimeAsync(2_000));
+    expect(group('JDownloader backend').textContent).not.toContain(en['settings.look.jdRestarting']);
+    expect(group('JDownloader backend').textContent).toContain('JDownloader is running again, at revision 50200.');
+    expect(button(group('JDownloader backend'), 'Update now')).toBeUndefined();
+    vi.useRealTimers();
   });
 
   it('names the same two switches the same for both', async () => {
@@ -153,6 +214,14 @@ describe('the Updates card', () => {
     await act(async () => button(group('KnightLoader'), 'Check for updates').click());
     const verdict = button(group('KnightLoader'), 'Up to date');
     expect(verdict.className).toContain('bg-statusOkSolid');
+  });
+
+  it('lets the check button alone say that yt-dlp is current', async () => {
+    await draw();
+    await act(async () => button(group('yt-dlp'), 'Check for updates').click());
+    expect(button(group('yt-dlp'), 'Up to date').className).toContain('bg-statusOkSolid');
+    expect(group('yt-dlp').querySelector('p')).toBeNull();
+    expect(group('yt-dlp').textContent).not.toContain('Comes with the container image');
   });
 
   it('turns the check red when GitHub cannot be asked', async () => {

@@ -1,9 +1,9 @@
-import { useCallback, useEffect, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ComponentProps, type ReactNode } from 'react';
 import {
   Button,
   Card,
   ErrorCard,
-  FieldGroup,
+  HintBubble,
   InfoBubble,
   LinkBadge,
   SectionTitle,
@@ -11,13 +11,16 @@ import {
   type ButtonVerdict,
 } from '../../../components/ui';
 import {
+  ApiError,
   fetchDeploymentInfo,
   fetchHealth,
   fetchJDStatus,
+  fetchJDUpdate,
   fetchMediaTools,
   fetchUpdateCheck,
   fetchYtdlpLatest,
   revertYtdlp,
+  updateJD,
   updateYtdlp,
   type BuiltModule,
   type DeploymentInfo,
@@ -32,16 +35,18 @@ import { useResource } from '../../../lib/useResource';
 import { useDraft } from '../context';
 import { SubCard } from '../controls';
 
-// Two cards. Updates holds what can be updated on its own, KnightLoader and
-// yt-dlp, each a sub-card with its version, where it comes from, the same two
-// switches under the same names and a check button that shows its answer on
-// itself. yt-dlp is the one program outside the build that moves faster than
-// KnightLoader's releases, which is why it is updated here at all. The other
-// card lists the rest, one row each with its version and where it comes from:
-// they come with the image, the computer or the build, or update themselves,
-// so there is nothing to press.
+// Two cards. Updates holds what can be updated on its own, KnightLoader,
+// yt-dlp and the JDownloader backend, each a sub-card with its version and a
+// check button that shows its answer on itself. yt-dlp moves faster than
+// KnightLoader's releases, which is why it is updated here at all, and
+// JDownloader is a program of its own beside KnightLoader. The other card
+// lists the rest, one row each with its version and where it comes from: they
+// come with the image, the computer or the build, so there is nothing to
+// press.
 
 type Translate = ReturnType<typeof useT>['t'];
+
+type Hint = ComponentProps<typeof HintBubble>['hint'];
 
 type Face = { label: string; icon: ReactNode; verdict?: ButtonVerdict };
 
@@ -88,17 +93,17 @@ function CheckButton({
 }
 
 /**
- * ToolRow is one built-in part: its name and what it does, its version and
- * where it comes from, in columns every row of the card shares.
+ * ToolRow is one built-in part: its name with what it does behind an (i), its
+ * version and where it comes from, in columns every row of the card shares.
  */
 function ToolRow({ name, sub, version, source }: { name: string; sub?: string; version: ReactNode; source: string }) {
   return (
     <section className="flex flex-col gap-3 py-4 first:pt-0 last:pb-0">
       <div className="grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-0.5 @xl:grid-cols-[minmax(0,1fr)_9rem_15rem]">
-        <span className="flex min-w-0 flex-col">
-          <h3 className="text-sm text-carbon-text">{name}</h3>
-          {sub && <span className="text-subline text-carbon-textMuted">{sub}</span>}
-        </span>
+        <h3 className="flex min-w-0 items-center gap-1.5 text-sm text-carbon-text">
+          {name}
+          <HintBubble hint={sub} />
+        </h3>
         <span dir="ltr" className="glim-num truncate text-end text-sm text-carbon-textSub @xl:text-start">
           {version}
         </span>
@@ -109,22 +114,20 @@ function ToolRow({ name, sub, version, source }: { name: string; sub?: string; v
 }
 
 /**
- * ToolCard is a part KnightLoader updates, as a sub-card: its name, its
- * version and where it comes from at the heading's end, and its update
+ * ToolCard is a part KnightLoader updates, as a sub-card: its name with what
+ * it does behind an (i), its version at the heading's end, and its update
  * controls under them.
  */
 function ToolCard({
   name,
   sub,
   version,
-  source,
   children,
 }: {
   name: string;
-  sub?: string;
+  sub?: Hint;
   version: ReactNode;
-  source: string;
-  children: ReactNode;
+  children?: ReactNode;
 }) {
   return (
     <SubCard
@@ -132,11 +135,8 @@ function ToolCard({
       hint={sub}
       className="gap-3"
       right={
-        <span className="flex flex-col items-end">
-          <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
-            {version}
-          </span>
-          <span className="text-subline text-carbon-textMuted">{source}</span>
+        <span dir="ltr" className="glim-num text-sm text-carbon-textSub">
+          {version}
         </span>
       }
     >
@@ -159,8 +159,9 @@ const hostSource = (t: Translate, deployment: string) =>
   t(deployment === 'desktop' ? 'settings.look.toolsSource.system' : 'settings.look.toolsSource.image');
 
 /**
- * UpdatesCard holds the updates of KnightLoader and yt-dlp, each a sub-card.
- * `children` is a further group of the card, such as quit and restart.
+ * UpdatesCard holds the updates of KnightLoader, yt-dlp and the JDownloader
+ * backend, each a sub-card. `children` is a further group of the card, such as
+ * quit and restart.
  */
 export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNode }) {
   const { t } = useT();
@@ -174,7 +175,8 @@ export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNo
       {deployment && (
         <>
           <AppUpdates deployment={deployment.deployment} />
-          <YtdlpUpdates deployment={deployment.deployment} />
+          <YtdlpUpdates />
+          <JDUpdates />
         </>
       )}
       {children}
@@ -183,8 +185,8 @@ export function UpdatesCard({ hue, children }: { hue: number; children?: ReactNo
 }
 
 /**
- * BuiltInCard lists every part KnightLoader brings or runs beside it and does
- * not update on its own, each with its version and where it comes from.
+ * BuiltInCard lists every part KnightLoader brings and does not update on its
+ * own, each with its version and where it comes from.
  */
 export function BuiltInCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -218,7 +220,6 @@ export function BuiltInCard({ hue }: { hue: number }) {
             version={found(tools?.ffprobe)}
             source={hostSource(t, deployment.deployment)}
           />
-          <JDRow />
           {(deployment.engines ?? []).map((m) => (
             <EngineRow key={m.path} module={m} />
           ))}
@@ -276,11 +277,7 @@ function AppUpdates({ deployment }: { deployment: string }) {
   const face = checkFace(t, check ? check.checked : null, available);
 
   return (
-    <ToolCard
-      name="KnightLoader"
-      version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}
-      source={t('settings.look.toolsSource.release')}
-    >
+    <ToolCard name="KnightLoader" version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}>
       {!isDesktop && (
         <ToggleRow
           label={t('settings.look.updatesAuto')}
@@ -350,7 +347,7 @@ const errorText = (e: unknown) => String(e).replace(/^(Error|ApiError):\s*/, '')
  * again, so the sub-card warns when it has fallen behind the image's own
  * (Status.shadowed).
  */
-function YtdlpUpdates({ deployment }: { deployment: string }) {
+function YtdlpUpdates() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
 
@@ -455,6 +452,7 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
   const busy = checking || fetching || reverting;
   // An order the server could not tell stays without a colour.
   const face = checkFace(t, latest ? latest.checked : null, latest?.compare === 'newer', latest?.compare !== 'unknown');
+  const line = latest ? checkLine(t, latest, ytdlp?.version ?? '') : '';
 
   const found = (tool?: { found: boolean; version?: string }) =>
     tools && (tool?.found ? tool.version : t('settings.resolvers.toolsNotFound'));
@@ -462,9 +460,8 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
   return (
     <ToolCard
       name="yt-dlp"
-      sub={t('settings.info.ytdlpSub')}
+      sub={[t('settings.info.ytdlpSub'), t('settings.resolvers.toolsActionsHint')]}
       version={found(ytdlp)}
-      source={managedRunning ? t('settings.look.toolsSource.fetched') : hostSource(t, deployment)}
     >
       {managedRunning && shadowed && !managedIsOlder && (
         <p className="text-xs text-carbon-textSub">
@@ -502,8 +499,7 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
         hint={t('settings.resolvers.toolsAutoUpdateHint')}
       />
 
-      {/* FieldGroup, because a label would pass clicks to the first button. */}
-      <FieldGroup label={t('settings.resolvers.toolsActions')} hint={t('settings.resolvers.toolsActionsHint')}>
+      <div className="flex flex-col gap-1.5">
         {/* What the last action came to, above the buttons until the next one.
             The fetch came after the check, so its outcome wins. */}
         {failed && <p className="text-sm text-statusFail">{t('settings.resolvers.toolsFetchFailed', { error: failed })}</p>}
@@ -517,9 +513,7 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
               : t('settings.resolvers.toolsRevertedNone')}
           </p>
         )}
-        {!failed && !fetched && reverted === null && latest && (
-          <p className="text-sm text-carbon-textSub">{checkLine(t, latest, ytdlp?.version ?? '')}</p>
-        )}
+        {!failed && !fetched && reverted === null && line && <p className="text-sm text-carbon-textSub">{line}</p>}
 
         {/* Revert, check, fetch: the forward action sits last. The JSX order
             sets it, so the row mirrors in right-to-left languages. */}
@@ -538,33 +532,147 @@ function YtdlpUpdates({ deployment }: { deployment: string }) {
             </Button>
           )}
         </div>
-      </FieldGroup>
+      </div>
     </ToolCard>
   );
 }
 
-/** JDRow is the headless JDownloader, which KnightLoader talks to and which updates itself. */
-function JDRow() {
+/** How often, and how long, the sub-card asks for JDownloader while it restarts for an update. */
+const JD_POLL = 2_000;
+const JD_BACK_WITHIN = 5 * 60_000;
+
+const JD_REFUSALS: Record<string, TranslationKey> = {
+  jdUnreachable: 'health.remedy.jd.unreachable',
+  jdUpdateCheckFailed: 'settings.look.jdCheckFailed',
+};
+
+/** jdRefusal says why the server could not ask JDownloader, in the reader's language when it knows the code. */
+function jdRefusal(t: Translate, e: unknown): string {
+  const key = e instanceof ApiError && e.code ? JD_REFUSALS[e.code] : undefined;
+  return key ? t(key) : errorText(e);
+}
+
+const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+/**
+ * JDUpdates is the headless JDownloader, which KnightLoader talks to. It also
+ * updates itself; here a check asks it whether an update waits, and the update
+ * has it install that and restart, after which the sub-card waits until it
+ * answers again and shows its new revision.
+ */
+function JDUpdates() {
   const { t } = useT();
   const [jd, setJd] = useState<JDStatus | null>(null);
+  // Null before a check, then whether JDownloader answered it.
+  const [checked, setChecked] = useState<boolean | null>(null);
+  const [available, setAvailable] = useState(false);
+  const [checking, setChecking] = useState(false);
+  const [shake, setShake] = useState(0);
+  const [restarting, setRestarting] = useState(false);
+  const [back, setBack] = useState(false);
+  const [failed, setFailed] = useState('');
+  // Ends the wait for the restart once the page is left.
+  const mounted = useRef(true);
 
   useEffect(() => {
+    mounted.current = true;
     void fetchJDStatus()
       .then(setJd)
       .catch(() => {});
+    return () => {
+      mounted.current = false;
+    };
   }, []);
+
+  const onCheck = useCallback(async () => {
+    setChecking(true);
+    setFailed('');
+    setBack(false);
+    try {
+      const found = await fetchJDUpdate();
+      setChecked(found.checked);
+      setAvailable(found.available);
+    } catch (e) {
+      setChecked(false);
+      setAvailable(false);
+      setFailed(jdRefusal(t, e));
+      setShake((n) => n + 1);
+    }
+    setChecking(false);
+  }, [t]);
+
+  const onUpdate = useCallback(async () => {
+    setFailed('');
+    setBack(false);
+    try {
+      await updateJD();
+    } catch (e) {
+      setFailed(jdRefusal(t, e));
+      return;
+    }
+    setRestarting(true);
+    const before = jd?.version;
+    const until = Date.now() + JD_BACK_WITHIN;
+    let wentDown = false;
+    while (mounted.current && Date.now() < until) {
+      await pause(JD_POLL);
+      const now = await fetchJDStatus().catch(() => null);
+      if (!now?.reachable) {
+        wentDown = true;
+        continue;
+      }
+      // JDownloader can still answer for a moment before it goes down, so the
+      // old revision only counts once it has been away.
+      if (wentDown || now.version !== before) {
+        setJd(now);
+        setChecked(null);
+        setAvailable(false);
+        setRestarting(false);
+        setBack(true);
+        return;
+      }
+    }
+    if (!mounted.current) return;
+    setRestarting(false);
+    setFailed(t('settings.look.jdNotBack'));
+  }, [jd, t]);
 
   let version: ReactNode = null;
   if (jd && !jd.configured) version = t('settings.selftest.status.skipped');
   else if (jd && !jd.reachable) version = t('health.state.failed');
   else if (jd) version = jd.version;
+  const busy = checking || restarting;
+
   return (
-    <ToolRow
+    <ToolCard
       name={t('health.part.jd')}
-      sub={t('settings.look.tool.jd')}
-      version={version !== null && <span data-new="jd-state">{version}</span>}
-      source={t('settings.look.toolsSource.self')}
-    />
+      sub={[t('settings.look.tool.jd'), t('settings.look.jdUpdatesItself')]}
+      version={version}
+    >
+      {/* Without a JDownloader there is nothing to ask. */}
+      {jd?.configured && (
+        <div className="flex flex-col gap-1.5">
+          {failed && <p className="text-sm text-statusFail">{failed}</p>}
+          {restarting && <p className="text-sm text-carbon-textSub">{t('settings.look.jdRestarting')}</p>}
+          {back && <p className="text-sm text-statusOk">{t('settings.look.jdBack', { version: jd.version ?? '' })}</p>}
+          <div data-new="jd-update" className="flex flex-wrap items-center justify-end gap-3">
+            <CheckButton
+              face={checkFace(t, checked, available)}
+              checking={checking}
+              disabled={busy}
+              shake={shake}
+              onCheck={() => void onCheck()}
+            />
+            {/* Only after a check found an update, as with yt-dlp. */}
+            {(restarting || (checked && available)) && (
+              <Button kind="secondary" disabled={busy} onClick={() => void onUpdate()}>
+                {restarting ? t('settings.look.jdUpdating') : t('settings.look.jdUpdate')}
+              </Button>
+            )}
+          </div>
+        </div>
+      )}
+    </ToolCard>
   );
 }
 
@@ -601,12 +709,13 @@ function EngineRow({ module: m }: { module: BuiltModule }) {
   );
 }
 
+/** checkLine is what a yt-dlp check found, '' when the button's own face says it all. */
 function checkLine(t: Translate, latest: YtdlpLatest, current: string): string {
   if (!latest.checked) return t('settings.resolvers.toolsCheckFailed', { error: latest.detail ?? '' });
   const tag = latest.tag ?? '';
   switch (latest.compare) {
     case 'same':
-      return t('settings.resolvers.toolsSame', { version: current || tag });
+      return '';
     case 'newer':
       return t('settings.resolvers.toolsNewer', { latest: tag, current });
     case 'older':
