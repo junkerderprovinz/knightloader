@@ -20,17 +20,12 @@ import (
 const pairingPassword = "a-good-password"
 
 // pairingServer is a test server with the login password pairing needs, and
-// an API token its calls sign in with. The relay is off, so nothing dials the
-// project relay.
+// an API token its calls sign in with. Its relay is off.
 func pairingServer(t *testing.T) (*httptest.Server, *app.App, string) {
 	t.Helper()
 	srv, a := testServer(t)
 	t.Cleanup(srv.Close)
-	cfg := a.Settings.Get()
-	cfg.RelayMode = settings.RelayModeOff
-	if _, err := a.Settings.Set(cfg); err != nil {
-		t.Fatal(err)
-	}
+	relayOff(t, a)
 	if err := a.Auth.SetPassword("", pairingPassword); err != nil {
 		t.Fatal(err)
 	}
@@ -39,6 +34,18 @@ func pairingServer(t *testing.T) (*httptest.Server, *app.App, string) {
 		t.Fatal(err)
 	}
 	return srv, a, token
+}
+
+// relayOff switches a's relay off. An instance in a group dials the project
+// relay in the default mode, so a test that puts one in a group calls this
+// first, or chooses its own relay on an httptest server.
+func relayOff(t *testing.T, a *app.App) {
+	t.Helper()
+	cfg := a.Settings.Get()
+	cfg.RelayMode = settings.RelayModeOff
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
 }
 
 // call sends a JSON body, signed in with token unless it is empty, and
@@ -164,8 +171,10 @@ func TestPairingWorksWithoutALoginPassword(t *testing.T) {
 	t.Parallel()
 	srv, a := testServer(t)
 	defer srv.Close()
-	other, _ := testServer(t)
+	relayOff(t, a)
+	other, otherApp := testServer(t)
 	defer other.Close()
+	relayOff(t, otherApp)
 
 	code, body := postJSON(t, http.MethodPost, srv.URL+"/api/connect/activate", nil)
 	if code != http.StatusOK {
@@ -519,6 +528,7 @@ func TestAGroupWithoutAJoiningTimeCountsAsJoinedAtStart(t *testing.T) {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { a.Close() })
+	relayOff(t, a)
 	secret, _, err := seedphrase.New()
 	if err != nil {
 		t.Fatal(err)

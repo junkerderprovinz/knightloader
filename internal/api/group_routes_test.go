@@ -384,7 +384,7 @@ func TestAMemberGetsA404ForWhatNoRouteServes(t *testing.T) {
 
 // groupServer is an instance with a download folder and a category folder,
 // reached as the group reaches it and as its owner does. The tasks in seed are
-// in its list from the start, as they were saved.
+// in its list from the start, as they were saved. Its relay is off.
 func groupServer(t *testing.T, seed ...*core.Task) (a *app.App, downloads, category string, member func(method, path, body string) (int, []byte), owner func(method, path, body string) (int, []byte)) {
 	t.Helper()
 	dir := t.TempDir()
@@ -409,6 +409,7 @@ func groupServer(t *testing.T, seed ...*core.Task) (a *app.App, downloads, categ
 	t.Cleanup(func() { a.Close() })
 	downloads, category = t.TempDir(), t.TempDir()
 	s := settings.Defaults()
+	s.RelayMode = settings.RelayModeOff
 	s.DownloadDir = downloads
 	s.Crawl = false
 	s.Categories = []settings.Category{{ID: "serien", Name: "Serien", Dir: category}}

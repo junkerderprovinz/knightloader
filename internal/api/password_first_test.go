@@ -40,6 +40,7 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
 	defer srv.Close()
+	relayOff(t, a)
 	c := http.DefaultClient
 
 	if code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/activate", nil); code != http.StatusOK {
