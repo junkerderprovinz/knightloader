@@ -55,7 +55,7 @@ export function DriveCard({ hue }: { hue: number }) {
   ].join('\n');
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="drive-page" className="flex flex-col gap-5">
       <SectionTitle>{t('settings.module.debriddrive')}</SectionTitle>
 
       <ModuleToggle id="debriddrive" hue={0} hint={t('settings.accounts.driveHint')} />

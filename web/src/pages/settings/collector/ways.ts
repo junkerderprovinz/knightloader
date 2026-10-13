@@ -45,7 +45,7 @@ const PLACES: Record<string, Place> = {
   extension: { page: 'browsertools', title: 'settings.browsertools.extensionTitle' },
   bookmarklet: { page: 'browsertools', title: 'settings.browsertools.bookmarkletTitle' },
   phone: { page: 'browsertools', title: 'settings.browsertools.phoneTitle' },
-  instances: { page: 'instances', title: 'settings.instances.setupTitle', label: 'settings.module.federation' },
+  instances: { page: 'instances', title: 'settings.module.federation' },
   account: '/accounts',
   downloadclient: { page: 'access', title: 'settings.access.tokens.title', label: 'settings.module.downloadclient' },
 };

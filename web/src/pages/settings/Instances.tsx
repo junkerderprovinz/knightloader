@@ -1,41 +1,22 @@
-// The settings tile of the Instanzen page. While the page stands in the
-// sidebar the tile keeps its switches and the way to the page, and with the
-// sidebar switch off it draws the whole page. The wrapper spaces its children
-// itself because the page's sr-only header is positioned absolutely and takes
-// no row.
+// The settings tile of the Instanzen page: the module's switch above the whole
+// page, whether or not the page also stands in the sidebar; that switch is on
+// the Aussehen page with the rest of the sidebar. The wrapper spaces its
+// children itself because the page's sr-only header is positioned absolutely
+// and takes no row.
 import { Instances } from '../Instances';
-import { Card, SectionTitle, ToggleRow } from '../../components/ui';
+import { Card, SectionTitle } from '../../components/ui';
 import { useT } from '../../lib/i18n';
-import { setHidden } from '../../lib/sidebarPrefs';
-import { useDraft } from './context';
-import { OpenPageRow, useWholePage } from './controls';
 import { ModuleToggle } from './ModuleToggle';
 
 export function InstancesTab() {
   const { t } = useT();
-  const { cfg, patch } = useDraft();
-  const pinned = !cfg.hideInstancesFromSidebar;
-  const whole = useWholePage('instances', pinned);
-
   return (
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-3">
-        <SectionTitle>{t('settings.instances.setupTitle')}</SectionTitle>
-        <ModuleToggle id="federation" hue={0} />
-        <ToggleRow
-          hue={1}
-          label={t('settings.instances.showInSidebar')}
-          hint={t('settings.instances.showInSidebarHint')}
-          checked={pinned}
-          onChange={(v) => {
-            patch({ hideInstancesFromSidebar: !v });
-            // The sidebar follows at once instead of after the autosave.
-            setHidden('instances', !v);
-          }}
-        />
-        {pinned && <OpenPageRow label={t('nav.instances')} to="/instances" />}
+        <SectionTitle>{t('settings.module.federation')}</SectionTitle>
+        <ModuleToggle id="federation" />
       </Card>
-      {whole && <Instances firstHue={1} />}
+      <Instances firstHue={1} />
     </div>
   );
 }

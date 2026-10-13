@@ -208,6 +208,18 @@ export const RELEASES: Release[] = [
           rows: 'settings.rowHeight.title',
         },
       },
+      {
+        id: 'sidebar-card',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.sidebarCard',
+        names: { name: 'settings.sidebar.title', accounts: 'nav.accounts', instances: 'nav.instances' },
+      },
+      {
+        id: 'drive-page',
+        to: ['/settings/debriddrive'],
+        text: 'whatsnew.change.drivePage',
+        names: { name: 'settings.nav.debriddrive', accounts: 'settings.nav.accounts' },
+      },
       // Drawn only in the desktop app, and its sentence says so.
       {
         id: 'window-card',

@@ -12,6 +12,7 @@ import {
 } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import { openColorPickerPopover } from '../../lib/colorPicker';
+import { setHidden } from '../../lib/sidebarPrefs';
 import { LanguagePicker } from '../../components/LanguagePicker';
 import {
   type DeploymentInfo,
@@ -657,8 +658,37 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       </Card>
       )}
 
+      {/* Which pages stand in the sidebar besides Settings, where they are
+          set up either way. The sidebar follows at once instead of after the
+          autosave. */}
       {appearance && (
-      <Card hue={2} className="flex flex-col gap-4">
+        <Card hue={2} data-new="sidebar-card" className="flex flex-col gap-4">
+          <SectionTitle>{t('settings.sidebar.title')}</SectionTitle>
+          <ToggleRow
+            hue={0}
+            label={t('settings.sidebar.accounts')}
+            hint={t('settings.sidebar.accountsHint')}
+            checked={!cfg.hideAccountsFromSidebar}
+            onChange={(v) => {
+              patch({ hideAccountsFromSidebar: !v });
+              setHidden('accounts', !v);
+            }}
+          />
+          <ToggleRow
+            hue={1}
+            label={t('settings.sidebar.instances')}
+            hint={t('settings.sidebar.instancesHint')}
+            checked={!cfg.hideInstancesFromSidebar}
+            onChange={(v) => {
+              patch({ hideInstancesFromSidebar: !v });
+              setHidden('instances', !v);
+            }}
+          />
+        </Card>
+      )}
+
+      {appearance && (
+      <Card hue={3} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.colours')}</SectionTitle>
 
         {/* Label on the left, circles on the right. While rainbow mode is on
@@ -844,7 +874,7 @@ export function Look({ section = 'general' }: { section?: LookSection } = {}) {
       )}
 
       {/* A browser tab has no window or tray icon of its own to set. */}
-      {appearance && isDesktop() && <WindowCard hue={3} />}
+      {appearance && isDesktop() && <WindowCard hue={4} />}
 
       {general && <NotificationsCard hue={0} />}
 

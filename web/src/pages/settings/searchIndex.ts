@@ -356,6 +356,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
+      title: 'settings.sidebar.title',
+      rows: [
+        { key: 'settings.sidebar.accounts', hint: 'settings.sidebar.accountsHint' },
+        { key: 'settings.sidebar.instances', hint: 'settings.sidebar.instancesHint' },
+      ],
+    },
+    {
       title: 'settings.colours',
       // The heading over the two speed graph lines.
       rows: [{ key: 'settings.lines.title' }],
@@ -387,14 +394,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   accounts: [
     {
-      title: 'settings.accounts.setupTitle',
-      rows: [
-        { key: 'settings.accounts.showInSidebar', hint: 'settings.accounts.showInSidebarHint' },
-        // The way to the page, while it stands in the sidebar.
-        { key: 'nav.accounts' },
-      ],
-    },
-    {
       title: 'settings.accounts.freeTitle',
       rows: [{ key: 'settings.accounts.allowFree', hint: 'settings.accounts.allowFreeHint' }],
     },
@@ -416,16 +415,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // without an account to the button that adds one.
       also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'accounts.newAccount'],
       body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'accounts.addPointer'],
-    },
-    {
-      title: 'settings.module.debriddrive',
-      rows: [
-        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
-        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
-        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
-      ],
-      also: ['common.copy', 'common.copied'],
-      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
     },
     // The fields are in the window a server row opens, so they lead to the card.
     {
@@ -458,16 +447,23 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
-  instances: [
+  // The drive's switch is the card's title, so it has no row of its own.
+  debriddrive: [
     {
-      title: 'settings.instances.setupTitle',
+      title: 'settings.module.debriddrive',
       rows: [
-        { key: 'settings.module.federation' },
-        { key: 'settings.instances.showInSidebar', hint: 'settings.instances.showInSidebarHint' },
-        // The way to the page, while it stands in the sidebar.
-        { key: 'nav.instances' },
+        { key: 'settings.accounts.driveRefresh', hint: 'settings.accounts.driveRefreshHint' },
+        { key: 'settings.accounts.driveAddress', hint: 'settings.accounts.driveAddressHint' },
+        { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
       ],
+      also: ['common.copy', 'common.copied'],
+      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
     },
+  ],
+
+  instances: [
+    // The module's switch is the card's title, so it has no row of its own.
+    { title: 'settings.module.federation', rows: [] },
     // The page drawn below that card.
     {
       title: 'instances.foundTitle',

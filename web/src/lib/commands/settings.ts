@@ -24,6 +24,7 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'access', labelKey: 'settings.nav.access' },
   { id: 'resolvers', labelKey: 'settings.nav.resolvers' },
   { id: 'torrents', labelKey: 'settings.nav.torrents' },
+  { id: 'debriddrive', labelKey: 'settings.nav.debriddrive' },
   { id: 'automation', labelKey: 'settings.nav.automation' },
   { id: 'shortcuts', labelKey: 'settings.nav.shortcuts' },
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
