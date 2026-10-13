@@ -126,7 +126,7 @@ func (a *App) rewireBackends() {
 			hostsByService[serviceID] = hosts
 		}
 		slot := resolver.SlotID(serviceID, d.account)
-		var be backend = debrid.NewBackend(d.svc, eng, a.onUpdate)
+		var be backend = a.linkBackend(slot, d.svc, eng)
 		ts, torrents := d.svc.(debrid.TorrentService)
 		if torrents {
 			be = a.torrentsVia(slot, ts, be, eng)
@@ -194,7 +194,7 @@ func (a *App) rewireBackends() {
 		for _, acct := range torboxAccounts {
 			c := torbox.NewClient(acct.cred.APIKey)
 			slot := resolver.SlotID("torbox", acct.account)
-			links := torbox.NewBackend(c, eng, a.onUpdate)
+			links := torbox.NewBackend(c, eng, a.torboxHandovers.of(slot, torbox.NewHandovers), a.onUpdate)
 			be := a.torrentsVia(slot, torbox.NewTorrents(c), links, eng)
 			newDebrid[slot] = be
 			wired[slot] = true
@@ -1389,4 +1389,33 @@ func (a *App) JDStatus() JDStatus {
 		return JDStatus{Configured: true, Reachable: true, Detail: err.Error()}
 	}
 	return JDStatus{Configured: true, Reachable: true, Version: v}
+}
+
+// linkBackend builds the backend that unlocks svc's hoster links for the
+// account in slot and hands them to eng. It carries on with the links the
+// slot's previous backend handed on.
+func (a *App) linkBackend(slot string, svc debrid.Service, eng debrid.Downloader) *debrid.Backend {
+	return debrid.NewBackend(svc, eng, a.debridHandovers.of(slot, debrid.NewHandovers), a.onUpdate)
+}
+
+// perSlot keeps one *T for every account slot, made on first use, so the
+// backend a rewire builds for a slot shares it with the one it replaces. Its
+// zero value is ready to use.
+type perSlot[T any] struct {
+	mu     sync.Mutex
+	bySlot map[string]*T
+}
+
+func (p *perSlot[T]) of(slot string, fresh func() *T) *T {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	if p.bySlot == nil {
+		p.bySlot = map[string]*T{}
+	}
+	v := p.bySlot[slot]
+	if v == nil {
+		v = fresh()
+		p.bySlot[slot] = v
+	}
+	return v
 }
