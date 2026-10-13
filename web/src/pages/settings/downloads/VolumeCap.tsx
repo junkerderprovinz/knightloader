@@ -11,8 +11,7 @@ import { SettingRow } from '../controls';
 // happens once it has. A cap of 0 is off. The figure sums the sizes hosters
 // announced for finished downloads, not the traffic on the line.
 
-// Decimal gigabytes, because providers sell allowances decimally; the disk card
-// uses binary GiB because it reads the filesystem.
+// Gigabytes, the unit providers sell allowances in.
 const GB = 1e9;
 
 // Rounded for display only, so opening the page does not rewrite the draft.

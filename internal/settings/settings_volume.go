@@ -38,7 +38,7 @@ const (
 // costs nobody anything; a cap of "500" typed into a box that stores a byte
 // count is reached by one download and pauses a queue with no explanation on
 // screen anybody would recognise.
-const maxVolumeCapBytes = 1 << 50
+const maxVolumeCapBytes = 1_000_000_000_000_000
 
 func sanitizeVolume(n Settings) Settings {
 	n.VolumeCap = clampVolumeBytes(n.VolumeCap)

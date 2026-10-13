@@ -143,13 +143,13 @@ describe('the head of the overview', () => {
 
   it('counts the running downloads and gives the speed, the time left and the queue', async () => {
     vi.mocked(useTasks).mockReturnValue({
-      a: task({ status: 'running', speed: 1024, loaded: 0, size: 61440 }),
+      a: task({ status: 'running', speed: 1000, loaded: 0, size: 60000 }),
       b: task({ id: 'b', status: 'queued', loaded: 0, size: 0 }),
     });
     await render();
     expect(heading()).toBe('1 download is running');
     const line = main().querySelector('h2 + p')!.textContent!;
-    expect(line).toContain('KiB/s');
+    expect(line).toContain('kB/s');
     expect(line).toContain('1min left');
     expect(line).toContain('1 in the queue');
     // While the queue runs and nothing waits for the person, the ring is its progress.

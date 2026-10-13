@@ -68,7 +68,7 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
               <NumberInput
                 value={file.maxMb}
                 min={1}
-                max={1024}
+                max={1000}
                 onValue={(maxMb) => patch({ logFile: { ...file, maxMb } })}
               />
             </SettingRow>

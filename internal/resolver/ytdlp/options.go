@@ -137,7 +137,7 @@ type Live struct {
 	// same whenever the link is pasted; time-of-day rules belong to
 	// internal/schedule.
 	MaxMinutes int `json:"maxMinutes"`
-	// MaxMB stops the recording once this many mebibytes have arrived, 0 for
+	// MaxMB stops the recording once this many megabytes have arrived, 0 for
 	// no limit. It counts yt-dlp's downloaded_bytes, since the temp fragments
 	// on disk do not add up to that number.
 	MaxMB int `json:"maxMB"`

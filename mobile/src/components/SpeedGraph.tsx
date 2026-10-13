@@ -32,9 +32,9 @@ import {
  * this app has no react-native-svg and a native module for one graph would
  * mean a new prebuild.
  *
- * The download and upload limits are marked at the right edge as on the web:
- * inside the scale a red line with its figure, above it the figure and a
- * chevron pointing up on the top edge.
+ * The download and upload limits are marked at the right edge as on the web,
+ * with no line across the plot: inside the scale a notch and the figure at the
+ * limit's height, above it the figure and a chevron pointing up on the top edge.
  */
 
 // The web meter's default window: one sample a second for half a minute.
@@ -116,20 +116,17 @@ interface Marked {
 }
 
 /**
- * LimitMarks draws each limit set as a red line across the plot, with a notch
- * and the figure at the right edge in its curve's colour. A limit above the
- * scale keeps only the mark, on the top edge with a chevron pointing up. The
- * figures sit on the card's own ground so a curve behind them does not cut
- * through the digits.
+ * LimitMarks draws each limit set as a notch and the figure at the right edge
+ * in its curve's colour, with no line across the plot, which two limits and two
+ * curves would crowd. A limit above the scale sits on the top edge with a
+ * chevron pointing up. The figures sit on the card's own ground so a curve
+ * behind them does not cut through the digits.
  */
 function LimitMarks({ marks, height }: { marks: Marked[]; height: number }) {
   const { c } = useAppearance();
   const tops = labelTops(marks.map((m) => m.mark.y), height, LABEL_LINE);
   return marks.map(({ limit, mark, ink, name }, i) => (
     <Fragment key={name}>
-      {!mark.over && (
-        <View style={[styles.limit, { top: mark.y, backgroundColor: c.statusFailSolid }]} pointerEvents="none" />
-      )}
       <View
         style={[styles.glyph, mark.over ? { top: mark.y, ...chevron(ink) } : { top: mark.y - GLYPH, ...notch(ink) }]}
         pointerEvents="none"
@@ -146,7 +143,7 @@ function LimitMarks({ marks, height }: { marks: Marked[]; height: number }) {
 }
 
 // Triangles from borders, since the app draws without svg: one pointing left
-// at the line, and one pointing up out of the plot.
+// into the plot, and one pointing up out of it.
 const notch = (ink: string) => ({
   borderTopWidth: GLYPH,
   borderBottomWidth: GLYPH,
@@ -335,7 +332,6 @@ const styles = StyleSheet.create({
   },
   key: { flexDirection: 'row', alignItems: 'center', gap: 4 },
   swatch: { width: 12, height: 8, borderTopWidth: STROKE },
-  limit: { position: 'absolute', left: 0, right: 0, height: 1 },
   glyph: { position: 'absolute', right: 0, width: 0, height: 0 },
   limitLabel: {
     position: 'absolute',

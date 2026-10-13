@@ -297,7 +297,7 @@ func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
 		Port:                51413,
 		SeedRatioTarget:     1.5,
 		SeedDurationSeconds: 3600,
-		UploadLimitKiBs:     300,
+		UploadLimit:         300_000,
 		DHTEnabled:          false,
 		PEXEnabled:          true,
 	})
@@ -305,7 +305,7 @@ func TestTheTorrentSettingsReachTheEngineInItsOwnTerms(t *testing.T) {
 		Port:        51413,
 		SeedRatio:   1.5,
 		SeedSeconds: 3600,
-		UploadLimit: 300 << 10,
+		UploadLimit: 300_000,
 		DisableDHT:  true,
 		DisablePEX:  false,
 	}

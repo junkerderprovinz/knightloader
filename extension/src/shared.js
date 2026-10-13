@@ -252,14 +252,14 @@ function livePulse(el) {
   if (period > 0) el.style.animationDelay = `-${Math.round(performance.now() % period)}ms`;
 }
 
-/** Binary units, as the web UI's fmtBytes. */
+/** Decimal units, as the web UI's fmtBytes. */
 function fmtBytes(n) {
   if (!Number.isFinite(n) || n <= 0) return '0 B';
-  const units = ['B', 'KiB', 'MiB', 'GiB', 'TiB'];
+  const units = ['B', 'kB', 'MB', 'GB', 'TB'];
   let i = 0;
   let v = n;
-  while (v >= 1024 && i < units.length - 1) {
-    v /= 1024;
+  while (v >= 1000 && i < units.length - 1) {
+    v /= 1000;
     i++;
   }
   return `${v >= 100 || i === 0 ? Math.round(v) : v.toFixed(1)} ${units[i]}`;

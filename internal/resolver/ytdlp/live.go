@@ -145,8 +145,8 @@ func (g *liveGuard) exceeded(loaded int64) string {
 			return fmt.Sprintf("live recording stopped at the %d minute limit", g.limits.MaxMinutes)
 		}
 	}
-	if g.limits.MaxMB > 0 && loaded >= int64(g.limits.MaxMB)<<20 {
-		return fmt.Sprintf("live recording stopped at the %d MiB limit", g.limits.MaxMB)
+	if g.limits.MaxMB > 0 && loaded >= int64(g.limits.MaxMB)*1_000_000 {
+		return fmt.Sprintf("live recording stopped at the %d MB limit", g.limits.MaxMB)
 	}
 	return ""
 }
@@ -170,10 +170,10 @@ func formatDuration(d time.Duration) string {
 	return fmt.Sprintf("%d:%02d", m, s)
 }
 
-// formatBytes writes a byte count in binary units, with one decimal above a
-// kibibyte.
+// formatBytes writes a byte count in decimal units, as the web interface's
+// fmtBytes does, with one decimal above a kilobyte.
 func formatBytes(n int64) string {
-	const unit = 1024
+	const unit = 1000
 	if n < unit {
 		return fmt.Sprintf("%d B", n)
 	}
@@ -182,5 +182,5 @@ func formatBytes(n int64) string {
 		div *= unit
 		exp++
 	}
-	return fmt.Sprintf("%.1f %ciB", float64(n)/float64(div), "KMGTP"[exp])
+	return fmt.Sprintf("%.1f %cB", float64(n)/float64(div), "kMGTP"[exp])
 }

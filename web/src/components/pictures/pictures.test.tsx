@@ -149,7 +149,7 @@ describe('a bar that shows a level', () => {
 });
 
 describe('a target folder', () => {
-  const GIB = 1024 ** 3;
+  const GB = 1e9;
   const folder = (free: number): DiskVolume =>
     ({
       dir: '/downloads',
@@ -157,16 +157,16 @@ describe('a target folder', () => {
       exists: true,
       known: true,
       free,
-      used: 100 * GIB - free,
-      total: 100 * GIB,
+      used: 100 * GB - free,
+      total: 100 * GB,
       queued: 0,
       tasks: 0,
       role: 'downloads',
     }) as DiskVolume;
-  const floors = { diskLowSpace: 20 * GIB, diskCriticalSpace: 5 * GIB } as Settings;
+  const floors = { diskLowSpace: 20 * GB, diskCriticalSpace: 5 * GB } as Settings;
 
   it('carries both floors as lines on its vessel, the stop floor above the start floor', async () => {
-    await draw(<DiskVolumeRow v={folder(60 * GIB)} cfg={floors} />);
+    await draw(<DiskVolumeRow v={folder(60 * GB)} cfg={floors} />);
     const top = (label: string) =>
       parseFloat(host.querySelector<HTMLElement>(`[role="img"][aria-label="${label}"]`)!.style.top);
     expect(top('Everything stops below here')).toBeLessThan(top('Nothing new starts below here'));
@@ -174,10 +174,10 @@ describe('a target folder', () => {
   });
 
   it('turns the liquid red once the free space is under the stop floor', async () => {
-    await draw(<DiskVolumeRow v={folder(60 * GIB)} cfg={floors} />);
+    await draw(<DiskVolumeRow v={folder(60 * GB)} cfg={floors} />);
     const liquid = () => host.querySelector('g[clip-path] path')!.getAttribute('fill');
     expect(liquid()).toBe('var(--accent)');
-    await draw(<DiskVolumeRow v={folder(2 * GIB)} cfg={floors} />);
+    await draw(<DiskVolumeRow v={folder(2 * GB)} cfg={floors} />);
     expect(liquid()).toBe('var(--status-fail-solid)');
   });
 });

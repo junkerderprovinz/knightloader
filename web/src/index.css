@@ -2046,7 +2046,7 @@ body {
     opacity: 1;
   }
 
-  /* Easter egg: with the speed limit at exactly 1337 KiB/s, the speed curve's
+  /* Easter egg: with the speed limit at exactly 1337 kB/s, the speed curve's
      line breathes on the storm level's pulse. It leaves data-motion alone, and
      the "off" and reduced-motion rules still stop .kl-curve-line by name. */
   .kl-storm-curve {

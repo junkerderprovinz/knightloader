@@ -16,7 +16,7 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 
-const torrent = { seedRatioTarget: 1, seedDurationSeconds: 7200, uploadLimitKiBs: 256, port: 6881, dhtEnabled: false, pexEnabled: true };
+const torrent = { seedRatioTarget: 1, seedDurationSeconds: 7200, uploadLimit: 250_000, port: 6881, dhtEnabled: false, pexEnabled: true };
 
 const settings = {
   speedLimit: 0,
@@ -113,19 +113,19 @@ describe('the upload limit in the quick settings', () => {
     expect(captions().slice(0, 2)).toEqual(['Speed limit (0 = ∞)', 'Upload limit']);
   });
 
-  it('shows the stored KiB/s like every other speed', async () => {
+  it('shows the stored bytes per second like every other speed', async () => {
     await openPanel();
-    expect(uploadInput()!.getAttribute('aria-valuetext')).toBe('256 KiB/s');
+    expect(uploadInput()!.getAttribute('aria-valuetext')).toBe('250 kB/s');
   });
 
-  it('saves the new limit in KiB/s with the rest of the torrent settings kept', async () => {
+  it('saves a limit typed in MB/s as bytes per second with the rest of the torrent settings kept', async () => {
     await openPanel();
-    type(uploadInput()!, '2m');
+    type(uploadInput()!, '30 MB/s');
     // The panel waits out the settings page's autosave delay before it sends.
     await act(async () => {
       await new Promise((r) => setTimeout(r, 700));
     });
-    expect(patches).toEqual([{ torrent: { ...torrent, uploadLimitKiBs: 2048 } }]);
+    expect(patches).toEqual([{ torrent: { ...torrent, uploadLimit: 30_000_000 } }]);
   });
 
   it('is left out while the built-in torrent client is switched off', async () => {

@@ -2105,7 +2105,7 @@ const HEAD_PAD = 16;
 /**
  * useHeadWidths is the width each column's head needs to show its word whole
  * in the reader's language. A default width is one number for 42 languages,
- * sized for what the cells hold: the speed column's 88px carry "1023 MiB/s",
+ * sized for what the cells hold: the speed column's 88px carry "1000 MB/s",
  * and its German head, "Geschwindigkeit", needs 133. A default wide enough for
  * the longest head would take that room from the name in every language.
  * Empty until measured, and where nothing is laid out.

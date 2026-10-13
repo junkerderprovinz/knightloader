@@ -505,12 +505,12 @@ func (e *Engine) probeRest(j Job, t *download.Task) error {
 	case http.StatusOK:
 		return otherFile("the server sends this file only from the start")
 	case http.StatusRequestedRangeNotSatisfiable:
-		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mib(size)))
+		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mb(size)))
 	default:
 		return fmt.Errorf("the server answered a request for part of the file with HTTP %d", resp.StatusCode)
 	}
 	if start, total, ok := contentRange(resp.Header.Get("Content-Range")); !ok || start != 0 || total != size {
-		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mib(size)))
+		return otherFile(fmt.Sprintf("the file on the server is not the %s this download began with", mb(size)))
 	}
 	// Another link may come from another server with its own dates, as in
 	// fetch.

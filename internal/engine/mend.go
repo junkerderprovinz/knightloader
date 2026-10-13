@@ -229,7 +229,7 @@ func (e *Engine) startMend(taskID string, t *download.Task, file string, gaps []
 	size := t.Meta.Res.Size
 	if len(gaps) == 0 {
 		e.emit(taskID, core.Update{Status: core.StatusError, File: file, Err: fmt.Sprintf(
-			"the download stopped short of its full %s, and the download library did not say which part is missing", mib(size))})
+			"the download stopped short of its full %s, and the download library did not say which part is missing", mb(size))})
 		return
 	}
 	e.mu.Lock()
@@ -243,7 +243,7 @@ func (e *Engine) startMend(taskID string, t *download.Task, file string, gaps []
 		m.modified = *fs[0].Ctime
 	}
 	e.mends[taskID] = m
-	log.Printf("%s of %s never arrived (%d ranges); asking for it again (task %s)", mib(m.missing()), file, len(gaps), taskID)
+	log.Printf("%s of %s never arrived (%d ranges); asking for it again (task %s)", mb(m.missing()), file, len(gaps), taskID)
 	e.runMendLocked(taskID, m)
 }
 
@@ -279,7 +279,7 @@ func (e *Engine) mendRun(ctx context.Context, taskID string, m *mend, ended chan
 		// Pause, Remove and Close stopped it, and report the task themselves.
 	case err != nil:
 		e.emit(taskID, core.Update{Status: core.StatusError, File: m.file, Err: fmt.Sprintf(
-			"the server stopped sending part of the file: %s never arrived, and asking for it again failed: %v", mib(short), err)})
+			"the server stopped sending part of the file: %s never arrived, and asking for it again failed: %v", mb(short), err)})
 	default:
 		e.emit(taskID, core.Update{Status: core.StatusDone, Loaded: m.size, File: m.file})
 	}
@@ -376,11 +376,11 @@ func (e *Engine) fetch(ctx context.Context, client *http.Client, f *os.File, url
 			return fmt.Errorf("the server answered with a different part of the file (%s)", resp.Header.Get("Content-Range"))
 		}
 		if total >= 0 && total != m.size {
-			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mib(total), mib(m.size))
+			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mb(total), mb(m.size))
 		}
 	case resp.StatusCode == http.StatusOK && g.from == 0:
 		if resp.ContentLength >= 0 && resp.ContentLength != m.size {
-			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mib(resp.ContentLength), mib(m.size))
+			return fmt.Errorf("the file on the server is %s, not the %s this download began with", mb(resp.ContentLength), mb(m.size))
 		}
 	case resp.StatusCode == http.StatusOK:
 		return errors.New("the server can only send the whole file")
@@ -428,7 +428,7 @@ func (e *Engine) fetch(ctx context.Context, client *http.Client, f *os.File, url
 		}
 	}
 	if off <= g.to {
-		return fmt.Errorf("the server's answer ended %s early", mib(g.to-off+1))
+		return fmt.Errorf("the server's answer ended %s early", mb(g.to-off+1))
 	}
 	return nil
 }
@@ -572,7 +572,7 @@ func (e *Engine) dropMend(taskID string) {
 	}
 }
 
-// mib is n in mebibytes for a sentence.
-func mib(n int64) string {
-	return fmt.Sprintf("%.1f MiB", float64(n)/(1<<20))
+// mb is n in megabytes for a sentence.
+func mb(n int64) string {
+	return fmt.Sprintf("%.1f MB", float64(n)/1e6)
 }

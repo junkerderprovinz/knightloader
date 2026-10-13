@@ -21,8 +21,8 @@ func TestTorrentDefaultsMirrorGopeedsOwn(t *testing.T) {
 	if d.Torrent.Port != 0 {
 		t.Errorf("Port = %d, want 0 (let gopeed/the OS pick, matching gopeed's own ListenPort: 0)", d.Torrent.Port)
 	}
-	if d.Torrent.UploadLimitKiBs != 0 {
-		t.Errorf("UploadLimitKiBs = %d, want 0 (unlimited)", d.Torrent.UploadLimitKiBs)
+	if d.Torrent.UploadLimit != 0 {
+		t.Errorf("UploadLimit = %d, want 0 (unlimited)", d.Torrent.UploadLimit)
 	}
 	if !d.Torrent.DHTEnabled {
 		t.Error("DHTEnabled defaults to false, want true (ordinary public-swarm behaviour)")
@@ -74,6 +74,32 @@ func TestAStalledDebridTorrentMovesOnAfterTenMinutesByDefault(t *testing.T) {
 	}
 }
 
+// An upload limit an earlier build stored in KiB/s loads as the same number of
+// bytes per second, and one saved since then is taken as it stands.
+func TestAnUploadLimitInKiBsLoadsAsTheSameSpeed(t *testing.T) {
+	for _, c := range []struct {
+		file string
+		want int64
+	}{
+		{`{"torrent":{"uploadLimitKiBs":512}}`, 512 * 1024},
+		{`{"torrent":{"uploadLimitKiBs":512,"uploadLimit":30000000}}`, 30_000_000},
+		{`{"torrent":{"uploadLimit":500000}}`, 500_000},
+		{`{"torrent":{"uploadLimitKiBs":-3}}`, 0},
+	} {
+		dir := t.TempDir()
+		if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(c.file), 0o600); err != nil {
+			t.Fatal(err)
+		}
+		st, err := Load(dir)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if got := st.Get().Torrent.UploadLimit; got != c.want {
+			t.Errorf("%s loads an upload limit of %d B/s, want %d", c.file, got, c.want)
+		}
+	}
+}
+
 func TestSanitizeKeepsTheDebridStallBetweenOffAndADay(t *testing.T) {
 	for in, want := range map[int]int{-3: 0, 0: 0, 25: 25, 100000: 24 * 60} {
 		if got := sanitizeTorrent(Settings{Torrent: Torrent{DebridStallMinutes: in}}).Torrent.DebridStallMinutes; got != want {
@@ -93,8 +119,8 @@ func TestSanitizeTorrentFloorsNegativesAndBadPort(t *testing.T) {
 	}{
 		{
 			name: "negative ratio and duration and upload limit are floored to zero",
-			in:   Torrent{SeedRatioTarget: -2.5, SeedDurationSeconds: -100, UploadLimitKiBs: -50},
-			want: Torrent{SeedRatioTarget: 0, SeedDurationSeconds: 0, UploadLimitKiBs: 0},
+			in:   Torrent{SeedRatioTarget: -2.5, SeedDurationSeconds: -100, UploadLimit: -50},
+			want: Torrent{SeedRatioTarget: 0, SeedDurationSeconds: 0, UploadLimit: 0},
 		},
 		{
 			name: "a negative port collapses to 0 (let the OS pick)",
@@ -113,8 +139,8 @@ func TestSanitizeTorrentFloorsNegativesAndBadPort(t *testing.T) {
 		},
 		{
 			name: "positive values of every field survive untouched",
-			in:   Torrent{SeedRatioTarget: 2.0, SeedDurationSeconds: 3600, UploadLimitKiBs: 512, Port: 6881},
-			want: Torrent{SeedRatioTarget: 2.0, SeedDurationSeconds: 3600, UploadLimitKiBs: 512, Port: 6881},
+			in:   Torrent{SeedRatioTarget: 2.0, SeedDurationSeconds: 3600, UploadLimit: 512, Port: 6881},
+			want: Torrent{SeedRatioTarget: 2.0, SeedDurationSeconds: 3600, UploadLimit: 512, Port: 6881},
 		},
 	}
 	for _, c := range cases {

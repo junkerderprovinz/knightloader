@@ -41,8 +41,8 @@ func listNumber(name string) int {
 // crafted zip cannot keep the import busy for minutes. maxEntryBytes is what
 // bounds the memory: an entry is one package or link, a kilobyte or two.
 const (
-	maxListBytes  = 512 << 20
-	maxEntryBytes = 4 << 20
+	maxListBytes  = 512_000_000
+	maxEntryBytes = 4_000_000
 )
 
 // listEntry is a package ("07") or a link of one ("07_012").
@@ -133,11 +133,11 @@ func readList(fsys fs.FS, name string, budget *int64) ([]Package, error) {
 			return nil, err
 		}
 		if len(raw) > maxEntryBytes {
-			return nil, fmt.Errorf("%s unpacks to more than %d MiB", zf.Name, maxEntryBytes>>20)
+			return nil, fmt.Errorf("%s unpacks to more than %d MB", zf.Name, maxEntryBytes/1_000_000)
 		}
 		*budget -= int64(len(raw))
 		if *budget < 0 {
-			return nil, fmt.Errorf("the download lists unpack to more than %d MiB", maxListBytes>>20)
+			return nil, fmt.Errorf("the download lists unpack to more than %d MB", maxListBytes/1_000_000)
 		}
 		pi, _ := strconv.Atoi(m[1])
 		if m[2] == "" {
@@ -200,14 +200,14 @@ func openZip(f fs.File, budget *int64) (*zip.Reader, func(), error) {
 		return nil, nil, err
 	}
 	if fi.Size() > maxListBytes {
-		return nil, nil, fmt.Errorf("it is larger than %d MiB", maxListBytes>>20)
+		return nil, nil, fmt.Errorf("it is larger than %d MB", maxListBytes/1_000_000)
 	}
 	if ra, ok := f.(io.ReaderAt); ok {
 		zr, err := zip.NewReader(ra, fi.Size())
 		return zr, func() {}, err
 	}
 	if fi.Size() > *budget {
-		return nil, nil, fmt.Errorf("the download lists unpack to more than %d MiB", maxListBytes>>20)
+		return nil, nil, fmt.Errorf("the download lists unpack to more than %d MB", maxListBytes/1_000_000)
 	}
 	tmp, err := os.CreateTemp("", "kl-jdimport-*.zip")
 	if err != nil {

@@ -119,12 +119,12 @@ func TestSanitizeNeverTouchesTheSwitch(t *testing.T) {
 // internal/logring a figure in the wrong unit: a cap of 8 read as 8 bytes
 // rotates on every line.
 func TestMaxBytesConvertsOnce(t *testing.T) {
-	if got := (LogFile{MaxMB: 8}).MaxBytes(); got != 8<<20 {
-		t.Errorf("MaxBytes() = %d, want %d", got, 8<<20)
+	if got := (LogFile{MaxMB: 8}).MaxBytes(); got != 8_000_000 {
+		t.Errorf("MaxBytes() = %d, want %d", got, 8_000_000)
 	}
 	// Sanitised on the way through, so an unsanitised document straight off
 	// disk still hands the sink a usable cap rather than zero.
-	if got := (LogFile{MaxMB: 0}).MaxBytes(); got != DefaultLogMaxMB<<20 {
+	if got := (LogFile{MaxMB: 0}).MaxBytes(); got != DefaultLogMaxMB*1_000_000 {
 		t.Errorf("MaxBytes() on a cleared size = %d, want the default in bytes", got)
 	}
 }

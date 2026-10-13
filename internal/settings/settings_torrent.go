@@ -9,6 +9,7 @@ package settings
 // configuration those two read.
 
 import (
+	"encoding/json"
 	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -43,10 +44,11 @@ type Torrent struct {
 	// here is live for the next torrent rather than after a restart.
 	SeedDurationSeconds int `json:"seedDurationSeconds"`
 
-	// UploadLimitKiBs caps upload bandwidth in KiB/s for all torrents together;
-	// 0 is unlimited. A change applies at once, to torrents already seeding too,
-	// through the upload limiter the gopeed fork (see go.mod) shares between them.
-	UploadLimitKiBs int `json:"uploadLimitKiBs"`
+	// UploadLimit caps upload bandwidth in bytes per second for all torrents
+	// together, like SpeedLimit for downloads; 0 is unlimited. A change applies
+	// at once, to torrents already seeding too, through the upload limiter the
+	// gopeed fork (see go.mod) shares between them.
+	UploadLimit int64 `json:"uploadLimit"`
 
 	// Port is the TCP port this instance's torrent client listens on; 0 lets
 	// gopeed, and in turn anacrolix/torrent, pick. gopeed's own
@@ -230,7 +232,7 @@ const maxDebridStallMinutes = 24 * 60
 
 // sanitizeTorrent floors every number that has no honest negative meaning back
 // to its unset zero, and keeps Port inside the range a TCP port has. A negative
-// seed target, a negative KiB/s and a port outside 0 to 65535 are a form that
+// seed target, a negative limit and a port outside 0 to 65535 are a form that
 // let a minus sign or a stray digit through, not a choice somebody made.
 func sanitizeTorrent(n Settings) Settings {
 	t := &n.Torrent
@@ -240,8 +242,8 @@ func sanitizeTorrent(n Settings) Settings {
 	if t.SeedDurationSeconds < 0 {
 		t.SeedDurationSeconds = 0
 	}
-	if t.UploadLimitKiBs < 0 {
-		t.UploadLimitKiBs = 0
+	if t.UploadLimit < 0 {
+		t.UploadLimit = 0
 	}
 	if t.Port < 0 || t.Port > 65535 {
 		// Out of range collapses to "let the OS pick" rather than being
@@ -316,4 +318,21 @@ func (t Torrent) EffectiveDHT(private bool) bool {
 // EffectivePEX is the Peer Exchange half. See EffectiveDHT.
 func (t Torrent) EffectivePEX(private bool) bool {
 	return t.PEXEnabled && !private
+}
+
+// migrateUploadLimit reads the uploadLimitKiBs an earlier build wrote as the
+// bytes per second UploadLimit holds, so an old file keeps its exact limit. A
+// document that already has uploadLimit has been saved by this build.
+func migrateUploadLimit(raw []byte, n Settings) Settings {
+	var old struct {
+		Torrent struct {
+			KiBs  *int64 `json:"uploadLimitKiBs"`
+			Bytes *int64 `json:"uploadLimit"`
+		} `json:"torrent"`
+	}
+	if json.Unmarshal(raw, &old) != nil || old.Torrent.KiBs == nil || old.Torrent.Bytes != nil {
+		return n
+	}
+	n.Torrent.UploadLimit = max(*old.Torrent.KiBs, 0) * 1024
+	return n
 }

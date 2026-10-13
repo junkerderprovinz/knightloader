@@ -1266,7 +1266,7 @@ func torrentConfig(t settings.Torrent) engine.TorrentConfig {
 		Port:        t.Port,
 		SeedRatio:   t.SeedRatioTarget,
 		SeedSeconds: t.SeedDurationSeconds,
-		UploadLimit: int64(t.UploadLimitKiBs) * 1024,
+		UploadLimit: t.UploadLimit,
 		DisableDHT:  !t.DHTEnabled,
 		DisablePEX:  !t.PEXEnabled,
 		Interface:   t.Interface,

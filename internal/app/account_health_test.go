@@ -67,12 +67,12 @@ func TestUnlimitedTrafficNeverFabricatesALimit(t *testing.T) {
 		t.Fatalf("fmtTrafficLeft(finite) = %q, want %q", got, "700 B")
 	}
 	// Below 10 units one decimal, matching fmtBytes in web/src/lib/format.ts.
-	if got := fmtTrafficLeft(TrafficState{Used: 0, Limit: 5*1024*1024 + 512*1024}); got != "5.5 MiB" {
-		t.Fatalf("fmtTrafficLeft(under 10 MiB) = %q, want %q", got, "5.5 MiB")
+	if got := fmtTrafficLeft(TrafficState{Used: 0, Limit: 5_500_000}); got != "5.5 MB" {
+		t.Fatalf("fmtTrafficLeft(under 10 MB) = %q, want %q", got, "5.5 MB")
 	}
 	// At or above 10 units the decimal drops, again matching fmtBytes.
-	if got := fmtTrafficLeft(TrafficState{Used: 0, Limit: 200 * 1024 * 1024}); got != "200 MiB" {
-		t.Fatalf("fmtTrafficLeft(200 MiB) = %q, want %q", got, "200 MiB")
+	if got := fmtTrafficLeft(TrafficState{Used: 0, Limit: 200_000_000}); got != "200 MB" {
+		t.Fatalf("fmtTrafficLeft(200 MB) = %q, want %q", got, "200 MB")
 	}
 
 	// A row never fetched must not read as "0 B" either, which would look like

@@ -1242,7 +1242,7 @@ export function NumberInput({
 
 /** One unit a UnitNumberInput can show its value in. */
 export interface FieldUnit {
-  /** The symbol inside the field, such as `MiB/s`. */
+  /** The symbol inside the field, such as `MB/s`. */
   label: string;
   /** How many of the value's own units one of this makes. */
   factor: number;
@@ -1253,7 +1253,7 @@ export interface FieldUnit {
 /**
  * unitAt is the unit a value reads in, the largest it makes at least one of.
  * `below` asks about the values just under it, which is where a step down
- * lands: from 1 MiB/s among the KiB/s.
+ * lands: from 1 MB/s among the kB/s.
  */
 function unitAt(units: readonly FieldUnit[], value: number, below = false): FieldUnit {
   let found = units[0];
@@ -1261,7 +1261,7 @@ function unitAt(units: readonly FieldUnit[], value: number, below = false): Fiel
   return found;
 }
 
-/** stepFrom is the next whole step on that side, so a typed 1.3 MiB/s steps to 2 or to 1. */
+/** stepFrom is the next whole step on that side, so a typed 1.3 MB/s steps to 2 or to 1. */
 function stepFrom(units: readonly FieldUnit[], value: number, up: boolean): number {
   const u = unitAt(units, value, !up);
   return up ? (Math.floor(value / u.step) + 1) * u.step : (Math.ceil(value / u.step) - 1) * u.step;
@@ -1275,14 +1275,15 @@ function inUnit(value: number, u: FieldUnit): string {
 /**
  * unitNamed is the unit a suffix typed after a number names, compared without
  * case or spaces. A suffix names a unit when either begins with the other, the
- * unit also read without its binary "i": "k", "KiB" and "kb/s" all name KiB/s,
- * "m" and "minutes" name min. Units are tried smallest first.
+ * suffix also read without a binary "i", so a habit from another program still
+ * lands: "k", "KiB" and "kb/s" all name kB/s, "m" and "minutes" name min.
+ * Units are tried smallest first.
  */
 function unitNamed(units: readonly FieldUnit[], suffix: string): FieldUnit | undefined {
   const typed = suffix.toLowerCase().replace(/\s+/g, '');
   return units.find((u) => {
     const label = u.label.toLowerCase();
-    return [label, label.replace('i', '')].some((l) => l.startsWith(typed) || typed.startsWith(l));
+    return [typed, typed.replace('i', '')].some((s) => label.startsWith(s) || s.startsWith(label));
   });
 }
 
@@ -1336,7 +1337,7 @@ export function UnitNumberInput({
   const typed = draft ? readTyped(draft.text, units, draft.unit) : null;
   const text = draft?.text ?? inUnit(value, unit);
   // The symbol beside the digits follows a unit typed after them, so "2m"
-  // reads as the MiB/s it will be.
+  // reads as the MB/s it will be.
   const symbol = typed?.unit.label ?? unit.label;
   const settle = (n: number) => Math.min(max, Math.max(min, snap(n)));
 

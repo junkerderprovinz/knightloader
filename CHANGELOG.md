@@ -195,6 +195,14 @@ release's tag.
   once a new password is set. The hint under New password says so.
 - **The two-factor info says that a password reset from the log switches
   two-factor authentication off.**
+- **Sizes and speeds count in thousands.** The web interface, the Android app,
+  the browser extension and the server's messages show kB, MB and GB in place
+  of KiB, MiB and GiB, and every limit is typed in the same units, so a limit
+  of 30 MB/s is 30 million bytes a second and reads 30 MB/s everywhere. A
+  torrent upload limit saved by an earlier version keeps its exact speed.
+- **Speed limits are marks at the right edge of the speed graphs.** The red
+  line across the plot is gone. The mark and its figure stay, in the colour of
+  the graph.
 
 ### Fixed
 
