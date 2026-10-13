@@ -220,7 +220,8 @@ type Manager struct {
 	pendingMu   sync.Mutex
 	lastPending int
 
-	wake chan struct{}
+	// wake starts a send round at once, and followNow a follow round.
+	wake, followNow chan struct{}
 }
 
 // New loads the job list from o.Dir. A list that cannot be read starts empty
@@ -235,7 +236,10 @@ func New(o Options) *Manager {
 	if o.Now == nil {
 		o.Now = time.Now
 	}
-	m := &Manager{o: o, jobs: map[string]*Job{}, accounts: map[string]*account{}, wake: make(chan struct{}, 1)}
+	m := &Manager{
+		o: o, jobs: map[string]*Job{}, accounts: map[string]*account{},
+		wake: make(chan struct{}, 1), followNow: make(chan struct{}, 1),
+	}
 	raw, err := os.ReadFile(m.listPath())
 	var list []*Job
 	switch {
@@ -421,7 +425,7 @@ func (m *Manager) Run(ctx context.Context) {
 	followed := make(chan struct{})
 	go func() {
 		defer close(followed)
-		m.every(ctx, nil, m.followRound)
+		m.every(ctx, m.followNow, m.followRound)
 	}()
 	m.every(ctx, m.wake, m.sendRound)
 	<-followed
@@ -597,6 +601,12 @@ func (m *Manager) submitted(id string, svc Service, remote string, err error) {
 		j.Attempts, j.RetryAt = 0, time.Time{}
 		_ = os.Remove(m.nzbPath(id))
 		log.Printf("usenet: %s went to %s", j.Name, svc.Label())
+		// The own servers have a job's files the moment they take it, so the
+		// job is followed at once rather than at the next tick.
+		select {
+		case m.followNow <- struct{}{}:
+		default:
+		}
 	case errors.Is(err, ErrBusy):
 		// The account, not the NZB: every waiting job holds back from it.
 		wait := acc.submits.busy(m.o.Now(), m.o.Backoff)
