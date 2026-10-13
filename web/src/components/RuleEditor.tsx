@@ -203,7 +203,10 @@ export function parseSize(text: string): number | null {
   return Math.round(Number(m[1]) * factor);
 }
 
-/** formatSize renders a stored byte count for the size box. */
+/**
+ * formatSize renders a stored byte count in decimal units, so a size saved as
+ * 10 GiB reads 10.74 GB. The stored value changes only once the box is edited.
+ */
 export function formatSize(n: number | undefined): string {
   if (!n) return '';
   const units: [string, number][] = [
@@ -212,7 +215,7 @@ export function formatSize(n: number | undefined): string {
     ['kB', 1000],
   ];
   for (const [label, factor] of units) {
-    if (n >= factor && n % factor === 0) return `${n / factor} ${label}`;
+    if (n >= factor) return `${Number((n / factor).toFixed(2))} ${label}`;
   }
   return String(n);
 }
