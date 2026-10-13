@@ -630,8 +630,18 @@ async function renderGroup() {
   // A browser waiting for approval sees every instance as offline, so the
   // reason is said once above the list.
   const refusal = siblings.find((s) => s.refusal && s.refusal !== 'send.refused')?.refusal;
-  if (refusal) say(t(refusal), false, true);
+  if (refusal) {
+    refusalNotice = t(refusal);
+    say(refusalNotice, false, true);
+  } else if (refusalNotice) {
+    // Held notices never time out, so an approval has to take it back.
+    if (status.textContent === refusalNotice) say('', false);
+    refusalNotice = '';
+  }
 }
+
+/** The approval notice renderGroup holds above the list. */
+let refusalNotice = '';
 
 /**
  * showOwnKey shows this browser's key the way an instance shows it beside the
