@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Card, HintBubble, SectionTitle } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
-import { isDesktop } from '../../lib/desktop';
 import { useToast } from '../../lib/toast';
 import { NeutralSwitch } from './controls';
 import { useFeatures } from './context';
@@ -14,27 +13,22 @@ import { label, moduleDetail, moduleReason, switchRefusal, useTx } from './tx';
 /**
  * Modules lists what this build contains, with a switch on every module the
  * build has. The verdicts are separated by section rather than by hue, since
- * the accent means activity and nearly every row is simply enabled.
+ * the accent means activity and nearly every row is simply enabled. A module
+ * only the desktop build switches is left out elsewhere: its page says so
+ * beside the switch it cannot offer.
  */
 export function Modules() {
   const { tx } = useTx();
   const { features } = useFeatures();
 
   const shipped = features.modules.filter((m) => m.verdict === 'shipped');
-  const desktop = features.modules.filter((m) => m.verdict === 'desktop');
   // An unknown verdict from a newer server lands here instead of vanishing.
   const absent = features.modules.filter((m) => m.verdict !== 'shipped' && m.verdict !== 'desktop');
 
   return (
     <div className="flex flex-col gap-10">
       <Group hue={0} title={tx('settings.modules.sectionShipped')} hint={tx('settings.modules.fixedAtBuild')} rows={shipped} />
-      {/* Sitting at the desktop app, its own rows are not someone else's build. */}
-      <Group
-        hue={1}
-        title={tx(isDesktop() ? 'settings.modules.sectionDesktopApp' : 'settings.modules.sectionDesktop')}
-        rows={desktop}
-      />
-      <Group hue={2} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
+      <Group hue={1} title={tx('settings.modules.sectionNotBuilt')} rows={absent} />
     </div>
   );
 }
@@ -111,7 +105,7 @@ function Row({ m, hue }: { m: Feature; hue: number }) {
         {shipped ? (
           <NeutralSwitch on={m.enabled} disabled={busy || blocked} name={name} onChange={onToggle} hue={hue} />
         ) : (
-          <StateChip m={m} />
+          <StateChip />
         )}
       </div>
     </div>
@@ -133,20 +127,14 @@ function jumpToSwitch(id: string, page: string) {
 }
 
 /**
- * StateChip names why a module is not in this build in one neutral word. A
+ * StateChip says in one neutral word that a module is not in this build. A
  * missing subsystem is a scope decision, not a fault, so it gets no status hue.
  */
-function StateChip({ m }: { m: Feature }) {
+function StateChip() {
   const { tx } = useTx();
   return (
     <span className="shrink-0 rounded-[var(--radius-pill)] bg-carbon-surface2 px-2 py-1 text-meta font-medium text-carbon-textSub">
-      {tx(
-        m.verdict !== 'desktop'
-          ? 'settings.modules.notBuilt'
-          : isDesktop()
-            ? 'settings.modules.desktopHere'
-            : 'settings.modules.desktopOnly',
-      )}
+      {tx('settings.modules.notBuilt')}
     </span>
   );
 }

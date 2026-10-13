@@ -396,39 +396,14 @@ func featureList(a *app.App, base string) []Feature {
 			line{text: "off; no event starts a script, and a script already running finishes", code: "scriptingOff"},
 			countDetail(enabledScripts(a), "scriptsEnabled", "script enabled", "scripts enabled"))),
 		keepAwakeFeature(s),
-		desktopFeature("tray", line{
-			text: "the icon sits in the notification area or the menu bar, and what it does is set on the Appearance page",
-			code: "trayDesktop",
-		}, line{
-			text: "a tray icon needs a desktop session, which the container build does not have; " +
-				"the browser tab's title and icon carry the same information there",
-			code: "tray",
-		}),
-		desktopFeature("windowpolicy", line{
-			text: "what closing or minimising the window does is set on the Appearance page and kept on this machine",
-			code: "windowpolicyDesktop",
-		}, line{
-			text: "what closing or minimising the window does is a property of one installation on one machine, " +
-				"so it is not served from here at all",
-			code: "windowpolicy",
-		}),
 	}
-}
-
-// desktopFeature is a row only the desktop app has and nothing switches. In
-// the desktop app it leads to the Appearance page, where its behaviour is set,
-// and says so; elsewhere it says why the build has none of it.
-func desktopFeature(id string, here, elsewhere line) Feature {
-	if buildinfo.Deployment == "desktop" {
-		return withReason(Feature{ID: id, Verdict: VerdictDesktop, Page: "appearance", Switch: SwitchNone}, here)
-	}
-	return withReason(Feature{ID: id, Verdict: VerdictDesktop, Switch: SwitchNone}, elsewhere)
 }
 
 // keepAwakeFeature has a switch only in the desktop build, the one that asks
-// the operating system to hold off sleep (desktop/awake_*.go).
+// the operating system to hold off sleep (desktop/awake_*.go). It is set on
+// the Appearance page, beside the desktop app's window and tray icon.
 func keepAwakeFeature(s settings.Settings) Feature {
-	f := Feature{ID: "keepawake", Page: "automation"}
+	f := Feature{ID: "keepawake", Page: "appearance"}
 	if buildinfo.Deployment == "desktop" {
 		f.Verdict, f.Switch, f.Enabled = VerdictShipped, SwitchSetting, s.KeepAwake
 		return f
@@ -441,7 +416,7 @@ func keepAwakeFeature(s settings.Settings) Feature {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (look, appearance, shortcuts, diagnostics, help, browsertools) hold
+// (look, shortcuts, diagnostics, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
 // JDownloader is switched only on the modules page, since the accounts page
 // holds the logins it uses and not the backend itself.
@@ -450,7 +425,9 @@ func featurePages() []FeaturePage {
 		// The General page keeps the id "look" so bookmarked addresses and the
 		// stored page order still resolve.
 		{ID: "look"},
-		{ID: "appearance"},
+		// The desktop app's window, tray icon and whether it keeps the computer
+		// awake stand with the rest of how the app looks and behaves.
+		{ID: "appearance", Modules: []string{"keepawake"}},
 		{ID: "modules"},
 		// The captcha accounts' order and when they start stand beside their keys.
 		{ID: "accounts", Modules: []string{"captcha"}},
@@ -477,7 +454,7 @@ func featurePages() []FeaturePage {
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
-		{ID: "automation", Modules: []string{"scheduler", "keepawake", "eventtargets", "eventprograms", "scripting"}},
+		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "browsertools"},
 		{ID: "advanced"},

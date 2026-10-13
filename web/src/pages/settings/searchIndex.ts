@@ -47,9 +47,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   modules: [
     // The rows are the modules the server sent, which vary per deployment.
     { title: 'settings.modules.sectionShipped', hint: 'settings.modules.fixedAtBuild', rows: [] },
-    { title: 'settings.modules.sectionDesktop', rows: [] },
-    // The same card's title in the desktop app.
-    { title: 'settings.modules.sectionDesktopApp', rows: [] },
     { title: 'settings.modules.sectionNotBuilt', rows: [] },
   ],
 
@@ -321,7 +318,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   // The `{appearance && …}` half of the same component.
   appearance: [
-    // Drawn in the desktop app only. The switches carry the tray menu's own words.
+    // The window's switches carry the tray menu's own words. A browser tab
+    // draws the card with a sentence in their place and the keep awake switch.
     {
       title: 'settings.window.title',
       hint: 'settings.window.hint',
@@ -330,8 +328,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'tray.closeToTray', hint: 'settings.window.closeToTrayHint' },
         { key: 'tray.minimiseToTray', hint: 'settings.window.minimiseToTrayHint' },
         { key: 'tray.captcha', hint: 'settings.window.captchaHint' },
+        { key: 'settings.module.keepawake', hint: 'settings.downloads.keepAwakeHint' },
       ],
-      body: ['settings.window.noTray', 'tray.raiseOff', 'tray.raiseFront', 'tray.raiseFocus'],
+      body: [
+        'settings.window.noTray',
+        'settings.window.desktopOnly',
+        'tray.raiseOff',
+        'tray.raiseFront',
+        'tray.raiseFocus',
+        'settings.downloads.keepAwakeContainerHint',
+      ],
     },
     {
       title: 'settings.look.displayTitle',
@@ -916,7 +922,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.downloads.idleTitle',
       rows: [
-        { key: 'settings.module.keepawake', hint: 'settings.downloads.keepAwakeHint' },
         { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },
         { key: 'settings.downloads.idleCountdown', hint: 'settings.downloads.idleCountdownHint' },
         { key: 'settings.downloads.idleCommandProgram', hint: 'settings.downloads.idleCommandProgramHint' },
@@ -943,7 +948,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.downloads.idleArmHint',
         'settings.downloads.idleCommandSecretHint',
         'settings.downloads.idleCommandStored',
-        'settings.downloads.keepAwakeContainerHint',
       ],
     },
     {

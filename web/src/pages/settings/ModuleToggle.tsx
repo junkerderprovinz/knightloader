@@ -109,9 +109,7 @@ export function ModuleToggle({
  * title the settings search finds that card by.
  */
 export function moduleSection(verdict: FeatureVerdict): TranslationKey {
-  if (verdict === 'shipped') return 'settings.modules.sectionShipped';
-  if (verdict === 'desktop') return 'settings.modules.sectionDesktop';
-  return 'settings.modules.sectionNotBuilt';
+  return verdict === 'shipped' ? 'settings.modules.sectionShipped' : 'settings.modules.sectionNotBuilt';
 }
 
 /**

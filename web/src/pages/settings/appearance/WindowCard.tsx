@@ -5,15 +5,18 @@ import { onWindowPrefs, setWindowPrefs, windowPrefs, type WindowPrefs } from '..
 import { useT } from '../../../lib/i18n';
 import { useToast } from '../../../lib/toast';
 import { SettingRow } from '../controls';
+import { KeepAwakeRow } from './KeepAwake';
 
 // The window's and the tray icon's behaviour belongs to this installation on
 // this computer, so the desktop app keeps it in its own file (desktop.json)
 // and not in the settings every connected browser shares. The icon's menu
-// offers the same choices under the same names.
+// offers the same choices under the same names. Whether the computer stays
+// awake is a module of the desktop build, and its switch stands here too.
 
 /**
  * WindowCard sets what the desktop app's window and tray icon do. The caller
- * draws it in the desktop app only, since a browser tab has neither.
+ * draws it in the desktop app only, since a browser tab has neither, and
+ * BrowserWindowCard in its place.
  */
 export function WindowCard({ hue }: { hue: number }) {
   const { t } = useT();
@@ -91,6 +94,25 @@ export function WindowCard({ hue }: { hue: number }) {
           onChange={(v) => void change({ raiseOnAttention: v })}
         />
       </SettingRow>
+      <div data-new="desktop-card">
+        <KeepAwakeRow />
+      </div>
+    </Card>
+  );
+}
+
+/**
+ * BrowserWindowCard is the same card in a browser tab, which has no window or
+ * tray icon of its own: it says where they are set and keeps the switch that
+ * holds off sleep, which a desktop build serves to every browser.
+ */
+export function BrowserWindowCard({ hue }: { hue: number }) {
+  const { t } = useT();
+  return (
+    <Card hue={hue} data-new="desktop-card" className="flex flex-col gap-4">
+      <SectionTitle hint={t('settings.window.hint')}>{t('settings.window.title')}</SectionTitle>
+      <p className="text-sm text-carbon-textSub">{t('settings.window.desktopOnly')}</p>
+      <KeepAwakeRow />
     </Card>
   );
 }

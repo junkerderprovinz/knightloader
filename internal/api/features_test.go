@@ -364,16 +364,16 @@ func TestUnswitchableModulesAreRefused(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
 	// KL_JD is unset here, so JD and the captcha relay it feeds have no switch.
-	for _, id := range []string{"cnl", "jd", "captcha", "tray", "nonsense"} {
+	for _, id := range []string{"cnl", "jd", "captcha", "nonsense"} {
 		if err := setFeature(a, id, false); err == nil {
 			t.Errorf("%s has no switch but setFeature accepted it", id)
 		}
 	}
 }
 
-// Keep awake is switched from the Modules page and the Idle card alike, but
-// only the desktop build has anything to switch. Not parallel, since it sets
-// the build's deployment.
+// Keep awake is switched from the Modules page and the Appearance page alike,
+// but only the desktop build has anything to switch. Not parallel, since it
+// sets the build's deployment.
 func TestKeepAwakeHasASwitchOnlyOnTheDesktop(t *testing.T) {
 	prev := buildinfo.Deployment
 	t.Cleanup(func() { buildinfo.Deployment = prev })
