@@ -20,9 +20,9 @@ docker run -d --name knightloader \
 Then open `http://<host>:8749`.
 
 On Unraid, install KnightLoader from Community Applications. Its template puts
-`--user 99:100` in Extra Parameters and sets the variable `UMASK` to `000`, so
-finished files land as `nobody:users` with
-mode 0666 and their folders with 0777, so the account you use over SMB can
+`--user 99:100` in Extra Parameters and sets the variable `UMASK` to `000`.
+Finished files then land as `nobody:users` with mode 0666 and their folders
+with 0777, so the account you use over SMB can
 move, rename and delete them. `UMASK` is read the way linuxserver.io images
 read it, as an octal mask such as `000`, `002` or `022`. `PUID` and `PGID` are
 not read: the image runs as a fixed user, and `--user` is how you choose
