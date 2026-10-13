@@ -142,3 +142,21 @@ func TestTorrentOverview_CountsWhatAnUpdateAddsToATorrent(t *testing.T) {
 		t.Fatalf("after one update the overview reads %+v", got)
 	}
 }
+
+func TestASeedingTorrentShowsTheRateItUploadsAt(t *testing.T) {
+	a, err := newApp(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = a.Close() })
+	task := finishedSeed("seed", "magnet:?xt=urn:btih:0123456789abcdef0123456789abcdef01234567", "", "")
+	task.Seeding = true
+	putTask(t, a, task)
+
+	a.onUpdate("seed", core.Update{Torrent: &core.TorrentStats{Seeding: true, Uploaded: 4000}})
+	time.Sleep(20 * time.Millisecond)
+	a.onUpdate("seed", core.Update{Torrent: &core.TorrentStats{Seeding: true, Uploaded: 9000}})
+	if got := liveTask(a, "seed").UploadSpeed; got <= 0 {
+		t.Fatalf("a seeding torrent that sent 5000 bytes between two readings shows %d B/s", got)
+	}
+}
