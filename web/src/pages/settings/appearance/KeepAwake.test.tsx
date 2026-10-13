@@ -30,7 +30,7 @@ afterEach(() => {
 const keepAwake = (verdict: 'shipped' | 'desktop'): Feature => ({
   id: 'keepawake',
   verdict,
-  page: 'automation',
+  page: 'appearance',
   enabled: verdict === 'shipped',
   switch: verdict === 'shipped' ? 'setting' : 'none',
   parked: false,
@@ -66,9 +66,9 @@ it('switches keep awake through the module registry, the same switch as its row 
   expect(modulesLink()).not.toBeNull();
 });
 
-it('leads to the Modules page from the disabled switch a container shows', async () => {
+it('shows a container its switch off and disabled, with no way to a Modules row it does not have', async () => {
   const { toggle } = renderRow(keepAwake('desktop'));
   await act(async () => host.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
   expect(toggle).not.toHaveBeenCalled();
-  expect(modulesLink()).not.toBeNull();
+  expect(modulesLink()).toBeNull();
 });

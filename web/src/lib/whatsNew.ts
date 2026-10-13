@@ -227,6 +227,14 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.windowCard',
         names: { name: 'settings.window.title' },
       },
+      // Drawn in the desktop app's window card and in the card a browser tab
+      // draws in its place.
+      {
+        id: 'desktop-card',
+        to: ['/settings/appearance'],
+        text: 'whatsnew.change.desktopCard',
+        names: { awake: 'settings.module.keepawake', name: 'settings.window.title', modules: 'settings.nav.modules' },
+      },
       {
         id: 'updates-card',
         to: ['/settings/look'],

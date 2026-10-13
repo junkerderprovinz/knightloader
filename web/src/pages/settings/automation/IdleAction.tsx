@@ -28,7 +28,6 @@ import { fmtDate } from '../../../lib/format';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { useDraft } from '../context';
 import { ListArea, SettingRow } from '../controls';
-import { KeepAwakeRow } from './KeepAwake';
 
 // The idle action: what happens once the wait queue has nothing left, and how
 // long the cancellable countdown runs first. The menu comes from the server,
@@ -217,8 +216,6 @@ export function IdleActionCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-5">
       <SectionTitle hint={deploymentHint}>{t('settings.downloads.idleTitle')}</SectionTitle>
-
-      <KeepAwakeRow />
 
       <IdleActionPicker
         actions={actions}

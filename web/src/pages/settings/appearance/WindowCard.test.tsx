@@ -1,12 +1,16 @@
 // @vitest-environment jsdom
 import { act } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
+import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
+import type { Settings } from '../../../lib/api';
 import type { WindowPrefs } from '../../../lib/desktop';
 import { I18nProvider } from '../../../lib/i18n';
 import { ToastProvider } from '../../../lib/toast';
-import { WindowCard } from './WindowCard';
+import { SettingsProvider, type SettingsDraft } from '../context';
+import type { Feature } from '../features';
+import { BrowserWindowCard, WindowCard } from './WindowCard';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -52,12 +56,26 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-async function draw() {
+const keepAwake = (verdict: 'shipped' | 'desktop'): Feature => ({
+  id: 'keepawake',
+  verdict,
+  page: 'appearance',
+  enabled: verdict === 'shipped',
+  switch: verdict === 'shipped' ? 'setting' : 'none',
+  parked: false,
+});
+
+async function draw(card = <WindowCard hue={0} />, modules: Feature[] = [keepAwake('shipped')]) {
+  const draft = { cfg: {} as Settings, patch: () => {} } as unknown as SettingsDraft;
   await act(async () =>
     root.render(
       <I18nProvider>
         <ToastProvider>
-          <WindowCard hue={0} />
+          <MemoryRouter>
+            <SettingsProvider draft={draft} features={{ features: { modules, pages: [] }, toggle: async () => {} }}>
+              {card}
+            </SettingsProvider>
+          </MemoryRouter>
         </ToastProvider>
       </I18nProvider>,
     ),
@@ -74,6 +92,19 @@ describe('the window card on the Appearance page', () => {
       expect(toggle(label).getAttribute('aria-checked')).toBe('false');
     }
     expect(host.textContent).toContain('When a captcha needs you');
+  });
+
+  it('holds the switch that keeps the computer awake, the module of the desktop build', async () => {
+    app(PREFS);
+    await draw();
+    expect(toggle('Keep the computer awake while downloading').getAttribute('aria-checked')).toBe('true');
+  });
+
+  it('says in a browser tab where the window is set, and shows the keep awake switch a container cannot use', async () => {
+    await draw(<BrowserWindowCard hue={0} />, [keepAwake('desktop')]);
+    expect(host.textContent).toContain('In the desktop app, its window');
+    expect(toggle('Keep the computer awake while downloading').closest('.pointer-events-none')).not.toBeNull();
+    expect(toggle('Start hidden')).toBeNull();
   });
 
   it('hands a change to the desktop app', async () => {
