@@ -180,7 +180,7 @@ require (
 
 // godbus is how Wails talks StatusNotifierItem on Linux and BSD, and
 // tray_probe_linux.go calls it too, for the availability probe.
-require github.com/godbus/dbus/v5 v5.2.2
+require github.com/godbus/dbus/v5 v5.2.3
 
 // Use the server sources from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../
@@ -190,4 +190,4 @@ replace github.com/junkerderprovinz/knightloader => ../
 replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695
 
 // The same anacrolix/torrent fork as the server module.
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261011123920-f7d726c1a2f0

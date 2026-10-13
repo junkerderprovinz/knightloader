@@ -223,6 +223,8 @@ github.com/goccy/go-yaml v1.19.2/go.mod h1:XBurs7gK8ATbW4ZPGKgcbrY1Br56PdM69F7Lk
 github.com/godbus/dbus/v5 v5.0.4/go.mod h1:xhWf0FNVPg57R7Z0UbKHbJfkEywrmjJnf7w5xrFpKfA=
 github.com/godbus/dbus/v5 v5.2.2 h1:TUR3TgtSVDmjiXOgAAyaZbYmIeP3DPkld3jgKGV8mXQ=
 github.com/godbus/dbus/v5 v5.2.2/go.mod h1:3AAv2+hPq5rdnr5txxxRwiGjPXamgoIHgz9FPBfOp3c=
+github.com/godbus/dbus/v5 v5.2.3 h1:IQNSXULh6Nc4ZH8ETJ5Mdsj8loUFCWSBnsjmJkyjUB8=
+github.com/godbus/dbus/v5 v5.2.3/go.mod h1:3AAv2+hPq5rdnr5txxxRwiGjPXamgoIHgz9FPBfOp3c=
 github.com/gogo/protobuf v1.1.1/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/gogo/protobuf v1.2.0/go.mod h1:r8qH/GZQm5c6nD/R0oafs1akxWv10x8SbQlK7atdtwQ=
 github.com/golang-jwt/jwt/v5 v5.3.1 h1:kYf81DTWFe7t+1VvL7eS+jKFVWaUnK9cB1qbwn63YCY=
@@ -306,6 +308,8 @@ github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695 h1:eRcyUfe
 github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695/go.mod h1:7FNIKQC7r7QwqL673hUkrzO5+9cQOdKL8kRaRJSCmBk=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720 h1:ZsL9piE6kAXzkC2edljZs4zT1Vq1G0nNUfLNR7cwXoM=
 github.com/junkerderprovinz/torrent v1.61.1-0.20261005141916-82d07e6a3720/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261011123920-f7d726c1a2f0 h1:CuIhH5nOPs2xkT9+yf1wKrMaetJkiCRw/DLdh5PdG5U=
+github.com/junkerderprovinz/torrent v1.61.1-0.20261011123920-f7d726c1a2f0/go.mod h1:oHlhT+qWalx6yncaxd0nGInnsvkd8GncTgpxpbZ46YE=
 github.com/kevinburke/ssh_config v1.4.0 h1:6xxtP5bZ2E4NF5tuQulISpTO2z8XbtH8cg1PWkxoFkQ=
 github.com/kevinburke/ssh_config v1.4.0/go.mod h1:q2RIzfka+BXARoNexmF9gkxEX7DmvbW9P4hIVx2Kg4M=
 github.com/kisielk/gotool v1.0.0/go.mod h1:XhKaO+MFFWcvkIS/tQcRk01m1F5IRFswLeQ+oQHNcck=
