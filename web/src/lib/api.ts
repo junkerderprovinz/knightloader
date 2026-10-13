@@ -866,8 +866,8 @@ export interface Instance {
   /** Where a group member's web interface is, as it told the group: its
    *  first known domain, else its address on its network. */
   address?: string;
-  /** What a group member announced itself as, "container" or "desktop";
-   *  absent for a stored peer. */
+  /** What a group member announced itself as, "container", "server" or
+   *  "desktop"; absent for a stored peer. */
   deployment?: string;
 }
 
@@ -3810,6 +3810,8 @@ export interface BuiltModule {
 
 export interface DeploymentInfo {
   deployment: string;
+  /** What the instance cards call this instance: "container", "server" or "desktop". */
+  kind: string;
   canQuit: boolean;
   canRestart: boolean;
   note: string;

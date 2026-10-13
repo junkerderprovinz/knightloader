@@ -48,8 +48,8 @@ type Instance struct {
 	// Address is where a member's web interface is, as it announced it: its
 	// first known domain, else its address on its network.
 	Address string `json:"address,omitempty"`
-	// Deployment is what a member announced itself as, "container" or
-	// "desktop" (buildinfo.Deployment), so its card can say which it is. A
+	// Deployment is what a member announced itself as, "container", "server"
+	// or "desktop" (api.instanceKind), so its card can say which it is. A
 	// stored peer never announced anything and leaves it empty.
 	Deployment string `json:"deployment,omitempty"`
 

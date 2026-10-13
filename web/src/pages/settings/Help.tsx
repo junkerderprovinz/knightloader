@@ -13,7 +13,7 @@ import { PaypalDialog } from '../../components/PaypalDialog';
 import { PAYPAL_PAGE } from '../../lib/donate';
 import { followExternal, openExternal, openMail, popupsWork } from '../../lib/external';
 import { useToast } from '../../lib/toast';
-import { openWhatsNew } from '../../lib/useWhatsNew';
+import { openWhatsNew, useWhatsNew } from '../../lib/useWhatsNew';
 import { saveDiagnostics } from './diagnostics/bundle';
 import { PageBadge } from './ModuleToggle';
 
@@ -209,13 +209,32 @@ function Versions({ hue }: { hue: number }) {
         </VersionRow>
       </ul>
       <div className="flex flex-wrap justify-end gap-3">
-        {/* What this version brought: its release notes and the changes the
-            dots mark. */}
-        <Button kind="secondary" icon={<IconInfo />} data-new="release-notes" onClick={() => openWhatsNew('notes')}>
-          {t('settings.look.updatesReleaseNotes')}
-        </Button>
+        <NewsButton />
       </div>
     </Card>
+  );
+}
+
+/**
+ * NewsButton opens the one window of what this version brought, its release
+ * notes and the changes the dots mark, on the changes while any is unseen. Its
+ * figure is the number still unseen, and once all are seen how many there
+ * are. A version that marked nothing has the release notes alone.
+ */
+function NewsButton() {
+  const { t } = useT();
+  const news = useWhatsNew();
+  const total = news?.changes.length ?? 0;
+  const unseen = news?.unseen.length ?? 0;
+  return (
+    <Button
+      kind="secondary"
+      icon={<IconInfo />}
+      data-new="news-button"
+      onClick={() => openWhatsNew(unseen > 0 ? 'changes' : 'notes')}
+    >
+      {total > 0 ? t('whatsnew.newCount', { n: unseen || total }) : t('settings.look.updatesReleaseNotes')}
+    </Button>
   );
 }
 

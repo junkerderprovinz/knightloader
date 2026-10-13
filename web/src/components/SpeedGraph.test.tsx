@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { fmtSpeed } from '../lib/format';
 import { SEEDING_INK } from '../lib/speedLines';
-import { ceilingOf, limitMark, meterWindow, Plot, spanLabel } from './SpeedGraph';
+import { ceilingOf, limitMark, meterWindow, outOfScale, Plot, spanLabel, SpeedLegend } from './SpeedGraph';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -67,7 +67,7 @@ describe('limitMark', () => {
     expect(m.y % 1).toBe(0.5);
   });
 
-  it('is pinned to the top edge for a limit above the scale', () => {
+  it('counts a limit above the scale as out of it', () => {
     const m = limitMark(100 * MIB, MIB, top, base);
     expect(m.over).toBe(true);
     expect(m.y).toBe(top + 0.5);
@@ -143,11 +143,22 @@ describe('Plot', () => {
     expect(offset(line!)).toBeGreaterThan(3);
   });
 
-  it('dashes a limit the scale left out at the top edge', () => {
-    const line = draw([100 * 1024, 200 * 1024, 200 * 1024], 100 * MIB);
-    expect(line).not.toBeNull();
-    expect(offset(line!)).toBe(3.5);
-    expect(line!.querySelector('line')!.hasAttribute('stroke-dasharray')).toBe(true);
+  it('draws no line for a limit the scale left out and names it in the legend', () => {
+    const samples = [100 * 1024, 200 * 1024, 200 * 1024];
+    const line = draw(samples, 100 * MIB);
+    expect(line!.getAttribute('visibility')).toBe('hidden');
+    expect(line!.querySelector('line')!.hasAttribute('stroke-dasharray')).toBe(false);
+
+    act(() => root.render(<SpeedLegend limit={outOfScale(100 * MIB, ceilingOf(samples, 100 * MIB))} />));
+    const entry = host.querySelector('[data-speed-limit]');
+    expect(entry!.textContent).toBe(`Speed limit ${fmtSpeed(100 * MIB)}`);
+  });
+
+  it('leaves a limit inside the scale out of the legend', () => {
+    const samples = [MIB, 2 * MIB, 2 * MIB];
+    expect(draw(samples, 2 * MIB)!.hasAttribute('visibility')).toBe(false);
+    act(() => root.render(<SpeedLegend limit={outOfScale(2 * MIB, ceilingOf(samples, 2 * MIB))} />));
+    expect(host.querySelector('[data-speed-limit]')).toBeNull();
   });
 
   it('takes the line away when the limit is lifted', () => {

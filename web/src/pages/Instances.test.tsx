@@ -54,7 +54,14 @@ function serve(connect: object, instances: object[] = []) {
 /** The card of the grid that carries this name; the net's nodes carry it too. */
 const card = (name: string) =>
   [...host.querySelectorAll<HTMLElement>('[data-nk]')].find((c) => !c.closest('svg') && c.textContent?.includes(name))!;
-const buttons = (within: Element) => [...within.querySelectorAll('button')].map((b) => b.textContent);
+const buttons = (within: Element) =>
+  [...within.querySelectorAll('button')].map((b) => b.textContent || b.getAttribute('aria-label'));
+/** The kind a card's mark beside its state names. */
+const kindOf = (within: Element) => within.querySelector('[data-new="instance-kind"]');
+const kindName = (within: Element) => {
+  const mark = kindOf(within);
+  return mark?.getAttribute('aria-label') ?? mark?.querySelector('button')?.getAttribute('aria-label');
+};
 const button = (within: Element, text: string) => [...within.querySelectorAll('button')].find((b) => b.textContent === text)!;
 
 beforeEach(() => {
@@ -140,7 +147,7 @@ describe('Instances', () => {
     expect(host.textContent).not.toContain('Fleet');
   });
 
-  it('names the kind on every card and gives the phone and the extension a glyph of their own', async () => {
+  it('names the kind on every card, marks it beside the state and wears the logo on every card', async () => {
     serve(
       {
         ...noGroup,
@@ -162,10 +169,17 @@ describe('Instances', () => {
     expect(card('Laptop').textContent).toContain('Desktop app');
     expect(card('NAS').textContent).toContain('Container');
     expect(card('cellar').textContent).not.toMatch(/Container|Desktop app|Android app/);
-    // The mark stands for a KnightLoader instance; a phone and a browser wear their glyph.
-    expect(card('Laptop').querySelector('img')).not.toBeNull();
-    expect(card('Pixel 8').querySelector('img')).toBeNull();
-    expect(card('Browser').querySelector('img')).toBeNull();
+    for (const name of ['nas', 'Laptop', 'NAS', 'cellar', 'Pixel 8', 'Browser']) {
+      expect(card(name).querySelector('img'), name).not.toBeNull();
+    }
+    expect(kindName(card('Pixel 8'))).toBe('Android app');
+    expect(kindName(card('Browser'))).toBe('Browser extension');
+    expect(kindName(card('Laptop'))).toBe('Desktop app');
+    expect(kindName(card('NAS'))).toBe('Container');
+    // A peer added by address is a server build that never said more.
+    expect(kindName(card('cellar'))).toBe('Server');
+    // A phone has no details, so its mark is no button.
+    expect(kindOf(card('Pixel 8'))!.querySelector('button')).toBeNull();
   });
 
   it('says on each card how the instance is reached', async () => {
@@ -247,13 +261,20 @@ describe('Instances', () => {
   it('opens the rest about an instance in a window', async () => {
     serve({ ...noGroup, active: true }, [{ name: 'cellar', url: 'http://192.168.1.9:8749' }]);
     await draw();
-    expect(buttons(card('cellar'))).toEqual(['Open', 'Details', 'Remove']);
+    expect(buttons(card('cellar'))).toEqual(['Server', 'Open', 'Details', 'Remove']);
     // This instance has nothing more to say about itself and cannot be taken out.
     expect(buttons(card('nas'))).toEqual(['Open']);
 
     await act(async () => button(card('cellar'), 'Details').click());
     const window = document.body.querySelector('[role="dialog"]')!;
     expect(window.querySelector('h2')!.textContent).toBe('cellar');
+
+    // The kind's mark opens the same window.
+    const close = [...window.querySelectorAll('button')].find((b) => (b.textContent || b.getAttribute('aria-label')) === 'Close');
+    await act(async () => close!.click());
+    expect(document.body.querySelector('[role="dialog"]')).toBeNull();
+    await act(async () => kindOf(card('cellar'))!.querySelector('button')!.click());
+    expect(document.body.querySelector('[role="dialog"] h2')!.textContent).toBe('cellar');
     expect(window.textContent).toContain('192.168.1.9:8749');
     expect(window.textContent).toContain('By address');
   });
