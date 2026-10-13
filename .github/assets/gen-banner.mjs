@@ -33,7 +33,7 @@ const { Resvg } = require(`${groot}/@resvg/resvg-js`);
 const __dir = dirname(fileURLToPath(import.meta.url));
 
 const NAME = "KnightLoader";
-const CLAIM = "Grabs everything. Kneels to nothing.";
+const CLAIM = "Downloads everything, kneels to nothing.";
 const W = 1600, H = 500;
 const LOGO_FILE = "logo.svg";
 const { vbW: LOGO_VB_W, vbH: LOGO_VB_H } = readViewBox(LOGO_FILE);
