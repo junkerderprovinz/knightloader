@@ -1,4 +1,4 @@
-import { useEffect, useState, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { IconCheck, IconClose, IconWarning } from '../lib/icons';
 import { Button, type ButtonVerdict } from './ui';
 
@@ -54,16 +54,26 @@ export function TestButton({
   // The failure counter, so a repeated failure shakes the button again.
   const [shake, setShake] = useState(0);
 
-  useEffect(() => setVerdict(null), [resetKey]);
+  // Counts the changes of resetKey, so an answer to what was there before is dropped.
+  const round = useRef(0);
+  useEffect(() => {
+    round.current++;
+    setVerdict(null);
+  }, [resetKey]);
 
   async function onClick() {
     setBusy(true);
     setVerdict(null);
+    const asked = round.current;
     let answer: ButtonVerdict | null;
     try {
       answer = await run();
     } catch {
       answer = 'fail';
+    }
+    if (round.current !== asked) {
+      setBusy(false);
+      return;
     }
     setVerdict(answer);
     if (answer === 'fail') setShake((n) => n + 1);

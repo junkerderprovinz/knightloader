@@ -14,6 +14,8 @@ import {
 import { SubCard } from '../controls';
 import { JDImportPreviewDialog, itemName, reasonText } from './JDImportPreview';
 
+type Source = 'upload' | 'path';
+
 /**
  * JDImportCard moves an install over from JDownloader 2. Its cfg folder comes
  * in as an uploaded zip or as a path on the server, the preview asks what to
@@ -24,26 +26,28 @@ export function JDImportCard({ hue }: { hue: number }) {
   const { t } = useT();
   const fileInput = useRef<HTMLInputElement>(null);
   const [path, setPath] = useState('');
-  const [busy, setBusy] = useState(false);
+  // Which of the two ways in is reading, and how often each failed, so the
+  // button that was pressed is the one that says so.
+  const [busy, setBusy] = useState<Source | null>(null);
   const [failure, setFailure] = useState('');
-  const [shake, setShake] = useState(0);
+  const [shake, setShake] = useState<Record<Source, number>>({ upload: 0, path: 0 });
   const [preview, setPreview] = useState<JDImportPreview | null>(null);
   const [applying, setApplying] = useState(false);
   const [applyError, setApplyError] = useState('');
   const [report, setReport] = useState<{ preview: JDImportPreview; report: JDImportReport; ticked: number } | null>(null);
   const [done, setDone] = useState(0);
 
-  async function read(load: () => Promise<JDImportPreview>) {
-    setBusy(true);
+  async function read(source: Source, load: () => Promise<JDImportPreview>) {
+    setBusy(source);
     setFailure('');
     setReport(null);
     try {
       setPreview(await load());
     } catch (e) {
       setFailure(refusalText(t, e));
-      setShake((n) => n + 1);
+      setShake((n) => ({ ...n, [source]: n[source] + 1 }));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   }
 
@@ -77,7 +81,7 @@ export function JDImportCard({ hue }: { hue: number }) {
             const f = e.target.files?.[0];
             // Cleared so picking the same file again fires a change event.
             e.target.value = '';
-            if (f) void read(() => readJDImportFile(f));
+            if (f) void read('upload', () => readJDImportFile(f));
           }}
         />
         <div className="flex flex-wrap items-center gap-3">
@@ -85,8 +89,9 @@ export function JDImportCard({ hue }: { hue: number }) {
             kind="secondary"
             icon={<IconUpload width={16} height={16} />}
             onClick={() => fileInput.current?.click()}
-            disabled={busy}
+            disabled={busy !== null}
             confirm={done}
+            shake={shake.upload}
           >
             {t('settings.jdimport.uploadButton')}
           </Button>
@@ -98,11 +103,11 @@ export function JDImportCard({ hue }: { hue: number }) {
         <div className="flex flex-wrap items-center gap-3">
           <Button
             kind="secondary"
-            onClick={() => void read(() => readJDImportPath(path.trim()))}
-            disabled={busy || path.trim() === ''}
-            shake={shake}
+            onClick={() => void read('path', () => readJDImportPath(path.trim()))}
+            disabled={busy !== null || path.trim() === ''}
+            shake={shake.path}
           >
-            {busy ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
+            {busy === 'path' ? t('settings.jdimport.reading') : t('settings.jdimport.readButton')}
           </Button>
         </div>
       </SubCard>

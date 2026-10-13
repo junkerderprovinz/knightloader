@@ -365,15 +365,17 @@ export function Downloads() {
   // The collector's chips over this list's states, from shared logic.
   const offeredFilters = useMemo(() => offeredQuickFilters(DOWNLOAD_FILTERS, list, filters), [list, filters]);
   const causes = useErrorCauses(list);
-  // Each card sorts on its own, so the Sort button offers the ones on show.
+  // Each card sorts on its own, so the Sort button offers the ones on show,
+  // and the download list's while nothing is.
   const sortDownloads = useListSort(t('downloads.listTitle'));
   const sortFinished = useListSort(t('downloads.finishedTitle'), 'downloads', 'downloads.finished');
   const sortTorrents = useListSort(t('downloads.torrentsTitle'), 'downloads', 'downloads.torrents');
-  const sorts = [
+  const onShow = [
     ...(groups.length > 0 ? [sortDownloads] : []),
     ...(shown.finished.length > 0 ? [sortFinished] : []),
     ...(shown.torrents.length > 0 ? [sortTorrents] : []),
   ];
+  const sorts = onShow.length > 0 ? onShow : [sortDownloads];
 
   // What the action row holds, so it measures itself again when that changes.
   const buttonLabels = useLabelMode('buttons');

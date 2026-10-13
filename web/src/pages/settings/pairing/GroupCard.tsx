@@ -267,7 +267,7 @@ export function GroupCard({
     <div className="flex min-w-0 flex-col gap-2">
       {group.awaiting && <WaitRow text={t('pairing.awaiting')} />}
       {group.pending.length > 0 && (
-        <section className="flex flex-col gap-2" data-testid="pending" data-new="pairing-approval">
+        <section className="flex flex-col gap-2" data-testid="pending">
           <span className="flex items-center gap-1.5 text-xs font-semibold text-carbon-textSub">
             {t('pairing.pendingTitle')}
             <InfoBubble tip={t('pairing.pendingTip')} />
@@ -331,7 +331,7 @@ export function GroupCard({
         ))}
       </ul>
       {group.fingerprint && (
-        <p className="flex items-center gap-1.5 px-3 text-xs text-carbon-textMuted" data-testid="own-key" data-new="pairing-own-key">
+        <p className="flex items-center gap-1.5 px-3 text-xs text-carbon-textMuted" data-testid="own-key">
           <span className="glim-num">{t('pairing.ownKey', { fingerprint: group.fingerprint })}</span>
           <InfoBubble tip={t('pairing.ownKeyTip')} />
         </p>

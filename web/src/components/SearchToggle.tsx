@@ -95,8 +95,11 @@ export function SearchToggle({
       </div>
     );
   }
+  // A search kept from before shows as the field without being opened. Once
+  // the keyboard is in it, it counts as opened, so emptying it keeps the
+  // field and the caret rather than dropping the focus with the field.
   return (
-    <div ref={wrap} className="contents" onBlur={blur}>
+    <div ref={wrap} className="contents" onFocus={() => setOpened(true)} onBlur={blur}>
       <SearchBox {...box} value={value} onChange={onChange} inputRef={input} onKeyDown={keyDown} />
     </div>
   );

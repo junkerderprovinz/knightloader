@@ -254,7 +254,7 @@ function Report({ hue }: { hue: number }) {
     try {
       await saveDiagnostics();
     } catch (e) {
-      toast(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^Error:s*/, '') }), 'fail');
+      toast(t('settings.diagnostics.downloadFailed', { error: String(e).replace(/^(Error|ApiError):\s*/, '') }), 'fail');
     }
   }
 

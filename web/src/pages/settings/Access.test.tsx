@@ -85,7 +85,7 @@ describe('Access', () => {
 
   it('names the app key without a warning when there is none', async () => {
     await renderWithAuth({ enabled: true, authenticated: true, appKey: false });
-    const line = host.querySelector('[data-new="app-key"]')!;
+    const line = host.querySelector('[data-testid="app-key"]')!;
     expect(line.textContent).toContain('App key');
     expect(line.className).not.toMatch(/statusWarn/);
     expect(line.querySelector('a[href*="#app-key"]')).not.toBeNull();

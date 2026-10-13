@@ -104,3 +104,15 @@ export function PriorityGlyph({ steps }: { steps: number }) {
     </svg>
   );
 }
+
+/** A speed limit: a sign's ring round a gauge needle, as the phone app draws
+ *  it. Only the limit marks on the speed curves wear it. */
+export const IconSpeedLimit = (p: GlyphProps) => (
+  <svg {...glyph([0, 0, 14, 14], p)}>
+    <path
+      fillRule="evenodd"
+      clipRule="evenodd"
+      d="M7 0a7 7 0 1 1 0 14A7 7 0 0 1 7 0Zm0 1.75a5.25 5.25 0 1 0 0 10.5 5.25 5.25 0 0 0 0-10.5ZM8.01 9.27L10.29 6.45A.95.95 0 0 0 8.94 5.12L6.16 7.45A1.3 1.3 0 1 0 8.01 9.27Z"
+    />
+  </svg>
+);
