@@ -14,6 +14,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"io/fs"
 	"maps"
 	"net/http"
 	"os"
@@ -61,8 +62,15 @@ type Provisioner struct {
 
 	jarURL string // download source; overridden in tests
 
-	mu  sync.Mutex
-	cmd *exec.Cmd // the JD we started, nil when we did not start one
+	mu   sync.Mutex
+	proc *jdProcess // the JD we started, nil when we did not start one
+}
+
+// jdProcess is a JD this process started.
+type jdProcess struct {
+	cmd    *exec.Cmd
+	exited chan struct{} // closed once Wait has returned
+	err    error         // what Wait returned, read only after exited is closed
 }
 
 // New returns a provisioner rooted at dir (default port 3128).
@@ -327,46 +335,54 @@ func (p *Provisioner) start(cmd *exec.Cmd) (*exec.Cmd, error) {
 	if err := cmd.Start(); err != nil {
 		return nil, fmt.Errorf("provision: start JD: %w", err)
 	}
+	proc := &jdProcess{cmd: cmd, exited: make(chan struct{})}
+	// Waited on from the start rather than in Stop, so a JD that exits by
+	// itself to restart is reaped at once and Stop can tell it is gone.
+	go func() {
+		proc.err = cmd.Wait()
+		close(proc.exited)
+	}()
 	p.mu.Lock()
-	p.cmd = cmd
+	p.proc = proc
 	p.mu.Unlock()
 	return cmd, nil
 }
 
-// Stop terminates a JD that this process started. It is a no-op when we did not
-// start one.
+// Stop terminates the JD this process started, or the one it restarted into.
+// It is a no-op when we did not start one.
 func (p *Provisioner) Stop() error {
 	p.mu.Lock()
-	cmd := p.cmd
+	proc := p.proc
 	// Dropped while still holding the lock, so a second Stop finds nothing to do:
-	// Wait must never run twice on the same command, and by then the pid may well
-	// belong to somebody else's process.
-	p.cmd = nil
+	// by then the pid may well belong to somebody else's process.
+	p.proc = nil
 	p.mu.Unlock()
-	if cmd == nil || cmd.Process == nil {
+	if proc == nil {
 		return nil
 	}
 
-	// Only this goroutine ever waits on the command, so its result can be read
-	// after the kill below without racing anyone.
-	done := make(chan error, 1)
-	go func() { done <- cmd.Wait() }()
+	select {
+	case <-proc.exited:
+		return p.stopSuccessor()
+	default:
+	}
 
 	// Ask before shooting: JD writes its link list and settings out on shutdown,
 	// and losing those is worse than waiting a few seconds. Windows has no
 	// Unix-style signals and says so instead of delivering anything, so there is
 	// nothing to wait for there and the kill below is the only option.
-	if err := cmd.Process.Signal(os.Interrupt); err == nil {
+	if err := proc.cmd.Process.Signal(os.Interrupt); err == nil {
 		select {
-		case werr := <-done:
-			return stopResult(werr)
+		case <-proc.exited:
+			return stopResult(proc.err)
 		case <-time.After(stopGrace):
 		}
 	}
-	if err := cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
+	if err := proc.cmd.Process.Kill(); err != nil && !errors.Is(err, os.ErrProcessDone) {
 		return fmt.Errorf("provision: kill JD: %w", err)
 	}
-	return stopResult(<-done)
+	<-proc.exited
+	return stopResult(proc.err)
 }
 
 // stopResult swallows the non-zero exit status a process reports when it is
@@ -379,8 +395,41 @@ func stopResult(err error) error {
 	return fmt.Errorf("provision: stop JD: %w", err)
 }
 
-// WaitReachable polls the Deprecated API until it answers or the context ends.
-// JD self-updates on first run, so allow a generous deadline.
+// pidFile is where a JD running from Dir keeps its pid. JD removes it when it
+// exits.
+func (p *Provisioner) pidFile() string { return filepath.Join(p.Dir, "JDownloader.pid") }
+
+// stopSuccessor stops the JD that took over from the one this process started.
+// JD restarts, after its first-run update or when asked to install one, by
+// starting a new process and exiting, so the JD running from Dir can be one
+// this process never started. It is asked through its API rather than
+// signalled, since the pid in its file may be stale and name somebody else's
+// process.
+func (p *Provisioner) stopSuccessor() error {
+	if _, err := os.Stat(p.pidFile()); err != nil {
+		return nil
+	}
+	client := httpx.New(httpx.Options{Timeout: 5 * time.Second})
+	if !p.answers(context.Background(), client) {
+		return nil
+	}
+	resp, err := client.Get(p.URL() + "/system/exitJD")
+	if err != nil {
+		return fmt.Errorf("provision: ask JD to exit: %w", err)
+	}
+	resp.Body.Close()
+	deadline := time.Now().Add(stopGrace)
+	for {
+		if _, err := os.Stat(p.pidFile()); errors.Is(err, fs.ErrNotExist) {
+			return nil
+		}
+		if time.Now().After(deadline) {
+			return fmt.Errorf("provision: JD did not exit within %s of being asked", stopGrace)
+		}
+		time.Sleep(100 * time.Millisecond)
+	}
+}
+
 // looksLikeJD checks that the thing answering on the API port really is
 // JDownloader. Its ping answers with a small JSON object, so anything that is
 // not JSON is something else entirely.
@@ -389,29 +438,38 @@ func looksLikeJD(body []byte) bool {
 	return len(t) > 0 && (t[0] == '{' || t[0] == '[')
 }
 
+// answers reports whether JDownloader answers on the API port. 3128 is also
+// Squid's default port. Accepting any HTTP answer would let a proxy that
+// happens to be listening there pass as JDownloader, and every call afterwards
+// would fail for a reason nobody could trace back to here.
+func (p *Provisioner) answers(ctx context.Context, client *http.Client) bool {
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, p.URL()+"/device/ping", nil)
+	if err != nil {
+		return false
+	}
+	resp, err := client.Do(req)
+	if err != nil {
+		return false
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
+	return resp.StatusCode >= 200 && resp.StatusCode <= 299 && looksLikeJD(body)
+}
+
+// WaitReachable polls the Deprecated API until it answers or the context ends.
+// JD self-updates on first run, so allow a generous deadline.
 func (p *Provisioner) WaitReachable(ctx context.Context) error {
-	ping := p.URL() + "/device/ping"
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
-	// 3128 is also Squid's default port. Accepting any HTTP answer would let a
-	// proxy that happens to be listening there pass as JDownloader, and every
-	// call afterwards would fail for a reason nobody could trace back to here.
 	client := httpx.New(httpx.Options{Timeout: 10 * time.Second})
-	for {
-		req, _ := http.NewRequestWithContext(ctx, http.MethodGet, ping, nil)
-		if resp, err := client.Do(req); err == nil {
-			body, _ := io.ReadAll(io.LimitReader(resp.Body, 4096))
-			resp.Body.Close()
-			if resp.StatusCode >= 200 && resp.StatusCode <= 299 && looksLikeJD(body) {
-				return nil
-			}
-		}
+	for !p.answers(ctx, client) {
 		select {
 		case <-ctx.Done():
 			return ctx.Err()
 		case <-ticker.C:
 		}
 	}
+	return nil
 }
 
 // Ensure runs the full first-run sequence: download the jar (once), write the

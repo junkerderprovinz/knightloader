@@ -107,6 +107,8 @@ var groupRefused = []string{
 	"POST /api/folders",
 	"GET /api/fileowner",
 	"POST /api/fileowner/check",
+	"GET /api/jd/update",
+	"POST /api/jd/update",
 	"POST /api/jdimport/apply",
 	"POST /api/jdimport/read",
 	"GET /api/options",

@@ -8,11 +8,13 @@ import (
 	"errors"
 	"net/http"
 	"net/http/httptest"
+	"net/url"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"runtime"
 	"slices"
+	"strconv"
 	"strings"
 	"sync/atomic"
 	"testing"
@@ -554,9 +556,81 @@ func TestEnsureStartsNothingOnceCancelled(t *testing.T) {
 		t.Fatalf("Ensure = %v, want context.Canceled", err)
 	}
 	p.mu.Lock()
-	started := p.cmd != nil
+	started := p.proc != nil
 	p.mu.Unlock()
 	if started {
 		t.Error("Ensure started JD after its context ended")
+	}
+}
+
+// restartedJD starts a JD stand-in under p and ends it the way JD's own
+// restart does, leaving a successor that answers on p's port and exits when
+// asked through the API. It reports how often it was asked.
+func restartedJD(t *testing.T, p *Provisioner, withPidFile bool) *atomic.Int32 {
+	t.Helper()
+	var asked atomic.Int32
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		switch r.URL.Path {
+		case "/device/ping":
+			_, _ = w.Write([]byte(`{"data":null}`))
+		case "/system/exitJD":
+			asked.Add(1)
+			_ = os.Remove(p.pidFile())
+			_, _ = w.Write([]byte(`{"data":""}`))
+		default:
+			http.NotFound(w, r)
+		}
+	}))
+	t.Cleanup(srv.Close)
+	u, err := url.Parse(srv.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if p.Port, err = strconv.Atoi(u.Port()); err != nil {
+		t.Fatal(err)
+	}
+	if withPidFile {
+		if err := os.WriteFile(p.pidFile(), []byte("4242"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	cmd, err := p.start(helperCmd())
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := cmd.Process.Kill(); err != nil {
+		t.Fatal(err)
+	}
+	p.mu.Lock()
+	proc := p.proc
+	p.mu.Unlock()
+	<-proc.exited
+	return &asked
+}
+
+func TestStopAsksTheJDARestartLeftBehindToExit(t *testing.T) {
+	quickGrace(t)
+	p := New(t.TempDir())
+	asked := restartedJD(t, p, true)
+	if err := p.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	if asked.Load() != 1 {
+		t.Errorf("the successor was asked to exit %d times, want 1", asked.Load())
+	}
+}
+
+// Without a pid file in Dir, whatever answers on the port was not started
+// from this home and is not ours to stop.
+func TestStopLeavesAJDFromElsewhereRunning(t *testing.T) {
+	quickGrace(t)
+	p := New(t.TempDir())
+	asked := restartedJD(t, p, false)
+	if err := p.Stop(); err != nil {
+		t.Fatalf("Stop: %v", err)
+	}
+	if asked.Load() != 0 {
+		t.Error("Stop asked a JD it has no claim on to exit")
 	}
 }
