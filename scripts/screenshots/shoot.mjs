@@ -54,8 +54,7 @@ const SCENES = [
     path: '/',
     ready: 'text=bbb_sunflower',
     caption: 'What’s running, <em>at a glance</em>',
-    // The cards come from fixtures/uistate.json. The page scrolls past its head,
-    // so the volume card at the end fits in.
+    // Scrolled past the page head so the volume card at the end fits in.
     act: (page) => page.locator('[data-ov-card="speed"]').evaluate((el) => el.scrollIntoView({ block: 'start' })),
   },
   {
@@ -73,6 +72,7 @@ const SCENES = [
     caption: 'The limits you change most, <em>one click away</em>',
     async act(page) {
       await page.getByRole('button', { name: 'Quick settings' }).click();
+      // Enter opens the list with the current choice highlighted; a click does not.
       await page.getByRole('button', { name: /^End-of-queue action/ }).press('Enter');
     },
   },
