@@ -28,6 +28,8 @@ require (
 	golang.org/x/image v0.47.0
 	golang.org/x/sys v0.49.0
 	golang.org/x/text v0.43.0
+	golang.zx2c4.com/wireguard v0.0.0-20261006164505-2631ce99a06f
+	gvisor.dev/gvisor v0.0.0-20250503011706-39ed1f5ac29c
 )
 
 require (
@@ -164,6 +166,7 @@ require (
 	go4.org v0.0.0-20260112195520-a5071408f32f // indirect
 	golang.org/x/exp v0.0.0-20260410095643-746e56fc9e2f // indirect
 	golang.org/x/sync v0.24.0 // indirect
+	golang.zx2c4.com/wintun v0.0.0-20230126152724-0fa3db229ce2 // indirect
 	gopkg.in/warnings.v0 v0.1.2 // indirect
 	lukechampine.com/blake3 v1.4.1 // indirect
 	modernc.org/libc v1.77.1 // indirect
@@ -180,11 +183,11 @@ require (
 // spreads a ranged download over mirror URLs, reads a file of a running task,
 // and starts a download restored from a saved task without a ten second wait:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261005140626-5111a4c57695
+replace github.com/GopeedLab/gopeed => ../gopeed-vpn
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
 // after a torrent is dropped or added again, closing the client sends the
 // stopped announces before it closes its tracker sockets, and a web seed
 // fetches a piece that a reader is waiting for before the rest of its slice.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261011123920-f7d726c1a2f0
+replace github.com/anacrolix/torrent => ../torrent-vpn
