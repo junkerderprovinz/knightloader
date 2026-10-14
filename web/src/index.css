@@ -2671,13 +2671,6 @@ body {
 .glim-provider-pick :is(.glim-readme-btn-name, .glim-readme-btn-sub) {
   text-overflow: ellipsis;
 }
-/* The VPN providers keep their state on the second line, which a phone's two
-   columns would cut to a few letters. */
-@media (max-width: 47.99rem) {
-  .kl-vpn-pick {
-    grid-template-columns: minmax(0, 1fr);
-  }
-}
 
 /* A picker of kinds (KindPicker): the brand tile a size up, with a corner of
    a card rather than a pill, since a tile this tall reads as a card. The

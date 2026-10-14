@@ -4356,9 +4356,9 @@ function openSocket(h: StreamHandlers): LiveStream {
   };
 }
 
-// VPN connections for the built-in torrent client (internal/vpn). Torrents go
-// through one provider at a time, and while it is down they wait rather than
-// leave over the machine's own connection.
+// VPN connections for downloads (internal/vpnconn). Each kind of download
+// switched on goes through the one provider in use, and while it is down it
+// waits rather than leave over the machine's own connection.
 
 /** A value a provider's connect form asks for. */
 export type VpnField =
@@ -4393,9 +4393,19 @@ export interface VpnProvider {
   errorCode?: string;
 }
 
+/** Which downloads go through the VPN while a provider is in use. */
+export interface VpnRoutes {
+  torrents: boolean;
+  hosters: boolean;
+  ytdlp: boolean;
+  debrid: boolean;
+  usenet: boolean;
+}
+
 export interface VpnState {
-  /** The provider torrents go through; '' while they use the machine's own connection. */
+  /** The provider in use; '' while downloads use the machine's own connection. */
   active: string;
+  routes: VpnRoutes;
   providers: VpnProvider[];
 }
 
@@ -4426,9 +4436,17 @@ export const connectVpn = (id: string, fields: Partial<Record<VpnField, string>>
     body: JSON.stringify({ fields }),
   });
 
-/** disconnectVpn ends the connection; torrents then use the machine's own one. */
+/** disconnectVpn ends the connection; downloads then use the machine's own one. */
 export const disconnectVpn = (): Promise<VpnState> => vpnRoute('/disconnect', { method: 'POST' });
 
 /** forgetVpn deletes a provider's stored login, disconnecting it first. */
 export const forgetVpn = (id: string): Promise<VpnState> =>
   vpnRoute(`/${encodeURIComponent(id)}`, { method: 'DELETE' });
+
+/** setVpnRoutes says which downloads go through the VPN. */
+export const setVpnRoutes = (routes: VpnRoutes): Promise<VpnState> =>
+  vpnRoute('/routes', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(routes),
+  });

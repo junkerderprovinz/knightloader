@@ -440,9 +440,6 @@ func featurePages() []FeaturePage {
 		// naming a missing category is refused and the table should be in reach.
 		{ID: "rules", Modules: []string{"packagizer", "linkfilter"}},
 		{ID: "network", Modules: []string{"connections", "reconnect"}},
-		// Torrents only, but a page of its own beside Network: picking a provider
-		// is a step of its own, and the torrent page stays about torrents.
-		{ID: "vpn"},
 		// Pairing forms the group the Instances page shows, and the page after
 		// them holds what guards this instance. Its id stays "access" so
 		// bookmarks resolve.
