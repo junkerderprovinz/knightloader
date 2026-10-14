@@ -1,0 +1,152 @@
+// Rebuilds src/lib/vpnProviders.ts and the logos in public/vpn from the VPN
+// provider list the engine is built on (providers.json: id, name,
+// wireguard.method and .fields, portForwarding.supported, logo.url).
+//
+//   npm i --no-save sharp
+//   node scripts/gen-vpn-providers.mjs <providers.json>
+//
+// The list words each provider's fields for a person, so the form fields are
+// read out of those words. Each logo becomes a 64-pixel PNG, on a plate where
+// its ink would vanish on one of the two themes, as gen-hoster-logos.mjs does.
+// A provider without a logo URL, or one that does not load, gets the letter
+// tile. Look at public/vpn afterwards: a logo of the wrong brand passes here.
+import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+const here = dirname(fileURLToPath(import.meta.url));
+const out = join(here, '..', 'public', 'vpn');
+const list = join(here, '..', 'src', 'lib', 'vpnProviders.ts');
+
+const SIZE = 64;
+const PLATE_INSET = 4;
+// The theme grounds, --carbon-bg in src/index.css.
+const DARK = { r: 0x16, g: 0x16, b: 0x16 };
+const LIGHT = { r: 0xf4, g: 0xf4, b: 0xf4 };
+
+const source = process.argv[2];
+if (!source) {
+  console.error('usage: node scripts/gen-vpn-providers.mjs <providers.json>');
+  process.exit(2);
+}
+
+let sharp;
+try {
+  sharp = (await import('sharp')).default;
+} catch {
+  console.error('sharp is missing: npm i --no-save sharp');
+  process.exit(2);
+}
+
+/**
+ * fieldsOf turns a provider's way in into the form's fields, in the order the
+ * form asks for them. A .conf carries everything, so it stands alone.
+ */
+function fieldsOf(wg) {
+  const words = [wg.method ?? '', ...(wg.fields ?? [])].join(' | ').toLowerCase();
+  if (/\.conf|conf-upload|config file/.test(words)) return ['config'];
+  const fields = [];
+  if (/private key/.test(words)) fields.push('privateKey', 'address');
+  if (/account (number|id)|api-account/.test(words)) fields.push('accountNumber');
+  if (/token/.test(words) && !/username|password/.test(words)) fields.push('token');
+  if (/username|user name|login/.test(words)) fields.push('username', 'password');
+  if (/server|location|region|country/.test(words)) fields.push('location');
+  return fields.length > 0 ? fields : ['config'];
+}
+
+const near = (px, i, ground) => Math.hypot(px[i] - ground.r, px[i + 1] - ground.g, px[i + 2] - ground.b) < 70;
+
+function plateFor(px) {
+  let drawn = 0;
+  let onDark = 0;
+  let onLight = 0;
+  for (let i = 0; i < px.length; i += 4) {
+    if (px[i + 3] < 128) continue;
+    drawn++;
+    if (near(px, i, DARK)) onDark++;
+    if (near(px, i, LIGHT)) onLight++;
+  }
+  if (drawn === 0 || drawn / (px.length / 4) > 0.9) return null;
+  if (onDark / drawn >= 0.9) return { r: 255, g: 255, b: 255, alpha: 1 };
+  if (onLight / drawn >= 0.9) return { ...DARK, alpha: 1 };
+  return null;
+}
+
+async function render(input) {
+  const fit = { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } };
+  const { data } = await sharp(input).resize(SIZE, SIZE, fit).ensureAlpha().raw().toBuffer({ resolveWithObject: true });
+  const plate = plateFor(data);
+  let image = sharp(input).resize(SIZE, SIZE, fit);
+  if (plate) {
+    const inner = await sharp(input)
+      .resize(SIZE - 2 * PLATE_INSET, SIZE - 2 * PLATE_INSET, fit)
+      .png()
+      .toBuffer();
+    image = sharp({ create: { width: SIZE, height: SIZE, channels: 4, background: plate } }).composite([
+      { input: inner, left: PLATE_INSET, top: PLATE_INSET },
+    ]);
+  }
+  return image.png({ palette: true, quality: 90, effort: 10, compressionLevel: 9 }).toBuffer();
+}
+
+async function logo(url) {
+  if (!url) return null;
+  try {
+    const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    return await render(Buffer.from(await r.arrayBuffer()));
+  } catch (err) {
+    console.log(`no logo from ${url}: ${err.message}`);
+    return null;
+  }
+}
+
+const providers = JSON.parse(await readFile(source, 'utf8'));
+await rm(out, { recursive: true, force: true });
+await mkdir(out, { recursive: true });
+
+const entries = [];
+for (const p of providers) {
+  if (p.wireguard?.supported === false) {
+    console.log(`left out, no WireGuard: ${p.name}`);
+    continue;
+  }
+  const png = await logo(p.logo?.url);
+  if (png) await writeFile(join(out, `${p.id}.png`), png);
+  entries.push({
+    id: p.id,
+    name: p.name,
+    fields: fieldsOf(p.wireguard ?? {}),
+    portForwarding: p.portForwarding?.supported === true,
+    logo: Boolean(png),
+  });
+}
+
+const quote = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+
+const body = entries
+  .map(
+    (e) =>
+      `  {\n    id: '${e.id}',\n    name: ${quote(e.name)},\n` +
+      `    fields: [${e.fields.map((f) => `'${f}'`).join(', ')}],\n    portForwarding: ${e.portForwarding},\n    logo: ${e.logo},\n  },\n`,
+  )
+  .join('');
+await writeFile(
+  list,
+  `// Generated by scripts/gen-vpn-providers.mjs, do not edit by hand: the VPN
+// providers KnightLoader can connect to, and whether public/vpn has a logo.
+import type { VpnField } from './api';
+
+export interface VpnCatalogEntry {
+  id: string;
+  name: string;
+  fields: VpnField[];
+  portForwarding: boolean;
+  logo: boolean;
+}
+
+export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
+${body}];
+`,
+);
+console.log(`${entries.length} providers, ${entries.filter((e) => e.logo).length} with a logo`);

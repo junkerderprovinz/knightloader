@@ -169,7 +169,7 @@ export function HosterIcon({ host, size = 18 }: { host: string; size?: number })
       />
     );
   }
-  if (!mayHaveSiteIcon(clean)) return <Monogram host={clean} box={box} />;
+  if (!mayHaveSiteIcon(clean)) return <Monogram name={clean} box={box} />;
   // Keyed by host: React keeps the retry state per element, not per host.
   return <SiteIcon key={clean} host={clean} box={box} />;
 }
@@ -236,20 +236,20 @@ function SiteIcon({ host, box }: { host: string; box: { width: number; height: n
           className="rounded-[var(--radius-control)] object-contain"
         />
       ) : (
-        src === null && <Monogram host={host} box={box} />
+        src === null && <Monogram name={host} box={box} />
       )}
     </span>
   );
 }
 
 /**
- * Monogram stands in for a logo: the site's first letter on a tile tinted with
+ * Monogram stands in for a logo: the name's first letter on a tile tinted with
  * a colour of the palette picked by the name, so a list of hosters without
  * icons still reads as a set of marks, each host always in the same colour.
  */
-function Monogram({ host, box }: { host: string; box: { width: number; height: number } }) {
+export function Monogram({ name, box }: { name: string; box: { width: number; height: number } }) {
   let sum = 0;
-  for (const c of host) sum = (sum * 31 + c.charCodeAt(0)) >>> 0;
+  for (const c of name) sum = (sum * 31 + c.charCodeAt(0)) >>> 0;
   return (
     <span
       aria-hidden
@@ -257,7 +257,7 @@ function Monogram({ host, box }: { host: string; box: { width: number; height: n
       className="inline-flex shrink-0 items-center justify-center rounded-[var(--radius-control)]
         bg-[var(--item-hue-soft)] font-semibold uppercase leading-none text-carbon-text"
     >
-      {host.charAt(0) || '?'}
+      {name.charAt(0) || '?'}
     </span>
   );
 }
