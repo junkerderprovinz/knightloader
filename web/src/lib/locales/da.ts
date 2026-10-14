@@ -3695,6 +3695,8 @@ export const da: Dict = {
   'settings.vpn.providersTitle': 'Udbydere',
   'settings.vpn.providersHint': 'Vælg din udbyder, og indtast det, den beder om. Torrents bruger én VPN ad gangen, så en ny forbindelse afslutter den nuværende.',
   'settings.vpn.custom': 'Egen WireGuard-konfiguration',
+  'settings.vpn.appOnlyTitle': 'Understøttes ikke',
+  'settings.vpn.appOnlyHint': 'Tillader kun WireGuard i sin egen app.',
   'settings.vpn.customSub': 'Enhver WireGuard-server',
   'settings.vpn.replaces': 'Når du forbinder {name}, afsluttes forbindelsen til {current}.',
   'settings.vpn.keepSaved': 'Dit login er gemt. Lad et felt stå tomt for at beholde det gemte.',

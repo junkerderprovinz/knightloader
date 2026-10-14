@@ -3709,6 +3709,8 @@ export const sv: Dict = {
   'settings.vpn.providersTitle': 'Leverantörer',
   'settings.vpn.providersHint': 'Välj din leverantör och fyll i vad den ber om. Torrents använder ett VPN i taget, så när du ansluter ett annat avslutas den nuvarande anslutningen.',
   'settings.vpn.custom': 'Egen WireGuard-konfiguration',
+  'settings.vpn.appOnlyTitle': 'Stöds inte',
+  'settings.vpn.appOnlyHint': 'Tillåter WireGuard bara i sin egen app.',
   'settings.vpn.customSub': 'Valfri WireGuard-server',
   'settings.vpn.replaces': 'Om du ansluter {name} avslutas anslutningen till {current}.',
   'settings.vpn.keepSaved': 'Din inloggning är sparad. Lämna ett fält tomt för att behålla det som är sparat.',

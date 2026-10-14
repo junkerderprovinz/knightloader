@@ -3691,6 +3691,8 @@ export const zh: Dict = {
   'settings.vpn.providersTitle': '服务商',
   'settings.vpn.providersHint': '选择你的服务商，并填写它所需的信息。种子一次只使用一个 VPN，所以连接另一个会结束当前连接。',
   'settings.vpn.custom': '自有 WireGuard 配置',
+  'settings.vpn.appOnlyTitle': '不支持',
+  'settings.vpn.appOnlyHint': '只允许在自家应用中使用 WireGuard。',
   'settings.vpn.customSub': '任意 WireGuard 服务器',
   'settings.vpn.replaces': '连接 {name} 会结束与 {current} 的连接。',
   'settings.vpn.keepSaved': '你的登录信息已保存。字段留空即可保留已存的内容。',

@@ -3708,6 +3708,8 @@ export const tr: Dict = {
   'settings.vpn.providersTitle': 'Sağlayıcılar',
   'settings.vpn.providersHint': 'Sağlayıcını seç ve istediği bilgileri gir. Torrentler aynı anda tek bir VPN kullanır, bu yüzden başka birine bağlanmak mevcut bağlantıyı sonlandırır.',
   'settings.vpn.custom': 'Kendi WireGuard yapılandırman',
+  'settings.vpn.appOnlyTitle': 'Desteklenmiyor',
+  'settings.vpn.appOnlyHint': 'WireGuard’a yalnızca kendi uygulamasında izin veriyor.',
   'settings.vpn.customSub': 'Herhangi bir WireGuard sunucusu',
   'settings.vpn.replaces': '{name} bağlantısı, {current} bağlantısını sonlandırır.',
   'settings.vpn.keepSaved': 'Girişin kayıtlı. Kayıtlı olanı korumak için alanı boş bırak.',

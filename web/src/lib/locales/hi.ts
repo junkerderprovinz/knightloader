@@ -3710,6 +3710,8 @@ export const hi: Dict = {
   'settings.vpn.providersTitle': 'प्रदाता',
   'settings.vpn.providersHint': 'अपना प्रदाता चुनें और वह जो माँगे वह भरें। टॉरेंट एक समय में एक ही VPN इस्तेमाल करते हैं, इसलिए दूसरा जोड़ने पर मौजूदा कनेक्शन खत्म हो जाता है।',
   'settings.vpn.custom': 'अपना WireGuard कॉन्फ़िग',
+  'settings.vpn.appOnlyTitle': 'समर्थित नहीं',
+  'settings.vpn.appOnlyHint': 'WireGuard केवल अपने ऐप में ही चलाने देता है।',
   'settings.vpn.customSub': 'कोई भी WireGuard सर्वर',
   'settings.vpn.replaces': '{name} को जोड़ने पर {current} से कनेक्शन खत्म हो जाता है।',
   'settings.vpn.keepSaved': 'आपका लॉगिन सहेजा हुआ है। जो सहेजा है उसे रखने के लिए फ़ील्ड खाली छोड़ें।',

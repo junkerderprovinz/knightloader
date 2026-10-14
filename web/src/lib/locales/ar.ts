@@ -3706,6 +3706,8 @@ export const ar: Dict = {
   'settings.vpn.providersTitle': 'المزوّدون',
   'settings.vpn.providersHint': 'اختر مزوّدك وأدخل ما يطلبه. تستخدم التورنتات VPN واحدًا في كل مرة، لذلك يؤدي الاتصال بآخر إلى إنهاء الاتصال الحالي.',
   'settings.vpn.custom': 'إعداد WireGuard خاص',
+  'settings.vpn.appOnlyTitle': 'غير مدعوم',
+  'settings.vpn.appOnlyHint': 'يسمح باستخدام WireGuard في تطبيقه الخاص فقط.',
   'settings.vpn.customSub': 'أي خادم WireGuard',
   'settings.vpn.replaces': 'الاتصال بـ {name} ينهي الاتصال بـ {current}.',
   'settings.vpn.keepSaved': 'بيانات تسجيل الدخول محفوظة. اترك الحقل فارغًا للإبقاء على المحفوظ.',

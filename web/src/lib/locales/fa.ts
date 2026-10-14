@@ -3698,6 +3698,8 @@ export const fa: Dict = {
   'settings.vpn.providersTitle': 'ارائه‌دهندگان',
   'settings.vpn.providersHint': 'ارائه‌دهنده‌ات را انتخاب کن و آنچه می‌خواهد وارد کن. تورنت‌ها هر بار از یک VPN استفاده می‌کنند، پس وصل شدن به دیگری اتصال فعلی را پایان می‌دهد.',
   'settings.vpn.custom': 'پیکربندی WireGuard شخصی',
+  'settings.vpn.appOnlyTitle': 'پشتیبانی نمی‌شود',
+  'settings.vpn.appOnlyHint': 'WireGuard را فقط در برنامهٔ خودش اجازه می‌دهد.',
   'settings.vpn.customSub': 'هر سرور WireGuard',
   'settings.vpn.replaces': 'وصل شدن {name} اتصال به {current} را پایان می‌دهد.',
   'settings.vpn.keepSaved': 'اطلاعات ورود تو ذخیره شده است. برای حفظ مقدار ذخیره‌شده، فیلد را خالی بگذار.',

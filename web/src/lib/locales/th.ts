@@ -3707,6 +3707,8 @@ export const th: Dict = {
   'settings.vpn.providersTitle': 'ผู้ให้บริการ',
   'settings.vpn.providersHint': 'เลือกผู้ให้บริการของคุณและกรอกข้อมูลที่ต้องการ ทอร์เรนต์ใช้ VPN ได้ครั้งละหนึ่งตัว การเชื่อมต่อตัวอื่นจึงยุติการเชื่อมต่อปัจจุบัน',
   'settings.vpn.custom': 'ไฟล์ตั้งค่า WireGuard ของตัวเอง',
+  'settings.vpn.appOnlyTitle': 'ไม่รองรับ',
+  'settings.vpn.appOnlyHint': 'อนุญาตให้ใช้ WireGuard เฉพาะในแอปของตัวเอง',
   'settings.vpn.customSub': 'เซิร์ฟเวอร์ WireGuard ใดก็ได้',
   'settings.vpn.replaces': 'การเชื่อมต่อ {name} จะยุติการเชื่อมต่อกับ {current}',
   'settings.vpn.keepSaved': 'บันทึกข้อมูลเข้าสู่ระบบของคุณไว้แล้ว เว้นช่องว่างไว้เพื่อใช้ข้อมูลที่บันทึกไว้เดิม',

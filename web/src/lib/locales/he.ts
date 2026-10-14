@@ -3726,6 +3726,8 @@ export const he: Dict = {
   'settings.vpn.providersTitle': 'ספקים',
   'settings.vpn.providersHint': 'בחר את הספק שלך והזן את מה שהוא מבקש. הטורנטים משתמשים ב-VPN אחד בכל פעם, ולכן חיבור של ספק אחר מסיים את החיבור הנוכחי.',
   'settings.vpn.custom': 'תצורת WireGuard משלך',
+  'settings.vpn.appOnlyTitle': 'לא נתמך',
+  'settings.vpn.appOnlyHint': 'מאפשר WireGuard רק באפליקציה שלו.',
   'settings.vpn.customSub': 'כל שרת WireGuard',
   'settings.vpn.replaces': 'חיבור של {name} מסיים את החיבור אל {current}.',
   'settings.vpn.keepSaved': 'פרטי הכניסה שלך שמורים. השאר שדה ריק כדי לשמור את הקיים.',

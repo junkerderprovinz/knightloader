@@ -3710,6 +3710,8 @@ export const uk: Dict = {
   'settings.vpn.providersTitle': 'Провайдери',
   'settings.vpn.providersHint': 'Виберіть свого провайдера та введіть те, що він запитує. Торренти використовують один VPN за раз, тому підключення іншого завершує поточне з\'єднання.',
   'settings.vpn.custom': 'Власна конфігурація WireGuard',
+  'settings.vpn.appOnlyTitle': 'Не підтримується',
+  'settings.vpn.appOnlyHint': 'Дозволяє WireGuard лише у власному застосунку.',
   'settings.vpn.customSub': 'Будь-який сервер WireGuard',
   'settings.vpn.replaces': 'Підключення {name} завершить з\'єднання з {current}.',
   'settings.vpn.keepSaved': 'Ваші дані для входу збережено. Залиште поле порожнім, щоб зберегти те, що вже зберігається.',

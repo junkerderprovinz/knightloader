@@ -3697,6 +3697,8 @@ export const ca: Dict = {
   'settings.vpn.providersTitle': 'Proveïdors',
   'settings.vpn.providersHint': 'Tria el teu proveïdor i introdueix el que demana. Els torrents fan servir una sola VPN alhora, així que connectar-ne una altra acaba la connexió actual.',
   'settings.vpn.custom': 'Configuració WireGuard pròpia',
+  'settings.vpn.appOnlyTitle': 'No compatible',
+  'settings.vpn.appOnlyHint': 'Només permet WireGuard a la seva pròpia aplicació.',
   'settings.vpn.customSub': 'Qualsevol servidor WireGuard',
   'settings.vpn.replaces': 'Connectar {name} acaba la connexió amb {current}.',
   'settings.vpn.keepSaved': 'El teu inici de sessió està desat. Deixa un camp buit per mantenir el que hi ha desat.',

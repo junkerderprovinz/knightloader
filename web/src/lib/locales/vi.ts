@@ -3709,6 +3709,8 @@ export const vi: Dict = {
   'settings.vpn.providersTitle': 'Nhà cung cấp',
   'settings.vpn.providersHint': 'Chọn nhà cung cấp của bạn và nhập những gì họ yêu cầu. Torrent chỉ dùng một VPN tại một thời điểm, nên kết nối VPN khác sẽ kết thúc kết nối hiện tại.',
   'settings.vpn.custom': 'Cấu hình WireGuard riêng',
+  'settings.vpn.appOnlyTitle': 'Không được hỗ trợ',
+  'settings.vpn.appOnlyHint': 'Chỉ cho phép WireGuard trong ứng dụng riêng của mình.',
   'settings.vpn.customSub': 'Bất kỳ máy chủ WireGuard nào',
   'settings.vpn.replaces': 'Kết nối {name} sẽ kết thúc kết nối với {current}.',
   'settings.vpn.keepSaved': 'Thông tin đăng nhập của bạn đã được lưu. Để trống một trường để giữ nội dung đã lưu.',

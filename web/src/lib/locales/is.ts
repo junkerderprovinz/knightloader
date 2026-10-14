@@ -3705,6 +3705,8 @@ export const is: Dict = {
   'settings.vpn.providersTitle': 'Þjónustuaðilar',
   'settings.vpn.providersHint': 'Veldu þjónustuaðilann þinn og sláðu inn það sem hann biður um. Torrent nota eitt VPN í einu, svo ef þú tengir annað slitnar núverandi tenging.',
   'settings.vpn.custom': 'Eigin WireGuard-stilling',
+  'settings.vpn.appOnlyTitle': 'Ekki stutt',
+  'settings.vpn.appOnlyHint': 'Leyfir WireGuard aðeins í eigin appi.',
   'settings.vpn.customSub': 'Hvaða WireGuard-þjónn sem er',
   'settings.vpn.replaces': 'Ef þú tengir {name} slitnar tengingin við {current}.',
   'settings.vpn.keepSaved': 'Innskráningin þín er vistuð. Skildu reit eftir auðan til að halda því sem er vistað.',

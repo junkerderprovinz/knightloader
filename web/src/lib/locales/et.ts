@@ -3701,6 +3701,8 @@ export const et: Dict = {
   'settings.vpn.providersTitle': 'Teenusepakkujad',
   'settings.vpn.providersHint': 'Vali oma teenusepakkuja ja sisesta, mida ta küsib. Torrentid kasutavad korraga ühte VPN-i, nii et teise ühendamine lõpetab praeguse ühenduse.',
   'settings.vpn.custom': 'Oma WireGuardi seadistus',
+  'settings.vpn.appOnlyTitle': 'Ei toetata',
+  'settings.vpn.appOnlyHint': 'Lubab WireGuardi ainult oma rakenduses.',
   'settings.vpn.customSub': 'Mis tahes WireGuardi server',
   'settings.vpn.replaces': '{name} ühendamine lõpetab ühenduse teenusega {current}.',
   'settings.vpn.keepSaved': 'Sinu sisselogimisandmed on salvestatud. Jäta väli tühjaks, et salvestatu alles jääks.',

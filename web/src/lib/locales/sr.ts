@@ -3723,6 +3723,8 @@ export const sr: Dict = {
   'settings.vpn.providersTitle': 'Провајдери',
   'settings.vpn.providersHint': 'Изабери свог провајдера и унеси оно што тражи. Торенти користе један VPN одједном, па повезивање другог прекида тренутну везу.',
   'settings.vpn.custom': 'Сопствена WireGuard конфигурација',
+  'settings.vpn.appOnlyTitle': 'Није подржано',
+  'settings.vpn.appOnlyHint': 'Дозвољава WireGuard само у сопственој апликацији.',
   'settings.vpn.customSub': 'Било који WireGuard сервер',
   'settings.vpn.replaces': 'Повезивање са {name} прекида везу са {current}.',
   'settings.vpn.keepSaved': 'Твоја пријава је сачувана. Остави поље празно да задржиш оно што је сачувано.',

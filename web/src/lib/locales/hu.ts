@@ -3711,6 +3711,8 @@ export const hu: Dict = {
   'settings.vpn.providersTitle': 'Szolgáltatók',
   'settings.vpn.providersHint': 'Válaszd ki a szolgáltatódat, és add meg, amit kér. A torrentek egyszerre egy VPN-t használnak, ezért egy másik csatlakoztatása megszünteti a jelenlegi kapcsolatot.',
   'settings.vpn.custom': 'Saját WireGuard-konfiguráció',
+  'settings.vpn.appOnlyTitle': 'Nem támogatott',
+  'settings.vpn.appOnlyHint': 'A WireGuardot csak a saját alkalmazásában engedi.',
   'settings.vpn.customSub': 'Bármilyen WireGuard-kiszolgáló',
   'settings.vpn.replaces': 'A(z) {name} csatlakoztatása megszünteti a kapcsolatot ezzel: {current}.',
   'settings.vpn.keepSaved': 'A bejelentkezésed el van mentve. Hagyd üresen a mezőt, ha meg akarod tartani a mentett értéket.',

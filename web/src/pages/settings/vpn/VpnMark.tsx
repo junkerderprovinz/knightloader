@@ -3,11 +3,11 @@ import { Monogram } from '../../../components/HosterIcon';
 import type { VpnConnState, VpnProvider } from '../../../lib/api';
 import { withBase } from '../../../lib/basePath';
 import type { TranslationKey } from '../../../lib/i18n';
-import { VPN_PROVIDERS } from '../../../lib/vpnProviders';
+import { VPN_APP_ONLY, VPN_PROVIDERS } from '../../../lib/vpnProviders';
 
 type T = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-const WITH_LOGO = new Set(VPN_PROVIDERS.filter((p) => p.logo).map((p) => p.id));
+const WITH_LOGO = new Set([...VPN_PROVIDERS, ...VPN_APP_ONLY].filter((p) => p.logo).map((p) => p.id));
 
 /** VpnMark is a provider's logo from public/vpn, or its letter tile where there is none. */
 export function VpnMark({ id, name, size }: { id: string; name: string; size: number }) {

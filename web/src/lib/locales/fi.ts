@@ -3711,6 +3711,8 @@ export const fi: Dict = {
   'settings.vpn.providersTitle': 'Palveluntarjoajat',
   'settings.vpn.providersHint': 'Valitse palveluntarjoajasi ja anna pyydetyt tiedot. Torrentit käyttävät yhtä VPN:ää kerrallaan, joten toisen yhdistäminen katkaisee nykyisen yhteyden.',
   'settings.vpn.custom': 'Oma WireGuard-määritys',
+  'settings.vpn.appOnlyTitle': 'Ei tuettu',
+  'settings.vpn.appOnlyHint': 'Sallii WireGuardin vain omassa sovelluksessaan.',
   'settings.vpn.customSub': 'Mikä tahansa WireGuard-palvelin',
   'settings.vpn.replaces': 'Palvelun {name} yhdistäminen katkaisee yhteyden palveluun {current}.',
   'settings.vpn.keepSaved': 'Kirjautumisesi on tallennettu. Jätä kenttä tyhjäksi, jos haluat säilyttää tallennetun.',

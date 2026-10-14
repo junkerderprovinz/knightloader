@@ -3689,6 +3689,8 @@ export const ru: Dict = {
   'settings.vpn.providersTitle': 'Провайдеры',
   'settings.vpn.providersHint': 'Выберите своего провайдера и введите то, что он запрашивает. Торренты используют один VPN за раз, поэтому подключение другого завершает текущее соединение.',
   'settings.vpn.custom': 'Своя конфигурация WireGuard',
+  'settings.vpn.appOnlyTitle': 'Не поддерживается',
+  'settings.vpn.appOnlyHint': 'Разрешает WireGuard только в собственном приложении.',
   'settings.vpn.customSub': 'Любой сервер WireGuard',
   'settings.vpn.replaces': 'Подключение {name} завершит соединение с {current}.',
   'settings.vpn.keepSaved': 'Ваши данные для входа сохранены. Оставьте поле пустым, чтобы сохранить то, что уже хранится.',
