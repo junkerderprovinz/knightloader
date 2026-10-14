@@ -12,10 +12,11 @@ import {
   type ResetCodePlace,
 } from '../lib/api';
 import { useT } from '../lib/i18n';
-import { Button, Card, Field, PasswordInput, TextInput } from '../components/ui';
+import { Button, Card, PasswordInput, TextInput } from '../components/ui';
 import { IconKey } from '../lib/icons';
 import { LanguagePicker } from '../components/LanguagePicker';
 import { PasswordReset } from './PasswordReset';
+import { SettingRow } from '../pages/settings/controls';
 
 // AuthGate shows the app, or the sign-in screen when the instance is locked.
 // While the state is still unknown it renders nothing, so a locked instance
@@ -162,7 +163,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
             <>
               <form className="flex flex-col gap-5" onSubmit={submit}>
                 {step === 'password' ? (
-                  <Field label={t('auth.password')}>
+                  <SettingRow control="long" label={t('auth.password')}>
                     <PasswordInput
                       value={password}
                       onChange={setPassword}
@@ -171,9 +172,9 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                       showLabel={t('common.showPassword')}
                       hideLabel={t('common.hidePassword')}
                     />
-                  </Field>
+                  </SettingRow>
                 ) : (
-                  <Field label={t('auth.twoFactor.confirmLabel')} hint={t('auth.twoFactor.signInHint')}>
+                  <SettingRow control="long" label={t('auth.twoFactor.confirmLabel')} hint={t('auth.twoFactor.signInHint')}>
                     <TextInput
                       autoFocus
                       value={code}
@@ -183,7 +184,7 @@ function SignIn({ onSignedIn }: { onSignedIn: (a: AuthState) => void }) {
                       placeholder="000000"
                       dir="ltr"
                     />
-                  </Field>
+                  </SettingRow>
                 )}
                 <div className="flex items-center gap-3">
                   <Button type="submit" disabled={busy || (step === 'code' ? code === '' : password === '')}>

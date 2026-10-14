@@ -82,7 +82,7 @@ export function WindowCard({ hue }: { hue: number }) {
         disabled={noTray}
         onChange={(v) => void change({ onMinimize: v ? 'tray' : 'taskbar' })}
       />
-      <SettingRow control="fit" label={t('tray.captcha')} hint={t('settings.window.captchaHint')}>
+      <SettingRow control="long" label={t('tray.captcha')} hint={t('settings.window.captchaHint')}>
         <Dropdown
           label={t('tray.captcha')}
           value={prefs.raiseOnAttention}

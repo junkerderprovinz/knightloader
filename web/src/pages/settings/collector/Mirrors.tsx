@@ -22,13 +22,12 @@ export function MirrorsCard({ hue }: { hue: number }) {
       {/* Drawn only once the server answered, since dedupe.ParsePolicy
           silently folds an unknown value onto the default. */}
       {policies.length > 0 && (
-        <SettingRow label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
+        <SettingRow control="long" label={tx('settings.advanced.mirrorPolicy')} hint={tx('settings.advanced.mirrorPolicyHint')}>
           <Dropdown
             label={tx('settings.advanced.mirrorPolicy')}
             value={cfg.mirrorPolicy ?? null}
             onChange={(mirrorPolicy) => patch({ mirrorPolicy })}
             options={policies.map((id) => ({ value: id, label: label(tx, 'settings.advanced.mirror.', id) }))}
-            width="widest"
           />
         </SettingRow>
       )}

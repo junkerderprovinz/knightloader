@@ -2,10 +2,11 @@ import { useMemo, useState, type ReactNode, type SVGProps } from 'react';
 import { type QueueMove, type Task, queueMove, setPackage } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
-import { Button, Field, Modal } from './ui';
+import { Button, Modal } from './ui';
 import { SuggestField } from './SuggestField';
 import type { MenuGroup, MenuItem } from './ContextMenu';
 import { IconClose, IconFirst, IconFolder, IconLatest, IconMoveDown, IconMoveUp, IconPriority } from '../lib/icons';
+import { SettingRow } from '../pages/settings/controls';
 
 // Split by hoster: one package's box forking into three per-host boxes, drawn
 // solid like the glyphs in lib/icons.tsx.
@@ -181,7 +182,7 @@ export function PackageMoveDialog({
         </>
       }
     >
-      <Field label={t('pkg.name')} hint={t('collector.movePrompt')}>
+      <SettingRow control="long" label={t('pkg.name')} hint={t('collector.movePrompt')}>
         {/* An empty name ungroups, so it is allowed. */}
         <SuggestField
           autoFocus
@@ -191,7 +192,7 @@ export function PackageMoveDialog({
           label={t('pkg.name')}
           onEnter={() => onApply(name.trim())}
         />
-      </Field>
+      </SettingRow>
     </Modal>
   );
 }

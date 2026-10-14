@@ -338,7 +338,7 @@ function ScriptRow({
                 onChange={(e) => update({ name: e.target.value })}
               />
             </SettingRow>
-            <SettingRow control="fit" label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
+            <SettingRow control="long" label={t('settings.scripts.trigger')} hint={t('settings.scripts.triggerHint')}>
               <TriggerSelect
                 label={t('settings.scripts.trigger')}
                 value={draft.trigger}

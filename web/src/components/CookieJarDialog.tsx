@@ -12,6 +12,7 @@ import { hostOf } from '../lib/searchQuery';
 import { useT } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { Button, Field, Modal, TextArea, TextInput, ToggleRow } from './ui';
+import { SettingRow } from '../pages/settings/controls';
 
 /**
  * CookieJarDialog stores a sign-in cookie jar for a site, opened from a failed
@@ -106,7 +107,7 @@ export function CookieJarDialog({
       }
     >
       <div className="flex flex-col gap-4">
-        <Field label={t('settings.resolvers.cookieHost')} hint={t('cookies.hostHint')}>
+        <SettingRow control="long" label={t('settings.resolvers.cookieHost')} hint={t('cookies.hostHint')}>
           <TextInput
             dir="ltr"
             spellCheck={false}
@@ -116,7 +117,7 @@ export function CookieJarDialog({
             autoFocus={!task}
             onChange={(e) => setHost(e.target.value)}
           />
-        </Field>
+        </SettingRow>
         <Field label={t('settings.resolvers.cookieText')} hint={t('cookies.jarHint')}>
           <TextArea
             rows={6}

@@ -11,7 +11,7 @@ import {
   type HeaderProfile,
   type HeaderProfileLine,
 } from '../../../lib/api';
-import { SettingRow } from '../controls';
+import { SettingRow, SubCard, SubHead } from '../controls';
 
 // Header profiles hold a person's own request headers for one site, such as a
 // session cookie, a Referer or Basic auth. The values are sealed and never come
@@ -233,9 +233,34 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
             </SettingRow>
           </div>
 
-          <div className="flex flex-col gap-2">
+          <div className="flex flex-col gap-3">
+            <SubHead
+              label={t('settings.headerProfiles.headers')}
+              right={
+                <Button
+                  kind="secondary"
+                  icon={<IconAdd width={16} height={16} />}
+                  onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
+                >
+                  {t('settings.headerProfiles.addHeader')}
+                </Button>
+              }
+            />
             {draft.lines.map((line, i) => (
-              <div key={i} className="grid grid-cols-[minmax(0,12rem)_1fr_auto] items-end gap-2">
+              // Headed by the header it holds, so a long profile reads as a list of headers.
+              <SubCard
+                key={i}
+                label={line.name.trim() || String(i + 1)}
+                right={
+                  <IconBadge
+                    icon={<IconTrash width={16} height={16} />}
+                    hue={i}
+                    title={t('settings.headerProfiles.removeHeader')}
+                    aria-label={t('settings.headerProfiles.removeHeader')}
+                    onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, j) => j !== i) })}
+                  />
+                }
+              >
                 <SettingRow control="long" label={t('settings.headerProfiles.headerName')}>
                   <TextInput
                     dir="ltr"
@@ -257,23 +282,8 @@ export function HeaderProfilesCard({ hue }: { hue: number }) {
                     onChange={(e) => patchLine(i, { value: e.target.value, stored: false })}
                   />
                 </SettingRow>
-                <IconBadge
-                  icon={<IconTrash width={16} height={16} />}
-                  hue={i}
-                  title={t('settings.headerProfiles.removeHeader')}
-                  aria-label={t('settings.headerProfiles.removeHeader')}
-                  onClick={() => setDraft({ ...draft, lines: draft.lines.filter((_, j) => j !== i) })}
-                />
-              </div>
+              </SubCard>
             ))}
-            <Button
-              kind="secondary"
-              className="w-fit"
-              icon={<IconAdd width={16} height={16} />}
-              onClick={() => setDraft({ ...draft, lines: [...draft.lines, { name: '', value: '', stored: false }] })}
-            >
-              {t('settings.headerProfiles.addHeader')}
-            </Button>
           </div>
 
           {/* Why the save was refused, above the buttons until the next try. */}

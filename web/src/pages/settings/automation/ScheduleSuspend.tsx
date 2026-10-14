@@ -92,7 +92,7 @@ export function ScheduleSuspendField({
 
   return (
     <SettingRow
-      control="fit"
+      control="long"
       label={t('settings.schedule.suspend')}
       hint={idle ? `${blocked} ${t('settings.schedule.suspendHint')}` : t('settings.schedule.suspendHint')}
     >
