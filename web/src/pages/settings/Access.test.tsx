@@ -61,7 +61,14 @@ describe('Access', () => {
     vi.stubGlobal(
       'fetch',
       vi.fn((url: string) => {
-        const body = url === '/api/auth' ? auth : url === '/api/remote-access' ? { exposed: false } : [];
+        const body =
+          url === '/api/auth'
+            ? auth
+            : url === '/api/remote-access'
+              ? { exposed: false }
+              : url === '/api/mcp'
+                ? { path: '/mcp', clients: [], tools: [] }
+                : [];
         return Promise.resolve(new Response(JSON.stringify(body), { headers: { 'Content-Type': 'application/json' } }));
       }),
     );

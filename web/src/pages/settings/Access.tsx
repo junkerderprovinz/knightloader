@@ -48,6 +48,7 @@ import { unusedProxyRanges } from '../../lib/trustedProxies';
 import { useDraft } from './context';
 import { ListArea, RowRefusal, SettingRow } from './controls';
 import { ModuleToggle } from './ModuleToggle';
+import { McpCard } from './McpCard';
 import { PasskeyCard } from './access/PasskeyCard';
 import {
   PRESET_LABEL,
@@ -71,6 +72,8 @@ export function Access() {
    * takes the second factor with it.
    */
   const [authVersion, setAuthVersion] = useState(0);
+  // Bumped when the MCP card issues or revokes a token, so the token list shows it.
+  const [tokensVersion, setTokensVersion] = useState(0);
 
   // The pairing section lived on this page, so an old link to it lands
   // on the page it has moved to.
@@ -84,7 +87,9 @@ export function Access() {
           one without the other. */}
       <SecondWaysIn version={authVersion} onChanged={() => setAuthVersion((n) => n + 1)} />
 
-      <TokensSection />
+      <TokensSection version={tokensVersion} />
+
+      <McpCard onTokensChanged={() => setTokensVersion((n) => n + 1)} />
     </div>
   );
 }
@@ -268,7 +273,7 @@ function SecondWaysIn({ version, onChanged }: { version: number; onChanged: () =
   );
 }
 
-export function TokensSection() {
+export function TokensSection({ version = 0 }: { version?: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const [tokens, setTokens] = useState<ApiToken[]>([]);
@@ -287,7 +292,7 @@ export function TokensSection() {
   const load = () => fetchTokens().then(setTokens).catch(() => {});
   useEffect(() => {
     load();
-  }, []);
+  }, [version]);
 
   async function onCreate() {
     setCreating(true);
