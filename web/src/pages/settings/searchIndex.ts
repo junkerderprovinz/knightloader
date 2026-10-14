@@ -60,6 +60,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'intake.clipboardWatchTarget', hint: 'intake.clipboardWatchTargetHint' },
         { key: 'settings.autoStart', hint: 'settings.autoStartHint' },
         { key: 'settings.module.watch', hint: 'settings.watchDirFilesHint' },
+        { key: 'task.folder' },
       ],
       // What the watch folder's (i) adds while there is nothing to switch on,
       // or a parked folder to bring back.
@@ -425,11 +426,10 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
       // The hint sends the reader to the captcha accounts card by its name,
-      // the button that ends the test row to the module's switch on the
-      // Modules page, and the card without an account to the button that adds
-      // one.
-      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'settings.nav.modules', 'accounts.newAccount'],
-      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty', 'accounts.addPointer'],
+      // and the button that ends the test row to the module's switch on the
+      // Modules page.
+      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'settings.nav.modules'],
+      body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty'],
     },
     // The fields are in the window a server row opens, so they lead to the card.
     {
@@ -631,11 +631,31 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.rules.category',
         'settings.rules.import',
         'settings.rules.export',
+        'settings.rules.name',
+        'settings.rules.sectionIf',
+        'settings.rules.sectionThen',
       ],
-      // The (i) inside the Import and Export buttons, and the variables menu's.
-      body: ['settings.rules.importTitle', 'settings.rules.exportTitle', 'settings.rules.variablesHint'],
+      // The (i) inside the Import and Export buttons, the variables menu's,
+      // and the open rule's.
+      body: [
+        'settings.rules.importTitle',
+        'settings.rules.exportTitle',
+        'settings.rules.variablesHint',
+        'settings.rules.nameHint',
+        'settings.rules.ifHint',
+        'settings.rules.thenHintPackagizer',
+        'settings.rules.thenHintFilter',
+      ],
     },
-    { title: 'settings.rules.testTitle', rows: [], body: ['settings.rules.testHint'] },
+    {
+      title: 'settings.rules.testTitle',
+      rows: [
+        { key: 'settings.rules.testSource', hint: 'settings.rules.testSourceHint' },
+        { key: 'settings.rules.testSize', hint: 'settings.rules.sizeHint' },
+        { key: 'settings.rules.testPackage', hint: 'settings.rules.testPackageHint' },
+      ],
+      body: ['settings.rules.testHint'],
+    },
     {
       title: 'settings.categories.listTitle',
       hint: 'settings.categories.listHint',
@@ -723,6 +743,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       rows: [
         { key: 'settings.headerProfiles.name', hint: 'settings.headerProfiles.nameHint' },
         { key: 'settings.headerProfiles.origin', hint: 'settings.headerProfiles.originHint' },
+        { key: 'settings.headerProfiles.headers' },
         { key: 'settings.headerProfiles.headerName' },
         { key: 'settings.headerProfiles.headerValue' },
         { key: 'settings.headerProfiles.valueStored', hint: 'settings.headerProfiles.valueStoredHint' },
