@@ -72,6 +72,8 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/network/', pages: ['network'] },
   { file: 'src/pages/settings/Connections.tsx', pages: ['network'] },
   { file: 'src/pages/settings/Reconnect.tsx', pages: ['network'] },
+  { file: 'src/pages/settings/Vpn.tsx', pages: ['vpn'] },
+  { file: 'src/pages/settings/vpn/', pages: ['vpn'] },
   { file: 'src/pages/settings/Resolvers.tsx', pages: ['resolvers'] },
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
@@ -100,6 +102,11 @@ const FILE_PAGES = [
  * reason.
  */
 const EXCLUDED = new Map([
+  [
+    'settings.vpn.exitIp',
+    "the connected provider's address as a badge, which reads as the address and nothing to search for",
+  ],
+  ['settings.vpn.port', 'the same, for the forwarded port'],
   // Not a row, and not a card either.
   [
     'common.loading',

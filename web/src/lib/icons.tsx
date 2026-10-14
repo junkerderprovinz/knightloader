@@ -116,3 +116,12 @@ export const IconSpeedLimit = (p: GlyphProps) => (
     />
   </svg>
 );
+
+/** A forwarded port: an arrow into an open frame, a connection coming in.
+ *  KnightLoader's drawing on a 14-unit grid. */
+export const IconPortForward = (p: GlyphProps) => (
+  <svg {...glyph([1, 1, 12, 12], p)}>
+    <path d="M7 1h4.5A1.5 1.5 0 0 1 13 2.5v9a1.5 1.5 0 0 1-1.5 1.5H7v-1.75h4.25V2.75H7Z" />
+    <path d="M1 6.125h5.38L4.63 4.37l1.24-1.24L9.74 7l-3.87 3.87-1.24-1.24 1.75-1.755H1Z" />
+  </svg>
+);
