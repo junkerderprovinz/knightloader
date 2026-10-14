@@ -64,6 +64,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 	"github.com/junkerderprovinz/knightloader/internal/store"
 	"github.com/junkerderprovinz/knightloader/internal/throttle"
+	"github.com/junkerderprovinz/knightloader/internal/vpnconn"
 	"github.com/junkerderprovinz/knightloader/internal/watch"
 )
 
@@ -94,11 +95,13 @@ type doer interface {
 }
 
 type App struct {
-	Store      *store.Store
-	Engine     *engine.Engine
-	Hub        *hub.Hub
-	Registry   *resolver.Registry
-	Accounts   *accounts.Store
+	Store    *store.Store
+	Engine   *engine.Engine
+	Hub      *hub.Hub
+	Registry *resolver.Registry
+	Accounts *accounts.Store
+	// VPN is the connection the built-in torrent client goes through.
+	VPN        *vpnconn.Manager
 	Settings   *settings.Store
 	Federation *federation.Manager
 	Auth       *auth.Guard
@@ -590,6 +593,10 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 	a.Accounts = acc
+	if err := a.openVPN(); err != nil {
+		st.Close()
+		return nil, err
+	}
 
 	guard, err := auth.OpenWithKey(dataDir, key)
 	if err != nil {
@@ -955,6 +962,10 @@ func (a *App) Close() error {
 	if a.ClipWatch != nil {
 		a.ClipWatch.Close(time.Now())
 	}
+	// Before the engine, whose torrent sockets it carries.
+	if a.VPN != nil {
+		a.VPN.Close()
+	}
 	if a.Engine != nil {
 		a.Engine.Close()
 	}
@@ -1264,7 +1275,7 @@ func (a *App) applyConnections(s settings.Settings) {
 // logged rather than failing the save or the boot. It also fetches the public
 // tracker list when that is due.
 func (a *App) applyTorrentConfig(t settings.Torrent) {
-	if err := a.Engine.SetTorrentConfig(torrentConfig(t)); err != nil {
+	if err := a.Engine.SetTorrentConfig(a.withVPN(torrentConfig(t))); err != nil {
 		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
 	}
 	a.refreshTrackerList(t.TrackerListURL)

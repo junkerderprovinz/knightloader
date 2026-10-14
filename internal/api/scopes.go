@@ -313,6 +313,11 @@ var routeScopes = map[string]apitoken.Scope{
 	"DELETE /api/usenet/servers/{id}": apitoken.ScopeAdmin,
 	"POST /api/usenet/servers/test":   apitoken.ScopeAdmin,
 
+	"GET /api/vpn":               apitoken.ScopeAdmin,
+	"POST /api/vpn/{id}/connect": apitoken.ScopeAdmin,
+	"POST /api/vpn/disconnect":   apitoken.ScopeAdmin,
+	"DELETE /api/vpn/{id}":       apitoken.ScopeAdmin,
+
 	// Layout only: the buckets the instance keeps for itself are refused
 	// whatever the scope (serverBuckets).
 	"GET /api/uistate": apitoken.ScopeRead,
