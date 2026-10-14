@@ -5,7 +5,7 @@ import {
   type TextareaHTMLAttributes,
 } from 'react';
 import { PathInput } from '../../components/FolderPicker';
-import { Button, HintBubble, Modal, TextArea } from '../../components/ui';
+import { Button, HintBubble, Modal, RowLabel, TextArea } from '../../components/ui';
 import { hueVars } from '../../lib/appearance';
 import { IconClose } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
@@ -13,13 +13,15 @@ import { useFieldError } from './context';
 
 type Hint = ComponentProps<typeof HintBubble>['hint'];
 
-/** How wide a SettingRow's one field is: as wide as it draws itself, a number's width, or a line of text's. */
-export type RowControl = 'fit' | 'short' | 'long';
+/** How wide a SettingRow's one field is: a number's width, or a line of text's, which a dropdown takes too. */
+export type RowControl = 'short' | 'long';
 
+// Each width gives way where the row has less room, down to what still sits
+// beside the name's 12.5rem, so a dialog or a phone keeps name and field on one
+// line. Below that the field takes a line of its own at the row's width.
 const CONTROL_WIDTH: Record<RowControl, string> = {
-  fit: '',
-  short: 'w-40 max-w-full',
-  long: 'w-80 max-w-full',
+  short: 'w-full @min-[19rem]:w-[min(10rem,calc(100cqw-13.5rem))]',
+  long: 'w-full @min-[24rem]:w-[min(20rem,calc(100cqw-13.5rem))]',
 };
 
 /**
@@ -31,29 +33,32 @@ const CONTROL_WIDTH: Record<RowControl, string> = {
  *
  * `control` is for one dropdown or input field: the row becomes its <label>,
  * so the name is the field's name too, and the field takes a width that fits
- * beside the name. Every dropdown and input of a settings card stands this
- * way (check-setting-rows.mjs); a list or a text area keeps its name above it.
+ * beside the name. Every dropdown and input in the app stands this way
+ * (check-setting-rows.mjs); a list or a text area keeps its name above it.
+ * `compound` is for a field with buttons of its own: it gets the same width,
+ * but no <label>, which would hand a click on any of them to the field.
  */
 export function SettingRow({
   label,
   hint,
   control,
+  compound = false,
   children,
 }: {
   label: string;
   hint?: Hint;
   control?: RowControl;
+  compound?: boolean;
   children: ReactNode;
 }) {
-  const Row = control ? 'label' : 'div';
+  const Row = control && !compound ? 'label' : 'div';
   return (
-    <Row className="flex flex-wrap items-center justify-end gap-x-4 gap-y-2">
+    <Row className={`flex flex-wrap items-center justify-end gap-x-4 gap-y-2 ${control ? '@container w-full' : ''}`}>
       {/* data-glim-label is where the settings search scrolls to, as on ToggleRow. */}
-      <span data-glim-label={label} className="flex min-w-0 flex-[1_1_12.5rem] items-center gap-1.5 text-sm text-carbon-text">
-        {label}
-        <HintBubble hint={hint} />
+      <span data-glim-label={label} className="min-w-0 flex-[1_1_12.5rem] text-sm text-carbon-text">
+        <RowLabel label={label} hint={hint} />
       </span>
-      {control && control !== 'fit' ? <span className={CONTROL_WIDTH[control]}>{children}</span> : children}
+      {control ? <span className={CONTROL_WIDTH[control]}>{children}</span> : children}
     </Row>
   );
 }

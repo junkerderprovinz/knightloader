@@ -34,19 +34,17 @@ class OffScreen {
 const button = (text: string) =>
   [...document.querySelectorAll<HTMLButtonElement>('button')].reverse().find((b) => b.textContent === text)!;
 
-/** The kinds the add window offers, by name, in the order of its tiles. */
-const kindTiles = () =>
-  [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] .glim-kind-pick button')].map(
-    (b) => b.querySelector('.glim-readme-btn-name')!.textContent,
-  );
+/** The card headed `title`. */
+const card = (title: string) =>
+  [...host.querySelectorAll('.glim-card')].find((c) => c.querySelector('h2')?.textContent?.startsWith(title))!;
 
-/** addKind presses the floating action and picks a kind's tile in its window. */
-async function addKind(kind: string) {
-  await act(async () => button('Add an account').click());
-  const tile = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] .glim-kind-pick button')].find(
-    (b) => b.querySelector('.glim-readme-btn-name')!.textContent === kind,
-  )!;
-  await act(async () => tile.click());
+/** The Add button at the end of a card's heading. */
+const adder = (title: string) =>
+  [...card(title).querySelectorAll<HTMLButtonElement>('button')].find((b) => /^Add /.test(b.textContent ?? ''));
+
+/** addIn presses the Add button of the card headed `title`. */
+async function addIn(title: string) {
+  await act(async () => adder(title)!.click());
 }
 
 // jsdom has no SMIL clock for the priority pictures to hold.
@@ -54,7 +52,7 @@ Object.assign(SVGSVGElement.prototype, { pauseAnimations() {}, unpauseAnimations
 
 beforeEach(() => {
   patched = [];
-  // A desktop width, where the floating action shows its words.
+  // A desktop width, with a pointer.
   vi.stubGlobal('matchMedia', () => ({ matches: false, addEventListener() {}, removeEventListener() {} }));
   vi.stubGlobal('WebSocket', QuietSocket);
   vi.stubGlobal('IntersectionObserver', OffScreen);
@@ -243,7 +241,7 @@ it('adds the login for an own server under its hostname, cut from a pasted link'
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await addKind('Own server');
+  await addIn('Own servers');
   type(field('Hostname'), 'ftp://Seedbox.Example.net:2121/files/');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
@@ -295,7 +293,7 @@ it('saves an own server only under a name a host can have', async () => {
     act(() => input.dispatchEvent(new Event('input', { bubbles: true })));
   };
 
-  await addKind('Own server');
+  await addIn('Own servers');
   type(field('Username'), 'knight');
   type(field('Password'), 'hunter2');
   for (const name of ['nas!box', 'nas"box', 'nas{box}', 'two words']) {
@@ -389,43 +387,44 @@ function stubCatalogue(catalogue: unknown[]) {
 
 const windowTitle = () => document.querySelector('[role="dialog"] h2')?.textContent;
 
-it('adds every kind of account from one floating action, a tile each in the order of the cards', async () => {
+it('gives every card its own Add button at the end of its heading', async () => {
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  const adders = [...document.querySelectorAll('button')].filter((b) => /^Add /.test(b.textContent ?? ''));
-  expect(adders.map((b) => b.textContent)).toEqual(['Add an account']);
-  expect(adders[0].closest('.glim-card')).toBeNull();
-
-  await act(async () => adders[0].click());
-  expect(windowTitle()).toContain('Add an account');
-  expect(kindTiles()).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Own server', 'Captcha account']);
-  // Each tile says in its second line what the kind is for.
-  const server = document.querySelector('[role="dialog"] button[aria-label^="Own server"]')!;
-  expect(server.getAttribute('aria-label')).toBe('Own server FTP, SFTP or WebDAV');
+  const titles = ['Debrid accounts', 'Usenet servers', 'Hoster accounts', 'Own servers', 'Captcha accounts'];
+  expect(titles.map((t) => adder(t)?.textContent)).toEqual([
+    'Add an account',
+    'Add a server',
+    'Add an account',
+    'Add a server',
+    'Add an account',
+  ]);
+  const loose = [...document.querySelectorAll('button')].filter(
+    (b) => /^Add /.test(b.textContent ?? '') && !b.closest('.glim-card'),
+  );
+  expect(loose).toEqual([]);
 });
 
-it('offers no own server where the instance has no such service', async () => {
+it('offers no own server card where the instance has no such service', async () => {
   stubCatalogue(services.filter((s) => s.group !== 'remoteServer'));
   await act(async () => root.render(page));
-  await act(async () => button('Add an account').click());
-  expect(kindTiles()).toEqual(['Debrid account', 'Usenet server', 'Hoster account', 'Captcha account']);
+  expect(card('Own servers')).toBeUndefined();
 });
 
-it('closes the kinds and opens the window of the kind picked', async () => {
+it('opens the picker of its own kind from a card, in one window', async () => {
   stubCatalogue(services);
   await act(async () => root.render(page));
-  await addKind('Captcha account');
+  await addIn('Captcha accounts');
   expect(document.querySelectorAll('[role="dialog"]')).toHaveLength(1);
-  expect(document.querySelector('.glim-kind-pick')).toBeNull();
   expect(document.querySelector('[data-new="account-picker"]')?.textContent).toContain('CapSolver');
+  expect(document.querySelector('[data-new="account-picker"]')?.textContent).not.toContain('TorBox');
 });
 
-it('opens the list of services for the picked kind, and a new account leads back to it', async () => {
+it('opens the list of services from the debrid card, and a new account leads back to it', async () => {
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  await addKind('Debrid account');
+  await addIn('Debrid accounts');
   expect(windowTitle()).toContain('Choose a debrid account');
   // A tile is the brand's name over the site it lives at.
   const service = [...document.querySelectorAll<HTMLButtonElement>('[role="dialog"] button')].find(
@@ -442,7 +441,7 @@ it('opens the list of services for the picked kind, and a new account leads back
   expect(windowTitle()).toContain('Choose a debrid account');
 
   await act(async () => button('Cancel').click());
-  await addKind('Captcha account');
+  await addIn('Captcha accounts');
   expect(windowTitle()).toContain('Choose a captcha account');
 });
 
@@ -450,29 +449,20 @@ it('opens the window of the cards that keep their own, each time it is asked for
   stubCatalogue(services);
   await act(async () => root.render(page));
 
-  await addKind('Usenet server');
+  await addIn('Usenet servers');
   expect(windowTitle()).toContain('New Usenet server');
   await act(async () => button('Cancel').click());
   expect(document.querySelector('[role="dialog"]')).toBeNull();
-  await addKind('Usenet server');
+  await addIn('Usenet servers');
   expect(windowTitle()).toContain('New Usenet server');
   await act(async () => button('Cancel').click());
 
-  await addKind('Hoster account');
+  await addIn('Hoster accounts');
   expect(windowTitle()).toContain('Choose a hoster account');
   await act(async () => button('Cancel').click());
   expect(document.querySelector('[role="dialog"]')).toBeNull();
-  await addKind('Hoster account');
+  await addIn('Hoster accounts');
   expect(windowTitle()).toContain('Choose a hoster account');
-});
-
-it('sends the reader of an empty card to the floating action by its name', async () => {
-  stubCatalogue(services);
-  await act(async () => root.render(page));
-  const pointer = 'To add one, use “Add an account” at the bottom of the page.';
-  const empty = [...host.querySelectorAll('.glim-well')].filter((w) => w.textContent?.includes('yet'));
-  expect(empty).toHaveLength(6);
-  for (const card of empty) expect(card.textContent).toContain(pointer);
 });
 
 it('opens an account from anywhere on its row, and its menu on a right click', async () => {

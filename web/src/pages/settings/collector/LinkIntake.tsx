@@ -74,7 +74,7 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
           />
           {targets.length > 1 && (
             <SettingRow
-              control="fit"
+              control="long"
               label={t('intake.clipboardWatchTarget')}
               hint={t('intake.clipboardWatchTargetHint')}
             >
@@ -116,15 +116,17 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
         parkedHint={t('settings.linkIntake.watchParked')}
       >
         {!watchParked && (
-          <SettingPathInput
-            field="watchDir"
-            value={cfg.watchDir}
-            onValue={(watchDir) => patch({ watchDir })}
-            placeholder="/watch"
-            title={t('settings.module.watch')}
-            label={t('settings.module.watch')}
-            missingHint={t('folders.newWatch')}
-          />
+          <SettingRow control="long" label={t('task.folder')}>
+            <SettingPathInput
+              field="watchDir"
+              value={cfg.watchDir}
+              onValue={(watchDir) => patch({ watchDir })}
+              placeholder="/watch"
+              title={t('settings.module.watch')}
+              label={t('settings.module.watch')}
+              missingHint={t('folders.newWatch')}
+            />
+          </SettingRow>
         )}
       </ModuleToggle>
     </Card>

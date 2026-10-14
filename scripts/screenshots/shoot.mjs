@@ -94,8 +94,8 @@ const SCENES = [
     // The sample matches fixtures/rules/preview.json. The page then scrolls to
     // the rule list, so the test box fits below it.
     async act(page) {
-      await page.getByPlaceholder('Link URL').fill('https://files.example/d/7f3k2/tears_of_steel_1080p.mkv');
-      const name = page.getByPlaceholder('File name');
+      await page.getByLabel('Link URL', { exact: true }).fill('https://files.example/d/7f3k2/tears_of_steel_1080p.mkv');
+      const name = page.getByLabel('File name', { exact: true });
       await name.fill('tears_of_steel_1080p.mkv');
       await name.blur();
       await page.getByText('Rules, in the order they run').evaluate((el) => el.scrollIntoView({ block: 'start' }));

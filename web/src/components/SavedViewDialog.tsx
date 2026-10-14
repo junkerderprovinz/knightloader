@@ -2,9 +2,10 @@
 import { useState } from 'react';
 import { useT } from '../lib/i18n';
 import { IconClose } from '../lib/icons';
-import { Button, Field, Modal, TextInput } from './ui';
+import { Button, Modal, TextInput } from './ui';
 import { MAX_VIEW_NAME } from '../lib/savedViews';
 import type { SavedView } from '../lib/listNarrowing';
+import { SettingRow } from '../pages/settings/controls';
 
 /**
  * ViewNameDialog names a new view or renames one.
@@ -55,7 +56,7 @@ export function ViewNameDialog({
         </>
       }
     >
-      <Field label={t('views.nameLabel')} hint={t('views.saveHint')}>
+      <SettingRow control="long" label={t('views.nameLabel')} hint={t('views.saveHint')}>
         <TextInput
           autoFocus
           value={name}
@@ -66,7 +67,7 @@ export function ViewNameDialog({
             if (e.key === 'Enter' && !blocked) onConfirm(clean);
           }}
         />
-      </Field>
+      </SettingRow>
     </Modal>
   );
 }

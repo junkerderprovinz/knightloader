@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, FieldGroup, IconBadge, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, IconBadge, SectionTitle, ToggleRow } from '../../../components/ui';
 import { CookieJarDialog } from '../../../components/CookieJarDialog';
 import { IconAdd, IconTrash } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
 import { fetchYtdlpCookieHosts, removeYtdlpCookieJar } from '../../../lib/api';
 import { useDraft } from '../context';
+import { SubHead } from '../controls';
 
 /**
  * CookieJarsCard lists the stored cookies.txt files, one per site, beside the
@@ -66,53 +67,54 @@ export function CookieJarsCard({ hue }: { hue: number }) {
 
       {/* The jars stay usable while the switch is off: they are stored
           whatever it says, and removing one must stay possible. */}
-      <div className="flex flex-col gap-4">
-        <FieldGroup label={t('settings.resolvers.cookieJars')} hint={t('settings.resolvers.cookieJarsHint')}>
-          <div className="glim-well p-0">
-            {hosts.length === 0 ? (
-              <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.cookieEmpty')}</p>
-            ) : (
-              <ul className="flex flex-col">
-                {hosts.map((h, i) => (
-                  <li
-                    key={h}
-                    className={`flex items-center gap-3 px-4 py-2.5 ${
-                      i === hosts.length - 1 ? '' : 'border-b border-carbon-border/60'
-                    }`}
-                  >
-                    <span className="text-sm text-carbon-text" dir="ltr">
-                      {h}
-                    </span>
-                    <span className="glim-eyebrow">{t('settings.resolvers.cookieStored')}</span>
-                    <IconBadge
-                      className="ms-auto"
-                      icon={<IconTrash width={16} height={16} />}
-                      title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                      aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
-                      disabled={busy}
-                      onClick={() => void run(() => removeYtdlpCookieJar(h))}
-                    />
-                  </li>
-                ))}
-              </ul>
-            )}
-          </div>
-        </FieldGroup>
-
-        <div className="flex items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconAdd width={16} height={16} />}
-            disabled={busy}
-            onClick={() => {
-              setError('');
-              setAdding(true);
-            }}
-          >
-            {t('cookies.add')}
-          </Button>
-          {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
+      <div className="flex flex-col gap-3">
+        <SubHead
+          label={t('settings.resolvers.cookieJars')}
+          hint={t('settings.resolvers.cookieJarsHint')}
+          right={
+            <Button
+              kind="secondary"
+              icon={<IconAdd width={16} height={16} />}
+              disabled={busy}
+              onClick={() => {
+                setError('');
+                setAdding(true);
+              }}
+            >
+              {t('cookies.add')}
+            </Button>
+          }
+        />
+        <div className="glim-well p-0">
+          {hosts.length === 0 ? (
+            <p className="px-4 py-3 text-sm text-carbon-textMuted">{t('settings.resolvers.cookieEmpty')}</p>
+          ) : (
+            <ul className="flex flex-col">
+              {hosts.map((h, i) => (
+                <li
+                  key={h}
+                  className={`flex items-center gap-3 px-4 py-2.5 ${
+                    i === hosts.length - 1 ? '' : 'border-b border-carbon-border/60'
+                  }`}
+                >
+                  <span className="text-sm text-carbon-text" dir="ltr">
+                    {h}
+                  </span>
+                  <span className="glim-eyebrow">{t('settings.resolvers.cookieStored')}</span>
+                  <IconBadge
+                    className="ms-auto"
+                    icon={<IconTrash width={16} height={16} />}
+                    title={`${t('settings.resolvers.cookieRemove')} · ${h}`}
+                    aria-label={`${t('settings.resolvers.cookieRemove')} · ${h}`}
+                    disabled={busy}
+                    onClick={() => void run(() => removeYtdlpCookieJar(h))}
+                  />
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
+        {error && <p dir="auto" className="text-xs text-statusWarn">{error}</p>}
       </div>
 
       {adding && (

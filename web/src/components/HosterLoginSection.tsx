@@ -3,8 +3,8 @@
 // JD's hoster plugin performs the login; JD's own UI is never shown. The table
 // is AccountTable, shared with the debrid card; this file adds the JD status
 // badge and the host picker. The picker offers no debrid service: KnightLoader
-// speaks to each of those itself. The page's floating action opens the picker
-// through `adding`.
+// speaks to each of those itself. The card's Add button on the accounts page
+// opens the picker through `adding`.
 import { useCallback, useEffect, useState } from 'react';
 import {
   type HosterHost,
@@ -122,13 +122,10 @@ function hosterLoginRow(
 /** HosterLoginSection is the hoster card. */
 export function HosterLoginSection({
   data,
-  emptyPointer,
   adding,
   onAddClose,
 }: {
   data: HosterLogins;
-  /** The sentence of the empty card that names the page's add action. */
-  emptyPointer: string;
   /** The page asked for the window that adds a login. */
   adding: boolean;
   onAddClose: () => void;
@@ -161,7 +158,6 @@ export function HosterLoginSection({
           nested
           icon={<IconAccounts width={26} height={26} />}
           title={t('accounts.hoster.empty')}
-          hint={emptyPointer}
         />
       )}
 

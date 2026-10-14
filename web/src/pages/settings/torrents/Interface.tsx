@@ -62,7 +62,7 @@ export function InterfaceField({ value, onValue }: { value: string; onValue: (na
 
   return (
     <div className="flex flex-col gap-1.5">
-      <SettingRow control="fit" label={t('settings.torrents.interface')} hint={t('settings.torrents.interfaceHint')}>
+      <SettingRow control="long" label={t('settings.torrents.interface')} hint={t('settings.torrents.interfaceHint')}>
         <Dropdown label={t('settings.torrents.interface')} value={value} options={options} onChange={onValue} />
       </SettingRow>
       {value &&

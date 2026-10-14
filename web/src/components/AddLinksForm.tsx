@@ -26,7 +26,8 @@ import { PathInput } from './FolderPicker';
 import { PasteFromClipboardButton } from './PasteFromClipboardButton';
 import { LinkIntakeButtons } from './LinkIntakeButtons';
 import { Tabs } from './Tabs';
-import { Button, Field, FieldGroup, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
+import { Button, Field, IconBadge, Modal, SectionTitle, TextArea, TextInput, ToggleRow } from './ui';
+import { SettingRow } from '../pages/settings/controls';
 import { IconAdd, IconClose, IconCollector, IconFolder, IconGear } from '../lib/icons';
 
 // The same number JD keeps.
@@ -286,12 +287,16 @@ export function AddLinksForm({
 
   const options = (
     <>
-      <Field label={t('collector.package')}>
-        <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} className="max-w-xs" />
-      </Field>
-      <Field label={t('collector.destination')} hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}>
+      <SettingRow control="long" label={t('collector.package')}>
+        <TextInput value={pkg} onChange={(e) => onPkgChange(e.target.value)} />
+      </SettingRow>
+      <SettingRow
+        control="long"
+        label={t('collector.destination')}
+        hint={`${t('settings.downloadDirHint')} ${t('settings.pathVars')}`}
+      >
         <PathInput value={dir} placeholder="/downloads" title={t('collector.destination')} onValue={setDir} />
-      </Field>
+      </SettingRow>
       {recent.length > 0 && (
         <div className="flex flex-col gap-1.5">
           <span className="glim-eyebrow text-carbon-textSub">{t('collector.destinationRecent')}</span>
@@ -312,21 +317,24 @@ export function AddLinksForm({
         </div>
       )}
 
-      <FieldGroup label={t('props.priority')} hint={t('props.priorityHint')}>
+      <SettingRow label={t('props.priority')} hint={t('props.priorityHint')}>
         <Tabs
           variant="well"
           size="sm"
+          inline
           label={t('props.priority')}
           active={priority}
           onSelect={setPriority}
           items={priorities.map((p) => ({ id: p.id, label: p.label }))}
         />
-      </FieldGroup>
+      </SettingRow>
 
-      <FieldGroup label={t('props.autoExtract')} hint={t('props.autoExtractHint')}>
+      <SettingRow label={t('props.autoExtract')} hint={t('props.autoExtractHint')}>
         <Tabs
           variant="well"
           size="sm"
+          inline
+          hug
           label={t('props.autoExtract')}
           active={autoExtract}
           onSelect={(id) => setAutoExtract(id as 'inherit' | 'on' | 'off')}
@@ -336,20 +344,18 @@ export function AddLinksForm({
             { id: 'off', label: t('props.off') },
           ]}
         />
-      </FieldGroup>
+      </SettingRow>
 
       <Field label={t('props.comment')} hint={t('props.commentHint')}>
         <TextArea rows={2} value={comment} onChange={(e) => setComment(e.target.value)} />
       </Field>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-        <Field label={t('task.password')} hint={t('collector.archivePasswordHint')}>
-          <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
-        </Field>
-        <Field label={t('collector.linkPassword')} hint={t('collector.linkPasswordHint')}>
-          <TextInput value={downloadPassword} onChange={(e) => setDownloadPassword(e.target.value)} />
-        </Field>
-      </div>
+      <SettingRow control="long" label={t('task.password')} hint={t('collector.archivePasswordHint')}>
+        <TextInput value={password} onChange={(e) => setPassword(e.target.value)} />
+      </SettingRow>
+      <SettingRow control="long" label={t('collector.linkPassword')} hint={t('collector.linkPasswordHint')}>
+        <TextInput value={downloadPassword} onChange={(e) => setDownloadPassword(e.target.value)} />
+      </SettingRow>
 
       <ToggleRow
         checked={overrule}

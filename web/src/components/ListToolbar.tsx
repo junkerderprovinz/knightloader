@@ -51,7 +51,7 @@ import { useStartTasks } from '../lib/useStartTasks';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { readShortcutOverrides } from '../lib/commands/overrides';
 import { formatShortcut } from '../lib/commands/shortcuts';
-import { Button, Field, IconBadge, Modal, NumberInput, TextInput } from './ui';
+import { Button, IconBadge, Modal, NumberInput, TextInput } from './ui';
 import { PathInput } from './FolderPicker';
 import { PackageMoveDialog } from './PackageActions';
 import { RenameLinkDialog, RenamePackageDialog } from './RenameDialog';
@@ -94,6 +94,7 @@ import {
   IconTrashFiles,
   IconUpload,
 } from '../lib/icons';
+import { SettingRow } from '../pages/settings/controls';
 
 /**
  * useQueueVerbs fetches, on mount rather than when the menu opens, the
@@ -447,7 +448,7 @@ export function TaskOptionsDialog({
         </>
       }
     >
-      <Field label={t('task.folder')} hint={t('settings.downloadDirHint')}>
+      <SettingRow control="long" label={t('task.folder')} hint={t('settings.downloadDirHint')}>
         <PathInput
           autoFocus={focus === 'dir'}
           value={dir}
@@ -455,18 +456,18 @@ export function TaskOptionsDialog({
           local={base === '/api'}
           onValue={setDir}
         />
-      </Field>
-      <Field label={t('task.password')}>
+      </SettingRow>
+      <SettingRow control="long" label={t('task.password')}>
         <TextInput
           autoFocus={focus === 'password'}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
         />
-      </Field>
+      </SettingRow>
       {/* The engine's bound, as in the rule editor and settings. */}
-      <Field label={t('task.chunks')} hint={t('task.chunksHint')}>
+      <SettingRow control="short" label={t('task.chunks')} hint={t('task.chunksHint')}>
         <NumberInput value={chunks} min={0} max={16} onValue={setChunks} />
-      </Field>
+      </SettingRow>
     </Modal>
   );
 }

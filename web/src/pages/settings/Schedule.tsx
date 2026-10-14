@@ -607,9 +607,9 @@ function StateBanner({
     : t('settings.schedule.noNextChange');
   const active = suspended || state.paused || state.limit > 0;
   return (
-    <Card hue={hue} className="flex flex-wrap items-center gap-x-6 gap-y-4">
+    <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle>{t('settings.schedule.statusTitle')}</SectionTitle>
-      <div className="flex min-w-0 flex-1 basis-64 items-center gap-3">
+      <div className="flex min-w-0 items-center gap-3">
         <span
           className={`h-2 w-2 shrink-0 rounded-[var(--radius-pill)] ${active ? 'bg-accent' : 'bg-carbon-textMuted'}`}
           aria-hidden
@@ -619,19 +619,17 @@ function StateBanner({
           <span className="text-xs text-carbon-textMuted">{changeText}</span>
         </div>
       </div>
-      <div className="w-full sm:w-64">
-        <ScheduleSuspendField
-          state={{ suspended, suspendedUntil }}
-          onState={onSuspension}
-          blocked={
-            parked
-              ? t('settings.schedule.suspendParked')
-              : schedules === 0
-                ? t('settings.schedule.suspendNone')
-                : undefined
-          }
-        />
-      </div>
+      <ScheduleSuspendField
+        state={{ suspended, suspendedUntil }}
+        onState={onSuspension}
+        blocked={
+          parked
+            ? t('settings.schedule.suspendParked')
+            : schedules === 0
+              ? t('settings.schedule.suspendNone')
+              : undefined
+        }
+      />
     </Card>
   );
 }
@@ -797,7 +795,7 @@ function EntryRow({
                 onChange={(e) => onChange({ name: e.target.value })}
               />
             </SettingRow>
-            <SettingRow control="fit" label={t('settings.schedule.action')}>
+            <SettingRow control="long" label={t('settings.schedule.action')}>
               <ActionSelect
                 value={entry.action}
                 actions={actions}

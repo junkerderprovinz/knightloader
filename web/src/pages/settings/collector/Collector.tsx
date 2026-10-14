@@ -1,4 +1,4 @@
-import { Card, FieldGroup, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Card, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
 import { Tabs } from '../../../components/Tabs';
 import { fetchOptions } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
@@ -71,12 +71,12 @@ export function CollectorCard({ hue }: { hue: number }) {
           />
         </SettingRow>
       ) : (
-        <FieldGroup
+        <SettingRow
           label={t('settings.downloads.autoConfirmDelay')}
           hint={t('settings.downloads.autoConfirmDelayHint')}
         >
           <span className="text-sm text-carbon-textSub">{t('settings.downloads.autoConfirmOff')}</span>
-        </FieldGroup>
+        </SettingRow>
       )}
 
       {policies.length > 0 && (

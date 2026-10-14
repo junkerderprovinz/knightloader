@@ -613,7 +613,7 @@ function RequestRow({
         }
       >
         <div className="flex flex-col gap-4">
-          <SettingRow control="fit" label={t('settings.reconnect.requestMethod')}>
+          <SettingRow control="long" label={t('settings.reconnect.requestMethod')}>
             <Dropdown
               label={t('settings.reconnect.requestMethod')}
               value={(row.method || 'GET').toUpperCase()}
@@ -823,7 +823,7 @@ function CheckFields({ rc, write }: FieldProps) {
         />
       </SettingRow>
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <div className="flex flex-col gap-4">
         <div className="flex flex-col gap-1.5">
           <SettingRow
             control="short"
