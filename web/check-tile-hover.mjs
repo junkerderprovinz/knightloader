@@ -14,7 +14,8 @@
 //            lib/donate.ts names a colour and the ink the rule gives it: white
 //            where white reaches 2:1 on it, #161616 below that. The About
 //            card's four keep GlimStone's own values.
-//   tiles    ReadmeButton names only tile classes index.css defines, every
+//   tiles    ReadmeButton and the MCP client list name only tile classes
+//            index.css defines, every
 //            README button on the Apps page and the Info tile names its
 //            brand, and neither a README button nor an unpicked coin tile
 //            moves its colours through a transition.
@@ -159,7 +160,7 @@ for (const path of sources(src)) {
 
 // The colours.
 const tileClasses = new Map();
-for (const m of css.matchAll(/\.((?:glim|kl)-tile-[a-z]+)\s*\{([^}]*)\}/g)) {
+for (const m of css.matchAll(/\.((?:glim|kl)-tile-[a-z0-9]+)\s*\{([^}]*)\}/g)) {
   const color = /--tile\s*:\s*(#[0-9a-fA-F]{3,6})\s*;/.exec(m[2])?.[1];
   const ink = /--tile-ink\s*:\s*(#[0-9a-fA-F]{3,6})\s*;?/.exec(m[2])?.[1];
   tileClasses.set(m[1], true);
@@ -188,6 +189,11 @@ for (const [brand, cls] of brands) {
   if (!tileClasses.has(cls)) problems.push(`ReadmeButton.tsx: ${brand} names .${cls}, which index.css does not define`);
 }
 if (/\btransition/.test(readmeButton)) problems.push('ReadmeButton.tsx: a README button moves its colours through a transition');
+const mcpTiles = [...read('lib', 'mcpClients.ts').matchAll(/tile: '([\w-]+)'/g)].map((m) => m[1]);
+if (mcpTiles.length < 20) fail(`only ${mcpTiles.length} tiles read from lib/mcpClients.ts - the reader went blind.`);
+for (const cls of new Set(mcpTiles)) {
+  if (!tileClasses.has(cls)) problems.push(`lib/mcpClients.ts: a client names .${cls}, which index.css does not define`);
+}
 
 /** Every `<Tag ... />` in a file, whole: attribute braces are skipped, so a mark passed as JSX does not end it. */
 function elements(text, tag) {

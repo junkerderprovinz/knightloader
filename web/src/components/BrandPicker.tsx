@@ -2,7 +2,7 @@
 // provider a tile in the shape of the README's buttons with its logo at the
 // start and its name beside it, and a search at the window's top right. The
 // debrid services, the captcha services and the hosters are all picked from
-// it, so the three windows look the same. The tile is ReadmeButton's markup
+// it, and so are the MCP clients, so the windows look the same. The tile is ReadmeButton's markup
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead.
 import type { ReactNode } from 'react';
@@ -14,8 +14,12 @@ export interface Brand {
   name: string;
   /** The second line, shown under the pointer: the brand's site, or that it is connected. */
   sub?: string;
-  /** The host or address the logo is fetched for. */
-  host: string;
+  /** The host or address the logo is fetched for, where the brand brings no mark of its own. */
+  host?: string;
+  /** A logo bundled with the app, drawn in place of the fetched one. */
+  mark?: ReactNode;
+  /** The `.glim-tile-*` class the tile lights up in; the accent without one. */
+  tile?: string;
   /** Keeps the second line in view at rest, for one that says a state. */
   held?: boolean;
 }
@@ -49,7 +53,7 @@ export function BrandPicker({
       {brands.map((b) => (
         <li
           key={b.id}
-          className={`glim-readme-btn-unit group glim-tile-house ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
+          className={`glim-readme-btn-unit group ${b.tile ?? 'glim-tile-house'} ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
         >
           <button
             type="button"
@@ -59,7 +63,7 @@ export function BrandPicker({
           >
             <span className="glim-readme-btn-mark" aria-hidden>
               {/* Lazy, so only tiles scrolled into view fetch their logo. */}
-              <HosterIcon host={b.host} size={25} />
+              {b.mark ?? <HosterIcon host={b.host ?? ''} size={25} />}
             </span>
             <span className="glim-readme-btn-text">
               <span className="glim-readme-btn-name">{b.name}</span>
