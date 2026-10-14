@@ -2455,6 +2455,58 @@ body {
 .kl-tile-vivaldi   { --tile: #ef3939; --tile-ink: #ffffff; } /* 4.0:1 */
 .kl-tile-firefox   { --tile: #ff7139; --tile-ink: #ffffff; } /* 2.7:1 */
 
+/* The MCP clients' tile colours (the MCP server card's picker), BombVault's
+   from the brands' own palettes, with the ink as the brand tiles pick it. */
+.glim-tile-anythingllm { --tile: #020617; --tile-ink: #ffffff; } /* 20.2:1 */
+.glim-tile-antigravity { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
+.glim-tile-claude { --tile: #d97757; --tile-ink: #ffffff; } /* 3.1:1 */
+.glim-tile-cline { --tile: #e8912d; --tile-ink: #ffffff; } /* 2.5:1 */
+.glim-tile-openai { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
+.glim-tile-continue { --tile: #005dc7; --tile-ink: #ffffff; } /* 6.2:1 */
+.glim-tile-copilot { --tile: #8957e5; --tile-ink: #ffffff; } /* 4.6:1 */
+.glim-tile-cursor { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
+.glim-tile-gemini { --tile: #4285f4; --tile-ink: #ffffff; } /* 3.6:1 */
+.glim-tile-goose { --tile: #ff6d3b; --tile-ink: #ffffff; } /* 2.8:1 */
+.glim-tile-grok { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
+.glim-tile-jan { --tile: #f17455; --tile-ink: #ffffff; } /* 2.8:1 */
+.glim-tile-jetbrains { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
+.glim-tile-kimi { --tile: #007cff; --tile-ink: #ffffff; } /* 3.9:1 */
+.glim-tile-lmstudio { --tile: #4f46e5; --tile-ink: #ffffff; } /* 6.3:1 */
+.glim-tile-mistral { --tile: #fa520f; --tile-ink: #ffffff; } /* 3.3:1 */
+.glim-tile-msty { --tile: #7c5cfc; --tile-ink: #ffffff; } /* 4.4:1 */
+.glim-tile-n8n { --tile: #ea4b71; --tile-ink: #ffffff; } /* 3.7:1 */
+.glim-tile-openwebui { --tile: #0a0a0a; --tile-ink: #ffffff; } /* 19.8:1 */
+.glim-tile-opencode { --tile: #211e1e; --tile-ink: #ffffff; } /* 16.5:1 */
+.glim-tile-perplexity { --tile: #20808d; --tile-ink: #ffffff; } /* 4.6:1 */
+.glim-tile-qwen { --tile: #615ced; --tile-ink: #ffffff; } /* 4.9:1 */
+.glim-tile-roocode { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
+.glim-tile-visualstudio { --tile: #5c2d91; --tile-ink: #ffffff; } /* 9.4:1 */
+.glim-tile-vscode { --tile: #007acc; --tile-ink: #ffffff; } /* 4.5:1 */
+.glim-tile-warp { --tile: #01a4ff; --tile-ink: #ffffff; } /* 2.7:1 */
+.glim-tile-windsurf { --tile: #58e5c0; --tile-ink: #161616; } /* 11.5:1 */
+.glim-tile-zed { --tile: #0866ff; --tile-ink: #ffffff; } /* 4.8:1 */
+
+/* A client's mark beside its row on the MCP server card and in its window.
+   The hover version only belongs to a lit tile. */
+.glim-client-mark {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.25rem;
+  flex: none;
+  color: var(--carbon-text);
+}
+.glim-client-mark svg { width: 100%; height: 100%; display: block; }
+.glim-client-mark .glim-mark-hover { display: none; }
+
+/* A mark colour that reads as a hole on the dark tile is lifted there; the lit
+   tile swaps in the single-colour mark anyway. */
+:root:not([data-theme="light"]) .glim-mark-lift .glim-mark-rest { filter: brightness(1.55); }
+@media (prefers-color-scheme: light) {
+  :root:not([data-theme]) .glim-mark-lift .glim-mark-rest { filter: none; }
+}
+
 /* The README button (GlimStone's "The App tab"): the proportions of the
    download buttons in the family's READMEs, 160 by 46.6 with a segment of 87
    on a 16px rem, so a button and two segments take two places in a row. At
@@ -2661,6 +2713,9 @@ body {
 }
 .glim-provider-pick .glim-readme-btn-unit {
   display: flex;
+}
+/* A brand with a tile class of its own, such as an MCP client, keeps it. */
+.glim-provider-pick .glim-readme-btn-unit.glim-tile-house {
   --tile: var(--provider-tile, var(--accent));
   --tile-ink: var(--provider-ink, var(--accent-contrast));
 }

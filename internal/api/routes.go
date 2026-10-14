@@ -87,6 +87,7 @@ func registerAll(reg *Registry, a *app.App) {
 	registerDebridDrive(reg, a)
 	registerUsenetServers(reg, a)
 	registerVPN(reg, a)
+	registerMCP(reg, a)
 }
 
 // AnyMethod is the method of a route that forwards the request elsewhere and
