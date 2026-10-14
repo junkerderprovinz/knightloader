@@ -3,6 +3,7 @@ package vpn_test
 import (
 	"context"
 	"encoding/base64"
+	"encoding/json"
 	"io"
 	"net"
 	"net/http"
@@ -18,6 +19,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
 	"github.com/junkerderprovinz/knightloader/internal/vpn"
+	"github.com/junkerderprovinz/knightloader/internal/vpn/hideme"
 )
 
 func publicIP(t *testing.T, dial func(ctx context.Context, network, addr string) (net.Conn, error)) string {
@@ -222,4 +224,110 @@ func seenFrom(t *testing.T, tun *vpn.Tunnel, addr string) {
 	if direct == tunneled {
 		t.Error("the tunnel's connection came from this machine")
 	}
+}
+
+// TestRealHideMe opens a hide.me session with the account in the JSON file
+// KL_VPN_HIDEME_CRED ({"u": user, "p": password}) at the server
+// KL_VPN_HIDEME_HOST, nl when unset, and runs what TestRealTunnel runs
+// through it, with hide.me's port forwarding.
+func TestRealHideMe(t *testing.T) {
+	path := os.Getenv("KL_VPN_HIDEME_CRED")
+	if path == "" {
+		t.Skip("KL_VPN_HIDEME_CRED is not set")
+	}
+	raw, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	var cred struct{ U, P string }
+	if err := json.Unmarshal(raw, &cred); err != nil {
+		t.Fatal(err)
+	}
+	host := os.Getenv("KL_VPN_HIDEME_HOST")
+	if host == "" {
+		host = "nl"
+	}
+	hm := &hideme.Client{Host: host, Username: cred.U, Password: cred.P}
+	ctx, cancel := context.WithTimeout(context.Background(), 90*time.Second)
+	defer cancel()
+	cfg, session, err := hm.Connect(ctx)
+	if err != nil {
+		t.Fatalf("hide.me connect: %v", err)
+	}
+	defer hm.Disconnect(context.Background(), session)
+	t.Logf("session at %s, addresses %v, gateway %v, keepalive %s, stale token %v",
+		cfg.Peer.Endpoint, cfg.Addresses, session.Gateway, cfg.Peer.Keepalive, session.StaleAccessToken)
+
+	tun := vpn.New(vpn.Options{Logf: t.Logf})
+	if err := tun.Connect(ctx, cfg); err != nil {
+		t.Fatal(err)
+	}
+	defer tun.Disconnect()
+	if err := tun.WaitConnected(ctx); err != nil {
+		t.Fatal(err)
+	}
+	var d net.Dialer
+	direct := publicIP(t, d.DialContext)
+	tunneled := publicIP(t, tun.DialContext)
+	t.Logf("public address directly %s, through hide.me %s", direct, tunneled)
+	if direct == tunneled {
+		t.Error("the tunnel leaves from the same public address")
+	}
+
+	var forwarded uint16
+	if err := hm.EnablePortForwarding(ctx, tun.DialContext); err != nil {
+		t.Logf("hide.me port forwarding: %v", err)
+	} else if len(session.Gateway) > 0 {
+		pf := &vpn.PortForward{Client: &vpn.NATPMP{Gateway: session.Gateway[0], Dial: tun.DialContext}, Prefer: 51413, Logf: t.Logf}
+		pctx, pcancel := context.WithCancel(context.Background())
+		defer pcancel()
+		go pf.Run(pctx)
+		for i := 0; pf.Port() == 0 && i < 100; i++ {
+			time.Sleep(200 * time.Millisecond)
+		}
+		forwarded = pf.Port()
+		t.Logf("hide.me forwarded port %d", forwarded)
+		if forwarded != 0 {
+			a, err := pf.Client.ExternalAddress(ctx)
+			if err != nil {
+				t.Fatal(err)
+			}
+			t.Logf("gateway's public address %s", a)
+			inbound(t, tun, cfg.Addresses[0].Addr(), forwarded)
+		}
+	}
+
+	if os.Getenv("KL_VPN_REAL_TORRENT") != "" {
+		torrentThroughTunnel(t, tun, cfg)
+	}
+}
+
+// inbound listens on the forwarded port inside the tunnel for a while and
+// counts the connections that arrive there from outside.
+func inbound(t *testing.T, tun *vpn.Tunnel, inside netip.Addr, port uint16) {
+	t.Helper()
+	ln, err := tun.Listen("tcp4", netip.AddrPortFrom(inside, port))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var mu sync.Mutex
+	from := map[string]bool{}
+	go func() {
+		for {
+			c, err := ln.Accept()
+			if err != nil {
+				return
+			}
+			host, _, _ := net.SplitHostPort(c.RemoteAddr().String())
+			mu.Lock()
+			from[host] = true
+			mu.Unlock()
+			c.Close()
+		}
+	}()
+	time.Sleep(15 * time.Second)
+	ln.Close()
+	mu.Lock()
+	defer mu.Unlock()
+	t.Logf("%d hosts reached port %d inside the tunnel from outside in 15 s", len(from), port)
 }
