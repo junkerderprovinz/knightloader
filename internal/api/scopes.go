@@ -194,7 +194,13 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/mediatools/ytdlp/revert": apitoken.ScopeAdmin,
 	"POST /api/mediatools/ytdlp/update": apitoken.ScopeAdmin,
 	"GET /api/metrics":                  apitoken.ScopeRead,
-	"GET /api/options":                  apitoken.ScopeAdmin,
+
+	// Setting a client up issues a token, as POST /api/tokens does.
+	"GET /api/mcp":                 apitoken.ScopeAdmin,
+	"POST /api/mcp/clients":        apitoken.ScopeAdmin,
+	"DELETE /api/mcp/clients/{id}": apitoken.ScopeAdmin,
+
+	"GET /api/options": apitoken.ScopeAdmin,
 
 	"GET /api/queue":            apitoken.ScopeRead,
 	"POST /api/queue":           apitoken.ScopeControl,

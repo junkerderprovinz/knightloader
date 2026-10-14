@@ -69,6 +69,8 @@ func TestEveryRouteDescribesItself(t *testing.T) {
 		"PROPFIND /dav/{path...}":     "the listing half of the same share",
 		"OPTIONS /dav/{path...}":      "what a WebDAV client asks the share before it lists it",
 		AnyMethod + " /dav/{path...}": "the refusal of every write to the same share",
+		AnyMethod + " /mcp": "/mcp is the address every MCP client and every guide to setting one up " +
+			"expects, and the configuration the settings card hands out names it",
 	}
 	reg := buildRegistry(t)
 	for _, r := range reg.Routes() {
@@ -137,6 +139,9 @@ func TestOnlyTheseRoutesAreOpen(t *testing.T) {
 		"OPTIONS /dav/{path...}":  "the question a WebDAV client asks before it lists; same credential, same switch",
 		AnyMethod + " /dav/{path...}": "the 405 for every method the drive does not serve, which would otherwise " +
 			"reach the interface and answer 200; same credential, same switch",
+		AnyMethod + " /mcp": "an AI assistant sends the API token made for its MCP client as a Bearer token " +
+			"or in X-API-Key, never a session. The route answers 404 until a client is set up, and lets in " +
+			"only a token a client holds, on every instance including one with no password",
 		"POST /api/group/call": "a direct call from another member of the phrase group on the same " +
 			"network, which has no session here either. It is signed and sealed with keys derived " +
 			"from the phrase, refused when stale or replayed, answers 404 outside a group and reaches " +
