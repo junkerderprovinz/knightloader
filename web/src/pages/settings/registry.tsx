@@ -22,6 +22,7 @@ import { Resolvers } from './Resolvers';
 import { Rules } from './Rules';
 import { Shortcuts } from './Shortcuts';
 import { Torrents } from './Torrents';
+import { Vpn } from './Vpn';
 
 /**
  * PAGES maps a sub-page id to the component that draws it. The set and order
@@ -41,6 +42,7 @@ const PAGES: Record<string, () => ReactNode> = {
   advanced: () => <Advanced />,
   rules: () => <Rules />,
   network: () => <Network />,
+  vpn: () => <Vpn />,
   resolvers: () => <Resolvers />,
   torrents: () => <Torrents />,
   debriddrive: () => <DebridDrive />,
