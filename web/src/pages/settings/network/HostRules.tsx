@@ -2,7 +2,6 @@ import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
   Card,
-  FieldGroup,
   IconBadge,
   NumberInput,
   SectionTitle,
@@ -21,7 +20,7 @@ import {
 } from '../../../lib/api';
 import { resolverLabel } from '../../../lib/resolverLabels';
 import { useDraft } from '../context';
-import { SettingRow, Sheet } from '../controls';
+import { SettingRow, Sheet, SubCard } from '../controls';
 
 // Per-host exceptions to the global counts: how many downloads one hoster may
 // have open, how many connections each gets, how a failure is retried, and
@@ -385,35 +384,29 @@ function HostRuleRow({
               stored and only one consulted. */}
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
 
-          {/* Half the width, as in a download's properties: a menu of a few
-              service names does not need the whole line. */}
-          <div className="flex flex-col gap-4">
-            <SettingRow control="fit" label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
-              <Dropdown
-                label={t('props.backend')}
-                value={prefer}
-                options={[auto, ...preferable]}
-                groups={preferable.length > 0 ? [[auto], preferable] : undefined}
-                onChange={setPrefer}
-                busy={services === null}
-              />
-            </SettingRow>
-          </div>
+          <SettingRow control="long" label={t('props.backend')} hint={t('settings.hostRules.preferHint')}>
+            <Dropdown
+              label={t('props.backend')}
+              value={prefer}
+              options={[auto, ...preferable]}
+              groups={preferable.length > 0 ? [[auto], preferable] : undefined}
+              onChange={setPrefer}
+              busy={services === null}
+            />
+          </SettingRow>
 
           {switchable.length > 0 && (
-            <FieldGroup label={t('settings.hostRules.backends')} hint={t('settings.hostRules.backendsHint')}>
-              <div className="grid grid-cols-1 gap-x-6 gap-y-2 sm:grid-cols-2">
-                {switchable.map((s, i) => (
-                  <ToggleRow
-                    key={s.value}
-                    hue={i}
-                    label={s.label}
-                    checked={!exclude.includes(s.value)}
-                    onChange={(used) => setUsed(s.value, used)}
-                  />
-                ))}
-              </div>
-            </FieldGroup>
+            <SubCard label={t('settings.hostRules.backends')} hint={t('settings.hostRules.backendsHint')} className="gap-3">
+              {switchable.map((s, i) => (
+                <ToggleRow
+                  key={s.value}
+                  hue={i}
+                  label={s.label}
+                  checked={!exclude.includes(s.value)}
+                  onChange={(used) => setUsed(s.value, used)}
+                />
+              ))}
+            </SubCard>
           )}
 
           <div className="flex flex-col gap-4">
@@ -456,7 +449,7 @@ function HostRuleRow({
               them. The flag merges with OR, so switching it off here cannot
               clear a "never" set a level below. */}
           {!never && (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+            <div className="flex flex-col gap-4">
               <RetryNumber
                 label={t('settings.hostRules.retryDelay')}
                 hint={t('settings.hostRules.retryDelayHint')}

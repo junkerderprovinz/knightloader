@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, FieldGroup, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
+import { Button, Card, IconBadge, SectionTitle, TextInput, UnitNumberInput } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { PathInput } from '../../components/FolderPicker';
 import { Tabs } from '../../components/Tabs';
@@ -630,10 +630,14 @@ function CategoryRow({
 
           {/* The media hook called once a package filed here is in place, by
               id. A select, since the list comes from another page. */}
-          <FieldGroup label={t('settings.categories.notify')} hint={t('settings.categories.notifyHint')}>
+          <SettingRow
+            control={hooks.length === 0 && !cat.notify ? undefined : 'long'}
+            label={t('settings.categories.notify')}
+            hint={t('settings.categories.notifyHint')}
+          >
             {hooks.length === 0 && !cat.notify ? (
               // A sentence instead of an empty select.
-              <p className="text-xs text-carbon-textSub">{t('settings.categories.notifyEmpty')}</p>
+              <span className="text-xs text-carbon-textSub">{t('settings.categories.notifyEmpty')}</span>
             ) : (
               <NotifySelect
                 value={cat.notify ?? ''}
@@ -650,7 +654,7 @@ function CategoryRow({
                 }}
               />
             )}
-          </FieldGroup>
+          </SettingRow>
 
           {/* Two segments rather than a switch, like the rows above: Inherit
               is "no opinion", not "off". */}

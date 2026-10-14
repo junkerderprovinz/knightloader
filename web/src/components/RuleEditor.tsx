@@ -10,6 +10,7 @@ import { Button, FIELD_BOX, IconBadge, InfoBubble, TextInput } from './ui';
 import { Dropdown } from './Dropdown';
 import { FolderPicker } from './FolderPicker';
 import { Tabs } from './Tabs';
+import { SettingRow, SubHead } from '../pages/settings/controls';
 
 // The rule editor, shared by the Packagizer and the link filter, which are one
 // engine; the flavour only decides which actions are offered. There is no
@@ -494,25 +495,24 @@ export function RuleEditor({
 
   return (
     <div className="flex flex-col gap-5">
-      <label className="flex flex-col gap-1.5">
-        <span className="flex items-center text-xs text-carbon-textSub">
-          {t('settings.rules.name')}
-          <InfoBubble tip={t('settings.rules.nameHint')} />
-        </span>
+      <SettingRow control="long" label={t('settings.rules.name')} hint={t('settings.rules.nameHint')}>
         <TextInput
           value={rule.name ?? ''}
           placeholder={t('settings.rules.namePlaceholder')}
           onChange={(e) => onChange({ ...rule, name: e.target.value })}
         />
-      </label>
+      </SettingRow>
 
-      {/* Eyebrow captions rather than SectionTitle, whose badge needs a card
-          edge that this inline editor does not have. */}
       <section className="flex flex-col gap-2.5">
-        <h3 className="glim-eyebrow flex items-center">
-          {t('settings.rules.sectionIf')}
-          <InfoBubble tip={t('settings.rules.ifHint')} />
-        </h3>
+        <SubHead
+          label={t('settings.rules.sectionIf')}
+          hint={t('settings.rules.ifHint')}
+          right={
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={addCondition}>
+              {t('settings.rules.addCondition')}
+            </Button>
+          }
+        />
 
         {conditions.length === 0 && (
           <p className="text-meta text-carbon-textMuted">{t('settings.rules.noConditions')}</p>
@@ -531,38 +531,24 @@ export function RuleEditor({
             onRemove={() => onChange({ ...rule, conditions: conditions.filter((_, j) => j !== i) })}
           />
         ))}
-
-        <div>
-          <Button kind="secondary" icon={<IconAdd width={14} height={14} />} onClick={addCondition}>
-            {t('settings.rules.addCondition')}
-          </Button>
-        </div>
       </section>
 
-      <section className="flex flex-col gap-3">
-        <h3 className="glim-eyebrow flex items-center">
-          {t('settings.rules.sectionThen')}
-          <InfoBubble
-            tip={
-              flavour === 'packagizer'
-                ? t('settings.rules.thenHintPackagizer')
-                : t('settings.rules.thenHintFilter')
-            }
+      <section className="flex flex-col gap-4">
+        <SubHead
+          label={t('settings.rules.sectionThen')}
+          hint={flavour === 'packagizer' ? t('settings.rules.thenHintPackagizer') : t('settings.rules.thenHintFilter')}
+        />
+        {actions.map((a) => (
+          <ActionField
+            key={a.id}
+            t={t}
+            grammar={grammar}
+            action={a}
+            value={rule.action}
+            categories={categories}
+            onChange={setAction}
           />
-        </h3>
-        <div className="grid gap-3 sm:grid-cols-2">
-          {actions.map((a) => (
-            <ActionField
-              key={a.id}
-              t={t}
-              grammar={grammar}
-              action={a}
-              value={rule.action}
-              categories={categories}
-              onChange={setAction}
-            />
-          ))}
-        </div>
+        ))}
       </section>
 
       {/* Problems not tied to a condition, such as a bad priority. */}
@@ -743,7 +729,7 @@ const ACTION_HINTS: Partial<Record<keyof RuleAction, TranslationKey>> = {
   category: 'settings.rules.action.categoryHint',
 };
 
-// The actions that name a folder, which get the folder chooser and a whole row.
+// The actions that name a folder, which get the folder chooser too.
 const FOLDER_ACTIONS: ReadonlySet<keyof RuleAction> = new Set(['downloadDir', 'extractDir']);
 
 /** ActionField renders one action in the control its grammar kind calls for. */
@@ -766,17 +752,9 @@ function ActionField({
   const hintKey = ACTION_HINTS[action.id];
   const hint = hintKey ? t(hintKey) : undefined;
 
-  const head = (
-    <span className="flex items-center text-xs text-carbon-textSub">
-      {label}
-      {hint && <InfoBubble tip={hint} />}
-    </span>
-  );
-
   if (action.kind === 'template') {
     return (
-      <div className={`flex flex-col gap-1.5 ${FOLDER_ACTIONS.has(action.id) ? 'sm:col-span-2' : ''}`}>
-        {head}
+      <SettingRow control="long" compound label={label} hint={hint}>
         <TemplateInput
           t={t}
           label={label}
@@ -785,19 +763,17 @@ function ActionField({
           value={(value[action.id] as string) ?? ''}
           onChange={(next) => onChange({ [action.id]: next } as Partial<RuleAction>)}
         />
-      </div>
+      </SettingRow>
     );
   }
 
   if (action.kind === 'int') {
     const current = value[action.id] as number | undefined;
     return (
-      <div className="flex flex-col gap-1.5">
-        {head}
+      <SettingRow control="short" label={label} hint={hint}>
         <TextInput
           type="number"
           inputMode="numeric"
-          aria-label={label}
           min={action.min}
           max={action.max}
           // Empty means unchanged; 0 is a real value.
@@ -808,15 +784,14 @@ function ActionField({
             onChange({ [action.id]: raw === '' ? undefined : Number(raw) } as Partial<RuleAction>);
           }}
         />
-      </div>
+      </SettingRow>
     );
   }
 
   if (action.kind === 'bool') {
     const current = value[action.id] as boolean | undefined;
     return (
-      <div className="flex flex-col gap-1.5">
-        {head}
+      <SettingRow label={label} hint={hint}>
         <Segments
           value={current === undefined ? 'unset' : current ? 'on' : 'off'}
           onChange={(v) =>
@@ -829,7 +804,7 @@ function ActionField({
           ]}
           label={label}
         />
-      </div>
+      </SettingRow>
     );
   }
 
@@ -842,29 +817,30 @@ function ActionField({
       current && !categories.some((c) => c.id === current)
         ? [{ value: current, label: t('settings.rules.action.categoryMissing', { id: current }) }, ...known]
         : known;
-    return (
-      <div className="flex flex-col gap-1.5">
-        {head}
-        {categories.length === 0 && !current ? (
+    if (categories.length === 0 && !current) {
+      return (
+        <SettingRow label={label} hint={hint}>
           <span className="text-xs text-carbon-textSub">{t('settings.rules.action.categoryNone')}</span>
-        ) : (
-          <Dropdown
-            value={current}
-            // Undefined rather than "", which ValidateCategories would refuse.
-            onChange={(next) => onChange({ category: next === '' ? undefined : next })}
-            options={[{ value: '', label: t('settings.rules.unchanged') }, ...options]}
-            label={label}
-          />
-        )}
-      </div>
+        </SettingRow>
+      );
+    }
+    return (
+      <SettingRow control="long" label={label} hint={hint}>
+        <Dropdown
+          value={current}
+          // Undefined rather than "", which ValidateCategories would refuse.
+          onChange={(next) => onChange({ category: next === '' ? undefined : next })}
+          options={[{ value: '', label: t('settings.rules.unchanged') }, ...options]}
+          label={label}
+        />
+      </SettingRow>
     );
   }
 
   // kind === 'reject': segments rather than a switch, since accepting is a
   // deliberate choice rather than the absence of a rejection.
   return (
-    <div className="flex flex-col gap-1.5">
-      {head}
+    <SettingRow label={label} hint={hint}>
       <Segments
         value={value.reject ? 'reject' : 'accept'}
         onChange={(v) => onChange({ reject: v === 'reject' })}
@@ -874,7 +850,7 @@ function ActionField({
         ]}
         label={label}
       />
-    </div>
+    </SettingRow>
   );
 }
 
@@ -897,6 +873,8 @@ export function Segments<T extends string>({
     <Tabs
       variant="well"
       size="sm"
+      inline
+      hug
       label={label}
       active={value}
       onSelect={(id) => onChange(id as T)}

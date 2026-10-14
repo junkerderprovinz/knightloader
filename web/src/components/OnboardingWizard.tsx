@@ -4,10 +4,11 @@ import { fetchSettings, patchSettings, type Settings } from '../lib/api';
 import { useT } from '../lib/i18n';
 import { IconClose } from '../lib/icons';
 import { readUIState, useUIState } from '../lib/uistate';
-import { Button, Field, LoadingCard, Modal } from './ui';
+import { Button, LoadingCard, Modal } from './ui';
 import { PathInput } from './FolderPicker';
 import { refusalText } from '../pages/settings/tx';
 import { LanguagePicker } from './LanguagePicker';
+import { SettingRow } from '../pages/settings/controls';
 
 const STEPS = ['welcome', 'folder', 'accounts', 'finished'] as const;
 type Step = (typeof STEPS)[number];
@@ -150,18 +151,18 @@ export function OnboardingWizard() {
         {step === 'welcome' && (
           <div className="flex flex-col gap-4">
             <p className="text-sm text-carbon-textSub">{t('onboarding.welcome.body')}</p>
-            <Field label={t('onboarding.welcome.langLabel')}>
+            <SettingRow label={t('onboarding.welcome.langLabel')}>
               <LanguagePicker
                 standalone
-                className="glim-well flex w-full items-center gap-2 px-3 py-2 text-sm text-carbon-text"
+                className="glim-well flex h-[var(--btn-h)] w-fit min-w-[12rem] items-center gap-2.5 px-3 text-sm text-carbon-text"
               />
-            </Field>
+            </SettingRow>
           </div>
         )}
 
         {step === 'folder' &&
           (settings ? (
-            <Field label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
+            <SettingRow control="long" label={t('settings.downloadDir')} hint={t('settings.downloadDirHint')}>
               <PathInput
                 value={downloadDir}
                 placeholder="/downloads"
@@ -171,7 +172,7 @@ export function OnboardingWizard() {
                 }}
                 error={folderError}
               />
-            </Field>
+            </SettingRow>
           ) : (
             <LoadingCard nested label={t('common.loading')} />
           ))}

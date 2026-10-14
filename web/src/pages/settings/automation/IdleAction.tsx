@@ -113,7 +113,7 @@ export function IdleActionPicker({
   const labelOf = (id: string) => (ACTION_KEYS[id] ? t(ACTION_KEYS[id]) : id);
   return (
     <SettingRow
-      control={menu ? 'fit' : undefined}
+      control={menu ? 'long' : undefined}
       label={name}
       hint={hint ? `${t('settings.downloads.idleActionHint')} ${t(hint)}` : t('settings.downloads.idleActionHint')}
     >

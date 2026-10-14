@@ -164,6 +164,7 @@ import {
   IconCollapse,
   IconClose,
 } from '../lib/icons';
+import { SettingRow } from '../pages/settings/controls';
 
 export interface Selection {
   ids: Set<string>;
@@ -1751,29 +1752,29 @@ export function TaskProperties({
             property. Forty rows given one name are forty downloads pointed at
             one destination, which the server refuses for the same reason. */}
         {(ids.length === 1 || (rename && pkg)) && (
-          <div className="grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-4">
             {ids.length === 1 && (
-              <Field label={t('props.name')} hint={t('props.nameHint')}>
+              <SettingRow control="long" label={t('props.name')} hint={t('props.nameHint')}>
                 <TextInput
                   value={name}
                   spellCheck={false}
                   onChange={(e) => edit('name', setName)(e.target.value)}
                 />
-              </Field>
+              </SettingRow>
             )}
             {rename && pkg && whole && (
-              <Field label={t('pkg.name')} hint={t('rename.packageHint')}>
+              <SettingRow control="long" label={t('pkg.name')} hint={t('rename.packageHint')}>
                 <TextInput
                   value={pkgName}
                   spellCheck={false}
                   onChange={(e) => edit('package', setPkgName)(e.target.value)}
                 />
-              </Field>
+              </SettingRow>
             )}
             {rename && pkg && !whole && (
-              <FieldGroup label={t('pkg.name')} hint={t('rename.packageHint')}>
+              <SettingRow label={t('pkg.name')} hint={t('rename.packageHint')}>
                 <NameLine name={pkg} folder onRename={() => rename.openPackage(pkg)} />
-              </FieldGroup>
+              </SettingRow>
             )}
           </div>
         )}
@@ -1802,97 +1803,74 @@ export function TaskProperties({
           </FieldGroup>
         )}
 
-        {/* One row, not two stacked full-width fields: the same grid-cols-2
-            pattern the priority and auto-extract row below uses. Comment is a
-            single-row TextArea sharing TextInput's inputClass, so it lands at
-            the same height as the folder field beside it, and it stays resize-y
-            so a longer comment can be grown by hand rather than reserving the
-            space for one. */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field
-            label={t('task.folder')}
-            hint={hint(t('settings.downloadDirHint'), start.dir === null)}
-          >
-            <PathInput
-              value={dir}
-              placeholder={placeholder(start.dir === null)}
-              title={t('task.folder')}
-              local={base === '/api'}
-              onValue={edit('dir', setDir)}
-            />
-          </Field>
+        <SettingRow
+          control="long"
+          label={t('task.folder')}
+          hint={hint(t('settings.downloadDirHint'), start.dir === null)}
+        >
+          <PathInput
+            value={dir}
+            placeholder={placeholder(start.dir === null)}
+            title={t('task.folder')}
+            local={base === '/api'}
+            onValue={edit('dir', setDir)}
+          />
+        </SettingRow>
 
-          <Field label={t('props.comment')} hint={hint(t('props.commentHint'), start.comment === null)}>
-            <TextArea
-              rows={1}
-              value={comment}
-              placeholder={placeholder(start.comment === null)}
-              onChange={(e) => edit('comment', setComment)(e.target.value)}
-            />
-          </Field>
-        </div>
+        {/* A text area, so its name stays above it. One row high and resize-y,
+            so a longer comment can be grown by hand. */}
+        <Field label={t('props.comment')} hint={hint(t('props.commentHint'), start.comment === null)}>
+          <TextArea
+            rows={1}
+            value={comment}
+            placeholder={placeholder(start.comment === null)}
+            onChange={(e) => edit('comment', setComment)(e.target.value)}
+          />
+        </Field>
 
-        {/* A set of controls, so FieldGroup and not Field: a <label> hands its
-            click to the first thing inside it, which here would pick a priority
-            every time somebody read the caption.
-
-            Priority and auto-extract read as one decision, so they share a grid
-            row in the well variant (Tabs.tsx), the tight segmented-control
-            treatment the Look page's shape and theme pickers use.
-
-            The strip wraps and never scrolls: the `sm` track measures its own
-            labels rather than pinning every segment, and Tabs itself wraps. An
-            `overflow-x-auto` wrapper around it would put the horizontal
-            scrollbar the language rules out back one level up. */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <FieldGroup
+        {/* Not a <label> row: a <label> hands its click to the first thing
+            inside it, which here would pick a priority every time somebody
+            read the caption. */}
+        <SettingRow label={t('props.priority')} hint={hint(t('props.priorityHint'), start.priority === null)}>
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
             label={t('props.priority')}
-            hint={hint(t('props.priorityHint'), start.priority === null)}
-          >
-            <Tabs
-              variant="well"
-              size="sm"
-              label={t('props.priority')}
-              active={priority}
-              onSelect={edit('priority', setPriority)}
-              items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
-            />
-          </FieldGroup>
+            active={priority}
+            onSelect={edit('priority', setPriority)}
+            items={priorities.map((p) => ({ id: p.id, label: t(p.label) }))}
+          />
+        </SettingRow>
 
-          <FieldGroup
+        <SettingRow label={t('props.autoExtract')} hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}>
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            hug
             label={t('props.autoExtract')}
-            hint={hint(t('props.autoExtractHint'), start.autoExtract === null)}
-          >
-            <Tabs
-              variant="well"
-              size="sm"
-              label={t('props.autoExtract')}
-              active={extract}
-              onSelect={edit('autoExtract', setExtract)}
-              items={[
-                { id: 'inherit', label: t('props.inherit') },
-                { id: 'on', label: t('props.on') },
-                { id: 'off', label: t('props.off') },
-              ]}
-            />
-          </FieldGroup>
-        </div>
+            active={extract}
+            onSelect={edit('autoExtract', setExtract)}
+            items={[
+              { id: 'inherit', label: t('props.inherit') },
+              { id: 'on', label: t('props.on') },
+              { id: 'off', label: t('props.off') },
+            ]}
+          />
+        </SettingRow>
 
-        {/* Half the width, the grid the rows above use: a menu of a few
-            service names does not need the whole line. */}
-        <div className="grid gap-4 sm:grid-cols-2">
-          <Field label={t('props.backend')} hint={hint(t('props.backendHint'), start.pin === null)}>
-            <Dropdown
-              label={t('props.backend')}
-              value={pin}
-              placeholder={t('props.mixed')}
-              options={[autoPin, ...backends]}
-              groups={backends.length > 0 ? [[autoPin], backends] : undefined}
-              onChange={edit('resolver', setPin)}
-              busy={pinChoices === null}
-            />
-          </Field>
-        </div>
+        <SettingRow control="long" label={t('props.backend')} hint={hint(t('props.backendHint'), start.pin === null)}>
+          <Dropdown
+            label={t('props.backend')}
+            value={pin}
+            placeholder={t('props.mixed')}
+            options={[autoPin, ...backends]}
+            groups={backends.length > 0 ? [[autoPin], backends] : undefined}
+            onChange={edit('resolver', setPin)}
+            busy={pinChoices === null}
+          />
+        </SettingRow>
 
         <div className="flex items-center gap-3">
           {/* Secondary, like every button in a card: the page's one accent is

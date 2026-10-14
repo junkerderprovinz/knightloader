@@ -404,7 +404,7 @@ function Editor({ row, onChange }: { row: Connection; onChange: (fields: Partial
   return (
     <>
       <div className="flex flex-col gap-4">
-        <SettingRow control="fit" label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
+        <SettingRow control="long" label={t('settings.connections.type')} hint={t('settings.connections.typeHint')}>
           <Dropdown
             label={t('settings.connections.type')}
             value={row.type}

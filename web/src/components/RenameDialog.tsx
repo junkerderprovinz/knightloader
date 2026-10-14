@@ -5,7 +5,8 @@ import { ApiError, type Task, refusal, renamePackage, setTaskOptions } from '../
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { IconClose } from '../lib/icons';
-import { Button, Field, Modal, TextInput } from './ui';
+import { Button, Modal, TextInput } from './ui';
+import { SettingRow } from '../pages/settings/controls';
 
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
@@ -136,7 +137,7 @@ function RenameWindow({
         </>
       }
     >
-      <Field label={label} hint={hint}>
+      <SettingRow control="long" label={label} hint={hint}>
         <TextInput
           ref={input}
           autoFocus
@@ -150,7 +151,7 @@ function RenameWindow({
             void apply();
           }}
         />
-      </Field>
+      </SettingRow>
       {note && <p className="text-sm text-carbon-textSub">{note}</p>}
     </Modal>
   );

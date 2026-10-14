@@ -621,6 +621,31 @@ export function HintBubble({ hint }: { hint?: Hint }) {
   );
 }
 
+/**
+ * RowLabel is a row's name as running text with its (i) after the last word.
+ * The two never break apart, so a name that wraps does not leave the (i) alone
+ * on a line; a script without spaces holds its last character instead.
+ * `dim` fades the words and leaves the (i) at full strength.
+ */
+export function RowLabel({ label, hint, dim = false }: { label: string; hint?: Hint; dim?: boolean }) {
+  const chars = Array.from(label);
+  const cut = label.lastIndexOf(' ');
+  const head = cut >= 0 ? label.slice(0, cut + 1) : chars.slice(0, -1).join('');
+  const tail = cut >= 0 ? label.slice(cut + 1) : chars.slice(-1).join('');
+  const fade = dim ? 'opacity-40' : '';
+  return (
+    <>
+      <span className={fade}>{head}</span>
+      <span className="whitespace-nowrap">
+        <span className={fade}>{tail}</span>
+        <span className="ms-1.5">
+          <HintBubble hint={hint} />
+        </span>
+      </span>
+    </>
+  );
+}
+
 function Caption({ label, hint }: { label: string; hint?: Hint }) {
   return (
     // data-glim-label is the settings search's anchor, here rather than at the
@@ -1568,9 +1593,8 @@ export function ToggleRow({
           data-glim-label for the reason Caption carries it: a ToggleRow draws
           its caption inline, so without this the settings search could find
           every switch but never scroll to it. */}
-      <span data-glim-label={label} className="pointer-events-auto flex items-center gap-1.5 text-sm text-carbon-text">
-        <span className={disabled ? 'opacity-40' : ''}>{label}</span>
-        <HintBubble hint={hint} />
+      <span data-glim-label={label} className="pointer-events-auto min-w-0 text-sm text-carbon-text">
+        <RowLabel label={label} hint={hint} dim={disabled} />
       </span>
       {aside ? (
         <span className="ms-auto flex items-center gap-3">
