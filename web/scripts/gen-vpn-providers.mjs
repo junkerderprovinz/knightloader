@@ -1,7 +1,8 @@
 // Rebuilds src/lib/vpnProviders.ts and the logos in public/vpn from the VPN
 // provider list the engine is built on (providers.json: id, name,
-// wireguard.method and .fields, portForwarding.supported, logo.url, and tile
-// and tileOrder where the list picks the tiles).
+// wireguard.method and .fields, portForwarding.supported, logo.url or
+// logo.file for a mark cut out by hand, and tile and tileOrder where the list
+// picks the tiles).
 //
 //   npm i --no-save sharp
 //   node scripts/gen-vpn-providers.mjs <providers.json>
@@ -90,37 +91,34 @@ async function render(input) {
   return image.png({ palette: true, quality: 90, effort: 10, compressionLevel: 9 }).toBuffer();
 }
 
-async function logo(url) {
-  if (!url) return null;
+async function logo(l) {
+  const from = l?.file ?? l?.url;
+  if (!from) return null;
   try {
-    const r = await fetch(url, { signal: AbortSignal.timeout(15000) });
+    if (l.file) return await render(await readFile(l.file));
+    const r = await fetch(l.url, { signal: AbortSignal.timeout(15000) });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
     return await render(Buffer.from(await r.arrayBuffer()));
   } catch (err) {
-    console.log(`no logo from ${url}: ${err.message}`);
+    console.log(`no logo from ${from}: ${err.message}`);
     return null;
   }
 }
 
-// A list that marks its tiles shows those alone, in their order. A provider
-// that keeps WireGuard to its own app and has a logo is shown after them,
-// greyed out, so nobody looks for it in vain.
+// A list that marks its tiles shows those alone, in their order, with the own
+// configuration last. A tile whose provider keeps WireGuard to its own app is
+// shown after them, greyed out, so nobody looks for it in vain.
 const all = JSON.parse(await readFile(source, 'utf8'));
 const tiled = all.some((p) => 'tile' in p);
-const providers = tiled
-  ? all.filter((p) => p.tile === true).sort((a, b) => (a.tileOrder ?? 0) - (b.tileOrder ?? 0))
-  : all;
-const appOnly = tiled ? all.filter((p) => p.tile !== true && p.wireguard?.supported === false && p.logo?.url) : [];
+const order = (a, b) => (a.id === 'custom') - (b.id === 'custom') || (a.tileOrder ?? 0) - (b.tileOrder ?? 0);
+const providers = tiled ? all.filter((p) => p.tile === true && p.wireguard?.supported !== false).sort(order) : all;
+const appOnly = tiled ? all.filter((p) => p.tile === true && p.wireguard?.supported === false).sort(order) : [];
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 
 const entries = [];
 for (const p of providers) {
-  if (p.wireguard?.supported === false) {
-    console.log(`left out, no WireGuard: ${p.name}`);
-    continue;
-  }
-  const png = await logo(p.logo?.url);
+  const png = await logo(p.logo);
   if (png) await writeFile(join(out, `${p.id}.png`), png);
   entries.push({
     id: p.id,
@@ -133,7 +131,7 @@ for (const p of providers) {
 
 const shut = [];
 for (const p of appOnly) {
-  const png = await logo(p.logo.url);
+  const png = await logo(p.logo);
   if (png) await writeFile(join(out, `${p.id}.png`), png);
   shut.push({ id: p.id, name: p.name, logo: Boolean(png) });
 }

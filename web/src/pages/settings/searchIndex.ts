@@ -658,6 +658,29 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   network: [
     {
+      title: 'settings.vpn.title',
+      hint: 'settings.vpn.cardHint',
+      rows: [
+        { key: 'settings.vpn.routesTitle', hint: 'settings.vpn.routesHint' },
+        { key: 'settings.vpn.route.torrents', hint: 'settings.vpn.route.torrentsHint' },
+        { key: 'settings.vpn.route.hosters' },
+        { key: 'settings.vpn.route.ytdlp' },
+        { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
+        { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
+      ],
+      also: ['settings.vpn.add', 'settings.vpn.custom', 'settings.vpn.pick', 'settings.vpn.use', 'accounts.rowActions'],
+      // The empty card, and the picker's window, which opens from Add.
+      body: [
+        'settings.vpn.empty',
+        'settings.vpn.emptyHint',
+        'settings.vpn.pickHint',
+        'settings.vpn.portForwardingHint',
+        'settings.vpn.noPortForwardingHint',
+        'settings.vpn.note.kaspersky',
+        'settings.vpn.note.anonine',
+      ],
+    },
+    {
       title: 'settings.module.connections',
       rows: [
         { key: 'settings.connections.type', hint: 'settings.connections.typeHint' },
@@ -742,23 +765,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.hostRules.retryMax', hint: 'settings.hostRules.retryMaxHint' },
         { key: 'settings.hostRules.retryTries', hint: 'settings.hostRules.retryTriesHint' },
       ],
-    },
-  ],
-
-  vpn: [
-    {
-      title: 'settings.vpn.trafficTitle',
-      rows: [],
-      also: ['settings.vpn.disconnect'],
-      body: ['settings.vpn.killSwitchHint', 'settings.vpn.disconnectHint'],
-    },
-    {
-      title: 'settings.vpn.providersTitle',
-      hint: 'settings.vpn.providersHint',
-      rows: [],
-      also: ['settings.vpn.portForwarding', 'settings.vpn.noPortForwarding', 'settings.vpn.custom'],
-      // The connect window's explanations, which open from the tiles.
-      body: ['settings.vpn.portForwardingHint', 'settings.vpn.removeHint'],
     },
   ],
 

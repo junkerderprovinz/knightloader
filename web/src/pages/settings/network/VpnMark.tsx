@@ -25,16 +25,22 @@ export function VpnMark({ id, name, size }: { id: string; name: string; size: nu
 }
 
 /** The own config is no brand, so its name is the interface's words. */
-export const nameOf = (t: T, p: VpnProvider): string => (p.id === 'custom' ? t('settings.vpn.custom') : p.name);
+export const nameOf = (t: T, p: Pick<VpnProvider, 'id' | 'name'>): string =>
+  p.id === 'custom' ? t('settings.vpn.custom') : p.name;
 
-export const STATE_WORD: Record<VpnConnState, TranslationKey> = {
-  idle: 'settings.vpn.state.idle',
+const STATE_WORD: Record<VpnConnState, TranslationKey> = {
+  idle: 'settings.vpn.state.saved',
   connecting: 'settings.vpn.state.connecting',
   connected: 'settings.vpn.state.connected',
   failed: 'settings.vpn.state.failed',
 };
 
-const STATE_TONE = { connecting: 'warn', connected: 'ok', failed: 'fail' } as const;
+const STATE_TONE = { idle: undefined, connecting: 'warn', connected: 'ok', failed: 'fail' } as const;
+
+/** VpnStateBadge is a provider's state as a badge, the way an account's status reads. */
+export function VpnStateBadge({ provider: p, t }: { provider: VpnProvider; t: T }) {
+  return <LabelBadge label={t(STATE_WORD[p.state])} tone={STATE_TONE[p.state]} />;
+}
 
 const FAILURE: Record<string, TranslationKey> = {
   'vpn-config-invalid': 'settings.vpn.error.config',
@@ -47,29 +53,4 @@ const FAILURE: Record<string, TranslationKey> = {
 export function failureOf(t: T, p: VpnProvider): string {
   const key = p.errorCode ? FAILURE[p.errorCode] : undefined;
   return key ? t(key, { name: nameOf(t, p) }) : (p.error ?? '');
-}
-
-/**
- * VpnBadges reports where a provider stands: its state while it is in use, the
- * address the swarm sees and its forwarded port once connected, and whether it
- * forwards a port at all.
- */
-export function VpnBadges({ provider: p, t }: { provider: VpnProvider; t: T }) {
-  const name = nameOf(t, p);
-  const forwarding = t('settings.vpn.portForwardingHint', { name });
-  return (
-    <div className="flex flex-wrap items-center gap-2">
-      {p.state !== 'idle' && <LabelBadge label={t(STATE_WORD[p.state])} tone={STATE_TONE[p.state]} />}
-      {p.state === 'connected' && p.exitIp && (
-        <LabelBadge label={t('settings.vpn.exitIp', { ip: p.exitIp })} tip={t('settings.vpn.exitIpHint')} />
-      )}
-      {!p.portForwarding ? (
-        <LabelBadge label={t('settings.vpn.noPortForwarding')} tip={t('settings.vpn.noPortForwardingHint', { name })} />
-      ) : p.state === 'connected' && p.forwardedPort ? (
-        <LabelBadge label={t('settings.vpn.port', { port: p.forwardedPort })} tip={forwarding} />
-      ) : (
-        <LabelBadge label={t('settings.vpn.portForwarding')} tip={forwarding} />
-      )}
-    </div>
-  );
 }

@@ -7,7 +7,7 @@
 //   a config without [Interface] or a private key that is not one   vpn-config-invalid
 //   a login or token with "fail" in it                               vpn-login-refused
 //   the location "timeout"                                           vpn-timeout
-import { ApiError, type VpnField, type VpnProvider, type VpnState } from './api';
+import { ApiError, type VpnField, type VpnProvider, type VpnRoutes, type VpnState } from './api';
 import { VPN_PROVIDERS } from './vpnProviders';
 
 const KEY = 'kl-vpn-mock';
@@ -23,7 +23,10 @@ interface Stored {
   failCode: string;
   exitIp: string;
   port: number;
+  routes?: VpnRoutes;
 }
+
+const DEFAULT_ROUTES: VpnRoutes = { torrents: true, hosters: false, ytdlp: false, debrid: false, usenet: false };
 
 const ERRORS: Record<string, string> = {
   'vpn-config-invalid': 'This is not a WireGuard configuration.',
@@ -77,7 +80,7 @@ function state(s: Stored, now: number): VpnState {
       ...(p.portForwarding ? { forwardedPort: s.port } : {}),
     };
   });
-  return { active: s.active, providers };
+  return { active: s.active, routes: s.routes ?? DEFAULT_ROUTES, providers };
 }
 
 /** failureOf is the code a connect with this login ends in, '' for none. */
@@ -123,6 +126,8 @@ export async function mockVpn(path: string, init?: RequestInit, now = Date.now()
   if (method === 'POST' && connectTo) {
     const body = JSON.parse(String(init?.body ?? '{}')) as { fields?: Login };
     s = connect(s, decodeURIComponent(connectTo[1]), body.fields ?? {}, now);
+  } else if (method === 'PUT' && path === '/routes') {
+    s = { ...s, routes: JSON.parse(String(init?.body ?? '{}')) as VpnRoutes };
   } else if (method === 'POST' && path === '/disconnect') {
     s = { ...s, active: '' };
   } else if (method === 'DELETE' && path.startsWith('/')) {
