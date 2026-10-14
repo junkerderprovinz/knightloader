@@ -35,7 +35,7 @@ func NewMultiUp(user, pass string) *MultiUp {
 	// The login may leave a session cookie next to the address unlock, so the
 	// jar belongs to this account alone.
 	jar, _ := cookiejar.New(nil)
-	c := httpx.New(httpx.Options{Timeout: 30 * time.Second})
+	c := httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second})
 	c.Jar = jar
 	return &MultiUp{user: user, pass: pass, base: "https://multiup.io/api", hc: c, mu: newLoginLock()}
 }

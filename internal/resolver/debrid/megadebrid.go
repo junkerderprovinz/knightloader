@@ -44,7 +44,7 @@ func NewMegaDebrid(user, pass string) *MegaDebrid {
 		user: user,
 		pass: pass,
 		base: "https://www.mega-debrid.eu/api.php",
-		hc:   httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:   httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 		mu:   newLoginLock(),
 	}
 }

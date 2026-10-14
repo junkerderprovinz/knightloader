@@ -43,7 +43,7 @@ func NewMyDebrid(user, pass string) *MyDebrid {
 		user:      user,
 		pass:      pass,
 		base:      "https://api.mydebrid.com/v1",
-		hc:        httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:        httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 		mu:        newLoginLock(),
 		chunkCaps: map[string]int{},
 	}

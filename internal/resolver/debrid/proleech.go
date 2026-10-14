@@ -44,7 +44,7 @@ func NewProLeech(apiUser, apiKey string) *ProLeech {
 		// A direct link only works from the IP that asked for it, and downloads
 		// leave through the loopback proxy, which dials direct. Sending the API
 		// calls through an HTTP_PROXY would bind every link to the proxy's IP.
-		hc: httpx.New(httpx.Options{Timeout: proleechCallTimeout, Proxy: httpx.NoProxy}),
+		hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: proleechCallTimeout, Proxy: httpx.NoProxy}),
 	}
 }
 

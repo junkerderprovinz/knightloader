@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"slices"
@@ -78,10 +79,57 @@ type ProviderState struct {
 	ErrorCode      string   `json:"errorCode,omitempty"`
 }
 
-// State is the VPN page's whole state (web/src/lib/api.ts, VpnState).
+// State is the VPN card's whole state (web/src/lib/api.ts, VpnState).
 type State struct {
 	Active    string          `json:"active"`
+	Routes    Routes          `json:"routes"`
 	Providers []ProviderState `json:"providers"`
+}
+
+// Traffic is a kind of download the VPN can carry.
+type Traffic string
+
+const (
+	Torrents Traffic = "torrents"
+	Hosters  Traffic = "hosters"
+	Ytdlp    Traffic = "ytdlp"
+	Debrid   Traffic = "debrid"
+	Usenet   Traffic = "usenet"
+)
+
+// Routes says which traffic goes through the VPN while a provider is in use.
+// Traffic switched on goes nowhere else: while the tunnel is down it waits.
+type Routes struct {
+	Torrents bool `json:"torrents"`
+	Hosters  bool `json:"hosters"`
+	Ytdlp    bool `json:"ytdlp"`
+	Debrid   bool `json:"debrid"`
+	Usenet   bool `json:"usenet"`
+}
+
+// DefaultRoutes sends torrents through the VPN and nothing else.
+var DefaultRoutes = Routes{Torrents: true}
+
+func (r Routes) on(t Traffic) bool {
+	switch t {
+	case Torrents:
+		return r.Torrents
+	case Hosters:
+		return r.Hosters
+	case Ytdlp:
+		return r.Ytdlp
+	case Debrid:
+		return r.Debrid
+	case Usenet:
+		return r.Usenet
+	}
+	return false
+}
+
+// kept is what StatePath holds across restarts.
+type kept struct {
+	Active string  `json:"active"`
+	Routes *Routes `json:"routes,omitempty"`
 }
 
 // Refusal is a call the routes answer with an error status, a code the page
@@ -103,6 +151,8 @@ type Manager struct {
 
 	mu      sync.Mutex
 	active  string
+	routes  Routes
+	resume  string
 	fail    *failure
 	exitIP  string
 	port    uint16
@@ -135,7 +185,16 @@ func New(opts Options) (*Manager, error) {
 	if opts.Tunnel.Logf == nil {
 		opts.Tunnel.Logf = opts.Logf
 	}
-	m := &Manager{opts: opts, tun: vpn.New(opts.Tunnel), providers: catalogue()}
+	m := &Manager{opts: opts, tun: vpn.New(opts.Tunnel), providers: catalogue(), routes: DefaultRoutes}
+	if b, err := os.ReadFile(opts.StatePath); err == nil {
+		var k kept
+		if json.Unmarshal(b, &k) == nil {
+			m.resume = k.Active
+			if k.Routes != nil {
+				m.routes = *k.Routes
+			}
+		}
+	}
 	m.tun.Watch(func(vpn.State) {
 		netbind.Default.Refresh()
 		m.opts.OnChange()
@@ -176,7 +235,7 @@ func (m *Manager) State() State {
 	ts := m.tun.State()
 	m.mu.Lock()
 	defer m.mu.Unlock()
-	out := State{Active: m.active, Providers: make([]ProviderState, 0, len(m.providers))}
+	out := State{Active: m.active, Routes: m.routes, Providers: make([]ProviderState, 0, len(m.providers))}
 	for _, p := range m.providers {
 		ps := ProviderState{
 			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding,
@@ -196,7 +255,7 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 		ps.State = "connected"
 		ps.ExitIP = m.exitIP
 		switch p.port {
-		case natpmpPort:
+		case natpmpPort, fwdPort:
 			ps.ForwardedPort = int(m.port)
 		case manualPort:
 			ps.ForwardedPort = m.opts.ManualPort()
@@ -291,16 +350,57 @@ func (m *Manager) Forget(id string) (State, error) {
 
 // Resume connects the provider that was in use when the process last ended.
 func (m *Manager) Resume() {
-	b, err := os.ReadFile(m.opts.StatePath)
-	if err != nil {
+	if m.resume == "" {
 		return
 	}
-	var st struct{ Active string }
-	if json.Unmarshal(b, &st) != nil || st.Active == "" {
-		return
+	if _, err := m.Connect(m.resume, nil); err != nil {
+		m.opts.Logf("vpn: %s not taken up again: %v", m.resume, err)
 	}
-	if _, err := m.Connect(st.Active, nil); err != nil {
-		m.opts.Logf("vpn: %s not taken up again: %v", st.Active, err)
+}
+
+// SetRoutes says which traffic goes through the VPN.
+func (m *Manager) SetRoutes(r Routes) State {
+	m.mu.Lock()
+	m.routes = r
+	active := m.active
+	m.mu.Unlock()
+	m.saveActive(active)
+	m.opts.OnChange()
+	return m.State()
+}
+
+// Through reports whether t goes through the VPN: a provider is in use and
+// t is switched on.
+func (m *Manager) Through(t Traffic) bool {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.active != "" && m.routes.on(t)
+}
+
+// ErrNoVPN is a dial through the VPN while no provider is in use.
+var ErrNoVPN = errors.New("vpn: no VPN is in use")
+
+// DialContext dials through the tunnel. While a provider is in use and the
+// tunnel is down it waits for the tunnel rather than fail, as traffic held by
+// a kill switch does, until ctx ends.
+func (m *Manager) DialContext(ctx context.Context, network, address string) (net.Conn, error) {
+	tick := time.NewTicker(250 * time.Millisecond)
+	defer tick.Stop()
+	for {
+		if m.Active() == "" {
+			return nil, ErrNoVPN
+		}
+		if m.tun.State().Status == vpn.Connected {
+			c, err := m.tun.DialContext(ctx, network, address)
+			if !errors.Is(err, vpn.ErrDown) {
+				return c, err
+			}
+		}
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-tick.C:
+		}
 	}
 }
 
@@ -347,9 +447,10 @@ func (m *Manager) saveActive(id string) {
 	if m.opts.StatePath == "" {
 		return
 	}
-	b, _ := json.Marshal(struct {
-		Active string `json:"active"`
-	}{id})
+	m.mu.Lock()
+	routes := m.routes
+	m.mu.Unlock()
+	b, _ := json.Marshal(kept{Active: id, Routes: &routes})
 	if err := os.WriteFile(m.opts.StatePath, b, 0o600); err != nil {
 		m.opts.Logf("vpn: keeping the provider in use: %v", err)
 	}
@@ -447,8 +548,11 @@ func (m *Manager) serve(ctx context.Context, p Provider, sess *session) {
 
 	pctx, stopPorts := context.WithCancel(ctx)
 	defer stopPorts()
-	if p.port == natpmpPort {
+	switch p.port {
+	case natpmpPort:
 		go m.forwardPort(pctx, p, sess)
+	case fwdPort:
+		go m.askForPort(pctx, p)
 	}
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()

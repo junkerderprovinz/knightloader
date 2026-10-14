@@ -63,6 +63,7 @@ type Server struct {
 	idle time.Duration
 
 	transport *http.Transport
+	dial      func(ctx context.Context, network, address string) (net.Conn, error)
 
 	mu     sync.Mutex
 	closed bool
@@ -71,10 +72,16 @@ type Server struct {
 
 // Start brings the proxy up on a free loopback port.
 func Start(lim *throttle.Limiter) (*Server, error) {
-	return start(lim, idleTimeout)
+	return start(lim, idleTimeout, (&net.Dialer{Timeout: 30 * time.Second}).DialContext)
 }
 
-func start(lim *throttle.Limiter, idle time.Duration) (*Server, error) {
+// StartVia is Start with the servers reached through dial, such as a VPN
+// tunnel's, so what comes through is both metered and carried there.
+func StartVia(lim *throttle.Limiter, dial func(ctx context.Context, network, address string) (net.Conn, error)) (*Server, error) {
+	return start(lim, idleTimeout, dial)
+}
+
+func start(lim *throttle.Limiter, idle time.Duration, dial func(ctx context.Context, network, address string) (net.Conn, error)) (*Server, error) {
 	ln, err := net.Listen("tcp", "127.0.0.1:0")
 	if err != nil {
 		return nil, err
@@ -84,9 +91,10 @@ func start(lim *throttle.Limiter, idle time.Duration) (*Server, error) {
 		lim:    lim,
 		idle:   idle,
 		failed: map[string]dialFailure{},
+		dial:   dial,
 		transport: &http.Transport{
 			Proxy:                 nil, // we are the proxy; never chain into ourselves
-			DialContext:           (&net.Dialer{Timeout: 30 * time.Second}).DialContext,
+			DialContext:           dial,
 			MaxIdleConnsPerHost:   32,
 			IdleConnTimeout:       90 * time.Second,
 			TLSHandshakeTimeout:   15 * time.Second,
@@ -168,7 +176,7 @@ func (s *Server) serve(w http.ResponseWriter, r *http.Request) {
 // through.
 func (s *Server) tunnel(w http.ResponseWriter, r *http.Request) {
 	key := target(r.Host, "https")
-	upstream, err := net.DialTimeout("tcp", key, 30*time.Second)
+	upstream, err := s.dial(r.Context(), "tcp", key)
 	s.noteDial(key, err)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusBadGateway)

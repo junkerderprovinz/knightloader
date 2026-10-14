@@ -49,7 +49,7 @@ func NewRPNet(customerID, apiKey string) *RPNet {
 		customerID: strings.TrimSpace(customerID),
 		apiKey:     strings.TrimSpace(apiKey),
 		base:       "https://premium.rpnet.biz",
-		hc:         httpx.New(httpx.Options{Timeout: rpnetCallTimeout}),
+		hc:         httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: rpnetCallTimeout}),
 		pollEvery:  10 * time.Second,
 		queueWait:  time.Minute,
 		queued:     map[string]string{},

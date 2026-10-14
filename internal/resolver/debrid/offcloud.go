@@ -28,7 +28,7 @@ type Offcloud struct {
 }
 
 func NewOffcloud(key string) *Offcloud {
-	return &Offcloud{key: key, base: "https://offcloud.com/api", hc: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
+	return &Offcloud{key: key, base: "https://offcloud.com/api", hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second})}
 }
 
 func (*Offcloud) ID() string    { return "offcloud" }

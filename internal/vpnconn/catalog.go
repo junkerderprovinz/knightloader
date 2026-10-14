@@ -26,6 +26,9 @@ const (
 	// manualPort is a port the user forwards in the provider's account, which
 	// the torrent client then has to listen on: the torrent settings' port.
 	manualPort
+	// fwdPort asks cryptostorm's server for a port once per connection; it
+	// keeps it until the token runs out, so nothing renews it.
+	fwdPort
 )
 
 // protonGateway is where Proton VPN answers NAT-PMP on every server.
@@ -58,6 +61,19 @@ func catalogue() []Provider {
 		{ID: "privatevpn", Name: "PrivateVPN", Fields: []string{"config"}, open: conf},
 		{ID: "astrill", Name: "Astrill VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "zoogvpn", Name: "ZoogVPN", Fields: []string{"config"}, open: conf},
+		{ID: "cryptostorm", Name: "cryptostorm", Fields: []string{"config"}, PortForwarding: true, open: conf, port: fwdPort},
+		{ID: "strongvpn", Name: "StrongVPN", Fields: []string{"config"}, open: conf},
+		{ID: "vpnunlimited", Name: "VPN Unlimited", Fields: []string{"config"}, open: conf},
+		{ID: "kaspersky", Name: "Kaspersky VPN", Fields: []string{"config"}, open: conf},
+		{ID: "anonine", Name: "Anonine", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
+		{ID: "njalla", Name: "Njalla VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
+		{ID: "trustzone", Name: "Trust.Zone", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
+		{ID: "obscura", Name: "Obscura VPN", Fields: []string{"token"}},
+		{ID: "levpn", Name: "Le VPN", Fields: []string{"config"}, open: conf},
+		{ID: "xeovo", Name: "Xeovo", Fields: []string{"config"}, open: conf},
+		{ID: "cactusvpn", Name: "CactusVPN", Fields: []string{"config"}, open: conf},
+		{ID: "vpnac", Name: "VPN.ac", Fields: []string{"config"}, open: conf},
+		{ID: "unlocator", Name: "Unlocator VPN", Fields: []string{"config"}, open: conf},
 		{ID: "custom", Name: "Own WireGuard config", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 	}
 }

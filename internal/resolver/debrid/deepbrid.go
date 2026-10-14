@@ -36,7 +36,7 @@ func NewDeepbrid(apiKey string) *Deepbrid {
 		base: "https://www.deepbrid.com/api/v1",
 		// A request the API cannot authenticate may be redirected to the login
 		// page, which is only recognisable as long as the 302 is not followed.
-		hc: httpx.New(httpx.Options{Timeout: 30 * time.Second, MaxRedirects: -1}),
+		hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second, MaxRedirects: -1}),
 	}
 }
 

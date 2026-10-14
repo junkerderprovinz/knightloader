@@ -42,7 +42,7 @@ func NewLinksnappy(user, pass string) *Linksnappy {
 	// The session cookie from AUTHENTICATE is the credential, so the jar must
 	// not be shared with other services.
 	jar, _ := cookiejar.New(nil)
-	c := httpx.New(httpx.Options{Timeout: 30 * time.Second})
+	c := httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second})
 	c.Jar = jar
 	return &Linksnappy{user: user, pass: pass, base: "https://linksnappy.com/api", hc: c, started: map[string]bool{}}
 }

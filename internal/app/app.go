@@ -256,6 +256,9 @@ type App struct {
 
 	dlDir string           // where engine + yt-dlp downloads land (extraction source)
 	proxy *netproxy.Server // loopback proxy the engine downloads through
+	// vpnProxy is the loopback proxy into the VPN tunnel (app_vpn.go).
+	vpnProxy   *netproxy.Server
+	usenetDial *usenetDialer
 
 	// wmu serialises changes to watcher, which is replaced whenever the watched
 	// folders change. The pointer itself is atomic so that a reader never waits
@@ -503,6 +506,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		siteBench:  map[serviceSite]time.Time{},
 		debrid:     map[string]backend{},
 	}
+	a.usenetDial = &usenetDialer{a}
 	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own
@@ -963,9 +967,7 @@ func (a *App) Close() error {
 		a.ClipWatch.Close(time.Now())
 	}
 	// Before the engine, whose torrent sockets it carries.
-	if a.VPN != nil {
-		a.VPN.Close()
-	}
+	a.closeVPN()
 	if a.Engine != nil {
 		a.Engine.Close()
 	}

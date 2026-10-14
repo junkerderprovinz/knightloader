@@ -35,7 +35,7 @@ func NewDebridItalia(user, pass string) *DebridItalia {
 		base: "https://debriditalia.com/api.php",
 		// JD's plugin gives each call a minute, and generate has to reach the
 		// hoster before it answers.
-		hc:   httpx.New(httpx.Options{Timeout: time.Minute, ResponseHeaderTimeout: time.Minute}),
+		hc:   httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: time.Minute, ResponseHeaderTimeout: time.Minute}),
 		pace: debriditaliaShared,
 	}
 }

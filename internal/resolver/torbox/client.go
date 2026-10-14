@@ -31,7 +31,7 @@ type Client struct {
 
 func NewClient(key string) *Client {
 	// httpx drops the bearer token if a redirect ever leaves the API host.
-	return &Client{key: key, base: apiBase, hc: httpx.New(httpx.Options{Timeout: apiTimeout})}
+	return &Client{key: key, base: apiBase, hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: apiTimeout})}
 }
 
 // envelope is TorBox's uniform response wrapper.

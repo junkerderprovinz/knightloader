@@ -108,7 +108,9 @@ func (a *App) nntpServers() []nntp.Server {
 			continue
 		}
 		cred, _ := a.Accounts.GetCredential(settings.UsenetService, srv.ID)
-		out = append(out, nntpServer(srv, cred))
+		s := nntpServer(srv, cred)
+		s.Dialer = a.usenetDial
+		out = append(out, s)
 	}
 	return out
 }

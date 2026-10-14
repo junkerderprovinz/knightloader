@@ -1,8 +1,9 @@
 // Package vpntest runs a WireGuard server in the test process, on a userspace
 // stack of its own, for tests of what connects to one. It answers TCP echo on
 // port 7 and NAT-PMP at its tunnel address, the way a provider's gateway
-// sits at the first address of the tunnel's network, and on port 80 it answers
-// with ExitAddr, the way an address lookup through a VPN does.
+// sits at the first address of the tunnel's network. On port 80 it answers
+// with ExitAddr, the way an address lookup through a VPN does, and takes
+// cryptostorm's POST /fwd.
 package vpntest
 
 import (
@@ -46,6 +47,7 @@ type Server struct {
 	mapped   uint16
 	lifetime uint32
 	maps     int
+	fwds     []string
 }
 
 // Start runs a server on a free UDP port of loopback and closes it when t
@@ -95,7 +97,14 @@ func Start(t testing.TB) *Server {
 	if err != nil {
 		t.Fatal(err)
 	}
-	go http.Serve(web, http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) { io.WriteString(w, ExitAddr) }))
+	go http.Serve(web, http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost && r.URL.Path == "/fwd" {
+			s.mu.Lock()
+			s.fwds = append(s.fwds, r.FormValue("port"))
+			s.mu.Unlock()
+		}
+		io.WriteString(w, ExitAddr)
+	}))
 	return s
 }
 
@@ -126,6 +135,13 @@ func (s *Server) Mappings() int {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	return s.maps
+}
+
+// Forwards are the ports asked of POST /fwd, cryptostorm's way to forward one.
+func (s *Server) Forwards() []string {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	return append([]string(nil), s.fwds...)
 }
 
 // Close stops the server, as a provider's server that goes away.
