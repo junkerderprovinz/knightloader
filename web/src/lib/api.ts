@@ -3220,6 +3220,50 @@ export async function createToken(name: string, scopes: readonly TokenScope[]): 
  *  password or any other token. */
 export const revokeToken = (id: string) => fetch(`/api/tokens/${encodeURIComponent(id)}`, { method: 'DELETE' });
 
+/** One AI client set up for /mcp, with the token made for it. */
+export interface McpClientRow {
+  id: string;
+  /** The id in lib/mcpClients.ts, such as "claude-code", or "other". */
+  kind: string;
+  tokenId: string;
+  tokenName: string;
+  scopes: TokenScope[];
+  addedAt: string;
+  /** Absent until the client's first call. */
+  lastCall?: string;
+  /** The token was revoked elsewhere, so the client is locked out. */
+  tokenGone?: boolean;
+}
+
+export interface McpOverview {
+  path: string;
+  clients: McpClientRow[];
+  tools: { name: string; title: string; scope: TokenScope }[];
+}
+
+export async function fetchMcp(): Promise<McpOverview> {
+  return json<McpOverview>(await fetch('/api/mcp'));
+}
+
+/** createMcpClient issues the client's token; the secret is in this answer only. */
+export async function createMcpClient(
+  kind: string,
+  name: string,
+  scopes: readonly TokenScope[],
+): Promise<{ client: McpClientRow; secret: string }> {
+  const r = await fetch('/api/mcp/clients', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ kind, name, scopes }),
+  });
+  return json(r);
+}
+
+/** removeMcpClient drops the client and revokes its token. */
+export async function removeMcpClient(id: string): Promise<void> {
+  await ok(await fetch(`/api/mcp/clients/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
 /** One URL this instance might answer on (api.ReachableAddress). */
 export interface ReachableAddress {
   /** "this connection" for the address the request arrived on, otherwise a

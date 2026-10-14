@@ -1,10 +1,11 @@
 // A picker of brands (GlimStone, "Pickers and wizards"): one window, every
 // provider a tile in the shape of the README's buttons with its logo at the
 // start and its name beside it, and a search at the window's top right. The
-// debrid services, the captcha services, the hosters and the VPN providers are
-// all picked from it, so their windows look the same. The tile is ReadmeButton's markup
+// debrid services, the captcha services, the hosters, the VPN providers and the
+// MCP clients are all picked from it, so their windows look the same. The tile is ReadmeButton's markup
 // without its fitting of long words, which several hundred hosters would each
 // pay for: a brand's name is cut with an ellipsis instead.
+import type { ReactNode } from 'react';
 import { HosterIcon } from './HosterIcon';
 import { SearchBox } from './SearchBox';
 import { InfoBubble } from './ui';
@@ -14,12 +15,14 @@ export interface Brand {
   name: string;
   /** The second line, shown under the pointer: the brand's site, or that it is connected. */
   sub?: string;
-  /** The host or address the logo is fetched for. */
-  host: string;
+  /** The host or address the logo is fetched for, where the brand brings no mark of its own. */
+  host?: string;
   /** Keeps the second line in view at rest, for one that says a state. */
   held?: boolean;
   /** A logo of the page's own in place of the one fetched for host. */
   mark?: ReactNode;
+  /** The `.glim-tile-*` class the tile lights up in; the accent without one. */
+  tile?: string;
   /** Why the brand cannot be picked, behind an (i) on a greyed-out tile. */
   unavailable?: string;
 }
@@ -55,7 +58,7 @@ export function BrandPicker({
           <>
             <span className="glim-readme-btn-mark" aria-hidden>
               {/* Lazy, so only tiles scrolled into view fetch their logo. */}
-              {b.mark ?? <HosterIcon host={b.host} size={25} />}
+              {b.mark ?? <HosterIcon host={b.host ?? ''} size={25} />}
             </span>
             <span className="glim-readme-btn-text">
               <span className="glim-readme-btn-name">{b.name}</span>
@@ -66,7 +69,7 @@ export function BrandPicker({
         const label = b.sub ? `${b.name} ${b.sub}` : b.name;
         if (b.unavailable) {
           return (
-            <li key={b.id} className="glim-readme-btn-unit group glim-tile-house glim-readme-btn-soon">
+            <li key={b.id} className={`glim-readme-btn-unit group ${b.tile ?? 'glim-tile-house'} glim-readme-btn-soon`}>
               <span className="glim-readme-btn" aria-disabled aria-label={label}>
                 {face}
               </span>
@@ -79,7 +82,7 @@ export function BrandPicker({
         return (
           <li
             key={b.id}
-            className={`glim-readme-btn-unit group glim-tile-house ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
+            className={`glim-readme-btn-unit group ${b.tile ?? 'glim-tile-house'} ${b.held ? 'glim-readme-btn-unit--note' : ''}`}
           >
             <button type="button" onClick={() => onPick(b.id)} aria-label={label} className="glim-readme-btn glim-brand-tile">
               {face}

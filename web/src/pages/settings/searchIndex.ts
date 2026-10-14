@@ -593,6 +593,25 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The (i) of the window that shows a new token, and of the rights picker.
       body: ['settings.access.tokens.howToUse', 'settings.access.tokens.rightsHint'],
     },
+    {
+      title: 'settings.access.mcp.title',
+      hint: 'settings.access.mcp.intro',
+      rows: [],
+      // The picker's groups and the form and setup of the window that adds a client.
+      also: [
+        'settings.access.mcp.add',
+        'settings.access.mcp.groupLocal',
+        'settings.access.mcp.groupCloud',
+        'settings.access.mcp.config',
+        'settings.access.mcp.tokenGone',
+        'settings.access.tokens.name',
+        'settings.access.tokens.rights',
+      ],
+      body: [
+        'settings.access.mcp.emptyHint',
+        'settings.access.mcp.pickHint',
+        'settings.access.mcp.cloudHint', 'settings.access.mcp.nameHint', 'settings.access.mcp.rightsHint'],
+    },
   ],
 
   advanced: [

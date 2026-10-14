@@ -52,6 +52,9 @@ var groupRefused = []string{
 	"GET /api/tokens",
 	"POST /api/tokens",
 	"DELETE /api/tokens/{id}",
+	"GET /api/mcp",
+	"POST /api/mcp/clients",
+	"DELETE /api/mcp/clients/{id}",
 
 	// The phrase, the group, the relay and the peers.
 	"DELETE /api/connect",
@@ -236,6 +239,7 @@ var groupRefused = []string{
 	"GET /dav/{path...}",
 	"OPTIONS /dav/{path...}",
 	"PROPFIND /dav/{path...}",
+	"/mcp",
 	"POST /api/group/call",
 	"GET /relay/connect",
 }

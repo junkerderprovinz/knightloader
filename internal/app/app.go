@@ -44,6 +44,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/httpx"
 	"github.com/junkerderprovinz/knightloader/internal/hub"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
+	"github.com/junkerderprovinz/knightloader/internal/mcpclient"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
 	"github.com/junkerderprovinz/knightloader/internal/mediatools"
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
@@ -109,6 +110,9 @@ type App struct {
 	// the same session guard a password does (see api.authenticated) without
 	// sharing its secret.
 	APITokens *apitoken.Store
+	// MCPClients are the assistants set up to reach /mcp, each with a token
+	// of its own.
+	MCPClients *mcpclient.Store
 	// Scripts runs the user's automation snippets in a goja sandbox (see
 	// internal/script). It subscribes to Events like any other consumer.
 	Scripts *script.Host
@@ -615,6 +619,13 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		return nil, err
 	}
 	a.APITokens = tokens
+
+	mcpClients, err := mcpclient.Open(dataDir)
+	if err != nil {
+		st.Close()
+		return nil, err
+	}
+	a.MCPClients = mcpClients
 
 	// The bus belongs to the app rather than the script host, so other
 	// subscribers do not depend on the host and closing it leaves the bus
