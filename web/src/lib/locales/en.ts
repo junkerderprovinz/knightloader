@@ -3952,6 +3952,8 @@ export const en = {
   'settings.vpn.providersTitle': 'Providers',
   'settings.vpn.providersHint': 'Pick your provider and enter what it asks for. Torrents use one VPN at a time, so connecting another one ends the current connection.',
   'settings.vpn.custom': 'Own WireGuard config',
+  'settings.vpn.appOnlyTitle': 'Not supported',
+  'settings.vpn.appOnlyHint': 'Allows WireGuard only in its own app.',
   'settings.vpn.customSub': 'Any WireGuard server',
   'settings.vpn.replaces': 'Connecting {name} ends the connection to {current}.',
   'settings.vpn.keepSaved': 'Your login is saved. Leave a field empty to keep what is stored.',

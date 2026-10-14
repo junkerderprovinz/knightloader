@@ -3692,6 +3692,8 @@ export const nl: Dict = {
   'settings.vpn.providersTitle': 'Providers',
   'settings.vpn.providersHint': 'Kies je provider en vul in wat die vraagt. Torrents gebruiken één VPN tegelijk, dus als je met een andere verbindt, wordt de huidige verbinding beëindigd.',
   'settings.vpn.custom': 'Eigen WireGuard-configuratie',
+  'settings.vpn.appOnlyTitle': 'Niet ondersteund',
+  'settings.vpn.appOnlyHint': 'Staat WireGuard alleen in de eigen app toe.',
   'settings.vpn.customSub': 'Elke WireGuard-server',
   'settings.vpn.replaces': 'Verbinden met {name} beëindigt de verbinding met {current}.',
   'settings.vpn.keepSaved': 'Je login is opgeslagen. Laat een veld leeg om te behouden wat is opgeslagen.',

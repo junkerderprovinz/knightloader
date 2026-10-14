@@ -3711,6 +3711,8 @@ export const lt: Dict = {
   'settings.vpn.providersTitle': 'Teikėjai',
   'settings.vpn.providersHint': 'Pasirinkite teikėją ir įveskite, ko jis prašo. Torrentai vienu metu naudoja vieną VPN, todėl prisijungus prie kito dabartinis ryšys nutraukiamas.',
   'settings.vpn.custom': 'Nuosava WireGuard konfigūracija',
+  'settings.vpn.appOnlyTitle': 'Nepalaikoma',
+  'settings.vpn.appOnlyHint': 'WireGuard leidžia naudoti tik savo programėlėje.',
   'settings.vpn.customSub': 'Bet kuris WireGuard serveris',
   'settings.vpn.replaces': 'Prisijungus prie {name}, ryšys su {current} nutraukiamas.',
   'settings.vpn.keepSaved': 'Jūsų prisijungimo duomenys išsaugoti. Palikite lauką tuščią, kad išliktų išsaugota reikšmė.',

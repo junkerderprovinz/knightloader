@@ -3710,6 +3710,8 @@ export const bg: Dict = {
   'settings.vpn.providersTitle': 'Доставчици',
   'settings.vpn.providersHint': 'Избери доставчика си и въведи каквото иска. Торентите ползват по един VPN наведнъж, така че свързването на друг прекратява текущата връзка.',
   'settings.vpn.custom': 'Собствена WireGuard конфигурация',
+  'settings.vpn.appOnlyTitle': 'Не се поддържа',
+  'settings.vpn.appOnlyHint': 'Позволява WireGuard само в собственото си приложение.',
   'settings.vpn.customSub': 'Всеки WireGuard сървър',
   'settings.vpn.replaces': 'Свързването на {name} прекратява връзката с {current}.',
   'settings.vpn.keepSaved': 'Входът ти е запазен. Остави полето празно, за да запазиш съхраненото.',

@@ -3700,6 +3700,8 @@ export const lv: Dict = {
   'settings.vpn.providersTitle': 'Pakalpojumu sniedzēji',
   'settings.vpn.providersHint': 'Izvēlieties pakalpojuma sniedzēju un ievadiet, ko tas prasa. Torrenti vienlaikus izmanto vienu VPN, tāpēc, savienojoties ar citu, pašreizējais savienojums tiek beigts.',
   'settings.vpn.custom': 'Sava WireGuard konfigurācija',
+  'settings.vpn.appOnlyTitle': 'Netiek atbalstīts',
+  'settings.vpn.appOnlyHint': 'Atļauj WireGuard tikai savā lietotnē.',
   'settings.vpn.customSub': 'Jebkurš WireGuard serveris',
   'settings.vpn.replaces': 'Savienojoties ar {name}, tiek beigts savienojums ar {current}.',
   'settings.vpn.keepSaved': 'Jūsu pieteikšanās dati ir saglabāti. Atstājiet lauku tukšu, lai paliktu saglabātā vērtība.',

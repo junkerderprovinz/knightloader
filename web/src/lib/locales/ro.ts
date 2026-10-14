@@ -3718,6 +3718,8 @@ export const ro: Dict = {
   'settings.vpn.providersTitle': 'Furnizori',
   'settings.vpn.providersHint': 'Alege furnizorul și introdu ce îți cere. Torrentele folosesc un singur VPN pe rând, deci conectarea la altul încheie conexiunea curentă.',
   'settings.vpn.custom': 'Configurație WireGuard proprie',
+  'settings.vpn.appOnlyTitle': 'Nu este acceptat',
+  'settings.vpn.appOnlyHint': 'Permite WireGuard doar în propria aplicație.',
   'settings.vpn.customSub': 'Orice server WireGuard',
   'settings.vpn.replaces': 'Conectarea la {name} încheie conexiunea la {current}.',
   'settings.vpn.keepSaved': 'Datele tale de autentificare sunt salvate. Lasă un câmp gol ca să păstrezi ce este stocat.',

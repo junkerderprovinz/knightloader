@@ -3693,6 +3693,8 @@ export const it: Dict = {
   'settings.vpn.providersTitle': 'Fornitori',
   'settings.vpn.providersHint': 'Scegli il tuo fornitore e inserisci ciò che chiede. I torrent usano una sola VPN alla volta, quindi collegarne un\'altra termina la connessione attuale.',
   'settings.vpn.custom': 'Configurazione WireGuard propria',
+  'settings.vpn.appOnlyTitle': 'Non supportato',
+  'settings.vpn.appOnlyHint': 'Consente WireGuard solo nella propria app.',
   'settings.vpn.customSub': 'Qualsiasi server WireGuard',
   'settings.vpn.replaces': 'Collegare {name} termina la connessione a {current}.',
   'settings.vpn.keepSaved': 'Il tuo accesso è salvato. Lascia vuoto un campo per mantenere quanto è memorizzato.',

@@ -3696,6 +3696,8 @@ export const ko: Dict = {
   'settings.vpn.providersTitle': '제공업체',
   'settings.vpn.providersHint': '제공업체를 고르고 요청하는 정보를 입력하세요. 토렌트는 한 번에 하나의 VPN만 사용하므로, 다른 VPN에 연결하면 현재 연결이 종료됩니다.',
   'settings.vpn.custom': '직접 만든 WireGuard 설정',
+  'settings.vpn.appOnlyTitle': '지원 안 됨',
+  'settings.vpn.appOnlyHint': 'WireGuard를 자체 앱에서만 허용합니다.',
   'settings.vpn.customSub': '모든 WireGuard 서버',
   'settings.vpn.replaces': '{name}에 연결하면 {current}과(와)의 연결이 종료됩니다.',
   'settings.vpn.keepSaved': '로그인 정보가 저장되어 있습니다. 저장된 값을 유지하려면 입력란을 비워 두세요.',

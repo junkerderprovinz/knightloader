@@ -3706,6 +3706,8 @@ export const eu: Dict = {
   'settings.vpn.providersTitle': 'Hornitzaileak',
   'settings.vpn.providersHint': 'Aukeratu zure hornitzailea eta sartu eskatzen duena. Torrentek VPN bakarra erabiltzen dute aldi berean, beraz beste bat konektatzeak uneko konexioa amaitzen du.',
   'settings.vpn.custom': 'WireGuard konfigurazio propioa',
+  'settings.vpn.appOnlyTitle': 'Ez da onartzen',
+  'settings.vpn.appOnlyHint': 'WireGuard bere aplikazioan bakarrik onartzen du.',
   'settings.vpn.customSub': 'Edozein WireGuard zerbitzari',
   'settings.vpn.replaces': '{name} konektatzeak {current} zerbitzuarekiko konexioa amaitzen du.',
   'settings.vpn.keepSaved': 'Zure saio-datuak gordeta daude. Utzi eremu bat hutsik gordetakoa mantentzeko.',

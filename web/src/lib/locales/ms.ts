@@ -3709,6 +3709,8 @@ export const ms: Dict = {
   'settings.vpn.providersTitle': 'Penyedia',
   'settings.vpn.providersHint': 'Pilih penyedia anda dan masukkan apa yang diminta. Torrent menggunakan satu VPN pada satu masa, jadi menyambung ke yang lain akan menamatkan sambungan semasa.',
   'settings.vpn.custom': 'Konfigurasi WireGuard sendiri',
+  'settings.vpn.appOnlyTitle': 'Tidak disokong',
+  'settings.vpn.appOnlyHint': 'Hanya membenarkan WireGuard dalam aplikasinya sendiri.',
   'settings.vpn.customSub': 'Mana-mana pelayan WireGuard',
   'settings.vpn.replaces': 'Menyambung ke {name} menamatkan sambungan ke {current}.',
   'settings.vpn.keepSaved': 'Log masuk anda telah disimpan. Biarkan medan kosong untuk mengekalkan nilai yang disimpan.',

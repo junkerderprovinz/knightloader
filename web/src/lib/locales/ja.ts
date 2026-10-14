@@ -3705,6 +3705,8 @@ export const ja: Dict = {
   'settings.vpn.providersTitle': 'プロバイダー',
   'settings.vpn.providersHint': 'プロバイダーを選び、求められる情報を入力します。トレントが使う VPN は一度に1つなので、別のものに接続すると現在の接続は終了します。',
   'settings.vpn.custom': '独自の WireGuard 設定',
+  'settings.vpn.appOnlyTitle': '非対応',
+  'settings.vpn.appOnlyHint': 'WireGuard は自社アプリでしか使えません。',
   'settings.vpn.customSub': '任意の WireGuard サーバー',
   'settings.vpn.replaces': '{name} に接続すると、{current} への接続は終了します。',
   'settings.vpn.keepSaved': 'ログイン情報は保存されています。保存済みの内容を残すには、欄を空のままにしてください。',

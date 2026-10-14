@@ -3711,6 +3711,8 @@ export const el: Dict = {
   'settings.vpn.providersTitle': 'Πάροχοι',
   'settings.vpn.providersHint': 'Διάλεξε τον πάροχό σου και συμπλήρωσε όσα ζητά. Τα torrent χρησιμοποιούν ένα VPN τη φορά, οπότε η σύνδεση σε άλλο τερματίζει την τρέχουσα.',
   'settings.vpn.custom': 'Δική σου διαμόρφωση WireGuard',
+  'settings.vpn.appOnlyTitle': 'Δεν υποστηρίζεται',
+  'settings.vpn.appOnlyHint': 'Επιτρέπει το WireGuard μόνο στη δική του εφαρμογή.',
   'settings.vpn.customSub': 'Οποιοσδήποτε διακομιστής WireGuard',
   'settings.vpn.replaces': 'Η σύνδεση του {name} τερματίζει τη σύνδεση με το {current}.',
   'settings.vpn.keepSaved': 'Τα στοιχεία σύνδεσής σου είναι αποθηκευμένα. Άφησε ένα πεδίο κενό για να κρατήσεις ό,τι είναι αποθηκευμένο.',

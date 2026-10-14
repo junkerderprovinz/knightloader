@@ -1,6 +1,7 @@
 // Rebuilds src/lib/vpnProviders.ts and the logos in public/vpn from the VPN
 // provider list the engine is built on (providers.json: id, name,
-// wireguard.method and .fields, portForwarding.supported, logo.url).
+// wireguard.method and .fields, portForwarding.supported, logo.url, and tile
+// and tileOrder where the list picks the tiles).
 //
 //   npm i --no-save sharp
 //   node scripts/gen-vpn-providers.mjs <providers.json>
@@ -101,7 +102,15 @@ async function logo(url) {
   }
 }
 
-const providers = JSON.parse(await readFile(source, 'utf8'));
+// A list that marks its tiles shows those alone, in their order. A provider
+// that keeps WireGuard to its own app and has a logo is shown after them,
+// greyed out, so nobody looks for it in vain.
+const all = JSON.parse(await readFile(source, 'utf8'));
+const tiled = all.some((p) => 'tile' in p);
+const providers = tiled
+  ? all.filter((p) => p.tile === true).sort((a, b) => (a.tileOrder ?? 0) - (b.tileOrder ?? 0))
+  : all;
+const appOnly = tiled ? all.filter((p) => p.tile !== true && p.wireguard?.supported === false && p.logo?.url) : [];
 await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
 
@@ -120,6 +129,13 @@ for (const p of providers) {
     portForwarding: p.portForwarding?.supported === true,
     logo: Boolean(png),
   });
+}
+
+const shut = [];
+for (const p of appOnly) {
+  const png = await logo(p.logo.url);
+  if (png) await writeFile(join(out, `${p.id}.png`), png);
+  shut.push({ id: p.id, name: p.name, logo: Boolean(png) });
 }
 
 const quote = (s) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
@@ -147,6 +163,11 @@ export interface VpnCatalogEntry {
 
 export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
 ${body}];
+
+/** Providers that keep WireGuard to their own app, shown greyed out after the rest. */
+export const VPN_APP_ONLY: readonly { id: string; name: string; logo: boolean }[] = [
+${shut.map((e) => `  { id: '${e.id}', name: ${quote(e.name)}, logo: ${e.logo} },
+`).join('')}];
 `,
 );
-console.log(`${entries.length} providers, ${entries.filter((e) => e.logo).length} with a logo`);
+console.log(`${entries.length} providers, ${entries.filter((e) => e.logo).length} with a logo, ${shut.length} app-only`);

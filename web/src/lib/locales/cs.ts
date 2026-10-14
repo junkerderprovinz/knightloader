@@ -3719,6 +3719,8 @@ export const cs: Dict = {
   'settings.vpn.providersTitle': 'Poskytovatelé',
   'settings.vpn.providersHint': 'Vyber svého poskytovatele a zadej, co chce. Torrenty používají vždy jen jednu VPN, takže připojení další ukončí to současné.',
   'settings.vpn.custom': 'Vlastní konfigurace WireGuard',
+  'settings.vpn.appOnlyTitle': 'Nepodporováno',
+  'settings.vpn.appOnlyHint': 'Povoluje WireGuard jen ve své vlastní aplikaci.',
   'settings.vpn.customSub': 'Libovolný server WireGuard',
   'settings.vpn.replaces': 'Připojení {name} ukončí spojení s {current}.',
   'settings.vpn.keepSaved': 'Tvé přihlášení je uložené. Nech pole prázdné, aby zůstalo to uložené.',

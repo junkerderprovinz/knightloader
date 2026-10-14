@@ -3723,6 +3723,8 @@ export const hr: Dict = {
   'settings.vpn.providersTitle': 'Pružatelji',
   'settings.vpn.providersHint': 'Odaberi svog pružatelja i unesi što traži. Torrenti koriste jedan VPN odjednom, pa povezivanje drugog prekida trenutnu vezu.',
   'settings.vpn.custom': 'Vlastita WireGuard konfiguracija',
+  'settings.vpn.appOnlyTitle': 'Nije podržano',
+  'settings.vpn.appOnlyHint': 'Dopušta WireGuard samo u vlastitoj aplikaciji.',
   'settings.vpn.customSub': 'Bilo koji WireGuard poslužitelj',
   'settings.vpn.replaces': 'Povezivanje s {name} prekida vezu s {current}.',
   'settings.vpn.keepSaved': 'Tvoja prijava je spremljena. Ostavi polje prazno da zadržiš ono što je spremljeno.',

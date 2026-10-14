@@ -1,13 +1,15 @@
-import { Card, NamedHint, SectionTitle, useTooltip } from '../../../components/ui';
+import { Card, InfoBubble, NamedHint, SectionTitle, useTooltip } from '../../../components/ui';
 import type { VpnProvider, VpnState } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { IconPortForward } from '../../../lib/icons';
+import { VPN_APP_ONLY } from '../../../lib/vpnProviders';
 import { STATE_WORD, VpnMark, nameOf } from './VpnMark';
 
 /**
  * ProviderTiles offers every provider as a tile in the shape of the picker's
  * brand tiles. A provider in use or set up keeps its state on the tile's
- * second line, and one that can forward a port carries the port mark.
+ * second line, and one that can forward a port carries the port mark. The
+ * providers that keep WireGuard to their own app follow, greyed out.
  */
 export function ProviderTiles({ hue, vpn, onPick }: { hue: number; vpn: VpnState; onPick: (id: string) => void }) {
   const { t } = useT();
@@ -19,7 +21,38 @@ export function ProviderTiles({ hue, vpn, onPick }: { hue: number; vpn: VpnState
           <ProviderTile key={p.id} provider={p} active={p.id === vpn.active} onPick={() => onPick(p.id)} />
         ))}
       </ul>
+      {VPN_APP_ONLY.length > 0 && (
+        <>
+          <p className="text-meta text-carbon-textSub">{t('settings.vpn.appOnlyTitle')}</p>
+          <ul className="glim-provider-pick kl-vpn-pick">
+            {VPN_APP_ONLY.map((p) => (
+              <AppOnlyTile key={p.id} id={p.id} name={p.name} />
+            ))}
+          </ul>
+        </>
+      )}
     </Card>
+  );
+}
+
+function AppOnlyTile({ id, name }: { id: string; name: string }) {
+  const { t } = useT();
+  const sub = t('settings.vpn.appOnlyTitle');
+  return (
+    <li className="glim-readme-btn-unit group glim-tile-house glim-readme-btn-soon">
+      <span className="glim-readme-btn" aria-disabled aria-label={`${name} ${sub}`}>
+        <span className="glim-readme-btn-mark" aria-hidden>
+          <VpnMark id={id} name={name} size={25} />
+        </span>
+        <span className="glim-readme-btn-text">
+          <span className="glim-readme-btn-name">{name}</span>
+          <span className="glim-readme-btn-sub">{sub}</span>
+        </span>
+      </span>
+      <span className="glim-readme-btn-hint text-carbon-textSub">
+        <InfoBubble tip={t('settings.vpn.appOnlyHint')} />
+      </span>
+    </li>
   );
 }
 

@@ -34,11 +34,11 @@ describe('mockVpn', () => {
 
   it('keeps one provider active, so a second connect ends the first', async () => {
     await mockVpn('/protonvpn/connect', post({ config: CONF }), 0);
-    const s = await mockVpn('/mullvad/connect', post({ accountNumber: '1234 5678' }), 0);
-    expect(s.active).toBe('mullvad');
+    const s = await mockVpn('/surfshark/connect', post({ config: CONF }), 0);
+    expect(s.active).toBe('surfshark');
     expect(find(s, 'protonvpn').state).toBe('idle');
     expect(find(s, 'protonvpn').configured).toBe(true);
-    expect(find(await mockVpn('', undefined, CONNECT_MS), 'mullvad').forwardedPort).toBeUndefined();
+    expect(find(await mockVpn('', undefined, CONNECT_MS), 'surfshark').forwardedPort).toBeUndefined();
   });
 
   it('fails a config that is not one, with a code the page words itself', async () => {
