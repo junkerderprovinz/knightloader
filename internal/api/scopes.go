@@ -316,6 +316,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/vpn":               apitoken.ScopeAdmin,
 	"POST /api/vpn/{id}/connect": apitoken.ScopeAdmin,
 	"POST /api/vpn/disconnect":   apitoken.ScopeAdmin,
+	"PUT /api/vpn/routes":        apitoken.ScopeAdmin,
 	"DELETE /api/vpn/{id}":       apitoken.ScopeAdmin,
 
 	// Layout only: the buckets the instance keeps for itself are refused

@@ -37,7 +37,7 @@ func NewCoolDebrid(token string) *CoolDebrid {
 		// which would make every request fail before it is sent.
 		token: strings.TrimSpace(token),
 		base:  "https://cooldebrid.com/api/v1",
-		hc:    httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:    httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 	}
 }
 

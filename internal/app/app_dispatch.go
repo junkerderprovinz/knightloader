@@ -646,11 +646,15 @@ func (a *App) nextResolverLocked(t *core.Task) string {
 }
 
 // routeForLocked picks the outbound connection for a task and returns its id.
-// The task's own choice wins; otherwise the picker applies this host's list,
+// A download whose kind goes through the VPN goes there and nowhere else. Then
+// the task's own choice wins; otherwise the picker applies this host's list,
 // filters, per-connection limits and bans. No picker, no usable entry, or an
 // entry whose Route fails all mean the machine's own address. Caller holds
 // a.mu.
 func (a *App) routeForLocked(t *core.Task, host string) (proxycfg.Route, string) {
+	if r, ok := a.vpnRoute(t); ok {
+		return r, ""
+	}
 	p := a.picker
 	if p == nil {
 		return proxycfg.Route{}, ""

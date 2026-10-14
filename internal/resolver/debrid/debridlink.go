@@ -30,7 +30,7 @@ func NewDebridLink(key string) *DebridLink {
 	return &DebridLink{
 		key:  key,
 		base: "https://debrid-link.com/api/v2",
-		hc:   httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:   httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 	}
 }
 

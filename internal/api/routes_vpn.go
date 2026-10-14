@@ -42,6 +42,16 @@ func registerVPN(reg *Registry, a *app.App) {
 			writeJSON(w, a.VPN.Disconnect())
 		})
 
+	reg.Add(http.MethodPut, "/api/vpn/routes",
+		"say which downloads go through the VPN while a provider is in use: torrents, hosters and direct links, yt-dlp, debrid and Usenet; each one switched on waits while the tunnel is down",
+		func(w http.ResponseWriter, r *http.Request) {
+			var routes vpnconn.Routes
+			if !decodeJSON(w, r, &routes) {
+				return
+			}
+			writeJSON(w, a.VPN.SetRoutes(routes))
+		})
+
 	reg.Add(http.MethodDelete, "/api/vpn/{id}",
 		"delete a provider's sealed login, disconnecting it first when torrents go through it",
 		func(w http.ResponseWriter, r *http.Request) {

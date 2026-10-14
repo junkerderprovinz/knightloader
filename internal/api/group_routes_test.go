@@ -91,6 +91,7 @@ var groupRefused = []string{
 	"GET /api/vpn",
 	"POST /api/vpn/{id}/connect",
 	"POST /api/vpn/disconnect",
+	"PUT /api/vpn/routes",
 	"DELETE /api/vpn/{id}",
 	"GET /api/ytdlp/cookies",
 	"POST /api/ytdlp/cookies",

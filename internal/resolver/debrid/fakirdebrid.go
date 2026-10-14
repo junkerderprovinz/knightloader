@@ -40,7 +40,7 @@ func NewFakirDebrid(pin string) *FakirDebrid {
 	return &FakirDebrid{
 		pin:  pin,
 		base: "https://api.fakirdebrid.net",
-		hc:   httpx.New(httpx.Options{Timeout: fakirdebridCallTimeout}),
+		hc:   httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: fakirdebridCallTimeout}),
 		poll: 10 * time.Second,
 	}
 }

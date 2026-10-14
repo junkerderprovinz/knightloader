@@ -31,7 +31,7 @@ func NewBestDebrid(apiKey string) *BestDebrid {
 		// A direct link only works from the address that asked for it, and
 		// downloads go out directly (see internal/netproxy), so a call made
 		// through HTTP_PROXY would bind every link to the wrong address.
-		hc: httpx.New(httpx.Options{Timeout: 30 * time.Second, Proxy: httpx.NoProxy}),
+		hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second, Proxy: httpx.NoProxy}),
 	}
 }
 

@@ -34,7 +34,7 @@ func NewZevera(key string) *Zevera {
 	return &Zevera{
 		key:  key,
 		base: "https://www.zevera.com/api",
-		hc:   httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:   httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 	}
 }
 

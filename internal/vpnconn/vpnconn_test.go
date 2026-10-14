@@ -305,3 +305,73 @@ func TestResumeTakesUpTheProviderInUse(t *testing.T) {
 	second.m.Resume()
 	second.waitFor(t, "custom", "connected")
 }
+
+func TestRoutesAreKeptAndCountOnlyWhileAProviderIsInUse(t *testing.T) {
+	srv := vpntest.Start(t)
+	store := &memStore{}
+	path := filepath.Join(t.TempDir(), "vpn.json")
+	h := newHarness(t, store, path)
+	if st := h.m.State(); st.Routes != DefaultRoutes {
+		t.Fatalf("routes %+v at first, want torrents only", st.Routes)
+	}
+	h.m.SetRoutes(Routes{Torrents: true, Usenet: true})
+	if h.m.Through(Usenet) {
+		t.Error("Usenet goes through the VPN with no provider in use")
+	}
+	h.m.Connect("custom", map[string]string{"config": srv.Config()})
+	if !h.m.Through(Usenet) || h.m.Through(Debrid) {
+		t.Error("the switches do not hold while a provider is in use")
+	}
+	h.m.Close()
+
+	again := newHarness(t, store, path)
+	if r := again.m.State().Routes; r != (Routes{Torrents: true, Usenet: true}) {
+		t.Errorf("routes %+v after a restart", r)
+	}
+}
+
+func TestADialWaitsWhileTheTunnelIsDown(t *testing.T) {
+	h := newHarness(t, &memStore{}, "")
+	if _, err := h.m.DialContext(context.Background(), "tcp", "10.2.0.1:7"); !errors.Is(err, ErrNoVPN) {
+		t.Errorf("dial with no provider = %v, want ErrNoVPN", err)
+	}
+	srv := vpntest.Start(t)
+	srv.Close()
+	h.m.Connect("custom", map[string]string{"config": srv.Config()})
+	ctx, cancel := context.WithTimeout(context.Background(), 600*time.Millisecond)
+	defer cancel()
+	if _, err := h.m.DialContext(ctx, "tcp", "10.2.0.1:7"); !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("dial with the tunnel down = %v, want it held until the deadline", err)
+	}
+}
+
+func TestCryptostormIsAskedOnceForTheTorrentPort(t *testing.T) {
+	srv := vpntest.Start(t)
+	defer func(u string) { fwdURL = u }(fwdURL)
+	fwdURL = "http://" + vpntest.ServerAddr.String() + "/fwd"
+	h := newHarness(t, &memStore{}, "")
+	h.manual.Store(31337)
+	h.m.Connect("cryptostorm", map[string]string{"config": srv.Config()})
+	h.waitFor(t, "cryptostorm", "connected")
+	waitUntil := time.Now().Add(10 * time.Second)
+	for h.m.ForwardedPort() == 0 && time.Now().Before(waitUntil) {
+		time.Sleep(50 * time.Millisecond)
+	}
+	if got := h.m.ForwardedPort(); got != 31337 {
+		t.Errorf("forwarded port %d, want the torrent port 31337", got)
+	}
+	if f := srv.Forwards(); !slices.Equal(f, []string{"31337"}) {
+		t.Errorf("the server was asked for %v", f)
+	}
+}
+
+func TestAPortOutsideCryptostormsRangeGetsOneInIt(t *testing.T) {
+	for _, manual := range []int{0, 6881, 70000} {
+		if p := fwdPortFor(manual); p < fwdLow {
+			t.Errorf("port %d for %d", p, manual)
+		}
+	}
+	if p := fwdPortFor(40000); p != 40000 {
+		t.Errorf("port %d for 40000", p)
+	}
+}

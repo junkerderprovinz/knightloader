@@ -109,6 +109,9 @@ type Options struct {
 	// client to direct connections.
 	Proxy func(*http.Request) (*url.URL, error)
 
+	// Class lets SetClassProxy move the client's requests elsewhere.
+	Class Class
+
 	// Jar keeps cookies for callers that need a session. Nil means cookies are
 	// not kept at all, so nothing leaks between two unrelated hosts.
 	Jar http.CookieJar
@@ -145,7 +148,7 @@ func NewTransport(o Options) *http.Transport {
 	o = o.withDefaults()
 	p := &proxies{}
 	return &http.Transport{
-		Proxy:                  p.proxy(o.Proxy),
+		Proxy:                  p.proxy(classed(o.Class, o.Proxy)),
 		DialContext:            p.dial(dialer(o)),
 		ForceAttemptHTTP2:      true,
 		MaxIdleConns:           maxIdleConns,

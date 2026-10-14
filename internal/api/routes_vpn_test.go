@@ -42,7 +42,7 @@ func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 
 	code, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/vpn", "", "")
 	st := vpnState(t, doc)
-	if code != http.StatusOK || st.Active != "" || len(st.Providers) != 22 {
+	if code != http.StatusOK || st.Active != "" || len(st.Providers) != 35 {
 		t.Fatalf("GET /api/vpn = %d, active %q, %d providers", code, st.Active, len(st.Providers))
 	}
 
@@ -117,6 +117,7 @@ func TestVPNRoutesNeedAdmin(t *testing.T) {
 		{http.MethodGet, "/api/vpn"},
 		{http.MethodPost, "/api/vpn/custom/connect"},
 		{http.MethodPost, "/api/vpn/disconnect"},
+		{http.MethodPut, "/api/vpn/routes"},
 		{http.MethodDelete, "/api/vpn/custom"},
 	} {
 		code, doc := callAPI(t, http.DefaultClient, srv.URL, r[0], r[1], `{"fields":{}}`, secret)
@@ -131,6 +132,7 @@ func TestTheVPNIsNotReachableFromTheGroup(t *testing.T) {
 		{http.MethodGet, "/api/vpn"},
 		{http.MethodPost, "/api/vpn/custom/connect"},
 		{http.MethodPost, "/api/vpn/disconnect"},
+		{http.MethodPut, "/api/vpn/routes"},
 		{http.MethodDelete, "/api/vpn/custom"},
 	} {
 		if groupReaches(t, r[0], r[1]) {

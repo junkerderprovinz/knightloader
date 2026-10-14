@@ -43,6 +43,10 @@ type Backend struct {
 	// to the backend's default directory.
 	Dir func(taskID string) string
 
+	// Proxy, when set, returns the proxy yt-dlp goes through, read on every
+	// spawn; "" leaves it on the machine's own connection.
+	Proxy func() string
+
 	// Options, when set, returns the yt-dlp configuration for one task, since
 	// the variant rows of one source URL each need their own. nil, or a zero
 	// return, means Options{}.
@@ -266,6 +270,7 @@ func (b *Backend) attempt(ctx context.Context, r *runState, taskID, url string) 
 		args = append(args, "--cookies", path)
 	}
 	args = append(args, browserArgs(sent)...)
+	args = append(args, b.proxyArgs()...)
 	if b.RateLimit != nil {
 		if lim := b.RateLimit(); lim > 0 {
 			// --limit-rate applies per fragment connection, so the limit is
@@ -839,6 +844,7 @@ func (b *Backend) ProbeTitle(ctx context.Context, url string, sent map[string]st
 		args = append(args, stream.args()...)
 		url = stream.url
 	}
+	args = append(args, b.proxyArgs()...)
 	cmd := nowindow.CommandContext(ctx, b.binary(), append(args, url)...)
 	cmd.Env = append(os.Environ(), "PYTHONIOENCODING=utf-8")
 	out, err := cmd.Output()
@@ -1477,4 +1483,14 @@ func clampRunes(s string, n int) string {
 		count++
 	}
 	return s
+}
+
+func (b *Backend) proxyArgs() []string {
+	if b.Proxy == nil {
+		return nil
+	}
+	if p := b.Proxy(); p != "" {
+		return []string{"--proxy", p}
+	}
+	return nil
 }

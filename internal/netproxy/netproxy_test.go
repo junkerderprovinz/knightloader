@@ -152,7 +152,7 @@ func (c bufferedConn) Read(p []byte) (int, error) { return c.r.Read(p) }
 // download engine asks for the rest again instead of waiting for ever.
 func TestTunnelClosesAServerThatGoesSilent(t *testing.T) {
 	target, closed := silentServer(t)
-	px, err := start(throttle.New(), 300*time.Millisecond)
+	px, err := start(throttle.New(), 300*time.Millisecond, (&net.Dialer{}).DialContext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -200,7 +200,7 @@ func TestTunnelKeepsAConnectionTheLimitHoldsBack(t *testing.T) {
 
 	lim := throttle.New()
 	lim.Set(4 * 1024)
-	px, err := start(lim, time.Second)
+	px, err := start(lim, time.Second, (&net.Dialer{}).DialContext)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +222,7 @@ func TestForwardGivesUpOnAServerThatSendsNoHeaders(t *testing.T) {
 	}))
 	defer origin.Close()
 
-	px, err := start(throttle.New(), 300*time.Millisecond)
+	px, err := start(throttle.New(), 300*time.Millisecond, (&net.Dialer{}).DialContext)
 	if err != nil {
 		t.Fatal(err)
 	}

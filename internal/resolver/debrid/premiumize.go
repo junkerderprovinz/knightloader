@@ -35,7 +35,7 @@ func NewPremiumize(key string) *Premiumize {
 	return &Premiumize{
 		key:       key,
 		base:      "https://www.premiumize.me/api",
-		hc:        httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:        httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 		listFresh: pmListFresh,
 	}
 }

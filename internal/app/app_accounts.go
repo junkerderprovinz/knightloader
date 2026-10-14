@@ -281,6 +281,7 @@ func (a *App) ytdlpBackend(bin string) *ytdlp.Backend {
 		// yt-dlp meters itself, so it gets its share of the budget
 		// (app_budget.go), read live so schedule windows apply.
 		yb.RateLimit = a.budget.ytdlpLimit
+		yb.Proxy = a.ytdlpProxy
 		yb.Dir = a.taskDir
 		// Read on every spawn so settings changes apply without a restart. The
 		// instance defaults are combined with the task's own Variant (see

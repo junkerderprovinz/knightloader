@@ -47,6 +47,15 @@ type Server struct {
 	// TLSConfig replaces the default for a server whose certificate is not
 	// signed by a public authority, such as a test server's.
 	TLSConfig *tls.Config
+	// Dialer opens the connection in place of the system's dialer, such as
+	// one through a VPN tunnel. TLS goes on top of what it returns. It is an
+	// interface rather than a func so that Server stays comparable.
+	Dialer Dialer
+}
+
+// Dialer opens connections; *net.Dialer is one.
+type Dialer interface {
+	DialContext(ctx context.Context, network, address string) (net.Conn, error)
 }
 
 // Addr is host:port, with the usual port for plain or TLS when none is set.
@@ -132,9 +141,14 @@ func (c *idleConn) Write(p []byte) (int, error) {
 
 // dial connects to s, reads its greeting and logs in when s has a username.
 func dial(ctx context.Context, s Server) (*conn, error) {
-	d := &net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}
-	var raw net.Conn
-	var err error
+	d := s.Dialer
+	if d == nil {
+		d = &net.Dialer{Timeout: dialTimeout, KeepAlive: 30 * time.Second}
+	}
+	raw, err := d.DialContext(ctx, "tcp", s.Addr())
+	if err != nil {
+		return nil, err
+	}
 	if s.TLS {
 		cfg := s.TLSConfig.Clone()
 		if cfg == nil {
@@ -143,12 +157,12 @@ func dial(ctx context.Context, s Server) (*conn, error) {
 		if cfg.ServerName == "" {
 			cfg.ServerName = s.Host
 		}
-		raw, err = (&tls.Dialer{NetDialer: d, Config: cfg}).DialContext(ctx, "tcp", s.Addr())
-	} else {
-		raw, err = d.DialContext(ctx, "tcp", s.Addr())
-	}
-	if err != nil {
-		return nil, err
+		tc := tls.Client(raw, cfg)
+		if err := tc.HandshakeContext(ctx); err != nil {
+			raw.Close()
+			return nil, err
+		}
+		raw = tc
 	}
 	nc := &idleConn{Conn: raw}
 	c := &conn{nc: nc, tp: textproto.NewConn(nc)}

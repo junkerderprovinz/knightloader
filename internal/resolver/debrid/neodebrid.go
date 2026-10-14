@@ -38,7 +38,7 @@ func NewNeoDebrid(email, pass string) *NeoDebrid {
 		email:     email,
 		pass:      pass,
 		base:      "https://neodebrid.com/api/v2",
-		hc:        httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:        httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 		mu:        newLoginLock(),
 		chunkCaps: map[string]int{},
 	}

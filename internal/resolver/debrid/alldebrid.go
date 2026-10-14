@@ -23,7 +23,7 @@ type AllDebrid struct {
 }
 
 func NewAllDebrid(key string) *AllDebrid {
-	return &AllDebrid{key: key, base: "https://api.alldebrid.com/v4", hc: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
+	return &AllDebrid{key: key, base: "https://api.alldebrid.com/v4", hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second})}
 }
 
 func (*AllDebrid) ID() string    { return "alldebrid" }

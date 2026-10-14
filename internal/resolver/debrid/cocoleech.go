@@ -54,7 +54,7 @@ func NewCocoLeech(apiKey string) *CocoLeech {
 	return &CocoLeech{
 		key:        apiKey,
 		base:       "https://members.cocoleech.com/auth",
-		hc:         httpx.New(httpx.Options{Timeout: 30 * time.Second}),
+		hc:         httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second}),
 		readyEvery: 5 * time.Second,
 		readyFor:   time.Minute,
 	}

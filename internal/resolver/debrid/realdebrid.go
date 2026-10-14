@@ -30,7 +30,7 @@ type RealDebrid struct {
 }
 
 func NewRealDebrid(token string) *RealDebrid {
-	return &RealDebrid{token: token, base: "https://api.real-debrid.com/rest/1.0", hc: httpx.New(httpx.Options{Timeout: 30 * time.Second})}
+	return &RealDebrid{token: token, base: "https://api.real-debrid.com/rest/1.0", hc: httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: 30 * time.Second})}
 }
 
 func (*RealDebrid) ID() string    { return "realdebrid" }
