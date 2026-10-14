@@ -9,6 +9,9 @@ import { flushUIState } from './uistate';
 import { closeWhatsNew, startWhatsNew, useWhatsNew, useWhatsNewOpen, type WhatsNew } from './useWhatsNew';
 import { RELEASES } from './whatsNew';
 
+// The release the update below lands on.
+const twoZero = RELEASES.find((r) => r.after === '1.9.0')!;
+
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let root: Root;
@@ -54,11 +57,11 @@ it('marks an update, opens the release notes once and remembers what was seen', 
   });
   expect(open).toBe('notes');
   expect(news!.version).toBe('v2.0.0');
-  expect(news!.unseen).toEqual(RELEASES[0].changes);
+  expect(news!.unseen).toEqual(twoZero.changes);
 
   await act(async () => news!.markSeen(['seed-ring', 'week-band']));
   expect(news!.seen).toEqual(new Set(['seed-ring', 'week-band']));
-  expect(news!.unseen).toHaveLength(RELEASES[0].changes.length - 2);
+  expect(news!.unseen).toHaveLength(twoZero.changes.length - 2);
 
   await act(async () => {
     await flushUIState();

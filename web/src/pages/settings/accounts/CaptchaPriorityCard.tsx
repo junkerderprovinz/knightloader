@@ -96,7 +96,6 @@ export function CaptchaPriorityCard({
             nested
             icon={<IconCaptcha width={26} height={26} />}
             title={t('settings.captcha.orderEmpty')}
-            hint={t('accounts.addPointer', { button: t('accounts.newAccount') })}
           />
         ) : (
           <PriorityLadder
