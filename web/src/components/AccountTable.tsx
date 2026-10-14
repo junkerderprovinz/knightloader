@@ -163,7 +163,7 @@ export function AccountTable({ rows, label }: { rows: AccountRow[]; label: strin
             // is that control's alone.
             <tr
               key={row.key}
-              className="glim-row cursor-pointer transition-colors hover:bg-carbon-hover"
+              className="glim-row cursor-pointer transition-colors hover:bg-carbon-surface3"
               onClick={(e) => {
                 if (!(e.target as Element).closest('button, a, [role="switch"], [role="note"]')) row.onEdit();
               }}
