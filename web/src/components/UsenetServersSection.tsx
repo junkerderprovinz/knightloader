@@ -1,9 +1,9 @@
 // The accounts page's card for the own Usenet servers. A server is a settings
 // row plus a sealed login (internal/api/routes_usenetservers.go), so it is
 // edited here through its own routes rather than the catalogue's credential
-// dialog: it has a host, a port and limits that no debrid key has. The page's
-// floating action opens the window for a new one through `adding`.
-import { useCallback, useEffect, useState } from 'react';
+// dialog: it has a host, a port and limits that no debrid key has. The Add
+// button the page hands in opens the window for a new one through `adding`.
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   REDACTED_HEADER,
   type UsenetServerRow,
@@ -18,19 +18,8 @@ import { useToast } from '../lib/toast';
 import { IconClose, IconRefresh, IconTrash, IconGlobe } from '../lib/icons';
 import { AccountTable } from './AccountTable';
 import { TestButton } from './TestButton';
-import {
-  Button,
-  EmptyState,
-  Field,
-  InfoBubble,
-  Modal,
-  NumberInput,
-  PasswordInput,
-  SectionTitle,
-  TextInput,
-  ToggleRow,
-  type ButtonVerdict,
-} from './ui';
+import { Button, EmptyState, InfoBubble, Modal, NumberInput, PasswordInput, SectionTitle, TextInput, ToggleRow, type ButtonVerdict } from './ui';
+import { SettingRow } from '../pages/settings/controls';
 
 /** A server's last test on this page, kept until the page is left. */
 type Checked = { ok: boolean; detail: string };
@@ -52,14 +41,14 @@ const BLANK: UsenetServerSave = {
 export function UsenetServersSection({
   hue,
   onChanged,
-  emptyPointer,
+  add,
   adding,
   onAddClose,
 }: {
   hue: number;
   onChanged: () => void;
-  /** The sentence of the empty card that names the page's add action. */
-  emptyPointer: string;
+  /** The Add button at the end of the card's heading. */
+  add: ReactNode;
   /** The page asked for a new server's window. */
   adding: boolean;
   onAddClose: () => void;
@@ -131,7 +120,9 @@ export function UsenetServersSection({
 
   return (
     <>
-      <SectionTitle hint={t('accounts.usenet.hint')}>{t('accounts.usenet.title')}</SectionTitle>
+      <SectionTitle hint={t('accounts.usenet.hint')} right={add}>
+        {t('accounts.usenet.title')}
+      </SectionTitle>
       {rows === null ? (
         <p className="text-sm text-carbon-textMuted">{t('common.loading')}</p>
       ) : rows.length === 0 ? (
@@ -139,7 +130,7 @@ export function UsenetServersSection({
           nested
           icon={<IconGlobe width={26} height={26} />}
           title={t('accounts.usenet.empty')}
-          hint={`${t('accounts.usenet.emptyHint')} ${emptyPointer}`}
+          hint={t('accounts.usenet.emptyHint')}
         />
       ) : (
         <AccountTable
@@ -326,27 +317,25 @@ function ServerDialog({
       }
     >
       <div className="flex flex-col gap-4">
-        <Field label={t('accounts.usenet.host')} hint={t('accounts.usenet.hostHint')}>
+        <SettingRow control="long" label={t('accounts.usenet.host')} hint={t('accounts.usenet.hostHint')}>
           <TextInput autoComplete="off" value={s.host} onChange={(e) => set({ host: e.target.value })} />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('accounts.usenet.port')} hint={t('accounts.usenet.portHint')}>
-            <NumberInput value={s.port} min={0} max={65535} onValue={(n) => set({ port: n })} />
-          </Field>
-          <Field label={t('accounts.usenet.connections')} hint={t('accounts.usenet.connectionsHint')}>
-            <NumberInput value={s.connections} min={1} max={100} onValue={(n) => set({ connections: n })} />
-          </Field>
-        </div>
+        </SettingRow>
+        <SettingRow control="short" label={t('accounts.usenet.port')} hint={t('accounts.usenet.portHint')}>
+          <NumberInput value={s.port} min={0} max={65535} onValue={(n) => set({ port: n })} />
+        </SettingRow>
+        <SettingRow control="short" label={t('accounts.usenet.connections')} hint={t('accounts.usenet.connectionsHint')}>
+          <NumberInput value={s.connections} min={1} max={100} onValue={(n) => set({ connections: n })} />
+        </SettingRow>
         <ToggleRow
           label={t('accounts.usenet.tls')}
           hint={t('accounts.usenet.tlsHint')}
           checked={s.tls}
           onChange={(tls) => set({ tls, port: s.port === (s.tls ? 563 : 119) ? (tls ? 563 : 119) : s.port })}
         />
-        <Field label={t('accounts.usernameField')} hint={t('accounts.usenet.loginHint')}>
+        <SettingRow control="long" label={t('accounts.usernameField')} hint={t('accounts.usenet.loginHint')}>
           <TextInput autoComplete="off" value={s.username} onChange={(e) => set({ username: e.target.value })} />
-        </Field>
-        <Field label={t('accounts.passwordField')} hint={t('accounts.usenet.loginHint')}>
+        </SettingRow>
+        <SettingRow control="long" label={t('accounts.passwordField')} hint={t('accounts.usenet.loginHint')}>
           <PasswordInput
             autoComplete="new-password"
             value={s.password}
@@ -354,15 +343,13 @@ function ServerDialog({
             showLabel={t('common.showPassword')}
             hideLabel={t('common.hidePassword')}
           />
-        </Field>
-        <div className="grid grid-cols-2 gap-4">
-          <Field label={t('accounts.usenet.level')} hint={t('accounts.usenet.levelHint')}>
-            <NumberInput value={s.level} min={0} max={9} onValue={(n) => set({ level: n })} />
-          </Field>
-          <Field label={t('accounts.usenet.retention')} hint={t('accounts.usenet.retentionHint')}>
-            <NumberInput value={s.retentionDays} min={0} onValue={(n) => set({ retentionDays: n })} />
-          </Field>
-        </div>
+        </SettingRow>
+        <SettingRow control="short" label={t('accounts.usenet.level')} hint={t('accounts.usenet.levelHint')}>
+          <NumberInput value={s.level} min={0} max={9} onValue={(n) => set({ level: n })} />
+        </SettingRow>
+        <SettingRow control="short" label={t('accounts.usenet.retention')} hint={t('accounts.usenet.retentionHint')}>
+          <NumberInput value={s.retentionDays} min={0} onValue={(n) => set({ retentionDays: n })} />
+        </SettingRow>
         <ToggleRow
           label={t('accounts.usenet.optional')}
           hint={t('accounts.usenet.optionalHint')}

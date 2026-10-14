@@ -273,7 +273,7 @@ export function Torrents() {
           hint={t('settings.torrents.cachedOnlyHint')}
         />
         <SettingRow
-          control="short"
+          control="long"
           label={t('settings.torrents.debridStall')}
           hint={t('settings.torrents.debridStallHint')}
         >

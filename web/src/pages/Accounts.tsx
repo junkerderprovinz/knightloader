@@ -7,8 +7,8 @@
 // a link may be fetched for free is a question of which accounts there are, and
 // last the two priority cards side by side, one for the download backends and
 // one for the captcha accounts.
-// Adding is the page's one floating action, which opens a window with a tile
-// per kind in the cards' order; no card carries an add button of its own.
+// Every card adds its own kind through the Add button at the end of its
+// heading, as every other list card in the app does.
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import {
   type Account,
@@ -32,26 +32,10 @@ import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
 import { fmtDate } from '../lib/format';
 import { resolverLabel } from '../lib/resolverLabels';
-import {
-  Button,
-  Card,
-  EmptyState,
-  ErrorCard,
-  Field,
-  InfoBubble,
-  LinkBadge,
-  LoadingCard,
-  Modal,
-  PageHeader,
-  PasswordInput,
-  SectionTitle,
-  TextInput,
-  Toggle,
-} from '../components/ui';
+import { Button, Card, EmptyState, ErrorCard, InfoBubble, LinkBadge, LoadingCard, Modal, PageHeader, PasswordInput, SectionTitle, TextInput, Toggle } from '../components/ui';
 import { AccountTable, type AccountRow } from '../components/AccountTable';
 import { FreeDownloadsCard } from '../components/FreeDownloadsCard';
 import { HosterLoginSection, useHosterLogins } from '../components/HosterLoginSection';
-import { PageAction, PageActions } from '../components/PageActions';
 import { UsenetServersSection } from '../components/UsenetServersSection';
 import { CaptchaPriorityCard } from './settings/accounts/CaptchaPriorityCard';
 import { LiveSettings } from './settings/accounts/LiveSettings';
@@ -62,21 +46,17 @@ import {
   IconBack,
   IconClose,
   IconExternalLink,
-  IconGlobe,
   IconFleet,
-  IconKey,
   IconAdd,
   IconRefresh,
   IconTrash,
 } from '../lib/icons';
 import {
   BrandPicker,
-  KindPicker,
   PickerSearch,
   brandMatches,
   siteOf,
   type Brand,
-  type Kind,
 } from '../components/BrandPicker';
 import { PriorityCard, PriorityLadder } from '../components/PriorityLadder';
 
@@ -136,10 +116,9 @@ export function Accounts() {
   // Bumped on every change to the Usenet servers, whose row on the priority
   // card comes and goes with them.
   const [usenetSaves, setUsenetSaves] = useState(0);
-  // The two cards that keep their own windows open the add one when the
-  // floating action asks for it.
+  // The two cards that keep their own windows open the add one when their
+  // Add button asks for it.
   const [adding, setAdding] = useState<'usenet' | 'hoster' | null>(null);
-  const [picking, setPicking] = useState(false);
   const hoster = useHosterLogins(setLoginHosts);
 
   const load = useCallback(async () => {
@@ -236,57 +215,22 @@ export function Accounts() {
     onEdit,
   };
 
-  // Every empty card sends the reader to the floating action by its name.
-  const addPointer = t('accounts.addPointer', { button: t('accounts.newAccount') });
   const captchaOrder = t('settings.captcha.orderTitle');
-  const kinds: (Kind & { open: () => void })[] = [
-    {
-      id: 'debrid',
-      name: t('accounts.kind.debrid'),
-      sub: t('accounts.kind.debridSub'),
-      icon: <IconAccounts />,
-      open: () => setDialog({ mode: 'new', group: 'debrid' }),
-    },
-    {
-      id: 'usenet',
-      name: t('accounts.kind.usenet'),
-      sub: t('accounts.kind.usenetSub'),
-      icon: <IconGlobe />,
-      open: () => setAdding('usenet'),
-    },
-    {
-      id: 'hoster',
-      name: t('accounts.kind.hoster'),
-      sub: t('accounts.kind.hosterSub'),
-      icon: <IconKey />,
-      open: () => setAdding('hoster'),
-    },
-    ...(serverService
-      ? [
-          {
-            id: 'server',
-            name: t('accounts.kind.server'),
-            sub: t('accounts.kind.serverSub'),
-            icon: <IconFleet />,
-            open: () => setDialog({ mode: 'server', service: serverService, host: null }),
-          },
-        ]
-      : []),
-    {
-      id: 'captcha',
-      name: t('accounts.kind.captcha'),
-      sub: t('accounts.kind.captchaSub'),
-      icon: <IconCaptcha />,
-      open: () => setDialog({ mode: 'new', group: 'captchaSolver' }),
-    },
-  ];
+  const add = (label: string, open: () => void) => (
+    <Button kind="secondary" icon={<IconAdd width={16} height={16} />} data-new="accounts-card-add" onClick={open}>
+      {label}
+    </Button>
+  );
 
   return (
     <div className="flex flex-col gap-10">
       <PageHeader title={t('accounts.title')} />
 
       <Card hue={0} data-new="import-gone" className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.debrid.hint')}>
+        <SectionTitle
+          hint={t('accounts.debrid.hint')}
+          right={add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'debrid' }))}
+        >
           {t('accounts.debrid.title')}
         </SectionTitle>
         {debridRows.length > 0 ? (
@@ -296,7 +240,7 @@ export function Accounts() {
             nested
             icon={<IconAccounts width={26} height={26} />}
             title={t('accounts.debrid.empty')}
-            hint={`${t('accounts.debrid.emptyHint')} ${addPointer}`}
+            hint={t('accounts.debrid.emptyHint')}
           />
         )}
       </Card>
@@ -305,27 +249,27 @@ export function Accounts() {
         <UsenetServersSection
           hue={1}
           onChanged={() => setUsenetSaves((n) => n + 1)}
-          emptyPointer={addPointer}
+          add={add(t('accounts.server.add'), () => setAdding('usenet'))}
           adding={adding === 'usenet'}
           onAddClose={() => setAdding(null)}
         />
       </Card>
 
       <Card hue={2} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.hoster.hint')}>
+        <SectionTitle hint={t('accounts.hoster.hint')} right={add(t('accounts.newAccount'), () => setAdding('hoster'))}>
           {t('accounts.hoster.title')}
         </SectionTitle>
-        <HosterLoginSection
-          data={hoster}
-          emptyPointer={addPointer}
-          adding={adding === 'hoster'}
-          onAddClose={() => setAdding(null)}
-        />
+        <HosterLoginSection data={hoster} adding={adding === 'hoster'} onAddClose={() => setAdding(null)} />
       </Card>
 
       {serverService && (
         <Card hue={3} className="flex flex-col gap-3">
-          <SectionTitle hint={t('accounts.server.hint')}>{t('accounts.server.title')}</SectionTitle>
+          <SectionTitle
+            hint={t('accounts.server.hint')}
+            right={add(t('accounts.server.add'), () => setDialog({ mode: 'server', service: serverService, host: null }))}
+          >
+            {t('accounts.server.title')}
+          </SectionTitle>
           {serverRows.length > 0 ? (
             <AccountsTable label={t('accounts.server.title')} rows={serverRows} {...tableProps} />
           ) : (
@@ -333,7 +277,7 @@ export function Accounts() {
               nested
               icon={<IconFleet width={26} height={26} />}
               title={t('accounts.server.empty')}
-              hint={`${t('accounts.server.emptyHint')} ${addPointer}`}
+              hint={t('accounts.server.emptyHint')}
             />
           )}
         </Card>
@@ -343,7 +287,12 @@ export function Accounts() {
           nothing to renew. The order they are tried in is the captcha
           priority card below. */}
       <Card hue={4} className="flex flex-col gap-3">
-        <SectionTitle hint={t('accounts.captcha.hint', { order: captchaOrder })}>{t('accounts.captcha.title')}</SectionTitle>
+        <SectionTitle
+          hint={t('accounts.captcha.hint', { order: captchaOrder })}
+          right={add(t('accounts.newAccount'), () => setDialog({ mode: 'new', group: 'captchaSolver' }))}
+        >
+          {t('accounts.captcha.title')}
+        </SectionTitle>
         {solverRows.length > 0 ? (
           <AccountsTable label={t('accounts.captcha.title')} rows={solverRows} {...tableProps} />
         ) : (
@@ -351,7 +300,7 @@ export function Accounts() {
             nested
             icon={<IconCaptcha width={26} height={26} />}
             title={t('accounts.captcha.empty')}
-            hint={`${t('accounts.captcha.emptyHint', { order: captchaOrder })} ${addPointer}`}
+            hint={t('accounts.captcha.emptyHint', { order: captchaOrder })}
           />
         )}
       </Card>
@@ -363,7 +312,6 @@ export function Accounts() {
       <RoutingSection
         accounts={accounts}
         catalogue={catalogue}
-        emptyPointer={addPointer}
         signature={`${(accounts ?? []).map((a) => a.service).sort().join(',')}|${loginHosts}|${usenetSaves}`}
         captcha={
           <LiveSettings>
@@ -371,46 +319,6 @@ export function Accounts() {
           </LiveSettings>
         }
       />
-
-      <PageActions>
-        <PageAction
-          primary
-          icon={<IconAdd />}
-          label={t('accounts.newAccount')}
-          onClick={() => setPicking(true)}
-          data-new="accounts-add"
-        />
-      </PageActions>
-
-      {/* The kind leads on to the window that kind already has, the services
-          to pick from or the form, so each is still added in one place. The
-          tiles follow the cards on this page, top to bottom. */}
-      {picking && (
-        <Modal
-          title={t('accounts.newAccount')}
-          onClose={() => setPicking(false)}
-          footer={
-            <>
-              <span className="flex-1" />
-              <Button
-                kind="secondary"
-                labelled
-                icon={<IconClose />}
-                title={t('common.cancel')}
-                onClick={() => setPicking(false)}
-              />
-            </>
-          }
-        >
-          <KindPicker
-            kinds={kinds}
-            onPick={(id) => {
-              setPicking(false);
-              kinds.find((k) => k.id === id)?.open();
-            }}
-          />
-        </Modal>
-      )}
 
       {/* The windows below belong to a card, so they wear its colour. */}
       {dialog?.mode === 'server' && (
@@ -667,19 +575,19 @@ function ServerDialog({
     >
       <div className="flex flex-col gap-4">
         {host === null && (
-          <Field label={t('accounts.server.hostField')} hint={t('accounts.server.hostHint')}>
+          <SettingRow control="long" label={t('accounts.server.hostField')} hint={t('accounts.server.hostHint')}>
             <TextInput
               autoComplete="off"
               spellCheck={false}
               value={hostInput}
               onChange={(e) => setHostInput(e.target.value)}
             />
-          </Field>
+          </SettingRow>
         )}
-        <Field label={t('accounts.usernameField')}>
+        <SettingRow control="long" label={t('accounts.usernameField')}>
           <TextInput autoComplete="off" value={username} onChange={(e) => setUsername(e.target.value)} />
-        </Field>
-        <Field label={t('accounts.passwordField')}>
+        </SettingRow>
+        <SettingRow control="long" label={t('accounts.passwordField')}>
           <PasswordInput
             autoComplete="new-password"
             value={password}
@@ -687,7 +595,7 @@ function ServerDialog({
             showLabel={t('common.showPassword')}
             hideLabel={t('common.hidePassword')}
           />
-        </Field>
+        </SettingRow>
       </div>
     </Modal>
   );
@@ -997,14 +905,11 @@ function RoutingSection({
   accounts,
   catalogue,
   signature,
-  emptyPointer,
   captcha,
 }: {
   accounts: Account[];
   catalogue: CatalogueService[];
   signature: string;
-  /** The way to the floating action that adds an account, for the card without one. */
-  emptyPointer: string;
   /** The captcha priority card, which stands beside the download one. */
   captcha: ReactNode;
 }) {
@@ -1083,7 +988,6 @@ ${t('accounts.routing.orderHintTorrents')}`}
                 nested
                 icon={<IconAccounts width={26} height={26} />}
                 title={t('accounts.routing.priorityNone')}
-                hint={emptyPointer}
               />
             ) : (
               <>

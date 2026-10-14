@@ -129,7 +129,29 @@ export function PasskeyCard({
   return (
     <>
       <Card hue={hue} className="flex flex-col gap-5">
-        <SectionTitle hint={t('auth.passkey.hint')}>{t('auth.passkey.title')}</SectionTitle>
+        <SectionTitle
+          hint={t('auth.passkey.hint')}
+          right={
+            // The same word as the second factor's button, told apart by the
+            // plus; web/check-enrolment-buttons.mjs keeps the two keys equal.
+            passwordSet &&
+            addressOK &&
+            browserOK &&
+            !adding && (
+              <Button
+                shake={shake}
+                kind="secondary"
+                icon={<IconAdd width={16} height={16} />}
+                disabled={busy}
+                onClick={() => setAdding(true)}
+              >
+                {t('auth.passkey.add')}
+              </Button>
+            )
+          }
+        >
+          {t('auth.passkey.title')}
+        </SectionTitle>
 
         <div className="flex items-center gap-2">
           <span
@@ -213,22 +235,6 @@ export function PasskeyCard({
                 />
               </div>
             ))}
-          </div>
-        )}
-
-        {/* The same word as the second factor's button, told apart by the
-            plus; web/check-enrolment-buttons.mjs keeps the two keys equal. */}
-        {passwordSet && addressOK && browserOK && !adding && (
-          <div>
-            <Button
-              shake={shake}
-              kind="secondary"
-              icon={<IconAdd width={16} height={16} />}
-              disabled={busy}
-              onClick={() => setAdding(true)}
-            >
-              {t('auth.passkey.add')}
-            </Button>
           </div>
         )}
 

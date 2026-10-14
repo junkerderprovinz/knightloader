@@ -8,8 +8,9 @@ import {
   type ResetRemoved,
 } from '../lib/api';
 import { useT, type TranslationKey } from '../lib/i18n';
-import { Button, Field, PasswordInput, TextInput } from '../components/ui';
+import { Button, PasswordInput, TextInput } from '../components/ui';
 import { LENGTH_PROBLEM, lengthProblem, refusedLength } from '../lib/passwordLength';
+import { SettingRow } from '../pages/settings/controls';
 
 const CODE_LABEL: Record<ResetCodePlace['place'], TranslationKey> = {
   container: 'auth.reset.code.container',
@@ -111,7 +112,7 @@ export function PasswordReset({
 
   return (
     <form className="flex flex-col gap-5" onSubmit={(e) => void submit(e)}>
-      <Field label={t(CODE_LABEL[place.place])} hint={where}>
+      <SettingRow control="long" label={t(CODE_LABEL[place.place])} hint={where}>
         <TextInput
           autoFocus
           value={code}
@@ -123,8 +124,8 @@ export function PasswordReset({
           dir="ltr"
           className="uppercase"
         />
-      </Field>
-      <Field label={t('settings.passwordNew')}>
+      </SettingRow>
+      <SettingRow control="long" label={t('settings.passwordNew')}>
         <PasswordInput
           value={password}
           onChange={setPassword}
@@ -132,8 +133,8 @@ export function PasswordReset({
           showLabel={t('common.showPassword')}
           hideLabel={t('common.hidePassword')}
         />
-      </Field>
-      <Field label={t('auth.reset.repeat')}>
+      </SettingRow>
+      <SettingRow control="long" label={t('auth.reset.repeat')}>
         <PasswordInput
           value={again}
           onChange={setAgain}
@@ -141,7 +142,7 @@ export function PasswordReset({
           showLabel={t('common.showPassword')}
           hideLabel={t('common.hidePassword')}
         />
-      </Field>
+      </SettingRow>
       {failure && (
         <p role="alert" className="text-statusFail text-sm">
           {t(FAILURE[failure])}

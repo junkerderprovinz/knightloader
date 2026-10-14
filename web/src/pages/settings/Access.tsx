@@ -1,21 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Navigate, useLocation } from 'react-router-dom';
-import {
-  Button,
-  Card,
-  Field,
-  FieldGroup,
-  IconBadge,
-  IconTile,
-  InfoBubble,
-  LabelBadge,
-  LinkBadge,
-  Modal,
-  PasswordInput,
-  SectionTitle,
-  TextInput,
-  ToggleRow,
-} from '../../components/ui';
+import { Button, Card, Field, IconBadge, IconTile, LabelBadge, LinkBadge, Modal, PasswordInput, SectionTitle, TextInput, ToggleRow } from '../../components/ui';
 import { Tabs } from '../../components/Tabs';
 import {
   type ApiToken,
@@ -188,13 +173,11 @@ export function PasswordCard({
         </div>
         {/* Everything works without an app key, so it is a name with its
             explanation behind the (i) rather than a warning or a state. */}
-        <span data-testid="app-key" className="flex flex-wrap items-center gap-2 text-sm text-carbon-textSub">
-          <span className="inline-flex items-center">
-            {t('settings.appKeyTitle')}
-            <InfoBubble tip={t('settings.appKeyHint')} />
-          </span>
-          <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
-        </span>
+        <div data-testid="app-key">
+          <SettingRow label={t('settings.appKeyTitle')} hint={t('settings.appKeyHint')}>
+            <LinkBadge href={APP_KEY_MANUAL} title={t('settings.appKeyManual')} />
+          </SettingRow>
+        </div>
         {auth?.appKeyCopiesUntil && (
           <span className="text-sm text-carbon-textSub">
             {t('settings.appKeyCopies', { date: fmtDate(auth.appKeyCopiesUntil) })}
@@ -328,7 +311,14 @@ export function TokensSection() {
   return (
     <>
       <Card hue={5} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.access.tokens.intro')}>
+        <SectionTitle
+          hint={t('settings.access.tokens.intro')}
+          right={
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setShowCreate(true)}>
+              {t('settings.access.tokens.new')}
+            </Button>
+          }
+        >
           {t('settings.access.tokens.title')}
         </SectionTitle>
         <ModuleToggle id="downloadclient" hue={5} />
@@ -369,16 +359,6 @@ export function TokensSection() {
             ))}
           </div>
         )}
-        {/* Below the list and left-aligned, as "add another". */}
-        <div>
-          <Button
-            kind="secondary"
-            icon={<IconAdd width={16} height={16} />}
-            onClick={() => setShowCreate(true)}
-          >
-            {t('settings.access.tokens.new')}
-          </Button>
-        </div>
       </Card>
 
       {showCreate && !created && (
@@ -496,12 +476,12 @@ function TokenScopePicker({
 
   return (
     <div className="flex flex-col gap-3">
-      {/* FieldGroup, because a Field's label would pass a click on the
-          caption to the first segment. */}
-      <FieldGroup label={t('settings.access.tokens.rights')} hint={t('settings.access.tokens.rightsHint')}>
+      <SettingRow label={t('settings.access.tokens.rights')} hint={t('settings.access.tokens.rightsHint')}>
         <Tabs
           variant="well"
           size="sm"
+          inline
+          hug
           label={t('settings.access.tokens.rights')}
           active={preset}
           onSelect={(id) => {
@@ -511,7 +491,7 @@ function TokenScopePicker({
           }}
           items={PRESETS.map((id) => ({ id, label: t(PRESET_LABEL[id]) }))}
         />
-      </FieldGroup>
+      </SettingRow>
       {preset === 'custom' && (
         <div className="flex flex-col gap-2 rounded-[var(--radius-control)] bg-carbon-surface2 p-3">
           {TOKEN_SCOPES.map((s, i) => (

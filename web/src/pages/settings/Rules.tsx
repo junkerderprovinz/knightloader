@@ -34,7 +34,7 @@ import { rejectionReason } from '../../lib/rejectionReason';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { CategoriesCard } from './Categories';
 import { useDraft } from './context';
-import { NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
+import { NeutralSwitch, RowRefusal, SettingRow, Sheet, SubCard } from './controls';
 import { usePendingJump } from './jump';
 import { ModuleToggle } from './ModuleToggle';
 
@@ -662,73 +662,39 @@ function TestBox({
       </SectionTitle>
 
       {samples.map((s, i) => (
-        <div key={i} className="flex flex-col gap-2 border-b border-carbon-border/60 pb-4 last:border-b-0 last:pb-0">
-          <div className="flex items-start gap-2">
-            <div className="grid flex-1 gap-2 sm:grid-cols-2">
-              <TextInput
-                dir="ltr"
-                aria-label={t('settings.rules.testUrl')}
-                placeholder={t('settings.rules.testUrl')}
-                value={s.url}
-                onChange={(e) => update(i, { url: e.target.value })}
-              />
-              <TextInput
-                dir="ltr"
-                aria-label={t('settings.rules.testFilename')}
-                placeholder={t('settings.rules.testFilename')}
-                value={s.filename}
-                onChange={(e) => update(i, { filename: e.target.value })}
-              />
-              <TextInput
-                dir="ltr"
-                aria-label={t('settings.rules.testSource')}
-                placeholder={t('settings.rules.testSource')}
-                value={s.source}
-                onChange={(e) => update(i, { source: e.target.value })}
-              />
-              <div className="flex gap-2">
-                <TextInput
-                  dir="ltr"
-                  aria-label={t('settings.rules.testSize')}
-                  placeholder={t('settings.rules.testSize')}
-                  value={s.size}
-                  onChange={(e) => update(i, { size: e.target.value })}
-                />
-                <TextInput
-                  aria-label={t('settings.rules.testPackage')}
-                  placeholder={t('settings.rules.testPackage')}
-                  value={s.pkg}
-                  onChange={(e) => update(i, { pkg: e.target.value })}
-                />
-              </div>
-            </div>
-            {/* The row's own badge, with its tooltip and the Beschriftung setting. */}
+        // Headed by the file name it tries, so several samples tell apart.
+        <SubCard
+          key={i}
+          label={s.filename.trim() || String(i + 1)}
+          right={
+            // The row's own badge, with its tooltip and the Beschriftung setting.
             <IconBadge
               labelled
               hue={2}
-              className="shrink-0"
               icon={<IconTrash width={16} height={16} />}
               title={t('settings.rules.testRemove')}
               aria-label={t('settings.rules.testRemove')}
               disabled={samples.length === 1}
               onClick={() => setSamples(samples.filter((_, j) => j !== i))}
             />
-          </div>
-          <div className="flex items-center gap-3 text-meta text-carbon-textMuted">
-            <span className="flex items-center">
-              {t('settings.rules.testSource')}
-              <InfoBubble tip={t('settings.rules.testSourceHint')} />
-            </span>
-            <span className="flex items-center">
-              {t('settings.rules.testSize')}
-              <InfoBubble tip={t('settings.rules.sizeHint')} />
-            </span>
-            <span className="flex items-center">
-              {t('settings.rules.testPackage')}
-              <InfoBubble tip={t('settings.rules.testPackageHint')} />
-            </span>
-          </div>
-        </div>
+          }
+        >
+          <SettingRow control="long" label={t('settings.rules.testUrl')}>
+            <TextInput dir="ltr" value={s.url} onChange={(e) => update(i, { url: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="long" label={t('settings.rules.testFilename')}>
+            <TextInput dir="ltr" value={s.filename} onChange={(e) => update(i, { filename: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="long" label={t('settings.rules.testSource')} hint={t('settings.rules.testSourceHint')}>
+            <TextInput dir="ltr" value={s.source} onChange={(e) => update(i, { source: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="short" label={t('settings.rules.testSize')} hint={t('settings.rules.sizeHint')}>
+            <TextInput dir="ltr" value={s.size} onChange={(e) => update(i, { size: e.target.value })} />
+          </SettingRow>
+          <SettingRow control="long" label={t('settings.rules.testPackage')} hint={t('settings.rules.testPackageHint')}>
+            <TextInput value={s.pkg} onChange={(e) => update(i, { pkg: e.target.value })} />
+          </SettingRow>
+        </SubCard>
       ))}
 
       <Outcomes flavour={flavour} report={report} downloadDir={downloadDir} />

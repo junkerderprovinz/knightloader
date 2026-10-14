@@ -1,11 +1,10 @@
-import { Fragment, useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fetchOptions, type ApiOptions, type Settings } from '../../lib/api';
 import type { TranslationKey } from '../../lib/i18n';
 import { reasonKey } from '../../components/columns';
 import { Dropdown, type DropdownOption } from '../../components/Dropdown';
 import {
   Card,
-  FieldGroup,
   IconBadge,
   InfoBubble,
   NumberInput,
@@ -20,7 +19,7 @@ import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
 import { useDraft, useFieldError } from './context';
-import { NeutralSwitch } from './controls';
+import { NeutralSwitch, SettingRow, SubCard } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
 import { getPath, rowsFor, same, setPath, type Row, type ValueKind } from './paths';
 import { label, useTx, type ChoicePrefix } from './tx';
@@ -163,31 +162,21 @@ export function Advanced() {
     <div className="flex flex-col gap-10">
       <Card hue={0} className="flex flex-col gap-5">
         <SectionTitle>{tx('settings.advanced.retryTitle')}</SectionTitle>
-        {/* One bubble for the grid: 0 defers to the count on the Downloads
+        {/* One bubble for the group: 0 defers to the count on the Downloads
             page, and a host rule beats this, which beats that count. */}
-        <FieldGroup label={tx('settings.advanced.retryTries')} hint={tx('settings.advanced.retryTriesHint')}>
-          {/* Scrolls in its own box, so the page keeps the rail and save bar. */}
-          <div className="overflow-x-auto">
-            <div className="grid min-w-[18rem] grid-cols-[1fr_auto] items-center gap-x-4 gap-y-2">
-              {RETRY_REASONS.map(([reason, labelKey]) => (
-                <Fragment key={reason}>
-                  <span className="text-sm text-carbon-text">{tx(labelKey)}</span>
-                  {/* The spinner is named by the failure's word; max is the
-                      server's ceiling. */}
-                  <div className="w-28 sm:w-32">
-                    <NumberInput
-                      aria-label={tx(labelKey)}
-                      value={rules[reason]?.tries ?? 0}
-                      min={0}
-                      max={MAX_TRIES}
-                      onValue={(n) => setTries(reason, n)}
-                    />
-                  </div>
-                </Fragment>
-              ))}
-            </div>
-          </div>
-        </FieldGroup>
+        <SubCard label={tx('settings.advanced.retryTries')} hint={tx('settings.advanced.retryTriesHint')}>
+          {RETRY_REASONS.map(([reason, labelKey]) => (
+            // Max is the server's ceiling.
+            <SettingRow key={reason} control="short" label={tx(labelKey)}>
+              <NumberInput
+                value={rules[reason]?.tries ?? 0}
+                min={0}
+                max={MAX_TRIES}
+                onValue={(n) => setTries(reason, n)}
+              />
+            </SettingRow>
+          ))}
+        </SubCard>
       </Card>
 
       <div className="flex flex-col gap-4">

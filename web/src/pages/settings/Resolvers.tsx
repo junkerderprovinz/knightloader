@@ -2,9 +2,9 @@ import { useEffect, useRef, useState } from 'react';
 import {
   Button,
   Card,
-  FieldGroup,
   IconBadge,
   InfoBubble,
+  Modal,
   NumberInput,
   SectionTitle,
   TextInput,
@@ -29,7 +29,7 @@ import {
 import { CookieJarsCard } from './resolvers/CookieJars';
 import { fileTracks } from './resolvers/fileTracks';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
-import { IconTrash } from '../../lib/icons';
+import { IconAdd, IconClose, IconTrash } from '../../lib/icons';
 import {
   fetchHosterFormats,
   fetchOptions,
@@ -137,6 +137,7 @@ export function Resolvers() {
   const presetRows = Object.entries(presets).sort(([a], [b]) => a.localeCompare(b));
   const [newHost, setNewHost] = useState('');
   const [duplicate, setDuplicate] = useState(false);
+  const [addingPreset, setAddingPreset] = useState(false);
 
   // Each host's own formats, asked for once per host the table shows, a row
   // added in this draft included. Until one answers, or where none can, the
@@ -191,6 +192,11 @@ export function Resolvers() {
       return;
     }
     patch({ ytdlpPresets: { ...presets, [host]: { ...DEFAULT_PRESET, variants: [...DEFAULT_PRESET.variants] } } });
+    closeAddPreset();
+  };
+
+  const closeAddPreset = () => {
+    setAddingPreset(false);
     setNewHost('');
     setDuplicate(false);
   };
@@ -218,13 +224,12 @@ export function Resolvers() {
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {qualities.length > 0 && (
-          <SettingRow label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
+          <SettingRow control="long" label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
             <Dropdown
               label={t('settings.resolvers.quality')}
               value={ytdlp.quality}
               onChange={(quality) => patchYtdlp({ quality })}
               options={qualities.map((q) => ({ value: q, label: capLabel(q, t) }))}
-              width="widest"
             />
           </SettingRow>
         )}
@@ -536,7 +541,14 @@ export function Resolvers() {
       <CookieJarsCard hue={9} />
 
       <Card hue={10} data-new="variant-blocks" className="flex flex-col gap-5">
-        <SectionTitle hint={t('settings.resolvers.presetsHint')}>
+        <SectionTitle
+          hint={t('settings.resolvers.presetsHint')}
+          right={
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setAddingPreset(true)}>
+              {t('settings.resolvers.presetAdd')}
+            </Button>
+          }
+        >
           {t('settings.resolvers.variantDefaults')}
         </SectionTitle>
 
@@ -615,33 +627,44 @@ export function Resolvers() {
           )}
         </div>
 
-        {/* FieldGroup, because a label around a button passes clicks to the input. */}
-        <FieldGroup label={t('settings.resolvers.presetHost')} hint={t('settings.resolvers.presetHostHint')}>
-          <div className="flex items-center gap-2">
-            <TextInput
-              dir="ltr"
-              value={newHost}
-              placeholder="youtube.com"
-              spellCheck={false}
-              aria-label={t('settings.resolvers.presetHost')}
-              onChange={(e) => {
-                setNewHost(e.target.value);
-                setDuplicate(false);
-              }}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  addPreset();
-                }
-              }}
-            />
-            <Button kind="secondary" className="shrink-0" disabled={!normaliseHost(newHost)} onClick={addPreset}>
-              {t('settings.resolvers.presetAdd')}
-            </Button>
-          </div>
-        </FieldGroup>
-        {/* The host rules' sentence, since it is the same mistake. */}
-        {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
+        {addingPreset && (
+          <Modal
+            title={t('settings.resolvers.presetAdd')}
+            hue={10}
+            onClose={closeAddPreset}
+            footer={
+              <>
+                <span className="flex-1" />
+                <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={closeAddPreset} />
+                <Button disabled={!normaliseHost(newHost)} onClick={addPreset}>
+                  {t('settings.resolvers.presetAdd')}
+                </Button>
+              </>
+            }
+          >
+            <SettingRow control="long" label={t('settings.resolvers.presetHost')} hint={t('settings.resolvers.presetHostHint')}>
+              <TextInput
+                dir="ltr"
+                autoFocus
+                value={newHost}
+                placeholder="youtube.com"
+                spellCheck={false}
+                onChange={(e) => {
+                  setNewHost(e.target.value);
+                  setDuplicate(false);
+                }}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    addPreset();
+                  }
+                }}
+              />
+            </SettingRow>
+            {/* The host rules' sentence, since it is the same mistake. */}
+            {duplicate && <p className="text-xs text-statusWarn">{t('settings.hostRules.duplicate')}</p>}
+          </Modal>
+        )}
       </Card>
     </div>
   );

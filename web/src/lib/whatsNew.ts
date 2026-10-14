@@ -37,6 +37,10 @@ const LISTS = ['/downloads', '/collector'];
 /** Newest first. Only the newest release an update passes is marked. */
 export const RELEASES: Release[] = [
   {
+    after: '2.0.0',
+    changes: [{ id: 'accounts-card-add', to: ACCOUNTS, text: 'whatsnew.change.accountsCardAdd' }],
+  },
+  {
     after: '1.9.0',
     changes: [
       { id: 'overview-head', to: ['/'], text: 'whatsnew.change.overviewHead', names: { name: 'nav.overview' } },
