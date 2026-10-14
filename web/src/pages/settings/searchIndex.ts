@@ -745,6 +745,23 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
+  vpn: [
+    {
+      title: 'settings.vpn.trafficTitle',
+      rows: [],
+      also: ['settings.vpn.disconnect'],
+      body: ['settings.vpn.killSwitchHint', 'settings.vpn.disconnectHint'],
+    },
+    {
+      title: 'settings.vpn.providersTitle',
+      hint: 'settings.vpn.providersHint',
+      rows: [],
+      also: ['settings.vpn.portForwarding', 'settings.vpn.noPortForwarding', 'settings.vpn.custom'],
+      // The connect window's explanations, which open from the tiles.
+      body: ['settings.vpn.portForwardingHint', 'settings.vpn.removeHint'],
+    },
+  ],
+
   resolvers: [
     {
       title: 'settings.resolvers.toolsTitle',

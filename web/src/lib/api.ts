@@ -4355,3 +4355,80 @@ function openSocket(h: StreamHandlers): LiveStream {
     },
   };
 }
+
+// VPN connections for the built-in torrent client (internal/vpn). Torrents go
+// through one provider at a time, and while it is down they wait rather than
+// leave over the machine's own connection.
+
+/** A value a provider's connect form asks for. */
+export type VpnField =
+  | 'config'
+  | 'privateKey'
+  | 'address'
+  | 'accountNumber'
+  | 'token'
+  | 'username'
+  | 'password'
+  | 'location';
+
+export type VpnConnState = 'idle' | 'connecting' | 'connected' | 'failed';
+
+export interface VpnProvider {
+  id: string;
+  name: string;
+  /** What the connect form asks for, in order. location may stay empty. */
+  fields: VpnField[];
+  portForwarding: boolean;
+  /** Whether a login is stored, so a connect may send no fields and reuse it. */
+  configured: boolean;
+  state: VpnConnState;
+  /** The address the swarm sees, while connected. */
+  exitIp?: string;
+  /** The port the provider forwards to the torrent client, while connected. */
+  forwardedPort?: number;
+  /** Why the last connect failed or the tunnel dropped. English, from the server. */
+  error?: string;
+  /** `error` as a value the interface words itself: vpn-config-invalid,
+   *  vpn-login-refused, vpn-timeout or vpn-dropped. */
+  errorCode?: string;
+}
+
+export interface VpnState {
+  /** The provider torrents go through; '' while they use the machine's own connection. */
+  active: string;
+  providers: VpnProvider[];
+}
+
+/**
+ * vpnRoute calls the instance's VPN routes, and the browser-side stand-in
+ * (lib/vpnMock.ts) while the instance has none, so the page can be tried
+ * before the engine ships.
+ */
+async function vpnRoute(path: string, init?: RequestInit): Promise<VpnState> {
+  const r = await fetch(`/api/vpn${path}`, init);
+  if (r.status === 404 || r.status === 405) {
+    const { mockVpn } = await import('./vpnMock');
+    return mockVpn(path, init);
+  }
+  return json<VpnState>(r);
+}
+
+export const fetchVpn = (): Promise<VpnState> => vpnRoute('');
+
+/**
+ * connectVpn makes `id` the provider torrents go through, ending any other
+ * connection. Empty fields keep the stored login.
+ */
+export const connectVpn = (id: string, fields: Partial<Record<VpnField, string>>): Promise<VpnState> =>
+  vpnRoute(`/${encodeURIComponent(id)}/connect`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ fields }),
+  });
+
+/** disconnectVpn ends the connection; torrents then use the machine's own one. */
+export const disconnectVpn = (): Promise<VpnState> => vpnRoute('/disconnect', { method: 'POST' });
+
+/** forgetVpn deletes a provider's stored login, disconnecting it first. */
+export const forgetVpn = (id: string): Promise<VpnState> =>
+  vpnRoute(`/${encodeURIComponent(id)}`, { method: 'DELETE' });
