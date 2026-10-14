@@ -385,7 +385,7 @@ export function FolderPicker({
             type="button"
             onClick={() => navigate(e.path)}
             className="flex w-full items-center gap-2 px-3 py-1.5 text-start text-sm
-              text-carbon-text transition-colors hover:bg-carbon-hover"
+              text-carbon-text transition-colors hover:bg-carbon-surface3"
           >
             <IconFolder width={16} height={16} className="shrink-0 text-carbon-textMuted" />
             <span className="truncate">{e.name}</span>
