@@ -125,6 +125,24 @@ it('knows every captcha service by the host of its catalogue link', () => {
   expect(serviceMark('katfile.com')).toBeUndefined();
 });
 
+it('knows a debrid service whose site offers no sharp icon by the host of its catalogue link', () => {
+  for (const link of [
+    'https://alldebrid.com/apikeys',
+    'https://bestdebrid.com/profile',
+    'https://members.cocoleech.com/settings',
+    'https://www.debriditalia.com/',
+    'https://www.deepbrid.com/devices',
+    'https://fakirdebrid.net/api/login.php',
+    'https://linksnappy.com/myaccount',
+    'https://multiup.io/en/login',
+    'https://neodebrid.com/login',
+    'https://premium.rpnet.biz/account',
+    'https://www.zevera.com/account',
+  ]) {
+    expect(serviceMark(new URL(link).hostname.replace(/^www\./, '')), link).toBeDefined();
+  }
+});
+
 it('draws a hoster from its bundled logo without asking the instance', () => {
   const fetch = answers(200);
   act(() => root.render(<HosterIcon host="https://rapidgator.net/file/1" />));
