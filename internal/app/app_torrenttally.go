@@ -282,9 +282,9 @@ func (a *App) TorrentOverview() TorrentOverview {
 		out.Ratio = float64(out.Uploaded) / float64(out.Downloaded)
 	}
 	out.Any = out.Downloaded > 0 || out.Uploaded > 0
-	if tc.Interface != "" {
-		out.Interface = tc.Interface
-		out.InterfaceDown = !engine.InterfaceUp(tc.Interface)
+	if iface := a.withVPN(engine.TorrentConfig{Interface: tc.Interface}).Interface; iface != "" {
+		out.Interface = iface
+		out.InterfaceDown = !engine.InterfaceUp(iface)
 	}
 
 	a.mu.Lock()

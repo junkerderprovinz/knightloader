@@ -18,6 +18,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"path"
 	"strconv"
 	"strings"
 	"time"
@@ -184,7 +185,7 @@ func (c *Client) post(ctx context.Context, hc *http.Client, url string, body, in
 	case http.StatusForbidden:
 		return ErrUpdateRequired
 	default:
-		return fmt.Errorf("hideme: %s answered HTTP %d", url, resp.StatusCode)
+		return &StatusError{Method: path.Base(url), Code: resp.StatusCode}
 	}
 	data, err := io.ReadAll(io.LimitReader(resp.Body, 1<<20))
 	if err != nil || into == nil {
@@ -353,4 +354,15 @@ func (c *Client) EnablePortForwarding(ctx context.Context, dial func(ctx context
 		err = errors.New("hideme: the server did not enable port forwarding")
 	}
 	return err
+}
+
+// StatusError is an answer of hide.me's API other than 200. A 4xx to
+// accessToken or connect is a refused login.
+type StatusError struct {
+	Method string
+	Code   int
+}
+
+func (e *StatusError) Error() string {
+	return fmt.Sprintf("hideme: %s answered HTTP %d", e.Method, e.Code)
 }
