@@ -175,7 +175,16 @@ export function McpCard({ onTokensChanged }: { onTokensChanged?: () => void }) {
   return (
     <>
       <Card hue={HUE} className="flex flex-col gap-3">
-        <SectionTitle hint={t('settings.access.mcp.intro')}>{t('settings.access.mcp.title')}</SectionTitle>
+        <SectionTitle
+          hint={t('settings.access.mcp.intro')}
+          right={
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking(true)}>
+              {t('settings.access.mcp.add')}
+            </Button>
+          }
+        >
+          {t('settings.access.mcp.title')}
+        </SectionTitle>
         {failed && <p className="text-sm text-statusWarn">{t('settings.access.mcp.loadFailed')}</p>}
         {clients.length === 0 ? (
           <EmptyState
@@ -238,12 +247,6 @@ export function McpCard({ onTokensChanged }: { onTokensChanged?: () => void }) {
             })}
           </div>
         )}
-        {/* Below the list and left-aligned, as "add another". */}
-        <div>
-          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking(true)}>
-            {t('settings.access.mcp.add')}
-          </Button>
-        </div>
       </Card>
 
       {picking && (
