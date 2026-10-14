@@ -6,6 +6,7 @@
 //
 //   npm i --no-save sharp
 //   node scripts/gen-hoster-logos.mjs <folder>
+//   node scripts/gen-hoster-logos.mjs --update <folder>
 //
 // Each logo becomes a 64-pixel palette PNG. One drawn in ink that would vanish
 // on one of the two themes gets a plate of the other theme's ground, and
@@ -13,6 +14,11 @@
 // them. The same image under unrelated domains is a hosting script's default
 // rather than a logo, so those are left out and named. Look at the folder
 // before running this: a logo of the wrong brand passes every check here.
+//
+// With --update the folder replaces or adds only the logos it holds and keeps
+// every other one, for when a sharper logo turns up for a few hosters. A
+// 16-pixel favicon blown up to 64 pixels stays blurred at the size the pickers
+// show it, so a logo in the folder should be at least 64 pixels.
 import { mkdir, readdir, rm, writeFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import { dirname, extname, join } from 'node:path';
@@ -31,9 +37,10 @@ const LIGHT = { r: 0xf4, g: 0xf4, b: 0xf4 };
 const PLATE_LIGHT = { r: 255, g: 255, b: 255, alpha: 1 };
 const PLATE_DARK = { ...DARK, alpha: 1 };
 
-const source = process.argv[2];
+const update = process.argv[2] === '--update';
+const source = process.argv[update ? 3 : 2];
 if (!source) {
-  console.error('usage: node scripts/gen-hoster-logos.mjs <folder of <domain>.png files>');
+  console.error('usage: node scripts/gen-hoster-logos.mjs [--update] <folder of <domain>.png files>');
   process.exit(2);
 }
 
@@ -113,9 +120,9 @@ for (const f of files) {
   byImage.set(key, { png, domains: [...(byImage.get(key)?.domains ?? []), domain] });
 }
 
-await rm(out, { recursive: true, force: true });
+if (!update) await rm(out, { recursive: true, force: true });
 await mkdir(out, { recursive: true });
-const names = [];
+let written = 0;
 let bytes = 0;
 const generic = [];
 for (const { png, domains } of byImage.values()) {
@@ -125,10 +132,13 @@ for (const { png, domains } of byImage.values()) {
     continue;
   }
   await writeFile(join(out, `${name}.png`), png);
-  names.push(name);
+  written++;
   bytes += png.length;
 }
-names.sort();
+const names = (await readdir(out))
+  .filter((f) => f.endsWith('.png'))
+  .map((f) => f.slice(0, -'.png'.length))
+  .sort();
 const entries = names.map((n) => `  '${n}',\n`).join('');
 await writeFile(
   list,
@@ -139,5 +149,7 @@ ${entries}]);
 `,
 );
 
-console.log(`${names.length} logos from ${files.length} files, ${(bytes / 1024).toFixed(0)} KiB, ${plated} on a plate`);
+console.log(
+  `${written} logos from ${files.length} files, ${(bytes / 1024).toFixed(0)} KiB, ${plated} on a plate; ${names.length} in the list`,
+);
 for (const group of generic) console.log(`left out, one image under unrelated domains: ${group}`);

@@ -5,17 +5,29 @@
 // are briefly down.
 //
 // The hoster logos in public/hosters were collected from the sites and are
-// rebuilt with scripts/gen-hoster-logos.mjs. The captcha services are kept by
-// hand, because their sites give a fetch nothing and Dashboard Icons has none
-// of them, so each is the service's own favicon or logo. A captcha mark drawn
-// in dark ink sits on a light plate, or it would vanish on the dark theme; the
-// script bakes that plate into a hoster logo.
+// rebuilt with scripts/gen-hoster-logos.mjs. The captcha services and the
+// debrid services whose sites offer only a small favicon, or another brand's,
+// are kept by hand: each mark is the service's own, taken from its browser
+// extension, its GitHub account or its site at 128 pixels where it has one.
+// A mark drawn in dark ink sits on a light plate, or it would vanish on the
+// dark theme; the script bakes that plate into a hoster logo.
 import twoCaptcha from '../assets/marks/2captcha.svg';
 import nineKw from '../assets/marks/9kw.png';
+import allDebrid from '../assets/marks/alldebrid.png';
 import antiCaptcha from '../assets/marks/anticaptcha.png';
+import bestDebrid from '../assets/marks/bestdebrid.png';
 import capMonster from '../assets/marks/capmonster.svg';
 import capSolver from '../assets/marks/capsolver.png';
+import cocoLeech from '../assets/marks/cocoleech.png';
 import deathByCaptcha from '../assets/marks/deathbycaptcha.png';
+import debridItalia from '../assets/marks/debriditalia.png';
+import deepbrid from '../assets/marks/deepbrid.png';
+import fakirDebrid from '../assets/marks/fakirdebrid.png';
+import linksnappy from '../assets/marks/linksnappy.png';
+import multiUp from '../assets/marks/multiup.png';
+import neoDebrid from '../assets/marks/neodebrid.png';
+import rpnet from '../assets/marks/rpnet.png';
+import zevera from '../assets/marks/zevera.png';
 import { withBase } from './basePath';
 import { HOSTER_LOGOS } from './hosterLogos';
 
@@ -32,7 +44,19 @@ const MARKS: Record<string, ServiceMark> = {
   'capmonster.cloud': { src: capMonster },
   'capsolver.com': { src: capSolver, plate: true },
   '9kw.eu': { src: nineKw, plate: true },
-  'deathbycaptcha.com': { src: deathByCaptcha },
+  'deathbycaptcha.com': { src: deathByCaptcha, plate: true },
+  'alldebrid.com': { src: allDebrid },
+  'bestdebrid.com': { src: bestDebrid },
+  'cocoleech.com': { src: cocoLeech },
+  'debriditalia.com': { src: debridItalia },
+  'deepbrid.com': { src: deepbrid },
+  'fakirdebrid.net': { src: fakirDebrid },
+  'linksnappy.com': { src: linksnappy },
+  // The site's touch icon is the default of the framework it runs on.
+  'multiup.io': { src: multiUp },
+  'neodebrid.com': { src: neoDebrid },
+  'rpnet.biz': { src: rpnet, plate: true },
+  'zevera.com': { src: zevera },
 };
 
 /** serviceMark is the bundled mark for a bare hostname or the nearest domain above it. */

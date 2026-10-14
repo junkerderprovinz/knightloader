@@ -69,4 +69,6 @@ node scripts/gen-hoster-logos.mjs <folder>
 
 It rewrites the folder and `src/lib/hosterLogos.ts`, puts a plate behind a logo
 that would vanish on one of the themes, and leaves out an image that turns up
-under unrelated domains, since that is a hosting script's default.
+under unrelated domains, since that is a hosting script's default. With
+`--update <folder>` it replaces or adds only the logos in that folder and keeps
+the rest, which suits a sharper logo found for a few hosters.
