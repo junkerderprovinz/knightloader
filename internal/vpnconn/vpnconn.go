@@ -230,8 +230,10 @@ func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-unknown", Field: k,
 				Text: fmt.Sprintf("%s asks for no %s", p.Name, k)}
 		}
-		if strings.TrimSpace(v) != "" {
+		if strings.TrimSpace(v) != "" && login[k] != v {
 			login[k] = v
+			// A token belongs to the login it was fetched with.
+			delete(login, accessTokenField)
 		}
 	}
 	for _, f := range p.Fields {
