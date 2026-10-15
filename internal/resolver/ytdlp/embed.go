@@ -64,7 +64,7 @@ const embedTimeout = 30 * time.Second
 // not introduce itself the way a browser does.
 const embedUserAgent = "Mozilla/5.0 (compatible; KnightLoader; +https://github.com/junkerderprovinz/knightloader)"
 
-var embedClient = httpx.New(httpx.Options{Timeout: embedTimeout})
+var embedClient = httpx.New(httpx.Options{Timeout: embedTimeout, Class: httpx.ClassYtdlp})
 
 func (b *Backend) client() *http.Client {
 	if b.Client != nil {
