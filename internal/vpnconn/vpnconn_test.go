@@ -446,6 +446,32 @@ func TestASessionsKeepForwardsThePortWhileTheTunnelStands(t *testing.T) {
 	}
 }
 
+func TestASessionThatNeverAnswersIsOpenedAnew(t *testing.T) {
+	gone := vpntest.Start(t)
+	dead := gone.Config()
+	gone.Close()
+	live := vpntest.Start(t).Config()
+	h := newHarness(t, &memStore{}, "", func(o *Options) {
+		o.ConnectTimeout = 300 * time.Millisecond
+		o.RenewAfter = 300 * time.Millisecond
+	})
+	var opened atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		conf := live
+		if opened.Add(1) == 1 {
+			conf = dead
+		}
+		cfg, err := vpn.ParseConfig(conf)
+		return &session{cfg: cfg, renews: true}, err
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "renews", Name: "Renews", Fields: []string{"token"}, open: open})
+	h.m.Connect("renews", map[string]string{"token": "x"})
+	h.waitFor(t, "renews", "connected")
+	if n := opened.Load(); n != 2 {
+		t.Errorf("%d sessions opened, want a second one after the first never answered", n)
+	}
+}
+
 func TestConnectsAtOnceLeaveNoRunBehindADisconnect(t *testing.T) {
 	srv := vpntest.Start(t)
 	h := newHarness(t, &memStore{}, "")
