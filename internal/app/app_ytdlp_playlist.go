@@ -44,11 +44,8 @@ type playlistProber interface {
 }
 
 // ytdlpPlaylistProber returns the yt-dlp backend as a playlistProber, and
-// whether it is one. A switched-off yt-dlp is none.
+// whether it is one.
 func (a *App) ytdlpPlaylistProber() (playlistProber, bool) {
-	if a.resolverOff("ytdlp") {
-		return nil, false
-	}
 	a.bmu.RLock()
 	b := a.ytdlp
 	a.bmu.RUnlock()

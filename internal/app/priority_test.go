@@ -410,13 +410,6 @@ func TestVideoSitesStayWithYtdlpAndFilehostersWithJD(t *testing.T) {
 		t.Errorf("an ordinary file goes to %q, want direct", got)
 	}
 
-	// Switched off, yt-dlp takes no link, and a video site's file is a file.
-	switchModulesOff(t, a, "ytdlp")
-	if got := resolverIDOf(a.resolverForTaskLocked(video)); got != "direct" {
-		t.Errorf("with yt-dlp switched off a video site's file goes to %q, want direct", got)
-	}
-	switchModulesOff(t, a)
-
 	// Without yt-dlp a video site's file is a file like any other.
 	a.claims.set(nil, nil)
 	if got := resolverIDOf(a.resolverForTaskLocked(video)); got != "direct" {

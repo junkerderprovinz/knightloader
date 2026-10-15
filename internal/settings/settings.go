@@ -753,6 +753,17 @@ func (s Settings) ModuleOff(id string) bool {
 	return slices.Contains(s.ModulesOff, id)
 }
 
+// cleanModulesOff is cleanIDList without jd and ytdlp. Both are always on, and
+// an id of theirs in the list would hold their links with no switch to let
+// them go.
+func cleanModulesOff(ids []string) []string {
+	ids = slices.DeleteFunc(cleanIDList(ids), func(id string) bool { return id == "jd" || id == "ytdlp" })
+	if len(ids) == 0 {
+		return nil
+	}
+	return ids
+}
+
 // The three answers to "which relay does this instance use".
 const (
 	// RelayModeProject: the address compiled into the binary
@@ -1188,6 +1199,6 @@ func sanitize(n Settings) Settings {
 	n = sanitizeIdentity(n)
 	n = sanitizeTrustedProxies(n)
 	n = sanitizeRelay(n)
-	n.ModulesOff = cleanIDList(n.ModulesOff)
+	n.ModulesOff = cleanModulesOff(n.ModulesOff)
 	return n
 }

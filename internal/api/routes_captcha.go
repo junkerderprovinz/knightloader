@@ -80,8 +80,6 @@ func registerCaptcha(reg *Registry, a *app.App) {
 				switch {
 				case errors.Is(err, app.ErrCaptchaOff):
 					code = "captchaOff"
-				case errors.Is(err, app.ErrCaptchaJDOff):
-					code = "captchaJDOff"
 				case errors.Is(err, app.ErrNoCaptchaAccount):
 					code = "noCaptchaAccount"
 				}

@@ -11,10 +11,8 @@ import (
 )
 
 // resolverModule maps the backends that belong to a switchable module to that
-// module's id in the module registry.
+// module's id in the module registry. JDownloader and yt-dlp have no switch.
 var resolverModule = map[string]string{
-	"jd":      "jd",
-	"ytdlp":   "ytdlp",
 	"torrent": "torrents",
 }
 

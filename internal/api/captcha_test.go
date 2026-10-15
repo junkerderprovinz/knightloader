@@ -192,8 +192,6 @@ func TestATestCaptchaRefusalSaysWhatStandsInTheWay(t *testing.T) {
 		body     string
 		wantCode string
 	}{
-		{name: "JD off", off: []string{"jd"}, body: `{}`, wantCode: "captchaJDOff"},
-		{name: "JD and captchas off", off: []string{"jd", "captcha"}, body: `{}`, wantCode: "captchaJDOff"},
 		{name: "no captcha account with a key", order: []string{"2captcha"}, body: `{"solvers":true}`, wantCode: "noCaptchaAccount"},
 	} {
 		t.Run(tc.name, func(t *testing.T) {

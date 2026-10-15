@@ -154,3 +154,18 @@ func TestASettingsFileWithoutTheMergeSwitchMerges(t *testing.T) {
 		t.Error("a file that keeps the streams apart reads as merging")
 	}
 }
+
+// JDownloader and yt-dlp have no switch, so a settings file that lists them as
+// off must not hold their links; the other modules keep their switch.
+func TestLoadDropsModulesWithoutASwitchFromModulesOff(t *testing.T) {
+	dir := t.TempDir()
+	writeSettings(t, dir, `{"modulesOff": ["jd", "torrents", "ytdlp"]}`)
+
+	s, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if got := s.Get().ModulesOff; !slices.Equal(got, []string{"torrents"}) {
+		t.Errorf("modulesOff = %q, want only torrents", got)
+	}
+}

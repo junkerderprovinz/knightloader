@@ -27,10 +27,6 @@ type hostClaims struct {
 	// media are the video sites yt-dlp serves. They are left to it, so the set
 	// is empty while yt-dlp is not running.
 	media map[string]bool
-	// ytdlpOn reports whether the yt-dlp module is switched on. A switch does
-	// not rewire, and while it is off a file on a video site is a file like any
-	// other rather than a link waiting for yt-dlp.
-	ytdlpOn func() bool
 }
 
 func (c *hostClaims) set(hosters, media map[string]bool) {
@@ -54,13 +50,10 @@ func (c *hostClaims) fileHoster(host string) bool {
 }
 
 // pageOnly reports whether a plain GET on host fetches a page instead of the
-// file: a file hoster, or a video site while yt-dlp runs and is switched on.
+// file: a file hoster, or a video site while yt-dlp runs.
 func (c *hostClaims) pageOnly(host string) bool {
 	if c.fileHoster(host) {
 		return true
-	}
-	if c.ytdlpOn != nil && !c.ytdlpOn() {
-		return false
 	}
 	c.mu.RLock()
 	defer c.mu.RUnlock()

@@ -165,21 +165,6 @@ func TestATestCaptchaGoesToTheCaptchaAccountsOnlyWhenSentToThem(t *testing.T) {
 	}
 }
 
-// The captcha module can be switched back on only once JD is, so the
-// refusal names JD.
-func TestATestCaptchaRefusedForJDBeingOffSaysSo(t *testing.T) {
-	a := newCaptchaTestApp(t)
-	if _, err := a.ApplySettings(settings.Settings{
-		MaxConcurrent: 4, MaxPerHost: 4, DownloadDir: t.TempDir(), ModulesOff: []string{"jd"},
-	}); err != nil {
-		t.Fatal(err)
-	}
-
-	if _, err := a.CreateTestCaptcha(false); !errors.Is(err, ErrCaptchaJDOff) {
-		t.Errorf("CreateTestCaptcha with JD off = %v, want ErrCaptchaJDOff", err)
-	}
-}
-
 func TestNoTestCaptchaForTheCaptchaAccountsWhileNoneHasAKey(t *testing.T) {
 	a := newCaptchaTestApp(t)
 	if _, err := a.ApplySettings(settings.Settings{
