@@ -1,4 +1,4 @@
-// The options page's two cards for capture.js: taking downloads over from the
+// The options page's two rows for capture.js: taking downloads over from the
 // browser, and finding the media a page plays. Each switch asks for its
 // permissions when turned on and hands them back when turned off; the rules
 // under the takeover switch go with it.
@@ -18,9 +18,7 @@ const mediaRefusedEl = document.getElementById('mediaRefused');
 const captureRefused = { takeover: false, media: false };
 
 function captureText() {
-  document.getElementById('takeoverHeading').textContent = t('options.takeoverHeading');
-  glimSetInfo('takeoverHeading', t('options.takeoverInfo'));
-  document.getElementById('takeoverToggle').textContent = t('options.takeoverToggle');
+  rowLabel('takeoverLabel', t('options.takeoverToggle'), t('options.takeoverInfo'), takeoverEnabledEl);
   document.getElementById('takeoverRefusedTitle').textContent = t('options.takeoverRefusedTitle');
   document.getElementById('takeoverRefusedReason').textContent = t('options.takeoverRefused');
   document.getElementById('takeoverTypesLabel').textContent = t('options.takeoverTypes');
@@ -35,9 +33,7 @@ function captureText() {
   const keyNames = { alt: t('options.keyAlt'), shift: t('options.keyShift'), ctrl: t('options.keyCtrl') };
   takeoverBypassEl.replaceChildren(...BYPASS_KEYS.map((k) => new Option(keyNames[k], k)));
 
-  document.getElementById('mediaHeading').textContent = t('options.mediaHeading');
-  glimSetInfo('mediaHeading', t('options.mediaInfo'));
-  document.getElementById('mediaToggle').textContent = t('options.mediaToggle');
+  rowLabel('mediaLabel', t('options.mediaToggle'), t('options.mediaInfo'), mediaEnabledEl);
   document.getElementById('mediaRefusedTitle').textContent = t('options.mediaRefusedTitle');
   document.getElementById('mediaRefusedReason').textContent = t('options.mediaRefused');
 }
