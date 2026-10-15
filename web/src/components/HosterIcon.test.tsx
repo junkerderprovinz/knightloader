@@ -9,6 +9,7 @@ import {
   RETRY_GIVE_UP_MS,
   RETRY_MAX_PAUSE_MS,
 } from './HosterIcon';
+import { HOSTER_LOGOS } from '../lib/hosterLogos';
 import { serviceMark } from '../lib/serviceMarks';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -104,11 +105,22 @@ it('draws a captcha service from its bundled mark without asking the instance', 
   expect(img()?.getAttribute('src')).not.toContain('/api/hosters/icon');
 });
 
-it('puts a mark drawn in dark ink on a light plate', () => {
+it('draws a mark of one dark ink in the text colour rather than on a plate', () => {
   act(() => root.render(<HosterIcon host="https://www.9kw.eu/userapi.html" />));
-  expect(img()?.className).toContain('bg-white');
+  expect(img()).toBeNull();
+  const ink = host.querySelector<HTMLElement>('.glim-logo-ink.glim-mark-rest');
+  expect(ink?.style.getPropertyValue('--logo-mask')).toBe('url("/hosters/9kw.eu.png")');
   act(() => root.render(<HosterIcon host="https://2captcha.com/enterpage" />));
-  expect(img()?.className).not.toContain('bg-white');
+  expect(img()?.getAttribute('src')).toBe('/hosters/2captcha.com.png');
+});
+
+it('brings the mask a lit tile shows only onto a tile', () => {
+  const lit = [...HOSTER_LOGOS].find(([, info]) => info.lit && info.rest !== 'ink')![0];
+  act(() => root.render(<HosterIcon host={lit} />));
+  expect(host.querySelector('.glim-mark-hover')).toBeNull();
+  act(() => root.render(<HosterIcon host={lit} lit />));
+  const mask = host.querySelector<HTMLElement>('.glim-mark-hover.glim-logo-ink');
+  expect(mask?.style.getPropertyValue('--logo-mask')).toBe(`url("/hosters/${lit}.lit.png")`);
 });
 
 it('knows every captcha service by the host of its catalogue link', () => {
