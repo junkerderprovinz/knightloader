@@ -42,7 +42,7 @@ func TestVPNRoutesPutTorrentsOnTheTunnel(t *testing.T) {
 
 	code, doc := callAPI(t, http.DefaultClient, srv.URL, http.MethodGet, "/api/vpn", "", "")
 	st := vpnState(t, doc)
-	if code != http.StatusOK || st.Active != "" || len(st.Providers) != 35 {
+	if code != http.StatusOK || st.Active != "" || len(st.Providers) != 34 {
 		t.Fatalf("GET /api/vpn = %d, active %q, %d providers", code, st.Active, len(st.Providers))
 	}
 

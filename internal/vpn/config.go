@@ -84,6 +84,9 @@ type Peer struct {
 	Keepalive time.Duration
 }
 
+// ErrUnknownLocation is a location a provider has no server for.
+var ErrUnknownLocation = errors.New("vpn: the provider has no server at that location")
+
 // DefaultMTU leaves room for WireGuard over IPv6 on a 1500 byte link.
 const DefaultMTU = 1420
 

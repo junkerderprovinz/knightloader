@@ -29,6 +29,8 @@ const (
 	// fwdPort asks cryptostorm's server for a port once per connection; it
 	// keeps it until the token runs out, so nothing renews it.
 	fwdPort
+	// apiPort is the port a session's keep has the provider's API forward.
+	apiPort
 )
 
 // protonGateway is where Proton VPN answers NAT-PMP on every server.
@@ -40,10 +42,10 @@ var protonGateway = netip.MustParseAddr("10.2.0.1")
 func catalogue() []Provider {
 	conf, hide := opener(openConfig), opener(openHideMe)
 	return []Provider{
-		{ID: "nordvpn", Name: "NordVPN", Fields: []string{"token"}},
+		{ID: "nordvpn", Name: "NordVPN", Fields: []string{"token", "location"}, open: openNordVPN},
 		{ID: "protonvpn", Name: "Proton VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: natpmpPort, gateway: protonGateway},
 		{ID: "surfshark", Name: "Surfshark", Fields: []string{"config"}, open: conf},
-		{ID: "pia", Name: "Private Internet Access", Fields: []string{"username", "password"}, PortForwarding: true},
+		{ID: "pia", Name: "Private Internet Access", Fields: []string{"username", "password", "location"}, PortForwarding: true, open: openPIA, port: apiPort},
 		{ID: "mullvad", Name: "Mullvad VPN", Fields: []string{"token"}},
 		{ID: "windscribe", Name: "Windscribe", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "ipvanish", Name: "IPVanish", Fields: []string{"config"}, open: conf},
@@ -51,9 +53,8 @@ func catalogue() []Provider {
 		{ID: "hideme", Name: "hide.me", Fields: []string{"username", "password", "location"}, PortForwarding: true, open: hide, port: natpmpPort},
 		{ID: "airvpn", Name: "AirVPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "ivpn", Name: "IVPN", Fields: []string{"config"}, open: conf},
-		{ID: "torguard", Name: "TorGuard", Fields: []string{"username", "password", "location"}, PortForwarding: true},
+		{ID: "torguard", Name: "TorGuard", Fields: []string{"username", "password", "location"}, PortForwarding: true, open: openTorGuard, port: manualPort},
 		{ID: "privadovpn", Name: "PrivadoVPN", Fields: []string{"config"}, open: conf},
-		{ID: "vyprvpn", Name: "VyprVPN", Fields: []string{"username", "password", "location"}, PortForwarding: true},
 		{ID: "ovpn", Name: "OVPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "azirevpn", Name: "AzireVPN", Fields: []string{"username", "password"}, PortForwarding: true},
 		{ID: "fastestvpn", Name: "FastestVPN", Fields: []string{"config"}, open: conf},
