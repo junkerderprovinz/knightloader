@@ -3991,6 +3991,9 @@ export const en = {
   'settings.vpn.custom': 'Own WireGuard config',
   'settings.vpn.note.kaspersky': 'Kaspersky’s configuration stops working once it goes unused for 24 hours, and it covers one device. Create a new one in My Kaspersky when that happens.',
   'settings.vpn.note.anonine': 'Anonine’s download leaves out the private key and the address. Add the PrivateKey line of your own key pair and the Address line from your account before you paste it.',
+  'settings.vpn.note.nordvpn': 'You create the access token in your Nord Account, under NordVPN in the advanced settings. For the location, a country code such as de, a country or a city works. Left empty, KnightLoader takes the server NordVPN recommends for you.',
+  'settings.vpn.note.pia': 'Your PIA user name starts with p. For the location, a country code such as de or a region such as de_berlin works. Left empty, KnightLoader takes the fastest region that forwards ports.',
+  'settings.vpn.note.torguard': 'TorGuard wants the VPN credentials from your client area here, not your website login. For the location, enter a TorGuard server such as ger.secureconnect.me, or just ger, or its IP address. Left empty, it is nl.secureconnect.me. To forward a port, request the port from your torrent settings in the client area under Port Forward Manager, for this server’s IP address.',
   'settings.vpn.title': 'VPN',
   'settings.vpn.cardHint': 'Sends downloads through a VPN provider: the kinds you switch on below. KnightLoader connects to it itself, so no VPN app is needed. While the connection is down, those downloads wait and never use your own connection.',
   'settings.vpn.add': 'Add VPN',
@@ -4043,6 +4046,7 @@ export const en = {
   'settings.vpn.error.login': '{name} refused the login.',
   'settings.vpn.error.timeout': 'The server did not answer. Try another location.',
   'settings.vpn.error.dropped': 'The connection dropped.',
+  'settings.vpn.error.location': '{name} has no server at that location. Check the spelling or leave the field empty.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

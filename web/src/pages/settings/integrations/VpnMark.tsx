@@ -49,6 +49,7 @@ const FAILURE: Record<string, TranslationKey> = {
   'vpn-login-refused': 'settings.vpn.error.login',
   'vpn-timeout': 'settings.vpn.error.timeout',
   'vpn-dropped': 'settings.vpn.error.dropped',
+  'vpn-location-unknown': 'settings.vpn.error.location',
 };
 
 /** failureOf words why a provider failed, in the reader's language where the code is known. */
