@@ -60,18 +60,18 @@ func accountNumber(s string) string {
 }
 
 // askSessionForPort has the provider's API forward a port to this tunnel. The
-// port stays with the address for as long as the provider keeps it, so this
-// runs once per connection.
+// port stays with the address for as long as the provider keeps it, so it is
+// asked for once per connection, until the provider answers.
 func (m *Manager) askSessionForPort(ctx context.Context, p Provider, sess *session) {
 	if sess.askPort == nil {
 		return
 	}
-	port, err := sess.askPort(ctx, m.tun.DialContext)
-	if err != nil {
-		if ctx.Err() == nil {
-			m.opts.Logf("vpn: %s port forwarding: %v", p.Name, err)
-		}
-		return
+	var port uint16
+	ask := func() (err error) {
+		port, err = sess.askPort(ctx, m.tun.DialContext)
+		return err
 	}
-	m.setPort(port)
+	if m.retryPort(ctx, p, ask) {
+		m.setPort(port)
+	}
 }
