@@ -653,7 +653,7 @@ func (a *App) nextResolverLocked(t *core.Task) string {
 // a.mu.
 func (a *App) routeForLocked(t *core.Task, host string) (proxycfg.Route, string) {
 	if r, ok := a.vpnRoute(t); ok {
-		return r, ""
+		return r, vpnRouteID
 	}
 	p := a.picker
 	if p == nil {
@@ -850,9 +850,19 @@ func (a *App) dispatchLocked() {
 			// A retry date belongs to the failure, not to the run it led to.
 			t.NextTry = time.Time{}
 			be := a.backendFor(t.Resolver)
+			// A VPN switch may have changed while it was paused.
+			route, chosen, misrouted := a.misroutedLocked(t)
+			engineID := a.torrentFiles.engineIDFor(id)
+			misrouted = misrouted && !a.rerouting[engineID]
+			if misrouted {
+				a.rerouting[engineID] = true
+			}
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)
+				if misrouted {
+					a.reroute(id, engineID, route, chosen)
+				}
 				be.Resume(id)
 			}()
 			continue
@@ -1002,9 +1012,12 @@ func (a *App) dispatchLocked() {
 		}
 		conns := connsFor(t, cfg, result.Connections, hostCapFor(res, h))
 		route, chosen := a.routeForLocked(t, h)
-		if chosen != t.Connection {
-			t.Connection = chosen
+		if be != a.Engine {
+			// The engine is all a route reaches. A backend that hands its link
+			// on to it records the route there (see handedJobLocked).
+			chosen = ""
 		}
+		t.Connection = chosen
 		// The new attempt reports the file it writes itself. A torrent the
 		// built-in client takes up again lands where it was, and a magnet's
 		// attempt may never hear from the swarm, so that place stays on the
@@ -1042,7 +1055,8 @@ func (a *App) dispatchLocked() {
 		} else {
 			// Delegated backends reach the internet their own way, so they get
 			// no route. Those that pass their link on to the engine go through
-			// engineHandoff, which gives the engine the same job as above.
+			// engineHandoff, which gives the engine the same job and route as
+			// above.
 			a.beginHandoverLocked(id)
 			go func() {
 				defer a.endHandover(id)

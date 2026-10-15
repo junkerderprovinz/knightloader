@@ -113,9 +113,23 @@ func (p *torrentParts) engineIDFor(taskID string) string {
 	return taskID
 }
 
+// taskOf is the task the engine fetches under id: the one a file in flight
+// belongs to, or the task of that id.
+func (p *torrentParts) taskOf(id string) string {
+	p.partsMu.Lock()
+	defer p.partsMu.Unlock()
+	if w := p.waits[id]; w != nil {
+		return w.taskID
+	}
+	return id
+}
+
 // engineUpdate is where the engine reports. A file of a torrent a debrid
 // service fetched goes to the backend fetching it; everything else is a task.
 func (a *App) engineUpdate(id string, u core.Update) {
+	if u.Status == core.StatusRunning {
+		a.keepOnRoute(id)
+	}
 	if a.torrentFiles.deliver(id, u) {
 		return
 	}
@@ -132,7 +146,7 @@ func (h engineHandoff) FetchPart(ctx context.Context, p debrid.Part) (string, er
 		h.a.mu.Unlock()
 		return "", errors.New("the download was removed")
 	}
-	job := h.a.engineJobLocked(t, h.a.Settings.Get(), p.URL, nil, p.Conns)
+	job := h.a.handedJobLocked(t, h.a.Settings.Get(), p.URL, nil, p.Conns)
 	h.a.mu.Unlock()
 	// The path comes from whoever made the torrent.
 	if err := torrent.Contained(job.Dir, []string{p.Path}); err != nil {
