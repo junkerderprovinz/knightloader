@@ -71,7 +71,7 @@ func registerMCP(reg *Registry, a *app.App) {
 
 	reg.AddOpen(AnyMethod, mcpPath,
 		"the Model Context Protocol endpoint (Streamable HTTP) for AI assistants; answers 404 until a client "+
-			"is set up under Settings > Security > MCP server, and takes only the API token made for that client",
+			"is set up under Settings > Integrations > MCP server, and takes only the API token made for that client",
 		func(w http.ResponseWriter, r *http.Request) { serveMCP(a, transport, w, r) })
 
 	reg.Add(http.MethodGet, "/api/mcp",
@@ -233,7 +233,7 @@ func serveMCP(a *app.App, transport http.Handler, w http.ResponseWriter, r *http
 	if !ok {
 		w.Header().Set("WWW-Authenticate", `Bearer realm="KnightLoader MCP"`)
 		writeJSONStatus(w, http.StatusUnauthorized, map[string]string{
-			"error": "this needs the API token made for an MCP client under Settings > Security > MCP server",
+			"error": "this needs the API token made for an MCP client under Settings > Integrations > MCP server",
 		})
 		return
 	}
