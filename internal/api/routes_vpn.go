@@ -1,7 +1,7 @@
 package api
 
-// The VPN page: the providers the built-in torrent client can go through and
-// the one it goes through now (internal/vpnconn). A login never comes back to
+// The VPN page: the providers downloads can go through, the one in use now and
+// which downloads use it (internal/vpnconn). A login never comes back to
 // the page, only whether one is stored.
 
 import (
@@ -14,13 +14,13 @@ import (
 
 func registerVPN(reg *Registry, a *app.App) {
 	reg.Add(http.MethodGet, "/api/vpn",
-		"the VPN providers for torrents, which one torrents go through now, its state, exit address and forwarded port; never a login",
+		"the VPN providers, which one is in use now, its state, exit address and forwarded port, and which downloads go through it; never a login",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.VPN.State())
 		})
 
 	reg.Add(http.MethodPost, "/api/vpn/{id}/connect",
-		"make one provider the one torrents go through, ending any other, and seal its login; empty fields keep the stored login. The connection follows, GET /api/vpn tells how it goes",
+		"make one provider the one the VPN uses, ending any other, and seal its login; empty fields keep the stored login. The connection follows, GET /api/vpn tells how it goes",
 		func(w http.ResponseWriter, r *http.Request) {
 			var body struct {
 				Fields map[string]string `json:"fields"`
@@ -37,7 +37,7 @@ func registerVPN(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodPost, "/api/vpn/disconnect",
-		"end the VPN connection; torrents use the machine's own connection again",
+		"end the VPN connection; every download it carried uses the machine's own connection again",
 		func(w http.ResponseWriter, r *http.Request) {
 			writeJSON(w, a.VPN.Disconnect())
 		})
@@ -53,7 +53,7 @@ func registerVPN(reg *Registry, a *app.App) {
 		})
 
 	reg.Add(http.MethodDelete, "/api/vpn/{id}",
-		"delete a provider's sealed login, disconnecting it first when torrents go through it",
+		"delete a provider's sealed login, disconnecting it first when it is the one in use",
 		func(w http.ResponseWriter, r *http.Request) {
 			st, err := a.VPN.Forget(r.PathValue("id"))
 			if err != nil {
