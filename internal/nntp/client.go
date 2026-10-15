@@ -114,6 +114,21 @@ func (c *Client) Close() {
 	}
 }
 
+// Redial has every connection dialled anew, for a change in the way to the
+// servers that their address and login do not show. The idle connections are
+// hung up at once and the busy ones as their fetches end, while the limits
+// stay as they are.
+func (c *Client) Redial() {
+	c.mu.RLock()
+	defer c.mu.RUnlock()
+	for _, p := range c.pools {
+		p.mu.Lock()
+		p.gen++
+		p.mu.Unlock()
+		p.closeIdle()
+	}
+}
+
 // Fetch returns the decoded article id, posted at posted (zero when unknown).
 //
 // The servers are asked level by level. On one level the starting server
@@ -287,6 +302,9 @@ type line struct {
 	// retired is set once the server is gone or reached another way, after
 	// which no connection goes back to idle.
 	retired bool
+	// gen counts the Redials. A connection dialled before the last one does
+	// not go back to idle.
+	gen uint64
 }
 
 // sameLine reports whether t reaches the server the way s does.
@@ -398,19 +416,25 @@ func (p *pool) get(ctx context.Context, now func() time.Time) (*conn, bool, erro
 		}
 		go c.close()
 	}
+	gen := p.gen
 	p.mu.Unlock()
 	c, err := dial(ctx, p.s)
-	return c, true, err
+	if err != nil {
+		return nil, true, err
+	}
+	c.gen = gen
+	return c, true, nil
 }
 
-// put keeps c for the next fetch, unless the line is retired or more fetches
-// are busy than a lowered limit allows, the caller among them. The idle
-// connections stay out of that sum: a fetch that has just put its connection
-// back, or is about to take one, still counts as busy, and counting it twice
-// would hang up connections the limit has room for.
+// put keeps c for the next fetch, unless the line is retired, c was dialled
+// before a Redial, or more fetches are busy than a lowered limit allows, the
+// caller among them. The idle connections stay out of that sum: a fetch that
+// has just put its connection back, or is about to take one, still counts as
+// busy, and counting it twice would hang up connections the limit has room
+// for.
 func (l *line) put(c *conn) {
 	l.mu.Lock()
-	if l.retired || l.busy > l.limit {
+	if l.retired || c.gen != l.gen || l.busy > l.limit {
 		l.mu.Unlock()
 		c.close()
 		return
