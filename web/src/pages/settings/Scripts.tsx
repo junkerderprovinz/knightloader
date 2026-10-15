@@ -1,21 +1,19 @@
 import { Suspense, lazy, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Button,
-  Card,
   EmptyState,
   ErrorCard,
   Field,
   IconBadge,
   LoadingCard,
   NumberInput,
-  SectionTitle,
   TextInput,
   type ButtonVerdict,
 } from '../../components/ui';
 import { Dropdown } from '../../components/Dropdown';
 import { TestButton } from '../../components/TestButton';
 import { NeutralSwitch, SettingRow, Sheet } from './controls';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 import { useToast } from '../../lib/toast';
 import {
   FALLBACK_TRIGGERS,
@@ -137,18 +135,17 @@ export function ScriptsCard({ hue }: { hue: number }) {
   }
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle
-        right={
-          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
-            {t('settings.scripts.add')}
-          </Button>
-        }
-      >
-        {t('settings.module.scripting')}
-      </SectionTitle>
-      <ModuleToggle id="scripting" />
-
+    <ModuleCard
+      id="scripting"
+      hue={hue}
+      className="flex flex-col gap-4"
+      hint={t('settings.modules.about.scripting')}
+      titleRight={
+        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+          {t('settings.scripts.add')}
+        </Button>
+      }
+    >
       {rows.length === 0 ? (
         <EmptyState nested icon={<IconCode width={26} height={26} />} title={t('settings.scripts.empty')} hint={t('settings.scripts.emptyHint')} />
       ) : (
@@ -168,7 +165,7 @@ export function ScriptsCard({ hue }: { hue: number }) {
           ))}
         </ul>
       )}
-    </Card>
+    </ModuleCard>
   );
 }
 

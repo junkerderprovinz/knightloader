@@ -15,6 +15,9 @@ const FOLDED: Record<string, string> = {
   captcha: 'accounts',
   // The log, the start report and the bug report stand with the health of the parts.
   diagnostics: 'health',
+  // Each module's switch is on the page of what it switches; General stands
+  // in for the list of them that was here.
+  modules: 'look',
 };
 
 /** pageId returns the page a possibly folded id is drawn on. */

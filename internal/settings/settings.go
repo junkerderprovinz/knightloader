@@ -740,7 +740,7 @@ type Settings struct {
 	// install behaved.
 	RelayMode string `json:"relayMode"`
 
-	// ModulesOff names the modules switched off on the modules page, by the ids
+	// ModulesOff names the modules switched off by their switches, by the ids
 	// internal/api/routes_features.go gives them. It lists what is off rather
 	// than what is on, so an upgrade that adds a module leaves it running.
 	//

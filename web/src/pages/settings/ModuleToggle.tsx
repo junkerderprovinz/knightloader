@@ -1,69 +1,110 @@
 import { useState, type ReactNode } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
-import { Button, linkBadgeClass, ToggleRow, useTooltip } from '../../components/ui';
+import { Link } from 'react-router-dom';
+import { Card, linkBadgeClass, SectionTitle, ToggleRow, useTooltip } from '../../components/ui';
 import type { TranslationKey } from '../../lib/i18n';
 import { IconForward } from '../../lib/icons';
 import { useLabelMode } from '../../lib/labelModes';
 import { useShake } from '../../lib/useShake';
 import { useToast } from '../../lib/toast';
 import { useFeatures } from './context';
-import type { Feature, FeatureVerdict } from './features';
-import { requestJump } from './jump';
+import type { Feature } from './features';
+import { clearJump, requestJump } from './jump';
 import { pageGlyph } from './pageIcons';
+import { SETTINGS_INDEX } from './searchIndex';
 import { label, moduleDetail, moduleReason, switchRefusal, useTx } from './tx';
 
 /**
- * ModuleToggle is a module's switch on the page it is configured on. It goes
- * through the module registry rather than the draft, so it and the module's row
- * on the Modules page are one switch, and it leads to that row. It is left out
- * when the server has no such module.
- *
- * A module switched by parking its value, such as the watch folder, has nothing
- * to switch on until it is set up, and the switch is disabled with a word on
- * how to set it up. `blocked` is for a state only the page knows, such as an
- * edit that is not saved yet.
+ * How a module's card stands. A module that is off folds to its switch, so it
+ * stays on its page and in the search; one that was never set up folds the same
+ * way and says what is missing. Without a switch, or set up but not working,
+ * the card stays open, since what is in it is how to fix that.
  */
-export function ModuleToggle({
-  id,
-  hue,
-  hint,
-  setUpHint,
-  parkedHint,
-  blocked = false,
-  children,
-}: {
+type Fold = 'open' | 'off' | 'unset';
+
+function foldOf(m: Feature | undefined): Fold {
+  if (!m || m.verdict !== 'shipped' || m.switch === 'none' || m.enabled) return 'open';
+  if (m.switch === 'parked' && !m.parked) return m.unset ? 'unset' : 'open';
+  return 'off';
+}
+
+interface ModuleFold {
+  m: Feature | undefined;
+  fold: Fold;
+  /** A module never set up, switched on here and waiting for its first value. */
+  settingUp: boolean;
+  setSettingUp: (on: boolean) => void;
+  open: boolean;
+}
+
+function useModuleFold(id: string): ModuleFold {
+  const { features } = useFeatures();
+  const [settingUp, setSettingUp] = useState(false);
+  const m = features.modules.find((f) => f.id === id);
+  const fold = foldOf(m);
+  const up = fold === 'unset' && settingUp;
+  return { m, fold, settingUp: up, setSettingUp, open: fold === 'open' || up };
+}
+
+interface ToggleProps {
   id: string;
   /** A palette position of its own, for a switch among sibling switches; alone, it takes its card's colour. */
   hue?: number;
   /** What the module does, the first paragraph of the switch's (i). */
   hint?: string;
-  /** How to give a parked module its first value, where the generic sentence would be vague. */
-  setUpHint?: string;
-  /** What switching a parked module back on brings back, likewise. */
-  parkedHint?: string;
+  /** A state only the page knows, such as an edit that is not saved yet. */
   blocked?: boolean;
-  /** The module's own field, under the switch. */
-  children?: ReactNode;
-}) {
+}
+
+/**
+ * ModuleToggle is a module's switch on its page, the one place it is switched.
+ * It goes through the module registry rather than the draft, and is left out
+ * when the server has no such module. Off, a line under it says what that
+ * means, and `children`, the module's own fields, are folded away.
+ */
+export function ModuleToggle(props: ToggleProps & { children?: ReactNode }) {
+  const own = useModuleFold(props.id);
+  const { children, ...rest } = props;
+  return (
+    <SwitchRow {...rest} f={own} folds={children !== undefined}>
+      {own.open && children}
+    </SwitchRow>
+  );
+}
+
+function SwitchRow({
+  id,
+  hue,
+  hint,
+  blocked = false,
+  f,
+  folds,
+  children,
+}: ToggleProps & { f: ModuleFold; folds: boolean; children?: ReactNode }) {
   const { tx } = useTx();
-  const { features, toggle } = useFeatures();
+  const { toggle } = useFeatures();
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
   // A switch the server refuses shakes, again on every refusal.
   const [shake, setShake] = useState(0);
   const shakeRef = useShake<HTMLDivElement>(shake);
 
-  const m = features.modules.find((f) => f.id === id);
-  if (!m || m.verdict !== 'shipped') return null;
+  const { m, fold, settingUp, setSettingUp } = f;
+  // Without the module in this build there is no switch, and its fields stand alone.
+  if (!m || m.verdict !== 'shipped') return <>{children}</>;
 
-  // The server would refuse to switch these on, since nothing is parked.
-  const unset = m.switch === 'parked' && !m.enabled && !m.parked;
-  const parked = m.switch === 'parked' && !m.enabled && m.parked;
-  const inert = busy || blocked || unset || m.switch === 'none';
+  // Set up but not working, such as a reconnect method still missing its
+  // router password: the server has nothing to switch until the card is done.
+  const unfinished = m.switch === 'parked' && !m.enabled && !m.parked && !m.unset;
+  const inert = busy || blocked || unfinished || m.switch === 'none';
 
   async function onSwitch(next: boolean) {
     // ToggleRow's `disabled` stops the pointer, not the keyboard.
     if (inert) return;
+    // Nothing to bring back yet, so on opens the card to set it up.
+    if (fold === 'unset') {
+      setSettingUp(next);
+      return;
+    }
     setBusy(true);
     try {
       await toggle(id, next);
@@ -76,87 +117,116 @@ export function ModuleToggle({
     }
   }
 
-  const row = (
-    <div ref={shakeRef}>
-      <ToggleRow
-        hue={hue}
-        label={label(tx, 'settings.module.', id)}
-        hint={[
-          hint ?? '',
-          m.switch === 'none' ? (moduleReason(tx, m) ?? '') : '',
-          unset ? (setUpHint ?? tx('settings.modules.setUpBelow')) : '',
-          parked ? (parkedHint ?? tx('settings.modules.parkedBelow')) : '',
-          moduleDetail(tx, m) ?? '',
-        ]}
-        checked={m.enabled}
-        disabled={inert}
-        onChange={(next) => void onSwitch(next)}
-        aside={<ModulesPageBadge m={m} />}
-      />
-    </div>
-  );
-  if (!children) return row;
+  // Without a switch, why not is the line under it.
+  const detail = moduleDetail(tx, m);
+  let state = m.switch === 'none' ? moduleReason(tx, m) : undefined;
+  if (fold === 'unset') {
+    state = settingUp ? tx('settings.modules.settingUp') : tx(`settings.modules.missing.${id}` as TranslationKey);
+  } else if (fold === 'off' && m.switch === 'parked') {
+    state = tx('settings.modules.parkedBelow');
+  } else if (fold === 'off') {
+    state = detail ?? (folds ? tx('settings.modules.offKept') : undefined);
+  }
+
   return (
     <div className="flex flex-col gap-3">
-      {row}
+      <div ref={shakeRef} data-new="module-switches" className="flex flex-col gap-1">
+        <ToggleRow
+          hue={hue}
+          label={label(tx, 'settings.module.', id)}
+          hint={[
+            hint ?? '',
+            unfinished ? tx('settings.modules.setUpBelow') : '',
+            state === detail ? '' : (detail ?? ''),
+          ]}
+          checked={m.enabled || settingUp}
+          disabled={inert}
+          onChange={(next) => void onSwitch(next)}
+        />
+        {state && (
+          <p dir="auto" className="text-meta text-carbon-textMuted">
+            {state}
+          </p>
+        )}
+      </div>
       {children}
     </div>
   );
 }
 
 /**
- * moduleSection is the card of the Modules page a module's row is on, by the
- * title the settings search finds that card by.
+ * ModuleCard is a card that belongs to one module. Open, it is the card as the
+ * page draws it with the switch under its title; off, it folds to the title,
+ * the switch and a line on its state, and a heading action such as Add goes
+ * with the rest.
  */
-export function moduleSection(verdict: FeatureVerdict): TranslationKey {
-  return verdict === 'shipped' ? 'settings.modules.sectionShipped' : 'settings.modules.sectionNotBuilt';
-}
-
-/**
- * ModulesPageBadge leads to a module's row on the Modules page. Its words say
- * the switch is there as well, unless `title` says something else. `onFollow`
- * runs once the row is asked for, such as to close the panel the badge is in.
- */
-export function ModulesPageBadge({ m, title, onFollow }: { m: Feature; title?: string; onFollow?: () => void }) {
+export function ModuleCard({
+  id,
+  hue,
+  title,
+  titleHint,
+  titleRight,
+  className = 'flex flex-col gap-5',
+  hint,
+  switchHue,
+  blocked,
+  'data-new': mark,
+  children,
+}: Omit<ToggleProps, 'hue'> & {
+  hue: number;
+  /** The card's title, the module's own name where it is left out. */
+  title?: string;
+  titleHint?: string;
+  titleRight?: ReactNode;
+  className?: string;
+  /** The switch's own palette position, as ModuleToggle's `hue`. */
+  switchHue?: number;
+  'data-new'?: string;
+  children?: ReactNode;
+}) {
   const { tx } = useTx();
+  const f = useModuleFold(id);
   return (
-    <PageBadge
-      page="modules"
-      title={title ?? tx('settings.modules.alsoOn', { page: tx('settings.nav.modules') })}
-      onFollow={() => {
-        requestJump({
-          page: 'modules',
-          title: moduleSection(m.verdict),
-          label: `settings.module.${m.id}` as TranslationKey,
-        });
-        onFollow?.();
-      }}
-    />
+    <Card hue={hue} data-new={mark} className={className}>
+      <SectionTitle hint={titleHint} right={f.open ? titleRight : undefined}>
+        {title ?? label(tx, 'settings.module.', id)}
+      </SectionTitle>
+      <SwitchRow id={id} hue={switchHue} hint={hint} blocked={blocked} f={f} folds={children !== undefined} />
+      {f.open && children}
+    </Card>
   );
 }
 
 /**
- * ModulesPageButton is ModulesPageBadge for a row of buttons, where a badge
- * would stand apart from its neighbours.
+ * jumpToSwitch asks for a module's switch on its page, as a row or as the title
+ * of a card named after the module, and for the page alone where the settings
+ * index knows neither.
  */
-export function ModulesPageButton({ m, label }: { m: Feature; label: string }) {
-  const navigate = useNavigate();
-  const Glyph = pageGlyph('modules');
+function jumpToSwitch(m: Feature) {
+  const key = `settings.module.${m.id}` as TranslationKey;
+  const card = SETTINGS_INDEX[m.page]?.find((c) => c.title === key || c.rows.some((r) => r.key === key));
+  // A link to the page alone still retires a jump that is looking, or it
+  // would mark something on the new page.
+  if (card) requestJump({ page: m.page, title: card.title, label: key });
+  else clearJump();
+}
+
+/**
+ * ModuleSwitchBadge leads to a module's switch on its page, from somewhere the
+ * module is off. `onFollow` runs once the switch is asked for, such as to close
+ * the panel the badge is in.
+ */
+export function ModuleSwitchBadge({ m, title, onFollow }: { m: Feature; title: string; onFollow?: () => void }) {
+  if (!m.page) return null;
   return (
-    <Button
-      kind="secondary"
-      icon={Glyph && <Glyph />}
-      onClick={() => {
-        requestJump({
-          page: 'modules',
-          title: moduleSection(m.verdict),
-          label: `settings.module.${m.id}` as TranslationKey,
-        });
-        navigate('/settings/modules');
+    <PageBadge
+      page={m.page}
+      title={title}
+      onFollow={() => {
+        jumpToSwitch(m);
+        onFollow?.();
       }}
-    >
-      {label}
-    </Button>
+    />
   );
 }
 

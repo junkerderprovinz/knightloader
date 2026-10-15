@@ -1548,17 +1548,10 @@ export function ToggleRow({
   onChange,
   disabled = false,
   hue,
-  aside,
 }: {
   label: string;
   /** The (i) text; see HintBubble. */
   hint?: Hint;
-  /**
-   * A badge beside the switch, such as the way to the same switch on another
-   * page. It stays at full strength and reachable while the switch is
-   * disabled, and the row wraps it under the caption where the width runs out.
-   */
-  aside?: ReactNode;
   checked: boolean;
   onChange: (v: boolean) => void;
   /**
@@ -1574,17 +1567,8 @@ export function ToggleRow({
    *  with nothing beside it to distinguish. */
   hue?: number;
 }) {
-  const toggle = (
-    <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
-      <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
-    </span>
-  );
   return (
-    <div
-      className={`flex items-center justify-between ${aside ? 'flex-wrap gap-x-4 gap-y-2' : 'gap-4'} ${
-        disabled ? 'pointer-events-none' : ''
-      }`}
-    >
+    <div className={`flex items-center justify-between gap-4 ${disabled ? 'pointer-events-none' : ''}`}>
       {/* The dimming is on the parts, never on the row: `opacity` composites a
           whole subtree, so the (i) inside a dimmed row would render at 40% too,
           in precisely the state it exists for. pointer-events-auto re-opens
@@ -1596,14 +1580,9 @@ export function ToggleRow({
       <span data-glim-label={label} className="pointer-events-auto min-w-0 text-sm text-carbon-text">
         <RowLabel label={label} hint={hint} dim={disabled} />
       </span>
-      {aside ? (
-        <span className="ms-auto flex items-center gap-3">
-          <span className="pointer-events-auto flex">{aside}</span>
-          {toggle}
-        </span>
-      ) : (
-        toggle
-      )}
+      <span className={`flex ${disabled ? 'opacity-40' : ''}`}>
+        <Toggle hideLabel label={label} checked={checked} onChange={onChange} hue={hue} />
+      </span>
     </div>
   );
 }

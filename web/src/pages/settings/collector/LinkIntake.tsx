@@ -15,9 +15,8 @@ import { useWays } from './ways';
 
 /**
  * LinkIntakeCard holds the ways a link reaches the collector without being
- * typed. Click'n'Load and the watched folder are modules, switched through the
- * registry like their rows on the Modules page, so each is one switch in two
- * places. The clipboard watch runs in this tab, or in the desktop app also
+ * typed. Click'n'Load and the watched folder are modules, switched here
+ * through the registry. The clipboard watch runs in this tab, or in the desktop app also
  * while its window is hidden, and is not offered where the browser cannot read
  * the clipboard, such as a plain-HTTP LAN address; the row points at Ctrl+V
  * instead. Where there are other instances, copied links can go to one of
@@ -42,12 +41,6 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
   if (target && !targets.some((o) => o.value === target)) targets.push({ value: target, label: target });
 
   const cnl = features.modules.find((m) => m.id === 'cnl');
-  const folderWatch = features.modules.find((m) => m.id === 'watch');
-
-  // Switched off, the watch folder is parked on the server and cleared here,
-  // so the field has nothing to show until the switch brings it back. With
-  // nothing parked the field is how the module gets its first folder.
-  const watchParked = !!folderWatch && !folderWatch.enabled && folderWatch.parked;
 
   return (
     <Card hue={hue} className="flex flex-col gap-4">
@@ -108,26 +101,18 @@ export function LinkIntakeCard({ hue }: { hue: number }) {
         hint={t('settings.autoStartHint')}
       />
 
-      <ModuleToggle
-        id="watch"
-        hue={3}
-        hint={t('settings.watchDirFilesHint')}
-        setUpHint={t('settings.linkIntake.watchPickFolder')}
-        parkedHint={t('settings.linkIntake.watchParked')}
-      >
-        {!watchParked && (
-          <SettingRow control="long" label={t('task.folder')}>
-            <SettingPathInput
-              field="watchDir"
-              value={cfg.watchDir}
-              onValue={(watchDir) => patch({ watchDir })}
-              placeholder="/watch"
-              title={t('settings.module.watch')}
-              label={t('settings.module.watch')}
-              missingHint={t('folders.newWatch')}
-            />
-          </SettingRow>
-        )}
+      <ModuleToggle id="watch" hue={3} hint={t('settings.watchDirFilesHint')}>
+        <SettingRow control="long" label={t('task.folder')}>
+          <SettingPathInput
+            field="watchDir"
+            value={cfg.watchDir}
+            onValue={(watchDir) => patch({ watchDir })}
+            placeholder="/watch"
+            title={t('settings.module.watch')}
+            label={t('settings.module.watch')}
+            missingHint={t('folders.newWatch')}
+          />
+        </SettingRow>
       </ModuleToggle>
     </Card>
   );

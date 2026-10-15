@@ -28,8 +28,8 @@ func (a *App) newEventPrograms(run eventprog.Runner) *eventprog.Dispatcher {
 }
 
 // applyEventPrograms makes the running dispatcher match the configuration, the
-// Modules page's switch included. It runs on every settings change, so a new
-// program needs no restart.
+// module switch included. It runs on every settings change, so a new program
+// needs no restart.
 func (a *App) applyEventPrograms(s settings.Settings) {
 	if a.EventPrograms == nil {
 		return

@@ -26,7 +26,7 @@ export function useCnl(): {
         // Silent: an instance that cannot answer /api/features reports it elsewhere.
         .catch(() => {});
     load();
-    // Again whenever the switch moves elsewhere, such as on the Modules page.
+    // Again whenever the switch moves in another tab.
     const close = connectWS((type) => type === 'settings' && load(), ['settings']);
     return () => {
       alive = false;

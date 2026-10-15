@@ -23,6 +23,11 @@ export interface Feature {
    * the field while the switch refused to turn on.
    */
   parked: boolean;
+  /**
+   * Whether a parked-kind module has neither a value nor one parked, so it was
+   * never set up. Absent from an older server.
+   */
+  unset?: boolean;
   /** Why the verdict is what it is, or why there is no switch. English, from the server. */
   reason?: string;
   /** `reason` as a value the interface words itself (moduleReason in tx.ts), with the values it needs. */

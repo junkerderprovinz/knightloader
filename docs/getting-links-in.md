@@ -287,8 +287,7 @@ that, the same rule `ssh` follows once you have answered its prompt.
 Sonarr, Radarr and Prowlarr can use KnightLoader as a download client. It speaks
 two protocols they already know: qBittorrent's for torrents, and SABnzbd's for
 what a Usenet or DDL indexer hands over. One switch opens both, **Download client
-for Sonarr and Radarr**, on the Security page or the Modules page. It is off
-on a fresh install.
+for Sonarr and Radarr**, on the Security page. It is off on a fresh install.
 
 Both need an API token of this instance that can add and read, which you
 create with the **Add and read** preset on the Security page (see

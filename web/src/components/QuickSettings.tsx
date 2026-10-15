@@ -23,7 +23,7 @@ import { ChunksField, MaxConcurrentField, MaxPerHostField } from '../pages/setti
 import { SpeedLimitField } from '../pages/settings/downloads/SpeedLimit';
 import { UploadLimitField } from '../pages/settings/torrents/UploadLimit';
 import { fetchFeatures, type Feature } from '../pages/settings/features';
-import { ModulesPageBadge, PageBadge } from '../pages/settings/ModuleToggle';
+import { ModuleSwitchBadge, PageBadge } from '../pages/settings/ModuleToggle';
 import {
   fetchReconnectState,
   runReconnect,
@@ -171,7 +171,7 @@ function SuspendRow({
   if (!state.suspended && module?.parked) {
     blocked = {
       reason: t('quick.schedulesOff'),
-      way: <ModulesPageBadge m={module} title={openPage(t, 'modules')} onFollow={close} />,
+      way: <ModuleSwitchBadge m={module} title={openPage(t, module.page)} onFollow={close} />,
     };
   } else if (!state.suspended && schedules === 0) {
     blocked = {
@@ -292,7 +292,7 @@ function ReconnectRow({
   if (module?.parked) {
     blocked = {
       reason: t('quick.reconnectOff'),
-      way: <ModulesPageBadge m={module} title={openPage(t, 'modules')} onFollow={close} />,
+      way: <ModuleSwitchBadge m={module} title={openPage(t, module.page)} onFollow={close} />,
     };
   } else if (!state) {
     blocked = { reason: t('settings.reconnect.stateUnreadable') };

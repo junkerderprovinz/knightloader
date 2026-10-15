@@ -29,9 +29,17 @@ beforeEach(() => {
         modules = modules.map((m) => (path.endsWith(`/${m.id}`) ? { ...m, enabled } : m));
       }
       if (path === '/api/settings' && init?.method === 'PATCH') stored = { ...stored, ...JSON.parse(String(init.body)) };
-      // The Modules page is on offer once a test has a module to list there.
-      const pages = modules.length > 0 ? [{ id: 'modules', modules: null }] : [];
-      const body = path === '/api/settings' ? stored : path.startsWith('/api/features') ? { modules, pages } : {};
+      // The Instances page is on offer once a test has its module.
+      const pages = modules.length > 0 ? [{ id: 'instances', modules: ['federation'] }] : [];
+      const lists = ['/api/instances', '/api/discovery'];
+      const body =
+        path === '/api/settings'
+          ? stored
+          : path.startsWith('/api/features')
+            ? { modules, pages }
+            : lists.includes(path)
+              ? []
+              : {};
       return Response.json(body);
     }),
   );
@@ -109,7 +117,7 @@ describe('SettingsPage', () => {
     }
     await act(async () =>
       root.render(
-        <MemoryRouter initialEntries={['/settings/modules']}>
+        <MemoryRouter initialEntries={['/settings/instances']}>
           <I18nProvider>
             <Rail />
             <Routes>

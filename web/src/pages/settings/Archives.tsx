@@ -177,70 +177,67 @@ export function Archives() {
 
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.module.extraction')}</SectionTitle>
-        <ModuleToggle id="extraction" hue={1} />
-
-        {/* Flush left under the switch, and absent while it is off. */}
-        {unpacking && (
-        <div className="flex flex-col gap-5">
-          <SettingRow
-            control="long"
-            label={t('settings.archives.destination')}
-            hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
-          >
-            {/* The shared chooser browses the server, which knows what is mounted. */}
-            <SettingPathInput
-              field="extractTo"
-              value={extractTo}
-              placeholder={t('settings.archives.besideArchive')}
-              title={t('settings.archives.destination')}
-              onValue={(extractTo) => patch({ extractTo })}
-            />
-          </SettingRow>
-
-          {collecting && (
-            <ToggleRow
-              hue={2}
-              checked={cfg.extractSubfolder ?? false}
-              onChange={(v) => patch({ extractSubfolder: v })}
-              label={t('settings.archives.subfolder')}
-              hint={t('settings.archives.subfolderHint')}
-            />
-          )}
-
-          {/* Where the finished files go once unpacked. A template counts as
-              absolute by its fixed head (fixedPrefix), so a value with no fixed
-              part is refused on save, and the path is not probed until a move
-              tries it. It applies with an empty destination too. */}
-          <SettingRow
-            control="long"
-            label={t('settings.archives.moveTo')}
-            hint={`${t('settings.archives.moveToHint')} ${t('settings.pathVars')}`}
-          >
-            <SettingPathInput
-              field="extractMoveTo"
-              value={extractMoveTo}
-              placeholder={t('settings.archives.besideArchive')}
-              title={t('settings.archives.moveTo')}
-              onValue={(extractMoveTo) => patch({ extractMoveTo })}
-            />
-          </SettingRow>
-
-          {options && options.archiveCollisions.length > 0 && (
-            <SettingRow label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
-              <Tabs
-                label={t('settings.archives.collision')}
-                variant="well"
-                size="sm"
-                inline
-                hug
-                active={cfg.extractCollision ?? ''}
-                onSelect={(extractCollision) => patch({ extractCollision })}
-                items={choices(options.archiveCollisions, COLLISION_LABEL)}
+        <ModuleToggle id="extraction" hue={1} hint={t('settings.modules.about.extraction')}>
+          <div className="flex flex-col gap-5">
+            <SettingRow
+              control="long"
+              label={t('settings.archives.destination')}
+              hint={`${t('settings.archives.destinationHint')} ${t('settings.pathVars')}`}
+            >
+              {/* The shared chooser browses the server, which knows what is mounted. */}
+              <SettingPathInput
+                field="extractTo"
+                value={extractTo}
+                placeholder={t('settings.archives.besideArchive')}
+                title={t('settings.archives.destination')}
+                onValue={(extractTo) => patch({ extractTo })}
               />
             </SettingRow>
-          )}
-        </div>
-        )}
+
+            {collecting && (
+              <ToggleRow
+                hue={2}
+                checked={cfg.extractSubfolder ?? false}
+                onChange={(v) => patch({ extractSubfolder: v })}
+                label={t('settings.archives.subfolder')}
+                hint={t('settings.archives.subfolderHint')}
+              />
+            )}
+
+            {/* Where the finished files go once unpacked. A template counts as
+                absolute by its fixed head (fixedPrefix), so a value with no fixed
+                part is refused on save, and the path is not probed until a move
+                tries it. It applies with an empty destination too. */}
+            <SettingRow
+              control="long"
+              label={t('settings.archives.moveTo')}
+              hint={`${t('settings.archives.moveToHint')} ${t('settings.pathVars')}`}
+            >
+              <SettingPathInput
+                field="extractMoveTo"
+                value={extractMoveTo}
+                placeholder={t('settings.archives.besideArchive')}
+                title={t('settings.archives.moveTo')}
+                onValue={(extractMoveTo) => patch({ extractMoveTo })}
+              />
+            </SettingRow>
+
+            {options && options.archiveCollisions.length > 0 && (
+              <SettingRow label={t('settings.archives.collision')} hint={t('settings.archives.collisionHint')}>
+                <Tabs
+                  label={t('settings.archives.collision')}
+                  variant="well"
+                  size="sm"
+                  inline
+                  hug
+                  active={cfg.extractCollision ?? ''}
+                  onSelect={(extractCollision) => patch({ extractCollision })}
+                  items={choices(options.archiveCollisions, COLLISION_LABEL)}
+                />
+              </SettingRow>
+            )}
+          </div>
+        </ModuleToggle>
 
         {/* Outside the switch's rows: a category can unpack while the switch
             is off, and its archives need the passwords all the same. */}

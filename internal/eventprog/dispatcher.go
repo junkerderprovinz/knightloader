@@ -111,8 +111,8 @@ type Dispatcher struct {
 	closing bool
 	wg      sync.WaitGroup
 
-	// off is the Modules page's switch. While it is set no event starts a
-	// run, queued ones included; a run already under way finishes.
+	// off is the module's switch. While it is set no event starts a run, queued
+	// ones included; a run already under way finishes.
 	off atomic.Bool
 
 	// running counts the runs under way or waiting for their files.

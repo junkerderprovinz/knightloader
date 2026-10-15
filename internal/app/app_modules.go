@@ -1,6 +1,6 @@
 package app
 
-// Module switches: the modules page can switch off a subsystem that has no
+// Module switches: a module's switch can turn off a subsystem that has no
 // setting of its own to clear. The list lives in settings.ModulesOff; this
 // file answers the questions every gate asks of it.
 
@@ -11,7 +11,7 @@ import (
 )
 
 // resolverModule maps the backends that belong to a switchable module to that
-// module's id on the modules page.
+// module's id in the module registry.
 var resolverModule = map[string]string{
 	"jd":      "jd",
 	"ytdlp":   "ytdlp",

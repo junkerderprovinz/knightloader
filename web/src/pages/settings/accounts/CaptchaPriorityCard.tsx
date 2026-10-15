@@ -5,16 +5,16 @@ import { useToast } from '../../../lib/toast';
 import { EmptyState, NumberInput, ToggleRow, type ButtonVerdict } from '../../../components/ui';
 import { PriorityCard, PriorityLadder } from '../../../components/PriorityLadder';
 import { TestButton } from '../../../components/TestButton';
-import { useDraft, useFeatures } from '../context';
+import { useDraft } from '../context';
 import { SettingRow, SubHead } from '../controls';
-import type { Feature } from '../features';
-import { ModulesPageButton } from '../ModuleToggle';
+import { ModuleToggle } from '../ModuleToggle';
 
 // The captcha priority card orders the connected captcha accounts the way the
 // download priority card beside it orders the backends, and holds when they
-// start and the test captcha. The order lives in the settings and only says
-// who goes first: every captcha account with a key that is switched on is
-// tried, the ones in captchaSolverOrder first.
+// start and the test captcha, all under the captcha module's switch. The order
+// lives in the settings and only says who goes first: every captcha account
+// with a key that is switched on is tried, the ones in captchaSolverOrder
+// first.
 
 // Copies of the bounds in internal/settings/settings_captcha.go, which no route
 // serves.
@@ -66,8 +66,6 @@ export function CaptchaPriorityCard({
 }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  const { features } = useFeatures();
-  const captcha = features.modules.find((m) => m.id === 'captcha' && m.verdict === 'shipped');
 
   const order = cfg.captchaSolverOrder ?? [];
   const solvers = connectedSolvers(order, accounts, catalogue);
@@ -90,53 +88,55 @@ export function CaptchaPriorityCard({
       hint={t('settings.captcha.orderHint', { accounts: t('accounts.captcha.title') })}
       intro={t('settings.captcha.orderIntro')}
     >
-      <div data-new="priority-accounts">
-        {solvers.length === 0 ? (
-          <EmptyState
-            nested
-            icon={<IconCaptcha width={26} height={26} />}
-            title={t('settings.captcha.orderEmpty')}
-          />
-        ) : (
-          <PriorityLadder
-            ids={solvers.map((s) => s.id)}
-            title={title}
-            entry={t('settings.captcha.orderEntry')}
-            labelFor={(id) => labelOf.get(id) ?? id}
-            troubleFor={troubleFor}
-            glyph={IconCaptcha}
-            onReorder={reorder}
-          />
-        )}
-      </div>
-
-      {/* Nothing reads these while no captcha account is connected. */}
-      {solvers.length > 0 && (
-        <div className="flex flex-col gap-4 pt-4">
-          <SubHead label={t('settings.captcha.whenTitle')} />
-          <ToggleRow
-            hue={0}
-            checked={cfg.captchaSolverOnlyUnwatched}
-            onChange={(v) => patch({ captchaSolverOnlyUnwatched: v })}
-            label={t('settings.captcha.onlyUnwatched')}
-            hint={t('settings.captcha.onlyUnwatchedHint')}
-          />
-          {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
-              not be typed digit by digit. */}
-          {cfg.captchaSolverOnlyUnwatched && (
-            <SettingRow control="short" label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
-              <NumberInput
-                value={cfg.captchaSolverWait}
-                min={MIN_WAIT}
-                max={MAX_WAIT}
-                step={10}
-                onValue={(v) => patch({ captchaSolverWait: v })}
-              />
-            </SettingRow>
+      <ModuleToggle id="captcha" hint={t('settings.modules.about.captcha')}>
+        <div data-new="priority-accounts">
+          {solvers.length === 0 ? (
+            <EmptyState
+              nested
+              icon={<IconCaptcha width={26} height={26} />}
+              title={t('settings.captcha.orderEmpty')}
+            />
+          ) : (
+            <PriorityLadder
+              ids={solvers.map((s) => s.id)}
+              title={title}
+              entry={t('settings.captcha.orderEntry')}
+              labelFor={(id) => labelOf.get(id) ?? id}
+              troubleFor={troubleFor}
+              glyph={IconCaptcha}
+              onReorder={reorder}
+            />
           )}
         </div>
-      )}
-      <TestCaptcha solvers={solvers.length > 0} captcha={captcha} />
+
+        {/* Nothing reads these while no captcha account is connected. */}
+        {solvers.length > 0 && (
+          <div className="flex flex-col gap-4 pt-4">
+            <SubHead label={t('settings.captcha.whenTitle')} />
+            <ToggleRow
+              hue={0}
+              checked={cfg.captchaSolverOnlyUnwatched}
+              onChange={(v) => patch({ captchaSolverOnlyUnwatched: v })}
+              label={t('settings.captcha.onlyUnwatched')}
+              hint={t('settings.captcha.onlyUnwatchedHint')}
+            />
+            {/* sanitizeCaptcha clamps to 10..600; onValue does not, or 60 could
+                not be typed digit by digit. */}
+            {cfg.captchaSolverOnlyUnwatched && (
+              <SettingRow control="short" label={t('settings.captcha.wait')} hint={t('settings.captcha.waitHint')}>
+                <NumberInput
+                  value={cfg.captchaSolverWait}
+                  min={MIN_WAIT}
+                  max={MAX_WAIT}
+                  step={10}
+                  onValue={(v) => patch({ captchaSolverWait: v })}
+                />
+              </SettingRow>
+            )}
+          </div>
+        )}
+        <TestCaptcha solvers={solvers.length > 0} />
+      </ModuleToggle>
     </PriorityCard>
   );
 }
@@ -157,9 +157,9 @@ export function testRefusal(e: unknown): TranslationKey {
  * like a real one; how the answer compared comes back as a toast from
  * CaptchaModal. The captcha accounts bill a test like any captcha, so it goes
  * to them only from the second button, which shows while one of them could
- * take it. The row ends with the way to the module's switch, `captcha`.
+ * take it.
  */
-function TestCaptcha({ solvers, captcha }: { solvers: boolean; captcha?: Feature }) {
+function TestCaptcha({ solvers }: { solvers: boolean }) {
   const { t } = useT();
   const { toast } = useToast();
   const words = { ok: t('test.sent'), fail: t('test.failed') };
@@ -187,12 +187,6 @@ function TestCaptcha({ solvers, captcha }: { solvers: boolean; captcha?: Feature
             words={words}
             run={send(true)}
           />
-        )}
-        {/* The switch itself stands on the Modules page, and this leads there. */}
-        {captcha && (
-          <span data-new="captcha-modules" className="inline-flex">
-            <ModulesPageButton m={captcha} label={t('settings.captcha.moduleLink', { page: t('settings.nav.modules') })} />
-          </span>
         )}
       </div>
     </div>

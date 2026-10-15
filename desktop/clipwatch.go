@@ -413,7 +413,7 @@ func deliverLinks(ctx context.Context, a *app.App, target string, links []string
 		return len(created), err
 	}
 	if a.ModuleOff("federation") {
-		return 0, errors.New(`"Instances" is switched off on the Modules page`)
+		return 0, errors.New(`"Instances" is switched off on the Instances page`)
 	}
 	body, err := json.Marshal(map[string]string{"links": strings.Join(links, "\n")})
 	if err != nil {

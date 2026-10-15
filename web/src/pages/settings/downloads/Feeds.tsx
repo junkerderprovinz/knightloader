@@ -1,11 +1,9 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import {
   Button,
-  Card,
   FieldGroup,
   IconBadge,
   NumberInput,
-  SectionTitle,
   TextInput,
   useTooltip,
   type ButtonVerdict,
@@ -26,9 +24,9 @@ import {
   type PriorityChoice,
 } from '../../../lib/api';
 import { happened } from '../../../lib/countdown';
-import { useDraft, useFeatures } from '../context';
+import { useDraft } from '../context';
 import { RowRefusal, SettingRow, Sheet } from '../controls';
-import { ModuleToggle } from '../ModuleToggle';
+import { ModuleCard } from '../ModuleToggle';
 
 // Feeds lists the RSS and Atom subscriptions this instance follows, each
 // fetched on its own timer, with new entries handed to the collector like a
@@ -152,16 +150,10 @@ function usePriorityTabs(): { id: string; label: string }[] {
 export function FeedsCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  const { features } = useFeatures();
 
   // feed.Sanitize answers nil for an empty list.
   const rows = cfg.feeds ?? [];
   const priorities = usePriorityTabs();
-
-  // Switching the module off parks the rows and clears the list. Checked with
-  // `parked`, because an empty list on a fresh install also reads as off.
-  const feedsModule = features.modules.find((m) => m.id === 'feeds');
-  const parked = feedsModule !== undefined && !feedsModule.enabled && feedsModule.parked;
 
   const [openRow, setOpenRow] = useState('');
   const [pending, setPending] = useState<PendingRow[]>([]);
@@ -218,33 +210,25 @@ export function FeedsCard({ hue }: { hue: number }) {
   const rowCount = rows.length + pending.length;
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle
-        hint={t('settings.feeds.titleHint')}
-        right={
-          // A row added while the module is off would take the place of the
-          // parked ones, so Add waits for the switch.
-          !parked && (
-            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
-              {t('settings.feeds.add')}
-            </Button>
-          )
-        }
-      >
-        {t('settings.module.feeds')}
-      </SectionTitle>
-      <ModuleToggle id="feeds" />
-
-      {/* Parking clears the list on the server. "No subscriptions yet" would
-          not be true while they wait for the switch, so the switch stands alone. */}
+    // Switched off, the rows are parked on the server and the card folds, so
+    // Add cannot put a row in their place.
+    <ModuleCard
+      id="feeds"
+      hue={hue}
+      className="flex flex-col gap-4"
+      titleHint={t('settings.feeds.titleHint')}
+      titleRight={
+        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+          {t('settings.feeds.add')}
+        </Button>
+      }
+    >
       {rowCount === 0 ? (
-        !parked && (
-          // Inside the card rather than an EmptyState, which would hide Add.
-          <p className="py-6 text-center text-sm text-carbon-textSub">
-            {t('settings.feeds.empty')}
-            <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
-          </p>
-        )
+        // Inside the card rather than an EmptyState, which would hide Add.
+        <p className="py-6 text-center text-sm text-carbon-textSub">
+          {t('settings.feeds.empty')}
+          <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.feeds.emptyHint')}</span>
+        </p>
       ) : (
         <ul className="flex flex-col">
           {/* One list, so a row that gets stored keeps its place among the
@@ -295,7 +279,7 @@ export function FeedsCard({ hue }: { hue: number }) {
           ]}
         </ul>
       )}
-    </Card>
+    </ModuleCard>
   );
 }
 

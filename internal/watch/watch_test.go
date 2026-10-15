@@ -797,7 +797,7 @@ func settles(ok func() bool) bool {
 	}
 }
 
-// The Modules page asks on every load whether the drop folder is there, and a
+// The settings ask on every load whether the drop folder is there, and a
 // stat of its own would hang that request on a share that stopped answering.
 // The poller looks at the folder anyway, so Missing answers from its last look.
 func TestMissingAnswersFromTheLastLook(t *testing.T) {

@@ -59,6 +59,8 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.advancedUpkeep',
         names: { maintenance: 'settings.dbmaint.title', metrics: 'settings.module.metrics' },
       },
+      // Drawn on every module's switch, across the settings pages.
+      { id: 'module-switches', to: ['/settings'], text: 'whatsnew.change.moduleSwitches' },
     ],
   },
   {

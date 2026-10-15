@@ -56,19 +56,16 @@ function renderRow(m: Feature) {
   return { toggle, patch };
 }
 
-const modulesLink = () => host.querySelector('a[href="/settings/modules"]');
-
-it('switches keep awake through the module registry, the same switch as its row on the Modules page', async () => {
+it('switches keep awake through the module registry, with no way to another page', async () => {
   const { toggle, patch } = renderRow(keepAwake('shipped'));
   await act(async () => host.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
   expect(toggle).toHaveBeenCalledWith('keepawake', false);
   expect(patch).not.toHaveBeenCalled();
-  expect(modulesLink()).not.toBeNull();
+  expect(host.querySelector('a[href]')).toBeNull();
 });
 
-it('shows a container its switch off and disabled, with no way to a Modules row it does not have', async () => {
+it('shows a container its switch off and disabled', async () => {
   const { toggle } = renderRow(keepAwake('desktop'));
   await act(async () => host.querySelector<HTMLButtonElement>('[role="switch"]')!.click());
   expect(toggle).not.toHaveBeenCalled();
-  expect(modulesLink()).toBeNull();
 });

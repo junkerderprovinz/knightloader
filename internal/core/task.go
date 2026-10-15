@@ -152,7 +152,7 @@ const (
 	// ends when the period restarts or the cap is raised, not on play.
 	WaitingVolume Waiting = "volumeCap"
 	// WaitingModule is the backend the link needs (JDownloader, yt-dlp, the
-	// torrent engine) being switched off on the modules page. Falling through
+	// torrent engine) being switched off by its module switch. Falling through
 	// to the direct download instead would save the hoster's web page.
 	WaitingModule Waiting = "module"
 	// WaitingPremium is premium only holding a link that nothing can fetch on

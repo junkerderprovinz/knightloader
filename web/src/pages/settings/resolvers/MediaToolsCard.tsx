@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
-import { Card, InfoBubble, SectionTitle, useTooltip } from '../../../components/ui';
+import { InfoBubble, useTooltip } from '../../../components/ui';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fetchMediaTools, type MediaTool, type MediaToolsStatus } from '../../../lib/api';
-import { ModuleToggle, PageBadge } from '../ModuleToggle';
+import { ModuleCard, PageBadge } from '../ModuleToggle';
 
 // The media tools card shows the yt-dlp and ffmpeg a media download runs, and
 // whether each was found. Keeping yt-dlp current is an update like
@@ -29,15 +29,14 @@ export function MediaToolsCard({ hue }: { hue: number }) {
   }, []);
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle
-        hint={t('settings.resolvers.toolsHint')}
-        right={<PageBadge page="look" title={t('settings.nav.look')} />}
-      >
-        {t('settings.resolvers.toolsTitle')}
-      </SectionTitle>
-      <ModuleToggle id="ytdlp" hint={t('settings.resolvers.about')} />
-
+    <ModuleCard
+      id="ytdlp"
+      hue={hue}
+      title={t('settings.resolvers.toolsTitle')}
+      titleHint={t('settings.resolvers.toolsHint')}
+      titleRight={<PageBadge page="look" title={t('settings.nav.look')} />}
+      hint={t('settings.resolvers.about')}
+    >
       <div className="glim-well p-0">
         <ul className="flex flex-col">
           <ToolRow name="yt-dlp" tool={tools?.ytdlp} missingHint={t('settings.resolvers.toolsYtdlpMissingHint')} showSource />
@@ -45,7 +44,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
           <ToolRow name="ffprobe" tool={tools?.ffprobe} missingHint={t('settings.resolvers.toolsFfmpegMissingHint')} last />
         </ul>
       </div>
-    </Card>
+    </ModuleCard>
   );
 }
 

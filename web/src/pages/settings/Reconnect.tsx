@@ -30,7 +30,7 @@ import {
 import { useT } from '../../lib/i18n';
 import { useDraft, useFieldError } from './context';
 import { SettingRow, SubCard, SubHead } from './controls';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 
 /**
  * ReconnectCards set how this box asks the router for a new public address.
@@ -236,9 +236,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.module.reconnect')}</SectionTitle>
-        <ModuleToggle id="reconnect" />
+      <ModuleCard id="reconnect" hue={hue} hint={t('settings.modules.about.reconnect')}>
         <SettingRow label={t('settings.reconnect.method')} hint={t('settings.reconnect.methodHint')}>
           <Tabs
             label={t('settings.reconnect.method')}
@@ -273,7 +271,7 @@ export function ReconnectCards({ hue }: { hue: number }) {
         {rc.method === 'upnp' && <UPnPFields rc={rc} write={write} />}
         {rc.method === 'script' && <ScriptFields rc={rc} write={write} />}
         {usesRouterFields(rc.method) && <RouterFields rc={rc} write={write} />}
-      </Card>
+      </ModuleCard>
 
       {!off && (
         <Card hue={hue + 1} className="flex flex-col gap-5">

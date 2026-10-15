@@ -22,7 +22,7 @@ import (
 // code lets the interface say it in the reader's language.
 func refuseFederationOff(w http.ResponseWriter) {
 	writeRefusal(w, http.StatusServiceUnavailable, "federationOff",
-		`"Instances" is switched off on the Modules page`, nil)
+		`"Instances" is switched off on the Instances page`, nil)
 }
 
 func registerFederation(reg *Registry, a *app.App) {

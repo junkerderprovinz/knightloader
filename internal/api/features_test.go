@@ -122,6 +122,35 @@ func TestParkedSwitchRestoresWhatItCleared(t *testing.T) {
 	}
 }
 
+// A parked module that was never set up folds to its switch with a word on
+// what is missing, which one switched off or set up must not.
+func TestAParkedModuleTellsNeverSetUpFromSwitchedOff(t *testing.T) {
+	t.Parallel()
+	a := testApp(t)
+	if !featureRow(t, a, "watch").Unset {
+		t.Fatal("a fresh install's watch row is not unset")
+	}
+	if featureRow(t, a, "crawler").Unset {
+		t.Error("a module switched by a setting reads as never set up")
+	}
+
+	s := a.Settings.Get()
+	s.WatchDir = t.TempDir()
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if featureRow(t, a, "watch").Unset {
+		t.Error("a watched folder reads as never set up")
+	}
+
+	if err := setFeature(a, "watch", false); err != nil {
+		t.Fatal(err)
+	}
+	if row := featureRow(t, a, "watch"); row.Unset || !row.Parked {
+		t.Errorf("switched off, the row reads unset=%v parked=%v, want a parked folder", row.Unset, row.Parked)
+	}
+}
+
 // The watch row says when the folder is not there yet, since nothing creates
 // it, and names it plainly once it is.
 func TestTheWatchRowSaysWhetherTheFolderIsThere(t *testing.T) {
@@ -329,8 +358,8 @@ func TestSwitchingOnWithNothingParkedSaysSo(t *testing.T) {
 	}
 }
 
-// The refusal reaches the Modules page as a toast, so it carries a code and the
-// page's id for the interface to word it, and the page is the one the row
+// The refusal reaches the module's switch as a toast, so it carries a code and
+// the page's id for the interface to word it, and the page is the one the row
 // names.
 func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
 	t.Parallel()
@@ -371,9 +400,8 @@ func TestUnswitchableModulesAreRefused(t *testing.T) {
 	}
 }
 
-// Keep awake is switched from the Modules page and the Appearance page alike,
-// but only the desktop build has anything to switch. Not parallel, since it
-// sets the build's deployment.
+// Keep awake is switched on the Appearance page, but only the desktop build
+// has anything to switch. Not parallel, since it sets the build's deployment.
 func TestKeepAwakeHasASwitchOnlyOnTheDesktop(t *testing.T) {
 	prev := buildinfo.Deployment
 	t.Cleanup(func() { buildinfo.Deployment = prev })

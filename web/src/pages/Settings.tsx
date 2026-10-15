@@ -173,9 +173,8 @@ export function SettingsPage() {
     setDraft(fold);
   }, [setSaved]);
 
-  // What another tab, the Modules page or a module's own switch saved reaches
-  // this one live. A field this tab is still editing keeps the edit, which the
-  // autosave then sends.
+  // What another tab or a module's switch saved reaches this one live. A field
+  // this tab is still editing keeps the edit, which the autosave then sends.
   const latest = useRef({ saved, draft });
   latest.current = { saved, draft };
   useEffect(

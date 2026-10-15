@@ -11,7 +11,6 @@ import {
   IconInfo,
   IconKeyboard,
   IconLink,
-  IconModules,
   IconNetwork,
   IconPlug,
   IconResolvers,
@@ -33,7 +32,6 @@ import {
  * uses for the same idea elsewhere is reused.
  */
 const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
-  modules: IconModules,
   collector: IconCollector,
   downloads: IconDownload,
   archives: IconArchive,

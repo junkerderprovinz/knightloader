@@ -89,6 +89,12 @@ type Feature struct {
 	// on for lack of a value.
 	Parked bool `json:"parked"`
 
+	// Unset is whether a SwitchParked module has neither a value to run on nor
+	// one parked, so it was never set up. A module that is set up but not
+	// working, such as a reconnect method still missing its router password,
+	// is neither Enabled nor Unset, and its page has to stay open to fix it.
+	Unset bool `json:"unset"`
+
 	// Reason is why the verdict is what it is, or why there is no switch, in
 	// English for curl, a script and the diagnostics bundle.
 	Reason string `json:"reason,omitempty"`
@@ -139,7 +145,7 @@ type FeaturePage struct {
 	Modules []string `json:"modules"`
 }
 
-// FeatureState is the whole registry as one document, so the modules page and
+// FeatureState is the whole registry as one document, so a module's card and
 // the rail cannot disagree.
 type FeatureState struct {
 	Modules []Feature     `json:"modules"`
@@ -291,7 +297,7 @@ func featureState(a *app.App, base string) FeatureState {
 func featureList(a *app.App, base string) []Feature {
 	s := a.Settings.Get()
 	parked := parkedIDs(a, s)
-	return []Feature{
+	list := []Feature{
 		withDetail(Feature{
 			ID: "extraction", Verdict: VerdictShipped, Page: "archives",
 			Switch: SwitchSetting, Enabled: s.Extract,
@@ -397,6 +403,12 @@ func featureList(a *app.App, base string) []Feature {
 			countDetail(enabledScripts(a), "scriptsEnabled", "script enabled", "scripts enabled"))),
 		keepAwakeFeature(s),
 	}
+	for i, f := range list {
+		if f.Switch == SwitchParked {
+			list[i].Unset = !f.Parked && !parkSlotFilled(s, f.ID)
+		}
+	}
+	return list
 }
 
 // keepAwakeFeature has a switch only in the desktop build, the one that asks
@@ -418,8 +430,8 @@ func keepAwakeFeature(s settings.Settings) Feature {
 // featurePages is the sub-page list, in rail order. Pages without a module row
 // (look, integrations, shortcuts, health, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
-// JDownloader is switched only on the modules page, since the accounts page
-// holds the logins it uses and not the backend itself.
+// JDownloader is switched on the Resolvers page beside yt-dlp, since the
+// accounts page holds the logins it uses and not the backend itself.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
 		// The General page keeps the id "look" so bookmarked addresses and the
@@ -428,7 +440,6 @@ func featurePages() []FeaturePage {
 		// The desktop app's window, tray icon and whether it keeps the computer
 		// awake stand with the rest of how the app looks and behaves.
 		{ID: "appearance", Modules: []string{"keepawake"}},
-		{ID: "modules"},
 		// The captcha accounts' order and when they start stand beside their keys.
 		{ID: "accounts", Modules: []string{"captcha"}},
 		// What this instance reaches out through or is reached by as a tool:
@@ -449,7 +460,7 @@ func featurePages() []FeaturePage {
 		{ID: "pairing"},
 		{ID: "instances", Modules: []string{"federation"}},
 		{ID: "access", Modules: []string{"downloadclient"}},
-		{ID: "resolvers", Modules: []string{"ytdlp"}},
+		{ID: "resolvers", Modules: []string{"ytdlp", "jd"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		// A page of its own rather than a card on Accounts: it serves what is
 		// on the accounts to other programs and sets up none of them.
@@ -789,8 +800,8 @@ func extractionDetail(s settings.Settings) line {
 
 // downloadClientDetail is the live line of the download-client row, which
 // covers the SABnzbd and the qBittorrent door. It warns when no API token can
-// add and read, since both doors then refuse Sonarr's calls. The line shows on
-// the Modules page, so it names the page the token is made on.
+// add and read, since both doors then refuse Sonarr's calls. It names the page
+// the token is made on, since curl and the diagnostics bundle read it too.
 func downloadClientDetail(a *app.App, s settings.Settings, base string) line {
 	if !s.DownloadClientAPI {
 		return line{
@@ -860,7 +871,7 @@ func debridDriveDetail(a *app.App, s settings.Settings, base string) line {
 // watchDetail names the watch folder, and says so when it is not there yet: the
 // watcher waits for it rather than creating it (see internal/watch.resolveDir).
 // That comes first, since the row cuts a long line at its end. It asks the
-// watcher rather than the disk, so a dead share cannot hang the Modules page.
+// watcher rather than the disk, so a dead share cannot hang the settings.
 func watchDetail(a *app.App, s settings.Settings) line {
 	if dir := strings.TrimSpace(s.WatchDir); dir != "" {
 		args := map[string]string{"folder": dir}
@@ -906,7 +917,7 @@ func offDetail(off bool, whenOff, whenOn line) line {
 // jdFeature has a switch only when a JD backend is wired, since without one
 // there is nothing for it to switch on.
 func jdFeature(a *app.App, s settings.Settings) Feature {
-	f := Feature{ID: "jd", Verdict: VerdictShipped}
+	f := Feature{ID: "jd", Verdict: VerdictShipped, Page: "resolvers"}
 	if !a.ContainerBackendConfigured() {
 		f.Switch = SwitchNone
 		f = withReason(f, line{

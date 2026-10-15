@@ -19,7 +19,7 @@ import { SIZE_UNITS, fmtDate } from '../../lib/format';
 import { useT } from '../../lib/i18n';
 import { useDraft } from './context';
 import { ListArea, RowRefusal, SettingRow, SubCard } from './controls';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 import { InterfaceField } from './torrents/Interface';
 import { UploadLimitField } from './torrents/UploadLimit';
 
@@ -135,9 +135,7 @@ export function Torrents() {
     <div className="flex flex-col gap-10">
       <PageHeader title={t('settings.torrents.title')} />
 
-      <Card hue={0} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.torrents.seedingTitle')}</SectionTitle>
-        <ModuleToggle id="torrents" />
+      <ModuleCard id="torrents" hue={0} title={t('settings.torrents.seedingTitle')} hint={t('settings.modules.about.torrents')}>
         <SeedGauge ratio={ratio} target={tr.seedRatioTarget} />
         <div className="flex flex-col gap-4">
           <SettingRow
@@ -173,7 +171,7 @@ export function Torrents() {
         </div>
         {/* How fast it is given back stands with how much. */}
         <UploadLimitField value={tr.uploadLimit} onValue={(uploadLimit) => write({ uploadLimit })} />
-      </Card>
+      </ModuleCard>
 
       <Card hue={1} className="flex flex-col gap-5">
         <SectionTitle>{t('settings.torrents.portTitle')}</SectionTitle>

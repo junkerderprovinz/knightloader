@@ -165,7 +165,7 @@ func TestATestCaptchaGoesToTheCaptchaAccountsOnlyWhenSentToThem(t *testing.T) {
 	}
 }
 
-// The Modules page lets the captcha module back on only once JD is, so the
+// The captcha module can be switched back on only once JD is, so the
 // refusal names JD.
 func TestATestCaptchaRefusedForJDBeingOffSaysSo(t *testing.T) {
 	a := newCaptchaTestApp(t)

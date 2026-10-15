@@ -12,7 +12,9 @@
 //             NOT_PAGE_SOURCES with a reason.
 //   forward   every label, hint and SectionTitle key a page draws is in the
 //             index under that page, or in EXCLUDED with a reason. A
-//             `<ModuleToggle id="x">` draws settings.module.x as its label.
+//             `<ModuleToggle id="x">` or `<ModuleCard id="x">` draws
+//             settings.module.x as its switch's label, and a ModuleCard draws
+//             it as its title too unless it is given a `title`.
 //   reverse   every indexed key exists in en.ts and still appears in one of
 //             its page's sources.
 //   expiry    an EXCLUDED entry waiting on a key fails once that key is in en.ts.
@@ -30,14 +32,12 @@ const src = (rel) => readFileSync(join(here, rel), 'utf8');
 
 /**
  * Which file draws which page. A file may serve two pages (Look.tsx), and its
- * keys count for either. `titleTags` names wrapper components whose `title`
- * prop becomes a SectionTitle (Modules.tsx's Group).
+ * keys count for either.
  *
  * An entry ending in `/` is a directory, so a card added to it is scanned
  * without editing this table.
  */
 const FILE_PAGES = [
-  { file: 'src/pages/settings/Modules.tsx', pages: ['modules'], titleTags: ['Group'] },
   { file: 'src/pages/settings/CollectorSettings.tsx', pages: ['collector'] },
   { file: 'src/pages/settings/collector/', pages: ['collector'] },
   { file: 'src/pages/settings/DownloadsSettings.tsx', pages: ['downloads'] },
@@ -200,33 +200,34 @@ function sectionTitles(text) {
     const end = text.indexOf('</SectionTitle>', i);
     const children = text.slice(i + 1, end === -1 ? i + 1 : end);
     const keys = keysIn(children);
-    // A dynamic title (Shortcuts.tsx's `{groupLabel(…)}`) has no key here. Its file names the wrapper in `titleTags` instead.
+    // A dynamic title (Shortcuts.tsx's `{groupLabel(…)}`) has no key here.
     if (keys.length > 0) out.push({ at: m.index, key: keys[0] });
   }
   return out;
 }
 
-/** `<Group … title={t('k')}` and friends - a card title one component removed. */
-function wrapperTitles(text, tags) {
+/**
+ * Every `<ModuleCard id="x"` as the card title it draws: its `title={t('k')}`,
+ * or else the module's name.
+ */
+function moduleCardTitles(text) {
   const out = [];
-  for (const tag of tags ?? []) {
-    const re = new RegExp(`<${tag}\\b`, 'g');
-    for (const m of text.matchAll(re)) {
-      const head = text.slice(m.index, m.index + 400);
-      const title = /(?<![\w-])title=\{\s*(?:t|tx|cx|rx)\('([^']+)'/.exec(head);
-      if (title) out.push({ at: m.index, key: title[1] });
-    }
+  for (const m of text.matchAll(/<ModuleCard\s[^>]*?(?<![\w-])id="([a-z]+)"/g)) {
+    const head = text.slice(m.index, m.index + 400);
+    const title = /(?<![\w-])title=\{\s*(?:t|tx|cx|rx)\('([^']+)'/.exec(head);
+    out.push({ at: m.index, key: title ? title[1] : `settings.module.${m[1]}` });
   }
   return out;
 }
 
 /**
- * Every `<ModuleToggle id="x"` as {at, key}. The switch draws the module's
- * name, settings.module.x, as its label without the page ever naming the key.
+ * Every `<ModuleToggle id="x"` and `<ModuleCard id="x"` as {at, key}. The
+ * switch draws the module's name, settings.module.x, as its label without the
+ * page ever naming the key. A card's switch comes just after its title.
  */
 function moduleToggles(text) {
-  return [...text.matchAll(/<ModuleToggle\s[^>]*?(?<![\w-])id="([a-z]+)"/g)].map((m) => ({
-    at: m.index,
+  return [...text.matchAll(/<Module(?:Toggle|Card)\s[^>]*?(?<![\w-])id="([a-z]+)"/g)].map((m) => ({
+    at: m.index + 1,
     key: `settings.module.${m[1]}`,
   }));
 }
@@ -234,9 +235,9 @@ function moduleToggles(text) {
 /** Everything one source file says, in source order, bucketed by card. */
 function scanFile(entry) {
   const text = src(entry.file);
-  const titles = [...sectionTitles(text), ...wrapperTitles(text, entry.titleTags)].sort((a, b) => a.at - b.at);
+  const titles = [...sectionTitles(text), ...moduleCardTitles(text)].sort((a, b) => a.at - b.at);
   const rows = [];
-  for (const attr of ['label', 'hint']) {
+  for (const attr of ['label', 'hint', 'titleHint']) {
     for (const { at, span, tag } of attrSpans(text, attr)) {
       for (const key of keysIn(span)) rows.push({ at, key, kind: attr, tag });
     }
@@ -269,7 +270,7 @@ const NOT_PAGE_SOURCES = new Map([
   ['registry.tsx', 'the id-to-component map. check-settings-pages.mjs is what reads it'],
   ['context.tsx', 'the draft/feature provider - no catalogue text of its own'],
   ['controls.tsx', 'NeutralSwitch, a control. Its labels come from its callers'],
-  ['ModuleToggle.tsx', "a module's switch and the badges between it and the Modules page. The switch's label is read where a page draws it, from `<ModuleToggle id=\"x\"`"],
+  ['ModuleToggle.tsx', "a module's switch, the card it folds and the badge that leads to it. The switch's label and the card's title are read where a page draws them, from `<ModuleToggle id=\"x\"` and `<ModuleCard id=\"x\"`"],
   ['pageIcons.tsx', 'the glyph of each page in the rail, no catalogue text'],
   ['Empty.tsx', 'the registered-but-not-built placeholder, which is not a card on any page'],
   ['Appearance.tsx', 'three lines: it renders <Look section="appearance" />, and Look.tsx is mapped'],

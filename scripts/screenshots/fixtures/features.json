@@ -129,7 +129,7 @@
     {
       "id": "jd",
       "verdict": "shipped",
-      "page": "",
+      "page": "resolvers",
       "enabled": true,
       "switch": "setting",
       "parked": false,
@@ -224,7 +224,6 @@
   "pages": [
     { "id": "look", "modules": null },
     { "id": "appearance", "modules": ["keepawake"] },
-    { "id": "modules", "modules": null },
     { "id": "accounts", "modules": ["captcha"] },
     { "id": "integrations", "modules": null },
     { "id": "collector", "modules": ["cnl", "watch", "crawler"] },
@@ -235,7 +234,7 @@
     { "id": "pairing", "modules": null },
     { "id": "instances", "modules": ["federation"] },
     { "id": "access", "modules": ["downloadclient"] },
-    { "id": "resolvers", "modules": ["ytdlp"] },
+    { "id": "resolvers", "modules": ["ytdlp", "jd"] },
     { "id": "torrents", "modules": ["torrents"] },
     { "id": "debriddrive", "modules": ["debriddrive"] },
     { "id": "automation", "modules": ["scheduler", "eventtargets", "scripting"] },

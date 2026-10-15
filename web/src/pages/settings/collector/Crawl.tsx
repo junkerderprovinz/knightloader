@@ -1,8 +1,8 @@
-import { Card, Field, NumberInput, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Field, NumberInput, ToggleRow } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { useDraft } from '../context';
 import { ListArea, SettingRow } from '../controls';
-import { ModuleToggle } from '../ModuleToggle';
+import { ModuleCard } from '../ModuleToggle';
 
 // The page crawler: a pasted page is opened and the files it links to are
 // collected instead of the page itself.
@@ -12,11 +12,7 @@ export function CrawlCard({ hue }: { hue: number }) {
   const { cfg, patch } = useDraft();
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.module.crawler')}</SectionTitle>
-      <ModuleToggle id="crawler" hue={0} hint={t('settings.crawl')} />
-
-      {cfg.crawl && (
+    <ModuleCard id="crawler" hue={hue} switchHue={0} hint={t('settings.crawl')}>
       <div className="flex flex-col gap-5">
         <div data-new="setting-rows" className="flex flex-col gap-4">
           {/* max is internal/crawler.MaxDepth. */}
@@ -51,7 +47,6 @@ export function CrawlCard({ hue }: { hue: number }) {
           </Field>
         </div>
       </div>
-      )}
-    </Card>
+    </ModuleCard>
   );
 }
