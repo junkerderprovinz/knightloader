@@ -3600,10 +3600,10 @@ export interface FileOwnerIdentity {
   /** What the operator set, verbatim. "" means unset, which is not 0. */
   env: { puid: string; pgid: string; umask: string };
   /**
-   * Whether this build acts on PUID and PGID. It does not: the image runs as
-   * USER knight (uid 1000), which cannot switch to another uid. Shown so an
-   * operator can tell an ignored PUID from a mistyped one; never render it as
-   * "PUID would work if you set it".
+   * True when the process started as root and switched to PUID and PGID (1000
+   * each when unset). False when it was started as another account, with
+   * --user for instance: then neither variable was read, and a PUID that is
+   * set is shown as not read rather than as in force.
    */
   idsRead: boolean;
 }

@@ -15,9 +15,9 @@ package api
 // already lists, the uid and gid, and three environment variables visible in
 // `docker inspect`; no file names or contents.
 //
-// The image runs as USER knight and nothing reads PUID or PGID, so the readout
-// says what the ownership is and that those two are not read (see
-// idsReadByThisBuild). UMASK is applied at startup (internal/filemode), and the
+// PUID and PGID are applied only when the process starts as root
+// (internal/privdrop), so the readout says whether they were; under --user they
+// are not read. UMASK is applied at startup (internal/filemode), and the
 // readout says whether it took.
 
 import (
@@ -33,28 +33,19 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/fileowner"
+	"github.com/junkerderprovinz/knightloader/internal/privdrop"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // The variables an operator reaches for when downloads land with the wrong
 // owner or mode, reported verbatim. They use the names other NAS containers
 // use rather than a KL_ prefix, which also keeps check-docs-claims.mjs from
-// expecting a Go reader for them; in turn nothing automatic notices if an
-// entrypoint starts reading PUID or PGID.
+// expecting a Go reader for them.
 const (
 	envPUID  = "PUID"
 	envPGID  = "PGID"
 	envUMASK = "UMASK"
 )
-
-// idsReadByThisBuild says whether anything in this image acts on PUID and
-// PGID. The Dockerfile declares USER knight, and an unprivileged process
-// cannot change its uid; honouring PUID would mean starting as root and
-// dropping privileges in an entrypoint, which has not been decided. An
-// identity chosen before start (--user, runAsUser, rootless Docker) is what
-// the readout reports as in force. A test keeps this in step with the
-// Dockerfile. UMASK needs no such flag, since any process may set its own.
-const idsReadByThisBuild = false
 
 // OwnerEnv is what the operator set, verbatim. "" means unset, which differs
 // from 0: an unset PUID means the image's uid 1000, not root.
@@ -87,8 +78,10 @@ type OwnerIdentity struct {
 	// umask. A value it could not read leaves it false and the mask as it was.
 	UmaskApplied bool     `json:"umaskApplied"`
 	Env          OwnerEnv `json:"env"`
-	// IDsRead says whether anything in this build acts on Env.PUID and
-	// Env.PGID; see idsReadByThisBuild.
+	// IDsRead is true when the process started as root and switched to
+	// Env.PUID and Env.PGID, or to 1000:1000 where they are unset. Started
+	// as another account (--user, runAsUser, rootless Docker), it reads
+	// neither, and this is false.
 	IDsRead bool `json:"idsRead"`
 }
 
@@ -243,7 +236,7 @@ func ownerIdentity() OwnerIdentity {
 			PGID:  os.Getenv(envPGID),
 			Umask: os.Getenv(envUMASK),
 		},
-		IDsRead: idsReadByThisBuild,
+		IDsRead: privdrop.Applied(),
 	}
 	// Left empty when unknown, since "0000" is a real and alarming mask.
 	if me.UmaskKnown {

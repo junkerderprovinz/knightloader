@@ -24,6 +24,7 @@ jobs:
       pull-requests: read # dorny/paths-filter reads the PR's file list via the API
     outputs:
       go: ${{ steps.filter.outputs.go }}
+      image: ${{ steps.filter.outputs.image }}
       web: ${{ steps.filter.outputs.web }}
       extension: ${{ steps.filter.outputs.extension }}
       mobile: ${{ steps.filter.outputs.mobile }}
@@ -51,6 +52,17 @@ jobs:
               - 'Dockerfile'
               - '.github/workflows/desktop.yml'
               - '.github/workflows/release.yml'
+              - '.github/workflows/ci.yml'
+            # The image embeds web/dist, and the ownership check runs the
+            # script against it.
+            image:
+              - '**/*.go'
+              - 'go.mod'
+              - 'go.sum'
+              - 'Dockerfile'
+              - '.dockerignore'
+              - 'web/dist/**'
+              - 'scripts/image-ownership.sh'
               - '.github/workflows/ci.yml'
             # The build bakes app.json's version and that version's release
             # notes into web/dist, and check-version-sources.mjs reads the
@@ -188,6 +200,25 @@ jobs:
           go vet -tags bridgeclipboard ./...
           go test -tags bridgeclipboard ./internal/bridge/... -count=1
           go build -tags bridgeclipboard -o /tmp/knightloader-bridgeclipboard ./cmd/knightloader
+
+  # Starts the built image the way a first `docker run` does, as root on bind
+  # mounts Docker has just created, and checks which account the server
+  # switched to and which folders it took over (docs/decisions.md,
+  # "Ownership").
+  image:
+    needs: changes
+    if: needs.changes.outputs.image == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7
+
+      - name: Build
+        run: docker build --build-arg COMMIT=${{ github.sha }} -t knightloader:ci .
+
+      # Root, because the folders it sets up and inspects belong to root.
+      - name: Ownership on a first start
+        run: sudo scripts/image-ownership.sh knightloader:ci
 
   # The desktop app replaces itself differently on each system, and only that
   # system's runner can run its tests. Linux is covered by the server job.

@@ -19,14 +19,21 @@ docker run -d --name knightloader \
 
 Then open `http://<host>:8749`.
 
+The container starts as root only for a moment. Folders that Docker has just
+created for it, which belong to root and are empty, are given to uid and gid
+1000; then KnightLoader switches to that account and runs as it from then on. A
+folder that already holds something keeps its owner, and if KnightLoader cannot
+write it, the log names the `chown` to run on the host. `-e PUID=<uid>` and
+`-e PGID=<gid>` choose another account.
+
 On Unraid, install KnightLoader from Community Applications. Its template puts
 `--user 99:100` in Extra Parameters and sets the variable `UMASK` to `000`.
 Finished files then land as `nobody:users` with mode 0666 and their folders
 with 0777, so the account you use over SMB can
 move, rename and delete them. `UMASK` is read the way linuxserver.io images
-read it, as an octal mask such as `000`, `002` or `022`. `PUID` and `PGID` are
-not read: the image runs as a fixed user, and `--user` is how you choose
-another one. Settings, Health & diagnostics shows which user and mask are in force.
+read it, as an octal mask such as `000`, `002` or `022`. With `--user` the
+container starts as that account straight away, and `PUID` and `PGID` are not
+read. Settings, Health & diagnostics shows which user and mask are in force.
 
 ### App key
 
