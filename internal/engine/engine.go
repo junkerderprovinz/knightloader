@@ -832,6 +832,12 @@ func (e *Engine) Reconnectable(taskID string) bool {
 // transfer that never moves again while the library calls it running, so
 // every step waits for the one before it to land.
 func (e *Engine) Reconnect(taskID string) bool {
+	return e.reconnect(taskID, nil)
+}
+
+// reconnect is Reconnect, with between run on the library task while it is
+// paused. A failed between still resumes the task, as it was.
+func (e *Engine) reconnect(taskID string, between func(gid string) error) bool {
 	e.mu.Lock()
 	gid := e.toGopeed[taskID]
 	if gid == "" || e.torrents[taskID] || e.closed || e.reconnecting[gid] != nil || e.pausing[gid] > 0 || e.holds[taskID] != nil {
@@ -861,10 +867,11 @@ func (e *Engine) Reconnect(taskID string) bool {
 	if e.d.Pause(&download.TaskFilter{IDs: []string{gid}}) != nil || !landed(r.paused) {
 		return false
 	}
+	ok := between == nil || between(gid) == nil
 	if e.d.Continue(&download.TaskFilter{IDs: []string{gid}}) != nil {
 		return false
 	}
-	return landed(r.started)
+	return landed(r.started) && ok
 }
 
 // Remove drops the task. deleteFiles also erases what was already written,
@@ -936,11 +943,14 @@ func (e *Engine) onEvent(ev *download.Event) {
 		return
 	}
 	if ev.Key == download.EventKeyStart {
+		e.mu.Lock()
 		if p := settledFile(ev.Task); p != "" {
-			e.mu.Lock()
 			e.files[ev.Task.ID] = p
-			e.mu.Unlock()
 		}
+		if r := e.reconnecting[ev.Task.ID]; r != nil {
+			closeOnce(r.started)
+		}
+		e.mu.Unlock()
 		return
 	}
 	e.mu.Lock()
@@ -948,13 +958,8 @@ func (e *Engine) onEvent(ev *download.Event) {
 	// The pauses Reconnect and Hold make are not pauses of the task, so they
 	// are not passed on.
 	var own bool
-	if r := e.reconnecting[ev.Task.ID]; r != nil {
-		switch ev.Key {
-		case download.EventKeyPause:
-			own = closeOnce(r.paused)
-		case download.EventKeyStart:
-			closeOnce(r.started)
-		}
+	if r := e.reconnecting[ev.Task.ID]; r != nil && ev.Key == download.EventKeyPause {
+		own = closeOnce(r.paused)
 	}
 	if h := e.holds[taskID]; h != nil && ok && ev.Key == download.EventKeyPause {
 		own = closeOnce(h.paused)
