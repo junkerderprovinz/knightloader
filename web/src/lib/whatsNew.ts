@@ -46,6 +46,12 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.integrationsPage',
         names: { name: 'settings.nav.integrations', accounts: 'settings.nav.accounts' },
       },
+      {
+        id: 'drive-integrations',
+        to: ['/settings/integrations'],
+        text: 'whatsnew.change.driveIntegrations',
+        names: { name: 'settings.module.debriddrive', page: 'settings.nav.integrations' },
+      },
       { id: 'health-diagnostics', to: ['/settings/health'], text: 'whatsnew.change.healthDiagnostics' },
       {
         id: 'proxy-check-moved',
@@ -298,7 +304,7 @@ export const RELEASES: Release[] = [
         id: 'drive-page',
         to: ['/settings/debriddrive'],
         text: 'whatsnew.change.drivePage',
-        names: { name: 'settings.nav.debriddrive', accounts: 'settings.nav.accounts' },
+        names: { name: 'settings.module.debriddrive', accounts: 'settings.nav.accounts' },
       },
       // Drawn only in the desktop app, and its sentence says so.
       {

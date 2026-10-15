@@ -52,7 +52,7 @@ export function DriveCard({ hue }: { hue: number }) {
   ].join('\n');
 
   return (
-    <ModuleCard id="debriddrive" hue={hue} data-new="drive-page" switchHue={0} hint={t('settings.accounts.driveHint')}>
+    <ModuleCard id="debriddrive" hue={hue} data-new="drive-integrations" switchHue={0} hint={t('settings.accounts.driveHint')}>
       <SettingRow
         control="short"
         label={t('settings.accounts.driveRefresh')}

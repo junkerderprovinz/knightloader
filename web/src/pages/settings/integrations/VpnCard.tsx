@@ -25,7 +25,6 @@ import { useT, type TranslationKey } from '../../../lib/i18n';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { IconAdd, IconClose, IconCopy, IconGear, IconShieldOn, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
-import { SubHead } from '../controls';
 import { refusalText } from '../tx';
 import { VpnMark, VpnStateBadge, failureOf, nameOf } from './VpnMark';
 import { VpnPicker } from './VpnPicker';
@@ -45,10 +44,11 @@ const ROUTES: { key: keyof VpnRoutes; label: TranslationKey; hint?: TranslationK
 
 /**
  * VpnCard holds the VPN providers that are set up, as the account cards hold
- * accounts: empty until one is added through Add, then a row each, with the
- * switches for which downloads go through the one in use.
+ * accounts: empty until one is added through Add, then a row each. Once one is
+ * set up, a second card below holds the switches for which downloads go
+ * through the one in use.
  */
-export function VpnCard({ hue }: { hue: number }) {
+export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) {
   const { t } = useT();
   const { toast } = useToast();
   const [vpn, setVpn] = useState<VpnState | null>(null);
@@ -88,93 +88,96 @@ export function VpnCard({ hue }: { hue: number }) {
   const active = vpn?.providers.find((p) => p.id === vpn.active);
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle
-        hint={t('settings.vpn.cardHint')}
-        right={
-          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking({})} disabled={!vpn}>
-            {t('settings.vpn.add')}
-          </Button>
-        }
-      >
-        {t('settings.vpn.title')}
-      </SectionTitle>
-
-      {setUp.length === 0 ? (
-        <EmptyState
-          nested
-          icon={<IconShieldOn width={26} height={26} />}
-          title={t('settings.vpn.empty')}
-          hint={t('settings.vpn.emptyHint', { button: t('settings.vpn.add') })}
-        />
-      ) : (
-        <>
-          <VpnTable
-            rows={setUp}
-            active={vpn?.active ?? ''}
-            onUse={(p, on) => void act(() => (on ? connectVpn(p.id, {}) : disconnectVpn()))}
-            onEdit={(p) => setPicking({ editing: p.id })}
-            onRemove={setRemoving}
-          />
-          {active?.state === 'failed' && (
-            <p role="status" className="text-sm text-statusFail">
-              {failureOf(t, active)}
-            </p>
-          )}
-          {vpn && (
-            <div className="flex flex-col gap-3">
-              <SubHead label={t('settings.vpn.routesTitle')} hint={t('settings.vpn.routesHint')} />
-              {ROUTES.map((r) => (
-                <ToggleRow
-                  key={r.key}
-                  label={t(r.label)}
-                  hint={r.hint ? t(r.hint) : undefined}
-                  checked={vpn.routes[r.key]}
-                  onChange={(on) => void act(() => setVpnRoutes({ ...vpn.routes, [r.key]: on }))}
-                />
-              ))}
-            </div>
-          )}
-        </>
-      )}
-
-      {picking && vpn && (
-        <VpnPicker
-          vpn={vpn}
-          editing={picking.editing}
-          hue={hue}
-          onClose={() => setPicking(null)}
-          onState={setVpn}
-        />
-      )}
-
-      {removing && (
-        <Modal
-          title={t('accounts.remove')}
-          hue={hue}
-          onClose={() => setRemoving(null)}
-          footer={
-            <>
-              <span className="flex-1" />
-              <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
-              <Button
-                kind="ghost"
-                icon={<IconTrash width={16} height={16} />}
-                onClick={() => {
-                  const id = removing.id;
-                  setRemoving(null);
-                  void act(() => forgetVpn(id));
-                }}
-              >
-                {t('accounts.remove')}
-              </Button>
-            </>
+    <>
+      <Card hue={hue} className="flex flex-col gap-4">
+        <SectionTitle
+          hint={t('settings.vpn.cardHint')}
+          right={
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking({})} disabled={!vpn}>
+              {t('settings.vpn.add')}
+            </Button>
           }
         >
-          <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: nameOf(t, removing) })}</p>
-        </Modal>
+          {t('settings.vpn.title')}
+        </SectionTitle>
+
+        {setUp.length === 0 ? (
+          <EmptyState
+            nested
+            icon={<IconShieldOn width={26} height={26} />}
+            title={t('settings.vpn.empty')}
+            hint={t('settings.vpn.emptyHint', { button: t('settings.vpn.add') })}
+          />
+        ) : (
+          <>
+            <VpnTable
+              rows={setUp}
+              active={vpn?.active ?? ''}
+              onUse={(p, on) => void act(() => (on ? connectVpn(p.id, {}) : disconnectVpn()))}
+              onEdit={(p) => setPicking({ editing: p.id })}
+              onRemove={setRemoving}
+            />
+            {active?.state === 'failed' && (
+              <p role="status" className="text-sm text-statusFail">
+                {failureOf(t, active)}
+              </p>
+            )}
+          </>
+        )}
+
+        {picking && vpn && (
+          <VpnPicker
+            vpn={vpn}
+            editing={picking.editing}
+            hue={hue}
+            onClose={() => setPicking(null)}
+            onState={setVpn}
+          />
+        )}
+
+        {removing && (
+          <Modal
+            title={t('accounts.remove')}
+            hue={hue}
+            onClose={() => setRemoving(null)}
+            footer={
+              <>
+                <span className="flex-1" />
+                <Button kind="ghost" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setRemoving(null)} />
+                <Button
+                  kind="ghost"
+                  icon={<IconTrash width={16} height={16} />}
+                  onClick={() => {
+                    const id = removing.id;
+                    setRemoving(null);
+                    void act(() => forgetVpn(id));
+                  }}
+                >
+                  {t('accounts.remove')}
+                </Button>
+              </>
+            }
+          >
+            <p className="text-sm text-carbon-text">{t('settings.vpn.removeConfirm', { name: nameOf(t, removing) })}</p>
+          </Modal>
+        )}
+      </Card>
+
+      {vpn && setUp.length > 0 && (
+        <Card hue={routesHue} className="flex flex-col gap-3">
+          <SectionTitle hint={t('settings.vpn.routesHint')}>{t('settings.vpn.routesTitle')}</SectionTitle>
+          {ROUTES.map((r) => (
+            <ToggleRow
+              key={r.key}
+              label={t(r.label)}
+              hint={r.hint ? t(r.hint) : undefined}
+              checked={vpn.routes[r.key]}
+              onChange={(on) => void act(() => setVpnRoutes({ ...vpn.routes, [r.key]: on }))}
+            />
+          ))}
+        </Card>
       )}
-    </Card>
+    </>
   );
 }
 

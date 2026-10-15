@@ -386,7 +386,7 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchSetting, Enabled: s.DownloadClientAPI,
 		}, downloadClientDetail(a, s, base)),
 		withDetail(Feature{
-			ID: "debriddrive", Verdict: VerdictShipped, Page: "debriddrive",
+			ID: "debriddrive", Verdict: VerdictShipped, Page: "integrations",
 			Switch: SwitchSetting, Enabled: s.DebridDrive.Enabled,
 		}, debridDriveDetail(a, s, base)),
 		withDetail(Feature{
@@ -428,7 +428,7 @@ func keepAwakeFeature(s settings.Settings) Feature {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (look, integrations, shortcuts, health, help, browsertools) hold
+// (look, shortcuts, health, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
 // JDownloader is switched on the Resolvers page beside yt-dlp, since the
 // accounts page holds the logins it uses and not the backend itself.
@@ -443,8 +443,9 @@ func featurePages() []FeaturePage {
 		// The captcha accounts' order and when they start stand beside their keys.
 		{ID: "accounts", Modules: []string{"captcha"}},
 		// What this instance reaches out through or is reached by as a tool:
-		// VPN providers and AI clients over MCP.
-		{ID: "integrations"},
+		// VPN providers, AI clients over MCP, and the debrid drive that
+		// rclone mounts.
+		{ID: "integrations", Modules: []string{"debriddrive"}},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -462,9 +463,6 @@ func featurePages() []FeaturePage {
 		{ID: "access", Modules: []string{"downloadclient"}},
 		{ID: "resolvers", Modules: []string{"ytdlp", "jd"}},
 		{ID: "torrents", Modules: []string{"torrents"}},
-		// A page of its own rather than a card on Accounts: it serves what is
-		// on the accounts to other programs and sets up none of them.
-		{ID: "debriddrive", Modules: []string{"debriddrive"}},
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
