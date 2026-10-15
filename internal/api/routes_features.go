@@ -384,7 +384,7 @@ func featureList(a *app.App, base string) []Feature {
 			Switch: SwitchSetting, Enabled: s.DebridDrive.Enabled,
 		}, debridDriveDetail(a, s, base)),
 		withDetail(Feature{
-			ID: "metrics", Verdict: VerdictShipped, Page: "health",
+			ID: "metrics", Verdict: VerdictShipped, Page: "advanced",
 			Switch: SwitchSetting, Enabled: s.Metrics,
 		}, metricsDetail(a, s, base)),
 		withDetail(Feature{
@@ -416,7 +416,7 @@ func keepAwakeFeature(s settings.Settings) Feature {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (look, shortcuts, diagnostics, help, browsertools) hold
+// (look, integrations, shortcuts, health, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
 // JDownloader is switched only on the modules page, since the accounts page
 // holds the logins it uses and not the backend itself.
@@ -431,6 +431,9 @@ func featurePages() []FeaturePage {
 		{ID: "modules"},
 		// The captcha accounts' order and when they start stand beside their keys.
 		{ID: "accounts", Modules: []string{"captcha"}},
+		// What this instance reaches out through or is reached by as a tool:
+		// VPN providers and AI clients over MCP.
+		{ID: "integrations"},
 		// Everything that decides how a link gets in and what happens to it
 		// before it becomes a download.
 		{ID: "collector", Modules: []string{"cnl", "watch", "crawler"}},
@@ -457,11 +460,12 @@ func featurePages() []FeaturePage {
 		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "browsertools"},
-		{ID: "advanced"},
-		// Health comes before diagnostics: one says whether the instance works
-		// now, the other hands over a bundle for a report about why it did not.
-		{ID: "health", Modules: []string{"metrics"}},
-		{ID: "diagnostics"},
+		// The metrics address sits with the database upkeep: both are for
+		// somebody who runs the instance rather than uses it.
+		{ID: "advanced", Modules: []string{"metrics"}},
+		// Whether the instance works now, its log, and the bundle for a report
+		// about why it did not. Its id stays "health" so bookmarks resolve.
+		{ID: "health"},
 		{ID: "help"},
 	}
 }

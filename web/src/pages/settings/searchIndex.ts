@@ -462,6 +462,51 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
   ],
 
+  integrations: [
+    {
+      title: 'settings.vpn.title',
+      hint: 'settings.vpn.cardHint',
+      rows: [
+        { key: 'settings.vpn.routesTitle', hint: 'settings.vpn.routesHint' },
+        { key: 'settings.vpn.route.torrents', hint: 'settings.vpn.route.torrentsHint' },
+        { key: 'settings.vpn.route.hosters' },
+        { key: 'settings.vpn.route.ytdlp' },
+        { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
+        { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
+      ],
+      also: ['settings.vpn.add', 'settings.vpn.custom', 'settings.vpn.pick', 'settings.vpn.use', 'accounts.rowActions'],
+      // The empty card, and the picker's window, which opens from Add.
+      body: [
+        'settings.vpn.empty',
+        'settings.vpn.emptyHint',
+        'settings.vpn.pickHint',
+        'settings.vpn.portForwardingHint',
+        'settings.vpn.noPortForwardingHint',
+        'settings.vpn.note.kaspersky',
+        'settings.vpn.note.anonine',
+      ],
+    },
+    {
+      title: 'settings.access.mcp.title',
+      hint: 'settings.access.mcp.intro',
+      rows: [],
+      // The picker's groups and the form and setup of the window that adds a client.
+      also: [
+        'settings.access.mcp.add',
+        'settings.access.mcp.groupLocal',
+        'settings.access.mcp.groupCloud',
+        'settings.access.mcp.config',
+        'settings.access.mcp.tokenGone',
+        'settings.access.tokens.name',
+        'settings.access.tokens.rights',
+      ],
+      body: [
+        'settings.access.mcp.emptyHint',
+        'settings.access.mcp.pickHint',
+        'settings.access.mcp.cloudHint', 'settings.access.mcp.nameHint', 'settings.access.mcp.rightsHint'],
+    },
+  ],
+
   // The drive's switch is the card's title, so it has no row of its own.
   debriddrive: [
     {
@@ -593,31 +638,60 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       // The (i) of the window that shows a new token, and of the rights picker.
       body: ['settings.access.tokens.howToUse', 'settings.access.tokens.rightsHint'],
     },
-    {
-      title: 'settings.access.mcp.title',
-      hint: 'settings.access.mcp.intro',
-      rows: [],
-      // The picker's groups and the form and setup of the window that adds a client.
-      also: [
-        'settings.access.mcp.add',
-        'settings.access.mcp.groupLocal',
-        'settings.access.mcp.groupCloud',
-        'settings.access.mcp.config',
-        'settings.access.mcp.tokenGone',
-        'settings.access.tokens.name',
-        'settings.access.tokens.rights',
-      ],
-      body: [
-        'settings.access.mcp.emptyHint',
-        'settings.access.mcp.pickHint',
-        'settings.access.mcp.cloudHint', 'settings.access.mcp.nameHint', 'settings.access.mcp.rightsHint'],
-    },
   ],
 
   advanced: [
     {
       title: 'settings.advanced.retryTitle',
       rows: [{ key: 'settings.advanced.retryTries', hint: 'settings.advanced.retryTriesHint' }],
+    },
+    {
+      title: 'settings.dbmaint.title',
+      hint: 'settings.dbmaint.hint',
+      rows: [
+        { key: 'settings.dbmaint.storeSize', hint: 'settings.dbmaint.storeSizeHint' },
+        { key: 'settings.dbmaint.reclaimable', hint: 'settings.dbmaint.reclaimableHint' },
+        // Indexed with the (i) that only shows while the file is missing.
+        { key: 'settings.dbmaint.settingsSize', hint: 'settings.dbmaint.settingsMissingHint' },
+        { key: 'settings.dbmaint.check', hint: 'settings.dbmaint.checkHint' },
+        { key: 'settings.dbmaint.compact', hint: 'settings.dbmaint.compactHint' },
+        { key: 'settings.dbmaint.analyze', hint: 'settings.dbmaint.analyzeHint' },
+        { key: 'settings.dbmaint.interval', hint: 'settings.dbmaint.intervalHint' },
+        { key: 'settings.dbmaint.compactOnSchedule', hint: 'settings.dbmaint.compactOnScheduleHint' },
+      ],
+      also: [
+        'settings.dbmaint.inBundle',
+        'settings.dbmaint.settingsMissing',
+        'settings.dbmaint.running',
+        'settings.dbmaint.intervalNever',
+        'settings.dbmaint.interval30',
+        'settings.dbmaint.interval90',
+        'settings.dbmaint.interval180',
+        'settings.dbmaint.confirmTitle',
+      ],
+      body: [
+        'settings.dbmaint.neverRun',
+        'settings.dbmaint.lastRun',
+        'settings.dbmaint.nextRun',
+        'settings.dbmaint.checkOk',
+        'settings.dbmaint.checkFailed',
+        'settings.dbmaint.checkFailedHelp',
+        'settings.dbmaint.compacted',
+        'settings.dbmaint.compactedNothing',
+        'settings.dbmaint.analyzed',
+        'settings.dbmaint.failed',
+        'settings.dbmaint.diskFullHelp',
+        'settings.dbmaint.skippedBusy',
+        'settings.dbmaint.busy',
+        'settings.dbmaint.confirmBody',
+        'settings.dbmaint.loadFailed',
+      ],
+    },
+    {
+      title: 'settings.module.metrics',
+      rows: [{ key: 'settings.health.scrapeUrl' }],
+      also: ['settings.health.scrapeCopy', 'settings.health.scrapeCopied'],
+      body: ['settings.health.scrapeHint', 'settings.health.scrapeOffHint'],
     },
     // The key table has its own search box and stays out of the index.
     { title: 'settings.advanced.allSettings', rows: [] },
@@ -697,29 +771,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
 
   network: [
     {
-      title: 'settings.vpn.title',
-      hint: 'settings.vpn.cardHint',
-      rows: [
-        { key: 'settings.vpn.routesTitle', hint: 'settings.vpn.routesHint' },
-        { key: 'settings.vpn.route.torrents', hint: 'settings.vpn.route.torrentsHint' },
-        { key: 'settings.vpn.route.hosters' },
-        { key: 'settings.vpn.route.ytdlp' },
-        { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
-        { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
-      ],
-      also: ['settings.vpn.add', 'settings.vpn.custom', 'settings.vpn.pick', 'settings.vpn.use', 'accounts.rowActions'],
-      // The empty card, and the picker's window, which opens from Add.
-      body: [
-        'settings.vpn.empty',
-        'settings.vpn.emptyHint',
-        'settings.vpn.pickHint',
-        'settings.vpn.portForwardingHint',
-        'settings.vpn.noPortForwardingHint',
-        'settings.vpn.note.kaspersky',
-        'settings.vpn.note.anonine',
-      ],
-    },
-    {
       title: 'settings.module.connections',
       rows: [
         { key: 'settings.connections.type', hint: 'settings.connections.typeHint' },
@@ -735,6 +786,24 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       also: ['settings.connections.test'],
       // The user name's (i) on a SOCKS4 row.
       body: ['settings.connections.stateSocks4'],
+    },
+    {
+      title: 'settings.selftest.proxy.title',
+      hint: 'settings.selftest.proxy.hint',
+      rows: [],
+      also: [
+        'settings.selftest.proxy.host',
+        'settings.selftest.proxy.proto',
+        'settings.selftest.proxy.prefix',
+        'settings.selftest.proxy.ws',
+      ],
+      body: [
+        'settings.selftest.proxy.desktopSkip',
+        'settings.selftest.proxy.host.rewrittenAdvice',
+        'settings.selftest.proxy.proto.missingAdvice',
+        'settings.selftest.proxy.prefix.mismatchAdvice',
+        'settings.selftest.proxy.ws.failedAdvice',
+      ],
     },
     {
       title: 'settings.module.reconnect',
@@ -1141,63 +1210,18 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
   ],
 
   health: [
+    // The parts are built from server ids, and the self-test lines have no
+    // captions, so the check names go in `also` and the advice, with words
+    // like "nginx" or "TZ", in `body`. The two rows that open are captions.
     {
-      title: 'settings.selftest.title',
-      hint: 'settings.selftest.hint',
-      // The beads are named by the checks the server planned.
-      rows: [],
-      body: ['settings.selftest.never'],
-    },
-    {
-      title: 'settings.health.parts',
-      hint: 'settings.health.partsHint',
-      // Every row is built from server ids, so none can be indexed.
-      rows: [],
-      also: ['settings.health.openLog'],
-      body: ['settings.health.noReason', 'settings.health.loadFailed'],
-    },
-    {
-      title: 'settings.module.metrics',
-      rows: [{ key: 'settings.health.scrapeUrl' }],
-      also: ['settings.health.scrapeCopy', 'settings.health.scrapeCopied'],
-      body: ['settings.health.scrapeHint', 'settings.health.scrapeOffHint'],
-    },
-  ],
-
-  diagnostics: [
-    {
-      title: 'settings.diagnostics.systemTitle',
-      hint: 'settings.diagnostics.subtitle',
+      title: 'settings.health.stateTitle',
+      hint: 'settings.health.stateHint',
       rows: [
-        { key: 'settings.diagnostics.version' },
-        { key: 'settings.diagnostics.deployment' },
-        { key: 'settings.diagnostics.goVersion' },
-        { key: 'settings.diagnostics.platform' },
-        { key: 'settings.diagnostics.goroutines' },
+        { key: 'settings.selftest.title', hint: 'settings.selftest.hint' },
+        { key: 'settings.health.atStart', hint: 'settings.diagnostics.startupHint' },
       ],
-      // The (i) inside the download button.
-      body: ['settings.diagnostics.downloadHint'],
-    },
-    // Every line of the start report is a check the server named.
-    {
-      title: 'settings.diagnostics.startupTitle',
-      hint: 'settings.diagnostics.startupHint',
-      rows: [],
-      also: ['settings.diagnostics.startupRecheck'],
-      body: [
-        'settings.diagnostics.startupNotRun',
-        'settings.diagnostics.startupOff',
-        'settings.diagnostics.startupStatOnly',
-        'settings.diagnostics.startupRecheckHint',
-      ],
-    },
-    // The self-test lines have no captions, so the check names go in `also`
-    // and the advice, with words like "nginx" or "TZ", in `body`.
-    {
-      title: 'settings.selftest.title',
-      hint: 'settings.selftest.hint',
-      rows: [],
       also: [
+        'settings.health.openLog',
         'settings.selftest.run',
         'settings.selftest.jd',
         'settings.selftest.ytdlp',
@@ -1206,8 +1230,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.selftest.relay',
         'settings.selftest.clock',
         'settings.selftest.torrentPort',
+        'settings.diagnostics.startupRecheck',
       ],
       body: [
+        'settings.health.noReason',
+        'settings.health.loadFailed',
         'settings.selftest.never',
         'settings.selftest.accounts.readOnlyHint',
         'settings.selftest.jd.missingAdvice',
@@ -1217,48 +1244,32 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.selftest.clock.skewAdvice',
         'settings.selftest.relay.notConnectedAdvice',
         'settings.selftest.torrentPort.notCheckedAdvice',
+        'settings.diagnostics.startupNotRun',
+        'settings.diagnostics.startupOff',
+        'settings.diagnostics.startupStatOnly',
+        'settings.diagnostics.startupRecheckHint',
       ],
     },
+    // The gap banner is indexed although it only shows after lines were lost,
+    // and the file's problem sentences only while it is not written, which is
+    // when somebody searches for them.
     {
-      title: 'settings.selftest.proxy.title',
-      hint: 'settings.selftest.proxy.hint',
-      rows: [],
-      also: [
-        'settings.selftest.proxy.host',
-        'settings.selftest.proxy.proto',
-        'settings.selftest.proxy.prefix',
-        'settings.selftest.proxy.ws',
-      ],
-      body: [
-        'settings.selftest.proxy.desktopSkip',
-        'settings.selftest.proxy.host.rewrittenAdvice',
-        'settings.selftest.proxy.proto.missingAdvice',
-        'settings.selftest.proxy.prefix.mismatchAdvice',
-        'settings.selftest.proxy.ws.failedAdvice',
-      ],
-    },
-    // The gap banner is indexed although it only shows after lines were lost.
-    {
-      title: 'settings.diagnostics.logTitle',
+      title: 'settings.diagnostics.logCardTitle',
       hint: 'settings.diagnostics.logHint',
       rows: [
         { key: 'settings.diagnostics.logSearch', hint: 'settings.diagnostics.logSearchHint' },
         { key: 'settings.diagnostics.logSource', hint: 'settings.diagnostics.logSourceHint' },
         { key: 'settings.diagnostics.logFollow', hint: 'settings.diagnostics.logFollowHint' },
-      ],
-      body: ['settings.diagnostics.logEmpty', 'settings.diagnostics.logNoMatches', 'settings.diagnostics.logGap'],
-    },
-    // The problem sentences only show while the file is not written, which is
-    // when somebody searches for them.
-    {
-      title: 'settings.diagnostics.fileTitle',
-      rows: [
+        { key: 'settings.diagnostics.fileTitle' },
         { key: 'settings.diagnostics.fileOn', hint: 'settings.diagnostics.fileOnHint' },
         { key: 'settings.diagnostics.fileSize', hint: 'settings.diagnostics.fileSizeHint' },
         { key: 'settings.diagnostics.fileKeep', hint: 'settings.diagnostics.fileKeepHint' },
         { key: 'settings.diagnostics.fileWhere', hint: 'settings.diagnostics.fileWhereHint' },
       ],
       body: [
+        'settings.diagnostics.logEmpty',
+        'settings.diagnostics.logNoMatches',
+        'settings.diagnostics.logGap',
         'settings.diagnostics.fileStateOff',
         'settings.diagnostics.fileProblem',
         'settings.diagnostics.fileProblemHint',
@@ -1266,56 +1277,26 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.diagnostics.fileDownload',
       ],
     },
-    {
-      title: 'settings.dbmaint.title',
-      hint: 'settings.dbmaint.hint',
-      rows: [
-        { key: 'settings.dbmaint.storeSize', hint: 'settings.dbmaint.storeSizeHint' },
-        { key: 'settings.dbmaint.reclaimable', hint: 'settings.dbmaint.reclaimableHint' },
-        // Indexed with the (i) that only shows while the file is missing.
-        { key: 'settings.dbmaint.settingsSize', hint: 'settings.dbmaint.settingsMissingHint' },
-        { key: 'settings.dbmaint.check', hint: 'settings.dbmaint.checkHint' },
-        { key: 'settings.dbmaint.compact', hint: 'settings.dbmaint.compactHint' },
-        { key: 'settings.dbmaint.analyze', hint: 'settings.dbmaint.analyzeHint' },
-        { key: 'settings.dbmaint.interval', hint: 'settings.dbmaint.intervalHint' },
-        { key: 'settings.dbmaint.compactOnSchedule', hint: 'settings.dbmaint.compactOnScheduleHint' },
-      ],
-      also: [
-        'settings.dbmaint.inBundle',
-        'settings.dbmaint.settingsMissing',
-        'settings.dbmaint.running',
-        'settings.dbmaint.intervalNever',
-        'settings.dbmaint.interval30',
-        'settings.dbmaint.interval90',
-        'settings.dbmaint.interval180',
-        'settings.dbmaint.confirmTitle',
-      ],
-      body: [
-        'settings.dbmaint.neverRun',
-        'settings.dbmaint.lastRun',
-        'settings.dbmaint.nextRun',
-        'settings.dbmaint.checkOk',
-        'settings.dbmaint.checkFailed',
-        'settings.dbmaint.checkFailedHelp',
-        'settings.dbmaint.compacted',
-        'settings.dbmaint.compactedNothing',
-        'settings.dbmaint.analyzed',
-        'settings.dbmaint.failed',
-        'settings.dbmaint.diskFullHelp',
-        'settings.dbmaint.skippedBusy',
-        'settings.dbmaint.busy',
-        'settings.dbmaint.confirmBody',
-        'settings.dbmaint.loadFailed',
-      ],
-    },
     // uid, gid and umask are local Stat readings without data-glim-label, so
     // they go in `also`.
     {
-      title: 'settings.owner.identityTitle',
-      hint: 'settings.owner.identityHint',
-      rows: [],
-      also: ['settings.owner.uid', 'settings.owner.gid', 'settings.owner.umask', 'settings.owner.asked'],
+      title: 'settings.diagnostics.systemReportTitle',
+      hint: 'settings.diagnostics.subtitle',
+      rows: [
+        { key: 'settings.diagnostics.version' },
+        { key: 'settings.diagnostics.deployment' },
+        { key: 'settings.diagnostics.platform' },
+        { key: 'settings.owner.identityTitle', hint: 'settings.owner.identityHint' },
+      ],
+      also: [
+        'settings.diagnostics.download',
+        'settings.owner.uid',
+        'settings.owner.gid',
+        'settings.owner.umask',
+        'settings.owner.asked',
+      ],
       body: [
+        'settings.diagnostics.downloadHint',
         'settings.owner.umaskUnknown',
         'settings.owner.envIgnored',
         'settings.owner.umaskApplied',

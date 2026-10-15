@@ -13,6 +13,8 @@ import {
   TextInput,
 } from '../../components/ui';
 import { PathInput } from '../../components/FolderPicker';
+import { MaintenanceCard } from './advanced/Maintenance';
+import { ScrapeCard } from './advanced/Scrape';
 import { SearchToggle } from '../../components/SearchToggle';
 import { IconRefresh } from '../../lib/icons';
 import { PATH_KEYS } from '../../lib/settingsTransfer';
@@ -25,12 +27,11 @@ import { getPath, rowsFor, same, setPath, type Row, type ValueKind } from './pat
 import { label, useTx, type ChoicePrefix } from './tx';
 
 /**
- * Advanced lists every setting by key, generated from the settings document so
- * new fields appear without an edit here. It edits the shared draft, so the
- * server's sanitize and validate still apply. Above the table sits a card for
- * settings that have no other page but need an explanation; their keys keep
- * their raw rows in the table as well, and since both edit the same draft the
- * two cannot disagree.
+ * Advanced holds what somebody who runs the instance looks after: the retry
+ * counts, the database's upkeep, the metrics address, and every setting by
+ * key, generated from the settings document so new fields appear without an
+ * edit here. It edits the shared draft, so the server's sanitize and validate
+ * still apply, and the retry card and the table cannot disagree.
  */
 
 // Output that rides along in the same response, not settings.
@@ -179,6 +180,9 @@ export function Advanced() {
         </SubCard>
       </Card>
 
+      <MaintenanceCard hue={1} />
+      <ScrapeCard hue={2} />
+
       <div className="flex flex-col gap-4">
         <div className="flex flex-wrap items-center gap-3">
           {/* Needs the factory values to compare against. */}
@@ -202,7 +206,7 @@ export function Advanced() {
           />
         </div>
 
-        <Card hue={1} padding="none">
+        <Card hue={3} padding="none">
           <div className="p-5 pb-0">
             <SectionTitle>{tx('settings.advanced.allSettings')}</SectionTitle>
           </div>

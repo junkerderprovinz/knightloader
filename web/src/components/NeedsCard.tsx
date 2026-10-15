@@ -175,13 +175,13 @@ export function NeedsCard({ feed, hue }: { feed: NeedsFeed; hue?: number }) {
         };
       }
       case 'health': {
-        const health = settings('health');
+        const health = settings('health', 'settings.health.stateTitle');
         const part = healthLabel(t, 'health.part.', need.part.id);
         return {
           name: `${part} · ${healthLabel(t, 'health.state.', need.part.state)}`,
           sub: healthLabel(t, 'health.remedy.', need.part.remedy ?? ''),
           open: health,
-          main: { label: t('settings.nav.health'), icon: <IconHealth />, run: health },
+          main: { label: t('settings.health.stateTitle'), icon: <IconHealth />, run: health },
         };
       }
     }

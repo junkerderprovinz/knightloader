@@ -1,15 +1,16 @@
 import { fetchFileOwner, type FileOwnerIdentity } from '../../../lib/api';
 import { useT } from '../../../lib/i18n';
 import { useResource } from '../../../lib/useResource';
-import { Card, InfoBubble, SectionTitle } from '../../../components/ui';
+import { InfoBubble } from '../../../components/ui';
+import { SubHead } from '../controls';
 
 /**
- * The card shows the uid, gid and umask this instance writes files as. The
+ * OwnerSection shows the uid, gid and umask this instance writes files as. The
  * image runs as a fixed user and reads no PUID or PGID, so either of them that
  * is set is echoed beside the identity in force, marked as ignored. UMASK is
- * applied at start, and the card says whether the value took.
+ * applied at start, and the section says whether the value took.
  */
-export function OwnershipCard({ hue }: { hue: number }) {
+export function OwnerSection() {
   const { t } = useT();
   const { data, failed } = useResource<FileOwnerIdentity>(fetchFileOwner);
 
@@ -37,8 +38,8 @@ export function OwnershipCard({ hue }: { hue: number }) {
   }
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={t('settings.owner.identityHint')}>{t('settings.owner.identityTitle')}</SectionTitle>
+    <section className="flex flex-col gap-4">
+      <SubHead label={t('settings.owner.identityTitle')} hint={t('settings.owner.identityHint')} />
 
       {!data.known ? (
         // Windows has no unix owners, and "0:0" would read as root.
@@ -71,11 +72,12 @@ export function OwnershipCard({ hue }: { hue: number }) {
           ))}
         </div>
       )}
-    </Card>
+    </section>
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+/** Stat is one reading of the System card: a caption over a value. */
+export function Stat({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex flex-col gap-1">
       <span className="text-meta text-carbon-textMuted">{label}</span>

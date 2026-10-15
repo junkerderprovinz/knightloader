@@ -457,7 +457,7 @@ and cannot be explained.
   answers every part of the instance with a state of its own, the queue by why
   it is waiting and why it failed, room on the target folders and how long the
   process has been up. `GET /api/metrics` is the same reading as Prometheus
-  exposition text and answers 404 until the switch on the Health settings page
+  exposition text and answers 404 until the switch on the Advanced settings page
   is turned on. Neither is open, and neither is forwarded to a peer over the
   federation or the relay: both describe *this* machine's disks and sidecar, and
   a row of them drawn under a peer's name would name the wrong box.

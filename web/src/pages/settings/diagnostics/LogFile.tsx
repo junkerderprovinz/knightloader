@@ -3,27 +3,18 @@ import { fetchLogFileState, logFileHref, type LogFileState, type LogGeneration }
 import { useT } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { useResource } from '../../../lib/useResource';
-import {
-  Card,
-  ErrorCard,
-  FieldGroup,
-  InfoBubble,
-  LoadingCard,
-  NumberInput,
-  SectionTitle,
-  ToggleRow,
-} from '../../../components/ui';
+import { ErrorCard, FieldGroup, InfoBubble, LoadingCard, NumberInput, ToggleRow } from '../../../components/ui';
 import { useDraft } from '../context';
-import { SettingRow } from '../controls';
+import { SettingRow, SubCard } from '../controls';
 
 /**
- * LogFileCard switches the on-disk copy of the log and lists what is there. It
- * ships off so an update does not keep an array disk awake. The folder sits
- * beside the database and only KL_LOG_DIR moves it, so there is no path box.
- * The settings belong to the shared draft; the file's state is read from the
- * server.
+ * LogFileSection switches the on-disk copy of the log and lists what is
+ * there. It ships off so an update does not keep an array disk awake. The
+ * folder sits beside the database and only KL_LOG_DIR moves it, so there is no
+ * path box. The settings belong to the shared draft; the file's state is read
+ * from the server.
  */
-export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }) {
+export function LogFileSection({ hue, capacity }: { hue: number; capacity: number }) {
   const { t } = useT();
   const { cfg, patch, dirty } = useDraft();
   const { data, failed, loading, reload } = useResource<LogFileState>(fetchLogFileState);
@@ -38,15 +29,15 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
     wasDirty.current = dirty;
   }, [dirty, reload]);
 
-  if (loading) return <LoadingCard label={t('common.loading')} />;
+  if (loading) return <LoadingCard nested label={t('common.loading')} />;
   if (failed || !data) {
-    return <ErrorCard message={t('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />;
+    return (
+      <ErrorCard nested message={t('settings.diagnostics.loadFailed')} retry={reload} retryLabel={t('common.retry')} />
+    );
   }
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.diagnostics.fileTitle')}</SectionTitle>
-
+    <SubCard label={t('settings.diagnostics.fileTitle')} className="gap-5">
       <ToggleRow
         hue={hue}
         label={t('settings.diagnostics.fileOn')}
@@ -78,7 +69,12 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
               label={t('settings.diagnostics.fileKeep')}
               hint={t('settings.diagnostics.fileKeepHint')}
             >
-              <NumberInput value={file.keep} min={0} max={20} onValue={(keep) => patch({ logFile: { ...file, keep } })} />
+              <NumberInput
+                value={file.keep}
+                min={0}
+                max={20}
+                onValue={(keep) => patch({ logFile: { ...file, keep } })}
+              />
             </SettingRow>
           </>
         )}
@@ -93,12 +89,8 @@ export function LogFileCard({ hue, capacity }: { hue: number; capacity: number }
 
       <State state={data} />
 
-      {data.problem ? (
-        <Problem state={data} capacity={capacity} />
-      ) : (
-        <Generations generations={data.generations} />
-      )}
-    </Card>
+      {data.problem ? <Problem state={data} capacity={capacity} /> : <Generations generations={data.generations} />}
+    </SubCard>
   );
 }
 
@@ -126,7 +118,7 @@ function Problem({ state, capacity }: { state: LogFileState; capacity: number })
     <div className="flex flex-col gap-2">
       <span className="flex items-center gap-1.5 text-sm text-statusFail">
         {t('settings.diagnostics.fileProblem', { error: state.problem ?? '' })}
-        {/* The ring size comes from the diagnostics bundle, not a copy here. */}
+        {/* The ring size comes from the server, not a copy here. */}
         <InfoBubble tip={t('settings.diagnostics.fileProblemHint', { path: state.path, n: capacity })} />
       </span>
       <span className="text-meta text-carbon-textMuted">
@@ -157,9 +149,7 @@ function Generations({ generations }: { generations: LogGeneration[] }) {
               ? t('settings.diagnostics.fileCurrent')
               : t('settings.diagnostics.fileOlder', { n: g.index })}
           </span>
-          <span className="glim-num text-carbon-text">
-            {fmtBytes(g.bytes)}
-          </span>
+          <span className="glim-num text-carbon-text">{fmtBytes(g.bytes)}</span>
           <span className="text-meta text-carbon-textMuted">{fmtDate(g.modifiedAt)}</span>
           <span className="flex-1" />
           {/* An anchor for its download attribute, drawn as a badge. */}

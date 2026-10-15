@@ -5,15 +5,16 @@ import { useT } from '../../../lib/i18n';
 import { Card, ErrorCard, InfoBubble, LoadingCard, SectionTitle, ToggleRow, useTooltip } from '../../../components/ui';
 import { Dropdown } from '../../../components/Dropdown';
 import { SearchToggle } from '../../../components/SearchToggle';
+import { LogFileSection } from './LogFile';
 import { useLogTail } from './useLogTail';
 
 /**
- * LogViewerCard shows the log with a search box, a source picker and a switch
- * that follows the newest line. It filters by source because the log calls
- * carry no severity, and it filters locally so no line is lost by changing the
- * filter.
+ * LogCard shows the log with a search box, a source picker and a switch that
+ * follows the newest line, and below it the copy on disk. It filters by source
+ * because the log calls carry no severity, and it filters locally so no line
+ * is lost by changing the filter.
  */
-export function LogViewerCard({ hue }: { hue: number }) {
+export function LogCard({ hue }: { hue: number }) {
   const { t } = useT();
   const [follow, setFollow] = useState(false);
   const [query, setQuery] = useState('');
@@ -40,7 +41,7 @@ export function LogViewerCard({ hue }: { hue: number }) {
   return (
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.diagnostics.logHint', { n: capacity })}>
-        {t('settings.diagnostics.logTitle')}
+        {t('settings.diagnostics.logCardTitle')}
       </SectionTitle>
 
       <div className="flex flex-wrap items-center gap-3">
@@ -122,6 +123,8 @@ export function LogViewerCard({ hue }: { hue: number }) {
           ))}
         </pre>
       )}
+
+      <LogFileSection hue={hue} capacity={capacity} />
     </Card>
   );
 }

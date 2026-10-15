@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 
 import type { HealthReport, HealthSubsystem } from '../../../lib/api';
 import { I18nProvider } from '../../../lib/i18n';
-import { PartsCard } from './Parts';
+import { PartsList } from './Parts';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -36,7 +36,7 @@ async function draw(subsystems: HealthSubsystem[]) {
     root.render(
       <I18nProvider>
         <MemoryRouter>
-          <PartsCard hue={0} report={{ subsystems } as HealthReport} />
+          <PartsList report={{ subsystems } as HealthReport} />
           <Where />
         </MemoryRouter>
       </I18nProvider>,
@@ -57,7 +57,7 @@ describe('a part with a fault', () => {
     expect(row('JDownloader').textContent).toContain('connection refused');
     const open = [...row('JDownloader').querySelectorAll('button')].find((b) => b.textContent === 'Open the log')!;
     await act(async () => open.click());
-    expect(at).toBe('/settings/diagnostics?log=JD');
+    expect(at).toBe('/settings/health?log=JD');
   });
 
   it('says it gave no reason rather than nothing at all', async () => {

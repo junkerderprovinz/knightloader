@@ -4,7 +4,7 @@ import { useT } from '../../../lib/i18n';
 import { appAddress } from '../../../lib/basePath';
 import { useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
-import { Reading } from './Reading';
+import { Reading } from '../health/Reading';
 
 /**
  * ScrapeCard switches the plain-text metrics route, which is off by default and

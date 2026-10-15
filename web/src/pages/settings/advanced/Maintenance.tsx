@@ -113,7 +113,7 @@ export function MaintenanceCard({ hue }: { hue: number }) {
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-5">
+      <Card hue={hue} data-new="advanced-upkeep" className="flex flex-col gap-5">
         <SectionTitle hint={t('settings.dbmaint.hint')}>{t('settings.dbmaint.title')}</SectionTitle>
 
         {/* FieldGroup, because a label with no control in it names nothing. */}

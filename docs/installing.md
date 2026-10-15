@@ -26,7 +26,7 @@ with 0777, so the account you use over SMB can
 move, rename and delete them. `UMASK` is read the way linuxserver.io images
 read it, as an octal mask such as `000`, `002` or `022`. `PUID` and `PGID` are
 not read: the image runs as a fixed user, and `--user` is how you choose
-another one. Settings, Diagnostics shows which user and mask are in force.
+another one. Settings, Health & diagnostics shows which user and mask are in force.
 
 ### App key
 
@@ -70,8 +70,8 @@ before the key still restore.
 KnightLoader works on a host name of its own, such as `https://kl.example.com`,
 and just as well in a folder of another one, such as `https://example.com/kl/`.
 Either way the proxy has to pass the WebSocket upgrade through and, when it
-terminates TLS, send `X-Forwarded-Proto`. The self-test under Settings,
-Diagnostics checks both from your browser.
+terminates TLS, send `X-Forwarded-Proto`. The reverse proxy check under
+Settings, Network checks both from your browser.
 
 For a folder, KnightLoader has to know the path. There are two ways to tell it:
 

@@ -13,6 +13,8 @@ const FOLDED: Record<string, string> = {
   categories: 'rules',
   // The captcha accounts' order and when they start stand beside their keys.
   captcha: 'accounts',
+  // The log, the start report and the bug report stand with the health of the parts.
+  diagnostics: 'health',
 };
 
 /** pageId returns the page a possibly folded id is drawn on. */
