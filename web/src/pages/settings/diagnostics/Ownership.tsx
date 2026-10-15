@@ -5,10 +5,10 @@ import { InfoBubble } from '../../../components/ui';
 import { SubHead } from '../controls';
 
 /**
- * OwnerSection shows the uid, gid and umask this instance writes files as. The
- * image runs as a fixed user and reads no PUID or PGID, so either of them that
- * is set is echoed beside the identity in force, marked as ignored. UMASK is
- * applied at start, and the section says whether the value took.
+ * OwnerSection shows the uid, gid and umask this instance writes files as.
+ * PUID and PGID are read only when the container starts as root, so each that
+ * is set is echoed beside the identity in force, marked as applied or as not
+ * read. UMASK is applied at start, and the section says whether the value took.
  */
 export function OwnerSection() {
   const { t } = useT();
@@ -22,12 +22,14 @@ export function OwnerSection() {
 
   // Every variable that is set, with what became of it, so each value is echoed back.
   const asked: Array<{ name: string; line: string; took: boolean }> = [];
-  const ignored = (name: string, value: string) =>
-    asked.push({ name, took: false, line: t('settings.owner.envIgnored', { name, value, owner: who }) });
-  if (!data.idsRead) {
-    if (data.env.puid) ignored('PUID', data.env.puid);
-    if (data.env.pgid) ignored('PGID', data.env.pgid);
-  }
+  const id = (name: string, value: string) =>
+    asked.push(
+      data.idsRead
+        ? { name, took: true, line: t('settings.owner.envApplied', { name, value }) }
+        : { name, took: false, line: t('settings.owner.envIgnored', { name, value, owner: who }) },
+    );
+  if (data.env.puid) id('PUID', data.env.puid);
+  if (data.env.pgid) id('PGID', data.env.pgid);
   if (data.env.umask) {
     const value = data.env.umask;
     asked.push(

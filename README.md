@@ -296,7 +296,7 @@ docker run -d --name knightloader \
   ghcr.io/junkerderprovinz/knightloader:latest
 ```
 
-On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over SMB can move and delete what KnightLoader downloads.
+KnightLoader runs as uid and gid 1000 and takes over the folders Docker creates for it on the first start; `-e PUID` and `-e PGID` pick another account. On Unraid, add `--user 99:100` and `-e UMASK=000`, so the account you use over SMB can move and delete what KnightLoader downloads.
 
 Then open `http://<host>:8749`. The desktop apps, the Android app and the browser extension are the buttons above. Reverse proxies, updates and building it yourself are covered in the [installation guide](https://junkerderprovinz.github.io/knightloader/installing/).
 

@@ -1310,6 +1310,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.diagnostics.downloadHint',
         'settings.owner.umaskUnknown',
         'settings.owner.envIgnored',
+        'settings.owner.envApplied',
         'settings.owner.umaskApplied',
         'settings.owner.umaskRefused',
         'settings.owner.envHow',

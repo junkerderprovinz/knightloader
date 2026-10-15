@@ -15,6 +15,7 @@ import (
 	"os/signal"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"syscall"
 	"time"
 
@@ -29,7 +30,9 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/filemode"
 	"github.com/junkerderprovinz/knightloader/internal/fileowner"
 	"github.com/junkerderprovinz/knightloader/internal/logring"
+	"github.com/junkerderprovinz/knightloader/internal/privdrop"
 	"github.com/junkerderprovinz/knightloader/internal/provision"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // shutdownGrace bounds how long a graceful stop waits for in-flight HTTP
@@ -56,9 +59,13 @@ func main() {
 		return
 	}
 
+	// First, so nothing below runs as root: the reset, the bridge, the store,
+	// JDownloader and the listener all start as PUID:PGID. A bridge keeps no
+	// data, so it has no folders to hand over.
+	dropRoot(*remote == "")
+
 	// Before anything creates a file or starts JDownloader, which inherits
-	// the mask. PUID and PGID are not applied here: switching uid
-	// needs root, and the image runs as USER knight (see docs/decisions.md).
+	// the mask.
 	if v := os.Getenv("UMASK"); v != "" {
 		if err := filemode.Apply(v); err != nil {
 			log.Printf("UMASK ignored: %v", err)
@@ -96,9 +103,10 @@ func main() {
 	buildinfo.BasePath = base
 
 	// An unwritable data directory otherwise fails later as a bare "permission
-	// denied" from SQLite. This names the owner, our uid and the chown to run,
-	// and repairs nothing: chowning a mounted share on boot would rewrite the
-	// ownership of somebody's library.
+	// denied" from SQLite. This names the owner, our uid and the chown to run.
+	// dropRoot only hands over empty folders: chowning one with something in
+	// it, a mounted share say, would rewrite the ownership of somebody's
+	// library.
 	if line, ok := fileowner.Advise(dataDir); ok {
 		log.Print(line)
 	}
@@ -329,6 +337,51 @@ func runBridge(remote, password string, watchClipboard bool) {
 
 	<-stop
 	log.Printf("bridge stopped")
+}
+
+// dropRoot switches a process started as root to PUID:PGID after giving that
+// account the empty folders Docker created for a first start; see
+// internal/privdrop and docs/decisions.md. Started as anyone else, it does
+// nothing.
+func dropRoot(handOver bool) {
+	var dirs []string
+	if handOver {
+		dirs = startFolders()
+	}
+	res, err := privdrop.Drop(dirs)
+	if err != nil {
+		log.Fatalf("started as root and could not switch to PUID/PGID: %v", err)
+	}
+	if !res.Applied {
+		return
+	}
+	for _, err := range res.Failed {
+		log.Printf("could not hand a folder over: %v", err)
+	}
+	me := fileowner.Who()
+	runsAs := fmt.Sprintf("%d:%d", me.UID, me.GID)
+	if me.User != "" {
+		runsAs += " (" + me.User + ")"
+	}
+	if len(res.Handed) == 0 {
+		log.Printf("started as root, now running as %s; no folder needed a new owner", runsAs)
+		return
+	}
+	log.Printf("started as root, gave %s to %d:%d, now running as %s",
+		strings.Join(res.Handed, ", "), res.UID, res.GID, runsAs)
+}
+
+// startFolders are the folders a fresh install mounts: the data directory, the
+// download folder inside it and the drop folders. /watch is the mount point
+// docs/installing.md uses; the image does not create it, so it only exists
+// when something is mounted there.
+func startFolders() []string {
+	var dirs []string
+	if d := os.Getenv("KL_DATA"); d != "" {
+		dirs = append(dirs, d, filepath.Join(d, settings.DownloadsDirName))
+	}
+	dirs = append(dirs, "/watch")
+	return append(dirs, filepath.SplitList(os.Getenv("KL_WATCH_DIRS"))...)
 }
 
 func env(k, def string) string {

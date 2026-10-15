@@ -11,9 +11,9 @@
 // Known false means the numbers mean nothing (Windows has no unix owners), as
 // in internal/diskspace; a readout must say so instead of printing zeros.
 //
-// Nothing here reads PUID or PGID or changes an owner: the image runs as an
-// unprivileged user, which cannot switch uid. The package reports the
-// ownership so it can be fixed in the run command or with a chown on the host.
+// Nothing here reads PUID or PGID or changes an owner; internal/privdrop does
+// both, once, at start. The package reports the ownership so it can be fixed in
+// the run command or with a chown on the host.
 // UMASK is applied at startup by internal/filemode.
 package fileowner
 

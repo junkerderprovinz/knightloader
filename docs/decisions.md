@@ -8,24 +8,53 @@ and the next person to read the code fixes it back.
 Each entry names what was chosen, and what was rejected and why. The rejected
 half is the part worth keeping.
 
-## Ownership: UMASK applies, PUID and PGID only report
+## Ownership: start as root, hand over what is empty, switch
 
 **Built:** the readout. Which user and group downloaded files land as, under
 which mask, per configured folder, plus the same figures in the diagnostics
-bundle. And UMASK: the process takes it as its own umask at startup, the way
-linuxserver.io images read it, and logs one line saying so.
+bundle. UMASK, which the process takes as its own umask at startup, the way
+linuxserver.io images read it. And PUID and PGID, for a container that starts as
+root.
 
-**Not built:** an entrypoint that makes PUID and PGID take effect.
+**Not built:** a recursive chown, a chown of a folder that already holds
+something, and a shell entrypoint.
+
+Docker creates a missing bind-mount source as root:root 0755. An image that
+starts as an unprivileged user cannot write a data directory made that way, so
+the plain `docker run` from the README would stop at its first start and restart
+in a loop. `Dockerfile` therefore declares no `USER`. The binary starts as root
+and, before it reads a setting or opens a socket, `internal/privdrop` does three
+things. It gives each folder a first start mounts (the data directory, the
+`downloads` folder inside it, `/watch` and every `KL_WATCH_DIRS` entry) to
+PUID:PGID, provided root owns it and it holds nothing but other volumes' mount
+points. It drops root's supplementary groups and switches gid, then uid. And it
+checks that neither its real nor its effective uid is root, and stops the start
+otherwise. PUID and PGID
+default to 1000, the image's `knight`; 0, or a value that is not a number, stops
+the start.
+
+Started as any other account, none of this runs and PUID and PGID are not read.
+That is Unraid, whose template passes `--user 99:100`, and any other `--user`,
+`runAsUser` or rootless Docker. A server started as root outside a container
+switches just the same.
+
+Only an empty folder is handed over, and only the folder itself. A folder with
+something in it is somebody's existing data or a mounted share, and chowning it
+at boot would rewrite the ownership of their library. For a data directory like
+that, `fileowner.Advise` logs who owns it, which account the server runs as and
+the chown to run on the host.
+
+The switch is Go, in `main`, rather than a shell script, so that root does
+nothing but the hand-over and the switch: no listener, no file in the data
+directory, no JDownloader. `--reset-2fa` and the bridge run after the switch as
+well. `tini` stays PID 1 as root; it reaps children and forwards signals, and
+starts nothing but the server.
 
 The two kinds of variable need different things. A umask belongs to the
 process, any process may set its own, and the children it starts (yt-dlp,
 ffmpeg, the headless JDownloader) inherit it, so honouring UMASK needs no
-privilege at all. Changing the uid does. `Dockerfile` declares `USER knight`, on
-purpose. Honouring PUID and PGID means starting the container as root and
-dropping privileges in an entrypoint, which turns a non-root image into a
-root-started one, and it needs a first-ever docker build job in CI to prove the
-result. That is a separate decision on a separate day. On Unraid,
-`--user 99:100` in Extra Parameters does what PUID and PGID do elsewhere.
+privilege at all. Changing the uid does, which is why PUID and PGID depend on how
+the container was started.
 
 For the mask to decide anything, every file a download produces is requested as
 0666 and every folder as 0777 (`internal/filemode`), extracted files included.
@@ -42,23 +71,23 @@ bits away. JDownloader is the one child that writes secrets with modes of its
 own choosing, the hoster logins it is handed, so its folder in the data
 directory is kept at 0700.
 
-Two consequences are load-bearing and must not be "tidied":
+Three consequences are load-bearing and must not be "tidied":
 
 - The readout reports per variable. `umaskApplied` says whether UMASK took;
-  a single `idsRead: false` says that nothing reads PUID or PGID. There is no
-  per-id "did this take" flag, because this build could not answer one
-  honestly: `applied.puid = true` could only ever mean "the value you set
-  happens to equal the uid you already had", which reads on screen as "PUID
-  works".
-- No string in the interface may imply that setting PUID or PGID would change
-  anything. `settings.owner.envIgnored` means: the variable is set, and nothing
-  in this image reads it.
-
-`routes_fileowner.go` carries a test that reads this repo's own `Dockerfile` and
-fails in both directions: while `USER knight` is there and `idsRead` is true,
-and when `USER knight` is gone and `idsRead` is still false. So the day somebody
-does take the entrypoint decision, that test tells them the copy has to move
-with it.
+  `idsRead` says whether this process read PUID and PGID at all, which only a
+  start as root does. There is no per-id flag: under `--user` neither is read,
+  and `applied.puid = true` could then only mean "the value you set happens to
+  equal the uid you already had", which reads on screen as "PUID works".
+- `settings.owner.envIgnored` means: the variable is set, and this container
+  was started as another account, so nothing read it. No string may imply that
+  setting PUID or PGID changes anything while `--user` is in the run command.
+- `TestTheImageStartsAsRootSoPUIDCanTakeEffect` in `internal/api` reads this
+  repo's `Dockerfile` and fails on a `USER` line, or when the account it creates
+  differs from the one the switch falls back to. The `image` job in
+  `.github/workflows/ci.yml` builds the image and runs
+  `scripts/image-ownership.sh`, which starts it as root on fresh bind mounts and
+  checks the ids the server runs with, the owners of the folders it took over,
+  `--user 99:100`, and that a folder with a file in it keeps root as its owner.
 
 ## Metrics: a guarded route and a switch that ships off
 
