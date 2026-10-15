@@ -1763,8 +1763,11 @@ body {
 
   .glim-confirm { animation: glim-confirm var(--motion-confirm-dur) ease-out; }
 
+  /* Backwards, not both: a transform held after the entrance keeps every card
+     a stacking context, and a later card then paints over an earlier card's
+     open list. The end state is the row's own style anyway. */
   .glim-stagger-row {
-    animation: glim-row-in var(--motion-stagger-dur) ease-out both;
+    animation: glim-row-in var(--motion-stagger-dur) ease-out backwards;
     /* min() caps the whole spread however long the list is. */
     animation-delay: min(calc(var(--row-i, 0) * var(--motion-stagger-step)), var(--motion-stagger-cap));
   }
