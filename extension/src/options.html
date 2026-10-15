@@ -295,33 +295,30 @@
       <div class="glim-listbox" id="languageBox"></div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 3">
-      <h2 class="glim-section-badge" id="appearanceHeading">Look</h2>
-      <!-- Takes the look from the instance through GET /api/appearance over
-           the relay. It comes first because it decides whether the card below
-           is set here. Without a group the switch is removed and the notice
-           below explains why (GlimStone 1.15.0); options.js swaps the two. -->
-      <div class="glim-row" id="followInstanceRow">
-        <span class="glim-row-label" id="followInstanceLabel"></span>
-        <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
-          <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-        </button>
-      </div>
-      <!-- Static markup that options.js fills, since innerHTML from a variable
-           fails Mozilla's linter. -->
-      <div class="glim-unavailable" id="followUnavailable" hidden>
-        <span class="glim-unavailable-title" id="followUnavailableTitle"></span>
-        <span class="glim-unavailable-reason" id="followUnavailableReason"></span>
-      </div>
-    </section>
-
     <!-- One card with a row per setting, as the web UI's Display card, with
          the colours its Colours card holds. A selector stands at the end of
          its row at its own width, the label at the start, as the web UI's
          SettingRow has it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 4">
+    <section class="glim-card glim-stagger-row" style="--row-i: 3">
       <h2 class="glim-section-badge" id="displayHeading">Display</h2>
       <div class="axes">
+        <!-- Takes the look from the instance through GET /api/appearance over
+             the relay. It comes first because it decides whether the rows
+             below are set here. Without a group the switch is removed and the
+             notice below stands in its place (GlimStone 1.15.0); options.js
+             swaps the two. -->
+        <div class="glim-row" id="followInstanceRow">
+          <span class="glim-row-label" id="followInstanceLabel"></span>
+          <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
+            <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+          </button>
+        </div>
+        <!-- Static markup that options.js fills, since innerHTML from a
+             variable fails Mozilla's linter. -->
+        <div class="glim-unavailable" id="followUnavailable" hidden>
+          <span class="glim-unavailable-title" id="followUnavailableTitle"></span>
+          <span class="glim-unavailable-reason" id="followUnavailableReason"></span>
+        </div>
         <div class="glim-row segRow">
           <span class="glim-row-label" id="themeLabel"></span>
           <div class="glim-seg glim-seg--hug" id="themeSeg" role="group" aria-labelledby="themeLabel"></div>
@@ -377,7 +374,7 @@
          its explanation in the label's bubble. A notice that says why a switch
          fell back stays in view under its row, and the settings a feature
          brings follow it while it is on. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 5">
+    <section class="glim-card glim-stagger-row" style="--row-i: 4">
       <h2 class="glim-section-badge" id="browserHeading">In the browser</h2>
       <div class="axes features">
         <div>
@@ -483,7 +480,7 @@
       </div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 6">
+    <section class="glim-card glim-stagger-row" style="--row-i: 5">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
@@ -495,7 +492,7 @@
     <!-- Help and About split as on the web UI's Info tile: the ways to report
          something, then who made the extension and the ways to give. Each
          sentence has its buttons directly beneath it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
+    <section class="glim-card glim-stagger-row" style="--row-i: 6">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -513,7 +510,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 8">
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
