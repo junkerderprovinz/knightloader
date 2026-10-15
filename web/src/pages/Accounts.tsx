@@ -962,7 +962,8 @@ function RoutingSection({
 
   const title = t('accounts.routing.priorityTitle');
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    // The gap the page keeps between its cards, side by side as well.
+    <div className="grid grid-cols-1 gap-10 sm:grid-cols-2">
       {/* The state of the backend that loads for free is on the Health page,
           and its revision on the card of built-in parts. */}
       <div data-new="free-first" className="sm:col-span-2">
