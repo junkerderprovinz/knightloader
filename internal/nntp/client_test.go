@@ -398,3 +398,56 @@ func TestAStatusLineWithoutEndIsCutOff(t *testing.T) {
 		})
 	}
 }
+
+func TestAFetchAfterARedialDialsAnew(t *testing.T) {
+	s := nntptest.New(t)
+	s.SetLogin("reader", "secret")
+	for _, id := range []string{"a@test", "b@test", "c@test"} {
+		s.AddPart(id, part(1))
+	}
+	c := nntp.NewClient([]nntp.Server{serverOf(s, 0)}, nil)
+	defer c.Close()
+	if _, err := fetch(t, c, "a@test"); err != nil {
+		t.Fatal(err)
+	}
+	c.Redial()
+	for _, id := range []string{"b@test", "c@test"} {
+		if _, err := fetch(t, c, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if s.Logins() != 2 {
+		t.Errorf("%d logins; want the connection from before the redial replaced once and the new one kept", s.Logins())
+	}
+}
+
+func TestAConnectionDialledAcrossARedialIsNotKept(t *testing.T) {
+	s := nntptest.New(t)
+	s.SetLogin("reader", "secret")
+	s.AddPart("a@test", part(1))
+	s.AddPart("b@test", part(2))
+	var once sync.Once
+	var c *nntp.Client
+	srv := serverOf(s, 0)
+	srv.Connections = 1
+	srv.Dialer = dialerFunc(func(ctx context.Context, network, addr string) (net.Conn, error) {
+		once.Do(c.Redial)
+		return (&net.Dialer{}).DialContext(ctx, network, addr)
+	})
+	c = nntp.NewClient([]nntp.Server{srv}, nil)
+	defer c.Close()
+	for _, id := range []string{"a@test", "b@test"} {
+		if _, err := fetch(t, c, id); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if s.Logins() != 2 {
+		t.Errorf("%d logins; a connection dialled across a redial was kept for the next article", s.Logins())
+	}
+}
+
+type dialerFunc func(ctx context.Context, network, addr string) (net.Conn, error)
+
+func (f dialerFunc) DialContext(ctx context.Context, network, addr string) (net.Conn, error) {
+	return f(ctx, network, addr)
+}

@@ -37,7 +37,7 @@ type Premiumize struct {
 // NewPremiumize builds the client for the account in slot, speaking to the
 // API at base, which is PremiumizeAPI outside tests.
 func NewPremiumize(base, slot, key string) *Premiumize {
-	return &Premiumize{base: base, slot: slot, key: key, hc: httpx.New(httpx.Options{Timeout: apiTimeout})}
+	return &Premiumize{base: base, slot: slot, key: key, hc: httpx.New(httpx.Options{Timeout: apiTimeout, Class: httpx.ClassUsenet})}
 }
 
 func (p *Premiumize) Slot() string      { return p.slot }

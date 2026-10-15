@@ -1,16 +1,20 @@
 package app
 
 // The engine as the backends that resolve a link and pass the transfer on see
-// it: a debrid service or TorBox after its unlock, and the user's own servers
-// for a WebDAV address. The file goes where the task's folder rules put it,
-// through the working folder and under the collision policy, as a direct
-// download's does. Handed the engine as it is, they would write into its own
-// folder, whatever the category or package says.
+// it: a debrid service or TorBox after its unlock, a Usenet service that
+// fetched an NZB, and the user's own servers for a WebDAV address. The file
+// goes where the task's folder rules put it, through the working folder and
+// under the collision policy, and over the route, as a direct download's does.
+// Handed the engine as it is, they would write into its own folder, whatever
+// the category or package says, and go out over the machine's own connection
+// whatever the VPN switches say.
 
 import (
 	"context"
 
+	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/engine"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 type engineHandoff struct {
@@ -40,10 +44,19 @@ func (h engineHandoff) start(taskID, url string, headers map[string]string, conn
 		h.a.mu.Unlock()
 		return
 	}
-	job := h.a.engineJobLocked(t, h.a.Settings.Get(), url, headers, conns)
+	job := h.a.handedJobLocked(t, h.a.Settings.Get(), url, headers, conns)
 	h.a.beginHandoverLocked(taskID)
 	h.a.mu.Unlock()
 	defer h.a.endHandover(taskID)
 	job.Relink = relink
 	h.Engine.Start(job)
+}
+
+// handedJobLocked is engineJobLocked for a link a backend handed over, on the
+// route a direct download of it would take. The picker sees the host that
+// serves the file, not the one the task was added for. Caller holds a.mu.
+func (a *App) handedJobLocked(t *core.Task, cfg settings.Settings, url string, headers map[string]string, conns int) engine.Job {
+	job := a.engineJobLocked(t, cfg, url, headers, conns)
+	job.Route, t.Connection = a.routeForLocked(t, hostOf(url))
+	return job
 }

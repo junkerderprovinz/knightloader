@@ -111,6 +111,8 @@ type conn struct {
 	nc   *idleConn
 	tp   *textproto.Conn
 	idle time.Time
+	// gen is the line's Redial count when it was dialled.
+	gen uint64
 }
 
 // idleConn moves the read deadline on with every read. cancelled is set once

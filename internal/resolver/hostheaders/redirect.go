@@ -46,7 +46,7 @@ func (s Set) checkRedirect(next func(*http.Request, []*http.Request) error) func
 // the shared connection pool.
 func (s Set) Client(base *http.Client) *http.Client {
 	if base == nil {
-		base = httpx.New(httpx.Options{Timeout: probeTimeout})
+		base = httpx.New(httpx.Options{Timeout: probeTimeout, Class: httpx.ClassHosters})
 	}
 	c := *base
 	c.CheckRedirect = s.checkRedirect(base.CheckRedirect)
