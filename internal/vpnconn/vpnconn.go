@@ -557,6 +557,9 @@ func (m *Manager) open(ctx context.Context, p Provider, login *Login) (*session,
 	}
 	if err := m.tun.Connect(octx, sess.cfg); err != nil {
 		endSoon(sess)
+		if errors.Is(err, vpn.ErrResolve) {
+			return nil, &failure{CodeTimeout, err}
+		}
 		return nil, &failure{CodeConfigInvalid, err}
 	}
 	return sess, nil

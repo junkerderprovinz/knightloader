@@ -327,6 +327,22 @@ func TestANewConnectRetriesOnTheHandshakeTimeoutAlone(t *testing.T) {
 	}
 }
 
+func TestAnEndpointThatDoesNotResolveSaysSo(t *testing.T) {
+	sk, _ := GeneratePrivateKey()
+	cfg := clientConfig(t, sk, 51820)
+	cfg.Peer.Endpoint = "vpn.example.test:51820"
+	tun := New(Options{Logf: t.Logf, LookupNetIP: func(context.Context, string, string) ([]netip.Addr, error) {
+		return nil, &net.DNSError{Err: "server misbehaving", Name: "vpn.example.test", IsTemporary: true}
+	}})
+	t.Cleanup(tun.Disconnect)
+	if err := tun.Connect(dialCtx(t), cfg); !errors.Is(err, ErrResolve) {
+		t.Errorf("connect = %v, want ErrResolve", err)
+	}
+	if err := tun.Connect(dialCtx(t), Config{}); errors.Is(err, ErrResolve) {
+		t.Errorf("a broken config failed as %v", err)
+	}
+}
+
 func TestRefreshHandsTheReconnectANewServer(t *testing.T) {
 	sk, _ := GeneratePrivateKey()
 	gone := startTestServer(t, sk, Key{}, 0)
