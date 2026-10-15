@@ -79,8 +79,6 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/resolvers/', pages: ['resolvers'] },
   { file: 'src/pages/settings/Torrents.tsx', pages: ['torrents'] },
   { file: 'src/pages/settings/torrents/', pages: ['torrents'] },
-  { file: 'src/pages/settings/DebridDrive.tsx', pages: ['debriddrive'] },
-  { file: 'src/pages/settings/debriddrive/', pages: ['debriddrive'] },
   { file: 'src/pages/settings/Automation.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/automation/', pages: ['automation'] },
   { file: 'src/pages/settings/Schedule.tsx', pages: ['automation'] },

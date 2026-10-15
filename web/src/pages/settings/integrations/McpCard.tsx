@@ -51,8 +51,8 @@ import { useToast } from '../../../lib/toast';
 import { SettingRow, SubHead } from '../controls';
 import { PRESET_LABEL, scopesLabel } from '../access/tokenScopes';
 
-// The second card of the Integrations page, after the VPN's.
-const HUE = 1;
+// The third card of the Integrations page, after the VPN's two.
+const HUE = 2;
 
 /** How often the card asks again while a new client has not called yet. */
 const FIRST_CALL_POLL_MS = 3000;

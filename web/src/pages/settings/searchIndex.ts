@@ -457,14 +457,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.vpn.title',
       hint: 'settings.vpn.cardHint',
-      rows: [
-        { key: 'settings.vpn.routesTitle', hint: 'settings.vpn.routesHint' },
-        { key: 'settings.vpn.route.torrents', hint: 'settings.vpn.route.torrentsHint' },
-        { key: 'settings.vpn.route.hosters' },
-        { key: 'settings.vpn.route.ytdlp' },
-        { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
-        { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
-      ],
+      rows: [],
       also: [
         'settings.vpn.add',
         'settings.vpn.custom',
@@ -486,6 +479,17 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
     },
     {
+      title: 'settings.vpn.routesTitle',
+      hint: 'settings.vpn.routesHint',
+      rows: [
+        { key: 'settings.vpn.route.torrents', hint: 'settings.vpn.route.torrentsHint' },
+        { key: 'settings.vpn.route.hosters' },
+        { key: 'settings.vpn.route.ytdlp' },
+        { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
+        { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
+      ],
+    },
+    {
       title: 'settings.access.mcp.title',
       hint: 'settings.access.mcp.intro',
       rows: [],
@@ -504,10 +508,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.access.mcp.pickHint',
         'settings.access.mcp.cloudHint', 'settings.access.mcp.nameHint', 'settings.access.mcp.rightsHint'],
     },
-  ],
-
-  // The drive's switch is the card's title, so it has no row of its own.
-  debriddrive: [
+    // The drive's switch is the card's title, so it has no row of its own.
     {
       title: 'settings.module.debriddrive',
       rows: [
