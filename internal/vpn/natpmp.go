@@ -181,6 +181,11 @@ type PortForward struct {
 	OnChange func(port uint16)
 	Logf     func(format string, args ...any)
 
+	// held is the TCP mapping Run keeps, and udpApart says the gateway put
+	// UDP on another port. Only Run's goroutine touches them.
+	held     Mapping
+	udpApart bool
+
 	mu   sync.Mutex
 	port uint16
 }
@@ -197,11 +202,10 @@ func (pf *PortForward) Port() uint16 {
 func (pf *PortForward) Run(ctx context.Context) error {
 	lifetime := cmp.Or(pf.Lifetime, 60*time.Second)
 	renewBefore := cmp.Or(pf.Renew, lifetime/4)
-	want := pf.Prefer
 	var expires time.Time
 	retry := time.Second
 	for {
-		port, granted, err := pf.mapBoth(ctx, want, lifetime)
+		granted, err := pf.mapBoth(ctx, lifetime)
 		var next time.Duration
 		switch {
 		case ctx.Err() != nil:
@@ -217,9 +221,8 @@ func (pf *PortForward) Run(ctx context.Context) error {
 			retry = min(2*retry, renewBefore)
 		default:
 			retry = time.Second
-			want = port
 			expires = time.Now().Add(granted)
-			pf.set(port)
+			pf.set(pf.held.ExternalPort)
 			next = max(granted-renewBefore, time.Second)
 		}
 		select {
@@ -232,55 +235,97 @@ func (pf *PortForward) Run(ctx context.Context) error {
 }
 
 func (pf *PortForward) drop() {
-	p := pf.Port()
-	if p == 0 {
+	if pf.held.ExternalPort == 0 {
 		return
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
 	defer cancel()
-	pf.Client.Map(ctx, "tcp", p, 0, 0)
-	pf.Client.Map(ctx, "udp", p, 0, 0)
+	pf.unmap(ctx, pf.held.InternalPort)
+	pf.Client.Map(ctx, "udp", pf.held.InternalPort, 0, 0)
+	pf.held = Mapping{}
 	pf.set(0)
 }
 
-// mapBoth maps want for TCP and then the port TCP got for UDP, asking once
-// more when the gateway hands out a port other than the one asked for, so
-// inside and outside end on one port. A gateway that puts UDP elsewhere
-// leaves the port forwarded for TCP only.
-func (pf *PortForward) mapBoth(ctx context.Context, want uint16, lifetime time.Duration) (uint16, time.Duration, error) {
+// mapBoth renews or makes the TCP mapping and puts UDP on the same ports. A
+// gateway that puts UDP elsewhere leaves the port forwarded for TCP only.
+func (pf *PortForward) mapBoth(ctx context.Context, lifetime time.Duration) (time.Duration, error) {
+	tcp, err := pf.mapTCP(ctx, lifetime)
+	if err != nil {
+		return 0, err
+	}
+	pf.held = tcp
+	udp, err := pf.Client.Map(ctx, "udp", tcp.InternalPort, tcp.ExternalPort, lifetime)
+	if err != nil {
+		return 0, err
+	}
+	apart := udp.ExternalPort != tcp.ExternalPort
+	if apart && !pf.udpApart {
+		pf.logf("vpn: the gateway forwards TCP on %d and UDP on %d; UDP stays unreachable", tcp.ExternalPort, udp.ExternalPort)
+	}
+	pf.udpApart = apart
+	if apart {
+		pf.Client.Map(ctx, "udp", tcp.InternalPort, 0, 0)
+		return tcp.Lifetime, nil
+	}
+	return min(tcp.Lifetime, udp.Lifetime), nil
+}
+
+// mapTCP renews the mapping held, or maps Prefer when there is none. The
+// gateway keys a mapping by its internal port, so a renewal repeats it; any
+// other internal port makes a second mapping, which gets a new port outside
+// because the first one holds the port suggested.
+func (pf *PortForward) mapTCP(ctx context.Context, lifetime time.Duration) (Mapping, error) {
+	want := pf.Prefer
+	if h := pf.held; h.ExternalPort != 0 {
+		m, err := pf.Client.Map(ctx, "tcp", h.InternalPort, h.ExternalPort, lifetime)
+		if err != nil || m.ExternalPort == h.ExternalPort {
+			return m, err
+		}
+		// The gateway lost the mapping or moved it; start over on the port
+		// it gave.
+		if err := pf.unmap(ctx, h.InternalPort); err != nil {
+			return Mapping{}, err
+		}
+		pf.Client.Map(ctx, "udp", h.InternalPort, 0, 0)
+		pf.held, want = Mapping{}, m.ExternalPort
+	}
 	internal := want
 	if internal == 0 {
 		// Port 0 inside asks to drop every mapping; Proton's own guide asks with 1.
 		internal = 1
 	}
-	tcp, err := pf.Client.Map(ctx, "tcp", internal, want, lifetime)
-	if err != nil {
-		return 0, 0, err
+	m, err := pf.Client.Map(ctx, "tcp", internal, want, lifetime)
+	if err != nil || m.ExternalPort == internal {
+		return m, err
 	}
-	if tcp.ExternalPort != internal {
-		if tcp, err = pf.Client.Map(ctx, "tcp", tcp.ExternalPort, tcp.ExternalPort, lifetime); err != nil {
-			return 0, 0, err
-		}
+	// The gateway put the port elsewhere outside. Ask for that port inside
+	// too, once the mapping holding it outside is gone.
+	if err := pf.unmap(ctx, internal); err != nil {
+		return Mapping{}, err
 	}
-	port := tcp.ExternalPort
-	udp, err := pf.Client.Map(ctx, "udp", port, port, lifetime)
-	if err != nil {
-		return 0, 0, err
-	}
-	if udp.ExternalPort != port {
-		pf.logf("vpn: the gateway forwards TCP on %d and UDP on %d; UDP stays unreachable", port, udp.ExternalPort)
-		pf.Client.Map(ctx, "udp", port, 0, 0)
-		return port, tcp.Lifetime, nil
-	}
-	return port, min(tcp.Lifetime, udp.Lifetime), nil
+	return pf.Client.Map(ctx, "tcp", m.ExternalPort, m.ExternalPort, lifetime)
+}
+
+func (pf *PortForward) unmap(ctx context.Context, internal uint16) error {
+	_, err := pf.Client.Map(ctx, "tcp", internal, 0, 0)
+	return err
 }
 
 func (pf *PortForward) set(port uint16) {
 	pf.mu.Lock()
-	changed := pf.port != port
+	old := pf.port
 	pf.port = port
 	pf.mu.Unlock()
-	if changed && pf.OnChange != nil {
+	if old == port {
+		return
+	}
+	switch {
+	case old == 0 && port != 0:
+		pf.logf("vpn: the gateway forwards port %d", port)
+	case port != 0:
+		pf.logf("vpn: the forwarded port moved from %d to %d", old, port)
+	}
+	if pf.OnChange != nil {
 		pf.OnChange(port)
 	}
 }
