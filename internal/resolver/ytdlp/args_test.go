@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"path/filepath"
+	"strings"
 	"testing"
 )
 
@@ -255,5 +256,41 @@ func TestConcurrentFragmentsDividesTheSpeedLimit(t *testing.T) {
 	// unlimited, so run needs its floor.
 	if 3/concurrentFragments != 0 {
 		t.Fatalf("this test's premise is wrong: %d/%d no longer rounds to zero", 3, concurrentFragments)
+	}
+}
+
+// The instance's video format asks for its container first and merges into
+// it, with mkv as the fallback for a pair it cannot hold.
+func TestBuildArgsVideoFormatPrefersAndMergesIntoItsContainer(t *testing.T) {
+	args := buildArgs("d", Options{Variant: VariantVideo, VideoFormat: "mp4", Quality: Quality1080p})
+	f, _ := valueAfter(args, "-f")
+	if !strings.HasPrefix(f, "bv[ext=mp4]") || !strings.Contains(f, "1080") {
+		t.Errorf("-f = %q, want mp4 tracks under 1080p first", f)
+	}
+	if got, _ := valueAfter(args, "--merge-output-format"); got != "mp4/mkv" {
+		t.Errorf("--merge-output-format = %q, want mp4/mkv", got)
+	}
+}
+
+func TestBuildArgsVideoFormatYieldsToTheRowsOwnChoice(t *testing.T) {
+	for _, c := range []struct {
+		name  string
+		o     Options
+		f     string
+		merge string
+	}{
+		{"own format", Options{VideoFormat: "mp4", VideoPick: "webm vp9"}, "bv[ext=webm]", "webm/mkv"},
+		{"custom selector", Options{VideoFormat: "mp4", Quality: QualityCustom, CustomFormat: "bv+ba"}, "bv+ba", "mkv"},
+		{"mkv", Options{VideoFormat: "mkv"}, "", "mkv"},
+		{"best", Options{VideoFormat: "best"}, "", "mkv"},
+	} {
+		args := buildArgs("d", c.o)
+		f, _ := valueAfter(args, "-f")
+		if !strings.HasPrefix(f, c.f) || (c.f == "" && f != "") {
+			t.Errorf("%s: -f = %q, want it to start with %q", c.name, f, c.f)
+		}
+		if got, _ := valueAfter(args, "--merge-output-format"); got != c.merge {
+			t.Errorf("%s: --merge-output-format = %q, want %q", c.name, got, c.merge)
+		}
 	}
 }

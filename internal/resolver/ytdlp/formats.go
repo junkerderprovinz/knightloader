@@ -408,6 +408,24 @@ func parseVideoWish(s string) (videoWish, bool) {
 	return videoWish{videoContainer: c, capRes: capRes}, true
 }
 
+// holds reports whether a track in c is one the wish asks for. A wish without
+// a codec takes its container in any codec.
+func (w videoWish) holds(c videoContainer) bool {
+	return c.ext == w.ext && (w.codec.name == "" || c.codec.name == w.codec.name)
+}
+
+// defaultWish is Options.VideoFormat as a wish, capped at quality, for a row
+// that picked no track or format of its own. mkv and best ask for no
+// container, and a custom selector asks for its own.
+func defaultWish(o Options, quality Quality) (videoWish, bool) {
+	if (o.VideoFormat != "mp4" && o.VideoFormat != "webm") || quality == QualityCustom {
+		return videoWish{}, false
+	}
+	w := videoWish{videoContainer: videoContainer{ext: o.VideoFormat}}
+	w.capRes, _ = ResCap(quality)
+	return w, true
+}
+
 // choice asks for the best track of the container under the cap, then for
 // what the cap alone would give.
 func (w videoWish) choice() videoChoice {
@@ -561,11 +579,17 @@ func ResolveVideoPick(pick string, formats []FormatEntry) string {
 	if !ok {
 		return pick
 	}
+	return w.resolve(formats)
+}
+
+// resolve is the best track of the wish's container under its cap, or the cap
+// alone when the source has no track in that container.
+func (w videoWish) resolve(formats []FormatEntry) string {
 	var best videoFormat
 	found := false
 	for _, f := range formats {
 		v, ok := videoFormatOf(f)
-		if !ok || v.id() != w.id() || (w.capRes > 0 && v.res > w.capRes) {
+		if !ok || !w.holds(v.videoContainer) || (w.capRes > 0 && v.res > w.capRes) {
 			continue
 		}
 		if !found || v.res > best.res || (v.res == best.res && v.fps > best.fps) {
@@ -606,9 +630,14 @@ func (v videoFormat) byHeight(formats []FormatEntry) (string, bool) {
 // video and the audio merged with it together, 0 where the host gave neither a
 // size nor a bitrate. o is the instance's options: Embed.Thumbnail decides the
 // container of a webm pick, Embed.Separate keeps the video's own extension
-// since nothing is merged, and CustomFormat is what a custom pick asks for.
+// since nothing is merged, CustomFormat is what a custom pick asks for, and
+// VideoFormat is the container a quality pick prefers.
 func VideoFile(pick string, formats []FormatEntry, o Options) (ext string, size int64) {
-	pick = ResolveVideoPick(pick, formats)
+	if w, ok := defaultWish(o, Quality(pick)); ok && !IsVideoPick(pick) {
+		pick = w.resolve(formats)
+	} else {
+		pick = ResolveVideoPick(pick, formats)
+	}
 	if v, ok := parseVideoFormat(pick); ok {
 		return v.file(formats, o.Embed)
 	}

@@ -2,6 +2,7 @@ package ytdlp
 
 import (
 	"fmt"
+	"slices"
 	"strconv"
 	"strings"
 )
@@ -19,6 +20,12 @@ type Options struct {
 	Variant      Variant `json:"variant"`
 	Quality      Quality `json:"quality"`
 	CustomFormat string  `json:"customFormat"`
+	// VideoFormat is the container a video row asks for where it picked no
+	// track or format of its own: "mp4" and "webm" prefer tracks in that
+	// container and keep the merge in it, while "mkv" and "best" take the best
+	// tracks whatever their container and merge them into mkv. A custom
+	// selector already says everything a container would, so it ignores this.
+	VideoFormat string `json:"videoFormat"`
 	// VideoPick is one track a video row picked from its probe (see
 	// VideoTracks), or a host preset's container and cap the probe has not
 	// resolved yet (see ResolveVideoPick). It takes precedence over Quality.
@@ -257,6 +264,11 @@ func DefaultHosterPreset() HosterPreset {
 	return HosterPreset{Variants: Variants(), VideoFormat: "best", Quality: QualityBest, AudioFormat: "best"}
 }
 
+// VideoFormats lists the containers Options.VideoFormat offers, in menu order.
+func VideoFormats() []string {
+	return []string{"best", "mp4", "mkv", "webm"}
+}
+
 // PresetVideoFormats lists the video formats a host preset offers where
 // nothing is known of the host (see HostFormats), "best" first: the pairs the
 // common sites serve rather than one source's list.
@@ -417,6 +429,9 @@ func (o Options) Sanitize() Options {
 	}
 	if !validQuality(o.Quality) {
 		o.Quality = QualityBest
+	}
+	if !slices.Contains(VideoFormats(), o.VideoFormat) {
+		o.VideoFormat = "best"
 	}
 	o.AudioFormat = foldAudioFormat(o.AudioFormat)
 	if !validAudioFormat(o.AudioFormat) {

@@ -698,3 +698,25 @@ func matchesFilters(t *testing.T, matches [][]string, f FormatEntry) bool {
 	}
 	return true
 }
+
+// A quality pick is measured as the best track of the instance's video format
+// under it, the 60 fps one first, which is the track the -f selector asks for
+// first.
+func TestVideoFileMeasuresAQualityPickInTheInstancesVideoFormat(t *testing.T) {
+	o := Options{VideoFormat: "mp4"}
+	for _, c := range []struct {
+		pick string
+		ext  string
+		size int64
+	}{
+		{"1080p", "mp4", 90000 + 3000},
+		{"best", "mp4", 90000 + 3000},
+	} {
+		if ext, size := VideoFile(c.pick, youtubeLike, o); ext != c.ext || size != c.size {
+			t.Errorf("VideoFile(%q) with mp4 = %q, %d; want %q, %d", c.pick, ext, size, c.ext, c.size)
+		}
+	}
+	if ext, _ := VideoFile("webm vp9 1080p", youtubeLike, o); ext != "webm" {
+		t.Errorf("a row's own format came out as %q, want webm", ext)
+	}
+}

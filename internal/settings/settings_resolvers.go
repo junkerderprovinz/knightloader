@@ -15,6 +15,11 @@ import (
 
 func sanitizeResolvers(n Settings) Settings {
 	n.Ytdlp = n.Ytdlp.Sanitize()
+	// The default for every video stops at 360p; a smaller picture is a pick
+	// for one download.
+	if r, ok := ytdlp.ResCap(n.Ytdlp.Quality); ok && r < 360 {
+		n.Ytdlp.Quality = ytdlp.Quality360p
+	}
 	presets := make(map[string]ytdlp.HosterPreset, len(n.YtdlpPresets))
 	for host, p := range n.YtdlpPresets {
 		host = strings.TrimSpace(strings.ToLower(host))
