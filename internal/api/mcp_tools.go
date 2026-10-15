@@ -225,7 +225,7 @@ func guardedTool(a *app.App, d mcpToolDef) mcp.ToolHandler {
 		}
 		if !caller.token.Has(d.scope) {
 			return mcpToolError("not_permitted", scopeRefusal(d.scope)+
-				"; set the client up again under Settings > Security > MCP server with that right"), nil
+				"; set the client up again under Settings > Integrations > MCP server with that right"), nil
 		}
 		return d.run(withMCPCaller(ctx, caller), a, req.Params.Arguments), nil
 	}
