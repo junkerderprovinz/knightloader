@@ -263,7 +263,19 @@ function VpnTable({
                   {up && p.exitIp ? p.exitIp : '-'}
                 </td>
                 <td className="glim-num px-2 py-3 text-carbon-textSub" dir="ltr">
-                  {up && p.forwardedPort ? <ReachedAt provider={p} hue={i} /> : '-'}
+                  {!up || !p.forwardedPort ? (
+                    '-'
+                  ) : p.portManual ? (
+                    <span className="inline-flex items-center">
+                      {t('settings.vpn.portToForward', { port: p.forwardedPort })}
+                      <InfoBubble
+                        tip={t('settings.vpn.portToForwardHint', { name })}
+                        label={t('settings.vpn.portToForward', { port: p.forwardedPort })}
+                      />
+                    </span>
+                  ) : (
+                    <ReachedAt provider={p} hue={i} />
+                  )}
                 </td>
                 <td className="px-2 py-3 text-end">
                   <span className="glim-row-actions inline-flex">
