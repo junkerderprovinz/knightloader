@@ -98,6 +98,11 @@ describe('the tile colour', () => {
   it('is black for a logo drawn in white alone', () => {
     expect(tileOf(picture((x, y) => (inside(x, y, 10, 50) ? WHITE_PX : null)))).toBe('#000000');
   });
+
+  it('is black for a logo of dark greys, not the grey itself', () => {
+    const grey: [number, number, number, number] = [36, 36, 36, 255];
+    expect(tileOf(picture((x, y) => (inside(x, y, 10, 50) ? grey : null)))).toBe('#000000');
+  });
 });
 
 describe('the generated lists', () => {
