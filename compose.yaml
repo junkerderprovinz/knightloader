@@ -1,0 +1,20 @@
+# Built from the Unraid template in junkerderprovinz/unraid-apps by
+# .github/gen-compose.py. Change the template there, not this file.
+#
+# Folders are created next to this file on the first start. Point the ones
+# that hold your own files (downloads, storage and the like) at real folders
+# first, and fill in every value marked "required".
+
+services:
+  knightloader:
+    image: junkerderprovinz/knightloader:latest
+    container_name: knightloader
+    restart: unless-stopped
+    ports:
+      - "8749:8749"
+    volumes:
+      - "./appdata:/data"
+      - "./downloads:/data/downloads"
+      - "./watch:/watch"
+    environment:
+      UMASK: "022"
