@@ -206,7 +206,9 @@ function ConnectForm({
 }) {
   const { t } = useT();
   const name = nameOf(t, p);
-  const note = NOTES[p.id];
+  // An own configuration has no provider account to request a port in.
+  const manual = p.portManual && p.id !== 'custom' ? 'settings.vpn.manualPortNote' : undefined;
+  const note = NOTES[p.id] ?? manual;
   const hintOf = (f: VpnField) => {
     const key = (f === 'location' && LOCATION_HINTS[p.id]) || FIELDS[f].hint;
     return key && t(key, { name });
@@ -219,7 +221,7 @@ function ConnectForm({
           {t(p.portForwarding ? 'settings.vpn.portForwardingHint' : 'settings.vpn.noPortForwardingHint', { name })}
         </p>
       </div>
-      {note && <p className="text-sm text-carbon-textSub">{t(note)}</p>}
+      {note && <p className="text-sm text-carbon-textSub">{t(note, { name })}</p>}
       {p.state === 'failed' && (
         <p role="status" className="text-sm text-statusFail">
           {failureOf(t, p)}

@@ -4425,6 +4425,9 @@ export interface VpnProvider {
   /** What the connect form asks for, in order. location may stay empty. */
   fields: VpnField[];
   portForwarding: boolean;
+  /** The provider forwards a port only once the user requests it in their
+   *  account; forwardedPort is then the torrent settings' port to request. */
+  portManual?: boolean;
   /** Whether a login is stored, so a connect may send no fields and reuse it. */
   configured: boolean;
   /** The stored location. The form starts with it and sends it only once
