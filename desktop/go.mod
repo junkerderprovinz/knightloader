@@ -12,7 +12,7 @@ go 1.26.6
 require (
 	github.com/coder/websocket v1.8.15
 	github.com/junkerderprovinz/knightloader v0.0.0
-	github.com/wailsapp/wails/v3 v3.0.0-beta.28
+	github.com/wailsapp/wails/v3 v3.0.0-beta.29
 	github.com/zalando/go-keyring v0.2.8
 	golang.org/x/sys v0.49.0
 )
@@ -189,14 +189,14 @@ require (
 
 // godbus is how Wails talks StatusNotifierItem on Linux and BSD, and
 // tray_probe_linux.go calls it too, for the availability probe.
-require github.com/godbus/dbus/v5 v5.2.3
+require github.com/godbus/dbus/v5 v5.2.4
 
 // Use the server sources from the parent checkout.
 replace github.com/junkerderprovinz/knightloader => ../
 
 // The same gopeed fork as the server module, since a dependency's replace
 // does not reach this one.
-replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261015120238-f7b6deb83c74
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261015122015-347996bfd30b
 
 // The same anacrolix/torrent fork as the server module.
 replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17
