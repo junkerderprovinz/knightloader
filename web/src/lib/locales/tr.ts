@@ -3755,6 +3755,7 @@ export const tr: Dict = {
   'settings.vpn.col.provider': 'Sağlayıcı',
   'settings.vpn.col.exitIp': 'Çıkış adresi',
   'settings.vpn.col.port': 'Yönlendirilen port',
+  'settings.vpn.col.portHint': 'Başkalarının yönlendirilen porta ulaştığı yer. Bazı sağlayıcılar onu trafiğinin çıktığı adresten farklı bir adreste kabul eder, bu yüzden çıkış adresinden farklı olabilir.',
   'settings.vpn.use': '{name} kullan',
   'settings.vpn.removeConfirm': '{name} ve onun için kayıtlı giriş bilgileri kaldırılsın mı?',
   'settings.vpn.routesTitle': 'VPN üzerinden',

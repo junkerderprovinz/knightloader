@@ -4426,10 +4426,13 @@ export interface VpnProvider {
   /** Whether a login is stored, so a connect may send no fields and reuse it. */
   configured: boolean;
   state: VpnConnState;
-  /** The address the swarm sees, while connected. */
+  /** The address traffic leaves the tunnel by, while connected. */
   exitIp?: string;
   /** The port the provider forwards to the torrent client, while connected. */
   forwardedPort?: number;
+  /** Where the forwarded port is reached, where a NAT-PMP gateway says so;
+   *  the exit address otherwise. */
+  forwardedAddress?: string;
   /** Why the last connect failed or the tunnel dropped. English, from the server. */
   error?: string;
   /** `error` as a value the interface words itself: vpn-config-invalid,

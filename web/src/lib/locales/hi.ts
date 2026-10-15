@@ -3757,6 +3757,7 @@ export const hi: Dict = {
   'settings.vpn.col.provider': 'प्रदाता',
   'settings.vpn.col.exitIp': 'निकास पता',
   'settings.vpn.col.port': 'फ़ॉरवर्ड किया गया पोर्ट',
+  'settings.vpn.col.portHint': 'दूसरे लोग फ़ॉरवर्ड किए गए पोर्ट तक कहाँ पहुँचते हैं। कुछ प्रदाता इसे उस पते से अलग पते पर लेते हैं जिससे आपका ट्रैफ़िक बाहर जाता है, इसलिए यह निकास पते से अलग हो सकता है।',
   'settings.vpn.use': '{name} इस्तेमाल करें',
   'settings.vpn.removeConfirm': '{name} और उसके लिए सहेजा गया लॉगिन हटाएँ?',
   'settings.vpn.routesTitle': 'VPN के ज़रिए',

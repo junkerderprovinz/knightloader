@@ -3754,6 +3754,7 @@ export const th: Dict = {
   'settings.vpn.col.provider': 'ผู้ให้บริการ',
   'settings.vpn.col.exitIp': 'ที่อยู่ขาออก',
   'settings.vpn.col.port': 'พอร์ตที่ส่งต่อ',
+  'settings.vpn.col.portHint': 'ที่ที่คนอื่นเข้าถึงพอร์ตที่ส่งต่อ ผู้ให้บริการบางรายรับพอร์ตบนที่อยู่อื่นที่ไม่ใช่ที่อยู่ที่ทราฟฟิกของคุณออกไป จึงอาจไม่ตรงกับที่อยู่ขาออก',
   'settings.vpn.use': 'ใช้ {name}',
   'settings.vpn.removeConfirm': 'ลบ {name} และข้อมูลเข้าสู่ระบบที่บันทึกไว้หรือไม่',
   'settings.vpn.routesTitle': 'ผ่าน VPN',

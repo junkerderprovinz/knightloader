@@ -3748,6 +3748,7 @@ export const es: Dict = {
   'settings.vpn.col.provider': 'Proveedor',
   'settings.vpn.col.exitIp': 'Dirección de salida',
   'settings.vpn.col.port': 'Puerto reenviado',
+  'settings.vpn.col.portHint': 'Dónde llegan otros al puerto reenviado. Algunos proveedores lo aceptan en una dirección distinta de la que usa tu tráfico para salir, así que puede no coincidir con la dirección de salida.',
   'settings.vpn.use': 'Usar {name}',
   'settings.vpn.removeConfirm': '¿Quitar {name} y el inicio de sesión guardado para ella?',
   'settings.vpn.routesTitle': 'A través de la VPN',

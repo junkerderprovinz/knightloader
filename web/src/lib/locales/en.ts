@@ -4003,6 +4003,7 @@ export const en = {
   'settings.vpn.col.provider': 'Provider',
   'settings.vpn.col.exitIp': 'Exit address',
   'settings.vpn.col.port': 'Forwarded port',
+  'settings.vpn.col.portHint': 'Where others reach the forwarded port. Some providers take it on another address than the one your traffic leaves by, so it can differ from the exit address.',
   'settings.vpn.use': 'Use {name}',
   'settings.vpn.removeConfirm': 'Remove {name} and the login stored for it?',
   'settings.vpn.routesTitle': 'Through the VPN',

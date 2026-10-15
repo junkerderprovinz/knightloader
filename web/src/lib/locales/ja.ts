@@ -3752,6 +3752,7 @@ export const ja: Dict = {
   'settings.vpn.col.provider': 'プロバイダー',
   'settings.vpn.col.exitIp': '出口アドレス',
   'settings.vpn.col.port': '転送ポート',
+  'settings.vpn.col.portHint': 'ほかの人が転送ポートに届く場所です。プロバイダーによっては、通信が出ていくアドレスとは別のアドレスでポートを受けるため、出口アドレスと違うことがあります。',
   'settings.vpn.use': '{name} を使う',
   'settings.vpn.removeConfirm': '{name} と保存されたログイン情報を削除しますか？',
   'settings.vpn.routesTitle': 'VPN 経由',

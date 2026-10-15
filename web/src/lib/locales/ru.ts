@@ -3736,6 +3736,7 @@ export const ru: Dict = {
   'settings.vpn.col.provider': 'Провайдер',
   'settings.vpn.col.exitIp': 'Адрес выхода',
   'settings.vpn.col.port': 'Проброшенный порт',
+  'settings.vpn.col.portHint': 'Где другие достигают проброшенного порта. Некоторые провайдеры принимают его на другом адресе, не на том, через который выходит твой трафик, поэтому он может отличаться от адреса выхода.',
   'settings.vpn.use': 'Использовать {name}',
   'settings.vpn.removeConfirm': 'Удалить {name} и сохранённые для него данные входа?',
   'settings.vpn.routesTitle': 'Через VPN',

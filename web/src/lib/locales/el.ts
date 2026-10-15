@@ -3758,6 +3758,7 @@ export const el: Dict = {
   'settings.vpn.col.provider': 'Πάροχος',
   'settings.vpn.col.exitIp': 'Διεύθυνση εξόδου',
   'settings.vpn.col.port': 'Προωθημένη θύρα',
+  'settings.vpn.col.portHint': 'Πού φτάνουν οι άλλοι στην προωθημένη θύρα. Ορισμένοι πάροχοι τη δέχονται σε άλλη διεύθυνση από αυτή από την οποία φεύγει η κίνησή σου, οπότε μπορεί να διαφέρει από τη διεύθυνση εξόδου.',
   'settings.vpn.use': 'Χρήση {name}',
   'settings.vpn.removeConfirm': 'Να αφαιρεθεί το {name} και τα αποθηκευμένα στοιχεία σύνδεσης;',
   'settings.vpn.routesTitle': 'Μέσω του VPN',

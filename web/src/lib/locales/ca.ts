@@ -3744,6 +3744,7 @@ export const ca: Dict = {
   'settings.vpn.col.provider': 'Proveïdor',
   'settings.vpn.col.exitIp': 'Adreça de sortida',
   'settings.vpn.col.port': 'Port redirigit',
+  'settings.vpn.col.portHint': 'On els altres arriben al port redirigit. Alguns proveïdors l’accepten en una adreça diferent de la que fa servir el teu trànsit per sortir, així que pot no coincidir amb l’adreça de sortida.',
   'settings.vpn.use': 'Fes servir {name}',
   'settings.vpn.removeConfirm': 'Vols eliminar {name} i l’inici de sessió desat?',
   'settings.vpn.routesTitle': 'A través de la VPN',

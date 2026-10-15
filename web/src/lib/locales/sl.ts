@@ -3755,6 +3755,7 @@ export const sl: Dict = {
   'settings.vpn.col.provider': 'Ponudnik',
   'settings.vpn.col.exitIp': 'Izhodni naslov',
   'settings.vpn.col.port': 'Posredovana vrata',
+  'settings.vpn.col.portHint': 'Kje drugi dosežejo posredovana vrata. Nekateri ponudniki jih sprejemajo na drugem naslovu kot tistem, prek katerega odhaja tvoj promet, zato se lahko razlikuje od izhodnega naslova.',
   'settings.vpn.use': 'Uporabi {name}',
   'settings.vpn.removeConfirm': 'Odstranim {name} in prijavo, shranjeno zanj?',
   'settings.vpn.routesTitle': 'Prek VPN-ja',

@@ -3752,6 +3752,7 @@ export const is: Dict = {
   'settings.vpn.col.provider': 'Þjónusta',
   'settings.vpn.col.exitIp': 'Útgönguvistfang',
   'settings.vpn.col.port': 'Áframsend gátt',
+  'settings.vpn.col.portHint': 'Hvar aðrir ná í áframsendu gáttina. Sumar þjónustur taka við henni á öðru vistfangi en því sem umferðin þín fer út um, svo það getur verið annað en útgönguvistfangið.',
   'settings.vpn.use': 'Nota {name}',
   'settings.vpn.removeConfirm': 'Fjarlægja {name} og innskráninguna sem er vistuð fyrir það?',
   'settings.vpn.routesTitle': 'Í gegnum VPN',

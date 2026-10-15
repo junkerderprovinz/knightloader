@@ -3753,6 +3753,7 @@ export const eu: Dict = {
   'settings.vpn.col.provider': 'Hornitzailea',
   'settings.vpn.col.exitIp': 'Irteera-helbidea',
   'settings.vpn.col.port': 'Birbideratutako ataka',
+  'settings.vpn.col.portHint': 'Besteek birbideratutako atakara non iristen diren. Hornitzaile batzuek zure trafikoa irteten den helbidea ez den beste batean hartzen dute, beraz irteera-helbidearen desberdina izan daiteke.',
   'settings.vpn.use': 'Erabili {name}',
   'settings.vpn.removeConfirm': '{name} eta harentzat gordetako saio-hasiera kendu?',
   'settings.vpn.routesTitle': 'VPNaren bidez',

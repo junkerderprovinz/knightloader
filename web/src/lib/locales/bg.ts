@@ -3757,6 +3757,7 @@ export const bg: Dict = {
   'settings.vpn.col.provider': 'Доставчик',
   'settings.vpn.col.exitIp': 'Изходен адрес',
   'settings.vpn.col.port': 'Пренасочен порт',
+  'settings.vpn.col.portHint': 'Къде другите достигат пренасочения порт. Някои доставчици го приемат на друг адрес, а не на този, от който излиза трафикът ти, затова може да се различава от изходния адрес.',
   'settings.vpn.use': 'Използвай {name}',
   'settings.vpn.removeConfirm': 'Да се премахне ли {name} и запазените за него данни за вход?',
   'settings.vpn.routesTitle': 'През VPN',

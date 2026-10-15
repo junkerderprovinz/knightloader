@@ -3770,6 +3770,7 @@ export const hr: Dict = {
   'settings.vpn.col.provider': 'Pružatelj',
   'settings.vpn.col.exitIp': 'Izlazna adresa',
   'settings.vpn.col.port': 'Proslijeđeni port',
+  'settings.vpn.col.portHint': 'Gdje drugi dolaze do proslijeđenog porta. Neki ga pružatelji primaju na drugoj adresi od one preko koje tvoj promet izlazi, pa se može razlikovati od izlazne adrese.',
   'settings.vpn.use': 'Koristi {name}',
   'settings.vpn.removeConfirm': 'Ukloniti {name} i prijavu spremljenu za njega?',
   'settings.vpn.routesTitle': 'Kroz VPN',

@@ -3766,6 +3766,7 @@ export const sk: Dict = {
   'settings.vpn.col.provider': 'Poskytovateľ',
   'settings.vpn.col.exitIp': 'Výstupná adresa',
   'settings.vpn.col.port': 'Presmerovaný port',
+  'settings.vpn.col.portHint': 'Kde ostatní dosiahnu presmerovaný port. Niektorí poskytovatelia ho prijímajú na inej adrese než tej, ktorou odchádza tvoja prevádzka, takže sa môže líšiť od výstupnej adresy.',
   'settings.vpn.use': 'Použiť {name}',
   'settings.vpn.removeConfirm': 'Odstrániť {name} a prihlásenie, ktoré je preň uložené?',
   'settings.vpn.routesTitle': 'Cez VPN',

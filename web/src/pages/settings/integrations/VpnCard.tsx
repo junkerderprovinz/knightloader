@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { ContextMenu, anchorBelow, anchorFromEvent, useContextMenu } from '../../../components/ContextMenu';
-import { Button, Card, EmptyState, IconBadge, Modal, SectionTitle, Toggle, ToggleRow } from '../../../components/ui';
+import {
+  Button,
+  Card,
+  EmptyState,
+  IconBadge,
+  InfoBubble,
+  Modal,
+  SectionTitle,
+  Toggle,
+  ToggleRow,
+} from '../../../components/ui';
 import {
   connectVpn,
   disconnectVpn,
@@ -12,7 +22,8 @@ import {
   type VpnState,
 } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
-import { IconAdd, IconClose, IconGear, IconShieldOn, IconTrash } from '../../../lib/icons';
+import { copyToClipboard } from '../../../lib/clipboard';
+import { IconAdd, IconClose, IconCopy, IconGear, IconShieldOn, IconTrash } from '../../../lib/icons';
 import { useToast } from '../../../lib/toast';
 import { SubHead } from '../controls';
 import { refusalText } from '../tx';
@@ -200,7 +211,12 @@ function VpnTable({
             <th className="px-2 py-3 text-start font-medium">{t('settings.vpn.col.provider')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('settings.vpn.col.exitIp')}</th>
-            <th className="px-2 py-3 text-start font-medium">{t('settings.vpn.col.port')}</th>
+            <th className="px-2 py-3 text-start font-medium">
+              <span className="inline-flex items-center">
+                {t('settings.vpn.col.port')}
+                <InfoBubble tip={t('settings.vpn.col.portHint')} label={t('settings.vpn.col.port')} />
+              </span>
+            </th>
             <th className="w-10 px-2 py-3">
               <span className="sr-only">{t('accounts.rowActions')}</span>
             </th>
@@ -243,7 +259,9 @@ function VpnTable({
                 <td className="glim-num px-2 py-3 text-carbon-textSub" dir="ltr">
                   {up && p.exitIp ? p.exitIp : '-'}
                 </td>
-                <td className="glim-num px-2 py-3 text-carbon-textSub">{up && p.forwardedPort ? p.forwardedPort : '-'}</td>
+                <td className="glim-num px-2 py-3 text-carbon-textSub" dir="ltr">
+                  {up && p.forwardedPort ? <ReachedAt provider={p} hue={i} /> : '-'}
+                </td>
                 <td className="px-2 py-3 text-end">
                   <span className="glim-row-actions inline-flex">
                     <IconBadge
@@ -281,5 +299,38 @@ function VpnTable({
         />
       )}
     </div>
+  );
+}
+
+/**
+ * ReachedAt is where peers reach the forwarded port: the address the gateway
+ * takes it on where NAT-PMP says one, which need not be the exit address, and
+ * the exit address otherwise.
+ */
+function ReachedAt({ provider: p, hue }: { provider: VpnProvider; hue: number }) {
+  const { t } = useT();
+  const [copies, setCopies] = useState(0);
+  const [copied, setCopied] = useState(false);
+  const host = p.forwardedAddress || p.exitIp;
+  const where = host ? `${host}:${p.forwardedPort}` : String(p.forwardedPort);
+  const word = copied ? t('common.copied') : t('common.copy');
+  return (
+    <span className="inline-flex items-center gap-2">
+      {where}
+      <IconBadge
+        hue={hue}
+        icon={<IconCopy width={14} height={14} />}
+        title={word}
+        aria-label={word}
+        confirm={copies}
+        onClick={async () => {
+          if (await copyToClipboard(where)) {
+            setCopied(true);
+            setCopies((n) => n + 1);
+            setTimeout(() => setCopied(false), 1800);
+          }
+        }}
+      />
+    </span>
   );
 }

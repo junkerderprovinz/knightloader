@@ -3756,6 +3756,7 @@ export const sv: Dict = {
   'settings.vpn.col.provider': 'Leverantör',
   'settings.vpn.col.exitIp': 'Utgångsadress',
   'settings.vpn.col.port': 'Vidarebefordrad port',
+  'settings.vpn.col.portHint': 'Var andra når den vidarebefordrade porten. Vissa leverantörer tar emot den på en annan adress än den din trafik går ut genom, så den kan skilja sig från utgångsadressen.',
   'settings.vpn.use': 'Använd {name}',
   'settings.vpn.removeConfirm': 'Ta bort {name} och inloggningen som sparats för den?',
   'settings.vpn.routesTitle': 'Genom VPN:et',

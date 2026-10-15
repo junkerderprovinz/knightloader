@@ -3773,6 +3773,7 @@ export const he: Dict = {
   'settings.vpn.col.provider': 'ספק',
   'settings.vpn.col.exitIp': 'כתובת יציאה',
   'settings.vpn.col.port': 'פורט מועבר',
+  'settings.vpn.col.portHint': 'איפה אחרים מגיעים לפורט המועבר. ספקים מסוימים מקבלים אותו בכתובת אחרת מזו שהתעבורה שלך יוצאת ממנה, ולכן היא יכולה להיות שונה מכתובת היציאה.',
   'settings.vpn.use': 'שימוש ב-{name}',
   'settings.vpn.removeConfirm': 'להסיר את {name} ואת פרטי הכניסה ששמורים עבורו?',
   'settings.vpn.routesTitle': 'דרך ה-VPN',

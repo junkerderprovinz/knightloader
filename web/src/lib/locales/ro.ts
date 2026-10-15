@@ -3765,6 +3765,7 @@ export const ro: Dict = {
   'settings.vpn.col.provider': 'Furnizor',
   'settings.vpn.col.exitIp': 'Adresă de ieșire',
   'settings.vpn.col.port': 'Port redirecționat',
+  'settings.vpn.col.portHint': 'Unde ajung ceilalți la portul redirecționat. Unii furnizori îl primesc pe altă adresă decât cea pe care iese traficul tău, așa că poate diferi de adresa de ieșire.',
   'settings.vpn.use': 'Folosește {name}',
   'settings.vpn.removeConfirm': 'Elimini {name} și datele de autentificare salvate pentru el?',
   'settings.vpn.routesTitle': 'Prin VPN',
