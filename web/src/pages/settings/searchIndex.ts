@@ -479,6 +479,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.vpn.note.pia',
         'settings.vpn.note.torguard',
         'settings.vpn.manualPortNote',
+        'settings.vpn.portToForward',
         'settings.vpn.portToForwardHint',
         'settings.vpn.field.locationHint.nordvpn',
         'settings.vpn.field.locationHint.pia',
