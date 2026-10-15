@@ -95,6 +95,10 @@ func (e *Engine) startTorrent(j Job, s *start) {
 			fail(err)
 			return
 		}
+		// Ending the start's context also drops a torrent nobody created, but
+		// on a goroutine of the library's, and its files stay open until then.
+		// A created one is left alone.
+		defer e.d.Discard(rr.ID)
 		if sel == nil && magnet {
 			// A magnet's file list exists from here on, and the library has
 			// already started the seeding loop that reads SelectFiles, without
