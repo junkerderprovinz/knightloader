@@ -36,8 +36,11 @@ func openMullvad(ctx context.Context, login Login) (*session, error) {
 		}
 	}
 	relay, err := relays.Pick(login["location"], near)
-	if err != nil {
+	if errors.Is(err, mullvad.ErrNoRelay) {
 		return nil, &failure{CodeLocationUnknown, err}
+	}
+	if err != nil {
+		return nil, err
 	}
 	key, dev, err := mullvadDevice(ctx, c, token, next)
 	if err != nil {
