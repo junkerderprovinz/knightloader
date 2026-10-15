@@ -36,6 +36,91 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [vNEXT] - unreleased
+
+### Added
+
+- **A VPN inside KnightLoader.** Settings, Integrations connects to a
+  WireGuard VPN without a VPN app or an extra container. hide.me, Mullvad,
+  Obscura, AzireVPN, NordVPN, Private Internet Access and TorGuard sign in with
+  your account, Proton VPN, Surfshark, Windscribe, AirVPN and 22 others take
+  the WireGuard file from your account, and a WireGuard server of your own
+  works with its config. Providers that allow WireGuard only in their own app,
+  such as ExpressVPN and CyberGhost, are shown greyed out. One VPN is in use at
+  a time.
+- **You choose what goes through the VPN.** Torrents, hosters and direct
+  links, yt-dlp and streams, debrid services and Usenet each have a switch on
+  a card of their own below the VPN, and torrents start switched on. A running
+  or paused download moves over as soon as you flip its switch, the Usenet
+  servers are dialled again when Usenet moves, and KnightLoader's own requests
+  of each kind, such as link checks, follow the same switch. The Connection
+  column says VPN for a download in the tunnel.
+- **Downloads wait while the VPN is down.** A download of a switched-on kind
+  waits until the tunnel is back and never falls back to your own connection,
+  also when the VPN cannot be taken up again after a restart.
+- **Forwarded ports for torrents.** With Proton VPN and hide.me (NAT-PMP),
+  Private Internet Access and AzireVPN (through their APIs) and cryptostorm,
+  KnightLoader asks for a port, keeps it alive and moves the torrent client to
+  a new one without a restart, so torrents find more peers and can seed. The
+  VPN card shows the exit address and where others reach the port, which can
+  differ, and for providers where you forward it in your account, such as
+  TorGuard, AirVPN or Windscribe, it names the port to request. This resolves
+  [#112](https://github.com/junkerderprovinz/knightloader/issues/112).
+- **An MCP server for AI assistants.** Cursor, GitHub Copilot, LM Studio and
+  other clients of the Model Context Protocol can read your downloads and,
+  with the rights you give them, add links and control the queue through 13
+  tools. Each client gets a token of its own with Read only, Add and read, or
+  Read, add and control, and KnightLoader shows the configuration for exactly
+  that client. Remove on a client's row revokes its token. `/mcp` answers 404
+  until you add a client under Settings, Integrations.
+
+### Changed
+
+- **Integrations is a new settings page after Accounts.** It holds the VPN,
+  the MCP server and the debrid drive, which no longer has a page of its own;
+  its old address opens Integrations.
+- **The Modules page is gone.** Each module is switched on the page of what it
+  switches, and one that is off folds down to its title, its switch and a line
+  on its state. A module never set up says what is missing and opens to be set
+  up when switched on. The captcha switch is on its card on Accounts.
+- **Health and diagnostics are one page** with three cards: the state of every
+  part with the self-test and the start report, the log with its file, and the
+  system with the bug report. The reverse proxy check is on Network, and
+  database upkeep and the metrics address are on Advanced.
+- **Every field stands beside its name in one row,** in the settings, in
+  dialogs and on the sign-in page.
+- **Every list card has its own Add button** at the end of its heading, and it
+  opens the right window straight away. On Accounts it takes the place of the
+  floating button and the kind picker, and API tokens, passkeys, cookie jars
+  and the yt-dlp host presets are added the same way.
+- **Logo tiles light up in their brand's colour** when you point at them in
+  the account, VPN and MCP pickers, and greyed-out tiles no longer react to the
+  pointer. Debrid and captcha services show sharp logos where many had small,
+  blurry icons.
+- **The Resolvers page is regrouped.** JDownloader is a row in the Tools card
+  beside yt-dlp and ffmpeg, and the card's update badge leads straight to the
+  yt-dlp updates. The video card sits above the audio card, playlists, the
+  file check and livestreams share one Files card, and the track picture draws
+  each track larger.
+- **JDownloader and yt-dlp are always on** and have no switch of their own. A
+  backend switched off before the update is on again.
+- **yt-dlp has a default video format.** Format (Best, MP4, MKV or WebM) and
+  resolution are picked separately, and a video without a format of its own
+  takes tracks in the chosen one first. The default resolution starts at 360p:
+  a stored 240p or 144p becomes 360p, and a smaller picture is still a choice
+  for a single download.
+- **Every new text is in all 42 languages** of the web interface.
+
+### Fixed
+
+- **Removing a torrent with its files on Windows deletes them** also while the
+  torrent is still starting, where the files stayed behind because they were
+  still open.
+- **Removing a torrent with its files no longer waits** for the check of the
+  files already on disk to finish.
+- **New connections for a stalled download open without a 30 second wait,**
+  which held up every other stalled download behind it.
+
 ## [2.0.0] - 2026-10-14
 
 ### Added
