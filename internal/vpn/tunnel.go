@@ -208,6 +208,7 @@ func (t *Tunnel) Disconnect() {
 	t.stack++
 	t.state.Addrs = nil
 	t.state.Reconnects = 0
+	t.backoff = 0
 	st := t.setStatusLocked(Disconnected, "")
 	t.mu.Unlock()
 	// Watchers such as a Binder close their sockets while the stack still
