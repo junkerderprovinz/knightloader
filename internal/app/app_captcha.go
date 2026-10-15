@@ -261,11 +261,11 @@ type TestCaptchaResult struct {
 }
 
 // The refusals of CreateTestCaptcha. With the captcha or JD module off no
-// prompt would show the captcha, and the Modules page lets the captcha module
-// back on only once JD is.
+// prompt would show the captcha, and the captcha module can be switched back
+// on only once JD is.
 var (
-	ErrCaptchaOff   = errors.New("captchas are switched off on the Modules page")
-	ErrCaptchaJDOff = errors.New("captchas come through JDownloader, which is switched off on the Modules page")
+	ErrCaptchaOff   = errors.New("captchas are switched off on the Accounts page")
+	ErrCaptchaJDOff = errors.New("captchas come through JDownloader, which is switched off on the Resolvers page")
 	// ErrNoCaptchaAccount refuses a test for the captcha accounts while none
 	// of them could take it: none is enabled with a key, or the account is
 	// switched off.

@@ -112,7 +112,7 @@ function RuleCards() {
   };
 
   // Each list's switch is drawn only while that list is shown, so a jump to
-  // one, from its row on the Modules page or from the search, shows it first.
+  // one, from the search or from a way to the switch elsewhere, shows it first.
   const jump = usePendingJump();
   useEffect(() => {
     if (jump?.page !== 'rules') return;
@@ -296,8 +296,7 @@ function RuleCards() {
           {/* What the chosen list does, beside the choice. */}
           <InfoBubble tip={flavour === 'packagizer' ? t('settings.rules.packagizerHint') : t('settings.rules.filterHint')} />
         </div>
-        {/* Each list is a module, switched through the registry like its row
-            on the Modules page. */}
+        {/* Each list is a module, switched through the registry. */}
         {flavour === 'packagizer' ? (
           <ModuleToggle id="packagizer" hint={t('settings.rules.setSwitchHint')} />
         ) : (

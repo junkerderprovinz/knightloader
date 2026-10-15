@@ -200,8 +200,8 @@ export function locateAndMark(opts: {
         // settings autosave. The caption's own (i) is skipped, and
         // preventScroll keeps the smooth scroll above running.
         const inRow = [...marked.querySelectorAll<HTMLElement>(FOCUSABLE)].filter((n) => !row.contains(n));
-        // A link beside the control leads to another page, such as a module
-        // switch's way to the same switch on the Modules page.
+        // A link beside the control leads somewhere else, so the control
+        // takes the focus.
         const control = inRow.find((n) => !n.matches('a[href]')) ?? inRow[0];
         control?.focus({ preventScroll: true });
       }

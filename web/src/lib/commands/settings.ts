@@ -12,7 +12,6 @@ import type { Command } from './types';
 const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'look', labelKey: 'settings.nav.look' },
   { id: 'appearance', labelKey: 'settings.nav.appearance' },
-  { id: 'modules', labelKey: 'settings.nav.modules' },
   { id: 'accounts', labelKey: 'settings.nav.accounts' },
   { id: 'integrations', labelKey: 'settings.nav.integrations' },
   { id: 'collector', labelKey: 'settings.nav.collector' },

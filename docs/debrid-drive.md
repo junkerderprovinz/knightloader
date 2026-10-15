@@ -46,8 +46,7 @@ until its files are there.
 
 ## Switching it on
 
-1. Open **Settings → Debrid drive** and switch it on there or on the
-   Modules page; it is one switch.
+1. Open **Settings → Debrid drive** and switch it on.
 2. Create an API token that can read under **Settings → Security → API
    tokens**. **Read only** is all the drive needs, and it is the right preset
    for it: the token goes into a config file on another machine.

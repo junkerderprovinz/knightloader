@@ -15,7 +15,6 @@ import { Help } from './Help';
 import { InstancesTab } from './Instances';
 import { Integrations } from './Integrations';
 import { Look } from './Look';
-import { Modules } from './Modules';
 import { Network } from './Network';
 import { Pairing } from './Pairing';
 import { Resolvers } from './Resolvers';
@@ -29,7 +28,6 @@ import { Torrents } from './Torrents';
  * registered-but-empty state.
  */
 const PAGES: Record<string, () => ReactNode> = {
-  modules: () => <Modules />,
   collector: () => <CollectorSettings />,
   downloads: () => <DownloadsSettings />,
   archives: () => <Archives />,

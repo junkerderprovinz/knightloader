@@ -413,10 +413,10 @@ var ErrNoContainerBackend = fmt.Errorf(
 		"none is configured (set KL_JD to a reachable JD)")
 
 // ErrJDOff is returned for an encrypted container while JDownloader is
-// switched off on the modules page.
+// switched off.
 var ErrJDOff = errors.New(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
-		"\"JDownloader backend\" is switched off on the Modules page")
+		"\"JDownloader backend\" is switched off on the Resolvers page")
 
 // errJDCouldNotOpen is a container neither KnightLoader nor JD can read.
 var errJDCouldNotOpen = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")

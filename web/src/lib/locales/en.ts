@@ -18,7 +18,6 @@ export const en = {
   'settings.accounts.driveRclone': 'rclone configuration',
   'settings.accounts.driveRcloneHint': 'Add this to rclone.conf (rclone config file shows where that is) and replace the placeholder with your token. Then mount it with rclone mount knightloader: /mnt/debrid --read-only and point Plex or Jellyfin at that folder. The manual covers the full setup on Unraid and Docker.',
   'settings.accounts.driveTokenHere': 'your-read-token',
-  'settings.accounts.driveOffHint': 'While the switch is off, the address answers 404.',
   // The same three, for the Instances tab. Its own keys rather than a shared
   // pair, because the hint names the destination.
   'settings.nav.instances': 'Instances',
@@ -221,7 +220,7 @@ export const en = {
   'instances.removeAppConfirm': '{name} is signed out of every instance in the group. It can join again with the twelve words, but then it waits for approval first.',
   'instances.removeMemberConfirm': '{name} is taken out of the group on every instance and forgets the twelve words. If you enter them there again, it waits for approval first.',
   'instances.removePeerConfirm': 'The link to {name} is deleted here. It can be added again by its address.',
-  'instances.moduleOff': 'Instances is switched off on the Modules page, so this instance neither lists nor contacts the others.',
+  'instances.moduleOff': 'Instances is switched off, so this instance neither lists nor contacts the others.',
   'instances.lastSeen': 'Last seen {time}',
 
   // The Pairing page (pages/settings/pairing/): the step cards, the twelve
@@ -745,7 +744,7 @@ export const en = {
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
   'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
-  'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Modules page.',
+  'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Resolvers page.',
   'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
   'container.usenetOwn': '{file} went to your Usenet servers. Its files appear here in a moment and download from there.',
   'container.noUsenet': 'it is an .nzb, and nothing here can fetch it from Usenet. Add a Usenet server or a TorBox or Premiumize.me account under Accounts.',
@@ -828,13 +827,7 @@ export const en = {
   'settings.downloads.idleCountdown': 'Countdown (seconds)',
   'settings.downloads.idleCountdownHint': 'How long you have to cancel before the action runs, once the queue actually goes idle.',
 
-  'settings.modules.fixedAtBuild': 'The set of modules is fixed when the binary is built. Nothing can be installed into a running instance, so this list is the whole of it.',
-  'settings.modules.sectionShipped': 'In this build',
-  'settings.modules.sectionNotBuilt': 'Not in this build',
   'settings.modules.off': 'Off',
-  'settings.modules.notBuilt': 'Not built',
-  'settings.modules.configuredOn': 'Configured on {page}',
-  'settings.modules.alsoOn': 'Also on the {page} page',
   'settings.modules.detail.cnlListening': 'Listening on {address}',
   'settings.modules.detail.cnlOff': 'Switched off',
   'settings.modules.detail.cnlOffByEnv': 'Switched off with KL_CNL=0',
@@ -906,6 +899,22 @@ export const en = {
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
   'settings.modules.setUpBelow': 'There is nothing to switch on yet. Set it up below and the switch turns on by itself.',
   'settings.modules.parkedBelow': 'Switching it on again brings back what was set up here.',
+  'settings.modules.offKept': 'Off. Its settings are kept for when you switch it back on.',
+  'settings.modules.settingUp': 'Set it up below. It starts once something is saved.',
+  'settings.modules.missing.watch': 'No folder set yet. Switch it on to choose one.',
+  'settings.modules.missing.feeds': 'No subscriptions yet. Switch it on to add one.',
+  'settings.modules.missing.eventtargets': 'No targets yet. Switch it on to add one.',
+  'settings.modules.missing.scheduler': 'No time windows yet. Switch it on to add one.',
+  'settings.modules.missing.reconnect': 'No method chosen yet. Switch it on to pick one.',
+  'settings.modules.about.extraction': 'Unpacks downloaded archives once they are complete and checked.',
+  'settings.modules.about.scripting': 'Runs your scripts when something happens, such as a download finishing. Each script also keeps its own switch.',
+  'settings.modules.about.reconnect': 'Gets a new IP address from your router when a hoster makes you wait, for example after a download limit.',
+  'settings.modules.about.connections': 'Sends downloads through the proxies and direct routes you add here.',
+  'settings.modules.about.federation': 'Lets this instance list your other instances and hand links to them.',
+  'settings.modules.about.jd': 'Hands hoster links to the JDownloader set in KL_JD, which also opens encrypted containers and asks for captchas.',
+  'settings.modules.about.torrents': 'Downloads magnet links and .torrent files on this instance and seeds them as set below.',
+  'settings.modules.about.captcha': 'Shows the captchas JDownloader runs into, here and in the phone app, and passes them to your captcha accounts.',
+  'settings.modules.about.downloadclient': 'Lets Sonarr, Radarr and Prowlarr use this instance as a download client, through its qBittorrent and SABnzbd interfaces.',
 
   'settings.module.extraction': 'Archive extraction',
   'settings.module.watch': 'Watch folder',
@@ -977,8 +986,6 @@ export const en = {
   'settings.sectionLinkIntake': 'Link intake',
   'settings.linkIntakeHint': 'The ways a link can reach the link collector on its own, without you pasting it here.',
   'settings.linkIntake.cnlHint': "Takes the links a website's Click'n'Load button sends, just like JDownloader. What you switch here lasts until the next restart, then KL_CNL decides again.",
-  'settings.linkIntake.watchParked': 'Switching it on again restores the folder it watched before.',
-  'settings.linkIntake.watchPickFolder': 'Choose a folder below and the switch turns on by itself.',
 
   'settings.connections.add': 'Add connection',
   'settings.connections.import': 'Import list',
@@ -1420,9 +1427,9 @@ export const en = {
 
   'quick.title': 'Quick settings',
   'quick.reconnectHint': 'Asks the router for a new public address the way the Network page sets it up.',
-  'quick.reconnectOff': 'Reconnect is switched off on the Modules page.',
+  'quick.reconnectOff': 'Reconnect is switched off on the Network page.',
   'quick.reconnectUnset': 'No reconnect is set up yet. Pick a method on the Network page first.',
-  'quick.schedulesOff': '"Schedules" is switched off on the Modules page.',
+  'quick.schedulesOff': '"Schedules" is switched off on the Automation page.',
   'quick.autoStartHint':
     'Links you add start downloading without waiting for you to confirm them in the link collector. How long they wait first is set on the {page} page.',
   'quick.idleCommandSetup': 'Set up the command on the Automation page',
@@ -1715,7 +1722,6 @@ export const en = {
   // The captcha settings page (pages/settings/Captcha.tsx): the solver order
   // and when the solvers start. Their keys are on the Accounts page.
   'settings.captcha.orderTitle': 'Captcha priority order',
-  'settings.captcha.moduleLink': 'On and off under {page}',
   'settings.captcha.orderHint': 'Every connected captcha account that is switched on is tried in this order, top to bottom. If there is none, or every one of them fails or declines, you are asked directly. You switch an account off under "{accounts}".',
   'settings.captcha.orderEmpty': 'No captcha account is connected, so every captcha comes straight to you.',
   'settings.captcha.whenTitle': 'When captcha accounts start',
@@ -2255,9 +2261,6 @@ export const en = {
   'settings.module.ytdlp': 'yt-dlp',
 
   // The Resolvers page (pages/settings/Resolvers.tsx).
-  'settings.resolvers.moduleUnavailable': 'Module unavailable',
-  'settings.resolvers.moduleUnavailableHint':
-    'Everything below is still saved and takes effect the moment yt-dlp becomes available. Nothing you edit now is lost.',
   'settings.resolvers.about':
     'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which backend handles a given link at all (yt-dlp, a debrid account or the JDownloader backend) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
   'settings.resolvers.quality': 'Quality',
@@ -3513,7 +3516,6 @@ export const en = {
   'settings.health.scrapeUrl': 'Metrics address',
   'settings.health.scrapeCopy': 'Copy address',
   'settings.health.scrapeCopied': 'Address copied',
-  'settings.health.scrapeOffHint': 'This address answers nothing while the switch above is off.',
   'settings.diagnostics.fileTitle': 'Log file',
   'settings.diagnostics.logCardTitle': 'Log',
   'settings.diagnostics.systemReportTitle': 'System & bug report',
@@ -3920,6 +3922,7 @@ export const en = {
   'whatsnew.change.healthDiagnostics': 'Health and diagnostics are one page with three cards: the state of every part with the self-test, the log, and the system with the bug report.',
   'whatsnew.change.proxyCheckMoved': 'The {name} check has moved here.',
   'whatsnew.change.advancedUpkeep': '{maintenance} and {metrics} have moved here.',
+  'whatsnew.change.moduleSwitches': 'The Modules page is gone. Each module is switched on its own page, and one that is off shows only its switch there.',
   'whatsnew.change.fillSurface': 'Every fill level sloshes, and bubbles rise in it and pop at the surface: the folders under "{name}", "{volume}" and the traffic of an account.',
   'whatsnew.change.windowCard': 'In the desktop app, "{name}" sets how the window and its tray icon behave.',
   'whatsnew.change.desktopCard': '"{awake}" is set under "{name}", beside the window and the tray icon. "{modules}" lists only what has a switch, so its card of desktop-only parts is gone.',

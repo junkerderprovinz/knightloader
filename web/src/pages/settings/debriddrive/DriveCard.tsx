@@ -1,12 +1,12 @@
 import { useCallback, useState } from 'react';
-import { Button, Card, InfoBubble, NumberInput, SectionTitle } from '../../../components/ui';
+import { Button, InfoBubble, NumberInput } from '../../../components/ui';
 import { appAddress } from '../../../lib/basePath';
 import { copyToClipboard } from '../../../lib/clipboard';
 import { useT } from '../../../lib/i18n';
-import { useDraft, useFeatures } from '../context';
+import { useDraft } from '../context';
 import { Reading } from '../health/Reading';
 import { SettingRow } from '../controls';
-import { ModuleToggle } from '../ModuleToggle';
+import { ModuleCard } from '../ModuleToggle';
 
 /** Mirrors settings.DebridDrive. lib/api.ts's Settings does not name it, as with `torrent`. */
 interface DriveSettings {
@@ -26,15 +26,12 @@ function readDrive(cfg: unknown): DriveSettings {
 
 /**
  * DriveCard switches the debrid drive, the read-only WebDAV share of what is on
- * the debrid accounts, and hands over what rclone needs to mount it. The switch
- * goes through the module registry, so it is the Modules page's switch too.
+ * the debrid accounts, and hands over what rclone needs to mount it.
  */
 export function DriveCard({ hue }: { hue: number }) {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  const { features } = useFeatures();
   const drive = readDrive(cfg);
-  const on = features.modules.find((m) => m.id === 'debriddrive')?.enabled ?? false;
 
   const write = useCallback(
     (fields: Partial<DriveSettings>) => {
@@ -55,11 +52,7 @@ export function DriveCard({ hue }: { hue: number }) {
   ].join('\n');
 
   return (
-    <Card hue={hue} data-new="drive-page" className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.module.debriddrive')}</SectionTitle>
-
-      <ModuleToggle id="debriddrive" hue={0} hint={t('settings.accounts.driveHint')} />
-
+    <ModuleCard id="debriddrive" hue={hue} data-new="drive-page" switchHue={0} hint={t('settings.accounts.driveHint')}>
       <SettingRow
         control="short"
         label={t('settings.accounts.driveRefresh')}
@@ -101,10 +94,7 @@ export function DriveCard({ hue }: { hue: number }) {
           <CopyButton text={snippet} />
         </div>
       </div>
-
-      {/* While the switch is off the address answers 404. */}
-      {!on && <span className="text-meta text-carbon-textMuted">{t('settings.accounts.driveOffHint')}</span>}
-    </Card>
+    </ModuleCard>
   );
 }
 

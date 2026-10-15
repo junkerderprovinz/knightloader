@@ -110,7 +110,7 @@ settings, service keys included, are never passed on to a program.
 A run that takes longer than its row allows is stopped, and so is anything the
 program started. A program runs one at a time unless its row allows more, up to
 four, so by default it sees events in the order they happened. Switching Event
-programs off on the Modules page drops the runs still waiting; one under way
+programs off on the Automation page drops the runs still waiting; one under way
 finishes. The exit code and the first part of the output go into
 the log, and the Automation page shows the last run. Once saved, the program's
 path and arguments are not shown there again, because an argument can hold a

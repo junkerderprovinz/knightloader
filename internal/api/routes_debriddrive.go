@@ -30,7 +30,7 @@ func registerDebridDrive(reg *Registry, a *app.App) {
 	serve := func(w http.ResponseWriter, r *http.Request) { serveDrive(a, w, r) }
 	reg.AddOpen(http.MethodGet, drivePrefix+"/{path...}",
 		"read a file of the debrid drive, with Range for a part of it; off unless \"Debrid drive\" is switched on "+
-			"(Accounts page or Modules page), and the credential is an API token of this instance that can read, "+
+			"(Debrid drive page), and the credential is an API token of this instance that can read, "+
 			"as a Bearer token or as the Basic password", serve)
 	reg.AddOpen("PROPFIND", drivePrefix+"/{path...}",
 		"list a folder of the debrid drive as WebDAV does, one level at a time; same switch, same credential", serve)

@@ -559,9 +559,9 @@ write to. Without one, links go where the download folder, a category or a
 Packagizer rule puts them.
 
 **Read only** suits a dashboard, or a monitoring system reading `/api/metrics`.
-The phone app uses Read, Add and Control and never needs Admin. The Modules
-page warns when no token has the rights the Sonarr bridge or `/api/metrics`
-needs.
+The phone app uses Read, Add and Control and never needs Admin. The switch of
+the Sonarr bridge and the one for `/api/metrics` warn in their (i) when no
+token has the rights they need.
 
 The phone app's Play button asks for a play link with `POST
 /api/tasks/{id}/play`, which needs Read. A player app opens the link without a

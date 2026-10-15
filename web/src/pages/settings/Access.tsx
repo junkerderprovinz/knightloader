@@ -321,7 +321,7 @@ export function TokensSection() {
         >
           {t('settings.access.tokens.title')}
         </SectionTitle>
-        <ModuleToggle id="downloadclient" hue={5} />
+        <ModuleToggle id="downloadclient" hue={5} hint={t('settings.modules.about.downloadclient')} />
         {tokens.length === 0 ? (
           <p className="text-sm text-carbon-textMuted">{t('settings.access.tokens.empty')}</p>
         ) : (

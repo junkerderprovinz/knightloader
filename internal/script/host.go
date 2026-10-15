@@ -78,7 +78,7 @@ type Host struct {
 
 	queue chan fireJob
 
-	// off is the modules page's switch for scripting as a whole. While it is
+	// off is the module switch for scripting as a whole. While it is
 	// set no event starts a script; RunNow ignores it, as it ignores Enabled.
 	off atomic.Bool
 

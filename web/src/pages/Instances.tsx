@@ -31,7 +31,7 @@ import { IconFleet, IconLink } from '../lib/icons';
 import { PageAction, PageActions } from '../components/PageActions';
 import { useToast } from '../lib/toast';
 import { fetchFeatures, type Feature } from './settings/features';
-import { ModulesPageBadge } from './settings/ModuleToggle';
+import { ModuleSwitchBadge } from './settings/ModuleToggle';
 import { Button, Card, EmptyState, PageHeader, SectionTitle } from '../components/ui';
 import { GroupNet, SELF_KEY, appNodeKind, useNetHover, type NetNode, type NetParcel } from '../components/GroupNet';
 import { AppCard, InstanceCard } from '../components/InstanceCard';
@@ -217,7 +217,7 @@ export function Instances({
         <EmptyState
           icon={<IconFleet width={26} height={26} />}
           title={t('instances.moduleOff')}
-          action={<ModulesPageBadge m={off} title={t('settings.nav.modules')} />}
+          action={<ModuleSwitchBadge m={off} title={t('settings.nav.instances')} />}
         />
       )}
 

@@ -41,15 +41,10 @@ export interface SettingsCard {
  *
  * A module switch is a row keyed settings.module.<id>, except on a card titled
  * by that module: there the switch's caption is the title, so it has no row of
- * its own and its (i) goes in `body`. Modules.tsx finds the switch either way.
+ * its own and its (i) goes in `body`. ModuleSwitchBadge finds the switch
+ * either way.
  */
 export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
-  modules: [
-    // The rows are the modules the server sent, which vary per deployment.
-    { title: 'settings.modules.sectionShipped', hint: 'settings.modules.fixedAtBuild', rows: [] },
-    { title: 'settings.modules.sectionNotBuilt', rows: [] },
-  ],
-
   collector: [
     {
       title: 'settings.sectionLinkIntake',
@@ -62,9 +57,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.module.watch', hint: 'settings.watchDirFilesHint' },
         { key: 'task.folder' },
       ],
-      // What the watch folder's (i) adds while there is nothing to switch on,
-      // or a parked folder to bring back.
-      body: ['settings.linkIntake.watchPickFolder', 'settings.linkIntake.watchParked'],
     },
     {
       title: 'settings.downloads.collectorTitle',
@@ -239,7 +231,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.archives.collision', hint: 'settings.archives.collisionHint' },
         { key: 'settings.archivePasswords', hint: 'settings.archivePasswordsHint' },
       ],
-      body: ['settings.pathVars'],
+      body: ['settings.modules.about.extraction', 'settings.pathVars'],
     },
     {
       title: 'settings.archives.afterwards',
@@ -418,6 +410,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.captcha.orderTitle',
       hint: 'settings.captcha.orderHint',
       rows: [
+        { key: 'settings.module.captcha', hint: 'settings.modules.about.captcha' },
         { key: 'settings.captcha.whenTitle' },
         { key: 'settings.captcha.onlyUnwatched', hint: 'settings.captcha.onlyUnwatchedHint' },
         { key: 'settings.captcha.wait', hint: 'settings.captcha.waitHint' },
@@ -425,10 +418,8 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.captcha.test', hint: 'settings.captcha.testHint' },
         { key: 'settings.captcha.testSolvers', hint: 'settings.captcha.testSolversHint' },
       ],
-      // The hint sends the reader to the captcha accounts card by its name,
-      // and the button that ends the test row to the module's switch on the
-      // Modules page.
-      also: ['accounts.captcha.title', 'settings.captcha.moduleLink', 'settings.nav.modules'],
+      // The hint sends the reader to the captcha accounts card by its name.
+      also: ['accounts.captcha.title'],
       body: ['settings.captcha.orderIntro', 'settings.captcha.orderEmpty'],
     },
     // The fields are in the window a server row opens, so they lead to the card.
@@ -525,13 +516,13 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.accounts.driveRclone', hint: 'settings.accounts.driveRcloneHint' },
       ],
       also: ['common.copy', 'common.copied'],
-      body: ['settings.accounts.driveHint', 'settings.accounts.driveOffHint'],
+      body: ['settings.accounts.driveHint'],
     },
   ],
 
   instances: [
     // The module's switch is the card's title, so it has no row of its own.
-    { title: 'settings.module.federation', rows: [] },
+    { title: 'settings.module.federation', rows: [], body: ['settings.modules.about.federation'] },
     // The page drawn below that card.
     {
       title: 'instances.foundTitle',
@@ -640,7 +631,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.access.tokens.title',
       hint: 'settings.access.tokens.intro',
-      rows: [{ key: 'settings.module.downloadclient' }],
+      rows: [{ key: 'settings.module.downloadclient', hint: 'settings.modules.about.downloadclient' }],
       // The name field and the rights picker in the window that creates a token.
       also: ['settings.access.tokens.name', 'settings.access.tokens.rights'],
       // The (i) of the window that shows a new token, and of the rights picker.
@@ -699,7 +690,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.module.metrics',
       rows: [{ key: 'settings.health.scrapeUrl' }],
       also: ['settings.health.scrapeCopy', 'settings.health.scrapeCopied'],
-      body: ['settings.health.scrapeHint', 'settings.health.scrapeOffHint'],
+      body: ['settings.health.scrapeHint'],
     },
     // The key table has its own search box and stays out of the index.
     { title: 'settings.advanced.allSettings', rows: [] },
@@ -793,7 +784,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       ],
       also: ['settings.connections.test'],
       // The user name's (i) on a SOCKS4 row.
-      body: ['settings.connections.stateSocks4'],
+      body: ['settings.modules.about.connections', 'settings.connections.stateSocks4'],
     },
     {
       title: 'settings.selftest.proxy.title',
@@ -834,7 +825,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.reconnect.requestBody', hint: 'settings.reconnect.requestBodyHint' },
         { key: 'settings.reconnect.importLabel', hint: 'settings.reconnect.importHint' },
       ],
-      body: ['settings.reconnect.upnpState'],
+      body: ['settings.modules.about.reconnect', 'settings.reconnect.upnpState'],
     },
     {
       title: 'settings.reconnect.checkTitle',
@@ -966,9 +957,11 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.resolvers.variantDefaults',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
-      // The per-host overrides are bare selects named by aria-label.
-      also: ['settings.resolvers.moduleUnavailable'],
-      body: ['settings.resolvers.moduleUnavailableHint'],
+    },
+    {
+      title: 'settings.module.jd',
+      rows: [],
+      body: ['settings.modules.about.jd'],
     },
   ],
 
@@ -976,7 +969,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.torrents.seedingTitle',
       rows: [
-        { key: 'settings.module.torrents' },
+        { key: 'settings.module.torrents', hint: 'settings.modules.about.torrents' },
         { key: 'settings.torrents.seedRatio', hint: 'settings.torrents.seedRatioHint' },
         { key: 'settings.torrents.seedDuration', hint: 'settings.torrents.seedDurationHint' },
         { key: 'settings.torrents.uploadLimit', hint: 'settings.torrents.uploadLimitHint' },
@@ -1213,7 +1206,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.scripts.code' },
       ],
       also: ['settings.scripts.run'],
-      body: ['settings.scripts.empty', 'settings.scripts.emptyHint'],
+      body: ['settings.modules.about.scripting', 'settings.scripts.empty', 'settings.scripts.emptyHint'],
     },
   ],
 

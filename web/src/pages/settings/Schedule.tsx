@@ -25,7 +25,7 @@ import { useToast } from '../../lib/toast';
 import { ScheduleSuspendField, fmtUntil } from './automation/ScheduleSuspend';
 import { useDraft, useFeatures } from './context';
 import { NeutralSwitch, SettingRow, Sheet } from './controls';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 
 /**
  * ScheduleCards edits the timetable: windows that pause, resume or cap the
@@ -479,32 +479,25 @@ export function ScheduleCards({ hue }: { hue: number }) {
         }
       />
 
-      <Card hue={hue + 1} className="flex flex-col gap-4">
-        <SectionTitle
-          hint={t('settings.schedule.orderHint')}
-          right={
-            // A window added while the module is off would take the place of
-            // the parked ones, so Add waits for the switch.
-            !parked && (
-              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
-                {t('settings.schedule.add')}
-              </Button>
-            )
-          }
-        >
-          {t('settings.module.scheduler')}
-        </SectionTitle>
-        <ModuleToggle id="scheduler" blocked={dirty || saving} />
-
-        {/* "No schedules yet" would not be true while they wait for the
-            switch, so the switch stands alone. */}
+      {/* Switched off, the windows are parked on the server and the card
+          folds, so Add cannot put a window in their place. */}
+      <ModuleCard
+        id="scheduler"
+        hue={hue + 1}
+        className="flex flex-col gap-4"
+        blocked={dirty || saving}
+        titleHint={t('settings.schedule.orderHint')}
+        titleRight={
+          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+            {t('settings.schedule.add')}
+          </Button>
+        }
+      >
         {rows.length === 0 ? (
-          !parked && (
-            <p className="py-6 text-center text-sm text-carbon-textSub">
-              {t('settings.schedule.empty')}
-              <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
-            </p>
-          )
+          <p className="py-6 text-center text-sm text-carbon-textSub">
+            {t('settings.schedule.empty')}
+            <span className="mt-1 block text-meta text-carbon-textMuted">{t('settings.schedule.emptyHint')}</span>
+          </p>
         ) : (
           <>
             {/* The band draws the rows as they stand on screen, so it follows an
@@ -514,7 +507,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
               dayLabels={dayLabels}
               now={now}
               nowLabel={fmtClock(now, locale)}
-              quiet={parked || live?.suspended === true}
+              quiet={live?.suspended === true}
               label={t('settings.module.scheduler')}
             />
             {/* Whether the timetable does what was wanted: today's plan against the speed measured. */}
@@ -528,7 +521,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
               points={day ? todayOf(day, now) : []}
               now={now}
               dayLabel={dayLabels[now.getDay()]}
-              quiet={parked || live?.suspended === true}
+              quiet={live?.suspended === true}
               label={`${t('settings.module.scheduler')}, ${dayLabels[now.getDay()]}`}
             />
             <ul className="flex flex-col">
@@ -552,7 +545,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
             </ul>
           </>
         )}
-      </Card>
+      </ModuleCard>
     </>
   );
 }

@@ -1,34 +1,25 @@
 import { useState } from 'react';
-import { Button, Card, SectionTitle } from '../../../components/ui';
+import { Button } from '../../../components/ui';
 import { useT } from '../../../lib/i18n';
 import { appAddress } from '../../../lib/basePath';
-import { useFeatures } from '../context';
-import { ModuleToggle } from '../ModuleToggle';
+import { ModuleCard } from '../ModuleToggle';
 import { Reading } from '../health/Reading';
 
 /**
  * ScrapeCard switches the plain-text metrics route, which is off by default and
- * sits behind the usual authentication. The switch is the module's own, so it
- * cannot disagree with the Modules page.
+ * sits behind the usual authentication.
  */
 export function ScrapeCard({ hue }: { hue: number }) {
   const { t } = useT();
-  const { features } = useFeatures();
   const [copied, setCopied] = useState(false);
   const [copies, setCopies] = useState(0);
-
-  const on = features.modules.find((m) => m.id === 'metrics')?.enabled ?? false;
 
   // Absolute, because it gets pasted into a collector on another machine, and
   // taken from the address the reader used since the server cannot know it.
   const address = `${appAddress()}/api/metrics`;
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle>{t('settings.module.metrics')}</SectionTitle>
-
-      <ModuleToggle id="metrics" hue={0} hint={t('settings.health.scrapeHint')} />
-
+    <ModuleCard id="metrics" hue={hue} switchHue={0} hint={t('settings.health.scrapeHint')}>
       <div className="flex flex-wrap items-end justify-between gap-3">
         <Reading label={t('settings.health.scrapeUrl')} value={address} />
         {/* navigator.clipboard is missing on a plain-HTTP LAN address. */}
@@ -48,9 +39,6 @@ export function ScrapeCard({ hue }: { hue: number }) {
           </Button>
         )}
       </div>
-
-      {/* While the switch is off the address answers 404. */}
-      {!on && <span className="text-meta text-carbon-textMuted">{t('settings.health.scrapeOffHint')}</span>}
-    </Card>
+    </ModuleCard>
   );
 }

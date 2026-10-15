@@ -4,11 +4,10 @@ import { useFeatures } from '../context';
 import { ModuleToggle } from '../ModuleToggle';
 
 /**
- * KeepAwakeRow is the switch that keeps the computer from sleeping while a
- * download runs, the same switch as the module's row on the Modules page. Only
- * the desktop build acts on it, so a container shows it off and disabled with
- * the reason in its (i), the way the automatic update install does on the
- * General page. The Modules page lists no such row there.
+ * KeepAwakeRow is the module switch that keeps the computer from sleeping
+ * while a download runs. Only the desktop build acts on it, so a container
+ * shows it off and disabled with the reason in its (i), the way the automatic
+ * update install does on the General page.
  */
 export function KeepAwakeRow() {
   const { t } = useT();

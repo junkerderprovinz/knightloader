@@ -43,9 +43,9 @@ import {
   type YtdlpVariantKind,
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
-import { useDraft, useFeatures } from './context';
+import { useDraft } from './context';
 import { SettingRow } from './controls';
-import { moduleReason } from './tx';
+import { ModuleCard } from './ModuleToggle';
 
 // Named like the download list's own variant labels.
 const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
@@ -101,7 +101,6 @@ function normaliseHost(raw: string): string {
 export function Resolvers() {
   const { t } = useT();
   const { cfg, patch } = useDraft();
-  const { features } = useFeatures();
 
   const [menus, setMenus] = useState<PresetMenus>(NO_PRESET_MENUS);
   useEffect(() => {
@@ -201,19 +200,8 @@ export function Resolvers() {
     setDuplicate(false);
   };
 
-  // Whether the binary was found is live state from the module registry.
-  const module = features.modules.find((m) => m.id === 'ytdlp');
-
   return (
     <div className="flex flex-col gap-10">
-      {module && !module.enabled && (
-          <Card hue={0} className="flex items-center gap-2 text-sm text-carbon-textSub">
-            <SectionTitle>{t('settings.resolvers.moduleUnavailable')}</SectionTitle>
-            <span>{moduleReason(t, module)}</span>
-            <InfoBubble tip={t('settings.resolvers.moduleUnavailableHint')} />
-          </Card>
-      )}
-
       {/* First, since an outdated yt-dlp is the usual reason somebody opens
           this page. */}
       <MediaToolsCard hue={1} />
@@ -666,6 +654,10 @@ export function Resolvers() {
           </Modal>
         )}
       </Card>
+
+      {/* The other backend a link resolves through. Its logins are on the
+          Accounts page, but the backend itself is switched here. */}
+      <ModuleCard id="jd" hue={11} className="flex flex-col gap-3" hint={t('settings.modules.about.jd')} />
     </div>
   );
 }

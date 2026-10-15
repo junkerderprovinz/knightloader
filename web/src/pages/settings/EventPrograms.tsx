@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Button, Card, SectionTitle } from '../../components/ui';
+import { Button } from '../../components/ui';
 import { fetchDeploymentInfo } from '../../lib/api';
 import {
   TIMEOUT,
@@ -15,7 +15,7 @@ import { useT } from '../../lib/i18n';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
 import { useDraft } from './context';
 import { ProgramRow } from './eventprograms/ProgramRow';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 
 /**
  * EventProgramsCard lists the programs this instance starts when something
@@ -56,19 +56,17 @@ export function EventProgramsCard({ hue }: { hue: number }) {
   };
 
   return (
-    <Card hue={hue} className="flex flex-col gap-4">
-      <SectionTitle
-        hint={t('settings.eventPrograms.titleHint')}
-        right={
-          <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
-            {t('settings.eventPrograms.add')}
-          </Button>
-        }
-      >
-        {t('settings.module.eventprograms')}
-      </SectionTitle>
-      <ModuleToggle id="eventprograms" />
-
+    <ModuleCard
+      id="eventprograms"
+      hue={hue}
+      className="flex flex-col gap-4"
+      titleHint={t('settings.eventPrograms.titleHint')}
+      titleRight={
+        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+          {t('settings.eventPrograms.add')}
+        </Button>
+      }
+    >
       <div>
         {rows.length === 0 ? (
           // Inside the card rather than an EmptyState, which would hide Add.
@@ -97,7 +95,7 @@ export function EventProgramsCard({ hue }: { hue: number }) {
           </ul>
         )}
       </div>
-    </Card>
+    </ModuleCard>
   );
 }
 

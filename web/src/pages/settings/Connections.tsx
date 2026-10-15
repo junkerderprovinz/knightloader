@@ -2,12 +2,10 @@ import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom';
 import {
   Button,
-  Card,
   Field,
   IconBadge,
   Modal,
   NumberInput,
-  SectionTitle,
   TextArea,
   TextInput,
   type ButtonVerdict,
@@ -24,7 +22,7 @@ import { useTasks } from '../../lib/useTasks';
 import { useDraft, useFeatures } from './context';
 import { ListArea, NeutralSwitch, RowRefusal, SettingRow, Sheet } from './controls';
 import { requestJump } from './jump';
-import { ModuleToggle } from './ModuleToggle';
+import { ModuleCard } from './ModuleToggle';
 
 /**
  * ConnectionsCard manages the ordered list of outbound connections downloads
@@ -219,23 +217,22 @@ export function ConnectionsCard({ hue }: { hue: number }) {
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-4">
-        <SectionTitle
-          right={
-            <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
-              <Button kind="secondary" onClick={() => setImporting(true)}>
-                {t('settings.connections.import')}
-              </Button>
-              <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
-                {t('settings.connections.add')}
-              </Button>
-            </div>
-          }
-        >
-          {t('settings.module.connections')}
-        </SectionTitle>
-        <ModuleToggle id="connections" />
-
+      <ModuleCard
+        id="connections"
+        hue={hue}
+        className="flex flex-col gap-4"
+        hint={t('settings.modules.about.connections')}
+        titleRight={
+          <div className="flex min-w-0 flex-wrap items-center justify-end gap-2">
+            <Button kind="secondary" onClick={() => setImporting(true)}>
+              {t('settings.connections.import')}
+            </Button>
+            <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+              {t('settings.connections.add')}
+            </Button>
+          </div>
+        }
+      >
         <Routes routes={routes} test={test} label={t('settings.module.connections')} onPick={pickRoute} />
         {dialled.length > 0 && (
           <div className="flex flex-col items-center gap-2">
@@ -281,7 +278,7 @@ export function ConnectionsCard({ hue }: { hue: number }) {
             ))}
           </ul>
         )}
-      </Card>
+      </ModuleCard>
 
       {importing && (
         <ImportDialog

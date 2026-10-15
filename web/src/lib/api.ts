@@ -427,7 +427,7 @@ export interface Settings {
   autoConfirm: boolean;
   /** Seconds before an unconfirmed batch confirms itself; 0 disables the countdown. */
   autoConfirmDelay: number;
-  /** The modules switched off on the modules page, by their ids there. */
+  /** The modules switched off by their switches, by their ids in GET /api/features. */
   modulesOff: string[] | null;
   /** Whether a confirmed batch starts right away (the default) or waits in the queue. */
   autoStart: boolean;
@@ -2835,9 +2835,8 @@ export async function answerCaptcha(
 /**
  * createTestCaptcha puts up a test captcha, which arrives like a real one.
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
- * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off
- * on the Modules page, or 'noCaptchaAccount' when no captcha account could
- * take it.
+ * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off,
+ * or 'noCaptchaAccount' when no captcha account could take it.
  */
 export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {
   return json<CaptchaChallenge>(await post('/api/captcha/test', { solvers }));
