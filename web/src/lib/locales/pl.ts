@@ -1559,8 +1559,7 @@ export const pl: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Pobierz zgłoszenie błędu',
   'settings.diagnostics.downloading': 'Przygotowywanie…',
-  'settings.diagnostics.downloadHint':
-    'Plik JSON z powyższymi polami, Twoimi ustawieniami z usuniętym każdym hasłem, oraz wierszami dziennika poniżej.',
+  'settings.diagnostics.downloadHint': 'Plik JSON z powyższymi polami, Twoimi ustawieniami z usuniętym każdym hasłem oraz ostatnimi wierszami dziennika.',
   'settings.diagnostics.downloadFailed': 'Nie udało się utworzyć pakietu: {error}',
   'settings.diagnostics.logTitle': 'Ostatnie wiersze dziennika',
   'settings.diagnostics.logHint':

@@ -1566,8 +1566,7 @@ export const vi: Dict = {
   'settings.diagnostics.platform': 'Nền tảng',
   'settings.diagnostics.download': 'Tải báo cáo lỗi',
   'settings.diagnostics.downloading': 'Đang chuẩn bị…',
-  'settings.diagnostics.downloadHint':
-    'Một tệp JSON với các trường ở trên, cài đặt của bạn với mọi mật khẩu đã bị xóa, và các dòng nhật ký bên dưới.',
+  'settings.diagnostics.downloadHint': 'Một tệp JSON với các trường ở trên, cài đặt của bạn với mọi mật khẩu đã bị xóa, và các dòng nhật ký gần đây.',
   'settings.diagnostics.downloadFailed': 'Không thể tạo gói: {error}',
   'settings.diagnostics.logTitle': 'Các dòng nhật ký gần đây',
   'settings.diagnostics.logHint':

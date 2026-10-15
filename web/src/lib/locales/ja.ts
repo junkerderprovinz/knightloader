@@ -1566,8 +1566,7 @@ export const ja: Dict = {
   'settings.diagnostics.platform': 'プラットフォーム',
   'settings.diagnostics.download': 'バグ報告をダウンロード',
   'settings.diagnostics.downloading': '準備中…',
-  'settings.diagnostics.downloadHint':
-    '上記のフィールドを含むJSONファイル、すべてのパスワードを除去した設定、そして下記のログ行。',
+  'settings.diagnostics.downloadHint': '上記のフィールドを含む JSON ファイル、すべてのパスワードを除去した設定、そして直近のログ行。',
   'settings.diagnostics.downloadFailed': 'パッケージを作成できませんでした: {error}',
   'settings.diagnostics.logTitle': '直近のログ行',
   'settings.diagnostics.logHint':

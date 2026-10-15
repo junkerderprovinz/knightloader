@@ -1566,8 +1566,7 @@ export const ms: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Muat turun laporan pepijat',
   'settings.diagnostics.downloading': 'Menyediakan…',
-  'settings.diagnostics.downloadHint':
-    'Fail JSON dengan medan di atas, tetapan anda dengan setiap kata laluan dialih keluar, dan baris log di bawah.',
+  'settings.diagnostics.downloadHint': 'Fail JSON dengan medan di atas, tetapan anda dengan setiap kata laluan dialih keluar, dan baris log terkini.',
   'settings.diagnostics.downloadFailed': 'Pakej tidak dapat dibuat: {error}',
   'settings.diagnostics.logTitle': 'Baris log terbaru',
   'settings.diagnostics.logHint':

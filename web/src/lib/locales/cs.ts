@@ -1566,8 +1566,7 @@ export const cs: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Stáhnout hlášení chyby',
   'settings.diagnostics.downloading': 'Připravuje se…',
-  'settings.diagnostics.downloadHint':
-    'Soubor JSON s poli výše, vaším nastavením se všemi hesly odstraněnými, a řádky záznamu níže.',
+  'settings.diagnostics.downloadHint': 'Soubor JSON s poli výše, tvým nastavením se všemi hesly odstraněnými a posledními řádky záznamu.',
   'settings.diagnostics.downloadFailed': 'Balíček se nepodařilo vytvořit: {error}',
   'settings.diagnostics.logTitle': 'Nedávné řádky záznamu',
   'settings.diagnostics.logHint':

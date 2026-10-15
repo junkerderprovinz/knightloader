@@ -1566,8 +1566,7 @@ export const ko: Dict = {
   'settings.diagnostics.platform': '플랫폼',
   'settings.diagnostics.download': '버그 보고서 다운로드',
   'settings.diagnostics.downloading': '준비 중…',
-  'settings.diagnostics.downloadHint':
-    '위 필드가 포함된 JSON 파일, 모든 비밀번호를 제거한 설정, 그리고 아래 로그 줄입니다.',
+  'settings.diagnostics.downloadHint': '위 필드가 포함된 JSON 파일, 모든 비밀번호를 제거한 설정, 그리고 최근 로그 줄입니다.',
   'settings.diagnostics.downloadFailed': '패키지를 만들 수 없습니다: {error}',
   'settings.diagnostics.logTitle': '최근 로그 줄',
   'settings.diagnostics.logHint':

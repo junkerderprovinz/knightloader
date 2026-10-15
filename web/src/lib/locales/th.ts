@@ -1566,8 +1566,7 @@ export const th: Dict = {
   'settings.diagnostics.platform': 'แพลตฟอร์ม',
   'settings.diagnostics.download': 'ดาวน์โหลดรายงานข้อบกพร่อง',
   'settings.diagnostics.downloading': 'กำลังเตรียม…',
-  'settings.diagnostics.downloadHint':
-    'ไฟล์ JSON ที่มีช่องข้อมูลด้านบน การตั้งค่าของคุณโดยลบรหัสผ่านทั้งหมดออก และบรรทัดล็อกด้านล่าง',
+  'settings.diagnostics.downloadHint': 'ไฟล์ JSON ที่มีช่องข้อมูลด้านบน การตั้งค่าของคุณโดยลบรหัสผ่านทั้งหมดออก และบรรทัดล็อกล่าสุด',
   'settings.diagnostics.downloadFailed': 'สร้างชุดข้อมูลไม่สำเร็จ: {error}',
   'settings.diagnostics.logTitle': 'บรรทัดล็อกล่าสุด',
   'settings.diagnostics.logHint':

@@ -1567,8 +1567,7 @@ export const uk: Dict = {
   'settings.diagnostics.platform': 'Платформа',
   'settings.diagnostics.download': 'Завантажити звіт про помилку',
   'settings.diagnostics.downloading': 'Підготовка…',
-  'settings.diagnostics.downloadHint':
-    'JSON-файл із полями вище, вашими налаштуваннями з видаленими паролями, і рядками журналу нижче.',
+  'settings.diagnostics.downloadHint': 'JSON-файл із полями вище, вашими налаштуваннями з видаленими паролями і нещодавніми рядками журналу.',
   'settings.diagnostics.downloadFailed': 'Не вдалося створити пакет: {error}',
   'settings.diagnostics.logTitle': 'Останні рядки журналу',
   'settings.diagnostics.logHint':

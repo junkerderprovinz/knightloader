@@ -1566,8 +1566,7 @@ export const sk: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Stiahnuť hlásenie chyby',
   'settings.diagnostics.downloading': 'Pripravuje sa…',
-  'settings.diagnostics.downloadHint':
-    'Súbor JSON s poľami vyššie, vaším nastavením so všetkými heslami odstránenými, a riadkami denníka nižšie.',
+  'settings.diagnostics.downloadHint': 'Súbor JSON s poľami vyššie, tvojím nastavením so všetkými heslami odstránenými a posledními riadkami denníka.',
   'settings.diagnostics.downloadFailed': 'Balík sa nepodarilo vytvoriť: {error}',
   'settings.diagnostics.logTitle': 'Nedávne riadky denníka',
   'settings.diagnostics.logHint':

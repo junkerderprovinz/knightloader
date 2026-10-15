@@ -1558,8 +1558,7 @@ export const it: Dict = {
   'settings.diagnostics.platform': 'Piattaforma',
   'settings.diagnostics.download': 'Scarica la segnalazione di bug',
   'settings.diagnostics.downloading': 'Preparazione…',
-  'settings.diagnostics.downloadHint':
-    'Un file JSON con i campi sopra, le tue impostazioni con ogni password rimossa, e le righe di log sotto.',
+  'settings.diagnostics.downloadHint': 'Un file JSON con i campi sopra, le tue impostazioni con ogni password rimossa e le ultime righe di log.',
   'settings.diagnostics.downloadFailed': 'Impossibile creare il pacchetto: {error}',
   'settings.diagnostics.logTitle': 'Righe di log recenti',
   'settings.diagnostics.logHint':

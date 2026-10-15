@@ -1568,8 +1568,7 @@ export const ar: Dict = {
   'settings.diagnostics.platform': 'المنصة',
   'settings.diagnostics.download': 'تنزيل تقرير الخطأ',
   'settings.diagnostics.downloading': 'جارٍ التحضير…',
-  'settings.diagnostics.downloadHint':
-    'ملف JSON بالحقول أعلاه، وإعداداتك مع إزالة كل كلمة مرور، وسطور السجل أدناه.',
+  'settings.diagnostics.downloadHint': 'ملف JSON بالحقول أعلاه، وإعداداتك مع إزالة كل كلمة مرور، وأحدث سطور السجل.',
   'settings.diagnostics.downloadFailed': 'تعذّر إنشاء الحزمة: {error}',
   'settings.diagnostics.logTitle': 'سطور السجل الأخيرة',
   'settings.diagnostics.logHint':

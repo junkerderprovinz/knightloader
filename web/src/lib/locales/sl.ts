@@ -1566,8 +1566,7 @@ export const sl: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Prenesi poročilo o napaki',
   'settings.diagnostics.downloading': 'Pripravlja se…',
-  'settings.diagnostics.downloadHint':
-    'Datoteka JSON z zgornjimi polji, vašimi nastavitvami z vsemi odstranjenimi gesli, in spodnjimi vrsticami dnevnika.',
+  'settings.diagnostics.downloadHint': 'Datoteka JSON z zgornjimi polji, tvojimi nastavitvami z odstranjenimi gesli in zadnjimi vrsticami dnevnika.',
   'settings.diagnostics.downloadFailed': 'Paketa ni bilo mogoče ustvariti: {error}',
   'settings.diagnostics.logTitle': 'Nedavne vrstice dnevnika',
   'settings.diagnostics.logHint':

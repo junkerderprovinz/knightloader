@@ -1566,8 +1566,7 @@ export const sv: Dict = {
   'settings.diagnostics.platform': 'Plattform',
   'settings.diagnostics.download': 'Ladda ned felrapport',
   'settings.diagnostics.downloading': 'Förbereder…',
-  'settings.diagnostics.downloadHint':
-    'En JSON-fil med fälten ovan, dina inställningar med varje lösenord borttaget, och loggraderna nedan.',
+  'settings.diagnostics.downloadHint': 'En JSON-fil med fälten ovan, dina inställningar med varje lösenord borttaget, och de senaste loggraderna.',
   'settings.diagnostics.downloadFailed': 'Paketet kunde inte skapas: {error}',
   'settings.diagnostics.logTitle': 'Senaste loggrader',
   'settings.diagnostics.logHint':

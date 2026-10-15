@@ -1566,8 +1566,7 @@ export const gl: Dict = {
   'settings.diagnostics.platform': 'Plataforma',
   'settings.diagnostics.download': 'Descargar informe de erro',
   'settings.diagnostics.downloading': 'Preparando…',
-  'settings.diagnostics.downloadHint':
-    'Un ficheiro JSON cos campos de arriba, a túa configuración con cada contrasinal eliminado, e as liñas de rexistro de abaixo.',
+  'settings.diagnostics.downloadHint': 'Un ficheiro JSON cos campos de arriba, a túa configuración con cada contrasinal eliminado e as últimas liñas do rexistro.',
   'settings.diagnostics.downloadFailed': 'Non se puido crear o paquete: {error}',
   'settings.diagnostics.logTitle': 'Liñas de rexistro recentes',
   'settings.diagnostics.logHint':

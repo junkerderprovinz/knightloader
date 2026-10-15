@@ -1559,8 +1559,7 @@ export const ru: Dict = {
   'settings.diagnostics.platform': 'Платформа',
   'settings.diagnostics.download': 'Скачать отчёт об ошибке',
   'settings.diagnostics.downloading': 'Подготовка…',
-  'settings.diagnostics.downloadHint':
-    'JSON-файл с полями выше, вашими настройками с удалёнными паролями, и строками журнала ниже.',
+  'settings.diagnostics.downloadHint': 'JSON-файл с полями выше, вашими настройками с удалёнными паролями и последними строками журнала.',
   'settings.diagnostics.downloadFailed': 'Не удалось собрать пакет: {error}',
   'settings.diagnostics.logTitle': 'Недавние строки журнала',
   'settings.diagnostics.logHint':

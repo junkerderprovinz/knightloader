@@ -1568,8 +1568,7 @@ export const he: Dict = {
   'settings.diagnostics.platform': 'פלטפורמה',
   'settings.diagnostics.download': 'הורד דוח תקלה',
   'settings.diagnostics.downloading': 'מכין…',
-  'settings.diagnostics.downloadHint':
-    'קובץ JSON עם השדות שלמעלה, ההגדרות שלך עם כל סיסמה מוסרת, ושורות היומן שלמטה.',
+  'settings.diagnostics.downloadHint': 'קובץ JSON עם השדות שלמעלה, ההגדרות שלך עם כל סיסמה מוסרת, ושורות היומן האחרונות.',
   'settings.diagnostics.downloadFailed': 'לא ניתן היה ליצור את החבילה: {error}',
   'settings.diagnostics.logTitle': 'שורות יומן אחרונות',
   'settings.diagnostics.logHint':

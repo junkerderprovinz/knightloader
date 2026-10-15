@@ -1566,8 +1566,7 @@ export const fi: Dict = {
   'settings.diagnostics.platform': 'Alusta',
   'settings.diagnostics.download': 'Lataa virheraportti',
   'settings.diagnostics.downloading': 'Valmistellaan…',
-  'settings.diagnostics.downloadHint':
-    'JSON-tiedosto yllä olevilla kentillä, asetuksillasi jokainen salasana poistettuna, ja alla olevilla lokiriveillä.',
+  'settings.diagnostics.downloadHint': 'JSON-tiedosto yllä olevilla kentillä, asetuksillasi jokainen salasana poistettuna ja viimeisimmillä lokiriveillä.',
   'settings.diagnostics.downloadFailed': 'Pakettia ei voitu luoda: {error}',
   'settings.diagnostics.logTitle': 'Viimeisimmät lokirivit',
   'settings.diagnostics.logHint':

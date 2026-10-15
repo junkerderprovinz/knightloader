@@ -1566,8 +1566,7 @@ export const ca: Dict = {
   'settings.diagnostics.platform': 'Plataforma',
   'settings.diagnostics.download': 'Baixa l’informe d’error',
   'settings.diagnostics.downloading': 'Preparant…',
-  'settings.diagnostics.downloadHint':
-    'Un fitxer JSON amb els camps de dalt, la teva configuració amb cada contrasenya eliminada, i les línies de registre de sota.',
+  'settings.diagnostics.downloadHint': 'Un fitxer JSON amb els camps de dalt, la teva configuració amb cada contrasenya eliminada, i les últimes línies de registre.',
   'settings.diagnostics.downloadFailed': 'No s’ha pogut crear el paquet: {error}',
   'settings.diagnostics.logTitle': 'Línies de registre recents',
   'settings.diagnostics.logHint':

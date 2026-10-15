@@ -1566,8 +1566,7 @@ export const fa: Dict = {
   'settings.diagnostics.platform': 'پلتفرم',
   'settings.diagnostics.download': 'دانلود گزارش خطا',
   'settings.diagnostics.downloading': 'در حال آماده‌سازی…',
-  'settings.diagnostics.downloadHint':
-    'یک فایل JSON با فیلدهای بالا، تنظیمات شما با حذف هر رمز عبور، و خطوط گزارش زیر.',
+  'settings.diagnostics.downloadHint': 'یک فایل JSON با فیلدهای بالا، تنظیمات شما با حذف هر رمز عبور، و آخرین خطوط گزارش.',
   'settings.diagnostics.downloadFailed': 'ایجاد بسته ممکن نشد: {error}',
   'settings.diagnostics.logTitle': 'خطوط اخیر گزارش',
   'settings.diagnostics.logHint':
