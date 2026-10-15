@@ -2283,7 +2283,6 @@ export const en = {
   // transfer limit, the port and its UPnP mapping, DHT and PEX, the file
   // selection and the trackers.
   'settings.nav.torrents': 'Torrents',
-  'settings.nav.debriddrive': 'Debrid drive',
   'settings.module.torrents': 'Built-in torrent client',
   'settings.torrents.title': 'Torrents',
   'settings.torrents.seedingTitle': 'Seeding',
@@ -3910,6 +3909,7 @@ export const en = {
   'whatsnew.change.accountKinds': '"{name}" opens a large tile for each kind of account, one below the other in the order of the cards on this page.',
   'whatsnew.change.accountsCardAdd': 'Every card on this page has its own add button at the end of its heading, and it opens the right window straight away.',
   'whatsnew.change.integrationsPage': 'VPN and MCP have a page of their own, {name}, right after {accounts}.',
+  'whatsnew.change.driveIntegrations': '"{name}" is a card under "{page}" instead of a page of its own.',
   'whatsnew.change.healthDiagnostics': 'Health and diagnostics are one page with three cards: the state of every part with the self-test, the log, and the system with the bug report.',
   'whatsnew.change.proxyCheckMoved': 'The {name} check has moved here.',
   'whatsnew.change.advancedUpkeep': '{maintenance} and {metrics} have moved here.',
@@ -4000,7 +4000,7 @@ export const en = {
   'settings.vpn.col.portHint': 'Where others reach the forwarded port. Some providers take it on another address than the one your traffic leaves by, so it can differ from the exit address.',
   'settings.vpn.use': 'Use {name}',
   'settings.vpn.removeConfirm': 'Remove {name} and the login stored for it?',
-  'settings.vpn.routesTitle': 'Through the VPN',
+  'settings.vpn.routesTitle': 'What goes through the VPN',
   'settings.vpn.routesHint': 'Each kind switched on goes only through the VPN and waits while it is down. The others use your own connection.',
   'settings.vpn.route.torrents': 'Torrents',
   'settings.vpn.route.torrentsHint': 'With a provider that forwards a port, torrents listen on that port, so other peers can connect to you.',
