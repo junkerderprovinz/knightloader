@@ -1566,8 +1566,7 @@ export const is: Dict = {
   'settings.diagnostics.platform': 'Vettvangur',
   'settings.diagnostics.download': 'Sækja villuskýrslu',
   'settings.diagnostics.downloading': 'Undirbý…',
-  'settings.diagnostics.downloadHint':
-    'JSON-skrá með reitunum hér að ofan, stillingunum þínum með öllum lykilorðum fjarlægðum, og annálalínunum hér fyrir neðan.',
+  'settings.diagnostics.downloadHint': 'JSON-skrá með reitunum hér að ofan, stillingunum þínum með öllum lykilorðum fjarlægðum, og nýjustu annálalínunum.',
   'settings.diagnostics.downloadFailed': 'Ekki tókst að útbúa pakkann: {error}',
   'settings.diagnostics.logTitle': 'Nýlegar annálalínur',
   'settings.diagnostics.logHint':

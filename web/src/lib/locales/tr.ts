@@ -1566,8 +1566,7 @@ export const tr: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Hata raporunu indir',
   'settings.diagnostics.downloading': 'Hazırlanıyor…',
-  'settings.diagnostics.downloadHint':
-    'Yukarıdaki alanları, her şifresi kaldırılmış ayarlarınızı, ve aşağıdaki günlük satırlarını içeren bir JSON dosyası.',
+  'settings.diagnostics.downloadHint': 'Yukarıdaki alanları, şifreleri kaldırılmış ayarlarını ve son günlük satırlarını içeren bir JSON dosyası.',
   'settings.diagnostics.downloadFailed': 'Paket oluşturulamadı: {error}',
   'settings.diagnostics.logTitle': 'Son günlük satırları',
   'settings.diagnostics.logHint':

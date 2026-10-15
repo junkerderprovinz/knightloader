@@ -1567,8 +1567,7 @@ export const lt: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Atsisiųsti klaidos ataskaitą',
   'settings.diagnostics.downloading': 'Ruošiama…',
-  'settings.diagnostics.downloadHint':
-    'JSON failas su aukščiau esančiais laukais, jūsų nustatymais su pašalintais visais slaptažodžiais, ir žurnalo eilutėmis žemiau.',
+  'settings.diagnostics.downloadHint': 'JSON failas su aukščiau esančiais laukais, jūsų nustatymais su pašalintais visais slaptažodžiais, ir naujausiomis žurnalo eilutėmis.',
   'settings.diagnostics.downloadFailed': 'Nepavyko sukurti paketo: {error}',
   'settings.diagnostics.logTitle': 'Naujausios žurnalo eilutės',
   'settings.diagnostics.logHint':

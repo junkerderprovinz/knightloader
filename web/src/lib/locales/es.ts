@@ -1558,8 +1558,7 @@ export const es: Dict = {
   'settings.diagnostics.platform': 'Plataforma',
   'settings.diagnostics.download': 'Descargar informe de error',
   'settings.diagnostics.downloading': 'Preparando…',
-  'settings.diagnostics.downloadHint':
-    'Un archivo JSON con los campos de arriba, tus ajustes con cada contraseña eliminada, y las líneas de registro de abajo.',
+  'settings.diagnostics.downloadHint': 'Un archivo JSON con los campos de arriba, tus ajustes con cada contraseña eliminada, y las últimas líneas de registro.',
   'settings.diagnostics.downloadFailed': 'No se pudo generar el paquete: {error}',
   'settings.diagnostics.logTitle': 'Líneas de registro recientes',
   'settings.diagnostics.logHint':

@@ -1558,8 +1558,7 @@ export const nl: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Bugrapport downloaden',
   'settings.diagnostics.downloading': 'Wordt voorbereid…',
-  'settings.diagnostics.downloadHint':
-    'Een JSON-bestand met de velden hierboven, jouw instellingen met elk wachtwoord verwijderd, en de logregels hieronder.',
+  'settings.diagnostics.downloadHint': 'Een JSON-bestand met de velden hierboven, jouw instellingen met elk wachtwoord verwijderd, en de recente logregels.',
   'settings.diagnostics.downloadFailed': 'Kon het pakket niet maken: {error}',
   'settings.diagnostics.logTitle': 'Recente logregels',
   'settings.diagnostics.logHint':

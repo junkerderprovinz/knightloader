@@ -1567,8 +1567,7 @@ export const hi: Dict = {
   'settings.diagnostics.platform': 'प्लेटफ़ॉर्म',
   'settings.diagnostics.download': 'बग रिपोर्ट डाउनलोड करें',
   'settings.diagnostics.downloading': 'तैयार हो रहा है…',
-  'settings.diagnostics.downloadHint':
-    'ऊपर दिए गए फ़ील्ड वाली एक JSON फ़ाइल, हर पासवर्ड हटाई गई आपकी सेटिंग्स, और नीचे दी गई लॉग लाइनें।',
+  'settings.diagnostics.downloadHint': 'ऊपर दिए गए फ़ील्ड वाली एक JSON फ़ाइल, हर पासवर्ड हटाई गई आपकी सेटिंग्स, और हाल की लॉग लाइनें।',
   'settings.diagnostics.downloadFailed': 'पैकेज नहीं बनाया जा सका: {error}',
   'settings.diagnostics.logTitle': 'हाल की लॉग लाइनें',
   'settings.diagnostics.logHint':

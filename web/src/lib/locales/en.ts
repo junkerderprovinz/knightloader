@@ -1916,8 +1916,7 @@ export const en = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Download bug report',
   'settings.diagnostics.downloading': 'Preparing…',
-  'settings.diagnostics.downloadHint':
-    'A JSON file with the fields above, your settings with every password removed, and the log lines below.',
+  'settings.diagnostics.downloadHint': 'A JSON file with the fields above, your settings with every password removed, and the recent log lines.',
   'settings.diagnostics.downloadFailed': 'Could not build the bundle: {error}',
   'settings.diagnostics.logTitle': 'Recent log lines',
   'settings.diagnostics.logHint': 'The last {n} lines this process has logged, oldest first. Nothing here is written to disk.',

@@ -1566,8 +1566,7 @@ export const da: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Download fejlrapport',
   'settings.diagnostics.downloading': 'Forbereder…',
-  'settings.diagnostics.downloadHint':
-    'En JSON-fil med felterne ovenfor, dine indstillinger med hver adgangskode fjernet, og loglinjerne nedenfor.',
+  'settings.diagnostics.downloadHint': 'En JSON-fil med felterne ovenfor, dine indstillinger med hver adgangskode fjernet og de seneste loglinjer.',
   'settings.diagnostics.downloadFailed': 'Kunne ikke oprette pakken: {error}',
   'settings.diagnostics.logTitle': 'Seneste loglinjer',
   'settings.diagnostics.logHint':

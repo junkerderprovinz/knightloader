@@ -1566,8 +1566,7 @@ export const sr: Dict = {
   'settings.diagnostics.platform': 'Платформа',
   'settings.diagnostics.download': 'Преузми извештај о грешци',
   'settings.diagnostics.downloading': 'Припрема…',
-  'settings.diagnostics.downloadHint':
-    'JSON датотека са горњим пољима, вашим подешавањима са уклоњеном сваком лозинком, и редовима дневника испод.',
+  'settings.diagnostics.downloadHint': 'JSON датотека са горњим пољима, вашим подешавањима са уклоњеном сваком лозинком, и недавним редовима дневника.',
   'settings.diagnostics.downloadFailed': 'Пакет није било могуће направити: {error}',
   'settings.diagnostics.logTitle': 'Недавни редови дневника',
   'settings.diagnostics.logHint':

@@ -1567,8 +1567,7 @@ export const bg: Dict = {
   'settings.diagnostics.platform': 'Платформа',
   'settings.diagnostics.download': 'Изтегли доклад за грешка',
   'settings.diagnostics.downloading': 'Подготвя се…',
-  'settings.diagnostics.downloadHint':
-    'JSON файл с полетата по-горе, вашите настройки с премахната всяка парола, и редовете от дневника по-долу.',
+  'settings.diagnostics.downloadHint': 'JSON файл с полетата по-горе, вашите настройки с премахната всяка парола и последните редове от дневника.',
   'settings.diagnostics.downloadFailed': 'Пакетът не можа да бъде създаден: {error}',
   'settings.diagnostics.logTitle': 'Скорошни редове от дневника',
   'settings.diagnostics.logHint':

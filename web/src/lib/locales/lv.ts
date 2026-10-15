@@ -1567,8 +1567,7 @@ export const lv: Dict = {
   'settings.diagnostics.platform': 'Platforma',
   'settings.diagnostics.download': 'Lejupielādēt kļūdas ziņojumu',
   'settings.diagnostics.downloading': 'Sagatavo…',
-  'settings.diagnostics.downloadHint':
-    'JSON fails ar iepriekš minētajiem laukiem, jūsu iestatījumiem ar noņemtām visām parolēm, un žurnāla rindiņām zemāk.',
+  'settings.diagnostics.downloadHint': 'JSON fails ar iepriekš minētajiem laukiem, jūsu iestatījumiem ar noņemtām visām parolēm un nesenajām žurnāla rindiņām.',
   'settings.diagnostics.downloadFailed': 'Neizdevās izveidot pakotni: {error}',
   'settings.diagnostics.logTitle': 'Nesenās žurnāla rindiņas',
   'settings.diagnostics.logHint':

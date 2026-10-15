@@ -1565,8 +1565,7 @@ export const zh: Dict = {
   'settings.diagnostics.platform': '平台',
   'settings.diagnostics.download': '下载错误报告',
   'settings.diagnostics.downloading': '正在准备…',
-  'settings.diagnostics.downloadHint':
-    '一个包含上述字段的 JSON 文件、去除了所有密码的设置，以及下面的日志行。',
+  'settings.diagnostics.downloadHint': '一个包含上述字段的 JSON 文件、去除了所有密码的设置，以及最近的日志行。',
   'settings.diagnostics.downloadFailed': '无法创建包：{error}',
   'settings.diagnostics.logTitle': '最近的日志行',
   'settings.diagnostics.logHint':

@@ -1568,8 +1568,7 @@ export const ro: Dict = {
   'settings.diagnostics.platform': 'Platformă',
   'settings.diagnostics.download': 'Descarcă raportul de eroare',
   'settings.diagnostics.downloading': 'Se pregătește…',
-  'settings.diagnostics.downloadHint':
-    'Un fișier JSON cu câmpurile de mai sus, setările tale cu fiecare parolă eliminată, și liniile de jurnal de mai jos.',
+  'settings.diagnostics.downloadHint': 'Un fișier JSON cu câmpurile de mai sus, setările tale cu fiecare parolă eliminată și ultimele linii de jurnal.',
   'settings.diagnostics.downloadFailed': 'Pachetul nu a putut fi creat: {error}',
   'settings.diagnostics.logTitle': 'Linii de jurnal recente',
   'settings.diagnostics.logHint':

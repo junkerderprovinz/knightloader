@@ -1567,8 +1567,7 @@ export const eu: Dict = {
   'settings.diagnostics.platform': 'Plataforma',
   'settings.diagnostics.download': 'Deskargatu errore-txostena',
   'settings.diagnostics.downloading': 'Prestatzen…',
-  'settings.diagnostics.downloadHint':
-    'Goiko eremuak dituen JSON fitxategi bat, zure ezarpenak pasahitz guztiak kenduta, eta beheko erregistro-lerroak.',
+  'settings.diagnostics.downloadHint': 'Goiko eremuak dituen JSON fitxategi bat, zure ezarpenak pasahitz guztiak kenduta, eta azken erregistro-lerroak.',
   'settings.diagnostics.downloadFailed': 'Ezin izan da paketea sortu: {error}',
   'settings.diagnostics.logTitle': 'Azken erregistro-lerroak',
   'settings.diagnostics.logHint':

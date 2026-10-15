@@ -1567,8 +1567,7 @@ export const el: Dict = {
   'settings.diagnostics.platform': 'Πλατφόρμα',
   'settings.diagnostics.download': 'Λήψη αναφοράς σφάλματος',
   'settings.diagnostics.downloading': 'Προετοιμασία…',
-  'settings.diagnostics.downloadHint':
-    'Ένα αρχείο JSON με τα παραπάνω πεδία, τις ρυθμίσεις σας με κάθε κωδικό πρόσβασης αφαιρεμένο, και τις γραμμές καταγραφής παρακάτω.',
+  'settings.diagnostics.downloadHint': 'Ένα αρχείο JSON με τα παραπάνω πεδία, τις ρυθμίσεις σας με κάθε κωδικό πρόσβασης αφαιρεμένο, και τις πρόσφατες γραμμές καταγραφής.',
   'settings.diagnostics.downloadFailed': 'Δεν ήταν δυνατή η δημιουργία του πακέτου: {error}',
   'settings.diagnostics.logTitle': 'Πρόσφατες γραμμές καταγραφής',
   'settings.diagnostics.logHint':

@@ -1567,8 +1567,7 @@ export const hu: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Hibajelentés letöltése',
   'settings.diagnostics.downloading': 'Előkészítés…',
-  'settings.diagnostics.downloadHint':
-    'Egy JSON-fájl a fenti mezőkkel, az Ön beállításaival minden jelszó eltávolítva, és az alábbi naplósorokkal.',
+  'settings.diagnostics.downloadHint': 'Egy JSON-fájl a fenti mezőkkel, a beállításaiddal minden jelszó eltávolítva, és a legutóbbi naplósorokkal.',
   'settings.diagnostics.downloadFailed': 'Nem sikerült létrehozni a csomagot: {error}',
   'settings.diagnostics.logTitle': 'Legutóbbi naplósorok',
   'settings.diagnostics.logHint':

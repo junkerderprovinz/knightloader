@@ -1559,8 +1559,7 @@ export const fr: Dict = {
   'settings.diagnostics.platform': 'Plateforme',
   'settings.diagnostics.download': 'Télécharger le rapport de bug',
   'settings.diagnostics.downloading': 'Préparation…',
-  'settings.diagnostics.downloadHint':
-    'Un fichier JSON avec les champs ci-dessus, vos paramètres avec chaque mot de passe retiré, et les lignes de journal ci-dessous.',
+  'settings.diagnostics.downloadHint': 'Un fichier JSON avec les champs ci-dessus, vos paramètres avec chaque mot de passe retiré, et les dernières lignes de journal.',
   'settings.diagnostics.downloadFailed': 'Impossible de créer le paquet : {error}',
   'settings.diagnostics.logTitle': 'Lignes de journal récentes',
   'settings.diagnostics.logHint':

@@ -1566,8 +1566,7 @@ export const et: Dict = {
   'settings.diagnostics.platform': 'Platvorm',
   'settings.diagnostics.download': 'Laadi alla veaaruanne',
   'settings.diagnostics.downloading': 'Valmistan ette…',
-  'settings.diagnostics.downloadHint':
-    'JSON-fail ülalolevate väljadega, sinu seadetega, kust iga parool on eemaldatud, ja allolevate logiridadega.',
+  'settings.diagnostics.downloadHint': 'JSON-fail ülalolevate väljadega, sinu seadetega, kust iga parool on eemaldatud, ja viimaste logiridadega.',
   'settings.diagnostics.downloadFailed': 'Paketi loomine ebaõnnestus: {error}',
   'settings.diagnostics.logTitle': 'Hiljutised logiread',
   'settings.diagnostics.logHint':

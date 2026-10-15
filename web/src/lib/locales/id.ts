@@ -1566,8 +1566,7 @@ export const id: Dict = {
   'settings.diagnostics.platform': 'Platform',
   'settings.diagnostics.download': 'Unduh laporan bug',
   'settings.diagnostics.downloading': 'Menyiapkan…',
-  'settings.diagnostics.downloadHint':
-    'File JSON dengan bidang di atas, pengaturan Anda dengan setiap kata sandi dihapus, dan baris log di bawah.',
+  'settings.diagnostics.downloadHint': 'File JSON dengan bidang di atas, pengaturan Anda dengan setiap kata sandi dihapus, dan baris log terbaru.',
   'settings.diagnostics.downloadFailed': 'Paket tidak dapat dibuat: {error}',
   'settings.diagnostics.logTitle': 'Baris log terbaru',
   'settings.diagnostics.logHint':

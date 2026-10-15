@@ -1717,8 +1717,7 @@ export const de: Dict = {
   'settings.diagnostics.platform': 'Plattform',
   'settings.diagnostics.download': 'Fehlerbericht herunterladen',
   'settings.diagnostics.downloading': 'Wird vorbereitet…',
-  'settings.diagnostics.downloadHint':
-    'Eine JSON-Datei mit den obigen Feldern, deinen Einstellungen mit entfernten Passwörtern und den Protokollzeilen unten.',
+  'settings.diagnostics.downloadHint': 'Eine JSON-Datei mit den obigen Feldern, deinen Einstellungen mit entfernten Passwörtern und den letzten Protokollzeilen.',
   'settings.diagnostics.downloadFailed': 'Paket konnte nicht erstellt werden: {error}',
   'settings.diagnostics.logTitle': 'Aktuelle Protokollzeilen',
   'settings.diagnostics.logHint':

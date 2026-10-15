@@ -1558,8 +1558,7 @@ export const pt: Dict = {
   'settings.diagnostics.platform': 'Plataforma',
   'settings.diagnostics.download': 'Transferir relatório de erro',
   'settings.diagnostics.downloading': 'A preparar…',
-  'settings.diagnostics.downloadHint':
-    'Um ficheiro JSON com os campos acima, as tuas definições com cada palavra-passe removida, e as linhas de registo abaixo.',
+  'settings.diagnostics.downloadHint': 'Um ficheiro JSON com os campos acima, as tuas definições com cada palavra-passe removida e as últimas linhas de registo.',
   'settings.diagnostics.downloadFailed': 'Não foi possível criar o pacote: {error}',
   'settings.diagnostics.logTitle': 'Linhas de registo recentes',
   'settings.diagnostics.logHint':
