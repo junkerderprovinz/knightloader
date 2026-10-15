@@ -1,6 +1,6 @@
 module github.com/junkerderprovinz/knightloader
 
-go 1.27.2
+go 1.26.6
 
 require (
 	github.com/GopeedLab/gopeed v1.9.3
@@ -25,7 +25,7 @@ require (
 	golang.org/x/text v0.43.0
 	golang.org/x/time v0.16.0
 	golang.zx2c4.com/wireguard v0.0.0-20261006164505-2631ce99a06f
-	gvisor.dev/gvisor v0.0.0-20261015055921-d4d3e28027b4
+	gvisor.dev/gvisor v0.0.0-20250503011706-39ed1f5ac29c
 	modernc.org/sqlite v1.60.1
 	rsc.io/qr v0.2.0
 )
