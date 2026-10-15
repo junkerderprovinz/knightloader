@@ -51,7 +51,8 @@ import { useToast } from '../../../lib/toast';
 import { SettingRow, SubHead } from '../controls';
 import { PRESET_LABEL, scopesLabel } from '../access/tokenScopes';
 
-const HUE = 7;
+// The second card of the Integrations page, after the VPN's.
+const HUE = 1;
 
 /** How often the card asks again while a new client has not called yet. */
 const FIRST_CALL_POLL_MS = 3000;
@@ -111,7 +112,7 @@ export function ClientMark({ client }: { client: McpClient }) {
  * way to remove it. The token is shown once, in the window that makes it,
  * since the server keeps only a fingerprint.
  */
-export function McpCard({ onTokensChanged }: { onTokensChanged?: () => void }) {
+export function McpCard() {
   const { t } = useT();
   const { toast } = useToast();
   const [data, setData] = useState<McpOverview | null>(null);
@@ -154,7 +155,6 @@ export function McpCard({ onTokensChanged }: { onTokensChanged?: () => void }) {
       await removeMcpClient(row.id);
       setRemoving(null);
       await load();
-      onTokensChanged?.();
     } catch (e) {
       toast(t('settings.access.mcp.removeFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
     } finally {
@@ -256,7 +256,6 @@ export function McpCard({ onTokensChanged }: { onTokensChanged?: () => void }) {
           onCreated={(row) => {
             setWaitingFor(row.id);
             void load();
-            onTokensChanged?.();
           }}
           onClose={() => {
             setPicking(false);
