@@ -3,6 +3,7 @@ import { idleProblemText } from '../../../components/IdleActionBanner';
 import { happened } from '../../../lib/countdown';
 import { fmtDate, fmtUnit } from '../../../lib/format';
 import { useT } from '../../../lib/i18n';
+import { useRunsAs } from '../../../lib/runsAs';
 import type { EventProgramStatus } from '../../../lib/eventprograms';
 import { useTriggerLabel } from '../../../lib/triggers';
 
@@ -26,6 +27,7 @@ export function ProgramHealth({
 }) {
   const { t } = useT();
   const triggerLabel = useTriggerLabel();
+  const runsAs = useRunsAs();
   // The status narrowed to one with a run behind it.
   const last = status !== undefined && happened(status.lastStart) ? status : undefined;
 
@@ -33,7 +35,7 @@ export function ProgramHealth({
     <FieldGroup label={t('settings.eventPrograms.status')} hint={t('settings.eventPrograms.statusHint')}>
       <div className="flex flex-col gap-1.5 text-xs">
         {status?.check ? (
-          <span className="text-statusWarn">{idleProblemText(t, status.check, { program, deployment })}</span>
+          <span className="text-statusWarn">{idleProblemText(t, status.check, { program, deployment, runsAs })}</span>
         ) : (
           status && <span className="text-carbon-textMuted">{t('settings.eventPrograms.checkOk')}</span>
         )}
@@ -55,6 +57,7 @@ export function ProgramHealth({
                   code: last.lastExitCode,
                   output: last.lastOutput,
                   seconds: timeoutSeconds,
+                  runsAs,
                 })}
               </span>
             ) : (

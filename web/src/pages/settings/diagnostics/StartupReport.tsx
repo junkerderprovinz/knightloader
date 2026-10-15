@@ -2,7 +2,8 @@ import { useState, type ComponentType, type SVGProps } from 'react';
 import { type StartupCheck, type StartupReport, runStartupCheck } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtDate } from '../../../lib/format';
-import { adviceFor } from '../../../lib/startupAdvice';
+import { adviceFor, adviceNamesAccount } from '../../../lib/startupAdvice';
+import { useRunsAs, withRunsAs } from '../../../lib/runsAs';
 import { InfoBubble, type ButtonVerdict } from '../../../components/ui';
 import { TestButton } from '../../../components/TestButton';
 import { IconCheck, IconClose, IconWarning } from '../../../lib/icons';
@@ -163,6 +164,7 @@ function Row({ check }: { check: StartupCheck }) {
   const v = verdicts[check.verdict] ?? { tone: 'neutral' as Tone, glyph: GlyphSkipped, key: undefined };
   const Glyph = v.glyph;
   const advice = adviceFor(check.id, check.code);
+  const runsAs = useRunsAs();
   const name = rowName(t, check);
 
   return (
@@ -173,7 +175,15 @@ function Row({ check }: { check: StartupCheck }) {
           <span className="text-sm">{name}</span>
         </span>
         <span className={`text-meta ${toneText[v.tone]}`}>{v.key ? t(v.key) : check.verdict}</span>
-        {advice && <InfoBubble tip={t(advice, adviceVars(check))} />}
+        {advice && (
+          <InfoBubble
+            tip={
+              adviceNamesAccount(advice)
+                ? withRunsAs(t, t(advice, adviceVars(check)), runsAs)
+                : t(advice, adviceVars(check))
+            }
+          />
+        )}
       </span>
 
       {check.subject && (

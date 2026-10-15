@@ -1,11 +1,12 @@
 import { useEffect, useState, type ReactNode } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState } from '../lib/api';
+import { cancelIdleAction, connectWS, fetchIdleAction, type IdleActionState, type IdleRun } from '../lib/api';
 import { Button } from './ui';
 import { IconCode, IconMoon, IconPause, IconPower, IconSchedules, IconWarning } from '../lib/icons';
 import { fmtCountdown } from '../lib/countdown';
 import { useT, type TranslationKey } from '../lib/i18n';
 import { useToast } from '../lib/toast';
+import { useRunsAs, withRunsAs, type RunsAs } from '../lib/runsAs';
 
 // An action from a newer server falls back to idleAction.actionFallback.
 const actionKey: Record<string, TranslationKey> = {
@@ -34,6 +35,9 @@ export interface IdleProblemVars {
   code?: number;
   output?: string;
   seconds?: number;
+  /** The account this instance runs as, which the problems about who may
+   *  run or read a program name. */
+  runsAs?: RunsAs;
 }
 
 /**
@@ -53,13 +57,32 @@ export function idleProblemText(
   }
   const key = problemKey[problem];
   if (!key) return t('idleAction.runFailed');
-  return t(key, {
+  const text = t(key, {
     program: vars.program ?? '',
     path: vars.program ?? '',
     code: vars.code ?? 0,
     output: vars.output ?? '',
     seconds: vars.seconds ?? 0,
   });
+  return problem === 'notExecutable' || problem === 'permission' ? withRunsAs(t, text, vars.runsAs) : text;
+}
+
+/** FailedRun is the banner's sentence. It is its own component so the account
+ *  is only asked for once a run has failed, not on every page load. */
+function FailedRun({ failed }: { failed: IdleRun }) {
+  const { t } = useT();
+  const runsAs = useRunsAs();
+  return (
+    <>
+      {idleProblemText(t, failed.problem, {
+        program: failed.program,
+        action: failed.action,
+        code: failed.exitCode,
+        output: failed.output,
+        runsAs,
+      })}
+    </>
+  );
 }
 
 const actionIcon: Record<string, ReactNode> = {
@@ -140,12 +163,7 @@ export function IdleActionBanner() {
             {/* No deployment, which would cost a request on every page load;
                 the linked settings card gives the container-specific text. */}
             <span className="text-carbon-textSub">
-              {idleProblemText(t, failed.problem, {
-                program: failed.program,
-                action: failed.action,
-                code: failed.exitCode,
-                output: failed.output,
-              })}
+              <FailedRun failed={failed} />
             </span>
             <Button kind="secondary" className="mt-1 self-start" onClick={() => navigate('/settings/automation')}>
               {t('idleAction.openSettings')}
