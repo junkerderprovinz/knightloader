@@ -201,6 +201,8 @@ const ctx = vm.createContext({
   MutationObserver: class {
     observe() {}
   },
+  setTimeout,
+  clearTimeout,
   cryptoEl,
   closeCrypto: () => closed++,
 });
