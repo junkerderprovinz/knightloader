@@ -124,6 +124,20 @@ func TestDecryptCnL(t *testing.T) {
 	}
 }
 
+// JDownloader trims every line of all bytes up to the space, so a payload
+// padded at the front or between its links reaches it whole.
+func TestDecryptCnLSeparatesLinksByControlBytes(t *testing.T) {
+	plain := "\x00\x00\x00https://h.example/f.part1.rar\r\n\x01https://h.example/f.part2.rar\x00\x1fhttps://h.example/f.part3.rar"
+	got, err := DecryptCnL(testKeyHex, encryptCnL(t, testKeyHex, plain))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"https://h.example/f.part1.rar", "https://h.example/f.part2.rar", "https://h.example/f.part3.rar"}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("decrypted = %q, want %q", got, want)
+	}
+}
+
 func TestServerFlashEndpoints(t *testing.T) {
 	rec := &recorder{}
 	s := New(rec)

@@ -116,13 +116,13 @@ async function cnlDecrypt(jk, crypted) {
   return splitCnlLinks(text);
 }
 
-/** splitCnlLinks mirrors splitLinks in internal/cnl: whitespace separates
- *  links, and a word survives when the clipboard watch's rule (clipwatch.js)
- *  takes it as a link and it is not a magnet. Any page may post here, and a
- *  torrent would go on to share what it fetched. */
+/** splitCnlLinks mirrors splitLinks in internal/cnl: whitespace and every
+ *  control byte separate links, so padding at the front of a plaintext cannot
+ *  cost the first one. A word survives when the clipboard watch's rule
+ *  (clipwatch.js) takes it as a link and it is not a magnet. Any page may post
+ *  here, and a torrent would go on to share what it fetched. */
 function splitCnlLinks(text) {
   return String(text)
-    .split(/[\r\n\s]+/)
-    .map((s) => s.trim())
+    .split(/[\x00-\x20\x7f\s]+/)
     .filter((s) => CLIP_LINK_RULE.test(s) && !/^magnet:/i.test(s));
 }

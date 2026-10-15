@@ -16,6 +16,7 @@ import (
 	"regexp"
 	"strings"
 	"time"
+	"unicode"
 
 	"github.com/junkerderprovinz/knightloader/internal/linkscan"
 )
@@ -220,12 +221,13 @@ func passwordsOf(r *http.Request) []string {
 
 // splitLinks keeps the links of every scheme linkscan knows except magnet:
 // any page may post here, and a torrent would go on to share what it fetched.
+// Every control byte separates, as JDownloader's trim of each line does, so
+// padding at the front of a plaintext cannot cost the first link.
 func splitLinks(s string) []string {
 	var out []string
 	for _, l := range strings.FieldsFunc(s, func(r rune) bool {
-		return r == '\n' || r == '\r' || r == ' ' || r == '\t'
+		return r <= ' ' || r == 0x7f || unicode.IsSpace(r)
 	}) {
-		l = strings.TrimSpace(l)
 		if linkscan.StartsWithScheme(l) && !strings.HasPrefix(strings.ToLower(l), "magnet:") {
 			out = append(out, l)
 		}
