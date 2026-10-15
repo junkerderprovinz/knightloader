@@ -2408,6 +2408,16 @@ body {
   :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-rest { display: none; }
   :is(.glim-brand-tile:hover, .group:hover > .glim-brand-tile) .glim-mark-hover { display: block; }
 }
+/* The keyboard's focus lights a tile as the pointer does. */
+.glim-brand-tile:focus-visible {
+  background-color: var(--tile);
+  color: var(--tile-ink);
+  --mark-ink: var(--tile-ink);
+  --mark-cut: var(--tile);
+}
+.glim-brand-tile:focus-visible :is(.glim-readme-btn-mark, .glim-house-mark) { color: var(--tile-ink); }
+.glim-brand-tile:focus-visible .glim-mark-rest { display: none; }
+.glim-brand-tile:focus-visible .glim-mark-hover { display: block; }
 /* A mark whose layers do not survive one ink brings the brand's own
    single-colour version for the hover. */
 .glim-mark-hover { display: none; }
@@ -2485,6 +2495,8 @@ body {
 .glim-tile-warp { --tile: #01a4ff; --tile-ink: #ffffff; } /* 2.7:1 */
 .glim-tile-windsurf { --tile: #58e5c0; --tile-ink: #161616; } /* 11.5:1 */
 .glim-tile-zed { --tile: #0866ff; --tile-ink: #ffffff; } /* 4.8:1 */
+/* Other client stands for whatever speaks MCP, in the protocol's own black. */
+.glim-tile-mcp { --tile: #000000; --tile-ink: #ffffff; } /* 21.0:1 */
 
 /* A client's mark beside its row on the MCP server card and in its window.
    The hover version only belongs to a lit tile. */
@@ -2500,11 +2512,48 @@ body {
 .glim-client-mark svg { width: 100%; height: 100%; display: block; }
 .glim-client-mark .glim-mark-hover { display: none; }
 
-/* A mark colour that reads as a hole on the dark tile is lifted there; the lit
-   tile swaps in the single-colour mark anyway. */
+/* A mark colour that reads as a hole on the dark tile is lifted there, and one
+   that all but vanishes on the light tile is deepened there; the lit tile
+   swaps in the single-colour mark anyway. */
 :root:not([data-theme="light"]) .glim-mark-lift .glim-mark-rest { filter: brightness(1.55); }
 @media (prefers-color-scheme: light) {
   :root:not([data-theme]) .glim-mark-lift .glim-mark-rest { filter: none; }
+  :root:not([data-theme]) .glim-mark-deepen .glim-mark-rest { filter: brightness(0.7); }
+}
+[data-theme="light"] .glim-mark-deepen .glim-mark-rest { filter: brightness(0.7); }
+
+/* A bundled logo (components/HosterIcon.tsx, lib/logoTile.ts). A logo drawn in
+   one neutral ink stands in the text's colour, so it reads on both themes; on
+   a lit tile every logo is its mask in the tile's ink. The mask is the logo's
+   own picture, or one with the parts that lie on other parts cut out. */
+.glim-logo {
+  position: relative;
+  display: inline-flex;
+  flex: none;
+}
+.glim-logo > * {
+  width: 100%;
+  height: 100%;
+}
+.glim-logo-ink {
+  background-color: currentColor;
+  -webkit-mask: var(--logo-mask) center / contain no-repeat;
+  mask: var(--logo-mask) center / contain no-repeat;
+}
+.glim-logo-ink.glim-mark-rest {
+  display: block;
+  color: var(--carbon-text);
+}
+/* A monogram stands in for a logo, so a lit tile shows its letter in the ink. */
+@media (hover: hover) {
+  .group:hover > .glim-brand-tile .glim-monogram {
+    background-color: transparent;
+    color: var(--tile-ink);
+  }
+}
+.glim-brand-tile:focus-visible .glim-monogram {
+  background-color: transparent;
+  color: var(--tile-ink);
 }
 
 /* The README button (GlimStone's "The App tab"): the proportions of the
@@ -2595,8 +2644,8 @@ body {
 }
 
 @media (hover: hover) {
-  .group:hover > .glim-brand-tile .glim-readme-btn-mark,
-  .group:hover .glim-readme-btn-hint {
+  .group:hover > .glim-brand-tile :is(.glim-readme-btn-mark, .glim-house-mark),
+  .group:not(.glim-readme-btn-soon):hover .glim-readme-btn-hint {
     color: var(--tile-ink);
   }
   /* A segment under the pointer is a shade deeper than the unit it lights. */
@@ -2695,8 +2744,7 @@ body {
    that fills its cell of the grid, so the logos stand in columns, three across
    a picker window and two on a phone. A brand's name that is too long for its
    tile is cut rather than shrunk. A brand too numerous for a class of its own
-   hands its colour pair down from its list item as --provider-tile and
-   --provider-ink. */
+   sets --tile and --tile-ink on its list item. */
 .glim-provider-pick {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(13rem, 1fr));
@@ -2713,11 +2761,6 @@ body {
 }
 .glim-provider-pick .glim-readme-btn-unit {
   display: flex;
-}
-/* A brand with a tile class of its own, such as an MCP client, keeps it. */
-.glim-provider-pick .glim-readme-btn-unit.glim-tile-house {
-  --tile: var(--provider-tile, var(--accent));
-  --tile-ink: var(--provider-ink, var(--accent-contrast));
 }
 .glim-provider-pick .glim-readme-btn {
   flex: 1;
