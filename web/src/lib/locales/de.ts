@@ -3807,4 +3807,7 @@ export const de: Dict = {
   'settings.vpn.error.login': '{name} hat die Anmeldung abgelehnt.',
   'settings.vpn.error.timeout': 'Der Server hat nicht geantwortet. Versuch einen anderen Standort.',
   'settings.vpn.error.dropped': 'Die Verbindung ist abgebrochen.',
+  'settings.vpn.error.deviceLimit': '{name} lässt keine weiteren Geräte zu. Entferne eines in deinem Konto und verbinde dich erneut.',
+  'settings.vpn.error.accountExpired': 'Dein {name}-Konto ist abgelaufen. Verlängere es und verbinde dich erneut.',
+  'settings.vpn.error.locationUnknown': '{name} hat an diesem Standort keinen Server. Versuch einen anderen Ländercode oder lass das Feld leer.',
 };
