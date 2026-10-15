@@ -85,13 +85,14 @@ func torGuardHost(location string) string {
 
 func openTorGuard(ctx context.Context, login Login) (*session, error) {
 	c := &torguard.Client{
-		Username: strings.TrimSpace(login["username"]),
-		Password: login["password"],
-		Host:     torGuardHost(login["location"]),
+		Username:    strings.TrimSpace(login["username"]),
+		Password:    login["password"],
+		Host:        torGuardHost(login["location"]),
+		LookupNetIP: lookupServer,
 	}
 	cfg, err := c.Connect(ctx)
 	if err != nil {
-		return nil, apiFailure(err)
+		return nil, unknownServer(apiFailure(err))
 	}
 	return &session{
 		cfg:    cfg,
