@@ -27,7 +27,6 @@ const cnlRefusedEl = document.getElementById('cnlRefused');
 const cnlAccessEl = document.getElementById('cnlAccess');
 const cnlAccessAllowEl = document.getElementById('cnlAccessAllow');
 const cnlAccessKeepOffEl = document.getElementById('cnlAccessKeepOff');
-const appearanceHeadingEl = document.getElementById('appearanceHeading');
 const rainbowOnEl = document.getElementById('rainbowOn');
 const rainbowReactiveEl = document.getElementById('rainbowReactive');
 const rainbowRotateEl = document.getElementById('rainbowRotate');
@@ -417,7 +416,6 @@ function applyStaticText() {
   clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
   clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
-  appearanceHeadingEl.textContent = t('options.appearanceHeading');
   document.getElementById('displayHeading').textContent = t('options.displayHeading');
 
   rowLabel('accentLabel', t('options.accentLabel'), t('options.accentHint'));
