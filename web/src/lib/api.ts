@@ -4427,6 +4427,9 @@ export interface VpnProvider {
   portForwarding: boolean;
   /** Whether a login is stored, so a connect may send no fields and reuse it. */
   configured: boolean;
+  /** The stored location. The form starts with it and sends it only once
+   *  edited, so an emptied field clears it. */
+  location?: string;
   state: VpnConnState;
   /** The address traffic leaves the tunnel by, while connected. */
   exitIp?: string;

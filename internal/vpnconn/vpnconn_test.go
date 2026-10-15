@@ -248,6 +248,35 @@ func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
 	}
 }
 
+func TestAnEmptiedLocationGoesBackToAnyServer(t *testing.T) {
+	store := &memStore{}
+	h := newHarness(t, store, "")
+	refuse := func(context.Context, Login) (*session, error) {
+		return nil, &failure{CodeLoginRefused, errors.New("refused")}
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "placed", Name: "Placed", Fields: []string{"token", "location"}, open: refuse})
+	connect := func(fields map[string]string) string {
+		t.Helper()
+		if _, err := h.m.Connect("placed", fields); err != nil {
+			t.Fatal(err)
+		}
+		login, _ := h.m.login("placed")
+		if shown := h.provider("placed").Location; shown != login["location"] {
+			t.Errorf("the page shows %q for the stored %q", shown, login["location"])
+		}
+		return login["location"]
+	}
+	if got := connect(map[string]string{"token": "x", "location": "de"}); got != "de" {
+		t.Fatalf("location %q stored, want de", got)
+	}
+	if got := connect(map[string]string{"token": ""}); got != "de" {
+		t.Errorf("a connect without a location left %q, want de kept", got)
+	}
+	if got := connect(map[string]string{"location": ""}); got != "" {
+		t.Errorf("an emptied location left %q", got)
+	}
+}
+
 func TestRefusals(t *testing.T) {
 	h := newHarness(t, &memStore{}, "")
 	h.m.providers = append(h.m.providers, Provider{ID: "soon", Name: "Soon", Fields: []string{"token"}})

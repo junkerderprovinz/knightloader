@@ -73,9 +73,12 @@ type ProviderState struct {
 	Fields         []string `json:"fields"`
 	PortForwarding bool     `json:"portForwarding"`
 	Configured     bool     `json:"configured"`
-	State          string   `json:"state"`
-	ExitIP         string   `json:"exitIp,omitempty"`
-	ForwardedPort  int      `json:"forwardedPort,omitempty"`
+	// Location is the stored location, which is no secret, so the form can
+	// show it and an emptied field can clear it.
+	Location      string `json:"location,omitempty"`
+	State         string `json:"state"`
+	ExitIP        string `json:"exitIp,omitempty"`
+	ForwardedPort int    `json:"forwardedPort,omitempty"`
 	// ForwardedAddress is where the forwarded port is reached, as a NAT-PMP
 	// gateway reports it; empty where the exit address is that place.
 	ForwardedAddress string `json:"forwardedAddress,omitempty"`
@@ -239,8 +242,13 @@ func (m *Manager) ForwardedPort() int {
 // State is the VPN page's state.
 func (m *Manager) State() State {
 	stored := map[string]bool{}
+	locations := map[string]string{}
 	for _, id := range m.opts.Store.AccountIDs(Service) {
 		stored[id] = true
+		if p := m.provider(id); p != nil && slices.Contains(p.Fields, "location") {
+			login, _ := m.login(id)
+			locations[id] = login["location"]
+		}
 	}
 	ts := m.tun.State()
 	m.mu.Lock()
@@ -249,7 +257,7 @@ func (m *Manager) State() State {
 	for _, p := range m.providers {
 		ps := ProviderState{
 			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding,
-			Configured: stored[p.ID], State: "idle",
+			Configured: stored[p.ID], Location: locations[p.ID], State: "idle",
 		}
 		if p.ID == m.active {
 			m.fillActive(&ps, p, ts)
@@ -314,12 +322,20 @@ func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-unknown", Field: k,
 				Text: fmt.Sprintf("%s asks for no %s", p.Name, k)}
 		}
-		if strings.TrimSpace(v) != "" && login[k] != v {
+		blank := strings.TrimSpace(v) == ""
+		switch {
+		case blank && k == "location" && login[k] != "":
+			// The page sends the location it shows only once it was edited,
+			// so an empty one goes back to any server.
+			delete(login, k)
+		case blank || login[k] == v:
+			continue
+		default:
 			login[k] = v
-			// A token belongs to the login it was fetched with.
-			delete(login, accessTokenField)
-			changed = true
 		}
+		// A token belongs to the login it was fetched with.
+		delete(login, accessTokenField)
+		changed = true
 	}
 	for _, f := range p.Fields {
 		if f != "location" && strings.TrimSpace(login[f]) == "" {
