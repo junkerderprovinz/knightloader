@@ -21,7 +21,7 @@ func apiFailure(err error) error {
 	case errors.Is(err, nordvpn.ErrRefused), errors.Is(err, pia.ErrRefused), errors.Is(err, torguard.ErrRefused):
 		return &failure{CodeLoginRefused, err}
 	case errors.Is(err, vpn.ErrUnknownLocation):
-		return &failure{CodeLocation, err}
+		return &failure{CodeLocationUnknown, err}
 	}
 	return err
 }

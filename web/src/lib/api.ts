@@ -4438,7 +4438,8 @@ export interface VpnProvider {
   /** Why the last connect failed or the tunnel dropped. English, from the server. */
   error?: string;
   /** `error` as a value the interface words itself: vpn-config-invalid,
-   *  vpn-login-refused, vpn-location-unknown, vpn-timeout or vpn-dropped. */
+   *  vpn-login-refused, vpn-timeout, vpn-dropped, vpn-device-limit,
+   *  vpn-account-expired or vpn-location-unknown. */
   errorCode?: string;
 }
 
