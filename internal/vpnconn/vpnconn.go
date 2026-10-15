@@ -266,7 +266,7 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 			if m.portAddr.IsValid() {
 				ps.ForwardedAddress = m.portAddr.String()
 			}
-		case fwdPort:
+		case fwdPort, apiPort:
 			ps.ForwardedPort = int(m.port)
 		case manualPort:
 			ps.ForwardedPort = m.opts.ManualPort()
@@ -353,8 +353,16 @@ func (m *Manager) Forget(id string) (State, error) {
 	if m.Active() == id {
 		m.Disconnect()
 	}
+	login := m.login(id)
 	if err := m.opts.Store.SetCredential(Service, id, accounts.Credential{}); err != nil {
 		return State{}, err
+	}
+	if p := m.provider(id); p.forget != nil && len(login) > 0 {
+		go func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+			defer cancel()
+			p.forget(ctx, login)
+		}()
 	}
 	return m.State(), nil
 }
@@ -503,22 +511,18 @@ func (m *Manager) setPort(p uint16) {
 func (m *Manager) run(ctx context.Context, done chan struct{}, p Provider, login Login) {
 	defer close(done)
 	for ctx.Err() == nil {
-		sess, err := m.open(ctx, p, login)
+		sess, err := m.open(ctx, p, &login)
 		if err != nil {
 			if ctx.Err() == nil {
 				m.setFail(classify(err))
 				// Nothing to retry with; a new connect brings a new login.
 				var f *failure
-				if errors.As(err, &f) && (f.code == CodeConfigInvalid || f.code == CodeLoginRefused) {
+				if errors.As(err, &f) && final(f.code) {
 					return
 				}
 				wait(ctx, m.opts.RenewAfter)
 			}
 			continue
-		}
-		if sess.login != nil {
-			login = sess.login
-			m.seal(p.ID, login)
 		}
 		m.mu.Lock()
 		m.sess = sess
@@ -537,10 +541,17 @@ func (m *Manager) run(ctx context.Context, done chan struct{}, p Provider, login
 	}
 }
 
-func (m *Manager) open(ctx context.Context, p Provider, login Login) (*session, error) {
+// open opens a session and brings the tunnel up on it. The login as the
+// provider left it is kept even when that fails, so a key registered with the
+// provider is not lost to a step after it.
+func (m *Manager) open(ctx context.Context, p Provider, login *Login) (*session, error) {
 	octx, cancel := context.WithTimeout(ctx, m.opts.ConnectTimeout)
 	defer cancel()
-	sess, err := p.open(octx, login)
+	sess, err := p.open(octx, *login)
+	if sess != nil && sess.login != nil {
+		*login = sess.login
+		m.seal(p.ID, *login)
+	}
 	if err != nil {
 		return nil, err
 	}
@@ -574,6 +585,8 @@ func (m *Manager) serve(ctx context.Context, p Provider, sess *session) {
 		go m.forwardPort(pctx, p, sess)
 	case fwdPort:
 		go m.askForPort(pctx, p)
+	case apiPort:
+		go m.askSessionForPort(pctx, p, sess)
 	}
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()

@@ -32,6 +32,8 @@ type session struct {
 	gateway netip.Addr
 	// forward readies the provider for port forwarding, through the tunnel.
 	forward func(ctx context.Context, dial dialFunc) error
+	// askPort has the provider's API forward a port, through the tunnel.
+	askPort func(ctx context.Context, dial dialFunc) (uint16, error)
 	// end tells the provider the session is over.
 	end func(ctx context.Context)
 	// login is the login as it stands after opening, when that changed it.
@@ -49,7 +51,24 @@ const (
 	CodeLoginRefused  = "vpn-login-refused"
 	CodeTimeout       = "vpn-timeout"
 	CodeDropped       = "vpn-dropped"
+	// CodeDeviceLimit is an account that has all the devices or keys it
+	// allows registered already.
+	CodeDeviceLimit = "vpn-device-limit"
+	// CodeAccountExpired is an account with no time left.
+	CodeAccountExpired = "vpn-account-expired"
+	// CodeLocationUnknown is a location the provider has no server at.
+	CodeLocationUnknown = "vpn-location-unknown"
 )
+
+// final says a failure is one that trying again with the same login does
+// not mend.
+func final(code string) bool {
+	switch code {
+	case CodeConfigInvalid, CodeLoginRefused, CodeDeviceLimit, CodeAccountExpired, CodeLocationUnknown:
+		return true
+	}
+	return false
+}
 
 // failure is a connect that did not work, with the code the page words it by.
 type failure struct {
