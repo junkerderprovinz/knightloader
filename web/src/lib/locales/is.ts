@@ -3794,4 +3794,10 @@ export const is: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Athugunin „{name}“ er komin hingað.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ og „{metrics}“ eru komin hingað.',
   'whatsnew.change.moduleSwitches': 'Síðan Einingar er farin. Hver eining er kveikt á sinni eigin síðu, og slökkt eining sýnir þar aðeins rofann sinn.',
+  'whatsnew.change.videoFormat': 'Á spjaldinu „{name}“ velurðu snið og upplausn hvort í sínu lagi, og spjaldið er nú fyrir ofan „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ safnar „{files}“, „{check}“ og „{live}“ saman á eitt spjald.',
+  'whatsnew.change.trackTiles': '„{name}“ teiknar hverja rás stærri.',
+  'whatsnew.change.jdTool': 'JDownloader er lína í „{name}“ og er alltaf í gangi eins og yt-dlp, án eigin rofa.',
+  'whatsnew.change.ytdlpUpdates': 'Tengillinn „{name}“ fer beint með þig á undirspjald yt-dlp undir „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ er sérstakt spjald undir „{vpn}“, með rofa fyrir hverja tegund niðurhals.',
 };

@@ -3799,4 +3799,10 @@ export const hi: Dict = {
   'whatsnew.change.proxyCheckMoved': '{name} की जाँच अब यहाँ है।',
   'whatsnew.change.advancedUpkeep': '{maintenance} और {metrics} अब यहाँ हैं।',
   'whatsnew.change.moduleSwitches': 'मॉड्यूल पेज अब नहीं है। हर मॉड्यूल अपने पेज पर चालू होता है, और बंद मॉड्यूल वहाँ सिर्फ़ अपना स्विच दिखाता है।',
+  'whatsnew.change.videoFormat': '“{name}” कार्ड में फ़ॉर्मेट और रिज़ॉल्यूशन अलग-अलग चुने जाते हैं, और यह कार्ड अब “{audio}” के ऊपर है।',
+  'whatsnew.change.filesMerged': '“{name}” “{files}”, “{check}” और “{live}” को एक ही कार्ड में लाता है।',
+  'whatsnew.change.trackTiles': '“{name}” हर ट्रैक को बड़ा दिखाता है।',
+  'whatsnew.change.jdTool': 'JDownloader अब “{name}” में एक पंक्ति है, और yt-dlp की तरह हमेशा चालू रहता है, बिना अपने स्विच के।',
+  'whatsnew.change.ytdlpUpdates': '“{name}” लिंक आपको सीधे “{page}” में yt-dlp के उप-कार्ड पर ले जाता है।',
+  'whatsnew.change.vpnRoutes': '“{name}” “{vpn}” के नीचे एक अलग कार्ड है, जिसमें हर तरह के डाउनलोड के लिए एक स्विच है।',
 };

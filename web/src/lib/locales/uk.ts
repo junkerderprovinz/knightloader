@@ -3799,4 +3799,10 @@ export const uk: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Перевірка «{name}» переїхала сюди.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» і «{metrics}» переїхали сюди.',
   'whatsnew.change.moduleSwitches': 'Сторінки «Модулі» більше немає. Кожен модуль вмикається на своїй сторінці, а вимкнений показує там лише свій перемикач.',
+  'whatsnew.change.videoFormat': 'У картці «{name}» формат і роздільну здатність вибирають окремо, а сама картка тепер стоїть над «{audio}».',
+  'whatsnew.change.filesMerged': '«{name}» збирає в одній картці «{files}», «{check}» і «{live}».',
+  'whatsnew.change.trackTiles': '«{name}» малює кожну доріжку більшою.',
+  'whatsnew.change.jdTool': 'JDownloader тепер рядок у «{name}» і, як yt-dlp, завжди ввімкнений, без власного перемикача.',
+  'whatsnew.change.ytdlpUpdates': 'Посилання «{name}» веде прямо на підкартку yt-dlp у «{page}».',
+  'whatsnew.change.vpnRoutes': 'Під «{vpn}» є окрема картка «{name}» з перемикачем для кожного виду завантажень.',
 };

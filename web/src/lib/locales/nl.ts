@@ -3781,4 +3781,10 @@ export const nl: Dict = {
   'whatsnew.change.proxyCheckMoved': 'De controle ‘{name}’ staat nu hier.',
   'whatsnew.change.advancedUpkeep': '‘{maintenance}’ en ‘{metrics}’ staan nu hier.',
   'whatsnew.change.moduleSwitches': 'De pagina Modules bestaat niet meer. Elke module zet je aan op zijn eigen pagina, en een module die uit staat toont daar alleen zijn schakelaar.',
+  'whatsnew.change.videoFormat': 'Op de kaart “{name}” kies je formaat en resolutie apart, en de kaart staat nu boven “{audio}”.',
+  'whatsnew.change.filesMerged': '“{name}” brengt “{files}”, “{check}” en “{live}” samen in één kaart.',
+  'whatsnew.change.trackTiles': '“{name}” tekent elk spoor groter.',
+  'whatsnew.change.jdTool': 'JDownloader is een rij in “{name}” en staat net als yt-dlp altijd aan, zonder eigen schakelaar.',
+  'whatsnew.change.ytdlpUpdates': 'De link “{name}” brengt je meteen naar de subkaart van yt-dlp onder “{page}”.',
+  'whatsnew.change.vpnRoutes': '“{name}” is een eigen kaart onder “{vpn}”, met een schakelaar voor elk soort download.',
 };

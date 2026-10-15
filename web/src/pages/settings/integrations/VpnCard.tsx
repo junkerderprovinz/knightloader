@@ -164,7 +164,7 @@ export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) 
       </Card>
 
       {vpn && setUp.length > 0 && (
-        <Card hue={routesHue} className="flex flex-col gap-3">
+        <Card hue={routesHue} data-new="vpn-routes" className="flex flex-col gap-3">
           <SectionTitle hint={t('settings.vpn.routesHint')}>{t('settings.vpn.routesTitle')}</SectionTitle>
           {ROUTES.map((r) => (
             <ToggleRow

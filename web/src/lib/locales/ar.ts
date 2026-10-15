@@ -3796,4 +3796,10 @@ export const ar: Dict = {
   'whatsnew.change.proxyCheckMoved': 'انتقل فحص {name} إلى هنا.',
   'whatsnew.change.advancedUpkeep': 'انتقلت {maintenance} و{metrics} إلى هنا.',
   'whatsnew.change.moduleSwitches': 'اختفت صفحة الوحدات. تُشغَّل كل وحدة في صفحتها، والوحدة المطفأة يظهر فيها مفتاحها فقط.',
+  'whatsnew.change.videoFormat': 'في بطاقة «{name}» تختار الصيغة والدقة كلًّا على حدة، وصارت البطاقة فوق «{audio}».',
+  'whatsnew.change.filesMerged': 'تجمع «{name}» «{files}» و«{check}» و«{live}» في بطاقة واحدة.',
+  'whatsnew.change.trackTiles': 'يرسم «{name}» كل مسار بحجم أكبر.',
+  'whatsnew.change.jdTool': 'صار JDownloader صفًّا في «{name}»، وهو مثل yt-dlp يعمل دائمًا بلا مفتاح خاص به.',
+  'whatsnew.change.ytdlpUpdates': 'يأخذك رابط «{name}» مباشرة إلى البطاقة الفرعية لـ yt-dlp في «{page}».',
+  'whatsnew.change.vpnRoutes': '«{name}» بطاقة خاصة تحت «{vpn}»، فيها مفتاح لكل نوع من التنزيلات.',
 };

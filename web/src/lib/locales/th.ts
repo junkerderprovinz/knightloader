@@ -3797,4 +3797,10 @@ export const th: Dict = {
   'whatsnew.change.proxyCheckMoved': 'การตรวจ {name} ย้ายมาอยู่ที่นี่แล้ว',
   'whatsnew.change.advancedUpkeep': '{maintenance} และ {metrics} ย้ายมาอยู่ที่นี่แล้ว',
   'whatsnew.change.moduleSwitches': 'หน้าโมดูลไม่มีแล้ว โมดูลแต่ละตัวเปิดได้ในหน้าของตัวเอง และตัวที่ปิดอยู่จะแสดงแค่สวิตช์ของมัน',
+  'whatsnew.change.videoFormat': 'ในการ์ด “{name}” คุณเลือกรูปแบบและความละเอียดแยกกัน และการ์ดนี้ย้ายมาอยู่เหนือ “{audio}” แล้ว',
+  'whatsnew.change.filesMerged': '“{name}” รวม “{files}” “{check}” และ “{live}” ไว้ในการ์ดเดียว',
+  'whatsnew.change.trackTiles': '“{name}” วาดแต่ละแทร็กให้ใหญ่ขึ้น',
+  'whatsnew.change.jdTool': 'JDownloader เป็นแถวหนึ่งใน “{name}” และเปิดอยู่เสมอเหมือน yt-dlp โดยไม่มีสวิตช์ของตัวเอง',
+  'whatsnew.change.ytdlpUpdates': 'ลิงก์ “{name}” พาคุณไปยังการ์ดย่อยของ yt-dlp ใน “{page}” โดยตรง',
+  'whatsnew.change.vpnRoutes': '“{name}” เป็นการ์ดแยกอยู่ใต้ “{vpn}” มีสวิตช์สำหรับดาวน์โหลดแต่ละประเภท',
 };

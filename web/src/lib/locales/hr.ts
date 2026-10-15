@@ -3812,4 +3812,10 @@ export const hr: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Provjera „{name}” premještena je ovamo.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}” i „{metrics}” premješteni su ovamo.',
   'whatsnew.change.moduleSwitches': 'Stranice Moduli više nema. Svaki modul uključuje se na svojoj stranici, a isključeni tamo prikazuje samo svoj prekidač.',
+  'whatsnew.change.videoFormat': 'Na kartici „{name}” format i razlučivost biraš zasebno, a kartica je sada iznad „{audio}”.',
+  'whatsnew.change.filesMerged': '„{name}” na jednoj kartici okuplja „{files}”, „{check}” i „{live}”.',
+  'whatsnew.change.trackTiles': '„{name}” crta svaku traku veću.',
+  'whatsnew.change.jdTool': 'JDownloader je redak u „{name}” i, kao yt-dlp, uvijek je uključen, bez vlastitog prekidača.',
+  'whatsnew.change.ytdlpUpdates': 'Poveznica „{name}” vodi te ravno na potkarticu yt-dlp-a pod „{page}”.',
+  'whatsnew.change.vpnRoutes': '„{name}” je zasebna kartica ispod „{vpn}”, s prekidačem za svaku vrstu preuzimanja.',
 };

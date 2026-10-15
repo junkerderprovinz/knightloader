@@ -3812,4 +3812,10 @@ export const sr: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Провера „{name}” премештена је овде.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}” и „{metrics}” премештени су овде.',
   'whatsnew.change.moduleSwitches': 'Странице Модули више нема. Сваки модул се укључује на својој страници, а искључени ту приказује само свој прекидач.',
+  'whatsnew.change.videoFormat': 'На картици „{name}“ формат и резолуцију бираш засебно, а картица је сада изнад „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ на једној картици окупља „{files}“, „{check}“ и „{live}“.',
+  'whatsnew.change.trackTiles': '„{name}“ црта сваку траку већу.',
+  'whatsnew.change.jdTool': 'JDownloader је ред у „{name}“ и, као yt-dlp, увек је укључен, без сопственог прекидача.',
+  'whatsnew.change.ytdlpUpdates': 'Веза „{name}“ води те право на поткартицу yt-dlp-а под „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ је засебна картица испод „{vpn}“, са прекидачем за сваку врсту преузимања.',
 };

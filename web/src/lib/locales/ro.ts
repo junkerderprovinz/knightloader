@@ -3807,4 +3807,10 @@ export const ro: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Verificarea „{name}” s-a mutat aici.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}” și „{metrics}” s-au mutat aici.',
   'whatsnew.change.moduleSwitches': 'Pagina Module nu mai există. Fiecare modul se pornește pe pagina lui, iar unul oprit arată acolo doar comutatorul.',
+  'whatsnew.change.videoFormat': 'În cardul „{name}” alegi formatul și rezoluția separat, iar cardul stă acum deasupra „{audio}”.',
+  'whatsnew.change.filesMerged': '„{name}” adună „{files}”, „{check}” și „{live}” într-un singur card.',
+  'whatsnew.change.trackTiles': '„{name}” desenează fiecare pistă mai mare.',
+  'whatsnew.change.jdTool': 'JDownloader e un rând în „{name}” și, ca yt-dlp, e mereu pornit, fără comutator propriu.',
+  'whatsnew.change.ytdlpUpdates': 'Linkul „{name}” te duce direct la subcardul yt-dlp din „{page}”.',
+  'whatsnew.change.vpnRoutes': '„{name}” e un card separat sub „{vpn}”, cu un comutator pentru fiecare tip de descărcare.',
 };

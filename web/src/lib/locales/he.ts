@@ -3815,4 +3815,10 @@ export const he: Dict = {
   'whatsnew.change.proxyCheckMoved': 'הבדיקה „{name}” עברה לכאן.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}” ו„{metrics}” עברו לכאן.',
   'whatsnew.change.moduleSwitches': 'דף המודולים כבר לא קיים. כל מודול מופעל בדף שלו, ומודול כבוי מציג שם רק את המתג שלו.',
+  'whatsnew.change.videoFormat': 'בכרטיס „{name}” בוחרים פורמט ורזולוציה בנפרד, והכרטיס נמצא עכשיו מעל „{audio}”.',
+  'whatsnew.change.filesMerged': '„{name}” מאגד את „{files}”, „{check}” ו-„{live}” בכרטיס אחד.',
+  'whatsnew.change.trackTiles': '„{name}” מצייר כל רצועה גדולה יותר.',
+  'whatsnew.change.jdTool': 'JDownloader הוא שורה ב-„{name}”, וכמו yt-dlp הוא תמיד פועל, בלי מתג משלו.',
+  'whatsnew.change.ytdlpUpdates': 'הקישור „{name}” מוביל ישר לכרטיס המשנה של yt-dlp ב-„{page}”.',
+  'whatsnew.change.vpnRoutes': '„{name}” הוא כרטיס נפרד מתחת ל-„{vpn}”, עם מתג לכל סוג הורדה.',
 };

@@ -3799,4 +3799,10 @@ export const bg: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Проверката „{name}“ се премести тук.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ и „{metrics}“ се преместиха тук.',
   'whatsnew.change.moduleSwitches': 'Страницата „Модули“ вече я няма. Всеки модул се включва на своята страница, а изключен показва там само превключвателя си.',
+  'whatsnew.change.videoFormat': 'В картата „{name}“ избираш формата и резолюцията поотделно, а картата вече е над „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ събира „{files}“, „{check}“ и „{live}“ в една карта.',
+  'whatsnew.change.trackTiles': '„{name}“ рисува всяка писта по-голяма.',
+  'whatsnew.change.jdTool': 'JDownloader е ред в „{name}“ и като yt-dlp е винаги включен, без собствен превключвател.',
+  'whatsnew.change.ytdlpUpdates': 'Връзката „{name}“ те води направо до подкартата на yt-dlp в „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ е отделна карта под „{vpn}“, с превключвател за всеки вид изтегляне.',
 };

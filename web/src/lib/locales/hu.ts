@@ -3800,4 +3800,10 @@ export const hu: Dict = {
   'whatsnew.change.proxyCheckMoved': 'A(z) „{name}” ellenőrzés ide került.',
   'whatsnew.change.advancedUpkeep': 'A(z) „{maintenance}” és a(z) „{metrics}” ide került.',
   'whatsnew.change.moduleSwitches': 'A Modulok oldal megszűnt. Minden modult a saját oldalán kapcsolsz be, és a kikapcsolt modul ott csak a kapcsolóját mutatja.',
+  'whatsnew.change.videoFormat': 'A(z) „{name}” kártyán külön választod ki a formátumot és a felbontást, és a kártya most a(z) „{audio}” fölött van.',
+  'whatsnew.change.filesMerged': 'A(z) „{name}” egy kártyán fogja össze ezeket: „{files}”, „{check}” és „{live}”.',
+  'whatsnew.change.trackTiles': 'A(z) „{name}” minden sávot nagyobbra rajzol.',
+  'whatsnew.change.jdTool': 'A JDownloader egy sor a(z) „{name}” kártyán, és a yt-dlp-hez hasonlóan mindig be van kapcsolva, saját kapcsoló nélkül.',
+  'whatsnew.change.ytdlpUpdates': 'A(z) „{name}” hivatkozás egyenesen a yt-dlp alkártyájára visz a(z) „{page}” oldalon.',
+  'whatsnew.change.vpnRoutes': 'A(z) „{name}” önálló kártya a(z) „{vpn}” alatt, minden letöltésfajtához saját kapcsolóval.',
 };

@@ -3796,4 +3796,10 @@ export const gl: Dict = {
   'whatsnew.change.proxyCheckMoved': 'A comprobación «{name}» está agora aquí.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» e «{metrics}» están agora aquí.',
   'whatsnew.change.moduleSwitches': 'A páxina Módulos xa non existe. Cada módulo actívase na súa propia páxina, e un desactivado só amosa alí o seu interruptor.',
+  'whatsnew.change.videoFormat': 'Na tarxeta «{name}» escolles o formato e a resolución por separado, e agora está enriba de «{audio}».',
+  'whatsnew.change.filesMerged': '«{name}» xunta «{files}», «{check}» e «{live}» nunha soa tarxeta.',
+  'whatsnew.change.trackTiles': '«{name}» debuxa cada pista máis grande.',
+  'whatsnew.change.jdTool': 'JDownloader é unha fila en «{name}» e, coma yt-dlp, está sempre activo, sen interruptor propio.',
+  'whatsnew.change.ytdlpUpdates': 'A ligazón «{name}» lévate directamente á subtarxeta de yt-dlp en «{page}».',
+  'whatsnew.change.vpnRoutes': '«{name}» é unha tarxeta propia debaixo de «{vpn}», cun interruptor para cada tipo de descarga.',
 };

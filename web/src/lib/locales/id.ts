@@ -3798,4 +3798,10 @@ export const id: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Pemeriksaan {name} sekarang ada di sini.',
   'whatsnew.change.advancedUpkeep': '{maintenance} dan {metrics} sekarang ada di sini.',
   'whatsnew.change.moduleSwitches': 'Halaman Modul sudah tidak ada. Setiap modul dinyalakan di halamannya sendiri, dan modul yang mati hanya menampilkan sakelarnya di sana.',
+  'whatsnew.change.videoFormat': 'Di kartu “{name}” kamu memilih format dan resolusi secara terpisah, dan kartunya kini ada di atas “{audio}”.',
+  'whatsnew.change.filesMerged': '“{name}” menyatukan “{files}”, “{check}”, dan “{live}” dalam satu kartu.',
+  'whatsnew.change.trackTiles': '“{name}” menggambar setiap trek lebih besar.',
+  'whatsnew.change.jdTool': 'JDownloader kini satu baris di “{name}”, dan seperti yt-dlp selalu aktif, tanpa sakelar sendiri.',
+  'whatsnew.change.ytdlpUpdates': 'Tautan “{name}” membawamu langsung ke subkartu yt-dlp di “{page}”.',
+  'whatsnew.change.vpnRoutes': '“{name}” adalah kartu tersendiri di bawah “{vpn}”, dengan sakelar untuk setiap jenis unduhan.',
 };

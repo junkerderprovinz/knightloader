@@ -3786,4 +3786,10 @@ export const ko: Dict = {
   'whatsnew.change.proxyCheckMoved': '{name} 확인이 이곳으로 옮겨졌습니다.',
   'whatsnew.change.advancedUpkeep': '{maintenance}와(과) {metrics}이(가) 이곳으로 옮겨졌습니다.',
   'whatsnew.change.moduleSwitches': '모듈 페이지는 없어졌습니다. 각 모듈은 자기 페이지에서 켜며, 꺼진 모듈은 그곳에 스위치만 보입니다.',
+  'whatsnew.change.videoFormat': '“{name}” 카드에서 포맷과 해상도를 따로 고르며, 이 카드는 이제 “{audio}” 위에 있습니다.',
+  'whatsnew.change.filesMerged': '“{name}” 카드에 “{files}”, “{check}”, “{live}”가 함께 있습니다.',
+  'whatsnew.change.trackTiles': '“{name}”는 트랙마다 더 크게 그립니다.',
+  'whatsnew.change.jdTool': 'JDownloader는 “{name}”의 한 행이 되었고, yt-dlp처럼 항상 켜져 있어 자체 스위치가 없습니다.',
+  'whatsnew.change.ytdlpUpdates': '“{name}” 링크는 “{page}”에 있는 yt-dlp 하위 카드로 바로 이동합니다.',
+  'whatsnew.change.vpnRoutes': '“{name}”는 “{vpn}” 아래의 별도 카드이며, 다운로드 종류마다 스위치가 있습니다.',
 };
