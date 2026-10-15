@@ -1711,6 +1711,7 @@ export const lt: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader jį parodo tik šį kartą ir išsaugo vien jo kontrolinį kodą, todėl dabar įrašyk jį ten, kur tikisi toliau pateikta konfigūracija.',
   'settings.access.mcp.config': 'Konfigūracija',
   'settings.access.mcp.configHint': 'Prieigos raktas daugiau nebus rodomas. Išsaugotą raktą įrašyk ten, kur konfigūracijoje parašyta <your token>, arba pašalink klientą ir pridėk iš naujo, kad gautum naują.',
+  'settings.access.mcp.configHintElsewhere': 'Prieigos raktas daugiau nerodomas. Naudok išsaugotą, kaip aprašyta toliau, arba pašalink klientą ir pridėk iš naujo, kad gautum naują.',
   'settings.access.mcp.setupCommand': 'Paleisk tai vieną kartą terminale.',
   'settings.access.mcp.setupFile': 'Pridėk tai į konfigūracijos failą šalia jame jau esančių serverių ir iš naujo paleisk {app}.',
   'settings.access.mcp.setupForm': 'Įvesk šias reikšmes programoje {app} skiltyje {ui}.',

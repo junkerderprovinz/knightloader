@@ -1712,6 +1712,7 @@ export const he: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader מציג אותו רק הפעם הזו ושומר רק טביעת אצבע שלו, אז שמור אותו עכשיו במקום שהתצורה שלמטה מצפה לו.',
   'settings.access.mcp.config': 'תצורה',
   'settings.access.mcp.configHint': 'הטוקן לא יוצג שוב. שים את הטוקן ששמרת במקום <your token> בתצורה, או הסר את הלקוח והוסף אותו מחדש כדי לקבל טוקן חדש.',
+  'settings.access.mcp.configHintElsewhere': 'האסימון לא יוצג שוב. השתמש באסימון ששמרת כמתואר למטה, או הסר את הלקוח והוסף אותו מחדש כדי לקבל חדש.',
   'settings.access.mcp.setupCommand': 'הרץ את זה פעם אחת במסוף.',
   'settings.access.mcp.setupFile': 'הוסף את זה לקובץ התצורה, לצד שרתים שכבר נמצאים בו, והפעל את {app} מחדש.',
   'settings.access.mcp.setupForm': 'הזן את הערכים האלה ב-{app} תחת {ui}.',

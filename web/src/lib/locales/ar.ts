@@ -1712,6 +1712,7 @@ export const ar: Dict = {
   'settings.access.mcp.tokenHint': 'يعرضه KnightLoader هذه المرة فقط ولا يحتفظ إلا ببصمة منه، فاحفظه الآن في المكان الذي يتوقعه الإعداد أدناه.',
   'settings.access.mcp.config': 'الإعداد',
   'settings.access.mcp.configHint': 'لن يظهر الرمز مرة أخرى. ضع الرمز الذي حفظته مكان <your token> في الإعداد، أو أزل العميل وأضفه من جديد للحصول على رمز جديد.',
+  'settings.access.mcp.configHintElsewhere': 'لا يُعرض الرمز مرة أخرى. استخدم الرمز الذي حفظته كما هو موضح أدناه، أو أزل العميل وأضفه من جديد للحصول على رمز جديد.',
   'settings.access.mcp.setupCommand': 'نفّذ هذا مرة واحدة في الطرفية.',
   'settings.access.mcp.setupFile': 'أضف هذا إلى ملف الإعداد بجانب الخوادم الموجودة فيه، ثم شغّل {app} من جديد.',
   'settings.access.mcp.setupForm': 'أدخل هذه القيم في {app} ضمن {ui}.',

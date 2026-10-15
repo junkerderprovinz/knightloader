@@ -1710,6 +1710,7 @@ export const gl: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader móstrao só esta vez e non garda máis que unha pegada dixital, así que gárdao agora onde o espera a configuración de abaixo.',
   'settings.access.mcp.config': 'Configuración',
   'settings.access.mcp.configHint': 'O token non se volve mostrar. Pon o que gardaches onde a configuración di <your token>, ou quita o cliente e engádeo de novo para obter un novo.',
+  'settings.access.mcp.configHintElsewhere': 'O token non se volve mostrar. Usa o que gardaches, como se describe abaixo, ou elimina o cliente e engádeo de novo para conseguir un novo.',
   'settings.access.mcp.setupCommand': 'Executa isto unha vez nun terminal.',
   'settings.access.mcp.setupFile': 'Engade isto ao ficheiro de configuración, xunto aos servidores que xa haxa, e volve iniciar {app}.',
   'settings.access.mcp.setupForm': 'Introduce estes valores en {app} en {ui}.',

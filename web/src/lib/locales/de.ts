@@ -1879,6 +1879,7 @@ export const de: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader zeigt es nur dieses eine Mal und behält nichts als einen Fingerabdruck davon. Speicher es jetzt dort, wo die Konfiguration unten es erwartet.',
   'settings.access.mcp.config': 'Konfiguration',
   'settings.access.mcp.configHint': 'Das Token wird nicht noch einmal angezeigt. Setz das gespeicherte dort ein, wo in der Konfiguration <your token> steht, oder entferne den Client und füg ihn neu hinzu, um ein neues zu bekommen.',
+  'settings.access.mcp.configHintElsewhere': 'Das Token wird nicht noch einmal angezeigt. Nimm das gespeicherte so, wie unten beschrieben, oder entferne den Client und füg ihn neu hinzu, um ein neues zu bekommen.',
   'settings.access.mcp.setupCommand': 'Führ das einmal in einem Terminal aus.',
   'settings.access.mcp.setupFile': 'Trag das in die Konfigurationsdatei ein, neben die Server, die schon drinstehen, und starte {app} neu.',
   'settings.access.mcp.setupForm': 'Gib diese Werte in {app} unter {ui} ein.',

@@ -1710,6 +1710,7 @@ export const vi: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader chỉ hiển thị nó một lần này và chỉ giữ lại dấu vân tay của nó, nên hãy lưu ngay vào nơi mà cấu hình bên dưới cần.',
   'settings.access.mcp.config': 'Cấu hình',
   'settings.access.mcp.configHint': 'Token sẽ không hiển thị lại. Điền token bạn đã lưu vào chỗ cấu hình ghi <your token>, hoặc gỡ client rồi thêm lại để nhận token mới.',
+  'settings.access.mcp.configHintElsewhere': 'Mã sẽ không được hiển thị lại. Hãy dùng mã bạn đã lưu như mô tả bên dưới, hoặc xóa ứng dụng khách rồi thêm lại để nhận mã mới.',
   'settings.access.mcp.setupCommand': 'Chạy lệnh này một lần trong terminal.',
   'settings.access.mcp.setupFile': 'Thêm đoạn này vào tệp cấu hình, bên cạnh các máy chủ đã có trong đó, rồi khởi động lại {app}.',
   'settings.access.mcp.setupForm': 'Nhập các giá trị này vào {app} tại {ui}.',

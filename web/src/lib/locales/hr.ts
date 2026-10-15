@@ -1711,6 +1711,7 @@ export const hr: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader ga prikazuje samo ovaj put i čuva samo njegov otisak, zato ga sada spremi tamo gdje ga očekuje konfiguracija ispod.',
   'settings.access.mcp.config': 'Konfiguracija',
   'settings.access.mcp.configHint': 'Token se neće ponovno prikazati. Spremljeni token stavi tamo gdje u konfiguraciji piše <your token> ili ukloni klijenta i dodaj ga ponovno da dobiješ novi.',
+  'settings.access.mcp.configHintElsewhere': 'Token se neće ponovno prikazati. Upotrijebi spremljeni, kako je opisano u nastavku, ili ukloni klijenta i dodaj ga ponovno da dobiješ novi.',
   'settings.access.mcp.setupCommand': 'Pokreni ovo jednom u terminalu.',
   'settings.access.mcp.setupFile': 'Dodaj ovo u konfiguracijsku datoteku, uz poslužitelje koji su već u njoj, i ponovno pokreni {app}.',
   'settings.access.mcp.setupForm': 'Unesi ove vrijednosti u aplikaciji {app} pod {ui}.',

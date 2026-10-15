@@ -1710,6 +1710,7 @@ export const ko: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader는 토큰을 이번 한 번만 보여 주고 지문만 보관하므로, 아래 설정이 읽는 위치에 지금 저장하세요.',
   'settings.access.mcp.config': '설정',
   'settings.access.mcp.configHint': '토큰은 다시 표시되지 않습니다. 저장한 토큰을 설정의 <your token> 자리에 넣거나, 클라이언트를 제거한 뒤 다시 추가해 새 토큰을 받으세요.',
+  'settings.access.mcp.configHintElsewhere': '토큰은 다시 표시되지 않습니다. 아래 설명대로 저장해 둔 토큰을 쓰거나, 클라이언트를 제거한 뒤 다시 추가해 새 토큰을 받으세요.',
   'settings.access.mcp.setupCommand': '터미널에서 한 번만 실행하세요.',
   'settings.access.mcp.setupFile': '설정 파일에 이미 있는 서버 옆에 이것을 추가하고 {app}을 다시 시작하세요.',
   'settings.access.mcp.setupForm': '{app}의 {ui}에 다음 값을 입력하세요.',
