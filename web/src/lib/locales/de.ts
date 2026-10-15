@@ -3755,6 +3755,9 @@ export const de: Dict = {
   'settings.vpn.custom': 'Eigene WireGuard-Konfiguration',
   'settings.vpn.note.kaspersky': 'Die Konfiguration von Kaspersky verfällt, wenn sie 24 Stunden nicht genutzt wird, und gilt für ein Gerät. Erstelle dann in My Kaspersky eine neue.',
   'settings.vpn.note.anonine': 'Der Download von Anonine enthält weder den privaten Schlüssel noch die Adresse. Ergänze die Zeile PrivateKey deines eigenen Schlüsselpaars und die Zeile Address aus deinem Konto, bevor du sie einfügst.',
+  'settings.vpn.note.nordvpn': 'Das Zugriffstoken erstellst du im Nord Account unter NordVPN in den erweiterten Einstellungen. Als Standort geht ein Ländercode wie de, ein Land oder eine Stadt. Bleibt das Feld leer, nimmt KnightLoader den Server, den NordVPN dir empfiehlt.',
+  'settings.vpn.note.pia': 'Der Benutzername deines PIA-Kontos beginnt mit p. Als Standort geht ein Ländercode wie de oder eine Region wie de_berlin. Bleibt das Feld leer, nimmt KnightLoader die schnellste Region, die Ports weiterleitet.',
+  'settings.vpn.note.torguard': 'TorGuard will hier die VPN-Zugangsdaten aus deinem Kundenbereich, nicht die Anmeldung der Website. Als Standort trägst du einen TorGuard-Server ein, etwa ger.secureconnect.me oder kurz ger, oder seine IP-Adresse. Leer heißt nl.secureconnect.me. Für eine Portweiterleitung beantragst du im Kundenbereich unter Port Forward Manager den Port aus den Torrent-Einstellungen für die IP-Adresse dieses Servers.',
   'settings.vpn.title': 'VPN',
   'settings.vpn.cardHint': 'Schickt Downloads über einen VPN-Anbieter, und zwar die Arten, die du unten einschaltest. KnightLoader verbindet sich selbst, eine VPN-App brauchst du nicht. Ist die Verbindung weg, warten diese Downloads und nehmen nie deine eigene Verbindung.',
   'settings.vpn.add': 'VPN hinzufügen',
@@ -3807,4 +3810,5 @@ export const de: Dict = {
   'settings.vpn.error.login': '{name} hat die Anmeldung abgelehnt.',
   'settings.vpn.error.timeout': 'Der Server hat nicht geantwortet. Versuch einen anderen Standort.',
   'settings.vpn.error.dropped': 'Die Verbindung ist abgebrochen.',
+  'settings.vpn.error.location': '{name} hat an diesem Standort keinen Server. Prüf die Schreibweise oder lass das Feld leer.',
 };

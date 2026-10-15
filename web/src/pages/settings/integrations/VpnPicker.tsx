@@ -31,6 +31,9 @@ type Values = Partial<Record<VpnField, string>>;
 const NOTES: Partial<Record<string, TranslationKey>> = {
   kaspersky: 'settings.vpn.note.kaspersky',
   anonine: 'settings.vpn.note.anonine',
+  nordvpn: 'settings.vpn.note.nordvpn',
+  pia: 'settings.vpn.note.pia',
+  torguard: 'settings.vpn.note.torguard',
 };
 
 /**
