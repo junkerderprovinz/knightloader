@@ -446,6 +446,33 @@ func TestASessionsKeepForwardsThePortWhileTheTunnelStands(t *testing.T) {
 	}
 }
 
+func TestConnectsAtOnceLeaveNoRunBehindADisconnect(t *testing.T) {
+	srv := vpntest.Start(t)
+	h := newHarness(t, &memStore{}, "")
+	var opened atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		opened.Add(1)
+		cfg, err := vpn.ParseConfig(srv.Config())
+		return &session{cfg: cfg}, err
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "twice", Name: "Twice", Fields: []string{"token"}, open: open})
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			h.m.Connect("twice", map[string]string{"token": "x"})
+		}()
+	}
+	wg.Wait()
+	h.m.Disconnect()
+	before := opened.Load()
+	time.Sleep(time.Second)
+	if st := h.m.tun.State().Status; st != vpn.Disconnected || opened.Load() != before {
+		t.Errorf("after the disconnect the tunnel is %s and %d sessions were opened", st, opened.Load()-before)
+	}
+}
+
 func TestAPortRequestThatFailedIsSentAgain(t *testing.T) {
 	defer func(d time.Duration) { portRetry = d }(portRetry)
 	portRetry = 50 * time.Millisecond

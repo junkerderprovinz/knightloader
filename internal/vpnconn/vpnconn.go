@@ -153,6 +153,10 @@ type Manager struct {
 	tun       *vpn.Tunnel
 	providers []Provider
 
+	// op keeps to one Connect, Disconnect, Forget or Close at a time, so a run
+	// is never started while another is still being stopped.
+	op sync.Mutex
+
 	mu     sync.Mutex
 	active string
 	routes Routes
@@ -286,6 +290,12 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 // left empty keep the stored login. It returns once the login is stored; the
 // connection follows, and State tells how it goes.
 func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
+	m.op.Lock()
+	defer m.op.Unlock()
+	return m.connect(id, fields)
+}
+
+func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 	p := m.provider(id)
 	if p == nil {
 		return State{}, &Refusal{Status: http.StatusNotFound, Code: "vpn-unknown", Text: fmt.Sprintf("no VPN provider %q", id)}
@@ -334,6 +344,12 @@ func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
 
 // Disconnect ends the connection; torrents go back to the machine's own.
 func (m *Manager) Disconnect() State {
+	m.op.Lock()
+	defer m.op.Unlock()
+	return m.disconnect()
+}
+
+func (m *Manager) disconnect() State {
 	m.stop()
 	m.tun.Disconnect()
 	netbind.Register(NetworkName, nil)
@@ -347,11 +363,13 @@ func (m *Manager) Disconnect() State {
 
 // Forget deletes a provider's stored login, disconnecting it first.
 func (m *Manager) Forget(id string) (State, error) {
+	m.op.Lock()
+	defer m.op.Unlock()
 	if m.provider(id) == nil {
 		return State{}, &Refusal{Status: http.StatusNotFound, Code: "vpn-unknown", Text: fmt.Sprintf("no VPN provider %q", id)}
 	}
 	if m.Active() == id {
-		m.Disconnect()
+		m.disconnect()
 	}
 	login := m.login(id)
 	if err := m.opts.Store.SetCredential(Service, id, accounts.Credential{}); err != nil {
@@ -425,6 +443,8 @@ func (m *Manager) DialContext(ctx context.Context, network, address string) (net
 
 // Close ends the connection and keeps which provider was in use, for Resume.
 func (m *Manager) Close() {
+	m.op.Lock()
+	defer m.op.Unlock()
 	m.stop()
 	m.tun.Disconnect()
 	if m.Active() != "" {
