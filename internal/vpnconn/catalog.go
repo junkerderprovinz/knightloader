@@ -1,6 +1,9 @@
 package vpnconn
 
-import "net/netip"
+import (
+	"context"
+	"net/netip"
+)
 
 // Provider is one tile of the VPN page: what its connect form asks for, and
 // how KnightLoader connects to it, where it can.
@@ -11,7 +14,10 @@ type Provider struct {
 	PortForwarding bool
 
 	open opener
-	port portKind
+	// forget gives back what open registered with the provider, when the
+	// login is deleted.
+	forget func(ctx context.Context, login Login)
+	port   portKind
 	// gateway answers NAT-PMP inside the tunnel, for a provider whose
 	// configuration does not say.
 	gateway netip.Addr
@@ -29,6 +35,8 @@ const (
 	// fwdPort asks cryptostorm's server for a port once per connection; it
 	// keeps it until the token runs out, so nothing renews it.
 	fwdPort
+	// apiPort asks the provider's API for a port once per connection.
+	apiPort
 )
 
 // protonGateway is where Proton VPN answers NAT-PMP on every server.
@@ -44,7 +52,7 @@ func catalogue() []Provider {
 		{ID: "protonvpn", Name: "Proton VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: natpmpPort, gateway: protonGateway},
 		{ID: "surfshark", Name: "Surfshark", Fields: []string{"config"}, open: conf},
 		{ID: "pia", Name: "Private Internet Access", Fields: []string{"username", "password"}, PortForwarding: true},
-		{ID: "mullvad", Name: "Mullvad VPN", Fields: []string{"token"}},
+		{ID: "mullvad", Name: "Mullvad VPN", Fields: []string{"accountNumber", "location"}, open: openMullvad, forget: forgetMullvad},
 		{ID: "windscribe", Name: "Windscribe", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "ipvanish", Name: "IPVanish", Fields: []string{"config"}, open: conf},
 		{ID: "purevpn", Name: "PureVPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
@@ -55,7 +63,7 @@ func catalogue() []Provider {
 		{ID: "privadovpn", Name: "PrivadoVPN", Fields: []string{"config"}, open: conf},
 		{ID: "vyprvpn", Name: "VyprVPN", Fields: []string{"username", "password", "location"}, PortForwarding: true},
 		{ID: "ovpn", Name: "OVPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
-		{ID: "azirevpn", Name: "AzireVPN", Fields: []string{"username", "password"}, PortForwarding: true},
+		{ID: "azirevpn", Name: "AzireVPN", Fields: []string{"username", "password", "location"}, PortForwarding: true, open: openAzire, forget: forgetAzire, port: apiPort},
 		{ID: "fastestvpn", Name: "FastestVPN", Fields: []string{"config"}, open: conf},
 		{ID: "ivacy", Name: "Ivacy VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "privatevpn", Name: "PrivateVPN", Fields: []string{"config"}, open: conf},
@@ -68,7 +76,7 @@ func catalogue() []Provider {
 		{ID: "anonine", Name: "Anonine", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "njalla", Name: "Njalla VPN", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
 		{ID: "trustzone", Name: "Trust.Zone", Fields: []string{"config"}, PortForwarding: true, open: conf, port: manualPort},
-		{ID: "obscura", Name: "Obscura VPN", Fields: []string{"token"}},
+		{ID: "obscura", Name: "Obscura VPN", Fields: []string{"accountNumber", "location"}, open: openObscura, forget: forgetObscura},
 		{ID: "levpn", Name: "Le VPN", Fields: []string{"config"}, open: conf},
 		{ID: "xeovo", Name: "Xeovo", Fields: []string{"config"}, open: conf},
 		{ID: "cactusvpn", Name: "CactusVPN", Fields: []string{"config"}, open: conf},
