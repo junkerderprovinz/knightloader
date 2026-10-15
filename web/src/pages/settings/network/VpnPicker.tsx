@@ -8,7 +8,7 @@ import { useToast } from '../../../lib/toast';
 import { VPN_APP_ONLY } from '../../../lib/vpnProviders';
 import { SettingRow } from '../controls';
 import { refusalText } from '../tx';
-import { VpnMark, failureOf, nameOf } from './VpnMark';
+import { VpnMark, failureOf, nameOf, vpnPaint } from './VpnMark';
 
 const FIELDS: Record<VpnField, { label: TranslationKey; hint?: TranslationKey; secret?: boolean }> = {
   config: { label: 'settings.vpn.field.config', hint: 'settings.vpn.field.configHint' },
@@ -70,8 +70,8 @@ export function VpnPicker({
     return {
       id: x.id,
       name,
-      host: '',
-      mark: <VpnMark id={x.id} name={name} size={25} />,
+      mark: <VpnMark id={x.id} name={name} size={25} lit />,
+      paint: vpnPaint(x.id, name),
       sub: x.configured ? t('settings.vpn.state.saved') : undefined,
       held: x.configured,
     };
@@ -79,7 +79,6 @@ export function VpnPicker({
   const appOnly: Brand[] = VPN_APP_ONLY.map((x) => ({
     id: x.id,
     name: x.name,
-    host: '',
     mark: <VpnMark id={x.id} name={x.name} size={25} />,
     sub: t('settings.vpn.appOnlyTitle'),
     unavailable: t('settings.vpn.appOnlyHint'),

@@ -3,6 +3,7 @@ import { act, useState } from 'react';
 import { createRoot, type Root } from 'react-dom/client';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 
+import { HOSTER_LOGOS } from '../lib/hosterLogos';
 import { I18nProvider } from '../lib/i18n';
 import { BrandPicker, PickerSearch, brandMatches, siteOf, type Brand } from './BrandPicker';
 import { Modal } from './ui';
@@ -68,6 +69,47 @@ function type(text: string) {
     input.dispatchEvent(new Event('input', { bubbles: true }));
   });
 }
+
+it('lights a tile in its brand colour, never the accent', () => {
+  act(() =>
+    root.render(
+      <I18nProvider>
+        <BrandPicker
+          brands={[
+            ...BRANDS,
+            { id: 'vpn', name: 'Some VPN', mark: <span />, paint: { tile: '#4ce576', ink: '#161616' } },
+            { id: 'mcp', name: 'Zed', mark: <span />, tile: 'glim-tile-zed' },
+          ]}
+          onPick={() => {}}
+          none=""
+        />
+      </I18nProvider>,
+    ),
+  );
+  const [, alldebrid, vpn, mcp] = tiles();
+  expect(alldebrid.style.getPropertyValue('--tile')).toBe(HOSTER_LOGOS.get('alldebrid.com')!.tile);
+  expect(vpn.style.getPropertyValue('--tile')).toBe('#4ce576');
+  expect(vpn.style.getPropertyValue('--tile-ink')).toBe('#161616');
+  expect(mcp.className).toContain('glim-tile-zed');
+  for (const tile of tiles()) {
+    expect(tile.className).not.toContain('glim-tile-house');
+    expect(tile.getAttribute('style') ?? '').not.toContain('accent');
+  }
+});
+
+it('leaves a greyed-out brand without anything to light', () => {
+  act(() =>
+    root.render(
+      <I18nProvider>
+        <BrandPicker brands={[{ ...BRANDS[1], unavailable: 'Not here' }]} onPick={() => {}} none="" />
+      </I18nProvider>,
+    ),
+  );
+  const [tile] = tiles();
+  expect(tile.className).toContain('glim-readme-btn-soon');
+  expect(tile.querySelector('.glim-brand-tile, .glim-mark-hover, .glim-readme-btn-sheen')).toBeNull();
+  expect(tile.getAttribute('style')).toBeNull();
+});
 
 it('draws every brand as a tile and hands back the one picked', () => {
   const picked: string[] = [];

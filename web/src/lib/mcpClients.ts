@@ -449,7 +449,7 @@ export const OTHER_CLIENT: McpClient = {
   id: 'other',
   name: '',
   group: 'local',
-  tile: 'glim-tile-house',
+  tile: 'glim-tile-mcp',
   setup: { kind: 'other' },
   token: { kind: 'other' },
 };
