@@ -1,0 +1,1 @@
+Am Handy ändert sich diesmal nichts. Der Server kommt jetzt auf einem frischen Docker-Host allein zurecht, und die App fährt einfach mit.

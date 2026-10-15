@@ -1,0 +1,1 @@
+Nothing new on your phone this time. The server now finds its own way around a fresh Docker host, and the app comes along for the ride.
