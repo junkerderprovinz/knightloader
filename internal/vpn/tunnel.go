@@ -162,6 +162,9 @@ func (t *Tunnel) Connect(ctx context.Context, cfg Config) error {
 
 // build brings up a new device on a new stack. It must be called with mu held.
 func (t *Tunnel) build(cfg Config, endpoint netip.AddrPort) error {
+	// Up sends the first handshake initiation, and the answer can arrive before
+	// Up returns.
+	attempt := time.Now()
 	ns, err := newNetStack(cfg.addrs(), cfg.DNS, cfg.mtu(), true)
 	if err != nil {
 		return err
@@ -187,7 +190,7 @@ func (t *Tunnel) build(cfg Config, endpoint netip.AddrPort) error {
 	t.state.Endpoint = endpoint
 	t.state.Addrs = cfg.addrs()
 	t.state.LastHandshake = time.Time{}
-	t.attempt = time.Now()
+	t.attempt = attempt
 	return nil
 }
 
