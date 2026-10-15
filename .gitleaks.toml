@@ -57,6 +57,9 @@ description = "Invented credentials that are test fixtures for the parsers that 
 #
 # internal/relay/member_test.go also signs a hello for a made-up relay key,
 # which the app's port is held to.
+#
+# web/src/lib/mcpSnippets.test.ts writes a made-up MCP token into every
+# client's configuration; it has the kl_ prefix the snippets are built around.
 regexes = [
   '''demo:s3cret''',
   '''GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ''',
@@ -68,4 +71,5 @@ regexes = [
   '''GX9rI\+FshTLGq8g4\+s1ep4m\+DHaykgM0A5v6iz02jWE=''',
   '''rss24h\.torrentleech\.org''',
   '''relay-key-of-the-vector-0123456789''',
+  '''kl_7Qa-Zb0_cD''',
 ]
