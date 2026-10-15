@@ -60,8 +60,11 @@ if (files.length < 20) {
   process.exit(1);
 }
 
-/** Plain quoted strings, and the static halves of template strings. */
-const QUOTED = /'(?:[^'\\\n]|\\.)*'|"(?:[^"\\\n]|\\.)*"/g;
+/**
+ * Plain quoted strings, and the static halves of template strings. A JSX
+ * attribute, a double-quoted string right after `=`, may run over lines.
+ */
+const QUOTED = /'(?:[^'\\\n]|\\.)*'|(?<==)"[^"]*"|"(?:[^"\\\n]|\\.)*"/g;
 const TEMPLATE = /`(?:[^`\\]|\\.)*`/g;
 
 /** Every piece of text that is one class list, with where it starts. */
@@ -147,14 +150,95 @@ function grounds(piece) {
   return { rest, raised };
 }
 
+// The third shape: a row with no fill of its own takes its ground from the
+// element around it, so
+//
+//   <div className="glim-well …">
+//     <tr className="glim-row … hover:bg-carbon-hover">
+//
+// rests on surface2 and hovers four units down, though its own class list is
+// written as rule 21 has it for a row on a card. The scan below follows the
+// JSX elements of one file to find the nearest one that paints a ground. A
+// row rendered by a component of another file is out of its sight.
+
+/** The ground an element paints for what sits inside it, null for none. */
+function groundOf(tag) {
+  const classes = new Set(tag.split(/[\s'"`{}]+/));
+  if (classes.has('glim-card') || classes.has('bg-carbon-surface')) return null;
+  if (['glim-well', 'glim-subcard', 'bg-carbon-surface2'].some((c) => classes.has(c))) return RAMP[0];
+  if (classes.has('bg-carbon-surface3')) return RAMP[1];
+  return undefined;
+}
+
+/** The index just past the string literal opening at i. */
+function skipString(text, i) {
+  const quote = text[i];
+  for (i++; i < text.length && text[i] !== quote; i++) {
+    if (text[i] === '\\') i++;
+    else if (quote === '`' && text[i] === '$' && text[i + 1] === '{') i = skipBraces(text, i + 1) - 1;
+  }
+  return i + 1;
+}
+
+/** The index just past the braces opening at i. */
+function skipBraces(text, i) {
+  let depth = 0;
+  for (; i < text.length; i++) {
+    const c = text[i];
+    if (c === "'" || c === '"' || c === '`') i = skipString(text, i) - 1;
+    else if (c === '{') depth++;
+    else if (c === '}' && --depth === 0) return i + 1;
+  }
+  return i;
+}
+
+/**
+ * Every JSX tag of a file with the ground it sits on: [start, end, ground].
+ * A `<` right after a name or a bracket is a type argument or a comparison,
+ * not a tag.
+ */
+function tags(text) {
+  const found = [];
+  const open = [];
+  const re = /(^|[^\w$.\])])<(\/?)([A-Za-z][\w.]*|)(?=[\s/>])/g;
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    const start = m.index + m[1].length;
+    let i = re.lastIndex;
+    for (; i < text.length && text[i] !== '>'; i++) {
+      const c = text[i];
+      if (c === '{') i = skipBraces(text, i) - 1;
+      else if (c === "'" || c === '"' || c === '`') i = skipString(text, i) - 1;
+    }
+    const tag = text.slice(start, i + 1);
+    re.lastIndex = i + 1;
+    if (m[2]) {
+      const at = open.findLastIndex((o) => o.name === m[3]);
+      if (at >= 0) open.length = at;
+      continue;
+    }
+    const ground = open.findLast((o) => o.ground !== undefined)?.ground ?? null;
+    found.push([start, i + 1, ground]);
+    if (!tag.endsWith('/>')) open.push({ name: m[3], ground: groundOf(tag) });
+  }
+  return found;
+}
+
 const problems = [];
 for (const path of files) {
   const text = readFileSync(path, 'utf8');
+  const jsx = tags(text);
   for (const [piece, at] of classLists(text)) {
     const line = () => text.slice(0, at).split('\n').length;
     if (WRONG.test(piece)) {
       const tier = RAMP.find((t) => piece.includes(t.filled));
+      const around = jsx.findLast(([start, end]) => start < at && at < end)?.[2];
       if (tier) problems.push(`${path.slice(src.length + 1)}:${line()} -> ${tier.hover}`);
+      else if (around) {
+        problems.push(
+          `${path.slice(src.length + 1)}:${line()} -> ${around.hover}, a row on the ${around.filled.replace('bg-carbon-', '')} ground around it`,
+        );
+      }
     }
     const { rest, raised } = grounds(piece);
     for (const [name, value, variants] of raised) {
