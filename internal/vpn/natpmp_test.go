@@ -20,11 +20,13 @@ type natpmpRequest struct {
 }
 
 // fakeGateway answers NAT-PMP on a packet socket. assign picks the external
-// port of a mapping, or a result code to refuse it with.
+// port of a mapping, or a result code to refuse it with, and release, when
+// set, hears a mapping dropped.
 type fakeGateway struct {
 	public   netip.Addr
 	lifetime uint32
 	assign   func(op byte, internal, suggested uint16) (port uint16, code uint16)
+	release  func(op byte, internal uint16)
 
 	mu       sync.Mutex
 	silent   bool
@@ -77,6 +79,9 @@ func (g *fakeGateway) answer(req natpmpRequest) []byte {
 	resp[1] = 128 + req.op
 	binary.BigEndian.PutUint32(resp[4:], epoch)
 	if req.lifetime == 0 {
+		if g.release != nil {
+			g.release(req.op, req.internal)
+		}
 		binary.BigEndian.PutUint16(resp[8:], req.internal)
 		return resp
 	}
@@ -126,6 +131,69 @@ func protonLike(port *uint16, mu *sync.Mutex) func(byte, uint16, uint16) (uint16
 		defer mu.Unlock()
 		return *port, 0
 	}
+}
+
+// rfcGateway keeps mappings by protocol and internal port, as RFC 6886 has
+// it and hide.me does: a request for an internal port it maps already renews
+// that mapping, and a new one gets the suggested port unless another mapping
+// holds it outside, and the next free one from 40000 otherwise.
+type rfcGateway struct {
+	mu   sync.Mutex
+	maps map[[2]uint16]uint16
+}
+
+func (r *rfcGateway) assign(op byte, internal, suggested uint16) (uint16, uint16) {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	if r.maps == nil {
+		r.maps = map[[2]uint16]uint16{}
+	}
+	key := [2]uint16{uint16(op), internal}
+	if ext, ok := r.maps[key]; ok {
+		return ext, 0
+	}
+	held := func(port uint16) bool {
+		for k, ext := range r.maps {
+			if k[0] == uint16(op) && ext == port {
+				return true
+			}
+		}
+		return false
+	}
+	ext := suggested
+	if ext == 0 || held(ext) {
+		for ext = 40000; held(ext); ext++ {
+		}
+	}
+	r.maps[key] = ext
+	return ext, 0
+}
+
+func (r *rfcGateway) release(op byte, internal uint16) {
+	r.mu.Lock()
+	delete(r.maps, [2]uint16{uint16(op), internal})
+	r.mu.Unlock()
+}
+
+func (r *rfcGateway) hold(op byte, internal, external uint16) {
+	r.mu.Lock()
+	if r.maps == nil {
+		r.maps = map[[2]uint16]uint16{}
+	}
+	r.maps[[2]uint16{uint16(op), internal}] = external
+	r.mu.Unlock()
+}
+
+func (r *rfcGateway) mapped(op byte) map[uint16]uint16 {
+	r.mu.Lock()
+	defer r.mu.Unlock()
+	out := map[uint16]uint16{}
+	for k, ext := range r.maps {
+		if k[0] == uint16(op) {
+			out[k[1]] = ext
+		}
+	}
+	return out
 }
 
 func TestMapSendsTheRequestAndReadsTheGrant(t *testing.T) {
@@ -275,5 +343,59 @@ func TestPortForwardKeepsThePortAnRFCGatewayGrants(t *testing.T) {
 	}
 	if got := log.get(); !slices.Equal(got, []uint16{6881, 0}) {
 		t.Errorf("reported ports %v, want 6881 then 0", got)
+	}
+}
+
+func TestPortForwardHoldsThePortAnRFCGatewayHandsOut(t *testing.T) {
+	for _, tc := range []struct {
+		name   string
+		prefer uint16
+		taken  bool
+	}{
+		{"no port preferred", 0, false},
+		{"the preferred port taken outside", 6881, true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			rfc := &rfcGateway{}
+			if tc.taken {
+				// Another client of the gateway holds the port.
+				rfc.hold(opMapTCP, 9, tc.prefer)
+			}
+			g := &fakeGateway{lifetime: 1, assign: rfc.assign, release: rfc.release}
+			log := &portLog{}
+			pf := &PortForward{Client: newLoopGateway(t, g), Lifetime: time.Second, Prefer: tc.prefer, OnChange: log.add}
+			ctx, cancel := context.WithCancel(context.Background())
+			done := make(chan error, 1)
+			go func() { done <- pf.Run(ctx) }()
+
+			waitUntil(t, "the port", 5*time.Second, func() bool { return pf.Port() != 0 })
+			port := pf.Port()
+			renewals := func() int {
+				n := 0
+				for _, r := range g.seen() {
+					if r.op == opMapTCP && r.internal == port && r.suggested == port && r.lifetime > 0 {
+						n++
+					}
+				}
+				return n
+			}
+			waitUntil(t, "four renewals", 10*time.Second, func() bool { return renewals() >= 5 })
+			if got := log.get(); !slices.Equal(got, []uint16{port}) {
+				t.Errorf("reported ports %v, want %d alone", got, port)
+			}
+			if tcp := rfc.mapped(opMapTCP); tcp[port] != port {
+				t.Errorf("gateway maps TCP %v, want %d to %d", tcp, port, port)
+			}
+			if udp := rfc.mapped(opMapUDP); len(udp) != 1 || udp[port] != port {
+				t.Errorf("gateway maps UDP %v, want %d to %d alone", udp, port, port)
+			}
+			cancel()
+			<-done
+			tcp := rfc.mapped(opMapTCP)
+			delete(tcp, 9)
+			if len(tcp) != 0 {
+				t.Errorf("gateway still maps TCP %v after Run ended", tcp)
+			}
+		})
 	}
 }
