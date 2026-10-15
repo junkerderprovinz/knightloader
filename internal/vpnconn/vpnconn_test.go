@@ -634,6 +634,27 @@ func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
 	}
 }
 
+func TestAServerNameThatDoesNotExistIsAnUnknownLocation(t *testing.T) {
+	defer func(l func(context.Context, string, string) ([]netip.Addr, error)) { lookupServer = l }(lookupServer)
+	var answer *net.DNSError
+	lookupServer = func(_ context.Context, _, host string) ([]netip.Addr, error) {
+		e := *answer
+		e.Name = host
+		return nil, &e
+	}
+	login := Login{"username": "knight", "password": "secret", "location": "atlantis"}
+	for name, open := range map[string]opener{"TorGuard": openTorGuard, "hide.me": openHideMe} {
+		answer = &net.DNSError{Err: "no such host", IsNotFound: true}
+		if _, err := open(context.Background(), login); codeOf(err) != CodeLocationUnknown {
+			t.Errorf("%s with a server that does not exist = %v, want %s", name, err, CodeLocationUnknown)
+		}
+		answer = &net.DNSError{Err: "i/o timeout", IsTimeout: true, IsTemporary: true}
+		if _, err := open(context.Background(), login); err == nil || final(codeOf(err)) {
+			t.Errorf("%s with a name server that did not answer = %v, want an error worth trying again", name, err)
+		}
+	}
+}
+
 func TestTorGuardLocations(t *testing.T) {
 	for loc, want := range map[string]string{
 		"":                   "nl.secureconnect.me",
