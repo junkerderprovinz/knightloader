@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -73,10 +75,10 @@ type harness struct {
 	manual  atomic.Int32
 }
 
-func newHarness(t *testing.T, store *memStore, path string) *harness {
+func newHarness(t *testing.T, store *memStore, path string, tune ...func(*Options)) *harness {
 	t.Helper()
 	h := &harness{store: store, path: path}
-	m, err := New(Options{
+	opts := Options{
 		Store:          store,
 		StatePath:      path,
 		ManualPort:     func() int { return int(h.manual.Load()) },
@@ -85,7 +87,11 @@ func newHarness(t *testing.T, store *memStore, path string) *harness {
 		ExitIPURL:      "http://" + vpntest.ServerAddr.String() + "/",
 		ConnectTimeout: 5 * time.Second,
 		Tunnel:         vpn.Options{Poll: 50 * time.Millisecond, HandshakeTimeout: 500 * time.Millisecond},
-	})
+	}
+	for _, f := range tune {
+		f(&opts)
+	}
+	m, err := New(opts)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -280,6 +286,29 @@ func TestFailuresCarryTheirCode(t *testing.T) {
 	if p := h.waitFor(t, "custom", "failed"); p.ErrorCode != CodeTimeout {
 		t.Errorf("a server that does not answer failed with %q", p.ErrorCode)
 	}
+}
+
+func TestAnEndpointThatDoesNotResolveYetIsTriedAgain(t *testing.T) {
+	srv := vpntest.Start(t)
+	var resolves atomic.Bool
+	h := newHarness(t, &memStore{}, "", func(o *Options) {
+		o.RenewAfter = 200 * time.Millisecond
+		o.Tunnel.LookupNetIP = func(_ context.Context, _, host string) ([]netip.Addr, error) {
+			if !resolves.Load() {
+				return nil, &net.DNSError{Err: "server misbehaving", Name: host, IsTemporary: true}
+			}
+			return []netip.Addr{netip.MustParseAddr("127.0.0.1")}, nil
+		}
+	})
+	cfg := strings.Replace(srv.Config(), "Endpoint = 127.0.0.1:", "Endpoint = vpn.example.test:", 1)
+	if _, err := h.m.Connect("custom", map[string]string{"config": cfg}); err != nil {
+		t.Fatal(err)
+	}
+	if p := h.waitFor(t, "custom", "failed"); p.ErrorCode != CodeTimeout {
+		t.Errorf("a name that did not resolve failed with %q", p.ErrorCode)
+	}
+	resolves.Store(true)
+	h.waitFor(t, "custom", "connected")
 }
 
 func TestForgetDisconnectsAndDropsTheLogin(t *testing.T) {
