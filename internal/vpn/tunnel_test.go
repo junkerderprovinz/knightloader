@@ -303,6 +303,30 @@ func TestATunnelReconnectsOnceItsServerIsBack(t *testing.T) {
 	}
 }
 
+func TestANewConnectRetriesOnTheHandshakeTimeoutAlone(t *testing.T) {
+	sk, _ := GeneratePrivateKey()
+	gone := startTestServer(t, sk, Key{}, 0)
+	port := gone.port
+	gone.close()
+
+	cfg := clientConfig(t, sk, port)
+	tun := New(Options{Poll: 20 * time.Millisecond, HandshakeTimeout: 300 * time.Millisecond, MaxBackoff: time.Minute, Logf: t.Logf})
+	t.Cleanup(tun.Disconnect)
+	if err := tun.Connect(dialCtx(t), cfg); err != nil {
+		t.Fatal(err)
+	}
+	waitUntil(t, "a few reconnects", 10*time.Second, func() bool { return tun.State().Reconnects >= 3 })
+	if err := tun.Connect(dialCtx(t), cfg); err != nil {
+		t.Fatal(err)
+	}
+	tun.mu.Lock()
+	attempt, backoff := tun.attempt, tun.backoff
+	tun.mu.Unlock()
+	if _, due := tun.opts.judge(Connecting, time.Time{}, attempt, backoff, attempt.Add(tun.opts.HandshakeTimeout)); !due {
+		t.Errorf("the first retry of a new connection waits %v past the handshake timeout", backoff)
+	}
+}
+
 func TestRefreshHandsTheReconnectANewServer(t *testing.T) {
 	sk, _ := GeneratePrivateKey()
 	gone := startTestServer(t, sk, Key{}, 0)
