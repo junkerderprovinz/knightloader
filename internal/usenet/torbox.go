@@ -67,7 +67,7 @@ type TorBox struct {
 // NewTorBox builds the client for the account in slot, speaking to the API at
 // base, which is TorBoxAPI outside tests.
 func NewTorBox(base, slot, key string) *TorBox {
-	return &TorBox{base: base, slot: slot, key: key, hc: httpx.New(httpx.Options{Timeout: apiTimeout})}
+	return &TorBox{base: base, slot: slot, key: key, hc: httpx.New(httpx.Options{Timeout: apiTimeout, Class: httpx.ClassUsenet})}
 }
 
 func (t *TorBox) Slot() string      { return t.slot }

@@ -149,7 +149,7 @@ func NewTransport(o Options) *http.Transport {
 	p := &proxies{}
 	return &http.Transport{
 		Proxy:                  p.proxy(classed(o.Class, o.Proxy)),
-		DialContext:            p.dial(dialer(o)),
+		DialContext:            classDial(o.Class, p.dial(dialer(o))),
 		ForceAttemptHTTP2:      true,
 		MaxIdleConns:           maxIdleConns,
 		MaxIdleConnsPerHost:    maxIdleConnsPerHost,

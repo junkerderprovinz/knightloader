@@ -88,6 +88,8 @@ func (a *App) TestUsenetServer(ctx context.Context, srv settings.UsenetServer, u
 	ctx, cancel := context.WithTimeout(ctx, 30*time.Second)
 	defer cancel()
 	s := nntpServer(srv, accounts.Credential{Username: strings.TrimSpace(username), Password: password})
+	// The test goes the way the downloads do.
+	s.Dialer = a.usenetDial
 	return nntp.Check(ctx, s)
 }
 
@@ -153,6 +155,16 @@ func (a *App) refreshNNTPClient() {
 	defer nntpMu.Unlock()
 	if cur := nntpClients[a]; cur != nil {
 		cur.set(servers)
+	}
+}
+
+// redialNNTP has the servers' connections dialled anew, after the way to them
+// changed, so the downloads under way go the new way from their next article.
+func (a *App) redialNNTP() {
+	nntpMu.Lock()
+	defer nntpMu.Unlock()
+	if cur := nntpClients[a]; cur != nil {
+		cur.c.Redial()
 	}
 }
 
