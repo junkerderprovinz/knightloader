@@ -3758,6 +3758,7 @@ export const hu: Dict = {
   'settings.vpn.col.provider': 'Szolgáltató',
   'settings.vpn.col.exitIp': 'Kilépési cím',
   'settings.vpn.col.port': 'Továbbított port',
+  'settings.vpn.col.portHint': 'Itt érik el mások a továbbított portot. Egyes szolgáltatók más címen fogadják, mint amelyen a forgalmad kimegy, ezért eltérhet a kilépési címtől.',
   'settings.vpn.use': '{name} használata',
   'settings.vpn.removeConfirm': 'Eltávolítod a(z) {name} szolgáltatót és a hozzá mentett belépést?',
   'settings.vpn.routesTitle': 'A VPN-en át',

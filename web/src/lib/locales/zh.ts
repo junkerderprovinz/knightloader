@@ -3738,6 +3738,7 @@ export const zh: Dict = {
   'settings.vpn.col.provider': '服务商',
   'settings.vpn.col.exitIp': '出口地址',
   'settings.vpn.col.port': '转发端口',
+  'settings.vpn.col.portHint': '别人连到转发端口的地址。有些服务商在另一个地址上接收端口，而不是你的流量出去的那个地址，所以它可能与出口地址不同。',
   'settings.vpn.use': '使用 {name}',
   'settings.vpn.removeConfirm': '删除 {name} 以及为其保存的登录信息？',
   'settings.vpn.routesTitle': '经由 VPN',

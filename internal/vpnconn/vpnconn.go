@@ -13,6 +13,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"slices"
 	"strings"
@@ -75,8 +76,11 @@ type ProviderState struct {
 	State          string   `json:"state"`
 	ExitIP         string   `json:"exitIp,omitempty"`
 	ForwardedPort  int      `json:"forwardedPort,omitempty"`
-	Error          string   `json:"error,omitempty"`
-	ErrorCode      string   `json:"errorCode,omitempty"`
+	// ForwardedAddress is where the forwarded port is reached, as a NAT-PMP
+	// gateway reports it; empty where the exit address is that place.
+	ForwardedAddress string `json:"forwardedAddress,omitempty"`
+	Error            string `json:"error,omitempty"`
+	ErrorCode        string `json:"errorCode,omitempty"`
 }
 
 // State is the VPN card's whole state (web/src/lib/api.ts, VpnState).
@@ -149,16 +153,18 @@ type Manager struct {
 	tun       *vpn.Tunnel
 	providers []Provider
 
-	mu      sync.Mutex
-	active  string
-	routes  Routes
-	resume  string
-	fail    *failure
-	exitIP  string
-	port    uint16
-	sess    *session
-	stopRun context.CancelFunc
-	runDone chan struct{}
+	mu     sync.Mutex
+	active string
+	routes Routes
+	resume string
+	fail   *failure
+	exitIP string
+	port   uint16
+	// portAddr is the NAT-PMP gateway's public address.
+	portAddr netip.Addr
+	sess     *session
+	stopRun  context.CancelFunc
+	runDone  chan struct{}
 }
 
 // New returns a Manager with no provider in use; Resume takes up the one in
@@ -255,7 +261,12 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 		ps.State = "connected"
 		ps.ExitIP = m.exitIP
 		switch p.port {
-		case natpmpPort, fwdPort:
+		case natpmpPort:
+			ps.ForwardedPort = int(m.port)
+			if m.portAddr.IsValid() {
+				ps.ForwardedAddress = m.portAddr.String()
+			}
+		case fwdPort:
 			ps.ForwardedPort = int(m.port)
 		case manualPort:
 			ps.ForwardedPort = m.opts.ManualPort()
@@ -310,7 +321,7 @@ func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
 	}
 	m.stop()
 	m.mu.Lock()
-	m.active, m.fail, m.exitIP, m.port = id, nil, "", 0
+	m.active, m.fail, m.exitIP, m.port, m.portAddr = id, nil, "", 0, netip.Addr{}
 	ctx, cancel := context.WithCancel(context.Background())
 	m.stopRun, m.runDone = cancel, make(chan struct{})
 	done := m.runDone
@@ -327,7 +338,7 @@ func (m *Manager) Disconnect() State {
 	m.tun.Disconnect()
 	netbind.Register(NetworkName, nil)
 	m.mu.Lock()
-	m.active, m.fail, m.exitIP, m.port = "", nil, "", 0
+	m.active, m.fail, m.exitIP, m.port, m.portAddr = "", nil, "", 0, netip.Addr{}
 	m.mu.Unlock()
 	m.saveActive("")
 	m.opts.OnChange()
@@ -466,6 +477,16 @@ func (m *Manager) setFail(f *failure) {
 	m.opts.OnChange()
 }
 
+func (m *Manager) setPortAddress(a netip.Addr) {
+	m.mu.Lock()
+	changed := m.portAddr != a
+	m.portAddr = a
+	m.mu.Unlock()
+	if changed {
+		m.opts.OnChange()
+	}
+}
+
 func (m *Manager) setPort(p uint16) {
 	m.mu.Lock()
 	changed := m.port != p
@@ -595,10 +616,11 @@ func (m *Manager) forwardPort(ctx context.Context, p Provider, sess *session) {
 		}
 	}
 	pf := &vpn.PortForward{
-		Client:   &vpn.NATPMP{Gateway: gw, Dial: m.tun.DialContext},
-		Prefer:   uint16(m.opts.ManualPort()),
-		OnChange: m.setPort,
-		Logf:     m.opts.Logf,
+		Client:    &vpn.NATPMP{Gateway: gw, Dial: m.tun.DialContext},
+		Prefer:    uint16(m.opts.ManualPort()),
+		OnChange:  m.setPort,
+		OnAddress: m.setPortAddress,
+		Logf:      m.opts.Logf,
 	}
 	pf.Run(ctx)
 }

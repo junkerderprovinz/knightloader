@@ -3748,6 +3748,7 @@ export const et: Dict = {
   'settings.vpn.col.provider': 'Teenusepakkuja',
   'settings.vpn.col.exitIp': 'Väljumisaadress',
   'settings.vpn.col.port': 'Suunatud port',
+  'settings.vpn.col.portHint': 'Kus teised suunatud pordini jõuavad. Mõni teenusepakkuja võtab selle vastu teisel aadressil kui see, mille kaudu sinu liiklus välja läheb, nii et see võib väljumisaadressist erineda.',
   'settings.vpn.use': 'Kasuta teenust {name}',
   'settings.vpn.removeConfirm': 'Kas eemaldada {name} ja selle jaoks salvestatud sisselogimine?',
   'settings.vpn.routesTitle': 'VPN-i kaudu',

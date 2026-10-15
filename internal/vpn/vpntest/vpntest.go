@@ -35,6 +35,10 @@ var (
 // ExitAddr is what the server's port 80 answers.
 const ExitAddr = "203.0.113.7"
 
+// MappedAddr is the public address NAT-PMP reports. A provider's gateway can
+// take forwarded ports on another address than the one traffic leaves by.
+var MappedAddr = netip.MustParseAddr("198.51.100.9")
+
 // Server is a running WireGuard server and the client key it lets in.
 type Server struct {
 	Key       vpn.Key
@@ -175,7 +179,7 @@ func (s *Server) natpmp(pc net.PacketConn) {
 			resp := make([]byte, 12)
 			resp[1] = 128
 			binary.BigEndian.PutUint32(resp[4:], epoch)
-			copy(resp[8:], []byte{203, 0, 113, 7})
+			copy(resp[8:], MappedAddr.AsSlice())
 			pc.WriteTo(resp, from)
 			continue
 		}

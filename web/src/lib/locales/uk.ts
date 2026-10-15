@@ -3757,6 +3757,7 @@ export const uk: Dict = {
   'settings.vpn.col.provider': 'Провайдер',
   'settings.vpn.col.exitIp': 'Адреса виходу',
   'settings.vpn.col.port': 'Переадресований порт',
+  'settings.vpn.col.portHint': 'Де інші дістаються до переадресованого порту. Деякі провайдери приймають його на іншій адресі, ніж та, через яку виходить твій трафік, тож вона може відрізнятися від адреси виходу.',
   'settings.vpn.use': 'Використовувати {name}',
   'settings.vpn.removeConfirm': 'Видалити {name} і збережені для нього дані входу?',
   'settings.vpn.routesTitle': 'Через VPN',

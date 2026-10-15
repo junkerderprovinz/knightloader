@@ -474,7 +474,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.vpn.route.debrid', hint: 'settings.vpn.route.debridHint' },
         { key: 'settings.vpn.route.usenet', hint: 'settings.vpn.route.usenetHint' },
       ],
-      also: ['settings.vpn.add', 'settings.vpn.custom', 'settings.vpn.pick', 'settings.vpn.use', 'accounts.rowActions'],
+      also: [
+        'settings.vpn.add',
+        'settings.vpn.custom',
+        'settings.vpn.pick',
+        'settings.vpn.use',
+        'accounts.rowActions',
+        'settings.vpn.col.port',
+      ],
       // The empty card, and the picker's window, which opens from Add.
       body: [
         'settings.vpn.empty',
@@ -484,6 +491,7 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.vpn.noPortForwardingHint',
         'settings.vpn.note.kaspersky',
         'settings.vpn.note.anonine',
+        'settings.vpn.col.portHint',
       ],
     },
     {

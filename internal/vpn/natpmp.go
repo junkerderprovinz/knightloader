@@ -179,15 +179,21 @@ type PortForward struct {
 	// OnChange hears the forwarded port each time it changes, and 0 once
 	// the mapping has run out without being renewed.
 	OnChange func(port uint16)
-	Logf     func(format string, args ...any)
+	// OnAddress hears the gateway's public address once a port is forwarded,
+	// and the zero address when the port is gone. A forwarded port is reached
+	// there, which need not be the address traffic leaves the tunnel by.
+	OnAddress func(addr netip.Addr)
+	Logf      func(format string, args ...any)
 
 	// held is the TCP mapping Run keeps, and udpApart says the gateway put
 	// UDP on another port. Only Run's goroutine touches them.
-	held     Mapping
-	udpApart bool
+	held       Mapping
+	udpApart   bool
+	addrFailed bool
 
 	mu   sync.Mutex
 	port uint16
+	addr netip.Addr
 }
 
 // Port is the forwarded port, 0 while there is none.
@@ -195,6 +201,14 @@ func (pf *PortForward) Port() uint16 {
 	pf.mu.Lock()
 	defer pf.mu.Unlock()
 	return pf.port
+}
+
+// Address is the gateway's public address, where the forwarded port is
+// reached, invalid while there is no port or the gateway did not say.
+func (pf *PortForward) Address() netip.Addr {
+	pf.mu.Lock()
+	defer pf.mu.Unlock()
+	return pf.addr
 }
 
 // Run maps the port and renews it until ctx ends, then asks the gateway to
@@ -223,6 +237,9 @@ func (pf *PortForward) Run(ctx context.Context) error {
 			retry = time.Second
 			expires = time.Now().Add(granted)
 			pf.set(pf.held.ExternalPort)
+			if !pf.Address().IsValid() {
+				pf.lookUpAddress(ctx)
+			}
 			next = max(granted-renewBefore, time.Second)
 		}
 		select {
@@ -306,6 +323,31 @@ func (pf *PortForward) mapTCP(ctx context.Context, lifetime time.Duration) (Mapp
 	return pf.Client.Map(ctx, "tcp", m.ExternalPort, m.ExternalPort, lifetime)
 }
 
+// lookUpAddress asks the gateway for its public address. A gateway that does
+// not answer is asked again at the next renewal, and said so once.
+func (pf *PortForward) lookUpAddress(ctx context.Context) {
+	addr, err := pf.Client.ExternalAddress(ctx)
+	if err != nil {
+		if !pf.addrFailed {
+			pf.logf("vpn: the gateway did not say its public address: %v", err)
+		}
+		pf.addrFailed = true
+		return
+	}
+	pf.addrFailed = false
+	pf.setAddress(addr)
+}
+
+func (pf *PortForward) setAddress(addr netip.Addr) {
+	pf.mu.Lock()
+	old := pf.addr
+	pf.addr = addr
+	pf.mu.Unlock()
+	if old != addr && pf.OnAddress != nil {
+		pf.OnAddress(addr)
+	}
+}
+
 func (pf *PortForward) unmap(ctx context.Context, internal uint16) error {
 	_, err := pf.Client.Map(ctx, "tcp", internal, 0, 0)
 	return err
@@ -318,6 +360,9 @@ func (pf *PortForward) set(port uint16) {
 	pf.mu.Unlock()
 	if old == port {
 		return
+	}
+	if port == 0 {
+		pf.setAddress(netip.Addr{})
 	}
 	switch {
 	case old == 0 && port != 0:

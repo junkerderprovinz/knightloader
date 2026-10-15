@@ -3746,6 +3746,7 @@ export const fr: Dict = {
   'settings.vpn.col.provider': 'Fournisseur',
   'settings.vpn.col.exitIp': 'Adresse de sortie',
   'settings.vpn.col.port': 'Port redirigé',
+  'settings.vpn.col.portHint': 'Là où les autres joignent le port redirigé. Certains fournisseurs le prennent sur une autre adresse que celle par laquelle sort ton trafic, elle peut donc différer de l’adresse de sortie.',
   'settings.vpn.use': 'Utiliser {name}',
   'settings.vpn.removeConfirm': 'Supprimer {name} et les identifiants enregistrés pour lui ?',
   'settings.vpn.routesTitle': 'Par le VPN',

@@ -3753,6 +3753,7 @@ export const ar: Dict = {
   'settings.vpn.col.provider': 'المزوّد',
   'settings.vpn.col.exitIp': 'عنوان الخروج',
   'settings.vpn.col.port': 'المنفذ المُعاد توجيهه',
+  'settings.vpn.col.portHint': 'العنوان الذي يصل منه الآخرون إلى المنفذ المُعاد توجيهه. بعض المزودين يستقبلونه على عنوان غير الذي تخرج منه حركتك، لذلك قد يختلف عن عنوان الخروج.',
   'settings.vpn.use': 'استخدام {name}',
   'settings.vpn.removeConfirm': 'إزالة {name} وبيانات الدخول المحفوظة له؟',
   'settings.vpn.routesTitle': 'عبر الـ VPN',

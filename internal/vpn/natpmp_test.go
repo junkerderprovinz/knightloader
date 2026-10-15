@@ -327,7 +327,7 @@ func TestPortForwardKeepsThePortAnRFCGatewayGrants(t *testing.T) {
 	waitUntil(t, "the port", 5*time.Second, func() bool { return pf.Port() == 6881 })
 	cancel()
 	<-done
-	reqs := g.seen()
+	reqs := slices.DeleteFunc(g.seen(), func(r natpmpRequest) bool { return r.op == opExternalAddress })
 	if len(reqs) != 4 {
 		t.Fatalf("gateway saw %+v, want a TCP and a UDP mapping and both dropped", reqs)
 	}
@@ -397,5 +397,38 @@ func TestPortForwardHoldsThePortAnRFCGatewayHandsOut(t *testing.T) {
 				t.Errorf("gateway still maps TCP %v after Run ended", tcp)
 			}
 		})
+	}
+}
+
+func TestPortForwardSaysWhereTheForwardedPortIsReached(t *testing.T) {
+	g := &fakeGateway{
+		public:   netip.MustParseAddr("193.118.55.13"),
+		lifetime: 60,
+		assign:   func(_ byte, _, s uint16) (uint16, uint16) { return s, 0 },
+	}
+	var mu sync.Mutex
+	var heard []netip.Addr
+	pf := &PortForward{
+		Client: newLoopGateway(t, g),
+		Prefer: 6881,
+		OnAddress: func(a netip.Addr) {
+			mu.Lock()
+			heard = append(heard, a)
+			mu.Unlock()
+		},
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan error, 1)
+	go func() { done <- pf.Run(ctx) }()
+	waitUntil(t, "the address", 5*time.Second, func() bool { return pf.Address() == g.public })
+	cancel()
+	<-done
+	if pf.Address().IsValid() {
+		t.Errorf("Address = %v after the port was dropped, want none", pf.Address())
+	}
+	mu.Lock()
+	defer mu.Unlock()
+	if !slices.Equal(heard, []netip.Addr{g.public, {}}) {
+		t.Errorf("heard %v, want the gateway's address and then none", heard)
 	}
 }

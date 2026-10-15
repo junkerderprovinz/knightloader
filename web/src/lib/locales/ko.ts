@@ -3743,6 +3743,7 @@ export const ko: Dict = {
   'settings.vpn.col.provider': '제공업체',
   'settings.vpn.col.exitIp': '출구 주소',
   'settings.vpn.col.port': '포워딩된 포트',
+  'settings.vpn.col.portHint': '다른 사람이 포워딩된 포트에 닿는 곳입니다. 일부 제공업체는 트래픽이 나가는 주소와 다른 주소에서 포트를 받으므로 출구 주소와 다를 수 있습니다.',
   'settings.vpn.use': '{name} 사용',
   'settings.vpn.removeConfirm': '{name}과(와) 저장된 로그인을 삭제할까요?',
   'settings.vpn.routesTitle': 'VPN을 통해',

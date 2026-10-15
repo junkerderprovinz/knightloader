@@ -3747,6 +3747,7 @@ export const lv: Dict = {
   'settings.vpn.col.provider': 'Pakalpojumu sniedzējs',
   'settings.vpn.col.exitIp': 'Izejas adrese',
   'settings.vpn.col.port': 'Pāradresētais ports',
+  'settings.vpn.col.portHint': 'Kur citi sasniedz pāradresēto portu. Daži pakalpojumu sniedzēji to pieņem citā adresē, nevis tajā, pa kuru iziet tava datplūsma, tāpēc tā var atšķirties no izejas adreses.',
   'settings.vpn.use': 'Izmantot {name}',
   'settings.vpn.removeConfirm': 'Noņemt {name} un tam saglabāto pieteikšanos?',
   'settings.vpn.routesTitle': 'Caur VPN',

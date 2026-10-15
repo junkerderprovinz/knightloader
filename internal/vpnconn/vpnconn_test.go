@@ -159,7 +159,7 @@ func TestProtonCarriesTorrentsAndFollowsItsForwardedPort(t *testing.T) {
 	}
 	p := h.waitFor(t, "protonvpn", "connected")
 	deadline := time.Now().Add(10 * time.Second)
-	for (p.ForwardedPort == 0 || p.ExitIP == "") && time.Now().Before(deadline) {
+	for (p.ForwardedPort == 0 || p.ExitIP == "" || p.ForwardedAddress == "") && time.Now().Before(deadline) {
 		time.Sleep(50 * time.Millisecond)
 		p = h.provider("protonvpn")
 	}
@@ -168,6 +168,9 @@ func TestProtonCarriesTorrentsAndFollowsItsForwardedPort(t *testing.T) {
 	}
 	if p.ExitIP != vpntest.ExitAddr {
 		t.Errorf("exit address %q, want %q", p.ExitIP, vpntest.ExitAddr)
+	}
+	if p.ForwardedAddress != vpntest.MappedAddr.String() {
+		t.Errorf("forwarded port reached at %q, want the gateway's %v", p.ForwardedAddress, vpntest.MappedAddr)
 	}
 	if !p.Configured {
 		t.Error("the login is not stored")
@@ -223,6 +226,9 @@ func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
 	p := h.waitFor(t, "custom", "connected")
 	if p.ForwardedPort != 6881 || h.m.ForwardedPort() != 0 {
 		t.Errorf("forwarded port %d shown, %d for the torrent client; want 6881 and 0", p.ForwardedPort, h.m.ForwardedPort())
+	}
+	if p.ForwardedAddress != "" {
+		t.Errorf("forwarded port reached at %q, want it left to the exit address", p.ForwardedAddress)
 	}
 	if srv.Mappings() != 0 {
 		t.Error("an own config was asked about NAT-PMP")

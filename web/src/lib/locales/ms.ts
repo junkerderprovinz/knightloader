@@ -3756,6 +3756,7 @@ export const ms: Dict = {
   'settings.vpn.col.provider': 'Pembekal',
   'settings.vpn.col.exitIp': 'Alamat keluar',
   'settings.vpn.col.port': 'Port yang dimajukan',
+  'settings.vpn.col.portHint': 'Tempat orang lain mencapai port yang dimajukan. Sesetengah penyedia menerimanya pada alamat lain daripada alamat trafik anda keluar, jadi ia boleh berbeza daripada alamat keluar.',
   'settings.vpn.use': 'Guna {name}',
   'settings.vpn.removeConfirm': 'Buang {name} dan log masuk yang disimpan untuknya?',
   'settings.vpn.routesTitle': 'Melalui VPN',

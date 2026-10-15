@@ -3756,6 +3756,7 @@ export const vi: Dict = {
   'settings.vpn.col.provider': 'Nhà cung cấp',
   'settings.vpn.col.exitIp': 'Địa chỉ thoát',
   'settings.vpn.col.port': 'Cổng được chuyển tiếp',
+  'settings.vpn.col.portHint': 'Nơi người khác kết nối tới cổng được chuyển tiếp. Một số nhà cung cấp nhận cổng ở địa chỉ khác với địa chỉ lưu lượng của bạn đi ra, nên nó có thể khác địa chỉ thoát.',
   'settings.vpn.use': 'Dùng {name}',
   'settings.vpn.removeConfirm': 'Xóa {name} và thông tin đăng nhập đã lưu cho nó?',
   'settings.vpn.routesTitle': 'Qua VPN',

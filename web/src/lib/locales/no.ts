@@ -3759,6 +3759,7 @@ export const no: Dict = {
   'settings.vpn.col.provider': 'Leverandør',
   'settings.vpn.col.exitIp': 'Utgangsadresse',
   'settings.vpn.col.port': 'Videresendt port',
+  'settings.vpn.col.portHint': 'Hvor andre når den videresendte porten. Noen leverandører tar imot den på en annen adresse enn den trafikken din går ut gjennom, så den kan avvike fra utgangsadressen.',
   'settings.vpn.use': 'Bruk {name}',
   'settings.vpn.removeConfirm': 'Fjerne {name} og innloggingen som er lagret for den?',
   'settings.vpn.routesTitle': 'Gjennom VPN-en',

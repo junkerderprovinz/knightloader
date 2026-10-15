@@ -3764,6 +3764,7 @@ export const de: Dict = {
   'settings.vpn.col.provider': 'Anbieter',
   'settings.vpn.col.exitIp': 'Ausgangsadresse',
   'settings.vpn.col.port': 'Weitergeleiteter Port',
+  'settings.vpn.col.portHint': 'Wo andere den weitergeleiteten Port erreichen. Manche Anbieter nehmen ihn auf einer anderen Adresse an als der, über die dein Verkehr hinausgeht, deshalb kann sie von der Ausgangsadresse abweichen.',
   'settings.vpn.use': '{name} verwenden',
   'settings.vpn.removeConfirm': '{name} und die dafür gespeicherten Zugangsdaten entfernen?',
   'settings.vpn.routesTitle': 'Über das VPN',

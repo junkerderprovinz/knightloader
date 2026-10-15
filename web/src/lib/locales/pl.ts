@@ -3741,6 +3741,7 @@ export const pl: Dict = {
   'settings.vpn.col.provider': 'Dostawca',
   'settings.vpn.col.exitIp': 'Adres wyjściowy',
   'settings.vpn.col.port': 'Przekierowany port',
+  'settings.vpn.col.portHint': 'Gdzie inni docierają do przekierowanego portu. Niektórzy dostawcy przyjmują go pod innym adresem niż ten, którym wychodzi twój ruch, więc może różnić się od adresu wyjściowego.',
   'settings.vpn.use': 'Używaj {name}',
   'settings.vpn.removeConfirm': 'Usunąć {name} i zapisane dla niego dane logowania?',
   'settings.vpn.routesTitle': 'Przez VPN',

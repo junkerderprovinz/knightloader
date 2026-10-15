@@ -3739,6 +3739,7 @@ export const nl: Dict = {
   'settings.vpn.col.provider': 'Aanbieder',
   'settings.vpn.col.exitIp': 'Uitgangsadres',
   'settings.vpn.col.port': 'Doorgestuurde poort',
+  'settings.vpn.col.portHint': 'Waar anderen de doorgestuurde poort bereiken. Sommige providers nemen hem aan op een ander adres dan het adres waarlangs je verkeer naar buiten gaat, dus het kan afwijken van het uitgangsadres.',
   'settings.vpn.use': '{name} gebruiken',
   'settings.vpn.removeConfirm': '{name} en de daarvoor opgeslagen login verwijderen?',
   'settings.vpn.routesTitle': 'Via de VPN',

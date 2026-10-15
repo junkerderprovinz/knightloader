@@ -3758,6 +3758,7 @@ export const lt: Dict = {
   'settings.vpn.col.provider': 'Teikėjas',
   'settings.vpn.col.exitIp': 'Išėjimo adresas',
   'settings.vpn.col.port': 'Peradresuotas prievadas',
+  'settings.vpn.col.portHint': 'Kur kiti pasiekia peradresuotą prievadą. Kai kurie teikėjai jį priima kitu adresu nei tas, kuriuo išeina tavo srautas, todėl jis gali skirtis nuo išėjimo adreso.',
   'settings.vpn.use': 'Naudoti {name}',
   'settings.vpn.removeConfirm': 'Pašalinti {name} ir jam išsaugotą prisijungimą?',
   'settings.vpn.routesTitle': 'Per VPN',

@@ -3758,6 +3758,7 @@ export const fi: Dict = {
   'settings.vpn.col.provider': 'Palveluntarjoaja',
   'settings.vpn.col.exitIp': 'Lähtöosoite',
   'settings.vpn.col.port': 'Uudelleenohjattu portti',
+  'settings.vpn.col.portHint': 'Mistä muut tavoittavat uudelleenohjatun portin. Jotkin palveluntarjoajat ottavat sen vastaan eri osoitteessa kuin siinä, josta liikenteesi lähtee, joten se voi poiketa lähtöosoitteesta.',
   'settings.vpn.use': 'Käytä palvelua {name}',
   'settings.vpn.removeConfirm': 'Poistetaanko {name} ja sille tallennettu kirjautuminen?',
   'settings.vpn.routesTitle': 'VPN:n kautta',

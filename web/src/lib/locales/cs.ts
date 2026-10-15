@@ -3766,6 +3766,7 @@ export const cs: Dict = {
   'settings.vpn.col.provider': 'Poskytovatel',
   'settings.vpn.col.exitIp': 'Výstupní adresa',
   'settings.vpn.col.port': 'Přesměrovaný port',
+  'settings.vpn.col.portHint': 'Kde ostatní dosáhnou na přesměrovaný port. Někteří poskytovatelé ho přijímají na jiné adrese než té, kterou odchází tvůj provoz, takže se může lišit od výstupní adresy.',
   'settings.vpn.use': 'Použít {name}',
   'settings.vpn.removeConfirm': 'Odebrat {name} a přihlášení, které je pro ni uložené?',
   'settings.vpn.routesTitle': 'Přes VPN',

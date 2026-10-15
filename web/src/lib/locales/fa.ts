@@ -3745,6 +3745,7 @@ export const fa: Dict = {
   'settings.vpn.col.provider': 'ارائه‌دهنده',
   'settings.vpn.col.exitIp': 'نشانی خروجی',
   'settings.vpn.col.port': 'درگاه هدایت‌شده',
+  'settings.vpn.col.portHint': 'جایی که دیگران به درگاه هدایت‌شده می‌رسند. برخی ارائه‌دهندگان آن را روی نشانی دیگری می‌پذیرند جز نشانی‌ای که ترافیک تو از آن خارج می‌شود، پس ممکن است با نشانی خروجی فرق کند.',
   'settings.vpn.use': 'استفاده از {name}',
   'settings.vpn.removeConfirm': '{name} و اطلاعات ورود ذخیره‌شده برای آن حذف شود؟',
   'settings.vpn.routesTitle': 'از طریق VPN',

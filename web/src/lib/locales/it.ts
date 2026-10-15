@@ -3740,6 +3740,7 @@ export const it: Dict = {
   'settings.vpn.col.provider': 'Provider',
   'settings.vpn.col.exitIp': 'Indirizzo di uscita',
   'settings.vpn.col.port': 'Porta inoltrata',
+  'settings.vpn.col.portHint': 'Dove gli altri raggiungono la porta inoltrata. Alcuni provider la ricevono su un indirizzo diverso da quello da cui esce il tuo traffico, quindi può differire dall’indirizzo di uscita.',
   'settings.vpn.use': 'Usa {name}',
   'settings.vpn.removeConfirm': 'Rimuovere {name} e l’accesso salvato per esso?',
   'settings.vpn.routesTitle': 'Tramite la VPN',
