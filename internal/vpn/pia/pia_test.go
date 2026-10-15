@@ -12,6 +12,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"net/netip"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
@@ -42,6 +43,10 @@ type fakePIA struct {
 	posted string
 	binds  int
 	tokens []string
+	// fail answers the bindPort calls it numbers, counted from 1, with a
+	// server that is down or a payload it rejects.
+	fail  map[int]string
+	calls int
 }
 
 func (f *fakePIA) web(w http.ResponseWriter, r *http.Request) {
@@ -84,6 +89,15 @@ func (f *fakePIA) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		payload := base64.StdEncoding.EncodeToString([]byte(`{"token":"x","port":47123,"expires_at":"2026-12-24T00:00:00Z"}`))
 		json.NewEncoder(w).Encode(map[string]string{"status": "OK", "payload": payload, "signature": "sig"})
 	case "/bindPort":
+		f.calls++
+		switch f.fail[f.calls] {
+		case "down":
+			w.WriteHeader(http.StatusBadGateway)
+			return
+		case "rejected":
+			json.NewEncoder(w).Encode(map[string]string{"status": "ERROR"})
+			return
+		}
 		if q.Get("signature") != "sig" || q.Get("payload") == "" {
 			json.NewEncoder(w).Encode(map[string]string{"status": "ERROR"})
 			return
@@ -209,8 +223,11 @@ func TestTheForwardedPortIsBoundAgainUntilTheTunnelEnds(t *testing.T) {
 	}
 	ports := make(chan uint16, 100)
 	ctx, cancel := context.WithCancel(context.Background())
-	done := make(chan error)
-	go func() { done <- c.KeepPort(ctx, s, through, func(p uint16) { ports <- p }) }()
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		c.KeepPort(ctx, s, through, func(p uint16) { ports <- p }, func(err error) { t.Errorf("a call failed: %v", err) })
+	}()
 	for range 3 {
 		select {
 		case p := <-ports:
@@ -222,9 +239,7 @@ func TestTheForwardedPortIsBoundAgainUntilTheTunnelEnds(t *testing.T) {
 		}
 	}
 	cancel()
-	if err := <-done; err != nil {
-		t.Errorf("KeepPort ended with %v", err)
-	}
+	<-done
 	f.mu.Lock()
 	defer f.mu.Unlock()
 	if len(f.tokens) != 1 || f.tokens[0] != "tok-1" || f.binds < 3 {
@@ -237,14 +252,53 @@ func TestTheForwardedPortIsBoundAgainUntilTheTunnelEnds(t *testing.T) {
 	}
 }
 
+func TestAFailedBindDropsThePortUntilABindWorksAgain(t *testing.T) {
+	defer func(b, r time.Duration) { BindEvery, RetryEvery = b, r }(BindEvery, RetryEvery)
+	BindEvery, RetryEvery = 10*time.Millisecond, 10*time.Millisecond
+	f, c, dial := newFake(t)
+	_, s, err := c.Connect(context.Background())
+	if err != nil {
+		t.Fatal(err)
+	}
+	f.mu.Lock()
+	f.fail = map[int]string{2: "down", 4: "rejected"}
+	f.mu.Unlock()
+	ports := make(chan uint16, 100)
+	var failures sync.WaitGroup
+	failures.Add(2)
+	ctx, cancel := context.WithCancel(context.Background())
+	done := make(chan struct{})
+	go func() {
+		defer close(done)
+		c.KeepPort(ctx, s, dial, func(p uint16) { ports <- p }, func(error) { failures.Done() })
+	}()
+	var got []uint16
+	for len(got) < 6 {
+		select {
+		case p := <-ports:
+			got = append(got, p)
+		case <-time.After(5 * time.Second):
+			t.Fatalf("ports %v, and no more", got)
+		}
+	}
+	cancel()
+	<-done
+	failures.Wait()
+	if want := []uint16{47123, 0, 47123, 0, 47123, 47123}; !slices.Equal(got, want) {
+		t.Errorf("ports %v, want %v", got, want)
+	}
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if len(f.tokens) != 2 {
+		t.Errorf("%d signatures, want a new one only after the rejected bind", len(f.tokens))
+	}
+}
+
 func TestARegionWithoutPortForwardingAsksForNone(t *testing.T) {
 	_, c, _ := newFake(t)
-	err := c.KeepPort(context.Background(), Session{Region: Region{ID: "us_east"}}, nil, func(uint16) {
+	c.KeepPort(context.Background(), Session{Region: Region{ID: "us_east"}}, nil, func(uint16) {
 		t.Error("a port was set")
-	})
-	if err != nil {
-		t.Error(err)
-	}
+	}, func(err error) { t.Error(err) })
 }
 
 func TestTheEmbeddedCAIsPIAs(t *testing.T) {

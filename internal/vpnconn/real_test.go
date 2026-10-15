@@ -46,7 +46,7 @@ func TestRealHideMe(t *testing.T) {
 	if p.State != "connected" || p.ForwardedPort == 0 {
 		t.Fatal("not connected with a forwarded port")
 	}
-	if login := m.login("hideme"); login[accessTokenField] == "" {
+	if login, _ := m.login("hideme"); login[accessTokenField] == "" {
 		t.Error("the access token was not kept")
 	}
 	m.Disconnect()

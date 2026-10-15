@@ -61,9 +61,9 @@ func openPIA(ctx context.Context, login Login) (*session, error) {
 		login:  next,
 		renews: true,
 		keep: func(ctx context.Context, k keeper) {
-			if err := c.KeepPort(ctx, s, k.dial, k.setPort); err != nil && ctx.Err() == nil {
+			c.KeepPort(ctx, s, k.dial, k.setPort, func(err error) {
 				k.logf("vpn: Private Internet Access port forwarding: %v", err)
-			}
+			})
 		},
 	}, nil
 }
@@ -85,13 +85,14 @@ func torGuardHost(location string) string {
 
 func openTorGuard(ctx context.Context, login Login) (*session, error) {
 	c := &torguard.Client{
-		Username: strings.TrimSpace(login["username"]),
-		Password: login["password"],
-		Host:     torGuardHost(login["location"]),
+		Username:    strings.TrimSpace(login["username"]),
+		Password:    login["password"],
+		Host:        torGuardHost(login["location"]),
+		LookupNetIP: lookupServer,
 	}
 	cfg, err := c.Connect(ctx)
 	if err != nil {
-		return nil, apiFailure(err)
+		return nil, unknownServer(apiFailure(err))
 	}
 	return &session{
 		cfg:    cfg,

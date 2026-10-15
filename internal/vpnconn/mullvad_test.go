@@ -30,6 +30,8 @@ type fakeMullvad struct {
 	relay   string
 	port    uint16
 	pub     string
+	// down has Mullvad list the relay as inactive.
+	down bool
 }
 
 func newFakeMullvad(t *testing.T) *fakeMullvad {
@@ -68,8 +70,8 @@ func (f *fakeMullvad) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	case r.URL.Path == "/public/relays/wireguard/v2":
 		fmt.Fprintf(w, `{"locations": {"at-vie": {"latitude": 48.2, "longitude": 16.4}},
 		  "wireguard": {"port_ranges": [[%d, %d]], "ipv4_gateway": "10.2.0.1", "relays": [
-		    {"hostname": "at-vie-wg-001", "location": "at-vie", "active": true, "ipv4_addr_in": %q, "weight": 100, "include_in_country": true, "public_key": %q}]}}`,
-			f.port, f.port, f.relay, f.pub)
+		    {"hostname": "at-vie-wg-001", "location": "at-vie", "active": %t, "ipv4_addr_in": %q, "weight": 100, "include_in_country": true, "public_key": %q}]}}`,
+			f.port, f.port, !f.down, f.relay, f.pub)
 	case r.URL.Path == "/where":
 		w.Write([]byte(`{"latitude": 48.3, "longitude": 16.5}`))
 	case r.Header.Get("Authorization") != "Bearer tok":
@@ -161,6 +163,12 @@ func TestMullvadFailuresCarryTheirCode(t *testing.T) {
 	if _, err := openMullvad(ctx, Login{"accountNumber": mullvadAccount, "location": "xx"}); codeOf(err) != CodeLocationUnknown {
 		t.Errorf("unknown location = %v", err)
 	}
+	f.down = true
+	_, err := openMullvad(ctx, Login{"accountNumber": mullvadAccount, "location": "at-vie"})
+	if err == nil || final(codeOf(err)) {
+		t.Errorf("a location whose relays are all down = %v, want an error worth trying again", err)
+	}
+	f.down = false
 	f.max = 0
 	if _, err := openMullvad(ctx, login); codeOf(err) != CodeDeviceLimit {
 		t.Errorf("full device list = %v", err)

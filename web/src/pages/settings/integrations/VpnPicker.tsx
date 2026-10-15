@@ -258,7 +258,7 @@ function ConnectForm({
                   dir="ltr"
                   autoComplete="off"
                   spellCheck={false}
-                  value={values[f] ?? ''}
+                  value={values[f] ?? (f === 'location' ? (p.location ?? '') : '')}
                   onChange={(e) => onValue(f, e.target.value)}
                 />
               )}

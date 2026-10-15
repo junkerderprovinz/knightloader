@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"net"
 	"net/http"
+	"net/netip"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -25,25 +27,28 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/vpn/vpntest"
 )
 
-// memStore is a credential store that keeps the logins in memory.
+// memStore is a credential store that keeps the logins in memory. getErr and
+// setErr stand for a sealed login that cannot be read and a disk that takes
+// no writes.
 type memStore struct {
-	mu    sync.Mutex
-	creds map[string]accounts.Credential
+	mu     sync.Mutex
+	creds  map[string]accounts.Credential
+	getErr error
+	setErr error
 }
 
 func (s *memStore) GetCredential(_, account string) (accounts.Credential, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	c, ok := s.creds[account]
-	if !ok {
-		return c, errors.New("not stored")
-	}
-	return c, nil
+	return s.creds[account], s.getErr
 }
 
 func (s *memStore) SetCredential(_, account string, c accounts.Credential) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.setErr != nil {
+		return s.setErr
+	}
 	if s.creds == nil {
 		s.creds = map[string]accounts.Credential{}
 	}
@@ -73,10 +78,10 @@ type harness struct {
 	manual  atomic.Int32
 }
 
-func newHarness(t *testing.T, store *memStore, path string) *harness {
+func newHarness(t *testing.T, store *memStore, path string, tune ...func(*Options)) *harness {
 	t.Helper()
 	h := &harness{store: store, path: path}
-	m, err := New(Options{
+	opts := Options{
 		Store:          store,
 		StatePath:      path,
 		ManualPort:     func() int { return int(h.manual.Load()) },
@@ -85,7 +90,11 @@ func newHarness(t *testing.T, store *memStore, path string) *harness {
 		ExitIPURL:      "http://" + vpntest.ServerAddr.String() + "/",
 		ConnectTimeout: 5 * time.Second,
 		Tunnel:         vpn.Options{Poll: 50 * time.Millisecond, HandshakeTimeout: 500 * time.Millisecond},
-	})
+	}
+	for _, f := range tune {
+		f(&opts)
+	}
+	m, err := New(opts)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -222,7 +231,7 @@ func TestAStoredLoginConnectsWithEmptyFields(t *testing.T) {
 	h.waitFor(t, "custom", "connected")
 }
 
-func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
+func TestAnOwnConfigShowsTheTorrentPortAsOneToForwardByHand(t *testing.T) {
 	srv := vpntest.Start(t)
 	h := newHarness(t, &memStore{}, "")
 	h.manual.Store(6881)
@@ -231,11 +240,46 @@ func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
 	if p.ForwardedPort != 6881 || h.m.ForwardedPort() != 0 {
 		t.Errorf("forwarded port %d shown, %d for the torrent client; want 6881 and 0", p.ForwardedPort, h.m.ForwardedPort())
 	}
+	if !p.PortManual {
+		t.Error("the torrent port is shown as forwarded, not as one to forward in the account")
+	}
+	if h.provider("protonvpn").PortManual {
+		t.Error("a port forwarded through NAT-PMP is shown as one to forward by hand")
+	}
 	if p.ForwardedAddress != "" {
 		t.Errorf("forwarded port reached at %q, want it left to the exit address", p.ForwardedAddress)
 	}
 	if srv.Mappings() != 0 {
 		t.Error("an own config was asked about NAT-PMP")
+	}
+}
+
+func TestAnEmptiedLocationGoesBackToAnyServer(t *testing.T) {
+	store := &memStore{}
+	h := newHarness(t, store, "")
+	refuse := func(context.Context, Login) (*session, error) {
+		return nil, &failure{CodeLoginRefused, errors.New("refused")}
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "placed", Name: "Placed", Fields: []string{"token", "location"}, open: refuse})
+	connect := func(fields map[string]string) string {
+		t.Helper()
+		if _, err := h.m.Connect("placed", fields); err != nil {
+			t.Fatal(err)
+		}
+		login, _ := h.m.login("placed")
+		if shown := h.provider("placed").Location; shown != login["location"] {
+			t.Errorf("the page shows %q for the stored %q", shown, login["location"])
+		}
+		return login["location"]
+	}
+	if got := connect(map[string]string{"token": "x", "location": "de"}); got != "de" {
+		t.Fatalf("location %q stored, want de", got)
+	}
+	if got := connect(map[string]string{"token": ""}); got != "de" {
+		t.Errorf("a connect without a location left %q, want de kept", got)
+	}
+	if got := connect(map[string]string{"location": ""}); got != "" {
+		t.Errorf("an emptied location left %q", got)
 	}
 }
 
@@ -282,6 +326,29 @@ func TestFailuresCarryTheirCode(t *testing.T) {
 	}
 }
 
+func TestAnEndpointThatDoesNotResolveYetIsTriedAgain(t *testing.T) {
+	srv := vpntest.Start(t)
+	var resolves atomic.Bool
+	h := newHarness(t, &memStore{}, "", func(o *Options) {
+		o.RenewAfter = 200 * time.Millisecond
+		o.Tunnel.LookupNetIP = func(_ context.Context, _, host string) ([]netip.Addr, error) {
+			if !resolves.Load() {
+				return nil, &net.DNSError{Err: "server misbehaving", Name: host, IsTemporary: true}
+			}
+			return []netip.Addr{netip.MustParseAddr("127.0.0.1")}, nil
+		}
+	})
+	cfg := strings.Replace(srv.Config(), "Endpoint = 127.0.0.1:", "Endpoint = vpn.example.test:", 1)
+	if _, err := h.m.Connect("custom", map[string]string{"config": cfg}); err != nil {
+		t.Fatal(err)
+	}
+	if p := h.waitFor(t, "custom", "failed"); p.ErrorCode != CodeTimeout {
+		t.Errorf("a name that did not resolve failed with %q", p.ErrorCode)
+	}
+	resolves.Store(true)
+	h.waitFor(t, "custom", "connected")
+}
+
 func TestForgetDisconnectsAndDropsTheLogin(t *testing.T) {
 	srv := vpntest.Start(t)
 	store := &memStore{}
@@ -315,6 +382,53 @@ func TestResumeTakesUpTheProviderInUse(t *testing.T) {
 	second := newHarness(t, store, path)
 	second.m.Resume()
 	second.waitFor(t, "custom", "connected")
+}
+
+func TestResumeNeedsNoWriteForAStoredLogin(t *testing.T) {
+	srv := vpntest.Start(t)
+	store := &memStore{}
+	path := filepath.Join(t.TempDir(), "vpn.json")
+	first := newHarness(t, store, path)
+	first.m.Connect("custom", map[string]string{"config": srv.Config()})
+	first.waitFor(t, "custom", "connected")
+	first.m.Close()
+
+	store.mu.Lock()
+	store.setErr = errors.New("no space left on device")
+	store.mu.Unlock()
+	second := newHarness(t, store, path)
+	second.m.Resume()
+	second.waitFor(t, "custom", "connected")
+}
+
+func TestAResumeThatFailsHoldsTheTrafficBack(t *testing.T) {
+	srv := vpntest.Start(t)
+	store := &memStore{}
+	path := filepath.Join(t.TempDir(), "vpn.json")
+	first := newHarness(t, store, path)
+	first.m.Connect("custom", map[string]string{"config": srv.Config()})
+	first.m.Close()
+
+	store.mu.Lock()
+	store.getErr = errors.New("cipher: message authentication failed")
+	store.mu.Unlock()
+	second := newHarness(t, store, path)
+	second.m.Resume()
+	if !second.m.Through(Torrents) {
+		t.Error("torrents go around the VPN after a resume that failed")
+	}
+	if p := second.provider("custom"); p.State != "failed" || p.ErrorCode != CodeResumeFailed {
+		t.Errorf("the provider is %s %q, want it failed with %s", p.State, p.ErrorCode, CodeResumeFailed)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	if _, err := second.m.DialContext(ctx, "tcp", "10.2.0.1:7"); !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("dial = %v, want it held until the deadline", err)
+	}
+	second.m.Disconnect()
+	if second.m.Through(Torrents) {
+		t.Error("torrents still wait for the VPN after a disconnect")
+	}
 }
 
 func TestRoutesAreKeptAndCountOnlyWhileAProviderIsInUse(t *testing.T) {
@@ -417,6 +531,88 @@ func TestASessionsKeepForwardsThePortWhileTheTunnelStands(t *testing.T) {
 	}
 }
 
+func TestASessionThatNeverAnswersIsOpenedAnew(t *testing.T) {
+	gone := vpntest.Start(t)
+	dead := gone.Config()
+	gone.Close()
+	live := vpntest.Start(t).Config()
+	h := newHarness(t, &memStore{}, "", func(o *Options) {
+		o.ConnectTimeout = 300 * time.Millisecond
+		o.RenewAfter = 300 * time.Millisecond
+	})
+	var opened atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		conf := live
+		if opened.Add(1) == 1 {
+			conf = dead
+		}
+		cfg, err := vpn.ParseConfig(conf)
+		return &session{cfg: cfg, renews: true}, err
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "renews", Name: "Renews", Fields: []string{"token"}, open: open})
+	h.m.Connect("renews", map[string]string{"token": "x"})
+	h.waitFor(t, "renews", "connected")
+	if n := opened.Load(); n != 2 {
+		t.Errorf("%d sessions opened, want a second one after the first never answered", n)
+	}
+}
+
+func TestConnectsAtOnceLeaveNoRunBehindADisconnect(t *testing.T) {
+	srv := vpntest.Start(t)
+	h := newHarness(t, &memStore{}, "")
+	var opened atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		opened.Add(1)
+		cfg, err := vpn.ParseConfig(srv.Config())
+		return &session{cfg: cfg}, err
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "twice", Name: "Twice", Fields: []string{"token"}, open: open})
+	var wg sync.WaitGroup
+	for range 8 {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			h.m.Connect("twice", map[string]string{"token": "x"})
+		}()
+	}
+	wg.Wait()
+	h.m.Disconnect()
+	before := opened.Load()
+	time.Sleep(time.Second)
+	if st := h.m.tun.State().Status; st != vpn.Disconnected || opened.Load() != before {
+		t.Errorf("after the disconnect the tunnel is %s and %d sessions were opened", st, opened.Load()-before)
+	}
+}
+
+func TestAPortRequestThatFailedIsSentAgain(t *testing.T) {
+	defer func(d time.Duration) { portRetry = d }(portRetry)
+	portRetry = 50 * time.Millisecond
+	srv := vpntest.Start(t)
+	h := newHarness(t, &memStore{}, "")
+	var asked atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		cfg, err := vpn.ParseConfig(srv.Config())
+		if err != nil {
+			return nil, err
+		}
+		return &session{cfg: cfg, askPort: func(context.Context, dialFunc) (uint16, error) {
+			if asked.Add(1) == 1 {
+				return 0, errors.New("the API did not answer")
+			}
+			return 42424, nil
+		}}, nil
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "asker", Name: "Asker", Fields: []string{"token"}, PortForwarding: true, open: open, port: apiPort})
+	h.m.Connect("asker", map[string]string{"token": "x"})
+	h.waitFor(t, "asker", "connected")
+	for deadline := time.Now().Add(5 * time.Second); h.m.ForwardedPort() == 0 && time.Now().Before(deadline); {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if got := h.m.ForwardedPort(); got != 42424 || asked.Load() != 2 {
+		t.Errorf("forwarded port %d after %d requests, want 42424 after 2", got, asked.Load())
+	}
+}
+
 func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
 	cases := []struct {
 		err  error
@@ -435,6 +631,27 @@ func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
 	}
 	if err := errors.New("network down"); apiFailure(err) != err {
 		t.Error("an error of the network got a code")
+	}
+}
+
+func TestAServerNameThatDoesNotExistIsAnUnknownLocation(t *testing.T) {
+	defer func(l func(context.Context, string, string) ([]netip.Addr, error)) { lookupServer = l }(lookupServer)
+	var answer *net.DNSError
+	lookupServer = func(_ context.Context, _, host string) ([]netip.Addr, error) {
+		e := *answer
+		e.Name = host
+		return nil, &e
+	}
+	login := Login{"username": "knight", "password": "secret", "location": "atlantis"}
+	for name, open := range map[string]opener{"TorGuard": openTorGuard, "hide.me": openHideMe} {
+		answer = &net.DNSError{Err: "no such host", IsNotFound: true}
+		if _, err := open(context.Background(), login); codeOf(err) != CodeLocationUnknown {
+			t.Errorf("%s with a server that does not exist = %v, want %s", name, err, CodeLocationUnknown)
+		}
+		answer = &net.DNSError{Err: "i/o timeout", IsTimeout: true, IsTemporary: true}
+		if _, err := open(context.Background(), login); err == nil || final(codeOf(err)) {
+			t.Errorf("%s with a name server that did not answer = %v, want an error worth trying again", name, err)
+		}
 	}
 }
 

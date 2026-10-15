@@ -47,6 +47,9 @@ const (
 // that goes 15 minutes without.
 var BindEvery = 15 * time.Minute
 
+// RetryEvery is how long KeepPort waits after a call to the server failed.
+var RetryEvery = 30 * time.Second
+
 // ErrRefused is a username and password, or a token, PIA did not take.
 var ErrRefused = errors.New("pia: the login was refused")
 
@@ -349,57 +352,85 @@ type signature struct {
 }
 
 // KeepPort asks the server for a port to forward and binds it every
-// BindEvery until ctx ends, reporting it to set once bound. It talks to the
-// server inside the tunnel, so dial is the tunnel's. A region that does not
-// forward ports returns at once.
-func (c *Client) KeepPort(ctx context.Context, s Session, dial func(ctx context.Context, network, address string) (net.Conn, error), set func(uint16)) error {
+// BindEvery until ctx ends, reporting it to set once bound. A call that fails
+// goes to failed, sets the port to 0 and is tried again after RetryEvery. It
+// talks to the server inside the tunnel, so dial is the tunnel's. A region
+// that does not forward ports returns at once.
+func (c *Client) KeepPort(ctx context.Context, s Session, dial func(ctx context.Context, network, address string) (net.Conn, error), set func(uint16), failed func(error)) {
 	if !s.Region.PortForward {
-		return nil
+		return
 	}
 	hc := c.serverClient(s.Server.CN, dial)
-	var (
-		sig  signature
-		api  netip.Addr
-		errs []error
-	)
-	// gluetun found the API on the tunnel's gateway; PIA's scripts use the
-	// server's own address.
-	for _, a := range apiAddresses(s) {
-		err := c.pfGet(ctx, hc, a, "getSignature", url.Values{"token": {c.Token}}, &sig)
-		if err == nil {
-			api = a
-			break
-		}
-		errs = append(errs, err)
-	}
-	if !api.IsValid() {
-		return errors.Join(errs...)
-	}
-	if sig.Status != "OK" {
-		return fmt.Errorf("pia: getSignature answered %q", sig.Status)
-	}
-	port, err := payloadPort(sig.Payload)
-	if err != nil {
-		return err
-	}
-	q := url.Values{"payload": {sig.Payload}, "signature": {sig.Signature}}
+	var b binding
 	for {
-		var bound signature
-		if err := c.pfGet(ctx, hc, api, "bindPort", q, &bound); err != nil {
-			return err
+		next := BindEvery
+		if err := c.bind(ctx, hc, s, &b); err != nil {
+			if ctx.Err() != nil {
+				return
+			}
+			failed(err)
+			set(0)
+			next = RetryEvery
+		} else {
+			set(b.port)
 		}
-		if bound.Status != "OK" {
-			return fmt.Errorf("pia: bindPort answered %q", bound.Status)
-		}
-		set(port)
-		t := time.NewTimer(BindEvery)
+		t := time.NewTimer(next)
 		select {
 		case <-ctx.Done():
 			t.Stop()
-			return nil
+			return
 		case <-t.C:
 		}
 	}
+}
+
+// binding is a signed port and the API that signed it.
+type binding struct {
+	api  netip.Addr
+	q    url.Values
+	port uint16
+}
+
+// bind binds b's port, signing one first while b has none. A signature the
+// server no longer takes is dropped, so the next bind asks for a new one.
+func (c *Client) bind(ctx context.Context, hc *http.Client, s Session, b *binding) error {
+	if !b.api.IsValid() {
+		if err := c.sign(ctx, hc, s, b); err != nil {
+			return err
+		}
+	}
+	var bound signature
+	if err := c.pfGet(ctx, hc, b.api, "bindPort", b.q, &bound); err != nil {
+		return err
+	}
+	if bound.Status != "OK" {
+		*b = binding{}
+		return fmt.Errorf("pia: bindPort answered %q", bound.Status)
+	}
+	return nil
+}
+
+func (c *Client) sign(ctx context.Context, hc *http.Client, s Session, b *binding) error {
+	var errs []error
+	// gluetun found the API on the tunnel's gateway; PIA's scripts use the
+	// server's own address.
+	for _, a := range apiAddresses(s) {
+		var sig signature
+		if err := c.pfGet(ctx, hc, a, "getSignature", url.Values{"token": {c.Token}}, &sig); err != nil {
+			errs = append(errs, err)
+			continue
+		}
+		if sig.Status != "OK" {
+			return fmt.Errorf("pia: getSignature answered %q", sig.Status)
+		}
+		port, err := payloadPort(sig.Payload)
+		if err != nil {
+			return err
+		}
+		*b = binding{api: a, q: url.Values{"payload": {sig.Payload}, "signature": {sig.Signature}}, port: port}
+		return nil
+	}
+	return errors.Join(errs...)
 }
 
 func apiAddresses(s Session) []netip.Addr {

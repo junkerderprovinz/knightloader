@@ -2,7 +2,9 @@ package engine
 
 import (
 	"bytes"
+	"context"
 	cryptorand "crypto/rand"
+	"errors"
 	"fmt"
 	"net"
 	"os"
@@ -438,7 +440,7 @@ func TestThePieceCheckFindsFilesThatAreNotAsTheTorrentHasThem(t *testing.T) {
 			if err := c.spoil(root); err != nil {
 				t.Fatal(err)
 			}
-			err := CheckPieces(dir, uri)
+			err := CheckPieces(context.Background(), dir, uri)
 			switch {
 			case c.want == "" && err != nil:
 				t.Errorf("whole files were refused: %v", err)
@@ -447,8 +449,18 @@ func TestThePieceCheckFindsFilesThatAreNotAsTheTorrentHasThem(t *testing.T) {
 			}
 		})
 	}
-	if err := CheckPieces(t.TempDir(), "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a"); err != nil {
+	if err := CheckPieces(context.Background(), t.TempDir(), "magnet:?xt=urn:btih:c12fe1c06bba254a9dc9f519b335aa7c1367a88a"); err != nil {
 		t.Errorf("a magnet link, which carries no pieces, was refused: %v", err)
+	}
+}
+
+func TestThePieceCheckStopsWhenItsContextEnds(t *testing.T) {
+	dir := t.TempDir()
+	uri, _ := finishedTorrent(t, dir)
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+	if err := CheckPieces(ctx, dir, uri); !errors.Is(err, context.Canceled) {
+		t.Errorf("a check nobody waits for = %v, want it cancelled", err)
 	}
 }
 

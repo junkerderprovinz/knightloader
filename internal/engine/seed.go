@@ -22,6 +22,7 @@ package engine
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha1"
 	"errors"
 	"fmt"
@@ -85,8 +86,9 @@ func sizeIs(p string, size int64) error {
 
 // CheckPieces checks every file and every piece of the .torrent in link against
 // what is in dir, where the torrent lands. A magnet link carries no pieces and
-// passes.
-func CheckPieces(dir, link string) error {
+// passes. It stops with ctx, so a hash of a large download does not hold up
+// whoever gave up on it.
+func CheckPieces(ctx context.Context, dir, link string) error {
 	if torrent.IsMagnet(link) {
 		return nil
 	}
@@ -129,6 +131,9 @@ func CheckPieces(dir, link string) error {
 	data := io.MultiReader(readers...)
 	buf := make([]byte, info.PieceLength)
 	for i := range info.NumPieces() {
+		if err := ctx.Err(); err != nil {
+			return err
+		}
 		n, err := io.ReadFull(data, buf)
 		if err != nil && !errors.Is(err, io.ErrUnexpectedEOF) {
 			return err
