@@ -3797,4 +3797,10 @@ export const tr: Dict = {
   'whatsnew.change.proxyCheckMoved': '{name} denetimi buraya taşındı.',
   'whatsnew.change.advancedUpkeep': '{maintenance} ve {metrics} buraya taşındı.',
   'whatsnew.change.moduleSwitches': 'Modüller sayfası artık yok. Her modül kendi sayfasında açılır, kapalı olan orada yalnızca anahtarını gösterir.',
+  'whatsnew.change.videoFormat': '“{name}” kartında biçimi ve çözünürlüğü ayrı ayrı seçersin, kart artık “{audio}” kartının üstünde.',
+  'whatsnew.change.filesMerged': '“{name}”, “{files}”, “{check}” ve “{live}” bölümlerini tek kartta toplar.',
+  'whatsnew.change.trackTiles': '“{name}” her izi daha büyük çizer.',
+  'whatsnew.change.jdTool': 'JDownloader artık “{name}” içinde bir satır ve yt-dlp gibi her zaman açık, kendi anahtarı yok.',
+  'whatsnew.change.ytdlpUpdates': '“{name}” bağlantısı seni doğrudan “{page}” altındaki yt-dlp alt kartına götürür.',
+  'whatsnew.change.vpnRoutes': '“{name}”, “{vpn}” altında ayrı bir kart ve her indirme türü için bir anahtarı var.',
 };

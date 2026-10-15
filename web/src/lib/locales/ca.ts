@@ -3786,4 +3786,10 @@ export const ca: Dict = {
   'whatsnew.change.proxyCheckMoved': 'La comprovació «{name}» s’ha traslladat aquí.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» i «{metrics}» s’han traslladat aquí.',
   'whatsnew.change.moduleSwitches': 'La pàgina Mòduls ja no hi és. Cada mòdul s’activa a la seva pàgina, i un de desactivat només hi mostra el seu interruptor.',
+  'whatsnew.change.videoFormat': 'A la targeta «{name}» tries el format i la resolució per separat, i ara és sobre «{audio}».',
+  'whatsnew.change.filesMerged': '«{name}» reuneix «{files}», «{check}» i «{live}» en una sola targeta.',
+  'whatsnew.change.trackTiles': '«{name}» dibuixa cada pista més gran.',
+  'whatsnew.change.jdTool': 'JDownloader és una fila a «{name}» i, com yt-dlp, sempre està actiu, sense interruptor propi.',
+  'whatsnew.change.ytdlpUpdates': 'L’enllaç «{name}» et porta directament a la subtargeta de yt-dlp a «{page}».',
+  'whatsnew.change.vpnRoutes': '«{name}» és una targeta pròpia sota «{vpn}», amb un interruptor per a cada tipus de baixada.',
 };

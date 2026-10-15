@@ -166,7 +166,7 @@ export function TrackMerge({
   );
 
   return (
-    <div ref={box} data-new="track-merge">
+    <div ref={box} data-new="track-tiles">
       <svg
         ref={stage}
         viewBox={`0 0 ${width} ${foot + 24 + (split ? LINE : 0)}`}

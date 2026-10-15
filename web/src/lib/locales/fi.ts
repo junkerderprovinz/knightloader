@@ -3800,4 +3800,10 @@ export const fi: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Tarkistus ”{name}” on siirretty tänne.',
   'whatsnew.change.advancedUpkeep': '”{maintenance}” ja ”{metrics}” on siirretty tänne.',
   'whatsnew.change.moduleSwitches': 'Moduulit-sivua ei enää ole. Jokainen moduuli kytketään päälle omalla sivullaan, ja pois päältä oleva näyttää siellä vain kytkimensä.',
+  'whatsnew.change.videoFormat': 'Kortilla ”{name}” valitset muodon ja resoluution erikseen, ja kortti on nyt kohdan ”{audio}” yläpuolella.',
+  'whatsnew.change.filesMerged': '”{name}” kokoaa ”{files}”, ”{check}” ja ”{live}” yhteen korttiin.',
+  'whatsnew.change.trackTiles': '”{name}” piirtää jokaisen raidan suurempana.',
+  'whatsnew.change.jdTool': 'JDownloader on rivi kortilla ”{name}”, ja yt-dlp:n tavoin se on aina päällä ilman omaa kytkintä.',
+  'whatsnew.change.ytdlpUpdates': 'Linkki ”{name}” vie sinut suoraan yt-dlp:n alakortille kohdassa ”{page}”.',
+  'whatsnew.change.vpnRoutes': '”{name}” on oma korttinsa kohdan ”{vpn}” alla, ja siinä on kytkin jokaiselle latauslajille.',
 };

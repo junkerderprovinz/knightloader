@@ -67,6 +67,48 @@ export const RELEASES: Release[] = [
       },
       // Drawn on every module's switch, across the settings pages.
       { id: 'module-switches', to: ['/settings'], text: 'whatsnew.change.moduleSwitches' },
+      {
+        id: 'jd-tool',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.jdTool',
+        names: { name: 'settings.resolvers.toolsTitle' },
+      },
+      {
+        id: 'ytdlp-updates',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.ytdlpUpdates',
+        names: { name: 'settings.look.updatesTitle', page: 'settings.nav.look' },
+      },
+      {
+        id: 'video-format',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.videoFormat',
+        names: { name: 'columns.variant.video', audio: 'settings.resolvers.audioTitle' },
+      },
+      {
+        id: 'track-tiles',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.trackTiles',
+        names: { name: 'settings.resolvers.embedTitle' },
+      },
+      {
+        id: 'files-merged',
+        to: ['/settings/resolvers'],
+        text: 'whatsnew.change.filesMerged',
+        names: {
+          name: 'settings.resolvers.filesCard',
+          files: 'settings.resolvers.filesTitle',
+          check: 'settings.resolvers.measureTitle',
+          live: 'settings.resolvers.liveTitle',
+        },
+      },
+      // Drawn only once a VPN is set up.
+      {
+        id: 'vpn-routes',
+        to: ['/settings/integrations'],
+        text: 'whatsnew.change.vpnRoutes',
+        names: { name: 'settings.vpn.routesTitle', vpn: 'settings.vpn.title' },
+      },
     ],
   },
   {

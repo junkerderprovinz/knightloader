@@ -217,7 +217,7 @@ export function Resolvers() {
 
       {/* Named like the video variant, whose format and resolution it sets
           where a row has no choice of its own. */}
-      <Card hue={2} data-new="video-card" className="flex flex-col gap-5">
+      <Card hue={2} data-new="video-format" className="flex flex-col gap-5">
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
         {/* The sanitizer folds anything else to "best". */}
@@ -440,7 +440,7 @@ export function Resolvers() {
       {/* Everything about the files a link becomes other than what is in
           them: how a playlist and a file are named, whether the finished file
           is measured, and when a recording stops. */}
-      <Card hue={6} data-new="files-card" className="flex flex-col gap-4">
+      <Card hue={6} data-new="files-merged" className="flex flex-col gap-4">
         <SectionTitle>{t('settings.resolvers.filesCard')}</SectionTitle>
 
         <SubCard label={t('settings.resolvers.filesTitle')}>

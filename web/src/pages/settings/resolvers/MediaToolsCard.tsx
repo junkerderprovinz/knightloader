@@ -51,6 +51,7 @@ export function MediaToolsCard({ hue }: { hue: number }) {
             page={YTDLP_UPDATES.page}
             title={t('settings.look.updatesTitle')}
             onFollow={() => requestJump(YTDLP_UPDATES)}
+            data-new="ytdlp-updates"
           />
         }
       >
@@ -78,7 +79,7 @@ function JDRow({ jd }: { jd: JDStatus }) {
   const [missing, hint] = jd.configured
     ? [t('settings.resolvers.toolsUnreachable'), t('settings.resolvers.toolsJdUnreachableHint')]
     : [t('settings.resolvers.toolsNotConfigured'), t('settings.resolvers.toolsJdMissingHint')];
-  return <ToolRow name="JDownloader" tool={tool} missing={missing} missingHint={hint} last />;
+  return <ToolRow name="JDownloader" tool={tool} missing={missing} missingHint={hint} last data-new="jd-tool" />;
 }
 
 /**
@@ -93,6 +94,7 @@ function ToolRow({
   missingHint,
   showSource = false,
   last = false,
+  'data-new': mark,
 }: {
   name: string;
   tool?: MediaTool;
@@ -100,6 +102,7 @@ function ToolRow({
   missingHint: string;
   showSource?: boolean;
   last?: boolean;
+  'data-new'?: string;
 }) {
   const { t } = useT();
   const found = Boolean(tool?.found);
@@ -107,6 +110,7 @@ function ToolRow({
   const pathTip = useTooltip<HTMLSpanElement>(tool?.path);
   return (
     <li
+      data-new={mark}
       className={`flex flex-wrap items-center gap-x-3 gap-y-1 px-4 py-2.5 transition-colors hover:bg-carbon-surface3 ${
         last ? '' : 'border-b border-carbon-border/60'
       }`}

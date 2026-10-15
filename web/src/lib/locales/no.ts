@@ -3801,4 +3801,10 @@ export const no: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Kontrollen «{name}» er flyttet hit.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» og «{metrics}» er flyttet hit.',
   'whatsnew.change.moduleSwitches': 'Siden Moduler finnes ikke lenger. Hver modul slår du på på sin egen side, og en som er av, viser bare bryteren sin der.',
+  'whatsnew.change.videoFormat': 'På kortet «{name}» velger du format og oppløsning hver for seg, og kortet står nå over «{audio}».',
+  'whatsnew.change.filesMerged': '«{name}» samler «{files}», «{check}» og «{live}» i ett kort.',
+  'whatsnew.change.trackTiles': '«{name}» tegner hvert spor større.',
+  'whatsnew.change.jdTool': 'JDownloader er en rad i «{name}», og som yt-dlp er den alltid på, uten egen bryter.',
+  'whatsnew.change.ytdlpUpdates': 'Lenken «{name}» tar deg rett til underkortet for yt-dlp under «{page}».',
+  'whatsnew.change.vpnRoutes': '«{name}» er et eget kort under «{vpn}», med en bryter for hver type nedlasting.',
 };

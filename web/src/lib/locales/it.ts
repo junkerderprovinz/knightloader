@@ -3782,4 +3782,10 @@ export const it: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Il controllo «{name}» si trova ora qui.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» e «{metrics}» si trovano ora qui.',
   'whatsnew.change.moduleSwitches': 'La pagina Moduli non c’è più. Ogni modulo si attiva nella sua pagina, e uno disattivato mostra lì solo il suo interruttore.',
+  'whatsnew.change.videoFormat': 'Nella scheda «{name}» scegli formato e risoluzione separatamente, e ora sta sopra «{audio}».',
+  'whatsnew.change.filesMerged': '«{name}» riunisce in una scheda «{files}», «{check}» e «{live}».',
+  'whatsnew.change.trackTiles': '«{name}» disegna ogni traccia più grande.',
+  'whatsnew.change.jdTool': 'JDownloader è una riga in «{name}» e, come yt-dlp, è sempre attivo, senza un interruttore suo.',
+  'whatsnew.change.ytdlpUpdates': 'Il link «{name}» ti porta dritto alla sottoscheda di yt-dlp in «{page}».',
+  'whatsnew.change.vpnRoutes': '«{name}» è una scheda a sé sotto «{vpn}», con un interruttore per ogni tipo di download.',
 };

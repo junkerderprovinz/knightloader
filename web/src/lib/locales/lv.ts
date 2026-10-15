@@ -3789,4 +3789,10 @@ export const lv: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Pārbaude “{name}” ir pārvietota šeit.',
   'whatsnew.change.advancedUpkeep': '“{maintenance}” un “{metrics}” ir pārvietoti šeit.',
   'whatsnew.change.moduleSwitches': 'Lapas Moduļi vairs nav. Katrs modulis tiek ieslēgts savā lapā, un izslēgts modulis tur rāda tikai savu slēdzi.',
+  'whatsnew.change.videoFormat': 'Kartītē „{name}“ formātu un izšķirtspēju izvēlies atsevišķi, un kartīte tagad ir virs „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ vienā kartītē apvieno „{files}“, „{check}“ un „{live}“.',
+  'whatsnew.change.trackTiles': '„{name}“ katru celiņu zīmē lielāku.',
+  'whatsnew.change.jdTool': 'JDownloader ir rinda kartītē „{name}“ un, tāpat kā yt-dlp, vienmēr ieslēgts, bez sava slēdža.',
+  'whatsnew.change.ytdlpUpdates': 'Saite „{name}“ aizved tieši uz yt-dlp apakškartīti sadaļā „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ ir atsevišķa kartīte zem „{vpn}“, ar slēdzi katram lejupielādes veidam.',
 };

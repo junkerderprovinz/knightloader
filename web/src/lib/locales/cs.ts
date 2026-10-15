@@ -3808,4 +3808,10 @@ export const cs: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Kontrola „{name}“ se přesunula sem.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ a „{metrics}“ se přesunuly sem.',
   'whatsnew.change.moduleSwitches': 'Stránka Moduly zmizela. Každý modul se zapíná na vlastní stránce a vypnutý tam ukazuje jen svůj přepínač.',
+  'whatsnew.change.videoFormat': 'Na kartě „{name}“ vybíráš formát a rozlišení zvlášť a karta je teď nad „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ spojuje „{files}“, „{check}“ a „{live}“ do jedné karty.',
+  'whatsnew.change.trackTiles': '„{name}“ kreslí každou stopu větší.',
+  'whatsnew.change.jdTool': 'JDownloader je řádek v „{name}“ a stejně jako yt-dlp běží vždy, bez vlastního přepínače.',
+  'whatsnew.change.ytdlpUpdates': 'Odkaz „{name}“ tě vezme rovnou na podkartu yt-dlp v „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ je vlastní karta pod „{vpn}“ s přepínačem pro každý druh stahování.',
 };

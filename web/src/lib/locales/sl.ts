@@ -3797,4 +3797,10 @@ export const sl: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Preverjanje »{name}« je zdaj tukaj.',
   'whatsnew.change.advancedUpkeep': '»{maintenance}« in »{metrics}« sta zdaj tukaj.',
   'whatsnew.change.moduleSwitches': 'Strani Moduli ni več. Vsak modul vklopiš na njegovi strani, izklopljen pa tam prikaže samo svoje stikalo.',
+  'whatsnew.change.videoFormat': 'Na kartici »{name}« format in ločljivost izbiraš ločeno, kartica pa je zdaj nad »{audio}«.',
+  'whatsnew.change.filesMerged': '»{name}« na eni kartici združuje »{files}«, »{check}« in »{live}«.',
+  'whatsnew.change.trackTiles': '»{name}« nariše vsako sled večjo.',
+  'whatsnew.change.jdTool': 'JDownloader je vrstica v »{name}« in je tako kot yt-dlp vedno vklopljen, brez svojega stikala.',
+  'whatsnew.change.ytdlpUpdates': 'Povezava »{name}« te pelje naravnost na podkartico yt-dlp pod »{page}«.',
+  'whatsnew.change.vpnRoutes': '»{name}« je samostojna kartica pod »{vpn}«, s stikalom za vsako vrsto prenosa.',
 };

@@ -3798,4 +3798,10 @@ export const vi: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Phần kiểm tra {name} đã chuyển sang đây.',
   'whatsnew.change.advancedUpkeep': '{maintenance} và {metrics} đã chuyển sang đây.',
   'whatsnew.change.moduleSwitches': 'Trang Mô-đun không còn nữa. Mỗi mô-đun được bật ở trang riêng của nó, và mô-đun đang tắt chỉ hiện công tắc ở đó.',
+  'whatsnew.change.videoFormat': 'Trong thẻ “{name}”, bạn chọn định dạng và độ phân giải riêng, và thẻ này giờ nằm trên “{audio}”.',
+  'whatsnew.change.filesMerged': '“{name}” gom “{files}”, “{check}” và “{live}” vào một thẻ.',
+  'whatsnew.change.trackTiles': '“{name}” vẽ mỗi rãnh to hơn.',
+  'whatsnew.change.jdTool': 'JDownloader giờ là một hàng trong “{name}”, và giống yt-dlp, nó luôn bật, không có công tắc riêng.',
+  'whatsnew.change.ytdlpUpdates': 'Liên kết “{name}” đưa bạn thẳng đến thẻ con của yt-dlp trong “{page}”.',
+  'whatsnew.change.vpnRoutes': '“{name}” là một thẻ riêng bên dưới “{vpn}”, có công tắc cho từng loại tải xuống.',
 };

@@ -3798,4 +3798,10 @@ export const ms: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Semakan {name} kini berada di sini.',
   'whatsnew.change.advancedUpkeep': '{maintenance} dan {metrics} kini berada di sini.',
   'whatsnew.change.moduleSwitches': 'Halaman Modul sudah tiada. Setiap modul dihidupkan pada halamannya sendiri, dan modul yang dimatikan hanya memaparkan suisnya di situ.',
+  'whatsnew.change.videoFormat': 'Pada kad “{name}” anda memilih format dan resolusi secara berasingan, dan kad itu kini berada di atas “{audio}”.',
+  'whatsnew.change.filesMerged': '“{name}” menghimpunkan “{files}”, “{check}” dan “{live}” dalam satu kad.',
+  'whatsnew.change.trackTiles': '“{name}” melukis setiap trek dengan lebih besar.',
+  'whatsnew.change.jdTool': 'JDownloader kini satu baris dalam “{name}”, dan seperti yt-dlp ia sentiasa hidup, tanpa suisnya sendiri.',
+  'whatsnew.change.ytdlpUpdates': 'Pautan “{name}” membawa anda terus ke subkad yt-dlp di “{page}”.',
+  'whatsnew.change.vpnRoutes': '“{name}” ialah kad tersendiri di bawah “{vpn}”, dengan suis untuk setiap jenis muat turun.',
 };

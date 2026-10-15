@@ -3800,4 +3800,10 @@ export const lt: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Patikra „{name}“ perkelta čia.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ ir „{metrics}“ perkelti čia.',
   'whatsnew.change.moduleSwitches': 'Puslapio Moduliai nebėra. Kiekvienas modulis įjungiamas savo puslapyje, o išjungtas ten rodo tik savo jungiklį.',
+  'whatsnew.change.videoFormat': 'Kortelėje „{name}“ formatą ir raišką renkiesi atskirai, o kortelė dabar yra virš „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ vienoje kortelėje sujungia „{files}“, „{check}“ ir „{live}“.',
+  'whatsnew.change.trackTiles': '„{name}“ kiekvieną takelį nupiešia didesnį.',
+  'whatsnew.change.jdTool': 'JDownloader yra eilutė kortelėje „{name}“ ir, kaip yt-dlp, visada įjungtas, be savo jungiklio.',
+  'whatsnew.change.ytdlpUpdates': 'Nuoroda „{name}“ nuveda tiesiai į yt-dlp pokortelę skiltyje „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ yra atskira kortelė po „{vpn}“, su jungikliu kiekvienai atsisiuntimų rūšiai.',
 };

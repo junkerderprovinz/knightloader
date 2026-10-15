@@ -3798,4 +3798,10 @@ export const sv: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Kontrollen ”{name}” har flyttat hit.',
   'whatsnew.change.advancedUpkeep': '”{maintenance}” och ”{metrics}” har flyttat hit.',
   'whatsnew.change.moduleSwitches': 'Sidan Moduler finns inte längre. Varje modul slås på på sin egen sida, och en som är av visar bara sin brytare där.',
+  'whatsnew.change.videoFormat': 'På kortet ”{name}” väljer du format och upplösning var för sig, och kortet ligger nu ovanför ”{audio}”.',
+  'whatsnew.change.filesMerged': '”{name}” samlar ”{files}”, ”{check}” och ”{live}” i ett kort.',
+  'whatsnew.change.trackTiles': '”{name}” ritar varje spår större.',
+  'whatsnew.change.jdTool': 'JDownloader är en rad i ”{name}” och är precis som yt-dlp alltid på, utan eget reglage.',
+  'whatsnew.change.ytdlpUpdates': 'Länken ”{name}” tar dig direkt till underkortet för yt-dlp under ”{page}”.',
+  'whatsnew.change.vpnRoutes': '”{name}” är ett eget kort under ”{vpn}”, med ett reglage för varje sorts nedladdning.',
 };

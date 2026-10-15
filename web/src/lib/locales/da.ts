@@ -3784,4 +3784,10 @@ export const da: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Tjekket „{name}“ er flyttet hertil.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ og „{metrics}“ er flyttet hertil.',
   'whatsnew.change.moduleSwitches': 'Siden Moduler er væk. Hvert modul slås til på sin egen side, og et, der er slået fra, viser kun sin kontakt der.',
+  'whatsnew.change.videoFormat': 'På kortet „{name}“ vælger du format og opløsning hver for sig, og kortet står nu over „{audio}“.',
+  'whatsnew.change.filesMerged': '„{name}“ samler „{files}“, „{check}“ og „{live}“ i ét kort.',
+  'whatsnew.change.trackTiles': '„{name}“ tegner hvert spor større.',
+  'whatsnew.change.jdTool': 'JDownloader er en række i „{name}“, og ligesom yt-dlp er den altid slået til, uden egen kontakt.',
+  'whatsnew.change.ytdlpUpdates': 'Linket „{name}“ fører dig direkte til underkortet for yt-dlp under „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ er et kort for sig under „{vpn}“, med en kontakt for hver slags download.',
 };

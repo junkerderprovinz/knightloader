@@ -3787,4 +3787,10 @@ export const fa: Dict = {
   'whatsnew.change.proxyCheckMoved': 'بررسی «{name}» به اینجا آمده است.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» و «{metrics}» به اینجا آمده‌اند.',
   'whatsnew.change.moduleSwitches': 'صفحهٔ پودمان‌ها حذف شد. هر پودمان در صفحهٔ خودش روشن می‌شود و پودمان خاموش فقط کلیدش را آنجا نشان می‌دهد.',
+  'whatsnew.change.videoFormat': 'در کارت «{name}» قالب و وضوح را جداگانه انتخاب می‌کنی، و این کارت حالا بالای «{audio}» است.',
+  'whatsnew.change.filesMerged': '«{name}»، «{files}» و «{check}» و «{live}» را در یک کارت جمع می‌کند.',
+  'whatsnew.change.trackTiles': '«{name}» هر ترک را بزرگ‌تر می‌کشد.',
+  'whatsnew.change.jdTool': 'JDownloader حالا یک ردیف در «{name}» است و مثل yt-dlp همیشه روشن است، بدون کلید جداگانه.',
+  'whatsnew.change.ytdlpUpdates': 'پیوند «{name}» تو را مستقیم به کارت فرعی yt-dlp در «{page}» می‌برد.',
+  'whatsnew.change.vpnRoutes': '«{name}» کارت جداگانه‌ای زیر «{vpn}» است، با یک کلید برای هر نوع دانلود.',
 };

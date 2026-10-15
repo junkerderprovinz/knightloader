@@ -3795,4 +3795,10 @@ export const ja: Dict = {
   'whatsnew.change.proxyCheckMoved': '「{name}」の確認はこちらに移りました。',
   'whatsnew.change.advancedUpkeep': '「{maintenance}」と「{metrics}」はこちらに移りました。',
   'whatsnew.change.moduleSwitches': '「モジュール」ページはなくなりました。各モジュールは専用のページでオンにし、オフのモジュールにはそのページにスイッチだけが表示されます。',
+  'whatsnew.change.videoFormat': '「{name}」カードでフォーマットと解像度を別々に選べるようになり、カードは「{audio}」の上に移りました。',
+  'whatsnew.change.filesMerged': '「{name}」は「{files}」「{check}」「{live}」をひとつのカードにまとめています。',
+  'whatsnew.change.trackTiles': '「{name}」は各トラックを大きく描きます。',
+  'whatsnew.change.jdTool': 'JDownloader は「{name}」の一行になり、yt-dlp と同じく常にオンで、専用のスイッチはありません。',
+  'whatsnew.change.ytdlpUpdates': '「{name}」リンクから「{page}」にある yt-dlp のサブカードへ直接移動できます。',
+  'whatsnew.change.vpnRoutes': '「{name}」は「{vpn}」の下にある専用のカードで、ダウンロードの種類ごとにスイッチがあります。',
 };

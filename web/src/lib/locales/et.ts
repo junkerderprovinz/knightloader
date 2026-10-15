@@ -3790,4 +3790,10 @@ export const et: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Kontroll „{name}“ asub nüüd siin.',
   'whatsnew.change.advancedUpkeep': '„{maintenance}“ ja „{metrics}“ asuvad nüüd siin.',
   'whatsnew.change.moduleSwitches': 'Lehte Moodulid enam pole. Iga moodul lülitatakse sisse oma lehel ja väljas moodul näitab seal ainult oma lülitit.',
+  'whatsnew.change.videoFormat': 'Kaardil „{name}“ valid vormingu ja eraldusvõime eraldi ning kaart on nüüd „{audio}“ kohal.',
+  'whatsnew.change.filesMerged': '„{name}“ koondab „{files}“, „{check}“ ja „{live}“ ühte kaarti.',
+  'whatsnew.change.trackTiles': '„{name}“ joonistab iga raja suuremana.',
+  'whatsnew.change.jdTool': 'JDownloader on rida kaardil „{name}“ ja nagu yt-dlp on see alati sees, ilma oma lülitita.',
+  'whatsnew.change.ytdlpUpdates': 'Link „{name}“ viib sind otse yt-dlp alamkaardile jaotises „{page}“.',
+  'whatsnew.change.vpnRoutes': '„{name}“ on eraldi kaart „{vpn}“ all, igale allalaadimise liigile oma lülitiga.',
 };

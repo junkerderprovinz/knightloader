@@ -3800,4 +3800,10 @@ export const el: Dict = {
   'whatsnew.change.proxyCheckMoved': 'Ο έλεγχος «{name}» μεταφέρθηκε εδώ.',
   'whatsnew.change.advancedUpkeep': 'Τα «{maintenance}» και «{metrics}» μεταφέρθηκαν εδώ.',
   'whatsnew.change.moduleSwitches': 'Η σελίδα Λειτουργικές μονάδες δεν υπάρχει πια. Κάθε μονάδα ενεργοποιείται στη δική της σελίδα, και όποια είναι απενεργοποιημένη δείχνει εκεί μόνο τον διακόπτη της.',
+  'whatsnew.change.videoFormat': 'Στην κάρτα «{name}» επιλέγεις χωριστά μορφή και ανάλυση, και η κάρτα βρίσκεται πλέον πάνω από το «{audio}».',
+  'whatsnew.change.filesMerged': 'Το «{name}» συγκεντρώνει τα «{files}», «{check}» και «{live}» σε μία κάρτα.',
+  'whatsnew.change.trackTiles': 'Το «{name}» σχεδιάζει κάθε κομμάτι μεγαλύτερο.',
+  'whatsnew.change.jdTool': 'Το JDownloader είναι μια γραμμή στο «{name}» και, όπως το yt-dlp, είναι πάντα ενεργό, χωρίς δικό του διακόπτη.',
+  'whatsnew.change.ytdlpUpdates': 'Ο σύνδεσμος «{name}» σε πηγαίνει κατευθείαν στην υποκάρτα του yt-dlp στο «{page}».',
+  'whatsnew.change.vpnRoutes': 'Το «{name}» είναι δική του κάρτα κάτω από το «{vpn}», με έναν διακόπτη για κάθε είδος λήψης.',
 };

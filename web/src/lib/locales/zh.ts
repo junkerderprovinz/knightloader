@@ -3781,4 +3781,10 @@ export const zh: Dict = {
   'whatsnew.change.proxyCheckMoved': '「{name}」检查已移到这里。',
   'whatsnew.change.advancedUpkeep': '「{maintenance}」和「{metrics}」已移到这里。',
   'whatsnew.change.moduleSwitches': '“模块”页面已经取消。每个模块在自己的页面上开关，关闭的模块在那里只显示它的开关。',
+  'whatsnew.change.videoFormat': '在“{name}”卡片中，格式和分辨率分开选择，这张卡片现在位于“{audio}”上方。',
+  'whatsnew.change.filesMerged': '“{name}”把“{files}”、“{check}”和“{live}”合到一张卡片里。',
+  'whatsnew.change.trackTiles': '“{name}”把每条轨道画得更大。',
+  'whatsnew.change.jdTool': 'JDownloader 现在是“{name}”中的一行，和 yt-dlp 一样始终开启，没有单独的开关。',
+  'whatsnew.change.ytdlpUpdates': '“{name}”链接直接带你到“{page}”中 yt-dlp 的子卡片。',
+  'whatsnew.change.vpnRoutes': '“{name}”是“{vpn}”下方的一张独立卡片，每种下载都有一个开关。',
 };

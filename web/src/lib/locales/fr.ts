@@ -3788,4 +3788,10 @@ export const fr: Dict = {
   'whatsnew.change.proxyCheckMoved': 'La vérification « {name} » se trouve maintenant ici.',
   'whatsnew.change.advancedUpkeep': '« {maintenance} » et « {metrics} » se trouvent maintenant ici.',
   'whatsnew.change.moduleSwitches': 'La page Modules n’existe plus. Chaque module s’active sur sa propre page, et un module désactivé n’y montre que son interrupteur.',
+  'whatsnew.change.videoFormat': 'Sur la carte « {name} », vous choisissez le format et la résolution séparément, et elle se trouve désormais au-dessus de « {audio} ».',
+  'whatsnew.change.filesMerged': '« {name} » réunit « {files} », « {check} » et « {live} » dans une seule carte.',
+  'whatsnew.change.trackTiles': '« {name} » dessine chaque piste en plus grand.',
+  'whatsnew.change.jdTool': 'JDownloader est une ligne de « {name} » et, comme yt-dlp, il est toujours actif, sans interrupteur à lui.',
+  'whatsnew.change.ytdlpUpdates': 'Le lien « {name} » vous mène directement à la sous-carte de yt-dlp dans « {page} ».',
+  'whatsnew.change.vpnRoutes': '« {name} » est une carte à part sous « {vpn} », avec un interrupteur pour chaque type de téléchargement.',
 };

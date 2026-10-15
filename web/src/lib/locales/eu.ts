@@ -3795,4 +3795,10 @@ export const eu: Dict = {
   'whatsnew.change.proxyCheckMoved': '«{name}» egiaztapena hona aldatu da.',
   'whatsnew.change.advancedUpkeep': '«{maintenance}» eta «{metrics}» hona aldatu dira.',
   'whatsnew.change.moduleSwitches': 'Moduluak orria desagertu da. Modulu bakoitza bere orrian pizten da, eta itzalita dagoenak bere etengailua soilik erakusten du bertan.',
+  'whatsnew.change.videoFormat': '«{name}» txartelean formatua eta bereizmena bereiz aukeratzen dituzu, eta orain «{audio}» txartelaren gainean dago.',
+  'whatsnew.change.filesMerged': '«{name}» atalak «{files}», «{check}» eta «{live}» txartel bakarrean biltzen ditu.',
+  'whatsnew.change.trackTiles': '«{name}» atalak pista bakoitza handiago marrazten du.',
+  'whatsnew.change.jdTool': 'JDownloader «{name}» txarteleko errenkada bat da, eta yt-dlp bezala beti dago piztuta, etengailu propiorik gabe.',
+  'whatsnew.change.ytdlpUpdates': '«{name}» estekak zuzenean eramaten zaitu «{page}» orriko yt-dlp-ren azpitxartelera.',
+  'whatsnew.change.vpnRoutes': '«{name}» txartel propioa da «{vpn}» txartelaren azpian, deskarga mota bakoitzerako etengailu batekin.',
 };

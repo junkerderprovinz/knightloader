@@ -237,7 +237,18 @@ export function ModuleSwitchBadge({ m, title, onFollow }: { m: Feature; title: s
  * they are its bubble. `onFollow` runs before the page changes, to ask for the
  * row to land on.
  */
-export function PageBadge({ page, title, onFollow }: { page: string; title: string; onFollow?: () => void }) {
+export function PageBadge({
+  page,
+  title,
+  onFollow,
+  'data-new': mark,
+}: {
+  page: string;
+  title: string;
+  onFollow?: () => void;
+  /** The change this badge is marked as after an update (lib/whatsNew.ts). */
+  'data-new'?: string;
+}) {
   const labelMode = useLabelMode('buttons');
   const showText = labelMode === 'text' || labelMode === 'both';
   // The server may name a page this build has no glyph for.
@@ -249,6 +260,7 @@ export function PageBadge({ page, title, onFollow }: { page: string; title: stri
       <Link
         to={`/settings/${page}`}
         onClick={onFollow}
+        data-new={mark}
         aria-label={showText ? undefined : title}
         {...tipHoverProps}
         // Never wider than its row: on a phone a long page name is cut short
