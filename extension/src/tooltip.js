@@ -10,7 +10,13 @@
  */
 (() => {
   const BUBBLE_ID = 'glim-bubble';
+  // Long enough to read the longest refusal reason twice.
+  const FLASH_MS = 6000;
   let currentTrigger = null;
+  // A flashed bubble answers a press, so it stays when the pointer or focus
+  // moves on.
+  let pinned = false;
+  let flashTimer = 0;
   let wired = false;
   // Whether the last input was a pointer rather than a key. Focus that follows
   // a press is a side effect (the click itself, or a dialog handing focus back
@@ -31,12 +37,16 @@
 
   function hide() {
     const el = document.getElementById(BUBBLE_ID);
-    if (el) el.style.display = 'none';
+    if (el) {
+      el.style.display = 'none';
+      el.removeAttribute('role');
+    }
     currentTrigger = null;
+    pinned = false;
+    clearTimeout(flashTimer);
   }
 
-  function show(trigger) {
-    const tip = trigger.getAttribute('data-tip');
+  function show(trigger, tip = trigger.getAttribute('data-tip')) {
     if (!tip) return;
     const el = bubbleEl();
     const rect = trigger.getBoundingClientRect();
@@ -85,12 +95,13 @@
         }
       }
       if (trigger === currentTrigger) return;
+      hide();
       currentTrigger = trigger;
       show(trigger);
     }
 
     function out(event) {
-      if (!currentTrigger) return;
+      if (!currentTrigger || pinned) return;
       const to = event.relatedTarget;
       if (to instanceof Node && currentTrigger.contains(to)) return;
       hide();
@@ -176,8 +187,23 @@
     if (currentTrigger === el) show(el);
   }
 
+  /**
+   * flashTip opens the bubble at a control that refused a press, with the
+   * reason as its text. The next press, Escape, a scroll or FLASH_MS close it.
+   * The role lets a screen reader read the reason the eye finds in the bubble.
+   */
+  function flashTip(trigger, text) {
+    hide();
+    bubbleEl().setAttribute('role', 'status');
+    currentTrigger = trigger;
+    pinned = true;
+    show(trigger, text);
+    flashTimer = setTimeout(hide, FLASH_MS);
+  }
+
   window.wireTooltips = wireTooltips;
   window.glimInfoIcon = infoIcon;
   window.glimSetInfo = setInfo;
   window.glimRefreshTip = refreshTip;
+  window.glimFlashTip = flashTip;
 })();
