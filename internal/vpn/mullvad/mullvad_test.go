@@ -82,6 +82,9 @@ func TestPickFollowsTheLocation(t *testing.T) {
 	if _, err := l.Pick("xx", nil); !errors.Is(err, ErrNoRelay) {
 		t.Errorf("pick of a country without relays = %v", err)
 	}
+	if _, err := l.Pick("at-vie-wg-002", nil); !errors.Is(err, ErrNoRelayUp) {
+		t.Errorf("pick of a relay that is down = %v, want ErrNoRelayUp", err)
+	}
 	if r, err := l.Pick("", nil); err != nil || r.Hostname == "" {
 		t.Errorf("pick of anywhere = %v %v", r, err)
 	}

@@ -68,6 +68,9 @@ const (
 	CodeAccountExpired = "vpn-account-expired"
 	// CodeLocationUnknown is a location the provider has no server at.
 	CodeLocationUnknown = "vpn-location-unknown"
+	// CodeResumeFailed is a provider in use before a restart that could not
+	// be connected again; what goes through the VPN waits.
+	CodeResumeFailed = "vpn-resume-failed"
 )
 
 // final says a failure is one that trying again with the same login does
@@ -102,9 +105,10 @@ const defaultHideMeServer = "nl"
 
 func openHideMe(ctx context.Context, login Login) (*session, error) {
 	c := &hideme.Client{
-		Host:     cmp.Or(strings.TrimSpace(login["location"]), defaultHideMeServer),
-		Username: strings.TrimSpace(login["username"]),
-		Password: login["password"],
+		Host:        cmp.Or(strings.TrimSpace(login["location"]), defaultHideMeServer),
+		Username:    strings.TrimSpace(login["username"]),
+		Password:    login["password"],
+		LookupNetIP: lookupServer,
 	}
 	if b, err := base64.StdEncoding.DecodeString(login[accessTokenField]); err == nil {
 		c.AccessToken = b
@@ -120,7 +124,7 @@ func openHideMe(ctx context.Context, login Login) (*session, error) {
 		if refused(err) {
 			return nil, &failure{CodeLoginRefused, err}
 		}
-		return nil, err
+		return nil, unknownServer(err)
 	}
 	if s.StaleAccessToken {
 		c.FetchAccessToken(ctx)
@@ -149,6 +153,21 @@ func openHideMe(ctx context.Context, login Login) (*session, error) {
 func refused(err error) bool {
 	var se *hideme.StatusError
 	return errors.Is(err, hideme.ErrUpdateRequired) || errors.As(err, &se) && se.Code >= 400 && se.Code < 500
+}
+
+// lookupServer resolves the server of a provider whose location is a server
+// name, the system's resolver when nil; tests answer for it.
+var lookupServer func(ctx context.Context, network, host string) ([]netip.Addr, error)
+
+// unknownServer gives a server name that does not exist the code of an
+// unknown location, for a provider whose location names the server. A lookup
+// that timed out or failed for now stays an error worth trying again.
+func unknownServer(err error) error {
+	var de *net.DNSError
+	if errors.As(err, &de) && de.IsNotFound {
+		return &failure{CodeLocationUnknown, err}
+	}
+	return err
 }
 
 // classify gives an error of opening a session or setting the tunnel up its

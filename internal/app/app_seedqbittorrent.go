@@ -65,7 +65,7 @@ func (a *App) handToQBittorrent(ctx context.Context, h handover, q settings.QBit
 		if err := checkSeedFiles(&core.Task{File: h.file, TorrentFiles: h.files}); err != nil {
 			return err
 		}
-	} else if err := engine.CheckPieces(dir, h.link); err != nil {
+	} else if err := engine.CheckPieces(ctx, dir, h.link); err != nil {
 		return err
 	}
 	save, err := qbittorrent.SavePath(dir, pathvars.Root(a.defaultDir()), q.DownloadsPath)

@@ -101,6 +101,10 @@ func (o Options) withDefaults() Options {
 // as it treats a missing interface.
 var ErrDown = netbind.ErrDown
 
+// ErrResolve is an endpoint whose name did not resolve, which a name server
+// that is not reachable yet causes as often as a wrong name.
+var ErrResolve = errors.New("vpn: resolve")
+
 // Tunnel is one WireGuard connection inside the process. It is a
 // netbind.Network: registered with netbind and named as the torrent client's
 // interface, it carries every torrent socket and nothing else.
@@ -208,6 +212,7 @@ func (t *Tunnel) Disconnect() {
 	t.stack++
 	t.state.Addrs = nil
 	t.state.Reconnects = 0
+	t.backoff = 0
 	st := t.setStatusLocked(Disconnected, "")
 	t.mu.Unlock()
 	// Watchers such as a Binder close their sockets while the stack still
@@ -298,10 +303,10 @@ func (t *Tunnel) resolve(ctx context.Context, endpoint string, attempt int) (net
 	defer cancel()
 	ips, err := t.opts.LookupNetIP(ctx, "ip", host)
 	if err != nil {
-		return netip.AddrPort{}, fmt.Errorf("vpn: resolve %s: %w", host, err)
+		return netip.AddrPort{}, fmt.Errorf("%w %s: %w", ErrResolve, host, err)
 	}
 	if len(ips) == 0 {
-		return netip.AddrPort{}, fmt.Errorf("vpn: %s has no address", host)
+		return netip.AddrPort{}, fmt.Errorf("%w %s: no address", ErrResolve, host)
 	}
 	// IPv4 first: a provider's IPv6 is often the one that is broken.
 	slices.SortStableFunc(ips, func(a, b netip.Addr) int {

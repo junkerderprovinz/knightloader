@@ -72,10 +72,17 @@ type ProviderState struct {
 	Name           string   `json:"name"`
 	Fields         []string `json:"fields"`
 	PortForwarding bool     `json:"portForwarding"`
-	Configured     bool     `json:"configured"`
-	State          string   `json:"state"`
-	ExitIP         string   `json:"exitIp,omitempty"`
-	ForwardedPort  int      `json:"forwardedPort,omitempty"`
+	// PortManual says the provider forwards a port only once the user asks for
+	// one in its account. ForwardedPort is then the torrent settings' port,
+	// which is to be forwarded there; nothing confirms that it is.
+	PortManual bool `json:"portManual,omitempty"`
+	Configured bool `json:"configured"`
+	// Location is the stored location, which is no secret, so the form can
+	// show it and an emptied field can clear it.
+	Location      string `json:"location,omitempty"`
+	State         string `json:"state"`
+	ExitIP        string `json:"exitIp,omitempty"`
+	ForwardedPort int    `json:"forwardedPort,omitempty"`
 	// ForwardedAddress is where the forwarded port is reached, as a NAT-PMP
 	// gateway reports it; empty where the exit address is that place.
 	ForwardedAddress string `json:"forwardedAddress,omitempty"`
@@ -152,6 +159,10 @@ type Manager struct {
 	opts      Options
 	tun       *vpn.Tunnel
 	providers []Provider
+
+	// op keeps to one Connect, Disconnect, Forget or Close at a time, so a run
+	// is never started while another is still being stopped.
+	op sync.Mutex
 
 	mu     sync.Mutex
 	active string
@@ -235,8 +246,13 @@ func (m *Manager) ForwardedPort() int {
 // State is the VPN page's state.
 func (m *Manager) State() State {
 	stored := map[string]bool{}
+	locations := map[string]string{}
 	for _, id := range m.opts.Store.AccountIDs(Service) {
 		stored[id] = true
+		if p := m.provider(id); p != nil && slices.Contains(p.Fields, "location") {
+			login, _ := m.login(id)
+			locations[id] = login["location"]
+		}
 	}
 	ts := m.tun.State()
 	m.mu.Lock()
@@ -244,8 +260,8 @@ func (m *Manager) State() State {
 	out := State{Active: m.active, Routes: m.routes, Providers: make([]ProviderState, 0, len(m.providers))}
 	for _, p := range m.providers {
 		ps := ProviderState{
-			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding,
-			Configured: stored[p.ID], State: "idle",
+			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding, PortManual: p.port == manualPort,
+			Configured: stored[p.ID], Location: locations[p.ID], State: "idle",
 		}
 		if p.ID == m.active {
 			m.fillActive(&ps, p, ts)
@@ -286,6 +302,12 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 // left empty keep the stored login. It returns once the login is stored; the
 // connection follows, and State tells how it goes.
 func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
+	m.op.Lock()
+	defer m.op.Unlock()
+	return m.connect(id, fields)
+}
+
+func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 	p := m.provider(id)
 	if p == nil {
 		return State{}, &Refusal{Status: http.StatusNotFound, Code: "vpn-unknown", Text: fmt.Sprintf("no VPN provider %q", id)}
@@ -294,25 +316,42 @@ func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
 		return State{}, &Refusal{Status: http.StatusNotImplemented, Code: "vpn-unsupported",
 			Text: fmt.Sprintf("KnightLoader cannot log in to %s yet", p.Name)}
 	}
-	login := m.login(id)
+	login, err := m.login(id)
+	if err != nil {
+		return State{}, fmt.Errorf("the stored login of %s cannot be read: %w", p.Name, err)
+	}
+	changed := false
 	for k, v := range fields {
 		if !slices.Contains(p.Fields, k) {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-unknown", Field: k,
 				Text: fmt.Sprintf("%s asks for no %s", p.Name, k)}
 		}
-		if strings.TrimSpace(v) != "" && login[k] != v {
+		blank := strings.TrimSpace(v) == ""
+		switch {
+		case blank && k == "location" && login[k] != "":
+			// The page sends the location it shows only once it was edited,
+			// so an empty one goes back to any server.
+			delete(login, k)
+		case blank || login[k] == v:
+			continue
+		default:
 			login[k] = v
-			// A token belongs to the login it was fetched with.
-			delete(login, accessTokenField)
 		}
+		// A token belongs to the login it was fetched with.
+		delete(login, accessTokenField)
+		changed = true
 	}
 	for _, f := range p.Fields {
 		if f != "location" && strings.TrimSpace(login[f]) == "" {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-missing", Field: f, Text: f + " is missing"}
 		}
 	}
-	if err := m.seal(id, login); err != nil {
-		return State{}, err
+	// Sealed only when it changed, so a full or read-only disk does not keep a
+	// stored login from connecting.
+	if changed {
+		if err := m.seal(id, login); err != nil {
+			return State{}, err
+		}
 	}
 	// Registered while a provider is in use, so the torrent client's binder
 	// finds the tunnel under the name its interface is set to.
@@ -334,6 +373,12 @@ func (m *Manager) Connect(id string, fields map[string]string) (State, error) {
 
 // Disconnect ends the connection; torrents go back to the machine's own.
 func (m *Manager) Disconnect() State {
+	m.op.Lock()
+	defer m.op.Unlock()
+	return m.disconnect()
+}
+
+func (m *Manager) disconnect() State {
 	m.stop()
 	m.tun.Disconnect()
 	netbind.Register(NetworkName, nil)
@@ -347,13 +392,15 @@ func (m *Manager) Disconnect() State {
 
 // Forget deletes a provider's stored login, disconnecting it first.
 func (m *Manager) Forget(id string) (State, error) {
+	m.op.Lock()
+	defer m.op.Unlock()
 	if m.provider(id) == nil {
 		return State{}, &Refusal{Status: http.StatusNotFound, Code: "vpn-unknown", Text: fmt.Sprintf("no VPN provider %q", id)}
 	}
 	if m.Active() == id {
-		m.Disconnect()
+		m.disconnect()
 	}
-	login := m.login(id)
+	login, _ := m.login(id)
 	if err := m.opts.Store.SetCredential(Service, id, accounts.Credential{}); err != nil {
 		return State{}, err
 	}
@@ -368,13 +415,30 @@ func (m *Manager) Forget(id string) (State, error) {
 }
 
 // Resume connects the provider that was in use when the process last ended.
+// One that cannot be taken up again stays in use as failed, so the traffic
+// switched on for the VPN waits until the user connects again or disconnects
+// rather than going out over the machine's own connection.
 func (m *Manager) Resume() {
+	m.op.Lock()
+	defer m.op.Unlock()
 	if m.resume == "" {
 		return
 	}
-	if _, err := m.Connect(m.resume, nil); err != nil {
-		m.opts.Logf("vpn: %s not taken up again: %v", m.resume, err)
+	_, err := m.connect(m.resume, nil)
+	if err == nil {
+		return
 	}
+	m.opts.Logf("vpn: %s not taken up again: %v", m.resume, err)
+	p := m.provider(m.resume)
+	if p == nil {
+		return
+	}
+	netbind.Register(NetworkName, m.tun)
+	m.mu.Lock()
+	m.active = p.ID
+	m.fail = &failure{CodeResumeFailed, fmt.Errorf("%s could not be taken up again after the restart: %w", p.Name, err)}
+	m.mu.Unlock()
+	m.opts.OnChange()
 }
 
 // SetRoutes says which traffic goes through the VPN.
@@ -425,6 +489,8 @@ func (m *Manager) DialContext(ctx context.Context, network, address string) (net
 
 // Close ends the connection and keeps which provider was in use, for Resume.
 func (m *Manager) Close() {
+	m.op.Lock()
+	defer m.op.Unlock()
 	m.stop()
 	m.tun.Disconnect()
 	if m.Active() != "" {
@@ -445,13 +511,13 @@ func (m *Manager) stop() {
 	endSoon(sess)
 }
 
-func (m *Manager) login(id string) Login {
+func (m *Manager) login(id string) (Login, error) {
 	login := Login{}
 	cred, err := m.opts.Store.GetCredential(Service, id)
-	if err == nil && cred.APIKey != "" {
-		json.Unmarshal([]byte(cred.APIKey), &login)
+	if err != nil || cred.APIKey == "" {
+		return login, err
 	}
-	return login
+	return login, json.Unmarshal([]byte(cred.APIKey), &login)
 }
 
 func (m *Manager) seal(id string, login Login) error {
@@ -557,6 +623,9 @@ func (m *Manager) open(ctx context.Context, p Provider, login *Login) (*session,
 	}
 	if err := m.tun.Connect(octx, sess.cfg); err != nil {
 		endSoon(sess)
+		if errors.Is(err, vpn.ErrResolve) {
+			return nil, &failure{CodeTimeout, err}
+		}
 		return nil, &failure{CodeConfigInvalid, err}
 	}
 	return sess, nil
@@ -564,16 +633,28 @@ func (m *Manager) open(ctx context.Context, p Provider, login *Login) (*session,
 
 // serve waits for the handshake, then keeps the port forwarded while the
 // tunnel stands. It returns when ctx ends, or when a session that can end has
-// had its tunnel down for RenewAfter.
+// had its tunnel down for RenewAfter, before its first handshake or after.
 func (m *Manager) serve(ctx context.Context, p Provider, sess *session) {
 	wctx, cancel := context.WithTimeout(ctx, m.opts.ConnectTimeout)
 	err := m.tun.WaitConnected(wctx)
 	cancel()
-	if err != nil && ctx.Err() == nil {
+	if err != nil {
+		if ctx.Err() != nil {
+			return
+		}
 		m.setFail(&failure{CodeTimeout, fmt.Errorf("no handshake with %s", sess.cfg.Peer.Endpoint)})
-	}
-	if err := m.tun.WaitConnected(ctx); err != nil {
-		return
+		wait := ctx
+		if sess.renews {
+			var cancel context.CancelFunc
+			wait, cancel = context.WithTimeout(ctx, m.opts.RenewAfter)
+			defer cancel()
+		}
+		if err := m.tun.WaitConnected(wait); err != nil {
+			if sess.renews && ctx.Err() == nil {
+				m.opts.Logf("vpn: %s never answered, opening a new session", p.Name)
+			}
+			return
+		}
 	}
 	m.setFail(nil)
 	go m.lookUpExitIP(ctx)
@@ -630,11 +711,8 @@ func (m *Manager) forwardPort(ctx context.Context, p Provider, sess *session) {
 	if !gw.IsValid() {
 		return
 	}
-	if sess.forward != nil {
-		if err := sess.forward(ctx, m.tun.DialContext); err != nil {
-			m.opts.Logf("vpn: %s port forwarding: %v", p.Name, err)
-			return
-		}
+	if sess.forward != nil && !m.retryPort(ctx, p, func() error { return sess.forward(ctx, m.tun.DialContext) }) {
+		return
 	}
 	pf := &vpn.PortForward{
 		Client:    &vpn.NATPMP{Gateway: gw, Dial: m.tun.DialContext},
@@ -644,6 +722,26 @@ func (m *Manager) forwardPort(ctx context.Context, p Provider, sess *session) {
 		Logf:      m.opts.Logf,
 	}
 	pf.Run(ctx)
+}
+
+// portRetry is how long a request for a forwarded port waits after one that
+// failed.
+var portRetry = 30 * time.Second
+
+// retryPort runs ask until it works, reporting true, or ctx ends.
+func (m *Manager) retryPort(ctx context.Context, p Provider, ask func() error) bool {
+	for ctx.Err() == nil {
+		err := ask()
+		if err == nil {
+			return true
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		m.opts.Logf("vpn: %s port forwarding: %v", p.Name, err)
+		wait(ctx, portRetry)
+	}
+	return false
 }
 
 func (m *Manager) lookUpExitIP(ctx context.Context) {
