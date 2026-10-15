@@ -1,28 +1,30 @@
 import { LabelBadge } from '../../../components/ui';
-import { Monogram } from '../../../components/HosterIcon';
+import { Logo, Monogram, monogramPaint, type Paint } from '../../../components/HosterIcon';
 import type { VpnConnState, VpnProvider } from '../../../lib/api';
 import { withBase } from '../../../lib/basePath';
 import type { TranslationKey } from '../../../lib/i18n';
+import type { LogoTile } from '../../../lib/logoTile';
 import { VPN_APP_ONLY, VPN_PROVIDERS } from '../../../lib/vpnProviders';
 
 type T = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
-const WITH_LOGO = new Set([...VPN_PROVIDERS, ...VPN_APP_ONLY].filter((p) => p.logo).map((p) => p.id));
+const LOGOS = new Map<string, LogoTile | null>([...VPN_PROVIDERS, ...VPN_APP_ONLY].map((p) => [p.id, p.logo]));
 
-/** VpnMark is a provider's logo from public/vpn, or its letter tile where there is none. */
-export function VpnMark({ id, name, size }: { id: string; name: string; size: number }) {
+/**
+ * VpnMark is a provider's logo from public/vpn, or its letter tile where there
+ * is none. `lit` adds the mask its brand tile shows under the pointer.
+ */
+export function VpnMark({ id, name, size, lit }: { id: string; name: string; size: number; lit?: boolean }) {
   const box = { width: size, height: size };
-  if (!WITH_LOGO.has(id)) return <Monogram name={name} box={box} />;
-  return (
-    <img
-      src={withBase(`/vpn/${id}.png`)}
-      alt=""
-      aria-hidden
-      style={box}
-      className="inline-block shrink-0 rounded-[var(--radius-control)] object-contain"
-    />
-  );
+  const logo = LOGOS.get(id);
+  if (!logo) return <Monogram name={name} box={box} />;
+  const src = withBase(`/vpn/${id}.png`);
+  const mask = logo.lit ? withBase(`/vpn/${id}.lit.png`) : src;
+  return <Logo src={src} mask={mask} rest={logo.rest} box={box} lit={lit} />;
 }
+
+/** vpnPaint is the colours a provider's tile lights up in. */
+export const vpnPaint = (id: string, name: string): Paint => LOGOS.get(id) ?? monogramPaint(name);
 
 /** The own config is no brand, so its name is the interface's words. */
 export const nameOf = (t: T, p: Pick<VpnProvider, 'id' | 'name'>): string =>
