@@ -13,7 +13,8 @@
  *      the watch off when a renewal says another device asked it to stop.
  *   5. A new start of the background leaves the renewal alarm as it runs.
  *   6. Click'n'Load and the popup's collector take the links the watch takes.
- *      Click'n'Load leaves magnets out, as splitLinks in internal/cnl does.
+ *      Click'n'Load leaves magnets out and splits on control bytes, as
+ *      splitLinks in internal/cnl does.
  *
  * Run by CI and by hand: `node extension/check-clipwatch.mjs`.
  */
@@ -217,6 +218,10 @@ function background({ stopAnswer = false, alarms = new Map() } = {}) {
   const text = `${own.slice(0, 3).join(' ')}\n${own.slice(3).join('\t')} ${magnet} notes xhttps://glued.example ftp://h/2`;
   const cnl = vm.runInContext('splitCnlLinks', ctx)(text);
   if (cnl.join('|') !== [...own, 'ftp://h/2'].join('|')) fail(`splitCnlLinks kept ${JSON.stringify(cnl)}, want ${JSON.stringify([...own, 'ftp://h/2'])}`);
+  const parts = ['https://h.example/f.part1.rar', 'https://h.example/f.part2.rar', 'https://h.example/f.part3.rar'];
+  const padded = `\x00\x00\x00${parts[0]}\r\n\x01${parts[1]}\x00\x1f${parts[2]}`;
+  const split = vm.runInContext('splitCnlLinks', ctx)(padded);
+  if (split.join('|') !== parts.join('|')) fail(`splitCnlLinks kept ${JSON.stringify(split)} from links set apart by control bytes, want ${JSON.stringify(parts)}`);
   if (linksIn) {
     const got = vm.runInContext('linksIn', ctx)(text);
     const want = [...own, magnet];
