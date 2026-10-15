@@ -17,7 +17,7 @@ func (a *App) newDebridDrive() *debriddrive.Drive {
 	}
 	// A player holds a read open for as long as it plays, so there is no
 	// ceiling on the request as a whole.
-	return debriddrive.New(a.driveAccounts, refresh, httpx.New(httpx.Options{Timeout: httpx.NoTimeout}))
+	return debriddrive.New(a.driveAccounts, refresh, httpx.New(httpx.Options{Class: httpx.ClassDebrid, Timeout: httpx.NoTimeout}))
 }
 
 // driveAccounts is every account the debrid drive shows: the wired ones whose

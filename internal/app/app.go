@@ -263,6 +263,8 @@ type App struct {
 	// vpnProxy is the loopback proxy into the VPN tunnel (app_vpn.go).
 	vpnProxy   *netproxy.Server
 	usenetDial *usenetDialer
+	// usenetVPN is whether Usenet went through the VPN when applyVPN last ran.
+	usenetVPN atomic.Bool
 
 	// wmu serialises changes to watcher, which is replaced whenever the watched
 	// folders change. The pointer itself is atomic so that a reader never waits
@@ -369,6 +371,9 @@ type App struct {
 	queue    []string        // task IDs waiting for a slot, FIFO with per-host skip-ahead
 	active   map[string]bool // dispatched and not yet terminal/paused
 	started  map[string]bool // ever handed to a backend (Resume vs fresh Download)
+	// rerouting holds the engine transfers being moved onto another route,
+	// by engine id (see keepOnRoute).
+	rerouting map[string]bool
 	// fellBack holds the tasks a backend has handed down the chain in this
 	// process, each with the backends ranked above where the chain led. Their
 	// recorded backend is where the chain led rather than an earlier pick, so
@@ -504,6 +509,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 		shown:      map[string]uint64{},
 		active:     map[string]bool{},
 		started:    map[string]bool{},
+		rerouting:  map[string]bool{},
 		fellBack:   map[string]map[string]bool{},
 		moving:     map[string]bool{},
 		startNow:   map[string]bool{},
@@ -515,8 +521,8 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own
 	// client so a router holding connections open cannot starve a crawl.
-	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{})}
-	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
+	a.Crawler = crawler.HTML{Client: httpx.New(httpx.Options{Class: httpx.ClassHosters})}
+	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout, Class: httpx.ClassHosters})
 	a.DebridDrive = a.newDebridDrive()
 	a.ctx, a.cancel = context.WithCancel(context.Background())
 	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
