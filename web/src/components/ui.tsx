@@ -1927,6 +1927,7 @@ export function Modal({
   hue,
   height = 'content',
   wide = false,
+  widest = false,
   holdHeight = false,
   right,
 }: {
@@ -1968,6 +1969,9 @@ export function Modal({
   /** Room for a grid beside a picture, such as the twelve words and their QR
    *  code, or for a form of several columns. */
   wide?: boolean;
+  /** The step past wide, for a form row whose selector has to stay on one
+   *  line beside its name in every language. */
+  widest?: boolean;
   /**
    * Keeps the height the window had before this turned on, so a picker does
    * not shrink under its search while the tiles narrow.
@@ -2011,7 +2015,7 @@ export function Modal({
           motion. Two windows in one app must not arrive in two ways. */}
       <div
         ref={card}
-        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${wide ? 'max-w-3xl' : MODAL_WIDTH[height]} ${MODAL_HEIGHT[height]}`}
+        className={`glim-card ${hue !== undefined ? 'glim-hue ' : ''}glim-modal-card w-full p-5 flex flex-col gap-5 ${widest ? 'max-w-5xl' : wide ? 'max-w-3xl' : MODAL_WIDTH[height]} ${MODAL_HEIGHT[height]}`}
         style={{
           ...(hue !== undefined ? (hueVars(hue) as CSSProperties) : {}),
           ...(holdHeight ? { height: freeHeight.current } : {}),

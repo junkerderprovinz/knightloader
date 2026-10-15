@@ -503,7 +503,7 @@ function CategoryRow({
       <RowRefusal field={`categories.${index}`} explained={duplicate} className="ps-8" />
 
       {open && (
-        <Sheet title={title || t('settings.categories.name')} hue={index} wide onClose={onToggle}>
+        <Sheet title={title || t('settings.categories.name')} hue={index} widest onClose={onToggle}>
           {duplicate && <p className="text-xs text-statusWarn">{t('settings.categories.duplicate')}</p>}
 
           <div className="flex flex-col gap-4">

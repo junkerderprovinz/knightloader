@@ -426,7 +426,7 @@ function FeedRow({
       {stored && <RowRefusal field={`feeds.${index}`} />}
 
       {open && (
-        <Sheet title={row.url || t('settings.feeds.url')} hue={index} wide onClose={onToggle}>
+        <Sheet title={row.url || t('settings.feeds.url')} hue={index} widest onClose={onToggle}>
           <SettingRow control="long" label={t('settings.feeds.url')} hint={t('settings.feeds.urlHint')}>
             {stored ? (
               // Read only rather than absent, so the address can still be copied.
