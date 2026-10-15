@@ -231,7 +231,7 @@ func TestAStoredLoginConnectsWithEmptyFields(t *testing.T) {
 	h.waitFor(t, "custom", "connected")
 }
 
-func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
+func TestAnOwnConfigShowsTheTorrentPortAsOneToForwardByHand(t *testing.T) {
 	srv := vpntest.Start(t)
 	h := newHarness(t, &memStore{}, "")
 	h.manual.Store(6881)
@@ -239,6 +239,12 @@ func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
 	p := h.waitFor(t, "custom", "connected")
 	if p.ForwardedPort != 6881 || h.m.ForwardedPort() != 0 {
 		t.Errorf("forwarded port %d shown, %d for the torrent client; want 6881 and 0", p.ForwardedPort, h.m.ForwardedPort())
+	}
+	if !p.PortManual {
+		t.Error("the torrent port is shown as forwarded, not as one to forward in the account")
+	}
+	if h.provider("protonvpn").PortManual {
+		t.Error("a port forwarded through NAT-PMP is shown as one to forward by hand")
 	}
 	if p.ForwardedAddress != "" {
 		t.Errorf("forwarded port reached at %q, want it left to the exit address", p.ForwardedAddress)

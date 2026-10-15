@@ -72,7 +72,11 @@ type ProviderState struct {
 	Name           string   `json:"name"`
 	Fields         []string `json:"fields"`
 	PortForwarding bool     `json:"portForwarding"`
-	Configured     bool     `json:"configured"`
+	// PortManual says the provider forwards a port only once the user asks for
+	// one in its account. ForwardedPort is then the torrent settings' port,
+	// which is to be forwarded there; nothing confirms that it is.
+	PortManual bool `json:"portManual,omitempty"`
+	Configured bool `json:"configured"`
 	// Location is the stored location, which is no secret, so the form can
 	// show it and an emptied field can clear it.
 	Location      string `json:"location,omitempty"`
@@ -256,7 +260,7 @@ func (m *Manager) State() State {
 	out := State{Active: m.active, Routes: m.routes, Providers: make([]ProviderState, 0, len(m.providers))}
 	for _, p := range m.providers {
 		ps := ProviderState{
-			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding,
+			ID: p.ID, Name: p.Name, Fields: slices.Clone(p.Fields), PortForwarding: p.PortForwarding, PortManual: p.port == manualPort,
 			Configured: stored[p.ID], Location: locations[p.ID], State: "idle",
 		}
 		if p.ID == m.active {
