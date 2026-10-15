@@ -118,6 +118,7 @@ export function Sheet({
   hint,
   hue,
   wide = false,
+  widest = false,
   onClose,
   children,
 }: {
@@ -125,6 +126,8 @@ export function Sheet({
   hint?: string;
   hue?: number;
   wide?: boolean;
+  /** For a row whose selector, such as the priority ladder, has to stay on one line. */
+  widest?: boolean;
   onClose: () => void;
   children: ReactNode;
 }) {
@@ -136,6 +139,7 @@ export function Sheet({
       hue={hue}
       height="capped"
       wide={wide}
+      widest={widest}
       onClose={onClose}
       // Filled, since it is the window's one button and a bare word would not read as one.
       footer={<Button kind="secondary" labelled icon={<IconClose />} title={t('common.close')} onClick={onClose} />}

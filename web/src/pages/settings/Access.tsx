@@ -364,6 +364,7 @@ export function TokensSection() {
       {showCreate && !created && (
         <Modal
           title={t('settings.access.tokens.new')}
+          widest
           onClose={() => (creating ? undefined : closeCreate())}
           footer={
             <>
