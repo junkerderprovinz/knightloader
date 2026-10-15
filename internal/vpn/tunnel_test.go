@@ -120,8 +120,17 @@ func TestTwoPeersMoveDataThroughTheTunnel(t *testing.T) {
 	if n, err := u.Read(buf); err != nil || string(buf[:n]) != "datagram" {
 		t.Fatalf("udp echo = %q, %v", buf[:n], err)
 	}
-	if st := p.tun.State(); st.RxBytes < uint64(len(sent)) || st.TxBytes < uint64(len(sent)) {
-		t.Errorf("state counts rx %d tx %d, want at least %d each", st.RxBytes, st.TxBytes, len(sent))
+	// The counts are read from the device on each poll, so the last bytes
+	// show up one poll later.
+	want := uint64(len(sent))
+	deadline := time.Now().Add(2 * time.Second)
+	st := p.tun.State()
+	for (st.RxBytes < want || st.TxBytes < want) && time.Now().Before(deadline) {
+		time.Sleep(10 * time.Millisecond)
+		st = p.tun.State()
+	}
+	if st.RxBytes < want || st.TxBytes < want {
+		t.Errorf("state counts rx %d tx %d, want at least %d each", st.RxBytes, st.TxBytes, want)
 	}
 }
 
