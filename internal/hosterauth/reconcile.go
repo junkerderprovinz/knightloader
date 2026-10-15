@@ -165,11 +165,6 @@ type Reconciler struct {
 	// step with it.
 	Enabled func(host string) bool
 
-	// Off answers whether JD's module is switched off. A pass then only reads
-	// JD's hoster list: without it a hoster link would rank below the direct
-	// download after a restart and fetch the hoster's page. nil means on.
-	Off func() bool
-
 	// Reconciled is called after a pass that changed which hosts JD fetches on
 	// a login and which in free mode: a login confirmed or lost, or JD's hoster
 	// list read for the first time or changed. nil calls nothing.
@@ -345,13 +340,6 @@ func (r *Reconciler) Reconcile(ctx context.Context) (Plan, error) {
 		return Plan{}, errJDNotConfigured
 	}
 	jd := r.newJD(base)
-	if r.Off != nil && r.Off() {
-		if hosts, err := jd.listPremiumHosters(ctx); err == nil && r.setHosters(hosts) {
-			r.reconciled()
-		}
-		return Plan{}, nil
-	}
-
 	desired := r.desired()
 	actual, err := jd.queryAccounts(ctx)
 	if err != nil {

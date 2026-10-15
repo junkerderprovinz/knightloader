@@ -111,7 +111,7 @@ func (a *App) pollCaptchasOnce(st *captchaState) []captcha.Challenge {
 	st.pollMu.Lock()
 	defer st.pollMu.Unlock()
 
-	if a.ModuleOff("captcha") || a.ModuleOff("jd") {
+	if a.ModuleOff("captcha") {
 		// Open prompts close and JD is not asked. JD keeps its challenges and
 		// gives up on those links itself once they expire.
 		for _, c := range st.store.List() {
@@ -260,12 +260,10 @@ type TestCaptchaResult struct {
 	Solver string `json:"solver,omitempty"`
 }
 
-// The refusals of CreateTestCaptcha. With the captcha or JD module off no
-// prompt would show the captcha, and the captcha module can be switched back
-// on only once JD is.
+// The refusals of CreateTestCaptcha. With the captcha module off no prompt
+// would show the captcha.
 var (
-	ErrCaptchaOff   = errors.New("captchas are switched off on the Accounts page")
-	ErrCaptchaJDOff = errors.New("captchas come through JDownloader, which is switched off on the Resolvers page")
+	ErrCaptchaOff = errors.New("captchas are switched off on the Accounts page")
 	// ErrNoCaptchaAccount refuses a test for the captcha accounts while none
 	// of them could take it: none is enabled with a key, or the account is
 	// switched off.
@@ -277,8 +275,6 @@ var (
 // targets. solvers lets the paid solvers take it too, which they bill.
 func (a *App) CreateTestCaptcha(solvers bool) (captcha.Challenge, error) {
 	switch {
-	case a.ModuleOff("jd"):
-		return captcha.Challenge{}, ErrCaptchaJDOff
 	case a.ModuleOff("captcha"):
 		return captcha.Challenge{}, ErrCaptchaOff
 	case solvers && len(a.captchaSolvers()) == 0:

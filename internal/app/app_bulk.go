@@ -412,18 +412,12 @@ var ErrNoContainerBackend = fmt.Errorf(
 	"this container is encrypted, and only the headless JDownloader backend can open it; " +
 		"none is configured (set KL_JD to a reachable JD)")
 
-// ErrJDOff is returned for an encrypted container while JDownloader is
-// switched off.
-var ErrJDOff = errors.New(
-	"this container is encrypted, and only the headless JDownloader backend can open it; " +
-		"\"JDownloader backend\" is switched off on the Resolvers page")
-
 // errJDCouldNotOpen is a container neither KnightLoader nor JD can read.
 var errJDCouldNotOpen = errors.New("JDownloader could not open this container either, so the file is damaged or not a container")
 
 // ContainerBackendConfigured reports whether a JD backend that can open an
-// encrypted container is wired, switched on or not. It is asked before an
-// upload is stored, so the upload can be refused with the reason.
+// encrypted container is wired. It is asked before an upload is stored, so the
+// upload can be refused with the reason.
 func (a *App) ContainerBackendConfigured() bool {
 	a.bmu.RLock()
 	be := a.jd
@@ -438,9 +432,6 @@ func (a *App) ContainerBackendConfigured() bool {
 // goroutine, because JD may wait for a captcha. A failure is recorded where the
 // user looks for links that did not make it.
 func (a *App) HandContainerToJD(rawurl, name, pkg string) error {
-	if a.ModuleOff("jd") {
-		return ErrJDOff
-	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()
@@ -493,9 +484,6 @@ type cryptedV1Adder interface {
 // CryptedV1BackendConfigured reports whether Click'n'Load's addcrypted can be
 // served, so the listener only claims support it has.
 func (a *App) CryptedV1BackendConfigured() bool {
-	if a.ModuleOff("jd") {
-		return false
-	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()
@@ -541,9 +529,6 @@ func (a *App) AddContainerCnL(data []byte, pkg string) error {
 }
 
 func (a *App) cryptedV1Backend() (cryptedV1Adder, error) {
-	if a.ModuleOff("jd") {
-		return nil, ErrJDOff
-	}
 	a.bmu.RLock()
 	be := a.jd
 	a.bmu.RUnlock()

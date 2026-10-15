@@ -217,8 +217,8 @@ func (a *App) ResolverPriority(host string) []resolver.Info {
 // hoster, so each would hand a video to JD or save a hoster's or a player's
 // page. A service that lists the host, such as a debrid account, may take the
 // link over, and so may the direct download: it claims only a path that ends
-// in a file extension, and it leaves file hosters and, while yt-dlp is on,
-// video sites alone (see hostClaims).
+// in a file extension, and it leaves file hosters and video sites alone (see
+// hostClaims).
 func barredPastOff(id string) bool {
 	return id == "jd" || id == "ytdlp" || id == "http"
 }

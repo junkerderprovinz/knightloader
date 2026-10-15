@@ -9,9 +9,6 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/captcha"
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
-	"github.com/junkerderprovinz/knightloader/internal/resolver"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/jd"
-	"github.com/junkerderprovinz/knightloader/internal/resolver/ytdlp"
 )
 
 func switchModulesOff(t *testing.T, a *App, ids ...string) {
@@ -34,213 +31,102 @@ func dispatchQueued(a *App, task *core.Task) core.Task {
 	return *task
 }
 
-// jdHostApp has a hoster with an active login at host, which JD takes and the
-// real direct download leaves alone. Its backend holds every transfer, so a
-// started task stays started instead of failing on the made-up host while a
+// torrentHostApp has a made-up torrent backend that takes the links at host
+// and holds every transfer it starts, so a started task stays started while a
 // test looks.
-func jdHostApp(t *testing.T, host string, extra ...fakeResolver) *App {
+func torrentHostApp(t *testing.T, host string, extra ...fakeResolver) *App {
 	t.Helper()
 	a := newQueueApp(t)
 	a.bmu.Lock()
-	a.jd = &stubBackend{got: make(chan string, 8)}
+	a.debrid["torrent"] = &stubBackend{got: make(chan string, 8)}
 	a.bmu.Unlock()
-	isolateResolvers(a, fakeResolver{id: "jd", prio: 10, host: host}, resolver.Direct{Leave: a.claims.pageOnly})
+	isolateResolvers(a, fakeResolver{id: "torrent", prio: 50, host: host})
 	for _, r := range extra {
 		a.Registry.Register(r)
 	}
-	jd.SetHostActive(host, true)
-	t.Cleanup(func() { jd.SetHostActive(host, false) })
 	return a
 }
 
-func TestALinkForASwitchedOffJDWaitsInsteadOfGoingOutDirect(t *testing.T) {
-	const host = "modules-jd-off.example"
-	a := jdHostApp(t, host)
-	switchModulesOff(t, a, "jd")
+func TestALinkOnlyASwitchedOffBackendTakesWaitsForIt(t *testing.T) {
+	const host = "modules-off.example"
+	a := torrentHostApp(t, host)
+	switchModulesOff(t, a, "torrents")
 
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/file.bin", Status: core.StatusQueued, Enabled: true})
-	if got.Status != core.StatusQueued || got.Waiting != core.WaitingModule {
-		t.Fatalf("status %q, waiting %q; want a queued task waiting for the module", got.Status, got.Waiting)
-	}
-	if got.Resolver == "direct" {
-		t.Fatal("the link went to the direct download, which would save the hoster's page")
+	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/get?id=1", Status: core.StatusQueued, Enabled: true})
+	if got.Status != core.StatusQueued || got.Waiting != core.WaitingModule || got.Resolver != "torrent" {
+		t.Fatalf("status %q, waiting %q, resolver %q; want a queued task waiting for the torrent module", got.Status, got.Waiting, got.Resolver)
 	}
 }
 
-func TestSwitchingJDBackOnReleasesTheWaitingLink(t *testing.T) {
-	const host = "modules-jd-back.example"
-	a := jdHostApp(t, host)
-	switchModulesOff(t, a, "jd")
-	dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/file.bin", Status: core.StatusQueued, Enabled: true})
+func TestSwitchingABackendBackOnReleasesTheWaitingLink(t *testing.T) {
+	const host = "modules-back.example"
+	a := torrentHostApp(t, host)
+	switchModulesOff(t, a, "torrents")
+	dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/get?id=1", Status: core.StatusQueued, Enabled: true})
 
 	switchModulesOff(t, a)
 	a.mu.Lock()
 	resolver, active := a.tasks["t1"].Resolver, a.active["t1"]
 	a.mu.Unlock()
-	if resolver != "jd" || !active {
-		t.Fatalf("after switching JD back on: resolver %q, active %v; want it started on jd", resolver, active)
+	if resolver != "torrent" || !active {
+		t.Fatalf("after switching torrents back on: resolver %q, active %v; want it started on torrent", resolver, active)
 	}
 }
 
-func TestADebridBelowASwitchedOffJDTakesTheLinkOver(t *testing.T) {
-	const host = "modules-jd-debrid.example"
-	a := jdHostApp(t, host, fakeResolver{id: "fakedebrid", prio: 45, host: host})
-	switchModulesOff(t, a, "jd")
+func TestADebridBelowASwitchedOffBackendTakesTheLinkOver(t *testing.T) {
+	const host = "modules-debrid.example"
+	a := torrentHostApp(t, host, fakeResolver{id: "fakedebrid", prio: 45, host: host})
+	switchModulesOff(t, a, "torrents")
 
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/file.bin", Status: core.StatusQueued, Enabled: true})
+	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/get?id=1", Status: core.StatusQueued, Enabled: true})
 	if got.Resolver != "fakedebrid" {
-		t.Fatalf("resolver = %q, want the debrid service below the switched-off JD", got.Resolver)
+		t.Fatalf("resolver = %q, want the debrid service below the switched-off backend", got.Resolver)
 	}
 }
 
 func TestAStartedTransferDoesNotResumeInASwitchedOffBackend(t *testing.T) {
-	const host = "modules-jd-resume.example"
-	a := jdHostApp(t, host)
-	switchModulesOff(t, a, "jd")
+	const host = "modules-resume.example"
+	a := torrentHostApp(t, host)
+	switchModulesOff(t, a, "torrents")
 	a.mu.Lock()
 	a.started["t1"] = true
 	a.mu.Unlock()
 
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/file.bin", Resolver: "jd", Status: core.StatusQueued, Enabled: true})
+	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/get?id=1", Resolver: "torrent", Status: core.StatusQueued, Enabled: true})
 	a.mu.Lock()
 	active := a.active["t1"]
 	a.mu.Unlock()
 	if active || got.Waiting != core.WaitingModule {
-		t.Fatalf("active %v, waiting %q; want the paused JD transfer held until JD is back on", active, got.Waiting)
+		t.Fatalf("active %v, waiting %q; want the paused transfer held until torrents are back on", active, got.Waiting)
 	}
 }
 
-func TestALinkYtdlpDeclinedWaitsForTheSwitchedOffJDInsteadOfGoingBackToYtdlp(t *testing.T) {
-	const host = "modules-ytdlp-declined.example"
+// JDownloader and yt-dlp have no switch, so their ids in ModulesOff hold none
+// of their links.
+func TestJDAndYtdlpTakeTheirLinksWhateverModulesOffSays(t *testing.T) {
+	const host = "modules-always-on.example"
 	a := newQueueApp(t)
+	a.bmu.Lock()
+	a.jd = &stubBackend{got: make(chan string, 8)}
+	a.ytdlp = &stubBackend{got: make(chan string, 8)}
+	a.bmu.Unlock()
 	isolateResolvers(a,
-		fakeResolver{id: "ytdlp", prio: 30, host: host},
-		fakeResolver{id: "jd", prio: 10, host: host},
-		fakeResolver{id: "http", prio: -100, host: host},
-	)
-	switchModulesOff(t, a, "jd")
-
-	// Where a decline from yt-dlp leaves the task: recorded on the next backend.
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/download/123", Resolver: "jd", Status: core.StatusQueued, Enabled: true})
-	if got.Resolver != "jd" || got.Waiting != core.WaitingModule {
-		t.Fatalf("resolver %q, waiting %q; want the task held on jd, not handed back to yt-dlp", got.Resolver, got.Waiting)
-	}
-}
-
-func TestAFallbackToTheDirectDownloadWaitsWhileJDIsOff(t *testing.T) {
-	const host = "modules-direct-fallback.example"
-	a := jdHostApp(t, host)
-	switchModulesOff(t, a, "jd")
-
-	// Where a fallback leaves the task once no debrid account takes it:
-	// recorded on direct.
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/file.bin", Resolver: "direct", Status: core.StatusQueued, Enabled: true})
-	if got.Waiting != core.WaitingModule || got.Resolver != "jd" {
-		t.Fatalf("resolver %q, waiting %q; want the task held for jd instead of fetching the hoster's page", got.Resolver, got.Waiting)
-	}
-}
-
-func TestAVideoLinkWaitsWhileYtdlpIsOffInsteadOfGoingToJD(t *testing.T) {
-	const host = "modules-video.example"
-	a := newQueueApp(t)
-	isolateResolvers(a,
-		fakeResolver{id: "ytdlp", prio: 30, host: host},
+		fakeResolver{id: "ytdlp", prio: 30, host: "video." + host},
 		fakeResolver{id: "jd", prio: 10, host: host},
 	)
-	switchModulesOff(t, a, "ytdlp")
+	switchModulesOff(t, a, "jd", "ytdlp")
 
-	got := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + host + "/watch?v=x", Status: core.StatusQueued, Enabled: true})
-	if got.Waiting != core.WaitingModule || got.Resolver != "ytdlp" {
-		t.Fatalf("resolver %q, waiting %q; want the video held for yt-dlp", got.Resolver, got.Waiting)
-	}
-}
-
-// The direct download leaves file hosters and video sites alone by its claim, so
-// a switched-off JD or yt-dlp ranked above it holds only their links, not an
-// ordinary file, and a file held that way before goes out once it can.
-func TestAPlainFileGoesToTheDirectDownloadPastASwitchedOffBackend(t *testing.T) {
-	const file = "https://files.modules-test.example/movie.mkv"
-	for _, c := range []struct {
-		off   string
-		order []string
-	}{
-		{"jd", []string{"jd", "direct", "ytdlp"}},
-		{"ytdlp", []string{"ytdlp", "direct", "jd"}},
+	for id, url := range map[string]string{
+		"jd":    "https://" + host + "/file.bin",
+		"ytdlp": "https://video." + host + "/watch?v=x",
 	} {
-		t.Run(c.off+" off", func(t *testing.T) {
-			a := newQueueApp(t)
-			a.Registry.Register(jd.Resolver{})
-			a.Registry.Register(ytdlp.Resolver{Leave: a.claims.fileHoster})
-			if _, err := a.SaveResolverOrder(c.order); err != nil {
-				t.Fatal(err)
-			}
-			switchModulesOff(t, a, c.off)
-
-			if got := resolverIDOf(a.resolverForTaskLocked(&core.Task{URL: file})); got != "direct" {
-				t.Errorf("an ordinary file goes to %q, want direct", got)
-			}
-			if got := resolverIDOf(a.resolverForTaskLocked(&core.Task{URL: file, Resolver: c.off})); got != "direct" {
-				t.Errorf("an ordinary file held for %s goes to %q, want direct", c.off, got)
-			}
-			// A link only the switched-off backend and the fallback take still waits.
-			held := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://files.modules-test.example/download?id=1", Status: core.StatusQueued, Enabled: true})
-			if held.Waiting != core.WaitingModule || held.Resolver != c.off {
-				t.Errorf("an extensionless link: resolver %q, waiting %q; want it held for %s", held.Resolver, held.Waiting, c.off)
-			}
-		})
-	}
-}
-
-// Switched off, yt-dlp takes no link, and a file on a video site is a file like
-// any other. Its watch pages still wait for it.
-func TestAFileOnAVideoSiteGoesDirectWhileYtdlpIsOff(t *testing.T) {
-	const site = "videosite.modules-test.example"
-	a := newQueueApp(t)
-	a.Registry.Register(jd.Resolver{})
-	a.Registry.Register(ytdlp.Resolver{Leave: a.claims.fileHoster})
-	a.claims.set(nil, map[string]bool{site: true})
-	switchModulesOff(t, a, "ytdlp")
-
-	file := &core.Task{URL: "https://player." + site + "/external/123456.hd.mp4?s=abc"}
-	if got := resolverIDOf(a.resolverForTaskLocked(file)); got != "direct" {
-		t.Errorf("a file on a video site goes to %q, want direct", got)
-	}
-	page := dispatchQueued(a, &core.Task{ID: "t1", URL: "https://" + site + "/watch?v=x", Status: core.StatusQueued, Enabled: true})
-	if page.Waiting != core.WaitingModule || page.Resolver != "ytdlp" {
-		t.Errorf("a watch page: resolver %q, waiting %q; want it held for ytdlp", page.Resolver, page.Waiting)
-	}
-
-	switchModulesOff(t, a)
-	if got := resolverIDOf(a.resolverForTaskLocked(file)); got != "ytdlp" {
-		t.Errorf("with yt-dlp back on a file on a video site goes to %q, want ytdlp", got)
-	}
-}
-
-func TestAMediaLinkStagedWhileYtdlpIsOffStillGetsAPackage(t *testing.T) {
-	a := newQueueApp(t)
-	switchModulesOff(t, a, "ytdlp")
-	const url = "https://media.example/watch/some-clip"
-	a.mu.Lock()
-	a.tasks["t1"] = &core.Task{ID: "t1", URL: url, Name: url, Resolver: "ytdlp", Status: core.StatusCollected, Enabled: true}
-	a.mu.Unlock()
-
-	a.probeYtdlpTitle("t1", url)
-	a.mu.Lock()
-	pkg := a.tasks["t1"].Package
-	a.mu.Unlock()
-	if pkg == "" {
-		t.Fatal("the link was left without a package, and no probe will come to file it")
-	}
-}
-
-func TestSwitchedOffYtdlpOffersNoProber(t *testing.T) {
-	a := newQueueApp(t)
-	switchModulesOff(t, a, "ytdlp")
-	if _, ok := a.ytdlpTitleProber(); ok {
-		t.Error("ytdlpTitleProber answered while yt-dlp is switched off")
-	}
-	if _, ok := a.ytdlpPlaylistProber(); ok {
-		t.Error("ytdlpPlaylistProber answered while yt-dlp is switched off")
+		got := dispatchQueued(a, &core.Task{ID: id, URL: url, Status: core.StatusQueued, Enabled: true})
+		a.mu.Lock()
+		active := a.active[id]
+		a.mu.Unlock()
+		if got.Resolver != id || got.Waiting == core.WaitingModule || !active {
+			t.Errorf("%s: resolver %q, waiting %q, active %v; want it started on %s", url, got.Resolver, got.Waiting, active, id)
+		}
 	}
 }
 

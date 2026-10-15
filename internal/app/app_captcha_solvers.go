@@ -287,7 +287,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		// listed it again before that, the solve the poll started gave up on
 		// the claim, and the challenge is taken up again here.
 		ledger.release(c.ID)
-		if ctx.Err() != nil || a.captchaSwitchedOff() || !a.captchaPending(c.ID) || !ledger.claim(c.ID, time.Now()) {
+		if ctx.Err() != nil || a.ModuleOff("captcha") || !a.captchaPending(c.ID) || !ledger.claim(c.ID, time.Now()) {
 			return
 		}
 	}
@@ -296,7 +296,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		// Asked before every paid solve and before the answer goes to JD,
 		// since a solve takes long enough for somebody to switch captchas off
 		// or answer the prompt meanwhile.
-		if a.captchaSwitchedOff() || !a.captchaPending(c.ID) {
+		if a.ModuleOff("captcha") || !a.captchaPending(c.ID) {
 			return
 		}
 		report.State, report.Solver = captcha.SolverSolving, s.label
@@ -305,7 +305,7 @@ func (a *App) solveCaptchaWith(solvers []paidSolver, c captcha.Challenge) {
 		ledger.markSent(c.ID, time.Now())
 		text, err := s.Solve(ctx, c)
 		if err == nil {
-			if a.captchaSwitchedOff() {
+			if a.ModuleOff("captcha") {
 				return
 			}
 			if _, err := a.answerCaptcha(ctx, c.ID, text, s.label); err != nil {
@@ -347,7 +347,7 @@ func (a *App) holdForWatchers(ctx context.Context, c captcha.Challenge, report c
 			return false
 		case <-tick.C:
 		}
-		if a.captchaSwitchedOff() || !a.captchaPending(c.ID) {
+		if a.ModuleOff("captcha") || !a.captchaPending(c.ID) {
 			return false
 		}
 		if !a.Settings.Get().CaptchaSolverOnlyUnwatched || !a.captchaWatched(c) || !time.Now().Before(until) {
@@ -397,8 +397,6 @@ func paidSolvable(c captcha.Challenge) bool {
 	}
 	return false
 }
-
-func (a *App) captchaSwitchedOff() bool { return a.ModuleOff("captcha") || a.ModuleOff("jd") }
 
 // captchaPending reports whether id is still waiting for an answer.
 func (a *App) captchaPending(id string) bool {

@@ -392,8 +392,9 @@ func TestSwitchingOnWithNothingParkedNamesThePageAsACode(t *testing.T) {
 func TestUnswitchableModulesAreRefused(t *testing.T) {
 	t.Parallel()
 	a := testApp(t)
-	// KL_JD is unset here, so JD and the captcha relay it feeds have no switch.
-	for _, id := range []string{"cnl", "jd", "captcha", "nonsense"} {
+	// KL_JD is unset here, so the captcha relay JD feeds has no switch, and
+	// JDownloader and yt-dlp have none at all.
+	for _, id := range []string{"cnl", "jd", "ytdlp", "captcha", "nonsense"} {
 		if err := setFeature(a, id, false); err == nil {
 			t.Errorf("%s has no switch but setFeature accepted it", id)
 		}
@@ -660,7 +661,7 @@ func TestEveryModuleSentenceHasACode(t *testing.T) {
 	s.DownloadClientAPI = true
 	s.Metrics = true
 	s.Packagizer.Disabled = true
-	s.ModulesOff = []string{"connections", "federation", "torrents", "scripting", "ytdlp"}
+	s.ModulesOff = []string{"connections", "federation", "torrents", "scripting"}
 	s.Reconnect.Method = "command"
 	if _, err := a.ApplySettings(s); err != nil {
 		t.Fatal(err)

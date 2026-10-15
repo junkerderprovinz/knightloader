@@ -198,32 +198,6 @@ func TestReconcileAddsAMissingAccount(t *testing.T) {
 	}
 }
 
-// A switched-off JD still tells which hosts it knows, since routing needs that
-// list after a restart, but it is given no account and loses none.
-func TestASwitchedOffJDOnlyHasItsHosterListRead(t *testing.T) {
-	const host = "modules-off-known.example"
-	fake := &fakeJD{
-		hosters:  []string{host},
-		accounts: []jdAccount{{UUID: 7, Hostname: "uploaded.net", InfoMap: &jdAccountInfo{Valid: true}}},
-	}
-	r, store := newTestReconciler(t, fake)
-	r.Off = func() bool { return true }
-	if err := store.Set("rapidgator.net", accounts.Credential{Username: "u", Password: "p"}); err != nil {
-		t.Fatalf("Set: %v", err)
-	}
-	t.Cleanup(func() { jdresolver.SetKnownHosts(nil) })
-
-	if _, err := r.Reconcile(context.Background()); err != nil {
-		t.Fatalf("Reconcile: %v", err)
-	}
-	if len(fake.added) != 0 || len(fake.removedIDs) != 0 {
-		t.Fatalf("added %v, removed %v while JD is switched off; want nothing", fake.added, fake.removedIDs)
-	}
-	if jdresolver.PriorityFor("https://"+host+"/file.bin") <= 40 {
-		t.Error("the hoster list was not read, so the host ranks below the direct download")
-	}
-}
-
 // Routing hears from a pass only when the pass told it something new, since
 // the app walks every collected link when it does and a pass runs every 30
 // seconds.

@@ -519,7 +519,6 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	a.Probe = httpx.New(httpx.Options{Timeout: probeTimeout})
 	a.DebridDrive = a.newDebridDrive()
 	a.ctx, a.cancel = context.WithCancel(context.Background())
-	a.claims.ytdlpOn = func() bool { return !a.resolverOff("ytdlp") }
 	a.Registry.Register(resolver.Direct{Leave: a.claims.pageOnly})
 	a.Registry.Register(resolver.HTTPFallback{Leave: a.claims.pageOnly})
 	// Torrents need no account, so unlike the resolvers in app_accounts.go this
@@ -1252,12 +1251,8 @@ func (a *App) pushJDSpeedLimit(limit int64) {
 }
 
 // ytdlpTitleProber returns the yt-dlp backend as a titleProber, and false when
-// yt-dlp is switched off, no yt-dlp backend is wired or it does not implement
-// one.
+// no yt-dlp backend is wired or it does not implement one.
 func (a *App) ytdlpTitleProber() (titleProber, bool) {
-	if a.resolverOff("ytdlp") {
-		return nil, false
-	}
 	a.bmu.RLock()
 	b := a.ytdlp
 	a.bmu.RUnlock()

@@ -61,11 +61,8 @@ func (a *App) checkWatchJob(j watch.Job) error {
 	if container.CanOpenDLC() && container.Detect(f.Name, f.Data) == container.KindDLC {
 		return nil
 	}
-	switch {
-	case !a.ContainerBackendConfigured():
+	if !a.ContainerBackendConfigured() {
 		return ErrNoContainerBackend
-	case a.ModuleOff("jd"):
-		return ErrJDOff
 	}
 	return nil
 }
@@ -116,12 +113,8 @@ func (a *App) openWatchContainer(f *watch.File, pkg string) {
 	be := a.jd
 	a.bmu.RUnlock()
 	adder, ok := be.(containerFileAdder)
-	switch {
-	case !ok:
+	if !ok {
 		a.watchFileFailed(f, "container", ErrNoContainerBackend)
-		return
-	case a.ModuleOff("jd"):
-		a.watchFileFailed(f, "container", ErrJDOff)
 		return
 	}
 	ext := strings.TrimPrefix(strings.ToLower(filepath.Ext(f.Name)), ".")

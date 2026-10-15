@@ -372,8 +372,6 @@ func featureList(a *app.App, base string) []Feature {
 		}, offDetail(s.ModuleOff("federation"),
 			line{text: "off; added instances stay saved, but this instance neither lists nor contacts them", code: "federationOff"},
 			countDetail(len(a.Federation.List()), "peers", "peer", "peers"))),
-		jdFeature(a, s),
-		ytdlpFeature(a, s),
 		withDetail(Feature{
 			ID: "torrents", Verdict: VerdictShipped, Page: "torrents",
 			Switch: SwitchSetting, Enabled: !s.ModuleOff("torrents"),
@@ -428,10 +426,8 @@ func keepAwakeFeature(s settings.Settings) Feature {
 }
 
 // featurePages is the sub-page list, in rail order. Pages without a module row
-// (look, integrations, shortcuts, health, help, browsertools) hold
+// (look, integrations, resolvers, shortcuts, health, help, browsertools) hold
 // preferences or tools rather than a subsystem with an on/off state.
-// JDownloader is switched on the Resolvers page beside yt-dlp, since the
-// accounts page holds the logins it uses and not the backend itself.
 func featurePages() []FeaturePage {
 	return []FeaturePage{
 		// The General page keeps the id "look" so bookmarked addresses and the
@@ -460,7 +456,7 @@ func featurePages() []FeaturePage {
 		{ID: "pairing"},
 		{ID: "instances", Modules: []string{"federation"}},
 		{ID: "access", Modules: []string{"downloadclient"}},
-		{ID: "resolvers", Modules: []string{"ytdlp", "jd"}},
+		{ID: "resolvers"},
 		{ID: "torrents", Modules: []string{"torrents"}},
 		// A page of its own rather than a card on Accounts: it serves what is
 		// on the accounts to other programs and sets up none of them.
@@ -499,7 +495,7 @@ func setFeature(a *app.App, id string, on bool) error {
 	// sub-document patched whole keeps the router and proxy passwords.
 	cur := a.Settings.Get()
 
-	// A row can lose its switch at run time (no JD wired, no yt-dlp found);
+	// A row can lose its switch at run time (captchas with no JD wired);
 	// the table is the one place that knows.
 	var page string
 	for _, f := range featureList(a, "") {
@@ -556,7 +552,7 @@ func setFeature(a *app.App, id string, on bool) error {
 		set := cur.LinkFilter
 		set.Disabled = !on
 		key, value = "linkFilter", set
-	case "connections", "federation", "jd", "ytdlp", "torrents", "captcha", "scripting", "eventprograms":
+	case "connections", "federation", "torrents", "captcha", "scripting", "eventprograms":
 		key, value = "modulesOff", switchModule(cur.ModulesOff, id, on)
 
 	case "watch":
@@ -914,51 +910,8 @@ func offDetail(off bool, whenOff, whenOn line) line {
 	return whenOn
 }
 
-// jdFeature has a switch only when a JD backend is wired, since without one
-// there is nothing for it to switch on.
-func jdFeature(a *app.App, s settings.Settings) Feature {
-	f := Feature{ID: "jd", Verdict: VerdictShipped, Page: "resolvers"}
-	if !a.ContainerBackendConfigured() {
-		f.Switch = SwitchNone
-		f = withReason(f, line{
-			text: "no JDownloader backend is configured; set KL_JD to a reachable JDownloader and restart",
-			code: "jdNotConfigured",
-		})
-		return withDetail(f, line{
-			text: "hoster links go to a debrid service or fail",
-			code: "jdMissing",
-		})
-	}
-	off := s.ModuleOff("jd")
-	f.Switch, f.Enabled = SwitchSetting, !off
-	return withDetail(f, offDetail(off,
-		line{text: "off; downloads already in JDownloader finish, and new hoster links wait until it is switched back on", code: "jdOff"},
-		line{text: "reachable", code: "jdReachable"}))
-}
-
-// ytdlpFeature has a switch only when a yt-dlp binary was found.
-func ytdlpFeature(a *app.App, s settings.Settings) Feature {
-	f := withDetail(Feature{ID: "ytdlp", Verdict: VerdictShipped, Page: "resolvers"}, ytdlpDetail(a, s))
-	if !resolverRegistered(a, "ytdlp") {
-		f.Switch = SwitchNone
-		return withReason(f, line{
-			text: "no yt-dlp binary was found; fetch one on the Resolvers page, or set KL_YTDLP",
-			code: "ytdlpMissing",
-		})
-	}
-	off := s.ModuleOff("ytdlp")
-	f.Switch, f.Enabled = SwitchSetting, !off
-	if off {
-		f = withDetail(f, line{
-			text: "off; a running download finishes, and video links wait until it is switched back on",
-			code: "ytdlpOff",
-		})
-	}
-	return f
-}
-
-// captchaFeature follows the JD row: JD is the only source of challenges
-// (internal/captcha.JDSource), so switching JD off silences this too.
+// captchaFeature has a switch only when a JD backend is wired, since JD is the
+// only source of challenges (internal/captcha.JDSource).
 func captchaFeature(a *app.App, s settings.Settings) Feature {
 	f := Feature{ID: "captcha", Verdict: VerdictShipped, Page: "accounts"}
 	if !a.ContainerBackendConfigured() {
@@ -966,13 +919,6 @@ func captchaFeature(a *app.App, s settings.Settings) Feature {
 		return withReason(f, line{
 			text: "challenges come only from the JDownloader backend, and none is configured (KL_JD)",
 			code: "captchaNoJD",
-		})
-	}
-	if s.ModuleOff("jd") {
-		f.Switch = SwitchNone
-		return withReason(f, line{
-			text: "challenges come only from JDownloader, which is switched off; switch it back on first",
-			code: "captchaJDOff",
 		})
 	}
 	off := s.ModuleOff("captcha")
@@ -1002,32 +948,6 @@ func resolverRegistered(a *app.App, id string) bool {
 		}
 	}
 	return false
-}
-
-// ytdlpDetail says why yt-dlp is unavailable, or which one runs and with what
-// quality.
-func ytdlpDetail(a *app.App, s settings.Settings) line {
-	// The cached snapshot the Resolvers page and the diagnostics bundle read,
-	// so the three cannot disagree.
-	tools := a.MediaTools()
-	if !resolverRegistered(a, "ytdlp") {
-		text := "yt-dlp binary not found (a copy fetched on the Resolvers page, KL_YTDLP, or \"yt-dlp\" on PATH); media pages fail with the hoster's own error instead"
-		// The probe's own words stay out of the translated line: they are
-		// English from the tool check, and the Resolvers page shows them.
-		if tools.Ytdlp.Detail != "" {
-			text += " (" + tools.Ytdlp.Detail + ")"
-		}
-		return line{text: text, code: "ytdlpNotFound"}
-	}
-	quality := string(s.Ytdlp.Quality)
-	if tools.Ytdlp.Version == "" {
-		return line{text: "quality: " + quality, code: "ytdlpQuality", args: map[string]string{"quality": quality}}
-	}
-	return line{
-		text: "yt-dlp " + tools.Ytdlp.Version + " (" + string(tools.Ytdlp.Source) + "); quality: " + quality,
-		code: "ytdlpVersion",
-		args: map[string]string{"version": tools.Ytdlp.Version, "source": string(tools.Ytdlp.Source), "quality": quality},
-	}
 }
 
 // torrentsDetail reads the live routing table like the other resolver rows.
