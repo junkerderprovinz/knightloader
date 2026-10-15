@@ -36,6 +36,28 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.1] - 2026-10-15
+
+### Added
+
+- **PUID and PGID.** Started without `--user`, the container is root only
+  long enough to give the empty folders Docker has just created for it to
+  PUID:PGID, 1000:1000 unless you set them, and then runs as that account. A
+  folder that already holds something keeps its owner. With `--user`, as in
+  the Unraid template, nothing changes and PUID and PGID are not read.
+  Settings, Health & diagnostics shows whether they were applied.
+
+### Fixed
+
+- **The `docker run` from the README works on a fresh host.** Docker creates
+  a missing bind-mount folder as root, so KnightLoader could not write its own
+  data folder and restarted in a loop until you ran `chown` on the host.
+- **Hints that name an account name the right one.** A program that cannot be
+  run, an action the system refuses and a folder KnightLoader may not write
+  into name the uid and gid it actually runs as, instead of always 1000.
+- **A VPN tunnel whose server answered at once no longer sits in Connecting**
+  for 20 seconds before downloads can use it.
+
 ## [2.1.0] - 2026-10-15
 
 ### Added
