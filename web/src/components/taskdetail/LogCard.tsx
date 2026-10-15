@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { fetchTaskLog, isLocalBase, type LogLine, type Task } from '../../lib/api';
 import { useT } from '../../lib/i18n';
 import { Button, Card, EmptyState, SectionTitle } from '../ui';
+import { requestJump } from '../../pages/settings/jump';
 
 /**
  * LogCard shows the instance's log lines about one download. It is usually
@@ -61,7 +62,14 @@ export function LogCard({ task, base, hue }: { task: Task; base: string; hue?: n
       )}
 
       {local && (
-        <Button kind="secondary" className="self-start" onClick={() => navigate('/settings/diagnostics')}>
+        <Button
+          kind="secondary"
+          className="self-start"
+          onClick={() => {
+            requestJump({ page: 'health', title: 'settings.diagnostics.logCardTitle' });
+            navigate('/settings/health');
+          }}
+        >
           {t('detail.log.openDiagnostics')}
         </Button>
       )}

@@ -3,7 +3,7 @@ import { type SelfTestRequestView, type SelfTestResult, fetchRequestView } from 
 import { PROXY_CHECKS, probeWebSocket, proxyVerdicts, wsVerdict } from '../../../lib/selftest';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { Card, SectionTitle } from '../../../components/ui';
-import { CheckRow, PROXY_NAMES, adviceKeyFor, useLine } from './rows';
+import { CheckRow, PROXY_NAMES, adviceKeyFor, useLine } from '../diagnostics/rows';
 
 /**
  * ProxyCheckCard compares what the browser sent with what reached this
@@ -45,7 +45,7 @@ export function ProxyCheckCard({ hue }: { hue: number }) {
   if (view && !desktop && ws !== null) rows.push(wsVerdict(ws));
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="proxy-check-moved" className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.selftest.proxy.hint')}>{t('settings.selftest.proxy.title')}</SectionTitle>
 
       {desktop ? (

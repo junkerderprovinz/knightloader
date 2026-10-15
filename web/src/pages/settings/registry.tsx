@@ -8,12 +8,12 @@ import { Automation } from './Automation';
 import { BrowserTools } from './BrowserTools';
 import { CollectorSettings } from './CollectorSettings';
 import { DebridDrive } from './DebridDrive';
-import { Diagnostics } from './Diagnostics';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
 import { Health } from './Health';
 import { Help } from './Help';
 import { InstancesTab } from './Instances';
+import { Integrations } from './Integrations';
 import { Look } from './Look';
 import { Modules } from './Modules';
 import { Network } from './Network';
@@ -48,9 +48,9 @@ const PAGES: Record<string, () => ReactNode> = {
   // The sidebar's own Konten and Instanzen pages, the latter under its
   // module's switch.
   accounts: () => <AccountsTab />,
+  integrations: () => <Integrations />,
   instances: () => <InstancesTab />,
   health: () => <Health />,
-  diagnostics: () => <Diagnostics />,
   help: () => <Help />,
   browsertools: () => <BrowserTools />,
   shortcuts: () => <Shortcuts />,

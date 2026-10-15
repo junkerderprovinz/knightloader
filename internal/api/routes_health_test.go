@@ -191,7 +191,7 @@ func TestTheDetailRouteCarriesEveryPartAndBothMaps(t *testing.T) {
 }
 
 // TestTheMetricsModuleSwitchIsWiredUp checks setFeature's "metrics" case,
-// without which the Health page's switch would answer errNoSwitch.
+// without which the Advanced page's switch would answer errNoSwitch.
 func TestTheMetricsModuleSwitchIsWiredUp(t *testing.T) {
 	a, _ := healthServer(t, false)
 
@@ -216,13 +216,13 @@ func TestTheMetricsModuleSwitchIsWiredUp(t *testing.T) {
 		}
 	}
 	if row == nil {
-		t.Fatal("the metrics module has no row in the registry; the Health page would render the not-built placeholder")
+		t.Fatal("the metrics module has no row in the registry; the Advanced page would render the not-built placeholder")
 	}
 	if row.Enabled {
 		t.Error("the row reads enabled while the setting is off")
 	}
-	if row.Page != "health" {
-		t.Errorf("the row is filed under %q, want \"health\"", row.Page)
+	if row.Page != "advanced" {
+		t.Errorf("the row is filed under %q, want \"advanced\"", row.Page)
 	}
 	if !strings.Contains(row.Detail, metricsPath) {
 		t.Errorf("the row's detail (%q) does not name the address somebody has to point a collector at", row.Detail)
@@ -234,18 +234,24 @@ func TestTheMetricsModuleSwitchIsWiredUp(t *testing.T) {
 	}
 }
 
-func TestTheHealthPageIsRegisteredInTheRail(t *testing.T) {
+func TestTheMetricsSwitchStandsOnTheAdvancedPage(t *testing.T) {
 	t.Parallel()
-	var found bool
+	var health, advanced bool
 	for _, p := range featurePages() {
-		if p.ID == "health" {
-			found = true
+		switch p.ID {
+		case "health":
+			health = true
+		case "advanced":
+			advanced = true
 			if len(p.Modules) != 1 || p.Modules[0] != "metrics" {
-				t.Errorf("the health page carries %v, want just the metrics module", p.Modules)
+				t.Errorf("the advanced page carries %v, want just the metrics module", p.Modules)
 			}
 		}
 	}
-	if !found {
-		t.Fatal("featurePages() has no health entry; the page would be unreachable and the metrics row would point at nothing")
+	if !health {
+		t.Error("featurePages() has no health entry; the page would be unreachable")
+	}
+	if !advanced {
+		t.Fatal("featurePages() has no advanced entry; the metrics row would point at nothing")
 	}
 }

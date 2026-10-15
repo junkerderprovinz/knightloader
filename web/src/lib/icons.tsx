@@ -116,3 +116,14 @@ export const IconSpeedLimit = (p: GlyphProps) => (
     />
   </svg>
 );
+
+/** A plug: two prongs, the body and its cable, for what this instance is
+ *  plugged into or plugs into it. */
+export const IconPlug = (p: GlyphProps) => (
+  <svg {...glyph([4.5, 2, 11, 16], p)}>
+    <rect x="6.6" y="2" width="1.8" height="4.6" rx=".9" />
+    <rect x="11.6" y="2" width="1.8" height="4.6" rx=".9" />
+    <path d="M5.3 6.1h9.4a.8.8 0 0 1 .8.8v1.6a4.4 4.4 0 0 1-4.4 4.4H8.9a4.4 4.4 0 0 1-4.4-4.4V6.9a.8.8 0 0 1 .8-.8Z" />
+    <rect x="9.1" y="12.4" width="1.8" height="5.6" rx=".9" />
+  </svg>
+);

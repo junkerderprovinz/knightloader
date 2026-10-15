@@ -14,6 +14,7 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'appearance', labelKey: 'settings.nav.appearance' },
   { id: 'modules', labelKey: 'settings.nav.modules' },
   { id: 'accounts', labelKey: 'settings.nav.accounts' },
+  { id: 'integrations', labelKey: 'settings.nav.integrations' },
   { id: 'collector', labelKey: 'settings.nav.collector' },
   { id: 'downloads', labelKey: 'settings.nav.downloads' },
   { id: 'archives', labelKey: 'settings.nav.archives' },
@@ -30,7 +31,6 @@ const SETTINGS_PAGES: { id: string; labelKey: Command['labelKey'] }[] = [
   { id: 'browsertools', labelKey: 'settings.nav.browsertools' },
   { id: 'advanced', labelKey: 'settings.nav.advanced' },
   { id: 'health', labelKey: 'settings.nav.health' },
-  { id: 'diagnostics', labelKey: 'settings.nav.diagnostics' },
   { id: 'help', labelKey: 'settings.nav.help' },
 ];
 

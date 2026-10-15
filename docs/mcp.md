@@ -12,7 +12,7 @@ everything.
 
 ## Set up a client
 
-1. Open **Settings, Security**. The **MCP server** card is below the API tokens.
+1. Open **Settings, Integrations**. The **MCP server** card is below the VPN card.
 2. Choose **Add client** and pick your assistant. A client that is not listed
    connects through **Other client**.
 3. Give the token a name and choose its rights: **Read only**, **Add and read**

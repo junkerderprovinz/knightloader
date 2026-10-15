@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
-import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../components/BrandPicker';
+import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../../components/BrandPicker';
 import {
   Button,
   Card,
@@ -10,8 +10,8 @@ import {
   Modal,
   SectionTitle,
   TextInput,
-} from '../../components/ui';
-import { Tabs } from '../../components/Tabs';
+} from '../../../components/ui';
+import { Tabs } from '../../../components/Tabs';
 import {
   type McpClientRow,
   type McpOverview,
@@ -19,11 +19,11 @@ import {
   createMcpClient,
   fetchMcp,
   removeMcpClient,
-} from '../../lib/api';
-import { appAddress } from '../../lib/basePath';
-import { copyToClipboard } from '../../lib/clipboard';
-import { fmtDate } from '../../lib/format';
-import { useT, type TranslationKey } from '../../lib/i18n';
+} from '../../../lib/api';
+import { appAddress } from '../../../lib/basePath';
+import { copyToClipboard } from '../../../lib/clipboard';
+import { fmtDate } from '../../../lib/format';
+import { useT, type TranslationKey } from '../../../lib/i18n';
 import {
   IconAdd,
   IconBack,
@@ -34,8 +34,8 @@ import {
   IconCopy,
   IconLink,
   IconTrash,
-} from '../../lib/icons';
-import { CLIENT_MARKS } from '../../lib/mcpClientMarks';
+} from '../../../lib/icons';
+import { CLIENT_MARKS } from '../../../lib/mcpClientMarks';
 import {
   CLOUD_CLIENTS,
   KIND_LABEL,
@@ -45,11 +45,11 @@ import {
   snippetFor,
   type ConfigPaths,
   type McpClient,
-} from '../../lib/mcpClients';
-import { TOKEN_PLACEHOLDER, TOKEN_VARIABLE, type McpSnippetInput } from '../../lib/mcpSnippets';
-import { useToast } from '../../lib/toast';
-import { SettingRow, SubHead } from './controls';
-import { PRESET_LABEL, scopesLabel } from './access/tokenScopes';
+} from '../../../lib/mcpClients';
+import { TOKEN_PLACEHOLDER, TOKEN_VARIABLE, type McpSnippetInput } from '../../../lib/mcpSnippets';
+import { useToast } from '../../../lib/toast';
+import { SettingRow, SubHead } from '../controls';
+import { PRESET_LABEL, scopesLabel } from '../access/tokenScopes';
 
 const HUE = 7;
 

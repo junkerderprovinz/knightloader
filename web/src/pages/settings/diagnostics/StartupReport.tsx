@@ -3,15 +3,17 @@ import { type StartupCheck, type StartupReport, runStartupCheck } from '../../..
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtDate } from '../../../lib/format';
 import { adviceFor } from '../../../lib/startupAdvice';
-import { Card, InfoBubble, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import { InfoBubble, type ButtonVerdict } from '../../../components/ui';
 import { TestButton } from '../../../components/TestButton';
 import { IconCheck, IconClose, IconWarning } from '../../../lib/icons';
+import { Fold, VERDICT_WORDS, type FoldVerdict } from '../health/Fold';
 
-// The start report shows what this instance checked once after it came up. It
-// takes the report from the diagnostics bundle the page already loaded. A fresh
-// check is held in the component only; the server keeps the boot reading for
-// bug reports (App.RunStartupCheckNow). LabelBadge has two tones and this needs
-// four, so the tones are local like StatusPill's.
+// The start report shows what this instance checked once after it came up, as
+// the "At startup" row of the Health card. It takes the report from the
+// diagnostics bundle the page already loaded. A fresh check is held in the
+// component only; the server keeps the boot reading for bug reports
+// (App.RunStartupCheckNow). LabelBadge has two tones and this needs four, so
+// the tones are local like StatusPill's.
 
 type Tone = 'ok' | 'warn' | 'fail' | 'neutral';
 
@@ -57,7 +59,7 @@ const roleNames: Record<string, TranslationKey> = {
   watch: 'settings.diagnostics.role.watch',
 };
 
-export function StartupReportCard({ hue, report }: { hue: number; report: StartupReport | null }) {
+export function StartupFold({ report }: { report: StartupReport | null }) {
   const { t } = useT();
   // Null while the card shows the boot reading.
   const [fresh, setFresh] = useState<StartupReport | null>(null);
@@ -79,6 +81,15 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
     }
   }
 
+  const verdict: FoldVerdict | undefined =
+    shown === null || shown.state !== 'done' || shown.checks.length === 0
+      ? undefined
+      : shown.checks.some((c) => c.verdict === 'fail')
+        ? 'fail'
+        : shown.checks.some((c) => c.verdict === 'warn')
+          ? 'warn'
+          : 'ok';
+
   const nothingWrong =
     shown !== null &&
     shown.state === 'done' &&
@@ -86,9 +97,13 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
     shown.checks.every((c) => c.verdict === 'ok' || c.verdict === 'skipped');
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={t('settings.diagnostics.startupHint')}>{t('settings.diagnostics.startupTitle')}</SectionTitle>
-
+    <Fold
+      label={t('settings.health.atStart')}
+      hint={t('settings.diagnostics.startupHint')}
+      verdict={verdict}
+      verdictWord={verdict && t(VERDICT_WORDS[verdict])}
+      open={verdict === 'fail' || verdict === 'warn'}
+    >
       {/* Each state gets its own sentence, so "nothing was checked" never
           looks like "nothing was wrong". */}
       {shown === null && <Line>{t('settings.diagnostics.startupNotRun')}</Line>}
@@ -134,7 +149,7 @@ export function StartupReportCard({ hue, report }: { hue: number; report: Startu
           run={onRecheck}
         />
       </div>
-    </Card>
+    </Fold>
   );
 }
 
@@ -191,7 +206,10 @@ function Row({ check }: { check: StartupCheck }) {
  * rowName names a row, a folder row by its role. An unknown id or role falls
  * back to the raw string.
  */
-function rowName(t: (key: TranslationKey, vars?: Record<string, string | number>) => string, check: StartupCheck): string {
+function rowName(
+  t: (key: TranslationKey, vars?: Record<string, string | number>) => string,
+  check: StartupCheck,
+): string {
   if (check.id === 'folder') {
     const key = check.role ? roleNames[check.role] : undefined;
     return key ? t(key) : (check.role ?? check.id);

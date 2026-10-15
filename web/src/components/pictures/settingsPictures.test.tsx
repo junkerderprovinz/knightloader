@@ -4,11 +4,11 @@ import { createRoot, type Root } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import type { Settings } from '../../lib/api';
+import type { HealthReport, Settings } from '../../lib/api';
 import { I18nProvider } from '../../lib/i18n';
 import { ToastProvider } from '../../lib/toast';
 import { SettingsProvider, type SettingsDraft } from '../../pages/settings/context';
-import { SelfTestPulseCard } from '../../pages/settings/health/SelfTestPulse';
+import { StateCard } from '../../pages/settings/health/StateCard';
 import { Rules } from '../../pages/settings/Rules';
 import type { LinkReport, Rule } from '../RuleEditor';
 import { Pulse, type PulseCheck } from './Pulse';
@@ -494,13 +494,13 @@ describe('the pictures on their pages', () => {
   };
   const settle = () => act(async () => void (await new Promise((done) => setTimeout(done, 0))));
 
-  describe('the self-test card on the health page', () => {
+  describe('the self-test on the health card', () => {
     const result = (id: string, status: string) => ({ id, status, code: `${id}.ok`, at: '2026-10-01T10:00:00Z' });
     const bead = (id: string) => host.querySelector(`[data-check="${id}"]`);
 
     it('says so when the instance was never tested', async () => {
       answers['GET /api/selftest'] = () => ({ id: '', startedAt: '0001-01-01T00:00:00Z', planned: [], results: [] });
-      await draw(on({}, [], <SelfTestPulseCard hue={1} />));
+      await draw(on({}, [], <StateCard hue={1} report={{ subsystems: [] } as unknown as HealthReport} failed={false} />));
       await settle();
       expect(host.textContent).toContain('Not run yet.');
       expect(host.querySelector('[data-new="selftest-pulse"]')).toBeNull();
@@ -514,7 +514,7 @@ describe('the pictures on their pages', () => {
         planned: ['jd', 'ytdlp', 'relay'],
         results: [result('jd', 'pass'), result('ytdlp', 'fail'), result('relay', 'skipped')],
       });
-      await draw(on({}, [], <SelfTestPulseCard hue={1} />));
+      await draw(on({}, [], <StateCard hue={1} report={{ subsystems: [] } as unknown as HealthReport} failed={false} />));
       await settle();
       expect(host.querySelector('[data-new="selftest-pulse"]')!.getAttribute('data-state')).toBe('rest');
       expect(['jd', 'ytdlp', 'relay'].map((id) => bead(id)!.getAttribute('data-status'))).toEqual(['pass', 'fail', 'skipped']);
@@ -526,7 +526,7 @@ describe('the pictures on their pages', () => {
     it('starts a run and waits on its first check', async () => {
       answers['GET /api/selftest'] = () => ({ id: '', startedAt: '0001-01-01T00:00:00Z', planned: [], results: [] });
       answers['POST /api/selftest'] = () => ({ id: 'b', startedAt: '2026-10-01T10:00:00Z', planned: ['jd', 'ytdlp'], results: [] });
-      await draw(on({}, [], <SelfTestPulseCard hue={1} />));
+      await draw(on({}, [], <StateCard hue={1} report={{ subsystems: [] } as unknown as HealthReport} failed={false} />));
       await settle();
       const run = [...host.querySelectorAll('button')].find((b) => b.textContent === 'Run self-test')!;
       await act(async () => run.click());

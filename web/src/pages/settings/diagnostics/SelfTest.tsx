@@ -3,10 +3,12 @@ import type { SelfTestResult } from '../../../lib/api';
 import { useT, type TranslationKey } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { happened } from '../../../lib/countdown';
-import { useSelfTest, type SelfTest } from '../../../lib/useSelfTest';
-import { Button, Card, SectionTitle, type ButtonVerdict } from '../../../components/ui';
+import type { SelfTest } from '../../../lib/useSelfTest';
+import { Button, type ButtonVerdict } from '../../../components/ui';
+import { Pulse, type PulseCheck } from '../../../components/pictures/Pulse';
 import { IconCheck, IconClose, IconRefresh, IconWarning } from '../../../lib/icons';
-import { CHECK_NAMES, CheckRow, SubRow, adviceKeyFor, useLine } from './rows';
+import { Fold, VERDICT_WORDS, type FoldVerdict } from '../health/Fold';
+import { CHECK_NAMES, CheckRow, STATUS_WORDS, SubRow, adviceKeyFor, useLine } from './rows';
 
 // The instance's own checks: the JDownloader sidecar, yt-dlp, the target
 // folders, the debrid logins, the relay, the clock and the torrent port.
@@ -80,65 +82,93 @@ export function SelfTestButton({ test }: { test: SelfTest }) {
   );
 }
 
-export function SelfTestCard({ hue }: { hue: number }) {
+/**
+ * SelfTestFold is the self-test on the Health card: the pulse and every
+ * check's sentence with its advice. It stands open while a run is going, after
+ * one that found something, and until there has been one.
+ */
+export function SelfTestFold({ test }: { test: SelfTest }) {
   const { t } = useT();
   const line = useLine();
-  const test = useSelfTest();
   const { run, error } = test;
   const planned = run?.planned ?? [];
+  const finished = run !== null && happened(run.finishedAt);
+  const verdict: FoldVerdict | undefined =
+    !finished || planned.length === 0
+      ? undefined
+      : test.statuses.includes('fail')
+        ? 'fail'
+        : test.statuses.includes('warn')
+          ? 'warn'
+          : 'ok';
+
+  const beads: PulseCheck[] = planned.map((id) => {
+    const res = test.resultOf(id);
+    return {
+      id,
+      name: CHECK_NAMES[id] ? t(CHECK_NAMES[id]) : id,
+      status: res?.status ?? 'pending',
+      word: res ? t(STATUS_WORDS[res.status]) : t('settings.selftest.pending'),
+    };
+  });
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
-      <SectionTitle hint={t('settings.selftest.hint')} right={<SelfTestButton test={test} />}>
-        {t('settings.selftest.title')}
-      </SectionTitle>
-
+    <Fold
+      label={t('settings.selftest.title')}
+      hint={t('settings.selftest.hint')}
+      verdict={verdict}
+      verdictWord={verdict && t(VERDICT_WORDS[verdict])}
+      open={test.running || planned.length === 0 || verdict === 'fail' || verdict === 'warn'}
+    >
       {planned.length === 0 ? (
         <span className="text-sm text-carbon-textMuted">{t('settings.selftest.never')}</span>
       ) : (
-        <div className="flex flex-col">
-          {planned.map((id) => {
-            const res = test.resultOf(id);
-            const name = CHECK_NAMES[id] ? t(CHECK_NAMES[id] as TranslationKey) : id;
-            if (!res) {
-              return <CheckRow key={id} name={name} status="pending" sentence={t('settings.selftest.pending')} />;
-            }
-            const advice = adviceKeyFor(res);
-            return (
-              <CheckRow
-                key={id}
-                name={name}
-                status={res.status}
-                sentence={line(res.code, shown(res))}
-                advice={advice ? t(advice) : undefined}
-                detail={res.detail}
-              >
-                {(res.rows ?? []).map((sub) => {
-                  const subAdvice = adviceKeyFor(sub);
-                  return (
-                    <SubRow
-                      key={sub.id}
-                      name={roleName(t, sub.params?.role)}
-                      status={sub.status}
-                      sentence={line(sub.code, shown(sub))}
-                      advice={subAdvice ? t(subAdvice) : undefined}
-                      detail={sub.detail}
-                    />
-                  );
-                })}
-              </CheckRow>
-            );
-          })}
-        </div>
+        <>
+          <Pulse checks={beads} running={test.running} label={t('settings.selftest.title')} />
+          <div className="flex flex-col">
+            {planned.map((id) => {
+              const res = test.resultOf(id);
+              const name = CHECK_NAMES[id] ? t(CHECK_NAMES[id] as TranslationKey) : id;
+              if (!res) {
+                return <CheckRow key={id} name={name} status="pending" sentence={t('settings.selftest.pending')} />;
+              }
+              const advice = adviceKeyFor(res);
+              return (
+                <CheckRow
+                  key={id}
+                  name={name}
+                  status={res.status}
+                  sentence={line(res.code, shown(res))}
+                  advice={advice ? t(advice) : undefined}
+                  detail={res.detail}
+                >
+                  {(res.rows ?? []).map((sub) => {
+                    const subAdvice = adviceKeyFor(sub);
+                    return (
+                      <SubRow
+                        key={sub.id}
+                        name={roleName(t, sub.params?.role)}
+                        status={sub.status}
+                        sentence={line(sub.code, shown(sub))}
+                        advice={subAdvice ? t(subAdvice) : undefined}
+                        detail={sub.detail}
+                      />
+                    );
+                  })}
+                </CheckRow>
+              );
+            })}
+          </div>
+        </>
       )}
 
-      {run !== null && happened(run.finishedAt) && (
+      {finished && run && (
         <span className="text-meta text-carbon-textMuted">
           {t('settings.selftest.lastRun', { when: fmtDate(run.finishedAt) })}
         </span>
       )}
       {error && <span className="text-sm text-carbon-textSub">{t('settings.selftest.startFailed', { error })}</span>}
-    </Card>
+    </Fold>
   );
 }
 

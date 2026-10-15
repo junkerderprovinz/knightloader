@@ -38,7 +38,28 @@ const LISTS = ['/downloads', '/collector'];
 export const RELEASES: Release[] = [
   {
     after: '2.0.0',
-    changes: [{ id: 'accounts-card-add', to: ACCOUNTS, text: 'whatsnew.change.accountsCardAdd' }],
+    changes: [
+      { id: 'accounts-card-add', to: ACCOUNTS, text: 'whatsnew.change.accountsCardAdd' },
+      {
+        id: 'integrations-page',
+        to: ['/settings/integrations'],
+        text: 'whatsnew.change.integrationsPage',
+        names: { name: 'settings.nav.integrations', accounts: 'settings.nav.accounts' },
+      },
+      { id: 'health-diagnostics', to: ['/settings/health'], text: 'whatsnew.change.healthDiagnostics' },
+      {
+        id: 'proxy-check-moved',
+        to: ['/settings/network'],
+        text: 'whatsnew.change.proxyCheckMoved',
+        names: { name: 'settings.selftest.proxy.title' },
+      },
+      {
+        id: 'advanced-upkeep',
+        to: ['/settings/advanced'],
+        text: 'whatsnew.change.advancedUpkeep',
+        names: { maintenance: 'settings.dbmaint.title', metrics: 'settings.module.metrics' },
+      },
+    ],
   },
   {
     after: '1.9.0',

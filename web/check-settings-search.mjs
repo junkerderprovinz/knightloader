@@ -50,6 +50,8 @@ const FILE_PAGES = [
   // The Info tile: the Version, Help and About cards.
   { file: 'src/pages/settings/Help.tsx', pages: ['help'] },
   { file: 'src/pages/settings/Accounts.tsx', pages: ['accounts'] },
+  { file: 'src/pages/settings/Integrations.tsx', pages: ['integrations'] },
+  { file: 'src/pages/settings/integrations/', pages: ['integrations'] },
   { file: 'src/pages/settings/accounts/', pages: ['accounts'] },
   // The Free downloads card, which the Accounts page draws under both entries.
   { file: 'src/components/FreeDownloadsCard.tsx', pages: ['accounts'] },
@@ -58,12 +60,12 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Access.tsx', pages: ['access'] },
   { file: 'src/pages/settings/access/', pages: ['access'] },
-  { file: 'src/pages/settings/McpCard.tsx', pages: ['access'] },
   { file: 'src/pages/settings/Pairing.tsx', pages: ['pairing'] },
   { file: 'src/pages/settings/pairing/', pages: ['pairing'] },
   // The Instances page, which the Instances tab draws below its own card.
   { file: 'src/pages/Instances.tsx', pages: ['instances'] },
   { file: 'src/pages/settings/Advanced.tsx', pages: ['advanced'] },
+  { file: 'src/pages/settings/advanced/', pages: ['advanced'] },
   { file: 'src/pages/settings/Rules.tsx', pages: ['rules'] },
   // Most settings.rules.* keys live here rather than in Rules.tsx.
   { file: 'src/components/RuleEditor.tsx', pages: ['rules'] },
@@ -89,8 +91,10 @@ const FILE_PAGES = [
   { file: 'src/pages/settings/Scripts.tsx', pages: ['automation'] },
   { file: 'src/pages/settings/Health.tsx', pages: ['health'] },
   { file: 'src/pages/settings/health/', pages: ['health'] },
-  { file: 'src/pages/settings/Diagnostics.tsx', pages: ['diagnostics'] },
-  { file: 'src/pages/settings/diagnostics/', pages: ['diagnostics'] },
+  // The log, the start report and the system cards of the health page.
+  { file: 'src/pages/settings/diagnostics/', pages: ['health'] },
+  // The proxy check's names and advice, drawn on the network page.
+  { file: 'src/pages/settings/diagnostics/rows.tsx', pages: ['network'] },
   { file: 'src/pages/settings/BrowserTools.tsx', pages: ['browsertools'] },
   { file: 'src/pages/settings/Shortcuts.tsx', pages: ['shortcuts'] },
   { file: 'src/pages/settings/shortcuts/', pages: ['shortcuts'] },
