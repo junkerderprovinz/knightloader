@@ -458,6 +458,11 @@ export function useConnectionLabel(task: Task, t: Translate, base: string): { te
   const rows = useConnections(base);
   const id = task.connection ?? '';
   if (!id) return null;
+  // The tunnel is not a row of the connections table; the server names it "vpn".
+  if (id === 'vpn') {
+    const vpn = t('settings.vpn.title');
+    return { text: vpn, hint: vpn };
+  }
 
   const row = rows.get(id);
   const direct = t('settings.connections.kind.direct');
