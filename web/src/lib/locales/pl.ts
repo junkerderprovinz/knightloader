@@ -3789,6 +3789,7 @@ export const pl: Dict = {
   'settings.vpn.error.deviceLimit': '{name} nie pozwala na więcej urządzeń. Usuń jedno na swoim koncie i połącz się ponownie.',
   'settings.vpn.error.accountExpired': 'Twoje konto {name} wygasło. Przedłuż je i połącz się ponownie.',
   'settings.vpn.error.locationUnknown': '{name} nie ma serwera w tej lokalizacji. Spróbuj innej lokalizacji albo zostaw pole puste.',
+  'settings.vpn.error.resumeFailed': '{name} nie połączył się ponownie po restarcie. Pobierania, które idą przez VPN, czekają, aż połączysz się ponownie albo wyłączysz VPN.',
   'whatsnew.change.accountsCardAdd': 'Każda karta na tej stronie ma na końcu nagłówka własny przycisk dodawania, który od razu otwiera właściwe okno.',
   'whatsnew.change.integrationsPage': 'VPN i MCP mają własną stronę, {name}, zaraz po stronie {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}” jest kartą w „{page}” zamiast osobnej strony.',

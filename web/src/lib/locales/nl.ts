@@ -3787,6 +3787,7 @@ export const nl: Dict = {
   'settings.vpn.error.deviceLimit': '{name} staat geen apparaten meer toe. Verwijder er een in je account en maak opnieuw verbinding.',
   'settings.vpn.error.accountExpired': 'Je {name}-account is verlopen. Verleng het en maak opnieuw verbinding.',
   'settings.vpn.error.locationUnknown': '{name} heeft geen server op deze locatie. Probeer een andere locatie of laat het veld leeg.',
+  'settings.vpn.error.resumeFailed': '{name} kon na de herstart niet opnieuw verbinden. Downloads die via de VPN lopen, wachten tot je opnieuw verbinding maakt of de VPN uitschakelt.',
   'whatsnew.change.accountsCardAdd': 'Elke kaart op deze pagina heeft aan het eind van de kop een eigen knop om toe te voegen, en die opent meteen het juiste venster.',
   'whatsnew.change.integrationsPage': 'VPN en MCP hebben een eigen pagina, {name}, direct na {accounts}.',
   'whatsnew.change.driveIntegrations': '“{name}” is een kaart onder “{page}” in plaats van een eigen pagina.',

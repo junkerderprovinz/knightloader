@@ -3820,4 +3820,5 @@ export const de: Dict = {
   'settings.vpn.error.deviceLimit': '{name} lässt keine weiteren Geräte zu. Entferne eines in deinem Konto und verbinde dich erneut.',
   'settings.vpn.error.accountExpired': 'Dein {name}-Konto ist abgelaufen. Verlängere es und verbinde dich erneut.',
   'settings.vpn.error.locationUnknown': '{name} hat an diesem Standort keinen Server. Versuch einen anderen Standort oder lass das Feld leer.',
+  'settings.vpn.error.resumeFailed': '{name} ließ sich nach dem Neustart nicht wieder verbinden. Downloads, die übers VPN laufen, warten, bis du neu verbindest oder das VPN ausschaltest.',
 };

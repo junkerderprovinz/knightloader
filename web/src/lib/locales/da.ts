@@ -3790,6 +3790,7 @@ export const da: Dict = {
   'settings.vpn.error.deviceLimit': '{name} tillader ikke flere enheder. Fjern en i din konto, og forbind igen.',
   'settings.vpn.error.accountExpired': 'Din {name}-konto er udløbet. Forny den, og forbind igen.',
   'settings.vpn.error.locationUnknown': '{name} har ingen server på denne placering. Prøv en anden placering, eller lad feltet stå tomt.',
+  'settings.vpn.error.resumeFailed': '{name} kunne ikke forbinde igen efter genstarten. Downloads, der går gennem VPN’en, venter, til du forbinder igen eller slår VPN’en fra.',
   'whatsnew.change.accountsCardAdd': 'Hvert kort på denne side har sin egen tilføj-knap for enden af overskriften, og den åbner det rigtige vindue med det samme.',
   'whatsnew.change.integrationsPage': 'VPN og MCP har deres egen side, {name}, lige efter {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ er et kort under „{page}“ i stedet for en side for sig.',

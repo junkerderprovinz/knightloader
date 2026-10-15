@@ -3806,6 +3806,7 @@ export const lt: Dict = {
   'settings.vpn.error.deviceLimit': '{name} neleidžia daugiau įrenginių. Pašalinkite vieną savo paskyroje ir prisijunkite iš naujo.',
   'settings.vpn.error.accountExpired': 'Jūsų {name} paskyros galiojimas baigėsi. Pratęskite ją ir prisijunkite iš naujo.',
   'settings.vpn.error.locationUnknown': '{name} neturi serverio šioje vietoje. Išbandykite kitą vietą arba palikite lauką tuščią.',
+  'settings.vpn.error.resumeFailed': '{name} nepavyko iš naujo prisijungti po paleidimo iš naujo. Atsisiuntimai, einantys per VPN, laukia, kol vėl prisijungsite arba išjungsite VPN.',
   'whatsnew.change.accountsCardAdd': 'Kiekviena šio puslapio kortelė antraštės gale turi savo pridėjimo mygtuką, ir jis iš karto atveria tinkamą langą.',
   'whatsnew.change.integrationsPage': 'VPN ir MCP turi savo puslapį, {name}, iškart po puslapio {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ yra kortelė skiltyje „{page}“, o ne atskiras puslapis.',

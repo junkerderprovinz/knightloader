@@ -3804,6 +3804,7 @@ export const vi: Dict = {
   'settings.vpn.error.deviceLimit': '{name} không cho phép thêm thiết bị. Hãy xóa một thiết bị trong tài khoản rồi kết nối lại.',
   'settings.vpn.error.accountExpired': 'Tài khoản {name} của bạn đã hết hạn. Hãy gia hạn rồi kết nối lại.',
   'settings.vpn.error.locationUnknown': '{name} không có máy chủ ở vị trí này. Hãy thử vị trí khác hoặc để trống ô này.',
+  'settings.vpn.error.resumeFailed': '{name} không thể kết nối lại sau khi khởi động lại. Các lượt tải đi qua VPN sẽ chờ đến khi bạn kết nối lại hoặc tắt VPN.',
   'whatsnew.change.accountsCardAdd': 'Mỗi thẻ trên trang này có nút thêm riêng ở cuối tiêu đề, và nút đó mở ngay đúng cửa sổ cần dùng.',
   'whatsnew.change.integrationsPage': 'VPN và MCP có trang riêng, {name}, ngay sau {accounts}.',
   'whatsnew.change.driveIntegrations': '“{name}” là một thẻ trong “{page}” thay vì một trang riêng.',

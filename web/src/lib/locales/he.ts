@@ -3821,6 +3821,7 @@ export const he: Dict = {
   'settings.vpn.error.deviceLimit': '{name} לא מאפשר מכשירים נוספים. הסר אחד בחשבון שלך והתחבר מחדש.',
   'settings.vpn.error.accountExpired': 'החשבון שלך ב-{name} פג. חדש אותו והתחבר מחדש.',
   'settings.vpn.error.locationUnknown': 'ל-{name} אין שרת במיקום הזה. נסה מיקום אחר או השאר את השדה ריק.',
+  'settings.vpn.error.resumeFailed': '{name} לא הצליח להתחבר מחדש אחרי ההפעלה מחדש. הורדות שעוברות דרך ה-VPN ממתינות עד שתתחבר שוב או שתכבה את ה-VPN.',
   'whatsnew.change.accountsCardAdd': 'לכל כרטיס בעמוד הזה יש כפתור הוספה משלו בסוף הכותרת, והוא פותח מיד את החלון הנכון.',
   'whatsnew.change.integrationsPage': 'ל־VPN ול־MCP יש עמוד משלהם, {name}, מיד אחרי {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}” הוא כרטיס תחת „{page}” במקום דף משלו.',

@@ -3800,6 +3800,7 @@ export const is: Dict = {
   'settings.vpn.error.deviceLimit': '{name} leyfir ekki fleiri tæki. Fjarlægðu eitt á aðganginum þínum og tengstu aftur.',
   'settings.vpn.error.accountExpired': '{name}-aðgangurinn þinn er útrunninn. Endurnýjaðu hann og tengstu aftur.',
   'settings.vpn.error.locationUnknown': '{name} er ekki með þjón á þessari staðsetningu. Prófaðu aðra staðsetningu eða skildu reitinn eftir auðan.',
+  'settings.vpn.error.resumeFailed': '{name} tókst ekki að tengjast aftur eftir endurræsinguna. Niðurhal sem fer um VPN bíður þar til þú tengist aftur eða slekkur á VPN.',
   'whatsnew.change.accountsCardAdd': 'Hvert spjald á þessari síðu hefur sinn eigin bæta-við-hnapp aftast í fyrirsögninni og hann opnar strax rétta gluggann.',
   'whatsnew.change.integrationsPage': 'VPN og MCP eru komin með eigin síðu, {name}, beint á eftir {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ er spjald undir „{page}“ í stað eigin síðu.',

@@ -4442,7 +4442,7 @@ export interface VpnProvider {
   error?: string;
   /** `error` as a value the interface words itself: vpn-config-invalid,
    *  vpn-login-refused, vpn-timeout, vpn-dropped, vpn-device-limit,
-   *  vpn-account-expired or vpn-location-unknown. */
+   *  vpn-account-expired, vpn-location-unknown or vpn-resume-failed. */
   errorCode?: string;
 }
 

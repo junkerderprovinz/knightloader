@@ -3818,6 +3818,7 @@ export const hr: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ne dopušta više uređaja. Ukloni jedan u svom računu i ponovno se poveži.',
   'settings.vpn.error.accountExpired': 'Tvoj {name} račun je istekao. Obnovi ga i ponovno se poveži.',
   'settings.vpn.error.locationUnknown': '{name} nema poslužitelj na ovoj lokaciji. Pokušaj s drugom lokacijom ili ostavi polje prazno.',
+  'settings.vpn.error.resumeFailed': '{name} se nije uspio ponovno povezati nakon ponovnog pokretanja. Preuzimanja koja idu preko VPN-a čekaju dok se ponovno ne povežeš ili ne isključiš VPN.',
   'whatsnew.change.accountsCardAdd': 'Svaka kartica na ovoj stranici ima vlastiti gumb za dodavanje na kraju naslova i on odmah otvara pravi prozor.',
   'whatsnew.change.integrationsPage': 'VPN i MCP imaju vlastitu stranicu, {name}, odmah iza stranice {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}” je kartica pod „{page}” umjesto vlastite stranice.',

@@ -3805,6 +3805,7 @@ export const bg: Dict = {
   'settings.vpn.error.deviceLimit': '{name} не позволява повече устройства. Премахни едно от профила си и се свържи отново.',
   'settings.vpn.error.accountExpired': 'Профилът ти в {name} е изтекъл. Поднови го и се свържи отново.',
   'settings.vpn.error.locationUnknown': '{name} няма сървър на това място. Опитай друго местоположение или остави полето празно.',
+  'settings.vpn.error.resumeFailed': '{name} не успя да се свърже отново след рестарта. Изтеглянията през VPN чакат, докато се свържеш отново или изключиш VPN.',
   'whatsnew.change.accountsCardAdd': 'Всяка карта на тази страница има свой бутон за добавяне в края на заглавието си и той отваря направо правилния прозорец.',
   'whatsnew.change.integrationsPage': 'VPN и MCP имат собствена страница, {name}, веднага след {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ е карта в „{page}“ вместо отделна страница.',

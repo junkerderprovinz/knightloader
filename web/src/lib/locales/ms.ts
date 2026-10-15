@@ -3804,6 +3804,7 @@ export const ms: Dict = {
   'settings.vpn.error.deviceLimit': '{name} tidak membenarkan peranti lagi. Buang satu dalam akaun anda, kemudian sambung semula.',
   'settings.vpn.error.accountExpired': 'Akaun {name} anda telah tamat tempoh. Perbaharuinya, kemudian sambung semula.',
   'settings.vpn.error.locationUnknown': '{name} tiada pelayan di lokasi ini. Cuba lokasi lain atau biarkan medan kosong.',
+  'settings.vpn.error.resumeFailed': '{name} tidak dapat menyambung semula selepas dimulakan semula. Muat turun yang melalui VPN menunggu sehingga anda menyambung semula atau mematikan VPN.',
   'whatsnew.change.accountsCardAdd': 'Setiap kad di halaman ini ada butang tambah sendiri di hujung tajuknya, dan butang itu terus membuka tetingkap yang betul.',
   'whatsnew.change.integrationsPage': 'VPN dan MCP ada halaman sendiri, {name}, betul-betul selepas {accounts}.',
   'whatsnew.change.driveIntegrations': '“{name}” kini kad di “{page}” dan bukan lagi halaman sendiri.',

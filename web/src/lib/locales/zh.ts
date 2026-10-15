@@ -3787,6 +3787,7 @@ export const zh: Dict = {
   'settings.vpn.error.deviceLimit': '{name} 不允许再添加设备。请在你的账户中删除一个，然后重新连接。',
   'settings.vpn.error.accountExpired': '你的 {name} 账户已过期。请续费后重新连接。',
   'settings.vpn.error.locationUnknown': '{name} 在此位置没有服务器。请换一个位置，或将此栏留空。',
+  'settings.vpn.error.resumeFailed': '{name} 在重启后未能重新连接。经由 VPN 的下载会一直等待，直到你重新连接或关闭 VPN。',
   'whatsnew.change.accountsCardAdd': '本页的每张卡片在标题末尾都有自己的添加按钮，点一下就会直接打开对应的窗口。',
   'whatsnew.change.integrationsPage': 'VPN 和 MCP 有了自己的页面「{name}」，紧跟在「{accounts}」之后。',
   'whatsnew.change.driveIntegrations': '“{name}”不再是单独的页面，而是“{page}”中的一张卡片。',

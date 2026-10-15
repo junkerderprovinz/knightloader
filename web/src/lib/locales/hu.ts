@@ -3806,6 +3806,7 @@ export const hu: Dict = {
   'settings.vpn.error.deviceLimit': 'A(z) {name} nem enged több eszközt. Távolíts el egyet a fiókodban, és csatlakozz újra.',
   'settings.vpn.error.accountExpired': 'A(z) {name} fiókod lejárt. Hosszabbítsd meg, és csatlakozz újra.',
   'settings.vpn.error.locationUnknown': 'A(z) {name} szolgáltatásnak nincs kiszolgálója ezen a helyen. Próbálj másik helyet, vagy hagyd üresen a mezőt.',
+  'settings.vpn.error.resumeFailed': 'A(z) {name} nem tudott újra csatlakozni az újraindítás után. A VPN-en átmenő letöltések addig várnak, amíg újra nem csatlakozol, vagy ki nem kapcsolod a VPN-t.',
   'whatsnew.change.accountsCardAdd': 'Az oldal minden kártyájának saját hozzáadás gombja van a címe végén, és az rögtön a megfelelő ablakot nyitja meg.',
   'whatsnew.change.integrationsPage': 'A VPN-nek és az MCP-nek saját oldala van, {name}, közvetlenül a(z) {accounts} után.',
   'whatsnew.change.driveIntegrations': 'A(z) „{name}” saját oldal helyett kártya lett a(z) „{page}” alatt.',

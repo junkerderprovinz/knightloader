@@ -3795,6 +3795,7 @@ export const lv: Dict = {
   'settings.vpn.error.deviceLimit': '{name} neatļauj vairāk ierīču. Noņemiet vienu savā kontā un savienojieties vēlreiz.',
   'settings.vpn.error.accountExpired': 'Jūsu {name} konta derīgums ir beidzies. Atjaunojiet to un savienojieties vēlreiz.',
   'settings.vpn.error.locationUnknown': '{name} nav servera šajā atrašanās vietā. Izmēģiniet citu atrašanās vietu vai atstājiet lauku tukšu.',
+  'settings.vpn.error.resumeFailed': '{name} pēc restartēšanas neizdevās savienoties vēlreiz. Lejupielādes, kas iet caur VPN, gaida, kamēr savienosieties vēlreiz vai izslēgsiet VPN.',
   'whatsnew.change.accountsCardAdd': 'Katrai šīs lapas kartītei virsraksta galā ir sava pievienošanas poga, un tā uzreiz atver pareizo logu.',
   'whatsnew.change.integrationsPage': 'VPN un MCP ir sava lapa, {name}, uzreiz pēc lapas {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ ir kartīte sadaļā „{page}“, nevis atsevišķa lapa.',

@@ -3806,6 +3806,7 @@ export const fi: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ei salli enempää laitteita. Poista yksi tililtäsi ja yhdistä uudelleen.',
   'settings.vpn.error.accountExpired': '{name}-tilisi on vanhentunut. Uusi se ja yhdistä uudelleen.',
   'settings.vpn.error.locationUnknown': 'Palvelulla {name} ei ole palvelinta tässä sijainnissa. Kokeile toista sijaintia tai jätä kenttä tyhjäksi.',
+  'settings.vpn.error.resumeFailed': '{name} ei yhdistynyt uudelleen käynnistyksen jälkeen. VPN:n kautta kulkevat lataukset odottavat, kunnes yhdistät uudelleen tai kytket VPN:n pois päältä.',
   'whatsnew.change.accountsCardAdd': 'Jokaisella tämän sivun kortilla on otsikkonsa lopussa oma lisäyspainike, joka avaa suoraan oikean ikkunan.',
   'whatsnew.change.integrationsPage': 'VPN:llä ja MCP:llä on oma sivunsa, {name}, heti sivun {accounts} jälkeen.',
   'whatsnew.change.driveIntegrations': '”{name}” on kortti kohdassa ”{page}” eikä enää oma sivunsa.',

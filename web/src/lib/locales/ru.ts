@@ -3784,6 +3784,7 @@ export const ru: Dict = {
   'settings.vpn.error.deviceLimit': '{name} не разрешает добавить больше устройств. Удалите одно в своём аккаунте и подключитесь снова.',
   'settings.vpn.error.accountExpired': 'Срок действия аккаунта {name} истёк. Продлите его и подключитесь снова.',
   'settings.vpn.error.locationUnknown': 'У {name} нет сервера в этом расположении. Попробуйте другое расположение или оставьте поле пустым.',
+  'settings.vpn.error.resumeFailed': 'Не удалось снова подключиться к {name} после перезапуска. Загрузки, идущие через VPN, ждут, пока вы не подключитесь снова или не выключите VPN.',
   'whatsnew.change.accountsCardAdd': 'У каждой карточки на этой странице есть своя кнопка добавления в конце заголовка, и она сразу открывает нужное окно.',
   'whatsnew.change.integrationsPage': 'У VPN и MCP теперь своя страница, {name}, сразу после страницы {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» теперь карточка в «{page}», а не отдельная страница.',

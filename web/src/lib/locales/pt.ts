@@ -3795,6 +3795,7 @@ export const pt: Dict = {
   'settings.vpn.error.deviceLimit': '{name} não permite mais dispositivos. Remova um na sua conta e volte a ligar.',
   'settings.vpn.error.accountExpired': 'A sua conta {name} expirou. Renove-a e volte a ligar.',
   'settings.vpn.error.locationUnknown': '{name} não tem nenhum servidor nesta localização. Experimenta outra localização ou deixa o campo vazio.',
+  'settings.vpn.error.resumeFailed': '{name} não conseguiu voltar a ligar-se após o reinício. As transferências que passam pela VPN esperam até te ligares de novo ou desativares a VPN.',
   'whatsnew.change.accountsCardAdd': 'Cada cartão desta página tem o seu próprio botão para adicionar no fim do título, e abre logo a janela certa.',
   'whatsnew.change.integrationsPage': 'A VPN e o MCP têm uma página própria, {name}, logo a seguir a {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» é um cartão em «{page}» em vez de uma página própria.',

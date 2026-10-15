@@ -3803,6 +3803,7 @@ export const th: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ไม่อนุญาตให้เพิ่มอุปกรณ์อีก ลบอุปกรณ์หนึ่งในบัญชีของคุณแล้วเชื่อมต่ออีกครั้ง',
   'settings.vpn.error.accountExpired': 'บัญชี {name} ของคุณหมดอายุแล้ว ต่ออายุแล้วเชื่อมต่ออีกครั้ง',
   'settings.vpn.error.locationUnknown': '{name} ไม่มีเซิร์ฟเวอร์ที่ตำแหน่งนี้ ลองตำแหน่งอื่นหรือเว้นช่องนี้ว่างไว้',
+  'settings.vpn.error.resumeFailed': '{name} เชื่อมต่อใหม่ไม่ได้หลังจากรีสตาร์ต ดาวน์โหลดที่ผ่าน VPN จะรอจนกว่าคุณจะเชื่อมต่ออีกครั้งหรือปิด VPN',
   'whatsnew.change.accountsCardAdd': 'การ์ดแต่ละใบในหน้านี้มีปุ่มเพิ่มของตัวเองที่ท้ายหัวข้อ และปุ่มนั้นจะเปิดหน้าต่างที่ถูกต้องให้ทันที',
   'whatsnew.change.integrationsPage': 'VPN และ MCP มีหน้าของตัวเองแล้ว คือ {name} อยู่ถัดจาก {accounts}',
   'whatsnew.change.driveIntegrations': '“{name}” เป็นการ์ดใน “{page}” แทนที่จะมีหน้าของตัวเอง',

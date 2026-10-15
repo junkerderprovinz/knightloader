@@ -3793,6 +3793,7 @@ export const fa: Dict = {
   'settings.vpn.error.deviceLimit': '{name} دستگاه بیشتری نمی‌پذیرد. یکی را در حسابت حذف کن و دوباره وصل شو.',
   'settings.vpn.error.accountExpired': 'حساب {name} تو منقضی شده است. آن را تمدید کن و دوباره وصل شو.',
   'settings.vpn.error.locationUnknown': '{name} در این مکان سروری ندارد. مکان دیگری را امتحان کن یا فیلد را خالی بگذار.',
+  'settings.vpn.error.resumeFailed': '{name} پس از راه‌اندازی مجدد نتوانست دوباره وصل شود. دانلودهایی که از VPN می‌گذرند منتظر می‌مانند تا دوباره وصل شوی یا VPN را خاموش کنی.',
   'whatsnew.change.accountsCardAdd': 'هر کارت در این صفحه دکمهٔ افزودن خودش را در انتهای عنوانش دارد و همان پنجرهٔ درست را مستقیم باز می‌کند.',
   'whatsnew.change.integrationsPage': 'VPN و MCP صفحهٔ خودشان را دارند، {name}، درست بعد از {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» به‌جای صفحهٔ جداگانه، یک کارت در «{page}» است.',
