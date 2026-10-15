@@ -871,9 +871,11 @@ func (e *Engine) Reconnect(taskID string) bool {
 // which a restart needs; tidying the list does not.
 func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.dropMend(taskID)
+	var pending *start
 	e.markStart(taskID, func(s *start) {
 		s.removed = true
 		s.cancel()
+		pending = s
 	})
 	e.mu.Lock()
 	delete(e.parked, taskID)
@@ -891,6 +893,15 @@ func (e *Engine) Remove(taskID string, deleteFiles bool) {
 	e.mu.Unlock()
 	e.layouts.unwatchFiles(gid)
 	root, isTorrent := e.takeRoot(taskID)
+	// A torrent still resolving has its files open in the library, which keeps
+	// Windows from deleting them, until the start has given it up. Its resolve
+	// ends with the start's context; an HTTP one waits on the server.
+	if pending != nil && pending.torrent && deleteFiles {
+		select {
+		case <-pending.ready:
+		case <-e.done:
+		}
+	}
 	finished := false
 	switch {
 	case isTorrent && gid != "":
