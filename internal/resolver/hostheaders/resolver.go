@@ -123,7 +123,7 @@ func (r Resolver) client() *http.Client {
 
 // defaultClient serves a Resolver without a client, so a zero value in tests
 // does not open a transport per call.
-var defaultClient = httpx.New(httpx.Options{Timeout: probeTimeout})
+var defaultClient = httpx.New(httpx.Options{Timeout: probeTimeout, Class: httpx.ClassHosters})
 
 // nameOf is the placeholder file name shown before a download starts, derived
 // from the URL path the same way resolver.Direct does.

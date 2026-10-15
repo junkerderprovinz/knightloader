@@ -6,6 +6,7 @@ import (
 	"net/http/httptest"
 	"net/url"
 	"testing"
+	"time"
 )
 
 func TestAClassGoesThroughItsProxyWhileOneIsSet(t *testing.T) {
@@ -43,5 +44,40 @@ func TestAClassGoesThroughItsProxyWhileOneIsSet(t *testing.T) {
 	c.CloseIdleConnections()
 	if got := get(); got != "direct" {
 		t.Errorf("after the class proxy was taken away the answer was %q", got)
+	}
+}
+
+func TestAConnectionPastANewClassProxyIsHungUp(t *testing.T) {
+	release := make(chan struct{})
+	direct := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		io.WriteString(w, "first")
+		w.(http.Flusher).Flush()
+		select {
+		case <-release:
+		case <-time.After(5 * time.Second):
+		}
+		io.WriteString(w, "second")
+	}))
+	defer direct.Close()
+	defer close(release)
+	proxy := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {}))
+	defer proxy.Close()
+
+	const class Class = "streaming"
+	c := New(Options{Class: class, Proxy: NoProxy, Timeout: NoTimeout})
+	resp, err := c.Get(direct.URL)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	buf := make([]byte, 5)
+	if _, err := io.ReadFull(resp.Body, buf); err != nil {
+		t.Fatal(err)
+	}
+	u, _ := url.Parse(proxy.URL)
+	SetClassProxy(class, u)
+	defer SetClassProxy(class, nil)
+	if _, err := resp.Body.Read(buf); err == nil {
+		t.Error("a read went on over the direct connection after the class was given a proxy")
 	}
 }

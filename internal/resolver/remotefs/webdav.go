@@ -40,7 +40,7 @@ func (d Dialer) dialWebDAV(_ context.Context, t Target, login Login) (FS, error)
 	if hc == nil {
 		// No client timeout because Open streams whole files through it;
 		// propfind bounds itself with a context.
-		hc = httpx.New(httpx.Options{Timeout: httpx.NoTimeout})
+		hc = httpx.New(httpx.Options{Timeout: httpx.NoTimeout, Class: httpx.ClassHosters})
 	}
 	// HTTP has no session to establish, so nothing is dialled until the first
 	// request.
