@@ -27,25 +27,28 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/vpn/vpntest"
 )
 
-// memStore is a credential store that keeps the logins in memory.
+// memStore is a credential store that keeps the logins in memory. getErr and
+// setErr stand for a sealed login that cannot be read and a disk that takes
+// no writes.
 type memStore struct {
-	mu    sync.Mutex
-	creds map[string]accounts.Credential
+	mu     sync.Mutex
+	creds  map[string]accounts.Credential
+	getErr error
+	setErr error
 }
 
 func (s *memStore) GetCredential(_, account string) (accounts.Credential, error) {
 	s.mu.Lock()
 	defer s.mu.Unlock()
-	c, ok := s.creds[account]
-	if !ok {
-		return c, errors.New("not stored")
-	}
-	return c, nil
+	return s.creds[account], s.getErr
 }
 
 func (s *memStore) SetCredential(_, account string, c accounts.Credential) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
+	if s.setErr != nil {
+		return s.setErr
+	}
 	if s.creds == nil {
 		s.creds = map[string]accounts.Credential{}
 	}
@@ -344,6 +347,53 @@ func TestResumeTakesUpTheProviderInUse(t *testing.T) {
 	second := newHarness(t, store, path)
 	second.m.Resume()
 	second.waitFor(t, "custom", "connected")
+}
+
+func TestResumeNeedsNoWriteForAStoredLogin(t *testing.T) {
+	srv := vpntest.Start(t)
+	store := &memStore{}
+	path := filepath.Join(t.TempDir(), "vpn.json")
+	first := newHarness(t, store, path)
+	first.m.Connect("custom", map[string]string{"config": srv.Config()})
+	first.waitFor(t, "custom", "connected")
+	first.m.Close()
+
+	store.mu.Lock()
+	store.setErr = errors.New("no space left on device")
+	store.mu.Unlock()
+	second := newHarness(t, store, path)
+	second.m.Resume()
+	second.waitFor(t, "custom", "connected")
+}
+
+func TestAResumeThatFailsHoldsTheTrafficBack(t *testing.T) {
+	srv := vpntest.Start(t)
+	store := &memStore{}
+	path := filepath.Join(t.TempDir(), "vpn.json")
+	first := newHarness(t, store, path)
+	first.m.Connect("custom", map[string]string{"config": srv.Config()})
+	first.m.Close()
+
+	store.mu.Lock()
+	store.getErr = errors.New("cipher: message authentication failed")
+	store.mu.Unlock()
+	second := newHarness(t, store, path)
+	second.m.Resume()
+	if !second.m.Through(Torrents) {
+		t.Error("torrents go around the VPN after a resume that failed")
+	}
+	if p := second.provider("custom"); p.State != "failed" || p.ErrorCode != CodeResumeFailed {
+		t.Errorf("the provider is %s %q, want it failed with %s", p.State, p.ErrorCode, CodeResumeFailed)
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), 300*time.Millisecond)
+	defer cancel()
+	if _, err := second.m.DialContext(ctx, "tcp", "10.2.0.1:7"); !errors.Is(err, context.DeadlineExceeded) {
+		t.Errorf("dial = %v, want it held until the deadline", err)
+	}
+	second.m.Disconnect()
+	if second.m.Through(Torrents) {
+		t.Error("torrents still wait for the VPN after a disconnect")
+	}
 }
 
 func TestRoutesAreKeptAndCountOnlyWhileAProviderIsInUse(t *testing.T) {
