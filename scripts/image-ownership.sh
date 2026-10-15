@@ -71,9 +71,13 @@ expect_owner() {
   [ "$got" = "$2" ] || fail "$1 belongs to $got, want $2"
 }
 
+# expect_log reads the whole log before matching: grep -q would stop at the
+# first hit and, under pipefail, fail on the SIGPIPE it leaves docker logs.
 expect_log() {
-  docker logs "$1" 2>&1 | grep -qF -- "$2" || {
-    docker logs "$1" >&2
+  local logs
+  logs=$(docker logs "$1" 2>&1)
+  grep -qF -- "$2" <<<"$logs" || {
+    echo "$logs" >&2
     fail "$1 never logged: $2"
   }
 }
