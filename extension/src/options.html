@@ -114,6 +114,10 @@
       .axes { display: flex; flex-direction: column; gap: 12px; }
       /* The column gap already spaces the rows; a margin would add to it. */
       .axes > .glim-row { margin-top: 0; }
+      /* A feature's switch row heads its block; the rows it brings keep their
+         own space above. */
+      .features { gap: 16px; }
+      .features > div > .glim-row:first-child { margin-top: 0; }
       /* The square icon badge, one size across the extension (--btn-h), as in
          popup.html and on the instance cards. */
       .iconBadge {
@@ -291,12 +295,11 @@
       <div class="glim-listbox" id="languageBox"></div>
     </section>
 
-    <!-- One card per axis, as on the web UI's Look page. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 3">
       <h2 class="glim-section-badge" id="appearanceHeading">Look</h2>
       <!-- Takes the look from the instance through GET /api/appearance over
-           the relay. It comes first because it decides whether the cards below
-           are set here. Without a group the switch is removed and the notice
+           the relay. It comes first because it decides whether the card below
+           is set here. Without a group the switch is removed and the notice
            below explains why (GlimStone 1.15.0); options.js swaps the two. -->
       <div class="glim-row" id="followInstanceRow">
         <span class="glim-row-label" id="followInstanceLabel"></span>
@@ -312,31 +315,25 @@
       </div>
     </section>
 
-    <!-- A selector stands at the end of its row at its own width, the label
-         at the start, as the web UI's SettingRow has it. -->
+    <!-- One card with a row per setting, as the web UI's Display card, with
+         the colours its Colours card holds. A selector stands at the end of
+         its row at its own width, the label at the start, as the web UI's
+         SettingRow has it. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 4">
-      <h2 class="glim-section-badge" id="themeHeading">Theme</h2>
-      <div class="glim-row segRow">
-        <span class="glim-row-label" id="themeLabel"></span>
-        <div class="glim-seg glim-seg--hug" id="themeSeg" role="group" aria-labelledby="themeLabel"></div>
-      </div>
-    </section>
-
-    <section class="glim-card glim-stagger-row" style="--row-i: 5">
-      <h2 class="glim-section-badge" id="shapeHeading">Corners</h2>
-      <div class="glim-row segRow">
-        <span class="glim-row-label" id="shapeLabel"></span>
-        <div class="glim-seg glim-seg--hug" id="shapeSeg" role="group" aria-labelledby="shapeLabel"></div>
-      </div>
-    </section>
-
-    <section class="glim-card glim-stagger-row" style="--row-i: 6">
-      <h2 class="glim-section-badge" id="coloursHeading">Colours</h2>
+      <h2 class="glim-section-badge" id="displayHeading">Display</h2>
       <div class="axes">
+        <div class="glim-row segRow">
+          <span class="glim-row-label" id="themeLabel"></span>
+          <div class="glim-seg glim-seg--hug" id="themeSeg" role="group" aria-labelledby="themeLabel"></div>
+        </div>
+        <div class="glim-row segRow">
+          <span class="glim-row-label" id="shapeLabel"></span>
+          <div class="glim-seg glim-seg--hug" id="shapeSeg" role="group" aria-labelledby="shapeLabel"></div>
+        </div>
         <!-- Label left, swatches right, with the reset badge always at the end,
              as on the web UI's Colours card. -->
         <div class="glim-axis glim-axis--colours">
-          <span class="glim-axis-label" id="accentLabel">Accent</span>
+          <span class="glim-axis-label" id="accentLabel">Accent colour</span>
           <div class="glim-swatches" id="accentSwatches"></div>
         </div>
         <!-- The rainbow, with the web UI's switches in the same order.
@@ -370,109 +367,123 @@
           </button>
         </div>
         <div class="glim-axis glim-axis--colours" id="paletteRow">
-          <span class="glim-axis-label" id="paletteLabel">Palette</span>
+          <span class="glim-axis-label" id="paletteLabel">Colour palette</span>
           <div class="glim-swatches" id="paletteSwatches"></div>
         </div>
       </div>
     </section>
 
-    <section class="glim-card glim-stagger-row" style="--row-i: 7">
-      <h2 class="glim-section-badge" id="cnlHeading">Click'n'Load</h2>
-      <button type="button" role="switch" aria-checked="false" id="cnlEnabled" class="glim-switch">
-        <span class="glim-switch-label" id="cnlToggle"></span>
-        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-      </button>
-      <!-- Why the switch fell back after the browser refused the access. -->
-      <div class="glim-unavailable cnlRefused" id="cnlRefused" hidden>
-        <span class="glim-unavailable-title" id="cnlRefusedTitle"></span>
-        <span class="glim-unavailable-reason" id="cnlRefusedReason"></span>
-      </div>
-      <div class="glim-row" id="cnlCountdownRow">
-        <span class="glim-row-label" id="cnlCountdownLabel"></span>
-        <span class="glim-row-control">
-          <span class="numberField">
-            <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
-            <span class="steppers">
-              <!-- Solid triangles with rounded corners (GlimStone 1.6.0) through
-                   a matched stroke, the path inset by half the stroke width. -->
-              <button type="button" class="stepper" id="cnlCountdownUp">
-                <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-                  <path d="M5 1.7 L8.6 4.6 L1.4 4.6 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                </svg>
-              </button>
-              <button type="button" class="stepper" id="cnlCountdownDown">
-                <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
-                  <path d="M5 4.3 L1.4 1.4 L8.6 1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
-                </svg>
-              </button>
+    <!-- What the extension does inside the browser, a switch per feature with
+         its explanation in the label's bubble. A notice that says why a switch
+         fell back stays in view under its row, and the settings a feature
+         brings follow it while it is on. -->
+    <section class="glim-card glim-stagger-row" style="--row-i: 5">
+      <h2 class="glim-section-badge" id="browserHeading">In the browser</h2>
+      <div class="axes features">
+        <div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="cnlLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="cnlEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <!-- Why the switch fell back after the browser refused the access. -->
+          <div class="glim-unavailable cnlRefused" id="cnlRefused" hidden>
+            <span class="glim-unavailable-title" id="cnlRefusedTitle"></span>
+            <span class="glim-unavailable-reason" id="cnlRefusedReason"></span>
+          </div>
+          <div class="glim-row" id="cnlCountdownRow">
+            <span class="glim-row-label" id="cnlCountdownLabel"></span>
+            <span class="glim-row-control">
+              <span class="numberField">
+                <input id="cnlCountdown" type="number" min="0" max="60" step="1" inputmode="numeric" />
+                <span class="steppers">
+                  <!-- Solid triangles with rounded corners (GlimStone 1.6.0)
+                       through a matched stroke, the path inset by half the
+                       stroke width. -->
+                  <button type="button" class="stepper" id="cnlCountdownUp">
+                    <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                      <path d="M5 1.7 L8.6 4.6 L1.4 4.6 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                  <button type="button" class="stepper" id="cnlCountdownDown">
+                    <svg viewBox="0 0 10 6" width="10" height="6" aria-hidden="true">
+                      <path d="M5 4.3 L1.4 1.4 L8.6 1.4 Z" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                    </svg>
+                  </button>
+                </span>
+              </span>
+              <span class="glim-row-unit" id="cnlCountdownUnit"></span>
             </span>
-          </span>
-          <span class="glim-row-unit" id="cnlCountdownUnit"></span>
-        </span>
+          </div>
+        </div>
+
+        <!-- Taking downloads over from the browser, and finding the media a
+             page plays. options-capture.js fills both rows; the rules under a
+             switch go with it. -->
+        <div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="takeoverLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="takeoverEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-unavailable captureRefused" id="takeoverRefused" hidden>
+            <span class="glim-unavailable-title" id="takeoverRefusedTitle"></span>
+            <span class="glim-unavailable-reason" id="takeoverRefusedReason"></span>
+          </div>
+          <div class="captureRules" id="takeoverRules">
+            <div class="captureField">
+              <label for="takeoverTypes" id="takeoverTypesLabel"></label>
+              <input id="takeoverTypes" type="text" autocomplete="off" spellcheck="false" />
+            </div>
+            <div class="glim-row">
+              <span class="glim-row-label" id="takeoverMinSizeLabel"></span>
+              <select id="takeoverMinSize" aria-labelledby="takeoverMinSizeLabel"></select>
+            </div>
+            <div class="captureField">
+              <label for="takeoverSkip" id="takeoverSkipLabel"></label>
+              <input id="takeoverSkip" type="text" autocomplete="off" spellcheck="false" placeholder="example.com, video.example.org" />
+            </div>
+            <div class="glim-row">
+              <span class="glim-row-label" id="takeoverBypassLabel"></span>
+              <select id="takeoverBypass" aria-labelledby="takeoverBypassLabel"></select>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="mediaLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="mediaEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-unavailable captureRefused" id="mediaRefused" hidden>
+            <span class="glim-unavailable-title" id="mediaRefusedTitle"></span>
+            <span class="glim-unavailable-reason" id="mediaRefusedReason"></span>
+          </div>
+        </div>
+
+        <!-- The clipboard watch (clipwatch.js). The notice says why the switch
+             fell back: the browser refused the clipboard, another device
+             switched this watch off, or there is no group to send to. -->
+        <div>
+          <div class="glim-row">
+            <span class="glim-row-label" id="clipLabel"></span>
+            <button type="button" role="switch" aria-checked="false" id="clipEnabled" class="glim-switch">
+              <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
+            </button>
+          </div>
+          <div class="glim-unavailable clipNotice" id="clipNotice" hidden>
+            <span class="glim-unavailable-title" id="clipNoticeTitle"></span>
+            <span class="glim-unavailable-reason" id="clipNoticeReason"></span>
+          </div>
+        </div>
       </div>
     </section>
 
-    <!-- Taking downloads over from the browser, and finding the media a page
-         plays. options-capture.js fills both cards; the rows under a switch go
-         with it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 8">
-      <h2 class="glim-section-badge" id="takeoverHeading"></h2>
-      <button type="button" role="switch" aria-checked="false" id="takeoverEnabled" class="glim-switch">
-        <span class="glim-switch-label" id="takeoverToggle"></span>
-        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-      </button>
-      <div class="glim-unavailable captureRefused" id="takeoverRefused" hidden>
-        <span class="glim-unavailable-title" id="takeoverRefusedTitle"></span>
-        <span class="glim-unavailable-reason" id="takeoverRefusedReason"></span>
-      </div>
-      <div class="captureRules" id="takeoverRules">
-        <div class="captureField">
-          <label for="takeoverTypes" id="takeoverTypesLabel"></label>
-          <input id="takeoverTypes" type="text" autocomplete="off" spellcheck="false" />
-        </div>
-        <div class="glim-row">
-          <span class="glim-row-label" id="takeoverMinSizeLabel"></span>
-          <select id="takeoverMinSize" aria-labelledby="takeoverMinSizeLabel"></select>
-        </div>
-        <div class="captureField">
-          <label for="takeoverSkip" id="takeoverSkipLabel"></label>
-          <input id="takeoverSkip" type="text" autocomplete="off" spellcheck="false" placeholder="example.com, video.example.org" />
-        </div>
-        <div class="glim-row">
-          <span class="glim-row-label" id="takeoverBypassLabel"></span>
-          <select id="takeoverBypass" aria-labelledby="takeoverBypassLabel"></select>
-        </div>
-      </div>
-    </section>
-
-    <section class="glim-card glim-stagger-row" style="--row-i: 9">
-      <h2 class="glim-section-badge" id="mediaHeading"></h2>
-      <button type="button" role="switch" aria-checked="false" id="mediaEnabled" class="glim-switch">
-        <span class="glim-switch-label" id="mediaToggle"></span>
-        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-      </button>
-      <div class="glim-unavailable captureRefused" id="mediaRefused" hidden>
-        <span class="glim-unavailable-title" id="mediaRefusedTitle"></span>
-        <span class="glim-unavailable-reason" id="mediaRefusedReason"></span>
-      </div>
-    </section>
-
-    <!-- The clipboard watch (clipwatch.js). The notice says why the switch
-         fell back: the browser refused the clipboard, another device switched
-         this watch off, or there is no group to send to. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 10">
-      <h2 class="glim-section-badge" id="clipHeading">Clipboard</h2>
-      <button type="button" role="switch" aria-checked="false" id="clipEnabled" class="glim-switch">
-        <span class="glim-switch-label" id="clipToggle"></span>
-        <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
-      </button>
-      <div class="glim-unavailable clipNotice" id="clipNotice" hidden>
-        <span class="glim-unavailable-title" id="clipNoticeTitle"></span>
-        <span class="glim-unavailable-reason" id="clipNoticeReason"></span>
-      </div>
-    </section>
-
-    <section class="glim-card glim-stagger-row" style="--row-i: 11">
+    <section class="glim-card glim-stagger-row" style="--row-i: 6">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
       <!-- Only a copy button; the Help card carries the ways to report. -->
@@ -484,7 +495,7 @@
     <!-- Help and About split as on the web UI's Info tile: the ways to report
          something, then who made the extension and the ways to give. Each
          sentence has its buttons directly beneath it. -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 12">
+    <section class="glim-card glim-stagger-row" style="--row-i: 7">
       <h2 class="glim-section-badge" id="helpHeading">Help</h2>
       <p id="aboutReport" class="aboutText"></p>
       <div class="glim-readme-btn-rows" id="aboutReportRow">
@@ -502,7 +513,7 @@
     </section>
 
     <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
-    <section class="glim-card glim-stagger-row" style="--row-i: 13">
+    <section class="glim-card glim-stagger-row" style="--row-i: 8">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>

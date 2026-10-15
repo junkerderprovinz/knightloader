@@ -16,8 +16,6 @@ const refreshBtn = document.getElementById('refreshGroup');
 const ownKeyEl = document.getElementById('ownKey');
 const languageHeadingEl = document.getElementById('languageHeading');
 const languageBox = document.getElementById('languageBox');
-const cnlHeadingEl = document.getElementById('cnlHeading');
-const cnlToggleEl = document.getElementById('cnlToggle');
 const cnlEnabledEl = document.getElementById('cnlEnabled');
 const cnlCountdownEl = document.getElementById('cnlCountdown');
 const cnlCountdownRow = document.getElementById('cnlCountdownRow');
@@ -30,9 +28,6 @@ const cnlAccessEl = document.getElementById('cnlAccess');
 const cnlAccessAllowEl = document.getElementById('cnlAccessAllow');
 const cnlAccessKeepOffEl = document.getElementById('cnlAccessKeepOff');
 const appearanceHeadingEl = document.getElementById('appearanceHeading');
-const themeHeadingEl = document.getElementById('themeHeading');
-const shapeHeadingEl = document.getElementById('shapeHeading');
-const coloursHeadingEl = document.getElementById('coloursHeading');
 const rainbowOnEl = document.getElementById('rainbowOn');
 const rainbowReactiveEl = document.getElementById('rainbowReactive');
 const rainbowRotateEl = document.getElementById('rainbowRotate');
@@ -360,6 +355,17 @@ function setRefused(groups, off) {
   }
 }
 
+/**
+ * rowLabel writes a row's label and bubble, and names a switch passed as
+ * `control` after the words alone. The label sits outside the switch, since a
+ * focusable icon inside a <button> is invalid and a click on it would flip it.
+ */
+function rowLabel(id, text, tip, control) {
+  labelWords(id, text);
+  glimSetInfo(id, tip);
+  control?.setAttribute('aria-label', text);
+}
+
 /** The words inside a row label, or null before applyStaticText() has run. */
 function labelWordsOf(labelEl) {
   return labelEl?.querySelector('.glim-label-words') ?? null;
@@ -393,8 +399,10 @@ function applyStaticText() {
   languageHeadingEl.textContent = t('options.languageHeading');
   glimSetInfo('languageHeading', t('options.languageSub'));
 
-  cnlToggleEl.textContent = t('options.cnlToggle');
-  glimSetInfo('cnlHeading', `${t('options.cnlSub')} ${t('options.cnlAccessInfo')}`);
+  // The Display and In the browser cards have no heading bubble because
+  // each of their rows explains itself.
+  document.getElementById('browserHeading').textContent = t('options.browserHeading');
+  rowLabel('cnlLabel', t('options.cnlToggle'), `${t('options.cnlSub')} ${t('options.cnlAccessInfo')}`, cnlEnabledEl);
   document.getElementById('cnlRefusedTitle').textContent = t('options.cnlRefusedTitle');
   document.getElementById('cnlRefusedReason').textContent = t('options.cnlRefused');
   document.getElementById('cnlAccessHeading').textContent = t('options.cnlAccessHeading');
@@ -402,38 +410,25 @@ function applyStaticText() {
   cnlAccessAllowEl.textContent = t('options.cnlAccessAllow');
   cnlAccessKeepOffEl.textContent = t('options.cnlAccessKeepOff');
 
-  document.getElementById('clipHeading').textContent = t('options.clipHeading');
-  document.getElementById('clipToggle').textContent = t('options.clipToggle');
-  glimSetInfo('clipHeading', `${t('options.clipSub')} ${t('options.clipAccessInfo')}`);
+  rowLabel('clipLabel', t('options.clipToggle'), `${t('options.clipSub')} ${t('options.clipAccessInfo')}`, clipEnabledEl);
   document.getElementById('clipElsewhereTitle').textContent = t('options.clipElsewhereTitle');
   document.getElementById('clipElsewhereMessage').textContent = t('options.clipElsewhereBody');
   clipElsewhereCancelEl.replaceChildren(glyph(D_CROSS, 14), document.createTextNode(t('common.cancel')));
   clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
   clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
-  // The appearance cards have no heading bubble because their rows explain
-  // themselves.
   appearanceHeadingEl.textContent = t('options.appearanceHeading');
-  themeHeadingEl.textContent = t('options.themeHeading');
-  shapeHeadingEl.textContent = t('options.shapeHeading');
-  coloursHeadingEl.textContent = t('options.coloursHeading');
+  document.getElementById('displayHeading').textContent = t('options.displayHeading');
 
-  // Each label gets its own bubble. The captions sit outside their switches,
-  // since a focusable icon inside a <button> is invalid and a click on it would
-  // flip the switch.
-  const label = (id, text, tip) => {
-    labelWords(id, text);
-    glimSetInfo(id, tip);
-  };
-  label('accentLabel', t('options.accentLabel'), t('options.accentHint'));
-  label('rainbowLabel', t('options.rainbow'), t('options.rainbowHint'));
-  label('rainbowReactiveLabel', t('options.rainbowReactive'), t('options.rainbowReactiveHint'));
-  label('rainbowRotateLabel', t('options.rainbowRotate'), t('options.rainbowRotateHint'));
-  label('rainbowDiscoLabel', t('options.disco'), t('options.discoGlideHint'));
-  label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
-  label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
-  label('themeLabel', t('options.themeLabel'), t('options.themeHint', { system: t('options.themeSystem') }));
-  label('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
+  rowLabel('accentLabel', t('options.accentLabel'), t('options.accentHint'));
+  rowLabel('rainbowLabel', t('options.rainbow'), t('options.rainbowHint'), rainbowOnEl);
+  rowLabel('rainbowReactiveLabel', t('options.rainbowReactive'), t('options.rainbowReactiveHint'), rainbowReactiveEl);
+  rowLabel('rainbowRotateLabel', t('options.rainbowRotate'), t('options.rainbowRotateHint'), rainbowRotateEl);
+  rowLabel('rainbowDiscoLabel', t('options.disco'), t('options.discoGlideHint'), rainbowDiscoEl);
+  rowLabel('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
+  rowLabel('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'), followInstanceEl);
+  rowLabel('themeLabel', t('options.themeLabel'), t('options.themeHint', { system: t('options.themeSystem') }));
+  rowLabel('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
 
   // The notice standing in for the follow switch without a group (GlimStone
   // 1.15.0) carries the switch's own label and names the card that fixes it.
