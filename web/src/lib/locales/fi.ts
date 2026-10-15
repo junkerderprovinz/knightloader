@@ -1710,6 +1710,7 @@ export const fi: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader näyttää sen vain tämän kerran ja säilyttää pelkän sormenjäljen, joten tallenna se nyt sinne, mistä alla oleva asetus sitä odottaa.',
   'settings.access.mcp.config': 'Asetukset',
   'settings.access.mcp.configHint': 'Tokenia ei näytetä uudelleen. Laita tallentamasi token kohtaan, jossa asetuksessa lukee <your token>, tai poista asiakas ja lisää se uudelleen saadaksesi uuden.',
+  'settings.access.mcp.configHintElsewhere': 'Tokenia ei näytetä uudelleen. Käytä tallentamaasi alla kuvatulla tavalla tai poista asiakas ja lisää se uudelleen saadaksesi uuden.',
   'settings.access.mcp.setupCommand': 'Suorita tämä kerran päätteessä.',
   'settings.access.mcp.setupFile': 'Lisää tämä asetustiedostoon jo olemassa olevien palvelimien viereen ja käynnistä {app} uudelleen.',
   'settings.access.mcp.setupForm': 'Anna nämä arvot sovelluksessa {app} kohdassa {ui}.',

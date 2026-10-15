@@ -1710,6 +1710,7 @@ export const tr: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader bunu yalnızca bu kez gösterir ve yalnızca bir parmak izi saklar; bu yüzden aşağıdaki yapılandırmanın beklediği yere şimdi kaydet.',
   'settings.access.mcp.config': 'Yapılandırma',
   'settings.access.mcp.configHint': 'Token bir daha gösterilmez. Kaydettiğin tokeni yapılandırmada <your token> yazan yere koy ya da istemciyi kaldırıp yeniden ekleyerek yeni bir token al.',
+  'settings.access.mcp.configHintElsewhere': 'Belirteç bir daha gösterilmez. Kaydettiğin belirteci aşağıda anlatıldığı gibi kullan ya da yeni bir tane almak için istemciyi kaldırıp yeniden ekle.',
   'settings.access.mcp.setupCommand': 'Bunu terminalde bir kez çalıştır.',
   'settings.access.mcp.setupFile': 'Bunu yapılandırma dosyasına, içindeki sunucuların yanına ekle ve {app} uygulamasını yeniden başlat.',
   'settings.access.mcp.setupForm': 'Bu değerleri {app} içinde {ui} altına gir.',

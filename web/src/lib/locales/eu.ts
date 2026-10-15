@@ -1711,6 +1711,7 @@ export const eu: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader-ek behin bakarrik erakusten du eta hatz-marka bat baino ez du gordetzen, beraz gorde orain beheko konfigurazioak espero duen tokian.',
   'settings.access.mcp.config': 'Konfigurazioa',
   'settings.access.mcp.configHint': 'Token-a ez da berriz erakutsiko. Jarri gorde duzuna konfigurazioak <your token> dioen tokian, edo kendu bezeroa eta gehitu berriro token berri bat lortzeko.',
+  'settings.access.mcp.configHintElsewhere': 'Tokena ez da berriro erakusten. Erabili gorde duzuna, behean azaldu bezala, edo kendu bezeroa eta gehitu berriro token berri bat lortzeko.',
   'settings.access.mcp.setupCommand': 'Exekutatu hau behin terminal batean.',
   'settings.access.mcp.setupFile': 'Gehitu hau konfigurazio-fitxategian, dagoeneko dauden zerbitzarien ondoan, eta abiarazi {app} berriro.',
   'settings.access.mcp.setupForm': 'Sartu balio hauek {app}-en {ui} atalean.',

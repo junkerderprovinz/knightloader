@@ -1709,6 +1709,7 @@ export const zh: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader 只显示这一次，并且只保存指纹，所以请现在就把它存到下面的配置所期望的位置。',
   'settings.access.mcp.config': '配置',
   'settings.access.mcp.configHint': '令牌不会再次显示。请把你保存的令牌放到配置里写着 <your token> 的位置，或者移除客户端后重新添加以获得新令牌。',
+  'settings.access.mcp.configHintElsewhere': '令牌不会再次显示。请使用你保存的那个，方法见下文，或者移除客户端后重新添加以获得新令牌。',
   'settings.access.mcp.setupCommand': '在终端里运行一次。',
   'settings.access.mcp.setupFile': '把它添加到配置文件里，放在已有服务器的旁边，然后重新启动 {app}。',
   'settings.access.mcp.setupForm': '在 {app} 的 {ui} 中输入这些值。',

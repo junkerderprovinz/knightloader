@@ -1711,6 +1711,7 @@ export const lv: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader to parāda tikai šoreiz un glabā tikai pirkstu nospiedumu, tāpēc saglabā to tagad tur, kur to sagaida tālāk redzamā konfigurācija.',
   'settings.access.mcp.config': 'Konfigurācija',
   'settings.access.mcp.configHint': 'Pilnvara vairs netiks rādīta. Ieliec saglabāto pilnvaru tur, kur konfigurācijā rakstīts <your token>, vai noņem klientu un pievieno no jauna, lai iegūtu jaunu.',
+  'settings.access.mcp.configHintElsewhere': 'Token vairs netiks rādīts. Izmantojiet saglabāto, kā aprakstīts zemāk, vai noņemiet klientu un pievienojiet to vēlreiz, lai iegūtu jaunu.',
   'settings.access.mcp.setupCommand': 'Palaid to vienreiz terminālī.',
   'settings.access.mcp.setupFile': 'Pievieno to konfigurācijas failam līdzās jau esošajiem serveriem un palaid {app} vēlreiz.',
   'settings.access.mcp.setupForm': 'Ievadi šīs vērtības programmā {app} sadaļā {ui}.',

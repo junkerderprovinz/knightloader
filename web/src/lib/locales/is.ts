@@ -1710,6 +1710,7 @@ export const is: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader sýnir hann aðeins í þetta eina sinn og geymir ekkert nema fingrafar, svo vistaðu hann núna þar sem stillingarnar hér fyrir neðan ætlast til.',
   'settings.access.mcp.config': 'Stillingar',
   'settings.access.mcp.configHint': 'Tókinn er ekki sýndur aftur. Settu tókann sem þú vistaðir þar sem stendur <your token> í stillingunum, eða fjarlægðu biðlarann og bættu honum við aftur til að fá nýjan.',
+  'settings.access.mcp.configHintElsewhere': 'Aðgangskóðinn birtist ekki aftur. Notaðu þann sem þú vistaðir eins og lýst er hér að neðan, eða fjarlægðu biðlarann og bættu honum við aftur til að fá nýjan.',
   'settings.access.mcp.setupCommand': 'Keyrðu þetta einu sinni í skipanaglugga.',
   'settings.access.mcp.setupFile': 'Bættu þessu við stillingaskrána, við hliðina á þjónum sem eru þar fyrir, og ræstu {app} aftur.',
   'settings.access.mcp.setupForm': 'Sláðu þessi gildi inn í {app} undir {ui}.',

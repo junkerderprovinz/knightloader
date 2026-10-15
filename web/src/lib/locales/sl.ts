@@ -1711,6 +1711,7 @@ export const sl: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader ga pokaže samo tokrat in hrani le prstni odtis, zato ga zdaj shrani tja, kjer ga pričakuje spodnja konfiguracija.',
   'settings.access.mcp.config': 'Konfiguracija',
   'settings.access.mcp.configHint': 'Žeton se ne bo več prikazal. Shranjeni žeton vstavi tja, kjer v konfiguraciji piše <your token>, ali odjemalca odstrani in ga dodaj znova, da dobiš nov žeton.',
+  'settings.access.mcp.configHintElsewhere': 'Žeton se ne prikaže znova. Uporabi tistega, ki si ga shranil, kot je opisano spodaj, ali odstrani odjemalca in ga dodaj znova, da dobiš novega.',
   'settings.access.mcp.setupCommand': 'To zaženi enkrat v terminalu.',
   'settings.access.mcp.setupFile': 'Dodaj to v konfiguracijsko datoteko, k strežnikom, ki so že v njej, in znova zaženi {app}.',
   'settings.access.mcp.setupForm': 'Vnesi te vrednosti v aplikaciji {app} pod {ui}.',

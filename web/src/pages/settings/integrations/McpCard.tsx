@@ -148,6 +148,8 @@ export function McpCard() {
 
   const base = { origin: appAddress(), endpointPath: data?.path ?? '/mcp' };
   const clients = data?.clients ?? [];
+  const reopened = viewing && clientById(viewing.kind);
+  const reopenedInput = { ...base, token: TOKEN_PLACEHOLDER };
 
   async function doRemove(row: McpClientRow) {
     setBusy(true);
@@ -264,9 +266,9 @@ export function McpCard() {
         />
       )}
 
-      {viewing && (
+      {reopened && (
         <Modal
-          title={nameOf(clientById(viewing.kind))}
+          title={nameOf(reopened)}
           hue={HUE}
           wide
           onClose={() => setViewing(null)}
@@ -278,8 +280,14 @@ export function McpCard() {
           }
         >
           <div className="flex flex-col gap-4">
-            <p className="text-sm text-carbon-textSub">{t('settings.access.mcp.configHint')}</p>
-            <ClientSetup client={clientById(viewing.kind)} input={{ ...base, token: TOKEN_PLACEHOLDER }} />
+            <p className="text-sm text-carbon-textSub">
+              {t(
+                snippetFor(reopened, reopenedInput).includes(TOKEN_PLACEHOLDER)
+                  ? 'settings.access.mcp.configHint'
+                  : 'settings.access.mcp.configHintElsewhere',
+              )}
+            </p>
+            <ClientSetup client={reopened} input={reopenedInput} />
           </div>
         </Modal>
       )}

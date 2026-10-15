@@ -1710,6 +1710,7 @@ export const ja: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader がトークンを表示するのはこの一度だけで、保持するのはフィンガープリントだけです。下の設定が読み込む場所に、今すぐ保存してください。',
   'settings.access.mcp.config': '設定',
   'settings.access.mcp.configHint': 'トークンは再表示されません。保存したトークンを、設定の <your token> の場所に入れてください。または、クライアントを削除してもう一度追加すると、新しいトークンが発行されます。',
+  'settings.access.mcp.configHintElsewhere': 'トークンは再表示されません。保存しておいたものを下の説明どおりに使うか、クライアントを削除して追加し直し、新しいトークンを取得してください。',
   'settings.access.mcp.setupCommand': 'ターミナルで一度だけ実行してください。',
   'settings.access.mcp.setupFile': '設定ファイルに、すでにあるサーバーの隣へ追加し、{app} をもう一度起動してください。',
   'settings.access.mcp.setupForm': '{app} の {ui} に、次の値を入力してください。',

@@ -1710,6 +1710,7 @@ export const et: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader näitab seda vaid ühe korra ja säilitab ainult sõrmejälje, nii et salvesta see kohe sinna, kus allolev seadistus seda ootab.',
   'settings.access.mcp.config': 'Seadistus',
   'settings.access.mcp.configHint': 'Tokenit enam ei näidata. Pane salvestatud token sinna, kus seadistuses on <your token>, või eemalda klient ja lisa uuesti, et saada uus.',
+  'settings.access.mcp.configHintElsewhere': 'Võtit ei näidata enam uuesti. Kasuta salvestatut, nagu allpool kirjeldatud, või eemalda klient ja lisa uuesti, et saada uus.',
   'settings.access.mcp.setupCommand': 'Käivita see üks kord terminalis.',
   'settings.access.mcp.setupFile': 'Lisa see seadistusfaili juba seal olevate serverite kõrvale ja käivita {app} uuesti.',
   'settings.access.mcp.setupForm': 'Sisesta need väärtused rakenduses {app} jaotises {ui}.',

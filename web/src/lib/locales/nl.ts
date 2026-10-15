@@ -1703,6 +1703,7 @@ export const nl: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader toont het maar één keer en bewaart alleen een vingerafdruk, dus sla het nu op waar de configuratie hieronder het verwacht.',
   'settings.access.mcp.config': 'Configuratie',
   'settings.access.mcp.configHint': 'Het token wordt niet opnieuw getoond. Zet het opgeslagen token waar de configuratie <your token> zegt, of verwijder de client en voeg hem opnieuw toe voor een nieuw token.',
+  'settings.access.mcp.configHintElsewhere': 'Het token wordt niet nog eens getoond. Gebruik het token dat je hebt opgeslagen, zoals hieronder beschreven, of verwijder de client en voeg hem opnieuw toe om een nieuw token te krijgen.',
   'settings.access.mcp.setupCommand': 'Voer dit één keer uit in een terminal.',
   'settings.access.mcp.setupFile': 'Voeg dit toe aan het configuratiebestand, naast de servers die er al in staan, en start {app} opnieuw.',
   'settings.access.mcp.setupForm': 'Voer deze waarden in bij {app} onder {ui}.',

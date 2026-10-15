@@ -1710,6 +1710,7 @@ export const ms: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader hanya menunjukkannya sekali ini dan hanya menyimpan cap jari, jadi simpan sekarang di tempat yang dijangka oleh konfigurasi di bawah.',
   'settings.access.mcp.config': 'Konfigurasi',
   'settings.access.mcp.configHint': 'Token tidak ditunjukkan lagi. Letakkan token yang anda simpan di tempat konfigurasi menyatakan <your token>, atau buang klien dan tambah semula untuk mendapat yang baharu.',
+  'settings.access.mcp.configHintElsewhere': 'Token tidak dipaparkan lagi. Gunakan token yang anda simpan seperti yang diterangkan di bawah, atau alih keluar klien dan tambahkannya semula untuk mendapat token baharu.',
   'settings.access.mcp.setupCommand': 'Jalankan ini sekali dalam terminal.',
   'settings.access.mcp.setupFile': 'Tambahkan ini pada fail konfigurasi, di sebelah mana-mana pelayan yang sudah ada, dan mulakan {app} semula.',
   'settings.access.mcp.setupForm': 'Masukkan nilai ini dalam {app} di bawah {ui}.',

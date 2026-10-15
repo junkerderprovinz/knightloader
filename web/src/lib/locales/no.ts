@@ -1713,6 +1713,7 @@ export const no: Dict = {
   'settings.access.mcp.tokenHint': 'KnightLoader viser den bare denne ene gangen og lagrer kun et fingeravtrykk, så lagre den nå der konfigurasjonen nedenfor forventer den.',
   'settings.access.mcp.config': 'Konfigurasjon',
   'settings.access.mcp.configHint': 'Tokenen vises ikke igjen. Sett inn den du lagret der konfigurasjonen sier <your token>, eller fjern klienten og legg den til på nytt for å få en ny.',
+  'settings.access.mcp.configHintElsewhere': 'Tokenet vises ikke igjen. Bruk det du lagret, slik det er beskrevet nedenfor, eller fjern klienten og legg den til på nytt for å få et nytt.',
   'settings.access.mcp.setupCommand': 'Kjør dette én gang i en terminal.',
   'settings.access.mcp.setupFile': 'Legg dette til i konfigurasjonsfilen, ved siden av serverne som allerede står i den, og start {app} på nytt.',
   'settings.access.mcp.setupForm': 'Skriv inn disse verdiene i {app} under {ui}.',

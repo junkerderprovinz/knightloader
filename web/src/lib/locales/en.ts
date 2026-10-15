@@ -2088,6 +2088,7 @@ export const en = {
   'settings.access.mcp.tokenHint': 'KnightLoader shows it only this once and keeps nothing but a fingerprint, so save it now where the configuration below expects it.',
   'settings.access.mcp.config': 'Configuration',
   'settings.access.mcp.configHint': 'The token is not shown again. Put the one you saved where the configuration says <your token>, or remove the client and add it again to get a new one.',
+  'settings.access.mcp.configHintElsewhere': 'The token is not shown again. Use the one you saved as described below, or remove the client and add it again to get a new one.',
   'settings.access.mcp.setupCommand': 'Run this once in a terminal.',
   'settings.access.mcp.setupFile': 'Add this to the configuration file, next to any servers already in it, and start {app} again.',
   'settings.access.mcp.setupForm': 'Enter these values in {app} under {ui}.',

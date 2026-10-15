@@ -1711,6 +1711,7 @@ export const hu: Dict = {
   'settings.access.mcp.tokenHint': 'A KnightLoader csak most az egyszer mutatja meg, és csak egy ujjlenyomatot őriz, ezért mentsd el most oda, ahol az alábbi konfiguráció várja.',
   'settings.access.mcp.config': 'Konfiguráció',
   'settings.access.mcp.configHint': 'A token többé nem jelenik meg. Told be az elmentettet oda, ahol a konfigurációban <your token> áll, vagy távolítsd el a klienst, és add hozzá újra, hogy újat kapj.',
+  'settings.access.mcp.configHintElsewhere': 'A token nem jelenik meg újra. Használd a mentett tokent az alábbiak szerint, vagy távolítsd el a klienst, és add hozzá újra, hogy újat kapj.',
   'settings.access.mcp.setupCommand': 'Futtasd ezt egyszer egy terminálban.',
   'settings.access.mcp.setupFile': 'Add hozzá ezt a konfigurációs fájlhoz, a benne már lévő szerverek mellé, majd indítsd újra a(z) {app} alkalmazást.',
   'settings.access.mcp.setupForm': 'Add meg ezeket az értékeket a(z) {app} alkalmazásban itt: {ui}.',
