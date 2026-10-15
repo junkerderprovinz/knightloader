@@ -131,20 +131,18 @@ function contrastOn(hex) {
   return luminance(r, g, b) > 0.55 ? '#161616' : '#FFFFFF';
 }
 
-/**
- * systemTheme is the machine's current setting. The picker offers only light
- * and dark, and preselects this one until the user chooses, as the language
- * picker does.
- */
-function systemTheme() {
-  return typeof matchMedia === 'function' && matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-}
+/** The picker's themes, in the web UI's order. `system` follows the device. */
+const THEMES = ['dark', 'light', 'system'];
 
+/**
+ * applyTheme puts a chosen theme on <html> as data-theme. `system` removes the
+ * attribute, and glimstone.css then reads prefers-color-scheme, so the page
+ * changes with the device while it is open, as the web UI does (lib/theme.ts).
+ */
 function applyTheme(theme) {
   const root = document.documentElement;
-  // Without a stored choice the machine's setting is read each time, so the
-  // extension follows it until the user picks a side.
-  root.setAttribute('data-theme', theme === 'light' || theme === 'dark' ? theme : systemTheme());
+  if (theme === 'light' || theme === 'dark') root.setAttribute('data-theme', theme);
+  else root.removeAttribute('data-theme');
 }
 
 function applyShape(shape) {
@@ -201,8 +199,8 @@ async function readAppearance() {
   }
 
   return {
-    // Never blank, so the picker can show which theme is in force.
-    theme: s.theme === 'light' || s.theme === 'dark' ? s.theme : systemTheme(),
+    // An install that never chose has always followed the device.
+    theme: THEMES.includes(s.theme) ? s.theme : 'system',
     accent,
     accentCustoms,
     // Undefined until a slot is chosen; callers then fall back to accentSlot().
