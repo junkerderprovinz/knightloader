@@ -38,6 +38,31 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [2.1.1] - 2026-10-16
 
+### Added
+
+- **PUID and PGID.** Started without `--user`, the container is root only
+  long enough to give the empty folders Docker has just created for it to
+  PUID:PGID, 1000:1000 unless you set them, and then runs as that account. A
+  folder that already holds something keeps its owner. With `--user`, as in
+  the Unraid template, nothing changes and PUID and PGID are not read.
+  Settings, Health & diagnostics shows whether they were applied.
+
+### Changed
+
+- **The extension's settings have a Display and an In the browser card.**
+  Display holds the theme, corners, accent colour, rainbow mode and palette
+  under the names the web app uses. In the browser holds Click'n'Load,
+  downloads, media and the clipboard as rows, with their explanations in info
+  bubbles. Help and About this browser extension are separate sections.
+- **The extension's theme can follow your device.** Next to light and dark,
+  System takes the device's setting, in the popup too. The selectors sit at
+  the end of their rows and are only as wide as they need to be.
+- **Take the look from the default instance is the first row of Display.**
+  When the extension cannot follow an instance, the switch stays off, shakes
+  when you press it, and the reason opens in its info bubble.
+- **The toolbar icon is the bare logo** without its tile. The store icon stays
+  as it was.
+
 ### Fixed
 
 - **Click'n'Load keeps the first link.** A site can pad the links it sends
@@ -53,25 +78,20 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   Finished connections keep looking while any part is still large enough to
   share, and a connection that has stopped receiving counts as slow. Reported
   in [#120](https://github.com/junkerderprovinz/knightloader/issues/120).
-## [2.1.1] - 2026-10-15
-
-### Added
-
-- **PUID and PGID.** Started without `--user`, the container is root only
-  long enough to give the empty folders Docker has just created for it to
-  PUID:PGID, 1000:1000 unless you set them, and then runs as that account. A
-  folder that already holds something keeps its owner. With `--user`, as in
-  the Unraid template, nothing changes and PUID and PGID are not read.
-  Settings, Health & diagnostics shows whether they were applied.
-
-### Fixed
-
 - **The `docker run` from the README works on a fresh host.** Docker creates
   a missing bind-mount folder as root, so KnightLoader could not write its own
-  data folder and restarted in a loop until you ran `chown` on the host.
+  data folder and restarted in a loop until you ran `chown` on the host. This
+  happened on MOS and on any Docker host that does not create the folders
+  itself the way Unraid does.
 - **Hints that name an account name the right one.** A program that cannot be
   run, an action the system refuses and a folder KnightLoader may not write
   into name the uid and gid it actually runs as, instead of always 1000.
+- **The extension's language list opens above the cards below it** instead of
+  behind the next one, and its entries start at the list's left edge.
+
+### Translations
+
+- **Every new and changed text is in all 42 languages** of the web interface.
 
 ## [2.1.0] - 2026-10-15
 
