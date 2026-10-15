@@ -1,20 +1,23 @@
 import type { ReactNode } from 'react';
-import { RADIUS, Stop, WIDTH } from './lane';
+import { WIDTH } from './lane';
 import { FILL, GROUND, HUE, LABEL, SURFACE, pictureHue, trip, useRoom, useStage } from './scene';
-import { Answer, Hop, Traveller, litFrom, loopOf } from './station';
+import { Answer, Hop, Traveller, litFrom, loopOf, type Loop } from './station';
 
 // The source stands on the left, each track runs along a line of its own, and
 // the lines meet in the file on the right. The picture is laid out at its
 // card's width, one unit to the pixel, and never narrower than the lane's.
-const SOURCE = 20;
-const PICKED = 66;
+const SOURCE = 24;
+const PICKED = 78;
 // From where the lines meet to the file, and from the file to the right edge.
-const JOIN = 42;
-const EDGE = 28;
+const JOIN = 44;
+const EDGE = 32;
 // How much further in the file stands when a sidecar stands beside it.
-const SIDECAR = 32;
-const FIRST = 38;
-const PITCH = 50;
+const SIDECAR = 36;
+const FIRST = 44;
+const PITCH = 60;
+// Half the side of a track's tile, and the rounding of its corners.
+const TILE = 15;
+const CORNER = 8;
 // Seconds a track is picked out of the source before it goes on.
 const PICK = 0.6;
 // The height of a line of words under the file.
@@ -40,12 +43,53 @@ const FIGURES: Record<MediaTrack['id'], string> = {
 };
 
 // The file: a sheet with its corner folded. A sidecar is a smaller one.
-const SHEET = 'M-14 -19h19l9 9v29h-28z';
-const SMALL_SHEET = 'M-9 -12h12l6 6v18h-18z';
+const SHEET = 'M-17 -23h23l11 11v35h-34z';
+const FOLD = 'M6 -23v11h11';
+const SMALL_SHEET = 'M-11 -15h15l7 7v23h-22z';
 
 // The tracks that are files of their own when nothing is merged. Tags and
 // chapters still go into the files, and are drawn into the video's.
 const OWN_FILE: ReadonlySet<MediaTrack['id']> = new Set(['video', 'audio', 'subtitle', 'thumbnail']);
+
+/**
+ * Tile is a track where it is picked out of the source: a rounded square that
+ * waits in grey and takes the accent in one step at `at`, with a ring and a
+ * small hop. In a still frame it stands in the accent.
+ */
+function Tile({
+  x,
+  y,
+  face,
+  at,
+  loop,
+  still,
+}: {
+  x: number;
+  y: number;
+  face: (paint: string) => ReactNode;
+  at: number;
+  loop: Loop;
+  still: boolean;
+}) {
+  const square = (paint: string) => (
+    <rect x={-TILE} y={-TILE} width={TILE * 2} height={TILE * 2} rx={CORNER} fill={paint} />
+  );
+  return (
+    <g transform={`translate(${x} ${y})`}>
+      {!still && <Answer radius={TILE + 3} at={at} loop={loop} />}
+      <g>
+        {!still && <Hop at={at} loop={loop} />}
+        {square(GROUND)}
+        {face(LABEL)}
+        <g opacity={still ? undefined : 0}>
+          {!still && <animate attributeName="opacity" {...litFrom(at, loop)} {...loop.smil} />}
+          {square(FILL)}
+          {face(SURFACE)}
+        </g>
+      </g>
+    </g>
+  );
+}
 
 /**
  * TrackMerge shows what a video download is put together from with the
@@ -85,7 +129,7 @@ export function TrackMerge({
   const middle = lane((tracks.length - 1) / 2);
   const merged = apart === undefined;
   // A file on the last line reaches further down than the lines do.
-  const foot = lane(tracks.length - 1) + (merged ? 16 : 24);
+  const foot = lane(tracks.length - 1) + (merged ? 20 : 28);
   // Where each track ends: the one file, or kept apart, a file of its own or the video's.
   const video = Math.max(0, tracks.findIndex((tr) => tr.id === 'video'));
   const ownFile = (i: number) => !merged && OWN_FILE.has(tracks[i].id);
@@ -104,14 +148,14 @@ export function TrackMerge({
   const said = [...tracks.map((tr) => `${tr.name} ${tr.value}`), apart ?? extension, sidecar, filename, split]
     .filter(Boolean)
     .join(', ');
-  const ext = (words: string, paint: string, y = 9) => (
-    <text y={y} textAnchor="middle" fontSize="8" fontWeight="700" fill={paint} className="glim-num uppercase">
+  const ext = (words: string, paint: string, y = 11) => (
+    <text y={y} textAnchor="middle" fontSize="9.5" fontWeight="700" fill={paint} className="glim-num uppercase">
       {words}
     </text>
   );
   // A file kept apart shows the figure of its track where the merged one shows its extension.
   const kind = (id: MediaTrack['id'], paint: string) => (
-    <path d={FIGURES[id]} fill={paint} fillRule="evenodd" transform="translate(0 2) scale(.8)" />
+    <path d={FIGURES[id]} fill={paint} fillRule="evenodd" transform="translate(0 3)" />
   );
   // The file and its sidecar wait in grey and take the accent once every track is in.
   const lit = (children: ReactNode) => (
@@ -131,7 +175,7 @@ export function TrackMerge({
         className="block w-full overflow-visible"
       >
         {tracks.map((tr, i) => {
-          const figure = (paint: string) => <path d={FIGURES[tr.id]} fill={paint} fillRule="evenodd" transform="scale(.8)" />;
+          const figure = (paint: string) => <path d={FIGURES[tr.id]} fill={paint} fillRule="evenodd" transform="scale(1.05)" />;
           return (
             <g key={tr.id} data-track={tr.id} {...pictureHue(i + 1)}>
               <path
@@ -143,12 +187,12 @@ export function TrackMerge({
                 strokeLinecap="round"
                 strokeLinejoin="round"
               />
-              <Stop x={PICKED} y={lane(i)} state="takes" face={figure} at={walks[i].stops[1].arrive} loop={loop} still={still} />
+              <Tile x={PICKED} y={lane(i)} face={figure} at={walks[i].stops[1].arrive} loop={loop} still={still} />
               {/* Over the line, which the parcel travels along. */}
-              <foreignObject x={PICKED + RADIUS + 6} y={lane(i) - 36} width={meet - PICKED - RADIUS - 12} height="30">
-                <span className="block truncate text-meta leading-[15px] text-carbon-textMuted">{tr.name}</span>
+              <foreignObject x={PICKED + TILE + 8} y={lane(i) - 42} width={meet - PICKED - TILE - 16} height="34">
+                <span className="block truncate text-meta leading-[16px] text-carbon-textMuted">{tr.name}</span>
                 {/* dir="auto": a list of language codes, or a selector somebody typed. */}
-                <span dir="auto" className="block truncate text-meta leading-[15px] text-carbon-text">
+                <span dir="auto" className="block truncate text-[13px] font-medium leading-[18px] text-carbon-text">
                   {tr.value}
                 </span>
               </foreignObject>
@@ -156,33 +200,33 @@ export function TrackMerge({
           );
         })}
 
-        <circle cx={SOURCE} cy={middle} r={RADIUS} fill={GROUND} />
-        <path d={`M${SOURCE - 3} ${middle - 5.5}v11l9 -5.5z`} fill={LABEL} />
+        <rect x={SOURCE - TILE} y={middle - TILE} width={TILE * 2} height={TILE * 2} rx={CORNER} fill={GROUND} />
+        <path d={`M${SOURCE - 4} ${middle - 7}v14l11.5 -7z`} fill={LABEL} />
 
         <g transform={`translate(${file} ${main})`} data-file={merged ? extension : 'video'} {...pictureHue(0)}>
-          {!still && <Answer radius={20} at={complete} loop={loop} />}
+          {!still && <Answer radius={26} at={complete} loop={loop} />}
           <g>
             {!still && <Hop at={complete} loop={loop} />}
             {/* One more sheet stacked behind for the files the chapters become. */}
-            {split && <path data-split d={SHEET} transform="translate(7 -7)" fill={GROUND} stroke={SURFACE} strokeWidth="1.5" />}
+            {split && <path data-split d={SHEET} transform="translate(8 -8)" fill={GROUND} stroke={SURFACE} strokeWidth="1.5" />}
             <path d={SHEET} fill={GROUND} />
             {merged ? ext(extension, LABEL) : kind('video', LABEL)}
             {lit(
               <>
                 <path d={SHEET} fill={FILL} />
-                <path d="M5 -19v9h9" fill="none" stroke={SURFACE} strokeOpacity=".6" />
+                <path d={FOLD} fill="none" stroke={SURFACE} strokeOpacity=".6" />
                 {merged ? ext(extension, SURFACE) : kind('video', SURFACE)}
               </>,
             )}
           </g>
           {sidecar && (
-            <g transform={`translate(${SIDECAR} 8)`} data-sidecar={sidecar}>
+            <g transform={`translate(${SIDECAR} 10)`} data-sidecar={sidecar}>
               <path d={SMALL_SHEET} fill={GROUND} />
-              {ext(sidecar, LABEL, 6)}
+              {ext(sidecar, LABEL, 7)}
               {lit(
                 <>
                   <path d={SMALL_SHEET} fill={FILL} />
-                  {ext(sidecar, SURFACE, 6)}
+                  {ext(sidecar, SURFACE, 7)}
                 </>,
               )}
             </g>
@@ -198,7 +242,7 @@ export function TrackMerge({
                 {lit(
                   <>
                     <path d={SHEET} fill={FILL} />
-                    <path d="M5 -19v9h9" fill="none" stroke={SURFACE} strokeOpacity=".6" />
+                    <path d={FOLD} fill="none" stroke={SURFACE} strokeOpacity=".6" />
                     {kind(tr.id, SURFACE)}
                   </>,
                 )}
@@ -217,8 +261,8 @@ export function TrackMerge({
             // It is taken in where it is picked and in the file, and runs past the point where the lines meet.
             <g key={tr.id} {...pictureHue(i + 1)}>
               <Traveller trip={walks[i]} loop={loop} taking={[walks[i].stops[0], walks[i].stops[1], walks[i].stops[3]]} stays>
-                <circle r="7" fill={FILL} />
-                <path d={FIGURES[tr.id]} fill={SURFACE} fillRule="evenodd" transform="scale(.55)" />
+                <circle r="8" fill={FILL} />
+                <path d={FIGURES[tr.id]} fill={SURFACE} fillRule="evenodd" transform="scale(.6)" />
               </Traveller>
             </g>
           ))}

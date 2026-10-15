@@ -143,7 +143,6 @@ export function CaptchaPriorityCard({
 
 const TEST_REFUSALS: Partial<Record<string, TranslationKey>> = {
   captchaOff: 'settings.captcha.testOff',
-  captchaJDOff: 'settings.captcha.testJDOff',
   noCaptchaAccount: 'settings.captcha.testNoAccount',
 };
 

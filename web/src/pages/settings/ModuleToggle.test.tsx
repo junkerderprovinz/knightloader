@@ -108,7 +108,7 @@ it('keeps a module open that is set up but not working, since the fix is in the 
 });
 
 it('keeps a module without a switch open and says why under the switch', () => {
-  renderCard(row({ id: 'ytdlp', switch: 'none', enabled: false, reasonCode: 'ytdlpMissing', reason: 'missing' }));
+  renderCard(row({ id: 'captcha', switch: 'none', enabled: false, reasonCode: 'captchaNoJD', reason: 'missing' }));
   expect(body()).not.toBeNull();
-  expect(text()).toContain(en['settings.modules.reason.ytdlpMissing']);
+  expect(text()).toContain(en['settings.modules.reason.captchaNoJD']);
 });

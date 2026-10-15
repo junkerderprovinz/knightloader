@@ -1,5 +1,5 @@
 import type { MediaTrack } from '../../../components/pictures/TrackMerge';
-import { capLabel } from '../../../components/VariantPicker';
+import { capLabel, formatLabel } from '../../../components/VariantPicker';
 import type { YtdlpOptions } from '../../../lib/api';
 import type { TranslationKey } from '../../../lib/i18n';
 
@@ -16,11 +16,13 @@ const DEFAULT_SUBTITLE_LANGS = 'en';
 export function fileTracks(ytdlp: YtdlpOptions, t: Translate): MediaTrack[] {
   const { embed } = ytdlp;
   const custom = ytdlp.quality === 'custom';
+  const format = !custom && ytdlp.videoFormat !== 'best' ? formatLabel(ytdlp.videoFormat, t) : '';
+  const picture = [format, capLabel(ytdlp.quality, t)].filter(Boolean).join(', ');
   const tracks: MediaTrack[] = [
     {
       id: 'video',
       name: t('columns.variant.video'),
-      value: (custom && ytdlp.customFormat.trim()) || capLabel(ytdlp.quality, t),
+      value: (custom && ytdlp.customFormat.trim()) || picture,
     },
     { id: 'audio', name: t('columns.variant.audio'), value: capLabel(custom ? 'custom' : 'best', t) },
   ];
@@ -41,4 +43,17 @@ export function fileTracks(ytdlp: YtdlpOptions, t: Translate): MediaTrack[] {
     tracks.push({ id: 'chapters', name: t('picture.tracks.chapters'), value: t('picture.tracks.marks') });
   }
   return tracks;
+}
+
+/**
+ * mergedExtension is the container buildArgs merges a video row without a
+ * format of its own into: the instance's video format where it names mp4 or
+ * webm, mkv otherwise. yt-dlp cannot embed a cover into webm, so webm with a
+ * cover becomes mkv, and a custom selector ignores the format.
+ */
+export function mergedExtension(ytdlp: YtdlpOptions): string {
+  if (ytdlp.quality === 'custom') return 'mkv';
+  if (ytdlp.videoFormat === 'mp4') return 'mp4';
+  if (ytdlp.videoFormat === 'webm' && !ytdlp.embed.thumbnail) return 'webm';
+  return 'mkv';
 }

@@ -401,7 +401,7 @@ export const RELEASES: Release[] = [
         id: 'files-card',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.filesCard',
-        names: { name: 'settings.resolvers.filesTitle' },
+        names: { name: 'settings.resolvers.filesCard' },
       },
       {
         id: 'audio-best',
