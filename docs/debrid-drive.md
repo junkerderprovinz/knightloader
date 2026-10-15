@@ -46,7 +46,7 @@ until its files are there.
 
 ## Switching it on
 
-1. Open **Settings → Debrid drive** and switch it on.
+1. Open **Settings → Integrations** and switch on **Debrid drive**.
 2. Create an API token that can read under **Settings → Security → API
    tokens**. **Read only** is all the drive needs, and it is the right preset
    for it: the token goes into a config file on another machine.
@@ -62,8 +62,8 @@ and would get past a second factor.
 
 ## rclone
 
-**Settings → Debrid drive** shows the configuration with your address filled
-in:
+The **Debrid drive** card under **Settings → Integrations** shows the
+configuration with your address filled in:
 
 ```ini
 [knightloader]

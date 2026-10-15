@@ -6,7 +6,6 @@ import {
   IconDownload,
   IconFilter,
   IconFleet,
-  IconFolderOpen,
   IconHealth,
   IconInfo,
   IconKeyboard,
@@ -43,8 +42,6 @@ const ICONS: Record<string, ComponentType<SVGProps<SVGSVGElement>>> = {
   resolvers: IconResolvers,
   // Uploading is what torrents do that no other backend here does.
   torrents: IconUpload,
-  // A share of folders, one per account.
-  debriddrive: IconFolderOpen,
   automation: IconSchedules,
   // General, Look, App, Security and Advanced wear the glyphs GlimStone
   // gives those tabs in every app; the cog is Settings itself and no tab in it.

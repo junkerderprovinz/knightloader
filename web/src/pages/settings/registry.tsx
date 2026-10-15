@@ -7,7 +7,6 @@ import { Archives } from './Archives';
 import { Automation } from './Automation';
 import { BrowserTools } from './BrowserTools';
 import { CollectorSettings } from './CollectorSettings';
-import { DebridDrive } from './DebridDrive';
 import { DownloadsSettings } from './DownloadsSettings';
 import { EmptyPage } from './Empty';
 import { Health } from './Health';
@@ -41,7 +40,6 @@ const PAGES: Record<string, () => ReactNode> = {
   network: () => <Network />,
   resolvers: () => <Resolvers />,
   torrents: () => <Torrents />,
-  debriddrive: () => <DebridDrive />,
   automation: () => <Automation />,
   // The sidebar's own Konten and Instanzen pages, the latter under its
   // module's switch.
