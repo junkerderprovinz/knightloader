@@ -587,16 +587,28 @@ func (m *Manager) open(ctx context.Context, p Provider, login *Login) (*session,
 
 // serve waits for the handshake, then keeps the port forwarded while the
 // tunnel stands. It returns when ctx ends, or when a session that can end has
-// had its tunnel down for RenewAfter.
+// had its tunnel down for RenewAfter, before its first handshake or after.
 func (m *Manager) serve(ctx context.Context, p Provider, sess *session) {
 	wctx, cancel := context.WithTimeout(ctx, m.opts.ConnectTimeout)
 	err := m.tun.WaitConnected(wctx)
 	cancel()
-	if err != nil && ctx.Err() == nil {
+	if err != nil {
+		if ctx.Err() != nil {
+			return
+		}
 		m.setFail(&failure{CodeTimeout, fmt.Errorf("no handshake with %s", sess.cfg.Peer.Endpoint)})
-	}
-	if err := m.tun.WaitConnected(ctx); err != nil {
-		return
+		wait := ctx
+		if sess.renews {
+			var cancel context.CancelFunc
+			wait, cancel = context.WithTimeout(ctx, m.opts.RenewAfter)
+			defer cancel()
+		}
+		if err := m.tun.WaitConnected(wait); err != nil {
+			if sess.renews && ctx.Err() == nil {
+				m.opts.Logf("vpn: %s never answered, opening a new session", p.Name)
+			}
+			return
+		}
 	}
 	m.setFail(nil)
 	go m.lookUpExitIP(ctx)
