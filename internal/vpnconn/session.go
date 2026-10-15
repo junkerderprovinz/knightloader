@@ -68,6 +68,9 @@ const (
 	CodeAccountExpired = "vpn-account-expired"
 	// CodeLocationUnknown is a location the provider has no server at.
 	CodeLocationUnknown = "vpn-location-unknown"
+	// CodeResumeFailed is a provider in use before a restart that could not
+	// be connected again; what goes through the VPN waits.
+	CodeResumeFailed = "vpn-resume-failed"
 )
 
 // final says a failure is one that trying again with the same login does

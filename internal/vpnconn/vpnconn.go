@@ -304,7 +304,11 @@ func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 		return State{}, &Refusal{Status: http.StatusNotImplemented, Code: "vpn-unsupported",
 			Text: fmt.Sprintf("KnightLoader cannot log in to %s yet", p.Name)}
 	}
-	login := m.login(id)
+	login, err := m.login(id)
+	if err != nil {
+		return State{}, fmt.Errorf("the stored login of %s cannot be read: %w", p.Name, err)
+	}
+	changed := false
 	for k, v := range fields {
 		if !slices.Contains(p.Fields, k) {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-unknown", Field: k,
@@ -314,6 +318,7 @@ func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 			login[k] = v
 			// A token belongs to the login it was fetched with.
 			delete(login, accessTokenField)
+			changed = true
 		}
 	}
 	for _, f := range p.Fields {
@@ -321,8 +326,12 @@ func (m *Manager) connect(id string, fields map[string]string) (State, error) {
 			return State{}, &Refusal{Status: http.StatusBadRequest, Code: "vpn-field-missing", Field: f, Text: f + " is missing"}
 		}
 	}
-	if err := m.seal(id, login); err != nil {
-		return State{}, err
+	// Sealed only when it changed, so a full or read-only disk does not keep a
+	// stored login from connecting.
+	if changed {
+		if err := m.seal(id, login); err != nil {
+			return State{}, err
+		}
 	}
 	// Registered while a provider is in use, so the torrent client's binder
 	// finds the tunnel under the name its interface is set to.
@@ -371,7 +380,7 @@ func (m *Manager) Forget(id string) (State, error) {
 	if m.Active() == id {
 		m.disconnect()
 	}
-	login := m.login(id)
+	login, _ := m.login(id)
 	if err := m.opts.Store.SetCredential(Service, id, accounts.Credential{}); err != nil {
 		return State{}, err
 	}
@@ -386,13 +395,30 @@ func (m *Manager) Forget(id string) (State, error) {
 }
 
 // Resume connects the provider that was in use when the process last ended.
+// One that cannot be taken up again stays in use as failed, so the traffic
+// switched on for the VPN waits until the user connects again or disconnects
+// rather than going out over the machine's own connection.
 func (m *Manager) Resume() {
+	m.op.Lock()
+	defer m.op.Unlock()
 	if m.resume == "" {
 		return
 	}
-	if _, err := m.Connect(m.resume, nil); err != nil {
-		m.opts.Logf("vpn: %s not taken up again: %v", m.resume, err)
+	_, err := m.connect(m.resume, nil)
+	if err == nil {
+		return
 	}
+	m.opts.Logf("vpn: %s not taken up again: %v", m.resume, err)
+	p := m.provider(m.resume)
+	if p == nil {
+		return
+	}
+	netbind.Register(NetworkName, m.tun)
+	m.mu.Lock()
+	m.active = p.ID
+	m.fail = &failure{CodeResumeFailed, fmt.Errorf("%s could not be taken up again after the restart: %w", p.Name, err)}
+	m.mu.Unlock()
+	m.opts.OnChange()
 }
 
 // SetRoutes says which traffic goes through the VPN.
@@ -465,13 +491,13 @@ func (m *Manager) stop() {
 	endSoon(sess)
 }
 
-func (m *Manager) login(id string) Login {
+func (m *Manager) login(id string) (Login, error) {
 	login := Login{}
 	cred, err := m.opts.Store.GetCredential(Service, id)
-	if err == nil && cred.APIKey != "" {
-		json.Unmarshal([]byte(cred.APIKey), &login)
+	if err != nil || cred.APIKey == "" {
+		return login, err
 	}
-	return login
+	return login, json.Unmarshal([]byte(cred.APIKey), &login)
 }
 
 func (m *Manager) seal(id string, login Login) error {
