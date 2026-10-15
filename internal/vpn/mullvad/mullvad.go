@@ -15,6 +15,7 @@ import (
 	"net"
 	"net/http"
 	"net/netip"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -213,7 +214,10 @@ type Relay struct {
 
 // Relays is Mullvad's WireGuard relay list.
 type Relays struct {
-	Relays    []Relay
+	Relays []Relay
+	// Down are the relays Mullvad lists as inactive, so a location of theirs
+	// is known while none of it is up.
+	Down      []Relay
 	Locations map[string]Place
 	Ports     [][2]int
 	Gateway   netip.Addr
@@ -224,7 +228,7 @@ type Place struct {
 	Latitude, Longitude float64
 }
 
-// Relays fetches the list of WireGuard relays that are up.
+// Relays fetches the list of WireGuard relays.
 func (c *Client) Relays(ctx context.Context) (Relays, error) {
 	var raw struct {
 		Locations map[string]struct {
@@ -256,13 +260,16 @@ func (c *Client) Relays(ctx context.Context) (Relays, error) {
 	for _, r := range raw.Wireguard.Relays {
 		key, kerr := vpn.ParseKey(r.PublicKey)
 		addr, aerr := netip.ParseAddr(r.Addr)
-		if !r.Active || kerr != nil || aerr != nil {
-			continue
-		}
-		out.Relays = append(out.Relays, Relay{
+		relay := Relay{
 			Hostname: strings.ToLower(r.Hostname), Location: strings.ToLower(r.Location),
 			PublicKey: key, Addr: addr, Weight: r.Weight, InCountry: r.InCountry,
-		})
+		}
+		switch {
+		case !r.Active:
+			out.Down = append(out.Down, relay)
+		case kerr == nil && aerr == nil:
+			out.Relays = append(out.Relays, relay)
+		}
 	}
 	return out, nil
 }
@@ -286,8 +293,16 @@ func (c *Client) Where(ctx context.Context) (Place, error) {
 	return Place{*out.Latitude, *out.Longitude}, nil
 }
 
-// ErrNoRelay is a location no relay that is up matches.
+// ErrNoRelay is a location no relay matches.
 var ErrNoRelay = errors.New("mullvad: no relay matches the location")
+
+// ErrNoRelayUp is a location whose relays are all inactive for now.
+var ErrNoRelayUp = errors.New("mullvad: no relay at the location is up")
+
+func (r Relay) at(location string) bool {
+	return r.Hostname == location || r.Location == location ||
+		r.InCountry && strings.HasPrefix(r.Location, location+"-")
+}
 
 // Pick chooses a relay for a location: a country code such as "se", a city
 // such as "se-got" or a relay's name such as "se-got-wg-001". With no
@@ -299,10 +314,12 @@ func (l Relays) Pick(location string, near *Place) (Relay, error) {
 	switch {
 	case location != "":
 		for _, r := range l.Relays {
-			if r.Hostname == location || r.Location == location ||
-				r.InCountry && strings.HasPrefix(r.Location, location+"-") {
+			if r.at(location) {
 				fit = append(fit, r)
 			}
+		}
+		if len(fit) == 0 && slices.ContainsFunc(l.Down, func(r Relay) bool { return r.at(location) }) {
+			return Relay{}, ErrNoRelayUp
 		}
 	case near != nil:
 		best, bestKm := "", math.Inf(1)
