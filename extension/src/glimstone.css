@@ -994,6 +994,7 @@ body {
 .glim-listbox-option {
   display: flex;
   align-items: center;
+  justify-content: flex-start;
   gap: 10px;
   width: 100%;
   padding: 8px 10px;
