@@ -44,7 +44,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
   {
     id: 'mullvad',
     name: 'Mullvad VPN',
-    fields: ['token'],
+    fields: ['accountNumber', 'location'],
     portForwarding: false,
     logo: { tile: '#192e45', ink: '#ffffff', lit: true },
   },
@@ -114,7 +114,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
   {
     id: 'azirevpn',
     name: 'AzireVPN',
-    fields: ['username', 'password'],
+    fields: ['username', 'password', 'location'],
     portForwarding: true,
     logo: { tile: '#8229ef', ink: '#ffffff', rest: 'lift', lit: true },
   },
@@ -205,7 +205,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
   {
     id: 'obscura',
     name: 'Obscura VPN',
-    fields: ['token'],
+    fields: ['accountNumber', 'location'],
     portForwarding: false,
     logo: { tile: '#ff6025', ink: '#ffffff', rest: 'ink', lit: true },
   },

@@ -425,7 +425,7 @@ func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
 		{fmt.Errorf("pia: token: %w", pia.ErrRefused), CodeLoginRefused},
 		{nordvpn.ErrRefused, CodeLoginRefused},
 		{torguard.ErrRefused, CodeLoginRefused},
-		{fmt.Errorf("nordvpn: %q: %w", "atlantis", vpn.ErrUnknownLocation), CodeLocation},
+		{fmt.Errorf("nordvpn: %q: %w", "atlantis", vpn.ErrUnknownLocation), CodeLocationUnknown},
 	}
 	for _, c := range cases {
 		var f *failure

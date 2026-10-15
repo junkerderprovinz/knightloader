@@ -96,7 +96,7 @@ func TestVPNRefusalsCarryACodeAndTheField(t *testing.T) {
 	}{
 		{http.MethodPost, "/api/vpn/protonvpn/connect", `{"fields":{}}`, http.StatusBadRequest, "vpn-field-missing", "config"},
 		{http.MethodPost, "/api/vpn/nowhere/connect", `{"fields":{}}`, http.StatusNotFound, "vpn-unknown", ""},
-		{http.MethodPost, "/api/vpn/mullvad/connect", `{"fields":{"token":"1234"}}`, http.StatusNotImplemented, "vpn-unsupported", ""},
+		{http.MethodPost, "/api/vpn/mullvad/connect", `{"fields":{"token":"1234"}}`, http.StatusBadRequest, "vpn-field-unknown", "token"},
 		{http.MethodDelete, "/api/vpn/nowhere", "", http.StatusNotFound, "vpn-unknown", ""},
 	}
 	for _, c := range cases {

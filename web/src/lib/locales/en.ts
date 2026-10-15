@@ -4046,7 +4046,9 @@ export const en = {
   'settings.vpn.error.login': '{name} refused the login.',
   'settings.vpn.error.timeout': 'The server did not answer. Try another location.',
   'settings.vpn.error.dropped': 'The connection dropped.',
-  'settings.vpn.error.location': '{name} has no server at that location. Check the spelling or leave the field empty.',
+  'settings.vpn.error.deviceLimit': '{name} allows no more devices. Remove one in your account, then connect again.',
+  'settings.vpn.error.accountExpired': 'Your {name} account has run out. Renew it, then connect again.',
+  'settings.vpn.error.locationUnknown': '{name} has no server at this location. Try another country code or leave the field empty.',
 } as const;
 
 export type TranslationKey = keyof typeof en;
