@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useId, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useId, useRef, useState, type ReactNode } from 'react';
 import { BrandPicker, PickerSearch, brandMatches, type Brand } from '../../../components/BrandPicker';
 import {
   Button,
@@ -344,6 +344,8 @@ function AddClientWindow({
   const [name, setName] = useState('');
   const [preset, setPreset] = useState<McpPreset>('addRead');
   const [creating, setCreating] = useState(false);
+  // State lags a render behind, so a fast second Enter would still see creating as false.
+  const inFlight = useRef(false);
   const [shake, setShake] = useState(0);
   const [made, setMade] = useState<{ row: McpClientRow; secret: string } | null>(null);
 
@@ -356,7 +358,8 @@ function AddClientWindow({
   }
 
   async function create() {
-    if (!picked || name.trim() === '') return;
+    if (inFlight.current || !picked || name.trim() === '') return;
+    inFlight.current = true;
     setCreating(true);
     try {
       const res = await createMcpClient(picked.id, name.trim(), PRESET_SCOPES[preset]);
@@ -367,6 +370,7 @@ function AddClientWindow({
       toast(t('settings.access.tokens.createFailed', { error: String(e).replace(/^Error:\s*/, '') }), 'fail');
       setShake((n) => n + 1);
     } finally {
+      inFlight.current = false;
       setCreating(false);
     }
   }
@@ -470,7 +474,7 @@ function AddClientWindow({
               value={name}
               onChange={(e) => setName(e.target.value)}
               onKeyDown={(e) => {
-                if (e.key === 'Enter') void create();
+                if (e.key === 'Enter' && !e.repeat) void create();
               }}
             />
           </SettingRow>
