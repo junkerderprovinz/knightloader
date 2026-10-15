@@ -7,9 +7,9 @@
  *   promo-small-440x280.png    small promo tile (Chrome: required, Edge: optional)
  *   promo-marquee-1400x560.png marquee / large promo tile (optional in both)
  *
- * Why not reuse src/icons/icon128.png: that one is a toolbar icon on an opaque
- * two-tone tile that runs to the edge. A store renders its own card around the
- * icon and asks for transparent padding instead.
+ * Why not reuse src/icons/icon128.png: that toolbar icon fills its square almost
+ * to the edge. A store renders its own card around the icon and asks for 16px of
+ * transparent padding instead.
  *
  * Bree Serif for the name and Lato for the line under it are fetched to the
  * temp dir and handed to resvg, so no installed font is needed. opentype.js only
