@@ -138,6 +138,10 @@
       .glim-row-label { font-size: var(--text-body); color: var(--carbon-text); }
       .glim-row-control { display: flex; align-items: center; gap: 8px; }
       .glim-row-unit { font-size: var(--text-dense); color: var(--carbon-text-muted); }
+      /* Where the row is too narrow for both, the selector moves under its
+         label and keeps the row's end. */
+      .segRow { flex-wrap: wrap; justify-content: flex-end; column-gap: 16px; row-gap: 8px; }
+      .segRow > .glim-row-label { flex: 1 1 12.5rem; }
       /* The native spinner is removed rather than styled, since Chrome paints it
          from the OS on its own background. Firefox needs its own property. The
          field stays type="number", so min, max, step and the numeric keypad
@@ -308,14 +312,22 @@
       </div>
     </section>
 
+    <!-- A selector stands at the end of its row at its own width, the label
+         at the start, as the web UI's SettingRow has it. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 4">
       <h2 class="glim-section-badge" id="themeHeading">Theme</h2>
-      <div class="glim-seg" id="themeSeg" role="group"></div>
+      <div class="glim-row segRow">
+        <span class="glim-row-label" id="themeLabel"></span>
+        <div class="glim-seg glim-seg--hug" id="themeSeg" role="group" aria-labelledby="themeLabel"></div>
+      </div>
     </section>
 
     <section class="glim-card glim-stagger-row" style="--row-i: 5">
       <h2 class="glim-section-badge" id="shapeHeading">Corners</h2>
-      <div class="glim-seg" id="shapeSeg" role="group"></div>
+      <div class="glim-row segRow">
+        <span class="glim-row-label" id="shapeLabel"></span>
+        <div class="glim-seg glim-seg--hug" id="shapeSeg" role="group" aria-labelledby="shapeLabel"></div>
+      </div>
     </section>
 
     <section class="glim-card glim-stagger-row" style="--row-i: 6">
@@ -463,15 +475,34 @@
     <section class="glim-card glim-stagger-row" style="--row-i: 11">
       <h2 class="glim-section-badge" id="problemsHeading">Problems?</h2>
       <pre id="report" class="report glim-well glim-num"></pre>
-      <!-- Only a copy button; the About card carries the ways to report. -->
+      <!-- Only a copy button; the Help card carries the ways to report. -->
       <div class="fields">
         <button id="copyReport" class="secondary" type="button">Copy report</button>
       </div>
     </section>
 
-    <!-- The About card, the one card whose body is prose (GlimStone 1.7.0).
-         Each sentence has its buttons directly beneath it. -->
+    <!-- Help and About split as on the web UI's Info tile: the ways to report
+         something, then who made the extension and the ways to give. Each
+         sentence has its buttons directly beneath it. -->
     <section class="glim-card glim-stagger-row" style="--row-i: 12">
+      <h2 class="glim-section-badge" id="helpHeading">Help</h2>
+      <p id="aboutReport" class="aboutText"></p>
+      <div class="glim-readme-btn-rows" id="aboutReportRow">
+        <div class="glim-readme-btn-unit group glim-tile-github">
+          <a id="aboutGithub" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
+        <!-- Our own button lights up in the accent; a third party's mark keeps
+             its colour. -->
+        <div class="glim-readme-btn-unit group glim-tile-house">
+          <a id="aboutMail" class="glim-readme-btn glim-brand-tile"></a>
+          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- The About card, the one card whose body is prose (GlimStone 1.7.0). -->
+    <section class="glim-card glim-stagger-row" style="--row-i: 13">
       <h2 class="glim-section-badge" id="aboutHeading">About</h2>
       <p id="aboutText" class="aboutText"></p>
       <p id="aboutCoffee" class="aboutText"></p>
@@ -493,20 +524,7 @@
           <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
         </div>
       </div>
-      <p id="aboutReport" class="aboutText"></p>
-      <div class="glim-readme-btn-rows" id="aboutReportRow">
-        <div class="glim-readme-btn-unit group glim-tile-github">
-          <a id="aboutGithub" class="glim-readme-btn glim-brand-tile" target="_blank" rel="noreferrer noopener"></a>
-          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
-        </div>
-        <!-- Our own button lights up in the accent; a third party's mark keeps
-             its colour. -->
-        <div class="glim-readme-btn-unit group glim-tile-house">
-          <a id="aboutMail" class="glim-readme-btn glim-brand-tile"></a>
-          <span class="glim-readme-btn-sheen" aria-hidden="true"></span>
-        </div>
-      </div>
-      <!-- The versions close the card, as in the web interface and the app. -->
+      <!-- The versions close the page. -->
       <p id="aboutVersions" class="aboutVersions glim-num"></p>
     </section>
 

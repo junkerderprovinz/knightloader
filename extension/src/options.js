@@ -411,13 +411,11 @@ function applyStaticText() {
   clipElsewhereKeepEl.textContent = t('options.clipElsewhereKeep');
   clipElsewhereStopEl.textContent = t('options.clipElsewhereStop');
 
-  // Look and Colours have no heading bubble because their rows explain
+  // The appearance cards have no heading bubble because their rows explain
   // themselves.
   appearanceHeadingEl.textContent = t('options.appearanceHeading');
   themeHeadingEl.textContent = t('options.themeHeading');
-  glimSetInfo('themeHeading', t('options.themeHint'));
   shapeHeadingEl.textContent = t('options.shapeHeading');
-  glimSetInfo('shapeHeading', t('options.shapeHint'));
   coloursHeadingEl.textContent = t('options.coloursHeading');
 
   // Each label gets its own bubble. The captions sit outside their switches,
@@ -434,6 +432,8 @@ function applyStaticText() {
   label('rainbowDiscoLabel', t('options.disco'), t('options.discoGlideHint'));
   label('paletteLabel', t('options.paletteLabel'), t('options.paletteHint'));
   label('followInstanceLabel', t('options.followInstance'), t('options.followInstanceHint'));
+  label('themeLabel', t('options.themeLabel'), t('options.themeHint', { system: t('options.themeSystem') }));
+  label('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
 
   // The notice standing in for the follow switch without a group (GlimStone
   // 1.15.0) carries the switch's own label and names the card that fixes it.
@@ -448,6 +448,7 @@ function applyStaticText() {
   if (pinDismiss) pinDismiss.textContent = t('options.pinDismiss');
 
   problemsHeadingEl.textContent = t('options.problemsHeading');
+  document.getElementById('helpHeading').textContent = t('options.helpHeading');
   aboutHeadingEl.textContent = t('options.aboutHeading');
   renderAbout();
   glimSetInfo('problemsHeading', t('options.problemsSub'));
@@ -1307,16 +1308,65 @@ function resetBadge(onClick) {
 }
 
 /**
- * segment builds a "well" selector: equal segments on a shared track, as the
- * web UI's Corners picker. aria-pressed marks the active one for screen readers
- * and the stylesheet alike.
+ * The selectors' glyphs, the web UI's (web/src/lib/glyphs.tsx) path for path.
+ * Each is drawn on a 14-unit grid, and the box is the one its glyph() helper
+ * works out: the ink's longer side spans three quarters of it.
+ */
+const SEG_BOX = '-2.333 -2.333 18.667 18.667';
+const SEG_GLYPHS = {
+  dark: {
+    box: '-2.348 -2.333 18.667 18.667',
+    d: 'M9 0a7 7 0 0 0 0 14l0.004 0a7.079 7.079 0 0 0 2.657 -0.538 0.5 0.5 0 0 0 0.061 -0.894A6.5 6.5 0 0 1 8.5 7a6.5 6.5 0 0 1 3.194 -5.568 0.5 0.5 0 0 0 -0.063 -0.893A7.08 7.08 0 0 0 9.006 0H9Z',
+  },
+  light: {
+    box: SEG_BOX,
+    d:
+      'M7 0c0.41421 0 0.75 0.335786 0.75 0.75v1c0 0.41421 -0.33579 0.75 -0.75 0.75s-0.75 -0.33579 -0.75 -0.75v-1C6.25 0.335786 6.58579 0 7 0Z' +
+      'm2.25 7c0 1.24264 -1.00736 2.25 -2.25 2.25S4.75 8.24264 4.75 7 5.75736 4.75 7 4.75 9.25 5.75736 9.25 7Z' +
+      'm-1.5 5.25c0 -0.4142 -0.33579 -0.75 -0.75 -0.75s-0.75 0.3358 -0.75 0.75v1c0 0.4142 0.33579 0.75 0.75 0.75s0.75 -0.3358 0.75 -0.75v-1Z' +
+      'M11.5 7c0 -0.41421 0.3358 -0.75 0.75 -0.75h1c0.4142 0 0.75 0.33579 0.75 0.75s-0.3358 0.75 -0.75 0.75h-1c-0.4142 0 -0.75 -0.33579 -0.75 -0.75Z' +
+      'M0.75 6.25C0.335786 6.25 0 6.58579 0 7s0.335786 0.75 0.75 0.75h1c0.41421 0 0.75 -0.33579 0.75 -0.75s-0.33579 -0.75 -0.75 -0.75h-1Z' +
+      'm1.30024 -4.19976c0.29289 -0.2929 0.76776 -0.2929 1.06066 0l0.86066 0.86066c0.29289 0.29289 0.29289 0.76776 0 1.06066 -0.2929 0.29289 -0.76777 0.29289 -1.06066 0l-0.86066 -0.86066c-0.2929 -0.2929 -0.2929 -0.76777 0 -1.06066Z' +
+      'm9.03886 7.97806c-0.2929 -0.29293 -0.7678 -0.29293 -1.0607 0 -0.29285 0.2929 -0.29285 0.7677 0 1.0606l0.8607 0.8607c0.2929 0.2929 0.7678 0.2929 1.0607 0 0.2929 -0.2929 0.2929 -0.7678 0 -1.0607l-0.8607 -0.8606Z' +
+      'm0.8607 -7.97806c0.2929 0.29289 0.2929 0.76776 0 1.06066l-0.8607 0.86066c-0.2929 0.29289 -0.7678 0.29289 -1.0607 0 -0.29285 -0.2929 -0.29285 -0.76777 0 -1.06066l0.8607 -0.86066c0.2929 -0.2929 0.7678 -0.2929 1.0607 0Z' +
+      'M3.97156 11.0889c0.29289 -0.2929 0.29289 -0.7677 0 -1.0606 -0.2929 -0.29293 -0.76777 -0.29293 -1.06066 0l-0.86066 0.8606c-0.2929 0.2929 -0.2929 0.7678 0 1.0607 0.29289 0.2929 0.76776 0.2929 1.06066 0l0.86066 -0.8607Z',
+  },
+  system: { box: SEG_BOX, d: 'M7 0a7 7 0 1 0 0 14A7 7 0 1 0 7 0ZM7 2A5 5 0 0 0 7 12Z' },
+  round: {
+    box: SEG_BOX,
+    d: 'M6 0H8A6 6 0 0 1 14 6V8A6 6 0 0 1 8 14H6A6 6 0 0 1 0 8V6A6 6 0 0 1 6 0ZM6 2H8A4 4 0 0 1 12 6V8A4 4 0 0 1 8 12H6A4 4 0 0 1 2 8V6A4 4 0 0 1 6 2Z',
+  },
+  soft: {
+    box: SEG_BOX,
+    d: 'M3 0H11A3 3 0 0 1 14 3V11A3 3 0 0 1 11 14H3A3 3 0 0 1 0 11V3A3 3 0 0 1 3 0ZM3 2H11A1 1 0 0 1 12 3V11A1 1 0 0 1 11 12H3A1 1 0 0 1 2 11V3A1 1 0 0 1 3 2Z',
+  },
+  square: { box: SEG_BOX, d: 'M0 0H14V14H0ZM2 2H12V12H2Z' },
+  leaf: {
+    box: SEG_BOX,
+    d: 'M6 0H14V8A6 6 0 0 1 8 14H0V6A6 6 0 0 1 6 0ZM6 2H12V8A4 4 0 0 1 8 12H2V6A4 4 0 0 1 6 2Z',
+  },
+};
+
+/** segGlyph draws one of SEG_GLYPHS at 16px, with its gaps carved by evenodd. */
+function segGlyph(name) {
+  const svg = glyph(SEG_GLYPHS[name].d, 16, SEG_GLYPHS[name].box);
+  svg.firstChild.setAttribute('fill-rule', 'evenodd');
+  return svg;
+}
+
+/**
+ * segment builds a "well" selector, the web UI's Tabs with variant="well".
+ * aria-pressed marks the active segment for screen readers and the stylesheet
+ * alike.
  */
 function segment(host, options, current, onPick) {
-  host.innerHTML = '';
+  host.replaceChildren();
   for (const o of options) {
     const b = document.createElement('button');
     b.type = 'button';
-    b.textContent = o.label;
+    const words = document.createElement('span');
+    words.textContent = o.label;
+    b.append(segGlyph(o.value), words);
     b.setAttribute('aria-pressed', String(o.value === current));
     b.addEventListener('click', () => onPick(o.value));
     host.appendChild(b);
@@ -1360,13 +1410,12 @@ async function renderAppearance() {
   liveAccentCustoms = { ...a.accentCustoms };
   livePalette = a.rainbow.palette.slice();
 
-  // Light and dark only; readAppearance selects the machine's setting until
-  // the user picks one.
   segment(
     themeSeg,
     [
-      { value: 'light', label: t('options.themeLight') },
       { value: 'dark', label: t('options.themeDark') },
+      { value: 'light', label: t('options.themeLight') },
+      { value: 'system', label: t('options.themeSystem') },
     ],
     a.theme,
     async (v) => {
@@ -1521,6 +1570,7 @@ async function renderAppearance() {
   // followInstance left over without a group.
   const off = a.followInstance && joined;
   setRefused([shapeSeg], off);
+  setDimmed([labelWordsOf(document.getElementById('shapeLabel'))], off);
   setRefused([rainbowOnEl, rainbowReactiveEl, rainbowRotateEl], off);
   setRefused([paletteSwatches], off);
   setDimmed([labelWordsOf(rainbowLabelEl)], off);
@@ -1574,8 +1624,9 @@ function versionLink(href, label) {
 }
 
 /**
- * The About card: the versions, a thank-you and the ways to report something.
- * The extension's version comes from the manifest.
+ * The Help and About cards: the ways to report something, then a thank-you, the
+ * ways to give and the versions. The extension's version comes from the
+ * manifest.
  */
 function renderAbout() {
   const versions = document.getElementById('aboutVersions');

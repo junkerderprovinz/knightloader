@@ -382,8 +382,8 @@ body {
 .glim-section-badge .glim-info-icon { flex: 0 0 auto; width: 14px; height: 14px; }
 .glim-section-badge .glim-info-icon svg { width: 14px; height: 14px; display: block; }
 
-/* The "well" variant of the web UI's Tabs, as its Corners picker: one padded
- * track across the whole width of its card, since a track that stops short
+/* The "well" variant of the web UI's Tabs: one padded track across the whole
+ * width of its box, as the popup's tab strip, since a track that stops short
  * reads as a control that ran out of options. The segments share that width
  * equally while every label fits on one line; a label that needs more keeps
  * its line and the others share the rest. A long translation in a narrow
@@ -424,6 +424,13 @@ body {
   justify-content: center;
   gap: 6px;
 }
+
+/* The small size, for a selector at the end of a settings row: the same well
+ * with the width binding off. The track is as wide as its segments and each
+ * segment hugs its own label, wrapping inside itself before it pushes the
+ * track out of its row. */
+.glim-seg--hug { width: fit-content; max-width: 100%; }
+.glim-seg--hug button { flex: 1 1 auto; min-width: 0; }
 
 .glim-seg button:hover { color: var(--carbon-text); }
 
