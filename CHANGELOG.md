@@ -55,8 +55,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Hints that name an account name the right one.** A program that cannot be
   run, an action the system refuses and a folder KnightLoader may not write
   into name the uid and gid it actually runs as, instead of always 1000.
-- **A VPN tunnel whose server answered at once no longer sits in Connecting**
-  for 20 seconds before downloads can use it.
 
 ## [2.1.0] - 2026-10-15
 

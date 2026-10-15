@@ -171,7 +171,6 @@ The order only decides between backends that can take the link at all. A filehos
 
 - **The \`docker run\` from the README works on a fresh host.** Docker creates a missing bind-mount folder as root, so KnightLoader could not write its own data folder and restarted in a loop until you ran \`chown\` on the host. This happened on MOS and on any Docker host that does not create the folders itself the way Unraid does.
 - **Hints that name an account name the right one.** A program that cannot be run, an action the system refuses and a folder KnightLoader may not write into name the uid and gid it actually runs as, instead of always 1000.
-- **A VPN tunnel whose server answered at once no longer sits in Connecting** for 20 seconds before downloads can use it.
 
 ## 🌐 Translations
 
