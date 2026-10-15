@@ -61,9 +61,9 @@ func openPIA(ctx context.Context, login Login) (*session, error) {
 		login:  next,
 		renews: true,
 		keep: func(ctx context.Context, k keeper) {
-			if err := c.KeepPort(ctx, s, k.dial, k.setPort); err != nil && ctx.Err() == nil {
+			c.KeepPort(ctx, s, k.dial, k.setPort, func(err error) {
 				k.logf("vpn: Private Internet Access port forwarding: %v", err)
-			}
+			})
 		},
 	}, nil
 }

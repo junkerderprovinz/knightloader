@@ -633,11 +633,8 @@ func (m *Manager) forwardPort(ctx context.Context, p Provider, sess *session) {
 	if !gw.IsValid() {
 		return
 	}
-	if sess.forward != nil {
-		if err := sess.forward(ctx, m.tun.DialContext); err != nil {
-			m.opts.Logf("vpn: %s port forwarding: %v", p.Name, err)
-			return
-		}
+	if sess.forward != nil && !m.retryPort(ctx, p, func() error { return sess.forward(ctx, m.tun.DialContext) }) {
+		return
 	}
 	pf := &vpn.PortForward{
 		Client:    &vpn.NATPMP{Gateway: gw, Dial: m.tun.DialContext},
@@ -647,6 +644,26 @@ func (m *Manager) forwardPort(ctx context.Context, p Provider, sess *session) {
 		Logf:      m.opts.Logf,
 	}
 	pf.Run(ctx)
+}
+
+// portRetry is how long a request for a forwarded port waits after one that
+// failed.
+var portRetry = 30 * time.Second
+
+// retryPort runs ask until it works, reporting true, or ctx ends.
+func (m *Manager) retryPort(ctx context.Context, p Provider, ask func() error) bool {
+	for ctx.Err() == nil {
+		err := ask()
+		if err == nil {
+			return true
+		}
+		if ctx.Err() != nil {
+			break
+		}
+		m.opts.Logf("vpn: %s port forwarding: %v", p.Name, err)
+		wait(ctx, portRetry)
+	}
+	return false
 }
 
 func (m *Manager) lookUpExitIP(ctx context.Context) {

@@ -446,6 +446,35 @@ func TestASessionsKeepForwardsThePortWhileTheTunnelStands(t *testing.T) {
 	}
 }
 
+func TestAPortRequestThatFailedIsSentAgain(t *testing.T) {
+	defer func(d time.Duration) { portRetry = d }(portRetry)
+	portRetry = 50 * time.Millisecond
+	srv := vpntest.Start(t)
+	h := newHarness(t, &memStore{}, "")
+	var asked atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		cfg, err := vpn.ParseConfig(srv.Config())
+		if err != nil {
+			return nil, err
+		}
+		return &session{cfg: cfg, askPort: func(context.Context, dialFunc) (uint16, error) {
+			if asked.Add(1) == 1 {
+				return 0, errors.New("the API did not answer")
+			}
+			return 42424, nil
+		}}, nil
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "asker", Name: "Asker", Fields: []string{"token"}, PortForwarding: true, open: open, port: apiPort})
+	h.m.Connect("asker", map[string]string{"token": "x"})
+	h.waitFor(t, "asker", "connected")
+	for deadline := time.Now().Add(5 * time.Second); h.m.ForwardedPort() == 0 && time.Now().Before(deadline); {
+		time.Sleep(20 * time.Millisecond)
+	}
+	if got := h.m.ForwardedPort(); got != 42424 || asked.Load() != 2 {
+		t.Errorf("forwarded port %d after %d requests, want 42424 after 2", got, asked.Load())
+	}
+}
+
 func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
 	cases := []struct {
 		err  error
