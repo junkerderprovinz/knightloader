@@ -220,6 +220,7 @@
     "variant": "video",
     "quality": "best",
     "customFormat": "",
+    "videoFormat": "best",
     "audioFormat": "best",
     "audioBitrate": "",
     "subtitleLangs": "",

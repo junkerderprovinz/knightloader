@@ -125,3 +125,14 @@ func TestDefaultsIsTheZeroValue(t *testing.T) {
 		t.Errorf("Defaults() = %+v, want the zero value", got)
 	}
 }
+
+func TestSanitizeFoldsAnUnknownVideoFormatOntoBest(t *testing.T) {
+	for _, in := range []string{"", "avi", "mp4 avc1"} {
+		if got := (Options{VideoFormat: in}).Sanitize().VideoFormat; got != "best" {
+			t.Errorf("VideoFormat %q = %q, want best", in, got)
+		}
+	}
+	if got := (Options{VideoFormat: "webm"}).Sanitize().VideoFormat; got != "webm" {
+		t.Errorf("VideoFormat webm = %q, want it kept", got)
+	}
+}

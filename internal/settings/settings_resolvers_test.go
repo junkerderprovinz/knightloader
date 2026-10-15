@@ -97,3 +97,15 @@ func TestEmptyResolverOrderBecomesNil(t *testing.T) {
 		}
 	}
 }
+
+// The default for every video offers nothing below 360p, so a smaller stored
+// cap lands on 360p.
+func TestSanitizeResolversRaisesASmallDefaultQualityTo360p(t *testing.T) {
+	for _, q := range []ytdlp.Quality{ytdlp.Quality240p, ytdlp.Quality144p} {
+		in := Defaults()
+		in.Ytdlp.Quality = q
+		if got := sanitize(in).Ytdlp.Quality; got != ytdlp.Quality360p {
+			t.Errorf("Ytdlp.Quality %q = %q, want %q", q, got, ytdlp.Quality360p)
+		}
+	}
+}

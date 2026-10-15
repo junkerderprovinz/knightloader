@@ -1043,11 +1043,13 @@ func buildArgs(dir string, o Options) []string {
 			args = append(args, "-f", f)
 		}
 		// mkv takes any codec pairing, unlike mp4, and makes the container
-		// known in advance. A picked track or format asks for its own
-		// container first.
+		// known in advance. A picked track or format, or else the instance's
+		// video format, asks for its own container first.
 		merge := "mkv"
 		if c, ok := pickedContainer(o.VideoPick); ok {
 			merge = c.mergeFormat(o.Embed.Thumbnail)
+		} else if w, ok := defaultWish(o, o.Quality); ok {
+			merge = w.mergeFormat(o.Embed.Thumbnail)
 		}
 		args = append(args, "--merge-output-format", merge)
 		args = append(args, embedArgs(o, true)...)
@@ -1206,10 +1208,10 @@ func progressTemplateFor(o Options) string {
 	return progressTemplate
 }
 
-// formatSelector turns a picked track, a preset's format wish or a resolution
-// preset into yt-dlp's -f value, or "" for no selector (QualityBest and
-// anything else without a resolution cap, including a stored QualityAudioOnly).
-// QualityCustom passes through verbatim.
+// formatSelector turns a picked track, a preset's format wish, the instance's
+// video format or a resolution preset into yt-dlp's -f value, or "" for no
+// selector (QualityBest and anything else without a resolution cap, including
+// a stored QualityAudioOnly). QualityCustom passes through verbatim.
 func formatSelector(o Options) string {
 	if c, ok := choiceOf(o); ok {
 		return c.merged()
@@ -1234,13 +1236,16 @@ func apartSelector(o Options) string {
 	return bestChoice.apart()
 }
 
-// choiceOf is the format choice of a picked track, a preset's format wish or a
-// resolution preset, false for none of them.
+// choiceOf is the format choice of a picked track, a preset's format wish,
+// the instance's video format or a resolution preset, false for none of them.
 func choiceOf(o Options) (videoChoice, bool) {
 	if v, ok := parseVideoFormat(o.VideoPick); ok {
 		return v.choice(), true
 	}
 	if w, ok := parseVideoWish(o.VideoPick); ok {
+		return w.choice(), true
+	}
+	if w, ok := defaultWish(o, o.Quality); ok {
 		return w.choice(), true
 	}
 	if r, ok := ResCap(o.Quality); ok {
