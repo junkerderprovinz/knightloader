@@ -38,10 +38,6 @@ const rainbowDiscoRow = document.getElementById('rainbowDiscoRow');
 const paletteRow = document.getElementById('paletteRow');
 const paletteSwatches = document.getElementById('paletteSwatches');
 const followInstanceEl = document.getElementById('followInstance');
-const followInstanceRow = document.getElementById('followInstanceRow');
-const followUnavailableEl = document.getElementById('followUnavailable');
-const followUnavailableTitleEl = document.getElementById('followUnavailableTitle');
-const followUnavailableReasonEl = document.getElementById('followUnavailableReason');
 const accentLabelEl = document.getElementById('accentLabel');
 // The labels of the rows that get dimmed.
 const rainbowLabelEl = document.getElementById('rainbowLabel');
@@ -428,11 +424,6 @@ function applyStaticText() {
   rowLabel('themeLabel', t('options.themeLabel'), t('options.themeHint', { system: t('options.themeSystem') }));
   rowLabel('shapeLabel', t('options.shapeLabel'), t('options.shapeHint'));
 
-  // The notice standing in for the follow switch without a group (GlimStone
-  // 1.15.0) carries the switch's own label and names the card that fixes it.
-  followUnavailableTitleEl.textContent = t('options.followInstance');
-  followUnavailableReasonEl.textContent = t('options.followNoGroup', { card: t('options.groupHeading') });
-
   const pinHeading = document.getElementById('pinHeading');
   const pinBody = document.getElementById('pinBody');
   const pinDismiss = document.getElementById('pinDismiss');
@@ -683,7 +674,7 @@ joinForm.addEventListener('submit', async (e) => {
   }
   joinBtn.disabled = false;
   await renderGroup();
-  // Joining brings back the follow switch, and the report names the group.
+  // With a group the follow switch can turn on, and the report names it.
   await renderAppearance();
   void renderReport();
 });
@@ -746,8 +737,8 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   await forgetGroup();
   // A group joined later arrives afresh, even with the same instances in it.
   rosterArrivals.clear();
-  // Leaving stops following and restores the local look. Without a group the
-  // follow switch is removed, so nothing could turn it off later.
+  // Leaving stops following and restores the local look, since without a group
+  // no instance is left to follow.
   const { followInstance } = await chrome.storage.local.get('followInstance');
   if (followInstance === true) {
     await restoreLocalLook();
@@ -763,7 +754,6 @@ leaveConfirmCommitEl.addEventListener('click', async () => {
   renderPhraseEye();
   say(t('options.left'), true);
   await renderGroup();
-  // The notice replaces the follow switch.
   await renderAppearance();
   void renderReport();
 });
@@ -1188,6 +1178,13 @@ wireRainbowSwitch(rainbowDiscoEl, 'rainbowDisco');
  */
 followInstanceEl.addEventListener('click', async () => {
   const on = followInstanceEl.getAttribute('aria-checked') !== 'true';
+  // Without a group there is no instance to ask, so the switch stays off and
+  // the bubble names the card that fixes it.
+  if (on && (await readPhrase()) === '') {
+    shake(followInstanceEl);
+    glimFlashTip(followInstanceEl, t('options.followNoGroup', { card: t('options.groupHeading') }));
+    return;
+  }
   if (on) {
     followInstanceEl.setAttribute('aria-checked', 'true');
     // A snapshot first, so switching off restores the local look.
@@ -1540,14 +1537,12 @@ async function renderAppearance() {
     }),
   );
 
-  followInstanceEl.setAttribute('aria-checked', String(a.followInstance));
-
-  // Without a group the follow switch gives way to a notice (GlimStone
-  // 1.15.0). `joined` comes from the phrase, not the roster, so an instance
-  // that is briefly offline does not make the switch come and go.
+  // `joined` comes from the phrase, not the roster, so an instance that is
+  // briefly offline does not flip the switch. `&& joined` covers a stored
+  // followInstance left over without a group.
   const joined = (await readPhrase()) !== '';
-  followInstanceRow.hidden = !joined;
-  followUnavailableEl.hidden = joined;
+  const following = a.followInstance && joined;
+  followInstanceEl.setAttribute('aria-checked', String(following));
 
   // Reactive, rotation and the palette are hidden rather than dimmed while the
   // rainbow is off (GlimStone 1.10.0); the mode's own switch stays.
@@ -1559,24 +1554,22 @@ async function renderAppearance() {
 
   // While the instance decides the look, its settings are shown but refused
   // through the controls' own `disabled`; the theme stays local. The labels'
-  // words are dimmed so the "(i)" stays readable. `&& joined` covers a stored
-  // followInstance left over without a group.
-  const off = a.followInstance && joined;
-  setRefused([shapeSeg], off);
-  setDimmed([labelWordsOf(document.getElementById('shapeLabel'))], off);
-  setRefused([rainbowOnEl, rainbowReactiveEl, rainbowRotateEl], off);
-  setRefused([paletteSwatches], off);
-  setDimmed([labelWordsOf(rainbowLabelEl)], off);
-  setDimmed([labelWordsOf(rainbowReactiveLabelEl)], off);
-  setDimmed([labelWordsOf(rainbowRotateLabelEl)], off);
-  setDimmed([labelWordsOf(paletteLabelEl)], off);
+  // words are dimmed so the "(i)" stays readable.
+  setRefused([shapeSeg], following);
+  setDimmed([labelWordsOf(document.getElementById('shapeLabel'))], following);
+  setRefused([rainbowOnEl, rainbowReactiveEl, rainbowRotateEl], following);
+  setRefused([paletteSwatches], following);
+  setDimmed([labelWordsOf(rainbowLabelEl)], following);
+  setDimmed([labelWordsOf(rainbowReactiveLabelEl)], following);
+  setDimmed([labelWordsOf(rainbowRotateLabelEl)], following);
+  setDimmed([labelWordsOf(paletteLabelEl)], following);
 
   // Under the rainbow the accent still paints the popup's tab strip and
   // collector buttons, so the row is dimmed but stays usable, and its bubble
   // says the rainbow is in charge (GlimStone 1.16.0), with the web UI's
   // sentence. Following the instance refuses it outright.
-  setDimmed([labelWordsOf(accentLabelEl), accentSwatches], off || a.rainbow.on);
-  setRefused([accentSwatches], off);
+  setDimmed([labelWordsOf(accentLabelEl), accentSwatches], following || a.rainbow.on);
+  setRefused([accentSwatches], following);
   glimSetInfo(
     'accentLabel',
     a.rainbow.on ? `${t('options.accentHint')} ${t('options.accentRainbowOwns')}` : t('options.accentHint'),

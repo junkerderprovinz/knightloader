@@ -304,20 +304,13 @@
       <div class="axes">
         <!-- Takes the look from the instance through GET /api/appearance over
              the relay. It comes first because it decides whether the rows
-             below are set here. Without a group the switch is removed and the
-             notice below stands in its place (GlimStone 1.15.0); options.js
-             swaps the two. -->
-        <div class="glim-row" id="followInstanceRow">
+             below are set here. Without a group the switch refuses to turn on
+             and says why in a bubble. -->
+        <div class="glim-row">
           <span class="glim-row-label" id="followInstanceLabel"></span>
           <button type="button" role="switch" aria-checked="false" id="followInstance" class="glim-switch">
             <span class="glim-switch-track"><span class="glim-switch-knob"></span></span>
           </button>
-        </div>
-        <!-- Static markup that options.js fills, since innerHTML from a
-             variable fails Mozilla's linter. -->
-        <div class="glim-unavailable" id="followUnavailable" hidden>
-          <span class="glim-unavailable-title" id="followUnavailableTitle"></span>
-          <span class="glim-unavailable-reason" id="followUnavailableReason"></span>
         </div>
         <div class="glim-row segRow">
           <span class="glim-row-label" id="themeLabel"></span>

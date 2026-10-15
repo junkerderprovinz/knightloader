@@ -7,11 +7,14 @@
 //             so a real refusal uses the control's own disabled.
 //   subctl    The Click'n'Load countdown row goes with its switch; with the
 //             feature off nothing reads the number.
-//   notice    Following the instance without a group is replaced by a notice
-//             with a real fill (--status-warn-bg-soft in every theme).
+//   follow    Following the instance without a group keeps its switch, which
+//             refuses the press: it stays off, shakes, and the reason opens in
+//             the info bubble beside it.
+//   notice    A refusal notice has a real fill (--status-warn-bg-soft in every
+//             theme).
 //   copy      The reason is translated through t(), never a literal.
 //
-// It checks the shape of four files, not behaviour; the timing was verified in
+// It checks the shape of five files, not behaviour; the timing was verified in
 // a browser.
 //
 // Run by CI and by hand: `node extension/check-refusals.mjs`
@@ -39,6 +42,7 @@ const popupRaw = read('src', 'popup.js');
 const popup = decomment(popupRaw);
 const html = read('src', 'options.html');
 const css = read('src', 'glimstone.css');
+const tooltip = decomment(read('src', 'tooltip.js'));
 
 // inert: without a framework, a wrapper refusal can only be an inline
 // pointerEvents, so any occurrence is the defect.
@@ -85,18 +89,36 @@ if (!/cnlCountdownRow\.hidden\s*=/.test(options)) {
   }
 }
 
-// notice
-for (const id of ['followUnavailable', 'followUnavailableTitle', 'followUnavailableReason']) {
-  if (!html.includes(`id="${id}"`)) {
-    fail(`src/options.html: no #${id} - the environment refusal has no paragraph, so the control was simply taken away in silence`);
-  }
+// follow
+if (!html.includes('id="followInstance"')) {
+  fail('src/options.html: no #followInstance, so the follow-the-instance row lost its switch');
 }
-if (!/followInstanceRow\.hidden\s*=/.test(options)) {
+if (html.includes('id="followUnavailable"') || /followInstanceRow\.hidden\s*=/.test(options)) {
   fail(
-    'src/options.js: the follow-the-instance switch is never removed. Offered with no group it turns on, fails and snaps back, ' +
-      'which is the button-that-fails GlimStone 1.15.0 replaces with no control plus the reason.',
+    'src/options.js: the follow switch is swapped for a notice without a group. It stays a label with a switch, ' +
+      'and a press without a group is refused on the spot.',
   );
 }
+{
+  const handler = options.match(/followInstanceEl\.addEventListener\('click',[\s\S]*?\n\}\);/)?.[0] ?? '';
+  const refusal = handler.match(/if \(on && \(await readPhrase\(\)\) === ''\) \{([\s\S]*?)\n {2}\}/)?.[1];
+  if (!refusal) {
+    fail("src/options.js: the follow switch's click never asks for the group first, so with none it turns on, asks nobody and snaps back");
+  } else {
+    if (!/\bshake\(followInstanceEl\)/.test(refusal)) fail('src/options.js: a refused follow press does not shake the switch');
+    if (!/glimFlashTip\(followInstanceEl,\s*t\('options\.followNoGroup'/.test(refusal)) {
+      fail('src/options.js: a refused follow press opens no bubble with options.followNoGroup, so the switch refuses without a reason');
+    }
+    if (/setAttribute\('aria-checked',\s*'true'\)/.test(refusal) || !/\breturn;/.test(refusal)) {
+      fail('src/options.js: a refused follow press turns the switch on or carries on past the refusal');
+    }
+  }
+}
+if (!/window\.glimFlashTip\s*=/.test(tooltip) || !/if \(!currentTrigger \|\| pinned\) return;/.test(tooltip)) {
+  fail('src/tooltip.js: no pinned glimFlashTip, so the reason would close the moment the pointer leaves the switch');
+}
+
+// notice
 if (!/--status-warn-bg-soft/.test(css)) {
   fail(
     'src/glimstone.css: --status-warn-bg-soft is not defined. A frame is only a frame if its token exists - ' +
@@ -124,9 +146,9 @@ for (const key of ['options.followNoGroup', 'options.accentRainbowOwns']) {
     fail(`src/options.js: ${key} is in the catalogues and read by nothing - the sentence the rule owes never reaches the page`);
   }
 }
-if (!/followUnavailableReasonEl\.textContent\s*=\s*t\(/.test(options)) {
+if (!/getElementById\('cnlRefusedReason'\)\.textContent\s*=\s*t\(/.test(options)) {
   fail(
-    'src/options.js: the refusal reason is not read through t(). It is the paragraph that explains a feature to somebody ' +
+    'src/options.js: the Click\'n\'Load refusal reason is not read through t(). It is the paragraph that explains a feature to somebody ' +
       'whose interface runs in their language, not a diagnostic.',
   );
 }
@@ -140,5 +162,5 @@ if (problems.length) {
 
 console.log(
   'ok: nothing is dimmed and switched off at once, the countdown goes with its switch, ' +
-    'the follow switch is replaced by a translated notice on a real fill',
+    'a notice has a real fill, and the follow switch refuses a press without a group with a shake and a translated bubble',
 );
