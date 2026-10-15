@@ -53,7 +53,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     name: 'Windscribe',
     fields: ['config'],
     portForwarding: true,
-    logo: { tile: '#242424', ink: '#ffffff', rest: 'ink' },
+    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'ipvanish',
@@ -95,7 +95,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     name: 'TorGuard',
     fields: ['username', 'password', 'location'],
     portForwarding: true,
-    logo: { tile: '#1a1a1a', ink: '#ffffff', rest: 'ink' },
+    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'privadovpn',
@@ -109,7 +109,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     name: 'VyprVPN',
     fields: ['username', 'password', 'location'],
     portForwarding: true,
-    logo: { tile: '#090909', ink: '#ffffff', rest: 'ink' },
+    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'ovpn',
@@ -151,7 +151,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     name: 'Astrill VPN',
     fields: ['config'],
     portForwarding: true,
-    logo: { tile: '#1b1b1b', ink: '#ffffff', rest: 'ink' },
+    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'zoogvpn',
@@ -193,7 +193,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     name: 'Anonine',
     fields: ['config'],
     portForwarding: true,
-    logo: { tile: '#373b52', ink: '#ffffff', rest: 'ink' },
+    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'njalla',
@@ -266,7 +266,7 @@ export const VPN_APP_ONLY: readonly { id: string; name: string; logo: LogoTile |
   { id: 'cyberghost', name: 'CyberGhost', logo: { tile: '#fecc00', ink: '#161616', lit: true } },
   { id: 'hotspotshield', name: 'Hotspot Shield', logo: { tile: '#2fa6f8', ink: '#ffffff', lit: true } },
   { id: 'tunnelbear', name: 'TunnelBear', logo: { tile: '#dc9a2c', ink: '#ffffff' } },
-  { id: 'mozillavpn', name: 'Mozilla VPN', logo: { tile: '#090909', ink: '#ffffff', rest: 'ink' } },
+  { id: 'mozillavpn', name: 'Mozilla VPN', logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' } },
   { id: 'norton', name: 'Norton VPN', logo: { tile: '#fddf11', ink: '#161616' } },
   { id: 'mcafee', name: 'McAfee VPN', logo: { tile: '#c01818', ink: '#ffffff', rest: 'lift' } },
   { id: 'avast', name: 'Avast SecureLine VPN', logo: { tile: '#ff7902', ink: '#ffffff', lit: true } },

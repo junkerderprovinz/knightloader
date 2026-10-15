@@ -391,25 +391,20 @@ export function withoutPlate(px: Pixels, disc = false): Pixels | null {
 
 /**
  * tileOf is a logo's tile colour: the colour covering most of it, its greys
- * left out while it has a colour at all. A logo of greys alone takes its own
- * dark, or black where it is drawn in white.
+ * left out while it has a colour at all. A logo of greys alone lights in
+ * black, as GitHub's does: its own dark grey would sit a hair off the window
+ * behind the tile.
  */
 export function tileOf(px: Pixels): string {
   const coloured: RGB[] = [];
-  const greys: RGB[] = [];
+  let total = 0;
   for (let i = 0; i < px.width * px.height; i++) {
     if (!drawn(px, i)) continue;
+    total++;
     const c = colourAt(px, i);
-    const max = Math.max(...c);
-    (chroma(c) >= 30 && chroma(c) / max >= 0.25 ? coloured : greys).push(c);
+    if (chroma(c) >= 30 && chroma(c) / Math.max(...c) >= 0.25) coloured.push(c);
   }
-  const total = coloured.length + greys.length;
-  if (total === 0) return '#000000';
-  if (coloured.length < total * 0.06) {
-    const dark = greys.filter((c) => luminance(c) < 0.18);
-    if (dark.length < total * 0.25) return '#000000';
-    return hexOf(average(dark));
-  }
+  if (coloured.length <= total * 0.06) return '#000000';
   // The densest neighbourhood of colours, so a gradient counts as one.
   const bin = (c: RGB) => (c[0] >> 4) * 256 + (c[1] >> 4) * 16 + (c[2] >> 4);
   const counts = new Map<number, number>();
