@@ -39,12 +39,19 @@ export function LiveSettings({ children }: { children: ReactNode }) {
         },
         () => {},
       );
+    // A module switched elsewhere arrives with the settings broadcast too.
+    const loadFeatures = () =>
+      fetchFeatures().then(
+        (f) => live && setFeatures(f),
+        () => {},
+      );
     void load();
-    fetchFeatures().then(
-      (f) => live && setFeatures(f),
-      () => {},
-    );
-    const close = connectWS((type) => type === 'settings' && void load(), ['settings']);
+    void loadFeatures();
+    const close = connectWS((type) => {
+      if (type !== 'settings') return;
+      void load();
+      void loadFeatures();
+    }, ['settings']);
     return () => {
       live = false;
       close();

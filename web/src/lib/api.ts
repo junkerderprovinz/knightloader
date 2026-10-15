@@ -4476,7 +4476,7 @@ async function vpnRoute(path: string, init?: RequestInit): Promise<VpnState> {
 export const fetchVpn = (): Promise<VpnState> => vpnRoute('');
 
 /**
- * connectVpn makes `id` the provider torrents go through, ending any other
+ * connectVpn makes `id` the provider the VPN uses, ending any other
  * connection. Empty fields keep the stored login.
  */
 export const connectVpn = (id: string, fields: Partial<Record<VpnField, string>>): Promise<VpnState> =>
