@@ -36,6 +36,24 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.1] - 2026-10-16
+
+### Fixed
+
+- **Click'n'Load keeps the first link.** A site can pad the links it sends
+  with control characters. Those stuck to the first link, so it was not taken
+  as a link and only the later parts reached the link collector. The browser
+  extension and the desktop app's Click'n'Load listener split on those
+  characters, as JDownloader does. Reported in
+  [#119](https://github.com/junkerderprovinz/knightloader/issues/119).
+- **Downloads keep their speed to the end.** A connection that had finished
+  its part of a file looked only once for a slower one to help. When another
+  connection slowed down later, it fetched the rest of its part alone,
+  sometimes at a few KB/s for minutes, whatever the connection setting said.
+  Finished connections keep looking while any part is still large enough to
+  share, and a connection that has stopped receiving counts as slow. Reported
+  in [#120](https://github.com/junkerderprovinz/knightloader/issues/120).
+
 ## [2.1.0] - 2026-10-15
 
 ### Added
