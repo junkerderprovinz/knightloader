@@ -3804,6 +3804,7 @@ export const id: Dict = {
   'settings.vpn.error.deviceLimit': '{name} tidak mengizinkan perangkat lain. Hapus satu di akunmu, lalu hubungkan lagi.',
   'settings.vpn.error.accountExpired': 'Akun {name}-mu sudah habis masa berlakunya. Perpanjang, lalu hubungkan lagi.',
   'settings.vpn.error.locationUnknown': '{name} tidak punya server di lokasi ini. Coba lokasi lain atau kosongkan kolomnya.',
+  'settings.vpn.error.resumeFailed': '{name} tidak bisa terhubung kembali setelah dimulai ulang. Unduhan yang lewat VPN menunggu sampai kamu terhubung lagi atau mematikan VPN.',
   'whatsnew.change.accountsCardAdd': 'Setiap kartu di halaman ini punya tombol tambah sendiri di ujung judulnya, dan tombol itu langsung membuka jendela yang tepat.',
   'whatsnew.change.integrationsPage': 'VPN dan MCP punya halaman sendiri, {name}, tepat setelah {accounts}.',
   'whatsnew.change.driveIntegrations': '“{name}” kini kartu di “{page}”, bukan halaman sendiri.',

@@ -3801,6 +3801,7 @@ export const eu: Dict = {
   'settings.vpn.error.deviceLimit': '{name} zerbitzuak ez du gailu gehiagorik onartzen. Kendu bat zure kontuan eta konektatu berriro.',
   'settings.vpn.error.accountExpired': 'Zure {name} kontua iraungi da. Berritu eta konektatu berriro.',
   'settings.vpn.error.locationUnknown': '{name} zerbitzuak ez du zerbitzaririk kokaleku honetan. Saiatu beste kokaleku batekin edo utzi eremua hutsik.',
+  'settings.vpn.error.resumeFailed': '{name} ezin izan da berriro konektatu berrabiarazi ondoren. VPNaren bidez doazen deskargek itxaron egiten dute, berriro konektatu arte edo VPNa desaktibatu arte.',
   'whatsnew.change.accountsCardAdd': 'Orri honetako txartel bakoitzak bere gehitzeko botoia du izenburuaren amaieran, eta leiho egokia zuzenean irekitzen du.',
   'whatsnew.change.integrationsPage': 'VPNak eta MCPk beren orria dute, {name}, {accounts} orriaren ondoren.',
   'whatsnew.change.driveIntegrations': '«{name}» «{page}» orriko txartel bat da, bere orria izan beharrean.',

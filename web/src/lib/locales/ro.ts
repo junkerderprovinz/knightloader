@@ -3813,6 +3813,7 @@ export const ro: Dict = {
   'settings.vpn.error.deviceLimit': '{name} nu mai permite alte dispozitive. Elimină unul din cont și conectează-te din nou.',
   'settings.vpn.error.accountExpired': 'Contul tău {name} a expirat. Reînnoiește-l și conectează-te din nou.',
   'settings.vpn.error.locationUnknown': '{name} nu are niciun server în această locație. Încearcă altă locație sau lasă câmpul gol.',
+  'settings.vpn.error.resumeFailed': '{name} nu s-a putut reconecta după repornire. Descărcările care trec prin VPN așteaptă până te conectezi din nou sau oprești VPN-ul.',
   'whatsnew.change.accountsCardAdd': 'Fiecare card de pe această pagină are propriul buton de adăugare la capătul titlului și deschide direct fereastra potrivită.',
   'whatsnew.change.integrationsPage': 'VPN-ul și MCP au o pagină proprie, {name}, imediat după {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}” este un card în „{page}” în loc de o pagină proprie.',

@@ -3796,6 +3796,7 @@ export const et: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ei luba rohkem seadmeid. Eemalda oma kontol üks ja ühenda uuesti.',
   'settings.vpn.error.accountExpired': 'Sinu {name} konto on aegunud. Pikenda seda ja ühenda uuesti.',
   'settings.vpn.error.locationUnknown': 'Teenusel {name} pole selles asukohas serverit. Proovi teist asukohta või jäta väli tühjaks.',
+  'settings.vpn.error.resumeFailed': '{name} ei saanud pärast taaskäivitust uuesti ühendust. VPN-i kaudu käivad allalaadimised ootavad, kuni ühendad uuesti või lülitad VPN-i välja.',
   'whatsnew.change.accountsCardAdd': 'Igal selle lehe kaardil on pealkirja lõpus oma lisamisnupp ja see avab kohe õige akna.',
   'whatsnew.change.integrationsPage': 'VPN-il ja MCP-l on oma leht, {name}, kohe pärast lehte {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ on kaart jaotises „{page}“, mitte eraldi leht.',

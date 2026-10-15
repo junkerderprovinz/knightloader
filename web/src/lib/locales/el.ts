@@ -3806,6 +3806,7 @@ export const el: Dict = {
   'settings.vpn.error.deviceLimit': 'Το {name} δεν επιτρέπει άλλες συσκευές. Αφαίρεσε μία από τον λογαριασμό σου και συνδέσου ξανά.',
   'settings.vpn.error.accountExpired': 'Ο λογαριασμός σου στο {name} έχει λήξει. Ανανέωσέ τον και συνδέσου ξανά.',
   'settings.vpn.error.locationUnknown': 'Το {name} δεν έχει διακομιστή σε αυτή την τοποθεσία. Δοκίμασε άλλη τοποθεσία ή άφησε το πεδίο κενό.',
+  'settings.vpn.error.resumeFailed': 'Το {name} δεν μπόρεσε να ξανασυνδεθεί μετά την επανεκκίνηση. Οι λήψεις που περνούν από το VPN περιμένουν μέχρι να συνδεθείς ξανά ή να απενεργοποιήσεις το VPN.',
   'whatsnew.change.accountsCardAdd': 'Κάθε κάρτα αυτής της σελίδας έχει το δικό της κουμπί προσθήκης στο τέλος της επικεφαλίδας της, και ανοίγει αμέσως το σωστό παράθυρο.',
   'whatsnew.change.integrationsPage': 'Το VPN και το MCP έχουν δική τους σελίδα, {name}, αμέσως μετά τους {accounts}.',
   'whatsnew.change.driveIntegrations': 'Το «{name}» είναι κάρτα στο «{page}» αντί για δική του σελίδα.',

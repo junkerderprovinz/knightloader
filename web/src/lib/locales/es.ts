@@ -3796,6 +3796,7 @@ export const es: Dict = {
   'settings.vpn.error.deviceLimit': '{name} no admite más dispositivos. Quita uno en tu cuenta y vuelve a conectarte.',
   'settings.vpn.error.accountExpired': 'Tu cuenta de {name} ha caducado. Renuévala y vuelve a conectarte.',
   'settings.vpn.error.locationUnknown': '{name} no tiene ningún servidor en esta ubicación. Prueba otra ubicación o deja el campo vacío.',
+  'settings.vpn.error.resumeFailed': '{name} no pudo volver a conectarse tras el reinicio. Las descargas que pasan por la VPN esperan hasta que vuelvas a conectar o desactives la VPN.',
   'whatsnew.change.accountsCardAdd': 'Cada tarjeta de esta página tiene su propio botón para añadir al final de su título, y abre directamente la ventana adecuada.',
   'whatsnew.change.integrationsPage': 'La VPN y MCP tienen una página propia, {name}, justo después de {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» es una tarjeta en «{page}» en lugar de una página propia.',

@@ -3805,6 +3805,7 @@ export const hi: Dict = {
   'settings.vpn.error.deviceLimit': '{name} और डिवाइस की अनुमति नहीं देता। अपने खाते से एक हटाएँ और फिर से कनेक्ट करें।',
   'settings.vpn.error.accountExpired': 'आपका {name} खाता समाप्त हो गया है। उसे रिन्यू करें और फिर से कनेक्ट करें।',
   'settings.vpn.error.locationUnknown': '{name} का इस लोकेशन पर कोई सर्वर नहीं है। कोई दूसरी लोकेशन आज़माएँ या फ़ील्ड खाली छोड़ दें।',
+  'settings.vpn.error.resumeFailed': 'रीस्टार्ट के बाद {name} दोबारा कनेक्ट नहीं हो सका। VPN से होकर जाने वाले डाउनलोड तब तक रुके रहते हैं जब तक आप फिर से कनेक्ट नहीं करते या VPN बंद नहीं कर देते।',
   'whatsnew.change.accountsCardAdd': 'इस पेज के हर कार्ड के शीर्षक के आख़िर में उसका अपना जोड़ने वाला बटन है, और वह सीधे सही विंडो खोलता है।',
   'whatsnew.change.integrationsPage': 'VPN और MCP का अपना पेज है, {name}, ठीक {accounts} के बाद।',
   'whatsnew.change.driveIntegrations': '“{name}” अब अपना पेज नहीं, बल्कि “{page}” में एक कार्ड है।',

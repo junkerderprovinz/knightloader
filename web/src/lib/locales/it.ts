@@ -3788,6 +3788,7 @@ export const it: Dict = {
   'settings.vpn.error.deviceLimit': '{name} non consente altri dispositivi. Rimuovine uno nel tuo account e connettiti di nuovo.',
   'settings.vpn.error.accountExpired': 'Il tuo account {name} è scaduto. Rinnovalo e connettiti di nuovo.',
   'settings.vpn.error.locationUnknown': '{name} non ha server in questa posizione. Prova un’altra posizione o lascia vuoto il campo.',
+  'settings.vpn.error.resumeFailed': '{name} non è riuscito a riconnettersi dopo il riavvio. I download che passano dalla VPN restano in attesa finché non ti connetti di nuovo o non disattivi la VPN.',
   'whatsnew.change.accountsCardAdd': 'Ogni scheda di questa pagina ha il proprio pulsante per aggiungere alla fine del titolo, e apre subito la finestra giusta.',
   'whatsnew.change.integrationsPage': 'VPN e MCP hanno una pagina tutta loro, {name}, subito dopo {accounts}.',
   'whatsnew.change.driveIntegrations': '“{name}” è una scheda in “{page}” invece di una pagina a sé.',

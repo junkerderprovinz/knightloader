@@ -3794,6 +3794,7 @@ export const fr: Dict = {
   'settings.vpn.error.deviceLimit': '{name} n\'accepte plus d\'appareils. Retire-en un dans ton compte, puis reconnecte-toi.',
   'settings.vpn.error.accountExpired': 'Ton compte {name} a expiré. Renouvelle-le, puis reconnecte-toi.',
   'settings.vpn.error.locationUnknown': '{name} n’a aucun serveur à cet emplacement. Essayez un autre emplacement ou laissez le champ vide.',
+  'settings.vpn.error.resumeFailed': '{name} n’a pas pu se reconnecter après le redémarrage. Les téléchargements qui passent par le VPN attendent que tu te reconnectes ou que tu désactives le VPN.',
   'whatsnew.change.accountsCardAdd': 'Chaque carte de cette page a son propre bouton d’ajout au bout de son titre, et il ouvre directement la bonne fenêtre.',
   'whatsnew.change.integrationsPage': 'Le VPN et MCP ont leur propre page, {name}, juste après {accounts}.',
   'whatsnew.change.driveIntegrations': '« {name} » est une carte dans « {page} » au lieu d’une page à part.',

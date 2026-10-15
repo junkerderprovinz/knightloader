@@ -3802,6 +3802,7 @@ export const ar: Dict = {
   'settings.vpn.error.deviceLimit': 'لا يسمح {name} بأجهزة أخرى. احذف جهازًا من حسابك ثم اتصل من جديد.',
   'settings.vpn.error.accountExpired': 'انتهى حسابك في {name}. جدّده ثم اتصل من جديد.',
   'settings.vpn.error.locationUnknown': 'لا يملك {name} خادمًا في هذا الموقع. جرّب موقعًا آخر أو اترك الحقل فارغًا.',
+  'settings.vpn.error.resumeFailed': 'تعذّر على {name} إعادة الاتصال بعد إعادة التشغيل. التنزيلات التي تمر عبر الـ VPN تنتظر حتى تتصل من جديد أو توقف الـ VPN.',
   'whatsnew.change.accountsCardAdd': 'لكل بطاقة في هذه الصفحة زر إضافة خاص بها في نهاية عنوانها، ويفتح النافذة المناسبة مباشرة.',
   'whatsnew.change.integrationsPage': 'صار لـ VPN وMCP صفحة خاصة بهما، {name}، بعد {accounts} مباشرة.',
   'whatsnew.change.driveIntegrations': 'صار «{name}» بطاقة في «{page}» بدل صفحة خاصة به.',

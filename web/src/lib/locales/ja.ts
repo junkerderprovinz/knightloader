@@ -3801,6 +3801,7 @@ export const ja: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ではこれ以上デバイスを追加できません。アカウントで 1 台削除してから、もう一度接続してください。',
   'settings.vpn.error.accountExpired': '{name} のアカウントの期限が切れています。更新してから、もう一度接続してください。',
   'settings.vpn.error.locationUnknown': '{name} にはこの場所のサーバーがありません。別の場所を試すか、空欄のままにしてください。',
+  'settings.vpn.error.resumeFailed': '再起動後に {name} へ再接続できませんでした。VPN 経由のダウンロードは、再接続するか VPN をオフにするまで待機します。',
   'whatsnew.change.accountsCardAdd': 'このページの各カードには見出しの端に専用の追加ボタンがあり、押すとすぐに対応するウィンドウが開きます。',
   'whatsnew.change.integrationsPage': 'VPN と MCP に専用のページ「{name}」ができました。「{accounts}」のすぐ後にあります。',
   'whatsnew.change.driveIntegrations': '「{name}」は専用ページではなく、「{page}」のカードになりました。',

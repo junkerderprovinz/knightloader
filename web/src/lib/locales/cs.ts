@@ -3814,6 +3814,7 @@ export const cs: Dict = {
   'settings.vpn.error.deviceLimit': '{name} nepovoluje další zařízení. Odeber jedno ve svém účtu a připoj se znovu.',
   'settings.vpn.error.accountExpired': 'Tvůj účet {name} vypršel. Prodluž ho a připoj se znovu.',
   'settings.vpn.error.locationUnknown': '{name} nemá na tomto místě žádný server. Zkus jiné umístění nebo nech pole prázdné.',
+  'settings.vpn.error.resumeFailed': '{name} se po restartu nepodařilo znovu připojit. Stahování přes VPN čekají, dokud se znovu nepřipojíš nebo VPN nevypneš.',
   'whatsnew.change.accountsCardAdd': 'Každá karta na této stránce má na konci svého nadpisu vlastní tlačítko pro přidání a to rovnou otevře správné okno.',
   'whatsnew.change.integrationsPage': 'VPN a MCP mají vlastní stránku, {name}, hned za {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}“ je karta na stránce „{page}“ místo vlastní stránky.',

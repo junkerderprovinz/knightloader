@@ -3805,6 +3805,7 @@ export const uk: Dict = {
   'settings.vpn.error.deviceLimit': '{name} не дозволяє додати більше пристроїв. Видаліть один у своєму обліковому записі й підключіться знову.',
   'settings.vpn.error.accountExpired': 'Термін дії облікового запису {name} минув. Подовжте його й підключіться знову.',
   'settings.vpn.error.locationUnknown': 'У {name} немає сервера в цьому місці. Спробуйте інше розташування або залиште поле порожнім.',
+  'settings.vpn.error.resumeFailed': '{name} не вдалося підключитися знову після перезапуску. Завантаження, що йдуть через VPN, чекають, поки ви підключитеся знову або вимкнете VPN.',
   'whatsnew.change.accountsCardAdd': 'Кожна картка на цій сторінці має власну кнопку додавання в кінці заголовка, і вона одразу відкриває потрібне вікно.',
   'whatsnew.change.integrationsPage': 'VPN і MCP мають власну сторінку, {name}, одразу після сторінки {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» тепер картка в «{page}», а не окрема сторінка.',

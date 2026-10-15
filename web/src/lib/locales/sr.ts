@@ -3818,6 +3818,7 @@ export const sr: Dict = {
   'settings.vpn.error.deviceLimit': '{name} не дозвољава још уређаја. Уклони један у свом налогу и повежи се поново.',
   'settings.vpn.error.accountExpired': 'Твој {name} налог је истекао. Обнови га и повежи се поново.',
   'settings.vpn.error.locationUnknown': '{name} нема сервер на овој локацији. Пробај другу локацију или остави поље празно.',
+  'settings.vpn.error.resumeFailed': '{name} није могао поново да се повеже након рестарта. Преузимања која иду преко VPN-а чекају док се поново не повежеш или не искључиш VPN.',
   'whatsnew.change.accountsCardAdd': 'Свака картица на овој страници има сопствено дугме за додавање на крају наслова и оно одмах отвара прави прозор.',
   'whatsnew.change.integrationsPage': 'VPN и MCP имају сопствену страницу, {name}, одмах после странице {accounts}.',
   'whatsnew.change.driveIntegrations': '„{name}” је картица под „{page}” уместо засебне странице.',

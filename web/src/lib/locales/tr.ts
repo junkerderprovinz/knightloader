@@ -3803,6 +3803,7 @@ export const tr: Dict = {
   'settings.vpn.error.deviceLimit': '{name} daha fazla cihaza izin vermiyor. Hesabından birini kaldır ve yeniden bağlan.',
   'settings.vpn.error.accountExpired': '{name} hesabının süresi doldu. Yenile ve yeniden bağlan.',
   'settings.vpn.error.locationUnknown': '{name} bu konumda sunucuya sahip değil. Başka bir konum dene veya alanı boş bırak.',
+  'settings.vpn.error.resumeFailed': "{name} yeniden başlatmadan sonra tekrar bağlanamadı. VPN üzerinden giden indirmeler, sen yeniden bağlanana ya da VPN'i kapatana kadar bekler.",
   'whatsnew.change.accountsCardAdd': 'Bu sayfadaki her kartın başlığının sonunda kendi ekleme düğmesi var ve bu düğme doğru pencereyi hemen açar.',
   'whatsnew.change.integrationsPage': 'VPN ve MCP’nin artık kendi sayfası var: {name}, hemen {accounts} sayfasından sonra.',
   'whatsnew.change.driveIntegrations': '“{name}”, kendi sayfası yerine “{page}” altında bir kart.',

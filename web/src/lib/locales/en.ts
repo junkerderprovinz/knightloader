@@ -4056,6 +4056,7 @@ export const en = {
   'settings.vpn.error.deviceLimit': '{name} allows no more devices. Remove one in your account, then connect again.',
   'settings.vpn.error.accountExpired': 'Your {name} account has run out. Renew it, then connect again.',
   'settings.vpn.error.locationUnknown': '{name} has no server at this location. Try another location or leave the field empty.',
+  'settings.vpn.error.resumeFailed': '{name} could not reconnect after the restart. Downloads that go through the VPN wait until you connect again or switch the VPN off.',
 } as const;
 
 export type TranslationKey = keyof typeof en;

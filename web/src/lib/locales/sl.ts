@@ -3803,6 +3803,7 @@ export const sl: Dict = {
   'settings.vpn.error.deviceLimit': '{name} ne dovoli več naprav. V svojem računu odstrani eno in se znova poveži.',
   'settings.vpn.error.accountExpired': 'Tvoj račun {name} je potekel. Podaljšaj ga in se znova poveži.',
   'settings.vpn.error.locationUnknown': '{name} na tej lokaciji nima strežnika. Poskusi drugo lokacijo ali pusti polje prazno.',
+  'settings.vpn.error.resumeFailed': '{name} se po ponovnem zagonu ni mogel znova povezati. Prenosi, ki gredo prek VPN-ja, čakajo, dokler se znova ne povežeš ali ne izklopiš VPN-ja.',
   'whatsnew.change.accountsCardAdd': 'Vsaka kartica na tej strani ima na koncu naslova svoj gumb za dodajanje, ki takoj odpre pravo okno.',
   'whatsnew.change.integrationsPage': 'VPN in MCP imata svojo stran, {name}, takoj za stranjo {accounts}.',
   'whatsnew.change.driveIntegrations': '»{name}« je kartica pod »{page}« namesto svoje strani.',

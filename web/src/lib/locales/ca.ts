@@ -3792,6 +3792,7 @@ export const ca: Dict = {
   'settings.vpn.error.deviceLimit': '{name} no admet més dispositius. Elimina\'n un del teu compte i torna a connectar-te.',
   'settings.vpn.error.accountExpired': 'El teu compte de {name} ha caducat. Renova\'l i torna a connectar-te.',
   'settings.vpn.error.locationUnknown': '{name} no té cap servidor en aquesta ubicació. Prova una altra ubicació o deixa el camp buit.',
+  'settings.vpn.error.resumeFailed': '{name} no s’ha pogut tornar a connectar després del reinici. Les descàrregues que passen per la VPN esperen fins que tornis a connectar o desactivis la VPN.',
   'whatsnew.change.accountsCardAdd': 'Cada targeta d’aquesta pàgina té el seu propi botó per afegir al final del títol, i obre directament la finestra adequada.',
   'whatsnew.change.integrationsPage': 'La VPN i l’MCP tenen una pàgina pròpia, {name}, just després de {accounts}.',
   'whatsnew.change.driveIntegrations': '«{name}» és una targeta a «{page}» en lloc d’una pàgina pròpia.',

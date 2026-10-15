@@ -3792,6 +3792,7 @@ export const ko: Dict = {
   'settings.vpn.error.deviceLimit': '{name}에 더 이상 기기를 추가할 수 없습니다. 계정에서 하나를 삭제한 뒤 다시 연결하세요.',
   'settings.vpn.error.accountExpired': '{name} 계정이 만료되었습니다. 갱신한 뒤 다시 연결하세요.',
   'settings.vpn.error.locationUnknown': '{name}에는 이 위치의 서버가 없습니다. 다른 위치를 입력하거나 비워 두세요.',
+  'settings.vpn.error.resumeFailed': '{name}은(는) 재시작 후 다시 연결되지 않았습니다. VPN을 거치는 다운로드는 다시 연결하거나 VPN을 끌 때까지 기다립니다.',
   'whatsnew.change.accountsCardAdd': '이 페이지의 카드마다 제목 끝에 자체 추가 버튼이 있으며, 누르면 바로 알맞은 창이 열립니다.',
   'whatsnew.change.integrationsPage': 'VPN과 MCP에 전용 페이지 {name}이(가) 생겼습니다. {accounts} 바로 다음에 있습니다.',
   'whatsnew.change.driveIntegrations': '“{name}”은 자체 페이지 대신 “{page}”의 카드가 되었습니다.',

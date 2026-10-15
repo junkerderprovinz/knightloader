@@ -3804,6 +3804,7 @@ export const sv: Dict = {
   'settings.vpn.error.deviceLimit': '{name} tillåter inga fler enheter. Ta bort en i ditt konto och anslut igen.',
   'settings.vpn.error.accountExpired': 'Ditt {name}-konto har gått ut. Förnya det och anslut igen.',
   'settings.vpn.error.locationUnknown': '{name} har ingen server på den här platsen. Prova en annan plats eller lämna fältet tomt.',
+  'settings.vpn.error.resumeFailed': '{name} kunde inte anslutas igen efter omstarten. Nedladdningar som går genom VPN:et väntar tills du ansluter igen eller stänger av VPN:et.',
   'whatsnew.change.accountsCardAdd': 'Varje kort på den här sidan har en egen lägg till-knapp i slutet av rubriken, och den öppnar rätt fönster direkt.',
   'whatsnew.change.integrationsPage': 'VPN och MCP har en egen sida, {name}, direkt efter {accounts}.',
   'whatsnew.change.driveIntegrations': '”{name}” är ett kort under ”{page}” i stället för en egen sida.',

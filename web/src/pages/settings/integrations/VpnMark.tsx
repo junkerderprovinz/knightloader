@@ -52,6 +52,7 @@ const FAILURE: Record<string, TranslationKey> = {
   'vpn-device-limit': 'settings.vpn.error.deviceLimit',
   'vpn-account-expired': 'settings.vpn.error.accountExpired',
   'vpn-location-unknown': 'settings.vpn.error.locationUnknown',
+  'vpn-resume-failed': 'settings.vpn.error.resumeFailed',
 };
 
 /** failureOf words why a provider failed, in the reader's language where the code is known. */
