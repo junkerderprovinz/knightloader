@@ -51,6 +51,14 @@ const startupAdvice: Partial<Record<string, TranslationKey>> = {
   'settings:unreadable': 'settings.diagnostics.fix.settingsUnreadable',
 };
 
+/** namesTheAccount holds the remedies that depend on the account the instance
+ *  runs as; the page adds that account to them. */
+const namesTheAccount = new Set<TranslationKey>(['settings.diagnostics.fix.denied']);
+
+export function adviceNamesAccount(key: TranslationKey): boolean {
+  return namesTheAccount.has(key);
+}
+
 /** adviceFor returns the remedy for a check's id and code; a row without a
  *  code has nothing wrong. */
 export function adviceFor(id: string, code: string | undefined): TranslationKey | undefined {
