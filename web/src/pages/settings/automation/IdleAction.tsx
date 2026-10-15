@@ -14,6 +14,7 @@ import { Dropdown } from '../../../components/Dropdown';
 import { Tabs } from '../../../components/Tabs';
 import { TestButton } from '../../../components/TestButton';
 import { idleProblemText } from '../../../components/IdleActionBanner';
+import { useRunsAs } from '../../../lib/runsAs';
 import {
   checkIdleCommand,
   fetchDeploymentInfo,
@@ -138,6 +139,7 @@ export function IdleActionPicker({
 
 export function IdleActionCard({ hue }: { hue: number }) {
   const { t } = useT();
+  const runsAs = useRunsAs();
   // dirty gates the check and run buttons, which act on the stored command.
   const { cfg, patch, dirty } = useDraft();
 
@@ -286,7 +288,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
               {check && (
                 <div className="glim-well p-3 text-xs text-carbon-textSub">
                   {check.problem
-                    ? idleProblemText(t, check.problem, { program: probeName, deployment })
+                    ? idleProblemText(t, check.problem, { program: probeName, deployment, runsAs })
                     : t('settings.downloads.idleCommandCheckOk', {
                         path: check.resolvedPath ?? '',
                         argv: (check.argv ?? []).join(' '),
@@ -337,6 +339,7 @@ export function IdleActionCard({ hue }: { hue: number }) {
                     code: lastRun.exitCode,
                     output: lastRun.output,
                     seconds: command.timeoutSeconds,
+                    runsAs,
                   })}
                 </p>
               </>
