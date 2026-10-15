@@ -218,8 +218,8 @@ const (
 	ProblemNotFound Problem = "notFound"
 	// ProblemNotExecutable is a file that is there and cannot be executed:
 	// the execute bit, or a file the running user cannot read. In the
-	// container that user is uid 1000 and not root (Dockerfile's USER
-	// knight), which is the fix nobody guesses on their own.
+	// container that user is uid 1000 or PUID, and not root
+	// (internal/privdrop), which is the fix nobody guesses on their own.
 	ProblemNotExecutable Problem = "notExecutable"
 	// ProblemPermission is the program starting and the operating system
 	// refusing what it then tried to do. Distinct from ProblemNotExecutable

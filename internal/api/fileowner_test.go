@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -10,6 +11,7 @@ import (
 	"testing"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/privdrop"
 	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
@@ -53,7 +55,8 @@ func TestTheIdentityReadoutSaysWhatIsInForceAndWhatWasAskedForSideBySide(t *test
 		t.Errorf("the variables the operator set did not reach the readout: %+v", got.Env)
 	}
 	if got.IDsRead {
-		t.Error("the readout claims this build acts on PUID/PGID; nothing in it does, and saying otherwise sends somebody to set a variable that will not work")
+		t.Error("the readout claims PUID/PGID were applied, but this test process never started as root and switched; " +
+			"saying otherwise tells somebody a variable worked that was never read")
 	}
 	if got.Deployment == "" {
 		t.Error("no deployment kind, so the page cannot tell a container from the desktop app and has to guess which sentence to show")
@@ -230,23 +233,26 @@ func TestTheOwnershipRoutesNeedASession(t *testing.T) {
 	}
 }
 
-// TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser keeps
-// idsReadByThisBuild in step with the Dockerfile's USER line, in both
-// directions.
-func TestTheReadoutDoesNotClaimPUIDWorksWhileTheImagePinsItsUser(t *testing.T) {
+// TestTheImageStartsAsRootSoPUIDCanTakeEffect holds the Dockerfile to what
+// internal/privdrop and the manual promise: PUID and PGID are read only by a
+// process that starts as root, so a USER line in the image would turn them off
+// for everyone, and the account it creates has to be the default the switch
+// falls back to.
+func TestTheImageStartsAsRootSoPUIDCanTakeEffect(t *testing.T) {
 	t.Parallel()
 	b, err := os.ReadFile(filepath.Join("..", "..", "Dockerfile"))
 	if err != nil {
 		t.Fatalf("the image's Dockerfile could not be read (%v); this guard is about what that file declares, so it cannot be skipped quietly", err)
 	}
-	pinned := strings.Contains(string(b), "\nUSER knight")
-	switch {
-	case pinned && idsReadByThisBuild:
-		t.Error("the image still declares USER knight, so it starts as uid 1000 and cannot change uid, " +
-			"but idsReadByThisBuild is true; the readout would be telling people PUID works when it cannot")
-	case !pinned && !idsReadByThisBuild:
-		t.Error("the image no longer pins its user. If an entrypoint now applies PUID/PGID, set idsReadByThisBuild " +
-			"and rewrite the copy that currently explains that those variables are ignored; if it does not, say why here")
+	for _, line := range strings.Split(string(b), "\n") {
+		if strings.HasPrefix(strings.TrimSpace(line), "USER ") {
+			t.Errorf("the Dockerfile declares %q, so the server never starts as root, PUID and PGID are never read, "+
+				"and a folder Docker creates stays root's and cannot be written", strings.TrimSpace(line))
+		}
+	}
+	want := fmt.Sprintf("adduser -D -u %d knight", privdrop.DefaultUID)
+	if !strings.Contains(string(b), want) {
+		t.Errorf("the Dockerfile does not create the account the switch falls back to (%q), so an unset PUID would run as an id with no name and no home", want)
 	}
 }
 

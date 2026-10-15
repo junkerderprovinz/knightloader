@@ -60,7 +60,10 @@ EXPOSE 8749
 # extension. The protocol has no authentication, so binding 0.0.0.0 would let
 # anyone on the LAN add links.
 
-USER knight
+# No USER: Docker creates a missing bind-mount source as root, so the server
+# starts as root, gives the empty folders it was just handed to PUID:PGID
+# (knight, 1000:1000, by default) and switches to that account before it does
+# anything else (internal/privdrop). --user skips all of that, as on Unraid.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=10s \
   CMD wget -qO- http://127.0.0.1:8749/api/health >/dev/null 2>&1 || exit 1
 # -s keeps the reaping when docker run --init puts its own init in front.
