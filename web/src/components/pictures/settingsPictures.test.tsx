@@ -325,15 +325,15 @@ describe('the tracks of a video', () => {
   it('runs every track into the file', async () => {
     await draw(picture());
     const ways = tracks.map((tr) => track(tr.id).querySelector('path')!.getAttribute('d'));
-    expect(ways).toEqual(['M20 88L66 38H250L292 88', 'M20 88L66 88H250L292 88', 'M20 88L66 138H250L292 88']);
-    expect(track('subtitle').querySelector('circle[fill="var(--accent)"]')).not.toBeNull();
+    expect(ways).toEqual(['M24 104L78 44H244L288 104', 'M24 104L78 104H244L288 104', 'M24 104L78 164H244L288 104']);
+    expect(track('subtitle').querySelector('rect[fill="var(--accent)"]')).not.toBeNull();
   });
 
   it('lays itself out at the width of its card and keeps the file at the far end', async () => {
     const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(900);
     await draw(picture());
     expect(host.querySelector('svg')!.getAttribute('viewBox')).toMatch(/^0 0 900 /);
-    expect(host.querySelector('[data-file]')!.getAttribute('transform')).toBe('translate(872 88)');
+    expect(host.querySelector('[data-file]')!.getAttribute('transform')).toBe('translate(868 104)');
     width.mockRestore();
   });
 
@@ -365,7 +365,7 @@ describe('the tracks of a video', () => {
     expect([...host.querySelectorAll('[data-apart]')].map((g) => g.getAttribute('data-apart'))).toEqual(['audio', 'subtitle']);
     const ways = all.map((tr) => track(tr.id).querySelector('path')!.getAttribute('d'));
     // Each file on its own line, and the tags into the video's.
-    expect(ways).toEqual(['M20 113L66 38H250L292 38', 'M20 113L66 88H250L292 88', 'M20 113L66 138H250L292 138', 'M20 113L66 188H250L292 38']);
+    expect(ways).toEqual(['M24 134L78 44H244L288 44', 'M24 134L78 104H244L288 104', 'M24 134L78 164H244L288 164', 'M24 134L78 224H244L288 44']);
     expect(label()).toBe(
       'Quality: Video Up to 1080p, Audio Best available, Subtitles en,de, Tags Title, each in a file of its own, %(title)s.%(ext)s',
     );

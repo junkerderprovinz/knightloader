@@ -147,7 +147,6 @@ describe('the connected captcha accounts', () => {
 describe('a refused test captcha', () => {
   it('names what stands in the way', () => {
     expect(testRefusal(new ApiError('', 'captchaOff'))).toBe('settings.captcha.testOff');
-    expect(testRefusal(new ApiError('', 'captchaJDOff'))).toBe('settings.captcha.testJDOff');
     expect(testRefusal(new ApiError('', 'noCaptchaAccount'))).toBe('settings.captcha.testNoAccount');
     expect(testRefusal(new TypeError('Failed to fetch'))).toBe('captcha.networkError');
   });

@@ -880,29 +880,21 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.resolvers.toolsTitle',
       hint: 'settings.resolvers.toolsHint',
-      rows: [{ key: 'settings.module.ytdlp', hint: 'settings.resolvers.about' }],
-      body: ['settings.resolvers.toolsYtdlpMissingHint', 'settings.resolvers.toolsFfmpegMissingHint'],
+      rows: [],
+      body: [
+        'settings.resolvers.toolsYtdlpMissingHint',
+        'settings.resolvers.toolsFfmpegMissingHint',
+        'settings.resolvers.toolsJdMissingHint',
+        'settings.resolvers.toolsJdUnreachableHint',
+      ],
+      also: ['settings.look.updatesTitle'],
     },
     {
       title: 'columns.variant.video',
       rows: [
-        { key: 'settings.resolvers.quality', hint: 'settings.resolvers.qualityHint' },
+        { key: 'settings.resolvers.format', hint: 'settings.resolvers.formatHint' },
+        { key: 'settings.resolvers.resolution', hint: 'settings.resolvers.resolutionHint' },
         { key: 'settings.resolvers.customFormat', hint: 'settings.resolvers.customFormatHint' },
-      ],
-    },
-    {
-      title: 'settings.resolvers.filesTitle',
-      rows: [
-        { key: 'settings.resolvers.playlist' },
-        { key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' },
-      ],
-    },
-    {
-      title: 'settings.resolvers.subtitlesTitle',
-      rows: [
-        { key: 'settings.resolvers.subtitleLangs', hint: 'settings.resolvers.subtitleLangsHint' },
-        { key: 'settings.resolvers.subtitleAuto' },
-        { key: 'settings.resolvers.subtitleStrict', hint: 'settings.resolvers.subtitleStrictHint' },
       ],
     },
     {
@@ -912,6 +904,14 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resolvers.audioBitrate', hint: 'settings.resolvers.audioBitrateHint' },
         { key: 'settings.resolvers.audioLang', hint: 'settings.resolvers.audioLangHint' },
         { key: 'settings.resolvers.music', hint: 'settings.resolvers.musicHint' },
+      ],
+    },
+    {
+      title: 'settings.resolvers.subtitlesTitle',
+      rows: [
+        { key: 'settings.resolvers.subtitleLangs', hint: 'settings.resolvers.subtitleLangsHint' },
+        { key: 'settings.resolvers.subtitleAuto' },
+        { key: 'settings.resolvers.subtitleStrict', hint: 'settings.resolvers.subtitleStrictHint' },
       ],
     },
     {
@@ -926,17 +926,18 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         { key: 'settings.resolvers.embedNfo', hint: 'settings.resolvers.embedNfoHint' },
       ],
     },
+    // Three groups under headings of their own, each a row to land on.
     {
-      title: 'settings.resolvers.measureTitle',
+      title: 'settings.resolvers.filesCard',
       rows: [
+        { key: 'settings.resolvers.filesTitle' },
+        { key: 'settings.resolvers.playlist' },
+        { key: 'settings.resolvers.outputTitle', hint: 'settings.resolvers.outputHint' },
+        { key: 'settings.resolvers.measureTitle' },
         { key: 'settings.resolvers.measure', hint: 'settings.resolvers.measureHint' },
         { key: 'settings.resolvers.measureShortPercent', hint: 'settings.resolvers.measureShortPercentHint' },
         { key: 'settings.resolvers.measureFailOnShort', hint: 'settings.resolvers.measureFailOnShortHint' },
-      ],
-    },
-    {
-      title: 'settings.resolvers.liveTitle',
-      rows: [
+        { key: 'settings.resolvers.liveTitle' },
         { key: 'settings.resolvers.live', hint: 'settings.resolvers.liveHint' },
         { key: 'settings.resolvers.liveFromStart', hint: 'settings.resolvers.liveFromStartHint' },
         { key: 'settings.resolvers.liveMaxMinutes', hint: 'settings.resolvers.liveMaxMinutesHint' },
@@ -957,11 +958,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.resolvers.variantDefaults',
       hint: 'settings.resolvers.presetsHint',
       rows: [{ key: 'settings.resolvers.presetHost', hint: 'settings.resolvers.presetHostHint' }],
-    },
-    {
-      title: 'settings.module.jd',
-      rows: [],
-      body: ['settings.modules.about.jd'],
     },
   ],
 

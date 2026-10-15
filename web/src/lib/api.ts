@@ -2236,11 +2236,14 @@ export async function updateJD(): Promise<{ started: boolean }> {
  * behaviour.
  */
 export interface YtdlpOptions {
-  /** 'best' | '2160p' | '1440p' | '1080p' | '720p' | '480p' | '360p' |
-   *  'custom'. Read only on a video row. */
+  /** 'best' | '4320p' | '2160p' | '1440p' | '1080p' | '720p' | '480p' |
+   *  '360p' | 'custom'. Read only on a video row. */
   quality: string;
   /** yt-dlp's -f selector, used when quality is 'custom'. */
   customFormat: string;
+  /** 'best' | 'mp4' | 'mkv' | 'webm': the container a video row without a
+   *  format of its own prefers and is merged into. */
+  videoFormat: string;
   /** The audio format ("mp3", "aac", "opus"), or "best". A source's own track
    *  in it is copied, and only a source without one is converted. Read only
    *  on an audio row. */
@@ -2835,7 +2838,7 @@ export async function answerCaptcha(
 /**
  * createTestCaptcha puts up a test captcha, which arrives like a real one.
  * With solvers it goes to the captcha accounts too, which bill it. A refusal
- * carries the code 'captchaOff' or 'captchaJDOff' for the module switched off,
+ * carries the code 'captchaOff' while the captcha module is switched off,
  * or 'noCaptchaAccount' when no captcha account could take it.
  */
 export async function createTestCaptcha(solvers: boolean): Promise<CaptchaChallenge> {

@@ -744,7 +744,6 @@ export const en = {
   'container.handed': '{file} is encrypted. It was handed to the JDownloader backend; its links appear here once it has fetched it (within {n}s).',
   'container.failed': '{file} was not taken: {reason}',
   'container.noJD': 'it is encrypted, and only a JDownloader backend can open it. None is set up: set KL_JD to a JDownloader this instance can reach, then restart.',
-  'container.jdOff': 'it is encrypted, and only the JDownloader backend can open it. "JDownloader backend" is switched off on the Resolvers page.',
   'container.usenet': '{file} went to {service}. Its files appear here once {service} has fetched them from Usenet.',
   'container.usenetOwn': '{file} went to your Usenet servers. Its files appear here in a moment and download from there.',
   'container.noUsenet': 'it is an .nzb, and nothing here can fetch it from Usenet. Add a Usenet server or a TorBox or Premiumize.me account under Accounts.',
@@ -859,13 +858,6 @@ export const en = {
   'settings.modules.detail.federationOff': 'Off. Added instances stay saved, but this instance neither lists nor contacts them.',
   'settings.modules.detail.peers': '{n} peer instances',
   'settings.modules.detail.peersOne': '1 peer instance',
-  'settings.modules.detail.jdMissing': 'Hoster links go to a debrid service or fail.',
-  'settings.modules.detail.jdOff': 'Off. Downloads already in JDownloader finish, and new hoster links wait until it is back on.',
-  'settings.modules.detail.jdReachable': 'Reachable.',
-  'settings.modules.detail.ytdlpNotFound': "yt-dlp was not found (a copy fetched on the Resolvers page, KL_YTDLP, or \"yt-dlp\" on PATH). Media pages fail with the site's own error instead.",
-  'settings.modules.detail.ytdlpOff': 'Off. A running download finishes, and video links wait until it is back on.',
-  'settings.modules.detail.ytdlpQuality': 'Quality: {quality}',
-  'settings.modules.detail.ytdlpVersion': 'yt-dlp {version} ({source}), quality: {quality}',
   'settings.modules.detail.torrentsOff': 'Off. Running torrents carry on and keep seeding. New ones wait until it is back on.',
   'settings.modules.detail.torrentsOffDebrid': 'Off. Running torrents carry on and keep seeding. New ones go to a debrid service that takes torrents.',
   'settings.modules.detail.torrentsUnregistered': 'The built-in torrent client is not on the routing table, so magnet links and .torrent uploads are refused as unsupported.',
@@ -890,10 +882,8 @@ export const en = {
   'settings.modules.detail.scriptsEnabledOne': '1 script switched on',
   'settings.modules.reason.cnlSwitch': 'Listens on 127.0.0.1:9666 unless KL_CNL names another port. Switching it off here leaves KL_CNL as it is, so after a restart the port opens the way the environment says.',
   'settings.modules.reason.cnlNoListener': "This process opens no Click'n'Load port.",
-  'settings.modules.reason.jdNotConfigured': 'No JDownloader backend is configured. Set KL_JD to a JDownloader this instance can reach, then restart.',
-  'settings.modules.reason.ytdlpMissing': 'No yt-dlp was found. Fetch one on the Resolvers page, or set KL_YTDLP.',
+  'settings.resolvers.toolsJdMissingHint': 'No JDownloader backend is configured. Set KL_JD to a JDownloader this instance can reach, then restart.',
   'settings.modules.reason.captchaNoJD': 'Captchas come only from the JDownloader backend, and none is configured (KL_JD).',
-  'settings.modules.reason.captchaJDOff': 'Captchas come only from JDownloader, which is switched off. Switch it back on first.',
   'settings.modules.reason.keepawake': 'Only the desktop app can keep a computer awake. The machine a container runs on decides for itself when it sleeps.',
   'settings.modules.switchFailed': 'That switch was refused: {reason}',
   'settings.modules.configureFirst': 'There is nothing to switch on yet. Set this up on {page} first; after that the switch here stops and restarts it without losing what you set.',
@@ -911,7 +901,6 @@ export const en = {
   'settings.modules.about.reconnect': 'Gets a new IP address from your router when a hoster makes you wait, for example after a download limit.',
   'settings.modules.about.connections': 'Sends downloads through the proxies and direct routes you add here.',
   'settings.modules.about.federation': 'Lets this instance list your other instances and hand links to them.',
-  'settings.modules.about.jd': 'Hands hoster links to the JDownloader set in KL_JD, which also opens encrypted containers and asks for captchas.',
   'settings.modules.about.torrents': 'Downloads magnet links and .torrent files on this instance and seeds them as set below.',
   'settings.modules.about.captcha': 'Shows the captchas JDownloader runs into, here and in the phone app, and passes them to your captcha accounts.',
   'settings.modules.about.downloadclient': 'Lets Sonarr, Radarr and Prowlarr use this instance as a download client, through its qBittorrent and SABnzbd interfaces.',
@@ -927,7 +916,6 @@ export const en = {
   'settings.module.connections': 'Outbound connections',
   'settings.module.cnl': "Click'n'Load",
   'settings.module.federation': 'Instances',
-  'settings.module.jd': 'JDownloader backend',
   'settings.module.captcha': 'Captcha',
   'settings.module.scripting': 'Event scripts',
 
@@ -1739,8 +1727,6 @@ export const en = {
   'settings.captcha.testSolversHint':
     'Sends the same test captcha to your captcha accounts as well, in the order above, so you can see whether they answer it and get it right. They charge for it like for any other captcha. With Only when nobody is watching on, they wait for you first: switch to another tab, or let the wait run out.',
   'settings.captcha.testOff': 'Captchas are switched off. Switch the Captcha module back on to send a test captcha.',
-  'settings.captcha.testJDOff':
-    'Captchas come through the JDownloader backend, which is switched off. Switch it back on to send a test captcha.',
   'settings.captcha.testNoAccount':
     'None of your captcha accounts can take it. Switch one on above, then check on the Accounts page that it has a key and is switched on.',
 
@@ -2258,15 +2244,10 @@ export const en = {
 
   // The Resolvers page's rail label and the yt-dlp module's name.
   'settings.nav.resolvers': 'Resolvers',
-  'settings.module.ytdlp': 'yt-dlp',
 
   // The Resolvers page (pages/settings/Resolvers.tsx).
-  'settings.resolvers.about':
-    'Configuration for the yt-dlp backend, which fetches the media and streaming sites yt-dlp itself supports. Which backend handles a given link at all (yt-dlp, a debrid account or the JDownloader backend) is decided by the routing order on the Accounts page. This page sets what yt-dlp does once a link has been routed to it.',
   'settings.resolvers.quality': 'Quality',
   'settings.resolvers.videoFormat': 'Video format',
-  'settings.resolvers.qualityHint':
-    "Which -f selector yt-dlp is spawned with. Best available is yt-dlp's own default, and what every download used before this setting existed.",
   'settings.resolvers.quality.best': 'Best available',
   'settings.resolvers.quality.2160p': 'Up to 2160p (4K)',
   'settings.resolvers.quality.1440p': 'Up to 1440p',
@@ -2278,6 +2259,16 @@ export const en = {
   'settings.resolvers.customFormat': 'Custom format',
   'settings.resolvers.customFormatHint':
     "yt-dlp's own -f value, e.g. bestvideo[height<=720]+bestaudio/best. Passed through unexamined; a value yt-dlp rejects fails with its own error on the task.",
+  'settings.resolvers.format': 'Format',
+  'settings.resolvers.formatHint': 'The container for a video when neither its row in the link collector nor the variant defaults further down name a format. MP4 and WebM take tracks in that format first and stay in it when yt-dlp can put picture and sound in it together, otherwise the file becomes MKV. Best takes the best tracks in any format and puts them in MKV. With the resolution set to Custom, only the custom format string counts.',
+  'settings.resolvers.resolution': 'Resolution',
+  'settings.resolvers.resolutionHint': 'The highest resolution yt-dlp loads. Best leaves the choice to yt-dlp, Custom passes a format string on unchecked. This is only the fallback: new links take their resolution from the variant defaults further down, and the choice on the row beats both.',
+  'settings.resolvers.best': 'Best',
+  'settings.resolvers.custom': 'Custom',
+  'settings.resolvers.filesCard': 'Files',
+  'settings.resolvers.toolsNotConfigured': 'Not set up',
+  'settings.resolvers.toolsUnreachable': 'Not reachable',
+  'settings.resolvers.toolsJdUnreachableHint': 'KL_JD is set, but the JDownloader there does not answer. Check that it is running and that this instance reaches it at that address.',
   'settings.resolvers.playlist': 'Download the whole playlist when a link points into one',
   'settings.resolvers.subtitles': 'Subtitles',
   'settings.resolvers.subtitleLangs': 'Languages',
@@ -3930,8 +3921,8 @@ export const en = {
   'whatsnew.change.drivePage': '"{name}" has a settings page of its own instead of a card under "{accounts}".',
   'whatsnew.change.updatesCard': '"{name}" holds KnightLoader and yt-dlp, each on a sub-card of its own with its version and its updates.',
   'whatsnew.change.mirrorPolicy': 'In "{name}" a dropdown beside its label decides when two links count as the same file.',
-  'whatsnew.change.videoCard': 'The card "{name}" sets the quality a video is loaded in, with the dropdown beside its label.',
-  'whatsnew.change.filesCard': '"{name}" has a card of its own: whole playlists and how files are named.',
+  'whatsnew.change.videoCard': 'The card "{name}" sets the format and resolution of a video, both as choices in their row.',
+  'whatsnew.change.filesCard': '"{name}" brings playlists and file names, the check of the finished file and livestreams together in one card.',
   'whatsnew.change.variantBlocks': '"{name}" shows one block per site, with a switch and the pickers for each variant.',
   'whatsnew.change.fdroid': 'F-Droid stands beside Google Play, and both say "{soon}" for now.',
   'whatsnew.change.manualButton': 'The "{name}" button has the yellow book from the README on GitHub.',

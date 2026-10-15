@@ -20,7 +20,6 @@ export function message(e: unknown): string {
 // The upload refusals the server sends with a code.
 const CONTAINER_REFUSALS: Partial<Record<string, TranslationKey>> = {
   noJD: 'container.noJD',
-  jdOff: 'container.jdOff',
   noUsenet: 'container.noUsenet',
 };
 

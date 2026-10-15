@@ -11,14 +11,12 @@ import {
   Toggle,
   ToggleRow,
 } from '../../components/ui';
-import { Dropdown } from '../../components/Dropdown';
 import { TrackMerge } from '../../components/pictures/TrackMerge';
 import { Tabs } from '../../components/Tabs';
 import {
   NO_PRESET_MENUS,
   VariantDropdown,
   bitrateLabel,
-  capLabel,
   formatLabel,
   hostPresetMenus,
   presetMenusOf,
@@ -27,7 +25,7 @@ import {
   type PresetMenus,
 } from '../../components/VariantPicker';
 import { CookieJarsCard } from './resolvers/CookieJars';
-import { fileTracks } from './resolvers/fileTracks';
+import { fileTracks, mergedExtension } from './resolvers/fileTracks';
 import { MediaToolsCard } from './resolvers/MediaToolsCard';
 import { IconAdd, IconClose, IconTrash } from '../../lib/icons';
 import {
@@ -44,8 +42,7 @@ import {
 } from '../../lib/api';
 import { useT, type TranslationKey } from '../../lib/i18n';
 import { useDraft } from './context';
-import { SettingRow } from './controls';
-import { ModuleCard } from './ModuleToggle';
+import { SettingRow, SubCard } from './controls';
 
 // Named like the download list's own variant labels.
 const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
@@ -57,10 +54,15 @@ const VARIANT_KEYS: Record<YtdlpVariantKind, TranslationKey> = {
 };
 
 // What buildArgs in internal/resolver/ytdlp falls back to, which no route
-// serves: a video row is merged into mkv unless a row picked its own
-// container, and an empty template is this one.
-const MERGED = 'mkv';
+// serves: an empty template is this one.
 const DEFAULT_TEMPLATE = '%(title)s.%(ext)s';
+
+// ytdlp.VideoFormats(), in menu order.
+const VIDEO_FORMATS = ['best', 'mp4', 'mkv', 'webm'];
+
+// The default for every video stops at 360p, as sanitizeResolvers in
+// internal/settings does; a smaller picture is a pick for one download.
+const TOO_SMALL = new Set(['240p', '144p']);
 
 // ytdlp.DefaultHosterPreset(), so a new row starts as what it replaces.
 const DEFAULT_PRESET: YtdlpHosterPreset = {
@@ -119,6 +121,13 @@ export function Resolvers() {
     };
   }, []);
   const { qualities, audioFormats, audioBitrates } = menus;
+  const resolutions = qualities.filter((q) => !TOO_SMALL.has(q));
+  // Short, since the segments share one row: the resolution alone, which the
+  // presets' pickers write the same way.
+  const resolutionLabel = (q: string) => {
+    if (q === 'best') return t('settings.resolvers.best');
+    return q === 'custom' ? t('settings.resolvers.custom') : q;
+  };
 
   const ytdlp = cfg.ytdlp;
   const patchYtdlp = (fields: Partial<YtdlpOptions>) => patch({ ytdlp: { ...ytdlp, ...fields } });
@@ -206,18 +215,36 @@ export function Resolvers() {
           this page. */}
       <MediaToolsCard hue={1} />
 
-      {/* Named like the video variant, whose quality it sets where a row has
-          no choice of its own. */}
+      {/* Named like the video variant, whose format and resolution it sets
+          where a row has no choice of its own. */}
       <Card hue={2} data-new="video-card" className="flex flex-col gap-5">
         <SectionTitle>{t('columns.variant.video')}</SectionTitle>
 
-        {qualities.length > 0 && (
-          <SettingRow control="long" label={t('settings.resolvers.quality')} hint={t('settings.resolvers.qualityHint')}>
-            <Dropdown
-              label={t('settings.resolvers.quality')}
-              value={ytdlp.quality}
-              onChange={(quality) => patchYtdlp({ quality })}
-              options={qualities.map((q) => ({ value: q, label: capLabel(q, t) }))}
+        {/* The sanitizer folds anything else to "best". */}
+        <SettingRow label={t('settings.resolvers.format')} hint={t('settings.resolvers.formatHint')}>
+          <Tabs
+            variant="well"
+            size="sm"
+            inline
+            hug
+            label={t('settings.resolvers.format')}
+            active={ytdlp.videoFormat}
+            onSelect={(id) => patchYtdlp({ videoFormat: id })}
+            items={VIDEO_FORMATS.map((f) => ({ id: f, label: f === 'best' ? t('settings.resolvers.best') : formatLabel(f, t) }))}
+          />
+        </SettingRow>
+
+        {resolutions.length > 0 && (
+          <SettingRow label={t('settings.resolvers.resolution')} hint={t('settings.resolvers.resolutionHint')}>
+            <Tabs
+              variant="well"
+              size="sm"
+              inline
+              hug
+              label={t('settings.resolvers.resolution')}
+              active={ytdlp.quality}
+              onSelect={(id) => patchYtdlp({ quality: id })}
+              items={resolutions.map((q) => ({ id: q, label: resolutionLabel(q) }))}
             />
           </SettingRow>
         )}
@@ -239,69 +266,7 @@ export function Resolvers() {
         )}
       </Card>
 
-      <Card hue={3} data-new="files-card" className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.filesTitle')}</SectionTitle>
-
-        <ToggleRow
-          checked={ytdlp.playlist}
-          onChange={(v) => patchYtdlp({ playlist: v })}
-          label={t('settings.resolvers.playlist')}
-        />
-
-        {/* Music mode's naming, on the audio card, applies only while this
-            field is empty. */}
-        <SettingRow
-          control="long"
-          label={t('settings.resolvers.outputTitle')}
-          hint={t('settings.resolvers.outputHint')}
-        >
-          <TextInput
-            dir="ltr"
-            value={ytdlp.outputTemplate}
-            placeholder={DEFAULT_TEMPLATE}
-            spellCheck={false}
-            onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
-          />
-        </SettingRow>
-      </Card>
-
-      {/* Whether a subtitle row exists is set per hoster in the presets; this
-          card holds the instance-wide knobs. The embed card reuses these
-          languages, so muxed tracks and .srt files agree. */}
-      <Card hue={4} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.subtitlesTitle')}</SectionTitle>
-        <SettingRow
-          control="long"
-          label={t('settings.resolvers.subtitleLangs')}
-          hint={t('settings.resolvers.subtitleLangsHint')}
-        >
-          <TextInput
-            dir="ltr"
-            value={ytdlp.subtitleLangs}
-            placeholder="en"
-            spellCheck={false}
-            onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
-          />
-        </SettingRow>
-        <ToggleRow
-          checked={ytdlp.subtitleAuto}
-          onChange={(v) => patchYtdlp({ subtitleAuto: v })}
-          label={t('settings.resolvers.subtitleAuto')}
-          hue={0}
-        />
-        {/* yt-dlp runs without warnings, so a missing language would settle
-            green over an empty folder; this turns that into a failure. Off by
-            default, since it fails rows existing installs settle green. */}
-        <ToggleRow
-          checked={ytdlp.subtitleStrict}
-          onChange={(v) => patchYtdlp({ subtitleStrict: v })}
-          label={t('settings.resolvers.subtitleStrict')}
-          hint={t('settings.resolvers.subtitleStrictHint')}
-          hue={1}
-        />
-      </Card>
-
-      <Card hue={5} data-new="audio-best" className="flex flex-col gap-5">
+      <Card hue={3} data-new="audio-best" className="flex flex-col gap-5">
         <SectionTitle>{t('settings.resolvers.audioTitle')}</SectionTitle>
 
         {/* The menu comes from the server; the sanitizer folds anything else to "best". */}
@@ -363,7 +328,43 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={6} className="flex flex-col gap-4">
+      {/* Whether a subtitle row exists is set per hoster in the presets; this
+          card holds the instance-wide knobs. The embed card reuses these
+          languages, so muxed tracks and .srt files agree. */}
+      <Card hue={4} className="flex flex-col gap-5">
+        <SectionTitle>{t('settings.resolvers.subtitlesTitle')}</SectionTitle>
+        <SettingRow
+          control="long"
+          label={t('settings.resolvers.subtitleLangs')}
+          hint={t('settings.resolvers.subtitleLangsHint')}
+        >
+          <TextInput
+            dir="ltr"
+            value={ytdlp.subtitleLangs}
+            placeholder="en"
+            spellCheck={false}
+            onChange={(e) => patchYtdlp({ subtitleLangs: e.target.value })}
+          />
+        </SettingRow>
+        <ToggleRow
+          checked={ytdlp.subtitleAuto}
+          onChange={(v) => patchYtdlp({ subtitleAuto: v })}
+          label={t('settings.resolvers.subtitleAuto')}
+          hue={0}
+        />
+        {/* yt-dlp runs without warnings, so a missing language would settle
+            green over an empty folder; this turns that into a failure. Off by
+            default, since it fails rows existing installs settle green. */}
+        <ToggleRow
+          checked={ytdlp.subtitleStrict}
+          onChange={(v) => patchYtdlp({ subtitleStrict: v })}
+          label={t('settings.resolvers.subtitleStrict')}
+          hint={t('settings.resolvers.subtitleStrictHint')}
+          hue={1}
+        />
+      </Card>
+
+      <Card hue={5} className="flex flex-col gap-4">
         <SectionTitle>{t('settings.resolvers.embedTitle')}</SectionTitle>
 
         {/* The video row as these settings leave it, following the switches
@@ -371,7 +372,7 @@ export function Resolvers() {
         <TrackMerge
           label={t('settings.resolvers.embedTitle')}
           tracks={fileTracks(ytdlp, t)}
-          extension={MERGED}
+          extension={mergedExtension(ytdlp)}
           filename={ytdlp.outputTemplate.trim() || DEFAULT_TEMPLATE}
           split={embed.splitChapters ? t('picture.tracks.perChapter') : undefined}
           sidecar={embed.nfo ? 'nfo' : undefined}
@@ -435,100 +436,130 @@ export function Resolvers() {
         />
       </Card>
 
-      <Card hue={7} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.measureTitle')}</SectionTitle>
-        <ToggleRow
-          checked={measure.enabled}
-          onChange={(v) => patchMeasure({ enabled: v })}
-          label={t('settings.resolvers.measure')}
-          hint={t('settings.resolvers.measureHint')}
-          hue={0}
-        />
 
-        {/* Absent while the switch is off. Sanitize folds anything outside
-            1..100, 0 included, onto 90, so onValue clamps typed input too. */}
-        {measure.enabled && (
-          <>
-            <SettingRow
-              control="short"
-              label={t('settings.resolvers.measureShortPercent')}
-              hint={t('settings.resolvers.measureShortPercentHint')}
-            >
-              <NumberInput
-                value={measure.shortPercent || 90}
-                min={1}
-                max={100}
-                step={1}
-                onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
-              />
-            </SettingRow>
+      {/* Everything about the files a link becomes other than what is in
+          them: how a playlist and a file are named, whether the finished file
+          is measured, and when a recording stops. */}
+      <Card hue={6} data-new="files-card" className="flex flex-col gap-4">
+        <SectionTitle>{t('settings.resolvers.filesCard')}</SectionTitle>
 
-            <ToggleRow
-              checked={measure.failOnShort}
-              onChange={(v) => patchMeasure({ failOnShort: v })}
-              label={t('settings.resolvers.measureFailOnShort')}
-              hint={t('settings.resolvers.measureFailOnShortHint')}
-              hue={1}
+        <SubCard label={t('settings.resolvers.filesTitle')}>
+          <ToggleRow
+            checked={ytdlp.playlist}
+            onChange={(v) => patchYtdlp({ playlist: v })}
+            label={t('settings.resolvers.playlist')}
+          />
+
+          {/* Music mode's naming, on the audio card, applies only while this
+              field is empty. */}
+          <SettingRow
+            control="long"
+            label={t('settings.resolvers.outputTitle')}
+            hint={t('settings.resolvers.outputHint')}
+          >
+            <TextInput
+              dir="ltr"
+              value={ytdlp.outputTemplate}
+              placeholder={DEFAULT_TEMPLATE}
+              spellCheck={false}
+              onChange={(e) => patchYtdlp({ outputTemplate: e.target.value })}
             />
-          </>
-        )}
-      </Card>
+          </SettingRow>
+        </SubCard>
 
-      <Card hue={8} className="flex flex-col gap-5">
-        <SectionTitle>{t('settings.resolvers.liveTitle')}</SectionTitle>
-        {/* This switch also gates the detection, so with it off progress is
-            parsed as before, and the rows under it are absent. Both limits are
-            floored at 0 in onValue, since a negative one would stop the
-            recording at once; 0 means no limit. */}
-        <ToggleRow
-          checked={live.enabled}
-          onChange={(v) => patchLive({ enabled: v })}
-          label={t('settings.resolvers.live')}
-          hint={t('settings.resolvers.liveHint')}
-          hue={0}
-        />
-        {live.enabled && (
-          <>
-            <ToggleRow
-              checked={live.fromStart}
-              onChange={(v) => patchLive({ fromStart: v })}
-              label={t('settings.resolvers.liveFromStart')}
-              hint={t('settings.resolvers.liveFromStartHint')}
-              hue={1}
-            />
-            <SettingRow
-              control="short"
-              label={t('settings.resolvers.liveMaxMinutes')}
-              hint={t('settings.resolvers.liveMaxMinutesHint')}
-            >
-              <NumberInput
-                value={live.maxMinutes}
-                min={0}
-                max={10080}
-                step={1}
-                onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
+        <SubCard label={t('settings.resolvers.measureTitle')}>
+          <ToggleRow
+            checked={measure.enabled}
+            onChange={(v) => patchMeasure({ enabled: v })}
+            label={t('settings.resolvers.measure')}
+            hint={t('settings.resolvers.measureHint')}
+            hue={0}
+          />
+
+          {/* Absent while the switch is off. Sanitize folds anything outside
+              1..100, 0 included, onto 90, so onValue clamps typed input too. */}
+          {measure.enabled && (
+            <>
+              <SettingRow
+                control="short"
+                label={t('settings.resolvers.measureShortPercent')}
+                hint={t('settings.resolvers.measureShortPercentHint')}
+              >
+                <NumberInput
+                  value={measure.shortPercent || 90}
+                  min={1}
+                  max={100}
+                  step={1}
+                  onValue={(v) => patchMeasure({ shortPercent: Math.max(1, Math.min(100, v)) })}
+                />
+              </SettingRow>
+
+              <ToggleRow
+                checked={measure.failOnShort}
+                onChange={(v) => patchMeasure({ failOnShort: v })}
+                label={t('settings.resolvers.measureFailOnShort')}
+                hint={t('settings.resolvers.measureFailOnShortHint')}
+                hue={1}
               />
-            </SettingRow>
-            <SettingRow
-              control="short"
-              label={t('settings.resolvers.liveMaxMB')}
-              hint={t('settings.resolvers.liveMaxMBHint')}
-            >
-              <NumberInput
-                value={live.maxMB}
-                min={0}
-                step={1}
-                onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
+            </>
+          )}
+        </SubCard>
+
+        <SubCard label={t('settings.resolvers.liveTitle')}>
+          {/* This switch also gates the detection, so with it off progress is
+              parsed as before, and the rows under it are absent. Both limits
+              are floored at 0 in onValue, since a negative one would stop the
+              recording at once; 0 means no limit. */}
+          <ToggleRow
+            checked={live.enabled}
+            onChange={(v) => patchLive({ enabled: v })}
+            label={t('settings.resolvers.live')}
+            hint={t('settings.resolvers.liveHint')}
+            hue={0}
+          />
+          {live.enabled && (
+            <>
+              <ToggleRow
+                checked={live.fromStart}
+                onChange={(v) => patchLive({ fromStart: v })}
+                label={t('settings.resolvers.liveFromStart')}
+                hint={t('settings.resolvers.liveFromStartHint')}
+                hue={1}
               />
-            </SettingRow>
-          </>
-        )}
+              <SettingRow
+                control="short"
+                label={t('settings.resolvers.liveMaxMinutes')}
+                hint={t('settings.resolvers.liveMaxMinutesHint')}
+              >
+                <NumberInput
+                  value={live.maxMinutes}
+                  min={0}
+                  max={10080}
+                  step={1}
+                  onValue={(v) => patchLive({ maxMinutes: Math.max(0, Math.min(10080, v)) })}
+                />
+              </SettingRow>
+              <SettingRow
+                control="short"
+                label={t('settings.resolvers.liveMaxMB')}
+                hint={t('settings.resolvers.liveMaxMBHint')}
+              >
+                <NumberInput
+                  value={live.maxMB}
+                  min={0}
+                  step={1}
+                  onValue={(v) => patchLive({ maxMB: Math.max(0, v) })}
+                />
+              </SettingRow>
+            </>
+          )}
+        </SubCard>
       </Card>
 
       {/* Its own file, since the jar form is shared with a failed download. */}
-      <CookieJarsCard hue={9} />
+      <CookieJarsCard hue={7} />
 
-      <Card hue={10} data-new="variant-blocks" className="flex flex-col gap-5">
+      <Card hue={8} data-new="variant-blocks" className="flex flex-col gap-5">
         <SectionTitle
           hint={t('settings.resolvers.presetsHint')}
           right={
@@ -618,7 +649,7 @@ export function Resolvers() {
         {addingPreset && (
           <Modal
             title={t('settings.resolvers.presetAdd')}
-            hue={10}
+            hue={8}
             onClose={closeAddPreset}
             footer={
               <>
@@ -654,10 +685,6 @@ export function Resolvers() {
           </Modal>
         )}
       </Card>
-
-      {/* The other backend a link resolves through. Its logins are on the
-          Accounts page, but the backend itself is switched here. */}
-      <ModuleCard id="jd" hue={11} className="flex flex-col gap-3" hint={t('settings.modules.about.jd')} />
     </div>
   );
 }
