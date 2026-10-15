@@ -39,6 +39,16 @@ type session struct {
 	// renews says the provider hands out sessions that can end on its side,
 	// so a tunnel that stays down gets a new one.
 	renews bool
+	// keep runs while the tunnel stands, for what the provider wants
+	// renewed: a forwarded port, or the session itself.
+	keep func(ctx context.Context, k keeper)
+}
+
+// keeper is what a session's keep works with.
+type keeper struct {
+	dial    dialFunc
+	setPort func(uint16)
+	logf    func(format string, args ...any)
 }
 
 type opener func(ctx context.Context, login Login) (*session, error)
@@ -49,6 +59,7 @@ const (
 	CodeLoginRefused  = "vpn-login-refused"
 	CodeTimeout       = "vpn-timeout"
 	CodeDropped       = "vpn-dropped"
+	CodeLocation      = "vpn-location-unknown"
 )
 
 // failure is a connect that did not work, with the code the page words it by.

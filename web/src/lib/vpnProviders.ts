@@ -16,7 +16,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
   {
     id: 'nordvpn',
     name: 'NordVPN',
-    fields: ['token'],
+    fields: ['token', 'location'],
     portForwarding: false,
     logo: { tile: '#4580ff', ink: '#ffffff' },
   },
@@ -37,7 +37,7 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
   {
     id: 'pia',
     name: 'Private Internet Access',
-    fields: ['username', 'password'],
+    fields: ['username', 'password', 'location'],
     portForwarding: true,
     logo: { tile: '#50a747', ink: '#ffffff', lit: true },
   },
@@ -103,13 +103,6 @@ export const VPN_PROVIDERS: readonly VpnCatalogEntry[] = [
     fields: ['config'],
     portForwarding: false,
     logo: { tile: '#4f58c8', ink: '#ffffff' },
-  },
-  {
-    id: 'vyprvpn',
-    name: 'VyprVPN',
-    fields: ['username', 'password', 'location'],
-    portForwarding: true,
-    logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' },
   },
   {
     id: 'ovpn',
@@ -267,6 +260,7 @@ export const VPN_APP_ONLY: readonly { id: string; name: string; logo: LogoTile |
   { id: 'hotspotshield', name: 'Hotspot Shield', logo: { tile: '#2fa6f8', ink: '#ffffff', lit: true } },
   { id: 'tunnelbear', name: 'TunnelBear', logo: { tile: '#dc9a2c', ink: '#ffffff' } },
   { id: 'mozillavpn', name: 'Mozilla VPN', logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' } },
+  { id: 'vyprvpn', name: 'VyprVPN', logo: { tile: '#000000', ink: '#ffffff', rest: 'ink' } },
   { id: 'norton', name: 'Norton VPN', logo: { tile: '#fddf11', ink: '#161616' } },
   { id: 'mcafee', name: 'McAfee VPN', logo: { tile: '#c01818', ink: '#ffffff', rest: 'lift' } },
   { id: 'avast', name: 'Avast SecureLine VPN', logo: { tile: '#ff7902', ink: '#ffffff', lit: true } },

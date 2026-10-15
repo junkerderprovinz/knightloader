@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -18,6 +19,9 @@ import (
 	"github.com/GopeedLab/gopeed/pkg/netbind"
 	"github.com/junkerderprovinz/knightloader/internal/accounts"
 	"github.com/junkerderprovinz/knightloader/internal/vpn"
+	"github.com/junkerderprovinz/knightloader/internal/vpn/nordvpn"
+	"github.com/junkerderprovinz/knightloader/internal/vpn/pia"
+	"github.com/junkerderprovinz/knightloader/internal/vpn/torguard"
 	"github.com/junkerderprovinz/knightloader/internal/vpn/vpntest"
 )
 
@@ -237,6 +241,7 @@ func TestAnOwnConfigReportsTheTorrentPortAsForwarded(t *testing.T) {
 
 func TestRefusals(t *testing.T) {
 	h := newHarness(t, &memStore{}, "")
+	h.m.providers = append(h.m.providers, Provider{ID: "soon", Name: "Soon", Fields: []string{"token"}})
 	cases := []struct {
 		id     string
 		fields map[string]string
@@ -245,7 +250,7 @@ func TestRefusals(t *testing.T) {
 		field  string
 	}{
 		{"nowhere", nil, http.StatusNotFound, "vpn-unknown", ""},
-		{"nordvpn", map[string]string{"token": "x"}, http.StatusNotImplemented, "vpn-unsupported", ""},
+		{"soon", map[string]string{"token": "x"}, http.StatusNotImplemented, "vpn-unsupported", ""},
 		{"protonvpn", nil, http.StatusBadRequest, "vpn-field-missing", "config"},
 		{"hideme", map[string]string{"username": "knight"}, http.StatusBadRequest, "vpn-field-missing", "password"},
 		{"protonvpn", map[string]string{"password": "x"}, http.StatusBadRequest, "vpn-field-unknown", "password"},
@@ -379,5 +384,70 @@ func TestAPortOutsideCryptostormsRangeGetsOneInIt(t *testing.T) {
 	}
 	if p := fwdPortFor(40000); p != 40000 {
 		t.Errorf("port %d for 40000", p)
+	}
+}
+
+func TestASessionsKeepForwardsThePortWhileTheTunnelStands(t *testing.T) {
+	srv := vpntest.Start(t)
+	h := newHarness(t, &memStore{}, "")
+	var kept atomic.Int32
+	open := func(context.Context, Login) (*session, error) {
+		cfg, err := vpn.ParseConfig(srv.Config())
+		if err != nil {
+			return nil, err
+		}
+		return &session{cfg: cfg, keep: func(ctx context.Context, k keeper) {
+			kept.Add(1)
+			k.setPort(42424)
+			<-ctx.Done()
+		}}, nil
+	}
+	h.m.providers = append(h.m.providers, Provider{ID: "keeper", Name: "Keeper", Fields: []string{"token"}, PortForwarding: true, open: open, port: apiPort})
+	h.m.Connect("keeper", map[string]string{"token": "x"})
+	p := h.waitFor(t, "keeper", "connected")
+	for deadline := time.Now().Add(5 * time.Second); p.ForwardedPort == 0 && time.Now().Before(deadline); time.Sleep(50 * time.Millisecond) {
+		p = h.provider("keeper")
+	}
+	if p.ForwardedPort != 42424 || h.m.ForwardedPort() != 42424 {
+		t.Errorf("forwarded port %d (%d), want the one keep set", p.ForwardedPort, h.m.ForwardedPort())
+	}
+	h.m.Disconnect()
+	if h.m.ForwardedPort() != 0 || kept.Load() != 1 {
+		t.Errorf("after disconnect: port %d, keep ran %d times", h.m.ForwardedPort(), kept.Load())
+	}
+}
+
+func TestAProvidersAPIErrorsCarryTheirCode(t *testing.T) {
+	cases := []struct {
+		err  error
+		code string
+	}{
+		{fmt.Errorf("pia: token: %w", pia.ErrRefused), CodeLoginRefused},
+		{nordvpn.ErrRefused, CodeLoginRefused},
+		{torguard.ErrRefused, CodeLoginRefused},
+		{fmt.Errorf("nordvpn: %q: %w", "atlantis", vpn.ErrUnknownLocation), CodeLocation},
+	}
+	for _, c := range cases {
+		var f *failure
+		if !errors.As(apiFailure(c.err), &f) || f.code != c.code {
+			t.Errorf("%v has code %v, want %s", c.err, f, c.code)
+		}
+	}
+	if err := errors.New("network down"); apiFailure(err) != err {
+		t.Error("an error of the network got a code")
+	}
+}
+
+func TestTorGuardLocations(t *testing.T) {
+	for loc, want := range map[string]string{
+		"":                   "nl.secureconnect.me",
+		"ger":                "ger.secureconnect.me",
+		"US-NY":              "us-ny.secureconnect.me",
+		"swiss.torguard.org": "swiss.torguard.org",
+		"146.70.83.218":      "146.70.83.218",
+	} {
+		if got := torGuardHost(loc); got != want {
+			t.Errorf("%q is %q, want %q", loc, got, want)
+		}
 	}
 }

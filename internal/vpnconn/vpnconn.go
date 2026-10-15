@@ -266,7 +266,7 @@ func (m *Manager) fillActive(ps *ProviderState, p Provider, ts vpn.State) {
 			if m.portAddr.IsValid() {
 				ps.ForwardedAddress = m.portAddr.String()
 			}
-		case fwdPort:
+		case fwdPort, apiPort:
 			ps.ForwardedPort = int(m.port)
 		case manualPort:
 			ps.ForwardedPort = m.opts.ManualPort()
@@ -509,7 +509,7 @@ func (m *Manager) run(ctx context.Context, done chan struct{}, p Provider, login
 				m.setFail(classify(err))
 				// Nothing to retry with; a new connect brings a new login.
 				var f *failure
-				if errors.As(err, &f) && (f.code == CodeConfigInvalid || f.code == CodeLoginRefused) {
+				if errors.As(err, &f) && (f.code == CodeConfigInvalid || f.code == CodeLoginRefused || f.code == CodeLocation) {
 					return
 				}
 				wait(ctx, m.opts.RenewAfter)
@@ -574,6 +574,14 @@ func (m *Manager) serve(ctx context.Context, p Provider, sess *session) {
 		go m.forwardPort(pctx, p, sess)
 	case fwdPort:
 		go m.askForPort(pctx, p)
+	}
+	if sess.keep != nil {
+		setPort := func(port uint16) {
+			if pctx.Err() == nil {
+				m.setPort(port)
+			}
+		}
+		go sess.keep(pctx, keeper{dial: m.tun.DialContext, setPort: setPort, logf: m.opts.Logf})
 	}
 	tick := time.NewTicker(time.Second)
 	defer tick.Stop()
