@@ -183,17 +183,21 @@ require (
 
 // The gopeed fork applies the torrent upload limit to running torrents, lets
 // DHT and PEX be switched off, ties BitTorrent traffic to one network
-// interface (pkg/netbind), lets a torrent's resolve be given up on
-// (ResolveContext), fixes a panic when the torrent client is closed right
-// after it was built, locks a task's connection list while the task is saved,
-// spreads a ranged download over mirror URLs, reads a file of a running task,
-// and starts a download restored from a saved task without a ten second wait:
+// interface or an in-process network (pkg/netbind) and moves its port while
+// torrents run, keeps WebTorrent off, lets a torrent's resolve be given up on
+// (ResolveContext) and releases a discarded one's files before Discard
+// returns, fixes a panic when the torrent client is closed right after it was
+// built, locks a task's connection list while the task is saved, spreads a
+// ranged download over mirror URLs, reads a file of a running task, and
+// starts a download restored from a saved task without a ten second wait:
 // https://github.com/junkerderprovinz/gopeed/tree/knightloader
-replace github.com/GopeedLab/gopeed => ../gopeed-vpn
+replace github.com/GopeedLab/gopeed => github.com/junkerderprovinz/gopeed v0.0.0-20261015120238-f7b6deb83c74
 
 // The anacrolix/torrent fork the gopeed fork uses: trackers keep announcing
 // after a torrent is dropped or added again, closing the client sends the
-// stopped announces before it closes its tracker sockets, and a web seed
-// fetches a piece that a reader is waiting for before the rest of its slice.
+// stopped announces, also for a torrent whose started is still out, before it
+// closes its tracker sockets, a web seed fetches a piece that a reader is
+// waiting for before the rest of its slice, and the trackers announce on
+// demand, with UDP tracker hosts resolved through a given lookup.
 // https://github.com/junkerderprovinz/torrent/tree/knightloader
-replace github.com/anacrolix/torrent => ../torrent-vpn
+replace github.com/anacrolix/torrent => github.com/junkerderprovinz/torrent v1.61.1-0.20261014215729-7f7e9bdefc17
