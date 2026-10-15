@@ -36,6 +36,17 @@ const NOTES: Partial<Record<string, TranslationKey>> = {
   torguard: 'settings.vpn.note.torguard',
 };
 
+/** What each provider takes as a location, and what an empty field means there. */
+const LOCATION_HINTS: Partial<Record<string, TranslationKey>> = {
+  nordvpn: 'settings.vpn.field.locationHint.nordvpn',
+  pia: 'settings.vpn.field.locationHint.pia',
+  mullvad: 'settings.vpn.field.locationHint.mullvad',
+  hideme: 'settings.vpn.field.locationHint.hideme',
+  torguard: 'settings.vpn.field.locationHint.torguard',
+  azirevpn: 'settings.vpn.field.locationHint.azirevpn',
+  obscura: 'settings.vpn.field.locationHint.obscura',
+};
+
 /**
  * VpnPicker is the window a VPN is added in, the way an account is: every
  * provider a tile, the form of the one picked in the same window. Opened on
@@ -196,6 +207,10 @@ function ConnectForm({
   const { t } = useT();
   const name = nameOf(t, p);
   const note = NOTES[p.id];
+  const hintOf = (f: VpnField) => {
+    const key = (f === 'location' && LOCATION_HINTS[p.id]) || FIELDS[f].hint;
+    return key && t(key, { name });
+  };
   return (
     <div data-new="picker-form" className="flex flex-col gap-4">
       <div className="flex items-center gap-3">
@@ -228,7 +243,7 @@ function ConnectForm({
             <SettingRow
               control="long"
               label={t(FIELDS[f].label)}
-              hint={FIELDS[f].hint ? t(FIELDS[f].hint, { name }) : undefined}
+              hint={hintOf(f)}
             >
               {FIELDS[f].secret ? (
                 <PasswordInput
