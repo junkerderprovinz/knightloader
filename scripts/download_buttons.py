@@ -16,8 +16,7 @@ BUTTONS = {
     "linux": RELEASE + "knightloader-linux-amd64.zip",
     "linux-arm": RELEASE + "knightloader-linux-arm64.zip",
     "unraid": "https://unraid.net/community/apps?q=knightloader",
-    # A browser cannot download an image, so this opens the package page, which
-    # carries the pull command and every tag.
+    "mos": "https://mos-official.net/apps.html?search=KnightLoader",
     "compose": "https://raw.githubusercontent.com/junkerderprovinz/knightloader/main/compose.yaml",
     # A release's "Source code (zip)" is the whole repository at that tag, and
     # GitHub gives the newest one no fixed address, so this leads to the release
