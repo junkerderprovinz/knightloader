@@ -15,10 +15,10 @@
   <style>
     @keyframes pass {
       0%       { transform: translateX(-278.4px); }
-      6.78%   { transform: translateX(1120.3px); }
+      6.23%   { transform: translateX(1120.3px); }
       100%     { transform: translateX(1120.3px); }
     }
-    .band { animation: pass 15.671s linear 11.778s infinite backwards; }
+    .band { animation: pass 17.056s linear 13.164s infinite backwards; }
     @media (prefers-reduced-motion: reduce) {
       .band { animation: none; opacity: 0; }
     }
