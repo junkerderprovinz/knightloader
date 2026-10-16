@@ -74,7 +74,7 @@ func (a *App) closeVPN() {
 // applyVPN moves every kind of traffic to where the VPN switches put it. The
 // engine's transfers follow at their next progress report (see keepOnRoute).
 func (a *App) applyVPN() {
-	if err := a.Engine.SetTorrentConfig(a.withVPN(torrentConfig(a.Settings.Get().Torrent))); err != nil {
+	if err := a.pushTorrentConfig(); err != nil {
 		log.Printf("torrent network not applied: %v", err)
 	}
 	for tr, c := range vpnClasses {

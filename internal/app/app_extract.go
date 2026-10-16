@@ -78,7 +78,10 @@ type ExtractJob struct {
 	ErrorParams map[string]string `json:"errorParams,omitempty"`
 	// Password marks a failure caused by a missing password, so the interface
 	// can offer to enter one and retry.
-	Password  bool      `json:"password,omitempty"`
+	Password bool `json:"password,omitempty"`
+	// Held marks a waiting job that waits for a stream to end rather than for
+	// its turn (app_playback.go). Set on the copies handed out, never stored.
+	Held      bool      `json:"held,omitempty"`
 	QueuedAt  time.Time `json:"queuedAt"`
 	StartedAt time.Time `json:"startedAt,omitempty"`
 	EndedAt   time.Time `json:"endedAt,omitempty"`
@@ -460,7 +463,9 @@ func (a *App) runExtractions() {
 		a.mu.Lock()
 		st := a.unpackLocked()
 		job := nextQueuedLocked(st)
-		if job == nil {
+		// A stream holding the queue stops the worker between jobs; the end of
+		// the stream starts it again (resumeExtractionsLocked).
+		if job == nil || a.extractHeldLocked() {
 			// Cleared under the lock the next enqueue takes, so a new job either
 			// sees this worker or starts one.
 			st.busy = false
@@ -701,10 +706,13 @@ func (a *App) ExtractJobs() []ExtractJob {
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	st := a.unpackLocked()
+	held := a.extractHeldLocked()
 	out := make([]ExtractJob, 0, len(st.order))
 	for _, id := range st.order {
 		if j := st.jobs[id]; j != nil {
-			out = append(out, j.ExtractJob)
+			c := j.ExtractJob
+			c.Held = held && c.Status == ExtractQueued
+			out = append(out, c)
 		}
 	}
 	return out

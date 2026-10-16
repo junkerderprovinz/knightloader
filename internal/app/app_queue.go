@@ -6,6 +6,7 @@ package app
 import (
 	"errors"
 	"fmt"
+	"log"
 	"maps"
 	"slices"
 	"sort"
@@ -920,30 +921,40 @@ type QueueState struct {
 	// "halted" legible: halted with three running means three still finishing.
 	Running int `json:"running"`
 	// Quiet is whether the second set of limits is in force (app_quiet.go),
-	// whether by the switch or a timetable window. ScheduleState.State.Quiet
-	// says whether the timetable did it.
+	// whether by the switch, a timetable window or a stream.
+	// ScheduleState.State.Quiet says whether the timetable did it, and Playback
+	// whether a stream holds it.
 	Quiet bool `json:"quiet"`
+	// Playback says a media server's stream holds quiet mode, so switching it
+	// off by hand waives that stream until it ends (app_playback.go).
+	Playback bool `json:"playback"`
 	// Limit is the global speed limit in force in bytes per second, 0 for
 	// none: the settings page's figure, or what a limit window or quiet mode
 	// put in its place. The volume cap's throttle is left out, since it has
 	// its own push ("volume") and would change this without a broadcast.
 	Limit int64 `json:"limit"`
-	// UploadLimit is the torrents' upload cap in bytes per second, 0 for none,
-	// which the speed graphs mark beside the download limit.
+	// UploadLimit is the torrents' upload cap in force in bytes per second, 0
+	// for none, which the speed graphs mark beside the download limit.
 	UploadLimit int64 `json:"uploadLimit"`
 }
 
 // Queue reports the master switch.
 func (a *App) Queue() QueueState {
+	cfg := a.Settings.Get()
 	a.mu.Lock()
 	defer a.mu.Unlock()
+	upload := cfg.Torrent.UploadLimit
+	if a.quiet.on() {
+		upload = cfg.UploadUnderQuiet()
+	}
 	return QueueState{
 		Halted:      a.halted,
 		StopMark:    a.stopMark,
 		Running:     len(a.active),
-		Quiet:       a.quiet.inForce,
+		Quiet:       a.quiet.on(),
+		Playback:    a.quiet.byPlayback(),
 		Limit:       a.limitInForceLocked(),
-		UploadLimit: a.Settings.Get().Torrent.UploadLimit,
+		UploadLimit: upload,
 	}
 }
 
@@ -1254,12 +1265,15 @@ func (a *App) applySchedule(st schedule.State) {
 	if quiet == a.quiet.baseSeen && a.quiet.manual != a.quiet.baseSeen {
 		quiet = a.quiet.manual
 	}
+	wasQuiet := a.quiet.on()
 	a.quiet.inForce = quiet
+	quietChanged := a.quiet.on() != wasQuiet
 	// Set in the same critical section as the flag and before the dispatch:
 	// quiet mode is one decision about slots (cfgInForceLocked) and speed, and
 	// a dispatch between the two would see half of it. a.limitInForce is what
-	// applyBudget shares out, so the quiet limit has to be written here.
-	limit := speedInForce(cfg, st.Limit, quiet)
+	// applyBudget shares out, so the quiet limit has to be written here. A
+	// stream holding the mode counts as much as a window does.
+	limit := speedInForce(cfg, st.Limit, a.quiet.on())
 	a.limitInForce = limit
 	// Always dispatched, so rows held by a pause window are told why, including
 	// at boot, where this is the first dispatch.
@@ -1272,6 +1286,11 @@ func (a *App) applySchedule(st schedule.State) {
 	// waits for it, since it reads a.jd. The limit in force, so JD honours quiet
 	// mode without waiting for the next budget tick.
 	a.spawn(func() { a.pushJDSpeedLimit(limit) })
+	if quietChanged {
+		if err := a.pushTorrentConfig(); err != nil {
+			log.Printf("quiet mode's upload limit not applied: %v", err)
+		}
+	}
 	a.Hub.Broadcast("queue", a.Queue())
 }
 

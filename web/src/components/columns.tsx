@@ -1269,7 +1269,7 @@ export function packageStatus(items: Task[]): RowState {
 // orders its links: the archive being worked on, then the ones waiting, with a
 // failure flagged beside them (see PackageStatusCell). Once nothing is left to
 // do a failure speaks, and "Unpacked" only when nothing failed.
-const UNPACK_RANK: UnpackState[] = ['running', 'queued', 'error', 'password', 'done'];
+const UNPACK_RANK: UnpackState[] = ['running', 'queued', 'held', 'error', 'password', 'done'];
 
 const unpackFailed = (u: Unpacking): boolean => u.state === 'error' || u.state === 'password';
 

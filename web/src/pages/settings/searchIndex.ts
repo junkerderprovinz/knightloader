@@ -1072,6 +1072,25 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       body: ['settings.schedule.empty', 'settings.schedule.emptyHint'],
     },
     {
+      title: 'settings.quietmode.title',
+      hint: 'settings.quietmode.hint',
+      rows: [
+        { key: 'settings.quietmode.speedLimit', hint: 'settings.quietmode.speedLimitHint' },
+        { key: 'settings.quietmode.maxConcurrent', hint: 'settings.quietmode.maxConcurrentHint' },
+        { key: 'settings.quietmode.uploadLimit', hint: 'settings.quietmode.uploadLimitHint' },
+        { key: 'settings.module.playback', hint: 'settings.modules.about.playback' },
+        { key: 'settings.playback.serversTitle', hint: 'settings.playback.serversHint' },
+        { key: 'settings.playback.name', hint: 'settings.playback.nameHint' },
+        { key: 'settings.playback.url', hint: 'settings.playback.urlHint' },
+        { key: 'settings.playback.token' },
+        { key: 'settings.playback.ignoreLocal', hint: 'settings.playback.ignoreLocalHint' },
+        { key: 'settings.playback.pausedMinutes', hint: 'settings.playback.pausedMinutesHint' },
+        { key: 'settings.playback.holdExtraction', hint: 'settings.playback.holdExtractionHint' },
+      ],
+      also: ['settings.playback.add', 'settings.playback.kindHint', 'settings.playback.test', 'settings.playback.waive'],
+      body: ['settings.playback.empty', 'settings.playback.emptyHint', 'settings.playback.statusIdle'],
+    },
+    {
       title: 'settings.downloads.idleTitle',
       rows: [
         { key: 'settings.downloads.idleAction', hint: 'settings.downloads.idleActionHint' },

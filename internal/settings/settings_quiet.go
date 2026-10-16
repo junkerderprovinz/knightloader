@@ -39,6 +39,13 @@ type QuietLimits struct {
 	// wearing a turtle, and the hard stop is a separate button with its own
 	// warning.
 	MaxConcurrent int `json:"maxConcurrent"`
+
+	// UploadLimit is the torrents' upload cap in bytes per second while the
+	// mode is on, in place of Torrent.UploadLimit. It is the number that
+	// matters to a media server streaming to somebody away from home: that
+	// stream leaves by the uplink, which downloads hardly touch and seeding
+	// fills.
+	UploadLimit int64 `json:"uploadLimit"`
 }
 
 // UnderQuiet returns these settings as they read while quiet mode is in force:
@@ -68,12 +75,25 @@ func (s Settings) UnderQuiet(limit int64) Settings {
 	return s
 }
 
+// UploadUnderQuiet is the torrents' upload cap while quiet mode is in force.
+// Like the speed figure it replaces the ordinary one rather than taking the
+// smaller of the two, and zero leaves the ordinary one standing.
+func (s Settings) UploadUnderQuiet() int64 {
+	if s.Quiet.UploadLimit > 0 {
+		return s.Quiet.UploadLimit
+	}
+	return s.Torrent.UploadLimit
+}
+
 func sanitizeQuiet(n Settings) Settings {
 	if n.Quiet.SpeedLimit < 0 {
 		n.Quiet.SpeedLimit = 0
 	}
 	if n.Quiet.MaxConcurrent < 0 {
 		n.Quiet.MaxConcurrent = 0
+	}
+	if n.Quiet.UploadLimit < 0 {
+		n.Quiet.UploadLimit = 0
 	}
 	// The same ceiling the ordinary MaxConcurrent has, because this figure
 	// reaches the same dispatcher. Not floored at 1 the way sanitizeQueue floors

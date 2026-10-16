@@ -202,6 +202,12 @@ var routeScopes = map[string]apitoken.Scope{
 
 	"GET /api/options": apitoken.ScopeAdmin,
 
+	// The listing names who watches what, and the rows carry tokens.
+	"GET /api/playback":                    apitoken.ScopeAdmin,
+	"POST /api/playback/servers":           apitoken.ScopeAdmin,
+	"DELETE /api/playback/servers/{id}":    apitoken.ScopeAdmin,
+	"POST /api/playback/servers/{id}/test": apitoken.ScopeAdmin,
+
 	"GET /api/queue":            apitoken.ScopeRead,
 	"POST /api/queue":           apitoken.ScopeControl,
 	"GET /api/queue/counters":   apitoken.ScopeRead,

@@ -96,6 +96,7 @@ const (
 	remedyCaptchaWaiting  = "captcha.waiting"
 	remedyQueueHalted     = "queue.halted"
 	remedyQueueQuiet      = "queue.quiet"
+	remedyQueuePlayback   = "queue.playback"
 )
 
 // subsystemLog is the log source (logring.Sources) a part writes its troubles
@@ -383,6 +384,8 @@ func queueSubsystem(q QueueState) Subsystem {
 	switch {
 	case q.Halted:
 		row.State, row.Remedy = StateDegraded, remedyQueueHalted
+	case q.Playback:
+		row.State, row.Remedy = StateDegraded, remedyQueuePlayback
 	case q.Quiet:
 		row.State, row.Remedy = StateDegraded, remedyQueueQuiet
 	}

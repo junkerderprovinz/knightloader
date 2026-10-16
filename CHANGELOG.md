@@ -36,6 +36,21 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Added
+
+- **Quiet mode while something plays.** Add Plex, Jellyfin or Emby on the
+  Automation page, and quiet mode switches itself on while a stream runs and
+  off again about half a minute after the last one ends. A stream paused for
+  more than half an hour stops counting, and streams at home can be left out.
+  While something plays, finished archives wait to be unpacked, which leaves
+  the disk to the stream. Off for this stream puts the usual limits back until
+  it ends.
+- **Quiet mode has a card of its own.** Its speed limit, the number of
+  downloads at once and a new upload limit for torrents are set on the
+  Automation page, and the timetable offers quiet mode as an action.
+
 ## [2.1.1] - 2026-10-16
 
 ### Added

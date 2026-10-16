@@ -29,6 +29,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/mediahook"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
+	"github.com/junkerderprovinz/knightloader/internal/playback"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reclaim"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
@@ -538,6 +539,15 @@ type Settings struct {
 	// CrawlInclude.
 	MediaHooks []mediahook.Hook `json:"mediaHooks"`
 
+	// Playback switches quiet mode on while one of PlaybackServers is playing
+	// and holds the unpacking queue meanwhile. See settings_playback.go; the
+	// tokens are sealed in accounts.Store, like the media hooks' header values.
+	// The servers are a key of their own because their route writes them and
+	// the settings page saving a switch must not write them back. No
+	// omitempty, see CrawlInclude.
+	Playback        playback.Settings `json:"playback"`
+	PlaybackServers []playback.Server `json:"playbackServers"`
+
 	// UsenetServers are the servers an .nzb is fetched from without a debrid
 	// service, see settings_usenet.go. The logins are sealed in accounts.Store.
 	// Empty, the default, leaves every .nzb to TorBox or Premiumize.me. No
@@ -871,6 +881,9 @@ func Defaults() Settings {
 		// on a gigabit connection or a stall on a slow one. The slot count has
 		// to be there, or the first press of the button does nothing.
 		Quiet: QuietLimits{MaxConcurrent: 1},
+		// Off, with the paused stream's half hour and the unpacking pause
+		// filled in for the day it is switched on.
+		Playback: playback.Defaults(),
 		// One of the volume's three numbers is on by default, see
 		// DefaultDiskReserve.
 		DiskReserve: DefaultDiskReserve,
@@ -1174,6 +1187,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeHostRules(n)
 	n = sanitizeCategories(n)
 	n = sanitizeMediaHooks(n)
+	n = sanitizePlayback(n)
 	n = sanitizeUsenet(n)
 	n = sanitizePaths(n)
 	n = sanitizeStaging(n)

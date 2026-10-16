@@ -50,6 +50,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/netproxy"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
 	"github.com/junkerderprovinz/knightloader/internal/pathvars"
+	"github.com/junkerderprovinz/knightloader/internal/playback"
 	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 	"github.com/junkerderprovinz/knightloader/internal/resolver"
@@ -141,6 +142,10 @@ type App struct {
 	// MediaHooks calls the address a category points at once a package filed
 	// there has finished and its files are in place (see app_mediahook.go).
 	MediaHooks *mediahook.Runner
+
+	// Playback asks the media servers what is playing and holds quiet mode
+	// while something counts (see app_playback.go).
+	Playback *playback.Watcher
 
 	// Probe is the client the collector's HEAD requests use to learn a staged
 	// link's size and whether it still exists. It is a field so tests that
@@ -760,6 +765,9 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	// The speed record starts at boot so the first visitor already sees a
 	// curve (see app_speedhistory.go).
 	a.spawn(a.sampleSpeedLoop)
+	// After the list is loaded: a stream found at boot holds the unpacking
+	// queue, which has to exist by then.
+	a.startPlayback()
 	// Rows staged under a preset that differs from the saved one are sorted
 	// before anybody opens the collector.
 	a.applyVariantPresets()
@@ -1193,6 +1201,7 @@ func (a *App) afterSettingsChange(applied settings.Settings) {
 	a.applyLogFile(applied.LogFile)
 	a.applyConnections(applied)
 	a.applyTorrentConfig(applied.Torrent)
+	a.applyQuiet(applied)
 	a.applyModuleSwitches(applied)
 	// The Usenet servers and the priority card that ranks them against the
 	// debrid services are both in the document.
@@ -1289,10 +1298,25 @@ func (a *App) applyConnections(s settings.Settings) {
 // logged rather than failing the save or the boot. It also fetches the public
 // tracker list when that is due.
 func (a *App) applyTorrentConfig(t settings.Torrent) {
-	if err := a.Engine.SetTorrentConfig(a.withVPN(torrentConfig(t))); err != nil {
+	if err := a.pushTorrentConfig(); err != nil {
 		log.Printf("torrent config not applied (%v); torrents seed at the engine's own defaults", err)
 	}
 	a.refreshTrackerList(t.TrackerListURL)
+}
+
+// pushTorrentConfig hands the engine the Torrents page as it applies now: with
+// the VPN's interface and port, and with quiet mode's upload cap in place of
+// the page's while the mode is on.
+func (a *App) pushTorrentConfig() error {
+	cfg := a.Settings.Get()
+	c := torrentConfig(cfg.Torrent)
+	a.mu.Lock()
+	quiet := a.quiet.on()
+	a.mu.Unlock()
+	if quiet {
+		c.UploadLimit = cfg.UploadUnderQuiet()
+	}
+	return a.Engine.SetTorrentConfig(a.withVPN(c))
 }
 
 func torrentConfig(t settings.Torrent) engine.TorrentConfig {

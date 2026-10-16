@@ -346,6 +346,11 @@ func validateRows(dataDir string, s settings.Settings, named func(key string) bo
 			return err
 		}
 	}
+	if sent("playbackServers") {
+		if err := s.ValidatePlaybackServers(); err != nil {
+			return err
+		}
+	}
 	// The only check here that touches the disk, so a stored category whose
 	// share is offline does not refuse a change of theme either.
 	if sent("categories") {

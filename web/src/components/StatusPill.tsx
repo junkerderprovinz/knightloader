@@ -109,13 +109,14 @@ export function StatusPill({ status }: { status: RowState }) {
  * in place of "Done". A failure for want of a password is its own state
  * because it is the one with an obvious remedy.
  */
-export type UnpackState = 'queued' | 'running' | 'done' | 'password' | 'error';
+export type UnpackState = 'held' | 'queued' | 'running' | 'done' | 'password' | 'error';
 
-/** unpackState reads a job's open status; a cancelled or unknown one is null. */
+/** unpackState reads a job's open status; a cancelled or unknown one is null.
+ *  A waiting job a stream holds back is 'held', so the row says what it waits for. */
 export function unpackState(j: ExtractJob): UnpackState | null {
   switch (j.status) {
     case 'queued':
-      return 'queued';
+      return j.held ? 'held' : 'queued';
     case 'running':
       return 'running';
     case 'done':
@@ -127,6 +128,7 @@ export function unpackState(j: ExtractJob): UnpackState | null {
 }
 
 const unpackLook: Record<UnpackState, { tone: Tone; key: TranslationKey; glyph: Glyph }> = {
+  held: { tone: 'neutral', key: 'archive.held', glyph: IconArchive },
   queued: { tone: 'neutral', key: 'archive.queued', glyph: IconArchive },
   running: { tone: 'info', key: 'status.extracting', glyph: IconArchive },
   done: { tone: 'ok', key: 'archive.unpacked', glyph: IconCheck },

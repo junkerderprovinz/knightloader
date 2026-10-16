@@ -34,7 +34,7 @@ again.
 
 | Tool | What it does | Right |
 |---|---|---|
-| `get_status` | Whether the queue runs, what is in flight, the speed and the limits in force, quiet mode, what is still owed, how many links wait in the collector, and the rights of this token | read |
+| `get_status` | Whether the queue runs, what is in flight, the speed and the limits in force, quiet mode and whether a stream on a media server holds it, what is still owed, how many links wait in the collector, and the rights of this token | read |
 | `list_downloads` | The download list without the collector, filterable by state, package and text | read |
 | `list_collector` | The links in the link collector, grouped by package | read |
 | `list_history` | Finished downloads, newest first | read |
