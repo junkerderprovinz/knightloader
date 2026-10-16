@@ -456,6 +456,11 @@ export interface Settings {
    * its own, so this can be one save behind GET /api/mediahooks.
    */
   mediaHooks: MediaHook[];
+  /** Quiet mode's second set of limits; an older server leaves it out. */
+  quiet?: QuietLimits;
+  /** Quiet mode while a media server plays. The servers are edited through
+   *  their own routes (GET /api/playback), so they are not typed here. */
+  playback?: PlaybackSettings;
   /** The own Usenet servers; the accounts page edits them through their own
    *  routes. Null on a fresh install. */
   usenetServers: UsenetServer[] | null;
@@ -808,11 +813,18 @@ export interface QueueState {
   halted: boolean;
   stopMark?: string;
   running: number;
+  /** Whether quiet mode's second set of limits is in force, by the switch, a
+   *  timetable window or a stream. */
+  quiet?: boolean;
+  /** Whether a media server's stream is what holds quiet mode. Switching quiet
+   *  mode off then waives that stream until it ends. */
+  playback?: boolean;
   /** The global speed limit in force in bytes/s, 0 for none, with a limit
    *  window or quiet mode applied but not the volume cap. A peer on an older
    *  build leaves it out. */
   limit?: number;
-  /** The torrents' upload cap in bytes/s, 0 for none; an older build leaves it out. */
+  /** The torrents' upload cap in force in bytes/s, 0 for none; an older build
+   *  leaves it out. */
   uploadLimit?: number;
 }
 
@@ -1376,6 +1388,9 @@ export interface ExtractJob {
   errorParams?: Record<string, string>;
   /** The failure was a missing password, which is the one with an obvious remedy. */
   password?: boolean;
+  /** A waiting job that waits for a media server's stream to end rather than
+   *  for its turn. */
+  held?: boolean;
   queuedAt: string;
   startedAt?: string;
   endedAt?: string;
@@ -1870,7 +1885,7 @@ export async function resumeSchedule(): Promise<ScheduleSuspension> {
 
 /** setQueue toggles the master switch and/or arms the stop mark. */
 export async function setQueue(
-  patch: { halted?: boolean; stopMark?: string },
+  patch: { halted?: boolean; stopMark?: string; quiet?: boolean },
   base = '/api',
 ): Promise<QueueState> {
   return json<QueueState>(await post(`${base}/queue`, patch));
@@ -2531,6 +2546,109 @@ export async function deleteMediaHook(id: string): Promise<void> {
  *  failed call still answers 200, so read `ok` on the result. */
 export async function testMediaHook(id: string): Promise<MediaHookResult> {
   return json<MediaHookResult>(await post(`/api/mediahooks/${encodeURIComponent(id)}/test`, {}));
+}
+
+// The media servers quiet mode watches. As with a media hook, the token is
+// sealed on the server and an editing form sends REDACTED_HEADER back to keep it.
+
+/** Quiet mode's second set of limits. 0 in a field leaves that one alone. */
+export interface QuietLimits {
+  speedLimit: number;
+  maxConcurrent: number;
+  /** The torrents' upload cap while the mode is on, in place of the Torrents page's. */
+  uploadLimit: number;
+}
+
+/** The switches of quiet mode during playback; the servers are their own list. */
+export interface PlaybackSettings {
+  enabled: boolean;
+  /** Leave out streams to a player on the server's own network. */
+  ignoreLocal: boolean;
+  /** How long a paused stream keeps counting; 0 lets go of it at once. */
+  pausedMinutes: number;
+  /** Keep the unpacking queue waiting while a stream counts. */
+  holdExtraction: boolean;
+}
+
+export type PlaybackKind = 'plex' | 'jellyfin' | 'emby';
+
+export interface PlaybackServer {
+  /** Made up from the kind on the first save. */
+  id: string;
+  name?: string;
+  kind: PlaybackKind;
+  url: string;
+  hasToken: boolean;
+  host: string;
+}
+
+/** A question that got no usable answer, in the media hooks' codes plus 'format'. */
+export interface PlaybackFailure {
+  code: string;
+  params?: Record<string, string | number>;
+  error?: string;
+}
+
+export interface PlaybackStream {
+  server: string;
+  title: string;
+  series?: string;
+  user?: string;
+  player?: string;
+  paused: boolean;
+  local: boolean;
+  counts: boolean;
+  /** Why it does not count: 'local' or 'paused'. */
+  reason?: string;
+}
+
+export interface PlaybackStatus {
+  enabled: boolean;
+  active: boolean;
+  since?: string;
+  streams: PlaybackStream[];
+  servers: { id: string; checkedAt: string; ok: boolean; failure?: PlaybackFailure }[];
+}
+
+export interface PlaybackView {
+  status: PlaybackStatus;
+  servers: PlaybackServer[];
+  kinds: PlaybackKind[];
+}
+
+export interface PlaybackServerSave {
+  /** Empty for a new server. */
+  id: string;
+  name: string;
+  kind: PlaybackKind;
+  url: string;
+  /** A new token replaces, REDACTED_HEADER keeps, empty clears. */
+  token: string;
+}
+
+export interface PlaybackCheck {
+  ok: boolean;
+  streams: PlaybackStream[];
+  failure?: PlaybackFailure;
+}
+
+export async function fetchPlayback(): Promise<PlaybackView> {
+  return json<PlaybackView>(await fetch('/api/playback'));
+}
+
+/** savePlaybackServer stores or replaces one server and answers the whole view. */
+export async function savePlaybackServer(s: PlaybackServerSave): Promise<PlaybackView> {
+  return json<PlaybackView>(await post('/api/playback/servers', s));
+}
+
+export async function deletePlaybackServer(id: string): Promise<void> {
+  await ok(await fetch(`/api/playback/servers/${encodeURIComponent(id)}`, { method: 'DELETE' }));
+}
+
+/** testPlaybackServer asks one server once. A failed question still answers
+ *  200, so read `ok`. */
+export async function testPlaybackServer(id: string): Promise<PlaybackCheck> {
+  return json<PlaybackCheck>(await post(`/api/playback/servers/${encodeURIComponent(id)}/test`, {}));
 }
 
 /** UsenetServer is one own Usenet server as settings.UsenetServer stores it. */

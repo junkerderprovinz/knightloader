@@ -7,6 +7,7 @@ import { WeekBand } from '../../components/pictures/WeekBand';
 import { Tabs } from '../../components/Tabs';
 import {
   IconAdd,
+  IconMoon,
   IconMoveDown,
   IconMoveUp,
   IconPause,
@@ -43,7 +44,7 @@ import { ModuleCard } from './ModuleToggle';
 // still renders as its raw string.
 type ScheduleAction = 'pause' | 'resume' | 'limit' | (string & {});
 
-const KNOWN_ACTIONS: ScheduleAction[] = ['pause', 'resume', 'limit'];
+const KNOWN_ACTIONS: ScheduleAction[] = ['pause', 'resume', 'limit', 'quiet'];
 
 /** Mirrors schedule.Entry. Days are 0 = Sunday .. 6 = Saturday, as in both time.Weekday and Date.getDay(). */
 interface ScheduleEntry {
@@ -516,7 +517,7 @@ export function ScheduleCards({ hue }: { hue: number }) {
                 rows.map((r) => r.entry),
                 now.getDay(),
                 cfg.speedLimit,
-                quietLimit(cfg),
+                cfg.quiet?.speedLimit ?? 0,
               )}
               points={day ? todayOf(day, now) : []}
               now={now}
@@ -627,16 +628,12 @@ function StateBanner({
   );
 }
 
-/** The limit quiet mode puts in place of every other, 0 while none is set; lib/api.ts's Settings does not declare it. */
-function quietLimit(cfg: unknown): number {
-  return (cfg as { quiet?: { speedLimit?: number } }).quiet?.speedLimit ?? 0;
-}
-
 /** actionIcon returns the row's mark at 16px, the glyph size used beside text. */
 function actionIcon(action: ScheduleAction) {
   if (action === 'pause') return <IconPause width={16} height={16} />;
   if (action === 'resume') return <IconPlay width={16} height={16} />;
   if (action === 'limit') return <IconSliders width={16} height={16} />;
+  if (action === 'quiet') return <IconMoon width={16} height={16} />;
   return <IconSchedules width={16} height={16} />;
 }
 

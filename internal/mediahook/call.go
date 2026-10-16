@@ -104,7 +104,7 @@ type Result struct {
 // reported as a configuration answer naming the address to type instead.
 //
 // The proxy is left as the environment's, so an operator's NO_PROXY still
-// works. See classifyError's proxy branch for the other half of that.
+// works. See ClassifyError's proxy branch for the other half of that.
 func NewClient() *http.Client {
 	return httpx.New(httpx.Options{Timeout: CallTimeout, MaxRedirects: -1})
 }
@@ -135,7 +135,7 @@ func Call(ctx context.Context, c *http.Client, h Hook, headerValue string) Resul
 	resp, err := c.Do(req)
 	res.DurationMS = time.Since(started).Milliseconds()
 	if err != nil {
-		res.Code, res.Params, res.Error = classifyError(err, req)
+		res.Code, res.Params, res.Error = ClassifyError(err, req)
 		return res
 	}
 	// Read a little and close, so the connection can go back in the pool.
@@ -147,7 +147,7 @@ func Call(ctx context.Context, c *http.Client, h Hook, headerValue string) Resul
 		res.OK = true
 		return res
 	}
-	res.Code, res.Params, res.Error = classifyStatus(resp.StatusCode, h)
+	res.Code, res.Params, res.Error = ClassifyStatus(resp.StatusCode, req.Method)
 	return res
 }
 
@@ -162,20 +162,22 @@ func methodOf(h Hook) string {
 	return MethodGet
 }
 
-// classifyStatus folds an answer that is not a 2xx onto one code.
+// ClassifyStatus folds an answer that is not a 2xx onto one code. method is
+// the one the request went out with, for the 405 sentence. internal/playback
+// asks its questions through this too, so both cards word a failure alike.
 //
 // The four that get their own sentence are the four with different fixes: the
 // token (401/403), the path (404), the method (405) and the redirect (3xx). 5xx
 // is the far end's own fault and says so, which matters because the natural
 // assumption on any red mark here is that the address is wrong.
-func classifyStatus(status int, h Hook) (string, map[string]any, string) {
+func ClassifyStatus(status int, method string) (string, map[string]any, string) {
 	switch {
 	case status == http.StatusUnauthorized, status == http.StatusForbidden:
 		return CodeAuth, map[string]any{"status": status}, ""
 	case status == http.StatusNotFound:
 		return CodeNotFound, nil, ""
 	case status == http.StatusMethodNotAllowed:
-		return CodeMethod, map[string]any{"method": methodOf(h)}, ""
+		return CodeMethod, map[string]any{"method": method}, ""
 	case status >= 300 && status < 400:
 		return CodeRedirect, map[string]any{"status": status}, ""
 	case status >= 500:
@@ -189,7 +191,7 @@ func classifyStatus(status int, h Hook) (string, map[string]any, string) {
 	}
 }
 
-// classifyError folds a transport failure onto one code.
+// ClassifyError folds a transport failure onto one code.
 //
 // The proxy question is asked around every branch and it is the one nobody
 // expects. httpx leaves Proxy at http.ProxyFromEnvironment, which is what an
@@ -204,7 +206,7 @@ func classifyStatus(status int, h Hook) (string, map[string]any, string) {
 // DNS and TLS are the two exceptions: a name that does not resolve failed
 // before any proxy was involved, and a certificate that will not verify is a
 // certificate whether or not a proxy carried the bytes.
-func classifyError(err error, req *http.Request) (string, map[string]any, string) {
+func ClassifyError(err error, req *http.Request) (string, map[string]any, string) {
 	var dns *net.DNSError
 	if errors.As(err, &dns) {
 		return CodeDNS, nil, err.Error()

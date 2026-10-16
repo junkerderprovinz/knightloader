@@ -342,6 +342,13 @@ func featureList(a *app.App, base string) []Feature {
 			Parked: parked["scheduler"],
 		}, countDetail(len(s.Schedule), "windows", "window", "windows")),
 		withDetail(Feature{
+			// A switch over the servers rather than a parked list: the rows
+			// are worth keeping while the feature is off, and their tokens
+			// stay sealed either way.
+			ID: "playback", Verdict: VerdictShipped, Page: "automation",
+			Switch: SwitchSetting, Enabled: s.Playback.Enabled,
+		}, countDetail(len(s.PlaybackServers), "mediaServers", "media server", "media servers")),
+		withDetail(Feature{
 			ID: "reconnect", Verdict: VerdictShipped, Page: "network",
 			Switch: SwitchParked, Enabled: a.ReconnectState().Configured,
 			Parked: parked["reconnect"],
@@ -462,7 +469,7 @@ func featurePages() []FeaturePage {
 		// What runs with nobody at the screen. Event targets are not under
 		// downloads, since most of the events they report on are not about a
 		// download.
-		{ID: "automation", Modules: []string{"scheduler", "eventtargets", "eventprograms", "scripting"}},
+		{ID: "automation", Modules: []string{"scheduler", "playback", "eventtargets", "eventprograms", "scripting"}},
 		{ID: "shortcuts"},
 		{ID: "browsertools"},
 		// The metrics address sits with the database upkeep: both are for
@@ -540,6 +547,12 @@ func setFeature(a *app.App, id string, on bool) error {
 		key, value = "debridDrive", drive
 	case "metrics":
 		key, value = "metrics", on
+	case "playback":
+		// The watcher reads the flag on every pass; the save wakes it, so off
+		// releases quiet mode at once.
+		pb := cur.Playback
+		pb.Enabled = on
+		key, value = "playback", pb
 	case "keepawake":
 		key, value = "keepAwake", on
 	case "packagizer":

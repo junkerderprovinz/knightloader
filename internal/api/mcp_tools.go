@@ -60,7 +60,8 @@ func mcpToolDefs(a *app.App) []mcpToolDef {
 		{
 			tool: readTool("get_status", "Queue and speed",
 				"Whether the queue runs or is halted, how many downloads are in flight, the download and upload speed now, "+
-					"the speed limits in force (bytes per second, 0 for none) and whether quiet mode has put its second set of limits in place, "+
+					"the speed limits in force (bytes per second, 0 for none), whether quiet mode has put its second set of limits in place "+
+					"and whether a stream on a media server is what holds it, "+
 					"how many files and bytes are still owed with the estimated time, how many links wait in the link collector, "+
 					"and the rights of the token this client uses.",
 				objectSchema(nil)),
@@ -389,6 +390,7 @@ func mcpGetStatus(ctx context.Context, a *app.App, args json.RawMessage) *mcp.Ca
 			"running":  !q.Halted,
 			"inFlight": q.Running,
 			"quiet":    q.Quiet,
+			"playback": q.Playback,
 		},
 		"speed":     map[string]int64{"download": a.SpeedNow(), "upload": a.UploadNow()},
 		"limits":    map[string]int64{"download": q.Limit, "upload": q.UploadLimit},
