@@ -36,6 +36,22 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.4] - 2026-10-16
+
+### Added
+
+- **One card per release in What's new.** After an update the window lists
+  every release since the one you had, newest first. Each card shows its
+  release notes and the changes that release brought, each with Go there where
+  a page shows it. A change that no page shows has its dot in the window only
+  and counts as seen once you close it.
+
+### Fixed
+
+- **2.1 had no dots.** The VPN, the MCP server, quiet mode, PUID and PGID, the
+  compose file and the speed in the bug report came without a dot. They have
+  one now, and every new feature of a release gets one.
+
 ## [2.1.3] - 2026-10-16
 
 ### Added
