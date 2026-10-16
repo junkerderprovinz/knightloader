@@ -1,12 +1,14 @@
-// What an update changed, by release, and what the interface remembers about
-// it (GlimStone, "First start and what's new"). After an update a glowing dot
-// marks each change at the place itself and on every link that leads there. A
-// click hides a dot, and what was seen is kept per version in the stored
-// interface state, so it follows the user between browsers.
+// What each release changed, and what the interface remembers about it
+// (GlimStone, "First start and what's new"). After an update a glowing dot
+// marks each change of every release since the one the instance ran before, at
+// the place itself and on every link that leads there. A click hides a dot, and
+// what was seen is kept in the stored interface state, so it follows the user
+// between browsers.
 import type { TranslationKey } from './i18n';
 import { pageId } from '../pages/settings/folded';
 
-export interface Change {
+/** A change on a page, marked on its element and on the way there. */
+interface Placed {
   /** The value of the `data-new` attribute the changed element carries, and what "seen" remembers. */
   id: string;
   /**
@@ -20,25 +22,100 @@ export interface Change {
   names?: Record<string, TranslationKey>;
 }
 
+/** A change no page shows, such as how downloads behave. Its dot stands in the window's list only. */
+interface Unplaced {
+  id: string;
+  to?: undefined;
+  text: TranslationKey;
+  names?: Record<string, TranslationKey>;
+}
+
 export interface Release {
-  /**
-   * The last release without these changes. The number of the release that
-   * brings them is decided when it is tagged, and this one is known while they
-   * are written.
-   */
-  after: string;
-  changes: Change[];
+  /** The release that brings these changes, as x.y.z. */
+  version: string;
+  changes: (Placed | Unplaced)[];
+}
+
+export type Change = (Placed | Unplaced) & { since: string };
+export type PlacedChange = Placed & { since: string };
+
+export function placed(change: Change): change is PlacedChange {
+  return change.to !== undefined;
 }
 
 const ACCOUNTS = ['/accounts', '/settings/accounts'];
 const INSTANCES = ['/instances', '/settings/instances'];
 const LISTS = ['/downloads', '/collector'];
+const INTEGRATIONS = ['/settings/integrations'];
 
-/** Newest first. Only the newest release an update passes is marked. */
+/** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    after: '2.0.0',
+    version: '2.1.3',
     changes: [
+      {
+        id: 'bug-report-speed',
+        to: ['/settings/health'],
+        text: 'whatsnew.change.bugReportSpeed',
+        names: { name: 'settings.diagnostics.download' },
+      },
+    ],
+  },
+  {
+    version: '2.1.2',
+    changes: [
+      {
+        id: 'quiet-playback',
+        to: ['/settings/automation'],
+        text: 'whatsnew.change.quietPlayback',
+        names: { name: 'settings.quietmode.title', servers: 'settings.playback.serversTitle' },
+      },
+      {
+        id: 'quiet-upload',
+        to: ['/settings/automation'],
+        text: 'whatsnew.change.quietUpload',
+        names: { name: 'settings.quietmode.uploadLimit', quiet: 'settings.quietmode.title' },
+      },
+      // This one and the next are drawn only while the playback module is on.
+      {
+        id: 'quiet-unpack',
+        to: ['/settings/automation'],
+        text: 'whatsnew.change.quietUnpack',
+        names: { name: 'settings.playback.holdExtraction' },
+      },
+      {
+        id: 'quiet-waive',
+        to: ['/settings/automation'],
+        text: 'whatsnew.change.quietWaive',
+        names: { name: 'settings.playback.waive' },
+      },
+    ],
+  },
+  {
+    version: '2.1.1',
+    changes: [
+      {
+        id: 'puid-pgid',
+        to: ['/settings/health'],
+        text: 'whatsnew.change.puidPgid',
+        names: { name: 'settings.owner.identityTitle' },
+      },
+      { id: 'compose-file', text: 'whatsnew.change.composeFile' },
+    ],
+  },
+  {
+    version: '2.1.0',
+    changes: [
+      { id: 'vpn', to: INTEGRATIONS, text: 'whatsnew.change.vpn', names: { name: 'settings.vpn.title' } },
+      { id: 'vpn-wait', text: 'whatsnew.change.vpnWait' },
+      // Drawn only once a VPN is set up.
+      {
+        id: 'vpn-ports',
+        to: INTEGRATIONS,
+        text: 'whatsnew.change.vpnPorts',
+        names: { name: 'settings.vpn.col.port' },
+      },
+      { id: 'mcp', to: INTEGRATIONS, text: 'whatsnew.change.mcp', names: { name: 'settings.access.mcp.title' } },
       { id: 'accounts-card-add', to: ACCOUNTS, text: 'whatsnew.change.accountsCardAdd' },
       {
         id: 'integrations-page',
@@ -112,7 +189,7 @@ export const RELEASES: Release[] = [
     ],
   },
   {
-    after: '1.9.0',
+    version: '2.0.0',
     changes: [
       { id: 'overview-head', to: ['/'], text: 'whatsnew.change.overviewHead', names: { name: 'nav.overview' } },
       {
@@ -226,18 +303,6 @@ export const RELEASES: Release[] = [
         names: { name: 'instances.title' },
       },
       { id: 'app-logo', to: INSTANCES, text: 'whatsnew.change.appLogo', names: { name: 'instances.title' } },
-      {
-        id: 'accounts-add',
-        to: ACCOUNTS,
-        text: 'whatsnew.change.accountsAdd',
-        names: { name: 'accounts.newAccount' },
-      },
-      {
-        id: 'account-kinds',
-        to: ACCOUNTS,
-        text: 'whatsnew.change.accountKinds',
-        names: { name: 'accounts.newAccount' },
-      },
       { id: 'account-picker', to: ACCOUNTS, text: 'whatsnew.change.accountPicker' },
       { id: 'hoster-logos', to: ACCOUNTS, text: 'whatsnew.change.hosterLogos' },
       { id: 'account-rows', to: ACCOUNTS, text: 'whatsnew.change.accountRows' },
@@ -253,12 +318,6 @@ export const RELEASES: Release[] = [
         to: ACCOUNTS,
         text: 'whatsnew.change.priorityTips',
         names: { name: 'accounts.routing.priorityTitle' },
-      },
-      {
-        id: 'captcha-modules',
-        to: ACCOUNTS,
-        text: 'whatsnew.change.captchaModules',
-        names: { name: 'settings.captcha.orderTitle', module: 'settings.module.captcha', modules: 'settings.nav.modules' },
       },
       {
         id: 'captcha-priority',
@@ -342,12 +401,6 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.sidebarCard',
         names: { name: 'settings.sidebar.title', accounts: 'nav.accounts', instances: 'nav.instances' },
       },
-      {
-        id: 'drive-page',
-        to: ['/settings/debriddrive'],
-        text: 'whatsnew.change.drivePage',
-        names: { name: 'settings.module.debriddrive', accounts: 'settings.nav.accounts' },
-      },
       // Drawn only in the desktop app, and its sentence says so.
       {
         id: 'window-card',
@@ -428,28 +481,10 @@ export const RELEASES: Release[] = [
       { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' },
       { id: 'rule-switch', to: ['/settings/rules'], text: 'whatsnew.change.ruleSwitch' },
       {
-        id: 'track-merge',
-        to: ['/settings/resolvers'],
-        text: 'whatsnew.change.trackMerge',
-        names: { name: 'settings.resolvers.embedTitle', rainbow: 'settings.rainbow' },
-      },
-      {
         id: 'merge-files',
         to: ['/settings/resolvers'],
         text: 'whatsnew.change.mergeFiles',
         names: { name: 'settings.resolvers.mergeFiles' },
-      },
-      {
-        id: 'video-card',
-        to: ['/settings/resolvers'],
-        text: 'whatsnew.change.videoCard',
-        names: { name: 'columns.variant.video' },
-      },
-      {
-        id: 'files-card',
-        to: ['/settings/resolvers'],
-        text: 'whatsnew.change.filesCard',
-        names: { name: 'settings.resolvers.filesCard' },
       },
       {
         id: 'audio-best',
@@ -491,17 +526,6 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.healthParts',
         names: { name: 'settings.health.parts' },
       },
-      {
-        id: 'state-card-gone',
-        to: ['/settings/health'],
-        text: 'whatsnew.change.stateCardGone',
-        names: {
-          health: 'settings.nav.health',
-          parts: 'settings.health.parts',
-          version: 'settings.about.version',
-          info: 'settings.nav.help',
-        },
-      },
       { id: 'test-button', to: ['/accounts'], text: 'whatsnew.change.testButton' },
       // Drawn in the captcha window, which a test captcha on the Accounts page opens.
       {
@@ -540,6 +564,10 @@ export const RELEASES: Release[] = [
   },
 ];
 
+export const CHANGES: Change[] = RELEASES.flatMap((release) =>
+  release.changes.map((change) => ({ ...change, since: release.version })),
+);
+
 type Translate = (key: TranslationKey, vars?: Record<string, string | number>) => string;
 
 /** sentenceOf is what a change says, with the labels it quotes in the reader's language. */
@@ -555,66 +583,104 @@ function parse(version: string): Version | null {
   return m ? [Number(m[1]), Number(m[2]), Number(m[3])] : null;
 }
 
-function compare(a: Version, b: Version): number {
-  return a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
-}
-
 /** releaseOf is a version stamp's release number without its `v`, or '' for a preview or branch build. */
 export function releaseOf(version: string): string {
   const v = parse(version);
   return v ? v.join('.') : '';
 }
 
-/**
- * releaseSince is the newest release whose changes an update from `from` to
- * `running` passes. A stamp that is no release number is a build of what comes
- * next when it runs, and older than every release when it was left.
- */
-export function releaseSince(from: string, running: string, releases: Release[] = RELEASES): Release | undefined {
-  const was = parse(from);
-  const now = parse(running);
-  return releases.find((r) => {
-    const after = parse(r.after);
-    if (!after) return false;
-    return (!was || compare(after, was) >= 0) && (!now || compare(after, now) < 0);
-  });
+/** newer tells whether release a came after release b. */
+export function newer(a: string, b: string): boolean {
+  const x = parse(a);
+  const y = parse(b);
+  if (!x || !y) return false;
+  return (x[0] - y[0] || x[1] - y[1] || x[2] - y[2]) > 0;
 }
 
-/** What the interface state keeps about the running version, under the field NEWS_FIELD. */
+/** What the interface state keeps under the field NEWS_FIELD. */
 export interface NewsRecord {
+  /** The version the record was last settled for. */
   version: string;
-  /** The `after` of the release whose changes are marked, '' for none. */
+  /** The release the instance ran before the last update, '' when it is not known. */
+  from: string;
+  /** Every change clicked away, of whichever release. */
+  seen: string[];
+  /** The window has opened by itself for this version. */
+  notes: boolean;
+}
+
+/** The record older versions kept: the changes of one release, named by the release before it. */
+interface OneRelease {
+  version: string;
   after: string;
   seen: string[];
-  /** The release notes have opened by themselves for this version. */
   notes: boolean;
 }
 
 export const NEWS_FIELD = 'whatsNew';
 
-function isRecord(v: unknown): v is NewsRecord {
+function isRecord(v: unknown): v is NewsRecord | OneRelease {
   const r = v as NewsRecord | null;
   return !!r && typeof r === 'object' && typeof r.version === 'string' && Array.isArray(r.seen);
 }
 
 /**
- * recordFor is what to keep for the running version given what was kept last.
- * The same version keeps its record. Another one starts over with every dot of
- * its release and the release notes still to open. Nothing kept is a first
- * install, which marks nothing, unless `settled` says the instance was in use
- * before it kept such a record.
+ * takeOver reads a record in the form older versions kept. They marked only
+ * the release after `after`, so every other change up to the version it ran
+ * counts as seen, and of that release the ones clicked away.
  */
-export function recordFor(stored: unknown, running: string, settled: boolean): NewsRecord {
-  if (isRecord(stored) && stored.version === running) return stored;
-  const updated = isRecord(stored) || settled;
-  if (!updated) return { version: running, after: '', seen: [], notes: true };
-  const from = isRecord(stored) ? stored.version : '';
-  return { version: running, after: releaseSince(from, running)?.after ?? '', seen: [], notes: false };
+function takeOver(old: OneRelease): NewsRecord {
+  const marked = [...RELEASES].reverse().find((r) => newer(r.version, old.after))?.version;
+  const ran = releaseOf(old.version);
+  const clicked = new Set(old.seen);
+  const seen = CHANGES.filter(
+    (c) => (ran === '' || !newer(c.since, ran)) && (c.since !== marked || clicked.has(c.id)),
+  ).map((c) => c.id);
+  return { version: old.version, from: '', seen, notes: old.notes === true };
 }
 
-/** changesOf is the list a record marks. */
+/**
+ * recordFor is what to keep for the running version given what was kept last.
+ * The same version keeps its record. After an update every change of a release
+ * newer than the one left is new, what was seen of the releases before stays,
+ * and the window is still to open. Nothing kept is a first install, which
+ * marks nothing, unless `settled` says the instance was in use before it kept
+ * such a record.
+ */
+export function recordFor(stored: unknown, running: string, settled: boolean): NewsRecord {
+  let kept: NewsRecord | null = null;
+  if (isRecord(stored)) kept = 'from' in stored && typeof stored.from === 'string' ? stored : takeOver(stored as OneRelease);
+  if (kept && kept.version === running) return kept;
+  if (!kept && !settled) return { version: running, from: '', seen: CHANGES.map((c) => c.id), notes: true };
+  const from = kept ? releaseOf(kept.version) : '';
+  // A build without a release number says nothing about what came after it,
+  // so what was seen there stays as it was.
+  const before = new Set(CHANGES.filter((c) => from === '' || !newer(c.since, from)).map((c) => c.id));
+  return { version: running, from, seen: (kept?.seen ?? []).filter((id) => before.has(id)), notes: false };
+}
+
+/** changesOf is every change up to the running release; a build without a release number has them all. */
 export function changesOf(record: NewsRecord): Change[] {
-  return RELEASES.find((r) => r.after === record.after)?.changes ?? [];
+  const running = releaseOf(record.version);
+  return running ? CHANGES.filter((c) => !newer(c.since, running)) : CHANGES;
+}
+
+/**
+ * releasesShown is what the window shows a card for, newest first: every
+ * release since the one left at the last update, any release with a change
+ * still unseen, and the running one. The release notes this build carries
+ * name the releases that brought no change of their own.
+ */
+export function releasesShown(record: NewsRecord, unseen: Change[], notes: Record<string, string> = __RELEASE_NOTES__): string[] {
+  const running = releaseOf(record.version);
+  const shown = new Set(unseen.map((c) => c.since));
+  if (running) shown.add(running);
+  if (record.from) {
+    for (const version of [...Object.keys(notes), ...RELEASES.map((r) => r.version)]) {
+      if (newer(version, record.from) && (!running || !newer(version, running))) shown.add(version);
+    }
+  }
+  return [...shown].sort((a, b) => (newer(a, b) ? -1 : newer(b, a) ? 1 : 0));
 }
 
 /** routeOf is a route as the app draws it: a folded settings page stands for the page holding its cards. */
@@ -624,7 +690,7 @@ export function routeOf(to: string): string {
 }
 
 /** isAt reports whether `here` is one of the addresses a change is drawn at, or a page of a section it is drawn in. */
-export function isAt(change: Change, here: string): boolean {
+export function isAt(change: PlacedChange, here: string): boolean {
   return change.to.some((to) => {
     const route = routeOf(to);
     return route === here || here.startsWith(`${route}/`);
@@ -651,8 +717,7 @@ export function releaseNotesPage(version: string): string {
   return release ? `${REPO_URL}/releases/tag/v${release}` : `${REPO_URL}/releases`;
 }
 
-/** bundledNotes is the release notes this build carries for a version, '' when they are for another one. */
-export function bundledNotes(version: string, bundle: { version: string; text: string } = __RELEASE_NOTES__): string {
-  const release = releaseOf(version);
-  return release !== '' && release === bundle.version ? bundle.text.trim() : '';
+/** bundledNotes is the release notes this build carries for a version, '' when it has none. */
+export function bundledNotes(version: string, bundle: Record<string, string> = __RELEASE_NOTES__): string {
+  return (bundle[releaseOf(version)] ?? '').trim();
 }

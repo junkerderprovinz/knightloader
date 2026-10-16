@@ -3,17 +3,18 @@
 // change, and a dot is drawn over the page at its corner. A change that is on
 // another page puts a dot on every link of the navigation that leads there,
 // and one whose element the page does not draw at the moment, a card that is
-// hidden or has nothing to show, puts its dot on the page's own corner.
+// hidden or has nothing to show, puts its dot on the page's own corner. A
+// change no page shows has its dot in the window's list only.
 //
 // The dots live in one layer in <body> rather than inside the components, so
 // marking a change costs its component one attribute and no layout.
-import { useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
+import { useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { createPortal } from 'react-dom';
 import { useLocation } from 'react-router-dom';
 import { basePath } from '../../lib/basePath';
 import { useT } from '../../lib/i18n';
 import type { WhatsNew } from '../../lib/useWhatsNew';
-import { isAt, sentenceOf, trail, type Change } from '../../lib/whatsNew';
+import { isAt, placed, sentenceOf, trail, type PlacedChange } from '../../lib/whatsNew';
 import { useTooltip } from '../ui';
 
 /** The navigation: the rail, the phone's bar and every tab strip whose tabs are links. */
@@ -40,7 +41,7 @@ interface Target {
   el: Element;
   /** `change` stands on the changed element, `page` on the page that does not draw it, `way` on a link. */
   kind: 'change' | 'page' | 'way';
-  changes: Change[];
+  changes: PlacedChange[];
 }
 
 const drawn = (el: Element): boolean => el.getClientRects().length > 0;
@@ -68,7 +69,7 @@ function wayKey(el: Element): string {
 }
 
 /** collect finds where each unseen change is marked: on its element, on its page or on the links that lead there. */
-export function collect(unseen: Change[], here: string, arrived: boolean): Target[] {
+export function collect(unseen: PlacedChange[], here: string, arrived: boolean): Target[] {
   const marked = new Map<string, Element>();
   for (const el of document.querySelectorAll('[data-new]')) {
     const id = el.getAttribute('data-new') ?? '';
@@ -78,7 +79,7 @@ export function collect(unseen: Change[], here: string, arrived: boolean): Targe
   const page = document.querySelector('[data-settings-content]') ?? document.querySelector('main');
 
   const targets: Target[] = [];
-  const ways = new Map<Element, Change[]>();
+  const ways = new Map<Element, PlacedChange[]>();
   for (const change of unseen) {
     const el = marked.get(change.id);
     if (el) {
@@ -239,7 +240,7 @@ export function NewDots({ news }: { news: WhatsNew }) {
   const dots = useRef(new Map<string, HTMLElement>());
   const live = useRef(targets);
   live.current = targets;
-  const { unseen } = news;
+  const unseen = useMemo(() => news.unseen.filter(placed), [news.unseen]);
   const on = unseen.length > 0;
 
   const placeAll = () => {

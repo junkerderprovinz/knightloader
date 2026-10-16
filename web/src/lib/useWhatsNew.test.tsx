@@ -7,10 +7,10 @@ import { WhatsNewEntry } from '../components/whatsnew/WhatsNew';
 import { I18nProvider } from './i18n';
 import { flushUIState } from './uistate';
 import { closeWhatsNew, startWhatsNew, useWhatsNew, useWhatsNewOpen, type WhatsNew } from './useWhatsNew';
-import { RELEASES } from './whatsNew';
+import { CHANGES } from './whatsNew';
 
-// The release the update below lands on.
-const twoZero = RELEASES.find((r) => r.after === '1.9.0')!;
+// The update below lands on the oldest release the list knows, so its changes are all there is to mark.
+const upToTwoZero = CHANGES.filter((c) => c.since === '2.0.0');
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -18,7 +18,7 @@ let root: Root;
 let host: HTMLDivElement;
 let written: unknown[];
 let news: WhatsNew | null;
-let open: string | null;
+let open: boolean;
 
 function Probe() {
   news = useWhatsNew();
@@ -48,31 +48,32 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-it('marks an update, opens the release notes once and remembers what was seen', async () => {
+it('marks an update, opens the window once and remembers what was seen', async () => {
   await act(async () => root.render(<Probe />));
   expect(news).toBeNull();
 
   await act(async () => {
     await startWhatsNew();
   });
-  expect(open).toBe('notes');
+  expect(open).toBe(true);
   expect(news!.version).toBe('v2.0.0');
-  expect(news!.unseen).toEqual(twoZero.changes);
+  expect(news!.unseen).toEqual(upToTwoZero);
+  expect(news!.releases).toEqual(['2.0.0']);
 
   await act(async () => news!.markSeen(['seed-ring', 'week-band']));
   expect(news!.seen).toEqual(new Set(['seed-ring', 'week-band']));
-  expect(news!.unseen).toHaveLength(twoZero.changes.length - 2);
+  expect(news!.unseen).toHaveLength(upToTwoZero.length - 2);
 
   await act(async () => {
     await flushUIState();
   });
   expect(written[written.length - 1]).toMatchObject({
     'onboarding.done': true,
-    whatsNew: { version: 'v2.0.0', after: '1.9.0', seen: ['seed-ring', 'week-band'], notes: true },
+    whatsNew: { version: 'v2.0.0', from: '', seen: ['seed-ring', 'week-band'], notes: true },
   });
 });
 
-it('leads from the event list to the changes, with the number still unseen', async () => {
+it('leads from the event list to the window, with the number still unseen', async () => {
   const onOpen = vi.fn();
   await act(async () => {
     await startWhatsNew();
@@ -91,5 +92,5 @@ it('leads from the event list to the changes, with the number still unseen', asy
 
   await act(async () => entry.click());
   expect(onOpen).toHaveBeenCalled();
-  expect(open).toBe('changes');
+  expect(open).toBe(true);
 });

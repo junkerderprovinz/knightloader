@@ -192,10 +192,10 @@ function Versions({ hue }: { hue: number }) {
 }
 
 /**
- * NewsButton opens the one window of what this version brought, its release
- * notes and the changes the dots mark, on the changes while any is unseen. Its
- * figure is the number still unseen, and once all are seen how many there
- * are. A version that marked nothing has the release notes alone.
+ * NewsButton opens the one window of what the updates brought, a card per
+ * release with its notes and the changes the dots mark. Its figure is the
+ * number still unseen, and once all are seen how many the window lists. Where
+ * it lists none it offers the release notes alone.
  */
 function NewsButton() {
   const { t } = useT();
@@ -203,12 +203,7 @@ function NewsButton() {
   const total = news?.changes.length ?? 0;
   const unseen = news?.unseen.length ?? 0;
   return (
-    <Button
-      kind="secondary"
-      icon={<IconInfo />}
-      data-new="news-button"
-      onClick={() => openWhatsNew(unseen > 0 ? 'changes' : 'notes')}
-    >
+    <Button kind="secondary" icon={<IconInfo />} data-new="news-button" onClick={openWhatsNew}>
       {total > 0 ? t('whatsnew.newCount', { n: unseen || total }) : t('settings.look.updatesReleaseNotes')}
     </Button>
   );

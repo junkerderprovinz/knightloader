@@ -176,7 +176,7 @@ export function McpCard() {
 
   return (
     <>
-      <Card hue={HUE} className="flex flex-col gap-3">
+      <Card hue={HUE} data-new="mcp" className="flex flex-col gap-3">
         <SectionTitle
           hint={t('settings.access.mcp.intro')}
           right={
