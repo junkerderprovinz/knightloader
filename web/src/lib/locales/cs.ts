@@ -3880,6 +3880,7 @@ export const cs: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Odkaz „{name}“ tě vezme rovnou na podkartu yt-dlp v „{page}“.',
   'whatsnew.change.vpnRoutes': '„{name}“ je vlastní karta pod „{vpn}“ s přepínačem pro každý druh stahování.',
   'whatsnew.change.bugReportSpeed': '„{name}“ uloží i rychlost za poslední hodinu a každé běžící stahování s jeho backendem a počtem otevřených spojení. Názvy a odkazy zůstanou venku.',
+  'whatsnew.change.releaseCards': 'Po aktualizaci toto okno ukáže kartu pro každé vydání od toho, které jsi měl, s jeho poznámkami a změnami, které přineslo.',
   'whatsnew.change.quietPlayback': 'Přidej svůj mediální server v „{servers}“ a „{name}“ se sám zapne, dokud Plex, Jellyfin nebo Emby něco přehrává.',
   'whatsnew.change.quietUpload': '„{name}“ omezuje, kolik torrenty odesílají, dokud je „{quiet}“ zapnutý. Na tom záleží, když tvůj mediální server streamuje někomu mimo domov.',
   'whatsnew.change.quietUnpack': 'S „{name}“ archivy, které se dostahují, zatímco se počítá stream, čekají v seznamu a rozbalí se, až skončí.',

@@ -3853,6 +3853,7 @@ export const zh: Dict = {
   'whatsnew.change.ytdlpUpdates': '“{name}”链接直接带你到“{page}”中 yt-dlp 的子卡片。',
   'whatsnew.change.vpnRoutes': '“{name}”是“{vpn}”下方的一张独立卡片，每种下载都有一个开关。',
   'whatsnew.change.bugReportSpeed': '“{name}”保存的文件里也会包含最近一小时的速度，以及每个正在进行的下载及其后端和打开的连接数。名称和链接不会写入。',
+  'whatsnew.change.releaseCards': '更新后，这个窗口会为你之前版本之后的每个版本显示一张卡片，附上它的说明和带来的改动。',
   'whatsnew.change.quietPlayback': '在“{servers}”中添加你的媒体服务器后，只要 Plex、Jellyfin 或 Emby 正在播放，“{name}”就会自动开启。',
   'whatsnew.change.quietUpload': '“{name}”限制“{quiet}”开启期间种子的上传量。当你的媒体服务器向家以外的人串流时，这一点很重要。',
   'whatsnew.change.quietUnpack': '开启“{name}”后，在串流计入期间下载完成的压缩包会在列表中等待，串流结束后再解压。',

@@ -3855,6 +3855,7 @@ export const pl: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Link „{name}” prowadzi prosto do podkarty yt-dlp w „{page}”.',
   'whatsnew.change.vpnRoutes': '„{name}” to osobna karta pod „{vpn}”, z przełącznikiem dla każdego rodzaju pobierania.',
   'whatsnew.change.bugReportSpeed': '„{name}” zapisuje też prędkość z ostatniej godziny i każde trwające pobieranie z jego backendem i liczbą otwartych połączeń. Nazwy i linki zostają poza nim.',
+  'whatsnew.change.releaseCards': 'Po aktualizacji to okno pokazuje kartę dla każdego wydania od poprzednio używanej wersji, z jego uwagami i zmianami.',
   'whatsnew.change.quietPlayback': 'Dodaj swój serwer mediów w „{servers}”, a „{name}” włączy się sam, gdy Plex, Jellyfin lub Emby coś odtwarza.',
   'whatsnew.change.quietUpload': '„{name}” ogranicza wysyłanie torrentów, gdy „{quiet}” jest włączony. To ma znaczenie, gdy twój serwer mediów streamuje do kogoś poza domem.',
   'whatsnew.change.quietUnpack': 'Z „{name}” archiwa, które skończą się pobierać, gdy liczy się stream, czekają na liście i są rozpakowywane po jego końcu.',

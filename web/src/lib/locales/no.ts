@@ -3873,6 +3873,7 @@ export const no: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Lenken «{name}» tar deg rett til underkortet for yt-dlp under «{page}».',
   'whatsnew.change.vpnRoutes': '«{name}» er et eget kort under «{vpn}», med en bryter for hver type nedlasting.',
   'whatsnew.change.bugReportSpeed': '«{name}» lagrer også hastigheten den siste timen og hver nedlasting som pågår, med backend og hvor mange tilkoblinger den har åpne. Navn og lenker holdes utenfor.',
+  'whatsnew.change.releaseCards': 'Etter en oppdatering viser dette vinduet et kort for hver utgivelse siden versjonen du hadde, med merknadene og endringene den brakte.',
   'whatsnew.change.quietPlayback': 'Legg til medieserveren din under «{servers}», så slår «{name}» seg på av seg selv mens Plex, Jellyfin eller Emby spiller noe.',
   'whatsnew.change.quietUpload': '«{name}» begrenser hva torrenter laster opp mens «{quiet}» er på. Det teller når medieserveren din strømmer til noen utenfor hjemmet.',
   'whatsnew.change.quietUnpack': 'Med «{name}» venter arkiver som blir ferdige mens en strøm teller, i listen og pakkes ut når den er slutt.',

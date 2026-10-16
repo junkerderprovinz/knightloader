@@ -3973,6 +3973,7 @@ export const en = {
   'whatsnew.change.ytdlpUpdates': 'The "{name}" link takes you straight to the yt-dlp sub-card under "{page}".',
   'whatsnew.change.vpnRoutes': '"{name}" is a card of its own below "{vpn}", with a switch for each kind of download.',
   'whatsnew.change.bugReportSpeed': '"{name}" also saves the speed of the last hour and every running download with its backend and how many connections it has open. Names and links stay out.',
+  'whatsnew.change.releaseCards': 'After an update this window shows a card for every release since the one you had, with its notes and the changes it brought.',
   'whatsnew.change.quietPlayback': 'Add your media server under "{servers}", and "{name}" switches itself on while Plex, Jellyfin or Emby is playing something.',
   'whatsnew.change.quietUpload': '"{name}" caps what torrents upload while "{quiet}" is on. That matters when your media server streams to someone away from home.',
   'whatsnew.change.quietUnpack': 'With "{name}", archives that finish while a stream counts wait in the list and are unpacked once it is over.',

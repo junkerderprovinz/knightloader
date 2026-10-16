@@ -3887,6 +3887,7 @@ export const he: Dict = {
   'whatsnew.change.ytdlpUpdates': 'הקישור „{name}” מוביל ישר לכרטיס המשנה של yt-dlp ב-„{page}”.',
   'whatsnew.change.vpnRoutes': '„{name}” הוא כרטיס נפרד מתחת ל-„{vpn}”, עם מתג לכל סוג הורדה.',
   'whatsnew.change.bugReportSpeed': '„{name}” שומר גם את המהירות של השעה האחרונה ואת כל הורדה פעילה עם צד השרת שלה ומספר החיבורים הפתוחים. שמות וקישורים לא נכללים.',
+  'whatsnew.change.releaseCards': 'אחרי עדכון החלון הזה מציג כרטיס לכל גרסה מאז זו שהייתה לך, עם ההערות שלה והשינויים שהיא הביאה.',
   'whatsnew.change.quietPlayback': 'הוסף את שרת המדיה שלך תחת „{servers}”, ו-„{name}” יופעל מעצמו כל עוד Plex, Jellyfin או Emby מנגנים משהו.',
   'whatsnew.change.quietUpload': '„{name}” מגביל כמה טורנטים מעלים כל עוד „{quiet}” פעיל. זה חשוב כששרת המדיה שלך מזרים למישהו מחוץ לבית.',
   'whatsnew.change.quietUnpack': 'עם „{name}”, ארכיונים שמסתיימים בזמן שזרם נספר ממתינים ברשימה ומחולצים כשהוא נגמר.',

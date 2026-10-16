@@ -3853,6 +3853,7 @@ export const nl: Dict = {
   'whatsnew.change.ytdlpUpdates': 'De link “{name}” brengt je meteen naar de subkaart van yt-dlp onder “{page}”.',
   'whatsnew.change.vpnRoutes': '“{name}” is een eigen kaart onder “{vpn}”, met een schakelaar voor elk soort download.',
   'whatsnew.change.bugReportSpeed': '“{name}” bewaart ook de snelheid van het laatste uur en elke lopende download met zijn backend en hoeveel verbindingen hij open heeft. Namen en links blijven erbuiten.',
+  'whatsnew.change.releaseCards': 'Na een update toont dit venster een kaart voor elke release sinds de versie die je had, met de opmerkingen en de wijzigingen die erbij horen.',
   'whatsnew.change.quietPlayback': 'Voeg je mediaserver toe onder “{servers}”, dan gaat “{name}” vanzelf aan zolang Plex, Jellyfin of Emby iets afspeelt.',
   'whatsnew.change.quietUpload': '“{name}” begrenst wat torrents uploaden zolang “{quiet}” aan staat. Dat telt als je mediaserver naar iemand buiten de deur streamt.',
   'whatsnew.change.quietUnpack': 'Met “{name}” wachten archieven die klaar zijn terwijl een stream telt in de lijst en worden ze uitgepakt zodra die voorbij is.',
