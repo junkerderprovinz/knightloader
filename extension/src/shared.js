@@ -445,6 +445,16 @@ function sendLabelKey(pending) {
 }
 
 /**
+ * joinCnlBatches is a parked Click'n'Load batch with a later one added. Some
+ * sites post their links in more than one submission, the first part alone and
+ * the rest after it, and the later post must not replace the earlier one.
+ */
+function joinCnlBatches(held, next) {
+  const lines = [held.text, next.text].flatMap((t) => String(t ?? '').split('\n')).filter(Boolean);
+  return { ...held, text: [...new Set(lines)].join('\n'), title: held.title || next.title };
+}
+
+/**
  * How long a caught Click'n'Load batch waits before it sends itself, in
  * seconds; 0 means ask. Five matches JDownloader's own extension. The value is
  * clamped on read too, so a hand-edited one cannot park the popup for an hour.

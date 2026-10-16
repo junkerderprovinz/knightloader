@@ -16,6 +16,11 @@
  *      which awaits the message first.
  *   5. background.js answers the send message, so that await has a reply to
  *      wait for.
+ *
+ * A site may post one click's links in two Click'n'Load submissions:
+ *
+ *   7. background.js joins a batch parked while another is still parked, and
+ *      an open popup takes in one parked after it read its own.
  */
 import { readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
@@ -130,6 +135,39 @@ if (sendAt < 0) {
   const guard = sendBody.search(/if\s*\(\s*!chosen\s*\)\s*return/);
   if (read >= 0 && (guard < 0 || guard > read)) {
     fail(`src/popup.js:${lineAt(sendAt + read)} reads the current tab before the send handler knows there is a target`);
+  }
+}
+
+// 7. Two Click'n'Load submissions caught together both reach the popup: the
+//    worker joins a parked batch, and an open popup takes a late one in.
+{
+  const parkDef = background.match(/let parking = [\s\S]*?\nfunction park\([\s\S]*?\n\}\n/)?.[0];
+  if (!parkDef) {
+    fail('src/background.js: no park() beside a parking chain - a second Click\'n\'Load post replaces the first');
+  } else {
+    const store = {};
+    const later = () => new Promise((r) => setTimeout(r, 5));
+    const pctx = vm.createContext({
+      setTimeout,
+      chrome: {
+        storage: {
+          session: {
+            get: async (k) => (await later(), { [k]: store[k] }),
+            set: async (o) => (await later(), Object.assign(store, o)),
+          },
+        },
+      },
+    });
+    vm.runInContext(read('src', 'shared.js'), pctx);
+    vm.runInContext(`${parkDef}; globalThis.park = park;`, pctx);
+    const batch = (text) => ({ origin: 'cnl', payload: { text, title: '' } });
+    await Promise.all([pctx.park(batch('https://h.example/f.part1.rar')), pctx.park(batch('https://h.example/f.part2.rar\nhttps://h.example/f.part3.rar'))]);
+    const got = store.pendingSend?.payload?.text ?? '';
+    const want = 'https://h.example/f.part1.rar\nhttps://h.example/f.part2.rar\nhttps://h.example/f.part3.rar';
+    if (got !== want) fail(`two Click'n'Load posts parked together left ${JSON.stringify(got)}, want ${JSON.stringify(want)}`);
+  }
+  if (!/storage\.onChanged\.addListener\(\s*takeLateCnl\s*\)/.test(popup)) {
+    fail("src/popup.js: an open popup does not take in a Click'n'Load batch parked after it opened");
   }
 }
 

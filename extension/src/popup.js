@@ -122,7 +122,10 @@ function paintHues() {
     // Only a Click'n'Load batch counts down; a right-clicked link waits for
     // the user.
     showCollector();
-    if (pending.origin === 'cnl') await startCountdown();
+    if (pending.origin === 'cnl') {
+      chrome.storage.onChanged.addListener(takeLateCnl);
+      await startCountdown();
+    }
     return;
   }
 
@@ -291,6 +294,18 @@ async function startCountdown() {
 }
 
 cancelBtn.addEventListener('click', () => cancelCountdown());
+
+/**
+ * Takes a Click'n'Load batch the worker parked after this popup read its own,
+ * a site's second submission for the same click, into the batch on screen.
+ * Once the batch is on its way the later one stays parked for the next popup.
+ */
+async function takeLateCnl(changes, area) {
+  const late = changes.pendingSend?.newValue;
+  if (area !== 'session' || late?.origin !== 'cnl' || pending?.origin !== 'cnl' || sendBtn.disabled) return;
+  pending = { ...pending, payload: joinCnlBatches(pending.payload, late.payload) };
+  await chrome.storage.session.remove('pendingSend');
+}
 
 /**
  * The popup's two tabs, instances and the link collector, in the same well
