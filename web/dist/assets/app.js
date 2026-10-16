@@ -166,6 +166,7 @@ The order only decides between backends that can take the link at all. A filehos
 ## ✨ Added
 
 - **PUID and PGID.** Started without \`--user\`, the container is root only long enough to give the empty folders Docker has just created for it to PUID:PGID, 1000:1000 unless you set them, and then runs as that account. A folder that already holds something keeps its owner. With \`--user\`, as in the Unraid template, nothing changes and PUID and PGID are not read. Settings, Health & diagnostics shows whether they were applied.
+- **A compose file for other Docker hosts.** The README's Other Docker hosts section links a \`compose.yaml\` that runs KnightLoader on any Linux server with Docker, with notes for Synology and Proxmox.
 
 ## 🎨 Design
 
