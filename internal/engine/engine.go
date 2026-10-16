@@ -821,6 +821,30 @@ func (e *Engine) Reconnectable(taskID string) bool {
 	return e.toGopeed[taskID] != "" && !e.torrents[taskID]
 }
 
+// Connections reports how many of an HTTP transfer's connections are still
+// fetching and how many retries they have needed so far.
+func (e *Engine) Connections(taskID string) (open, retries int, ok bool) {
+	e.mu.Lock()
+	gid := e.toGopeed[taskID]
+	torrent := e.torrents[taskID]
+	e.mu.Unlock()
+	if gid == "" || torrent {
+		return 0, 0, false
+	}
+	sr, err := e.d.Stats(gid)
+	st, isHTTP := sr.(*fhttp.Stats)
+	if err != nil || !isHTTP {
+		return 0, 0, false
+	}
+	for _, c := range st.Connections {
+		if !c.Completed && !c.Failed {
+			open++
+		}
+		retries += c.RetryTimes
+	}
+	return open, retries, true
+}
+
 // Reconnect drops the task's connections and opens new ones that ask for the
 // rest of the file, keeping every byte already written unless the server can
 // only send the whole file. It is a pause and a resume, and the app hears of

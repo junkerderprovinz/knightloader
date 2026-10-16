@@ -68,13 +68,20 @@ type Diagnostics struct {
 	// "<data>".
 	Startup *startupcheck.Report `json:"startup"`
 
-	// The speed record, counted rather than copied. The counts tell a sampler
-	// that is not running apart from a box that was simply quiet, which look
-	// the same on the Overview page.
+	// The speed record. The counts tell a sampler that is not running apart
+	// from a box that was simply quiet, which look the same on the Overview
+	// page.
 	SpeedSamplesRecent int `json:"speedSamplesRecent"`
 	SpeedSamplesHour   int `json:"speedSamplesHour"`
 	// SpeedRecordingSince is absent while nothing has been recorded.
 	SpeedRecordingSince *time.Time `json:"speedRecordingSince,omitempty"`
+	// SpeedRecent and SpeedHour are the curve itself, in bytes a second, oldest
+	// first: one reading a second for two minutes and ten-second means for an
+	// hour. A report about speed that goes up and down needs its shape.
+	SpeedRecent []int64 `json:"speedRecent"`
+	SpeedHour   []int64 `json:"speedHour"`
+	// Transfers is every running download at the moment of the report.
+	Transfers []app.TransferReading `json:"transfers"`
 
 	// Ownership is who this instance writes files as, and OwnedFolders who owns
 	// each folder it writes into, by role and without a path. Only one stat per
@@ -137,6 +144,9 @@ func buildDiagnostics(a *app.App) Diagnostics {
 		SpeedSamplesRecent:  len(speed.Recent),
 		SpeedSamplesHour:    len(speed.Hour),
 		SpeedRecordingSince: speed.RecordingSince,
+		SpeedRecent:         speed.Recent,
+		SpeedHour:           speed.Hour,
+		Transfers:           a.TransferReadings(),
 
 		Ownership:    ownership,
 		OwnedFolders: ownedFolders,
