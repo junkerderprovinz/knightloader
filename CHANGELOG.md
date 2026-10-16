@@ -46,6 +46,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   folder that already holds something keeps its owner. With `--user`, as in
   the Unraid template, nothing changes and PUID and PGID are not read.
   Settings, Health & diagnostics shows whether they were applied.
+- **A compose file for other Docker hosts.** The README's Other Docker hosts
+  section links a `compose.yaml` that runs KnightLoader on any Linux server
+  with Docker, with notes for Synology and Proxmox.
 
 ### Changed
 
