@@ -1,0 +1,1 @@
+Nothing new on your phone, again. The server learned some manners though: when Plex, Jellyfin or Emby starts a film, it lowers its voice and leaves the unpacking until the credits roll.

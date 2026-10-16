@@ -36,20 +36,38 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
-## [Unreleased]
+## [2.1.2] - 2026-10-16
 
 ### Added
 
-- **Quiet mode while something plays.** Add Plex, Jellyfin or Emby on the
-  Automation page, and quiet mode switches itself on while a stream runs and
-  off again about half a minute after the last one ends. A stream paused for
-  more than half an hour stops counting, and streams at home can be left out.
-  While something plays, finished archives wait to be unpacked, which leaves
-  the disk to the stream. Off for this stream puts the usual limits back until
-  it ends.
-- **Quiet mode has a card of its own.** Its speed limit, the number of
-  downloads at once and a new upload limit for torrents are set on the
-  Automation page, and the timetable offers quiet mode as an action.
+- **Quiet mode during playback.** Add your media server in the Quiet mode
+  card under Settings, Automation, and quiet mode switches itself on while
+  something plays there and off again about half a minute after the last
+  stream ends. KnightLoader asks Plex, Jellyfin and Emby every ten seconds. A
+  stream paused for more than half an hour stops counting, and streams at home
+  can be left out.
+- **Unpacking waits for the film.** While a stream counts, archives that
+  finish downloading wait in the list as "Waiting for playback to end" and are
+  unpacked once it is over. The same card switches this off.
+- **An upload limit for quiet mode.** Torrents upload at most this much while
+  quiet mode is on. That is the number that matters when your media server
+  streams to someone away from home.
+- **Off for this stream.** The card shows what is playing and whether it
+  counts. Off for this stream brings the usual limits back until that stream
+  ends.
+
+### Changed
+
+- **Quiet mode has a card on the Automation page** with its speed limit, the
+  number of downloads at once and the torrent upload limit. Media servers are
+  added from tiles, the way a VPN is, and the timetable offers Quiet mode as an
+  action.
+
+### Fixed
+
+- **A changed quiet limit applies at once.** A new quiet mode figure had no
+  effect while the mode was already on, until it was switched off and on
+  again.
 
 ## [2.1.1] - 2026-10-16
 

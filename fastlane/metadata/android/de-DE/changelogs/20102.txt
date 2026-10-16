@@ -1,0 +1,1 @@
+Am Handy wieder nichts Neues. Dafür hat der Server Manieren gelernt: Startet Plex, Jellyfin oder Emby einen Film, wird er leiser und lässt das Entpacken bis zum Abspann liegen.
