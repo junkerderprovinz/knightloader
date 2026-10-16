@@ -89,6 +89,7 @@ function SystemCard({ hue, bundle }: { hue: number; bundle: ReturnType<typeof us
       <div className="flex flex-wrap items-center gap-3">
         <Button
           kind="secondary"
+          data-new="bug-report-speed"
           onClick={onDownload}
           disabled={downloading}
           icon={<IconDownload width={16} height={16} />}

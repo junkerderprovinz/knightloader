@@ -151,9 +151,9 @@ describe('the Info tile', () => {
     expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
   });
 
-  /** Draws the page with a probe on the window's tab, and returns a reader for it. */
+  /** Draws the page with a probe on whether the window is open, and returns a reader for it. */
   async function drawWithProbe() {
-    let open: string | null = null;
+    let open = false;
     function Probe() {
       open = useWhatsNewOpen();
       return null;
@@ -177,32 +177,32 @@ describe('the Info tile', () => {
       unseen: Array.from({ length: unseen }, (_, i) => ({ id: `c${i}` })),
     }) as unknown as WhatsNew;
 
-  it('has one button for what this version brought, opening on the changes while any is unseen', async () => {
+  it('has one button for what the updates brought, counting what is still unseen', async () => {
     record.news = news(5, 2);
     const open = await drawWithProbe();
     const version = card('Version');
     const labels = [...version.querySelectorAll('button')].map((b) => b.textContent).filter((w) => /New|Release notes/.test(w ?? ''));
     expect(labels).toEqual(['New · 2']);
     await act(async () => button(version, 'New · 2').click());
-    expect(open()).toBe('changes');
+    expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
   });
 
-  it('opens on the release notes once every change is seen, and counts them all', async () => {
+  it('counts every listed change once all are seen', async () => {
     record.news = news(5, 0);
     const open = await drawWithProbe();
     await act(async () => button(card('Version'), 'New · 5').click());
-    expect(open()).toBe('notes');
+    expect(open()).toBe(true);
     act(() => closeWhatsNew());
     record.news = null;
   });
 
-  it('offers the release notes alone for a version that marked no change', async () => {
+  it('offers the release notes where the window lists no change', async () => {
     const open = await drawWithProbe();
-    expect(open()).toBeNull();
+    expect(open()).toBe(false);
     await act(async () => button(card('Version'), 'Release notes').click());
-    expect(open()).toBe('notes');
+    expect(open()).toBe(true);
     act(() => closeWhatsNew());
   });
 

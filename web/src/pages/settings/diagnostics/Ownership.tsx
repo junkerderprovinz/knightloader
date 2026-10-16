@@ -40,7 +40,7 @@ export function OwnerSection() {
   }
 
   return (
-    <section className="flex flex-col gap-4">
+    <section data-new="puid-pgid" className="flex flex-col gap-4">
       <SubHead label={t('settings.owner.identityTitle')} hint={t('settings.owner.identityHint')} />
 
       {!data.known ? (

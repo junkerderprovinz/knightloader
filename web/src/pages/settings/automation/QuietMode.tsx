@@ -114,7 +114,7 @@ export function QuietModeCard({ hue }: { hue: number }) {
   const setPlayback = (fields: Partial<PlaybackSettings>) => patch({ playback: { ...playback, ...fields } });
 
   return (
-    <Card hue={hue} className="flex flex-col gap-5">
+    <Card hue={hue} data-new="quiet-playback" className="flex flex-col gap-5">
       <SectionTitle hint={t('settings.quietmode.hint')}>{t('settings.quietmode.title')}</SectionTitle>
       <div className="flex flex-col gap-4">
         <SettingRow control="short" label={t('settings.quietmode.speedLimit')} hint={t('settings.quietmode.speedLimitHint')}>
@@ -136,17 +136,19 @@ export function QuietModeCard({ hue }: { hue: number }) {
             onValue={(maxConcurrent) => setQuietLimits({ maxConcurrent: Math.max(0, maxConcurrent) })}
           />
         </SettingRow>
-        <SettingRow
-          control="short"
-          label={t('settings.quietmode.uploadLimit')}
-          hint={t('settings.quietmode.uploadLimitHint')}
-        >
-          <UnitNumberInput
-            value={quiet.uploadLimit}
-            units={RATE_UNITS}
-            onValue={(uploadLimit) => setQuietLimits({ uploadLimit })}
-          />
-        </SettingRow>
+        <div data-new="quiet-upload">
+          <SettingRow
+            control="short"
+            label={t('settings.quietmode.uploadLimit')}
+            hint={t('settings.quietmode.uploadLimitHint')}
+          >
+            <UnitNumberInput
+              value={quiet.uploadLimit}
+              units={RATE_UNITS}
+              onValue={(uploadLimit) => setQuietLimits({ uploadLimit })}
+            />
+          </SettingRow>
+        </div>
       </div>
 
       <ModuleToggle id="playback" hint={t('settings.modules.about.playback')}>
@@ -262,7 +264,7 @@ function PlaybackPanel({
   return (
     <div className="flex flex-col gap-5">
       <div className="flex flex-col gap-2">
-        <div className="flex items-center gap-3">
+        <div data-new="quiet-waive" className="flex items-center gap-3">
           <p dir="auto" className="min-w-0 flex-1 text-sm text-carbon-textSub">
             {!active
               ? t('settings.playback.statusIdle')
@@ -385,12 +387,14 @@ function PlaybackPanel({
             onValue={(pausedMinutes) => onPlayback({ pausedMinutes: Math.max(0, pausedMinutes) })}
           />
         </SettingRow>
-        <ToggleRow
-          checked={playback.holdExtraction}
-          onChange={(holdExtraction) => onPlayback({ holdExtraction })}
-          label={t('settings.playback.holdExtraction')}
-          hint={t('settings.playback.holdExtractionHint')}
-        />
+        <div data-new="quiet-unpack">
+          <ToggleRow
+            checked={playback.holdExtraction}
+            onChange={(holdExtraction) => onPlayback({ holdExtraction })}
+            label={t('settings.playback.holdExtraction')}
+            hint={t('settings.playback.holdExtractionHint')}
+          />
+        </div>
       </div>
 
       {draft && (

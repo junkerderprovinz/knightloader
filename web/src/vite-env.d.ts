@@ -5,5 +5,5 @@
 /** The mobile app's version, substituted at build time from mobile/app.json. */
 declare const __MOBILE_VERSION__: string;
 
-/** The release notes of that version, substituted at build time from .github/release-notes. */
-declare const __RELEASE_NOTES__: { version: string; text: string };
+/** The release notes of every release by its x.y.z, substituted at build time from .github/release-notes. */
+declare const __RELEASE_NOTES__: Record<string, string>;

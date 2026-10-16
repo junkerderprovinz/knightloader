@@ -89,7 +89,7 @@ export function VpnCard({ hue, routesHue }: { hue: number; routesHue: number }) 
 
   return (
     <>
-      <Card hue={hue} className="flex flex-col gap-4">
+      <Card hue={hue} data-new="vpn" className="flex flex-col gap-4">
         <SectionTitle
           hint={t('settings.vpn.cardHint')}
           right={
@@ -215,7 +215,7 @@ function VpnTable({
             <th className="px-2 py-3 text-start font-medium">{t('accounts.col.status')}</th>
             <th className="px-2 py-3 text-start font-medium">{t('settings.vpn.col.exitIp')}</th>
             <th className="px-2 py-3 text-start font-medium">
-              <span className="inline-flex items-center">
+              <span data-new="vpn-ports" className="inline-flex items-center">
                 {t('settings.vpn.col.port')}
                 <InfoBubble tip={t('settings.vpn.col.portHint')} label={t('settings.vpn.col.port')} />
               </span>

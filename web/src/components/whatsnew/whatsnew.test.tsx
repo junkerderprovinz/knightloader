@@ -5,20 +5,27 @@ import { MemoryRouter, NavLink, Route, Routes, useLocation } from 'react-router-
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { I18nProvider } from '../../lib/i18n';
-import type { NewsTab, WhatsNew } from '../../lib/useWhatsNew';
-import type { Change } from '../../lib/whatsNew';
+import type { WhatsNew } from '../../lib/useWhatsNew';
+import type { Change, PlacedChange } from '../../lib/whatsNew';
 import { NewDots, collect } from './NewDots';
 import { ReleaseNotes } from './ReleaseNotes';
 import { WhatsNewWindow } from './WhatsNewWindow';
 
 (globalThis as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-const HEAD: Change = { id: 'overview-head', to: ['/'], text: 'whatsnew.change.pageActions' };
-const RING: Change = { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing' };
-const ADD: Change = { id: 'accounts-add', to: ['/accounts', '/settings/accounts'], text: 'whatsnew.change.pairingSteps' };
-const SEARCH: Change = { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.pairingSteps' };
+const HEAD: PlacedChange = { id: 'overview-head', to: ['/'], text: 'whatsnew.change.pageActions', since: '2.1.0' };
+const RING: PlacedChange = { id: 'seed-ring', to: ['/settings/torrents'], text: 'whatsnew.change.seedRing', since: '2.1.0' };
+const ADD: PlacedChange = {
+  id: 'accounts-card-add',
+  to: ['/accounts', '/settings/accounts'],
+  text: 'whatsnew.change.pairingSteps',
+  since: '2.1.0',
+};
+const SEARCH: PlacedChange = { id: 'settings-search', to: ['/settings'], text: 'whatsnew.change.pairingSteps', since: '2.1.0' };
+const WAIT: Change = { id: 'vpn-wait', text: 'whatsnew.change.vpnWait', since: '2.1.0' };
+const UNPACK: PlacedChange = { id: 'quiet-unpack', to: ['/settings/automation'], text: 'whatsnew.change.pairingSteps', since: '2.1.2' };
 
-// jsdom has no ResizeObserver, which the window's tab strip measures with.
+// jsdom has no ResizeObserver, which the window measures with.
 globalThis.ResizeObserver ??= class {
   observe() {}
   unobserve() {}
@@ -49,7 +56,9 @@ afterEach(() => {
 function news(changes: Change[], seen: string[] = [], over: Partial<WhatsNew> = {}): WhatsNew {
   const done = new Set(seen);
   return {
-    version: 'v1.9.0',
+    version: 'v2.1.0',
+    from: '',
+    releases: [...new Set(changes.map((c) => c.since))],
     changes,
     seen: done,
     unseen: changes.filter((c) => !done.has(c.id)),
@@ -260,78 +269,98 @@ describe('the dots', () => {
 });
 
 describe('the window', () => {
-  function Shown({ shown, notes, tab }: { shown: WhatsNew; notes: string; tab: NewsTab }) {
+  function Shown({ shown }: { shown: WhatsNew }) {
     return (
       <MemoryRouter initialEntries={['/downloads']}>
         <I18nProvider>
           <Routes>
             <Route path="*" element={<Here />} />
           </Routes>
-          <WhatsNewWindow news={shown} notes={notes} tab={tab} onTab={onTab} onClose={onClose} />
+          <WhatsNewWindow news={shown} onClose={onClose} />
         </I18nProvider>
       </MemoryRouter>
     );
   }
-  const onTab = vi.fn();
   const onClose = vi.fn();
   const button = (name: string) => [...host.querySelectorAll('button')].find((b) => b.textContent === name)!;
+  const cards = () => [...host.querySelectorAll<HTMLElement>('[data-release]')];
+  const title = () => host.querySelector('[role="dialog"] h2')!.textContent;
 
-  beforeEach(() => {
-    onTab.mockClear();
-    onClose.mockClear();
+  beforeEach(() => onClose.mockClear());
+
+  it('shows a card per release, newest first, each with its notes', async () => {
+    await act(async () => root.render(<Shown shown={news([UNPACK, HEAD], [], { releases: ['2.1.2', '2.1.1', '2.1.0'] })} />));
+    expect(cards().map((c) => c.dataset.release)).toEqual(['2.1.2', '2.1.1', '2.1.0']);
+    expect(cards()[0].querySelector('h2')!.textContent).toBe('2.1.2');
+    expect(cards()[0].textContent).toContain('Quiet mode switches itself on');
+    expect(cards()[1].querySelectorAll('li[data-seen]')).toHaveLength(0);
   });
 
-  it('shows the release notes of the running version', async () => {
-    await act(async () => root.render(<Shown shown={news([HEAD])} notes={'## Fixed\n\n- A **bold** fix.'} tab="notes" />));
-    expect(host.querySelector('[role="dialog"]')!.textContent).toContain('New in 1.9.0');
-    expect(host.querySelector('h3')!.textContent).toBe('Fixed');
-    expect(host.querySelector('li strong')!.textContent).toBe('bold');
+  it('says so in a card whose notes the build does not carry', async () => {
+    await act(async () => root.render(<Shown shown={news([], [], { releases: ['9.9.9'] })} />));
+    expect(cards()[0].textContent).toContain('KnightLoader could not load the release notes here.');
+    expect(host.querySelector('a[href$="/releases/tag/v2.1.0"]')).not.toBeNull();
   });
 
-  it('says so when the build carries no notes, and links to GitHub', async () => {
-    await act(async () => root.render(<Shown shown={news([HEAD])} notes="" tab="notes" />));
-    expect(host.textContent).toContain('KnightLoader could not load the release notes here.');
-    expect(host.querySelector('a[href$="/releases/tag/v1.9.0"]')).not.toBeNull();
+  it('is named after the release left at the update, or else the running one', async () => {
+    await act(async () => root.render(<Shown shown={news([HEAD], [], { from: '2.0.0' })} />));
+    expect(title()).toBe('New since 2.0.0');
+    await act(async () => root.render(<Shown shown={news([HEAD])} />));
+    expect(title()).toBe('New in 2.1.0');
   });
 
-  it('lists every change by page and dims the ones that were seen', async () => {
-    await act(async () => root.render(<Shown shown={news([HEAD, RING], ['seed-ring'])} notes="" tab="changes" />));
-    expect([...host.querySelectorAll('h3')].map((h) => h.textContent)).toEqual(['Overview', 'Settings · Torrents']);
-    expect([...host.querySelectorAll('li')].map((li) => li.dataset.seen)).toEqual(['false', 'true']);
+  it('lists the changes no page shows first, then the others by page, and dims the ones that were seen', async () => {
+    await act(async () => root.render(<Shown shown={news([HEAD, RING, WAIT], ['seed-ring'])} />));
+    const card = cards()[0];
+    expect([...card.querySelectorAll('h3.glim-eyebrow')].map((h) => h.textContent)).toEqual([
+      'In the background',
+      'Overview',
+      'Settings · Torrents',
+    ]);
+    expect([...card.querySelectorAll<HTMLElement>('li[data-seen]')].map((li) => li.dataset.seen)).toEqual(['false', 'false', 'true']);
+    expect(card.querySelectorAll('li[data-seen] button')).toHaveLength(2);
   });
 
   it('has one button that marks all as seen while one is left and shows all again once none is', async () => {
     const left = news([HEAD, RING], ['seed-ring']);
-    await act(async () => root.render(<Shown shown={left} notes="" tab="changes" />));
+    await act(async () => root.render(<Shown shown={left} />));
     expect(button('Show all again · 2')).toBeUndefined();
     await act(async () => button('Mark all as seen · 1').click());
     expect(left.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring'], true);
 
     const done = news([HEAD, RING], ['overview-head', 'seed-ring']);
-    await act(async () => root.render(<Shown shown={done} notes="" tab="changes" />));
+    await act(async () => root.render(<Shown shown={done} />));
     expect(button('Mark all as seen · 0')).toBeUndefined();
     await act(async () => button('Show all again · 2').click());
     expect(done.markSeen).toHaveBeenLastCalledWith(['overview-head', 'seed-ring'], false);
   });
 
   it('goes to the page of a change and closes', async () => {
-    await act(async () => root.render(<Shown shown={news([RING])} notes="" tab="changes" />));
+    await act(async () => root.render(<Shown shown={news([RING])} />));
     await act(async () => button('Go there').click());
     expect(host.querySelector('[data-here]')!.textContent).toBe('/settings/torrents');
     expect(onClose).toHaveBeenCalled();
   });
 
-  it('lists a change of a whole section under the section and goes there', async () => {
-    await act(async () => root.render(<Shown shown={news([SEARCH])} notes="" tab="changes" />));
-    expect(host.querySelector('h3')!.textContent).toBe('Settings');
+  it('goes to a whole section for a change the section names', async () => {
+    await act(async () => root.render(<Shown shown={news([SEARCH])} />));
+    expect(host.querySelector('h3.glim-eyebrow')!.textContent).toBe('Settings');
     await act(async () => button('Go there').click());
     expect(host.querySelector('[data-here]')!.textContent).toBe('/settings');
   });
 
-  it('has no list where the version marked nothing', async () => {
-    await act(async () => root.render(<Shown shown={news([])} notes="Notes." tab="changes" />));
-    expect(host.querySelector('[role="tablist"]')).toBeNull();
-    expect(host.textContent).toContain('Notes.');
+  it('counts a change no page shows as seen once it closes', async () => {
+    const shown = news([HEAD, WAIT]);
+    await act(async () => root.render(<Shown shown={shown} />));
+    await act(async () => button('Close').click());
+    expect(shown.markSeen).toHaveBeenCalledWith(['vpn-wait']);
+    expect(onClose).toHaveBeenCalled();
+  });
+
+  it('has no button over the cards where no change is listed', async () => {
+    await act(async () => root.render(<Shown shown={news([], [], { releases: ['2.1.3'] })} />));
+    expect(host.textContent).not.toContain('Mark all as seen');
+    expect(cards()[0].textContent).toContain('The bug report shows the speed.');
   });
 });
 

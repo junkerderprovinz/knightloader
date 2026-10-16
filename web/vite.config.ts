@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from 'node:fs';
+import { readdirSync, readFileSync } from 'node:fs';
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
@@ -11,15 +11,17 @@ const mobileVersion = (
   }
 ).expo.version;
 
-// The release notes of that version, which release.yml wants written before
-// the tag. The window that opens after an update reads them out of the build,
-// so it shows them without asking GitHub. A build between two releases carries
-// the notes of the release behind it.
-const notesFile = new URL(`../.github/release-notes/v${mobileVersion}.md`, import.meta.url);
-const releaseNotes = {
-  version: mobileVersion,
-  text: existsSync(notesFile) ? readFileSync(notesFile, 'utf8') : '',
-};
+// The release notes of every release, which release.yml wants written before
+// the tag. The window that opens after an update shows a card for each release
+// it skipped and reads them out of the build, so it shows them without asking
+// GitHub. A build between two releases carries the notes of the release behind it.
+const notesDir = new URL('../.github/release-notes/', import.meta.url);
+const releaseNotes = Object.fromEntries(
+  readdirSync(notesDir).flatMap((name) => {
+    const version = /^v(\d+\.\d+\.\d+)\.md$/.exec(name)?.[1];
+    return version ? [[version, readFileSync(new URL(name, notesDir), 'utf8')]] : [];
+  }),
+);
 
 // Builds the SPA into web/dist, which the Go binary embeds. Stable asset names
 // keep the committed dist clean. Asset paths are relative, resolved against the
