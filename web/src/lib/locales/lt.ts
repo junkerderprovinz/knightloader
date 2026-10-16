@@ -3872,6 +3872,7 @@ export const lt: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Nuoroda „{name}“ nuveda tiesiai į yt-dlp pokortelę skiltyje „{page}“.',
   'whatsnew.change.vpnRoutes': '„{name}“ yra atskira kortelė po „{vpn}“, su jungikliu kiekvienai atsisiuntimų rūšiai.',
   'whatsnew.change.bugReportSpeed': '„{name}“ išsaugo ir paskutinės valandos greitį bei kiekvieną vykstantį atsisiuntimą su jo posisteme ir atvirų ryšių skaičiumi. Pavadinimai ir nuorodos lieka nuošalyje.',
+  'whatsnew.change.releaseCards': 'Po naujinimo šiame lange rodoma kortelė kiekvienam leidimui nuo tavo turėtos versijos, su jo pastabomis ir pakeitimais.',
   'whatsnew.change.quietPlayback': 'Pridėk savo medijos serverį skiltyje „{servers}“, ir „{name}“ įsijungs pats, kol Plex, Jellyfin ar Emby ką nors leidžia.',
   'whatsnew.change.quietUpload': '„{name}“ riboja, kiek torrentai įkelia, kol įjungtas „{quiet}“. Tai svarbu, kai tavo medijos serveris transliuoja kam nors už namų ribų.',
   'whatsnew.change.quietUnpack': 'Su „{name}“ archyvai, kurie baigiasi, kol skaičiuojamas srautas, laukia sąraše ir išpakuojami, kai jis baigiasi.',

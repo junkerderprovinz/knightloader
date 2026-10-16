@@ -3858,6 +3858,7 @@ export const ko: Dict = {
   'whatsnew.change.ytdlpUpdates': '“{name}” 링크는 “{page}”에 있는 yt-dlp 하위 카드로 바로 이동합니다.',
   'whatsnew.change.vpnRoutes': '“{name}”는 “{vpn}” 아래의 별도 카드이며, 다운로드 종류마다 스위치가 있습니다.',
   'whatsnew.change.bugReportSpeed': '“{name}”로 저장하는 파일에 최근 1시간의 속도와, 실행 중인 각 다운로드의 백엔드 및 열린 연결 수도 담깁니다. 이름과 링크는 빠집니다.',
+  'whatsnew.change.releaseCards': '업데이트 후 이 창에는 이전에 쓰던 버전 이후의 릴리스마다 카드가 표시되며, 릴리스 노트와 달라진 내용이 담겨 있습니다.',
   'whatsnew.change.quietPlayback': '“{servers}”에 미디어 서버를 추가하면 Plex, Jellyfin 또는 Emby가 무언가를 재생하는 동안 “{name}”가 저절로 켜집니다.',
   'whatsnew.change.quietUpload': '“{name}”은 “{quiet}”가 켜져 있는 동안 토렌트가 올리는 양을 제한합니다. 미디어 서버가 집 밖의 누군가에게 스트리밍할 때 중요합니다.',
   'whatsnew.change.quietUnpack': '“{name}”을 켜면 스트림이 집계되는 동안 다운로드가 끝난 압축 파일은 목록에서 기다렸다가 스트림이 끝나면 풀립니다.',

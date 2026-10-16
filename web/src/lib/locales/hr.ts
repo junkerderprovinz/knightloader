@@ -3884,6 +3884,7 @@ export const hr: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Poveznica „{name}” vodi te ravno na potkarticu yt-dlp-a pod „{page}”.',
   'whatsnew.change.vpnRoutes': '„{name}” je zasebna kartica ispod „{vpn}”, s prekidačem za svaku vrstu preuzimanja.',
   'whatsnew.change.bugReportSpeed': '„{name}” sprema i brzinu posljednjeg sata te svako preuzimanje u tijeku s njegovim pozadinskim sustavom i brojem otvorenih veza. Imena i poveznice ostaju vani.',
+  'whatsnew.change.releaseCards': 'Nakon ažuriranja ovaj prozor prikazuje karticu za svako izdanje od onog koje ste imali, s njegovim bilješkama i promjenama koje je donijelo.',
   'whatsnew.change.quietPlayback': 'Dodaj svoj medijski poslužitelj pod „{servers}” i „{name}” će se sam uključiti dok Plex, Jellyfin ili Emby nešto reproducira.',
   'whatsnew.change.quietUpload': '„{name}” ograničava koliko torrenti šalju dok je „{quiet}” uključen. To je važno kad tvoj medijski poslužitelj šalje stream nekome izvan kuće.',
   'whatsnew.change.quietUnpack': 'Uz „{name}” arhive koje se završe dok se stream broji čekaju na popisu i raspakiraju se kad on završi.',

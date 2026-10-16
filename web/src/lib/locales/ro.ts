@@ -3879,6 +3879,7 @@ export const ro: Dict = {
   'whatsnew.change.ytdlpUpdates': 'Linkul „{name}” te duce direct la subcardul yt-dlp din „{page}”.',
   'whatsnew.change.vpnRoutes': '„{name}” e un card separat sub „{vpn}”, cu un comutator pentru fiecare tip de descărcare.',
   'whatsnew.change.bugReportSpeed': '„{name}” salvează și viteza din ultima oră și fiecare descărcare în curs, cu backendul ei și câte conexiuni are deschise. Numele și linkurile rămân pe dinafară.',
+  'whatsnew.change.releaseCards': 'După o actualizare, această fereastră arată câte un card pentru fiecare versiune de la cea pe care o aveai, cu notele și schimbările ei.',
   'whatsnew.change.quietPlayback': 'Adaugă serverul tău media la „{servers}”, iar „{name}” pornește singur cât timp Plex, Jellyfin sau Emby redă ceva.',
   'whatsnew.change.quietUpload': '„{name}” limitează cât încarcă torrenturile cât timp „{quiet}” este pornit. Contează când serverul tău media trimite un stream cuiva din afara casei.',
   'whatsnew.change.quietUnpack': 'Cu „{name}”, arhivele care se termină cât timp contează un stream așteaptă în listă și sunt dezarhivate după ce se încheie.',

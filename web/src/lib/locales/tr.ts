@@ -3869,6 +3869,7 @@ export const tr: Dict = {
   'whatsnew.change.ytdlpUpdates': '“{name}” bağlantısı seni doğrudan “{page}” altındaki yt-dlp alt kartına götürür.',
   'whatsnew.change.vpnRoutes': '“{name}”, “{vpn}” altında ayrı bir kart ve her indirme türü için bir anahtarı var.',
   'whatsnew.change.bugReportSpeed': '“{name}” ayrıca son bir saatin hızını ve çalışan her indirmeyi, arka ucu ve açık bağlantı sayısıyla birlikte kaydeder. Adlar ve bağlantılar dışarıda kalır.',
+  'whatsnew.change.releaseCards': 'Güncellemeden sonra bu pencere, elindeki sürümden sonraki her sürüm için notlarıyla ve getirdiği değişikliklerle bir kart gösterir.',
   'whatsnew.change.quietPlayback': 'Medya sunucunu “{servers}” altına ekle; Plex, Jellyfin veya Emby bir şey oynattığı sürece “{name}” kendiliğinden açılır.',
   'whatsnew.change.quietUpload': '“{name}”, “{quiet}” açıkken torrentlerin ne kadar yüklediğini sınırlar. Medya sunucun ev dışındaki birine yayın yaptığında önemli olan budur.',
   'whatsnew.change.quietUnpack': '“{name}” ile bir yayın sayılırken biten arşivler listede bekler ve yayın bitince açılır.',

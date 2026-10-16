@@ -3867,6 +3867,7 @@ export const ja: Dict = {
   'whatsnew.change.ytdlpUpdates': '「{name}」リンクから「{page}」にある yt-dlp のサブカードへ直接移動できます。',
   'whatsnew.change.vpnRoutes': '「{name}」は「{vpn}」の下にある専用のカードで、ダウンロードの種類ごとにスイッチがあります。',
   'whatsnew.change.bugReportSpeed': '「{name}」 で保存されるファイルに、直近 1 時間の速度と、実行中の各ダウンロードのバックエンドと開いている接続数も入ります。名前とリンクは含まれません。',
+  'whatsnew.change.releaseCards': 'アップデート後は、これまで使っていたバージョン以降のリリースごとに、リリースノートと変更点を載せたカードがこのウィンドウに表示されます。',
   'whatsnew.change.quietPlayback': '「{servers}」 にメディアサーバーを追加すると、Plex、Jellyfin、Emby が何かを再生している間、「{name}」 が自動でオンになります。',
   'whatsnew.change.quietUpload': '「{name}」 は、「{quiet}」 がオンの間のトレントのアップロード量を抑えます。メディアサーバーが家の外にいる人へストリーミングするときに効いてきます。',
   'whatsnew.change.quietUnpack': '「{name}」 をオンにすると、ストリームが数えられている間にダウンロードが終わったアーカイブはリストで待ち、ストリームが終わってから展開されます。',
