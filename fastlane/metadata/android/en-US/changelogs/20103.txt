@@ -1,0 +1,1 @@
+Still nothing new on your phone. The server did its homework though: Click'n'Load stops forgetting part 1, and when a host slams the door on one connection, another one walks in and fetches the rest.
