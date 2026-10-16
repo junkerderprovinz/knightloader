@@ -173,6 +173,15 @@ func ContainsScheme(s string) bool {
 	return false
 }
 
+// FromScheme returns s from its earliest scheme on, and false when s has none.
+func FromScheme(s string) (string, bool) {
+	start, _ := newSchemeFinder(s).from(0)
+	if start < 0 {
+		return "", false
+	}
+	return s[start:], true
+}
+
 // scanTokens finds every scheme-anchored link on one line, in order.
 func scanTokens(line string) []string {
 	var out []string

@@ -138,6 +138,32 @@ func TestDecryptCnLSeparatesLinksByControlBytes(t *testing.T) {
 	}
 }
 
+// A site that sends a random IV as the first cipher block leaves sixteen bytes
+// of noise in front of the first link when the key is used as the IV.
+func TestDecryptCnLKeepsTheFirstLinkBehindAnIVBlock(t *testing.T) {
+	key, _ := hex.DecodeString(testKeyHex)
+	block, err := aes.NewCipher(key)
+	if err != nil {
+		t.Fatal(err)
+	}
+	plain := []byte("https://h.example/f.part1.rar\r\nhttps://h.example/f.part2.rar")
+	for len(plain)%aes.BlockSize != 0 {
+		plain = append(plain, 0)
+	}
+	iv := []byte("fedcba9876543210")
+	ct := make([]byte, len(plain))
+	cipher.NewCBCEncrypter(block, iv).CryptBlocks(ct, plain)
+
+	got, err := DecryptCnL(testKeyHex, base64.StdEncoding.EncodeToString(append(iv, ct...)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	want := []string{"https://h.example/f.part1.rar", "https://h.example/f.part2.rar"}
+	if strings.Join(got, "\n") != strings.Join(want, "\n") {
+		t.Fatalf("decrypted = %q, want %q", got, want)
+	}
+}
+
 func TestServerFlashEndpoints(t *testing.T) {
 	rec := &recorder{}
 	s := New(rec)

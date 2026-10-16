@@ -176,15 +176,34 @@ async function sendToInstance(payload, origin) {
     await deliver(siblings[0].instanceId, payload);
     return;
   }
-  await chrome.storage.session.set({
-    // The popup counts down only for a Click'n'Load batch.
-    pendingSend: { payload, defaultName: await readDefaultTarget(), siblings, origin: origin ?? '' },
-  });
+  // The popup counts down only for a Click'n'Load batch.
+  await park({ payload, defaultName: await readDefaultTarget(), siblings, origin: origin ?? '' });
 
   // Always the extension's own popup, never a window of its own. If the popup
   // cannot be opened the send stays parked and the badge says so; opening the
   // popup by hand shows it.
   await showPopupOrMark();
+}
+
+/** parking chains the read and write of the parked send, so two Click'n'Load
+ *  submissions caught together cannot both read the old value. */
+let parking = Promise.resolve();
+
+/**
+ * Parks one send for the popup. A Click'n'Load batch that finds another still
+ * parked joins it instead of replacing it.
+ */
+function park(entry) {
+  const run = parking.then(async () => {
+    const { pendingSend: held } = await chrome.storage.session.get('pendingSend');
+    const joined =
+      entry.origin === 'cnl' && held?.origin === 'cnl'
+        ? { ...entry, payload: joinCnlBatches(held.payload, entry.payload) }
+        : entry;
+    await chrome.storage.session.set({ pendingSend: joined });
+  });
+  parking = run.catch(() => {});
+  return run;
 }
 
 /**

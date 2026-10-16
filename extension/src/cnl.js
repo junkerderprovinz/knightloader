@@ -116,13 +116,18 @@ async function cnlDecrypt(jk, crypted) {
   return splitCnlLinks(text);
 }
 
+/** The schemes of CLIP_LINK_RULE, found anywhere in a word. */
+const CNL_SCHEME = /https?:\/\/|magnet:\?|ftps?:\/\/|sftp:\/\/|webdavs?:\/\//i;
+
 /** splitCnlLinks mirrors splitLinks in internal/cnl: whitespace and every
- *  control byte separate links, so padding at the front of a plaintext cannot
- *  cost the first one. A word survives when the clipboard watch's rule
- *  (clipwatch.js) takes it as a link and it is not a magnet. Any page may post
- *  here, and a torrent would go on to share what it fetched. */
+ *  control byte separate links, and a link starts at its scheme, so neither
+ *  padding nor an IV block in front of a plaintext costs the first one. A word
+ *  survives when the clipboard watch's rule (clipwatch.js) takes it as a link
+ *  and it is not a magnet. Any page may post here, and a torrent would go on to
+ *  share what it fetched. */
 function splitCnlLinks(text) {
   return String(text)
     .split(/[\x00-\x20\x7f\s]+/)
+    .map((s) => s.slice(Math.max(0, s.search(CNL_SCHEME))))
     .filter((s) => CLIP_LINK_RULE.test(s) && !/^magnet:/i.test(s));
 }

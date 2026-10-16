@@ -221,14 +221,15 @@ func passwordsOf(r *http.Request) []string {
 
 // splitLinks keeps the links of every scheme linkscan knows except magnet:
 // any page may post here, and a torrent would go on to share what it fetched.
-// Every control byte separates, as JDownloader's trim of each line does, so
-// padding at the front of a plaintext cannot cost the first link.
+// Every control byte separates, and a link starts at its scheme, as
+// JDownloader finds links anywhere in the text: a site that sends its IV as
+// the first block leaves sixteen bytes of noise glued to the first link.
 func splitLinks(s string) []string {
 	var out []string
-	for _, l := range strings.FieldsFunc(s, func(r rune) bool {
+	for _, w := range strings.FieldsFunc(s, func(r rune) bool {
 		return r <= ' ' || r == 0x7f || unicode.IsSpace(r)
 	}) {
-		if linkscan.StartsWithScheme(l) && !strings.HasPrefix(strings.ToLower(l), "magnet:") {
+		if l, ok := linkscan.FromScheme(w); ok && !strings.HasPrefix(strings.ToLower(l), "magnet:") {
 			out = append(out, l)
 		}
 	}
