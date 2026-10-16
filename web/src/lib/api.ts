@@ -914,6 +914,19 @@ export interface Diagnostics {
   speedSamplesRecent: number;
   speedSamplesHour: number;
   speedRecordingSince?: string;
+  /** The curve itself in bytes a second, oldest first: per second, then per ten seconds. */
+  speedRecent: number[];
+  speedHour: number[];
+  /** Every running download, without names, links or hosts. */
+  transfers: {
+    resolver: string;
+    meter: string;
+    speed: number;
+    size: number;
+    loaded: number;
+    connections?: number;
+    retries?: number;
+  }[];
   /** The store file plus any journal beside it. No paths, for the same reason as logFile. */
   storeBytes: number;
   /** Space deleted rows left inside the file. A floor: compaction usually gives back more. */

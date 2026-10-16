@@ -320,3 +320,15 @@ func TestReconnectLeavesWhatItDoesNotFetch(t *testing.T) {
 		t.Error("a torrent was reconnected, which throws its peers away")
 	}
 }
+
+func TestConnectionsCountsTheOpenOnesOfARunningDownload(t *testing.T) {
+	e, _, u, _ := startSlow(t)
+	waitUntil(t, "all four connections fetching", func() bool {
+		open, _, ok := e.Connections("t1")
+		return ok && open == 4
+	})
+	waitUntil(t, "the download finishing", func() bool { return u.last().Status == core.StatusDone })
+	if _, _, ok := e.Connections("unknown"); ok {
+		t.Error("a task the engine never saw reports connections")
+	}
+}
