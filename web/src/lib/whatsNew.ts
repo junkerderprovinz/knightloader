@@ -550,7 +550,7 @@ export const RELEASES: Release[] = [
         id: 'news-button',
         to: ['/settings/help'],
         text: 'whatsnew.change.newsButton',
-        names: { name: 'settings.about.version', notes: 'settings.look.updatesReleaseNotes', changes: 'whatsnew.changes' },
+        names: { name: 'settings.about.version' },
       },
       // Drawn in the window the Version card's button opens.
       { id: 'news-toggle', to: ['/settings/help'], text: 'whatsnew.change.newsToggle' },
