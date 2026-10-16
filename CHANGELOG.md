@@ -36,6 +36,28 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.3] - 2026-10-16
+
+### Added
+
+- **The bug report shows the speed.** The file from Settings, Health &
+  diagnostics carries the speed of the last two minutes second by second and
+  of the last hour in ten-second steps, and every running download with its
+  backend and how many connections it has open. Names and links stay out.
+
+### Fixed
+
+- **Click'n'Load keeps part 1.** Some sites put sixteen bytes of noise in
+  front of the first link, and KnightLoader dropped that link. A link now
+  starts where its http:// begins.
+- **Two Click'n'Load posts from one click both arrive.** A site that sends the
+  first part on its own and the rest right after it lost the first part,
+  because the second post replaced it in the browser extension. The extension
+  joins them.
+- **A refused connection's part is fetched right away.** When a host answered
+  one connection too many with 403, nobody fetched that connection's part of
+  the file until the rest was done. A free connection takes it over at once.
+
 ## [2.1.2] - 2026-10-16
 
 ### Added
