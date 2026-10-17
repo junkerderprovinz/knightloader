@@ -3866,6 +3866,7 @@ export const et: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ on valikuline: kui see jääb tühjaks, läheb iga allalaadimine otse allalaadimiste kausta.',
   'whatsnew.change.bugReportSpeed': '„{name}“ salvestab ka viimase tunni kiiruse ja iga käimasoleva allalaadimise koos selle taustsüsteemi ja avatud ühenduste arvuga. Nimed ja lingid jäävad välja.',
   'whatsnew.change.releaseCards': 'Pärast uuendust näitab see aken kaarti iga väljalaske kohta alates sellest, mis sul oli, koos selle märkmete ja muudatustega.',
+  'whatsnew.change.folderBack': 'Kaustavalijas on tee ees tagasinool, mis viib ühe kausta võrra üles.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader uuendab end nüüd kord päevas, kui ükski selle allalaadimine ei käi. Lüliti on alamkaardil „{name}“ kaardil „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'Akendes, kus valid konto või hostija, muutub kursori all olev logo täiseks, ja logo, millest jääks vaid laik, hoiab oma detailid halltoonides.',
   'whatsnew.change.quietPlayback': 'Lisa oma meediaserver jaotises „{servers}“ ja „{name}“ lülitub ise sisse, kui Plex, Jellyfin või Emby midagi esitab.',

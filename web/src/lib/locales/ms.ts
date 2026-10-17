@@ -3874,6 +3874,7 @@ export const ms: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” adalah pilihan: jika dibiarkan kosong, setiap muat turun terus ke folder muat turun.',
   'whatsnew.change.bugReportSpeed': '“{name}” juga menyimpan kelajuan sejam yang lalu dan setiap muat turun yang sedang berjalan bersama backend dan bilangan sambungan yang dibukanya. Nama dan pautan tidak dimasukkan.',
   'whatsnew.change.releaseCards': 'Selepas kemas kini, tetingkap ini menunjukkan satu kad bagi setiap keluaran sejak versi yang anda ada, lengkap dengan nota dan perubahan yang dibawanya.',
+  'whatsnew.change.folderBack': 'Pemilih folder ada anak panah kembali di hadapan laluan yang naik satu folder.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader kini mengemas kini dirinya sekali sehari, apabila tiada muat turunnya yang sedang berjalan. Suisnya terletak pada subkad “{name}” pada “{updates}”.',
   'whatsnew.change.brandHoverLogos': 'Dalam tetingkap tempat anda memilih akaun atau hos, logo di bawah penuding menjadi padat, dan logo yang hanya akan menjadi tompok mengekalkan butirannya dalam rona kelabu.',
   'whatsnew.change.quietPlayback': 'Tambah pelayan media anda di “{servers}”, dan “{name}” hidup sendiri selagi Plex, Jellyfin atau Emby memainkan sesuatu.',

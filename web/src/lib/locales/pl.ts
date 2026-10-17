@@ -3859,6 +3859,7 @@ export const pl: Dict = {
   'whatsnew.change.workDirOptional': '„{name}” jest opcjonalny: gdy zostaje pusty, każde pobieranie trafia prosto do folderu pobierania.',
   'whatsnew.change.bugReportSpeed': '„{name}” zapisuje też prędkość z ostatniej godziny i każde trwające pobieranie z jego backendem i liczbą otwartych połączeń. Nazwy i linki zostają poza nim.',
   'whatsnew.change.releaseCards': 'Po aktualizacji to okno pokazuje kartę dla każdego wydania od poprzednio używanej wersji, z jego uwagami i zmianami.',
+  'whatsnew.change.folderBack': 'Wybór folderu ma przed ścieżką strzałkę wstecz, która przechodzi folder wyżej.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader aktualizuje się teraz raz dziennie, gdy nie trwa żadne z jego pobrań. Przełącznik jest na podkarcie „{name}” na „{updates}”.',
   'whatsnew.change.brandHoverLogos': 'W oknach, w których wybierasz konto lub hosting, logo pod kursorem staje się pełne, a takie, z którego zostałaby tylko plama, zachowuje szczegóły w odcieniach szarości.',
   'whatsnew.change.quietPlayback': 'Dodaj swój serwer mediów w „{servers}”, a „{name}” włączy się sam, gdy Plex, Jellyfin lub Emby coś odtwarza.',

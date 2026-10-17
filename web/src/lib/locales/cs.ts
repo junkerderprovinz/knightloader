@@ -3884,6 +3884,7 @@ export const cs: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ je volitelná: když ji necháš prázdnou, každé stahování jde rovnou do složky pro stahování.',
   'whatsnew.change.bugReportSpeed': '„{name}“ uloží i rychlost za poslední hodinu a každé běžící stahování s jeho backendem a počtem otevřených spojení. Názvy a odkazy zůstanou venku.',
   'whatsnew.change.releaseCards': 'Po aktualizaci toto okno ukáže kartu pro každé vydání od toho, které jsi měl, s jeho poznámkami a změnami, které přineslo.',
+  'whatsnew.change.folderBack': 'Výběr složky má před cestou šipku zpět, která přejde o složku výš.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader se teď aktualizuje jednou denně, když neběží žádné z jeho stahování. Přepínač najdeš na podkartě „{name}“ na „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'V oknech, kde vybíráš účet nebo hostitele, je logo pod ukazatelem plné, a to, ze kterého by zbyla jen skvrna, si ponechá detaily v odstínech šedi.',
   'whatsnew.change.quietPlayback': 'Přidej svůj mediální server v „{servers}“ a „{name}“ se sám zapne, dokud Plex, Jellyfin nebo Emby něco přehrává.',

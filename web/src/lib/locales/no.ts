@@ -3877,6 +3877,7 @@ export const no: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» er valgfri: står den tom, går hver nedlasting rett i nedlastingsmappen.',
   'whatsnew.change.bugReportSpeed': '«{name}» lagrer også hastigheten den siste timen og hver nedlasting som pågår, med backend og hvor mange tilkoblinger den har åpne. Navn og lenker holdes utenfor.',
   'whatsnew.change.releaseCards': 'Etter en oppdatering viser dette vinduet et kort for hver utgivelse siden versjonen du hadde, med merknadene og endringene den brakte.',
+  'whatsnew.change.folderBack': 'Mappevelgeren har en tilbakepil foran stien som går én mappe opp.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader oppdaterer seg nå én gang om dagen, når ingen av nedlastingene dens kjører. Bryteren sitter på underkortet «{name}» på «{updates}».',
   'whatsnew.change.brandHoverLogos': 'I vinduene der du velger en konto eller en hoster, blir logoen under pekeren dekkende, og en logo som bare ville vært en klatt, beholder detaljene sine i gråtoner.',
   'whatsnew.change.quietPlayback': 'Legg til medieserveren din under «{servers}», så slår «{name}» seg på av seg selv mens Plex, Jellyfin eller Emby spiller noe.',

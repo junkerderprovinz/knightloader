@@ -3871,6 +3871,7 @@ export const ja: Dict = {
   'whatsnew.change.workDirOptional': '「{name}」 は任意です。空欄なら、各ダウンロードは保存先フォルダーに直接書き込まれます。',
   'whatsnew.change.bugReportSpeed': '「{name}」 で保存されるファイルに、直近 1 時間の速度と、実行中の各ダウンロードのバックエンドと開いている接続数も入ります。名前とリンクは含まれません。',
   'whatsnew.change.releaseCards': 'アップデート後は、これまで使っていたバージョン以降のリリースごとに、リリースノートと変更点を載せたカードがこのウィンドウに表示されます。',
+  'whatsnew.change.folderBack': 'フォルダーの選択画面で、パスの前に戻る矢印が付き、1 つ上のフォルダーに移動できます。',
   'whatsnew.change.jdAutoUpdate': 'JDownloader は1日に1回、ダウンロードが実行されていないときに更新されるようになりました。スイッチは「{updates}」の「{name}」サブカードにあります。',
   'whatsnew.change.brandHoverLogos': 'アカウントやホスターを選ぶウィンドウでは、ポインターの下のロゴがくっきり塗りつぶされます。ただの塊になってしまうロゴは、細部をグレーの濃淡で残します。',
   'whatsnew.change.quietPlayback': '「{servers}」 にメディアサーバーを追加すると、Plex、Jellyfin、Emby が何かを再生している間、「{name}」 が自動でオンになります。',

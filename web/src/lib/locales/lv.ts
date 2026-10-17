@@ -3865,6 +3865,7 @@ export const lv: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ nav obligāta: ja to atstāj tukšu, katra lejupielāde nonāk tieši lejupielāžu mapē.',
   'whatsnew.change.bugReportSpeed': '„{name}“ saglabā arī pēdējās stundas ātrumu un katru notiekošo lejupielādi ar tās aizmugursistēmu un atvērto savienojumu skaitu. Nosaukumi un saites paliek ārpusē.',
   'whatsnew.change.releaseCards': 'Pēc atjaunināšanas šajā logā redzama karte par katru izlaidumu kopš jūsu iepriekšējās versijas, ar tā piezīmēm un izmaiņām.',
+  'whatsnew.change.folderBack': 'Mapes izvēlē pirms ceļa ir bulta atpakaļ, kas paceļas par vienu mapi augstāk.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader tagad atjauninās reizi dienā, kad nedarbojas neviena tā lejupielāde. Slēdzis ir apakškartītē „{name}“ kartītē „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'Logos, kur izvēlies kontu vai mitinātāju, logotips zem rādītāja kļūst necaurspīdīgs, bet tas, kas būtu tikai plankums, saglabā savas detaļas pelēkos toņos.',
   'whatsnew.change.quietPlayback': 'Pievieno savu mediju serveri sadaļā „{servers}“, un „{name}“ ieslēdzas pats, kamēr Plex, Jellyfin vai Emby kaut ko atskaņo.',

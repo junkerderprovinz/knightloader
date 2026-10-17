@@ -3866,6 +3866,7 @@ export const es: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» es opcional: si lo dejas vacío, cada descarga va directa a la carpeta de descargas.',
   'whatsnew.change.bugReportSpeed': '«{name}» guarda también la velocidad de la última hora y cada descarga en curso con su backend y cuántas conexiones tiene abiertas. Los nombres y los enlaces se quedan fuera.',
   'whatsnew.change.releaseCards': 'Después de una actualización, esta ventana muestra una tarjeta por cada versión desde la que tenías, con sus notas y los cambios que trajo.',
+  'whatsnew.change.folderBack': 'El selector de carpetas tiene una flecha atrás delante de la ruta que sube una carpeta.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader ahora se actualiza una vez al día, cuando no hay ninguna de sus descargas en curso. El interruptor está en la subtarjeta «{name}» de «{updates}».',
   'whatsnew.change.brandHoverLogos': 'En las ventanas donde eliges una cuenta o un servidor, el logotipo bajo el puntero se vuelve opaco, y uno que solo sería una mancha conserva sus detalles en tonos de gris.',
   'whatsnew.change.quietPlayback': 'Añade tu servidor multimedia en «{servers}» y «{name}» se activa solo mientras Plex, Jellyfin o Emby reproduce algo.',

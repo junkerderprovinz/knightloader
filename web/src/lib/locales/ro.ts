@@ -3883,6 +3883,7 @@ export const ro: Dict = {
   'whatsnew.change.workDirOptional': '„{name}” este opțional: lăsat gol, fiecare descărcare merge direct în dosarul de descărcare.',
   'whatsnew.change.bugReportSpeed': '„{name}” salvează și viteza din ultima oră și fiecare descărcare în curs, cu backendul ei și câte conexiuni are deschise. Numele și linkurile rămân pe dinafară.',
   'whatsnew.change.releaseCards': 'După o actualizare, această fereastră arată câte un card pentru fiecare versiune de la cea pe care o aveai, cu notele și schimbările ei.',
+  'whatsnew.change.folderBack': 'Alegerea dosarului are o săgeată înapoi în fața căii, care urcă un dosar.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader se actualizează acum o dată pe zi, când nu rulează niciuna dintre descărcările lui. Comutatorul este în subcardul „{name}” din „{updates}”.',
   'whatsnew.change.brandHoverLogos': 'În ferestrele în care alegi un cont sau un hoster, logoul de sub cursor devine plin, iar unul care ar fi doar o pată își păstrează detaliile în nuanțe de gri.',
   'whatsnew.change.quietPlayback': 'Adaugă serverul tău media la „{servers}”, iar „{name}” pornește singur cât timp Plex, Jellyfin sau Emby redă ceva.',

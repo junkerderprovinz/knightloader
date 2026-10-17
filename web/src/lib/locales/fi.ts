@@ -3876,6 +3876,7 @@ export const fi: Dict = {
   'whatsnew.change.workDirOptional': '”{name}” on valinnainen: tyhjänä jokainen lataus menee suoraan latauskansioon.',
   'whatsnew.change.bugReportSpeed': '”{name}” tallentaa myös viimeisen tunnin nopeuden ja jokaisen käynnissä olevan latauksen taustajärjestelmineen ja avoimien yhteyksien määrineen. Nimet ja linkit jäävät pois.',
   'whatsnew.change.releaseCards': 'Päivityksen jälkeen tämä ikkuna näyttää kortin jokaisesta julkaisusta sinulla olleen version jälkeen, mukana julkaisun muistiinpanot ja sen tuomat muutokset.',
+  'whatsnew.change.folderBack': 'Kansionvalitsimessa on polun edessä paluunuoli, joka siirtyy yhden kansion ylöspäin.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader päivittää nyt itsensä kerran päivässä, kun mikään sen latauksista ei ole käynnissä. Kytkin on alakortilla ”{name}” kohdassa ”{updates}”.',
   'whatsnew.change.brandHoverLogos': 'Ikkunoissa, joissa valitset tilin tai palvelun, osoittimen alla oleva logo muuttuu peittäväksi, ja logo, josta jäisi pelkkä läiskä, säilyttää yksityiskohtansa harmaan sävyinä.',
   'whatsnew.change.quietPlayback': 'Lisää mediapalvelimesi kohtaan ”{servers}”, niin ”{name}” kytkeytyy itse päälle aina, kun Plex, Jellyfin tai Emby toistaa jotain.',

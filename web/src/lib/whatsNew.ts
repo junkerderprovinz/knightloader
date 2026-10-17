@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.1.6',
+    changes: [{ id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' }],
+  },
+  {
     version: '2.1.5',
     changes: [
       {

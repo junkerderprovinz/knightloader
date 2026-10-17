@@ -3864,6 +3864,7 @@ export const fr: Dict = {
   'whatsnew.change.workDirOptional': '« {name} » est facultatif : laissé vide, chaque téléchargement va directement dans le dossier de téléchargement.',
   'whatsnew.change.bugReportSpeed': '« {name} » enregistre aussi le débit de la dernière heure et chaque téléchargement en cours avec son backend et le nombre de connexions qu’il a ouvertes. Les noms et les liens n’y figurent pas.',
   'whatsnew.change.releaseCards': 'Après une mise à jour, cette fenêtre affiche une carte pour chaque version depuis celle que vous aviez, avec ses notes et les changements qu\'elle a apportés.',
+  'whatsnew.change.folderBack': 'Le sélecteur de dossier a une flèche retour devant le chemin, qui remonte d’un dossier.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader se met désormais à jour une fois par jour, quand aucun de ses téléchargements n’est en cours. L’interrupteur se trouve sur la sous-carte « {name} » dans « {updates} ».',
   'whatsnew.change.brandHoverLogos': 'Dans les fenêtres où vous choisissez un compte ou un hébergeur, le logo sous le pointeur devient opaque, et celui qui ne serait qu’une tache garde ses détails en niveaux de gris.',
   'whatsnew.change.quietPlayback': 'Ajoutez votre serveur multimédia sous « {servers} », et « {name} » s’active tout seul tant que Plex, Jellyfin ou Emby lit quelque chose.',

@@ -3873,6 +3873,7 @@ export const sl: Dict = {
   'whatsnew.change.workDirOptional': '»{name}« ni obvezna: če ostane prazna, gre vsak prenos neposredno v mapo za prenose.',
   'whatsnew.change.bugReportSpeed': '»{name}« shrani tudi hitrost zadnje ure in vsak prenos v teku z njegovim zalednim sistemom in številom odprtih povezav. Imena in povezave ostanejo zunaj.',
   'whatsnew.change.releaseCards': 'Po posodobitvi to okno pokaže kartico za vsako izdajo od tiste, ki si jo imel, z opombami in spremembami, ki jih je prinesla.',
+  'whatsnew.change.folderBack': 'Izbira mape ima pred potjo puščico nazaj, ki gre eno mapo višje.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader se zdaj posodobi enkrat na dan, ko ne teče noben njegov prenos. Stikalo je na podkartici »{name}« na »{updates}«.',
   'whatsnew.change.brandHoverLogos': 'V oknih, kjer izbereš račun ali gostitelja, postane logotip pod kazalcem poln, tisti, ki bi bil le packa, pa ohrani podrobnosti v sivih odtenkih.',
   'whatsnew.change.quietPlayback': 'Dodaj svoj medijski strežnik pod »{servers}« in »{name}« se sam vklopi, dokler Plex, Jellyfin ali Emby kaj predvaja.',

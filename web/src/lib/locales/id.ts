@@ -3874,6 +3874,7 @@ export const id: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” bersifat opsional: jika dibiarkan kosong, setiap unduhan langsung masuk ke folder unduhan.',
   'whatsnew.change.bugReportSpeed': '“{name}” juga menyimpan kecepatan satu jam terakhir dan setiap unduhan yang berjalan beserta backend-nya dan jumlah koneksi yang terbuka. Nama dan tautan tidak ikut.',
   'whatsnew.change.releaseCards': 'Setelah pembaruan, jendela ini menampilkan satu kartu untuk setiap rilis sejak versi yang Anda miliki, lengkap dengan catatan dan perubahan yang dibawanya.',
+  'whatsnew.change.folderBack': 'Pemilih folder punya panah kembali di depan jalur yang naik satu folder.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader sekarang memperbarui dirinya sekali sehari, saat tidak ada unduhannya yang berjalan. Sakelarnya ada di subkartu “{name}” di “{updates}”.',
   'whatsnew.change.brandHoverLogos': 'Di jendela tempat kamu memilih akun atau hoster, logo di bawah penunjuk menjadi pekat, dan logo yang hanya akan jadi gumpalan tetap menampilkan detailnya dalam nuansa abu-abu.',
   'whatsnew.change.quietPlayback': 'Tambahkan server mediamu di “{servers}”, dan “{name}” menyala sendiri selama Plex, Jellyfin, atau Emby memutar sesuatu.',

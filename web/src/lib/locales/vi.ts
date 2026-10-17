@@ -3874,6 +3874,7 @@ export const vi: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” là tùy chọn: để trống thì mỗi lượt tải ghi thẳng vào thư mục tải về.',
   'whatsnew.change.bugReportSpeed': '“{name}” lưu cả tốc độ của giờ vừa qua và mọi lượt tải đang chạy cùng backend và số kết nối đang mở của nó. Tên và liên kết không được đưa vào.',
   'whatsnew.change.releaseCards': 'Sau khi cập nhật, cửa sổ này hiện một thẻ cho mỗi bản phát hành kể từ bản bạn đang dùng, kèm ghi chú và những thay đổi nó mang lại.',
+  'whatsnew.change.folderBack': 'Hộp chọn thư mục có mũi tên quay lại trước đường dẫn để lên một thư mục.',
   'whatsnew.change.jdAutoUpdate': 'Giờ đây JDownloader tự cập nhật mỗi ngày một lần, khi không có lượt tải xuống nào của nó đang chạy. Công tắc nằm trên thẻ con “{name}” trong “{updates}”.',
   'whatsnew.change.brandHoverLogos': 'Trong các cửa sổ chọn tài khoản hoặc dịch vụ lưu trữ, logo dưới con trỏ trở nên đặc, còn logo nào chỉ thành một mảng màu thì giữ các chi tiết của nó bằng các sắc xám.',
   'whatsnew.change.quietPlayback': 'Thêm máy chủ media của bạn ở “{servers}”, và “{name}” tự bật trong lúc Plex, Jellyfin hoặc Emby đang phát.',

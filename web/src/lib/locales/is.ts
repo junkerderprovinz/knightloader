@@ -3870,6 +3870,7 @@ export const is: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ er valfrjáls: sé hún tóm fer hvert niðurhal beint í niðurhalsmöppuna.',
   'whatsnew.change.bugReportSpeed': '„{name}“ vistar líka hraðann síðustu klukkustundina og hvert niðurhal sem er í gangi með bakenda sínum og fjölda opinna tenginga. Nöfn og tenglar eru skilin eftir.',
   'whatsnew.change.releaseCards': 'Eftir uppfærslu sýnir þessi gluggi spjald fyrir hverja útgáfu síðan þá sem þú varst með, með athugasemdum hennar og breytingunum sem hún kom með.',
+  'whatsnew.change.folderBack': 'Möppuvalið er með til baka ör fyrir framan slóðina sem fer eina möppu upp.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader uppfærir sig nú einu sinni á dag, þegar ekkert af niðurhali þess er í gangi. Rofinn er á undirspjaldinu „{name}“ á „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'Í gluggunum þar sem þú velur aðgang eða hýsingu verður merkið undir bendlinum þétt, og merki sem yrði bara klessa heldur smáatriðum sínum í gráum tónum.',
   'whatsnew.change.quietPlayback': 'Bættu miðlaþjóninum þínum við undir „{servers}“, og „{name}“ kveikir á sér sjálft á meðan Plex, Jellyfin eða Emby spilar eitthvað.',

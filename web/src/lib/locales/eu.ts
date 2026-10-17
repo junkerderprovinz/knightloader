@@ -3871,6 +3871,7 @@ export const eu: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» aukerakoa da: hutsik uzten baduzu, deskarga bakoitza zuzenean deskargen karpetara doa.',
   'whatsnew.change.bugReportSpeed': '«{name}» botoiak azken orduko abiadura ere gordetzen du, eta martxan dagoen deskarga bakoitza bere backendarekin eta irekita dituen konexio kopuruarekin. Izenak eta estekak kanpoan geratzen dira.',
   'whatsnew.change.releaseCards': 'Eguneratze baten ondoren, leiho honek txartel bat erakusten du zuk zenuen bertsioaren ondorengo bertsio bakoitzeko, bere oharrekin eta ekarri zituen aldaketekin.',
+  'whatsnew.change.folderBack': 'Karpeta-hautatzaileak atzera gezi bat du bidearen aurrean, karpeta bat gora igotzeko.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader egunean behin eguneratzen da orain, bere deskargetako bat ere martxan ez dagoenean. Etengailua «{name}» azpitxartelean dago, «{updates}» txartelean.',
   'whatsnew.change.brandHoverLogos': 'Kontu edo ostalari bat aukeratzen duzun leihoetan, erakuslearen azpiko logoa opako bihurtzen da, eta orban hutsa izango litzatekeenak bere xehetasunak gordetzen ditu gris tonuetan.',
   'whatsnew.change.quietPlayback': 'Gehitu zure media-zerbitzaria «{servers}» atalean, eta «{name}» bere kabuz aktibatzen da Plex, Jellyfin edo Emby zerbait erreproduzitzen ari den bitartean.',

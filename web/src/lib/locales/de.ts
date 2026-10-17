@@ -3740,6 +3740,7 @@ export const de: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ ist optional: Bleibt das Feld leer, landet jeder Download direkt im Download-Ordner.',
   'whatsnew.change.bugReportSpeed': '„{name}“ speichert auch die Geschwindigkeit der letzten Stunde und jeden laufenden Download mit seinem Backend und der Zahl seiner offenen Verbindungen. Namen und Links bleiben draußen.',
   'whatsnew.change.releaseCards': 'Nach einem Update zeigt dieses Fenster eine Karte für jedes Release seit dem, das du hattest, mit seinen Notizen und den Änderungen, die es gebracht hat.',
+  'whatsnew.change.folderBack': 'Der Ordnerwähler hat vor dem Pfad einen Pfeil zurück, der eine Ebene höher geht.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader aktualisiert sich jetzt einmal am Tag, solange keiner seiner Downloads läuft. Der Schalter dafür sitzt auf der Unterkarte „{name}“ auf „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'In den Fenstern, in denen du ein Konto oder einen Hoster auswählst, wird ein Logo unter dem Mauszeiger deckend, und eines, das dabei nur ein Fleck wäre, behält seine Details in Grautönen.',
   'whatsnew.change.quietPlayback': 'Trag deinen Medienserver unter „{servers}“ ein, dann schaltet sich „{name}“ von selbst ein, solange Plex, Jellyfin oder Emby etwas abspielt.',

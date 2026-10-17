@@ -3874,6 +3874,7 @@ export const sv: Dict = {
   'whatsnew.change.workDirOptional': '”{name}” är valfri: lämnas den tom hamnar varje nedladdning direkt i nedladdningsmappen.',
   'whatsnew.change.bugReportSpeed': '”{name}” sparar också hastigheten för den senaste timmen och varje pågående nedladdning med dess backend och hur många anslutningar den har öppna. Namn och länkar hålls utanför.',
   'whatsnew.change.releaseCards': 'Efter en uppdatering visar det här fönstret ett kort för varje utgåva sedan den du hade, med dess anteckningar och de ändringar den gav.',
+  'whatsnew.change.folderBack': 'Mappväljaren har en bakåtpil framför sökvägen som går upp en mapp.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader uppdaterar sig nu en gång om dagen, när ingen av dess nedladdningar pågår. Reglaget sitter på underkortet ”{name}” på ”{updates}”.',
   'whatsnew.change.brandHoverLogos': 'I fönstren där du väljer ett konto eller en hoster blir logotypen under pekaren täckande, och en logotyp som bara skulle bli en klump behåller sina detaljer i gråtoner.',
   'whatsnew.change.quietPlayback': 'Lägg till din medieserver under ”{servers}”, så slår ”{name}” på sig själv medan Plex, Jellyfin eller Emby spelar något.',
