@@ -348,6 +348,7 @@ export const HOSTER_LOGOS: ReadonlyMap<string, LogoTile> = new Map<string, LogoT
   ['thundernews.com', { tile: '#1b9fef', ink: '#ffffff', lit: true }],
   ['tiktok.com', { tile: '#26f7f3', ink: '#161616' }],
   ['tokyomotion.net', { tile: '#da2758', ink: '#ffffff', rest: 'lift' }],
+  ['torbox.app', { tile: '#53a254', ink: '#ffffff', lit: true }],
   ['touchmywife.com', { tile: '#581313', ink: '#ffffff', rest: 'lift' }],
   ['transangels.com', { tile: '#ec108e', ink: '#ffffff', rest: 'lift' }],
   ['transfaze.com', { tile: '#21b7ff', ink: '#ffffff' }],

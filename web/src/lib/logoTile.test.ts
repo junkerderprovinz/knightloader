@@ -3,7 +3,19 @@
 // ship. The pictures below are drawn in code, so each case says what it tests.
 import { describe, expect, it } from 'vitest';
 import { HOSTER_LOGOS } from './hosterLogos';
-import { DARK_INK, INK_FLOOR, WHITE, contrast, inkOn, litOf, type Pixels, tileOf, withoutPlate } from './logoTile';
+import {
+  DARK_INK,
+  INK_FLOOR,
+  WHITE,
+  contrast,
+  inkOn,
+  litOf,
+  litPictureOf,
+  type Pixels,
+  solidOf,
+  tileOf,
+  withoutPlate,
+} from './logoTile';
 import { VPN_APP_ONLY, VPN_PROVIDERS } from './vpnProviders';
 
 const SIZE = 64;
@@ -86,6 +98,53 @@ describe('the lit mask', () => {
 
   it('is the outline where nothing lies on the logo', () => {
     expect(litOf(picture((x, y) => (inside(x, y, 10, 30) ? BLUE : null)), '#0050c8')).toBeNull();
+  });
+});
+
+describe('the lit picture', () => {
+  const translucent: [number, number, number, number] = [0, 80, 200, 190];
+  const halo: [number, number, number, number] = [0, 80, 200, 20];
+
+  it('is a solid mark for a logo drawn translucent, without its faint halo', () => {
+    const logo = picture((x, y) => (inside(x, y, 16, 48) ? translucent : inside(x, y, 12, 52) ? halo : null));
+    const solid = solidOf(logo);
+    expect(at(solid, 32, 32)[3]).toBe(255);
+    expect(at(solid, 13, 13)[3]).toBe(0);
+    expect(litPictureOf(logo, logo, WHITE)).toEqual({ mask: solid });
+  });
+
+  it('keeps the ramp of an antialiased edge', () => {
+    const edge = solidOf(picture(() => [0, 0, 0, 96]));
+    expect(at(edge, 0, 0)[3]).toBeGreaterThan(96);
+    expect(at(edge, 0, 0)[3]).toBeLessThan(255);
+  });
+
+  // A square of stripes: its outline is a plain square, its drawing all inside.
+  const stripes = picture((x, y) => (inside(x, y, 12, 52) ? (Math.floor(x / 4) % 2 ? BLUE : WHITE_PX) : null));
+  const toned = (ink: string) => {
+    const lit = litPictureOf(stripes, stripes, ink);
+    if (!('tone' in lit)) throw new Error('drawn as a mask');
+    return lit.tone;
+  };
+
+  it('shows a logo whose drawing lies inside its outline in greys of the ink, not as a blob', () => {
+    const tone = toned(WHITE);
+    const [white, blue] = [at(tone, 17, 32), at(tone, 13, 32)];
+    expect(white).toEqual([255, 255, 255, 255]);
+    expect(blue[0]).toBe(blue[1]);
+    expect(blue[0]).toBeLessThan(160);
+    expect(blue[0]).toBeGreaterThan(100);
+  });
+
+  it('tones a logo from the dark end on a tile with a dark ink', () => {
+    const tone = toned(DARK_INK);
+    expect(at(tone, 13, 32).slice(0, 3)).toEqual([22, 22, 22]);
+    expect(at(tone, 17, 32)[0]).toBeGreaterThan(120);
+  });
+
+  it('keeps the mask of a logo whose shape carries its drawing', () => {
+    const ring = picture((x, y) => (Math.abs(Math.hypot(x - 31.5, y - 31.5) - 20) < 4 ? BLUE : null));
+    expect('mask' in litPictureOf(ring, ring, WHITE)).toBe(true);
   });
 });
 

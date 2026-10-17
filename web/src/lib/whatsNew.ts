@@ -59,6 +59,13 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.jdAutoUpdate',
         names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
       },
+      { id: 'brand-hover-logos', to: ['/settings/accounts', '/accounts'], text: 'whatsnew.change.brandHoverLogos' },
+      {
+        id: 'work-dir-optional',
+        to: ['/settings/downloads'],
+        text: 'whatsnew.change.workDirOptional',
+        names: { name: 'settings.downloads.workDir' },
+      },
     ],
   },
   {

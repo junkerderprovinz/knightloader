@@ -768,15 +768,17 @@ function CredentialDialog({
       }
     >
       {!picked ? (
-        <BrandPicker
-          brands={brands.filter((b) => brandMatches(b, query))}
-          none={t('accounts.noServicesFound')}
-          onPick={(id) => {
-            setPicked(services.find((s) => s.id === id) ?? null);
-            setAccountId('');
-            setVerifyResult(null);
-          }}
-        />
+        <div data-new="brand-hover-logos">
+          <BrandPicker
+            brands={brands.filter((b) => brandMatches(b, query))}
+            none={t('accounts.noServicesFound')}
+            onPick={(id) => {
+              setPicked(services.find((s) => s.id === id) ?? null);
+              setAccountId('');
+              setVerifyResult(null);
+            }}
+          />
+        </div>
       ) : (
         <div data-new="picker-form" className="flex flex-col gap-4">
           {fromEnv ? (

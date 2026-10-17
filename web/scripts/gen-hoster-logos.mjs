@@ -56,6 +56,9 @@ const SERVICE_MARKS = {
   'multiup.io': 'multiup.png',
   'neodebrid.com': 'neodebrid.png',
   'rpnet.biz': 'rpnet.png',
+  // The site's icon draws the cube on a white plate, and lifted off it the
+  // paler faces come out translucent.
+  'torbox.app': 'torbox.png',
   'zevera.com': 'zevera.png',
 };
 
