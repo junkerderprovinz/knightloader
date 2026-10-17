@@ -3862,6 +3862,7 @@ export const ko: Dict = {
   'whatsnew.change.workDirOptional': '“{name}”은(는) 선택 사항입니다. 비워 두면 모든 다운로드가 저장 폴더에 바로 저장됩니다.',
   'whatsnew.change.bugReportSpeed': '“{name}”로 저장하는 파일에 최근 1시간의 속도와, 실행 중인 각 다운로드의 백엔드 및 열린 연결 수도 담깁니다. 이름과 링크는 빠집니다.',
   'whatsnew.change.releaseCards': '업데이트 후 이 창에는 이전에 쓰던 버전 이후의 릴리스마다 카드가 표시되며, 릴리스 노트와 달라진 내용이 담겨 있습니다.',
+  'whatsnew.change.folderBack': '폴더 선택 창의 경로 앞에 뒤로 화살표가 있어 한 단계 위 폴더로 이동합니다.',
   'whatsnew.change.jdAutoUpdate': '이제 JDownloader는 다운로드가 실행되지 않을 때 하루에 한 번 업데이트됩니다. 스위치는 “{updates}”의 “{name}” 하위 카드에 있습니다.',
   'whatsnew.change.brandHoverLogos': '계정이나 호스터를 고르는 창에서는 포인터 아래의 로고가 꽉 찬 모양이 되고, 덩어리로만 보일 로고는 세부를 회색 톤으로 유지합니다.',
   'whatsnew.change.quietPlayback': '“{servers}”에 미디어 서버를 추가하면 Plex, Jellyfin 또는 Emby가 무언가를 재생하는 동안 “{name}”가 저절로 켜집니다.',

@@ -3860,6 +3860,7 @@ export const da: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ er valgfri: står den tom, går hver download direkte i downloadmappen.',
   'whatsnew.change.bugReportSpeed': '„{name}“ gemmer også hastigheden for den seneste time og hver kørende download med dens backend og hvor mange forbindelser den har åbne. Navne og links holdes ude.',
   'whatsnew.change.releaseCards': 'Efter en opdatering viser dette vindue et kort for hver udgivelse siden den, du havde, med dens noter og de ændringer, den bragte.',
+  'whatsnew.change.folderBack': 'Mappevælgeren har en tilbagepil foran stien, der går én mappe op.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader opdaterer nu sig selv en gang om dagen, når ingen af dens downloads kører. Kontakten sidder på underkortet „{name}“ på „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'I vinduerne, hvor du vælger en konto eller en hoster, bliver et logo under markøren dækkende, og et logo, der kun ville være en klat, beholder sine detaljer i gråtoner.',
   'whatsnew.change.quietPlayback': 'Tilføj din medieserver under „{servers}“, så slår „{name}“ sig selv til, mens Plex, Jellyfin eller Emby afspiller noget.',

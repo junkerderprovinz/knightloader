@@ -3888,6 +3888,7 @@ export const hr: Dict = {
   'whatsnew.change.workDirOptional': '„{name}” nije obavezna: ako ostane prazna, svako preuzimanje ide izravno u mapu za preuzimanja.',
   'whatsnew.change.bugReportSpeed': '„{name}” sprema i brzinu posljednjeg sata te svako preuzimanje u tijeku s njegovim pozadinskim sustavom i brojem otvorenih veza. Imena i poveznice ostaju vani.',
   'whatsnew.change.releaseCards': 'Nakon ažuriranja ovaj prozor prikazuje karticu za svako izdanje od onog koje ste imali, s njegovim bilješkama i promjenama koje je donijelo.',
+  'whatsnew.change.folderBack': 'Odabir mape ima strelicu natrag ispred putanje koja ide jednu mapu gore.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader se sada ažurira jednom dnevno, kad nijedno njegovo preuzimanje ne radi. Prekidač je na potkartici „{name}” na „{updates}”.',
   'whatsnew.change.brandHoverLogos': 'U prozorima u kojima biraš račun ili hoster logo ispod pokazivača postaje pun, a logo koji bi bio samo mrlja zadržava svoje detalje u nijansama sive.',
   'whatsnew.change.quietPlayback': 'Dodaj svoj medijski poslužitelj pod „{servers}” i „{name}” će se sam uključiti dok Plex, Jellyfin ili Emby nešto reproducira.',

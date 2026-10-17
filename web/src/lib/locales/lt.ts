@@ -3876,6 +3876,7 @@ export const lt: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ neprivalomas: palikus tuščią, kiekvienas atsisiuntimas keliauja tiesiai į atsisiuntimų aplanką.',
   'whatsnew.change.bugReportSpeed': '„{name}“ išsaugo ir paskutinės valandos greitį bei kiekvieną vykstantį atsisiuntimą su jo posisteme ir atvirų ryšių skaičiumi. Pavadinimai ir nuorodos lieka nuošalyje.',
   'whatsnew.change.releaseCards': 'Po naujinimo šiame lange rodoma kortelė kiekvienam leidimui nuo tavo turėtos versijos, su jo pastabomis ir pakeitimais.',
+  'whatsnew.change.folderBack': 'Aplanko pasirinkime prieš kelią yra rodyklė atgal, kuri pakyla vienu aplanku aukštyn.',
   'whatsnew.change.jdAutoUpdate': 'Dabar JDownloader atsinaujina kartą per dieną, kai neveikia nė vienas jo atsisiuntimas. Jungiklis yra pokortelėje „{name}“ kortelėje „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'Languose, kuriuose renkiesi paskyrą ar talpintoją, logotipas po žymekliu tampa vientisas, o tas, kuris būtų tik dėmė, išlaiko savo detales pilkais atspalviais.',
   'whatsnew.change.quietPlayback': 'Pridėk savo medijos serverį skiltyje „{servers}“, ir „{name}“ įsijungs pats, kol Plex, Jellyfin ar Emby ką nors leidžia.',

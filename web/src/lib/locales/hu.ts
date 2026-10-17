@@ -3876,6 +3876,7 @@ export const hu: Dict = {
   'whatsnew.change.workDirOptional': 'A „{name}” nem kötelező: ha üresen marad, minden letöltés közvetlenül a letöltési mappába kerül.',
   'whatsnew.change.bugReportSpeed': 'A(z) „{name}” az utolsó óra sebességét is elmenti, és minden futó letöltést a háttérrendszerével és a nyitott kapcsolatai számával. Nevek és linkek nem kerülnek bele.',
   'whatsnew.change.releaseCards': 'Egy frissítés után ez az ablak minden kiadásról mutat egy kártyát a nálad lévő verzió óta, a megjegyzéseivel és a változásokkal, amelyeket hozott.',
+  'whatsnew.change.folderBack': 'A mappaválasztóban az útvonal előtt egy vissza nyíl van, amely egy mappával feljebb lép.',
   'whatsnew.change.jdAutoUpdate': 'A JDownloader mostantól naponta egyszer frissül, amikor egyik letöltése sem fut. A kapcsoló a(z) „{name}” alkártyán van, a(z) „{updates}” kártyán.',
   'whatsnew.change.brandHoverLogos': 'Azokban az ablakokban, ahol fiókot vagy tárhelyet választasz, a mutató alatti logó teltté válik, az pedig, amelyből csak egy folt maradna, szürke árnyalatokban megtartja a részleteit.',
   'whatsnew.change.quietPlayback': 'Add hozzá a médiakiszolgálódat a(z) „{servers}” alatt, és a(z) „{name}” magától bekapcsol, amíg a Plex, a Jellyfin vagy az Emby lejátszik valamit.',

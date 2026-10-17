@@ -3884,6 +3884,7 @@ export const sk: Dict = {
   'whatsnew.change.workDirOptional': '„{name}“ je voliteľný: ak zostane prázdny, každé sťahovanie ide rovno do priečinka na sťahovanie.',
   'whatsnew.change.bugReportSpeed': '„{name}“ uloží aj rýchlosť za poslednú hodinu a každé bežiace sťahovanie s jeho backendom a počtom otvorených spojení. Názvy a odkazy zostanú vonku.',
   'whatsnew.change.releaseCards': 'Po aktualizácii toto okno ukáže kartu pre každé vydanie od tvojej verzie, s jeho poznámkami a zmenami, ktoré prinieslo.',
+  'whatsnew.change.folderBack': 'Výber priečinka má pred cestou šípku späť, ktorá prejde o priečinok vyššie.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader sa teraz aktualizuje raz denne, keď nebeží žiadne z jeho sťahovaní. Prepínač nájdeš na podkarte „{name}“ na „{updates}“.',
   'whatsnew.change.brandHoverLogos': 'V oknách, kde vyberáš účet alebo hostiteľa, je logo pod ukazovateľom plné, a to, z ktorého by zostala len škvrna, si ponechá detaily v odtieňoch sivej.',
   'whatsnew.change.quietPlayback': 'Pridaj svoj mediálny server v „{servers}“ a „{name}“ sa sám zapne, kým Plex, Jellyfin alebo Emby niečo prehráva.',

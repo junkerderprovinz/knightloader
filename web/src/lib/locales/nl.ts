@@ -3857,6 +3857,7 @@ export const nl: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” is optioneel: blijft hij leeg, dan gaat elke download direct naar de downloadmap.',
   'whatsnew.change.bugReportSpeed': '“{name}” bewaart ook de snelheid van het laatste uur en elke lopende download met zijn backend en hoeveel verbindingen hij open heeft. Namen en links blijven erbuiten.',
   'whatsnew.change.releaseCards': 'Na een update toont dit venster een kaart voor elke release sinds de versie die je had, met de opmerkingen en de wijzigingen die erbij horen.',
+  'whatsnew.change.folderBack': 'De mapkiezer heeft een terugpijl voor het pad die één map omhoog gaat.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader werkt zichzelf nu één keer per dag bij, als geen van zijn downloads loopt. De schakelaar zit op de subkaart “{name}” op “{updates}”.',
   'whatsnew.change.brandHoverLogos': 'In de vensters waarin je een account of hoster kiest, wordt een logo onder de aanwijzer dekkend, en een logo dat alleen een vlek zou zijn, houdt zijn details in grijstinten.',
   'whatsnew.change.quietPlayback': 'Voeg je mediaserver toe onder “{servers}”, dan gaat “{name}” vanzelf aan zolang Plex, Jellyfin of Emby iets afspeelt.',

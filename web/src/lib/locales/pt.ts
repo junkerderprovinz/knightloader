@@ -3865,6 +3865,7 @@ export const pt: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» é opcional: se ficar vazia, cada transferência vai direto para a pasta de transferências.',
   'whatsnew.change.bugReportSpeed': '«{name}» guarda também a velocidade da última hora e cada transferência em curso com o seu backend e quantas ligações tem abertas. Nomes e links ficam de fora.',
   'whatsnew.change.releaseCards': 'Depois de uma atualização, esta janela mostra um cartão por cada versão desde a que tinhas, com as notas e as mudanças que trouxe.',
+  'whatsnew.change.folderBack': 'O seletor de pastas tem uma seta para trás antes do caminho que sobe uma pasta.',
   'whatsnew.change.jdAutoUpdate': 'O JDownloader passa a atualizar-se uma vez por dia, quando nenhuma das suas transferências está a decorrer. O interruptor está no subcartão «{name}» em «{updates}».',
   'whatsnew.change.brandHoverLogos': 'Nas janelas onde escolhes uma conta ou um alojamento, o logótipo sob o ponteiro fica opaco, e um que seria apenas uma mancha mantém os detalhes em tons de cinzento.',
   'whatsnew.change.quietPlayback': 'Adiciona o teu servidor multimédia em «{servers}» e «{name}» liga-se sozinho enquanto o Plex, o Jellyfin ou o Emby reproduz alguma coisa.',

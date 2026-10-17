@@ -3858,6 +3858,7 @@ export const it: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» è facoltativa: se resta vuota, ogni download va direttamente nella cartella di download.',
   'whatsnew.change.bugReportSpeed': '«{name}» salva anche la velocità dell’ultima ora e ogni download in corso con il suo backend e quante connessioni ha aperte. Nomi e link restano fuori.',
   'whatsnew.change.releaseCards': 'Dopo un aggiornamento questa finestra mostra una scheda per ogni release dalla tua versione in poi, con le sue note e le modifiche che ha portato.',
+  'whatsnew.change.folderBack': 'La scelta della cartella ha una freccia indietro davanti al percorso che sale di una cartella.',
   'whatsnew.change.jdAutoUpdate': 'Ora JDownloader si aggiorna una volta al giorno, quando nessuno dei suoi download è in corso. L’interruttore è nella sottoscheda «{name}» in «{updates}».',
   'whatsnew.change.brandHoverLogos': 'Nelle finestre in cui scegli un account o un hoster, il logo sotto il puntatore diventa pieno, e quello che sarebbe solo una macchia mantiene i suoi dettagli in toni di grigio.',
   'whatsnew.change.quietPlayback': 'Aggiungi il tuo server multimediale in «{servers}» e «{name}» si attiva da sola mentre Plex, Jellyfin o Emby riproduce qualcosa.',

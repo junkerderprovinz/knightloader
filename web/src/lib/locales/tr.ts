@@ -3873,6 +3873,7 @@ export const tr: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” isteğe bağlıdır: boş bırakılırsa her indirme doğrudan indirme klasörüne gider.',
   'whatsnew.change.bugReportSpeed': '“{name}” ayrıca son bir saatin hızını ve çalışan her indirmeyi, arka ucu ve açık bağlantı sayısıyla birlikte kaydeder. Adlar ve bağlantılar dışarıda kalır.',
   'whatsnew.change.releaseCards': 'Güncellemeden sonra bu pencere, elindeki sürümden sonraki her sürüm için notlarıyla ve getirdiği değişikliklerle bir kart gösterir.',
+  'whatsnew.change.folderBack': 'Klasör seçicide yolun önünde bir klasör yukarı çıkan bir geri oku var.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader artık indirmelerinden hiçbiri çalışmazken günde bir kez kendini güncelliyor. Anahtarı “{updates}” üzerindeki “{name}” alt kartında.',
   'whatsnew.change.brandHoverLogos': 'Hesap ya da barındırıcı seçtiğin pencerelerde imlecin altındaki logo dolu hale gelir, yalnızca bir leke olacak bir logo ise ayrıntılarını gri tonlarda korur.',
   'whatsnew.change.quietPlayback': 'Medya sunucunu “{servers}” altına ekle; Plex, Jellyfin veya Emby bir şey oynattığı sürece “{name}” kendiliğinden açılır.',

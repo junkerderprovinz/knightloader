@@ -3891,6 +3891,7 @@ export const he: Dict = {
   'whatsnew.change.workDirOptional': '„{name}” הוא אופציונלי: אם הוא נשאר ריק, כל הורדה נכתבת ישירות לתיקיית ההורדות.',
   'whatsnew.change.bugReportSpeed': '„{name}” שומר גם את המהירות של השעה האחרונה ואת כל הורדה פעילה עם צד השרת שלה ומספר החיבורים הפתוחים. שמות וקישורים לא נכללים.',
   'whatsnew.change.releaseCards': 'אחרי עדכון החלון הזה מציג כרטיס לכל גרסה מאז זו שהייתה לך, עם ההערות שלה והשינויים שהיא הביאה.',
+  'whatsnew.change.folderBack': 'לבוחר התיקיות יש חץ חזרה לפני הנתיב, שעולה תיקייה אחת למעלה.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader מתעדכן עכשיו פעם ביום, כשאף אחת מההורדות שלו לא פועלת. המתג נמצא בכרטיס המשנה „{name}” ב-„{updates}”.',
   'whatsnew.change.brandHoverLogos': 'בחלונות שבהם בוחרים חשבון או אחסון, הלוגו שמתחת לסמן נעשה אטום, ולוגו שהיה נראה רק ככתם שומר על הפרטים שלו בגוני אפור.',
   'whatsnew.change.quietPlayback': 'הוסף את שרת המדיה שלך תחת „{servers}”, ו-„{name}” יופעל מעצמו כל עוד Plex, Jellyfin או Emby מנגנים משהו.',

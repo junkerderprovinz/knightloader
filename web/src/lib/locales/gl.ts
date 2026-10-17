@@ -3872,6 +3872,7 @@ export const gl: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» é opcional: se o deixas baleiro, cada descarga vai directa ao cartafol de descargas.',
   'whatsnew.change.bugReportSpeed': '«{name}» garda tamén a velocidade da última hora e cada descarga en curso co seu backend e cantas conexións ten abertas. Os nomes e as ligazóns quedan fóra.',
   'whatsnew.change.releaseCards': 'Despois dunha actualización, esta xanela mostra unha tarxeta por cada versión desde a que tiñas, coas súas notas e os cambios que trouxo.',
+  'whatsnew.change.folderBack': 'O selector de cartafoles ten unha frecha atrás diante da ruta que sobe un cartafol.',
   'whatsnew.change.jdAutoUpdate': 'Agora JDownloader actualízase unha vez ao día, cando non hai ningunha das súas descargas en curso. O interruptor está na subtarxeta «{name}» de «{updates}».',
   'whatsnew.change.brandHoverLogos': 'Nas xanelas onde escolles unha conta ou un servidor, o logotipo baixo o punteiro vólvese opaco, e o que só sería unha mancha conserva os seus detalles en tons de gris.',
   'whatsnew.change.quietPlayback': 'Engade o teu servidor multimedia en «{servers}» e «{name}» actívase só mentres Plex, Jellyfin ou Emby reproduce algo.',

@@ -3977,6 +3977,7 @@ export const en = {
   'whatsnew.change.workDirOptional': '"{name}" is optional: left empty, every download goes straight into the download folder.',
   'whatsnew.change.bugReportSpeed': '"{name}" also saves the speed of the last hour and every running download with its backend and how many connections it has open. Names and links stay out.',
   'whatsnew.change.releaseCards': 'After an update this window shows a card for every release since the one you had, with its notes and the changes it brought.',
+  'whatsnew.change.folderBack': 'The folder chooser has a back arrow in front of the path that goes up one folder.',
   'whatsnew.change.jdAutoUpdate': 'JDownloader now updates itself once a day, while none of its downloads is running. The switch for it is on the "{name}" sub-card on "{updates}".',
   'whatsnew.change.brandHoverLogos': 'In the windows where you pick an account or a hoster, a logo under the pointer turns solid, and one that would only be a blob keeps its details in shades of grey.',
   'whatsnew.change.quietPlayback': 'Add your media server under "{servers}", and "{name}" switches itself on while Plex, Jellyfin or Emby is playing something.',

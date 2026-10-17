@@ -3862,6 +3862,7 @@ export const ca: Dict = {
   'whatsnew.change.workDirOptional': '«{name}» és opcional: si el deixes buit, cada baixada va directament a la carpeta de baixades.',
   'whatsnew.change.bugReportSpeed': '«{name}» desa també la velocitat de l’última hora i cada baixada en curs amb el seu backend i quantes connexions té obertes. Els noms i els enllaços en queden fora.',
   'whatsnew.change.releaseCards': 'Després d\'una actualització, aquesta finestra mostra una targeta per cada versió des de la que tenies, amb les seves notes i els canvis que va portar.',
+  'whatsnew.change.folderBack': 'El selector de carpetes té una fletxa enrere davant del camí que puja una carpeta.',
   'whatsnew.change.jdAutoUpdate': 'Ara JDownloader s’actualitza un cop al dia, quan no hi ha cap de les seves baixades en curs. L’interruptor és a la subtargeta «{name}» de «{updates}».',
   'whatsnew.change.brandHoverLogos': 'A les finestres on tries un compte o un allotjador, el logotip sota el punter es torna opac, i el que només seria una taca conserva els detalls en tons de gris.',
   'whatsnew.change.quietPlayback': 'Afegeix el teu servidor multimèdia a «{servers}» i «{name}» s’activa sol mentre Plex, Jellyfin o Emby reprodueix alguna cosa.',

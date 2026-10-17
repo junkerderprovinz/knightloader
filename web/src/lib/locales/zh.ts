@@ -3857,6 +3857,7 @@ export const zh: Dict = {
   'whatsnew.change.workDirOptional': '“{name}” 是可选的：留空时，每个下载都会直接写入下载文件夹。',
   'whatsnew.change.bugReportSpeed': '“{name}”保存的文件里也会包含最近一小时的速度，以及每个正在进行的下载及其后端和打开的连接数。名称和链接不会写入。',
   'whatsnew.change.releaseCards': '更新后，这个窗口会为你之前版本之后的每个版本显示一张卡片，附上它的说明和带来的改动。',
+  'whatsnew.change.folderBack': '文件夹选择器在路径前面有一个返回箭头，可以向上一层文件夹。',
   'whatsnew.change.jdAutoUpdate': 'JDownloader 现在每天自动更新一次，前提是它没有任何下载在运行。开关在“{updates}”中的“{name}”子卡片上。',
   'whatsnew.change.brandHoverLogos': '在选择账户或网盘的窗口中，指针下的徽标会变成实心的；原本只会是一团色块的徽标，则以灰色调保留细节。',
   'whatsnew.change.quietPlayback': '在“{servers}”中添加你的媒体服务器后，只要 Plex、Jellyfin 或 Emby 正在播放，“{name}”就会自动开启。',
