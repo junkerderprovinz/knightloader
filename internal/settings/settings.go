@@ -393,10 +393,10 @@ type Settings struct {
 	TorrentCard  bool `json:"torrentCard"`
 	FinishedCard bool `json:"finishedCard"`
 
-	// AutoUpdateCheck asks the container build's General tab to check for a
-	// newer release when it loads, instead of only on a click of "Check for
-	// updates". Off by default: it is an outbound call to GitHub. The desktop
-	// build checks on its own, see AutoUpdate.
+	// AutoUpdateCheck is kept as the file has it, and no build acts on it. A
+	// container is updated through its container manager, so its General tab
+	// shows the switch off and greyed out and checks only on a click of "Check
+	// for updates"; the desktop build checks on its own, see AutoUpdate.
 	AutoUpdateCheck bool `json:"autoUpdateCheck"`
 
 	// AutoUpdate lets the desktop build download a newer release once a day
@@ -427,6 +427,13 @@ type Settings struct {
 	// weeks behind, and a site that changed its page breaks every download
 	// from it until yt-dlp catches up.
 	YtdlpAutoUpdate bool `json:"ytdlpAutoUpdate"`
+
+	// JDAutoUpdate lets the app ask the JDownloader backend once a day whether
+	// an update waits, and have JD install it while none of its downloads
+	// runs, since JD restarts to do so. On by default: the headless JD updates
+	// itself only on its first run, and a stale one loses hosters as they
+	// change.
+	JDAutoUpdate bool `json:"jdAutoUpdate"`
 
 	// Packagizer names packages, picks folders and sets download options as
 	// links are staged. Stored exactly as the user wrote it: rules.Compile is
@@ -823,6 +830,7 @@ func Defaults() Settings {
 		KeepAwake:        true,
 		AutoUpdate:       true,
 		YtdlpAutoUpdate:  true,
+		JDAutoUpdate:     true,
 		// AutoConfirm and AddAtTop are usable at their zero value: nothing is
 		// auto-confirmed and nothing is reordered. AutoStart is the one of the
 		// three that is not, so that confirming a link still starts it.

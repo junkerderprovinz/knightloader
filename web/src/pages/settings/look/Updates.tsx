@@ -230,9 +230,9 @@ export function BuiltInCard({ hue }: { hue: number }) {
 }
 
 /**
- * AppUpdates checks GitHub for a newer release on request, and a container
- * also on opening the page while its switch is on (off by default). A
- * container is pointed at the release. The desktop build updates itself in the
+ * AppUpdates checks GitHub for a newer release on request. A container is
+ * updated by its container manager, so both switches are greyed out there and
+ * a check points at the release. The desktop build updates itself in the
  * background (desktop/updates.go), and a check there also tells whether a
  * downloaded version waits for the next start.
  */
@@ -264,13 +264,6 @@ function AppUpdates({ deployment }: { deployment: string }) {
     setChecking(false);
   }, []);
 
-  // Once, when the switch's value arrives, and on a container only: the
-  // desktop build asks GitHub on its own. A later settings edit asks nothing.
-  useEffect(() => {
-    if (deployment === 'container' && cfg.autoUpdateCheck) void onCheck();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [deployment, cfg.autoUpdateCheck]);
-
   const isDesktop = deployment === 'desktop';
   const ready = check?.ready;
   const available = !!check?.checked && check.available;
@@ -278,12 +271,16 @@ function AppUpdates({ deployment }: { deployment: string }) {
 
   return (
     <ToolCard name="KnightLoader" version={!version || version === 'dev' ? t('nav.workingTitle') : version.replace(/^v/, '')}>
+      {/* The desktop build checks on its own and has no use for this switch.
+          A container keeps the stored value as it is, so a key press on the
+          disabled switch changes nothing either. */}
       {!isDesktop && (
         <ToggleRow
           label={t('settings.look.updatesAuto')}
-          hint={t('settings.look.updatesAutoHint')}
-          checked={cfg.autoUpdateCheck}
-          onChange={(v) => patch({ autoUpdateCheck: v })}
+          hint={t('settings.look.updatesAutoContainerHint')}
+          checked={false}
+          disabled
+          onChange={() => {}}
         />
       )}
       {/* Shown on both builds; a container cannot replace itself, so there the
@@ -558,10 +555,12 @@ const pause = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
  * JDUpdates is the headless JDownloader, which KnightLoader talks to. It also
  * updates itself; here a check asks it whether an update waits, and the update
  * has it install that and restart, after which the sub-card waits until it
- * answers again and shows its new revision.
+ * answers again and shows its new revision. While jdAutoUpdate is on, the
+ * server does the same once a day when none of JD's downloads runs.
  */
 function JDUpdates() {
   const { t } = useT();
+  const { cfg, patch } = useDraft();
   const [jd, setJd] = useState<JDStatus | null>(null);
   // Null before a check, then whether JDownloader answered it.
   const [checked, setChecked] = useState<boolean | null>(null);
@@ -650,6 +649,16 @@ function JDUpdates() {
       version={version}
     >
       {/* Without a JDownloader there is nothing to ask. */}
+      {jd?.configured && (
+        <div data-new="jd-auto-update">
+          <ToggleRow
+            checked={cfg.jdAutoUpdate}
+            onChange={(v) => patch({ jdAutoUpdate: v })}
+            label={t('settings.look.updatesAutoUpdate')}
+            hint={t('settings.look.jdAutoUpdateHint')}
+          />
+        </div>
+      )}
       {jd?.configured && (
         <div className="flex flex-col gap-1.5">
           {failed && <p className="text-sm text-statusFail">{failed}</p>}
