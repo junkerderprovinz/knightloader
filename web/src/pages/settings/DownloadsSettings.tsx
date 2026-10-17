@@ -68,7 +68,7 @@ export function DownloadsSettings() {
           <SettingPathInput
             field="workDir"
             value={cfg.workDir}
-            placeholder="/downloads/.incoming"
+            placeholder={t('settings.downloads.workDirEmpty')}
             title={t('settings.downloads.workDir')}
             onValue={(workDir) => patch({ workDir })}
           />
