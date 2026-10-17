@@ -459,6 +459,9 @@ type App struct {
 	// mediaToolsState describes yt-dlp and ffmpeg on this machine
 	// (app_mediatools.go). It is built on first use.
 	mediaToolsState
+	// jdUpdateState is how the daily JDownloader update reaches JD
+	// (app_jdupdate.go).
+	jdUpdateState
 	// torrentFiles routes the engine's reports on the files of a torrent a
 	// debrid service fetched (app_debridtorrents.go).
 	torrentFiles torrentParts
@@ -523,6 +526,7 @@ func NewWithKey(dataDir string, key *appkey.Key) (*App, error) {
 	}
 	a.usenetDial = &usenetDialer{a}
 	a.latestYtdlp, a.installYtdlp = mediatools.CheckLatest, mediatools.Install
+	a.checkJD, a.restartJD = a.CheckJDUpdate, restartJDForUpdate
 	// Every outbound client comes from internal/httpx, so proxy, user agent,
 	// redirect rule and pooling are one policy. Each subsystem gets its own
 	// client so a router holding connections open cannot starve a crawl.

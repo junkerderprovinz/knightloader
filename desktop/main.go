@@ -89,6 +89,9 @@ func main() {
 	// fetched into the data folder, so the daily update keeps it current here
 	// as it does in the container.
 	a.StartYtdlpAutoUpdate()
+	// A JD named in KL_JD is kept current here too; without one the daily run
+	// has nothing to ask.
+	a.StartJDAutoUpdate()
 
 	// Window and tray preferences stay out of settings.Settings, which every
 	// connected browser reads and writes; see config.go.

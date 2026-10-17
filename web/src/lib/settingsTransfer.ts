@@ -363,6 +363,7 @@ const GROUPS: Record<string, TransferGroup> = {
   hideInstancesFromSidebar: 'look',
   autoUpdateCheck: 'look',
   autoUpdate: 'look',
+  jdAutoUpdate: 'look',
 };
 
 export function groupOf(key: string): TransferGroup {

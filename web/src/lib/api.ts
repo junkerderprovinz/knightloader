@@ -668,7 +668,7 @@ export interface Settings {
    *  of their own (lib/listCards.ts). The app reads them too. */
   torrentCard: boolean;
   finishedCard: boolean;
-  /** Only the container build's General tab acts on it. */
+  /** Kept as stored; no build acts on it (internal/settings). */
   autoUpdateCheck: boolean;
   /** Downloads a newer release for the next start. Only the desktop build acts on it. */
   autoUpdate: boolean;
@@ -681,6 +681,9 @@ export interface Settings {
   /** Fetches a newer yt-dlp once a day, checked the way the fetch button
    *  checks it, and keeps the one in use when the check fails. */
   ytdlpAutoUpdate: boolean;
+  /** Has the JDownloader backend install a waiting update once a day while
+   *  none of its downloads runs. */
+  jdAutoUpdate: boolean;
 
   /**
    * The captcha solvers to try before a human is asked, as catalogue ids in

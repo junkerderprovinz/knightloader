@@ -161,11 +161,12 @@ func main() {
 
 	// Hoster logins are pushed into the JD sidecar on a loop, so a recreated JD
 	// container gets them back without a restart. This, the account health
-	// sweep and the daily yt-dlp update belong to the binaries rather than
-	// app.New, which every test calls.
+	// sweep and the daily yt-dlp and JD updates belong to the binaries rather
+	// than app.New, which every test calls.
 	a.StartHosterAuth()
 	a.StartAccountHealthNow()
 	a.StartYtdlpAutoUpdate()
+	a.StartJDAutoUpdate()
 
 	a.CnL = cnl.Listen(a)
 	defer a.CnL.Stop()

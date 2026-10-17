@@ -205,6 +205,20 @@ func TestYtdlpAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
 	}
 }
 
+func TestJDAutoUpdateIsOnForAnInstallThatNeverSawIt(t *testing.T) {
+	dir := t.TempDir()
+	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"maxConcurrent": 2, "ytdlpAutoUpdate": false}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	st, err := Load(dir)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if !st.Get().JDAutoUpdate {
+		t.Error("JDAutoUpdate is off after an upgrade; the default is on")
+	}
+}
+
 func TestListCardsAreOnForAnInstallThatNeverSawThem(t *testing.T) {
 	dir := t.TempDir()
 	if err := os.WriteFile(filepath.Join(dir, "settings.json"), []byte(`{"maxConcurrent": 2}`), 0o600); err != nil {
