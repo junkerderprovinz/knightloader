@@ -51,6 +51,17 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.1.5',
+    changes: [
+      {
+        id: 'jd-auto-update',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.jdAutoUpdate',
+        names: { name: 'health.part.jd', updates: 'settings.look.updatesTitle' },
+      },
+    ],
+  },
+  {
     version: '2.1.4',
     changes: [{ id: 'release-cards', text: 'whatsnew.change.releaseCards' }],
   },

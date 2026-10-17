@@ -256,18 +256,19 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     {
       title: 'settings.look.updatesTitle',
       hint: 'settings.look.updatesHint',
-      // KnightLoader and yt-dlp share the two switch labels. Quit and restart
-      // are the card's last group, under a heading of their own.
+      // KnightLoader, yt-dlp and JDownloader share the switch labels. Quit and
+      // restart are the card's last group, under a heading of their own.
       rows: [
         { key: 'settings.look.updatesAutoUpdate', hint: 'settings.look.updatesAutoUpdateHint' },
-        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoHint' },
+        { key: 'settings.look.updatesAuto', hint: 'settings.look.updatesAutoContainerHint' },
         { key: 'settings.system.lifecycleTitle', hint: 'settings.system.unavailable' },
       ],
       // The container build uses its own sentence for the update hint, and
-      // yt-dlp's switches carry their own hints. A sub-card's (i) says what its
-      // program does and how it is updated.
+      // yt-dlp's and JDownloader's switches carry their own hints. A sub-card's
+      // (i) says what its program does and how it is updated.
       body: [
         'settings.look.updatesAutoUpdateContainerHint',
+        'settings.look.jdAutoUpdateHint',
         'settings.resolvers.toolsAutoCheckHint',
         'settings.resolvers.toolsAutoUpdateHint',
         'settings.resolvers.toolsShadowed',

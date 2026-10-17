@@ -69,7 +69,13 @@ afterEach(() => {
   vi.unstubAllGlobals();
 });
 
-const BASE = { autoUpdateCheck: false, autoUpdate: false, ytdlpVersionCheck: false, ytdlpAutoUpdate: false } as Settings;
+const BASE = {
+  autoUpdateCheck: false,
+  autoUpdate: false,
+  ytdlpVersionCheck: false,
+  ytdlpAutoUpdate: false,
+  jdAutoUpdate: false,
+} as Settings;
 
 async function draw(cfg: Partial<Settings> = {}) {
   const patch = vi.fn();
@@ -195,10 +201,32 @@ describe('the Updates card', () => {
     vi.useRealTimers();
   });
 
-  it('names the same two switches the same for both', async () => {
+  it('names the update switches the same on every sub-card', async () => {
     await draw();
     expect(switches(group('KnightLoader'))).toEqual(['Check automatically', 'Update automatically']);
     expect(switches(group('yt-dlp'))).toEqual(['Check automatically', 'Update automatically']);
+    expect(switches(group('JDownloader backend'))).toEqual(['Update automatically']);
+  });
+
+  it("writes the JDownloader backend's switch to its own setting", async () => {
+    const patch = await draw();
+    await act(async () => group('JDownloader backend').querySelector<HTMLButtonElement>('[role="switch"]')!.click());
+    expect(patch.mock.calls).toEqual([[{ jdAutoUpdate: true }]]);
+  });
+
+  it('greys out both KnightLoader switches in a container and says the container manager updates it', async () => {
+    const patch = await draw({ autoUpdateCheck: true, autoUpdate: true });
+    const rows = [...group('KnightLoader').querySelectorAll<HTMLButtonElement>('[role="switch"]')];
+    expect(rows.map((r) => r.getAttribute('aria-checked'))).toEqual(['false', 'false']);
+    expect(rows.map((r) => r.parentElement!.className)).toEqual([
+      expect.stringContaining('opacity-40'),
+      expect.stringContaining('opacity-40'),
+    ]);
+    const tip = group('KnightLoader').querySelector('[data-glim-label="Check automatically"] [role="note"]');
+    expect(tip?.getAttribute('aria-label')).toBe(en['settings.look.updatesAutoContainerHint']);
+    await act(async () => rows[0].click());
+    expect(patch).not.toHaveBeenCalled();
+    expect(button(group('KnightLoader'), 'Check for updates').disabled).toBe(false);
   });
 
   it("writes yt-dlp's switches to yt-dlp's own settings", async () => {
@@ -271,7 +299,7 @@ describe('the Updates card', () => {
     expect(group('KnightLoader').textContent).toContain('1.8.4');
   });
 
-  it('asks GitHub on opening only where its switch is on', async () => {
+  it('asks GitHub on opening only for yt-dlp, and only while its switch is on', async () => {
     await draw();
     expect(asked).not.toContain('/api/system/update-check');
     expect(asked).not.toContain('/api/mediatools/ytdlp/latest');
@@ -279,7 +307,7 @@ describe('the Updates card', () => {
     act(() => root.unmount());
     root = createRoot(host);
     await draw({ autoUpdateCheck: true, ytdlpVersionCheck: true });
-    expect(asked).toContain('/api/system/update-check');
+    expect(asked).not.toContain('/api/system/update-check');
     expect(asked).toContain('/api/mediatools/ytdlp/latest');
   });
 });
