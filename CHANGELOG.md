@@ -36,6 +36,30 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.5] - 2026-10-17
+
+### Added
+
+- **JDownloader updates itself.** The JDownloader backend card under Settings,
+  General, Updates has an Update automatically switch, on by default. Once a
+  day KnightLoader asks JDownloader for an update and installs it while none of
+  its downloads is running. If one is running, it tries again an hour later.
+
+### Changed
+
+- **Logos on hover.** In the windows where you pick an account or a hoster, a
+  logo under the pointer turns into a solid mark in the tile's text colour. A
+  logo whose outline would only be a shapeless blob keeps its detail in greys
+  instead. TorBox's cube no longer fades into its green tile.
+- **The working folder says it is optional.** Its empty field reads "Empty:
+  straight into the download folder", and its hint starts with Optional.
+
+### Fixed
+
+- **The container leaves update checks to the container manager.** In the
+  container, Check automatically is greyed out like Update automatically, and
+  opening the page no longer asks GitHub. Check for updates still works.
+
 ## [2.1.4] - 2026-10-16
 
 ### Added
