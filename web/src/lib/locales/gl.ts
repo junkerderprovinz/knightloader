@@ -3869,6 +3869,7 @@ export const gl: Dict = {
   'whatsnew.change.vpnRoutes': '«{name}» é unha tarxeta propia debaixo de «{vpn}», cun interruptor para cada tipo de descarga.',
   'whatsnew.change.bugReportSpeed': '«{name}» garda tamén a velocidade da última hora e cada descarga en curso co seu backend e cantas conexións ten abertas. Os nomes e as ligazóns quedan fóra.',
   'whatsnew.change.releaseCards': 'Despois dunha actualización, esta xanela mostra unha tarxeta por cada versión desde a que tiñas, coas súas notas e os cambios que trouxo.',
+  'whatsnew.change.brandHoverLogos': 'Nas xanelas onde escolles unha conta ou un servidor, o logotipo baixo o punteiro vólvese opaco, e o que só sería unha mancha conserva os seus detalles en tons de gris.',
   'whatsnew.change.quietPlayback': 'Engade o teu servidor multimedia en «{servers}» e «{name}» actívase só mentres Plex, Jellyfin ou Emby reproduce algo.',
   'whatsnew.change.quietUpload': '«{name}» limita o que soben os torrents mentres «{quiet}» está activo. Iso é o que importa cando o teu servidor multimedia envía un stream a alguén fóra da casa.',
   'whatsnew.change.quietUnpack': 'Con «{name}», os arquivos que rematan mentres conta un stream agardan na lista e extráense cando este remata.',

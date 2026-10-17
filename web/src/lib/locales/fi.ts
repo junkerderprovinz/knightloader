@@ -3873,6 +3873,7 @@ export const fi: Dict = {
   'whatsnew.change.vpnRoutes': '”{name}” on oma korttinsa kohdan ”{vpn}” alla, ja siinä on kytkin jokaiselle latauslajille.',
   'whatsnew.change.bugReportSpeed': '”{name}” tallentaa myös viimeisen tunnin nopeuden ja jokaisen käynnissä olevan latauksen taustajärjestelmineen ja avoimien yhteyksien määrineen. Nimet ja linkit jäävät pois.',
   'whatsnew.change.releaseCards': 'Päivityksen jälkeen tämä ikkuna näyttää kortin jokaisesta julkaisusta sinulla olleen version jälkeen, mukana julkaisun muistiinpanot ja sen tuomat muutokset.',
+  'whatsnew.change.brandHoverLogos': 'Ikkunoissa, joissa valitset tilin tai palvelun, osoittimen alla oleva logo muuttuu peittäväksi, ja logo, josta jäisi pelkkä läiskä, säilyttää yksityiskohtansa harmaan sävyinä.',
   'whatsnew.change.quietPlayback': 'Lisää mediapalvelimesi kohtaan ”{servers}”, niin ”{name}” kytkeytyy itse päälle aina, kun Plex, Jellyfin tai Emby toistaa jotain.',
   'whatsnew.change.quietUpload': '”{name}” rajoittaa torrenttien lähetystä, kun ”{quiet}” on päällä. Sillä on merkitystä, kun mediapalvelimesi striimaa jollekulle kodin ulkopuolelle.',
   'whatsnew.change.quietUnpack': 'Kun ”{name}” on päällä, arkistot, jotka valmistuvat striimin laskiessa, odottavat listassa ja puretaan, kun striimi on ohi.',

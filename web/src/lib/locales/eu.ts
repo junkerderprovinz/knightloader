@@ -3868,6 +3868,7 @@ export const eu: Dict = {
   'whatsnew.change.vpnRoutes': '«{name}» txartel propioa da «{vpn}» txartelaren azpian, deskarga mota bakoitzerako etengailu batekin.',
   'whatsnew.change.bugReportSpeed': '«{name}» botoiak azken orduko abiadura ere gordetzen du, eta martxan dagoen deskarga bakoitza bere backendarekin eta irekita dituen konexio kopuruarekin. Izenak eta estekak kanpoan geratzen dira.',
   'whatsnew.change.releaseCards': 'Eguneratze baten ondoren, leiho honek txartel bat erakusten du zuk zenuen bertsioaren ondorengo bertsio bakoitzeko, bere oharrekin eta ekarri zituen aldaketekin.',
+  'whatsnew.change.brandHoverLogos': 'Kontu edo ostalari bat aukeratzen duzun leihoetan, erakuslearen azpiko logoa opako bihurtzen da, eta orban hutsa izango litzatekeenak bere xehetasunak gordetzen ditu gris tonuetan.',
   'whatsnew.change.quietPlayback': 'Gehitu zure media-zerbitzaria «{servers}» atalean, eta «{name}» bere kabuz aktibatzen da Plex, Jellyfin edo Emby zerbait erreproduzitzen ari den bitartean.',
   'whatsnew.change.quietUpload': '«{name}» aukerak mugatzen du torrentek zenbat igotzen duten «{quiet}» aktibatuta dagoen bitartean. Horrek garrantzia du zure media-zerbitzariak etxetik kanpo dagoen norbaiti streama bidaltzen dionean.',
   'whatsnew.change.quietUnpack': '«{name}» aktibatuta, stream bat kontatzen den bitartean amaitzen diren artxiboek zerrendan itxaroten dute, eta streama amaitzean erauzten dira.',

@@ -3873,6 +3873,7 @@ export const hu: Dict = {
   'whatsnew.change.vpnRoutes': 'A(z) „{name}” önálló kártya a(z) „{vpn}” alatt, minden letöltésfajtához saját kapcsolóval.',
   'whatsnew.change.bugReportSpeed': 'A(z) „{name}” az utolsó óra sebességét is elmenti, és minden futó letöltést a háttérrendszerével és a nyitott kapcsolatai számával. Nevek és linkek nem kerülnek bele.',
   'whatsnew.change.releaseCards': 'Egy frissítés után ez az ablak minden kiadásról mutat egy kártyát a nálad lévő verzió óta, a megjegyzéseivel és a változásokkal, amelyeket hozott.',
+  'whatsnew.change.brandHoverLogos': 'Azokban az ablakokban, ahol fiókot vagy tárhelyet választasz, a mutató alatti logó teltté válik, az pedig, amelyből csak egy folt maradna, szürke árnyalatokban megtartja a részleteit.',
   'whatsnew.change.quietPlayback': 'Add hozzá a médiakiszolgálódat a(z) „{servers}” alatt, és a(z) „{name}” magától bekapcsol, amíg a Plex, a Jellyfin vagy az Emby lejátszik valamit.',
   'whatsnew.change.quietUpload': 'A(z) „{name}” korlátozza, mennyit töltenek fel a torrentek, amíg a(z) „{quiet}” be van kapcsolva. Ez akkor számít, amikor a médiakiszolgálód valakinek otthonon kívülre streamel.',
   'whatsnew.change.quietUnpack': 'A(z) „{name}” mellett a stream ideje alatt elkészülő archívumok a listában várnak, és a stream végén bontjuk ki őket.',

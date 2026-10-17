@@ -3737,6 +3737,7 @@ export const de: Dict = {
   'whatsnew.change.vpnRoutes': '„{name}“ ist eine eigene Karte unter „{vpn}“, mit einem Schalter für jede Art von Download.',
   'whatsnew.change.bugReportSpeed': '„{name}“ speichert auch die Geschwindigkeit der letzten Stunde und jeden laufenden Download mit seinem Backend und der Zahl seiner offenen Verbindungen. Namen und Links bleiben draußen.',
   'whatsnew.change.releaseCards': 'Nach einem Update zeigt dieses Fenster eine Karte für jedes Release seit dem, das du hattest, mit seinen Notizen und den Änderungen, die es gebracht hat.',
+  'whatsnew.change.brandHoverLogos': 'In den Fenstern, in denen du ein Konto oder einen Hoster auswählst, wird ein Logo unter dem Mauszeiger deckend, und eines, das dabei nur ein Fleck wäre, behält seine Details in Grautönen.',
   'whatsnew.change.quietPlayback': 'Trag deinen Medienserver unter „{servers}“ ein, dann schaltet sich „{name}“ von selbst ein, solange Plex, Jellyfin oder Emby etwas abspielt.',
   'whatsnew.change.quietUpload': '„{name}“ begrenzt, was Torrents hochladen, solange „{quiet}“ an ist. Darauf kommt es an, wenn dein Medienserver an jemanden außer Haus streamt.',
   'whatsnew.change.quietUnpack': 'Mit „{name}“ warten Archive, die fertig werden, während ein Stream zählt, in der Liste und werden entpackt, sobald er vorbei ist.',

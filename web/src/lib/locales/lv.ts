@@ -3862,6 +3862,7 @@ export const lv: Dict = {
   'whatsnew.change.vpnRoutes': '„{name}“ ir atsevišķa kartīte zem „{vpn}“, ar slēdzi katram lejupielādes veidam.',
   'whatsnew.change.bugReportSpeed': '„{name}“ saglabā arī pēdējās stundas ātrumu un katru notiekošo lejupielādi ar tās aizmugursistēmu un atvērto savienojumu skaitu. Nosaukumi un saites paliek ārpusē.',
   'whatsnew.change.releaseCards': 'Pēc atjaunināšanas šajā logā redzama karte par katru izlaidumu kopš jūsu iepriekšējās versijas, ar tā piezīmēm un izmaiņām.',
+  'whatsnew.change.brandHoverLogos': 'Logos, kur izvēlies kontu vai mitinātāju, logotips zem rādītāja kļūst necaurspīdīgs, bet tas, kas būtu tikai plankums, saglabā savas detaļas pelēkos toņos.',
   'whatsnew.change.quietPlayback': 'Pievieno savu mediju serveri sadaļā „{servers}“, un „{name}“ ieslēdzas pats, kamēr Plex, Jellyfin vai Emby kaut ko atskaņo.',
   'whatsnew.change.quietUpload': '„{name}“ ierobežo, cik daudz torrenti augšupielādē, kamēr „{quiet}“ ir ieslēgts. Tam ir nozīme, kad tavs mediju serveris straumē kādam ārpus mājām.',
   'whatsnew.change.quietUnpack': 'Ar „{name}“ arhīvi, kas pabeidzas, kamēr straume tiek skaitīta, gaida sarakstā un tiek izpakoti, kad tā beidzas.',

@@ -3871,6 +3871,7 @@ export const id: Dict = {
   'whatsnew.change.vpnRoutes': '“{name}” adalah kartu tersendiri di bawah “{vpn}”, dengan sakelar untuk setiap jenis unduhan.',
   'whatsnew.change.bugReportSpeed': '“{name}” juga menyimpan kecepatan satu jam terakhir dan setiap unduhan yang berjalan beserta backend-nya dan jumlah koneksi yang terbuka. Nama dan tautan tidak ikut.',
   'whatsnew.change.releaseCards': 'Setelah pembaruan, jendela ini menampilkan satu kartu untuk setiap rilis sejak versi yang Anda miliki, lengkap dengan catatan dan perubahan yang dibawanya.',
+  'whatsnew.change.brandHoverLogos': 'Di jendela tempat kamu memilih akun atau hoster, logo di bawah penunjuk menjadi pekat, dan logo yang hanya akan jadi gumpalan tetap menampilkan detailnya dalam nuansa abu-abu.',
   'whatsnew.change.quietPlayback': 'Tambahkan server mediamu di “{servers}”, dan “{name}” menyala sendiri selama Plex, Jellyfin, atau Emby memutar sesuatu.',
   'whatsnew.change.quietUpload': '“{name}” membatasi unggahan torrent selama “{quiet}” menyala. Ini penting saat server mediamu men-stream ke seseorang di luar rumah.',
   'whatsnew.change.quietUnpack': 'Dengan “{name}”, arsip yang selesai selama stream dihitung menunggu di daftar dan diekstrak setelah stream selesai.',

@@ -3871,6 +3871,7 @@ export const vi: Dict = {
   'whatsnew.change.vpnRoutes': '“{name}” là một thẻ riêng bên dưới “{vpn}”, có công tắc cho từng loại tải xuống.',
   'whatsnew.change.bugReportSpeed': '“{name}” lưu cả tốc độ của giờ vừa qua và mọi lượt tải đang chạy cùng backend và số kết nối đang mở của nó. Tên và liên kết không được đưa vào.',
   'whatsnew.change.releaseCards': 'Sau khi cập nhật, cửa sổ này hiện một thẻ cho mỗi bản phát hành kể từ bản bạn đang dùng, kèm ghi chú và những thay đổi nó mang lại.',
+  'whatsnew.change.brandHoverLogos': 'Trong các cửa sổ chọn tài khoản hoặc dịch vụ lưu trữ, logo dưới con trỏ trở nên đặc, còn logo nào chỉ thành một mảng màu thì giữ các chi tiết của nó bằng các sắc xám.',
   'whatsnew.change.quietPlayback': 'Thêm máy chủ media của bạn ở “{servers}”, và “{name}” tự bật trong lúc Plex, Jellyfin hoặc Emby đang phát.',
   'whatsnew.change.quietUpload': '“{name}” giới hạn lượng torrent tải lên trong lúc “{quiet}” đang bật. Điều này quan trọng khi máy chủ media của bạn phát cho ai đó ở ngoài nhà.',
   'whatsnew.change.quietUnpack': 'Với “{name}”, các tệp nén xong trong lúc một luồng phát được tính sẽ chờ trong danh sách và được giải nén khi luồng đó kết thúc.',

@@ -3871,6 +3871,7 @@ export const ms: Dict = {
   'whatsnew.change.vpnRoutes': '“{name}” ialah kad tersendiri di bawah “{vpn}”, dengan suis untuk setiap jenis muat turun.',
   'whatsnew.change.bugReportSpeed': '“{name}” juga menyimpan kelajuan sejam yang lalu dan setiap muat turun yang sedang berjalan bersama backend dan bilangan sambungan yang dibukanya. Nama dan pautan tidak dimasukkan.',
   'whatsnew.change.releaseCards': 'Selepas kemas kini, tetingkap ini menunjukkan satu kad bagi setiap keluaran sejak versi yang anda ada, lengkap dengan nota dan perubahan yang dibawanya.',
+  'whatsnew.change.brandHoverLogos': 'Dalam tetingkap tempat anda memilih akaun atau hos, logo di bawah penuding menjadi padat, dan logo yang hanya akan menjadi tompok mengekalkan butirannya dalam rona kelabu.',
   'whatsnew.change.quietPlayback': 'Tambah pelayan media anda di “{servers}”, dan “{name}” hidup sendiri selagi Plex, Jellyfin atau Emby memainkan sesuatu.',
   'whatsnew.change.quietUpload': '“{name}” mengehadkan muat naik torrent selagi “{quiet}” hidup. Ini penting apabila pelayan media anda menstrim kepada seseorang di luar rumah.',
   'whatsnew.change.quietUnpack': 'Dengan “{name}”, arkib yang siap semasa strim dikira menunggu dalam senarai dan diekstrak apabila strim itu tamat.',

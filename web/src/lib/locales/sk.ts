@@ -3881,6 +3881,7 @@ export const sk: Dict = {
   'whatsnew.change.vpnRoutes': '„{name}“ je samostatná karta pod „{vpn}“ s prepínačom pre každý druh sťahovania.',
   'whatsnew.change.bugReportSpeed': '„{name}“ uloží aj rýchlosť za poslednú hodinu a každé bežiace sťahovanie s jeho backendom a počtom otvorených spojení. Názvy a odkazy zostanú vonku.',
   'whatsnew.change.releaseCards': 'Po aktualizácii toto okno ukáže kartu pre každé vydanie od tvojej verzie, s jeho poznámkami a zmenami, ktoré prinieslo.',
+  'whatsnew.change.brandHoverLogos': 'V oknách, kde vyberáš účet alebo hostiteľa, je logo pod ukazovateľom plné, a to, z ktorého by zostala len škvrna, si ponechá detaily v odtieňoch sivej.',
   'whatsnew.change.quietPlayback': 'Pridaj svoj mediálny server v „{servers}“ a „{name}“ sa sám zapne, kým Plex, Jellyfin alebo Emby niečo prehráva.',
   'whatsnew.change.quietUpload': '„{name}“ obmedzuje, koľko torrenty odosielajú, kým je „{quiet}“ zapnutý. Na tom záleží, keď tvoj mediálny server streamuje niekomu mimo domova.',
   'whatsnew.change.quietUnpack': 'S „{name}“ archívy, ktoré sa dosťahujú, kým sa počíta stream, čakajú v zozname a rozbalia sa, keď skončí.',
