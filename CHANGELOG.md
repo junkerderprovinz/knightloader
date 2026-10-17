@@ -36,6 +36,22 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [2.1.6] - 2026-10-17
+
+### Added
+
+- **Every Unraid share in the folder chooser.** The Community Applications
+  template has a new path, Unraid shares, which mounts /mnt/user at the same
+  path inside the container. The folder chooser then lists every share, so the
+  download folder can be any of them, for example /mnt/user/downloads. An
+  existing container gets it when you add the path in its settings.
+
+### Changed
+
+- **A back arrow in the folder chooser.** The way up one folder sits in front
+  of the path as an arrow pointing back. The small icon after the path looked
+  like New folder.
+
 ## [2.1.5] - 2026-10-17
 
 ### Added
