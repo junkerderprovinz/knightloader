@@ -1,7 +1,7 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react';
+import { useEffect, useRef, useState, type CSSProperties, type RefObject } from 'react';
 import { type HosterIconBatch, hosterIconURL, hosterIconsURL } from '../lib/api';
 import { hueVars } from '../lib/appearance';
-import { type LogoTile, logoTileOf, type Pixels, WHITE, withoutPlate } from '../lib/logoTile';
+import { litPictureOf, type LogoTile, logoTileOf, type Pixels, WHITE, withoutPlate } from '../lib/logoTile';
 import { serviceMark } from '../lib/serviceMarks';
 
 /** The colours a picker's tile lights up in, as CSS colours. */
@@ -171,7 +171,7 @@ export function HosterIcon({
   const clean = hostOf(host);
   const box = { width: size, height: size };
   const mark = serviceMark(clean);
-  if (mark) return <Logo src={mark.src} mask={mark.mask} rest={mark.info.rest} box={box} lit={lit} />;
+  if (mark) return <Logo src={mark.src} mask={mark.mask} info={mark.info} box={box} lit={lit} />;
   if (!mayHaveSiteIcon(clean)) return <Monogram name={clean} box={box} />;
   // Keyed by host: React keeps the retry state per element, not per host.
   return <SiteIcon key={clean} host={clean} box={box} lit={lit} onPaint={onPaint} />;
@@ -189,34 +189,113 @@ export function hostPaint(host: string): Paint {
 /**
  * Logo draws a logo as its entry in a generated list says: in the text's
  * colour where it is drawn in one neutral ink, lifted or deepened where its
- * colour would vanish on one theme, and with `lit` the mask a lit tile
+ * colour would vanish on one theme, and with `lit` the picture a lit tile
  * shows in its ink.
  */
 export function Logo({
   src,
   mask,
-  rest,
+  info,
   box,
-  lit,
+  lit = false,
 }: {
   src: string;
   mask: string;
-  rest?: LogoTile['rest'];
+  info: Pick<LogoTile, 'rest' | 'ink'>;
   box: { width: number; height: number };
   lit?: boolean;
 }) {
-  const ink = { '--logo-mask': `url("${mask}")` } as CSSProperties;
+  const self = useRef<HTMLSpanElement>(null);
+  const seen = useSeen(self, lit);
+  const [picture, setPicture] = useState<LitURL | null>(null);
+  useEffect(() => {
+    if (!seen) return;
+    let live = true;
+    void litPicture(src, mask, info.ink).then((found) => live && setPicture(found));
+    return () => {
+      live = false;
+    };
+  }, [seen, src, mask, info.ink]);
+
+  const inkOf = (url: string) => ({ '--logo-mask': `url("${url}")` }) as CSSProperties;
+  const { rest } = info;
   const tone = rest === 'lift' ? 'glim-mark-lift' : rest === 'deepen' ? 'glim-mark-deepen' : '';
   return (
-    <span aria-hidden style={box} className={`glim-logo ${tone}`}>
+    <span ref={self} aria-hidden style={box} className={`glim-logo ${tone}`}>
       {rest === 'ink' ? (
-        <span className="glim-mark-rest glim-logo-ink" style={ink} />
+        <span className="glim-mark-rest glim-logo-ink" style={inkOf(mask)} />
       ) : (
         <img src={src} alt="" loading="lazy" className="glim-mark-rest block object-contain" />
       )}
-      {lit && <span className="glim-mark-hover glim-logo-ink" style={ink} />}
+      {lit &&
+        (picture && 'tone' in picture ? (
+          <img src={picture.tone} alt="" className="glim-mark-hover object-contain" />
+        ) : (
+          <span className="glim-mark-hover glim-logo-ink" style={inkOf(picture?.mask ?? mask)} />
+        ))}
     </span>
   );
+}
+
+/**
+ * useSeen turns true once the element is in view or about to scroll into it,
+ * so a long list reads only the logos someone can see.
+ */
+function useSeen(self: RefObject<HTMLElement | null>, watch = true): boolean {
+  const [seen, setSeen] = useState(false);
+  useEffect(() => {
+    if (!watch) return;
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (!entries.some((e) => e.isIntersecting)) return;
+        observer.disconnect();
+        setSeen(true);
+      },
+      { rootMargin: '200px' },
+    );
+    observer.observe(self.current!);
+    return () => observer.disconnect();
+  }, [self, watch]);
+  return seen;
+}
+
+type LitURL = { mask: string } | { tone: string };
+
+const litPictures = new Map<string, Promise<LitURL | null>>();
+
+/**
+ * litPicture is what a lit tile shows a logo by (see litPictureOf), read once
+ * per logo and ink, or null where the browser cannot draw it into a canvas.
+ * Until it is read the tile shows the mask as it comes.
+ */
+function litPicture(src: string, mask: string, ink: string): Promise<LitURL | null> {
+  const key = `${src} ${mask} ${ink}`;
+  let picture = litPictures.get(key);
+  if (!picture) {
+    picture = Promise.all([loaded(src), loaded(mask)])
+      .then(([logo, cut]) => {
+        const [drawnLogo, drawnCut] = [logo, cut].map((image) =>
+          drawContained(image, image.naturalWidth || READ_SIZE, image.naturalHeight || READ_SIZE),
+        );
+        if (!drawnLogo || !drawnCut) return null;
+        const found = litPictureOf(drawnLogo.pixels, drawnCut.pixels, ink);
+        const url = urlOf('tone' in found ? found.tone : found.mask);
+        if (!url) return null;
+        return 'tone' in found ? { tone: url } : { mask: url };
+      })
+      .catch(() => null);
+    litPictures.set(key, picture);
+  }
+  return picture;
+}
+
+function loaded(src: string): Promise<HTMLImageElement> {
+  return new Promise((resolve, reject) => {
+    const image = new Image();
+    image.onload = () => resolve(image);
+    image.onerror = reject;
+    image.src = src;
+  });
 }
 
 interface ReadLogo {
@@ -234,12 +313,7 @@ const read = new Map<string, Promise<ReadLogo | null>>();
 function readIcon(src: string): Promise<ReadLogo | null> {
   let logo = read.get(src);
   if (!logo) {
-    logo = new Promise<HTMLImageElement>((resolve, reject) => {
-      const image = new Image();
-      image.onload = () => resolve(image);
-      image.onerror = reject;
-      image.src = src;
-    })
+    logo = loaded(src)
       .then((image) => {
         // An SVG with a viewBox alone has no size of its own and is drawn square.
         const drawn = drawContained(image, image.naturalWidth || READ_SIZE, image.naturalHeight || READ_SIZE);
@@ -316,28 +390,13 @@ function SiteIcon({
   onPaint?: (paint: Paint) => void;
 }) {
   const self = useRef<HTMLSpanElement>(null);
-  const [inView, setInView] = useState(false);
+  const inView = useSeen(self);
   const [attempt, setAttempt] = useState(0);
   const [src, setSrc] = useState<string | null>();
   const [logo, setLogo] = useState<ReadLogo | null>(null);
   const waited = useRef(0);
   const painted = useRef(onPaint);
   painted.current = onPaint;
-
-  // Only rows in view or about to scroll into it ask, which a long hoster
-  // list needs.
-  useEffect(() => {
-    const seen = new IntersectionObserver(
-      (entries) => {
-        if (!entries.some((e) => e.isIntersecting)) return;
-        seen.disconnect();
-        setInView(true);
-      },
-      { rootMargin: '200px' },
-    );
-    seen.observe(self.current!);
-    return () => seen.disconnect();
-  }, []);
 
   useEffect(() => {
     if (!inView) return;
@@ -374,7 +433,7 @@ function SiteIcon({
     };
   }, [lit, src]);
 
-  if (logo) return <Logo src={logo.src} mask={logo.mask} rest={logo.info.rest} box={box} lit />;
+  if (logo) return <Logo src={logo.src} mask={logo.mask} info={logo.info} box={box} lit />;
   return (
     <span ref={self} aria-hidden style={box} className="inline-flex shrink-0">
       {src ? (

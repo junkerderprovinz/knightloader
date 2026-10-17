@@ -514,3 +514,87 @@ export function logoTileOf(drawnLogo: Pixels, plain: Pixels): { info: LogoTile; 
   if (lit) info.lit = true;
   return { info, lit };
 }
+
+// The lit mask's alpha climbs from FAINT to FULL, so a logo drawn translucent
+// lights as a solid mark and a halo fainter than FAINT drops away, while an
+// antialiased edge keeps a ramp.
+const FAINT = 32;
+const FULL = 160;
+
+/** solidOf is a mask fully opaque wherever the logo has real coverage. */
+export function solidOf(px: Pixels): Pixels {
+  const data = new Uint8ClampedArray(px.data);
+  for (let i = 3; i < data.length; i += 4) data[i] = ((px.data[i] - FAINT) * 255) / (FULL - FAINT);
+  return { width: px.width, height: px.height, data };
+}
+
+// A colour step this large between two neighbours is a line of the drawing.
+const LINE = 60;
+// A silhouette filling BLOB_FILL of its box that would lose BLOB_LOST of the logo's lines is a blob.
+const BLOB_FILL = 0.6;
+const BLOB_LOST = 0.65;
+
+/**
+ * blobOf reports whether a logo's lit mask would be a shapeless blob: compact,
+ * with most of the logo's lines drawn inside it in colour, where one ink
+ * cannot show them, rather than on its outline.
+ */
+function blobOf(logo: Pixels, mask: Pixels): boolean {
+  let [minX, minY, maxX, maxY] = [mask.width, mask.height, -1, -1];
+  let covered = 0;
+  let outline = 0;
+  let inner = 0;
+  for (let i = 0; i < mask.width * mask.height; i++) {
+    if (!drawn(mask, i)) continue;
+    covered++;
+    const [x, y] = [i % mask.width, Math.floor(i / mask.width)];
+    [minX, minY, maxX, maxY] = [Math.min(minX, x), Math.min(minY, y), Math.max(maxX, x), Math.max(maxY, y)];
+    const around = neighbours(mask, i);
+    if (onBorder(mask, i) || around.some((j) => !drawn(mask, j))) outline++;
+    else if (around.some((j) => dist(colourAt(logo, i), colourAt(logo, j)) > LINE)) inner++;
+  }
+  if (covered === 0) return false;
+  const fill = covered / ((maxX - minX + 1) * (maxY - minY + 1));
+  return fill >= BLOB_FILL && inner / (inner + outline) >= BLOB_LOST;
+}
+
+// How far the greys of a toned logo reach from the ink towards the other end.
+const TONE_SPAN = 0.55;
+
+/**
+ * toneOf is a logo in greys that start at the tile's ink and reach part of the
+ * way to the other end, its lightest colour at the ink on a white ink and its
+ * darkest on a dark one, so its inner drawing reads on the tile.
+ */
+function toneOf(px: Pixels, ink: string): Pixels {
+  const n = px.width * px.height;
+  const luma = (i: number) => (0.299 * px.data[i * 4] + 0.587 * px.data[i * 4 + 1] + 0.114 * px.data[i * 4 + 2]) / 255;
+  let [low, high] = [1, 0];
+  for (let i = 0; i < n; i++) {
+    if (!drawn(px, i)) continue;
+    [low, high] = [Math.min(low, luma(i)), Math.max(high, luma(i))];
+  }
+  const range = high - low || 1;
+  const from = rgbOf(ink)[0];
+  const light = luminance(rgbOf(ink)) > 0.5;
+  const data = solidOf(px).data;
+  for (let i = 0; i < n; i++) {
+    const level = (luma(i) - low) / range;
+    const away = light ? 1 - level : level;
+    const grey = from + ((light ? 0 : 255) - from) * away * TONE_SPAN;
+    data.fill(grey, i * 4, i * 4 + 3);
+  }
+  return { width: px.width, height: px.height, data };
+}
+
+/**
+ * The lit tile's picture of a logo: its mask made solid, or, for a logo whose
+ * mask would be a blob, the logo itself in greys of the ink.
+ */
+export type LitPicture = { mask: Pixels } | { tone: Pixels };
+
+/** litPictureOf reads the lit tile's picture from a logo and the mask it lights by. */
+export function litPictureOf(logo: Pixels, mask: Pixels, ink: string): LitPicture {
+  const solid = solidOf(mask);
+  return blobOf(logo, solid) ? { tone: toneOf(logo, ink) } : { mask: solid };
+}

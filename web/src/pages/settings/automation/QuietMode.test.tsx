@@ -21,6 +21,12 @@ globalThis.ResizeObserver ??= class {
   disconnect() {}
 };
 
+// A lit logo is read once it is in view, which jsdom has nothing of.
+globalThis.IntersectionObserver ??= class {
+  observe() {}
+  disconnect() {}
+} as unknown as typeof IntersectionObserver;
+
 let root: Root;
 let host: HTMLDivElement;
 let posts: { url: string; body: unknown }[];

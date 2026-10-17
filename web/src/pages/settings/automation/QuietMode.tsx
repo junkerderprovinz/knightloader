@@ -481,7 +481,7 @@ function MediaMark({ kind, size, lit }: { kind: PlaybackKind; size: number; lit?
   if (!logo) return <Monogram name={KIND_NAMES[kind] ?? kind} box={box} />;
   const src = withBase(`/media/${kind}.png`);
   const mask = logo.lit ? withBase(`/media/${kind}.lit.png`) : src;
-  return <Logo src={src} mask={mask} rest={logo.rest} box={box} lit={lit} />;
+  return <Logo src={src} mask={mask} info={logo} box={box} lit={lit} />;
 }
 
 /**

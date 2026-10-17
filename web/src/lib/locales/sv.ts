@@ -3871,6 +3871,7 @@ export const sv: Dict = {
   'whatsnew.change.vpnRoutes': '”{name}” är ett eget kort under ”{vpn}”, med ett reglage för varje sorts nedladdning.',
   'whatsnew.change.bugReportSpeed': '”{name}” sparar också hastigheten för den senaste timmen och varje pågående nedladdning med dess backend och hur många anslutningar den har öppna. Namn och länkar hålls utanför.',
   'whatsnew.change.releaseCards': 'Efter en uppdatering visar det här fönstret ett kort för varje utgåva sedan den du hade, med dess anteckningar och de ändringar den gav.',
+  'whatsnew.change.brandHoverLogos': 'I fönstren där du väljer ett konto eller en hoster blir logotypen under pekaren täckande, och en logotyp som bara skulle bli en klump behåller sina detaljer i gråtoner.',
   'whatsnew.change.quietPlayback': 'Lägg till din medieserver under ”{servers}”, så slår ”{name}” på sig själv medan Plex, Jellyfin eller Emby spelar något.',
   'whatsnew.change.quietUpload': '”{name}” begränsar vad torrenter laddar upp medan ”{quiet}” är på. Det spelar roll när din medieserver strömmar till någon utanför hemmet.',
   'whatsnew.change.quietUnpack': 'Med ”{name}” väntar arkiv som blir klara medan en ström räknas i listan och packas upp när den är slut.',

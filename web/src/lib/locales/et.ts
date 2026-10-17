@@ -3863,6 +3863,7 @@ export const et: Dict = {
   'whatsnew.change.vpnRoutes': '„{name}“ on eraldi kaart „{vpn}“ all, igale allalaadimise liigile oma lülitiga.',
   'whatsnew.change.bugReportSpeed': '„{name}“ salvestab ka viimase tunni kiiruse ja iga käimasoleva allalaadimise koos selle taustsüsteemi ja avatud ühenduste arvuga. Nimed ja lingid jäävad välja.',
   'whatsnew.change.releaseCards': 'Pärast uuendust näitab see aken kaarti iga väljalaske kohta alates sellest, mis sul oli, koos selle märkmete ja muudatustega.',
+  'whatsnew.change.brandHoverLogos': 'Akendes, kus valid konto või hostija, muutub kursori all olev logo täiseks, ja logo, millest jääks vaid laik, hoiab oma detailid halltoonides.',
   'whatsnew.change.quietPlayback': 'Lisa oma meediaserver jaotises „{servers}“ ja „{name}“ lülitub ise sisse, kui Plex, Jellyfin või Emby midagi esitab.',
   'whatsnew.change.quietUpload': '„{name}“ piirab, kui palju torrentid üles laadivad, kui „{quiet}“ on sees. See loeb siis, kui sinu meediaserver edastab voogu kellelegi väljaspool kodu.',
   'whatsnew.change.quietUnpack': 'Valikuga „{name}“ ootavad arhiivid, mis valmivad voo arvestamise ajal, loendis ja pakitakse lahti, kui voog on läbi.',

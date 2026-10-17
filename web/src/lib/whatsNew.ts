@@ -51,6 +51,10 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
+    version: '2.1.5',
+    changes: [{ id: 'brand-hover-logos', to: ['/settings/accounts', '/accounts'], text: 'whatsnew.change.brandHoverLogos' }],
+  },
+  {
     version: '2.1.4',
     changes: [{ id: 'release-cards', text: 'whatsnew.change.releaseCards' }],
   },

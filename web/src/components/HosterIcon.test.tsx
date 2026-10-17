@@ -149,6 +149,7 @@ it('knows a debrid service whose site offers no sharp icon by the host of its ca
     'https://multiup.io/en/login',
     'https://neodebrid.com/login',
     'https://premium.rpnet.biz/account',
+    'https://torbox.app/settings',
     'https://www.zevera.com/account',
   ]) {
     expect(serviceMark(new URL(link).hostname.replace(/^www\./, '')), link).toBeDefined();

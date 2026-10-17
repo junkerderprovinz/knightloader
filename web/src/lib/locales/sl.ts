@@ -3870,6 +3870,7 @@ export const sl: Dict = {
   'whatsnew.change.vpnRoutes': '»{name}« je samostojna kartica pod »{vpn}«, s stikalom za vsako vrsto prenosa.',
   'whatsnew.change.bugReportSpeed': '»{name}« shrani tudi hitrost zadnje ure in vsak prenos v teku z njegovim zalednim sistemom in številom odprtih povezav. Imena in povezave ostanejo zunaj.',
   'whatsnew.change.releaseCards': 'Po posodobitvi to okno pokaže kartico za vsako izdajo od tiste, ki si jo imel, z opombami in spremembami, ki jih je prinesla.',
+  'whatsnew.change.brandHoverLogos': 'V oknih, kjer izbereš račun ali gostitelja, postane logotip pod kazalcem poln, tisti, ki bi bil le packa, pa ohrani podrobnosti v sivih odtenkih.',
   'whatsnew.change.quietPlayback': 'Dodaj svoj medijski strežnik pod »{servers}« in »{name}« se sam vklopi, dokler Plex, Jellyfin ali Emby kaj predvaja.',
   'whatsnew.change.quietUpload': '»{name}« omeji, koliko torrenti pošiljajo, dokler je »{quiet}« vklopljen. To šteje, ko tvoj medijski strežnik pretaka nekomu zunaj doma.',
   'whatsnew.change.quietUnpack': 'Z »{name}« arhivi, ki se končajo, medtem ko pretok šteje, čakajo na seznamu in se razpakirajo, ko se ta konča.',
