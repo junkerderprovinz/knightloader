@@ -20,7 +20,7 @@ export function VpnMark({ id, name, size, lit }: { id: string; name: string; siz
   if (!logo) return <Monogram name={name} box={box} />;
   const src = withBase(`/vpn/${id}.png`);
   const mask = logo.lit ? withBase(`/vpn/${id}.lit.png`) : src;
-  return <Logo src={src} mask={mask} rest={logo.rest} box={box} lit={lit} />;
+  return <Logo src={src} mask={mask} info={logo} box={box} lit={lit} />;
 }
 
 /** vpnPaint is the colours a provider's tile lights up in. */

@@ -64,15 +64,17 @@ export function DownloadsSettings() {
         />
         {/* The hint names no variables, because a template here would scatter
             the parts of a multi-volume archive across folders. */}
-        <SettingRow control="long" label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
-          <SettingPathInput
-            field="workDir"
-            value={cfg.workDir}
-            placeholder={t('settings.downloads.workDirEmpty')}
-            title={t('settings.downloads.workDir')}
-            onValue={(workDir) => patch({ workDir })}
-          />
-        </SettingRow>
+        <div data-new="work-dir-optional">
+          <SettingRow control="long" label={t('settings.downloads.workDir')} hint={t('settings.downloads.workDirHint')}>
+            <SettingPathInput
+              field="workDir"
+              value={cfg.workDir}
+              placeholder={t('settings.downloads.workDirEmpty')}
+              title={t('settings.downloads.workDir')}
+              onValue={(workDir) => patch({ workDir })}
+            />
+          </SettingRow>
+        </div>
         <FolderCheck />
       </Card>
 

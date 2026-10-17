@@ -2525,7 +2525,8 @@ body {
 /* A bundled logo (components/HosterIcon.tsx, lib/logoTile.ts). A logo drawn in
    one neutral ink stands in the text's colour, so it reads on both themes; on
    a lit tile every logo is its mask in the tile's ink. The mask is the logo's
-   own picture, or one with the parts that lie on other parts cut out. */
+   own picture made solid, or one with the parts that lie on other parts cut
+   out; a logo whose mask would be a blob shows itself in greys of the ink. */
 .glim-logo {
   position: relative;
   display: inline-flex;
