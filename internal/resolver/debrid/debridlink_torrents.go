@@ -32,14 +32,17 @@ var dlDeclines = map[string]string{
 	"torrentTooBig": "the torrent is too big for Debrid-Link or has too many files",
 	"maxTorrent":    "the daily torrent limit for this account is used up",
 	"maxTransfer":   "this account already has as many torrents in transfer as it may",
-	"badId":         "the torrent is gone from Debrid-Link",
 }
 
-// seedboxErr turns a declining answer into a Refusal and leaves any other
-// error as it is.
+// seedboxErr turns a declining answer into a Refusal, and badId, a torrent
+// the account does not hold, into ErrJobGone. It leaves any other error as it
+// is.
 func seedboxErr(err error) error {
 	var de *dlError
 	if errors.As(err, &de) {
+		if de.code == "badId" {
+			return fmt.Errorf("%w: %w", err, ErrJobGone)
+		}
 		if why, ok := dlDeclines[de.code]; ok {
 			return &Refusal{Reason: why}
 		}
@@ -136,7 +139,7 @@ func (d *DebridLink) listed(ctx context.Context, key, id string) (dlTorrent, err
 			return t, nil
 		}
 	}
-	return dlTorrent{}, &Refusal{Reason: dlDeclines["badId"]}
+	return dlTorrent{}, fmt.Errorf("debrid-link /seedbox/list: torrent %s: %w", id, ErrJobGone)
 }
 
 func (d *DebridLink) TorrentStatus(ctx context.Context, id string) (TorrentJob, error) {

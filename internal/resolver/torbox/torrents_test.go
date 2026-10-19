@@ -3,6 +3,7 @@ package torbox
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -158,6 +159,22 @@ func TestTorBoxDecliningATorrentHandsItOn(t *testing.T) {
 	_, u, _ := runTorBox(t, c)
 	if !u.Unsupported || !strings.Contains(u.Err, "DOWNLOAD_TOO_LARGE") {
 		t.Errorf("got %+v, want the task handed on with TorBox's reason", u)
+	}
+}
+
+// TorBox answers a torrent the account does not hold with a 404 whose body
+// still says success.
+func TestTorBoxSaysWhenItNoLongerHasATorrent(t *testing.T) {
+	srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, _ *http.Request) {
+		w.WriteHeader(http.StatusNotFound)
+		fmt.Fprint(w, `{"success":true,"error":"ITEM_NOT_FOUND","detail":"No torrents found for this user.","data":{}}`)
+	}))
+	defer srv.Close()
+	c := NewClient("k")
+	c.base = srv.URL
+
+	if _, err := NewTorrents(c).TorrentStatus(context.Background(), "1"); !errors.Is(err, debrid.ErrJobGone) {
+		t.Errorf("err = %v, want debrid.ErrJobGone", err)
 	}
 }
 

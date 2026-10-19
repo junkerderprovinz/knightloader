@@ -36,6 +36,18 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Fixed
+
+- **A torrent deleted on the debrid service is added again.** If a debrid
+  service no longer has a torrent, for example because you deleted it on the
+  service's website, KnightLoader adds it there once more and keeps the files
+  already here. Before, Premiumize.me and AllDebrid could fail the task and ask
+  for the deleted torrent again on every retry, while the other services handed
+  it straight on. A torrent the service loses a second time goes to the next
+  service or the built-in client, and its row says why.
+
 ## [2.1.6] - 2026-10-17
 
 ### Added
