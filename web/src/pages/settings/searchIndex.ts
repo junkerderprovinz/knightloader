@@ -1182,12 +1182,16 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
         'settings.eventTargets.lastAttempt',
         'settings.eventTargets.lastOk',
         'settings.eventTargets.attemptsDefault',
+        'settings.eventTargets.anyAddress',
       ],
       // The problem.* sentences are built from a server code, so no source
       // names them.
       body: [
         'settings.eventTargets.empty',
         'settings.eventTargets.emptyHint',
+        'settings.eventTargets.pickHint',
+        'settings.eventTargets.discordNote',
+        'settings.eventTargets.discordUrlHint',
         'settings.eventTargets.eventsNone',
         'settings.eventTargets.eventsBurst',
         'settings.eventTargets.replaysHint',

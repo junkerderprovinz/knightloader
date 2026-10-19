@@ -17,6 +17,7 @@ import {
   MAX_ATTEMPTS,
   MAX_TIMEOUT_SECONDS,
   balancedTemplate,
+  discordWebhook,
   formatHeaders,
   hostOf,
   parseHeaders,
@@ -26,9 +27,11 @@ import {
   type Placeholder,
   type TargetMethod,
 } from '../../../lib/eventtargets';
+import type { TargetBrand } from '../../../lib/targetBrands';
 import { RowRefusal, SettingRow, Sheet } from '../controls';
 import { TargetEvents } from './TargetEvents';
 import { TargetHealth } from './TargetHealth';
+import { TargetMark } from './TargetMark';
 import { TargetProbe } from './TargetProbe';
 
 /**
@@ -43,6 +46,7 @@ export function TargetRow({
   index,
   last,
   stored,
+  brand,
   open,
   triggers,
   placeholders,
@@ -57,6 +61,8 @@ export function TargetRow({
   last: boolean;
   /** Already in the shared draft, so the server can report its health. */
   stored: boolean;
+  /** The service a new row was picked as, before its address says so. */
+  brand?: TargetBrand;
   open: boolean;
   /** From GET /api/scripts/triggers. */
   triggers: string[];
@@ -148,6 +154,8 @@ export function TargetRow({
   const host = hostOf(urlText) || status?.host || '';
   const ticked = row.triggers?.length ?? 0;
   const method: TargetMethod = row.method ?? 'POST';
+  // A row picked as Discord says so until its address is a whole one of something else.
+  const discord = discordWebhook(urlText) || (brand === 'discord' && !usableAddress(urlText));
 
   return (
     <li className={last ? '' : 'border-b border-carbon-border/60'}>
@@ -189,6 +197,12 @@ export function TargetRow({
 
       {open && (
         <Sheet title={row.name.trim() || t('settings.eventTargets.name')} hue={index} wide onClose={onToggle}>
+          {discord && (
+            <div className="flex items-center gap-3">
+              <TargetMark brand="discord" size={36} />
+              <p className="text-sm text-carbon-textSub">{t('settings.eventTargets.discordNote')}</p>
+            </div>
+          )}
           <ToggleRow
             label={t('settings.eventTargets.enabled')}
             hint={t('settings.eventTargets.enabledHint')}
@@ -201,12 +215,16 @@ export function TargetRow({
             <TextInput value={row.name} onChange={(e) => onChange({ ...row, name: e.target.value })} />
           </SettingRow>
 
-          <SettingRow control="long" label={t('settings.eventTargets.url')} hint={t('settings.eventTargets.urlHint')}>
+          <SettingRow
+            control="long"
+            label={t('settings.eventTargets.url')}
+            hint={t(discord ? 'settings.eventTargets.discordUrlHint' : 'settings.eventTargets.urlHint')}
+          >
             <TextInput
               dir="ltr"
               spellCheck={false}
               value={urlText}
-              placeholder="https://ntfy.example/my-topic"
+              placeholder={discord ? 'https://discord.com/api/webhooks/...' : 'https://ntfy.example/my-topic'}
               // Marked, not corrected; the focus ring covers the halo while typing.
               aria-invalid={urlBad}
               className={urlBad ? 'shadow-[0_0_0_2px_var(--status-warn-text)]' : ''}
@@ -253,7 +271,7 @@ export function TargetRow({
                 spellCheck={false}
                 rows={3}
                 value={headersText}
-                placeholder={'Authorization: Bearer ...\nContent-Type: text/plain'}
+                placeholder={discord ? '' : 'Authorization: Bearer ...\nContent-Type: text/plain'}
                 aria-invalid={headersBad}
                 onChange={(e) => {
                   setHeadersText(e.target.value);
@@ -273,7 +291,8 @@ export function TargetRow({
                   spellCheck={false}
                   rows={4}
                   value={bodyText}
-                  placeholder={'%%task.name%%'}
+                  // Left empty, the body is what gives a Discord row its ready-made message.
+                  placeholder={discord ? '' : '%%task.name%%'}
                   aria-invalid={bodyBad}
                   onChange={(e) => {
                     setBodyText(e.target.value);

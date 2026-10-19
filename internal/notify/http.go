@@ -17,11 +17,13 @@ import (
 	"context"
 	"crypto/tls"
 	"crypto/x509"
+	"encoding/json"
 	"errors"
 	"io"
 	"net"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 	"sync"
 	"syscall"
@@ -78,6 +80,9 @@ type Attempt struct {
 	// Retryable is about what the worker does next rather than anything a
 	// person reads, so it stays off the wire.
 	Retryable bool `json:"-"`
+	// Wait is how long the far end asked to be left alone before the next
+	// request, zero when it asked nothing; see waitAsked.
+	Wait time.Duration `json:"-"`
 }
 
 // OK reports a delivery the far end accepted. 2xx only: a 3xx that reached here
@@ -129,6 +134,10 @@ func Send(ctx context.Context, t Target, f script.Firing, instanceName string) A
 	addr := ExpandURL(t, f, instanceName)
 	body := ExpandBody(t, f, instanceName)
 	headers := ExpandHeaders(t.Headers, f, instanceName)
+	discord := body == "" && method != MethodGET && discordToken(addr) != ""
+	if discord {
+		body = discordBody(f, instanceName)
+	}
 
 	// Built before anything is sent, so a request that never leaves still says
 	// what it was going to be. Masked once here; everything below appends.
@@ -138,6 +147,9 @@ func Send(ctx context.Context, t Target, f script.Firing, instanceName string) A
 		Headers: maskValues(headers),
 		Body:    body,
 	}}
+	if discord {
+		att.Sent.Headers["Content-Type"] = jsonType
+	}
 
 	var reader io.Reader
 	if body != "" {
@@ -160,6 +172,9 @@ func Send(ctx context.Context, t Target, f script.Firing, instanceName string) A
 			continue
 		}
 		req.Header.Set(name, value)
+	}
+	if discord {
+		req.Header.Set("Content-Type", jsonType)
 	}
 
 	started := time.Now()
@@ -192,8 +207,47 @@ func Send(ctx context.Context, t Target, f script.Firing, instanceName string) A
 	att.Body = redact(t, addr, string(raw))
 	att.Code = classifyStatus(resp.StatusCode)
 	att.Retryable = retryableStatus(resp.StatusCode)
+	att.Wait = waitAsked(resp.StatusCode, resp.Header, raw)
 	return att
 }
+
+const jsonType = "application/json"
+
+// waitAsked is how long the far end asked this instance to hold off, read from
+// a 429's Retry-After, or from a delivered request that used up a bucket.
+//
+// Discord states both in seconds with a fraction: retry_after in a 429's body
+// is more precise than the whole seconds of its Retry-After header, and
+// X-RateLimit-Remaining at 0 with X-RateLimit-Reset-After says the next request
+// would be refused. Waiting that out spares a message a 429, and Discord bans
+// an address for a while that collects too many of them.
+func waitAsked(status int, h http.Header, body []byte) time.Duration {
+	if status == http.StatusTooManyRequests {
+		var doc struct {
+			RetryAfter float64 `json:"retry_after"`
+		}
+		if json.Unmarshal(body, &doc) == nil && doc.RetryAfter > 0 {
+			return seconds(doc.RetryAfter)
+		}
+		return headerSeconds(h.Get("Retry-After"))
+	}
+	if status >= 200 && status < 300 && strings.TrimSpace(h.Get("X-RateLimit-Remaining")) == "0" {
+		return headerSeconds(h.Get("X-RateLimit-Reset-After"))
+	}
+	return 0
+}
+
+// headerSeconds reads a header's seconds, or zero. The HTTP-date form of
+// Retry-After is left out: no push server this is written for sends it.
+func headerSeconds(v string) time.Duration {
+	f, err := strconv.ParseFloat(strings.TrimSpace(v), 64)
+	if err != nil || f <= 0 {
+		return 0
+	}
+	return seconds(f)
+}
+
+func seconds(f float64) time.Duration { return time.Duration(f * float64(time.Second)) }
 
 // maskValues is Redacted's rule applied to an already-expanded header map: a
 // value that exists becomes stars, a value that does not stays empty so the
@@ -223,7 +277,7 @@ func collectHeaders(t Target, addr string, h http.Header) map[string]string {
 }
 
 // redact strips this target's secrets out of a string before anybody can log it
-// or draw it. There are two, and missing either one is a leak:
+// or draw it. There are three, and missing any one is a leak:
 //
 //   - every header value, in all four spellings, as reconnect does it.
 //   - the URL's query. ntfy and Gotify put the credential there and no field
@@ -231,6 +285,7 @@ func collectHeaders(t Target, addr string, h http.Header) map[string]string {
 //     address is replaced with scheme://host/path first, because *url.Error
 //     prints the address as one string and replacing the query alone would
 //     leave it half rewritten.
+//   - a Discord webhook's token, the last part of its path.
 func redact(t Target, addr, s string) string {
 	if s == "" {
 		return s
@@ -240,6 +295,9 @@ func redact(t Target, addr, s string) string {
 		// And the bare query, for a message that quoted only part of the
 		// address, such as a *net.OpError naming the host.
 		s = strings.ReplaceAll(s, query, RedactedValue)
+	}
+	if token := discordToken(addr); token != "" {
+		s = strings.ReplaceAll(s, token, RedactedValue)
 	}
 	for _, v := range t.Headers {
 		if v == "" {
