@@ -625,13 +625,17 @@ type Settings struct {
 	// often not large. The manual Compact button ignores this field.
 	MaintenanceCompactOnSchedule bool `json:"maintenanceCompactOnSchedule"`
 
-	// BackupIntervalDays is how often the archive Download backup produces is
-	// also written into the data directory's backups folder, counted from the
-	// newest one there. Zero, the shipped value, writes none.
-	BackupIntervalDays int `json:"backupIntervalDays"`
+	// BackupAuto writes the archive Download backup produces into BackupDir
+	// every BackupIntervalDays, counted from the newest one there. Off as
+	// shipped.
+	BackupAuto         bool `json:"backupAuto"`
+	BackupIntervalDays int  `json:"backupIntervalDays"`
 	// BackupKeep is how many of those automatic backups stay; the oldest go
 	// first, and nothing else in the folder is ever deleted.
 	BackupKeep int `json:"backupKeep"`
+	// BackupDir is where they are written. Empty is the backups folder in the
+	// data directory.
+	BackupDir string `json:"backupDir"`
 
 	// LogFile is the optional copy of this process's own log output on disk:
 	// whether it is written at all, how big one file may get, and how many
@@ -884,13 +888,14 @@ func Defaults() Settings {
 		ResumeOnStart:    ResumeNever,
 		KeepFinishedDays: DefaultKeepFinishedDays,
 		HistoryMax:       DefaultHistoryMax,
-		// The next seven are written out at values that are partly their zero
+		// The next eight are written out at values that are partly their zero
 		// value because the Advanced key table serves Defaults() unsanitised: a
 		// factory reading of "0 / off" that appears only because nobody typed
 		// anything is indistinguishable from a field somebody forgot.
 		MaintenanceIntervalDays:      DefaultMaintenanceIntervalDays,
 		MaintenanceCompactOnSchedule: false,
-		BackupIntervalDays:           0,
+		BackupAuto:                   false,
+		BackupIntervalDays:           DefaultBackupIntervalDays,
 		BackupKeep:                   DefaultBackupKeep,
 		LogFile:                      DefaultLogFile(),
 		ReclaimTrust:                 string(reclaim.DefaultTrust),

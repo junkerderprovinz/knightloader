@@ -84,17 +84,19 @@ func (p *PathProblem) Unwrap() error { return p.Err }
 // since every download writes there. The others only have to be absolute, the
 // rule sanitize holds them to. The first job that writes into one of these
 // folders creates it, except the watch folder, which nothing writes into: the
-// watcher polls it until somebody creates it.
+// watcher polls it until somebody creates it. The backup folder alone may lie
+// in the data folder, where its default is.
 var folderFields = []struct {
-	key, what       string
-	get             func(Settings) string
-	probe, template bool
+	key, what               string
+	get                     func(Settings) string
+	probe, template, inData bool
 }{
-	{"downloadDir", "the download folder", func(s Settings) string { return s.DownloadDir }, true, false},
-	{"workDir", "the working folder", func(s Settings) string { return s.WorkDir }, true, false},
-	{"watchDir", "the watch folder", func(s Settings) string { return s.WatchDir }, false, false},
-	{"extractTo", "the extraction folder", func(s Settings) string { return s.ExtractTo }, false, true},
-	{"extractMoveTo", "the folder unpacked files move to", func(s Settings) string { return s.ExtractMoveTo }, false, true},
+	{"downloadDir", "the download folder", func(s Settings) string { return s.DownloadDir }, true, false, false},
+	{"workDir", "the working folder", func(s Settings) string { return s.WorkDir }, true, false, false},
+	{"watchDir", "the watch folder", func(s Settings) string { return s.WatchDir }, false, false, false},
+	{"extractTo", "the extraction folder", func(s Settings) string { return s.ExtractTo }, false, true, false},
+	{"extractMoveTo", "the folder unpacked files move to", func(s Settings) string { return s.ExtractMoveTo }, false, true, false},
+	{"backupDir", "the backup folder", func(s Settings) string { return s.BackupDir }, false, false, true},
 }
 
 // CheckFolders returns a *PathProblem for the first top-level folder in s that
@@ -114,7 +116,7 @@ func CheckFolders(dataDir string, s Settings, named func(key string) bool) error
 			err = Validate(dataDir, f.what, dir)
 		case relative(dir, f.template):
 			err = &PathProblem{What: f.what, Code: "notAbsolute", Dir: dir}
-		default:
+		case !f.inData:
 			err = dataFolderProblem(dataDir, f.what, dir)
 		}
 		if err != nil {
