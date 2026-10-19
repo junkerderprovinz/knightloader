@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { Button } from '../../components/ui';
-import { IconAdd } from '../../lib/icons';
+import { BrandPicker, type Brand } from '../../components/BrandPicker';
+import { Button, Modal } from '../../components/ui';
+import { IconAdd, IconClose, IconLink } from '../../lib/icons';
 import { useT } from '../../lib/i18n';
 import {
   fetchEventTargets,
@@ -10,7 +11,9 @@ import {
   type Placeholder,
 } from '../../lib/eventtargets';
 import { FALLBACK_TRIGGERS, fetchScriptTriggers } from '../../lib/scripts';
+import { TARGET_BRANDS, type TargetBrand } from '../../lib/targetBrands';
 import { useDraft } from './context';
+import { TargetMark } from './eventtargets/TargetMark';
 import { TargetRow } from './eventtargets/TargetRow';
 import { ModuleCard } from './ModuleToggle';
 
@@ -20,6 +23,8 @@ import { ModuleCard } from './ModuleToggle';
  * the outbound side of the event bus internal/script publishes on, and has a
  * name of its own so it is not taken for the in-browser notifications.
  *
+ * Add asks first what the target is, Discord or any address, the way a media
+ * server or a VPN is picked; Discord only names the row and words its address.
  * A new row starts off with no event ticked. The address, headers and body are
  * committed on blur, because the server refuses the whole settings document
  * when one row is invalid. Header values come back as stars and are merged
@@ -34,6 +39,8 @@ import { ModuleCard } from './ModuleToggle';
 interface PendingRow {
   key: string;
   row: EventTargetRow;
+  /** The service it was picked as, which words its address before one is typed. */
+  brand?: TargetBrand;
 }
 
 let pendingCounter = 0;
@@ -109,6 +116,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
   const { triggers, placeholders } = useVocabulary();
 
   const [openRow, setOpenRow] = useState('');
+  const [picking, setPicking] = useState(false);
   const [pending, setPending] = useState<PendingRow[]>([]);
   // A row keeps the React key it was typed under once it is stored, so the
   // window it is edited in stays open; that key is kept by the row's id.
@@ -119,15 +127,33 @@ export function EventTargetsCard({ hue }: { hue: number }) {
   // would send as a key without a value.
   const write = (next: EventTargetRow[]) => patch({ eventTargets: next });
 
-  const add = () => {
+  const add = (id: string) => {
+    const brand = TARGET_BRANDS.find((b) => b.id === id);
     const row: PendingRow = {
       key: freshKey(),
       // Off, nothing ticked, and no opinion on attempts or the time limit.
-      row: { id: '', name: '', enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
+      row: { id: '', name: brand?.name ?? '', enabled: false, url: '', attempts: 0, timeoutSeconds: 0 },
+      brand: brand?.id,
     };
+    setPicking(false);
     setPending((p) => [...p, row]);
     setOpenRow(row.key);
   };
+
+  const brands: Brand[] = [
+    ...TARGET_BRANDS.map((b) => ({ id: b.id, name: b.name, mark: <TargetMark brand={b.id} size={25} lit />, paint: b.logo })),
+    {
+      id: '',
+      name: t('settings.eventTargets.anyAddress'),
+      mark: (
+        <span className="glim-house-mark flex h-full w-full items-center justify-center">
+          <IconLink width={18} height={18} />
+        </span>
+      ),
+      // An address of no brand lights in black, as the MCP card's other client does.
+      paint: { tile: '#000000', ink: '#ffffff' },
+    },
+  ];
 
   /** Moves a pending row into the draft once its address is valid. */
   const commit = (key: string, next: EventTargetRow) => {
@@ -148,7 +174,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
       className="flex flex-col gap-4"
       titleHint={t('settings.eventTargets.titleHint')}
       titleRight={
-        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={add}>
+        <Button kind="secondary" icon={<IconAdd width={16} height={16} />} onClick={() => setPicking(true)}>
           {t('settings.eventTargets.add')}
         </Button>
       }
@@ -188,6 +214,7 @@ export function EventTargetsCard({ hue }: { hue: number }) {
                   index={rows.length + i}
                   last={rows.length + i === total - 1}
                   stored={false}
+                  brand={p.brand}
                   triggers={triggers}
                   placeholders={placeholders}
                   open={openRow === p.key}
@@ -202,6 +229,22 @@ export function EventTargetsCard({ hue }: { hue: number }) {
           </ul>
         )}
       </div>
+      {picking && (
+        <Modal
+          title={t('settings.eventTargets.add')}
+          hint={t('settings.eventTargets.pickHint')}
+          wide
+          onClose={() => setPicking(false)}
+          footer={
+            <>
+              <span className="flex-1" />
+              <Button kind="secondary" labelled icon={<IconClose />} title={t('common.cancel')} onClick={() => setPicking(false)} />
+            </>
+          }
+        >
+          <BrandPicker brands={brands} none="" onPick={add} />
+        </Modal>
+      )}
     </ModuleCard>
   );
 }
