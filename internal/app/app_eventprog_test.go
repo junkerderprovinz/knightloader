@@ -69,7 +69,7 @@ func TestAProgramIsHandedTheFinishedFileItsFolderAndCategory(t *testing.T) {
 		URL: "https://host.example/film.mkv", Name: "film.mkv", Package: "Pack",
 		Status: core.StatusDone, Enabled: true, File: file, Category: "films",
 	})
-	tv := scriptTaskView(*task)
+	tv := a.scriptTaskView(*task)
 	a.publishEvent(script.Firing{Trigger: script.TriggerTaskDone, Task: &tv})
 
 	select {
@@ -181,7 +181,7 @@ func TestAProgramFindsAFinishedDownloadWhereItWasMovedTo(t *testing.T) {
 	staged := stagedIn(t, workdir.For(work, base), "film.mkv", "the whole film")
 	task := stageFiled(t, a, "1", "film.mkv", "Der.Film", "")
 	editTask(a, "1", func(task *core.Task) { task.File = staged })
-	tv := scriptTaskView(*task)
+	tv := a.scriptTaskView(*task)
 	a.publishEvent(script.Firing{Trigger: script.TriggerTaskDone, Task: &tv})
 
 	select {
@@ -222,7 +222,7 @@ func TestALinkThatNeverGotANameIsHandedNoFile(t *testing.T) {
 	})
 	link := "https://host.example/file/abc"
 	task := putTask(t, a, core.Task{URL: link, Name: link, Status: core.StatusError, Enabled: true})
-	tv := scriptTaskView(*task)
+	tv := a.scriptTaskView(*task)
 	a.publishEvent(script.Firing{Trigger: script.TriggerTaskFailed, Task: &tv})
 
 	r := nextRun(t, runs)

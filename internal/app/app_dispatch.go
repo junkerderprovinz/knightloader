@@ -1663,7 +1663,7 @@ func (a *App) onUpdate(id string, u core.Update) {
 	if u.Status != "" {
 		// NextTry is already set when a retry is pending, so task.failed fires
 		// only on the final failure.
-		tv := scriptTaskView(c.Task)
+		tv := a.scriptTaskView(c.Task)
 		if trig, ok := script.ClassifyTaskUpdate(tv); ok {
 			a.publishEvent(script.Firing{Trigger: trig, Task: &tv})
 		}

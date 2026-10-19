@@ -239,7 +239,7 @@ func TestAnEventThatIsNotAFinishedPackageCallsNothing(t *testing.T) {
 	})
 	stageFiled(t, a, "1", "e01.mkv", "Die.Serie.S01", "serien")
 
-	tv := scriptTaskView(*a.tasks["1"])
+	tv := a.scriptTaskView(*a.tasks["1"])
 	a.publishEvent(script.Firing{Trigger: script.TriggerTaskDone, Task: &tv})
 	// A package.done with no payload, as a firing built wrong would arrive.
 	a.publishEvent(script.Firing{Trigger: script.TriggerPackageDone})
