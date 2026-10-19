@@ -42,7 +42,8 @@ password is hashed with Argon2id and peppered with the key. The session key,
 the second factor and its recovery codes, the key that seals the stored
 accounts, every password, token and command line in `settings.json`, and the
 archive and download passwords stored with each download are sealed with it,
-and so is the backup you download from Settings. Somebody who
+and so are the backups: the one you download from Settings and the ones
+written on a schedule into the `backups` folder. Somebody who
 copies the appdata folder, through a backup plugin for instance, gets nothing
 they can use.
 

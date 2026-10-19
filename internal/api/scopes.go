@@ -264,14 +264,16 @@ var routeScopes = map[string]apitoken.Scope{
 	"GET /api/stats/volume":       apitoken.ScopeRead,
 	"GET /api/stats/volume/usage": apitoken.ScopeRead,
 
-	"GET /api/system/backup":       apitoken.ScopeAdmin,
-	"GET /api/system/deployment":   apitoken.ScopeAdmin,
-	"GET /api/system/maintenance":  apitoken.ScopeAdmin,
-	"POST /api/system/maintenance": apitoken.ScopeAdmin,
-	"POST /api/system/quit":        apitoken.ScopeAdmin,
-	"POST /api/system/restart":     apitoken.ScopeAdmin,
-	"POST /api/system/restore":     apitoken.ScopeAdmin,
-	"GET /api/system/update-check": apitoken.ScopeAdmin,
+	"GET /api/system/backup":         apitoken.ScopeAdmin,
+	"GET /api/system/backups":        apitoken.ScopeAdmin,
+	"GET /api/system/backups/{name}": apitoken.ScopeAdmin,
+	"GET /api/system/deployment":     apitoken.ScopeAdmin,
+	"GET /api/system/maintenance":    apitoken.ScopeAdmin,
+	"POST /api/system/maintenance":   apitoken.ScopeAdmin,
+	"POST /api/system/quit":          apitoken.ScopeAdmin,
+	"POST /api/system/restart":       apitoken.ScopeAdmin,
+	"POST /api/system/restore":       apitoken.ScopeAdmin,
+	"GET /api/system/update-check":   apitoken.ScopeAdmin,
 
 	// Asking which backends could take a selection changes nothing, POST or
 	// not. Streaming a finished file is reading what was downloaded.

@@ -65,6 +65,7 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 		body         any
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
+		{http.MethodGet, "/api/system/backups/knightloader-auto-20261001-030000.zip", nil},
 		{http.MethodGet, "/api/settings/export?secrets=include", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},

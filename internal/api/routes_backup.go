@@ -2,19 +2,21 @@ package api
 
 // Backup and restore. The archive bundles the SQLite store and settings.json,
 // which is also where the rule sets and the timetable live, and is sealed with
-// the app key when the install has one. See internal/backup for why a restore
-// validates everything up front but applies nothing until the next process
-// start.
+// the app key when the install has one. The automatic backups are the same
+// archive, written into the data directory on a schedule. See internal/backup
+// for why a restore validates everything up front but applies nothing until
+// the next process start.
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
@@ -31,6 +33,26 @@ func registerBackup(reg *Registry, a *app.App) {
 				return
 			}
 			downloadBackup(w, a)
+		})
+
+	reg.Add(http.MethodGet, "/api/system/backups",
+		"the automatic backups in the data directory, when the next one is due and how the last run went",
+		func(w http.ResponseWriter, r *http.Request) {
+			st, err := a.AutoBackupState()
+			if err != nil {
+				http.Error(w, err.Error(), http.StatusInternalServerError)
+				return
+			}
+			writeJSON(w, st)
+		})
+
+	reg.Add(http.MethodGet, "/api/system/backups/{name}",
+		"download one automatic backup, every stored password included; refused while no login password is set",
+		func(w http.ResponseWriter, r *http.Request) {
+			if !passwordFirst(a, w, "downloading a backup, which carries every password in the settings") {
+				return
+			}
+			downloadAutoBackup(w, r, a)
 		})
 
 	reg.Add(http.MethodPost, "/api/system/restore",
@@ -56,38 +78,33 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 	}
 	defer os.Remove(tmpPath)
 
-	// VACUUM INTO through the connection every other write goes through, never
-	// a raw copy of the live file, which hands back a torn database if a task
-	// settles mid-copy.
-	if err := a.Store.BackupTo(tmpPath); err != nil {
-		http.Error(w, "could not snapshot the database: "+err.Error(), http.StatusInternalServerError)
-		return
-	}
-
-	// Unredacted, since a backup that cannot put a router or proxy password
-	// back is not a backup. Unlike GET /api/settings this is never served to a
-	// page on load, only to a session that asked for the download.
-	settingsJSON, err := json.MarshalIndent(a.Settings.Get(), "", "  ")
+	// Unredacted. Unlike GET /api/settings this is never served to a page on
+	// load, only to a session that asked for the download.
+	parts, err := a.PrepareBackup(tmpPath)
 	if err != nil {
-		http.Error(w, "could not encode settings: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
-	}
-
-	manifest := backup.Manifest{
-		Version:    buildinfo.Version,
-		Deployment: buildinfo.Deployment,
-		CreatedAt:  time.Now().UTC(),
 	}
 
 	filename := fmt.Sprintf("knightloader-backup-%s.zip", time.Now().UTC().Format("20060102-150405"))
 	if a.AppKey != nil {
-		downloadSealedBackup(w, a, filename, manifest, settingsJSON, tmpPath)
+		// Sealing needs the whole archive, so unlike the plain download a
+		// failure can still be answered as one.
+		var buf bytes.Buffer
+		if err := a.WriteBackup(&buf, parts); err != nil {
+			http.Error(w, "could not build the backup: "+err.Error(), http.StatusInternalServerError)
+			return
+		}
+		w.Header().Set("Content-Type", "application/octet-stream")
+		w.Header().Set("X-Content-Type-Options", "nosniff")
+		w.Header().Set("Content-Disposition", `attachment; filename="`+filename+backup.SealedExt+`"`)
+		_, _ = w.Write(buf.Bytes())
 		return
 	}
 	w.Header().Set("Content-Type", "application/zip")
 	w.Header().Set("X-Content-Type-Options", "nosniff")
 	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+`"`)
-	if err := backup.Build(w, manifest, settingsJSON, tmpPath); err != nil {
+	if err := a.WriteBackup(w, parts); err != nil {
 		// Too late for http.Error: the headers and part of the zip are
 		// already on the wire, so the client has a truncated archive under
 		// a 200 and only the log says otherwise.
@@ -95,24 +112,30 @@ func downloadBackup(w http.ResponseWriter, a *app.App) {
 	}
 }
 
-// downloadSealedBackup builds the archive in memory and sends it sealed with
-// the app key. Sealing needs the whole archive, so unlike the plain download
-// a failure can still be answered as one.
-func downloadSealedBackup(w http.ResponseWriter, a *app.App, filename string, manifest backup.Manifest, settingsJSON []byte, dbPath string) {
-	var buf bytes.Buffer
-	if err := backup.Build(&buf, manifest, settingsJSON, dbPath); err != nil {
-		http.Error(w, "could not build the backup: "+err.Error(), http.StatusInternalServerError)
+// downloadAutoBackup sends one automatic backup from the backups folder. The
+// name is checked against the names the schedule writes before it becomes a
+// path, so nothing else in the data directory can be reached through it.
+func downloadAutoBackup(w http.ResponseWriter, r *http.Request, a *app.App) {
+	name := r.PathValue("name")
+	if _, ok := backup.ParseAutoName(name); !ok {
+		http.Error(w, "there is no automatic backup called "+name, http.StatusNotFound)
 		return
 	}
-	sealed, err := backup.Seal(a.AppKey, buf.Bytes())
+	f, err := os.Open(filepath.Join(a.AutoBackupDir(), name))
 	if err != nil {
-		http.Error(w, "could not encrypt the backup: "+err.Error(), http.StatusInternalServerError)
+		http.Error(w, "there is no automatic backup called "+name, http.StatusNotFound)
 		return
 	}
-	w.Header().Set("Content-Type", "application/octet-stream")
+	defer f.Close()
+	contentType := "application/zip"
+	if strings.HasSuffix(name, backup.SealedExt) {
+		contentType = "application/octet-stream"
+	}
+	w.Header().Set("Content-Type", contentType)
 	w.Header().Set("X-Content-Type-Options", "nosniff")
-	w.Header().Set("Content-Disposition", `attachment; filename="`+filename+backup.SealedExt+`"`)
-	_, _ = w.Write(sealed)
+	w.Header().Set("Content-Disposition", `attachment; filename="`+name+`"`)
+	// Too late for http.Error once this starts, as with the log files.
+	_, _ = io.Copy(w, f)
 }
 
 func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
