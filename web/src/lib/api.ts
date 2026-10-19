@@ -596,6 +596,11 @@ export interface Settings {
    * in a container is not the data volume.
    */
   maintenanceCompactOnSchedule: boolean;
+  /** Days between automatic backups into the data folder's backups folder,
+   *  counted from the newest one there. 0 writes none. */
+  backupIntervalDays: number;
+  /** How many automatic backups stay; the oldest go first. At least 1. */
+  backupKeep: number;
 
   /**
    * The optional log file. Off by default so an update does not start writing
@@ -4022,6 +4027,45 @@ export async function requestRestart(): Promise<{ status: string }> {
 /** Where a backup archive streams from. Opened directly so the browser handles
  *  a download of several hundred MB. */
 export const BACKUP_DOWNLOAD_URL = '/api/system/backup';
+
+/** One automatic backup in the data folder. */
+export interface AutoBackupFile {
+  name: string;
+  bytes: number;
+  createdAt: string;
+}
+
+/** The last scheduled backup: one it wrote, one that failed or one that waited for room. */
+export interface AutoBackupRun {
+  at: string;
+  file?: string;
+  error?: string;
+  /** 'low-space' while the data folder is under the floor set on the Downloads page. */
+  skipped?: string;
+  freeBytes?: number;
+  floorBytes?: number;
+}
+
+export interface AutoBackupState {
+  /** The folder on the server, to show, never to join a path onto. */
+  dir: string;
+  /** Newest first. */
+  files: AutoBackupFile[];
+  running: boolean;
+  /** Null while the schedule is off. */
+  nextRunAt: string | null;
+  last: AutoBackupRun | null;
+}
+
+export async function fetchAutoBackups(): Promise<AutoBackupState> {
+  return json<AutoBackupState>(await fetch('/api/system/backups'));
+}
+
+/** autoBackupHref is the download address of one automatic backup, used as a
+ *  plain href like the manual one, so the archive never passes through a Blob. */
+export function autoBackupHref(name: string): string {
+  return withBase(`/api/system/backups/${encodeURIComponent(name)}`);
+}
 
 export interface RestoreResult {
   manifest: { version: string; deployment: string; createdAt: string };
