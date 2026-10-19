@@ -149,7 +149,18 @@ func (p *Premiumize) transfer(ctx context.Context, id string) (pmTransfer, error
 	if i := slices.IndexFunc(list, is); i >= 0 {
 		return list[i], nil
 	}
-	return pmTransfer{}, &Refusal{Reason: "the transfer is gone from Premiumize"}
+	return pmTransfer{}, fmt.Errorf("premiumize: transfer %s: %w", id, ErrJobGone)
+}
+
+// pmCloudErr is the error of a failed read in the cloud. A file or folder that
+// is not found was deleted there, which Premiumize says only in words, under
+// the code it gives nearly every failure.
+func pmCloudErr(s pmStatus, path string) error {
+	err := s.err(path)
+	if err != nil && strings.Contains(strings.ToLower(s.Message), "not found") {
+		return fmt.Errorf("%w: %w", err, ErrJobGone)
+	}
+	return err
 }
 
 func (p *Premiumize) TorrentStatus(ctx context.Context, id string) (TorrentJob, error) {
@@ -209,7 +220,7 @@ func (p *Premiumize) item(ctx context.Context, id string) (TorrentFile, error) {
 		return TorrentFile{}, err
 	}
 	if data.Status != "" && data.Status != "success" {
-		return TorrentFile{}, data.err("/item/details")
+		return TorrentFile{}, pmCloudErr(data.pmStatus, "/item/details")
 	}
 	return TorrentFile{ID: data.Link, Path: data.Name, Size: data.Size, Held: data.Link != ""}, nil
 }
@@ -251,7 +262,7 @@ func (p *Premiumize) folder(ctx context.Context, id string) (string, []pmItem, e
 	if err := p.get(ctx, "/folder/list?id="+url.QueryEscape(id), &data); err != nil {
 		return "", nil, err
 	}
-	if err := data.err("/folder/list"); err != nil {
+	if err := pmCloudErr(data.pmStatus, "/folder/list"); err != nil {
 		return "", nil, err
 	}
 	return data.Name, data.Content, nil

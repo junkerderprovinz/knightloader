@@ -37,6 +37,11 @@ var rdFailureCodes = map[int]bool{
 	34: true, // Too many requests
 }
 
+// rdUnknownResource is Real-Debrid's code for an id the account holds no
+// torrent under, such as one deleted on its site or taken down by its review
+// right after the add.
+const rdUnknownResource = 7
+
 // torrentCall is do for the torrent endpoints, which answer 201 and 204 and
 // take a raw .torrent by PUT. A declined torrent comes back as a Refusal.
 func (r *RealDebrid) torrentCall(ctx context.Context, method, path string, body io.Reader, ctype string, out any) error {
@@ -63,7 +68,10 @@ func (r *RealDebrid) torrentCall(ctx context.Context, method, path string, body 
 		}
 		// The code decides: Real-Debrid answers a spent limit with a 503 just
 		// as it does its own outage.
-		if rdFailureCodes[e.Code] || (e.Code == 0 && resp.StatusCode >= 500) {
+		switch {
+		case e.Code == rdUnknownResource:
+			return fmt.Errorf("realdebrid %s: %s: %w", path, e.Error, ErrJobGone)
+		case rdFailureCodes[e.Code] || (e.Code == 0 && resp.StatusCode >= 500):
 			return fmt.Errorf("realdebrid %s: %s", path, e.Error)
 		}
 		return &Refusal{Reason: strings.ReplaceAll(e.Error, "_", " ")}
