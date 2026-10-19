@@ -462,6 +462,9 @@ type App struct {
 	// jdUpdateState is how the daily JDownloader update reaches JD
 	// (app_jdupdate.go).
 	jdUpdateState
+	// autoBackup is the backup schedule's run in this process
+	// (app_backup.go).
+	autoBackup autoBackupRunner
 	// torrentFiles routes the engine's reports on the files of a torrent a
 	// debrid service fetched (app_debridtorrents.go).
 	torrentFiles torrentParts
