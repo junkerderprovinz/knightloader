@@ -3,24 +3,23 @@ import { autoBackupHref, fetchAutoBackups, type AutoBackupState } from '../../..
 import { useT } from '../../../lib/i18n';
 import { fmtBytes, fmtDate } from '../../../lib/format';
 import { useResource } from '../../../lib/useResource';
-import { ErrorCard, FieldGroup, LoadingCard, NumberInput } from '../../../components/ui';
+import { ErrorCard, LoadingCard, NumberInput, ToggleRow } from '../../../components/ui';
 import { useDraft } from '../context';
-import { SettingRow, SubCard } from '../controls';
+import { SettingPathInput, SettingRow } from '../controls';
 
 /**
  * AutoBackupSection schedules the same archive the download button makes and
- * lists what the schedule has written. The folder sits in the data folder and
- * has no path box. The two numbers belong to the shared draft; the files and
- * the last run are read from the server.
+ * lists what the schedule has written. The switch and its three rows belong to
+ * the shared draft; the files and the last run are read from the server.
  */
-export function AutoBackupSection({ locked }: { locked: boolean }) {
+export function AutoBackupSection({ hue, locked }: { hue: number; locked: boolean }) {
   const { t } = useT();
   const { cfg, patch, dirty } = useDraft();
   const { data, failed, loading, reload, setData } = useResource<AutoBackupState>(fetchAutoBackups);
 
-  const interval = cfg.backupIntervalDays ?? 0;
+  const on = cfg.backupAuto ?? false;
 
-  // A save can switch the schedule on, and the first backup follows within a minute.
+  // A save can switch the schedule on or move its folder, so the state is re-read then.
   const wasDirty = useRef(dirty);
   useEffect(() => {
     if (wasDirty.current && !dirty) reload();
@@ -46,47 +45,62 @@ export function AutoBackupSection({ locked }: { locked: boolean }) {
 
   const newest = data.files[0];
   return (
-    <SubCard label={t('settings.autoBackup.title')} hint={t('settings.autoBackup.titleHint')} className="gap-4">
-      <SettingRow control="short" label={t('settings.autoBackup.interval')} hint={t('settings.autoBackup.intervalHint')}>
-        <NumberInput
-          value={interval}
-          min={0}
-          max={365}
-          onValue={(v) => patch({ backupIntervalDays: Math.max(0, v) })}
-        />
-      </SettingRow>
+    <div className="flex flex-col gap-4">
+      <ToggleRow
+        hue={hue}
+        label={t('settings.autoBackup.title')}
+        hint={t('settings.autoBackup.titleHint')}
+        checked={on}
+        onChange={(backupAuto) => patch({ backupAuto })}
+      />
 
-      {/* Absent while nothing is scheduled. */}
-      {interval > 0 && (
-        <SettingRow control="short" label={t('settings.autoBackup.keep')} hint={t('settings.autoBackup.keepHint')}>
-          <NumberInput
-            value={cfg.backupKeep ?? 7}
-            min={1}
-            max={1000}
-            onValue={(v) => patch({ backupKeep: Math.max(1, v) })}
-          />
-        </SettingRow>
+      {on && (
+        <>
+          <SettingRow control="short" label={t('settings.autoBackup.interval')} hint={t('settings.autoBackup.intervalHint')}>
+            <NumberInput
+              value={cfg.backupIntervalDays ?? 1}
+              min={1}
+              max={365}
+              onValue={(v) => patch({ backupIntervalDays: Math.max(1, v) })}
+            />
+          </SettingRow>
+
+          <SettingRow control="short" label={t('settings.autoBackup.keep')} hint={t('settings.autoBackup.keepHint')}>
+            <NumberInput
+              value={cfg.backupKeep ?? 7}
+              min={1}
+              max={1000}
+              onValue={(v) => patch({ backupKeep: Math.max(1, v) })}
+            />
+          </SettingRow>
+
+          <SettingRow control="long" label={t('settings.autoBackup.where')} hint={t('settings.autoBackup.whereHint')}>
+            <SettingPathInput
+              field="backupDir"
+              value={cfg.backupDir ?? ''}
+              onValue={(backupDir) => patch({ backupDir })}
+              placeholder={data.defaultDir}
+              title={t('settings.autoBackup.where')}
+              label={t('settings.autoBackup.where')}
+              missingHint={t('settings.autoBackup.missing')}
+            />
+          </SettingRow>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-sm text-carbon-textSub">
+              {newest ? t('settings.autoBackup.last', { when: fmtDate(newest.createdAt) }) : t('settings.autoBackup.none')}
+            </span>
+            <LastRun state={data} />
+            {data.nextRunAt && !data.running && (
+              <span className="text-meta text-carbon-textMuted">
+                {t('settings.autoBackup.next', { when: fmtDate(data.nextRunAt) })}
+              </span>
+            )}
+          </div>
+        </>
       )}
 
-      {/* FieldGroup, because a label with no control in it names nothing. */}
-      <FieldGroup label={t('settings.autoBackup.where')} hint={t('settings.autoBackup.whereHint')}>
-        <span className="break-all text-sm text-carbon-text" dir="ltr">
-          {data.dir}
-        </span>
-      </FieldGroup>
-
-      <div className="flex flex-col gap-1">
-        <span className="text-sm text-carbon-textSub">
-          {newest ? t('settings.autoBackup.last', { when: fmtDate(newest.createdAt) }) : t('settings.autoBackup.none')}
-        </span>
-        <LastRun state={data} />
-        {data.nextRunAt && !data.running && (
-          <span className="text-meta text-carbon-textMuted">
-            {t('settings.autoBackup.next', { when: fmtDate(data.nextRunAt) })}
-          </span>
-        )}
-      </div>
-
+      {/* Kept while the switch is off, so the backups already written can still be fetched. */}
       {data.files.length > 0 && (
         <div className="flex flex-col gap-2">
           {data.files.map((f) => (
@@ -112,7 +126,7 @@ export function AutoBackupSection({ locked }: { locked: boolean }) {
           ))}
         </div>
       )}
-    </SubCard>
+    </div>
   );
 }
 

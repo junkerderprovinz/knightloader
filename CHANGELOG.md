@@ -40,14 +40,15 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Added
 
-- **Automatic backups.** Under Settings, General, Backup & transfer,
-  KnightLoader can write the same archive as Download backup into the
-  `backups` folder in the data folder every so many days. It keeps the newest
-  seven unless you set another number and deletes only the automatic backups.
-  The days count from the newest backup in the folder, so a restart neither
-  skips one nor adds one. A failed backup shows under Settings, Health &
-  diagnostics and is tried again an hour later. It is off until you set a
-  number of days.
+- **Automatic backups.** Under Settings, General, Backup & transfer, the
+  Automatic backups switch writes the same archive as Download backup every so
+  many days, daily unless you set another interval. The folder is yours to
+  choose; left empty it is the `backups` folder in the data folder. KnightLoader
+  keeps the newest seven unless you set another number and deletes only the
+  automatic backups, never anything else in that folder. The days count from
+  the newest backup in the folder, so a restart neither skips one nor adds one.
+  A failed backup shows under Settings, Health & diagnostics and is tried again
+  an hour later.
 - **Discord as an event target.** Add target on the Automation page asks first
   whether the target is Discord or any other address. A Discord webhook needs
   nothing but its address: each event arrives as a Discord message with the
@@ -58,6 +59,14 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   status. A body you write yourself is still sent as you wrote it.
 - **The category as a placeholder.** `%%task.category%%` names the category a
   download is filed under.
+
+### Changed
+
+- **One backup button instead of two sections.** Download backup saves the
+  whole install, download list and history included. Switch off Take the
+  download list and history along and it saves only the settings, with stored
+  passwords if you want them. Upload backup takes either file and says what it
+  replaces before anything changes.
 
 ### Fixed
 

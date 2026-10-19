@@ -14,46 +14,46 @@ import {
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
 import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
-import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
+import { backupKind, diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
-import { SubCard } from '../controls';
 import { AutoBackupSection } from './AutoBackups';
 import { SettingsImportPreview } from './SettingsImportPreview';
 
 /**
- * SettingsTransfer moves this box to another one in two ways. The archive
- * carries the whole install, restored wholesale at the next start. "Settings
- * only" carries settings.json, offered key by key and applied through
- * app.PatchSettings without a restart. Neither carries the logins, header
- * profiles, captcha keys, login password or user scripts, which live outside
- * settings.json; the title's (i) says so. A restore that restarts the server
- * reports through `onShutdown`.
+ * SettingsTransfer saves this box and puts a saved one back. One download
+ * button makes either the archive of the whole install, restored wholesale at
+ * the next start, or with the list switch off only settings.json, offered key
+ * by key and applied through app.PatchSettings without a restart. One upload
+ * button takes both and tells them apart by their first bytes. Neither carries
+ * the logins, header profiles, captcha keys, login password or user scripts,
+ * which live outside settings.json; the title's (i) says so. A restore that
+ * restarts the server reports through `onShutdown`.
  */
 export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
   const draft = useDraft();
 
-  const archiveInput = useRef<HTMLInputElement>(null);
+  const fileInput = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
   const [restoring, setRestoring] = useState(false);
   const [restoreStatus, setRestoreStatus] = useState('');
   // The failure counter of the confirm button, so a repeated refusal shakes it again.
   const [restoreShake, setRestoreShake] = useState(0);
-  // Restore pulses once a restore is staged; Import pulses once settings are
-  // taken over and shakes on a file it cannot read.
+  // Upload pulses once a restore is staged or settings are taken over, and
+  // shakes on a settings file it cannot read.
   const [restored, setRestored] = useState(0);
   const [imported, setImported] = useState(0);
   const [importShake, setImportShake] = useState(0);
 
-  const fileInput = useRef<HTMLInputElement>(null);
-
+  // On by default: what somebody saving their box wants is all of it.
+  const [withList, setWithList] = useState(true);
   // Off by default: a settings export is a file people send, and a missing
   // password after import is visible and easy to fix.
   const [withSecrets, setWithSecrets] = useState(false);
-  // Both carry every stored password, which the server keeps back until a
-  // login password is set.
+  // The archive and a settings file with passwords carry every stored
+  // password, which the server keeps back until a login password is set.
   const locked = usePasswordFirst();
 
   const [pending, setPending] = useState<{ doc: SettingsExportDoc; rows: TransferRow[] } | null>(null);
@@ -83,6 +83,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     } finally {
       setRestoring(false);
     }
+  }
+
+  async function upload(file: File) {
+    if (backupKind(await file.slice(0, 64).text()) === 'archive') setPendingFile(file);
+    else await choose(file);
   }
 
   async function choose(file: File) {
@@ -146,104 +151,80 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.transfer.cardHint')}>{t('settings.transfer.cardTitle')}</SectionTitle>
 
-      <SubCard label={t('settings.transfer.archiveLabel')} hint={t('settings.transfer.archiveText')} className="gap-3">
-        <input
-          ref={archiveInput}
-          type="file"
-          accept="application/zip,.zip,.sealed"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            // Cleared so picking the same file again fires a change event.
-            e.target.value = '';
-            if (f) setPendingFile(f);
-          }}
-        />
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconDownload width={16} height={16} />}
-            disabled={locked}
-            onClick={() => {
-              window.location.href = withBase(BACKUP_DOWNLOAD_URL);
-            }}
-          >
-            {t('settings.system.backupButton')}
-          </Button>
-          <Button
-            kind="secondary"
-            icon={<IconUpload width={16} height={16} />}
-            onClick={() => archiveInput.current?.click()}
-            disabled={restoring}
-            confirm={restored}
-          >
-            {t('settings.system.restoreButton')}
-          </Button>
-        </div>
-        {restoreStatus && (
-          <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
-        )}
-        {locked && (
-          <span className="text-sm text-carbon-textSub">
-            {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
-          </span>
-        )}
-      </SubCard>
+      <input
+        ref={fileInput}
+        type="file"
+        accept="application/zip,.zip,.sealed,application/json,.json"
+        className="hidden"
+        onChange={(e) => {
+          const f = e.target.files?.[0];
+          // Cleared so picking the same file again fires a change event.
+          e.target.value = '';
+          if (f) void upload(f);
+        }}
+      />
 
-      <AutoBackupSection locked={locked} />
-
-      <SubCard label={t('settings.transfer.settingsLabel')} hint={t('settings.transfer.settingsText')} className="gap-3">
-
+      <ToggleRow
+        hue={hue}
+        label={t('settings.transfer.withList')}
+        hint={t('settings.transfer.withListHint')}
+        checked={withList}
+        onChange={setWithList}
+      />
+      {/* The archive always carries the passwords, so the choice is the settings file's alone. */}
+      {!withList && (
         <ToggleRow
+          hue={hue}
           label={t('settings.transfer.withSecrets')}
           hint={t('settings.transfer.withSecretsHint')}
           checked={withSecrets && !locked}
           onChange={setWithSecrets}
           disabled={locked}
         />
+      )}
 
-        <input
-          ref={fileInput}
-          type="file"
-          accept="application/json,.json"
-          className="hidden"
-          onChange={(e) => {
-            const f = e.target.files?.[0];
-            e.target.value = '';
-            if (f) void choose(f);
+      <div className="flex flex-wrap items-center gap-3">
+        <Button
+          kind="secondary"
+          icon={<IconDownload width={16} height={16} />}
+          disabled={withList && locked}
+          onClick={() => {
+            // Opened rather than fetched, so the browser owns the save dialog.
+            window.location.href = withList
+              ? withBase(BACKUP_DOWNLOAD_URL)
+              : settingsExportURL(withSecrets && !locked);
           }}
-        />
+        >
+          {t('settings.system.backupButton')}
+        </Button>
+        <Button
+          kind="secondary"
+          icon={<IconUpload width={16} height={16} />}
+          onClick={() => fileInput.current?.click()}
+          disabled={restoring || busy}
+          shake={importShake}
+          confirm={restored + imported}
+        >
+          {t('settings.system.restoreButton')}
+        </Button>
+      </div>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <Button
-            kind="secondary"
-            icon={<IconDownload width={16} height={16} />}
-            onClick={() => {
-              // Opened rather than fetched, so the browser owns the save dialog.
-              window.location.href = settingsExportURL(withSecrets && !locked);
-            }}
-          >
-            {t('settings.transfer.export')}
-          </Button>
-          <Button
-            kind="secondary"
-            icon={<IconUpload width={16} height={16} />}
-            onClick={() => fileInput.current?.click()}
-            disabled={busy}
-            shake={importShake}
-            confirm={imported}
-          >
-            {t('settings.transfer.import')}
-          </Button>
-        </div>
+      {restoreStatus && (
+        <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
+      )}
+      {failure && <span className="text-sm text-statusFail">{failure}</span>}
+      {notice.map((line, i) => (
+        <span key={i} className={i === 0 ? 'text-sm text-statusOk' : 'text-sm text-statusWarn'}>
+          {line}
+        </span>
+      ))}
+      {locked && (
+        <span className="text-sm text-carbon-textSub">
+          {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
+        </span>
+      )}
 
-        {failure && <span className="text-sm text-statusFail">{failure}</span>}
-        {notice.map((line, i) => (
-          <span key={i} className={i === 0 ? 'text-sm text-statusOk' : 'text-sm text-statusWarn'}>
-            {line}
-          </span>
-        ))}
-      </SubCard>
+      <AutoBackupSection hue={hue} locked={locked} />
 
       {pending && (
         <SettingsImportPreview

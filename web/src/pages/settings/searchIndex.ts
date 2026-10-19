@@ -287,27 +287,20 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
     },
     // One row per part, named by the part itself.
     { title: 'settings.look.builtInTitle', hint: 'settings.look.builtInHint', rows: [] },
-    // The archive, its schedule and "settings only" share one card as its
-    // three sub-cards.
+    // The download, the upload and the schedule share one card.
     {
       title: 'settings.transfer.cardTitle',
       hint: 'settings.transfer.cardHint',
       rows: [
-        { key: 'settings.transfer.archiveLabel', hint: 'settings.transfer.archiveText' },
+        { key: 'settings.transfer.withList', hint: 'settings.transfer.withListHint' },
+        { key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' },
         { key: 'settings.autoBackup.title', hint: 'settings.autoBackup.titleHint' },
         { key: 'settings.autoBackup.interval', hint: 'settings.autoBackup.intervalHint' },
         { key: 'settings.autoBackup.keep', hint: 'settings.autoBackup.keepHint' },
         { key: 'settings.autoBackup.where', hint: 'settings.autoBackup.whereHint' },
-        { key: 'settings.transfer.settingsLabel', hint: 'settings.transfer.settingsText' },
-        { key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' },
       ],
       // Buttons, with no anchor of their own.
-      also: [
-        'settings.system.backupButton',
-        'settings.system.restoreButton',
-        'settings.transfer.export',
-        'settings.transfer.import',
-      ],
+      also: ['settings.system.backupButton', 'settings.system.restoreButton'],
       // The import preview's strings stay out: its dialog exists only once a
       // file is chosen.
     },
