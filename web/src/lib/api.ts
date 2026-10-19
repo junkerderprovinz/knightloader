@@ -596,11 +596,14 @@ export interface Settings {
    * in a container is not the data volume.
    */
   maintenanceCompactOnSchedule: boolean;
-  /** Days between automatic backups into the data folder's backups folder,
-   *  counted from the newest one there. 0 writes none. */
+  /** Whether the backup archive is also written on a schedule. Off by default. */
+  backupAuto: boolean;
+  /** Days between automatic backups, counted from the newest one in the folder. At least 1. */
   backupIntervalDays: number;
   /** How many automatic backups stay; the oldest go first. At least 1. */
   backupKeep: number;
+  /** Where automatic backups go. Empty is the backups folder in the data folder. */
+  backupDir: string;
 
   /**
    * The optional log file. Off by default so an update does not start writing
@@ -4049,6 +4052,8 @@ export interface AutoBackupRun {
 export interface AutoBackupState {
   /** The folder on the server, to show, never to join a path onto. */
   dir: string;
+  /** Where they go while backupDir is empty. */
+  defaultDir: string;
   /** Newest first. */
   files: AutoBackupFile[];
   running: boolean;

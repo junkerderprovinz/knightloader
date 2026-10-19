@@ -45,7 +45,7 @@ export const NEVER_PORTABLE = ['instanceId', 'knownDomains'];
  * by name, since "looks like a path" is not a property of a string. Category
  * folders are not covered; that row is already flagged as replacing the table.
  */
-export const PATH_KEYS = ['downloadDir', 'workDir', 'watchDir', 'extractTo', 'extractMoveTo'];
+export const PATH_KEYS = ['downloadDir', 'workDir', 'watchDir', 'extractTo', 'extractMoveTo', 'backupDir'];
 
 /** One key, and everything the preview needs to know about it. */
 export interface TransferRow {
@@ -71,6 +71,15 @@ export interface TransferRow {
   secretless: boolean;
   /** A path-valued key naming a folder that is not the stored one. */
   path: boolean;
+}
+
+/**
+ * backupKind tells from the start of an uploaded file which of the two backups
+ * it is. A settings export is JSON; anything else goes to the restore route,
+ * which names what is wrong with a file that is no archive either.
+ */
+export function backupKind(head: string): 'settings' | 'archive' {
+  return head.trimStart().startsWith('{') ? 'settings' : 'archive';
 }
 
 /** parseExport turns a file's text into a document, or throws an error that

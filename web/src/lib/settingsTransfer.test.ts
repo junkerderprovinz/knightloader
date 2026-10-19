@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 
 import type { SettingsExportDoc } from './api';
-import { diffRows, parseExport } from './settingsTransfer';
+import { backupKind, diffRows, parseExport } from './settingsTransfer';
 
 const schema = {
   values: { stallTimeout: 120, stallReconnect: true, autoStart: true, autoConfirm: false },
@@ -75,5 +75,21 @@ describe('the import preview', () => {
     const program = (value: string) => ({ eventPrograms: [{ id: 'a1', command: { program: value } }] });
     expect(row(program('********'), {}, 'eventPrograms').secretless).toBe(true);
     expect(row(program('/usr/local/bin/file-it'), {}, 'eventPrograms').secretless).toBe(false);
+  });
+});
+
+describe('an uploaded backup', () => {
+  it('is a settings file when it opens as JSON', () => {
+    expect(backupKind('{"kind":"knightloader-settings"')).toBe('settings');
+    expect(backupKind('\uFEFF\n  {"kind"')).toBe('settings');
+  });
+
+  it('is the whole install when it is a zip or a sealed archive', () => {
+    expect(backupKind('PK\u0003\u0004')).toBe('archive');
+    expect(backupKind('KnightLoader sealed backup 1\n')).toBe('archive');
+  });
+
+  it('goes to the server to be refused when it is neither', () => {
+    expect(backupKind('not a backup')).toBe('archive');
   });
 });
