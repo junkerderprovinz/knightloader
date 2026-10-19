@@ -294,6 +294,31 @@ func TestATorrentTheServiceGivesUpOnIsDeletedAndHandedOn(t *testing.T) {
 	waitFor(t, func() bool { return slices.Equal(svc.deletedJobs(), []string{"job1"}) }, "the dead job deleted")
 }
 
+// forgetful is a service that has lost every job it is asked about, the way
+// one answers after the user deleted the torrent on its site.
+type forgetful struct{ scriptedService }
+
+func (*forgetful) TorrentStatus(context.Context, string) (TorrentJob, error) {
+	return TorrentJob{}, ErrJobGone
+}
+
+func TestATorrentTheServiceLosesTwiceIsHandedOn(t *testing.T) {
+	svc := &forgetful{}
+	b, up := newTestBackend(t, svc, &partRecorder{})
+
+	b.Download("t1", testMagnet, nil, 1)
+	u := up.until(t, core.StatusError)
+	if !u.Unsupported || u.Err != "fake: the service no longer had this torrent, not even after it was added there again" {
+		t.Errorf("got %+v, want the task handed on with the reason", u)
+	}
+	if n := svc.addCount(); n != 2 {
+		t.Errorf("the torrent was added %d times, want once more after the service lost it", n)
+	}
+	if b.Holds("t1") {
+		t.Error("the task still holds a job the service lost, which a retry would only read again")
+	}
+}
+
 func TestAFailedAddIsAnOrdinaryFailure(t *testing.T) {
 	svc := &scriptedService{addErr: errors.New("connection reset")}
 	b, up := newTestBackend(t, svc, &partRecorder{})

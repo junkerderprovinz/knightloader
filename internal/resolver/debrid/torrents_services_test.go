@@ -8,6 +8,7 @@ package debrid
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -282,6 +283,120 @@ func TestAllDebridDecliningAMagnetHandsItOn(t *testing.T) {
 	_, u := fetchTorrent(t, ad, testMagnet, nil, core.StatusError)
 	if !u.Unsupported || !strings.Contains(u.Err, "MAGNET_TOO_MANY_ACTIVE") {
 		t.Errorf("got %+v, want the task handed on with AllDebrid's reason", u)
+	}
+}
+
+func TestAllDebridAddsAMagnetAgainThatWasDeletedOnTheSite(t *testing.T) {
+	for _, c := range []struct{ name, gone string }{
+		{"invalid id", `{"status":"error","error":{"code":"MAGNET_INVALID_ID","message":"This magnet ID does not exists or is invalid"}}`},
+		{"left out of the answer", `{"status":"success","data":{"magnets":[]}}`},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			var (
+				seen    calls
+				mu      sync.Mutex
+				uploads int
+			)
+			srv := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+				seen.add(r)
+				mu.Lock()
+				defer mu.Unlock()
+				ok := func(data string) { fmt.Fprintf(w, `{"status":"success","data":%s}`, data) }
+				switch r.URL.Path {
+				case "/v4/magnet/upload":
+					uploads++
+					ok(fmt.Sprintf(`{"magnets":[{"magnet":"x","id":%d,"ready":true}]}`, 54+uploads))
+				case "/v4.1/magnet/status":
+					switch r.FormValue("id") {
+					case "":
+						ok(`{"magnets":[]}`)
+					case "55":
+						fmt.Fprint(w, c.gone)
+					default:
+						ok(`{"magnets":{"id":56,"filename":"Show","size":730,"status":"Ready","statusCode":4,"downloaded":730}}`)
+					}
+				case "/v4/magnet/files":
+					ok(`{"magnets":[{"id":"56","files":[{"n":"Show","e":[{"n":"e01.mkv","s":700,"l":"https://alldebrid.com/f/A"}]}]}]}`)
+				case "/v4/link/unlock":
+					ok(`{"link":"https://dl.example/A","filename":"e01.mkv"}`)
+				case "/v4/magnet/delete":
+					if r.FormValue("id") != "56" {
+						t.Errorf("deleted magnet %q, want only the one added again", r.FormValue("id"))
+					}
+					ok(`{"message":"Magnet was successfully deleted"}`)
+				default:
+					t.Errorf("unexpected %s", r.URL.Path)
+				}
+			}))
+			defer srv.Close()
+			ad := NewAllDebrid("key")
+			ad.base = srv.URL + "/v4"
+
+			fetchTorrent(t, ad, testMagnet, nil, core.StatusDone)
+
+			mu.Lock()
+			n := uploads
+			mu.Unlock()
+			if n != 2 {
+				t.Errorf("the magnet went to AllDebrid %d times, want once more after it was deleted there", n)
+			}
+			waitFor(t, func() bool { return seen.saw("POST /v4/magnet/delete") }, "the magnet added again deleted on AllDebrid")
+		})
+	}
+}
+
+// Each service's answer for a job the account no longer holds, as the
+// services send it: Real-Debrid's unknown_ressource, Premiumize's words for a
+// transfer whose folder was deleted, Debrid-Link's badId.
+func TestEachServiceSaysWhenItNoLongerHasAJob(t *testing.T) {
+	for _, c := range []struct {
+		name   string
+		answer func(w http.ResponseWriter, r *http.Request)
+		svc    func(base string) TorrentService
+	}{
+		{"realdebrid", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusNotFound)
+			fmt.Fprint(w, `{"error":"unknown_ressource","error_code":7}`)
+		}, func(base string) TorrentService {
+			rd := NewRealDebrid("tok")
+			rd.base = base
+			return rd
+		}},
+		{"premiumize", func(w http.ResponseWriter, r *http.Request) {
+			if r.URL.Path == "/transfer/list" {
+				fmt.Fprint(w, `{"status":"success","transfers":[{"id":"J1","name":"Show","status":"finished","progress":1,"folder_id":"F1"}]}`)
+				return
+			}
+			fmt.Fprint(w, `{"status":"error","message":"Folder not found or not owned by user.","code":"transient_error"}`)
+		}, func(base string) TorrentService {
+			pm := NewPremiumize("key")
+			pm.base, pm.listFresh = base, 0
+			return pm
+		}},
+		{"premiumize transfer", func(w http.ResponseWriter, _ *http.Request) {
+			fmt.Fprint(w, `{"status":"success","transfers":[]}`)
+		}, func(base string) TorrentService {
+			pm := NewPremiumize("key")
+			pm.base, pm.listFresh = base, 0
+			return pm
+		}},
+		{"debridlink", func(w http.ResponseWriter, _ *http.Request) {
+			w.WriteHeader(http.StatusBadRequest)
+			fmt.Fprint(w, `{"success":false,"error":"badId"}`)
+		}, func(base string) TorrentService {
+			dl := NewDebridLink("key")
+			dl.base = base
+			return dl
+		}},
+	} {
+		t.Run(c.name, func(t *testing.T) {
+			srv := httptest.NewServer(http.HandlerFunc(c.answer))
+			defer srv.Close()
+
+			if _, err := c.svc(srv.URL).TorrentStatus(context.Background(), "J1"); !errors.Is(err, ErrJobGone) {
+				t.Errorf("err = %v, want ErrJobGone", err)
+			}
+		})
 	}
 }
 

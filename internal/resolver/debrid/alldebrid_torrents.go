@@ -35,6 +35,9 @@ type adError struct {
 }
 
 func (e adError) err(path string) error {
+	if e.Code == "MAGNET_INVALID_ID" {
+		return fmt.Errorf("alldebrid %s: %s: %w", path, e.Message, ErrJobGone)
+	}
 	if adFailure(e.Code) {
 		return fmt.Errorf("alldebrid %s: %s (%s)", path, e.Message, e.Code)
 	}
@@ -155,8 +158,11 @@ func (a *AllDebrid) TorrentStatus(ctx context.Context, id string) (TorrentJob, e
 	var st adStatus
 	if err := json.Unmarshal(data.Magnets, &st); err != nil {
 		var list []adStatus
-		if err := json.Unmarshal(data.Magnets, &list); err != nil || len(list) == 0 {
-			return TorrentJob{}, fmt.Errorf("alldebrid /magnet/status: magnet %s is not in the answer", id)
+		if err := json.Unmarshal(data.Magnets, &list); err != nil {
+			return TorrentJob{}, fmt.Errorf("alldebrid /magnet/status: %w", err)
+		}
+		if len(list) == 0 {
+			return TorrentJob{}, fmt.Errorf("alldebrid /magnet/status: magnet %s: %w", id, ErrJobGone)
 		}
 		st = list[0]
 	}
@@ -202,7 +208,7 @@ func (a *AllDebrid) magnetFiles(ctx context.Context, id string) ([]TorrentFile, 
 		return nil, err
 	}
 	if len(data.Magnets) == 0 {
-		return nil, fmt.Errorf("alldebrid /magnet/files: magnet %s is not in the answer", id)
+		return nil, fmt.Errorf("alldebrid /magnet/files: magnet %s: %w", id, ErrJobGone)
 	}
 	if e := data.Magnets[0].Error; e != nil {
 		return nil, e.err("/magnet/files")

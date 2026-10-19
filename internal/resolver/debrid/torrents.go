@@ -122,6 +122,11 @@ type Refusal struct{ Reason string }
 
 func (r *Refusal) Error() string { return r.Reason }
 
+// ErrJobGone is a service saying it has no job of the id asked about, as when
+// the user deleted the torrent on the service's site. Asking again would not
+// bring the job back.
+var ErrJobGone = errors.New("the service has no such torrent")
+
 // Part is one file of a torrent on its way to the engine.
 type Part struct {
 	TaskID string
@@ -332,6 +337,9 @@ type torrentRun struct {
 	// cached, and has not been ready yet.
 	probe  bool
 	chosen bool
+	// readded says the torrent went to the service again after the service
+	// lost its job, which happens once at most.
+	readded bool
 	// next is the first file still to fetch, so a resume skips what is here.
 	next int
 	// partial is where the engine is writing file next, once it has said.
@@ -566,6 +574,9 @@ func (b *TorrentBackend) run(ctx context.Context, taskID string, r *torrentRun) 
 		return
 	}
 	b.runs.mu.Lock()
+	// The service may have lost the job on the way and been given the torrent
+	// again under a new one.
+	job = r.job
 	name := cmp.Or(tj.Name, r.name)
 	// A probe that is ready is the service's cached copy, kept like any job.
 	var kept *core.ServiceJob
@@ -681,6 +692,28 @@ func (b *TorrentBackend) add(ctx context.Context, taskID string, r *torrentRun) 
 	return job, true
 }
 
+// addAgain gives the service the torrent once more after it lost the job, as
+// happens when the user deletes the torrent on the service's site, and carries
+// on with the files already here. A torrent whose second job is lost too goes to the
+// next backend. It reports false when the task has been dealt with.
+func (b *TorrentBackend) addAgain(ctx context.Context, taskID string, r *torrentRun) (string, bool) {
+	b.runs.mu.Lock()
+	if !b.live(ctx, taskID, r) {
+		b.runs.mu.Unlock()
+		return "", false
+	}
+	again := !r.readded
+	r.job, r.chosen, r.readded = "", false, true
+	b.runs.mu.Unlock()
+	if !again {
+		b.refuse(ctx, taskID, r, "the service no longer had this torrent, not even after it was added there again")
+		return "", false
+	}
+	log.Printf("task %s: %s no longer has the torrent, so it goes there again", taskID, b.svc.Label())
+	b.onUpdate(taskID, core.Update{Job: &core.ServiceJob{}})
+	return b.add(ctx, taskID, r)
+}
+
 // notCached says why the torrent does not count as cached on the service, or
 // returns "" when it is cached there.
 func (b *TorrentBackend) notCached(ctx context.Context, cc CacheChecker, hash string) string {
@@ -776,6 +809,11 @@ func (b *TorrentBackend) await(ctx context.Context, taskID string, r *torrentRun
 		progress := clamp01(tj.Progress)
 		var no *Refusal
 		switch {
+		case errors.Is(err, ErrJobGone):
+			if job, ok := b.addAgain(ctx, taskID, r); ok {
+				return b.await(ctx, taskID, r, job)
+			}
+			return TorrentJob{}, false
 		case errors.As(err, &no):
 			b.refuse(ctx, taskID, r, no.Reason)
 			return TorrentJob{}, false
