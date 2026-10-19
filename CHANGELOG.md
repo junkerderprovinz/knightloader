@@ -68,6 +68,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   for the deleted torrent again on every retry, while the other services handed
   it straight on. A torrent the service loses a second time goes to the next
   service or the built-in client, and its row says why.
+- **Status reads on a debrid account keep their distance on a busy machine.**
+  A read that started late no longer leaves the next one only milliseconds
+  behind it, so the gap between two reads on one account holds under load.
 
 ## [2.1.6] - 2026-10-17
 

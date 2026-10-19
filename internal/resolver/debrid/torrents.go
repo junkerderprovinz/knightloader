@@ -205,8 +205,10 @@ type Runs struct {
 	slot   string
 	mu     sync.Mutex
 	byTask map[string]*torrentRun
-	// nextRead is when the account's jobs may next be read (see readTurn).
+	// nextRead is the next turn readTurn hands out and lastRead when the last
+	// one was taken.
 	nextRead time.Time
+	lastRead time.Time
 	stopped  bool
 }
 
@@ -262,22 +264,36 @@ func (rs *Runs) Stop() {
 // and waits for it. It reports false when ctx ends first.
 func (rs *Runs) readTurn(ctx context.Context, gap time.Duration) bool {
 	rs.mu.Lock()
-	now := time.Now()
-	at := now
-	if rs.nextRead.After(now) {
+	at := time.Now()
+	if rs.nextRead.After(at) {
 		at = rs.nextRead
 	}
 	rs.nextRead = at.Add(gap)
 	rs.mu.Unlock()
-	if !at.After(now) {
-		return true
-	}
-	t := time.NewTimer(at.Sub(now))
-	defer t.Stop()
-	select {
-	case <-ctx.Done():
-		return false
-	case <-t.C:
+	for {
+		if wait := time.Until(at); wait > 0 {
+			t := time.NewTimer(wait)
+			select {
+			case <-ctx.Done():
+				t.Stop()
+				return false
+			case <-t.C:
+			}
+		}
+		rs.mu.Lock()
+		now := time.Now()
+		// A turn before this one that woke late took its read only just now,
+		// and the gap counts from the read, not from the booking.
+		if due := rs.lastRead.Add(gap); now.Before(due) {
+			at = due
+			if rs.nextRead.Before(due.Add(gap)) {
+				rs.nextRead = due.Add(gap)
+			}
+			rs.mu.Unlock()
+			continue
+		}
+		rs.lastRead = now
+		rs.mu.Unlock()
 		return true
 	}
 }
