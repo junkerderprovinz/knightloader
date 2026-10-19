@@ -9,6 +9,7 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/core"
 	"github.com/junkerderprovinz/knightloader/internal/idleaction"
 	"github.com/junkerderprovinz/knightloader/internal/script"
+	"github.com/junkerderprovinz/knightloader/internal/settings"
 )
 
 // A task settling as done in onUpdate reaches a task.done script through the
@@ -208,5 +209,20 @@ func TestWatchQueueIdleForScriptsFiresOnce(t *testing.T) {
 			t.Fatal("no script notify() broadcast arrived; watchQueueIdleForScripts did not fire")
 		}
 		time.Sleep(20 * time.Millisecond)
+	}
+}
+
+func TestATaskViewNamesTheCategoryItIsFiledUnder(t *testing.T) {
+	a := newQueueApp(t)
+	s := a.Settings.Get()
+	s.Categories = []settings.Category{{ID: "films", Name: "Films"}}
+	if _, err := a.ApplySettings(s); err != nil {
+		t.Fatal(err)
+	}
+	if got := a.scriptTaskView(core.Task{ID: "1", Category: "films"}).Category; got != "Films" {
+		t.Errorf("a task filed under films names its category %q, want its name", got)
+	}
+	if got := a.scriptTaskView(core.Task{ID: "2"}).Category; got != "" {
+		t.Errorf("a task in no category names %q", got)
 	}
 }

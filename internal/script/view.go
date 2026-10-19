@@ -26,6 +26,9 @@ type TaskView struct {
 	// run on a final failure.
 	NextTry   time.Time `json:"-"`
 	CreatedAt time.Time `json:"createdAt"`
+	// Category is the name of the category the task is filed under, empty for
+	// none, as eventprog's KL_CATEGORY spells it.
+	Category string `json:"category,omitempty"`
 }
 
 // ProgressPct is Loaded/Size as a percentage clamped to 0-100, and 0 while

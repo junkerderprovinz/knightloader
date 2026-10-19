@@ -147,6 +147,7 @@ func buildTable() []entry {
 		taskEntry("task.url", func(v script.TaskView) string { return v.URL }),
 		taskEntry("task.host", func(v script.TaskView) string { return v.Host }),
 		taskEntry("task.package", func(v script.TaskView) string { return v.Package }),
+		taskEntry("task.category", func(v script.TaskView) string { return v.Category }),
 		taskEntry("task.status", func(v script.TaskView) string { return v.Status }),
 		taskEntry("task.size", func(v script.TaskView) string { return itoa64(v.Size) }),
 		taskEntry("task.loaded", func(v script.TaskView) string { return itoa64(v.Loaded) }),
@@ -480,7 +481,7 @@ func SampleFiring(now time.Time) script.Firing {
 		Queue:   script.QueueView{Files: 3, Disabled: 1, Running: 1},
 		Task: &script.TaskView{
 			ID: "test-task", Name: `A "test" file.mkv`, URL: "https://example.invalid/a-test-file.mkv",
-			Host: "example.invalid", Package: "Test package", Status: "done",
+			Host: "example.invalid", Package: "Test package", Category: "Test category", Status: "done",
 			Size: 1024 * 1024 * 700, Loaded: 1024 * 1024 * 700, CreatedAt: now,
 		},
 		Package: &script.PackageView{
