@@ -18,6 +18,7 @@ import { diffRows, parseExport, type TransferRow } from '../../../lib/settingsTr
 import { fetchSettingsSchema } from '../features';
 import { useDraft } from '../context';
 import { SubCard } from '../controls';
+import { AutoBackupSection } from './AutoBackups';
 import { SettingsImportPreview } from './SettingsImportPreview';
 
 /**
@@ -188,6 +189,8 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           </span>
         )}
       </SubCard>
+
+      <AutoBackupSection locked={locked} />
 
       <SubCard label={t('settings.transfer.settingsLabel')} hint={t('settings.transfer.settingsText')} className="gap-3">
 

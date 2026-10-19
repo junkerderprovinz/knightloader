@@ -36,6 +36,19 @@ release is a fixed download. Once a release is out and is the newest one,
 `stores.yml` sends the extension to the Chrome Web Store, Edge Add-ons and
 Firefox Add-ons and the app to Google Play, each only when it changed.
 
+## [Unreleased]
+
+### Added
+
+- **Automatic backups.** Under Settings, General, Backup & transfer,
+  KnightLoader can write the same archive as Download backup into the
+  `backups` folder in the data folder every so many days. It keeps the newest
+  seven unless you set another number and deletes only the automatic backups.
+  The days count from the newest backup in the folder, so a restart neither
+  skips one nor adds one. A failed backup shows under Settings, Health &
+  diagnostics and is tried again an hour later. It is off until you set a
+  number of days.
+
 ## [2.1.6] - 2026-10-17
 
 ### Added
