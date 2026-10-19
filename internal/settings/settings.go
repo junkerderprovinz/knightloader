@@ -625,6 +625,14 @@ type Settings struct {
 	// often not large. The manual Compact button ignores this field.
 	MaintenanceCompactOnSchedule bool `json:"maintenanceCompactOnSchedule"`
 
+	// BackupIntervalDays is how often the archive Download backup produces is
+	// also written into the data directory's backups folder, counted from the
+	// newest one there. Zero, the shipped value, writes none.
+	BackupIntervalDays int `json:"backupIntervalDays"`
+	// BackupKeep is how many of those automatic backups stay; the oldest go
+	// first, and nothing else in the folder is ever deleted.
+	BackupKeep int `json:"backupKeep"`
+
 	// LogFile is the optional copy of this process's own log output on disk:
 	// whether it is written at all, how big one file may get, and how many
 	// renamed ones stay beside it. Off on every install that upgrades into this
@@ -876,12 +884,14 @@ func Defaults() Settings {
 		ResumeOnStart:    ResumeNever,
 		KeepFinishedDays: DefaultKeepFinishedDays,
 		HistoryMax:       DefaultHistoryMax,
-		// The next five are written out at values that are partly their zero
+		// The next seven are written out at values that are partly their zero
 		// value because the Advanced key table serves Defaults() unsanitised: a
 		// factory reading of "0 / off" that appears only because nobody typed
 		// anything is indistinguishable from a field somebody forgot.
 		MaintenanceIntervalDays:      DefaultMaintenanceIntervalDays,
 		MaintenanceCompactOnSchedule: false,
+		BackupIntervalDays:           0,
+		BackupKeep:                   DefaultBackupKeep,
 		LogFile:                      DefaultLogFile(),
 		ReclaimTrust:                 string(reclaim.DefaultTrust),
 		// Quiet mode ships with a slot count and no speed. The box has no idea
@@ -1209,6 +1219,7 @@ func sanitize(n Settings) Settings {
 	n = sanitizeRules(n)
 	n = sanitizeLifecycle(n)
 	n = sanitizeMaintenance(n)
+	n = sanitizeBackup(n)
 	// A method on the LogFile type rather than a sanitizeLogFile(Settings) hook
 	// like its neighbours, because the type compiles on its own.
 	n.LogFile = n.LogFile.Sanitized()

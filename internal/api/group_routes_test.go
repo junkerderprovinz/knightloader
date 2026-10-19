@@ -177,6 +177,8 @@ var groupRefused = []string{
 	// The system: backups, restore, restart, maintenance, diagnostics and the
 	// readings of this machine.
 	"GET /api/system/backup",
+	"GET /api/system/backups",
+	"GET /api/system/backups/{name}",
 	"GET /api/system/deployment",
 	"GET /api/system/maintenance",
 	"POST /api/system/maintenance",
