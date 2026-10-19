@@ -159,11 +159,15 @@ func (Torrents) ID() string    { return "torbox" }
 func (Torrents) Label() string { return "TorBox" }
 
 // declined turns a TorBox answer that declines the torrent into a
-// debrid.Refusal and leaves any other error as it is.
+// debrid.Refusal, and one about a job the account does not hold into
+// debrid.ErrJobGone. It leaves any other error as it is.
 func declined(err error) error {
 	var apiErr *APIError
 	if !errors.As(err, &apiErr) || apiErr.Code == "" || failureCodes[apiErr.Code] {
 		return err
+	}
+	if apiErr.Code == "ITEM_NOT_FOUND" {
+		return fmt.Errorf("%w: %w", err, debrid.ErrJobGone)
 	}
 	return &debrid.Refusal{Reason: strings.TrimSpace(apiErr.Detail + " (" + apiErr.Code + ")")}
 }
