@@ -102,6 +102,8 @@ type AutoBackupRun struct {
 // this machine, so the route stays off the group's forwarding list.
 type AutoBackupState struct {
 	Dir string `json:"dir"`
+	// DefaultDir is where they go while settings.BackupDir is empty.
+	DefaultDir string `json:"defaultDir"`
 	// Files is newest first and never nil.
 	Files   []backup.AutoFile `json:"files"`
 	Running bool              `json:"running"`
@@ -120,8 +122,12 @@ type autoBackupRunner struct {
 	retryAt time.Time
 }
 
-// AutoBackupDir is the folder automatic backups are written to.
+// AutoBackupDir is the folder automatic backups are written to:
+// settings.BackupDir, or the backups folder in the data directory.
 func (a *App) AutoBackupDir() string {
+	if dir := a.Settings.Get().BackupDir; dir != "" {
+		return dir
+	}
 	return filepath.Join(a.DataDir, backup.AutoDirName)
 }
 
@@ -134,7 +140,7 @@ func (a *App) AutoBackupState() (AutoBackupState, error) {
 	if err != nil {
 		return AutoBackupState{}, err
 	}
-	out := AutoBackupState{Dir: dir, Files: files}
+	out := AutoBackupState{Dir: dir, DefaultDir: filepath.Join(a.DataDir, backup.AutoDirName), Files: files}
 	if out.Files == nil {
 		out.Files = []backup.AutoFile{}
 	}
@@ -146,7 +152,7 @@ func (a *App) AutoBackupState() (AutoBackupState, error) {
 		last := *r.last
 		out.Last = &last
 	}
-	if cfg.BackupIntervalDays > 0 {
+	if cfg.BackupAuto {
 		next := backup.NextAuto(files, cfg.BackupIntervalDays)
 		if r.retryAt.After(next) {
 			next = r.retryAt
@@ -163,7 +169,7 @@ func (a *App) AutoBackupState() (AutoBackupState, error) {
 // run itself goes on its own goroutine, because Close waits for upkeep.
 func (a *App) runAutoBackupIfDue() {
 	cfg := a.Settings.Get()
-	if cfg.BackupIntervalDays <= 0 {
+	if !cfg.BackupAuto {
 		return
 	}
 	now := time.Now()
@@ -253,7 +259,7 @@ func (a *App) skipAutoBackup(at time.Time, free, floor int64) {
 // wrote nothing, degraded while it waits for room.
 func (a *App) backupSubsystem(cfg settings.Settings) Subsystem {
 	row := Subsystem{ID: SubsystemBackup, State: StateOK}
-	if cfg.BackupIntervalDays <= 0 {
+	if !cfg.BackupAuto {
 		row.State = StateUnused
 		return row
 	}

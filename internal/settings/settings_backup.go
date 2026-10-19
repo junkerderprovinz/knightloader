@@ -1,9 +1,16 @@
 package settings
 
-// DefaultBackupKeep is how many automatic backups stay: a week of them at one
-// a day. An int absent from an older settings.json keeps this value, since
-// Load decodes over Defaults().
-const DefaultBackupKeep = 7
+import (
+	"path/filepath"
+	"strings"
+)
+
+// DefaultBackupIntervalDays and DefaultBackupKeep are a week of daily
+// backups, what switching automatic backups on starts with.
+const (
+	DefaultBackupIntervalDays = 1
+	DefaultBackupKeep         = 7
+)
 
 // maxBackupIntervalDays is a year, as for the maintenance interval: a typo of
 // five digits would leave the schedule claiming to be on while nothing is
@@ -11,14 +18,19 @@ const DefaultBackupKeep = 7
 const maxBackupIntervalDays = 365
 
 // maxBackupKeep bounds the files kept. Each holds the whole database, so a
-// thousand of them is already more than a data volume should carry.
+// thousand of them is already more than a volume should carry.
 const maxBackupKeep = 1000
 
-// sanitizeBackup reads a negative interval as off, like every number typed
-// into a box here. Fewer than one backup to keep would delete the one just
-// written, so the floor is one.
+// sanitizeBackup clamps both numbers to at least one: fewer than one backup
+// kept would delete the one just written. A relative folder would resolve
+// against the working directory; a save refuses one (CheckFolders), so this
+// only cleans a hand-edited settings file.
 func sanitizeBackup(n Settings) Settings {
-	n.BackupIntervalDays = min(max(n.BackupIntervalDays, 0), maxBackupIntervalDays)
+	n.BackupIntervalDays = min(max(n.BackupIntervalDays, 1), maxBackupIntervalDays)
 	n.BackupKeep = min(max(n.BackupKeep, 1), maxBackupKeep)
+	n.BackupDir = strings.TrimSpace(n.BackupDir)
+	if n.BackupDir != "" && !filepath.IsAbs(n.BackupDir) {
+		n.BackupDir = ""
+	}
 	return n
 }

@@ -13,8 +13,8 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/diskspace"
 )
 
-// backupApp returns an app on dir with automatic backups every intervalDays,
-// keeping keep of them.
+// backupApp returns an app on dir with automatic backups on, every
+// intervalDays, keeping keep of them.
 func backupApp(t *testing.T, dir string, intervalDays, keep int) *App {
 	t.Helper()
 	a, err := newApp(dir)
@@ -23,7 +23,7 @@ func backupApp(t *testing.T, dir string, intervalDays, keep int) *App {
 	}
 	t.Cleanup(func() { a.Close() })
 	cfg := a.Settings.Get()
-	cfg.BackupIntervalDays, cfg.BackupKeep = intervalDays, keep
+	cfg.BackupAuto, cfg.BackupIntervalDays, cfg.BackupKeep = true, intervalDays, keep
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
 	}
@@ -166,6 +166,59 @@ func TestAutomaticBackupsAreOffByDefault(t *testing.T) {
 	}
 }
 
+func TestTheIntervalAloneDoesNotSwitchBackupsOn(t *testing.T) {
+	t.Parallel()
+	a := backupApp(t, t.TempDir(), 1, 7)
+	cfg := a.Settings.Get()
+	cfg.BackupAuto = false
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	if st := sweepBackup(t, a); len(st.Files) != 0 || st.NextRunAt != nil {
+		t.Errorf("with the switch off the sweep left %+v", st)
+	}
+}
+
+func TestAChosenFolderGetsTheBackupsAndKeepsEverythingElse(t *testing.T) {
+	t.Parallel()
+	shared := filepath.Join(t.TempDir(), "share")
+	if err := os.MkdirAll(shared, 0o755); err != nil {
+		t.Fatal(err)
+	}
+	theirs := []string{"holiday.jpg", "knightloader-backup-20260101-000000.zip", "knightloader-auto-notes.txt"}
+	for _, name := range theirs {
+		if err := os.WriteFile(filepath.Join(shared, name), []byte("x"), 0o644); err != nil {
+			t.Fatal(err)
+		}
+	}
+	old := backup.AutoName(time.Now().AddDate(0, 0, -3), false)
+	if err := os.WriteFile(filepath.Join(shared, old), []byte("x"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	a := backupApp(t, t.TempDir(), 1, 1)
+	cfg := a.Settings.Get()
+	cfg.BackupDir = shared
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+
+	st := sweepBackup(t, a)
+	if st.Dir != shared || len(st.Files) != 1 || st.Files[0].Name != st.Last.File {
+		t.Fatalf("after a sweep into %s the state is %+v", shared, st)
+	}
+	if _, err := os.Stat(filepath.Join(a.DataDir, backup.AutoDirName)); !os.IsNotExist(err) {
+		t.Errorf("the default folder was made although another was chosen: %v", err)
+	}
+	for _, name := range theirs {
+		if _, err := os.Stat(filepath.Join(shared, name)); err != nil {
+			t.Errorf("%s in the shared folder is gone: %v", name, err)
+		}
+	}
+	if again := sweepBackup(t, a); len(again.Files) != 1 {
+		t.Errorf("the next sweep counted from somewhere else and wrote %v", fileNames(again.Files))
+	}
+}
+
 func TestABackupBelowTheLowSpaceFloorIsSkippedAndSaysWhy(t *testing.T) {
 	t.Parallel()
 	a := backupApp(t, t.TempDir(), 1, 7)
@@ -220,6 +273,27 @@ func TestAFailedBackupIsReportedAndWaitsBeforeTheNextTry(t *testing.T) {
 	failedAt := st.Last.At
 	if again := sweepBackup(t, a); !again.Last.At.Equal(failedAt) {
 		t.Errorf("the next sweep tried again at once, at %v", again.Last.At)
+	}
+}
+
+func TestAChosenFolderThatCannotBeMadeFailsTheRun(t *testing.T) {
+	t.Parallel()
+	blocker := filepath.Join(t.TempDir(), "a-file")
+	if err := os.WriteFile(blocker, []byte("in the way"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	a := backupApp(t, t.TempDir(), 1, 7)
+	cfg := a.Settings.Get()
+	cfg.BackupDir = filepath.Join(blocker, "backups")
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	st := sweepBackup(t, a)
+	if st.Last == nil || st.Last.Error == "" {
+		t.Errorf("last = %+v, want the failure", st.Last)
+	}
+	if row := a.backupSubsystem(a.Settings.Get()); row.State != StateFailed {
+		t.Errorf("the health row reads %+v", row)
 	}
 }
 

@@ -84,3 +84,30 @@ func TestOnlyAnAutomaticBackupCanBeDownloadedByName(t *testing.T) {
 		}
 	}
 }
+
+func TestTheDownloadServesTheChosenFolder(t *testing.T) {
+	t.Parallel()
+	a, srv := backupServer(t)
+	chosen := filepath.Join(t.TempDir(), "chosen")
+	cfg := a.Settings.Get()
+	cfg.BackupDir = chosen
+	if _, err := a.Settings.Set(cfg); err != nil {
+		t.Fatal(err)
+	}
+	file, err := backup.WriteAuto(chosen, time.Now(), false, func(w io.Writer, _ string) error {
+		_, err := w.Write([]byte("from the chosen folder"))
+		return err
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	resp, err := http.Get(srv.URL + "/api/system/backups/" + file.Name)
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer resp.Body.Close()
+	body, _ := io.ReadAll(resp.Body)
+	if resp.StatusCode != http.StatusOK || string(body) != "from the chosen folder" {
+		t.Errorf("downloading from the chosen folder = %d %q", resp.StatusCode, body)
+	}
+}
