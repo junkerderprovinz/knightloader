@@ -190,6 +190,37 @@ export function hostOf(raw: string): string {
   }
 }
 
+/** The hosts notify's discordHosts names. */
+const DISCORD_HOSTS = new Set([
+  'discord.com',
+  'discordapp.com',
+  'ptb.discord.com',
+  'canary.discord.com',
+  'ptb.discordapp.com',
+  'canary.discordapp.com',
+]);
+
+/**
+ * discordWebhook reports whether an address is a Discord webhook, which the
+ * server writes a message for while the row has no body of its own. Read the
+ * way notify.discordToken reads it: the webhook path exactly, with or without
+ * an API version, since the same path with /slack or /github after it takes
+ * another payload.
+ */
+export function discordWebhook(raw: string): boolean {
+  const stripped = stripPlaceholders(raw.trim());
+  if (stripped === null) return false;
+  try {
+    const u = new URL(stripped);
+    if (!DISCORD_HOSTS.has(u.hostname.toLowerCase())) return false;
+    const parts = u.pathname.replace(/^\/+|\/+$/g, '').split('/');
+    if (parts.length === 5 && parts[1].startsWith('v')) parts.splice(1, 1);
+    return parts.length === 4 && parts[0] === 'api' && parts[1] === 'webhooks' && parts[2] !== '' && parts[3] !== '';
+  } catch {
+    return false;
+  }
+}
+
 /**
  * stripPlaceholders replaces every closed %%name%% with one harmless
  * character, or returns null when a marker is unclosed. A walk, like
