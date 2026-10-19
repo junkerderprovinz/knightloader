@@ -63,6 +63,7 @@ const (
 	SubsystemFeeds    = "feeds"
 	SubsystemRelay    = "relay"
 	SubsystemCaptcha  = "captcha"
+	SubsystemBackup   = "backup"
 )
 
 // subsystemOrder is the fixed order of the rows, and every row is always
@@ -78,6 +79,7 @@ var subsystemOrder = []string{
 	SubsystemFeeds,
 	SubsystemRelay,
 	SubsystemCaptcha,
+	SubsystemBackup,
 }
 
 // Remedy ids, looked up by the client as health.remedy.<id>. A row nothing can
@@ -97,6 +99,8 @@ const (
 	remedyQueueHalted     = "queue.halted"
 	remedyQueueQuiet      = "queue.quiet"
 	remedyQueuePlayback   = "queue.playback"
+	remedyBackupFailed    = "backup.failed"
+	remedyBackupLowSpace  = "backup.lowSpace"
 )
 
 // subsystemLog is the log source (logring.Sources) a part writes its troubles
@@ -108,6 +112,7 @@ var subsystemLog = map[string]string{
 	SubsystemFeeds:    "feed",
 	SubsystemRelay:    "relay",
 	SubsystemCaptcha:  "captcha",
+	SubsystemBackup:   "backup",
 }
 
 // Subsystem is one part of this instance at one moment.
@@ -352,6 +357,7 @@ func (a *App) sampleSysHealth() sysProbe {
 		a.feedsSubsystem(cfg),
 		a.relaySubsystem(cfg),
 		a.captchaSubsystem(),
+		a.backupSubsystem(cfg),
 	} {
 		p.rows[row.ID] = row
 	}

@@ -134,10 +134,11 @@ func (a *App) sweep() {
 	a.reconcileFinishTimes()
 	a.applyRetention()
 	a.trimHistory()
-	// Both of these are cheap on an ordinary tick. The maintenance pass only
-	// starts work on its own goroutine, because Close waits for upkeep.
+	// These are cheap on an ordinary tick. The maintenance pass and the backup
+	// only start work on their own goroutine, because Close waits for upkeep.
 	a.refreshHostListsIfDue()
 	a.runDBMaintenanceIfDue()
+	a.runAutoBackupIfDue()
 }
 
 // reconcileFinishTimes copies the store's finish times onto the live tasks.
