@@ -12,10 +12,11 @@
 // reach would be confusing, so this one is called "event targets"
 // (Ereignisziele) wherever it is named.
 //
-// HTTP only. ntfy, Gotify, Matrix and any plain webhook are one subscriber;
-// SMTP would mean a second credential at rest, a second TLS question, a second
-// test shape and a second set of German copy, so there is no Kind field and no
-// half-wired transport seam here.
+// HTTP only. ntfy, Gotify, Matrix, Discord and any plain webhook are one
+// subscriber; Discord differs only in having a body written for it when the
+// row has none. SMTP would mean a second credential at rest, a second TLS
+// question, a second test shape and a second set of German copy, so there is
+// no Kind field and no half-wired transport seam here.
 //
 // Nothing is spooled to disk. A message that cannot be delivered is tried as
 // often as its row allows and then dropped: everything reported here is about a
@@ -23,9 +24,10 @@
 // finished package an hour after the operator watched it finish.
 //
 // The files split by what they answer: target.go is the stored row and the
-// rules about it, template.go is what a %%placeholder%% becomes, http.go is one
-// request and what came back, dispatcher.go is the bus subscriber and the
-// per-target worker behind it.
+// rules about it, template.go is what a %%placeholder%% becomes, discord.go is
+// the message a Discord webhook gets, http.go is one request and what came
+// back, dispatcher.go is the bus subscriber and the per-target worker behind
+// it.
 package notify
 
 import (

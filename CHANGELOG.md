@@ -57,6 +57,18 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   skips one nor adds one. A failed backup shows under Settings, Health &
   diagnostics and is tried again an hour later. It is off until you set a
   number of days.
+### Added
+
+- **Discord as an event target.** Add target on the Automation page asks first
+  whether the target is Discord or any other address. A Discord webhook needs
+  nothing but its address: each event arrives as a Discord message with the
+  file or package name, its size and category and, for a failure, the reason,
+  in green, red or blue. A long name is cut to what Discord accepts, a mention
+  in a file name pings nobody, and when Discord asks for a pause the next
+  message waits that long. The webhook's token stays out of the log and the
+  status. A body you write yourself is still sent as you wrote it.
+- **The category as a placeholder.** `%%task.category%%` names the category a
+  download is filed under.
 
 ## [2.1.6] - 2026-10-17
 

@@ -26,13 +26,14 @@ import (
 
 // scriptTaskView copies a core.Task into script's read-only view; internal/script
 // does not import internal/core.
-func scriptTaskView(t core.Task) script.TaskView {
+func (a *App) scriptTaskView(t core.Task) script.TaskView {
 	return script.TaskView{
 		ID:        t.ID,
 		Name:      t.Name,
 		URL:       t.URL,
 		Host:      t.Host,
 		Package:   t.Package,
+		Category:  categoryName(a.Settings.Get(), t.Category),
 		Status:    string(t.Status),
 		Size:      t.Size,
 		Loaded:    t.Loaded,
@@ -61,7 +62,7 @@ func (a *App) ScriptTask(id string) (script.TaskView, bool) {
 	if t == nil {
 		return script.TaskView{}, false
 	}
-	return scriptTaskView(snap), true
+	return a.scriptTaskView(snap), true
 }
 
 // ScriptQueue is the QueueView every Fire and RunNow call builds from.
@@ -86,14 +87,14 @@ func (a *App) fireLinkAdded(t core.Task) {
 	if t.Skipped {
 		return
 	}
-	tv := scriptTaskView(t)
+	tv := a.scriptTaskView(t)
 	a.publishEvent(script.Firing{Trigger: script.TriggerLinkAdded, Task: &tv})
 }
 
 // fireChecksumFailed reports a finished file whose hash did not match; "could
 // not check" is a different event (see script.TriggerChecksumFailed).
 func (a *App) fireChecksumFailed(t core.Task) {
-	tv := scriptTaskView(t)
+	tv := a.scriptTaskView(t)
 	a.publishEvent(script.Firing{Trigger: script.TriggerChecksumFailed, Task: &tv})
 }
 

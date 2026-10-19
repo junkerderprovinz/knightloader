@@ -139,6 +139,9 @@ type worker struct {
 	// delivery mid-flight reads one consistent Target and never a half-applied
 	// one, as script.Host.rebuildIndex does for its trigger index.
 	cfg atomic.Pointer[Target]
+	// quietUntil is when the far end said it will take the next request. Only
+	// the worker's own goroutine touches it.
+	quietUntil time.Time
 }
 
 // job is one queued message: what happened, and when. The time is carried
@@ -344,6 +347,12 @@ func (w *worker) run() {
 // copy, so a save landing between two attempts takes effect on the next message
 // rather than the next attempt. A retry that went to a different address than
 // the try before it would make the health row impossible to read.
+//
+// A far end that names a wait, a 429's Retry-After or a rate limit bucket
+// that is used up, is given it in place of the backoff, and it holds every
+// message behind this one too. A wait that would carry the message past
+// maxMessageAge drops it now rather than parking the worker on news that
+// will be stale when it lands.
 func (w *worker) deliver(j job) {
 	t := *w.cfg.Load()
 	attempts := t.ResolvedAttempts()
@@ -351,16 +360,29 @@ func (w *worker) deliver(j job) {
 		if w.ctx.Err() != nil {
 			return
 		}
-		if age := time.Since(j.at); age > maxMessageAge {
+		age, wait := time.Since(j.at), time.Until(w.quietUntil)
+		if age > maxMessageAge {
 			log.Printf("notify: target %s dropping a %s that has been queued for %s", w.id, j.f.Trigger, age.Round(time.Second))
 			return
 		}
+		if wait > 0 {
+			if age+wait > maxMessageAge {
+				log.Printf("notify: target %s dropping a %s, the far end asked to be left alone for %s", w.id, j.f.Trigger, wait.Round(time.Second))
+				return
+			}
+			if !sleep(w.ctx, wait) {
+				return
+			}
+		}
 		att := Send(w.ctx, t, j.f, w.d.name())
 		w.d.record(w.id, att)
+		if att.Wait > 0 {
+			w.quietUntil = time.Now().Add(att.Wait)
+		}
 		if att.OK() || !att.Retryable || n >= attempts {
 			return
 		}
-		if !sleep(w.ctx, backoffFor(n)) {
+		if att.Wait == 0 && !sleep(w.ctx, backoffFor(n)) {
 			return
 		}
 	}

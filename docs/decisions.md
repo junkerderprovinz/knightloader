@@ -105,7 +105,10 @@ purpose. Anybody who wants it scraped switches it on and knows why they did.
 ## Outbound notifications: HTTP now, SMTP as its own item
 
 **Built:** one HTTP subscriber on the event bus. ntfy, Gotify, Matrix and any
-plain webhook are all the same shape and are all covered.
+plain webhook are all the same shape and are all covered. Discord is the same
+shape too; a Discord address with no body of its own gets one written for it,
+because a single template cannot colour a failure red or keep a long file name
+inside Discord's limits.
 
 **Not built:** e-mail.
 
