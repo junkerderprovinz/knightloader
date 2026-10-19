@@ -38,15 +38,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ## [Unreleased]
 
-### Fixed
-
-- **A torrent deleted on the debrid service is added again.** If a debrid
-  service no longer has a torrent, for example because you deleted it on the
-  service's website, KnightLoader adds it there once more and keeps the files
-  already here. Before, Premiumize.me and AllDebrid could fail the task and ask
-  for the deleted torrent again on every retry, while the other services handed
-  it straight on. A torrent the service loses a second time goes to the next
-  service or the built-in client, and its row says why.
 ### Added
 
 - **Automatic backups.** Under Settings, General, Backup & transfer,
@@ -57,8 +48,6 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   skips one nor adds one. A failed backup shows under Settings, Health &
   diagnostics and is tried again an hour later. It is off until you set a
   number of days.
-### Added
-
 - **Discord as an event target.** Add target on the Automation page asks first
   whether the target is Discord or any other address. A Discord webhook needs
   nothing but its address: each event arrives as a Discord message with the
@@ -69,6 +58,16 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
   status. A body you write yourself is still sent as you wrote it.
 - **The category as a placeholder.** `%%task.category%%` names the category a
   download is filed under.
+
+### Fixed
+
+- **A torrent deleted on the debrid service is added again.** If a debrid
+  service no longer has a torrent, for example because you deleted it on the
+  service's website, KnightLoader adds it there once more and keeps the files
+  already here. Before, Premiumize.me and AllDebrid could fail the task and ask
+  for the deleted torrent again on every retry, while the other services handed
+  it straight on. A torrent the service loses a second time goes to the next
+  service or the built-in client, and its row says why.
 
 ## [2.1.6] - 2026-10-17
 
