@@ -605,10 +605,9 @@ marks as started by another site (`Sec-Fetch-Site: cross-site`) gets a 403 on
 every route.
 
 Without a password set, the API is open to whoever reaches the port, apart
-from three things: downloading a backup, exporting the settings with their
-passwords and deleting downloaded files. Those answer 403 with the code
-`passwordNotSet` until a password is set. The desktop app opens no port, so
-its window can do all three without one.
+from two things: downloading a backup and deleting downloaded files. Those
+answer 403 with the code `passwordNotSet` until a password is set. The desktop
+app opens no port, so its window can do both without one.
 
 The rights are kept in `token-scopes.json` beside `tokens.json` in the data
 directory. A token stays as narrow as it was even after going back to a

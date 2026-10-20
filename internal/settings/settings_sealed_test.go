@@ -12,8 +12,38 @@ import (
 	"github.com/junkerderprovinz/knightloader/internal/eventprog"
 	"github.com/junkerderprovinz/knightloader/internal/feed"
 	"github.com/junkerderprovinz/knightloader/internal/notify"
+	"github.com/junkerderprovinz/knightloader/internal/proxycfg"
 	"github.com/junkerderprovinz/knightloader/internal/reconnect"
 )
+
+// configured is a settings document with two secrets, an identity, a list and
+// a plain number in it.
+func configured() Settings {
+	s := Defaults()
+	s.SpeedLimit = 4 << 20
+	s.MaxConcurrent = 7
+	s.InstanceID = "0123456789abcdef0123456789abcdef01234567"
+	s.InstanceName = "the cellar box"
+	s.KnownDomains = []string{"kl.example.invalid"}
+	s.ArchivePasswords = []string{"hunter2", "correct horse"}
+	s.Reconnect = reconnect.Config{
+		Method:   reconnect.MethodHTTP,
+		Username: "admin",
+		Password: "router-secret",
+		CheckURL: "https://example.invalid/ip",
+		Requests: []reconnect.Request{{URL: "https://192.168.0.1/reconnect"}},
+	}
+	s.Connections = []proxycfg.Entry{{
+		ID:       "c1",
+		Kind:     proxycfg.KindHTTP,
+		Host:     "proxy.example.invalid",
+		Port:     3128,
+		Username: "vpn",
+		Password: "proxy-secret",
+		Enabled:  true,
+	}}
+	return s
+}
 
 // everySecret is configured() with a value in each field mapSecrets covers.
 func everySecret() Settings {

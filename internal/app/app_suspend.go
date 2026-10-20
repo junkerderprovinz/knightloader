@@ -8,8 +8,7 @@ package app
 // crash, the desktop rebooting) would otherwise bring back the very window the
 // user set aside, most likely at night with nobody watching. It is kept in an
 // interface-state bucket of its own rather than in the settings: it is not
-// configuration, so a settings export, an import on another box or a stale
-// settings save must not carry it along.
+// configuration, so a stale settings save must not carry it along.
 
 import (
 	"encoding/json"

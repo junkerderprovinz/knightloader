@@ -118,19 +118,6 @@ third again on both sides plus a second credentials decision in the middle of th
 first. `internal/notify`'s package comment says in as many words that the absent
 seam is absent on purpose, so nobody adds one while they are in there.
 
-## Settings export: no secrets by default
-
-**Built:** the "include stored secrets" tick, unticked when the dialog opens.
-
-The failure this avoids cannot be taken back: an export lands in a sync folder, a
-mail attachment or a chat, and a router password goes with it. The cost of the
-other direction is a proxy that dials with no password after an import, which is
-visible, loud, and fixable in one field.
-
-`TestSecretlessJudgesTheDocumentAndNotItsClaim` is the guard that matters here:
-it reads what the file actually holds rather than what the file says about
-itself, because the `secrets:` field is a string in a document anybody can edit.
-
 ## Orphaned files: deferred until the history can point at one
 
 **Not built at all**, and this is the one whole item on the list that waits.

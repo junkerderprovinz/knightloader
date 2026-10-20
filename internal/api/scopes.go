@@ -255,8 +255,6 @@ var routeScopes = map[string]apitoken.Scope{
 	"PATCH /api/settings":        apitoken.ScopeAdmin,
 	"PUT /api/settings":          apitoken.ScopeAdmin,
 	"GET /api/settings/defaults": apitoken.ScopeAdmin,
-	"GET /api/settings/export":   apitoken.ScopeAdmin,
-	"POST /api/settings/import":  apitoken.ScopeAdmin,
 
 	"GET /api/stats/speed":        apitoken.ScopeRead,
 	"GET /api/stats/speed/day":    apitoken.ScopeRead,

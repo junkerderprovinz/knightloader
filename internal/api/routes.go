@@ -32,7 +32,6 @@ func registerAll(reg *Registry, a *app.App) {
 	registerLinks(reg, a)
 	registerContainers(reg, a)
 	registerSettings(reg, a)
-	registerSettingsTransfer(reg, a)
 	registerJDImport(reg, a)
 	registerAccounts(reg, a)
 	registerHosterAuth(reg, a)

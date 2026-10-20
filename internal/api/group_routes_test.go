@@ -105,8 +105,6 @@ var groupRefused = []string{
 	"PATCH /api/settings",
 	"PUT /api/settings",
 	"GET /api/settings/defaults",
-	"GET /api/settings/export",
-	"POST /api/settings/import",
 	"GET /api/features",
 	"PUT /api/features/{id}",
 	"GET /api/feeds",
