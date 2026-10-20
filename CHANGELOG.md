@@ -82,6 +82,9 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 - **Status reads on a debrid account keep their distance on a busy machine.**
   A read that started late no longer leaves the next one only milliseconds
   behind it, so the gap between two reads on one account holds under load.
+- **The desktop app applies an uploaded backup.** A backup uploaded on the
+  desktop app was staged but never applied, because the app skipped that step
+  when it started. It is applied on the next start, as in the container.
 
 ## [2.1.6] - 2026-10-17
 
