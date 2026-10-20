@@ -69,7 +69,7 @@ func TestBuildThenStageThenApplyRoundTrips(t *testing.T) {
 	}
 
 	dataDir := t.TempDir()
-	manifest, err := Stage(dataDir, archive.Bytes(), "v1.2.3")
+	manifest, err := Stage(dataDir, archive.Bytes(), "v1.2.3", nil)
 	if err != nil {
 		t.Fatalf("Stage: %v", err)
 	}
@@ -141,7 +141,7 @@ func TestApplyPendingIsIdempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 	dataDir := t.TempDir()
-	if _, err := Stage(dataDir, archive.Bytes(), "v1.2.3"); err != nil {
+	if _, err := Stage(dataDir, archive.Bytes(), "v1.2.3", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -160,7 +160,7 @@ func TestApplyPendingIsIdempotent(t *testing.T) {
 }
 
 func TestStageRejectsSomethingThatIsNotAZip(t *testing.T) {
-	_, err := Stage(t.TempDir(), []byte("not a zip file at all"), "v1.0.0")
+	_, err := Stage(t.TempDir(), []byte("not a zip file at all"), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -184,7 +184,7 @@ func TestStageRejectsAMissingEntry(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -212,7 +212,7 @@ func TestStageRejectsAMismatchedSettingsShape(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -232,7 +232,7 @@ func TestStageRejectsACorruptDatabase(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err := Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -269,7 +269,7 @@ func TestStageRejectsADatabaseWithNoTasksTable(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -290,7 +290,7 @@ func TestStageRejectsANewerBackup(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err := Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err := Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error")
 	}
@@ -311,7 +311,7 @@ func TestStageAllowsADevRunningVersion(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if _, err := Stage(t.TempDir(), archive.Bytes(), "dev"); err != nil {
+	if _, err := Stage(t.TempDir(), archive.Bytes(), "dev", nil); err != nil {
 		t.Fatalf("Stage with a dev running version: %v", err)
 	}
 }
@@ -338,7 +338,7 @@ func TestStageOversizedEntryIsBounded(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0")
+	_, err = Stage(t.TempDir(), archive.Bytes(), "v1.0.0", nil)
 	if err == nil {
 		t.Fatal("expected an error for a truncated, oversized settings entry")
 	}
@@ -356,7 +356,7 @@ func TestStageReplacesAPreviouslyStagedRestore(t *testing.T) {
 	if err := Build(&first, m1, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Stage(dataDir, first.Bytes(), "v2.0.0"); err != nil {
+	if _, err := Stage(dataDir, first.Bytes(), "v2.0.0", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -366,7 +366,7 @@ func TestStageReplacesAPreviouslyStagedRestore(t *testing.T) {
 	if err := Build(&second, m2, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Stage(dataDir, second.Bytes(), "v2.0.0"); err != nil {
+	if _, err := Stage(dataDir, second.Bytes(), "v2.0.0", nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -439,7 +439,7 @@ func TestStageRejectsADatabaseFromANewerSchema(t *testing.T) {
 	}
 
 	dataDir := t.TempDir()
-	if _, err := Stage(dataDir, archive.Bytes(), "v1.2.3"); !errors.Is(err, store.ErrNewerSchema) {
+	if _, err := Stage(dataDir, archive.Bytes(), "v1.2.3", nil); !errors.Is(err, store.ErrNewerSchema) {
 		t.Fatalf("Stage = %v, want the newer schema refused", err)
 	}
 	if _, err := os.Stat(filepath.Join(dataDir, pendingDirName)); !os.IsNotExist(err) {

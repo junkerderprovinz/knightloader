@@ -105,10 +105,10 @@ func passkeyIDs(t *testing.T, path string) []string {
 // live database.
 func TestARestoreBringsNoTriggerOrViewAlong(t *testing.T) {
 	dataDir := t.TempDir()
-	if _, err := Stage(dataDir, archiveOf(t, databaseWith(t, []string{"old"}, planted...)), "v1.2.3"); err != nil {
+	if _, err := Stage(dataDir, archiveOf(t, databaseWith(t, []string{"old"}, planted...)), "v1.2.3", nil); err != nil {
 		t.Fatalf("Stage: %v", err)
 	}
-	staged := filepath.Join(dataDir, pendingDirName, dbEntry)
+	staged := stagedDatabase(t, dataDir)
 	if n := schemaCode(t, staged); n != 0 {
 		t.Fatalf("the staged database still has %d triggers or views", n)
 	}
@@ -137,17 +137,11 @@ func TestARestoreBringsNoTriggerOrViewAlong(t *testing.T) {
 func TestApplyingAnUnstrippedRestoreStripsIt(t *testing.T) {
 	dataDir := t.TempDir()
 	pending := filepath.Join(dataDir, pendingDirName)
-	if err := os.MkdirAll(pending, 0o755); err != nil {
+	if err := os.MkdirAll(pending, 0o700); err != nil {
 		t.Fatal(err)
 	}
-	raw, err := os.ReadFile(databaseWith(t, []string{"old"}, planted...))
-	if err != nil {
+	if err := os.WriteFile(filepath.Join(pending, pendingArchive), archiveOf(t, databaseWith(t, []string{"old"}, planted...)), 0o600); err != nil {
 		t.Fatal(err)
-	}
-	for name, data := range map[string][]byte{dbEntry: raw, settingsEntry: testSettingsJSON(t)} {
-		if err := os.WriteFile(filepath.Join(pending, name), data, 0o600); err != nil {
-			t.Fatal(err)
-		}
 	}
 	if _, _, err := ApplyPending(dataDir, nil); err != nil {
 		t.Fatalf("ApplyPending: %v", err)
@@ -174,10 +168,10 @@ func TestARestoreKeepsTheRunningServersPasskeys(t *testing.T) {
 	if err := os.WriteFile(filepath.Join(dataDir, dbEntry), raw, 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if _, err := Stage(dataDir, archiveOf(t, databaseWith(t, []string{"removed"})), "v1.2.3"); err != nil {
+	if _, err := Stage(dataDir, archiveOf(t, databaseWith(t, []string{"removed"})), "v1.2.3", nil); err != nil {
 		t.Fatalf("Stage: %v", err)
 	}
-	if ids := passkeyIDs(t, filepath.Join(dataDir, pendingDirName, dbEntry)); len(ids) != 0 {
+	if ids := passkeyIDs(t, stagedDatabase(t, dataDir)); len(ids) != 0 {
 		t.Errorf("the staged database carries the backup's passkeys %v", ids)
 	}
 	if _, _, err := ApplyPending(dataDir, nil); err != nil {
@@ -226,10 +220,10 @@ func TestCleaningRunsNoTriggerHoweverItsTypeIsSpelled(t *testing.T) {
 			path := databaseWith(t, []string{"old"}, firing...)
 			retype(t, path, spelling[0], spelling[1])
 			dataDir := t.TempDir()
-			if _, err := Stage(dataDir, archiveOf(t, path), "v1.2.3"); err != nil {
+			if _, err := Stage(dataDir, archiveOf(t, path), "v1.2.3", nil); err != nil {
 				t.Fatalf("Stage: %v", err)
 			}
-			staged := filepath.Join(dataDir, pendingDirName, dbEntry)
+			staged := stagedDatabase(t, dataDir)
 			db, err := sql.Open("sqlite", staged)
 			if err != nil {
 				t.Fatal(err)
@@ -277,4 +271,23 @@ func TestOnlyPlainTablesAndIndexesStayInTheSchema(t *testing.T) {
 			t.Errorf("plainSchema(%q, %q) = %v, want %v", c.kind, c.stmt.String, got, c.keep)
 		}
 	}
+}
+
+// stagedDatabase writes the database Stage left in dataDir, unsealed, to a
+// file of its own and returns its path.
+func stagedDatabase(t *testing.T, dataDir string) string {
+	t.Helper()
+	zr, err := openPending(filepath.Join(dataDir, pendingDirName), nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+	b, err := readStaged(zr, dbEntry)
+	if err != nil {
+		t.Fatal(err)
+	}
+	path := filepath.Join(t.TempDir(), dbEntry)
+	if err := os.WriteFile(path, b, 0o600); err != nil {
+		t.Fatal(err)
+	}
+	return path
 }

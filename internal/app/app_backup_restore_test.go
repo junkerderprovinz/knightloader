@@ -63,10 +63,11 @@ func sourceBackup(t *testing.T, key *appkey.Key) (archive []byte, token string) 
 		t.Fatal(err)
 	}
 
-	parts, err := a.PrepareBackup(filepath.Join(t.TempDir(), "snapshot.db"))
+	parts, err := a.PrepareBackup()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer parts.Discard()
 	var buf bytes.Buffer
 	if err := a.WriteBackup(&buf, parts); err != nil {
 		t.Fatal(err)
@@ -90,7 +91,7 @@ func restoreOnto(t *testing.T, archive []byte, sourceKey, key *appkey.Key) *App 
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := backup.Stage(dir, plain, buildinfo.Version); err != nil {
+	if _, err := backup.Stage(dir, plain, buildinfo.Version, key); err != nil {
 		t.Fatalf("Stage: %v", err)
 	}
 	applied, _, err := backup.ApplyPending(dir, key)

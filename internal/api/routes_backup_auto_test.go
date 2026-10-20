@@ -18,7 +18,7 @@ func TestTheAutomaticBackupsAreListedAndDownloadable(t *testing.T) {
 	a, srv := backupServer(t)
 	dir := a.AutoBackupDir()
 	made := time.Now().Add(-time.Hour)
-	file, err := backup.WriteAuto(dir, made, false, func(w io.Writer, _ string) error {
+	file, err := backup.WriteAuto(dir, made, false, func(w io.Writer) error {
 		_, err := w.Write([]byte("the archive"))
 		return err
 	})
@@ -94,7 +94,7 @@ func TestTheDownloadServesTheChosenFolder(t *testing.T) {
 	if _, err := a.Settings.Set(cfg); err != nil {
 		t.Fatal(err)
 	}
-	file, err := backup.WriteAuto(chosen, time.Now(), false, func(w io.Writer, _ string) error {
+	file, err := backup.WriteAuto(chosen, time.Now(), false, func(w io.Writer) error {
 		_, err := w.Write([]byte("from the chosen folder"))
 		return err
 	})
@@ -120,9 +120,13 @@ func TestARestoreCheckSaysWhetherThePairingComesAlong(t *testing.T) {
 		t.Helper()
 		status, body := postMultipartFile(t, srv.URL+"/api/system/restore/check", "file", "backup.zip", archive)
 		var answer struct {
-			Paired bool `json:"paired"`
+			Paired bool   `json:"paired"`
+			Login  string `json:"login"`
 		}
 		_ = json.Unmarshal(body, &answer)
+		if status == http.StatusOK && answer.Login != backup.LoginRestored {
+			t.Errorf("the login of a backup with a password checks as %q", answer.Login)
+		}
 		return status, answer.Paired
 	}
 	if status, paired := check(archive); status != http.StatusOK || paired {
