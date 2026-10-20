@@ -64,7 +64,7 @@ func TestBuildThenStageThenApplyRoundTrips(t *testing.T) {
 
 	settingsJSON := testSettingsJSON(t)
 	var archive bytes.Buffer
-	if err := Build(&archive, testManifest(), settingsJSON, snap); err != nil {
+	if err := Build(&archive, testManifest(), settingsJSON, snap, nil); err != nil {
 		t.Fatalf("Build: %v", err)
 	}
 
@@ -84,7 +84,7 @@ func TestBuildThenStageThenApplyRoundTrips(t *testing.T) {
 		t.Fatalf("Stage wrote settings.json into dataDir directly: %v", err)
 	}
 
-	applied, appliedManifest, err := ApplyPending(dataDir)
+	applied, appliedManifest, err := ApplyPending(dataDir, nil)
 	if err != nil {
 		t.Fatalf("ApplyPending: %v", err)
 	}
@@ -122,7 +122,7 @@ func TestBuildThenStageThenApplyRoundTrips(t *testing.T) {
 
 func TestApplyPendingIsANoOpWithNothingStaged(t *testing.T) {
 	dataDir := t.TempDir()
-	applied, _, err := ApplyPending(dataDir)
+	applied, _, err := ApplyPending(dataDir, nil)
 	if err != nil {
 		t.Fatalf("ApplyPending on a plain data dir: %v", err)
 	}
@@ -137,7 +137,7 @@ func TestApplyPendingIsIdempotent(t *testing.T) {
 	snap := snapshotDB(t, dbPath)
 
 	var archive bytes.Buffer
-	if err := Build(&archive, testManifest(), testSettingsJSON(t), snap); err != nil {
+	if err := Build(&archive, testManifest(), testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 	dataDir := t.TempDir()
@@ -145,12 +145,12 @@ func TestApplyPendingIsIdempotent(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	if applied, _, err := ApplyPending(dataDir); err != nil || !applied {
+	if applied, _, err := ApplyPending(dataDir, nil); err != nil || !applied {
 		t.Fatalf("first ApplyPending: applied=%v err=%v", applied, err)
 	}
 
 	// A second start-up with nothing new staged is the ordinary no-op.
-	applied, _, err := ApplyPending(dataDir)
+	applied, _, err := ApplyPending(dataDir, nil)
 	if err != nil {
 		t.Fatalf("second ApplyPending: %v", err)
 	}
@@ -286,7 +286,7 @@ func TestStageRejectsANewerBackup(t *testing.T) {
 	manifest := testManifest()
 	manifest.Version = "v9.9.9"
 	var archive bytes.Buffer
-	if err := Build(&archive, manifest, testSettingsJSON(t), snap); err != nil {
+	if err := Build(&archive, manifest, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -307,7 +307,7 @@ func TestStageAllowsADevRunningVersion(t *testing.T) {
 	manifest := testManifest()
 	manifest.Version = "v9.9.9"
 	var archive bytes.Buffer
-	if err := Build(&archive, manifest, testSettingsJSON(t), snap); err != nil {
+	if err := Build(&archive, manifest, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 
@@ -353,7 +353,7 @@ func TestStageReplacesAPreviouslyStagedRestore(t *testing.T) {
 	var first bytes.Buffer
 	m1 := testManifest()
 	m1.Version = "v1.0.0"
-	if err := Build(&first, m1, testSettingsJSON(t), snap); err != nil {
+	if err := Build(&first, m1, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Stage(dataDir, first.Bytes(), "v2.0.0"); err != nil {
@@ -363,14 +363,14 @@ func TestStageReplacesAPreviouslyStagedRestore(t *testing.T) {
 	var second bytes.Buffer
 	m2 := testManifest()
 	m2.Version = "v1.5.0"
-	if err := Build(&second, m2, testSettingsJSON(t), snap); err != nil {
+	if err := Build(&second, m2, testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 	if _, err := Stage(dataDir, second.Bytes(), "v2.0.0"); err != nil {
 		t.Fatal(err)
 	}
 
-	_, manifest, err := ApplyPending(dataDir)
+	_, manifest, err := ApplyPending(dataDir, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -434,7 +434,7 @@ func TestStageRejectsADatabaseFromANewerSchema(t *testing.T) {
 	}
 	db.Close()
 	var archive bytes.Buffer
-	if err := Build(&archive, testManifest(), testSettingsJSON(t), snap); err != nil {
+	if err := Build(&archive, testManifest(), testSettingsJSON(t), snap, nil); err != nil {
 		t.Fatal(err)
 	}
 

@@ -314,10 +314,10 @@ func TestWithAnAppKeyTheAutomaticBackupIsSealed(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if _, err := backup.Unseal(nil, raw); err == nil {
+	if _, err := backup.Unseal(raw, nil); err == nil {
 		t.Error("the sealed backup opens without the key")
 	}
-	archive, err := backup.Unseal(key, raw)
+	archive, err := backup.Unseal(raw, key)
 	if err != nil {
 		t.Fatal(err)
 	}

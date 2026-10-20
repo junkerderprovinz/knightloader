@@ -416,8 +416,13 @@ func signWith(key []byte, msg string) []byte {
 func (g *Guard) flush() error {
 	g.writing.Lock()
 	defer g.writing.Unlock()
+	return writeState(g.path, g.snapshot(), g.appKey)
+}
+
+func (g *Guard) snapshot() stored {
 	g.mu.RLock()
-	s := stored{
+	defer g.mu.RUnlock()
+	return stored{
 		Hash:     string(g.hash),
 		Key:      hex.EncodeToString(g.key),
 		TOTP:     g.totp,
@@ -426,8 +431,6 @@ func (g *Guard) flush() error {
 		// A copy, since a sign-out adds to the list while this one is encoded.
 		Revoked: maps.Clone(g.revoked),
 	}
-	g.mu.RUnlock()
-	return writeState(g.path, s, g.appKey)
 }
 
 func writeState(path string, s stored, key *appkey.Key) error {

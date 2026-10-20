@@ -9,6 +9,7 @@ import (
 	"io/fs"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"github.com/junkerderprovinz/knightloader/internal/appkey"
 )
@@ -99,4 +100,21 @@ func encodeStored(s stored, key *appkey.Key) ([]byte, error) {
 		return nil, err
 	}
 	return []byte(sealed + "\n"), nil
+}
+
+// State is auth.json as it would be written without an app key, for a backup
+// that has to restore under another key or none.
+func (g *Guard) State() ([]byte, error) {
+	return json.MarshalIndent(g.snapshot(), "", "  ")
+}
+
+// HashNeedsItsKey reports whether the password in state, an auth.json in the
+// clear, can be checked only with the app key it was set under, and refuses
+// a state that does not parse.
+func HashNeedsItsKey(state []byte) (bool, error) {
+	var s stored
+	if err := json.Unmarshal(state, &s); err != nil {
+		return false, fmt.Errorf("auth.json is damaged: %w", err)
+	}
+	return strings.HasPrefix(s.Hash, argonPrefix), nil
 }

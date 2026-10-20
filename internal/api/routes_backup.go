@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/junkerderprovinz/knightloader/internal/app"
+	"github.com/junkerderprovinz/knightloader/internal/appkey"
 	"github.com/junkerderprovinz/knightloader/internal/backup"
 	"github.com/junkerderprovinz/knightloader/internal/buildinfo"
 	"github.com/junkerderprovinz/knightloader/internal/store"
@@ -63,20 +64,16 @@ func registerBackup(reg *Registry, a *app.App) {
 }
 
 func downloadBackup(w http.ResponseWriter, a *app.App) {
-	tmp, err := os.CreateTemp("", "kl-backup-*.db")
+	// A folder of this account's alone, since the snapshot holds the task
+	// passwords in the clear. BackupTo makes the file and refuses one that
+	// already exists.
+	tmpDir, err := os.MkdirTemp("", "kl-backup-")
 	if err != nil {
 		http.Error(w, "could not prepare the backup", http.StatusInternalServerError)
 		return
 	}
-	tmpPath := tmp.Name()
-	tmp.Close()
-	// BackupTo refuses to write onto a path that already exists (see its own
-	// doc comment), so the empty file CreateTemp just made has to go first.
-	if err := os.Remove(tmpPath); err != nil {
-		http.Error(w, "could not prepare the backup", http.StatusInternalServerError)
-		return
-	}
-	defer os.Remove(tmpPath)
+	defer os.RemoveAll(tmpDir)
+	tmpPath := filepath.Join(tmpDir, "knightloader.db")
 
 	// Unredacted. Unlike GET /api/settings this is never served to a page on
 	// load, only to a session that asked for the download.
@@ -156,7 +153,16 @@ func uploadRestore(w http.ResponseWriter, r *http.Request, a *app.App) {
 		return
 	}
 
-	data, err = backup.Unseal(a.AppKey, data)
+	// The app key of the instance that made the backup, for one sealed under
+	// another key than this instance's.
+	var uploadKey *appkey.Key
+	if v := r.FormValue("appKey"); strings.TrimSpace(v) != "" {
+		if uploadKey, err = appkey.Parse(v); err != nil {
+			writeRefusal(w, http.StatusBadRequest, "restore.appKeyInvalid", err.Error(), nil)
+			return
+		}
+	}
+	data, err = backup.Unseal(data, a.AppKey, uploadKey)
 	switch {
 	case errors.Is(err, backup.ErrNeedsKey):
 		writeRefusal(w, http.StatusBadRequest, "restore.appKeyMissing", err.Error(), nil)

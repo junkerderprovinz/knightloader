@@ -132,3 +132,46 @@ func (s *Store) openPasswords(t *core.Task) {
 		*f.v = plain
 	}
 }
+
+// OpenPasswordsIn puts the sealed task passwords of the database file at path
+// back in the clear, for a backup snapshot that has to restore under another
+// app key or none. One the key does not open is dropped, as openPasswords
+// does.
+func OpenPasswordsIn(path string, key *appkey.Key) error {
+	if key == nil {
+		return nil
+	}
+	s, err := Open(path)
+	if err != nil {
+		return err
+	}
+	defer s.Close()
+	s.appKey = key
+	rows, err := s.db.Query(`SELECT id, password, download_password FROM tasks WHERE password != '' OR download_password != ''`)
+	if err != nil {
+		return fmt.Errorf("store: opening task passwords: %w", err)
+	}
+	var sealed []core.Task
+	for rows.Next() {
+		var t core.Task
+		if err := rows.Scan(&t.ID, &t.Password, &t.DownloadPassword); err != nil {
+			rows.Close()
+			return fmt.Errorf("store: opening task passwords: %w", err)
+		}
+		if appkey.IsSealed(t.Password) || appkey.IsSealed(t.DownloadPassword) {
+			sealed = append(sealed, t)
+		}
+	}
+	rows.Close()
+	if err := rows.Err(); err != nil {
+		return fmt.Errorf("store: opening task passwords: %w", err)
+	}
+	for i := range sealed {
+		t := &sealed[i]
+		s.openPasswords(t)
+		if _, err := s.db.Exec(`UPDATE tasks SET password=?, download_password=? WHERE id=?`, t.Password, t.DownloadPassword, t.ID); err != nil {
+			return fmt.Errorf("store: opening task passwords: %w", err)
+		}
+	}
+	return nil
+}

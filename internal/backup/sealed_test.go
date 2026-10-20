@@ -20,17 +20,17 @@ func TestASealedArchiveOpensOnlyWithItsKey(t *testing.T) {
 	if bytes.Contains(sealed, []byte("router-secret")) || bytes.HasPrefix(sealed, []byte("PK")) {
 		t.Fatal("the sealed archive is readable without the key")
 	}
-	if got, err := Unseal(key, sealed); err != nil || !bytes.Equal(got, archive) {
+	if got, err := Unseal(sealed, key); err != nil || !bytes.Equal(got, archive) {
 		t.Fatalf("Unseal with the key = %q, %v", got, err)
 	}
-	if _, err := Unseal(nil, sealed); !errors.Is(err, ErrNeedsKey) {
+	if _, err := Unseal(sealed, nil); !errors.Is(err, ErrNeedsKey) {
 		t.Errorf("Unseal without a key = %v, want ErrNeedsKey", err)
 	}
-	if _, err := Unseal(other, sealed); !errors.Is(err, ErrWrongKey) {
+	if _, err := Unseal(sealed, other); !errors.Is(err, ErrWrongKey) {
 		t.Errorf("Unseal with another key = %v, want ErrWrongKey", err)
 	}
 	// A backup made before the key restores as it always did.
-	if got, err := Unseal(key, archive); err != nil || !bytes.Equal(got, archive) {
+	if got, err := Unseal(archive, key); err != nil || !bytes.Equal(got, archive) {
 		t.Errorf("Unseal of a plain archive = %q, %v", got, err)
 	}
 }
