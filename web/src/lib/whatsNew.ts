@@ -51,12 +51,29 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.1.6',
-    changes: [{ id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' }],
-  },
-  {
-    version: '2.1.5',
+    version: '2.2.0',
     changes: [
+      {
+        id: 'auto-backups',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.autoBackups',
+        names: { name: 'settings.autoBackup.title', card: 'settings.transfer.cardTitle' },
+      },
+      {
+        id: 'backup-everything',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.backupEverything',
+        names: { download: 'settings.system.backupButton', upload: 'settings.system.restoreButton' },
+      },
+      // Drawn only while the event targets module is on.
+      {
+        id: 'discord-target',
+        to: ['/settings/eventtargets'],
+        text: 'whatsnew.change.discordTarget',
+        names: { name: 'settings.eventTargets.add', card: 'settings.module.eventtargets' },
+      },
+      { id: 'lost-torrent', text: 'whatsnew.change.lostTorrent' },
+      { id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' },
       {
         id: 'jd-auto-update',
         to: ['/settings/look'],
@@ -70,26 +87,13 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.workDirOptional',
         names: { name: 'settings.downloads.workDir' },
       },
-    ],
-  },
-  {
-    version: '2.1.4',
-    changes: [{ id: 'release-cards', text: 'whatsnew.change.releaseCards' }],
-  },
-  {
-    version: '2.1.3',
-    changes: [
+      { id: 'release-cards', text: 'whatsnew.change.releaseCards' },
       {
         id: 'bug-report-speed',
         to: ['/settings/health'],
         text: 'whatsnew.change.bugReportSpeed',
         names: { name: 'settings.diagnostics.download' },
       },
-    ],
-  },
-  {
-    version: '2.1.2',
-    changes: [
       {
         id: 'quiet-playback',
         to: ['/settings/automation'],
@@ -115,11 +119,6 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.quietWaive',
         names: { name: 'settings.playback.waive' },
       },
-    ],
-  },
-  {
-    version: '2.1.1',
-    changes: [
       {
         id: 'puid-pgid',
         to: ['/settings/health'],
@@ -667,9 +666,8 @@ function takeOver(old: OneRelease): NewsRecord {
 
 /**
  * recordFor is what to keep for the running version given what was kept last.
- * The same version keeps its record. After an update every change of a release
- * newer than the one left is new, what was seen of the releases before stays,
- * and the window is still to open. Nothing kept is a first install, which
+ * The same version keeps its record. After an update every change not seen yet
+ * is new, what was seen stays, and the window is still to open. Nothing kept is a first install, which
  * marks nothing, unless `settled` says the instance was in use before it kept
  * such a record.
  */
@@ -679,10 +677,9 @@ export function recordFor(stored: unknown, running: string, settled: boolean): N
   if (kept && kept.version === running) return kept;
   if (!kept && !settled) return { version: running, from: '', seen: CHANGES.map((c) => c.id), notes: true };
   const from = kept ? releaseOf(kept.version) : '';
-  // A build without a release number says nothing about what came after it,
-  // so what was seen there stays as it was.
-  const before = new Set(CHANGES.filter((c) => from === '' || !newer(c.since, from)).map((c) => c.id));
-  return { version: running, from, seen: (kept?.seen ?? []).filter((id) => before.has(id)), notes: false };
+  // A change seen once stays seen, also when the patch release it came with
+  // was folded into a later one and its change moved there.
+  return { version: running, from, seen: kept?.seen ?? [], notes: false };
 }
 
 /** changesOf is every change up to the running release; a build without a release number has them all. */

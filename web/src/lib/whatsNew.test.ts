@@ -66,15 +66,21 @@ describe('the list of changes', () => {
     expect(versions.every((v, i) => i === 0 || newer(versions[i - 1], v))).toBe(true);
   });
 
-  // From 2.1.0 on, each feature a release adds under Added gets a dot.
+  // From 2.1.0 on, each feature a release adds under Added gets a dot. A patch
+  // release without an entry of its own is folded into the next release that
+  // has one, and its features count there.
   it('gives every feature a release adds a change of its own', () => {
-    const short: string[] = [];
+    const added = new Map<string, number>();
     for (const [version, text] of Object.entries(__RELEASE_NOTES__)) {
       if (newer('2.1.0', version)) continue;
-      const added = /^## .*Added\s*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(text)?.[1] ?? '';
-      const features = added.split('\n').filter((l) => l.startsWith('- ')).length;
-      if (ids(version).length < features) short.push(`${version}: ${features} added, ${ids(version).length} listed`);
+      const home = [...RELEASES].reverse().find((r) => !newer(version, r.version))?.version ?? version;
+      const list = /^## .*Added\s*\n([\s\S]*?)(?=^## |(?![\s\S]))/m.exec(text)?.[1] ?? '';
+      const features = list.split('\n').filter((l) => l.startsWith('- ')).length;
+      added.set(home, (added.get(home) ?? 0) + features);
     }
+    const short = [...added]
+      .filter(([version, features]) => ids(version).length < features)
+      .map(([version, features]) => `${version}: ${features} added, ${ids(version).length} listed`);
     expect(Object.keys(__RELEASE_NOTES__)).toContain('2.1.0');
     expect(short).toEqual([]);
   });
@@ -82,8 +88,8 @@ describe('the list of changes', () => {
 
 describe('the record', () => {
   it('marks nothing on a first install and leaves the window closed', () => {
-    const record = recordFor(undefined, 'v2.1.3', false);
-    expect(record).toMatchObject({ version: 'v2.1.3', from: '', notes: true });
+    const record = recordFor(undefined, 'v2.2.0', false);
+    expect(record).toMatchObject({ version: 'v2.2.0', from: '', notes: true });
     expect(record.seen).toEqual(CHANGES.map((c) => c.id));
   });
 
@@ -99,29 +105,36 @@ describe('the record', () => {
   });
 
   it('marks every change after the release left, and keeps what was seen before it', () => {
-    const stored: NewsRecord = { version: 'v2.1.1', from: '2.1.0', seen: ['vpn', 'compose-file'], notes: true };
-    expect(recordFor(stored, 'v2.1.3', true)).toEqual({ version: 'v2.1.3', from: '2.1.1', seen: ['vpn', 'compose-file'], notes: false });
+    const stored: NewsRecord = { version: 'v2.1.0', from: '2.0.0', seen: ['vpn', 'overview-head'], notes: true };
+    expect(recordFor(stored, 'v2.2.0', true)).toEqual({ version: 'v2.2.0', from: '2.1.0', seen: ['vpn', 'overview-head'], notes: false });
+  });
 
-    const back: NewsRecord = { version: 'v2.1.0', from: '', seen: ['vpn', 'compose-file'], notes: true };
-    expect(recordFor(back, 'v2.1.3', true).seen).toEqual(['vpn']);
+  it('keeps a change seen on a patch release that a later release took in', () => {
+    const stored: NewsRecord = { version: 'v2.1.6', from: '2.1.5', seen: ['folder-back', 'vpn'], notes: true };
+    const record = recordFor(stored, 'v2.2.0', true);
+    expect(record.seen).toEqual(['folder-back', 'vpn']);
+    const unseen = changesOf(record).filter((c) => !record.seen.includes(c.id)).map((c) => c.id);
+    expect(unseen).not.toContain('folder-back');
   });
 
   it('keeps what was seen on a build without a release number', () => {
     const stored: NewsRecord = { version: 'preview-59b73a6', from: '', seen: ['quiet-waive'], notes: true };
-    expect(recordFor(stored, 'v2.1.3', true)).toMatchObject({ from: '', seen: ['quiet-waive'] });
+    expect(recordFor(stored, 'v2.2.0', true)).toMatchObject({ from: '', seen: ['quiet-waive'] });
   });
 
   it('takes over the record of one release that older versions kept', () => {
     const old = { version: 'v2.1.0', after: '2.0.0', seen: ['vpn-routes'], notes: true };
-    const record = recordFor(old, 'v2.1.2', true);
+    const record = recordFor(old, 'v2.2.0', true);
     expect(record.from).toBe('2.1.0');
     const unseen = changesOf(record).filter((c) => !record.seen.includes(c.id)).map((c) => c.id);
-    expect(unseen).toEqual([...ids('2.1.2'), ...ids('2.1.1'), ...ids('2.1.0').filter((id) => id !== 'vpn-routes')]);
+    expect(unseen).toEqual([...ids('2.2.0'), ...ids('2.1.0').filter((id) => id !== 'vpn-routes')]);
   });
 
   it('leaves out what came after the running release', () => {
-    const record: NewsRecord = { version: 'v2.1.1', from: '2.1.0', seen: [], notes: true };
-    expect(changesOf(record).map((c) => c.id)).toEqual(upTo('2.1.1'));
+    const record: NewsRecord = { version: 'v2.1.0', from: '2.0.0', seen: [], notes: true };
+    const shown = changesOf(record).map((c) => c.id);
+    expect(shown).toEqual(upTo('2.1.0'));
+    expect(shown).not.toContain('folder-back');
   });
 });
 
@@ -143,7 +156,7 @@ describe('the releases the window shows', () => {
   });
 
   it('take the catalog for a release this build has no notes for', () => {
-    expect(releasesShown(record('v2.1.3', '2.1.1'), [], {})).toEqual(['2.1.3', '2.1.2']);
+    expect(releasesShown(record('v2.2.0', '2.0.0'), [], {})).toEqual(['2.2.0', '2.1.0']);
   });
 });
 
