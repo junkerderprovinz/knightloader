@@ -51,12 +51,29 @@ const INTEGRATIONS = ['/settings/integrations'];
 /** Every release that brought something new, newest first. */
 export const RELEASES: Release[] = [
   {
-    version: '2.1.6',
-    changes: [{ id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' }],
-  },
-  {
-    version: '2.1.5',
+    version: '2.2.0',
     changes: [
+      {
+        id: 'auto-backups',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.autoBackups',
+        names: { name: 'settings.autoBackup.title', card: 'settings.transfer.cardTitle' },
+      },
+      {
+        id: 'backup-everything',
+        to: ['/settings/look'],
+        text: 'whatsnew.change.backupEverything',
+        names: { download: 'settings.system.backupButton', upload: 'settings.system.restoreButton' },
+      },
+      // Drawn only while the event targets module is on.
+      {
+        id: 'discord-target',
+        to: ['/settings/eventtargets'],
+        text: 'whatsnew.change.discordTarget',
+        names: { name: 'settings.eventTargets.add', card: 'settings.module.eventtargets' },
+      },
+      { id: 'lost-torrent', text: 'whatsnew.change.lostTorrent' },
+      { id: 'folder-back', to: ['/settings/downloads'], text: 'whatsnew.change.folderBack' },
       {
         id: 'jd-auto-update',
         to: ['/settings/look'],
@@ -70,26 +87,13 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.workDirOptional',
         names: { name: 'settings.downloads.workDir' },
       },
-    ],
-  },
-  {
-    version: '2.1.4',
-    changes: [{ id: 'release-cards', text: 'whatsnew.change.releaseCards' }],
-  },
-  {
-    version: '2.1.3',
-    changes: [
+      { id: 'release-cards', text: 'whatsnew.change.releaseCards' },
       {
         id: 'bug-report-speed',
         to: ['/settings/health'],
         text: 'whatsnew.change.bugReportSpeed',
         names: { name: 'settings.diagnostics.download' },
       },
-    ],
-  },
-  {
-    version: '2.1.2',
-    changes: [
       {
         id: 'quiet-playback',
         to: ['/settings/automation'],
@@ -115,11 +119,6 @@ export const RELEASES: Release[] = [
         text: 'whatsnew.change.quietWaive',
         names: { name: 'settings.playback.waive' },
       },
-    ],
-  },
-  {
-    version: '2.1.1',
-    changes: [
       {
         id: 'puid-pgid',
         to: ['/settings/health'],
