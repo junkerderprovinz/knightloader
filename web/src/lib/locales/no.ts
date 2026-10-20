@@ -1845,6 +1845,7 @@ export const no: Dict = {
   'settings.system.restoreConfirmTitle': 'Gjenopprette fra sikkerhetskopi?',
   'settings.system.restoreConfirmBody': 'Dette erstatter alt denne instansen har, med innholdet i «{name}». Det gjelder fra neste oppstart og kan ikke angres.',
   'settings.system.restoreKeepsLogin': 'Innloggingspassordet kommer også fra sikkerhetskopien, med mindre det ble satt under en annen app-nøkkel. Da beholder denne instansen sitt eget, siden den aldri kunne sjekke det andre. Passnøklene dine forblir som de er.',
+  'settings.system.restorePairing': 'Sikkerhetskopien kommer fra en instans i en paringsgruppe. Den gjenopprettede instansen tar over plassen dens i gruppen, så slå av instansen sikkerhetskopien kom fra etterpå.',
   'settings.system.restoring': 'Validerer og forbereder…',
   'settings.system.restoreFailed': 'Kunne ikke gjenopprette: {error}',
   'settings.system.restoreKeyMissing': 'Denne sikkerhetskopien er kryptert med en app-nøkkel, og denne instansen har ingen. Skriv inn KL_APP_KEY for instansen som laget den under App-nøkkel for sikkerhetskopien.',

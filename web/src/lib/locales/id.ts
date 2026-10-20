@@ -1842,6 +1842,7 @@ export const id: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan dari cadangan?',
   'settings.system.restoreConfirmBody': 'Ini mengganti semua yang dimiliki instans ini dengan isi “{name}”. Berlaku pada mulai berikutnya dan tidak bisa dibatalkan.',
   'settings.system.restoreKeepsLogin': 'Kata sandi login juga berasal dari cadangan, kecuali disetel dengan kunci aplikasi lain. Dalam hal itu instans ini memakai miliknya sendiri, karena kata sandi yang lain tidak akan pernah bisa diperiksanya. Passkey-mu tetap seperti adanya.',
+  'settings.system.restorePairing': 'Cadangan ini berasal dari instans dalam grup pemasangan. Instans yang dipulihkan mengambil tempatnya di grup, jadi matikan instans asal cadangan itu setelahnya.',
   'settings.system.restoring': 'Memvalidasi dan menyiapkan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreKeyMissing': 'Cadangan ini dienkripsi dengan kunci aplikasi, dan instans ini tidak punya kunci. Masukkan KL_APP_KEY instans yang membuatnya di Kunci aplikasi cadangan.',

@@ -1844,6 +1844,7 @@ export const ro: Dict = {
   'settings.system.restoreConfirmTitle': 'Restaurezi dintr-un backup?',
   'settings.system.restoreConfirmBody': 'Aceasta înlocuiește tot ce are această instanță cu conținutul „{name}”. Intră în vigoare la următoarea pornire și nu poate fi anulată.',
   'settings.system.restoreKeepsLogin': 'Și parola de autentificare vine din backup, cu excepția cazului în care a fost setată sub altă cheie a aplicației. Atunci această instanță își păstrează parola, fiindcă pe cealaltă n-ar putea-o verifica niciodată. Cheile tale de acces rămân cum sunt.',
+  'settings.system.restorePairing': 'Backupul vine de la o instanță dintr-un grup de asociere. Instanța restaurată îi ia locul în grup, așa că oprește apoi instanța de la care vine backupul.',
   'settings.system.restoring': 'Se validează și se pregătește…',
   'settings.system.restoreFailed': 'Nu s-a putut restaura: {error}',
   'settings.system.restoreKeyMissing': 'Acest backup e criptat cu o cheie a aplicației, iar această instanță nu are niciuna. Introdu KL_APP_KEY al instanței care l-a făcut la „Cheia aplicației pentru backup”.',

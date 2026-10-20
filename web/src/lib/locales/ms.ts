@@ -1842,6 +1842,7 @@ export const ms: Dict = {
   'settings.system.restoreConfirmTitle': 'Pulihkan daripada sandaran?',
   'settings.system.restoreConfirmBody': 'Ini menggantikan semua yang dimiliki instans ini dengan kandungan “{name}”. Ia berkuat kuasa pada permulaan seterusnya dan tidak boleh dibatalkan.',
   'settings.system.restoreKeepsLogin': 'Kata laluan log masuk juga datang daripada sandaran, kecuali ia ditetapkan di bawah kunci aplikasi lain. Dalam hal itu instans ini mengekalkan miliknya, kerana ia tidak akan dapat menyemak yang satu lagi. Passkey kamu kekal seperti sedia ada.',
+  'settings.system.restorePairing': 'Sandaran ini datang daripada instans dalam kumpulan pasangan. Instans yang dipulihkan mengambil tempatnya dalam kumpulan, jadi matikan instans asal sandaran itu selepas itu.',
   'settings.system.restoring': 'Mengesahkan dan menyediakan…',
   'settings.system.restoreFailed': 'Tidak dapat memulihkan: {error}',
   'settings.system.restoreKeyMissing': 'Sandaran ini disulitkan dengan kunci aplikasi, dan instans ini tiada kunci. Masukkan KL_APP_KEY instans yang membuatnya di Kunci aplikasi sandaran.',

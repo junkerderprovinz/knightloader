@@ -1842,6 +1842,7 @@ export const ko: Dict = {
   'settings.system.restoreConfirmTitle': '백업에서 복원하시겠습니까?',
   'settings.system.restoreConfirmBody': '이 인스턴스가 가진 모든 것이 "{name}"의 내용으로 바뀝니다. 다음 시작 때 적용되며 되돌릴 수 없습니다.',
   'settings.system.restoreKeepsLogin': '로그인 비밀번호도 백업에서 옵니다. 다만 다른 앱 키로 설정된 경우는 예외입니다. 그때는 이 인스턴스가 그 비밀번호를 확인할 수 없으므로 자기 비밀번호를 유지합니다. 패스키는 그대로 남습니다.',
+  'settings.system.restorePairing': '이 백업은 페어링 그룹에 속한 인스턴스에서 왔습니다. 복원한 인스턴스가 그룹에서 그 자리를 이어받으므로, 이후 백업을 만든 인스턴스는 꺼 두세요.',
   'settings.system.restoring': '검증하고 준비하는 중…',
   'settings.system.restoreFailed': '복원할 수 없었습니다: {error}',
   'settings.system.restoreKeyMissing': '이 백업은 앱 키로 암호화되어 있는데 이 인스턴스에는 키가 없습니다. 백업을 만든 인스턴스의 KL_APP_KEY를 "백업의 앱 키"에 입력하세요.',

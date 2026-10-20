@@ -1843,6 +1843,7 @@ export const sk: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnoviť zo zálohy?',
   'settings.system.restoreConfirmBody': 'Tým sa všetko, čo táto inštancia má, nahradí obsahom „{name}“. Prejaví sa to pri ďalšom štarte a nedá sa to vrátiť.',
   'settings.system.restoreKeepsLogin': 'Aj prihlasovacie heslo príde zo zálohy, ak nebolo nastavené pod iným kľúčom aplikácie. Vtedy si táto inštancia ponechá svoje, lebo to druhé by nikdy nemohla overiť. Tvoje passkeys zostanú, ako sú.',
+  'settings.system.restorePairing': 'Záloha pochádza z inštancie v skupine párovania. Obnovená inštancia prevezme jej miesto v skupine, takže inštanciu, z ktorej záloha pochádza, potom vypni.',
   'settings.system.restoring': 'Overuje sa a pripravuje…',
   'settings.system.restoreFailed': 'Nepodarilo sa obnoviť: {error}',
   'settings.system.restoreKeyMissing': 'Táto záloha je zašifrovaná kľúčom aplikácie a táto inštancia žiadny nemá. Zadaj KL_APP_KEY inštancie, ktorá ju vytvorila, do poľa „Kľúč aplikácie zálohy“.',

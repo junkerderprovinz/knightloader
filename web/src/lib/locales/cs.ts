@@ -1843,6 +1843,7 @@ export const cs: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnovit ze zálohy?',
   'settings.system.restoreConfirmBody': 'Tím se vše, co tato instance má, nahradí obsahem „{name}“. Projeví se to při příštím startu a nedá se to vrátit.',
   'settings.system.restoreKeepsLogin': 'Přihlašovací heslo přijde ze zálohy také, pokud nebylo nastaveno pod jiným klíčem aplikace. Pak si tato instance ponechá své, protože to druhé by nikdy nemohla ověřit. Tvé passkeys zůstanou, jak jsou.',
+  'settings.system.restorePairing': 'Záloha pochází z instance ve skupině párování. Obnovená instance převezme její místo ve skupině, takže instanci, ze které záloha pochází, potom vypni.',
   'settings.system.restoring': 'Ověřuje se a připravuje…',
   'settings.system.restoreFailed': 'Nepodařilo se obnovit: {error}',
   'settings.system.restoreKeyMissing': 'Tato záloha je zašifrovaná klíčem aplikace a tato instance žádný nemá. Zadej KL_APP_KEY instance, která ji vytvořila, do pole „Klíč aplikace zálohy“.',

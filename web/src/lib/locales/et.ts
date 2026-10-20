@@ -1842,6 +1842,7 @@ export const et: Dict = {
   'settings.system.restoreConfirmTitle': 'Taastada varukoopiast?',
   'settings.system.restoreConfirmBody': 'See asendab kõik, mis sellel eksemplaril on, faili „{name}“ sisuga. See jõustub järgmisel käivitamisel ja seda ei saa tagasi võtta.',
   'settings.system.restoreKeepsLogin': 'Ka sisselogimisparool tuleb varukoopiast, välja arvatud juhul, kui see määrati teise rakenduse võtmega. Siis jätab see eksemplar oma parooli, sest teist ei saaks ta kunagi kontrollida. Sinu pääsuvõtmed jäävad samaks.',
+  'settings.system.restorePairing': 'Varukoopia pärineb paarisidumise grupi eksemplarist. Taastatud eksemplar võtab grupis selle koha üle, nii et lülita pärast välja eksemplar, kust varukoopia pärineb.',
   'settings.system.restoring': 'Valideerimine ja ettevalmistamine…',
   'settings.system.restoreFailed': 'Taastamine ebaõnnestus: {error}',
   'settings.system.restoreKeyMissing': 'See varukoopia on krüptitud rakenduse võtmega, aga sellel eksemplaril võtit pole. Sisesta selle eksemplari KL_APP_KEY, mis varukoopia tegi, välja „Varukoopia rakenduse võti“.',

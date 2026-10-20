@@ -1842,6 +1842,7 @@ export const tr: Dict = {
   'settings.system.restoreConfirmTitle': 'Yedekten geri yüklensin mi?',
   'settings.system.restoreConfirmBody': 'Bu, bu örneğin sahip olduğu her şeyi “{name}” içeriğiyle değiştirir. Bir sonraki başlatmada geçerli olur ve geri alınamaz.',
   'settings.system.restoreKeepsLogin': 'Giriş parolası da yedekten gelir; başka bir uygulama anahtarıyla belirlenmişse gelmez. O durumda bu örnek kendi parolasını tutar, çünkü diğerini hiçbir zaman doğrulayamaz. Geçiş anahtarların olduğu gibi kalır.',
+  'settings.system.restorePairing': 'Yedek, bir eşleştirme grubundaki bir örnekten geliyor. Geri yüklenen örnek gruptaki onun yerini alır, bu yüzden ardından yedeğin geldiği örneği kapat.',
   'settings.system.restoring': 'Doğrulanıyor ve hazırlanıyor…',
   'settings.system.restoreFailed': 'Geri yüklenemedi: {error}',
   'settings.system.restoreKeyMissing': 'Bu yedek bir uygulama anahtarıyla şifrelenmiş ve bu örneğin anahtarı yok. Yedeği oluşturan örneğin KL_APP_KEY değerini Yedeğin uygulama anahtarı alanına gir.',

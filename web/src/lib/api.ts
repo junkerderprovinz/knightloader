@@ -4078,6 +4078,15 @@ export interface RestoreResult {
   status: string;
 }
 
+/** checkRestore validates a backup without staging it. paired says whether it
+ *  comes from an instance in a pairing group, whose place the restore takes. */
+export async function checkRestore(file: File, appKey = ''): Promise<{ paired: boolean }> {
+  const body = new FormData();
+  if (appKey.trim()) body.append('appKey', appKey.trim());
+  body.append('file', file);
+  return json(await fetch('/api/system/restore/check', { method: 'POST', body }));
+}
+
 /** uploadRestore stages a backup. appKey is the KL_APP_KEY of the instance
  *  that made it, for one sealed under another key than this instance's. */
 export async function uploadRestore(file: File, appKey = ''): Promise<RestoreResult> {

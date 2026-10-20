@@ -17,10 +17,11 @@ import (
 // client that cannot send one. They keep the cross-site refusal in sameOrigin
 // and a credential of their own; the reason says which.
 var otherBodies = map[string]string{
-	"POST /api/system/restore": "a backup archive, uploaded as multipart from the web interface",
-	"POST /api/containers":     "a link container, uploaded as multipart from the web interface",
-	"POST /api/torrents/parse": "a .torrent, uploaded as multipart from the web interface",
-	"POST /api/jdimport/read":  "a JDownloader folder, uploaded as multipart from the web interface",
+	"POST /api/system/restore":       "a backup archive, uploaded as multipart from the web interface",
+	"POST /api/system/restore/check": "the same archive, checked before a restore is confirmed",
+	"POST /api/containers":           "a link container, uploaded as multipart from the web interface",
+	"POST /api/torrents/parse":       "a .torrent, uploaded as multipart from the web interface",
+	"POST /api/jdimport/read":        "a JDownloader folder, uploaded as multipart from the web interface",
 	"POST " + qbitPrefix + "{call...}": "Sonarr and Radarr post forms to the qBittorrent bridge, " +
 		"which checks its own session or API token on every call",
 	"POST " + sabnzbdPath: "Sonarr and Radarr upload an .nzb as multipart to the SABnzbd bridge, " +

@@ -1835,6 +1835,7 @@ export const it: Dict = {
   'settings.system.restoreConfirmTitle': 'Ripristinare da un backup?',
   'settings.system.restoreConfirmBody': 'Questo sostituisce tutto ciò che ha questa istanza con il contenuto di «{name}». Ha effetto al prossimo avvio e non si può annullare.',
   'settings.system.restoreKeepsLogin': 'Anche la password di accesso arriva dal backup, a meno che non sia stata impostata con un’altra chiave dell’app. In quel caso questa istanza tiene la propria, perché non potrebbe mai verificare l’altra. Le tue passkey restano come sono.',
+  'settings.system.restorePairing': 'Il backup viene da un’istanza in un gruppo di abbinamento. L’istanza ripristinata prende il suo posto nel gruppo, quindi dopo spegni l’istanza da cui viene il backup.',
   'settings.system.restoring': 'Convalida e preparazione…',
   'settings.system.restoreFailed': 'Impossibile ripristinare: {error}',
   'settings.system.restoreKeyMissing': 'Questo backup è cifrato con una chiave dell’app e questa istanza non ne ha. Inserisci il KL_APP_KEY dell’istanza che l’ha creato in «Chiave dell’app del backup».',

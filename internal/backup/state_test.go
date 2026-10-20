@@ -260,3 +260,55 @@ func rebuildWith(t *testing.T, archive []byte, name string, data []byte) []byte 
 	}
 	return out.Bytes()
 }
+
+func TestCheckSaysWhetherTheBackupCameFromAPairedInstance(t *testing.T) {
+	source, _ := liveInstance(t, "source-key", "source-password")
+	plain := archiveOfInstance(t, source)
+	for name, c := range map[string]struct {
+		group  string
+		paired bool
+	}{
+		"in a group":     {`{"joinedAt":"2026-10-01T03:00:00Z"}`, true},
+		"left its group": {`{"joinedAt":"0001-01-01T00:00:00Z"}`, false},
+		"never paired":   {"", false},
+	} {
+		t.Run(name, func(t *testing.T) {
+			archive := plain
+			if c.group != "" {
+				archive = rebuildWith(t, appendEntry(t, plain, "group.json"), "group.json", []byte(c.group))
+			}
+			_, paired, err := Check(archive, "v1.2.3")
+			if err != nil || paired != c.paired {
+				t.Errorf("Check = paired %v, %v; want %v", paired, err, c.paired)
+			}
+		})
+	}
+}
+
+// appendEntry returns archive with an empty entry called name added.
+func appendEntry(t *testing.T, archive []byte, name string) []byte {
+	t.Helper()
+	zr, err := zip.NewReader(bytes.NewReader(archive), int64(len(archive)))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var out bytes.Buffer
+	zw := zip.NewWriter(&out)
+	for _, f := range zr.File {
+		r, err := f.Open()
+		if err != nil {
+			t.Fatal(err)
+		}
+		b, err := io.ReadAll(r)
+		r.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+		mustWriteEntry(t, zw, f.Name, b)
+	}
+	mustWriteEntry(t, zw, name, nil)
+	if err := zw.Close(); err != nil {
+		t.Fatal(err)
+	}
+	return out.Bytes()
+}

@@ -1843,6 +1843,7 @@ export const hu: Dict = {
   'settings.system.restoreConfirmTitle': 'Visszaállítás biztonsági mentésből?',
   'settings.system.restoreConfirmBody': 'Ez mindent, ami ezen a példányon van, a(z) „{name}” tartalmára cserél. A következő indításkor lép életbe, és nem vonható vissza.',
   'settings.system.restoreKeepsLogin': 'A bejelentkezési jelszó is a mentésből jön, kivéve, ha másik alkalmazáskulccsal állították be. Ilyenkor ez a példány megtartja a sajátját, mert a másikat soha nem tudná ellenőrizni. A hozzáférési kulcsaid (passkeys) maradnak, ahogy vannak.',
+  'settings.system.restorePairing': 'A mentés egy párosítási csoportba tartozó példányról származik. A visszaállított példány átveszi a helyét a csoportban, ezért utána kapcsold ki azt a példányt, amelyről a mentés származik.',
   'settings.system.restoring': 'Ellenőrzés és előkészítés…',
   'settings.system.restoreFailed': 'Nem sikerült visszaállítani: {error}',
   'settings.system.restoreKeyMissing': 'Ez a mentés alkalmazáskulccsal van titkosítva, ennek a példánynak pedig nincs kulcsa. Írd be a mentést készítő példány KL_APP_KEY értékét A mentés alkalmazáskulcsa mezőbe.',

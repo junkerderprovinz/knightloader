@@ -1836,6 +1836,7 @@ export const pl: Dict = {
   'settings.system.restoreConfirmTitle': 'Przywrócić z kopii zapasowej?',
   'settings.system.restoreConfirmBody': 'To zastąpi wszystko, co ma ta instancja, zawartością „{name}”. Zadziała przy następnym uruchomieniu i nie da się tego cofnąć.',
   'settings.system.restoreKeepsLogin': 'Hasło logowania także pochodzi z kopii, chyba że ustawiono je przy innym kluczu aplikacji. Wtedy ta instancja zachowuje własne, bo tamtego nigdy nie mogłaby sprawdzić. Twoje klucze dostępu zostają bez zmian.',
+  'settings.system.restorePairing': 'Kopia pochodzi z instancji w grupie parowania. Przywrócona instancja przejmuje jej miejsce w grupie, więc potem wyłącz instancję, z której pochodzi kopia.',
   'settings.system.restoring': 'Sprawdzanie i przygotowywanie…',
   'settings.system.restoreFailed': 'Nie udało się przywrócić: {error}',
   'settings.system.restoreKeyMissing': 'Ta kopia jest zaszyfrowana kluczem aplikacji, a ta instancja go nie ma. Wpisz KL_APP_KEY instancji, która ją utworzyła, w polu „Klucz aplikacji kopii”.',

@@ -1842,6 +1842,7 @@ export const ja: Dict = {
   'settings.system.restoreConfirmTitle': 'バックアップから復元しますか?',
   'settings.system.restoreConfirmBody': 'このインスタンスが持つすべてを「{name}」の内容で置き換えます。次回の起動時に反映され、元に戻せません。',
   'settings.system.restoreKeepsLogin': 'ログインパスワードもバックアップから戻ります。ただし別のアプリキーで設定されたものは除きます。その場合、このインスタンスはそれを確認できないため、自分のパスワードを保ちます。パスキーはそのままです。',
+  'settings.system.restorePairing': 'このバックアップはペアリンググループに入っているインスタンスのものです。復元したインスタンスがグループ内でその位置を引き継ぐので、後でバックアップ元のインスタンスを停止してください。',
   'settings.system.restoring': '検証と準備をしています…',
   'settings.system.restoreFailed': '復元できませんでした: {error}',
   'settings.system.restoreKeyMissing': 'このバックアップはアプリキーで暗号化されていますが、このインスタンスにはキーがありません。作成したインスタンスの KL_APP_KEY を「バックアップのアプリキー」に入力してください。',

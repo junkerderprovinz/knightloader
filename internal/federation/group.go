@@ -94,6 +94,13 @@ const lastSeenStep = time.Minute
 // the cap the phone seen longest ago makes room.
 const maxApps = 32
 
+// GroupJoined reports whether b, a group.json read from a backup, belongs to
+// an instance that was in a group.
+func GroupJoined(b []byte) bool {
+	var st GroupState
+	return json.Unmarshal(b, &st) == nil && !st.JoinedAt.IsZero()
+}
+
 // loadGroupFile reads path. A file that is there but does not read is an
 // error rather than an empty group, which would drop every approval, removal
 // and revoked key and let in again whoever they kept out.

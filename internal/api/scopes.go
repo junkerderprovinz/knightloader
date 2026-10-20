@@ -271,6 +271,7 @@ var routeScopes = map[string]apitoken.Scope{
 	"POST /api/system/quit":          apitoken.ScopeAdmin,
 	"POST /api/system/restart":       apitoken.ScopeAdmin,
 	"POST /api/system/restore":       apitoken.ScopeAdmin,
+	"POST /api/system/restore/check": apitoken.ScopeAdmin,
 	"GET /api/system/update-check":   apitoken.ScopeAdmin,
 
 	// Asking which backends could take a selection changes nothing, POST or

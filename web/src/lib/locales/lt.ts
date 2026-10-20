@@ -1843,6 +1843,7 @@ export const lt: Dict = {
   'settings.system.restoreConfirmTitle': 'Atkurti iš atsarginės kopijos?',
   'settings.system.restoreConfirmBody': 'Tai pakeis viską, ką turi šis egzempliorius, „{name}“ turiniu. Įsigalioja kito paleidimo metu ir negali būti atšaukta.',
   'settings.system.restoreKeepsLogin': 'Prisijungimo slaptažodis taip pat ateina iš kopijos, nebent jis buvo nustatytas su kitu programos raktu. Tada šis egzempliorius pasilieka savo, nes kito niekada negalėtų patikrinti. Tavo prieigos raktai lieka tokie, kokie yra.',
+  'settings.system.restorePairing': 'Kopija yra iš egzemplioriaus, priklausančio susiejimo grupei. Atkurtas egzempliorius užima jo vietą grupėje, todėl po to išjunk egzempliorių, iš kurio kopija atėjo.',
   'settings.system.restoring': 'Tikrinama ir ruošiama…',
   'settings.system.restoreFailed': 'Nepavyko atkurti: {error}',
   'settings.system.restoreKeyMissing': 'Ši kopija užšifruota programos raktu, o šis egzempliorius jo neturi. Įvesk ją sukūrusio egzemplioriaus KL_APP_KEY lauke „Kopijos programos raktas“.',

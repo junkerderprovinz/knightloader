@@ -1843,6 +1843,7 @@ export const sv: Dict = {
   'settings.system.restoreConfirmTitle': 'Återställa från säkerhetskopia?',
   'settings.system.restoreConfirmBody': 'Det här ersätter allt den här instansen har med innehållet i ”{name}”. Det gäller från nästa start och kan inte ångras.',
   'settings.system.restoreKeepsLogin': 'Även inloggningslösenordet kommer från säkerhetskopian, om det inte sattes under en annan appnyckel. Då behåller den här instansen sitt eget, eftersom den aldrig skulle kunna kontrollera det andra. Dina passkeys förblir som de är.',
+  'settings.system.restorePairing': 'Säkerhetskopian kommer från en instans i en kopplingsgrupp. Den återställda instansen tar över dess plats i gruppen, så stäng av instansen som säkerhetskopian kom från efteråt.',
   'settings.system.restoring': 'Validerar och förbereder…',
   'settings.system.restoreFailed': 'Kunde inte återställa: {error}',
   'settings.system.restoreKeyMissing': 'Den här säkerhetskopian är krypterad med en appnyckel, och den här instansen har ingen. Skriv in KL_APP_KEY för instansen som gjorde den under Appnyckel för säkerhetskopian.',

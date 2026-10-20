@@ -1842,6 +1842,7 @@ export const fi: Dict = {
   'settings.system.restoreConfirmTitle': 'Palautetaanko varmuuskopiosta?',
   'settings.system.restoreConfirmBody': 'Tämä korvaa kaiken, mitä tällä instanssilla on, tiedoston ”{name}” sisällöllä. Muutos tulee voimaan seuraavassa käynnistyksessä, eikä sitä voi perua.',
   'settings.system.restoreKeepsLogin': 'Myös kirjautumissalasana tulee varmuuskopiosta, ellei se ole asetettu toisella sovellusavaimella. Silloin tämä instanssi pitää omansa, koska se ei voisi koskaan tarkistaa toista. Pääsyavaimesi pysyvät ennallaan.',
+  'settings.system.restorePairing': 'Varmuuskopio on pariliitosryhmään kuuluvasta instanssista. Palautettu instanssi ottaa sen paikan ryhmässä, joten sammuta sen jälkeen instanssi, josta varmuuskopio tuli.',
   'settings.system.restoring': 'Vahvistetaan ja valmistellaan…',
   'settings.system.restoreFailed': 'Palautus epäonnistui: {error}',
   'settings.system.restoreKeyMissing': 'Tämä varmuuskopio on salattu sovellusavaimella, eikä tällä instanssilla ole avainta. Kirjoita varmuuskopion tehneen instanssin KL_APP_KEY kenttään Varmuuskopion sovellusavain.',

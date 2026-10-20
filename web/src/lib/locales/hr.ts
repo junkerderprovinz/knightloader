@@ -1843,6 +1843,7 @@ export const hr: Dict = {
   'settings.system.restoreConfirmTitle': 'Vratiti iz sigurnosne kopije?',
   'settings.system.restoreConfirmBody': 'Time se sve što ova instanca ima zamjenjuje sadržajem „{name}”. Primjenjuje se pri sljedećem pokretanju i ne može se poništiti.',
   'settings.system.restoreKeepsLogin': 'I lozinka za prijavu dolazi iz kopije, osim ako je postavljena pod drugim ključem aplikacije. Tada ova instanca zadržava svoju, jer onu drugu nikad ne bi mogla provjeriti. Tvoji pristupni ključevi ostaju kakvi jesu.',
+  'settings.system.restorePairing': 'Kopija dolazi s instance u grupi uparivanja. Vraćena instanca preuzima njezino mjesto u grupi, pa nakon toga isključi instancu s koje kopija dolazi.',
   'settings.system.restoring': 'Provjera i priprema…',
   'settings.system.restoreFailed': 'Nije uspjelo vratiti: {error}',
   'settings.system.restoreKeyMissing': 'Ova je kopija šifrirana ključem aplikacije, a ova instanca ga nema. Upiši KL_APP_KEY instance koja ju je napravila u „Ključ aplikacije kopije”.',

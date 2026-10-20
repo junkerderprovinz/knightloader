@@ -1840,6 +1840,7 @@ export const zh: Dict = {
   'settings.system.restoreConfirmTitle': '从备份恢复？',
   'settings.system.restoreConfirmBody': '这会用“{name}”的内容替换这个实例的全部内容。下次启动时生效，无法撤销。',
   'settings.system.restoreKeepsLogin': '登录密码也来自备份，除非它是在另一个应用密钥下设置的。那样的话，这个实例保留自己的密码，因为它永远无法校验那个密码。你的通行密钥保持不变。',
+  'settings.system.restorePairing': '这个备份来自配对组中的一个实例。恢复后的实例会接替它在组中的位置，所以之后请关闭备份所来自的那个实例。',
   'settings.system.restoring': '正在验证并准备…',
   'settings.system.restoreFailed': '无法恢复：{error}',
   'settings.system.restoreKeyMissing': '这个备份用应用密钥加密，而这个实例没有密钥。请在“备份的应用密钥”中填入创建它的实例的 KL_APP_KEY。',

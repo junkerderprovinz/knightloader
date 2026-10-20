@@ -1843,6 +1843,7 @@ export const sl: Dict = {
   'settings.system.restoreConfirmTitle': 'Obnoviti iz varnostne kopije?',
   'settings.system.restoreConfirmBody': 'S tem se vse, kar ima ta primerek, nadomesti z vsebino »{name}«. Velja od naslednjega zagona in tega ni mogoče razveljaviti.',
   'settings.system.restoreKeepsLogin': 'Tudi geslo za prijavo pride iz kopije, razen če je bilo nastavljeno pod drugim ključem aplikacije. Takrat ta primerek obdrži svoje, ker drugega ne bi mogel nikoli preveriti. Tvoji ključi za dostop ostanejo, kot so.',
+  'settings.system.restorePairing': 'Kopija je s primerka v skupini za seznanjanje. Obnovljeni primerek prevzame njegovo mesto v skupini, zato potem izklopi primerek, s katerega je kopija.',
   'settings.system.restoring': 'Preverjanje in priprava…',
   'settings.system.restoreFailed': 'Ni bilo mogoče obnoviti: {error}',
   'settings.system.restoreKeyMissing': 'Ta kopija je šifrirana s ključem aplikacije, ta primerek pa ga nima. Vnesi KL_APP_KEY primerka, ki jo je naredil, v polje »Ključ aplikacije kopije«.',

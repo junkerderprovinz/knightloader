@@ -1844,6 +1844,7 @@ export const he: Dict = {
   'settings.system.restoreConfirmTitle': 'לשחזר מגיבוי?',
   'settings.system.restoreConfirmBody': 'פעולה זו מחליפה את כל מה שיש במופע הזה בתוכן של „{name}”. היא נכנסת לתוקף בהפעלה הבאה ואי אפשר לבטל אותה.',
   'settings.system.restoreKeepsLogin': 'גם סיסמת הכניסה מגיעה מהגיבוי, אלא אם הוגדרה תחת מפתח יישום אחר. אז המופע הזה שומר את שלו, כי לעולם לא יוכל לבדוק את האחרת. מפתחות הגישה שלך נשארים כפי שהם.',
+  'settings.system.restorePairing': 'הגיבוי מגיע ממופע בקבוצת צימוד. המופע המשוחזר תופס את מקומו בקבוצה, אז כבה אחר כך את המופע שממנו הגיע הגיבוי.',
   'settings.system.restoring': 'מאמת ומכין…',
   'settings.system.restoreFailed': 'לא ניתן היה לשחזר: {error}',
   'settings.system.restoreKeyMissing': 'הגיבוי הזה מוצפן במפתח יישום, ולמופע הזה אין מפתח. הזן את ה־KL_APP_KEY של המופע שיצר אותו ב„מפתח היישום של הגיבוי”.',
