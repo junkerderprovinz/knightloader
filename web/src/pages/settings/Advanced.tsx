@@ -17,7 +17,6 @@ import { MaintenanceCard } from './advanced/Maintenance';
 import { ScrapeCard } from './advanced/Scrape';
 import { SearchToggle } from '../../components/SearchToggle';
 import { IconRefresh } from '../../lib/icons';
-import { PATH_KEYS } from '../../lib/settingsTransfer';
 import { COLLISION_LABEL, DISPOSAL_LABEL } from './Archives';
 import { CONFIRM_LABEL } from './collector/Collector';
 import { useDraft, useFieldError } from './context';
@@ -25,6 +24,9 @@ import { NeutralSwitch, SettingRow, SubCard } from './controls';
 import { fetchSettingsSchema, type SettingsSchema } from './features';
 import { getPath, rowsFor, same, setPath, type Row, type ValueKind } from './paths';
 import { label, useTx, type ChoicePrefix } from './tx';
+
+/** The settings whose value is a folder, edited with the folder chooser. */
+const PATH_KEYS = ['downloadDir', 'workDir', 'watchDir', 'extractTo', 'extractMoveTo', 'backupDir'];
 
 /**
  * Advanced holds what somebody who runs the instance looks after: the retry

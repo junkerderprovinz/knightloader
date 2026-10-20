@@ -1,31 +1,16 @@
 import { useRef, useState } from 'react';
-import { Button, Card, Modal, SectionTitle, ToggleRow } from '../../../components/ui';
+import { Button, Card, Modal, SectionTitle } from '../../../components/ui';
 import { IconClose, IconDownload, IconUpload } from '../../../lib/icons';
 import { useT } from '../../../lib/i18n';
-import {
-  ApiError,
-  BACKUP_DOWNLOAD_URL,
-  importSettings,
-  settingsExportURL,
-  uploadRestore,
-  type SettingsExportDoc,
-  type Settings,
-} from '../../../lib/api';
+import { ApiError, BACKUP_DOWNLOAD_URL, uploadRestore } from '../../../lib/api';
 import { useToast } from '../../../lib/toast';
 import { withBase } from '../../../lib/basePath';
 import { passwordPath, usePasswordFirst } from '../../../lib/passwordFirst';
-import { backupKind, diffRows, parseExport, type TransferRow } from '../../../lib/settingsTransfer';
-import { fetchSettingsSchema } from '../features';
-import { useDraft } from '../context';
 import { AutoBackupSection } from './AutoBackups';
-import { SettingsImportPreview } from './SettingsImportPreview';
 
 /**
- * SettingsTransfer saves this box and puts a saved one back. One download
- * button makes either the archive of the whole install, restored wholesale at
- * the next start, or with the list switch off only settings.json, offered key
- * by key and applied through app.PatchSettings without a restart. One upload
- * button takes both and tells them apart by their first bytes. Neither carries
+ * SettingsTransfer saves this box and puts a saved one back: one archive of
+ * the whole install, restored wholesale at the next start. It does not carry
  * the logins, header profiles, captcha keys, login password or user scripts,
  * which live outside settings.json; the title's (i) says so. A restore that
  * restarts the server reports through `onShutdown`.
@@ -33,7 +18,6 @@ import { SettingsImportPreview } from './SettingsImportPreview';
 export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown: () => void }) {
   const { t } = useT();
   const { toast } = useToast();
-  const draft = useDraft();
 
   const fileInput = useRef<HTMLInputElement>(null);
   const [pendingFile, setPendingFile] = useState<File | null>(null);
@@ -41,27 +25,11 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
   const [restoreStatus, setRestoreStatus] = useState('');
   // The failure counter of the confirm button, so a repeated refusal shakes it again.
   const [restoreShake, setRestoreShake] = useState(0);
-  // Upload pulses once a restore is staged or settings are taken over, and
-  // shakes on a settings file it cannot read.
+  // Upload pulses once a restore is staged.
   const [restored, setRestored] = useState(0);
-  const [imported, setImported] = useState(0);
-  const [importShake, setImportShake] = useState(0);
-
-  // On by default: what somebody saving their box wants is all of it.
-  const [withList, setWithList] = useState(true);
-  // Off by default: a settings export is a file people send, and a missing
-  // password after import is visible and easy to fix.
-  const [withSecrets, setWithSecrets] = useState(false);
-  // The archive and a settings file with passwords carry every stored
-  // password, which the server keeps back until a login password is set.
+  // A backup carries every stored password, which the server keeps back until
+  // a login password is set.
   const locked = usePasswordFirst();
-
-  const [pending, setPending] = useState<{ doc: SettingsExportDoc; rows: TransferRow[] } | null>(null);
-  const [busy, setBusy] = useState(false);
-  const [previewError, setPreviewError] = useState('');
-  // What was taken over, which passwords are missing and which rules cannot fire.
-  const [notice, setNotice] = useState<string[]>([]);
-  const [failure, setFailure] = useState('');
 
   async function confirmRestore() {
     if (!pendingFile) return;
@@ -85,68 +53,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
     }
   }
 
-  async function upload(file: File) {
-    if (backupKind(await file.slice(0, 64).text()) === 'archive') setPendingFile(file);
-    else await choose(file);
-  }
-
-  async function choose(file: File) {
-    setNotice([]);
-    setFailure('');
-    setPreviewError('');
-    try {
-      const doc = parseExport(await file.text());
-      // The server's type table decides which keys are unknown, by the import
-      // route's own rule.
-      const schema = await fetchSettingsSchema();
-      const stored = draft.cfg as unknown as Record<string, unknown>;
-      setPending({ doc, rows: diffRows(doc, stored, schema) });
-    } catch (e) {
-      setFailure(t('settings.transfer.parseFailed', { reason: reasonOf(e) }));
-      setImportShake((n) => n + 1);
-    }
-  }
-
-  async function apply(keys: string[]) {
-    if (!pending) return;
-    setBusy(true);
-    setPreviewError('');
-    try {
-      const res = await importSettings(pending.doc, keys);
-      // Folded into both of the shell's copies, or the next autosave would send
-      // the pre-import values back.
-      draft.reseed(res.settings as Settings, res.applied);
-
-      const lines = [t('settings.transfer.applied', { n: res.applied.length })];
-      if (res.incomplete.length > 0) {
-        lines.push(
-          t('settings.transfer.incomplete', {
-            fields: res.incomplete.map((code) => t(INCOMPLETE_LABEL[code] ?? 'settings.transfer.noPassword')).join(', '),
-          }),
-        );
-      }
-      if (res.ruleProblems > 0) lines.push(t('settings.transfer.rulesUncompiled', { n: res.ruleProblems }));
-      setNotice(lines);
-      setPending(null);
-      setImported((n) => n + 1);
-    } catch (e) {
-      // The server's refusal names the failed check. Only the version guard is
-      // translated, because it tells the reader what to do.
-      if (e instanceof ApiError && e.code === 'transfer.tooNew') {
-        setPreviewError(
-          t('settings.transfer.tooNew', {
-            version: String(e.params?.version ?? ''),
-            running: String(e.params?.running ?? ''),
-          }),
-        );
-      } else {
-        setPreviewError(t('settings.transfer.applyFailed', { error: reasonOf(e) }));
-      }
-    } finally {
-      setBusy(false);
-    }
-  }
-
   return (
     <Card hue={hue} className="flex flex-col gap-4">
       <SectionTitle hint={t('settings.transfer.cardHint')}>{t('settings.transfer.cardTitle')}</SectionTitle>
@@ -154,45 +60,24 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       <input
         ref={fileInput}
         type="file"
-        accept="application/zip,.zip,.sealed,application/json,.json"
+        accept="application/zip,.zip,.sealed"
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
           // Cleared so picking the same file again fires a change event.
           e.target.value = '';
-          if (f) void upload(f);
+          if (f) setPendingFile(f);
         }}
       />
-
-      <ToggleRow
-        hue={hue}
-        label={t('settings.transfer.withList')}
-        hint={t('settings.transfer.withListHint')}
-        checked={withList}
-        onChange={setWithList}
-      />
-      {/* The archive always carries the passwords, so the choice is the settings file's alone. */}
-      {!withList && (
-        <ToggleRow
-          hue={hue}
-          label={t('settings.transfer.withSecrets')}
-          hint={t('settings.transfer.withSecretsHint')}
-          checked={withSecrets && !locked}
-          onChange={setWithSecrets}
-          disabled={locked}
-        />
-      )}
 
       <div className="flex flex-wrap items-center gap-3">
         <Button
           kind="secondary"
           icon={<IconDownload width={16} height={16} />}
-          disabled={withList && locked}
+          disabled={locked}
           onClick={() => {
             // Opened rather than fetched, so the browser owns the save dialog.
-            window.location.href = withList
-              ? withBase(BACKUP_DOWNLOAD_URL)
-              : settingsExportURL(withSecrets && !locked);
+            window.location.href = withBase(BACKUP_DOWNLOAD_URL);
           }}
         >
           {t('settings.system.backupButton')}
@@ -201,9 +86,8 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
           kind="secondary"
           icon={<IconUpload width={16} height={16} />}
           onClick={() => fileInput.current?.click()}
-          disabled={restoring || busy}
-          shake={importShake}
-          confirm={restored + imported}
+          disabled={restoring}
+          confirm={restored}
         >
           {t('settings.system.restoreButton')}
         </Button>
@@ -212,12 +96,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       {restoreStatus && (
         <span className="text-sm text-statusOk">{t('settings.system.restoreStaged', { status: restoreStatus })}</span>
       )}
-      {failure && <span className="text-sm text-statusFail">{failure}</span>}
-      {notice.map((line, i) => (
-        <span key={i} className={i === 0 ? 'text-sm text-statusOk' : 'text-sm text-statusWarn'}>
-          {line}
-        </span>
-      ))}
       {locked && (
         <span className="text-sm text-carbon-textSub">
           {t('settings.transfer.needsPassword', { path: passwordPath(t) })}
@@ -225,21 +103,6 @@ export function SettingsTransfer({ hue, onShutdown }: { hue: number; onShutdown:
       )}
 
       <AutoBackupSection hue={hue} locked={locked} />
-
-      {pending && (
-        <SettingsImportPreview
-          doc={pending.doc}
-          rows={pending.rows}
-          busy={busy}
-          error={previewError}
-          onApply={(keys) => void apply(keys)}
-          onClose={() => {
-            if (busy) return;
-            setPending(null);
-            setPreviewError('');
-          }}
-        />
-      )}
 
       {pendingFile && (
         <Modal
@@ -284,29 +147,3 @@ const RESTORE_REFUSAL: Record<
   'restore.appKeyWrong': 'settings.system.restoreKeyWrong',
   'restore.newerSchema': 'settings.system.restoreNewerSchema',
 };
-
-/**
- * Labels for the incomplete-row codes the server sends. An unknown code falls
- * back to the generic "arrives without its password".
- */
-const INCOMPLETE_LABEL: Record<
-  string,
-  | 'settings.transfer.incompleteReconnect'
-  | 'settings.transfer.incompleteConnections'
-  | 'settings.transfer.incompleteArchives'
-  | 'settings.transfer.incompleteEventPrograms'
-  | 'settings.transfer.incompleteQBittorrent'
-  | 'settings.transfer.incompleteUsenet'
-> = {
-  'reconnect.password': 'settings.transfer.incompleteReconnect',
-  'connections.password': 'settings.transfer.incompleteConnections',
-  archivePasswords: 'settings.transfer.incompleteArchives',
-  'eventPrograms.command': 'settings.transfer.incompleteEventPrograms',
-  'torrent.qbittorrent.password': 'settings.transfer.incompleteQBittorrent',
-  'usenetServers.login': 'settings.transfer.incompleteUsenet',
-};
-
-/** reasonOf strips the class name a stringified Error puts in front. */
-function reasonOf(e: unknown): string {
-  return String(e).replace(/^(Error|ApiError|SyntaxError):\s*/, '');
-}

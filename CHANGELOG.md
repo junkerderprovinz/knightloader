@@ -62,11 +62,10 @@ Firefox Add-ons and the app to Google Play, each only when it changed.
 
 ### Changed
 
-- **One backup button instead of two sections.** Download backup saves the
-  whole install, download list and history included. Switch off Take the
-  download list and history along and it saves only the settings, with stored
-  passwords if you want them. Upload backup takes either file and says what it
-  replaces before anything changes.
+- **One backup button.** Download backup always saves everything: the
+  download list, the history and the settings with their passwords. The
+  separate settings export and its import are gone, and Upload backup takes
+  the full backup and says what it replaces before anything changes.
 
 ### Fixed
 

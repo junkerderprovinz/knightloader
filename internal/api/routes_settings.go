@@ -211,6 +211,19 @@ func writeValidationError(w http.ResponseWriter, err error) {
 	_ = json.NewEncoder(w).Encode(out)
 }
 
+// knownSettingsKeys is every top-level JSON key of this build's Settings. It
+// comes from settingsKinds, the table GET /api/settings/defaults serves, rather
+// than from marshalling, where omitempty would hide the empty keys. That table
+// is keyed by dotted leaf path, so each path is cut at the first dot.
+func knownSettingsKeys() map[string]bool {
+	out := map[string]bool{}
+	for path := range settingsKinds() {
+		head, _, _ := strings.Cut(path, ".")
+		out[head] = true
+	}
+	return out
+}
+
 // canonicalKeys spells every key of a patch the way the settings document
 // does. encoding/json matches a field name whatever its case, so "downloaddir"
 // would change the download folder while every check here, which looks a key

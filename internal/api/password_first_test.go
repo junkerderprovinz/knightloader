@@ -34,8 +34,8 @@ func sendJSON(t *testing.T, c *http.Client, method, url string, body any) (int, 
 
 // TestWithoutAPasswordNoStoredPasswordsOrFilesGo: an instance without a
 // password answers whoever reaches its port. The task list and the twelve
-// words are open to them, but the passwords in a backup or an export and
-// files that cannot come back wait until a password is set.
+// words are open to them, but the passwords in a backup and files that
+// cannot come back wait until a password is set.
 func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	requireContainerDeployment(t)
 	srv, a := testServer(t)
@@ -66,7 +66,6 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
 		{http.MethodGet, "/api/system/backups/knightloader-auto-20261001-030000.zip", nil},
-		{http.MethodGet, "/api/settings/export?secrets=include", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + task.ID + "?files=1", nil},
 		{http.MethodPost, "/api/cleanup/offline", cleanup(c)},
@@ -81,9 +80,6 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 	}
 
 	// What gives nothing away and takes nothing for good stays open.
-	if code, _, _ := sendJSON(t, c, http.MethodGet, srv.URL+"/api/settings/export", nil); code != http.StatusOK {
-		t.Errorf("an export without passwords answered %d, want 200", code)
-	}
 	var shown struct{ Phrase string }
 	code, _, body := sendJSON(t, c, http.MethodPost, srv.URL+"/api/connect/reveal", nil)
 	if err := json.Unmarshal(body, &shown); code != http.StatusOK || err != nil || shown.Phrase == "" {
@@ -104,7 +100,6 @@ func TestWithoutAPasswordNoStoredPasswordsOrFilesGo(t *testing.T) {
 		body         any
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
-		{http.MethodGet, "/api/settings/export?secrets=include", nil},
 		{http.MethodPost, "/api/connect/reveal", map[string]string{"password": password}},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{stage(t, a, "https://host.example/two.bin")[0].ID}, "files": true}},
 		{http.MethodDelete, "/api/tasks/" + stage(t, a, "https://host.example/three.bin")[0].ID + "?files=1", nil},
@@ -131,7 +126,6 @@ func TestTheDesktopNeedsNoPasswordForItsOwnWindow(t *testing.T) {
 		body         any
 	}{
 		{http.MethodGet, "/api/system/backup", nil},
-		{http.MethodGet, "/api/settings/export?secrets=include", nil},
 		{http.MethodPost, "/api/tasks/delete", map[string]any{"ids": []string{task.ID}, "files": true}},
 	} {
 		if code, _, body := sendJSON(t, http.DefaultClient, r.method, srv.URL+r.path, r.body); code >= 300 {

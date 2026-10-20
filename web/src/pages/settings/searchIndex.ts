@@ -292,8 +292,6 @@ export const SETTINGS_INDEX: Record<string, SettingsCard[]> = {
       title: 'settings.transfer.cardTitle',
       hint: 'settings.transfer.cardHint',
       rows: [
-        { key: 'settings.transfer.withList', hint: 'settings.transfer.withListHint' },
-        { key: 'settings.transfer.withSecrets', hint: 'settings.transfer.withSecretsHint' },
         { key: 'settings.autoBackup.title', hint: 'settings.autoBackup.titleHint' },
         { key: 'settings.autoBackup.interval', hint: 'settings.autoBackup.intervalHint' },
         { key: 'settings.autoBackup.keep', hint: 'settings.autoBackup.keepHint' },
