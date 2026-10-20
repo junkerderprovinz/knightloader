@@ -1,1 +1,0 @@
-Nothing new on your phone again. The server stopped dawdling at the finish line and finds its own way around a fresh Docker host. The app just tags along.

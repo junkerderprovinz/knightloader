@@ -1,1 +1,0 @@
-Das Handy bekommt eine neue Nummer und sonst nichts. Der Server hat dafür aufgeräumt: JDownloader aktualisiert sich selbst, sobald gerade nichts lädt, und die Logos verstecken sich nicht mehr in ihrer eigenen Farbe.

@@ -1,1 +1,0 @@
-Your phone gets a new number and nothing else. The server tidied up instead: JDownloader updates itself whenever nothing is downloading, and the logos stopped hiding in their own colours.
