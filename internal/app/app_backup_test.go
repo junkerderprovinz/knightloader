@@ -37,10 +37,7 @@ func sweepBackup(t *testing.T, a *App) AutoBackupState {
 	a.runAutoBackupIfDue()
 	deadline := time.Now().Add(30 * time.Second)
 	for {
-		st, err := a.AutoBackupState()
-		if err != nil {
-			t.Fatal(err)
-		}
+		st := a.AutoBackupState()
 		if !st.Running {
 			return st
 		}
