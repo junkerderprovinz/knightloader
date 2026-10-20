@@ -4078,9 +4078,17 @@ export interface RestoreResult {
   status: string;
 }
 
-/** checkRestore validates a backup without staging it. paired says whether it
- *  comes from an instance in a pairing group, whose place the restore takes. */
-export async function checkRestore(file: File, appKey = ''): Promise<{ paired: boolean }> {
+/** What checkRestore finds in a backup before it is restored. */
+export interface RestoreReport {
+  /** Whether it comes from an instance in a pairing group, whose place the restore takes. */
+  paired: boolean;
+  /** restored: the backup's login password takes over. kept: this instance keeps
+   *  its own. none: the instance has no login password after the restore. */
+  login: 'restored' | 'kept' | 'none';
+}
+
+/** checkRestore validates a backup without staging it. */
+export async function checkRestore(file: File, appKey = ''): Promise<RestoreReport> {
   const body = new FormData();
   if (appKey.trim()) body.append('appKey', appKey.trim());
   body.append('file', file);
