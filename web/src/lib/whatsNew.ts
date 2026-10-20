@@ -666,9 +666,8 @@ function takeOver(old: OneRelease): NewsRecord {
 
 /**
  * recordFor is what to keep for the running version given what was kept last.
- * The same version keeps its record. After an update every change of a release
- * newer than the one left is new, what was seen of the releases before stays,
- * and the window is still to open. Nothing kept is a first install, which
+ * The same version keeps its record. After an update every change not seen yet
+ * is new, what was seen stays, and the window is still to open. Nothing kept is a first install, which
  * marks nothing, unless `settled` says the instance was in use before it kept
  * such a record.
  */
@@ -678,10 +677,9 @@ export function recordFor(stored: unknown, running: string, settled: boolean): N
   if (kept && kept.version === running) return kept;
   if (!kept && !settled) return { version: running, from: '', seen: CHANGES.map((c) => c.id), notes: true };
   const from = kept ? releaseOf(kept.version) : '';
-  // A build without a release number says nothing about what came after it,
-  // so what was seen there stays as it was.
-  const before = new Set(CHANGES.filter((c) => from === '' || !newer(c.since, from)).map((c) => c.id));
-  return { version: running, from, seen: (kept?.seen ?? []).filter((id) => before.has(id)), notes: false };
+  // A change seen once stays seen, also when the patch release it came with
+  // was folded into a later one and its change moved there.
+  return { version: running, from, seen: kept?.seen ?? [], notes: false };
 }
 
 /** changesOf is every change up to the running release; a build without a release number has them all. */
